@@ -878,7 +878,7 @@ class RefIdentifierField extends StatelessWidget {
         autofillHints: numberOnly ? const [AutofillHints.username] : const [AutofillHints.username, AutofillHints.email],
         validator: validator ?? (allowStudentNumber ? validateIdentifier : validateRegisterEmail),
         onSubmitted: onSubmitted,
-        suffixChip: allowStudentNumber && isStudentNumberInput(value.text) ? '@$kEmailDomain' : null,
+        suffixChip: numberOnly || (allowStudentNumber && isStudentNumberInput(value.text)) ? '@$kEmailDomain' : null,
       ),
     );
   }

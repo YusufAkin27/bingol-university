@@ -135,6 +135,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 // Giriş ile aynı alan: okul numarası (iri rakamlar, rakam klavyesi, @bingol.edu.tr soneki).
                 LoginNumberField(
                   controller: _email,
+                  boxed: true,
                   enabled: !_busy,
                   textInputAction: TextInputAction.done,
                   onSubmitted: _sendCode,

@@ -43,18 +43,19 @@ void main() {
             });
           await tester.pumpWidget(buildApp(home(b), brightness: dark ? Brightness.dark : Brightness.light));
           await settle(tester, const Duration(seconds: 2));
-          // Stitch v3: logo karosu/uygulama adı/avatar yok; selamlama + kalem + zil.
+          // Branded header, one shortcut group, then the campus map.
           expect(find.text('BÜ Kampüs'), findsOneWidget);
           expect(find.text('Bağımsız öğrenci uygulaması'), findsNothing);
           expect(find.textContaining('Ayşe'), findsOneWidget);
           expect(find.byTooltip('Ana sayfayı düzenle'), findsOneWidget);
           expect(find.text('Hızlı erişim'), findsOneWidget);
-          expect(find.text('Yemek Menüsü'), findsOneWidget);
           expect(find.text('Etkinlikler'), findsOneWidget);
           expect(find.text('Anketler'), findsOneWidget);
-          expect(find.text('Kulüpler'), findsOneWidget); // Kulüpler alt gezinmede zaten var (bu testte kabuk yok)
+          expect(find.text('Kampüs Haritası'), findsOneWidget);
           expect(find.bySemanticsLabel('Program'), findsOneWidget);
           // "Bugün" yüzeyi: öğle yemeği satırı (ilk iki yemek + "+N"); kırmızı dolu vitrin ve fotoğraf yok.
+          await tester.scrollUntilVisible(find.text('Bugün kampüste'), 250,
+              scrollable: find.byType(Scrollable).first);
           expect(find.text('Bugün kampüste'), findsOneWidget);
           expect(find.text('Öğle yemeği'), findsOneWidget);
           expect(find.textContaining('Mercimek çorbası, Orman kebabı +2'), findsOneWidget);
@@ -95,6 +96,9 @@ void main() {
     await tester.pumpWidget(buildApp(home(b)));
     await settle(tester, const Duration(seconds: 2));
     await tester.scrollUntilVisible(find.text('Öne çıkan haberler'), 300, scrollable: find.byType(Scrollable).first);
+    await tester.ensureVisible(find.text('Tümü').first);
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -200));
+    await settle(tester, const Duration(milliseconds: 500));
     await tester.tap(find.text('Tümü').first);
     await settle(tester, const Duration(milliseconds: 600));
     expect(find.byType(NewsListPage), findsOneWidget);

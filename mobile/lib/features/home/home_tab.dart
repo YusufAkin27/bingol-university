@@ -10,6 +10,8 @@ import '../../widgets/common.dart';
 import '../academic/academic_api.dart';
 import '../academic/academic_hub_page.dart';
 import '../academic/academic_models.dart';
+import '../campus_map/campus_home_card.dart';
+import '../campus_map/campus_nav.dart';
 import '../events/event_detail_page.dart';
 import '../events/events_page.dart';
 import '../menu/menu_models.dart';
@@ -17,7 +19,8 @@ import '../menu/menu_page.dart';
 import '../menu/menu_parts.dart' show menuDishTitle;
 import '../news/news_detail_page.dart';
 import '../news/news_list_page.dart';
-import '../news/news_tile.dart' show newsLocalDate, newsMonthName, newsWeekdayName;
+import '../news/news_tile.dart'
+    show newsLocalDate, newsMonthName, newsWeekdayName;
 import '../notifications/notifications_page.dart';
 import '../polls/poll_routes.dart';
 import '../profile/saved_news_page.dart';
@@ -59,7 +62,8 @@ class _HomeTabState extends State<HomeTab> {
   Map<String, dynamic>? _info;
   Map<String, dynamic>? _today;
   Map<String, dynamic>? _event;
-  bool _eventFailed = false; // öne çıkan etkinlik yüklenemedi: bölüm içi "Tekrar dene"
+  bool _eventFailed =
+      false; // öne çıkan etkinlik yüklenemedi: bölüm içi "Tekrar dene"
   bool _eventRetrying = false;
 
   // İlk boyama için gerekmeyen bölümler görünür olunca yüklenir (gizli bölümün verisi hiç istenmez).
@@ -76,7 +80,8 @@ class _HomeTabState extends State<HomeTab> {
   List<Exam> _exams = const [];
 
   /// Kullanıcıya özel yerel düzen (bölüm sırası/görünürlüğü + Hızlı Erişim kısayolları).
-  late final HomeLayoutController _layout = HomeLayoutController(uid: widget.session.userId);
+  late final HomeLayoutController _layout =
+      HomeLayoutController(uid: widget.session.userId);
 
   bool _loading = true;
   Object? _error;
@@ -114,7 +119,8 @@ class _HomeTabState extends State<HomeTab> {
 
   void _ensureSectionData() {
     final v = _layout.value;
-    if (v.isVisible(HomeSection.upcomingEvents) && !_eventRequested) unawaited(_loadFeaturedSafe());
+    if (v.isVisible(HomeSection.upcomingEvents) && !_eventRequested)
+      unawaited(_loadFeaturedSafe());
   }
 
   void _apply(int gen, VoidCallback f) {
@@ -157,7 +163,8 @@ class _HomeTabState extends State<HomeTab> {
         final r = await api.get('/me/summary');
         if (r is! Map<String, dynamic>) return;
         // Çan ve alt gezinme rozetlerini tek kaynaktan eşitle.
-        _s.badges.notifications.value = (r['unreadNotifications'] as num?)?.toInt() ?? 0;
+        _s.badges.notifications.value =
+            (r['unreadNotifications'] as num?)?.toInt() ?? 0;
         _s.badges.chat.value = (r['unreadMessages'] as num?)?.toInt() ?? 0;
       }),
       if (wantEvent)
@@ -217,7 +224,10 @@ class _HomeTabState extends State<HomeTab> {
     final api = AcademicApi(_s);
     final results = await Future.wait([
       api.timetable().then<Object?>((v) => v).catchError((Object _) => null),
-      api.upcomingExams(days: 30).then<Object?>((v) => v).catchError((Object _) => null),
+      api
+          .upcomingExams(days: 30)
+          .then<Object?>((v) => v)
+          .catchError((Object _) => null),
     ]);
     if (!mounted) return;
     setState(() {
@@ -251,7 +261,9 @@ class _HomeTabState extends State<HomeTab> {
     });
     try {
       final size = type == _newsFeedHaber ? 5 : 3;
-      final r = await _s.api.get('/news?type=$type&page=0&size=$size', force: _force) as Map<String, dynamic>;
+      final r =
+          await _s.api.get('/news?type=$type&page=0&size=$size', force: _force)
+              as Map<String, dynamic>;
       final l = List<Map<String, dynamic>>.from(r['items'] as List);
       _apply(gen, () => f.items = l);
     } catch (_) {
@@ -264,8 +276,10 @@ class _HomeTabState extends State<HomeTab> {
   Future<void> _loadStatus() async {
     final gen = _gen;
     try {
-      final st = await _s.api.get('/status', force: _force) as Map<String, dynamic>;
-      final stale = (st['NEWS'] as Map?)?['maintenance'] == true || (st['MENU'] as Map?)?['maintenance'] == true;
+      final st =
+          await _s.api.get('/status', force: _force) as Map<String, dynamic>;
+      final stale = (st['NEWS'] as Map?)?['maintenance'] == true ||
+          (st['MENU'] as Map?)?['maintenance'] == true;
       _apply(gen, () => _newsStale = stale);
     } catch (_) {}
   }
@@ -290,7 +304,8 @@ class _HomeTabState extends State<HomeTab> {
     }
   }
 
-  void _push(Widget page) => Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+  void _push(Widget page) =>
+      Navigator.push(context, MaterialPageRoute(builder: (_) => page));
 
   String _greeting(BuildContext context) {
     final l = context.l10n;
@@ -364,22 +379,38 @@ class _HomeTabState extends State<HomeTab> {
     if (tt == null) return const [];
     final w = _wallNow;
     final today = DateTime.utc(w.year, w.month, w.day);
-    return slotsForDay(tt.courses, tt.semester, today, nowWall: w).where((e) => e.status != SlotStatus.past).take(3).toList();
+    return slotsForDay(tt.courses, tt.semester, today, nowWall: w)
+        .where((e) => e.status != SlotStatus.past)
+        .take(3)
+        .toList();
   }
 
-  List<({String label, String value, VoidCallback onTap, bool muted})> _todayRows(BuildContext context) {
+  List<({String label, String value, VoidCallback onTap, bool muted})>
+      _todayRows(BuildContext context) {
     final l = context.l10n;
-    final rows = <({String label, String value, VoidCallback onTap, bool muted})>[];
+    final rows =
+        <({String label, String value, VoidCallback onTap, bool muted})>[];
     // Öğle yemeği: ilk iki yemek + "+N" + toplam kcal; liste yoksa soluk tek cümle.
     final day = _today == null ? const MenuDay() : MenuDay.fromJson(_today!);
     final names = [for (final d in _dishes(day)) d.name];
     if (names.isEmpty) {
-      rows.add((label: l.yemekLunch, value: l.homeNoMenuToday, onTap: () => _push(MenuPage(session: _s)), muted: true));
+      rows.add((
+        label: l.yemekLunch,
+        value: l.homeNoMenuToday,
+        onTap: () => _push(MenuPage(session: _s)),
+        muted: true
+      ));
     } else {
       final extra = names.length - 2;
       final kcal = day.totalKcal;
-      final value = '${names.take(2).join(', ')}${extra > 0 ? ' +$extra' : ''}${kcal != null ? ' · ${day.kcalComplete ? l.p03MenuKcal('$kcal') : l.p03MenuAtLeast('$kcal')}' : ''}';
-      rows.add((label: l.yemekLunch, value: value, onTap: () => _push(MenuPage(session: _s)), muted: false));
+      final value =
+          '${names.take(2).join(', ')}${extra > 0 ? ' +$extra' : ''}${kcal != null ? ' · ${day.kcalComplete ? l.p03MenuKcal('$kcal') : l.p03MenuAtLeast('$kcal')}' : ''}';
+      rows.add((
+        label: l.yemekLunch,
+        value: value,
+        onTap: () => _push(MenuPage(session: _s)),
+        muted: false
+      ));
     }
     // Sıradaki ders (akademik veri yoksa satır gizlenir).
     final tt = _timetable;
@@ -388,12 +419,17 @@ class _HomeTabState extends State<HomeTab> {
       if (n != null) {
         final s = n.slot;
         final w = _wallNow;
-        final isToday = s.date.year == w.year && s.date.month == w.month && s.date.day == w.day;
-        final prefix = isToday ? '' : '${newsWeekdayName(context, s.date.weekday, short: true)} ';
+        final isToday = s.date.year == w.year &&
+            s.date.month == w.month &&
+            s.date.day == w.day;
+        final prefix = isToday
+            ? ''
+            : '${newsWeekdayName(context, s.date.weekday, short: true)} ';
         final room = s.session.room;
         rows.add((
           label: l.p60NextClass,
-          value: '$prefix${s.session.start} ${s.course.name}${room != null && room.trim().isNotEmpty ? ' · ${room.trim()}' : ''}',
+          value:
+              '$prefix${s.session.start} ${s.course.name}${room != null && room.trim().isNotEmpty ? ' · ${room.trim()}' : ''}',
           onTap: () => _push(AcademicHubPage(session: _s)),
           muted: false,
         ));
@@ -401,48 +437,82 @@ class _HomeTabState extends State<HomeTab> {
     }
     // Yaklaşan sınav.
     final now = academicClock();
-    final ex = [for (final e in _exams) if (!e.startsAt.isBefore(now)) e]..sort((a, b) => a.startsAt.compareTo(b.startsAt));
+    final ex = [
+      for (final e in _exams)
+        if (!e.startsAt.isBefore(now)) e
+    ]..sort((a, b) => a.startsAt.compareTo(b.startsAt));
     if (ex.isNotEmpty) {
       final e = ex.first;
       final w = istanbulWall(e.startsAt);
-      final name = (e.courseName ?? '').trim().isNotEmpty ? e.courseName!.trim() : e.title;
-      rows.add((label: l.p60UpcomingExam, value: '${w.day} ${newsMonthName(context, w.month)} · $name', onTap: () => _push(AcademicHubPage(session: _s)), muted: false));
+      final name = (e.courseName ?? '').trim().isNotEmpty
+          ? e.courseName!.trim()
+          : e.title;
+      rows.add((
+        label: l.p60UpcomingExam,
+        value: '${w.day} ${newsMonthName(context, w.month)} · $name',
+        onTap: () => _push(AcademicHubPage(session: _s)),
+        muted: false
+      ));
     }
-    rows.sort((a, b) => (a.label == l.p60NextClass ? 0 : a.label == l.yemekLunch ? 1 : 2).compareTo(b.label == l.p60NextClass ? 0 : b.label == l.yemekLunch ? 1 : 2));
+    rows.sort((a, b) => (a.label == l.p60NextClass
+            ? 0
+            : a.label == l.yemekLunch
+                ? 1
+                : 2)
+        .compareTo(b.label == l.p60NextClass
+            ? 0
+            : b.label == l.yemekLunch
+                ? 1
+                : 2));
     return rows;
   }
 
-  List<MenuDish> _dishes(MenuDay day) => day.dishes.isNotEmpty ? day.dishes : [for (final s in day.items) MenuDish(s)];
+  List<MenuDish> _dishes(MenuDay day) => day.dishes.isNotEmpty
+      ? day.dishes
+      : [for (final s in day.items) MenuDish(s)];
 
   List<Widget> _content(BuildContext context) {
     final l = context.l10n;
-    final maintenance = _info?['maintenance'] is Map ? _info!['maintenance'] as Map : null;
+    final maintenance =
+        _info?['maintenance'] is Map ? _info!['maintenance'] as Map : null;
     final banner = _info?['banner'] is Map ? _info!['banner'] as Map : null;
     final banners = <Widget>[
       if (maintenance?['enabled'] == true)
         StaleBanner(
-            text: (maintenance?['message'] is String ? maintenance!['message'] as String : null) ??
+            text: (maintenance?['message'] is String
+                    ? maintenance!['message'] as String
+                    : null) ??
                 l.homeMaintenanceDefault),
-      if (banner != null && (banner['text'] ?? banner['message']) is String && ((banner['text'] ?? banner['message']) as String).isNotEmpty)
+      if (banner != null &&
+          (banner['text'] ?? banner['message']) is String &&
+          ((banner['text'] ?? banner['message']) as String).isNotEmpty)
         InkWell(
-          onTap: () => _openUrl(banner['url'] is String ? banner['url'] as String : null),
-          child: StaleBanner(text: (banner['text'] ?? banner['message']) as String, icon: BuIcons.megaphone),
+          onTap: () => _openUrl(
+              banner['url'] is String ? banner['url'] as String : null),
+          child: StaleBanner(
+              text: (banner['text'] ?? banner['message']) as String,
+              icon: BuIcons.megaphone),
         ),
-      if (_newsStale) StaleBanner(text: l.homeSourceUnreachable, icon: BuIcons.triangleAlert),
+      if (_newsStale)
+        StaleBanner(text: l.homeSourceUnreachable, icon: BuIcons.triangleAlert),
     ];
     // Kademeli giriş yalnız ilk ekrandaki blokta (ilk 4); aşağıdakiler kaydırırken animasyonlanmaz. Yalnız görünür bölümler sayılır.
     var slot = 0;
-    Widget stag(Widget w) => BuStaggerItem(index: slot++, maxAnimated: 4, child: w);
+    Widget stag(Widget w) =>
+        BuStaggerItem(index: slot++, maxAnimated: 4, child: w);
     final layout = _layout.value;
     final todayRows = _todayRows(context);
     final slots = _todaySlots();
     // Bölüm içeriği var mı: dersler yoksa bölüm hiç çizilmez (boş durum yok).
-    bool hasContent(HomeSection s) => s != HomeSection.todayClasses || slots.isNotEmpty;
-    final anyVisible = layout.order.any((s) => layout.isVisible(s) && hasContent(s));
+    bool hasContent(HomeSection s) =>
+        s != HomeSection.todayClasses || slots.isNotEmpty;
+    final anyVisible =
+        layout.order.any((s) => layout.isVisible(s) && hasContent(s));
     final out = <Widget>[
       if (banners.isNotEmpty)
         stag(Padding(
-          padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 8, 20, 0),
+          padding: EdgeInsets.fromLTRB(
+              20, MediaQuery.of(context).padding.top + 8, 20, 0),
           child: Column(children: [
             for (var i = 0; i < banners.length; i++) ...[
               if (i > 0) const SizedBox(height: 8),
@@ -453,30 +523,50 @@ class _HomeTabState extends State<HomeTab> {
       stag(_header(context, afterBanner: banners.isNotEmpty)),
       stag(Padding(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-        child: HomeSearchBox(hint: l.homeSearchHint, onTap: () => _push(SearchPage(session: _s))),
+        child: HomeSearchBox(
+            hint: l.homeSearchHint,
+            onTap: () => _push(SearchPage(session: _s))),
       )),
-      stag(Padding(padding: const EdgeInsets.fromLTRB(20, 20, 20, 8), child: _featuredShortcuts(context))),
-      // "Bugün": sabit, gizlenemez; satırlar yüklendikçe/boşalınca yükseklik + solma geçişi.
-      HomeSectionSlot(
-        key: const ValueKey('slot-today'),
-        visible: todayRows.isNotEmpty,
-        builder: () => stag(Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0), // Stitch: arama alt boşluğu 20 (12 + satır içi 12 = 24 yerine 8 + 12)
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            HomeSectionHeader(title: l.p60Today, action: l.homeViewAll, accent: true, onAction: () => _push(AcademicHubPage(session: _s)), onLongPress: _editLayout),
-            HomeTodayCard(rows: todayRows),
-          ]),
-        )),
-      ),
     ];
+    var todayInserted = false;
     for (final s in layout.order) {
+      if (s == HomeSection.featuredNews) {
+        todayInserted = true;
+        out.addAll([
+          // "Bugün": sabit, gizlenemez; satırlar yüklendikçe/boşalınca yükseklik + solma geçişi.
+          HomeSectionSlot(
+            key: const ValueKey('slot-today'),
+            visible: todayRows.isNotEmpty,
+            builder: () => stag(Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20,
+                  0), // Stitch: arama alt boşluğu 20 (12 + satır içi 12 = 24 yerine 8 + 12)
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    HomeSectionHeader(
+                        title: l.p60Today,
+                        action: l.homeViewAll,
+                        accent: true,
+                        onAction: () => _push(AcademicHubPage(session: _s)),
+                        onLongPress: _editLayout),
+                    HomeTodayCard(rows: todayRows),
+                  ]),
+            )),
+          ),
+        ]);
+      }
       final on = layout.isVisible(s) && hasContent(s);
       out.add(HomeSectionSlot(
         key: ValueKey('slot-${s.id}'),
         visible: on,
         // Görünürken kademeli giriş sırası (gizliyken kurulmaz): builder yalnız görünürken çağrılır.
-        builder: () => stag(Padding(padding: const EdgeInsets.only(top: 12), child: _sectionBody(context, s, slots))),
+        builder: () => stag(Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: _sectionBody(context, s, slots))),
       ));
+    }
+    if (!todayInserted && todayRows.isNotEmpty) {
+      out.add(_pad(HomeTodayCard(rows: todayRows)));
     }
     if (!anyVisible) {
       out.add(Padding(
@@ -494,8 +584,11 @@ class _HomeTabState extends State<HomeTab> {
     return out;
   }
 
-  Widget _sectionBody(BuildContext context, HomeSection s, List<DaySlot> slots) => switch (s) {
+  Widget _sectionBody(
+          BuildContext context, HomeSection s, List<DaySlot> slots) =>
+      switch (s) {
         HomeSection.quickAccess => _quickAccess(context),
+        HomeSection.campusMap => _campusMapSection(context),
         HomeSection.menu => _menuSection(context),
         HomeSection.todayClasses => _classesSection(context, slots),
         HomeSection.featuredNews => _newsSection(context, _newsFeedHaber),
@@ -503,7 +596,15 @@ class _HomeTabState extends State<HomeTab> {
         HomeSection.announcements => _newsSection(context, _newsFeedDuyuru),
       };
 
-  Widget _pad(Widget child) => Padding(padding: const EdgeInsets.symmetric(horizontal: 20), child: child);
+  Widget _pad(Widget child) => Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20), child: child);
+
+  Widget _campusMapSection(BuildContext context) => _pad(CampusHomeCard(
+        onOpen: () => openCampusMap(context, _s),
+        onSearch: () => openCampusMap(context, _s, openSearch: true),
+        onChip: (category) =>
+            openCampusMap(context, _s, categoryHint: category),
+      ));
 
   /// Haber bölümü: "Öne çıkan haberler" (yatay şerit) ya da "Duyurular" (kısa liste). Veri bölüm görününce istenir.
   Widget _newsSection(BuildContext context, String type) {
@@ -513,7 +614,10 @@ class _HomeTabState extends State<HomeTab> {
     final announce = type == _newsFeedDuyuru;
     Widget list;
     if (news == null && (feed.loading || !feed.failed)) {
-      list = _pad(BuSkeletonScope(child: BuSkeleton(height: announce ? 132 : HomeNewsCard.heightFor(1), radius: BuRadius.md)));
+      list = _pad(BuSkeletonScope(
+          child: BuSkeleton(
+              height: announce ? 132 : HomeNewsCard.heightFor(1),
+              radius: BuRadius.md)));
     } else if (news == null) {
       list = _pad(HomeNewsStateCard(
         emptyText: announce ? l.p60NoAnnouncements : l.p60NoNews,
@@ -522,12 +626,17 @@ class _HomeTabState extends State<HomeTab> {
         onRetry: () => _loadFeed(type),
       ));
     } else if (news.isEmpty) {
-      list = _pad(HomeNewsStateCard(emptyText: announce ? l.p60NoAnnouncements : l.p60NoNews));
+      list = _pad(HomeNewsStateCard(
+          emptyText: announce ? l.p60NoAnnouncements : l.p60NoNews));
     } else if (announce) {
       list = _pad(HomeAnnouncementList(
         items: [
           for (final n in news)
-            (title: (n['title'] as String?) ?? '', date: newsLocalDate(context, n['publishedDate'] as String?), onTap: () => _push(NewsDetailPage(session: _s, item: n))),
+            (
+              title: (n['title'] as String?) ?? '',
+              date: newsLocalDate(context, n['publishedDate'] as String?),
+              onTap: () => _push(NewsDetailPage(session: _s, item: n))
+            ),
         ],
       ));
     } else {
@@ -570,8 +679,12 @@ class _HomeTabState extends State<HomeTab> {
   Widget _classesSection(BuildContext context, List<DaySlot> slots) {
     final l = context.l10n;
     final w = _wallNow;
-    return _pad(Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      HomeSectionHeader(title: l.p60SectionClasses, trailing: newsWeekdayName(context, w.weekday), onLongPress: _editLayout),
+    return _pad(
+        Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      HomeSectionHeader(
+          title: l.p60SectionClasses,
+          trailing: newsWeekdayName(context, w.weekday),
+          onLongPress: _editLayout),
       HomeClassList(
         rows: [
           for (final e in slots)
@@ -579,8 +692,10 @@ class _HomeTabState extends State<HomeTab> {
               time: e.session.start,
               title: e.course.name,
               sub: [
-                if ((e.session.room ?? '').trim().isNotEmpty) l.p60Classroom(e.session.room!.trim()),
-                if ((e.course.instructor ?? '').trim().isNotEmpty) e.course.instructor!.trim(),
+                if ((e.session.room ?? '').trim().isNotEmpty)
+                  l.p60Classroom(e.session.room!.trim()),
+                if ((e.course.instructor ?? '').trim().isNotEmpty)
+                  e.course.instructor!.trim(),
               ].join(' · '),
             ),
         ],
@@ -594,12 +709,15 @@ class _HomeTabState extends State<HomeTab> {
     final l = context.l10n;
     final name = (_s.displayName ?? '').trim().split(RegExp(r'\s+')).first;
     return Padding(
-      padding: EdgeInsets.fromLTRB(20, (afterBanner ? 0 : MediaQuery.of(context).padding.top) + 12, 20, 0),
+      padding: EdgeInsets.fromLTRB(20,
+          (afterBanner ? 0 : MediaQuery.of(context).padding.top) + 12, 20, 0),
       child: HomeBrandHeader(
         greeting: _greeting(context),
-        hello: name.isEmpty ? _greeting(context) : '${_greeting(context)}, $name',
+        hello:
+            name.isEmpty ? _greeting(context) : '${_greeting(context)}, $name',
         actions: [
-          BuIconButton(icon: BuIcons.pencil, tooltip: l.p60EditHome, onTap: _editLayout),
+          BuIconButton(
+              icon: BuIcons.pencil, tooltip: l.p60EditHome, onTap: _editLayout),
           ValueListenableBuilder<int>(
             valueListenable: _s.badges.notifications,
             builder: (_, n, __) => BuIconButton(
@@ -617,8 +735,13 @@ class _HomeTabState extends State<HomeTab> {
   /// "Yaklaşan etkinlikler": başlık + (en çok katılımcılı) etkinlik satırı ya da boş/hata satırı.
   Widget _eventSection(BuildContext context) {
     final l = context.l10n;
-    return _pad(Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      HomeSectionHeader(title: l.p03HomeUpcoming, action: l.homeAll, onAction: () => _push(EventsPage(session: _s)), onLongPress: _editLayout),
+    return _pad(
+        Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      HomeSectionHeader(
+          title: l.p03HomeUpcoming,
+          action: l.homeAll,
+          onAction: () => _push(EventsPage(session: _s)),
+          onLongPress: _editLayout),
       _eventBody(context),
     ]));
   }
@@ -646,17 +769,25 @@ class _HomeTabState extends State<HomeTab> {
     final id = (e['id'] as num?)?.toInt();
     final official = e['source'] == 'OFFICIAL';
     final loc = ((e['location'] as String?) ?? '').trim();
-    final d = DateTime.tryParse((official ? e['date'] : e['startsAt']) as String? ?? '')?.toLocal();
+    final d = DateTime.tryParse(
+            (official ? e['date'] : e['startsAt']) as String? ?? '')
+        ?.toLocal();
     final club = (e['communityName'] as String?)?.trim() ?? '';
     final hasTime = !official && d != null;
-    final time = hasTime ? '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}' : '';
+    final time = hasTime
+        ? '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}'
+        : '';
     final month = d == null ? '' : _monthShort(context, d.month);
     return HomeEventList(rows: [
       (
         month: month,
         day: d == null ? '' : '${d.day}',
         title: (e['title'] as String?) ?? '',
-        sub: [if (!official && club.isNotEmpty) club, if (time.isNotEmpty) time, if (time.isEmpty && loc.isNotEmpty) loc].join(' · '),
+        sub: [
+          if (!official && club.isNotEmpty) club,
+          if (time.isNotEmpty) time,
+          if (time.isEmpty && loc.isNotEmpty) loc
+        ].join(' · '),
         onTap: id == null
             ? null
             : () => official
@@ -680,35 +811,56 @@ class _HomeTabState extends State<HomeTab> {
     return trUpper(name).characters.take(3).toString();
   }
 
-  Widget _featuredShortcuts(BuildContext context) {
-    final t = context.bu;
-    final l = context.l10n;
-    return HomeFeaturedShortcuts(items: [
-      (label: l.homeFeaturedSchedule, icon: BuIcons.calendar, bg: t.soft, fg: t.onSoft, onTap: () => _push(AcademicHubPage(session: _s))),
-      (label: l.homeFeaturedMenu, icon: BuIcons.utensils, bg: t.infoSoft, fg: t.onInfoSoft, onTap: () => _push(MenuPage(session: _s))),
-      (label: l.homeLibrary, icon: BuIcons.bookOpen, bg: t.okSoft, fg: t.onOkSoft, onTap: () => _openUrl('https://kutuphane.bingol.edu.tr/')),
-      (label: l.navClubs, icon: BuIcons.users, bg: t.campusClubSoft, fg: t.onCampusClubSoft, onTap: () => widget.onOpenTab(AppTab.clubs)),
-    ]);
-  }
-
   void _openMore(BuildContext context) {
     final l = context.l10n;
     final entries = <({String label, IconData icon, VoidCallback action})>[
-      (label: l.supportTitle, icon: BuIcons.headset, action: () => _push(SupportPage(session: _s))),
-      (label: l.notifTitle, icon: BuIcons.bell, action: () => _push(NotificationsPage(session: _s))),
-      (label: l.icerikSavedList, icon: BuIcons.bookmark, action: () => _push(SavedNewsPage(session: _s))),
+      (
+        label: l.campusTitle,
+        icon: BuIcons.map,
+        action: () => openCampusMap(context, _s)
+      ),
+      (
+        label: l.homeLibrary,
+        icon: BuIcons.library,
+        action: () => _openUrl('https://kutuphane.bingol.edu.tr/')
+      ),
+      (
+        label: l.supportTitle,
+        icon: BuIcons.headset,
+        action: () => _push(SupportPage(session: _s))
+      ),
+      (
+        label: l.notifTitle,
+        icon: BuIcons.bell,
+        action: () => _push(NotificationsPage(session: _s))
+      ),
+      (
+        label: l.icerikSavedList,
+        icon: BuIcons.bookmark,
+        action: () => _push(SavedNewsPage(session: _s))
+      ),
       (label: l.p60EditHome, icon: BuIcons.pencil, action: _editLayout),
     ];
-    showModalBottomSheet<void>(context: context, showDragHandle: true, builder: (sheetContext) => SafeArea(
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Padding(padding: const EdgeInsets.all(12), child: Text(l.homeMore, style: BuType.title.copyWith(color: context.bu.ink))),
-        for (final entry in entries) ListTile(leading: Icon(entry.icon, color: context.bu.pr), title: Text(entry.label), onTap: () {
-          Navigator.pop(sheetContext);
-          entry.action();
-        }),
-        const SizedBox(height: 12),
-      ]),
-    ));
+    showModalBottomSheet<void>(
+        context: context,
+        showDragHandle: true,
+        builder: (sheetContext) => SafeArea(
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Text(l.homeMore,
+                        style: BuType.title.copyWith(color: context.bu.ink))),
+                for (final entry in entries)
+                  ListTile(
+                      leading: Icon(entry.icon, color: context.bu.pr),
+                      title: Text(entry.label),
+                      onTap: () {
+                        Navigator.pop(sheetContext);
+                        entry.action();
+                      }),
+                const SizedBox(height: 12),
+              ]),
+            ));
   }
 
   /// Hızlı erişim: kullanıcının seçtiği en çok 5 kısayol (varsayılan: Haberler / Yemek / Etkinlikler / Anketler / Program).
@@ -717,6 +869,7 @@ class _HomeTabState extends State<HomeTab> {
     final l = context.l10n;
     VoidCallback go(HomeShortcut sc) => switch (sc) {
           HomeShortcut.more => () => _openMore(context),
+          HomeShortcut.campusMap => () => openCampusMap(context, _s),
           HomeShortcut.news => () => _push(NewsListPage(session: _s)),
           HomeShortcut.menu => () => _push(MenuPage(session: _s)),
           HomeShortcut.events => () => _push(EventsPage(session: _s)),
@@ -726,20 +879,30 @@ class _HomeTabState extends State<HomeTab> {
           HomeShortcut.chat => () => widget.onOpenTab(AppTab.chat),
           HomeShortcut.support => () => _push(SupportPage(session: _s)),
           HomeShortcut.search => () => _push(SearchPage(session: _s)),
-          HomeShortcut.notifications => () => _push(NotificationsPage(session: _s)),
+          HomeShortcut.notifications => () =>
+              _push(NotificationsPage(session: _s)),
           HomeShortcut.bookmarks => () => _push(SavedNewsPage(session: _s)),
         };
     final shortcuts = _layout.value.shortcuts;
     final labels = [for (final sc in shortcuts) homeShortcutLabel(l, sc)];
     // Karolar aynı boyda olsun: en çok sözcüklü etiket kadar satır.
-    final lines = labels.fold<int>(1, (m, s) => s.split(' ').length > m ? s.split(' ').length : m).clamp(1, 2);
-    return _pad(Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+    final lines = labels
+        .fold<int>(
+            1, (m, s) => s.split(' ').length > m ? s.split(' ').length : m)
+        .clamp(1, 2);
+    return _pad(
+        Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       HomeSectionHeader(title: l.p03HomeQuickTitle, onLongPress: _editLayout),
       HomeQuickGrid(
         key: ValueKey(shortcuts.map((e) => e.id).join(',')),
         labels: labels,
         tiles: [
-          for (var i = 0; i < shortcuts.length; i++) HomeQuickTile(icon: homeShortcutIcon(shortcuts[i]), label: labels[i], lines: lines, onTap: go(shortcuts[i])),
+          for (var i = 0; i < shortcuts.length; i++)
+            HomeQuickTile(
+                icon: homeShortcutIcon(shortcuts[i]),
+                label: labels[i],
+                lines: lines,
+                onTap: go(shortcuts[i])),
         ],
       ),
     ]));
@@ -750,22 +913,42 @@ class _HomeTabState extends State<HomeTab> {
     final l = context.l10n;
     final day = _today == null ? const MenuDay() : MenuDay.fromJson(_today!);
     final dishes = _dishes(day);
-    final header = HomeSectionHeader(title: l.p03HomeMealTitle, action: l.p60OpenMenu, accent: true, onAction: () => _push(MenuPage(session: _s)), onLongPress: _editLayout);
+    final header = HomeSectionHeader(
+        title: l.p03HomeMealTitle,
+        action: l.p60OpenMenu,
+        accent: true,
+        onAction: () => _push(MenuPage(session: _s)),
+        onLongPress: _editLayout);
     if (dishes.isEmpty) {
-      return _pad(Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      return _pad(
+          Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         header,
-        Padding(padding: const EdgeInsets.only(bottom: 4), child: Text(l.homeNoMenuToday, style: BuType.body.copyWith(color: context.bu.mut))),
+        Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Text(l.homeNoMenuToday,
+                style: BuType.body.copyWith(color: context.bu.mut))),
       ]));
     }
     final anyKcal = dishes.any((d) => d.kcal != null);
     final total = day.totalKcal;
-    return _pad(Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+    return _pad(
+        Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       header,
       HomeMenuCard(
-        dishes: [for (final d in dishes) (name: menuDishTitle(d.name), kcal: d.kcal == null ? null : l.p03MenuKcal('${d.kcal}'))],
+        dishes: [
+          for (final d in dishes)
+            (
+              name: menuDishTitle(d.name),
+              kcal: d.kcal == null ? null : l.p03MenuKcal('${d.kcal}')
+            )
+        ],
         kcalText: anyKcal,
         totalLabel: total == null ? null : l.p03MenuTotalEnergy,
-        totalValue: total == null ? null : (day.kcalComplete ? '${l.p03MenuTotal} ${l.p03MenuKcal('$total')}' : l.p03MenuAtLeast('$total')),
+        totalValue: total == null
+            ? null
+            : (day.kcalComplete
+                ? '${l.p03MenuTotal} ${l.p03MenuKcal('$total')}'
+                : l.p03MenuAtLeast('$total')),
         onTap: () => _push(MenuPage(session: _s)),
       ),
     ]));

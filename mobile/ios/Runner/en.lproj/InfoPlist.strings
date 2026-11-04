@@ -6,4 +6,5 @@
 "NSPhotoLibraryUsageDescription" = "Your photo library is accessed so you can choose a photo or video for your profile, clubs, events, chats and posts. Only what you select is uploaded.";
 "NSPhotoLibraryAddUsageDescription" = "Permission is needed so you can save photos and videos from chats to your photo library when you choose to.";
 "NSContactsUsageDescription" = "To help you find people in your contacts who use the app, the e-mail addresses of your contacts are hashed (SHA-256) on your device and only those hashes are sent to the server for matching. Names, phone numbers and raw e-mail addresses are never sent, and the hashes are not stored.";
+"NSLocationWhenInUseUsageDescription" = "Location is used only while the app is open, to show your position on the campus map and the distance to nearby buildings. Your location is never sent to a server or stored.";
 "NSLocalNetworkUsageDescription" = "Used only in development and test builds to reach a test server on your local network. The store version does not access devices on your local network.";

@@ -209,7 +209,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get authIdNumberEmpty => 'Okul numaranızı girin.';
 
   @override
-  String get loginSubtitleNumber => 'Okul numaranızla giriş yapın.';
+  String get loginSubtitleNumber =>
+      'Okul numaranıza @bingol.edu.tr otomatik eklenir. Üniversite e-posta hesabınızla giriş yapın.';
 
   @override
   String get authVerify => 'Doğrula';
@@ -5375,7 +5376,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get authForgotSubNumber =>
-      'Okul numaranızı girin, e-postanıza 6 haneli bir kod gönderelim.';
+      'Okul numaranızı girin. 6 haneli kodu okulnumaranız@bingol.edu.tr adresinize göndereceğiz.';
 
   @override
   String get authForgotSub =>
@@ -9805,7 +9806,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get regTitle => 'Hesap oluşturun';
 
   @override
-  String get regSubtitle => 'Adınızı, okul numaranızı ve şifrenizi girin.';
+  String get regSubtitle =>
+      'Adınızı, okul numaranızı ve şifrenizi girin. Doğrulama kodunuz okulnumaranız@bingol.edu.tr adresinize gönderilir.';
 
   @override
   String get profileSetupTitle => 'Bölümünüzü seçin';
@@ -9962,4 +9964,278 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get avatarRemoved => 'Profil fotoğrafınız kaldırıldı.';
+
+  @override
+  String get campusTitle => 'Harita';
+
+  @override
+  String get campusOtherCampuses => 'Diğer yerleşkeler';
+
+  @override
+  String get campusUnitPage => 'Birim sayfası';
+
+  @override
+  String get campusBrand => 'BU KAMPÜS';
+
+  @override
+  String get campusCardTitle => 'Kampüs Haritası';
+
+  @override
+  String get campusCardSub =>
+      'Bina, yemekhane, kütüphane ve daha fazlasını haritada bul.';
+
+  @override
+  String get campusCardOpen => 'Haritayı aç';
+
+  @override
+  String get campusSearchHint => 'Kampüste ara';
+
+  @override
+  String get campusOnlyCampus => 'Yalnızca kampüs içi yerler';
+
+  @override
+  String get campusAll => 'Tümü';
+
+  @override
+  String get campusChipFood => 'Yemekhane';
+
+  @override
+  String get campusChipLibrary => 'Kütüphane';
+
+  @override
+  String get campusChipFaculties => 'Fakülteler';
+
+  @override
+  String get campusNearby => 'Kampüste yakınımda';
+
+  @override
+  String get campusPlacesTitle => 'Kampüste yerler';
+
+  @override
+  String campusPlaceCount(String count) {
+    return '$count yer';
+  }
+
+  @override
+  String get campusSeeAll => 'Tümünü Gör';
+
+  @override
+  String get campusDirections => 'Yol tarifi';
+
+  @override
+  String get campusOpenInMaps => 'Haritada aç';
+
+  @override
+  String get campusShare => 'Paylaş';
+
+  @override
+  String get campusDetailTitle => 'Bina Detayı';
+
+  @override
+  String get campusLocationLabel => 'Konum';
+
+  @override
+  String get campusMainCampus => 'Ana kampüs';
+
+  @override
+  String get campusUnits => 'Birimler';
+
+  @override
+  String get campusAbout => 'Hakkında';
+
+  @override
+  String get campusWalkTime => 'Yürüyerek süre';
+
+  @override
+  String campusWalkValue(String min, String dist) {
+    return '$min dk ($dist)';
+  }
+
+  @override
+  String get campusWalkUnknown => 'Konum açık değil';
+
+  @override
+  String get campusDistanceNote => 'Mesafeler ve süreler yaklaşık değerlerdir.';
+
+  @override
+  String get campusFavAdd => 'Favorilere ekle';
+
+  @override
+  String get campusFavRemove => 'Favorilerden çıkar';
+
+  @override
+  String get campusLinkCopied => 'Yer bilgisi ve bağlantı kopyalandı';
+
+  @override
+  String get campusOpenFailed => 'Harita uygulaması açılamadı';
+
+  @override
+  String get campusPermTitle => 'Konumunuzu kullanalım mı?';
+
+  @override
+  String get campusPermBody =>
+      'Kampüs içindeki binaları ve fakülteleri haritada gösterebilmemiz için konum izni gerekir. Konumunuz yalnızca cihazınızda kullanılır ve paylaşılmaz.';
+
+  @override
+  String get campusPermChipLocal => 'Cihazda kalır';
+
+  @override
+  String get campusPermChipBattery => 'Düşük pil tüketimi';
+
+  @override
+  String get campusPermAllow => 'İzin ver';
+
+  @override
+  String get campusPermLater => 'Şimdi değil';
+
+  @override
+  String get campusLocOffBand => 'Konum kapalı';
+
+  @override
+  String get campusLocDeniedBody =>
+      'Konum izni yok. Harita yine çalışır; mesafeleri görmek için izni Ayarlar üzerinden açabilirsiniz.';
+
+  @override
+  String get campusOpenSettings => 'Ayarları aç';
+
+  @override
+  String get campusLocServiceTitle => 'Konum Servisi Devre Dışı';
+
+  @override
+  String get campusLocServiceBadge => 'Kapalı';
+
+  @override
+  String get campusLocServiceBody =>
+      'Cihaz konum servisleri kapalı. Kampüs içi yönlendirme için lütfen cihaz konumunu açın.';
+
+  @override
+  String get campusOutsideCampus => 'Şu an kampüsün dışındasınız.';
+
+  @override
+  String get campusMyLocation => 'Konumum';
+
+  @override
+  String get campusZoomIn => 'Yakınlaştır';
+
+  @override
+  String get campusZoomOut => 'Uzaklaştır';
+
+  @override
+  String get campusLayers => 'Harita katmanı';
+
+  @override
+  String get campusLayerStandard => 'Standart';
+
+  @override
+  String get campusLayerSatellite => 'Uydu';
+
+  @override
+  String get campusAttribution => '© OpenStreetMap katkıda bulunanları';
+
+  @override
+  String get campusMapError => 'Harita yüklenemedi. Bağlantınızı kontrol edin.';
+
+  @override
+  String get campusMaintenanceTitle => 'Kampüs haritası şu an bakımda';
+
+  @override
+  String get campusMaintenanceBody => 'Kısa süre sonra yeniden deneyin.';
+
+  @override
+  String get campusTilesFailing =>
+      'Harita parçaları yüklenemiyor. Bağlantınızı kontrol edin.';
+
+  @override
+  String get campusStaleNote => 'Kaydedilmiş yer listesi gösteriliyor.';
+
+  @override
+  String get campusNoPlaces => 'Bu kategoride yer yok.';
+
+  @override
+  String get campusNoPlacesAll => 'Henüz kampüs yeri eklenmemiş.';
+
+  @override
+  String get campusQuickRoute => 'HIZLI ROTA';
+
+  @override
+  String get campusNearestTitle => 'En yakın yer';
+
+  @override
+  String campusNearestBody(String name, String min) {
+    return '$name için yaklaşık $min dk yürüme mesafesindesiniz.';
+  }
+
+  @override
+  String get campusStart => 'Başlat';
+
+  @override
+  String get campusRecent => 'SON ARAMALAR';
+
+  @override
+  String get campusClear => 'Temizle';
+
+  @override
+  String get campusRemoveRecent => 'Aramayı sil';
+
+  @override
+  String get campusCategoriesTitle => 'Kategoriler';
+
+  @override
+  String campusResultCount(String count) {
+    return '$count Sonuç';
+  }
+
+  @override
+  String get campusNoResult =>
+      'Kampüs içinde sonuç bulunamadı. Farklı bir ad deneyin.';
+
+  @override
+  String get campusOutsideNote => 'Kampüs dışındaki yerler aranamaz.';
+
+  @override
+  String get campusSort => 'Sırala';
+
+  @override
+  String get campusSortNear => 'Yakınlık';
+
+  @override
+  String get campusSortName => 'Ad';
+
+  @override
+  String get campusFindMoreTitle => 'Aradığınız yeri bulamadınız mı?';
+
+  @override
+  String get campusFindMoreBody =>
+      'Tüm bina, amfi ve birimleri kampüste arayın.';
+
+  @override
+  String get campusOnlyCampusShown =>
+      'Yalnızca kampüs içi yerler gösterilmektedir.';
+
+  @override
+  String campusPinLabel(String name, String category) {
+    return '$name, $category';
+  }
+
+  @override
+  String campusClusterLabel(String count) {
+    return '$count yer';
+  }
+
+  @override
+  String get campusYouAreHere => 'Konumunuz';
+
+  @override
+  String get campusCloseCard => 'Yer kartını kapat';
+
+  @override
+  String get campusDetails => 'Detay';
+
+  @override
+  String campusWalkTo(String name) {
+    return '$name için yol tarifi';
+  }
+
+  @override
+  String get campusPanelHandle => 'Yer listesi paneli';
 }

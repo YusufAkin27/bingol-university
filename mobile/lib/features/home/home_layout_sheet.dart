@@ -14,11 +14,13 @@ String homeSectionLabel(AppLocalizations l, HomeSection s) => switch (s) {
       HomeSection.upcomingEvents => l.p03HomeUpcoming,
       HomeSection.announcements => l.anasayfaAnnouncements,
       HomeSection.todayClasses => l.p60SectionClasses,
+      HomeSection.campusMap => l.campusCardTitle,
     };
 
 /// Kısayol adı (Hızlı Erişim karosu etiketi ve seçici satırı).
 String homeShortcutLabel(AppLocalizations l, HomeShortcut s, {bool picker = false}) => switch (s) {
       HomeShortcut.more => l.homeMore,
+      HomeShortcut.campusMap => l.campusTitle,
       HomeShortcut.news => l.icerikNewsTitle,
       HomeShortcut.menu => l.homeQuickFood,
       HomeShortcut.events => l.p03HomeQuickEvents,
@@ -34,6 +36,7 @@ String homeShortcutLabel(AppLocalizations l, HomeShortcut s, {bool picker = fals
 
 IconData homeShortcutIcon(HomeShortcut s) => switch (s) {
       HomeShortcut.more => BuIcons.ellipsis,
+      HomeShortcut.campusMap => BuIcons.map,
       HomeShortcut.news => BuIcons.newspaper,
       HomeShortcut.menu => BuIcons.utensils,
       HomeShortcut.events => BuIcons.calendar,

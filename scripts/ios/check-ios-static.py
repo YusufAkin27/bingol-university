@@ -53,10 +53,11 @@ REQUIRED_USAGE = [
     'NSPhotoLibraryUsageDescription',  # photo_manager, image_picker (galeri)
     'NSPhotoLibraryAddUsageDescription',  # gal (galeriye kaydet)
     'NSContactsUsageDescription',      # flutter_contacts (rehber eslestirme)
+    'NSLocationWhenInUseUsageDescription',  # geolocator (kampus haritasi, yalniz on plan)
 ]
 # Uygulamada KARSILIGI OLMAYAN izin anahtarlari: eklenirse App Review "kullanilmayan izin" sorar
 FORBIDDEN_USAGE = [
-    'NSLocationWhenInUseUsageDescription', 'NSLocationAlwaysAndWhenInUseUsageDescription',
+    'NSLocationAlwaysAndWhenInUseUsageDescription',
     'NSLocationAlwaysUsageDescription', 'NSUserTrackingUsageDescription', 'NSBluetoothAlwaysUsageDescription',
     'NSCalendarsUsageDescription', 'NSRemindersUsageDescription', 'NSSpeechRecognitionUsageDescription',
     'NSMotionUsageDescription', 'NSFaceIDUsageDescription', 'NSHealthShareUsageDescription',
@@ -203,8 +204,20 @@ def check_pbxproj():
     m = re.search(r'knownRegions = \(([^)]*)\)', s)
     regions = set(re.findall(r'\b(\w+)\b', m.group(1))) if m else set()
     (ok if {'tr', 'en', 'ar'} <= regions else bad)('knownRegions tr, en, ar iceriyor')
-    ids = set(re.findall(r'PRODUCT_BUNDLE_IDENTIFIER = ([A-Za-z0-9.\-]+);', s)) - {
-        i for i in re.findall(r'PRODUCT_BUNDLE_IDENTIFIER = ([A-Za-z0-9.\-]+);', s) if i.endswith('.RunnerTests')}
+    # Uzantilarin ayri bundle id'leri vardir; yalniz Runner plist'ini kullanan
+    # buildSettings bloklarini denetle (Debug, Release, Profile).
+    settings = re.findall(r'buildSettings\s*=\s*\{([^{}]*)\}', s, re.S)
+    runner_settings = [b for b in settings if re.search(
+        r'\bINFOPLIST_FILE\s*=\s*"?Runner/Info\.plist"?\s*;', b)]
+    (ok if len(runner_settings) == 3 else bad)(
+        f'Runner buildSettings yapilandirmalari ({len(runner_settings)}/3)')
+    ids = set()
+    for block in runner_settings:
+        match = re.search(r'PRODUCT_BUNDLE_IDENTIFIER\s*=\s*"?([A-Za-z0-9.\-]+)"?\s*;', block)
+        if match:
+            ids.add(match.group(1))
+        else:
+            bad('Runner buildSettings: PRODUCT_BUNDLE_IDENTIFIER eksik')
     if len(ids) == 1:
         ok('Bundle id (tek deger): ' + next(iter(ids)))
     else:

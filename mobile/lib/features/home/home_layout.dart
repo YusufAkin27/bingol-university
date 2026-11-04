@@ -11,11 +11,18 @@ enum HomeSection {
   todayClasses('todayClasses', true),
   featuredNews('featuredNews', true),
   upcomingEvents('upcomingEvents', true),
-  announcements('announcements', true);
+  announcements('announcements', true),
 
-  const HomeSection(this.id, this.defaultVisible);
+  /// Kampüs Haritası kartı (CAMPUS-MOB). Kayıtlı düzeni olmayan kullanıcılarda Hızlı Erişim'in hemen altına,
+  /// kayıtlı düzeni olanlarda (yeni bölüm kuralı) yine oraya eklenir: [insertAfterId].
+  campusMap('campusMap', true, insertAfterId: 'quickAccess');
+
+  const HomeSection(this.id, this.defaultVisible, {this.insertAfterId});
 
   final String id;
+
+  /// Kayıtlı düzene sonradan eklenirken yerleştirileceği bölümün kimliği (yoksa sona).
+  final String? insertAfterId;
 
   /// Varsayılan düzende görünür mü (Stitch v3: altı bölümün hepsi açık).
   final bool defaultVisible;
@@ -41,6 +48,7 @@ enum HomeShortcut {
   search('search'),
   notifications('notifications'),
   bookmarks('bookmarks'),
+  campusMap('campusMap'),
   more('more');
 
   const HomeShortcut(this.id);
@@ -71,7 +79,7 @@ class HomeLayout {
   final List<HomeShortcut> shortcutOn;
 
   static const defaults = HomeLayout(
-    order: [HomeSection.quickAccess, HomeSection.featuredNews, HomeSection.menu, HomeSection.todayClasses, HomeSection.upcomingEvents, HomeSection.announcements],
+    order: [HomeSection.quickAccess, HomeSection.campusMap, HomeSection.featuredNews, HomeSection.menu, HomeSection.todayClasses, HomeSection.upcomingEvents, HomeSection.announcements],
     hidden: <HomeSection>{},
     shortcutOn: [HomeShortcut.news, HomeShortcut.events, HomeShortcut.polls, HomeShortcut.schedule, HomeShortcut.more],
   );
@@ -154,7 +162,13 @@ class HomeLayout {
       final hidden = ids<HomeSection>(raw['hidden'], HomeSection.byId).where(known.contains).toSet();
       for (final s in HomeSection.values) {
         if (known.contains(s)) continue;
-        order.add(s); // yeni bölüm: sona, varsayılan görünürlükle
+        // Yeni bölüm: bağlı olduğu bölümün hemen ardına (yoksa sona), varsayılan görünürlükle.
+        final anchor = order.indexWhere((e) => e.id == s.insertAfterId);
+        if (anchor >= 0) {
+          order.insert(anchor + 1, s);
+        } else {
+          order.add(s);
+        }
         if (!s.defaultVisible) hidden.add(s);
       }
       var on = ids<HomeShortcut>(raw['sOn'], HomeShortcut.byId).take(maxShortcuts).toList();

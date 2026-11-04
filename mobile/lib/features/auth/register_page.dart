@@ -159,6 +159,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 // `<numara>@bingol.edu.tr` olur; böylece girişte aynı numara geçer.
                 LoginNumberField(
                   controller: _email,
+                  boxed: true,
                   enabled: !_busy,
                   validator: _validateRegisterId,
                 ),

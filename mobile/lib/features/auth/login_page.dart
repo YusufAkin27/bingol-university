@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/api.dart';
 import '../../core/app_gate.dart' show appVersion;
@@ -16,8 +17,7 @@ import 'widgets/auth_motion.dart';
 import 'widgets/auth_ref.dart';
 import 'widgets/login_underline_field.dart';
 
-/// Giriş (lg4, tipografik): kartsız, büyük ölçekli okul numarası + şifre satırları, ince alt çizgiler; üstte bekleyen doğrulama ve
-/// "başka cihazdan giriş" bantları; hız sınırı ve ağ hataları satır içi bantla gösterilir.
+/// Calm, compact login with branded header and clearly bounded form controls.
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key, required this.session});
 
@@ -52,7 +52,8 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _openVerify(String identifier) async {
     await Navigator.push(context, MaterialPageRoute(builder: (_) {
-      return VerifyCodePage(session: widget.session, email: identifier, unverified: true);
+      return VerifyCodePage(
+          session: widget.session, email: identifier, unverified: true);
     }));
     if (mounted) _loadPending();
   }
@@ -122,7 +123,9 @@ class _LoginPageState extends State<LoginPage> {
         context,
         MaterialPageRoute(
           settings: const RouteSettings(name: kForgotPasswordRoute),
-          builder: (_) => ForgotPasswordPage(session: widget.session, initialEmail: normalizeIdentifier(_email.text)),
+          builder: (_) => ForgotPasswordPage(
+              session: widget.session,
+              initialEmail: normalizeIdentifier(_email.text)),
         ),
       );
 
@@ -140,7 +143,7 @@ class _LoginPageState extends State<LoginPage> {
     return RefPage(
       showBack: Navigator.canPop(context),
       children: [
-        // Yuva her zaman ağaçta (alt öğelerin durumu korunur). Stitch v3: kart/logo/ikon yok, düz zemin.
+        // Keep notice slots mounted so the form retains its state.
         ValueListenableBuilder<bool>(
           valueListenable: widget.session.replacedNotice,
           builder: (context, show, _) => AnimatedSize(
@@ -186,7 +189,11 @@ class _LoginPageState extends State<LoginPage> {
                             compact: true,
                             onPressed: () => _openVerify(_pending!.identifier),
                           ),
-                          RefLink(label: l.authUseOtherAccount, color: t.onWarnSoft, compact: true, onPressed: _otherAccount),
+                          RefLink(
+                              label: l.authUseOtherAccount,
+                              color: t.onWarnSoft,
+                              compact: true,
+                              onPressed: _otherAccount),
                         ],
                       ),
                     ],
@@ -209,12 +216,41 @@ class _LoginPageState extends State<LoginPage> {
                     child: keyboard
                         ? const SizedBox(width: double.infinity)
                         : Padding(
-                            padding: const EdgeInsets.only(top: 8, bottom: 48),
+                            padding: const EdgeInsets.only(top: 8, bottom: 40),
                             child: Row(
                               children: [
-                                const RefBrandMark(size: 32),
-                                const SizedBox(width: 10),
-                                Text('BÜ Kampüs', style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700, letterSpacing: -.2)),
+                                Container(
+                                  width: 52,
+                                  height: 52,
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                      color: t.soft,
+                                      borderRadius: BorderRadius.circular(16)),
+                                  child: ExcludeSemantics(
+                                    child: SvgPicture.asset(
+                                        'assets/branding/mark_white.svg',
+                                        colorFilter: ColorFilter.mode(
+                                            t.pr, BlendMode.srcIn)),
+                                  ),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text('BÜ Kampüs',
+                                          style: tx.titleLarge!.copyWith(
+                                              color: t.ink,
+                                              fontWeight: FontWeight.w700,
+                                              letterSpacing: -.5)),
+                                      const SizedBox(height: 3),
+                                      Text('Bingöl Üniversitesi',
+                                          style: tx.bodySmall!
+                                              .copyWith(color: t.mut)),
+                                    ],
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -223,31 +259,47 @@ class _LoginPageState extends State<LoginPage> {
                     header: true,
                     child: Text(
                       l.loginWelcome,
-                      style: tx.displayMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.1),
+                      style: tx.headlineLarge!.copyWith(
+                          color: t.ink,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -1,
+                          height: 1.15),
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Text(l.loginSubtitleNumber, style: tx.bodyLarge!.copyWith(color: t.mut)),
-                  SizedBox(height: keyboard ? 28 : 56),
+                  Text(l.loginSubtitleNumber,
+                      style: tx.bodyLarge!.copyWith(color: t.mut, height: 1.5)),
+                  SizedBox(height: keyboard ? 24 : 32),
                   // Örnek e-posta satırı gösterilmez: alan etiketi yeterli. Yalnız okul numarası (rakam klavyesi).
-                  LoginNumberField(controller: _email, enabled: !_busy),
-                  const SizedBox(height: 28),
+                  LoginNumberField(
+                      controller: _email, enabled: !_busy, boxed: true),
+                  const SizedBox(height: 22),
                   LoginPasswordField(
                     controller: _password,
                     enabled: !_busy,
-                    validator: (v) => (v == null || v.isEmpty) ? l.loginPasswordRequired : null,
+                    boxed: true,
+                    validator: (v) => (v == null || v.isEmpty)
+                        ? l.loginPasswordRequired
+                        : null,
                     onSubmitted: _submit,
                   ),
                   Align(
                     alignment: AlignmentDirectional.centerEnd,
-                    child: RefLink(label: l.loginForgotPassword, compact: true, onPressed: _busy ? null : _forgot),
+                    child: RefLink(
+                        label: l.loginForgotPassword,
+                        compact: true,
+                        onPressed: _busy ? null : _forgot),
                   ),
-                  const SizedBox(height: 24),
-                  RefButton(
-                    label: l.loginSubmit,
-                    busy: _busy,
-                    busyLabel: l.p02LoginBusy,
-                    onPressed: _submit,
+                  const SizedBox(height: 18),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 56),
+                    child: RefButton(
+                      label: l.loginSubmit,
+                      icon: buDirIcon(context, BuIcons.arrowRight),
+                      busy: _busy,
+                      busyLabel: l.p02LoginBusy,
+                      onPressed: _submit,
+                    ),
                   ),
                   AnimatedSize(
                     duration: AppMotion.of(context, AppMotion.fast),
@@ -261,8 +313,12 @@ class _LoginPageState extends State<LoginPage> {
                             child: AuthShake(
                               trigger: _shake,
                               child: _retry != null
-                                  ? RefBanner(_error!, key: ValueKey('login-error-$_error'), tone: RefTone.warn, sub: _retry)
-                                  : RefBanner(_error!, key: ValueKey('login-error-$_error')),
+                                  ? RefBanner(_error!,
+                                      key: ValueKey('login-error-$_error'),
+                                      tone: RefTone.warn,
+                                      sub: _retry)
+                                  : RefBanner(_error!,
+                                      key: ValueKey('login-error-$_error')),
                             ),
                           ),
                   ),
@@ -281,7 +337,7 @@ class _LoginPageState extends State<LoginPage> {
               AnimatedContainer(
                 duration: AppMotion.of(context, AppMotion.normal),
                 curve: AppMotion.enter,
-                height: keyboard ? 20 : 40,
+                height: keyboard ? 20 : 28,
               ),
               Center(
                 child: RefFooterPrompt(
@@ -289,7 +345,11 @@ class _LoginPageState extends State<LoginPage> {
                   action: l.loginRegister,
                   onPressed: _busy
                       ? null
-                      : () => Navigator.push(context, MaterialPageRoute(builder: (_) => RegisterPage(session: widget.session))),
+                      : () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) =>
+                                  RegisterPage(session: widget.session))),
                 ),
               ),
               AnimatedSize(
@@ -301,19 +361,38 @@ class _LoginPageState extends State<LoginPage> {
                     : Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 24, bottom: 12),
+                            child: Divider(height: 1, color: t.bd),
+                          ),
                           Center(
                             child: RefFooterPrompt(
                               prompt: l.p66HelpPrompt,
                               action: l.p66HelpAction,
-                              onPressed: _busy ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => HelpFormPage(session: widget.session))),
+                              onPressed: _busy
+                                  ? null
+                                  : () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (_) => HelpFormPage(
+                                              session: widget.session))),
                             ),
                           ),
                           // Sürüm satırına dokunmak Hakkında'yı açar (giriş öncesi herkese açık).
                           Center(
                             child: TextButton(
-                              onPressed: _busy ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => AboutPage(session: widget.session))),
-                              style: TextButton.styleFrom(foregroundColor: t.mut, minimumSize: const Size(48, 48)),
-                              child: Text(l.profileVersion(appVersion), style: tx.bodySmall!.copyWith(color: t.mut)),
+                              onPressed: _busy
+                                  ? null
+                                  : () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (_) => AboutPage(
+                                              session: widget.session))),
+                              style: TextButton.styleFrom(
+                                  foregroundColor: t.mut,
+                                  minimumSize: const Size(48, 48)),
+                              child: Text(l.profileVersion(appVersion),
+                                  style: tx.bodySmall!.copyWith(color: t.mut)),
                             ),
                           ),
                         ],

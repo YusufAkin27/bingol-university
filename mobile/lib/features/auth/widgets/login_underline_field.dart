@@ -18,6 +18,7 @@ class LoginUnderlineField extends StatefulWidget {
     required this.label,
     required this.validator,
     this.big = false,
+    this.boxed = false,
     this.keyboardType,
     this.inputFormatters,
     this.textInputAction = TextInputAction.next,
@@ -39,6 +40,9 @@ class LoginUnderlineField extends StatefulWidget {
 
   /// Okul numarası: iri rakamlar (32 sp, sabit genişlikli); kapalıyken şifre ölçeği (22 sp).
   final bool big;
+
+  /// Login uses outlined surfaces; other auth screens keep the underline style.
+  final bool boxed;
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
   final TextInputAction textInputAction;
@@ -111,7 +115,8 @@ class _LoginUnderlineFieldState extends State<LoginUnderlineField> {
     if (e != null && _error == null && mounted) _shake++;
     if (e != _error && mounted) {
       // Yapı aşamasında setState yasak: o durumda çerçeve sonrasına ertele.
-      if (SchedulerBinding.instance.schedulerPhase == SchedulerPhase.persistentCallbacks) {
+      if (SchedulerBinding.instance.schedulerPhase ==
+          SchedulerPhase.persistentCallbacks) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) setState(() => _error = e);
         });
@@ -124,7 +129,8 @@ class _LoginUnderlineFieldState extends State<LoginUnderlineField> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, c) => _content(context, compact: c.maxWidth < 340));
+    return LayoutBuilder(
+        builder: (context, c) => _content(context, compact: c.maxWidth < 340));
   }
 
   /// [compact]: dar ekranda (320 dp) rakamlar küçülür ve sonek ölçeklenmez; 9 hane + sonek tek satıra sığar.
@@ -135,11 +141,14 @@ class _LoginUnderlineFieldState extends State<LoginUnderlineField> {
     final fast = AppMotion.of(context, AppMotion.fast);
 
     // Büyük rakamlar yalnız 1.15x'e kadar ölçeklenir: 12 hane + sonek dar ekrana sığsın (alan kaydırılır).
-    final scaler = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: widget.big ? 1.15 : 1.3);
-    final inputStyle = (widget.big ? tx.displaySmall! : tx.headlineSmall!).copyWith(
+    final scaler = MediaQuery.textScalerOf(context)
+        .clamp(maxScaleFactor: widget.big ? 1.15 : 1.3);
+    final inputStyle =
+        (widget.big ? tx.displaySmall! : tx.headlineSmall!).copyWith(
       color: t.ink,
-      fontSize: widget.big ? (compact ? 24 : 32) : 22,
-      fontWeight: widget.big ? FontWeight.w600 : FontWeight.w500,
+      fontSize: widget.boxed ? 17 : (widget.big ? (compact ? 24 : 32) : 22),
+      fontWeight:
+          !widget.boxed && widget.big ? FontWeight.w600 : FontWeight.w500,
       letterSpacing: widget.big ? .4 : 0,
       height: 1.15,
       fontFeatures: const [FontFeature.tabularFigures()],
@@ -159,7 +168,8 @@ class _LoginUnderlineFieldState extends State<LoginUnderlineField> {
       obscureText: widget.obscureText,
       minLines: widget.obscureText ? 1 : widget.minLines,
       maxLines: widget.obscureText ? 1 : widget.maxLines,
-      keyboardType: widget.maxLines > 1 ? TextInputType.multiline : widget.keyboardType,
+      keyboardType:
+          widget.maxLines > 1 ? TextInputType.multiline : widget.keyboardType,
       inputFormatters: widget.inputFormatters,
       textInputAction: widget.textInputAction,
       autofillHints: widget.autofillHints,
@@ -169,7 +179,9 @@ class _LoginUnderlineFieldState extends State<LoginUnderlineField> {
       validator: _validate,
       // Hata metnini kendimiz çiziyoruz; yerleşik hata alanı yer kaplamasın/ikinci kez okunmasın.
       errorBuilder: (context, error) => const SizedBox.shrink(),
-      autovalidateMode: _touched ? AutovalidateMode.onUserInteraction : AutovalidateMode.disabled,
+      autovalidateMode: _touched
+          ? AutovalidateMode.onUserInteraction
+          : AutovalidateMode.disabled,
       onFieldSubmitted: (_) => widget.onSubmitted?.call(),
       style: inputStyle,
       cursorColor: t.pr,
@@ -187,7 +199,8 @@ class _LoginUnderlineFieldState extends State<LoginUnderlineField> {
         contentPadding: const EdgeInsets.symmetric(vertical: 10),
         counterText: '',
         hintText: widget.hint,
-        hintStyle: inputStyle.copyWith(color: t.mut.withValues(alpha: .38)),
+        hintStyle: inputStyle.copyWith(
+            color: widget.boxed ? t.mut : t.mut.withValues(alpha: .38)),
       ),
     );
 
@@ -211,14 +224,19 @@ class _LoginUnderlineFieldState extends State<LoginUnderlineField> {
                     // Adres soneki her dilde soldan sağa okunur (RTL'de ters dizilmesin).
                     child: MediaQuery(
                       data: MediaQuery.of(context).copyWith(
-                        textScaler: compact ? MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.0) : scaler,
+                        textScaler: compact
+                            ? MediaQuery.textScalerOf(context)
+                                .clamp(maxScaleFactor: 1.0)
+                            : scaler,
                       ),
                       child: Text(
                         suffix,
                         maxLines: 1,
                         softWrap: false,
                         textDirection: TextDirection.ltr,
-                        style: (compact ? tx.bodyMedium! : tx.bodyLarge!).copyWith(color: t.mut, fontWeight: FontWeight.w500),
+                        style: (compact ? tx.bodyMedium! : tx.bodyLarge!)
+                            .copyWith(
+                                color: t.mut, fontWeight: FontWeight.w500),
                       ),
                     ),
                   ),
@@ -241,13 +259,33 @@ class _LoginUnderlineFieldState extends State<LoginUnderlineField> {
               child: AnimatedDefaultTextStyle(
                 duration: fast,
                 curve: AppMotion.standard,
-                style: tx.labelLarge!.copyWith(color: labelColor, fontWeight: FontWeight.w600),
+                style: tx.labelLarge!
+                    .copyWith(color: labelColor, fontWeight: FontWeight.w600),
                 child: Text(widget.label),
               ),
             ),
-            const SizedBox(height: 2),
-            Semantics(label: widget.label, child: row),
-            _Underline(focused: _focused, hasError: hasError, duration: fast),
+            SizedBox(height: widget.boxed ? 10 : 2),
+            Semantics(
+              label: widget.label,
+              child: widget.boxed
+                  ? AnimatedContainer(
+                      duration: fast,
+                      padding:
+                          const EdgeInsetsDirectional.only(start: 16, end: 8),
+                      constraints: const BoxConstraints(minHeight: 58),
+                      decoration: BoxDecoration(
+                        color: _focused ? t.sf : t.sf2,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                            color:
+                                hasError ? t.danger : (_focused ? t.pr : t.bd)),
+                      ),
+                      child: row,
+                    )
+                  : row,
+            ),
+            if (!widget.boxed)
+              _Underline(focused: _focused, hasError: hasError, duration: fast),
             AnimatedSize(
               duration: fast,
               curve: AppMotion.enter,
@@ -257,10 +295,15 @@ class _LoginUnderlineFieldState extends State<LoginUnderlineField> {
                       key: ValueKey('login-err-$_error'),
                       tween: Tween<double>(begin: 0, end: 1),
                       duration: fast,
-                      builder: (context, v, child) => Opacity(opacity: v, child: child),
+                      builder: (context, v, child) =>
+                          Opacity(opacity: v, child: child),
                       child: Padding(
                         padding: const EdgeInsetsDirectional.only(top: 8),
-                        child: Text(_error!, style: tx.bodySmall!.copyWith(color: t.danger, fontWeight: FontWeight.w500, height: 1.3)),
+                        child: Text(_error!,
+                            style: tx.bodySmall!.copyWith(
+                                color: t.danger,
+                                fontWeight: FontWeight.w500,
+                                height: 1.3)),
                       ),
                     )
                   : const SizedBox(width: double.infinity),
@@ -274,7 +317,8 @@ class _LoginUnderlineFieldState extends State<LoginUnderlineField> {
 
 /// Alt çizgi: 1 dp nötr çizgi; odakta 2 dp marka çizgisi başlangıçtan uca dolar; hatada 2 dp danger.
 class _Underline extends StatelessWidget {
-  const _Underline({required this.focused, required this.hasError, required this.duration});
+  const _Underline(
+      {required this.focused, required this.hasError, required this.duration});
 
   final bool focused;
   final bool hasError;
@@ -319,7 +363,16 @@ class _Underline extends StatelessWidget {
 
 /// Okul numarası alanı (lg4): yalnız rakam, rakam klavyesi, en çok 12 hane; rakam yazılınca sağda `@bingol.edu.tr`.
 class LoginNumberField extends StatelessWidget {
-  const LoginNumberField({super.key, required this.controller, required this.enabled, this.onSubmitted, this.validator, this.textInputAction = TextInputAction.next});
+  const LoginNumberField(
+      {super.key,
+      required this.controller,
+      required this.enabled,
+      this.onSubmitted,
+      this.validator,
+      this.textInputAction = TextInputAction.next,
+      this.boxed = false});
+
+  final bool boxed;
 
   /// Varsayılan: [validateIdentifier] (6-12 rakam). Kayıtta sunucu hatasını da gösterir.
   final String? Function(String?)? validator;
@@ -336,15 +389,21 @@ class LoginNumberField extends StatelessWidget {
         controller: controller,
         label: context.l10n.authIdNumberLabel,
         big: true,
+        boxed: boxed,
         enabled: enabled,
         keyboardType: TextInputType.number,
-        inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(12)],
+        inputFormatters: [
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(12)
+        ],
         autofillHints: const [AutofillHints.username],
         validator: validator ?? validateSchoolNumber,
         textInputAction: textInputAction,
         onSubmitted: onSubmitted,
         hint: '000000000',
-        suffix: isStudentNumberInput(value.text) ? '@$kEmailDomain' : null,
+        suffix: boxed || isStudentNumberInput(value.text)
+            ? '@$kEmailDomain'
+            : null,
       ),
     );
   }
@@ -359,11 +418,13 @@ class LoginPasswordField extends StatefulWidget {
     required this.validator,
     this.onSubmitted,
     this.label,
+    this.boxed = false,
     this.autofillHints = const [AutofillHints.password],
   });
 
   /// Varsayılan: "Şifre". Kayıtta "Şifre (en az 8 karakter)".
   final String? label;
+  final bool boxed;
   final Iterable<String> autofillHints;
   final TextEditingController controller;
   final bool enabled;
@@ -383,6 +444,7 @@ class _LoginPasswordFieldState extends State<LoginPasswordField> {
     final l = context.l10n;
     return LoginUnderlineField(
       controller: widget.controller,
+      boxed: widget.boxed,
       label: widget.label ?? l.authPasswordLabel,
       enabled: widget.enabled,
       obscureText: _hidden,
@@ -395,7 +457,8 @@ class _LoginPasswordFieldState extends State<LoginPasswordField> {
         tooltip: _hidden ? l.authShowPassword : l.authHidePassword,
         constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
         padding: EdgeInsets.zero,
-        icon: Icon(_hidden ? BuIcons.eye : BuIcons.eyeOff, size: 22, color: t.mut),
+        icon: Icon(_hidden ? BuIcons.eye : BuIcons.eyeOff,
+            size: 22, color: t.mut),
         onPressed: () {
           authHaptic(AuthHaptic.tap);
           setState(() => _hidden = !_hidden);
