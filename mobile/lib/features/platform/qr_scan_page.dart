@@ -10,6 +10,40 @@ import '../system/gate_views.dart' show GateArrowButton;
 /// null dönerse "Yoklaman alındı" kısa gösterilip sayfa kodla kapanır.
 typedef QrCodeValidator = Future<String?> Function(String code);
 
+/// Kameradan okunan REDDEDİLMİŞ bir kodun aynı karede tekrar tekrar gönderilmesini önler.
+/// Kamera aynı QR'ı saniyede birkaç kez görür; hata sonrası aynı değer için bekleme süresi her başarısızlıkta
+/// ikiye katlanır (4 sn, 8 sn... en çok 32 sn), farklı bir kod en az [anyCooldown] sonra kabul edilir.
+class ScanThrottle {
+  ScanThrottle({this.anyCooldown = const Duration(milliseconds: 1200), this.sameCooldown = const Duration(seconds: 4)});
+
+  final Duration anyCooldown;
+  final Duration sameCooldown;
+
+  String? _last;
+  DateTime? _lastAt;
+  int _streak = 0;
+
+  /// Okunan [value] şimdi gönderilebilir mi.
+  bool accept(String value, DateTime now) {
+    final at = _lastAt;
+    if (at == null) return true;
+    final since = now.difference(at);
+    if (since < anyCooldown) return false;
+    if (value == _last) {
+      final factor = 1 << (_streak - 1).clamp(0, 3).toInt();
+      if (since < sameCooldown * factor) return false;
+    }
+    return true;
+  }
+
+  /// [value] sunucuda/doğrulamada reddedildi.
+  void rejected(String value, DateTime now) {
+    _streak = value == _last ? _streak + 1 : 1;
+    _last = value;
+    _lastAt = now;
+  }
+}
+
 /// QR tarar; ilk okunan değeri `Navigator.pop(context, code)` ile döndürür.
 /// Kamera izni reddedilir/yoksa elle kod girişi sunulur (giriş alanı her zaman ekrandadır).
 class QrScanPage extends StatefulWidget {
@@ -42,6 +76,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
   bool _torch = false;
   bool _success = false;
   String? _error;
+  final _throttle = ScanThrottle();
 
   /// Kamera izni: null = denetleniyor, true = tarayıcı açılır, false = elle girişe düşülür.
   bool? _cam;
@@ -82,7 +117,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
     super.dispose();
   }
 
-  Future<void> _finish(String code) async {
+  Future<void> _finish(String code, {bool scanned = false}) async {
     final c = code.trim();
     if (_done || _busy || c.isEmpty) return;
     final check = widget.onSubmit;
@@ -104,6 +139,8 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
     }
     if (!mounted) return;
     if (err != null) {
+      // Kameradan okunan reddedilmiş kod, kamera aynı kareyi görmeye devam ederken yeniden gönderilmez.
+      if (scanned) _throttle.rejected(c, DateTime.now());
       setState(() {
         _busy = false;
         _error = err;
@@ -126,7 +163,8 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
     for (final b in cap.barcodes) {
       final v = b.rawValue;
       if (v != null && v.isNotEmpty) {
-        _finish(v);
+        if (!_throttle.accept(v.trim(), DateTime.now())) return;
+        _finish(v, scanned: true);
         return;
       }
     }

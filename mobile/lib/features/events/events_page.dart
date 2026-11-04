@@ -9,6 +9,7 @@ import '../clubs/clubs_tab.dart';
 import '../clubs/clubs_widgets.dart' show ClubJoinButton, ClubTextTabs;
 import '../news/news_detail_page.dart';
 import '../platform/qr_scan_page.dart';
+import 'checkin_input.dart';
 import 'event_detail_page.dart';
 import 'event_form_page.dart';
 import 'etkinlik_parts.dart';
@@ -58,6 +59,9 @@ class _Feed {
 
   /// Liste önbellekten (bayat) geldiyse sunucudan alındığı an.
   DateTime? staleAt;
+
+  /// Son "daha fazla" hatası: kaydırma olayları art arda yeniden denemesin / toast yağdırmasın.
+  DateTime? moreFailedAt;
 }
 
 /// Etkinlikler: Keşfet (takvim) | Etkinliklerim | Oluşturduklarım. Katılım yalnızca burada geri alınır.
@@ -256,6 +260,8 @@ class _EventsPageState extends State<EventsPage> {
   Future<void> _loadMoreFeed(String key) async {
     final f = _feeds[key]!;
     if (f.more || f.loading || f.next == null) return;
+    final failed = f.moreFailedAt;
+    if (failed != null && DateTime.now().difference(failed) < const Duration(seconds: 5)) return;
     final gen = f.gen;
     setState(() => f.more = true);
     try {
@@ -267,9 +273,15 @@ class _EventsPageState extends State<EventsPage> {
             ? (res['nextCursor'] as num).toInt()
             : null;
         f.more = false;
+        f.moreFailedAt = null;
       });
-    } catch (_) {
-      if (mounted && gen == f.gen) setState(() => f.more = false);
+    } catch (e) {
+      if (!mounted || gen != f.gen) return;
+      setState(() {
+        f.more = false;
+        f.moreFailedAt = DateTime.now();
+      });
+      _toast(errorText(e), kind: BuToastKind.error);
     }
   }
 
@@ -610,17 +622,54 @@ class _EventsPageState extends State<EventsPage> {
 
   Future<String?> _verifyCheckin(String raw) async {
     final l = context.l10n;
-    const prefix = 'bingol-checkin:';
-    final code = raw.trim().startsWith(prefix) ? raw.trim().substring(prefix.length) : raw.trim();
-    final id = int.tryParse(code.split('.').first);
-    if (id == null) return l.eventListNotCode;
+    final input = CheckinInput.parse(raw);
+    if (input == null) return l.eventListNotCode;
     try {
-      await widget.session.api.post('/events/$id/check-in', {'code': code});
+      if (!input.isShort) {
+        await widget.session.api.post('/events/${input.eventId}/check-in', {'code': input.code});
+      } else {
+        // Kısa elle kod etkinlik kimliği taşımaz: şu an yoklama penceresinde olan "Katılıyorum" etkinliklerine sırayla denenir
+        // (etkinlik başına dakikada 8 deneme sınırı sunucuda). Aday yoksa kullanıcı etkinlik sayfasına yönlendirilir.
+        final ids = await _checkinCandidates();
+        if (ids.isEmpty) return l.eventListShortCodeNeedsEvent;
+        Object? lastInvalid;
+        var ok = false;
+        for (final id in ids) {
+          try {
+            await widget.session.api.post('/events/$id/check-in', {'code': input.code});
+            ok = true;
+            break;
+          } on ApiError catch (e) {
+            if (e.code != 'INVALID_CODE') rethrow;
+            lastInvalid = e;
+          }
+        }
+        if (!ok) return lastInvalid == null ? l.eventListNotCode : errorText(lastInvalid);
+      }
       buHaptic(BuHaptic.medium);
       return null;
     } catch (e) {
       return errorText(e);
     }
+  }
+
+  /// Yoklama penceresi (başlangıç - 30 dk ... bitiş + 30 dk) şu an açık olan, katılacağım dediğim etkinlikler (en çok 5).
+  Future<List<int>> _checkinCandidates() async {
+    final res = await widget.session.api.get('/me/events?mode=attending&size=20');
+    final list = (res is Map ? res['items'] : res) as List? ?? const [];
+    final now = DateTime.now();
+    final ids = <int>[];
+    for (final e in list.whereType<Map>()) {
+      final id = (e['id'] as num?)?.toInt();
+      final start = DateTime.tryParse('${e['startsAt'] ?? ''}')?.toLocal();
+      final end = DateTime.tryParse('${e['endsAt'] ?? ''}')?.toLocal() ?? start?.add(const Duration(hours: 2));
+      if (id == null || start == null || end == null) continue;
+      if (e['myRsvp'] != 'GOING' || e['status'] == 'CANCELLED') continue;
+      if (now.isBefore(start.subtract(const Duration(minutes: 30))) || now.isAfter(end.add(const Duration(minutes: 30)))) continue;
+      ids.add(id);
+      if (ids.length >= 5) break;
+    }
+    return ids;
   }
 
   void _toast(String m, {BuToastKind kind = BuToastKind.info}) {
@@ -1112,7 +1161,6 @@ class _EventsPageState extends State<EventsPage> {
   List<Widget> _feedSlivers(DateTime? stale) {
     final f = _feeds[_feedKey]!;
     final l = context.l10n;
-    final t = context.bu;
     final mode = _tab == 2 ? _Mode.created : (_sub == 1 ? _Mode.past : _Mode.upcoming);
     return [
       SliverPadding(
@@ -1127,12 +1175,8 @@ class _EventsPageState extends State<EventsPage> {
                 selected: _sub,
                 onSelected: _setSub,
               ),
-            )
-          else if (f.items.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 10),
-              child: Text(l.eventListCreatedHint, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.mut, height: 1.4)),
             ),
+          // "Oluşturduklarım" üstündeki "buradan yönetebilirsin" açıklaması kaldırıldı: liste kendini anlatır.
           if (f.items.isEmpty) _emptyForTab(),
         ]),
       ),

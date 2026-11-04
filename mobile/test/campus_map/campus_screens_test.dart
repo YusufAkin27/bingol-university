@@ -467,11 +467,11 @@ void main() {
       expect(find.text('Bilgisayar Mühendisliği, İnşaat Mühendisliği, Makine Mühendisliği'), findsOneWidget);
       expect(find.text('YÜRÜYEREK SÜRE'), findsOneWidget);
       expect(find.text('Konum açık değil'), findsOneWidget);
-      await tester.ensureVisible(find.text('Paylaş'));
+      await tester.ensureVisible(find.text('Bağlantıyı kopyala'));
       await pumpMs(tester, 300);
       expect(find.text('Yol tarifi'), findsOneWidget);
       expect(find.text('Haritada aç'), findsOneWidget);
-      expect(find.text('Paylaş'), findsOneWidget);
+      expect(find.text('Bağlantıyı kopyala'), findsOneWidget);
       expect(find.text('© OpenStreetMap katkıda bulunanları'), findsOneWidget);
       expect(tester.takeException(), isNull);
       c.dispose();
@@ -511,7 +511,7 @@ void main() {
       c.dispose();
     });
 
-    testWidgets('Paylaş: ad + bağlantı panoya kopyalanır', (tester) async {
+    testWidgets('Bağlantıyı kopyala: ad + bağlantı panoya kopyalanır', (tester) async {
       useScreen(tester, kPhoneMedium);
       String? copied;
       tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
@@ -523,9 +523,9 @@ void main() {
       final c = await ready(repo, FakeCampusLocationService(perm: CampusPerm.deniedForever));
       await tester.pumpWidget(app(CampusPlacePage(controller: c, place: c.places.first, tileProvider: NoTiles())));
       await pumpMs(tester);
-      await tester.ensureVisible(find.text('Paylaş'));
+      await tester.ensureVisible(find.text('Bağlantıyı kopyala'));
       await pumpMs(tester, 300);
-      await tester.tap(find.text('Paylaş'));
+      await tester.tap(find.text('Bağlantıyı kopyala'));
       await pumpMs(tester);
       expect(copied, contains('Mühendislik Fakültesi'));
       expect(copied, contains('https://www.openstreetmap.org/'));

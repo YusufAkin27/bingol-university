@@ -14,6 +14,7 @@ import '../clubs/club_detail_page.dart';
 import '../clubs/club_ref_widgets.dart' show clubFill;
 import '../clubs/clubs_widgets.dart' show ClubJoinButton, ClubOutlineButton, clubsInitials;
 import '../platform/qr_scan_page.dart';
+import 'checkin_input.dart';
 import 'etkinlik2_apply_sheet.dart';
 import 'etkinlik2_attendance_page.dart';
 import 'etkinlik2_qr_page.dart';
@@ -325,13 +326,11 @@ class _EventDetailPageState extends State<EventDetailPage> {
   /// QR tarayıcı sayfasındaki doğrulama kancası: hata metni dönerse sayfada kalır, null = yoklama alındı.
   Future<String?> _verifyScanned(String raw) async {
     final l = context.l10n;
-    var code = raw.trim();
-    const prefix = 'bingol-checkin:';
-    if (code.startsWith(prefix)) code = code.substring(prefix.length);
-    if (code.isEmpty) return l.eventListNotCode;
-    final id = int.tryParse(code.split('.').first);
-    if (id == null) return l.eventListNotCode;
-    if (id != widget.eventId) return l.eventFormWrongEventCode;
+    final input = CheckinInput.parse(raw);
+    if (input == null) return l.eventListNotCode;
+    // Uzun jeton etkinlik kimliğini taşır (başka etkinliğin QR'ı istemcide elenir); kısa elle kod bu sayfanın etkinliğine yazılır.
+    if (!input.isShort && input.eventId != widget.eventId) return l.eventFormWrongEventCode;
+    final code = input.code;
     try {
       final r = await widget.session.api.post('$_path/check-in', {'code': code});
       if (mounted) setState(() => _myAtt = Map<String, dynamic>.from(r as Map));
@@ -382,14 +381,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
           builder: (_) => ChatDetailPage(session: widget.session, conversation: Map<String, dynamic>.from(r as Map)),
         ),
       );
-    } on ApiError catch (e) {
-      if (!mounted) return;
-      if (e.status == 404 || e.status == 405) {
-        _toast(context.l10n.eventFormChatSoon);
-      } else {
-        _toast(errorText(e));
-      }
     } catch (e) {
+      // Sohbet ucu vardır: 404/403 gerçek durumu (etkinlik gizli, katılım şartı vb.) sunucu mesajıyla söyler; "yakında" yedeği yoktur.
       _toast(errorText(e));
     } finally {
       if (mounted) setState(() => _chatBusy = false);
@@ -505,6 +498,24 @@ class _EventDetailPageState extends State<EventDetailPage> {
     );
   }
 
+  /// Yoklama açıkken "QR ile yoklama ver" + muted "Kodu elle gir" (katılan herkes için; açık ve onaylı etkinlik).
+  Widget _checkInButtons() {
+    final l = context.l10n;
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      BuButton(key: const ValueKey('detail-scan'), label: l.p51EvScanQr, onPressed: _scan),
+      Center(
+        child: TextButton(
+          key: const ValueKey('detail-enter-code'),
+          style: TextButton.styleFrom(foregroundColor: t.mut, minimumSize: const Size(48, 48)),
+          onPressed: () => setState(() => _enterCode = !_enterCode),
+          child: Text(l.eventFormEnterCode, style: tx.bodyLarge!.copyWith(color: t.mut)),
+        ),
+      ),
+    ]);
+  }
+
   /// Altta sabit eylem çubuğu (Stitch v3).
   /// Katılmadıysa: çerçeveli "İlgileniyorum" + marka dolgulu "Katıl". Katıldıysa: yoklama açıkken marka dolgulu
   /// "QR ile yoklama ver" + muted "Kodu elle gir"; en altta "Katılıyorsun" + küçük çerçeveli "Katılımdan ayrıl".
@@ -523,7 +534,12 @@ class _EventDetailPageState extends State<EventDetailPage> {
           ),
         );
       }
-      return null;
+      // Katılımı onaylanan kişi de yoklama verebilmeli: yoklama açıkken yalnız QR + elle kod düğmeleri
+      // ("Katılımdan ayrıl" sayfa gövdesinde zaten var, çubukta tekrarlanmaz).
+      final att = _myAtt;
+      final canCheck = _rsvp == 'GOING' && att != null && att['checkInOpen'] == true && att['present'] != true;
+      if (!canCheck) return null;
+      return Et2BottomBar(child: _checkInButtons());
     }
     final ev = _ev!;
     final closed = eventIsClosed(ev);
@@ -536,17 +552,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
       final canCheck = att != null && att['checkInOpen'] == true && att['present'] != true;
       return Et2BottomBar(
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          if (canCheck) ...[
-            BuButton(key: const ValueKey('detail-scan'), label: l.p51EvScanQr, onPressed: _scan),
-            Center(
-              child: TextButton(
-                key: const ValueKey('detail-enter-code'),
-                style: TextButton.styleFrom(foregroundColor: t.mut, minimumSize: const Size(48, 48)),
-                onPressed: () => setState(() => _enterCode = !_enterCode),
-                child: Text(l.eventFormEnterCode, style: tx.bodyLarge!.copyWith(color: t.mut)),
-              ),
-            ),
-          ],
+          if (canCheck) _checkInButtons(),
           Row(children: [
             Expanded(
               child: Row(children: [
@@ -931,7 +937,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
           key: const ValueKey('detail-code-field'),
           controller: _codeCtl,
           autofocus: true,
-          textCapitalization: TextCapitalization.none,
+          textCapitalization: TextCapitalization.characters,
           autocorrect: false,
           enableSuggestions: false,
           textInputAction: TextInputAction.done,
@@ -942,7 +948,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
           textAlign: TextAlign.center,
           style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, letterSpacing: 2, color: t.ink),
           decoration: clubFill(context,
-              hint: 'K7M4QX',
+              hint: l.sistemuiQrManualHint,
               hasError: _codeError != null,
               suffixIcon: _codeCtl.text.isEmpty
                   ? null

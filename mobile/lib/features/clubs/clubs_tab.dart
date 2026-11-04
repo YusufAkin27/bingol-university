@@ -7,6 +7,7 @@ import '../../widgets/bu.dart';
 import 'club_actions.dart';
 import 'club_categories.dart';
 import 'club_detail_page.dart';
+import 'club_detail_parts.dart' show ClubBarIcon;
 import 'club_form_page.dart';
 import 'club_join_flow.dart';
 import 'clubs_widgets.dart';
@@ -270,9 +271,18 @@ class _ClubsTabState extends State<ClubsTab> {
           // Başlık: "Kulüpler" 28/700 solda; sağda marka renkli metin düğmesi "Kulüp kur" (+ arama simgesi: davranış korunur).
           // Ölçü (Stitch çerçevesi durum çubuğunsuz): başlık ortası içerik üstünden 40 dp = 16 dp boşluk + 24 dp (48 dp satır).
           Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(20, MediaQuery.paddingOf(context).top + 16, 8, 0),
+            // Başka sayfadan açıldıysa (Etkinlikler, Kulüplerim, etkinlik formu) sol başa geri oku konur.
+            padding: EdgeInsetsDirectional.fromSTEB(Navigator.of(context).canPop() ? 8 : 20, MediaQuery.paddingOf(context).top + 16, 8, 0),
             child: Row(
               children: [
+                if (Navigator.of(context).canPop()) ...[
+                  ClubBarIcon(
+                      icon: BuIcons.arrowLeft,
+                      tooltip: context.l10n.commonBack,
+                      onTap: () => Navigator.maybePop(context),
+                      width: 40),
+                  const SizedBox(width: 4),
+                ],
                 Expanded(
                   child: Semantics(
                     header: true,

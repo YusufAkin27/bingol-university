@@ -28,6 +28,7 @@ class _Feed {
   bool more = false;
   Object? error;
   int gen = 0;
+  DateTime? moreFailedAt;
 }
 
 class _MyEventsPageState extends State<MyEventsPage> {
@@ -112,6 +113,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
         f.loaded = true;
         f.error = null;
       });
+      _fillIfShort();
     } catch (e) {
       if (!mounted || gen != f.gen) return;
       setState(() {
@@ -121,26 +123,47 @@ class _MyEventsPageState extends State<MyEventsPage> {
     }
   }
 
+  /// Ekranda görünen akış: Katıldıklarım > Yaklaşan / Geçmiş, ya da Oluşturduklarım.
+  String get _activeKey => _tab == 0 ? (_sub == 1 ? 'past' : 'up') : 'created';
+
+  /// Yalnız GÖRÜNEN akışın sonraki sayfası (önceki sürüm ilk imleci olan akışı yüklüyordu: Geçmiş sekmesi
+  /// açıkken görünmeyen Yaklaşan akışı büyüyor, Geçmiş hiç sayfalanmıyordu).
   Future<void> _loadMore() async {
-    for (final key in _keys) {
-      final f = _feeds[key]!;
-      if (f.more || f.loading || f.next == null) continue;
-      final gen = f.gen;
-      setState(() => f.more = true);
-      try {
-        final res = await widget.session.api.get(_path(key, cursor: f.next));
-        if (!mounted || gen != f.gen) return;
-        setState(() {
-          final seen = f.items.map((e) => e['id']).toSet();
-          f.items = [...f.items, ..._parse(key, res).where((e) => seen.add(e['id']))];
-          f.next = _next(res);
-          f.more = false;
-        });
-      } catch (_) {
-        if (mounted) setState(() => f.more = false);
-      }
-      return;
+    final key = _activeKey;
+    final f = _feeds[key]!;
+    if (f.more || f.loading || f.next == null) return;
+    final failed = f.moreFailedAt;
+    if (failed != null && DateTime.now().difference(failed) < const Duration(seconds: 5)) return;
+    final gen = f.gen;
+    setState(() => f.more = true);
+    try {
+      final res = await widget.session.api.get(_path(key, cursor: f.next));
+      if (!mounted || gen != f.gen) return;
+      final prevCursor = f.next;
+      setState(() {
+        final seen = f.items.map((e) => e['id']).toSet();
+        f.items = [...f.items, ..._parse(key, res).where((e) => seen.add(e['id']))];
+        f.next = _next(res);
+        f.more = false;
+      });
+      // İmleç ilerlemediyse (yinelenen sayfa) döngüye girme.
+      if (f.next != prevCursor) _fillIfShort();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        f.more = false;
+        f.moreFailedAt = DateTime.now();
+      });
+      BuToast.show(context, errorText(e), kind: BuToastKind.error);
     }
+  }
+
+  /// İstemci süzgeci (Yaklaşan/Geçmiş) sayfayı kısa bırakırsa kaydırma olmaz; sonraki sayfayı kendiliğinden iste.
+  void _fillIfShort() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scroll.hasClients) return;
+      if (_scroll.position.maxScrollExtent <= 0) _loadMore();
+    });
   }
 
   Future<void> _open(Map<String, dynamic> e) async {
@@ -161,6 +184,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
     if (i == _sub) return;
     setState(() => _sub = i);
     if (_scroll.hasClients) _scroll.jumpTo(0);
+    _fillIfShort();
   }
 
   void _switch(int i) {
@@ -170,6 +194,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
     for (final k in _keys) {
       if (!_feeds[k]!.loaded) _load(k);
     }
+    _fillIfShort();
   }
 
   /// İstek ya da katılım geri çekilir (DELETE /events/{id}/rsvp), onaydan sonra.
@@ -199,7 +224,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final key = _tab == 0 ? (_sub == 1 ? 'past' : 'up') : 'created';
+    final key = _activeKey;
     final f = _feeds[key]!;
     final loading = f.loading && !f.loaded;
     final failed = f.error != null && !f.loaded;

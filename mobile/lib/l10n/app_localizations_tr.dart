@@ -3255,6 +3255,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get eventListNotCode => 'Bu bir yoklama kodu değil.';
 
   @override
+  String get eventListShortCodeNeedsEvent =>
+      'Şu an yoklaması açık bir etkinliğin yok. Kısa kodu, etkinlik sayfasındaki “Kodu elle gir” alanına yaz.';
+
+  @override
   String get eventListCheckedIn => 'Yoklaman alındı.';
 
   @override
@@ -10368,7 +10372,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get campusOpenInMaps => 'Haritada aç';
 
   @override
-  String get campusShare => 'Paylaş';
+  String get campusShare => 'Bağlantıyı kopyala';
 
   @override
   String get campusDetailTitle => 'Bina Detayı';

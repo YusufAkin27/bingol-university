@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
+import '../../core/permissions/ensure_permission.dart';
 import '../../core/permissions/permission_service.dart';
 import '../../core/session.dart';
 import '../../l10n/app_localizations.dart';
@@ -86,7 +87,8 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> with Widget
                     text: l.p69PermOff,
                     actionLabel: l.p20RemOpenSettings,
                     onAction: () async {
-                      await PermissionService.instance.openSettings();
+                      // İzin hiç sorulmadıysa önce sistem istemi, kalıcı reddedilmişse "Ayarlardan aç" sayfası (ortak akış).
+                      await ensurePermission(context, AppPermission.notifications);
                       unawaited(_checkPermission());
                     },
                   ),

@@ -6073,6 +6073,12 @@ abstract class AppLocalizations {
   /// **'Bu bir yoklama kodu değil.'**
   String get eventListNotCode;
 
+  /// No description provided for @eventListShortCodeNeedsEvent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şu an yoklaması açık bir etkinliğin yok. Kısa kodu, etkinlik sayfasındaki “Kodu elle gir” alanına yaz.'**
+  String get eventListShortCodeNeedsEvent;
+
   /// No description provided for @eventListCheckedIn.
   ///
   /// In tr, this message translates to:
@@ -18850,7 +18856,7 @@ abstract class AppLocalizations {
   /// No description provided for @campusShare.
   ///
   /// In tr, this message translates to:
-  /// **'Paylaş'**
+  /// **'Bağlantıyı kopyala'**
   String get campusShare;
 
   /// No description provided for @campusDetailTitle.

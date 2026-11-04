@@ -157,7 +157,7 @@ class _CampusPlacePageState extends State<CampusPlacePage> {
                           Row(children: [
                             Expanded(child: BuButton(label: l.campusOpenInMaps, icon: BuIcons.map, kind: BuButtonKind.soft, onPressed: () => unawaited(openPlaceInMaps(context, p)))),
                             const SizedBox(width: 8),
-                            Expanded(child: BuButton(label: l.campusShare, icon: BuIcons.share2, kind: BuButtonKind.soft, onPressed: () => unawaited(sharePlace(context, p)))),
+                            Expanded(child: BuButton(label: l.campusShare, icon: BuIcons.copy, kind: BuButtonKind.soft, onPressed: () => unawaited(sharePlace(context, p)))),
                           ]),
                           const SizedBox(height: 12),
                           Text(l.campusDistanceNote, textAlign: TextAlign.center, style: tx.bodySmall!.copyWith(color: t.mut)),

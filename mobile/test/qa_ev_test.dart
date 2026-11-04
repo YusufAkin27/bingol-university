@@ -1,0 +1,645 @@
+import 'package:bu_kampus/core/permissions/permission_service.dart';
+import 'package:bu_kampus/features/academic/acad_ref_widgets.dart' show AcadDot;
+import 'package:bu_kampus/features/academic/academic_models.dart' show academicClock;
+import 'package:bu_kampus/features/academic/announcements_page.dart';
+import 'package:bu_kampus/features/academic/course_form_page.dart';
+import 'package:bu_kampus/features/academic/reminder_settings_page.dart';
+import 'package:bu_kampus/features/academic/reminders.dart';
+import 'package:bu_kampus/features/clubs/club_detail_page.dart';
+import 'package:bu_kampus/features/clubs/clubs_tab.dart';
+import 'package:bu_kampus/features/events/checkin_input.dart';
+import 'package:bu_kampus/features/events/etkinlik2_qr_page.dart';
+import 'package:bu_kampus/features/events/etkinlik2_requests_page.dart';
+import 'package:bu_kampus/features/events/event_detail_page.dart';
+import 'package:bu_kampus/features/events/events_page.dart';
+import 'package:bu_kampus/features/platform/qr_scan_page.dart';
+import 'package:bu_kampus/features/profile/my_events_page.dart';
+import 'package:bu_kampus/widgets/bu.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'support/fake_app.dart';
+
+/// QA-EV turu: elle yoklama kodu (kısa kod), QR tekrar gönderimi, onaylı etkinlikte yoklama, Katıldıklarım > Geçmiş
+/// sayfalama, kulüp etkinlik yenileme, istek sayfası sayfalama.
+String _iso(DateTime d) => d.toUtc().toIso8601String();
+
+Map<String, dynamic> _ev({String? rsvp, String policy = 'OPEN', bool manage = false}) {
+  final st = DateTime.now().subtract(const Duration(minutes: 10));
+  return {
+    'id': 5,
+    'title': 'Bahar Şenliği',
+    'startsAt': _iso(st),
+    'endsAt': _iso(st.add(const Duration(hours: 3))),
+    'location': 'Açık Hava Sahnesi',
+    'communityId': 7,
+    'communityName': 'Müzik Kulübü',
+    'goingCount': 3,
+    'capacity': 50,
+    'myRsvp': rsvp,
+    'status': 'ACTIVE',
+    'joinPolicy': policy,
+    'canManage': manage,
+    'createdBy': 2,
+  };
+}
+
+FakeBackend _detail(Map<String, dynamic> ev, {bool open = true}) => FakeBackend()
+  ..on('/events/5', ev)
+  ..on('/events/5/my-attendance', {'present': false, 'checkInOpen': open})
+  ..on('/events/5/check-in', {'present': true, 'checkInOpen': true});
+
+Future<void> _gone(WidgetTester tester) async {
+  await tester.pumpWidget(const SizedBox.shrink());
+  await tester.pump(const Duration(seconds: 1));
+}
+
+void main() {
+  setUpAll(loadTestFonts);
+
+  group('CheckinInput', () {
+    test('kısa elle kod: boşluk/tire/küçük harf toleranslı, büyük harfe çevrilir', () {
+      for (final raw in ['K7M4QX', 'k7m4qx', 'K7M 4QX', ' k7m-4qx ', 'bingol-checkin:K7M4QX']) {
+        final i = CheckinInput.parse(raw)!;
+        expect(i.isShort, isTrue, reason: raw);
+        expect(i.code, 'K7M4QX', reason: raw);
+        expect(i.eventId, isNull);
+      }
+    });
+
+    test('uzun jeton: etkinlik kimliği koddan okunur, önek atılır, kod olduğu gibi gider', () {
+      final i = CheckinInput.parse('bingol-checkin:5.123.abc_DEF-9')!;
+      expect(i.isShort, isFalse);
+      expect(i.eventId, 5);
+      expect(i.code, '5.123.abc_DEF-9');
+    });
+
+    test('tanınmayan girdi null: boş, kısa, uzun, noktalı ama sayısız, Türkçe harf', () {
+      for (final raw in ['', '   ', 'abc', 'K7M4QX9', 'x.1.2', 'ÇĞİÖŞÜ', 'K7M4Q!']) {
+        expect(CheckinInput.parse(raw), isNull, reason: raw);
+      }
+    });
+
+    test('spacedManualCode: 6 karakter 3+3, diğerleri aynen', () {
+      expect(spacedManualCode('K7M4QX'), 'K7M 4QX');
+      expect(spacedManualCode('5.123.abc'), '5.123.abc');
+    });
+  });
+
+  group('ScanThrottle', () {
+    test('ilk okuma kabul; reddedilen kod bekleme süresi dolmadan yeniden gönderilmez', () {
+      final th = ScanThrottle();
+      final t0 = DateTime(2026, 1, 1, 12);
+      expect(th.accept('A', t0), isTrue);
+      th.rejected('A', t0);
+      // kamera ~250 ms'de bir aynı kareyi görür
+      for (var ms = 250; ms < 4000; ms += 250) {
+        expect(th.accept('A', t0.add(Duration(milliseconds: ms))), isFalse, reason: '$ms ms');
+      }
+      expect(th.accept('A', t0.add(const Duration(seconds: 4, milliseconds: 100))), isTrue);
+    });
+
+    test('aynı kod art arda reddedilince bekleme ikiye katlanır (en çok 32 sn)', () {
+      final th = ScanThrottle();
+      var now = DateTime(2026, 1, 1, 12);
+      th.rejected('A', now);
+      now = now.add(const Duration(seconds: 5));
+      expect(th.accept('A', now), isTrue);
+      th.rejected('A', now); // 2. ret: 8 sn
+      expect(th.accept('A', now.add(const Duration(seconds: 7))), isFalse);
+      expect(th.accept('A', now.add(const Duration(seconds: 8, milliseconds: 100))), isTrue);
+      for (var i = 0; i < 10; i++) {
+        th.rejected('A', now);
+      }
+      expect(th.accept('A', now.add(const Duration(seconds: 31))), isFalse);
+      expect(th.accept('A', now.add(const Duration(seconds: 33))), isTrue);
+    });
+
+    test('farklı kod en az 1,2 sn sonra kabul edilir; sayaç sıfırlanır', () {
+      final th = ScanThrottle();
+      final t0 = DateTime(2026, 1, 1, 12);
+      th.rejected('A', t0);
+      expect(th.accept('B', t0.add(const Duration(milliseconds: 500))), isFalse);
+      expect(th.accept('B', t0.add(const Duration(milliseconds: 1300))), isTrue);
+      th.rejected('B', t0.add(const Duration(seconds: 2)));
+      // B ilk kez reddedildi: seri 1 -> 4 sn
+      expect(th.accept('B', t0.add(const Duration(seconds: 5))), isFalse);
+      expect(th.accept('B', t0.add(const Duration(seconds: 6, milliseconds: 100))), isTrue);
+    });
+  });
+
+  group('QrScanPage', () {
+    testWidgets('elle giriş reddedilince hata gösterilir, düzeltilince başarılı kapanır (tekrar gönderim yok)', (tester) async {
+      useScreen(tester, kPhoneMedium);
+      var calls = 0;
+      await tester.pumpWidget(buildApp(
+        QrScanPage(
+          scannerBuilder: (_) => const SizedBox.shrink(),
+          onSubmit: (code) async {
+            calls++;
+            return code == 'K7M4QX' ? null : 'Kod geçersiz';
+          },
+        ),
+        size: kPhoneMedium,
+      ));
+      await settle(tester, const Duration(milliseconds: 600));
+      // Kamera izni test ortamında istenir; elle giriş alanı her durumda ekrandadır.
+      await tester.enterText(find.byType(TextField).last, 'XXXXXX');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text('Kod geçersiz'), findsWidgets);
+      expect(calls, 1);
+      await tester.pump(const Duration(seconds: 3));
+      expect(calls, 1, reason: 'hata sonrası kendiliğinden yeniden gönderilmez');
+      await _gone(tester);
+    });
+  });
+
+  group('Etkinlik2QrPage', () {
+    FakeBackend be({String? manual}) => FakeBackend()
+      ..on('/events/5/checkin-code', {
+        'code': '5.123.abcdefghijklmnop',
+        'qrPayload': 'bingol-checkin:5.123.abcdefghijklmnop',
+        'validForSeconds': 30,
+        if (manual != null) 'manualCode': manual,
+      })
+      ..on('/events/5/attendance', <Object>[]);
+
+    testWidgets('elle kod olarak sunucunun 6 karakterli manualCode değeri gösterilir ve kopyalanır', (tester) async {
+      String? clip;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+        if (call.method == 'Clipboard.setData') clip = (call.arguments as Map)['text'] as String?;
+        return null;
+      });
+      addTearDown(() => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(
+          Etkinlik2QrPage(session: makeSession(be(manual: 'K7M4QX')), event: const {'id': 5, 'title': 'Bahar Şenliği'}),
+          size: kPhoneMedium));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.text('K7M 4QX'), findsOneWidget);
+      expect(find.textContaining('abcdefghijklmnop'), findsNothing, reason: 'uzun HMAC jetonu insana gösterilmez');
+      await tester.tap(find.byKey(const ValueKey('et2-manual-code')));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(clip, 'K7M4QX');
+      await _gone(tester);
+    });
+
+    testWidgets('eski sunucu (manualCode yok): uzun kod yedeği gösterilir, sayfa bozulmaz', (tester) async {
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(
+          Etkinlik2QrPage(session: makeSession(be()), event: const {'id': 5, 'title': 'Bahar Şenliği'}),
+          size: kPhoneMedium));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.byKey(const ValueKey('et2-manual-code')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await _gone(tester);
+    });
+  });
+
+  group('EventDetailPage yoklama', () {
+    testWidgets('kısa elle kod: büyük harfe çevrilip bu etkinliğe gönderilir (K7M4QX)', (tester) async {
+      final b = _detail(_ev(rsvp: 'GOING'));
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(EventDetailPage(session: makeSession(b), eventId: 5), size: kPhoneMedium));
+      await settle(tester, const Duration(milliseconds: 800));
+      await tester.tap(find.byKey(const ValueKey('detail-enter-code')));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.enterText(find.byKey(const ValueKey('detail-code-field')), 'k7m 4qx');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(b.bodies['POST /events/5/check-in'], {'code': 'K7M4QX'});
+      expect(find.text('Bu bir yoklama kodu değil.'), findsNothing);
+      await _gone(tester);
+    });
+
+    testWidgets('başka etkinliğin uzun kodu istemcide elenir; 5 karakterlik girdi kod değildir', (tester) async {
+      final b = _detail(_ev(rsvp: 'GOING'));
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(EventDetailPage(session: makeSession(b), eventId: 5), size: kPhoneMedium));
+      await settle(tester, const Duration(milliseconds: 800));
+      await tester.tap(find.byKey(const ValueKey('detail-enter-code')));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.enterText(find.byKey(const ValueKey('detail-code-field')), '9.123.abc');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text('Bu kod başka bir etkinliğe ait.'), findsOneWidget);
+      await tester.enterText(find.byKey(const ValueKey('detail-code-field')), 'K7M4Q');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text('Bu bir yoklama kodu değil.'), findsOneWidget);
+      expect(b.requests.where((r) => r.contains('check-in')), isEmpty);
+      await _gone(tester);
+    });
+
+    testWidgets('onaylı (APPROVAL) etkinlikte katılımı onaylanan kişi de QR/kodla yoklama verebilir', (tester) async {
+      final b = _detail(_ev(rsvp: 'GOING', policy: 'APPROVAL'));
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(EventDetailPage(session: makeSession(b), eventId: 5), size: kPhoneMedium));
+      await settle(tester, const Duration(milliseconds: 800));
+      expect(find.byKey(const ValueKey('detail-scan')), findsOneWidget);
+      expect(find.byKey(const ValueKey('detail-enter-code')), findsOneWidget);
+      // "Katılımdan ayrıl" yalnız gövdede (çubukta tekrarlanmaz)
+      expect(find.byKey(const ValueKey('detail-leave')), findsNothing);
+      expect(find.byKey(const ValueKey('detail-leave-approval')), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('detail-enter-code')));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.enterText(find.byKey(const ValueKey('detail-code-field')), 'K7M4QX');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(b.bodies['POST /events/5/check-in'], {'code': 'K7M4QX'});
+      await _gone(tester);
+    });
+
+    testWidgets('onaylı etkinlik, yoklama henüz kapalı: alt çubuk yok (yalnız bekleme notu)', (tester) async {
+      final b = _detail(_ev(rsvp: 'GOING', policy: 'APPROVAL'), open: false);
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(EventDetailPage(session: makeSession(b), eventId: 5), size: kPhoneMedium));
+      await settle(tester, const Duration(milliseconds: 800));
+      expect(find.byKey(const ValueKey('detail-scan')), findsNothing);
+      expect(find.byKey(const ValueKey('detail-enter-code')), findsNothing);
+      await _gone(tester);
+    });
+
+    testWidgets('etkinlik sohbeti 404: "yakında" yerine sunucunun gerçek hatası gösterilir', (tester) async {
+      final b = _detail(_ev(rsvp: 'GOING'))..fail('/events/5/chat', status: 404, code: 'EVENT_NOT_FOUND', message: 'Etkinlik bulunamadı');
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(EventDetailPage(session: makeSession(b), eventId: 5), size: kPhoneMedium));
+      await settle(tester, const Duration(milliseconds: 800));
+      final chat = find.byKey(const ValueKey('detail-chat'));
+      await tester.ensureVisible(chat);
+      await tester.pump();
+      await tester.tap(chat);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.textContaining('yakında'), findsNothing);
+      await _gone(tester);
+    });
+  });
+
+  group('EventsPage genel yoklama (Yoklama düğmesi)', () {
+    FakeBackend be() => FakeBackend()
+      ..on('/events/calendar*', {'items': <Object>[], 'truncated': false})
+      ..on('/me/events*', {
+        'items': [
+          {'id': 5, 'title': 'Bahar Şenliği', 'startsAt': _iso(DateTime.now().subtract(const Duration(minutes: 5))), 'myRsvp': 'GOING'},
+          // yoklama penceresi dışında (iki gün sonra) ve katılmadığı etkinlik: aday olmaz
+          {'id': 6, 'title': 'Gelecek', 'startsAt': _iso(DateTime.now().add(const Duration(days: 2))), 'myRsvp': 'GOING'},
+          {'id': 8, 'title': 'İlgi', 'startsAt': _iso(DateTime.now()), 'myRsvp': 'INTERESTED'},
+        ],
+        'nextCursor': null,
+      })
+      ..on('/events/5/check-in', {'present': true});
+
+    Future<void> openScan(WidgetTester tester, FakeBackend b) async {
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(EventsPage(session: makeSession(b)), size: kPhoneMedium));
+      await settle(tester, const Duration(milliseconds: 600));
+      await tester.tap(find.text('Yoklama'));
+      await settle(tester, const Duration(milliseconds: 500));
+      expect(find.byType(QrScanPage), findsOneWidget);
+    }
+
+    testWidgets('kısa kod yalnız yoklaması açık "Katılıyorum" etkinliğine gönderilir', (tester) async {
+      final b = be();
+      await openScan(tester, b);
+      await tester.enterText(find.byType(TextField).last, 'k7m4qx');
+      await tester.tap(find.text('Yoklamayı gönder').last);
+      await settle(tester, const Duration(milliseconds: 500));
+      expect(b.bodies['POST /events/5/check-in'], {'code': 'K7M4QX'});
+      expect(b.requests.where((r) => r.contains('/events/6/') || r.contains('/events/8/')), isEmpty);
+      await _gone(tester);
+    });
+
+    testWidgets('aday etkinlik yoksa kısa kod için yönlendirme metni (istek atılmaz)', (tester) async {
+      final b = be()..on('/me/events*', {'items': <Object>[], 'nextCursor': null});
+      await openScan(tester, b);
+      await tester.enterText(find.byType(TextField).last, 'K7M4QX');
+      await tester.tap(find.text('Yoklamayı gönder').last);
+      await settle(tester, const Duration(milliseconds: 500));
+      expect(find.textContaining('Kodu elle gir'), findsWidgets);
+      expect(b.requests.where((r) => r.contains('check-in')), isEmpty);
+      await _gone(tester);
+    });
+
+    testWidgets('uzun QR jetonu hâlâ koddaki etkinlik kimliğine gider', (tester) async {
+      final b = be()..on('/events/9/check-in', {'present': true});
+      await openScan(tester, b);
+      await tester.enterText(find.byType(TextField).last, 'bingol-checkin:9.123.abc');
+      await tester.tap(find.text('Yoklamayı gönder').last);
+      await settle(tester, const Duration(milliseconds: 500));
+      expect(b.bodies['POST /events/9/check-in'], {'code': '9.123.abc'});
+      await _gone(tester);
+    });
+  });
+
+  group('MyEventsPage > Geçmiş sayfalama', () {
+    List<Map<String, dynamic>> items(int from, int n, {required bool past}) => [
+          for (var i = from; i < from + n; i++)
+            {
+              'id': i,
+              'title': '${past ? 'Geçmiş' : 'Yaklaşan'} etkinlik $i',
+              'startsAt': past ? '2020-05-${10 + i % 10}T10:00:00' : '2098-05-${10 + i % 10}T10:00:00',
+              'location': 'Salon',
+              'myRsvp': 'GOING',
+            },
+        ];
+
+    testWidgets('Geçmiş sekmesi açıkken kaydırınca GEÇMİŞ akışının sonraki sayfası yüklenir (Yaklaşan değil)', (tester) async {
+      final b = FakeBackend()
+        ..on('/me/events?mode=attending&size=20', {'items': items(1, 8, past: false), 'nextCursor': 9})
+        ..on('/me/events?mode=attending&size=20&cursor=9', {'items': items(20, 2, past: false), 'nextCursor': null})
+        ..on('/me/events?mode=past&size=20', {'items': items(100, 8, past: true), 'nextCursor': 7})
+        ..on('/me/events?mode=past&size=20&cursor=7', {'items': items(200, 2, past: true), 'nextCursor': null});
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(MyEventsPage(session: makeSession(b)), size: kPhoneMedium));
+      await settle(tester, const Duration(milliseconds: 800));
+      await tester.tap(find.text('Geçmiş'));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.text('Geçmiş etkinlik 100'), findsOneWidget);
+      final upBefore = b.count('mode=attending&size=20&cursor=9');
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, -3000));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(b.count('mode=past&size=20&cursor=7'), 1, reason: 'görünen akış sayfalanır');
+      expect(b.count('mode=attending&size=20&cursor=9'), upBefore, reason: 'görünmeyen Yaklaşan akışı büyütülmez');
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, -3000));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.text('Geçmiş etkinlik 201'), findsOneWidget);
+      await _gone(tester);
+    });
+
+    testWidgets('sayfa getirme hatası toast ile gösterilir, yeniden deneme 5 sn aralıklıdır (toast yağmuru yok)', (tester) async {
+      final b = FakeBackend()
+        ..on('/me/events?mode=attending&size=20', {'items': items(1, 8, past: false), 'nextCursor': 9})
+        ..fail('/me/events?mode=attending&size=20&cursor=9', status: 500)
+        ..on('/me/events?mode=past&size=20', {'items': <Object>[], 'nextCursor': null});
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(MyEventsPage(session: makeSession(b)), size: kPhoneMedium));
+      await settle(tester, const Duration(milliseconds: 800));
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, -3000));
+      await settle(tester, const Duration(milliseconds: 600));
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, -3000));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(b.count('mode=attending&size=20&cursor=9'), 1);
+      await tester.pump(const Duration(seconds: 6));
+      await _gone(tester);
+    });
+  });
+
+  group('ClubDetailPage', () {
+    FakeBackend be() => FakeBackend()
+      ..on('/communities/7', {
+        'id': 7,
+        'name': 'Robotik Kulübü',
+        'description': 'Robot yarışmaları.',
+        'category': 'Teknoloji',
+        'memberCount': 42,
+        'visibility': 'PUBLIC',
+        'joinPolicy': 'OPEN',
+        'myStatus': 'ACTIVE',
+        'myRole': 'OWNER',
+      })
+      ..on('/communities/7/posts*', {'items': <Object>[], 'nextCursor': null})
+      ..on('/communities/7/requests*', {'items': <Object>[], 'nextCursor': null})
+      ..on('/me/communities*', {'items': <Object>[], 'nextCursor': null})
+      ..on('/events*', {'items': <Object>[], 'nextCursor': null});
+
+    testWidgets('etkinlik oluşturma sayfasından dönünce Etkinlikler sekmesi yenilenir', (tester) async {
+      final b = be();
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(ClubDetailPage(session: makeSession(b), communityId: 7), size: kPhoneMedium));
+      await settle(tester, const Duration(milliseconds: 800));
+      await tester.tap(find.text('Etkinlikler').first);
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(b.count('GET /events?communityId=7'), 1);
+      await tester.ensureVisible(find.text('Etkinlik oluştur').first);
+      await tester.tap(find.text('Etkinlik oluştur').first);
+      await settle(tester, const Duration(milliseconds: 600));
+      final nav = tester.state<NavigatorState>(find.byType(Navigator).first);
+      nav.pop();
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(b.count('GET /events?communityId=7'), 2, reason: 'dönüşte liste yeniden istenir');
+      await _gone(tester);
+    });
+
+    testWidgets('yenileme hatası görünür (eski veri kalır ama sessiz geçilmez)', (tester) async {
+      final b = be();
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(ClubDetailPage(session: makeSession(b), communityId: 7), size: kPhoneMedium));
+      await settle(tester, const Duration(milliseconds: 800));
+      b.fail('/communities/7', status: 500);
+      await tester.fling(find.byType(Scrollable).first, const Offset(0, 400), 1000);
+      await settle(tester, const Duration(milliseconds: 800));
+      expect(find.text('Robotik Kulübü'), findsWidgets, reason: 'eski veri kalır');
+      expect(find.textContaining('Bir sorun'), findsWidgets, reason: 'hata kullanıcıya gösterilir');
+      await tester.pump(const Duration(seconds: 6));
+      await _gone(tester);
+    });
+  });
+
+  group('Etkinlik2RequestsPage sayfalama', () {
+    Map<String, dynamic> app(int id, String name) => {'id': id, 'userId': id, 'displayName': name, 'answers': <String>[], 'status': 'ACCEPTED'};
+
+    testWidgets('Onaylanan sekmesi ilk 50\'yi aşınca "Daha fazla göster" ile sonraki sayfayı alır', (tester) async {
+      final b = FakeBackend()
+        ..on('/events/5', {'id': 5, 'title': 'X', 'goingCount': 60, 'capacity': 100})
+        ..on('/events/5/requests?status=PENDING&size=50', {'items': <Object>[], 'nextCursor': null})
+        ..on('/events/5/requests?status=ACCEPTED&size=50', {'items': [app(31, 'Mert Aksoy')], 'nextCursor': 77})
+        ..on('/events/5/requests?status=ACCEPTED&size=50&cursor=77', {'items': [app(32, 'Selin Doğan')], 'nextCursor': null})
+        ..on('/events/5/requests?status=REJECTED&size=50', {'items': <Object>[], 'nextCursor': null});
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(
+          Etkinlik2RequestsPage(session: makeSession(b), event: const {'id': 5, 'title': 'X', 'goingCount': 60, 'capacity': 100}),
+          size: kPhoneMedium));
+      await settle(tester, const Duration(milliseconds: 800));
+      await tester.tap(find.textContaining('Onaylanan'));
+      await settle(tester, const Duration(milliseconds: 400));
+      expect(find.text('Mert Aksoy'), findsOneWidget);
+      await tester.ensureVisible(find.text('Daha fazla göster'));
+      await tester.tap(find.text('Daha fazla göster'));
+      await settle(tester, const Duration(milliseconds: 500));
+      expect(find.text('Selin Doğan'), findsOneWidget);
+      expect(find.text('Daha fazla göster'), findsNothing);
+      await _gone(tester);
+    });
+  });
+
+  group('CourseFormPage hata yakalama', () {
+    // Kayıt isteği ApiError DIŞINDA bir istisna fırlatırsa düğme meşgul kalmamalı (önceki sürümde takılırdı).
+    testWidgets('beklenmeyen istisnada Kaydet yeniden etkinleşir', (tester) async {
+      final b = FakeBackend()..on('/timetable/courses', {'id': 1, 'sessions': 'bozuk'}); // sessions List yerine String: ayrıştırma TypeError (ApiError değil)
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(
+          CourseFormPage(session: makeSession(b), allCourses: const [], semesterId: 1, initialDay: 1),
+          size: kPhoneMedium));
+      await settle(tester, const Duration(milliseconds: 600));
+      final name = find.byType(TextField).first;
+      await tester.enterText(name, 'Matematik');
+      await tester.pump();
+      final save = find.widgetWithText(BuButton, 'Dersi ekle');
+      await tester.scrollUntilVisible(save, 400, scrollable: find.byType(Scrollable).first);
+      await tester.pump();
+      await tester.tap(save);
+      await settle(tester, const Duration(milliseconds: 800));
+      expect(b.requests, contains('POST /timetable/courses'));
+      // sayfa hâlâ açık ve kaydet düğmesi yeniden dokunulabilir (busy bırakıldı)
+      expect(find.byType(CourseFormPage), findsOneWidget);
+      expect(tester.widget<BuButton>(save).onPressed, isNotNull);
+      expect(tester.widget<BuButton>(save).busy, isFalse);
+      await tester.pump(const Duration(seconds: 6));
+      await _gone(tester);
+    });
+  });
+
+  group('AnnouncementsPage', () {
+    Map<String, dynamic> ann(int i) => {'id': i, 'title': 'Duyuru $i', 'department': 'Fen Fak.', 'publishAt': '2026-10-01T10:00:00Z', 'read': false};
+    const first = '/announcements?scope=mine&size=20';
+    const second = '/announcements?scope=mine&size=20&cursor=c2';
+
+    testWidgets('sayfa hatası sonrası liste sonu sanılmaz: bekleme sonrası kaydırınca yeniden denenir', (tester) async {
+      var clock = DateTime(2026, 11, 4, 12);
+      academicClock = () => clock;
+      addTearDown(() => academicClock = DateTime.now);
+      final b = FakeBackend()
+        ..on(first, {'items': [for (var i = 1; i < 21; i++) ann(i)], 'nextCursor': 'c2'})
+        ..fail(second, status: 500);
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(AnnouncementsPage(session: makeSession(b)), size: kPhoneMedium));
+      await settle(tester, const Duration(milliseconds: 800));
+      await tester.drag(find.byType(ListView).last, const Offset(0, -3000));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(b.count('cursor=c2'), 1);
+      // hemen yeniden kaydırma 5 sn dolmadan yeni istek atmaz
+      await tester.drag(find.byType(ListView).last, const Offset(0, -3000));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(b.count('cursor=c2'), 1);
+      // sunucu düzeldi, bekleme doldu: aynı imleçle yeniden denenir ve liste devam eder
+      b.on(second, {'items': [ann(40)], 'nextCursor': null});
+      clock = clock.add(const Duration(seconds: 6));
+      await tester.drag(find.byType(ListView).last, const Offset(0, 600)); // biraz yukarı, sonra tekrar dibe
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.drag(find.byType(ListView).last, const Offset(0, -3000));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(b.count('cursor=c2'), 2);
+      expect(find.text('Duyuru 40'), findsOneWidget);
+      await _gone(tester);
+    });
+
+    testWidgets('ayrıntı yüklenemeyen duyuru listede okundu işaretlenmez; yüklenince işaretlenir', (tester) async {
+      final b = FakeBackend()
+        ..on(first, {'items': [ann(1), ann(2)], 'nextCursor': null})
+        ..fail('/announcements/1', status: 500)
+        ..on('/announcements/2', {...ann(2), 'body': 'Metin'});
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(AnnouncementsPage(session: makeSession(b)), size: kPhoneMedium));
+      await settle(tester, const Duration(milliseconds: 800));
+      expect(find.byType(AcadDot), findsNWidgets(2));
+      await tester.tap(find.text('Duyuru 1'));
+      await settle(tester, const Duration(milliseconds: 600));
+      tester.state<NavigatorState>(find.byType(Navigator).first).pop();
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.byType(AcadDot), findsNWidgets(2), reason: 'sunucu okundu işaretlemedi, liste de işaretlemez');
+      await tester.tap(find.text('Duyuru 2'));
+      await settle(tester, const Duration(milliseconds: 600));
+      tester.state<NavigatorState>(find.byType(Navigator).first).pop();
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.byType(AcadDot), findsNWidgets(1));
+      await _gone(tester);
+    });
+  });
+
+  group('ReminderSettingsPage izin', () {
+    tearDown(() => PermissionService.instance = SystemPermissionService());
+
+    testWidgets('izin hiç sorulmadıysa "Ayarlardan aç" önce sistem istemini gösterir; verilince anahtarlar açılır', (tester) async {
+      ReminderService.platform = _NoopReminders();
+      ReminderService.store = MemoryReminderStore();
+      addTearDown(() {
+        ReminderService.platform = const ChannelReminderPlatform();
+        ReminderService.store = const SecureReminderStore();
+      });
+      final fake = FakePermissionService(initial: {AppPermission.notifications: PermState.denied});
+      PermissionService.instance = fake;
+      final b = FakeBackend();
+      fakeAcademic(b);
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(ReminderSettingsPage(session: makeSession(b)), size: kPhoneMedium));
+      await settle(tester, const Duration(milliseconds: 800));
+      await tester.tap(find.text('Ayarlardan aç'));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(fake.settingsOpened, 0, reason: 'doğrudan Ayarlar yerine uygulama gerekçesi + sistem istemi');
+      await tester.tap(find.text('Devam'));
+      await settle(tester, const Duration(milliseconds: 800));
+      expect(fake.requested, [AppPermission.notifications]);
+      expect(find.text('Ayarlardan aç'), findsNothing, reason: 'izin verildi, uyarı kalktı');
+      await _gone(tester);
+    });
+
+    testWidgets('kalıcı reddedildiyse sistem istemi değil Ayarlar sayfası (sheet) sunulur', (tester) async {
+      ReminderService.platform = _NoopReminders();
+      ReminderService.store = MemoryReminderStore();
+      addTearDown(() {
+        ReminderService.platform = const ChannelReminderPlatform();
+        ReminderService.store = const SecureReminderStore();
+      });
+      final fake = FakePermissionService(initial: {AppPermission.notifications: PermState.permanentlyDenied});
+      PermissionService.instance = fake;
+      final b = FakeBackend();
+      fakeAcademic(b);
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(ReminderSettingsPage(session: makeSession(b)), size: kPhoneMedium));
+      await settle(tester, const Duration(milliseconds: 800));
+      await tester.tap(find.text('Ayarlardan aç'));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(fake.requested, isEmpty);
+      await tester.tap(find.text('Ayarlardan aç').last);
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(fake.settingsOpened, 1);
+      await _gone(tester);
+    });
+  });
+
+  group('ClubsTab geri oku', () {
+    testWidgets('başka sayfadan açılınca başlıkta geri oku vardır ve çalışır; kökte yoktur', (tester) async {
+      final b = FakeBackend()
+        ..on('/communities/categories', <Object>[])
+        ..on('/communities*', {'items': <Object>[], 'nextCursor': null})
+        ..on('/me/communities*', {'items': <Object>[], 'nextCursor': null});
+      useScreen(tester, kPhoneMedium);
+      // kök: geri oku yok
+      await tester.pumpWidget(buildApp(ClubsTab(session: makeSession(b)), size: kPhoneMedium));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.byTooltip('Geri'), findsNothing);
+      // itilmiş: geri oku var
+      await tester.pumpWidget(buildApp(
+        Builder(
+          builder: (c) => Scaffold(
+            body: Center(
+              child: TextButton(
+                onPressed: () => Navigator.push(c, MaterialPageRoute(builder: (_) => Scaffold(body: ClubsTab(session: makeSession(b))))),
+                child: const Text('AÇ'),
+              ),
+            ),
+          ),
+        ),
+        size: kPhoneMedium,
+      ));
+      await settle(tester, const Duration(milliseconds: 400));
+      await tester.tap(find.text('AÇ'));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.byTooltip('Geri'), findsOneWidget);
+      await tester.tap(find.byTooltip('Geri'));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.text('AÇ'), findsOneWidget);
+      await _gone(tester);
+    });
+  });
+}
+
+class _NoopReminders implements ReminderPlatform {
+  @override
+  Future<void> replaceAll(List<PlannedReminder> items) async {}
+
+  @override
+  Future<bool> shareText(String text, String subject) async => true;
+}

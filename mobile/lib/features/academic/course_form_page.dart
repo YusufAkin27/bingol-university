@@ -186,10 +186,11 @@ class _CourseFormPageState extends State<CourseFormPage> {
         await _api.createCourse(body);
       }
       if (mounted) Navigator.pop(context, true);
-    } on ApiError catch (e) {
+    } catch (e) {
+      // Her tür hata (ağ, ayrıştırma, beklenmeyen istisna) düğmeyi serbest bırakır; yalnız ApiError tutulursa busy takılı kalırdı.
       if (!mounted) return;
       setState(() => _busy = false);
-      if (e.status == 409 && e.code == 'COURSE_CONFLICT') {
+      if (e is ApiError && e.status == 409 && e.code == 'COURSE_CONFLICT') {
         final go = await _conflictDialog(serverMessage: e.message);
         if (go && mounted) return _save(force: true);
         return;
