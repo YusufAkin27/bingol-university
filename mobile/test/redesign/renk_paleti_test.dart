@@ -209,6 +209,8 @@ void main() {
     const colorLiteralAllow = {
       'lib/core/theme.dart',
       'lib/features/academic/academic_models.dart',
+      // Google marka kurallari: zorunlu sabit renkler (resmi G logosu/dugme renkleri; ayri sinif, yorumlu).
+      'lib/features/auth/widgets/oauth_buttons.dart',
     };
     // Colors.white/black hicbir dosyada serbest degil.
     const colorsConstAllow = <String>{};

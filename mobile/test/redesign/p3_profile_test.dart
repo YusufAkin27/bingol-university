@@ -100,8 +100,8 @@ void main() {
       }
       final ys = [for (final s in ['Takipçi', 'Takip', 'Gönderi']) tester.getCenter(find.text(s)).dy];
       expect(ys.every((y) => (y - ys.first).abs() < 1), isTrue, reason: '$ys');
-      // Tek kart: seridin icinde ikinci bir BuCard yok; vurgu (kirmizi) yok: sayilar ink renginde.
-      expect(find.descendant(of: find.byType(StatStrip), matching: find.byType(BuCard)), findsOneWidget);
+      // Buyuk bilgi karti yok: sayac seridi duz satir (ust/alt ince cizgi), icinde BuCard yok; vurgu yok: sayilar ink renginde.
+      expect(find.descendant(of: find.byType(StatStrip), matching: find.byType(BuCard)), findsNothing);
       expect(find.byType(BuCountUp), findsNWidgets(3));
       expect(tester.takeException(), isNull);
       await unmount(tester);
