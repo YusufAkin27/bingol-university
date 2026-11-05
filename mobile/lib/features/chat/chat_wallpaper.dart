@@ -213,14 +213,6 @@ class ChatWallpaper extends StatefulWidget {
   /// Sarmalanan döşeme dokusunun ikonları (yordamsal stiller: Hafif / Orta).
   static final List<_Glyph> _glyphs = _layout(tileSize, tileSize, wrap: true);
 
-  /// Tam ekran (döşemesiz) desen: duvar kağıdı görsellerini üretmek için (`tools/render_chat_wallpapers.dart`).
-  /// Kenarlara taşan ikonlar kırpılır; tekrar yoktur.
-  static void paintFull(Canvas c, Size size, Color color) {
-    for (final g in _layout(size.width, size.height, wrap: false, seed: 20261106)) {
-      _paintGlyph(c, g, color, 0, 0);
-    }
-  }
-
   static void _paintGlyph(Canvas c, _Glyph g, Color color, double ox, double oy) {
     final tp = TextPainter(
       text: TextSpan(

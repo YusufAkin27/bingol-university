@@ -148,14 +148,14 @@ void main() {
 
   group('varlık dosyaları', () {
     for (final dark in [false, true]) {
-      testWidgets('wp_a_${dark ? 'dark' : 'light'}.png pakette var, <= 700 KB, 1170x2532 çözülür', (tester) async {
+      testWidgets('wp_a_${dark ? 'dark' : 'light'}.png pakette var, <= 2 MB, 941x1672 çözülür', (tester) async {
         await tester.runAsync(() async {
           final data = await rootBundle.load(chatWallpaperAssetPath(ChatBgStyle.pattern, dark: dark));
-          expect(data.lengthInBytes, lessThanOrEqualTo(700 * 1024));
+          expect(data.lengthInBytes, lessThanOrEqualTo(2 * 1024 * 1024));
           final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
           final frame = await codec.getNextFrame();
-          expect(frame.image.width, 1170);
-          expect(frame.image.height, 2532);
+          expect(frame.image.width, 941);
+          expect(frame.image.height, 1672);
           frame.image.dispose();
         });
       });
