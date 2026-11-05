@@ -9,7 +9,11 @@ enum ShareType {
   post('POST', 'p'),
   reel('REEL', 'r'),
   news('NEWS', 'n'),
-  event('EVENT', 'e');
+  event('EVENT', 'e'),
+
+  /// Kampüs Forum konusu / yorumu (`/s/f/{id}`, `/s/fc/{id}`; yorumda `id` yorum kimliğidir).
+  forumTopic('FORUM_TOPIC', 'f'),
+  forumComment('FORUM_COMMENT', 'fc');
 
   const ShareType(this.apiName, this.code);
 
@@ -102,6 +106,7 @@ class ShareInfo {
     required this.id,
     this.title,
     this.subtitle,
+    this.category,
     this.imageUrl,
     this.available = true,
     this.isAnnouncement = false,
@@ -112,6 +117,9 @@ class ShareInfo {
   final int id;
   final String? title;
   final String? subtitle;
+
+  /// Forum konusunda kategori adı (kartın üst satırı; sunucu `categoryName`/`category` verirse); diğer türlerde null.
+  final String? category;
   final String? imageUrl;
 
   /// false: içerik silinmiş / gizlenmiş / erişilemez.
@@ -148,6 +156,7 @@ class ShareInfo {
       id: id,
       title: str(s['title']),
       subtitle: str(s['subtitle']),
+      category: str(s['categoryName'] ?? s['category']),
       imageUrl: str(s['imageUrl']),
       available: s['available'] != false,
       isAnnouncement: type == ShareType.news && (kind == 'DUYURU' || kind == 'ANNOUNCEMENT'),

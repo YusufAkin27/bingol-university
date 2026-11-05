@@ -2148,6 +2148,283 @@ class AppLocalizationsTr extends AppLocalizations {
   String get shareChatEventShared => 'Etkinlik paylaştı';
 
   @override
+  String get forumActivityAnonBadge => 'Anonim';
+
+  @override
+  String get forumActivityAnonBadgeLong =>
+      'Anonim paylaşım: yalnız sen görürsün';
+
+  @override
+  String get forumActivityAnonymous => 'Anonim';
+
+  @override
+  String get forumActivityCommentDeleted => 'Bu yorum silindi';
+
+  @override
+  String forumActivityCounts(String likes, String comments) {
+    return '$likes beğeni, $comments yorum';
+  }
+
+  @override
+  String get forumActivityEmptyCommentsBody =>
+      'Yazdığın yorumlar burada görünür.';
+
+  @override
+  String get forumActivityEmptyCommentsTitle => 'Henüz yorumun yok';
+
+  @override
+  String get forumActivityEmptyFollowingBody =>
+      'Bir konuyu takip edersen yeni yorumlardan haberdar olursun.';
+
+  @override
+  String get forumActivityEmptyFollowingTitle => 'Takip ettiğin konu yok';
+
+  @override
+  String get forumActivityEmptyTopicsBody =>
+      'Açtığın konular burada listelenir. Anonim paylaştıkların yalnız sana görünür.';
+
+  @override
+  String get forumActivityEmptyTopicsTitle => 'Henüz konu açmadın';
+
+  @override
+  String get forumActivityRemoved => 'Bu konu kaldırıldı';
+
+  @override
+  String get forumActivitySection => 'Forum';
+
+  @override
+  String get forumActivityTabComments => 'Yorumlarım';
+
+  @override
+  String get forumActivityTabCommentsPublic => 'Yorumlar';
+
+  @override
+  String get forumActivityTabFollowing => 'Takip ettiklerim';
+
+  @override
+  String get forumActivityTabSaved => 'Kaydedilenler';
+
+  @override
+  String get forumActivityTabTopics => 'Açtığım konular';
+
+  @override
+  String get forumActivityTabTopicsPublic => 'Konular';
+
+  @override
+  String get forumActivityTitle => 'Forum faaliyetim';
+
+  @override
+  String get forumActivityUserEmptyComments => 'Henüz herkese açık yorum yok';
+
+  @override
+  String get forumActivityUserEmptyTopics => 'Henüz herkese açık konu yok';
+
+  @override
+  String forumActivityUserTitle(String name) {
+    return '$name kişisinin forum faaliyeti';
+  }
+
+  @override
+  String get forumPrefsAll => 'Tüm forum bildirimleri';
+
+  @override
+  String get forumPrefsAllSub =>
+      'Kapatırsan aşağıdaki bildirimlerin hepsi durur.';
+
+  @override
+  String get forumPrefsFollowed => 'Takip ettiğim konular';
+
+  @override
+  String get forumPrefsLikes => 'Beğeni bildirimleri';
+
+  @override
+  String get forumPrefsModerationNote =>
+      'Moderasyon bildirimleri (ör. içeriğinin kaldırılması) güvenliğin için kapatılamaz.';
+
+  @override
+  String get forumPrefsMutedEmpty => 'Kimseyi sessize almadın.';
+
+  @override
+  String get forumPrefsMutedSection => 'Sessize aldıkların';
+
+  @override
+  String get forumPrefsNotifLabel => 'Forum';
+
+  @override
+  String get forumPrefsReplies => 'Yorum yanıtları';
+
+  @override
+  String get forumPrefsRowSub => 'Konu, yanıt ve beğeni bildirimleri';
+
+  @override
+  String get forumPrefsRowTitle => 'Forum bildirimleri';
+
+  @override
+  String get forumPrefsTitle => 'Forum bildirimleri';
+
+  @override
+  String get forumPrefsTopicComments => 'Konu bildirimleri';
+
+  @override
+  String get forumPrefsUnmute => 'Sessizden çıkar';
+
+  @override
+  String get forumPrefsUnmuted => 'Sessizden çıkarıldı';
+
+  @override
+  String get forumReportAlready => 'Bu içeriği zaten bildirmiştin.';
+
+  @override
+  String get forumReportAlsoBlock => 'Bu yazarı da engelle';
+
+  @override
+  String get forumReportAlsoBlockHint =>
+      'İçerikleri sana görünmez. Kimliği gösterilmez.';
+
+  @override
+  String get forumReportBlockBody =>
+      'Bu yazarın forumdaki tüm konu ve yorumları sana görünmez olur. Yazar anonim olsa da kimliğini öğrenmezsin.';
+
+  @override
+  String get forumReportBlockConfirm => 'Engelle';
+
+  @override
+  String get forumReportBlockTitle => 'Yazar engellensin mi?';
+
+  @override
+  String get forumReportBlocked => 'Yazar engellendi.';
+
+  @override
+  String forumReportMuteBody(String name) {
+    return '$name kişisinin forum içerikleri sana görünmez. Sohbet ve profil etkileşimleri etkilenmez. Ayarlardan geri alabilirsin.';
+  }
+
+  @override
+  String get forumReportMuteConfirm => 'Sessize al';
+
+  @override
+  String get forumReportMuteTitle => 'Sessize alınsın mı?';
+
+  @override
+  String get forumReportMuted => 'Sessize alındı.';
+
+  @override
+  String get forumReportNoteHint =>
+      'Eklemek istediğin bir not var mı? (isteğe bağlı)';
+
+  @override
+  String get forumReportReasonHarassment => 'Hakaret veya taciz';
+
+  @override
+  String get forumReportReasonInappropriate => 'Uygunsuz içerik';
+
+  @override
+  String get forumReportReasonOther => 'Diğer';
+
+  @override
+  String get forumReportReasonPersonalInfo => 'Kişisel bilgi paylaşımı';
+
+  @override
+  String get forumReportReasonSpam => 'Spam veya reklam';
+
+  @override
+  String get forumReportThanks => 'Teşekkürler, bildirimin ekibimize iletildi.';
+
+  @override
+  String get forumReportTitle => 'Şikâyet et';
+
+  @override
+  String get forumSavedEmptyBody =>
+      'Konu ve yorumlardaki kaydet simgesine dokunarak buraya ekleyebilirsin.';
+
+  @override
+  String get forumSavedEmptyTitle => 'Henüz kaydettiğin bir şey yok';
+
+  @override
+  String get forumSavedRemove => 'Kaydı kaldır';
+
+  @override
+  String get forumSavedRemoved => 'Kaydedilenlerden çıkarıldı';
+
+  @override
+  String get forumSavedTitle => 'Kaydedilenler';
+
+  @override
+  String get forumSearchAllCategories => 'Tümü';
+
+  @override
+  String get forumSearchClearAll => 'Temizle';
+
+  @override
+  String forumSearchEmptyBody(String q) {
+    return '“$q” için eşleşen konu bulunamadı. Farklı bir kelime ya da kategori dene.';
+  }
+
+  @override
+  String get forumSearchEmptyTitle => 'Sonuç bulunamadı';
+
+  @override
+  String get forumSearchHint => 'Forumda ara';
+
+  @override
+  String get forumSearchMatchBody => 'Açıklamada';
+
+  @override
+  String get forumSearchMatchCategory => 'Kategoride';
+
+  @override
+  String get forumSearchMatchComment => 'Yorumda';
+
+  @override
+  String get forumSearchMatchTitle => 'Başlıkta';
+
+  @override
+  String get forumSearchMinChars => 'En az 2 karakter yaz.';
+
+  @override
+  String get forumSearchPopular => 'Popüler konular';
+
+  @override
+  String get forumSearchPopularEmpty => 'Şu an öne çıkan konu yok.';
+
+  @override
+  String get forumSearchRecent => 'Son aramalar';
+
+  @override
+  String get forumSearchRemoveRecent => 'Aramayı sil';
+
+  @override
+  String get forumSearchSortNewest => 'En yeni';
+
+  @override
+  String get forumSearchSortPopular => 'Popüler';
+
+  @override
+  String get forumSearchSortRelevance => 'İlgili';
+
+  @override
+  String get forumSearchStartBody =>
+      'Konu başlığı, açıklama, yorum ya da kategori adıyla ara.';
+
+  @override
+  String get forumSearchStartTitle => 'Forumda ara';
+
+  @override
+  String get forumSearchTitle => 'Forum araması';
+
+  @override
+  String get forumShareChatCommentShared => 'Forum yorumu paylaştı';
+
+  @override
+  String get forumShareChatTopicShared => 'Forum konusu paylaştı';
+
+  @override
+  String get forumShareKindComment => 'Forum yorumu';
+
+  @override
+  String get forumShareKindTopic => 'Forum';
+
+  @override
   String get sharePrivateHint =>
       'Gizli hesabın gönderisi yalnızca kişilere mesajla paylaşılabilir.';
 

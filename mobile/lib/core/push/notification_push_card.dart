@@ -7,6 +7,7 @@ import '../../widgets/bu.dart';
 import '../api.dart' show apiOrigin;
 import '../locale_controller.dart';
 import 'push_card_parts.dart';
+import 'push_targets.dart' show isForumPush;
 
 bool _flag(Object? v) => v == true || '$v'.toLowerCase() == 'true' || '$v' == '1';
 
@@ -38,6 +39,8 @@ String? pushImageUrl(String? raw, {String origin = apiOrigin}) {
 
 /// Kartın kullanacağı stil. Sunucu `style` verirse (büyük/küçük harf fark etmez) o; vermezse yükten türetilir.
 String pushCardStyle(Map<String, dynamic> data) {
+  // Forum: sunucu `style=social|system` yollar ama anonim yazar kişi avatarı almamalı; moderasyon ayrı ton.
+  if (isForumPush(data)) return '${data['type'] ?? ''}'.toUpperCase() == 'FORUM_MODERATION' ? 'MODERATION' : 'FORUM';
   final explicit = '${data['style'] ?? ''}'.toUpperCase();
   if (explicit.isNotEmpty) {
     return switch (explicit) {
@@ -249,6 +252,7 @@ String pushSectionLabel(AppLocalizations l, Map<String, dynamic> data, String st
     'MEAL' => l.p03HomeMenuDetail,
     'SOCIAL' || 'LIKE' || 'MENTION' || 'FOLLOW' || 'FOLLOW_REQUEST' || 'FOLLOW_ACCEPTED' => l.profilePrefsSocial,
     'SYSTEM' => l.bildirimTypeOther,
+    'FORUM' => l.forumPrefsNotifLabel,
     _ => l.bildirimTypeAnnouncement,
   };
 }

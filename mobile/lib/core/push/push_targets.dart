@@ -17,6 +17,12 @@ enum PushDest {
   poll,
   user,
 
+  /// Kampüs Forum konusu ([PushTarget.id] = konu kimliği; [PushTarget.commentId] varsa o yoruma gider).
+  forumTopic,
+
+  /// Yalnız yorum kimliği bilinen forum bildirimi ([PushTarget.id] = yorum kimliği): konu `GET /forum/comments/{id}` ile çözülür.
+  forumComment,
+
   /// Gelen takip istekleri ekranı (`FOLLOW_REQUESTS`; GİZLİ hesap istek aldı). Kimliksiz geçerlidir.
   followRequests,
   timetable,
@@ -92,6 +98,14 @@ Map<String, dynamic> sanitizeLocalReminderPayload(Map<dynamic, dynamic>? raw) {
     out[k] = text;
   }
   return out;
+}
+
+/// Kampüs Forum bildirimi mi? (`type` FORUM_* ya da `targetType` FORUM_TOPIC/FORUM_COMMENT). Sunucu forum
+/// bildirimlerinde kişi avatarı yollamaz (anonim yazar): kart kişi değil forum karosu çizer.
+bool isForumPush(Map<String, dynamic>? data) {
+  final d = data ?? const <String, dynamic>{};
+  String up(Object? v) => '${v ?? ''}'.trim().toUpperCase();
+  return up(d['type']).startsWith('FORUM_') || up(d['targetType'] ?? d['target']).startsWith('FORUM');
 }
 
 int? _id(Object? v) {
@@ -198,6 +212,16 @@ PushTarget resolvePushTarget(Map<String, dynamic>? data) {
   if (target == 'URL') {
     final u = _httpsUrl(d['value'] ?? d['targetId']);
     return u == null ? const PushTarget(PushDest.notifications) : PushTarget(PushDest.url, url: u);
+  }
+
+  // Kampüs Forum: `FORUM_TOPIC` / `FORUM_COMMENT` (+ `topicId`). Bilinmeyen FORUM_* türü yine de konuya, o da yoksa listeye düşer.
+  final topicId = _id(d['topicId']);
+  if (target.startsWith('FORUM') || (target.isEmpty && topicId != null)) {
+    final comment = target == 'FORUM_COMMENT' ? value : commentId;
+    final topic = topicId ?? (target == 'FORUM_TOPIC' ? value : null);
+    if (topic != null) return PushTarget(PushDest.forumTopic, id: topic, commentId: comment);
+    if (comment != null) return PushTarget(PushDest.forumComment, id: comment);
+    return const PushTarget(PushDest.notifications);
   }
 
   final dest = _destOf(target);

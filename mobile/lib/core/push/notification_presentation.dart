@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../icons/bu_icons.dart';
 import '../locale_controller.dart';
 import 'push_targets.dart';
 
@@ -32,6 +33,7 @@ NotificationCategory notificationCategory(Map<String, dynamic> data) {
   if (target == PushDest.event || type == 'EVENT') {
     return NotificationCategory.event;
   }
+  if (isForumPush(data)) return NotificationCategory.social;
   if (type.startsWith('POST_') ||
       type == 'COMMENT_REPLY' ||
       type == 'USER_FOLLOW' ||
@@ -61,6 +63,7 @@ String notificationCategoryLabel(
 
 IconData notificationIcon(Map<String, dynamic> data) {
   final type = '${data['type'] ?? ''}'.toUpperCase();
+  if (isForumPush(data)) return BuIcons.messageSquareText;
   final dest = resolvePushTarget(data).dest;
   if (dest == PushDest.ticket || dest == PushDest.feedback) {
     return Icons.support_agent;

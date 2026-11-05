@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../forum/forum_routes.dart' show openForumHome;
+import '../forum/presentation/widgets/forum_entry_strip.dart';
 import '../posts/post_routes.dart';
 import '../search/global_search_screen.dart';
 import 'discover_masonry.dart';
@@ -80,7 +82,14 @@ class _DiscoverTabState extends State<DiscoverTab> {
         session: widget.session,
         controller: _controller,
         tabActive: widget.tabActive,
-        header: _Header(top: MediaQuery.paddingOf(context).top, onSearch: _openSearch, onCompose: _compose),
+        header: Column(mainAxisSize: MainAxisSize.min, children: [
+          _Header(top: MediaQuery.paddingOf(context).top, onSearch: _openSearch, onCompose: _compose),
+          // Kampüs Forum giriş şeridi (alt çubuğa 6. sekme eklenmez).
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.page, 0, BuSpace.page, BuSpace.md),
+            child: ForumEntryStrip(onTap: () => openForumHome(context, widget.session)),
+          ),
+        ]),
         onCompose: _compose,
         inline: _noSuggestions
             ? null

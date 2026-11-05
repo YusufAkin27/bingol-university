@@ -32,6 +32,7 @@ import 'home_layout_sheet.dart';
 import 'home_menu_rating.dart';
 import 'home_parts.dart';
 import 'home_suggestions.dart';
+import '../forum/presentation/widgets/home_forum_talked.dart';
 
 /// Ana sayfa (Stitch v3): selamlama + düzenle/zil, arama, "Bugün" tek bakış yüzeyi, ardından kullanıcının sıraladığı
 /// bölümler (Hızlı erişim, Günün menüsü, Bugünkü dersler, Öne çıkan haberler, Yaklaşan etkinlikler, Duyurular).
@@ -76,6 +77,9 @@ class _HomeTabState extends State<HomeTab> {
   // "Önerilen kişiler": öneri yok / yüklenemedi ise bölüm gizlenir; çek-yenile sayacı bölümü baştan yükletir.
   bool _noSuggestions = false;
   int _suggestionsTick = 0;
+
+  // "Kampüste konuşulanlar" (Kampüs Forum): forum boş/ulaşılamazsa bölüm gizlenir; çek-yenile aynı sayaçla yeniden yükler.
+  bool _noForum = false;
 
   // Bölüm verileri bir kez istenir (görünür olunca); gizliyken istek atılmaz.
   bool _eventRequested = false;
@@ -298,6 +302,7 @@ class _HomeTabState extends State<HomeTab> {
     // Önerilen kişiler: gizlenmişse yeniden dene, görünürse baştan yükle.
     setState(() {
       _noSuggestions = false;
+      _noForum = false;
       _suggestionsTick++;
     });
     try {
@@ -524,6 +529,7 @@ class _HomeTabState extends State<HomeTab> {
     bool hasContent(HomeSection s) => switch (s) {
           HomeSection.todayClasses => slots.isNotEmpty,
           HomeSection.suggestions => !_noSuggestions,
+          HomeSection.forum => !_noForum,
           _ => true,
         };
     final anyVisible =
@@ -616,6 +622,14 @@ class _HomeTabState extends State<HomeTab> {
             onLongPressTitle: _editLayout,
             onUnavailable: () {
               if (mounted && !_noSuggestions) setState(() => _noSuggestions = true);
+            },
+          ),
+        HomeSection.forum => HomeForumTalked(
+            session: _s,
+            refreshToken: _suggestionsTick,
+            onLongPressTitle: _editLayout,
+            onUnavailable: () {
+              if (mounted && !_noForum) setState(() => _noForum = true);
             },
           ),
       };

@@ -8,6 +8,7 @@ import '../../../../widgets/bu.dart';
 import '../../../posts/post_models.dart' show postAuthHeaders;
 import '../../data/forum_api.dart';
 import '../../data/forum_models.dart';
+import '../../forum_routes.dart' show openTopicShare;
 import 'author_line.dart';
 import 'forum_like_button.dart';
 import 'forum_state_views.dart';
@@ -299,7 +300,7 @@ class TopicCard extends StatelessWidget {
                     key: ValueKey('forum-share-${topic.id}'),
                     icon: BuIcons.send,
                     semanticLabel: l.forumHomeShare,
-                    onTap: () => shareForumTopic(context, session, topic),
+                    onTap: () => openTopicShare(context, session, topic),
                   ),
                 ]),
               ]),

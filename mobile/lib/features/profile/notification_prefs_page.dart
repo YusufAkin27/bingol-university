@@ -15,6 +15,7 @@ import '../academic/academic_api.dart';
 import '../academic/academic_widgets.dart';
 import '../academic/reminder_settings_page.dart';
 import '../academic/reminders.dart';
+import '../forum/forum_routes.dart' show openForumPrefs;
 import '../notifications/push_help_page.dart';
 
 /// Tasarımdaki aç/kapat anahtarı (46x28, beyaz topuz).
@@ -485,6 +486,22 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
             ]),
           ));
       }
+    }
+    // Kampüs Forum bildirimleri: ayrı sayfa (ana anahtar, konu/yanıt/beğeni/takip, sessize alınanlar).
+    if (prefs != null) {
+      children
+        ..add(const SizedBox(height: 24))
+        ..add(KeyedSubtree(
+          key: const ValueKey('prefs-forum-row'),
+          child: _card(
+            child: _PrefRow(
+              title: l.forumPrefsRowTitle,
+              sub: l.forumPrefsRowSub,
+              trailing: _chevron(),
+              onTap: () => openForumPrefs(context, widget.session),
+            ),
+          ),
+        ));
     }
     // "Bu cihazda": ders ve sınav hatırlatması anahtarı (yerel). Satıra dokunmak ayrıntı sayfasını açar.
     final rem = _rem;

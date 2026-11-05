@@ -8,6 +8,7 @@ import '../../features/chat/chat_detail_page.dart';
 import '../../features/clubs/club_detail_page.dart';
 import '../../features/events/event_detail_page.dart';
 import '../../features/follow/follow_requests_page.dart';
+import '../../features/forum/forum_routes.dart' show ForumApi, openTopicDetail;
 import '../../features/news/news_detail_page.dart';
 import '../../features/notifications/notifications_page.dart';
 import '../../features/notifications/notification_exam_detail.dart';
@@ -130,6 +131,16 @@ class PushRouter {
         return true;
       case PushDest.user:
         await openUserProfile(ctx, s, userId: id!);
+        return true;
+      case PushDest.forumTopic:
+        // Konu (+ varsa yorum) doğrudan açılır; silinmiş/erişilemeyen içerik bildirim listesine düşer (üstteki catch).
+        await openTopicDetail(ctx, s, id!, commentId: t.commentId);
+        return true;
+      case PushDest.forumComment:
+        // Yalnız yorum kimliği geldi: konu `GET /forum/comments/{id}` ile çözülür.
+        final c = await ForumApi(s).comment(id!);
+        if (c.topicId <= 0) return false;
+        await openTopicDetail(ctx, s, c.topicId, commentId: id);
         return true;
       case PushDest.followRequests:
         push(FollowRequestsPage(session: s), 'follow_requests');

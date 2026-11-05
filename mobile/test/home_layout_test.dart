@@ -33,6 +33,7 @@ void main() {
         HomeSection.quickAccess,
         HomeSection.menu,
         HomeSection.suggestions,
+        HomeSection.forum,
         HomeSection.featuredNews,
         HomeSection.todayClasses,
         HomeSection.upcomingEvents,
@@ -99,6 +100,7 @@ void main() {
         HomeSection.quickAccess,
         HomeSection.menu,
         HomeSection.suggestions,
+        HomeSection.forum,
         HomeSection.todayClasses,
         HomeSection.upcomingEvents,
         HomeSection.announcements,
@@ -238,7 +240,7 @@ void main() {
 
     testWidgets('kayitli siralama uygulanir: haberler menuden once', (tester) async {
       useScreen(tester, const Size(390, 2400));
-      await saved(HomeLayout.defaults.reorderSection(3, 1)); // haberler: menuden once
+      await saved(HomeLayout.defaults.reorderSection(4, 1)); // haberler (forum bolumu 3. siradadir): menuden once
       final b = be();
       await tester.pumpWidget(buildApp(home(b)));
       await settle(tester, const Duration(seconds: 2));

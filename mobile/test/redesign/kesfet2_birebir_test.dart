@@ -74,7 +74,8 @@ void main() {
     final search = tester.widget<BuIconButton>(find.byKey(const ValueKey('discoverSearch')));
     row('Arama düğmesi görünür boyut', 44, search.size);
     // KE-MB: filtre kapsül satırı kalktı; ilk kutu başlık satırının hemen altında (referans 76 dp kapsül satırı dahildi).
-    row('İlk kutu üstü - başlık merkezi (dikey)', 30, r1.top - titleCy);
+    // Kampüs Forum giriş şeridi (64 dp + 12 dp alt boşluk) başlık satırının hemen altındadır: referans 30 + 76.
+    row('İlk kutu üstü - başlık merkezi (dikey)', 30 + 76, r1.top - titleCy);
 
     // Izgara
     row('Yan kenar (sol)', 12, r1.left);
