@@ -1,16 +1,15 @@
 package edu.bingol.backend.forum.comment;
 
 import edu.bingol.backend.forum.notify.spi.ForumEventPublisher;
+import edu.bingol.backend.forum.topic.ForumBookmark;
+import edu.bingol.backend.forum.topic.ForumBookmarkService;
 import edu.bingol.backend.forum.topic.spi.ForumAuthorResolver;
 import edu.bingol.backend.forum.topic.spi.ForumMuteLookup;
 import edu.bingol.backend.forum.topic.spi.ForumTopicLookup;
 import edu.bingol.backend.forum.topic.spi.TopicRef;
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
@@ -27,15 +26,15 @@ class ForumCommentTopics {
     private final ForumAuthorResolver authors;
     private final ObjectProvider<ForumMuteLookup> mutes;
     private final ObjectProvider<ForumEventPublisher> events;
-    private final JdbcTemplate jdbc;
+    private final ForumBookmarkService bookmarks;
 
     ForumCommentTopics(ForumTopicLookup topics, ForumAuthorResolver authors, ObjectProvider<ForumMuteLookup> mutes,
-                       ObjectProvider<ForumEventPublisher> events, JdbcTemplate jdbc) {
+                       ObjectProvider<ForumEventPublisher> events, ForumBookmarkService bookmarks) {
         this.topics = topics;
         this.authors = authors;
         this.mutes = mutes;
         this.events = events;
-        this.jdbc = jdbc;
+        this.bookmarks = bookmarks;
     }
 
     /** Konu bakana gorunurse (silinmemis, kaldirilmamis, engel/sessize alma yok). */
@@ -75,18 +74,12 @@ class ForumCommentTopics {
         }
     }
 
-    /**
-     * Yorumu kaydet / kaydi kaldir (forum_bookmark, hedef COMMENT; tabloyu A tanimlar). Idempotent: PK ikinci satiri
-     * engeller. Yorum kaydetmenin ayri sayaci yoktur (yalniz konunun bookmark_count'u vardir).
-     */
+    /** Yorumu kaydet / kaydi kaldir (A'nin ForumBookmarkService'i; hedef COMMENT, idempotent). */
     void setSaved(Long userId, Long commentId, boolean saved) {
         if (saved) {
-            jdbc.update("INSERT INTO forum_bookmark (user_id, target_type, target_id, created_at) SELECT ?, 'COMMENT', ?, ? "
-                    + "WHERE NOT EXISTS (SELECT 1 FROM forum_bookmark WHERE user_id = ? AND target_type = 'COMMENT' AND target_id = ?)",
-                    userId, commentId, Timestamp.from(Instant.now()), userId, commentId);
+            bookmarks.save(userId, ForumBookmark.COMMENT, commentId);
         } else {
-            jdbc.update("DELETE FROM forum_bookmark WHERE user_id = ? AND target_type = 'COMMENT' AND target_id = ?",
-                    userId, commentId);
+            bookmarks.unsave(userId, ForumBookmark.COMMENT, commentId);
         }
     }
 }
