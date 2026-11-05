@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -679,7 +680,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown) {
+    String type,
+    String title,
+    String date,
+    String countdown,
+  ) {
     return '$type: $title. $date. $countdown. المس للتعديل.';
   }
 
@@ -997,7 +1002,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end) {
+    String name,
+    String day,
+    String start,
+    String end,
+  ) {
     return '$name، $day من $start إلى $end';
   }
 
@@ -2143,6 +2152,277 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get shareChatEventShared => 'شارك فعالية';
+
+  @override
+  String get forumActivityAnonBadge => 'مجهول';
+
+  @override
+  String get forumActivityAnonymous => 'مجهول';
+
+  @override
+  String get forumActivityCommentDeleted => 'تم حذف هذا التعليق';
+
+  @override
+  String forumActivityCounts(String likes, String comments) {
+    return '$likes إعجاب، $comments تعليق';
+  }
+
+  @override
+  String get forumActivityEmptyCommentsBody =>
+      'ستظهر هنا التعليقات التي تكتبها.';
+
+  @override
+  String get forumActivityEmptyCommentsTitle => 'لا توجد تعليقات بعد';
+
+  @override
+  String get forumActivityEmptyFollowingBody =>
+      'تابع موضوعًا لتصلك التعليقات الجديدة.';
+
+  @override
+  String get forumActivityEmptyFollowingTitle => 'لا توجد مواضيع تتابعها';
+
+  @override
+  String get forumActivityEmptyTopicsBody =>
+      'تظهر هنا المواضيع التي تفتحها. المجهولة منها تظهر لك وحدك.';
+
+  @override
+  String get forumActivityEmptyTopicsTitle => 'لم تفتح أي موضوع بعد';
+
+  @override
+  String get forumActivityRemoved => 'تمت إزالة هذا الموضوع';
+
+  @override
+  String get forumActivitySection => 'المنتدى';
+
+  @override
+  String get forumActivityTabComments => 'تعليقاتي';
+
+  @override
+  String get forumActivityTabCommentsPublic => 'التعليقات';
+
+  @override
+  String get forumActivityTabFollowing => 'ما أتابعه';
+
+  @override
+  String get forumActivityTabSaved => 'المحفوظات';
+
+  @override
+  String get forumActivityTabTopics => 'مواضيعي';
+
+  @override
+  String get forumActivityTabTopicsPublic => 'المواضيع';
+
+  @override
+  String get forumActivityTitle => 'نشاطي في المنتدى';
+
+  @override
+  String get forumActivityUserEmptyComments => 'لا توجد تعليقات عامة بعد';
+
+  @override
+  String get forumActivityUserEmptyTopics => 'لا توجد مواضيع عامة بعد';
+
+  @override
+  String forumActivityUserTitle(String name) {
+    return 'نشاط $name في المنتدى';
+  }
+
+  @override
+  String get forumPrefsAll => 'كل إشعارات المنتدى';
+
+  @override
+  String get forumPrefsAllSub => 'عند إيقافه تتوقف كل الإشعارات أدناه.';
+
+  @override
+  String get forumPrefsFollowed => 'المواضيع التي أتابعها';
+
+  @override
+  String get forumPrefsLikes => 'إشعارات الإعجاب';
+
+  @override
+  String get forumPrefsModerationNote =>
+      'لا يمكن إيقاف إشعارات الإشراف (مثل إزالة محتواك).';
+
+  @override
+  String get forumPrefsMutedEmpty => 'لم تكتم أي شخص.';
+
+  @override
+  String get forumPrefsMutedSection => 'من كتمتهم';
+
+  @override
+  String get forumPrefsNotifLabel => 'المنتدى';
+
+  @override
+  String get forumPrefsReplies => 'الردود على تعليقاتي';
+
+  @override
+  String get forumPrefsRowSub => 'إشعارات المواضيع والردود والإعجابات';
+
+  @override
+  String get forumPrefsRowTitle => 'إشعارات المنتدى';
+
+  @override
+  String get forumPrefsTitle => 'إشعارات المنتدى';
+
+  @override
+  String get forumPrefsTopicComments => 'إشعارات المواضيع';
+
+  @override
+  String get forumPrefsUnmute => 'إلغاء الكتم';
+
+  @override
+  String get forumPrefsUnmuted => 'تم إلغاء الكتم';
+
+  @override
+  String get forumReportAlready => 'لقد أبلغت عن هذا المحتوى مسبقًا.';
+
+  @override
+  String get forumReportAlsoBlock => 'احظر هذا الكاتب أيضًا';
+
+  @override
+  String get forumReportAlsoBlockHint =>
+      'يختفي محتواه عنك. لا تُعرض هويته أبدًا.';
+
+  @override
+  String get forumReportBlockBody =>
+      'تختفي عنك كل مواضيع هذا الكاتب وتعليقاته في المنتدى. حتى لو كان مجهولًا لن تعرف هويته.';
+
+  @override
+  String get forumReportBlockConfirm => 'حظر';
+
+  @override
+  String get forumReportBlockTitle => 'حظر هذا الكاتب؟';
+
+  @override
+  String get forumReportBlocked => 'تم حظر الكاتب.';
+
+  @override
+  String forumReportMuteBody(String name) {
+    return 'يختفي عنك محتوى $name في المنتدى. لا تتأثر المحادثات والملف الشخصي. يمكنك التراجع من الإعدادات.';
+  }
+
+  @override
+  String get forumReportMuteConfirm => 'كتم';
+
+  @override
+  String get forumReportMuteTitle => 'كتم هذا الشخص؟';
+
+  @override
+  String get forumReportMuted => 'تم الكتم.';
+
+  @override
+  String get forumReportNoteHint => 'هل تريد إضافة ملاحظة؟ (اختياري)';
+
+  @override
+  String get forumReportReasonHarassment => 'إساءة أو تحرش';
+
+  @override
+  String get forumReportReasonInappropriate => 'محتوى غير لائق';
+
+  @override
+  String get forumReportReasonOther => 'أخرى';
+
+  @override
+  String get forumReportReasonPersonalInfo => 'مشاركة معلومات شخصية';
+
+  @override
+  String get forumReportReasonSpam => 'رسائل مزعجة أو إعلانات';
+
+  @override
+  String get forumReportThanks => 'شكرًا، تم إرسال بلاغك إلى فريقنا.';
+
+  @override
+  String get forumReportTitle => 'إبلاغ';
+
+  @override
+  String get forumSavedEmptyBody =>
+      'اضغط على أيقونة الحفظ في المواضيع والتعليقات لإضافتها هنا.';
+
+  @override
+  String get forumSavedEmptyTitle => 'لا يوجد شيء محفوظ بعد';
+
+  @override
+  String get forumSavedRemove => 'إزالة من المحفوظات';
+
+  @override
+  String get forumSavedRemoved => 'أُزيل من المحفوظات';
+
+  @override
+  String get forumSavedTitle => 'المحفوظات';
+
+  @override
+  String get forumSearchAllCategories => 'الكل';
+
+  @override
+  String get forumSearchClearAll => 'مسح';
+
+  @override
+  String forumSearchEmptyBody(String q) {
+    return 'لا توجد مواضيع مطابقة لـ “$q”. جرّب كلمة أو فئة أخرى.';
+  }
+
+  @override
+  String get forumSearchEmptyTitle => 'لا توجد نتائج';
+
+  @override
+  String get forumSearchHint => 'ابحث في المنتدى';
+
+  @override
+  String get forumSearchMatchBody => 'في الوصف';
+
+  @override
+  String get forumSearchMatchCategory => 'في الفئة';
+
+  @override
+  String get forumSearchMatchComment => 'في تعليق';
+
+  @override
+  String get forumSearchMatchTitle => 'في العنوان';
+
+  @override
+  String get forumSearchMinChars => 'اكتب حرفين على الأقل.';
+
+  @override
+  String get forumSearchPopular => 'المواضيع الشائعة';
+
+  @override
+  String get forumSearchPopularEmpty => 'لا توجد مواضيع رائجة حاليًا.';
+
+  @override
+  String get forumSearchRecent => 'عمليات البحث الأخيرة';
+
+  @override
+  String get forumSearchRemoveRecent => 'حذف البحث';
+
+  @override
+  String get forumSearchSortNewest => 'الأحدث';
+
+  @override
+  String get forumSearchSortPopular => 'الأكثر شيوعًا';
+
+  @override
+  String get forumSearchSortRelevance => 'الأكثر صلة';
+
+  @override
+  String get forumSearchStartBody =>
+      'ابحث بعنوان الموضوع أو وصفه أو التعليقات أو اسم الفئة.';
+
+  @override
+  String get forumSearchStartTitle => 'ابحث في المنتدى';
+
+  @override
+  String get forumSearchTitle => 'بحث المنتدى';
+
+  @override
+  String get forumShareChatCommentShared => 'شارك تعليقًا من المنتدى';
+
+  @override
+  String get forumShareChatTopicShared => 'شارك موضوعًا من المنتدى';
+
+  @override
+  String get forumShareKindComment => 'تعليق في المنتدى';
+
+  @override
+  String get forumShareKindTopic => 'المنتدى';
 
   @override
   String get sharePrivateHint =>

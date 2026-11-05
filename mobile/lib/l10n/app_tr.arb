@@ -1191,6 +1191,122 @@
   "shareChatNewsShared": "Haber paylaştı",
   "shareChatAnnouncementShared": "Duyuru paylaştı",
   "shareChatEventShared": "Etkinlik paylaştı",
+  "forumActivityAnonBadge": "Anonim",
+  "forumActivityAnonymous": "Anonim",
+  "forumActivityCommentDeleted": "Bu yorum silindi",
+  "forumActivityCounts": "{likes} beğeni, {comments} yorum",
+  "@forumActivityCounts": {
+    "placeholders": {
+      "likes": {
+        "type": "String"
+      },
+      "comments": {
+        "type": "String"
+      }
+    }
+  },
+  "forumActivityEmptyCommentsBody": "Yazdığın yorumlar burada görünür.",
+  "forumActivityEmptyCommentsTitle": "Henüz yorumun yok",
+  "forumActivityEmptyFollowingBody": "Bir konuyu takip edersen yeni yorumlardan haberdar olursun.",
+  "forumActivityEmptyFollowingTitle": "Takip ettiğin konu yok",
+  "forumActivityEmptyTopicsBody": "Açtığın konular burada listelenir. Anonim paylaştıkların yalnız sana görünür.",
+  "forumActivityEmptyTopicsTitle": "Henüz konu açmadın",
+  "forumActivityRemoved": "Bu konu kaldırıldı",
+  "forumActivitySection": "Forum",
+  "forumActivityTabComments": "Yorumlarım",
+  "forumActivityTabCommentsPublic": "Yorumlar",
+  "forumActivityTabFollowing": "Takip ettiklerim",
+  "forumActivityTabSaved": "Kaydedilenler",
+  "forumActivityTabTopics": "Açtığım konular",
+  "forumActivityTabTopicsPublic": "Konular",
+  "forumActivityTitle": "Forum faaliyetim",
+  "forumActivityUserEmptyComments": "Henüz herkese açık yorum yok",
+  "forumActivityUserEmptyTopics": "Henüz herkese açık konu yok",
+  "forumActivityUserTitle": "{name} kişisinin forum faaliyeti",
+  "@forumActivityUserTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forumPrefsAll": "Tüm forum bildirimleri",
+  "forumPrefsAllSub": "Kapatırsan aşağıdaki bildirimlerin hepsi durur.",
+  "forumPrefsFollowed": "Takip ettiğim konular",
+  "forumPrefsLikes": "Beğeni bildirimleri",
+  "forumPrefsModerationNote": "Moderasyon bildirimleri (ör. içeriğinin kaldırılması) güvenliğin için kapatılamaz.",
+  "forumPrefsMutedEmpty": "Kimseyi sessize almadın.",
+  "forumPrefsMutedSection": "Sessize aldıkların",
+  "forumPrefsNotifLabel": "Forum",
+  "forumPrefsReplies": "Yorum yanıtları",
+  "forumPrefsRowSub": "Konu, yanıt ve beğeni bildirimleri",
+  "forumPrefsRowTitle": "Forum bildirimleri",
+  "forumPrefsTitle": "Forum bildirimleri",
+  "forumPrefsTopicComments": "Konu bildirimleri",
+  "forumPrefsUnmute": "Sessizden çıkar",
+  "forumPrefsUnmuted": "Sessizden çıkarıldı",
+  "forumReportAlready": "Bu içeriği zaten bildirmiştin.",
+  "forumReportAlsoBlock": "Bu yazarı da engelle",
+  "forumReportAlsoBlockHint": "İçerikleri sana görünmez. Kimliği gösterilmez.",
+  "forumReportBlockBody": "Bu yazarın forumdaki tüm konu ve yorumları sana görünmez olur. Yazar anonim olsa da kimliğini öğrenmezsin.",
+  "forumReportBlockConfirm": "Engelle",
+  "forumReportBlockTitle": "Yazar engellensin mi?",
+  "forumReportBlocked": "Yazar engellendi.",
+  "forumReportMuteBody": "{name} kişisinin forum içerikleri sana görünmez. Sohbet ve profil etkileşimleri etkilenmez. Ayarlardan geri alabilirsin.",
+  "@forumReportMuteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forumReportMuteConfirm": "Sessize al",
+  "forumReportMuteTitle": "Sessize alınsın mı?",
+  "forumReportMuted": "Sessize alındı.",
+  "forumReportNoteHint": "Eklemek istediğin bir not var mı? (isteğe bağlı)",
+  "forumReportReasonHarassment": "Hakaret veya taciz",
+  "forumReportReasonInappropriate": "Uygunsuz içerik",
+  "forumReportReasonOther": "Diğer",
+  "forumReportReasonPersonalInfo": "Kişisel bilgi paylaşımı",
+  "forumReportReasonSpam": "Spam veya reklam",
+  "forumReportThanks": "Teşekkürler, bildirimin ekibimize iletildi.",
+  "forumReportTitle": "Şikâyet et",
+  "forumSavedEmptyBody": "Konu ve yorumlardaki kaydet simgesine dokunarak buraya ekleyebilirsin.",
+  "forumSavedEmptyTitle": "Henüz kaydettiğin bir şey yok",
+  "forumSavedRemove": "Kaydı kaldır",
+  "forumSavedRemoved": "Kaydedilenlerden çıkarıldı",
+  "forumSavedTitle": "Kaydedilenler",
+  "forumSearchAllCategories": "Tümü",
+  "forumSearchClearAll": "Temizle",
+  "forumSearchEmptyBody": "“{q}” için eşleşen konu bulunamadı. Farklı bir kelime ya da kategori dene.",
+  "@forumSearchEmptyBody": {
+    "placeholders": {
+      "q": {
+        "type": "String"
+      }
+    }
+  },
+  "forumSearchEmptyTitle": "Sonuç bulunamadı",
+  "forumSearchHint": "Forumda ara",
+  "forumSearchMatchBody": "Açıklamada",
+  "forumSearchMatchCategory": "Kategoride",
+  "forumSearchMatchComment": "Yorumda",
+  "forumSearchMatchTitle": "Başlıkta",
+  "forumSearchMinChars": "En az 2 karakter yaz.",
+  "forumSearchPopular": "Popüler konular",
+  "forumSearchPopularEmpty": "Şu an öne çıkan konu yok.",
+  "forumSearchRecent": "Son aramalar",
+  "forumSearchRemoveRecent": "Aramayı sil",
+  "forumSearchSortNewest": "En yeni",
+  "forumSearchSortPopular": "Popüler",
+  "forumSearchSortRelevance": "İlgili",
+  "forumSearchStartBody": "Konu başlığı, açıklama, yorum ya da kategori adıyla ara.",
+  "forumSearchStartTitle": "Forumda ara",
+  "forumSearchTitle": "Forum araması",
+  "forumShareChatCommentShared": "Forum yorumu paylaştı",
+  "forumShareChatTopicShared": "Forum konusu paylaştı",
+  "forumShareKindComment": "Forum yorumu",
+  "forumShareKindTopic": "Forum",
   "sharePrivateHint": "Gizli hesabın gönderisi yalnızca kişilere mesajla paylaşılabilir.",
   "shareNotFoundTitle": "İçerik bulunamadı",
   "shareNoChats": "Sohbet bulunamadı. Aramayla kişi bulabilirsiniz.",

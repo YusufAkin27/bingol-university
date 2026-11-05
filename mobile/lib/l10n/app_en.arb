@@ -657,6 +657,122 @@
   "shareChatNewsShared": "Shared a news story",
   "shareChatAnnouncementShared": "Shared an announcement",
   "shareChatEventShared": "Shared an event",
+  "forumActivityAnonBadge": "Anonymous",
+  "forumActivityAnonymous": "Anonymous",
+  "forumActivityCommentDeleted": "This comment was deleted",
+  "forumActivityCounts": "{likes} likes, {comments} comments",
+  "@forumActivityCounts": {
+    "placeholders": {
+      "likes": {
+        "type": "String"
+      },
+      "comments": {
+        "type": "String"
+      }
+    }
+  },
+  "forumActivityEmptyCommentsBody": "Comments you write will appear here.",
+  "forumActivityEmptyCommentsTitle": "No comments yet",
+  "forumActivityEmptyFollowingBody": "Follow a topic to hear about new comments.",
+  "forumActivityEmptyFollowingTitle": "You follow no topics",
+  "forumActivityEmptyTopicsBody": "Topics you start are listed here. Anonymous ones are visible only to you.",
+  "forumActivityEmptyTopicsTitle": "You have not started a topic yet",
+  "forumActivityRemoved": "This topic was removed",
+  "forumActivitySection": "Forum",
+  "forumActivityTabComments": "My comments",
+  "forumActivityTabCommentsPublic": "Comments",
+  "forumActivityTabFollowing": "Following",
+  "forumActivityTabSaved": "Saved",
+  "forumActivityTabTopics": "My topics",
+  "forumActivityTabTopicsPublic": "Topics",
+  "forumActivityTitle": "My forum activity",
+  "forumActivityUserEmptyComments": "No public comments yet",
+  "forumActivityUserEmptyTopics": "No public topics yet",
+  "forumActivityUserTitle": "Forum activity of {name}",
+  "@forumActivityUserTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forumPrefsAll": "All forum notifications",
+  "forumPrefsAllSub": "Turning this off stops all of the notifications below.",
+  "forumPrefsFollowed": "Topics I follow",
+  "forumPrefsLikes": "Like notifications",
+  "forumPrefsModerationNote": "Moderation notices (for example when your content is removed) cannot be turned off.",
+  "forumPrefsMutedEmpty": "You have not muted anyone.",
+  "forumPrefsMutedSection": "People you muted",
+  "forumPrefsNotifLabel": "Forum",
+  "forumPrefsReplies": "Replies to my comments",
+  "forumPrefsRowSub": "Topic, reply and like notifications",
+  "forumPrefsRowTitle": "Forum notifications",
+  "forumPrefsTitle": "Forum notifications",
+  "forumPrefsTopicComments": "Topic notifications",
+  "forumPrefsUnmute": "Unmute",
+  "forumPrefsUnmuted": "Unmuted",
+  "forumReportAlready": "You already reported this content.",
+  "forumReportAlsoBlock": "Also block this author",
+  "forumReportAlsoBlockHint": "Their content is hidden from you. Their identity is never shown.",
+  "forumReportBlockBody": "All of this author’s forum topics and comments are hidden from you. Even if they are anonymous, you will not learn who they are.",
+  "forumReportBlockConfirm": "Block",
+  "forumReportBlockTitle": "Block this author?",
+  "forumReportBlocked": "Author blocked.",
+  "forumReportMuteBody": "Forum content from {name} is hidden from you. Chats and profile interactions are not affected. You can undo this in settings.",
+  "@forumReportMuteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forumReportMuteConfirm": "Mute",
+  "forumReportMuteTitle": "Mute this person?",
+  "forumReportMuted": "Muted.",
+  "forumReportNoteHint": "Anything to add? (optional)",
+  "forumReportReasonHarassment": "Insults or harassment",
+  "forumReportReasonInappropriate": "Inappropriate content",
+  "forumReportReasonOther": "Other",
+  "forumReportReasonPersonalInfo": "Sharing personal information",
+  "forumReportReasonSpam": "Spam or advertising",
+  "forumReportThanks": "Thanks, your report was sent to our team.",
+  "forumReportTitle": "Report",
+  "forumSavedEmptyBody": "Tap the save icon on topics and comments to add them here.",
+  "forumSavedEmptyTitle": "Nothing saved yet",
+  "forumSavedRemove": "Remove from saved",
+  "forumSavedRemoved": "Removed from saved",
+  "forumSavedTitle": "Saved",
+  "forumSearchAllCategories": "All",
+  "forumSearchClearAll": "Clear",
+  "forumSearchEmptyBody": "No topics match “{q}”. Try a different word or category.",
+  "@forumSearchEmptyBody": {
+    "placeholders": {
+      "q": {
+        "type": "String"
+      }
+    }
+  },
+  "forumSearchEmptyTitle": "No results",
+  "forumSearchHint": "Search the forum",
+  "forumSearchMatchBody": "In description",
+  "forumSearchMatchCategory": "In category",
+  "forumSearchMatchComment": "In a comment",
+  "forumSearchMatchTitle": "In title",
+  "forumSearchMinChars": "Type at least 2 characters.",
+  "forumSearchPopular": "Popular topics",
+  "forumSearchPopularEmpty": "No trending topics right now.",
+  "forumSearchRecent": "Recent searches",
+  "forumSearchRemoveRecent": "Remove search",
+  "forumSearchSortNewest": "Newest",
+  "forumSearchSortPopular": "Popular",
+  "forumSearchSortRelevance": "Relevant",
+  "forumSearchStartBody": "Search by topic title, description, comment or category name.",
+  "forumSearchStartTitle": "Search the forum",
+  "forumSearchTitle": "Forum search",
+  "forumShareChatCommentShared": "Shared a forum comment",
+  "forumShareChatTopicShared": "Shared a forum topic",
+  "forumShareKindComment": "Forum comment",
+  "forumShareKindTopic": "Forum",
   "sharePrivateHint": "Posts from private accounts can only be shared with people by message.",
   "shareNotFoundTitle": "Content not found",
   "shareNoChats": "No chats found. Search to find people.",

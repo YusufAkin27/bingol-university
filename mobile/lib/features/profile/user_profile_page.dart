@@ -16,6 +16,7 @@ import '../follow/follow_list_page.dart';
 import '../follow/locked_profile_block.dart';
 import '../posts/social_api.dart';
 import '../posts/social_models.dart';
+import '../forum/presentation/widgets/forum_profile_section.dart';
 import 'profile_content_tabs.dart';
 
 /// Kullanıcı profili sayfasını açan ortak giriş. [fromConversationId], çağıranın zaten açık olan
@@ -533,6 +534,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 if (mounted) setState(() => _postCount = '$n${more ? '+' : ''}');
               },
             ),
+            // Kampüs Forum: yalnız herkese açık konu/yorum sayıları (sıfırsa ya da alınamazsa hiç çizilmez).
+            if (!_self) ForumProfileSection(key: ValueKey('forum-section-${widget.userId}'), session: widget.session, userId: widget.userId, name: _name),
             const SizedBox(height: 14),
             _infoCard(t, bio: bio, faculty: faculty, dept: dept, grade: grade, email: email),
           ],

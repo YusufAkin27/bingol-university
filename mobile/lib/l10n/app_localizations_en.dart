@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -678,7 +679,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown) {
+    String type,
+    String title,
+    String date,
+    String countdown,
+  ) {
     return '$type: $title. $date. $countdown. Tap to edit.';
   }
 
@@ -997,7 +1002,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end) {
+    String name,
+    String day,
+    String start,
+    String end,
+  ) {
     return '$name, $day from $start to $end';
   }
 
@@ -2158,6 +2167,279 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shareChatEventShared => 'Shared an event';
+
+  @override
+  String get forumActivityAnonBadge => 'Anonymous';
+
+  @override
+  String get forumActivityAnonymous => 'Anonymous';
+
+  @override
+  String get forumActivityCommentDeleted => 'This comment was deleted';
+
+  @override
+  String forumActivityCounts(String likes, String comments) {
+    return '$likes likes, $comments comments';
+  }
+
+  @override
+  String get forumActivityEmptyCommentsBody =>
+      'Comments you write will appear here.';
+
+  @override
+  String get forumActivityEmptyCommentsTitle => 'No comments yet';
+
+  @override
+  String get forumActivityEmptyFollowingBody =>
+      'Follow a topic to hear about new comments.';
+
+  @override
+  String get forumActivityEmptyFollowingTitle => 'You follow no topics';
+
+  @override
+  String get forumActivityEmptyTopicsBody =>
+      'Topics you start are listed here. Anonymous ones are visible only to you.';
+
+  @override
+  String get forumActivityEmptyTopicsTitle =>
+      'You have not started a topic yet';
+
+  @override
+  String get forumActivityRemoved => 'This topic was removed';
+
+  @override
+  String get forumActivitySection => 'Forum';
+
+  @override
+  String get forumActivityTabComments => 'My comments';
+
+  @override
+  String get forumActivityTabCommentsPublic => 'Comments';
+
+  @override
+  String get forumActivityTabFollowing => 'Following';
+
+  @override
+  String get forumActivityTabSaved => 'Saved';
+
+  @override
+  String get forumActivityTabTopics => 'My topics';
+
+  @override
+  String get forumActivityTabTopicsPublic => 'Topics';
+
+  @override
+  String get forumActivityTitle => 'My forum activity';
+
+  @override
+  String get forumActivityUserEmptyComments => 'No public comments yet';
+
+  @override
+  String get forumActivityUserEmptyTopics => 'No public topics yet';
+
+  @override
+  String forumActivityUserTitle(String name) {
+    return 'Forum activity of $name';
+  }
+
+  @override
+  String get forumPrefsAll => 'All forum notifications';
+
+  @override
+  String get forumPrefsAllSub =>
+      'Turning this off stops all of the notifications below.';
+
+  @override
+  String get forumPrefsFollowed => 'Topics I follow';
+
+  @override
+  String get forumPrefsLikes => 'Like notifications';
+
+  @override
+  String get forumPrefsModerationNote =>
+      'Moderation notices (for example when your content is removed) cannot be turned off.';
+
+  @override
+  String get forumPrefsMutedEmpty => 'You have not muted anyone.';
+
+  @override
+  String get forumPrefsMutedSection => 'People you muted';
+
+  @override
+  String get forumPrefsNotifLabel => 'Forum';
+
+  @override
+  String get forumPrefsReplies => 'Replies to my comments';
+
+  @override
+  String get forumPrefsRowSub => 'Topic, reply and like notifications';
+
+  @override
+  String get forumPrefsRowTitle => 'Forum notifications';
+
+  @override
+  String get forumPrefsTitle => 'Forum notifications';
+
+  @override
+  String get forumPrefsTopicComments => 'Topic notifications';
+
+  @override
+  String get forumPrefsUnmute => 'Unmute';
+
+  @override
+  String get forumPrefsUnmuted => 'Unmuted';
+
+  @override
+  String get forumReportAlready => 'You already reported this content.';
+
+  @override
+  String get forumReportAlsoBlock => 'Also block this author';
+
+  @override
+  String get forumReportAlsoBlockHint =>
+      'Their content is hidden from you. Their identity is never shown.';
+
+  @override
+  String get forumReportBlockBody =>
+      'All of this author’s forum topics and comments are hidden from you. Even if they are anonymous, you will not learn who they are.';
+
+  @override
+  String get forumReportBlockConfirm => 'Block';
+
+  @override
+  String get forumReportBlockTitle => 'Block this author?';
+
+  @override
+  String get forumReportBlocked => 'Author blocked.';
+
+  @override
+  String forumReportMuteBody(String name) {
+    return 'Forum content from $name is hidden from you. Chats and profile interactions are not affected. You can undo this in settings.';
+  }
+
+  @override
+  String get forumReportMuteConfirm => 'Mute';
+
+  @override
+  String get forumReportMuteTitle => 'Mute this person?';
+
+  @override
+  String get forumReportMuted => 'Muted.';
+
+  @override
+  String get forumReportNoteHint => 'Anything to add? (optional)';
+
+  @override
+  String get forumReportReasonHarassment => 'Insults or harassment';
+
+  @override
+  String get forumReportReasonInappropriate => 'Inappropriate content';
+
+  @override
+  String get forumReportReasonOther => 'Other';
+
+  @override
+  String get forumReportReasonPersonalInfo => 'Sharing personal information';
+
+  @override
+  String get forumReportReasonSpam => 'Spam or advertising';
+
+  @override
+  String get forumReportThanks => 'Thanks, your report was sent to our team.';
+
+  @override
+  String get forumReportTitle => 'Report';
+
+  @override
+  String get forumSavedEmptyBody =>
+      'Tap the save icon on topics and comments to add them here.';
+
+  @override
+  String get forumSavedEmptyTitle => 'Nothing saved yet';
+
+  @override
+  String get forumSavedRemove => 'Remove from saved';
+
+  @override
+  String get forumSavedRemoved => 'Removed from saved';
+
+  @override
+  String get forumSavedTitle => 'Saved';
+
+  @override
+  String get forumSearchAllCategories => 'All';
+
+  @override
+  String get forumSearchClearAll => 'Clear';
+
+  @override
+  String forumSearchEmptyBody(String q) {
+    return 'No topics match “$q”. Try a different word or category.';
+  }
+
+  @override
+  String get forumSearchEmptyTitle => 'No results';
+
+  @override
+  String get forumSearchHint => 'Search the forum';
+
+  @override
+  String get forumSearchMatchBody => 'In description';
+
+  @override
+  String get forumSearchMatchCategory => 'In category';
+
+  @override
+  String get forumSearchMatchComment => 'In a comment';
+
+  @override
+  String get forumSearchMatchTitle => 'In title';
+
+  @override
+  String get forumSearchMinChars => 'Type at least 2 characters.';
+
+  @override
+  String get forumSearchPopular => 'Popular topics';
+
+  @override
+  String get forumSearchPopularEmpty => 'No trending topics right now.';
+
+  @override
+  String get forumSearchRecent => 'Recent searches';
+
+  @override
+  String get forumSearchRemoveRecent => 'Remove search';
+
+  @override
+  String get forumSearchSortNewest => 'Newest';
+
+  @override
+  String get forumSearchSortPopular => 'Popular';
+
+  @override
+  String get forumSearchSortRelevance => 'Relevant';
+
+  @override
+  String get forumSearchStartBody =>
+      'Search by topic title, description, comment or category name.';
+
+  @override
+  String get forumSearchStartTitle => 'Search the forum';
+
+  @override
+  String get forumSearchTitle => 'Forum search';
+
+  @override
+  String get forumShareChatCommentShared => 'Shared a forum comment';
+
+  @override
+  String get forumShareChatTopicShared => 'Shared a forum topic';
+
+  @override
+  String get forumShareKindComment => 'Forum comment';
+
+  @override
+  String get forumShareKindTopic => 'Forum';
 
   @override
   String get sharePrivateHint =>

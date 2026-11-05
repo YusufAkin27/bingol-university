@@ -657,6 +657,122 @@
   "shareChatNewsShared": "شارك خبرًا",
   "shareChatAnnouncementShared": "شارك إعلانًا",
   "shareChatEventShared": "شارك فعالية",
+  "forumActivityAnonBadge": "مجهول",
+  "forumActivityAnonymous": "مجهول",
+  "forumActivityCommentDeleted": "تم حذف هذا التعليق",
+  "forumActivityCounts": "{likes} إعجاب، {comments} تعليق",
+  "@forumActivityCounts": {
+    "placeholders": {
+      "likes": {
+        "type": "String"
+      },
+      "comments": {
+        "type": "String"
+      }
+    }
+  },
+  "forumActivityEmptyCommentsBody": "ستظهر هنا التعليقات التي تكتبها.",
+  "forumActivityEmptyCommentsTitle": "لا توجد تعليقات بعد",
+  "forumActivityEmptyFollowingBody": "تابع موضوعًا لتصلك التعليقات الجديدة.",
+  "forumActivityEmptyFollowingTitle": "لا توجد مواضيع تتابعها",
+  "forumActivityEmptyTopicsBody": "تظهر هنا المواضيع التي تفتحها. المجهولة منها تظهر لك وحدك.",
+  "forumActivityEmptyTopicsTitle": "لم تفتح أي موضوع بعد",
+  "forumActivityRemoved": "تمت إزالة هذا الموضوع",
+  "forumActivitySection": "المنتدى",
+  "forumActivityTabComments": "تعليقاتي",
+  "forumActivityTabCommentsPublic": "التعليقات",
+  "forumActivityTabFollowing": "ما أتابعه",
+  "forumActivityTabSaved": "المحفوظات",
+  "forumActivityTabTopics": "مواضيعي",
+  "forumActivityTabTopicsPublic": "المواضيع",
+  "forumActivityTitle": "نشاطي في المنتدى",
+  "forumActivityUserEmptyComments": "لا توجد تعليقات عامة بعد",
+  "forumActivityUserEmptyTopics": "لا توجد مواضيع عامة بعد",
+  "forumActivityUserTitle": "نشاط {name} في المنتدى",
+  "@forumActivityUserTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forumPrefsAll": "كل إشعارات المنتدى",
+  "forumPrefsAllSub": "عند إيقافه تتوقف كل الإشعارات أدناه.",
+  "forumPrefsFollowed": "المواضيع التي أتابعها",
+  "forumPrefsLikes": "إشعارات الإعجاب",
+  "forumPrefsModerationNote": "لا يمكن إيقاف إشعارات الإشراف (مثل إزالة محتواك).",
+  "forumPrefsMutedEmpty": "لم تكتم أي شخص.",
+  "forumPrefsMutedSection": "من كتمتهم",
+  "forumPrefsNotifLabel": "المنتدى",
+  "forumPrefsReplies": "الردود على تعليقاتي",
+  "forumPrefsRowSub": "إشعارات المواضيع والردود والإعجابات",
+  "forumPrefsRowTitle": "إشعارات المنتدى",
+  "forumPrefsTitle": "إشعارات المنتدى",
+  "forumPrefsTopicComments": "إشعارات المواضيع",
+  "forumPrefsUnmute": "إلغاء الكتم",
+  "forumPrefsUnmuted": "تم إلغاء الكتم",
+  "forumReportAlready": "لقد أبلغت عن هذا المحتوى مسبقًا.",
+  "forumReportAlsoBlock": "احظر هذا الكاتب أيضًا",
+  "forumReportAlsoBlockHint": "يختفي محتواه عنك. لا تُعرض هويته أبدًا.",
+  "forumReportBlockBody": "تختفي عنك كل مواضيع هذا الكاتب وتعليقاته في المنتدى. حتى لو كان مجهولًا لن تعرف هويته.",
+  "forumReportBlockConfirm": "حظر",
+  "forumReportBlockTitle": "حظر هذا الكاتب؟",
+  "forumReportBlocked": "تم حظر الكاتب.",
+  "forumReportMuteBody": "يختفي عنك محتوى {name} في المنتدى. لا تتأثر المحادثات والملف الشخصي. يمكنك التراجع من الإعدادات.",
+  "@forumReportMuteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forumReportMuteConfirm": "كتم",
+  "forumReportMuteTitle": "كتم هذا الشخص؟",
+  "forumReportMuted": "تم الكتم.",
+  "forumReportNoteHint": "هل تريد إضافة ملاحظة؟ (اختياري)",
+  "forumReportReasonHarassment": "إساءة أو تحرش",
+  "forumReportReasonInappropriate": "محتوى غير لائق",
+  "forumReportReasonOther": "أخرى",
+  "forumReportReasonPersonalInfo": "مشاركة معلومات شخصية",
+  "forumReportReasonSpam": "رسائل مزعجة أو إعلانات",
+  "forumReportThanks": "شكرًا، تم إرسال بلاغك إلى فريقنا.",
+  "forumReportTitle": "إبلاغ",
+  "forumSavedEmptyBody": "اضغط على أيقونة الحفظ في المواضيع والتعليقات لإضافتها هنا.",
+  "forumSavedEmptyTitle": "لا يوجد شيء محفوظ بعد",
+  "forumSavedRemove": "إزالة من المحفوظات",
+  "forumSavedRemoved": "أُزيل من المحفوظات",
+  "forumSavedTitle": "المحفوظات",
+  "forumSearchAllCategories": "الكل",
+  "forumSearchClearAll": "مسح",
+  "forumSearchEmptyBody": "لا توجد مواضيع مطابقة لـ “{q}”. جرّب كلمة أو فئة أخرى.",
+  "@forumSearchEmptyBody": {
+    "placeholders": {
+      "q": {
+        "type": "String"
+      }
+    }
+  },
+  "forumSearchEmptyTitle": "لا توجد نتائج",
+  "forumSearchHint": "ابحث في المنتدى",
+  "forumSearchMatchBody": "في الوصف",
+  "forumSearchMatchCategory": "في الفئة",
+  "forumSearchMatchComment": "في تعليق",
+  "forumSearchMatchTitle": "في العنوان",
+  "forumSearchMinChars": "اكتب حرفين على الأقل.",
+  "forumSearchPopular": "المواضيع الشائعة",
+  "forumSearchPopularEmpty": "لا توجد مواضيع رائجة حاليًا.",
+  "forumSearchRecent": "عمليات البحث الأخيرة",
+  "forumSearchRemoveRecent": "حذف البحث",
+  "forumSearchSortNewest": "الأحدث",
+  "forumSearchSortPopular": "الأكثر شيوعًا",
+  "forumSearchSortRelevance": "الأكثر صلة",
+  "forumSearchStartBody": "ابحث بعنوان الموضوع أو وصفه أو التعليقات أو اسم الفئة.",
+  "forumSearchStartTitle": "ابحث في المنتدى",
+  "forumSearchTitle": "بحث المنتدى",
+  "forumShareChatCommentShared": "شارك تعليقًا من المنتدى",
+  "forumShareChatTopicShared": "شارك موضوعًا من المنتدى",
+  "forumShareKindComment": "تعليق في المنتدى",
+  "forumShareKindTopic": "المنتدى",
   "sharePrivateHint": "منشورات الحسابات الخاصة تُشارك مع الأشخاص عبر الرسائل فقط.",
   "shareNotFoundTitle": "المحتوى غير موجود",
   "shareNoChats": "لا توجد محادثات. ابحث للعثور على أشخاص.",

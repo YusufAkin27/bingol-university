@@ -14,6 +14,8 @@ String shareKindLabel(BuildContext context, ShareType type, {bool announcement =
     ShareType.reel => l.shareKindReel,
     ShareType.news => announcement ? l.shareKindAnnouncement : l.shareKindNews,
     ShareType.event => l.shareKindEvent,
+    ShareType.forumTopic => l.forumShareKindTopic,
+    ShareType.forumComment => l.forumShareKindComment,
   };
 }
 
@@ -22,6 +24,8 @@ IconData shareKindIcon(ShareType type, {bool announcement = false}) => switch (t
       ShareType.reel => BuIcons.video,
       ShareType.news => announcement ? BuIcons.megaphone : BuIcons.newspaper,
       ShareType.event => BuIcons.calendarDays,
+      ShareType.forumTopic => BuIcons.messageSquareText,
+      ShareType.forumComment => BuIcons.messageCircle,
     };
 
 BuTint shareKindTint(BuTokens t, ShareType type, {bool announcement = false}) => t.tint(switch (type) {
@@ -29,6 +33,7 @@ BuTint shareKindTint(BuTokens t, ShareType type, {bool announcement = false}) =>
       ShareType.reel => BuTintId.brand,
       ShareType.news => announcement ? BuTintId.aqua : BuTintId.blue,
       ShareType.event => BuTintId.amber,
+      ShareType.forumTopic || ShareType.forumComment => BuTintId.slate,
     });
 
 /// Sohbet listesinde son mesaj önizlemesi ("Gönderi paylaştı"...). Paylaşım yoksa null.
@@ -44,6 +49,8 @@ String? sharePreviewText(BuildContext context, Map<dynamic, dynamic>? message) {
     ShareType.reel => l.shareChatReelShared,
     ShareType.news => (info?.isAnnouncement ?? false) ? l.shareChatAnnouncementShared : l.shareChatNewsShared,
     ShareType.event => l.shareChatEventShared,
+    ShareType.forumTopic => l.forumShareChatTopicShared,
+    ShareType.forumComment => l.forumShareChatCommentShared,
   };
 }
 
@@ -89,7 +96,10 @@ class ShareCard extends StatelessWidget {
     final cardBg = mine ? t.onPr.withValues(alpha: .14) : t.sf2;
     final fg = mine ? t.onPr : t.ink;
     final sub = mine ? t.onPr.withValues(alpha: .8) : t.mut;
-    final label = shareKindLabel(context, info.type, announcement: info.isAnnouncement);
+    // Forum kartında tür etiketi yerine kategori adı (varsa); başlık konu başlığı, alt satır yazar (anonimde sunucu vermez).
+    final isForum = info.type == ShareType.forumTopic || info.type == ShareType.forumComment;
+    final kindLabel = shareKindLabel(context, info.type, announcement: info.isAnnouncement);
+    final label = isForum && (info.category ?? '').isNotEmpty ? info.category! : kindLabel;
     final tint = shareKindTint(t, info.type, announcement: info.isAnnouncement);
     final icon = shareKindIcon(info.type, announcement: info.isAnnouncement);
     final ready = info.available;

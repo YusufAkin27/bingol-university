@@ -7,6 +7,7 @@ import '../../widgets/bu.dart';
 import '../academic/academic_hub_page.dart';
 import '../follow/follow_requests_api.dart';
 import '../follow/follow_requests_page.dart';
+import '../forum/forum_routes.dart' show openMyForumActivity;
 import '../posts/user_posts_page.dart';
 import '../support/support_page.dart';
 import 'my_clubs_page.dart';
@@ -126,6 +127,34 @@ class _ProfileMenuPageState extends State<ProfileMenuPage> {
                     label: l.profileMyEvents,
                     value: _events,
                     onTap: () => _go(MyEventsPage(session: s), 'my_events'),
+                  ),
+                ]),
+                // Kampüs Forum faaliyetim: her satır ilgili sekmeyi doğrudan açar.
+                ProfilSection(l.forumActivitySection, top: 24),
+                ProfilCard(children: [
+                  ProfilRow(
+                    key: const ValueKey('menu-forum-topics'),
+                    icon: BuIcons.messageSquareText,
+                    label: l.forumActivityTabTopics,
+                    onTap: () => openMyForumActivity(context, s, initialTab: 0),
+                  ),
+                  ProfilRow(
+                    key: const ValueKey('menu-forum-comments'),
+                    icon: BuIcons.messageCircle,
+                    label: l.forumActivityTabComments,
+                    onTap: () => openMyForumActivity(context, s, initialTab: 1),
+                  ),
+                  ProfilRow(
+                    key: const ValueKey('menu-forum-saved'),
+                    icon: BuIcons.bookmark,
+                    label: l.forumActivityTabSaved,
+                    onTap: () => openMyForumActivity(context, s, initialTab: 2),
+                  ),
+                  ProfilRow(
+                    key: const ValueKey('menu-forum-following'),
+                    icon: BuIcons.bell,
+                    label: l.forumActivityTabFollowing,
+                    onTap: () => openMyForumActivity(context, s, initialTab: 3),
                   ),
                 ]),
                 ProfilSection(l.p18SecPrefs, top: 24),

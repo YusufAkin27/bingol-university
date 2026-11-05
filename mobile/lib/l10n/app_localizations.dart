@@ -64,7 +64,7 @@ import 'app_localizations_tr.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -87,17 +87,17 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('ar'),
     Locale('en'),
-    Locale('tr')
+    Locale('tr'),
   ];
 
   /// No description provided for @chatReactionPickerTitle.
@@ -1359,7 +1359,11 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{type}: {title}. {date}. {countdown}. Düzenlemek için dokun.'**
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown);
+    String type,
+    String title,
+    String date,
+    String countdown,
+  );
 
   /// No description provided for @acadFormErrTitle.
   ///
@@ -1924,7 +1928,11 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{name}, {day} {start} ile {end} arası'**
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end);
+    String name,
+    String day,
+    String start,
+    String end,
+  );
 
   /// No description provided for @acadTimeCourseSemantic.
   ///
@@ -4043,6 +4051,516 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Etkinlik paylaştı'**
   String get shareChatEventShared;
+
+  /// No description provided for @forumActivityAnonBadge.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anonim'**
+  String get forumActivityAnonBadge;
+
+  /// No description provided for @forumActivityAnonymous.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anonim'**
+  String get forumActivityAnonymous;
+
+  /// No description provided for @forumActivityCommentDeleted.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yorum silindi'**
+  String get forumActivityCommentDeleted;
+
+  /// No description provided for @forumActivityCounts.
+  ///
+  /// In tr, this message translates to:
+  /// **'{likes} beğeni, {comments} yorum'**
+  String forumActivityCounts(String likes, String comments);
+
+  /// No description provided for @forumActivityEmptyCommentsBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yazdığın yorumlar burada görünür.'**
+  String get forumActivityEmptyCommentsBody;
+
+  /// No description provided for @forumActivityEmptyCommentsTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz yorumun yok'**
+  String get forumActivityEmptyCommentsTitle;
+
+  /// No description provided for @forumActivityEmptyFollowingBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir konuyu takip edersen yeni yorumlardan haberdar olursun.'**
+  String get forumActivityEmptyFollowingBody;
+
+  /// No description provided for @forumActivityEmptyFollowingTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takip ettiğin konu yok'**
+  String get forumActivityEmptyFollowingTitle;
+
+  /// No description provided for @forumActivityEmptyTopicsBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Açtığın konular burada listelenir. Anonim paylaştıkların yalnız sana görünür.'**
+  String get forumActivityEmptyTopicsBody;
+
+  /// No description provided for @forumActivityEmptyTopicsTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz konu açmadın'**
+  String get forumActivityEmptyTopicsTitle;
+
+  /// No description provided for @forumActivityRemoved.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu konu kaldırıldı'**
+  String get forumActivityRemoved;
+
+  /// No description provided for @forumActivitySection.
+  ///
+  /// In tr, this message translates to:
+  /// **'Forum'**
+  String get forumActivitySection;
+
+  /// No description provided for @forumActivityTabComments.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumlarım'**
+  String get forumActivityTabComments;
+
+  /// No description provided for @forumActivityTabCommentsPublic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumlar'**
+  String get forumActivityTabCommentsPublic;
+
+  /// No description provided for @forumActivityTabFollowing.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takip ettiklerim'**
+  String get forumActivityTabFollowing;
+
+  /// No description provided for @forumActivityTabSaved.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydedilenler'**
+  String get forumActivityTabSaved;
+
+  /// No description provided for @forumActivityTabTopics.
+  ///
+  /// In tr, this message translates to:
+  /// **'Açtığım konular'**
+  String get forumActivityTabTopics;
+
+  /// No description provided for @forumActivityTabTopicsPublic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konular'**
+  String get forumActivityTabTopicsPublic;
+
+  /// No description provided for @forumActivityTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Forum faaliyetim'**
+  String get forumActivityTitle;
+
+  /// No description provided for @forumActivityUserEmptyComments.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz herkese açık yorum yok'**
+  String get forumActivityUserEmptyComments;
+
+  /// No description provided for @forumActivityUserEmptyTopics.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz herkese açık konu yok'**
+  String get forumActivityUserEmptyTopics;
+
+  /// No description provided for @forumActivityUserTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} kişisinin forum faaliyeti'**
+  String forumActivityUserTitle(String name);
+
+  /// No description provided for @forumPrefsAll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm forum bildirimleri'**
+  String get forumPrefsAll;
+
+  /// No description provided for @forumPrefsAllSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kapatırsan aşağıdaki bildirimlerin hepsi durur.'**
+  String get forumPrefsAllSub;
+
+  /// No description provided for @forumPrefsFollowed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takip ettiğim konular'**
+  String get forumPrefsFollowed;
+
+  /// No description provided for @forumPrefsLikes.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğeni bildirimleri'**
+  String get forumPrefsLikes;
+
+  /// No description provided for @forumPrefsModerationNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Moderasyon bildirimleri (ör. içeriğinin kaldırılması) güvenliğin için kapatılamaz.'**
+  String get forumPrefsModerationNote;
+
+  /// No description provided for @forumPrefsMutedEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kimseyi sessize almadın.'**
+  String get forumPrefsMutedEmpty;
+
+  /// No description provided for @forumPrefsMutedSection.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sessize aldıkların'**
+  String get forumPrefsMutedSection;
+
+  /// No description provided for @forumPrefsNotifLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Forum'**
+  String get forumPrefsNotifLabel;
+
+  /// No description provided for @forumPrefsReplies.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorum yanıtları'**
+  String get forumPrefsReplies;
+
+  /// No description provided for @forumPrefsRowSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu, yanıt ve beğeni bildirimleri'**
+  String get forumPrefsRowSub;
+
+  /// No description provided for @forumPrefsRowTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Forum bildirimleri'**
+  String get forumPrefsRowTitle;
+
+  /// No description provided for @forumPrefsTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Forum bildirimleri'**
+  String get forumPrefsTitle;
+
+  /// No description provided for @forumPrefsTopicComments.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu bildirimleri'**
+  String get forumPrefsTopicComments;
+
+  /// No description provided for @forumPrefsUnmute.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sessizden çıkar'**
+  String get forumPrefsUnmute;
+
+  /// No description provided for @forumPrefsUnmuted.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sessizden çıkarıldı'**
+  String get forumPrefsUnmuted;
+
+  /// No description provided for @forumReportAlready.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu içeriği zaten bildirmiştin.'**
+  String get forumReportAlready;
+
+  /// No description provided for @forumReportAlsoBlock.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yazarı da engelle'**
+  String get forumReportAlsoBlock;
+
+  /// No description provided for @forumReportAlsoBlockHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'İçerikleri sana görünmez. Kimliği gösterilmez.'**
+  String get forumReportAlsoBlockHint;
+
+  /// No description provided for @forumReportBlockBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yazarın forumdaki tüm konu ve yorumları sana görünmez olur. Yazar anonim olsa da kimliğini öğrenmezsin.'**
+  String get forumReportBlockBody;
+
+  /// No description provided for @forumReportBlockConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'Engelle'**
+  String get forumReportBlockConfirm;
+
+  /// No description provided for @forumReportBlockTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yazar engellensin mi?'**
+  String get forumReportBlockTitle;
+
+  /// No description provided for @forumReportBlocked.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yazar engellendi.'**
+  String get forumReportBlocked;
+
+  /// No description provided for @forumReportMuteBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} kişisinin forum içerikleri sana görünmez. Sohbet ve profil etkileşimleri etkilenmez. Ayarlardan geri alabilirsin.'**
+  String forumReportMuteBody(String name);
+
+  /// No description provided for @forumReportMuteConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sessize al'**
+  String get forumReportMuteConfirm;
+
+  /// No description provided for @forumReportMuteTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sessize alınsın mı?'**
+  String get forumReportMuteTitle;
+
+  /// No description provided for @forumReportMuted.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sessize alındı.'**
+  String get forumReportMuted;
+
+  /// No description provided for @forumReportNoteHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Eklemek istediğin bir not var mı? (isteğe bağlı)'**
+  String get forumReportNoteHint;
+
+  /// No description provided for @forumReportReasonHarassment.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hakaret veya taciz'**
+  String get forumReportReasonHarassment;
+
+  /// No description provided for @forumReportReasonInappropriate.
+  ///
+  /// In tr, this message translates to:
+  /// **'Uygunsuz içerik'**
+  String get forumReportReasonInappropriate;
+
+  /// No description provided for @forumReportReasonOther.
+  ///
+  /// In tr, this message translates to:
+  /// **'Diğer'**
+  String get forumReportReasonOther;
+
+  /// No description provided for @forumReportReasonPersonalInfo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kişisel bilgi paylaşımı'**
+  String get forumReportReasonPersonalInfo;
+
+  /// No description provided for @forumReportReasonSpam.
+  ///
+  /// In tr, this message translates to:
+  /// **'Spam veya reklam'**
+  String get forumReportReasonSpam;
+
+  /// No description provided for @forumReportThanks.
+  ///
+  /// In tr, this message translates to:
+  /// **'Teşekkürler, bildirimin ekibimize iletildi.'**
+  String get forumReportThanks;
+
+  /// No description provided for @forumReportTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şikâyet et'**
+  String get forumReportTitle;
+
+  /// No description provided for @forumSavedEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu ve yorumlardaki kaydet simgesine dokunarak buraya ekleyebilirsin.'**
+  String get forumSavedEmptyBody;
+
+  /// No description provided for @forumSavedEmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz kaydettiğin bir şey yok'**
+  String get forumSavedEmptyTitle;
+
+  /// No description provided for @forumSavedRemove.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydı kaldır'**
+  String get forumSavedRemove;
+
+  /// No description provided for @forumSavedRemoved.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydedilenlerden çıkarıldı'**
+  String get forumSavedRemoved;
+
+  /// No description provided for @forumSavedTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydedilenler'**
+  String get forumSavedTitle;
+
+  /// No description provided for @forumSearchAllCategories.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tümü'**
+  String get forumSearchAllCategories;
+
+  /// No description provided for @forumSearchClearAll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Temizle'**
+  String get forumSearchClearAll;
+
+  /// No description provided for @forumSearchEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'“{q}” için eşleşen konu bulunamadı. Farklı bir kelime ya da kategori dene.'**
+  String forumSearchEmptyBody(String q);
+
+  /// No description provided for @forumSearchEmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sonuç bulunamadı'**
+  String get forumSearchEmptyTitle;
+
+  /// No description provided for @forumSearchHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Forumda ara'**
+  String get forumSearchHint;
+
+  /// No description provided for @forumSearchMatchBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Açıklamada'**
+  String get forumSearchMatchBody;
+
+  /// No description provided for @forumSearchMatchCategory.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kategoride'**
+  String get forumSearchMatchCategory;
+
+  /// No description provided for @forumSearchMatchComment.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumda'**
+  String get forumSearchMatchComment;
+
+  /// No description provided for @forumSearchMatchTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başlıkta'**
+  String get forumSearchMatchTitle;
+
+  /// No description provided for @forumSearchMinChars.
+  ///
+  /// In tr, this message translates to:
+  /// **'En az 2 karakter yaz.'**
+  String get forumSearchMinChars;
+
+  /// No description provided for @forumSearchPopular.
+  ///
+  /// In tr, this message translates to:
+  /// **'Popüler konular'**
+  String get forumSearchPopular;
+
+  /// No description provided for @forumSearchPopularEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şu an öne çıkan konu yok.'**
+  String get forumSearchPopularEmpty;
+
+  /// No description provided for @forumSearchRecent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Son aramalar'**
+  String get forumSearchRecent;
+
+  /// No description provided for @forumSearchRemoveRecent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aramayı sil'**
+  String get forumSearchRemoveRecent;
+
+  /// No description provided for @forumSearchSortNewest.
+  ///
+  /// In tr, this message translates to:
+  /// **'En yeni'**
+  String get forumSearchSortNewest;
+
+  /// No description provided for @forumSearchSortPopular.
+  ///
+  /// In tr, this message translates to:
+  /// **'Popüler'**
+  String get forumSearchSortPopular;
+
+  /// No description provided for @forumSearchSortRelevance.
+  ///
+  /// In tr, this message translates to:
+  /// **'İlgili'**
+  String get forumSearchSortRelevance;
+
+  /// No description provided for @forumSearchStartBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu başlığı, açıklama, yorum ya da kategori adıyla ara.'**
+  String get forumSearchStartBody;
+
+  /// No description provided for @forumSearchStartTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Forumda ara'**
+  String get forumSearchStartTitle;
+
+  /// No description provided for @forumSearchTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Forum araması'**
+  String get forumSearchTitle;
+
+  /// No description provided for @forumShareChatCommentShared.
+  ///
+  /// In tr, this message translates to:
+  /// **'Forum yorumu paylaştı'**
+  String get forumShareChatCommentShared;
+
+  /// No description provided for @forumShareChatTopicShared.
+  ///
+  /// In tr, this message translates to:
+  /// **'Forum konusu paylaştı'**
+  String get forumShareChatTopicShared;
+
+  /// No description provided for @forumShareKindComment.
+  ///
+  /// In tr, this message translates to:
+  /// **'Forum yorumu'**
+  String get forumShareKindComment;
+
+  /// No description provided for @forumShareKindTopic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Forum'**
+  String get forumShareKindTopic;
 
   /// No description provided for @sharePrivateHint.
   ///
@@ -19362,8 +19880,9 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-      'an issue with the localizations generation tool. Please file an issue '
-      'on GitHub with a reproducible sample app and the gen-l10n configuration '
-      'that was used.');
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
 }

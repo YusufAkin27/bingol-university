@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../forum/data/forum_models.dart' show ForumComment, TopicSummary;
 import '../news/news_tile.dart' show newsSourceHost;
 import '../posts/post_models.dart';
 import 'share_models.dart';
@@ -52,6 +53,37 @@ ShareContent shareContentForEvent(Map<String, dynamic> ev) {
     title: str(ev['title']),
     source: str(ev['communityName']) ?? str(org?['displayName']) ?? str(ev['organizerName']),
     imageUrl: str(ev['coverUrl']),
+  );
+}
+
+/// Forum konusu için paylaşım içeriği: başlık = konu başlığı; kaynak = kategori (+ anonim değilse yazar).
+/// Anonim konuda yazar adı ASLA eklenmez (sunucu da OG sayfasında "Anonim" yazar).
+ShareContent shareContentForTopic(Session session, TopicSummary topic) {
+  final cat = topic.category?.name.trim() ?? '';
+  final author = topic.author.anonymous ? '' : topic.author.displayName.trim();
+  final thumb = topic.thumbnail?.thumbUrl ?? topic.thumbnail?.url;
+  final parts = [if (cat.isNotEmpty) cat, if (author.isNotEmpty) author];
+  return ShareContent(
+    type: ShareType.forumTopic,
+    id: topic.id,
+    title: topic.title.trim().isEmpty ? null : topic.title.trim(),
+    source: parts.isEmpty ? null : parts.join(' · '),
+    imageUrl: thumb,
+    imageHeaders: postAuthHeaders(session),
+  );
+}
+
+/// Forum yorumu için paylaşım içeriği: başlık = yorum metninin başı; kaynak = konu başlığı (verilirse).
+ShareContent shareContentForComment(Session session, ForumComment comment, {String? topicTitle}) {
+  final body = (comment.body ?? '').trim().replaceAll(RegExp(r's+'), ' ');
+  final short = body.runes.length > 120 ? '${String.fromCharCodes(body.runes.take(119))}…' : body;
+  final topic = topicTitle?.trim() ?? '';
+  return ShareContent(
+    type: ShareType.forumComment,
+    id: comment.id,
+    title: short.isEmpty ? (topic.isEmpty ? null : topic) : short,
+    source: topic.isEmpty ? null : topic,
+    imageHeaders: postAuthHeaders(session),
   );
 }
 
