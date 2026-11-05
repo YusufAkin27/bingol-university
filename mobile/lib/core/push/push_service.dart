@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 
 import '../../features/auth/permissions_page.dart';
+import '../api.dart' show apiOrigin;
 import '../locale_controller.dart';
 import '../notify/local_reminders.dart';
 import '../closed_conversations.dart';
@@ -194,6 +195,11 @@ class PushService with WidgetsBindingObserver {
         if (call.method == 'onTap' && call.arguments is Map) {
           await _nativePush(Map<String, dynamic>.from(call.arguments as Map));
         }
+        // Satır içi yanıt (Android RemoteInput): ekran açılmadan gönderilir; sonuç yerel koda döner (false/hata = "dokunarak gönder").
+        if (call.method == 'onAction' && call.arguments is Map) {
+          return await _actions.perform(Map<String, dynamic>.from(call.arguments as Map));
+        }
+        return null;
       });
     }
     try {
@@ -410,7 +416,7 @@ class PushService with WidgetsBindingObserver {
           final info = session.userId == null ? await session.api.get('/auth/me') : null;
           final current = session.userId ?? (info is Map ? int.tryParse((info['id'] as Object?)?.toString() ?? '') : null);
           if (session.state != SessionState.signedIn || current == null) throw StateError('No active push recipient');
-          await PushActions.channel.invokeMethod<void>('authorize', {'userId': current});
+          await PushActions.channel.invokeMethod<void>('authorize', {'userId': current, 'imageHost': Uri.tryParse(apiOrigin)?.host});
         }
       }
       on MissingPluginException { }

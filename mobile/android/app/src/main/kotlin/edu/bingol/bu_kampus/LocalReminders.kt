@@ -251,6 +251,30 @@ object Channels {
 
 /** Surec FCM ile (uygulama kapaliyken) baslasa bile kanallar hazir olsun: sistem bildirimi dogru kanaldan/sesle gosterir. */
 class ReminderReceiver : BroadcastReceiver() {
+    // Yuk anahtarlari Dart `kLocalReminderPayloadKeys` + sinav cipi (eventStartsAt/location) + reminderKind.
+    private val localKeys = listOf("targetType", "targetId", "examId", "eventId", "eventStartsAt", "location", "reminderKind")
+
+    private fun richLocal(context: Context, group: String, id: Int, channel: String, payload: String, title: String?, body: String?): Boolean {
+        return try {
+            val po = JSONObject(payload)
+            val data = HashMap<String, String>()
+            for (k in localKeys) {
+                val v = po.optString(k)
+                if (v.isNotEmpty() && v.length <= 200) data[k] = v
+            }
+            val exam = data["reminderKind"] == "exam" || data.containsKey("examId") || data["targetType"] == "EXAM"
+            data["style"] = if (exam) "EXAM" else "CLASS"
+            data["title"] = title ?: ""
+            data["body"] = body ?: ""
+            data["channelId"] = channel
+            data["tag"] = "local:" + group + ":" + id
+            RichPushNotifications.show(context, data)
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
     override fun onReceive(context: Context, intent: Intent) {
         try {
             val group = intent.getStringExtra("group") ?: return
@@ -262,6 +286,8 @@ class ReminderReceiver : BroadcastReceiver() {
             Channels.ensure(context)
             val channel = intent.getStringExtra("channel") ?: "academic"
             val payload = intent.getStringExtra("payload") ?: "{}"
+            // Zengin kart (ders/sinav stili, kaynak etiketi, aksiyon); render hatasinda asagidaki duz bildirime dusulur.
+            if (richLocal(context, group, id, channel, payload, intent.getStringExtra("title"), intent.getStringExtra("body"))) return
             val open = Intent(context, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
                 putExtra(LocalReminderStore.EXTRA_PAYLOAD, payload)

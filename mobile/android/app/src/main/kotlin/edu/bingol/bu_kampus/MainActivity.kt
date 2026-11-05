@@ -84,7 +84,7 @@ class MainActivity : FlutterActivity() {
             setMethodCallHandler { call, result ->
                 when (call.method) {
                     "supportsRichNotifications" -> result.success(true)
-                    "authorize" -> { val userId = call.argument<Number>("userId")?.toLong(); if (userId != null && userId > 0) RichPushNotifications.authorize(this@MainActivity, userId); result.success(null) }
+                    "authorize" -> { val userId = call.argument<Number>("userId")?.toLong(); if (userId != null && userId > 0) RichPushNotifications.authorize(this@MainActivity, userId, call.argument<String>("imageHost")); result.success(null) }
                     "takeLaunchPayload" -> { pushReady = true; val payload = pendingPush; pendingPush = null; result.success(payload) }
                     "dismiss" -> { val tag = call.argument<String>("tag"); if (tag != null) RichPushNotifications.dismiss(this@MainActivity, tag); result.success(null) }
                     "clear" -> { pushReady = false; pendingPush = null; RichPushNotifications.clear(this@MainActivity); result.success(null) }
@@ -100,6 +100,18 @@ class MainActivity : FlutterActivity() {
                     }
                     else -> result.notImplemented()
                 }
+            }
+        }
+        // Satir ici yanit (RemoteInput): Flutter motoru hazirsa metin ekran acilmadan Dart PushActions'a gider.
+        RichPushNotifications.actionBridge = { payload, done ->
+            val channel = pushChannel
+            if (channel == null || !pushReady) false else {
+                channel.invokeMethod("onAction", payload, object : MethodChannel.Result {
+                    override fun success(result: Any?) = done(result == true)
+                    override fun error(code: String, message: String?, details: Any?) = done(false)
+                    override fun notImplemented() = done(false)
+                })
+                true
             }
         }
         val ch = MethodChannel(messenger, "bu_kampus/notify")
@@ -124,6 +136,13 @@ class MainActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+    }
+
+    override fun onDestroy() {
+        // Motor gidiyor: satir ici yanit artik Dart'a ulasamaz ("dokunarak gonder" yedegine duser).
+        RichPushNotifications.actionBridge = null
+        pushReady = false
+        super.onDestroy()
     }
 
     private fun handle(call: MethodCall, result: MethodChannel.Result) {

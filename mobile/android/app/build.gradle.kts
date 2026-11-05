@@ -102,3 +102,11 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // BuMessagingService (FirebaseMessagingService alt sinifi) icin dogrudan derleme erisimi; surum firebase_core ile ayni BoM.
+    implementation(platform("com.google.firebase:firebase-bom:35.1.0"))
+    implementation("com.google.firebase:firebase-messaging")
+    // Saf Kotlin birim testleri (PushSpec/PushRenderPlan): android bagimsiz.
+    testImplementation("junit:junit:4.13.2")
+}

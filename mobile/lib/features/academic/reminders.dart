@@ -104,11 +104,14 @@ class ReminderSettings {
 }
 
 class PlannedReminder {
-  const PlannedReminder(this.id, this.at, this.title, this.body);
+  const PlannedReminder(this.id, this.at, this.title, this.body, {this.payload = const {'targetType': 'TIMETABLE'}});
 
   final int id;
   final DateTime at; // gerçek anlık
   final String title, body;
+
+  /// Dokunuş hedefi + Android kartı için stil ipuçları (`reminderKind`, `eventStartsAt`, `location`; yalnız veri varsa).
+  final Map<String, String> payload;
 
   Map<String, dynamic> toMap() => {'id': id, 'at': at.millisecondsSinceEpoch, 'title': title, 'body': body};
 
@@ -162,7 +165,14 @@ List<PlannedReminder> planReminders({
     if (settings.examDayBefore) {
       final at = e.startsAt.subtract(const Duration(days: 1));
       if (at.isAfter(now)) {
-        out.add(PlannedReminder(_hash('e${e.id}:d'), at, label, l.acadTimeRemExamTomorrow('${two(istanbulWall(e.startsAt).hour)}:${two(istanbulWall(e.startsAt).minute)}', room)));
+        out.add(PlannedReminder(_hash('e${e.id}:d'), at, label, l.acadTimeRemExamTomorrow('${two(istanbulWall(e.startsAt).hour)}:${two(istanbulWall(e.startsAt).minute)}', room),
+            payload: {
+              'targetType': 'EXAM',
+              'examId': '${e.id}',
+              'reminderKind': 'exam',
+              'eventStartsAt': e.startsAt.toUtc().toIso8601String(),
+              if (e.room != null && e.room!.trim().isNotEmpty) 'location': e.room!.trim(),
+            }));
       }
     }
   }
@@ -196,7 +206,7 @@ class ChannelReminderPlatform implements ReminderPlatform {
             title: i.title,
             body: i.body,
             channel: ReminderChannel.academic,
-            payload: const {'targetType': 'TIMETABLE'},
+            payload: i.payload,
           )
       ]);
 
@@ -314,7 +324,7 @@ class ReminderService {
                 title: i.title,
                 body: i.body,
                 channel: ReminderChannel.academic,
-                payload: const {'targetType': 'TIMETABLE'})
+                payload: i.payload)
         ]);
   }
 }

@@ -110,6 +110,14 @@ void main() {
       expect(plan.any((p) => p.at == DateTime.utc(2026, 11, 4, 6, 0) || p.at == DateTime.utc(2026, 11, 4, 5, 0)), false);
       expect(plan.map((p) => p.at).toList(), [...plan.map((p) => p.at)]..sort());
       expect(plan.map((p) => p.id).toSet().length, plan.length, reason: 'kimlikler benzersiz');
+      // Android kart stili icin yuk: ders -> TIMETABLE; sinav -> EXAM + examId + eventStartsAt (veri olmayan oge yok).
+      expect(plan.first.payload, {'targetType': 'TIMETABLE'});
+      final examPlan = plan.firstWhere((p) => p.title.startsWith('Vize'));
+      expect(examPlan.payload['targetType'], 'EXAM');
+      expect(examPlan.payload['examId'], '9');
+      expect(examPlan.payload['reminderKind'], 'exam');
+      expect(examPlan.payload['eventStartsAt'], '2026-11-04T07:00:00.000Z');
+      expect(examPlan.payload.containsKey('location'), isFalse);
       final off = planReminders(
           courses: courses,
           semester: null,

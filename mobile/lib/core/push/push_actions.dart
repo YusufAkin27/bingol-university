@@ -103,7 +103,11 @@ class PushActions {
             await open(data);
           }
         case 'security':
+          // "Bu ben değilim" / "Hemen Sıfırla" / "2FA Aç": oturumları kapatma ve şifre değiştirme bu sayfadadır.
           await open({'targetType': 'ACCOUNT_SECURITY'});
+        case 'checkin':
+          // "QR ile Giriş": etkinlik sayfası, yoklama açıksa QR tarayıcıyı kendiliğinden açar.
+          await open(data, compose: true);
         case 'calendar':
         case 'map':
           final target = resolvePushTarget(data);

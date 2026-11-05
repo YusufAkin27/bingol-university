@@ -104,7 +104,7 @@ class PushRouter {
             clipBehavior: Clip.antiAlias,
             builder: (_) => FractionallySizedBox(
                 heightFactor: .94,
-                child: EventDetailPage(session: s, eventId: id!)));
+                child: EventDetailPage(session: s, eventId: id!, autoScan: compose)));
         return true;
       case PushDest.community:
         push(ClubDetailPage(session: s, communityId: id!), 'club_detail');
