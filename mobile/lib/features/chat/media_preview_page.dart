@@ -388,17 +388,24 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
                 child: BuPressable(
                   key: ValueKey('onceButton_$_index'),
                   onTap: () => _toggleOnce(cur),
-                  child: AnimatedContainer(
-                    duration: BuMotion.of(context, BuMotion.short),
+                  // Görsel daire %10 küçük (43 dp, "1" simgesi 23); dokunma alanı 48 dp kalır.
+                  child: SizedBox(
                     width: 48,
                     height: 48,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: on ? _prPressed : t.onMedia.withValues(alpha: .08),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: on ? _prPressed : t.onMedia.withValues(alpha: .35)),
+                    child: Center(
+                      child: AnimatedContainer(
+                        duration: BuMotion.of(context, BuMotion.short),
+                        width: 43,
+                        height: 43,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: on ? _prPressed : t.onMedia.withValues(alpha: .08),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: on ? _prPressed : t.onMedia.withValues(alpha: .35)),
+                        ),
+                        child: OnceBadge(color: on ? _onPr : t.onMedia, dashed: true, size: 23),
+                      ),
                     ),
-                    child: OnceBadge(color: on ? _onPr : t.onMedia, dashed: true, size: 26),
                   ),
                 ),
               ),
@@ -471,7 +478,6 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
   Widget _sendButton(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final rtl = Directionality.of(context) == TextDirection.rtl;
     final label = context.l10n.sohbetmedyaSendItems(_picks.length.toString());
     return Padding(
       padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 16),
@@ -499,7 +505,8 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
                     style: tx.labelLarge!.copyWith(color: _onPr, fontWeight: FontWeight.w600, letterSpacing: .3)),
               ),
               BuGap.w8,
-              Transform.flip(flipX: rtl, child: Icon(BuIcons.send, size: 20, color: _onPr)),
+              // Sohbet yazma çubuğundaki gönder simgesiyle aynı: yukarı ok (yönsüz, RTL'de çevrilmez).
+              Icon(BuIcons.arrowUp, size: 22, color: _onPr),
             ]),
           ),
         ),
