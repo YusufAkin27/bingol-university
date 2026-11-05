@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bu_kampus/core/api.dart';
+import 'package:bu_kampus/core/cache/image_disk_cache.dart';
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/widgets/bu_default_avatar.dart';
 import 'package:bu_kampus/widgets/bu_widgets.dart';
@@ -62,43 +63,79 @@ void main() {
     expect(n, 1);
   });
 
-  testWidgets('BuAvatar görselsiz varsayılan görseli gösterir (baş harf yok)', (tester) async {
+  /// Ağaçtaki varlık görsellerinin adları ([Image.asset] `cacheWidth` ile `ResizeImage` sarar).
+  List<String> assetNames(WidgetTester tester) => [
+        for (final img in tester.widgetList<Image>(find.byType(Image)))
+          if (_assetOf(img.image) case final a?) a
+      ];
+
+  testWidgets('BuAvatar url yoksa varsayılan görseli gösterir (baş harf yok, ağ görseli yok)', (tester) async {
     await tester.pumpWidget(host(const BuAvatar(name: 'Ayşe Yılmaz')));
     expect(find.text('AY'), findsNothing);
     expect(find.byType(Text), findsNothing);
-    expect(find.byType(Image), findsNothing);
     expect(find.byType(BuDefaultAvatar), findsOneWidget);
     expect(tester.widget<BuDefaultAvatar>(find.byType(BuDefaultAvatar)).group, isFalse);
+    expect(assetNames(tester), [BuDefaultAvatar.personAsset]);
+  });
+
+  testWidgets('BuAvatar boş url de varsayılan görsel', (tester) async {
+    await tester.pumpWidget(host(const BuAvatar(name: 'Ayşe', url: '')));
+    expect(assetNames(tester), [BuDefaultAvatar.personAsset]);
   });
 
   testWidgets('BuAvatar group: varsayılan grup görseli', (tester) async {
     await tester.pumpWidget(host(const BuAvatar(name: 'Grup', group: true)));
     expect(tester.widget<BuDefaultAvatar>(find.byType(BuDefaultAvatar)).group, isTrue);
+    expect(assetNames(tester), [BuDefaultAvatar.groupAsset]);
   });
 
-  testWidgets('BuAvatar fotoğraf yüklenemezse varsayılan görsel altta kalır', (tester) async {
+  testWidgets('BuAvatar geçerli url: ağ görseli çizilir, varsayılan görsel yüklenirken altta durur', (tester) async {
+    await tester.pumpWidget(host(const BuAvatar(name: 'Ayşe', url: 'https://example.com/a.jpg', size: 40)));
+    final nets = tester.widgetList<Image>(find.byType(Image)).where((i) => _assetOf(i.image) == null).toList();
+    expect(nets, hasLength(1));
+    var p = nets.single.image;
+    if (p is ResizeImage) p = p.imageProvider;
+    expect(p, isA<DiskNetworkImage>().having((d) => d.url, 'url', 'https://example.com/a.jpg'));
+    // Yüklenirken (ve hata verirse) altta varsayılan görsel var.
+    expect(assetNames(tester), [BuDefaultAvatar.personAsset]);
+  });
+
+  testWidgets('BuAvatar fotoğraf yüklenemezse varsayılan görsel kalır', (tester) async {
     await tester.pumpWidget(host(const BuAvatar(name: 'Ayşe', url: '/files/yok.jpg', size: 40)));
     await tester.pump(const Duration(milliseconds: 50));
     expect(find.byType(BuDefaultAvatar), findsOneWidget);
     expect(find.byType(Text), findsNothing);
+    expect(assetNames(tester), contains(BuDefaultAvatar.personAsset));
   });
 
-  test('BuDefaultAvatar varyantı kararlı ve 6 değerden biri; aynı ad aynı renk', () {
-    expect(BuDefaultAvatar.variantFor('Ayşe Yılmaz'), BuDefaultAvatar.variantFor('  ayşe yılmaz '));
-    expect(BuDefaultAvatar.variantFor(null), 0);
-    final seen = {for (var i = 0; i < 60; i++) BuDefaultAvatar.variantFor('kişi $i')};
-    expect(seen.length, BuDefaultAvatar.variantCount);
-    expect(seen.every((v) => v >= 0 && v < BuDefaultAvatar.variantCount), isTrue);
+  testWidgets('BuAvatar şekil: yuvarlak, yuvarlatılmış kare ve sabit köşe korunur', (tester) async {
+    double r(WidgetTester t) => t.widget<ClipRRect>(find.byType(ClipRRect).first).borderRadius.resolve(TextDirection.ltr).topLeft.x;
+    await tester.pumpWidget(host(const BuAvatar(size: 40)));
+    expect(r(tester), 40);
+    await tester.pumpWidget(host(const BuAvatar(size: 40, square: true)));
+    expect(r(tester), closeTo(13.6, .01));
+    await tester.pumpWidget(host(const BuAvatar(size: 52, radius: 20)));
+    expect(r(tester), 20);
   });
 
-  testWidgets('BuDefaultAvatar dekoratif: anlamsal düğüm üretmez, 24-96 dp boyutlarda taşmaz', (tester) async {
+  testWidgets('BuDefaultAvatar çözümleme boyutu size x dpr ile sınırlı, anlamsal düğüm yok, 24-96 dp taşmaz', (tester) async {
     final h = tester.ensureSemantics();
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(host(Row(children: [
-      for (final s in [24.0, 36.0, 44.0, 96.0])
-        BuDefaultAvatar(seed: 'x$s', size: s),
+      for (final s in [24.0, 36.0, 44.0, 96.0]) BuDefaultAvatar(size: s),
     ])));
     expect(tester.takeException(), isNull);
     expect(find.bySemanticsLabel(RegExp('.')), findsNothing);
+    final widths = [
+      for (final img in tester.widgetList<Image>(find.byType(Image))) (img.image as ResizeImage).width,
+    ];
+    expect(widths, [48, 72, 88, 192]);
     h.dispose();
   });
+}
+
+String? _assetOf(ImageProvider p) {
+  if (p is ResizeImage) p = p.imageProvider;
+  return p is AssetImage ? p.assetName : null;
 }

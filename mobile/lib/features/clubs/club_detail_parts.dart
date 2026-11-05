@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
 import '../../widgets/common.dart';
-import 'clubs_widgets.dart' show ClubTextTabs, ClubsLogo, clubsInitials;
+import 'clubs_widgets.dart' show ClubTextTabs, clubsInitials;
 
 export 'club_detail_cards.dart';
 
@@ -525,7 +525,7 @@ class ClubMemberRow extends StatelessWidget {
       decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
       child: Row(
         children: [
-          ClubsLogo(name: name, id: (member['userId'] as num?)?.toInt() ?? 0, url: member['avatarUrl']?.toString(), size: 44),
+          BuAvatar(name: name, url: member['avatarUrl']?.toString(), size: 44),
           const SizedBox(width: 16),
           Expanded(
             child: Column(

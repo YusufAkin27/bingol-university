@@ -646,7 +646,6 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
           name: _title,
           url: au,
           size: _avatarSize,
-          monogram: true,
           cornerRadius: 36,
           group: !_direct,
           headers: _photoHeaders,

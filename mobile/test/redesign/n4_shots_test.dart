@@ -97,18 +97,18 @@ Widget _navSheet() => Builder(builder: (context) {
 
 Widget _avatarSheet() => Builder(builder: (context) {
       final t = context.bu;
-      Widget tile(double size, int v, {bool group = false, bool square = false}) => Padding(
+      Widget tile(double size, {bool group = false, bool square = false}) => Padding(
             padding: const EdgeInsets.all(5),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(square ? size * .34 : size),
-              child: BuDefaultAvatar(size: size, variant: v, group: group),
+              child: BuDefaultAvatar(size: size, group: group),
             ),
           );
       Widget line(String label, double size, {bool group = false, bool square = false}) => Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Wrap(crossAxisAlignment: WrapCrossAlignment.center, children: [
               SizedBox(width: 40, child: Text(label, style: Theme.of(context).textTheme.labelSmall!.copyWith(color: t.mut))),
-              for (var v = 0; v < BuDefaultAvatar.variantCount; v++) tile(size, v, group: group, square: square),
+              for (var v = 0; v < 3; v++) tile(size, group: group, square: square),
             ]),
           );
       return Scaffold(

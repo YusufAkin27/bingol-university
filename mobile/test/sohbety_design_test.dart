@@ -363,10 +363,4 @@ void main() {
       await unmount(tester);
     });
   });
-
-  test('sohbetyUpper Türkçede i/ı doğru büyütür', () {
-    // Dil bağlamı olmadan genel büyütme: yalnız ASCII davranışı doğrulanır.
-    expect(SohbetyAvatar.initial('ayşe'), 'A');
-    expect(SohbetyAvatar.initial(''), '?');
-  });
 }

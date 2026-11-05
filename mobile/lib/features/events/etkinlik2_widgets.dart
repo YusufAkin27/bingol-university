@@ -673,25 +673,6 @@ String et2Name(Object? v) {
 }
 
 
-/// Yuvarlatılmış kare kişi avatarı: [url] varsa fotoğraf, yoksa varsayılan profil görseli (N4: baş harf kalktı).
-class Et2Initials extends StatelessWidget {
-  const Et2Initials({super.key, required this.name, this.size = 48, this.seed = 0, this.url, this.tint, this.radius});
-
-  final String name;
-  final double size;
-  final int seed;
-  final String? url;
-  final BuTint? tint;
-  final double? radius;
-
-  @override
-  Widget build(BuildContext context) {
-    final r = radius ?? size * .33;
-    // Fotoğraf yoksa/yüklenemezse varsayılan profil görseli (baş harf yok); [tint]/[seed] eski imza için kalır.
-    return ClipRRect(borderRadius: BorderRadius.circular(r), child: BuAvatar(name: name, url: url, size: size, square: true));
-  }
-}
-
 /// Kırmızı yumuşak hata satırı: simge + metin (+ alt metin) + isteğe bağlı "Yeniden dene" düğmesi.
 class Et2ErrorRow extends StatelessWidget {
   const Et2ErrorRow({super.key, required this.title, this.sub, this.onRetry, this.retryLabel});

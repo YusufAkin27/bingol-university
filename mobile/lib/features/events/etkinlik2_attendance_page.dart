@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
-import '../clubs/clubs_widgets.dart' show ClubPageHeader, ClubsLogo;
+import '../clubs/clubs_widgets.dart' show ClubPageHeader;
 import 'etkinlik2_qr_page.dart';
 import 'etkinlik2_widgets.dart';
 import '../../core/academic_catalog.dart';
@@ -234,7 +234,7 @@ class _Etkinlik2AttendancePageState extends State<Etkinlik2AttendancePage> {
     );
   }
 
-  /// Yoklama satırı (kartsız): baş harf dairesi, ad, muted "15:12 · QR" / "Gelmedi", sağda anahtar (açık = marka).
+  /// Yoklama satırı (kartsız): kişi avatarı (fotoğraf yoksa varsayılan görsel), ad, muted "15:12 · QR" / "Gelmedi", sağda anahtar (açık = marka).
   Widget _row(BuildContext context, Map<String, dynamic> r) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
@@ -256,7 +256,7 @@ class _Etkinlik2AttendancePageState extends State<Etkinlik2AttendancePage> {
       padding: const EdgeInsetsDirectional.fromSTEB(0, 10, 0, 10),
       decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
       child: Row(children: [
-        ClubsLogo(name: name, id: uid, size: 40),
+        BuAvatar(name: name, url: r['avatarUrl']?.toString(), size: 40),
         const SizedBox(width: 12),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
