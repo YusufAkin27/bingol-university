@@ -1880,6 +1880,40 @@
           }
         }
       },
+      "AppleLoginRequest" : {
+        "properties" : {
+          "client" : {
+            "pattern" : "(?i)mobile|web",
+            "type" : [ "string", "null" ]
+          },
+          "deviceName" : {
+            "maxLength" : 80,
+            "minLength" : 0,
+            "type" : [ "string", "null" ]
+          },
+          "firstName" : {
+            "maxLength" : 80,
+            "minLength" : 0,
+            "type" : [ "string", "null" ]
+          },
+          "identityToken" : {
+            "maxLength" : 8192,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "lastName" : {
+            "maxLength" : 80,
+            "minLength" : 0,
+            "type" : [ "string", "null" ]
+          },
+          "nonce" : {
+            "maxLength" : 256,
+            "minLength" : 0,
+            "type" : "string"
+          }
+        },
+        "required" : [ "identityToken", "nonce" ]
+      },
       "ApplicantView" : {
         "properties" : {
           "answers" : {
@@ -5451,12 +5485,26 @@
       },
       "DeleteAccountRequest" : {
         "properties" : {
+          "nonce" : {
+            "maxLength" : 256,
+            "minLength" : 0,
+            "type" : [ "string", "null" ]
+          },
           "password" : {
-            "minLength" : 1,
-            "type" : "string"
+            "maxLength" : 72,
+            "minLength" : 0,
+            "type" : [ "string", "null" ]
+          },
+          "provider" : {
+            "pattern" : "(?i)google|apple",
+            "type" : [ "string", "null" ]
+          },
+          "token" : {
+            "maxLength" : 8192,
+            "minLength" : 0,
+            "type" : [ "string", "null" ]
           }
-        },
-        "required" : [ "password" ]
+        }
       },
       "DeletedCount" : {
         "properties" : {
@@ -6889,6 +6937,25 @@
           }
         }
       },
+      "GoogleLoginRequest" : {
+        "properties" : {
+          "client" : {
+            "pattern" : "(?i)mobile|web",
+            "type" : [ "string", "null" ]
+          },
+          "deviceName" : {
+            "maxLength" : 80,
+            "minLength" : 0,
+            "type" : [ "string", "null" ]
+          },
+          "idToken" : {
+            "maxLength" : 8192,
+            "minLength" : 0,
+            "type" : "string"
+          }
+        },
+        "required" : [ "idToken" ]
+      },
       "Grade" : {
         "properties" : {
           "id" : {
@@ -7040,6 +7107,22 @@
           },
           "targetType" : {
             "enum" : [ "USER", "MESSAGE", "POST", "COMMUNITY", "EVENT", "MESSAGE_IMAGE", "USER_AVATAR", "COMMUNITY_COVER", "EVENT_COVER", "FEED_POST", "CONVERSATION", "ANNOUNCEMENT", "POLL", "COMMENT", "FORUM_TOPIC", "FORUM_COMMENT" ],
+            "type" : [ "string", "null" ]
+          }
+        }
+      },
+      "IdentityView" : {
+        "properties" : {
+          "email" : {
+            "type" : [ "string", "null" ]
+          },
+          "emailPrivate" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "linkedAt" : {
+            "type" : [ "string", "null" ]
+          },
+          "provider" : {
             "type" : [ "string", "null" ]
           }
         }
@@ -7541,6 +7624,52 @@
           },
           "url" : {
             "type" : [ "string", "null" ]
+          }
+        }
+      },
+      "LinkRequest" : {
+        "properties" : {
+          "nonce" : {
+            "maxLength" : 256,
+            "minLength" : 0,
+            "type" : [ "string", "null" ]
+          },
+          "password" : {
+            "maxLength" : 72,
+            "minLength" : 0,
+            "type" : [ "string", "null" ]
+          },
+          "provider" : {
+            "minLength" : 1,
+            "pattern" : "(?i)google|apple",
+            "type" : "string"
+          },
+          "reauthNonce" : {
+            "maxLength" : 256,
+            "minLength" : 0,
+            "type" : [ "string", "null" ]
+          },
+          "reauthProvider" : {
+            "pattern" : "(?i)google|apple",
+            "type" : [ "string", "null" ]
+          },
+          "reauthToken" : {
+            "maxLength" : 8192,
+            "minLength" : 0,
+            "type" : [ "string", "null" ]
+          },
+          "token" : {
+            "maxLength" : 8192,
+            "minLength" : 0,
+            "type" : "string"
+          }
+        },
+        "required" : [ "provider", "token" ]
+      },
+      "LinkResponse" : {
+        "properties" : {
+          "linked" : {
+            "type" : [ "boolean", "null" ]
           }
         }
       },
@@ -9028,6 +9157,78 @@
           }
         }
       },
+      "OnboardingRequest" : {
+        "properties" : {
+          "acceptTerms" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "bio" : {
+            "maxLength" : 600,
+            "minLength" : 0,
+            "type" : [ "string", "null" ]
+          },
+          "classYear" : {
+            "minLength" : 1,
+            "pattern" : "PREP|Y[1-6]|POSTGRAD|MASTER|PHD|OTHER",
+            "type" : "string"
+          },
+          "departmentId" : {
+            "maxLength" : 60,
+            "minLength" : 0,
+            "type" : [ "string", "null" ]
+          },
+          "departmentName" : {
+            "maxLength" : 160,
+            "minLength" : 0,
+            "type" : [ "string", "null" ]
+          },
+          "facultyId" : {
+            "maxLength" : 60,
+            "minLength" : 0,
+            "type" : [ "string", "null" ]
+          },
+          "facultyName" : {
+            "maxLength" : 160,
+            "minLength" : 0,
+            "type" : [ "string", "null" ]
+          },
+          "firstName" : {
+            "maxLength" : 80,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "lastName" : {
+            "maxLength" : 80,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "universityName" : {
+            "maxLength" : 120,
+            "minLength" : 0,
+            "type" : [ "string", "null" ]
+          },
+          "username" : {
+            "maxLength" : 40,
+            "minLength" : 0,
+            "type" : "string"
+          }
+        },
+        "required" : [ "classYear", "firstName", "lastName", "username" ]
+      },
+      "OnboardingResponse" : {
+        "properties" : {
+          "profileCompleted" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "user" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/ProfileView"
+            }, {
+              "type" : "null"
+            } ]
+          }
+        }
+      },
       "OpsHealth" : {
         "properties" : {
           "components" : {
@@ -10284,6 +10485,12 @@
       },
       "ProfileView" : {
         "properties" : {
+          "authProviders" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
           "avatarHidden" : {
             "type" : [ "boolean", "null" ]
           },
@@ -10315,6 +10522,9 @@
           "faculty" : {
             "type" : [ "string", "null" ]
           },
+          "firstName" : {
+            "type" : [ "string", "null" ]
+          },
           "followerCount" : {
             "format" : "int32",
             "type" : [ "integer", "null" ]
@@ -10329,6 +10539,9 @@
           "language" : {
             "type" : [ "string", "null" ]
           },
+          "lastName" : {
+            "type" : [ "string", "null" ]
+          },
           "likesReceived" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
@@ -10341,6 +10554,9 @@
             "format" : "int32",
             "type" : [ "integer", "null" ]
           },
+          "profileCompleted" : {
+            "type" : [ "boolean", "null" ]
+          },
           "reelCount" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
@@ -10351,6 +10567,12 @@
           },
           "showEmail" : {
             "type" : [ "boolean", "null" ]
+          },
+          "universityName" : {
+            "type" : [ "string", "null" ]
+          },
+          "username" : {
+            "type" : [ "string", "null" ]
           },
           "verificationDeferred" : {
             "type" : [ "boolean", "null" ]
@@ -14860,6 +15082,26 @@
             "type" : [ "integer", "null" ]
           }
         }
+      },
+      "UsernameAvailability" : {
+        "properties" : {
+          "available" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "reason" : {
+            "type" : [ "string", "null" ]
+          }
+        }
+      },
+      "UsernameRequest" : {
+        "properties" : {
+          "username" : {
+            "maxLength" : 40,
+            "minLength" : 0,
+            "type" : "string"
+          }
+        },
+        "required" : [ "username" ]
       },
       "UsersPage" : {
         "properties" : {
@@ -42870,6 +43112,272 @@
         "tags" : [ "auth-controller" ]
       }
     },
+    "/api/auth/oauth/apple" : {
+      "post" : {
+        "operationId" : "apple",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AppleLoginRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ ],
+        "tags" : [ "o-auth-controller" ]
+      }
+    },
+    "/api/auth/oauth/google" : {
+      "post" : {
+        "operationId" : "google",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/GoogleLoginRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ ],
+        "tags" : [ "o-auth-controller" ]
+      }
+    },
+    "/api/auth/oauth/identities" : {
+      "get" : {
+        "operationId" : "identities",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/IdentityView"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          }
+        },
+        "security" : [ ],
+        "tags" : [ "o-auth-controller" ]
+      }
+    },
+    "/api/auth/oauth/link" : {
+      "post" : {
+        "operationId" : "link",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/LinkRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LinkResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ ],
+        "tags" : [ "o-auth-controller" ]
+      }
+    },
+    "/api/auth/oauth/link/{provider}" : {
+      "delete" : {
+        "operationId" : "unlink",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "provider",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LinkResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ ],
+        "tags" : [ "o-auth-controller" ]
+      }
+    },
     "/api/auth/refresh" : {
       "post" : {
         "operationId" : "refresh",
@@ -47311,7 +47819,7 @@
     },
     "/api/conversations/{cid}/media/{aid}/link" : {
       "get" : {
-        "operationId" : "link",
+        "operationId" : "link_1",
         "parameters" : [ {
           "in" : "path",
           "name" : "cid",
@@ -62775,6 +63283,67 @@
         "tags" : [ "follow-controller" ]
       }
     },
+    "/api/users/me/onboarding" : {
+      "put" : {
+        "operationId" : "onboard",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OnboardingRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OnboardingResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "tags" : [ "onboarding-controller" ]
+      }
+    },
     "/api/users/me/privacy" : {
       "get" : {
         "operationId" : "get",
@@ -62934,6 +63503,67 @@
         "tags" : [ "privacy-controller" ]
       }
     },
+    "/api/users/me/username" : {
+      "put" : {
+        "operationId" : "setUsername",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UsernameRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProfileView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "tags" : [ "onboarding-controller" ]
+      }
+    },
     "/api/users/search" : {
       "get" : {
         "operationId" : "search",
@@ -62998,6 +63628,55 @@
           "bearerAuth" : [ ]
         } ],
         "tags" : [ "profile-controller" ]
+      }
+    },
+    "/api/users/username-available" : {
+      "get" : {
+        "operationId" : "usernameAvailable",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "u",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UsernameAvailability"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "tags" : [ "onboarding-controller" ]
       }
     },
     "/api/users/{id}" : {

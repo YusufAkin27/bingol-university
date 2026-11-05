@@ -221,6 +221,7 @@ public class AccountDataPurger {
      */
     public static final Map<String, String> EMAIL_KEYED = Map.ofEntries(
             Map.entry("auth_identity.email", "DELETES: auth_identity satiri hesap silinince silinir (saglayici kimligi + e-posta)"),
+            Map.entry("auth_identity.email_is_private", "DELETES: ayni satir (Apple gizli e-posta bayragi, adres degil); hesap silinince silinir"),
             Map.entry("support_ticket.contact_email", "EMAIL_SCRUBS: adresle eslesen herkese acik talep temizlenir"),
             Map.entry("mail_outbox.to_address", "MAIL_BY_ADDRESS: kuyruktaki bekleyen kayitlar adresle silinir; 30 gun saklama politikasi"),
             Map.entry("mail_suppression.email_hash", "Posta bastirma listesi (bounce/sikayet): geri donuk gonderimi onlemek icin ozet kalir"),

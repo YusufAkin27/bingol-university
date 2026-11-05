@@ -382,3 +382,9 @@ Yalniz **RS256** (`none`/HS* reddedilir; algoritma karistirma korumasi), anahtar
 
 ### Yeni ayarlar
 `AUTH_OAUTH_ENABLED` (false), `GOOGLE_CLIENT_IDS`, `APPLE_CLIENT_IDS`, `AUTH_OAUTH_REQUIRE_TERMS` (true), `AUTH_PASSWORD_SIGNUPS_NEED_ONBOARDING` (false), `AUTH_PROFILE_GATE_ENABLED` (true), `USERNAME_COOLDOWN_DAYS` (30). Compose/`.env.example`'a iletilir; bkz. DEPLOY.md.
+
+### Bilinen sinirlar (OAuth surumu)
+- **Apple token revoke yok** (yapilandirma bekliyor; yukarida). **Apple gizli e-posta** adreslerine posta gonderebilmek icin Apple'da gonderici alan adi kaydi gerekir (docs/OAUTH_SETUP.md bolum 2.5); yoksa relay adresli hesabin sifre sifirlama/2FA e-postalari teslim edilmez (giris etkilenmez).
+- Parolasiz (yalniz OAuth) hesap 2FA'yi acabilir ama **kapatmak parola ister** (`TwoFactorService.disable`); once `forgot-password` ile parola belirlemelidir. Parola degistirme (`change-password`) de mevcut parolayi ister: parolasiz hesapta `403 WRONG_PASSWORD`, yol `forgot-password`.
+- Bolume gore sinif suzmesi yok (katalogda bolum suresi verisi yok); onboarding `OTHER` sinifi fakulte/bolumsuz kabul eder.
+- Gercek Google/Apple token'i ile uctan uca duman BU SURUMDE DOGRULANMADI (yapilandirma yok); dogrulama yerel RSA anahtarli birim/MVC testleriyle yapildi (`scripts/smoke-oauth.sh` yalniz bayrak/dogrulama/kullanici adi).
