@@ -6,7 +6,6 @@ import 'dart:ui' as ui;
 
 import 'package:bu_kampus/features/chat/chat_wallpaper.dart';
 import 'package:bu_kampus/widgets/bu.dart';
-import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -18,17 +17,10 @@ void main() {
     await loader.load();
     for (final dark in [false, true]) {
       final t = dark ? BuTokens.dark : BuTokens.light;
-      final tile = ChatWallpaper.tile(t.ink, dark ? .06 : .07, 3)!;
       final recorder = ui.PictureRecorder();
       final canvas = ui.Canvas(recorder)..scale(3);
-      const bounds = ui.Rect.fromLTWH(0, 0, 390, 844);
-      final shader = ui.ImageShader(
-          tile,
-          ui.TileMode.repeated,
-          ui.TileMode.repeated,
-          Float64List.fromList(
-              [1 / 3, 0, 0, 0, 0, 1 / 3, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]));
-      canvas.drawRect(bounds, ui.Paint()..shader = shader);
+      // Tam ekran, döşemesiz rastgele sıkı desen (390 x 844 dp = 1170 x 2532 px).
+      ChatWallpaper.paintFull(canvas, const ui.Size(390, 844), t.ink.withValues(alpha: dark ? .06 : .07));
       final picture = recorder.endRecording();
       await tester.runAsync(() async {
         final image = await picture.toImage(1170, 2532);
@@ -37,7 +29,6 @@ void main() {
             .writeAsBytesSync(bytes!.buffer.asUint8List());
         image.dispose();
       });
-      shader.dispose();
       picture.dispose();
     }
   });
