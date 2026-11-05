@@ -49,7 +49,7 @@ class OfficialTimetableSeederTest {
         clean();
         Clock clock = Clock.fixed(Instant.parse("2026-11-02T07:00:00Z"), ZoneOffset.UTC);
         AcademicAudience audience = new AcademicAudience(jdbc);
-        tt = new TimetableService(jdbc, new ExamService(jdbc, audience, clock), clock);
+        tt = new TimetableService(jdbc, new ExamService(jdbc, clock), clock);
         OfficialTimetableService off = new OfficialTimetableService(jdbc, new CatalogService(), audience);
         seeder = new OfficialTimetableSeeder(jdbc, off, tt);
         jdbc.update("INSERT INTO official_timetable_batch (term, row_count, program_count) VALUES (?, 0, 0)", TERM);

@@ -80,8 +80,6 @@ public class MessageService {
     private final TransactionTemplate tx;
     private final MessageCodec codec;
     private final MessageViewAssembler assembler;
-    /** `app.push.message-preview`: true ise push govdesinde mesaj onizlemesi gider (bildirim tablosuna YAZILMAZ). */
-    private final boolean pushPreview;
     /** T8: sohbet gorselleri (setter enjeksiyonu: yapici imzasi degismesin). Yoksa gorselsiz calisir. */
     private MessageAttachmentService attachments;
 
@@ -89,11 +87,9 @@ public class MessageService {
                           UserRepository users, BlockService blocks, RateLimiter limiter, ChatEventBus bus,
                           PresenceService presence, NotificationService notifications, ReportService reports,
                           PlatformTransactionManager txManager, MessageCodec codec,
-                          MessageViewAssembler assembler,
-                          @Value("${app.push.message-preview:false}") boolean pushPreview) {
+                          MessageViewAssembler assembler) {
         this.codec = codec;
         this.assembler = assembler;
-        this.pushPreview = pushPreview;
         this.convs = convs;
         this.members = members;
         this.messages = messages;
@@ -387,9 +383,8 @@ public class MessageService {
         Map<String, String> data = Map.of("conversationId", String.valueOf(conv.getId()),
                 "messageId", String.valueOf(m.getId()), "conversationType", conv.getType().name());
         Long convId = conv.getId();
-        boolean optInOnly = !pushPreview && previewOptIn;
         // Sohbet basina birlestirme + dolu kuyrukta bekletme/metrik/WARN (sessiz atlama yok): bkz. ChatNotifyFanout
-        fanoutQueue.submit(fanout, new ChatNotifyFanout.Job(senderId, convId, title, preview, optInOnly, data,
+        fanoutQueue.submit(fanout, new ChatNotifyFanout.Job(senderId, convId, title, preview, data,
                 candidates, 1));
     }
 
@@ -402,27 +397,15 @@ public class MessageService {
     }
 
     private void runFanout(ChatNotifyFanout.Job j) {
-        notifyOffline(j.senderId(), j.conversationId(), j.groupTitle(), j.preview(), j.previewOptInOnly(), j.data(),
+        notifyOffline(j.senderId(), j.conversationId(), j.groupTitle(), j.preview(), j.data(),
                 j.candidates(), j.count());
     }
 
     /**
-     * `app.push.message-preview-optin` (varsayilan true): onizleme metni, yalnizca "mesaj onizlemesi" tercihini
-     * ACMIS alicilarin push govdesine girer (notification_pref.message_preview, varsayilan kapali). Global
-     * `message-preview=true` ise herkese gider (eski davranis).
+     * Push govdesindeki mesaj onizlemesi (tercih yok: bildirime izin veren herkese her zaman gider). Yalniz push
+     * govdesine gider; uygulama ici bildirim tablosuna duz metin YAZILMAZ. Yalniz gorsel mesajda sabit simge.
      */
-    private boolean previewOptIn;
-
-    @Autowired(required = false)
-    void setPreviewOptIn(@Value("${app.push.message-preview-optin:true}") boolean optIn) {
-        this.previewOptIn = optIn;
-    }
-
-    /** Onizleme yalniz push govdesine gider; uygulama ici bildirim tablosuna duz metin YAZILMAZ (sabit "Yeni mesaj"). */
     private String previewOf(Message m) {
-        if (!pushPreview && !previewOptIn) {
-            return null;
-        }
         String body = m.getBody();
         if (body == null) {
             return null;
@@ -455,7 +438,7 @@ public class MessageService {
      * Askidaki/silinmis hesaba bildirim yok. Presence/viewing/foreground tek MGET'lerle okunur.
      */
     private void notifyOffline(Long senderId, Long conversationId, String groupTitle, String preview,
-                               boolean previewOptInOnly, Map<String, String> data, List<Long> candidates,
+                               Map<String, String> data, List<Long> candidates,
                                int count) {
         try {
             Set<Long> online = presence.onlineAmong(candidates);
@@ -501,7 +484,7 @@ public class MessageService {
                 }
             }
             if (!batch.isEmpty()) {
-                notifications.sendNewMessageBatch(batch, title, preview, previewOptInOnly, data, count);
+                notifications.sendNewMessageBatch(batch, title, preview, data, count);
             }
         } catch (RuntimeException e) {
             log.warn("Mesaj bildirimi gonderilemedi: {}", e.toString());

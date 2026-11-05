@@ -128,23 +128,13 @@ public class NotificationService {
      */
     public void sendNewMessage(Long userId, String title, String pushPreview, Map<String, String> data, boolean push,
                                Map<String, String> pushExtra) {
-        sendNewMessage(userId, title, pushPreview, false, data, push, pushExtra);
-    }
-
-    /**
-     * previewRequiresOptIn=true: `pushPreview` yalnizca alicinin "mesaj onizlemesi" tercihi (notification_pref.
-     * message_preview) aciksa push govdesine girer; kapaliysa govde sabit "Yeni mesaj" olur (varsayilan, KVKK).
-     */
-    public void sendNewMessage(Long userId, String title, String pushPreview, boolean previewRequiresOptIn,
-                               Map<String, String> data, boolean push, Map<String, String> pushExtra) {
         String stored = i18n.msg("notif.message.new", i18n.langOf(userId));
         String key = data != null && data.get("conversationId") != null ? "conv:" + data.get("conversationId") : null;
         NotificationSubtype sub = data == null || data.get("conversationType") == null ? null
                 : "GROUP".equals(data.get("conversationType")) ? NotificationSubtype.MESSAGE_GROUP
                 : NotificationSubtype.MESSAGE_DIRECT;
         doSend(userId, NotificationType.MESSAGE, sub, key, title, stored,
-                pushPreview == null || pushPreview.isBlank() ? stored : pushPreview, data, push, pushExtra,
-                previewRequiresOptIn);
+                pushPreview == null || pushPreview.isBlank() ? stored : pushPreview, data, push, pushExtra);
     }
 
     /**
@@ -155,13 +145,13 @@ public class NotificationService {
      * Veritabani PostgreSQL degilse (H2 testleri) alici basina eski yola duser.
      */
     public void sendNewMessageBatch(List<MessageTarget> targets, String title, String pushPreview,
-                                    boolean previewRequiresOptIn, Map<String, String> data, int increment) {
+                                    Map<String, String> data, int increment) {
         if (targets == null || targets.isEmpty()) {
             return;
         }
         if (batchWriter == null || !batchWriter.supported()) {
             for (MessageTarget t : targets) {
-                sendNewMessage(t.userId(), title, pushPreview, previewRequiresOptIn, data, t.push(), t.pushExtra());
+                sendNewMessage(t.userId(), title, pushPreview, data, t.push(), t.pushExtra());
             }
             return;
         }
@@ -171,7 +161,7 @@ public class NotificationService {
         for (int i = 0; i < all.size(); i += BATCH_CHUNK) {
             try {
                 messageChunk(all.subList(i, Math.min(i + BATCH_CHUNK, all.size())), title, pushPreview,
-                        previewRequiresOptIn, data, Math.max(1, increment));
+                        data, Math.max(1, increment));
             } catch (RuntimeException e) {
                 log.warn("Toplu mesaj bildirimi parcasi basarisiz ({} alici): {}", Math.min(BATCH_CHUNK, all.size() - i),
                         e.toString());
@@ -187,7 +177,7 @@ public class NotificationService {
                                  NotificationBatchWriter.Row row) {}
 
     private void messageChunk(List<MessageTarget> chunk, String title, String pushPreview,
-                              boolean previewRequiresOptIn, Map<String, String> data, int increment) {
+                              Map<String, String> data, int increment) {
         Instant now = Instant.now();
         List<Long> ids = chunk.stream().map(MessageTarget::userId).toList();
         Map<Long, Lang> receivable = guard.receivable(ids); // askidaki/silinmis hesap elenir (1 sorgu)
@@ -277,9 +267,6 @@ public class NotificationService {
             }
             int count = c.row().groupCount();
             String pBody = pushPreview == null || pushPreview.isBlank() ? c.stored() : pushPreview;
-            if (previewRequiresOptIn && (c.pref() == null || !c.pref().isMessagePreview())) {
-                pBody = c.stored(); // onizleme izni yok: sabit "Yeni mesaj"
-            }
             if (count > 1 && java.util.Objects.equals(pBody, c.stored())) {
                 pBody = i18n.msg("notif.message.many", c.lang(), String.valueOf(count));
             }
@@ -297,12 +284,12 @@ public class NotificationService {
     /** Saklanan govde (`body`) ile push govdesi (`pushBody`) ayri olabilir. */
     public void send(Long userId, NotificationType type, NotificationSubtype subtype, String collapseKey,
                      String title, String body, String pushBody, Map<String, String> data) {
-        doSend(userId, type, subtype, collapseKey, title, body, pushBody, data, true, null, false);
+        doSend(userId, type, subtype, collapseKey, title, body, pushBody, data, true, null);
     }
 
     private void doSend(Long userId, NotificationType type, NotificationSubtype subtype, String collapseKey,
                         String title, String body, String pushBody, Map<String, String> data, boolean push,
-                        Map<String, String> pushExtra, boolean previewRequiresOptIn) {
+                        Map<String, String> pushExtra) {
         try {
             // Askidaki/silinmis hesaba bildirim yok (SYSTEM = hesap/moderasyon bildirimleri istisna).
             if (type != NotificationType.SYSTEM && !guard.canReceive(userId)) {
@@ -369,14 +356,11 @@ public class NotificationService {
             }
             String pTitle = title;
             String pBody = pushBody;
-            if (previewRequiresOptIn && (pref == null || !pref.isMessagePreview())) {
-                pBody = body; // onizleme izni yok: sabit "Yeni mesaj"
-            }
             if (type == NotificationType.MESSAGE) {
                 if (!gate.allowMessagePush(userId, key == null ? "msg" : key)) {
                     return; // ayni sohbet pencerede / dakikalik ust sinir
                 }
-                // Onizleme izni olan kullanici son mesajin metnini gorur; digerleri "N yeni mesaj"
+                // Tek mesajda metin onizlemesi gider; birlesen mesajlarda "N yeni mesaj"
                 if (count > 1 && java.util.Objects.equals(pBody, body)) {
                     pBody = i18n.msg("notif.message.many", i18n.langOf(userId), String.valueOf(count));
                 }

@@ -7,7 +7,6 @@ import edu.bingol.backend.academic.AcademicDtos.ExamView;
 import edu.bingol.backend.academic.AcademicDtos.ExamsView;
 import edu.bingol.backend.academic.AcademicDtos.ImportRequest;
 import edu.bingol.backend.academic.AcademicDtos.ImportResult;
-import edu.bingol.backend.academic.AcademicDtos.OfficialExamsView;
 import edu.bingol.backend.academic.AcademicDtos.RemindersView;
 import edu.bingol.backend.academic.AcademicDtos.SemesterRequest;
 import edu.bingol.backend.academic.AcademicDtos.SemesterView;
@@ -192,10 +191,5 @@ public class TimetableController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteExam(@PathVariable Long id) {
         exams.delete(write(), id);
-    }
-
-    @GetMapping("/exams/official")
-    public OfficialExamsView official(@RequestParam(defaultValue = "mine") String scope) {
-        return exams.official(read(), "all".equalsIgnoreCase(scope));
     }
 }

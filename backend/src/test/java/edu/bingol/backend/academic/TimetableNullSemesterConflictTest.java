@@ -43,7 +43,7 @@ class TimetableNullSemesterConflictTest {
         uid = jdbc.queryForObject("SELECT id FROM app_user WHERE email = 'ttn-1@bingol.edu.tr'", Long.class);
         Clock clock = Clock.fixed(NOW, ZoneOffset.UTC);
         AcademicAudience audience = new AcademicAudience(jdbc);
-        tt = new TimetableService(jdbc, new ExamService(jdbc, audience, clock), clock);
+        tt = new TimetableService(jdbc, new ExamService(jdbc, clock), clock);
     }
 
     @org.junit.jupiter.api.AfterEach

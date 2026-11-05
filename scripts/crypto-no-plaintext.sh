@@ -8,7 +8,7 @@
 # 5) alici gecmisten duz metni okur; yonetici GET /api/admin/users/{id}/conversations/{cid}/messages ile okur ve denetim satiri +1 olur;
 #    KVKK disa aktarim (GET /api/users/me/export) duz metni icerir; backend gunlugunde kanarya YOK
 # Kullanim: BASE=http://localhost:8121 COMPOSE_PROJECT_NAME=wt_t21 ./scripts/crypto-no-plaintext.sh
-# Onkosul: yigin calisiyor, MAIL_ENABLED=false, ADMIN_EMAILS=boss@bingol.edu.tr, app.push.message-preview=false (varsayilan).
+# Onkosul: yigin calisiyor, MAIL_ENABLED=false, ADMIN_EMAILS=boss@bingol.edu.tr. (Push govdesindeki onizleme tercihsizdir; bildirim tablosuna yazilmaz.)
 set -u
 BASE=${BASE:-http://localhost:8080}
 A=$BASE/api

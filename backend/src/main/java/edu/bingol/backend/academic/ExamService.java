@@ -1,18 +1,12 @@
 package edu.bingol.backend.academic;
 
-import static edu.bingol.backend.academic.AcademicSupport.adminText;
 import static edu.bingol.backend.academic.AcademicSupport.insert;
 import static edu.bingol.backend.academic.AcademicSupport.notFound;
 import static edu.bingol.backend.academic.AcademicSupport.optText;
 import static edu.bingol.backend.academic.AcademicSupport.reqText;
 
-import edu.bingol.backend.academic.AcademicDtos.AdminExamScheduleView;
 import edu.bingol.backend.academic.AcademicDtos.ExamRequest;
-import edu.bingol.backend.academic.AcademicDtos.ExamScheduleRequest;
 import edu.bingol.backend.academic.AcademicDtos.ExamView;
-import edu.bingol.backend.academic.AcademicDtos.OfficialExamView;
-import edu.bingol.backend.academic.AcademicDtos.OfficialExamsView;
-import edu.bingol.backend.academic.AcademicDtos.Page;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.moderation.profanity.ContentGuard;
 import edu.bingol.backend.moderation.profanity.ContentGuard.Entity;
@@ -30,7 +24,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Kisisel sinavlar (tt_exam), resmi sinav programi okuma (exam_schedule) ve yonetici CRUD'u. */
+/** Kisisel sinavlar (tt_exam): kullanicinin kendi sinavlari. */
 @Service
 public class ExamService {
 
@@ -38,18 +32,16 @@ public class ExamService {
     private static final int MAX_EXAMS = 300;
 
     private final JdbcTemplate jdbc;
-    private final AcademicAudience audience;
     private final Clock clock;
     private ContentGuard guard;
 
     @Autowired
-    public ExamService(JdbcTemplate jdbc, AcademicAudience audience) {
-        this(jdbc, audience, Clock.systemUTC());
+    public ExamService(JdbcTemplate jdbc) {
+        this(jdbc, Clock.systemUTC());
     }
 
-    ExamService(JdbcTemplate jdbc, AcademicAudience audience, Clock clock) {
+    ExamService(JdbcTemplate jdbc, Clock clock) {
         this.jdbc = jdbc;
-        this.audience = audience;
         this.clock = clock;
     }
 
@@ -184,155 +176,6 @@ public class ExamService {
         String v = t == null ? "" : t.strip().toUpperCase(java.util.Locale.ROOT);
         if (!TYPES.contains(v)) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "EXAM_INVALID", "{0} geçersiz.", "type");
-        }
-        return v;
-    }
-
-    // ---- resmi sinav programi (kullanici) ----
-
-    private static final RowMapper<AdminExamScheduleView> SCHEDULE = (rs, i) -> new AdminExamScheduleView(rs.getLong("id"),
-            rs.getString("title"), rs.getString("type"), rs.getString("term"), rs.getString("course_code"),
-            rs.getString("faculty"), rs.getString("department"), rs.getString("grade"),
-            AcademicTime.fmt(rs.getTimestamp("starts_at")), AcademicTime.fmt(rs.getTimestamp("ends_at")),
-            rs.getString("room"), rs.getString("note"), rs.getBoolean("published"));
-
-    private static final String SCHEDULE_SELECT = "SELECT id, title, type, term, course_code, faculty, department, grade, "
-            + "starts_at, ends_at, room, note, published FROM exam_schedule ";
-
-    /** Kullanici listesi ust siniri ve gecmis penceresi (K21: 30 gunden eski bitmis sinavlar listeden duser). */
-    static final int OFFICIAL_MAX = 500;
-    static final java.time.Duration OFFICIAL_PAST = java.time.Duration.ofDays(30);
-
-    /**
-     * Yayinli resmi sinavlar. FIX-P08 (A07#1): pencere ({@code COALESCE(ends_at, starts_at) >= simdi - 30 gun}), kapsam
-     * suzgeci ve LIMIT veritabaninda uygulanir; eskiden tum tablo okunup bellekte suzuluyor, {@code scope=all} en ESKI
-     * 500 kaydi donduruyordu (yeni sinavlar gorunmez olurdu). Kapsam kurali {@link AudienceMatch} ile ayni
-     * ({@link AudienceKey}: bos kapsam = herkes; doluysa kullanici degeriyle ayni olmali, kullanici degeri bossa eslesmez).
-     */
-    public OfficialExamsView official(Long uid, boolean all) {
-        AcademicAudience.Who me = audience.of(uid);
-        StringBuilder sql = new StringBuilder(SCHEDULE_SELECT).append("WHERE published = TRUE AND COALESCE(ends_at, starts_at) >= ?");
-        List<Object> args = new ArrayList<>();
-        args.add(Timestamp.from(clock.instant().minus(OFFICIAL_PAST)));
-        if (!all) {
-            scope(sql, args, "department", me.department());
-            scope(sql, args, "faculty", me.faculty());
-            scope(sql, args, "grade", me.grade());
-        }
-        sql.append(" ORDER BY starts_at, id LIMIT ").append(OFFICIAL_MAX);
-        List<OfficialExamView> items = jdbc.query(sql.toString(), SCHEDULE, args.toArray()).stream()
-                .map(x -> new OfficialExamView(x.id(), x.title(), x.type(), x.term(), x.courseCode(), x.faculty(),
-                        x.department(), x.grade(), x.startsAt(), x.endsAt(), x.room(), x.note()))
-                .toList();
-        return new OfficialExamsView(items, me.complete());
-    }
-
-    /** Kapsam alani bos = herkes; doluysa kullanici anahtariyla ayni (kullanici degeri bossa yalniz kapsamsiz satirlar). */
-    private static void scope(StringBuilder sql, List<Object> args, String col, String userValue) {
-        String key = AudienceKey.of(userValue);
-        sql.append(" AND (").append(col).append(" IS NULL OR TRIM(").append(col).append(") = ''");
-        if (key != null) {
-            sql.append(" OR ").append(AudienceKey.sql(col)).append(" = ?");
-            args.add(key);
-        }
-        sql.append(")");
-    }
-
-    // ---- yonetici: resmi sinav programi ----
-
-    public Page<AdminExamScheduleView> adminList(int page, int size, String q) {
-        int p = Math.max(page, 0);
-        int s = Math.min(Math.max(size, 1), 100);
-        String like = q == null || q.isBlank() ? null : "%" + q.strip().toLowerCase(java.util.Locale.ROOT).replace("\\", "\\\\")
-                .replace("%", "\\%").replace("_", "\\_") + "%";
-        String where = like == null ? "" : "WHERE LOWER(title) LIKE ? ESCAPE '\\' ";
-        Object[] a = like == null ? new Object[0] : new Object[] {like};
-        Long total = jdbc.queryForObject("SELECT COUNT(*) FROM exam_schedule " + where, Long.class, a);
-        List<Object> args = new ArrayList<>(List.of(a));
-        args.add(s);
-        args.add((long) p * s);
-        List<AdminExamScheduleView> items = jdbc.query(SCHEDULE_SELECT + where + "ORDER BY starts_at DESC, id DESC LIMIT ? OFFSET ?",
-                SCHEDULE, args.toArray());
-        return new Page<>(items, p, s, total == null ? 0 : total);
-    }
-
-    public AdminExamScheduleView adminGet(Long id) {
-        List<AdminExamScheduleView> r = jdbc.query(SCHEDULE_SELECT + "WHERE id = ?", SCHEDULE, id);
-        if (r.isEmpty()) {
-            throw notFound("EXAM_SCHEDULE_NOT_FOUND", "Sınav programı kaydı bulunamadı.");
-        }
-        return r.get(0);
-    }
-
-    @Transactional
-    public AdminExamScheduleView adminCreate(Long adminId, ExamScheduleRequest r) {
-        Cols c = scheduleCols(adminId, r, null);
-        long id = insert(jdbc, "INSERT INTO exam_schedule (title, type, term, course_code, faculty, department, grade, "
-                + "starts_at, ends_at, room, note, published) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                c.title, c.type, c.term, c.courseCode, c.faculty, c.department, c.grade, Timestamp.from(c.starts),
-                c.ends == null ? null : Timestamp.from(c.ends), c.room, c.note, c.published);
-        return adminGet(id);
-    }
-
-    @Transactional
-    public AdminExamScheduleView adminUpdate(Long adminId, Long id, ExamScheduleRequest r) {
-        Cols c = scheduleCols(adminId, r, adminGet(id));
-        jdbc.update("UPDATE exam_schedule SET title = ?, type = ?, term = ?, course_code = ?, faculty = ?, department = ?, "
-                + "grade = ?, starts_at = ?, ends_at = ?, room = ?, note = ?, published = ? WHERE id = ?",
-                c.title, c.type, c.term, c.courseCode, c.faculty, c.department, c.grade, Timestamp.from(c.starts),
-                c.ends == null ? null : Timestamp.from(c.ends), c.room, c.note, c.published, id);
-        return adminGet(id);
-    }
-
-    @Transactional
-    public void adminDelete(Long id) {
-        if (jdbc.update("DELETE FROM exam_schedule WHERE id = ?", id) == 0) {
-            throw notFound("EXAM_SCHEDULE_NOT_FOUND", "Sınav programı kaydı bulunamadı.");
-        }
-    }
-
-    @Transactional
-    public AdminExamScheduleView adminPublish(Long id, boolean published) {
-        adminGet(id);
-        jdbc.update("UPDATE exam_schedule SET published = ? WHERE id = ?", published, id);
-        return adminGet(id);
-    }
-
-    private record Cols(String title, String type, String term, String courseCode, String faculty, String department,
-                        String grade, Instant starts, Instant ends, String room, String note, boolean published) {}
-
-    private Cols scheduleCols(Long adminId, ExamScheduleRequest r, AdminExamScheduleView cur) {
-        boolean upd = cur != null;
-        String title = !upd || r.title() != null ? adminText(r.title(), 150, "title", true, "EXAM_INVALID") : cur.title();
-        String type = !upd || r.type() != null ? (r.type() == null ? "FINAL" : type(r.type())) : cur.type();
-        String term = !upd || r.term() != null ? adminText(r.term(), 60, "term", true, "EXAM_INVALID") : cur.term();
-        String code = !upd || r.courseCode() != null ? adminText(r.courseCode(), 20, "courseCode", false, "EXAM_INVALID") : cur.courseCode();
-        String faculty = !upd || r.faculty() != null ? adminText(r.faculty(), 120, "faculty", false, "EXAM_INVALID") : cur.faculty();
-        String dept = !upd || r.department() != null ? adminText(r.department(), 120, "department", false, "EXAM_INVALID") : cur.department();
-        String grade = !upd || r.grade() != null ? grade(r.grade()) : cur.grade();
-        Instant starts = !upd || r.startsAt() != null ? AcademicTime.parseInstant(r.startsAt()) : AcademicTime.parseInstant(cur.startsAt());
-        Instant ends = r.endsAt() != null ? (r.endsAt().isBlank() ? null : AcademicTime.parseInstant(r.endsAt()))
-                : (upd && cur.endsAt() != null ? AcademicTime.parseInstant(cur.endsAt()) : null);
-        if (ends != null && !ends.isAfter(starts)) {
-            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "EXAM_INVALID", "{0} geçersiz.", "endsAt");
-        }
-        String room = !upd || r.room() != null ? adminText(r.room(), 60, "room", false, "EXAM_INVALID") : cur.room();
-        String note = !upd || r.note() != null ? adminText(r.note(), 500, "note", false, "EXAM_INVALID") : cur.note();
-        boolean pub = r.published() != null ? r.published() : (upd && cur.published());
-        ContentGuard.clean(guard, Entity.OTHER, "title", adminId, title);
-        ContentGuard.clean(guard, Entity.OTHER, "note", adminId, note);
-        return new Cols(title, type, term, code, faculty, dept, grade, starts, ends, room, note, pub);
-    }
-
-    static final Set<String> GRADES = Set.of("PREP", "1", "2", "3", "4", "5", "6", "MASTER", "PHD");
-
-    static String grade(String g) {
-        if (g == null || g.isBlank()) {
-            return null;
-        }
-        String v = g.strip().toUpperCase(java.util.Locale.ROOT);
-        if (!GRADES.contains(v)) {
-            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "ANNOUNCEMENT_INVALID", "{0} geçersiz.", "grade");
         }
         return v;
     }

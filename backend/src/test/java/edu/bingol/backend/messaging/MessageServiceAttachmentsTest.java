@@ -55,7 +55,7 @@ class MessageServiceAttachmentsTest {
             mock(MessageReactionRepository.class), codec);
     private final MessageService service = new MessageService(convs, members, messages, users, blocks, limiter, bus,
             mock(PresenceService.class), mock(NotificationService.class), mock(ReportService.class),
-            mock(PlatformTransactionManager.class), codec, assembler, false);
+            mock(PlatformTransactionManager.class), codec, assembler);
 
     @BeforeEach
     void setUp() {

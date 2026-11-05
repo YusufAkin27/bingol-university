@@ -44,7 +44,6 @@ public final class PermissionMatrix {
     public static final String COMMS_WRITE = "comms.write";
     public static final String COMMS_SEND = "comms.send";
     public static final String COMMS_SINGLE = "comms.single";
-    public static final String COMMS_ANNOUNCE = "comms.announce";
     public static final String LEGAL_READ = "legal.read";
     public static final String LEGAL_PUBLISH = "legal.publish";
     public static final String SETTINGS_READ = "settings.read";
@@ -59,10 +58,6 @@ public final class PermissionMatrix {
     public static final String RETENTION_EXPORT = "data.retention.export";
     /** Onayli kalici silme. */
     public static final String RETENTION_PURGE = "data.retention.purge";
-    /** Kampus haritasi: yer ve ayar okuma. */
-    public static final String CAMPUS_READ = "campus.read";
-    /** Kampus haritasi: yer/ayar/fotograf yazma (FULL ve EDITOR). */
-    public static final String CAMPUS_WRITE = "campus.write";
     /** Haritada eslenmemis /api/admin yollari icin guvenli varsayilan: yalniz FULL. */
     public static final String FULL_ONLY = "admin.full";
 
@@ -102,7 +97,6 @@ public final class PermissionMatrix {
         grant(COMMS_WRITE, F, E);
         grant(COMMS_SEND, F);
         grant(COMMS_SINGLE, F, S);
-        grant(COMMS_ANNOUNCE, F, E);
         grant(LEGAL_READ, F, M, S, E, V);
         grant(LEGAL_PUBLISH, F);
         grant(SETTINGS_READ, F, V);
@@ -114,8 +108,6 @@ public final class PermissionMatrix {
         grant(RETENTION_READ, F, V);
         grant(RETENTION_EXPORT, F);
         grant(RETENTION_PURGE, F);
-        grant(CAMPUS_READ, F, M, S, E, V);
-        grant(CAMPUS_WRITE, F, E);
         grant(FULL_ONLY, F);
     }
 

@@ -37,7 +37,7 @@ class AbuseOrderingTest {
     private final MessageService service = new MessageService(convs, members, messages, users,
             mock(BlockService.class), limiter, bus, mock(PresenceService.class), mock(NotificationService.class),
             mock(ReportService.class), mock(PlatformTransactionManager.class), codec,
-            new MessageViewAssembler(messages, mock(MessageReactionRepository.class), codec), false);
+            new MessageViewAssembler(messages, mock(MessageReactionRepository.class), codec));
 
     @Test
     void sendOverTheCoarseLimitFailsBeforeAnyRepositoryLookup() {

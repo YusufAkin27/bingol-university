@@ -10,7 +10,6 @@ import static org.mockito.Mockito.mock;
 
 import edu.bingol.backend.academic.AcademicDtos.*;
 import edu.bingol.backend.common.ApiException;
-import edu.bingol.backend.notification.NotificationService;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -38,15 +37,12 @@ class AcademicServiceTest {
     ExamService exams;
     TimetableService tt;
     AcademicCalendarService cal;
-    DepartmentAnnouncementService ann;
-    AnnouncementNotifier notifier;
-    NotificationService notifications;
     long uid;
     long uid2;
 
     @BeforeEach
     void setUp() {
-        for (String t : List.of("announcement_read", "department_announcement", "academic_event", "exam_schedule", "tt_exam",
+        for (String t : List.of("academic_event", "tt_exam",
                 "tt_session", "tt_course", "tt_semester", "tt_official_seed")) {
             jdbc.update("DELETE FROM " + t);
         }
@@ -54,12 +50,9 @@ class AcademicServiceTest {
         uid = user("acd-1@bingol.edu.tr", "Bilgisayar Mühendisliği", "Mühendislik Fakültesi", "2");
         uid2 = user("acd-2@bingol.edu.tr", "Hukuk", "Hukuk Fakültesi", "1");
         audience = new AcademicAudience(jdbc);
-        exams = new ExamService(jdbc, audience, clock);
+        exams = new ExamService(jdbc, clock);
         tt = new TimetableService(jdbc, exams, clock);
         cal = new AcademicCalendarService(jdbc, audience, clock);
-        notifications = mock(NotificationService.class);
-        notifier = new AnnouncementNotifier(jdbc, notifications, clock);
-        ann = new DepartmentAnnouncementService(jdbc, audience, notifier, clock);
     }
 
     long user(String email, String dept, String faculty, String grade) {
@@ -293,22 +286,6 @@ class AcademicServiceTest {
         exams.delete(uid, e.id());
     }
 
-    @Test
-    void officialExamsFilteredByProfile() {
-        exams.adminCreate(null, new ExamScheduleRequest("Genel", "FINAL", "2026-2027 Güz", null, null, null, null, "2026-12-20T10:00", null, null, null, true));
-        exams.adminCreate(null, new ExamScheduleRequest("BM Final", "FINAL", "2026-2027 Güz", "BIL201", null, "bilgisayar mühendisliği", "2",
-                "2026-12-21T10:00", null, "B-204", null, true));
-        exams.adminCreate(null, new ExamScheduleRequest("BM 3. sinif", "FINAL", "2026-2027 Güz", null, null, "Bilgisayar Mühendisliği", "3",
-                "2026-12-22T10:00", null, null, null, true));
-        exams.adminCreate(null, new ExamScheduleRequest("Taslak", "FINAL", "2026-2027 Güz", null, null, null, null, "2026-12-23T10:00", null, null, null, false));
-        exams.adminCreate(null, new ExamScheduleRequest("Hukuk", "FINAL", "2026-2027 Güz", null, null, "Hukuk", "1", "2026-12-24T10:00", null, null, null, true));
-        OfficialExamsView mine = exams.official(uid, false);
-        assertEquals(List.of("Genel", "BM Final"), mine.items().stream().map(OfficialExamView::title).toList());
-        assertTrue(mine.profileComplete());
-        assertEquals(4, exams.official(uid, true).items().size());
-        assertEquals(List.of("Genel", "Hukuk"), exams.official(uid2, false).items().stream().map(OfficialExamView::title).toList());
-    }
-
     // ---------------- akademik takvim ----------------
 
     @Test
@@ -343,174 +320,6 @@ class AcademicServiceTest {
         assertEquals(0, cal.adminList(0, 10, "VIZE", null, true).items().size());
     }
 
-    // ---------------- duyurular ----------------
-
-    static AnnouncementRequest annReq(String title, String dept, String grade, boolean pinned, String publishAt, String expiresAt) {
-        return new AnnouncementRequest(title, "Metin " + title, dept, null, grade, pinned, publishAt, expiresAt, null, true, false);
-    }
-
-    @Test
-    void feedScopePinnedOrderAndVisibility() {
-        ann.create(null, annReq("Genel", null, null, false, "2026-11-01T09:00", null));
-        ann.create(null, annReq("BM", "Bilgisayar Mühendisliği", null, false, "2026-11-01T10:00", null));
-        ann.create(null, annReq("BM 3", "Bilgisayar Mühendisliği", "3", false, "2026-11-01T11:00", null));
-        ann.create(null, annReq("Hukuk", "Hukuk", null, false, "2026-11-01T12:00", null));
-        ann.create(null, annReq("Sabit", null, null, true, "2026-10-01T09:00", null));
-        ann.create(null, annReq("Gelecek", null, null, false, "2026-12-01T09:00", null));
-        ann.create(null, annReq("Suresi doldu", null, null, false, "2026-10-01T09:00", "2026-10-15T09:00"));
-        AdminAnnouncementView draft = ann.create(null, new AnnouncementRequest("Taslak", "x", null, null, null, false, null, null, null, false, false));
-        assertFalse(draft.published());
-
-        AnnouncementPage mine = ann.feed(uid, "mine", null, 20);
-        assertEquals(List.of("Sabit", "BM", "Genel"), mine.items().stream().map(AnnouncementView::title).toList());
-        assertNull(mine.nextCursor());
-        // K-19 (b): "Tumu" yalniz kapsamsiz duyurulari listeler; baska bolumun duyurusu sizmaz
-        assertEquals(List.of("Sabit", "Genel"), ann.feed(uid, "all", null, 20).items().stream().map(AnnouncementView::title).toList());
-        assertEquals(List.of("Sabit", "Hukuk", "Genel"), ann.feed(uid2, "mine", null, 20).items().stream().map(AnnouncementView::title).toList());
-
-        // imecli sayfalama (pinned ilk)
-        AnnouncementPage p1 = ann.feed(uid, "all", null, 1);
-        assertEquals(List.of("Sabit"), p1.items().stream().map(AnnouncementView::title).toList());
-        assertNotNull(p1.nextCursor());
-        AnnouncementPage p2 = ann.feed(uid, "all", p1.nextCursor(), 1);
-        assertEquals(List.of("Genel"), p2.items().stream().map(AnnouncementView::title).toList());
-        assertNull(p2.nextCursor());
-        assertEquals("ANNOUNCEMENT_CURSOR_INVALID", assertThrows(ApiException.class, () -> ann.feed(uid, "mine", "abc", 5)).code());
-    }
-
-    /** T-042 / T-046: buyuk I-nokta ile baslayan bolum/fakulte kapsami; ID ile erisimde de kapsam kurali. */
-    @Test
-    void capitalDottedIScopesMatchAndOutOfScopeAnnouncementIsNotReachableById() {
-        String fac = "İktisadi ve İdari Bilimler Fakültesi";
-        long isl = user("acd-4@bingol.edu.tr", "İşletme", fac, "2");
-        long ikt = user("acd-5@bingol.edu.tr", "İktisat", fac, "2");
-        AdminAnnouncementView dept = ann.create(null, annReq("Isletme duyurusu", "işletme", null, false, "2026-11-01T09:00", null));
-        AdminAnnouncementView faculty = ann.create(null, new AnnouncementRequest("Fakulte duyurusu", "Metin", null,
-                "iktisadi ve idari bilimler fakültesi", null, false, "2026-11-01T10:00", null, null, true, false));
-
-        assertEquals(List.of("Fakulte duyurusu", "Isletme duyurusu"),
-                ann.feed(isl, "mine", null, 20).items().stream().map(AnnouncementView::title).toList());
-        assertEquals(List.of("Fakulte duyurusu"), ann.feed(ikt, "mine", null, 20).items().stream().map(AnnouncementView::title).toList());
-        assertEquals(List.of(), ann.feed(uid, "mine", null, 20).items(), "baska fakulte/bolum goremez");
-        assertEquals(2, ann.unreadCount(isl));
-        assertEquals(1, ann.unreadCount(ikt));
-
-        // ID ile de kapsam disi 404 (get ve markRead)
-        assertEquals(dept.id(), ann.get(isl, dept.id()).id());
-        assertEquals("ANNOUNCEMENT_NOT_FOUND", assertThrows(ApiException.class, () -> ann.get(ikt, dept.id())).code());
-        assertEquals("ANNOUNCEMENT_NOT_FOUND", assertThrows(ApiException.class, () -> ann.markRead(ikt, dept.id())).code());
-        assertEquals("ANNOUNCEMENT_NOT_FOUND", assertThrows(ApiException.class, () -> ann.get(uid, faculty.id())).code());
-        assertEquals(0, ann.feed(ikt, "all", null, 20).items().size(), "Tumu sekmesi kapsamli duyuru sizdirmaz");
-
-        // hedef kitle sayisi (bildirim alicilari) ayni kural
-        assertEquals(1, ann.audienceCount("İŞLETME", null, null));
-        assertEquals(1, ann.audienceCount("isletme", null, null));
-        assertEquals(2, ann.audienceCount(null, "İKTİSADİ VE İDARİ BİLİMLER FAKÜLTESİ", null));
-    }
-
-    @Test
-    void scheduledBecomesVisibleWhenDue() {
-        AdminAnnouncementView a = ann.create(null, annReq("Zamanli", null, null, false, "2026-11-02T11:00", null));
-        assertEquals(0, ann.feed(uid, "mine", null, 20).items().size());
-        assertEquals("ANNOUNCEMENT_NOT_FOUND", assertThrows(ApiException.class, () -> ann.get(uid, a.id())).code());
-        Clock later = Clock.fixed(NOW.plusSeconds(3600), ZoneOffset.UTC);
-        DepartmentAnnouncementService annLater = new DepartmentAnnouncementService(jdbc, audience, notifier, later);
-        assertEquals(1, annLater.feed(uid, "mine", null, 20).items().size());
-        assertEquals(1, ann.adminList(0, 10, "scheduled", null).items().size());
-        assertEquals(0, ann.adminList(0, 10, "active", null).items().size());
-    }
-
-    @Test
-    void readTrackingAndUnreadCount() {
-        AdminAnnouncementView a1 = ann.create(null, annReq("A1", null, null, false, "2026-11-01T09:00", null));
-        ann.create(null, annReq("A2", "Bilgisayar Mühendisliği", null, false, "2026-11-01T10:00", null));
-        ann.create(null, annReq("H", "Hukuk", null, false, "2026-11-01T10:00", null));
-        assertEquals(2, ann.unreadCount(uid));
-        assertEquals(2, ann.unreadCount(uid2));
-        AnnouncementView full = ann.get(uid, a1.id());
-        assertTrue(full.read());
-        assertEquals(1, ann.unreadCount(uid));
-        ann.markRead(uid, a1.id()); // idempotent
-        assertEquals(1, ann.unreadCount(uid));
-        assertTrue(ann.feed(uid, "mine", null, 20).items().stream().filter(x -> x.id().equals(a1.id())).findFirst().orElseThrow().read());
-        ann.markAllRead(uid);
-        assertEquals(0, ann.unreadCount(uid));
-        assertEquals(2, ann.unreadCount(uid2), "baska kullanici etkilenmez");
-        assertEquals(1, ann.adminGet(a1.id()).readCount());
-    }
-
-    @Test
-    void listBodyTruncatedDetailFull() {
-        String body = "x".repeat(500);
-        AdminAnnouncementView a = ann.create(null, new AnnouncementRequest("Uzun", body, null, null, null, false, null, null, null, true, false));
-        AnnouncementView item = ann.feed(uid, "mine", null, 5).items().get(0);
-        assertTrue(item.bodyTruncated());
-        assertEquals(200, item.body().length());
-        assertEquals(500, ann.get(uid, a.id()).body().length());
-    }
-
-    @Test
-    void adminValidation() {
-        assertEquals("ANNOUNCEMENT_INVALID", assertThrows(ApiException.class,
-                () -> ann.create(null, new AnnouncementRequest(" ", "b", null, null, null, null, null, null, null, null, null))).code());
-        assertEquals("ANNOUNCEMENT_INVALID", assertThrows(ApiException.class,
-                () -> ann.create(null, new AnnouncementRequest("t", "b".repeat(4001), null, null, null, null, null, null, null, null, null))).code());
-        assertEquals("ANNOUNCEMENT_INVALID", assertThrows(ApiException.class,
-                () -> ann.create(null, new AnnouncementRequest("t", "b", null, null, "9", null, null, null, null, null, null))).code());
-        assertEquals("ANNOUNCEMENT_INVALID", assertThrows(ApiException.class,
-                () -> ann.create(null, annReq("t", null, null, false, "2026-11-05T10:00", "2026-11-04T10:00"))).code());
-        for (String bad : List.of("http://x.com/a.pdf", "javascript:alert(1)", "ftp://x.com/a", "not a url")) {
-            assertEquals("ANNOUNCEMENT_URL_INVALID", assertThrows(ApiException.class,
-                    () -> ann.create(null, new AnnouncementRequest("t", "b", null, null, null, null, null, null, bad, null, null))).code(), bad);
-        }
-        AdminAnnouncementView ok = ann.create(null, new AnnouncementRequest("t", "b", null, null, "2", null, null, null, "https://bingol.edu.tr/a.pdf", null, null));
-        assertEquals("https://bingol.edu.tr/a.pdf", ok.attachmentUrl());
-        AdminAnnouncementView up = ann.update(null, ok.id(), new AnnouncementRequest(null, null, null, null, null, true, null, null, "", null, null));
-        assertTrue(up.pinned());
-        assertNull(up.attachmentUrl());
-        assertEquals(1, ann.adminList(0, 10, "all", "T").total());
-    }
-
-    @Test
-    void audienceCountAndNotifyOnce() {
-        // FINAL-ALL: baglam artik test siniflari arasinda paylasilir (P10); baska testlerin biraktigi kullanicilar sayiyi
-        // kaydirir. Mutlak sayi yerine bu testin ekledigi/degistirdigi farka bakilir.
-        long othersDept = ann.audienceCount("bilgisayar mühendisliği", null, null) - 1; // acd-1 haric
-        long othersDept3 = ann.audienceCount("Bilgisayar Mühendisliği", null, "3");
-        long othersLaw = ann.audienceCount("Hukuk", null, null) - 1; // acd-2 haric
-        user("acd-3@bingol.edu.tr", "Bilgisayar Mühendisliği", "Mühendislik Fakültesi", "3");
-        jdbc.update("UPDATE app_user SET status = 'SUSPENDED' WHERE email = 'acd-2@bingol.edu.tr'");
-        assertEquals(othersDept + 2, ann.audienceCount("bilgisayar mühendisliği", null, null));
-        assertEquals(othersDept3 + 1, ann.audienceCount("Bilgisayar Mühendisliği", null, "3"));
-        assertEquals(othersLaw, ann.audienceCount("Hukuk", null, null), "askidaki kullanici sayilmaz");
-        assertEquals("ANNOUNCEMENT_INVALID", assertThrows(ApiException.class, () -> ann.audienceCount(null, null, "99")).code());
-
-        // notify=true, hemen gorunur: bir kez gonderilir
-        AdminAnnouncementView a = ann.create(null, new AnnouncementRequest("Bildirimli", "Govde", "Bilgisayar Mühendisliği", null, null, false,
-                null, null, null, true, true));
-        verifyBulk(1, "Bildirimli");
-        assertNotNull(ann.adminGet(a.id()).notifiedAt());
-        notifier.dispatchDue();
-        ann.update(null, a.id(), new AnnouncementRequest("Bildirimli 2", null, null, null, null, null, null, null, null, null, null));
-        verifyBulk(1, null);
-
-        // zamanlanmis notify: zamani gelince tarama gonderir
-        ann.create(null, new AnnouncementRequest("Sonra", "Govde", null, null, null, false, "2026-11-02T11:00", null, null, true, true));
-        notifier.dispatchDue();
-        verifyBulk(0, "Sonra");
-        new AnnouncementNotifier(jdbc, notifications, Clock.fixed(NOW.plusSeconds(3600), ZoneOffset.UTC)).dispatchDue();
-        verifyBulk(1, "Sonra");
-    }
-
-    /** FINAL-ALL: duyuru bildirimi sendTemplatedBulk ile gider (title null = herhangi bir baslik). */
-    private void verifyBulk(int times, String title) {
-        org.mockito.Mockito.verify(notifications, org.mockito.Mockito.times(times)).sendTemplatedBulk(
-                org.mockito.ArgumentMatchers.anyCollection(), org.mockito.ArgumentMatchers.eq(AnnouncementNotifier.TEMPLATE),
-                org.mockito.ArgumentMatchers.anyMap(), org.mockito.ArgumentMatchers.any(),
-                title == null ? org.mockito.ArgumentMatchers.<String>any() : org.mockito.ArgumentMatchers.eq(title),
-                org.mockito.ArgumentMatchers.<String>any());
-    }
-
     // ---------------- KVKK ----------------
 
     @Test
@@ -518,13 +327,11 @@ class AcademicServiceTest {
         CourseView c = tt.createCourse(uid, course("A", 1, "09:00", "10:00", false));
         tt.createSemester(uid, new SemesterRequest("Güz", "2026-09-14", "2027-01-15", null));
         exams.create(uid, new ExamRequest(c.id(), "Vize", "VIZE", "2026-11-10T10:00", null, null, null));
-        AdminAnnouncementView a = ann.create(null, annReq("G", null, null, false, null, null));
-        ann.get(uid, a.id());
         var data = tt.exportData(uid);
         assertEquals(1, ((List<?>) data.get("courses")).size());
         assertEquals(1, ((List<?>) data.get("exams")).size());
         new AcademicAccountPurger(jdbc).purge(uid);
-        for (String t : List.of("tt_course", "tt_session", "tt_exam", "tt_semester", "announcement_read")) {
+        for (String t : List.of("tt_course", "tt_session", "tt_exam", "tt_semester")) {
             assertEquals(0L, jdbc.queryForObject("SELECT COUNT(*) FROM " + t, Long.class), t);
         }
     }

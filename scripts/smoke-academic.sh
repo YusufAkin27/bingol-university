@@ -37,8 +37,6 @@ ADM="admin:$ADMIN_PASSWORD"
 
 echo "== yetki"
 check "girissiz timetable 401" 401 "$(code $A/timetable)"
-check "girissiz duyuru 401" 401 "$(code $A/announcements)"
-check "kullanici admin ucu 403" 403 "$(code -H "$AA" $A/admin/announcements)"
 
 echo "== ders programi"
 R=$(curl -s -X POST -H "$AA" -H "$H" $A/timetable/courses -d '{"name":"Veri Yapilari","code":"BIL201","instructor":"Dr. Ayse","color":"blue","sessions":[{"dayOfWeek":1,"start":"09:00","end":"10:50","room":"B-204"},{"dayOfWeek":3,"start":"13:00","end":"14:50","room":"Lab"}]}')
@@ -76,7 +74,6 @@ has "sinav offset" '+03:00' "$E"
 check "sinav turu 422" 422 "$(code -X POST -H "$AA" -H "$H" $A/timetable/exams -d '{"title":"X","type":"ZZZ","startsAt":"2099-11-10T10:00"}')"
 check "upcoming" 200 "$(code -H "$AA" "$A/timetable/exams/upcoming?days=30")"
 check "baskasi siler 404" 404 "$(code -X DELETE -H "$AB" $A/timetable/exams/$EID)"
-check "resmi sinavlar" 200 "$(code -H "$AA" $A/exams/official)"
 check "sinav sil" 204 "$(code -X DELETE -H "$AA" $A/timetable/exams/$EID)"
 
 echo "== akademik takvim"
@@ -99,63 +96,6 @@ check "kaldirilan gorunmez" 0 "$(curl -s -H "$AA" "$A/academic/calendar?month=20
 IMPE=$(curl -s -u "$ADM" -X POST -H "$H" $A/admin/academic/events/import -d '{"text":"TATIL;Ara tatil;2099-12-01;2099-12-03\nXXX;Hatali;2099-01-01","publish":true}')
 has "takvim import 1 + hata" '"created":1' "$IMPE"
 check "takvim sil" 204 "$(code -u "$ADM" -X DELETE $A/admin/academic/events/$EVID)"
-
-echo "== duyurular"
-N1=$(curl -s -u "$ADM" -X POST -H "$H" $A/admin/announcements -d '{"title":"Genel duyuru","body":"Herkese","pinned":false}')
-NID=$(echo "$N1" | jid)
-[ -n "$NID" ] || { echo "  FAIL duyuru olusmadi: $N1"; exit 1; }
-N2=$(curl -s -u "$ADM" -X POST -H "$H" $A/admin/announcements -d '{"title":"Baska bolum","body":"Gelmez","department":"Yok Boyle Bir Bolum"}')
-NID2=$(echo "$N2" | jid)
-N3=$(curl -s -u "$ADM" -X POST -H "$H" $A/admin/announcements -d '{"title":"Sabit duyuru","body":"Ustte","pinned":true}')
-check "http ek 422" 422 "$(code -u "$ADM" -X POST -H "$H" $A/admin/announcements -d '{"title":"x","body":"y","attachmentUrl":"http://x.com/a"}')"
-check "bos baslik 422" 422 "$(code -u "$ADM" -X POST -H "$H" $A/admin/announcements -d '{"title":" ","body":"y"}')"
-F=$(curl -s -H "$AA" "$A/announcements?scope=mine&size=20")
-has "mine genel var" 'Genel duyuru' "$F"
-check "mine baska bolum yok" 0 "$(echo "$F" | grep -c 'Baska bolum')"
-# K-19 (b): "Tumu" yalniz kapsamsiz duyurulari listeler; baska bolumun duyurusu sizmaz ve ID ile de acilmaz (T-046)
-check "all baska bolum yok" 0 "$(curl -s -H "$AA" "$A/announcements?scope=all" | grep -c 'Baska bolum')"
-has "all kapsamsiz var" 'Genel duyuru' "$(curl -s -H "$AA" "$A/announcements?scope=all")"
-check "baska bolum duyurusu ID ile 404" 404 "$(code -H "$AA" $A/announcements/$NID2)"
-check "sabit ilk" 1 "$(echo "$F" | grep -o '"title":"[^"]*' | head -1 | grep -c 'Sabit duyuru')"
-P1=$(curl -s -H "$AA" "$A/announcements?scope=all&size=1")
-CUR=$(echo "$P1" | grep -o '"nextCursor":"[^"]*' | cut -d'"' -f4)
-[ -n "$CUR" ] && echo "  ok   nextCursor" || { echo "  FAIL nextCursor yok: $P1"; FAIL=1; }
-check "bozuk imlec 422" 422 "$(code -H "$AA" "$A/announcements?cursor=bozuk")"
-U1=$(curl -s -H "$AB" $A/announcements/unread-count | grep -o '"count":[0-9]*' | cut -d: -f2)
-check "okunmamis >= 2" 1 "$([ "${U1:-0}" -ge 2 ] && echo 1 || echo 0)"
-check "detay" 200 "$(code -H "$AB" $A/announcements/$NID)"
-U2=$(curl -s -H "$AB" $A/announcements/unread-count | grep -o '"count":[0-9]*' | cut -d: -f2)
-check "okununca azalir" 1 "$([ "${U2:-0}" -lt "${U1:-0}" ] && echo 1 || echo 0)"
-check "read idempotent" 204 "$(code -X POST -H "$AB" $A/announcements/$NID/read)"
-check "read-all" 204 "$(code -X POST -H "$AB" $A/announcements/read-all)"
-has "okunmamis 0" '"count":0' "$(curl -s -H "$AB" $A/announcements/unread-count)"
-check "olmayan duyuru 404" 404 "$(code -H "$AB" $A/announcements/999999999)"
-check "hedef kitle sayisi" 200 "$(code -u "$ADM" "$A/admin/announcements/audience-count?department=Yok")"
-check "yayindan kaldir -> 404" 404 "$(curl -s -o /dev/null -u "$ADM" -X POST $A/admin/announcements/$NID/unpublish -w '%{http_code}' >/dev/null; code -H "$AB" $A/announcements/$NID)"
-check "admin liste" 200 "$(code -u "$ADM" "$A/admin/announcements?status=all")"
-check "admin sil" 204 "$(code -u "$ADM" -X DELETE $A/admin/announcements/$NID)"
-[ -n "${NID2:-}" ] && code -u "$ADM" -X DELETE $A/admin/announcements/$NID2 >/dev/null
-
-echo "== buyuk I-nokta bolum/fakulte kapsami (T-042, PostgreSQL)"
-# ASCII betik: Turkce harfler JSON \u kacisiyla; kullanici profili katalog yazimiyla (buyuk I-nokta), yonetici hedefi kucuk harfle
-check "profil: Isletme (buyuk I-nokta)" 200 "$(code -X PATCH -H "$H" -H "$AA" $A/users/me -d '{"faculty":"\u0130ktisadi ve \u0130dari Bilimler Fak\u00fcltesi","department":"\u0130\u015fletme","grade":"2"}')"
-check "profil: Iktisat (ikinci kullanici)" 200 "$(code -X PATCH -H "$H" -H "$AB" $A/users/me -d '{"faculty":"\u0130ktisadi ve \u0130dari Bilimler Fak\u00fcltesi","department":"\u0130ktisat","grade":"2"}')"
-IS1=$(curl -s -u "$ADM" -X POST -H "$H" $A/admin/announcements -d '{"title":"Isletme duyurusu I","body":"yalniz isletme","department":"i\u015fletme"}')
-IS1ID=$(echo "$IS1" | jid)
-[ -n "$IS1ID" ] || { echo "  FAIL isletme duyurusu olusmadi: $IS1"; FAIL=1; }
-FI1=$(curl -s -u "$ADM" -X POST -H "$H" $A/admin/announcements -d '{"title":"Fakulte duyurusu I","body":"iki bolum","faculty":"iktisadi ve idari bilimler fak\u00fcltesi"}')
-FI1ID=$(echo "$FI1" | jid)
-has "Isletme kullanicisi bolum duyurusunu gorur" 'Isletme duyurusu I' "$(curl -s -H "$AA" "$A/announcements?scope=mine&size=50")"
-has "Isletme kullanicisi fakulte duyurusunu gorur" 'Fakulte duyurusu I' "$(curl -s -H "$AA" "$A/announcements?scope=mine&size=50")"
-check "Iktisat kullanicisi Isletme duyurusunu gormez" 0 "$(curl -s -H "$AB" "$A/announcements?scope=mine&size=50" | grep -c 'Isletme duyurusu I')"
-has "Iktisat kullanicisi fakulte duyurusunu gorur" 'Fakulte duyurusu I' "$(curl -s -H "$AB" "$A/announcements?scope=mine&size=50")"
-check "kapsam disi duyuru ID ile 404" 404 "$(code -H "$AB" $A/announcements/$IS1ID)"
-check "kapsam disi okundu 404" 404 "$(code -X POST -H "$AB" $A/announcements/$IS1ID/read)"
-check "kapsam ici duyuru ID ile 200" 200 "$(code -H "$AA" $A/announcements/$IS1ID)"
-has "hedef kitle sayisi (Isletme >= 1)" '"count":[1-9]' "$(curl -s -u "$ADM" "$A/admin/announcements/audience-count?department=%C4%B0%C5%9FLETME")"
-has "hedef kitle sayisi (fakulte >= 2)" '"count":[2-9]' "$(curl -s -u "$ADM" "$A/admin/announcements/audience-count?faculty=iktisadi%20ve%20idari%20bilimler%20fak%C3%BCltesi")"
-[ -n "${IS1ID:-}" ] && code -u "$ADM" -X DELETE $A/admin/announcements/$IS1ID >/dev/null
-[ -n "${FI1ID:-}" ] && code -u "$ADM" -X DELETE $A/admin/announcements/$FI1ID >/dev/null
 
 echo "== KVKK export"
 has "export timetable" '"timetable"' "$(curl -s -H "$AA" $A/users/me/export)"

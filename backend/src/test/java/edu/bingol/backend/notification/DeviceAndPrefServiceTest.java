@@ -130,19 +130,6 @@ class DeviceAndPrefServiceTest {
     }
 
     @Test
-    void messagePreviewDefaultsOffAndCanBeTurnedOn() {
-        stubSave();
-        assertFalse(prefSvc.get(1L).messagePreview());
-
-        PrefsView v = prefSvc.update(1L, new PrefsUpdate(null, null, null, null, null, null, null, null, null, true));
-        assertTrue(v.messagePreview());
-
-        // eski istemci (alan yok): degismez
-        PrefsView w = prefSvc.update(1L, new PrefsUpdate(null, null, null, null, null, null, null));
-        assertFalse(w.messagePreview()); // stubSave her seferinde varsayilan satir doner; null alan degeri degistirmez
-    }
-
-    @Test
     void pollsAndAcademicFlagsDefaultOnAndUpdateIndependently() {
         stubSave();
         PrefsView d = prefSvc.get(1L);
@@ -157,7 +144,7 @@ class DeviceAndPrefServiceTest {
 
         // alt tur anahtariyla da ayni sutun yazilir; alt tur satiri uretilmez
         PrefsView w = prefSvc.update(1L, new PrefsUpdate(null, null, null, null, null, null,
-                Map.of("academic_announcement", false), null, null));
+                Map.of("exam_reminder", false), null, null));
         assertFalse(w.academicAnnouncements());
         verify(subs, never()).save(any(NotificationSubtypePref.class));
     }

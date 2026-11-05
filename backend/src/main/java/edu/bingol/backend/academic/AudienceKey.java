@@ -22,7 +22,7 @@ public final class AudienceKey {
             + "çğöşüâîû̇";
     static final String TO = "iiicgosuaiucgosuaiu";
 
-    /** Sinif degerleri (duyuru / anket / sinav ile ayni kume; bkz. ExamService.GRADES). */
+    /** Sinif degerleri (anket / ders programi ile ayni kume). */
     public static final Set<String> GRADES = Set.of("PREP", "1", "2", "3", "4", "5", "6", "MASTER", "PHD");
 
     private AudienceKey() {}

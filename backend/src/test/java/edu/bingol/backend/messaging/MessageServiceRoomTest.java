@@ -57,7 +57,7 @@ class MessageServiceRoomTest {
     private final ReceiptPolicy policy = mock(ReceiptPolicy.class);
     private final MessageService service = new MessageService(convs, members, messages, users, blocks, limiter, bus,
             mock(PresenceService.class), notifications, mock(ReportService.class), mock(PlatformTransactionManager.class),
-            codec, new MessageViewAssembler(messages, mock(MessageReactionRepository.class), codec), false);
+            codec, new MessageViewAssembler(messages, mock(MessageReactionRepository.class), codec));
 
     private Conversation room;
     private ConversationMember me;

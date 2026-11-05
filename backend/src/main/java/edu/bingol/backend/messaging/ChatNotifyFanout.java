@@ -28,11 +28,11 @@ import org.slf4j.LoggerFactory;
 final class ChatNotifyFanout {
 
     /** Bir sohbet icin dagitim isi: son mesajin bilgileri ve birlestirilen mesaj adedi. */
-    record Job(Long senderId, Long conversationId, String groupTitle, String preview, boolean previewOptInOnly,
+    record Job(Long senderId, Long conversationId, String groupTitle, String preview,
                Map<String, String> data, List<Long> candidates, int count) {
         Job merged(Job latest) {
             return new Job(latest.senderId, latest.conversationId, latest.groupTitle, latest.preview,
-                    latest.previewOptInOnly, latest.data, latest.candidates, count + latest.count);
+                    latest.data, latest.candidates, count + latest.count);
         }
     }
 

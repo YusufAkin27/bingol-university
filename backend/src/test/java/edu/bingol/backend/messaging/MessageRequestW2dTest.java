@@ -52,7 +52,7 @@ class MessageRequestW2dTest {
             new MessageViewAssembler(messages, mock(MessageReactionRepository.class), codec);
     private final MessageService service = new MessageService(convs, members, messages, users, blocks, limiter, bus,
             presence, notifications, mock(ReportService.class), mock(PlatformTransactionManager.class), codec,
-            assembler, false);
+            assembler);
 
     private ConversationMember me;
     private ConversationMember peer;

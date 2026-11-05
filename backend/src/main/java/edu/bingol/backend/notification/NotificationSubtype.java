@@ -14,8 +14,8 @@ public enum NotificationSubtype {
     COMMENT_REPLY(NotificationType.COMMENT_REPLY),
     POST_MENTION(NotificationType.POST_MENTION), USER_FOLLOW(NotificationType.USER_FOLLOW),
     FOLLOW_REQUEST(NotificationType.FOLLOW_REQUEST), FOLLOW_ACCEPTED(NotificationType.FOLLOW_ACCEPTED),
-    // Kendi bayragi olanlar (notification_pref.polls / academic_announcements, V880): ana tur bayragindan bagimsizdir
-    POLL(NotificationType.ANNOUNCEMENT), ACADEMIC_ANNOUNCEMENT(NotificationType.ANNOUNCEMENT),
+    // Kendi bayragi olanlar (notification_pref.polls / academic_announcements, V880; ikincisi sinav hatirlatmasina kaldi): ana tur bayragindan bagimsizdir
+    POLL(NotificationType.ANNOUNCEMENT),
     // Sinav hatirlatmasi (sinavdan 2 sa once): "Akademik duyurular" bayragini (academic_announcements) paylasir;
     // ayri sutun yok, kullanici tek akademik anahtarla ikisini birden yonetir.
     EXAM_REMINDER(NotificationType.ANNOUNCEMENT);
@@ -32,14 +32,14 @@ public enum NotificationSubtype {
 
     /** Alt tur bayragi notification_pref'te ayri sutunda tutuluyor mu (alt tur satiri degil). */
     public boolean flagBacked() {
-        return this == POLL || this == ACADEMIC_ANNOUNCEMENT || this == EXAM_REMINDER;
+        return this == POLL || this == EXAM_REMINDER;
     }
 
     /** flagBacked alt turler icin kullanicinin bayragi; digerleri icin true. */
     public boolean flag(NotificationPref p) {
         return switch (this) {
             case POLL -> p.isPolls();
-            case ACADEMIC_ANNOUNCEMENT, EXAM_REMINDER -> p.isAcademicAnnouncements();
+            case EXAM_REMINDER -> p.isAcademicAnnouncements();
             default -> true;
         };
     }

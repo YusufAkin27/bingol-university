@@ -258,7 +258,6 @@ services:
       MAIL_RESET_CODE_SHARE:
       # Push (FCM_CREDENTIALS_FILE: konteyner ICINDEKI yol; prod'da FCM_CREDENTIALS_JSON onerilir) ve kalici kuyruk
       FCM_CREDENTIALS_FILE:
-      PUSH_MESSAGE_PREVIEW:
       PUSH_OUTBOX_ENABLED:
       PUSH_OUTBOX_POLL_MS:
       PUSH_OUTBOX_BATCH:

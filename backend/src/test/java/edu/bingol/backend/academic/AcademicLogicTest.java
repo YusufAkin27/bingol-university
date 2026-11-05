@@ -64,16 +64,6 @@ class AcademicLogicTest {
     }
 
     @Test
-    void audienceMatching() {
-        assertTrue(AudienceMatch.matches(null, null, null, "Bilgisayar Mühendisliği", "Mühendislik", "2"));
-        assertTrue(AudienceMatch.matches("Bilgisayar Mühendisliği", null, "2", "Bilgisayar Mühendisliği", null, "2"));
-        assertFalse(AudienceMatch.matches("Bilgisayar Mühendisliği", null, null, "Hukuk", null, "2"));
-        assertFalse(AudienceMatch.matches(null, null, "3", "Hukuk", null, "2"));
-        assertFalse(AudienceMatch.matches("Hukuk", null, null, null, null, null), "profil bos: kapsamli duyuru gelmez");
-        assertTrue(AudienceMatch.matches(null, null, null, null, null, null), "kapsamsiz herkese");
-    }
-
-    @Test
     void icsHasTimezoneRruleAndFolds() {
         var s = new IcsBuilder.SessionEvent(21, "Veri Yapilari; Lab, A", "BIL201", "Dr. Ayse", "B-204", 1,
                 LocalTime.of(9, 0), LocalTime.of(10, 50));

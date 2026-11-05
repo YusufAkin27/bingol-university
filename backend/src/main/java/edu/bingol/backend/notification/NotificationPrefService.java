@@ -70,13 +70,12 @@ public class NotificationPrefService {
         // polls / academicAnnouncements: ust duzey alan, ayni anda alt tur anahtari da gelirse ust duzey kazanir
         flagSubs.forEach((s, v) -> {
             if (s == NotificationSubtype.POLL) p.setPolls(v);
-            if (s == NotificationSubtype.ACADEMIC_ANNOUNCEMENT || s == NotificationSubtype.EXAM_REMINDER) {
+            if (s == NotificationSubtype.EXAM_REMINDER) {
                 p.setAcademicAnnouncements(v);
             }
         });
         if (r.polls() != null) p.setPolls(r.polls());
         if (r.academicAnnouncements() != null) p.setAcademicAnnouncements(r.academicAnnouncements());
-        if (r.messagePreview() != null) p.setMessagePreview(r.messagePreview());
         p.setQuietEnabled(qen);
         p.setQuietStart(qs);
         p.setQuietEnd(qe);

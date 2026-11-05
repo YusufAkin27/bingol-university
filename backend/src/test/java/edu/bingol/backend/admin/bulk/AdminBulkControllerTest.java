@@ -107,7 +107,7 @@ class AdminBulkControllerTest {
 
     @Test
     void everyEndpointRejectsAnonymousAndPlainUsers() throws Exception {
-        List<String> gets = List.of("/api/admin/news/export.csv", "/api/admin/academic/export.csv?entity=EXAM",
+        List<String> gets = List.of("/api/admin/news/export.csv", "/api/admin/academic/export.csv?entity=CALENDAR",
                 "/api/admin/menu/export.csv", "/api/admin/pending-registrations/export.csv", "/api/admin/sources/status");
         for (String p : gets) {
             assertEquals(401, mvc.perform(get(p)).andReturn().getResponse().getStatus(), p);
@@ -320,20 +320,8 @@ class AdminBulkControllerTest {
         return jdbc.queryForObject("SELECT MAX(id) FROM academic_event WHERE title = ?", Long.class, title);
     }
 
-    private long insertAnnouncement(String title, boolean published) {
-        jdbc.update("INSERT INTO department_announcement (title, body, published, notify) VALUES (?, 'govde', ?, FALSE)",
-                title, published);
-        return jdbc.queryForObject("SELECT MAX(id) FROM department_announcement WHERE title = ?", Long.class, title);
-    }
-
-    private long insertExam(String title) {
-        jdbc.update("INSERT INTO exam_schedule (title, term, starts_at, published) VALUES (?, '2026-GUZ', CURRENT_TIMESTAMP, TRUE)",
-                title);
-        return jdbc.queryForObject("SELECT MAX(id) FROM exam_schedule WHERE title = ?", Long.class, title);
-    }
-
     @Test
-    void academicBulkPublishUnpublishDeleteForEveryEntity() throws Exception {
+    void academicBulkPublishUnpublishDelete() throws Exception {
         long c1 = insertCalendar("P15 takvim 1", false);
         long c2 = insertCalendar("P15 takvim 2", true);
         MockHttpServletResponse pub = postJson("/api/admin/academic/bulk", "{\"entity\":\"CALENDAR\",\"action\":\"PUBLISH\",\"ids\":["
@@ -344,25 +332,10 @@ class AdminBulkControllerTest {
         assertEquals(2, j.get("skipped").asInt());
         assertTrue(jdbc.queryForObject("SELECT published FROM academic_event WHERE id = ?", Boolean.class, c1));
 
-        long x = insertExam("P15 sinav");
-        MockHttpServletResponse unExam = postJson("/api/admin/academic/bulk",
-                "{\"entity\":\"EXAM\",\"action\":\"UNPUBLISH\",\"ids\":[" + x + "],\"reason\":\"hatali tarih\"}");
-        assertEquals(1, OM.readTree(unExam.getContentAsString()).get("done").asInt());
-        assertFalse(jdbc.queryForObject("SELECT published FROM exam_schedule WHERE id = ?", Boolean.class, x));
-
-        long a = insertAnnouncement("P15 duyuru", false);
-        MockHttpServletResponse pubAnn = postJson("/api/admin/academic/bulk",
-                "{\"entity\":\"ANNOUNCEMENT\",\"action\":\"PUBLISH\",\"ids\":[" + a + "],\"reason\":\"duyuru yayini\"}");
-        assertEquals(1, OM.readTree(pubAnn.getContentAsString()).get("done").asInt());
-        assertTrue(jdbc.queryForObject("SELECT published FROM department_announcement WHERE id = ?", Boolean.class, a));
-
         MockHttpServletResponse del = postJson("/api/admin/academic/bulk", "{\"entity\":\"CALENDAR\",\"action\":\"DELETE\",\"ids\":["
                 + c1 + "," + c2 + "],\"reason\":\"yanlis yuklenmis\"}");
         assertEquals(2, OM.readTree(del.getContentAsString()).get("done").asInt());
         assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM academic_event WHERE id IN (?, ?)", Integer.class, c1, c2));
-        MockHttpServletResponse delAnn = postJson("/api/admin/academic/bulk",
-                "{\"entity\":\"ANNOUNCEMENT\",\"action\":\"DELETE\",\"ids\":[" + a + "," + a + "],\"reason\":\"yanlis yuklenmis\"}");
-        assertEquals(1, OM.readTree(delAnn.getContentAsString()).get("requested").asInt());
 
         assertEquals(400, postJson("/api/admin/academic/bulk",
                 "{\"entity\":\"CALENDAR\",\"action\":\"DELETE\",\"ids\":[" + c1 + "]}").getStatus());
@@ -382,13 +355,6 @@ class AdminBulkControllerTest {
         assertTrue(csv.startsWith("﻿id,kind,title,startsAt"), csv);
         assertTrue(csv.contains("'=cmd"), csv);
         assertFalse(csv.contains(",=cmd"));
-
-        insertAnnouncement("P15 csv duyuru", true);
-        String ann = call(get("/api/admin/academic/export.csv").param("entity", "ANNOUNCEMENT").param("q", "P15 csv"))
-                .getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
-        assertTrue(ann.contains("P15 csv duyuru"));
-        assertFalse(ann.contains("govde"), "duyuru govdesi disa aktarilmaz");
-        assertEquals(200, call(get("/api/admin/academic/export.csv").param("entity", "EXAM")).getStatus());
     }
 
     // ---- kaynaklar ----

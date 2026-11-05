@@ -43,7 +43,7 @@ class ChatNotifyFanoutTest {
     }
 
     private static ChatNotifyFanout.Job job(long conv, String preview, int count) {
-        return new ChatNotifyFanout.Job(1L, conv, null, preview, false, Map.of(), List.of(2L, 3L), count);
+        return new ChatNotifyFanout.Job(1L, conv, null, preview, Map.of(), List.of(2L, 3L), count);
     }
 
     @Test

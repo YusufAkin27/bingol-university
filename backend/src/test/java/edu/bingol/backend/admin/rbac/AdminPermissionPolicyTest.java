@@ -55,7 +55,6 @@ class AdminPermissionPolicyTest {
             case EDITOR -> List.of(r("POST", "/api/admin/news/bulk"), r("PATCH", "/api/admin/news/3"),
                     r("PUT", "/api/admin/menu/2026-01-01/image"), r("PUT", "/api/admin/menu/2026-01-01/calories"), r("PUT", "/api/admin/menu/calories"),
                     r("GET", "/api/admin/menu"), r("POST", "/api/admin/communities/3/approve"),
-                    r("POST", "/api/admin/announcements"), r("POST", "/api/admin/announcements/3/publish"),
                     r("POST", "/api/admin/events/3/hide"), r("POST", "/api/admin/mail/templates"),
                     r("POST", "/api/admin/polls/bulk"), r("POST", "/api/admin/faq"),
                     r("GET", "/api/admin/community-categories"), r("GET", "/api/admin/mail/campaigns"));
@@ -99,7 +98,7 @@ class AdminPermissionPolicyTest {
                     r("GET", "/api/admin/users/3/sessions"), r("POST", "/api/admin/users/3/suspend"),
                     r("POST", "/api/admin/reports/3/resolve"), r("PUT", "/api/admin/settings/banner_text"),
                     r("POST", "/api/admin/ops/mail-outbox/retry-dead"), r("GET", "/api/admin/rbac/admins"),
-                    r("POST", "/api/admin/announcements"), r("POST", "/api/admin/push/outbox/3/retry"),
+                    r("POST", "/api/admin/push/outbox/3/retry"),
                     r("GET", "/api/admin/analytics/behavior/users"), r("GET", "/api/admin/analytics/behavior/users/3"));
         };
     }

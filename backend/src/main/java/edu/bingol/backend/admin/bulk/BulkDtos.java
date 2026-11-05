@@ -21,7 +21,7 @@ public final class BulkDtos {
 
     public enum NewsAction { HIDE, UNHIDE }
 
-    public enum AcademicEntity { CALENDAR, EXAM, ANNOUNCEMENT }
+    public enum AcademicEntity { CALENDAR }
 
     public enum AcademicAction { PUBLISH, UNPUBLISH, DELETE }
 

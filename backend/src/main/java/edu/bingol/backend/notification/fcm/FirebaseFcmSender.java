@@ -182,6 +182,10 @@ public class FirebaseFcmSender implements FcmSender {
         if (m.collapseKey() != null) {
             n.setTag(m.collapseKey());
         }
+        if ("chat".equals(m.channelId())) {
+            // Mesaj metni onizlemesi her zaman gider: kilit ekraninda da tam gorunsun (varsayilan PRIVATE gizlerdi)
+            n.setVisibility(AndroidNotification.Visibility.PUBLIC);
+        }
         if (m.badge() != null && m.badge() >= 0) {
             n.setNotificationCount(m.badge()); // baslatici rozeti (destekleyen Android'lerde)
         }

@@ -45,7 +45,7 @@ class ProfaneMessageNotFilteredTest {
         MessageService service = new MessageService(convs, members, messages, users, blocks, mock(RateLimiter.class),
                 mock(ChatEventBus.class), mock(PresenceService.class), mock(NotificationService.class),
                 mock(ReportService.class), mock(PlatformTransactionManager.class), codec,
-                new MessageViewAssembler(messages, reactions, codec), false);
+                new MessageViewAssembler(messages, reactions, codec));
 
         Conversation direct = new Conversation();
         direct.setId(10L);

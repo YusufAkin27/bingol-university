@@ -1,8 +1,6 @@
 package edu.bingol.backend.admin.bulk;
 
 import edu.bingol.backend.academic.AcademicCalendarService;
-import edu.bingol.backend.academic.DepartmentAnnouncementService;
-import edu.bingol.backend.academic.ExamService;
 import edu.bingol.backend.admin.bulk.BulkDtos.AcademicAction;
 import edu.bingol.backend.admin.bulk.BulkDtos.AcademicEntity;
 import edu.bingol.backend.admin.bulk.BulkDtos.Report;
@@ -15,9 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 /**
- * Akademik takvim / sinav programi / bolum duyurusu toplu yayinla - kaldir - sil. Mevcut servis metotlari KULLANILIR
- * (her biri kendi @Transactional'i); bu sinif @Transactional degildir: kismi basari. Yayinlanan ve bildirimi acik
- * duyurular, servisin kendi kurali geregi (bir kez) hedef kitleye bildirim gonderir.
+ * Akademik takvim toplu yayinla - kaldir - sil. Mevcut servis metotlari KULLANILIR
+ * (her biri kendi @Transactional'i); bu sinif @Transactional degildir: kismi basari.
  */
 @Service
 public class AcademicBulkService {
@@ -25,14 +22,9 @@ public class AcademicBulkService {
     private static final Logger log = LoggerFactory.getLogger(AcademicBulkService.class);
 
     private final AcademicCalendarService calendar;
-    private final ExamService exams;
-    private final DepartmentAnnouncementService announcements;
 
-    public AcademicBulkService(AcademicCalendarService calendar, ExamService exams,
-                               DepartmentAnnouncementService announcements) {
+    public AcademicBulkService(AcademicCalendarService calendar) {
         this.calendar = calendar;
-        this.exams = exams;
-        this.announcements = announcements;
     }
 
     public Report run(AcademicEntity entity, AcademicAction action, List<Long> ids) {
@@ -68,24 +60,18 @@ public class AcademicBulkService {
     private boolean published(AcademicEntity entity, Long id) {
         return switch (entity) {
             case CALENDAR -> calendar.adminGet(id).published();
-            case EXAM -> exams.adminGet(id).published();
-            case ANNOUNCEMENT -> announcements.adminGet(id).published();
         };
     }
 
     private void setPublished(AcademicEntity entity, Long id, boolean value) {
         switch (entity) {
             case CALENDAR -> calendar.setPublished(id, value);
-            case EXAM -> exams.adminPublish(id, value);
-            case ANNOUNCEMENT -> announcements.setPublished(id, value);
         }
     }
 
     private void delete(AcademicEntity entity, Long id) {
         switch (entity) {
             case CALENDAR -> calendar.delete(id);
-            case EXAM -> exams.adminDelete(id);
-            case ANNOUNCEMENT -> announcements.delete(id);
         }
     }
 }

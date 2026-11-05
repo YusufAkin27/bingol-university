@@ -89,12 +89,12 @@ class PollAcademicPrefsTest {
     }
 
     @Test
-    void academicAnnouncementRequiresBothFlags() {
+    void academicFlagRequiresBothFlags() {
         User offMain = withPref(false, true, true, true);
         User offOwn = withPref(true, true, true, false);
         User on = withPref(true, true, true, true);
         for (User u : List.of(offMain, offOwn, on)) {
-            notifications.send(u.getId(), NotificationType.ANNOUNCEMENT, NotificationSubtype.ACADEMIC_ANNOUNCEMENT, null,
+            notifications.send(u.getId(), NotificationType.ANNOUNCEMENT, NotificationSubtype.EXAM_REMINDER, null,
                     "Duyuru", "Govde", "Govde", Map.of("announcementId", "5"));
         }
         assertEquals(0, inbox(offMain));

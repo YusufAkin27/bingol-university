@@ -95,7 +95,7 @@ public class AdminBulkController {
 
     // ---- akademik ----
 
-    /** POST /api/admin/academic/bulk {entity: CALENDAR|EXAM|ANNOUNCEMENT, action: PUBLISH|UNPUBLISH|DELETE, ids, reason}. */
+    /** POST /api/admin/academic/bulk {entity: CALENDAR, action: PUBLISH|UNPUBLISH|DELETE, ids, reason}. */
     @PostMapping("/academic/bulk")
     public Report academicBulk(@Valid @RequestBody AcademicBulkRequest r, HttpServletRequest req) {
         List<Long> ids = BulkSupport.distinct(r.ids(), BulkDtos.MAX_IDS);
@@ -109,21 +109,20 @@ public class AdminBulkController {
     }
 
     /**
-     * GET /api/admin/academic/export.csv?entity=CALENDAR|EXAM|ANNOUNCEMENT&q=&kind=&published=&status=
-     * (kind/published yalniz CALENDAR, status yalniz ANNOUNCEMENT).
+     * GET /api/admin/academic/export.csv?entity=CALENDAR&q=&kind=&published=
+     * (kind/published yalniz CALENDAR).
      */
     @GetMapping("/academic/export.csv")
     public void academicCsv(@RequestParam(required = false) AcademicEntity entity,
                             @RequestParam(required = false) String q, @RequestParam(required = false) String kind,
-                            @RequestParam(required = false) Boolean published,
-                            @RequestParam(required = false) String status, HttpServletResponse res) throws IOException {
+                            @RequestParam(required = false) Boolean published, HttpServletResponse res) throws IOException {
         if (entity == null) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "EXPORT_ENTITY_INVALID",
-                    "Dışa aktarılacak tür belirtilmeli (CALENDAR, EXAM, ANNOUNCEMENT).");
+                    "Dışa aktarılacak tür belirtilmeli (CALENDAR).");
         }
         csvLimit();
         stream(res, "academic-" + BulkSupport.lower(entity) + ".csv", "ACADEMIC_" + entity,
-                w -> csv.academic(entity, q, kind, published, status, w));
+                w -> csv.academic(entity, q, kind, published, w));
     }
 
     // ---- menu ----

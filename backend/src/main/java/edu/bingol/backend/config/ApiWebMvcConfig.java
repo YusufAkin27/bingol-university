@@ -44,6 +44,6 @@ public class ApiWebMvcConfig implements WebMvcConfigurer {
         // Herkese ayni cevap veren okuma uclarina HTTP onbellek basligi (yol beyaz listesi PublicCacheInterceptor icinde)
         registry.addInterceptor(publicCache).addPathPatterns("/api/news", "/api/news/*", "/api/menu", "/api/menu/*",
                 "/api/status", "/api/app/info", "/api/app/version", "/api/faq", "/api/legal", "/api/legal/*",
-                "/api/communities/categories", "/api/campus/map", "/api/campus/places", "/api/campus/places/*");
+                "/api/communities/categories");
     }
 }

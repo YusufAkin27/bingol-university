@@ -126,7 +126,7 @@ class NotificationMessageBatchTest {
             all.add(target(id, false));
         }
 
-        svc.sendNewMessageBatch(all, "Grup - Ali", null, false, GROUP, 1);
+        svc.sendNewMessageBatch(all, "Grup - Ali", null, GROUP, 1);
 
         // 600 alici = 250 + 250 + 100 -> 3 parca; her parca: 1 aktiflik/dil + 1 tercih + 1 alt tur sorgusu.
         // Mesajlar bildirim kutusuna YAZILMAZ (yalniz push): kutu yazimi (upsertUnread) hic yok.
@@ -163,7 +163,7 @@ class NotificationMessageBatchTest {
         }
 
         svc.sendNewMessageBatch(List.of(target(1, true), target(2, true), target(3, true), target(4, true),
-                target(5, true), target(6, false), target(7, true)), "Ali", null, false, GROUP, 1);
+                target(5, true), target(6, false), target(7, true)), "Ali", null, GROUP, 1);
 
         // Kutu satiri HIC yazilmaz (mesajlar yalniz push)
         verify(writer, never()).upsertUnread(anyCollection(), any(), any(), any(), anyString(), any(), any(), anyInt(), any());
@@ -180,7 +180,7 @@ class NotificationMessageBatchTest {
         tokenMap.put(1L, List.of("tok-1-aaaaaaaaaaaaaaaaaaaaaaaa"));
         returnedCount = 3; // satir sayaci 3'e cikti (birlestirilmis 3 mesaj)
 
-        svc.sendNewMessageBatch(List.of(target(1, true)), "Ali", null, false, GROUP, 3);
+        svc.sendNewMessageBatch(List.of(target(1, true)), "Ali", null, GROUP, 3);
 
         // birlestirilmis dagitimda sayac artik satirdan degil `increment`ten gelir (kutu satiri yok)
         verify(writer, never()).upsertUnread(anyCollection(), any(), any(), any(), anyString(), any(), any(), anyInt(), any());
@@ -190,21 +190,15 @@ class NotificationMessageBatchTest {
     }
 
     @Test
-    void previewIsKeptOnlyForOptedInRecipientsAndBadgeComesFromOneQuery() {
+    void previewGoesToEveryRecipientAndBadgeComesFromOneQuery() {
         for (long id : new long[] {1, 2}) {
             tokenMap.put(id, List.of("tok-" + id + "-aaaaaaaaaaaaaaaaaaaaaaaa"));
         }
-        NotificationPref yes = new NotificationPref();
-        yes.setUserId(1L);
-        yes.setMessagePreview(true);
-        prefMap.put(1L, yes);
-
-        svc.sendNewMessageBatch(List.of(target(1, true), target(2, true)), "Ali", "gizli metin", true, GROUP, 1);
+        svc.sendNewMessageBatch(List.of(target(1, true), target(2, true)), "Ali", "gizli metin", GROUP, 1);
 
         List<PushMessage> sent = fcm.messages();
         assertEquals(2, sent.size());
-        assertTrue(sent.stream().anyMatch(m -> "gizli metin".equals(m.body())), "onizleme izni olana metin gider");
-        assertTrue(sent.stream().anyMatch(m -> "Yeni mesaj".equals(m.body())), "izinsize sabit govde");
+        assertTrue(sent.stream().allMatch(m -> "gizli metin".equals(m.body())), "onizleme herkese gider");
         verify(notifications, times(1)).unreadCountsOf(anyCollection());
         verify(notifications, times(1)).deviceTokensOf(anyCollection());
     }
@@ -216,7 +210,7 @@ class NotificationMessageBatchTest {
         when(guard.canReceive(anyLong())).thenReturn(true);
         when(notifications.save(any(Notification.class))).thenAnswer(i -> i.getArgument(0));
 
-        svc.sendNewMessageBatch(List.of(target(1, false), target(2, false)), "Ali", null, false, GROUP, 1);
+        svc.sendNewMessageBatch(List.of(target(1, false), target(2, false)), "Ali", null, GROUP, 1);
 
         verify(notifications, never()).save(any(Notification.class)); // mesaj kutuya yazilmaz
         verify(writer, never()).upsertUnread(anyCollection(), any(), any(), any(), anyString(), any(), any(), anyInt(), any());
@@ -226,7 +220,7 @@ class NotificationMessageBatchTest {
     @Test
     void pushExtrasAndMessageDataNeverReachInboxStorage() {
         svc.sendNewMessageBatch(List.of(new MessageTarget(1L, false, Map.of("senderAvatarUrl", "/files/a.png"))), "Ali",
-                null, false, GROUP, 1);
+                null, GROUP, 1);
 
         verify(writer, never()).upsertUnread(anyCollection(), any(), any(), any(), anyString(), any(), any(), anyInt(),
                 any(Instant.class));
