@@ -119,6 +119,10 @@ class PostApi {
   Future<PostPage<Post>> minePosts({String? cursor, int size = 10}) =>
       _posts('/posts/mine', {'cursor': cursor, 'size': size});
 
+  /// Ayarlar > Beğendiklerim: benim beğendiğim gönderiler/Reels (beğeni anına göre). [kind]: ALL | PHOTO | VIDEO.
+  Future<PostPage<Post>> likedPosts({String kind = 'ALL', String? cursor, int size = 12}) =>
+      _posts('/posts/liked', {'kind': kind, 'cursor': cursor, 'size': size}, force: cursor == null);
+
   /// `targetType`: `FEED_POST`; `reason`: SPAM, HARASSMENT, INAPPROPRIATE, IMPERSONATION, OTHER.
   Future<void> report(String targetType, int targetId, String reason, {String? note}) =>
       session.api.post('/reports', {

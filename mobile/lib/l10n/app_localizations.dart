@@ -7557,7 +7557,7 @@ abstract class AppLocalizations {
   /// No description provided for @followButtonFollowing.
   ///
   /// In tr, this message translates to:
-  /// **'Takipte'**
+  /// **'Takip ediliyor'**
   String get followButtonFollowing;
 
   /// No description provided for @followersTitle.
@@ -9413,6 +9413,30 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Kayıtlı haberler'**
   String get profileSaved;
+
+  /// No description provided for @profileLiked.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğendiklerim'**
+  String get profileLiked;
+
+  /// No description provided for @likedAll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tümü'**
+  String get likedAll;
+
+  /// No description provided for @likedEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz beğendiğin bir gönderi yok.'**
+  String get likedEmpty;
+
+  /// No description provided for @likedEmptyReels.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz beğendiğin bir Reels yok.'**
+  String get likedEmptyReels;
 
   /// No description provided for @profileAcademic.
   ///

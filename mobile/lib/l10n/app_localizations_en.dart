@@ -5104,6 +5104,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileSaved => 'Saved news';
 
   @override
+  String get profileLiked => 'Liked';
+
+  @override
+  String get likedAll => 'All';
+
+  @override
+  String get likedEmpty => 'You have not liked any posts yet.';
+
+  @override
+  String get likedEmptyReels => 'You have not liked any Reels yet.';
+
+  @override
   String get profileAcademic => 'Academic';
 
   @override

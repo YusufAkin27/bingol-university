@@ -106,7 +106,7 @@ void main() {
       await tester.tap(find.byKey(_btn));
       await settle(tester, const Duration(milliseconds: 500));
       expect(b.count('POST /users/9/follow'), 1);
-      expect(find.text('Takipte'), findsOneWidget); // satır görünümü
+      expect(find.text('Takip ediliyor'), findsOneWidget); // satır görünümü
       expect(find.text('Takibi bırak?'), findsNothing);
       expect(log, ['following', 'following*']);
       await unmount(tester);
@@ -204,7 +204,7 @@ void main() {
         expect(find.text('İstek gönderildi'), findsOneWidget);
         await unmount(tester);
         await _mountButton(tester, b, state: FollowState.following, look: look);
-        expect(find.text(look == FollowLook.row || look == FollowLook.media ? 'Takipte' : 'Takiptesin'), findsOneWidget);
+        expect(find.text(look == FollowLook.row || look == FollowLook.media ? 'Takip ediliyor' : 'Takiptesin'), findsOneWidget);
         await unmount(tester);
         await _mountButton(tester, b, look: look);
         expect(find.text(look == FollowLook.chip ? 'Takip Et' : 'Takip et'), findsOneWidget);
@@ -240,7 +240,7 @@ void main() {
           : null);
       await tester.pumpWidget(buildApp(FollowListPage(session: makeSession(b), userId: 7, followers: true, name: 'Ayşe'), size: kPhoneMedium));
       await settle(tester, const Duration(seconds: 1));
-      expect(find.text('Takipte'), findsOneWidget); // satır düğmesi (altındaki ilişki satırı "Takiptesin" der)
+      expect(find.text('Takip ediliyor'), findsOneWidget); // satır düğmesi (altındaki ilişki satırı "Takiptesin" der)
       expect(find.text('Takiptesin'), findsOneWidget);
       expect(find.text('İstek gönderildi'), findsOneWidget);
       expect(find.text('Takip et'), findsOneWidget);

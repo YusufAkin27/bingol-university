@@ -4034,7 +4034,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get followButtonFollow => 'Takip et';
 
   @override
-  String get followButtonFollowing => 'Takipte';
+  String get followButtonFollowing => 'Takip ediliyor';
 
   @override
   String get followersTitle => 'Takipçiler';
@@ -5078,6 +5078,18 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get profileSaved => 'Kayıtlı haberler';
+
+  @override
+  String get profileLiked => 'Beğendiklerim';
+
+  @override
+  String get likedAll => 'Tümü';
+
+  @override
+  String get likedEmpty => 'Henüz beğendiğin bir gönderi yok.';
+
+  @override
+  String get likedEmptyReels => 'Henüz beğendiğin bir Reels yok.';
 
   @override
   String get profileAcademic => 'Akademik';

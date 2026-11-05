@@ -14,6 +14,7 @@ import 'my_events_page.dart';
 import 'notification_prefs_page.dart';
 import 'privacy_data_page.dart';
 import 'profil_widgets.dart';
+import '../posts/liked_posts_page.dart';
 import 'saved_news_page.dart';
 import 'settings_page.dart';
 
@@ -105,6 +106,12 @@ class _ProfileMenuPageState extends State<ProfileMenuPage> {
                     label: l.profileSaved,
                     value: _saved,
                     onTap: () => _go(SavedNewsPage(session: s), 'saved_news'),
+                  ),
+                  ProfilRow(
+                    key: const ValueKey('menu-liked'),
+                    icon: BuIcons.heart,
+                    label: l.profileLiked,
+                    onTap: () => _go(LikedPostsPage(session: s), 'liked_posts'),
                   ),
                   ProfilRow(
                     key: const ValueKey('menu-my-clubs'),

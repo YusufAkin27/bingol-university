@@ -703,6 +703,15 @@ class FakePosts {
       ];
       return FakeResult.json(_page(list, uri));
     }
+    if (path == '/posts/liked' && m == 'GET') {
+      final kind = uri.queryParameters['kind'] ?? 'ALL';
+      bool isVideo(Map<String, dynamic> p) => (p['media'] as List).any((x) => x['kind'] == 'VIDEO');
+      final list = [
+        for (final p in posts)
+          if (likedIds.contains(p['id']) && (kind == 'VIDEO' ? isVideo(p) : kind == 'PHOTO' ? !isVideo(p) : true)) _withCounts(p)
+      ];
+      return FakeResult.json(_page(list, uri));
+    }
     if (path == '/posts/media' && m == 'POST') {
       if (uploadError != null) {
         return FakeResult.json({'code': uploadError, 'message': 'Yüklenemedi.'}, status: uploadError == 'VIDEO_TOO_LARGE' ? 413 : 400);

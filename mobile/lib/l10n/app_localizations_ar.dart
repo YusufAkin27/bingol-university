@@ -5060,6 +5060,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profileSaved => 'الأخبار المحفوظة';
 
   @override
+  String get profileLiked => 'الإعجابات';
+
+  @override
+  String get likedAll => 'الكل';
+
+  @override
+  String get likedEmpty => 'لم تعجب بأي منشور بعد.';
+
+  @override
+  String get likedEmptyReels => 'لم تعجب بأي ريلز بعد.';
+
+  @override
   String get profileAcademic => 'الأكاديمي';
 
   @override
