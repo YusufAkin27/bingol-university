@@ -12,6 +12,7 @@ import 'identifier.dart';
 import 'locale_controller.dart';
 import 'nav.dart';
 import 'pending_verification.dart';
+import 'two_factor.dart';
 import '../features/auth/verify_email_sheet.dart' show VerifyPrompt;
 import '../features/legal/legal_reaccept.dart';
 import 'realtime/chat_realtime.dart';
@@ -228,9 +229,33 @@ class Session extends ChangeNotifier {
     } catch (_) {}
   }
 
-  Future<void> login(String email, String password) async {
+  /// Giriş. Normal akışta oturum açılır ve null döner. Hesapta iki faktörlü doğrulama açık ve cihaz tanınmıyorsa
+  /// sunucu 202 + `twoFactorRequired:true` + `challengeToken` döner (token YOK, kod e-postaya gitti): oturum açılmaz,
+  /// [TwoFactorChallenge] döner ve çağıran kod adımını gösterip [loginTwoFactor] ile tamamlar.
+  Future<TwoFactorChallenge?> login(String email, String password) async {
     final res = await api.post('/auth/login', {'email': normalizeIdentifier(email), 'password': password, 'client': kClientMobile}, false);
+    final challenge = TwoFactorChallenge.tryParse(res);
+    if (challenge != null) return challenge;
     await _accept(res);
+    return null;
+  }
+
+  /// Giriş ikinci adımı: e-postadaki kod. `trustDevice` açıkça gönderilir (sunucu varsayılanı false; arayüzde de
+  /// varsayılan kapalı). Başarıda normal girişle aynı şekilde oturum açılır; challenge tek kullanımlıktır.
+  Future<void> loginTwoFactor(TwoFactorChallenge challenge, String code, {bool trustDevice = false}) async {
+    final res = await api.post(
+      '/auth/login/2fa',
+      {'challengeToken': challenge.token, 'code': code.trim(), 'trustDevice': trustDevice},
+      false,
+    );
+    await _accept(res);
+  }
+
+  /// Aynı challenge için yeni kod (en çok 3 / 10 dk). Dönen değer: challenge'ın kalan ömrü (sn); yoksa varsayılan.
+  Future<int> resendTwoFactor(TwoFactorChallenge challenge) async {
+    final res = await api.post('/auth/login/2fa/resend', {'challengeToken': challenge.token}, false);
+    final ttl = res is Map ? res['expiresInSeconds'] : null;
+    return ttl is num && ttl > 0 ? ttl.toInt() : challenge.expiresInSeconds;
   }
 
   /// Tam e-postayı döndürür (sunucu yanıtındaki ya da numaradan türetilen). Doğrulaması ertelenen kayıtta
@@ -562,6 +587,17 @@ String? knownErrorText(ApiError e, AppLocalizations l) {
     case 'MAIL_QUOTA_EXHAUSTED':
     case 'MAIL_QUOTA_EXCEEDED':
       return _withRetry(l.errMailQuota, e, l);
+    // İki faktörlü doğrulama (sunucu zaten istek dilinde döner; yerel metin proxy/boş gövde için güvence).
+    case 'TWO_FACTOR_CODE_INVALID':
+      return l.tfErrCodeInvalid;
+    case 'TWO_FACTOR_CHALLENGE_EXPIRED':
+      return l.tfErrChallengeExpired;
+    case 'TWO_FACTOR_LOCKED':
+      return l.tfErrLocked;
+    case 'TWO_FACTOR_ALREADY_ENABLED':
+      return l.tfErrAlreadyEnabled;
+    case 'TWO_FACTOR_NOT_ENABLED':
+      return l.tfErrNotEnabled;
     case 'EMAIL_VERIFICATION_REQUIRED':
       return l.errEmailVerificationRequired;
     case 'DB_TIMEOUT':

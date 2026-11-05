@@ -10607,4 +10607,126 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get calSyncWorking => 'جارٍ الكتابة إلى التقويم…';
+
+  @override
+  String get tfTitle => 'المصادقة الثنائية';
+
+  @override
+  String get tfSecSection => 'أمان تسجيل الدخول';
+
+  @override
+  String get tfOn => 'مفعّلة';
+
+  @override
+  String get tfOff => 'متوقفة';
+
+  @override
+  String get tfToggleSubOff =>
+      'متوقفة. عند تسجيل الدخول من جهاز غير معروف يُرسل رمز إلى بريدك الإلكتروني.';
+
+  @override
+  String get tfToggleSubOn =>
+      'مفعّلة. يُطلب الرمز المرسل إلى بريدك الإلكتروني عند الدخول من جهاز غير معروف.';
+
+  @override
+  String get tfIntro =>
+      'عند الدخول إلى حسابك من جهاز غير معروف يُرسل رمز من 6 أرقام إلى بريدك الإلكتروني. لا يُطلب الرمز على الأجهزة الموثوقة.';
+
+  @override
+  String get tfDevicesSection => 'الأجهزة الموثوقة';
+
+  @override
+  String get tfDevicesEmpty =>
+      'لا توجد أجهزة موثوقة بعد. فعّل خيار الوثوق بهذا الجهاز عند تسجيل الدخول ليظهر هنا.';
+
+  @override
+  String get tfDeviceThis => 'هذا الجهاز';
+
+  @override
+  String get tfDeviceUnnamed => 'جهاز';
+
+  @override
+  String tfDeviceLastUsed(String date) {
+    return 'آخر استخدام $date';
+  }
+
+  @override
+  String get tfDeviceRemove => 'إزالة الجهاز';
+
+  @override
+  String get tfDeviceRemoveTitle => 'هل تريد إزالة الجهاز؟';
+
+  @override
+  String get tfDeviceRemoveBody =>
+      'سيُطلب الرمز مجددًا عند الدخول التالي من هذا الجهاز. لن تُغلق الجلسة المفتوحة.';
+
+  @override
+  String get tfDeviceRemoveConfirm => 'إزالة';
+
+  @override
+  String get tfDeviceRemoved => 'تمت إزالة الجهاز.';
+
+  @override
+  String get tfEnabledToast => 'تم تفعيل المصادقة الثنائية.';
+
+  @override
+  String get tfDisabledToast => 'تم إيقاف المصادقة الثنائية.';
+
+  @override
+  String tfEnableSubtitle(String email) {
+    return 'لتفعيلها أدخل الرمز المكوّن من 6 أرقام المرسل إلى $email. الرمز صالح لمدة 10 دقائق.';
+  }
+
+  @override
+  String get tfEnableSubtitleNoMail =>
+      'لتفعيلها أدخل الرمز المكوّن من 6 أرقام المرسل إلى بريدك الإلكتروني. الرمز صالح لمدة 10 دقائق.';
+
+  @override
+  String get tfDisableTitle => 'هل تريد إيقاف المصادقة الثنائية؟';
+
+  @override
+  String get tfDisableBody =>
+      'أكّد بإدخال كلمة المرور. تُحذف كل الأجهزة الموثوقة ويصبح حسابك محميًا بكلمة المرور فقط.';
+
+  @override
+  String get tfDisableConfirm => 'إيقاف';
+
+  @override
+  String get tfWrongPassword => 'كلمة المرور غير صحيحة.';
+
+  @override
+  String tfLoginSubtitle(String email) {
+    return 'لتسجيل الدخول أدخل الرمز المكوّن من 6 أرقام المرسل إلى $email. الرمز صالح لمدة 10 دقائق.';
+  }
+
+  @override
+  String get tfLoginSubtitleNoMail =>
+      'لتسجيل الدخول أدخل الرمز المكوّن من 6 أرقام المرسل إلى بريدك الإلكتروني. الرمز صالح لمدة 10 دقائق.';
+
+  @override
+  String get tfTrustLabel => 'الوثوق بهذا الجهاز';
+
+  @override
+  String get tfTrustHint =>
+      'لن يُطلب الرمز عند الدخول لاحقًا من هذا الجهاز. فعّله فقط على هاتفك الشخصي.';
+
+  @override
+  String get tfBackToLogin => 'العودة إلى تسجيل الدخول';
+
+  @override
+  String get tfErrCodeInvalid => 'رمز التحقق غير صحيح أو انتهت صلاحيته.';
+
+  @override
+  String get tfErrChallengeExpired =>
+      'انتهت صلاحية جلسة التحقق. يرجى تسجيل الدخول مرة أخرى.';
+
+  @override
+  String get tfErrLocked =>
+      'تم إدخال عدد كبير من رموز التحقق الخاطئة؛ تم قفل الدخول من جهاز جديد لمدة 24 ساعة. يمكنك الدخول من جهاز موثوق أو إعادة تعيين كلمة المرور.';
+
+  @override
+  String get tfErrAlreadyEnabled => 'المصادقة الثنائية مفعّلة بالفعل.';
+
+  @override
+  String get tfErrNotEnabled => 'المصادقة الثنائية غير مفعّلة.';
 }

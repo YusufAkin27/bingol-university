@@ -12,6 +12,7 @@ import 'forgot_password_page.dart';
 import 'help/about_page.dart';
 import 'help/help_form_page.dart';
 import 'register_page.dart';
+import 'two_factor_code_page.dart';
 import 'verify_code_page.dart';
 import 'widgets/auth_motion.dart';
 import 'widgets/auth_ref.dart';
@@ -70,7 +71,7 @@ class _LoginPageState extends State<LoginPage> {
     final l = context.l10n;
     String? retry;
     var text = errorText(e);
-    if (e is ApiError && e.status == 429 && !e.isNetwork) {
+    if (e is ApiError && e.status == 429 && !e.isNetwork && e.code != 'TWO_FACTOR_LOCKED') {
       // Başlık ile bekleme süresi ayrı satırlarda gösterilir.
       retry = retryAfterText(e.retryAfter, l);
       text = e.message.isNotEmpty ? e.message : l.coreErrTooMany;
@@ -94,7 +95,21 @@ class _LoginPageState extends State<LoginPage> {
       _retry = null;
     });
     try {
-      await widget.session.login(_email.text, _password.text);
+      final challenge = await widget.session.login(_email.text, _password.text);
+      if (challenge != null) {
+        // İki faktörlü doğrulama: şifre doğru, kod e-postaya gitti. Oturum henüz yok; kod adımı açılır.
+        if (!mounted) return;
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            settings: const RouteSettings(name: TwoFactorLoginPage.routeName),
+            builder: (_) => TwoFactorLoginPage(session: widget.session, challenge: challenge),
+          ),
+        );
+        // Geri dönüldüyse (oturum açılmadıysa) şifre alanı temizlenir; yeniden giriş yeni kod üretir.
+        if (mounted) _password.clear();
+        return;
+      }
       await widget.session.pending.clear();
     } on ApiError catch (e) {
       if (!mounted) return;

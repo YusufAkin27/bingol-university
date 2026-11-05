@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
+import '../../core/two_factor.dart';
 import '../../widgets/bu.dart';
 import 'profil_widgets.dart';
+import 'two_factor_page.dart';
 
 /// Şifre güncelleme çağrısı: `POST /auth/change-password {currentPassword,newPassword}`.
 /// Yanıt biçimi kesinleşene dek iki durum desteklenir: 204/boş gövde ya da yeni token çifti
@@ -35,9 +37,38 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
   bool _busy = false;
   bool _loggingOut = false;
 
+  /// İki faktörlü doğrulama durumu (satırın değeri). Sessizce yüklenir; alınamazsa satır değersiz kalır, sayfa bozulmaz.
+  bool? _twoFactorOn;
+
   /// Hata özeti (kırmızı kart) ve hangi alanın hatalı olduğu.
   List<String> _errors = const [];
   final Set<String> _bad = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTwoFactor();
+  }
+
+  Future<void> _loadTwoFactor() async {
+    try {
+      final s = await TwoFactorApi(widget.session.api).status();
+      if (mounted) setState(() => _twoFactorOn = s.enabled);
+    } catch (_) {
+      // Durum alınamadı: satır yine açılır, ayrıntı sayfası hatayı ve yeniden denemeyi gösterir.
+    }
+  }
+
+  Future<void> _openTwoFactor() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        settings: const RouteSettings(name: TwoFactorPage.routeName),
+        builder: (_) => TwoFactorPage(session: widget.session),
+      ),
+    );
+    if (mounted) _loadTwoFactor();
+  }
 
   @override
   void dispose() {
@@ -253,6 +284,19 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
                     ),
                   ]),
                 ),
+                const SizedBox(height: 24),
+                Divider(height: 1, thickness: 1, color: t.bd),
+                ProfilFlatSection(l.tfSecSection, top: 24, upper: true),
+                ProfilFlatGroup(outlined: true, children: [
+                  ProfilFlatRow(
+                    key: const ValueKey('sec-2fa'),
+                    icon: BuIcons.shieldCheck,
+                    plainIcon: true,
+                    label: l.tfTitle,
+                    value: _twoFactorOn == null ? null : (_twoFactorOn! ? l.tfOn : l.tfOff),
+                    onTap: _openTwoFactor,
+                  ),
+                ]),
                 const SizedBox(height: 24),
                 Divider(height: 1, thickness: 1, color: t.bd),
                 ProfilFlatSection(l.profil2SecSessions, top: 24, upper: true),
