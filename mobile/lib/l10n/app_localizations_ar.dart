@@ -10887,4 +10887,234 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get calSyncWorking => 'جارٍ الكتابة إلى التقويم…';
+
+  @override
+  String get forumHomeA11y => 'منتدى الحرم الجامعي';
+
+  @override
+  String get forumHomeHint => 'المكان الذي يتحدث فيه الجميع في الحرم الجامعي';
+
+  @override
+  String get forumHomeSearch => 'ابحث في المنتدى';
+
+  @override
+  String get forumHomeNotifications => 'الإشعارات';
+
+  @override
+  String get forumHomeNewTopic => 'موضوع جديد';
+
+  @override
+  String get forumHomeSortTitle => 'ترتيب حسب';
+
+  @override
+  String get forumHomeSortForYou => 'لك';
+
+  @override
+  String get forumHomeSortNewest => 'الأحدث';
+
+  @override
+  String get forumHomeSortPopular => 'الأكثر شعبية';
+
+  @override
+  String get forumHomeSortMostCommented => 'الأكثر تعليقًا';
+
+  @override
+  String get forumHomeSortFollowing => 'ما أتابعه';
+
+  @override
+  String get forumHomeCategoryAll => 'الكل';
+
+  @override
+  String get forumHomeCategories => 'الفئات';
+
+  @override
+  String get forumHomePinned => 'مثبّت';
+
+  @override
+  String get forumHomeLocked => 'مقفل';
+
+  @override
+  String get forumHomePoll => 'استطلاع';
+
+  @override
+  String get forumHomeEdited => 'معدّل';
+
+  @override
+  String forumHomeCommentsA11y(String n) {
+    return '$n تعليق';
+  }
+
+  @override
+  String forumHomeLikesA11y(String n) {
+    return '$n إعجاب';
+  }
+
+  @override
+  String get forumHomeOpenComments => 'افتح التعليقات';
+
+  @override
+  String get forumHomeLike => 'أعجبني';
+
+  @override
+  String get forumHomeUnlike => 'إلغاء الإعجاب';
+
+  @override
+  String get forumHomeSave => 'حفظ';
+
+  @override
+  String get forumHomeUnsave => 'إزالة من المحفوظات';
+
+  @override
+  String get forumHomeShare => 'مشاركة';
+
+  @override
+  String get forumHomeMore => 'المزيد';
+
+  @override
+  String get forumHomeMenuCopyLink => 'نسخ الرابط';
+
+  @override
+  String get forumHomeMenuReport => 'إبلاغ';
+
+  @override
+  String get forumHomeMenuMute => 'كتم المستخدم';
+
+  @override
+  String get forumHomeMenuBlock => 'حظر الكاتب';
+
+  @override
+  String get forumHomeBlockTitle => 'هل تريد حظر هذا الكاتب؟';
+
+  @override
+  String get forumHomeBlockBody =>
+      'لن تظهر لك مواضيع هذا الكاتب وتعليقاته بعد الآن. إذا كان مجهولًا فلن تُكشف هويته.';
+
+  @override
+  String get forumHomeBlockConfirm => 'حظر';
+
+  @override
+  String get forumHomeMuteTitle => 'هل تريد كتم هذا المستخدم؟';
+
+  @override
+  String get forumHomeMuteBody =>
+      'لن يظهر لك محتوى هذا المستخدم. يمكنك التراجع في أي وقت.';
+
+  @override
+  String get forumHomeMuteConfirm => 'كتم';
+
+  @override
+  String get forumHomeBlocked => 'تم حظر الكاتب';
+
+  @override
+  String get forumHomeMuted => 'تم كتم المستخدم';
+
+  @override
+  String get forumHomeLinkCopied => 'تم نسخ الرابط';
+
+  @override
+  String get forumHomeLikeFailed => 'تعذّر حفظ الإعجاب';
+
+  @override
+  String get forumHomeSaveFailed => 'تعذّر إتمام الحفظ';
+
+  @override
+  String get forumHomeEmptyTitle => 'لا توجد مواضيع بعد';
+
+  @override
+  String get forumHomeEmptyBody => 'ابدأ أول موضوع ودع الحرم الجامعي يتحدث.';
+
+  @override
+  String get forumHomeEmptyAction => 'ابدأ موضوعًا';
+
+  @override
+  String get forumHomeEmptyCategoryTitle => 'لا توجد مواضيع في هذه الفئة';
+
+  @override
+  String get forumHomeEmptyCategoryBody => 'جرّب فئة أخرى أو ابدأ أول موضوع.';
+
+  @override
+  String get forumHomeEmptyFollowingTitle => 'أنت لا تتابع أي موضوع';
+
+  @override
+  String get forumHomeEmptyFollowingBody =>
+      'تابع موضوعًا وستظهر تعليقاته الجديدة هنا.';
+
+  @override
+  String get forumHomeLoadMoreFailed => 'تعذّر تحميل المزيد';
+
+  @override
+  String get forumHomeStripSub =>
+      'المكان الذي يتحدث فيه الجميع في الحرم الجامعي';
+
+  @override
+  String get forumHomeTalkedTitle => 'الأكثر نقاشًا في الحرم';
+
+  @override
+  String get forumHomeTalkedAll => 'عرض الكل';
+
+  @override
+  String get forumStateOffline =>
+      'لا يوجد اتصال بالإنترنت. حاول مرة أخرى عند عودة الاتصال.';
+
+  @override
+  String get forumStateServerError =>
+      'الخادم غير متاح حاليًا. حاول مرة أخرى بعد قليل.';
+
+  @override
+  String get forumStateSessionExpired =>
+      'انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.';
+
+  @override
+  String get forumStateNotFound =>
+      'لم يتم العثور على هذا المحتوى أو تمت إزالته.';
+
+  @override
+  String get forumStateTopicRemoved => 'تمت إزالة هذا الموضوع.';
+
+  @override
+  String get forumStateCommentRemoved => 'تمت إزالة هذا التعليق.';
+
+  @override
+  String get forumStateCommentDeleted => 'تم حذف هذا التعليق.';
+
+  @override
+  String get forumStateLocked => 'تم إغلاق التعليقات على هذا الموضوع.';
+
+  @override
+  String get forumStateNotOwner => 'ليست لديك صلاحية لهذا الإجراء.';
+
+  @override
+  String get forumStateRateLimited =>
+      'أنت سريع جدًا. انتظر قليلًا وحاول مرة أخرى.';
+
+  @override
+  String get forumStateDuplicate => 'لقد نشرت المحتوى نفسه قبل قليل.';
+
+  @override
+  String get forumStateProfanity =>
+      'يحتوي النص على ألفاظ غير لائقة. عدّله وحاول مرة أخرى.';
+
+  @override
+  String get forumStatePollClosed => 'انتهى هذا الاستطلاع.';
+
+  @override
+  String get forumStateAlreadyVoted => 'لقد صوّتّ في هذا الاستطلاع بالفعل.';
+
+  @override
+  String get forumStateEmptyContent => 'لا يمكن نشر محتوى فارغ.';
+
+  @override
+  String get forumStateNoAccess => 'لا يمكنك الوصول إلى هذا المحتوى.';
+
+  @override
+  String get forumStateGeneric => 'حدث خطأ ما. حاول مرة أخرى.';
+
+  @override
+  String get forumHomeMenuSaved => 'المواضيع المحفوظة';
+
+  @override
+  String get forumHomeMenuActivity => 'نشاطي في المنتدى';
+
+  @override
+  String get forumHomeMenuPrefs => 'إعدادات إشعارات المنتدى';
 }
