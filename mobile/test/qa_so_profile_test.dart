@@ -82,14 +82,17 @@ void main() {
       final b = otherBe(over: {'postCount': 4, 'reelCount': 1});
       await tester.pumpWidget(buildApp(UserProfilePage(session: makeSession(b), userId: 2), size: kPhoneMedium));
       await settle(tester, const Duration(milliseconds: 900));
-      expect(find.text('Gönderiler 4'), findsOneWidget);
-      expect(find.text('Reels 1'), findsOneWidget);
+      // Sekme etiketlerinde sayı yazmaz (yalnız "Gönderiler" ve "Reels").
+      expect(find.text('Gönderiler'), findsOneWidget);
+      expect(find.text('Reels'), findsOneWidget);
+      expect(find.text('Gönderiler 4'), findsNothing);
+      expect(find.text('Reels 1'), findsNothing);
       expect(find.text('GÖNDERİLER'), findsNothing);
       expect(find.byType(ProfileContentTabs), findsOneWidget);
       expect(b.requests.any((r) => r.startsWith('GET /users/2/posts?size=9')), isTrue);
       expect(b.requests.any((r) => r.contains('/reels')), isFalse);
-      await tester.ensureVisible(find.text('Reels 1'));
-      await tester.tap(find.text('Reels 1'));
+      await tester.ensureVisible(find.text('Reels'));
+      await tester.tap(find.text('Reels'));
       await settle(tester, const Duration(milliseconds: 700));
       expect(b.requests.any((r) => r.startsWith('GET /users/2/reels?size=9')), isTrue);
       expect(find.byKey(const ValueKey('profile-reel-9')), findsOneWidget);
@@ -144,24 +147,28 @@ void main() {
   });
 
   group('ProfileTab (kendi profilim)', () {
-    testWidgets('Gönderiler | Reels sekmeleri kimlik altında; Gönderilerim satırı kalktı; Reels /users/1/reels', (tester) async {
+    testWidgets('Gönderiler | Reels sekmeleri kimlik altında; altta satır listesi yok; Reels /users/1/reels', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = meBe();
       await tester.pumpWidget(buildApp(ProfileTab(session: makeSession(b), themeController: ThemeController()), size: kPhoneMedium));
       await settle(tester, const Duration(milliseconds: 900));
       expect(find.byType(ProfileContentTabs), findsOneWidget);
-      expect(find.text('Gönderiler 5'), findsOneWidget);
-      expect(find.text('Reels 1'), findsOneWidget);
+      expect(find.text('Gönderiler'), findsOneWidget);
+      expect(find.text('Reels'), findsOneWidget);
+      expect(find.text('Gönderiler 5'), findsNothing);
+      expect(find.text('Reels 1'), findsNothing);
       expect(find.text('Gönderilerim'), findsNothing);
       expect(b.requests.any((r) => r.startsWith('GET /posts/mine?size=9')), isTrue);
       expect(find.byKey(const ValueKey('profile-post-11')), findsOneWidget);
-      await tester.ensureVisible(find.text('Reels 1'));
-      await tester.tap(find.text('Reels 1'));
+      await tester.ensureVisible(find.text('Reels'));
+      await tester.tap(find.text('Reels'));
       await settle(tester, const Duration(milliseconds: 700));
       expect(b.requests.any((r) => r.startsWith('GET /users/1/reels?size=9')), isTrue);
       expect(find.byKey(const ValueKey('profile-reel-19')), findsOneWidget);
-      // Ayar satırları hâlâ erişilebilir (hesap silme Ayarlar'dadır).
-      await tester.scrollUntilVisible(find.text('Ayarlar'), 300, scrollable: find.byType(Scrollable).first);
+      // Profilim'in altında satır listesi yok; Ayarlar üç çizgi menüsündedir.
+      expect(find.text('Ayarlar'), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('profile-menu-button')));
+      await settle(tester, const Duration(milliseconds: 700));
       expect(find.text('Ayarlar'), findsOneWidget);
       noErr(tester);
       await unmount(tester);

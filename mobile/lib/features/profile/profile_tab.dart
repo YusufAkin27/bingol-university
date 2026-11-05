@@ -6,28 +6,21 @@ import '../../core/platform/image_service.dart' show ImageSource;
 import '../../core/session.dart';
 import '../../core/theme_controller.dart';
 import '../../widgets/bu.dart';
-import '../academic/academic_hub_page.dart';
 import '../follow/follow_requests_api.dart';
-import '../follow/follow_requests_page.dart';
 import '../follow/follow_summary.dart';
 import '../posts/post_api.dart';
 import '../posts/user_posts_page.dart';
-import '../support/support_page.dart';
 import '../media_crop/media_crop.dart' show PhotoSource, showPhotoSourceSheet;
 import 'avatar_upload.dart';
-import 'my_clubs_page.dart';
-import 'my_events_page.dart';
-import 'notification_prefs_page.dart';
 import 'profile_content_tabs.dart';
 import 'profile_inline_edit.dart';
-import 'profil_widgets.dart';
-import 'settings_page.dart';
+import 'profile_menu_page.dart';
 import 'verify_email_card.dart';
-import 'saved_news_page.dart';
 
-/// Profil sekmesi (Stitch v3 birebir): "Profilim", satır içi düzenlenen kimlik kartı (88 dp avatar, ad, bölüm/sınıf çipleri, bio, e-posta anahtarı),
-/// tek kutuda 3 sütun sayaç (Takipçi · Takip · Gönderi) ve simgesiz 56 dp satır listeleri (İçeriğim, Uygulama tercihleri).
-/// Dil, tema, hesap, gizlilik, çıkış Ayarlar sayfasındadır. İlk yüklemede iskelet, çekerek yenile, aşamalı giriş.
+/// Profil sekmesi: "Profilim" + sağ üstte üç çizgi menüsü ([ProfileMenuPage]: tüm liste satırları orada), satır içi düzenlenen kimlik kartı
+/// (88 dp avatar, ad, bölüm/sınıf çipleri, bio), tek kutuda 3 sütun sayaç (Takipçi · Takip · Gönderi) ve Gönderiler | Reels sekmeleri.
+/// Altta satır listesi yoktur. Dil, tema, hesap, gizlilik (e-posta gösterme anahtarı dahil), çıkış Ayarlar sayfasındadır.
+/// İlk yüklemede iskelet, çekerek yenile, aşamalı giriş.
 class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key, required this.session, required this.themeController, this.localeController, this.avatarHooks = const AvatarHooks()});
 
@@ -50,9 +43,9 @@ class _ProfileTabState extends State<ProfileTab> {
   bool _loading = true;
   int _gen = 0;
   // İstatistikler: null = yüklenmedi / alınamadı.
-  String? _clubs, _events, _saved, _posts;
+  String? _posts;
 
-  /// Bekleyen takip isteği sayısı (satır yalnız > 0 iken görünür).
+  /// Bekleyen takip isteği sayısı (menü düğmesinde nokta rozeti yalnız > 0 iken görünür).
   int _followReq = 0;
 
   /// Çekerek yenilemede artar: içerik sekmeleri (Gönderiler | Reels) baştan yüklenir.
@@ -93,28 +86,17 @@ class _ProfileTabState extends State<ProfileTab> {
     }
   }
 
-  // Tek istekte kulüp / etkinlik / kayıtlı haber sayıları.
+  // Gönderi sayısı (sayaç şeridi) ve bekleyen takip isteği; alınamazsa gösterilmez, sayfa çalışmaya devam eder.
   Future<void> _loadStats() async {
+    _loadFollowRequests();
+    // Mevcut kendi-gönderilerim ucunun toplamı (yeni uç yok); alınamazsa "–" kalır.
     try {
-      final r = await widget.session.api.get('/me/summary') as Map<String, dynamic>;
-      if (!mounted) return;
-      setState(() {
-        _clubs = '${(r['communities'] as num?)?.toInt() ?? 0}';
-        _events = '${(r['events'] as num?)?.toInt() ?? 0}';
-        _saved = '${(r['bookmarks'] as num?)?.toInt() ?? 0}';
-      });
-      _loadFollowRequests();
-      // Gönderi sayısı: mevcut kendi-gönderilerim ucunun toplamı (yeni uç yok); alınamazsa "–" kalır.
-      try {
-        final pr = await PostApi(widget.session).minePosts(size: 1);
-        if (mounted) setState(() => _posts = '${pr.total ?? pr.items.length}');
-      } catch (_) {}
-    } catch (_) {
-      // Sayılar alınamazsa gösterilmez; sayfa çalışmaya devam eder.
-    }
+      final pr = await PostApi(widget.session).minePosts(size: 1);
+      if (mounted) setState(() => _posts = '${pr.total ?? pr.items.length}');
+    } catch (_) {}
   }
 
-  /// Bekleyen takip isteği sayısı; alınamazsa satır gizli kalır.
+  /// Bekleyen takip isteği sayısı; alınamazsa rozet gizli kalır.
   Future<void> _loadFollowRequests() async {
     try {
       final n = await FollowRequestsApi(widget.session).count();
@@ -126,6 +108,9 @@ class _ProfileTabState extends State<ProfileTab> {
     await Navigator.push(context, MaterialPageRoute(settings: RouteSettings(name: screen), builder: (_) => page));
     if (mounted) _loadStats();
   }
+
+  Future<void> _openMenu() => _go(
+      ProfileMenuPage(session: widget.session, themeController: widget.themeController, localeController: widget.localeController), 'profile_menu');
 
   // -------------------------------------------------------------------------------------------------------------
   // Hızlı profil fotoğrafı: avatara dokun -> alt sayfa (çek / seç / düzenle / kaldır)
@@ -236,13 +221,12 @@ class _ProfileTabState extends State<ProfileTab> {
     final extraCells = [
       StatCell(label: l.icerikStatPosts, value: n(p['postCount']?.toString()) ?? n(_posts), onTap: () => _go(UserPostsPage(session: widget.session), 'user_posts')),
     ];
-    // Stitch v3: bölüm etiketi + 56 dp simgesiz satırlar, tek kutu; kulüp/etkinlik sayıları satırın sağında (mut).
     return BuStaggerScope(
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsetsDirectional.fromSTEB(20, top + 12, 20, kNavInset + 24),
         children: [
-          const BuStaggerItem(index: 0, child: _TitleRow()),
+          BuStaggerItem(index: 0, child: _TitleRow(onMenu: _openMenu, badge: _followReq > 0)),
           const SizedBox(height: 16),
           VerifyEmailCard(session: widget.session),
           BuStaggerItem(
@@ -267,7 +251,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   )
                 : StatStrip(cells: extraCells),
           ),
-          // Gönderiler | Reels (ilk 9 kare, "Daha fazla göster"): Instagram profili gibi kimlik altında, ayar satırlarının üstünde.
+          // Gönderiler | Reels (ilk 9 kare, "Daha fazla göster"): Instagram profili gibi kimlik ve sayaç şeridinin altında.
           if (uid != null)
             BuStaggerItem(
               index: 2,
@@ -280,112 +264,38 @@ class _ProfileTabState extends State<ProfileTab> {
                   name: widget.session.displayName,
                   gutter: 0,
                   pageSize: 9,
-                  postCount: (p['postCount'] as num?)?.toInt(),
-                  reelCount: (p['reelCount'] as num?)?.toInt(),
                 ),
               ),
             ),
-          BuStaggerItem(
-            index: 2,
-            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              ProfilSection(l.profil1SecContent, top: 24),
-              ProfilCard(children: [
-                // Takip istekleri (yalnız bekleyen varken): sayı satırın sağında metin, rozet yok.
-                if (_followReq > 0)
-                  ProfilRow(
-                    key: const ValueKey('profile-follow-requests'),
-                    icon: BuIcons.userPlus,
-                    label: l.frqReqTitle,
-                    value: '$_followReq',
-                    onTap: () => _go(FollowRequestsPage(session: widget.session), 'follow_requests'),
-                  ),
-                ProfilRow(
-                  icon: BuIcons.bookmark,
-                  label: l.profileSaved,
-                  value: _saved,
-                  onTap: () => _go(SavedNewsPage(session: widget.session), 'saved_news'),
-                ),
-                ProfilRow(
-                  icon: BuIcons.users,
-                  label: l.profileMyClubs,
-                  value: _clubs,
-                  onTap: () => _go(MyClubsPage(session: widget.session), 'my_clubs'),
-                ),
-                ProfilRow(
-                  icon: BuIcons.calendar,
-                  label: l.profileMyEvents,
-                  value: _events,
-                  onTap: () => _go(MyEventsPage(session: widget.session), 'my_events'),
-                ),
-              ]),
-            ]),
-          ),
-          BuStaggerItem(
-            index: 3,
-            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              ProfilSection(l.p18SecPrefs, top: 24),
-              ProfilCard(children: [
-                ProfilRow(
-                  icon: BuIcons.graduationCap,
-                  label: l.profileAcademic,
-                  onTap: () => _go(AcademicHubPage(session: widget.session), 'academic_hub'),
-                ),
-                ProfilRow(
-                  icon: BuIcons.bell,
-                  label: l.notifTitle,
-                  onTap: () => _go(NotificationPrefsPage(session: widget.session), 'notification_prefs'),
-                ),
-                ProfilRow(
-                  icon: BuIcons.settings,
-                  label: l.settingsTitle,
-                  onTap: () => _go(SettingsPage(
-                    session: widget.session,
-                    themeController: widget.themeController,
-                    localeController: widget.localeController,
-                  ), 'settings'),
-                ),
-                ProfilRow(
-                  icon: BuIcons.headset,
-                  label: l.profil1Support,
-                  onTap: () => _go(SupportPage(session: widget.session), 'support'),
-                ),
-              ]),
-            ]),
-          ),
         ],
       ),
     );
   }
 }
 
-/// Sayfa başlığı ("Profilim", 28/700). Düzenleme düğmesi yok: alanlar kimlik kartında yerinde düzenlenir.
+/// Sayfa başlığı ("Profilim", 28/700) + sağ üstte üç çizgi menü düğmesi (tüm liste satırları [ProfileMenuPage]'de).
+/// Düzenleme düğmesi yok: alanlar kimlik kartında yerinde düzenlenir. [badge]: bekleyen takip isteği noktası.
 class _TitleRow extends StatelessWidget {
-  const _TitleRow();
+  const _TitleRow({required this.onMenu, this.badge = false});
+
+  final VoidCallback onMenu;
+  final bool badge;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
-    return Semantics(
-      container: true,
-      header: true,
-      child: Row(children: [
-        // Stitch profil-v4: 48 dp soft karo (16 dp köşe), simge vurgu rengi.
-        ExcludeSemantics(
-          child: Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(16)),
-            child: Icon(BuIcons.user, size: 24, color: t.pr),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
+    return Row(children: [
+      Expanded(
+        child: Semantics(
+          header: true,
           child: Text(l.p18ProfileTitle,
               maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.display.copyWith(fontSize: 28, height: 1.1, fontWeight: FontWeight.w700, color: t.ink)),
         ),
-      ]),
-    );
+      ),
+      const SizedBox(width: 12),
+      BuIconButton(key: const ValueKey('profile-menu-button'), icon: BuIcons.menu, tooltip: l.profileMenuTitle, badge: badge, onTap: onMenu),
+    ]);
   }
 }
 
@@ -455,7 +365,7 @@ class _TappableAvatar extends StatelessWidget {
   }
 }
 
-/// İlk yükleme iskeleti: profil kartı + sayaç şeridi + gruplu satırlar (gerçek düzenle aynı ölçüler, sayfa zıplamaz).
+/// İlk yükleme iskeleti: profil kartı + sayaç şeridi + sekme çubuğu ve ızgara (gerçek düzenle aynı ölçüler, sayfa zıplamaz).
 /// [error] doluysa üstte kırmızı hata kartı ("Yüklenemedi, tekrar dene" + "Yeniden dene") görünür.
 class _ProfileSkeleton extends StatelessWidget {
   const _ProfileSkeleton({required this.top, this.error, this.onRetry});
@@ -470,39 +380,21 @@ class _ProfileSkeleton extends StatelessWidget {
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
     final cs = Theme.of(context).colorScheme;
-    Widget group(int rows) => BuCard(
-          padding: EdgeInsets.zero,
-          child: Column(children: [
-            for (var i = 0; i < rows; i++)
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Row(children: [
-                  BuSkeleton(width: 36, height: 36, radius: 12),
-                  SizedBox(width: 14),
-                  Expanded(child: BuSkeleton.line(height: 14)),
-                ]),
-              ),
-          ]),
-        );
-    final skeleton = BuSkeletonScope(
+    const skeleton = BuSkeletonScope(
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const Column(children: [
+        Column(children: [
           BuSkeleton.circle(88),
           SizedBox(height: 16),
           BuSkeleton.line(width: 160, height: 18),
           SizedBox(height: 10),
           BuSkeleton.line(width: 200),
         ]),
-        const SizedBox(height: 24),
-        const BuSkeleton(height: 88, radius: 16),
-        const SizedBox(height: 24),
-        const BuSkeleton.line(width: 110, height: 12),
-        const SizedBox(height: 8),
-        group(3),
-        const SizedBox(height: 24),
-        const BuSkeleton.line(width: 80, height: 12),
-        const SizedBox(height: 8),
-        group(3),
+        SizedBox(height: 24),
+        BuSkeleton(height: 88, radius: 16),
+        SizedBox(height: 24),
+        BuSkeleton(height: 40, radius: 12),
+        SizedBox(height: 12),
+        BuSkeletonList(variant: BuSkeletonVariant.grid, itemCount: 6, shrinkWrap: true, padding: EdgeInsets.zero),
       ]),
     );
     return Semantics(

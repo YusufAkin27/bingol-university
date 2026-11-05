@@ -116,7 +116,7 @@ final _shots = <_Shot>[
   }),
   _Shot('04_profil_sekmesi', (b) => ProfileTab(session: makeSession(b), themeController: ThemeController())),
   _Shot('05_profil_reels_sekmesi', (b) => ProfileTab(session: makeSession(b), themeController: ThemeController()), after: (t) async {
-    final f = find.text('Reels 3');
+    final f = find.text('Reels');
     await t.scrollUntilVisible(f, 300, scrollable: find.byType(Scrollable).first);
     await t.tap(f);
   }),

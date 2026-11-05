@@ -562,7 +562,7 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('Profil sekmesi: n>0 iken İçeriğim kutusunda sayı metinli satır; n=0 iken yok', (tester) async {
+    testWidgets('Profil menüsü: n>0 iken İçeriğim kutusunda sayı metinli satır (Profilim sayfasında yok); n=0 iken yok', (tester) async {
       useScreen(tester, kPhoneMedium);
       FakeBackend be(int n) => FakeBackend()
         ..on('/me/summary', {'communities': 1, 'events': 2, 'bookmarks': 3})
@@ -572,6 +572,9 @@ void main() {
         ..on('/users/me/follow-requests*', {'items': <Object>[], 'nextCursor': null, 'total': 0});
       await tester.pumpWidget(buildApp(ProfileTab(session: makeSession(be(4)), themeController: ThemeController()), size: kPhoneMedium));
       await settle(tester, const Duration(seconds: 1));
+      expect(find.byKey(const ValueKey('profile-follow-requests')), findsNothing); // Profilim'in altında satır yok
+      await tester.tap(find.byKey(const ValueKey('profile-menu-button')));
+      await settle(tester, const Duration(seconds: 1));
       final rowFinder = find.byKey(const ValueKey('profile-follow-requests'));
       expect(rowFinder, findsOneWidget);
       expect(find.descendant(of: rowFinder, matching: find.text('Takip istekleri')), findsOneWidget);
@@ -579,6 +582,9 @@ void main() {
       await unmount(tester);
       await tester.pumpWidget(buildApp(ProfileTab(session: makeSession(be(0)), themeController: ThemeController()), size: kPhoneMedium));
       await settle(tester, const Duration(seconds: 1));
+      await tester.tap(find.byKey(const ValueKey('profile-menu-button')));
+      await settle(tester, const Duration(seconds: 1));
+      expect(find.text('Kayıtlı haberler'), findsOneWidget);
       expect(find.byKey(const ValueKey('profile-follow-requests')), findsNothing);
       await unmount(tester);
     });

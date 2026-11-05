@@ -22,7 +22,7 @@ Map<String, dynamic> post(int id, {bool video = false}) => {
 
 Widget host(FakeBackend b, {bool locked = false, int userId = 7}) => Scaffold(
       body: SingleChildScrollView(
-        child: ProfileContentTabs(session: makeSession(b), userId: userId, locked: locked, postCount: 4, reelCount: 2),
+        child: ProfileContentTabs(session: makeSession(b), userId: userId, locked: locked),
       ),
     );
 
@@ -54,14 +54,14 @@ void main() {
     });
     await tester.pumpWidget(buildApp(host(b)));
     await settle(tester, const Duration(milliseconds: 500));
-    expect(find.text('Gönderiler 4'), findsOneWidget);
-    expect(find.text('Reels 2'), findsOneWidget);
+    expect(find.text('Gönderiler'), findsOneWidget);
+    expect(find.text('Reels'), findsOneWidget);
     expect(find.byKey(const ValueKey('profile-post-1')), findsOneWidget);
     final w = tester.getSize(find.byKey(const ValueKey('profile-post-1'))).width;
     expect((w - (390 - 40 - 6) / 3).abs(), lessThan(1));
     // Reels yalniz secilince istenir.
     expect(b.requests.any((r) => r.contains('/reels')), isFalse);
-    await tester.tap(find.text('Reels 2'));
+    await tester.tap(find.text('Reels'));
     await settle(tester, const Duration(milliseconds: 600));
     expect(find.byKey(const ValueKey('profile-reel-9')), findsOneWidget);
     expect(find.text('1:05'), findsOneWidget);
@@ -77,7 +77,7 @@ void main() {
     await tester.pumpWidget(buildApp(host(b)));
     await settle(tester, const Duration(milliseconds: 500));
     expect(find.text('Henüz gönderi yok.'), findsOneWidget);
-    await tester.tap(find.text('Reels 2'));
+    await tester.tap(find.text('Reels'));
     await settle(tester, const Duration(milliseconds: 600));
     expect(find.text('Henüz reels yok.'), findsOneWidget);
     expect(find.text('Yeniden dene'), findsNothing);

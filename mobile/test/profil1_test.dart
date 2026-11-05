@@ -57,7 +57,7 @@ void main() {
   for (final br in Brightness.values) {
     for (final rtl in [false, true]) {
       final tag = '${br.name}${rtl ? ' rtl' : ''} 320';
-      testWidgets('ProfileTab $tag: gruplar görünür, taşma yok', (tester) async {
+      testWidgets('ProfileTab $tag: kimlik kartı + menü satırları, taşma yok', (tester) async {
         useScreen(tester, kPhoneSmall);
         final b = backend();
         await tester.pumpWidget(wrap(
@@ -71,11 +71,14 @@ void main() {
         // Bölüm ve sınıf ayrı çipler; hesap/gizlilik/dil/tema/çıkış Ayarlar sayfasındadır.
         expect(find.text('Bilgisayar Mühendisliği'), findsOneWidget);
         expect(find.text('3. sınıf'), findsOneWidget);
-        for (final s in ['Kayıtlı haberler', 'Kulüplerim', 'Etkinliklerim']) {
-          await tester.scrollUntilVisible(find.text(s), 200, scrollable: find.byType(Scrollable).first);
-          expect(find.text(s), findsOneWidget);
+        // Profilim'in altında satır listesi yok; tüm satırlar sağ üstteki üç çizgi menüsünde.
+        for (final s in ['Kayıtlı haberler', 'Kulüplerim', 'Etkinliklerim', 'Akademik', 'Bildirimler', 'Ayarlar', 'Yardım ve destek']) {
+          expect(find.text(s), findsNothing);
         }
-        for (final s in ['Akademik', 'Bildirimler', 'Ayarlar', 'Yardım ve destek']) {
+        expect(tester.takeException(), isNull);
+        await tester.tap(find.byKey(const ValueKey('profile-menu-button')));
+        await settle(tester);
+        for (final s in ['Gönderilerim', 'Kayıtlı haberler', 'Kulüplerim', 'Etkinliklerim', 'Akademik', 'Bildirimler', 'Gizlilik ve veriler', 'Ayarlar', 'Yardım ve destek']) {
           await tester.scrollUntilVisible(find.text(s), 200, scrollable: find.byType(Scrollable).first);
           expect(find.text(s), findsOneWidget);
         }

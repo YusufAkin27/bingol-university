@@ -15,7 +15,8 @@ import '../../widgets/bu.dart';
 ///
 /// * Ad soyad ve Hakkımda: dokununca alanın yerinde metin kutusu açılır (klavye, sayaç, ✓ kaydet / ✕ vazgeç).
 /// * Bölüm ve Sınıf: dokunulabilir çipler; mevcut seçici alt sayfa açılır, seçimle KAYDEDİLİR.
-/// * "E-postamı göster": anahtar, değişince anında kaydedilir.
+///
+/// "E-postamı göster" anahtarı Ayarlar > Gizlilik ve veriler sayfasındadır (profil kartında yok).
 ///
 /// Kayıt alan başınadır (kısmi `PATCH /users/me`), iyimser güncellenir; hata olursa eski değere dönülür ve toast gösterilir.
 /// Tek anda tek alan düzenlenir; kayıt sürerken yeni düzenleme/kayıt başlamaz (çift istek yok).
@@ -57,7 +58,7 @@ class _InlineProfileHeroState extends State<InlineProfileHero> {
   _Field? _editing;
   String? _error;
 
-  /// Sürmekte olan kaydın alanı (name, bio, dept, grade, email); null = boşta.
+  /// Sürmekte olan kaydın alanı (name, bio, dept, grade); null = boşta.
   String? _busyKey;
 
   @override
@@ -216,20 +217,12 @@ class _InlineProfileHeroState extends State<InlineProfileHero> {
     await _commit('grade', {'grade': r});
   }
 
-  Future<void> _toggleEmail(bool v) async {
-    if (_busyKey != null) return;
-    if (_editing != null && !await _finish()) return;
-    if (!mounted) return;
-    await _commit('email', {'showEmail': v});
-  }
-
   // ---------------------------------------------------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
-    final p = _p;
     final name = _str('displayName');
     final facultyCanon = _str('faculty');
     final deptRaw = _str('department');
@@ -237,7 +230,6 @@ class _InlineProfileHeroState extends State<InlineProfileHero> {
     final g = _grade;
     final grade = (g == null || g.isEmpty) ? '' : gradeLabelL(l, g);
     final bio = _str('bio');
-    final showEmail = p['showEmail'] == true;
     final dur = AppMotion.of(context, AppMotion.normal);
 
     return PopScope(
@@ -251,7 +243,7 @@ class _InlineProfileHeroState extends State<InlineProfileHero> {
         padding: EdgeInsets.zero,
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               Center(child: widget.avatar),
               const SizedBox(height: 12),
@@ -349,31 +341,6 @@ class _InlineProfileHeroState extends State<InlineProfileHero> {
                           ),
               ),
             ]),
-          ),
-          Divider(height: 1, thickness: 1, color: t.bdSubtle),
-          MergeSemantics(
-            child: InkWell(
-              onTap: _busyKey != null ? null : () => _toggleEmail(!showEmail),
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 56),
-                child: Padding(
-                  padding: const EdgeInsetsDirectional.fromSTEB(20, 6, 12, 6),
-                  child: Row(children: [
-                    Expanded(
-                      child: Text(l.profileShowEmail, style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 15, color: t.ink)),
-                    ),
-                    if (_busyKey == 'email') const _Saving(),
-                    const SizedBox(width: 8),
-                    Switch(
-                      key: const ValueKey('inline-show-email'),
-                      value: showEmail,
-                      onChanged: _busyKey != null ? null : _toggleEmail,
-                    ),
-                  ]),
-                ),
-              ),
-            ),
           ),
         ]),
       ),

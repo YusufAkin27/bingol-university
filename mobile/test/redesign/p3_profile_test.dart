@@ -7,6 +7,7 @@ import 'package:bu_kampus/features/profile/my_clubs_page.dart';
 import 'package:bu_kampus/features/profile/privacy_data_page.dart';
 import 'package:bu_kampus/features/profile/profil2_delete_account_page.dart';
 import 'package:bu_kampus/features/profile/profil2_my_data_page.dart';
+import 'package:bu_kampus/features/profile/profile_menu_page.dart';
 import 'package:bu_kampus/features/profile/profile_tab.dart';
 import 'package:bu_kampus/features/profile/profil_widgets.dart' show ProfilRow, ProfilTopBar;
 import 'package:bu_kampus/features/profile/settings_page.dart';
@@ -142,35 +143,38 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('listeler simgesiz 56 dp satir; kulup/etkinlik sayisi satirin sagindaki deger', (tester) async {
+    testWidgets('Profilim altinda satir listesi yok; satirlar uc cizgi menusunde, kulup/etkinlik sayisi satirin sagindaki deger', (tester) async {
       await _open(tester, ProfileTab(session: makeSession(_backend()), themeController: ThemeController()));
-      for (final s in ['Kayıtlı haberler', 'Kulüplerim', 'Etkinliklerim']) {
+      expect(find.byType(ProfilRow), findsNothing);
+      for (final s in ['Kayıtlı haberler', 'Kulüplerim', 'Etkinliklerim', 'Ayarlar']) {
+        expect(find.text(s), findsNothing, reason: s);
+      }
+      await tester.tap(find.byKey(const ValueKey('profile-menu-button')));
+      await settle(tester, const Duration(seconds: 1));
+      expect(find.byType(ProfileMenuPage), findsOneWidget);
+      for (final s in ['Gönderilerim', 'Kayıtlı haberler', 'Kulüplerim', 'Etkinliklerim', 'Akademik', 'Bildirimler', 'Gizlilik ve veriler', 'Ayarlar', 'Yardım ve destek']) {
         expect(find.text(s), findsOneWidget, reason: s);
       }
-      // Önerilen kişiler artık Ana Sayfa'da; profilde satırı yok.
+      // Önerilen kişiler artık Ana Sayfa'da; menüde satırı yok.
       expect(find.text('Önerilen kişiler'), findsNothing);
-      expect(find.byIcon(BuIcons.newspaper), findsNothing);
-      expect(find.byIcon(BuIcons.bell), findsNothing);
-      // Satir ici duzenleme karti ilk ekrani uzattigindan alt gruplar tembel olusturulur: gorunen satirlar denetlenir.
       final rows = find.byType(ProfilRow);
-      expect(rows.evaluate().length, greaterThanOrEqualTo(3));
+      expect(rows.evaluate().length, greaterThanOrEqualTo(9));
       for (var i = 0; i < rows.evaluate().length; i++) {
         expect(tester.getSize(rows.at(i)).height, greaterThanOrEqualTo(56));
       }
       // Kulup (3) ve Etkinlik (4) sayilari ilgili satirda deger olarak durur.
       expect(find.descendant(of: find.widgetWithText(ProfilRow, 'Kulüplerim'), matching: find.text('3')), findsOneWidget);
       expect(find.descendant(of: find.widgetWithText(ProfilRow, 'Etkinliklerim'), matching: find.text('4')), findsOneWidget);
-      // Dil/tema/cikis profil sekmesinde degil, Ayarlar sayfasinda.
+      // Dil/tema/cikis menude degil, Ayarlar sayfasinda.
       expect(find.text('Çıkış yap'), findsNothing);
       expect(find.text('Tema'), findsNothing);
       await unmount(tester);
     });
 
-    testWidgets('Ayarlar satiri Ayarlar sayfasini acar', (tester) async {
+    testWidgets('Menude Ayarlar satiri Ayarlar sayfasini acar', (tester) async {
       await _open(tester, ProfileTab(session: makeSession(_backend()), themeController: ThemeController()));
-      await tester.scrollUntilVisible(find.widgetWithText(ProfilRow, 'Ayarlar'), 200, scrollable: find.byType(Scrollable).first);
-      await tester.ensureVisible(find.widgetWithText(ProfilRow, 'Ayarlar'));
-      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.byKey(const ValueKey('profile-menu-button')));
+      await settle(tester, const Duration(seconds: 1));
       await tester.tap(find.widgetWithText(ProfilRow, 'Ayarlar'));
       await settle(tester, const Duration(seconds: 1));
       expect(find.byType(SettingsPage), findsOneWidget);

@@ -4812,7 +4812,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profileBioHint => 'عرّف بنفسك باختصار';
 
   @override
-  String get profileShowEmail => 'إظهار بريدي الإلكتروني للمستخدمين الآخرين';
+  String get profileMenuTitle => 'القائمة';
 
   @override
   String get profileSave => 'حفظ';
@@ -5782,7 +5782,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'الأشخاص الذين تشترك معهم في نادٍ أو محادثة أو فعالية.';
 
   @override
-  String get profil2ShowEmail => 'إظهار بريدي الإلكتروني في ملفي';
+  String get profil2ShowEmail => 'إظهار بريدي الإلكتروني للمستخدمين الآخرين';
 
   @override
   String get profil2ShowEmailSub => 'عند الإيقاف، أنت فقط من يراه';
