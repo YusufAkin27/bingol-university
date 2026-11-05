@@ -18,6 +18,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatReactionOneEmoji => 'Choose a single emoji.';
 
   @override
+  String get chatReactionSearchHint => 'Search emoji';
+
+  @override
+  String get chatReactionNoResults => 'No results';
+
+  @override
+  String get chatReactionRecent => 'Recently used';
+
+  @override
+  String get chatReactionFrequent => 'Frequently used';
+
+  @override
+  String get chatReactionCatFaces => 'Smileys';
+
+  @override
+  String get chatReactionCatPeople => 'People';
+
+  @override
+  String get chatReactionCatNature => 'Animals and nature';
+
+  @override
+  String get chatReactionCatFood => 'Food and drink';
+
+  @override
+  String get chatReactionCatActivities => 'Activities';
+
+  @override
+  String get chatReactionCatTravel => 'Travel';
+
+  @override
+  String get chatReactionCatObjects => 'Objects';
+
+  @override
+  String get chatReactionCatSymbols => 'Symbols';
+
+  @override
+  String get chatReactionCatFlags => 'Flags';
+
+  @override
+  String get chatReactionUnsupported => 'This emoji is not supported right now';
+
+  @override
+  String get chatReactionLimit =>
+      'This message cannot have more different emojis';
+
+  @override
   String get chatMessageInfoTitle => 'Message info';
 
   @override

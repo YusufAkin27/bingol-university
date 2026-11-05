@@ -482,7 +482,8 @@ class MessageBubble extends StatelessWidget {
                     _ReactionChip(
                       emoji: '${rx['emoji']}',
                       count: (rx['count'] as num?)?.toInt() ?? 0,
-                      mine: myReaction == rx['emoji'],
+                      mine: myReaction?.replaceAll('️', '') ==
+                          '${rx['emoji']}'.replaceAll('️', ''),
                       onTap: () => onReact('${rx['emoji']}'),
                     ),
                 ]),

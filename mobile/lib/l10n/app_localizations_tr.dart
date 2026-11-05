@@ -18,6 +18,52 @@ class AppLocalizationsTr extends AppLocalizations {
   String get chatReactionOneEmoji => 'Tek bir emoji seçin.';
 
   @override
+  String get chatReactionSearchHint => 'Emoji ara';
+
+  @override
+  String get chatReactionNoResults => 'Sonuç bulunamadı';
+
+  @override
+  String get chatReactionRecent => 'Son kullanılan';
+
+  @override
+  String get chatReactionFrequent => 'Sık kullanılan';
+
+  @override
+  String get chatReactionCatFaces => 'Yüzler';
+
+  @override
+  String get chatReactionCatPeople => 'İnsanlar';
+
+  @override
+  String get chatReactionCatNature => 'Hayvanlar ve doğa';
+
+  @override
+  String get chatReactionCatFood => 'Yemek ve içecek';
+
+  @override
+  String get chatReactionCatActivities => 'Aktivite';
+
+  @override
+  String get chatReactionCatTravel => 'Seyahat';
+
+  @override
+  String get chatReactionCatObjects => 'Nesneler';
+
+  @override
+  String get chatReactionCatSymbols => 'Semboller';
+
+  @override
+  String get chatReactionCatFlags => 'Bayraklar';
+
+  @override
+  String get chatReactionUnsupported => 'Bu emoji şu an desteklenmiyor';
+
+  @override
+  String get chatReactionLimit =>
+      'Bu mesajda daha fazla farklı emoji kullanılamaz';
+
+  @override
   String get chatMessageInfoTitle => 'Mesaj bilgisi';
 
   @override

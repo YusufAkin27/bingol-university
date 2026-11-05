@@ -572,6 +572,17 @@ String? knownErrorText(ApiError e, AppLocalizations l) {
       return l.chatClosedBanner;
     case 'CERTIFICATE_REVOKED': // P07: yönetici sertifikayı iptal etti, yeniden alınamaz
       return l.errCertificateRevoked;
+    // Tepki: eski sunucu 5 emojilik beyaz liste uygular; yeni sunucu geçersiz emojiyi/farklı emoji sınırını reddeder.
+    case 'REACTION_NOT_ALLOWED':
+    case 'REACTION_INVALID':
+    case 'INVALID_REACTION':
+    case 'REACTION_EMOJI_INVALID':
+      return l.chatReactionUnsupported;
+    case 'REACTION_LIMIT':
+    case 'REACTION_LIMIT_REACHED':
+    case 'REACTION_TOO_MANY':
+    case 'TOO_MANY_REACTIONS':
+      return l.chatReactionLimit;
     case 'COMMUNITY_NOT_FOUND': // P06: kulüp kapatıldı (HIDDEN) / silindi
       return l.clubUnavailable;
   }
