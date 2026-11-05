@@ -163,7 +163,45 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('anket yuvasi: pollBuilder konuda anket varsa cagrilir', (tester) async {
+    testWidgets('anket: konuda anket varsa PollView gorunur; oy verilir ve sonuc konuya yansir', (tester) async {
+      final poll = {
+        'id': 1,
+        'question': 'Hangisi?',
+        'options': [
+          {'id': 11, 'text': 'Secenek A', 'voteCount': 0, 'percent': 0},
+          {'id': 12, 'text': 'Secenek B', 'voteCount': 0, 'percent': 0},
+        ],
+        'totalVotes': 0,
+        'myOptionId': null,
+        'closed': false,
+        'allowChangeVote': false,
+        'canVote': true,
+      };
+      final r = await open(tester, prepare: (f, c) => f.byId(500)!['poll'] = poll);
+      r.b.handlers.add((req, path) {
+        if (req.method == 'PUT' && path == '/forum/topics/500/poll/vote') {
+          return FakeResult.json({
+            ...poll,
+            'options': [
+              {'id': 11, 'text': 'Secenek A', 'voteCount': 1, 'percent': 100.0},
+              {'id': 12, 'text': 'Secenek B', 'voteCount': 0, 'percent': 0},
+            ],
+            'totalVotes': 1,
+            'myOptionId': 11,
+          });
+        }
+        return null;
+      });
+      expect(find.byKey(const ValueKey('topicPoll')), findsOneWidget);
+      expect(find.byKey(const ValueKey('pollView')), findsOneWidget);
+      expect(find.text('Secenek A'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('pollOption11')));
+      await settle(tester, const Duration(seconds: 1));
+      expect(r.b.bodies['PUT /forum/topics/500/poll/vote'], {'optionId': 11});
+      await unmount(tester);
+    });
+
+    testWidgets('anket yuvasi: ozel pollBuilder verilirse o cizilir', (tester) async {
       await open(
         tester,
         prepare: (f, c) => f.byId(500)!['poll'] = {

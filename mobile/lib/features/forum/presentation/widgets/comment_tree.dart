@@ -148,12 +148,12 @@ List<CommentRow> flattenComments(List<CommentNode> roots, {int baseDepth = 0, in
     if (n.replyCount <= 0 && n.children.isEmpty) return;
     final childLevel = level + 1;
     if (n.expanded && n.loadingReplies) {
-      rows.add(CommentRow(CommentRowKind.loading, n, childLevel));
+      rows.add(CommentRow(CommentRowKind.loading, n, childLevel, exiting: exiting));
     } else if (n.expanded && n.repliesError != null) {
-      rows.add(CommentRow(CommentRowKind.error, n, childLevel));
+      rows.add(CommentRow(CommentRowKind.error, n, childLevel, exiting: exiting));
     }
     if (!n.collapsing) {
-      rows.add(CommentRow(CommentRowKind.footer, n, childLevel));
+      rows.add(CommentRow(CommentRowKind.footer, n, childLevel, exiting: exiting));
     }
   }
 

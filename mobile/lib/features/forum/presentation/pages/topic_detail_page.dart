@@ -21,12 +21,13 @@ import '../widgets/comment_controller.dart';
 import '../widgets/comment_interactions.dart';
 import '../widgets/comment_section.dart';
 import '../widgets/comment_tree.dart';
+import '../widgets/poll_view.dart';
 import '../widgets/topic_detail_header.dart';
 import '../widgets/topic_detail_menu.dart';
 import '../widgets/topic_detail_share.dart';
 import 'comment_thread_page.dart';
 
-/// Anket parçasının bağlantı noktası (MB-C `PollView`): konu ve güncel anket değişikliği bildirimi verilir.
+/// Anket parçası üreticisi (yalnız test/özelleştirme; varsayılan MB-C `PollView`).
 typedef TopicPollBuilder = Widget Function(BuildContext context, ForumApi api, TopicView topic, ValueChanged<ForumPoll> onChanged);
 
 /// Konu detayı: yazar, kategori, tarih, başlık, TAM açıklama, görseller, anket, beğeni / yorum / kaydet / takip /
@@ -56,7 +57,7 @@ class TopicDetailPage extends StatefulWidget {
   /// Test için API örneği.
   final ForumApi? api;
 
-  /// Anket parçası (MB-C `PollView`); verilmezse anket çizilmez.
+  /// Anket parçası üreticisi; verilmezse MB-C `PollView` çizilir.
   final TopicPollBuilder? pollBuilder;
 
   @override
@@ -510,11 +511,12 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
           SliverToBoxAdapter(
             child: TopicHeaderBlock(summary: s, full: topic, session: widget.session, onOpenProfile: _openAuthorProfile),
           ),
-          if (topic?.poll != null && widget.pollBuilder != null)
+          if (topic?.poll != null)
             SliverToBoxAdapter(
               child: Padding(
+                key: const ValueKey('topicPoll'),
                 padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 0),
-                child: widget.pollBuilder!(context, _api, topic!, (p) => setState(() => _topic = topic.copyWith(poll: p))),
+                child: _poll(context, topic!),
               ),
             ),
           if (locked) const SliverToBoxAdapter(child: TopicLockedBand()),
@@ -534,6 +536,17 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
         ],
       ),
     );
+  }
+
+  /// Anket (MB-C `PollView`): oy/geri alma sunucuda onaylanınca konudaki anket güncellenir.
+  Widget _poll(BuildContext context, TopicView topic) {
+    void changed(ForumPoll p) {
+      final cur = _topic;
+      if (mounted && cur != null) setState(() => _topic = cur.copyWith(poll: p));
+    }
+
+    return widget.pollBuilder?.call(context, _api, topic, changed) ??
+        PollView(key: ValueKey('poll-${topic.poll!.id}'), poll: topic.poll!, api: _api, topicId: topic.id, onChanged: changed);
   }
 
   List<Widget> _commentSlivers(BuildContext context, TopicView topic) {

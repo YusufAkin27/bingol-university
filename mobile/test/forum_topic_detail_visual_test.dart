@@ -1,4 +1,4 @@
-import 'package:bu_kampus/features/forum/presentation/pages/comment_thread_page.dart';
+import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/features/forum/presentation/pages/topic_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -73,16 +73,12 @@ void main() {
   });
 }
 
-/// Zincir ekranını doğrudan açan sahne: konu ekranından `commentChain-3` ile açılır.
+/// Zincir ekranı sahnesi: derin yoruma (c4) bağlantıyla açılır, konu ekranı zincir ekranını kendisi iter.
 class _ThreadHost extends StatelessWidget {
   const _ThreadHost({required this.session});
 
-  final dynamic session;
+  final Session session;
 
   @override
   Widget build(BuildContext context) => TopicDetailPage(session: session, topicId: 500, commentId: 4);
 }
-
-// CommentThreadPage tipi içe aktarımı (analizör kullanılmayan içe aktarmayı uyarmasın).
-// ignore: unused_element
-Type get _unused => CommentThreadPage;
