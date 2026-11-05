@@ -9,6 +9,7 @@ import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
 import 'bubble_entry.dart';
 import 'bubble_text_meta.dart';
+import 'chat_bubble_colors.dart';
 import 'chat_media.dart';
 import 'chat_video_cover.dart';
 import 'chat_media_parts.dart';
@@ -131,24 +132,25 @@ class MessageBubble extends StatelessWidget {
     final ghost = deleted || removed;
     final adminRemoved = ghost && isAdminRemovedText(m['text'] as String?);
     final failed = state == 'failed';
-    // Giden baloncuk marka kırmızısı (t.pr) üstünde t.onPr; gelen baloncuk yüzey (t.sf). Silinen/kaldırılan:
-    // soluk zemin; gönderilemedi: yumuşak kırmızı. Çevrimdışı kuyruktaki mesaj normal "gönderiliyor" görünür.
+    // Monochrome: gelen balon gri yüzey (sf2), giden balon birincil ton (koyuda açık, açıkta koyu).
+    // Silinen/kaldırılan: soluk zemin; gönderilemedi: nötr yüzey. Çevrimdışı kuyruktaki mesaj normal "gönderiliyor" görünür.
+    final bc = ChatBubbleColors.of(t);
     final Color bodyColor;
     final Color fg;
     if (ghost) {
-      bodyColor = adminRemoved ? t.soft : t.sf2;
+      bodyColor = adminRemoved ? t.soft : t.sf;
       fg = adminRemoved ? t.onSoft : t.mut;
     } else if (mine && failed) {
       bodyColor = t.soft;
       fg = t.onSoft;
     } else {
-      bodyColor = mine ? t.prPressed : t.sf;
-      fg = mine ? t.onPr : t.ink;
+      bodyColor = mine ? bc.outgoing : bc.incoming;
+      fg = mine ? bc.onOutgoing : bc.onIncoming;
     }
     final solidMine = mine && !ghost && !failed;
     final metaColor = solidMine
-        ? t.onPr.withValues(alpha: .75)
-        : (adminRemoved ? t.onSoft.withValues(alpha: .8) : t.mut);
+        ? bc.metaOutgoing
+        : (adminRemoved ? t.onSoft.withValues(alpha: .8) : bc.metaIncoming);
     final d = DateTime.tryParse((m['createdAt'] as String?) ?? '')?.toLocal();
     final reply = m['replyTo'] is Map
         ? Map<String, dynamic>.from(m['replyTo'] as Map)
@@ -231,11 +233,8 @@ class MessageBubble extends StatelessWidget {
             _Tick(
                 status: tick,
                 color: color,
-                // Okundu = MAVİ çift tik: kırmızı balonda gök mavisi, koyu temadaki açık pembe balonda koyu mavi.
-                readColor: readColor ??
-                    (solidMine
-                        ? (Theme.of(context).brightness == Brightness.dark ? t.readDeep : t.readSky)
-                        : t.info),
+                // Okundu = MAVİ çift tik (anlamsal): açık balonda koyu mavi, koyu balonda gök mavisi (kontrast testli).
+                readColor: readColor ?? (solidMine ? bc.readOnOutgoing : bc.readOnIncoming),
                 failedColor: t.danger),
           ],
         ]);
@@ -360,9 +359,9 @@ class MessageBubble extends StatelessWidget {
             ? null
             : metaRow(
                 onceLocked
-                    ? t.onMedia
+                    ? t.mut
                     : (solidMine ? t.onSoft.withValues(alpha: .8) : metaColor),
-                readColor: onceLocked ? t.readSky : (solidMine ? t.info : null)),
+                readColor: onceLocked ? bc.readOnIncoming : (solidMine ? t.info : null)),
       );
     }
 
@@ -394,7 +393,7 @@ class MessageBubble extends StatelessWidget {
           horizontal: mediaStyle ? 0 : 12, vertical: mediaStyle ? 0 : 8),
       decoration: BoxDecoration(
         color: onceLocked
-            ? BuTokens.light.ink
+            ? bc.incoming
             : (softPill
                 ? t.soft
                 : (oncePill && !mine && !ghost ? t.sf2 : bodyColor)),
@@ -580,8 +579,8 @@ class MessageBubble extends StatelessWidget {
     final box = Container(
       margin: const EdgeInsets.only(bottom: 6),
       decoration: BoxDecoration(
-        color: mine ? t.scrim.withValues(alpha: .18) : t.sf2,
-        borderRadius: BorderRadius.circular(12),
+        color: mine ? fg.withValues(alpha: .12) : t.sf3,
+        borderRadius: BorderRadius.circular(10),
       ),
       clipBehavior: Clip.antiAlias,
       child: IntrinsicHeight(
@@ -682,7 +681,8 @@ class _ReactionChip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
           decoration: BoxDecoration(
             color: mine ? t.soft : t.sf,
-            border: mine ? null : Border.all(color: t.bd),
+            // Benim tepkim: nötr zemin + belirgin `ink` kenarlık (soft ile sf neredeyse aynı tonda).
+            border: Border.all(color: mine ? t.selectedBorder : t.bd),
             borderRadius: BuRadius.bPill,
           ),
           child: Text('${RecentReactions.display(emoji)} $count',
@@ -1267,11 +1267,11 @@ class _SwipeReplyState extends State<_SwipeReply>
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                      color: (_armed ? t.soft : t.sf2).withValues(alpha: k),
+                      color: (_armed ? t.pr : t.sf2).withValues(alpha: k),
                       shape: BoxShape.circle),
                   child: Icon(_p < 0 ? BuIcons.info : BuIcons.reply,
                       size: 15,
-                      color: (_armed ? t.onSoft : t.mut).withValues(alpha: k)),
+                      color: (_armed ? t.onPr : t.mut).withValues(alpha: k)),
                 ),
               ),
             ),
@@ -1316,19 +1316,18 @@ class ViewOnceCard extends StatelessWidget {
 
     Widget content;
     if (locked) {
-      // Marka lacivertinde (her iki temada) koyu kart: medya baloncuğuyla aynı ağırlıkta durur.
-      final navy = BuTokens.light.ink;
+      // Gelen balonla aynı nötr yüzey (sf2); düğme birincil ton: iki temada da okunur (koyu zemine sabit renk yok).
       content = Container(
         width: 272,
         padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
         decoration:
-            BoxDecoration(color: navy, borderRadius: BorderRadius.circular(18)),
+            BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(18)),
         child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(children: [
-                OnceBadge(color: t.onMedia, dashed: true, size: 36),
+                OnceBadge(color: t.ink, dashed: true, size: 36),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -1338,22 +1337,22 @@ class ViewOnceCard extends StatelessWidget {
                         Row(children: [
                           Icon(BuIcons.camera,
                               size: 14,
-                              color: t.onMedia.withValues(alpha: .85)),
+                              color: t.mut),
                           const SizedBox(width: 6),
                           Expanded(
                               child: Text(l.chatMiscOnceTapToOpen,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: tx.labelLarge!.copyWith(
-                                      color: t.onMedia,
-                                      fontWeight: FontWeight.w400))),
+                                      color: t.ink,
+                                      fontWeight: BuType.emphasisWeight))),
                         ]),
                         const SizedBox(height: 2),
                         Text(l.p08OnceSubtitle,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: tx.labelSmall!.copyWith(
-                                color: t.onMedia.withValues(alpha: .62))),
+                                color: t.mut)),
                       ]),
                 ),
               ]),
@@ -1363,7 +1362,7 @@ class ViewOnceCard extends StatelessWidget {
                   height: 36,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration:
-                      BoxDecoration(color: t.pr, borderRadius: BuRadius.bPill),
+                      BoxDecoration(color: t.pr, borderRadius: BorderRadius.circular(10)),
                   alignment: Alignment.center,
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     Icon(BuIcons.eye, size: 16, color: t.onPr),

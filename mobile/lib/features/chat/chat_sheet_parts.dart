@@ -8,7 +8,7 @@ import 'chatlist_widgets.dart';
 
 /// Sohbet alt sayfaları ve pencereleri (Stitch 21-6 İlet, 22 sessize al / üye ekle / grup adı): ortak parçalar.
 
-/// Seçim dairesi (İlet, Üye ekle): seçiliyken dolu kırmızı daire, değilken çizgili boş daire.
+/// Seçim dairesi (İlet, Üye ekle): seçiliyken dolu birincil (nötr) daire, değilken çizgili boş daire.
 class ChatSheetCheck extends StatelessWidget {
   const ChatSheetCheck({super.key, required this.on, this.filledOff = false});
 
@@ -36,7 +36,7 @@ class ChatSheetCheck extends StatelessWidget {
   }
 }
 
-/// Seçenek düğmesi (sessize alma süresi): seçiliyken kırmızı halka + beyaz nokta.
+/// Seçenek düğmesi (sessize alma süresi): seçiliyken birincil ton (nötr) + ters nokta, değilken çizgili boş daire.
 class ChatSheetRadio extends StatelessWidget {
   const ChatSheetRadio({super.key, required this.on});
 
@@ -51,7 +51,10 @@ class ChatSheetRadio extends StatelessWidget {
         width: 24,
         height: 24,
         alignment: Alignment.center,
-        decoration: BoxDecoration(shape: BoxShape.circle, color: on ? t.danger : t.bd.withValues(alpha: .7)),
+        decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: on ? t.pr : Colors.transparent,
+            border: on ? null : Border.all(color: t.bdStrong, width: 2)),
         child: on ? Container(width: 8, height: 8, decoration: BoxDecoration(color: t.onPr, shape: BoxShape.circle)) : null,
       ),
     );
@@ -187,7 +190,9 @@ Future<String?> showChatMuteSheet(BuildContext context, {required String chatNam
               button: true,
               child: Material(
                 color: on ? t.soft : Colors.transparent,
-                borderRadius: BuRadius.bMd,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BuRadius.bMd,
+                    side: BorderSide(color: on ? t.selectedBorder : Colors.transparent)),
                 child: InkWell(
                   borderRadius: BuRadius.bMd,
                   onTap: () {

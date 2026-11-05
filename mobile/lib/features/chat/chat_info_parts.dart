@@ -306,8 +306,9 @@ class ChatInfoQuickAction extends StatelessWidget {
               width: 52,
               height: 52,
               alignment: Alignment.center,
-              decoration: BoxDecoration(color: active ? t.soft : t.sf2, shape: BoxShape.circle),
-              child: Icon(icon, size: 24, color: active ? t.onSoft : t.ink),
+              // Açık eylem: birincil ton (nötr `soft` zemini `sf2` ile aynı olduğundan ayırt edilemezdi).
+              decoration: BoxDecoration(color: active ? t.pr : t.sf2, shape: BoxShape.circle),
+              child: Icon(icon, size: 24, color: active ? t.onPr : t.ink),
             ),
             const SizedBox(height: 6),
             Text(label,

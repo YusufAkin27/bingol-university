@@ -196,9 +196,9 @@ class NcPillButton extends StatelessWidget {
       child: Material(
         key: pillKey,
         color: Colors.transparent,
-        shape: const StadiumBorder(),
+        shape: const RoundedRectangleBorder(borderRadius: BuRadius.bControl),
         child: InkWell(
-          customBorder: const StadiumBorder(),
+          customBorder: const RoundedRectangleBorder(borderRadius: BuRadius.bControl),
           onTap: busy ? null : onTap,
           // Stitch v3: küçük çerçeveli düğme (34 dp görünür, 48 dp dokunma alanı), pr metin.
           child: ConstrainedBox(
@@ -210,7 +210,7 @@ class NcPillButton extends StatelessWidget {
                 constraints: const BoxConstraints(minWidth: 44),
                 padding: const EdgeInsets.symmetric(horizontal: 14),
                 alignment: Alignment.center,
-                decoration: BoxDecoration(borderRadius: BuRadius.bPill, border: Border.all(color: t.bdStrong)),
+                decoration: BoxDecoration(borderRadius: BuRadius.bControl, border: Border.all(color: t.bdStrong)),
                 child: busy
                     ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2.2, color: fg))
                     : Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(color: fg, fontWeight: FontWeight.w400)),

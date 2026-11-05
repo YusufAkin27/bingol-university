@@ -122,12 +122,12 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
 
   @override
   Widget build(BuildContext context) {
-    final outer = context.bu;
     // Klavye açıkken küçük resim şeridi gizlenir: kısa ekranda alan, açıklama ve gönder düğmesine kalsın.
     final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
-    _pr = outer.pr;
-    _onPr = outer.onPr;
-    _prPressed = outer.prPressed;
+    // Medya sahnesi her temada koyu: birincil ton da koyu belirteçten (açık temada siyah düğme koyu sahnede kaybolurdu).
+    _pr = BuTokens.dark.pr;
+    _onPr = BuTokens.dark.onPr;
+    _prPressed = BuTokens.dark.prPressed;
     // Koyu belirteçler: medya sahnesi her temada koyu.
     final dark = BuTheme.forLocale(Brightness.dark, Localizations.localeOf(context).languageCode);
     return Theme(
@@ -138,20 +138,6 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
           backgroundColor: t.bg,
           resizeToAvoidBottomInset: true,
           body: Stack(children: [
-            // Üstte hafif marka parıltısı (referans: bulanık kırmızı halka).
-            Positioned.fill(
-              child: IgnorePointer(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      center: const Alignment(0, -1.05),
-                      radius: .8,
-                      colors: [_pr.withValues(alpha: .16), _pr.withValues(alpha: 0)],
-                    ),
-                  ),
-                ),
-              ),
-            ),
             SafeArea(
               child: Column(children: [
                 _topBar(context),
@@ -476,7 +462,6 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
   }
 
   Widget _sendButton(BuildContext context) {
-    final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final label = context.l10n.sohbetmedyaSendItems(_picks.length.toString());
     return Padding(
@@ -494,8 +479,7 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: _pr,
-              borderRadius: BuRadius.bMd,
-              boxShadow: [BoxShadow(color: t.scrim.withValues(alpha: .35), blurRadius: 20, offset: const Offset(0, 10), spreadRadius: -6)],
+              borderRadius: BuRadius.bControl,
             ),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: [
               Flexible(

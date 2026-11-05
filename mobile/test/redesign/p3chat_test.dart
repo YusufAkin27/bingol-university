@@ -75,8 +75,8 @@ void main() {
       expect(hot.color, bu.sf);
       final read = tester.widget<Material>(find.ancestor(of: find.text('Edebiyat Kulübü'), matching: find.byType(Material)).first);
       expect(read.color, Colors.transparent);
-      // Ayırıcı: son satır hariç her satırın altında 1 dp bd çizgi (3 satır -> 2 çizgi).
-      final hairlines = tester.widgetList<Container>(find.byType(Container)).where((c) => c.color == bu.bd && c.constraints?.maxHeight == 1);
+      // Ayırıcı: son satır hariç her satırın altında 1 dp bdSubtle çizgi (3 satır -> 2 çizgi).
+      final hairlines = tester.widgetList<Container>(find.byType(Container)).where((c) => c.color == bu.bdSubtle && c.constraints?.maxHeight == 1);
       expect(hairlines.length, 2);
       // Tür simgesi (megafon/takvim rozeti) avatarda yok; tür yalnız nötr etiketle söylenir.
       expect(find.byIcon(BuIcons.megaphone), findsNothing);

@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
+import 'chat_bubble_colors.dart';
 import 'chat_wallpaper.dart';
 
 /// Profil > Ayarlar > Sohbetler > "Sohbet arka planı" (Stitch v3 Kategori 6): başlık, mini konuşma önizlemesi,
-/// segment Desen | Düz, Desen'de segment Yoğunluk Hafif | Orta, kırmızı "Uygula", "Varsayılana dön".
+/// segment Desen | Düz, Desen'de segment Yoğunluk Hafif | Orta, "Uygula", "Varsayılana dön".
 ///
 /// Eşleme: Desen + Hafif = varsayılan kampüs doodle duvar kağıdı ([ChatBgStyle.pattern]), Desen + Orta = daha belirgin
 /// desen ([ChatBgStyle.strong]), Düz = [ChatBgStyle.plain]. Seçim "Uygula" ile cihazda (kullanıcıya özel) saklanır.
@@ -136,13 +137,13 @@ class _PreviewPill extends StatelessWidget {
     final t = context.bu;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-      decoration: BoxDecoration(color: t.sf2, border: Border.all(color: t.bd), borderRadius: BuRadius.bPill),
+      decoration: BoxDecoration(color: t.sf, border: Border.all(color: t.bdSubtle), borderRadius: BuRadius.bPill),
       child: Text(text, style: Theme.of(context).textTheme.labelSmall!.copyWith(color: t.mut, fontWeight: BuType.emphasisWeight)),
     );
   }
 }
 
-/// Önizlemedeki örnek balon: gerçek balonla aynı renk/köşe düzeni (gelen: yüzey + ince çizgi, giden: marka rengi).
+/// Önizlemedeki örnek balon: gerçek balonla aynı renk/köşe düzeni ([ChatBubbleColors]: gelen gri yüzey + ince çizgi, giden birincil ton).
 class _PreviewBubble extends StatelessWidget {
   const _PreviewBubble({required this.text, required this.time, required this.mine});
 
@@ -153,6 +154,7 @@ class _PreviewBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final bc = ChatBubbleColors.of(t);
     final tx = Theme.of(context).textTheme;
     const r = Radius.circular(14);
     const small = Radius.circular(4);
@@ -161,14 +163,14 @@ class _PreviewBubble extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: mine ? t.prPressed : t.sf,
+          color: mine ? bc.outgoing : bc.incoming,
           border: mine ? null : Border.all(color: t.bd),
           borderRadius: BorderRadiusDirectional.only(topStart: r, topEnd: mine ? small : r, bottomStart: mine ? r : small, bottomEnd: r),
         ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Flexible(child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: mine ? t.onPr : t.ink))),
+          Flexible(child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: mine ? bc.onOutgoing : bc.onIncoming))),
           const SizedBox(width: 8),
-          Text(time, style: tx.labelSmall!.copyWith(color: mine ? t.onPr.withValues(alpha: .75) : t.mut, fontFeatures: const [FontFeature.tabularFigures()])),
+          Text(time, style: tx.labelSmall!.copyWith(color: mine ? bc.metaOutgoing : bc.metaIncoming, fontFeatures: const [FontFeature.tabularFigures()])),
         ]),
       ),
     );

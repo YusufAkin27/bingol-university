@@ -919,7 +919,10 @@ class _AlbumRowState extends State<_AlbumRow> {
         scale: .99,
         child: Container(
           padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: sel ? t.soft.withValues(alpha: .55) : t.sf3, borderRadius: BuRadius.bLg),
+          decoration: BoxDecoration(
+              color: sel ? t.soft : t.sf3,
+              border: Border.all(color: sel ? t.selectedBorder : t.bdSubtle),
+              borderRadius: BuRadius.bMd),
           child: Row(children: [
             SizedBox(
               width: 64,
