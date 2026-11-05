@@ -1511,7 +1511,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       try {
         final bytes = await p.imageBytes?.call();
         if (bytes == null) throw ImageException('EMPTY');
-        return {'image': await _image.prepare(bytes)};
+        return {'image': await _image.prepare(bytes, limit: ImageService.chatLimit)};
       } on ImageException catch (e) {
         _notice(
             e.code == 'TOO_LARGE'

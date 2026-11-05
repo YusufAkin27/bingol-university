@@ -8,6 +8,7 @@ import '../../core/locale_controller.dart';
 import '../../core/permissions/ensure_permission.dart';
 import '../../core/platform/video_service.dart';
 import '../../widgets/bu.dart';
+import 'camera_quality.dart';
 import 'chat_media.dart';
 import 'media_pick.dart';
 import 'sohbety_widgets.dart';
@@ -75,8 +76,8 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
     try {
       _cams = await availableCameras();
       if (_cams.isEmpty) throw StateError('no camera');
-      _cam = _cams.indexWhere((c) => c.lensDirection == CameraLensDirection.back);
-      if (_cam < 0) _cam = 0;
+      // Çok kameralı telefonlarda ilk arka kamera ana kamera olmayabilir: ana (geniş) kamera seçilir.
+      _cam = CameraQuality.mainBackIndex(_cams);
       await _start();
     } catch (_) {
       if (mounted) setState(() => _denied = true);
@@ -85,7 +86,8 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
 
   Future<void> _start() async {
     final old = _ctl;
-    final c = CameraController(_cams[_cam], ResolutionPreset.high, enableAudio: _audio);
+    // En yüksek çözünürlük (eskiden `high` = 720p idi: bulanık önizleme + düşük çözünürlüklü fotoğraf).
+    final c = CameraQuality.controllerFor(_cams[_cam], audio: _audio);
     _ctl = c;
     setState(() => _ready = false);
     await old?.dispose();
@@ -98,6 +100,11 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
       _minZoom = _maxZoom = 1;
     }
     _zoom = _minZoom;
+    // Sürekli otomatik odak/pozlama (varsayılan zaten otomatik; sıfırlamak dokunarak odaktan sonra döndürür).
+    try {
+      await c.setFocusMode(FocusMode.auto);
+      await c.setExposureMode(ExposureMode.auto);
+    } catch (_) {}
     await _applyFlash(c);
     if (!mounted) return;
     setState(() => _ready = true);
@@ -131,7 +138,11 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
   Future<void> _focusAt(TapUpDetails d, Size size) async {
     final c = _ctl;
     if (c == null || !_ready || size.isEmpty) return;
-    final p = Offset((d.localPosition.dx / size.width).clamp(0.0, 1.0), (d.localPosition.dy / size.height).clamp(0.0, 1.0));
+    // Dokunuş ekran koordinatındadır; odak noktası önizleme kutusuna göre (0..1) hesaplanır, kutu dışı yok sayılır.
+    final box = CameraQuality.previewBox(size, c.value.aspectRatio);
+    final local = d.localPosition - Offset((size.width - box.width) / 2, (size.height - box.height) / 2);
+    if (local.dx < 0 || local.dy < 0 || local.dx > box.width || local.dy > box.height) return;
+    final p = Offset(local.dx / box.width, local.dy / box.height);
     try {
       await c.setFocusPoint(p);
       await c.setExposurePoint(p);
@@ -141,7 +152,7 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
   void _zoomUpdate(ScaleUpdateDetails d) {
     final c = _ctl;
     if (c == null || !_ready || d.pointerCount < 2 || _maxZoom <= _minZoom) return;
-    final z = (_zoomBase * d.scale).clamp(_minZoom, _maxZoom);
+    final z = CameraQuality.zoomFor(_zoomBase, d.scale, _minZoom, _maxZoom);
     if ((z - _zoom).abs() < .02) return;
     _zoom = z;
     c.setZoomLevel(z).catchError((_) {});
@@ -149,7 +160,10 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
 
   Future<void> _flip() async {
     if (_cams.length < 2 || _recording || _busy) return;
-    _cam = (_cam + 1) % _cams.length;
+    final prev = _cam;
+    // Ön <-> ana arka kamera (geniş açı/telefoto arasında dolaşmaz).
+    _cam = CameraQuality.flipTarget(_cams, _cam);
+    if (_cam == prev) return;
     try {
       await _start();
     } catch (_) {}
@@ -232,16 +246,17 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
     }
   }
 
-  /// Görüntüyü ekranı dolduracak biçimde (kırparak) çizer: tasarımda tam ekran vizör.
+  /// Görüntüyü çekilen fotoğrafla BİREBİR aynı çerçevede çizer (kırpma/yakınlaştırma yok). Eskiden ekranı dolduracak
+  /// biçimde kırpılıyordu: `max` çözünürlükte (4:3) önizleme ~1.6 kat yakınlaşmış görünür, çekilen fotoğraf ise daha
+  /// geniş çıkardı. Artık önizleme ekrana sığan en büyük kutudadır, kalan yer sahne rengidir.
   Widget _cover(BuildContext context, CameraController c) {
-    final size = MediaQuery.sizeOf(context);
-    final pa = 1 / c.value.aspectRatio;
-    final sa = size.width / size.height;
-    final scale = pa > sa ? pa / sa : sa / pa;
-    return ClipRect(
-      child: Transform.scale(
-        scale: scale,
-        child: Center(child: AspectRatio(aspectRatio: pa, child: CameraPreview(c))),
+    final box = CameraQuality.previewBox(MediaQuery.sizeOf(context), c.value.aspectRatio);
+    return Center(
+      child: SizedBox(
+        key: const ValueKey('cameraPreviewBox'),
+        width: box.width,
+        height: box.height,
+        child: CameraPreview(c),
       ),
     );
   }

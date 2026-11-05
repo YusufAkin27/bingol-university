@@ -120,7 +120,7 @@ class PhotoManagerLibrary implements MediaLibrary {
 
   @override
   Future<Uint8List?> imageBytes(GalleryItem item) async =>
-      _asset(item)?.thumbnailDataWithSize(const pm.ThumbnailSize(1600, 1600), quality: 85);
+      _asset(item)?.thumbnailDataWithSize(const pm.ThumbnailSize(2048, 2048), quality: 90);
 
   @override
   Future<String?> videoPath(GalleryItem item) async => (await _asset(item)?.originFile)?.path;
