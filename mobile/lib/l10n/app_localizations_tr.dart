@@ -2069,6 +2069,95 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String get shareTitle => 'Paylaş';
+
+  @override
+  String get shareSendTo => 'Kişiye gönder';
+
+  @override
+  String get shareRecent => 'Son sohbetler';
+
+  @override
+  String get shareSearchHint => 'Kişi veya sohbet ara';
+
+  @override
+  String get shareNoteHint => 'Not ekle (isteğe bağlı)';
+
+  @override
+  String get shareCopyLink => 'Bağlantıyı kopyala';
+
+  @override
+  String get shareLinkCopied => 'Bağlantı kopyalandı';
+
+  @override
+  String get shareMoreApps => 'Diğer uygulamalar';
+
+  @override
+  String get shareExternalFailed => 'Paylaşım sayfası açılamadı';
+
+  @override
+  String get shareSentOne => 'Gönderildi';
+
+  @override
+  String shareSentMany(String n) {
+    return '$n sohbete gönderildi';
+  }
+
+  @override
+  String get shareQueued => 'Bağlantı yok; çevrimiçi olunca gönderilecek';
+
+  @override
+  String get shareFailedAll => 'Gönderilemedi. Tekrar deneyin.';
+
+  @override
+  String shareFailedSome(String n) {
+    return '$n sohbete gönderilemedi';
+  }
+
+  @override
+  String get shareKindPost => 'Gönderi';
+
+  @override
+  String get shareKindReel => 'Reels';
+
+  @override
+  String get shareKindNews => 'Haber';
+
+  @override
+  String get shareKindAnnouncement => 'Duyuru';
+
+  @override
+  String get shareKindEvent => 'Etkinlik';
+
+  @override
+  String get shareUnavailable => 'Bu içerik artık görüntülenemiyor';
+
+  @override
+  String get shareChatPostShared => 'Gönderi paylaştı';
+
+  @override
+  String get shareChatReelShared => 'Reels paylaştı';
+
+  @override
+  String get shareChatNewsShared => 'Haber paylaştı';
+
+  @override
+  String get shareChatAnnouncementShared => 'Duyuru paylaştı';
+
+  @override
+  String get shareChatEventShared => 'Etkinlik paylaştı';
+
+  @override
+  String get sharePrivateHint =>
+      'Gizli hesabın gönderisi yalnızca kişilere mesajla paylaşılabilir.';
+
+  @override
+  String get shareNotFoundTitle => 'İçerik bulunamadı';
+
+  @override
+  String get shareNoChats => 'Sohbet bulunamadı. Aramayla kişi bulabilirsiniz.';
+
+  @override
   String get chatMiscChatNotFound => 'Sohbet bulunamadı.';
 
   @override

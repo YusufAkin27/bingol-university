@@ -2080,6 +2080,96 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get shareTitle => 'Share';
+
+  @override
+  String get shareSendTo => 'Send to';
+
+  @override
+  String get shareRecent => 'Recent chats';
+
+  @override
+  String get shareSearchHint => 'Search people or chats';
+
+  @override
+  String get shareNoteHint => 'Add a note (optional)';
+
+  @override
+  String get shareCopyLink => 'Copy link';
+
+  @override
+  String get shareLinkCopied => 'Link copied';
+
+  @override
+  String get shareMoreApps => 'More apps';
+
+  @override
+  String get shareExternalFailed => 'Could not open the share sheet';
+
+  @override
+  String get shareSentOne => 'Sent';
+
+  @override
+  String shareSentMany(String n) {
+    return 'Sent to $n chats';
+  }
+
+  @override
+  String get shareQueued =>
+      'You are offline; it will be sent when you are back online';
+
+  @override
+  String get shareFailedAll => 'Could not send. Try again.';
+
+  @override
+  String shareFailedSome(String n) {
+    return 'Could not send to $n chats';
+  }
+
+  @override
+  String get shareKindPost => 'Post';
+
+  @override
+  String get shareKindReel => 'Reel';
+
+  @override
+  String get shareKindNews => 'News';
+
+  @override
+  String get shareKindAnnouncement => 'Announcement';
+
+  @override
+  String get shareKindEvent => 'Event';
+
+  @override
+  String get shareUnavailable => 'This content is no longer available';
+
+  @override
+  String get shareChatPostShared => 'Shared a post';
+
+  @override
+  String get shareChatReelShared => 'Shared a reel';
+
+  @override
+  String get shareChatNewsShared => 'Shared a news story';
+
+  @override
+  String get shareChatAnnouncementShared => 'Shared an announcement';
+
+  @override
+  String get shareChatEventShared => 'Shared an event';
+
+  @override
+  String get sharePrivateHint =>
+      'Posts from private accounts can only be shared with people by message.';
+
+  @override
+  String get shareNotFoundTitle => 'Content not found';
+
+  @override
+  String get shareNoChats => 'No chats found. Search to find people.';
+
+  @override
   String get chatMiscChatNotFound => 'No chats found.';
 
   @override

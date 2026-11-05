@@ -15,6 +15,8 @@ import 'chat_media_parts.dart';
 import 'chatd_parts.dart';
 import 'message_placeholder.dart';
 import 'recent_reactions.dart';
+import '../share/share_card.dart';
+import '../share/share_models.dart';
 
 // Eski içe aktarmalar `message_bubble.dart` üzerinden `chatMediaUrl` alıyor.
 export 'chat_media.dart' show chatMediaUrl;
@@ -52,7 +54,11 @@ class MessageBubble extends StatelessWidget {
     this.highlight,
     this.onSenderTap,
     this.highlighted = false,
+    this.onOpenShare,
   });
+
+  /// Paylaşım kartına (gönderi/Reels/haber/etkinlik) dokunma: ilgili sayfayı açar (null: kart etkileşimsiz).
+  final void Function(ShareInfo info)? onOpenShare;
 
   /// Arama/alıntı atlama vurgusu: baloncuğun çevresine 2 dp marka rengi çerçeve çizer.
   final bool highlighted;
@@ -148,7 +154,9 @@ class MessageBubble extends StatelessWidget {
         ? Map<String, dynamic>.from(m['replyTo'] as Map)
         : null;
     // Silinen/gizlenen/yönetici kaldırması: sunucunun sabit Türkçe metni yerine uygulama dilinde yer tutucu.
-    final text = (deleted || removed)
+    // Paylaşım kartı (silinen/kaldırılan mesajda çizilmez).
+    final shareInfo = (deleted || removed) ? null : ShareInfo.fromMessage(m);
+    final text0 = (deleted || removed)
         ? removedPlaceholder(context,
             serverText: m['text'] as String?,
             deleted: deleted,
@@ -157,7 +165,10 @@ class MessageBubble extends StatelessWidget {
         : placeholderKindText(context, m['placeholderKind']) ??
             (m['text'] as String?) ??
             '';
+    // Eski istemciler için sunucunun yedek metne koyduğu bağlantı, kartın altında yinelenmesin.
+    final text = (shareInfo != null && isShareLinkText(text0)) ? '' : text0;
     final maxW = MediaQuery.sizeOf(context).width * .78;
+    final shareW = math.min(260.0, maxW) - 8;
     final allAtts =
         (deleted || removed) ? const <Map<String, dynamic>>[] : _attachments(m);
     final localVideo = !deleted && !removed && m['_isVideo'] == true;
@@ -207,7 +218,7 @@ class MessageBubble extends StatelessWidget {
                         ? 'READ'
                         : (m['status'] == 'DELIVERED' ? 'DELIVERED' : 'SENT');
     final hasMeta = metaText.isNotEmpty || tick != null;
-    final mediaStyle = hasMedia || onceLocked;
+    final mediaStyle = hasMedia || onceLocked || shareInfo != null;
 
     Widget metaRow(Color color, {Color? readColor}) =>
         Row(mainAxisSize: MainAxisSize.min, children: [
@@ -421,6 +432,25 @@ class MessageBubble extends StatelessWidget {
                 padding: EdgeInsets.only(bottom: showText ? 6 : 0),
                 child: onceBlock,
               ),
+            if (shareInfo != null)
+              Padding(
+                padding: const EdgeInsets.all(4),
+                child: ShareCard(
+                  info: shareInfo,
+                  mine: solidMine,
+                  width: shareW,
+                  headers: authHeaders,
+                  // Kullanılamayan içerikte dokunma kapalıdır (docs/SHARING.md 4.2).
+                  onTap: (preview || onOpenShare == null || !shareInfo.available) ? null : () => onOpenShare!(shareInfo),
+                  // Not yoksa saat+tik kartın altında; not varsa notun yanında (aşağıdaki metin satırı).
+                  footer: (!showText && hasMeta)
+                      ? Padding(
+                          padding: const EdgeInsetsDirectional.fromSTEB(6, 4, 6, 2),
+                          child: Align(alignment: AlignmentDirectional.centerEnd, child: metaRow(metaColor)),
+                        )
+                      : null,
+                ),
+              ),
             if (mediaBlock != null)
               Padding(
                 padding: EdgeInsets.only(bottom: showText ? 4 : 0),
@@ -434,10 +464,13 @@ class MessageBubble extends StatelessWidget {
                     mediaStyle ? 10 : 0,
                     mediaStyle ? 4 : 0),
                 // Medya varken açıklama görselin genişliğini aşmasın: görsel balona kenardan kenara otursun.
-                child: hasMedia
+                child: (hasMedia || shareInfo != null)
                     ? ConstrainedBox(
-                        constraints:
-                            BoxConstraints(maxWidth: _mediaWidth(maxW) - 20),
+                        constraints: BoxConstraints(
+                            maxWidth: (shareInfo != null
+                                    ? shareW + 8
+                                    : _mediaWidth(maxW)) -
+                                20),
                         child: textWithMeta())
                     : textWithMeta(),
               ),
@@ -539,9 +572,10 @@ class MessageBubble extends StatelessWidget {
             (reply['text'] as String?) ??
             '';
     final quoted = raw.isEmpty
-        ? (reply['kind'] == 'VIDEO'
-            ? context.l10n.chatMiscVideo
-            : context.l10n.chatMiscPhoto)
+        ? (sharePreviewText(context, reply) ??
+            (reply['kind'] == 'VIDEO'
+                ? context.l10n.chatMiscVideo
+                : context.l10n.chatMiscPhoto))
         : raw;
     final box = Container(
       margin: const EdgeInsets.only(bottom: 6),

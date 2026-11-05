@@ -1,6 +1,5 @@
 import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/locale_controller.dart';
@@ -9,6 +8,8 @@ import '../../widgets/bu.dart';
 import '../../widgets/linkified_text.dart';
 import 'icerik_parts.dart';
 import 'news_tile.dart' show newsLocalDate, newsSourceHost, newsTypeLabel;
+import '../share/share_button.dart' show shareContentForNews;
+import '../share/share_sheet.dart' show showShareSheet;
 
 /// Haber detayı (okuma düzeni): kapak (paylaşılan geçişle listeden uçar; üstünde geri/favori/paylaş) ya da kapaksız sade
 /// başlık; kartsız tek sütun: soluk meta satırı (tür • tarih), başlık, gövde metni (okunur satır uzunluğu), "Kaynak sayfada aç".
@@ -50,7 +51,13 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
 
   int get _id => (widget.item['id'] as num).toInt();
 
-  Future<dynamic> _fetch() => widget.session.api.get('/news/$_id');
+  /// Son alınan haber ayrıntısı (paylaşımda başlık/görsel için; push ile yalnız kimlikle açıldıysa liste öğesi eksiktir).
+  Map<String, dynamic>? _loaded;
+
+  Future<dynamic> _fetch() => widget.session.api.get('/news/$_id').then((v) {
+        if (v is Map) _loaded = Map<String, dynamic>.from(v);
+        return v;
+      });
 
   bool get _hasCover {
     final img = widget.item['imageUrl'] as String?;
@@ -126,16 +133,9 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
     }
   }
 
-  /// Paylaşım paketi olmadığından haber bağlantısı panoya kopyalanır.
-  Future<void> _share(String? url) async {
-    final n = widget.item;
-    final text = (url != null && url.isNotEmpty) ? url : ((n['title'] as String?) ?? '');
-    if (text.isEmpty) return;
-    await Clipboard.setData(ClipboardData(text: text));
-    Analytics.instance.action('share', target: 'copy_link');
-    if (!mounted) return;
-    BuToast.show(context, context.l10n.icerikLinkCopied, kind: BuToastKind.success);
-  }
+  /// Paylaşım alt sayfası: kişiye mesajla (önizleme kartı), bağlantıyı kopyala, diğer uygulamalar.
+  Future<void> _share() => showShareSheet(
+      context, widget.session, shareContentForNews({...widget.item, 'id': _id}, detail: _loaded));
 
   @override
   Widget build(BuildContext context) {
@@ -156,7 +156,8 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
         final isEvent = type == 'ETKINLIK' && eventDate != null && eventDate.isNotEmpty;
         final done = snap.connectionState == ConnectionState.done;
         final hasText = content != null && content.trim().isNotEmpty;
-        final title = (n['title'] as String?) ?? '';
+        // Push/derin bağlantıyla yalnız kimlikle açılınca başlık sunucu ayrıntısından gelir.
+        final title = (n['title'] ?? d?['title']) as String? ?? '';
         final tx = Theme.of(context).textTheme;
         final host = newsSourceHost({'url': url});
         // Tür etiketi (büyük harf, soluk) + tarih satırı: "26 Ekim 2026 · bingol.edu.tr" (etkinlikte "Etkinlik tarihi: ...").
@@ -243,7 +244,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                           icon: BuIcons.share2,
                           label: l.icerikShare,
                           overlay: overlay,
-                          onTap: () => _share(url)),
+                          onTap: _share),
                       const SizedBox(width: 16),
                     ],
                     flexibleSpace: hasCover

@@ -35,6 +35,12 @@ dependencies:
   photo_manager: ^3.9.0
   camera: ^0.12.0
   flutter_svg: ^2.3.0
+  # Paylasim: sistem paylasim sayfasi (WhatsApp/Instagram...) icin share_plus (iOS UIActivityViewController, Android
+  # ACTION_SEND; Flutter 3.38+/iOS 13+, SwiftPM destekli). Gelen paylasim baglantisini (https://bukampus.com.tr/s/{t}/{id},
+  # bukampus://) yakalamak icin app_links (Android App Links + iOS Universal Links, UIScene destekli). Ikisi de
+  # yayinci dogrulanmis, bakimda; baska eklentiyle ikamesi yok (url_launcher gelen baglanti dinlemez, paylasim sayfasi acmaz).
+  share_plus: ^13.3.1
+  app_links: ^7.2.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

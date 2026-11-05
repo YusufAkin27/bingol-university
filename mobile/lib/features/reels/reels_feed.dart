@@ -12,6 +12,8 @@ import '../posts/avatar_preview.dart';
 import '../posts/feed_seen.dart';
 import '../posts/like_button.dart';
 import '../posts/post_actions.dart';
+import '../share/share_button.dart' show shareContentForPost;
+import '../share/share_sheet.dart' show showShareSheet;
 import '../posts/post_api.dart';
 import '../posts/post_media_uploader.dart' show postErrorText;
 import '../posts/post_models.dart';
@@ -565,6 +567,12 @@ class _ReelPageState extends State<_ReelPage> {
               tooltip: p.savedByMe! ? l.kesActionSaved : l.kesActionSave,
               onTap: _toggleSave,
             ),
+          _RailButton(
+            key: ValueKey('reel-share-${p.id}'),
+            icon: BuIcons.share2,
+            tooltip: l.shareTitle,
+            onTap: () => showShareSheet(context, widget.session, shareContentForPost(widget.session, p)),
+          ),
           _RailButton(
             key: ValueKey('reel-menu-${p.id}'),
             icon: BuIcons.ellipsis,

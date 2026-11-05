@@ -57,6 +57,7 @@ class PostAuthor {
     this.department,
     this.followerCount,
     this.popularityScore,
+    this.isPrivate = false,
   });
 
   factory PostAuthor.fromJson(Map<String, dynamic>? j) => PostAuthor(
@@ -66,6 +67,7 @@ class PostAuthor {
         department: _str(j?['department']),
         followerCount: _intOrNull(j?['followerCount']),
         popularityScore: _scoreOrNull(j?['popularityScore']),
+        isPrivate: j?['isPrivate'] == true,
       );
 
   final int id;
@@ -78,6 +80,9 @@ class PostAuthor {
 
   /// Yazarın popülerlik puanı 0..100 (yoksa null).
   final int? popularityScore;
+
+  /// Gizli hesap (sunucu `isPrivate` yollarsa): gönderisi bağlantıyla/harici uygulamayla paylaşılamaz, yalnız mesajla.
+  final bool isPrivate;
 }
 
 enum PostMediaKind { image, video }

@@ -40,6 +40,7 @@ import 'features/auth/welcome_page.dart';
 import 'features/auth/permissions_page.dart';
 import 'features/auth/profile_setup_page.dart';
 import 'features/legal/legal_reaccept_page.dart';
+import 'features/share/share_links.dart';
 import 'features/shell/app_shell.dart';
 import 'features/system/error_views.dart';
 import 'features/system/gate_views.dart';
@@ -114,6 +115,9 @@ Future<void> _bootstrap() async {
   installErrorHandling();
   // Push: Firebase + arka plan/kapalı işleyicisi oturumdan bağımsız, runApp'ten önce kaydedilir (bkz. PushService.prepare).
   unawaited(PushService.prepare());
+  // Derin bağlantı (paylaşılan gönderi/haber/etkinlik): akış runApp'ten önce başlar ki soğuk açılış bağlantısı kaçmasın;
+  // hedef oturum/onay/profil kapıları geçilene kadar bekler (ShareLinkHost).
+  unawaited(ShareLinks.instance.start());
   unawaited(ErrorLog.instance.init());
   // Açılış okumaları (güvenli depo/dosya) SERİ değil PARALEL başlar. Cihaz kimliği runApp'i beklemez ama ApiClient
   // kimlik hazır olmadan HİÇBİR istek atmaz (bkz. DeviceIdentity.ready); iOS yeniden-kurulum temizliği Session.restore'dan önce biter.
@@ -237,7 +241,10 @@ class BingolApp extends StatelessWidget {
                         // Yeni sözleşme sürümü onayı bekleniyorsa kabuğun üstüne tam ekran onay (ağ hatasında açılmaz).
                         child: LegalReacceptGate(
                           session: session,
-                          child: AppShell(session: session, themeController: themeController),
+                          child: ShareLinkHost(
+                            session: session,
+                            child: AppShell(session: session, themeController: themeController),
+                          ),
                         ),
                       ),
                     ),

@@ -11,6 +11,7 @@ import 'avatar_preview.dart';
 import 'post_photo_viewer.dart';
 import 'post_routes.dart';
 import 'post_video.dart';
+import '../share/share_button.dart' show PostShareButton;
 import '../../core/academic_catalog.dart';
 import '../profile/user_profile_page.dart' show openUserProfile;
 
@@ -368,7 +369,9 @@ class _PostCardState extends State<PostCard> {
                     child: Text(text, key: const ValueKey('post-text'), style: tt.bodyLarge?.copyWith(color: t.ink, fontSize: 15, height: 1.4)),
                   ),
                 ),
-              ],
+              ] else
+                const Spacer(),
+              PostShareButton(session: widget.session, post: p),
             ]),
           ),
           if (p.editedAt != null)
@@ -501,11 +504,15 @@ class _PostCardState extends State<PostCard> {
                   top: BuSpace.sm,
                   left: detail ? BuSpace.page : 0,
                   right: detail ? BuSpace.page : 0),
-              child: LikeButton(
-                  session: widget.session,
-                  post: p,
-                  controller: _like,
-                  onChanged: widget.onChanged),
+              child: Row(children: [
+                LikeButton(
+                    session: widget.session,
+                    post: p,
+                    controller: _like,
+                    onChanged: widget.onChanged),
+                const Spacer(),
+                PostShareButton(session: widget.session, post: p),
+              ]),
             ),
             if (p.hasText)
               Padding(
