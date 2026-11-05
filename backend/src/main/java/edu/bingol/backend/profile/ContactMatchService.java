@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * <p>T-061 (K-16 onerisi): "Rehberden bulunabilirim" acik onayi (varsayilan KAPALI) KARSILIKLIDIR: yalnizca
  * kendisi de bulunabilir olan kullanici eslestirme yapabilir ve yalnizca bulunabilir olanlar doner (kimlik/profil
- * yalniz karsilikli eslesmede). Okul numarasi adresleri (numara@bingol.edu.tr) rehber eslestirmesinden cikarilir.
+ * yalniz karsilikli eslesmede). Okul numarasi adresleri (numara@alanadi, yerel kisim yalniz rakam) rehber eslestirmesinden cikarilir.
  * Hesap basina gunluk aday tavani {@link ContactMatchQuota}.
  */
 @Service

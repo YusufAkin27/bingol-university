@@ -84,6 +84,18 @@ class ContactMatchServiceTest {
     }
 
     @Test
+    void matchesNonSchoolProviderAddressesToo() {
+        viewerOptedIn(12);
+        mapperEchoesWithAvatar(null);
+        when(users.findContactMatches(any(), any())).thenReturn(List.of(user(12, "ali@gmail.com")));
+
+        MatchResponse r = service.match(1L, List.of(h("ali@gmail.com")));
+
+        assertEquals(1, r.matches().size());
+        assertEquals(h("ali@gmail.com"), r.matches().get(0).hash());
+    }
+
+    @Test
     void matchesAndMapsProfileFields() {
         viewerOptedIn(12);
         mapperEchoesWithAvatar("/files/avatars/a.jpg");

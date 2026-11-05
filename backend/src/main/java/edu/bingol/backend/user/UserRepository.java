@@ -77,14 +77,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
                                   @Param("off") int offset);
 
     /**
-     * Rehber eslestirme: e-posta hash'i ile aktif, dogrulanmis, bingol.edu.tr (ve alt alan) kullanicilari bulur.
+     * Rehber eslestirme: e-posta hash'i ile aktif, dogrulanmis kullanicilari bulur (alan adi kisiti yok, 2026-11-05).
      * Hash sutunu indeksli (usr240_email_sha256); engel/kendi hesabi `excluded` ile elenir.
      */
     @Query(value = """
             SELECT * FROM app_user
             WHERE email_sha256 IN (:hashes)
               AND status = 'ACTIVE' AND email_verified = TRUE AND deleted_at IS NULL
-              AND (email LIKE '%@bingol.edu.tr' OR email LIKE '%@%.bingol.edu.tr')
               AND id NOT IN (:excluded)
             """, nativeQuery = true)
     List<User> findContactMatches(@Param("hashes") Collection<String> hashes,
