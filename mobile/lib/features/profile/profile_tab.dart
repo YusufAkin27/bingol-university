@@ -10,7 +10,6 @@ import '../../widgets/bu.dart';
 import '../academic/academic_hub_page.dart';
 import '../follow/follow_requests_api.dart';
 import '../follow/follow_requests_page.dart';
-import '../follow/follow_suggestions.dart';
 import '../follow/follow_summary.dart';
 import '../posts/post_api.dart';
 import '../posts/user_posts_page.dart';
@@ -316,11 +315,6 @@ class _ProfileTabState extends State<ProfileTab> {
                   label: l.profileMyEvents,
                   value: _events,
                   onTap: () => _go(MyEventsPage(session: widget.session), 'my_events'),
-                ),
-                ProfilRow(
-                  icon: BuIcons.userPlus,
-                  label: l.profileSuggested,
-                  onTap: () => _go(FollowSuggestionsPage(session: widget.session), 'follow_suggestions'),
                 ),
               ]),
             ]),

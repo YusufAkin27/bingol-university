@@ -9132,12 +9132,6 @@ abstract class AppLocalizations {
   /// **'Kaydedilen gönderiler'**
   String get profileSavedPosts;
 
-  /// No description provided for @profileSuggested.
-  ///
-  /// In tr, this message translates to:
-  /// **'Önerilen kişiler'**
-  String get profileSuggested;
-
   /// No description provided for @profileSaved.
   ///
   /// In tr, this message translates to:

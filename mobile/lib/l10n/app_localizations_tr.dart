@@ -4934,9 +4934,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profileSavedPosts => 'Kaydedilen gönderiler';
 
   @override
-  String get profileSuggested => 'Önerilen kişiler';
-
-  @override
   String get profileSaved => 'Kayıtlı haberler';
 
   @override

@@ -11,7 +11,10 @@ enum HomeSection {
   todayClasses('todayClasses', true),
   featuredNews('featuredNews', true),
   upcomingEvents('upcomingEvents', true),
-  announcements('announcements', true);
+  announcements('announcements', true),
+
+  /// "Önerilen kişiler" yatay sayfalı şerit. Kayıtlı düzeni olanlarda Günün menüsünün hemen ardına eklenir (Haberlerden önce).
+  suggestions('suggestions', true, insertAfterId: 'menu');
 
   const HomeSection(this.id, this.defaultVisible, {this.insertAfterId});
 
@@ -74,7 +77,7 @@ class HomeLayout {
   final List<HomeShortcut> shortcutOn;
 
   static const defaults = HomeLayout(
-    order: [HomeSection.quickAccess, HomeSection.menu, HomeSection.featuredNews, HomeSection.todayClasses, HomeSection.upcomingEvents, HomeSection.announcements],
+    order: [HomeSection.quickAccess, HomeSection.menu, HomeSection.suggestions, HomeSection.featuredNews, HomeSection.todayClasses, HomeSection.upcomingEvents, HomeSection.announcements],
     hidden: <HomeSection>{},
     shortcutOn: [HomeShortcut.news, HomeShortcut.events, HomeShortcut.polls, HomeShortcut.schedule, HomeShortcut.more],
   );

@@ -4913,9 +4913,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profileSavedPosts => 'المنشورات المحفوظة';
 
   @override
-  String get profileSuggested => 'أشخاص مقترحون';
-
-  @override
   String get profileSaved => 'الأخبار المحفوظة';
 
   @override
