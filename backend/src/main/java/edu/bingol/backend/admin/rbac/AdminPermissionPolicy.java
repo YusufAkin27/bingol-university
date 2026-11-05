@@ -86,6 +86,11 @@ public final class AdminPermissionPolicy {
         one(Set.of("POST"), "/api/admin/profanity/check", MODERATION_READ);
         area("/api/admin/(reports|appeals|moderation|profanity|access-bans)(/.*)?", MODERATION_READ, MODERATION_WRITE);
 
+        // --- kampus forum (D): kategori yazma forum.categories, moderasyon forum.moderate, okuma forum.read ---
+        one(Set.of("POST"), "/api/admin/forum/(topics|comments)/" + ID + "/moderate", FORUM_MODERATE);
+        one(Set.of("POST", "PATCH", "PUT", "DELETE"), "/api/admin/forum/categories(/.*)?", FORUM_CATEGORIES);
+        area("/api/admin/forum(/.*)?", FORUM_READ, FORUM_MODERATE);
+
         // --- sohbet ---
         one(Set.of("GET"), "/api/admin/(chat-media|chat-messages)(/.*)?", CHAT_READ);
         one(Set.of("GET"), "/api/admin/media/attachments/.*", CHAT_READ);

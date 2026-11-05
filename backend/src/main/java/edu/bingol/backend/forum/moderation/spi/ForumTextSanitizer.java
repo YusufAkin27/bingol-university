@@ -33,14 +33,14 @@ public final class ForumTextSanitizer {
     private static final int MAX_PASSES = 6;
 
     private static final Pattern BLOCK_TAGS = Pattern.compile(
-            "<\\s*(script|style|iframe|object|embed|noscript|template)\\b[^>]*>.*?<\\s*/\\s*\\1\\s*>",
+            "<(script|style|iframe|object|embed|noscript|template)\\b[^>]*>.*?</\\s*\\1\\s*>",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     /** Kapanmamis script/style: acilistan sona kadar sil (tarayici da oyle yorumlar). */
     private static final Pattern OPEN_BLOCK = Pattern.compile(
-            "<\\s*(script|style|iframe|object|embed|noscript|template)\\b.*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+            "<(script|style|iframe|object|embed|noscript|template)\\b.*", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     private static final Pattern COMMENT = Pattern.compile("<!--.*?(-->|$)", Pattern.DOTALL);
     private static final Pattern DECLARATION = Pattern.compile("<[!?][^<>]*>");
-    private static final Pattern TAG = Pattern.compile("<\\s*/?\\s*[a-zA-Z][^<>]*>");
+    private static final Pattern TAG = Pattern.compile("</?[a-zA-Z][^<>]*>");
     private static final Pattern INLINE_WS = Pattern.compile("[ \\u00A0\\u2000-\\u200A\\u202F\\u205F\\u3000]+");
     private static final Pattern MANY_BLANK_LINES = Pattern.compile("\\n{3,}");
 

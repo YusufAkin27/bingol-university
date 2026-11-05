@@ -48,6 +48,9 @@ public class AccountDataPurger {
             "DELETE FROM event_feedback WHERE user_id = ?",
             "DELETE FROM user_block WHERE blocker_id = ?",
             "DELETE FROM user_block WHERE blocked_id = ?",
+            // Kampus Forum (D): sessize alma satirlari iki yonde de silinir (tek yonlu iliski, kisisel tercih)
+            "DELETE FROM forum_user_mute WHERE user_id = ?",
+            "DELETE FROM forum_user_mute WHERE muted_user_id = ?",
             "DELETE FROM club_join_answer WHERE user_id = ?",
             // Sahiplik devri yapilmadan sahip satiri silinmez; BANNED kaydi moderasyon izi olarak kalir.
             // Devir/kapatma sonrasi kalan OWNER satirini CommunityAccountListener ve gece isi (DbMaintenanceJob) kapatir.
@@ -119,6 +122,7 @@ public class AccountDataPurger {
      */
     public static final Map<String, String> RETAINED = Map.ofEntries(
             Map.entry("legal_acceptance.user_id", "Hukuki kanit: sozlesme onayi (ispat), suresiz"),
+            Map.entry("forum_moderation_action.actor_id", "Forum moderasyon islem kaydi (yonetici izi, admin_audit gibi); kullanici satiri anonimlestirildigi icin kisiye bagli degil"),
             Map.entry("moderation_strike.user_id", "Moderasyon izi; yeniden kayitla ihlal gecmisinin sifirlanmamasi"),
             Map.entry("suspend_recommendation.user_id", "Moderasyon izi (yonetici karar kaydi)"),
             Map.entry("event_attendance.user_id", "Anonim katilim istatistigi (anonimlesmis hesaba bagli)"),
