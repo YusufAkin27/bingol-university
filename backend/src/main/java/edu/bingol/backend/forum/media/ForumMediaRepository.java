@@ -30,6 +30,7 @@ public interface ForumMediaRepository extends JpaRepository<ForumMedia, Long> {
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("DELETE FROM ForumMedia m WHERE m.id = :id AND NOT EXISTS "
             + "(SELECT 1 FROM edu.bingol.backend.forum.topic.ForumTopicImage i WHERE i.mediaId = m.id)")
+    @org.springframework.transaction.annotation.Transactional
     int deleteIfUnattached(@Param("id") Long id);
 
     @Query("SELECT m.id, m.storageKey FROM ForumMedia m WHERE m.id > :after ORDER BY m.id")

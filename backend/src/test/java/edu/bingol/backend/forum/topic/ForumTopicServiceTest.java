@@ -43,6 +43,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /** Konu servisi: olustur/duzenle/sil/sahiplik, dogrulama, idempotency, anonim maskeleme, gorunurluk, durum SPI'lari (H2). */
 @SpringBootTest
+@org.springframework.test.context.TestPropertySource(properties = "spring.messages.basename=i18n/messages,i18n/forum")
 class ForumTopicServiceTest {
 
     @MockitoBean edu.bingol.backend.common.RateLimiter limiter;
