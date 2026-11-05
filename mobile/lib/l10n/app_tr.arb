@@ -5181,5 +5181,7 @@
   "@campusClusterLabel": {"placeholders":{"count":{"type":"String"}}},
   "@campusWalkTo": {"placeholders":{"name":{"type":"String"}}},
   "settingsAnalytics": "Kullanım analizi",
-  "settingsAnalyticsSub": "Uygulamayı iyileştirmek için ekranlarda geçirilen süre ve yapılan eylemler gibi kullanım bilgileri gönderilir. Mesaj içeriği, arama metni ve kişisel bilgiler gönderilmez. Kapatınca toplama durur, bekleyenler silinir."
+  "settingsAnalyticsSub": "Uygulamayı iyileştirmek için ekranlarda geçirilen süre ve yapılan eylemler gibi kullanım bilgileri gönderilir. Mesaj içeriği, arama metni ve kişisel bilgiler gönderilmez. Kapatınca toplama durur, bekleyenler silinir.",
+  "chatSecureCaptured": "Ekran kaydı sırasında görüntülenemez.",
+  "chatSecureScreenshot": "Ekran görüntüsü algılandı. Görüntü kapatıldı."
 }

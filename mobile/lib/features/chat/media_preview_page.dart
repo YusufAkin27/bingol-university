@@ -7,10 +7,11 @@ import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
 import '../media_crop/media_crop.dart';
 import 'chat_media.dart';
+import 'message_bubble.dart' show OnceBadge;
 import 'media_pick.dart';
 
-/// Gönderim öncesi tam ekran önizleme (Stitch 25-4): sayfa sayfa gezinme, "1 / 3" sayacı, açıklama alanı,
-/// "Tek gönderimlik" hapı, küçük resim şeridi ve "N öğeyi gönder". Gönderince [MediaSendPlan] döner;
+/// Gönderim öncesi tam ekran önizleme (Stitch 25-4): sayfa sayfa gezinme, "1 / 3" sayacı, açıklama alanı
+/// (kalan genişliği doldurur) + yanında tek gönderimlik SİMGE düğmesi, küçük resim şeridi ve "N öğeyi gönder". Gönderince [MediaSendPlan] döner;
 /// kapatılırsa null (seçici seçimi korur). Medya sahnesi her temada koyudur.
 class MediaPreviewPage extends StatefulWidget {
   const MediaPreviewPage({super.key, required this.picks});
@@ -32,6 +33,7 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
   /// Marka rengi: medya sahnesi koyu olsa da uygulamanın (açık/koyu) kırmızısı kullanılır.
   Color _pr = const Color(0x00000000);
   Color _onPr = const Color(0x00000000);
+  Color _prPressed = const Color(0x00000000);
 
   /// "Tek gönderimlik: alıcı yalnızca bir kez görebilir" bildirimi (kapatılabilir, kısa süre sonra kendiliğinden gider).
   bool _note = false;
@@ -121,8 +123,11 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
   @override
   Widget build(BuildContext context) {
     final outer = context.bu;
+    // Klavye açıkken küçük resim şeridi gizlenir: kısa ekranda alan, açıklama ve gönder düğmesine kalsın.
+    final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
     _pr = outer.pr;
     _onPr = outer.onPr;
+    _prPressed = outer.prPressed;
     // Koyu belirteçler: medya sahnesi her temada koyu.
     final dark = BuTheme.forLocale(Brightness.dark, Localizations.localeOf(context).languageCode);
     return Theme(
@@ -152,7 +157,7 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
                 _topBar(context),
                 Expanded(child: _canvas(context)),
                 _controls(context),
-                _strip(context),
+                if (!keyboard) _strip(context),
                 _sendButton(context),
               ]),
             ),
@@ -368,42 +373,33 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
                 )
               : const SizedBox(width: double.infinity),
         ),
-        Row(children: [
+        // Açıklama alanı kalan genişliği doldurur; tek gönderimlik yalnız simge düğmesi (8 dp aralık, satırın en sağı).
+        Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
           Expanded(child: _captionField(context)),
           if (canOnce) ...[
             BuGap.w8,
-            Semantics(
-              button: true,
-              toggled: on,
-              label: l.chatMiscOnceSendLabel,
-              excludeSemantics: true,
-              child: BuPressable(
-                key: ValueKey('onceButton_$_index'),
-                onTap: () => _toggleOnce(cur),
-                child: AnimatedContainer(
-                  duration: BuMotion.of(context, BuMotion.short),
-                  constraints: const BoxConstraints(minHeight: 48),
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: on ? _pr : t.scrim.withValues(alpha: .6),
-                    borderRadius: BuRadius.bPill,
-                    border: on ? null : Border.all(color: t.onMedia.withValues(alpha: .25)),
-                  ),
-                  child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    Container(
-                      width: 20,
-                      height: 20,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(color: on ? _onPr : t.onMedia, shape: BoxShape.circle),
-                      child: Text('1',
-                          style: tx.labelSmall!.copyWith(
-                              color: on ? _pr : t.scrim, fontWeight: FontWeight.w800, height: 1)),
+            Tooltip(
+              message: l.chatMiscOnceSendLabel,
+              child: Semantics(
+                button: true,
+                toggled: on,
+                label: l.chatMiscOnceSendLabel,
+                excludeSemantics: true,
+                child: BuPressable(
+                  key: ValueKey('onceButton_$_index'),
+                  onTap: () => _toggleOnce(cur),
+                  child: AnimatedContainer(
+                    duration: BuMotion.of(context, BuMotion.short),
+                    width: 48,
+                    height: 48,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: on ? _prPressed : t.onMedia.withValues(alpha: .08),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: on ? _prPressed : t.onMedia.withValues(alpha: .35)),
                     ),
-                    BuGap.w6,
-                    Text(l.chatMiscOnceSendLabel,
-                        maxLines: 1,
-                        style: tx.labelMedium!.copyWith(color: on ? _onPr : t.onMedia, fontWeight: FontWeight.w600)),
-                  ]),
+                    child: OnceBadge(color: on ? _onPr : t.onMedia, dashed: true, size: 26),
+                  ),
                 ),
               ),
             ),
@@ -423,8 +419,6 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
       decoration: BoxDecoration(color: t.onMedia.withValues(alpha: .95), borderRadius: BorderRadius.circular(24)),
       alignment: Alignment.center,
       child: Row(children: [
-        ExcludeSemantics(child: Icon(BuIcons.messageSquareText, size: 18, color: t.scrim.withValues(alpha: .6))),
-        BuGap.w8,
         Expanded(
           child: TextField(
             key: const ValueKey('previewCaption'),

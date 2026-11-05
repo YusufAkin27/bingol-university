@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
+import '../../core/platform/secure_view.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import 'chat_media_parts.dart';
@@ -20,6 +22,8 @@ class ViewOnceViewer extends StatefulWidget {
     required this.conversationId,
     required this.attachmentId,
     this.onConsumed,
+    this.caption,
+    this.secureView,
   });
 
   final ApiClient api;
@@ -28,6 +32,12 @@ class ViewOnceViewer extends StatefulWidget {
 
   /// Sunucu içeriği tükettiğinde (200 ya da 410) bir kez çağrılır: baloncuk "Açıldı" olur.
   final VoidCallback? onConsumed;
+
+  /// Gönderenin yazdığı açıklama: balonda/kartta ASLA çizilmez, yalnız alıcı fotoğrafı açınca burada görünür.
+  final String? caption;
+
+  /// Ekran koruması kanalı (varsayılan: [ChatSecureView.instance]); testlerde değiştirilir.
+  final ChatSecureView? secureView;
 
   @override
   State<ViewOnceViewer> createState() => _ViewOnceViewerState();
@@ -41,11 +51,48 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
   bool _loading = true;
   bool _consumed = false;
 
+  // Ekran koruması (iOS): kayıt/yansıtma sürerken ya da uygulama etkin değilken içerik opak örtüyle gizlenir;
+  // ekran görüntüsü algılanırsa görüntü kapatılır. Android'de FLAG_SECURE pencere genelinde zaten devrede.
+  late final ChatSecureView _secure = widget.secureView ?? ChatSecureView.instance;
+  StreamSubscription<SecureEventKind>? _secureSub;
+  bool _captured = false;
+  bool _covered = false;
+  bool _screenshot = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _load();
+    _start();
+  }
+
+  Future<void> _start() async {
+    _secureSub = _secure.events.listen(_onSecureEvent);
+    final st = await _secure.enable();
+    if (!mounted) return;
+    if (st.captured) {
+      // Kayıt sürerken içerik istenmez: tek gösterim tüketilmesin; kayıt bitince yüklenir.
+      setState(() {
+        _captured = true;
+        _loading = false;
+      });
+      return;
+    }
+    unawaited(_load());
+  }
+
+  void _onSecureEvent(SecureEventKind k) {
+    if (!mounted) return;
+    switch (k) {
+      case SecureEventKind.captureStarted:
+        setState(() => _captured = true);
+      case SecureEventKind.captureEnded:
+        setState(() => _captured = false);
+        if (_image == null && _error == null && !_screenshot && !_consumed) unawaited(_load());
+      case SecureEventKind.screenshot:
+        _drop();
+        setState(() => _screenshot = true);
+    }
   }
 
   void _consume() {
@@ -114,6 +161,9 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Uygulama değiştirici / denetim merkezi: önizleme anlık görüntüsünde içerik görünmesin.
+    final cover = state == AppLifecycleState.inactive;
+    if (cover != _covered && mounted) setState(() => _covered = cover);
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden ||
         state == AppLifecycleState.detached) {
@@ -125,6 +175,8 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _secureSub?.cancel();
+    unawaited(_secure.disable());
     _drop();
     super.dispose();
   }
@@ -137,6 +189,27 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
     return ChatdMediaScaffold(
       body: Stack(children: [
         Positioned.fill(child: Padding(padding: EdgeInsets.only(top: top), child: _content())),
+        if (_captured || _covered)
+          Positioned.fill(
+            key: const ValueKey('onceCover'),
+            child: ColoredBox(
+              color: t.scrim,
+              child: Center(
+                child: _captured
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        child: Column(mainAxisSize: MainAxisSize.min, children: [
+                          Icon(BuIcons.eyeOff, size: 32, color: t.onMedia.withValues(alpha: .8)),
+                          const SizedBox(height: 12),
+                          Text(l.chatSecureCaptured,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: t.onMedia)),
+                        ]),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+            ),
+          ),
         PositionedDirectional(
           start: 0,
           end: 0,
@@ -170,6 +243,13 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
     if (_loading) {
       return Center(child: ChatdRing(icon: BuIcons.image, semantics: l.chatdPhotoLoading));
     }
+    if (_screenshot) {
+      return SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(24, 24, 24, bottom),
+        child: ChatdNoteCard(
+            key: const ValueKey('onceScreenshot'), text: l.chatSecureScreenshot, icon: BuIcons.shieldAlert),
+      );
+    }
     final err = _error;
     if (err != null) {
       // Tüketildi / kendi gönderdiğim / ağ hatası: koyu zeminde çerçeveli durum kartı.
@@ -182,20 +262,51 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
     }
     final img = _image;
     if (img == null) return const SizedBox.shrink();
+    final caption = (widget.caption ?? '').trim();
     return Column(mainAxisAlignment: MainAxisAlignment.start, children: [
       Flexible(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(20),
-            child: Image(
-              image: img,
-              fit: BoxFit.contain,
-              frameBuilder: (c, child, frame, sync) => sync
-                  ? child
-                  : AnimatedOpacity(opacity: frame == null ? 0 : 1, duration: BuMotion.of(c, BuMotion.medium), curve: BuMotion.decelerate, child: child),
-              errorBuilder: (c, e, s) => ChatdMediaMessage(icon: BuIcons.imageOff, text: l.chatMiscOnceShowFailed),
-            ),
+            child: Stack(children: [
+              Image(
+                image: img,
+                fit: BoxFit.contain,
+                frameBuilder: (c, child, frame, sync) => sync
+                    ? child
+                    : AnimatedOpacity(opacity: frame == null ? 0 : 1, duration: BuMotion.of(c, BuMotion.medium), curve: BuMotion.decelerate, child: child),
+                errorBuilder: (c, e, s) => ChatdMediaMessage(icon: BuIcons.imageOff, text: l.chatMiscOnceShowFailed),
+              ),
+              // Gönderenin açıklaması: yalnız burada, fotoğrafın altında alttan koyulaşan zeminde (uzunsa kaydırılır).
+              if (caption.isNotEmpty)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: LayoutBuilder(
+                    builder: (c, box) => DecoratedBox(
+                      key: const ValueKey('onceCaption'),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          colors: [t.scrim.withValues(alpha: .85), t.scrim.withValues(alpha: .6), t.scrim.withValues(alpha: 0)],
+                          stops: const [0, .6, 1],
+                        ),
+                      ),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(maxHeight: box.maxHeight * .45),
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.fromLTRB(16, 28, 16, 12),
+                          child: Text(caption,
+                              style: tx.bodyLarge!.copyWith(color: t.onMedia, height: 1.4)),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ]),
           ),
         ),
       ),

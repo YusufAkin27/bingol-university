@@ -10624,4 +10624,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsAnalyticsSub =>
       'Usage data such as time spent on screens and actions is sent to improve the app. Message content, search text and personal details are never sent. Turning this off stops collection and deletes anything pending.';
+
+  @override
+  String get chatSecureCaptured =>
+      'It cannot be viewed while the screen is being recorded.';
+
+  @override
+  String get chatSecureScreenshot =>
+      'Screenshot detected. The photo has been closed.';
 }

@@ -1035,15 +1035,16 @@ class _ConversationRow extends StatelessWidget {
     // Engelli gönderen / çözülemeyen mesaj: sunucunun Türkçe sabit metni yerine uygulama dilinde yer tutucu.
     final byKind = placeholderKindText(context, last['placeholderKind']);
     if (byKind != null) return (byKind, null, false);
+    // Tek gösterimlik: açıklama listeye sızmaz, nötr metin gösterilir.
+    if (viewOnceAttachment(last) != null && last['deleted'] != true && last['removed'] != true) {
+      return (l.chatMiscOnceText, null, true);
+    }
     final text = (last['text'] as String?)?.trim() ?? '';
     if (text.isNotEmpty) {
       return (text.replaceAll(RegExp(r'\s+'), ' '), null, false);
     }
     final att = last['attachments'];
     if (att is List && att.isNotEmpty) {
-      if (viewOnceAttachment(last) != null) {
-        return (l.chatMiscOnceText, null, true);
-      }
       final first = att.whereType<Map>().first;
       if (isVideoAttachment(first)) {
         final ms = first['durationMs'];

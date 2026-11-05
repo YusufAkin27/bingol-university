@@ -184,8 +184,10 @@ class MessageBubble extends StatelessWidget {
     final reactions =
         (m['reactions'] as List? ?? const []).whereType<Map>().toList();
     final myReaction = m['myReaction'] as String?;
+    // Tek gösterimlik mesajın açıklaması balonda/kartta çizilmez (yalnız alıcıya görüntüleyicide gösterilir).
     final showText = text.isNotEmpty &&
-        !((hasMedia || hasOnce) && (m['text'] as String? ?? '').isEmpty);
+        !hasOnce &&
+        !(hasMedia && (m['text'] as String? ?? '').isEmpty);
 
     final metaText = [
       if (m['edited'] == true && !deleted) context.l10n.chatMiscEdited,

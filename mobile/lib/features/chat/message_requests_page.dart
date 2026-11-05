@@ -7,6 +7,7 @@ import '../../widgets/bu.dart';
 import '../../widgets/requests_entry_row.dart';
 import '../follow/follow_widgets.dart';
 import 'chat_detail_page.dart';
+import 'chat_media.dart' show viewOnceAttachment;
 import 'chatlist_widgets.dart';
 import 'message_placeholder.dart';
 
@@ -305,6 +306,10 @@ class _RequestTile extends StatelessWidget {
     if (last is! Map) return '';
     final byKind = placeholderKindText(context, last['placeholderKind']);
     if (byKind != null) return byKind;
+    // Tek gösterimlik: açıklama sızmaz.
+    if (viewOnceAttachment(last) != null && last['deleted'] != true && last['removed'] != true) {
+      return l.chatMiscOnceText;
+    }
     final text = (last['text'] as String?)?.trim() ?? '';
     if (text.isNotEmpty) return text.replaceAll(RegExp(r'\s+'), ' ');
     final att = last['attachments'];
