@@ -282,7 +282,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
             if (member.isNotEmpty) ...[
               _SectionHead(title: l.profilePrefsClubsMember, count: l.p12CountClubs('${member.length}')),
               BuCard(
-                style: BuCardStyle.elevated,
+                style: BuCardStyle.outlined,
                 padding: EdgeInsets.zero,
                 child: Column(
                   children: [
@@ -330,7 +330,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
     final inReview = c['status'] == 'PENDING_REVIEW' || c['status'] == 'PENDING';
     final cat = (c['category'] as String?) ?? '';
     return BuCard(
-      style: BuCardStyle.elevated,
+      style: BuCardStyle.outlined,
       onTap: () => _open(c),
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -423,7 +423,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
     final tx = Theme.of(context).textTheme;
     final when = relativeTime((c['requestedAt'] ?? c['joinedAt'])?.toString(), context: context);
     return BuCard(
-      style: BuCardStyle.elevated,
+      style: BuCardStyle.outlined,
       onTap: () => _open(c),
       padding: const EdgeInsets.fromLTRB(16, 14, 8, 0),
       child: Column(
@@ -465,7 +465,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
               label: l.profilePrefsWithdrawTitle,
               child: InkWell(
                 onTap: () => _withdraw(c),
-                borderRadius: BuRadius.bPill,
+                borderRadius: BuRadius.bControl,
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(minHeight: 44),
                   child: Padding(
@@ -474,9 +474,9 @@ class _MyClubsPageState extends State<MyClubsPage> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(BuIcons.undo2, size: 16, color: t.prText),
+                          Icon(BuIcons.undo2, size: 16, color: t.ink),
                           const SizedBox(width: 6),
-                          Text(l.profilePrefsWithdrawTitle, style: tx.labelLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
+                          Text(l.profilePrefsWithdrawTitle, style: tx.labelLarge!.copyWith(color: t.ink)),
                         ],
                       ),
                     ),

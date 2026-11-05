@@ -84,9 +84,9 @@ class _LegalListPageState extends State<LegalListPage> {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
         children: [
-          // Stitch v3 "16": kart/ikon yok; düz satırlar + ince ayırıcı.
+          // Kart/ikon yok: düz, editoryal satırlar + ince ayırıcı.
           for (var i = 0; i < docs.length; i++) ...[
-            if (i > 0) const SizedBox(height: 10),
+            if (i > 0) Divider(height: 1, thickness: 1, color: t.bdSubtle),
             _DocRow(
               doc: docs[i],
               onTap: () => Navigator.push(
@@ -111,10 +111,7 @@ class _DocRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    return BuCard(
-      style: BuCardStyle.elevated,
-      radius: 22,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+    return InkWell(
       onTap: onTap,
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 72),
@@ -122,15 +119,13 @@ class _DocRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 16),
           child: Row(
             children: [
-              const BuFeatureIcon(icon: BuIcons.fileText, size: 36),
-              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text((doc['title'] as String?) ?? (doc['type'] as String? ?? ''),
-                        style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
-                    const SizedBox(height: 2),
+                        style: tx.titleMedium!.copyWith(color: t.ink, height: 1.3)),
+                    const SizedBox(height: 4),
                     Text(_versionLine(context, doc), style: tx.bodySmall!.copyWith(color: t.mut)),
                   ],
                 ),
@@ -145,7 +140,7 @@ class _DocRow extends StatelessWidget {
   }
 }
 
-/// "Yüklenemedi, tekrar dene": kartsız, simgesiz tek muted cümle + metin düğmesi (Stitch v3 "16").
+/// "Yüklenemedi, tekrar dene": kartsız, simgesiz tek muted cümle + metin düğmesi.
 class _FailedRow extends StatelessWidget {
   const _FailedRow({required this.onRetry});
 
@@ -232,7 +227,7 @@ class _LegalDocPageState extends State<LegalDocPage> {
                               key: const ValueKey('doc-ok'),
                               padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
                               children: [
-                                // Kart yok (Stitch v3 "17"): metin doğrudan zeminde. Başlık/alıntı/tablo/kalın destekli Markdown; HTML yorumlanmaz.
+                                // Kart yok: metin doğrudan zeminde. Başlık/alıntı/tablo/kalın destekli Markdown; HTML yorumlanmaz.
                                 SimpleMarkdown((d!['content'] as String?) ?? ''),
                               ],
                             ),

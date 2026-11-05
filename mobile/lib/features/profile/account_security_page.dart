@@ -278,7 +278,6 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
                     BuButton(
                       key: const ValueKey('sec-submit'),
                       label: l.profil2SecPwButton,
-                      background: t.prPressed, // Stitch profil-v4: #B93833
                       busy: _busy,
                       onPressed: _busy ? null : _submit,
                     ),

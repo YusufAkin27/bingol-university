@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 
 import '../../widgets/bu.dart';
 
-/// Profil düzenle / Ayarlar / Hesap / Gizlilik / Verilerim / Hesabı sil (Stitch 48, 49, 08) ortak küçük bileşenleri.
+/// Profil düzenle / Ayarlar / Hesap / Gizlilik / Verilerim / Hesabı sil ortak küçük bileşenleri (premium monochrome).
 /// Renk yalnız `context.bu` ve ColorScheme üzerinden gelir.
 
-/// Listelerde tek nötr simge tonu ([BuSettingsTile.tint] için): sf2 zemin + mürekkep simge. Tur 3: mavi/marka tonları kalktı.
+/// Listelerde tek nötr simge tonu ([BuSettingsTile.tint] için): sf2 zemin + mürekkep simge.
 BuTint profilNeutralTint(BuildContext context) {
   final t = context.bu;
   return BuTint(t.sf2, t.ink);
 }
 
-/// Bölüm başlığı: küçük, kalın, soluk, büyük harf ("GÖRÜNÜM").
+/// Bölüm başlığı: küçük, soluk, büyük harf ("GÖRÜNÜM"); kalın değil.
 class P2SectionLabel extends StatelessWidget {
   const P2SectionLabel(this.text, {super.key, this.top = 0});
 
@@ -36,7 +36,7 @@ class P2SectionLabel extends StatelessWidget {
   }
 }
 
-/// Bölüm başlığı: koyu, kalın ("Şifreyi güncelle", "Dosyada neler var").
+/// Bölüm başlığı: koyu mürekkep, sade ağırlık ("Şifreyi güncelle", "Dosyada neler var").
 class P2Heading extends StatelessWidget {
   const P2Heading(this.text, {super.key, this.top = 0, this.icon});
 
@@ -52,7 +52,7 @@ class P2Heading extends StatelessWidget {
       child: Semantics(
         header: true,
         child: Row(children: [
-          if (icon != null) ...[ExcludeSemantics(child: Icon(icon, size: 20, color: t.pr)), const SizedBox(width: 8)],
+          if (icon != null) ...[ExcludeSemantics(child: Icon(icon, size: 20, color: t.ink)), const SizedBox(width: 8)],
           Expanded(
             child: Text(text, style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
           ),
@@ -62,7 +62,7 @@ class P2Heading extends StatelessWidget {
   }
 }
 
-/// 36 dp, yumuşak köşeli simge karosu. [tint] verilmezse marka tonu; [danger] kırmızı.
+/// 36 dp, yumuşak köşeli simge karosu: nötr (sf2 + mürekkep); [danger] hata tonu. [tint] yalnız eski çağrılar içindir.
 class P2IconTile extends StatelessWidget {
   const P2IconTile({super.key, required this.icon, this.tint, this.danger = false, this.size = 36, this.neutral = false});
 
@@ -78,8 +78,8 @@ class P2IconTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final cs = Theme.of(context).colorScheme;
-    final bg = danger ? cs.errorContainer : (neutral ? t.sf2 : (tint?.bg ?? t.soft));
-    final fg = danger ? t.danger : (neutral ? t.mut : (tint?.fg ?? t.pr));
+    final bg = danger ? cs.errorContainer : (tint?.bg ?? t.sf2);
+    final fg = danger ? t.danger : (neutral ? t.mut : (tint?.fg ?? t.ink));
     return ExcludeSemantics(
       child: Container(
         width: size,
@@ -212,7 +212,7 @@ class P2FieldLabel extends StatelessWidget {
   }
 }
 
-/// Üç seçenekli parçalı seçici (Herkes | Tanıdıklarım | Yalnızca ben): seçili parça koyu (mürekkep).
+/// Üç seçenekli parçalı seçici (Herkes | Tanıdıklarım | Yalnızca ben): seçili parça ters renk (`pr` zemin, `onPr` yazı), kalın değil.
 class P2Segment3 extends StatelessWidget {
   const P2Segment3({super.key, required this.labels, required this.index, required this.onChanged, this.label, this.enabled = true});
 
@@ -228,7 +228,7 @@ class P2Segment3 extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    // Stitch v3: 36 dp sf2 yuva, seçili parça soft zemin + onSoft + selectedBorder; her parça 48 dp dokunma alanı.
+    // 36 dp sf2 yuva, seçili parça `pr` + `onPr`; her parça 48 dp dokunma alanı.
     return Semantics(
       container: true,
       label: label,
@@ -258,8 +258,7 @@ class P2Segment3 extends StatelessWidget {
                         curve: BuMotion.standard,
                         margin: const EdgeInsets.symmetric(vertical: 4),
                         decoration: BoxDecoration(
-                          color: i == index ? t.soft : Colors.transparent,
-                          border: Border.all(color: i == index ? t.selectedBorder : Colors.transparent),
+                          color: i == index ? t.pr : Colors.transparent,
                           borderRadius: BorderRadius.circular(BuRadius.sm - 2),
                         ),
                         alignment: Alignment.center,
@@ -268,7 +267,7 @@ class P2Segment3 extends StatelessWidget {
                             textAlign: TextAlign.center,
                             overflow: TextOverflow.ellipsis,
                             style: tx.labelMedium!.copyWith(
-                                fontSize: 13, fontWeight: i == index ? FontWeight.w400 : FontWeight.w400, color: i == index ? t.onSoft : t.mut)),
+                                fontSize: 13, color: i == index ? t.onPr : t.mut)),
                       ),
                     ),
                   ),

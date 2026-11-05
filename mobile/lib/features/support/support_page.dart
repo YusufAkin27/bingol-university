@@ -325,7 +325,7 @@ class _FaqTile extends StatelessWidget {
     final d = BuMotion.of(context, BuMotion.medium);
     return Container(
       margin: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 0, kAnketPad, 8),
-      decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), border: Border.all(color: t.bd), boxShadow: BuElevation.of(context, 1)),
+      decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(16), border: Border.all(color: t.bd)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Semantics(
           button: true,
@@ -415,7 +415,7 @@ class _TicketTile extends StatelessWidget {
           margin: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 0, kAnketPad, 8),
           padding: const EdgeInsets.all(16),
           decoration:
-              BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), border: Border.all(color: t.bd), boxShadow: BuElevation.of(context, 1)),
+              BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(16), border: Border.all(color: t.bd)),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('${ticket['subject'] ?? ''}',
                 maxLines: 2,

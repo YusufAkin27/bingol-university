@@ -215,9 +215,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
             padding: EdgeInsetsDirectional.fromSTEB(20, 0, 20, 0),
             child: BuSkeletonScope(
               child: Column(children: [
-                BuSkeleton(height: 112, radius: 20),
+                BuSkeleton(height: 112, radius: 16),
                 SizedBox(height: 12),
-                BuSkeleton(height: 112, radius: 20),
+                BuSkeleton(height: 112, radius: 16),
               ]),
             ),
           ),
@@ -304,8 +304,8 @@ class _FeedbackTile extends StatelessWidget {
     final catKey = item['category'] as String?;
     final cat = supportFeedbackCategories(l)[catKey] ?? l.supportCatOther;
     final (catBg, catFg) = switch (catKey) {
-      'BUG' => (t.soft, t.onSoft),
-      'SUGGESTION' => (t.tint(1).bg, t.tint(1).fg),
+      'BUG' => (t.sf3, t.ink),
+      'SUGGESTION' => (t.sf2, t.ink),
       'COMPLAINT' => (cs.errorContainer, t.danger),
       _ => (t.sf2, t.mut),
     };

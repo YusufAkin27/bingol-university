@@ -186,9 +186,9 @@ class _CropPageState extends State<CropPage> {
                     Material(
                       key: const ValueKey('cropSave'),
                       color: d.onMedia,
-                      shape: const StadiumBorder(),
+                      shape: const RoundedRectangleBorder(borderRadius: BuRadius.bControl),
                       child: InkWell(
-                        customBorder: const StadiumBorder(),
+                        customBorder: const RoundedRectangleBorder(borderRadius: BuRadius.bControl),
                         onTap: _busy ? null : _save,
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(minHeight: 40, minWidth: 96),
@@ -594,8 +594,8 @@ class _Controls extends StatelessWidget {
                     Container(
                       width: 44,
                       height: 44,
-                      decoration: BoxDecoration(color: accent ? t.soft : t.sf2, shape: BoxShape.circle),
-                      child: Icon(icon, size: 20, color: accent ? t.onSoft : t.ink),
+                      decoration: BoxDecoration(color: accent ? t.pr : t.sf2, shape: BoxShape.circle),
+                      child: Icon(icon, size: 20, color: accent ? t.onPr : t.ink),
                     ),
                     const SizedBox(height: 6),
                     Text(label,
@@ -727,7 +727,7 @@ class _Previews extends StatelessWidget {
           Text(l.p04CropPreviewFeed, style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
           const SizedBox(height: 10),
           DecoratedBox(
-            decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.lg), boxShadow: BuElevation.of(context, 1)),
+            decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.lg), border: Border.all(color: t.bd)),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(BuRadius.lg),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -809,7 +809,7 @@ class _Previews extends StatelessWidget {
       case CropKind.cover:
         return Column(children: [
           DecoratedBox(
-            decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.lg), boxShadow: BuElevation.of(context, 1)),
+            decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.lg), border: Border.all(color: t.bd)),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(BuRadius.lg),
               child: AspectRatio(

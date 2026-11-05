@@ -496,7 +496,7 @@ class TopStrip extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: Text(actionLabel!,
-                        style: tx.labelMedium!.copyWith(color: t.prText, fontWeight: FontWeight.w400, decoration: TextDecoration.none)),
+                        style: tx.labelMedium!.copyWith(color: t.ink, decoration: TextDecoration.none)),
                   ),
                 ),
               ),
@@ -529,10 +529,10 @@ class GateNoticeStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final maint = kind == GateNoticeKind.maintenance;
-    final tint = t.tint(1);
-    final bg = maint ? t.warnSoft : tint.bg;
-    final fg = maint ? t.onWarnSoft : tint.fg;
-    final accent = maint ? t.warn : tint.fg;
+    // Bakım = anlamsal uyarı tonu; bilgi = nötr yüzey + mürekkep.
+    final bg = maint ? t.warnSoft : t.sf2;
+    final fg = maint ? t.onWarnSoft : t.ink;
+    final accent = maint ? t.warn : t.ink;
     if (plain) {
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
@@ -554,7 +554,7 @@ class GateNoticeStrip extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       constraints: const BoxConstraints(minHeight: 44),
       padding: const EdgeInsetsDirectional.fromSTEB(8, 6, 4, 6),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(14), boxShadow: BuElevation.of(context, 1)),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(14)),
       child: Row(
         children: [
           ExcludeSemantics(
@@ -612,7 +612,7 @@ class UpdateNotice extends StatelessWidget {
       color: t.sf3,
       elevation: 6,
       shadowColor: t.shadow.withValues(alpha: .35),
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(16),
       child: Padding(
         padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 4, 10),
         child: Row(
@@ -622,8 +622,8 @@ class UpdateNotice extends StatelessWidget {
                 width: 40,
                 height: 40,
                 alignment: Alignment.center,
-                decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-                child: Icon(BuIcons.download, size: 18, color: t.pr),
+                decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+                child: Icon(BuIcons.download, size: 18, color: t.ink),
               ),
             ),
             const SizedBox(width: 12),

@@ -6,10 +6,10 @@ import 'notification_prefs_page.dart' show PrefSwitch;
 /// Profil ortak parçaları (kart, satır, bölüm başlığı, anahtar satırı, seçim sayfası). P0 bileşenleri üstüne kurulu;
 /// dış imzalar eskisiyle aynıdır (hesap, bildirim, etkinlik, kulüp sayfaları kullanır).
 
-/// Mavi ikon tonu (tasarım sistemindeki mavi kategori rengi; açık/koyu temaya göre okunur ton).
-Color profilBlue(BuildContext context) => context.bu.tint(1).fg;
+/// Eski ad: artık nötr mürekkep tonu (mavi kategori rengi kalktı).
+Color profilBlue(BuildContext context) => context.bu.ink;
 
-/// Çizgili kart ([BuCard] outlined, 24 dp köşe, Stitch profil-v4); satırlar tam genişlikte çok ince çizgiyle ayrılır.
+/// Çizgili kart ([BuCard] outlined, 16 dp köşe, gölgesiz); satırlar tam genişlikte çok ince çizgiyle ayrılır.
 class ProfilCard extends StatelessWidget {
   const ProfilCard({super.key, required this.children, this.margin});
 
@@ -21,7 +21,7 @@ class ProfilCard extends StatelessWidget {
     final t = context.bu;
     final card = BuCard(
       padding: EdgeInsets.zero,
-      radius: 24,
+      radius: 16,
       style: BuCardStyle.outlined,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -37,7 +37,7 @@ class ProfilCard extends StatelessWidget {
   }
 }
 
-/// Stitch v3 üst çubuğu: 56 dp, düz geri oku (48 dp dokunma) + başlık 18/600, çizgisiz. Ekran okuyucuda "Geri".
+/// Üst çubuk: 56 dp, düz geri oku (48 dp dokunma) + sade başlık, çizgisiz. Ekran okuyucuda "Geri".
 class ProfilTopBar extends StatelessWidget {
   const ProfilTopBar({super.key, required this.title, this.onBack, this.trailing});
 
@@ -53,7 +53,7 @@ class ProfilTopBar extends StatelessWidget {
       );
 }
 
-/// Stitch v3 düz bölüm etiketi: 13/500 mut, büyük harf değil; üstte [top] dp boşluk.
+/// Düz bölüm etiketi: 13 sp mut (kalın değil), büyük harf değil; üstte [top] dp boşluk.
 class ProfilFlatSection extends StatelessWidget {
   const ProfilFlatSection(this.text, {super.key, this.top = 24, this.upper = false, this.horizontal = 20});
 
@@ -85,14 +85,14 @@ class ProfilFlatSection extends StatelessWidget {
   }
 }
 
-/// Tam genişlik satır grubu: [color] (varsayılan sf) zemin, satırlar arasında 1 dp bd ayırıcı.
+/// Satır grubu: ince çerçeveli 16 dp kart (gölge yok), satırlar arasında 1 dp ince ayırıcı.
 class ProfilFlatGroup extends StatelessWidget {
   const ProfilFlatGroup({super.key, required this.children, this.color, this.outlined = false});
 
   final List<Widget> children;
   final Color? color;
 
-  /// true: gölgesiz çizgili kart, 16 dp köşe (Stitch profil-v4 Hesap ve güvenlik).
+  /// Eski parametre: her iki değer de aynı gölgesiz çizgili 16 dp kartı verir (gölgeli stil kalktı).
   final bool outlined;
 
   @override
@@ -101,13 +101,13 @@ class ProfilFlatGroup extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: BuCard(
-        radius: outlined ? 16 : 22,
-        style: outlined ? BuCardStyle.outlined : BuCardStyle.elevated,
+        radius: 16,
+        style: BuCardStyle.outlined,
         color: color,
         padding: EdgeInsets.zero,
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           for (var i = 0; i < children.length; i++) ...[
-            if (i > 0) Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Divider(height: 1, thickness: 1, color: t.bd)),
+            if (i > 0) Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Divider(height: 1, thickness: 1, color: t.bdSubtle)),
             children[i],
           ],
         ]),
@@ -234,39 +234,40 @@ class ProfilSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    // Stitch profil-v4: bölüm etiketi 15 sp / 500, soluk, BÜYÜK HARF DEĞİL.
+    // Bölüm etiketi 13 sp, soluk, kalın ve BÜYÜK HARF DEĞİL.
     return Padding(
       padding: EdgeInsetsDirectional.only(start: 4, bottom: 10, top: top),
       child: Semantics(
         header: true,
-        child: Text(text, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 15, fontWeight: BuType.emphasisWeight, color: t.mut)),
+        child: Text(text, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 13, fontWeight: BuType.emphasisWeight, color: t.mut)),
       ),
     );
   }
 }
 
-/// 36x36 yuvarlatılmış simge karosu: varsayılan NÖTR (tur 3: listelerde tek simge tonu), [tint] ile verilen ton, [danger] ile hata tonu.
+/// Liste simgesi: karo/zemin YOK, tek nötr ton (`mut`); hata/silme satırlarında `danger`. Karo boyutu yalnız satır hizası içindir.
 class ProfilIconTile extends StatelessWidget {
   const ProfilIconTile({super.key, required this.icon, this.color, this.tint, this.danger = false, this.size = 36, this.accent = false});
 
   /// Karo kenarı (dp); simge 0,5 oranında. Stitch profil listeleri 40.
   final double size;
 
-  /// true: simge vurgu rengi [BuTokens.pr] (Stitch profil-v4 liste simgeleri), aksi halde [BuTokens.onSoft].
+  /// Eski parametre (vurgu rengi kalktı): yok sayılır, simge her zaman nötrdür.
   final bool accent;
 
   final IconData icon;
 
-  /// Yalnız simge rengi (eski kullanım); karo zemini [tint]/marka tonundan gelir.
+  /// Yalnız simge rengi (eski kullanım).
   final Color? color;
+
+  /// Eski parametre: ton karoları kalktı, yok sayılır.
   final BuTint? tint;
   final bool danger;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    // Çerçeve/zemin YOK: yalnız simge, kırmızı (AA uyumlu metin kırmızısı). Karo boyutu satır hizası için kalır.
-    final fg = color ?? (danger ? t.danger : t.prText);
+    final fg = color ?? (danger ? t.danger : t.mut);
     return SizedBox(
       width: size,
       height: size,
@@ -302,7 +303,7 @@ class ProfilRow extends StatelessWidget {
   final bool blue;
   final bool chevron;
 
-  /// Karo rengi (örn. `context.bu.tint(2)`); verilmezse [blue] ya da marka tonu.
+  /// Eski parametre (ton karoları kalktı): yok sayılır.
   final BuTint? tint;
 
   @override
@@ -310,7 +311,6 @@ class ProfilRow extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final c = danger ? t.danger : t.ink;
-    final tone = tint ?? (blue ? t.tint(1) : null);
     return InkWell(
       onTap: onTap == null
           ? null
@@ -324,7 +324,7 @@ class ProfilRow extends StatelessWidget {
         padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 8),
         child: Row(
           children: [
-            if (icon != null) ...[ProfilIconTile(icon: icon!, tint: tone, danger: danger, size: 40, accent: true), const SizedBox(width: 12)],
+            if (icon != null) ...[ProfilIconTile(icon: icon!, danger: danger, size: 40), const SizedBox(width: 12)],
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -334,7 +334,7 @@ class ProfilRow extends StatelessWidget {
                       maxLines: 1,
                       softWrap: false,
                       overflow: TextOverflow.ellipsis,
-                      style: tx.bodyLarge!.copyWith(fontSize: icon == null ? null : 17, fontWeight: icon == null ? FontWeight.w400 : FontWeight.w400, color: c)),
+                      style: tx.bodyLarge!.copyWith(fontSize: 16, color: c)),
                   if (sub != null) Text(sub!, maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
                 ],
               ),
@@ -435,7 +435,7 @@ Future<String?> showProfilChoiceSheet(
           BuListTile(
             title: o.$2,
             selected: o.$1 == selected,
-            trailing: o.$1 == selected ? Icon(BuIcons.check, color: ctx.bu.pr) : null,
+            trailing: o.$1 == selected ? Icon(BuIcons.check, color: ctx.bu.ink) : null,
             onTap: () {
               buHaptic(BuHaptic.selection);
               Navigator.pop(ctx, o.$1);
@@ -444,4 +444,111 @@ Future<String?> showProfilChoiceSheet(
       ],
     ),
   );
+}
+
+/// Tema seçici: Sistem / Açık / Koyu, her seçenekte küçük önizleme (Açık = Premium White, Koyu = Premium Black,
+/// Sistem = ikiye bölünmüş). Seçili seçenek `ink` çerçeve + `ink` etiketle ayırt edilir (gölge/renk yok).
+/// Önizleme karoları seçeneğin kendi temasını gösterir; bu yüzden [BuTokens.light]/[BuTokens.dark] doğrudan kullanılır
+/// (arayüz rengi değil, "bu temada nasıl görünür" örneğidir).
+class ProfilThemePicker extends StatelessWidget {
+  const ProfilThemePicker({super.key, required this.mode, required this.onChanged, required this.systemLabel, required this.lightLabel, required this.darkLabel});
+
+  final ThemeMode mode;
+  final ValueChanged<ThemeMode> onChanged;
+  final String systemLabel;
+  final String lightLabel;
+  final String darkLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final options = [
+      (ThemeMode.system, systemLabel, const ValueKey('theme-option-system')),
+      (ThemeMode.light, lightLabel, const ValueKey('theme-option-light')),
+      (ThemeMode.dark, darkLabel, const ValueKey('theme-option-dark')),
+    ];
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        for (var i = 0; i < options.length; i++) ...[
+          if (i > 0) const SizedBox(width: 12),
+          Expanded(
+            child: _ThemeOption(
+              key: options[i].$3,
+              label: options[i].$2,
+              mode: options[i].$1,
+              selected: mode == options[i].$1,
+              onTap: () {
+                if (mode != options[i].$1) buHaptic(BuHaptic.selection);
+                onChanged(options[i].$1);
+              },
+            ),
+          ),
+        ],
+      ]),
+    );
+  }
+}
+
+class _ThemeOption extends StatelessWidget {
+  const _ThemeOption({super.key, required this.label, required this.mode, required this.selected, required this.onTap});
+
+  final String label;
+  final ThemeMode mode;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    const light = BuTokens.light;
+    const dark = BuTokens.dark;
+    Widget half(BuTokens p) => ColoredBox(
+          color: p.bg,
+          child: Center(child: Text('Aa', style: tx.titleMedium!.copyWith(color: p.ink, fontWeight: BuType.emphasisWeight))),
+        );
+    final preview = switch (mode) {
+      ThemeMode.light => half(light),
+      ThemeMode.dark => half(dark),
+      ThemeMode.system => Row(children: [Expanded(child: half(light)), Expanded(child: half(dark))]),
+    };
+    return Semantics(
+      button: true,
+      selected: selected,
+      inMutuallyExclusiveGroup: true,
+      excludeSemantics: true,
+      label: label,
+      onTap: onTap,
+      child: BuPressable(
+        onTap: onTap,
+        scale: .97,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 88),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            AnimatedContainer(
+              duration: BuMotion.of(context, BuMotion.short),
+              curve: BuMotion.standard,
+              height: 56,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: selected ? t.ink : t.bd, width: selected ? 1.5 : 1),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: preview,
+            ),
+            const SizedBox(height: 8),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              if (selected) ...[Icon(BuIcons.check, size: 14, color: t.ink), const SizedBox(width: 4)],
+              Flexible(
+                child: Text(label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: tx.labelLarge!.copyWith(fontSize: 13, color: selected ? t.ink : t.mut)),
+              ),
+            ]),
+          ]),
+        ),
+      ),
+    );
+  }
 }

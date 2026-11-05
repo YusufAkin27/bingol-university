@@ -163,9 +163,9 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
               padding: const EdgeInsets.only(top: 28),
               child: Center(
                 child: TextButton(
-                  style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 16)),
+                  style: TextButton.styleFrom(foregroundColor: t.ink, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 16)),
                   onPressed: _add,
-                  child: Text(l.p68SugSend, style: Theme.of(context).textTheme.titleMedium!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
+                  child: Text(l.p68SugSend, style: Theme.of(context).textTheme.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                 ),
               ),
             ),
@@ -213,7 +213,7 @@ class _SortText extends StatelessWidget {
                     widthFactor: 1,
                     child: AnimatedDefaultTextStyle(
                       duration: BuMotion.of(context, BuMotion.short),
-                      style: tx.bodyMedium!.copyWith(color: i == index ? t.prText : t.mut, fontWeight: i == index ? BuType.emphasisWeight : FontWeight.w400),
+                      style: tx.bodyMedium!.copyWith(color: i == index ? t.ink : t.mut),
                       child: Text(labels[i], maxLines: 1),
                     ),
                   ),
@@ -249,7 +249,7 @@ class _SuggestionTile extends StatelessWidget {
       child: Container(
         margin: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 0, kAnketPad, 8),
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), border: Border.all(color: t.bd), boxShadow: BuElevation.of(context, 1)),
+        decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(16), border: Border.all(color: t.bd)),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Expanded(
             child: InkWell(
@@ -274,7 +274,7 @@ class _SuggestionTile extends StatelessWidget {
   }
 }
 
-/// Oy kontrolü: yukarı ok + sayı; 56x64 (dikey), r16, 1 dp çerçeve. Oy verilince `soft` zemin + `pr` çerçeve/yazı.
+/// Oy kontrolü: yukarı ok + sayı; 56x64 (dikey), r16, 1 dp çerçeve. Oy verilince `sf2` zemin + `ink` çerçeve ve yazı (boyut değişmez).
 class VotePill extends StatelessWidget {
   const VotePill({super.key, required this.count, required this.voted, required this.onTap, this.vertical = false});
 
@@ -288,7 +288,7 @@ class VotePill extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final fg = voted ? t.prText : t.mut;
+    final fg = voted ? t.ink : t.mut;
     final d = BuMotion.of(context, BuMotion.short);
     return Semantics(
       button: true,
@@ -302,9 +302,9 @@ class VotePill extends StatelessWidget {
           duration: d,
           curve: BuMotion.standard,
           decoration: BoxDecoration(
-            color: voted ? t.soft : t.sf,
+            color: voted ? t.sf2 : t.sf,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: voted ? t.pr : t.bd),
+            border: Border.all(color: voted ? t.ink : t.bd),
           ),
           child: Material(
             type: MaterialType.transparency,
@@ -320,7 +320,7 @@ class VotePill extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(BuIcons.arrowUp, size: 20, color: voted ? t.pr : t.ink),
+                      Icon(BuIcons.arrowUp, size: 20, color: t.ink),
                       SizedBox(width: vertical ? 0 : 8, height: vertical ? 2 : 0),
                       AnimatedSwitcher(
                         duration: d,
@@ -417,10 +417,10 @@ class _SuggestionDetailPageState extends State<SuggestionDetailPage> {
                               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                                 Text('$count', style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                                 Text(voted ? l.p13SugVoted : l.p13SugVoteHint,
-                                    style: tx.labelMedium!.copyWith(color: voted ? t.prText : t.mut, fontWeight: FontWeight.w400)),
+                                    style: tx.labelMedium!.copyWith(color: voted ? t.ink : t.mut)),
                               ]),
                             ),
-                            if (voted) Icon(BuIcons.circleCheck, size: 24, color: t.pr),
+                            if (voted) Icon(BuIcons.circleCheck, size: 24, color: t.ink),
                           ]),
                         ),
                       ),
@@ -428,7 +428,7 @@ class _SuggestionDetailPageState extends State<SuggestionDetailPage> {
                   ),
                   const SizedBox(height: 14),
                   Row(children: [
-                    ExcludeSemantics(child: Icon(BuIcons.info, size: 16, color: t.prText)),
+                    ExcludeSemantics(child: Icon(BuIcons.info, size: 16, color: t.mut)),
                     const SizedBox(width: 8),
                     Expanded(child: Text(l.p13SugApprovalNote, style: tx.labelMedium!.copyWith(color: t.mut, height: 1.4))),
                   ]),

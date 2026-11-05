@@ -237,13 +237,10 @@ class _InlineProfileHeroState extends State<InlineProfileHero> {
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _cancel();
       },
-      child: BuCard(
-        radius: 24,
-        style: BuCardStyle.outlined,
-        padding: EdgeInsets.zero,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      // Kart YOK: avatar, büyük sade ad, bölüm/sınıf ve biyografi doğrudan sayfa zemininde (büyük bilgi kartı istenmiyor).
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+            padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               Center(child: widget.avatar),
               const SizedBox(height: 12),
@@ -275,7 +272,7 @@ class _InlineProfileHeroState extends State<InlineProfileHero> {
                             textAlign: TextAlign.center,
                             maxLines: 3,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.headlineSmall!.copyWith(fontSize: 22, color: t.ink, fontWeight: FontWeight.w400)),
+                            style: Theme.of(context).textTheme.displaySmall!.copyWith(color: t.ink, fontWeight: BuType.emphasisWeight)),
                       ),
               ),
               const SizedBox(height: 4),
@@ -325,7 +322,7 @@ class _InlineProfileHeroState extends State<InlineProfileHero> {
                             leading: BuIcons.plus,
                             child: Text(l.profileBioEmptyCta,
                                 textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 15, color: t.prText, fontWeight: FontWeight.w400)),
+                                style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 15, color: t.ink)),
                           )
                         : _ReadRow(
                             key: const ValueKey('inline-bio'),
@@ -343,7 +340,6 @@ class _InlineProfileHeroState extends State<InlineProfileHero> {
             ]),
           ),
         ]),
-      ),
     );
   }
 
@@ -370,7 +366,7 @@ class _Saving extends StatelessWidget {
   Widget build(BuildContext context) => Semantics(
         label: context.l10n.profileSavingSemantic,
         liveRegion: true,
-        child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: context.bu.prText)),
+        child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: context.bu.ink)),
       );
 }
 
@@ -403,7 +399,7 @@ class _ReadRow extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              if (leading != null) ...[Icon(leading, size: 16, color: t.prText), const SizedBox(width: 6)],
+              if (leading != null) ...[Icon(leading, size: 16, color: t.ink), const SizedBox(width: 6)],
               Flexible(child: child),
               const SizedBox(width: 8),
               if (saving) const _Saving() else if (leading == null) Icon(BuIcons.pencil, size: 15, color: t.mut),
@@ -415,7 +411,7 @@ class _ReadRow extends StatelessWidget {
   }
 }
 
-/// Bölüm / Sınıf çipi: ince 1 dp çerçeve, sağda açılır ok; boşken "ekle" (artı) durumu.
+/// Bölüm / Sınıf seçici: ince 1 dp çerçeve, 12 dp köşe (hap değil), sağda açılır ok; boşken "ekle" (artı) durumu.
 class _Chip extends StatelessWidget {
   const _Chip({super.key, required this.semantic, required this.text, required this.empty, required this.saving, required this.onTap});
 
@@ -437,24 +433,24 @@ class _Chip extends StatelessWidget {
       onTap: onTap,
       child: Material(
         color: Colors.transparent,
-        borderRadius: BuRadius.bPill,
+        borderRadius: BuRadius.bControl,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BuRadius.bPill,
+          borderRadius: BuRadius.bControl,
           child: Ink(
-            decoration: BoxDecoration(borderRadius: BuRadius.bPill, border: Border.all(color: t.bd)),
+            decoration: BoxDecoration(borderRadius: BuRadius.bControl, border: Border.all(color: t.bd)),
             child: ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 44),
               child: Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(14, 6, 12, 6),
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  if (empty) ...[Icon(BuIcons.plus, size: 16, color: t.prText), const SizedBox(width: 6)],
+                  if (empty) ...[Icon(BuIcons.plus, size: 16, color: t.ink), const SizedBox(width: 6)],
                   Flexible(
                     child: Text(text,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                            fontSize: 14, fontWeight: empty ? FontWeight.w400 : BuType.emphasisWeight, color: empty ? t.prText : t.ink)),
+                            fontSize: 14, color: empty ? t.mut : t.ink)),
                   ),
                   const SizedBox(width: 6),
                   if (saving) const _Saving() else Icon(BuIcons.chevronDown, size: 16, color: t.mut),
@@ -531,7 +527,7 @@ class _TextEditor extends StatelessWidget {
           scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 140),
           onChanged: (_) => onChanged(),
           onSubmitted: multi ? null : (_) => onSave(),
-          style: (center ? tx.titleLarge! : tx.bodyLarge!).copyWith(color: t.ink, height: 1.35, fontWeight: center ? FontWeight.w400 : null),
+          style: (center ? tx.headlineLarge! : tx.bodyLarge!).copyWith(color: t.ink, height: 1.35, fontWeight: center ? FontWeight.w400 : null),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: tx.bodyLarge!.copyWith(color: t.mut),
@@ -542,7 +538,7 @@ class _TextEditor extends StatelessWidget {
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             border: b(t.bdStrong, 1),
             enabledBorder: b(hasError ? t.danger : t.bdStrong, 1),
-            focusedBorder: b(hasError ? t.danger : t.prText, 1.5),
+            focusedBorder: b(hasError ? t.danger : t.ink, 1.5),
           ),
         ),
         const SizedBox(height: 4),
@@ -576,7 +572,7 @@ class _TextEditor extends StatelessWidget {
             tooltip: l.profileSave,
             icon: BuIcons.check,
             fg: t.onPr,
-            bg: t.prPressed,
+            bg: t.pr,
             onTap: () => onSave(),
           ),
         ]),

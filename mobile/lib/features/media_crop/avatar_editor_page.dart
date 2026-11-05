@@ -346,9 +346,9 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
           Material(
             key: const ValueKey('avatarEdDone'),
             color: ready ? _d.onMedia : _d.onMedia.withValues(alpha: .4),
-            shape: const StadiumBorder(),
+            shape: const RoundedRectangleBorder(borderRadius: BuRadius.bControl),
             child: InkWell(
-              customBorder: const StadiumBorder(),
+              customBorder: const RoundedRectangleBorder(borderRadius: BuRadius.bControl),
               onTap: ready && !_busy ? _done : null,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(minHeight: BuSize.touch, minWidth: 88),
@@ -501,17 +501,18 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
                 constraints: const BoxConstraints(minHeight: BuSize.touch + 8),
                 padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
                 decoration: BoxDecoration(
-                  color: _tab == tab ? t.soft : Colors.transparent,
+                  color: _tab == tab ? t.sf2 : Colors.transparent,
+                  border: Border.all(color: _tab == tab ? t.bd : Colors.transparent),
                   borderRadius: BorderRadius.circular(BuRadius.md),
                 ),
                 child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Icon(ic, size: 20, color: _tab == tab ? t.onSoft : t.ink),
+                  Icon(ic, size: 20, color: t.ink),
                   const SizedBox(height: 2),
                   Text(label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
-                      style: tx.labelMedium?.copyWith(fontSize: 12, fontWeight: FontWeight.w400, color: _tab == tab ? t.onSoft : t.ink)),
+                      style: tx.labelMedium?.copyWith(fontSize: 12, color: t.ink)),
                 ]),
               ),
             ),
@@ -744,7 +745,7 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
                           child: DecoratedBox(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(4),
-                              color: _view.ratio == r ? t.soft : Colors.transparent,
+                              color: _view.ratio == r ? t.sf2 : Colors.transparent,
                               border: Border.all(color: _view.ratio == r ? t.pr : t.bdStrong, width: _view.ratio == r ? 2.5 : 1.5),
                             ),
                           ),
@@ -964,8 +965,8 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
               label: _adjLabel(l, a),
               excludeSemantics: true,
               child: Material(
-                color: sel ? t.soft : t.sf2,
-                shape: StadiumBorder(side: sel ? BorderSide(color: t.selectedBorder) : BorderSide.none),
+                color: sel ? t.pr : t.sf2,
+                shape: const StadiumBorder(),
                 child: InkWell(
                   key: ValueKey('avatarEdAdj-${a.name}'),
                   customBorder: const StadiumBorder(),
@@ -975,10 +976,10 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        Text(_adjLabel(l, a), style: tx.labelLarge?.copyWith(color: sel ? t.onSoft : t.ink, fontWeight: FontWeight.w400)),
+                        Text(_adjLabel(l, a), style: tx.labelLarge?.copyWith(color: sel ? t.onPr : t.ink)),
                         if (touched) ...[
                           const SizedBox(width: 6),
-                          Container(width: 6, height: 6, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle)),
+                          Container(width: 6, height: 6, decoration: BoxDecoration(color: sel ? t.onPr : t.ink, shape: BoxShape.circle)),
                         ],
                       ]),
                     ),

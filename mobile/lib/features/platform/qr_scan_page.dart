@@ -319,11 +319,8 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
                           child: Container(
                             margin: const EdgeInsets.symmetric(horizontal: 18),
                             height: 2,
-                            decoration: BoxDecoration(
-                              color: t.h1,
-                              borderRadius: BorderRadius.circular(2),
-                              boxShadow: [BoxShadow(color: t.h1.withValues(alpha: .9), blurRadius: 12)],
-                            ),
+                            // Parıltı/gölge YOK: kamera üstünde düz, ince tarama çizgisi.
+                            decoration: BoxDecoration(color: t.onMedia, borderRadius: BorderRadius.circular(2)),
                           ),
                         ),
                       ),
@@ -344,7 +341,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(width: 6, height: 6, decoration: BoxDecoration(color: t.h1, shape: BoxShape.circle)),
+                      Container(width: 6, height: 6, decoration: BoxDecoration(color: t.onMedia, shape: BoxShape.circle)),
                       const SizedBox(width: 8),
                       Flexible(
                         child: Text(l.sistemuiQrHint,
@@ -464,7 +461,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
           liveRegion: true,
           child: Container(
             padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(color: t.sf3, borderRadius: BorderRadius.circular(16), boxShadow: BuElevation.of(context, 2)),
+            decoration: BoxDecoration(color: t.sf3, borderRadius: BorderRadius.circular(16), border: Border.all(color: t.bd)),
             child: Row(
               children: [
                 ExcludeSemantics(child: Icon(BuIcons.circleCheckFilled, size: 24, color: t.ok)),

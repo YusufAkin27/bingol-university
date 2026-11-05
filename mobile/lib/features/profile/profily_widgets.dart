@@ -16,8 +16,8 @@ enum ProfilyTone { green, amber, violet, red, mute }
   return switch (tone) {
     ProfilyTone.green => (t.okSoft, t.ok),
     ProfilyTone.amber => (t.warnSoft, t.onWarnSoft),
-    ProfilyTone.violet => (t.aquaSoft, t.onAquaSoft), // eski ad; renk artık su mavisi
-    ProfilyTone.red => (t.soft, t.onSoft),
+    ProfilyTone.violet => (t.sf2, t.ink), // eski ad; nötr
+    ProfilyTone.red => (t.sf2, t.ink), // eski ad (marka rozeti); nötr
     ProfilyTone.mute => (t.sf2, t.mut),
   };
 }
@@ -66,7 +66,7 @@ class ProfilyRow extends StatelessWidget {
       );
 }
 
-/// Ad (15/700) + alt yazı sütunu.
+/// Ad + alt yazı sütunu.
 class ProfilyTitleBlock extends StatelessWidget {
   const ProfilyTitleBlock({super.key, required this.title, this.sub, this.pill, this.titleSize = 15});
 
@@ -118,7 +118,7 @@ class ProfilyTabs extends StatelessWidget {
       );
 }
 
-/// Boş durum kartı: yumuşak halkalı simge + başlık + açıklama (+ eylem). [horizontal] simge solda.
+/// Boş durum kartı: nötr daire içinde çizgi simge + başlık + açıklama (+ eylem). [horizontal] simge solda.
 class ProfilyEmptyCard extends StatelessWidget {
   const ProfilyEmptyCard({
     super.key,
@@ -140,19 +140,14 @@ class ProfilyEmptyCard extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final tileSize = horizontal ? 52.0 : 72.0;
-    // Dış halka + iç daire: boş durumda "boş kutu" yerine yumuşak, ödüllendirici bir vurgu.
+    // Tek nötr daire (sf2) + ince çerçeve; halka/ton yok.
     final tile = ExcludeSemantics(
       child: Container(
-        width: tileSize,
-        height: tileSize,
-        decoration: BoxDecoration(shape: BoxShape.circle, color: t.soft.withValues(alpha: .55)),
+        width: tileSize * .72,
+        height: tileSize * .72,
+        decoration: BoxDecoration(shape: BoxShape.circle, color: t.sf2, border: Border.all(color: t.bdSubtle)),
         alignment: Alignment.center,
-        child: Container(
-          width: tileSize * .72,
-          height: tileSize * .72,
-          decoration: BoxDecoration(shape: BoxShape.circle, color: t.soft),
-          child: Icon(icon, size: horizontal ? 24 : 28, color: t.onSoft),
-        ),
+        child: Icon(icon, size: horizontal ? 24 : 26, color: t.mut),
       ),
     );
     final texts = Column(
@@ -271,7 +266,7 @@ class ProfilySearchField extends StatelessWidget {
       );
 }
 
-/// Tür seçim çipi (Öneri / Hata / Diğer): 48 dp, 16 dp köşe; seçiliyken marka tonu.
+/// Tür seçim çipi (Öneri / Hata / Diğer): 48 dp, 16 dp köşe; seçiliyken `ink` çerçeve + `sf2` zemin.
 class ProfilyTypeChip extends StatelessWidget {
   const ProfilyTypeChip({super.key, required this.label, required this.icon, required this.selected, required this.onTap});
 
@@ -283,7 +278,7 @@ class ProfilyTypeChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final fg = selected ? t.onSoft : t.ink;
+    final fg = t.ink;
     return Semantics(
       button: true,
       selected: selected,
@@ -292,10 +287,10 @@ class ProfilyTypeChip extends StatelessWidget {
         duration: BuMotion.of(context, BuMotion.short),
         curve: BuMotion.standard,
         decoration: ShapeDecoration(
-          color: selected ? t.soft : t.sf,
+          color: selected ? t.sf2 : t.sf,
           shape: RoundedRectangleBorder(
             borderRadius: BuRadius.bMd,
-            side: BorderSide(color: selected ? t.pr : t.bd, width: selected ? 1.5 : 1),
+            side: BorderSide(color: selected ? t.ink : t.bd, width: selected ? 1.5 : 1),
           ),
         ),
         child: InkWell(

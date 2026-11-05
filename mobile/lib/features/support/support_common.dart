@@ -43,9 +43,10 @@ Map<String, String> supportFeedbackStatuses(AppLocalizations l) => {
   final t = context.bu;
   final l = context.l10n;
   return switch (status) {
-    'ANSWERED' => (icon: BuIcons.circleCheck, bg: t.tint(1).bg, fg: t.tint(1).fg, label: l.supportStatusAnswered),
+    // Üç durum tek vurgu rengi olmadan ayrışır: Yanıtlandı = anlamsal yeşil, Açık = nötr yüzey + mürekkep, Kapalı = soluk.
+    'ANSWERED' => (icon: BuIcons.circleCheck, bg: t.okSoft, fg: t.ok, label: l.supportStatusAnswered),
     'CLOSED' => (icon: BuIcons.lock, bg: t.bd, fg: t.mut, label: l.supportStatusClosed),
-    _ => (icon: BuIcons.messageCircle, bg: t.soft, fg: t.onSoft, label: l.supportStatusOpen),
+    _ => (icon: BuIcons.messageCircle, bg: t.sf3, fg: t.ink, label: l.supportStatusOpen),
   };
 }
 
@@ -73,13 +74,13 @@ class SupportStatusPill extends StatelessWidget {
   }
 }
 
-/// Liste satırı durum noktası: Açık kırmızı, Yanıtlandı koyu mavi, Kapalı gri.
+/// Liste satırı durum noktası: Açık mürekkep, Yanıtlandı yeşil, Kapalı gri.
 Color supportStatusDotColor(BuildContext context, String? status) {
   final t = context.bu;
   return switch (status) {
-    'ANSWERED' => t.tint(1).fg,
+    'ANSWERED' => t.ok,
     'CLOSED' => t.mut.withValues(alpha: .5),
-    _ => t.pr,
+    _ => t.ink,
   };
 }
 
@@ -101,15 +102,15 @@ class SupportFeedbackPill extends StatelessWidget {
       case 'PLANNED':
         return dark
             ? AnketPill(label, bg: t.mut, fg: t.bg, small: true)
-            : AnketPill(label, bg: t.tint(1).bg, fg: t.tint(1).fg, icon: BuIcons.calendarCheck, small: true);
+            : AnketPill(label, bg: t.sf3, fg: t.ink, icon: BuIcons.calendarCheck, small: true);
       case 'IN_REVIEW':
         return dark
-            ? AnketPill(label, bg: t.tint(1).bg, fg: t.tint(1).fg, small: true)
+            ? AnketPill(label, bg: t.sf3, fg: t.ink, small: true)
             : AnketPill(label, bg: t.sf2, fg: t.ink, icon: BuIcons.search, small: true);
       case 'REJECTED':
         return AnketPill(label, bg: dark ? t.sf2 : cs.errorContainer, fg: dark ? t.mut : t.danger, small: true);
       default:
-        return SupportDotPill(label, bg: t.soft, fg: t.onSoft, dot: t.pr);
+        return SupportDotPill(label, bg: t.sf2, fg: t.ink, dot: t.ink);
     }
   }
 }
@@ -196,7 +197,7 @@ class SupportField extends StatelessWidget {
                 contentPadding: const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 14),
                 border: const OutlineInputBorder(borderRadius: BuRadius.bMd, borderSide: BorderSide.none),
                 enabledBorder: const OutlineInputBorder(borderRadius: BuRadius.bMd, borderSide: BorderSide.none),
-                focusedBorder: OutlineInputBorder(borderRadius: BuRadius.bMd, borderSide: BorderSide(color: t.pr, width: 2)),
+                focusedBorder: OutlineInputBorder(borderRadius: BuRadius.bMd, borderSide: BorderSide(color: t.ink, width: 1.5)),
               )
             : InputDecoration(
                 hintText: hint,
@@ -208,7 +209,7 @@ class SupportField extends StatelessWidget {
   }
 }
 
-/// Seçenek çipleri (kategori seçimi): hap çipler, seçili marka tonu, isteğe bağlı simge.
+/// Seçenek çipleri (kategori seçimi): hap çipler, seçili = ters renk (`BuChip`), isteğe bağlı simge.
 class SupportChoices extends StatelessWidget {
   const SupportChoices({super.key, required this.options, required this.value, required this.onChanged, this.icons});
 
@@ -226,7 +227,7 @@ class SupportChoices extends StatelessWidget {
       );
 }
 
-/// Kategori çipleri (tasarım 34): yatay kayar; seçili çip yumuşak marka tonu + onay işareti, diğerleri gri.
+/// Kategori çipleri: seçili çip ters renk (`pr` zemin, `onPr` yazı) + onay işareti, diğerleri gri (sf2); 44 dp dokunma.
 class SupportCategoryChips extends StatelessWidget {
   const SupportCategoryChips({super.key, required this.options, required this.value, required this.onChanged});
 
@@ -247,7 +248,7 @@ class SupportCategoryChips extends StatelessWidget {
           excludeSemantics: true,
           onTap: () => onChanged(e.key),
           child: Material(
-            color: e.key == value ? t.soft : t.sf2,
+            color: e.key == value ? t.pr : t.sf2,
             borderRadius: BuRadius.bPill,
             child: InkWell(
               borderRadius: BuRadius.bPill,
@@ -260,8 +261,8 @@ class SupportCategoryChips extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsetsDirectional.symmetric(horizontal: 12),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    if (e.key == value) ...[Icon(BuIcons.check, size: 15, color: t.onSoft), const SizedBox(width: 4)],
-                    Text(e.value, style: tx.labelMedium!.copyWith(color: e.key == value ? t.onSoft : t.ink, fontWeight: FontWeight.w400)),
+                    if (e.key == value) ...[Icon(BuIcons.check, size: 15, color: t.onPr), const SizedBox(width: 4)],
+                    Text(e.value, style: tx.labelMedium!.copyWith(color: e.key == value ? t.onPr : t.ink)),
                   ]),
                 ),
               ),
@@ -308,7 +309,7 @@ String supportError(BuildContext context, Object e) {
   return errorText(e);
 }
 
-/// Yönetici/destek ekibi yanıtı: marka tonlu kutu, başta kalın çizgi ve "Destek ekibi" etiketi.
+/// Yönetici/destek ekibi yanıtı: nötr (sf2) kutu, başta ince `ink` çizgi ve "Destek ekibi" etiketi.
 class SupportStaffReply extends StatelessWidget {
   const SupportStaffReply({super.key, required this.text});
 
@@ -322,18 +323,18 @@ class SupportStaffReply extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 12, 12),
       decoration: BoxDecoration(
-        color: t.soft,
+        color: t.sf2,
         borderRadius: BuRadius.bSm,
-        border: BorderDirectional(start: BorderSide(color: t.pr, width: 3)),
+        border: BorderDirectional(start: BorderSide(color: t.ink, width: 2)),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Icon(BuIcons.headset, size: 14, color: t.onSoft),
+          Icon(BuIcons.headset, size: 14, color: t.mut),
           const SizedBox(width: 6),
-          Text(context.l10n.supportStaff, style: tx.labelMedium!.copyWith(color: t.onSoft, fontWeight: FontWeight.w400)),
+          Text(context.l10n.supportStaff, style: tx.labelMedium!.copyWith(color: t.mut)),
         ]),
         const SizedBox(height: 4),
-        Text(text, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.onSoft)),
+        Text(text, style: tx.bodyMedium!.copyWith(height: 1.5, color: t.ink)),
       ]),
     );
   }
@@ -355,12 +356,12 @@ class SupportNote extends StatelessWidget {
       container: true,
       child: Container(
         padding: const EdgeInsetsDirectional.fromSTEB(14, 14, 16, 14),
-        decoration: BoxDecoration(color: cs.errorContainer, borderRadius: BorderRadius.circular(20)),
+        decoration: BoxDecoration(color: cs.errorContainer, borderRadius: BorderRadius.circular(16)),
         child: Row(children: [
           Container(
             width: 44,
             height: 44,
-            decoration: BoxDecoration(color: t.danger.withValues(alpha: .14), borderRadius: BorderRadius.circular(14)),
+            decoration: BoxDecoration(color: t.danger.withValues(alpha: .14), borderRadius: BorderRadius.circular(12)),
             child: ExcludeSemantics(child: Icon(icon, size: 22, color: t.danger)),
           ),
           const SizedBox(width: 12),
@@ -371,7 +372,7 @@ class SupportNote extends StatelessWidget {
   }
 }
 
-/// Bölüm başlığı: küçük, kalın, büyük harfli (tasarım 34/35); tek satırda kalır, sığmazsa küçülür.
+/// Bölüm başlığı: küçük, büyük harfli, soluk; tek satırda kalır, sığmazsa küçülür.
 class SupportHeading extends StatelessWidget {
   const SupportHeading(this.text, {super.key, this.padding = const EdgeInsetsDirectional.fromSTEB(24, 24, 24, 10)});
 
@@ -392,14 +393,14 @@ class SupportHeading extends StatelessWidget {
           alignment: AlignmentDirectional.centerStart,
           child: Text(up,
               maxLines: 1,
-              style: Theme.of(context).textTheme.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400, letterSpacing: lang == 'ar' ? 0 : .8)),
+              style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.mut, letterSpacing: lang == 'ar' ? 0 : .8)),
         ),
       ),
     );
   }
 }
 
-/// Boş durum kartı: gri simge karosu + kalın başlık + açıklama.
+/// Boş durum kartı: nötr simge karosu + başlık + açıklama.
 class SupportEmptyCard extends StatelessWidget {
   const SupportEmptyCard({super.key, required this.icon, required this.title, required this.body});
 
@@ -412,8 +413,8 @@ class SupportEmptyCard extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     return BuCard(
-      radius: 22,
-      style: BuCardStyle.elevated,
+      radius: 16,
+      style: BuCardStyle.outlined,
       padding: const EdgeInsetsDirectional.all(16),
       child: SizedBox(
         width: double.infinity,
@@ -421,8 +422,8 @@ class SupportEmptyCard extends StatelessWidget {
           Container(
             width: 52,
             height: 52,
-            decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(16)),
-            child: ExcludeSemantics(child: Icon(icon, size: 24, color: t.onSoft)),
+            decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(12)),
+            child: ExcludeSemantics(child: Icon(icon, size: 24, color: t.mut)),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -482,12 +483,12 @@ class SupportLoadError extends StatelessWidget {
       container: true,
       child: Container(
         padding: const EdgeInsetsDirectional.fromSTEB(14, 14, 14, 14),
-        decoration: BoxDecoration(color: cs.errorContainer, borderRadius: BorderRadius.circular(20)),
+        decoration: BoxDecoration(color: cs.errorContainer, borderRadius: BorderRadius.circular(16)),
         child: Row(children: [
           Container(
             width: 44,
             height: 44,
-            decoration: BoxDecoration(color: t.danger.withValues(alpha: .14), borderRadius: BorderRadius.circular(14)),
+            decoration: BoxDecoration(color: t.danger.withValues(alpha: .14), borderRadius: BorderRadius.circular(12)),
             child: ExcludeSemantics(child: Icon(BuIcons.circleAlert, size: 22, color: t.danger)),
           ),
           const SizedBox(width: 12),
@@ -501,9 +502,9 @@ class SupportLoadError extends StatelessWidget {
           const SizedBox(width: 10),
           Material(
             color: t.sf,
-            borderRadius: BuRadius.bPill,
+            borderRadius: BuRadius.bControl,
             child: InkWell(
-              borderRadius: BuRadius.bPill,
+              borderRadius: BuRadius.bControl,
               onTap: onRetry,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(minHeight: 44),
