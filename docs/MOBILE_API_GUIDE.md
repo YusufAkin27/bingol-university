@@ -52,6 +52,22 @@ Accept-Language: tr
 - IP başına saatte 10 kayıt (`429 RATE_LIMITED`); `resend-code` IP başına saatte 10, e-posta başına saatte 5.
 - **Akademik alanlar (isteğe bağlı):** `faculty`, `department`, `grade` (bkz. 1.8). Verilirse katalogla doğrulanır; geçersizse `400 ACADEMIC_INVALID`. Bekleyen kayıtla taşınır, `verify-email` ile hesaba yazılır.
 
+### 1.1a Kota aşımında ertelenmiş doğrulama (kısıtlı mod)
+Günlük doğrulama e-postası kotası (≈300/gün) dolduğunda `register` artık `503 MAIL_QUOTA_EXHAUSTED` ile geri çevirmez: kullanıcıyı **içeri alır ama e-postası doğrulanmamış ve yalnız okur** bırakır.
+```http
+POST /api/auth/register   {"email":"...","password":"...","acceptTerms":true,"language":"tr","client":"mobile"}
+→ 201 Created
+{"message":"Hesabınız oluşturuldu. ...","emailVerified":false,"verificationDeferred":true,
+ "accessToken":"...","refreshToken":"...","expiresInSeconds":900,"tokenType":"Bearer"}
+```
+- Normal akış (kota doluyken değil) **aynen** `202 {"message":...}` + e-posta kodu. İstemci HTTP koduna değil **`verificationDeferred === true`** alanına bakar: doğruysa jetonları saklar, kod ekranını AÇMAZ, kullanıcıyı doğrudan uygulamaya alır. `client` (`mobile|web`) alanı isteğe bağlıdır (jeton etiketi; `verify-email` ile aynı).
+- `GET /api/users/me` yanıtında her zaman `emailVerified` ve `verificationDeferred` (boolean) vardır. `emailVerified==false && verificationDeferred==true` ise **Profil sayfasında "E-postanızı doğrulayın"** kartı gösterilir.
+- `login`/`refresh` ertelenmiş hesapta da çalışır (`200` + `emailVerified:false, verificationDeferred:true` ek alanları; normal girişte bu alanlar yoktur). Diğer doğrulanmamış hesaplarda `403 EMAIL_NOT_VERIFIED` aynen sürer.
+- **Doğrulama (JWT'li):** `GET /api/auth/verification/status` → `{emailVerified, verificationDeferred, email}`; `POST /api/auth/verification/resend` → `202` (kod 6 hane/10 dk; `429 RESEND_COOLDOWN` 180 sn + `Retry-After`; kota hâlâ doluysa **`429 MAIL_QUOTA_EXCEEDED`** + `Retry-After` saniye: "Yarın tekrar deneyin" gösterin; `409 EMAIL_ALREADY_VERIFIED`); `POST /api/auth/verification/verify {"code":"482913"}` → `200 {"emailVerified":true,"verificationDeferred":false}` (`400 INVALID_CODE`, `429 TOO_MANY_ATTEMPTS`). Başarıdan sonra **yeni jeton gerekmez**; kısıtlar anında kalkar. Anonim `verify-email`/`resend-code` bu hesaplar için kullanılmaz.
+- Kota boşalınca sunucu da (saatlik iş) ertelenmiş hesaba günde en çok 1 kez kod e-postası gönderir; kod 10 dk geçerlidir, süresi dolduysa kullanıcı `resend` ister.
+- **Kısıtlı mod:** doğrulanana kadar tüm yazma uçları `403 EMAIL_VERIFICATION_REQUIRED` döner (gönderi/beğeni/takip, mesaj ve sohbet başlatma, kulüp/etkinlik oluşturma-katılma, başvuru, RSVP, anket oyu, medya yükleme). **İzinli yazmalar:** profil düzenleme (`PATCH /users/me`), avatar, doğrulama uçları, çıkış, cihaz/push kaydı, analitik, sözleşme onayı, hesap silme, destek talebi, şikâyet, bildirim tercihleri. Okuma uçları serbesttir. İstemci bu kodu alınca yazma düğmesi yerine "E-postanızı doğrulayın" göstermeli (profil kartına yönlendir).
+- Doğrulanmamış (kısıtlı) hesaplar aramada/önerilerde/Keşfet'te başkalarına **görünmez**; 14 gün içinde doğrulanmazsa hesap silinir (anonimleştirme).
+
 ### 1.2 Kod gönderme/doğrulama
 ```http
 POST /api/auth/resend-code    {"email":"ayse@bingol.edu.tr"}   → 202 (hesap var olsun olmasın aynı yanıt)
