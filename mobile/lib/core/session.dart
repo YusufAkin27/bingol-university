@@ -13,6 +13,8 @@ import 'locale_controller.dart';
 import 'nav.dart';
 import 'pending_verification.dart';
 import 'two_factor.dart';
+import 'oauth/oauth_services.dart';
+import '../features/auth/data/onboarding_api.dart' show OnboardingDraftStore;
 import '../features/auth/verify_email_sheet.dart' show VerifyPrompt;
 import '../features/legal/legal_reaccept.dart';
 import 'realtime/chat_realtime.dart';
@@ -36,6 +38,7 @@ class Session extends ChangeNotifier {
     legal = LegalReacceptController(api);
     api.onLegalReaccept = legal.onRequired;
     api.onEmailVerificationRequired = _onVerificationRequired;
+    api.onProfileIncomplete = _onProfileIncomplete;
     realtime = ChatRealtime(this);
   }
 
@@ -73,6 +76,27 @@ class Session extends ChangeNotifier {
   void _onVerificationRequired() {
     emailUnverified.value = true;
     VerifyPrompt.show(this);
+  }
+
+  /// OAuth (Google/Apple) girişinden gelen "profil tamam mı" bilgisi; `GET /users/me` yanıtında `profileCompleted`
+  /// alanı yoksa kapı bunu kullanır. Çıkışta silinir. Null: bilinmiyor (eski sunucu = tamamlanmış sayılır).
+  bool? profileCompletedHint;
+
+  /// 403 `PROFILE_INCOMPLETE` sayacı: her yakalamada artar; profil kapısı ([ProfileCompletionGate]) dinler ve
+  /// kabuk yerine "Profilini tamamla" akışını gösterir. Normal akışa erişim profil tamamlanmadan açılmaz.
+  final profileIncompleteSignal = ValueNotifier<int>(0);
+
+  void _onProfileIncomplete() {
+    profileCompletedHint = false;
+    profileIncompleteSignal.value++;
+  }
+
+  /// Sunucuda kapalı (404 `OAUTH_DISABLED`) sağlayıcılar: bu uygulama oturumu boyunca düğmeler gizlenir.
+  final oauthDisabled = ValueNotifier<Set<OAuthProvider>>(const {});
+
+  void disableOAuth(OAuthProvider p) {
+    if (oauthDisabled.value.contains(p)) return;
+    oauthDisabled.value = {...oauthDisabled.value, p};
   }
 
   /// Çıkışta (token hâlâ geçerliyken) çalışır: örn. FCM cihaz kaydını silme. Hatalar yutulur.
@@ -258,6 +282,55 @@ class Session extends ChangeNotifier {
     return ttl is num && ttl > 0 ? ttl.toInt() : challenge.expiresInSeconds;
   }
 
+  /// Google ile giriş/kayıt: `POST /auth/oauth/google`. Sonuç [OAuthLoginResult]; iki faktörlü hesapta oturum AÇILMAZ ve
+  /// [OAuthLoginResult.challenge] ile mevcut kod adımı ([loginTwoFactor]) kullanılır. Hatalar [ApiError]:
+  /// 400 `OAUTH_TOKEN_INVALID`/`OAUTH_EMAIL_MISSING`, 403 `OAUTH_EMAIL_UNVERIFIED`, 409 `OAUTH_LINK_REQUIRED`,
+  /// 404 `OAUTH_DISABLED`, 429.
+  Future<OAuthLoginResult> loginWithGoogle(GoogleCredential c) =>
+      _oauthLogin('/auth/oauth/google', {'idToken': c.idToken}, fallbackName: c.displayName);
+
+  /// Apple ile giriş/kayıt: `POST /auth/oauth/apple`. Apple yalnız ilk yetkilendirmede ad/soyad verir: istek başarısız
+  /// olsa bile güvenli yerel depoya yazılır (onboarding ön doldurması) ve istekle birlikte sunucuya da gider.
+  Future<OAuthLoginResult> loginWithApple(AppleCredential c) async {
+    await OnboardingDraftStore.savePrefill(firstName: c.firstName, lastName: c.lastName);
+    final f = c.firstName?.trim() ?? '', l = c.lastName?.trim() ?? '';
+    return _oauthLogin('/auth/oauth/apple', {
+      'identityToken': c.identityToken,
+      'nonce': c.nonce, // HAM nonce (Apple'a SHA-256 özeti verilmişti)
+      if (f.isNotEmpty) 'firstName': f,
+      if (l.isNotEmpty) 'lastName': l,
+    });
+  }
+
+  Future<OAuthLoginResult> _oauthLogin(String path, Map<String, Object?> body, {String? fallbackName}) async {
+    final res = await api.post(path, {...body, 'client': kClientMobile}, false);
+    final challenge = TwoFactorChallenge.tryParse(res);
+    if (challenge != null) return OAuthLoginResult(challenge: challenge);
+    final map = res is Map ? res : const {};
+    final completed = map['profileCompleted'] is bool ? map['profileCompleted'] as bool : null;
+    profileCompletedHint = completed;
+    if (completed != true) await _savePrefillFrom(map, fallbackName);
+    await _accept(res);
+    if (completed == true) unawaited(OnboardingDraftStore.clear());
+    return OAuthLoginResult(profileCompleted: completed, isNewUser: map['isNewUser'] == true);
+  }
+
+  /// Sunucu yanıtındaki profil alanlarından (Google) ad/soyadı onboarding ön doldurmasına yazar.
+  Future<void> _savePrefillFrom(Map<dynamic, dynamic> res, String? fallbackName) async {
+    String? str(Object? v) => v is String && v.trim().isNotEmpty ? v.trim() : null;
+    for (final m in [res, if (res['user'] is Map) res['user'] as Map, if (res['profile'] is Map) res['profile'] as Map]) {
+      final f = str(m['firstName']), l = str(m['lastName']);
+      if (f != null || l != null) return OnboardingDraftStore.savePrefill(firstName: f, lastName: l);
+    }
+    final full = str(res['displayName']) ?? str((res['user'] is Map ? (res['user'] as Map)['displayName'] : null)) ?? str(fallbackName);
+    if (full == null) return;
+    final at = full.lastIndexOf(' ');
+    await OnboardingDraftStore.savePrefill(
+      firstName: at < 0 ? full : full.substring(0, at),
+      lastName: at < 0 ? '' : full.substring(at + 1),
+    );
+  }
+
   /// Tam e-postayı döndürür (sunucu yanıtındaki ya da numaradan türetilen). Doğrulaması ertelenen kayıtta
   /// ([registerAccount] `deferred`) jetonlar da kabul edilir; bkz. [registerAccount].
   Future<String> register({
@@ -419,6 +492,7 @@ class Session extends ChangeNotifier {
       email = null;
       avatarUrl.value = null;
       emailUnverified.value = false;
+      profileCompletedHint = null;
       _set(SessionState.signedOut); // push yerel temizliği kancadan (token yok: sunucu çağrısı atlanır)
       rootNavigatorKey.currentState?.popUntil((r) => r.isFirst);
     } finally {
@@ -456,6 +530,7 @@ class Session extends ChangeNotifier {
     email = null;
     avatarUrl.value = null;
     emailUnverified.value = false;
+    profileCompletedHint = null;
     _set(SessionState.signedOut);
   }
 
@@ -465,6 +540,8 @@ class Session extends ChangeNotifier {
     noteProfile(res);
     await api.setTokens(Tokens.fromJson(res));
     await _loadMe();
+    // Giriş ekranından itilmiş rotalar (e-posta girişi, kayıt, kod adımları) kapanır: kök ana sayfaya/kapıya geçer.
+    rootNavigatorKey.currentState?.popUntil((r) => r.isFirst);
   }
 
   // Tembel: kurucu anında Future üretilmez (testlerde FakeAsync bölgesi ile runAsync bölgesi karışmasın).
@@ -523,6 +600,17 @@ class Session extends ChangeNotifier {
     state = s;
     notifyListeners();
   }
+}
+
+/// [Session.loginWithGoogle] / [Session.loginWithApple] sonucu. [challenge] doluysa oturum AÇILMADI (iki faktörlü
+/// hesap): çağıran kod adımını gösterir. Aksi halde oturum açıldı; [profileCompleted] false ise kapı "Profilini
+/// tamamla" akışını gösterir (null: sunucu bildirmedi).
+class OAuthLoginResult {
+  const OAuthLoginResult({this.challenge, this.profileCompleted, this.isNewUser = false});
+
+  final TwoFactorChallenge? challenge;
+  final bool? profileCompleted;
+  final bool isNewUser;
 }
 
 /// [Session.registerAccount] sonucu: tam e-posta + doğrulamanın ertelenip ertelenmediği.
@@ -602,6 +690,19 @@ String? knownErrorText(ApiError e, AppLocalizations l) {
       return l.errEmailVerificationRequired;
     case 'DB_TIMEOUT':
       return _withRetry(l.errServiceBusy, e, l);
+    // Google / Apple ile giriş (sunucu zaten istek dilinde döner; yerel metin proxy/boş gövde için güvence).
+    case 'OAUTH_TOKEN_INVALID':
+      return l.oaErrTokenInvalid;
+    case 'OAUTH_EMAIL_UNVERIFIED':
+      return l.oaErrEmailUnverified;
+    case 'OAUTH_EMAIL_MISSING':
+      return l.oaErrEmailMissing;
+    case 'OAUTH_DISABLED':
+      return l.oaErrDisabled;
+    case 'OAUTH_LAST_LOGIN_METHOD':
+      return l.oaErrLastMethod;
+    case 'PROFILE_INCOMPLETE':
+      return l.oaErrProfileIncomplete;
     case 'LEGAL_REACCEPT_REQUIRED':
       return l.errLegalReaccept;
     case 'CONVERSATION_CLOSED': // P08: yönetici sohbeti kapattı (sebep istemciye gelmez)

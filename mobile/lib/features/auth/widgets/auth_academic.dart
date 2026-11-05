@@ -78,7 +78,7 @@ class AuthAcademicFields extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _SelectCard(
+            AuthSelectCard(
               label: l.pickDepartment,
               value: department == null ? null : catalog.departmentLabel(department, uiLocale(context), faculty: faculty),
               placeholder: loading ? l.pickLoading : l.pickSelectDepartment,
@@ -96,7 +96,7 @@ class AuthAcademicFields extends StatelessWidget {
                 ),
               ),
             const SizedBox(height: 24),
-            _SelectCard(
+            AuthSelectCard(
               label: l.pickGrade,
               value: _gradeName(context),
               placeholder: l.pickSelectGrade,
@@ -111,8 +111,8 @@ class AuthAcademicFields extends StatelessWidget {
 }
 
 /// Seçim alanı (çizgili): küçük etiket üstte, iri değer altta, ince alt çizgi, sağda aşağı ok.
-class _SelectCard extends StatelessWidget {
-  const _SelectCard({required this.label, required this.value, required this.placeholder, required this.onTap, this.error});
+class AuthSelectCard extends StatelessWidget {
+  const AuthSelectCard({super.key, required this.label, required this.value, required this.placeholder, required this.onTap, this.error});
 
   final String label;
   final String? value;

@@ -2,6 +2,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../features/academic/alarm_service.dart';
 import '../features/academic/reminders.dart';
+import '../features/auth/data/onboarding_api.dart' show OnboardingDraftStore;
 import '../features/auth/help/public_support_api.dart' show TrackTokenStore;
 import '../features/chat/chat_wallpaper.dart';
 import '../features/chat/photo_autosave.dart';
@@ -40,6 +41,7 @@ void registerUserDataCleaners(ApiClient api) {
     ..add(RecentReactions.clear) // hesaba ozel son alti tepki
     ..add(_clearRemovedMapData) // kaldırılan harita özelliğinin eski sürümlerden kalan yerel verisi
     ..add(HomeLayoutStore.clear) // Ana Sayfa düzeni (bölüm sırası/görünürlüğü + Hızlı Erişim kısayolları)
+    ..add(OnboardingDraftStore.clear) // yarım kalan profil tamamlama taslağı + Apple'ın bir kez verdiği ad/soyad
     ..add(TrackTokenStore.clear) // herkese açık destek talebinin takip jetonu (e-postaya bağlı)
     ..add(_clearLegalLater); // "sözleşme onayını sonra yap" işareti (kullanıcı kimliği içerir)
 }

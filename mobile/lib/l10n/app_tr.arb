@@ -3019,6 +3019,124 @@
   "authNext": "Devam",
   "authTermsAutoPrefix": "Kayıt olarak ",
   "authTermsAutoSuffix": " kabul etmiş sayılırsınız.",
+  "oaHeadline": "Kampüsün burada.",
+  "oaSub": "Paylaş, keşfet ve topluluğuna katıl.",
+  "oaContinueGoogle": "Google ile devam et",
+  "oaContinueApple": "Apple ile devam et",
+  "oaContinueEmail": "E-posta ile devam et",
+  "oaOr": "veya",
+  "oaLegalLead": "Devam ederek şunları kabul etmiş olursun:",
+  "oaTermsLink": "Kullanım Koşulları",
+  "oaPrivacyLink": "Gizlilik Politikası",
+  "oaProviderGoogle": "Google",
+  "oaProviderApple": "Apple",
+  "oaLinkTitle": "Bu e-posta ile zaten bir hesabın var",
+  "oaLinkBody": "Önce e-posta ve şifrenle giriş yap, sonra Hesap ve güvenlik bölümünden {provider} hesabını bağla.",
+  "@oaLinkBody": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "oaLinkMasked": "Hesap: {email}",
+  "@oaLinkMasked": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "oaErrFailed": "Giriş tamamlanamadı. Lütfen tekrar dene.",
+  "oaErrTokenInvalid": "Giriş doğrulanamadı. Lütfen tekrar dene.",
+  "oaErrEmailUnverified": "Bu hesabın e-posta adresi sağlayıcıda doğrulanmamış. Önce adresi doğrula ya da e-posta ile devam et.",
+  "oaErrEmailMissing": "Hesabından e-posta adresi alınamadı. E-posta ile devam edebilirsin.",
+  "oaErrDisabled": "Bu giriş yöntemi şu an kullanılamıyor. E-posta ile devam edebilirsin.",
+  "oaErrLastMethod": "Bu, hesabına giriş yapabildiğin tek yöntem. Kaldırmadan önce bir şifre belirlemelisin.",
+  "oaErrProfileIncomplete": "Devam etmeden önce profilini tamamlamalısın.",
+  "oaOb1Title": "Önce tanışalım.",
+  "oaOb1Sub": "BÜKampüs profilini birkaç adımda oluşturalım.",
+  "oaFirstName": "Ad",
+  "oaLastName": "Soyad",
+  "oaFirstRequired": "Adını yaz.",
+  "oaLastRequired": "Soyadını yaz.",
+  "oaUsername": "Kullanıcı adı",
+  "oaUserRule": "3-24 karakter; a-z, 0-9, nokta ve alt çizgi.",
+  "oaUserChecking": "Kontrol ediliyor…",
+  "oaUserAvail": "Kullanıcı adı müsait.",
+  "oaUserTaken": "Bu kullanıcı adı alınmış.",
+  "oaUserInvalid": "Kullanıcı adı 3-24 karakter olmalı; yalnız a-z, 0-9, nokta ve alt çizgi kullanılabilir.",
+  "oaUserReserved": "Bu kullanıcı adı kullanılamaz.",
+  "oaUserRequired": "Bir kullanıcı adı seç.",
+  "oaPhotoOptional": "Profil fotoğrafı (isteğe bağlı)",
+  "oaPhotoAdd": "Fotoğraf ekle",
+  "oaPhotoChange": "Fotoğrafı değiştir",
+  "oaStepOf": "Adım {a} / {b}",
+  "@oaStepOf": {
+    "placeholders": {
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
+  "oaOb2Title": "Kampüste neredesin?",
+  "oaOb2Sub": "Bölümünü seç, sana uygun toplulukları keşfet.",
+  "oaUniversity": "Üniversite",
+  "oaUniversityName": "Bingöl Üniversitesi",
+  "oaFaculty": "Fakülte",
+  "oaPickFaculty": "Fakülte seç",
+  "oaPickFacultyFirst": "Önce fakülteni seç",
+  "oaSelectFaculty": "Fakültenizi seçin.",
+  "oaClassPostgrad": "Lisansüstü",
+  "oaClassOther": "Diğer",
+  "oaBio": "Kısa biyografi (isteğe bağlı)",
+  "oaBioHint": "Kendini birkaç kelimeyle anlat",
+  "oaDeclareNote": "Seçtiğin bilgiler kendi beyanındır; profilinden istediğin zaman değiştirebilirsin.",
+  "oaJoin": "BÜKampüs'e katıl",
+  "oaLinkedTitle": "Bağlı hesaplar",
+  "oaLinkedYes": "Bağlı",
+  "oaLinkedNo": "Bağlı değil",
+  "oaLinkAction": "Bağla",
+  "oaUnlinkAction": "Bağlantıyı kaldır",
+  "oaLinkPwTitle": "Şifreni doğrula",
+  "oaLinkPwBody": "{provider} hesabını bağlamak için mevcut şifreni gir.",
+  "@oaLinkPwBody": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "oaPasswordLabel": "Şifre",
+  "oaLinkDone": "{provider} hesabı bağlandı.",
+  "@oaLinkDone": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "oaUnlinkTitle": "Bağlantı kaldırılsın mı?",
+  "oaUnlinkBody": "{provider} ile giriş kaldırılır; hesabına başka bir yöntemle girmen gerekir.",
+  "@oaUnlinkBody": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "oaUnlinkDone": "{provider} bağlantısı kaldırıldı.",
+  "@oaUnlinkDone": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "oaLinkedFailed": "Bağlı hesaplar yüklenemedi.",
   "authPwMinErr": "Şifre en az 6 karakter olmalı.",
   "authPwMaxErr": "Şifre en çok 72 karakter olabilir.",
   "authIdHelper": "226051015 ya da ad.soyad@gmail.com",

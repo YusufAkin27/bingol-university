@@ -5623,6 +5623,225 @@ class AppLocalizationsTr extends AppLocalizations {
   String get authTermsAutoSuffix => ' kabul etmiş sayılırsınız.';
 
   @override
+  String get oaHeadline => 'Kampüsün burada.';
+
+  @override
+  String get oaSub => 'Paylaş, keşfet ve topluluğuna katıl.';
+
+  @override
+  String get oaContinueGoogle => 'Google ile devam et';
+
+  @override
+  String get oaContinueApple => 'Apple ile devam et';
+
+  @override
+  String get oaContinueEmail => 'E-posta ile devam et';
+
+  @override
+  String get oaOr => 'veya';
+
+  @override
+  String get oaLegalLead => 'Devam ederek şunları kabul etmiş olursun:';
+
+  @override
+  String get oaTermsLink => 'Kullanım Koşulları';
+
+  @override
+  String get oaPrivacyLink => 'Gizlilik Politikası';
+
+  @override
+  String get oaProviderGoogle => 'Google';
+
+  @override
+  String get oaProviderApple => 'Apple';
+
+  @override
+  String get oaLinkTitle => 'Bu e-posta ile zaten bir hesabın var';
+
+  @override
+  String oaLinkBody(String provider) {
+    return 'Önce e-posta ve şifrenle giriş yap, sonra Hesap ve güvenlik bölümünden $provider hesabını bağla.';
+  }
+
+  @override
+  String oaLinkMasked(String email) {
+    return 'Hesap: $email';
+  }
+
+  @override
+  String get oaErrFailed => 'Giriş tamamlanamadı. Lütfen tekrar dene.';
+
+  @override
+  String get oaErrTokenInvalid => 'Giriş doğrulanamadı. Lütfen tekrar dene.';
+
+  @override
+  String get oaErrEmailUnverified =>
+      'Bu hesabın e-posta adresi sağlayıcıda doğrulanmamış. Önce adresi doğrula ya da e-posta ile devam et.';
+
+  @override
+  String get oaErrEmailMissing =>
+      'Hesabından e-posta adresi alınamadı. E-posta ile devam edebilirsin.';
+
+  @override
+  String get oaErrDisabled =>
+      'Bu giriş yöntemi şu an kullanılamıyor. E-posta ile devam edebilirsin.';
+
+  @override
+  String get oaErrLastMethod =>
+      'Bu, hesabına giriş yapabildiğin tek yöntem. Kaldırmadan önce bir şifre belirlemelisin.';
+
+  @override
+  String get oaErrProfileIncomplete =>
+      'Devam etmeden önce profilini tamamlamalısın.';
+
+  @override
+  String get oaOb1Title => 'Önce tanışalım.';
+
+  @override
+  String get oaOb1Sub => 'BÜKampüs profilini birkaç adımda oluşturalım.';
+
+  @override
+  String get oaFirstName => 'Ad';
+
+  @override
+  String get oaLastName => 'Soyad';
+
+  @override
+  String get oaFirstRequired => 'Adını yaz.';
+
+  @override
+  String get oaLastRequired => 'Soyadını yaz.';
+
+  @override
+  String get oaUsername => 'Kullanıcı adı';
+
+  @override
+  String get oaUserRule => '3-24 karakter; a-z, 0-9, nokta ve alt çizgi.';
+
+  @override
+  String get oaUserChecking => 'Kontrol ediliyor…';
+
+  @override
+  String get oaUserAvail => 'Kullanıcı adı müsait.';
+
+  @override
+  String get oaUserTaken => 'Bu kullanıcı adı alınmış.';
+
+  @override
+  String get oaUserInvalid =>
+      'Kullanıcı adı 3-24 karakter olmalı; yalnız a-z, 0-9, nokta ve alt çizgi kullanılabilir.';
+
+  @override
+  String get oaUserReserved => 'Bu kullanıcı adı kullanılamaz.';
+
+  @override
+  String get oaUserRequired => 'Bir kullanıcı adı seç.';
+
+  @override
+  String get oaPhotoOptional => 'Profil fotoğrafı (isteğe bağlı)';
+
+  @override
+  String get oaPhotoAdd => 'Fotoğraf ekle';
+
+  @override
+  String get oaPhotoChange => 'Fotoğrafı değiştir';
+
+  @override
+  String oaStepOf(String a, String b) {
+    return 'Adım $a / $b';
+  }
+
+  @override
+  String get oaOb2Title => 'Kampüste neredesin?';
+
+  @override
+  String get oaOb2Sub => 'Bölümünü seç, sana uygun toplulukları keşfet.';
+
+  @override
+  String get oaUniversity => 'Üniversite';
+
+  @override
+  String get oaUniversityName => 'Bingöl Üniversitesi';
+
+  @override
+  String get oaFaculty => 'Fakülte';
+
+  @override
+  String get oaPickFaculty => 'Fakülte seç';
+
+  @override
+  String get oaPickFacultyFirst => 'Önce fakülteni seç';
+
+  @override
+  String get oaSelectFaculty => 'Fakültenizi seçin.';
+
+  @override
+  String get oaClassPostgrad => 'Lisansüstü';
+
+  @override
+  String get oaClassOther => 'Diğer';
+
+  @override
+  String get oaBio => 'Kısa biyografi (isteğe bağlı)';
+
+  @override
+  String get oaBioHint => 'Kendini birkaç kelimeyle anlat';
+
+  @override
+  String get oaDeclareNote =>
+      'Seçtiğin bilgiler kendi beyanındır; profilinden istediğin zaman değiştirebilirsin.';
+
+  @override
+  String get oaJoin => 'BÜKampüs\'e katıl';
+
+  @override
+  String get oaLinkedTitle => 'Bağlı hesaplar';
+
+  @override
+  String get oaLinkedYes => 'Bağlı';
+
+  @override
+  String get oaLinkedNo => 'Bağlı değil';
+
+  @override
+  String get oaLinkAction => 'Bağla';
+
+  @override
+  String get oaUnlinkAction => 'Bağlantıyı kaldır';
+
+  @override
+  String get oaLinkPwTitle => 'Şifreni doğrula';
+
+  @override
+  String oaLinkPwBody(String provider) {
+    return '$provider hesabını bağlamak için mevcut şifreni gir.';
+  }
+
+  @override
+  String get oaPasswordLabel => 'Şifre';
+
+  @override
+  String oaLinkDone(String provider) {
+    return '$provider hesabı bağlandı.';
+  }
+
+  @override
+  String get oaUnlinkTitle => 'Bağlantı kaldırılsın mı?';
+
+  @override
+  String oaUnlinkBody(String provider) {
+    return '$provider ile giriş kaldırılır; hesabına başka bir yöntemle girmen gerekir.';
+  }
+
+  @override
+  String oaUnlinkDone(String provider) {
+    return '$provider bağlantısı kaldırıldı.';
+  }
+
+  @override
+  String get oaLinkedFailed => 'Bağlı hesaplar yüklenemedi.';
+
+  @override
   String get authPwMinErr => 'Şifre en az 6 karakter olmalı.';
 
   @override

@@ -50,7 +50,7 @@ class WelcomePage extends StatelessWidget {
                             children: [
                               RefBrandMark(size: 40),
                               Spacer(),
-                              _LangPill(),
+                              WelcomeLangPill(),
                             ],
                           ),
                           const SizedBox(height: 56),
@@ -152,8 +152,8 @@ class _FeatureRow extends StatelessWidget {
 }
 
 /// Sağ üst dil seçici: üç dilimli, seçili dilim ince kenarlıklı nötr zemin. Dokununca dil hemen değişir.
-class _LangPill extends StatelessWidget {
-  const _LangPill();
+class WelcomeLangPill extends StatelessWidget {
+  const WelcomeLangPill({super.key});
 
   static const _codes = ['tr', 'en', 'ar'];
 

@@ -10434,6 +10434,402 @@ abstract class AppLocalizations {
   /// **' kabul etmiş sayılırsınız.'**
   String get authTermsAutoSuffix;
 
+  /// No description provided for @oaHeadline.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kampüsün burada.'**
+  String get oaHeadline;
+
+  /// No description provided for @oaSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Paylaş, keşfet ve topluluğuna katıl.'**
+  String get oaSub;
+
+  /// No description provided for @oaContinueGoogle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Google ile devam et'**
+  String get oaContinueGoogle;
+
+  /// No description provided for @oaContinueApple.
+  ///
+  /// In tr, this message translates to:
+  /// **'Apple ile devam et'**
+  String get oaContinueApple;
+
+  /// No description provided for @oaContinueEmail.
+  ///
+  /// In tr, this message translates to:
+  /// **'E-posta ile devam et'**
+  String get oaContinueEmail;
+
+  /// No description provided for @oaOr.
+  ///
+  /// In tr, this message translates to:
+  /// **'veya'**
+  String get oaOr;
+
+  /// No description provided for @oaLegalLead.
+  ///
+  /// In tr, this message translates to:
+  /// **'Devam ederek şunları kabul etmiş olursun:'**
+  String get oaLegalLead;
+
+  /// No description provided for @oaTermsLink.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanım Koşulları'**
+  String get oaTermsLink;
+
+  /// No description provided for @oaPrivacyLink.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gizlilik Politikası'**
+  String get oaPrivacyLink;
+
+  /// No description provided for @oaProviderGoogle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Google'**
+  String get oaProviderGoogle;
+
+  /// No description provided for @oaProviderApple.
+  ///
+  /// In tr, this message translates to:
+  /// **'Apple'**
+  String get oaProviderApple;
+
+  /// No description provided for @oaLinkTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu e-posta ile zaten bir hesabın var'**
+  String get oaLinkTitle;
+
+  /// No description provided for @oaLinkBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Önce e-posta ve şifrenle giriş yap, sonra Hesap ve güvenlik bölümünden {provider} hesabını bağla.'**
+  String oaLinkBody(String provider);
+
+  /// No description provided for @oaLinkMasked.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap: {email}'**
+  String oaLinkMasked(String email);
+
+  /// No description provided for @oaErrFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Giriş tamamlanamadı. Lütfen tekrar dene.'**
+  String get oaErrFailed;
+
+  /// No description provided for @oaErrTokenInvalid.
+  ///
+  /// In tr, this message translates to:
+  /// **'Giriş doğrulanamadı. Lütfen tekrar dene.'**
+  String get oaErrTokenInvalid;
+
+  /// No description provided for @oaErrEmailUnverified.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu hesabın e-posta adresi sağlayıcıda doğrulanmamış. Önce adresi doğrula ya da e-posta ile devam et.'**
+  String get oaErrEmailUnverified;
+
+  /// No description provided for @oaErrEmailMissing.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabından e-posta adresi alınamadı. E-posta ile devam edebilirsin.'**
+  String get oaErrEmailMissing;
+
+  /// No description provided for @oaErrDisabled.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu giriş yöntemi şu an kullanılamıyor. E-posta ile devam edebilirsin.'**
+  String get oaErrDisabled;
+
+  /// No description provided for @oaErrLastMethod.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu, hesabına giriş yapabildiğin tek yöntem. Kaldırmadan önce bir şifre belirlemelisin.'**
+  String get oaErrLastMethod;
+
+  /// No description provided for @oaErrProfileIncomplete.
+  ///
+  /// In tr, this message translates to:
+  /// **'Devam etmeden önce profilini tamamlamalısın.'**
+  String get oaErrProfileIncomplete;
+
+  /// No description provided for @oaOb1Title.
+  ///
+  /// In tr, this message translates to:
+  /// **'Önce tanışalım.'**
+  String get oaOb1Title;
+
+  /// No description provided for @oaOb1Sub.
+  ///
+  /// In tr, this message translates to:
+  /// **'BÜKampüs profilini birkaç adımda oluşturalım.'**
+  String get oaOb1Sub;
+
+  /// No description provided for @oaFirstName.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ad'**
+  String get oaFirstName;
+
+  /// No description provided for @oaLastName.
+  ///
+  /// In tr, this message translates to:
+  /// **'Soyad'**
+  String get oaLastName;
+
+  /// No description provided for @oaFirstRequired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Adını yaz.'**
+  String get oaFirstRequired;
+
+  /// No description provided for @oaLastRequired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Soyadını yaz.'**
+  String get oaLastRequired;
+
+  /// No description provided for @oaUsername.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanıcı adı'**
+  String get oaUsername;
+
+  /// No description provided for @oaUserRule.
+  ///
+  /// In tr, this message translates to:
+  /// **'3-24 karakter; a-z, 0-9, nokta ve alt çizgi.'**
+  String get oaUserRule;
+
+  /// No description provided for @oaUserChecking.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kontrol ediliyor…'**
+  String get oaUserChecking;
+
+  /// No description provided for @oaUserAvail.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanıcı adı müsait.'**
+  String get oaUserAvail;
+
+  /// No description provided for @oaUserTaken.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu kullanıcı adı alınmış.'**
+  String get oaUserTaken;
+
+  /// No description provided for @oaUserInvalid.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanıcı adı 3-24 karakter olmalı; yalnız a-z, 0-9, nokta ve alt çizgi kullanılabilir.'**
+  String get oaUserInvalid;
+
+  /// No description provided for @oaUserReserved.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu kullanıcı adı kullanılamaz.'**
+  String get oaUserReserved;
+
+  /// No description provided for @oaUserRequired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir kullanıcı adı seç.'**
+  String get oaUserRequired;
+
+  /// No description provided for @oaPhotoOptional.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil fotoğrafı (isteğe bağlı)'**
+  String get oaPhotoOptional;
+
+  /// No description provided for @oaPhotoAdd.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraf ekle'**
+  String get oaPhotoAdd;
+
+  /// No description provided for @oaPhotoChange.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğrafı değiştir'**
+  String get oaPhotoChange;
+
+  /// No description provided for @oaStepOf.
+  ///
+  /// In tr, this message translates to:
+  /// **'Adım {a} / {b}'**
+  String oaStepOf(String a, String b);
+
+  /// No description provided for @oaOb2Title.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kampüste neredesin?'**
+  String get oaOb2Title;
+
+  /// No description provided for @oaOb2Sub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölümünü seç, sana uygun toplulukları keşfet.'**
+  String get oaOb2Sub;
+
+  /// No description provided for @oaUniversity.
+  ///
+  /// In tr, this message translates to:
+  /// **'Üniversite'**
+  String get oaUniversity;
+
+  /// No description provided for @oaUniversityName.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bingöl Üniversitesi'**
+  String get oaUniversityName;
+
+  /// No description provided for @oaFaculty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fakülte'**
+  String get oaFaculty;
+
+  /// No description provided for @oaPickFaculty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fakülte seç'**
+  String get oaPickFaculty;
+
+  /// No description provided for @oaPickFacultyFirst.
+  ///
+  /// In tr, this message translates to:
+  /// **'Önce fakülteni seç'**
+  String get oaPickFacultyFirst;
+
+  /// No description provided for @oaSelectFaculty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fakültenizi seçin.'**
+  String get oaSelectFaculty;
+
+  /// No description provided for @oaClassPostgrad.
+  ///
+  /// In tr, this message translates to:
+  /// **'Lisansüstü'**
+  String get oaClassPostgrad;
+
+  /// No description provided for @oaClassOther.
+  ///
+  /// In tr, this message translates to:
+  /// **'Diğer'**
+  String get oaClassOther;
+
+  /// No description provided for @oaBio.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kısa biyografi (isteğe bağlı)'**
+  String get oaBio;
+
+  /// No description provided for @oaBioHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kendini birkaç kelimeyle anlat'**
+  String get oaBioHint;
+
+  /// No description provided for @oaDeclareNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçtiğin bilgiler kendi beyanındır; profilinden istediğin zaman değiştirebilirsin.'**
+  String get oaDeclareNote;
+
+  /// No description provided for @oaJoin.
+  ///
+  /// In tr, this message translates to:
+  /// **'BÜKampüs\'e katıl'**
+  String get oaJoin;
+
+  /// No description provided for @oaLinkedTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlı hesaplar'**
+  String get oaLinkedTitle;
+
+  /// No description provided for @oaLinkedYes.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlı'**
+  String get oaLinkedYes;
+
+  /// No description provided for @oaLinkedNo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlı değil'**
+  String get oaLinkedNo;
+
+  /// No description provided for @oaLinkAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağla'**
+  String get oaLinkAction;
+
+  /// No description provided for @oaUnlinkAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlantıyı kaldır'**
+  String get oaUnlinkAction;
+
+  /// No description provided for @oaLinkPwTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şifreni doğrula'**
+  String get oaLinkPwTitle;
+
+  /// No description provided for @oaLinkPwBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'{provider} hesabını bağlamak için mevcut şifreni gir.'**
+  String oaLinkPwBody(String provider);
+
+  /// No description provided for @oaPasswordLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şifre'**
+  String get oaPasswordLabel;
+
+  /// No description provided for @oaLinkDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'{provider} hesabı bağlandı.'**
+  String oaLinkDone(String provider);
+
+  /// No description provided for @oaUnlinkTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlantı kaldırılsın mı?'**
+  String get oaUnlinkTitle;
+
+  /// No description provided for @oaUnlinkBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'{provider} ile giriş kaldırılır; hesabına başka bir yöntemle girmen gerekir.'**
+  String oaUnlinkBody(String provider);
+
+  /// No description provided for @oaUnlinkDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'{provider} bağlantısı kaldırıldı.'**
+  String oaUnlinkDone(String provider);
+
+  /// No description provided for @oaLinkedFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlı hesaplar yüklenemedi.'**
+  String get oaLinkedFailed;
+
   /// No description provided for @authPwMinErr.
   ///
   /// In tr, this message translates to:

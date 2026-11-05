@@ -5649,6 +5649,227 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authTermsAutoSuffix => '.';
 
   @override
+  String get oaHeadline => 'Your campus is here.';
+
+  @override
+  String get oaSub => 'Share, explore and join your community.';
+
+  @override
+  String get oaContinueGoogle => 'Continue with Google';
+
+  @override
+  String get oaContinueApple => 'Continue with Apple';
+
+  @override
+  String get oaContinueEmail => 'Continue with email';
+
+  @override
+  String get oaOr => 'or';
+
+  @override
+  String get oaLegalLead => 'By continuing you agree to the:';
+
+  @override
+  String get oaTermsLink => 'Terms of Use';
+
+  @override
+  String get oaPrivacyLink => 'Privacy Policy';
+
+  @override
+  String get oaProviderGoogle => 'Google';
+
+  @override
+  String get oaProviderApple => 'Apple';
+
+  @override
+  String get oaLinkTitle => 'You already have an account with this email';
+
+  @override
+  String oaLinkBody(String provider) {
+    return 'Sign in with your email and password first, then link your $provider account under Account and security.';
+  }
+
+  @override
+  String oaLinkMasked(String email) {
+    return 'Account: $email';
+  }
+
+  @override
+  String get oaErrFailed => 'Sign-in could not be completed. Please try again.';
+
+  @override
+  String get oaErrTokenInvalid =>
+      'We could not verify this sign-in. Please try again.';
+
+  @override
+  String get oaErrEmailUnverified =>
+      'The email address of this account is not verified by the provider. Verify it first or continue with email.';
+
+  @override
+  String get oaErrEmailMissing =>
+      'We could not get an email address from your account. You can continue with email.';
+
+  @override
+  String get oaErrDisabled =>
+      'This sign-in method is unavailable right now. You can continue with email.';
+
+  @override
+  String get oaErrLastMethod =>
+      'This is the only way you can sign in to your account. Set a password before removing it.';
+
+  @override
+  String get oaErrProfileIncomplete =>
+      'Please complete your profile before continuing.';
+
+  @override
+  String get oaOb1Title => 'Let us meet first.';
+
+  @override
+  String get oaOb1Sub => 'Let us build your BÜKampüs profile in a few steps.';
+
+  @override
+  String get oaFirstName => 'First name';
+
+  @override
+  String get oaLastName => 'Last name';
+
+  @override
+  String get oaFirstRequired => 'Enter your first name.';
+
+  @override
+  String get oaLastRequired => 'Enter your last name.';
+
+  @override
+  String get oaUsername => 'Username';
+
+  @override
+  String get oaUserRule => '3-24 characters: a-z, 0-9, dot and underscore.';
+
+  @override
+  String get oaUserChecking => 'Checking…';
+
+  @override
+  String get oaUserAvail => 'Username is available.';
+
+  @override
+  String get oaUserTaken => 'This username is taken.';
+
+  @override
+  String get oaUserInvalid =>
+      'The username must be 3-24 characters; only a-z, 0-9, dot and underscore are allowed.';
+
+  @override
+  String get oaUserReserved => 'This username cannot be used.';
+
+  @override
+  String get oaUserRequired => 'Choose a username.';
+
+  @override
+  String get oaPhotoOptional => 'Profile photo (optional)';
+
+  @override
+  String get oaPhotoAdd => 'Add photo';
+
+  @override
+  String get oaPhotoChange => 'Change photo';
+
+  @override
+  String oaStepOf(String a, String b) {
+    return 'Step $a of $b';
+  }
+
+  @override
+  String get oaOb2Title => 'Where are you on campus?';
+
+  @override
+  String get oaOb2Sub =>
+      'Pick your department and discover communities for you.';
+
+  @override
+  String get oaUniversity => 'University';
+
+  @override
+  String get oaUniversityName => 'Bingöl University';
+
+  @override
+  String get oaFaculty => 'Faculty';
+
+  @override
+  String get oaPickFaculty => 'Select faculty';
+
+  @override
+  String get oaPickFacultyFirst => 'Select a faculty first';
+
+  @override
+  String get oaSelectFaculty => 'Select your faculty.';
+
+  @override
+  String get oaClassPostgrad => 'Postgraduate';
+
+  @override
+  String get oaClassOther => 'Other';
+
+  @override
+  String get oaBio => 'Short bio (optional)';
+
+  @override
+  String get oaBioHint => 'Describe yourself in a few words';
+
+  @override
+  String get oaDeclareNote =>
+      'The details you choose are self-declared; you can change them in your profile at any time.';
+
+  @override
+  String get oaJoin => 'Join BÜKampüs';
+
+  @override
+  String get oaLinkedTitle => 'Linked accounts';
+
+  @override
+  String get oaLinkedYes => 'Linked';
+
+  @override
+  String get oaLinkedNo => 'Not linked';
+
+  @override
+  String get oaLinkAction => 'Link';
+
+  @override
+  String get oaUnlinkAction => 'Unlink';
+
+  @override
+  String get oaLinkPwTitle => 'Confirm your password';
+
+  @override
+  String oaLinkPwBody(String provider) {
+    return 'Enter your current password to link your $provider account.';
+  }
+
+  @override
+  String get oaPasswordLabel => 'Password';
+
+  @override
+  String oaLinkDone(String provider) {
+    return '$provider account linked.';
+  }
+
+  @override
+  String get oaUnlinkTitle => 'Remove link?';
+
+  @override
+  String oaUnlinkBody(String provider) {
+    return 'Sign-in with $provider will be removed; you will need another method to sign in.';
+  }
+
+  @override
+  String oaUnlinkDone(String provider) {
+    return '$provider link removed.';
+  }
+
+  @override
+  String get oaLinkedFailed => 'Could not load linked accounts.';
+
+  @override
   String get authPwMinErr => 'Password must be at least 6 characters.';
 
   @override

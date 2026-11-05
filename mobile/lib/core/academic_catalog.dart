@@ -15,7 +15,7 @@ String _pickName(String lang, String tr, String? en, String? ar) {
 }
 
 class AcademicDepartment {
-  const AcademicDepartment(this.id, this.name, this.faculty, {this.nameEn, this.nameAr});
+  const AcademicDepartment(this.id, this.name, this.faculty, {this.nameEn, this.nameAr, this.years});
 
   final String id;
 
@@ -23,6 +23,9 @@ class AcademicDepartment {
   final String name;
   final String? nameEn, nameAr;
   final AcademicFaculty faculty;
+
+  /// Program süresi (yıl); katalog bildirmezse null (sınıf seçenekleri süzülmez).
+  final int? years;
 
   /// [lang] = `tr` / `en` / `ar`; bilinmeyen dil ve eksik çeviri Türkçeye düşer.
   String label(String lang) => _pickName(lang, name, nameEn, nameAr);
@@ -163,7 +166,7 @@ class AcademicCatalog extends ChangeNotifier {
       for (final d in (fm['departments'] as List? ?? const [])) {
         final dm = d as Map<String, dynamic>;
         final dep = AcademicDepartment(dm['id'].toString(), dm['name'] as String, fac,
-            nameEn: dm['nameEn'] as String?, nameAr: dm['nameAr'] as String?);
+            nameEn: dm['nameEn'] as String?, nameAr: dm['nameAr'] as String?, years: dm['years'] is num ? (dm['years'] as num).toInt() : null);
         fac.departments.add(dep);
         ds.add(dep);
       }
