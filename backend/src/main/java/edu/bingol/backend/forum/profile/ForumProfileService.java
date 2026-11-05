@@ -44,7 +44,8 @@ public class ForumProfileService {
 
     /** Imecli sayfa; {@code locked} yalniz kilitli gizli hesapta true doner (aksi halde JSON'a yazilmaz). */
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public record ProfilePage<T>(List<T> items, String nextCursor, Boolean locked) {
+    public record ProfilePage<T>(List<T> items, @JsonInclude(JsonInclude.Include.ALWAYS) String nextCursor,
+                                 Boolean locked) {
         static <T> ProfilePage<T> of(List<T> items, String next) {
             return new ProfilePage<>(items, next, null);
         }
