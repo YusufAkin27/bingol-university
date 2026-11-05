@@ -13,4 +13,6 @@
     <string name="channel_social_desc">إشعارات الإعجاب والمتابعة. تصل بصمت.</string>
     <string name="channel_poll_desc">الاستطلاعات الجديدة ونتائجها.</string>
     <string name="channel_academic_desc">تذكيرات محلية قبل المحاضرات والامتحانات.</string>
+    <string name="channel_security_name">الأمان والحساب</string>
+    <string name="channel_security_desc">تنبيهات أمان الحساب وتسجيل الدخول وقواعد المجتمع. يُخفى المحتوى على شاشة القفل.</string>
 </resources>

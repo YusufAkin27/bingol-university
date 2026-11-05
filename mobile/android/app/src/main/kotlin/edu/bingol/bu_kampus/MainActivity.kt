@@ -90,6 +90,8 @@ class MainActivity : FlutterActivity() {
         BuAlarm.register(messenger, this)
         // Video kirpma (yeniden kodlamadan, MediaExtractor + MediaMuxer): lib/core/platform/video_trim.dart.
         BuVideoTrim.register(messenger, this)
+        // Bildirim ayarlari: kanal ayar sayfasi, uygulama bildirim ayari, onizleme gizleme (lib/core/platform/notif_settings.dart).
+        BuNotifSettings.register(messenger, this)
         pushChannel = MethodChannel(messenger, "bu_kampus/push_actions").apply {
             setMethodCallHandler { call, result ->
                 when (call.method) {
@@ -97,6 +99,8 @@ class MainActivity : FlutterActivity() {
                     "authorize" -> { val userId = call.argument<Number>("userId")?.toLong(); if (userId != null && userId > 0) RichPushNotifications.authorize(this@MainActivity, userId, call.argument<String>("imageHost")); result.success(null) }
                     "takeLaunchPayload" -> { pushReady = true; val payload = pendingPush; pendingPush = null; result.success(payload) }
                     "dismiss" -> { val tag = call.argument<String>("tag"); if (tag != null) RichPushNotifications.dismiss(this@MainActivity, tag); result.success(null) }
+                    // Sohbet acilinca o sohbetin tepsideki bildirimi + birikimi kalkar (etiket sunucu sozlesmesi: conv:<id>).
+                    "dismissConversation" -> { val id = call.argument<Any>("conversationId")?.toString(); if (!id.isNullOrBlank()) RichPushNotifications.dismiss(this@MainActivity, "conv:" + id); result.success(null) }
                     "clear" -> { pushReady = false; pendingPush = null; RichPushNotifications.clear(this@MainActivity); result.success(null) }
                     "addCalendar" -> {
                         try {

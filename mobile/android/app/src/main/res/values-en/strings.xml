@@ -13,4 +13,6 @@
     <string name="channel_social_desc">Like and follow notifications. Delivered silently.</string>
     <string name="channel_poll_desc">New polls and their results.</string>
     <string name="channel_academic_desc">Local reminders before your classes and exams.</string>
+    <string name="channel_security_name">Security and account</string>
+    <string name="channel_security_desc">Account security, sign-in and community rule alerts. Content is hidden on the lock screen.</string>
 </resources>

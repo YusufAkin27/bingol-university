@@ -32,12 +32,16 @@ data class PushRenderPlan(
     val wantsImage: Boolean
 ) {
     companion object {
-        val CHANNELS = setOf("chat", "event", "announcement", "social", "poll", "academic")
+        val CHANNELS = setOf("chat", "event", "announcement", "social", "poll", "academic", "security")
+
+        /** Sunucu kanali (yoksa duyuru); guvenlik kartlari her zaman yuksek onemli "security" kanalinda (sunucu ne derse desin). */
+        fun channelFor(data: Map<String, String>, style: String): String =
+            if (style == "SECURITY") "security" else data["channelId"]?.takeIf { it in CHANNELS } ?: "announcement"
 
         fun of(data: Map<String, String>, count: Int, nowMs: Long, fallbackTag: String): PushRenderPlan {
             val style = PushSpec.style(data)
             val chat = PushSpec.isChat(style)
-            val channel = data["channelId"]?.takeIf { it in CHANNELS } ?: "announcement"
+            val channel = channelFor(data, style)
             val badge = PushSpec.titlePill(data, style, nowMs)
             val tag = data["tag"] ?: data["collapseKey"] ?: data["messageId"]?.let { "message:$it" } ?: fallbackTag
             return PushRenderPlan(

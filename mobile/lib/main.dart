@@ -32,6 +32,7 @@ import 'core/platform/fresh_install.dart';
 import 'core/error_log.dart';
 import 'core/nav.dart';
 import 'core/push/push_service.dart';
+import 'core/push/push_reply_headless.dart';
 import 'core/session.dart';
 import 'core/theme.dart';
 import 'core/theme_controller.dart';
@@ -95,6 +96,11 @@ class ConfigErrorApp extends StatelessWidget {
     );
   }
 }
+
+/// Android satır içi yanıt: uygulama kapalıyken native JobScheduler işinin açtığı başlıksız motorun giriş noktası
+/// (kök kütüphanede aranır; bkz. push_reply_headless.dart ve android ReplyDispatcher.kt). Arayüz/oturum açılışı yoktur.
+@pragma('vm:entry-point')
+Future<void> pushReplyMain() => runPushReplyHeadless();
 
 Future<void> main() async {
   // Çerçeve dışında kalan asenkron hatalar da kendi sunucumuza raporlanır (runZonedGuarded).

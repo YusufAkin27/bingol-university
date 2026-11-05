@@ -180,12 +180,14 @@ object Channels {
     private val defaultNames = mapOf(
         "chat" to R.string.channel_chat_name, "event" to R.string.channel_event_name,
         "announcement" to R.string.channel_announcement_name, "social" to R.string.channel_social_name,
-        "poll" to R.string.channel_poll_name, "academic" to R.string.channel_academic_name
+        "poll" to R.string.channel_poll_name, "academic" to R.string.channel_academic_name,
+        "security" to R.string.channel_security_name
     )
     private val defaultDescs = mapOf(
         "chat" to R.string.channel_chat_desc, "event" to R.string.channel_event_desc,
         "announcement" to R.string.channel_announcement_desc, "social" to R.string.channel_social_desc,
-        "poll" to R.string.channel_poll_desc, "academic" to R.string.channel_academic_desc
+        "poll" to R.string.channel_poll_desc, "academic" to R.string.channel_academic_desc,
+        "security" to R.string.channel_security_desc
     )
 
     // Onem (kanal olusturulunca sabitlenir; kullanici sistem ayarindan degistirebilir, kod dusuremez):
@@ -193,7 +195,9 @@ object Channels {
     private val importance = mapOf(
         "chat" to NotificationManager.IMPORTANCE_HIGH, "event" to NotificationManager.IMPORTANCE_DEFAULT,
         "announcement" to NotificationManager.IMPORTANCE_DEFAULT, "social" to NotificationManager.IMPORTANCE_LOW,
-        "poll" to NotificationManager.IMPORTANCE_DEFAULT, "academic" to NotificationManager.IMPORTANCE_HIGH
+        "poll" to NotificationManager.IMPORTANCE_DEFAULT, "academic" to NotificationManager.IMPORTANCE_HIGH,
+        // Guvenlik/hesap uyarilari (2FA, yeni cihaz, moderasyon): yuksek onem; kilit ekraninda icerik gizli (PushPrivacy).
+        "security" to NotificationManager.IMPORTANCE_HIGH
     )
 
     /** Kullanici bunlari sistem ayarindan kapatirsa bildirim gelmez; yardim ekrani uyarir. (social bilincli kapatilabilir.) */
@@ -227,6 +231,10 @@ object Channels {
                         ch.enableVibration(true)
                         ch.enableLights(true)
                         ch.lightColor = ACCENT
+                        ch.setShowBadge(true)
+                    }
+                    "security" -> {
+                        ch.enableVibration(true)
                         ch.setShowBadge(true)
                     }
                     "social" -> ch.setShowBadge(false)

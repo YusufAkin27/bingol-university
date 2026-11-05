@@ -17,4 +17,6 @@
     <string name="channel_social_desc">Beğeni ve takip bildirimleri. Sessiz gelir.</string>
     <string name="channel_poll_desc">Yeni anketler ve sonuçları.</string>
     <string name="channel_academic_desc">Ders ve sınav saatinden önceki yerel hatırlatmalar.</string>
+    <string name="channel_security_name">Güvenlik ve hesap</string>
+    <string name="channel_security_desc">Hesap güvenliği, giriş ve topluluk kuralı uyarıları. Kilit ekranında içerik gizlenir.</string>
 </resources>

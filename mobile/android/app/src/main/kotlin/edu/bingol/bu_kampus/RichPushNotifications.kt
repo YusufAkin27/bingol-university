@@ -3,33 +3,36 @@ package edu.bingol.bu_kampus
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.RemoteInput
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.drawable.Icon
 import android.net.Uri
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
 import android.text.style.StrikethroughSpan
 import android.view.View
 import android.widget.RemoteViews
+import androidx.core.app.NotificationCompat
+import androidx.core.app.Person
+import androidx.core.app.RemoteInput as CompatRemoteInput
+import androidx.core.graphics.drawable.IconCompat
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.UUID
 import java.util.concurrent.Executors
-import java.util.concurrent.atomic.AtomicBoolean
 import org.json.JSONObject
 
+/** Sohbet bildiriminin durumu: yanit gonderilirken "Gonderiliyor", gonderilemeyip yeniden denenirken "yeniden denenecek". */
+enum class ChatStatus { NORMAL, SENDING, RETRYING }
+
 /**
- * Bildirim kartindaki uygulama-ici (arka plan islemi) dugmeleri: "ack" (Anladim: bildirimi kaldirir) ve satir ici yanit
- * (RemoteInput). Disariya KAPALI (exported=false); yalniz uygulamanin kendi PendingIntent'leriyle tetiklenir.
+ * Bildirim kartindaki uygulama-ici (arka plan islemi) dugmeleri: "ack" (Anladim: bildirimi kaldirir), satir ici yanit
+ * (RemoteInput) ve "gone" (bildirim kaydirilip kapatildi: mesaj birikimi sifirlanir). Disariya KAPALI (exported=false);
+ * yalniz uygulamanin kendi PendingIntent'leriyle tetiklenir.
  */
 class RichPushActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -38,6 +41,7 @@ class RichPushActionReceiver : BroadcastReceiver() {
             when (intent.getStringExtra("kind")) {
                 "ack" -> RichPushNotifications.dismiss(context, tag)
                 "reply" -> RichPushNotifications.reply(context, intent, tag, goAsync())
+                "gone" -> ChatHistoryStore.clear(context, tag)
             }
         } catch (error: Throwable) {
             android.util.Log.w("RichPush", "Action receiver failed: " + error.javaClass.simpleName)
@@ -61,8 +65,16 @@ object RichPushNotifications {
      */
     @Volatile var actionBridge: ((Map<String, String>, (Boolean) -> Unit) -> Boolean)? = null
 
+    private val chatAvatars = object : android.util.LruCache<String, Bitmap>(24) {}
+
     fun authorize(context: Context, userId: Long, imageHost: String? = null) {
-        context.getSharedPreferences(ACCOUNT_PREFS, Context.MODE_PRIVATE).edit().putLong("recipient", userId)
+        val prefs = context.getSharedPreferences(ACCOUNT_PREFS, Context.MODE_PRIVATE)
+        // Hesap degisti: onceki hesabin mesaj birikimi/yanit kuyrugu yeni hesaba SIZMAZ.
+        val previous = prefs.getLong("recipient", -1)
+        if (previous > 0 && previous != userId) {
+            PushStores.clearAll(context); SeenStore.clear(context); chatAvatars.evictAll()
+        }
+        prefs.edit().putLong("recipient", userId)
             .apply { if (!imageHost.isNullOrBlank()) putString("imageHost", imageHost.lowercase()) }.apply()
     }
     fun canDisplay(context: Context, data: Map<String, String>): Boolean {
@@ -70,14 +82,21 @@ object RichPushNotifications {
         // recipientId yoksa (yeni sozlesme her yukte tasimayabilir) yerel hesap yetkiliyse cizilir; varsa eslesmeli.
         return user > 0 && (data["recipientId"]?.toLongOrNull()?.let { it == user } ?: true)
     }
+    /** Bildirimi kaldirir; o sohbetin mesaj birikimi sifirlanir (bir sonraki mesaj yeni bildirim baslatir). */
     fun dismiss(context: Context, tag: String) = synchronized(renderLock) {
+        ChatHistoryStore.clear(context, tag)
         val manager = context.getSystemService(NotificationManager::class.java) ?: return@synchronized
         manager.cancel(tag, 0)
         pruneSummaries(manager)
     }
+    /** Cikis/hesap silme: bildirimler, mesaj birikimi, gorulmus kimlikler ve bekleyen yanitlar silinir. */
     fun clear(context: Context) = synchronized(renderLock) {
         context.getSharedPreferences(ACCOUNT_PREFS, Context.MODE_PRIVATE).edit().remove("recipient").apply()
         cache.evictAll()
+        chatAvatars.evictAll()
+        PushStores.clearAll(context)
+        SeenStore.clear(context)
+        ReplyDispatcher.cancelAll(context.applicationContext)
         context.getSystemService(NotificationManager::class.java)?.cancelAll()
     }
 
@@ -116,6 +135,13 @@ object RichPushNotifications {
     private fun ackIntent(context: Context, tag: String): PendingIntent {
         val intent = Intent(context, RichPushActionReceiver::class.java).putExtra("kind", "ack").putExtra("tag", tag)
         return PendingIntent.getBroadcast(context, (tag + "ack").hashCode(), intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+    }
+
+    /** Bildirim kaydirilip kapatilinca (deleteIntent) o sohbetin birikimi sifirlanir. */
+    private fun goneIntent(context: Context, tag: String): PendingIntent {
+        val intent = Intent(context, RichPushActionReceiver::class.java).putExtra("kind", "gone").putExtra("tag", tag)
+        return PendingIntent.getBroadcast(context, (tag + "gone").hashCode(), intent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
     }
 
@@ -217,21 +243,43 @@ object RichPushNotifications {
         return PushArt.tile(context, tile, px)
     }
 
-    private fun systemActions(context: Context, data: Map<String, String>, plan: PushRenderPlan): List<Notification.Action> =
+    private fun chatActions(context: Context, data: Map<String, String>, plan: PushRenderPlan): List<NotificationCompat.Action> =
         plan.actions.take(3).map { spec ->
-            val builder = Notification.Action.Builder(Icon.createWithResource(context, R.drawable.ic_stat_bu), spec.label,
+            val builder = NotificationCompat.Action.Builder(IconCompat.createWithResource(context, R.drawable.ic_stat_bu), spec.label,
                 if (spec.id == "reply") replyIntent(context, data, plan.tag) else actionIntent(context, data, spec, plan.tag))
             if (spec.id == "reply") {
-                builder.addRemoteInput(RemoteInput.Builder(KEY_REPLY).setLabel(spec.label).build())
-                if (Build.VERSION.SDK_INT >= 28) builder.setSemanticAction(Notification.Action.SEMANTIC_ACTION_REPLY)
+                builder.addRemoteInput(CompatRemoteInput.Builder(KEY_REPLY).setLabel(spec.label).build())
+                builder.setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_REPLY)
+                // Ekran acmadan gonderilir; kilitliyken platform kilit acma ister (cihaz kurali).
+                builder.setShowsUserInterface(false)
+                builder.setAllowGeneratedReplies(true)
             }
             builder.build()
         }
 
+    private fun label(data: Map<String, String>, tr: String, en: String, ar: String): String = when (PushSpec.lang(data)) {
+        "en" -> en
+        "ar" -> ar
+        else -> tr
+    }
+
+    /** Kilit ekraninda gosterilecek genel kart (publicVersion): icerik yok, yalniz genel metin. */
+    private fun publicNotification(context: Context, channel: String, text: String): Notification {
+        val builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(context, channel) else Notification.Builder(context)
+        return builder.setSmallIcon(R.drawable.ic_stat_bu).setColor(Channels.ACCENT).setContentTitle("BÜ Kampüs")
+            .setContentText(text).build()
+    }
+
+    private fun publicCompat(context: Context, channel: String, text: String): Notification =
+        NotificationCompat.Builder(context, channel).setSmallIcon(R.drawable.ic_stat_bu).setColor(Channels.ACCENT)
+            .setContentTitle("BÜ Kampüs").setContentText(text).build()
+
     /**
      * Karti cizer. Uygulama kapaliyken BuMessagingService (FCM) icinden, Flutter/Dart ACILMADAN cagrilir: once metinli kart
-     * hemen yayinlanir; gorsel (avatar/kucuk resim) varsa awaitMedia ile sinirli sure (<= ~3 sn) beklenir ve kart gorselle
-     * yenilenir. Indirme basarisizsa kart gorselsiz ama tam metinle kalir. Hata firlatabilir: cagiran showPlain ile yedekler.
+     * hemen yayinlanir (teslim medya indirmesine BAGLI degil); gorsel (avatar/kucuk resim) varsa awaitMedia ile sinirli sure
+     * (<= ~3 sn) beklenir ve kart gorselle yenilenir. Indirme basarisizsa kart gorselsiz ama tam metinle kalir.
+     * Sohbet mesajlari gercek MessagingStyle (showChat); diger turler ozel kart (RemoteViews). Ayni olay kimligi (nid/messageId)
+     * ikinci kez cizilmez. Hata firlatabilir: cagiran showPlain ile yedekler.
      */
     fun show(context: Context, data: Map<String, String>, awaitMedia: Boolean = false) {
         if (data["title"].isNullOrBlank() && data["body"].isNullOrBlank()) return
@@ -241,32 +289,33 @@ object RichPushNotifications {
         val fallbackTag = UUID.randomUUID().toString()
         val provisional = PushRenderPlan.of(data, 1, System.currentTimeMillis(), fallbackTag)
         val tag = provisional.tag
-        val previous = manager.activeNotifications.firstOrNull { it.tag == tag }?.notification
         val message = data["messageId"]
-        if (message != null && previous?.extras?.getString("bu.messageId") == message) return
-        val count = if (provisional.chat) maxOf(data["count"]?.toIntOrNull() ?: 1, (previous?.extras?.getInt("bu.count", 0) ?: 0) + 1) else 1
+        val eventId = (data["nid"] ?: message)?.takeIf { it.isNotBlank() }
+        // Tekrar teslim / kapatilmis bildirimin ayni kimlikle yeniden gelmesi: bir kez gosterilir (kalici, sinirli kayit).
+        if (eventId != null && !SeenStore.firstTime(context, provisional.style + ":" + eventId)) return
+        if (provisional.chat) { showChat(context, manager, data, tag, awaitMedia); return }
+        val count = 1
         val now = System.currentTimeMillis()
         val plan = PushRenderPlan.of(data, count, now, tag)
         val renderId = UUID.randomUUID().toString()
         val open = tap(context, data, "open", tag)
+        val lock = PushPrivacy.lock(plan.style, false, PushSpec.lang(data), count)
         fun publish(person: Bitmap?, thumb: Bitmap?, photo: Bitmap?, quiet: Boolean) = synchronized(renderLock) {
             val art = Art(avatarBitmap(context, plan, person), thumb, photo)
             val builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(context, plan.channel) else Notification.Builder(context)
             builder.setSmallIcon(R.drawable.ic_stat_bu).setContentTitle(plan.title).setContentText(plan.body)
                 .setColor(Channels.ACCENT).setContentIntent(open).setAutoCancel(true).setOnlyAlertOnce(quiet)
-                .setVisibility(Notification.VISIBILITY_PUBLIC).setNumber(count).setGroup(plan.group)
+                // Guvenlik/hesap kartlari kilit ekraninda gizli (VISIBILITY_PRIVATE + genel metin); digerleri acik.
+                .setVisibility(lock.visibility).setNumber(count).setGroup(plan.group)
                 .setStyle(Notification.DecoratedCustomViewStyle())
                 .setCustomContentView(views(context, data, plan, tag, false, art))
                 .setCustomBigContentView(views(context, data, plan, tag, true, art))
                 .setCustomHeadsUpContentView(views(context, data, plan, tag, false, art))
                 .addExtras(android.os.Bundle().apply { putString("bu.messageId", message); putInt("bu.count", count); putString("bu.renderId", renderId) })
+            lock.publicText?.let { builder.setPublicVersion(publicNotification(context, plan.channel, it)) }
             if (Build.VERSION.SDK_INT >= 26) builder.setGroupAlertBehavior(Notification.GROUP_ALERT_ALL)
-            if (plan.chat) {
-                builder.setCategory(Notification.CATEGORY_MESSAGE)
-                systemActions(context, data, plan).forEach { builder.addAction(it) }
-            }
             manager.notify(tag, 0, builder.build())
-            postSummary(context, manager, plan.channel, plan.group, tag)
+            postSummary(context, manager, plan.channel, plan.group, tag, PushSpec.lang(data))
         }
         publish(null, null, null, false)
         if (!plan.wantsAvatar && !plan.wantsImage) return
@@ -280,7 +329,7 @@ object RichPushNotifications {
                 val thumb = if (!plan.wideImage && picture != null) PushArt.roundedCrop(picture, dp(context, 56), dp(context, 56), dp(context, 12).toFloat()) else null
                 synchronized(renderLock) {
                     val current = manager.activeNotifications.firstOrNull { it.tag == tag }?.notification
-                    // Kapatilmis karti diriltmez, ayni sohbetteki daha yeni mesajin yerine gecmez.
+                    // Kapatilmis karti diriltmez, ayni etiketteki daha yeni bildirimin yerine gecmez.
                     if ((person != null || photo != null || thumb != null) && current?.extras?.getString("bu.renderId") == renderId) {
                         try { publish(person, thumb, photo, true) } catch (error: Throwable) {
                             android.util.Log.w("RichPush", "Media publish failed: " + error.javaClass.simpleName)
@@ -292,15 +341,158 @@ object RichPushNotifications {
                 android.util.Log.w("RichPush", "Media job failed: " + error.javaClass.simpleName)
             }
         }
+        runMedia(job, awaitMedia)
+    }
+
+    private fun runMedia(job: Runnable, awaitMedia: Boolean) {
         if (awaitMedia) {
             // Servis yasadigi surece (onMessageReceived donene dek) sinirli bekleme: surec dondurulmeden gorsel yetisir.
             try { mediaWorker.submit(job).get(3, java.util.concurrent.TimeUnit.SECONDS) } catch (_: Throwable) { }
         } else mediaWorker.execute(job)
     }
 
+    // ---- Sohbet: gercek MessagingStyle ----
+
+    /**
+     * Sohbet mesaji: ayni sohbetin (etiket = conv:<id>) pes pese mesajlari TEK bildirimde birikir (son 8, kalici sinirli depo),
+     * ayni mesaj kimligi ikinci kez eklenmez. Bildirim tepsiden kalkmissa (kapatildi/dokunuldu) birikim sifirlanir.
+     * Once metin bildirimi yayinlanir, avatar/fotograf indirilince ayni bildirim guncellenir (teslim medyaya bagli degil).
+     */
+    private fun showChat(context: Context, manager: NotificationManager, data: Map<String, String>, tag: String, awaitMedia: Boolean) {
+        val now = System.currentTimeMillis()
+        val active = try { manager.activeNotifications.any { it.tag == tag } } catch (_: Throwable) { true }
+        val sender = data["senderName"]?.takeIf { it.isNotBlank() } ?: data["title"].orEmpty()
+        val message = ChatMsg(
+            id = data["messageId"]?.takeIf { it.isNotBlank() } ?: ("t:" + UUID.randomUUID()),
+            senderKey = data["senderId"]?.takeIf { it.isNotBlank() } ?: sender, senderName = sender,
+            text = data["body"].orEmpty(), atMs = now
+        )
+        val state = ChatHistoryStore.record(context, tag, message, reset = !active, nowMs = now) ?: return
+        val renderId = UUID.randomUUID().toString()
+        val wantsAvatar = !data["senderAvatarUrl"].isNullOrBlank()
+        val wantsImage = !data["imageUrl"].isNullOrBlank()
+        synchronized(renderLock) { notifyChat(context, manager, data, tag, state, null, false, ChatStatus.NORMAL, renderId) }
+        if (!wantsAvatar && !wantsImage) return
+        val job = Runnable {
+            try {
+                val avatar = bitmap(context, data["senderAvatarUrl"], 128)
+                val picture = bitmap(context, data["imageUrl"], 512)
+                avatar?.let { chatAvatars.put(message.senderKey, it) }
+                if (avatar == null && picture == null) return@Runnable
+                synchronized(renderLock) {
+                    val current = manager.activeNotifications.firstOrNull { it.tag == tag }?.notification
+                    if (current?.extras?.getString("bu.renderId") != renderId) return@synchronized
+                    val latest = ChatHistoryStore.snapshot(context, tag) ?: return@synchronized
+                    try { notifyChat(context, manager, data, tag, latest, picture, true, ChatStatus.NORMAL, renderId) } catch (error: Throwable) {
+                        android.util.Log.w("RichPush", "Chat media publish failed: " + error.javaClass.simpleName)
+                    }
+                }
+            } catch (error: Throwable) {
+                android.util.Log.w("RichPush", "Chat media job failed: " + error.javaClass.simpleName)
+            }
+        }
+        runMedia(job, awaitMedia)
+    }
+
+    private fun notifyChat(context: Context, manager: NotificationManager, data: Map<String, String>, tag: String, state: ChatState,
+                           picture: Bitmap?, quiet: Boolean, status: ChatStatus, renderId: String) {
+        val count = maxOf(state.total, data["count"]?.toIntOrNull() ?: 1, 1)
+        val plan = PushRenderPlan.of(data, count, System.currentTimeMillis(), tag)
+        manager.notify(tag, 0, buildChat(context, data, plan, tag, state, picture, quiet, status, renderId))
+        postSummary(context, manager, plan.channel, plan.group, tag, PushSpec.lang(data))
+    }
+
+    private fun buildChat(context: Context, data: Map<String, String>, plan: PushRenderPlan, tag: String, state: ChatState,
+                          picture: Bitmap?, quiet: Boolean, status: ChatStatus, renderId: String): Notification {
+        val lang = PushSpec.lang(data)
+        val group = data["conversationType"] == "GROUP" || plan.style == "CHAT_GROUP"
+        val conversationTitle = (data["conversationTitle"]?.takeIf { it.isNotBlank() } ?: data["title"]).orEmpty()
+        val last = state.messages.lastOrNull { !it.self } ?: state.messages.lastOrNull()
+        val lock = PushPrivacy.lock(plan.style, PushPrivacy.hideRequested(data, PushPrefs.hidePreview(context)), lang, plan.count)
+        val builder = NotificationCompat.Builder(context, plan.channel)
+            .setSmallIcon(R.drawable.ic_stat_bu).setColor(Channels.ACCENT).setContentIntent(tap(context, data, "open", tag))
+            .setAutoCancel(true).setOnlyAlertOnce(quiet).setCategory(NotificationCompat.CATEGORY_MESSAGE)
+            .setNumber(plan.count).setGroup(plan.group).setVisibility(lock.visibility)
+            .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_ALL)
+            .setDeleteIntent(goneIntent(context, tag))
+            .addExtras(android.os.Bundle().apply {
+                putString("bu.messageId", data["messageId"]); putInt("bu.count", plan.count); putString("bu.renderId", renderId)
+            })
+        last?.let { builder.setWhen(it.atMs).setShowWhen(true) }
+        val avatarPx = dp(context, 48)
+        val lastAvatar = last?.let { chatAvatars.get(it.senderKey) }
+        if (!group && lastAvatar != null) builder.setLargeIcon(PushArt.circle(lastAvatar, avatarPx))
+        if (picture != null && state.messages.size == 1 && last != null) {
+            // Ilk/tek mesaj fotograf ya da video kapagi: genis onizleme (BigPicture). Sonraki mesajlar MessagingStyle'a doner.
+            builder.setContentTitle(conversationTitle.ifEmpty { last.senderName }).setContentText(last.text)
+                .setStyle(NotificationCompat.BigPictureStyle().bigPicture(picture).setSummaryText(last.text))
+        } else {
+            val me = Person.Builder().setName(label(data, "Sen", "You", "أنت")).setKey("bu.self").build()
+            val style = NotificationCompat.MessagingStyle(me)
+            if (group) style.setConversationTitle(conversationTitle).setGroupConversation(true)
+            else style.setGroupConversation(false)
+            for (m in state.messages) {
+                val person: Person? = if (m.self) null else {
+                    val pb = Person.Builder().setName(m.senderName.ifEmpty { conversationTitle }).setKey(m.senderKey)
+                    chatAvatars.get(m.senderKey)?.let { pb.setIcon(IconCompat.createWithBitmap(PushArt.circle(it, avatarPx))) }
+                    pb.build()
+                }
+                style.addMessage(NotificationCompat.MessagingStyle.Message(m.text, m.atMs, person))
+            }
+            builder.setStyle(style).setContentTitle(conversationTitle.ifEmpty { last?.senderName.orEmpty() }).setContentText(last?.text.orEmpty())
+        }
+        when (status) {
+            ChatStatus.SENDING -> builder.setProgress(0, 0, true).setSubText(label(data, "Gönderiliyor…", "Sending…", "جارٍ الإرسال…"))
+            ChatStatus.RETRYING -> builder.setSubText(label(data, "Gönderilemedi, yeniden denenecek", "Not sent, will retry", "لم يُرسل، ستتم إعادة المحاولة"))
+            ChatStatus.NORMAL -> Unit
+        }
+        chatActions(context, data, plan).forEach { builder.addAction(it) }
+        lock.publicText?.let { builder.setPublicVersion(publicCompat(context, plan.channel, it)) }
+        return builder.build()
+    }
+
+    /**
+     * Yanit gonderim durumu: kullanicinin yaniti sohbete eklenir ("Sen: ...") ve bildirim "Gonderiliyor"/"yeniden denenecek"
+     * olarak yenilenir (sessiz). Kullanici bu arada bildirimi kapattiysa yeniden diriltilmez (yalniz yeniden deneme durumunda).
+     */
+    fun showChatState(context: Context, data: Map<String, String>, tag: String, status: ChatStatus, entry: ReplyEntry?) {
+        synchronized(renderLock) {
+            try {
+                Channels.ensure(context)
+                val manager = context.getSystemService(NotificationManager::class.java) ?: return
+                val now = System.currentTimeMillis()
+                val active = try { manager.activeNotifications.any { it.tag == tag } } catch (_: Throwable) { true }
+                if (status == ChatStatus.RETRYING && !active) return
+                var state = ChatHistoryStore.snapshot(context, tag)
+                if (state == null) {
+                    val sender = data["senderName"]?.takeIf { it.isNotBlank() } ?: data["title"].orEmpty()
+                    val original = ChatMsg(data["messageId"]?.takeIf { it.isNotBlank() } ?: ("t:" + UUID.randomUUID()),
+                        data["senderId"]?.takeIf { it.isNotBlank() } ?: sender, sender, data["body"].orEmpty(), now)
+                    state = ChatHistoryStore.record(context, tag, original, reset = true, nowMs = now)
+                }
+                if (entry != null) {
+                    val own = ChatMsg("r:" + entry.clientId, "bu.self", "", entry.text, now, self = true)
+                    state = ChatHistoryStore.record(context, tag, own, reset = false, nowMs = now) ?: state
+                }
+                val current = state ?: return
+                notifyChat(context, manager, data, tag, current, null, true, status, UUID.randomUUID().toString())
+            } catch (error: Throwable) {
+                android.util.Log.w("RichPush", "Chat state failed: " + error.javaClass.simpleName)
+            }
+        }
+    }
+
+    /** Bos/bozuk yanit: ilerleme halkasini temizlemek icin mevcut bildirimi yeniden yayinlar. */
+    fun refresh(context: Context, tag: String) {
+        try {
+            val manager = context.getSystemService(NotificationManager::class.java) ?: return
+            manager.activeNotifications.firstOrNull { it.tag == tag }?.let { manager.notify(tag, 0, it.notification) }
+        } catch (_: Throwable) { }
+    }
+
     /**
      * Zengin cizim hata verirse bile bildirim KAYBOLMASIN: duz baslik/govde karti (kanal + dokunus niyeti; gorsel/cip/aksiyon yok).
-     * Kendisi de hata verirse cagiran yakalar.
+     * Guvenlik/hesap turlerinde kilit ekraninda icerik yine gizlidir. Kendisi de hata verirse cagiran yakalar.
      */
     fun showPlain(context: Context, data: Map<String, String>) {
         val title = data["title"].orEmpty()
@@ -309,17 +501,20 @@ object RichPushNotifications {
         Channels.ensure(context)
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
         if (Build.VERSION.SDK_INT >= 24 && !manager.areNotificationsEnabled()) return
-        val channel = data["channelId"]?.takeIf { it in PushRenderPlan.CHANNELS } ?: "announcement"
+        val style = PushSpec.style(data)
+        val channel = PushRenderPlan.channelFor(data, style)
         val tag = data["tag"] ?: data["collapseKey"] ?: data["messageId"]?.let { "message:$it" } ?: UUID.randomUUID().toString()
+        val lock = PushPrivacy.lock(style, PushPrivacy.hideRequested(data, PushPrefs.hidePreview(context)), PushSpec.lang(data))
         val builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(context, channel) else Notification.Builder(context)
         builder.setSmallIcon(R.drawable.ic_stat_bu).setColor(Channels.ACCENT).setContentTitle(title).setContentText(body)
-            .setStyle(Notification.BigTextStyle().bigText(body)).setAutoCancel(true)
+            .setStyle(Notification.BigTextStyle().bigText(body)).setAutoCancel(true).setVisibility(lock.visibility)
             .setContentIntent(tap(context, data, "open", tag))
+        lock.publicText?.let { builder.setPublicVersion(publicNotification(context, channel, it)) }
         manager.notify(tag, 0, builder.build())
     }
 
     /** Ayni kanalda >= 2 bildirim varsa tek ozet (setGroupSummary) yayinlanir; sistem ozetin altinda yigar. */
-    private fun postSummary(context: Context, manager: NotificationManager, channel: String, group: String, newTag: String) {
+    private fun postSummary(context: Context, manager: NotificationManager, channel: String, group: String, newTag: String, lang: String) {
         try {
             val active = manager.activeNotifications
             val children = active.filter { it.notification.group == group && (it.notification.flags and Notification.FLAG_GROUP_SUMMARY) == 0 }
@@ -328,12 +523,23 @@ object RichPushNotifications {
             val summaryTag = "summary:$group"
             val open = openIntent(context, JSONObject().put("notificationAction", "open").put("notificationTag", summaryTag)
                 .put("actionId", UUID.randomUUID().toString()).toString(), summaryTag, "open")
-            val label = "BU Kampüs"
+            val label = "BÜ Kampüs"
+            val text = if (channel == "chat") when (lang) {
+                "en" -> "New messages in $total chats"
+                "ar" -> "رسائل جديدة في $total محادثات"
+                else -> "$total sohbette yeni mesaj"
+            } else when (lang) {
+                "en" -> "$total notifications"
+                "ar" -> "$total إشعارات"
+                else -> "$total bildirim"
+            }
             val builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(context, channel) else Notification.Builder(context)
             builder.setSmallIcon(R.drawable.ic_stat_bu).setColor(Channels.ACCENT).setContentTitle(label)
-                .setContentText("$total")
+                .setContentText(text)
                 .setContentIntent(open).setAutoCancel(true).setGroup(group).setGroupSummary(true)
                 .setStyle(Notification.InboxStyle().setSummaryText(label))
+            // Guvenlik ozeti kilit ekraninda icerik gostermez; sohbet ozeti yalniz sayi icerir (onizleme degil).
+            if (channel == "security") builder.setVisibility(Notification.VISIBILITY_PRIVATE)
             if (Build.VERSION.SDK_INT >= 26) builder.setGroupAlertBehavior(Notification.GROUP_ALERT_CHILDREN)
             manager.notify(summaryTag, 0, builder.build())
         } catch (_: Exception) { }
@@ -351,44 +557,34 @@ object RichPushNotifications {
     }
 
     /**
-     * Satir ici yanit: metin RemoteInput'tan alinir, Flutter motoru hazirsa ekran acilmadan Dart'a verilir. Basari: bildirim
-     * kaldirilir. Motor yok/hata/zaman asimi: AYNI actionId ile "dokunarak gonder" bildirimi (sunucuda clientId ile tekil).
+     * Satir ici yanit: metin RemoteInput'tan alinir ve KALICI kuyruga yazilir (ReplyDispatcher): canli Flutter motoru varsa ekran
+     * acilmadan Dart'a, yoksa basliksiz Dart motoruyla (JobScheduler) gonderilir; ag hatasinda ustel geri cekilmeyle yeniden denenir.
+     * Sabit clientId ile sunucuda tekildir. Kesin basarisizlikta "dokunarak gonder" bildirimine duser (replyFailedFor).
      */
     fun reply(context: Context, intent: Intent, tag: String, pending: BroadcastReceiver.PendingResult) {
         try {
-            replyInner(context, intent, tag, pending)
+            val app = context.applicationContext
+            val text = CompatRemoteInput.getResultsFromIntent(intent)?.getCharSequence(KEY_REPLY)?.toString()?.trim().orEmpty()
+            val data = runCatching {
+                val o = JSONObject(intent.getStringExtra("payload").orEmpty())
+                o.keys().asSequence().associateWith { o.optString(it) }
+            }.getOrNull()
+            if (data == null || text.isEmpty() || text.length > ReplyQueueLogic.MAX_TEXT) {
+                refresh(app, tag)
+                pending.finish(); return
+            }
+            ReplyDispatcher.submit(app, data, text, tag, pending)
         } catch (error: Throwable) {
             android.util.Log.w("RichPush", "Reply failed: " + error.javaClass.simpleName)
             try { pending.finish() } catch (_: Throwable) { }
         }
     }
 
-    private fun replyInner(context: Context, intent: Intent, tag: String, pending: BroadcastReceiver.PendingResult) {
-        val app = context.applicationContext
-        val manager = app.getSystemService(NotificationManager::class.java)
-        val text = RemoteInput.getResultsFromIntent(intent)?.getCharSequence(KEY_REPLY)?.toString()?.trim().orEmpty()
-        val data = runCatching {
-            val o = JSONObject(intent.getStringExtra("payload").orEmpty())
-            o.keys().asSequence().associateWith { o.optString(it) }
-        }.getOrNull()
-        if (data == null || text.isEmpty() || text.length > 4000) {
-            // Bos/bozuk yanit: ilerleme halkasini temizlemek icin mevcut bildirimi yeniden yayinla.
-            manager?.activeNotifications?.firstOrNull { it.tag == tag }?.let { manager.notify(tag, 0, it.notification) }
-            pending.finish(); return
-        }
-        val actionId = UUID.randomUUID().toString()
-        val payload = data + mapOf("notificationAction" to "reply", "notificationTag" to tag, "actionId" to actionId, "replyText" to text)
-        val main = Handler(Looper.getMainLooper())
-        val finished = AtomicBoolean(false)
-        fun done(ok: Boolean) {
-            if (!finished.compareAndSet(false, true)) return
-            main.post {
-                try { if (ok) dismiss(app, tag) else replyFailed(app, data, tag, payload) } finally { pending.finish() }
-            }
-        }
-        val bridge = actionBridge
-        val handedOver = try { bridge != null && bridge(payload, ::done) } catch (_: Throwable) { false }
-        if (!handedOver) done(false) else main.postDelayed({ done(false) }, 8000)
+    /** Kuyruk kesin basarisiz: AYNI clientId ile "dokunarak gonder" bildirimi (sunucuda tekil, cift mesaj olmaz). */
+    fun replyFailedFor(context: Context, data: Map<String, String>, entry: ReplyEntry) {
+        val payload = data + mapOf("notificationAction" to "reply", "notificationTag" to entry.tag, "actionId" to entry.clientId,
+            "replyText" to entry.text)
+        replyFailed(context, data, entry.tag, payload)
     }
 
     private fun replyFailed(context: Context, data: Map<String, String>, tag: String, payload: Map<String, String>) {
