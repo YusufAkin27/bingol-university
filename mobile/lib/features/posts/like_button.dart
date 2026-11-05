@@ -388,10 +388,13 @@ class _HeartIcon extends StatelessWidget {
 
 /// Kalbin etrafında kısa süre dağılan sekiz nokta + yumuşak ışıma (tasarım 17, ekran 2).
 class _BurstPainter extends CustomPainter {
-  _BurstPainter({required this.progress, required this.color});
+  _BurstPainter({required this.progress, required this.color, this.spread = 1});
 
   final double progress;
   final Color color;
+
+  /// Büyütme çarpanı: düğme kalbi 1, çift dokunuş kalbi büyük olduğundan daha geniş.
+  final double spread;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -400,22 +403,22 @@ class _BurstPainter extends CustomPainter {
     final fade = (1 - progress).clamp(0.0, 1.0);
     canvas.drawCircle(
       c,
-      30,
+      30 * spread,
       Paint()
         ..color = color.withValues(alpha: .28 * fade)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, 10 * spread),
     );
     final p = Paint()..color = color.withValues(alpha: .75 * fade);
     const n = 8;
-    final r = 17 + 12 * Curves.easeOut.transform(progress);
+    final r = (17 + 12 * Curves.easeOut.transform(progress)) * spread;
     for (var i = 0; i < n; i++) {
       final a = (i / n) * 2 * math.pi;
-      canvas.drawCircle(c + Offset(math.cos(a), math.sin(a)) * r, 3 * fade + .8, p);
+      canvas.drawCircle(c + Offset(math.cos(a), math.sin(a)) * r, (3 * fade + .8) * spread, p);
     }
   }
 
   @override
-  bool shouldRepaint(_BurstPainter o) => o.progress != progress || o.color != color;
+  bool shouldRepaint(_BurstPainter o) => o.progress != progress || o.color != color || o.spread != spread;
 }
 
 /// Medyaya çift dokunuşla beğeni: büyük kalp belirir ve söner. [onLike] her çift dokunuşta çağrılır
@@ -498,10 +501,18 @@ class _DoubleTapLikeState extends State<DoubleTapLike> with SingleTickerProvider
                         opacity: opacity.value.clamp(0, 1),
                         child: Transform.scale(
                           scale: scale.value,
-                          child: Icon(BuIcons.heartFilled,
-                              key: const ValueKey('double-tap-heart'),
-                              size: 88,
-                              color: t.onMedia),
+                          // Kırmızı kalp + çevresinde kısa nokta patlaması (beğenilmiş kalp rengi t.pr).
+                          child: CustomPaint(
+                            painter: _BurstPainter(progress: calm ? 0 : _c.value, color: t.pr, spread: 2.6),
+                            child: SizedBox(
+                              width: 88,
+                              height: 88,
+                              child: Icon(BuIcons.heartFilled,
+                                  key: const ValueKey('double-tap-heart'),
+                                  size: 88,
+                                  color: t.pr),
+                            ),
+                          ),
                         ),
                       ),
                     ])

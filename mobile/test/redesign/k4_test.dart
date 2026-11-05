@@ -1,3 +1,4 @@
+import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/posts/post_card.dart';
 import 'package:bu_kampus/features/posts/post_models.dart';
 import 'package:flutter/material.dart';
@@ -58,7 +59,7 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     expect(find.text('127'), findsNothing);
 
-    // Cift dokunus: beyaz buyuk kalp (zaten begenilmis olsa da gosterilir).
+    // Cift dokunus: kirmizi buyuk kalp (patlama ile) (zaten begenilmis olsa da gosterilir).
     final photo = find.byKey(const ValueKey('post-photo-1000'));
     await tester.tap(photo);
     await tester.pump(const Duration(milliseconds: 40));
@@ -67,7 +68,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
     final heart = tester.widget<Icon>(find.byKey(const ValueKey('double-tap-heart')));
     expect(heart.size, 88);
-    expect(heart.color, Colors.white);
+    expect(heart.color, isNot(Colors.white));
+    expect(heart.color, BuTokens.light.pr);
     await tester.pump(const Duration(seconds: 2));
     expect(tester.takeException(), isNull);
   });
