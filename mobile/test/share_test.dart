@@ -7,6 +7,7 @@ import 'package:bu_kampus/core/nav.dart';
 import 'package:bu_kampus/core/outbox/outbox.dart';
 import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/core/theme.dart';
+import 'package:bu_kampus/features/chat/chat_tab.dart';
 import 'package:bu_kampus/features/chat/message_bubble.dart';
 import 'package:bu_kampus/features/share/share_api.dart';
 import 'package:bu_kampus/features/share/share_button.dart';
@@ -162,7 +163,8 @@ void main() {
       expect(i.available, isTrue);
       expect(ShareInfo.fromMessage({'share': {'type': 'REEL', 'id': '9', 'available': false}})!.available, isFalse);
       expect(ShareInfo.fromMessage({'share': {'type': 'REEL', 'id': '9'}})!.showPlay, isTrue);
-      expect(ShareInfo.fromMessage({'share': {'type': 'POST', 'id': 3, 'mediaKind': 'VIDEO'}})!.showPlay, isTrue);
+      expect(ShareInfo.fromMessage({'share': {'type': 'POST', 'id': 3, 'kind': 'VIDEO'}})!.showPlay, isTrue);
+      expect(ShareInfo.fromMessage({'share': {'type': 'POST', 'id': 3, 'kind': 'PHOTO'}})!.showPlay, isFalse);
       expect(ShareInfo.fromMessage({'share': {'type': 'BILINMEYEN', 'id': 1}}), isNull);
       expect(ShareInfo.fromMessage({'share': {'type': 'POST'}}), isNull);
       expect(ShareInfo.fromMessage({'share': 'x'}), isNull);
@@ -436,6 +438,19 @@ void main() {
       await unmountSheet(tester);
     });
 
+    testWidgets('422 SHARE_TARGET_INVALID: sunucunun istek dilindeki mesajı gösterilir', (tester) async {
+      final b = sheetBackend();
+      b.fail('/conversations/1/messages', status: 422, code: 'SHARE_TARGET_INVALID', message: 'Bu içerik paylaşılamıyor.');
+      await openSheet(tester, b, kPost);
+      await tester.tap(find.byKey(const ValueKey('share-pick-c1')));
+      await settle(tester, const Duration(milliseconds: 300));
+      await tester.tap(find.byKey(const ValueKey('share-send')));
+      await settle(tester, const Duration(milliseconds: 700));
+      expect(find.text('Bu içerik paylaşılamıyor.'), findsOneWidget);
+      expect(find.byKey(const ValueKey('share-send')), findsOneWidget);
+      await unmountSheet(tester);
+    });
+
     testWidgets('hepsi başarısız: sayfa açık kalır ve hata gösterilir', (tester) async {
       final b = sheetBackend();
       b.fail('/conversations/1/messages', status: 403, code: 'FORBIDDEN');
@@ -626,15 +641,33 @@ void main() {
       }
     });
 
-    testWidgets('içerik kullanılamıyor: yer tutucu metin, başlık yok, dokunuş yine de bildirilir', (tester) async {
+    testWidgets('içerik kullanılamıyor: yer tutucu metin, başlık yok, dokunma kapalı', (tester) async {
       ShareInfo? opened;
       await pumpBubble(tester, bubble(msg({'type': 'POST', 'id': 7, 'title': 'Silinmiş', 'available': false}), onOpen: (i) => opened = i));
       expect(find.byKey(const ValueKey('share-card-unavailable')), findsOneWidget);
       expect(find.text('Bu içerik artık görüntülenemiyor'), findsOneWidget);
       expect(find.text('Silinmiş'), findsNothing);
-      await tester.tap(find.byKey(const ValueKey('share-card-unavailable')));
+      await tester.tap(find.byKey(const ValueKey('share-card-unavailable')), warnIfMissed: false);
       await tester.pump();
-      expect(opened, isNotNull);
+      expect(opened, isNull);
+      await unmount(tester);
+    });
+
+    testWidgets('sunucu sözleşmesindeki örnek yük (PHOTO + göreli /api görsel + url) çizilir', (tester) async {
+      await pumpBubble(
+          tester,
+          bubble(msg({
+            'type': 'POST',
+            'id': 123,
+            'available': true,
+            'title': 'Kampüste bahar',
+            'subtitle': 'Ayşe Yılmaz',
+            'imageUrl': '/api/posts/media/55?thumb=true',
+            'kind': 'PHOTO',
+            'url': 'https://bukampus.com.tr/s/p/123',
+          })));
+      expect(find.text('Kampüste bahar'), findsOneWidget);
+      expect(find.text('Ayşe Yılmaz'), findsOneWidget);
       await unmount(tester);
     });
 
@@ -692,6 +725,44 @@ void main() {
       ));
       await settle(tester, const Duration(milliseconds: 300));
       noErr(tester);
+      await unmount(tester);
+    });
+  });
+
+  group('sohbet listesi önizleme metni (ChatTab)', () {
+    testWidgets('notsuz paylaşım nötr metin; sunucunun 🔗 yedek metni ve bağlantı da nötr; not varsa not görünür', (tester) async {
+      Future<void> pumpList(Map<String, dynamic> last) async {
+        useScreen(tester, kPhoneMedium);
+        final b = FakeBackend()
+          ..on('/conversations', {
+            'items': [
+              {
+                'id': 1,
+                'type': 'DIRECT',
+                'peer': {'id': 11, 'displayName': 'Ali Veli'},
+                'unreadCount': 0,
+                'lastMessage': {'id': 9, 'senderId': 11, 'createdAt': '2026-11-05T10:00:00Z', ...last},
+              }
+            ],
+            'nextCursor': null,
+          });
+        await tester.pumpWidget(buildApp(ChatTab(session: makeSession(b)), size: kPhoneMedium));
+        await settle(tester, const Duration(milliseconds: 700));
+      }
+
+      await pumpList({'text': '', 'share': {'type': 'POST', 'id': 5, 'available': true, 'url': 'https://bukampus.com.tr/s/p/5'}});
+      expect(find.textContaining('Gönderi paylaştı'), findsOneWidget);
+      await unmount(tester);
+      await pumpList({'text': '🔗 Gönderi paylaştı', 'share': {'type': 'POST', 'id': 5, 'available': true}});
+      expect(find.textContaining('Gönderi paylaştı'), findsOneWidget);
+      await unmount(tester);
+      await pumpList({'text': 'Buna bak!', 'share': {'type': 'EVENT', 'id': 5, 'available': true}});
+      expect(find.textContaining('Buna bak!'), findsOneWidget);
+      expect(find.textContaining('Etkinlik paylaştı'), findsNothing);
+      await unmount(tester);
+      await pumpList({'text': 'https://bukampus.com.tr/s/n/8'});
+      expect(find.textContaining('Haber paylaştı'), findsOneWidget);
+      expect(find.textContaining('bukampus.com.tr'), findsNothing);
       await unmount(tester);
     });
   });

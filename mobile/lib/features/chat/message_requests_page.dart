@@ -11,6 +11,7 @@ import 'chat_media.dart' show viewOnceAttachment;
 import 'chatlist_widgets.dart';
 import 'message_placeholder.dart';
 import '../share/share_card.dart' show sharePreviewText;
+import '../share/share_models.dart' show isShareLinkText;
 
 /// Mesaj istekleri uçları (W2-D): ortak bağlamı olmayan göndericinin sohbeti alıcıda PENDING kalır.
 /// `GET /conversations/requests` (imleç = konuşma kimliği), `.../requests/count`, `POST /{id}/accept`, `POST /{id}/decline`.
@@ -311,9 +312,9 @@ class _RequestTile extends StatelessWidget {
     if (viewOnceAttachment(last) != null && last['deleted'] != true && last['removed'] != true) {
       return l.chatMiscOnceText;
     }
-    final shared = sharePreviewText(context, last);
-    if (shared != null) return shared;
     final text = (last['text'] as String?)?.trim() ?? '';
+    final shared = sharePreviewText(context, last);
+    if (shared != null && (text.isEmpty || text.startsWith('🔗') || isShareLinkText(text))) return shared;
     if (text.isNotEmpty) return text.replaceAll(RegExp(r'\s+'), ' ');
     final att = last['attachments'];
     if (att is List && att.isNotEmpty) {

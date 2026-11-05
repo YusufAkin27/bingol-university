@@ -435,7 +435,8 @@ class MessageBubble extends StatelessWidget {
                   mine: solidMine,
                   width: shareW,
                   headers: authHeaders,
-                  onTap: (preview || onOpenShare == null) ? null : () => onOpenShare!(shareInfo),
+                  // Kullanılamayan içerikte dokunma kapalıdır (docs/SHARING.md 4.2).
+                  onTap: (preview || onOpenShare == null || !shareInfo.available) ? null : () => onOpenShare!(shareInfo),
                   // Not yoksa saat+tik kartın altında; not varsa notun yanında (aşağıdaki metin satırı).
                   footer: (!showText && hasMeta)
                       ? Padding(

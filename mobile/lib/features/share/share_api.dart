@@ -39,9 +39,12 @@ class ShareRecipient {
 enum ShareSendState { sent, queued, failed }
 
 class ShareSendSummary {
-  const ShareSendSummary(this.results);
+  const ShareSendSummary(this.results, {this.firstError});
 
   final Map<ShareRecipient, ShareSendState> results;
+
+  /// İlk sunucu hatası (ör. 422 `SHARE_TARGET_INVALID`: içerik artık paylaşılamıyor; mesaj istek dilindedir).
+  final ApiError? firstError;
 
   int get sent => results.values.where((s) => s == ShareSendState.sent).length;
   int get queued => results.values.where((s) => s == ShareSendState.queued).length;
@@ -68,13 +71,15 @@ Future<ShareSendSummary> sendShare(
   final text = note.trim();
   final recipients = to.take(kShareMaxRecipients).toList();
   final results = <ShareRecipient, ShareSendState>{};
+  ApiError? firstError;
   await Future.wait(recipients.map((r) async {
-    results[r] = await _sendOne(api, r, target, text);
+    results[r] = await _sendOne(api, r, target, text, (e) => firstError ??= e);
   }));
-  return ShareSendSummary(results);
+  return ShareSendSummary(results, firstError: firstError);
 }
 
-Future<ShareSendState> _sendOne(ApiClient api, ShareRecipient r, ShareTarget target, String text) async {
+Future<ShareSendState> _sendOne(
+    ApiClient api, ShareRecipient r, ShareTarget target, String text, void Function(ApiError) onError) async {
   var cid = r.conversationId;
   try {
     if (cid == null) {
@@ -99,6 +104,7 @@ Future<ShareSendState> _sendOne(ApiClient api, ShareRecipient r, ShareTarget tar
   } on ApiError catch (e) {
     // Ağ yok: ApiClient isteği kuyruğa aldıysa gönderim bağlantı gelince kendiliğinden yapılır.
     if (e.isNetwork && (api.outbox?.contains(clientId) ?? false)) return ShareSendState.queued;
+    onError(e);
     return ShareSendState.failed;
   } catch (_) {
     return ShareSendState.failed;

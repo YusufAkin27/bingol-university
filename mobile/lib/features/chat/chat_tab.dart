@@ -20,6 +20,7 @@ import 'message_requests_page.dart';
 import 'message_placeholder.dart';
 import 'new_chat_page.dart';
 import '../share/share_card.dart' show sharePreviewText;
+import '../share/share_models.dart' show isShareLinkText;
 
 /// Sohbet sekmesi: konuşma listesi (birebir, grup, kulüp, etkinlik).
 /// Liste STOMP akışıyla yerinde güncellenir; bağlantı yoksa çekerek yenileme geçerlidir.
@@ -1041,9 +1042,12 @@ class _ConversationRow extends StatelessWidget {
       return (l.chatMiscOnceText, null, true);
     }
     // Paylaşım kartı: nötr metin ("Gönderi paylaştı"); sunucu yedek metne koyduğu bağlantı listeye sızmaz.
-    final shared = sharePreviewText(context, last);
-    if (shared != null) return (shared, BuIcons.share2, false);
     final text = (last['text'] as String?)?.trim() ?? '';
+    // Notsuz paylaşım (ya da sunucunun "🔗 ..." yedek metni / bağlantısı) nötr metin olur; gönderenin notu varsa not görünür.
+    final shared = sharePreviewText(context, last);
+    if (shared != null && (text.isEmpty || text.startsWith('🔗') || isShareLinkText(text))) {
+      return (shared, BuIcons.share2, false);
+    }
     if (text.isNotEmpty) {
       return (text.replaceAll(RegExp(r'\s+'), ' '), null, false);
     }

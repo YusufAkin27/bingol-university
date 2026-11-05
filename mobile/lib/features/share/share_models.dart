@@ -141,8 +141,8 @@ class ShareInfo {
       return t.isEmpty ? null : t;
     }
 
-    final kind = '${s['kind'] ?? s['newsType'] ?? s['subtype'] ?? s['type']}'.toUpperCase();
-    final media = '${s['mediaKind'] ?? s['media'] ?? ''}'.toUpperCase();
+    // `kind`: haberde HABER|DUYURU|ETKINLIK, gönderi/Reels'te PHOTO|VIDEO (docs/SHARING.md 4.2).
+    final kind = '${s['kind'] ?? ''}'.toUpperCase();
     return ShareInfo(
       type: type,
       id: id,
@@ -151,7 +151,7 @@ class ShareInfo {
       imageUrl: str(s['imageUrl']),
       available: s['available'] != false,
       isAnnouncement: type == ShareType.news && (kind == 'DUYURU' || kind == 'ANNOUNCEMENT'),
-      isVideo: media == 'VIDEO' || s['isVideo'] == true,
+      isVideo: kind == 'VIDEO',
     );
   }
 }

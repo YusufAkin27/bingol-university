@@ -219,7 +219,10 @@ class _ShareSheetState extends State<ShareSheet> {
     Analytics.instance.action('share', target: 'message');
     if (sum.allFailed) {
       setState(() => _sending = false);
-      BuToast.show(context, l.shareFailedAll, kind: BuToastKind.error);
+      // İçerik artık paylaşılamıyorsa (silindi/gizlendi/yetki) sunucunun istek dilindeki mesajı gösterilir.
+      final e = sum.firstError;
+      final msg = (e != null && e.code == 'SHARE_TARGET_INVALID' && e.message.isNotEmpty) ? e.message : l.shareFailedAll;
+      BuToast.show(context, msg, kind: BuToastKind.error);
       return;
     }
     final String msg;
