@@ -10229,4 +10229,30 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get chatSecureScreenshot =>
       'Screenshot detected. The photo has been closed.';
+
+  @override
+  String get verifyEmailBannerTitle => 'Verify your email';
+
+  @override
+  String get verifyEmailBannerBody =>
+      'Until you verify, some actions (posts, messages, following...) are unavailable.';
+
+  @override
+  String get verifyEmailBannerCta => 'Enter code';
+
+  @override
+  String get verifySheetTitle => 'Verify your email';
+
+  @override
+  String get verifySheetBody => 'Enter the 6-digit code sent to your email.';
+
+  @override
+  String get verifyQuotaInfo =>
+      'The verification email cannot be sent right now. We will send it as soon as possible. You can enter the code here once it arrives.';
+
+  @override
+  String get verifyDone => 'Your email is verified';
+
+  @override
+  String get errEmailVerificationRequired => 'Verify your email to do this';
 }

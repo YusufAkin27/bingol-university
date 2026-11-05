@@ -75,8 +75,16 @@ class _RegisterPageState extends State<RegisterPage> {
       _error = null;
     });
     try {
-      final full = await widget.session.register(email: fullEmail(_email.text), password: _password.text, displayName: _name.text);
+      final res = await widget.session.registerAccount(email: fullEmail(_email.text), password: _password.text, displayName: _name.text);
+      final full = res.email;
       final id = normalizeIdentifier(fullEmail(_email.text));
+      if (res.deferred) {
+        // Günlük posta kotası aşıldı: sunucu kullanıcıyı sisteme aldı (oturum açıldı), e-posta DOĞRULANMAMIŞ kalır.
+        // Doğrulama kodu ekranına gitmez; kök ekran zorunlu bölüm + sınıf (ve isteğe bağlı fotoğraf) adımlarını
+        // gösterir, doğrulama Profil sekmesindeki kartta beklenir.
+        if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
+        return;
+      }
       widget.session.rememberCredentials(id, _password.text);
       await widget.session.pending.save(id);
       if (!mounted) return;

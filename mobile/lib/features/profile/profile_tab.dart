@@ -23,6 +23,7 @@ import 'profile_content_tabs.dart';
 import 'profile_inline_edit.dart';
 import 'profil_widgets.dart';
 import 'settings_page.dart';
+import 'verify_email_card.dart';
 import 'saved_news_page.dart';
 
 /// Profil sekmesi (Stitch v3 birebir): "Profilim", satır içi düzenlenen kimlik kartı (88 dp avatar, ad, bölüm/sınıf çipleri, bio, e-posta anahtarı),
@@ -74,6 +75,7 @@ class _ProfileTabState extends State<ProfileTab> {
     try {
       final p = await widget.session.api.get('/users/me') as Map<String, dynamic>;
       if (!mounted || gen != _gen) return;
+      widget.session.noteProfile(p); // e-posta doğrulanmamışsa üstte doğrulama kartı
       final av = p['avatarUrl'];
       widget.session.avatarUrl.value = av is String && av.isNotEmpty ? av : null; // alt gezinme Profil sekmesi avatarı
       setState(() {
@@ -243,6 +245,7 @@ class _ProfileTabState extends State<ProfileTab> {
         children: [
           const BuStaggerItem(index: 0, child: _TitleRow()),
           const SizedBox(height: 16),
+          VerifyEmailCard(session: widget.session),
           BuStaggerItem(
             index: 0,
             child: InlineProfileHero(

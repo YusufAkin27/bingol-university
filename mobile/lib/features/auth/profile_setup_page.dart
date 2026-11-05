@@ -101,6 +101,7 @@ class _ProfileCompletionGateState extends State<ProfileCompletionGate> with Widg
         _settle(_GateState.unknown);
         return;
       }
+      widget.session.noteProfile(r); // açılışta e-posta doğrulama durumunu tazele
       final av = r['avatarUrl'];
       _hasAvatar = av is String && av.trim().isNotEmpty;
       _settle(isProfileComplete(r) ? _GateState.complete : _GateState.incomplete);

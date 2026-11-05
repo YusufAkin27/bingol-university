@@ -12,6 +12,7 @@ import 'identifier.dart';
 import 'locale_controller.dart';
 import 'nav.dart';
 import 'pending_verification.dart';
+import '../features/auth/verify_email_sheet.dart' show VerifyPrompt;
 import '../features/legal/legal_reaccept.dart';
 import 'realtime/chat_realtime.dart';
 import 'secure_store.dart';
@@ -33,6 +34,7 @@ class Session extends ChangeNotifier {
     api.onAccessBlocked = _onAccessBlocked;
     legal = LegalReacceptController(api);
     api.onLegalReaccept = legal.onRequired;
+    api.onEmailVerificationRequired = _onVerificationRequired;
     realtime = ChatRealtime(this);
   }
 
@@ -46,6 +48,31 @@ class Session extends ChangeNotifier {
 
   /// Kabuğun başlattığı tek sohbet gerçek zamanlı bağlantısı (ekranlar `session.realtime` ile erişir).
   ChatRealtime? realtime;
+
+  /// E-posta doğrulanmamış hesap (günlük posta kotası aşılınca kayıt doğrulaması ertelenir). Yalnız sunucudan gelen
+  /// bilgiyle değişir (kayıt yanıtı, `GET /users/me`, doğrulama, 403 EMAIL_VERIFICATION_REQUIRED); varsayılan false:
+  /// doğrulanmış kullanıcıda arayüzde iz yoktur.
+  final emailUnverified = ValueNotifier<bool>(false);
+
+  /// Sunucunun söylediği doğrulama durumunu işler; alan yoksa (eski sunucu) durum değişmez.
+  void noteEmailVerified(Object? verified) {
+    if (verified is bool && emailUnverified.value == verified) emailUnverified.value = !verified;
+  }
+
+  /// Profil (`GET /users/me`) ve giriş/kayıt yanıtlarından doğrulama durumunu alır. Sözleşme: kart yalnız
+  /// `emailVerified==false && verificationDeferred==true` iken; ertelenmiş değil ama doğrulanmamış hesap sisteme
+  /// zaten giremez (girişte 403 EMAIL_NOT_VERIFIED). `verificationDeferred` alanı hiç yoksa ertelenmiş sayılır.
+  void noteProfile(Object? profile) {
+    if (profile is! Map) return;
+    final v = profile['emailVerified'];
+    if (v is! bool) return;
+    noteEmailVerified(v || profile['verificationDeferred'] == false ? true : false);
+  }
+
+  void _onVerificationRequired() {
+    emailUnverified.value = true;
+    VerifyPrompt.show(this);
+  }
 
   /// Çıkışta (token hâlâ geçerliyken) çalışır: örn. FCM cihaz kaydını silme. Hatalar yutulur.
   final List<Future<void> Function()> beforeSignOut = [];
@@ -155,6 +182,7 @@ class Session extends ChangeNotifier {
 
   Future<void> _fetchMe() async {
     final me = await api.get('/auth/me');
+    noteProfile(me);
     if (me is Map) {
       final id = me['id'];
       final dn = me['displayName'];
@@ -205,7 +233,8 @@ class Session extends ChangeNotifier {
     await _accept(res);
   }
 
-  /// Tam e-postayı döndürür (sunucu yanıtındaki ya da numaradan türetilen).
+  /// Tam e-postayı döndürür (sunucu yanıtındaki ya da numaradan türetilen). Doğrulaması ertelenen kayıtta
+  /// ([registerAccount] `deferred`) jetonlar da kabul edilir; bkz. [registerAccount].
   Future<String> register({
     required String email,
     required String password,
@@ -213,6 +242,29 @@ class Session extends ChangeNotifier {
     String? faculty,
     String? department,
     String? grade,
+  }) async =>
+      (await registerAccount(
+        email: email,
+        password: password,
+        displayName: displayName,
+        faculty: faculty,
+        department: department,
+        grade: grade,
+        autoSignIn: false,
+      ))
+          .email;
+
+  /// Kayıt. Normal akış 202 (doğrulama kodu e-postayla gider). Günlük posta kotası aşılmışsa sunucu 201 + jetonlar +
+  /// `verificationDeferred:true` döner: hesap doğrulanmamış kalır ama kullanıcı sisteme alınır. `autoSignIn` açıksa
+  /// jetonlar kabul edilir (oturum açılır, [emailUnverified] true olur); kapalıysa yalnız sonuç döner.
+  Future<RegisterResult> registerAccount({
+    required String email,
+    required String password,
+    String? displayName,
+    String? faculty,
+    String? department,
+    String? grade,
+    bool autoSignIn = true,
   }) async {
     final res = await api.post(
       '/auth/register',
@@ -223,6 +275,7 @@ class Session extends ChangeNotifier {
         if (displayName != null && displayName.trim().isNotEmpty) 'displayName': displayName.trim(),
         'acceptTerms': true,
         'language': api.lang,
+        'client': kClientMobile, // ertelenmiş doğrulamada dönen jetonların etiketi (verify-email ile aynı)
         if (faculty != null && faculty.isNotEmpty) 'faculty': faculty,
         if (department != null && department.isNotEmpty) 'department': department,
         if (grade != null && grade.isNotEmpty) 'grade': grade,
@@ -231,7 +284,24 @@ class Session extends ChangeNotifier {
     );
     final server = res is Map ? res['email'] : null;
     // Kayıtta numara kısayolu yok: yazılan adres olduğu gibi (normalize) kullanılır.
-    return server is String && server.isNotEmpty ? server : normalizeIdentifier(email);
+    final full = server is String && server.isNotEmpty ? server : normalizeIdentifier(email);
+    final deferred = res is Map && res['verificationDeferred'] == true && res['accessToken'] != null;
+    if (deferred && autoSignIn) {
+      emailUnverified.value = true;
+      await pending.clear();
+      await _accept(res);
+    }
+    return RegisterResult(full, deferred: deferred);
+  }
+
+  /// Kimlik doğrulamalı kod yeniden gönderimi (ertelenen doğrulama). Kota doluysa 429 MAIL_QUOTA_EXCEEDED fırlatır.
+  Future<void> resendVerification() => api.post('/auth/verification/resend');
+
+  /// Kimlik doğrulamalı kod doğrulama; başarıda [emailUnverified] kalkar ve profil önbelleği bayatlar.
+  Future<void> verifyVerification(String code) async {
+    await api.post('/auth/verification/verify', {'code': code.trim()});
+    emailUnverified.value = false;
+    api.invalidate('/users/me');
   }
 
   Future<void> resendCode(String email) =>
@@ -323,6 +393,7 @@ class Session extends ChangeNotifier {
       displayName = null;
       email = null;
       avatarUrl.value = null;
+      emailUnverified.value = false;
       _set(SessionState.signedOut); // push yerel temizliği kancadan (token yok: sunucu çağrısı atlanır)
       rootNavigatorKey.currentState?.popUntil((r) => r.isFirst);
     } finally {
@@ -359,11 +430,14 @@ class Session extends ChangeNotifier {
     displayName = null;
     email = null;
     avatarUrl.value = null;
+    emailUnverified.value = false;
     _set(SessionState.signedOut);
   }
 
   Future<void> _accept(dynamic res) async {
     replacedNotice.value = false;
+    // Ertelenmiş hesap girişinde yanıt `emailVerified:false, verificationDeferred:true` taşır (normal girişte alan yok).
+    noteProfile(res);
     await api.setTokens(Tokens.fromJson(res));
     await _loadMe();
   }
@@ -426,6 +500,16 @@ class Session extends ChangeNotifier {
   }
 }
 
+/// [Session.registerAccount] sonucu: tam e-posta + doğrulamanın ertelenip ertelenmediği.
+class RegisterResult {
+  const RegisterResult(this.email, {this.deferred = false});
+
+  final String email;
+
+  /// Posta kotası aşıldı: hesap açıldı, oturum verildi, e-posta henüz DOĞRULANMADI.
+  final bool deferred;
+}
+
 /// Hata kodlarına kullanıcı metni: sunucu zaten istek dilinde `message` döner; bilinen kodlar için
 /// yerelde (uygulama dilinde) sabit metin kullanılır, böylece mesaj boş/proxy yanıtı olsa da anlaşılır kalır.
 String errorText(Object e) {
@@ -476,7 +560,10 @@ String? knownErrorText(ApiError e, AppLocalizations l) {
     case 'UPLOAD_QUOTA_EXCEEDED':
       return _withRetry(l.errUploadQuota, e, l);
     case 'MAIL_QUOTA_EXHAUSTED':
+    case 'MAIL_QUOTA_EXCEEDED':
       return _withRetry(l.errMailQuota, e, l);
+    case 'EMAIL_VERIFICATION_REQUIRED':
+      return l.errEmailVerificationRequired;
     case 'DB_TIMEOUT':
       return _withRetry(l.errServiceBusy, e, l);
     case 'LEGAL_REACCEPT_REQUIRED':

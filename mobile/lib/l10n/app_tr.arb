@@ -5472,5 +5472,13 @@
   "settingsAnalytics": "Kullanım analizi",
   "settingsAnalyticsSub": "Uygulamayı iyileştirmek için ekranlarda geçirilen süre ve yapılan eylemler gibi kullanım bilgileri gönderilir. Mesaj içeriği, arama metni ve kişisel bilgiler gönderilmez. Kapatınca toplama durur, bekleyenler silinir.",
   "chatSecureCaptured": "Ekran kaydı sırasında görüntülenemez.",
-  "chatSecureScreenshot": "Ekran görüntüsü algılandı. Görüntü kapatıldı."
+  "chatSecureScreenshot": "Ekran görüntüsü algılandı. Görüntü kapatıldı.",
+  "verifyEmailBannerTitle": "E-postanızı doğrulayın",
+  "verifyEmailBannerBody": "Doğrulanana kadar bazı işlemler (gönderi, mesaj, takip...) kapalıdır.",
+  "verifyEmailBannerCta": "Kodu gir",
+  "verifySheetTitle": "E-postanızı doğrulayın",
+  "verifySheetBody": "E-postanıza gelen 6 haneli kodu girin.",
+  "verifyQuotaInfo": "Doğrulama e-postası şu an gönderilemiyor, en kısa sürede göndereceğiz. Kod gelince buraya girebilirsiniz.",
+  "verifyDone": "E-postanız doğrulandı",
+  "errEmailVerificationRequired": "Bu işlem için e-postanızı doğrulayın"
 }

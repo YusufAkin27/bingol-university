@@ -10126,4 +10126,32 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chatSecureScreenshot => 'تم اكتشاف لقطة شاشة. تم إغلاق الصورة.';
+
+  @override
+  String get verifyEmailBannerTitle => 'تحقق من بريدك الإلكتروني';
+
+  @override
+  String get verifyEmailBannerBody =>
+      'إلى أن يتم التحقق، بعض الإجراءات (المنشورات والرسائل والمتابعة...) غير متاحة.';
+
+  @override
+  String get verifyEmailBannerCta => 'أدخل الرمز';
+
+  @override
+  String get verifySheetTitle => 'تحقق من بريدك الإلكتروني';
+
+  @override
+  String get verifySheetBody =>
+      'أدخل الرمز المكوّن من 6 أرقام المرسل إلى بريدك الإلكتروني.';
+
+  @override
+  String get verifyQuotaInfo =>
+      'تعذّر إرسال رسالة التحقق حاليًا، وسنرسلها في أقرب وقت. يمكنك إدخال الرمز هنا عند وصوله.';
+
+  @override
+  String get verifyDone => 'تم التحقق من بريدك الإلكتروني';
+
+  @override
+  String get errEmailVerificationRequired =>
+      'تحقق من بريدك الإلكتروني للقيام بذلك';
 }

@@ -18545,6 +18545,54 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Ekran görüntüsü algılandı. Görüntü kapatıldı.'**
   String get chatSecureScreenshot;
+
+  /// No description provided for @verifyEmailBannerTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'E-postanızı doğrulayın'**
+  String get verifyEmailBannerTitle;
+
+  /// No description provided for @verifyEmailBannerBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğrulanana kadar bazı işlemler (gönderi, mesaj, takip...) kapalıdır.'**
+  String get verifyEmailBannerBody;
+
+  /// No description provided for @verifyEmailBannerCta.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kodu gir'**
+  String get verifyEmailBannerCta;
+
+  /// No description provided for @verifySheetTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'E-postanızı doğrulayın'**
+  String get verifySheetTitle;
+
+  /// No description provided for @verifySheetBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'E-postanıza gelen 6 haneli kodu girin.'**
+  String get verifySheetBody;
+
+  /// No description provided for @verifyQuotaInfo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğrulama e-postası şu an gönderilemiyor, en kısa sürede göndereceğiz. Kod gelince buraya girebilirsiniz.'**
+  String get verifyQuotaInfo;
+
+  /// No description provided for @verifyDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'E-postanız doğrulandı'**
+  String get verifyDone;
+
+  /// No description provided for @errEmailVerificationRequired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu işlem için e-postanızı doğrulayın'**
+  String get errEmailVerificationRequired;
 }
 
 class _AppLocalizationsDelegate

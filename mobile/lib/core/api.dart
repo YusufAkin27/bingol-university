@@ -171,6 +171,9 @@ class ApiClient {
   /// Parametre: yanıttaki `requiresAcceptance` listesi (yoksa null). Hata yine çağırana iletilir.
   void Function(Object? requiresAcceptance)? onLegalReaccept;
 
+  /// 403 EMAIL_VERIFICATION_REQUIRED: hesap e-postası doğrulanmamış (kota aşımında ertelenen doğrulama), yazma reddedildi.
+  void Function()? onEmailVerificationRequired;
+
   Future<Tokens>? _inflight;
 
   static const _timeout = Duration(seconds: 20);
@@ -537,6 +540,7 @@ class ApiClient {
       final msg = json['message'];
       if (res.statusCode == 403 && code == 'ACCESS_BLOCKED') onAccessBlocked?.call();
       if (res.statusCode == 403 && code == 'LEGAL_REACCEPT_REQUIRED') onLegalReaccept?.call(json['requiresAcceptance']);
+      if (res.statusCode == 403 && code == 'EMAIL_VERIFICATION_REQUIRED') onEmailVerificationRequired?.call();
       throw ApiError(res.statusCode, code, msg is String ? msg : '', retryAfter: retryAfter);
     }
     throw ApiError(res.statusCode, 'HTTP_${res.statusCode}', '', retryAfter: retryAfter);

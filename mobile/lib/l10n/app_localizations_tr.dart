@@ -10195,4 +10195,31 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get chatSecureScreenshot =>
       'Ekran görüntüsü algılandı. Görüntü kapatıldı.';
+
+  @override
+  String get verifyEmailBannerTitle => 'E-postanızı doğrulayın';
+
+  @override
+  String get verifyEmailBannerBody =>
+      'Doğrulanana kadar bazı işlemler (gönderi, mesaj, takip...) kapalıdır.';
+
+  @override
+  String get verifyEmailBannerCta => 'Kodu gir';
+
+  @override
+  String get verifySheetTitle => 'E-postanızı doğrulayın';
+
+  @override
+  String get verifySheetBody => 'E-postanıza gelen 6 haneli kodu girin.';
+
+  @override
+  String get verifyQuotaInfo =>
+      'Doğrulama e-postası şu an gönderilemiyor, en kısa sürede göndereceğiz. Kod gelince buraya girebilirsiniz.';
+
+  @override
+  String get verifyDone => 'E-postanız doğrulandı';
+
+  @override
+  String get errEmailVerificationRequired =>
+      'Bu işlem için e-postanızı doğrulayın';
 }
