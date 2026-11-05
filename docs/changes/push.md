@@ -251,3 +251,35 @@ Dagitimdan sonra: yonetici panelinde dead-letter push kayitlarini "yeniden dene"
 ## Tek gosterimlik aciklama push'a girmez (2026-11-05)
 View-once medyali mesajin aciklamasi push govdesine ASLA yazilmaz: govde `📷` (foto) ya da `🎬` (video) simgesidir (`MessageService.previewOf`). Normal medya aciklamasi ve duz metin onizlemesi (ilk 100 karakter) her zaman gider. Ayrinti: `docs/changes/messaging.md` "Tek gosterimlik aciklamasi sizdirilmaz".
 
+
+## Bildirim tasarımı yük sözleşmesi (2.1.4, NB-BE; 2026-11-05)
+
+Tasarım: `bildirim-ekranlari/` (kart dili: kaynak etiketi, rozet/çip, avatar/küçük resim, kritik şerit, bağlamsal aksiyon). Sunucu tarafı BU sözleşmeyi üretir; Android/iOS/Dart bunu okur. Tüm yeni anahtarlar **isteğe bağlı** ve **geriye uyumludur** (eski istemci yok sayar; değerler düz metin). Mevcut anahtarlar (`type`, `subtype`, `target*`, `count`, `category`, `channelId`, `threadId`, `tag`, kimlik anahtarları, sohbet için `senderName`/`conversationTitle`) değişmez. FCM data toplamı 4 KB: sığmazsa önce `imageUrl`/`senderAvatarUrl`, sonra sözleşme dışı anahtarlar atılır.
+
+**1. `style` (her push'ta, TÜM platformlarda, yalnız sunucu belirler).** Eskiden yalnız Android zengin yolunda vardı; artık `PushPayload.build` her yüke yazar (iOS ve ön plan şeridi de okur). İstemciden gelen `style` yok sayılır. Değerler: `CHAT_DIRECT`, `CHAT_GROUP`, `CHAT_MEDIA`, `EVENT_REMINDER`, `EVENT_ADMISSION`, `EVENT_UPDATE`, `EVENT_CANCELLED` (YENİ), `POLL`, `EXAM`, `ACADEMIC`, `FOLLOW_REQUEST`, `FOLLOW_ACCEPTED`, `FOLLOW`, `LIKE` (YENİ: gönderi beğenisi), `SOCIAL` (yorum/bahsetme vb.), `SUPPORT`, `MEAL` (YENİ üretici), `SECURITY` (yalnız `securityKind` olan SYSTEM), `MODERATION` (YENİ: moderasyon bildirimi), `SYSTEM` (YENİ: diğer SYSTEM; eskiden hepsi `SECURITY` sayılıyordu), `ANNOUNCEMENT` (haber, duyuru, kulüp). APNs `aps.category` = `BU_` + `style` (iOS dahil tüm cihazlar; eski `MESSAGE`/`EVENT` biçimi kalktı). Kayıtlı olmayan kategori iOS'ta yalnız aksiyonsuz karttır (güvenli).
+
+**2. Görsel/kaynak alanları (hepsi isteğe bağlı):**
+
+| Anahtar | Anlam | Üretildiği yer |
+|---|---|---|
+| `sourceName` | kulüp / etkinlik düzenleyicisi / kaynak adı (≤ 60 karakter, içerik kaynaklı, çevrilmez). Yoksa istemci stilden etiket üretir | etkinlik (kulüp adı), başvuru kabulü, kulüp duyurusu, anket (kulüp kapsamlıysa), haber ("Haber"/"Duyuru"/"Etkinlik" kaynak türü yerine yalnız kaynak sitedeyse yok) |
+| `imageUrl` | küçük resim: haber görseli, gönderi küçük resmi (beğeni), menü görseli, sohbet fotoğrafı. Mutlak `https`; yalnız `PUBLIC_WEB_URL` ana makinesi **ya da** `bingol.edu.tr` alt alanları kabul edilir, diğerleri sunucuda atılır; istemci de aynı kuralı uygular | haber, beğeni, menü, sohbet |
+| `senderAvatarUrl` | kişi avatarı (beğeni, takip, takip isteği, kabul, sohbet). Alıcının `AvatarVisibility` süzgecinden geçmeden ve engel ilişkisi yokken konmaz; kalıcı bildirim `data`'sına YAZILMAZ | sosyal + sohbet |
+| `eventStartsAt` | ISO-8601 UTC an (`2026-11-06T11:00:00Z`); istemci kendi saat diliminde ("Yarın 14:00") biçimler. Sınavda da aynı anahtar | etkinlik hatırlatma/güncelleme/kabul, sınav |
+| `location` | düz metin (≤ 80): etkinlik yeri, sınav salonu | etkinlik, sınav |
+| `oldStartsAt` / `newStartsAt` | ISO-8601 UTC; YALNIZ başlangıç saati gerçekten değiştiğinde (`EVENT_UPDATE`); `newStartsAt` = `eventStartsAt` | etkinlik güncelleme |
+| `badgeText` | alıcının dilinde kısa rozet/çip metni: `Yarın`, `Saat Revizesi`, `İptal`, `Son 24 saat` (en/ar karşılıkları sunucuda çevrilir) | etkinlik yarın/revize/iptal, anket kapanıyor |
+| `important` | `1` = "ÖNEMLİ" duyuru. ŞU AN ÜRETİLMİYOR (kaynak verisinde önem alanı yok); istemci varsa gösterir | - |
+| `severity` | `critical` YALNIZ `securityKind=NEW_DEVICE` ve `PASSWORD_CHANGED`; istemci kırmızı üst şerit çizer, iOS `time-sensitive` olur | güvenlik |
+| `securityKind` | `NEW_DEVICE`, `PASSWORD_CHANGED`, `TWOFA_ENABLED`, `TWOFA_DISABLED`, `TWOFA_LOCKED`. İstemci aksiyonu buna göre seçer ("Bu ben değilim" → mevcut oturum/şifre ekranı) | güvenlik |
+| `occurredAt` | ISO-8601 UTC; `NEW_DEVICE` olayı anı. Ham IP, cihaz modeli ve konum ASLA yüke girmez; platform adı (`Android`/`iOS`/`Web`) metindedir | yeni cihaz |
+| `totalKcal` | yalnız menü kalorisi EKSİKSİZSE (`kcalComplete`); tam sayı metni. Yoksa çip çizilmez | menü |
+| `mealDate` | `yyyy-MM-dd` | menü |
+
+**3. Aksiyon** sunucudan gelmez; istemci `style` + `securityKind` + hedef anahtarlarından türetir ve yalnız karşılığında gerçek işlev olanı gösterir (`PushActions`). Veri yoksa öğe çizilmez (uydurma yok): ders QR yoklaması, ödev/Moodle, not/ÖBS, ortak arkadaş, cihaz modeli/konum, bilet iadesi, cüzdan, giriş belgesi, öğün ayrımı üretilmez.
+
+**4. Gelen kutusu (`GET /api/notifications`).** Her satıra isteğe bağlı `actorAvatarUrl` (aktör avatarı, istek anında `AvatarVisibility` + engel süzgeciyle) ve `sourceName` (kulüp/etkinlik düzenleyicisi) eklenir; ikisi de istek anı projeksiyonudur, kalıcı `data` JSON'una yazılmaz. Mevcut alanlar aynen korunur (`category` dahil).
+
+**5. Cihaz kaydı.** `POST /api/devices` gövdesine isteğe bağlı `richNotifications` (Android zengin çizici yeteneği, V1270 `device.rich_notifications`). Eski kayıtlar `false` kalır ve standart FCM kartı alır.
+
+**6. Yeni üreticiler (yalnız veri/işlev VAR olanlar).** (a) Günlük menü bildirimi: yeni tercih `notification_pref.meal_menu` (**varsayılan KAPALI, açıkça seçilir**), alt tür `MEAL_MENU`, yalnız tercih açık kullanıcıya, günde en çok 1, `kcalComplete` ise `totalKcal`, görsel "yeni görsel bekliyor" değilse `imageUrl`. (b) Yeni cihazdan giriş push'u (`SECURITY`/`NEW_DEVICE`, `severity=critical`): metinde yalnız platform + yaklaşık saat. (c) Şifre değiştirildi push'u (`SECURITY`/`PASSWORD_CHANGED`, `severity=critical`). (d) Birim/akademik duyuru (`unitnews`): bildirim türü ve tercihi SİSTEMDE YOK (bölüm duyuruları V1251'de kaldırıldı) → ÜRETİLMİYOR.
