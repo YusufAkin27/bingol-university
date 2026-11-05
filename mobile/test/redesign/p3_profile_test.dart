@@ -145,14 +145,16 @@ void main() {
 
     testWidgets('listeler simgesiz 56 dp satir; kulup/etkinlik sayisi satirin sagindaki deger', (tester) async {
       await _open(tester, ProfileTab(session: makeSession(_backend()), themeController: ThemeController()));
-      for (final s in ['Kayıtlı haberler', 'Kulüplerim', 'Etkinliklerim', 'Önerilen kişiler']) {
+      for (final s in ['Kayıtlı haberler', 'Kulüplerim', 'Etkinliklerim']) {
         expect(find.text(s), findsOneWidget, reason: s);
       }
+      // Önerilen kişiler artık Ana Sayfa'da; profilde satırı yok.
+      expect(find.text('Önerilen kişiler'), findsNothing);
       expect(find.byIcon(BuIcons.newspaper), findsNothing);
       expect(find.byIcon(BuIcons.bell), findsNothing);
       final rows = find.byType(ProfilRow);
-      expect(rows, findsNWidgets(9));
-      for (var i = 0; i < 9; i++) {
+      expect(rows, findsNWidgets(8));
+      for (var i = 0; i < 8; i++) {
         expect(tester.getSize(rows.at(i)).height, greaterThanOrEqualTo(56));
       }
       // Kulup (3) ve Etkinlik (4) sayilari ilgili satirda deger olarak durur.

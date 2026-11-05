@@ -70,7 +70,7 @@ void main() {
         expect(find.text('Düzenle'), findsOneWidget);
         // Stitch v3: bölüm · sınıf tek satır; hesap/gizlilik/dil/tema/çıkış Ayarlar sayfasındadır.
         expect(find.text('Bilgisayar Mühendisliği · 3. sınıf'), findsOneWidget);
-        for (final s in ['Kayıtlı haberler', 'Kulüplerim', 'Etkinliklerim', 'Önerilen kişiler']) {
+        for (final s in ['Kayıtlı haberler', 'Kulüplerim', 'Etkinliklerim']) {
           await tester.scrollUntilVisible(find.text(s), 200, scrollable: find.byType(Scrollable).first);
           expect(find.text(s), findsOneWidget);
         }

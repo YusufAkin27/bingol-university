@@ -5017,9 +5017,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileSavedPosts => 'Saved posts';
 
   @override
-  String get profileSuggested => 'Suggested people';
-
-  @override
   String get profileSaved => 'Saved news';
 
   @override

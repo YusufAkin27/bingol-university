@@ -32,6 +32,7 @@ void main() {
       expect(d.visible, [
         HomeSection.quickAccess,
         HomeSection.menu,
+        HomeSection.suggestions,
         HomeSection.campusMap,
         HomeSection.featuredNews,
         HomeSection.todayClasses,
@@ -44,11 +45,11 @@ void main() {
 
     test('siralama: moveSection, reorderSection (onReorderItem kurali), sinirda degismez', () {
       var v = HomeLayout.defaults.moveSection(HomeSection.campusMap, -1);
-      expect(v.order.take(4), [HomeSection.quickAccess, HomeSection.campusMap, HomeSection.menu, HomeSection.featuredNews]);
+      expect(v.order.take(4), [HomeSection.quickAccess, HomeSection.menu, HomeSection.campusMap, HomeSection.suggestions]);
       expect(v.moveSection(HomeSection.quickAccess, -1), v, reason: 'ilk satir yukari tasinamaz');
       expect(v.moveSection(HomeSection.announcements, 1), v, reason: 'son satir asagi tasinamaz');
       v = HomeLayout.defaults.reorderSection(0, 2); // quickAccess -> 3. siraya (cikarildiktan sonraki indeks)
-      expect(v.order.take(3), [HomeSection.menu, HomeSection.campusMap, HomeSection.quickAccess]);
+      expect(v.order.take(3), [HomeSection.menu, HomeSection.suggestions, HomeSection.quickAccess]);
       expect(v.isDefault, isFalse);
     });
 
@@ -99,6 +100,7 @@ void main() {
         HomeSection.quickAccess,
         HomeSection.campusMap,
         HomeSection.menu,
+        HomeSection.suggestions,
         HomeSection.todayClasses,
         HomeSection.upcomingEvents,
         HomeSection.announcements,
@@ -238,7 +240,7 @@ void main() {
 
     testWidgets('kayitli siralama uygulanir: haberler menuden once', (tester) async {
       useScreen(tester, const Size(390, 2400));
-      await saved(HomeLayout.defaults.reorderSection(3, 1)); // haberler: menuden once
+      await saved(HomeLayout.defaults.reorderSection(4, 1)); // haberler: menuden once
       final b = be();
       await tester.pumpWidget(buildApp(home(b)));
       await settle(tester, const Duration(seconds: 2));
@@ -281,7 +283,7 @@ void main() {
       await tester.tap(up('Günün menüsü'));
       await settle(tester, const Duration(milliseconds: 600));
       final saved1 = jsonDecode((await st.read(key: HomeLayoutStore.key))!) as Map;
-      expect((saved1['order'] as List).take(3), ['menu', 'quickAccess', 'campusMap']);
+      expect((saved1['order'] as List).take(3), ['menu', 'quickAccess', 'suggestions']);
       // Menu'yu gizle.
       await tester.tap(rowSwitch('Günün menüsü'));
       await settle(tester, const Duration(milliseconds: 600));

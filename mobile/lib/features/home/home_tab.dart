@@ -33,6 +33,7 @@ import 'home_layout.dart';
 import 'home_layout_sheet.dart';
 import 'home_menu_rating.dart';
 import 'home_parts.dart';
+import 'home_suggestions.dart';
 
 /// Ana sayfa (Stitch v3): selamlama + düzenle/zil, arama, "Bugün" tek bakış yüzeyi, ardından kullanıcının sıraladığı
 /// bölümler (Hızlı erişim, Günün menüsü, Bugünkü dersler, Öne çıkan haberler, Yaklaşan etkinlikler, Duyurular).
@@ -73,6 +74,10 @@ class _HomeTabState extends State<HomeTab> {
   final _feeds = {_newsFeedHaber: _Feed(), _newsFeedDuyuru: _Feed()};
   bool _newsStale = false;
   bool _statusRequested = false;
+
+  // "Önerilen kişiler": öneri yok / yüklenemedi ise bölüm gizlenir; çek-yenile sayacı bölümü baştan yükletir.
+  bool _noSuggestions = false;
+  int _suggestionsTick = 0;
 
   // Bölüm verileri bir kez istenir (görünür olunca); gizliyken istek atılmaz.
   bool _eventRequested = false;
@@ -292,6 +297,11 @@ class _HomeTabState extends State<HomeTab> {
 
   Future<void> _reload() async {
     _force = true;
+    // Önerilen kişiler: gizlenmişse yeniden dene, görünürse baştan yükle.
+    setState(() {
+      _noSuggestions = false;
+      _suggestionsTick++;
+    });
     try {
       // Görünür olmuş tembel bölüm de tazelenir; yenileme hepsini bekler.
       await _load();
@@ -513,8 +523,11 @@ class _HomeTabState extends State<HomeTab> {
     final todayRows = _todayRows(context);
     final slots = _todaySlots();
     // Bölüm içeriği var mı: dersler yoksa bölüm hiç çizilmez (boş durum yok).
-    bool hasContent(HomeSection s) =>
-        s != HomeSection.todayClasses || slots.isNotEmpty;
+    bool hasContent(HomeSection s) => switch (s) {
+          HomeSection.todayClasses => slots.isNotEmpty,
+          HomeSection.suggestions => !_noSuggestions,
+          _ => true,
+        };
     final anyVisible =
         layout.order.any((s) => layout.isVisible(s) && hasContent(s));
     final out = <Widget>[
@@ -600,6 +613,14 @@ class _HomeTabState extends State<HomeTab> {
         HomeSection.featuredNews => _newsSection(context, _newsFeedHaber),
         HomeSection.upcomingEvents => _eventSection(context),
         HomeSection.announcements => _newsSection(context, _newsFeedDuyuru),
+        HomeSection.suggestions => HomeSuggestions(
+            session: _s,
+            refreshToken: _suggestionsTick,
+            onLongPressTitle: _editLayout,
+            onUnavailable: () {
+              if (mounted && !_noSuggestions) setState(() => _noSuggestions = true);
+            },
+          ),
       };
 
   Widget _pad(Widget child) => Padding(
