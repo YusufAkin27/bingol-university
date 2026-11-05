@@ -14,8 +14,9 @@ import edu.bingol.backend.moderation.ReportRepository;
 import edu.bingol.backend.moderation.ReportService;
 import edu.bingol.backend.moderation.ReportTargetType;
 import edu.bingol.backend.moderation.dto.ModerationDtos.ResolveRequest;
-import edu.bingol.backend.forum.admin.ForumAdminCategoryService.CategoryInput;
-import edu.bingol.backend.forum.admin.ForumAdminCategoryService.CategoryView;
+import edu.bingol.backend.forum.category.ForumCategoryDtos.AdminCategoryView;
+import edu.bingol.backend.forum.category.ForumCategoryDtos.CategoryInput;
+import edu.bingol.backend.forum.category.ForumCategoryService;
 import java.util.List;
 import java.util.Map;
 import jakarta.validation.Valid;
@@ -50,11 +51,11 @@ public class ForumAdminController {
     private final ForumModerationService moderation;
     private final ReportService reportService;
     private final ReportRepository reportRepository;
-    private final ForumAdminCategoryService categories;
+    private final ForumCategoryService categories;
 
     public ForumAdminController(ForumAdminQueryService queries, ForumModerationService moderation,
                                 ReportService reportService, ReportRepository reportRepository,
-                                ForumAdminCategoryService categories) {
+                                ForumCategoryService categories) {
         this.queries = queries;
         this.moderation = moderation;
         this.reportService = reportService;
@@ -66,20 +67,20 @@ public class ForumAdminController {
 
     /** Arsivdekiler dahil tum kategoriler (sort_order sirasiyla), konu sayilariyla. Yanit duz dizi. */
     @GetMapping("/categories")
-    public List<CategoryView> listCategories() {
-        return categories.list();
+    public List<AdminCategoryView> listCategories() {
+        return categories.adminList();
     }
 
     @PostMapping("/categories")
     @ResponseStatus(HttpStatus.CREATED)
-    public CategoryView createCategory(@RequestBody CategoryInput in) {
-        CategoryView v = categories.create(in);
+    public AdminCategoryView createCategory(@RequestBody CategoryInput in) {
+        AdminCategoryView v = categories.create(in);
         AuditContext.target("FORUM_CATEGORY", v.id()).summary("forum kategori olusturuldu: " + v.slug());
         return v;
     }
 
     @PatchMapping("/categories/{id}")
-    public CategoryView updateCategory(@PathVariable Long id, @RequestBody CategoryInput in) {
+    public AdminCategoryView updateCategory(@PathVariable Long id, @RequestBody CategoryInput in) {
         AuditContext.target("FORUM_CATEGORY", id).summary("forum kategori guncellendi");
         return categories.update(id, in);
     }
@@ -96,7 +97,7 @@ public class ForumAdminController {
 
     /** Verilen sirayi uygular (listede olmayanlar sona); guncel listeyi doner. */
     @PostMapping("/categories/reorder")
-    public List<CategoryView> reorderCategories(@RequestBody ReorderRequest r) {
+    public List<AdminCategoryView> reorderCategories(@RequestBody ReorderRequest r) {
         AuditContext.target("FORUM_CATEGORY", null).summary("forum kategori sirasi guncellendi");
         return categories.reorder(r.ids());
     }

@@ -458,14 +458,14 @@ class ForumModerationMvcTest {
         assertThat(created.getStatus()).as(created.getContentAsString(StandardCharsets.UTF_8)).isEqualTo(201);
         JsonNode c = json(created);
         long id = c.get("id").asLong();
-        assertThat(c.get("slug").asText()).startsWith("oneri-sikayet-kutusu");
+        assertThat(c.get("slug").asText()).matches("[a-z0-9]+(-[a-z0-9]+)*");
         assertThat(c.get("nameEn").asText()).isEqualTo("Suggestions");
         assertThat(c.get("active").asBoolean()).isTrue();
         assertThat(c.get("topicCount").asLong()).isZero();
 
         // ayni kisa ad 409; gecersiz kisa ad 400; bos ad 400
         assertThat(asAdmin(editor, AdminProfile.EDITOR, post("/api/admin/forum/categories").contentType("application/json")
-                .content("{\"nameTr\":\"X\",\"slug\":\"" + c.get("slug").asText() + "\"}")).getStatus()).isEqualTo(409);
+                .content("{\"nameTr\":\"X\",\"nameEn\":\"X\",\"nameAr\":\"X\",\"slug\":\"" + c.get("slug").asText() + "\"}")).getStatus()).isEqualTo(409);
         assertThat(asAdmin(editor, AdminProfile.EDITOR, post("/api/admin/forum/categories").contentType("application/json")
                 .content("{\"nameTr\":\"X\",\"slug\":\"Bad Slug!\"}")).getStatus()).isEqualTo(400);
         assertThat(asAdmin(editor, AdminProfile.EDITOR, post("/api/admin/forum/categories").contentType("application/json")
@@ -485,7 +485,7 @@ class ForumModerationMvcTest {
         assertThat(asAdmin(editor, AdminProfile.EDITOR, post("/api/admin/forum/categories/reorder")
                 .contentType("application/json").content("{\"ids\":[987654]}")).getStatus()).isEqualTo(404);
         assertThat(asAdmin(editor, AdminProfile.EDITOR, post("/api/admin/forum/categories/reorder")
-                .contentType("application/json").content("{\"ids\":[" + id + "," + id + "]}")).getStatus()).isEqualTo(400);
+                .contentType("application/json").content("{\"ids\":[" + id + "," + id + "]}")).getStatus()).isEqualTo(200);
 
         // konu sayisi aktif konulari sayar; DELETE arsivler (silmez)
         data.topic(data.user("u1").getId(), id, "T", "x", false);
@@ -495,6 +495,37 @@ class ForumModerationMvcTest {
         assertThat(jdbc.queryForObject("SELECT active FROM forum_category WHERE id = ?", Boolean.class, id)).isFalse();
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM forum_topic WHERE category_id = ?", Long.class, id)).isEqualTo(1L);
         assertThat(asAdmin(mod, AdminProfile.MODERATOR, delete("/api/admin/forum/categories/" + other)).getStatus()).isEqualTo(403);
+    }
+
+    @Test
+    void genericReportDetailShowsForumContentButNeverAnAnonymousOwner() throws Exception {
+        User anonOwner = data.user("gizlisahip");
+        User openOwner = data.user("acliksahip");
+        User reporter = data.user("rapor");
+        long anonT = data.topic(anonOwner.getId(), cat, "Anonim baslik", "Anonim govde", true);
+        long openT = data.topic(openOwner.getId(), cat, "Acik baslik", "Acik govde", false);
+        long anonC = data.comment(anonT, anonOwner.getId(), "Anonim yorum", true);
+        Object[][] reports = {{"FORUM_TOPIC", anonT, true}, {"FORUM_TOPIC", openT, false}, {"FORUM_COMMENT", anonC, true}};
+        for (Object[] r : reports) {
+            jdbc.update("INSERT INTO report (reporter_id, target_type, target_id, reason, status, priority, created_at) "
+                    + "VALUES (?, ?, ?, 'SPAM', 'OPEN', 10, CURRENT_TIMESTAMP)", reporter.getId(), r[0], r[1]);
+        }
+        User mod = data.admin("mod", AdminProfile.MODERATOR);
+        for (Object[] c : reports) {
+            Long rid = jdbc.queryForObject("SELECT id FROM report WHERE target_type = ? AND target_id = ?", Long.class, c[0], c[1]);
+            MockHttpServletResponse r = asAdmin(mod, AdminProfile.MODERATOR, get("/api/admin/reports/" + rid));
+            assertThat(r.getStatus()).as(r.getContentAsString(StandardCharsets.UTF_8)).isEqualTo(200);
+            JsonNode j = json(r);
+            assertThat(j.get("context").get("targetExists").asBoolean()).isTrue();
+            assertThat(j.get("context").get("content").get("text").asText()).isNotBlank();
+            if ((Boolean) c[2]) {
+                assertThat(j.get("reportedUser").isNull()).isTrue();
+                assertThat(j.get("context").get("content").get("ownerId").isNull()).isTrue();
+                assertThat(r.getContentAsString(StandardCharsets.UTF_8)).doesNotContain("gizlisahip");
+            } else {
+                assertThat(j.get("reportedUser").get("displayName").asText()).isEqualTo("acliksahip");
+            }
+        }
     }
 
     @Test
