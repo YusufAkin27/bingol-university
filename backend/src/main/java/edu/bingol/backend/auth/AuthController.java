@@ -11,6 +11,8 @@ import edu.bingol.backend.auth.dto.MessageResponse;
 import edu.bingol.backend.auth.dto.LogoutRequest;
 import edu.bingol.backend.auth.dto.RefreshRequest;
 import edu.bingol.backend.auth.dto.RegisterRequest;
+import edu.bingol.backend.auth.dto.RegisterResponse;
+import edu.bingol.backend.auth.dto.VerificationDtos;
 import edu.bingol.backend.auth.dto.ResetPasswordRequest;
 import edu.bingol.backend.auth.dto.ResetTokenResponse;
 import edu.bingol.backend.auth.dto.TokenResponse;
@@ -97,18 +99,57 @@ public class AuthController {
         }
     }
 
+    /**
+     * 202 {message}: kod gonderildi, bekleyen kayit (normal). 201 {message, emailVerified:false,
+     * verificationDeferred:true, jeton cifti}: gunluk kod kotasi dolu, hesap ERTELENMIS dogrulamayla acildi
+     * (yalniz okur; bkz. docs/changes/auth.md QT-BE).
+     */
     @PostMapping("/register")
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    public MessageResponse register(@Valid @RequestBody RegisterRequest r, HttpServletRequest http) {
+    public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest r, HttpServletRequest http) {
         codeRequestLimits("register", http);
         // E-posta basina sinir: kod yenileme/posta bombalama ve bekleyen kaydi tekrar tekrar ezme engellenir.
         String ed = LoginThrottle.digest(AuthService.normalizeEmail(r.email()));
         limiter.check("register:email:" + ed, 5, Duration.ofHours(1));
         codeMailCap(ed);
         Lang lang = r.language() != null ? Lang.of(r.language()) : Lang.of(LocaleContextHolder.getLocale());
-        auth.register(r.email(), r.password(), r.displayName(), lang, r.faculty(), r.department(), r.grade(),
-                Boolean.TRUE.equals(r.adminPortal()));
-        return new MessageResponse(i18n.current("msg.register.sent"));
+        TokenResponse deferred = auth.registerOrDefer(r.email(), r.password(), r.displayName(), lang, r.faculty(),
+                r.department(), r.grade(), Boolean.TRUE.equals(r.adminPortal()), r.client(), contexts.of(http));
+        if (deferred != null) {
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(RegisterResponse.deferred(i18n.current("msg.register.deferred"), deferred));
+        }
+        return ResponseEntity.accepted().body(RegisterResponse.sent(i18n.current("msg.register.sent")));
+    }
+
+    // ------------------------------------------------ kota asiminda ertelenmis dogrulamayi tamamlama (JWT'li)
+
+    @GetMapping("/verification/status")
+    public VerificationDtos.StatusResponse verificationStatus(Authentication authentication) {
+        Long uid = (Long) authentication.getPrincipal();
+        limiter.check("vstatus:user:" + uid, 30, Duration.ofMinutes(1));
+        return auth.verificationStatus(uid);
+    }
+
+    /** 202: kod e-postaya kuyruklandi. 429 RESEND_COOLDOWN | MAIL_QUOTA_EXCEEDED (+Retry-After); 409 EMAIL_ALREADY_VERIFIED. */
+    @PostMapping("/verification/resend")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public MessageResponse resendVerification(Authentication authentication, HttpServletRequest http) {
+        Long uid = (Long) authentication.getPrincipal();
+        limiter.check("vresend:user:" + uid, 5, Duration.ofHours(1));
+        limiter.check("vresend:userday:" + uid, 10, Duration.ofDays(1));
+        limiter.check("vresend:ip:" + clientIp.limitKey(http), limits.codeIpMax(), Duration.ofHours(1));
+        auth.resendOwnVerification(uid);
+        return new MessageResponse(i18n.current("msg.verification.sent"));
+    }
+
+    @PostMapping("/verification/verify")
+    public VerificationDtos.VerifiedResponse verifyOwnEmail(@Valid @RequestBody VerificationDtos.VerifyCodeRequest r,
+                                                            Authentication authentication, HttpServletRequest http) {
+        Long uid = (Long) authentication.getPrincipal();
+        String ip = clientIp.limitKey(http);
+        limiter.check("vverify:user:" + uid, 10, Duration.ofMinutes(10));
+        limiter.check("vverify:ip:" + ip, limits.verifyIpMax(), Duration.ofMinutes(10));
+        return auth.verifyOwnEmail(uid, r.code(), ip);
     }
 
     @PostMapping("/resend-code")

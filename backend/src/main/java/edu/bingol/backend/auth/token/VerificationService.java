@@ -73,6 +73,22 @@ public class VerificationService {
         mail.requireAccountCodeQuota();
     }
 
+    /**
+     * Giris yapmis (ertelenmis) hesabin kendi dogrulama kodu istegi icin: kota korumasi (kayit turu) uygulanir; doluysa
+     * 503 yerine 429 MAIL_QUOTA_EXCEEDED + Retry-After (kota sifirlanmasina kalan saniye; "yarin tekrar").
+     */
+    public void requireVerificationQuota() {
+        try {
+            mail.requireCodeQuota(edu.bingol.backend.mail.MailDailyQuota.CodeKind.REGISTRATION);
+        } catch (ApiException e) {
+            if ("MAIL_QUOTA_EXHAUSTED".equals(e.code())) {
+                throw new RateLimitedException("MAIL_QUOTA_EXCEEDED",
+                        "Günlük doğrulama e-postası sınırı doldu, yarın tekrar deneyin.", mail.secondsUntilQuotaReset());
+            }
+            throw e;
+        }
+    }
+
     /** Yeni kayit dogrulama kodu uretip gonderir. Ayni adrese 180 sn icinde tekrar gonderimi reddeder (429 RESEND_COOLDOWN + Retry-After). */
     public void issue(String email, Lang lang) {
         issue(VERIFY, email, lang);

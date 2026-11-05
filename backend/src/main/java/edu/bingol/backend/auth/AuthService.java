@@ -4,6 +4,7 @@ import edu.bingol.backend.accessban.AccessGuard;
 import edu.bingol.backend.accessban.ClientContext;
 import edu.bingol.backend.accessban.DeviceLogService;
 import edu.bingol.backend.auth.dto.TokenResponse;
+import edu.bingol.backend.auth.dto.VerificationDtos;
 import edu.bingol.backend.auth.dto.UserView;
 import edu.bingol.backend.auth.jwt.JwtService;
 import edu.bingol.backend.auth.token.PendingRegistrationStore;
@@ -65,6 +66,9 @@ public class AuthService {
     private int passwordMinLength = PasswordPolicy.DEFAULT_MIN;
     @org.springframework.beans.factory.annotation.Value("${app.auth.password-min-length-admin:12}")
     private int passwordMinLengthAdmin = PasswordPolicy.DEFAULT_ADMIN_MIN;
+    /** Kota asiminda ertelenmis e-posta dogrulama (QT-BE); false = eski davranis (503 MAIL_QUOTA_EXHAUSTED). */
+    @org.springframework.beans.factory.annotation.Value("${app.auth.deferred-verification.enabled:true}")
+    private boolean deferredVerificationEnabled = true;
     /** Kullanici yokken de encoder.matches calissin diye: giris suresi hesap varligini sizdirmasin. */
     private final String dummyHash;
     /** Erisim engeli (IP/cihaz/kullanici) ve cihaz gunlugu; testlerde/eski cagrilarda null olabilir. */
@@ -178,6 +182,25 @@ public class AuthService {
      */
     public void register(String rawEmail, String password, String displayName, Lang lang, String faculty,
                          String department, String grade, boolean adminPortal) {
+        doRegister(rawEmail, password, displayName, lang, faculty, department, grade, adminPortal, false, null, null);
+    }
+
+    /**
+     * Kayit + kota asiminda ERTELENMIS dogrulama (QT-BE). Kota dolu degilse {@link #register} ile ayni (null doner:
+     * kod gonderildi, bekleyen kayit yazildi). Kota doluyken (503 MAIL_QUOTA_EXHAUSTED yerine) gercek hesap acilir:
+     * emailVerified=false, verificationDeferred=true, jeton cifti DONER (cagiran 201 verir). Yonetici adresleri
+     * (ADMIN_EMAILS) ve yonetici portali ertelenmez (kimlik taklidiyle yonetici terfisi riski): onlarda eski 503.
+     */
+    public TokenResponse registerOrDefer(String rawEmail, String password, String displayName, Lang lang,
+                                         String faculty, String department, String grade, boolean adminPortal,
+                                         String client, ClientContext ctx) {
+        return doRegister(rawEmail, password, displayName, lang, faculty, department, grade, adminPortal,
+                deferredVerificationEnabled, client, ctx);
+    }
+
+    private TokenResponse doRegister(String rawEmail, String password, String displayName, Lang lang, String faculty,
+                                     String department, String grade, boolean adminPortal, boolean allowDefer,
+                                     String client, ClientContext ctx) {
         // Kayitta okul numarasi kisayolu yok: kod gidecek adres kullanicinin yazdigi TAM adres olmali (numara@ tahmini,
         // gercek kutusu olmayan ogrencilerde kodun kaybolmasina yol aciyordu). Giris/sifre sifirlama numarayi kabul etmeye devam eder.
         if (rawEmail != null && !rawEmail.isBlank() && rawEmail.indexOf('@') < 0) {
@@ -216,13 +239,20 @@ public class AuthService {
         if (violationLedger != null) {
             violationLedger.requireNotBanned(email);
         }
-        verification.requireMailQuota();
+        try {
+            verification.requireMailQuota();
+        } catch (ApiException e) {
+            if (allowDefer && !adminPortal && !authorizedAdmin && "MAIL_QUOTA_EXHAUSTED".equals(e.code())) {
+                return registerDeferred(email, password, name, guardedName, lang, fa, de, gr, client, ctx);
+            }
+            throw e;
+        }
         if (adminPortal && !authorizedAdmin) {
             // Yetkisiz adres: yetkili akisla ayni sure/cevap (parola ozeti + ayni dogrulamalar), yan etki YOK.
             ContentGuard.clean(contentGuard, Entity.PROFILE, "displayName", null, guardedName);
             encoder.encode(password);
             log.info("Yonetici portali kaydi yetkisiz adres icin sessizce atlandi: {}", LogMasking.email(email));
-            return;
+            return null;
         }
         User user = users.findByEmail(email).orElse(null);
         if (user != null && user.isEmailVerified()) {
@@ -231,7 +261,7 @@ public class AuthService {
                 ContentGuard.clean(contentGuard, Entity.PROFILE, "displayName", null, guardedName);
                 encoder.encode(password);
                 log.info("Yonetici portali kaydi zaten kayitli adres icin atlandi: {}", LogMasking.email(email));
-                return;
+                return null;
             }
             throw new ApiException(HttpStatus.CONFLICT, "EMAIL_ALREADY_REGISTERED",
                     "Bu e-posta ile zaten kayıt olunmuş.");
@@ -246,11 +276,46 @@ public class AuthService {
             if (adminPortal && "RESEND_COOLDOWN".equals(e.code())) {
                 // 429 yalnizca yetkili adreste doneceginden liste uyeligini sizdirirdi: portalda yutulur (eski kod/kayit kalir).
                 log.debug("Yonetici portali kayit bekleme suresi nedeniyle atlandi: {}", LogMasking.email(email));
-                return;
+                return null;
             }
             throw e;
         }
         pending.save(email, new Pending(hash, name, lang.code(), fa, de, gr));
+        return null;
+    }
+
+    /**
+     * Kota doluyken kayit (QT-BE): bekleyen kayit yerine GERCEK kullanici satiri (emailVerified=false,
+     * verificationDeferred=true, rol USER, sozlesme onayi yazilir). Dogrulanmis hesap 409 (normal akisla ayni).
+     * Ayni adreste dogrulanmamis satir varsa YENIDEN KULLANILIR ("son yazan kazanir", bekleyen kayitla ayni kural):
+     * parola/ad ezilir ve eski satirin tum oturumlari kapanir, boylece onceden kayit acan biri adres sahibinin yeni
+     * kaydinin oturumunu tasiyamaz. Bu noktaya kadar tum dogrulamalar (alan adi, +etiket, parola, ad, katalog, ihlal
+     * defteri) calisti; kod e-postasi GITMEZ (kota dolu), dogrulama sonradan JWT'li uclarla/DeferredVerificationJob ile.
+     */
+    private TokenResponse registerDeferred(String email, String password, String name, String guardedName, Lang lang,
+                                           String fa, String de, String gr, String client, ClientContext ctx) {
+        User existing = users.findByEmail(email).orElse(null);
+        if (existing != null && existing.isEmailVerified()) {
+            throw new ApiException(HttpStatus.CONFLICT, "EMAIL_ALREADY_REGISTERED",
+                    "Bu e-posta ile zaten kayıt olunmuş.");
+        }
+        ContentGuard.clean(contentGuard, Entity.PROFILE, "displayName", null, guardedName);
+        String hash = encoder.encode(password);
+        User user;
+        try {
+            user = accounts.createDeferred(email, new Pending(hash, name, lang.code(), fa, de, gr));
+        } catch (DataIntegrityViolationException e) {
+            throw new ApiException(HttpStatus.CONFLICT, "EMAIL_ALREADY_REGISTERED",
+                    "Bu e-posta ile zaten kayıt olunmuş.");
+        }
+        pending.delete(email);
+        if (existing != null) {
+            sessions.revokeAll(user.getId());
+            MilliTick.awaitNext(); // yeni jetonun iatms'i iptal isaretinden kesin buyuk olsun
+        }
+        log.info("Kota dolu: ertelenmis dogrulamayla hesap acildi (userId={}, {})", user.getId(), LogMasking.email(email));
+        logDevice(user.getId(), ctx, "REGISTER");
+        return tokens(user, client);
     }
 
     public void resendCode(String rawEmail) {
@@ -443,6 +508,11 @@ public class AuthService {
                     "Bu e-posta ile zaten kayıt olunmuş.");
         }
         pending.delete(email);
+        if (existing != null && existing.isVerificationDeferred()) {
+            // Adres sahibi kodla dogruladi: onceden ertelenmis kayit acmis olabilecek baskasinin oturumlari kapanir.
+            sessions.revokeAll(user.getId());
+            MilliTick.awaitNext();
+        }
         logDevice(user.getId(), ctx, "REGISTER");
         return tokens(user, client);
     }
@@ -478,7 +548,8 @@ public class AuthService {
             throw new ApiException(HttpStatus.FORBIDDEN, "EMAIL_NOT_VERIFIED",
                     "Giriş için önce e-posta adresinizi doğrulayın.");
         }
-        if (!user.isEmailVerified()) {
+        if (!user.isEmailVerified() && !user.isVerificationDeferred()) {
+            // Ertelenmis dogrulama hesabi (kota asimi) girer (kisitli mod); diger dogrulanmamis satirlar eskisi gibi reddedilir.
             throw new ApiException(HttpStatus.FORBIDDEN, "EMAIL_NOT_VERIFIED",
                     "Giriş için önce e-posta adresinizi doğrulayın.");
         }
@@ -640,7 +711,8 @@ public class AuthService {
         if (refresh.isExpired(s) || sessionRevoked(s)) {
             throw invalidRefresh();
         }
-        User user = found != null && found.isEmailVerified() && found.isActive() ? found : null;
+        User user = found != null && (found.isEmailVerified() || found.isVerificationDeferred()) && found.isActive()
+                ? found : null;
         if (user == null) {
             throw invalidRefresh();
         }
@@ -739,7 +811,8 @@ public class AuthService {
 
     /** app.admin.emails listesindeki adresler ADMIN olur. Rol degistiyse true. */
     private boolean promoteIfAdmin(User user) {
-        if (user.getRole() != Role.ADMIN && admin.isAdminEmail(user.getEmail())) {
+        // E-posta dogrulanmadan yonetici terfisi YOK (ertelenmis dogrulama hesabi baskasinin adresiyle acilmis olabilir).
+        if (user.isEmailVerified() && user.getRole() != Role.ADMIN && admin.isAdminEmail(user.getEmail())) {
             user.setRole(Role.ADMIN);
             user.setAdminProfile(edu.bingol.backend.admin.rbac.AdminProfile.FULL); // ADMIN_EMAILS hesabi her zaman FULL
             return true;
@@ -755,7 +828,51 @@ public class AuthService {
     private TokenResponse tokens(User user, String client, long authTimeMs) {
         String c = RefreshTokenService.normalizeClient(client);
         String rt = authTimeMs > 0 ? refresh.issue(user.getId(), c, authTimeMs) : refresh.issue(user.getId(), c);
-        return new TokenResponse(jwt.createAccessToken(user, c), rt, jwt.accessTtl().toSeconds(), "Bearer");
+        TokenResponse t = new TokenResponse(jwt.createAccessToken(user, c), rt, jwt.accessTtl().toSeconds(), "Bearer");
+        return user.isVerificationDeferred() && !user.isEmailVerified() ? t.asDeferred() : t;
+    }
+
+    // ---------------------------------------------------------------- ertelenmis dogrulamayi tamamlama (JWT'li)
+
+    public VerificationDtos.StatusResponse verificationStatus(Long userId) {
+        User u = loadSelf(userId);
+        return new VerificationDtos.StatusResponse(u.isEmailVerified(), u.isVerificationDeferred() && !u.isEmailVerified(),
+                u.getEmail());
+    }
+
+    /**
+     * Giris yapmis dogrulanmamis hesaba dogrulama kodu gonderir. Kota korumasi uygulanir (doluysa 429
+     * MAIL_QUOTA_EXCEEDED + Retry-After), 180 sn bekleme (429 RESEND_COOLDOWN). Zaten dogrulanmissa 409.
+     */
+    public void resendOwnVerification(Long userId) {
+        User u = loadSelf(userId);
+        if (u.isEmailVerified()) {
+            throw new ApiException(HttpStatus.CONFLICT, "EMAIL_ALREADY_VERIFIED", "E-posta adresiniz zaten doğrulanmış.");
+        }
+        verification.requireVerificationQuota();
+        verification.issue(u.getEmail(), Lang.of(u.getLanguage()));
+    }
+
+    /** Kod dogruysa emailVerified=true, verificationDeferred=false (idempotent); yanlis/suresi dolmus 400 INVALID_CODE. */
+    public VerificationDtos.VerifiedResponse verifyOwnEmail(Long userId, String code, String scope) {
+        User u = loadSelf(userId);
+        if (u.isEmailVerified()) {
+            return new VerificationDtos.VerifiedResponse(true, false);
+        }
+        boolean ok = scope == null ? verification.verify(u.getEmail(), code.trim())
+                : verification.verify(u.getEmail(), code.trim(), scope);
+        if (!ok) {
+            throw invalidCode();
+        }
+        u.setEmailVerified(true);
+        u.setVerificationDeferred(false);
+        users.save(u);
+        return new VerificationDtos.VerifiedResponse(true, false);
+    }
+
+    private User loadSelf(Long userId) {
+        return users.findById(userId).filter(User::isActive)
+                .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Oturum geçersiz."));
     }
 
     /** BCrypt yalniz ilk 72 BAYT'i kullanir (ustu istisna); karakter degil bayt sayilir (Turkce/Arapca/emoji). */

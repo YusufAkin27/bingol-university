@@ -73,6 +73,9 @@ public class AdminAccountVerificationService {
             throw alreadyRegistered();
         }
         pending.delete(email);
+        if (existing != null && existing.isVerificationDeferred()) {
+            sessions.revokeAll(user.getId()); // eski ertelenmis satirin oturumlari (baskasi acmis olabilir)
+        }
         verification.clearVerify(email);
         AuditContext.target("USER", user.getId()).summary("e-posta kodu ATLANDI: bekleyen kayit elle dogrulandi");
         log.info("ADMIN_VERIFY pending admin={} email={} userId={}", actorId, LogMasking.email(email), user.getId());
@@ -95,6 +98,11 @@ public class AdminAccountVerificationService {
         User u = find(id);
         if (!u.isEmailVerified()) {
             requireNotAdminEmail(u.getEmail());
+            if (u.isVerificationDeferred()) {
+                // Ertelenmis hesabi baskasi acmis olabilir (kimlik taklidi): oturumlar kapanir, kisit kalkar
+                sessions.revokeAll(u.getId());
+                u.setVerificationDeferred(false);
+            }
             u.setEmailVerified(true);
             u = users.save(u);
             verification.clearVerify(u.getEmail());
