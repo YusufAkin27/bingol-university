@@ -4,6 +4,7 @@ import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.common.RateLimiter;
 import edu.bingol.backend.messaging.dto.MessagingDtos;
+import edu.bingol.backend.messaging.media.AttachmentView;
 import edu.bingol.backend.messaging.dto.MessagingDtos.MessageView;
 import edu.bingol.backend.messaging.dto.MessagingDtos.ReadReceipt;
 import edu.bingol.backend.messaging.dto.MessagingDtos.ReportMessageRequest;
@@ -379,7 +380,7 @@ public class MessageService {
             return;
         }
         String title = conv.getType() == Conversation.Type.GROUP && conv.getTitle() != null ? conv.getTitle() : null;
-        String preview = previewOf(m);
+        String preview = previewOf(m, view);
         Map<String, String> data = Map.of("conversationId", String.valueOf(conv.getId()),
                 "messageId", String.valueOf(m.getId()), "conversationType", conv.getType().name());
         Long convId = conv.getId();
@@ -405,13 +406,23 @@ public class MessageService {
      * Push govdesindeki mesaj onizlemesi (tercih yok: bildirime izin veren herkese her zaman gider). Yalniz push
      * govdesine gider; uygulama ici bildirim tablosuna duz metin YAZILMAZ. Yalniz gorsel mesajda sabit simge.
      */
-    private String previewOf(Message m) {
+    private String previewOf(Message m, MessageView view) {
+        List<AttachmentView> att = view == null ? null : view.attachments();
+        // Tek gosterimlik medya: aciklama push govdesine ASLA girmez (dil bagimsiz simge; yalniz acilinca gorunur)
+        if (MessagingDtos.hasViewOnce(att)) {
+            return viewOnceIcon(att);
+        }
         String body = m.getBody();
         if (body == null) {
             return null;
         }
-        return body.isEmpty() ? "📷" // yalniz gorsel
+        return body.isEmpty() ? viewOnceIcon(att) // yalniz medya (aciklamasiz)
                 : body.length() > PUSH_PREVIEW ? body.substring(0, PUSH_PREVIEW) + "…" : body;
+    }
+
+    private static String viewOnceIcon(List<AttachmentView> att) {
+        boolean video = att != null && att.stream().anyMatch(a -> "VIDEO".equals(a.kind()));
+        return video ? "🎬" : "📷";
     }
 
     /**

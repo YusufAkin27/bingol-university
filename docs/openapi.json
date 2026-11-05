@@ -10861,6 +10861,9 @@
           },
           "text" : {
             "type" : [ "string", "null" ]
+          },
+          "viewOnce" : {
+            "type" : [ "boolean", "null" ]
           }
         }
       },

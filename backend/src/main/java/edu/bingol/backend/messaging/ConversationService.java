@@ -750,7 +750,8 @@ public class ConversationService {
                     : MessageView.of(last, !direct && related.contains(last.getSenderId()) && !last.getSenderId().equals(me))
                     .withAttachments(lastAtt.get(last.getId())).withStatus(lastStatus.get(last.getId()))
                     .withSenderName(direct || related.contains(last.getSenderId()) && !last.getSenderId().equals(me) ? null
-                            : senderNames.get(last.getSenderId()));
+                            : senderNames.get(last.getSenderId()))
+                    .withViewOnceMask();
             boolean admin = ms.stream().anyMatch(m -> m.getUserId().equals(me) && m.isAdmin());
             ConversationMember mine = ms.stream().filter(m -> m.getUserId().equals(me)).findFirst().orElse(null);
             boolean muted = mine != null && mine.isMuted();

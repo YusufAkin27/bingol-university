@@ -247,3 +247,7 @@ Dagitimdan sonra: yonetici panelinde dead-letter push kayitlarini "yeniden dene"
 - **Kitle (`AudienceResolver`).** `DEPARTMENT`/`FACULTY` duyuru/anket ile aynı `AudienceKey` eşleşmesi (büyük-küçük harf, İ/I); `CLASS_YEAR` hem eski `class_year` hem `grade` kataloğuna bakar (0 hazırlık, 7 yüksek lisans, 8 doktora) — aynı kitle artık iki yerde aynı kişileri verir (davranış genişler: yalnız `grade` dolu kullanıcılar da eklenir).
 - **Saklama (K10).** `NotificationRetentionJob` kod varsayılanları 90/365 → 30/90 (properties ve `DbMaintenanceJob` ile aynı); asıl temizlik 03:00 parçalı iştedir, bu görev emniyet ağı.
 - **Ertelenen:** Brevo webhook (K11), `push_payload` normalizasyonu, `PushOutboxWorker` `sendEach` toplu FCM (FCM adaptör arayüzü değişir), gated indeks düşürme (V1102 ayrılan aralıkta gated numara kullanılmadı: gerçek ilerleme sütunları için kullanıldı), bildirim istatistik önbelleği (A04#16).
+
+## Tek gosterimlik aciklama push'a girmez (2026-11-05)
+View-once medyali mesajin aciklamasi push govdesine ASLA yazilmaz: govde `📷` (foto) ya da `🎬` (video) simgesidir (`MessageService.previewOf`). Normal medya aciklamasi ve duz metin onizlemesi (ilk 100 karakter) her zaman gider. Ayrinti: `docs/changes/messaging.md` "Tek gosterimlik aciklamasi sizdirilmaz".
+

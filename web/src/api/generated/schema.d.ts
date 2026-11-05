@@ -13069,6 +13069,7 @@ export interface components {
             /** Format: int64 */
             senderId?: number | null;
             text?: string | null;
+            viewOnce?: boolean | null;
         };
         ReplyRequest: {
             text: string;

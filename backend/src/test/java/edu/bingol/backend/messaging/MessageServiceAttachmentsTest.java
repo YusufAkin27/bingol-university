@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -26,6 +27,9 @@ import edu.bingol.backend.moderation.ReportService;
 import edu.bingol.backend.notification.NotificationService;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
+import edu.bingol.backend.messaging.dto.MessagingDtos;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -51,10 +55,11 @@ class MessageServiceAttachmentsTest {
     private final ChatEventBus bus = mock(ChatEventBus.class);
     private final MessageCodec codec = mock(MessageCodec.class);
     private final MessageAttachmentService attachments = mock(MessageAttachmentService.class);
+    private final NotificationService notifications = mock(NotificationService.class);
     private final MessageViewAssembler assembler = new MessageViewAssembler(messages,
             mock(MessageReactionRepository.class), codec);
     private final MessageService service = new MessageService(convs, members, messages, users, blocks, limiter, bus,
-            mock(PresenceService.class), mock(NotificationService.class), mock(ReportService.class),
+            mock(PresenceService.class), notifications, mock(ReportService.class),
             mock(PlatformTransactionManager.class), codec, assembler);
 
     @BeforeEach
@@ -163,5 +168,103 @@ class MessageServiceAttachmentsTest {
         MessageView v = MessageView.of(m).withAttachments(List.of(av));
         assertTrue(v.removed());
         assertTrue(v.attachments().isEmpty());
+    }
+
+    // ---- tek gosterimlik (view-once) aciklamasi sizdirilmaz ----
+
+    private String pushPreviewOfSend(String text, boolean viewOnce, String kind) {
+        if (viewOnce) {
+            when(attachments.precheck(ME, CONV, List.of(5L), true)).thenReturn(List.of(5L));
+        } else {
+            when(attachments.precheck(ME, CONV, List.of(5L))).thenReturn(List.of(5L));
+        }
+        AttachmentView av = new AttachmentView(5L, kind, 800, 600, 1234, "image/jpeg", false, "/u", null, viewOnce, false);
+        when(attachments.viewsFor(any(), eq(List.of(100L)))).thenReturn(Map.of(100L, List.of(av)));
+        service.send(ME, CONV, text, "c1", null, List.of(5L), viewOnce);
+        org.mockito.ArgumentCaptor<String> preview = org.mockito.ArgumentCaptor.forClass(String.class);
+        verify(notifications).sendNewMessageBatch(any(), anyString(), preview.capture(), any(), anyInt());
+        return preview.getValue();
+    }
+
+    @Test
+    void viewOnceCaptionNeverReachesThePushBody() {
+        assertEquals("📷", pushPreviewOfSend("cok gizli aciklama", true, "IMAGE"));
+    }
+
+    @Test
+    void viewOnceVideoPushShowsNeutralVideoIcon() {
+        assertEquals("🎬", pushPreviewOfSend("gizli video notu", true, "VIDEO"));
+    }
+
+    @Test
+    void normalMediaCaptionStillShowsInThePushPreview() {
+        assertEquals("tatil fotografi", pushPreviewOfSend("tatil fotografi", false, "IMAGE"));
+    }
+
+    @Test
+    void replyToViewOnceMessageCarriesNoCaptionInTheQuote() {
+        Message parent = new Message();
+        parent.setId(50L);
+        parent.setConversationId(CONV);
+        parent.setSenderId(PEER);
+        parent.setBody("gizli aciklama");
+        Message reply = new Message();
+        reply.setId(51L);
+        reply.setConversationId(CONV);
+        reply.setSenderId(ME);
+        reply.setBody("cevap");
+        reply.setReplyToMessageId(50L);
+        when(messages.findAllById(any())).thenReturn(List.of(parent));
+        AttachmentView once = new AttachmentView(7L, "IMAGE", 8, 6, 1, "image/jpeg", false, "/u", null, true, false);
+        when(attachments.viewsFor(any(), any(Collection.class))).thenAnswer(inv -> {
+            Collection<Long> ids = inv.getArgument(1);
+            return ids.contains(50L) ? Map.of(50L, List.of(once)) : Map.of();
+        });
+
+        MessageView v = assembler.assemble(ME, new ArrayList<>(List.of(reply)), Set.of(), null).get(0);
+
+        assertEquals(MessagingDtos.VIEW_ONCE_PHOTO_TEXT, v.replyTo().text());
+        assertEquals(Boolean.TRUE, v.replyTo().viewOnce());
+        assertFalse(v.replyTo().text().contains("gizli"));
+    }
+
+    @Test
+    void replyToNormalMediaMessageKeepsTheCaptionInTheQuote() {
+        Message parent = new Message();
+        parent.setId(50L);
+        parent.setConversationId(CONV);
+        parent.setSenderId(PEER);
+        parent.setBody("tatil fotografi");
+        Message reply = new Message();
+        reply.setId(51L);
+        reply.setConversationId(CONV);
+        reply.setSenderId(ME);
+        reply.setBody("guzel");
+        reply.setReplyToMessageId(50L);
+        when(messages.findAllById(any())).thenReturn(List.of(parent));
+        AttachmentView normal = new AttachmentView(7L, "IMAGE", 8, 6, 1, "image/jpeg", false, "/u", "/t");
+        when(attachments.viewsFor(any(), any(Collection.class))).thenReturn(Map.of(50L, List.of(normal)));
+
+        MessageView v = assembler.assemble(ME, new ArrayList<>(List.of(reply)), Set.of(), null).get(0);
+
+        assertEquals("tatil fotografi", v.replyTo().text());
+        assertEquals(null, v.replyTo().viewOnce());
+    }
+
+    @Test
+    void conversationListLastMessageMasksViewOnceCaptionButNotNormalMedia() {
+        AttachmentView once = new AttachmentView(7L, "IMAGE", 8, 6, 1, "image/jpeg", false, "/u", null, true, false);
+        AttachmentView normal = new AttachmentView(8L, "IMAGE", 8, 6, 1, "image/jpeg", false, "/u", "/t");
+        Message m = new Message();
+        m.setId(60L);
+        m.setConversationId(CONV);
+        m.setSenderId(PEER);
+        m.setBody("gizli aciklama");
+        MessageView masked = MessageView.of(m).withAttachments(List.of(once)).withViewOnceMask();
+        MessageView kept = MessageView.of(m).withAttachments(List.of(normal)).withViewOnceMask();
+
+        assertEquals("", masked.text());
+        assertEquals(true, masked.attachments().get(0).viewOnce());
+        assertEquals("gizli aciklama", kept.text());
     }
 }

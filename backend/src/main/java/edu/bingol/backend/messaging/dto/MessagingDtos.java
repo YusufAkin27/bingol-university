@@ -109,10 +109,32 @@ public final class MessagingDtos {
      * `placeholderKind`: metin bir yer tutucuysa BLOCKED | UNREADABLE (yoksa gonderilmez).
      */
     public record ReplyPreview(Long id, Long senderId, String text, boolean deleted,
-                               @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String placeholderKind) {
+                               @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String placeholderKind,
+                               @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Boolean viewOnce) {
         public ReplyPreview(Long id, Long senderId, String text, boolean deleted) {
-            this(id, senderId, text, deleted, null);
+            this(id, senderId, text, deleted, null, null);
         }
+
+        public ReplyPreview(Long id, Long senderId, String text, boolean deleted, String placeholderKind) {
+            this(id, senderId, text, deleted, placeholderKind, null);
+        }
+    }
+
+    /**
+     * Tek gosterimlik (view-once) mesajin aciklamasi sohbette, yanit alintisinda ve listede GORUNMEZ; yalniz medya
+     * acilinca istemcide gosterilir. Alintida `text` bu sabitlerden biridir (`viewOnce=true`), istemci kendi dilinde yazar.
+     */
+    public static final String VIEW_ONCE_PHOTO_TEXT = "📷 Fotoğraf";
+    public static final String VIEW_ONCE_VIDEO_TEXT = "🎬 Video";
+
+    /** Tek gosterimlik ek var mi (herhangi biri). */
+    public static boolean hasViewOnce(List<AttachmentView> list) {
+        return list != null && list.stream().anyMatch(AttachmentView::viewOnce);
+    }
+
+    public static String viewOnceText(List<AttachmentView> list) {
+        boolean video = list != null && list.stream().anyMatch(a -> a.viewOnce() && "VIDEO".equals(a.kind()));
+        return video ? VIEW_ONCE_VIDEO_TEXT : VIEW_ONCE_PHOTO_TEXT;
     }
 
     public record ReactionCount(String emoji, long count) {}
@@ -205,6 +227,19 @@ public final class MessagingDtos {
         public MessageView withExtras(ReplyPreview reply, List<ReactionCount> counts, String mine) {
             return new MessageView(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId,
                     reply, edited, editedAt, deleted, counts, mine, attachments, status, senderName, placeholderKind);
+        }
+
+        /**
+         * Sohbet listesi son mesaji icin: tek gosterimlik ekli mesajin aciklamasi (`text`) bosaltilir (ek meta verisi
+         * `attachments[].viewOnce/kind` ile tur bilinir); aciklama yalniz medya acilinca istemcide gosterilir.
+         */
+        public MessageView withViewOnceMask() {
+            if (removed || deleted || !hasViewOnce(attachments)) {
+                return this;
+            }
+            return new MessageView(id, conversationId, senderId, clientId, "", removed, createdAt, replyToMessageId,
+                    replyTo, edited, editedAt, deleted, reactions, myReaction, attachments, status, senderName,
+                    placeholderKind);
         }
 
         public MessageView withoutReplyPreview() {

@@ -82,6 +82,9 @@ public class MessageViewAssembler {
         codec.openAll(new ArrayList<>(parents.values()));
 
         Map<Long, List<AttachmentView>> att = attachments == null ? Map.of() : attachments.viewsFor(viewerId, ids);
+        // Yanit hedefi tek gosterimlik ise aciklamasi alintiya girmez (yalniz ek meta verisi okunur)
+        Map<Long, List<AttachmentView>> parentAtt = attachments == null || parents.isEmpty() ? Map.of()
+                : attachments.viewsFor(viewerId, parents.keySet());
         Map<Long, String> status = receipts == null ? Map.of() : receipts.statuses(viewerId, opened, null, null);
         List<MessageView> out = new ArrayList<>(opened.size());
         for (Message m : opened) {
@@ -90,7 +93,7 @@ public class MessageViewAssembler {
             ReplyPreview preview = null;
             if (m.getReplyToMessageId() != null && !m.isDeleted()) {
                 preview = preview(parents.get(m.getReplyToMessageId()), m.getConversationId(), viewerId, blockedSenders, since,
-                        m.getReplyToMessageId());
+                        m.getReplyToMessageId(), parentAtt.get(m.getReplyToMessageId()));
             }
             // silinen mesajin ek meta verisi de kapali (T24)
             out.add(v.withExtras(blocked ? null : preview, blocked || m.isDeleted() ? List.of()
@@ -102,7 +105,7 @@ public class MessageViewAssembler {
     }
 
     private static ReplyPreview preview(Message p, Long conversationId, Long viewerId, Set<Long> blockedSenders,
-                                        Instant since, Long requestedId) {
+                                        Instant since, Long requestedId, List<AttachmentView> parentAttachments) {
         // Baska konusmanin ya da katilma oncesi mesaj: icerik sizdirilmaz
         if (p == null || !p.getConversationId().equals(conversationId)
                 || (since != null && p.getCreatedAt().isBefore(since))) {
@@ -116,6 +119,10 @@ public class MessageViewAssembler {
         if (blockedSenders.contains(p.getSenderId()) && !p.getSenderId().equals(viewerId)) {
             return new ReplyPreview(p.getId(), p.getSenderId(), MessagingDtos.BLOCKED_TEXT, false,
                     MessagingDtos.PLACEHOLDER_BLOCKED);
+        }
+        if (MessagingDtos.hasViewOnce(parentAttachments)) {
+            return new ReplyPreview(p.getId(), p.getSenderId(), MessagingDtos.viewOnceText(parentAttachments), false, null,
+                    Boolean.TRUE);
         }
         String body = p.getBody();
         return body == null

@@ -219,3 +219,11 @@ Istemci etkisi (mobil kodu bu degisiklikle DEGISMEZ; asagidakiler sunucu davrani
 - **Konusma listesi:** `memberCount` ayni; 20'den cok uyeli konusmalarin yalniz uye sayisi (tek GROUP BY) ve kendi uyelik satiri yuklenir. Alan sozlesmesi degismedi.
 
 Sunucu ici: `ReceiptPolicy` (karar + 60 sn onbellek), `OrderedBusListener` (Redis pub/sub olaylari konusma anahtarli seritlerde, sinirli `chat-bus-` havuzu, `app.messaging.bus-threads` varsayilan 4-8), mute/archive yalniz ilgili kolonu yazar (`updateMute`/`updateArchive`), `DeletedMessageRetention` parcali silme (`ChunkedDeleter`; saklama suresi ayni), `MediaReferenceSource.snapshot()` ile gece yetim taramasi kaynak basina 1 sorgu, sohbet eki dizin taramasi gunde 1, DEK onbellegi varsayilan 20000 (`app.crypto.dek-cache-max-entries`) + aktif surum onbellegi (60 sn). Migration: `V1090__chat1090_unread_cover_idx` (kapsayici kismi indeks), `V1092__chat1092_message_encryption_partial_idx`.
+
+## Tek gosterimlik (view-once) aciklamasi sizdirilmaz (2026-11-05)
+Tek gosterimlik medyanin aciklamasi (mesaj metni) yalniz medya acilinca istemcide gosterilir; sunucu onu baska yuzeylere SIZDIRMAZ:
+- **Push/bildirim:** `MessageService.previewOf` view-once ekli mesajda govdeyi kullanmaz; dil bagimsiz simge gider (`📷` foto, `🎬` video). Normal medya + aciklama ve duz metin onizlemesi degismedi (tercih kaldirildi, onizleme her zaman acik); aciklamasiz normal video artik `🎬`.
+- **Yanit alintisi:** `ReplyPreview` view-once hedefte `text` = `"📷 Fotoğraf"` / `"🎬 Video"` (aciklama yok) ve yeni geriye uyumlu alan `viewOnce: true` (normalde gonderilmez). Istemci kendi dilinde yazabilir.
+- **Sohbet listesi `lastMessage`:** view-once ekli son mesajda `text` bos (`""`); tur `attachments[].viewOnce/kind` ile bilinir (`MessageView.withViewOnceMask`). Sohbet icindeki mesajin kendisi (`MessageView.text`) degismedi: aciklama alicida acilinca gosterilir.
+- **Mesaj arama:** sunucu tarafi mesaj aramasi YOKTUR (govde sifreli saklanir), eslesme sizintisi yok.
+
