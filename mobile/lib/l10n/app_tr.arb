@@ -1137,6 +1137,48 @@
       }
     }
   },
+  "shareTitle": "Paylaş",
+  "shareSendTo": "Kişiye gönder",
+  "shareRecent": "Son sohbetler",
+  "shareSearchHint": "Kişi veya sohbet ara",
+  "shareNoteHint": "Not ekle (isteğe bağlı)",
+  "shareCopyLink": "Bağlantıyı kopyala",
+  "shareLinkCopied": "Bağlantı kopyalandı",
+  "shareMoreApps": "Diğer uygulamalar",
+  "shareExternalFailed": "Paylaşım sayfası açılamadı",
+  "shareSentOne": "Gönderildi",
+  "shareSentMany": "{n} sohbete gönderildi",
+  "@shareSentMany": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "shareQueued": "Bağlantı yok; çevrimiçi olunca gönderilecek",
+  "shareFailedAll": "Gönderilemedi. Tekrar deneyin.",
+  "shareFailedSome": "{n} sohbete gönderilemedi",
+  "@shareFailedSome": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "shareKindPost": "Gönderi",
+  "shareKindReel": "Reels",
+  "shareKindNews": "Haber",
+  "shareKindAnnouncement": "Duyuru",
+  "shareKindEvent": "Etkinlik",
+  "shareUnavailable": "Bu içerik artık görüntülenemiyor",
+  "shareChatPostShared": "Gönderi paylaştı",
+  "shareChatReelShared": "Reels paylaştı",
+  "shareChatNewsShared": "Haber paylaştı",
+  "shareChatAnnouncementShared": "Duyuru paylaştı",
+  "shareChatEventShared": "Etkinlik paylaştı",
+  "sharePrivateHint": "Gizli hesabın gönderisi yalnızca kişilere mesajla paylaşılabilir.",
+  "shareNotFoundTitle": "İçerik bulunamadı",
+  "shareNoChats": "Sohbet bulunamadı. Aramayla kişi bulabilirsiniz.",
   "chatMiscChatNotFound": "Sohbet bulunamadı.",
   "chatMiscGalleryRationale": "Galerindeki fotoğraf ve videoları gösterebilmemiz için erişim izni gerekir.",
   "chatMiscVideoMax60": "Video en fazla 60 saniye olabilir",

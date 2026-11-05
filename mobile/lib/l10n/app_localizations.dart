@@ -3804,6 +3804,174 @@ abstract class AppLocalizations {
   /// **'Gönder ({n})'**
   String chatMiscSendCount(String n);
 
+  /// No description provided for @shareTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Paylaş'**
+  String get shareTitle;
+
+  /// No description provided for @shareSendTo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kişiye gönder'**
+  String get shareSendTo;
+
+  /// No description provided for @shareRecent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Son sohbetler'**
+  String get shareRecent;
+
+  /// No description provided for @shareSearchHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kişi veya sohbet ara'**
+  String get shareSearchHint;
+
+  /// No description provided for @shareNoteHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Not ekle (isteğe bağlı)'**
+  String get shareNoteHint;
+
+  /// No description provided for @shareCopyLink.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlantıyı kopyala'**
+  String get shareCopyLink;
+
+  /// No description provided for @shareLinkCopied.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlantı kopyalandı'**
+  String get shareLinkCopied;
+
+  /// No description provided for @shareMoreApps.
+  ///
+  /// In tr, this message translates to:
+  /// **'Diğer uygulamalar'**
+  String get shareMoreApps;
+
+  /// No description provided for @shareExternalFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Paylaşım sayfası açılamadı'**
+  String get shareExternalFailed;
+
+  /// No description provided for @shareSentOne.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderildi'**
+  String get shareSentOne;
+
+  /// No description provided for @shareSentMany.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} sohbete gönderildi'**
+  String shareSentMany(String n);
+
+  /// No description provided for @shareQueued.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlantı yok; çevrimiçi olunca gönderilecek'**
+  String get shareQueued;
+
+  /// No description provided for @shareFailedAll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderilemedi. Tekrar deneyin.'**
+  String get shareFailedAll;
+
+  /// No description provided for @shareFailedSome.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} sohbete gönderilemedi'**
+  String shareFailedSome(String n);
+
+  /// No description provided for @shareKindPost.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderi'**
+  String get shareKindPost;
+
+  /// No description provided for @shareKindReel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reels'**
+  String get shareKindReel;
+
+  /// No description provided for @shareKindNews.
+  ///
+  /// In tr, this message translates to:
+  /// **'Haber'**
+  String get shareKindNews;
+
+  /// No description provided for @shareKindAnnouncement.
+  ///
+  /// In tr, this message translates to:
+  /// **'Duyuru'**
+  String get shareKindAnnouncement;
+
+  /// No description provided for @shareKindEvent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlik'**
+  String get shareKindEvent;
+
+  /// No description provided for @shareUnavailable.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu içerik artık görüntülenemiyor'**
+  String get shareUnavailable;
+
+  /// No description provided for @shareChatPostShared.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderi paylaştı'**
+  String get shareChatPostShared;
+
+  /// No description provided for @shareChatReelShared.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reels paylaştı'**
+  String get shareChatReelShared;
+
+  /// No description provided for @shareChatNewsShared.
+  ///
+  /// In tr, this message translates to:
+  /// **'Haber paylaştı'**
+  String get shareChatNewsShared;
+
+  /// No description provided for @shareChatAnnouncementShared.
+  ///
+  /// In tr, this message translates to:
+  /// **'Duyuru paylaştı'**
+  String get shareChatAnnouncementShared;
+
+  /// No description provided for @shareChatEventShared.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlik paylaştı'**
+  String get shareChatEventShared;
+
+  /// No description provided for @sharePrivateHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gizli hesabın gönderisi yalnızca kişilere mesajla paylaşılabilir.'**
+  String get sharePrivateHint;
+
+  /// No description provided for @shareNotFoundTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'İçerik bulunamadı'**
+  String get shareNotFoundTitle;
+
+  /// No description provided for @shareNoChats.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sohbet bulunamadı. Aramayla kişi bulabilirsiniz.'**
+  String get shareNoChats;
+
   /// No description provided for @chatMiscChatNotFound.
   ///
   /// In tr, this message translates to:

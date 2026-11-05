@@ -2020,6 +2020,95 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get shareTitle => 'مشاركة';
+
+  @override
+  String get shareSendTo => 'إرسال إلى';
+
+  @override
+  String get shareRecent => 'المحادثات الأخيرة';
+
+  @override
+  String get shareSearchHint => 'ابحث عن شخص أو محادثة';
+
+  @override
+  String get shareNoteHint => 'أضف ملاحظة (اختياري)';
+
+  @override
+  String get shareCopyLink => 'نسخ الرابط';
+
+  @override
+  String get shareLinkCopied => 'تم نسخ الرابط';
+
+  @override
+  String get shareMoreApps => 'تطبيقات أخرى';
+
+  @override
+  String get shareExternalFailed => 'تعذّر فتح نافذة المشاركة';
+
+  @override
+  String get shareSentOne => 'تم الإرسال';
+
+  @override
+  String shareSentMany(String n) {
+    return 'تم الإرسال إلى $n محادثات';
+  }
+
+  @override
+  String get shareQueued => 'لا يوجد اتصال؛ سيتم الإرسال عند عودة الاتصال';
+
+  @override
+  String get shareFailedAll => 'تعذّر الإرسال. حاول مجددًا.';
+
+  @override
+  String shareFailedSome(String n) {
+    return 'تعذّر الإرسال إلى $n محادثات';
+  }
+
+  @override
+  String get shareKindPost => 'منشور';
+
+  @override
+  String get shareKindReel => 'ريلز';
+
+  @override
+  String get shareKindNews => 'خبر';
+
+  @override
+  String get shareKindAnnouncement => 'إعلان';
+
+  @override
+  String get shareKindEvent => 'فعالية';
+
+  @override
+  String get shareUnavailable => 'لم يعد هذا المحتوى متاحًا';
+
+  @override
+  String get shareChatPostShared => 'شارك منشورًا';
+
+  @override
+  String get shareChatReelShared => 'شارك ريلز';
+
+  @override
+  String get shareChatNewsShared => 'شارك خبرًا';
+
+  @override
+  String get shareChatAnnouncementShared => 'شارك إعلانًا';
+
+  @override
+  String get shareChatEventShared => 'شارك فعالية';
+
+  @override
+  String get sharePrivateHint =>
+      'منشورات الحسابات الخاصة تُشارك مع الأشخاص عبر الرسائل فقط.';
+
+  @override
+  String get shareNotFoundTitle => 'المحتوى غير موجود';
+
+  @override
+  String get shareNoChats => 'لا توجد محادثات. ابحث للعثور على أشخاص.';
+
+  @override
   String get chatMiscChatNotFound => 'لم يتم العثور على محادثات.';
 
   @override
