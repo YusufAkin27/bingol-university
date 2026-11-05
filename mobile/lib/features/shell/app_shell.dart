@@ -64,6 +64,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Ticker
   double _leaveFrom = 0; // giden içeriğin bıraktığı paralaks konumu
   double _snapFrom = 0;
   Timer? _poll;
+  Timer? _msgBadgeTimer;
   StreamSubscription<Map<String, dynamic>>? _msgSub;
   final _discoverType = ValueNotifier<String?>(null);
 
@@ -93,6 +94,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Ticker
     Analytics.instance.setTab(null);
     shellTabRequest.removeListener(_onTabRequest);
     _poll?.cancel();
+    _msgBadgeTimer?.cancel();
     _msgSub?.cancel();
     s.realtime?.stop();
     _discoverType.dispose();
@@ -117,12 +119,23 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Ticker
 
   // realtime kendi arka plan/ön plan geçişini yönetir (start sonrası observer).
 
-  /// Başkasından gelen yeni mesajda (kendi ack'i hariç) sohbet rozetini artırır; sohbet sekmesi açıkken artırmaz.
+  /// Başkasından gelen yeni mesajda (kendi ack'i hariç) sohbet rozeti sunucudan tazelenir; sohbet sekmesi açıkken
+  /// sekmenin kendisi tazeler. Kör `++` yapılmaz: sessiz ve ARŞİVLİ sohbetler rozete girmez (sunucu `total` doğrudur).
   void _onRealtimeMessage(Map<String, dynamic> m) {
     final sender = (m['senderId'] as num?)?.toInt() ?? ((m['sender'] as Map?)?['id'] as num?)?.toInt();
     if (sender != null && sender == s.userId) return;
     if (_tab == AppTab.chat) return;
-    s.badges.chat.value++;
+    _msgBadgeTimer?.cancel();
+    _msgBadgeTimer = Timer(const Duration(milliseconds: 400), _refreshChatBadge);
+  }
+
+  /// Sohbet rozeti: GET /conversations/unread-count -> total (sessiz + arşivli olmayanlar; önbelleksiz, anlık).
+  Future<void> _refreshChatBadge() async {
+    try {
+      final r = await s.api.get('/conversations/unread-count', force: true);
+      final n = r is Map ? r['total'] : null;
+      if (n is num && mounted) s.badges.chat.value = n.toInt();
+    } catch (_) {}
   }
 
   /// Tek istek: okunmamış bildirim + mesaj sayıları (GET /me/summary).

@@ -3764,5 +3764,22 @@
   "tfErrChallengeExpired": "انتهت صلاحية جلسة التحقق. يرجى تسجيل الدخول مرة أخرى.",
   "tfErrLocked": "تم إدخال عدد كبير من رموز التحقق الخاطئة؛ تم قفل الدخول من جهاز جديد لمدة 24 ساعة. يمكنك الدخول من جهاز موثوق أو إعادة تعيين كلمة المرور.",
   "tfErrAlreadyEnabled": "المصادقة الثنائية مفعّلة بالفعل.",
-  "tfErrNotEnabled": "المصادقة الثنائية غير مفعّلة."
+  "tfErrNotEnabled": "المصادقة الثنائية غير مفعّلة.",
+  "chatArchiveBarTitle": "المؤرشفة",
+  "chatArchiveBarCount": "{count, plural, =1{إشعار واحد} =2{إشعاران} few{{count} إشعارات} many{{count} إشعارًا} other{{count} إشعار}}",
+  "@chatArchiveBarCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatArchiveBarSemantics": "المؤرشفة، {count, plural, =1{إشعار واحد} =2{إشعاران} few{{count} إشعارات} many{{count} إشعارًا} other{{count} إشعار}}",
+  "@chatArchiveBarSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

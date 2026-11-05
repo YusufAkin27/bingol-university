@@ -5963,7 +5963,13 @@
   "tfDeviceThis": "Bu cihaz",
   "tfDeviceUnnamed": "Cihaz",
   "tfDeviceLastUsed": "Son kullanım {date}",
-  "@tfDeviceLastUsed": {"placeholders": {"date": {"type": "String"}}},
+  "@tfDeviceLastUsed": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "tfDeviceRemove": "Cihazı kaldır",
   "tfDeviceRemoveTitle": "Cihaz kaldırılsın mı?",
   "tfDeviceRemoveBody": "Bu cihazdan bir sonraki girişte yeniden kod istenir. Açık oturum kapanmaz.",
@@ -5972,14 +5978,26 @@
   "tfEnabledToast": "İki faktörlü doğrulama açıldı.",
   "tfDisabledToast": "İki faktörlü doğrulama kapatıldı.",
   "tfEnableSubtitle": "Açmak için {email} adresine gönderilen 6 haneli kodu girin. Kod 10 dakika geçerlidir.",
-  "@tfEnableSubtitle": {"placeholders": {"email": {"type": "String"}}},
+  "@tfEnableSubtitle": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
   "tfEnableSubtitleNoMail": "Açmak için e-posta adresinize gönderilen 6 haneli kodu girin. Kod 10 dakika geçerlidir.",
   "tfDisableTitle": "İki faktörlü doğrulama kapatılsın mı?",
   "tfDisableBody": "Şifreni girerek onayla. Güvenilen tüm cihazlar silinir ve hesabın yalnız şifreyle korunur.",
   "tfDisableConfirm": "Kapat",
   "tfWrongPassword": "Şifre hatalı.",
   "tfLoginSubtitle": "Giriş için {email} adresine gönderilen 6 haneli kodu girin. Kod 10 dakika geçerlidir.",
-  "@tfLoginSubtitle": {"placeholders": {"email": {"type": "String"}}},
+  "@tfLoginSubtitle": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
   "tfLoginSubtitleNoMail": "Giriş için e-posta adresinize gönderilen 6 haneli kodu girin. Kod 10 dakika geçerlidir.",
   "tfTrustLabel": "Bu cihaza güven",
   "tfTrustHint": "Bu cihazdan sonraki girişlerde kod istenmez. Yalnız kendi telefonunda aç.",
@@ -5988,5 +6006,22 @@
   "tfErrChallengeExpired": "Doğrulama oturumunun süresi doldu. Lütfen tekrar giriş yapın.",
   "tfErrLocked": "Çok sayıda hatalı doğrulama kodu girildi; yeni cihazdan giriş 24 saat kilitlendi. Güvenilen bir cihazdan girebilir ya da şifrenizi sıfırlayabilirsiniz.",
   "tfErrAlreadyEnabled": "İki faktörlü doğrulama zaten açık.",
-  "tfErrNotEnabled": "İki faktörlü doğrulama açık değil."
+  "tfErrNotEnabled": "İki faktörlü doğrulama açık değil.",
+  "chatArchiveBarTitle": "Arşivlenenler",
+  "chatArchiveBarCount": "{count, plural, other{{count} bildirim}}",
+  "@chatArchiveBarCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatArchiveBarSemantics": "Arşivlenenler, {count, plural, other{{count} bildirim}}",
+  "@chatArchiveBarSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

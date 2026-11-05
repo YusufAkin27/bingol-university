@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/push/push_router.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -35,37 +36,6 @@ class ChatlistNewButton extends StatelessWidget {
             child: Center(
               // Stitch v3 liste: daire/çerçeve yok, 24 dp çizgi ikon (tek birincil eylem sayfadaki boş durum düğmesidir).
               child: Icon(BuIcons.plus, size: 24, color: t.ink),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Sakin yuvarlak simge düğmesi (Arşiv): 48 dp dokunma alanı, nötr zemin, çerçevesiz.
-class ChatlistRoundButton extends StatelessWidget {
-  const ChatlistRoundButton({super.key, required this.icon, required this.tooltip, required this.onTap});
-
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    return Semantics(
-      button: true,
-      label: tooltip,
-      child: Tooltip(
-        message: tooltip,
-        child: BuPressable(
-          onTap: onTap,
-          child: SizedBox(
-            width: 48,
-            height: 48,
-            child: Center(
-              child: Icon(icon, size: 24, color: t.ink),
             ),
           ),
         ),
@@ -271,6 +241,89 @@ class ChatlistAvatar extends StatelessWidget {
             ),
           ),
       ]),
+    );
+  }
+}
+
+/// Sohbet listesinin en üstündeki dar "Arşivlenenler" çubuğu (WhatsApp gibi). Sağda, okunmamış mesajı olan arşivli
+/// SOHBET sayısı "3 bildirim" olarak görünür (sohbet başına 1: bir sohbette 100 okunmamış olsa da 1); yoksa sayı yok.
+/// [archivedChats] 0 ise çubuk hiç çizilmez. Dokununca [onTap] arşiv listesini açar.
+class ChatArchiveBar extends StatelessWidget {
+  const ChatArchiveBar({super.key, required this.archivedChats, required this.unreadChats, required this.onTap});
+
+  final int archivedChats;
+  final int unreadChats;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final dur = BuMotion.of(context, const Duration(milliseconds: 220));
+    final show = archivedChats > 0;
+    return AnimatedSize(
+      duration: dur,
+      curve: Curves.easeOutCubic,
+      alignment: Alignment.topCenter,
+      child: !show
+          ? const SizedBox(width: double.infinity)
+          : _bar(context, l.chatArchiveBarTitle,
+              unreadChats > 0 ? l.chatArchiveBarCount(unreadChats) : null, dur),
+    );
+  }
+
+  Widget _bar(BuildContext context, String title, String? count, Duration dur) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final semantics = unreadChats > 0 ? context.l10n.chatArchiveBarSemantics(unreadChats) : title;
+    return Semantics(
+      button: true,
+      label: semantics,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: BuPressable(
+        scale: .99,
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            key: const ValueKey('chat-archive-bar'),
+            onTap: () {
+              buHaptic(BuHaptic.selection);
+              onTap();
+            },
+            child: DecoratedBox(
+              decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48),
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.fromSTEB(20, 6, 16, 6),
+                  child: Row(children: [
+                    SizedBox(width: 40, child: Icon(BuIcons.archive, size: 20, color: t.mut)),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
+                    ),
+                    const SizedBox(width: 8),
+                    AnimatedSwitcher(
+                      duration: dur,
+                      transitionBuilder: (child, anim) => FadeTransition(opacity: anim, child: child),
+                      child: count == null
+                          ? const SizedBox.shrink(key: ValueKey('archive-count-none'))
+                          : Text(count,
+                              key: ValueKey('archive-count-$unreadChats'),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w400, color: t.pr)),
+                    ),
+                  ]),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

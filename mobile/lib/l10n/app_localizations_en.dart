@@ -10923,4 +10923,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tfErrNotEnabled => 'Two-factor authentication is not on.';
+
+  @override
+  String get chatArchiveBarTitle => 'Archived';
+
+  @override
+  String chatArchiveBarCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notifications',
+      one: '1 notification',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatArchiveBarSemantics(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notifications',
+      one: '1 notification',
+    );
+    return 'Archived, $_temp0';
+  }
 }

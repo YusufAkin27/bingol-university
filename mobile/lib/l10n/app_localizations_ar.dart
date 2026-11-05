@@ -10821,4 +10821,35 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tfErrNotEnabled => 'المصادقة الثنائية غير مفعّلة.';
+
+  @override
+  String get chatArchiveBarTitle => 'المؤرشفة';
+
+  @override
+  String chatArchiveBarCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count إشعار',
+      many: '$count إشعارًا',
+      few: '$count إشعارات',
+      two: 'إشعاران',
+      one: 'إشعار واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatArchiveBarSemantics(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count إشعار',
+      many: '$count إشعارًا',
+      few: '$count إشعارات',
+      two: 'إشعاران',
+      one: 'إشعار واحد',
+    );
+    return 'المؤرشفة، $_temp0';
+  }
 }

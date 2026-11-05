@@ -322,7 +322,7 @@ void main() {
     await settle(tester);
     await tester.tap(find.text('Arşivle'));
     await settle(tester);
-    expect(be.bodies['PUT /conversations/5/archive'], {'keepArchived': false});
+    expect(be.bodies['PUT /conversations/5/archive'], {'keepArchived': true});
     expect(find.text('Arşivden çıkar'), findsOneWidget);
     await scrollTo(tester, find.byKey(const ValueKey('info-block')));
     await tester.tap(find.text('Engelle').first);

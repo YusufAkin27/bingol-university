@@ -73,6 +73,14 @@ class _ChatTabState extends State<ChatTab> {
   /// Bekleyen mesaj isteği sayısı (`/conversations/requests/count`); satır yalnız > 0 iken görünür.
   int _msgReq = 0;
 
+  /// Arşiv çubuğu: arşivdeki sohbet sayısı ve bunlardan okunmamışı olanların sayısı (sohbet başına 1;
+  /// `GET /conversations/unread-count` -> `archivedChats` / `archivedUnreadChats`). Kaynak sunucudur.
+  int _archivedChats = 0;
+  int _archivedUnread = 0;
+
+  /// Okunmamışı olduğu bilinen arşivli sohbetler: canlı mesajda çubuk sayısı yerinde güncellenir.
+  final _archivedUnreadIds = <int>{};
+
   @override
   void initState() {
     super.initState();
@@ -223,14 +231,45 @@ class _ChatTabState extends State<ChatTab> {
       final res = await widget.session.api.get('/conversations/unread-count');
       final total = res is Map
           ? res['total']
-          : null; // UnreadSummary: total (sessiz olmayanlar)
+          : null; // UnreadSummary: total (sessiz ve arşivli olmayanlar)
       if (total is num && mounted) {
         widget.session.badges.chat.value = total.toInt();
       }
+      if (res is Map && mounted) _applyArchiveSummary(res);
     } catch (_) {
       // Rozet yedek olarak eldeki listeden hesaplanır.
       if (!_archived && mounted) _syncBadgeLocal();
     }
+  }
+
+  /// Arşiv çubuğu sayıları sunucudan (eski sunucuda alanlar yoksa çubuk değişmeden kalır).
+  void _applyArchiveSummary(Map<dynamic, dynamic> res) {
+    final chats = res['archivedChats'];
+    final unread = res['archivedUnreadChats'];
+    if (chats is! num || unread is! num) return;
+    final ids = <int>{};
+    final items = res['conversations'];
+    if (items is List) {
+      for (final e in items) {
+        if (e is Map && e['archived'] == true) {
+          final id = (e['conversationId'] as num?)?.toInt();
+          if (id != null) ids.add(id);
+        }
+      }
+    }
+    if (chats.toInt() == _archivedChats && unread.toInt() == _archivedUnread) {
+      _archivedUnreadIds
+        ..clear()
+        ..addAll(ids);
+      return;
+    }
+    setState(() {
+      _archivedChats = chats.toInt();
+      _archivedUnread = unread.toInt();
+      _archivedUnreadIds
+        ..clear()
+        ..addAll(ids);
+    });
   }
 
   void _syncBadgeLocal() {
@@ -253,12 +292,15 @@ class _ChatTabState extends State<ChatTab> {
   }
 
   void _onMessage(Map<String, dynamic> m) {
-    if (!mounted || _archived) return;
+    if (!mounted) return;
     final cid = (m['conversationId'] as num?)?.toInt();
     if (cid == null) return;
     final i = _items.indexWhere((c) => (c['id'] as num?)?.toInt() == cid);
     if (i < 0) {
-      _scheduleReload(); // yeni konuşma: satırı sunucudan al
+      if (_archived) return; // arşiv görünümünde yüklü olmayan sohbet: sunucu sayacı doğrudur
+      // Okunmamışı zaten sayılan arşivli sohbet: çubuk sayısı (sohbet başına 1) değişmez, satır da listede değil.
+      if (_archivedUnreadIds.contains(cid)) return;
+      _scheduleReload(); // yeni konuşma ya da okunmamışı olmayan arşivli sohbet: sayılar sunucudan gelir
       return;
     }
     final mine = (m['senderId'] as num?)?.toInt() == widget.session.userId;
@@ -376,29 +418,72 @@ class _ChatTabState extends State<ChatTab> {
     }
   }
 
-  Future<void> _toggleArchive(Map<String, dynamic> c) async {
+  /// Arşivle (normal görünüm) / arşivden çıkar (arşiv görünümü). Satır listeden çıkar, arşiv çubuğu sayıları anında
+  /// güncellenir (sunucu yanıtı sonra düzeltir). [dismissed]: kaydırma jesti satırı zaten animasyonla kaldırdı
+  /// (Dismissible); menüden gelince satır `_removing` ile daralarak kaybolur.
+  Future<void> _toggleArchive(Map<String, dynamic> c, {bool dismissed = false}) async {
     final archive = !_archived;
+    final id = (c['id'] as num).toInt();
     final i = _items.indexWhere((x) => x['id'] == c['id']);
     if (i < 0) return;
     final row = _items[i];
-    setState(() => _items.removeAt(i)); // iyimser: satır hemen kalkar
+    final hasUnread = ((row['unreadCount'] as num?)?.toInt() ?? 0) > 0;
+    final collapse = BuMotion.of(context, const Duration(milliseconds: 220));
+    setState(() {
+      if (dismissed) {
+        _items.removeAt(i); // iyimser: satır hemen kalkar
+      } else {
+        _removing.add(id); // satır animasyonla daralır
+      }
+      _adjustArchiveBar(archive ? 1 : -1, hasUnread, id);
+    });
     try {
       if (archive) {
-        await widget.session.api
-            .put('/conversations/${c['id']}/archive', {'keepArchived': false});
+        // Arşiv kalıcıdır: yeni mesaj sohbeti arşivden çıkarmaz ve bildirim üretmez (sunucu `keepArchived` istemez ama
+        // eski sunucuda da aynı sonucu vermesi için true gönderilir).
+        await widget.session.api.put('/conversations/$id/archive', {'keepArchived': true});
       } else {
-        await widget.session.api.delete('/conversations/${c['id']}/archive');
+        await widget.session.api.delete('/conversations/$id/archive');
       }
-      _scheduleBadge();
       if (!mounted) return;
-      _toast(archive
-          ? context.l10n.chatMiscArchived
-          : context.l10n.chatMiscUnarchived);
-    } catch (e) {
-      if (mounted) {
-        setState(() => _items.insert(i.clamp(0, _items.length), row));
+      if (!dismissed) {
+        await Future<void>.delayed(collapse);
+        if (!mounted) return;
+        setState(() {
+          _items.removeWhere((x) => x['id'] == c['id']);
+          _removing.remove(id);
+        });
       }
+      unawaited(MessageCache.instance.removeConversation(id));
+      _persistList();
+      _scheduleBadge();
+      _toast(archive ? context.l10n.chatMiscArchived : context.l10n.chatMiscUnarchived);
+    } catch (e) {
+      if (!mounted) return;
+      // Dismissible'ın kalkması bir kare sürer: aynı karede geri eklemek "hâlâ ağaçta" iddiasına çarpar.
+      if (dismissed) {
+        await WidgetsBinding.instance.endOfFrame;
+        if (!mounted) return;
+      }
+      setState(() {
+        _removing.remove(id);
+        if (dismissed) _items.insert(i.clamp(0, _items.length), row);
+        _adjustArchiveBar(archive ? -1 : 1, hasUnread, id);
+      });
       _toast(errorText(e));
+    }
+  }
+
+  /// Arşiv çubuğu sayılarını iyimser ayarlar ([delta] +1: arşive girdi, -1: çıktı).
+  void _adjustArchiveBar(int delta, bool hasUnread, int id) {
+    _archivedChats = (_archivedChats + delta).clamp(0, 1 << 30);
+    if (hasUnread) {
+      _archivedUnread = (_archivedUnread + delta).clamp(0, 1 << 30);
+      if (delta > 0) {
+        _archivedUnreadIds.add(id);
+      } else {
+        _archivedUnreadIds.remove(id);
+      }
     }
   }
 
@@ -533,12 +618,6 @@ class _ChatTabState extends State<ChatTab> {
                                   maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.headlineMedium!.copyWith(color: t.ink)),
                             ),
                           ),
-                          // Stitch v3: iki ikonun merkezi 40 dp arayla (48 dp alanlar 8 dp üst üste biner; sağdaki "+" üstte kalır).
-                          Transform.translate(
-                            offset: Offset(Directionality.of(context) == TextDirection.rtl ? -8 : 8, 0),
-                            child: ChatlistRoundButton(
-                                icon: BuIcons.archive, tooltip: context.l10n.chatMiscArchive, onTap: () => _setArchiveView(true)),
-                          ),
                           ChatlistNewButton(tooltip: context.l10n.chatMiscNewChat, onTap: _openNew),
                         ],
                       ),
@@ -556,6 +635,15 @@ class _ChatTabState extends State<ChatTab> {
                 onSelect: (i) => setState(() => _filter = i),
               ),
             ),
+            // Arşiv çubuğu: listenin en üstünde; arama/süzgeç etkinken gizlenir (arşiv süzülmez).
+            if (!_archived)
+              SliverToBoxAdapter(
+                child: ChatArchiveBar(
+                  archivedChats: _query.trim().isNotEmpty || _filter != 0 ? 0 : _archivedChats,
+                  unreadChats: _archivedUnread,
+                  onTap: () => _setArchiveView(true),
+                ),
+              ),
             if (!_archived && _msgReq > 0)
               SliverToBoxAdapter(child: MessageRequestsEntry(count: _msgReq, onTap: _openMsgRequests)),
             ..._bodySlivers(t),
@@ -646,10 +734,10 @@ class _ChatTabState extends State<ChatTab> {
           final row = Dismissible(
             key: ValueKey('conv-${c['id']}'),
             direction: DismissDirection.endToStart,
-            confirmDismiss: (_) async {
-              await _toggleArchive(c);
-              return false; // satırı _toggleArchive kendisi kaldırır
-            },
+            // Kaydırınca satır kayarak kaybolur ve arşiv çubuğuna "girer" (sayı güncellenir); geri alma arşiv ekranında.
+            movementDuration: BuMotion.of(context, const Duration(milliseconds: 200)),
+            resizeDuration: BuMotion.of(context, const Duration(milliseconds: 220)),
+            onDismissed: (_) => _toggleArchive(c, dismissed: true),
             // Kaydırma eylemi sakin: nötr zemin, tek simge + kısa etiket (kırmızı/lacivert dolgu yok).
             background: Container(
               alignment: AlignmentDirectional.centerEnd,

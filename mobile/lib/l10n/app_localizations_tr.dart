@@ -10886,4 +10886,27 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get tfErrNotEnabled => 'İki faktörlü doğrulama açık değil.';
+
+  @override
+  String get chatArchiveBarTitle => 'Arşivlenenler';
+
+  @override
+  String chatArchiveBarCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bildirim',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatArchiveBarSemantics(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bildirim',
+    );
+    return 'Arşivlenenler, $_temp0';
+  }
 }

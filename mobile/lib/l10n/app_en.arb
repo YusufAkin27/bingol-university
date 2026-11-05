@@ -3764,5 +3764,22 @@
   "tfErrChallengeExpired": "The verification session has expired. Please sign in again.",
   "tfErrLocked": "Too many wrong verification codes were entered; sign-in from a new device is locked for 24 hours. You can sign in from a trusted device or reset your password.",
   "tfErrAlreadyEnabled": "Two-factor authentication is already on.",
-  "tfErrNotEnabled": "Two-factor authentication is not on."
+  "tfErrNotEnabled": "Two-factor authentication is not on.",
+  "chatArchiveBarTitle": "Archived",
+  "chatArchiveBarCount": "{count, plural, =1{1 notification} other{{count} notifications}}",
+  "@chatArchiveBarCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatArchiveBarSemantics": "Archived, {count, plural, =1{1 notification} other{{count} notifications}}",
+  "@chatArchiveBarSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

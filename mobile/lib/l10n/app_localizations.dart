@@ -19691,6 +19691,24 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'İki faktörlü doğrulama açık değil.'**
   String get tfErrNotEnabled;
+
+  /// No description provided for @chatArchiveBarTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arşivlenenler'**
+  String get chatArchiveBarTitle;
+
+  /// No description provided for @chatArchiveBarCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count, plural, other{{count} bildirim}}'**
+  String chatArchiveBarCount(int count);
+
+  /// No description provided for @chatArchiveBarSemantics.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arşivlenenler, {count, plural, other{{count} bildirim}}'**
+  String chatArchiveBarSemantics(int count);
 }
 
 class _AppLocalizationsDelegate
