@@ -118,6 +118,96 @@ abstract class AppLocalizations {
   /// **'Tek bir emoji seçin.'**
   String get chatReactionOneEmoji;
 
+  /// No description provided for @chatReactionSearchHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Emoji ara'**
+  String get chatReactionSearchHint;
+
+  /// No description provided for @chatReactionNoResults.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sonuç bulunamadı'**
+  String get chatReactionNoResults;
+
+  /// No description provided for @chatReactionRecent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Son kullanılan'**
+  String get chatReactionRecent;
+
+  /// No description provided for @chatReactionFrequent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sık kullanılan'**
+  String get chatReactionFrequent;
+
+  /// No description provided for @chatReactionCatFaces.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yüzler'**
+  String get chatReactionCatFaces;
+
+  /// No description provided for @chatReactionCatPeople.
+  ///
+  /// In tr, this message translates to:
+  /// **'İnsanlar'**
+  String get chatReactionCatPeople;
+
+  /// No description provided for @chatReactionCatNature.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hayvanlar ve doğa'**
+  String get chatReactionCatNature;
+
+  /// No description provided for @chatReactionCatFood.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yemek ve içecek'**
+  String get chatReactionCatFood;
+
+  /// No description provided for @chatReactionCatActivities.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aktivite'**
+  String get chatReactionCatActivities;
+
+  /// No description provided for @chatReactionCatTravel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seyahat'**
+  String get chatReactionCatTravel;
+
+  /// No description provided for @chatReactionCatObjects.
+  ///
+  /// In tr, this message translates to:
+  /// **'Nesneler'**
+  String get chatReactionCatObjects;
+
+  /// No description provided for @chatReactionCatSymbols.
+  ///
+  /// In tr, this message translates to:
+  /// **'Semboller'**
+  String get chatReactionCatSymbols;
+
+  /// No description provided for @chatReactionCatFlags.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bayraklar'**
+  String get chatReactionCatFlags;
+
+  /// No description provided for @chatReactionUnsupported.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu emoji şu an desteklenmiyor'**
+  String get chatReactionUnsupported;
+
+  /// No description provided for @chatReactionLimit.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu mesajda daha fazla farklı emoji kullanılamaz'**
+  String get chatReactionLimit;
+
   /// No description provided for @chatMessageInfoTitle.
   ///
   /// In tr, this message translates to:

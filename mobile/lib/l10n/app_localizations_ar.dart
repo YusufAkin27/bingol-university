@@ -18,6 +18,52 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatReactionOneEmoji => 'اختر رمزاً تعبيرياً واحداً.';
 
   @override
+  String get chatReactionSearchHint => 'ابحث عن رمز تعبيري';
+
+  @override
+  String get chatReactionNoResults => 'لا توجد نتائج';
+
+  @override
+  String get chatReactionRecent => 'المستخدمة مؤخراً';
+
+  @override
+  String get chatReactionFrequent => 'الأكثر استخداماً';
+
+  @override
+  String get chatReactionCatFaces => 'الوجوه';
+
+  @override
+  String get chatReactionCatPeople => 'الأشخاص';
+
+  @override
+  String get chatReactionCatNature => 'الحيوانات والطبيعة';
+
+  @override
+  String get chatReactionCatFood => 'الطعام والشراب';
+
+  @override
+  String get chatReactionCatActivities => 'الأنشطة';
+
+  @override
+  String get chatReactionCatTravel => 'السفر';
+
+  @override
+  String get chatReactionCatObjects => 'الأشياء';
+
+  @override
+  String get chatReactionCatSymbols => 'الرموز';
+
+  @override
+  String get chatReactionCatFlags => 'الأعلام';
+
+  @override
+  String get chatReactionUnsupported => 'هذا الرمز التعبيري غير مدعوم حالياً';
+
+  @override
+  String get chatReactionLimit =>
+      'لا يمكن إضافة المزيد من الرموز التعبيرية المختلفة إلى هذه الرسالة';
+
+  @override
   String get chatMessageInfoTitle => 'معلومات الرسالة';
 
   @override

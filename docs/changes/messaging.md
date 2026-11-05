@@ -10,6 +10,11 @@ Tum degisiklikler geriye uyumludur (yalniz ekleme / uyumlu duzeltme).
 - V1071, mesajlara ilk alıcı teslim/okuma onayının zamanını kaydeden nullable sütunlar ve yanıt listeleme indeksi ekler. Eski mesajlar için zaman uydurulmaz; durum biliniyor ama zaman kaydı yoksa mobil bunu açıkça gösterir.
 - Yeni mesaj bilgisi ve serbest emoji desteğinin canlıda çalışması backend güncellemesini ve V1071 migration'ını gerektirir. Bu çalışma sırasında üretim sunucusuna dağıtım yapılmadı. Push bildirimi metni değişmedi.
 
+## Tam emoji secici (mobil, 2026-11-05)
+
+- Tepki cubugundaki `+` artik tam emoji secici alt sayfasi acar: kategoriler (Yuzler, Insanlar, Hayvanlar ve doga, Yemek, Aktivite, Seyahat, Nesneler, Semboller, Bayraklar), Turkce/Ingilizce/Arapca arama, "Son kullanilan" (cihazda en cok 8; cubuk ilk 6'yi gosterir). Veri yerel (`chat/emoji_data.dart`, Unicode emoji 15.0 + CLDR tr/ar notlari, ten rengi yok, ~160 KB kaynak); yeni eklenti yok.
+- Sunucu tepkiyi reddederse (`REACTION_NOT_ALLOWED` ya da emoji gecersiz kodlari) mobil "Bu emoji su an desteklenmiyor" toast'i gosterir, tepki geri alinir ve son kullanilanlara yazilmaz; farkli emoji siniri kodlari (`REACTION_LIMIT*`) ayri metin alir.
+
 ## Degisenler
 
 | Uc / alan | Degisiklik |
