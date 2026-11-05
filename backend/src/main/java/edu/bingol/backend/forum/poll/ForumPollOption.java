@@ -27,6 +27,7 @@ public class ForumPollOption {
     private String text;
 
     @Column(nullable = false)
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.SMALLINT) // V1420: position SMALLINT (validate)
     private int position;
 
     @Column(nullable = false)
