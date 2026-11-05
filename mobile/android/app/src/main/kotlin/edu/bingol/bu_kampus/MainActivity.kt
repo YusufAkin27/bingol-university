@@ -276,7 +276,7 @@ class MainActivity : FlutterActivity() {
         // lib/core/push/push_targets.dart kLocalReminderPayloadKeys ile ayni liste (type/event BILEREK yok).
         val PAYLOAD_KEYS = setOf(
             "targetType", "targetId", "conversationId", "eventId", "postId", "communityId",
-            "newsId", "ticketId", "pollId", "userId", "announcementId", "examId"
+            "newsId", "ticketId", "pollId", "userId", "examId"
         )
     }
 }

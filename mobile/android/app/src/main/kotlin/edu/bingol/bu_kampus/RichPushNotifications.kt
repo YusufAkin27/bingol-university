@@ -160,14 +160,11 @@ object RichPushNotifications {
         val channel = data["channelId"]?.takeIf { it in channels } ?: "announcement"
         val renderId = UUID.randomUUID().toString()
         val open = tap(context, data, "open", tag)
-        val publicVersion = (if (Build.VERSION.SDK_INT >= 26) Notification.Builder(context, channel) else Notification.Builder(context))
-            .setSmallIcon(R.drawable.ic_stat_bu).setContentTitle("BU Kampüs")
-            .setContentText(label(data, "Yeni bildirim", "New notification", "إشعار جديد")).build()
         fun publish(avatar: Bitmap?, photo: Bitmap?, quiet: Boolean) = synchronized(renderLock) {
             val builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(context, channel) else Notification.Builder(context)
             builder.setSmallIcon(R.drawable.ic_stat_bu).setContentTitle(data["title"]).setContentText(data["body"])
                 .setColor(Channels.ACCENT).setContentIntent(open).setAutoCancel(true).setOnlyAlertOnce(quiet)
-                .setVisibility(Notification.VISIBILITY_PRIVATE).setPublicVersion(publicVersion).setNumber(count)
+                .setVisibility(Notification.VISIBILITY_PUBLIC).setNumber(count)
                 .setStyle(Notification.DecoratedCustomViewStyle())
                 .setCustomContentView(views(context, data, count, tag, false, avatar, null))
                 .setCustomBigContentView(views(context, data, count, tag, true, avatar, photo))

@@ -1,8 +1,6 @@
-import 'package:bu_kampus/features/academic/acad_ref_widgets.dart' show AcadDot;
 import 'package:bu_kampus/features/academic/academic_api.dart';
 import 'package:bu_kampus/features/academic/academic_calendar_page.dart';
 import 'package:bu_kampus/features/academic/academic_models.dart';
-import 'package:bu_kampus/features/academic/announcements_page.dart';
 import 'package:bu_kampus/features/academic/course_form_page.dart';
 import 'package:bu_kampus/features/academic/exam_form_page.dart';
 import 'package:bu_kampus/features/academic/exams_page.dart';
@@ -51,22 +49,7 @@ FakeBackend _backend() {
         room: 'Mühendislik Fakültesi Bilgisayar Laboratuvarı 2', instructor: 'Prof. Dr. Mehmet Ali Yıldırım Karaca', code: 'BIL4001')
     ..addCourse('Fizik', 1, '11:00', '12:00', color: 'green')
     ..addExam('Veri Yapıları Vize', '2026-11-04T10:00:00+03:00')
-    ..addExam('Geçmiş Quiz', '2026-10-21T10:00:00+03:00', type: 'QUIZ')
-    ..addAnnouncements(3);
-  f.official = [
-    {
-      'id': 1,
-      'title': 'Fizik Final',
-      'type': 'FINAL',
-      'courseCode': 'FIZ101',
-      'department': 'Fizik',
-      'grade': '1',
-      'startsAt': '2026-11-20T09:00:00+03:00',
-      'endsAt': '2026-11-20T10:00:00+03:00',
-      'room': 'A-1',
-      'note': 'Not',
-    }
-  ];
+    ..addExam('Geçmiş Quiz', '2026-10-21T10:00:00+03:00', type: 'QUIZ');
   f.events = [
     {
       'id': 1,
@@ -98,10 +81,8 @@ void main() {
     'ders programi': (b) => TimetablePage(session: makeSession(b)),
     'ders formu': (b) => CourseFormPage(session: makeSession(b)),
     'sinavlar': (b) => ExamsPage(session: makeSession(b)),
-    'resmi sinavlar': (b) => ExamsPage(session: makeSession(b), initialTab: 1),
     'sinav formu': (b) => ExamFormPage(session: makeSession(b), courses: const [Course(id: 1, name: 'Veri Yapıları ve Algoritmalar Uygulaması')]),
     'takvim': (b) => AcademicCalendarPage(session: makeSession(b)),
-    'duyurular': (b) => AnnouncementsPage(session: makeSession(b)),
     'hatirlaticilar': (b) => ReminderSettingsPage(session: makeSession(b)),
   };
 
@@ -165,16 +146,6 @@ void main() {
     expect(find.text('Geçmiş'), findsOneWidget); // gecmis bolumu etiketi (yaklasanlar etiketsiz, Stitch v3)
     expect(find.text('Geçti'), findsOneWidget);
     expect(find.text('2 gün kaldı'), findsOneWidget);
-    await unmount(tester);
-  });
-
-  testWidgets('duyurular: Sabit/Yeni etiketleri', (tester) async {
-    useScreen(tester, kPhoneMedium);
-    final b = _backend();
-    await tester.pumpWidget(_app(AnnouncementsPage(session: makeSession(b)), size: kPhoneMedium));
-    await settle(tester);
-    expect(find.text('Sabitlenmiş'), findsWidgets);
-    expect(find.byType(AcadDot), findsNWidgets(3)); // okunmamis satirlarda `pr` nokta (rozet yok)
     await unmount(tester);
   });
 }

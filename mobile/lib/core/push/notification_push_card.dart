@@ -26,7 +26,6 @@ String pushCardStyle(Map<String, dynamic> data) {
     if (subtype == 'EVENT_ADMISSION') return 'EVENT_ADMISSION';
     return 'EVENT_UPDATE';
   }
-  if (subtype == 'ACADEMIC_ANNOUNCEMENT') return 'ACADEMIC';
   return 'ANNOUNCEMENT';
 }
 

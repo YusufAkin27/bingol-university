@@ -75,8 +75,9 @@ void main() {
       expect(r({'targetType': 'USER_FOLLOW', 'targetId': '12'}), const PushTarget(PushDest.user, id: 12));
       expect(r({'targetType': 'POLL_CLOSING', 'targetId': '6'}), const PushTarget(PushDest.poll, id: 6));
       expect(r({'targetType': 'POLL', 'pollId': '6'}), const PushTarget(PushDest.poll, id: 6));
-      expect(r({'targetType': 'ANNOUNCEMENT_DEPT', 'targetId': '21'}),
-          const PushTarget(PushDest.deptAnnouncement, id: 21));
+      // Kaldırılan bölüm duyurusu: eski bildirim/push güvenle Bildirimler listesine düşer.
+      expect(r({'targetType': 'ANNOUNCEMENT_DEPT', 'targetId': '21'}), const PushTarget(PushDest.notifications));
+      expect(r({'announcementId': '21'}), const PushTarget(PushDest.notifications));
       expect(r({'targetType': 'STORY', 'targetId': '3'}), const PushTarget(PushDest.user, id: 3));
       expect(r({'targetType': 'EXAM'}), const PushTarget(PushDest.exams));
       expect(r({'targetType': 'TIMETABLE'}), const PushTarget(PushDest.timetable));

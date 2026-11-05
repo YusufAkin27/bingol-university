@@ -4,7 +4,6 @@ import 'package:bu_kampus/features/academic/academic_calendar_page.dart';
 import 'package:bu_kampus/features/academic/academic_hub_page.dart';
 import 'package:bu_kampus/features/academic/academic_models.dart';
 import 'package:bu_kampus/features/academic/akad_widgets.dart' show AkadCard;
-import 'package:bu_kampus/features/academic/announcements_page.dart';
 import 'package:bu_kampus/features/academic/exam_form_page.dart';
 import 'package:bu_kampus/features/academic/exams_page.dart';
 import 'package:bu_kampus/features/academic/reminder_settings_page.dart';
@@ -43,19 +42,10 @@ FakeBackend _rich() {
   f.exams.last['room'] = 'B-204';
   f.addExam('Algoritma Analizi Final', '2026-12-21T14:00:00+03:00', type: 'FINAL');
   f.addExam('Geçmiş Quiz', '2026-10-21T10:00:00+03:00', type: 'QUIZ');
-  f.official = [
-    {'id': 1, 'title': 'Fizik Final', 'type': 'FINAL', 'courseCode': 'FIZ101', 'department': 'Fizik Mühendisliği Bölümü', 'grade': '1', 'startsAt': '2026-11-20T09:00:00+03:00', 'room': 'A-1', 'note': 'Kimlik kartı zorunlu'}
-  ];
   f.events = [
     {'id': 1, 'kind': 'VIZE', 'title': 'Ara sınavlar başlangıcı', 'startsAt': '2026-11-17T21:00:00Z'},
     {'id': 2, 'kind': 'DERS_KAYIT', 'title': 'Ders kayıt son günü', 'startsAt': '2026-11-29T21:00:00Z', 'endsAt': '2026-12-02T21:00:00Z', 'note': 'ÖBS üzerinden'},
   ];
-  f.pageSize = 20;
-  f.announcements.addAll([
-    {'id': 500, 'title': 'Güz dönemi staj başvuruları ve çok uzun bir başlık satırı', 'body': 'x', 'department': 'Bilgisayar Mühendisliği', 'pinned': true, 'publishAt': '2026-11-03T10:00:00+03:00', 'read': false},
-    {'id': 501, 'title': 'Okunmuş duyuru', 'body': 'x', 'faculty': 'Mühendislik Fakültesi', 'publishAt': '2026-10-01T10:00:00+03:00', 'read': true},
-  ]);
-  f.unread = 1;
   return b;
 }
 
@@ -86,9 +76,8 @@ void main() {
       academicClock = () => _wed;
       await p00Matrix(t, () => TimetablePage(session: makeSession(_rich())), scaffold: false, settleMs: 800, check: _noOverflow);
     });
-    testWidgets('sinavlar kisisel + resmi', (t) async {
+    testWidgets('sinavlar', (t) async {
       await p00Matrix(t, () => ExamsPage(session: makeSession(_rich())), scaffold: false, settleMs: 800, check: _noOverflow);
-      await p00Matrix(t, () => ExamsPage(session: makeSession(_rich()), initialTab: 1), scaffold: false, settleMs: 800, check: _noOverflow, widths: const [320]);
     });
     testWidgets('sinav ekle', (t) async {
       await p00Matrix(t, () => ExamFormPage(session: makeSession(_rich()), courses: [Course.fromJson(fakeAcademic(FakeBackend()).addCourse('Veri Yapıları ve Algoritmalar Uygulaması', 1, '09:00', '10:00'))]),
@@ -96,10 +85,6 @@ void main() {
     });
     testWidgets('akademik takvim', (t) async {
       await p00Matrix(t, () => AcademicCalendarPage(session: makeSession(_rich())), scaffold: false, settleMs: 800, check: _noOverflow);
-    });
-    testWidgets('bolum duyurulari + detay', (t) async {
-      await p00Matrix(t, () => AnnouncementsPage(session: makeSession(_rich())), scaffold: false, settleMs: 800, check: _noOverflow);
-      await p00Matrix(t, () => AnnouncementDetailPage(session: makeSession(_rich()), id: 500), scaffold: false, settleMs: 800, check: _noOverflow, widths: const [320]);
     });
     testWidgets('hatirlatmalar (izin acik)', (t) async {
       await p00Matrix(t, () => ReminderSettingsPage(session: makeSession(_rich())), scaffold: false, settleMs: 800, check: _noOverflow);
@@ -111,19 +96,19 @@ void main() {
   });
 
   group('p69 davranis', () {
-    testWidgets('hub: dort kartsiz gezinme satiri + siradaki sinav blogu; kart/simge karosu yok', (t) async {
+    testWidgets('hub: uc kartsiz gezinme satiri + siradaki sinav blogu; kart/simge karosu yok', (t) async {
       useScreen(t, kPhoneMedium);
       await t.pumpWidget(p00App(AcademicHubPage(session: makeSession(_rich())), scaffold: false));
       await settle(t);
       expect(find.byType(AkadCard), findsNothing); // kartsiz satirlar
-      for (final k in ['acadhub-timetable', 'acadhub-exams', 'acadhub-calendar', 'acadhub-announcements']) {
+      for (final k in ['acadhub-timetable', 'acadhub-exams', 'acadhub-calendar']) {
         expect(find.byKey(ValueKey(k)), findsOneWidget, reason: k);
       }
       expect(find.text('SIRADAKİ SINAV'), findsOneWidget);
       expect(find.text('Veri Yapıları Vize'), findsOneWidget);
       expect(find.text('18 Kasım · 10:30 · B-204'), findsOneWidget);
       expect(find.text('13 gün kaldı'), findsOneWidget);
-      expect(find.text('1 okunmamış'), findsOneWidget);
+      expect(find.byKey(const ValueKey('acadhub-announcements')), findsNothing);
       expect(find.text('Hatırlatmalar'), findsOneWidget);
       await unmount(t);
     });
@@ -173,7 +158,7 @@ void main() {
       await unmount(t);
     });
 
-    testWidgets('sinavlar: baslikta geri oku + 28 sp baslik, + dugmesi formu acar, sekme degisir', (t) async {
+    testWidgets('sinavlar: baslikta geri oku + 28 sp baslik, + dugmesi formu acar, sekme cubugu yok', (t) async {
       useScreen(t, kPhoneMedium);
       await t.pumpWidget(p00App(ExamsPage(session: makeSession(_rich())), scaffold: false));
       await settle(t, const Duration(milliseconds: 900));
@@ -181,16 +166,13 @@ void main() {
       expect(find.text('Veri Yapıları Vize'), findsOneWidget);
       expect(find.text('18 Kasım · 10:30 · B-204'), findsOneWidget);
       expect(find.text('13 gün kaldı'), findsOneWidget);
-      expect(find.byType(AcadTabs), findsOneWidget);
+      expect(find.byType(AcadTabs), findsNothing);
+      expect(find.text('Okul programı'), findsNothing);
       await t.tap(find.byTooltip('Sınav ekle'));
       await settle(t, const Duration(milliseconds: 800));
       expect(find.byType(ExamFormPage), findsOneWidget);
       await t.tap(find.byTooltip('Geri'));
       await settle(t, const Duration(milliseconds: 600));
-      await t.tap(find.text('Okul programı'));
-      await settle(t, const Duration(milliseconds: 700));
-      expect(find.text('Fizik Final'), findsOneWidget);
-      expect(find.byTooltip('Sınav ekle'), findsNothing);
       await unmount(t);
     });
 
@@ -253,52 +235,6 @@ void main() {
       await unmount(t);
     });
 
-    testWidgets('duyurular: okunmamis kalin + nokta, sabitlenmis etiketi, okundu isareti ust cubukta, sekme', (t) async {
-      useScreen(t, kPhoneMedium);
-      await t.pumpWidget(p00App(AnnouncementsPage(session: makeSession(_rich())), scaffold: false));
-      await settle(t, const Duration(milliseconds: 900));
-      expect(find.text('Sabitlenmiş'), findsOneWidget);
-      expect(find.byType(AcadDot), findsOneWidget); // yalniz okunmamis satirda
-      expect(find.text('Mühendislik Fakültesi · 1 ay önce'.replaceAll('1 ay önce', '1 Ekim 2026')), findsOneWidget);
-      expect(find.byTooltip('Tümünü okundu işaretle'), findsOneWidget);
-      await t.tap(find.byTooltip('Tümünü okundu işaretle'));
-      await settle(t, const Duration(milliseconds: 600));
-      expect(find.byType(AcadDot), findsNothing);
-      expect(find.byTooltip('Tümünü okundu işaretle'), findsNothing);
-      await t.tap(find.text('Tümü'));
-      await settle(t, const Duration(milliseconds: 700));
-      expect(find.text('Okunmuş duyuru'), findsOneWidget);
-      await unmount(t);
-    });
-
-    testWidgets('duyuru detay: madde isaretli liste, Ekli belgeyi ac, baslik 24 sp', (t) async {
-      useScreen(t, kPhoneMedium);
-      final b = _rich();
-      b.handlers.insert(
-          0,
-          (req, p) => p == '/announcements/500'
-              ? const FakeResult.json({
-                  'id': 500,
-                  'title': 'Güz dönemi staj başvuruları',
-                  'body': 'Giriş metni.\n\nHususlar:\n\n- Birinci madde\n- İkinci madde\n\nSon not.',
-                  'department': 'Bilgisayar Mühendisliği',
-                  'publishAt': '2026-10-12T10:00:00+03:00',
-                  'attachmentUrl': 'https://www.bingol.edu.tr/files/staj.pdf',
-                  'read': true,
-                })
-              : null);
-      await t.pumpWidget(p00App(AnnouncementDetailPage(session: makeSession(b), id: 500), scaffold: false));
-      await settle(t, const Duration(milliseconds: 900));
-      expect(find.text('Güz dönemi staj başvuruları'), findsOneWidget);
-      expect(find.text('Bilgisayar Mühendisliği · 12 Ekim 2026'), findsOneWidget);
-      expect(find.text('Birinci madde'), findsOneWidget);
-      expect(find.text('İkinci madde'), findsOneWidget);
-      expect(find.text('Ekli belgeyi aç'), findsOneWidget);
-      final title = t.widget<Text>(find.text('Güz dönemi staj başvuruları'));
-      expect(title.style!.fontSize, 24);
-      await unmount(t);
-    });
-
     testWidgets('hatirlatmalar: anahtar kaydeder, sure cipi secilir; izin kapaliyken not + pasif', (t) async {
       useScreen(t, kPhoneMedium);
       await t.pumpWidget(p00App(ReminderSettingsPage(session: makeSession(_rich())), scaffold: false));
@@ -335,9 +271,7 @@ void main() {
       'sinavlar': () => ExamsPage(session: makeSession(_rich())),
       'sinav ekle': () => ExamFormPage(session: makeSession(_rich())),
       'takvim': () => AcademicCalendarPage(session: makeSession(_rich())),
-      'duyurular': () => AnnouncementsPage(session: makeSession(_rich())),
       'hatirlatmalar': () => ReminderSettingsPage(session: makeSession(_rich())),
-      'duyuru detay': () => AnnouncementDetailPage(session: makeSession(_rich()), id: 500),
     };
     for (final e in pages.entries) {
       for (final dark in [false, true]) {

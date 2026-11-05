@@ -10,7 +10,6 @@ import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:bu_kampus/features/academic/academic_calendar_page.dart';
 import 'package:bu_kampus/features/academic/academic_hub_page.dart';
 import 'package:bu_kampus/features/academic/academic_models.dart';
-import 'package:bu_kampus/features/academic/announcements_page.dart';
 import 'package:bu_kampus/features/academic/course_form_page.dart';
 import 'package:bu_kampus/features/academic/exam_form_page.dart';
 import 'package:bu_kampus/features/academic/exams_page.dart';
@@ -75,17 +74,11 @@ FakeAcademic _rich(FakeBackend b) {
   f.exams.last['room'] = 'Mühendislik B-102 Derslik';
   f.exams.last['note'] = 'Sıralama Algoritmaları';
   f.addExam('Sayısal Mantık Ödevi 1', '2026-10-24T10:00:00+03:00', type: 'ODEV');
-  f.official = [
-    {'id': 1, 'title': 'Türk Dili I', 'type': 'VIZE', 'courseCode': 'TÜR101', 'department': 'Ortak Zorunlu Ders', 'startsAt': '2026-11-20T14:00:00+03:00', 'room': 'Merkezi Derslikler A-101'},
-    {'id': 2, 'title': 'Atatürk İlkeleri ve İnkılap Tarihi I', 'type': 'VIZE', 'courseCode': 'AİİT101', 'startsAt': '2026-11-21T10:00:00+03:00', 'room': 'Merkezi Derslikler B-205'},
-    {'id': 3, 'title': 'Yabancı Dil I (İngilizce)', 'type': 'FINAL', 'courseCode': 'YDİ101', 'startsAt': '2026-11-22T15:30:00+03:00', 'room': 'İİBF D-104'},
-  ];
   f.events = [
     {'id': 1, 'kind': 'SINAV', 'title': 'Ara Sınavlar Başlangıcı', 'startsAt': '2026-11-17T21:00:00Z', 'endsAt': '2026-11-27T21:00:00Z'},
     {'id': 2, 'kind': 'DERS_KAYIT', 'title': 'Final Sınavları', 'startsAt': '2026-11-24T21:00:00Z'},
     {'id': 3, 'kind': 'TATIL', 'title': 'Yarıyıl Tatili', 'startsAt': '2027-01-24T21:00:00Z'},
   ];
-  f.addAnnouncements(3);
   return f;
 }
 
@@ -253,7 +246,6 @@ const _prefsJson = {
   'messages': true,
   'communities': true,
   'polls': true,
-  'academicAnnouncements': false,
   'subtypes': {
     'MESSAGE_DIRECT': true,
     'MESSAGE_GROUP': true,
@@ -271,9 +263,7 @@ final _scenes = <_Scene>[
   // ---- 43
   _Scene('01_hub_dolu', (b) => AcademicHubPage(session: makeSession(b)), setup: _rich, now: _thu, height: 900),
   _Scene('02_hub_bos', (b) => AcademicHubPage(session: makeSession(b)), setup: (b) {
-    _fa(b)
-      ..profileComplete = false
-      ..unread = 0;
+    _fa(b);
   }, height: 1130),
   _Scene('02b_hub_bakim', (b) => AcademicHubPage(session: makeSession(b)), setup: (b) {
     _fa(b);
@@ -454,10 +444,6 @@ final _scenes = <_Scene>[
     await settle(t, const Duration(milliseconds: 900));
   }),
   _Scene('09_sinavlar', (b) => ExamsPage(session: makeSession(b)), setup: _rich, now: _thu, height: 1000),
-  _Scene('10_sinavlar_resmi', (b) => ExamsPage(session: makeSession(b), initialTab: 1), setup: (b) {
-    _rich(b);
-    _reg[b]!.profileComplete = false;
-  }, now: _thu, height: 1000),
   _Scene('11a_sinav_formu', (b) => ExamFormPage(session: makeSession(b), courses: _courses(b)), setup: _rich, height: 1250),
   _Scene('11b_sinav_formu_hata', (b) => ExamFormPage(session: makeSession(b), courses: _courses(b)), setup: _rich, height: 1250, after: (t) async {
     await t.ensureVisible(find.text(_l.acadFormAdd));
@@ -473,7 +459,6 @@ final _scenes = <_Scene>[
     _fa(b);
     _maint(b, '/timetable/exams');
   }, height: 500),
-  _Scene('12c_sinavlar_resmi_bos', (b) => ExamsPage(session: makeSession(b), initialTab: 1), setup: (b) => _fa(b), height: 600),
   // ---- 45
   _Scene('13_takvim_ay', (b) => AcademicCalendarPage(session: makeSession(b)), setup: _calendar, now: DateTime.utc(2026, 10, 15, 8), height: 1500),
   _Scene('14_takvim_gun', (b) => AcademicCalendarPage(session: makeSession(b)), setup: (b) {
@@ -482,71 +467,6 @@ final _scenes = <_Scene>[
   }, now: DateTime.utc(2026, 10, 14, 8), height: 1200, after: (t) => _tapText(t, '14')),
   _Scene('14c_takvim_secili_gun', (b) => AcademicCalendarPage(session: makeSession(b)), setup: _calendar, now: DateTime.utc(2026, 10, 14, 8), height: 1500, after: (t) => _tapText(t, '21')),
   _Scene('14b_takvim_bos_ay', (b) => AcademicCalendarPage(session: makeSession(b)), setup: (b) => _fa(b), now: DateTime.utc(2026, 10, 14, 8), height: 800),
-  _Scene('15_duyurular', (b) => AnnouncementsPage(session: makeSession(b)), setup: (b) {
-    final f = _fa(b);
-    f.pageSize = 10;
-    f.announcements.addAll([
-      {
-        'id': 1,
-        'title': '2026-2027 Güz Dönemi Final Sınav Takvimi Taslağı',
-        'body': 'Mühendislik Fakültesi Bilgisayar Mühendisliği Bölümü güz yarıyılı final sınav tarihleri taslağı askıya çıkarılmıştır.',
-        'department': 'Bilgisayar Mühendisliği',
-        'faculty': 'Bilgisayar Müh. Bölüm Bşk.',
-        'pinned': true,
-        'publishAt': '2026-10-15T11:20:00+03:00',
-        'read': false,
-      },
-      {
-        'id': 2,
-        'title': 'Kütüphane Çalışma Salonları 7/24 Hizmet Düzenlemesi',
-        'body': 'Merkezi kütüphane vize ve final haftalarında öğrencilerin kullanımına kesintisiz açık tutulacaktır.',
-        'faculty': 'Kütüphane & Dokümantasyon D.B.',
-        'pinned': false,
-        'publishAt': '2026-10-14T09:45:00+03:00',
-        'read': false,
-      },
-      {
-        'id': 3,
-        'title': 'Staj Defteri Teslim Tarihleri ve Komisyon Değerlendirmesi',
-        'body': 'Yaz stajını tamamlayan 3. ve 4. sınıf öğrencilerinin staj evraklarını en geç 30 Ekim tarihine kadar teslim etmesi gerekmektedir.',
-        'department': 'Bilgisayar Mühendisliği',
-        'faculty': 'Staj & Kariyer Komisyonu',
-        'pinned': false,
-        'publishAt': '2026-10-12T10:00:00+03:00',
-        'read': true,
-      },
-    ]);
-  }, now: DateTime.utc(2026, 10, 15, 8), height: 1000),
-  _Scene('15b_duyurular_bos', (b) => AnnouncementsPage(session: makeSession(b)), setup: (b) => _fa(b), height: 600),
-  _Scene('16_duyuru_detay', (b) => AnnouncementDetailPage(session: makeSession(b), id: 1), setup: (b) {
-    final f = _fa(b);
-    f.announcements.add({
-      'id': 1,
-      'title': '2026-2027 Güz Dönemi Final Programı Yayınlandı',
-      'body':
-          'Değerli öğrencilerimiz, 2026-2027 Eğitim-Öğretim Yılı Güz Yarıyılı final sınav programı fakülte yönetim kurulu kararı doğrultusunda kesinleşmiştir.\n\nSınav çakışması bulunan veya mazeret bildirecek öğrencilerin ilgili formları bölüm sekreterliğine 3 iş günü içerisinde elden teslim etmesi zorunludur. Sınav salonlarında öğrenci kimlik kartlarının hazır bulundurulması gerekmektedir.',
-      'faculty': 'Öğrenci İşleri Daire Başkanlığı',
-      'pinned': true,
-      'publishAt': '2026-10-14T11:30:00+03:00',
-      'attachmentUrl': 'https://www.bingol.edu.tr/files/Guz_Final_Programi_v2.pdf',
-      'read': false,
-    });
-  }, now: DateTime.utc(2026, 10, 15, 8), height: 960),
-  _Scene('16b_duyuru_baglanti_hatasi', (b) => AnnouncementDetailPage(session: makeSession(b), id: 1), setup: (b) {
-    _fa(b).announcements.add({
-      'id': 1,
-      'title': '2026-2027 Güz Dönemi Final Programı Yayınlandı',
-      'body': 'Değerli öğrencilerimiz, final sınav programı kesinleşmiştir.',
-      'faculty': 'Öğrenci İşleri Daire Başkanlığı',
-      'pinned': true,
-      'publishAt': '2026-10-14T11:30:00+03:00',
-      'attachmentUrl': 'http://www.bingol.edu.tr/files/Guz_Final_Programi_v2.pdf',
-      'read': false,
-    });
-  }, now: DateTime.utc(2026, 10, 15, 8), height: 900, after: (t) async {
-    await t.tap(find.text(_l.acadAnnOpenAttachment));
-    await settle(t, const Duration(milliseconds: 700));
-  }),
   _Scene('17_hatirlatma', (b) => ReminderSettingsPage(session: makeSession(b)), setup: (b) => _fa(b), height: 900),
   _Scene('18_hatirlatma_izin_yok', (b) => ReminderSettingsPage(session: makeSession(b)), setup: (b) => _fa(b), height: 1100, perm: PermState.denied),
 ];

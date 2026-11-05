@@ -17,7 +17,7 @@ import 'reminders.dart';
 
 /// Hatırlatmalar (Stitch 45): ders ve sınav yerel bildirimleri. Bildirim izni yoksa uyarı kartı ve pasif anahtarlar.
 /// Sınavdan 2 saat önceki bildirim sunucudan gelen gerçek push'tur (yerel değil): satır yalnız bilgilendirir ve
-/// Profil > Bildirim tercihleri'ne (Akademik duyurular) götürür; yeni uç/istek yoktur.
+/// Profil > Bildirim tercihleri'ne götürür; yeni uç/istek yoktur.
 class ReminderSettingsPage extends StatefulWidget {
   const ReminderSettingsPage({super.key, required this.session});
 

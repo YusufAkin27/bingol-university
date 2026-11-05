@@ -19,7 +19,6 @@ enum PushDest {
 
   /// Gelen takip istekleri ekranı (`FOLLOW_REQUESTS`; GİZLİ hesap istek aldı). Kimliksiz geçerlidir.
   followRequests,
-  deptAnnouncement,
   timetable,
   exams,
   ticket,
@@ -72,7 +71,6 @@ const Set<String> kLocalReminderPayloadKeys = {
   'ticketId',
   'pollId',
   'userId',
-  'announcementId',
   'examId',
 };
 
@@ -124,9 +122,6 @@ PushDest? _destOf(String t) {
     case 'NEWS':
     case 'ANNOUNCEMENT':
       return PushDest.news;
-    case 'ANNOUNCEMENT_DEPT':
-    case 'DEPT_ANNOUNCEMENT':
-      return PushDest.deptAnnouncement;
     case 'COMMENT':
     case 'COMMENT_REPLY':
     case 'FEED_POST':
@@ -189,7 +184,6 @@ PushTarget resolvePushTarget(Map<String, dynamic>? data) {
   final examId = _id(d['examId']);
   final communityId = _id(d['communityId']);
   final newsId = _id(d['newsId']);
-  final announcementId = _id(d['announcementId']);
 
   // Doğrudan anahtarlar (eski öncelik: sohbet yoksa anket, sonra gönderi).
   if (conversationId != null)
@@ -207,15 +201,10 @@ PushTarget resolvePushTarget(Map<String, dynamic>? data) {
   }
 
   final dest = _destOf(target);
-  if (dest == PushDest.deptAnnouncement && (announcementId ?? value) != null) {
-    return PushTarget(dest!, id: announcementId ?? value);
-  }
   if (eventId != null) return PushTarget(PushDest.event, id: eventId);
   if (communityId != null && dest != PushDest.post)
     return PushTarget(PushDest.community, id: communityId);
   if (newsId != null) return PushTarget(PushDest.news, id: newsId);
-  if (announcementId != null)
-    return PushTarget(PushDest.deptAnnouncement, id: announcementId);
 
   if (dest != null) {
     switch (dest) {

@@ -35,7 +35,7 @@ abstract final class AppTab {
 /// seçimde kurulur, sonra Offstage'te canlı kalır: konum ve veri kaybolmaz) + M3 alt gezinme.
 /// Sekmeler arası geçiş MİNİMAL (docs/MOBILE_MOTION_TABS.md): içerik yandan 12 dp kayarak 220 ms'de belirir, eskisi
 /// 140 ms'de solar; boş/dikey alanda sağa-sola sürükleme (eşik 60 dp ya da hızlı fırlatma) komşu sekmeye geçirir, sürüklerken
-/// içerik 12-16 dp paralaksla parmağı izler. Yatay kaydırılan iç bileşenler (haber şeridi, harita) sürüklemeyi kendisi alır.
+/// içerik 12-16 dp paralaksla parmağı izler. Yatay kaydırılan iç bileşenler (haber şeridi) sürüklemeyi kendisi alır.
 class AppShell extends StatefulWidget {
   const AppShell({super.key, required this.session, required this.themeController});
 
@@ -357,7 +357,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Ticker
         children: [
           Positioned.fill(
             child: GestureDetector(
-              // Çocuklar (yatay kaydırılan şerit/harita) önce kazanır; boş ve dikey alanda yatay sürükleme sekme değiştirir.
+              // Çocuklar (yatay kaydırılan şerit) önce kazanır; boş ve dikey alanda yatay sürükleme sekme değiştirir.
               behavior: HitTestBehavior.translucent,
               onHorizontalDragStart: _dragStart,
               onHorizontalDragUpdate: _dragUpdate,

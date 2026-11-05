@@ -56,34 +56,10 @@ class AcademicApi {
 
   Future<void> deleteExam(int id) async => session.api.delete('/timetable/exams/$id');
 
-  Future<({List<OfficialExam> items, bool profileComplete})> officialExams({bool all = false}) async {
-    final m = _map(await session.api.get('/exams/official${all ? '?scope=all' : ''}'));
-    return (items: [for (final e in _items(m)) OfficialExam.fromJson(e)], profileComplete: m['profileComplete'] != false);
-  }
-
   // ---- akademik takvim
   Future<List<AcademicEvent>> calendar(int year, int month) async =>
       [for (final e in _items(await session.api.get('/academic/calendar?month=$year-${two(month)}'))) AcademicEvent.fromJson(e)];
 
   Future<List<AcademicEvent>> nextEvents({int limit = 5}) async =>
       [for (final e in _items(await session.api.get('/academic/calendar/next?limit=$limit'))) AcademicEvent.fromJson(e)];
-
-  // ---- duyurular
-  Future<({List<Announcement> items, String? next})> announcements({bool mine = true, String? cursor, int size = 20}) async {
-    final q = 'scope=${mine ? 'mine' : 'all'}&size=$size${cursor == null ? '' : '&cursor=${Uri.encodeQueryComponent(cursor)}'}';
-    final m = _map(await session.api.get('/announcements?$q'));
-    final next = m['nextCursor'];
-    return (items: [for (final e in _items(m)) Announcement.fromJson(e)], next: next is String && next.isNotEmpty ? next : null);
-  }
-
-  Future<Announcement> announcement(int id) async => Announcement.fromJson(_map(await session.api.get('/announcements/$id')));
-
-  Future<void> markRead(int id) async => session.api.post('/announcements/$id/read');
-
-  Future<void> readAll() async => session.api.post('/announcements/read-all');
-
-  Future<int> unreadCount() async {
-    final c = _map(await session.api.get('/announcements/unread-count'))['count'];
-    return c is num ? c.toInt() : 0;
-  }
 }

@@ -159,10 +159,8 @@ Sütunlar: tür (E ekran, T sekme, K kabuk/kapı, D durum, Z görüntüleyici), 
 | 81 | `CourseFormPage` | `features/academic/course_form_page.dart` (378) | E | TimetablePage ekle/düzenle; pop=true | Ders adı, çoklu oturum (gün/saat/yer), renk | doğrulama / hata | akad_design | `acad*` | 17 |
 | 82 | `ExamsPage` | `features/academic/exams_page.dart` (318) | E | Akademik giriş / push (EXAM); `GET /timetable/exams`, resmi sınav programı | Kişisel sınavlar (geri sayım) + resmi program | yükleniyor / boş / hata / bayat | akad_design, academic_features | `acad*` | 17 |
 | 83 | `ExamFormPage` | `features/academic/exam_form_page.dart` (216) | E | ExamsPage ekle/düzenle; pop=true | Sınav adı, ders, tarih/saat, yer, tür | doğrulama / hata | akad_design | `acad*, akademik*` | 17 |
-| 84 | `AcademicHubPage` | `features/academic/academic_hub_page.dart` (227) | E | Profil > Akademik | Ders programı, sınavlar, takvim, bölüm duyuruları kartları | boş (bölüm yok) / erişilebilirlik | academic_features, notif_design | `acad*, acadhub*` | 20 |
+| 84 | `AcademicHubPage` | `features/academic/academic_hub_page.dart` (227) | E | Profil > Akademik | Ders programı, sınavlar, takvim satırları | boş (bölüm yok) / erişilebilirlik | academic_features, notif_design | `acad*, acadhub*` | 20 |
 | 85 | `AcademicCalendarPage` | `features/academic/academic_calendar_page.dart` (288) | E | Akademik giriş; `GET /academic/calendar?month=`, `/next` | Ay görünümü + önemli tarihler | yükleniyor / hata / boş | academic_features, akad_design | `acad*` | 20 |
-| 86 | `AnnouncementsPage` | `features/academic/announcements_page.dart` (329) | E | Akademik giriş; `GET /announcements` | Imleçli akış, okunmamış rozeti, sabitlenmişler, Bölümüm | Tümü | yükleniyor / boş / hata | academic_features, akad_design | `acad*` | 20 |
-| 87 | `AnnouncementDetailPage` | `features/academic/announcements_page.dart` (329) | E | Duyuru listesi / push (DEPT_ANNOUNCEMENT); `GET /announcements/{id}` (okundu işaretler) | Duyuru metni | yükleniyor / hata | yok | `acad*` | 20 |
 | 88 | `ReminderSettingsPage` | `features/academic/reminder_settings_page.dart` (98) | E | Ayarlar > Hatırlatmalar (bildirim tercihleri sayfasından) | Ders ve sınav yerel bildirim ayarları | izin yok | academic_features, akad_design | `acad*, akademik*` | 20 |
 
 ### K. Profil ve hesap
@@ -270,7 +268,6 @@ Ek notlar: (a) `showSohbetySheet` (sohbet ortak alt sayfa çerçevesi), `showPro
 | post | PostDetailPage (`openPostDetail`) | `commentId` artık yok sayılır |
 | poll | PollDetailPage (`openPollDetail`) | |
 | user | UserProfilePage (`openUserProfile`) | STORY/FOLLOW da buraya |
-| deptAnnouncement | AnnouncementDetailPage | |
 | timetable | TimetablePage | kimliksiz geçerli |
 | exams | ExamsPage | kimliksiz geçerli |
 | ticket | SupportTicketPage | |
@@ -512,9 +509,9 @@ Dağıtım ilkesi: ekran/akış bütünlüğü korunur; her UI dosyası **tam bi
 
 #### Paket 20: Akademik 2 (giriş, takvim, duyuru, hatırlatma), başkasının profili, bildirim tercihleri, engellenenler
 
-- **Ekranlar:** 84 AcademicHubPage, 85 AcademicCalendarPage, 86 AnnouncementsPage, 87 AnnouncementDetailPage, 88 ReminderSettingsPage, 89 UserProfilePage, 90 _AvatarViewer, 100 NotificationPrefsPage, 101 BlockedUsersPage
+- **Ekranlar:** 84 AcademicHubPage, 85 AcademicCalendarPage, 88 ReminderSettingsPage, 89 UserProfilePage, 90 _AvatarViewer, 100 NotificationPrefsPage, 101 BlockedUsersPage
 - **Alt sayfa / diyalog:** A59, A60
-- **Dosyalar (8, 2.512 satır):** `features/academic/academic_calendar_page.dart`(288), `features/academic/academic_hub_page.dart`(227), `features/academic/acadhub_widgets.dart`(130), `features/academic/announcements_page.dart`(329), `features/academic/reminder_settings_page.dart`(98), `features/profile/blocked_users_page.dart`(210), `features/profile/notification_prefs_page.dart`(484), `features/profile/user_profile_page.dart`(746)
+- **Dosyalar (8, 2.512 satır):** `features/academic/academic_calendar_page.dart`(288), `features/academic/academic_hub_page.dart`(227), `features/academic/acadhub_widgets.dart`(130), `features/academic/reminder_settings_page.dart`(98), `features/profile/blocked_users_page.dart`(210), `features/profile/notification_prefs_page.dart`(484), `features/profile/user_profile_page.dart`(746)
 - **Test dosyaları:** `user_profile_test`, `profil1_test`, profilyard_test (ortak 12/14/18/20), academic_features_test (ortak)
 - **Bağımlılık:** P0 + P17 (`akad_widgets`, `academic_widgets`) + P18 (`profil_widgets`, `profily_widgets`, `follow_list_page`) + P5 (`icerik_parts`) + P3 (`notif_row`) + P19.
 - **İş yükü / dalga:** M-L / Dalga 2

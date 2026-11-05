@@ -32,20 +32,6 @@ FakeBackend _full() {
     ..addExam('Veri Yapıları Vize', '2026-11-04T10:00:00+03:00')
     ..addExam('Geçmiş Quiz', '2026-10-21T10:00:00+03:00', type: 'QUIZ');
   (f.courses[0]['sessions'] as List).add({'id': 901, 'dayOfWeek': 3, 'start': '13:00', 'end': '14:50', 'room': 'B-204'});
-  f.official = [
-    {
-      'id': 1,
-      'title': 'Fizik Final',
-      'type': 'FINAL',
-      'courseCode': 'FIZ101',
-      'department': 'Fizik Mühendisliği Bölümü',
-      'grade': '1',
-      'startsAt': '2026-11-20T09:00:00+03:00',
-      'endsAt': '2026-11-20T10:00:00+03:00',
-      'room': 'A-1',
-      'note': 'Kimlik kartı zorunlu',
-    }
-  ];
   return b;
 }
 
@@ -89,9 +75,6 @@ void main() {
     });
     testWidgets('sinavlar kisisel', (tester) async {
       await p00Matrix(tester, () => ExamsPage(session: makeSession(_full())), scaffold: false, settleMs: 800, check: noOverflow);
-    });
-    testWidgets('sinavlar resmi', (tester) async {
-      await p00Matrix(tester, () => ExamsPage(session: makeSession(_full()), initialTab: 1), scaffold: false, settleMs: 800, check: noOverflow);
     });
     testWidgets('sinav formu', (tester) async {
       await p00Matrix(
@@ -188,7 +171,7 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
     });
 
-    testWidgets('sinavlar: segment sekme degistirir', (tester) async {
+    testWidgets('sinavlar: tek icerik, sekme cubugu yok', (tester) async {
       tester.view.devicePixelRatio = 1;
       tester.view.physicalSize = const Size(390, 844);
       addTearDown(tester.view.reset);
@@ -196,10 +179,8 @@ void main() {
       await settle(tester);
       expect(find.text('Veri Yapıları Vize'), findsOneWidget);
       expect(find.byTooltip('Sınav ekle'), findsOneWidget); // basliktaki "+"
-      await tester.tap(find.text('Okul programı'));
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(find.text('Fizik Final'), findsOneWidget);
-      expect(find.byTooltip('Sınav ekle'), findsNothing);
+      expect(find.text('Okul programı'), findsNothing);
+      expect(find.text('Sınavlarım'), findsNothing);
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump(const Duration(seconds: 1));
     });
@@ -220,7 +201,6 @@ void main() {
   group('p17 erisilebilirlik', () {
     final pages = <String, Widget Function()>{
       'sinavlar': () => ExamsPage(session: makeSession(_full())),
-      'resmi sinavlar': () => ExamsPage(session: makeSession(_full()), initialTab: 1),
       'ders formu': () => CourseFormPage(session: makeSession(_full()), course: _course()),
       'sinav formu': () => ExamFormPage(session: makeSession(_full()), courses: [_course()]),
     };
