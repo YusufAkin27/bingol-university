@@ -58,15 +58,15 @@ test.describe('Roller x rotalar (T-156)', () => {
     expect(calls.some((c) => c.includes('/admin/system/'))).toBe(false);
   });
 
-  test('MODERATOR: Bölüm duyuruları menüde yok (comms.read gerekir) ve elle girişte yetki sayfası', async ({ page }) => {
+  test('MODERATOR: Bildirim kampanyaları menüde yok (comms.read gerekir) ve elle girişte yetki sayfası', async ({ page }) => {
     const calls: string[] = [];
     await stubPanel(page, 'MODERATOR', calls);
     await page.goto('/admin');
     await page.waitForSelector('main h1');
-    expect(await page.locator('nav a[href$="/academic/announcements"]').count()).toBe(0);
-    await page.goto('/admin/academic/announcements');
+    expect(await page.locator('nav a[href$="/campaigns"]').count()).toBe(0);
+    await page.goto('/admin/campaigns');
     await expect(page.getByTestId('no-permission')).toBeVisible();
-    expect(calls.some((c) => c.includes('/admin/announcements'))).toBe(false);
+    expect(calls.some((c) => c.includes('/admin/push/campaigns'))).toBe(false);
   });
 });
 

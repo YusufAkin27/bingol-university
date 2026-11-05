@@ -101,20 +101,6 @@ export default {
   'admin.v2.cal.legend': 'Renk anlamları',
   'admin.v2.cal.monthEmpty': 'Bu ayda takvim olayı yok. Başka bir aya geçin ya da “Olay ekle” düğmesini kullanın.',
 
-  // Bölüm duyuruları
-  'admin.v2.an.readSentence': 'Hedef kitlenin %{pct} kadarı okudu',
-
-  // Sınavlar
-  'admin.v2.ex.insight': 'Listede {n} sınav var; {week} tanesi bu hafta.',
-  'admin.v2.ex.insightConflict':
-    'Listede {n} sınav var; {week} tanesi bu hafta. {conflicts} sınav aynı sınıf ve bölümde başka bir sınavla çakışıyor, saatlerini kontrol edin.',
-  'admin.v2.ex.bucket.week': 'Bu hafta',
-  'admin.v2.ex.bucket.nextWeek': 'Gelecek hafta',
-  'admin.v2.ex.bucket.later': 'Daha sonra',
-  'admin.v2.ex.bucket.past': 'Geçmiş sınavlar',
-  'admin.v2.ex.conflict': 'Saat çakışması',
-  'admin.v2.ex.conflictHint': 'Aynı sınıf ve bölümde aynı saatte başka bir sınav var. Öğrenciler ikisine birden giremez.',
-
   // Sözleşmeler
   'admin.v2.legal.insightGood': '{total} sözleşmenin hepsinde kabul oranı yarının üstünde.',
   'admin.v2.legal.insightLow':

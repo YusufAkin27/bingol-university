@@ -78,7 +78,7 @@ export function NewsBulkBar({ ids, onClear, onDone }: BarProps & { ids: number[]
   );
 }
 
-/** Akademik takvim / sınav programı / bölüm duyurusu: toplu yayınla / kaldır / sil. */
+/** Akademik takvim: toplu yayınla / kaldır / sil. */
 export function AcademicBulkBar({
   entity,
   ids,
@@ -115,7 +115,7 @@ export function AcademicBulkBar({
           variant="secondary"
           title={t('admin.p15.acd.publish.title', { n: ids.length })}
           message={noun}
-          consequence={t(entity === 'ANNOUNCEMENT' ? 'admin.p15.acd.publish.consequenceAnn' : 'admin.p15.acd.publish.consequence')}
+          consequence={t('admin.p15.acd.publish.consequence')}
           irreversible={false}
           confirmLabel={t('admin.p15.acd.publish')}
           onConfirm={run('PUBLISH')}

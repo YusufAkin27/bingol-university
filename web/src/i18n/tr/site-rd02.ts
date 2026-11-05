@@ -40,6 +40,6 @@ const m = {
   'site.rd02.pt.polls.3': 'Tek seçim, çoklu seçim, puanlama ve sıralama',
   'site.rd02.pt.academic.1': 'Ders programı ve sınav takvimi',
   'site.rd02.pt.academic.2': 'Akademik takvim',
-  'site.rd02.pt.academic.3': 'Bölüm duyuruları ve hatırlatmalar',
+  'site.rd02.pt.academic.3': 'Sınav hatırlatmaları',
 } as const;
 export default m;

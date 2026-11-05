@@ -26,10 +26,6 @@ describe('akademik ve içerik arama girdileri', () => {
     expect(topIds('kaç gün kaldı')).toContain('acdCalendar.upcoming');
     expect(topIds('yaklasn olaylar')).toContain('acdCalendar.upcoming'); // yazım hatası
   });
-  it('sınav yoğunluğu', () => {
-    expect(topIds('bu hafta sınav')).toContain('acdExams.timeline');
-    expect(topIds('sinav yogunlugu')).toContain('acdExams.timeline');
-  });
   it('menü kalori grafiği ve eksik uyarısı', () => {
     expect(topIds('kalori grafigi')).toContain('menu.kcalChart');
     expect(topIds('kalori grafgi')).toContain('menu.kcalChart'); // yazım hatası

@@ -29,7 +29,7 @@ export interface BulkReport {
 }
 
 export type NewsBulkAction = 'HIDE' | 'UNHIDE';
-export type AcademicBulkEntity = 'CALENDAR' | 'EXAM' | 'ANNOUNCEMENT';
+export type AcademicBulkEntity = 'CALENDAR';
 export type AcademicBulkAction = 'PUBLISH' | 'UNPUBLISH' | 'DELETE';
 export type SourceName = 'NEWS' | 'MENU';
 
@@ -70,7 +70,6 @@ export interface AcademicCsvParams {
   q?: string;
   kind?: string;
   published?: boolean;
-  status?: string;
 }
 export const exportAcademicCsv = (p: AcademicCsvParams): Promise<Blob> =>
   apiBlob('/admin/academic/export.csv', {
@@ -79,7 +78,6 @@ export const exportAcademicCsv = (p: AcademicCsvParams): Promise<Blob> =>
       q: p.q || undefined,
       kind: p.kind || undefined,
       published: p.published,
-      status: p.status && p.status !== 'all' ? p.status : undefined,
     },
   });
 

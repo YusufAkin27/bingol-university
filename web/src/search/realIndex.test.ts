@@ -21,7 +21,7 @@ const pageOf = (ids: string[]) => ids.filter((i) => i.startsWith('page.')).map((
 
 describe('"mesaj" araması: mesaj içeren tüm ilgili sayfalar', () => {
   const MESSAGE_PAGES = ['messageAccess', 'chatFeed', 'crypto'];
-  const RELATED_PAGES = ['campaigns', 'acdAnnouncements', 'tickets'];
+  const RELATED_PAGES = ['campaigns', 'tickets'];
 
   it('sohbet akışı, mesaj erişim denetimi ve sohbet şifreleme/kullanıcı mesajları ilk sayfalardadır', () => {
     const { ids } = run('mesaj');

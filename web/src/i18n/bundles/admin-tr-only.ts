@@ -29,8 +29,6 @@ import Bh from '../tr/admin-bh';
 const Gd1Nav = { 'admin.gd1.nav': 'Yedekleme (Google Drive)', 'admin.unitNews.nav': 'Birim haberleri',
   'admin.twoFactor.nav': 'İki faktörlü doğrulama',
 };
-// Kampüs haritası menü etiketi ana parçada kalır; sayfa metinleri tr/admin-campus.ts içinde sayfanın kendi parçasında yüklenir.
-const CampusNav = { 'admin.campus.nav': 'Kampüs haritası' };
 
 export default {
   ...Guard,
@@ -59,5 +57,4 @@ export default {
   ...Arama,
   ...Gd1Nav,
   ...Bh,
-  ...CampusNav,
 };

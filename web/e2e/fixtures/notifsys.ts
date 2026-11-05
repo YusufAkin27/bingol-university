@@ -90,7 +90,7 @@ export async function stubNotifsys(page: Page, scenario: Scenario = 'full', call
       if (p === '/admin/audit')
         return json(r, { items: [
           { id: 1, adminId: 1, adminEmail: 'boss@bingol.edu.tr', method: 'PUT', path: '/api/admin/settings/maintenance_mode', status: 200, at: '2026-11-01T09:30:00Z', ip: '10.0.0.1', targetType: 'SETTING', targetId: 'maintenance_mode', reason: 'Planlı bakım', summary: 'Ayar değiştirildi', requestId: 'req-1' },
-          { id: 2, adminId: 1, adminEmail: 'mod@bingol.edu.tr', method: 'POST', path: '/api/admin/academic/exams/9/publish-with-a-very-long-segment-name', status: 403, at: '2026-11-01T09:31:00Z', ip: '10.0.0.2' },
+          { id: 2, adminId: 1, adminEmail: 'mod@bingol.edu.tr', method: 'POST', path: '/api/admin/academic/events/9/publish-with-a-very-long-segment-name', status: 403, at: '2026-11-01T09:31:00Z', ip: '10.0.0.2' },
         ], page: 0, size: 20, total: 2, totalPages: 1, totalItems: 2 });
       if (p === '/admin/rbac/admins') return json(r, []);
       if (p === '/admin/push/campaigns')

@@ -40,6 +40,6 @@ const m = {
   'site.rd02.pt.polls.3': 'Single choice, multiple choice, rating and ranking',
   'site.rd02.pt.academic.1': 'Class schedule and exam calendar',
   'site.rd02.pt.academic.2': 'Academic calendar',
-  'site.rd02.pt.academic.3': 'Department announcements and reminders',
+  'site.rd02.pt.academic.3': 'Exam reminders',
 } as const;
 export default m;

@@ -34,9 +34,7 @@ const NAV_ENDPOINT: Record<string, string> = {
   events: '/api/admin/events',
   eventApplications: '/api/admin/events/applications',
   acdCalendar: '/api/admin/academic/events',
-  acdExams: '/api/admin/academic/exams',
   acdTimetable: '/api/admin/academic/timetable/programs',
-  acdAnnouncements: '/api/admin/announcements',
   tickets: '/api/admin/support/tickets',
   feedback: '/api/admin/feedback',
   legal: '/api/admin/legal/acceptance-stats',
@@ -44,7 +42,6 @@ const NAV_ENDPOINT: Record<string, string> = {
   news: '/api/admin/news',
   unitNews: '/api/admin/unit-news/sources',
   menu: '/api/admin/menu',
-  campus: '/api/admin/campus/places',
   campaigns: '/api/admin/push/campaigns',
   mailTemplates: '/api/admin/mail/templates',
   mailCampaigns: '/api/admin/mail/campaigns',
@@ -97,7 +94,7 @@ describe.skipIf(!haveBackend)('izin ayrıştırıcı örnekleri (kaynak okuma do
     expect(requiredPerm(rules, 'GET', '/api/admin/reports/12')).toBe('chat.read');
     expect(requiredPerm(rules, 'GET', '/api/admin/reports')).toBe('moderation.read');
     expect(requiredPerm(rules, 'POST', '/api/admin/users/5/verify-email')).toBe('users.verify');
-    expect(requiredPerm(rules, 'GET', '/api/admin/announcements')).toBe('comms.read');
+    expect(requiredPerm(rules, 'GET', '/api/admin/push/campaigns')).toBe('comms.read');
     expect(requiredPerm(rules, 'GET', '/api/admin/zzz-yok')).toBe('admin.full');
     expect(profilePerms.VIEWER).toContain('audit.read');
     expect(profilePerms.SUPPORT).not.toContain('audit.read');

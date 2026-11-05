@@ -34,7 +34,7 @@ const m = {
     'Kulüp ve kampüs anketlerine katılın. Oylar gizlidir: kimin ne oy verdiği kimseye gösterilmez.',
   'site.show.academic.title': 'Akademik',
   'site.show.academic.text':
-    'Ders programı, sınav takvimi, akademik takvim ve bölüm duyuruları; hatırlatmalarla birlikte.',
+    'Ders programı, sınav takvimi ve akademik takvim; hatırlatmalarla birlikte.',
 
   'site.shot.home.alt': 'BÜ Kampüs Ana Sayfa ekranı: bugünün yemeği, sıradaki ders, hızlı erişim ve günün menüsü.',
   'site.shot.discover.alt': 'BÜ Kampüs Keşfet ekranı: iki sütunlu fotoğraf akışı; her kutuda yazar ve beğeni sayısı.',

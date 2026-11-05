@@ -65,7 +65,7 @@ const m = {
     'Bingöl Üniversitesi’nin sitesinde yayımlanan haber, duyuru ve etkinlikler her gece bir kez uygulamaya alınır; bu yüzden yeni bir içerik ertesi güne kadar görünmeyebilir. Her haberde resmî kaynak sayfaya bağlantı bulunur. Tümü [haberler sayfasında](/news) listelenir.',
   'site.faq.gen.academic.q': 'Ders programı ve sınav takvimi uygulamada var mı?',
   'site.faq.gen.academic.a':
-    'Evet, ders programı, sınav takvimi, akademik takvim ve bölüm duyuruları hatırlatmalarla birlikte uygulamada yer alır. Bir çelişki olursa üniversitenin resmî duyurusu esastır. Tüm özellikler için [özellikler sayfasına](/features) bakın.',
+    'Evet, ders programı, sınav takvimi ve akademik takvim hatırlatmalarla birlikte uygulamada yer alır. Bir çelişki olursa üniversitenin resmî duyurusu esastır. Tüm özellikler için [özellikler sayfasına](/features) bakın.',
   'site.faq.gen.qr.q': 'Etkinliklerde QR yoklama nasıl çalışır?',
   'site.faq.gen.qr.a':
     'Etkinliklerde yoklama QR kodla ya da etkinliği düzenleyen kişi tarafından elle alınır. Kulüp etkinliklerini takvimden görür ve uygulamadan kaydolursunuz.',

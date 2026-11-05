@@ -32,7 +32,7 @@ const m = {
   'site.show.polls.text': 'Join club and campus polls. Votes are secret: nobody is shown who voted for what.',
   'site.show.academic.title': 'Academic',
   'site.show.academic.text':
-    'Class schedule, exam calendar, academic calendar and department announcements, with reminders.',
+    'Class schedule, exam calendar and academic calendar, with reminders.',
 
   'site.shot.home.alt': 'BÜ Kampüs Home screen: today’s meal, next class, quick access and the menu of the day.',
   'site.shot.discover.alt': 'BÜ Kampüs Discover screen: a two-column photo feed with the author and like count on each tile.',

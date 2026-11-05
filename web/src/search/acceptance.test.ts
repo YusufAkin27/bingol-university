@@ -68,10 +68,9 @@ describe('kabul: diğer sorgular', () => {
     const rows = run(q);
     expect(pagesOf(rows).slice(0, 2)).toContain('twoFactor');
   });
-  it('"duyuru" -> akademik/bölüm duyuruları sayfaları', () => {
+  it('"duyuru" -> haber ve birim haberleri sayfaları', () => {
     const rows = run('duyuru');
     const pages = pagesOf(rows);
-    expect(pages.slice(0, 6)).toEqual(expect.arrayContaining(['acdAnnouncements']));
     expect(pages).toEqual(expect.arrayContaining(['news', 'unitNews']));
   });
   it('"kalori" -> Yemek menüsü', () => {

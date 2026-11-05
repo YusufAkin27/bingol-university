@@ -137,41 +137,6 @@ const calEvent = (id: number) => ({
   published: id % 3 !== 0,
 });
 
-const exam = (id: number) => ({
-  id,
-  title: id === 2 ? 'Olasılık ve İstatistik Ara Sınavı: Mühendislik Fakültesi Tüm Bölümler Çok Uzun' : `Matematik ${id} Ara Sınavı`,
-  type: ['VIZE', 'FINAL', 'BUT', 'QUIZ', 'ODEV', 'DIGER'][id % 6],
-  term: '2026-2027 Güz',
-  courseCode: `MAT${100 + id}`,
-  faculty: 'Mühendislik Fakültesi',
-  department: id % 2 ? 'Bilgisayar Mühendisliği' : null,
-  grade: (['1', '2', '3', '4', 'PREP'] as const)[id % 5],
-  startsAt: new Date(Date.now() + (id - 3) * DAY).toISOString(),
-  endsAt: new Date(Date.now() + (id - 3) * DAY + 5_400_000).toISOString(),
-  room: id === 2 ? 'Amfi-A Blok Zemin Kat Büyük Salon' : `D-${100 + id}`,
-  note: null,
-  published: id % 3 !== 0,
-});
-
-const announcement = (id: number) => ({
-  id,
-  title: id === 2 ? 'Burs Başvuruları Başladı: Tüm Öğrencilerimizin Dikkatine Sunulur Çok Uzun Başlık' : `Duyuru ${id}`,
-  body: 'Duyuru metni burada yer alır.',
-  department: id % 2 ? 'Bilgisayar Programcılığı' : null,
-  faculty: null,
-  grade: id % 3 === 0 ? '2' : null,
-  pinned: id === 1,
-  publishAt: id === 3 ? new Date(Date.now() + 2 * DAY).toISOString() : null,
-  expiresAt: id === 4 ? iso(1) : null,
-  attachmentUrl: null,
-  published: id !== 5,
-  notify: id % 2 === 0,
-  notifiedAt: id % 2 === 0 ? iso(1) : null,
-  createdBy: 1,
-  readCount: 40 * id,
-  createdAt: iso(id),
-});
-
 const news = (id: number) => ({
   id,
   type: (['HABER', 'DUYURU', 'ETKINLIK'] as const)[id % 3],
@@ -303,9 +268,6 @@ export async function stubCommunity(page: Page, scenario: Scenario = 'full', unm
 
       // Akademik
       if (p === '/admin/academic/events') return json(r, pageOf(some(12, calEvent)));
-      if (p === '/admin/academic/exams') return json(r, pageOf(some(9, exam)));
-      if (p === '/admin/announcements/audience-count') return json(r, { count: 1234 });
-      if (p === '/admin/announcements') return json(r, pageOf(some(7, announcement)));
 
       // Sözleşmeler / SSS / Menü
       if (p === '/legal') return json(r, empty ? [] : LEGAL.map((type, i) => ({ type, version: 2 + (i % 3), title: type, lang: 'tr', publishedAt: iso(10 + i) })));

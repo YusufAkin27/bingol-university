@@ -106,9 +106,7 @@ export const adminNav: AdminNavGroup[] = [
     labelKey: 'admin.nav.group.academic',
     items: [
       { id: 'acdCalendar', perm: 'content.read', to: paths.admin.acdCalendar, labelKey: 'admin.nav.acdCalendar', icon: 'graduation' },
-      { id: 'acdExams', perm: 'content.read', to: paths.admin.acdExams, labelKey: 'admin.nav.acdExams', icon: 'pencil' },
       { id: 'acdTimetable', perm: 'content.read', to: paths.admin.acdTimetable, labelKey: 'admin.nav.acdTimetable', icon: 'clock' },
-      { id: 'acdAnnouncements', perm: 'comms.read', to: paths.admin.acdAnnouncements, labelKey: 'admin.nav.acdAnnouncements', icon: 'megaphone' },
     ],
   },
   {
@@ -128,7 +126,6 @@ export const adminNav: AdminNavGroup[] = [
       { id: 'news', perm: 'content.read', to: paths.admin.news, labelKey: 'admin.nav.news', icon: 'news' },
       { id: 'unitNews', perm: 'content.read', to: paths.admin.unitNews, labelKey: 'admin.unitNews.nav', icon: 'graduation' },
       { id: 'menu', perm: 'content.read', to: paths.admin.menu, labelKey: 'admin.nav.menu', icon: 'cup' },
-      { id: 'campus', perm: 'campus.read', to: paths.admin.campus, labelKey: 'admin.campus.nav', icon: 'pin' },
     ],
   },
   {

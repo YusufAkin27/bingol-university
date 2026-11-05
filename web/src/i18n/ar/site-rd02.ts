@@ -40,6 +40,6 @@ const m = {
   'site.rd02.pt.polls.3': 'اختيار واحد أو متعدد أو تقييم أو ترتيب',
   'site.rd02.pt.academic.1': 'جدول المحاضرات وتقويم الامتحانات',
   'site.rd02.pt.academic.2': 'التقويم الأكاديمي',
-  'site.rd02.pt.academic.3': 'إعلانات القسم والتذكيرات',
+  'site.rd02.pt.academic.3': 'تذكيرات الامتحانات',
 } as const;
 export default m;

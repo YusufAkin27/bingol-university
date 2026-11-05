@@ -65,7 +65,7 @@ const m = {
     'News, announcements and events published on the Bingöl University website are imported into the app once every night, so a new item may take until the next day to appear. Every item links to its official source page. Everything is listed on the [news page](/news).',
   'site.faq.gen.academic.q': 'Does the app include the class schedule and exam calendar?',
   'site.faq.gen.academic.a':
-    'Yes, the class schedule, exam calendar, academic calendar and department announcements are in the app, with reminders. If anything conflicts, the university’s official announcement prevails. See the [features page](/features) for everything the app does.',
+    'Yes, the class schedule, exam calendar and academic calendar are in the app, with reminders. If anything conflicts, the university’s official announcement prevails. See the [features page](/features) for everything the app does.',
   'site.faq.gen.qr.q': 'How does QR attendance work at events?',
   'site.faq.gen.qr.a':
     'Attendance at events is taken by QR code or manually by the person organising the event. You see club events in the calendar and sign up in the app.',

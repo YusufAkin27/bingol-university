@@ -107,17 +107,9 @@ export const pageInfo: Record<string, PageInfo> = {
     d: 'Dönem başlangıç, tatil ve sınav haftası tarihleri.',
     k: ['takvim', 'tatil', 'dönem', 'ders kaydı', 'bayram', 'final haftası', 'güz', 'bahar'],
   },
-  acdExams: {
-    d: 'Vize, final ve bütünleme sınav tarihleri.',
-    k: ['sınav', 'vize', 'final', 'bütünleme', 'sınav tarihi', 'sınav günü', 'exam'],
-  },
   acdTimetable: {
     d: 'Bölüm ve sınıf bazlı ders programını Excel ile yükle.',
     k: ['ders programı', 'haftalık program', 'excel yükle', 'ders saati', 'program yükle', 'timetable', 'güz programı'],
-  },
-  acdAnnouncements: {
-    d: 'Fakülte ve bölümlere özel duyuru gönder.',
-    k: ['duyuru', 'bölüm duyurusu', 'fakülte duyurusu', 'toplu duyuru', 'öğrencilere haber ver'],
   },
   tickets: {
     d: 'Kullanıcıların yazdığı yardım istekleri ve yanıtlar.',
@@ -142,10 +134,6 @@ export const pageInfo: Record<string, PageInfo> = {
   unitNews: {
     d: 'Fakülte, enstitü ve MYO sitelerinden gelen bölüm duyuruları ve kaynakları.',
     k: ['birim haberleri', 'bölüm duyuruları', 'fakülte', 'duyuru', 'alt siteler', 'meslek yüksekokulu', 'enstitü', 'fakülte duyurusu', 'duyuru gizle'],
-  },
-  campus: {
-    d: 'Kampüs haritasındaki binalar ve yerler, harita merkezi, sınırı ve karo adresi.',
-    k: ['harita', 'kampüs haritası', 'bina', 'yer', 'konum', 'koordinat', 'enlem', 'boylam', 'karo', 'sınır', 'yer ekle', 'fakülte binası', 'yurt', 'otopark', 'kapı', 'openstreetmap'],
   },
   menu: {
     d: 'Günlük yemek listesi ve yemeklerin kalorisi.',
