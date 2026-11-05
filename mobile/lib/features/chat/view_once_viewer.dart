@@ -263,11 +263,14 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
     final img = _image;
     if (img == null) return const SizedBox.shrink();
     final caption = (widget.caption ?? '').trim();
+    // Fotoğraf, üst çubuk ile alt ipucu arasındaki alanın ORTASINDA durur (üste yapışmaz, kenara kaymaz): Expanded + Center.
     return Column(mainAxisAlignment: MainAxisAlignment.start, children: [
-      Flexible(
+      Expanded(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: ClipRRect(
+          child: Center(
+            child: ClipRRect(
+            key: const ValueKey('onceImageBox'),
             borderRadius: BorderRadius.circular(20),
             child: Stack(children: [
               Image(
@@ -307,6 +310,7 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
                   ),
                 ),
             ]),
+            ),
           ),
         ),
       ),

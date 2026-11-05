@@ -12,6 +12,7 @@ import 'package:video_player/video_player.dart';
 
 import '../api.dart';
 import '../session.dart';
+import 'video_frame.dart';
 
 /// Seçilmiş (henüz işlenmemiş) video dosyası.
 class PickedVideo {
@@ -187,6 +188,8 @@ class PlatformVideoCompressor implements VideoCompressor {
 
   @override
   Future<Uint8List?> poster(String path, {int positionMs = 0}) async {
+    // iOS: yerel AVAssetImageGenerator köprüsü (video_compress iOS'ta derlenmez).
+    if (Platform.isIOS) return PlatformVideoFrames.instance.frame(path: path, positionMs: positionMs);
     if (!_supported) return null;
     try {
       return await vc.VideoCompress.getByteThumbnail(path, quality: 80, position: positionMs);
@@ -235,7 +238,7 @@ class VideoService {
   /// Bu boyutun altındaki ve en çok 1280 px'lik videolar olduğu gibi gönderilir.
   static const skipCompressBytes = 6 * 1024 * 1024;
 
-  /// Videonun [positionMs] anındaki kare (JPEG); alınamazsa null (iOS'ta kare çıkarma yok: kapak seçimi gösterilmez).
+  /// Videonun [positionMs] anındaki kare (JPEG); alınamazsa null (kare çıkarma desteklenmeyen platformda kapak seçimi gösterilmez).
   Future<Uint8List?> frameAt(String path, int positionMs) => _compressor.poster(path, positionMs: positionMs);
 
   /// Galeriden ya da kameradan seçer (kamera en çok 60 sn kaydeder). İptalde null.

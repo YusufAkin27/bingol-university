@@ -10,6 +10,7 @@ import '../../l10n/app_localizations.dart';
 import '../../widgets/bu.dart';
 import 'chat_media.dart';
 import 'chat_media_parts.dart';
+import 'chat_video_cover.dart';
 import 'chat_video_player.dart';
 import 'chatd_parts.dart';
 import 'message_bubble.dart' show PlayBadge;
@@ -298,13 +299,13 @@ class _VideoPosterPage extends StatelessWidget {
           onTap: () => _play(context),
           child: Stack(alignment: Alignment.center, fit: StackFit.expand, children: [
             ColoredBox(color: kChatdNavy),
-            if (thumb != null)
-              Image.network(chatMediaUrl(thumb),
-                  headers: headers,
-                  fit: BoxFit.contain,
-                  cacheWidth: (w * dpr).ceil().clamp(300, 1600),
-                  gaplessPlayback: true,
-                  errorBuilder: (c, e, s) => const SizedBox.shrink()),
+            // Kapak: sunucu posteri, yoksa videodan üretilen kare (önbellekli); hiçbiri yoksa koyu zemin.
+            ChatVideoCover(
+                videoUrl: item.url,
+                posterUrl: thumb,
+                headers: headers,
+                fit: BoxFit.contain,
+                decodeWidth: (w * dpr).ceil().clamp(300, 1600)),
             ColoredBox(color: t.scrim.withValues(alpha: .18)),
             Center(
               child: Column(mainAxisSize: MainAxisSize.min, children: [
