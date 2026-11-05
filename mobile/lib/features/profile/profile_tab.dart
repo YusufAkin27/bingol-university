@@ -18,7 +18,6 @@ import 'avatar_upload.dart';
 import 'my_clubs_page.dart';
 import 'my_events_page.dart';
 import 'notification_prefs_page.dart';
-import 'popularity_card.dart';
 import 'profile_content_tabs.dart';
 import 'profile_inline_edit.dart';
 import 'profil_widgets.dart';
@@ -285,12 +284,6 @@ class _ProfileTabState extends State<ProfileTab> {
                   reelCount: (p['reelCount'] as num?)?.toInt(),
                 ),
               ),
-            ),
-          // Popülerlik puanı (sunucu hesaplar; yanıtta yoksa hiç çizilmez): içeriğin altında, ilk ekranı kaplamaz.
-          if (PopularityCard.scoreOf(p) != null)
-            BuStaggerItem(
-              index: 2,
-              child: Padding(padding: const EdgeInsets.only(top: 16), child: PopularityCard(profile: p, self: true)),
             ),
           BuStaggerItem(
             index: 2,

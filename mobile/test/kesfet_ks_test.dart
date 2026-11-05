@@ -5,12 +5,10 @@ import 'package:bu_kampus/features/discover/discover_masonry.dart';
 import 'package:bu_kampus/features/discover/discover_tab.dart';
 import 'package:bu_kampus/features/posts/compose_post_page.dart';
 import 'package:bu_kampus/features/posts/feed_seen.dart';
-import 'package:bu_kampus/features/posts/popularity_meter.dart';
 import 'package:bu_kampus/features/posts/post_api.dart';
 import 'package:bu_kampus/features/posts/post_card.dart';
 import 'package:bu_kampus/features/posts/post_models.dart';
 import 'package:bu_kampus/features/posts/post_video.dart';
-import 'package:bu_kampus/features/profile/popularity_card.dart';
 import 'package:bu_kampus/features/reels/reels_feed.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -250,7 +248,7 @@ void main() {
     });
   });
 
-  group('video karti + puan gostergesi', () {
+  group('video karti', () {
     testWidgets('detay kartinda video gorununce sessiz oynar; ses dugmesi; sure 1 sn ustu izlenince view bildirilir',
         (tester) async {
       useScreen(tester, const Size(390, 844));
@@ -270,8 +268,6 @@ void main() {
       expect(plat.created.single.uri, contains('/api/posts/media/2001'));
       expect(plat.calls, contains('play'));
       expect(plat.volumes.last, 0); // sessiz baslar
-      expect(find.byKey(const ValueKey('popularityMeter')), findsOneWidget);
-      expect(tester.widget<Text>(find.byKey(const ValueKey('popularityValue'))).data, '72');
       await tester.tap(find.byKey(const ValueKey('postVideoSound')));
       await tester.pump(const Duration(milliseconds: 20)); // dugme gecikmesiz (cift dokunus sarmalayicisinin disinda)
       expect(postVideoMuted.value, isFalse);
@@ -279,31 +275,6 @@ void main() {
       postVideoMuted.value = true;
       // Ekrandan cikinca izlenme bildirilir (>= 1 sn gercek zaman gerekir; burada kisa oldugundan bildirim yok).
       await unmount(tester);
-    });
-
-    testWidgets('PopularityMeter: cubuk orani = puan; erisilebilir etiket', (tester) async {
-      await tester.pumpWidget(buildApp(const Scaffold(body: Center(child: PopularityMeter(score: 40)))));
-      await tester.pump();
-      expect(find.text('40'), findsOneWidget);
-      expect(find.text('Popülerlik'), findsOneWidget);
-      final f = tester.widget<FractionallySizedBox>(find.ancestor(of: find.byKey(const ValueKey('popularityFill')), matching: find.byType(FractionallySizedBox)));
-      expect(f.widthFactor, closeTo(.4, .0001));
-      expect(find.bySemanticsLabel('Popülerlik puanı 40 / 100'), findsOneWidget);
-    });
-
-    testWidgets('PopularityCard: puan yoksa cizilmez; varsa puan + bilesenler', (tester) async {
-      await tester.pumpWidget(buildApp(const Scaffold(body: PopularityCard(profile: {'followerCount': 3}))));
-      expect(find.byKey(const ValueKey('popularityCard')), findsNothing);
-      await tester.pumpWidget(buildApp(const Scaffold(
-          body: Padding(
-              padding: EdgeInsets.all(20),
-              child: PopularityCard(profile: {'popularityScore': 58, 'followerCount': 120, 'likesReceived': 340, 'postCount': 9}, self: true)))));
-      await tester.pump();
-      expect(find.text('58'), findsOneWidget);
-      expect(find.text('120'), findsOneWidget);
-      expect(find.text('340'), findsOneWidget);
-      expect(find.text('Alınan beğeni'), findsOneWidget);
-      expect(find.textContaining('hesaplanır'), findsOneWidget);
     });
   });
 

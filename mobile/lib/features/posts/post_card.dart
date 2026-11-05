@@ -8,7 +8,6 @@ import 'like_button.dart';
 import 'post_actions.dart';
 import 'post_models.dart';
 import 'avatar_preview.dart';
-import 'popularity_meter.dart';
 import 'post_photo_viewer.dart';
 import 'post_routes.dart';
 import 'post_video.dart';
@@ -372,11 +371,6 @@ class _PostCardState extends State<PostCard> {
               ],
             ]),
           ),
-          if (p.popularityScore != null)
-            Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.page, 8, BuSpace.page, 0),
-              child: Align(alignment: AlignmentDirectional.centerStart, child: PopularityMeter(score: p.popularityScore!)),
-            ),
           if (p.editedAt != null)
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.page, 6, BuSpace.page, 0),

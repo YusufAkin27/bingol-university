@@ -11,7 +11,6 @@ import '../../widgets/bu.dart';
 import '../posts/avatar_preview.dart';
 import '../posts/feed_seen.dart';
 import '../posts/like_button.dart';
-import '../posts/popularity_meter.dart';
 import '../posts/post_actions.dart';
 import '../posts/post_api.dart';
 import '../posts/post_media_uploader.dart' show postErrorText;
@@ -530,10 +529,6 @@ class _ReelPageState extends State<_ReelPage> {
             const SizedBox(height: 6),
             Text(l.kesViews('${p.viewCount}'),
                 style: tt.labelMedium?.copyWith(color: t.onMedia.withValues(alpha: .75), fontFeatures: const [FontFeature.tabularFigures()])),
-          ],
-          if (p.popularityScore != null) ...[
-            const SizedBox(height: 8),
-            PopularityMeter(score: p.popularityScore!, onMedia: true, width: 72),
           ],
         ]),
       ),

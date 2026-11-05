@@ -15,7 +15,6 @@ import '../follow/follow_button.dart';
 import '../follow/follow_list_page.dart';
 import '../follow/locked_profile_block.dart';
 import '../posts/social_api.dart';
-import 'popularity_card.dart';
 import '../posts/social_models.dart';
 import 'profile_content_tabs.dart';
 
@@ -537,10 +536,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
               },
             ),
             const SizedBox(height: 14),
-            if (_p != null && PopularityCard.scoreOf(_p) != null) ...[
-              PopularityCard(profile: _p!),
-              const SizedBox(height: 14),
-            ],
             _infoCard(t, bio: bio, faculty: faculty, dept: dept, grade: grade, email: email),
           ],
         ],
