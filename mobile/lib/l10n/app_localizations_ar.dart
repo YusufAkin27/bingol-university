@@ -6214,7 +6214,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get anasayfaQuickAcademic => 'الأكاديمي';
 
   @override
-  String get gonderiTextHint => 'اكتب بضع كلمات…';
+  String get gonderiTextHint => 'اكتب شيئًا…';
 
   @override
   String gonderiWordCount(String n, String max) {
@@ -6225,6 +6225,98 @@ class AppLocalizationsAr extends AppLocalizations {
   String gonderiWordLimit(String max) {
     return 'الحد الأقصى للكلمات: $max.';
   }
+
+  @override
+  String get composeTrimTitle => 'قصّ الفيديو';
+
+  @override
+  String get composeTrimDone => 'تم';
+
+  @override
+  String get composeTrimEdit => 'تعديل';
+
+  @override
+  String get composeTrimCta => 'قصّ الفيديو';
+
+  @override
+  String get composeTrimming => 'جارٍ قصّ الفيديو…';
+
+  @override
+  String composeTrimSelected(String dur) {
+    return 'المدة المحددة $dur';
+  }
+
+  @override
+  String composeTrimHint(String max) {
+    return 'اسحب المقبضين لاختيار مقطع. حتى $max.';
+  }
+
+  @override
+  String composeTrimTooLong(String max) {
+    return 'الفيديو طويل جدًا. اختر مقطعًا لا يتجاوز $max لمشاركته.';
+  }
+
+  @override
+  String get composeTrimStart => 'البداية';
+
+  @override
+  String get composeTrimEnd => 'النهاية';
+
+  @override
+  String get composeTrimPlay => 'تشغيل';
+
+  @override
+  String get composeTrimPause => 'إيقاف مؤقت';
+
+  @override
+  String get composeTooLongTitle => 'الفيديو طويل جدًا';
+
+  @override
+  String composeTooLongBody(String dur, String max) {
+    return 'مدة هذا الفيديو $dur. يمكنك مشاركة $max كحد أقصى، لذا قصّه أولًا.';
+  }
+
+  @override
+  String get composeTooLongOther => 'اختر فيديو آخر';
+
+  @override
+  String composeVideoLimitsHint(String n) {
+    return 'حتى $n ثانية؛ يمكنك قصّ الفيديو الأطول.';
+  }
+
+  @override
+  String get composeTagPerson => 'وسم أشخاص';
+
+  @override
+  String composeTagRemove(String name) {
+    return 'إزالة وسم $name';
+  }
+
+  @override
+  String get composeMentionSearch => 'ابحث بين من تتابعهم';
+
+  @override
+  String get composeMentionEmpty => 'تابع أشخاصًا لتتمكن من وسمهم';
+
+  @override
+  String get composeMentionNoMatch => 'لا يوجد أشخاص مطابقون';
+
+  @override
+  String composeMentionMax(String max) {
+    return 'يمكنك وسم $max أشخاص كحد أقصى.';
+  }
+
+  @override
+  String get composeMentionDone => 'تم';
+
+  @override
+  String postMentionOpen(String name) {
+    return 'فتح ملف $name';
+  }
+
+  @override
+  String get postComposeErrTextTooLong =>
+      'نص المنشور طويل جدًا. اختصره قليلًا وحاول مرة أخرى.';
 
   @override
   String get gonderiPickPhoto => 'اختر صورة';

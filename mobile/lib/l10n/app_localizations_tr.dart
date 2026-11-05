@@ -6238,7 +6238,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get anasayfaQuickAcademic => 'Akademik';
 
   @override
-  String get gonderiTextHint => 'Birkaç kelime yaz…';
+  String get gonderiTextHint => 'Bir şeyler yaz…';
 
   @override
   String gonderiWordCount(String n, String max) {
@@ -6249,6 +6249,98 @@ class AppLocalizationsTr extends AppLocalizations {
   String gonderiWordLimit(String max) {
     return 'En çok $max kelime yazabilirsin.';
   }
+
+  @override
+  String get composeTrimTitle => 'Videoyu kırp';
+
+  @override
+  String get composeTrimDone => 'Bitti';
+
+  @override
+  String get composeTrimEdit => 'Düzenle';
+
+  @override
+  String get composeTrimCta => 'Videoyu kırp';
+
+  @override
+  String get composeTrimming => 'Video kırpılıyor…';
+
+  @override
+  String composeTrimSelected(String dur) {
+    return 'Seçilen süre $dur';
+  }
+
+  @override
+  String composeTrimHint(String max) {
+    return 'Tutamaçları sürükleyerek bir bölüm seç. En çok $max.';
+  }
+
+  @override
+  String composeTrimTooLong(String max) {
+    return 'Video çok uzun. Paylaşmak için en çok $max uzunluğunda bir bölüm seç.';
+  }
+
+  @override
+  String get composeTrimStart => 'Başlangıç';
+
+  @override
+  String get composeTrimEnd => 'Bitiş';
+
+  @override
+  String get composeTrimPlay => 'Oynat';
+
+  @override
+  String get composeTrimPause => 'Duraklat';
+
+  @override
+  String get composeTooLongTitle => 'Video çok uzun';
+
+  @override
+  String composeTooLongBody(String dur, String max) {
+    return 'Bu video $dur uzunluğunda. En çok $max paylaşabilirsin, bu yüzden önce kırpman gerekiyor.';
+  }
+
+  @override
+  String get composeTooLongOther => 'Başka video seç';
+
+  @override
+  String composeVideoLimitsHint(String n) {
+    return 'Video en fazla $n saniye; uzunsa kırpabilirsin.';
+  }
+
+  @override
+  String get composeTagPerson => 'Kişi etiketle';
+
+  @override
+  String composeTagRemove(String name) {
+    return '$name etiketini kaldır';
+  }
+
+  @override
+  String get composeMentionSearch => 'Takip ettiklerinde ara';
+
+  @override
+  String get composeMentionEmpty => 'Etiketlemek için kişileri takip et';
+
+  @override
+  String get composeMentionNoMatch => 'Eşleşen kişi yok';
+
+  @override
+  String composeMentionMax(String max) {
+    return 'En çok $max kişi etiketleyebilirsin.';
+  }
+
+  @override
+  String get composeMentionDone => 'Tamam';
+
+  @override
+  String postMentionOpen(String name) {
+    return '$name profilini aç';
+  }
+
+  @override
+  String get postComposeErrTextTooLong =>
+      'Gönderi metni çok uzun. Biraz kısaltıp tekrar dene.';
 
   @override
   String get gonderiPickPhoto => 'Fotoğraf seç';

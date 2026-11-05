@@ -11,6 +11,7 @@ import 'package:bu_kampus/features/posts/post_models.dart';
 import 'package:bu_kampus/features/posts/post_text_rules.dart';
 import 'package:bu_kampus/features/posts/user_posts_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show TextEditingValue, TextSelection;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_app.dart';
@@ -42,13 +43,26 @@ void main() {
   setUpAll(loadTestFonts);
 
   group('metin kurallari', () {
-    test('kelime sayimi ve sinir', () {
-      expect(postWordCount(''), 0);
-      expect(postWordCount('  bir   iki '), 2);
-      expect(postTextOk('bir iki uc dort bes alti yedi'), isTrue);
-      expect(postTextOk('bir iki uc dort bes alti yedi sekiz'), isFalse);
-      expect(postTextOk(''), isTrue);
-      expect(postTextOk('a' * 61), isFalse);
+    test('gizli ust sinir: 2200 karakter / 40 satir, sessizce kirpar', () {
+      expect(kPostMaxChars, 2200);
+      expect(kPostMaxLines, 40);
+      expect(clampPostText('kisa'), 'kisa');
+      expect(clampPostText('a' * 2500).length, 2200);
+      expect(clampPostText(List.filled(60, 'x').join('\n')).split('\n'), hasLength(40));
+      // Cok satirli, 7 kelimeyi asan metin serbest.
+      const free = 'bir iki uc dort bes alti yedi sekiz\ndokuz on';
+      expect(clampPostText(free), free);
+      // Vekil cift (emoji) ortadan kesilmez.
+      final cut = clampPostText('${'a' * 2199}\u{1F600}');
+      expect(cut.length, 2199);
+    });
+
+    test('PostTextLimiter yapistirmada sessizce keser', () {
+      const f = PostTextLimiter();
+      final out = f.formatEditUpdate(
+          TextEditingValue.empty, TextEditingValue(text: 'b' * 3000, selection: const TextSelection.collapsed(offset: 3000)));
+      expect(out.text.length, 2200);
+      expect(out.selection.baseOffset, 2200);
     });
   });
 
@@ -105,35 +119,34 @@ void main() {
       noErr(tester);
     });
 
-    testWidgets('7 kelime siniri: canli sayac, 8. kelimede uyari ve paylas pasif', (tester) async {
+    testWidgets('kelime siniri yok: sayac ve uyari gorunmez, paylas acik kalir; cok satirli metin serbest', (tester) async {
       await open(tester);
       await tester.tap(find.byKey(const ValueKey('composeCamera')));
       await settle(tester, const Duration(milliseconds: 300));
       final field = find.byKey(const ValueKey('composeText'));
-      expect(find.text('0/7 kelime'), findsOneWidget);
-      await tester.enterText(field, 'bir iki uc dort bes');
+      expect(find.byKey(const ValueKey('composeCounter')), findsNothing);
+      expect(find.textContaining('kelime'), findsNothing);
+      await tester.enterText(field, 'bir iki uc dort bes alti yedi sekiz dokuz on onbir oniki');
       await tester.pump();
-      expect(find.text('5/7 kelime'), findsOneWidget);
       expect(find.byKey(const ValueKey('composeLimitWarn')), findsNothing);
+      expect(find.textContaining('/7'), findsNothing);
       expect(_shareEnabled(tester), isTrue);
-      await tester.enterText(field, 'bir iki uc dort bes alti yedi');
+      await tester.enterText(field, 'bir\niki\nuc');
       await tester.pump();
-      expect(find.text('7/7 kelime'), findsOneWidget);
-      expect(_shareEnabled(tester), isTrue);
-      await tester.enterText(field, 'bir iki uc dort bes alti yedi sekiz');
-      await tester.pump();
-      expect(find.text('8/7 kelime'), findsOneWidget);
-      expect(find.byKey(const ValueKey('composeLimitWarn')), findsOneWidget);
-      expect(_shareEnabled(tester), isFalse);
+      expect(tester.widget<TextField>(field).controller!.text, 'bir\niki\nuc');
       noErr(tester);
     });
 
-    testWidgets('satir sonu yazilamaz', (tester) async {
+    testWidgets('2200 karakterde giris sessizce durur (sayac/uyari yok)', (tester) async {
       await open(tester);
+      await tester.tap(find.byKey(const ValueKey('composeCamera')));
+      await settle(tester, const Duration(milliseconds: 300));
       final field = find.byKey(const ValueKey('composeText'));
-      await tester.enterText(field, 'bir\niki');
+      await tester.enterText(field, 'x' * 2600);
       await tester.pump();
-      expect(tester.widget<TextField>(field).controller!.text, 'biriki');
+      expect(tester.widget<TextField>(field).controller!.text.length, 2200);
+      expect(find.textContaining('2200'), findsNothing);
+      expect(_shareEnabled(tester), isTrue);
       noErr(tester);
     });
 

@@ -223,9 +223,8 @@ void main() {
       expect(find.byKey(const ValueKey('composePreview')), findsOneWidget);
       expect(find.text('4:5'), findsNothing);
       expect(find.byKey(const ValueKey('composeSingleHint')), findsNothing);
-      // Tek birincil düğme: Paylaş (Material dolgusu) + sayaç sessiz.
-      final counter = tester.widget<Text>(find.byKey(const ValueKey('composeCounter')));
-      expect(counter.style?.fontWeight ?? FontWeight.w400, FontWeight.w400, reason: 'kalin yazi yok; sayac sinirdan once sessiz');
+      // Tek birincil düğme: Paylaş (Material dolgusu); kelime sayacı yok.
+      expect(find.byKey(const ValueKey('composeCounter')), findsNothing);
       noErr(tester);
     });
 
@@ -397,16 +396,13 @@ void main() {
       noErr(tester);
     });
 
-    testWidgets('duzenle diyalogu: alan 16 kose 1 dp bdStrong, sayac alanin altinda sagda 12 mut; Vazgec + Kaydet', (tester) async {
+    testWidgets('duzenle diyalogu: alan 16 kose 1 dp bdStrong, sayac/kelime siniri yok; Vazgec + Kaydet', (tester) async {
       await openDetail(tester, mine: true);
       await tester.tap(find.byKey(const ValueKey('post-menu-button')));
       await settle(tester, const Duration(milliseconds: 900));
       await tester.tap(find.byKey(const ValueKey('post-act-edit')));
       await settle(tester, const Duration(milliseconds: 600));
-      final counter = find.byKey(const ValueKey('edit-post-counter'));
-      expect(counter, findsOneWidget);
-      expect(tester.widget<Text>(counter).style?.fontSize, 12);
-      expect(tester.getTopLeft(counter).dy, greaterThan(tester.getBottomLeft(find.byKey(const ValueKey('edit-post-text'))).dy));
+      expect(find.byKey(const ValueKey('edit-post-counter')), findsNothing);
       expect(find.byKey(const ValueKey('post-dialog-cancel')), findsOneWidget);
       expect(tester.getSize(find.byKey(const ValueKey('edit-post-save'))).height, greaterThanOrEqualTo(48));
       noErr(tester);

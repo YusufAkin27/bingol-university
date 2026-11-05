@@ -51,6 +51,8 @@ String postErrorText(Object e, [AppLocalizations? l]) {
         return t.postComposeErrMediaInvalid;
       case 'CONTENT_PROFANITY':
         return t.postComposeErrProfanity;
+      case 'POST_TEXT_TOO_LONG':
+        return t.postComposeErrTextTooLong;
     }
     final known = knownErrorText(e, t);
     if (known != null) return known;

@@ -87,6 +87,8 @@ final class BuNativeBridge: NSObject, FlutterPlugin, UNUserNotificationCenterDel
     BuSecureView.shared.attach(secure)
     // Video kapak karesi (gönderirken yerel dosyadan, gösterirken yetkili ağ adresinden): BuVideoFrames, dosya sonunda.
     BuVideoFrames.register(with: messenger)
+    // Video kırpma (AVAssetExportSession, yeniden kodlamadan): lib/core/platform/video_trim.dart.
+    BuVideoTrim.register(with: messenger)
     // Cihaz takvimine yazma (EventKit) ve alarm yedeği (yerel bildirim): BuCalendarAlarmBridge.swift.
     BuCalendarBridge.register(messenger: messenger)
     BuAlarmBridge.register(messenger: messenger)
@@ -583,5 +585,72 @@ enum BuVideoFrames {
       }
     }
     return nil
+  }
+}
+
+// MARK: - Video kırpma (kanal `bu_kampus/video_trim`)
+
+/// `trim {path, startMs, endMs, maxMs}` -> yeni mp4/mov dosyasının yolu (`tmp/video_trim/`).
+/// `AVAssetExportSession` + `AVAssetExportPresetPassthrough`: yeniden kodlamadan, yalnız `timeRange` kesilir (başlangıç
+/// en yakın anahtar kareye oturur, süre birkaç yüz ms oynayabilir). `maxMs` > 0 ise çıktı başlangıç + maxMs'i aşmaz.
+/// Hata: `BAD_ARGS` ya da `FAILED`. UYARI: macOS/Xcode'da derlenip denenmedi.
+enum BuVideoTrim {
+  static func register(with messenger: FlutterBinaryMessenger) {
+    let channel = FlutterMethodChannel(name: "bu_kampus/video_trim", binaryMessenger: messenger)
+    channel.setMethodCallHandler { call, result in
+      guard call.method == "trim" else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      guard let args = call.arguments as? [String: Any],
+            let path = args["path"] as? String, !path.isEmpty,
+            let startMs = (args["startMs"] as? NSNumber)?.int64Value,
+            let endMs = (args["endMs"] as? NSNumber)?.int64Value,
+            startMs >= 0, endMs > startMs else {
+        result(FlutterError(code: "BAD_ARGS", message: "args", details: nil))
+        return
+      }
+      let maxMs = (args["maxMs"] as? NSNumber)?.int64Value ?? 0
+      let cap = maxMs > 0 ? min(endMs, startMs + maxMs) : endMs
+      let asset = AVURLAsset(url: URL(fileURLWithPath: path))
+      guard let export = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetPassthrough) else {
+        result(FlutterError(code: "FAILED", message: "session", details: nil))
+        return
+      }
+      let dir = FileManager.default.temporaryDirectory.appendingPathComponent("video_trim", isDirectory: true)
+      try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+      removeStale(in: dir)
+      let fileType: AVFileType = export.supportedFileTypes.contains(.mp4) ? .mp4 : .mov
+      let ext = fileType == .mp4 ? "mp4" : "mov"
+      let out = dir.appendingPathComponent("trim_\(UUID().uuidString).\(ext)")
+      export.outputURL = out
+      export.outputFileType = fileType
+      export.shouldOptimizeForNetworkUse = true
+      export.timeRange = CMTimeRange(
+        start: CMTime(value: startMs, timescale: 1000),
+        end: CMTime(value: cap, timescale: 1000))
+      export.exportAsynchronously {
+        DispatchQueue.main.async {
+          if export.status == .completed {
+            result(out.path)
+          } else {
+            try? FileManager.default.removeItem(at: out)
+            result(FlutterError(code: "FAILED", message: export.error?.localizedDescription, details: nil))
+          }
+        }
+      }
+    }
+  }
+
+  /// Eski kesim dosyalarını (6 saatten eski) temizler.
+  private static func removeStale(in dir: URL) {
+    let keys: [URLResourceKey] = [.contentModificationDateKey]
+    guard let files = try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: keys) else { return }
+    let limit = Date().addingTimeInterval(-6 * 3600)
+    for file in files {
+      if let date = (try? file.resourceValues(forKeys: Set(keys)))?.contentModificationDate, date < limit {
+        try? FileManager.default.removeItem(at: file)
+      }
+    }
   }
 }

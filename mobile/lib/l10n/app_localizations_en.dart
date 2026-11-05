@@ -6265,7 +6265,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get anasayfaQuickAcademic => 'Academic';
 
   @override
-  String get gonderiTextHint => 'Write a few words…';
+  String get gonderiTextHint => 'Write something…';
 
   @override
   String gonderiWordCount(String n, String max) {
@@ -6276,6 +6276,98 @@ class AppLocalizationsEn extends AppLocalizations {
   String gonderiWordLimit(String max) {
     return 'You can write up to $max words.';
   }
+
+  @override
+  String get composeTrimTitle => 'Trim video';
+
+  @override
+  String get composeTrimDone => 'Done';
+
+  @override
+  String get composeTrimEdit => 'Edit';
+
+  @override
+  String get composeTrimCta => 'Trim video';
+
+  @override
+  String get composeTrimming => 'Trimming video…';
+
+  @override
+  String composeTrimSelected(String dur) {
+    return 'Selected length $dur';
+  }
+
+  @override
+  String composeTrimHint(String max) {
+    return 'Drag the handles to choose a section. Up to $max.';
+  }
+
+  @override
+  String composeTrimTooLong(String max) {
+    return 'This video is too long. Choose a section up to $max to share it.';
+  }
+
+  @override
+  String get composeTrimStart => 'Start';
+
+  @override
+  String get composeTrimEnd => 'End';
+
+  @override
+  String get composeTrimPlay => 'Play';
+
+  @override
+  String get composeTrimPause => 'Pause';
+
+  @override
+  String get composeTooLongTitle => 'Video is too long';
+
+  @override
+  String composeTooLongBody(String dur, String max) {
+    return 'This video is $dur long. You can share up to $max, so trim it first.';
+  }
+
+  @override
+  String get composeTooLongOther => 'Choose another video';
+
+  @override
+  String composeVideoLimitsHint(String n) {
+    return 'Up to $n seconds; trim longer videos.';
+  }
+
+  @override
+  String get composeTagPerson => 'Tag people';
+
+  @override
+  String composeTagRemove(String name) {
+    return 'Remove tag for $name';
+  }
+
+  @override
+  String get composeMentionSearch => 'Search people you follow';
+
+  @override
+  String get composeMentionEmpty => 'Follow people to tag them';
+
+  @override
+  String get composeMentionNoMatch => 'No matching people';
+
+  @override
+  String composeMentionMax(String max) {
+    return 'You can tag up to $max people.';
+  }
+
+  @override
+  String get composeMentionDone => 'Done';
+
+  @override
+  String postMentionOpen(String name) {
+    return 'Open the profile of $name';
+  }
+
+  @override
+  String get postComposeErrTextTooLong =>
+      'The post text is too long. Shorten it a little and try again.';
 
   @override
   String get gonderiPickPhoto => 'Choose a photo';

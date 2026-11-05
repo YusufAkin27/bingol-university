@@ -6,7 +6,7 @@ import '../../widgets/bu.dart';
 /// Renkler yalnÄ±z [BuTokens] Ã¼zerinden gelir.
 
 /// AvatarÄ±n kÃ¶ÅŸesindeki kÃ¼Ã§Ã¼k rozetin anlamÄ±.
-enum PushAvatarRole { like, follow, request, accepted }
+enum PushAvatarRole { like, follow, request, accepted, mention }
 
 /// [style] anahtarÄ±na gÃ¶re simge + renk ailesi (karo zemini/simgesi). Palet: marka, mavi, yeÅŸil, amber, su mavisi, nÃ¶tr.
 IconData pushStyleIcon(String style) => switch (style) {
@@ -21,6 +21,7 @@ IconData pushStyleIcon(String style) => switch (style) {
       'SUPPORT' => Icons.support_agent,
       'MEAL' => Icons.restaurant,
       'SYSTEM' => Icons.info_outline,
+      'MENTION' => Icons.alternate_email,
       'FOLLOW' || 'FOLLOW_REQUEST' || 'FOLLOW_ACCEPTED' || 'SOCIAL' || 'LIKE' => Icons.people_outline,
       'CHAT_GROUP' => Icons.groups_outlined,
       'CHAT_DIRECT' || 'CHAT_MEDIA' => Icons.chat_bubble_outline,
@@ -33,7 +34,7 @@ BuTint pushStyleTint(BuTokens t, String style) => t.tints[switch (style) {
       'EVENT_REMINDER' || 'EVENT_ADMISSION' || 'EVENT_UPDATE' || 'EVENT' => BuTintId.blue,
       'POLL' => BuTintId.aqua,
       'MEAL' => BuTintId.amber,
-      'SUPPORT' || 'SYSTEM' || 'MODERATION' || 'LIKE' || 'SOCIAL' || 'FOLLOW' || 'FOLLOW_REQUEST' || 'FOLLOW_ACCEPTED' => BuTintId.slate,
+      'SUPPORT' || 'SYSTEM' || 'MODERATION' || 'LIKE' || 'MENTION' || 'SOCIAL' || 'FOLLOW' || 'FOLLOW_REQUEST' || 'FOLLOW_ACCEPTED' => BuTintId.slate,
       _ => BuTintId.brand,
     }];
 
@@ -113,6 +114,7 @@ class PushAvatar extends StatelessWidget {
       PushAvatarRole.follow => (Icons.person_add_alt_1, t.ink, t.bg),
       PushAvatarRole.request => (Icons.lock, t.ink, t.bg),
       PushAvatarRole.accepted => (Icons.check, t.ok, t.sf),
+      PushAvatarRole.mention => (Icons.alternate_email, t.pr, t.onPr),
       null => null,
     };
     return SizedBox(

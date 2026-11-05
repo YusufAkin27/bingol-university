@@ -119,6 +119,23 @@ class PostMedia {
   }
 }
 
+/// Gönderide etiketlenen kişi (`mentions: [{userId, displayName}]`). Metinde `@Ad Soyad` düz metni olarak geçer.
+class PostMention {
+  const PostMention({required this.userId, required this.displayName});
+
+  /// Null-güvenli: kimliği ya da adı olmayan öğe null döner (listeden atılır).
+  static PostMention? tryParse(Object? v) {
+    if (v is! Map) return null;
+    final id = _int(v['userId'] ?? v['id']);
+    final name = (_str(v['displayName']) ?? '').trim();
+    if (id <= 0 || name.isEmpty) return null;
+    return PostMention(userId: id, displayName: name);
+  }
+
+  final int userId;
+  final String displayName;
+}
+
 class LikeResult {
   const LikeResult({required this.liked, required this.likeCount});
 
@@ -177,6 +194,7 @@ class Post {
     this.viewCount,
     this.commentCount,
     this.savedByMe,
+    this.mentions = const [],
   });
 
   factory Post.fromJson(Map<String, dynamic>? j) {
@@ -209,6 +227,7 @@ class Post {
       viewCount: _intOrNull(j?['viewCount']),
       commentCount: _intOrNull(j?['commentCount']),
       savedByMe: j?['savedByMe'] is bool ? j!['savedByMe'] as bool : null,
+      mentions: _mentions(j?['mentions']),
     );
   }
 
@@ -235,6 +254,9 @@ class Post {
 
   /// Kaydetme durumu: yalnız sunucu kaydetmeyi sunuyorsa gelir (yoksa null: kaydet düğmesi gizlenir).
   final bool? savedByMe;
+
+  /// Etiketlenen kişiler (alan yoksa/boşsa `[]`).
+  final List<PostMention> mentions;
 
   bool get hasText => (text ?? '').trim().isNotEmpty;
 
@@ -267,6 +289,7 @@ class Post {
     List<PostMedia>? media,
     int? commentCount,
     bool? savedByMe,
+    List<PostMention>? mentions,
   }) =>
       Post(
         id: id,
@@ -284,7 +307,18 @@ class Post {
         viewCount: viewCount,
         commentCount: commentCount ?? this.commentCount,
         savedByMe: savedByMe ?? this.savedByMe,
+        mentions: mentions ?? this.mentions,
       );
+}
+
+List<PostMention> _mentions(Object? v) {
+  if (v is! List) return const [];
+  final out = <PostMention>[];
+  for (final e in v) {
+    final m = PostMention.tryParse(e);
+    if (m != null) out.add(m);
+  }
+  return out;
 }
 
 /// İmleçli sayfa.

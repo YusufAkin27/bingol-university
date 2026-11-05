@@ -287,6 +287,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       case 'POLL_NEW':
         return l.bildirimTypePoll;
       case 'POST_LIKE':
+      case 'POST_MENTION':
       case 'POST_COMMENT':
       case 'COMMENT_REPLY':
         return l.bildirimTypePost;
@@ -652,7 +653,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     final category = notificationCategory(data);
     final style = pushCardStyle(data);
     final person =
-        style.startsWith('FOLLOW') || style == 'SOCIAL' || style == 'LIKE';
+        style.startsWith('FOLLOW') || style == 'SOCIAL' || style == 'LIKE' || style == 'MENTION';
     final avatarUrl = pushImageUrl(
         (n['actorAvatarUrl'] ?? data['senderAvatarUrl']) as String?);
     final title = (n['title'] as String?) ?? '';

@@ -7,6 +7,7 @@ import '../../widgets/bu.dart';
 import 'like_button.dart';
 import 'post_actions.dart';
 import 'post_models.dart';
+import 'post_rich_text.dart';
 import 'avatar_preview.dart';
 import 'post_routes.dart';
 import 'post_video.dart';
@@ -362,7 +363,12 @@ class _PostCardState extends State<PostCard> {
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     excludeFromSemantics: true,
-                    child: Text(text, key: const ValueKey('post-text'), style: tt.bodyLarge?.copyWith(color: t.ink, fontSize: 15, height: 1.4)),
+                    child: PostRichText(
+                        key: const ValueKey('post-text'),
+                        session: widget.session,
+                        text: text,
+                        mentions: p.mentions,
+                        style: tt.bodyLarge?.copyWith(color: t.ink, fontSize: 15, height: 1.4)),
                   ),
                 ),
               ] else
@@ -518,8 +524,11 @@ class _PostCardState extends State<PostCard> {
                   excludeFromSemantics:
                       true, // fotoğrafın kendi dokunma hedefi var
                   onTap: _open,
-                  child: Text(p.text!.trim(),
+                  child: PostRichText(
                       key: const ValueKey('post-text'),
+                      session: widget.session,
+                      text: p.text!.trim(),
+                      mentions: p.mentions,
                       maxLines: widget.detail ? null : 2,
                       overflow: widget.detail
                           ? TextOverflow.clip

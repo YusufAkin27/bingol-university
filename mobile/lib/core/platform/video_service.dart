@@ -218,6 +218,7 @@ class VideoService {
     VideoCompressor? compressor,
     Future<PickedVideo?> Function(ImageSource source)? pick,
     this.limitBytes = maxBytes,
+    this.limitMs = maxDurationMs,
   })  : _picker = picker,
         _compressor = compressor ?? PlatformVideoCompressor(),
         _pick = pick;
@@ -235,6 +236,12 @@ class VideoService {
   /// Bu örneğin kabul ettiği en büyük dosya boyutu.
   final int limitBytes;
 
+  /// Bu örneğin kabul ettiği en uzun süre (ms). Gönderi videosunda `PostVideoLimits.maxDurationMs`.
+  final int limitMs;
+
+  /// Dosyanın süre/boyut/çözünürlük özeti; okunamazsa null (kırpma ekranı süreyi buradan alır).
+  Future<VideoInfo?> info(String path) => _compressor.info(path);
+
   /// Bu boyutun altındaki ve en çok 1280 px'lik videolar olduğu gibi gönderilir.
   static const skipCompressBytes = 6 * 1024 * 1024;
 
@@ -247,7 +254,7 @@ class VideoService {
     if (custom != null) return custom(source);
     final f = await (_picker ??= ImagePicker()).pickVideo(
       source: source,
-      maxDuration: const Duration(milliseconds: maxDurationMs),
+      maxDuration: Duration(milliseconds: limitMs),
     );
     return f == null ? null : PickedVideo(f.path);
   }
@@ -267,7 +274,7 @@ class VideoService {
         origSize = await File(picked.path).length();
       } catch (_) {}
     }
-    if (orig != null && orig.durationMs > maxDurationMs + 500) throw VideoException('TOO_LONG');
+    if (orig != null && orig.durationMs > limitMs + 500) throw VideoException('TOO_LONG');
     check();
 
     var best = VideoInfo(
@@ -298,7 +305,7 @@ class VideoService {
     }
     onProgress?.call(1);
     if (best.sizeBytes > limitBytes) throw VideoException('TOO_LARGE');
-    if (best.durationMs > maxDurationMs + 500) throw VideoException('TOO_LONG');
+    if (best.durationMs > limitMs + 500) throw VideoException('TOO_LONG');
 
     final at = best.durationMs > 1500 ? 500 : 0;
     final poster = await _compressor.poster(best.path, positionMs: at);
