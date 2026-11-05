@@ -174,7 +174,6 @@
   "acadRetry": "Try again",
   "acadSelect": "Select",
   "acadMaintenance": "Academic services are under maintenance. Please try again later.",
-  "acadMyDept": "My department",
   "acadAll": "All",
   "acadHubTitle": "Academic",
   "acadHubReminders": "Reminders",
@@ -187,11 +186,8 @@
   "acadHubTimetableSub": "Your weekly timetable",
   "acadHubExamsSub": "Your exam schedule and the official schedule",
   "acadHubCalendarSub": "Semester, registration and exam dates",
-  "acadHubAnnouncementsSub": "Announcements for your department",
-  "acadHubUnread": "{n} unread",
   "acadExamsTitle": "Exams",
   "acadExamsAdd": "Add exam",
-  "acadExamsTabMine": "My exams",
   "acadExamsTabOfficial": "Official schedule",
   "acadExamsEmptyMine": "You have not added any personal exams.\nTrack your midterm, final or quiz dates here.",
   "acadExamsUpcoming": "Upcoming",
@@ -199,10 +195,6 @@
   "acadExamsPast": "Past",
   "acadExamsSemantic": "{type}: {title}. {date}. Tap to edit.",
   "acadExamsSemanticCd": "{type}: {title}. {date}. {countdown}. Tap to edit.",
-  "acadOfficialSemantic": "{type}: {title}. {date}",
-  "acadOfficialSemanticRoom": "{type}: {title}. {date}, {room}",
-  "acadExamsProfileIncomplete": "Only public exams are shown because your profile has no department. Add one by choosing your department.",
-  "acadExamsEmptyOfficial": "No official exam schedule has been published yet.",
   "acadFormErrTitle": "Exam title is required.",
   "acadFormErrDate": "Select the exam date.",
   "acadFormErrEnd": "End time must be after the start time.",
@@ -226,15 +218,6 @@
   "acadFormNote": "Note",
   "acadFormNoteHint": "Optional",
   "acadFormAdd": "Add exam",
-  "acadAnnTitle": "Department announcements",
-  "acadAnnDetailTitle": "Announcement",
-  "acadAnnReadAll": "Mark all as read",
-  "acadAnnEmptyMine": "No announcements for your department.\nSee all announcements in the \"All\" tab.",
-  "acadAnnEmptyAll": "No announcements yet.",
-  "acadAnnAudienceAll": "Whole university",
-  "acadAnnUnread": "Unread",
-  "acadAnnPinned": "Pinned",
-  "acadAnnLinkError": "The link could not be opened.",
   "acadAnnOpenAttachment": "Open attachment",
   "acadCalTitle": "Academic calendar",
   "acadCalPrev": "Previous month",
@@ -1522,7 +1505,6 @@
   "profileStatSavedNews": "Saved news",
   "profileMyPosts": "My posts",
   "profileSavedPosts": "Saved posts",
-  "profileSuggested": "Suggested people",
   "profileSaved": "Saved news",
   "profileAcademic": "Academic",
   "profileMyEvents": "My events",
@@ -1576,7 +1558,6 @@
   "profilePrefsNotifCommunities": "Clubs",
   "profilePrefsNotifMessages": "Message notifications (push)",
   "profilePrefsNotifPolls": "Polls",
-  "profilePrefsNotifAcademic": "Academic announcements",
   "profilePrefsNotifStories": "Stories",
   "profilePrefsNotifMention": "Mentions",
   "profilePrefsNotifFollow": "New followers",
@@ -2457,7 +2438,9 @@
   "p15ErrBannerTitle": "Please fix the {n} error(s) in the form.",
   "@p15ErrBannerTitle": {
     "placeholders": {
-      "n": {"type": "String"}
+      "n": {
+        "type": "String"
+      }
     }
   },
   "p15ErrBannerBody": "Some of the information you entered is missing or breaks the rules. Check the marked fields.",
@@ -2465,7 +2448,9 @@
   "p15ErrLocked": "Fix the {n} validation error(s) first",
   "@p15ErrLocked": {
     "placeholders": {
-      "n": {"type": "String"}
+      "n": {
+        "type": "String"
+      }
     }
   },
   "p15ErrForbiddenTitle": "Permission restricted",
@@ -2476,7 +2461,9 @@
   "p15PickerMembers": "{n} members",
   "@p15PickerMembers": {
     "placeholders": {
-      "n": {"type": "String"}
+      "n": {
+        "type": "String"
+      }
     }
   },
   "p15PickerInfoTitle": "About permissions",
@@ -2494,8 +2481,12 @@
   "p16ReqFullPeople": "{a} / {b} people",
   "@p16ReqFullPeople": {
     "placeholders": {
-      "a": {"type": "String"},
-      "b": {"type": "String"}
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
     }
   },
   "p16ReqCantApprove": "Can't approve: not enough capacity",
@@ -2505,7 +2496,9 @@
   "p16SetApproved": "{n} approved attendees",
   "@p16SetApproved": {
     "placeholders": {
-      "n": {"type": "String"}
+      "n": {
+        "type": "String"
+      }
     }
   },
   "p16SetOpenSub": "Everyone who registers is approved right away.",
@@ -2514,7 +2507,9 @@
   "p16SetCapCurrent": "Current: {n} people",
   "@p16SetCapCurrent": {
     "placeholders": {
-      "n": {"type": "String"}
+      "n": {
+        "type": "String"
+      }
     }
   },
   "p16SetCapDec": "Decrease capacity",
@@ -2522,7 +2517,9 @@
   "p16SetCancelNote": "{n} attendees will be notified right away and the event will be removed from the lists.",
   "@p16SetCancelNote": {
     "placeholders": {
-      "n": {"type": "String"}
+      "n": {
+        "type": "String"
+      }
     }
   },
   "p16QrStatusTitle": "Attendance status",
@@ -2538,25 +2535,49 @@
   "p16AttMarkedToast": "{name} was marked present ({method})",
   "@p16AttMarkedToast": {
     "placeholders": {
-      "name": {"type": "String"},
-      "method": {"type": "String"}
+      "name": {
+        "type": "String"
+      },
+      "method": {
+        "type": "String"
+      }
     }
   },
   "p16AttUnmarkedToast": "{name} was removed from attendance",
   "@p16AttUnmarkedToast": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "p07ChatSearchClear": "Clear",
   "p17DailyFlow": "Daily schedule",
   "p17DayPlanned": "{n} classes scheduled",
-  "@p17DayPlanned": {"placeholders": {"n": {"type": "String"}}},
+  "@p17DayPlanned": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p17SlotWaiting": "Upcoming",
   "p17RoomLabel": "Room {room}",
-  "@p17RoomLabel": {"placeholders": {"room": {"type": "String"}}},
+  "@p17RoomLabel": {
+    "placeholders": {
+      "room": {
+        "type": "String"
+      }
+    }
+  },
   "p17HoursPerWeek": "{n} h / week",
-  "@p17HoursPerWeek": {"placeholders": {"n": {"type": "String"}}},
+  "@p17HoursPerWeek": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p17NoSemesterTitle": "No semester yet",
   "p17NoSemesterBody": "Add a semester to organise your classes.",
   "p17NoCourseTitle": "You have not added a course yet",
@@ -2567,17 +2588,20 @@
   "p17OutOfRangeBody": "The selected day is outside the academic calendar.",
   "p17LoadErrTitle": "There was a problem loading the timetable.",
   "p17SemesterCount": "{n} saved semesters",
-  "@p17SemesterCount": {"placeholders": {"n": {"type": "String"}}},
+  "@p17SemesterCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p17CheckFields": "Please check the following fields:",
   "p17ExamDetail": "Details",
   "p17ExamsNoUpcomingBody": "Congratulations! There is no upcoming midterm, final or quiz right now.",
   "p17ExamsEmptyMineTitle": "You have not added a personal exam.",
   "p17ExamsEmptyMineBody": "Add your first exam to build your schedule and follow the countdown.",
-  "p17OfficialEmptyBody": "Your department's exam schedule will be listed here once announced.",
   "p17CourseInfoSemantic": "Course details",
   "p20HubExamPlan": "Exam plan",
-  "p20HubNoDeptTitle": "No department in your profile",
-  "p20HubNoDeptBody": "Complete your faculty details for a timetable and personalised announcements.",
   "p20HubTimetableEmptyBody": "Add your courses to follow your weekly flow and build your class calendar.",
   "p20HubExamBadge": "Midterm & Final",
   "p20HubExamEmptyBody": "Congratulations! No midterm or final is planned in your calendar right now.",
@@ -2586,13 +2610,18 @@
   "p20HubAnnEmptyBody": "New notices from your department office or advisor will be listed here.",
   "p20HubDateTime": "Date & time",
   "p20CalToday": "Today: {date}",
-  "@p20CalToday": {"placeholders": {"date": {"type": "String"}}},
+  "@p20CalToday": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "p20CalSelected": "Selected",
   "p20CalImportant": "Important date",
   "p20Yesterday": "Yesterday",
   "p20AnnFooterTitle": "No more announcements for your department.",
   "p20AnnFooterBody": "You will be notified when new calendar and exam notices are published.",
-  "p20AnnLinkErrBody": "The file server could not be reached. Please check your connection.",
   "p20RemPermTitle": "Notification permission not granted",
   "p20RemPermBody": "Reminders need the system notification permission to ring on time.",
   "p20RemOpenSettings": "Open in settings",
@@ -2641,7 +2670,13 @@
   "p12VisibilityAndJoin": "Visibility and joining",
   "p17ConflictIntro": "The times clash with these courses:",
   "p17ColorSelected": "Selected: {name}",
-  "@p17ColorSelected": {"placeholders": {"name": {"type": "String"}}},
+  "@p17ColorSelected": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "p17WeekDay": "Day of the week",
   "p13PollViewAll": "View All",
   "p13PollReview": "Review Vote",
@@ -2709,10 +2744,22 @@
   "p23PrivacyShort": "Your contacts are not sent to the server.",
   "p26OnceCaption": "You can view this photo only once.",
   "p09BlockNamed": "Block {name}",
-  "@p09BlockNamed": {"placeholders": {"name": {"type": "String"}}},
+  "@p09BlockNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "p09MemberOptions": "Member options",
   "p09MemberRemoved": "{name} was removed from the group",
-  "@p09MemberRemoved": {"placeholders": {"name": {"type": "String"}}},
+  "@p09MemberRemoved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "p09MediaLoading": "Loading...",
   "p09MediaEmptyBody": "Shared photos and videos appear here.",
   "p09MediaErrorTitle": "Something went wrong",
@@ -2742,15 +2789,33 @@
   "p14WithdrawRequest": "Withdraw request",
   "p14StatusGoing": "Going",
   "p18ClassYear": "{n}th year",
-  "@p18ClassYear": {"placeholders": {"n": {"type": "String"}}},
+  "@p18ClassYear": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p18FollowErrorTitle": "Connection error",
   "p18FollowersEmptyBody": "As your profile gets active, your friends will start following you here.",
   "p18FollowingEmptyBody": "Follow students and club members you like so you do not miss campus posts.",
   "p18FollowNoMatchBody": "No user matched your search. Check the spelling and try again.",
   "p18AllFollowers": "All followers ({n})",
-  "@p18AllFollowers": {"placeholders": {"n": {"type": "String"}}},
+  "@p18AllFollowers": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p18AllFollowing": "Following ({n})",
-  "@p18AllFollowing": {"placeholders": {"n": {"type": "String"}}},
+  "@p18AllFollowing": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p19AcademicInfo": "Academic information",
   "p19ShowEmailDesc": "Students who visit your profile can see your email address.",
   "p19LangSystemDesc": "Uses your device default language",
@@ -2777,7 +2842,6 @@
   "p20BlockInfo": "You will not see this person's posts and cannot message them.",
   "p20ReportSendHint": "You can briefly describe the situation...",
   "p20PrefPollsSub": "Student and staff polls",
-  "p20PrefAcademicSub": "Department, faculty and exam notices",
   "p20PrefDetailHead": "Manage the sub-types of each category one by one. Turning off the main switch silences the related sub-types.",
   "p20PrefDetailSub": "Sub-categories and notification types",
   "p20PrefOffTag": "Off",
@@ -2795,15 +2859,33 @@
   "p20PrefLoadFail": "Could not load",
   "p20PrefTapRetry": "Tap to try again.",
   "p20PrefRemSub": "Local alarm/notification {m} min before class",
-  "@p20PrefRemSub": {"placeholders": {"m": {"type": "String"}}},
+  "@p20PrefRemSub": {
+    "placeholders": {
+      "m": {
+        "type": "String"
+      }
+    }
+  },
   "p20QuietPickHelp": "Select time",
   "p20ThemeSystemSub": "Follows your device settings",
   "p20HalfDay": "Half day",
   "p20AllDay": "All day",
   "p20RangeDays": "{n} days",
-  "@p20RangeDays": {"placeholders": {"n": {"type": "String"}}},
+  "@p20RangeDays": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p20RangeWeeks": "{n} weeks",
-  "@p20RangeWeeks": {"placeholders": {"n": {"type": "String"}}},
+  "@p20RangeWeeks": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p20RemDaySub": "Remind one day before the exam",
   "p20RemHourSub": "Sent by the server, even when the app is closed; follows the Academic announcements setting",
   "p13SugSortTop": "Most voted",
@@ -2833,7 +2915,9 @@
   "p15PercentFull": "{n}% full",
   "@p15PercentFull": {
     "placeholders": {
-      "n": {"type": "String"}
+      "n": {
+        "type": "String"
+      }
     }
   },
   "p15ChatSub": "Meet the attendees and the organizer",
@@ -2846,8 +2930,12 @@
   "p15AttendeesLine": "{going} going · {interested} interested",
   "@p15AttendeesLine": {
     "placeholders": {
-      "going": {"type": "String"},
-      "interested": {"type": "String"}
+      "going": {
+        "type": "String"
+      },
+      "interested": {
+        "type": "String"
+      }
     }
   },
   "p13SuppFaqHeading": "Frequently asked questions",
@@ -2855,7 +2943,13 @@
   "p23GroupNameHint": "E.g. Engineering Project Team...",
   "p23NoneText": "None of your contacts use the app with a Bingöl University email.",
   "p09GradeYear": "Year {n}",
-  "@p09GradeYear": {"placeholders": {"n": {"type": "String"}}},
+  "@p09GradeYear": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p14UpcomingOther": "Upcoming on other days",
   "p14ErrorBodyCache": "There was a problem reaching the server. Showing the offline cache.",
   "p14Completed": "Completed",
@@ -2867,7 +2961,9 @@
   "p15CodeChars": "{n} characters",
   "@p15CodeChars": {
     "placeholders": {
-      "n": {"type": "String"}
+      "n": {
+        "type": "String"
+      }
     }
   },
   "p15LeaveHint": "You can change your attendance status any time.",
@@ -2880,7 +2976,13 @@
   "p18CounterEvents": "Events",
   "p18ClearSearch": "Clear search",
   "p18NavUnread": "{n} unread",
-  "@p18NavUnread": {"placeholders": {"n": {"type": "String"}}},
+  "@p18NavUnread": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p19PushOffShort": "Off",
   "p19SaveFailedSub": "A connection error occurred.",
   "p20GradeLevel": "Grade Level",
@@ -2915,9 +3017,6 @@
   "p22SaveGalleryCloud": "If your gallery has cloud backup turned on, the photos may be uploaded there too.",
   "p22SaveDeniedToast": "Photos could not be saved to the gallery: permission was not granted. You can allow it in Settings.",
   "p22OpenSettings": "Settings",
-  "p21PreviewTitle": "Message preview in notifications",
-  "p21PreviewSub": "When on, the start of the message shows in the notification and on the lock screen; the text passes through Google/Apple notification servers. When off, only the sender name is shown.",
-  "p26PrefNeedsAnnouncements": "No notifications while Announcements is off",
   "p26PrefPollsNeedsParents": "No poll notifications while Announcements or Clubs is off",
   "p32ExportShareFailed": "Your data could not be prepared for sharing. Please try again.",
   "p31ChatPlaceholderBlocked": "Message from a user you blocked is hidden",
@@ -3029,13 +3128,34 @@
   "p51EvOffline": "You are offline. Showing saved events.",
   "p69WeeklyFlow": "Weekly Schedule",
   "p69WeekN": "Week {n}",
-  "@p69WeekN": {"placeholders": {"n": {"type": "String"}}},
+  "@p69WeekN": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p69Done": "Completed",
   "p69LastSession": "Last session",
   "p69Hours": "{h} h",
-  "@p69Hours": {"placeholders": {"h": {"type": "String"}}},
+  "@p69Hours": {
+    "placeholders": {
+      "h": {
+        "type": "String"
+      }
+    }
+  },
   "p69TodayTotal": "Today: {n} sessions in total ({hours})",
-  "@p69TodayTotal": {"placeholders": {"n": {"type": "String"}, "hours": {"type": "String"}}},
+  "@p69TodayTotal": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
   "p69ExamCalendar": "Exam Schedule",
   "p69Now": "Now",
   "p69ExamName": "Exam name",
@@ -3046,23 +3166,38 @@
   "p69TimeLabel": "Time",
   "p69ExamNote": "You get a local reminder 1 day before and a push notification 2 hours before the exam.",
   "p69SemesterTerm": "{name} semester",
-  "@p69SemesterTerm": {"placeholders": {"name": {"type": "String"}}},
+  "@p69SemesterTerm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "p69TodayJump": "Back to Today",
   "p69Events": "Academic Events",
   "p69Records": "{n} items",
-  "@p69Records": {"placeholders": {"n": {"type": "String"}}},
-  "p69OpenAttachment": "Open attached document",
+  "@p69Records": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p69ExamReminder": "Exam reminder",
   "p69ExamReminderSub": "On your phone 1 day before the exam, as a notification 2 hours before.",
   "p69ClassReminderSub": "{n} minutes before class.",
-  "@p69ClassReminderSub": {"placeholders": {"n": {"type": "String"}}},
+  "@p69ClassReminderSub": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p69Duration": "Lead time",
   "p69Classes": "Classes",
   "p69RemindersFooter": "Reminders are created on this phone.",
   "p69PermOff": "Notification permission is off. Allow it in settings to get reminders.",
   "p69NoExams": "You haven't added any exams yet.",
-  "p69AnnUnitDate": "{unit} · {date}",
-  "@p69AnnUnitDate": {"placeholders": {"unit": {"type": "String"}, "date": {"type": "String"}}},
   "p68New": "New",
   "p68FormKind": "Type",
   "p68OptionsLabel": "Options (2-12)",
@@ -3147,9 +3282,6 @@
   },
   "p68TypeMulti": "Multiple",
   "p68TypeRanked": "Ranked",
-  "p69SchoolSchedule": "School schedule",
-  "p69WeeksAgo": "{n} weeks ago",
-  "@p69WeeksAgo": {"placeholders": {"n": {"type": "String"}}},
   "p51EvAttList": "Check-in list",
   "p51EvClubOnly": "Events are created on behalf of clubs.",
   "p60Today": "Today on campus",
@@ -3191,19 +3323,49 @@
   "frqLockedBodyRequested": "You can see their posts once your request is approved.",
   "frqReqTitle": "Follow requests",
   "frqReqRow": "Follow requests ({n})",
-  "@frqReqRow": {"placeholders": {"n": {"type": "String"}}},
+  "@frqReqRow": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "frqReqPending": "Pending requests ({n})",
-  "@frqReqPending": {"placeholders": {"n": {"type": "String"}}},
+  "@frqReqPending": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "frqReqAccept": "Approve",
   "frqReqDecline": "Delete",
   "frqReqAcceptSem": "Approve request from {name}",
-  "@frqReqAcceptSem": {"placeholders": {"name": {"type": "String"}}},
+  "@frqReqAcceptSem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "frqReqDeclineSem": "Delete request from {name}",
-  "@frqReqDeclineSem": {"placeholders": {"name": {"type": "String"}}},
+  "@frqReqDeclineSem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "frqReqEmpty": "No pending follow requests.",
   "frqNotifTypeFollow": "Follow",
   "frqMsgReqRow": "Message requests ({n})",
-  "@frqMsgReqRow": {"placeholders": {"n": {"type": "String"}}},
+  "@frqMsgReqRow": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "frqMsgReqTitle": "Message requests",
   "frqMsgReqInfo": "Messages from people you do not follow and who share no club or event with you appear here. Until you accept, the sender cannot see whether you have read their messages. Replying accepts the request automatically.",
   "frqMsgReqAccept": "Accept",
@@ -3277,90 +3439,8 @@
   "avatarFetchFailed": "Could not open the current photo. Check your connection and try again.",
   "avatarUpdated": "Your profile photo was updated.",
   "avatarRemoved": "Your profile photo was removed.",
-  "campusTitle": "Map",
-  "campusOtherCampuses": "Other campuses",
-  "campusUnitPage": "Unit page",
-  "campusBrand": "BU CAMPUS",
-  "campusCardTitle": "Campus Map",
-  "campusCardSub": "Find buildings, the cafeteria, the library and more on the map.",
-  "campusCardOpen": "Open map",
-  "campusSearchHint": "Search campus",
-  "campusOnlyCampus": "Campus places only",
-  "campusAll": "All",
-  "campusChipFood": "Cafeteria",
-  "campusChipLibrary": "Library",
-  "campusChipFaculties": "Faculties",
-  "campusNearby": "Near me on campus",
-  "campusPlacesTitle": "Places on campus",
-  "campusPlaceCount": "{count} places",
-  "campusSeeAll": "See all",
-  "campusDirections": "Directions",
-  "campusOpenInMaps": "Open in Maps",
-  "campusShare": "Copy link",
-  "campusDetailTitle": "Place details",
-  "campusLocationLabel": "Location",
-  "campusMainCampus": "Main campus",
-  "campusUnits": "Units",
   "campusAbout": "About",
-  "campusWalkTime": "Walking time",
-  "campusWalkValue": "{min} min ({dist})",
-  "campusWalkUnknown": "Location is off",
-  "campusDistanceNote": "Distances and times are approximate.",
-  "campusFavAdd": "Add to favorites",
-  "campusFavRemove": "Remove from favorites",
-  "campusLinkCopied": "Place info and link copied",
-  "campusOpenFailed": "Could not open a maps app",
-  "campusPermTitle": "Use your location?",
-  "campusPermBody": "Location permission lets us show buildings and faculties on the map. Your location stays on your device and is never shared.",
-  "campusPermChipLocal": "Stays on device",
-  "campusPermChipBattery": "Low battery use",
-  "campusPermAllow": "Allow",
-  "campusPermLater": "Not now",
-  "campusLocOffBand": "Location is off",
-  "campusLocDeniedBody": "Location permission is off. The map still works; turn it on in Settings to see distances.",
-  "campusOpenSettings": "Open settings",
-  "campusLocServiceTitle": "Location service is off",
-  "campusLocServiceBadge": "Off",
-  "campusLocServiceBody": "Device location services are off. Turn on device location for on-campus directions.",
-  "campusOutsideCampus": "You are outside the campus right now.",
-  "campusMyLocation": "My location",
-  "campusZoomIn": "Zoom in",
-  "campusZoomOut": "Zoom out",
-  "campusLayers": "Map layer",
-  "campusLayerStandard": "Standard",
-  "campusLayerSatellite": "Satellite",
-  "campusAttribution": "© OpenStreetMap contributors",
-  "campusMapError": "The map could not be loaded. Check your connection.",
-  "campusMaintenanceTitle": "The campus map is under maintenance",
-  "campusMaintenanceBody": "Please try again shortly.",
-  "campusTilesFailing": "Map tiles cannot be loaded. Check your connection.",
-  "campusStaleNote": "Showing the saved place list.",
-  "campusNoPlaces": "No places in this category.",
-  "campusNoPlacesAll": "No campus places have been added yet.",
-  "campusQuickRoute": "QUICK ROUTE",
-  "campusNearestTitle": "Nearest place",
-  "campusNearestBody": "{name} is about {min} min away on foot.",
-  "campusStart": "Start",
-  "campusRecent": "RECENT SEARCHES",
-  "campusClear": "Clear",
-  "campusRemoveRecent": "Remove search",
-  "campusCategoriesTitle": "Categories",
-  "campusResultCount": "{count} results",
-  "campusNoResult": "No results on campus. Try a different name.",
-  "campusOutsideNote": "Places outside the campus cannot be searched.",
   "campusSort": "Sort",
-  "campusSortNear": "Nearest",
-  "campusSortName": "Name",
-  "campusFindMoreTitle": "Cannot find the place?",
-  "campusFindMoreBody": "Search all buildings, lecture halls and units on campus.",
-  "campusOnlyCampusShown": "Only places inside the campus are shown.",
-  "campusPinLabel": "{name}, {category}",
-  "campusClusterLabel": "{count} places",
-  "campusYouAreHere": "Your location",
-  "campusCloseCard": "Close place card",
-  "campusDetails": "Details",
-  "campusWalkTo": "Directions to {name}",
-  "campusPanelHandle": "Places panel",
   "settingsAnalytics": "Usage analytics",
   "settingsAnalyticsSub": "Usage data such as time spent on screens and actions is sent to improve the app. Message content, search text and personal details are never sent. Turning this off stops collection and deletes anything pending."
 }

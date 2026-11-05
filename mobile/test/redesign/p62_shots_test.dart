@@ -112,7 +112,6 @@ final _scenes = <_Scene>[
       'communities': false,
       'messages': true,
       'polls': true,
-      'academicAnnouncements': true,
       'quietHours': {'enabled': true, 'start': '23:00', 'end': '07:00', 'timezone': 'Europe/Istanbul'},
       'subtypes': {'MESSAGE_DIRECT': true, 'MESSAGE_GROUP': true, 'EVENT_UPDATE': true, 'COMMUNITY_POST': true},
     });

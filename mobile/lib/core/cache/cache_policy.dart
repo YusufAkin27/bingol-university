@@ -32,7 +32,6 @@ class CachePolicy {
     (RegExp(r'^/exams($|/)'), _day * 7),
     (RegExp(r'^/bookmarks($|/)'), _day),
     (RegExp(r'^/notifications$'), _day),
-    (RegExp(r'^/campus/'), _day * 3),
     (RegExp(r'^/discover($|/)'), _hour * 12),
     (RegExp(r'^/posts($|/)'), _hour * 12),
   ];
@@ -58,7 +57,6 @@ class CachePolicy {
     (RegExp(r'^/events/(featured|calendar)$'), dailyFresh),
     (RegExp(r'^/events$'), dailyFresh),
     (RegExp(r'^/communities$'), dailyFresh),
-    (RegExp(r'^/campus/'), dailyFresh), // kampüs haritası: yerler/ayar nadiren değişir
   ];
 
   /// Ağa gitmeden doğrudan sunulabilecek süre; canlı uçlar için null.

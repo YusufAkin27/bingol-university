@@ -56,7 +56,6 @@ IconData bannerIcon(Map<String, dynamic> data) {
     case PushDest.community:
       return BuIcons.users;
     case PushDest.news:
-    case PushDest.deptAnnouncement:
       return BuIcons.megaphone;
     case PushDest.post:
       return '${data['type'] ?? ''}'.toUpperCase() == 'POST_LIKE'

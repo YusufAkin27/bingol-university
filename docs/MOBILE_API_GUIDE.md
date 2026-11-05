@@ -769,15 +769,14 @@ HTTP 422
 - Güncellemelerde (PATCH/PUT) yalnızca **değişen** alanlar denetlenir.
 - **Sohbet mesajları (birebir/grup/kulüp/etkinlik odası: gövde ve görsel açıklaması) filtrelenmez.** Sorunlu mesaj için mevcut mesaj şikâyeti kullanılır (sebep `INAPPROPRIATE` / `HARASSMENT`).
 
-## Akademik: ders programı, sınavlar, akademik takvim, bölüm duyuruları
+## Akademik: ders programı, sınavlar, akademik takvim
 
 Tam sözleşme (JSON örnekleri, hata kodları, saat biçimleri): [API_CONTRACTS_V2.md](API_CONTRACTS_V2.md) "Akademik". Özet:
 
 - **Ders programı (kişisel):** `GET /api/timetable`, `POST|PATCH|DELETE /api/timetable/courses[/{id}]` (bir ders + çok oturum; çakışma `409 COURSE_CONFLICT`, `force=true` ile geçilir), `POST /api/timetable/import` (en çok 60 oturum), `GET /api/timetable/today|week|reminders`, `GET /api/timetable/export.ics` (VTIMEZONE Europe/Istanbul, haftalık RRULE), dönemler `/api/timetable/semesters` (+ `from-official`).
 - **Resmi ders programı:** `GET /api/timetable/official[?term&department&grade&unit]` → `{term, items[{id,term,unit,faculty,department,program,grade,group,day(1=Pzt..7),start,end,code,name,instructor,room,note,sourceUrl,published}], units[], profileComplete}`; varsayılan profildeki bölüm + sınıf, yalnız yayındakiler. `units` birden çoksa (aynı bölüm adı birkaç MYO'da) kullanıcıya birim seçtirin.
-- **Sınavlar:** kişisel `/api/timetable/exams[/upcoming]`, resmi program `GET /api/exams/official` (profildeki fakülte/bölüm/sınıfa göre).
+- **Sınavlar:** yalnız kişisel `/api/timetable/exams[/upcoming]` (okulun resmi sınav programı yoktur; `GET /api/exams/official` kaldırıldı).
 - **Akademik takvim:** `GET /api/academic/calendar?month=YYYY-MM|from&to`, `GET /api/academic/calendar/next`.
-- **Bölüm duyuruları:** `GET /api/announcements?scope=mine|all&cursor&size` (opak string imleç, sabitlenmişler önce), `GET /api/announcements/{id}` (okundu işaretler), `POST /api/announcements/{id}/read`, `POST /api/announcements/read-all`, `GET /api/announcements/unread-count`. Push: tür `ANNOUNCEMENT`, `targetType=ANNOUNCEMENT`, `targetId=<duyuru id>`.
 - Ders/sınav hatırlatmaları **mobil yerel bildirimle** yapılır; sunucu yalnız `reminders` listesini verir. Saat dilimi Europe/Istanbul, `dayOfWeek` ISO 1..7.
 
 ## Gönderi sosyal özellikleri (kaydet, @etiket, #etiket, takip, hikâyeler)
@@ -860,7 +859,7 @@ Hepsi **geriye uyumlu eklemedir** (alan silme/yeniden adlandırma yok; migration
 - **Etkinlik kartları:** `GET /api/me/events` (EventView) için bekleyen istek sayısı **`pendingCount`** adıyla zaten vardı (yalnız etkinliği yönetene; diğerlerinde `null`). `GET /api/events/calendar` USER ögelerine de `pendingCount` eklendi (yalnız yönetene, yoksa alan yok). `EventView.cancelReason` (yalnız yönetene; yönetici iptali/gizlemesi gerekçesi) ve `EventView.rejectReason` (yalnız yönetene; inceleme red nedeni); alanlar yoksa gönderilmez. Düzenleyenin kendi iptalinde gerekçe alanı saklanmadığından `cancelReason` gelmez.
 - **Profil:** `GET /api/users/me` yanıtına `avatarHidden` (`true` = profil fotoğrafı moderasyonla gizlendi).
 - **Etkinlik sohbet erişimi:** `GET /api/events/{id}` (yalnız detay) yanıtında `chatAccess`: `LOCKED` (etkinlik yayında değil, sohbet süresi bitti, oda kapalı ya da kurulmamış ve yönetici değilsiniz), `OPEN` (odaya girebilirsiniz: katılımcı, düzenleyen, kulüp yetkilisi), `MEMBERS` (etkinliğe katılınca açılır). Liste uçlarında alan yok.
-- **Bildirim tercihleri (V880):** `GET|PUT /api/notifications/preferences` yanıt/istek gövdesine iki boolean: `polls` ("Anketler") ve `academicAnnouncements` ("Akademik duyurular"); varsayılan `true`, `PUT`ta verilmeyen (null) alan değişmez (eski istemciler etkilenmez). Gönderim koşulu **ana tür bayrağı VE kendi bayrağı**dır: genel anket `announcements` + `polls`, kulüp anketi `communities` + `polls`, bölüm duyurusu `announcements` + `academicAnnouncements` ister (yani ana bayrak kapalıyken kendi bayrağı açık olsa da bildirim gitmez; arayüzde bu satırlar ana bayrak kapalıyken pasif gösterilmelidir). Varsayılan `true` olduğundan mevcut kullanıcıların davranışı değişmez. `subtypes` haritasında da `POLL` ve `ACADEMIC_ANNOUNCEMENT` anahtarları görünür ve aynı bayrağı yansıtır (alt tur anahtarıyla yazmak da aynı sütunu günceller).
+- **Bildirim tercihleri:** `GET|PUT /api/notifications/preferences` yanıt/istek gövdesinde boolean `polls` ("Anketler"); varsayılan `true`, `PUT`ta verilmeyen (null) alan değişmez. Gönderim koşulu **ana tür bayrağı VE kendi bayrağı**dır: genel anket `announcements` + `polls`, kulüp anketi `communities` + `polls` ister (ana bayrak kapalıyken satır arayüzde pasif gösterilmelidir). `subtypes` haritasında `POLL` anahtarı da görünür ve aynı bayrağı yansıtır. Bölüm duyurusu (`academicAnnouncements`, `ACADEMIC_ANNOUNCEMENT`) ve `messagePreview` tercihleri kaldırıldı: istemci bu anahtarları çizmez/göndermez.
 - **Profil `blockedByMe`:** `GET /api/users/{id}` yanıtında (yalnız başkasının profilinde) `blockedByMe: true|false` = istek sahibi bu kullanıcıyı engellemiş mi. Karşı tarafın beni engellemesi sızdırılmaz (o durumda da `false`, profil gölge engel kuralıyla boş gelir). Kendi profilimde alan yoktur. Çok sayıda engel olsa da doğrudur (`/users/me/blocks` sayfalamasına bağlı değil).
 
 

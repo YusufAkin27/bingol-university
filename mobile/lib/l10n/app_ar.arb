@@ -174,7 +174,6 @@
   "acadRetry": "إعادة المحاولة",
   "acadSelect": "اختيار",
   "acadMaintenance": "الخدمات الأكاديمية قيد الصيانة. يرجى المحاولة لاحقًا.",
-  "acadMyDept": "قسمي",
   "acadAll": "الكل",
   "acadHubTitle": "الأكاديمي",
   "acadHubReminders": "التذكيرات",
@@ -187,11 +186,8 @@
   "acadHubTimetableSub": "جدولك الدراسي الأسبوعي",
   "acadHubExamsSub": "جدول امتحاناتك والبرنامج الرسمي",
   "acadHubCalendarSub": "تواريخ الفصل والتسجيل والامتحانات",
-  "acadHubAnnouncementsSub": "إعلانات خاصة بقسمك",
-  "acadHubUnread": "{n} غير مقروءة",
   "acadExamsTitle": "الامتحانات",
   "acadExamsAdd": "إضافة امتحان",
-  "acadExamsTabMine": "امتحاناتي",
   "acadExamsTabOfficial": "البرنامج الرسمي",
   "acadExamsEmptyMine": "لم تضف أي امتحان شخصي.\nتابع مواعيد الامتحانات النصفية والنهائية والاختبارات القصيرة من هنا.",
   "acadExamsUpcoming": "القادمة",
@@ -199,10 +195,6 @@
   "acadExamsPast": "السابقة",
   "acadExamsSemantic": "{type}: {title}. {date}. المس للتعديل.",
   "acadExamsSemanticCd": "{type}: {title}. {date}. {countdown}. المس للتعديل.",
-  "acadOfficialSemantic": "{type}: {title}. {date}",
-  "acadOfficialSemanticRoom": "{type}: {title}. {date}، {room}",
-  "acadExamsProfileIncomplete": "لا يوجد قسم في ملفك الشخصي؛ تُعرض الامتحانات العامة فقط. يمكنك إضافة قسمك عبر اختيار القسم.",
-  "acadExamsEmptyOfficial": "لم يُنشر أي برنامج امتحانات رسمي بعد.",
   "acadFormErrTitle": "عنوان الامتحان مطلوب.",
   "acadFormErrDate": "اختر تاريخ الامتحان.",
   "acadFormErrEnd": "يجب أن يكون وقت الانتهاء بعد وقت البدء.",
@@ -226,15 +218,6 @@
   "acadFormNote": "ملاحظة",
   "acadFormNoteHint": "اختياري",
   "acadFormAdd": "إضافة الامتحان",
-  "acadAnnTitle": "إعلانات القسم",
-  "acadAnnDetailTitle": "إعلان",
-  "acadAnnReadAll": "تحديد الكل كمقروء",
-  "acadAnnEmptyMine": "لا توجد إعلانات خاصة بقسمك.\nيمكنك رؤية كل الإعلانات من تبويب \"الكل\".",
-  "acadAnnEmptyAll": "لا توجد إعلانات بعد.",
-  "acadAnnAudienceAll": "الجامعة كاملة",
-  "acadAnnUnread": "غير مقروء",
-  "acadAnnPinned": "مثبّت",
-  "acadAnnLinkError": "تعذر فتح الرابط.",
   "acadAnnOpenAttachment": "فتح المرفق",
   "acadCalTitle": "التقويم الأكاديمي",
   "acadCalPrev": "الشهر السابق",
@@ -1522,7 +1505,6 @@
   "profileStatSavedNews": "الأخبار المحفوظة",
   "profileMyPosts": "منشوراتي",
   "profileSavedPosts": "المنشورات المحفوظة",
-  "profileSuggested": "أشخاص مقترحون",
   "profileSaved": "الأخبار المحفوظة",
   "profileAcademic": "الأكاديمي",
   "profileMyEvents": "فعالياتي",
@@ -1576,7 +1558,6 @@
   "profilePrefsNotifCommunities": "الأندية",
   "profilePrefsNotifMessages": "إشعارات الرسائل (دفع)",
   "profilePrefsNotifPolls": "الاستطلاعات",
-  "profilePrefsNotifAcademic": "الإعلانات الأكاديمية",
   "profilePrefsNotifStories": "القصص",
   "profilePrefsNotifMention": "الإشارات",
   "profilePrefsNotifFollow": "متابعون جدد",
@@ -2457,7 +2438,9 @@
   "p15ErrBannerTitle": "يرجى تصحيح {n} من الأخطاء في النموذج.",
   "@p15ErrBannerTitle": {
     "placeholders": {
-      "n": {"type": "String"}
+      "n": {
+        "type": "String"
+      }
     }
   },
   "p15ErrBannerBody": "بعض المعلومات التي أدخلتها ناقصة أو لا تلتزم بالقواعد. راجع الحقول المحددة.",
@@ -2465,7 +2448,9 @@
   "p15ErrLocked": "أصلح {n} من أخطاء التحقق أولًا",
   "@p15ErrLocked": {
     "placeholders": {
-      "n": {"type": "String"}
+      "n": {
+        "type": "String"
+      }
     }
   },
   "p15ErrForbiddenTitle": "قيد في الصلاحية",
@@ -2476,7 +2461,9 @@
   "p15PickerMembers": "{n} عضو",
   "@p15PickerMembers": {
     "placeholders": {
-      "n": {"type": "String"}
+      "n": {
+        "type": "String"
+      }
     }
   },
   "p15PickerInfoTitle": "معلومات الصلاحيات",
@@ -2494,8 +2481,12 @@
   "p16ReqFullPeople": "{a} / {b} شخص",
   "@p16ReqFullPeople": {
     "placeholders": {
-      "a": {"type": "String"},
-      "b": {"type": "String"}
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
     }
   },
   "p16ReqCantApprove": "لا يمكن القبول: السعة غير كافية",
@@ -2505,7 +2496,9 @@
   "p16SetApproved": "{n} مشارك معتمد",
   "@p16SetApproved": {
     "placeholders": {
-      "n": {"type": "String"}
+      "n": {
+        "type": "String"
+      }
     }
   },
   "p16SetOpenSub": "يُقبل كل من يسجّل مباشرة.",
@@ -2514,7 +2507,9 @@
   "p16SetCapCurrent": "الحالي: {n} شخص",
   "@p16SetCapCurrent": {
     "placeholders": {
-      "n": {"type": "String"}
+      "n": {
+        "type": "String"
+      }
     }
   },
   "p16SetCapDec": "إنقاص السعة",
@@ -2522,7 +2517,9 @@
   "p16SetCancelNote": "سيتم إشعار {n} من المشاركين فورًا وإزالة الحدث من القوائم.",
   "@p16SetCancelNote": {
     "placeholders": {
-      "n": {"type": "String"}
+      "n": {
+        "type": "String"
+      }
     }
   },
   "p16QrStatusTitle": "حالة الحضور",
@@ -2538,25 +2535,49 @@
   "p16AttMarkedToast": "تمت إضافة {name} إلى الحضور ({method})",
   "@p16AttMarkedToast": {
     "placeholders": {
-      "name": {"type": "String"},
-      "method": {"type": "String"}
+      "name": {
+        "type": "String"
+      },
+      "method": {
+        "type": "String"
+      }
     }
   },
   "p16AttUnmarkedToast": "تمت إزالة {name} من الحضور",
   "@p16AttUnmarkedToast": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "p07ChatSearchClear": "مسح",
   "p17DailyFlow": "الجدول اليومي",
   "p17DayPlanned": "{n} محاضرات مجدولة",
-  "@p17DayPlanned": {"placeholders": {"n": {"type": "String"}}},
+  "@p17DayPlanned": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p17SlotWaiting": "قادمة",
   "p17RoomLabel": "القاعة {room}",
-  "@p17RoomLabel": {"placeholders": {"room": {"type": "String"}}},
+  "@p17RoomLabel": {
+    "placeholders": {
+      "room": {
+        "type": "String"
+      }
+    }
+  },
   "p17HoursPerWeek": "{n} ساعة / أسبوع",
-  "@p17HoursPerWeek": {"placeholders": {"n": {"type": "String"}}},
+  "@p17HoursPerWeek": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p17NoSemesterTitle": "لا يوجد فصل دراسي بعد",
   "p17NoSemesterBody": "أضف فصلًا دراسيًا لتنظيم محاضراتك.",
   "p17NoCourseTitle": "لم تضف أي مقرر بعد",
@@ -2567,17 +2588,20 @@
   "p17OutOfRangeBody": "اليوم المحدد خارج التقويم الأكاديمي.",
   "p17LoadErrTitle": "حدثت مشكلة أثناء تحميل الجدول الدراسي.",
   "p17SemesterCount": "{n} فصول محفوظة",
-  "@p17SemesterCount": {"placeholders": {"n": {"type": "String"}}},
+  "@p17SemesterCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p17CheckFields": "يرجى التحقق من الحقول التالية:",
   "p17ExamDetail": "التفاصيل",
   "p17ExamsNoUpcomingBody": "تهانينا! لا توجد اختبارات قادمة حاليًا.",
   "p17ExamsEmptyMineTitle": "لم تضف أي اختبار شخصي.",
   "p17ExamsEmptyMineBody": "أضف أول اختبار لبناء جدولك ومتابعة العد التنازلي.",
-  "p17OfficialEmptyBody": "ستظهر هنا قائمة اختبارات قسمك عند الإعلان عنها.",
   "p17CourseInfoSemantic": "تفاصيل المقرر",
   "p20HubExamPlan": "خطة الجلسات",
-  "p20HubNoDeptTitle": "لا يوجد قسم في ملفك الشخصي",
-  "p20HubNoDeptBody": "أكمل بيانات كليتك للحصول على جدول وإعلانات مخصصة.",
   "p20HubTimetableEmptyBody": "أضف مقرراتك لمتابعة جدولك الأسبوعي وبناء تقويم الصف.",
   "p20HubExamBadge": "نصفي ونهائي",
   "p20HubExamEmptyBody": "تهانينا! لا يوجد اختبار نصفي أو نهائي مخطط في تقويمك حاليًا.",
@@ -2586,13 +2610,18 @@
   "p20HubAnnEmptyBody": "ستظهر هنا الإشعارات الجديدة من سكرتارية القسم أو المرشد.",
   "p20HubDateTime": "التاريخ والوقت",
   "p20CalToday": "اليوم: {date}",
-  "@p20CalToday": {"placeholders": {"date": {"type": "String"}}},
+  "@p20CalToday": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "p20CalSelected": "المحدد",
   "p20CalImportant": "تاريخ مهم",
   "p20Yesterday": "أمس",
   "p20AnnFooterTitle": "لا توجد إعلانات أخرى لقسمك.",
   "p20AnnFooterBody": "ستصلك إشعارات عند نشر تقويم أو اختبارات جديدة.",
-  "p20AnnLinkErrBody": "تعذر الوصول إلى خادم الملفات. يرجى التحقق من اتصالك.",
   "p20RemPermTitle": "لم يتم منح إذن الإشعارات",
   "p20RemPermBody": "تحتاج التذكيرات إلى إذن إشعارات النظام لتعمل في وقتها.",
   "p20RemOpenSettings": "فتح من الإعدادات",
@@ -2641,7 +2670,13 @@
   "p12VisibilityAndJoin": "الظهور والانضمام",
   "p17ConflictIntro": "تتعارض الأوقات مع هذه المقررات:",
   "p17ColorSelected": "المحدد: {name}",
-  "@p17ColorSelected": {"placeholders": {"name": {"type": "String"}}},
+  "@p17ColorSelected": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "p17WeekDay": "يوم الأسبوع",
   "p13PollViewAll": "عرض الكل",
   "p13PollReview": "مراجعة التصويت",
@@ -2709,10 +2744,22 @@
   "p23PrivacyShort": "لا تُرسل جهات اتصالك إلى الخادم.",
   "p26OnceCaption": "يمكنك مشاهدة هذه الصورة مرة واحدة فقط.",
   "p09BlockNamed": "حظر {name}",
-  "@p09BlockNamed": {"placeholders": {"name": {"type": "String"}}},
+  "@p09BlockNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "p09MemberOptions": "خيارات العضو",
   "p09MemberRemoved": "تمت إزالة {name} من المجموعة",
-  "@p09MemberRemoved": {"placeholders": {"name": {"type": "String"}}},
+  "@p09MemberRemoved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "p09MediaLoading": "جارٍ التحميل...",
   "p09MediaEmptyBody": "تظهر الصور ومقاطع الفيديو المشتركة هنا.",
   "p09MediaErrorTitle": "حدث خطأ",
@@ -2742,15 +2789,33 @@
   "p14WithdrawRequest": "سحب الطلب",
   "p14StatusGoing": "مشارك",
   "p18ClassYear": "السنة {n}",
-  "@p18ClassYear": {"placeholders": {"n": {"type": "String"}}},
+  "@p18ClassYear": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p18FollowErrorTitle": "خطأ في الاتصال",
   "p18FollowersEmptyBody": "عندما يصبح ملفك نشطًا سيبدأ أصدقاؤك بمتابعتك هنا.",
   "p18FollowingEmptyBody": "تابع الطلاب وأعضاء الأندية الذين تهتم بهم حتى لا تفوتك منشورات الحرم الجامعي.",
   "p18FollowNoMatchBody": "لم يتم العثور على مستخدم يطابق بحثك. تحقق من الكتابة وحاول مرة أخرى.",
   "p18AllFollowers": "كل المتابعين ({n})",
-  "@p18AllFollowers": {"placeholders": {"n": {"type": "String"}}},
+  "@p18AllFollowers": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p18AllFollowing": "المتابَعون ({n})",
-  "@p18AllFollowing": {"placeholders": {"n": {"type": "String"}}},
+  "@p18AllFollowing": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p19AcademicInfo": "المعلومات الأكاديمية",
   "p19ShowEmailDesc": "يمكن للطلاب الذين يزورون ملفك رؤية بريدك الإلكتروني.",
   "p19LangSystemDesc": "يستخدم لغة جهازك الافتراضية",
@@ -2777,7 +2842,6 @@
   "p20BlockInfo": "لن ترى منشورات هذا الشخص ولن تتمكن من مراسلته.",
   "p20ReportSendHint": "يمكنك وصف الموقف باختصار...",
   "p20PrefPollsSub": "استطلاعات الطلاب والموظفين",
-  "p20PrefAcademicSub": "إعلانات القسم والكلية والاختبارات",
   "p20PrefDetailHead": "أدر الأنواع الفرعية لكل فئة على حدة. عند إيقاف المفتاح الرئيسي تُكتم الأنواع الفرعية التابعة له.",
   "p20PrefDetailSub": "الفئات الفرعية وأنواع الإشعارات",
   "p20PrefOffTag": "معطل",
@@ -2795,15 +2859,33 @@
   "p20PrefLoadFail": "تعذر التحميل",
   "p20PrefTapRetry": "اضغط لإعادة المحاولة.",
   "p20PrefRemSub": "تنبيه محلي قبل بدء المحاضرة بـ {m} د",
-  "@p20PrefRemSub": {"placeholders": {"m": {"type": "String"}}},
+  "@p20PrefRemSub": {
+    "placeholders": {
+      "m": {
+        "type": "String"
+      }
+    }
+  },
   "p20QuietPickHelp": "اختر الوقت",
   "p20ThemeSystemSub": "حسب إعدادات الجهاز",
   "p20HalfDay": "نصف يوم",
   "p20AllDay": "طوال اليوم",
   "p20RangeDays": "{n} أيام",
-  "@p20RangeDays": {"placeholders": {"n": {"type": "String"}}},
+  "@p20RangeDays": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p20RangeWeeks": "{n} أسابيع",
-  "@p20RangeWeeks": {"placeholders": {"n": {"type": "String"}}},
+  "@p20RangeWeeks": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p20RemDaySub": "تذكير قبل الاختبار بيوم",
   "p20RemHourSub": "يصل من الخادم حتى لو كان التطبيق مغلقًا؛ ويتبع إعداد الإعلانات الأكاديمية",
   "p13SugSortTop": "الأكثر تصويتًا",
@@ -2833,7 +2915,9 @@
   "p15PercentFull": "{n}% ممتلئ",
   "@p15PercentFull": {
     "placeholders": {
-      "n": {"type": "String"}
+      "n": {
+        "type": "String"
+      }
     }
   },
   "p15ChatSub": "تعرّف على المشاركين والمنظّم",
@@ -2846,8 +2930,12 @@
   "p15AttendeesLine": "{going} مشارك · {interested} مهتم",
   "@p15AttendeesLine": {
     "placeholders": {
-      "going": {"type": "String"},
-      "interested": {"type": "String"}
+      "going": {
+        "type": "String"
+      },
+      "interested": {
+        "type": "String"
+      }
     }
   },
   "p13SuppFaqHeading": "الأسئلة الشائعة",
@@ -2855,7 +2943,13 @@
   "p23GroupNameHint": "مثال: فريق مشروع الهندسة...",
   "p23NoneText": "لم يُعثر على أحد من جهات اتصالك يستخدم التطبيق ببريد جامعة بينغول.",
   "p09GradeYear": "السنة {n}",
-  "@p09GradeYear": {"placeholders": {"n": {"type": "String"}}},
+  "@p09GradeYear": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p14UpcomingOther": "فعاليات الأيام القادمة",
   "p14ErrorBodyCache": "حدثت مشكلة أثناء الاتصال بالخادم. تُعرض النسخة المخزّنة دون اتصال.",
   "p14Completed": "اكتملت",
@@ -2867,7 +2961,9 @@
   "p15CodeChars": "{n} حرف",
   "@p15CodeChars": {
     "placeholders": {
-      "n": {"type": "String"}
+      "n": {
+        "type": "String"
+      }
     }
   },
   "p15LeaveHint": "يمكنك تغيير حالة مشاركتك في أي وقت.",
@@ -2880,7 +2976,13 @@
   "p18CounterEvents": "الفعاليات",
   "p18ClearSearch": "مسح البحث",
   "p18NavUnread": "{n} غير مقروءة",
-  "@p18NavUnread": {"placeholders": {"n": {"type": "String"}}},
+  "@p18NavUnread": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p19PushOffShort": "متوقف",
   "p19SaveFailedSub": "حدث خطأ في الاتصال.",
   "p20GradeLevel": "المستوى الدراسي",
@@ -2915,9 +3017,6 @@
   "p22SaveGalleryCloud": "إذا كان النسخ الاحتياطي السحابي لمعرضك مفعّلاً فقد تُرفع الصور إليه أيضاً.",
   "p22SaveDeniedToast": "تعذّر حفظ الصور في المعرض لأن الإذن غير ممنوح. يمكنك السماح به من الإعدادات.",
   "p22OpenSettings": "الإعدادات",
-  "p21PreviewTitle": "معاينة الرسالة في الإشعار",
-  "p21PreviewSub": "عند التفعيل يظهر بداية نص الرسالة في الإشعار وعلى شاشة القفل، ويمر النص عبر خوادم إشعارات Google/Apple. عند الإيقاف يظهر اسم المرسل فقط.",
-  "p26PrefNeedsAnnouncements": "لن تصلك إشعارات عند إيقاف الإعلانات",
   "p26PrefPollsNeedsParents": "لن تصلك إشعارات الاستطلاعات عند إيقاف الإعلانات أو الأندية",
   "p32ExportShareFailed": "تعذّر تجهيز بياناتك للمشاركة. يُرجى المحاولة مرة أخرى.",
   "p31ChatPlaceholderBlocked": "رسالة مستخدم قمت بحظره مخفية",
@@ -3029,13 +3128,34 @@
   "p51EvOffline": "أنت غير متصل. تُعرض الفعاليات المحفوظة.",
   "p69WeeklyFlow": "الجدول الأسبوعي",
   "p69WeekN": "الأسبوع {n}",
-  "@p69WeekN": {"placeholders": {"n": {"type": "String"}}},
+  "@p69WeekN": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p69Done": "اكتملت",
   "p69LastSession": "آخر محاضرة",
   "p69Hours": "{h} ساعة",
-  "@p69Hours": {"placeholders": {"h": {"type": "String"}}},
+  "@p69Hours": {
+    "placeholders": {
+      "h": {
+        "type": "String"
+      }
+    }
+  },
   "p69TodayTotal": "اليوم: {n} محاضرات في المجموع ({hours})",
-  "@p69TodayTotal": {"placeholders": {"n": {"type": "String"}, "hours": {"type": "String"}}},
+  "@p69TodayTotal": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
   "p69ExamCalendar": "جدول الامتحانات",
   "p69Now": "الآن",
   "p69ExamName": "اسم الامتحان",
@@ -3046,23 +3166,38 @@
   "p69TimeLabel": "الوقت",
   "p69ExamNote": "ستصلك تذكير محلي قبل الامتحان بيوم وإشعار فوري قبله بساعتين.",
   "p69SemesterTerm": "فصل {name}",
-  "@p69SemesterTerm": {"placeholders": {"name": {"type": "String"}}},
+  "@p69SemesterTerm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "p69TodayJump": "العودة إلى اليوم",
   "p69Events": "الأحداث الأكاديمية",
   "p69Records": "{n} عناصر",
-  "@p69Records": {"placeholders": {"n": {"type": "String"}}},
-  "p69OpenAttachment": "فتح المستند المرفق",
+  "@p69Records": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p69ExamReminder": "تذكير الامتحان",
   "p69ExamReminderSub": "على هاتفك قبل الامتحان بيوم، وكإشعار قبله بساعتين.",
   "p69ClassReminderSub": "قبل المحاضرة بـ {n} دقيقة.",
-  "@p69ClassReminderSub": {"placeholders": {"n": {"type": "String"}}},
+  "@p69ClassReminderSub": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p69Duration": "المدة",
   "p69Classes": "المحاضرات",
   "p69RemindersFooter": "تُنشأ التذكيرات على هذا الهاتف.",
   "p69PermOff": "إذن الإشعارات متوقف. اسمح به من الإعدادات لتلقي التذكيرات.",
   "p69NoExams": "لم تضف أي امتحان بعد.",
-  "p69AnnUnitDate": "{unit} · {date}",
-  "@p69AnnUnitDate": {"placeholders": {"unit": {"type": "String"}, "date": {"type": "String"}}},
   "p68New": "جديد",
   "p68FormKind": "النوع",
   "p68OptionsLabel": "الخيارات (2-12)",
@@ -3147,9 +3282,6 @@
   },
   "p68TypeMulti": "متعدد",
   "p68TypeRanked": "مرتّب",
-  "p69SchoolSchedule": "جدول الكلية",
-  "p69WeeksAgo": "منذ {n} أسابيع",
-  "@p69WeeksAgo": {"placeholders": {"n": {"type": "String"}}},
   "p51EvAttList": "قائمة الحضور",
   "p51EvClubOnly": "تُنشأ الفعاليات باسم الأندية.",
   "p60Today": "اليوم في الحرم الجامعي",
@@ -3191,19 +3323,49 @@
   "frqLockedBodyRequested": "ستتمكن من رؤية منشوراته عند الموافقة على طلبك.",
   "frqReqTitle": "طلبات المتابعة",
   "frqReqRow": "طلبات المتابعة ({n})",
-  "@frqReqRow": {"placeholders": {"n": {"type": "String"}}},
+  "@frqReqRow": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "frqReqPending": "الطلبات المعلّقة ({n})",
-  "@frqReqPending": {"placeholders": {"n": {"type": "String"}}},
+  "@frqReqPending": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "frqReqAccept": "قبول",
   "frqReqDecline": "حذف",
   "frqReqAcceptSem": "قبول طلب {name}",
-  "@frqReqAcceptSem": {"placeholders": {"name": {"type": "String"}}},
+  "@frqReqAcceptSem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "frqReqDeclineSem": "حذف طلب {name}",
-  "@frqReqDeclineSem": {"placeholders": {"name": {"type": "String"}}},
+  "@frqReqDeclineSem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "frqReqEmpty": "لا توجد طلبات متابعة معلّقة.",
   "frqNotifTypeFollow": "متابعة",
   "frqMsgReqRow": "طلبات الرسائل ({n})",
-  "@frqMsgReqRow": {"placeholders": {"n": {"type": "String"}}},
+  "@frqMsgReqRow": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "frqMsgReqTitle": "طلبات الرسائل",
   "frqMsgReqInfo": "تظهر هنا رسائل الأشخاص الذين لا تتابعهم ولا يشاركونك نادياً أو فعالية. حتى تقبل الطلب لا يرى المرسل ما إذا قرأت رسائله. عند الرد يُقبل الطلب تلقائيًا.",
   "frqMsgReqAccept": "قبول",
@@ -3277,90 +3439,8 @@
   "avatarFetchFailed": "تعذّر فتح الصورة الحالية. تحقق من اتصالك وحاول مرة أخرى.",
   "avatarUpdated": "تم تحديث صورة ملفك الشخصي.",
   "avatarRemoved": "تمت إزالة صورة ملفك الشخصي.",
-  "campusTitle": "الخريطة",
-  "campusOtherCampuses": "الحرمات الأخرى",
-  "campusUnitPage": "صفحة الوحدة",
-  "campusBrand": "حرم BU",
-  "campusCardTitle": "خريطة الحرم الجامعي",
-  "campusCardSub": "اعثر على المباني والمطعم والمكتبة وغيرها على الخريطة.",
-  "campusCardOpen": "افتح الخريطة",
-  "campusSearchHint": "ابحث في الحرم الجامعي",
-  "campusOnlyCampus": "أماكن الحرم الجامعي فقط",
-  "campusAll": "الكل",
-  "campusChipFood": "المطعم",
-  "campusChipLibrary": "المكتبة",
-  "campusChipFaculties": "الكليات",
-  "campusNearby": "بالقرب مني في الحرم",
-  "campusPlacesTitle": "أماكن في الحرم",
-  "campusPlaceCount": "{count} مكان",
-  "campusSeeAll": "عرض الكل",
-  "campusDirections": "الاتجاهات",
-  "campusOpenInMaps": "افتح في الخرائط",
-  "campusShare": "نسخ الرابط",
-  "campusDetailTitle": "تفاصيل المكان",
-  "campusLocationLabel": "الموقع",
-  "campusMainCampus": "الحرم الرئيسي",
-  "campusUnits": "الوحدات",
   "campusAbout": "نبذة",
-  "campusWalkTime": "مدة المشي",
-  "campusWalkValue": "{min} د ({dist})",
-  "campusWalkUnknown": "الموقع غير مفعّل",
-  "campusDistanceNote": "المسافات والأوقات تقريبية.",
-  "campusFavAdd": "أضف إلى المفضلة",
-  "campusFavRemove": "إزالة من المفضلة",
-  "campusLinkCopied": "تم نسخ معلومات المكان والرابط",
-  "campusOpenFailed": "تعذّر فتح تطبيق الخرائط",
-  "campusPermTitle": "هل نستخدم موقعك؟",
-  "campusPermBody": "نحتاج إلى إذن الموقع لنعرض المباني والكليات على الخريطة. يبقى موقعك على جهازك ولا تتم مشاركته.",
-  "campusPermChipLocal": "يبقى على الجهاز",
-  "campusPermChipBattery": "استهلاك منخفض للبطارية",
-  "campusPermAllow": "السماح",
-  "campusPermLater": "ليس الآن",
-  "campusLocOffBand": "الموقع مغلق",
-  "campusLocDeniedBody": "إذن الموقع غير مفعّل. تعمل الخريطة كالمعتاد؛ فعّله من الإعدادات لرؤية المسافات.",
-  "campusOpenSettings": "افتح الإعدادات",
-  "campusLocServiceTitle": "خدمة الموقع متوقفة",
-  "campusLocServiceBadge": "مغلق",
-  "campusLocServiceBody": "خدمات الموقع في الجهاز مغلقة. فعّل الموقع للحصول على الاتجاهات داخل الحرم.",
-  "campusOutsideCampus": "أنت خارج الحرم الجامعي حاليًا.",
-  "campusMyLocation": "موقعي",
-  "campusZoomIn": "تكبير",
-  "campusZoomOut": "تصغير",
-  "campusLayers": "طبقة الخريطة",
-  "campusLayerStandard": "قياسية",
-  "campusLayerSatellite": "قمر صناعي",
-  "campusAttribution": "© مساهمو OpenStreetMap",
-  "campusMapError": "تعذّر تحميل الخريطة. تحقق من اتصالك.",
-  "campusMaintenanceTitle": "خريطة الحرم قيد الصيانة حاليًا",
-  "campusMaintenanceBody": "يرجى المحاولة بعد قليل.",
-  "campusTilesFailing": "تعذّر تحميل أجزاء الخريطة. تحقق من اتصالك.",
-  "campusStaleNote": "يتم عرض قائمة الأماكن المحفوظة.",
-  "campusNoPlaces": "لا توجد أماكن في هذه الفئة.",
-  "campusNoPlacesAll": "لم تتم إضافة أماكن في الحرم بعد.",
-  "campusQuickRoute": "مسار سريع",
-  "campusNearestTitle": "أقرب مكان",
-  "campusNearestBody": "{name} على بعد حوالي {min} د سيرًا على الأقدام.",
-  "campusStart": "ابدأ",
-  "campusRecent": "عمليات البحث الأخيرة",
-  "campusClear": "مسح",
-  "campusRemoveRecent": "حذف البحث",
-  "campusCategoriesTitle": "الفئات",
-  "campusResultCount": "{count} نتيجة",
-  "campusNoResult": "لا توجد نتائج داخل الحرم. جرّب اسمًا آخر.",
-  "campusOutsideNote": "لا يمكن البحث عن أماكن خارج الحرم.",
   "campusSort": "ترتيب",
-  "campusSortNear": "الأقرب",
-  "campusSortName": "الاسم",
-  "campusFindMoreTitle": "لم تجد المكان؟",
-  "campusFindMoreBody": "ابحث عن جميع المباني والقاعات والوحدات في الحرم.",
-  "campusOnlyCampusShown": "تُعرض الأماكن داخل الحرم فقط.",
-  "campusPinLabel": "{name}، {category}",
-  "campusClusterLabel": "{count} أماكن",
-  "campusYouAreHere": "موقعك",
-  "campusCloseCard": "إغلاق بطاقة المكان",
-  "campusDetails": "التفاصيل",
-  "campusWalkTo": "الاتجاهات إلى {name}",
-  "campusPanelHandle": "لوحة الأماكن",
   "settingsAnalytics": "تحليل الاستخدام",
   "settingsAnalyticsSub": "تُرسل بيانات الاستخدام، مثل مدة البقاء في الشاشات والإجراءات، لتحسين التطبيق. لا يتم إرسال محتوى الرسائل أو نص البحث أو البيانات الشخصية. عند الإيقاف يتوقف الجمع وتُحذف البيانات المعلقة."
 }

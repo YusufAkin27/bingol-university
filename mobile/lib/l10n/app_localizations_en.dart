@@ -564,9 +564,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Academic services are under maintenance. Please try again later.';
 
   @override
-  String get acadMyDept => 'My department';
-
-  @override
   String get acadAll => 'All';
 
   @override
@@ -607,21 +604,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get acadHubCalendarSub => 'Semester, registration and exam dates';
 
   @override
-  String get acadHubAnnouncementsSub => 'Announcements for your department';
-
-  @override
-  String acadHubUnread(String n) {
-    return '$n unread';
-  }
-
-  @override
   String get acadExamsTitle => 'Exams';
 
   @override
   String get acadExamsAdd => 'Add exam';
-
-  @override
-  String get acadExamsTabMine => 'My exams';
 
   @override
   String get acadExamsTabOfficial => 'Official schedule';
@@ -649,25 +635,6 @@ class AppLocalizationsEn extends AppLocalizations {
       String type, String title, String date, String countdown) {
     return '$type: $title. $date. $countdown. Tap to edit.';
   }
-
-  @override
-  String acadOfficialSemantic(String type, String title, String date) {
-    return '$type: $title. $date';
-  }
-
-  @override
-  String acadOfficialSemanticRoom(
-      String type, String title, String date, String room) {
-    return '$type: $title. $date, $room';
-  }
-
-  @override
-  String get acadExamsProfileIncomplete =>
-      'Only public exams are shown because your profile has no department. Add one by choosing your department.';
-
-  @override
-  String get acadExamsEmptyOfficial =>
-      'No official exam schedule has been published yet.';
 
   @override
   String get acadFormErrTitle => 'Exam title is required.';
@@ -739,34 +706,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get acadFormAdd => 'Add exam';
-
-  @override
-  String get acadAnnTitle => 'Department announcements';
-
-  @override
-  String get acadAnnDetailTitle => 'Announcement';
-
-  @override
-  String get acadAnnReadAll => 'Mark all as read';
-
-  @override
-  String get acadAnnEmptyMine =>
-      'No announcements for your department.\nSee all announcements in the \"All\" tab.';
-
-  @override
-  String get acadAnnEmptyAll => 'No announcements yet.';
-
-  @override
-  String get acadAnnAudienceAll => 'Whole university';
-
-  @override
-  String get acadAnnUnread => 'Unread';
-
-  @override
-  String get acadAnnPinned => 'Pinned';
-
-  @override
-  String get acadAnnLinkError => 'The link could not be opened.';
 
   @override
   String get acadAnnOpenAttachment => 'Open attachment';
@@ -5017,9 +4956,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileSavedPosts => 'Saved posts';
 
   @override
-  String get profileSuggested => 'Suggested people';
-
-  @override
   String get profileSaved => 'Saved news';
 
   @override
@@ -5191,9 +5127,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profilePrefsNotifPolls => 'Polls';
-
-  @override
-  String get profilePrefsNotifAcademic => 'Academic announcements';
 
   @override
   String get profilePrefsNotifStories => 'Stories';
@@ -8350,21 +8283,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Add your first exam to build your schedule and follow the countdown.';
 
   @override
-  String get p17OfficialEmptyBody =>
-      'Your department\'s exam schedule will be listed here once announced.';
-
-  @override
   String get p17CourseInfoSemantic => 'Course details';
 
   @override
   String get p20HubExamPlan => 'Exam plan';
-
-  @override
-  String get p20HubNoDeptTitle => 'No department in your profile';
-
-  @override
-  String get p20HubNoDeptBody =>
-      'Complete your faculty details for a timetable and personalised announcements.';
 
   @override
   String get p20HubTimetableEmptyBody =>
@@ -8410,10 +8332,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get p20AnnFooterBody =>
       'You will be notified when new calendar and exam notices are published.';
-
-  @override
-  String get p20AnnLinkErrBody =>
-      'The file server could not be reached. Please check your connection.';
 
   @override
   String get p20RemPermTitle => 'Notification permission not granted';
@@ -9018,9 +8936,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p20PrefPollsSub => 'Student and staff polls';
 
   @override
-  String get p20PrefAcademicSub => 'Department, faculty and exam notices';
-
-  @override
   String get p20PrefDetailHead =>
       'Manage the sub-types of each category one by one. Turning off the main switch silences the related sub-types.';
 
@@ -9413,17 +9328,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p22OpenSettings => 'Settings';
 
   @override
-  String get p21PreviewTitle => 'Message preview in notifications';
-
-  @override
-  String get p21PreviewSub =>
-      'When on, the start of the message shows in the notification and on the lock screen; the text passes through Google/Apple notification servers. When off, only the sender name is shown.';
-
-  @override
-  String get p26PrefNeedsAnnouncements =>
-      'No notifications while Announcements is off';
-
-  @override
   String get p26PrefPollsNeedsParents =>
       'No poll notifications while Announcements or Clubs is off';
 
@@ -9759,9 +9663,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get p69OpenAttachment => 'Open attached document';
-
-  @override
   String get p69ExamReminder => 'Exam reminder';
 
   @override
@@ -9788,11 +9689,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p69NoExams => 'You haven\'t added any exams yet.';
-
-  @override
-  String p69AnnUnitDate(String unit, String date) {
-    return '$unit · $date';
-  }
 
   @override
   String get p68New => 'New';
@@ -9936,14 +9832,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p68TypeRanked => 'Ranked';
-
-  @override
-  String get p69SchoolSchedule => 'School schedule';
-
-  @override
-  String p69WeeksAgo(String n) {
-    return '$n weeks ago';
-  }
 
   @override
   String get p51EvAttList => 'Check-in list';
@@ -10322,279 +10210,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get avatarRemoved => 'Your profile photo was removed.';
 
   @override
-  String get campusTitle => 'Map';
-
-  @override
-  String get campusOtherCampuses => 'Other campuses';
-
-  @override
-  String get campusUnitPage => 'Unit page';
-
-  @override
-  String get campusBrand => 'BU CAMPUS';
-
-  @override
-  String get campusCardTitle => 'Campus Map';
-
-  @override
-  String get campusCardSub =>
-      'Find buildings, the cafeteria, the library and more on the map.';
-
-  @override
-  String get campusCardOpen => 'Open map';
-
-  @override
-  String get campusSearchHint => 'Search campus';
-
-  @override
-  String get campusOnlyCampus => 'Campus places only';
-
-  @override
-  String get campusAll => 'All';
-
-  @override
-  String get campusChipFood => 'Cafeteria';
-
-  @override
-  String get campusChipLibrary => 'Library';
-
-  @override
-  String get campusChipFaculties => 'Faculties';
-
-  @override
-  String get campusNearby => 'Near me on campus';
-
-  @override
-  String get campusPlacesTitle => 'Places on campus';
-
-  @override
-  String campusPlaceCount(String count) {
-    return '$count places';
-  }
-
-  @override
-  String get campusSeeAll => 'See all';
-
-  @override
-  String get campusDirections => 'Directions';
-
-  @override
-  String get campusOpenInMaps => 'Open in Maps';
-
-  @override
-  String get campusShare => 'Copy link';
-
-  @override
-  String get campusDetailTitle => 'Place details';
-
-  @override
-  String get campusLocationLabel => 'Location';
-
-  @override
-  String get campusMainCampus => 'Main campus';
-
-  @override
-  String get campusUnits => 'Units';
-
-  @override
   String get campusAbout => 'About';
 
   @override
-  String get campusWalkTime => 'Walking time';
-
-  @override
-  String campusWalkValue(String min, String dist) {
-    return '$min min ($dist)';
-  }
-
-  @override
-  String get campusWalkUnknown => 'Location is off';
-
-  @override
-  String get campusDistanceNote => 'Distances and times are approximate.';
-
-  @override
-  String get campusFavAdd => 'Add to favorites';
-
-  @override
-  String get campusFavRemove => 'Remove from favorites';
-
-  @override
-  String get campusLinkCopied => 'Place info and link copied';
-
-  @override
-  String get campusOpenFailed => 'Could not open a maps app';
-
-  @override
-  String get campusPermTitle => 'Use your location?';
-
-  @override
-  String get campusPermBody =>
-      'Location permission lets us show buildings and faculties on the map. Your location stays on your device and is never shared.';
-
-  @override
-  String get campusPermChipLocal => 'Stays on device';
-
-  @override
-  String get campusPermChipBattery => 'Low battery use';
-
-  @override
-  String get campusPermAllow => 'Allow';
-
-  @override
-  String get campusPermLater => 'Not now';
-
-  @override
-  String get campusLocOffBand => 'Location is off';
-
-  @override
-  String get campusLocDeniedBody =>
-      'Location permission is off. The map still works; turn it on in Settings to see distances.';
-
-  @override
-  String get campusOpenSettings => 'Open settings';
-
-  @override
-  String get campusLocServiceTitle => 'Location service is off';
-
-  @override
-  String get campusLocServiceBadge => 'Off';
-
-  @override
-  String get campusLocServiceBody =>
-      'Device location services are off. Turn on device location for on-campus directions.';
-
-  @override
-  String get campusOutsideCampus => 'You are outside the campus right now.';
-
-  @override
-  String get campusMyLocation => 'My location';
-
-  @override
-  String get campusZoomIn => 'Zoom in';
-
-  @override
-  String get campusZoomOut => 'Zoom out';
-
-  @override
-  String get campusLayers => 'Map layer';
-
-  @override
-  String get campusLayerStandard => 'Standard';
-
-  @override
-  String get campusLayerSatellite => 'Satellite';
-
-  @override
-  String get campusAttribution => '© OpenStreetMap contributors';
-
-  @override
-  String get campusMapError =>
-      'The map could not be loaded. Check your connection.';
-
-  @override
-  String get campusMaintenanceTitle => 'The campus map is under maintenance';
-
-  @override
-  String get campusMaintenanceBody => 'Please try again shortly.';
-
-  @override
-  String get campusTilesFailing =>
-      'Map tiles cannot be loaded. Check your connection.';
-
-  @override
-  String get campusStaleNote => 'Showing the saved place list.';
-
-  @override
-  String get campusNoPlaces => 'No places in this category.';
-
-  @override
-  String get campusNoPlacesAll => 'No campus places have been added yet.';
-
-  @override
-  String get campusQuickRoute => 'QUICK ROUTE';
-
-  @override
-  String get campusNearestTitle => 'Nearest place';
-
-  @override
-  String campusNearestBody(String name, String min) {
-    return '$name is about $min min away on foot.';
-  }
-
-  @override
-  String get campusStart => 'Start';
-
-  @override
-  String get campusRecent => 'RECENT SEARCHES';
-
-  @override
-  String get campusClear => 'Clear';
-
-  @override
-  String get campusRemoveRecent => 'Remove search';
-
-  @override
-  String get campusCategoriesTitle => 'Categories';
-
-  @override
-  String campusResultCount(String count) {
-    return '$count results';
-  }
-
-  @override
-  String get campusNoResult => 'No results on campus. Try a different name.';
-
-  @override
-  String get campusOutsideNote =>
-      'Places outside the campus cannot be searched.';
-
-  @override
   String get campusSort => 'Sort';
-
-  @override
-  String get campusSortNear => 'Nearest';
-
-  @override
-  String get campusSortName => 'Name';
-
-  @override
-  String get campusFindMoreTitle => 'Cannot find the place?';
-
-  @override
-  String get campusFindMoreBody =>
-      'Search all buildings, lecture halls and units on campus.';
-
-  @override
-  String get campusOnlyCampusShown =>
-      'Only places inside the campus are shown.';
-
-  @override
-  String campusPinLabel(String name, String category) {
-    return '$name, $category';
-  }
-
-  @override
-  String campusClusterLabel(String count) {
-    return '$count places';
-  }
-
-  @override
-  String get campusYouAreHere => 'Your location';
-
-  @override
-  String get campusCloseCard => 'Close place card';
-
-  @override
-  String get campusDetails => 'Details';
-
-  @override
-  String campusWalkTo(String name) {
-    return 'Directions to $name';
-  }
-
-  @override
-  String get campusPanelHandle => 'Places panel';
 
   @override
   String get settingsAnalytics => 'Usage analytics';

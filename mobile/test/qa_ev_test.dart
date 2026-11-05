@@ -1,7 +1,5 @@
 import 'package:bu_kampus/core/permissions/permission_service.dart';
-import 'package:bu_kampus/features/academic/acad_ref_widgets.dart' show AcadDot;
 import 'package:bu_kampus/features/academic/academic_models.dart' show academicClock;
-import 'package:bu_kampus/features/academic/announcements_page.dart';
 import 'package:bu_kampus/features/academic/course_form_page.dart';
 import 'package:bu_kampus/features/academic/reminder_settings_page.dart';
 import 'package:bu_kampus/features/academic/reminders.dart';
@@ -487,63 +485,6 @@ void main() {
       expect(tester.widget<BuButton>(save).onPressed, isNotNull);
       expect(tester.widget<BuButton>(save).busy, isFalse);
       await tester.pump(const Duration(seconds: 6));
-      await _gone(tester);
-    });
-  });
-
-  group('AnnouncementsPage', () {
-    Map<String, dynamic> ann(int i) => {'id': i, 'title': 'Duyuru $i', 'department': 'Fen Fak.', 'publishAt': '2026-10-01T10:00:00Z', 'read': false};
-    const first = '/announcements?scope=mine&size=20';
-    const second = '/announcements?scope=mine&size=20&cursor=c2';
-
-    testWidgets('sayfa hatası sonrası liste sonu sanılmaz: bekleme sonrası kaydırınca yeniden denenir', (tester) async {
-      var clock = DateTime(2026, 11, 4, 12);
-      academicClock = () => clock;
-      addTearDown(() => academicClock = DateTime.now);
-      final b = FakeBackend()
-        ..on(first, {'items': [for (var i = 1; i < 21; i++) ann(i)], 'nextCursor': 'c2'})
-        ..fail(second, status: 500);
-      useScreen(tester, kPhoneMedium);
-      await tester.pumpWidget(buildApp(AnnouncementsPage(session: makeSession(b)), size: kPhoneMedium));
-      await settle(tester, const Duration(milliseconds: 800));
-      await tester.drag(find.byType(ListView).last, const Offset(0, -3000));
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(b.count('cursor=c2'), 1);
-      // hemen yeniden kaydırma 5 sn dolmadan yeni istek atmaz
-      await tester.drag(find.byType(ListView).last, const Offset(0, -3000));
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(b.count('cursor=c2'), 1);
-      // sunucu düzeldi, bekleme doldu: aynı imleçle yeniden denenir ve liste devam eder
-      b.on(second, {'items': [ann(40)], 'nextCursor': null});
-      clock = clock.add(const Duration(seconds: 6));
-      await tester.drag(find.byType(ListView).last, const Offset(0, 600)); // biraz yukarı, sonra tekrar dibe
-      await tester.pump(const Duration(milliseconds: 400));
-      await tester.drag(find.byType(ListView).last, const Offset(0, -3000));
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(b.count('cursor=c2'), 2);
-      expect(find.text('Duyuru 40'), findsOneWidget);
-      await _gone(tester);
-    });
-
-    testWidgets('ayrıntı yüklenemeyen duyuru listede okundu işaretlenmez; yüklenince işaretlenir', (tester) async {
-      final b = FakeBackend()
-        ..on(first, {'items': [ann(1), ann(2)], 'nextCursor': null})
-        ..fail('/announcements/1', status: 500)
-        ..on('/announcements/2', {...ann(2), 'body': 'Metin'});
-      useScreen(tester, kPhoneMedium);
-      await tester.pumpWidget(buildApp(AnnouncementsPage(session: makeSession(b)), size: kPhoneMedium));
-      await settle(tester, const Duration(milliseconds: 800));
-      expect(find.byType(AcadDot), findsNWidgets(2));
-      await tester.tap(find.text('Duyuru 1'));
-      await settle(tester, const Duration(milliseconds: 600));
-      tester.state<NavigatorState>(find.byType(Navigator).first).pop();
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(find.byType(AcadDot), findsNWidgets(2), reason: 'sunucu okundu işaretlemedi, liste de işaretlemez');
-      await tester.tap(find.text('Duyuru 2'));
-      await settle(tester, const Duration(milliseconds: 600));
-      tester.state<NavigatorState>(find.byType(Navigator).first).pop();
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(find.byType(AcadDot), findsNWidgets(1));
       await _gone(tester);
     });
   });

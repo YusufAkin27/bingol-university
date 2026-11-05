@@ -2,7 +2,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../features/academic/reminders.dart';
 import '../features/auth/help/public_support_api.dart' show TrackTokenStore;
-import '../features/campus_map/campus_local_store.dart';
 import '../features/chat/chat_wallpaper.dart';
 import '../features/chat/photo_autosave.dart';
 import '../features/chat/recent_reactions.dart';
@@ -31,10 +30,21 @@ void registerUserDataCleaners(ApiClient api) {
     ..add(LanguageSync.clear) // son eşitlenen profil dili
     ..add(ChatBackgroundPrefs.clear) // sohbet arka planı tercihi (Desen/Hafif/Orta/Düz)
     ..add(RecentReactions.clear) // hesaba ozel son alti tepki
-    ..add(CampusLocalStore.clear) // kampüs haritası: favori yerler + son aramalar
+    ..add(_clearRemovedMapData) // kaldırılan harita özelliğinin eski sürümlerden kalan yerel verisi
     ..add(HomeLayoutStore.clear) // Ana Sayfa düzeni (bölüm sırası/görünürlüğü + Hızlı Erişim kısayolları)
     ..add(TrackTokenStore.clear) // herkese açık destek talebinin takip jetonu (e-postaya bağlı)
     ..add(_clearLegalLater); // "sözleşme onayını sonra yap" işareti (kullanıcı kimliği içerir)
+}
+
+/// Kaldırılan kampüs haritasının eski sürümlerde yazdığı yerel anahtarlar (favori yerler, son aramalar, izin kartı
+/// tercihi); güncelleme sonrası ilk çıkışta cihazdan silinir. Yeni kod bu anahtarları yazmaz.
+Future<void> _clearRemovedMapData() async {
+  try {
+    const s = FlutterSecureStorage();
+    for (final k in const ['campus_favorites', 'campus_recent_searches', 'campus_loc_prompt_dismissed']) {
+      await s.delete(key: k);
+    }
+  } catch (_) {}
 }
 
 /// `LegalReacceptController` `legal_later` anahtarı (`<kullanıcı>|<imza>`); çıkışta kalmasın.

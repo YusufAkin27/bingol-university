@@ -258,7 +258,6 @@
   "acadRetry": "Yeniden dene",
   "acadSelect": "Seç",
   "acadMaintenance": "Akademik hizmetler bakımda. Daha sonra tekrar deneyin.",
-  "acadMyDept": "Bölümüm",
   "acadAll": "Tümü",
   "acadHubTitle": "Akademik",
   "acadHubReminders": "Hatırlatmalar",
@@ -288,18 +287,8 @@
   "acadHubTimetableSub": "Haftalık ders programın",
   "acadHubExamsSub": "Sınav takvimin ve resmi program",
   "acadHubCalendarSub": "Dönem, kayıt ve sınav tarihleri",
-  "acadHubAnnouncementsSub": "Bölümüne özel duyurular",
-  "acadHubUnread": "{n} okunmamış",
-  "@acadHubUnread": {
-    "placeholders": {
-      "n": {
-        "type": "String"
-      }
-    }
-  },
   "acadExamsTitle": "Sınavlar",
   "acadExamsAdd": "Sınav ekle",
-  "acadExamsTabMine": "Sınavlarım",
   "acadExamsTabOfficial": "Resmi program",
   "acadExamsEmptyMine": "Kişisel sınav eklemedin.\nVize, final ya da quiz tarihlerini buradan takip et.",
   "acadExamsUpcoming": "Yaklaşan",
@@ -336,39 +325,6 @@
       }
     }
   },
-  "acadOfficialSemantic": "{type}: {title}. {date}",
-  "@acadOfficialSemantic": {
-    "placeholders": {
-      "type": {
-        "type": "String"
-      },
-      "title": {
-        "type": "String"
-      },
-      "date": {
-        "type": "String"
-      }
-    }
-  },
-  "acadOfficialSemanticRoom": "{type}: {title}. {date}, {room}",
-  "@acadOfficialSemanticRoom": {
-    "placeholders": {
-      "type": {
-        "type": "String"
-      },
-      "title": {
-        "type": "String"
-      },
-      "date": {
-        "type": "String"
-      },
-      "room": {
-        "type": "String"
-      }
-    }
-  },
-  "acadExamsProfileIncomplete": "Profilinde bölüm bilgisi yok; yalnız herkese açık sınavlar gösteriliyor. Bölümünü seçerek ekleyebilirsin.",
-  "acadExamsEmptyOfficial": "Henüz yayınlanmış resmi sınav programı yok.",
   "acadFormErrTitle": "Sınav başlığı gerekli.",
   "acadFormErrDate": "Sınav tarihini seç.",
   "acadFormErrEnd": "Bitiş saati başlangıçtan sonra olmalı.",
@@ -399,15 +355,6 @@
   "acadFormNote": "Not",
   "acadFormNoteHint": "İsteğe bağlı",
   "acadFormAdd": "Sınavı ekle",
-  "acadAnnTitle": "Bölüm duyuruları",
-  "acadAnnDetailTitle": "Duyuru",
-  "acadAnnReadAll": "Tümünü okundu işaretle",
-  "acadAnnEmptyMine": "Bölümünle ilgili duyuru yok.\nTüm duyurulara \"Tümü\" sekmesinden bakabilirsin.",
-  "acadAnnEmptyAll": "Henüz duyuru yok.",
-  "acadAnnAudienceAll": "Tüm üniversite",
-  "acadAnnUnread": "Okunmamış",
-  "acadAnnPinned": "Sabitlenmiş",
-  "acadAnnLinkError": "Bağlantı açılamadı.",
   "acadAnnOpenAttachment": "Eki aç",
   "acadCalTitle": "Akademik takvim",
   "acadCalPrev": "Önceki ay",
@@ -2026,17 +1973,41 @@
   "srReelsUnavailable": "Reels araması şu an kullanılamıyor.",
   "srPrivateAccount": "Gizli hesap",
   "srLikeCount": "{count} beğeni",
-  "@srLikeCount": {"placeholders":{"count":{"type":"String"}}},
+  "@srLikeCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "srOpenProfileOf": "{name} profilini aç",
-  "@srOpenProfileOf": {"placeholders":{"name":{"type":"String"}}},
+  "@srOpenProfileOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "srPostByAuthor": "{name} gönderisi",
-  "@srPostByAuthor": {"placeholders":{"name":{"type":"String"}}},
+  "@srPostByAuthor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "srVideoBadge": "Video",
   "srProfileTabsLabel": "Profil içeriği",
   "srProfilePostsEmpty": "Henüz gönderi yok.",
   "srProfileReelsEmpty": "Henüz reels yok.",
   "srViewCount": "{count} görüntülenme",
-  "@srViewCount": {"placeholders":{"count":{"type":"String"}}},
+  "@srViewCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "srPhotoViewerTitle": "Profil fotoğrafı",
   "srPhotoViewerError": "Fotoğraf yüklenemedi",
   "srPhotoViewerClose": "Önizlemeyi kapat",
@@ -2741,7 +2712,6 @@
   "profileStatSavedNews": "Kayıtlı haber",
   "profileMyPosts": "Gönderilerim",
   "profileSavedPosts": "Kaydedilen gönderiler",
-  "profileSuggested": "Önerilen kişiler",
   "profileSaved": "Kayıtlı haberler",
   "profileAcademic": "Akademik",
   "profileMyEvents": "Etkinliklerim",
@@ -2833,7 +2803,6 @@
   "profilePrefsNotifCommunities": "Topluluklar",
   "profilePrefsNotifMessages": "Mesaj bildirimleri (push)",
   "profilePrefsNotifPolls": "Anketler",
-  "profilePrefsNotifAcademic": "Akademik duyurular",
   "profilePrefsNotifStories": "Hikâyeler",
   "profilePrefsNotifMention": "Etiketlenmeler",
   "profilePrefsNotifFollow": "Yeni takipçiler",
@@ -3062,16 +3031,34 @@
   "kesSegA11y": "Keşfet görünümü",
   "kesPopularity": "Popülerlik",
   "kesPopularityOf": "Popülerlik puanı {score} / 100",
-  "@kesPopularityOf": {"placeholders":{"score":{"type":"String"}}},
+  "@kesPopularityOf": {
+    "placeholders": {
+      "score": {
+        "type": "String"
+      }
+    }
+  },
   "kesPopularityHow": "Takipçi sayın, aldığın beğeniler ve gönderi sayından hesaplanır.",
   "kesLikesReceived": "Alınan beğeni",
   "kesPickVideo": "Video seç",
   "kesRecordVideo": "Video çek",
   "kesVideoLimits": "Video en fazla 60 saniye ve 50 MB olabilir.",
   "kesVideoPreparing": "Video hazırlanıyor… {pct}",
-  "@kesVideoPreparing": {"placeholders":{"pct":{"type":"String"}}},
+  "@kesVideoPreparing": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
   "kesVideoUploading": "Video yükleniyor… {pct}",
-  "@kesVideoUploading": {"placeholders":{"pct":{"type":"String"}}},
+  "@kesVideoUploading": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
   "kesVideoChange": "Videoyu değiştir",
   "kesErrVideoTooLarge": "Video çok büyük (en fazla 50 MB).",
   "kesFullscreen": "Tam ekran izle",
@@ -3095,7 +3082,13 @@
   "kesNotInterestedDone": "Bu video artık önerilmeyecek.",
   "kesMore": "Diğer işlemler",
   "kesViews": "{count} izlenme",
-  "@kesViews": {"placeholders":{"count":{"type":"String"}}},
+  "@kesViews": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "kesCoverTitle": "Kapak karesi",
   "kesCoverHint": "Videodan bir kare seç.",
   "kesComposeMenuPhoto": "Fotoğraf paylaş",
@@ -3106,9 +3099,21 @@
   "kesCommentsSend": "Gönder",
   "kesCommentsReply": "Yanıtla",
   "kesCommentsReplyingTo": "{name} kişisine yanıt",
-  "@kesCommentsReplyingTo": {"placeholders":{"name":{"type":"String"}}},
+  "@kesCommentsReplyingTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "kesCommentsMoreReplies": "{count} yanıtı gör",
-  "@kesCommentsMoreReplies": {"placeholders":{"count":{"type":"String"}}},
+  "@kesCommentsMoreReplies": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "kesCommentsLoadFailed": "Yorumlar yüklenemedi.",
   "kesCommentsDelete": "Yorumu sil",
   "kesAvatarPreview": "Profil fotoğrafı",
@@ -3958,8 +3963,12 @@
   "p17WeekOf": "Hafta {n} / {total}",
   "@p17WeekOf": {
     "placeholders": {
-        "n": {"type": "String"},
-        "total": {"type": "String"}
+      "n": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
     }
   },
   "p17SemesterName": "Dönem adı",
@@ -4058,7 +4067,13 @@
   "p11RequestsEmptyBody": "Yeni katılma istekleri geldiğinde burada görünecek.",
   "p06EmptyNoneBody": "Arkadaşlarınızla, öğrenci kulüpleriyle veya etkinlik gruplarıyla mesajlaşmaya başlayın.",
   "p06NoMatchBody": "“{q}” aramasıyla eşleşen kişi, kulüp veya mesaj bulunamadı.",
-  "@p06NoMatchBody": {"placeholders": {"q": {"type": "String"}}},
+  "@p06NoMatchBody": {
+    "placeholders": {
+      "q": {
+        "type": "String"
+      }
+    }
+  },
   "p06ResetSearch": "Aramayı sıfırla",
   "p06ArchiveEmptyBody": "Arşivlediğiniz sohbetler burada saklanır ve mesaj kutunuzu sade tutar.",
   "p06BackToChats": "Sohbetlere dön",
@@ -4069,7 +4084,13 @@
   "p08OnceSentSub": "Tek seferlik görünüm",
   "p08ModerationTitle": "Moderasyon bildirimi",
   "p08Percent": "%{n}",
-  "@p08Percent": {"placeholders": {"n": {"type": "String"}}},
+  "@p08Percent": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p08PhotoLoadingSub": "Sunucudan indiriliyor",
   "p08Queued": "Kuyrukta · Bekliyor",
   "p01ConfigTitle": "Yapılandırma hatası",
@@ -4130,15 +4151,33 @@
   "p03MenuTotal": "Toplam",
   "p03MenuTotalEnergy": "Toplam enerji",
   "p03MenuKcal": "{n} kcal",
-  "@p03MenuKcal": {"placeholders": {"n": {"type": "String"}}},
+  "@p03MenuKcal": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p03MenuAtLeast": "En az {n} kcal",
-  "@p03MenuAtLeast": {"placeholders": {"n": {"type": "String"}}},
+  "@p03MenuAtLeast": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p03MenuKcalMissing": "Bazı yemeklerin kalorisi girilmemiş.",
   "p03MenuKcalNone": "Kalori girilmemiş",
   "p03MenuNoList": "Yemek listesi yok.",
   "p03MenuMaintenance": "Sistem bakımda.",
   "p03NotifNewCount": "{n} yeni",
-  "@p03NotifNewCount": {"placeholders": {"n": {"type": "String"}}},
+  "@p03NotifNewCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p03NotifEmptyBody": "Kulüp, etkinlik ve mesaj bildirimleri burada görünür.",
   "p03NotifUnreadEmptyBody": "Hepsini okudun.",
   "p03NotifLoadFailed": "Yüklenemedi, tekrar dene",
@@ -4151,19 +4190,61 @@
   "p05NewsErrorTitle": "İçerik yüklenemedi",
   "p05NewsErrorBody": "İçerik yüklenirken bir sorun oluştu. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.",
   "p05SearchCountFor": "“{q}” araması için",
-  "@p05SearchCountFor": {"placeholders": {"q": {"type": "String"}}},
+  "@p05SearchCountFor": {
+    "placeholders": {
+      "q": {
+        "type": "String"
+      }
+    }
+  },
   "p05SearchFoundNews": "{n} HABER BULUNDU",
-  "@p05SearchFoundNews": {"placeholders": {"n": {"type": "String"}}},
+  "@p05SearchFoundNews": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p05SearchFoundEvents": "{n} ETKİNLİK BULUNDU",
-  "@p05SearchFoundEvents": {"placeholders": {"n": {"type": "String"}}},
+  "@p05SearchFoundEvents": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p05SearchFoundClubs": "{n} KULÜP BULUNDU",
-  "@p05SearchFoundClubs": {"placeholders": {"n": {"type": "String"}}},
+  "@p05SearchFoundClubs": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p05SearchFoundPeople": "{n} KİŞİ BULUNDU",
-  "@p05SearchFoundPeople": {"placeholders": {"n": {"type": "String"}}},
+  "@p05SearchFoundPeople": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p05SearchFoundPosts": "{n} GÖNDERİ BULUNDU",
-  "@p05SearchFoundPosts": {"placeholders": {"n": {"type": "String"}}},
+  "@p05SearchFoundPosts": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p05SearchSeeAllN": "Tümünü gör ({n})",
-  "@p05SearchSeeAllN": {"placeholders": {"n": {"type": "String"}}},
+  "@p05SearchSeeAllN": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p05SearchRemoveRecent": "Aramayı sil",
   "p11PendingInfoTitle": "Başvuru değerlendiriliyor",
   "p11PendingInfoBody": "Katılma isteğin kulüp yöneticilerinin onayını bekliyor. Sonuçlandığında bildirim alacaksın.",
@@ -4229,7 +4310,9 @@
   "p15ErrBannerTitle": "Lütfen formdaki {n} hatayı düzelt.",
   "@p15ErrBannerTitle": {
     "placeholders": {
-      "n": {"type": "String"}
+      "n": {
+        "type": "String"
+      }
     }
   },
   "p15ErrBannerBody": "Girdiğin bilgilerin bazıları eksik veya kurallara uymuyor. İşaretli alanları kontrol et.",
@@ -4237,7 +4320,9 @@
   "p15ErrLocked": "Önce {n} doğrulama hatasını gidermelisin",
   "@p15ErrLocked": {
     "placeholders": {
-      "n": {"type": "String"}
+      "n": {
+        "type": "String"
+      }
     }
   },
   "p15ErrForbiddenTitle": "Yetki kısıtlaması",
@@ -4248,7 +4333,9 @@
   "p15PickerMembers": "{n} üye",
   "@p15PickerMembers": {
     "placeholders": {
-      "n": {"type": "String"}
+      "n": {
+        "type": "String"
+      }
     }
   },
   "p15PickerInfoTitle": "Yetki bilgilendirmesi",
@@ -4266,8 +4353,12 @@
   "p16ReqFullPeople": "{a} / {b} kişi",
   "@p16ReqFullPeople": {
     "placeholders": {
-      "a": {"type": "String"},
-      "b": {"type": "String"}
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
     }
   },
   "p16ReqCantApprove": "Kontenjan yetersiz olduğu için onaylanamaz",
@@ -4277,7 +4368,9 @@
   "p16SetApproved": "{n} onaylı katılımcı",
   "@p16SetApproved": {
     "placeholders": {
-      "n": {"type": "String"}
+      "n": {
+        "type": "String"
+      }
     }
   },
   "p16SetOpenSub": "Kayıt olan herkes doğrudan onaylanır.",
@@ -4286,7 +4379,9 @@
   "p16SetCapCurrent": "Mevcut: {n} kişi",
   "@p16SetCapCurrent": {
     "placeholders": {
-      "n": {"type": "String"}
+      "n": {
+        "type": "String"
+      }
     }
   },
   "p16SetCapDec": "Kontenjanı azalt",
@@ -4294,7 +4389,9 @@
   "p16SetCancelNote": "Katılan {n} kişiye anlık bildirim gönderilecek ve etkinlik listelerden kaldırılacaktır.",
   "@p16SetCancelNote": {
     "placeholders": {
-      "n": {"type": "String"}
+      "n": {
+        "type": "String"
+      }
     }
   },
   "p16QrStatusTitle": "Yoklama durumu",
@@ -4310,25 +4407,49 @@
   "p16AttMarkedToast": "{name} yoklamaya eklendi ({method})",
   "@p16AttMarkedToast": {
     "placeholders": {
-      "name": {"type": "String"},
-      "method": {"type": "String"}
+      "name": {
+        "type": "String"
+      },
+      "method": {
+        "type": "String"
+      }
     }
   },
   "p16AttUnmarkedToast": "{name} yoklamadan çıkarıldı",
   "@p16AttUnmarkedToast": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "p07ChatSearchClear": "Temizle",
   "p17DailyFlow": "Günlük akış",
   "p17DayPlanned": "{n} ders planlandı",
-  "@p17DayPlanned": {"placeholders": {"n": {"type": "String"}}},
+  "@p17DayPlanned": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p17SlotWaiting": "Bekliyor",
   "p17RoomLabel": "Derslik {room}",
-  "@p17RoomLabel": {"placeholders": {"room": {"type": "String"}}},
+  "@p17RoomLabel": {
+    "placeholders": {
+      "room": {
+        "type": "String"
+      }
+    }
+  },
   "p17HoursPerWeek": "{n} saat / hafta",
-  "@p17HoursPerWeek": {"placeholders": {"n": {"type": "String"}}},
+  "@p17HoursPerWeek": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p17NoSemesterTitle": "Henüz dönem yok",
   "p17NoSemesterBody": "Bir dönem ekleyerek derslerini düzenleyebilirsin.",
   "p17NoCourseTitle": "Henüz ders eklemedin",
@@ -4339,17 +4460,20 @@
   "p17OutOfRangeBody": "Seçilen gün akademik takvim dışında kalıyor.",
   "p17LoadErrTitle": "Ders programı yüklenirken bir sorun oluştu.",
   "p17SemesterCount": "{n} kayıtlı dönem",
-  "@p17SemesterCount": {"placeholders": {"n": {"type": "String"}}},
+  "@p17SemesterCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p17CheckFields": "Lütfen aşağıdaki alanları kontrol et:",
   "p17ExamDetail": "Detay",
   "p17ExamsNoUpcomingBody": "Tebrikler! Şu an için yaklaşan vize, final veya quiz bulunmuyor.",
   "p17ExamsEmptyMineTitle": "Kişisel sınav eklemedin.",
   "p17ExamsEmptyMineBody": "Sınav takvimini oluşturmak ve geri sayımı takip etmek için ilk sınavını ekle.",
-  "p17OfficialEmptyBody": "Bölümün sınav programı açıklandığında burada listelenecek.",
   "p17CourseInfoSemantic": "Ders bilgileri",
   "p20HubExamPlan": "Oturum planı",
-  "p20HubNoDeptTitle": "Profilinde bölüm bilgisi yok",
-  "p20HubNoDeptBody": "Ders programı ve kişiselleştirilmiş duyurular için fakülte bilgilerini tamamla.",
   "p20HubTimetableEmptyBody": "Haftalık akışını takip etmek ve sınıf takvimini oluşturmak için derslerini ekle.",
   "p20HubExamBadge": "Vize & Final",
   "p20HubExamEmptyBody": "Tebrikler! Takviminde şu an için planlanmış bir vize veya final görünmüyor.",
@@ -4358,21 +4482,38 @@
   "p20HubAnnEmptyBody": "Bölüm sekreterliği veya danışmanından yeni bir bildirim paylaşıldığında burada listelenecek.",
   "p20HubDateTime": "Tarih & saat",
   "p20CalToday": "Bugün: {date}",
-  "@p20CalToday": {"placeholders": {"date": {"type": "String"}}},
+  "@p20CalToday": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "p20CalSelected": "Seçili",
   "p20CalImportant": "Önemli tarih",
   "p20Yesterday": "Dün",
   "p20AnnFooterTitle": "Bölümünle ilgili başka duyuru yok.",
   "p20AnnFooterBody": "Yeni akademik takvim ve sınav bildirimleri yayınlandığında bildirim alacaksın.",
-  "p20AnnLinkErrBody": "Dosya sunucusuna ulaşılamadı. Lütfen ağ bağlantını kontrol et.",
   "p20RemPermTitle": "Bildirim izni verilmedi",
   "p20RemPermBody": "Ders ve sınav hatırlatıcılarının zamanında çalabilmesi için sistem bildirim iznine ihtiyaç vardır.",
   "p20RemOpenSettings": "Ayarlardan aç",
   "p13PollArchiveCount": "{n} Anket Arşivde",
-  "@p13PollArchiveCount": {"placeholders": {"n": {"type": "String"}}},
+  "@p13PollArchiveCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p13PollArchiveHeading": "Sonuçlanan Anketler",
   "p13PollAvgOutOf": "5 üzerinden {avg} puan",
-  "@p13PollAvgOutOf": {"placeholders": {"avg": {"type": "String"}}},
+  "@p13PollAvgOutOf": {
+    "placeholders": {
+      "avg": {
+        "type": "String"
+      }
+    }
+  },
   "p13PollAvgTitle": "Ortalama Memnuniyet",
   "p13PollChangeNote": "Oy verdikten sonra fikrinizi değiştirebilirsiniz.",
   "p13PollClosingSoon": "Bitiyor",
@@ -4394,13 +4535,28 @@
   "p13PollPrevChoice": "Önceki seçiminiz",
   "p13PollQuick": "Hızlı süre",
   "p13PollRankLabel": "{n}. Tercih",
-  "@p13PollRankLabel": {"placeholders": {"n": {"type": "String"}}},
+  "@p13PollRankLabel": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p13PollRankReset": "Sıralamayı sıfırlamak için seçeneğe tekrar dokunun.",
   "p13PollRankTap": "Seçmek için dokunun",
   "p13PollRateCta": "Puanla",
   "p13PollSecretBody": "Kimliğiniz hiçbir yönetici, kulüp temsilcisi veya öğrenci tarafından görüntülenemez.",
   "p13PollSelectedCount": "{n} / {max} seçildi",
-  "@p13PollSelectedCount": {"placeholders": {"n": {"type": "String"}, "max": {"type": "String"}}},
+  "@p13PollSelectedCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
   "p13PollTopOption": "En çok oy alan seçenek",
   "p13PollTypeMultiHint": "Birden fazla seçenek işaretlenebilir",
   "p13PollTypeRankedHint": "Tercih sırasına göre dizme",
@@ -4424,16 +4580,37 @@
   "p12VisibilityAndJoin": "Görünürlük ve katılım",
   "p17ConflictIntro": "Şu derslerle saatler çakışıyor:",
   "p17ColorSelected": "Seçili: {name}",
-  "@p17ColorSelected": {"placeholders": {"name": {"type": "String"}}},
+  "@p17ColorSelected": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "p17WeekDay": "Haftanın günü",
   "p13PollViewAll": "Tümünü Gör",
   "p13PollReview": "Oyu İncele",
   "p13PollOpenBadge": "Açık anket",
   "p13PollClosedKicker": "Kapanan anket",
   "p13PollDone": "Tamamlandı · {n} oy",
-  "@p13PollDone": {"placeholders": {"n": {"type": "String"}}},
+  "@p13PollDone": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p13PollWinner": "Kazanan: {name} (%{pct})",
-  "@p13PollWinner": {"placeholders": {"name": {"type": "String"}, "pct": {"type": "String"}}},
+  "@p13PollWinner": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
   "p13PollOneVote": "Tek oylu",
   "p13PollHiddenResults": "Gizli sonuçlar",
   "p13PollVoteCta": "Oyla",
@@ -4460,9 +4637,21 @@
   "p12ConsentBold": "topluluk ilkelerine",
   "p03NotifLoadFailedBody": "Son güncellemeler sunucu ile eşitlenemedi. Lütfen bağlantınızı kontrol edin.",
   "p03NotifShortDay": "{n} gün",
-  "@p03NotifShortDay": {"placeholders": {"n": {"type": "String"}}},
+  "@p03NotifShortDay": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p05SearchLikes": "{n} beğeni",
-  "@p05SearchLikes": {"placeholders": {"n": {"type": "String"}}},
+  "@p05SearchLikes": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p05SearchErrorTitle": "Yüklenemedi",
   "p05SearchErrorBody": "Arama sonuçları alınırken bir bağlantı hatası oluştu.",
   "p13PollDistribution": "Seçenek Dağılımı",
@@ -4503,10 +4692,22 @@
   "p23PrivacyShort": "Rehberiniz sunucuya gönderilmez.",
   "p26OnceCaption": "Bu fotoğrafı yalnızca bir kez görebilirsin.",
   "p09BlockNamed": "{name} Engelle",
-  "@p09BlockNamed": {"placeholders": {"name": {"type": "String"}}},
+  "@p09BlockNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "p09MemberOptions": "Üye seçenekleri",
   "p09MemberRemoved": "{name} gruptan çıkarıldı",
-  "@p09MemberRemoved": {"placeholders": {"name": {"type": "String"}}},
+  "@p09MemberRemoved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "p09MediaLoading": "Yükleniyor...",
   "p09MediaEmptyBody": "Paylaşılan fotoğraflar ve videolar burada görünür.",
   "p09MediaErrorTitle": "Hata oluştu",
@@ -4515,16 +4716,37 @@
   "p09MembersLoadFailed": "Üye listesi alınamadı.",
   "p10AlbumTitle": "Albüm",
   "p10AlbumCount": "{n} albüm",
-  "@p10AlbumCount": {"placeholders": {"n": {"type": "String"}}},
+  "@p10AlbumCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p10ItemUnit": "öğe",
   "p10LimitedBody": "Sohbete göndermek için kütüphanenden ek fotoğraflar seçebilirsin.",
   "p10DeniedBody": "Fotoğraf ve video gönderebilmek için uygulama ayarlarından galeri erişimine izin vermelisin.",
   "p10GalleryEmpty": "Galeride fotoğraf ya da video yok.",
   "p10SelCount": "{n} / {max}",
-  "@p10SelCount": {"placeholders": {"n": {"type": "String"}, "max": {"type": "String"}}},
+  "@p10SelCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
   "p10SelWord": "seçildi",
   "p10TileSelected": "Seçildi, sıra {n}",
-  "@p10TileSelected": {"placeholders": {"n": {"type": "String"}}},
+  "@p10TileSelected": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p10VideoPrepareSub": "Sıkıştırılıyor ve önbelleğe alınıyor",
   "p10CloseNotice": "Bildirimi kapat",
   "p01LgReview": "Sözleşmeleri tekrar incele",
@@ -4539,15 +4761,33 @@
   "p14WithdrawRequest": "İsteği geri çek",
   "p14StatusGoing": "Katılıyor",
   "p18ClassYear": "{n}. Sınıf",
-  "@p18ClassYear": {"placeholders": {"n": {"type": "String"}}},
+  "@p18ClassYear": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p18FollowErrorTitle": "Bağlantı hatası",
   "p18FollowersEmptyBody": "Profiliniz aktifleştikçe arkadaşlarınız sizi burada takip etmeye başlayacak.",
   "p18FollowingEmptyBody": "İlginizi çeken öğrencileri ve kulüp üyelerini takip edin, kampüsteki paylaşımları kaçırmayın.",
   "p18FollowNoMatchBody": "Aramanızla eşleşen kullanıcı bulunamadı. Yazımı kontrol edip tekrar arayabilirsiniz.",
   "p18AllFollowers": "Tüm takipçiler ({n})",
-  "@p18AllFollowers": {"placeholders": {"n": {"type": "String"}}},
+  "@p18AllFollowers": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p18AllFollowing": "Takip edilenler ({n})",
-  "@p18AllFollowing": {"placeholders": {"n": {"type": "String"}}},
+  "@p18AllFollowing": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p19AcademicInfo": "Akademik Bilgiler",
   "p19ShowEmailDesc": "Profilinizi ziyaret eden öğrenciler e-posta adresinizi görebilir.",
   "p19LangSystemDesc": "Cihazınızın varsayılan dilini kullanır",
@@ -4574,7 +4814,6 @@
   "p20BlockInfo": "Engellediğiniz kişinin gönderilerini görmezsiniz ve onunla mesajlaşamazsınız.",
   "p20ReportSendHint": "Durumu kısaca açıklayabilirsiniz...",
   "p20PrefPollsSub": "Öğrenci ve personel anketleri",
-  "p20PrefAcademicSub": "Bölüm, fakülte ve sınav duyuruları",
   "p20PrefDetailHead": "Kategorilere ait alt bildirim türlerini tek tek yönetin. Ana anahtarı kapattığınızda ilgili alt bildirimler sessize alınır.",
   "p20PrefDetailSub": "Alt kategoriler ve bildirim türleri",
   "p20PrefOffTag": "Devre dışı",
@@ -4592,15 +4831,33 @@
   "p20PrefLoadFail": "Yüklenemedi",
   "p20PrefTapRetry": "Yeniden denemek için dokunun.",
   "p20PrefRemSub": "Ders başlamadan {m} dk önce yerel alarm/bildirim",
-  "@p20PrefRemSub": {"placeholders": {"m": {"type": "String"}}},
+  "@p20PrefRemSub": {
+    "placeholders": {
+      "m": {
+        "type": "String"
+      }
+    }
+  },
   "p20QuietPickHelp": "Saat seçin",
   "p20ThemeSystemSub": "Cihaz ayarlarına göre otomatik",
   "p20HalfDay": "Yarım gün",
   "p20AllDay": "Tam gün",
   "p20RangeDays": "{n} gün",
-  "@p20RangeDays": {"placeholders": {"n": {"type": "String"}}},
+  "@p20RangeDays": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p20RangeWeeks": "{n} hafta",
-  "@p20RangeWeeks": {"placeholders": {"n": {"type": "String"}}},
+  "@p20RangeWeeks": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p20RemDaySub": "Sınavdan bir gün önce hatırlat",
   "p20RemHourSub": "Uygulama kapalıyken de gelir; Akademik duyuru tercihine bağlıdır",
   "p13SugSortTop": "En çok oy",
@@ -4621,10 +4878,22 @@
   "p03HomeUpcoming": "Yaklaşan etkinlikler",
   "p03HomeMealHeroTitle": "Günün Yemek Menüsü",
   "p03HomeLunchCount": "Öğle Yemeği • {n} çeşit",
-  "@p03HomeLunchCount": {"placeholders": {"n": {"type": "String"}}},
+  "@p03HomeLunchCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p03HomeMenuDetail": "Menü Detayı",
   "p03HomeHosts": "{club} Düzenliyor",
-  "@p03HomeHosts": {"placeholders": {"club": {"type": "String"}}},
+  "@p03HomeHosts": {
+    "placeholders": {
+      "club": {
+        "type": "String"
+      }
+    }
+  },
   "p04CropCenter": "Ortala",
   "p04SrcSizeTitle": "Dosya boyutu yüksek",
   "p18ProfileTitle": "Profilim",
@@ -4632,7 +4901,9 @@
   "p15PercentFull": "%{n} dolu",
   "@p15PercentFull": {
     "placeholders": {
-      "n": {"type": "String"}
+      "n": {
+        "type": "String"
+      }
     }
   },
   "p15ChatSub": "Katılımcılarla ve organizatörle tanış",
@@ -4645,8 +4916,12 @@
   "p15AttendeesLine": "{going} kişi katılıyor · {interested} ilgileniyor",
   "@p15AttendeesLine": {
     "placeholders": {
-      "going": {"type": "String"},
-      "interested": {"type": "String"}
+      "going": {
+        "type": "String"
+      },
+      "interested": {
+        "type": "String"
+      }
     }
   },
   "p13SuppFaqHeading": "Sık sorulan sorular",
@@ -4654,7 +4929,13 @@
   "p23GroupNameHint": "Örn. Mühendislik Proje Ekibi...",
   "p23NoneText": "Rehberindeki kişilerden Bingöl Üniversitesi e-postasıyla uygulamayı kullanan kimse bulunamadı.",
   "p09GradeYear": "{n}. Sınıf",
-  "@p09GradeYear": {"placeholders": {"n": {"type": "String"}}},
+  "@p09GradeYear": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p14UpcomingOther": "Yaklaşan diğer günler",
   "p14ErrorBodyCache": "Sunucuyla bağlantı kurulurken bir sorun oluştu. Çevrimdışı önbellek listeleniyor.",
   "p14Completed": "Tamamlandı",
@@ -4666,7 +4947,9 @@
   "p15CodeChars": "{n} karakter",
   "@p15CodeChars": {
     "placeholders": {
-      "n": {"type": "String"}
+      "n": {
+        "type": "String"
+      }
     }
   },
   "p15LeaveHint": "İstediğin zaman katılım durumunu değiştirebilirsin.",
@@ -4679,7 +4962,13 @@
   "p18CounterEvents": "Etkinlik",
   "p18ClearSearch": "Aramayı temizle",
   "p18NavUnread": "{n} okunmamış",
-  "@p18NavUnread": {"placeholders": {"n": {"type": "String"}}},
+  "@p18NavUnread": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p19PushOffShort": "Kapalı",
   "p19SaveFailedSub": "Bağlantı hatası oluştu.",
   "p20GradeLevel": "Sınıf Düzeyi",
@@ -4714,9 +5003,6 @@
   "p22SaveGalleryCloud": "Galerin bulut yedeklemesi açıksa fotoğraflar oraya da gidebilir.",
   "p22SaveDeniedToast": "Fotoğraflar galeriye kaydedilemedi: izin verilmedi. Ayarlardan izin verebilirsin.",
   "p22OpenSettings": "Ayarlar",
-  "p21PreviewTitle": "Bildirimde mesaj önizlemesi",
-  "p21PreviewSub": "Açıkken mesajın ilk kısmı bildirimde ve kilit ekranında görünür; metin Google/Apple bildirim sunucularından geçer. Kapalıyken yalnızca gönderen adı gösterilir.",
-  "p26PrefNeedsAnnouncements": "Duyurular kapalıyken bildirim gelmez",
   "p26PrefPollsNeedsParents": "Duyurular veya Kulüpler kapalıysa ilgili anket bildirimleri gelmez",
   "p32ExportShareFailed": "Verileriniz paylaşım için hazırlanamadı. Lütfen tekrar deneyin.",
   "p31ChatPlaceholderBlocked": "Engellediğiniz kullanıcının mesajı gizlendi",
@@ -4739,12 +5025,30 @@
   "p60ResetDefault": "Varsayılana dön",
   "p60SectionClasses": "Bugünkü dersler",
   "p60MoveUp": "{name} bölümünü yukarı taşı",
-  "@p60MoveUp": {"placeholders": {"name": {"type": "String"}}},
+  "@p60MoveUp": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "p60MoveDown": "{name} bölümünü aşağı taşı",
-  "@p60MoveDown": {"placeholders": {"name": {"type": "String"}}},
+  "@p60MoveDown": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "p60Shortcuts": "Kısayolları seç",
   "p60ShortcutsCount": "{n} kısayol",
-  "@p60ShortcutsCount": {"placeholders": {"n": {"type": "String"}}},
+  "@p60ShortcutsCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p60ShortcutsHint": "En fazla 5 kısayol seçin; sırayı sürükleyerek değiştirin.",
   "p60EmptyTitle": "Ana sayfan boş",
   "p60EmptyAction": "Bölüm ekle",
@@ -4831,13 +5135,34 @@
   "p51EvOffline": "Çevrimdışısın. Kayıtlı etkinlikler gösteriliyor.",
   "p69WeeklyFlow": "Haftalık Akış",
   "p69WeekN": "{n}. Hafta",
-  "@p69WeekN": {"placeholders": {"n": {"type": "String"}}},
+  "@p69WeekN": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p69Done": "Tamamlandı",
   "p69LastSession": "Son oturum",
   "p69Hours": "{h} saat",
-  "@p69Hours": {"placeholders": {"h": {"type": "String"}}},
+  "@p69Hours": {
+    "placeholders": {
+      "h": {
+        "type": "String"
+      }
+    }
+  },
   "p69TodayTotal": "Bugün toplam {n} oturum ({hours})",
-  "@p69TodayTotal": {"placeholders": {"n": {"type": "String"}, "hours": {"type": "String"}}},
+  "@p69TodayTotal": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
   "p69ExamCalendar": "Sınav Takvimi",
   "p69Now": "Şimdi",
   "p69ExamName": "Sınav adı",
@@ -4848,23 +5173,38 @@
   "p69TimeLabel": "Saat",
   "p69ExamNote": "Sınavdan 1 gün önce yerel, 2 saat önce push bildirimi alırsın.",
   "p69SemesterTerm": "{name} yarıyılı",
-  "@p69SemesterTerm": {"placeholders": {"name": {"type": "String"}}},
+  "@p69SemesterTerm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "p69TodayJump": "Güne Dön",
   "p69Events": "Akademik Olaylar",
   "p69Records": "{n} Kayıt",
-  "@p69Records": {"placeholders": {"n": {"type": "String"}}},
-  "p69OpenAttachment": "Ekli belgeyi aç",
+  "@p69Records": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p69ExamReminder": "Sınav hatırlatması",
   "p69ExamReminderSub": "Sınavdan 1 gün önce telefonunda, 2 saat önce bildirim olarak.",
   "p69ClassReminderSub": "Dersten {n} dakika önce.",
-  "@p69ClassReminderSub": {"placeholders": {"n": {"type": "String"}}},
+  "@p69ClassReminderSub": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p69Duration": "Süre",
   "p69Classes": "Dersler",
   "p69RemindersFooter": "Hatırlatmalar bu telefonda oluşturulur.",
   "p69PermOff": "Bildirim izni kapalı. Hatırlatma almak için ayarlardan izin ver.",
   "p69NoExams": "Henüz sınav eklemedin.",
-  "p69AnnUnitDate": "{unit} · {date}",
-  "@p69AnnUnitDate": {"placeholders": {"unit": {"type": "String"}, "date": {"type": "String"}}},
   "p68New": "Yeni",
   "p68FormKind": "Tür",
   "p68OptionsLabel": "Seçenekler (2-12)",
@@ -4872,7 +5212,13 @@
   "p68Retract": "Oyumu geri çek",
   "p68MyVote": "Senin oyun",
   "p68TicketNo": "Bilet #{n}",
-  "@p68TicketNo": {"placeholders": {"n": {"type": "String"}}},
+  "@p68TicketNo": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "p68Required": "Zorunlu",
   "p68SubjectLabel": "Konu",
   "p68SubjectHint": "Kısaca ne oldu?",
@@ -4950,9 +5296,6 @@
   },
   "p68TypeMulti": "Çoklu",
   "p68TypeRanked": "Sıralı",
-  "p69SchoolSchedule": "Okul programı",
-  "p69WeeksAgo": "{n} hafta önce",
-  "@p69WeeksAgo": {"placeholders": {"n": {"type": "String"}}},
   "p51EvAttList": "Yoklama listesi",
   "p51EvClubOnly": "Etkinlikler kulüpler adına açılır.",
   "p60Today": "Bugün kampüste",
@@ -4962,12 +5305,24 @@
   "p60NoNews": "Henüz haber yok.",
   "p60NoAnnouncements": "Henüz duyuru yok.",
   "p60Classroom": "Derslik {room}",
-  "@p60Classroom": {"placeholders": {"room": {"type": "String"}}},
+  "@p60Classroom": {
+    "placeholders": {
+      "room": {
+        "type": "String"
+      }
+    }
+  },
   "p60EmptySub": "Gösterilecek bir bölüm seçmediniz.",
   "p60Selected": "Seçilen kısayollar (sıralama)",
   "p60AllShortcuts": "Tüm kısayollar",
   "p60Remove": "Kaldır: {name}",
-  "@p60Remove": {"placeholders": {"name": {"type": "String"}}},
+  "@p60Remove": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "p60ShortScheduleFull": "Ders programı",
   "p63NewsLastUpdate": "Son güncelleme: {when}",
   "@p63NewsLastUpdate": {
@@ -4996,19 +5351,49 @@
   "frqLockedBodyRequested": "İsteğin onaylanınca gönderileri görebilirsin.",
   "frqReqTitle": "Takip istekleri",
   "frqReqRow": "Takip istekleri ({n})",
-  "@frqReqRow": {"placeholders": {"n": {"type": "String"}}},
+  "@frqReqRow": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "frqReqPending": "Bekleyen istekler ({n})",
-  "@frqReqPending": {"placeholders": {"n": {"type": "String"}}},
+  "@frqReqPending": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "frqReqAccept": "Onayla",
   "frqReqDecline": "Sil",
   "frqReqAcceptSem": "{name} isteğini onayla",
-  "@frqReqAcceptSem": {"placeholders": {"name": {"type": "String"}}},
+  "@frqReqAcceptSem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "frqReqDeclineSem": "{name} isteğini sil",
-  "@frqReqDeclineSem": {"placeholders": {"name": {"type": "String"}}},
+  "@frqReqDeclineSem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "frqReqEmpty": "Bekleyen takip isteği yok.",
   "frqNotifTypeFollow": "Takip",
   "frqMsgReqRow": "Mesaj istekleri ({n})",
-  "@frqMsgReqRow": {"placeholders": {"n": {"type": "String"}}},
+  "@frqMsgReqRow": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "frqMsgReqTitle": "Mesaj istekleri",
   "frqMsgReqInfo": "Seninle ortak kulübü ya da etkinliği olmayan, takip etmediğin kişilerden gelen mesajlar burada görünür. Kabul edene kadar gönderen mesajlarının okunup okunmadığını görmez. Yanıt yazarsan istek otomatik kabul edilir.",
   "frqMsgReqAccept": "Kabul et",
@@ -5082,97 +5467,8 @@
   "avatarFetchFailed": "Mevcut fotoğraf açılamadı. Bağlantınızı kontrol edip tekrar deneyin.",
   "avatarUpdated": "Profil fotoğrafınız güncellendi.",
   "avatarRemoved": "Profil fotoğrafınız kaldırıldı.",
-  "campusTitle": "Harita",
-  "campusOtherCampuses": "Diğer yerleşkeler",
-  "campusUnitPage": "Birim sayfası",
-  "campusBrand": "BU KAMPÜS",
-  "campusCardTitle": "Kampüs Haritası",
-  "campusCardSub": "Bina, yemekhane, kütüphane ve daha fazlasını haritada bul.",
-  "campusCardOpen": "Haritayı aç",
-  "campusSearchHint": "Kampüste ara",
-  "campusOnlyCampus": "Yalnızca kampüs içi yerler",
-  "campusAll": "Tümü",
-  "campusChipFood": "Yemekhane",
-  "campusChipLibrary": "Kütüphane",
-  "campusChipFaculties": "Fakülteler",
-  "campusNearby": "Kampüste yakınımda",
-  "campusPlacesTitle": "Kampüste yerler",
-  "campusPlaceCount": "{count} yer",
-  "campusSeeAll": "Tümünü Gör",
-  "campusDirections": "Yol tarifi",
-  "campusOpenInMaps": "Haritada aç",
-  "campusShare": "Bağlantıyı kopyala",
-  "campusDetailTitle": "Bina Detayı",
-  "campusLocationLabel": "Konum",
-  "campusMainCampus": "Ana kampüs",
-  "campusUnits": "Birimler",
   "campusAbout": "Hakkında",
-  "campusWalkTime": "Yürüyerek süre",
-  "campusWalkValue": "{min} dk ({dist})",
-  "campusWalkUnknown": "Konum açık değil",
-  "campusDistanceNote": "Mesafeler ve süreler yaklaşık değerlerdir.",
-  "campusFavAdd": "Favorilere ekle",
-  "campusFavRemove": "Favorilerden çıkar",
-  "campusLinkCopied": "Yer bilgisi ve bağlantı kopyalandı",
-  "campusOpenFailed": "Harita uygulaması açılamadı",
-  "campusPermTitle": "Konumunuzu kullanalım mı?",
-  "campusPermBody": "Kampüs içindeki binaları ve fakülteleri haritada gösterebilmemiz için konum izni gerekir. Konumunuz yalnızca cihazınızda kullanılır ve paylaşılmaz.",
-  "campusPermChipLocal": "Cihazda kalır",
-  "campusPermChipBattery": "Düşük pil tüketimi",
-  "campusPermAllow": "İzin ver",
-  "campusPermLater": "Şimdi değil",
-  "campusLocOffBand": "Konum kapalı",
-  "campusLocDeniedBody": "Konum izni yok. Harita yine çalışır; mesafeleri görmek için izni Ayarlar üzerinden açabilirsiniz.",
-  "campusOpenSettings": "Ayarları aç",
-  "campusLocServiceTitle": "Konum Servisi Devre Dışı",
-  "campusLocServiceBadge": "Kapalı",
-  "campusLocServiceBody": "Cihaz konum servisleri kapalı. Kampüs içi yönlendirme için lütfen cihaz konumunu açın.",
-  "campusOutsideCampus": "Şu an kampüsün dışındasınız.",
-  "campusMyLocation": "Konumum",
-  "campusZoomIn": "Yakınlaştır",
-  "campusZoomOut": "Uzaklaştır",
-  "campusLayers": "Harita katmanı",
-  "campusLayerStandard": "Standart",
-  "campusLayerSatellite": "Uydu",
-  "campusAttribution": "© OpenStreetMap katkıda bulunanları",
-  "campusMapError": "Harita yüklenemedi. Bağlantınızı kontrol edin.",
-  "campusMaintenanceTitle": "Kampüs haritası şu an bakımda",
-  "campusMaintenanceBody": "Kısa süre sonra yeniden deneyin.",
-  "campusTilesFailing": "Harita parçaları yüklenemiyor. Bağlantınızı kontrol edin.",
-  "campusStaleNote": "Kaydedilmiş yer listesi gösteriliyor.",
-  "campusNoPlaces": "Bu kategoride yer yok.",
-  "campusNoPlacesAll": "Henüz kampüs yeri eklenmemiş.",
-  "campusQuickRoute": "HIZLI ROTA",
-  "campusNearestTitle": "En yakın yer",
-  "campusNearestBody": "{name} için yaklaşık {min} dk yürüme mesafesindesiniz.",
-  "campusStart": "Başlat",
-  "campusRecent": "SON ARAMALAR",
-  "campusClear": "Temizle",
-  "campusRemoveRecent": "Aramayı sil",
-  "campusCategoriesTitle": "Kategoriler",
-  "campusResultCount": "{count} Sonuç",
-  "campusNoResult": "Kampüs içinde sonuç bulunamadı. Farklı bir ad deneyin.",
-  "campusOutsideNote": "Kampüs dışındaki yerler aranamaz.",
   "campusSort": "Sırala",
-  "campusSortNear": "Yakınlık",
-  "campusSortName": "Ad",
-  "campusFindMoreTitle": "Aradığınız yeri bulamadınız mı?",
-  "campusFindMoreBody": "Tüm bina, amfi ve birimleri kampüste arayın.",
-  "campusOnlyCampusShown": "Yalnızca kampüs içi yerler gösterilmektedir.",
-  "campusPinLabel": "{name}, {category}",
-  "campusClusterLabel": "{count} yer",
-  "campusYouAreHere": "Konumunuz",
-  "campusCloseCard": "Yer kartını kapat",
-  "campusDetails": "Detay",
-  "campusWalkTo": "{name} için yol tarifi",
-  "campusPanelHandle": "Yer listesi paneli",
-  "@campusPlaceCount": {"placeholders":{"count":{"type":"String"}}},
-  "@campusWalkValue": {"placeholders":{"min":{"type":"String"},"dist":{"type":"String"}}},
-  "@campusNearestBody": {"placeholders":{"name":{"type":"String"},"min":{"type":"String"}}},
-  "@campusResultCount": {"placeholders":{"count":{"type":"String"}}},
-  "@campusPinLabel": {"placeholders":{"name":{"type":"String"},"category":{"type":"String"}}},
-  "@campusClusterLabel": {"placeholders":{"count":{"type":"String"}}},
-  "@campusWalkTo": {"placeholders":{"name":{"type":"String"}}},
   "settingsAnalytics": "Kullanım analizi",
   "settingsAnalyticsSub": "Uygulamayı iyileştirmek için ekranlarda geçirilen süre ve yapılan eylemler gibi kullanım bilgileri gönderilir. Mesaj içeriği, arama metni ve kişisel bilgiler gönderilmez. Kapatınca toplama durur, bekleyenler silinir."
 }

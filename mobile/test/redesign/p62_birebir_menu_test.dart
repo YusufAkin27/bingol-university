@@ -145,7 +145,6 @@ void main() {
         'communities': false,
         'messages': true,
         'polls': true,
-        'academicAnnouncements': true,
         'quietHours': {'enabled': true, 'start': '23:00', 'end': '07:00'},
         'subtypes': {'MESSAGE_DIRECT': true},
       });

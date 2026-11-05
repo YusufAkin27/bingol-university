@@ -32,7 +32,7 @@ void main() {
       expect(d.visible, [
         HomeSection.quickAccess,
         HomeSection.menu,
-        HomeSection.campusMap,
+        HomeSection.suggestions,
         HomeSection.featuredNews,
         HomeSection.todayClasses,
         HomeSection.upcomingEvents,
@@ -43,12 +43,12 @@ void main() {
     });
 
     test('siralama: moveSection, reorderSection (onReorderItem kurali), sinirda degismez', () {
-      var v = HomeLayout.defaults.moveSection(HomeSection.campusMap, -1);
-      expect(v.order.take(4), [HomeSection.quickAccess, HomeSection.campusMap, HomeSection.menu, HomeSection.featuredNews]);
-      expect(v.moveSection(HomeSection.quickAccess, -1), v, reason: 'ilk satir yukari tasinamaz');
+      var v = HomeLayout.defaults.moveSection(HomeSection.menu, -1);
+      expect(v.order.take(3), [HomeSection.menu, HomeSection.quickAccess, HomeSection.suggestions]);
+      expect(v.moveSection(HomeSection.menu, -1), v, reason: 'ilk satir yukari tasinamaz');
       expect(v.moveSection(HomeSection.announcements, 1), v, reason: 'son satir asagi tasinamaz');
       v = HomeLayout.defaults.reorderSection(0, 2); // quickAccess -> 3. siraya (cikarildiktan sonraki indeks)
-      expect(v.order.take(3), [HomeSection.menu, HomeSection.campusMap, HomeSection.quickAccess]);
+      expect(v.order.take(3), [HomeSection.menu, HomeSection.suggestions, HomeSection.quickAccess]);
       expect(v.isDefault, isFalse);
     });
 
@@ -87,26 +87,26 @@ void main() {
       expect(HomeLayout.fromJson('x', 7), HomeLayout.defaults);
     });
 
-    test('kayitli duzende olmayan Kampus Haritasi bolumu Hizli Erisim in hemen ardina eklenir', () {
+    test('kaldirilan Kampus Haritasi bolumu/kisayolu kayitli duzende sessizce atilir, cokme yok', () {
       final v = HomeLayout.fromJson({
         'u': 7,
-        'order': ['featuredNews', 'quickAccess', 'menu', 'todayClasses', 'upcomingEvents', 'announcements'],
-        'hidden': <String>[],
-        'sOn': ['news'],
+        'order': ['featuredNews', 'quickAccess', 'campusMap', 'menu', 'todayClasses', 'upcomingEvents', 'announcements'],
+        'hidden': <String>['campusMap'],
+        'sOn': ['campusMap', 'news'],
       }, 7);
       expect(v.order, [
         HomeSection.featuredNews,
         HomeSection.quickAccess,
-        HomeSection.campusMap,
         HomeSection.menu,
+        HomeSection.suggestions,
         HomeSection.todayClasses,
         HomeSection.upcomingEvents,
         HomeSection.announcements,
       ]);
-      expect(v.isVisible(HomeSection.campusMap), isTrue);
-      // Hizli Erisim havuzunda Harita kisayolu var; varsayilan 5 kisayol degismedi.
-      expect(HomeLayout.defaults.shortcutPool, contains(HomeShortcut.campusMap));
-      expect(HomeLayout.defaults.shortcuts, isNot(contains(HomeShortcut.campusMap)));
+      expect(v.hidden, isEmpty);
+      expect(v.shortcutOn, [HomeShortcut.news]);
+      // Yalniz kaldirilmis kisayol kaldiysa varsayilan 5 kisayola donulur.
+      expect(HomeLayout.fromJson({'u': 7, 'order': ['menu'], 'sOn': ['campusMap']}, 7).shortcutOn, HomeLayout.defaults.shortcutOn);
     });
 
     test('bilinmeyen kimlik atilir, yeni bolum sona eklenir, tekrarlar elenir, kisayollar 5 ile sinirli', () {
@@ -205,7 +205,7 @@ void main() {
       expect(find.text('Hızlı erişim'), findsOneWidget);
       expect(find.text('Duyurular'), findsOneWidget);
       expect(find.text('Bugün kampüste'), findsOneWidget);
-      // Varsayilan sira (Stitch v5): Bugun < Hizli erisim < menu < harita < haberler < etkinlikler < duyurular.
+      // Varsayilan sira (Stitch v5): Bugun < Hizli erisim < menu < haberler < etkinlikler < duyurular.
       double y(String s) => tester.getTopLeft(find.text(s)).dy;
       expect(y('Hızlı erişim'), lessThan(y('Günün menüsü')));
       expect(y('Bugün kampüste'), lessThan(y('Hızlı erişim')));
@@ -281,7 +281,7 @@ void main() {
       await tester.tap(up('Günün menüsü'));
       await settle(tester, const Duration(milliseconds: 600));
       final saved1 = jsonDecode((await st.read(key: HomeLayoutStore.key))!) as Map;
-      expect((saved1['order'] as List).take(3), ['menu', 'quickAccess', 'campusMap']);
+      expect((saved1['order'] as List).take(3), ['menu', 'quickAccess', 'suggestions']);
       // Menu'yu gizle.
       await tester.tap(rowSwitch('Günün menüsü'));
       await settle(tester, const Duration(milliseconds: 600));

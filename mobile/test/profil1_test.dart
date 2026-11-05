@@ -71,7 +71,7 @@ void main() {
         // Bölüm ve sınıf ayrı çipler; hesap/gizlilik/dil/tema/çıkış Ayarlar sayfasındadır.
         expect(find.text('Bilgisayar Mühendisliği'), findsOneWidget);
         expect(find.text('3. sınıf'), findsOneWidget);
-        for (final s in ['Kayıtlı haberler', 'Kulüplerim', 'Etkinliklerim', 'Önerilen kişiler']) {
+        for (final s in ['Kayıtlı haberler', 'Kulüplerim', 'Etkinliklerim']) {
           await tester.scrollUntilVisible(find.text(s), 200, scrollable: find.byType(Scrollable).first);
           expect(find.text(s), findsOneWidget);
         }

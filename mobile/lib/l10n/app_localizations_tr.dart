@@ -564,9 +564,6 @@ class AppLocalizationsTr extends AppLocalizations {
       'Akademik hizmetler bakımda. Daha sonra tekrar deneyin.';
 
   @override
-  String get acadMyDept => 'Bölümüm';
-
-  @override
   String get acadAll => 'Tümü';
 
   @override
@@ -607,21 +604,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get acadHubCalendarSub => 'Dönem, kayıt ve sınav tarihleri';
 
   @override
-  String get acadHubAnnouncementsSub => 'Bölümüne özel duyurular';
-
-  @override
-  String acadHubUnread(String n) {
-    return '$n okunmamış';
-  }
-
-  @override
   String get acadExamsTitle => 'Sınavlar';
 
   @override
   String get acadExamsAdd => 'Sınav ekle';
-
-  @override
-  String get acadExamsTabMine => 'Sınavlarım';
 
   @override
   String get acadExamsTabOfficial => 'Resmi program';
@@ -649,25 +635,6 @@ class AppLocalizationsTr extends AppLocalizations {
       String type, String title, String date, String countdown) {
     return '$type: $title. $date. $countdown. Düzenlemek için dokun.';
   }
-
-  @override
-  String acadOfficialSemantic(String type, String title, String date) {
-    return '$type: $title. $date';
-  }
-
-  @override
-  String acadOfficialSemanticRoom(
-      String type, String title, String date, String room) {
-    return '$type: $title. $date, $room';
-  }
-
-  @override
-  String get acadExamsProfileIncomplete =>
-      'Profilinde bölüm bilgisi yok; yalnız herkese açık sınavlar gösteriliyor. Bölümünü seçerek ekleyebilirsin.';
-
-  @override
-  String get acadExamsEmptyOfficial =>
-      'Henüz yayınlanmış resmi sınav programı yok.';
 
   @override
   String get acadFormErrTitle => 'Sınav başlığı gerekli.';
@@ -739,34 +706,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get acadFormAdd => 'Sınavı ekle';
-
-  @override
-  String get acadAnnTitle => 'Bölüm duyuruları';
-
-  @override
-  String get acadAnnDetailTitle => 'Duyuru';
-
-  @override
-  String get acadAnnReadAll => 'Tümünü okundu işaretle';
-
-  @override
-  String get acadAnnEmptyMine =>
-      'Bölümünle ilgili duyuru yok.\nTüm duyurulara \"Tümü\" sekmesinden bakabilirsin.';
-
-  @override
-  String get acadAnnEmptyAll => 'Henüz duyuru yok.';
-
-  @override
-  String get acadAnnAudienceAll => 'Tüm üniversite';
-
-  @override
-  String get acadAnnUnread => 'Okunmamış';
-
-  @override
-  String get acadAnnPinned => 'Sabitlenmiş';
-
-  @override
-  String get acadAnnLinkError => 'Bağlantı açılamadı.';
 
   @override
   String get acadAnnOpenAttachment => 'Eki aç';
@@ -4994,9 +4933,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profileSavedPosts => 'Kaydedilen gönderiler';
 
   @override
-  String get profileSuggested => 'Önerilen kişiler';
-
-  @override
   String get profileSaved => 'Kayıtlı haberler';
 
   @override
@@ -5167,9 +5103,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get profilePrefsNotifPolls => 'Anketler';
-
-  @override
-  String get profilePrefsNotifAcademic => 'Akademik duyurular';
 
   @override
   String get profilePrefsNotifStories => 'Hikâyeler';
@@ -8313,21 +8246,10 @@ class AppLocalizationsTr extends AppLocalizations {
       'Sınav takvimini oluşturmak ve geri sayımı takip etmek için ilk sınavını ekle.';
 
   @override
-  String get p17OfficialEmptyBody =>
-      'Bölümün sınav programı açıklandığında burada listelenecek.';
-
-  @override
   String get p17CourseInfoSemantic => 'Ders bilgileri';
 
   @override
   String get p20HubExamPlan => 'Oturum planı';
-
-  @override
-  String get p20HubNoDeptTitle => 'Profilinde bölüm bilgisi yok';
-
-  @override
-  String get p20HubNoDeptBody =>
-      'Ders programı ve kişiselleştirilmiş duyurular için fakülte bilgilerini tamamla.';
 
   @override
   String get p20HubTimetableEmptyBody =>
@@ -8373,10 +8295,6 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get p20AnnFooterBody =>
       'Yeni akademik takvim ve sınav bildirimleri yayınlandığında bildirim alacaksın.';
-
-  @override
-  String get p20AnnLinkErrBody =>
-      'Dosya sunucusuna ulaşılamadı. Lütfen ağ bağlantını kontrol et.';
 
   @override
   String get p20RemPermTitle => 'Bildirim izni verilmedi';
@@ -8985,9 +8903,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p20PrefPollsSub => 'Öğrenci ve personel anketleri';
 
   @override
-  String get p20PrefAcademicSub => 'Bölüm, fakülte ve sınav duyuruları';
-
-  @override
   String get p20PrefDetailHead =>
       'Kategorilere ait alt bildirim türlerini tek tek yönetin. Ana anahtarı kapattığınızda ilgili alt bildirimler sessize alınır.';
 
@@ -9380,17 +9295,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p22OpenSettings => 'Ayarlar';
 
   @override
-  String get p21PreviewTitle => 'Bildirimde mesaj önizlemesi';
-
-  @override
-  String get p21PreviewSub =>
-      'Açıkken mesajın ilk kısmı bildirimde ve kilit ekranında görünür; metin Google/Apple bildirim sunucularından geçer. Kapalıyken yalnızca gönderen adı gösterilir.';
-
-  @override
-  String get p26PrefNeedsAnnouncements =>
-      'Duyurular kapalıyken bildirim gelmez';
-
-  @override
   String get p26PrefPollsNeedsParents =>
       'Duyurular veya Kulüpler kapalıysa ilgili anket bildirimleri gelmez';
 
@@ -9727,9 +9631,6 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get p69OpenAttachment => 'Ekli belgeyi aç';
-
-  @override
   String get p69ExamReminder => 'Sınav hatırlatması';
 
   @override
@@ -9756,11 +9657,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p69NoExams => 'Henüz sınav eklemedin.';
-
-  @override
-  String p69AnnUnitDate(String unit, String date) {
-    return '$unit · $date';
-  }
 
   @override
   String get p68New => 'Yeni';
@@ -9902,14 +9798,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p68TypeRanked => 'Sıralı';
-
-  @override
-  String get p69SchoolSchedule => 'Okul programı';
-
-  @override
-  String p69WeeksAgo(String n) {
-    return '$n hafta önce';
-  }
 
   @override
   String get p51EvAttList => 'Yoklama listesi';
@@ -10289,278 +10177,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get avatarRemoved => 'Profil fotoğrafınız kaldırıldı.';
 
   @override
-  String get campusTitle => 'Harita';
-
-  @override
-  String get campusOtherCampuses => 'Diğer yerleşkeler';
-
-  @override
-  String get campusUnitPage => 'Birim sayfası';
-
-  @override
-  String get campusBrand => 'BU KAMPÜS';
-
-  @override
-  String get campusCardTitle => 'Kampüs Haritası';
-
-  @override
-  String get campusCardSub =>
-      'Bina, yemekhane, kütüphane ve daha fazlasını haritada bul.';
-
-  @override
-  String get campusCardOpen => 'Haritayı aç';
-
-  @override
-  String get campusSearchHint => 'Kampüste ara';
-
-  @override
-  String get campusOnlyCampus => 'Yalnızca kampüs içi yerler';
-
-  @override
-  String get campusAll => 'Tümü';
-
-  @override
-  String get campusChipFood => 'Yemekhane';
-
-  @override
-  String get campusChipLibrary => 'Kütüphane';
-
-  @override
-  String get campusChipFaculties => 'Fakülteler';
-
-  @override
-  String get campusNearby => 'Kampüste yakınımda';
-
-  @override
-  String get campusPlacesTitle => 'Kampüste yerler';
-
-  @override
-  String campusPlaceCount(String count) {
-    return '$count yer';
-  }
-
-  @override
-  String get campusSeeAll => 'Tümünü Gör';
-
-  @override
-  String get campusDirections => 'Yol tarifi';
-
-  @override
-  String get campusOpenInMaps => 'Haritada aç';
-
-  @override
-  String get campusShare => 'Bağlantıyı kopyala';
-
-  @override
-  String get campusDetailTitle => 'Bina Detayı';
-
-  @override
-  String get campusLocationLabel => 'Konum';
-
-  @override
-  String get campusMainCampus => 'Ana kampüs';
-
-  @override
-  String get campusUnits => 'Birimler';
-
-  @override
   String get campusAbout => 'Hakkında';
 
   @override
-  String get campusWalkTime => 'Yürüyerek süre';
-
-  @override
-  String campusWalkValue(String min, String dist) {
-    return '$min dk ($dist)';
-  }
-
-  @override
-  String get campusWalkUnknown => 'Konum açık değil';
-
-  @override
-  String get campusDistanceNote => 'Mesafeler ve süreler yaklaşık değerlerdir.';
-
-  @override
-  String get campusFavAdd => 'Favorilere ekle';
-
-  @override
-  String get campusFavRemove => 'Favorilerden çıkar';
-
-  @override
-  String get campusLinkCopied => 'Yer bilgisi ve bağlantı kopyalandı';
-
-  @override
-  String get campusOpenFailed => 'Harita uygulaması açılamadı';
-
-  @override
-  String get campusPermTitle => 'Konumunuzu kullanalım mı?';
-
-  @override
-  String get campusPermBody =>
-      'Kampüs içindeki binaları ve fakülteleri haritada gösterebilmemiz için konum izni gerekir. Konumunuz yalnızca cihazınızda kullanılır ve paylaşılmaz.';
-
-  @override
-  String get campusPermChipLocal => 'Cihazda kalır';
-
-  @override
-  String get campusPermChipBattery => 'Düşük pil tüketimi';
-
-  @override
-  String get campusPermAllow => 'İzin ver';
-
-  @override
-  String get campusPermLater => 'Şimdi değil';
-
-  @override
-  String get campusLocOffBand => 'Konum kapalı';
-
-  @override
-  String get campusLocDeniedBody =>
-      'Konum izni yok. Harita yine çalışır; mesafeleri görmek için izni Ayarlar üzerinden açabilirsiniz.';
-
-  @override
-  String get campusOpenSettings => 'Ayarları aç';
-
-  @override
-  String get campusLocServiceTitle => 'Konum Servisi Devre Dışı';
-
-  @override
-  String get campusLocServiceBadge => 'Kapalı';
-
-  @override
-  String get campusLocServiceBody =>
-      'Cihaz konum servisleri kapalı. Kampüs içi yönlendirme için lütfen cihaz konumunu açın.';
-
-  @override
-  String get campusOutsideCampus => 'Şu an kampüsün dışındasınız.';
-
-  @override
-  String get campusMyLocation => 'Konumum';
-
-  @override
-  String get campusZoomIn => 'Yakınlaştır';
-
-  @override
-  String get campusZoomOut => 'Uzaklaştır';
-
-  @override
-  String get campusLayers => 'Harita katmanı';
-
-  @override
-  String get campusLayerStandard => 'Standart';
-
-  @override
-  String get campusLayerSatellite => 'Uydu';
-
-  @override
-  String get campusAttribution => '© OpenStreetMap katkıda bulunanları';
-
-  @override
-  String get campusMapError => 'Harita yüklenemedi. Bağlantınızı kontrol edin.';
-
-  @override
-  String get campusMaintenanceTitle => 'Kampüs haritası şu an bakımda';
-
-  @override
-  String get campusMaintenanceBody => 'Kısa süre sonra yeniden deneyin.';
-
-  @override
-  String get campusTilesFailing =>
-      'Harita parçaları yüklenemiyor. Bağlantınızı kontrol edin.';
-
-  @override
-  String get campusStaleNote => 'Kaydedilmiş yer listesi gösteriliyor.';
-
-  @override
-  String get campusNoPlaces => 'Bu kategoride yer yok.';
-
-  @override
-  String get campusNoPlacesAll => 'Henüz kampüs yeri eklenmemiş.';
-
-  @override
-  String get campusQuickRoute => 'HIZLI ROTA';
-
-  @override
-  String get campusNearestTitle => 'En yakın yer';
-
-  @override
-  String campusNearestBody(String name, String min) {
-    return '$name için yaklaşık $min dk yürüme mesafesindesiniz.';
-  }
-
-  @override
-  String get campusStart => 'Başlat';
-
-  @override
-  String get campusRecent => 'SON ARAMALAR';
-
-  @override
-  String get campusClear => 'Temizle';
-
-  @override
-  String get campusRemoveRecent => 'Aramayı sil';
-
-  @override
-  String get campusCategoriesTitle => 'Kategoriler';
-
-  @override
-  String campusResultCount(String count) {
-    return '$count Sonuç';
-  }
-
-  @override
-  String get campusNoResult =>
-      'Kampüs içinde sonuç bulunamadı. Farklı bir ad deneyin.';
-
-  @override
-  String get campusOutsideNote => 'Kampüs dışındaki yerler aranamaz.';
-
-  @override
   String get campusSort => 'Sırala';
-
-  @override
-  String get campusSortNear => 'Yakınlık';
-
-  @override
-  String get campusSortName => 'Ad';
-
-  @override
-  String get campusFindMoreTitle => 'Aradığınız yeri bulamadınız mı?';
-
-  @override
-  String get campusFindMoreBody =>
-      'Tüm bina, amfi ve birimleri kampüste arayın.';
-
-  @override
-  String get campusOnlyCampusShown =>
-      'Yalnızca kampüs içi yerler gösterilmektedir.';
-
-  @override
-  String campusPinLabel(String name, String category) {
-    return '$name, $category';
-  }
-
-  @override
-  String campusClusterLabel(String count) {
-    return '$count yer';
-  }
-
-  @override
-  String get campusYouAreHere => 'Konumunuz';
-
-  @override
-  String get campusCloseCard => 'Yer kartını kapat';
-
-  @override
-  String get campusDetails => 'Detay';
-
-  @override
-  String campusWalkTo(String name) {
-    return '$name için yol tarifi';
-  }
-
-  @override
-  String get campusPanelHandle => 'Yer listesi paneli';
 
   @override
   String get settingsAnalytics => 'Kullanım analizi';

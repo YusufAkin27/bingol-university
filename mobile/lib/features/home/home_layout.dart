@@ -13,9 +13,8 @@ enum HomeSection {
   upcomingEvents('upcomingEvents', true),
   announcements('announcements', true),
 
-  /// Kampüs Haritası kartı (CAMPUS-MOB). Kayıtlı düzeni olmayan kullanıcılarda Hızlı Erişim'in hemen altına,
-  /// kayıtlı düzeni olanlarda (yeni bölüm kuralı) yine oraya eklenir: [insertAfterId].
-  campusMap('campusMap', true, insertAfterId: 'quickAccess');
+  /// "Önerilen kişiler" yatay sayfalı şerit. Kayıtlı düzeni olanlarda Günün menüsünün hemen ardına eklenir (Haberlerden önce).
+  suggestions('suggestions', true, insertAfterId: 'menu');
 
   const HomeSection(this.id, this.defaultVisible, {this.insertAfterId});
 
@@ -48,7 +47,6 @@ enum HomeShortcut {
   search('search'),
   notifications('notifications'),
   bookmarks('bookmarks'),
-  campusMap('campusMap'),
   more('more');
 
   const HomeShortcut(this.id);
@@ -79,7 +77,7 @@ class HomeLayout {
   final List<HomeShortcut> shortcutOn;
 
   static const defaults = HomeLayout(
-    order: [HomeSection.quickAccess, HomeSection.menu, HomeSection.campusMap, HomeSection.featuredNews, HomeSection.todayClasses, HomeSection.upcomingEvents, HomeSection.announcements],
+    order: [HomeSection.quickAccess, HomeSection.menu, HomeSection.suggestions, HomeSection.featuredNews, HomeSection.todayClasses, HomeSection.upcomingEvents, HomeSection.announcements],
     hidden: <HomeSection>{},
     shortcutOn: [HomeShortcut.news, HomeShortcut.events, HomeShortcut.polls, HomeShortcut.schedule, HomeShortcut.more],
   );

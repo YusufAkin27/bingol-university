@@ -6,5 +6,4 @@
 "NSPhotoLibraryUsageDescription" = "Profil, kulüp ve etkinlik görseli ile sohbet ve gönderi için fotoğraf veya video seçebilmeniz amacıyla fotoğraf kitaplığınıza erişilir. Yalnızca seçtikleriniz yüklenir.";
 "NSPhotoLibraryAddUsageDescription" = "Sohbetteki fotoğraf ve videoları, istediğinizde fotoğraf kitaplığınıza kaydedebilmeniz için izin gerekir.";
 "NSContactsUsageDescription" = "Rehberinizdeki kişilerden uygulamayı kullananları bulabilmeniz için kişilerin e-posta adresleri cihazınızda özetlenir (SHA-256) ve eşleştirme için yalnızca bu özetler sunucuya gönderilir. Adlar, telefon numaraları ve ham e-posta adresleri gönderilmez, özetler saklanmaz.";
-"NSLocationWhenInUseUsageDescription" = "Konum yalnızca uygulama açıkken, kampüs haritasında yerinizi ve en yakın binaya mesafeyi göstermek için kullanılır. Konumunuz sunucuya gönderilmez ve saklanmaz.";
 "NSLocalNetworkUsageDescription" = "Yalnızca geliştirme ve test sürümlerinde, yerel ağdaki test sunucusuna bağlanmak için kullanılır. Mağaza sürümü yerel ağdaki cihazlara erişmez.";

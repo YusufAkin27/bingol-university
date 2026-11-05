@@ -13,9 +13,9 @@ import '../../widgets/bu.dart';
 /// ikon deseni (kitap, kep, kahve, defter, takvim, nota, top, ampul, kalem, mesaj...). Kırmızı/mavi vurgu YOK;
 /// desen yalnız `ink` jetonunun düşük alfa tonudur (açık temada koyu tint, koyu temada açık tint).
 ///
-/// Desen: 360 dp tile, 20 akademik çizgi ikon; açık temada %7, koyu temada %6 opaklık (çok düşük kontrast).
+/// Desen: 480 dp tile, rastgele sıkı yerleşimli ~50 üniversite çizgi ikonu havuzu; açık temada %7, koyu temada %6 opaklık (çok düşük kontrast).
 ///
-/// Performans: desen TEK SEFER küçük bir kare dokuya (240 × 240 dp) çizilir (`Picture.toImageSync`),
+/// Performans: desen TEK SEFER küçük bir kare dokuya (480 × 480 dp) çizilir (`Picture.toImageSync`),
 /// (tema, stil, piksel oranı) anahtarıyla önbelleğe alınır ve `ImageShader` ile döşenir; kaydırırken
 /// yeniden hesap/çizim yok (ayrı `RepaintBoundary`), blur/BackdropFilter yok. Tema, stil ya da piksel
 /// oranı değişince yeniden üretilir.
@@ -138,30 +138,103 @@ class ChatWallpaper extends StatefulWidget {
   final ChatBgStyle? style;
 
   /// Dokunun kenar uzunluğu (dp).
-  static const tileSize = 360.0;
+  static const tileSize = 480.0;
 
-  /// Üniversite/akademik çizgi ikonlar (kitap, kep, kalem, kahve, takvim, ampul, kampüs...): 5 satır x 4 sütun,
-  /// tek satırlar kaydırılır; hiçbiri kenara taşmaz (kesintisiz döşenir). Yoğunluk bilerek düşük: sade.
-  static final List<_Glyph> _glyphs = () {
-    const icons = <IconData>[
-      BuIcons.bookOpen, BuIcons.graduationCap, BuIcons.pencil, BuIcons.coffee,
-      BuIcons.calendar, BuIcons.lightbulb, BuIcons.library, BuIcons.notebookPen,
-      BuIcons.backpack, BuIcons.atom, BuIcons.laptop, BuIcons.flaskConical,
-      BuIcons.bookmark, BuIcons.globe, BuIcons.clock, BuIcons.pencilLine,
-      BuIcons.compass, BuIcons.building2, BuIcons.bookOpen, BuIcons.graduationCap,
-    ];
-    const tilts = <double>[-12, 8, 18, -8, 12, -16, 6, -10, 14, -6];
-    return [
-      for (var i = 0; i < 20; i++)
-        _Glyph(
-          icons[i],
-          ((i ~/ 4).isOdd ? 78.0 : 33.0) + (i % 4) * 90,
-          36.0 + (i ~/ 4) * 72,
-          22.0 + (i % 3) * 2,
-          tilts[i % tilts.length],
+  /// Üniversite / kampüs yaşamı çizgi ikonları (ders, sınav, kütüphane, laboratuvar, kampüs, yemekhane, kulüp...).
+  /// Havuz geniştir; desen her seferinde karışık sırayla dizilir, aynı ikon dizisi tekrarlanmaz.
+  static const List<IconData> _pool = <IconData>[
+    BuIcons.bookOpen, BuIcons.graduationCap, BuIcons.pencil, BuIcons.pencilLine, BuIcons.notebookPen,
+    BuIcons.backpack, BuIcons.library, BuIcons.landmark, BuIcons.building2, BuIcons.atom,
+    BuIcons.flaskConical, BuIcons.laptop, BuIcons.cpu, BuIcons.squareTerminal, BuIcons.lightbulb,
+    BuIcons.calendar, BuIcons.calendarDays, BuIcons.calendarCheck, BuIcons.calendarClock, BuIcons.clock,
+    BuIcons.alarmClock, BuIcons.hourglass, BuIcons.clipboardList, BuIcons.clipboardCheck, BuIcons.listChecks,
+    BuIcons.fileText, BuIcons.idCard, BuIcons.bookmark, BuIcons.trophy, BuIcons.star,
+    BuIcons.megaphone, BuIcons.newspaper, BuIcons.users, BuIcons.user, BuIcons.coffee,
+    BuIcons.utensils, BuIcons.globe, BuIcons.compass, BuIcons.palette, BuIcons.music,
+    BuIcons.volleyball, BuIcons.dumbbell, BuIcons.flag, BuIcons.doorOpen, BuIcons.headset,
+    BuIcons.chartPie, BuIcons.layers, BuIcons.vote, BuIcons.messageSquareText, BuIcons.thumbsUp,
+    BuIcons.camera, BuIcons.wrench, BuIcons.qrCode, BuIcons.hash,
+  ];
+
+  /// Ikonlar arası hedef boşluk (dp): "dip dibe" ama birbirine değmez.
+  static const double _gap = 5;
+
+  /// Rastgele sıkı yerleşim: sabit tohumlu (desen her açılışta aynı, titremez) ama ızgarasız. [wrap] true ise
+  /// dokunun kenarları kesintisiz döşenecek biçimde sarmalanır (mesafe torus üzerinde ölçülür). Boyut ve eğim
+  /// rastgele; ikonlar karıştırılmış torbalardan çekilir (art arda aynı ikon gelmez).
+  static List<_Glyph> _layout(double width, double height, {required bool wrap, int seed = 20261105}) {
+    final rnd = math.Random(seed);
+    final bag = <IconData>[];
+    IconData? last;
+    IconData nextIcon() {
+      if (bag.isEmpty) {
+        bag.addAll(_pool);
+        bag.shuffle(rnd);
+        // Torba sınırında aynı ikon art arda gelmesin.
+        if (last != null && bag.last == last) {
+          bag.insert(0, bag.removeLast());
+        }
+      }
+      last = bag.removeLast();
+      return last!;
+    }
+
+    final placed = <_Glyph>[];
+    final radii = <double>[];
+    var misses = 0;
+    // Çok sayıda deneme: yer kalmayana kadar doldurur (ardışık 900 ıskadan sonra durur).
+    while (misses < 900 && placed.length < 900) {
+      final fontSize = 17.0 + rnd.nextDouble() * 13.0; // 17..30 dp
+      final r = fontSize * 0.46; // simgenin görsel yarıçapı
+      final x = rnd.nextDouble() * width;
+      final y = rnd.nextDouble() * height;
+      var ok = true;
+      for (var i = 0; i < placed.length && ok; i++) {
+        var dx = (placed[i].x - x).abs();
+        var dy = (placed[i].y - y).abs();
+        if (wrap) {
+          if (dx > width / 2) dx = width - dx;
+          if (dy > height / 2) dy = height - dy;
+        }
+        final min = r + radii[i] + _gap;
+        if (dx * dx + dy * dy < min * min) ok = false;
+      }
+      if (!ok) {
+        misses++;
+        continue;
+      }
+      misses = 0;
+      placed.add(_Glyph(nextIcon(), x, y, fontSize, (rnd.nextDouble() - .5) * 56));
+      radii.add(r);
+    }
+    return placed;
+  }
+
+  /// Sarmalanan döşeme dokusunun ikonları (yordamsal stiller: Hafif / Orta).
+  static final List<_Glyph> _glyphs = _layout(tileSize, tileSize, wrap: true);
+
+  static void _paintGlyph(Canvas c, _Glyph g, Color color, double ox, double oy) {
+    final tp = TextPainter(
+      text: TextSpan(
+        text: String.fromCharCode(g.icon.codePoint),
+        style: TextStyle(
+          inherit: false,
+          fontSize: g.size,
+          fontFamily: g.icon.fontFamily,
+          package: g.icon.fontPackage,
+          color: color,
         ),
-    ];
-  }();
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    c.save();
+    c.translate(g.x + ox, g.y + oy);
+    c.rotate(g.deg * math.pi / 180);
+    c.translate(-tp.width / 2, -tp.height / 2);
+    tp.paint(c, Offset.zero);
+    c.restore();
+    tp.dispose();
+  }
 
   /// Desen opaklığı (ink jetonu üstüne): çok düşük kontrast, mesajlar net ayrışır.
   static double alphaOf(ChatBgStyle s, bool dark) => switch (s) {
@@ -205,27 +278,17 @@ class ChatWallpaper extends StatefulWidget {
       final color = ink.withValues(alpha: alpha);
 
       // --- İkonları çiz ---
+      // Kenara yakın ikonlar karşı kenarda da çizilir: dokular yan yana gelince dikiş görünmez.
       for (final g in _glyphs) {
-        final tp = TextPainter(
-          text: TextSpan(
-            text: String.fromCharCode(g.icon.codePoint),
-            style: TextStyle(
-              inherit: false,
-              fontSize: g.size,
-              fontFamily: g.icon.fontFamily,
-              package: g.icon.fontPackage,
-              color: color,
-            ),
-          ),
-          textDirection: TextDirection.ltr,
-        )..layout();
-        c.save();
-        c.translate(g.x, g.y);
-        c.rotate(g.deg * math.pi / 180);
-        c.translate(-tp.width / 2, -tp.height / 2);
-        tp.paint(c, Offset.zero);
-        c.restore();
-        tp.dispose();
+        for (final ox in const [-tileSize, 0.0, tileSize]) {
+          for (final oy in const [-tileSize, 0.0, tileSize]) {
+            final cx = g.x + ox;
+            final cy = g.y + oy;
+            final reach = g.size;
+            if (cx < -reach || cx > tileSize + reach || cy < -reach || cy > tileSize + reach) continue;
+            _paintGlyph(c, g, color, ox, oy);
+          }
+        }
       }
 
       final pic = rec.endRecording();

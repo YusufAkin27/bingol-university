@@ -105,7 +105,7 @@ class PrefSwitchRow extends StatelessWidget {
 const _prefRows = ['news', 'announcements', 'events', 'messages', 'communities'];
 
 /// Sunucu yanıtında anahtar varsa gösterilen ek ana bayraklar (backend eklenene kadar gizli kalır).
-const _optionalRows = ['polls', 'academicAnnouncements'];
+const _optionalRows = ['polls'];
 
 /// Alt türler (`subtypes`): yalnızca sunucu yanıtında bulunanlar gösterilir; bilinmeyen anahtar gönderilmez (400).
 /// Kaldırılan türler (beğeni, yorum, bahsetme, takip) çizilmez.
@@ -125,8 +125,6 @@ String _prefLabel(BuildContext context, String key) {
     'communities' => l.profil1NotifClubs,
     'messages' => l.profilePrefsNotifMessages,
     'polls' => l.profilePrefsNotifPolls,
-    'academicAnnouncements' => l.profilePrefsNotifAcademic,
-    'messagePreview' => l.p21PreviewTitle,
     'MESSAGE_DIRECT' => l.profil1SubMsgDirect,
     'MESSAGE_GROUP' => l.profil1SubMsgGroup,
     'EVENT_REMINDER' => l.profil1SubEventReminder,
@@ -149,8 +147,6 @@ String? _prefSub(BuildContext context, String key) {
     'messages' => l.profil1MsgSub,
     'communities' => l.profil1ClubsSub,
     'polls' => l.p20PrefPollsSub,
-    'academicAnnouncements' => l.p20PrefAcademicSub,
-    'messagePreview' => l.p21PreviewSub,
     _ => null,
   };
 }
@@ -392,14 +388,13 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
     );
   }
 
-  /// Ana bayrağa bağlı satırlar (backend kuralı): "Duyurular" kapalıyken genel anket ve akademik duyuru
-  /// bildirimi gelmez; kulüp anketi için ayrıca "Topluluklar" gerekir.
-  bool _lockedByParent(String key) => (key == 'polls' || key == 'academicAnnouncements') && _store.prefs?['announcements'] != true;
+  /// Ana bayrağa bağlı satırlar (backend kuralı): "Duyurular" kapalıyken genel anket bildirimi gelmez;
+  /// kulüp anketi için ayrıca "Topluluklar" gerekir.
+  bool _lockedByParent(String key) => key == 'polls' && _store.prefs?['announcements'] != true;
 
   /// Bağımlılık notu: satır pasifken (ya da anket için Topluluklar kapalıyken) açıklamanın yerine geçer.
   String? _dependencyNote(String key) {
     final l = context.l10n;
-    if (key == 'academicAnnouncements' && _lockedByParent(key)) return l.p26PrefNeedsAnnouncements;
     if (key == 'polls' && (_lockedByParent(key) || _store.prefs?['communities'] != true)) return l.p26PrefPollsNeedsParents;
     return null;
   }
@@ -407,8 +402,8 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
   Widget _toggleRow(String key, {bool last = false}) {
     final locked = _lockedByParent(key);
     final on = _store.prefs![key] == true;
-    // Anketler / Akademik duyurular tek satırdır (açıklama yok); yalnız bağımlılık notu çıkar.
-    final plain = key == 'polls' || key == 'academicAnnouncements';
+    // Anketler tek satırdır (açıklama yok); yalnız bağımlılık notu çıkar.
+    final plain = key == 'polls';
     return Column(children: [
       // Pasif satır: soluk, dokunulamaz (anahtar da kapalı gibi tepki vermez).
       _PrefRow(
@@ -462,12 +457,6 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
           opacity: widget.showPushCard && _pushStatus != 'on' && _pushStatus != '...' ? .5 : 1,
           child: _card(child: Column(children: [for (var i = 0; i < rows.length; i++) _toggleRow(rows[i], last: i == rows.length - 1)])),
         ));
-      // Kilit ekranında mesaj metni (KVKK: varsayılan kapalı; yalnız sunucu `messagePreview` gönderdiyse görünür).
-      if (prefs.containsKey('messagePreview')) {
-        children
-          ..add(const SizedBox(height: 16))
-          ..add(_card(child: _toggleRow('messagePreview', last: true)));
-      }
       if (hasSubs || quiet != null) {
         children
           ..add(const SizedBox(height: 24))

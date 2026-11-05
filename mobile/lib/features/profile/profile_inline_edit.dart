@@ -648,31 +648,3 @@ class _RoundBtn extends StatelessWidget {
         ),
       );
 }
-
-/// Bölüm eksik uyarılarından (Akademik, Sınavlar) çağrılır: yalnız bölüm seçicisini açıp seçimi kaydeder.
-/// Seçim kaydedildiyse true döner.
-Future<bool> pickDepartmentAndSave(BuildContext context, Session session) async {
-  final catalog = AcademicCatalog.of(session);
-  try {
-    if (!catalog.ready) await catalog.retry();
-    if (!context.mounted) return false;
-    if (!catalog.ready) {
-      BuToast.show(context, context.l10n.pickListFailed, kind: BuToastKind.error);
-      return false;
-    }
-    final me = await session.api.get('/users/me') as Map<String, dynamic>;
-    if (!context.mounted) return false;
-    final faculty = (me['faculty'] as String?) ?? '';
-    final dept = (me['department'] as String?) ?? '';
-    final r = await showDepartmentPicker(context,
-        catalog: catalog, selectedFaculty: faculty.isEmpty ? null : faculty, selected: dept.isEmpty ? null : dept);
-    if (r == null) return false;
-    await session.api.patch('/users/me', {'faculty': r.faculty.name, 'department': r.name});
-    session.api.invalidate('/users/me');
-    Analytics.instance.action('profile_edit');
-    return true;
-  } catch (e) {
-    if (context.mounted) BuToast.show(context, errorText(e), kind: BuToastKind.error);
-    return false;
-  }
-}

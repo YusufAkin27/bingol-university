@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../../widgets/linkified_text.dart';
 import 'icerik_parts.dart';
 import 'news_tile.dart' show newsLocalDate, newsSourceHost, newsTypeLabel;
 
@@ -172,7 +173,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
             _detail = _fetch();
           }));
         } else {
-          bodyChild = _Article(content: hasText ? content : null);
+          bodyChild = _Article(content: hasText ? content : null, onOpenFailed: () => setState(() => _linkFailed = true));
         }
         final showActions = done && !snap.hasError;
 
@@ -412,9 +413,10 @@ class _ArticleSkeleton extends StatelessWidget {
 
 /// Düz metni paragraf paragraf gösterir (satır sonlarıyla ayrılmış bloklar); içerik yoksa boş kalır.
 class _Article extends StatelessWidget {
-  const _Article({required this.content});
+  const _Article({required this.content, this.onOpenFailed});
 
   final String? content;
+  final VoidCallback? onOpenFailed;
 
   @override
   Widget build(BuildContext context) {
@@ -431,7 +433,7 @@ class _Article extends StatelessWidget {
           for (var i = 0; i < paragraphs.length; i++)
             Padding(
               padding: EdgeInsets.only(bottom: i == paragraphs.length - 1 ? 0 : 16),
-              child: Text(paragraphs[i], style: style),
+              child: LinkifiedText(paragraphs[i], style: style, onOpenFailed: onOpenFailed),
             ),
         ],
       ),
