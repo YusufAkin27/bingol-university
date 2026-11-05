@@ -183,6 +183,22 @@ expect_not "engel: anonim konu da gizli" "\"id\":$T2," "$FEED"
 expect_not "engel: acik konu da gizli" "\"id\":$T3," "$FEED"
 curl -s -o /dev/null -X DELETE -H "$AB" $A/users/$UC/block
 
+echo "== gorsel + herkese acik kucuk resim (/s/f/{id}/img; A medya kovasi <-> E paylasim)"
+PNG=$(mktemp)
+printf 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==' | base64 -d > "$PNG"
+MU=$(curl -s -w ' %{http_code}' -X POST -H "$AA" -F "file=@$PNG;type=image/png" $A/forum/media)
+MID=$(echo "$MU" | jid)
+if [ "${MU##* }" = "201" ] || [ "${MU##* }" = "200" ]; then
+  R4=$(curl -s -X POST -H "$AA" -H "$H" -H "Idempotency-Key: fsm-$SFX-4" $A/forum/topics -d "{\"title\":\"Resimli $W1 konusu\",\"body\":\"Resim eklenmis konu govdesi $W1\",\"categoryId\":$CAT,\"anonymous\":false,\"imageIds\":[$MID]}")
+  T4=$(echo "$R4" | jid)
+  [ -n "$T4" ] && check "resimli konu" 1 1 || { echo "  FAIL resimli konu olusmadi: $R4"; FAIL=1; }
+  IC=$(curl -s -o /dev/null -w '%{http_code} %{content_type}' "$BASE/s/f/$T4/img")
+  case "$IC" in "200 image/"*) echo "  ok   /s/f/{id}/img gorsel dondu ($IC)";; *) echo "  FAIL /s/f/{id}/img ($IC)"; FAIL=1;; esac
+else
+  echo "  ATLA gorsel yukleme (${MU##* }: ince PNG reddedilmis olabilir) -> $(echo "$MU" | cut -c1-120)"
+fi
+rm -f "$PNG"
+
 echo "== paylasim (sohbette forum konusu karti)"
 CV=$(curl -s -X POST -H "$H" -H "$AB" $A/conversations -d "{\"userId\":$UA}")
 CID=$(echo "$CV" | jid)

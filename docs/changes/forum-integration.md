@@ -60,8 +60,7 @@ durum), sonra tam küme uygulanarak doğrulanmıştır (bkz. sürüm raporu).
 
 ## 5. Dağıtım öncesi dikkat
 
-- Reverse proxy (nginx/Caddy) çok parçalı yüklemede `client_max_body_size` >= 10 MB (forum görseli 10 MB; `POST /api/forum/media` `multipart/form-data`);
-  Spring `spring.servlet.multipart.max-file-size`/`max-request-size` mevcut değerleri yeterliyse dokunmayın.
+- Forum görseli en çok 10 MB (`POST /api/forum/media`, `multipart/form-data`): mevcut limitler yeterlidir (Spring `MULTIPART_MAX_FILE` 52 MB, canlıda Caddy `CADDY_MAX_BODY` 55 MB, yerel `web/nginx.conf` `client_max_body_size 12m`). Yeni proxy ayarı GEREKMEZ.
 - Yeni isteğe bağlı ayarlar: `app.forum.spam-window-seconds` (varsayılan 600), `app.forum.notify-async|notify-threads|notify-queue` (true/2/2000).
   Zorunlu yeni ortam değişkeni YOK.
 - Prod `out-of-order=false`: V1270..V1442 canlıdaki V1260'tan sonra gelir; araya sonradan numara eklemeyin.
