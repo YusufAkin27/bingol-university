@@ -7724,6 +7724,36 @@
           }
         }
       },
+      "MessageInfo" : {
+        "properties" : {
+          "deliveredAt" : {
+            "type" : [ "string", "null" ]
+          },
+          "message" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/MessageView"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "readAt" : {
+            "type" : [ "string", "null" ]
+          },
+          "replies" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/CursorPageMessageView"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "sentAt" : {
+            "type" : [ "string", "null" ]
+          },
+          "status" : {
+            "type" : [ "string", "null" ]
+          }
+        }
+      },
       "MessageItem" : {
         "properties" : {
           "adminHidden" : {
@@ -32963,7 +32993,7 @@
     },
     "/api/admin/profanity/info" : {
       "get" : {
-        "operationId" : "info_1",
+        "operationId" : "info_2",
         "responses" : {
           "200" : {
             "content" : {
@@ -40255,7 +40285,7 @@
     },
     "/api/app/info" : {
       "get" : {
-        "operationId" : "info",
+        "operationId" : "info_1",
         "responses" : {
           "200" : {
             "content" : {
@@ -52189,6 +52219,73 @@
           "bearerAuth" : [ ]
         } ],
         "tags" : [ "message-controller" ]
+      }
+    },
+    "/api/messages/{id}/info" : {
+      "get" : {
+        "operationId" : "info",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "before",
+          "required" : false,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "default" : 20,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MessageInfo"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "tags" : [ "message-info-controller" ]
       }
     },
     "/api/messages/{id}/reaction" : {

@@ -171,6 +171,9 @@ public class ReceiptService {
             return;
         }
         if (members.advanceDelivered(conversationId, userId, target) > 0) {
+            if (conv.getType() == Conversation.Type.DIRECT) {
+                messages.recordDelivered(conversationId, userId, before, target, Instant.now());
+            }
             publish(conv, userId, "delivered", before, target);
         }
     }
@@ -181,6 +184,13 @@ public class ReceiptService {
             Conversation conv = convs.findById(conversationId).orElse(null);
             if (conv == null) {
                 return;
+            }
+            if (conv.getType() == Conversation.Type.DIRECT) {
+                Instant now = Instant.now();
+                if (oldDelivered < newCursor) {
+                    messages.recordDelivered(conversationId, userId, oldDelivered, newCursor, now);
+                }
+                messages.recordRead(conversationId, userId, oldRead, newCursor, now);
             }
             if (oldDelivered < newCursor) {
                 publish(conv, userId, "delivered", oldDelivered, newCursor);
