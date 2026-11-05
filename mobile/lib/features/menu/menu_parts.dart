@@ -141,7 +141,7 @@ class _MenuDayStripState extends State<MenuDayStrip> {
                     AnimatedDefaultTextStyle(
                       duration: dur,
                       maxLines: 1,
-                      style: BuType.caption.copyWith(fontSize: 11.5, height: 1.2, fontWeight: sel ? FontWeight.w600 : FontWeight.w500, color: sel ? t.prText : t.mut),
+                      style: BuType.caption.copyWith(fontSize: 11.5, height: 1.2, fontWeight: sel ? FontWeight.w400 : FontWeight.w500, color: sel ? t.prText : t.mut),
                       child: Text(dayName),
                     ),
                     const SizedBox(height: 2),
@@ -151,7 +151,7 @@ class _MenuDayStripState extends State<MenuDayStrip> {
                       style: BuType.caption.copyWith(
                           fontSize: 15,
                           height: 1.3,
-                          fontWeight: sel ? FontWeight.w700 : FontWeight.w600,
+                          fontWeight: sel ? FontWeight.w400 : FontWeight.w400,
                           color: sel ? t.prText : t.ink,
                           fontFeatures: const [FontFeature.tabularFigures()]),
                       child: Text('${d.day}'),
@@ -225,7 +225,7 @@ class MenuMealCard extends StatelessWidget {
               Expanded(
                 child: Semantics(
                   header: true,
-                  child: Text(l.yemekLunch, style: BuType.caption.copyWith(fontSize: 17, height: 1.3, fontWeight: FontWeight.w600, color: t.ink)),
+                  child: Text(l.yemekLunch, style: BuType.caption.copyWith(fontSize: 17, height: 1.3, fontWeight: FontWeight.w400, color: t.ink)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -282,7 +282,7 @@ class _TotalRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
-    final number = BuType.caption.copyWith(fontSize: 15, height: 1.3, fontWeight: FontWeight.w700, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()]);
+    final number = BuType.caption.copyWith(fontSize: 15, height: 1.3, fontWeight: FontWeight.w400, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()]);
     return Container(
       decoration: BoxDecoration(color: t.okSoft, borderRadius: BorderRadius.circular(14)),
       margin: const EdgeInsets.only(top: 12),

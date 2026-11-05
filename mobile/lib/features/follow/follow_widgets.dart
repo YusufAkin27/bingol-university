@@ -69,7 +69,7 @@ class FollowTabs extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
-                  style: tx.labelLarge!.copyWith(fontSize: 15, fontWeight: sel ? FontWeight.w600 : FontWeight.w400, color: sel ? t.ink : t.mut)),
+                  style: tx.labelLarge!.copyWith(fontSize: 15, fontWeight: sel ? FontWeight.w400 : FontWeight.w400, color: sel ? t.ink : t.mut)),
             ),
             if (n != null) ...[
               const SizedBox(width: 6),
@@ -99,7 +99,7 @@ class FollowSectionLabel extends StatelessWidget {
               style: Theme.of(context)
                   .textTheme
                   .labelMedium!
-                  .copyWith(fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: .8, color: context.bu.mut)),
+                  .copyWith(fontSize: 13, fontWeight: FontWeight.w400, letterSpacing: .8, color: context.bu.mut)),
         ),
       );
 }
@@ -178,7 +178,7 @@ class FollowPersonRow extends StatelessWidget {
           child: Text(reason!,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+              style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: t.mut)),
         ),
       ]);
     }
@@ -204,7 +204,7 @@ class FollowPersonRow extends StatelessWidget {
                 Text(user.displayName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: tx.titleMedium!.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: t.ink)),
+                    style: tx.titleMedium!.copyWith(fontSize: 16, fontWeight: FontWeight.w400, color: t.ink)),
                 if (sub.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 1),
@@ -312,7 +312,7 @@ class FollowStatusCard extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-              Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+              Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
               if (message != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
@@ -336,7 +336,7 @@ class FollowStatusCard extends StatelessWidget {
         const SizedBox(height: 14),
         Semantics(
           header: true,
-          child: Text(title, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+          child: Text(title, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
         ),
         if (message != null)
           Padding(

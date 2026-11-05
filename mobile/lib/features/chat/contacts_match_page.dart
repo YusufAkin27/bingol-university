@@ -166,7 +166,7 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
             flat: true,
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Row(children: [
-              Expanded(child: Text(l.p06LoadFailedTitle, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w600))),
+              Expanded(child: Text(l.p06LoadFailedTitle, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400))),
               const SizedBox(width: 8),
               BuButton(label: l.chatMiscRetry, icon: BuIcons.refreshCw, kind: BuButtonKind.soft, compact: true, onPressed: _load),
             ]),

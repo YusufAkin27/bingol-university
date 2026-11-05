@@ -225,7 +225,7 @@ void main() {
       expect(find.byKey(const ValueKey('composeSingleHint')), findsNothing);
       // Tek birincil düğme: Paylaş (Material dolgusu) + sayaç sessiz.
       final counter = tester.widget<Text>(find.byKey(const ValueKey('composeCounter')));
-      expect(counter.style?.fontWeight ?? FontWeight.w400, isNot(FontWeight.w700), reason: 'sayac sinirdan once sessiz');
+      expect(counter.style?.fontWeight ?? FontWeight.w400, FontWeight.w400, reason: 'kalin yazi yok; sayac sinirdan once sessiz');
       noErr(tester);
     });
 
@@ -362,7 +362,7 @@ void main() {
       // Kalp 22 + sayi 15/600 + metin
       final count = tester.widget<Text>(find.byKey(const ValueKey('like-count')));
       expect(count.style?.fontSize, 15);
-      expect(count.style?.fontWeight, FontWeight.w600);
+      expect(count.style?.fontWeight, FontWeight.w400);
       expect(find.text('·'), findsOneWidget);
       expect(find.text('Bahar geldi kampüse'), findsOneWidget);
       final edited = find.byKey(const ValueKey('post-edited'));

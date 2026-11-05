@@ -93,7 +93,7 @@ bool showPushBanner(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (title.isNotEmpty) Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+          if (title.isNotEmpty) Text(title, style: const TextStyle(fontWeight: FontWeight.w400)),
           if (body.isNotEmpty) Text(body, maxLines: 2, overflow: TextOverflow.ellipsis),
         ],
       ),

@@ -148,7 +148,7 @@ class _Etkinlik2AttendancePageState extends State<Etkinlik2AttendancePage> {
         key: const ValueKey('et2-att-empty'),
         padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(l.etkinlik2AttendanceEmpty, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w600, color: t.ink)),
+          Text(l.etkinlik2AttendanceEmpty, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w400, color: t.ink)),
           const SizedBox(height: 4),
           Text(l.p16AttEmptyBody, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.4)),
         ]),
@@ -161,7 +161,7 @@ class _Etkinlik2AttendancePageState extends State<Etkinlik2AttendancePage> {
             child: Row(children: [
               Expanded(
                 child: Text(l.p51EvPresentAbsent('$present', '${total - present}'),
-                    key: const ValueKey('et2-att-summary'), style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+                    key: const ValueKey('et2-att-summary'), style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w400, color: t.mut)),
               ),
               Text(l.p51EvTotalPeople('$total'), style: tx.bodySmall!.copyWith(color: t.mut)),
             ]),
@@ -186,7 +186,7 @@ class _Etkinlik2AttendancePageState extends State<Etkinlik2AttendancePage> {
                 key: const ValueKey('et2-show-qr'),
                 style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48)),
                 onPressed: _showQr,
-                child: Text(l.etkinlik2ShowQrSem, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
+                child: Text(l.etkinlik2ShowQrSem, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
               ),
             ),
           ),

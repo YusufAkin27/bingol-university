@@ -690,7 +690,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
 
   TextStyle _nameStyle(BuTokens t) =>
       Theme.of(context).textTheme.headlineSmall!.copyWith(
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w400,
           fontSize: 22,
           height: 1.27,
           color: t.ink);
@@ -962,7 +962,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                color: t.ink, fontWeight: FontWeight.w700, height: 1.33)),
+                color: t.ink, fontWeight: FontWeight.w400, height: 1.33)),
         const SizedBox(height: 4),
         Center(
             child: ChatInfoTag(club ? l.chatInfoClubRoom : l.chatInfoEventRoom,
@@ -993,7 +993,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
                     children: [
                       Text(l.chatInfoClosed,
                           style: chatInfoTitle16(context)
-                              .copyWith(fontWeight: FontWeight.w700)),
+                              .copyWith(fontWeight: FontWeight.w400)),
                       const SizedBox(height: 2),
                       Text(l.chatInfoClosedSub, style: chatInfoBody14(context)),
                     ]),

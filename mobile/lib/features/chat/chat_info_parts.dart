@@ -59,15 +59,15 @@ TextStyle _s(BuildContext c, TextStyle base, {FontWeight? w, Color? color, doubl
 
 /// Satır başlığı: titleMedium rolü, 600 (referans title-md).
 TextStyle chatInfoTitle16(BuildContext c, {Color? color}) =>
-    _s(c, Theme.of(c).textTheme.titleMedium!, w: FontWeight.w600, color: color ?? c.bu.ink, height: 1.375);
+    _s(c, Theme.of(c).textTheme.titleMedium!, w: FontWeight.w400, color: color ?? c.bu.ink, height: 1.375);
 
 /// Düğme/bağlantı yazısı: labelLarge rolü, 600 (referans label-lg).
 TextStyle chatInfoLabel14(BuildContext c, {Color? color}) =>
-    _s(c, Theme.of(c).textTheme.labelLarge!, w: FontWeight.w600, color: color ?? c.bu.ink, height: 1.43);
+    _s(c, Theme.of(c).textTheme.labelLarge!, w: FontWeight.w400, color: color ?? c.bu.ink, height: 1.43);
 
 /// Küçük etiket: labelMedium rolü, 600 (referans label-md).
 TextStyle chatInfoLabel12(BuildContext c, {Color? color}) =>
-    _s(c, Theme.of(c).textTheme.labelMedium!, w: FontWeight.w600, color: color ?? c.bu.ink, height: 1.33);
+    _s(c, Theme.of(c).textTheme.labelMedium!, w: FontWeight.w400, color: color ?? c.bu.ink, height: 1.33);
 
 /// Gövde: bodyMedium rolü (referans body-md).
 TextStyle chatInfoBody14(BuildContext c, {Color? color}) =>
@@ -109,7 +109,7 @@ class ChatInfoBar extends StatelessWidget {
               child: Text(title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+                  style: Theme.of(context).textTheme.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
             ),
           ),
           const SizedBox(width: kChatInfoMargin),
@@ -376,7 +376,7 @@ class ChatInfoTag extends StatelessWidget {
       child: Text(text,
           maxLines: 1,
           style: large
-              ? Theme.of(context).textTheme.labelSmall!.copyWith(color: fg, fontWeight: FontWeight.w700, height: 1.3)
+              ? Theme.of(context).textTheme.labelSmall!.copyWith(color: fg, fontWeight: FontWeight.w400, height: 1.3)
               : chatInfoLabel14(context, color: fg).copyWith(height: 1.3)),
     );
   }
@@ -394,7 +394,7 @@ class ChatInfoCount extends StatelessWidget {
     return Container(
       padding: const EdgeInsetsDirectional.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bPill),
-      child: Text(text, style: Theme.of(context).textTheme.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
+      child: Text(text, style: Theme.of(context).textTheme.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
     );
   }
 }
@@ -494,7 +494,7 @@ Future<bool> showChatInfoConfirm(
 
 List<Widget> _confirmHead(BuildContext c, ChatConfirmLayout layout, IconData icon, String title, String body, String? bold) {
   final t = c.bu;
-  final titleStyle = Theme.of(c).textTheme.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w600, height: 1.33);
+  final titleStyle = Theme.of(c).textTheme.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400, height: 1.33);
   switch (layout) {
     case ChatConfirmLayout.centered:
       return [
@@ -533,7 +533,7 @@ Widget _boldBody(BuildContext c, String body, String? bold, TextAlign align) {
   return Text.rich(
     TextSpan(style: base, children: [
       TextSpan(text: body.substring(0, i)),
-      TextSpan(text: bold, style: base.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+      TextSpan(text: bold, style: base.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
       TextSpan(text: body.substring(i + bold!.length)),
     ]),
     textAlign: align,

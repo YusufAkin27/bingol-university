@@ -242,9 +242,9 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
 
     // Tabular rakamlar: sayı değişirken satır genişliği titremesin.
     final style = (widget.tile
-            ? tt.labelMedium?.copyWith(fontSize: 13, fontWeight: FontWeight.w600)
+            ? tt.labelMedium?.copyWith(fontSize: 13, fontWeight: FontWeight.w400)
             : widget.detail
-                ? tt.titleSmall?.copyWith(fontSize: 15, fontWeight: FontWeight.w600)
+                ? tt.titleSmall?.copyWith(fontSize: 15, fontWeight: FontWeight.w400)
                 : (widget.compact ? tt.titleSmall : tt.titleMedium))
         ?.copyWith(color: widget.tile && !widget.pill ? t.onMedia : t.ink, height: 1.2, fontFeatures: const [FontFeature.tabularFigures()]);
     final countText = Text(_label(_count), key: const ValueKey('like-count'), maxLines: 1, style: style);

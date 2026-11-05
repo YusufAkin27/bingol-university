@@ -289,7 +289,7 @@ class _SectionTitle extends StatelessWidget {
                   header: true,
                   child: Text(text,
                       maxLines: 2,
-                      style: Theme.of(context).textTheme.titleMedium!.copyWith(color: context.bu.ink, fontSize: 17, fontWeight: FontWeight.w600)))),
+                      style: Theme.of(context).textTheme.titleMedium!.copyWith(color: context.bu.ink, fontSize: 17, fontWeight: FontWeight.w400)))),
         ]),
       );
 }
@@ -420,7 +420,7 @@ class _TicketTile extends StatelessWidget {
             Text('${ticket['subject'] ?? ''}',
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: tx.titleMedium!.copyWith(color: t.ink, fontSize: 16, fontWeight: FontWeight.w600, height: 1.3)),
+                style: tx.titleMedium!.copyWith(color: t.ink, fontSize: 16, fontWeight: FontWeight.w400, height: 1.3)),
             const SizedBox(height: 4),
             Text.rich(
               TextSpan(style: meta, children: [

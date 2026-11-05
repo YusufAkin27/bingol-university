@@ -292,7 +292,7 @@ class _PostCardState extends State<PostCard> {
                         Text(p.author.displayName,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: tt.titleSmall?.copyWith(color: t.ink, fontSize: 15, fontWeight: FontWeight.w600, height: 1.25)),
+                            style: tt.titleSmall?.copyWith(color: t.ink, fontSize: 15, fontWeight: FontWeight.w400, height: 1.25)),
                         PostMetaLine(
                             department: dept,
                             time: time,
@@ -436,7 +436,7 @@ class _PostCardState extends State<PostCard> {
                                 overflow: TextOverflow.ellipsis,
                                 style: tt.titleSmall?.copyWith(
                                     color: t.ink,
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.w400,
                                     height: 1.25)),
                             PostMetaLine(
                                 department: dept,

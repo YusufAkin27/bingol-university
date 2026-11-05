@@ -79,7 +79,7 @@ class _ApplySheetState extends State<_ApplySheet> {
       for (var i = 0; i < widget.questions.length; i++) ...[
         Padding(
           padding: const EdgeInsets.only(bottom: 6, top: 4),
-          child: Text(widget.questions[i], style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+          child: Text(widget.questions[i], style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
         ),
         TextField(
           key: ValueKey('et2-answer-$i'),
@@ -97,7 +97,7 @@ class _ApplySheetState extends State<_ApplySheet> {
       ],
       Padding(
         padding: const EdgeInsets.only(bottom: 6, top: 4),
-        child: Text(l.etkinlik2NoteLabel, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+        child: Text(l.etkinlik2NoteLabel, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
       ),
       TextField(
         key: const ValueKey('et2-note'),
@@ -119,7 +119,7 @@ class _ApplySheetState extends State<_ApplySheet> {
             child: Row(children: [
               Icon(BuIcons.circleAlert, size: 18, color: t.danger),
               const SizedBox(width: 8),
-              Expanded(child: Text(_error!, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.danger))),
+              Expanded(child: Text(_error!, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w400, color: t.danger))),
             ]),
           ),
         ),

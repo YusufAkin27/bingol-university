@@ -32,7 +32,7 @@ class AcadhubNextExam extends StatelessWidget {
             Text(akadUpper(context, label), maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelSmall!.copyWith(fontSize: 12, fontWeight: FontWeight.w500, letterSpacing: .6, color: t.mut)),
             const SizedBox(height: 2),
             Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-              Expanded(child: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink))),
+              Expanded(child: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
               if (countdown != null) ...[
                 const SizedBox(width: 12),
                 ConstrainedBox(constraints: const BoxConstraints(maxWidth: 140), child: Text(countdown!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w500, color: t.mut))),
@@ -68,7 +68,7 @@ class AcadhubNavRow extends StatelessWidget {
       child: Row(children: [
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w600, color: t.ink)),
+            Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
             const SizedBox(height: 3),
             Text(sub, maxLines: 3, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
           ]),

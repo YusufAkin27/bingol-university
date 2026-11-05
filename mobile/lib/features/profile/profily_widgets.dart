@@ -41,7 +41,7 @@ class ProfilyPill extends StatelessWidget {
       child: Text(label,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: fg)),
+          style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: fg)),
     );
   }
 }
@@ -88,7 +88,7 @@ class ProfilyTitleBlock extends StatelessWidget {
         Text(title,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+            style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
         if (sub != null && sub!.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 1),
@@ -161,7 +161,7 @@ class ProfilyEmptyCard extends StatelessWidget {
       children: [
         Text(title,
             textAlign: horizontal ? TextAlign.start : TextAlign.center,
-            style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+            style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
         const SizedBox(height: 4),
         Text(body,
             textAlign: horizontal ? TextAlign.start : TextAlign.center,
@@ -318,7 +318,7 @@ class ProfilyTypeChip extends StatelessWidget {
                     const SizedBox(width: 6),
                     Text(label,
                         maxLines: 1,
-                        style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: fg)),
+                        style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w400, color: fg)),
                   ]),
                 ),
               ),
@@ -369,7 +369,7 @@ class ProfilyField extends StatelessWidget {
             ? Padding(
                 padding: const EdgeInsets.only(top: 2),
                 child: Text(ctx.l10n.profilyardFbCounter('$currentLength', '$maxLength'),
-                    style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+                    style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: t.mut)),
               )
             : const SizedBox.shrink(),
         decoration: InputDecoration(

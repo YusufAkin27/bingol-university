@@ -335,7 +335,7 @@ class _ViewerPageState extends State<_ViewerPage> with SingleTickerProviderState
                                   textAlign: TextAlign.center,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.titleMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w600),
+                                  style: Theme.of(context).textTheme.titleMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w400),
                                 ),
                               ),
                             ),

@@ -29,7 +29,7 @@ class P2SectionLabel extends StatelessWidget {
           style: Theme.of(context)
               .textTheme
               .labelMedium!
-              .copyWith(color: context.bu.mut, fontWeight: FontWeight.w700, letterSpacing: Directionality.of(context) == TextDirection.rtl ? 0 : .5),
+              .copyWith(color: context.bu.mut, fontWeight: FontWeight.w400, letterSpacing: Directionality.of(context) == TextDirection.rtl ? 0 : .5),
         ),
       ),
     );
@@ -54,7 +54,7 @@ class P2Heading extends StatelessWidget {
         child: Row(children: [
           if (icon != null) ...[ExcludeSemantics(child: Icon(icon, size: 20, color: t.pr)), const SizedBox(width: 8)],
           Expanded(
-            child: Text(text, style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+            child: Text(text, style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
           ),
         ]),
       ),
@@ -127,7 +127,7 @@ class P2Pill extends StatelessWidget {
             child: Text(text,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelMedium!.copyWith(color: fg, fontWeight: FontWeight.w700)),
+                style: Theme.of(context).textTheme.labelMedium!.copyWith(color: fg, fontWeight: FontWeight.w400)),
           ),
         ],
       ),
@@ -170,7 +170,7 @@ class P2NoticeCard extends StatelessWidget {
               if (title != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 2),
-                  child: Text(title!, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: fg)),
+                  child: Text(title!, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: fg)),
                 ),
               for (final s in lines)
                 Padding(
@@ -268,7 +268,7 @@ class P2Segment3 extends StatelessWidget {
                             textAlign: TextAlign.center,
                             overflow: TextOverflow.ellipsis,
                             style: tx.labelMedium!.copyWith(
-                                fontSize: 13, fontWeight: i == index ? FontWeight.w600 : FontWeight.w400, color: i == index ? t.onSoft : t.mut)),
+                                fontSize: 13, fontWeight: i == index ? FontWeight.w400 : FontWeight.w400, color: i == index ? t.onSoft : t.mut)),
                       ),
                     ),
                   ),
@@ -309,11 +309,11 @@ class P2LinkRow extends StatelessWidget {
               child: Text(title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: tx.bodyLarge!.copyWith(fontWeight: FontWeight.w700, color: danger ? t.danger : t.ink)),
+                  style: tx.bodyLarge!.copyWith(fontWeight: FontWeight.w400, color: danger ? t.danger : t.ink)),
             ),
             if (value != null) ...[
               const SizedBox(width: 8),
-              Text(value!, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+              Text(value!, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w400, color: t.mut)),
             ],
             const SizedBox(width: 8),
             ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 18, color: danger ? t.danger : t.mut)),

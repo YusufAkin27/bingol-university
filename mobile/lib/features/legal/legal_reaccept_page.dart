@@ -189,7 +189,7 @@ class _LegalReacceptPageState extends State<LegalReacceptPage> {
                   Semantics(
                     header: true,
                     child: Text(l.legalReacceptDeclineTitle,
-                        textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+                        textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                   ),
                   const SizedBox(height: 10),
                   Text(l.legalReacceptDeclineBody,
@@ -241,7 +241,7 @@ class _LegalReacceptPageState extends State<LegalReacceptPage> {
           ],
           RefHeading(title: l.legalReacceptTitle, subtitle: enforced ? l.legalReacceptIntro : l.legalReacceptIntroSoft),
           const SizedBox(height: 24),
-          Text(l.legalReacceptListTitle, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+          Text(l.legalReacceptListTitle, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
           const SizedBox(height: 12),
           // Kart yok (Stitch v3 "15"): düz satırlar + ince ayırıcı.
           Column(
@@ -310,7 +310,7 @@ class _DocRow extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+                      Text(title, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                       Text(version, style: tx.bodySmall!.copyWith(color: t.mut)),
                     ],
                   ),

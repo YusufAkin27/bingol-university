@@ -76,7 +76,7 @@ class BuHeader extends StatelessWidget {
                     header: true,
                     child: LayoutBuilder(builder: (context, c) {
                       // Arapçada harf aralığı bitişik harfleri bozar: sıfır.
-                      final style = BuType.display.copyWith(fontSize: 26, fontWeight: FontWeight.w700, letterSpacing: _isArabic(context) ? 0 : -.4, color: t.ink);
+                      final style = BuType.display.copyWith(fontSize: 26, fontWeight: FontWeight.w400, letterSpacing: _isArabic(context) ? 0 : -.4, color: t.ink);
                       // En uzun kelime satıra sığmıyorsa yazıyı küçült (kelime ortadan bölünmesin).
                       final scale = MediaQuery.textScalerOf(context).scale(1);
                       var longest = 0.0;
@@ -360,7 +360,7 @@ class BuChip extends StatelessWidget {
                           AnimatedDefaultTextStyle(
                             duration: BuMotion.of(context, BuMotion.short),
                             curve: BuMotion.standard,
-                            style: BuType.label.copyWith(color: fg, fontWeight: selected ? FontWeight.w700 : FontWeight.w600),
+                            style: BuType.label.copyWith(color: fg, fontWeight: selected ? FontWeight.w400 : FontWeight.w400),
                             child: Text(label),
                           ),
                         ],
@@ -555,7 +555,7 @@ class BuButton extends StatelessWidget {
                 Flexible(
                   child: Text(label,
                       textAlign: TextAlign.center,
-                      style: (compact ? tx.labelMedium! : tx.bodyLarge!).copyWith(color: fg, fontWeight: FontWeight.w600, height: 1.25)),
+                      style: (compact ? tx.labelMedium! : tx.bodyLarge!).copyWith(color: fg, fontWeight: FontWeight.w400, height: 1.25)),
                 ),
               ],
             ),
@@ -1010,6 +1010,6 @@ class BuFeatureTitle extends StatelessWidget {
     const SizedBox(width: 12),
     Expanded(child: Semantics(header: true, child: Text(title, maxLines: 2,
       overflow: TextOverflow.ellipsis,
-      style: BuType.display.copyWith(fontSize: 26, height: 1.15, fontWeight: FontWeight.w700, color: context.bu.ink)))),
+      style: BuType.display.copyWith(fontSize: 26, height: 1.15, fontWeight: FontWeight.w400, color: context.bu.ink)))),
   ]);
 }

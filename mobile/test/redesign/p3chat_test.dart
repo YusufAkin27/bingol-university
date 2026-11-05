@@ -85,8 +85,8 @@ void main() {
       // Okunmamış başlık 700, okunmuş 600; okunmamış saat marka renginde.
       final unreadTitle = tester.widget<Text>(find.text('Mehmet Kaya'));
       final readTitle = tester.widget<Text>(find.text('Edebiyat Kulübü'));
-      expect(unreadTitle.style!.fontWeight, FontWeight.w700);
-      expect(readTitle.style!.fontWeight, FontWeight.w600);
+      expect(unreadTitle.style!.fontWeight, FontWeight.w400);
+      expect(readTitle.style!.fontWeight, FontWeight.w400);
       expect(tester.takeException(), isNull);
     });
 

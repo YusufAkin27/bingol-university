@@ -384,7 +384,7 @@ class MessageBubble extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: tx.labelLarge!
-                      .copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+                      .copyWith(color: t.ink, fontWeight: FontWeight.w400)),
             ),
           );
     final core = Container(
@@ -419,7 +419,7 @@ class MessageBubble extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 2),
                 child: Text(context.l10n.p08ModerationTitle,
                     style: tx.labelMedium!.copyWith(
-                        color: t.danger, fontWeight: FontWeight.w700)),
+                        color: t.danger, fontWeight: FontWeight.w400)),
               ),
             if (reply != null && !deleted)
               mediaStyle
@@ -538,7 +538,7 @@ class MessageBubble extends StatelessWidget {
                                 context.l10n.chatMiscSendFailed),
                         style: tx.labelSmall!.copyWith(
                             color: t.danger,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w400,
                             decoration: TextDecoration.underline,
                             decorationColor: t.danger)),
                   ),
@@ -603,7 +603,7 @@ class MessageBubble extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: tx.labelMedium!.copyWith(
                                 color: mine ? fg : t.mut,
-                                fontWeight: FontWeight.w600)),
+                                fontWeight: FontWeight.w400)),
                         Text(quoted,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -629,7 +629,7 @@ class MessageBubble extends StatelessWidget {
     // toLowerCase uzunluğu değiştirirse (ör. İ) güvenli yola dön.
     if (lower.length != text.length) return TextSpan(text: text, style: style);
     final hl = style.copyWith(
-        backgroundColor: hlBg, color: hlFg, fontWeight: FontWeight.w700);
+        backgroundColor: hlBg, color: hlFg, fontWeight: FontWeight.w400);
     final spans = <TextSpan>[];
     var i = 0;
     while (i < text.length) {
@@ -689,7 +689,7 @@ class _ReactionChip extends StatelessWidget {
               textAlign: TextAlign.center,
               style: tx.labelMedium!.copyWith(
                   color: mine ? t.onSoft : t.ink,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w400,
                   fontFeatures: const [FontFeature.tabularFigures()])),
         ),
       ),
@@ -1346,7 +1346,7 @@ class ViewOnceCard extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                   style: tx.labelLarge!.copyWith(
                                       color: t.onMedia,
-                                      fontWeight: FontWeight.w700))),
+                                      fontWeight: FontWeight.w400))),
                         ]),
                         const SizedBox(height: 2),
                         Text(l.p08OnceSubtitle,
@@ -1372,7 +1372,7 @@ class ViewOnceCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: tx.labelLarge!.copyWith(
-                            color: t.onPr, fontWeight: FontWeight.w800)),
+                            color: t.onPr, fontWeight: FontWeight.w400)),
                   ]),
                 ),
                 const Spacer(),
@@ -1402,7 +1402,7 @@ class ViewOnceCard extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: tx.bodyMedium!.copyWith(
-                              color: t.prText, fontWeight: FontWeight.w700)),
+                              color: t.prText, fontWeight: FontWeight.w400)),
                       Text(l.p08OnceSentSub,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -1413,7 +1413,7 @@ class ViewOnceCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: tx.bodyMedium!
-                      .copyWith(color: fg, fontWeight: FontWeight.w600)),
+                      .copyWith(color: fg, fontWeight: FontWeight.w400)),
         ),
         if (meta != null) ...[const SizedBox(width: 8), meta!],
       ]);
@@ -1457,7 +1457,7 @@ class OnceBadge extends StatelessWidget {
           child: Text('1',
               style: Theme.of(context).textTheme.labelMedium!.copyWith(
                   color: color,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w400,
                   height: 1,
                   fontSize: size >= 24 ? size * .5 : BuScale.caption)),
         ),

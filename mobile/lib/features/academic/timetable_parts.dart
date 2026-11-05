@@ -40,7 +40,7 @@ class TtTopRow extends StatelessWidget {
         TextSpan(text: l.p69WeeklyFlow, style: tx.bodySmall!.copyWith(fontWeight: FontWeight.w500, color: t.mut)),
         if (week != null) ...[
           TextSpan(text: '  •  ', style: tx.bodySmall!.copyWith(color: t.mut)),
-          TextSpan(text: l.p69WeekN(week.toString()), style: tx.bodySmall!.copyWith(fontWeight: FontWeight.w600, color: t.prText)),
+          TextSpan(text: l.p69WeekN(week.toString()), style: tx.bodySmall!.copyWith(fontWeight: FontWeight.w400, color: t.prText)),
         ],
       ]),
       maxLines: 2,
@@ -164,9 +164,9 @@ class TtDayStrip extends StatelessWidget {
                         padding: const EdgeInsets.fromLTRB(8, 7, 8, 6),
                         decoration: BoxDecoration(color: sel ? t.soft : Colors.transparent, borderRadius: BorderRadius.circular(24)),
                         child: Column(mainAxisSize: MainAxisSize.min, children: [
-                          Text(acadDayShort(l, d), maxLines: 1, style: tx.labelMedium!.copyWith(fontSize: 13, fontWeight: sel ? FontWeight.w600 : FontWeight.w500, color: sel ? t.prText : t.mut)),
+                          Text(acadDayShort(l, d), maxLines: 1, style: tx.labelMedium!.copyWith(fontSize: 13, fontWeight: sel ? FontWeight.w400 : FontWeight.w500, color: sel ? t.prText : t.mut)),
                           const SizedBox(height: 2),
-                          Text(date == null ? '' : '${date.day}', maxLines: 1, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w700, color: sel ? t.prText : t.ink)),
+                          Text(date == null ? '' : '${date.day}', maxLines: 1, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w400, color: sel ? t.prText : t.ink)),
                           const SizedBox(height: 3),
                           SizedBox(height: 5, child: today ? const AcadDot(size: 5) : null),
                         ]),
@@ -236,7 +236,7 @@ class TtSlotCard extends StatelessWidget {
                 SizedBox(
                   width: 48,
                   child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                    Text(s.session.start, maxLines: 1, style: tx.titleSmall!.copyWith(fontSize: 15, fontWeight: past ? FontWeight.w500 : FontWeight.w700, color: past ? t.mut : t.ink, fontFeatures: const [FontFeature.tabularFigures()])),
+                    Text(s.session.start, maxLines: 1, style: tx.titleSmall!.copyWith(fontSize: 15, fontWeight: past ? FontWeight.w500 : FontWeight.w400, color: past ? t.mut : t.ink, fontFeatures: const [FontFeature.tabularFigures()])),
                     Text(s.session.end, maxLines: 1, style: tx.bodySmall!.copyWith(fontSize: 13, color: past ? t.mut : t.ink.withValues(alpha: .8), fontFeatures: const [FontFeature.tabularFigures()])),
                   ]),
                 ),
@@ -246,14 +246,14 @@ class TtSlotCard extends StatelessWidget {
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Expanded(child: Text(c.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w600, color: titleColor))),
+                      Expanded(child: Text(c.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w400, color: titleColor))),
                       if (trailing != null) ...[
                         const SizedBox(width: 8),
                         Flexible(
                           flex: 0,
                           child: Padding(
                             padding: const EdgeInsets.only(top: 3),
-                            child: Text(trailing!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: ongoing ? FontWeight.w600 : FontWeight.w400, color: ongoing ? t.prText : t.mut)),
+                            child: Text(trailing!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: ongoing ? FontWeight.w400 : FontWeight.w400, color: ongoing ? t.prText : t.mut)),
                           ),
                         ),
                       ],
@@ -307,7 +307,7 @@ class TtNowLine extends StatelessWidget {
             child: Row(children: [
               const Padding(padding: EdgeInsetsDirectional.only(start: 4), child: AcadDot(size: 8)),
               const SizedBox(width: 6),
-              Text(text, maxLines: 1, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: t.prText, fontFeatures: const [FontFeature.tabularFigures()])),
+              Text(text, maxLines: 1, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w400, color: t.prText, fontFeatures: const [FontFeature.tabularFigures()])),
               const SizedBox(width: 9),
               const Expanded(child: AcadRule()),
             ]),
@@ -361,7 +361,7 @@ class TtEmpty extends StatelessWidget {
         if (semesterLabel != null && onPickSemester != null)
           Align(alignment: AlignmentDirectional.centerStart, child: AcadTextAction(semesterLabel!, onTap: onPickSemester)),
         const SizedBox(height: 32),
-        Semantics(header: true, child: Text(title, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w600, color: t.ink))),
+        Semantics(header: true, child: Text(title, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w400, color: t.ink))),
         const SizedBox(height: 6),
         Text(body, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut)),
         const SizedBox(height: 24),

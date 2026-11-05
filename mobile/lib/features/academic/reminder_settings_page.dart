@@ -145,7 +145,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> with Widget
         header: true,
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 28),
-          child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+          child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
         ),
       );
 

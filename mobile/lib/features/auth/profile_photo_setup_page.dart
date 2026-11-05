@@ -191,7 +191,7 @@ class _ProfilePhotoSetupPageState extends State<ProfilePhotoSetupPage> {
                       header: true,
                       child: Text(
                         l.photoSetupTitle,
-                        style: tx.displayMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700, height: 1.1),
+                        style: tx.displayMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400, height: 1.1),
                       ),
                     ),
                     const SizedBox(height: 10),

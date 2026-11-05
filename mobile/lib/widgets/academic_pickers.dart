@@ -89,7 +89,7 @@ class _DepartmentSheetState extends State<_DepartmentSheet> {
                   Expanded(
                     child: Semantics(
                       header: true,
-                      child: Text(l.pickDepartment, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+                      child: Text(l.pickDepartment, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                     ),
                   ),
                   IconButton(
@@ -127,7 +127,7 @@ class _DepartmentSheetState extends State<_DepartmentSheet> {
                               Expanded(
                                 child: Text(
                                   _facultyHeading(lang, g.$1.label(lang)),
-                                  style: tx.labelLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w800, letterSpacing: .3),
+                                  style: tx.labelLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w400, letterSpacing: .3),
                                 ),
                               ),
                               Text(l.p02FacultyCount(g.$2.length), style: tx.labelMedium!.copyWith(color: t.mut)),
@@ -210,7 +210,7 @@ class _DepartmentPickerPageState extends State<DepartmentPickerPage> {
           children: [
             Semantics(
               header: true,
-              child: Text(l.pickDepartment, style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+              child: Text(l.pickDepartment, style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
             ),
             const SizedBox(height: 16),
             BuSearchField(hint: l.pickSearch, controller: _q, onChanged: (_) => setState(() {})),
@@ -229,7 +229,7 @@ class _DepartmentPickerPageState extends State<DepartmentPickerPage> {
                         Expanded(
                           child: Text(
                             _facultyHeading(lang, g.$1.label(lang)),
-                            style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800, letterSpacing: .3),
+                            style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400, letterSpacing: .3),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -279,7 +279,7 @@ class _DeptRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final base = tx.bodyLarge!.copyWith(color: selected ? t.prText : t.ink, fontWeight: selected ? FontWeight.w700 : FontWeight.w500);
+    final base = tx.bodyLarge!.copyWith(color: selected ? t.prText : t.ink, fontWeight: selected ? FontWeight.w400 : FontWeight.w500);
     final q = foldTr(query);
     final at = q.isEmpty ? -1 : foldTr(name).indexOf(q);
     final Widget title = at < 0 || at + q.length > name.length
@@ -288,7 +288,7 @@ class _DeptRow extends StatelessWidget {
             TextSpan(text: name.substring(0, at)),
             TextSpan(
               text: name.substring(at, at + q.length),
-              style: TextStyle(backgroundColor: t.soft, color: t.onSoft, fontWeight: FontWeight.w800),
+              style: TextStyle(backgroundColor: t.soft, color: t.onSoft, fontWeight: FontWeight.w400),
             ),
             TextSpan(text: name.substring(at + q.length)),
           ]));
@@ -366,7 +366,7 @@ class _InfoRow extends StatelessWidget {
             child: Icon(icon, size: 20, color: action == null ? t.mut : t.pr),
           ),
           const SizedBox(width: 12),
-          Expanded(child: Text(text, style: tx.bodyMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w600))),
+          Expanded(child: Text(text, style: tx.bodyMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400))),
           if (action != null) ...[
             const SizedBox(width: 8),
             TextButton(
@@ -378,7 +378,7 @@ class _InfoRow extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 shape: const StadiumBorder(),
               ),
-              child: Text(action!, style: tx.labelLarge!.copyWith(color: t.onSoft, fontWeight: FontWeight.w700)),
+              child: Text(action!, style: tx.labelLarge!.copyWith(color: t.onSoft, fontWeight: FontWeight.w400)),
             ),
           ],
         ],
@@ -414,7 +414,7 @@ Future<String?> showGradeSheet(BuildContext context, {required List<AcademicGrad
                     Expanded(
                       child: Semantics(
                         header: true,
-                        child: Text(l.pickGrade, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+                        child: Text(l.pickGrade, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                       ),
                     ),
                     IconButton(
@@ -455,7 +455,7 @@ Future<String?> showGradeSheet(BuildContext context, {required List<AcademicGrad
                                         child: Text(
                                           loc == g.id ? g.name : loc,
                                           style: tx.bodyLarge!.copyWith(
-                                              color: isSel ? t.prText : t.ink, fontWeight: isSel ? FontWeight.w700 : FontWeight.w500),
+                                              color: isSel ? t.prText : t.ink, fontWeight: isSel ? FontWeight.w400 : FontWeight.w500),
                                         ),
                                       ),
                                       if (isSel) const _Radio(selected: true),

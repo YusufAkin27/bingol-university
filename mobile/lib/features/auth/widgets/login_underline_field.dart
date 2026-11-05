@@ -148,7 +148,7 @@ class _LoginUnderlineFieldState extends State<LoginUnderlineField> {
       color: t.ink,
       fontSize: widget.boxed ? 17 : (widget.big ? (compact ? 24 : 32) : 22),
       fontWeight:
-          !widget.boxed && widget.big ? FontWeight.w600 : FontWeight.w500,
+          !widget.boxed && widget.big ? FontWeight.w400 : FontWeight.w500,
       letterSpacing: widget.big ? .4 : 0,
       height: 1.15,
       fontFeatures: const [FontFeature.tabularFigures()],
@@ -260,7 +260,7 @@ class _LoginUnderlineFieldState extends State<LoginUnderlineField> {
                 duration: fast,
                 curve: AppMotion.standard,
                 style: tx.labelLarge!
-                    .copyWith(color: labelColor, fontWeight: FontWeight.w600),
+                    .copyWith(color: labelColor, fontWeight: FontWeight.w400),
                 child: Text(widget.label),
               ),
             ),

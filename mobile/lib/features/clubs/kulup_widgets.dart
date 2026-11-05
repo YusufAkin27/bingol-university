@@ -56,7 +56,7 @@ class KulupRoleBadge extends StatelessWidget {
             child: Text(text,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: fgc)),
+                style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w400, color: fgc)),
           ),
         ],
       ),
@@ -170,7 +170,7 @@ class KulupPillButton extends StatelessWidget {
                 child: Text(label,
                     maxLines: 2,
                     textAlign: TextAlign.center,
-                    style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: fg)),
+                    style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w400, color: fg)),
               ),
             ],
           ),
@@ -195,7 +195,7 @@ class KulupActionButton extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (icon != null) ...[Icon(icon, size: 18), const SizedBox(width: 8)],
-        Flexible(child: Text(label, maxLines: 2, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w700))),
+        Flexible(child: Text(label, maxLines: 2, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w400))),
       ],
     );
     final void Function()? tap = onPressed == null

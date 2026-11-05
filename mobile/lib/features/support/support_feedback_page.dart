@@ -120,7 +120,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
-    final label = tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800);
+    final label = tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400);
     Widget caption(String text) => Padding(
           padding: const EdgeInsets.only(top: 18, bottom: 8),
           child: Semantics(header: true, child: Text(text, style: label)),
@@ -274,7 +274,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                     child: _more
                         ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4))
                         : Row(mainAxisSize: MainAxisSize.min, children: [
-                            Text(l.supportMore, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+                            Text(l.supportMore, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                             const SizedBox(width: 6),
                             Icon(BuIcons.chevronDown, size: 18, color: t.ink),
                           ]),
@@ -321,7 +321,7 @@ class _FeedbackTile extends StatelessWidget {
             SupportFeedbackPill(item['status'] as String?, dark: true),
           ]),
           const SizedBox(height: 12),
-          Text('${item['subject'] ?? ''}', style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.35)),
+          Text('${item['subject'] ?? ''}', style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400, height: 1.35)),
           const SizedBox(height: 10),
           Row(children: [
             Icon(BuIcons.calendar, size: 15, color: t.mut),

@@ -74,8 +74,8 @@ class PushDateTile extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(color: tint.bg, borderRadius: BorderRadius.circular(size * .3)),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Text(month, maxLines: 1, style: BuType.caption.copyWith(fontSize: 11, height: 1.1, fontWeight: FontWeight.w700, color: tint.fg)),
-        Text(day, maxLines: 1, style: BuType.caption.copyWith(fontSize: 17, height: 1.1, fontWeight: FontWeight.w800, color: tint.fg)),
+        Text(month, maxLines: 1, style: BuType.caption.copyWith(fontSize: 11, height: 1.1, fontWeight: FontWeight.w400, color: tint.fg)),
+        Text(day, maxLines: 1, style: BuType.caption.copyWith(fontSize: 17, height: 1.1, fontWeight: FontWeight.w400, color: tint.fg)),
       ]),
     );
   }
@@ -130,7 +130,7 @@ class PushAvatar extends StatelessWidget {
               alignment: Alignment.center,
               decoration: BoxDecoration(color: t.pr, shape: BoxShape.rectangle, borderRadius: BorderRadius.circular(badge), border: Border.all(color: t.sf, width: 1.5)),
               child: Text(count > 99 ? '99+' : '$count',
-                  maxLines: 1, style: BuType.caption.copyWith(fontSize: 11, height: 1.1, fontWeight: FontWeight.w800, color: t.onPr)),
+                  maxLines: 1, style: BuType.caption.copyWith(fontSize: 11, height: 1.1, fontWeight: FontWeight.w400, color: t.onPr)),
             ),
           )
         else if (roleStyle != null)
@@ -185,7 +185,7 @@ class PushChip extends StatelessWidget {
                 style: BuType.caption.copyWith(
                     fontSize: 11,
                     height: 1.25,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w400,
                     color: fg,
                     decoration: strike ? TextDecoration.lineThrough : null)),
           ),
@@ -225,7 +225,7 @@ class PushActionButton extends StatelessWidget {
         disabledBackgroundColor: bg.withValues(alpha: .5),
         foregroundColor: fg,
         shape: const StadiumBorder(),
-        textStyle: BuType.caption.copyWith(fontSize: 12, fontWeight: FontWeight.w700),
+        textStyle: BuType.caption.copyWith(fontSize: 12, fontWeight: FontWeight.w400),
       ),
       icon: Icon(icon, size: 14),
       label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),

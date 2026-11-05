@@ -283,7 +283,7 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
     if (cap == null) {
       return Padding(
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-        child: Text('${l.etkinlik2Unlimited} · ${l.p51EvQuotaGoing('$going')}', key: const ValueKey('et2-quota'), style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+        child: Text('${l.etkinlik2Unlimited} · ${l.p51EvQuotaGoing('$going')}', key: const ValueKey('et2-quota'), style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w400, color: t.mut)),
       );
     }
     final left = (cap - going).clamp(0, cap);
@@ -294,7 +294,7 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
           Expanded(
             child: Directionality(
               textDirection: Directionality.of(context),
-              child: Text(l.p51EvQuota('$cap', '$going'), key: const ValueKey('et2-quota'), style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+              child: Text(l.p51EvQuota('$cap', '$going'), key: const ValueKey('et2-quota'), style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w400, color: t.mut)),
             ),
           ),
           ExcludeSemantics(child: Container(width: 8, height: 8, decoration: BoxDecoration(color: left == 0 ? t.danger : t.pr, shape: BoxShape.circle))),
@@ -327,7 +327,7 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
               TextButton(
                 style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: EdgeInsets.zero, alignment: AlignmentDirectional.centerStart),
                 onPressed: _raiseQuota,
-                child: Text(l.p16ReqRaiseQuota, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w700)),
+                child: Text(l.p16ReqRaiseQuota, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
               ),
           ]),
         ),
@@ -342,14 +342,14 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(l.etkinlik2ReqNone, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w600, color: t.ink)),
+        Text(l.etkinlik2ReqNone, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w400, color: t.ink)),
         const SizedBox(height: 4),
         Text(l.p16ReqEmptyBody, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
         TextButton(
           key: const ValueKey('et2-req-back'),
           style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: EdgeInsets.zero),
           onPressed: () => Navigator.pop(context, _changed),
-          child: Text(l.p16ReqBackToEvent, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
+          child: Text(l.p16ReqBackToEvent, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
         ),
       ]),
     );
@@ -389,7 +389,7 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
                 widthFactor: 1,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(label, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: onTap == null ? color.withValues(alpha: .4) : color)),
+                  child: Text(label, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w400, color: onTap == null ? color.withValues(alpha: .4) : color)),
                 ),
               ),
             ),
@@ -445,7 +445,7 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
           ]),
         ),
         const SizedBox(width: 8),
-        Text(ok ? l.etkinlik2ApprovedTag : l.etkinlik2RejectedTag, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: ok ? t.ok : t.danger)),
+        Text(ok ? l.etkinlik2ApprovedTag : l.etkinlik2RejectedTag, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w400, color: ok ? t.ok : t.danger)),
       ]),
     );
   }

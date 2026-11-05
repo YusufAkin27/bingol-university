@@ -436,7 +436,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
               centerTitle: false,
               backgroundColor: t.bg,
               scrolledUnderElevation: 0,
-              title: Text(l.eventFormEventTitle, style: BuType.title.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+              title: Text(l.eventFormEventTitle, style: BuType.title.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
               actions: [_shareAction(), _menu(), const SizedBox(width: 4)],
             ),
             SliverToBoxAdapter(
@@ -495,7 +495,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
               child: Row(children: [
                 Icon(BuIcons.trash2, size: 18, color: t.danger),
                 const SizedBox(width: 12),
-                Text(l.eventFormCancelAction, style: TextStyle(color: t.danger, fontWeight: FontWeight.w700)),
+                Text(l.eventFormCancelAction, style: TextStyle(color: t.danger, fontWeight: FontWeight.w400)),
               ])),
         ],
       );
@@ -660,7 +660,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
             const SizedBox(width: 12),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(l.etkinlik2RequestSent, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.onWarnSoft)),
+                Text(l.etkinlik2RequestSent, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.onWarnSoft)),
                 Text(l.etkinlik2AwaitingReply, style: tx.bodyMedium!.copyWith(color: t.onWarnSoft.withValues(alpha: .85))),
               ]),
             ),
@@ -691,7 +691,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
             const SizedBox(width: 12),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(l.etkinlik2RejectedTitle, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.danger)),
+                Text(l.etkinlik2RejectedTitle, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.danger)),
                 const SizedBox(height: 2),
                 Text(l.etkinlik2RejectedBody, style: tx.bodyMedium!.copyWith(height: 1.4, color: t.danger)),
               ]),
@@ -736,7 +736,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
         Expanded(
           child: Text(value,
               textAlign: TextAlign.end,
-              style: tx.bodyLarge!.copyWith(color: strike ? t.mut : t.ink, fontWeight: FontWeight.w600, decoration: strike ? TextDecoration.lineThrough : null)),
+              style: tx.bodyLarge!.copyWith(color: strike ? t.mut : t.ink, fontWeight: FontWeight.w400, decoration: strike ? TextDecoration.lineThrough : null)),
         ),
       ]),
     );
@@ -781,7 +781,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
             child: ExcludeSemantics(
               child: Text(clubsInitials(who.isEmpty ? '${ev['title'] ?? ''}' : who),
                   maxLines: 1,
-                  style: TextStyle(fontFamily: BuType.family, fontSize: 88, fontWeight: FontWeight.w800, height: 1, color: t.ink.withValues(alpha: .08))),
+                  style: TextStyle(fontFamily: BuType.family, fontSize: 88, fontWeight: FontWeight.w400, height: 1, color: t.ink.withValues(alpha: .08))),
             ),
           ),
         ],
@@ -855,7 +855,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(color: t.danger.withValues(alpha: .1), borderRadius: BorderRadius.circular(16)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(l.p15CancelledNotice, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.danger)),
+              Text(l.p15CancelledNotice, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: t.danger)),
               const SizedBox(height: 2),
               Text(l.p15CancelledBody, style: tx.bodyMedium!.copyWith(color: t.danger.withValues(alpha: .9))),
             ]),
@@ -869,7 +869,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
             decoration: BoxDecoration(color: pendingReview ? t.warnSoft : t.danger.withValues(alpha: .1), borderRadius: BorderRadius.circular(16)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(pendingReview ? l.evcStatusPending : l.evcStatusRejected,
-                  style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: pendingReview ? t.onWarnSoft : t.danger)),
+                  style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: pendingReview ? t.onWarnSoft : t.danger)),
               if (pendingReview || eventRejectReason(ev) != null) ...[
                 const SizedBox(height: 2),
                 Text(pendingReview ? l.evcInfoReview : l.evcRejectReason(eventRejectReason(ev)!),
@@ -910,7 +910,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
             constraints: const BoxConstraints(minHeight: 52),
             decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
             child: Row(children: [
-              Expanded(child: Text(l.eventFormChat, style: tx.bodyLarge!.copyWith(fontWeight: FontWeight.w600, color: locked ? t.mut : t.ink))),
+              Expanded(child: Text(l.eventFormChat, style: tx.bodyLarge!.copyWith(fontWeight: FontWeight.w400, color: locked ? t.mut : t.ink))),
               if (locked)
                 Text(l.p15LockedBadge, style: tx.bodySmall!.copyWith(color: t.mut))
               else if (_chatBusy)
@@ -937,7 +937,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
           constraints: const BoxConstraints(minHeight: 48),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(color: t.okSoft, borderRadius: BorderRadius.circular(16)),
-          child: Text(text, textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(color: t.ok, fontWeight: FontWeight.w600)),
+          child: Text(text, textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(color: t.ok, fontWeight: FontWeight.w400)),
         );
     if (att['present'] == true) {
       // Başarı onayı: not 0.9 -> 1 ölçekle yaylanarak belirir (tek seferlik).
@@ -955,7 +955,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
       if (open && _enterCode) ...[
         const SizedBox(height: 16),
         Row(children: [
-          Expanded(child: Text(l.eventFormCheckInCode, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.ink))),
+          Expanded(child: Text(l.eventFormCheckInCode, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
           Text(l.p15CodeChars('${_codeCtl.text.length}'), style: tx.labelSmall!.copyWith(color: t.mut)),
         ]),
         Text(l.eventFormEnterOrganizerCode, style: tx.bodySmall!.copyWith(color: t.mut)),
@@ -973,7 +973,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
           },
           onSubmitted: (_) => _checkIn(),
           textAlign: TextAlign.center,
-          style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, letterSpacing: 2, color: t.ink),
+          style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, letterSpacing: 2, color: t.ink),
           decoration: clubFill(context,
               hint: l.sistemuiQrManualHint,
               hasError: _codeError != null,
@@ -1020,7 +1020,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
             const SizedBox(width: 12),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(l.p16QrStatusTitle, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                Text(l.p16QrStatusTitle, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
                 Text(total == 0 ? l.eventFormNoAttendance : l.eventFormAttendanceCount('$present', '$total'),
                     key: const ValueKey('detail-att-summary'), style: tx.bodySmall!.copyWith(color: t.mut)),
               ]),
@@ -1046,7 +1046,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
             padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 4),
             child: Align(
               alignment: AlignmentDirectional.centerStart,
-              child: Text(l.etkinlik2ManageSection, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+              child: Text(l.etkinlik2ManageSection, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
             ),
           ),
           if (_approval)
@@ -1099,7 +1099,7 @@ class _OverlayChip extends StatelessWidget {
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         Icon(icon, size: 14, color: fg),
         const SizedBox(width: 6),
-        Text(label, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: fg)),
+        Text(label, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: fg)),
       ]),
     );
   }

@@ -144,7 +144,7 @@ class _ClubDeleteDialogState extends State<ClubDeleteDialog> {
                 : Text.rich(
                     TextSpan(children: [
                       TextSpan(text: prompt.substring(0, at)),
-                      TextSpan(text: widget.name, style: TextStyle(color: t.prText, fontWeight: FontWeight.w800)),
+                      TextSpan(text: widget.name, style: TextStyle(color: t.prText, fontWeight: FontWeight.w400)),
                       TextSpan(text: prompt.substring(at + widget.name.length)),
                     ]),
                     textAlign: TextAlign.center,
@@ -160,7 +160,7 @@ class _ClubDeleteDialogState extends State<ClubDeleteDialog> {
           ),
           Padding(
             padding: const EdgeInsets.only(top: 6, left: 4, right: 4),
-            child: Text(l.p11CaseSensitive, style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
+            child: Text(l.p11CaseSensitive, style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
           ),
         ],
       ),

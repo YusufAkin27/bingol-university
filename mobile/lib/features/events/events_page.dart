@@ -768,7 +768,7 @@ class _EventsPageState extends State<EventsPage> {
             buHaptic(BuHaptic.selection);
             _scanCheckin();
           },
-          child: Text(l.eventListCheckin, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
+          child: Text(l.eventListCheckin, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
         ),
         ClubBarIcon(key: const ValueKey('events-create'), icon: BuIcons.plus, tooltip: l.eventListCreate, onTap: _create, width: 44),
       ]),
@@ -785,12 +785,12 @@ class _EventsPageState extends State<EventsPage> {
       padding: const EdgeInsets.fromLTRB(20, 32, 20, 0),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Expanded(child: Text(l.p51ClubsLoadFailed, style: tx.titleMedium!.copyWith(fontSize: 17, color: t.ink, fontWeight: FontWeight.w600))),
+          Expanded(child: Text(l.p51ClubsLoadFailed, style: tx.titleMedium!.copyWith(fontSize: 17, color: t.ink, fontWeight: FontWeight.w400))),
           TextButton(
             key: const ValueKey('events-retry'),
             style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 8)),
             onPressed: _tab == 0 ? () => _load() : () => _loadFeed(_feedKey),
-            child: Text(l.commonRetry, style: tx.titleMedium!.copyWith(color: t.prText, fontWeight: FontWeight.w700)),
+            child: Text(l.commonRetry, style: tx.titleMedium!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
           ),
         ]),
         if (cached) Text(l.p14ErrorBodyCache, style: tx.bodySmall!.copyWith(color: t.mut)),
@@ -817,7 +817,7 @@ class _EventsPageState extends State<EventsPage> {
       key: key,
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(title, style: tx.titleMedium!.copyWith(fontSize: 20, color: t.ink, fontWeight: FontWeight.w700)),
+        Text(title, style: tx.titleMedium!.copyWith(fontSize: 20, color: t.ink, fontWeight: FontWeight.w400)),
         if (body != null) ...[
           const SizedBox(height: 4),
           Text(body, style: tx.bodyLarge!.copyWith(color: t.mut, height: 1.4)),
@@ -828,7 +828,7 @@ class _EventsPageState extends State<EventsPage> {
             child: TextButton(
               style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: EdgeInsets.zero),
               onPressed: onAction,
-              child: Text(actionLabel, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
+              child: Text(actionLabel, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
             ),
           ),
       ]),
@@ -913,7 +913,7 @@ class _EventsPageState extends State<EventsPage> {
                     child: Text(l.eventListMonthYear(eventMonthNameOf(context, _month.month), '${_month.year}'),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w600, color: t.ink)),
+                        style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w400, color: t.ink)),
                   )),
                 ),
               ),
@@ -922,7 +922,7 @@ class _EventsPageState extends State<EventsPage> {
               TextButton(
                 style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 8)),
                 onPressed: _goToday,
-                child: Text(l.p14Today, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
+                child: Text(l.p14Today, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
               ),
             ClubBarIcon(
               icon: BuIcons.chevronLeft,
@@ -944,7 +944,7 @@ class _EventsPageState extends State<EventsPage> {
                   child: Text(ar ? eventDayShortOf(context, i) : trUpper(eventDayShortOf(context, i)).characters.first,
                       textAlign: TextAlign.center,
                       maxLines: 1,
-                      style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w600, color: t.mut, letterSpacing: ar ? 0 : .4)),
+                      style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w400, color: t.mut, letterSpacing: ar ? 0 : .4)),
                 ),
               ),
           ]),
@@ -1012,7 +1012,7 @@ class _EventsPageState extends State<EventsPage> {
                   ),
                   AnimatedDefaultTextStyle(
                     duration: BuMotion.of(context, BuMotion.short),
-                    style: tx.bodyMedium!.copyWith(color: fg, fontWeight: on || today ? FontWeight.w700 : FontWeight.w500),
+                    style: tx.bodyMedium!.copyWith(color: fg, fontWeight: on || today ? FontWeight.w400 : FontWeight.w500),
                     child: Text('${d.day}', maxLines: 1),
                   ),
                   // Etkinlik noktası: muted (seçili günde marka), veri gelince 0 -> 1 ölçekle belirir.
@@ -1128,7 +1128,7 @@ class _EventsPageState extends State<EventsPage> {
         header: true,
         child: Row(children: [
           Expanded(
-            child: Text(l.p14UpcomingOther, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w600, color: t.ink)),
+            child: Text(l.p14UpcomingOther, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w400, color: t.ink)),
           ),
           const SizedBox(width: 10),
           Text(l.p14EventCount(count), style: tx.bodySmall!.copyWith(color: t.mut)),
@@ -1151,7 +1151,7 @@ class _EventsPageState extends State<EventsPage> {
             child: Text(eventLongDateOf(context, d),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w600, color: t.ink)),
+                style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w400, color: t.ink)),
           ),
           if (count > 0) ...[
             const SizedBox(width: 10),
@@ -1261,7 +1261,7 @@ class _EventsPageState extends State<EventsPage> {
         if (official) {
           trailing = Icon(buDirIcon(context, BuIcons.chevronRight), size: 18, color: t.mut);
         } else if (cancelled) {
-          trailing = statusText(l.eventListCancelled, color: t.danger, w: FontWeight.w600);
+          trailing = statusText(l.eventListCancelled, color: t.danger, w: FontWeight.w400);
         } else if (my == 'GOING') {
           trailing = goingText();
         } else if (past) {
@@ -1275,7 +1275,7 @@ class _EventsPageState extends State<EventsPage> {
         }
       case _Mode.upcoming:
         trailing = cancelled
-            ? statusText(l.eventListCancelled, color: t.danger, w: FontWeight.w600)
+            ? statusText(l.eventListCancelled, color: t.danger, w: FontWeight.w400)
             : Row(mainAxisSize: MainAxisSize.min, children: [
                 Flexible(child: my == 'INTERESTED' ? statusText(l.eventListInterested) : goingText()),
                 menu(
@@ -1288,7 +1288,7 @@ class _EventsPageState extends State<EventsPage> {
                 ),
               ]);
       case _Mode.past:
-        trailing = cancelled ? statusText(l.eventListCancelled, color: t.danger, w: FontWeight.w600) : statusText(l.p14Attended);
+        trailing = cancelled ? statusText(l.eventListCancelled, color: t.danger, w: FontWeight.w400) : statusText(l.p14Attended);
       case _Mode.created:
         final String st;
         Color? stColor;
@@ -1307,7 +1307,7 @@ class _EventsPageState extends State<EventsPage> {
           st = l.eventListOpen;
         }
         trailing = Row(mainAxisSize: MainAxisSize.min, children: [
-          Flexible(child: statusText(st, color: stColor, w: stColor != null ? FontWeight.w600 : null)),
+          Flexible(child: statusText(st, color: stColor, w: stColor != null ? FontWeight.w400 : null)),
           if (!cancelled)
             menu(
               () => [
@@ -1327,7 +1327,7 @@ class _EventsPageState extends State<EventsPage> {
                     child: Row(children: [
                       Icon(BuIcons.circleX, size: 18, color: t.danger),
                       const SizedBox(width: 12),
-                      Text(l.eventListCancelConfirm, style: TextStyle(color: t.danger, fontWeight: FontWeight.w600)),
+                      Text(l.eventListCancelConfirm, style: TextStyle(color: t.danger, fontWeight: FontWeight.w400)),
                     ])),
               ],
               (a) => _manage(ev, a),
@@ -1352,8 +1352,8 @@ class _EventsPageState extends State<EventsPage> {
                 width: 32,
                 child: ExcludeSemantics(
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    Text(dayText, style: tx.titleMedium!.copyWith(fontSize: 22, height: 1.15, fontWeight: FontWeight.w600, color: dim ? t.mut.withValues(alpha: .7) : t.mut)),
-                    Text(monText, maxLines: 1, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w600, color: t.mut, letterSpacing: .4)),
+                    Text(dayText, style: tx.titleMedium!.copyWith(fontSize: 22, height: 1.15, fontWeight: FontWeight.w400, color: dim ? t.mut.withValues(alpha: .7) : t.mut)),
+                    Text(monText, maxLines: 1, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w400, color: t.mut, letterSpacing: .4)),
                   ]),
                 ),
               ),
@@ -1370,7 +1370,7 @@ class _EventsPageState extends State<EventsPage> {
                         style: tx.titleMedium!.copyWith(
                           fontSize: 17,
                           height: 1.3,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w400,
                           color: dim ? t.mut : t.ink,
                           decoration: cancelled ? TextDecoration.lineThrough : null,
                         )),
@@ -1384,12 +1384,12 @@ class _EventsPageState extends State<EventsPage> {
                     Padding(
                       key: const ValueKey('ev-reject-reason'),
                       padding: const EdgeInsets.only(top: 6),
-                      child: Text(l.evcRejectReason(reason), style: tx.bodySmall!.copyWith(color: t.danger, fontWeight: FontWeight.w600, height: 1.4)),
+                      child: Text(l.evcRejectReason(reason), style: tx.bodySmall!.copyWith(color: t.danger, fontWeight: FontWeight.w400, height: 1.4)),
                     ),
                   if (mode == _Mode.created && !cancelled && !rejected && !pendingReview && pending != null && pending > 0)
                     Padding(
                       padding: const EdgeInsets.only(top: 6),
-                      child: Text(l.profilyardEventPendingCount('$pending'), style: tx.bodySmall!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
+                      child: Text(l.profilyardEventPendingCount('$pending'), style: tx.bodySmall!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
                     ),
                 ]),
               ),

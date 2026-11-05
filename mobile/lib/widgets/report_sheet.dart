@@ -79,7 +79,7 @@ abstract final class ReportSheet {
                 child: ExcludeSemantics(child: Icon(BuIcons.ban, size: 22, color: t.pr)),
               ),
               const SizedBox(height: 16),
-              Semantics(header: true, child: Text(l.profileBlockTitle, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
+              Semantics(header: true, child: Text(l.profileBlockTitle, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
               const SizedBox(height: 6),
               Text(l.profileBlockBody, style: tx.bodyMedium!.copyWith(color: t.ink)),
               const SizedBox(height: 14),
@@ -186,7 +186,7 @@ class _SheetBodyState extends State<_SheetBody> {
             Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: t.bd, borderRadius: BorderRadius.circular(2)))),
             const SizedBox(height: 14),
             Row(children: [
-              Expanded(child: Semantics(header: true, child: Text(title, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)))),
+              Expanded(child: Semantics(header: true, child: Text(title, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink)))),
               IconButton(
                 constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                 tooltip: l.commonCancel,
@@ -213,7 +213,7 @@ class _SheetBodyState extends State<_SheetBody> {
             const SizedBox(height: 6),
             Padding(
               padding: const EdgeInsetsDirectional.only(start: 2, bottom: 8),
-              child: Text(l.reportDetailsHint, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+              child: Text(l.reportDetailsHint, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
             ),
             Stack(children: [
               TextField(
@@ -273,7 +273,7 @@ class _SheetBodyState extends State<_SheetBody> {
               child: Row(children: [
                 Icon(ReportSheet.reasonIcon(code), size: 18, color: sel ? t.onSoft : t.ink),
                 const SizedBox(width: 12),
-                Expanded(child: Text(label, style: tx.titleSmall!.copyWith(fontWeight: sel ? FontWeight.w800 : FontWeight.w600, color: sel ? t.onSoft : t.ink))),
+                Expanded(child: Text(label, style: tx.titleSmall!.copyWith(fontWeight: sel ? FontWeight.w400 : FontWeight.w400, color: sel ? t.onSoft : t.ink))),
                 const SizedBox(width: 12),
                 _Radio(selected: sel),
               ]),

@@ -214,14 +214,14 @@ class _CalendarSyncSheetBodyState extends State<CalendarSyncSheetBody> {
       if (active > 0)
         Padding(
           padding: const EdgeInsets.only(bottom: 10),
-          child: Text(l.calSyncRowDone(active.toString()), style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+          child: Text(l.calSyncRowDone(active.toString()), style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
         ),
       Text(_access == CalAccess.notDetermined ? l.calSyncRationale : l.calSyncSheetBody, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.5)),
       if (_access == CalAccess.granted && _calendars.isEmpty)
         Padding(padding: const EdgeInsets.only(top: 12), child: Text(l.calSyncNoCalendar, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.4))),
       if (showPicker) ...[
         const SizedBox(height: 16),
-        Semantics(header: true, child: Text(l.calSyncTarget, style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700))),
+        Semantics(header: true, child: Text(l.calSyncTarget, style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400))),
         const SizedBox(height: 4),
         for (final c in _calendars) _TargetRow(title: c.name, sub: c.account, selected: _target == c.id, onTap: () => setState(() => _target = c.id)),
         _TargetRow(title: l.calSyncNewLocal, selected: _target == _newLocalId, onTap: () => setState(() => _target = _newLocalId)),
@@ -250,7 +250,7 @@ class _CalendarSyncSheetBodyState extends State<CalendarSyncSheetBody> {
         TextButton(
           onPressed: _busy ? null : _remove,
           style: TextButton.styleFrom(foregroundColor: t.danger, minimumSize: const Size.fromHeight(48)),
-          child: Text(l.calSyncRemove, style: tx.labelLarge!.copyWith(color: t.danger, fontWeight: FontWeight.w700)),
+          child: Text(l.calSyncRemove, style: tx.labelLarge!.copyWith(color: t.danger, fontWeight: FontWeight.w400)),
         ),
     ]);
   }
@@ -283,7 +283,7 @@ class _TargetRow extends StatelessWidget {
           child: Row(children: [
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyLarge!.copyWith(fontSize: 16, color: t.ink, fontWeight: selected ? FontWeight.w700 : FontWeight.w500)),
+                Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyLarge!.copyWith(fontSize: 16, color: t.ink, fontWeight: selected ? FontWeight.w400 : FontWeight.w500)),
                 if (sub.isNotEmpty) Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
               ]),
             ),

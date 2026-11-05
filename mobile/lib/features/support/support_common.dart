@@ -67,7 +67,7 @@ class SupportStatusPill extends StatelessWidget {
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         Container(width: 6, height: 6, decoration: BoxDecoration(color: s.fg, shape: BoxShape.circle)),
         const SizedBox(width: 6),
-        Text(s.label, style: tx.labelMedium!.copyWith(color: s.fg, fontWeight: FontWeight.w700)),
+        Text(s.label, style: tx.labelMedium!.copyWith(color: s.fg, fontWeight: FontWeight.w400)),
       ]),
     );
   }
@@ -132,7 +132,7 @@ class SupportLabel extends StatelessWidget {
         header: true,
         child: Text(text,
             style:
-                form ? tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700) : tx.labelMedium!.copyWith(letterSpacing: ar ? 0 : .6, color: t.mut)),
+                form ? tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400) : tx.labelMedium!.copyWith(letterSpacing: ar ? 0 : .6, color: t.mut)),
       ),
     );
   }
@@ -183,7 +183,7 @@ class SupportField extends StatelessWidget {
             ? Padding(
                 padding: const EdgeInsets.only(top: 2),
                 child: Text(ctx.l10n.profilyardFbCounter('$currentLength', '$maxLength'),
-                    style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+                    style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: t.mut)),
               )
             : const SizedBox.shrink(),
         decoration: soft
@@ -261,7 +261,7 @@ class SupportCategoryChips extends StatelessWidget {
                   padding: const EdgeInsetsDirectional.symmetric(horizontal: 12),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     if (e.key == value) ...[Icon(BuIcons.check, size: 15, color: t.onSoft), const SizedBox(width: 4)],
-                    Text(e.value, style: tx.labelMedium!.copyWith(color: e.key == value ? t.onSoft : t.ink, fontWeight: FontWeight.w800)),
+                    Text(e.value, style: tx.labelMedium!.copyWith(color: e.key == value ? t.onSoft : t.ink, fontWeight: FontWeight.w400)),
                   ]),
                 ),
               ),
@@ -330,7 +330,7 @@ class SupportStaffReply extends StatelessWidget {
         Row(children: [
           Icon(BuIcons.headset, size: 14, color: t.onSoft),
           const SizedBox(width: 6),
-          Text(context.l10n.supportStaff, style: tx.labelMedium!.copyWith(color: t.onSoft, fontWeight: FontWeight.w700)),
+          Text(context.l10n.supportStaff, style: tx.labelMedium!.copyWith(color: t.onSoft, fontWeight: FontWeight.w400)),
         ]),
         const SizedBox(height: 4),
         Text(text, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.onSoft)),
@@ -392,7 +392,7 @@ class SupportHeading extends StatelessWidget {
           alignment: AlignmentDirectional.centerStart,
           child: Text(up,
               maxLines: 1,
-              style: Theme.of(context).textTheme.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800, letterSpacing: lang == 'ar' ? 0 : .8)),
+              style: Theme.of(context).textTheme.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400, letterSpacing: lang == 'ar' ? 0 : .8)),
         ),
       ),
     );
@@ -427,7 +427,7 @@ class SupportEmptyCard extends StatelessWidget {
           const SizedBox(width: 16),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Semantics(header: true, child: Text(title, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.3))),
+              Semantics(header: true, child: Text(title, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400, height: 1.3))),
               const SizedBox(height: 2),
               Text(body, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.4)),
             ]),
@@ -458,7 +458,7 @@ class SupportDotPill extends StatelessWidget {
               child: Text(label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelMedium!.copyWith(color: fg, fontWeight: FontWeight.w700))),
+                  style: Theme.of(context).textTheme.labelMedium!.copyWith(color: fg, fontWeight: FontWeight.w400))),
         ]),
       );
 }
@@ -493,7 +493,7 @@ class SupportLoadError extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(title, style: tx.titleSmall!.copyWith(color: t.danger, fontWeight: FontWeight.w800)),
+              Text(title, style: tx.titleSmall!.copyWith(color: t.danger, fontWeight: FontWeight.w400)),
               const SizedBox(height: 2),
               Text(body, maxLines: 3, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.danger.withValues(alpha: .85), height: 1.35)),
             ]),
@@ -512,7 +512,7 @@ class SupportLoadError extends StatelessWidget {
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     Icon(BuIcons.refreshCw, size: 16, color: t.danger),
                     const SizedBox(width: 6),
-                    Text(retryLabel, style: tx.labelLarge!.copyWith(color: t.danger, fontWeight: FontWeight.w800)),
+                    Text(retryLabel, style: tx.labelLarge!.copyWith(color: t.danger, fontWeight: FontWeight.w400)),
                   ]),
                 ),
               ),

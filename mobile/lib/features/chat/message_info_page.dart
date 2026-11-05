@@ -192,7 +192,7 @@ class _MessageInfoPageState extends State<MessageInfoPage> {
                     style: Theme.of(context)
                         .textTheme
                         .titleMedium!
-                        .copyWith(fontWeight: FontWeight.w700)),
+                        .copyWith(fontWeight: FontWeight.w400)),
                 const SizedBox(height: 12),
                 Wrap(spacing: 8, runSpacing: 8, children: [
                   for (final rx
@@ -215,7 +215,7 @@ class _MessageInfoPageState extends State<MessageInfoPage> {
                                 .labelLarge!
                                 .copyWith(
                                     color: t.ink,
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w400,
                                     fontFeatures: const [
                                   FontFeature.tabularFigures()
                                 ])),
@@ -228,7 +228,7 @@ class _MessageInfoPageState extends State<MessageInfoPage> {
                   style: Theme.of(context)
                       .textTheme
                       .titleMedium!
-                      .copyWith(fontWeight: FontWeight.w700)),
+                      .copyWith(fontWeight: FontWeight.w400)),
               const SizedBox(height: 14),
               if (_data != null && _replies.isEmpty)
                 Padding(

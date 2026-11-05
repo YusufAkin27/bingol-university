@@ -62,7 +62,7 @@ class _Card extends StatelessWidget {
                     children: [
                       Semantics(
                         header: true,
-                        child: Text(l.verifyEmailBannerTitle, style: tx.titleMedium!.copyWith(color: t.onWarnSoft, fontWeight: FontWeight.w700)),
+                        child: Text(l.verifyEmailBannerTitle, style: tx.titleMedium!.copyWith(color: t.onWarnSoft, fontWeight: FontWeight.w400)),
                       ),
                       const SizedBox(height: 4),
                       Text(l.verifyEmailBannerBody, style: tx.bodyMedium!.copyWith(color: t.onWarnSoft, height: 1.4)),

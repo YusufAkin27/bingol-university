@@ -2252,7 +2252,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: tx.titleSmall!
-                    .copyWith(color: color, fontWeight: FontWeight.w700)),
+                    .copyWith(color: color, fontWeight: FontWeight.w400)),
           ),
           const SizedBox(width: 8),
           if (card)
@@ -2539,7 +2539,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: tx.titleMedium!.copyWith(
-                                    color: t.ink, fontWeight: FontWeight.w700)),
+                                    color: t.ink, fontWeight: FontWeight.w400)),
                             ValueListenableBuilder<bool>(
                               valueListenable: _typingNow,
                               builder: (c, typing, _) {
@@ -2655,7 +2655,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                        color: t.onSoft, fontWeight: FontWeight.w700)),
+                        color: t.onSoft, fontWeight: FontWeight.w400)),
                 const SizedBox(width: 6),
                 Icon(
                     _type == 'CLUB'
@@ -2783,7 +2783,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                     child: Text('${_matchPos + 1} / ${_matches.length}',
                         textDirection: TextDirection.ltr,
                         style: tx.labelMedium!.copyWith(
-                            color: t.onPr, fontWeight: FontWeight.w700)),
+                            color: t.onPr, fontWeight: FontWeight.w400)),
                   ),
                   const SizedBox(width: 4),
                   navButton(BuIcons.chevronUp, l.chatDetailPrevMatch,
@@ -2807,7 +2807,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                       padding: const EdgeInsets.symmetric(horizontal: 12)),
                   child: Text(l.chatDetailClose,
                       style: tx.labelLarge!
-                          .copyWith(color: t.prText, fontWeight: FontWeight.w700)),
+                          .copyWith(color: t.prText, fontWeight: FontWeight.w400)),
                 ),
               ]),
             ),
@@ -2835,7 +2835,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                               overflow: TextOverflow.ellipsis,
                               style: tx.labelLarge!.copyWith(
                                   color: t.onSoft,
-                                  fontWeight: FontWeight.w700)),
+                                  fontWeight: FontWeight.w400)),
                         ),
                       ]),
                     ),
@@ -3062,7 +3062,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               borderRadius: BorderRadius.circular(999)),
           child: Text(label,
               style: BuType.caption.copyWith(
-                  color: t.mut, fontSize: 12, fontWeight: FontWeight.w600)),
+                  color: t.mut, fontSize: 12, fontWeight: FontWeight.w400)),
         ),
       );
 
@@ -3234,7 +3234,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               minimumSize: const Size(48, 48), foregroundColor: t.prText),
           child: Text(context.l10n.chatDetailUnblock,
               style: tx.labelLarge!
-                  .copyWith(color: t.prText, fontWeight: FontWeight.w700)),
+                  .copyWith(color: t.prText, fontWeight: FontWeight.w400)),
         ),
       ]),
     );
@@ -3335,7 +3335,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: tx.labelMedium!.copyWith(
-                                  color: t.ink, fontWeight: FontWeight.w600)),
+                                  color: t.ink, fontWeight: FontWeight.w400)),
                         ),
                       ]),
                       const SizedBox(height: 2),
@@ -3398,7 +3398,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               child: Text('$len/$_maxLen',
                   style: tx.labelSmall!.copyWith(
                       color: len > _maxLen ? t.danger : t.mut,
-                      fontWeight: FontWeight.w700)),
+                      fontWeight: FontWeight.w400)),
             ),
           ),
         Padding(
@@ -3548,7 +3548,7 @@ class _ChatConfirmDialog extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: tx.titleSmall!.copyWith(
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w400,
                           color: primary ? t.onPr : t.ink)),
                 ),
               ]),
@@ -3583,7 +3583,7 @@ class _ChatConfirmDialog extends StatelessWidget {
             Expanded(
               child: Text(title,
                   style: tx.titleLarge!
-                      .copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                      .copyWith(color: t.ink, fontWeight: FontWeight.w400)),
             ),
           ]),
           const SizedBox(height: 14),

@@ -315,7 +315,7 @@ class _TopBar extends StatelessWidget {
                 child: Text(context.l10n.postViewPost,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(color: t.ink, fontSize: 18, fontWeight: FontWeight.w600)),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(color: t.ink, fontSize: 18, fontWeight: FontWeight.w400)),
               ),
             ),
           ]),
@@ -342,7 +342,7 @@ class _NotFound extends StatelessWidget {
       child: Align(
         alignment: Alignment.topCenter,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(title, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: t.ink, fontSize: 18, fontWeight: FontWeight.w600)),
+          Text(title, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: t.ink, fontSize: 18, fontWeight: FontWeight.w400)),
           if (detail != null) ...[
             BuGap.h6,
             Text(detail, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: t.mut, fontSize: 15)),

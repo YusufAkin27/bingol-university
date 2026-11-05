@@ -66,7 +66,7 @@ class ClubBtn extends StatelessWidget {
                   child: Text(label,
                       maxLines: 2,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.labelLarge!.copyWith(color: fg, fontWeight: FontWeight.w700)),
+                      style: Theme.of(context).textTheme.labelLarge!.copyWith(color: fg, fontWeight: FontWeight.w400)),
                 ),
               ],
             ),
@@ -158,7 +158,7 @@ class ClubSheetRow extends StatelessWidget {
                     Text(title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: tx.titleSmall!.copyWith(color: danger ? t.prText : t.ink, fontWeight: FontWeight.w700)),
+                        style: tx.titleSmall!.copyWith(color: danger ? t.prText : t.ink, fontWeight: FontWeight.w400)),
                     if (subtitle != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 2),
@@ -229,7 +229,7 @@ class ClubDialogCard extends StatelessWidget {
         msg = Text.rich(
           TextSpan(children: [
             TextSpan(text: message!.substring(0, at)),
-            TextSpan(text: n, style: msgStyle.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+            TextSpan(text: n, style: msgStyle.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
             TextSpan(text: message!.substring(at + n.length)),
           ]),
           style: msgStyle,
@@ -275,13 +275,13 @@ class ClubDialogCard extends StatelessWidget {
                 children: [
                   iconW,
                   const SizedBox(width: 14),
-                  Expanded(child: Semantics(header: true, child: Text(title, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800)))),
+                  Expanded(child: Semantics(header: true, child: Text(title, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)))),
                 ],
               )
             else ...[
               iconW,
               const SizedBox(height: 16),
-              Semantics(header: true, child: Text(title, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800))),
+              Semantics(header: true, child: Text(title, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400))),
             ],
             if (msg != null) ...[SizedBox(height: leading ? 10 : 8), msg],
             if (content != null) ...[const SizedBox(height: 16), content!],
@@ -349,7 +349,7 @@ Future<String?> showClubDropdown(BuildContext anchor, List<ClubMenuEntry> entrie
                 child: Text(e.label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: tx.titleSmall!.copyWith(color: e.danger ? t.prText : t.ink, fontWeight: FontWeight.w600)),
+                    style: tx.titleSmall!.copyWith(color: e.danger ? t.prText : t.ink, fontWeight: FontWeight.w400)),
               ),
               if (e.count > 0) ...[const SizedBox(width: 10), BuCountBadge(e.count)],
             ],
@@ -400,7 +400,7 @@ class ClubLockCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 14),
-            Text(title, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+            Text(title, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
             const SizedBox(height: 6),
             Text(body, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
           ],
@@ -459,13 +459,13 @@ class ClubNoteCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Expanded(child: Text(title, style: tx.titleSmall!.copyWith(color: fg, fontWeight: FontWeight.w800))),
+                    Expanded(child: Text(title, style: tx.titleSmall!.copyWith(color: fg, fontWeight: FontWeight.w400))),
                     if (badge != null) ...[
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                         decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bPill),
-                        child: Text(badge!, style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w800)),
+                        child: Text(badge!, style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
                       ),
                     ],
                   ],

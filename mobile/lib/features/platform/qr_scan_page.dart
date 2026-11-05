@@ -227,7 +227,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
                             textAlign: TextAlign.center,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: tx.titleMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700)),
+                            style: tx.titleMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w400)),
                       ),
                       if (_cam == true)
                         _TorchPill(label: l.qrTorch, on: _torch, onTap: _toggleTorch)
@@ -352,7 +352,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
                       const SizedBox(width: 8),
                       Flexible(
                         child: Text(l.sistemuiQrHint,
-                            textAlign: TextAlign.center, style: tx.labelMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w600)),
+                            textAlign: TextAlign.center, style: tx.labelMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w400)),
                       ),
                     ],
                   ),
@@ -421,7 +421,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
             Semantics(
               header: true,
               child: Text(l.p01PermDeniedTitle(cameraTitle),
-                  textAlign: TextAlign.center, style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                  textAlign: TextAlign.center, style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
             ),
             const SizedBox(height: 8),
             Padding(
@@ -456,7 +456,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
               children: [
                 ExcludeSemantics(child: Icon(BuIcons.circleAlertFilled, size: 22, color: t.onSoft)),
                 const SizedBox(width: 10),
-                Expanded(child: Text(_error!, style: tx.bodyMedium!.copyWith(color: t.onSoft, fontWeight: FontWeight.w600))),
+                Expanded(child: Text(_error!, style: tx.bodyMedium!.copyWith(color: t.onSoft, fontWeight: FontWeight.w400))),
               ],
             ),
           ),
@@ -473,7 +473,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
               children: [
                 ExcludeSemantics(child: Icon(BuIcons.circleCheckFilled, size: 24, color: t.ok)),
                 const SizedBox(width: 10),
-                Expanded(child: Text(context.l10n.p01QrAttended, style: tx.bodyMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w600))),
+                Expanded(child: Text(context.l10n.p01QrAttended, style: tx.bodyMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400))),
               ],
             ),
           ),
@@ -496,7 +496,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
         ],
         Padding(
           padding: const EdgeInsetsDirectional.only(start: 2, bottom: 8),
-          child: Text(l.qrManualLabel, style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+          child: Text(l.qrManualLabel, style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
         ),
         TextField(
           controller: _manual,
@@ -504,7 +504,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
           textInputAction: TextInputAction.done,
           textCapitalization: TextCapitalization.characters,
           onSubmitted: _finish,
-          style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700, letterSpacing: 2),
+          style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400, letterSpacing: 2),
           decoration: InputDecoration(
             hintText: l.sistemuiQrManualHint,
             hintStyle: tx.titleMedium!.copyWith(color: t.mut.withValues(alpha: .7), fontWeight: FontWeight.w500, letterSpacing: .5),
@@ -612,7 +612,7 @@ class _TorchPill extends StatelessWidget {
                 children: [
                   Icon(on ? BuIcons.flashlightOff : BuIcons.flashlight, size: 16, color: t.onMedia),
                   const SizedBox(width: 6),
-                  Text(label, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700)),
+                  Text(label, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w400)),
                 ],
               ),
             ),

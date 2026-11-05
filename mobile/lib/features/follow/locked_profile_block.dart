@@ -36,7 +36,7 @@ class LockedProfileBlock extends StatelessWidget {
               ),
               const SizedBox(height: 14),
               Text(l.frqLockedTitle,
-                  textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+                  textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
               const SizedBox(height: 6),
               Text(body, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
             ]),

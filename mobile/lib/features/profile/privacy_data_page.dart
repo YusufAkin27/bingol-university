@@ -91,7 +91,7 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
         const SizedBox(width: 12),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Text(l.profil2SaveFailed, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.bg, fontWeight: FontWeight.w700)),
+            Text(l.profil2SaveFailed, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.bg, fontWeight: FontWeight.w400)),
             Text(l.p19SaveFailedSub, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.bg.withValues(alpha: .75))),
           ]),
         ),

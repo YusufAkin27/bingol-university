@@ -43,7 +43,7 @@ final class NotificationViewController: UIViewController, UNNotificationContentE
 
   private func text(_ value: String, size: CGFloat, bold: Bool = false, color: UIColor? = nil) -> UILabel {
     let label = UILabel(); label.text = value; label.numberOfLines = 0
-    label.font = bold ? .boldSystemFont(ofSize: size) : .systemFont(ofSize: size)
+    label.font = bold ? .systemFont(ofSize: size) : .systemFont(ofSize: size)
     label.textColor = color ?? navy; return label
   }
 
@@ -62,7 +62,7 @@ final class NotificationViewController: UIViewController, UNNotificationContentE
 
   /// Yuvarlak kose cip (opsiyonel SF Symbol). Sigmazsa metin kisalir.
   private func chip(_ value: String, symbol: String? = nil, tint: UIColor, background: UIColor) -> UIView {
-    let label = UILabel(); label.text = value; label.font = .boldSystemFont(ofSize: 11); label.textColor = tint
+    let label = UILabel(); label.text = value; label.font = .systemFont(ofSize: 11); label.textColor = tint
     label.numberOfLines = 1; label.lineBreakMode = .byTruncatingTail
     label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
     let inner = UIStackView(); inner.axis = .horizontal; inner.spacing = 4; inner.alignment = .center
@@ -177,7 +177,7 @@ final class NotificationViewController: UIViewController, UNNotificationContentE
     badge.layer.borderWidth = 2; badge.layer.borderColor = paper.resolvedColor(with: traitCollection).cgColor
     fixedSize(badge, 20, 20)
     if let badgeText = badgeText {
-      let label = UILabel(); label.text = badgeText; label.font = .boldSystemFont(ofSize: 10); label.textColor = .white
+      let label = UILabel(); label.text = badgeText; label.font = .systemFont(ofSize: 10); label.textColor = .white
       label.textAlignment = .center; label.translatesAutoresizingMaskIntoConstraints = false
       badge.addSubview(label)
       NSLayoutConstraint.activate([label.centerXAnchor.constraint(equalTo: badge.centerXAnchor), label.centerYAnchor.constraint(equalTo: badge.centerYAnchor)])
@@ -296,7 +296,7 @@ final class NotificationViewController: UIViewController, UNNotificationContentE
 
     // 1) Ust satir: BU logosu, "BU Kampüs", kaynak, (onemli), zaman
     let header = UIStackView(); header.axis = .horizontal; header.alignment = .center; header.spacing = 6
-    let logo = UILabel(); logo.text = "BU"; logo.font = .boldSystemFont(ofSize: 9); logo.textColor = .white
+    let logo = UILabel(); logo.text = "BU"; logo.font = .systemFont(ofSize: 9); logo.textColor = .white
     logo.textAlignment = .center; logo.backgroundColor = brand; logo.layer.cornerRadius = 11; logo.clipsToBounds = true
     fixedSize(logo, 22, 22)
     header.addArrangedSubview(logo)
@@ -305,7 +305,7 @@ final class NotificationViewController: UIViewController, UNNotificationContentE
       header.addArrangedSubview(text("• " + (badgeText ?? label("ÖNEMLİ", "IMPORTANT", "مهم")), size: 11, bold: true, color: brand))
     } else if let source = source {
       let sourceLabel = text("· " + source, size: 12, color: critical ? brand : .secondaryLabel)
-      if critical { sourceLabel.font = .boldSystemFont(ofSize: 12) }
+      if critical { sourceLabel.font = .systemFont(ofSize: 12) }
       sourceLabel.numberOfLines = 1; sourceLabel.lineBreakMode = .byTruncatingTail
       sourceLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
       header.addArrangedSubview(sourceLabel)
@@ -350,7 +350,7 @@ final class NotificationViewController: UIViewController, UNNotificationContentE
     if let newDate = parseDate(value("newStartsAt", in: data)), let oldDate = parseDate(value("oldStartsAt", in: data)) {
       let line = NSMutableAttributedString(string: label("Yeni saat: ", "New time: ", "الوقت الجديد: "),
         attributes: [.font: UIFont.systemFont(ofSize: 13), .foregroundColor: UIColor.secondaryLabel])
-      line.append(NSAttributedString(string: clock(newDate), attributes: [.font: UIFont.boldSystemFont(ofSize: 13), .foregroundColor: navy]))
+      line.append(NSAttributedString(string: clock(newDate), attributes: [.font: UIFont.systemFont(ofSize: 13), .foregroundColor: navy]))
       line.append(NSAttributedString(string: "  (" + label("Eski saat: ", "Old time: ", "الوقت السابق: ") + clock(oldDate) + ")",
         attributes: [.font: UIFont.systemFont(ofSize: 12), .foregroundColor: UIColor.secondaryLabel,
                      .strikethroughStyle: NSUnderlineStyle.single.rawValue]))

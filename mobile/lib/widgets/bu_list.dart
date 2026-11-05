@@ -73,7 +73,7 @@ class BuCountBadge extends StatelessWidget {
                   style: Theme.of(context)
                       .textTheme
                       .labelSmall!
-                      .copyWith(color: muted ? t.bg : t.onPr, fontWeight: FontWeight.w700)),
+                      .copyWith(color: muted ? t.bg : t.onPr, fontWeight: FontWeight.w400)),
             ),
           ),
         ),
@@ -145,7 +145,7 @@ class BuListTile extends StatelessWidget {
                       Text(title,
                           maxLines: maxTitleLines,
                           overflow: TextOverflow.ellipsis,
-                          style: tx.bodyLarge!.copyWith(color: titleColor, fontWeight: FontWeight.w600)),
+                          style: tx.bodyLarge!.copyWith(color: titleColor, fontWeight: FontWeight.w400)),
                       if (subtitle != null) ...[
                         const SizedBox(height: 2),
                         Text(subtitle!, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(color: t.mut)),
@@ -247,7 +247,7 @@ class BuSettingsTile extends StatelessWidget {
                   Text(title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: tx.bodyLarge!.copyWith(color: danger ? t.danger : t.ink, fontWeight: FontWeight.w600)),
+                      style: tx.bodyLarge!.copyWith(color: danger ? t.danger : t.ink, fontWeight: FontWeight.w400)),
                   if (subtitle != null) ...[
                     const SizedBox(height: 2),
                     Text(subtitle!, maxLines: 3, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),

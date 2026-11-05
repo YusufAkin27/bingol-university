@@ -290,7 +290,7 @@ class BuOfflineBanner extends StatelessWidget {
                         Text(message ?? l.cevrimdisiInternetYok,
                             style: tx.labelLarge!.copyWith(
                                 color: t.onWarnSoft,
-                                fontWeight: FontWeight.w700)),
+                                fontWeight: FontWeight.w400)),
                         if (showCachedHint && message == null)
                           Text(l.cevrimdisiKayitliVeri,
                               style:

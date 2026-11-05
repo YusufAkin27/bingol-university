@@ -94,7 +94,7 @@ class _AkadHeader extends StatelessWidget {
                       child: Semantics(
                         header: true,
                         child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                          Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
                           if (subtitle != null) Text(subtitle!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
                         ]),
                       ),
@@ -230,7 +230,7 @@ Future<bool> confirmDialog(BuildContext context, {required String title, require
               ),
             ),
             const SizedBox(height: 14),
-            Semantics(header: true, child: Text(title, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
+            Semantics(header: true, child: Text(title, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
             const SizedBox(height: 6),
             Text(text, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
             const SizedBox(height: 20),

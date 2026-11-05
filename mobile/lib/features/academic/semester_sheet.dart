@@ -94,7 +94,7 @@ class _SemesterSheetState extends State<SemesterSheet> {
           Expanded(
             child: Semantics(
               header: true,
-              child: Text(l.akademik2SemesterTitle, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+              child: Text(l.akademik2SemesterTitle, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
             ),
           ),
           if (!_loading && _error == null && _items.isNotEmpty) AkadPill(l.p17SemesterCount(_items.length.toString()), bg: t.sf2, fg: t.mut),
@@ -109,7 +109,7 @@ class _SemesterSheetState extends State<SemesterSheet> {
           TextButton(
               style: TextButton.styleFrom(foregroundColor: t.ink, minimumSize: const Size(48, 48)),
               onPressed: () => Navigator.pop(context, _changed ? const SemesterAction(changed: true) : null),
-              child: Text(l.acadTimeClose, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
+              child: Text(l.acadTimeClose, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
         ]),
       ),
     ]);
@@ -173,7 +173,7 @@ class _SemesterSheetState extends State<SemesterSheet> {
         minimumSize: const Size(0, 48),
         padding: const EdgeInsets.symmetric(horizontal: 10),
         foregroundColor: color,
-        textStyle: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700),
+        textStyle: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w400),
       ),
       onPressed: onTap,
       icon: Icon(icon, size: 16, color: color),
@@ -218,7 +218,7 @@ class _SemesterSheetState extends State<SemesterSheet> {
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
-                      Text(s.name, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+                      Text(s.name, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
                       if (s.current) AkadPill(l.acadTimeCurrent, bg: t.tint(1).bg, fg: t.tint(1).fg, dot: true),
                     ]),
                     if (range != null) Padding(padding: const EdgeInsets.only(top: 2), child: Text(range, style: tx.bodySmall!.copyWith(color: t.mut))),
@@ -269,7 +269,7 @@ class _SemesterSheetState extends State<SemesterSheet> {
               child: Icon(BuIcons.graduationCap, size: 16, color: t.onSoft),
             ),
             const SizedBox(width: 12),
-            Expanded(child: Text(l.acadTimeOfficial(name), style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
+            Expanded(child: Text(l.acadTimeOfficial(name), style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
             const SizedBox(width: 8),
             _radio(t, false),
           ]),
@@ -341,7 +341,7 @@ class _NewSemesterDialogState extends State<_NewSemesterDialog> {
           Row(children: [
             AkadIconTile(icon: BuIcons.calendarDays, bg: t.soft, fg: t.pr, size: 44, radius: 14, iconSize: 20),
             const SizedBox(width: 12),
-            Expanded(child: Semantics(header: true, child: Text(l.acadTimeNewSemester, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)))),
+            Expanded(child: Semantics(header: true, child: Text(l.acadTimeNewSemester, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink)))),
           ]),
           const SizedBox(height: 18),
           AkadTextField(

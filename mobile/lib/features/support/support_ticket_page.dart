@@ -195,7 +195,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
                   Flexible(
                     child: Text.rich(
                       TextSpan(style: tx.bodySmall!.copyWith(color: t.mut, fontSize: 13, height: 1.3), children: [
-                        TextSpan(text: style.label, style: TextStyle(color: color, fontWeight: FontWeight.w600)),
+                        TextSpan(text: style.label, style: TextStyle(color: color, fontWeight: FontWeight.w400)),
                         TextSpan(text: ' · ${l.p68TicketNo('$no')}'),
                       ]),
                       maxLines: 1,

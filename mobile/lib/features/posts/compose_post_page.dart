@@ -55,7 +55,7 @@ Future<Post?> openComposePost(BuildContext context, Session session, {ComposeKin
                     Icon(icon, size: 22, color: t.ink),
                     const SizedBox(width: 14),
                     Expanded(
-                        child: Text(label, style: Theme.of(ctx).textTheme.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w600))),
+                        child: Text(label, style: Theme.of(ctx).textTheme.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w400))),
                   ]),
                 ),
               ),
@@ -322,7 +322,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
       key: const ValueKey('composeCoverStrip'),
       padding: const EdgeInsets.only(top: 14),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(context.l10n.kesCoverTitle, style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+        Text(context.l10n.kesCoverTitle, style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
         Text(context.l10n.kesCoverHint, style: tt.bodySmall?.copyWith(color: t.mut)),
         const SizedBox(height: 8),
         SizedBox(
@@ -511,7 +511,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
           Expanded(
             child: Text(context.l10n.postComposeNewPost,
                 textAlign: TextAlign.center,
-                style: tt.titleMedium?.copyWith(color: t.ink, fontSize: 17, fontWeight: FontWeight.w600),
+                style: tt.titleMedium?.copyWith(color: t.ink, fontSize: 17, fontWeight: FontWeight.w400),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis),
           ),
@@ -549,7 +549,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
                                       )
                                     : Text(context.l10n.postComposeShare,
                                         key: const ValueKey('share'),
-                                        style: tt.labelLarge?.copyWith(color: t.onPr, fontSize: 14, fontWeight: FontWeight.w600)),
+                                        style: tt.labelLarge?.copyWith(color: t.onPr, fontSize: 14, fontWeight: FontWeight.w400)),
                               ),
                             ),
                           ),
@@ -576,7 +576,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(label, textAlign: TextAlign.center, style: tt.labelLarge?.copyWith(color: t.onMedia, fontWeight: FontWeight.w600)),
+            Text(label, textAlign: TextAlign.center, style: tt.labelLarge?.copyWith(color: t.onMedia, fontWeight: FontWeight.w400)),
             const SizedBox(height: 12),
             ClipRRect(
               borderRadius: BorderRadius.circular(3),
@@ -730,7 +730,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
             child: Row(mainAxisSize: MainAxisSize.min, children: [
               Icon(icon, size: 16, color: t.onMedia),
               const SizedBox(width: 6),
-              Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: t.onMedia, fontWeight: FontWeight.w600))),
+              Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: t.onMedia, fontWeight: FontWeight.w400))),
             ]),
           ),
         ),
@@ -791,7 +791,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
           style: (tt.labelSmall ?? const TextStyle()).copyWith(
               color: over ? t.danger : (_words >= kPostMaxWords ? t.ink : t.mut),
               fontSize: 12,
-              fontWeight: over || _words >= kPostMaxWords ? FontWeight.w700 : FontWeight.w400,
+              fontWeight: over || _words >= kPostMaxWords ? FontWeight.w400 : FontWeight.w400,
               fontFeatures: const [FontFeature.tabularFigures()]),
           child: Text(context.l10n.gonderiWordCount(_words.toString(), kPostMaxWords.toString()), key: const ValueKey('composeCounter')),
         ),
@@ -815,7 +815,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
       if (!_textOk)
         row(BuIcons.circleAlert,
             Text(l.gonderiWordLimit(kPostMaxWords.toString()),
-                key: const ValueKey('composeLimitWarn'), style: tt.labelLarge?.copyWith(color: t.danger, fontWeight: FontWeight.w700)),
+                key: const ValueKey('composeLimitWarn'), style: tt.labelLarge?.copyWith(color: t.danger, fontWeight: FontWeight.w400)),
             color: t.danger),
       if (_err == _Err.profanity)
         Padding(
@@ -830,7 +830,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(l.p04ContentWarning, style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                    Text(l.p04ContentWarning, style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                     const SizedBox(height: 2),
                     Text(_errText, style: tt.bodyMedium?.copyWith(color: t.ink)),
                   ]),
@@ -844,7 +844,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
             BuIcons.hourglass,
             Row(children: [
               Expanded(child: Text(_errText, key: const ValueKey('composeError'), style: tt.bodyMedium?.copyWith(color: t.ink))),
-              if (_wait > 0) Text('${_wait}s', key: const ValueKey('composeWait'), style: tt.labelLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+              if (_wait > 0) Text('${_wait}s', key: const ValueKey('composeWait'), style: tt.labelLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
             ])),
       if (_err == _Err.network)
         row(
@@ -860,7 +860,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
                   child: Center(
                     widthFactor: 1,
                     child: Text(l.commonRetryShort,
-                        style: tt.labelLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w700, decoration: TextDecoration.underline)),
+                        style: tt.labelLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w400, decoration: TextDecoration.underline)),
                   ),
                 ),
               ),
@@ -979,7 +979,7 @@ class _DiscardDialog extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 28, 24, 12),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(l.gonderiDiscardTitle, textAlign: TextAlign.center, style: tt.titleLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+          Text(l.gonderiDiscardTitle, textAlign: TextAlign.center, style: tt.titleLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
           const SizedBox(height: 10),
           Text(l.gonderiDiscardBody, textAlign: TextAlign.center, style: tt.bodyMedium?.copyWith(color: t.mut)),
           const SizedBox(height: 24),
@@ -991,7 +991,7 @@ class _DiscardDialog extends StatelessWidget {
             key: const ValueKey('composeDiscard'),
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(minimumSize: const Size.fromHeight(48), foregroundColor: t.prText),
-            child: Text(l.gonderiDiscardYes, style: const TextStyle(fontWeight: FontWeight.w700)),
+            child: Text(l.gonderiDiscardYes, style: const TextStyle(fontWeight: FontWeight.w400)),
           ),
         ]),
       ),

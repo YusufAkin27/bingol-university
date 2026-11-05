@@ -665,7 +665,7 @@ class _ChatTabState extends State<ChatTab> {
                     Text(_archived ? context.l10n.chatMiscUnarchiveAction : context.l10n.chatMiscArchiveAction,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
+                        style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
                   ],
                 ),
               ),
@@ -931,14 +931,14 @@ class _ConversationRow extends StatelessWidget {
                                         maxLines: narrow ? 2 : 1,
                                         overflow: TextOverflow.ellipsis,
                                         semanticsLabel: narrow && tag != null ? '$title, $tag' : null,
-                                        style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: hot ? FontWeight.w700 : FontWeight.w600)),
+                                        style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: hot ? FontWeight.w400 : FontWeight.w400)),
                                   ),
                                   if (showTag) ...[
                                     const SizedBox(width: 6),
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                       decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bPill), // nötr yüzey tonu (renk vurgusu yok)
-                                      child: Text(tag, maxLines: 1, style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
+                                      child: Text(tag, maxLines: 1, style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
                                     ),
                                   ],
                                 ]),
@@ -951,7 +951,7 @@ class _ConversationRow extends StatelessWidget {
                               Text(_stamp(context, when),
                                   style: tx.labelMedium!.copyWith(
                                       color: hot ? t.prText : t.mut, // okunmamışta saat marka rengi (Stitch v3)
-                                      fontWeight: hot ? FontWeight.w600 : FontWeight.w400,
+                                      fontWeight: hot ? FontWeight.w400 : FontWeight.w400,
                                       fontFeatures: const [FontFeature.tabularFigures()])),
                             ],
                           ),
@@ -1002,7 +1002,7 @@ class _ConversationRow extends StatelessWidget {
                                   decoration: BoxDecoration(color: muted ? t.sf2 : t.pr, borderRadius: BorderRadius.circular(10)),
                                   child: Text(unread > 99 ? '99+' : '$unread',
                                       style: tx.labelSmall!.copyWith(
-                                          fontWeight: FontWeight.w700,
+                                          fontWeight: FontWeight.w400,
                                           color: muted ? t.mut : t.onPr,
                                           fontFeatures: const [FontFeature.tabularFigures()])),
                                 ),

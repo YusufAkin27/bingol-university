@@ -243,7 +243,7 @@ class _FollowListPageState extends State<FollowListPage> {
                 child: Text(name.isEmpty ? (widget.followers ? l.followersTitle : l.followingTitle) : name,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: BuType.display.copyWith(fontSize: 20, fontWeight: FontWeight.w700, height: 1.2, color: context.bu.ink)),
+                    style: BuType.display.copyWith(fontSize: 20, fontWeight: FontWeight.w400, height: 1.2, color: context.bu.ink)),
               ),
             ),
           ]),

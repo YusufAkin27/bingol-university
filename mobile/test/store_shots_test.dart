@@ -407,7 +407,7 @@ class _StatusBar extends StatelessWidget {
             Padding(
               padding: _ios ? const EdgeInsets.fromLTRB(34, 18, 28, 0) : const EdgeInsets.fromLTRB(22, 6, 18, 0),
               child: Row(children: [
-                Text('9:41', style: TextStyle(fontFamily: 'Inter', fontSize: _ios ? 15 : 12.5, fontWeight: FontWeight.w700, color: color)),
+                Text('9:41', style: TextStyle(fontFamily: 'Inter', fontSize: _ios ? 15 : 12.5, fontWeight: FontWeight.w400, color: color)),
                 const Spacer(),
                 Icon(LucideIcons.signal, size: 13, color: color),
                 const SizedBox(width: 5),
@@ -458,7 +458,7 @@ Widget _canvasWidget(Widget app, String title, bool dark, GlobalKey boundary) {
                         style: const TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 29,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w400,
                             color: Colors.white,
                             decoration: TextDecoration.none)),
                   ),

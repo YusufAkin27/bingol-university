@@ -86,7 +86,7 @@ class AuthResendRowState extends State<AuthResendRow> {
                 Flexible(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 13),
-                    child: Text(widget.waitingLabel(_left), style: tx.labelLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
+                    child: Text(widget.waitingLabel(_left), style: tx.labelLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
                   ),
                 ),
               ],

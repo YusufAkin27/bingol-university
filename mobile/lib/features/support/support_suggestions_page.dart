@@ -153,7 +153,7 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
                   child: TextButton(
                     style: TextButton.styleFrom(foregroundColor: t.mut, minimumSize: const Size(48, 48)),
                     onPressed: _more ? null : _load,
-                    child: Text(l.supportMore, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
+                    child: Text(l.supportMore, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
                   ),
                 ),
               ),
@@ -165,7 +165,7 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
                 child: TextButton(
                   style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 16)),
                   onPressed: _add,
-                  child: Text(l.p68SugSend, style: Theme.of(context).textTheme.titleMedium!.copyWith(color: t.prText, fontWeight: FontWeight.w700)),
+                  child: Text(l.p68SugSend, style: Theme.of(context).textTheme.titleMedium!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
                 ),
               ),
             ),
@@ -258,7 +258,7 @@ class _SuggestionTile extends StatelessWidget {
                 Text('${item['subject'] ?? ''}',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: tx.titleMedium!.copyWith(color: t.ink, fontSize: 18, fontWeight: FontWeight.w600, height: 1.3)),
+                    style: tx.titleMedium!.copyWith(color: t.ink, fontSize: 18, fontWeight: FontWeight.w400, height: 1.3)),
                 const SizedBox(height: 4),
                 Text('${item['message'] ?? ''}', maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
                 const SizedBox(height: 7),
@@ -325,7 +325,7 @@ class VotePill extends StatelessWidget {
                       AnimatedSwitcher(
                         duration: d,
                         transitionBuilder: (c, a) => FadeTransition(opacity: a, child: ScaleTransition(scale: Tween(begin: .8, end: 1.0).animate(a), child: c)),
-                        child: Text('$count', key: ValueKey(count), style: tx.titleSmall!.copyWith(color: fg, fontSize: 15, fontWeight: FontWeight.w700)),
+                        child: Text('$count', key: ValueKey(count), style: tx.titleSmall!.copyWith(color: fg, fontSize: 15, fontWeight: FontWeight.w400)),
                       ),
                     ],
                   ),
@@ -386,7 +386,7 @@ class _SuggestionDetailPageState extends State<SuggestionDetailPage> {
                   const SizedBox(height: 14),
                   Semantics(
                       header: true,
-                      child: Text('${it['subject'] ?? ''}', style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.3))),
+                      child: Text('${it['subject'] ?? ''}', style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400, height: 1.3))),
                   const SizedBox(height: 12),
                   Text('${it['message'] ?? ''}', style: tx.bodyLarge!.copyWith(color: t.ink, height: 1.55)),
                   if (resp != null && resp.isNotEmpty) ...[const SizedBox(height: 14), SupportStaffReply(text: resp)],
@@ -415,9 +415,9 @@ class _SuggestionDetailPageState extends State<SuggestionDetailPage> {
                             const SizedBox(width: 16),
                             Expanded(
                               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                Text('$count', style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+                                Text('$count', style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                                 Text(voted ? l.p13SugVoted : l.p13SugVoteHint,
-                                    style: tx.labelMedium!.copyWith(color: voted ? t.prText : t.mut, fontWeight: FontWeight.w700)),
+                                    style: tx.labelMedium!.copyWith(color: voted ? t.prText : t.mut, fontWeight: FontWeight.w400)),
                               ]),
                             ),
                             if (voted) Icon(BuIcons.circleCheck, size: 24, color: t.pr),

@@ -182,7 +182,7 @@ class _GateText extends StatelessWidget {
             header: true,
             child: Text(title,
                 textAlign: TextAlign.center,
-                style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
           ),
           const SizedBox(height: 8),
           ConstrainedBox(
@@ -244,7 +244,7 @@ class _GateLink extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16),
       ),
       icon: Icon(icon, size: 16),
-      label: Text(label, textAlign: TextAlign.center, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
+      label: Text(label, textAlign: TextAlign.center, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
     );
   }
 }
@@ -295,7 +295,7 @@ class UpdateRequiredScreen extends StatelessWidget {
                   child: Text(l.updateRequiredFromStore,
                       key: const ValueKey('update-from-store'),
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                      style: Theme.of(context).textTheme.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                 ),
               ],
               if (current != null) ...[
@@ -469,7 +469,7 @@ class TopStrip extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: tx.labelMedium!
-                    .copyWith(color: danger ? t.ink : t.mut, fontWeight: danger ? FontWeight.w700 : FontWeight.w500, decoration: TextDecoration.none)),
+                    .copyWith(color: danger ? t.ink : t.mut, fontWeight: danger ? FontWeight.w400 : FontWeight.w500, decoration: TextDecoration.none)),
           ),
           if (trailingText != null) ...[
             const SizedBox(width: 8),
@@ -496,7 +496,7 @@ class TopStrip extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: Text(actionLabel!,
-                        style: tx.labelMedium!.copyWith(color: t.prText, fontWeight: FontWeight.w700, decoration: TextDecoration.none)),
+                        style: tx.labelMedium!.copyWith(color: t.prText, fontWeight: FontWeight.w400, decoration: TextDecoration.none)),
                   ),
                 ),
               ),
@@ -571,7 +571,7 @@ class GateNoticeStrip extends StatelessWidget {
             child: Text(text,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelMedium!.copyWith(color: fg, fontWeight: FontWeight.w700, height: 1.3, decoration: TextDecoration.none)),
+                style: Theme.of(context).textTheme.labelMedium!.copyWith(color: fg, fontWeight: FontWeight.w400, height: 1.3, decoration: TextDecoration.none)),
           ),
           if (onClose != null)
             IconButton(
@@ -637,7 +637,7 @@ class UpdateNotice extends StatelessWidget {
                     latest == null ? l.updateAvailable : l.updateAvailableVersion(latest!),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700),
+                    style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400),
                   ),
                 ],
               ),

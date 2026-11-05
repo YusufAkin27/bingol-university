@@ -167,7 +167,7 @@ class _AuthorLabel extends StatelessWidget {
             child: Text(name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(color: t.onMedia, fontSize: 13, fontWeight: FontWeight.w600, height: 1.25)),
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(color: t.onMedia, fontSize: 13, fontWeight: FontWeight.w400, height: 1.25)),
           ),
         ]),
       ),

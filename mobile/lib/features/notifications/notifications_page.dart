@@ -458,7 +458,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   style: BuType.caption.copyWith(
                       fontSize: 12,
                       height: 1.3,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w400,
                       color: t.danger)),
             ),
             const SizedBox(width: 8),
@@ -477,7 +477,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                         style: BuType.caption.copyWith(
                             fontSize: 14,
                             height: 1.3,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w400,
                             color: t.prText)),
                   ),
                 ),
@@ -551,7 +551,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                       style: BuType.caption.copyWith(
                           fontSize: 13,
                           height: 1.3,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w400,
                           letterSpacing: .6,
                           color: t.mut)),
                 ),
@@ -696,7 +696,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         padding: const EdgeInsetsDirectional.only(end: 24),
         child: Text(l.bildirimDelete,
             style: BuType.caption.copyWith(
-                fontSize: 14, fontWeight: FontWeight.w600, color: t.onMedia)),
+                fontSize: 14, fontWeight: FontWeight.w400, color: t.onMedia)),
       ),
       child: NotifRow(
         title: title,
@@ -816,7 +816,7 @@ class _ErrorCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(l.commonRetry,
                 style: BuType.caption.copyWith(
-                    fontSize: 14, fontWeight: FontWeight.w600, color: t.prText)),
+                    fontSize: 14, fontWeight: FontWeight.w400, color: t.prText)),
           ),
         ),
       ]),

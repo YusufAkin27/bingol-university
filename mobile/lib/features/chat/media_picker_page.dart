@@ -405,7 +405,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: Text(has ? l.p67PickerSend(_picked.length.toString()) : l.chatDetailSend,
-                            maxLines: 1, style: tx.titleSmall!.copyWith(color: has ? t.prText : t.mut, fontWeight: FontWeight.w600, fontFeatures: const [FontFeature.tabularFigures()])),
+                            maxLines: 1, style: tx.titleSmall!.copyWith(color: has ? t.prText : t.mut, fontWeight: FontWeight.w400, fontFeatures: const [FontFeature.tabularFigures()])),
                       ),
                     ),
                   ),
@@ -431,7 +431,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
           child: Text(title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+              style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
         ),
         if (multi) ...[
           BuGap.w6,
@@ -522,7 +522,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
               BuGap.w8,
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(l.chatMiscLimitedNote, style: tx.labelMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+                  Text(l.chatMiscLimitedNote, style: tx.labelMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                   BuGap.h2,
                   Text(l.p10LimitedBody, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.3)),
                 ]),
@@ -600,7 +600,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
             Semantics(
               header: true,
               child: Text(l.chatMiscGalleryDenied,
-                  textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                  textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
             ),
             BuGap.h8,
             Text(l.p10DeniedBody, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.5)),
@@ -650,7 +650,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
             Text(context.l10n.chatMiscCamera,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: tx.labelMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+                style: tx.labelMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
           ]),
         ),
       ),
@@ -690,7 +690,7 @@ class _ActionPill extends StatelessWidget {
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: tx.labelLarge!.copyWith(color: fg, fontWeight: FontWeight.w600)),
+                  style: tx.labelLarge!.copyWith(color: fg, fontWeight: FontWeight.w400)),
             ),
           ]),
         ),
@@ -766,7 +766,7 @@ class _GalleryTileState extends State<_GalleryTile> {
                     color: t.pr,
                   ),
                   child: widget.multi
-                      ? Text('$order', style: tx.labelSmall!.copyWith(color: t.onPr, fontWeight: FontWeight.w700, height: 1, fontFeatures: const [FontFeature.tabularFigures()]))
+                      ? Text('$order', style: tx.labelSmall!.copyWith(color: t.onPr, fontWeight: FontWeight.w400, height: 1, fontFeatures: const [FontFeature.tabularFigures()]))
                       : Icon(BuIcons.check, size: 14, color: t.onPr),
                 ),
               ),
@@ -781,7 +781,7 @@ class _GalleryTileState extends State<_GalleryTile> {
                       Icon(BuIcons.play, size: 10, color: t.onMedia),
                       const SizedBox(width: 2),
                       Text(formatMediaDuration(g.durationMs),
-                          style: tx.labelSmall!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700, height: 1.2)),
+                          style: tx.labelSmall!.copyWith(color: t.onMedia, fontWeight: FontWeight.w400, height: 1.2)),
                     ]),
                   ),
                 ),
@@ -831,7 +831,7 @@ class _AlbumSheet extends StatelessWidget {
                   child: Text(l.p10AlbumTitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700, letterSpacing: -.3)),
+                      style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400, letterSpacing: -.3)),
                 ),
               ),
               BuGap.w8,
@@ -839,7 +839,7 @@ class _AlbumSheet extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bPill),
                 child: Text(l.p10AlbumCount(albums.length.toString()),
-                    maxLines: 1, style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
+                    maxLines: 1, style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
               ),
             ]),
           ),
@@ -954,14 +954,14 @@ class _AlbumRowState extends State<_AlbumRow> {
                 Text(name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: sel ? FontWeight.w700 : FontWeight.w600)),
+                    style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: sel ? FontWeight.w400 : FontWeight.w400)),
                 BuGap.h2,
                 Row(children: [
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(color: sel ? t.sf : t.sf2, borderRadius: BuRadius.bPill),
                     child: Text(count,
-                        style: tx.labelMedium!.copyWith(color: sel ? t.prText : t.mut, fontWeight: sel ? FontWeight.w600 : FontWeight.w500)),
+                        style: tx.labelMedium!.copyWith(color: sel ? t.prText : t.mut, fontWeight: sel ? FontWeight.w400 : FontWeight.w500)),
                   ),
                   BuGap.w4,
                   Flexible(

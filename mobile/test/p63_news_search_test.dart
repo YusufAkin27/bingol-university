@@ -157,7 +157,7 @@ void main() {
       expect(find.textContaining('2026 · bingol.edu.tr'), findsOneWidget);
       final h = tester.widget<Text>(find.text(title).last);
       expect(h.style!.fontSize, 26);
-      expect(h.style!.fontWeight, FontWeight.w700);
+      expect(h.style!.fontWeight, FontWeight.w400);
       final body = tester.widget<Text>(find.text('İlk paragraf.'));
       expect(body.style!.fontSize, 16);
       expect(body.style!.height, 1.5);
@@ -298,7 +298,7 @@ void main() {
       var found = false;
       for (final r in tester.widgetList<RichText>(find.byType(RichText))) {
         r.text.visitChildren((span) {
-          if (span is TextSpan && span.text == 'Kamp' && span.style?.color == pr && span.style?.fontWeight == FontWeight.w600) found = true;
+          if (span is TextSpan && span.text == 'Kamp' && span.style?.color == pr && span.style?.fontWeight == FontWeight.w400) found = true;
           return true;
         });
       }

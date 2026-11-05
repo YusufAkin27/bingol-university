@@ -190,7 +190,7 @@ class _EventConfirmDialog extends StatelessWidget {
               child: Container(
                 constraints: const BoxConstraints(minHeight: BuSize.button),
                 alignment: Alignment.center,
-                child: Text(label, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: fg)),
+                child: Text(label, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: fg)),
               ),
             ),
           ),
@@ -208,7 +208,7 @@ class _EventConfirmDialog extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          Semantics(header: true, child: Text(title, textAlign: ta, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink))),
+          Semantics(header: true, child: Text(title, textAlign: ta, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
           const SizedBox(height: 6),
           Text(message, textAlign: ta, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
           const SizedBox(height: 20),
@@ -247,7 +247,7 @@ class EventJoinedChip extends StatelessWidget {
           child: Text(label ?? context.l10n.eventListInMine,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: (large ? tx.titleMedium! : tx.labelLarge!).copyWith(color: t.ok, fontWeight: FontWeight.w700)),
+              style: (large ? tx.titleMedium! : tx.labelLarge!).copyWith(color: t.ok, fontWeight: FontWeight.w400)),
         ),
       ]),
     );
@@ -299,7 +299,7 @@ class EventStatusTag extends StatelessWidget {
           child: Text(label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelMedium!.copyWith(color: fg, fontWeight: FontWeight.w700)),
+              style: Theme.of(context).textTheme.labelMedium!.copyWith(color: fg, fontWeight: FontWeight.w400)),
         ),
       ]),
     );
@@ -334,8 +334,8 @@ class EventDateBadge extends StatelessWidget {
         ),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Text(day == null ? '' : eventMonthShortOf(context, day!.month),
-              style: tx.labelSmall!.copyWith(color: fg, fontWeight: FontWeight.w800, letterSpacing: ar ? 0 : .6)),
-          Text(day == null ? '' : '${day!.day}', style: tx.titleLarge!.copyWith(height: 1.1, color: fg, fontWeight: FontWeight.w800)),
+              style: tx.labelSmall!.copyWith(color: fg, fontWeight: FontWeight.w400, letterSpacing: ar ? 0 : .6)),
+          Text(day == null ? '' : '${day!.day}', style: tx.titleLarge!.copyWith(height: 1.1, color: fg, fontWeight: FontWeight.w400)),
         ]),
       ),
     );
@@ -380,7 +380,7 @@ class EventAvatarStack extends StatelessWidget {
             ]),
           ),
         const SizedBox(width: 8),
-        Text('$total', style: Theme.of(context).textTheme.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+        Text('$total', style: Theme.of(context).textTheme.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
       ]),
     );
   }

@@ -69,7 +69,7 @@ class _DiscoverSuggestionsState extends State<DiscoverSuggestions> {
                 child: Text(l.p04SuggestTitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: tt.titleMedium?.copyWith(color: t.ink, fontSize: 16, fontWeight: FontWeight.w600)),
+                    style: tt.titleMedium?.copyWith(color: t.ink, fontSize: 16, fontWeight: FontWeight.w400)),
               ),
               InkWell(
                 key: const ValueKey('discoverSuggestionsAll'),
@@ -81,7 +81,7 @@ class _DiscoverSuggestionsState extends State<DiscoverSuggestions> {
                   child: Align(
                     widthFactor: 1,
                     child: Text(l.p04SuggestSeeAll,
-                        style: tt.labelMedium?.copyWith(color: t.prText, fontSize: 14, fontWeight: FontWeight.w600)),
+                        style: tt.labelMedium?.copyWith(color: t.prText, fontSize: 14, fontWeight: FontWeight.w400)),
                   ),
                 ),
               ),
@@ -179,7 +179,7 @@ class _SuggestionCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
-                  style: tt.titleSmall?.copyWith(color: t.ink, fontSize: 14, fontWeight: FontWeight.w600)),
+                  style: tt.titleSmall?.copyWith(color: t.ink, fontSize: 14, fontWeight: FontWeight.w400)),
               Text(dept,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

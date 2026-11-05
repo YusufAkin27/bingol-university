@@ -267,7 +267,7 @@ class _RequestRow extends StatelessWidget {
       Text(r.displayName,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: tx.titleMedium!.copyWith(fontSize: 15, fontWeight: FontWeight.w600, color: t.ink)),
+          style: tx.titleMedium!.copyWith(fontSize: 15, fontWeight: FontWeight.w400, color: t.ink)),
       if (sub.isNotEmpty)
         Padding(
           padding: const EdgeInsets.only(top: 1),

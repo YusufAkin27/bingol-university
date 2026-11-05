@@ -252,7 +252,7 @@ class _LoginPageState extends State<LoginPage> {
                                       Text('BÜ Kampüs',
                                           style: tx.titleLarge!.copyWith(
                                               color: t.ink,
-                                              fontWeight: FontWeight.w700,
+                                              fontWeight: FontWeight.w400,
                                               letterSpacing: -.5)),
                                       const SizedBox(height: 3),
                                       Text('Bingöl Üniversitesi',
@@ -271,7 +271,7 @@ class _LoginPageState extends State<LoginPage> {
                       l.loginWelcome,
                       style: tx.headlineLarge!.copyWith(
                           color: t.ink,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w400,
                           letterSpacing: -1,
                           height: 1.15),
                     ),

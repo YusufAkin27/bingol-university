@@ -316,7 +316,7 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
       ),
       Padding(
         padding: EdgeInsets.fromLTRB(24, 16, 24, bottom),
-        child: Text(l.p26OnceCaption, textAlign: TextAlign.center, style: tx.labelLarge!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700)),
+        child: Text(l.p26OnceCaption, textAlign: TextAlign.center, style: tx.labelLarge!.copyWith(color: t.onMedia, fontWeight: FontWeight.w400)),
       ),
     ]);
   }

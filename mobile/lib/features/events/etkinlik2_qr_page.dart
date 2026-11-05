@@ -163,7 +163,7 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final title = Text('${widget.event['title'] ?? ''}',
-        maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(fontWeight: FontWeight.w600, color: t.mut));
+        maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(fontWeight: FontWeight.w400, color: t.mut));
     // Kapasite doluluğu: yalnız sınırlı kontenjanlı etkinlikte (capacity > 0) ve katılım sayısı biliniyorsa.
     final cap = (widget.event['capacity'] as num?)?.toInt() ?? 0;
     final going = (widget.event['goingCount'] as num?)?.toInt();
@@ -173,7 +173,7 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
       title,
       const SizedBox(height: 6),
       Text(context.l10n.notifCapacityFull('$pct'),
-          key: const ValueKey('et2-capacity'), textAlign: TextAlign.center, style: tx.bodySmall!.copyWith(fontWeight: FontWeight.w700, color: t.prText)),
+          key: const ValueKey('et2-capacity'), textAlign: TextAlign.center, style: tx.bodySmall!.copyWith(fontWeight: FontWeight.w400, color: t.prText)),
     ]);
   }
 
@@ -232,7 +232,7 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
                 key: const ValueKey('et2-manual-code'),
                 maxLines: 1,
                 style: tx.headlineMedium!.copyWith(
-                    fontWeight: FontWeight.w600, letterSpacing: 6, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()])),
+                    fontWeight: FontWeight.w400, letterSpacing: 6, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()])),
           ),
         ),
       ),
@@ -244,7 +244,7 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
           final base = tx.bodyMedium!.copyWith(color: t.mut);
           return expired
               ? Text(l.etkinlik2QrExpired, style: base)
-              : _emph(l.etkinlik2QrRenewsIn('$left'), '$left', base, base.copyWith(fontWeight: FontWeight.w700, color: t.ink));
+              : _emph(l.etkinlik2QrRenewsIn('$left'), '$left', base, base.copyWith(fontWeight: FontWeight.w400, color: t.ink));
         },
       ),
     ]);
@@ -286,7 +286,7 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
       container: true,
       liveRegion: true,
       child: Column(key: const ValueKey('et2-qr-error'), crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(l.eventFormCodeFailed, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w600, color: t.ink)),
+        Text(l.eventFormCodeFailed, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
         const SizedBox(height: 4),
         Text(l.p16QrErrBody, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
         const SizedBox(height: 8),
@@ -295,7 +295,7 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
         TextButton(
           style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48)),
           onPressed: _busy ? null : _loadCode,
-          child: Text(l.commonRetry, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
+          child: Text(l.commonRetry, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
         ),
       ]),
     );
@@ -306,7 +306,7 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
-    final base = style ?? tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.ink);
+    final base = style ?? tx.bodyMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink);
     final text = l.etkinlik2PresentOf('$_present', '$_total');
     return Directionality(
       textDirection: Directionality.of(context),
@@ -375,7 +375,7 @@ class _QrFrame extends StatelessWidget {
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: t.pr)),
                 const SizedBox(height: 6),
-                Text(l.p16QrExpiredTitle, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w600, color: t.ink)),
+                Text(l.p16QrExpiredTitle, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
                 Text(l.p16QrRefreshing, style: tx.bodySmall!.copyWith(color: t.mut)),
               ]),
             ),

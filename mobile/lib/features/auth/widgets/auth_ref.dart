@@ -111,7 +111,7 @@ class RefHeading extends StatelessWidget {
           : Text.rich(
               TextSpan(style: base, children: [
                 TextSpan(text: s.substring(0, at)),
-                TextSpan(text: e, style: TextStyle(color: t.ink, fontWeight: FontWeight.w700)),
+                TextSpan(text: e, style: TextStyle(color: t.ink, fontWeight: FontWeight.w400)),
                 TextSpan(text: s.substring(at + e!.length)),
               ]),
               textAlign: align,
@@ -122,7 +122,7 @@ class RefHeading extends StatelessWidget {
       children: [
         Semantics(
           header: true,
-          child: Text(title, textAlign: align, style: tx.displaySmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.1)),
+          child: Text(title, textAlign: align, style: tx.displaySmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400, height: 1.1)),
         ),
         if (sub != null) Padding(padding: const EdgeInsets.only(top: 10), child: sub),
       ],
@@ -254,10 +254,10 @@ class RefBanner extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (title != null)
-                      Text(title!, style: tx.titleSmall!.copyWith(color: tone == RefTone.info ? t.ink : fg, fontWeight: FontWeight.w800)),
+                      Text(title!, style: tx.titleSmall!.copyWith(color: tone == RefTone.info ? t.ink : fg, fontWeight: FontWeight.w400)),
                     Text(text,
                         style: tx.bodyMedium!.copyWith(
-                            color: tone == RefTone.info ? t.mut : fg, height: 1.4, fontWeight: boldText || title == null ? FontWeight.w600 : FontWeight.w400)),
+                            color: tone == RefTone.info ? t.mut : fg, height: 1.4, fontWeight: boldText || title == null ? FontWeight.w400 : FontWeight.w400)),
                     if (sub != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
@@ -337,7 +337,7 @@ class RefButton extends StatelessWidget {
               SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4, color: fg)),
               if (busyLabel != null) ...[
                 const SizedBox(width: 12),
-                Flexible(child: Text(busyLabel!, style: tx.bodyLarge!.copyWith(color: fg, fontWeight: FontWeight.w600))),
+                Flexible(child: Text(busyLabel!, style: tx.bodyLarge!.copyWith(color: fg, fontWeight: FontWeight.w400))),
               ],
             ],
           )
@@ -348,7 +348,7 @@ class RefButton extends StatelessWidget {
               Flexible(
                 child: Text(label,
                     textAlign: TextAlign.center,
-                    style: tx.bodyLarge!.copyWith(color: disabled && (kind == RefButtonKind.secondary || kind == RefButtonKind.ghost) ? t.mut : fg, fontWeight: FontWeight.w600)),
+                    style: tx.bodyLarge!.copyWith(color: disabled && (kind == RefButtonKind.secondary || kind == RefButtonKind.ghost) ? t.mut : fg, fontWeight: FontWeight.w400)),
               ),
               if (icon != null) ...[const SizedBox(width: 8), Icon(icon, size: 18, color: fg)],
             ],
@@ -424,7 +424,7 @@ class RefLink extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[Icon(icon, size: 18, color: c), const SizedBox(width: 6)],
-          Flexible(child: Text(label, style: tx.labelLarge!.copyWith(color: c, fontWeight: FontWeight.w700))),
+          Flexible(child: Text(label, style: tx.labelLarge!.copyWith(color: c, fontWeight: FontWeight.w400))),
         ],
       ),
     );
@@ -455,7 +455,7 @@ class RefFooterPrompt extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8),
             foregroundColor: t.prPressed,
           ),
-          child: Text(action, style: tx.titleSmall!.copyWith(color: t.prPressed, fontWeight: FontWeight.w700)),
+          child: Text(action, style: tx.titleSmall!.copyWith(color: t.prPressed, fontWeight: FontWeight.w400)),
         ),
       ],
     );
@@ -930,7 +930,7 @@ class RefBrandMark extends StatelessWidget {
       ),
       child: Text('BU',
           style: Theme.of(context).textTheme.titleLarge!.copyWith(
-              color: t.onPr, fontWeight: FontWeight.w900, fontSize: size * .42, letterSpacing: -.5, height: 1)),
+              color: t.onPr, fontWeight: FontWeight.w400, fontSize: size * .42, letterSpacing: -.5, height: 1)),
     );
     return ExcludeSemantics(
       child: SizedBox(

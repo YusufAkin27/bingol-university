@@ -39,7 +39,7 @@ class AkadSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final label = Text(akadUpper(context, text),
-        style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w700, letterSpacing: _isArabic(context) ? 0 : .7, color: t.mut));
+        style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w400, letterSpacing: _isArabic(context) ? 0 : .7, color: t.mut));
     return Padding(
       padding: padding,
       child: Semantics(
@@ -72,7 +72,7 @@ class AkadChip extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final fg = selected ? t.prText : t.ink;
-    final style = tx.labelLarge!.copyWith(fontWeight: selected ? FontWeight.w700 : FontWeight.w600, color: fg);
+    final style = tx.labelLarge!.copyWith(fontWeight: selected ? FontWeight.w400 : FontWeight.w400, color: fg);
     final text = MediaQuery.withClampedTextScaling(
       maxScaleFactor: 1.3,
       child: expand
@@ -132,7 +132,7 @@ class AkadPill extends StatelessWidget {
           if (icon != null) ...[ExcludeSemantics(child: Icon(icon, size: 12, color: fg)), const SizedBox(width: 4)],
           Flexible(
             child: Text(text,
-                maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: fg)),
+                maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: fg)),
           ),
         ]),
       );
@@ -195,8 +195,8 @@ class AkadDateTile extends StatelessWidget {
           maxScaleFactor: 1.2,
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             Text(akadUpper(context, String.fromCharCodes(month.runes.take(3))),
-                maxLines: 1, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: fg, height: 1.1)),
-            Text('$day', style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, height: 1.1, color: fg)),
+                maxLines: 1, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w400, color: fg, height: 1.1)),
+            Text('$day', style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, height: 1.1, color: fg)),
           ]),
         ),
       ),
@@ -272,7 +272,7 @@ class AkadLabel extends StatelessWidget {
         child: Text(text,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: context.bu.ink)),
+            style: Theme.of(context).textTheme.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: context.bu.ink)),
       );
 }
 
@@ -310,7 +310,7 @@ class AkadFieldLabel extends StatelessWidget {
     final label = Text(text,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: color ?? t.mut));
+        style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: color ?? t.mut));
     return Padding(
       padding: const EdgeInsetsDirectional.only(start: 2, bottom: 8),
       child: trailing == null ? label : Row(children: [Expanded(child: label), trailing!]),
@@ -322,7 +322,7 @@ class _Star extends StatelessWidget {
   const _Star();
 
   @override
-  Widget build(BuildContext context) => ExcludeSemantics(child: Text('*', style: TextStyle(color: context.bu.danger, fontWeight: FontWeight.w800)));
+  Widget build(BuildContext context) => ExcludeSemantics(child: Text('*', style: TextStyle(color: context.bu.danger, fontWeight: FontWeight.w400)));
 }
 
 /// Etiketi üstte, dolu yüzeyli metin alanı (simge başta).
@@ -448,7 +448,7 @@ class AkadPicker extends StatelessWidget {
                 child: Text(shown,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: tx.bodyLarge!.copyWith(color: value == null ? t.mut : t.ink, fontWeight: bold && value != null ? FontWeight.w700 : null)),
+                    style: tx.bodyLarge!.copyWith(color: value == null ? t.mut : t.ink, fontWeight: bold && value != null ? FontWeight.w400 : null)),
               ),
               const SizedBox(width: 8),
               Icon(icon, size: 18, color: error ? t.danger : (iconColor ?? t.mut)),
@@ -506,7 +506,7 @@ class AkadEmptyBox extends StatelessWidget {
           child: Icon(icon, size: 22, color: iconColor ?? t.mut),
         ),
         const SizedBox(height: 12),
-        Semantics(header: true, child: Text(title, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
+        Semantics(header: true, child: Text(title, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
         if (message != null) ...[
           const SizedBox(height: 4),
           Text(message!, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut)),
@@ -542,7 +542,7 @@ class AkadSwitchRow extends StatelessWidget {
           child: Row(children: [
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(title, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                Text(title, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
                 if (subtitle != null) Text(subtitle!, style: tx.bodySmall!.copyWith(color: t.mut)),
               ]),
             ),
@@ -605,7 +605,7 @@ class AkadDashedButton extends StatelessWidget {
                         child: Text(label,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.onSoft)),
+                            style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w400, color: t.onSoft)),
                       ),
                     ]),
                   ),
@@ -664,7 +664,7 @@ class AkadStaleStrip extends StatelessWidget {
         child: Row(children: [
           ExcludeSemantics(child: Icon(BuIcons.cloudOff, size: 16, color: t.onWarnSoft)),
           const SizedBox(width: 10),
-          Expanded(child: Text(text, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.onWarnSoft))),
+          Expanded(child: Text(text, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w400, color: t.onWarnSoft))),
         ]),
       ),
     );
@@ -695,7 +695,7 @@ class AkadNoticeCard extends StatelessWidget {
             child: ExcludeSemantics(child: Icon(icon, size: 18, color: t.onWarnSoft)),
           ),
           const SizedBox(width: 12),
-          Expanded(child: Text(text, style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.w600, color: t.onWarnSoft))),
+          Expanded(child: Text(text, style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.w400, color: t.onWarnSoft))),
         ]),
       ),
     );
@@ -730,7 +730,7 @@ class AkadErrorCard extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(title, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+                Text(title, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
                 if (message != null) ...[const SizedBox(height: 4), Text(message!, style: tx.bodyMedium!.copyWith(color: t.mut))],
               ]),
             ),
@@ -765,13 +765,13 @@ class AkadTitle extends StatelessWidget {
       child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
         Expanded(
           child: Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
-            Text(text, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: muted ? t.mut : t.ink)),
+            Text(text, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: muted ? t.mut : t.ink)),
             if (count != null)
               Container(
                 constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
                 padding: const EdgeInsets.symmetric(horizontal: 7),
                 decoration: BoxDecoration(color: muted ? t.sf2 : t.soft, borderRadius: BuRadius.bPill),
-                child: Center(widthFactor: 1, child: Text('$count', style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w800, color: muted ? t.mut : t.onSoft))),
+                child: Center(widthFactor: 1, child: Text('$count', style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: muted ? t.mut : t.onSoft))),
               ),
             if (chip != null) AkadPill(chip!, bg: t.sf2, fg: t.mut),
           ]),
@@ -798,7 +798,7 @@ class AkadTonalButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final text = Text(label, maxLines: 1, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink));
+    final text = Text(label, maxLines: 1, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: t.ink));
     return Semantics(
       button: true,
       label: label,
@@ -852,7 +852,7 @@ class AkadFilledButton extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: compact ? 22 : 12),
           alignment: Alignment.center,
           decoration: BoxDecoration(color: t.pr, borderRadius: BuRadius.bMd),
-          child: Text(label, textAlign: TextAlign.center, maxLines: 1, style: Theme.of(context).textTheme.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.onPr)),
+          child: Text(label, textAlign: TextAlign.center, maxLines: 1, style: Theme.of(context).textTheme.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: t.onPr)),
         ),
       ),
     );

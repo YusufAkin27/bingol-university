@@ -89,7 +89,7 @@ class PrefSwitchRow extends StatelessWidget {
             padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 10, 4),
             child: Row(
               children: [
-                Expanded(child: Text(label, style: Theme.of(context).textTheme.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink))),
+                Expanded(child: Text(label, style: Theme.of(context).textTheme.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
                 const SizedBox(width: 8),
                 PrefSwitch(value: value, onChanged: onChanged),
               ],
@@ -331,7 +331,7 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
     final t = context.bu;
     return Padding(
       padding: EdgeInsets.only(top: top, bottom: 12),
-      child: Semantics(header: true, child: Text(text, style: BuType.caption.copyWith(fontSize: 17, height: 1.3, fontWeight: FontWeight.w600, color: t.ink))),
+      child: Semantics(header: true, child: Text(text, style: BuType.caption.copyWith(fontSize: 17, height: 1.3, fontWeight: FontWeight.w400, color: t.ink))),
     );
   }
 
@@ -374,7 +374,7 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text(l.profil1PushTitle, style: BuType.caption.copyWith(fontSize: 16, height: 1.3, fontWeight: FontWeight.w600, color: t.ink)),
+          Text(l.profil1PushTitle, style: BuType.caption.copyWith(fontSize: 16, height: 1.3, fontWeight: FontWeight.w400, color: t.ink)),
           const SizedBox(height: 2),
           Text(_pushStatus == 'notConfigured' ? l.pushNotConfigured : l.pushOff, style: BuType.caption.copyWith(fontSize: 13, height: 1.4, color: t.mut)),
           Align(
@@ -382,7 +382,7 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
             child: TextButton(
               onPressed: () => PermissionService.instance.openSettings(),
               style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: EdgeInsets.zero),
-              child: Text(l.p20RemOpenSettings, style: BuType.caption.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: t.prText)),
+              child: Text(l.p20RemOpenSettings, style: BuType.caption.copyWith(fontSize: 14, fontWeight: FontWeight.w400, color: t.prText)),
             ),
           ),
         ]),
@@ -583,7 +583,7 @@ class _PrefRow extends StatelessWidget {
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                     Text(title,
                         style: BuType.caption.copyWith(
-                            fontSize: strong ? 16 : 15, height: 1.5, fontWeight: strong ? FontWeight.w600 : FontWeight.w500, color: t.ink)),
+                            fontSize: strong ? 16 : 15, height: 1.5, fontWeight: strong ? FontWeight.w400 : FontWeight.w500, color: t.ink)),
                     if (sub != null) ...[
                       const SizedBox(height: 2),
                       Text(sub!, style: BuType.caption.copyWith(fontSize: 13, height: 1.5, color: t.mut)),

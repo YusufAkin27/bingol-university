@@ -253,7 +253,7 @@ class _PollFormPageState extends State<PollFormPage> {
                             TextButton(
                               style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsetsDirectional.only(start: 12)),
                               onPressed: _addOption,
-                              child: Text('+ ${l.pollAddOption}', style: tx.titleSmall!.copyWith(color: t.prText, fontWeight: FontWeight.w700)),
+                              child: Text('+ ${l.pollAddOption}', style: tx.titleSmall!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
                             ),
                         ])),
                       ]),
@@ -353,7 +353,7 @@ class _TypeSegment extends StatelessWidget {
                         fit: BoxFit.scaleDown,
                         child: Text(items[i].$1,
                             maxLines: 1,
-                            style: tx.labelLarge!.copyWith(color: items[i].$3 ? t.onSoft : t.mut, fontWeight: items[i].$3 ? FontWeight.w700 : FontWeight.w500)),
+                            style: tx.labelLarge!.copyWith(color: items[i].$3 ? t.onSoft : t.mut, fontWeight: items[i].$3 ? FontWeight.w400 : FontWeight.w500)),
                       ),
                     ),
                   ),
@@ -503,7 +503,7 @@ class _SwitchRow extends StatelessWidget {
           child: Row(children: [
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(title, style: tx.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                Text(title, style: tx.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                 const SizedBox(height: 2),
                 Text(sub, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.35)),
               ]),

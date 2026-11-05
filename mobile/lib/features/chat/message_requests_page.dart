@@ -341,12 +341,12 @@ class _RequestTile extends StatelessWidget {
       const SizedBox(width: 12),
       Expanded(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-          Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontSize: 15, fontWeight: FontWeight.w600, color: t.ink)),
+          Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontSize: 15, fontWeight: FontWeight.w400, color: t.ink)),
           if (!direct)
             Padding(
               padding: const EdgeInsets.only(top: 3),
               child: Text(l.frqMsgReqGroupInvite,
-                  maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.prText)),
+                  maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: t.prText)),
             ),
           if (preview.isNotEmpty)
             Padding(

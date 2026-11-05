@@ -206,7 +206,7 @@ class ChatInfoThumb extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(color: t.scrim.withValues(alpha: .7), borderRadius: BorderRadius.circular(4)),
                       child: Text(formatDuration(durationMs!),
-                          style: tx.labelSmall!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700, height: 1.2)),
+                          style: tx.labelSmall!.copyWith(color: t.onMedia, fontWeight: FontWeight.w400, height: 1.2)),
                     ),
                   ),
               ],
@@ -214,7 +214,7 @@ class ChatInfoThumb extends StatelessWidget {
                 ColoredBox(
                   color: t.scrim.withValues(alpha: .4),
                   child: Center(
-                    child: Text('+$moreCount', style: tx.labelLarge!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700)),
+                    child: Text('+$moreCount', style: tx.labelLarge!.copyWith(color: t.onMedia, fontWeight: FontWeight.w400)),
                   ),
                 ),
             ]),
@@ -250,7 +250,7 @@ class ChatMediaLoadingCard extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(context.l10n.p09MediaLoading,
-                style: Theme.of(context).textTheme.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+                style: Theme.of(context).textTheme.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
           ),
         ]),
         const SizedBox(height: 16),

@@ -173,7 +173,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
     return Padding(
       padding: EdgeInsetsDirectional.fromSTEB(kAnketPad, top, kAnketPad, 0),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Semantics(header: true, child: Text(p.title, style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700, letterSpacing: -.2, height: 1.25))),
+        Semantics(header: true, child: Text(p.title, style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400, letterSpacing: -.2, height: 1.25))),
         const SizedBox(height: 3),
         Text(meta, style: tx.bodySmall!.copyWith(color: t.mut, fontSize: 13, height: 1.4)),
         if (p.description != null) ...[
@@ -223,7 +223,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
                 if (p.maxChoices != null) ...[
                   const SizedBox(width: 12),
                   Text(l.p13PollSelectedCount('${s.ids.length}', '${p.maxChoices}'),
-                      style: Theme.of(context).textTheme.bodySmall!.copyWith(color: context.bu.prText, fontSize: 13, fontWeight: FontWeight.w600, height: 1.45)),
+                      style: Theme.of(context).textTheme.bodySmall!.copyWith(color: context.bu.prText, fontSize: 13, fontWeight: FontWeight.w400, height: 1.45)),
                 ],
               ]),
             ),
@@ -246,7 +246,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
                           _editing = false;
                           _resetSelection();
                         }),
-                child: Text(l.pollCancel, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: context.bu.mut, fontWeight: FontWeight.w600)),
+                child: Text(l.pollCancel, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: context.bu.mut, fontWeight: FontWeight.w400)),
               ),
             )
           else if (p.anonymous)
@@ -312,7 +312,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
             : SizedBox(
                 key: ValueKey(r),
                 height: 26,
-                child: Center(child: Text('${l.pollStars('$r')} · ${_rateWord(r)}', style: tx.titleSmall!.copyWith(color: t.prText, fontWeight: FontWeight.w600))),
+                child: Center(child: Text('${l.pollStars('$r')} · ${_rateWord(r)}', style: tx.titleSmall!.copyWith(color: t.prText, fontWeight: FontWeight.w400))),
               ),
       ),
       const SizedBox(height: 8),
@@ -403,7 +403,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
             TextButton(
               style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48)),
               onPressed: _busy ? null : () => setState(() => _editing = true),
-              child: Text(l.pollChangeVote, style: tx.titleSmall!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
+              child: Text(l.pollChangeVote, style: tx.titleSmall!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
             ),
         ]),
       ),
@@ -468,7 +468,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
     final avgText = avg == null ? '-' : (isTr ? avg.toStringAsFixed(1).replaceAll('.', ',') : avg.toStringAsFixed(1));
     return [
       Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-        Text(avgText, style: tx.displaySmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700, height: 1)),
+        Text(avgText, style: tx.displaySmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400, height: 1)),
         const SizedBox(width: 16),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -593,7 +593,7 @@ class _OptionTile extends StatelessWidget {
                           alignment: Alignment.center,
                           decoration: BoxDecoration(color: on ? t.pr : t.sf2, shape: BoxShape.circle),
                           child: on
-                              ? Text('${rank ?? ''}', style: tx.titleSmall!.copyWith(color: t.onPr, fontWeight: FontWeight.w700))
+                              ? Text('${rank ?? ''}', style: tx.titleSmall!.copyWith(color: t.onPr, fontWeight: FontWeight.w400))
                               : Icon(BuIcons.plus, size: 16, color: t.mut),
                         )
                       else

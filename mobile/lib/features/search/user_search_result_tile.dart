@@ -117,7 +117,7 @@ class UserSearchResultTile extends StatelessWidget {
                 Row(children: [
                   Flexible(
                     child: Text.rich(
-                      searchHighlight(context, name, query, tx.titleMedium!.copyWith(fontSize: 15, fontWeight: FontWeight.w600, color: t.ink)),
+                      searchHighlight(context, name, query, tx.titleMedium!.copyWith(fontSize: 15, fontWeight: FontWeight.w400, color: t.ink)),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),

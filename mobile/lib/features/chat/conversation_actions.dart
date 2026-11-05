@@ -89,7 +89,7 @@ class _ActionRow extends StatelessWidget {
             child: Icon(icon, size: 19, color: danger ? t.danger : t.ink),
           ),
           const SizedBox(width: 14),
-          Expanded(child: Text(label, style: tx.titleSmall!.copyWith(color: color, fontWeight: FontWeight.w600))),
+          Expanded(child: Text(label, style: tx.titleSmall!.copyWith(color: color, fontWeight: FontWeight.w400))),
           if (!danger) Icon(buDirIcon(context, BuIcons.chevronRight), size: 18, color: t.mut),
         ]),
       ),

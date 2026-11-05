@@ -129,7 +129,7 @@ class _SelectCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(label, style: tx.labelLarge!.copyWith(color: hasError ? t.danger : t.mut, fontWeight: FontWeight.w600)),
+        Text(label, style: tx.labelLarge!.copyWith(color: hasError ? t.danger : t.mut, fontWeight: FontWeight.w400)),
         Semantics(
           button: true,
           label: label,
@@ -153,7 +153,7 @@ class _SelectCard extends StatelessWidget {
                           has ? value! : placeholder,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: tx.titleLarge!.copyWith(color: has ? t.ink : t.mutSoft, fontWeight: has ? FontWeight.w600 : FontWeight.w500),
+                          style: tx.titleLarge!.copyWith(color: has ? t.ink : t.mutSoft, fontWeight: has ? FontWeight.w400 : FontWeight.w500),
                         ),
                       ),
                       const SizedBox(width: 8),

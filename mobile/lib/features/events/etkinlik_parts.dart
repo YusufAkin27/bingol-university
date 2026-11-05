@@ -45,7 +45,7 @@ class EtkinlikDateTile extends StatelessWidget {
                       maxLines: 1,
                       style: tx.labelSmall!.copyWith(
                           color: tint.bg,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w400,
                           letterSpacing: ar ? 0 : .8)),
                 ),
               ),
@@ -112,7 +112,7 @@ class EtkinlikPill extends StatelessWidget {
           child: Text(label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: tx.labelLarge!.copyWith(color: fg, fontWeight: FontWeight.w700)),
+              style: tx.labelLarge!.copyWith(color: fg, fontWeight: FontWeight.w400)),
         ),
       ]),
     );
@@ -166,10 +166,10 @@ class EtkinlikDateBlock extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Text(day, maxLines: 1, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, height: 1.1, color: dayFg)),
+                Text(day, maxLines: 1, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, height: 1.1, color: dayFg)),
                 Text(month,
                     maxLines: 1,
-                    style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w800, letterSpacing: ar ? 0 : .6, color: monFg)),
+                    style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w400, letterSpacing: ar ? 0 : .6, color: monFg)),
               ]),
             ),
           ),
@@ -234,7 +234,7 @@ class EtkinlikActionButton extends StatelessWidget {
             else if (icon != null)
               Icon(icon, size: 18, color: off ? fg : (iconColor ?? fg)),
             if (busy || icon != null) const SizedBox(width: 8),
-            Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: fg))),
+            Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w400, color: fg))),
             if (trailing != null) ...[const SizedBox(width: 8), Icon(trailing, size: 18, color: fg)],
           ]),
         ),
@@ -267,7 +267,7 @@ class EtkinlikDetailLink extends StatelessWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
           child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.end, children: [
-            Text(label, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: muted ? t.mut : t.prText)),
+            Text(label, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w400, color: muted ? t.mut : t.prText)),
             if (!muted) ...[
               const SizedBox(width: 4),
               Icon(buDirIcon(context, BuIcons.chevronRight), size: 16, color: t.prText),
@@ -316,7 +316,7 @@ class EtkinlikSubChips extends StatelessWidget {
                     borderRadius: BorderRadius.circular(BuRadius.pill),
                     border: Border.all(color: i == selected ? t.selectedBorder : t.bd),
                   ),
-                  child: Text(labels[i], style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: i == selected ? t.onSoft : t.mut)),
+                  child: Text(labels[i], style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w400, color: i == selected ? t.onSoft : t.mut)),
                 ),
               ),
             ),
@@ -358,7 +358,7 @@ class EtkinlikInkButton extends StatelessWidget {
               child: Text(label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.bg)),
+                  style: Theme.of(context).textTheme.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: t.bg)),
             ),
           ]),
         ),
@@ -393,7 +393,7 @@ class EtkinlikEmptyCard extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 14),
-        Text(title, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+        Text(title, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
         if (body != null) ...[
           const SizedBox(height: 6),
           Text(body!, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),

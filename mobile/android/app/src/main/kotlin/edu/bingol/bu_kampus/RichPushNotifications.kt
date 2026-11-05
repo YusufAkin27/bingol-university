@@ -18,7 +18,6 @@ import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
 import android.text.style.StrikethroughSpan
-import android.text.style.StyleSpan
 import android.view.View
 import android.widget.RemoteViews
 import java.net.HttpURLConnection
@@ -139,7 +138,7 @@ object RichPushNotifications {
     private fun span(text: String, color: Int, bold: Boolean): SpannableStringBuilder =
         SpannableStringBuilder(text).apply {
             setSpan(ForegroundColorSpan(color), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-            if (bold) setSpan(StyleSpan(android.graphics.Typeface.BOLD), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            // Kalın yazı kullanılmıyor (kullanıcı kararı): `bold` bayrağı yok sayılır.
         }
 
     private fun views(context: Context, data: Map<String, String>, plan: PushRenderPlan, tag: String,

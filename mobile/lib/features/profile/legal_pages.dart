@@ -129,7 +129,7 @@ class _DocRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text((doc['title'] as String?) ?? (doc['type'] as String? ?? ''),
-                        style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+                        style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                     const SizedBox(height: 2),
                     Text(_versionLine(context, doc), style: tx.bodySmall!.copyWith(color: t.mut)),
                   ],

@@ -52,7 +52,7 @@ class ClubsLogo extends StatelessWidget {
       padding: const EdgeInsets.all(4),
       child: FittedBox(
         fit: BoxFit.scaleDown,
-        child: Text(clubsInitials(name), style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+        child: Text(clubsInitials(name), style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.mut)),
       ),
     );
     if (fileUrl(url) == null) return ExcludeSemantics(child: tile);
@@ -111,7 +111,7 @@ class ClubTextTabs extends StatelessWidget {
                             child: AnimatedDefaultTextStyle(
                               duration: BuMotion.of(context, BuMotion.short),
                               curve: BuMotion.standard,
-                              style: tx.bodyLarge!.copyWith(fontWeight: FontWeight.w600, color: on ? t.prText : t.mut),
+                              style: tx.bodyLarge!.copyWith(fontWeight: FontWeight.w400, color: on ? t.prText : t.mut),
                               child: Text(labels[i], maxLines: 1, softWrap: false),
                             ),
                           ),
@@ -162,7 +162,7 @@ class ClubPageHeader extends StatelessWidget {
           Expanded(
             child: Semantics(
               header: true,
-              child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.title.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+              child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.title.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
             ),
           ),
           ...actions,
@@ -220,7 +220,7 @@ class ClubsSectionTitle extends StatelessWidget {
         child: Text(ar ? text : trUpper(text),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.mut, fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: ar ? 0 : .6)),
+            style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.mut, fontSize: 13, fontWeight: FontWeight.w400, letterSpacing: ar ? 0 : .6)),
       ),
     );
   }
@@ -293,7 +293,7 @@ class ClubsRowCard extends StatelessWidget {
                       Text(name,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+                          style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                       const SizedBox(height: 2),
                       Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut, fontSize: 13)),
                     ],
@@ -315,7 +315,7 @@ class ClubsRowCard extends StatelessWidget {
     final tx = Theme.of(context).textTheme;
     final muted = tx.bodySmall!.copyWith(color: t.mut, fontSize: 13);
     Widget text(String s, {bool strong = false}) =>
-        Text(s, maxLines: 2, textAlign: TextAlign.end, overflow: TextOverflow.ellipsis, style: strong ? muted.copyWith(fontWeight: FontWeight.w600) : muted);
+        Text(s, maxLines: 2, textAlign: TextAlign.end, overflow: TextOverflow.ellipsis, style: strong ? muted.copyWith(fontWeight: FontWeight.w400) : muted);
     if (mine) {
       return switch (status) {
         'PENDING' => text(l.p51AwaitingReply),
@@ -387,7 +387,7 @@ class ClubOutlineButton extends StatelessWidget {
                     : Text(label,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleMedium!.copyWith(color: enabled ? t.ink : t.mut, fontWeight: FontWeight.w600)),
+                        style: Theme.of(context).textTheme.titleMedium!.copyWith(color: enabled ? t.ink : t.mut, fontWeight: FontWeight.w400)),
               ),
             ),
           ),
@@ -432,7 +432,7 @@ class ClubJoinButton extends StatelessWidget {
               widthFactor: 1,
               child: busy
                   ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: t.mut))
-                  : Text(label, maxLines: 1, style: Theme.of(context).textTheme.labelLarge!.copyWith(color: t.ink, fontSize: 13, fontWeight: FontWeight.w600)),
+                  : Text(label, maxLines: 1, style: Theme.of(context).textTheme.labelLarge!.copyWith(color: t.ink, fontSize: 13, fontWeight: FontWeight.w400)),
             ),
           ),
         ),
@@ -465,7 +465,7 @@ class ClubsStateText extends StatelessWidget {
               TextButton(
                 style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 16)),
                 onPressed: onAction,
-                child: Text(actionLabel!, style: tx.titleMedium!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
+                child: Text(actionLabel!, style: tx.titleMedium!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
               ),
             ],
           ],

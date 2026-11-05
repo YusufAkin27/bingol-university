@@ -118,7 +118,7 @@ class _Header extends StatelessWidget {
               child: Text(l.navDiscover,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: tt.headlineMedium?.copyWith(color: t.ink, fontSize: 28, fontWeight: FontWeight.w700)),
+                  style: tt.headlineMedium?.copyWith(color: t.ink, fontSize: 28, fontWeight: FontWeight.w400)),
             ),
             BuIconButton(
               key: const ValueKey('discoverSearch'),

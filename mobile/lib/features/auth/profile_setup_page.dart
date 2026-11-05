@@ -246,7 +246,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                       header: true,
                       child: Text(
                         l.profileSetupTitle,
-                        style: tx.displayMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.1),
+                        style: tx.displayMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400, height: 1.1),
                       ),
                     ),
                     const SizedBox(height: 10),

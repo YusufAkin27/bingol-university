@@ -135,7 +135,7 @@ class ClubFlatCover extends StatelessWidget {
                   child: ExcludeSemantics(
                     child: Text(clubsInitials(name),
                         maxLines: 1,
-                        style: TextStyle(fontFamily: BuType.family, fontSize: 88, fontWeight: FontWeight.w800, height: 1, color: t.ink.withValues(alpha: .08))),
+                        style: TextStyle(fontFamily: BuType.family, fontSize: 88, fontWeight: FontWeight.w400, height: 1, color: t.ink.withValues(alpha: .08))),
                   ),
                 )
               else ...[
@@ -316,7 +316,7 @@ class _ClubExpandableTextState extends State<ClubExpandableText> {
                   child: Align(
                     alignment: AlignmentDirectional.centerStart,
                     widthFactor: 1,
-                    child: Text(_open ? l.p11ReadLess : l.p11ReadMore, style: tx.bodyMedium!.copyWith(color: t.prText, fontWeight: FontWeight.w700)),
+                    child: Text(_open ? l.p11ReadLess : l.p11ReadMore, style: tx.bodyMedium!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
                   ),
                 ),
               ),
@@ -371,11 +371,11 @@ class ClubEventCard extends StatelessWidget {
                       children: [
                         FittedBox(
                           fit: BoxFit.scaleDown,
-                          child: Text('${d.day}', style: tx.titleLarge!.copyWith(color: tint.fg, fontWeight: FontWeight.w800, height: 1.1)),
+                          child: Text('${d.day}', style: tx.titleLarge!.copyWith(color: tint.fg, fontWeight: FontWeight.w400, height: 1.1)),
                         ),
                         FittedBox(
                           fit: BoxFit.scaleDown,
-                          child: Text(months[d.month - 1], maxLines: 1, style: tx.labelSmall!.copyWith(color: tint.fg, fontWeight: FontWeight.w700)),
+                          child: Text(months[d.month - 1], maxLines: 1, style: tx.labelSmall!.copyWith(color: tint.fg, fontWeight: FontWeight.w400)),
                         ),
                       ],
                     ),
@@ -459,7 +459,7 @@ class ClubRequestsBanner extends StatelessWidget {
                 padding: const EdgeInsetsDirectional.fromSTEB(16, 10, 16, 10),
                 child: Row(
                   children: [
-                    Expanded(child: Text(text, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.onWarnSoft, fontWeight: FontWeight.w600))),
+                    Expanded(child: Text(text, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.onWarnSoft, fontWeight: FontWeight.w400))),
                     const SizedBox(width: 8),
                     ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.onWarnSoft)),
                   ],
@@ -531,7 +531,7 @@ class ClubMemberRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+                Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                 Text(roleText, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut, fontSize: 13)),
               ],
             ),

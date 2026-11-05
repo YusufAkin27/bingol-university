@@ -139,7 +139,7 @@ Widget _boardColors() => Builder(builder: (context) {
             padding: const EdgeInsets.all(8),
             alignment: AlignmentDirectional.bottomStart,
             decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(12), border: Border.all(color: t.bd)),
-            child: Text(name, style: tx.labelSmall!.copyWith(color: on, fontWeight: FontWeight.w700)),
+            child: Text(name, style: tx.labelSmall!.copyWith(color: on, fontWeight: FontWeight.w400)),
           );
       return _Page(title: s('Renk ve yazı', 'Color & type', 'اللون والخط'), children: [
         _Sec(

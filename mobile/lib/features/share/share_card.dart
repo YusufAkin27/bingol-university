@@ -149,20 +149,20 @@ class ShareCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       // letterSpacing yok: Arapçada harf bağlantısını koparır.
-                      style: tx.labelSmall!.copyWith(color: sub, fontWeight: FontWeight.w700)),
+                      style: tx.labelSmall!.copyWith(color: sub, fontWeight: FontWeight.w400)),
                 ),
               ]),
               const SizedBox(height: 4),
               if (!ready)
                 Text(context.l10n.shareUnavailable,
                     key: const ValueKey('share-card-unavailable'),
-                    style: tx.bodyMedium!.copyWith(color: fg, fontWeight: FontWeight.w600, height: 1.3))
+                    style: tx.bodyMedium!.copyWith(color: fg, fontWeight: FontWeight.w400, height: 1.3))
               else if (title.isNotEmpty)
                 Text(title,
                     key: const ValueKey('share-card-title'),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: tx.bodyMedium!.copyWith(color: fg, fontWeight: FontWeight.w600, height: 1.3)),
+                    style: tx.bodyMedium!.copyWith(color: fg, fontWeight: FontWeight.w400, height: 1.3)),
               if (ready && source.isNotEmpty) ...[
                 const SizedBox(height: 2),
                 Text(source,

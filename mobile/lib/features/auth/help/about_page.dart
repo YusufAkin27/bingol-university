@@ -59,7 +59,7 @@ class _AboutPageState extends State<AboutPage> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
               children: [
-                Text('BÜ Kampüs', style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                Text('BÜ Kampüs', style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                 const SizedBox(height: 4),
                 Text(l.profileVersion(appVersion), style: tx.bodyMedium!.copyWith(color: t.mut)),
                 const SizedBox(height: 16),

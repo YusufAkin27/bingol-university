@@ -131,7 +131,7 @@ class _PushHelpPageState extends State<PushHelpPage> with WidgetsBindingObserver
         Expanded(
           child: Text(
             good ? l.p21HelpAllGood : l.p21HelpSomeIssue,
-            style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: good ? t.ink : t.onWarnSoft),
+            style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: good ? t.ink : t.onWarnSoft),
           ),
         ),
       ]),
@@ -155,7 +155,7 @@ class _PushHelpPageState extends State<PushHelpPage> with WidgetsBindingObserver
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(title, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+              Text(title, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
               const SizedBox(height: 4),
               Text(body, style: tx.bodyMedium!.copyWith(color: t.mut)),
             ]),

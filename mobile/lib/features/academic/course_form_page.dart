@@ -100,7 +100,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
             Row(children: [
               AkadIconTile(icon: BuIcons.triangleAlert, bg: t.soft, fg: t.pr, size: 44, radius: 22, iconSize: 20),
               const SizedBox(width: 12),
-              Expanded(child: Semantics(header: true, child: Text(l.acadTimeConflictTitle, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)))),
+              Expanded(child: Semantics(header: true, child: Text(l.acadTimeConflictTitle, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink)))),
             ]),
             const SizedBox(height: 14),
             Text(serverMessage ?? l.p17ConflictIntro, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
@@ -112,7 +112,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(c.course.name, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+                    Text(c.course.name, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
                     const SizedBox(height: 4),
                     Row(children: [
                       Icon(BuIcons.clock, size: 14, color: t.mut),
@@ -130,7 +130,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
                       ),
                   ]),
                 ),
-              if (own) Text(l.acadTimeOwnConflict, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.danger)),
+              if (own) Text(l.acadTimeOwnConflict, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w400, color: t.danger)),
             ],
             const SizedBox(height: 16),
             Row(children: [
@@ -263,7 +263,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
                   trailing: _color == null
                       ? null
                       : Text(l.p17ColorSelected(acadColorName(l, _color!)),
-                          maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.prText))),
+                          maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: t.prText))),
               Row(children: [for (final k in courseColorKeys) Expanded(child: _swatch(t, k))]),
               const SizedBox(height: 4),
               Row(children: [
@@ -313,7 +313,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
                 child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Icon(BuIcons.circlePlus, size: 20, color: t.mut),
                   const SizedBox(width: 8),
-                  Flexible(child: Text(l.acadTimeAddSession, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.mut))),
+                  Flexible(child: Text(l.acadTimeAddSession, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: t.mut))),
                 ]),
               ),
             ),
@@ -364,7 +364,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
             Row(children: [
               Icon(BuIcons.circleAlert, size: 18, color: t.onSoft),
               const SizedBox(width: 8),
-              Expanded(child: Text(l.p17CheckFields, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w800, color: t.onSoft))),
+              Expanded(child: Text(l.p17CheckFields, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w400, color: t.onSoft))),
             ]),
             const SizedBox(height: 8),
             for (final e in _bandErrors())
@@ -438,7 +438,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
         Row(children: [
           Container(width: 8, height: 8, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle)),
           const SizedBox(width: 8),
-          Expanded(child: Text(l.acadTimeSessionN((i + 1).toString()), style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
+          Expanded(child: Text(l.acadTimeSessionN((i + 1).toString()), style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
           if (_sessions.length > 1)
             TextButton.icon(
               style: TextButton.styleFrom(foregroundColor: t.danger, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 8)),
@@ -447,7 +447,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
                 _endErrors.clear();
               }),
               icon: const Icon(BuIcons.trash2, size: 16),
-              label: Text(l.acadTimeRemoveSession, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.danger)),
+              label: Text(l.acadTimeRemoveSession, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: t.danger)),
             ),
         ]),
         const SizedBox(height: 12),

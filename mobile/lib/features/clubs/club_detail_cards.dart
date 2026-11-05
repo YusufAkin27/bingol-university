@@ -63,7 +63,7 @@ class ClubPostCard extends StatelessWidget {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text((p['authorName'] ?? '').toString(),
-                            maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+                            maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                         if (badge != null) badge,
                       ],
                     ),
@@ -104,7 +104,7 @@ class ClubPostCard extends StatelessWidget {
                 children: [
                   ExcludeSemantics(child: Icon(BuIcons.heart, size: 20, color: p['liked'] == true ? t.pr : t.mut)),
                   const SizedBox(width: 8),
-                  Text(context.l10n.p11LikeCount('$likes'), style: tx.labelLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
+                  Text(context.l10n.p11LikeCount('$likes'), style: tx.labelLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
                 ],
               ),
             ),
@@ -131,7 +131,7 @@ class _PinnedPill extends StatelessWidget {
         children: [
           ExcludeSemantics(child: Icon(BuIcons.pin, size: 14, color: t.onSoft)),
           const SizedBox(width: 4),
-          Text(label, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.onSoft, fontWeight: FontWeight.w700)),
+          Text(label, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.onSoft, fontWeight: FontWeight.w400)),
         ],
       ),
     );
@@ -177,7 +177,7 @@ class ClubMemberTile extends StatelessWidget {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text((m['displayName'] ?? nameFallback ?? context.l10n.clubUser).toString(),
-                        maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+                        maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                     if (badge != null) badge,
                   ],
                 ),
@@ -410,7 +410,7 @@ class _TonalPill extends StatelessWidget {
                   child: Text(label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                      style: Theme.of(context).textTheme.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                 ),
               ],
             ),

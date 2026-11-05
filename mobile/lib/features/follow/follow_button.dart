@@ -237,7 +237,7 @@ class _FollowStateButtonState extends State<FollowStateButton> {
                   style: Theme.of(context)
                       .textTheme
                       .labelLarge!
-                      .copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: none ? t.onPr : (req ? t.mut : t.onSoft))),
+                      .copyWith(fontSize: 14, fontWeight: FontWeight.w400, color: none ? t.onPr : (req ? t.mut : t.onSoft))),
             ),
           ),
         ),
@@ -284,7 +284,7 @@ class _FollowStateButtonState extends State<FollowStateButton> {
                         style: Theme.of(context)
                             .textTheme
                             .labelLarge!
-                            .copyWith(fontWeight: FontWeight.w700, color: on ? t.onPr : t.ink),
+                            .copyWith(fontWeight: FontWeight.w400, color: on ? t.onPr : t.ink),
                       ),
                     ),
                   ],
@@ -325,7 +325,7 @@ class _FollowStateButtonState extends State<FollowStateButton> {
                 style: Theme.of(context)
                     .textTheme
                     .labelMedium
-                    ?.copyWith(color: none ? t.onMedia : t.onMedia.withValues(alpha: .8), fontSize: 13, fontWeight: FontWeight.w600)),
+                    ?.copyWith(color: none ? t.onMedia : t.onMedia.withValues(alpha: .8), fontSize: 13, fontWeight: FontWeight.w400)),
           ),
         ),
       ),
@@ -360,7 +360,7 @@ class _FollowStateButtonState extends State<FollowStateButton> {
                 style: Theme.of(context)
                     .textTheme
                     .labelMedium
-                    ?.copyWith(color: none ? t.ink : t.mut, fontSize: 13, fontWeight: FontWeight.w600)),
+                    ?.copyWith(color: none ? t.ink : t.mut, fontSize: 13, fontWeight: FontWeight.w400)),
           ),
         ),
       ),

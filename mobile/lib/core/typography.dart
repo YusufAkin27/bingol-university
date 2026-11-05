@@ -33,22 +33,22 @@ abstract final class BuType {
   static const family = 'Inter';
 
   /// Büyük sayfa başlığı (giriş ekranı, profil adı).
-  static const display = TextStyle(fontFamily: family, fontSize: BuScale.display, fontWeight: FontWeight.w700, height: 1.25);
+  static const display = TextStyle(fontFamily: family, fontSize: BuScale.display, fontWeight: FontWeight.w400, height: 1.25);
 
   /// Sayfa/AppBar başlığı.
-  static const title = TextStyle(fontFamily: family, fontSize: BuScale.title, fontWeight: FontWeight.w700, height: 1.3);
+  static const title = TextStyle(fontFamily: family, fontSize: BuScale.title, fontWeight: FontWeight.w400, height: 1.3);
 
   /// Bölüm başlığı, kart başlığı.
-  static const heading = TextStyle(fontFamily: family, fontSize: BuScale.heading, fontWeight: FontWeight.w700, height: 1.3);
+  static const heading = TextStyle(fontFamily: family, fontSize: BuScale.heading, fontWeight: FontWeight.w400, height: 1.3);
 
   /// Gövde metni (mesaj, haber özeti, form alanı).
   static const body = TextStyle(fontFamily: family, fontSize: BuScale.body, fontWeight: FontWeight.w400, height: 1.4);
 
   /// Vurgulu gövde (liste satırı başlığı, düğme).
-  static const bodyStrong = TextStyle(fontFamily: family, fontSize: BuScale.body, fontWeight: FontWeight.w600, height: 1.4);
+  static const bodyStrong = TextStyle(fontFamily: family, fontSize: BuScale.body, fontWeight: FontWeight.w400, height: 1.4);
 
   /// Etiket, ikincil satır, çip.
-  static const label = TextStyle(fontFamily: family, fontSize: BuScale.label, fontWeight: FontWeight.w600, height: 1.35);
+  static const label = TextStyle(fontFamily: family, fontSize: BuScale.label, fontWeight: FontWeight.w400, height: 1.35);
 
   /// Açıklama, yardımcı metin, saat, rozet; en küçük metin (eski `micro` bununla birleşti;
   /// saat/rozet için `caption.copyWith(fontWeight: FontWeight.w500)`).

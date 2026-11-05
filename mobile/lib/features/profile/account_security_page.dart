@@ -177,7 +177,7 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
                           key: const ValueKey('sec-email'),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: t.ink)),
+                          style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w400, color: t.ink)),
                       const SizedBox(height: 6),
                       Row(children: [
                         ExcludeSemantics(child: Icon(BuIcons.lock, size: 16, color: t.mut)),

@@ -492,7 +492,7 @@ class _ReelPageState extends State<_ReelPage> {
                       child: Text(p.author.displayName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: tt.titleSmall?.copyWith(color: t.onMedia, fontSize: 15, fontWeight: FontWeight.w600)),
+                          style: tt.titleSmall?.copyWith(color: t.onMedia, fontSize: 15, fontWeight: FontWeight.w400)),
                     ),
                   ]),
                 ),
@@ -617,7 +617,7 @@ class _RailButton extends StatelessWidget {
                   style: Theme.of(context)
                       .textTheme
                       .labelSmall
-                      ?.copyWith(color: t.onMedia, fontWeight: FontWeight.w600, fontFeatures: const [FontFeature.tabularFigures()])),
+                      ?.copyWith(color: t.onMedia, fontWeight: FontWeight.w400, fontFeatures: const [FontFeature.tabularFigures()])),
           ]),
         ),
       ),
@@ -649,7 +649,7 @@ class _Message extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: BuSpace.xxxl),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(title, textAlign: TextAlign.center, style: tt.titleMedium?.copyWith(color: t.onMedia, fontSize: 18, fontWeight: FontWeight.w600)),
+          Text(title, textAlign: TextAlign.center, style: tt.titleMedium?.copyWith(color: t.onMedia, fontSize: 18, fontWeight: FontWeight.w400)),
           BuGap.h6,
           Text(body, textAlign: TextAlign.center, style: tt.bodyLarge?.copyWith(color: t.onMedia.withValues(alpha: .75), fontSize: 15)),
           BuGap.h16,
@@ -658,7 +658,7 @@ class _Message extends StatelessWidget {
               key: a.key,
               onPressed: a.onTap,
               style: TextButton.styleFrom(minimumSize: const Size(BuSize.touch, BuSize.touch), foregroundColor: t.onMedia),
-              child: Text(a.label, style: tt.labelLarge?.copyWith(color: t.onMedia, fontSize: 15, fontWeight: FontWeight.w600)),
+              child: Text(a.label, style: tt.labelLarge?.copyWith(color: t.onMedia, fontSize: 15, fontWeight: FontWeight.w400)),
             ),
         ]),
       ),

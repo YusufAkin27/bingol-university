@@ -211,7 +211,7 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
                       child: ExcludeSemantics(child: Icon(BuIcons.circleAlert, size: 18, color: t.danger)),
                     ),
                     const SizedBox(width: 8),
-                    Expanded(child: Text(_error!, style: tx.bodyMedium!.copyWith(color: t.danger, fontWeight: FontWeight.w600))),
+                    Expanded(child: Text(_error!, style: tx.bodyMedium!.copyWith(color: t.danger, fontWeight: FontWeight.w400))),
                   ]),
                 ),
               ),
@@ -246,7 +246,7 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                       Text('${widget.event['title'] ?? ''}',
-                          maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                          maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
                       const SizedBox(height: 4),
                       Row(children: [
                         ExcludeSemantics(child: Icon(BuIcons.users, size: 14, color: t.mut)),
@@ -279,9 +279,9 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
                 padding: const EdgeInsetsDirectional.only(start: 4, top: 22, bottom: 8),
                 child: Row(children: [
                   Expanded(
-                    child: Text(l.p16SetCapLabel, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                    child: Text(l.p16SetCapLabel, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
                   ),
-                  Text(l.p16SetCapCurrent('$_going'), style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.prText)),
+                  Text(l.p16SetCapCurrent('$_going'), style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: t.prText)),
                 ]),
               ),
               BuCard(
@@ -303,10 +303,10 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
                           enabled: !_busy,
                           keyboardType: TextInputType.number,
                           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                          style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, color: capErr != null ? t.danger : t.ink),
+                          style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: capErr != null ? t.danger : t.ink),
                           decoration: InputDecoration(
                             hintText: l.etkinlik2Unlimited,
-                            hintStyle: tx.titleMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut),
+                            hintStyle: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.mut),
                             filled: false,
                             border: InputBorder.none,
                             enabledBorder: InputBorder.none,
@@ -340,7 +340,7 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Expanded(child: Text(capErr, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.danger))),
+                          Expanded(child: Text(capErr, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: t.danger))),
                         ]),
                       ),
                     ),
@@ -397,7 +397,7 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(l.eventFormCancelTitle, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                        Text(l.eventFormCancelTitle, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                         const SizedBox(height: 2),
                         Text(l.etkinlik2SettingsCancelBody('$_going'), style: tx.bodySmall!.copyWith(height: 1.4, color: t.mut)),
                       ]),
@@ -466,7 +466,7 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
             const SizedBox(width: 14),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                Text(title, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: selected ? t.onSoft : t.ink)),
+                Text(title, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: selected ? t.onSoft : t.ink)),
                 const SizedBox(height: 2),
                 Text(sub, style: tx.bodySmall!.copyWith(height: 1.35, color: selected ? t.onSoft.withValues(alpha: .85) : t.mut)),
               ]),
@@ -498,7 +498,7 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
           Et2IconBox(icon, size: 40, tint: tint),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(title, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+            child: Text(title, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
           ),
           Et2Toggle(key: ValueKey(keyName), value: value, label: title, onChanged: _busy ? null : onChanged),
         ]),
@@ -585,7 +585,7 @@ class _CancelDialog extends StatelessWidget {
           const SizedBox(height: 14),
           Semantics(
             header: true,
-            child: Text(title, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+            child: Text(title, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
           ),
           const SizedBox(height: 8),
           Text(message, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(height: 1.4, color: t.mut)),

@@ -133,7 +133,7 @@ class _AvatarPreview extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                        color: t.onMedia, fontWeight: FontWeight.w700),
+                        color: t.onMedia, fontWeight: FontWeight.w400),
                   ),
                 ),
               ]),

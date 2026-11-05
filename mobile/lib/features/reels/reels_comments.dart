@@ -344,7 +344,7 @@ class _ReelsCommentsSheetState extends State<ReelsCommentsSheet> {
           Padding(
             padding: const EdgeInsets.fromLTRB(BuSpace.page, 0, BuSpace.page, 8),
             child: Row(children: [
-              Expanded(child: Semantics(header: true, child: Text('${l.kesCommentsTitle} ($_count)', style: tt.titleMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w700)))),
+              Expanded(child: Semantics(header: true, child: Text('${l.kesCommentsTitle} ($_count)', style: tt.titleMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w400)))),
               // Sıralama: En iyi (beğeni) | Yeni. Sıralama değişince liste baştan, imleçsiz yüklenir.
               BuChip(
                   key: const ValueKey('commentsSortTop'), label: l.kesCommentsSortTop, selected: _sort == 'top', onTap: () => _setSort('top')),
@@ -527,21 +527,21 @@ class _CommentRow extends StatelessWidget {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text.rich(
               TextSpan(children: [
-                TextSpan(text: c.authorName, style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
-                if (c.byPostAuthor) TextSpan(text: '  ${l.kesCommentsAuthorBadge}', style: tt.labelSmall?.copyWith(color: t.prText, fontWeight: FontWeight.w700)),
+                TextSpan(text: c.authorName, style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
+                if (c.byPostAuthor) TextSpan(text: '  ${l.kesCommentsAuthorBadge}', style: tt.labelSmall?.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
                 TextSpan(text: '  ${postRelativeTime(context, c.createdAt)}', style: tt.bodySmall?.copyWith(color: t.mut)),
               ]),
             ),
             const SizedBox(height: 2),
             Text.rich(TextSpan(children: [
-              if (c.replyToName != null) TextSpan(text: '@${c.replyToName} ', style: tt.bodyMedium?.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
+              if (c.replyToName != null) TextSpan(text: '@${c.replyToName} ', style: tt.bodyMedium?.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
               TextSpan(text: c.text),
             ]), style: tt.bodyMedium?.copyWith(color: t.ink, height: 1.35)),
             Row(children: [
               TextButton(
                 onPressed: onReply,
                 style: TextButton.styleFrom(minimumSize: const Size(BuSize.touch, 36), foregroundColor: t.mut, padding: EdgeInsets.zero),
-                child: Text(l.kesCommentsReply, style: tt.labelMedium?.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
+                child: Text(l.kesCommentsReply, style: tt.labelMedium?.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
               ),
               if (onReport != null)
                 IconButton(

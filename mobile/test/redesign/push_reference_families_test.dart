@@ -221,7 +221,7 @@ void main() {
                     const Text('09:41',
                         style: TextStyle(
                             fontSize: 58,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w400,
                             color: Colors.white)),
                     const SizedBox(height: 24),
                     for (final item in entry.value)

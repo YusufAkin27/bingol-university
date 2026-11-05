@@ -136,7 +136,7 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
                                     child: Text(countdown,
                                         style: TextStyle(
                                             color: t.danger,
-                                            fontWeight: FontWeight.w700))),
+                                            fontWeight: FontWeight.w400))),
                               ]),
                               if (_alarm != null)
                                 Semantics(
@@ -177,7 +177,7 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
                                                     color: t.ink,
                                                     fontSize: 13,
                                                     fontWeight:
-                                                        FontWeight.w600))),
+                                                        FontWeight.w400))),
                                           ]),
                                     ),
                                   ),
@@ -200,7 +200,7 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
                                   Text(examTypeLabelL(l, exam.type),
                                       style: TextStyle(
                                           color: t.onMedia.withValues(alpha: .7),
-                                          fontWeight: FontWeight.w700)),
+                                          fontWeight: FontWeight.w400)),
                                   if (duration != null && duration > 0)
                                     Text(
                                         l.bildirimShortMin(duration.toString()),
@@ -217,7 +217,7 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
                                     color: t.onMedia,
                                     fontSize: 24,
                                     height: 1.2,
-                                    fontWeight: FontWeight.w800)),
+                                    fontWeight: FontWeight.w400)),
                             Padding(
                                 padding: const EdgeInsets.symmetric(vertical: 10),
                                 child: Divider(color: t.onMedia.withValues(alpha: .24))),
@@ -229,7 +229,7 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
                                   child: Text(fmtInstantL(l, exam.startsAt),
                                       style: TextStyle(
                                           color: t.onMedia,
-                                          fontWeight: FontWeight.w700))),
+                                          fontWeight: FontWeight.w400))),
                             ]),
                             if (exam.endsAt != null)
                               Padding(

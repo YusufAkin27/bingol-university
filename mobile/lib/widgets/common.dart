@@ -179,7 +179,7 @@ class SectionHeader extends StatelessWidget {
                 style: Theme.of(context)
                     .textTheme
                     .titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w700)),
+                    ?.copyWith(fontWeight: FontWeight.w400)),
           ),
           if (action != null) TextButton(onPressed: onAction, child: Text(action!)),
         ],

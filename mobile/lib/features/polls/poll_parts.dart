@@ -96,7 +96,7 @@ class ResultBar extends StatelessWidget {
     final lead = top && percent > 0;
     final fill = (mine || lead) ? t.pr : Color.alphaBlend(t.mut.withValues(alpha: .18), t.sf2);
     final frac = (percent / 100).clamp(0, 1).toDouble();
-    final name = tx.bodyLarge!.copyWith(fontSize: 16, color: t.ink, fontWeight: (mine || lead) ? FontWeight.w700 : FontWeight.w400, height: 1.3);
+    final name = tx.bodyLarge!.copyWith(fontSize: 16, color: t.ink, fontWeight: (mine || lead) ? FontWeight.w400 : FontWeight.w400, height: 1.3);
     final small = tx.bodySmall!.copyWith(color: t.mut, fontSize: 12, height: 1.35);
     return Semantics(
       label: [
@@ -114,7 +114,7 @@ class ResultBar extends StatelessWidget {
             Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
               Expanded(child: Text(text, style: name)),
               const SizedBox(width: 12),
-              BuCountUp(value: pct, format: pollPercentText, style: name.copyWith(fontWeight: FontWeight.w700, fontFeatures: const [FontFeature.tabularFigures()])),
+              BuCountUp(value: pct, format: pollPercentText, style: name.copyWith(fontWeight: FontWeight.w400, fontFeatures: const [FontFeature.tabularFigures()])),
             ]),
             const SizedBox(height: 5),
             ClipRRect(
@@ -256,7 +256,7 @@ class PollCard extends StatelessWidget {
                   Row(mainAxisSize: MainAxisSize.min, children: [
                     ExcludeSemantics(child: Icon(BuIcons.circleCheck, size: 16, color: t.ok)),
                     const SizedBox(width: 4),
-                    Text(l.pollVotedBadge, maxLines: 1, style: small.copyWith(color: t.ok, fontWeight: FontWeight.w600)),
+                    Text(l.pollVotedBadge, maxLines: 1, style: small.copyWith(color: t.ok, fontWeight: FontWeight.w400)),
                   ]),
               ]),
             ],

@@ -532,7 +532,7 @@ class _StatusBar extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(36, 17, 28, 0),
             child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
               const Text('9:41',
-                  style: TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w700, color: c, decoration: TextDecoration.none)),
+                  style: TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w400, color: c, decoration: TextDecoration.none)),
               const Spacer(),
               // sinyal çubukları
               Row(crossAxisAlignment: CrossAxisAlignment.end, children: [

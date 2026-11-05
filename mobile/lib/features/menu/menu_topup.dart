@@ -60,7 +60,7 @@ class _MenuTopUpCardState extends State<MenuTopUpCard> {
                 child: Semantics(
                   header: true,
                   child: Text(l.menuTopUpTitle,
-                      style: BuType.caption.copyWith(fontSize: 17, height: 1.3, fontWeight: FontWeight.w600, color: t.ink)),
+                      style: BuType.caption.copyWith(fontSize: 17, height: 1.3, fontWeight: FontWeight.w400, color: t.ink)),
                 ),
               ),
             ]),

@@ -371,7 +371,7 @@ class HomeSectionHeader extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: BuType.title.copyWith(
                         fontSize: 20,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w400,
                         letterSpacing: -.2,
                         color: t.ink)),
               ),
@@ -460,7 +460,7 @@ class HomeEmptyHome extends StatelessWidget {
             child: Text(title,
                 textAlign: TextAlign.center,
                 style: BuType.title.copyWith(
-                    fontSize: 18, fontWeight: FontWeight.w600, color: t.ink))),
+                    fontSize: 18, fontWeight: FontWeight.w400, color: t.ink))),
         const SizedBox(height: 8),
         Text(subtitle,
             textAlign: TextAlign.center,
@@ -533,7 +533,7 @@ class HomeTodayCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                               style: BuType.caption.copyWith(
                                   fontSize: 11,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w400,
                                   letterSpacing: arabic ? 0 : .6,
                                   color: t.mut)),
                           const SizedBox(height: 3),
@@ -542,7 +542,7 @@ class HomeTodayCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                               style: BuType.body.copyWith(
                                   fontSize: 14,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w400,
                                   height: 1.3,
                                   color: row.muted ? t.mut : t.ink)),
                         ])),
@@ -672,7 +672,7 @@ class HomeMenuCard extends StatelessWidget {
                     child: Text(totalText!,
                         style: BuType.label.copyWith(
                             fontSize: 13,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w400,
                             color: t.onSoft,
                             fontFeatures: tab)),
                   ),
@@ -748,7 +748,7 @@ class HomeClassList extends StatelessWidget {
                 child: Text(rows[i].time,
                     maxLines: 1,
                     style: BuType.body.copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w400,
                         color: t.ink,
                         fontFeatures: const [FontFeature.tabularFigures()])),
               ),
@@ -834,7 +834,7 @@ class HomeEventList extends StatelessWidget {
                     maxLines: 1,
                     style: BuType.title.copyWith(
                         fontSize: 20,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w400,
                         height: 1.1,
                         color: t.onSoft,
                         fontFeatures: const [FontFeature.tabularFigures()])),
@@ -842,7 +842,7 @@ class HomeEventList extends StatelessWidget {
                     maxLines: 1,
                     style: BuType.caption.copyWith(
                         fontSize: 11,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w400,
                         letterSpacing: .6,
                         color: t.onSoft)),
               ]),
@@ -857,7 +857,7 @@ class HomeEventList extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: BuType.body.copyWith(
                             fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w400,
                             height: 1.25,
                             color: t.ink)),
                     if (rows[i].host.isNotEmpty) ...[
@@ -1105,7 +1105,7 @@ class HomeBrandHeader extends StatelessWidget {
           Text('BÜ Kampüs',
               maxLines: 1,
               style: BuType.title.copyWith(
-                  fontSize: 18, fontWeight: FontWeight.w700, color: t.ink)),
+                  fontSize: 18, fontWeight: FontWeight.w400, color: t.ink)),
           const SizedBox(height: 3),
           Text(context.l10n.homeBrandSubtitle,
               maxLines: 2,
@@ -1129,7 +1129,7 @@ class HomeBrandHeader extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: BuType.display.copyWith(
                               fontSize: 28,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w400,
                               letterSpacing: -.8,
                               height: 1.2,
                               color: t.ink)))),
@@ -1290,7 +1290,7 @@ class HomeNewsCard extends StatelessWidget {
                                 maxLines: 1,
                                 style: BuType.label.copyWith(
                                     fontSize: 12,
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w400,
                                     color: t.prPressed)),
                           ),
                         ),
@@ -1306,7 +1306,7 @@ class HomeNewsCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                               style: BuType.body.copyWith(
                                   fontSize: 16,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w400,
                                   height: 1.3,
                                   color: t.ink)),
                           const SizedBox(height: 10),

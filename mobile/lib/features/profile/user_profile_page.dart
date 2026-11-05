@@ -306,7 +306,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       child: Row(children: [
                         AkadIconTile(icon: icon, bg: danger ? t.pr : t.sf, fg: danger ? t.onPr : t.ink, size: 40, radius: 12, iconSize: 20),
                         const SizedBox(width: 14),
-                        Expanded(child: Text(label, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: danger ? t.onSoft : t.ink))),
+                        Expanded(child: Text(label, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: danger ? t.onSoft : t.ink))),
                         Icon(buDirIcon(context, BuIcons.chevronRight), size: 18, color: danger ? t.pr : t.mut),
                       ]),
                     ),
@@ -320,7 +320,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             child: Row(children: [
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Semantics(header: true, child: Text(l.icerikUserMenu, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
+                  Semantics(header: true, child: Text(l.icerikUserMenu, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
                   Text(_name, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(color: t.mut)),
                 ]),
               ),
@@ -398,7 +398,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
                   Icon(BuIcons.userX, size: 36, color: t.mut),
                   const SizedBox(height: 12),
-                  Text(l.profileNotFound, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+                  Text(l.profileNotFound, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
                   const SizedBox(height: 16),
                   BuButton(label: l.commonBack, kind: BuButtonKind.soft, compact: true, onPressed: () => Navigator.maybePop(context)),
                 ]),
@@ -429,7 +429,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             child: Row(children: [
               Icon(BuIcons.shieldBan, size: 20, color: t.onSoft),
               const SizedBox(width: 12),
-              Expanded(child: Text(l.profileBlocked, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.onSoft))),
+              Expanded(child: Text(l.profileBlocked, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: t.onSoft))),
             ]),
           ),
           const SizedBox(height: 12),
@@ -457,7 +457,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             const SizedBox(height: 12),
             Semantics(
               header: true,
-              child: Text(_name, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+              child: Text(_name, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
             ),
             if (_blocked && dept.isNotEmpty) ...[
               const SizedBox(height: 4),
@@ -595,7 +595,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Text(n,
             key: followers == null ? null : ValueKey(followers ? 'followerCount' : 'followingCount'),
-            style: tx.titleLarge!.copyWith(fontSize: 20, fontWeight: FontWeight.w800, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()])),
+            style: tx.titleLarge!.copyWith(fontSize: 20, fontWeight: FontWeight.w400, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()])),
         Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
       ]),
     );
@@ -630,7 +630,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     if (rows.isEmpty && bio.isEmpty) return const SizedBox.shrink();
     return _card(
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Semantics(header: true, child: Text(lockedAll ? l.p20AcademicInfo : l.profileAboutShort, style: tx.titleMedium!.copyWith(fontSize: 18, fontWeight: FontWeight.w800, color: t.ink))),
+        Semantics(header: true, child: Text(lockedAll ? l.p20AcademicInfo : l.profileAboutShort, style: tx.titleMedium!.copyWith(fontSize: 18, fontWeight: FontWeight.w400, color: t.ink))),
         if (bio.isNotEmpty && !lockedAll) ...[
           const SizedBox(height: 10),
           Text(bio, style: tx.bodyMedium!.copyWith(fontSize: 15, color: t.mut, height: 1.6)),
@@ -639,7 +639,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         for (var i = 0; i < rows.length; i++) ...[if (i > 0) const SizedBox(height: 12), rows[i]],
         if (lockedAll) ...[
           const SizedBox(height: 16),
-          Text(akadUpper(context, l.profileAboutShort), style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: t.mut)),
+          Text(akadUpper(context, l.profileAboutShort), style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w400, color: t.mut)),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.all(14),
@@ -668,15 +668,15 @@ class _UserProfilePageState extends State<UserProfilePage> {
       excludeSemantics: true,
       child: hidden
           ? Row(children: [
-              Expanded(child: Text(label, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w600, color: t.mut))),
+              Expanded(child: Text(label, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: t.mut))),
               Icon(BuIcons.lock, size: 14, color: t.mut),
               const SizedBox(width: 4),
-              Text(context.l10n.icerikHidden, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.mut)),
+              Text(context.l10n.icerikHidden, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: t.mut)),
             ])
           : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(label, style: tx.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.mut)),
               const SizedBox(height: 4),
-              Text(value, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontSize: 15, fontWeight: FontWeight.w700, color: t.ink)),
+              Text(value, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontSize: 15, fontWeight: FontWeight.w400, color: t.ink)),
             ]),
     );
   }
@@ -813,7 +813,7 @@ class _AvatarViewer extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.onMedia)),
+              style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.onMedia)),
         ),
       ]),
     );

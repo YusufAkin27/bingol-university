@@ -17,7 +17,7 @@ class BuComponentThemes {
   final ColorScheme cs;
   final TextTheme tx;
 
-  TextStyle get _label => tx.labelLarge!.copyWith(fontWeight: FontWeight.w600);
+  TextStyle get _label => tx.labelLarge!.copyWith(fontWeight: FontWeight.w400);
   TextStyle get _body => tx.bodyMedium!;
   RoundedRectangleBorder get _md => BuRadius.rect(BuRadius.md);
   RoundedRectangleBorder get _ctl => BuRadius.rect(BuRadius.control);
@@ -111,7 +111,7 @@ class BuComponentThemes {
         labelTextStyle: WidgetStateProperty.resolveWith(
           (s) => tx.labelMedium!.copyWith(
             color: s.contains(WidgetState.selected) ? t.ink : t.mut,
-            fontWeight: s.contains(WidgetState.selected) ? FontWeight.w700 : FontWeight.w500,
+            fontWeight: s.contains(WidgetState.selected) ? FontWeight.w400 : FontWeight.w500,
           ),
         ),
       );
@@ -149,7 +149,7 @@ class BuComponentThemes {
   TabBarThemeData get tabBar => TabBarThemeData(
         labelColor: t.ink,
         unselectedLabelColor: t.mut,
-        labelStyle: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700),
+        labelStyle: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400),
         unselectedLabelStyle: tx.titleSmall!.copyWith(fontWeight: FontWeight.w500),
         indicatorColor: t.pr,
         indicatorSize: TabBarIndicatorSize.label,
@@ -271,7 +271,7 @@ class BuComponentThemes {
       focusedErrorBorder: border(t.danger, 2),
       hintStyle: _body.copyWith(color: t.mut),
       labelStyle: _body.copyWith(color: t.mut),
-      floatingLabelStyle: tx.bodySmall!.copyWith(color: t.pr, fontWeight: FontWeight.w600),
+      floatingLabelStyle: tx.bodySmall!.copyWith(color: t.pr, fontWeight: FontWeight.w400),
       helperStyle: tx.bodySmall!.copyWith(color: t.mut),
       errorStyle: tx.bodySmall!.copyWith(color: t.danger),
       prefixIconColor: t.mut,
@@ -367,7 +367,7 @@ class BuComponentThemes {
         smallSize: 8,
         largeSize: 18,
         padding: const EdgeInsets.symmetric(horizontal: 5),
-        textStyle: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700),
+        textStyle: tx.labelSmall!.copyWith(fontWeight: FontWeight.w400),
       );
 
   // --- Çip ve liste -------------------------------------------------------------------------------------
@@ -397,7 +397,7 @@ class BuComponentThemes {
         minLeadingWidth: 24,
         iconColor: t.mut,
         textColor: t.ink,
-        titleTextStyle: tx.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w600),
+        titleTextStyle: tx.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400),
         subtitleTextStyle: tx.bodyMedium!.copyWith(color: t.mut),
         leadingAndTrailingTextStyle: tx.labelMedium!.copyWith(color: t.mut),
         selectedColor: t.onSoft,

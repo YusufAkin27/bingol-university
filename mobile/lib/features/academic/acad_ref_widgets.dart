@@ -68,7 +68,7 @@ class AcadTabs extends StatelessWidget {
                         child: AnimatedDefaultTextStyle(
                           duration: BuMotion.of(context, BuMotion.short),
                           curve: BuMotion.standard,
-                          style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: on ? FontWeight.w700 : FontWeight.w500, color: on ? t.ink : t.mut),
+                          style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: on ? FontWeight.w400 : FontWeight.w500, color: on ? t.ink : t.mut),
                           child: Text(labels[i], maxLines: 1, softWrap: false),
                         ),
                       ),
@@ -97,7 +97,7 @@ class AcadTabs extends StatelessWidget {
 
 /// `pr` metin eylemi (kutusuz): 14 sp/600, dokunma alanı >= 48 dp.
 class AcadTextAction extends StatelessWidget {
-  const AcadTextAction(this.label, {super.key, required this.onTap, this.size = 14, this.weight = FontWeight.w600, this.color, this.semanticLabel, this.top = false});
+  const AcadTextAction(this.label, {super.key, required this.onTap, this.size = 14, this.weight = FontWeight.w400, this.color, this.semanticLabel, this.top = false});
 
   final String label;
   final VoidCallback? onTap;
@@ -200,7 +200,7 @@ class AcadLabeled extends StatelessWidget {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Padding(
         padding: EdgeInsetsDirectional.only(bottom: gap),
-        child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(fontSize: 13.5, fontWeight: FontWeight.w600, color: t.ink)),
+        child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(fontSize: 13.5, fontWeight: FontWeight.w400, color: t.ink)),
       ),
       child,
       AnimatedSize(
@@ -360,7 +360,7 @@ class AcadAmberNote extends StatelessWidget {
         decoration: BoxDecoration(color: t.warnSoft, borderRadius: BuRadius.bMd),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(text, style: tx.bodyLarge!.copyWith(color: t.onWarnSoft, height: 1.4)),
-          if (actionLabel != null) AcadTextAction(actionLabel!, onTap: onAction, size: 15, weight: FontWeight.w700) else const SizedBox(height: 12),
+          if (actionLabel != null) AcadTextAction(actionLabel!, onTap: onAction, size: 15, weight: FontWeight.w400) else const SizedBox(height: 12),
         ]),
       ),
     );
@@ -383,7 +383,7 @@ class AcadStateText extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(20, top, 20, 8),
       child: Column(children: [
         Semantics(liveRegion: true, child: Text(text, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.mut))),
-        if (actionLabel != null) AcadTextAction(actionLabel!, onTap: onAction, size: 15, weight: FontWeight.w700),
+        if (actionLabel != null) AcadTextAction(actionLabel!, onTap: onAction, size: 15, weight: FontWeight.w400),
       ]),
     );
   }

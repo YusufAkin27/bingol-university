@@ -132,7 +132,7 @@ class _ClubRequestsPageState extends State<ClubRequestsPage> {
               child: Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12),
                 child: Text(l.clubMgmtWaitingCount('$waiting${_next != null ? '+' : ''}'),
-                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
+                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
               ),
             ),
           BuStaggerScope(
@@ -261,7 +261,7 @@ class _RequestTileState extends State<_RequestTile> with SingleTickerProviderSta
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text((r['displayName'] ?? l.clubMgmtUser).toString(),
-                              maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+                              maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                           if (sub.isNotEmpty)
                             Text(sub, style: tx.bodySmall!.copyWith(color: t.mut)),
                         ],
@@ -272,7 +272,7 @@ class _RequestTileState extends State<_RequestTile> with SingleTickerProviderSta
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bPill),
-                        child: Text(when, maxLines: 1, style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
+                        child: Text(when, maxLines: 1, style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
                       ),
                     ],
                   ],
@@ -300,7 +300,7 @@ class _RequestTileState extends State<_RequestTile> with SingleTickerProviderSta
                                 child: ExcludeSemantics(child: Icon(BuIcons.circleHelp, size: 14, color: t.mut)),
                               ),
                               const SizedBox(width: 6),
-                              Expanded(child: Text((answers[i]['question'] ?? '').toString(), style: tx.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w700))),
+                              Expanded(child: Text((answers[i]['question'] ?? '').toString(), style: tx.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w400))),
                             ],
                           ),
                           const SizedBox(height: 4),

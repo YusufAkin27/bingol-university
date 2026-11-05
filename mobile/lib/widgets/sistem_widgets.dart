@@ -71,7 +71,7 @@ class SistemButton extends StatelessWidget {
     final primary = kind == SistemButtonKind.primary;
     final fg = primary ? t.onPr : (kind == SistemButtonKind.link ? t.mut : t.ink);
     final style = (primary ? BuType.body.copyWith(fontSize: BuScale.bodyLarge) : BuType.bodyStrong)
-        .copyWith(color: fg, fontWeight: FontWeight.w600, fontSize: fontSize);
+        .copyWith(color: fg, fontWeight: FontWeight.w400, fontSize: fontSize);
     final enabled = onPressed != null && !busy;
     final deco = BoxDecoration(
       color: primary ? t.pr : Colors.transparent,

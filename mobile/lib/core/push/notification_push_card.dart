@@ -347,20 +347,20 @@ class NotificationPushCard extends StatelessWidget {
             Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 decoration: BoxDecoration(color: t.prPressed, borderRadius: BorderRadius.circular(BuRadius.pill)),
-                child: Text('BU KAMPÜS', style: BuType.caption.copyWith(fontSize: 11, height: 1.2, fontWeight: FontWeight.w800, color: t.onPr)))
+                child: Text('BU KAMPÜS', style: BuType.caption.copyWith(fontSize: 11, height: 1.2, fontWeight: FontWeight.w400, color: t.onPr)))
           else ...[
             Container(
                 width: 18,
                 height: 18,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(color: t.prPressed, shape: BoxShape.circle),
-                child: Text('BU', style: BuType.caption.copyWith(fontSize: 8, height: 1, fontWeight: FontWeight.w800, color: t.onPr))),
+                child: Text('BU', style: BuType.caption.copyWith(fontSize: 8, height: 1, fontWeight: FontWeight.w400, color: t.onPr))),
             const SizedBox(width: 6),
-            Text('BU Kampüs', style: BuType.caption.copyWith(fontSize: 12, height: 1.2, fontWeight: FontWeight.w700, color: t.ink)),
+            Text('BU Kampüs', style: BuType.caption.copyWith(fontSize: 12, height: 1.2, fontWeight: FontWeight.w400, color: t.ink)),
           ],
           if (important && badge == null) ...[
             const SizedBox(width: 5),
-            Text('• ${l.notifBadgeImportant}', style: BuType.caption.copyWith(fontSize: 11, height: 1.2, fontWeight: FontWeight.w800, color: t.danger)),
+            Text('• ${l.notifBadgeImportant}', style: BuType.caption.copyWith(fontSize: 11, height: 1.2, fontWeight: FontWeight.w400, color: t.danger)),
           ],
           const SizedBox(width: 5),
           Expanded(
@@ -378,13 +378,13 @@ class NotificationPushCard extends StatelessWidget {
             const SizedBox(width: 2),
         ]);
 
-    final titleStyle = BuType.caption.copyWith(fontSize: compact ? 15 : 16, height: 1.25, fontWeight: FontWeight.w700, color: t.ink);
+    final titleStyle = BuType.caption.copyWith(fontSize: compact ? 15 : 16, height: 1.25, fontWeight: FontWeight.w400, color: t.ink);
 
     if (compact) {
       final first = actions.first;
       final actionable = chat || style.startsWith('EVENT') || style == 'POLL';
       final subtitle = count > 1
-          ? Text(countLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(fontSize: 13, height: 1.3, fontWeight: FontWeight.w700, color: t.prText))
+          ? Text(countLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(fontSize: 13, height: 1.3, fontWeight: FontWeight.w400, color: t.prText))
           : start != null && style.startsWith('EVENT')
               ? Row(children: [
                   Icon(Icons.schedule, size: 14, color: t.prText),
@@ -483,7 +483,7 @@ class NotificationPushCard extends StatelessWidget {
                     Padding(
                         padding: const EdgeInsets.only(top: 4),
                         child: Wrap(spacing: 8, runSpacing: 2, crossAxisAlignment: WrapCrossAlignment.center, children: [
-                          Text(l.notifNewTime(_hm(newAt)), style: BuType.caption.copyWith(fontSize: 13, height: 1.4, fontWeight: FontWeight.w700, color: t.ink)),
+                          Text(l.notifNewTime(_hm(newAt)), style: BuType.caption.copyWith(fontSize: 13, height: 1.4, fontWeight: FontWeight.w400, color: t.ink)),
                           Text('(${l.notifOldTime(_hm(oldAt))})',
                               style: BuType.caption.copyWith(fontSize: 13, height: 1.4, color: t.mut, decoration: TextDecoration.lineThrough)),
                         ])),

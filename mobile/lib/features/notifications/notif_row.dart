@@ -55,7 +55,7 @@ class NotifRow extends StatelessWidget {
     final radius = BorderRadius.circular(22);
     final timeStyle = BuType.caption.copyWith(fontSize: 12, height: 1.3, color: t.mut);
     final stacked = MediaQuery.textScalerOf(context).scale(10) > 11.5 || MediaQuery.sizeOf(context).width < 340;
-    final sourceStyle = BuType.caption.copyWith(fontSize: 12, height: 1.3, fontWeight: FontWeight.w600, color: t.prText);
+    final sourceStyle = BuType.caption.copyWith(fontSize: 12, height: 1.3, fontWeight: FontWeight.w400, color: t.prText);
     final timeBox = Row(mainAxisSize: MainAxisSize.min, children: [
       Text(time, style: timeStyle),
       const SizedBox(width: 4),
@@ -68,7 +68,7 @@ class NotifRow extends StatelessWidget {
       ),
     ]);
     final titleText = Text.rich(
-      TextSpan(style: BuType.caption.copyWith(fontSize: 16, height: 1.3, fontWeight: FontWeight.w700, color: t.ink), children: [
+      TextSpan(style: BuType.caption.copyWith(fontSize: 16, height: 1.3, fontWeight: FontWeight.w400, color: t.ink), children: [
         TextSpan(text: title),
         if (badge != null)
           WidgetSpan(

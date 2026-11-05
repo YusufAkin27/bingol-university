@@ -50,7 +50,7 @@ class RenderErrorView extends StatelessWidget {
                   const SizedBox(height: 24),
                   Text(l.commonSomethingWentWrong,
                       textAlign: TextAlign.center,
-                      style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700, decoration: TextDecoration.none)),
+                      style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400, decoration: TextDecoration.none)),
                   const SizedBox(height: 8),
                   Text(l.coreErrGeneric,
                       textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.5, decoration: TextDecoration.none)),
@@ -73,7 +73,7 @@ class RenderErrorView extends StatelessWidget {
                           constraints: const BoxConstraints(minHeight: 48),
                           child: Center(
                             child: Text(l.commonRetry,
-                                style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700, decoration: TextDecoration.none)),
+                                style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400, decoration: TextDecoration.none)),
                           ),
                         ),
                       ),
@@ -129,7 +129,7 @@ class ConfigErrorView extends StatelessWidget {
                 Semantics(
                   header: true,
                   child: Text(l.p01ConfigTitle,
-                      textAlign: TextAlign.center, style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+                      textAlign: TextAlign.center, style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                 ),
                 const SizedBox(height: 12),
                 Padding(
@@ -149,7 +149,7 @@ class ConfigErrorView extends StatelessWidget {
                             child: Text(l.p01ConfigCode,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: tx.labelSmall!.copyWith(color: t.mut, letterSpacing: rtl ? 0 : 1.1, fontWeight: FontWeight.w600)),
+                                style: tx.labelSmall!.copyWith(color: t.mut, letterSpacing: rtl ? 0 : 1.1, fontWeight: FontWeight.w400)),
                           ),
                           const SizedBox(width: 8),
                           ExcludeSemantics(child: Icon(BuIcons.squareTerminal, size: 16, color: t.mut)),

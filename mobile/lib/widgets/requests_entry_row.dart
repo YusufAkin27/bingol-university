@@ -47,7 +47,7 @@ class RequestsEntryRow extends StatelessWidget {
                       child: Text(label,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: t.ink)),
+                          style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w400, color: t.ink)),
                     ),
                     const SizedBox(width: 8),
                     Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mut),

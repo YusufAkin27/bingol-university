@@ -172,7 +172,7 @@ class _ClubMembersPageState extends State<ClubMembersPage> {
                           runSpacing: 2,
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
-                            Text(name, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+                            Text(name, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                             if (badge != null) badge,
                           ],
                         ),

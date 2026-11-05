@@ -12,7 +12,7 @@ const double kAnketPad = 20;
 
 /// Satır/başlık yazısı: 17 sp/600 (Stitch satır başlığı; ölçekte 17 yok, yerel boyut).
 TextStyle anketRowTitle(BuildContext context) =>
-    Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w600, color: context.bu.ink, height: 1.3);
+    Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w400, color: context.bu.ink, height: 1.3);
 
 /// Soluk ikincil satır: 14 sp muted.
 TextStyle anketMeta(BuildContext context) =>
@@ -65,7 +65,7 @@ class AnketTextTabs extends StatelessWidget {
                           child: AnimatedDefaultTextStyle(
                             duration: BuMotion.of(context, BuMotion.short),
                             curve: BuMotion.standard,
-                            style: tx.bodyMedium!.copyWith(fontWeight: on ? FontWeight.w600 : FontWeight.w500, color: on ? t.prText : t.mut),
+                            style: tx.bodyMedium!.copyWith(fontWeight: on ? FontWeight.w400 : FontWeight.w500, color: on ? t.prText : t.mut),
                             child: Text(labels[i], maxLines: 1, softWrap: false),
                           ),
                         ),
@@ -134,7 +134,7 @@ class AnketStateLine extends StatelessWidget {
                 style: TextButton.styleFrom(
                     foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: EdgeInsets.zero, alignment: AlignmentDirectional.centerStart),
                 onPressed: onAction,
-                child: Text(actionLabel!, style: tx.titleSmall!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
+                child: Text(actionLabel!, style: tx.titleSmall!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
               ),
             ),
         ]),
@@ -174,7 +174,7 @@ class AnketFieldLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final style = tx.labelLarge!.copyWith(color: t.mut, fontSize: 13, fontWeight: FontWeight.w600);
+    final style = tx.labelLarge!.copyWith(color: t.mut, fontSize: 13, fontWeight: FontWeight.w400);
     return Padding(
       padding: EdgeInsetsDirectional.only(top: top, bottom: bottom),
       child: Row(children: [
@@ -259,7 +259,7 @@ class AnketOutlineButton extends StatelessWidget {
               child: Text(label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: onPressed == null ? t.mut : t.ink, fontWeight: FontWeight.w600)),
+                  style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: onPressed == null ? t.mut : t.ink, fontWeight: FontWeight.w400)),
             ),
           ),
         ),

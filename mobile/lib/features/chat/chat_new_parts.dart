@@ -32,7 +32,7 @@ class NcHeader extends StatelessWidget {
           Expanded(
             child: Semantics(
               header: true,
-              child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+              child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
             ),
           ),
         ]),
@@ -116,7 +116,7 @@ class NcActionCard extends StatelessWidget {
             const SizedBox(width: 14),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+                Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                 const SizedBox(height: 2),
                 Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
               ]),
@@ -160,7 +160,7 @@ class NcPersonRow extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-              Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+              Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
               if (sub.isNotEmpty) ...[
                 const SizedBox(height: 2),
                 // Sağdaki hap genişlik yer: bölüm adı kesilmek yerine 2 satıra iner.
@@ -216,7 +216,7 @@ class NcPillButton extends StatelessWidget {
                 decoration: BoxDecoration(borderRadius: BuRadius.bPill, border: Border.all(color: t.bdStrong)),
                 child: busy
                     ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2.2, color: fg))
-                    : Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(color: fg, fontWeight: FontWeight.w600)),
+                    : Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(color: fg, fontWeight: FontWeight.w400)),
               ),
             ),
           ),
@@ -256,7 +256,7 @@ class NcLabel extends StatelessWidget {
     final t = context.bu;
     return Padding(
       padding: const EdgeInsetsDirectional.fromSTEB(0, 8, 0, 8),
-      child: Text(text, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
+      child: Text(text, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
     );
   }
 }
@@ -283,7 +283,7 @@ class NcNote extends StatelessWidget {
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Padding(padding: const EdgeInsets.only(top: 1), child: Icon(icon, size: 18, color: fg)),
         const SizedBox(width: 10),
-        Expanded(child: Text(text, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: fg, fontWeight: FontWeight.w600))),
+        Expanded(child: Text(text, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: fg, fontWeight: FontWeight.w400))),
       ]),
     );
   }
@@ -313,7 +313,7 @@ class NcStateCard extends StatelessWidget {
           child: Icon(icon, size: 32, color: t.onSoft),
         ),
         const SizedBox(height: 16),
-        Semantics(header: true, child: Text(title, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700))),
+        Semantics(header: true, child: Text(title, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400))),
         if (text != null) ...[
           const SizedBox(height: 8),
           Text(text!, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.5)),

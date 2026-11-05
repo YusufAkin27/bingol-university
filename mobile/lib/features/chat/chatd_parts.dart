@@ -51,7 +51,7 @@ class ChatdPill extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         child: DefaultTextStyle(
-          style: Theme.of(context).textTheme.labelSmall!.copyWith(color: t.onMedia, fontWeight: FontWeight.w600),
+          style: Theme.of(context).textTheme.labelSmall!.copyWith(color: t.onMedia, fontWeight: FontWeight.w400),
           child: child,
         ),
       ),
@@ -182,7 +182,7 @@ class ChatdSkeleton extends StatelessWidget {
                     child: Icon(BuIcons.image, size: 20, color: t.mut),
                   ),
                   const SizedBox(height: 10),
-                  Text(label, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                  Text(label, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                   const SizedBox(height: 2),
                   Text(context.l10n.p08PhotoLoadingSub, textAlign: TextAlign.center, style: Theme.of(context).textTheme.labelSmall!.copyWith(color: t.mut)),
                   const SizedBox(height: 10),

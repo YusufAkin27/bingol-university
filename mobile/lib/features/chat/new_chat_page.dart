@@ -281,7 +281,7 @@ class _NewChatPageState extends State<NewChatPage> {
       padding: EdgeInsets.zero,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Expanded(child: Text(l.p23Selected, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w600))),
+          Expanded(child: Text(l.p23Selected, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400))),
           Text(l.p23MinTwo, style: tx.labelMedium!.copyWith(color: t.mut)),
         ]),
         if (n > 0) ...[
@@ -307,7 +307,7 @@ class _NewChatPageState extends State<NewChatPage> {
             const SizedBox(width: 8),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 140),
-              child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+              child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
             ),
             const SizedBox(width: 6),
             Icon(BuIcons.x, size: 14, color: t.mut),
@@ -326,7 +326,7 @@ class _NewChatPageState extends State<NewChatPage> {
       padding: EdgeInsets.zero,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Expanded(child: Text(l.chatMiscGroupName, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w600))),
+          Expanded(child: Text(l.chatMiscGroupName, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400))),
           Text(l.chatMiscMax50, style: tx.labelMedium!.copyWith(color: t.mut)),
         ]),
         const SizedBox(height: 12),
@@ -438,7 +438,7 @@ class _CountPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bPill),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Text(text, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+        Text(text, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
       ]),
     );
   }
@@ -453,6 +453,6 @@ class _SectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 0, 8),
-        child: Text(text, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: context.bu.ink, fontWeight: FontWeight.w600)),
+        child: Text(text, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: context.bu.ink, fontWeight: FontWeight.w400)),
       );
 }

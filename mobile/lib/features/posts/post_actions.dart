@@ -122,7 +122,7 @@ Widget _dialogButtons(BuildContext c, {required String cancel, required Widget c
         key: const ValueKey('post-dialog-cancel'),
         onPressed: onCancel,
         style: TextButton.styleFrom(minimumSize: const Size(64, BuSize.button), foregroundColor: t.mut),
-        child: Text(cancel, style: const TextStyle(fontWeight: FontWeight.w600)),
+        child: Text(cancel, style: const TextStyle(fontWeight: FontWeight.w400)),
       ),
     ),
     const SizedBox(width: 8),
@@ -139,7 +139,7 @@ Future<void> _confirmDelete(BuildContext context, Session session, Post post, Vo
       final tt = Theme.of(c).textTheme;
       return _DialogShell(
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(l.postComposeDeleteTitle, style: tt.titleLarge?.copyWith(color: t.ink, fontSize: 20, fontWeight: FontWeight.w600)),
+          Text(l.postComposeDeleteTitle, style: tt.titleLarge?.copyWith(color: t.ink, fontSize: 20, fontWeight: FontWeight.w400)),
           const SizedBox(height: 8),
           Text(l.postComposeDeleteBody, style: tt.bodyMedium?.copyWith(color: t.mut)),
           const SizedBox(height: 24),
@@ -175,7 +175,7 @@ Future<void> _confirmBlock(BuildContext context, Session session, Post post, Voi
       final tt = Theme.of(c).textTheme;
       return _DialogShell(
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(l.postComposeBlockTitle, style: tt.titleLarge?.copyWith(color: t.ink, fontSize: 20, fontWeight: FontWeight.w600)),
+          Text(l.postComposeBlockTitle, style: tt.titleLarge?.copyWith(color: t.ink, fontSize: 20, fontWeight: FontWeight.w400)),
           const SizedBox(height: 8),
           Text(l.postComposeBlockBody, style: tt.bodyMedium?.copyWith(color: t.mut)),
           const SizedBox(height: 24),
@@ -264,7 +264,7 @@ class _EditDialogState extends State<_EditDialog> {
     return _DialogShell(
       child: SingleChildScrollView(
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(l.postComposeEditTitle, style: tt.titleLarge?.copyWith(color: t.ink, fontSize: 20, fontWeight: FontWeight.w600)),
+          Text(l.postComposeEditTitle, style: tt.titleLarge?.copyWith(color: t.ink, fontSize: 20, fontWeight: FontWeight.w400)),
           const SizedBox(height: 16),
           // Stitch v3 06: alan 16 köşe, 1 dp bdStrong (hata/aşımda danger), iç 16x14, en az 72 dp; sayaç alanın altında sağda.
           DecoratedBox(
@@ -311,7 +311,7 @@ class _EditDialogState extends State<_EditDialog> {
               padding: const EdgeInsets.only(top: 6),
               child: Text(l.gonderiWordCount(postWordCount(_c.text).toString(), kPostMaxWords.toString()),
                   key: const ValueKey('edit-post-counter'),
-                  style: tt.labelSmall?.copyWith(color: over ? t.danger : t.mut, fontSize: 12, fontWeight: over ? FontWeight.w700 : FontWeight.w400)),
+                  style: tt.labelSmall?.copyWith(color: over ? t.danger : t.mut, fontSize: 12, fontWeight: over ? FontWeight.w400 : FontWeight.w400)),
             ),
           ),
           if (_error != null)

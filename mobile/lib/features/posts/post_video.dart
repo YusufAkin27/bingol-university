@@ -612,7 +612,7 @@ class DurationChip extends StatelessWidget {
               style: Theme.of(context)
                   .textTheme
                   .labelSmall
-                  ?.copyWith(color: t.onMedia, fontSize: 11, fontWeight: FontWeight.w600, fontFeatures: const [FontFeature.tabularFigures()])),
+                  ?.copyWith(color: t.onMedia, fontSize: 11, fontWeight: FontWeight.w400, fontFeatures: const [FontFeature.tabularFigures()])),
         ]),
       ),
     );

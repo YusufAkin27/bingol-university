@@ -80,7 +80,7 @@ class HomeLayoutPage extends StatelessWidget {
                 onTap: () => Navigator.of(context).maybePop(),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(minHeight: BuSize.touch, minWidth: BuSize.touch),
-                  child: Center(widthFactor: 1, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: Text(l.p60Done, style: BuType.body.copyWith(fontSize: 15, fontWeight: FontWeight.w600, color: t.prText)))),
+                  child: Center(widthFactor: 1, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: Text(l.p60Done, style: BuType.body.copyWith(fontSize: 15, fontWeight: FontWeight.w400, color: t.prText)))),
                 ),
               ),
             ),
@@ -358,7 +358,7 @@ class _ShortcutEditor extends StatelessWidget {
     final l = context.l10n;
     Widget small(String s) => Padding(
           padding: const EdgeInsets.only(top: 20, bottom: 8),
-          child: Text(trUpper(s), style: BuType.caption.copyWith(fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: .6, color: t.mut)),
+          child: Text(trUpper(s), style: BuType.caption.copyWith(fontSize: 12, fontWeight: FontWeight.w400, letterSpacing: .6, color: t.mut)),
         );
     return ListenableBuilder(
       listenable: controller,
@@ -367,13 +367,13 @@ class _ShortcutEditor extends StatelessWidget {
         final full = v.shortcutOn.length >= HomeLayout.maxShortcuts;
         return Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
           Row(children: [
-            Expanded(child: Semantics(header: true, child: Text(l.p03HomeQuickTitle, style: BuType.display.copyWith(fontSize: 20, fontWeight: FontWeight.w700, letterSpacing: -.4, color: t.ink)))),
+            Expanded(child: Semantics(header: true, child: Text(l.p03HomeQuickTitle, style: BuType.display.copyWith(fontSize: 20, fontWeight: FontWeight.w400, letterSpacing: -.4, color: t.ink)))),
             const SizedBox(width: 12),
             DecoratedBox(
               decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(BuRadius.pill)),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                child: Text('${v.shortcutOn.length}/${HomeLayout.maxShortcuts}', style: BuType.label.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: t.prText, fontFeatures: const [FontFeature.tabularFigures()])),
+                child: Text('${v.shortcutOn.length}/${HomeLayout.maxShortcuts}', style: BuType.label.copyWith(fontSize: 13, fontWeight: FontWeight.w400, color: t.prText, fontFeatures: const [FontFeature.tabularFigures()])),
               ),
             ),
           ]),
@@ -408,7 +408,7 @@ class _ShortcutEditor extends StatelessWidget {
                           index: i,
                           child: Semantics(label: name, child: SizedBox(width: 44, height: BuSize.touch, child: Center(child: Icon(BuIcons.gripVertical, size: 20, color: t.mut)))),
                         ),
-                        SizedBox(width: 24, child: Text('${i + 1}', style: BuType.body.copyWith(fontSize: 13, fontWeight: FontWeight.w700, color: t.mut, fontFeatures: const [FontFeature.tabularFigures()]))),
+                        SizedBox(width: 24, child: Text('${i + 1}', style: BuType.body.copyWith(fontSize: 13, fontWeight: FontWeight.w400, color: t.mut, fontFeatures: const [FontFeature.tabularFigures()]))),
                         const SizedBox(width: 8),
                         Expanded(child: Text(name, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.body.copyWith(fontSize: 14, fontWeight: FontWeight.w500, color: t.ink))),
                         _GhostRemove(

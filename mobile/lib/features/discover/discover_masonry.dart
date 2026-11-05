@@ -561,7 +561,7 @@ class DiscoverEmptyCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           // Stitch v3: illüstrasyon yok; ilk cümle başlık (18/600), ikinci cümle soluk gövde (15).
-          Text(parts.first, textAlign: TextAlign.center, style: tt.titleMedium?.copyWith(color: t.ink, fontSize: 18, fontWeight: FontWeight.w600)),
+          Text(parts.first, textAlign: TextAlign.center, style: tt.titleMedium?.copyWith(color: t.ink, fontSize: 18, fontWeight: FontWeight.w400)),
           if (parts.length > 1) ...[
             BuGap.h6,
             Text(parts.sublist(1).join(' '), textAlign: TextAlign.center, style: tt.bodyLarge?.copyWith(color: t.mut, fontSize: 15)),
@@ -597,7 +597,7 @@ class DiscoverErrorCard extends StatelessWidget {
         key: const ValueKey('discoverError'),
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(l.p04FeedErrTitle, textAlign: TextAlign.center, style: tt.titleMedium?.copyWith(color: t.ink, fontSize: 18, fontWeight: FontWeight.w600)),
+          Text(l.p04FeedErrTitle, textAlign: TextAlign.center, style: tt.titleMedium?.copyWith(color: t.ink, fontSize: 18, fontWeight: FontWeight.w400)),
           BuGap.h6,
           Text(l.p04FeedErrBody, textAlign: TextAlign.center, style: tt.bodyLarge?.copyWith(color: t.mut, fontSize: 15)),
           BuGap.h8,
@@ -605,7 +605,7 @@ class DiscoverErrorCard extends StatelessWidget {
             key: const ValueKey('discoverRetry'),
             onPressed: onRetry,
             style: TextButton.styleFrom(minimumSize: const Size(BuSize.touch, BuSize.touch), foregroundColor: t.prText),
-            child: Text(l.postViewRetry, style: tt.labelLarge?.copyWith(color: t.prText, fontSize: 15, fontWeight: FontWeight.w600)),
+            child: Text(l.postViewRetry, style: tt.labelLarge?.copyWith(color: t.prText, fontSize: 15, fontWeight: FontWeight.w400)),
           ),
         ],
       ),

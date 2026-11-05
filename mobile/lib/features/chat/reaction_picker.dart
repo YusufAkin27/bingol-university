@@ -258,7 +258,7 @@ class _ReactionPickerState extends State<_ReactionPicker> {
                                 .labelLarge!
                                 .copyWith(
                                     color: t.mut,
-                                    fontWeight: FontWeight.w600)),
+                                    fontWeight: FontWeight.w400)),
                       ),
                     ),
                   ),

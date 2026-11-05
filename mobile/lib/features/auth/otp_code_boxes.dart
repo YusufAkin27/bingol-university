@@ -117,7 +117,7 @@ class _OtpCodeBoxesState extends State<OtpCodeBoxes> {
                                         ? _OtpDigit(
                                             key: ValueKey('otp-digit-$i-$ch'),
                                             ch: ch,
-                                            style: tx.headlineSmall!.copyWith(color: ok ? t.onOkSoft : t.ink, fontWeight: FontWeight.w600, fontFeatures: const [FontFeature.tabularFigures()]),
+                                            style: tx.headlineSmall!.copyWith(color: ok ? t.onOkSoft : t.ink, fontWeight: FontWeight.w400, fontFeatures: const [FontFeature.tabularFigures()]),
                                           )
                                         : (active
                                             ? Container(width: 2, height: 24, decoration: BoxDecoration(color: t.pr, borderRadius: BorderRadius.circular(1)))

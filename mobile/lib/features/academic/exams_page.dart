@@ -150,7 +150,7 @@ class _ExamsPageState extends State<ExamsPage> {
                   Expanded(
                     child: MediaQuery.withClampedTextScaling(
                       maxScaleFactor: 1.3,
-                      child: Semantics(header: true, child: Text(l.acadExamsTitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.headlineLarge!.copyWith(fontWeight: FontWeight.w700, letterSpacing: 0, color: t.ink))),
+                      child: Semantics(header: true, child: Text(l.acadExamsTitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.headlineLarge!.copyWith(fontWeight: FontWeight.w400, letterSpacing: 0, color: t.ink))),
                     ),
                   ),
                   if (canAdd)
@@ -213,7 +213,7 @@ class _ExamsPageState extends State<ExamsPage> {
           padding: const EdgeInsets.fromLTRB(20, 20, 8, 0),
           child: Row(children: [
             Expanded(child: Text(l.p69NoExams, style: Theme.of(context).textTheme.bodySmall!.copyWith(fontSize: 13, color: context.bu.mut))),
-            AcadTextAction(l.acadExamsAdd, onTap: () => _openForm(), size: 15, weight: FontWeight.w700),
+            AcadTextAction(l.acadExamsAdd, onTap: () => _openForm(), size: 15, weight: FontWeight.w400),
           ]),
         ),
       ];
@@ -288,7 +288,7 @@ class _ExamsPageState extends State<ExamsPage> {
       child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Text(e.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w600, color: past ? t.mut : t.ink)),
+            Text(e.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w400, color: past ? t.mut : t.ink)),
             const SizedBox(height: 4),
             Text(_when(l, e.startsAt, now, e.room), maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
           ]),
@@ -296,7 +296,7 @@ class _ExamsPageState extends State<ExamsPage> {
         const SizedBox(width: 12),
         Flexible(
           flex: 0,
-          child: Text(right, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: first && !past ? t.prText : t.mut)),
+          child: Text(right, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w400, color: first && !past ? t.prText : t.mut)),
         ),
       ]),
     );

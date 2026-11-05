@@ -290,7 +290,7 @@ class _TitleRow extends StatelessWidget {
         child: Semantics(
           header: true,
           child: Text(l.p18ProfileTitle,
-              maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.display.copyWith(fontSize: 28, height: 1.1, fontWeight: FontWeight.w700, color: t.ink)),
+              maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.display.copyWith(fontSize: 28, height: 1.1, fontWeight: FontWeight.w400, color: t.ink)),
         ),
       ),
       const SizedBox(width: 12),
@@ -421,7 +421,7 @@ class _ProfileSkeleton extends StatelessWidget {
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                     Text(l.p18ProfileLoadFailed,
-                        maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: cs.onErrorContainer)),
+                        maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: cs.onErrorContainer)),
                     Text(errorText(error!), maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: cs.onErrorContainer)),
                   ]),
                 ),

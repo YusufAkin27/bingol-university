@@ -97,7 +97,7 @@ class _JoinQuestionsSheetState extends State<_JoinQuestionsSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Semantics(header: true, child: Text(l10n.clubMgmtJoinTitle, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800))),
+                  Semantics(header: true, child: Text(l10n.clubMgmtJoinTitle, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400))),
                   const SizedBox(height: 4),
                   Text(l10n.clubMgmtJoinAdminsSee(widget.clubName), style: tx.bodyMedium!.copyWith(color: t.mut)),
                 ],
@@ -114,7 +114,7 @@ class _JoinQuestionsSheetState extends State<_JoinQuestionsSheet> {
               TextSpan(text: (widget.questions[i]['question'] ?? '').toString()),
               TextSpan(text: ' *', style: TextStyle(color: t.prText)),
             ]),
-            style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700),
+            style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400),
           ),
           const SizedBox(height: 8),
           TextField(
@@ -135,7 +135,7 @@ class _JoinQuestionsSheetState extends State<_JoinQuestionsSheet> {
             padding: const EdgeInsetsDirectional.only(top: 4, end: 4, bottom: 12),
             child: Align(
               alignment: AlignmentDirectional.centerEnd,
-              child: Text('${_ctrls[i].text.length} / $_max', style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
+              child: Text('${_ctrls[i].text.length} / $_max', style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
             ),
           ),
         ],

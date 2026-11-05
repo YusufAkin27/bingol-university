@@ -275,7 +275,7 @@ class _InlineProfileHeroState extends State<InlineProfileHero> {
                             textAlign: TextAlign.center,
                             maxLines: 3,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.headlineSmall!.copyWith(fontSize: 22, color: t.ink, fontWeight: FontWeight.w700)),
+                            style: Theme.of(context).textTheme.headlineSmall!.copyWith(fontSize: 22, color: t.ink, fontWeight: FontWeight.w400)),
                       ),
               ),
               const SizedBox(height: 4),
@@ -325,7 +325,7 @@ class _InlineProfileHeroState extends State<InlineProfileHero> {
                             leading: BuIcons.plus,
                             child: Text(l.profileBioEmptyCta,
                                 textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 15, color: t.prText, fontWeight: FontWeight.w600)),
+                                style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 15, color: t.prText, fontWeight: FontWeight.w400)),
                           )
                         : _ReadRow(
                             key: const ValueKey('inline-bio'),
@@ -454,7 +454,7 @@ class _Chip extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                            fontSize: 14, fontWeight: empty ? FontWeight.w600 : FontWeight.w500, color: empty ? t.prText : t.ink)),
+                            fontSize: 14, fontWeight: empty ? FontWeight.w400 : FontWeight.w500, color: empty ? t.prText : t.ink)),
                   ),
                   const SizedBox(width: 6),
                   if (saving) const _Saving() else Icon(BuIcons.chevronDown, size: 16, color: t.mut),
@@ -531,7 +531,7 @@ class _TextEditor extends StatelessWidget {
           scrollPadding: const EdgeInsets.fromLTRB(20, 20, 20, 140),
           onChanged: (_) => onChanged(),
           onSubmitted: multi ? null : (_) => onSave(),
-          style: (center ? tx.titleLarge! : tx.bodyLarge!).copyWith(color: t.ink, height: 1.35, fontWeight: center ? FontWeight.w600 : null),
+          style: (center ? tx.titleLarge! : tx.bodyLarge!).copyWith(color: t.ink, height: 1.35, fontWeight: center ? FontWeight.w400 : null),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: tx.bodyLarge!.copyWith(color: t.mut),

@@ -81,7 +81,7 @@ class _PollClubSectionState extends State<PollClubSection> {
               Expanded(
                 child: Semantics(
                   header: true,
-                  child: Text(l.pollClubPolls, style: tx.titleMedium!.copyWith(color: t.ink, fontSize: 18, fontWeight: FontWeight.w600)),
+                  child: Text(l.pollClubPolls, style: tx.titleMedium!.copyWith(color: t.ink, fontSize: 18, fontWeight: FontWeight.w400)),
                 ),
               ),
               if (widget.canCreate)
@@ -93,7 +93,7 @@ class _PollClubSectionState extends State<PollClubSection> {
                   child: TextButton(
                     style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 12)),
                     onPressed: _create,
-                    child: Text('+ ${l.p68New}', style: tx.titleSmall!.copyWith(color: t.prText, fontWeight: FontWeight.w700)),
+                    child: Text('+ ${l.p68New}', style: tx.titleSmall!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
                   ),
                 ),
             ],
@@ -124,7 +124,7 @@ class _PollClubSectionState extends State<PollClubSection> {
                 child: TextButton(
                   style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: EdgeInsets.zero),
                   onPressed: seeAll,
-                  child: Text(l.pollSeeAll, style: tx.titleSmall!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
+                  child: Text(l.pollSeeAll, style: tx.titleSmall!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
                 ),
               ),
             ),

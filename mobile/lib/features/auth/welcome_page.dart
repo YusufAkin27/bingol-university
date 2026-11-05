@@ -62,7 +62,7 @@ class WelcomePage extends StatelessWidget {
                                 Semantics(
                                   header: true,
                                   child: Text(l.welcomeHeadline,
-                                      style: tx.headlineLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700, height: 1.15)),
+                                      style: tx.headlineLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400, height: 1.15)),
                                 ),
                                 const SizedBox(height: 12),
                                 Text(l.welcomeSub, style: tx.bodyLarge!.copyWith(color: t.mut, height: 1.5)),
@@ -190,7 +190,7 @@ class _LangPill extends StatelessWidget {
                     ),
                     child: Text(
                       c.toUpperCase(),
-                      style: tx.labelMedium!.copyWith(color: c == cur ? t.onSoft : t.mut, fontWeight: c == cur ? FontWeight.w700 : FontWeight.w500),
+                      style: tx.labelMedium!.copyWith(color: c == cur ? t.onSoft : t.mut, fontWeight: c == cur ? FontWeight.w400 : FontWeight.w500),
                     ),
                   ),
                 ),
@@ -222,7 +222,7 @@ class _DomainNote extends StatelessWidget {
           : Text.rich(
               TextSpan(style: base, children: [
                 TextSpan(text: text.substring(0, at)),
-                TextSpan(text: dom, style: TextStyle(color: t.ink, fontWeight: FontWeight.w700)),
+                TextSpan(text: dom, style: TextStyle(color: t.ink, fontWeight: FontWeight.w400)),
                 TextSpan(text: text.substring(at + dom.length)),
               ]),
               textAlign: TextAlign.center,

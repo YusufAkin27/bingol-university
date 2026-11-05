@@ -39,7 +39,7 @@ class AnketPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final tx = Theme.of(context).textTheme;
     final h = small ? 20.0 : 26.0;
-    final style = (small ? tx.labelSmall! : tx.labelMedium!).copyWith(color: fg, fontWeight: FontWeight.w700, height: 1.2);
+    final style = (small ? tx.labelSmall! : tx.labelMedium!).copyWith(color: fg, fontWeight: FontWeight.w400, height: 1.2);
     return Container(
       constraints: BoxConstraints(minHeight: h),
       padding: EdgeInsetsDirectional.symmetric(horizontal: small ? 8 : 10, vertical: 2),

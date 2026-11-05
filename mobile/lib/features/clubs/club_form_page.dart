@@ -554,7 +554,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
   /// Etiket: 13-14 sp muted/600, alanın üstünde.
   Widget _label(BuTokens t, String s) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
-        child: Text(s, style: Theme.of(context).textTheme.labelLarge!.copyWith(color: t.mut, fontSize: 13, fontWeight: FontWeight.w600)),
+        child: Text(s, style: Theme.of(context).textTheme.labelLarge!.copyWith(color: t.mut, fontSize: 13, fontWeight: FontWeight.w400)),
       );
 
   /// Etiketli alan + altında (varsa) hata metni.
@@ -682,7 +682,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
             if (_policy != 'APPROVAL' && _visibility != 'PRIVATE') _policy = 'APPROVAL';
             _questions.add(TextEditingController());
           }),
-          child: Text('+ ${context.l10n.p51AddJoinQuestion}', style: tx.titleSmall!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
+          child: Text('+ ${context.l10n.p51AddJoinQuestion}', style: tx.titleSmall!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
         ),
       );
 
@@ -696,7 +696,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
     return Text.rich(
       TextSpan(children: [
         TextSpan(text: text.substring(0, at)),
-        TextSpan(text: l.p12ConsentBold, style: TextStyle(color: t.ink, fontWeight: FontWeight.w800)),
+        TextSpan(text: l.p12ConsentBold, style: TextStyle(color: t.ink, fontWeight: FontWeight.w400)),
         TextSpan(text: text.substring(at + l.p12ConsentBold.length)),
       ]),
       style: style,
@@ -745,7 +745,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
                               children: [
                                 Icon(BuIcons.camera, size: 15, color: t.onMedia),
                                 const SizedBox(width: 6),
-                                Text(l10n.clubMgmtChangeCover, style: tx.labelMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700)),
+                                Text(l10n.clubMgmtChangeCover, style: tx.labelMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w400)),
                               ],
                             ),
                           ),
@@ -814,7 +814,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(hasLogo ? l10n.p12LogoChange : l10n.p12LogoAdd, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+                      Text(hasLogo ? l10n.p12LogoChange : l10n.p12LogoAdd, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                       Text(l10n.p12LogoHint, style: tx.bodySmall!.copyWith(color: t.mut)),
                     ],
                   ),

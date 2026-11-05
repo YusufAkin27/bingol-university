@@ -222,7 +222,7 @@ class _GridTile extends StatelessWidget {
                       child: Text('${post.likeCount}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.labelMedium?.copyWith(color: t.onMedia, fontWeight: FontWeight.w700)),
+                          style: Theme.of(context).textTheme.labelMedium?.copyWith(color: t.onMedia, fontWeight: FontWeight.w400)),
                     ),
                   ]),
                 ),
@@ -262,7 +262,7 @@ class _EmptyCard extends StatelessWidget {
               child: Icon(BuIcons.camera, size: 28, color: t.mut),
             ),
             BuGap.h16,
-            Text(l.postViewNoPosts, textAlign: TextAlign.center, style: tt.titleMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+            Text(l.postViewNoPosts, textAlign: TextAlign.center, style: tt.titleMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
             if (mine) ...[
               BuGap.h24,
               BuButton(key: const ValueKey('userPostsCompose'), label: l.discoverCompose, compact: true, onPressed: onCompose),

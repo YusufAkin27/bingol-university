@@ -404,7 +404,7 @@ class _ShareSheetState extends State<ShareSheet> {
         Semantics(
           header: true,
           child: Text(l.shareRecent,
-              style: Theme.of(context).textTheme.labelLarge!.copyWith(color: context.bu.mut, fontWeight: FontWeight.w600)),
+              style: Theme.of(context).textTheme.labelLarge!.copyWith(color: context.bu.mut, fontWeight: FontWeight.w400)),
         ),
         const SizedBox(height: 8),
         SizedBox(
@@ -520,7 +520,7 @@ class SharePreviewTile extends StatelessWidget {
                 child: Text(trUpper(label),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
+                    style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
               ),
             ]),
             if (title.isNotEmpty) ...[
@@ -528,7 +528,7 @@ class SharePreviewTile extends StatelessWidget {
               Text(title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: tx.bodyMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w600, height: 1.3)),
+                  style: tx.bodyMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400, height: 1.3)),
             ],
             if (source.isNotEmpty) ...[
               const SizedBox(height: 2),
@@ -593,7 +593,7 @@ class ShareStripItem extends StatelessWidget {
                 style: Theme.of(context)
                     .textTheme
                     .labelMedium!
-                    .copyWith(color: selected ? t.ink : t.mut, fontWeight: selected ? FontWeight.w600 : FontWeight.w500)),
+                    .copyWith(color: selected ? t.ink : t.mut, fontWeight: selected ? FontWeight.w400 : FontWeight.w500)),
           ]),
         ),
       ),

@@ -199,7 +199,7 @@ class _CropPageState extends State<CropPage> {
                               child: _busy
                                   ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: d.scrim))
                                   : Text(l.p64CropDone,
-                                      style: Theme.of(context).textTheme.labelLarge?.copyWith(color: d.scrim, fontSize: 15, fontWeight: FontWeight.w600)),
+                                      style: Theme.of(context).textTheme.labelLarge?.copyWith(color: d.scrim, fontSize: 15, fontWeight: FontWeight.w400)),
                             ),
                           ),
                         ),
@@ -290,7 +290,7 @@ class _TopBar extends StatelessWidget {
           child: Text(title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(color: d.ink, fontWeight: FontWeight.w700)),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(color: d.ink, fontWeight: FontWeight.w400)),
         ),
         const SizedBox(width: 48),
       ]),
@@ -357,7 +357,7 @@ class _ActionBar extends StatelessWidget {
                     height: BuSize.button,
                     child: Center(
                       child: Text(l.postComposeCancel,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                     ),
                   ),
                 ),
@@ -490,7 +490,7 @@ class _Stage extends StatelessWidget {
                             child: Row(mainAxisSize: MainAxisSize.min, children: [
                               Icon(BuIcons.hand, size: 14, color: d.onMedia),
                               const SizedBox(width: 6),
-                              Text(l.p04CropHint, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: d.onMedia, fontWeight: FontWeight.w600)),
+                              Text(l.p04CropHint, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: d.onMedia, fontWeight: FontWeight.w400)),
                             ]),
                           ),
                         ),
@@ -603,7 +603,7 @@ class _Controls extends StatelessWidget {
                     Text(label,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: tt.labelMedium?.copyWith(color: accent ? t.onSoft : t.ink, fontWeight: FontWeight.w700)),
+                        style: tt.labelMedium?.copyWith(color: accent ? t.onSoft : t.ink, fontWeight: FontWeight.w400)),
                   ]),
                 ),
               ),
@@ -623,10 +623,10 @@ class _Controls extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
           child: Column(children: [
             Row(children: [
-              Expanded(child: Text(l.p04CropScale, style: tt.labelLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w600))),
+              Expanded(child: Text(l.p04CropScale, style: tt.labelLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w400))),
               Text('${c.zoom.toStringAsFixed(1)}x',
                   key: const ValueKey('cropZoomValue'),
-                  style: tt.labelLarge?.copyWith(color: t.mut, fontWeight: FontWeight.w600, fontFeatures: const [FontFeature.tabularFigures()])),
+                  style: tt.labelLarge?.copyWith(color: t.mut, fontWeight: FontWeight.w400, fontFeatures: const [FontFeature.tabularFigures()])),
             ]),
             Row(children: [
               IconButton(
@@ -670,7 +670,7 @@ class _ProfilePanel extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(context.l10n.p04CropPreviewProfile,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
           ),
         ]),
       ),
@@ -715,7 +715,7 @@ class _Previews extends StatelessWidget {
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 Icon(icon, size: 16, color: color ?? t.prText),
                 const SizedBox(width: 6),
-                Text(label, style: tt.labelLarge?.copyWith(color: color ?? t.prText, fontWeight: FontWeight.w700)),
+                Text(label, style: tt.labelLarge?.copyWith(color: color ?? t.prText, fontWeight: FontWeight.w400)),
               ]),
             ),
           ),
@@ -726,7 +726,7 @@ class _Previews extends StatelessWidget {
         return const SizedBox.shrink();
       case CropKind.post:
         return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(l.p04CropPreviewFeed, style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+          Text(l.p04CropPreviewFeed, style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
           const SizedBox(height: 10),
           DecoratedBox(
             decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.lg), boxShadow: BuElevation.of(context, 1)),
@@ -740,7 +740,7 @@ class _Previews extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(spec.previewName ?? '',
-                          maxLines: 1, overflow: TextOverflow.ellipsis, style: tt.labelLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                          maxLines: 1, overflow: TextOverflow.ellipsis, style: tt.labelLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                     ),
                     Icon(BuIcons.ellipsis, size: 18, color: t.ink),
                   ]),
@@ -752,13 +752,13 @@ class _Previews extends StatelessWidget {
                     Row(children: [
                       Icon(BuIcons.heart, size: 20, color: t.mut),
                       const SizedBox(width: 6),
-                      Text('0', style: tt.labelLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                      Text('0', style: tt.labelLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                     ]),
                     if ((spec.previewCaption ?? '').isNotEmpty) ...[
                       const SizedBox(height: 6),
                       Text.rich(
                         TextSpan(children: [
-                          TextSpan(text: spec.previewName ?? '', style: const TextStyle(fontWeight: FontWeight.w600)),
+                          TextSpan(text: spec.previewName ?? '', style: const TextStyle(fontWeight: FontWeight.w400)),
                           TextSpan(text: ' ${spec.previewCaption}'),
                         ]),
                         maxLines: 2,
@@ -779,7 +779,7 @@ class _Previews extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(l.p04CropPreviewTitle, style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+              Text(l.p04CropPreviewTitle, style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
               const SizedBox(height: 12),
               Row(children: [
                 Column(children: [
@@ -798,7 +798,7 @@ class _Previews extends StatelessWidget {
                     Expanded(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Text(spec.previewName ?? '',
-                            maxLines: 1, overflow: TextOverflow.ellipsis, style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                            maxLines: 1, overflow: TextOverflow.ellipsis, style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                         Text(l.p04CropPreviewClubCard, style: tt.labelSmall?.copyWith(color: t.mut)),
                       ]),
                     ),
@@ -839,7 +839,7 @@ class _Previews extends StatelessWidget {
                           child: Row(mainAxisSize: MainAxisSize.min, children: [
                             Icon(BuIcons.calendar, size: 14, color: t.prText),
                             const SizedBox(width: 6),
-                            Text(spec.previewDate!, style: tt.labelMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                            Text(spec.previewDate!, style: tt.labelMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                           ]),
                         ),
                       ),
@@ -859,7 +859,7 @@ class _Previews extends StatelessWidget {
                         Text(spec.previewTitle!,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: tt.titleLarge?.copyWith(color: t.onMedia, fontWeight: FontWeight.w800)),
+                            style: tt.titleLarge?.copyWith(color: t.onMedia, fontWeight: FontWeight.w400)),
                     ]),
                   ),
                 ]),

@@ -499,7 +499,7 @@ class _SearchPageState extends State<SearchPage> {
             Expanded(
               child: Semantics(
                 header: true,
-                child: Text(l.searchRecent, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w600, color: t.ink)),
+                child: Text(l.searchRecent, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w400, color: t.ink)),
               ),
             ),
             TextButton(
@@ -624,7 +624,7 @@ class _SearchPageState extends State<SearchPage> {
       final tx = Theme.of(context).textTheme;
       return ListView(padding: const EdgeInsets.fromLTRB(16, 96, 16, 24), children: [
         Text(l.searchNoResults,
-            textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: t.ink)),
+            textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontSize: 16, fontWeight: FontWeight.w400, color: t.ink)),
         const SizedBox(height: 8),
         Text(l.p05SearchNoResultsBody, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(fontSize: 14, color: t.mut)),
       ]);
@@ -725,7 +725,7 @@ class _SearchPageState extends State<SearchPage> {
                   child: Semantics(
                     header: true,
                     child: Text(_groupLabel(l, key),
-                        style: tx.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: ar ? 0 : .6, color: t.mut)),
+                        style: tx.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w400, letterSpacing: ar ? 0 : .6, color: t.mut)),
                   ),
                 ),
                 TextButton(
@@ -820,7 +820,7 @@ class _SearchPageState extends State<SearchPage> {
       final i = src.indexOf(q, from);
       if (i < 0) break;
       if (i > from) spans.add(TextSpan(text: text.substring(from, i), style: base));
-      spans.add(TextSpan(text: text.substring(i, i + q.length), style: base.copyWith(fontWeight: FontWeight.w600, color: t.prText)));
+      spans.add(TextSpan(text: text.substring(i, i + q.length), style: base.copyWith(fontWeight: FontWeight.w400, color: t.prText)));
       from = i + q.length;
     }
     if (from < text.length) spans.add(TextSpan(text: text.substring(from), style: base));
@@ -840,7 +840,7 @@ class _SearchPageState extends State<SearchPage> {
           alignment: Alignment.center,
           decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
           child: Text(_initials(name, max),
-              maxLines: 1, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: t.ink)),
+              maxLines: 1, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w400, color: t.ink)),
         ),
       );
 
@@ -883,10 +883,10 @@ class _SearchPageState extends State<SearchPage> {
               decoration: BoxDecoration(borderRadius: BorderRadius.circular(BuRadius.sm), border: Border.all(color: t.bd)),
               child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Text(trUpper(newsMonthName(context, d.month)).characters.take(3).toString(),
-                    style: tx.labelSmall!.copyWith(fontSize: 11.5, fontWeight: FontWeight.w700, height: 1.1, color: t.prText)),
+                    style: tx.labelSmall!.copyWith(fontSize: 11.5, fontWeight: FontWeight.w400, height: 1.1, color: t.prText)),
                 Text('${d.day}',
                     style: tx.titleMedium!.copyWith(
-                        fontSize: 20, fontWeight: FontWeight.w600, height: 1.1, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()])),
+                        fontSize: 20, fontWeight: FontWeight.w400, height: 1.1, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()])),
               ]),
             ),
           );

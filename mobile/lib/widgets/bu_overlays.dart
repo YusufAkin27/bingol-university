@@ -181,7 +181,7 @@ abstract final class BuConfirmSheet {
                 buHaptic(BuHaptic.selection);
                 Navigator.of(ctx).pop(false);
               },
-              child: Text(cancelLabel ?? l.commonCancel, style: tx.labelLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: t.mut)),
+              child: Text(cancelLabel ?? l.commonCancel, style: tx.labelLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w400, color: t.mut)),
             ),
           ],
         );

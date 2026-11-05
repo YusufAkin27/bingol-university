@@ -39,7 +39,7 @@ class AcadActionRow extends StatelessWidget {
         const SizedBox(width: 14),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: t.ink)),
+            Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w400, color: t.ink)),
             if (sub != null) ...[
               const SizedBox(height: 2),
               Text(sub!, maxLines: 3, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
@@ -82,7 +82,7 @@ class _PlanRow extends StatelessWidget {
                 child: Opacity(
                   opacity: value ? 1 : .55,
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                    Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: t.ink)),
+                    Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w400, color: t.ink)),
                     for (final s in lines) ...[
                       const SizedBox(height: 2),
                       Text(s, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
@@ -137,7 +137,7 @@ class _PlanSheetBody extends StatelessWidget {
       TextButton(
         onPressed: busy ? null : () => Navigator.of(context).pop(false),
         style: TextButton.styleFrom(foregroundColor: t.ink, minimumSize: const Size.fromHeight(48)),
-        child: Text(empty != null ? l.commonClose : l.commonCancel, style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+        child: Text(empty != null ? l.commonClose : l.commonCancel, style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
       ),
     ]);
   }

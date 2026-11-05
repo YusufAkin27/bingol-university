@@ -61,7 +61,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(color: cs.errorContainer, borderRadius: BuRadius.bMd),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(l.profil2DelWarnLead, style: tx.titleSmall!.copyWith(fontSize: 16, fontWeight: FontWeight.w700, color: t.danger)),
+                    Text(l.profil2DelWarnLead, style: tx.titleSmall!.copyWith(fontSize: 16, fontWeight: FontWeight.w400, color: t.danger)),
                     const SizedBox(height: 2),
                     Text(l.profil2DelWarnBody, style: tx.bodyMedium!.copyWith(fontSize: 14, color: t.danger, height: 1.4)),
                   ]),
@@ -75,7 +75,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                         padding: const EdgeInsets.only(top: 9, left: 4, right: 14),
                         child: Container(width: 6, height: 6, decoration: BoxDecoration(color: t.mut, shape: BoxShape.circle)),
                       ),
-                      Expanded(child: Text(it, style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: t.ink, height: 1.35))),
+                      Expanded(child: Text(it, style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w400, color: t.ink, height: 1.35))),
                     ]),
                   ),
                 const SizedBox(height: 8),
@@ -132,7 +132,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                   key: const ValueKey('delete-cancel'),
                   style: TextButton.styleFrom(foregroundColor: t.ink, minimumSize: const Size(double.infinity, 48)),
                   onPressed: () => Navigator.pop(context),
-                  child: Text(l.profileCancel, style: tx.labelLarge!.copyWith(fontSize: 15, fontWeight: FontWeight.w600)),
+                  child: Text(l.profileCancel, style: tx.labelLarge!.copyWith(fontSize: 15, fontWeight: FontWeight.w400)),
                 ),
               ],
             ),
@@ -205,7 +205,7 @@ class _DeleteConfirmSheetState extends State<DeleteConfirmSheet> {
           const P2IconTile(icon: BuIcons.trash2, danger: true, size: 44),
           const SizedBox(width: 12),
           Expanded(
-            child: Semantics(header: true, child: Text(l.profil2DelConfirmTitle, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
+            child: Semantics(header: true, child: Text(l.profil2DelConfirmTitle, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
           ),
           IconButton(
             tooltip: l.commonClose,
@@ -219,7 +219,7 @@ class _DeleteConfirmSheetState extends State<DeleteConfirmSheet> {
         ),
         Padding(
           padding: const EdgeInsetsDirectional.only(start: 2, bottom: 6),
-          child: Text(l.profilePrefsPassword, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+          child: Text(l.profilePrefsPassword, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
         ),
         TextField(
           key: const ValueKey('delete-password'),
@@ -260,7 +260,7 @@ class _DeleteConfirmSheetState extends State<DeleteConfirmSheet> {
                 Icon(BuIcons.circleAlert, size: 14, color: t.danger),
                 const SizedBox(width: 6),
                 Expanded(
-                  child: Text(_error!, key: const ValueKey('delete-error'), style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.danger)),
+                  child: Text(_error!, key: const ValueKey('delete-error'), style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: t.danger)),
                 ),
               ]),
             ),

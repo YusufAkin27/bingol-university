@@ -138,7 +138,7 @@ class SohbetyTile extends StatelessWidget {
 
 /// Satırın iki satırlı metni: kalın ad + soluk alt satır.
 class SohbetyTexts extends StatelessWidget {
-  const SohbetyTexts({super.key, required this.title, this.sub, this.color, this.weight = FontWeight.w700});
+  const SohbetyTexts({super.key, required this.title, this.sub, this.color, this.weight = FontWeight.w400});
 
   final String title;
   final String? sub;
@@ -186,7 +186,7 @@ class SohbetyLabel extends StatelessWidget {
           style: Theme.of(context)
               .textTheme
               .labelMedium!
-              .copyWith(fontWeight: FontWeight.w700, letterSpacing: _ar(context) ? 0 : .72, color: context.bu.mut)),
+              .copyWith(fontWeight: FontWeight.w400, letterSpacing: _ar(context) ? 0 : .72, color: context.bu.mut)),
     );
   }
 }
@@ -376,7 +376,7 @@ class SohbetyTabs extends StatelessWidget {
                           maxLines: 1,
                           softWrap: false,
                           style: tx.labelLarge!
-                              .copyWith(fontWeight: FontWeight.w700, color: i == selected ? t.onSoft : t.mut)),
+                              .copyWith(fontWeight: FontWeight.w400, color: i == selected ? t.onSoft : t.mut)),
                     ),
                   ),
                 ),
@@ -536,7 +536,7 @@ class SohbetyCameraChrome extends StatelessWidget {
                                   child: Text('A',
                                       key: const ValueKey('flashAutoBadge'),
                                       style: tx.labelSmall!.copyWith(
-                                          color: t.onMedia, fontWeight: FontWeight.w800, height: 1)),
+                                          color: t.onMedia, fontWeight: FontWeight.w400, height: 1)),
                                 ),
                               )
                             : null),
@@ -554,7 +554,7 @@ class SohbetyCameraChrome extends StatelessWidget {
                           maxLines: 1,
                           style: tx.labelLarge!.copyWith(
                               color: t.onMedia,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w400,
                               letterSpacing: .4,
                               fontFeatures: const [FontFeature.tabularFigures()])),
                     ]),
@@ -785,7 +785,7 @@ class SohbetyVideoPrepareCard extends StatelessWidget {
           BuGap.h16,
           Semantics(
             liveRegion: true,
-            child: Text(title, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+            child: Text(title, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
           ),
           BuGap.h4,
           Text(subtitle, textAlign: TextAlign.center, style: tx.bodySmall!.copyWith(color: t.mut)),
@@ -802,7 +802,7 @@ class SohbetyVideoPrepareCard extends StatelessWidget {
               height: 48,
               alignment: Alignment.center,
               decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
-              child: Text(cancelLabel, style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+              child: Text(cancelLabel, style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
             ),
           ),
         ]),
@@ -850,7 +850,7 @@ class SohbetyNoticeCard extends StatelessWidget {
           BuGap.w12,
           Expanded(
             child: Text(message,
-                style: tx.bodyMedium!.copyWith(color: fg, fontWeight: info ? FontWeight.w400 : FontWeight.w600, height: 1.3)),
+                style: tx.bodyMedium!.copyWith(color: fg, fontWeight: info ? FontWeight.w400 : FontWeight.w400, height: 1.3)),
           ),
           if (onClose != null)
             Semantics(

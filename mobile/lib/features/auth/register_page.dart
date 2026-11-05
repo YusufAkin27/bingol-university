@@ -133,14 +133,14 @@ class _RegisterPageState extends State<RegisterPage> {
     final t = context.bu;
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
-    final link = TextStyle(color: t.ink, fontWeight: FontWeight.w700, decoration: TextDecoration.underline);
+    final link = TextStyle(color: t.ink, fontWeight: FontWeight.w400, decoration: TextDecoration.underline);
     return RefPage(
       children: [
         Semantics(
           header: true,
           child: Text(
             l.regTitle,
-            style: tx.displayMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.1),
+            style: tx.displayMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400, height: 1.1),
           ),
         ),
         const SizedBox(height: 10),

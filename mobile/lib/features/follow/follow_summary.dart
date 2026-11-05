@@ -62,7 +62,7 @@ class _Cell extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final n = cell.value;
-    final style = tx.titleLarge!.copyWith(fontSize: 20, color: t.ink, fontWeight: FontWeight.w700, fontFeatures: const [FontFeature.tabularFigures()]);
+    final style = tx.titleLarge!.copyWith(fontSize: 20, color: t.ink, fontWeight: FontWeight.w400, fontFeatures: const [FontFeature.tabularFigures()]);
     return Semantics(
       button: true,
       label: n == null ? cell.label : '$n ${cell.label}',

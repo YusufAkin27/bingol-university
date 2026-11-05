@@ -80,7 +80,7 @@ class ChatdBarPill extends StatelessWidget {
       else if (icon != null)
         Icon(icon, size: 16, color: t.onMedia),
       if (busy || icon != null || iconWidget != null) const SizedBox(width: 8),
-      Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(color: t.onMedia, fontWeight: FontWeight.w800))),
+      Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(color: t.onMedia, fontWeight: FontWeight.w400))),
     ]);
     final box = Container(
       constraints: const BoxConstraints(minHeight: 36),
@@ -175,7 +175,7 @@ class ChatdGlassButton extends StatelessWidget {
                   Icon(icon, size: 18, color: t.onMedia),
                   const SizedBox(width: 8),
                 ],
-                Flexible(child: Text(label, maxLines: 2, textAlign: TextAlign.center, style: tx.labelLarge!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700))),
+                Flexible(child: Text(label, maxLines: 2, textAlign: TextAlign.center, style: tx.labelLarge!.copyWith(color: t.onMedia, fontWeight: FontWeight.w400))),
               ]),
             ),
           ),

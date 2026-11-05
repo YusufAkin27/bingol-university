@@ -219,7 +219,7 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
                     key: ValueKey('${_month.year}-${_month.month}'),
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Flexible(child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink))),
+                      Flexible(child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
                       const SizedBox(width: 4),
                       Icon(BuIcons.chevronDown, size: 16, color: t.ink),
                     ],
@@ -318,7 +318,7 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
                   maxScaleFactor: 1.2,
                   child: AnimatedDefaultTextStyle(
                     duration: BuMotion.of(context, BuMotion.short),
-                    style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: sel || (isToday && inMonth) ? FontWeight.w700 : FontWeight.w500, color: fg),
+                    style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: sel || (isToday && inMonth) ? FontWeight.w400 : FontWeight.w500, color: fg),
                     child: Text('${date.day}'),
                   ),
                 ),
@@ -377,7 +377,7 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
       child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-        Expanded(child: Semantics(header: true, child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontSize: 15, fontWeight: FontWeight.w700, color: t.ink)))),
+        Expanded(child: Semantics(header: true, child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontSize: 15, fontWeight: FontWeight.w400, color: t.ink)))),
         if (trailing != null) ...[
           const SizedBox(width: 8),
           Flexible(flex: 0, child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 150), child: Text(trailing, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)))),
@@ -420,14 +420,14 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 130),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Text('${d.day} ${monthNameL(l, d.month)}', maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontSize: 16, fontWeight: FontWeight.w700, color: color)),
+            Text('${d.day} ${monthNameL(l, d.month)}', maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontSize: 16, fontWeight: FontWeight.w400, color: color)),
             Text(dayName, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 12, color: t.mut)),
           ]),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.end, mainAxisSize: MainAxisSize.min, children: [
-            Text(e.title, maxLines: 2, textAlign: TextAlign.end, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontSize: 15, fontWeight: FontWeight.w600, color: color)),
+            Text(e.title, maxLines: 2, textAlign: TextAlign.end, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontSize: 15, fontWeight: FontWeight.w400, color: color)),
             if (note.isNotEmpty) Text(note, maxLines: 2, textAlign: TextAlign.end, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 12, color: t.mut)),
           ]),
         ),

@@ -167,7 +167,7 @@ class _PermissionsPageState extends State<PermissionsPage> with WidgetsBindingOb
           children: [
             Semantics(
               header: true,
-              child: Text(l.permPageTitle, style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+              child: Text(l.permPageTitle, style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
             ),
             const SizedBox(height: 8),
             Text(l.permPageIntro, style: tx.bodyLarge!.copyWith(color: t.mut, height: 1.5)),
@@ -192,7 +192,7 @@ class _PermissionsPageState extends State<PermissionsPage> with WidgetsBindingOb
                 child: TextButton(
                   onPressed: widget.onFinished,
                   style: TextButton.styleFrom(foregroundColor: t.mut, minimumSize: const Size(48, 48)),
-                  child: Text(l.permNotNow, style: tx.labelLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
+                  child: Text(l.permNotNow, style: tx.labelLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
                 ),
               ),
             ],
@@ -251,11 +251,11 @@ class _PermRow extends StatelessWidget {
         children: [
           ExcludeSemantics(child: Icon(BuIcons.check, size: 18, color: t.ok)),
           const SizedBox(width: 4),
-          Text(l.permGranted, style: tx.labelLarge!.copyWith(color: t.ok, fontWeight: FontWeight.w600)),
+          Text(l.permGranted, style: tx.labelLarge!.copyWith(color: t.ok, fontWeight: FontWeight.w400)),
         ],
       );
     } else if (denied) {
-      trailing = Text(l.permDenied, style: tx.labelLarge!.copyWith(color: t.danger, fontWeight: FontWeight.w600));
+      trailing = Text(l.permDenied, style: tx.labelLarge!.copyWith(color: t.danger, fontWeight: FontWeight.w400));
     } else {
       trailing = BuButton(
         key: ValueKey('ask-${permission.name}-$denied'),
@@ -277,7 +277,7 @@ class _PermRow extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: Text(title, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w600))),
+                Expanded(child: Text(title, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400))),
                 const SizedBox(width: 12),
                 AnimatedSwitcher(duration: BuMotion.of(context, BuMotion.medium), child: trailing),
               ],

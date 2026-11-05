@@ -306,7 +306,7 @@ class _ClubsTabState extends State<ClubsTab> {
                   style: TextButton.styleFrom(
                       foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 12)),
                   onPressed: _create,
-                  child: Text(context.l10n.clubMgmtCreateTitle, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
+                  child: Text(context.l10n.clubMgmtCreateTitle, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
                 ),
               ],
             ),

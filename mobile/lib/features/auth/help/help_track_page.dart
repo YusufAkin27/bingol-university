@@ -185,7 +185,7 @@ class _StatusPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(color: bg, borderRadius: BuRadius.bPill),
-      child: Text(label, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: fg, fontWeight: FontWeight.w600)),
+      child: Text(label, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: fg, fontWeight: FontWeight.w400)),
     );
   }
 }
@@ -279,7 +279,7 @@ class _ReplyBar extends StatelessWidget {
                     builder: (_, v, __) => TextButton(
                       onPressed: (sending || v.text.trim().isEmpty) ? null : onSend,
                       style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 12)),
-                      child: Text(l.p66TrackSend, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700)),
+                      child: Text(l.p66TrackSend, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w400)),
                     ),
                   ),
                 ],

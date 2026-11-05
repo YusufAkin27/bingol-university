@@ -189,7 +189,7 @@ class BuProgressSteps extends StatelessWidget {
                         textAlign: TextAlign.start,
                         style: tx.labelSmall!.copyWith(
                           color: i <= cur ? t.ink : t.mut,
-                          fontWeight: i == cur ? FontWeight.w700 : FontWeight.w500,
+                          fontWeight: i == cur ? FontWeight.w400 : FontWeight.w500,
                         ),
                       ),
                     ),

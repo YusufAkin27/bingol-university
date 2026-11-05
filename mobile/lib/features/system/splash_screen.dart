@@ -24,7 +24,7 @@ class SplashScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('BÜ Kampüs', style: tx.headlineMedium!.copyWith(color: fg, fontWeight: FontWeight.w700, letterSpacing: rtl ? 0 : -.3)),
+              Text('BÜ Kampüs', style: tx.headlineMedium!.copyWith(color: fg, fontWeight: FontWeight.w400, letterSpacing: rtl ? 0 : -.3)),
               const SizedBox(height: 24),
               RepaintBoundary(
                 child: SizedBox(

@@ -112,7 +112,7 @@ class Et2Segment<T> extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: tx.labelLarge!.copyWith(
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w400,
                             color: i == sel ? t.onSoft : (enabled ? t.ink : t.mut.withValues(alpha: .6)),
                           ),
                           child: Text(options[i].$2, maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center),
@@ -251,7 +251,7 @@ class Et2Banner extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.only(top: 6),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                if (title != null) Text(title!, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: fg)),
+                if (title != null) Text(title!, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: fg)),
                 Text(text, style: tx.bodySmall!.copyWith(height: 1.4, color: fg)),
               ]),
             ),
@@ -351,7 +351,7 @@ class Et2Tag extends StatelessWidget {
         if (icon != null) ...[ExcludeSemantics(child: Icon(icon, size: 14, color: fg)), const SizedBox(width: 6)],
         Flexible(
           child: Text(label,
-              maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: fg)),
+              maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: fg)),
         ),
       ]),
     );
@@ -372,7 +372,7 @@ class Et2Label extends StatelessWidget {
       padding: const EdgeInsetsDirectional.only(start: 2, top: 20, bottom: 8),
       child: Semantics(
         header: true,
-        child: Text(text, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.mut)),
+        child: Text(text, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w400, color: t.mut)),
       ),
     );
   }
@@ -390,7 +390,7 @@ class Et2FieldLabel extends StatelessWidget {
     final tx = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsetsDirectional.only(start: 2, bottom: 6),
-      child: Text(text, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+      child: Text(text, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
     );
   }
 }
@@ -447,7 +447,7 @@ class Et2NavRow extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(color: t.pr, borderRadius: BorderRadius.circular(BuRadius.pill)),
                   child: Text(badge!,
-                      textAlign: TextAlign.center, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.onPr)),
+                      textAlign: TextAlign.center, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: t.onPr)),
                 ),
               ],
               const SizedBox(width: 6),
@@ -523,7 +523,7 @@ class Et2GhostButton extends StatelessWidget {
                       textAlign: TextAlign.center,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: fg)),
+                      style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: fg)),
                 ),
               ]),
             ),
@@ -563,14 +563,14 @@ class Et2DateChip extends StatelessWidget {
             alignment: Alignment.center,
             child: FittedBox(
               fit: BoxFit.scaleDown,
-              child: Text(month, maxLines: 1, style: tx.labelSmall!.copyWith(color: t.onPr, fontWeight: FontWeight.w800, letterSpacing: .6)),
+              child: Text(month, maxLines: 1, style: tx.labelSmall!.copyWith(color: t.onPr, fontWeight: FontWeight.w400, letterSpacing: .6)),
             ),
           ),
           Expanded(
             child: Center(
               child: FittedBox(
                 fit: BoxFit.scaleDown,
-                child: Text(day, maxLines: 1, style: tx.titleLarge!.copyWith(color: t.ink, height: 1.1, fontWeight: FontWeight.w800)),
+                child: Text(day, maxLines: 1, style: tx.titleLarge!.copyWith(color: t.ink, height: 1.1, fontWeight: FontWeight.w400)),
               ),
             ),
           ),
@@ -706,7 +706,7 @@ class Et2ErrorRow extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-              Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.danger)),
+              Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: t.danger)),
               if (sub != null)
                 Text(sub!, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.danger.withValues(alpha: .85))),
             ]),
@@ -733,7 +733,7 @@ class Et2ErrorRow extends StatelessWidget {
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       Icon(BuIcons.refreshCw, size: 14, color: t.danger),
                       const SizedBox(width: 6),
-                      Flexible(child: Text(retryLabel ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.danger))),
+                      Flexible(child: Text(retryLabel ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: t.danger))),
                     ]),
                   ),
                 ),
@@ -766,7 +766,7 @@ class Et2SectionTitle extends StatelessWidget {
       child: Semantics(
         header: true,
         child: Row(children: [
-          Flexible(child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink))),
+          Flexible(child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
           if (count != null) ...[
             const SizedBox(width: 8),
             if (soft)
@@ -774,7 +774,7 @@ class Et2SectionTitle extends StatelessWidget {
                 constraints: const BoxConstraints(minWidth: 24),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(BuRadius.pill)),
-                child: Text('$count', textAlign: TextAlign.center, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.onSoft)),
+                child: Text('$count', textAlign: TextAlign.center, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: t.onSoft)),
               )
             else
               Text('($count)', style: tx.labelLarge!.copyWith(color: t.mut)),
@@ -823,7 +823,7 @@ class Et2GreyButton extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (icon != null) ...[Icon(icon, size: 18, color: t.ink), const SizedBox(width: 8)],
-              Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink))),
+              Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
             ],
           ),
         ),

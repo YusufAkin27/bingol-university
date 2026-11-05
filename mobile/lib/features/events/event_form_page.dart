@@ -591,7 +591,7 @@ class _EventFormPageState extends State<EventFormPage> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(56, 0, 56, 40),
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Text(l.evcEmptyTitle, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink, height: 1.3)),
+                Text(l.evcEmptyTitle, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink, height: 1.3)),
                 const SizedBox(height: 10),
                 Text(l.p51EvClubOnly, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(height: 1.5, color: t.mut)),
                 const SizedBox(height: 28),
@@ -599,7 +599,7 @@ class _EventFormPageState extends State<EventFormPage> {
                 TextButton(
                   style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48)),
                   onPressed: _loadClubs,
-                  child: Text(l.p15RefreshPerms, style: tx.bodyMedium!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
+                  child: Text(l.p15RefreshPerms, style: tx.bodyMedium!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
                 ),
               ]),
             ),
@@ -616,7 +616,7 @@ class _EventFormPageState extends State<EventFormPage> {
     return Padding(
       padding: const EdgeInsetsDirectional.only(top: 20, bottom: 8),
       child: Row(children: [
-        Expanded(child: Text(s, style: tx.labelLarge!.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: t.mut))),
+        Expanded(child: Text(s, style: tx.labelLarge!.copyWith(fontSize: 13, fontWeight: FontWeight.w400, color: t.mut))),
         if (trailing != null) Text(trailing, style: tx.labelMedium!.copyWith(color: t.mut)),
       ]),
     );
@@ -687,7 +687,7 @@ class _EventFormPageState extends State<EventFormPage> {
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 6),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                if (title != null) Text(title, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: danger ? t.danger : t.onWarnSoft)),
+                if (title != null) Text(title, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: danger ? t.danger : t.onWarnSoft)),
                 Text(_error!, style: tx.bodySmall!.copyWith(height: 1.4, color: danger ? t.danger : t.onWarnSoft)),
               ]),
             ),
@@ -719,7 +719,7 @@ class _EventFormPageState extends State<EventFormPage> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(color: t.danger.withValues(alpha: .1), borderRadius: BorderRadius.circular(16)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(l.p15ErrBannerTitle('$n'), style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.danger)),
+          Text(l.p15ErrBannerTitle('$n'), style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: t.danger)),
           const SizedBox(height: 2),
           Text(l.p15ErrBannerBody, style: tx.bodySmall!.copyWith(height: 1.4, color: t.danger)),
         ]),
@@ -761,7 +761,7 @@ class _EventFormPageState extends State<EventFormPage> {
                     child: Text(_clubName ?? l.etkinlik2ClubSheetTitle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w600, color: _clubName == null ? t.mut : t.ink)),
+                        style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: _clubName == null ? t.mut : t.ink)),
                   ),
                   if (canPick) Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mut),
                 ]),
@@ -960,7 +960,7 @@ class _EventFormPageState extends State<EventFormPage> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                         decoration: BoxDecoration(color: t.sf.withValues(alpha: .95), borderRadius: BorderRadius.circular(BuRadius.pill)),
-                        child: Text(l.p15CoverChange, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                        child: Text(l.p15CoverChange, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
                       ),
                     ),
                   ),
@@ -1058,7 +1058,7 @@ class _EventFormPageState extends State<EventFormPage> {
                   padding: const EdgeInsets.only(top: 6),
                   child: Text(l.evdDescCounter('$descLen', '$_descMax'),
                       key: const ValueKey('evd-desc-counter'),
-                      style: tx.bodySmall!.copyWith(fontWeight: descErr != null ? FontWeight.w700 : FontWeight.w400, color: descErr != null ? t.danger : t.mut)),
+                      style: tx.bodySmall!.copyWith(fontWeight: descErr != null ? FontWeight.w400 : FontWeight.w400, color: descErr != null ? t.danger : t.mut)),
                 ),
               ),
               _dateSection(l),
@@ -1176,7 +1176,7 @@ class _ClubPickerSheetState extends State<_ClubPickerSheet> {
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Semantics(header: true, child: Text(l.etkinlik2ClubSheetTitle, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
+                Semantics(header: true, child: Text(l.etkinlik2ClubSheetTitle, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
                 const SizedBox(height: 2),
                 Text(l.p15PickerSubtitle, style: tx.bodySmall!.copyWith(color: t.mut)),
               ]),
@@ -1251,7 +1251,7 @@ class _ClubPickerSheetState extends State<_ClubPickerSheet> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(l.p15PickerInfoTitle, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                      Text(l.p15PickerInfoTitle, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
                       const SizedBox(height: 2),
                       Text(l.p15PickerInfoBody, style: tx.bodySmall!.copyWith(height: 1.4, color: t.mut)),
                     ]),
@@ -1311,13 +1311,13 @@ class _ClubPickerSheetState extends State<_ClubPickerSheet> {
               const SizedBox(width: 12),
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                  Text('${c['name'] ?? ''}', maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                  Text('${c['name'] ?? ''}', maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
                   const SizedBox(height: 3),
                   Row(children: [
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(color: manager ? t.ink : t.sf2, borderRadius: BorderRadius.circular(BuRadius.pill)),
-                      child: Text(roleLabel, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: manager ? t.bg : t.mut)),
+                      child: Text(roleLabel, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w400, color: manager ? t.bg : t.mut)),
                     ),
                     if (members != null) ...[
                       const SizedBox(width: 8),
@@ -1380,7 +1380,7 @@ class _CoverSheet extends StatelessWidget {
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                    Text(title, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: danger ? t.danger : t.ink)),
+                    Text(title, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: danger ? t.danger : t.ink)),
                     Text(sub, style: tx.bodySmall!.copyWith(color: danger ? t.danger.withValues(alpha: .85) : t.mut)),
                   ]),
                 ),
@@ -1399,7 +1399,7 @@ class _CoverSheet extends StatelessWidget {
         Padding(
           padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 4, 8),
           child: Row(children: [
-            Expanded(child: Semantics(header: true, child: Text(l.p15CoverSheetTitle, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)))),
+            Expanded(child: Semantics(header: true, child: Text(l.p15CoverSheetTitle, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink)))),
             Semantics(
               button: true,
               label: l.commonClose,
@@ -1492,7 +1492,7 @@ class _SubmittedDialog extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Semantics(header: true, child: Text(l.evcSubmittedTitle, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
+          Semantics(header: true, child: Text(l.evcSubmittedTitle, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
           const SizedBox(height: 8),
           Text(l.evcSubmittedBody, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(height: 1.5, color: t.mut)),
           const SizedBox(height: 20),
@@ -1508,7 +1508,7 @@ class _SubmittedDialog extends StatelessWidget {
                 constraints: const BoxConstraints(minHeight: BuSize.button),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(color: t.ink, borderRadius: BorderRadius.circular(BuRadius.md)),
-                child: Text(l.evcOk, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.bg)),
+                child: Text(l.evcOk, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: t.bg)),
               ),
             ),
           ),

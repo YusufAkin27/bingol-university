@@ -79,7 +79,7 @@ class ProfilFlatSection extends StatelessWidget {
             style: Theme.of(context)
                 .textTheme
                 .labelLarge!
-                .copyWith(fontSize: 13, fontWeight: upper ? FontWeight.w600 : FontWeight.w500, letterSpacing: upper && lang != 'ar' ? .4 : 0, color: t.mut)),
+                .copyWith(fontSize: 13, fontWeight: upper ? FontWeight.w400 : FontWeight.w500, letterSpacing: upper && lang != 'ar' ? .4 : 0, color: t.mut)),
       ),
     );
   }
@@ -265,13 +265,12 @@ class ProfilIconTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final bg = danger ? Theme.of(context).colorScheme.errorContainer : (tint?.bg ?? t.soft);
-    final fg = color ?? (danger ? t.danger : (tint?.fg ?? (accent ? t.pr : t.onSoft)));
-    return Container(
+    // Çerçeve/zemin YOK: yalnız simge, kırmızı (AA uyumlu metin kırmızısı). Karo boyutu satır hizası için kalır.
+    final fg = color ?? (danger ? t.danger : t.prText);
+    return SizedBox(
       width: size,
       height: size,
-      decoration: BoxDecoration(color: bg, borderRadius: size > 36 ? BorderRadius.circular(12) : BuRadius.bSm),
-      child: ExcludeSemantics(child: Icon(icon, size: size > 36 ? 20 : 19, color: fg)),
+      child: Center(child: ExcludeSemantics(child: Icon(icon, size: size > 36 ? 22 : 20, color: fg))),
     );
   }
 }
@@ -335,7 +334,7 @@ class ProfilRow extends StatelessWidget {
                       maxLines: 1,
                       softWrap: false,
                       overflow: TextOverflow.ellipsis,
-                      style: tx.bodyLarge!.copyWith(fontSize: icon == null ? null : 17, fontWeight: icon == null ? FontWeight.w400 : FontWeight.w600, color: c)),
+                      style: tx.bodyLarge!.copyWith(fontSize: icon == null ? null : 17, fontWeight: icon == null ? FontWeight.w400 : FontWeight.w400, color: c)),
                   if (sub != null) Text(sub!, maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
                 ],
               ),
@@ -403,7 +402,7 @@ class ProfilToggleRow extends StatelessWidget {
                           maxLines: 1,
                           softWrap: false,
                           overflow: TextOverflow.ellipsis,
-                          style: tx.bodyLarge!.copyWith(fontWeight: FontWeight.w600, color: t.ink)),
+                          style: tx.bodyLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
                       if (sub != null) Text(sub!, style: tx.bodySmall!.copyWith(color: t.mut)),
                     ],
                   ),

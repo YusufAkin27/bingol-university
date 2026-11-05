@@ -78,7 +78,7 @@ class _PollMenuCardState extends State<PollMenuCard> {
       inactiveColor: rated ? t.pr.withValues(alpha: .25) : t.pr,
       onChanged: canRate && !_busy ? _rate : null,
     );
-    final title = Semantics(header: true, child: Text(l.pollMenuRateToday, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800)));
+    final title = Semantics(header: true, child: Text(l.pollMenuRateToday, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)));
     final err = _msg == null ? null : Text(_msg!, style: tx.bodySmall!.copyWith(color: t.danger));
     return Padding(
       padding: const EdgeInsets.only(top: 12),

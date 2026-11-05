@@ -134,7 +134,7 @@ Future<bool?> _showSheet(
           const SizedBox(height: 16),
           Semantics(
             header: true,
-            child: Text(title, textAlign: TextAlign.center, style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+            child: Text(title, textAlign: TextAlign.center, style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
           ),
           const SizedBox(height: 8),
           if (m == null)
@@ -145,7 +145,7 @@ Future<bool?> _showSheet(
                 style: body,
                 children: [
                   TextSpan(text: text.substring(0, m.start)),
-                  TextSpan(text: m.group(0), style: TextStyle(color: t.ink, fontWeight: FontWeight.w600)),
+                  TextSpan(text: m.group(0), style: TextStyle(color: t.ink, fontWeight: FontWeight.w400)),
                   TextSpan(text: text.substring(m.end)),
                 ],
               ),
@@ -157,7 +157,7 @@ Future<bool?> _showSheet(
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             style: TextButton.styleFrom(foregroundColor: t.ink, minimumSize: const Size.fromHeight(48)),
-            child: Text(secondary, style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+            child: Text(secondary, style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
           ),
         ],
       );

@@ -126,7 +126,7 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
             Semantics(
               header: true,
               child: Text(l.profilyardBlockedEmptyTitle,
-                  textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontSize: 18, fontWeight: FontWeight.w600, color: t.ink)),
+                  textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontSize: 18, fontWeight: FontWeight.w400, color: t.ink)),
             ),
             const SizedBox(height: 8),
             Text(l.profilyardBlockedEmptyBody,
@@ -194,7 +194,7 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
                   ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.4, color: t.ink))
                   : Text(context.l10n.profilePrefsUnblock,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: t.ink)),
+                      style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 14, fontWeight: FontWeight.w400, color: t.ink)),
             ),
           ),
         ),

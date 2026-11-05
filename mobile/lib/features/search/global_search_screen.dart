@@ -431,7 +431,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
             Expanded(
               child: Semantics(
                 header: true,
-                child: Text(l.searchRecent, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w600, color: t.ink)),
+                child: Text(l.searchRecent, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w400, color: t.ink)),
               ),
             ),
             TextButton(
@@ -558,7 +558,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
           Expanded(
             child: Semantics(
               header: true,
-              child: Text(title, style: tx.titleMedium!.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: t.ink)),
+              child: Text(title, style: tx.titleMedium!.copyWith(fontSize: 16, fontWeight: FontWeight.w400, color: t.ink)),
             ),
           ),
           if (more)
@@ -633,7 +633,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
       padding: const EdgeInsets.fromLTRB(24, 96, 24, 24),
       children: [
         Text(message ?? l.searchNoResults,
-            textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: t.ink)),
+            textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontSize: 16, fontWeight: FontWeight.w400, color: t.ink)),
         if (message == null) ...[
           const SizedBox(height: 8),
           Text(l.p05SearchNoResultsBody, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(fontSize: 14, color: t.mut)),
@@ -704,7 +704,7 @@ class SearchPostTile extends StatelessWidget {
                   child: Row(children: [
                     Expanded(
                       child: Text(hit.author,
-                          maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontSize: 12, fontWeight: FontWeight.w600, color: t.onMedia)),
+                          maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontSize: 12, fontWeight: FontWeight.w400, color: t.onMedia)),
                     ),
                     if (hit.likes != null) ...[
                       const SizedBox(width: 6),
@@ -894,7 +894,7 @@ class _TabChipsState extends State<_TabChips> {
                         duration: BuMotion.of(context, BuMotion.short),
                         style: tx.labelLarge!.copyWith(
                           fontSize: 13,
-                          fontWeight: i == widget.selected ? FontWeight.w600 : FontWeight.w400,
+                          fontWeight: i == widget.selected ? FontWeight.w400 : FontWeight.w400,
                           color: i == widget.selected ? t.prText : t.ink,
                         ),
                         child: Text(widget.labels[i]),

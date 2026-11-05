@@ -71,7 +71,7 @@ class AnketTabs extends StatelessWidget {
                           child: Row(mainAxisSize: MainAxisSize.min, children: [
                             AnimatedDefaultTextStyle(
                               duration: BuMotion.of(context, BuMotion.short),
-                              style: tx.labelLarge!.copyWith(color: i == index ? t.ink : t.mut, fontWeight: i == index ? FontWeight.w700 : FontWeight.w600),
+                              style: tx.labelLarge!.copyWith(color: i == index ? t.ink : t.mut, fontWeight: i == index ? FontWeight.w400 : FontWeight.w400),
                               child: Text(labels[i], maxLines: 1),
                             ),
                             if (i == 0 && (badge ?? 0) > 0) ...[
@@ -82,7 +82,7 @@ class AnketTabs extends StatelessWidget {
                                 decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bPill),
                                 child: Text('$badge',
                                     textAlign: TextAlign.center,
-                                    style: tx.labelSmall!.copyWith(color: t.onSoft, fontWeight: FontWeight.w700)),
+                                    style: tx.labelSmall!.copyWith(color: t.onSoft, fontWeight: FontWeight.w400)),
                               ),
                             ],
                           ]),
@@ -144,7 +144,7 @@ class AnketEmptyCard extends StatelessWidget {
           const SizedBox(height: 16),
           Semantics(
             header: true,
-            child: Text(title, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.3)),
+            child: Text(title, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400, height: 1.3)),
           ),
           const SizedBox(height: 6),
           Text(body, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.45)),

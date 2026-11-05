@@ -279,11 +279,11 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                             if (typeText.isNotEmpty)
                               Text(typeText,
                                   style: tx.labelMedium!.copyWith(
-                                      fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: _isArabic ? 0 : .6, color: t.mut)),
+                                      fontSize: 12, fontWeight: FontWeight.w400, letterSpacing: _isArabic ? 0 : .6, color: t.mut)),
                             const SizedBox(height: 8),
                             Semantics(
                               header: true,
-                              child: Text(title, style: tx.headlineSmall!.copyWith(fontSize: 26, fontWeight: FontWeight.w700, height: 1.25, color: t.ink)),
+                              child: Text(title, style: tx.headlineSmall!.copyWith(fontSize: 26, fontWeight: FontWeight.w400, height: 1.25, color: t.ink)),
                             ),
                             const SizedBox(height: 8),
                             Text(dateLine, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
@@ -361,7 +361,7 @@ class _SourceButton extends StatelessWidget {
           child: Text(label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: t.ink)),
+              style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 14, fontWeight: FontWeight.w400, color: t.ink)),
         ),
       ),
     );

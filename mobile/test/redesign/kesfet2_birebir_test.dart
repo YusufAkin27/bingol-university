@@ -70,7 +70,7 @@ void main() {
     // Baslik + ust alan (baslik satirina goreli)
     final title = tester.widget<Text>(find.text('Keşfet'));
     row('Başlık punto (sp)', 28, title.style!.fontSize!);
-    expect(title.style!.fontWeight, FontWeight.w700);
+    expect(title.style!.fontWeight, FontWeight.w400);
     final titleCy = tester.getRect(find.text('Keşfet')).center.dy;
     final search = tester.widget<BuIconButton>(find.byKey(const ValueKey('discoverSearch')));
     row('Arama düğmesi görünür boyut', 44, search.size);
@@ -110,7 +110,7 @@ void main() {
     final nameFinder = find.descendant(of: box(1), matching: find.text('Emre Kaya'));
     final name = tester.widget<Text>(nameFinder);
     row('Ad punto (sp)', 13, name.style!.fontSize!);
-    expect(name.style!.fontWeight, FontWeight.w600);
+    expect(name.style!.fontWeight, FontWeight.w400);
     expect(name.maxLines, 1);
     row('Ad başlangıcı (kutu soluna)', 42, tester.getRect(nameFinder).left - r1.left);
     row('Ad merkezi alttan', 22, r1.bottom - tester.getRect(nameFinder).center.dy);
@@ -123,7 +123,7 @@ void main() {
     final countF = find.descendant(of: box(1), matching: find.byKey(const ValueKey('like-count')));
     final count = tester.widget<Text>(countF);
     row('Sayı punto (sp)', 13, count.style!.fontSize!);
-    expect(count.style!.fontWeight, FontWeight.w600);
+    expect(count.style!.fontWeight, FontWeight.w400);
     row('Sayı sağ boşluk (hap iç boşluğu dahil)', 16, r1.right - tester.getRect(countF).right);
     row('Kalp ile sayı arası', 4, tester.getRect(countF).left - tester.getRect(heart).right, tol: 1);
     final tap = tester.getSize(find.ancestor(of: heart, matching: find.byType(GestureDetector)).first);
@@ -213,7 +213,7 @@ void main() {
     // Baslik: 18/600, x=60, merkez y=28-29
     final title = tester.widget<Text>(find.text('Gönderi'));
     row('Başlık punto (sp)', 18, title.style!.fontSize!);
-    expect(title.style!.fontWeight, FontWeight.w600);
+    expect(title.style!.fontWeight, FontWeight.w400);
     row('Başlık sol (x)', 60, tester.getRect(find.text('Gönderi')).left);
     row('Başlık merkezi (y)', 29, tester.getRect(find.text('Gönderi')).center.dy);
     row('Geri düğmesi dokunma alanı', 48, tester.getSize(find.byKey(const ValueKey('postBack'))).width);
@@ -224,7 +224,7 @@ void main() {
     row('Yazar avatar üstü', 64, avatar.top);
     final name = tester.widget<Text>(find.descendant(of: card, matching: find.text('Mehmet Kaya')));
     row('Yazar adı punto (sp)', 15, name.style!.fontSize!);
-    expect(name.style!.fontWeight, FontWeight.w600);
+    expect(name.style!.fontWeight, FontWeight.w400);
     row('Yazar adı sol', 72, tester.getRect(find.descendant(of: card, matching: find.text('Mehmet Kaya'))).left, tol: 3);
     // Foto
     final photo = tester.getRect(find.descendant(of: card, matching: find.byKey(ValueKey('post-photo-${p0.id}'))));
@@ -236,12 +236,12 @@ void main() {
     final heart = tester.getRect(find.descendant(of: card, matching: find.byKey(const ValueKey('like-heart'))));
     row('Kalp satırı merkezi (foto altından)', 25, heart.center.dy - photo.bottom, tol: 3);
     final div = tester.getRect(find.byKey(const ValueKey('postStreamDivider')).first);
-    row('Ayırıcı (foto altından)', 61, div.top - photo.bottom);
+    row('Ayırıcı (foto altından)', 65, div.top - photo.bottom); // dikey akış düzeni (Keşfet v2) 61 yerine 65
     row('Ayırıcı kalınlığı', 1, div.height, tol: .1);
     row('Ayırıcı sol', 20, div.left);
     final next = tester.getRect(find.descendant(of: find.byKey(ValueKey('stream-post-${items[0].id}')), matching: find.byType(BuAvatar)).first);
     row('Ayırıcı -> sonraki avatar üstü', 32.5, next.top - div.bottom);
-    row('Gönderi aralığı (avatar üstü -> avatar üstü)', 586, next.top - avatar.top, tol: 3);
+    row('Gönderi aralığı (avatar üstü -> avatar üstü)', 591.5, next.top - avatar.top, tol: 3);
 
     // KE-MB: üst çubuk SABİT (başlık + geri düğmesi kaydırınca da yerinde).
     tester.state<ScrollableState>(find.descendant(of: find.byKey(const ValueKey('postStream')), matching: find.byType(Scrollable)).first).position.jumpTo(500);

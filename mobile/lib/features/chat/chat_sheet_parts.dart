@@ -74,7 +74,7 @@ class ChatSheetHeader extends StatelessWidget {
           child: Text(title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+              style: Theme.of(context).textTheme.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
         ),
       ),
       const SizedBox(width: 8),
@@ -220,7 +220,7 @@ Future<String?> showChatMuteSheet(BuildContext context, {required String chatNam
                 child: Semantics(
                   header: true,
                   child: Text(l.chatInfoMuteNotifications,
-                      style: Theme.of(c).textTheme.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+                      style: Theme.of(c).textTheme.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                 ),
               ),
             ]),
@@ -307,7 +307,7 @@ class _RenameDialogState extends State<_RenameDialog> {
                   Expanded(
                     child: Semantics(
                       header: true,
-                      child: Text(l.chatInfoGroupName, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+                      child: Text(l.chatInfoGroupName, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                     ),
                   ),
                   SizedBox(
@@ -464,7 +464,7 @@ Future<PhotoSource?> showChatPhotoSheet(
             child: Semantics(
               header: true,
               child: Text(l.chatInfoChangePhoto,
-                  style: Theme.of(c).textTheme.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+                  style: Theme.of(c).textTheme.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
             ),
           ),
         ]),

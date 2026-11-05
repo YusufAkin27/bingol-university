@@ -182,7 +182,7 @@ class _ChatVideoPlayerPageState extends State<ChatVideoPlayerPage> {
                 const SizedBox(height: 22),
                 Semantics(
                   liveRegion: true,
-                  child: Text(l.chatMiscVideoPlayFailed, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(color: t.onMedia, fontWeight: FontWeight.w800)),
+                  child: Text(l.chatMiscVideoPlayFailed, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(color: t.onMedia, fontWeight: FontWeight.w400)),
                 ),
                 const SizedBox(height: 20),
                 ConstrainedBox(
@@ -246,7 +246,7 @@ class _ChatVideoPlayerPageState extends State<ChatVideoPlayerPage> {
     final t = context.bu;
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
-    final timeStyle = tx.labelMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w800, fontFeatures: const [FontFeature.tabularFigures()]);
+    final timeStyle = tx.labelMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w400, fontFeatures: const [FontFeature.tabularFigures()]);
     return ValueListenableBuilder<VideoPlayerValue>(
       valueListenable: c,
       builder: (context, v, _) {

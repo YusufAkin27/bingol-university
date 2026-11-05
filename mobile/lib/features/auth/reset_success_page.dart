@@ -46,7 +46,7 @@ class ResetSuccessPage extends StatelessWidget {
                             header: true,
                             liveRegion: true,
                             child: Text(l.authResetDoneTitle,
-                                textAlign: TextAlign.center, style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                                textAlign: TextAlign.center, style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                           ),
                           const SizedBox(height: 8),
                           Text(l.authResetDoneBody, textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(color: t.mut, height: 1.5)),

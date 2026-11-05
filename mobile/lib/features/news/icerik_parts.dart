@@ -204,7 +204,7 @@ class IcerikBadge extends StatelessWidget {
       child: Text(text,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w700, height: 1.1, color: fg)),
+          style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w400, height: 1.1, color: fg)),
     );
   }
 }
@@ -212,7 +212,7 @@ class IcerikBadge extends StatelessWidget {
 /// Bölüm başlığı (büyük harf, geniş harf aralığı, soluk). Arapçada harf aralığı 0 (bağlantılı harfler bozulmasın).
 TextStyle icerikSectionStyle(BuTokens t) {
   final ar = LocaleController.current?.locale.languageCode == 'ar';
-  return BuType.label.copyWith(fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: ar ? 0 : .6, color: t.mut);
+  return BuType.label.copyWith(fontSize: 12, fontWeight: FontWeight.w400, letterSpacing: ar ? 0 : .6, color: t.mut);
 }
 
 /// Bakım bandı renkleri (açık/koyu): uyarı belirteçleri.
@@ -323,7 +323,7 @@ class IcerikTabs extends StatelessWidget {
                               AnimatedDefaultTextStyle(
                                 duration: BuMotion.of(context, BuMotion.short),
                                 style: tx.labelLarge!.copyWith(
-                                    fontWeight: FontWeight.w700, color: i == index ? (raised ? t.prText : t.onSoft) : t.mut),
+                                    fontWeight: FontWeight.w400, color: i == index ? (raised ? t.prText : t.onSoft) : t.mut),
                                 child: Text(labels[i], maxLines: 1),
                               ),
                             ]),
@@ -429,7 +429,7 @@ class IcerikUnderlineTabs extends StatelessWidget {
                     AnimatedDefaultTextStyle(
                       duration: d,
                       style: tx.bodyMedium!.copyWith(
-                          fontSize: 15, height: 1.3, fontWeight: i == index ? FontWeight.w600 : FontWeight.w500, color: i == index ? t.ink : t.mut),
+                          fontSize: 15, height: 1.3, fontWeight: i == index ? FontWeight.w400 : FontWeight.w500, color: i == index ? t.ink : t.mut),
                       child: Text(labels[i], maxLines: 1),
                     ),
                     const SizedBox(height: 10),
@@ -566,7 +566,7 @@ class IcerikErrorCard extends StatelessWidget {
             buHaptic(BuHaptic.selection);
             onRetry();
           },
-          child: Text(retryLabel, style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: t.prText)),
+          child: Text(retryLabel, style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w400, color: t.prText)),
         ),
       ]),
     );

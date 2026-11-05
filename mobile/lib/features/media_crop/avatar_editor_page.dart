@@ -363,7 +363,7 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
                             width: 18,
                             height: 18,
                             child: CircularProgressIndicator(strokeWidth: 2.2, color: _d.scrim))
-                        : Text(l.avatarEdDone, style: tx.labelLarge?.copyWith(color: _d.scrim, fontSize: 15, fontWeight: FontWeight.w700)),
+                        : Text(l.avatarEdDone, style: tx.labelLarge?.copyWith(color: _d.scrim, fontSize: 15, fontWeight: FontWeight.w400)),
                   ),
                 ),
               ),
@@ -511,7 +511,7 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
-                      style: tx.labelMedium?.copyWith(fontSize: 12, fontWeight: FontWeight.w600, color: _tab == tab ? t.onSoft : t.ink)),
+                      style: tx.labelMedium?.copyWith(fontSize: 12, fontWeight: FontWeight.w400, color: _tab == tab ? t.onSoft : t.ink)),
                 ]),
               ),
             ),
@@ -568,7 +568,7 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
         child: Row(children: [
-          Expanded(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge?.copyWith(fontSize: 16, color: t.ink, fontWeight: FontWeight.w600))),
+          Expanded(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge?.copyWith(fontSize: 16, color: t.ink, fontWeight: FontWeight.w400))),
           const SizedBox(width: 8),
           Text(value, style: tx.labelLarge?.copyWith(fontSize: 16, color: t.mut, fontFeatures: const [ui.FontFeature.tabularFigures()])),
         ]),
@@ -758,7 +758,7 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
                         textDirection: r == AvatarRatio.free ? null : TextDirection.ltr,
                         textAlign: TextAlign.center,
                         style: tx.labelMedium?.copyWith(
-                            fontSize: 12, fontWeight: _view.ratio == r ? FontWeight.w700 : FontWeight.w500, color: t.ink)),
+                            fontSize: 12, fontWeight: _view.ratio == r ? FontWeight.w400 : FontWeight.w500, color: t.ink)),
                   ]),
                 ),
               ),
@@ -820,7 +820,7 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
-                        style: tx.labelMedium?.copyWith(fontSize: 11, fontWeight: _view.bg == b ? FontWeight.w700 : FontWeight.w500, color: t.ink)),
+                        style: tx.labelMedium?.copyWith(fontSize: 11, fontWeight: _view.bg == b ? FontWeight.w400 : FontWeight.w500, color: t.ink)),
                   ]),
                 ),
               ),
@@ -905,7 +905,7 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
-                      style: tx.labelMedium?.copyWith(fontSize: 12, fontWeight: sel ? FontWeight.w700 : FontWeight.w500, color: sel ? t.prPressed : t.ink)),
+                      style: tx.labelMedium?.copyWith(fontSize: 12, fontWeight: sel ? FontWeight.w400 : FontWeight.w500, color: sel ? t.prPressed : t.ink)),
                 ]),
               ),
             ),
@@ -975,7 +975,7 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        Text(_adjLabel(l, a), style: tx.labelLarge?.copyWith(color: sel ? t.onSoft : t.ink, fontWeight: FontWeight.w600)),
+                        Text(_adjLabel(l, a), style: tx.labelLarge?.copyWith(color: sel ? t.onSoft : t.ink, fontWeight: FontWeight.w400)),
                         if (touched) ...[
                           const SizedBox(width: 6),
                           Container(width: 6, height: 6, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle)),
