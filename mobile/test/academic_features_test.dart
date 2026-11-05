@@ -1,7 +1,6 @@
 import 'package:bu_kampus/features/academic/academic_calendar_page.dart';
 import 'package:bu_kampus/features/academic/academic_hub_page.dart';
 import 'package:bu_kampus/features/academic/academic_models.dart';
-import 'package:bu_kampus/features/academic/announcements_page.dart';
 import 'package:bu_kampus/features/academic/exams_page.dart';
 import 'package:bu_kampus/features/academic/reminder_settings_page.dart';
 import 'package:bu_kampus/features/academic/reminders.dart';
@@ -310,62 +309,17 @@ void main() {
   });
 
   group('sinavlar', () {
-    testWidgets('yaklasan sinav geri sayim; resmi program ve profil uyarisi', (tester) async {
+    testWidgets('yaklasan sinav geri sayim; sekme ve resmi program yok', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend();
-      final f = fakeAcademic(b)..addExam('Veri Yapıları Vize', '2026-11-04T10:00:00+03:00');
-      f.official = [
-        {
-          'id': 1,
-          'title': 'Fizik Final',
-          'type': 'FINAL',
-          'courseCode': 'FIZ101',
-          'department': 'Fizik',
-          'grade': '1',
-          'startsAt': '2026-11-20T09:00:00+03:00',
-          'endsAt': null,
-          'room': 'A-1',
-          'note': null,
-        }
-      ];
-      f.profileComplete = false;
+      fakeAcademic(b).addExam('Veri Yapıları Vize', '2026-11-04T10:00:00+03:00');
       await tester.pumpWidget(buildApp(ExamsPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
       expect(find.text('Veri Yapıları Vize'), findsOneWidget);
       expect(find.text('2 gün kaldı'), findsOneWidget);
-      await tester.tap(find.text('Okul programı'));
-      await settle(tester);
-      expect(find.text('Fizik Final'), findsOneWidget);
-      expect(find.textContaining('Profilinde bölüm bilgisi yok'), findsOneWidget);
-      await unmount(tester);
-    });
-
-    testWidgets('resmi program: Bolumum/Tumu kapsam cipleri scope=all ister ve geri doner', (tester) async {
-      useScreen(tester, kPhoneMedium);
-      final b = FakeBackend();
-      final f = fakeAcademic(b);
-      f.official = [
-        {'id': 1, 'title': 'Fizik Final', 'type': 'FINAL', 'department': 'Fizik', 'startsAt': '2026-11-20T09:00:00+03:00'},
-      ];
-      f.officialAll = [
-        ...f.official,
-        {'id': 2, 'title': 'Kimya Final', 'type': 'FINAL', 'department': 'Kimya', 'startsAt': '2026-11-21T09:00:00+03:00'},
-      ];
-      await tester.pumpWidget(buildApp(ExamsPage(session: makeSession(b), initialTab: 1), size: kPhoneMedium));
-      await settle(tester);
-      expect(find.text('Bölümüm'), findsOneWidget);
-      expect(find.text('Tümü'), findsOneWidget);
-      expect(find.text('Fizik Final'), findsOneWidget);
-      expect(find.text('Kimya Final'), findsNothing);
-      expect(b.requests, contains('GET /exams/official'));
-      await tester.tap(find.text('Tümü'));
-      await settle(tester);
-      expect(b.requests, contains('GET /exams/official?scope=all'));
-      expect(find.text('Kimya Final'), findsOneWidget);
-      await tester.tap(find.text('Bölümüm'));
-      await settle(tester);
-      expect(find.text('Kimya Final'), findsNothing);
-      expect(find.text('Fizik Final'), findsOneWidget);
+      expect(find.text('Okul programı'), findsNothing);
+      expect(find.text('Bölümüm'), findsNothing);
+      expect(b.requests.any((r) => r.contains('/exams/official')), isFalse);
       await unmount(tester);
     });
 
@@ -427,55 +381,16 @@ void main() {
     });
   });
 
-  group('duyurular', () {
-    testWidgets('imlecli sayfalama, okunmamis nokta, detay okundu yapar', (tester) async {
-      useScreen(tester, kPhoneMedium);
-      final b = FakeBackend();
-      final f = fakeAcademic(b)..pageSize = 3;
-      f.addAnnouncements(5);
-      await tester.pumpWidget(buildApp(AnnouncementsPage(session: makeSession(b)), size: kPhoneMedium));
-      await settle(tester);
-      expect(find.text('Duyuru 1'), findsOneWidget);
-      expect(b.requests.first, contains('scope=mine'));
-      await settle(tester); // kisa liste: sonraki sayfa kendiliginden istenir
-      expect(b.requests.any((r) => r.contains('cursor=3')), isTrue);
-      // Yazi olcegi buyudukce satirlar uzar; 5. satir tembel listede ilk karede olusmayabilir: once kaydir.
-      await tester.drag(find.byType(ListView).first, const Offset(0, -500));
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(find.text('Duyuru 5'), findsOneWidget);
-      await tester.tap(find.text('Duyuru 5'));
-      await settle(tester);
-      expect(find.text('Tam metin Duyuru 5'), findsOneWidget);
-      expect(f.announcements.last['read'], true);
-      await unmount(tester);
-    });
-
-    testWidgets('Tumu sekmesi scope=all ister; bos durum', (tester) async {
-      useScreen(tester, kPhoneMedium);
-      final b = FakeBackend();
-      fakeAcademic(b);
-      await tester.pumpWidget(buildApp(AnnouncementsPage(session: makeSession(b)), size: kPhoneMedium));
-      await settle(tester);
-      expect(find.textContaining('Bölümünle ilgili duyuru yok'), findsOneWidget);
-      await tester.tap(find.text('Tümü'));
-      await settle(tester);
-      expect(b.requests.any((r) => r.contains('scope=all')), isTrue);
-      await unmount(tester);
-    });
-  });
-
   group('giris ve hatirlatma ayarlari', () {
-    testWidgets('akademik giris: rozet ve ozetler', (tester) async {
+    testWidgets('akademik giris: ozetler (duyuru satiri yok)', (tester) async {
       useScreen(tester, kPhoneSmall);
       final b = FakeBackend();
-      final f = fakeAcademic(b)..addCourse('Fizik', 1, '10:00', '11:00');
-      f.addAnnouncements(3);
+      fakeAcademic(b).addCourse('Fizik', 1, '10:00', '11:00');
       await tester.pumpWidget(buildApp(AcademicHubPage(session: makeSession(b)), size: kPhoneSmall));
       await settle(tester);
       expect(find.text('Ders programı'), findsOneWidget);
       expect(find.text('Sıradaki: Fizik 10:00'), findsOneWidget);
-      await tester.scrollUntilVisible(find.text('3 okunmamış'), 200, scrollable: find.byType(Scrollable).first);
-      expect(find.text('3 okunmamış'), findsOneWidget);
+      expect(find.byKey(const ValueKey('acadhub-announcements')), findsNothing);
       expect(platform.calls, greaterThan(0)); // acilista hatirlatmalar kuruldu
       await unmount(tester);
     });

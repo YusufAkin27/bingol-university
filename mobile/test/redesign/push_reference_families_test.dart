@@ -90,26 +90,6 @@ const _families = <String, List<(String, String, Map<String, String>)>>{
       {'type': 'ANNOUNCEMENT', 'newsId': '1', 'badgeText': 'ÖNEMLİ'}
     ),
     (
-      'Bölümünüzde yeni duyuru',
-      'Bitirme projesi ara teslim raporları için son tarih 15 Kasım saat 17:00 olarak belirlenmiştir.',
-      {
-        'type': 'ANNOUNCEMENT',
-        'subtype': 'ACADEMIC_ANNOUNCEMENT',
-        'announcementId': '2',
-        'sourceName': 'Bilgisayar Mühendisliği'
-      }
-    ),
-    (
-      'Akademik duyuru',
-      'Çift anadal ve yan dal başvuru sonuçları Öğrenci Bilgi Sistemi üzerinden ilan edilmiştir.',
-      {
-        'type': 'ANNOUNCEMENT',
-        'subtype': 'ACADEMIC_ANNOUNCEMENT',
-        'announcementId': '3',
-        'sourceName': 'Öğrenci İşleri'
-      }
-    ),
-    (
       'Kampüs Yaşamı',
       'Merkezi Kütüphane vize haftası boyunca 7/24 kesintisiz hizmet verecektir.',
       {'type': 'NEWS', 'newsId': '4', 'sourceName': 'Güncel Haber'}

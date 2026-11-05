@@ -22,15 +22,7 @@ class FakeAcademic {
   };
   final List<Map<String, dynamic>> courses = [];
   final List<Map<String, dynamic>> exams = [];
-  List<Map<String, dynamic>> official = [];
-
-  /// `scope=all` (Tümü) yanıtı; boşsa `official` döner.
-  List<Map<String, dynamic>> officialAll = [];
-  bool profileComplete = true;
   List<Map<String, dynamic>> events = [];
-  final List<Map<String, dynamic>> announcements = [];
-  int pageSize = 2;
-  int unread = 0;
 
   /// Çakışma 409'u üretmek için: true iken `force` yoksa her yazma 409 döner.
   bool conflictOnce = false;
@@ -69,26 +61,10 @@ class FakeAcademic {
     return e;
   }
 
-  void addAnnouncements(int n, {bool pinnedFirst = true}) {
-    for (var i = 0; i < n; i++) {
-      announcements.add({
-        'id': 500 + i,
-        'title': 'Duyuru ${i + 1}',
-        'body': 'Duyuru metni ${i + 1}',
-        'department': 'Bilgisayar Mühendisliği',
-        'pinned': pinnedFirst && i == 0,
-        'publishAt': '2026-10-20T09:00:00+03:00',
-        'read': false,
-      });
-    }
-    unread = n;
-  }
-
   FakeResult _j(Object? j, [int status = 200]) => FakeResult.json(j, status: status);
 
   FakeResult? handle(http.Request req, String path) {
     final m = req.method;
-    final q = req.url.queryParameters;
     Map<String, dynamic> body() => req.body.isEmpty ? {} : (jsonDecode(req.body) as Map).cast<String, dynamic>();
 
     if (path == '/timetable' && m == 'GET') return _j({'semester': semester, 'courses': courses});
@@ -143,32 +119,8 @@ class FakeAcademic {
       exams.removeWhere((e) => e['id'] == int.parse(em.group(1)!));
       return const FakeResult.json(null, status: 204);
     }
-    if (path == '/exams/official') {
-      return _j({'items': q['scope'] == 'all' && officialAll.isNotEmpty ? officialAll : official, 'profileComplete': profileComplete});
-    }
     if (path == '/academic/calendar') return _j({'from': '2026-11-01', 'to': '2026-11-30', 'items': events});
     if (path == '/academic/calendar/next') return _j({'items': events});
-    if (path == '/announcements/unread-count') return _j({'count': unread});
-    if (path == '/announcements/read-all' && m == 'POST') {
-      for (final a in announcements) {
-        a['read'] = true;
-      }
-      unread = 0;
-      return const FakeResult.json(null, status: 204);
-    }
-    if (path == '/announcements' && m == 'GET') {
-      final cur = int.tryParse(q['cursor'] ?? '0') ?? 0;
-      final slice = announcements.skip(cur).take(pageSize).toList();
-      final next = cur + pageSize < announcements.length ? '${cur + pageSize}' : null;
-      return _j({'items': slice, 'nextCursor': next});
-    }
-    final am = RegExp(r'^/announcements/(\d+)$').firstMatch(path);
-    if (am != null && m == 'GET') {
-      final a = announcements.where((x) => x['id'] == int.parse(am.group(1)!)).firstOrNull;
-      if (a == null) return _j({'code': 'ANNOUNCEMENT_NOT_FOUND', 'message': 'Yok'}, 404);
-      a['read'] = true;
-      return _j({...a, 'body': 'Tam metin ${a['title']}'});
-    }
     return null;
   }
 }

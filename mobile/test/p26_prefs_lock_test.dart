@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_app.dart';
 
-/// Bildirim tercihleri: Anketler ve Akademik duyurular ana "Duyurular" bayrağına bağlıdır
+/// Bildirim tercihleri: Anketler ana "Duyurular" bayrağına bağlıdır
 /// (backend kuralı); kulüp anketi için ayrıca "Kulüpler" gerekir.
 void main() {
   setUpAll(loadTestFonts);
@@ -18,7 +18,6 @@ void main() {
       'communities': communities,
       'messages': true,
       'polls': true,
-      'academicAnnouncements': true,
     };
     final b = FakeBackend();
     b.handlers.add((req, path) {
@@ -46,19 +45,17 @@ void main() {
     await settle(tester);
   }
 
-  testWidgets('Duyurular kapalıyken Anketler ve Akademik duyurular pasif, açıklamalı, dokunulamaz', (tester) async {
+  testWidgets('Duyurular kapalıyken Anketler pasif, açıklamalı, dokunulamaz', (tester) async {
     final b = backend(announcements: false);
     await open(tester, b);
 
     expect(switchEnabled(tester, 'Anketler'), isFalse);
-    expect(switchEnabled(tester, 'Akademik duyurular'), isFalse);
-    expect(find.text('Duyurular kapalıyken bildirim gelmez'), findsOneWidget);
+    expect(find.text('Akademik duyurular'), findsNothing);
     expect(find.text('Duyurular veya Kulüpler kapalıysa ilgili anket bildirimleri gelmez'), findsOneWidget);
     // Anket açıklaması: genel anket Duyurular'a, kulüp anketi Kulüpler'e bağlı.
     expect(find.textContaining('anket bildirimleri gelmez'), findsOneWidget);
 
     await tester.tap(find.text('Anketler'));
-    await tester.tap(find.text('Akademik duyurular'));
     await settle(tester);
     expect(b.bodies['PUT /notifications/preferences'], isNull);
 
@@ -67,7 +64,7 @@ void main() {
     await unmount(tester);
   });
 
-  testWidgets('Duyurular açılınca iki satır etkinleşir ve değişiklik gönderilir', (tester) async {
+  testWidgets('Duyurular açılınca Anketler etkinleşir ve değişiklik gönderilir', (tester) async {
     final b = backend(announcements: false);
     await open(tester, b);
 
@@ -76,12 +73,6 @@ void main() {
     expect(b.bodies['PUT /notifications/preferences'], {'announcements': true});
 
     expect(switchEnabled(tester, 'Anketler'), isTrue);
-    expect(switchEnabled(tester, 'Akademik duyurular'), isTrue);
-    expect(find.text('Duyurular kapalıyken bildirim gelmez'), findsNothing);
-
-    await tester.tap(find.text('Akademik duyurular'));
-    await settle(tester);
-    expect(b.bodies['PUT /notifications/preferences'], {'academicAnnouncements': false});
     await unmount(tester);
   });
 
@@ -90,8 +81,6 @@ void main() {
     await open(tester, b);
 
     expect(switchEnabled(tester, 'Anketler'), isTrue);
-    expect(switchEnabled(tester, 'Akademik duyurular'), isTrue);
-    expect(find.text('Duyurular kapalıyken bildirim gelmez'), findsNothing);
     expect(find.textContaining('anket bildirimleri gelmez'), findsOneWidget);
     await unmount(tester);
   });
@@ -103,7 +92,7 @@ void main() {
     expect(switchEnabled(tester, 'Anketler'), isTrue);
     expect(find.text('Duyurular kapalıyken bildirim gelmez'), findsNothing);
     expect(find.textContaining('anket bildirimleri gelmez'), findsNothing);
-    // Stitch v3: Anketler / Akademik duyurular tek satır; yalnız bağımlılık notu çıkar (yukarıda yok).
+    // Stitch v3: Anketler tek satır; yalnız bağımlılık notu çıkar (yukarıda yok).
     expect(find.text('Öğrenci ve personel anketleri'), findsNothing);
     await unmount(tester);
   });

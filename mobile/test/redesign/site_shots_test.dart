@@ -422,9 +422,6 @@ void _academicData(FakeBackend b) {
   f.exams.last['room'] = 'B-101';
   f.addExam('Ayrık Matematik Vize', '2026-11-24T09:30:00+03:00');
   f.exams.last['room'] = 'Amfi 2';
-  f.addAnnouncements(2);
-  f.announcements[0]['title'] = 'Güz dönemi staj başvuruları';
-  f.announcements[1]['title'] = 'Veri Yapıları laboratuvar grupları açıklandı';
 }
 
 class _ReminderPlatform implements ReminderPlatform {

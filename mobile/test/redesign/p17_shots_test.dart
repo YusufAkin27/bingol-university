@@ -50,32 +50,6 @@ FakeAcademic _rich(FakeBackend b) {
   f.addExam('Matematik II Quiz', '2026-11-09T13:30:00+03:00', type: 'QUIZ');
   f.addExam('Fizik Final', '2026-12-21T09:00:00+03:00', type: 'FINAL');
   f.addExam('Geçmiş Quiz', '2026-10-21T10:00:00+03:00', type: 'QUIZ');
-  f.official = [
-    {
-      'id': 1,
-      'title': 'Fizik I Final',
-      'type': 'FINAL',
-      'courseCode': 'FIZ101',
-      'department': 'Fizik',
-      'grade': '1',
-      'startsAt': '2026-11-20T09:00:00+03:00',
-      'endsAt': '2026-11-20T10:30:00+03:00',
-      'room': 'A-1',
-      'note': 'Kimlik kartı zorunlu'
-    },
-    {
-      'id': 2,
-      'title': 'Matematik II Bütünleme',
-      'type': 'BUT',
-      'courseCode': 'MAT102',
-      'department': 'Bilgisayar Mühendisliği',
-      'grade': '1',
-      'startsAt': '2026-11-25T14:00:00+03:00',
-      'endsAt': null,
-      'room': null,
-      'note': null
-    },
-  ];
   return f;
 }
 
@@ -140,10 +114,6 @@ final _scenes = <_Scene>[
       }),
   _Scene('14_sinavlar', (b) => ExamsPage(session: makeSession(b)), setup: _rich),
   _Scene('15_sinavlar_bos', (b) => ExamsPage(session: makeSession(b)), setup: (b) => _fa(b)),
-  _Scene('16_sinavlar_resmi', (b) => ExamsPage(session: makeSession(b), initialTab: 1), setup: _rich),
-  _Scene('17_sinavlar_resmi_bos', (b) => ExamsPage(session: makeSession(b), initialTab: 1), setup: (b) {
-    _fa(b).profileComplete = false;
-  }),
   _Scene('18_sinavlar_iskelet', (b) => ExamsPage(session: makeSession(b)), setup: (b) {
     _rich(b);
     b.delay = const Duration(seconds: 6);
