@@ -3781,5 +3781,471 @@
         "type": "int"
       }
     }
-  }
+  },
+  "forumCommentLikeSemantic": "Like, {n} likes",
+  "@forumCommentLikeSemantic": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentUnlikeSemantic": "Unlike, {n} likes",
+  "@forumCommentUnlikeSemantic": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentReadMore": "Read more",
+  "forumCommentReadLess": "Show less",
+  "forumDetailDeletedAccount": "Deleted account",
+  "forumCommentDeletedPlaceholder": "This comment was deleted",
+  "forumCommentAuthorBadge": "Author",
+  "forumCommentEdited": "Edited",
+  "forumCommentReply": "Reply",
+  "forumCommentMore": "More actions",
+  "forumCommentLockedHint": "This topic is locked. Comments are closed.",
+  "forumCommentEditingBanner": "Editing your comment",
+  "forumCommentReplyingTo": "Replying to {name}",
+  "@forumCommentReplyingTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentCancelTarget": "Cancel reply or edit",
+  "forumCommentHint": "Write a comment…",
+  "forumCommentHintReply": "Write your reply…",
+  "forumCommentAnonLabel": "Comment anonymously",
+  "forumCommentCounter": "{n} / {max}",
+  "@forumCommentCounter": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentSend": "Send",
+  "forumCommentSaveEdit": "Save",
+  "forumCommentShowReplies": "Show {n} replies",
+  "@forumCommentShowReplies": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentHideReplies": "Hide replies",
+  "forumCommentMoreReplies": "{n} more replies",
+  "@forumCommentMoreReplies": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentMoreRepliesGeneric": "More replies",
+  "forumCommentOpenChain": "Open reply chain ({n})",
+  "@forumCommentOpenChain": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentRepliesFailed": "Could not load replies.",
+  "forumCommentActionEdit": "Edit",
+  "forumCommentActionDelete": "Delete",
+  "forumCommentActionCopy": "Copy text",
+  "forumCommentActionShare": "Share link",
+  "forumCommentActionLike": "Like",
+  "forumCommentActionUnlike": "Unlike",
+  "forumCommentActionSave": "Save",
+  "forumCommentActionUnsave": "Remove from saved",
+  "forumCommentActionReport": "Report",
+  "forumCommentActionBlock": "Block user",
+  "forumCommentCopied": "Text copied",
+  "forumCommentDeleted": "Comment deleted",
+  "forumCommentDeleteTitle": "Delete this comment?",
+  "forumCommentDeleteBody": "This cannot be undone.",
+  "forumCommentDeleteConfirm": "Delete",
+  "forumCommentBlockTitle": "Block this user?",
+  "forumCommentBlockBody": "You will no longer see this person's content. An anonymous author's identity is never revealed.",
+  "forumCommentBlockConfirm": "Block",
+  "forumCommentBlocked": "User blocked",
+  "forumCommentSaved": "Saved",
+  "forumCommentUnsaved": "Removed from saved",
+  "forumCommentGone": "This comment no longer exists. The list was refreshed.",
+  "forumCommentConflict": "The comment was changed elsewhere. The list was refreshed.",
+  "forumCommentSent": "Comment posted",
+  "forumCommentReplySent": "Reply posted",
+  "forumCommentEditDone": "Comment updated",
+  "forumCommentLinkNotFound": "The linked comment could not be found",
+  "forumDetailSortBest": "Best",
+  "forumDetailSortNewest": "Newest",
+  "forumDetailSortOldest": "Oldest",
+  "forumDetailCommentsHeader": "Comments ({n})",
+  "@forumDetailCommentsHeader": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailNoComments": "No comments yet",
+  "forumDetailNoCommentsBody": "Be the first to comment.",
+  "forumDetailCommentsError": "Could not load comments",
+  "forumDetailSlow": "Slow connection, please wait a bit…",
+  "forumDetailSemanticTitle": "Topic",
+  "forumDetailNotFoundTitle": "This topic no longer exists",
+  "forumDetailNotFoundBody": "It may have been deleted or removed.",
+  "forumDetailRemovedTitle": "This topic was removed",
+  "forumDetailRemovedBody": "It was removed under the community rules.",
+  "forumDetailLockedBanner": "This topic is locked. New comments are closed.",
+  "forumDetailPinned": "Pinned",
+  "forumDetailEdited": "Edited",
+  "forumDetailLikeAction": "Like",
+  "forumDetailUnlikeAction": "Unlike",
+  "forumDetailSaveAction": "Save",
+  "forumDetailUnsaveAction": "Remove from saved",
+  "forumDetailFollowAction": "Follow",
+  "forumDetailUnfollowAction": "Unfollow",
+  "forumDetailShareAction": "Share",
+  "forumDetailCommentsAction": "Go to comments",
+  "forumDetailCommentCount": "{n} comments",
+  "@forumDetailCommentCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailLikeCount": "{n} likes",
+  "@forumDetailLikeCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailMenu": "Topic options",
+  "forumDetailMenuEdit": "Edit topic",
+  "forumDetailMenuDelete": "Delete topic",
+  "forumDetailMenuNotificationsOff": "Turn off notifications",
+  "forumDetailMenuNotificationsOn": "Turn on notifications",
+  "forumDetailMenuShare": "Share link",
+  "forumDetailMenuPin": "Pin topic",
+  "forumDetailMenuUnpin": "Unpin topic",
+  "forumDetailMenuLock": "Lock comments",
+  "forumDetailMenuUnlock": "Unlock comments",
+  "forumDetailMenuReport": "Report",
+  "forumDetailMenuBlock": "Block author",
+  "forumDetailDeleteTitle": "Delete this topic?",
+  "forumDetailDeleteBody": "The topic and its comments will be removed. This cannot be undone.",
+  "forumDetailDeleteConfirm": "Delete",
+  "forumDetailDeleted": "Topic deleted",
+  "forumDetailBlockTitle": "Block this author?",
+  "forumDetailBlockBody": "You will no longer see this author's content. If anonymous, the identity is never revealed.",
+  "forumDetailBlockConfirm": "Block",
+  "forumDetailBlocked": "Author blocked",
+  "forumDetailNotificationsOffDone": "Notifications for this topic are off",
+  "forumDetailNotificationsOnDone": "Notifications for this topic are on",
+  "forumDetailPinnedDone": "Topic pinned",
+  "forumDetailUnpinnedDone": "Topic unpinned",
+  "forumDetailLockedDone": "Comments locked",
+  "forumDetailUnlockedDone": "Comments unlocked",
+  "forumDetailImageIndex": "{i} / {n}",
+  "@forumDetailImageIndex": {
+    "placeholders": {
+      "i": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailImageSemantic": "Topic image {i} of {n}",
+  "@forumDetailImageSemantic": {
+    "placeholders": {
+      "i": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailChainRoot": "Reply chain",
+  "forumDetailFollowing": "Following this topic",
+  "forumDetailUnfollowed": "Unfollowed this topic",
+  "forumDetailSaved": "Topic saved",
+  "forumDetailUnsaved": "Removed from saved",
+  "forumDetailLockedChip": "Locked",
+  "forumComposeClose": "Close",
+  "forumComposePublish": "Publish",
+  "forumComposePublishing": "Publishing",
+  "forumComposeTitleHint": "Title",
+  "forumComposeBodyHint": "What do you want to talk about?",
+  "forumComposeCategoryLabel": "Category",
+  "forumComposeCategoryPick": "Choose a category",
+  "forumComposeCategoryLoading": "Loading categories",
+  "forumComposeCategoryError": "Could not load categories",
+  "forumComposeRetry": "Try again",
+  "forumComposeAddImage": "Add image",
+  "forumComposeImageCount": "{count}/{max} images",
+  "@forumComposeImageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "forumComposeGallery": "Choose from gallery",
+  "forumComposeCamera": "Take a photo",
+  "forumComposeImageRemove": "Remove image",
+  "forumComposeImageUploading": "Uploading image",
+  "forumComposeImageRetry": "Retry upload",
+  "forumComposeImagesPending": "You can publish once the images finish uploading.",
+  "forumComposeImageFailedHint": "An image failed to upload. Retry or remove it.",
+  "forumComposeErrImageTooLarge": "The image is too large.",
+  "forumComposeErrImageType": "Only JPEG, PNG and WebP images can be added.",
+  "forumComposeErrImageRead": "The image could not be read.",
+  "forumComposeErrImageUpload": "The image could not be uploaded.",
+  "forumComposePollAdd": "Add a poll",
+  "forumComposeAnonymous": "Post anonymously",
+  "forumComposeAnonymousDesc": "Your name is not shown to other students.",
+  "forumComposeAnonymousNote": "Moderators can review misuse.",
+  "forumComposeNeedTitle": "Write a title.",
+  "forumComposeNeedBody": "Write a description.",
+  "forumComposeNeedCategory": "Choose a category.",
+  "forumComposeNeedPoll": "A poll needs at least 2 filled options.",
+  "forumComposeDraftRestored": "Draft restored",
+  "forumComposeDraftSheetTitle": "Save as a draft?",
+  "forumComposeDraftSheetBody": "What you wrote will be here next time.",
+  "forumComposeDraftSave": "Save draft",
+  "forumComposeDraftDelete": "Discard",
+  "forumComposeDraftContinue": "Keep editing",
+  "forumComposeErrNetwork": "No internet connection. Your text is kept.",
+  "forumComposeErrRate": "You are posting too often. Wait a bit and try again.",
+  "forumComposeErrDuplicate": "You just posted the same content.",
+  "forumComposeErrProfanity": "The text contains inappropriate language. Edit it and try again.",
+  "forumComposeErrCategory": "This category is no longer available. Choose another one.",
+  "forumComposeErrInvalid": "The content is not valid. Check the title and description.",
+  "forumComposeErrGeneric": "The topic could not be published. Your text is kept, try again.",
+  "forumComposeEditSave": "Save",
+  "forumComposeEditSaving": "Saving",
+  "forumComposeEditLocked": "This topic is locked and cannot be edited.",
+  "forumComposeEditGone": "This topic no longer exists.",
+  "forumComposeEditNotOwner": "Only the owner can edit this topic.",
+  "forumComposeEditSaved": "Edited",
+  "forumComposeEditNote": "Images and the poll cannot be changed later.",
+  "forumPollQuestionHint": "Question (optional)",
+  "forumPollOptionHint": "Option {n}",
+  "@forumPollOptionHint": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollAddOption": "Add option",
+  "forumPollRemoveOption": "Remove option",
+  "forumPollMaxOptions": "At most {max} options can be added.",
+  "@forumPollMaxOptions": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollEndsAt": "Ends",
+  "forumPollEndsNone": "No end",
+  "forumPollEndsDays": "{n} days",
+  "@forumPollEndsDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollEndsPickDate": "Pick a date",
+  "forumPollEndsOn": "Ends on {date}",
+  "@forumPollEndsOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "forumPollAllowChange": "Votes can be changed",
+  "forumPollRemove": "Remove poll",
+  "forumPollVotes": "{count, plural, =0{No votes} =1{1 vote} other{{count} votes}}",
+  "@forumPollVotes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollPercent": "{p}%",
+  "@forumPollPercent": {
+    "placeholders": {
+      "p": {
+        "type": "String"
+      }
+    }
+  },
+  "forumPollMine": "Your vote",
+  "forumPollEnded": "Poll ended",
+  "forumPollLeftDays": "{n} days left",
+  "@forumPollLeftDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollLeftHours": "{n} hours left",
+  "@forumPollLeftHours": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollLeftMinutes": "{n} minutes left",
+  "@forumPollLeftMinutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollCanChange": "You can change your vote",
+  "forumPollLocked": "Votes cannot be changed once cast",
+  "forumPollUndo": "Withdraw my vote",
+  "forumPollSemantics": "{text}, {percent}, {votes}",
+  "@forumPollSemantics": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "votes": {
+        "type": "String"
+      }
+    }
+  },
+  "forumPollSelected": "Selected",
+  "forumPollErrClosed": "The poll has ended.",
+  "forumPollErrAlready": "Your vote is already recorded and cannot be changed.",
+  "forumPollErrNetwork": "No internet connection. Your vote was not sent.",
+  "forumPollErrRate": "Too many vote actions. Wait a moment.",
+  "forumPollErrGone": "This topic or poll no longer exists.",
+  "forumPollErrForbidden": "You cannot vote in this poll.",
+  "forumPollErrGeneric": "The vote could not be saved. Try again.",
+  "forumPollTitle": "Poll",
+  "forumComposeDiscardTitle": "Discard your changes?",
+  "forumComposeDiscardConfirm": "Discard",
+  "forumComposeDiscardKeep": "Keep editing",
+  "forumComposeCategorySheetEmpty": "There are no categories to choose from.",
+  "forumComposeEditErrGeneric": "Your changes could not be saved. Try again.",
+  "forumHomeA11y": "Campus Forum",
+  "forumHomeHint": "Where everyone on campus talks",
+  "forumHomeSearch": "Search the forum",
+  "forumHomeNotifications": "Notifications",
+  "forumHomeNewTopic": "New topic",
+  "forumHomeSortTitle": "Sort by",
+  "forumHomeSortForYou": "For you",
+  "forumHomeSortNewest": "Newest",
+  "forumHomeSortPopular": "Popular",
+  "forumHomeSortMostCommented": "Most commented",
+  "forumHomeSortFollowing": "Following",
+  "forumHomeCategoryAll": "All",
+  "forumHomeCategories": "Categories",
+  "forumHomePinned": "Pinned",
+  "forumHomeLocked": "Locked",
+  "forumHomePoll": "Poll",
+  "forumHomeEdited": "edited",
+  "forumHomeCommentsA11y": "{n} comments",
+  "@forumHomeCommentsA11y": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumHomeLikesA11y": "{n} likes",
+  "@forumHomeLikesA11y": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumHomeOpenComments": "Open comments",
+  "forumHomeLike": "Like",
+  "forumHomeUnlike": "Unlike",
+  "forumHomeSave": "Save",
+  "forumHomeUnsave": "Remove from saved",
+  "forumHomeShare": "Share",
+  "forumHomeMore": "More actions",
+  "forumHomeMenuCopyLink": "Copy link",
+  "forumHomeMenuReport": "Report",
+  "forumHomeMenuMute": "Mute user",
+  "forumHomeMenuBlock": "Block author",
+  "forumHomeBlockTitle": "Block this author?",
+  "forumHomeBlockBody": "This author's topics and comments will be hidden from you. If the author is anonymous, their identity stays hidden.",
+  "forumHomeBlockConfirm": "Block",
+  "forumHomeMuteTitle": "Mute this user?",
+  "forumHomeMuteBody": "Content from this user will be hidden from you. You can undo this at any time.",
+  "forumHomeMuteConfirm": "Mute",
+  "forumHomeBlocked": "Author blocked",
+  "forumHomeMuted": "User muted",
+  "forumHomeLinkCopied": "Link copied",
+  "forumHomeLikeFailed": "Could not save your like",
+  "forumHomeSaveFailed": "Could not save this topic",
+  "forumHomeEmptyTitle": "No topics yet",
+  "forumHomeEmptyBody": "Start the first topic and get the campus talking.",
+  "forumHomeEmptyAction": "Start a topic",
+  "forumHomeEmptyCategoryTitle": "No topics in this category",
+  "forumHomeEmptyCategoryBody": "Try another category or start the first topic.",
+  "forumHomeEmptyFollowingTitle": "You are not following any topics",
+  "forumHomeEmptyFollowingBody": "Follow a topic and its new comments will show up here.",
+  "forumHomeLoadMoreFailed": "Could not load more",
+  "forumHomeStripSub": "Where everyone on campus talks",
+  "forumHomeTalkedTitle": "Talked about on campus",
+  "forumHomeTalkedAll": "See all",
+  "forumStateOffline": "No internet connection. Try again when you are back online.",
+  "forumStateServerError": "The server is unavailable right now. Try again in a moment.",
+  "forumStateSessionExpired": "Your session has expired. Please sign in again.",
+  "forumStateNotFound": "This content could not be found or has been removed.",
+  "forumStateTopicRemoved": "This topic has been removed.",
+  "forumStateCommentRemoved": "This comment has been removed.",
+  "forumStateCommentDeleted": "This comment was deleted.",
+  "forumStateLocked": "Comments are closed on this topic.",
+  "forumStateNotOwner": "You are not allowed to do this.",
+  "forumStateRateLimited": "You are going too fast. Wait a moment and try again.",
+  "forumStateDuplicate": "You posted the same content a moment ago.",
+  "forumStateProfanity": "The text contains inappropriate language. Edit it and try again.",
+  "forumStatePollClosed": "This poll has ended.",
+  "forumStateAlreadyVoted": "You have already voted in this poll.",
+  "forumStateEmptyContent": "Empty content cannot be posted.",
+  "forumStateNoAccess": "You cannot access this content.",
+  "forumStateGeneric": "Something went wrong. Please try again.",
+  "forumHomeMenuSaved": "Saved topics",
+  "forumHomeMenuActivity": "My forum activity",
+  "forumHomeMenuPrefs": "Forum notification settings"
 }

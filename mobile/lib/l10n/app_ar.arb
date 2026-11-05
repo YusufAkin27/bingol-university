@@ -3781,5 +3781,471 @@
         "type": "int"
       }
     }
-  }
+  },
+  "forumCommentLikeSemantic": "إعجاب، {n}",
+  "@forumCommentLikeSemantic": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentUnlikeSemantic": "إلغاء الإعجاب، {n}",
+  "@forumCommentUnlikeSemantic": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentReadMore": "اقرأ المزيد",
+  "forumCommentReadLess": "عرض أقل",
+  "forumDetailDeletedAccount": "حساب محذوف",
+  "forumCommentDeletedPlaceholder": "تم حذف هذا التعليق",
+  "forumCommentAuthorBadge": "الكاتب",
+  "forumCommentEdited": "تم التعديل",
+  "forumCommentReply": "رد",
+  "forumCommentMore": "المزيد",
+  "forumCommentLockedHint": "هذا الموضوع مقفل ولا يمكن التعليق عليه.",
+  "forumCommentEditingBanner": "تعدّل تعليقك",
+  "forumCommentReplyingTo": "ترد على {name}",
+  "@forumCommentReplyingTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentCancelTarget": "إلغاء الرد أو التعديل",
+  "forumCommentHint": "اكتب تعليقًا…",
+  "forumCommentHintReply": "اكتب ردك…",
+  "forumCommentAnonLabel": "التعليق بشكل مجهول",
+  "forumCommentCounter": "{n} / {max}",
+  "@forumCommentCounter": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentSend": "إرسال",
+  "forumCommentSaveEdit": "حفظ",
+  "forumCommentShowReplies": "عرض {n} ردًا",
+  "@forumCommentShowReplies": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentHideReplies": "إخفاء الردود",
+  "forumCommentMoreReplies": "{n} ردود أخرى",
+  "@forumCommentMoreReplies": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentMoreRepliesGeneric": "المزيد من الردود",
+  "forumCommentOpenChain": "فتح سلسلة الردود ({n})",
+  "@forumCommentOpenChain": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentRepliesFailed": "تعذّر تحميل الردود.",
+  "forumCommentActionEdit": "تعديل",
+  "forumCommentActionDelete": "حذف",
+  "forumCommentActionCopy": "نسخ النص",
+  "forumCommentActionShare": "مشاركة الرابط",
+  "forumCommentActionLike": "إعجاب",
+  "forumCommentActionUnlike": "إلغاء الإعجاب",
+  "forumCommentActionSave": "حفظ",
+  "forumCommentActionUnsave": "إزالة من المحفوظات",
+  "forumCommentActionReport": "إبلاغ",
+  "forumCommentActionBlock": "حظر المستخدم",
+  "forumCommentCopied": "تم نسخ النص",
+  "forumCommentDeleted": "تم حذف التعليق",
+  "forumCommentDeleteTitle": "حذف هذا التعليق؟",
+  "forumCommentDeleteBody": "لا يمكن التراجع عن هذا الإجراء.",
+  "forumCommentDeleteConfirm": "حذف",
+  "forumCommentBlockTitle": "حظر هذا المستخدم؟",
+  "forumCommentBlockBody": "لن ترى محتوى هذا الشخص بعد الآن. لا تُكشف هوية الكاتب المجهول أبدًا.",
+  "forumCommentBlockConfirm": "حظر",
+  "forumCommentBlocked": "تم حظر المستخدم",
+  "forumCommentSaved": "تم الحفظ",
+  "forumCommentUnsaved": "تمت الإزالة من المحفوظات",
+  "forumCommentGone": "هذا التعليق لم يعد موجودًا. تم تحديث القائمة.",
+  "forumCommentConflict": "تم تغيير التعليق في مكان آخر. تم تحديث القائمة.",
+  "forumCommentSent": "تم نشر تعليقك",
+  "forumCommentReplySent": "تم نشر ردك",
+  "forumCommentEditDone": "تم تحديث التعليق",
+  "forumCommentLinkNotFound": "تعذّر العثور على التعليق في الرابط",
+  "forumDetailSortBest": "الأفضل",
+  "forumDetailSortNewest": "الأحدث",
+  "forumDetailSortOldest": "الأقدم",
+  "forumDetailCommentsHeader": "التعليقات ({n})",
+  "@forumDetailCommentsHeader": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailNoComments": "لا توجد تعليقات بعد",
+  "forumDetailNoCommentsBody": "كن أول من يعلّق.",
+  "forumDetailCommentsError": "تعذّر تحميل التعليقات",
+  "forumDetailSlow": "الاتصال بطيء، يرجى الانتظار قليلًا…",
+  "forumDetailSemanticTitle": "الموضوع",
+  "forumDetailNotFoundTitle": "هذا الموضوع لم يعد موجودًا",
+  "forumDetailNotFoundBody": "ربما تم حذفه أو إزالته.",
+  "forumDetailRemovedTitle": "تمت إزالة هذا الموضوع",
+  "forumDetailRemovedBody": "تمت إزالته وفقًا لقواعد المجتمع.",
+  "forumDetailLockedBanner": "هذا الموضوع مقفل. لا يمكن إضافة تعليقات جديدة.",
+  "forumDetailPinned": "مثبّت",
+  "forumDetailEdited": "تم التعديل",
+  "forumDetailLikeAction": "إعجاب",
+  "forumDetailUnlikeAction": "إلغاء الإعجاب",
+  "forumDetailSaveAction": "حفظ",
+  "forumDetailUnsaveAction": "إزالة من المحفوظات",
+  "forumDetailFollowAction": "متابعة",
+  "forumDetailUnfollowAction": "إلغاء المتابعة",
+  "forumDetailShareAction": "مشاركة",
+  "forumDetailCommentsAction": "الانتقال إلى التعليقات",
+  "forumDetailCommentCount": "{n} تعليقات",
+  "@forumDetailCommentCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailLikeCount": "{n} إعجاب",
+  "@forumDetailLikeCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailMenu": "خيارات الموضوع",
+  "forumDetailMenuEdit": "تعديل الموضوع",
+  "forumDetailMenuDelete": "حذف الموضوع",
+  "forumDetailMenuNotificationsOff": "إيقاف الإشعارات",
+  "forumDetailMenuNotificationsOn": "تشغيل الإشعارات",
+  "forumDetailMenuShare": "مشاركة الرابط",
+  "forumDetailMenuPin": "تثبيت الموضوع",
+  "forumDetailMenuUnpin": "إلغاء تثبيت الموضوع",
+  "forumDetailMenuLock": "قفل التعليقات",
+  "forumDetailMenuUnlock": "فتح التعليقات",
+  "forumDetailMenuReport": "إبلاغ",
+  "forumDetailMenuBlock": "حظر الكاتب",
+  "forumDetailDeleteTitle": "حذف هذا الموضوع؟",
+  "forumDetailDeleteBody": "ستتم إزالة الموضوع وتعليقاته. لا يمكن التراجع عن هذا الإجراء.",
+  "forumDetailDeleteConfirm": "حذف",
+  "forumDetailDeleted": "تم حذف الموضوع",
+  "forumDetailBlockTitle": "حظر هذا الكاتب؟",
+  "forumDetailBlockBody": "لن ترى محتوى هذا الكاتب بعد الآن. إن كان مجهولًا فلن تُكشف هويته.",
+  "forumDetailBlockConfirm": "حظر",
+  "forumDetailBlocked": "تم حظر الكاتب",
+  "forumDetailNotificationsOffDone": "تم إيقاف إشعارات هذا الموضوع",
+  "forumDetailNotificationsOnDone": "تم تشغيل إشعارات هذا الموضوع",
+  "forumDetailPinnedDone": "تم تثبيت الموضوع",
+  "forumDetailUnpinnedDone": "تم إلغاء التثبيت",
+  "forumDetailLockedDone": "تم قفل التعليقات",
+  "forumDetailUnlockedDone": "تم فتح التعليقات",
+  "forumDetailImageIndex": "{i} / {n}",
+  "@forumDetailImageIndex": {
+    "placeholders": {
+      "i": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailImageSemantic": "صورة الموضوع {i} من {n}",
+  "@forumDetailImageSemantic": {
+    "placeholders": {
+      "i": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailChainRoot": "سلسلة الردود",
+  "forumDetailFollowing": "تتم متابعة الموضوع",
+  "forumDetailUnfollowed": "تم إلغاء متابعة الموضوع",
+  "forumDetailSaved": "تم حفظ الموضوع",
+  "forumDetailUnsaved": "تمت الإزالة من المحفوظات",
+  "forumDetailLockedChip": "مقفل",
+  "forumComposeClose": "إغلاق",
+  "forumComposePublish": "نشر",
+  "forumComposePublishing": "جارٍ النشر",
+  "forumComposeTitleHint": "العنوان",
+  "forumComposeBodyHint": "ماذا تريد أن تناقش؟",
+  "forumComposeCategoryLabel": "الفئة",
+  "forumComposeCategoryPick": "اختر فئة",
+  "forumComposeCategoryLoading": "جارٍ تحميل الفئات",
+  "forumComposeCategoryError": "تعذر تحميل الفئات",
+  "forumComposeRetry": "حاول مرة أخرى",
+  "forumComposeAddImage": "إضافة صورة",
+  "forumComposeImageCount": "{count}/{max} صور",
+  "@forumComposeImageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "forumComposeGallery": "اختيار من المعرض",
+  "forumComposeCamera": "التقاط صورة",
+  "forumComposeImageRemove": "إزالة الصورة",
+  "forumComposeImageUploading": "جارٍ رفع الصورة",
+  "forumComposeImageRetry": "إعادة رفع الصورة",
+  "forumComposeImagesPending": "يمكنك النشر بعد اكتمال رفع الصور.",
+  "forumComposeImageFailedHint": "تعذر رفع صورة. أعد المحاولة أو أزلها.",
+  "forumComposeErrImageTooLarge": "الصورة كبيرة جدًا.",
+  "forumComposeErrImageType": "يمكن إضافة صور JPEG وPNG وWebP فقط.",
+  "forumComposeErrImageRead": "تعذرت قراءة الصورة.",
+  "forumComposeErrImageUpload": "تعذر رفع الصورة.",
+  "forumComposePollAdd": "إضافة استطلاع",
+  "forumComposeAnonymous": "النشر بشكل مجهول",
+  "forumComposeAnonymousDesc": "لا يظهر اسمك للطلاب الآخرين.",
+  "forumComposeAnonymousNote": "يمكن للمشرفين مراجعة إساءة الاستخدام.",
+  "forumComposeNeedTitle": "اكتب عنوانًا.",
+  "forumComposeNeedBody": "اكتب وصفًا.",
+  "forumComposeNeedCategory": "اختر فئة.",
+  "forumComposeNeedPoll": "يجب أن يحتوي الاستطلاع على خيارين على الأقل.",
+  "forumComposeDraftRestored": "تمت استعادة المسودة",
+  "forumComposeDraftSheetTitle": "هل تريد حفظ مسودة؟",
+  "forumComposeDraftSheetBody": "سيعود ما كتبته في المرة القادمة.",
+  "forumComposeDraftSave": "حفظ المسودة",
+  "forumComposeDraftDelete": "حذف",
+  "forumComposeDraftContinue": "متابعة",
+  "forumComposeErrNetwork": "لا يوجد اتصال بالإنترنت. تم الاحتفاظ بما كتبته.",
+  "forumComposeErrRate": "أنت تنشر بوتيرة عالية. انتظر قليلًا ثم حاول مجددًا.",
+  "forumComposeErrDuplicate": "لقد نشرت المحتوى نفسه قبل قليل.",
+  "forumComposeErrProfanity": "يحتوي النص على ألفاظ غير لائقة. عدّله وحاول مجددًا.",
+  "forumComposeErrCategory": "هذه الفئة لم تعد متاحة. اختر فئة أخرى.",
+  "forumComposeErrInvalid": "المحتوى غير صالح. تحقق من العنوان والوصف.",
+  "forumComposeErrGeneric": "تعذر نشر الموضوع. تم الاحتفاظ بما كتبته، حاول مجددًا.",
+  "forumComposeEditSave": "حفظ",
+  "forumComposeEditSaving": "جارٍ الحفظ",
+  "forumComposeEditLocked": "هذا الموضوع مقفل ولا يمكن تعديله.",
+  "forumComposeEditGone": "هذا الموضوع لم يعد موجودًا.",
+  "forumComposeEditNotOwner": "يمكن للمالك فقط تعديل هذا الموضوع.",
+  "forumComposeEditSaved": "تم التعديل",
+  "forumComposeEditNote": "لا يمكن تغيير الصور والاستطلاع لاحقًا.",
+  "forumPollQuestionHint": "السؤال (اختياري)",
+  "forumPollOptionHint": "الخيار {n}",
+  "@forumPollOptionHint": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollAddOption": "إضافة خيار",
+  "forumPollRemoveOption": "إزالة الخيار",
+  "forumPollMaxOptions": "يمكن إضافة {max} خيارات كحد أقصى.",
+  "@forumPollMaxOptions": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollEndsAt": "ينتهي",
+  "forumPollEndsNone": "بدون نهاية",
+  "forumPollEndsDays": "{n} أيام",
+  "@forumPollEndsDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollEndsPickDate": "اختر تاريخًا",
+  "forumPollEndsOn": "ينتهي في {date}",
+  "@forumPollEndsOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "forumPollAllowChange": "يمكن تغيير الصوت",
+  "forumPollRemove": "إزالة الاستطلاع",
+  "forumPollVotes": "{count, plural, =0{لا أصوات} =1{صوت واحد} =2{صوتان} few{{count} أصوات} many{{count} صوتًا} other{{count} صوت}}",
+  "@forumPollVotes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollPercent": "{p}%",
+  "@forumPollPercent": {
+    "placeholders": {
+      "p": {
+        "type": "String"
+      }
+    }
+  },
+  "forumPollMine": "صوتك",
+  "forumPollEnded": "انتهى الاستطلاع",
+  "forumPollLeftDays": "متبقي {n} يوم",
+  "@forumPollLeftDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollLeftHours": "متبقي {n} ساعة",
+  "@forumPollLeftHours": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollLeftMinutes": "متبقي {n} دقيقة",
+  "@forumPollLeftMinutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollCanChange": "يمكنك تغيير صوتك",
+  "forumPollLocked": "لا يمكن تغيير الصوت بعد التصويت",
+  "forumPollUndo": "سحب صوتي",
+  "forumPollSemantics": "{text}، {percent}، {votes}",
+  "@forumPollSemantics": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "votes": {
+        "type": "String"
+      }
+    }
+  },
+  "forumPollSelected": "محدد",
+  "forumPollErrClosed": "انتهى الاستطلاع.",
+  "forumPollErrAlready": "تم تسجيل صوتك مسبقًا ولا يمكن تغييره.",
+  "forumPollErrNetwork": "لا يوجد اتصال بالإنترنت. لم يتم إرسال صوتك.",
+  "forumPollErrRate": "عدد كبير من عمليات التصويت. انتظر قليلًا.",
+  "forumPollErrGone": "هذا الموضوع أو الاستطلاع لم يعد موجودًا.",
+  "forumPollErrForbidden": "لا يمكنك التصويت في هذا الاستطلاع.",
+  "forumPollErrGeneric": "تعذر حفظ الصوت. حاول مجددًا.",
+  "forumPollTitle": "استطلاع",
+  "forumComposeDiscardTitle": "هل تريد تجاهل التغييرات؟",
+  "forumComposeDiscardConfirm": "تجاهل",
+  "forumComposeDiscardKeep": "متابعة التعديل",
+  "forumComposeCategorySheetEmpty": "لا توجد فئات متاحة.",
+  "forumComposeEditErrGeneric": "تعذر حفظ التغييرات. حاول مجددًا.",
+  "forumHomeA11y": "منتدى الحرم الجامعي",
+  "forumHomeHint": "المكان الذي يتحدث فيه الجميع في الحرم الجامعي",
+  "forumHomeSearch": "ابحث في المنتدى",
+  "forumHomeNotifications": "الإشعارات",
+  "forumHomeNewTopic": "موضوع جديد",
+  "forumHomeSortTitle": "ترتيب حسب",
+  "forumHomeSortForYou": "لك",
+  "forumHomeSortNewest": "الأحدث",
+  "forumHomeSortPopular": "الأكثر شعبية",
+  "forumHomeSortMostCommented": "الأكثر تعليقًا",
+  "forumHomeSortFollowing": "ما أتابعه",
+  "forumHomeCategoryAll": "الكل",
+  "forumHomeCategories": "الفئات",
+  "forumHomePinned": "مثبّت",
+  "forumHomeLocked": "مقفل",
+  "forumHomePoll": "استطلاع",
+  "forumHomeEdited": "معدّل",
+  "forumHomeCommentsA11y": "{n} تعليق",
+  "@forumHomeCommentsA11y": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumHomeLikesA11y": "{n} إعجاب",
+  "@forumHomeLikesA11y": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumHomeOpenComments": "افتح التعليقات",
+  "forumHomeLike": "أعجبني",
+  "forumHomeUnlike": "إلغاء الإعجاب",
+  "forumHomeSave": "حفظ",
+  "forumHomeUnsave": "إزالة من المحفوظات",
+  "forumHomeShare": "مشاركة",
+  "forumHomeMore": "المزيد",
+  "forumHomeMenuCopyLink": "نسخ الرابط",
+  "forumHomeMenuReport": "إبلاغ",
+  "forumHomeMenuMute": "كتم المستخدم",
+  "forumHomeMenuBlock": "حظر الكاتب",
+  "forumHomeBlockTitle": "هل تريد حظر هذا الكاتب؟",
+  "forumHomeBlockBody": "لن تظهر لك مواضيع هذا الكاتب وتعليقاته بعد الآن. إذا كان مجهولًا فلن تُكشف هويته.",
+  "forumHomeBlockConfirm": "حظر",
+  "forumHomeMuteTitle": "هل تريد كتم هذا المستخدم؟",
+  "forumHomeMuteBody": "لن يظهر لك محتوى هذا المستخدم. يمكنك التراجع في أي وقت.",
+  "forumHomeMuteConfirm": "كتم",
+  "forumHomeBlocked": "تم حظر الكاتب",
+  "forumHomeMuted": "تم كتم المستخدم",
+  "forumHomeLinkCopied": "تم نسخ الرابط",
+  "forumHomeLikeFailed": "تعذّر حفظ الإعجاب",
+  "forumHomeSaveFailed": "تعذّر إتمام الحفظ",
+  "forumHomeEmptyTitle": "لا توجد مواضيع بعد",
+  "forumHomeEmptyBody": "ابدأ أول موضوع ودع الحرم الجامعي يتحدث.",
+  "forumHomeEmptyAction": "ابدأ موضوعًا",
+  "forumHomeEmptyCategoryTitle": "لا توجد مواضيع في هذه الفئة",
+  "forumHomeEmptyCategoryBody": "جرّب فئة أخرى أو ابدأ أول موضوع.",
+  "forumHomeEmptyFollowingTitle": "أنت لا تتابع أي موضوع",
+  "forumHomeEmptyFollowingBody": "تابع موضوعًا وستظهر تعليقاته الجديدة هنا.",
+  "forumHomeLoadMoreFailed": "تعذّر تحميل المزيد",
+  "forumHomeStripSub": "المكان الذي يتحدث فيه الجميع في الحرم الجامعي",
+  "forumHomeTalkedTitle": "الأكثر نقاشًا في الحرم",
+  "forumHomeTalkedAll": "عرض الكل",
+  "forumStateOffline": "لا يوجد اتصال بالإنترنت. حاول مرة أخرى عند عودة الاتصال.",
+  "forumStateServerError": "الخادم غير متاح حاليًا. حاول مرة أخرى بعد قليل.",
+  "forumStateSessionExpired": "انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.",
+  "forumStateNotFound": "لم يتم العثور على هذا المحتوى أو تمت إزالته.",
+  "forumStateTopicRemoved": "تمت إزالة هذا الموضوع.",
+  "forumStateCommentRemoved": "تمت إزالة هذا التعليق.",
+  "forumStateCommentDeleted": "تم حذف هذا التعليق.",
+  "forumStateLocked": "تم إغلاق التعليقات على هذا الموضوع.",
+  "forumStateNotOwner": "ليست لديك صلاحية لهذا الإجراء.",
+  "forumStateRateLimited": "أنت سريع جدًا. انتظر قليلًا وحاول مرة أخرى.",
+  "forumStateDuplicate": "لقد نشرت المحتوى نفسه قبل قليل.",
+  "forumStateProfanity": "يحتوي النص على ألفاظ غير لائقة. عدّله وحاول مرة أخرى.",
+  "forumStatePollClosed": "انتهى هذا الاستطلاع.",
+  "forumStateAlreadyVoted": "لقد صوّتّ في هذا الاستطلاع بالفعل.",
+  "forumStateEmptyContent": "لا يمكن نشر محتوى فارغ.",
+  "forumStateNoAccess": "لا يمكنك الوصول إلى هذا المحتوى.",
+  "forumStateGeneric": "حدث خطأ ما. حاول مرة أخرى.",
+  "forumHomeMenuSaved": "المواضيع المحفوظة",
+  "forumHomeMenuActivity": "نشاطي في المنتدى",
+  "forumHomeMenuPrefs": "إعدادات إشعارات المنتدى"
 }

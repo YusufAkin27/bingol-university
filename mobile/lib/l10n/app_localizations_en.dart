@@ -10948,4 +10948,919 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return 'Archived, $_temp0';
   }
+
+  @override
+  String forumCommentLikeSemantic(String n) {
+    return 'Like, $n likes';
+  }
+
+  @override
+  String forumCommentUnlikeSemantic(String n) {
+    return 'Unlike, $n likes';
+  }
+
+  @override
+  String get forumCommentReadMore => 'Read more';
+
+  @override
+  String get forumCommentReadLess => 'Show less';
+
+  @override
+  String get forumDetailDeletedAccount => 'Deleted account';
+
+  @override
+  String get forumCommentDeletedPlaceholder => 'This comment was deleted';
+
+  @override
+  String get forumCommentAuthorBadge => 'Author';
+
+  @override
+  String get forumCommentEdited => 'Edited';
+
+  @override
+  String get forumCommentReply => 'Reply';
+
+  @override
+  String get forumCommentMore => 'More actions';
+
+  @override
+  String get forumCommentLockedHint =>
+      'This topic is locked. Comments are closed.';
+
+  @override
+  String get forumCommentEditingBanner => 'Editing your comment';
+
+  @override
+  String forumCommentReplyingTo(String name) {
+    return 'Replying to $name';
+  }
+
+  @override
+  String get forumCommentCancelTarget => 'Cancel reply or edit';
+
+  @override
+  String get forumCommentHint => 'Write a comment…';
+
+  @override
+  String get forumCommentHintReply => 'Write your reply…';
+
+  @override
+  String get forumCommentAnonLabel => 'Comment anonymously';
+
+  @override
+  String forumCommentCounter(String n, String max) {
+    return '$n / $max';
+  }
+
+  @override
+  String get forumCommentSend => 'Send';
+
+  @override
+  String get forumCommentSaveEdit => 'Save';
+
+  @override
+  String forumCommentShowReplies(String n) {
+    return 'Show $n replies';
+  }
+
+  @override
+  String get forumCommentHideReplies => 'Hide replies';
+
+  @override
+  String forumCommentMoreReplies(String n) {
+    return '$n more replies';
+  }
+
+  @override
+  String get forumCommentMoreRepliesGeneric => 'More replies';
+
+  @override
+  String forumCommentOpenChain(String n) {
+    return 'Open reply chain ($n)';
+  }
+
+  @override
+  String get forumCommentRepliesFailed => 'Could not load replies.';
+
+  @override
+  String get forumCommentActionEdit => 'Edit';
+
+  @override
+  String get forumCommentActionDelete => 'Delete';
+
+  @override
+  String get forumCommentActionCopy => 'Copy text';
+
+  @override
+  String get forumCommentActionShare => 'Share link';
+
+  @override
+  String get forumCommentActionLike => 'Like';
+
+  @override
+  String get forumCommentActionUnlike => 'Unlike';
+
+  @override
+  String get forumCommentActionSave => 'Save';
+
+  @override
+  String get forumCommentActionUnsave => 'Remove from saved';
+
+  @override
+  String get forumCommentActionReport => 'Report';
+
+  @override
+  String get forumCommentActionBlock => 'Block user';
+
+  @override
+  String get forumCommentCopied => 'Text copied';
+
+  @override
+  String get forumCommentDeleted => 'Comment deleted';
+
+  @override
+  String get forumCommentDeleteTitle => 'Delete this comment?';
+
+  @override
+  String get forumCommentDeleteBody => 'This cannot be undone.';
+
+  @override
+  String get forumCommentDeleteConfirm => 'Delete';
+
+  @override
+  String get forumCommentBlockTitle => 'Block this user?';
+
+  @override
+  String get forumCommentBlockBody =>
+      'You will no longer see this person\'s content. An anonymous author\'s identity is never revealed.';
+
+  @override
+  String get forumCommentBlockConfirm => 'Block';
+
+  @override
+  String get forumCommentBlocked => 'User blocked';
+
+  @override
+  String get forumCommentSaved => 'Saved';
+
+  @override
+  String get forumCommentUnsaved => 'Removed from saved';
+
+  @override
+  String get forumCommentGone =>
+      'This comment no longer exists. The list was refreshed.';
+
+  @override
+  String get forumCommentConflict =>
+      'The comment was changed elsewhere. The list was refreshed.';
+
+  @override
+  String get forumCommentSent => 'Comment posted';
+
+  @override
+  String get forumCommentReplySent => 'Reply posted';
+
+  @override
+  String get forumCommentEditDone => 'Comment updated';
+
+  @override
+  String get forumCommentLinkNotFound =>
+      'The linked comment could not be found';
+
+  @override
+  String get forumDetailSortBest => 'Best';
+
+  @override
+  String get forumDetailSortNewest => 'Newest';
+
+  @override
+  String get forumDetailSortOldest => 'Oldest';
+
+  @override
+  String forumDetailCommentsHeader(String n) {
+    return 'Comments ($n)';
+  }
+
+  @override
+  String get forumDetailNoComments => 'No comments yet';
+
+  @override
+  String get forumDetailNoCommentsBody => 'Be the first to comment.';
+
+  @override
+  String get forumDetailCommentsError => 'Could not load comments';
+
+  @override
+  String get forumDetailSlow => 'Slow connection, please wait a bit…';
+
+  @override
+  String get forumDetailSemanticTitle => 'Topic';
+
+  @override
+  String get forumDetailNotFoundTitle => 'This topic no longer exists';
+
+  @override
+  String get forumDetailNotFoundBody => 'It may have been deleted or removed.';
+
+  @override
+  String get forumDetailRemovedTitle => 'This topic was removed';
+
+  @override
+  String get forumDetailRemovedBody =>
+      'It was removed under the community rules.';
+
+  @override
+  String get forumDetailLockedBanner =>
+      'This topic is locked. New comments are closed.';
+
+  @override
+  String get forumDetailPinned => 'Pinned';
+
+  @override
+  String get forumDetailEdited => 'Edited';
+
+  @override
+  String get forumDetailLikeAction => 'Like';
+
+  @override
+  String get forumDetailUnlikeAction => 'Unlike';
+
+  @override
+  String get forumDetailSaveAction => 'Save';
+
+  @override
+  String get forumDetailUnsaveAction => 'Remove from saved';
+
+  @override
+  String get forumDetailFollowAction => 'Follow';
+
+  @override
+  String get forumDetailUnfollowAction => 'Unfollow';
+
+  @override
+  String get forumDetailShareAction => 'Share';
+
+  @override
+  String get forumDetailCommentsAction => 'Go to comments';
+
+  @override
+  String forumDetailCommentCount(String n) {
+    return '$n comments';
+  }
+
+  @override
+  String forumDetailLikeCount(String n) {
+    return '$n likes';
+  }
+
+  @override
+  String get forumDetailMenu => 'Topic options';
+
+  @override
+  String get forumDetailMenuEdit => 'Edit topic';
+
+  @override
+  String get forumDetailMenuDelete => 'Delete topic';
+
+  @override
+  String get forumDetailMenuNotificationsOff => 'Turn off notifications';
+
+  @override
+  String get forumDetailMenuNotificationsOn => 'Turn on notifications';
+
+  @override
+  String get forumDetailMenuShare => 'Share link';
+
+  @override
+  String get forumDetailMenuPin => 'Pin topic';
+
+  @override
+  String get forumDetailMenuUnpin => 'Unpin topic';
+
+  @override
+  String get forumDetailMenuLock => 'Lock comments';
+
+  @override
+  String get forumDetailMenuUnlock => 'Unlock comments';
+
+  @override
+  String get forumDetailMenuReport => 'Report';
+
+  @override
+  String get forumDetailMenuBlock => 'Block author';
+
+  @override
+  String get forumDetailDeleteTitle => 'Delete this topic?';
+
+  @override
+  String get forumDetailDeleteBody =>
+      'The topic and its comments will be removed. This cannot be undone.';
+
+  @override
+  String get forumDetailDeleteConfirm => 'Delete';
+
+  @override
+  String get forumDetailDeleted => 'Topic deleted';
+
+  @override
+  String get forumDetailBlockTitle => 'Block this author?';
+
+  @override
+  String get forumDetailBlockBody =>
+      'You will no longer see this author\'s content. If anonymous, the identity is never revealed.';
+
+  @override
+  String get forumDetailBlockConfirm => 'Block';
+
+  @override
+  String get forumDetailBlocked => 'Author blocked';
+
+  @override
+  String get forumDetailNotificationsOffDone =>
+      'Notifications for this topic are off';
+
+  @override
+  String get forumDetailNotificationsOnDone =>
+      'Notifications for this topic are on';
+
+  @override
+  String get forumDetailPinnedDone => 'Topic pinned';
+
+  @override
+  String get forumDetailUnpinnedDone => 'Topic unpinned';
+
+  @override
+  String get forumDetailLockedDone => 'Comments locked';
+
+  @override
+  String get forumDetailUnlockedDone => 'Comments unlocked';
+
+  @override
+  String forumDetailImageIndex(String i, String n) {
+    return '$i / $n';
+  }
+
+  @override
+  String forumDetailImageSemantic(String i, String n) {
+    return 'Topic image $i of $n';
+  }
+
+  @override
+  String get forumDetailChainRoot => 'Reply chain';
+
+  @override
+  String get forumDetailFollowing => 'Following this topic';
+
+  @override
+  String get forumDetailUnfollowed => 'Unfollowed this topic';
+
+  @override
+  String get forumDetailSaved => 'Topic saved';
+
+  @override
+  String get forumDetailUnsaved => 'Removed from saved';
+
+  @override
+  String get forumDetailLockedChip => 'Locked';
+
+  @override
+  String get forumComposeClose => 'Close';
+
+  @override
+  String get forumComposePublish => 'Publish';
+
+  @override
+  String get forumComposePublishing => 'Publishing';
+
+  @override
+  String get forumComposeTitleHint => 'Title';
+
+  @override
+  String get forumComposeBodyHint => 'What do you want to talk about?';
+
+  @override
+  String get forumComposeCategoryLabel => 'Category';
+
+  @override
+  String get forumComposeCategoryPick => 'Choose a category';
+
+  @override
+  String get forumComposeCategoryLoading => 'Loading categories';
+
+  @override
+  String get forumComposeCategoryError => 'Could not load categories';
+
+  @override
+  String get forumComposeRetry => 'Try again';
+
+  @override
+  String get forumComposeAddImage => 'Add image';
+
+  @override
+  String forumComposeImageCount(int count, int max) {
+    return '$count/$max images';
+  }
+
+  @override
+  String get forumComposeGallery => 'Choose from gallery';
+
+  @override
+  String get forumComposeCamera => 'Take a photo';
+
+  @override
+  String get forumComposeImageRemove => 'Remove image';
+
+  @override
+  String get forumComposeImageUploading => 'Uploading image';
+
+  @override
+  String get forumComposeImageRetry => 'Retry upload';
+
+  @override
+  String get forumComposeImagesPending =>
+      'You can publish once the images finish uploading.';
+
+  @override
+  String get forumComposeImageFailedHint =>
+      'An image failed to upload. Retry or remove it.';
+
+  @override
+  String get forumComposeErrImageTooLarge => 'The image is too large.';
+
+  @override
+  String get forumComposeErrImageType =>
+      'Only JPEG, PNG and WebP images can be added.';
+
+  @override
+  String get forumComposeErrImageRead => 'The image could not be read.';
+
+  @override
+  String get forumComposeErrImageUpload => 'The image could not be uploaded.';
+
+  @override
+  String get forumComposePollAdd => 'Add a poll';
+
+  @override
+  String get forumComposeAnonymous => 'Post anonymously';
+
+  @override
+  String get forumComposeAnonymousDesc =>
+      'Your name is not shown to other students.';
+
+  @override
+  String get forumComposeAnonymousNote => 'Moderators can review misuse.';
+
+  @override
+  String get forumComposeNeedTitle => 'Write a title.';
+
+  @override
+  String get forumComposeNeedBody => 'Write a description.';
+
+  @override
+  String get forumComposeNeedCategory => 'Choose a category.';
+
+  @override
+  String get forumComposeNeedPoll => 'A poll needs at least 2 filled options.';
+
+  @override
+  String get forumComposeDraftRestored => 'Draft restored';
+
+  @override
+  String get forumComposeDraftSheetTitle => 'Save as a draft?';
+
+  @override
+  String get forumComposeDraftSheetBody =>
+      'What you wrote will be here next time.';
+
+  @override
+  String get forumComposeDraftSave => 'Save draft';
+
+  @override
+  String get forumComposeDraftDelete => 'Discard';
+
+  @override
+  String get forumComposeDraftContinue => 'Keep editing';
+
+  @override
+  String get forumComposeErrNetwork =>
+      'No internet connection. Your text is kept.';
+
+  @override
+  String get forumComposeErrRate =>
+      'You are posting too often. Wait a bit and try again.';
+
+  @override
+  String get forumComposeErrDuplicate => 'You just posted the same content.';
+
+  @override
+  String get forumComposeErrProfanity =>
+      'The text contains inappropriate language. Edit it and try again.';
+
+  @override
+  String get forumComposeErrCategory =>
+      'This category is no longer available. Choose another one.';
+
+  @override
+  String get forumComposeErrInvalid =>
+      'The content is not valid. Check the title and description.';
+
+  @override
+  String get forumComposeErrGeneric =>
+      'The topic could not be published. Your text is kept, try again.';
+
+  @override
+  String get forumComposeEditSave => 'Save';
+
+  @override
+  String get forumComposeEditSaving => 'Saving';
+
+  @override
+  String get forumComposeEditLocked =>
+      'This topic is locked and cannot be edited.';
+
+  @override
+  String get forumComposeEditGone => 'This topic no longer exists.';
+
+  @override
+  String get forumComposeEditNotOwner => 'Only the owner can edit this topic.';
+
+  @override
+  String get forumComposeEditSaved => 'Edited';
+
+  @override
+  String get forumComposeEditNote =>
+      'Images and the poll cannot be changed later.';
+
+  @override
+  String get forumPollQuestionHint => 'Question (optional)';
+
+  @override
+  String forumPollOptionHint(int n) {
+    return 'Option $n';
+  }
+
+  @override
+  String get forumPollAddOption => 'Add option';
+
+  @override
+  String get forumPollRemoveOption => 'Remove option';
+
+  @override
+  String forumPollMaxOptions(int max) {
+    return 'At most $max options can be added.';
+  }
+
+  @override
+  String get forumPollEndsAt => 'Ends';
+
+  @override
+  String get forumPollEndsNone => 'No end';
+
+  @override
+  String forumPollEndsDays(int n) {
+    return '$n days';
+  }
+
+  @override
+  String get forumPollEndsPickDate => 'Pick a date';
+
+  @override
+  String forumPollEndsOn(String date) {
+    return 'Ends on $date';
+  }
+
+  @override
+  String get forumPollAllowChange => 'Votes can be changed';
+
+  @override
+  String get forumPollRemove => 'Remove poll';
+
+  @override
+  String forumPollVotes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count votes',
+      one: '1 vote',
+      zero: 'No votes',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String forumPollPercent(String p) {
+    return '$p%';
+  }
+
+  @override
+  String get forumPollMine => 'Your vote';
+
+  @override
+  String get forumPollEnded => 'Poll ended';
+
+  @override
+  String forumPollLeftDays(int n) {
+    return '$n days left';
+  }
+
+  @override
+  String forumPollLeftHours(int n) {
+    return '$n hours left';
+  }
+
+  @override
+  String forumPollLeftMinutes(int n) {
+    return '$n minutes left';
+  }
+
+  @override
+  String get forumPollCanChange => 'You can change your vote';
+
+  @override
+  String get forumPollLocked => 'Votes cannot be changed once cast';
+
+  @override
+  String get forumPollUndo => 'Withdraw my vote';
+
+  @override
+  String forumPollSemantics(String text, String percent, String votes) {
+    return '$text, $percent, $votes';
+  }
+
+  @override
+  String get forumPollSelected => 'Selected';
+
+  @override
+  String get forumPollErrClosed => 'The poll has ended.';
+
+  @override
+  String get forumPollErrAlready =>
+      'Your vote is already recorded and cannot be changed.';
+
+  @override
+  String get forumPollErrNetwork =>
+      'No internet connection. Your vote was not sent.';
+
+  @override
+  String get forumPollErrRate => 'Too many vote actions. Wait a moment.';
+
+  @override
+  String get forumPollErrGone => 'This topic or poll no longer exists.';
+
+  @override
+  String get forumPollErrForbidden => 'You cannot vote in this poll.';
+
+  @override
+  String get forumPollErrGeneric => 'The vote could not be saved. Try again.';
+
+  @override
+  String get forumPollTitle => 'Poll';
+
+  @override
+  String get forumComposeDiscardTitle => 'Discard your changes?';
+
+  @override
+  String get forumComposeDiscardConfirm => 'Discard';
+
+  @override
+  String get forumComposeDiscardKeep => 'Keep editing';
+
+  @override
+  String get forumComposeCategorySheetEmpty =>
+      'There are no categories to choose from.';
+
+  @override
+  String get forumComposeEditErrGeneric =>
+      'Your changes could not be saved. Try again.';
+
+  @override
+  String get forumHomeA11y => 'Campus Forum';
+
+  @override
+  String get forumHomeHint => 'Where everyone on campus talks';
+
+  @override
+  String get forumHomeSearch => 'Search the forum';
+
+  @override
+  String get forumHomeNotifications => 'Notifications';
+
+  @override
+  String get forumHomeNewTopic => 'New topic';
+
+  @override
+  String get forumHomeSortTitle => 'Sort by';
+
+  @override
+  String get forumHomeSortForYou => 'For you';
+
+  @override
+  String get forumHomeSortNewest => 'Newest';
+
+  @override
+  String get forumHomeSortPopular => 'Popular';
+
+  @override
+  String get forumHomeSortMostCommented => 'Most commented';
+
+  @override
+  String get forumHomeSortFollowing => 'Following';
+
+  @override
+  String get forumHomeCategoryAll => 'All';
+
+  @override
+  String get forumHomeCategories => 'Categories';
+
+  @override
+  String get forumHomePinned => 'Pinned';
+
+  @override
+  String get forumHomeLocked => 'Locked';
+
+  @override
+  String get forumHomePoll => 'Poll';
+
+  @override
+  String get forumHomeEdited => 'edited';
+
+  @override
+  String forumHomeCommentsA11y(String n) {
+    return '$n comments';
+  }
+
+  @override
+  String forumHomeLikesA11y(String n) {
+    return '$n likes';
+  }
+
+  @override
+  String get forumHomeOpenComments => 'Open comments';
+
+  @override
+  String get forumHomeLike => 'Like';
+
+  @override
+  String get forumHomeUnlike => 'Unlike';
+
+  @override
+  String get forumHomeSave => 'Save';
+
+  @override
+  String get forumHomeUnsave => 'Remove from saved';
+
+  @override
+  String get forumHomeShare => 'Share';
+
+  @override
+  String get forumHomeMore => 'More actions';
+
+  @override
+  String get forumHomeMenuCopyLink => 'Copy link';
+
+  @override
+  String get forumHomeMenuReport => 'Report';
+
+  @override
+  String get forumHomeMenuMute => 'Mute user';
+
+  @override
+  String get forumHomeMenuBlock => 'Block author';
+
+  @override
+  String get forumHomeBlockTitle => 'Block this author?';
+
+  @override
+  String get forumHomeBlockBody =>
+      'This author\'s topics and comments will be hidden from you. If the author is anonymous, their identity stays hidden.';
+
+  @override
+  String get forumHomeBlockConfirm => 'Block';
+
+  @override
+  String get forumHomeMuteTitle => 'Mute this user?';
+
+  @override
+  String get forumHomeMuteBody =>
+      'Content from this user will be hidden from you. You can undo this at any time.';
+
+  @override
+  String get forumHomeMuteConfirm => 'Mute';
+
+  @override
+  String get forumHomeBlocked => 'Author blocked';
+
+  @override
+  String get forumHomeMuted => 'User muted';
+
+  @override
+  String get forumHomeLinkCopied => 'Link copied';
+
+  @override
+  String get forumHomeLikeFailed => 'Could not save your like';
+
+  @override
+  String get forumHomeSaveFailed => 'Could not save this topic';
+
+  @override
+  String get forumHomeEmptyTitle => 'No topics yet';
+
+  @override
+  String get forumHomeEmptyBody =>
+      'Start the first topic and get the campus talking.';
+
+  @override
+  String get forumHomeEmptyAction => 'Start a topic';
+
+  @override
+  String get forumHomeEmptyCategoryTitle => 'No topics in this category';
+
+  @override
+  String get forumHomeEmptyCategoryBody =>
+      'Try another category or start the first topic.';
+
+  @override
+  String get forumHomeEmptyFollowingTitle => 'You are not following any topics';
+
+  @override
+  String get forumHomeEmptyFollowingBody =>
+      'Follow a topic and its new comments will show up here.';
+
+  @override
+  String get forumHomeLoadMoreFailed => 'Could not load more';
+
+  @override
+  String get forumHomeStripSub => 'Where everyone on campus talks';
+
+  @override
+  String get forumHomeTalkedTitle => 'Talked about on campus';
+
+  @override
+  String get forumHomeTalkedAll => 'See all';
+
+  @override
+  String get forumStateOffline =>
+      'No internet connection. Try again when you are back online.';
+
+  @override
+  String get forumStateServerError =>
+      'The server is unavailable right now. Try again in a moment.';
+
+  @override
+  String get forumStateSessionExpired =>
+      'Your session has expired. Please sign in again.';
+
+  @override
+  String get forumStateNotFound =>
+      'This content could not be found or has been removed.';
+
+  @override
+  String get forumStateTopicRemoved => 'This topic has been removed.';
+
+  @override
+  String get forumStateCommentRemoved => 'This comment has been removed.';
+
+  @override
+  String get forumStateCommentDeleted => 'This comment was deleted.';
+
+  @override
+  String get forumStateLocked => 'Comments are closed on this topic.';
+
+  @override
+  String get forumStateNotOwner => 'You are not allowed to do this.';
+
+  @override
+  String get forumStateRateLimited =>
+      'You are going too fast. Wait a moment and try again.';
+
+  @override
+  String get forumStateDuplicate => 'You posted the same content a moment ago.';
+
+  @override
+  String get forumStateProfanity =>
+      'The text contains inappropriate language. Edit it and try again.';
+
+  @override
+  String get forumStatePollClosed => 'This poll has ended.';
+
+  @override
+  String get forumStateAlreadyVoted => 'You have already voted in this poll.';
+
+  @override
+  String get forumStateEmptyContent => 'Empty content cannot be posted.';
+
+  @override
+  String get forumStateNoAccess => 'You cannot access this content.';
+
+  @override
+  String get forumStateGeneric => 'Something went wrong. Please try again.';
+
+  @override
+  String get forumHomeMenuSaved => 'Saved topics';
+
+  @override
+  String get forumHomeMenuActivity => 'My forum activity';
+
+  @override
+  String get forumHomeMenuPrefs => 'Forum notification settings';
 }

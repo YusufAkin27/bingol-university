@@ -349,11 +349,13 @@ class ApiClient {
 
   Future<dynamic> delete(String path, [Object? body]) => _send('DELETE', path, body: body);
 
-  Future<dynamic> post(String path, [Object? body, bool auth = true]) =>
-      _send('POST', path, body: body, auth: auth);
+  /// [headers]: isteğe bağlı ek başlıklar (örn. forumda `Idempotency-Key`: çift gönderim aynı kaydı döner).
+  Future<dynamic> post(String path, [Object? body, bool auth = true, Map<String, String>? headers]) =>
+      _send('POST', path, body: body, auth: auth, headers: headers);
 
-  Future<dynamic> _send(String method, String path, {Object? body, bool auth = true}) async =>
-      (await _sendFull(method, path, body: body, auth: auth)).body;
+  Future<dynamic> _send(String method, String path,
+          {Object? body, bool auth = true, Map<String, String>? headers}) async =>
+      (await _sendFull(method, path, body: body, auth: auth, headers: headers)).body;
 
   /// Oturum nesli [g]'den farklıysa (çıkış / hesap değişimi) isteği iptal eder: yanıt yeni oturuma verilmez.
   void _ensureGen(int g) {
@@ -369,6 +371,7 @@ class ApiClient {
       bool retried = false,
       bool retriedTransient = false,
       bool force = false,
+      Map<String, String>? headers,
       int? gen}) async {
     if (!DeviceIdentity.instance.isReady) await DeviceIdentity.instance.ready;
     final g = gen ?? _gen;
@@ -377,6 +380,7 @@ class ApiClient {
     final req = http.Request(method, Uri.parse('$apiBase$path'));
     _baseHeaders(req);
     req.headers['Accept'] = 'application/json';
+    if (headers != null) req.headers.addAll(headers);
     if (body != null) {
       req.headers['Content-Type'] = 'application/json; charset=utf-8';
       req.body = jsonEncode(body);
@@ -408,7 +412,7 @@ class ApiClient {
       if (isGet && !retriedTransient && !haveStale) {
         await Future<void>.delayed(retryDelay);
         return _sendFull(method, path,
-            body: body, auth: auth, retried: retried, retriedTransient: true, gen: g);
+            body: body, auth: auth, retried: retried, retriedTransient: true, headers: headers, gen: g);
       }
       connectivity.reportFailure();
       if (haveStale) return _staleResponse(cached);
@@ -420,7 +424,8 @@ class ApiClient {
 
     if (isGet && !retriedTransient && (res.statusCode == 502 || res.statusCode == 503 || res.statusCode == 504)) {
       await Future<void>.delayed(retryDelay);
-      return _sendFull(method, path, body: body, auth: auth, retried: retried, retriedTransient: true, gen: g);
+      return _sendFull(method, path,
+          body: body, auth: auth, retried: retried, retriedTransient: true, headers: headers, gen: g);
     }
     if (haveStale && res.statusCode >= 500) return _staleResponse(cached);
 
@@ -434,7 +439,7 @@ class ApiClient {
         rethrow;
       }
       return _sendFull(method, path,
-          body: body, auth: auth, retried: true, retriedTransient: retriedTransient, gen: g);
+          body: body, auth: auth, retried: true, retriedTransient: retriedTransient, headers: headers, gen: g);
     }
 
     if (isGet && res.statusCode == 304 && cached != null) {

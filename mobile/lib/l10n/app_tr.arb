@@ -6023,5 +6023,471 @@
         "type": "int"
       }
     }
-  }
+  },
+  "forumCommentLikeSemantic": "Beğen, {n} beğeni",
+  "@forumCommentLikeSemantic": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentUnlikeSemantic": "Beğenmekten vazgeç, {n} beğeni",
+  "@forumCommentUnlikeSemantic": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentReadMore": "Devamını oku",
+  "forumCommentReadLess": "Daha az göster",
+  "forumDetailDeletedAccount": "Silinmiş hesap",
+  "forumCommentDeletedPlaceholder": "Bu yorum silindi",
+  "forumCommentAuthorBadge": "Yazar",
+  "forumCommentEdited": "Düzenlendi",
+  "forumCommentReply": "Yanıtla",
+  "forumCommentMore": "Diğer işlemler",
+  "forumCommentLockedHint": "Bu konu kilitli, yorum yazılamaz.",
+  "forumCommentEditingBanner": "Yorumunu düzenliyorsun",
+  "forumCommentReplyingTo": "{name} kişisine yanıt veriyorsun",
+  "@forumCommentReplyingTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentCancelTarget": "Yanıtı veya düzenlemeyi iptal et",
+  "forumCommentHint": "Yorum yaz…",
+  "forumCommentHintReply": "Yanıtını yaz…",
+  "forumCommentAnonLabel": "Anonim yaz",
+  "forumCommentCounter": "{n} / {max}",
+  "@forumCommentCounter": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentSend": "Gönder",
+  "forumCommentSaveEdit": "Kaydet",
+  "forumCommentShowReplies": "{n} yanıtı göster",
+  "@forumCommentShowReplies": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentHideReplies": "Yanıtları gizle",
+  "forumCommentMoreReplies": "{n} yanıt daha",
+  "@forumCommentMoreReplies": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentMoreRepliesGeneric": "Daha fazla yanıt",
+  "forumCommentOpenChain": "Yanıt zincirini aç ({n})",
+  "@forumCommentOpenChain": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentRepliesFailed": "Yanıtlar yüklenemedi.",
+  "forumCommentActionEdit": "Düzenle",
+  "forumCommentActionDelete": "Sil",
+  "forumCommentActionCopy": "Metni kopyala",
+  "forumCommentActionShare": "Bağlantıyı paylaş",
+  "forumCommentActionLike": "Beğen",
+  "forumCommentActionUnlike": "Beğenmekten vazgeç",
+  "forumCommentActionSave": "Kaydet",
+  "forumCommentActionUnsave": "Kaydedilenlerden çıkar",
+  "forumCommentActionReport": "Şikâyet et",
+  "forumCommentActionBlock": "Kullanıcıyı engelle",
+  "forumCommentCopied": "Metin kopyalandı",
+  "forumCommentDeleted": "Yorum silindi",
+  "forumCommentDeleteTitle": "Yorum silinsin mi?",
+  "forumCommentDeleteBody": "Bu işlem geri alınamaz.",
+  "forumCommentDeleteConfirm": "Sil",
+  "forumCommentBlockTitle": "Bu kullanıcı engellensin mi?",
+  "forumCommentBlockBody": "Engellediğin kişinin içeriklerini artık görmezsin. Anonim yazarlarda kimlik açığa çıkmaz.",
+  "forumCommentBlockConfirm": "Engelle",
+  "forumCommentBlocked": "Kullanıcı engellendi",
+  "forumCommentSaved": "Kaydedildi",
+  "forumCommentUnsaved": "Kaydedilenlerden çıkarıldı",
+  "forumCommentGone": "Bu yorum artık yok. Liste yenilendi.",
+  "forumCommentConflict": "Yorum başka bir yerde değişti. Liste yenilendi.",
+  "forumCommentSent": "Yorumun gönderildi",
+  "forumCommentReplySent": "Yanıtın gönderildi",
+  "forumCommentEditDone": "Yorum güncellendi",
+  "forumCommentLinkNotFound": "Bağlantıdaki yorum bulunamadı",
+  "forumDetailSortBest": "En iyi",
+  "forumDetailSortNewest": "En yeni",
+  "forumDetailSortOldest": "En eski",
+  "forumDetailCommentsHeader": "Yorumlar ({n})",
+  "@forumDetailCommentsHeader": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailNoComments": "Henüz yorum yok",
+  "forumDetailNoCommentsBody": "İlk yorumu sen yaz.",
+  "forumDetailCommentsError": "Yorumlar yüklenemedi",
+  "forumDetailSlow": "Bağlantı yavaş, biraz daha bekleyin…",
+  "forumDetailSemanticTitle": "Konu",
+  "forumDetailNotFoundTitle": "Bu konu artık yok",
+  "forumDetailNotFoundBody": "Silinmiş ya da yayından kaldırılmış olabilir.",
+  "forumDetailRemovedTitle": "Bu konu kaldırıldı",
+  "forumDetailRemovedBody": "Topluluk kuralları gereği yayından kaldırıldı.",
+  "forumDetailLockedBanner": "Bu konu kilitli. Yeni yorum yazılamaz.",
+  "forumDetailPinned": "Sabitlendi",
+  "forumDetailEdited": "Düzenlendi",
+  "forumDetailLikeAction": "Beğen",
+  "forumDetailUnlikeAction": "Beğenmekten vazgeç",
+  "forumDetailSaveAction": "Kaydet",
+  "forumDetailUnsaveAction": "Kaydedilenlerden çıkar",
+  "forumDetailFollowAction": "Takip et",
+  "forumDetailUnfollowAction": "Takibi bırak",
+  "forumDetailShareAction": "Paylaş",
+  "forumDetailCommentsAction": "Yorumlara git",
+  "forumDetailCommentCount": "{n} yorum",
+  "@forumDetailCommentCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailLikeCount": "{n} beğeni",
+  "@forumDetailLikeCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailMenu": "Konu seçenekleri",
+  "forumDetailMenuEdit": "Konuyu düzenle",
+  "forumDetailMenuDelete": "Konuyu sil",
+  "forumDetailMenuNotificationsOff": "Bildirimleri kapat",
+  "forumDetailMenuNotificationsOn": "Bildirimleri aç",
+  "forumDetailMenuShare": "Bağlantıyı paylaş",
+  "forumDetailMenuPin": "Konuyu sabitle",
+  "forumDetailMenuUnpin": "Sabitlemeyi kaldır",
+  "forumDetailMenuLock": "Yorumları kilitle",
+  "forumDetailMenuUnlock": "Kilidi aç",
+  "forumDetailMenuReport": "Şikâyet et",
+  "forumDetailMenuBlock": "Yazarı engelle",
+  "forumDetailDeleteTitle": "Konu silinsin mi?",
+  "forumDetailDeleteBody": "Konu ve altındaki yorumlar kaldırılır. Bu işlem geri alınamaz.",
+  "forumDetailDeleteConfirm": "Sil",
+  "forumDetailDeleted": "Konu silindi",
+  "forumDetailBlockTitle": "Yazar engellensin mi?",
+  "forumDetailBlockBody": "Bu yazarın içeriklerini artık görmezsin. Anonim ise kimliği açığa çıkmaz.",
+  "forumDetailBlockConfirm": "Engelle",
+  "forumDetailBlocked": "Yazar engellendi",
+  "forumDetailNotificationsOffDone": "Bu konunun bildirimleri kapatıldı",
+  "forumDetailNotificationsOnDone": "Bu konunun bildirimleri açıldı",
+  "forumDetailPinnedDone": "Konu sabitlendi",
+  "forumDetailUnpinnedDone": "Sabitleme kaldırıldı",
+  "forumDetailLockedDone": "Yorumlar kilitlendi",
+  "forumDetailUnlockedDone": "Yorumların kilidi açıldı",
+  "forumDetailImageIndex": "{i} / {n}",
+  "@forumDetailImageIndex": {
+    "placeholders": {
+      "i": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailImageSemantic": "Konu görseli {i} / {n}",
+  "@forumDetailImageSemantic": {
+    "placeholders": {
+      "i": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailChainRoot": "Yanıt zinciri",
+  "forumDetailFollowing": "Konu takip ediliyor",
+  "forumDetailUnfollowed": "Konu takibi bırakıldı",
+  "forumDetailSaved": "Konu kaydedildi",
+  "forumDetailUnsaved": "Kaydedilenlerden çıkarıldı",
+  "forumDetailLockedChip": "Kilitli",
+  "forumComposeClose": "Kapat",
+  "forumComposePublish": "Yayınla",
+  "forumComposePublishing": "Yayınlanıyor",
+  "forumComposeTitleHint": "Başlık",
+  "forumComposeBodyHint": "Ne konuşmak istiyorsun?",
+  "forumComposeCategoryLabel": "Kategori",
+  "forumComposeCategoryPick": "Kategori seç",
+  "forumComposeCategoryLoading": "Kategoriler yükleniyor",
+  "forumComposeCategoryError": "Kategoriler yüklenemedi",
+  "forumComposeRetry": "Tekrar dene",
+  "forumComposeAddImage": "Görsel ekle",
+  "forumComposeImageCount": "{count}/{max} görsel",
+  "@forumComposeImageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "forumComposeGallery": "Galeriden seç",
+  "forumComposeCamera": "Fotoğraf çek",
+  "forumComposeImageRemove": "Görseli kaldır",
+  "forumComposeImageUploading": "Görsel yükleniyor",
+  "forumComposeImageRetry": "Görseli yeniden yükle",
+  "forumComposeImagesPending": "Görseller yüklenince yayınlayabilirsin.",
+  "forumComposeImageFailedHint": "Bir görsel yüklenemedi. Yeniden dene ya da kaldır.",
+  "forumComposeErrImageTooLarge": "Görsel çok büyük.",
+  "forumComposeErrImageType": "Yalnızca JPEG, PNG ve WebP görseller eklenebilir.",
+  "forumComposeErrImageRead": "Görsel okunamadı.",
+  "forumComposeErrImageUpload": "Görsel yüklenemedi.",
+  "forumComposePollAdd": "Anket ekle",
+  "forumComposeAnonymous": "Anonim paylaş",
+  "forumComposeAnonymousDesc": "Adın diğer öğrencilere gösterilmez.",
+  "forumComposeAnonymousNote": "Moderatörler kötüye kullanımı görebilir.",
+  "forumComposeNeedTitle": "Bir başlık yaz.",
+  "forumComposeNeedBody": "Bir açıklama yaz.",
+  "forumComposeNeedCategory": "Bir kategori seç.",
+  "forumComposeNeedPoll": "Ankette en az 2 dolu seçenek olmalı.",
+  "forumComposeDraftRestored": "Taslak geri yüklendi",
+  "forumComposeDraftSheetTitle": "Taslağı kaydedelim mi?",
+  "forumComposeDraftSheetBody": "Yazdıkların bir sonraki sefer geri gelir.",
+  "forumComposeDraftSave": "Taslağı kaydet",
+  "forumComposeDraftDelete": "Sil",
+  "forumComposeDraftContinue": "Devam et",
+  "forumComposeErrNetwork": "İnternet bağlantısı yok. Yazdıkların korundu.",
+  "forumComposeErrRate": "Çok sık paylaşım yaptın. Biraz bekleyip tekrar dene.",
+  "forumComposeErrDuplicate": "Aynı içeriği az önce paylaştın.",
+  "forumComposeErrProfanity": "Metinde uygunsuz ifade var. Düzenleyip tekrar dene.",
+  "forumComposeErrCategory": "Bu kategori artık kullanılamıyor. Başka bir kategori seç.",
+  "forumComposeErrInvalid": "İçerik geçersiz. Başlığı ve açıklamayı kontrol et.",
+  "forumComposeErrGeneric": "Konu yayınlanamadı. Yazdıkların korundu, tekrar dene.",
+  "forumComposeEditSave": "Kaydet",
+  "forumComposeEditSaving": "Kaydediliyor",
+  "forumComposeEditLocked": "Bu konu kilitli, düzenlenemez.",
+  "forumComposeEditGone": "Bu konu artık yok.",
+  "forumComposeEditNotOwner": "Bu konuyu yalnızca sahibi düzenleyebilir.",
+  "forumComposeEditSaved": "Düzenlendi",
+  "forumComposeEditNote": "Görseller ve anket sonradan değiştirilemez.",
+  "forumPollQuestionHint": "Soru (isteğe bağlı)",
+  "forumPollOptionHint": "Seçenek {n}",
+  "@forumPollOptionHint": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollAddOption": "Seçenek ekle",
+  "forumPollRemoveOption": "Seçeneği kaldır",
+  "forumPollMaxOptions": "En çok {max} seçenek eklenebilir.",
+  "@forumPollMaxOptions": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollEndsAt": "Bitiş",
+  "forumPollEndsNone": "Süresiz",
+  "forumPollEndsDays": "{n} gün",
+  "@forumPollEndsDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollEndsPickDate": "Tarih seç",
+  "forumPollEndsOn": "{date} tarihinde biter",
+  "@forumPollEndsOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "forumPollAllowChange": "Oy değiştirilebilir",
+  "forumPollRemove": "Anketi kaldır",
+  "forumPollVotes": "{count, plural, =0{Oy yok} =1{1 oy} other{{count} oy}}",
+  "@forumPollVotes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollPercent": "%{p}",
+  "@forumPollPercent": {
+    "placeholders": {
+      "p": {
+        "type": "String"
+      }
+    }
+  },
+  "forumPollMine": "Oyun",
+  "forumPollEnded": "Anket sona erdi",
+  "forumPollLeftDays": "{n} gün kaldı",
+  "@forumPollLeftDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollLeftHours": "{n} saat kaldı",
+  "@forumPollLeftHours": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollLeftMinutes": "{n} dakika kaldı",
+  "@forumPollLeftMinutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollCanChange": "Oyunu değiştirebilirsin",
+  "forumPollLocked": "Oy verdikten sonra değiştirilemez",
+  "forumPollUndo": "Oyumu geri al",
+  "forumPollSemantics": "{text}, {percent}, {votes}",
+  "@forumPollSemantics": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "votes": {
+        "type": "String"
+      }
+    }
+  },
+  "forumPollSelected": "Seçili",
+  "forumPollErrClosed": "Anket sona erdi.",
+  "forumPollErrAlready": "Bu ankette oyun zaten kayıtlı ve değiştirilemez.",
+  "forumPollErrNetwork": "İnternet bağlantısı yok. Oy verilemedi.",
+  "forumPollErrRate": "Çok sık oy işlemi yaptın. Biraz bekle.",
+  "forumPollErrGone": "Bu konu ya da anket artık yok.",
+  "forumPollErrForbidden": "Bu ankete oy verme iznin yok.",
+  "forumPollErrGeneric": "Oy işlemi yapılamadı. Tekrar dene.",
+  "forumPollTitle": "Anket",
+  "forumComposeDiscardTitle": "Değişiklikler atılsın mı?",
+  "forumComposeDiscardConfirm": "At",
+  "forumComposeDiscardKeep": "Düzenlemeye devam",
+  "forumComposeCategorySheetEmpty": "Şu an seçilebilir kategori yok.",
+  "forumComposeEditErrGeneric": "Değişiklikler kaydedilemedi. Tekrar dene.",
+  "forumHomeA11y": "Kampüs Forum",
+  "forumHomeHint": "Kampüste herkesin konuştuğu yer",
+  "forumHomeSearch": "Forumda ara",
+  "forumHomeNotifications": "Bildirimler",
+  "forumHomeNewTopic": "Yeni konu",
+  "forumHomeSortTitle": "Sırala",
+  "forumHomeSortForYou": "Sana özel",
+  "forumHomeSortNewest": "En yeni",
+  "forumHomeSortPopular": "Popüler",
+  "forumHomeSortMostCommented": "En çok yorumlanan",
+  "forumHomeSortFollowing": "Takip ettiklerim",
+  "forumHomeCategoryAll": "Tümü",
+  "forumHomeCategories": "Kategoriler",
+  "forumHomePinned": "Sabitlenmiş",
+  "forumHomeLocked": "Kilitli",
+  "forumHomePoll": "Anket",
+  "forumHomeEdited": "düzenlendi",
+  "forumHomeCommentsA11y": "{n} yorum",
+  "@forumHomeCommentsA11y": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumHomeLikesA11y": "{n} beğeni",
+  "@forumHomeLikesA11y": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumHomeOpenComments": "Yorumları aç",
+  "forumHomeLike": "Beğen",
+  "forumHomeUnlike": "Beğenmekten vazgeç",
+  "forumHomeSave": "Kaydet",
+  "forumHomeUnsave": "Kaydı kaldır",
+  "forumHomeShare": "Paylaş",
+  "forumHomeMore": "Diğer işlemler",
+  "forumHomeMenuCopyLink": "Bağlantıyı kopyala",
+  "forumHomeMenuReport": "Şikâyet et",
+  "forumHomeMenuMute": "Kullanıcıyı sessize al",
+  "forumHomeMenuBlock": "Yazarı engelle",
+  "forumHomeBlockTitle": "Yazar engellensin mi?",
+  "forumHomeBlockBody": "Bu yazarın konuları ve yorumları artık sana görünmez. Yazar anonimse kimliği açığa çıkmaz.",
+  "forumHomeBlockConfirm": "Engelle",
+  "forumHomeMuteTitle": "Kullanıcı sessize alınsın mı?",
+  "forumHomeMuteBody": "Bu kullanıcının içerikleri sana gösterilmez. İstediğin zaman geri alabilirsin.",
+  "forumHomeMuteConfirm": "Sessize al",
+  "forumHomeBlocked": "Yazar engellendi",
+  "forumHomeMuted": "Kullanıcı sessize alındı",
+  "forumHomeLinkCopied": "Bağlantı kopyalandı",
+  "forumHomeLikeFailed": "Beğeni kaydedilemedi",
+  "forumHomeSaveFailed": "Kaydetme işlemi yapılamadı",
+  "forumHomeEmptyTitle": "Henüz konu yok",
+  "forumHomeEmptyBody": "İlk konuyu sen aç; kampüs seninle konuşsun.",
+  "forumHomeEmptyAction": "Konu aç",
+  "forumHomeEmptyCategoryTitle": "Bu kategoride konu yok",
+  "forumHomeEmptyCategoryBody": "Başka bir kategoriye bak ya da ilk konuyu sen aç.",
+  "forumHomeEmptyFollowingTitle": "Takip ettiğin konu yok",
+  "forumHomeEmptyFollowingBody": "Bir konuyu takip edersen yeni yorumlar burada öne çıkar.",
+  "forumHomeLoadMoreFailed": "Daha fazlası yüklenemedi",
+  "forumHomeStripSub": "Kampüste herkesin konuştuğu yer",
+  "forumHomeTalkedTitle": "Kampüste konuşulanlar",
+  "forumHomeTalkedAll": "Tümü",
+  "forumStateOffline": "İnternet bağlantısı yok. Bağlanınca tekrar dene.",
+  "forumStateServerError": "Sunucuya şu an ulaşılamıyor. Biraz sonra tekrar dene.",
+  "forumStateSessionExpired": "Oturum süren doldu. Yeniden giriş yap.",
+  "forumStateNotFound": "Bu içerik bulunamadı ya da kaldırılmış.",
+  "forumStateTopicRemoved": "Bu konu kaldırıldı.",
+  "forumStateCommentRemoved": "Bu yorum kaldırıldı.",
+  "forumStateCommentDeleted": "Bu yorum silindi.",
+  "forumStateLocked": "Bu konu yorumlara kapatıldı.",
+  "forumStateNotOwner": "Bu işlem için yetkin yok.",
+  "forumStateRateLimited": "Çok hızlı gidiyorsun. Biraz bekleyip tekrar dene.",
+  "forumStateDuplicate": "Aynı içeriği kısa süre önce gönderdin.",
+  "forumStateProfanity": "Metinde uygunsuz ifade var. Düzenleyip tekrar dene.",
+  "forumStatePollClosed": "Bu anket sona erdi.",
+  "forumStateAlreadyVoted": "Bu ankette zaten oy kullandın.",
+  "forumStateEmptyContent": "Boş içerik gönderilemez.",
+  "forumStateNoAccess": "Bu içeriğe erişemiyorsun.",
+  "forumStateGeneric": "Bir sorun oluştu. Tekrar dene.",
+  "forumHomeMenuSaved": "Kaydedilen konular",
+  "forumHomeMenuActivity": "Forum faaliyetim",
+  "forumHomeMenuPrefs": "Forum bildirim ayarları"
 }
