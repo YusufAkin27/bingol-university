@@ -32,6 +32,9 @@ import org.springframework.stereotype.Service;
 public class MessageActionService {
 
     /** Varsayilan izinli tepkiler (kod noktasi kacislari: kaynak dosya kodlamasindan bagimsiz). */
+    /** Mesaj basina farkli tepki (emoji) cesidi ust siniri. */
+    static final int MAX_DISTINCT_REACTIONS = 20;
+
     static final String DEFAULT_REACTIONS = "👍,❤️,😂,😮,😢,🙏";
 
     private static final Logger log = LoggerFactory.getLogger(MessageActionService.class);
@@ -215,14 +218,24 @@ public class MessageActionService {
     // --- tepkiler ---
 
     public ReactionSummary react(Long userId, Long messageId, String emoji) {
-        String e = emoji == null ? "" : normalize(emoji);
-        if (e.isEmpty() || !allowedReactions.contains(e)) {
+        // Gecerli HERHANGI bir emoji kabul edilir (izinli liste yalniz istemcinin "hizli tepki" onerisidir)
+        if (emoji == null || !EmojiGrapheme.isSingleEmoji(emoji.trim())) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "REACTION_NOT_ALLOWED", "Bu tepki kullanılamaz.");
         }
+        String e = normalize(emoji);
         Access a = reactable(userId, messageId);
         if (blockedByPeer(a.conversation, userId)) { // golge engel: yazilmaz, olay yok, hata yok
             ReactionSummary s = summary(messageId, userId);
             return new ReactionSummary(messageId, s.reactions(), e);
+        }
+        // Mesaj basina en cok MAX_DISTINCT_REACTIONS farkli emoji (kullanicinin kendi emojisini degistirmesi serbest)
+        java.util.Set<String> distinct = new java.util.HashSet<>();
+        for (Object[] row : reactions.counts(List.of(messageId))) {
+            distinct.add(String.valueOf(row[1]));
+        }
+        if (!distinct.contains(e) && distinct.size() >= MAX_DISTINCT_REACTIONS) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "REACTION_LIMIT_REACHED",
+                    "Bu mesaj için tepki çeşidi sınırına ulaşıldı.");
         }
         reactions.upsert(messageId, userId, e, Instant.now());
         return afterReaction(a, userId, e);

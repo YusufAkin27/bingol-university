@@ -227,3 +227,9 @@ Tek gosterimlik medyanin aciklamasi (mesaj metni) yalniz medya acilinca istemcid
 - **Sohbet listesi `lastMessage`:** view-once ekli son mesajda `text` bos (`""`); tur `attachments[].viewOnce/kind` ile bilinir (`MessageView.withViewOnceMask`). Sohbet icindeki mesajin kendisi (`MessageView.text`) degismedi: aciklama alicida acilinca gosterilir.
 - **Mesaj arama:** sunucu tarafi mesaj aramasi YOKTUR (govde sifreli saklanir), eslesme sizintisi yok.
 
+
+## Tepki: gecerli HERHANGI bir emoji (2026-11-05)
+- `PUT /api/messages/{id}/reaction {"emoji"}` artik 5 emojilik beyaz listeyle sinirli DEGIL: tek bir gecerli emoji grafem kumesi kabul edilir (`EmojiGrapheme`: basit emoji, ten rengi U+1F3FB-1F3FF, ZWJ dizileri, bayrak = bolgesel gosterge cifti, etiketli bayrak, keycap, FE0F). Harf/rakam/noktalama/bosluk/kontrol/URL ve birden fazla emoji ayni `400 REACTION_NOT_ALLOWED` ile reddedilir. Boyut: en cok 16 UTF-16 birimi / 10 kod noktasi (`message_reaction.emoji` VARCHAR(16) yeterli: migration YOK).
+- `app.chat.reactions` / `GET /api/messages/reactions` artik yalniz istemcinin "hizli tepki" onerisidir (dogrulama icin kullanilmaz).
+- Mesaj basina en cok 20 FARKLI emoji cesidi (`MessageActionService.MAX_DISTINCT_REACTIONS`); yeni cesit eklenirken doluysa `400 REACTION_LIMIT_REACHED` (tr/en/ar). Kullanicinin mevcut cesitlerden birine gecmesi/kendi tepkisini degistirmesi serbesttir; kullanici basina tek tepki kurali ve saklamada `U+FE0F` temizligi (`normalize`) degismedi.
+- Testler: `EmojiGraphemeTest`, `MessageActionServiceTest` (herhangi emoji, gecersiz girdi, cesit siniri).
