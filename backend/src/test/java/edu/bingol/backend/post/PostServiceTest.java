@@ -96,10 +96,10 @@ class PostServiceTest {
         assertEquals("PHOTO", photo.type());
         assertNull(photo.video());
         assertNull(photo.viewCount());
-        // video de ayni metin kuralina tabidir
+        // video de ayni (gizli) metin kuralina tabidir
         Long vid2 = uploaded(a, "VIDEO");
         assertEquals("POST_TEXT_TOO_LONG", fails(() -> service.create(a.getId(),
-                new CreatePostRequest("bir iki üç dört beş altı yedi sekiz", List.of(vid2)))).code());
+                new CreatePostRequest("a".repeat(2201), List.of(vid2)))).code());
     }
 
     @Test
@@ -117,23 +117,36 @@ class PostServiceTest {
     }
 
     @Test
-    void textRuleSevenWordsSixtyCharsSingleLine() {
+    void textRuleHiddenLimitMultilineAllowedNoWordLimit() {
         PostService.checkText(null);
-        PostService.checkText("bir iki üç dört beş altı yedi");
-        PostService.checkText("a".repeat(60));
-        assertEquals("POST_TEXT_TOO_LONG", fails(() -> PostService.checkText("bir iki üç dört beş altı yedi sekiz")).code());
-        assertEquals("POST_TEXT_TOO_LONG", fails(() -> PostService.checkText("a".repeat(61))).code());
-        assertEquals("POST_TEXT_TOO_LONG", fails(() -> PostService.checkText("1\u00A02\u20093 4 5 6 7 8")).code());
-        assertEquals("POST_TEXT_INVALID", fails(() -> PostService.checkText("iki\nsatir")).code());
-        assertEquals("POST_TEXT_INVALID", fails(() -> PostService.checkText("iki\u2028satir")).code());
+        // 7 kelime / 60 karakter kurali kalkti
+        PostService.checkText("bir iki üç dört beş altı yedi sekiz dokuz on");
+        PostService.checkText("a".repeat(61));
+        PostService.checkText("iki\nsatir");
+        PostService.checkText("a".repeat(2200));
+        PostService.checkText("x\n".repeat(39) + "x"); // tam 40 satir
+        assertEquals("POST_TEXT_TOO_LONG", fails(() -> PostService.checkText("a".repeat(2201))).code());
+        assertEquals("POST_TEXT_TOO_LONG", fails(() -> PostService.checkText("x\n".repeat(40) + "x")).code());
+        // kod noktasi sayilir (emoji 1 karakter)
+        PostService.checkText("😀".repeat(2200));
+        assertEquals("POST_TEXT_TOO_LONG", fails(() -> PostService.checkText("😀".repeat(2201))).code());
         User a = newUser();
         Long img = uploaded(a, "IMAGE");
         assertEquals("POST_TEXT_TOO_LONG", fails(() -> service.create(a.getId(),
-                new CreatePostRequest("bir iki üç dört beş altı yedi sekiz", List.of(img)))).code());
+                new CreatePostRequest("a".repeat(2201), List.of(img)))).code());
         PostView ok = post(a, "tamam");
-        assertEquals("POST_TEXT_TOO_LONG", fails(() -> service.update(a.getId(), ok.id(), "bir iki üç dört beş altı yedi sekiz")).code());
-        assertEquals("POST_TEXT_INVALID", fails(() -> service.update(a.getId(), ok.id(), "a\nb")).code());
+        assertEquals("POST_TEXT_TOO_LONG", fails(() -> service.update(a.getId(), ok.id(), "a".repeat(2201))).code());
+        assertEquals("a\nb", service.update(a.getId(), ok.id(), "a\nb").text(), "cok satir serbest");
         assertNull(service.update(a.getId(), ok.id(), " ").text(), "fotografli gonderide metin silinebilir");
+    }
+
+    @Test
+    void longMultilineTextIsCleanedAndStoredAsIs() {
+        User a = newUser();
+        String raw = "  ​Merhaba herkese, bu gonderi artik yedi kelimeden uzun olabilir!\r\nIkinci satir\rUcuncu\tsatir\u0007  ";
+        PostView v = service.create(a.getId(), new CreatePostRequest(raw, List.of(uploaded(a, "IMAGE"))));
+        assertEquals("Merhaba herkese, bu gonderi artik yedi kelimeden uzun olabilir!\nIkinci satir\nUcuncu satir", v.text());
+        assertTrue(v.mentions().isEmpty());
     }
 
     @Test

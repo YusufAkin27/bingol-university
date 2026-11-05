@@ -82,6 +82,8 @@ public class PostAccountPurger {
         // Olay icin medya kimlikleri, medya temizligi calismadan ONCE okunur
         List<PostDeletedEvent> evts = postIds.stream().map(id -> new PostDeletedEvent(id,
                 jdbc.queryForList("SELECT id FROM post_media WHERE post_id = ?", Long.class, id))).toList();
+        // V1310: yazarin gonderilerindeki etiketler (baskalarinin kimligi) gonderi yumusak silinmeden once duser
+        jdbc.update("DELETE FROM post_mention WHERE post_id IN (SELECT id FROM post WHERE author_id = ?)", userId);
         media.purgeUser(userId);
         likes.purgeUser(userId);
         jdbc.update("UPDATE post SET deleted_at = CURRENT_TIMESTAMP, deleted_by = ? WHERE author_id = ? AND deleted_at IS NULL",

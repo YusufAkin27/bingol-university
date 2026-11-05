@@ -13,6 +13,7 @@
 > - **Yönetici/KVKK:** `/api/admin/posts*`, `/api/admin/comments*`, `/api/admin/stories*` aynen çalışır (geçmiş içerik moderasyonu). `DataExporter` bölümleri (`posts`, `postComments`, `postLikes`, `savedPosts`, `follows`, `stories`) ve hesap silme anonimleştirmesi (`PostAccountPurger`, `SocialAccountPurger`) değişmedi: geçmiş yorum/hikâye verisi dışa aktarılır ve hesap silinince temizlenir.
 > - **Zamanlayıcılar:** `StoryCleanupJob` (saat :35) çalışmaya devam eder — yalnız süresi dolmuş/silinmiş **eski** hikâyeleri mevcut saklama kuralıyla (bitişten 24 sa sonra) kalıcı siler; yeni hikâye oluşmadığından zamanla boşa çıkar. Diğer işler (`PostScoreJob`, `PostCounterRepairJob`, `PostRetentionJob`, `PostMediaJanitor`) değişmedi.
 > - Etiket/bahsetme: oluşturma ve düzenlemede `SocialTextEvent` artık yayınlanmaz (hashtag indeksi ve `POST_MENTION` bildirimi üretilmez).
+> - **GÜNCELLEME (2026-11-05, V1310): 7 kelime/60 karakter/tek satır kuralı ve `POST_TEXT_INVALID` KALKTI**; metin gizli üst sınırla (2200 karakter/40 satır, `422 POST_TEXT_TOO_LONG` argümansız) çok satırlı olabilir, ayrıca etiketleme eklendi. Ayrıntı: `docs/changes/post.md` bölüm 11.
 > - Yeni hata kodları (tr/en/ar `i18n/post*.properties`): `POST_PHOTO_REQUIRED`, `POST_SINGLE_PHOTO_ONLY`, `POST_VIDEO_NOT_ALLOWED`, `POST_TEXT_TOO_LONG` (422, 2 argüman), `POST_TEXT_INVALID` (422), `FEATURE_REMOVED` (410).
 
 Kayıtlı ve e-postası doğrulanmış HER kullanıcı gönderi paylaşabilir (metin, çoklu görsel, video), gönderileri beğenebilir,

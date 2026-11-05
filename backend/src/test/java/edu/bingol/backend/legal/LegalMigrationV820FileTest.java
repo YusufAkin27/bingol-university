@@ -173,7 +173,9 @@ class LegalMigrationV820FileTest {
         assertThat(prop(props, "app.post.media.deleted-retention-days")).isEqualTo("30");
         assertThat(prop(props, "app.post.media.unattached-hours")).isEqualTo("24");
         assertThat(props).contains("jwt.access-ttl-minutes=15").contains("jwt.refresh-ttl-days=30");
-        assertThat(PostDtos.MAX_WORDS).isEqualTo(7);
+        // V1310 oncesi: gonderi metni "en cok 7 kelime" idi (yayindaki V820 metni bunu soyler). Sinir kalkti (gizli ust sinir
+        // 2200 karakter / 40 satir); hukuki metin yeni surumde guncellenmelidir (hukuki surum islemi, bekliyor).
+        assertThat(PostDtos.POST_TEXT_MAX_CHARS).isEqualTo(2200);
         // T-015 (W1-B): mesaj cozme gerekcesi 10 -> 20 karaktere cikarildi (sikilastirma); yayindaki metnin "en az 10 karakter"
         // beyani sohbet mudahalesi icin dogru kalir, cozme icin alt sinir olarak gecerlidir (metin yeni surumde guncellenmeli).
         assertThat(AdminDecryptService.MIN_REASON).isEqualTo(20);

@@ -118,7 +118,7 @@ public class PostController {
     public PostView update(@PathVariable Long id, @Valid @RequestBody UpdatePostRequest req) {
         Long uid = CurrentUser.id();
         limiter.check("post:write:" + uid, 30, Duration.ofMinutes(1));
-        return service.update(uid, id, req.text());
+        return service.update(uid, id, req.text(), req.mentionUserIds());
     }
 
     @DeleteMapping("/posts/{id}")
