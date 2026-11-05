@@ -110,7 +110,8 @@ public class AccountDataPurger {
             Map.entry("user_follow_stats.user_id", "SocialAccountPurger"),
             Map.entry("profile_privacy.user_id", "AvatarCleanups (gizlilik satiri silinir)"),
             Map.entry("conversation_member.user_id", "LEAVE_ROOMS (satir kalir, left_at dolar; sohbet gecmisi digerlerinin verisi)"),
-            Map.entry("community.owner_id", "CommunityAccountListener (sahiplik devri ya da kulup kapatma)"));
+            Map.entry("community.owner_id", "CommunityAccountListener (sahiplik devri ya da kulup kapatma)"),
+            Map.entry("forum_poll_vote.user_id", "ForumPollAccountPurger (UserAccountDeletedEvent, ayni islemde: oy satiri silinir, secenek sayaci dusurulur)"));
 
     /**
      * Bilerek SILINMEYEN/ANONIMLESTIRILMEYEN kullanici baglantili sutunlar ("tablo.sutun" -> gerekce ve sure).
