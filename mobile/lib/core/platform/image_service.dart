@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:image/image.dart' as img;
@@ -38,12 +39,18 @@ class ImageService {
 
   final ImagePicker _picker;
 
-  static const maxWidth = 1600.0;
-  static const quality = 85;
+  /// Seçici üst sınırı: UZUN kenar 2048 px, JPEG kalitesi 88. Eskiden yalnız genişlik 1600 / kalite 85 idi
+  /// (dikey fotoğrafta uzun kenar sınırsız, yatayda gereksiz düşük); sunucu sohbet görselini kendisi küçültür,
+  /// istemci kaliteyi gereksiz düşürmemeli.
+  static const maxEdge = 2048.0;
+  static const quality = 88;
   static const avatarLimit = 2 * 1024 * 1024;
   static const defaultLimit = 3 * 1024 * 1024;
 
-  /// Galeriden/kameradan seçer (1600 px, kalite 85). İptalde null.
+  /// Sohbet görseli ham yükleme sınırı (sunucu `app.media.chat.max-upload-bytes` 5 MB; pay bırakılır).
+  static const chatLimit = 4 * 1024 * 1024;
+
+  /// Galeriden/kameradan seçer (uzun kenar 2048 px, kalite 88). İptalde null.
   /// Kamera kaynağında önce izin garanti edilir (manifestte CAMERA bildirili olduğundan Android
   /// kamera niyeti izinsiz çökerdi); galeri seçici kendi sistem seçicisini kullanır, çift istem olmaz.
   Future<XFile?> pick(ImageSource source) async {
@@ -54,7 +61,8 @@ class ImageService {
         if (!await ensurePermission(ctx, AppPermission.camera, direct: true)) return null;
       }
     }
-    return _picker.pickImage(source: source, maxWidth: maxWidth, imageQuality: quality, requestFullMetadata: false);
+    return _picker.pickImage(
+        source: source, maxWidth: maxEdge, maxHeight: maxEdge, imageQuality: quality, requestFullMetadata: false);
   }
 
   /// Seç + doğrula + gerekirse yeniden sıkıştır. İptalde null; geçersizse [ImageException].
@@ -65,13 +73,15 @@ class ImageService {
   }
 
   /// Tür (sihirli baytlar) ve boyut doğrulaması; sınırı aşarsa JPEG'e küçülterek sıkıştırır.
-  Future<PreparedImage> prepare(Uint8List bytes, {bool avatar = false}) async {
+  /// [limit] verilirse varsayılan sınırın yerine geçer (sohbet: [chatLimit]).
+  Future<PreparedImage> prepare(Uint8List bytes, {bool avatar = false, int? limit}) async {
     if (bytes.isEmpty) throw ImageException('EMPTY');
     final mime = sniffMime(bytes);
     if (mime == null) throw ImageException('UNSUPPORTED_TYPE');
-    final limit = avatar ? avatarLimit : defaultLimit;
-    if (bytes.length <= limit) return PreparedImage(bytes, mime);
-    final out = await Isolate.run(() => _shrink(bytes, limit));
+    limit ??= avatar ? avatarLimit : defaultLimit;
+    final lim = limit;
+    if (bytes.length <= lim) return PreparedImage(bytes, mime);
+    final out = await Isolate.run(() => shrink(bytes, lim));
     if (out == null) throw ImageException('TOO_LARGE');
     return PreparedImage(out, 'image/jpeg');
   }
@@ -88,12 +98,22 @@ class ImageService {
     return null;
   }
 
-  static Uint8List? _shrink(Uint8List bytes, int limit) {
-    final src = img.decodeImage(bytes);
-    if (src == null) return null;
-    for (final w in [1600, 1280, 1024, 800, 640]) {
-      for (final q in [85, 75, 65, 55]) {
-        final scaled = src.width > w ? img.copyResize(src, width: w) : src;
+  /// Uzun kenar basamakları (px) ve JPEG kaliteleri: önce boyutu koruyup kaliteyi düşürmeden en yüksek çiftten başlar.
+  /// EXIF yönü piksellere işlenir (aksi halde yeniden kodlanan fotoğraf yan çıkar); konum EXIF'i yeniden
+  /// kodlamayla zaten atılır.
+  static const shrinkEdges = [2048, 1600, 1280, 1024, 800, 640];
+  static const shrinkQualities = [88, 80, 70, 60];
+
+  @visibleForTesting
+  static Uint8List? shrink(Uint8List bytes, int limit) {
+    final decoded = img.decodeImage(bytes);
+    if (decoded == null) return null;
+    final src = img.bakeOrientation(decoded);
+    for (final e in shrinkEdges) {
+      final long = src.width >= src.height;
+      final big = (long ? src.width : src.height) > e;
+      final scaled = !big ? src : (long ? img.copyResize(src, width: e) : img.copyResize(src, height: e));
+      for (final q in shrinkQualities) {
         final out = Uint8List.fromList(img.encodeJpg(scaled, quality: q));
         if (out.length <= limit) return out;
       }
