@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // Uygulama baglantisi dogrulama dosyalari (iOS Universal Links / Android App Links) - docs/SHARING.md
 //
 // Ortam (Docker build arg ya da ortam degiskeni):

@@ -62,7 +62,7 @@ export function RankedBars({
 
   if (loading) {
     return (
-      <div className={`${styles.ranked} ${className ?? ''}`} aria-busy="true" aria-label={t('common.loading')}>
+      <div className={`${styles.ranked} ${className ?? ''}`} role="status" aria-busy="true" aria-label={t('common.loading')}>
         {[0, 1, 2].map((i) => (
           <Skeleton key={i} width="100%" height="2.4rem" />
         ))}
