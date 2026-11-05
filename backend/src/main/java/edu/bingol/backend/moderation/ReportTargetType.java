@@ -17,5 +17,9 @@ public enum ReportTargetType {
     /** Anket (T-057). */
     POLL,
     /** Kesfet gonderi/reel yorumu veya yaniti (post.comment, V1230). */
-    COMMENT
+    COMMENT,
+    /** Kampus Forum konusu (forum_topic; anonim olsa da raporlanabilir). Sutun report.target_type VARCHAR(16). */
+    FORUM_TOPIC,
+    /** Kampus Forum yorumu/yaniti (forum_comment). */
+    FORUM_COMMENT
 }

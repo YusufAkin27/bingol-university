@@ -58,6 +58,12 @@ public final class PermissionMatrix {
     public static final String RETENTION_EXPORT = "data.retention.export";
     /** Onayli kalici silme. */
     public static final String RETENTION_PURGE = "data.retention.purge";
+    /** Kampus Forum (D): yonetici forum listeleri (sikayet kuyrugu, konular, islem kayitlari, kategoriler) okuma. */
+    public static final String FORUM_READ = "forum.read";
+    /** Forum icerik moderasyonu: sabitle/kilitle/kaldir/geri al (kullanici API'sindeki moderate uclari da bunu ister). */
+    public static final String FORUM_MODERATE = "forum.moderate";
+    /** Forum kategori yonetimi (ekle/duzenle/sirala/arsivle). */
+    public static final String FORUM_CATEGORIES = "forum.categories";
     /** Haritada eslenmemis /api/admin yollari icin guvenli varsayilan: yalniz FULL. */
     public static final String FULL_ONLY = "admin.full";
 
@@ -108,6 +114,9 @@ public final class PermissionMatrix {
         grant(RETENTION_READ, F, V);
         grant(RETENTION_EXPORT, F);
         grant(RETENTION_PURGE, F);
+        grant(FORUM_READ, F, M, E, V);
+        grant(FORUM_MODERATE, F, M);
+        grant(FORUM_CATEGORIES, F, E);
         grant(FULL_ONLY, F);
     }
 

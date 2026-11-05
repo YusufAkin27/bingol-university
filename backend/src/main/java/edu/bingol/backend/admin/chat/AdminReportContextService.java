@@ -158,6 +158,11 @@ public class AdminReportContextService {
                 return owner("SELECT created_by FROM user_event WHERE id = ?", id);
             case "FEED_POST":
                 return owner("SELECT author_id FROM post WHERE id = ?", id);
+            // Kampus Forum: ANONIM icerigin sahibi COZULMEZ (yonetici kuyrugunda kimlik gosterilmez)
+            case "FORUM_TOPIC":
+                return owner("SELECT user_id FROM forum_topic WHERE id = ? AND anonymous = FALSE", id);
+            case "FORUM_COMMENT":
+                return owner("SELECT user_id FROM forum_comment WHERE id = ? AND anonymous = FALSE", id);
             default:
                 return new Target(null, null, null, null);
         }
@@ -189,6 +194,10 @@ public class AdminReportContextService {
             case "POST", "COMMUNITY", "EVENT", "FEED_POST":
                 return new Context(type, t.ownerId != null, null, null, null, List.of(), content(type, r.getTargetId()),
                         stats(t.ownerId));
+            case "FORUM_TOPIC", "FORUM_COMMENT": {
+                Content fc = content(type, r.getTargetId());
+                return new Context("CONTENT", fc != null, null, null, null, List.of(), fc, stats(t.ownerId));
+            }
             default:
                 return new Context("NONE", false, null, null, null, List.of(), null, stats(t.ownerId));
         }
@@ -264,6 +273,19 @@ public class AdminReportContextService {
                         rs.getString("cover_url"), false, rs.getString("status"), ts(rs.getTimestamp("created_at")), null, null), id));
             case "FEED_POST":
                 return feedPost(id);
+            case "FORUM_TOPIC":
+                // yazar kimligi (ownerId) ANONIM degilse dolar; anonimde null (kimlik sizmaz)
+                return first(jdbc.query("SELECT id, title, body, user_id, anonymous, status, deleted_at, created_at "
+                                + "FROM forum_topic WHERE id = ?", (rs, i) -> new Content("FORUM_TOPIC", rs.getLong("id"),
+                        rs.getString("title"), rs.getString("body"), null,
+                        rs.getBoolean("anonymous") ? null : rs.getLong("user_id"), null, rs.getTimestamp("deleted_at") != null,
+                        rs.getString("status"), ts(rs.getTimestamp("created_at")), null, null), id));
+            case "FORUM_COMMENT":
+                return first(jdbc.query("SELECT id, body, user_id, anonymous, status, deleted_at, created_at "
+                                + "FROM forum_comment WHERE id = ?", (rs, i) -> new Content("FORUM_COMMENT", rs.getLong("id"),
+                        null, rs.getString("body"), null,
+                        rs.getBoolean("anonymous") ? null : rs.getLong("user_id"), null, rs.getTimestamp("deleted_at") != null,
+                        rs.getString("status"), ts(rs.getTimestamp("created_at")), null, null), id));
             default:
                 return first(jdbc.query("SELECT id, title, description, community_id, created_by, created_at "
                                 + "FROM user_event WHERE id = ?", (rs, i) -> new Content("EVENT", rs.getLong("id"),
