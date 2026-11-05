@@ -92,6 +92,7 @@ const m = {
   'admin.sys2.roles.group.audit': 'Denetim kaydı',
   'admin.sys2.roles.group.rbac': 'Roller ve izinler',
   'admin.sys2.roles.group.data': 'Veri saklama',
+  'admin.sys2.roles.group.forum': 'Forum',
   'admin.sys2.roles.group.admin': 'Tam yetki',
   'admin.sys2.roles.focusHint': 'Aşağıdaki ayrıntılı tabloyu yalnız bu alanla sınırla',
   'admin.sys2.roles.permCount': '{n} izin',

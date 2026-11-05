@@ -44,6 +44,9 @@ export type Permission =
   | 'data.retention.read'
   | 'data.retention.export'
   | 'data.retention.purge'
+  | 'forum.read'
+  | 'forum.moderate'
+  | 'forum.categories'
   | 'admin.full';
 
 export interface RbacMe {

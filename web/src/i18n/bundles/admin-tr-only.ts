@@ -30,7 +30,17 @@ const Gd1Nav = { 'admin.gd1.nav': 'Yedekleme (Google Drive)', 'admin.unitNews.na
   'admin.twoFactor.nav': 'İki faktörlü doğrulama',
 };
 
+// Forum yönetimi menü etiketleri ana parçada kalır; sayfa metinleri tr/admin-forum.ts içinde sayfanın kendi parçasında yüklenir.
+const ForumNav = {
+  'admin.forum.nav.group': 'Forum',
+  'admin.forum.nav.reports': 'Forum şikâyetleri',
+  'admin.forum.nav.topics': 'Forum konuları',
+  'admin.forum.nav.actions': 'Forum işlem kayıtları',
+  'admin.forum.nav.categories': 'Forum kategorileri',
+};
+
 export default {
+  ...ForumNav,
   ...Guard,
   ...Shell,
   ...P05,

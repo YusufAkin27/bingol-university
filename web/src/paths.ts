@@ -90,5 +90,9 @@ export const paths = {
     appVersions: `${ADMIN_BASE}/app-versions`,
     dataRetention: `${ADMIN_BASE}/data-retention`,
     backup: `${ADMIN_BASE}/backup`,
+    forumReports: `${ADMIN_BASE}/forum/reports`,
+    forumTopics: `${ADMIN_BASE}/forum/topics`,
+    forumActions: `${ADMIN_BASE}/forum/actions`,
+    forumCategories: `${ADMIN_BASE}/forum/categories`,
   },
 } as const;

@@ -6,6 +6,7 @@ import { entries as academic } from './index/academic';
 import { entries as ayarYetki } from './index/ayarYetki';
 import { entries as community } from './index/community';
 import { entries as content } from './index/content';
+import { entries as forum } from './index/forum';
 import { entries as moderation } from './index/moderation';
 import { entries as notifications } from './index/notifications';
 import { entries as overview } from './index/overview';
@@ -19,6 +20,7 @@ export const registeredEntries: SearchEntry[] = [
   ...overview,
   ...people,
   ...moderation,
+  ...forum,
   ...community,
   ...academic,
   ...support,

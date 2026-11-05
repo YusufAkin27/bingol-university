@@ -1,0 +1,64 @@
+/* Forum yönetimi: yalnız tasarım token'ları ve mantıksal özellikler (RTL uyumlu). Ortak yerleşim moderation.module.css'ten gelir. */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-4);
+  align-items: end;
+}
+.filters > * {
+  min-inline-size: 11rem;
+}
+.title {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.snippet {
+  margin: 0;
+  color: var(--text);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.note {
+  margin: 0;
+  padding-inline-start: var(--space-3);
+  border-inline-start: 3px solid var(--border-strong);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+.detail {
+  display: grid;
+  gap: var(--space-3);
+}
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+}
+.facts dt {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.facts dd {
+  margin: 0;
+  font-weight: 600;
+}
+.touch button {
+  min-block-size: 44px;
+}
