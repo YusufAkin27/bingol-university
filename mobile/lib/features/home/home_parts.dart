@@ -29,19 +29,16 @@ class HomeSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    return DecoratedBox(
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(22),
-            boxShadow: BuElevation.of(context, 1)),
-        child: Material(
-          color: color ?? t.sf,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(22),
-              side: BorderSide(color: t.bd)),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-              onTap: onTap, child: Padding(padding: padding, child: child)),
-        ));
+    // Premium monochrome: gölge yok, ayrım ince kenarlık + yüzey tonu; radius 16.
+    return Material(
+      color: color ?? t.sf,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: t.bd)),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+          onTap: onTap, child: Padding(padding: padding, child: child)),
+    );
   }
 }
 
@@ -64,13 +61,11 @@ class HomeSearchBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(32),
-          boxShadow: BuElevation.of(context, 1)),
-      child: Material(
+    return Material(
         color: t.sf,
-        shape: StadiumBorder(side: BorderSide(color: t.bd)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: t.bd)),
         clipBehavior: Clip.antiAlias,
         child: Row(children: [
           Expanded(
@@ -105,7 +100,6 @@ class HomeSearchBox extends StatelessWidget {
             const SizedBox(width: 4),
           ],
         ]),
-      ),
     );
   }
 }
@@ -152,7 +146,7 @@ class HomeQuickTile extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 10),
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Icon(icon, size: 22, color: t.prPressed),
+                Icon(icon, size: 22, color: t.ink),
                 const SizedBox(height: 6),
                 SizedBox(
                   height: labelBoxH,
@@ -381,7 +375,7 @@ class HomeSectionHeader extends StatelessWidget {
       ),
       if (action != null)
         _TextLink(
-            label: action!, onTap: onAction, color: t.prPressed),
+            label: action!, onTap: onAction, color: t.ink),
       if (action == null && trailing != null)
         Padding(
             padding: const EdgeInsetsDirectional.only(start: 8),
@@ -608,7 +602,7 @@ class HomeMenuCard extends StatelessWidget {
             label: photo != null ? l.menuPhotoLabel : null,
             excludeSemantics: photo != null,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(16),
               child: AspectRatio(
                 aspectRatio: 16 / 9,
                 child: photo ??
@@ -714,7 +708,7 @@ class HomeInlineLink extends StatelessWidget {
                     style: BuType.label.copyWith(
                         fontSize: 13,
                         fontWeight: BuType.emphasisWeight,
-                        color: t.prPressed)),
+                        color: t.ink)),
               ),
             ),
           ),
@@ -805,7 +799,7 @@ class HomeEventList extends StatelessWidget {
     final rtl = Directionality.of(context) == TextDirection.rtl;
     Widget meta(IconData icon, String text) =>
         Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, size: 14, color: t.prPressed),
+          Icon(icon, size: 14, color: t.ink),
           const SizedBox(width: 4),
           Flexible(
               child: Text(text,
@@ -814,7 +808,7 @@ class HomeEventList extends StatelessWidget {
                   style: BuType.label.copyWith(
                       fontSize: 13,
                       fontWeight: BuType.emphasisWeight,
-                      color: t.prPressed))),
+                      color: t.ink))),
         ]);
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       for (var i = 0; i < rows.length; i++) ...[
@@ -1044,7 +1038,7 @@ class HomeEmptyCard extends StatelessWidget {
             Expanded(child: text),
             if (actionLabel != null) ...[
               const SizedBox(width: 8),
-              _TextLink(label: actionLabel!, onTap: onAction, color: t.prText),
+              _TextLink(label: actionLabel!, onTap: onAction, color: t.ink),
             ],
           ]),
         ),
@@ -1094,24 +1088,23 @@ class HomeBrandHeader extends StatelessWidget {
     final t = context.bu;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
-        ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.asset('assets/branding/mark.png',
-                width: 42, height: 42, excludeFromSemantics: true)),
-        const SizedBox(width: 10),
+        // Minimal wordmark: yalnız yazı (marka kırmızısı/simge arayüzde yok); alt satır küçük açıklama.
         Expanded(
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('BÜ Kampüs',
               maxLines: 1,
               style: BuType.title.copyWith(
-                  fontSize: 18, fontWeight: FontWeight.w400, color: t.ink)),
-          const SizedBox(height: 3),
+                  fontSize: 20,
+                  fontWeight: FontWeight.w400,
+                  letterSpacing: -.4,
+                  color: t.ink)),
+          const SizedBox(height: 2),
           Text(context.l10n.homeBrandSubtitle,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: BuType.caption
-                  .copyWith(fontSize: 10, height: 1.25, color: t.mut)),
+                  .copyWith(fontSize: 11, height: 1.25, color: t.mut)),
         ])),
         for (final action in actions.reversed) action,
       ]),
@@ -1171,7 +1164,7 @@ class HomeFeaturedShortcuts extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
                   decoration: BoxDecoration(
                       color: t.sf,
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: t.bd)),
                   child: Column(
                       mainAxisAlignment: MainAxisAlignment.start,
@@ -1183,7 +1176,7 @@ class HomeFeaturedShortcuts extends StatelessWidget {
                               color: t.soft,
                               borderRadius: BorderRadius.circular(14)),
                           child: Icon(items[i].icon,
-                              size: 22, color: t.prPressed),
+                              size: 22, color: t.ink),
                         ),
                         const SizedBox(height: 8),
                         // Sözcük asla ortadan bölünmez (büyük yazıda küçülür); çok sözcüklü etiket satırlara ayrılır.
@@ -1291,7 +1284,7 @@ class HomeNewsCard extends StatelessWidget {
                                 style: BuType.label.copyWith(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w400,
-                                    color: t.prPressed)),
+                                    color: t.ink)),
                           ),
                         ),
                     ]),

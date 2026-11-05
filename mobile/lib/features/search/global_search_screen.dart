@@ -437,7 +437,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
             TextButton(
               style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 4)),
               onPressed: _clearRecent,
-              child: Text(l.searchClearRecent, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: BuType.emphasisWeight, color: t.prText)),
+              child: Text(l.searchClearRecent, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: BuType.emphasisWeight, color: t.ink)),
             ),
           ]),
           for (var i = 0; i < _recent.length; i++)
@@ -566,7 +566,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
               key: ValueKey('see-all-${tab.name}'),
               style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 8)),
               onPressed: () => _selectTab(tab),
-              child: Text(context.l10n.srSeeAll, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: BuType.emphasisWeight, color: t.prText)),
+              child: Text(context.l10n.srSeeAll, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: BuType.emphasisWeight, color: t.ink)),
             ),
         ]),
       ),
@@ -684,7 +684,7 @@ class SearchPostTile extends StatelessWidget {
         scale: .98,
         onTap: onTap,
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(16),
           child: Stack(fit: StackFit.expand, children: [
             BuImage(hit.imageUrl, headers: headers, fit: BoxFit.cover, placeholderIcon: reel ? BuIcons.video : BuIcons.image, maxDecodeWidth: 600),
             Positioned(
@@ -775,8 +775,8 @@ class _SearchFieldState extends State<_SearchField> {
       padding: const EdgeInsetsDirectional.only(start: 14),
       decoration: BoxDecoration(
         color: t.sf,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: focused ? t.pr : t.bdStrong, width: focused ? 1.5 : 1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: focused ? t.ink : t.bdStrong, width: focused ? 1.5 : 1),
       ),
       child: Row(children: [
         Icon(BuIcons.search, size: 18, color: t.mut),
@@ -886,16 +886,17 @@ class _TabChipsState extends State<_TabChips> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: i == widget.selected ? t.soft : t.sf,
+                        // Seçili çip: ters renk (pr zemin + onPr yazı); diğerleri sf + ince kenarlık.
+                        color: i == widget.selected ? t.pr : t.sf,
                         borderRadius: BorderRadius.circular(BuRadius.pill),
-                        border: Border.all(color: i == widget.selected ? t.soft : t.bd),
+                        border: Border.all(color: i == widget.selected ? t.pr : t.bd),
                       ),
                       child: AnimatedDefaultTextStyle(
                         duration: BuMotion.of(context, BuMotion.short),
                         style: tx.labelLarge!.copyWith(
                           fontSize: 13,
-                          fontWeight: i == widget.selected ? FontWeight.w400 : FontWeight.w400,
-                          color: i == widget.selected ? t.prText : t.ink,
+                          fontWeight: FontWeight.w400,
+                          color: i == widget.selected ? t.onPr : t.ink,
                         ),
                         child: Text(widget.labels[i]),
                       ),

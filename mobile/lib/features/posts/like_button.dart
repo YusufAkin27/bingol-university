@@ -501,7 +501,7 @@ class _DoubleTapLikeState extends State<DoubleTapLike> with SingleTickerProvider
                         opacity: opacity.value.clamp(0, 1),
                         child: Transform.scale(
                           scale: scale.value,
-                          // Kırmızı kalp + çevresinde kısa nokta patlaması (beğenilmiş kalp rengi t.pr).
+                          // Kırmızı kalp + çevresinde kısa nokta patlaması (beğenilmiş kalp rengi t.heart).
                           child: CustomPaint(
                             painter: _BurstPainter(progress: calm ? 0 : _c.value, color: t.heart, spread: 2.6),
                             child: SizedBox(

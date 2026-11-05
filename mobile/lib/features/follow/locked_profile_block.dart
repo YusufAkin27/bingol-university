@@ -24,7 +24,7 @@ class LockedProfileBlock extends StatelessWidget {
         excludeSemantics: true,
         child: DecoratedBox(
           key: const ValueKey('locked-profile-block'),
-          decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(24), boxShadow: BuElevation.of(context, 1)),
+          decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(16), border: Border.all(color: t.bd)),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 28, 20, 28),
             child: Column(mainAxisSize: MainAxisSize.min, children: [

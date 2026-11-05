@@ -24,7 +24,7 @@ class PostPhoto extends StatelessWidget {
     super.key,
     required this.session,
     required this.post,
-    this.radius = BuRadius.lg,
+    this.radius = BuRadius.md,
     this.aspectRatio = 4 / 5,
     this.progressive = false,
     this.thumbOnly = false,
@@ -197,7 +197,7 @@ class PostCard extends StatefulWidget {
   State<PostCard> createState() => _PostCardState();
 }
 
-/// Kartın ortak yüzeyi: beyaz, 20 köşe, hafif gölge (koyu temada tonal, çizgisiz).
+/// Kartın ortak yüzeyi: `sf` + 1 dp `bd` kenarlık, 16 köşe, gölge yok.
 class _CardSurface extends StatelessWidget {
   const _CardSurface({super.key, required this.child, this.flat = false});
 
@@ -212,8 +212,8 @@ class _CardSurface extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: context.bu.sf,
-        borderRadius: BorderRadius.circular(BuRadius.lg),
-        boxShadow: BuElevation.of(context, 1),
+        borderRadius: BorderRadius.circular(BuRadius.md),
+        border: Border.all(color: context.bu.bd),
       ),
       child: child,
     );
@@ -473,12 +473,12 @@ class _PostCardState extends State<PostCard> {
                 onLike: _like.like,
                 onTap: widget.detail ? null : _open,
                 // Detayda fotoğraf ekran kenarlarına dayanır: köşe yuvarlağı ekran kenarında bozuk görünür.
-                radius: detail ? 0 : BuRadius.lg,
+                radius: detail ? 0 : BuRadius.md,
                 child: Stack(alignment: Alignment.center, children: [
                   PostPhoto(
                     session: widget.session,
                     post: p,
-                    radius: detail ? 0 : BuRadius.lg,
+                    radius: detail ? 0 : BuRadius.md,
                     // Detayda küçük resim de kullanılır: Hero uçuşunda ve ilk açılışta boş kare görünmez.
                     progressive: detail,
                     heroTag: _heroTag,
@@ -493,7 +493,7 @@ class _PostCardState extends State<PostCard> {
                 behavior: HitTestBehavior.opaque,
                 onTap: _open,
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(BuRadius.lg),
+                  borderRadius: BorderRadius.circular(BuRadius.md),
                   child: AspectRatio(
                     aspectRatio: postVideoCardRatio(p),
                     child: ColoredBox(color: t.sf2, child: Center(child: Icon(BuIcons.playFilled, color: t.mut, size: 32))),

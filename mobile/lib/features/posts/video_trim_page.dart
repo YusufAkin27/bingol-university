@@ -294,14 +294,14 @@ class _VideoTrimPageState extends State<VideoTrimPage> {
                       key: const ValueKey('trimDone'),
                       color: Colors.transparent,
                       child: InkWell(
-                        customBorder: const StadiumBorder(),
+                        customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         onTap: () => Navigator.pop(context, _w.range),
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(minHeight: BuSize.touch, minWidth: 64),
                           child: Center(
                             widthFactor: 1,
                             child: DecoratedBox(
-                              decoration: BoxDecoration(color: t.pr, borderRadius: BorderRadius.circular(BuRadius.pill)),
+                              decoration: BoxDecoration(color: t.pr, borderRadius: BorderRadius.circular(12)),
                               child: SizedBox(
                                 height: 36,
                                 child: Padding(
@@ -346,7 +346,7 @@ class _VideoTrimPageState extends State<VideoTrimPage> {
       child: AspectRatio(
         aspectRatio: ar,
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(16),
           child: GestureDetector(
             key: const ValueKey('trimPreview'),
             behavior: HitTestBehavior.opaque,

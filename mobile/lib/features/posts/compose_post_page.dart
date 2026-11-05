@@ -85,7 +85,7 @@ Future<Post?> openComposePost(BuildContext context, Session session, {ComposeKin
 enum _Err { none, generic, profanity, rate, network }
 
 /// Önizleme / boş alan köşesi (Stitch v3: 24 dp).
-const double kComposeRadius = 24;
+const double kComposeRadius = 16;
 
 /// Gönderi oluşturucu: tam 1 fotoğraf (4:5 kırpılır) VEYA 1 video (en çok [PostVideoLimits.maxDurationMs] / 50 MB;
 /// daha uzunsa uygulamada kırpılır) + isteğe bağlı, istenen uzunlukta çok satırlı metin (sayaç/sınır metni YOK; sunucunun
@@ -744,7 +744,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
             // Başlık metni görünmez (tasarım sadeleştirmesi); yalnız ekran okuyucu için anlamsal etiket.
             child: Semantics(header: true, label: context.l10n.postComposeNewPost, child: const SizedBox.shrink()),
           ),
-          // Küçük pr hap: görünür 36 dp, dokunma alanı 48 dp; hazır değilken %40 opak (150 ms geçiş).
+          // Küçük pr düğme (radius 12): görünür 36 dp, dokunma alanı 48 dp; hazır değilken %40 opak (150 ms geçiş).
           Padding(
             padding: const EdgeInsetsDirectional.only(end: 12),
             child: AnimatedOpacity(
@@ -754,14 +754,14 @@ class _ComposePostPageState extends State<ComposePostPage> {
                 key: const ValueKey('composeShare'),
                 color: Colors.transparent,
                 child: InkWell(
-                  customBorder: const StadiumBorder(),
+                  customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   onTap: enabled ? _publish : null,
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(minHeight: BuSize.touch, minWidth: 64),
                     child: Center(
                       widthFactor: 1,
                       child: DecoratedBox(
-                        decoration: BoxDecoration(color: t.pr, borderRadius: BorderRadius.circular(BuRadius.pill)),
+                        decoration: BoxDecoration(color: t.pr, borderRadius: BorderRadius.circular(12)),
                         child: SizedBox(
                           height: 36,
                           child: Padding(
@@ -830,7 +830,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
     if (video != null) {
       return Container(
         key: const ValueKey('composeVideoPreview'),
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(kComposeRadius), boxShadow: BuElevation.of(context, 1)),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(kComposeRadius), border: Border.all(color: t.bd)),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(kComposeRadius),
           child: AspectRatio(
@@ -883,7 +883,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
     if (bytes != null) {
       return Container(
         key: const ValueKey('composePreview'),
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(kComposeRadius), boxShadow: BuElevation.of(context, 1)),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(kComposeRadius), border: Border.all(color: t.bd)),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(kComposeRadius),
           child: AspectRatio(
@@ -990,9 +990,9 @@ class _ComposePostPageState extends State<ComposePostPage> {
       child: Material(
         key: const ValueKey('composeVideoEdit'),
         color: t.pr,
-        shape: const StadiumBorder(),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: InkWell(
-          customBorder: const StadiumBorder(),
+          customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           onTap: _editVideo,
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: BuSize.touch),
@@ -1125,9 +1125,9 @@ class _ComposePostPageState extends State<ComposePostPage> {
     return Material(
       key: key,
       color: t.scrim.withValues(alpha: .45),
-      shape: const StadiumBorder(),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: InkWell(
-        customBorder: const StadiumBorder(),
+        customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         onTap: onTap,
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: BuSize.touch),
@@ -1356,7 +1356,7 @@ class _DiscardDialog extends StatelessWidget {
       backgroundColor: t.sf3,
       elevation: 0,
       surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 28, 24, 12),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -1371,7 +1371,7 @@ class _DiscardDialog extends StatelessWidget {
           TextButton(
             key: const ValueKey('composeDiscard'),
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(minimumSize: const Size.fromHeight(48), foregroundColor: t.prText),
+            style: TextButton.styleFrom(minimumSize: const Size.fromHeight(48), foregroundColor: t.ink),
             child: Text(l.gonderiDiscardYes, style: const TextStyle(fontWeight: FontWeight.w400)),
           ),
         ]),

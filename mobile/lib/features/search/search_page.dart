@@ -505,7 +505,7 @@ class _SearchPageState extends State<SearchPage> {
             TextButton(
               style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 4)),
               onPressed: _clearRecent,
-              child: Text(l.searchClearRecent, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: BuType.emphasisWeight, color: t.prText)),
+              child: Text(l.searchClearRecent, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: BuType.emphasisWeight, color: t.ink)),
             ),
           ]),
           for (var i = 0; i < _recent.length; i++)
@@ -691,8 +691,8 @@ class _SearchPageState extends State<SearchPage> {
         TextButton.icon(
           style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 4)),
           onPressed: onRetry,
-          icon: Icon(BuIcons.refreshCw, size: 16, color: t.prText),
-          label: Text(l.commonRetry, style: tx.bodyMedium!.copyWith(fontSize: 14, fontWeight: BuType.emphasisWeight, color: t.prText)),
+          icon: Icon(BuIcons.refreshCw, size: 16, color: t.ink),
+          label: Text(l.commonRetry, style: tx.bodyMedium!.copyWith(fontSize: 14, fontWeight: BuType.emphasisWeight, color: t.ink)),
         ),
       ]),
       if (limited) ...[
@@ -731,7 +731,7 @@ class _SearchPageState extends State<SearchPage> {
                 TextButton(
                   style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 4)),
                   onPressed: () => _selectTab(tab),
-                  child: Text(l.p05SearchSeeAllN('${hits.length}'), style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: BuType.emphasisWeight, color: t.prText)),
+                  child: Text(l.p05SearchSeeAllN('${hits.length}'), style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: BuType.emphasisWeight, color: t.ink)),
                 ),
               ]),
             ),
@@ -807,7 +807,7 @@ class _SearchPageState extends State<SearchPage> {
     return b == null ? a : '$a – $b';
   }
 
-  /// Eşleşen metin (sorgu) marka rengi + 600 ağırlıkla vurgulanır; büyük/küçük harf ve Türkçe i/İ duyarsız.
+  /// Eşleşen metin (sorgu) `ink` + ince alt çizgiyle vurgulanır; büyük/küçük harf ve Türkçe i/İ duyarsız.
   InlineSpan _highlight(String text, TextStyle base, BuTokens t) {
     String fold(String x) => x.replaceAll('İ', 'i').replaceAll('I', 'ı').toLowerCase();
     final q = fold(_query.trim());
@@ -820,7 +820,7 @@ class _SearchPageState extends State<SearchPage> {
       final i = src.indexOf(q, from);
       if (i < 0) break;
       if (i > from) spans.add(TextSpan(text: text.substring(from, i), style: base));
-      spans.add(TextSpan(text: text.substring(i, i + q.length), style: base.copyWith(fontWeight: FontWeight.w400, color: t.prText)));
+      spans.add(TextSpan(text: text.substring(i, i + q.length), style: base.copyWith(fontWeight: BuType.emphasisWeight, color: t.ink, decoration: TextDecoration.underline, decorationColor: t.mut)));
       from = i + q.length;
     }
     if (from < text.length) spans.add(TextSpan(text: text.substring(from), style: base));
@@ -883,7 +883,7 @@ class _SearchPageState extends State<SearchPage> {
               decoration: BoxDecoration(borderRadius: BorderRadius.circular(BuRadius.sm), border: Border.all(color: t.bd)),
               child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Text(trUpper(newsMonthName(context, d.month)).characters.take(3).toString(),
-                    style: tx.labelSmall!.copyWith(fontSize: 11.5, fontWeight: FontWeight.w400, height: 1.1, color: t.prText)),
+                    style: tx.labelSmall!.copyWith(fontSize: 11.5, fontWeight: FontWeight.w400, height: 1.1, color: t.ink)),
                 Text('${d.day}',
                     style: tx.titleMedium!.copyWith(
                         fontSize: 20, fontWeight: FontWeight.w400, height: 1.1, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()])),
@@ -933,7 +933,7 @@ class _SearchPageState extends State<SearchPage> {
       child: Container(
         constraints: const BoxConstraints(minHeight: 56),
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), border: Border.all(color: t.bd)),
+        decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(16), border: Border.all(color: t.bd)),
         child: Row(children: [
           if (leading != null) ...[leading, const SizedBox(width: 12)],
           Expanded(
@@ -967,7 +967,7 @@ class _SearchPageState extends State<SearchPage> {
       ]);
 }
 
-/// Kulüp satırının sağındaki küçük hap: "Katıl" = `soft` zemin + marka metni; "Üyesin" = 1 dp çerçeveli, ink metin + tik.
+/// Kulüp satırının sağındaki küçük düğme (radius 10): "Katıl" = `pr` zemin + `onPr` metin; "Üyesin" = 1 dp çerçeveli, ink metin + tik.
 class _ClubPill extends StatelessWidget {
   const _ClubPill({required this.text, required this.member});
 
@@ -977,12 +977,12 @@ class _ClubPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final style = Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 12.5, fontWeight: BuType.emphasisWeight, color: member ? t.ink : t.prText);
+    final style = Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 12.5, fontWeight: BuType.emphasisWeight, color: member ? t.ink : t.onPr);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
-        color: member ? Colors.transparent : t.soft,
-        borderRadius: BorderRadius.circular(BuRadius.pill),
+        color: member ? Colors.transparent : t.pr,
+        borderRadius: BorderRadius.circular(10),
         border: member ? Border.all(color: t.bd) : null,
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -1065,9 +1065,8 @@ class _SearchBoxState extends State<_SearchBox> {
       padding: const EdgeInsetsDirectional.only(start: 14, end: 0),
       decoration: BoxDecoration(
         color: t.sf,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: focused ? t.pr : t.bdStrong, width: focused ? 1.5 : 1),
-        boxShadow: BuElevation.of(context, 1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: focused ? t.ink : t.bdStrong, width: focused ? 1.5 : 1),
       ),
       child: Row(children: [
         Icon(BuIcons.search, size: 18, color: t.mut),
@@ -1182,13 +1181,15 @@ class _TabChipsState extends State<_TabChips> {
                       padding: const EdgeInsets.symmetric(horizontal: 14),
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: i == widget.selected ? t.soft : t.sf,
+                        // Seçili çip: ters renk (pr zemin + onPr yazı); diğerleri sf + ince kenarlık.
+                        color: i == widget.selected ? t.pr : t.sf,
                         borderRadius: BorderRadius.circular(BuRadius.pill),
+                        border: Border.all(color: i == widget.selected ? t.pr : t.bd),
                       ),
                       child: AnimatedDefaultTextStyle(
                         duration: BuMotion.of(context, BuMotion.short),
                         style: tx.labelLarge!.copyWith(
-                            fontSize: 13, fontWeight: i == widget.selected ? BuType.emphasisWeight : FontWeight.w400, color: i == widget.selected ? t.prText : t.ink),
+                            fontSize: 13, fontWeight: i == widget.selected ? BuType.emphasisWeight : FontWeight.w400, color: i == widget.selected ? t.onPr : t.ink),
                         child: Text(widget.labels[i]),
                       ),
                     ),

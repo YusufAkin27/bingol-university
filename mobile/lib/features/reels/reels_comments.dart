@@ -528,13 +528,13 @@ class _CommentRow extends StatelessWidget {
             Text.rich(
               TextSpan(children: [
                 TextSpan(text: c.authorName, style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
-                if (c.byPostAuthor) TextSpan(text: '  ${l.kesCommentsAuthorBadge}', style: tt.labelSmall?.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
+                if (c.byPostAuthor) TextSpan(text: '  ${l.kesCommentsAuthorBadge}', style: tt.labelSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                 TextSpan(text: '  ${postRelativeTime(context, c.createdAt)}', style: tt.bodySmall?.copyWith(color: t.mut)),
               ]),
             ),
             const SizedBox(height: 2),
             Text.rich(TextSpan(children: [
-              if (c.replyToName != null) TextSpan(text: '@${c.replyToName} ', style: tt.bodyMedium?.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
+              if (c.replyToName != null) TextSpan(text: '@${c.replyToName} ', style: tt.bodyMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
               TextSpan(text: c.text),
             ]), style: tt.bodyMedium?.copyWith(color: t.ink, height: 1.35)),
             Row(children: [

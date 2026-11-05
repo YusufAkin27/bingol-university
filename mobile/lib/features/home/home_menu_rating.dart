@@ -69,7 +69,7 @@ class _HomeMenuRatingState extends State<HomeMenuRating> {
         value: p.myRating,
         size: 16,
         compact: true,
-        activeColor: t.prPressed,
+        activeColor: t.pr,
         inactiveColor: t.mut,
         onChanged: canRate && !_busy ? _rate : null,
       ),

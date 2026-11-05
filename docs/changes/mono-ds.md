@@ -83,3 +83,14 @@ Tam tur (`flutter test --concurrency=4 --timeout=90s`, 2026-11-05): +5944 geçti
 - `academic_pickers`, `report_sheet`, `simple_markdown`, `core/permissions/ensure_permission`: pill/marka tonu/28 dp köşe temizlendi. Tema: `dividerColor`/`DividerTheme` = `bdSubtle`, görünür nötr odak halkası (`focusColor`), tarih/saat seçici radius 20 + kenarlık, gölgesiz.
 - `app_components.dart`: `AppTextField` (+`readOnly/onTap/inputFormatters/textCapitalization/textAlign/semanticLabel`), `AppReactionBar` etiketi sayıyı içerir, yeni takma adlar (`AppButtonKind, AppIconButton, AppChip, AppSegmented, AppBadge, AppCountBadge, AppSettingsTile, AppSheet, AppConfirmSheet, AppToast, AppToastKind, AppErrorState, AppSkeletonList`).
 - Yeni test: `test/redesign/mono_common_widgets_test.dart`.
+
+
+## 5. 2. dalga, Grup 2: Ana sayfa / Keşfet / Gönderi / Haber / Arama / Takip (`feat/mono-home`)
+
+- Ana sayfa: `HomeSurface` ve haber/etkinlik kartları 16 radius + `bd` kenarlık, gölge yok; arama kutusu hap değil radius 12; başlık "BÜ Kampüs" minimal yazı wordmark (logo görseli ve kırmızı yok); `prPressed/prText` -> `ink`/`pr`; yerleşim düzenleme sayfasında sürüklenen satır gölgesiz (kenarlık güçlenir).
+- Gönderi: `PostCard` yüzeyi `sf` + `bd`, radius 16 (gölge yok), fotoğraf radius 16; oluşturma/video kırpma düğmeleri radius 12 (hap değil), medya üstü düğmeler 10; kalp kırmızısı yalnız `t.heart`.
+- Haber: `IcerikTabs` seçili parça ters renk (`pr` + `onPr`), yükseltilmiş varyantta `sf` + kenarlık; `IcerikCard`/`NewsFeaturedCard` gölgesiz, radius 16; yer tutucu karolar nötr; kayıtlı durum dolu simgeyle ayrışır (renkle değil).
+- Arama: giriş alanları radius 12, odakta `ink` kenarlık; seçili çip ters renk; eşleşme vurgusu renksiz alt çizgi (`searchHighlight`); "Katıl" küçük düğmesi `pr` zemin radius 10.
+- Takip: düğmeler (satır/hap/çip/medya) radius 10-12; birincil = `pr`/`onPr`.
+- Korunan medya karartmaları (okunurluk için `scrim` gradyanı) ve kaydırma kenarı solması (`bg` -> şeffaf) bilerek kalır. Kategori süzgeci (Senin için/Takip/...) Keşfet'e EKLENMEDİ: önceki kararla "filtre/kapsül yok", sunucu uçları da yok.
+- Test: `test/redesign/mono_home_group_test.dart` (iki temada yüzey/arama/segment/vurgu).

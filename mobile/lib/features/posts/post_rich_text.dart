@@ -57,7 +57,7 @@ class PostRichText extends StatefulWidget {
   final List<PostMention> mentions;
   final TextStyle? style;
 
-  /// Verilmezse `t.prText` (açık/koyu temada okunur marka rengi); koyu zeminde (Reels) çağıran açık bir renk verir.
+  /// Verilmezse `t.ink` (açık/koyu temada okunur marka rengi); koyu zeminde (Reels) çağıran açık bir renk verir.
   final Color? mentionColor;
 
   /// Koyu görüntü üstünde (Reels) renk yetmediği için etiketi alt çizgiyle ayırır.
@@ -104,7 +104,7 @@ class _PostRichTextState extends State<PostRichText> {
     if (parts.every((p) => p.mention == null)) {
       return Text(widget.text, maxLines: widget.maxLines, overflow: widget.overflow, style: widget.style);
     }
-    final color = widget.mentionColor ?? context.bu.prText;
+    final color = widget.mentionColor ?? context.bu.ink;
     final spans = <InlineSpan>[];
     for (final p in parts) {
       final m = p.mention;

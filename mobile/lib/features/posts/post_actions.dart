@@ -109,7 +109,7 @@ class _DialogShell extends StatelessWidget {
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(padding: const EdgeInsets.all(24), child: child),
       );
 }
