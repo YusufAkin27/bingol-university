@@ -3916,6 +3916,211 @@
   "errMailQuota": "Şu anda doğrulama kodu gönderemiyoruz. Lütfen daha sonra tekrar deneyin.",
   "errServiceBusy": "Sistem şu an yoğun. Lütfen birkaç saniye sonra tekrar deneyin.",
   "errLegalReaccept": "Sözleşmeler güncellendi. Devam etmek için güncel sözleşmeleri onaylamanız gerekiyor.",
+  "forumCommentLikeSemantic": "Beğen, {n} beğeni",
+  "@forumCommentLikeSemantic": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentUnlikeSemantic": "Beğenmekten vazgeç, {n} beğeni",
+  "@forumCommentUnlikeSemantic": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentReadMore": "Devamını oku",
+  "forumCommentReadLess": "Daha az göster",
+  "forumDetailDeletedAccount": "Silinmiş hesap",
+  "forumCommentDeletedPlaceholder": "Bu yorum silindi",
+  "forumCommentAuthorBadge": "Yazar",
+  "forumCommentEdited": "Düzenlendi",
+  "forumCommentReply": "Yanıtla",
+  "forumCommentMore": "Diğer işlemler",
+  "forumCommentLockedHint": "Bu konu kilitli, yorum yazılamaz.",
+  "forumCommentEditingBanner": "Yorumunu düzenliyorsun",
+  "forumCommentReplyingTo": "{name} kişisine yanıt veriyorsun",
+  "@forumCommentReplyingTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentCancelTarget": "Yanıtı veya düzenlemeyi iptal et",
+  "forumCommentHint": "Yorum yaz…",
+  "forumCommentHintReply": "Yanıtını yaz…",
+  "forumCommentAnonLabel": "Anonim yaz",
+  "forumCommentCounter": "{n} / {max}",
+  "@forumCommentCounter": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentSend": "Gönder",
+  "forumCommentSaveEdit": "Kaydet",
+  "forumCommentShowReplies": "{n} yanıtı göster",
+  "@forumCommentShowReplies": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentHideReplies": "Yanıtları gizle",
+  "forumCommentMoreReplies": "{n} yanıt daha",
+  "@forumCommentMoreReplies": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentMoreRepliesGeneric": "Daha fazla yanıt",
+  "forumCommentOpenChain": "Yanıt zincirini aç ({n})",
+  "@forumCommentOpenChain": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentRepliesFailed": "Yanıtlar yüklenemedi.",
+  "forumCommentActionEdit": "Düzenle",
+  "forumCommentActionDelete": "Sil",
+  "forumCommentActionCopy": "Metni kopyala",
+  "forumCommentActionShare": "Bağlantıyı paylaş",
+  "forumCommentActionLike": "Beğen",
+  "forumCommentActionUnlike": "Beğenmekten vazgeç",
+  "forumCommentActionSave": "Kaydet",
+  "forumCommentActionUnsave": "Kaydedilenlerden çıkar",
+  "forumCommentActionReport": "Şikâyet et",
+  "forumCommentActionBlock": "Kullanıcıyı engelle",
+  "forumCommentCopied": "Metin kopyalandı",
+  "forumCommentDeleted": "Yorum silindi",
+  "forumCommentDeleteTitle": "Yorum silinsin mi?",
+  "forumCommentDeleteBody": "Bu işlem geri alınamaz.",
+  "forumCommentDeleteConfirm": "Sil",
+  "forumCommentBlockTitle": "Bu kullanıcı engellensin mi?",
+  "forumCommentBlockBody": "Engellediğin kişinin içeriklerini artık görmezsin. Anonim yazarlarda kimlik açığa çıkmaz.",
+  "forumCommentBlockConfirm": "Engelle",
+  "forumCommentBlocked": "Kullanıcı engellendi",
+  "forumCommentSaved": "Kaydedildi",
+  "forumCommentUnsaved": "Kaydedilenlerden çıkarıldı",
+  "forumCommentGone": "Bu yorum artık yok. Liste yenilendi.",
+  "forumCommentConflict": "Yorum başka bir yerde değişti. Liste yenilendi.",
+  "forumCommentSent": "Yorumun gönderildi",
+  "forumCommentReplySent": "Yanıtın gönderildi",
+  "forumCommentEditDone": "Yorum güncellendi",
+  "forumCommentLinkNotFound": "Bağlantıdaki yorum bulunamadı",
+  "forumDetailSortBest": "En iyi",
+  "forumDetailSortNewest": "En yeni",
+  "forumDetailSortOldest": "En eski",
+  "forumDetailCommentsHeader": "Yorumlar ({n})",
+  "@forumDetailCommentsHeader": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailNoComments": "Henüz yorum yok",
+  "forumDetailNoCommentsBody": "İlk yorumu sen yaz.",
+  "forumDetailCommentsError": "Yorumlar yüklenemedi",
+  "forumDetailSlow": "Bağlantı yavaş, biraz daha bekleyin…",
+  "forumDetailSemanticTitle": "Konu",
+  "forumDetailNotFoundTitle": "Bu konu artık yok",
+  "forumDetailNotFoundBody": "Silinmiş ya da yayından kaldırılmış olabilir.",
+  "forumDetailRemovedTitle": "Bu konu kaldırıldı",
+  "forumDetailRemovedBody": "Topluluk kuralları gereği yayından kaldırıldı.",
+  "forumDetailLockedBanner": "Bu konu kilitli. Yeni yorum yazılamaz.",
+  "forumDetailPinned": "Sabitlendi",
+  "forumDetailEdited": "Düzenlendi",
+  "forumDetailLikeAction": "Beğen",
+  "forumDetailUnlikeAction": "Beğenmekten vazgeç",
+  "forumDetailSaveAction": "Kaydet",
+  "forumDetailUnsaveAction": "Kaydedilenlerden çıkar",
+  "forumDetailFollowAction": "Takip et",
+  "forumDetailUnfollowAction": "Takibi bırak",
+  "forumDetailShareAction": "Paylaş",
+  "forumDetailCommentsAction": "Yorumlara git",
+  "forumDetailCommentCount": "{n} yorum",
+  "@forumDetailCommentCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailLikeCount": "{n} beğeni",
+  "@forumDetailLikeCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailMenu": "Konu seçenekleri",
+  "forumDetailMenuEdit": "Konuyu düzenle",
+  "forumDetailMenuDelete": "Konuyu sil",
+  "forumDetailMenuNotificationsOff": "Bildirimleri kapat",
+  "forumDetailMenuNotificationsOn": "Bildirimleri aç",
+  "forumDetailMenuShare": "Bağlantıyı paylaş",
+  "forumDetailMenuPin": "Konuyu sabitle",
+  "forumDetailMenuUnpin": "Sabitlemeyi kaldır",
+  "forumDetailMenuLock": "Yorumları kilitle",
+  "forumDetailMenuUnlock": "Kilidi aç",
+  "forumDetailMenuReport": "Şikâyet et",
+  "forumDetailMenuBlock": "Yazarı engelle",
+  "forumDetailDeleteTitle": "Konu silinsin mi?",
+  "forumDetailDeleteBody": "Konu ve altındaki yorumlar kaldırılır. Bu işlem geri alınamaz.",
+  "forumDetailDeleteConfirm": "Sil",
+  "forumDetailDeleted": "Konu silindi",
+  "forumDetailBlockTitle": "Yazar engellensin mi?",
+  "forumDetailBlockBody": "Bu yazarın içeriklerini artık görmezsin. Anonim ise kimliği açığa çıkmaz.",
+  "forumDetailBlockConfirm": "Engelle",
+  "forumDetailBlocked": "Yazar engellendi",
+  "forumDetailNotificationsOffDone": "Bu konunun bildirimleri kapatıldı",
+  "forumDetailNotificationsOnDone": "Bu konunun bildirimleri açıldı",
+  "forumDetailPinnedDone": "Konu sabitlendi",
+  "forumDetailUnpinnedDone": "Sabitleme kaldırıldı",
+  "forumDetailLockedDone": "Yorumlar kilitlendi",
+  "forumDetailUnlockedDone": "Yorumların kilidi açıldı",
+  "forumDetailImageIndex": "{i} / {n}",
+  "@forumDetailImageIndex": {
+    "placeholders": {
+      "i": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailImageSemantic": "Konu görseli {i} / {n}",
+  "@forumDetailImageSemantic": {
+    "placeholders": {
+      "i": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailChainRoot": "Yanıt zinciri",
+  "forumDetailFollowing": "Konu takip ediliyor",
+  "forumDetailUnfollowed": "Konu takibi bırakıldı",
+  "forumDetailSaved": "Konu kaydedildi",
+  "forumDetailUnsaved": "Kaydedilenlerden çıkarıldı",
   "coreErrRetryAfterSec": "{n} sn sonra tekrar deneyin.",
   "@coreErrRetryAfterSec": {
     "placeholders": {

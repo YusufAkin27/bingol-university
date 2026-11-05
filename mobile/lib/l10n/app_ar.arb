@@ -2228,6 +2228,211 @@
   "errMailQuota": "لا يمكننا إرسال رموز التحقق حاليًا. يرجى المحاولة لاحقًا.",
   "errServiceBusy": "النظام مشغول حاليًا. يرجى المحاولة مرة أخرى بعد بضع ثوانٍ.",
   "errLegalReaccept": "تم تحديث الاتفاقيات. يجب عليك الموافقة على الاتفاقيات المحدّثة للمتابعة.",
+  "forumCommentLikeSemantic": "إعجاب، {n}",
+  "@forumCommentLikeSemantic": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentUnlikeSemantic": "إلغاء الإعجاب، {n}",
+  "@forumCommentUnlikeSemantic": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentReadMore": "اقرأ المزيد",
+  "forumCommentReadLess": "عرض أقل",
+  "forumDetailDeletedAccount": "حساب محذوف",
+  "forumCommentDeletedPlaceholder": "تم حذف هذا التعليق",
+  "forumCommentAuthorBadge": "الكاتب",
+  "forumCommentEdited": "تم التعديل",
+  "forumCommentReply": "رد",
+  "forumCommentMore": "المزيد",
+  "forumCommentLockedHint": "هذا الموضوع مقفل ولا يمكن التعليق عليه.",
+  "forumCommentEditingBanner": "تعدّل تعليقك",
+  "forumCommentReplyingTo": "ترد على {name}",
+  "@forumCommentReplyingTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentCancelTarget": "إلغاء الرد أو التعديل",
+  "forumCommentHint": "اكتب تعليقًا…",
+  "forumCommentHintReply": "اكتب ردك…",
+  "forumCommentAnonLabel": "التعليق بشكل مجهول",
+  "forumCommentCounter": "{n} / {max}",
+  "@forumCommentCounter": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentSend": "إرسال",
+  "forumCommentSaveEdit": "حفظ",
+  "forumCommentShowReplies": "عرض {n} ردًا",
+  "@forumCommentShowReplies": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentHideReplies": "إخفاء الردود",
+  "forumCommentMoreReplies": "{n} ردود أخرى",
+  "@forumCommentMoreReplies": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentMoreRepliesGeneric": "المزيد من الردود",
+  "forumCommentOpenChain": "فتح سلسلة الردود ({n})",
+  "@forumCommentOpenChain": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentRepliesFailed": "تعذّر تحميل الردود.",
+  "forumCommentActionEdit": "تعديل",
+  "forumCommentActionDelete": "حذف",
+  "forumCommentActionCopy": "نسخ النص",
+  "forumCommentActionShare": "مشاركة الرابط",
+  "forumCommentActionLike": "إعجاب",
+  "forumCommentActionUnlike": "إلغاء الإعجاب",
+  "forumCommentActionSave": "حفظ",
+  "forumCommentActionUnsave": "إزالة من المحفوظات",
+  "forumCommentActionReport": "إبلاغ",
+  "forumCommentActionBlock": "حظر المستخدم",
+  "forumCommentCopied": "تم نسخ النص",
+  "forumCommentDeleted": "تم حذف التعليق",
+  "forumCommentDeleteTitle": "حذف هذا التعليق؟",
+  "forumCommentDeleteBody": "لا يمكن التراجع عن هذا الإجراء.",
+  "forumCommentDeleteConfirm": "حذف",
+  "forumCommentBlockTitle": "حظر هذا المستخدم؟",
+  "forumCommentBlockBody": "لن ترى محتوى هذا الشخص بعد الآن. لا تُكشف هوية الكاتب المجهول أبدًا.",
+  "forumCommentBlockConfirm": "حظر",
+  "forumCommentBlocked": "تم حظر المستخدم",
+  "forumCommentSaved": "تم الحفظ",
+  "forumCommentUnsaved": "تمت الإزالة من المحفوظات",
+  "forumCommentGone": "هذا التعليق لم يعد موجودًا. تم تحديث القائمة.",
+  "forumCommentConflict": "تم تغيير التعليق في مكان آخر. تم تحديث القائمة.",
+  "forumCommentSent": "تم نشر تعليقك",
+  "forumCommentReplySent": "تم نشر ردك",
+  "forumCommentEditDone": "تم تحديث التعليق",
+  "forumCommentLinkNotFound": "تعذّر العثور على التعليق في الرابط",
+  "forumDetailSortBest": "الأفضل",
+  "forumDetailSortNewest": "الأحدث",
+  "forumDetailSortOldest": "الأقدم",
+  "forumDetailCommentsHeader": "التعليقات ({n})",
+  "@forumDetailCommentsHeader": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailNoComments": "لا توجد تعليقات بعد",
+  "forumDetailNoCommentsBody": "كن أول من يعلّق.",
+  "forumDetailCommentsError": "تعذّر تحميل التعليقات",
+  "forumDetailSlow": "الاتصال بطيء، يرجى الانتظار قليلًا…",
+  "forumDetailSemanticTitle": "الموضوع",
+  "forumDetailNotFoundTitle": "هذا الموضوع لم يعد موجودًا",
+  "forumDetailNotFoundBody": "ربما تم حذفه أو إزالته.",
+  "forumDetailRemovedTitle": "تمت إزالة هذا الموضوع",
+  "forumDetailRemovedBody": "تمت إزالته وفقًا لقواعد المجتمع.",
+  "forumDetailLockedBanner": "هذا الموضوع مقفل. لا يمكن إضافة تعليقات جديدة.",
+  "forumDetailPinned": "مثبّت",
+  "forumDetailEdited": "تم التعديل",
+  "forumDetailLikeAction": "إعجاب",
+  "forumDetailUnlikeAction": "إلغاء الإعجاب",
+  "forumDetailSaveAction": "حفظ",
+  "forumDetailUnsaveAction": "إزالة من المحفوظات",
+  "forumDetailFollowAction": "متابعة",
+  "forumDetailUnfollowAction": "إلغاء المتابعة",
+  "forumDetailShareAction": "مشاركة",
+  "forumDetailCommentsAction": "الانتقال إلى التعليقات",
+  "forumDetailCommentCount": "{n} تعليقات",
+  "@forumDetailCommentCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailLikeCount": "{n} إعجاب",
+  "@forumDetailLikeCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailMenu": "خيارات الموضوع",
+  "forumDetailMenuEdit": "تعديل الموضوع",
+  "forumDetailMenuDelete": "حذف الموضوع",
+  "forumDetailMenuNotificationsOff": "إيقاف الإشعارات",
+  "forumDetailMenuNotificationsOn": "تشغيل الإشعارات",
+  "forumDetailMenuShare": "مشاركة الرابط",
+  "forumDetailMenuPin": "تثبيت الموضوع",
+  "forumDetailMenuUnpin": "إلغاء تثبيت الموضوع",
+  "forumDetailMenuLock": "قفل التعليقات",
+  "forumDetailMenuUnlock": "فتح التعليقات",
+  "forumDetailMenuReport": "إبلاغ",
+  "forumDetailMenuBlock": "حظر الكاتب",
+  "forumDetailDeleteTitle": "حذف هذا الموضوع؟",
+  "forumDetailDeleteBody": "ستتم إزالة الموضوع وتعليقاته. لا يمكن التراجع عن هذا الإجراء.",
+  "forumDetailDeleteConfirm": "حذف",
+  "forumDetailDeleted": "تم حذف الموضوع",
+  "forumDetailBlockTitle": "حظر هذا الكاتب؟",
+  "forumDetailBlockBody": "لن ترى محتوى هذا الكاتب بعد الآن. إن كان مجهولًا فلن تُكشف هويته.",
+  "forumDetailBlockConfirm": "حظر",
+  "forumDetailBlocked": "تم حظر الكاتب",
+  "forumDetailNotificationsOffDone": "تم إيقاف إشعارات هذا الموضوع",
+  "forumDetailNotificationsOnDone": "تم تشغيل إشعارات هذا الموضوع",
+  "forumDetailPinnedDone": "تم تثبيت الموضوع",
+  "forumDetailUnpinnedDone": "تم إلغاء التثبيت",
+  "forumDetailLockedDone": "تم قفل التعليقات",
+  "forumDetailUnlockedDone": "تم فتح التعليقات",
+  "forumDetailImageIndex": "{i} / {n}",
+  "@forumDetailImageIndex": {
+    "placeholders": {
+      "i": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailImageSemantic": "صورة الموضوع {i} من {n}",
+  "@forumDetailImageSemantic": {
+    "placeholders": {
+      "i": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailChainRoot": "سلسلة الردود",
+  "forumDetailFollowing": "تتم متابعة الموضوع",
+  "forumDetailUnfollowed": "تم إلغاء متابعة الموضوع",
+  "forumDetailSaved": "تم حفظ الموضوع",
+  "forumDetailUnsaved": "تمت الإزالة من المحفوظات",
   "coreErrRetryAfterSec": "حاول مرة أخرى بعد {n} ث.",
   "coreErrRetryAfterMin": "حاول مرة أخرى بعد {n} د.",
   "clubPostTextRequired": "أضف نصًا لمشاركته مع الصورة.",

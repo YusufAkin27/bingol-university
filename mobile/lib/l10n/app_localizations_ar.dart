@@ -7264,6 +7264,373 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم تحديث الاتفاقيات. يجب عليك الموافقة على الاتفاقيات المحدّثة للمتابعة.';
 
   @override
+  String forumCommentLikeSemantic(String n) {
+    return 'إعجاب، $n';
+  }
+
+  @override
+  String forumCommentUnlikeSemantic(String n) {
+    return 'إلغاء الإعجاب، $n';
+  }
+
+  @override
+  String get forumCommentReadMore => 'اقرأ المزيد';
+
+  @override
+  String get forumCommentReadLess => 'عرض أقل';
+
+  @override
+  String get forumDetailDeletedAccount => 'حساب محذوف';
+
+  @override
+  String get forumCommentDeletedPlaceholder => 'تم حذف هذا التعليق';
+
+  @override
+  String get forumCommentAuthorBadge => 'الكاتب';
+
+  @override
+  String get forumCommentEdited => 'تم التعديل';
+
+  @override
+  String get forumCommentReply => 'رد';
+
+  @override
+  String get forumCommentMore => 'المزيد';
+
+  @override
+  String get forumCommentLockedHint =>
+      'هذا الموضوع مقفل ولا يمكن التعليق عليه.';
+
+  @override
+  String get forumCommentEditingBanner => 'تعدّل تعليقك';
+
+  @override
+  String forumCommentReplyingTo(String name) {
+    return 'ترد على $name';
+  }
+
+  @override
+  String get forumCommentCancelTarget => 'إلغاء الرد أو التعديل';
+
+  @override
+  String get forumCommentHint => 'اكتب تعليقًا…';
+
+  @override
+  String get forumCommentHintReply => 'اكتب ردك…';
+
+  @override
+  String get forumCommentAnonLabel => 'التعليق بشكل مجهول';
+
+  @override
+  String forumCommentCounter(String n, String max) {
+    return '$n / $max';
+  }
+
+  @override
+  String get forumCommentSend => 'إرسال';
+
+  @override
+  String get forumCommentSaveEdit => 'حفظ';
+
+  @override
+  String forumCommentShowReplies(String n) {
+    return 'عرض $n ردًا';
+  }
+
+  @override
+  String get forumCommentHideReplies => 'إخفاء الردود';
+
+  @override
+  String forumCommentMoreReplies(String n) {
+    return '$n ردود أخرى';
+  }
+
+  @override
+  String get forumCommentMoreRepliesGeneric => 'المزيد من الردود';
+
+  @override
+  String forumCommentOpenChain(String n) {
+    return 'فتح سلسلة الردود ($n)';
+  }
+
+  @override
+  String get forumCommentRepliesFailed => 'تعذّر تحميل الردود.';
+
+  @override
+  String get forumCommentActionEdit => 'تعديل';
+
+  @override
+  String get forumCommentActionDelete => 'حذف';
+
+  @override
+  String get forumCommentActionCopy => 'نسخ النص';
+
+  @override
+  String get forumCommentActionShare => 'مشاركة الرابط';
+
+  @override
+  String get forumCommentActionLike => 'إعجاب';
+
+  @override
+  String get forumCommentActionUnlike => 'إلغاء الإعجاب';
+
+  @override
+  String get forumCommentActionSave => 'حفظ';
+
+  @override
+  String get forumCommentActionUnsave => 'إزالة من المحفوظات';
+
+  @override
+  String get forumCommentActionReport => 'إبلاغ';
+
+  @override
+  String get forumCommentActionBlock => 'حظر المستخدم';
+
+  @override
+  String get forumCommentCopied => 'تم نسخ النص';
+
+  @override
+  String get forumCommentDeleted => 'تم حذف التعليق';
+
+  @override
+  String get forumCommentDeleteTitle => 'حذف هذا التعليق؟';
+
+  @override
+  String get forumCommentDeleteBody => 'لا يمكن التراجع عن هذا الإجراء.';
+
+  @override
+  String get forumCommentDeleteConfirm => 'حذف';
+
+  @override
+  String get forumCommentBlockTitle => 'حظر هذا المستخدم؟';
+
+  @override
+  String get forumCommentBlockBody =>
+      'لن ترى محتوى هذا الشخص بعد الآن. لا تُكشف هوية الكاتب المجهول أبدًا.';
+
+  @override
+  String get forumCommentBlockConfirm => 'حظر';
+
+  @override
+  String get forumCommentBlocked => 'تم حظر المستخدم';
+
+  @override
+  String get forumCommentSaved => 'تم الحفظ';
+
+  @override
+  String get forumCommentUnsaved => 'تمت الإزالة من المحفوظات';
+
+  @override
+  String get forumCommentGone =>
+      'هذا التعليق لم يعد موجودًا. تم تحديث القائمة.';
+
+  @override
+  String get forumCommentConflict =>
+      'تم تغيير التعليق في مكان آخر. تم تحديث القائمة.';
+
+  @override
+  String get forumCommentSent => 'تم نشر تعليقك';
+
+  @override
+  String get forumCommentReplySent => 'تم نشر ردك';
+
+  @override
+  String get forumCommentEditDone => 'تم تحديث التعليق';
+
+  @override
+  String get forumCommentLinkNotFound => 'تعذّر العثور على التعليق في الرابط';
+
+  @override
+  String get forumDetailSortBest => 'الأفضل';
+
+  @override
+  String get forumDetailSortNewest => 'الأحدث';
+
+  @override
+  String get forumDetailSortOldest => 'الأقدم';
+
+  @override
+  String forumDetailCommentsHeader(String n) {
+    return 'التعليقات ($n)';
+  }
+
+  @override
+  String get forumDetailNoComments => 'لا توجد تعليقات بعد';
+
+  @override
+  String get forumDetailNoCommentsBody => 'كن أول من يعلّق.';
+
+  @override
+  String get forumDetailCommentsError => 'تعذّر تحميل التعليقات';
+
+  @override
+  String get forumDetailSlow => 'الاتصال بطيء، يرجى الانتظار قليلًا…';
+
+  @override
+  String get forumDetailSemanticTitle => 'الموضوع';
+
+  @override
+  String get forumDetailNotFoundTitle => 'هذا الموضوع لم يعد موجودًا';
+
+  @override
+  String get forumDetailNotFoundBody => 'ربما تم حذفه أو إزالته.';
+
+  @override
+  String get forumDetailRemovedTitle => 'تمت إزالة هذا الموضوع';
+
+  @override
+  String get forumDetailRemovedBody => 'تمت إزالته وفقًا لقواعد المجتمع.';
+
+  @override
+  String get forumDetailLockedBanner =>
+      'هذا الموضوع مقفل. لا يمكن إضافة تعليقات جديدة.';
+
+  @override
+  String get forumDetailPinned => 'مثبّت';
+
+  @override
+  String get forumDetailEdited => 'تم التعديل';
+
+  @override
+  String get forumDetailLikeAction => 'إعجاب';
+
+  @override
+  String get forumDetailUnlikeAction => 'إلغاء الإعجاب';
+
+  @override
+  String get forumDetailSaveAction => 'حفظ';
+
+  @override
+  String get forumDetailUnsaveAction => 'إزالة من المحفوظات';
+
+  @override
+  String get forumDetailFollowAction => 'متابعة';
+
+  @override
+  String get forumDetailUnfollowAction => 'إلغاء المتابعة';
+
+  @override
+  String get forumDetailShareAction => 'مشاركة';
+
+  @override
+  String get forumDetailCommentsAction => 'الانتقال إلى التعليقات';
+
+  @override
+  String forumDetailCommentCount(String n) {
+    return '$n تعليقات';
+  }
+
+  @override
+  String forumDetailLikeCount(String n) {
+    return '$n إعجاب';
+  }
+
+  @override
+  String get forumDetailMenu => 'خيارات الموضوع';
+
+  @override
+  String get forumDetailMenuEdit => 'تعديل الموضوع';
+
+  @override
+  String get forumDetailMenuDelete => 'حذف الموضوع';
+
+  @override
+  String get forumDetailMenuNotificationsOff => 'إيقاف الإشعارات';
+
+  @override
+  String get forumDetailMenuNotificationsOn => 'تشغيل الإشعارات';
+
+  @override
+  String get forumDetailMenuShare => 'مشاركة الرابط';
+
+  @override
+  String get forumDetailMenuPin => 'تثبيت الموضوع';
+
+  @override
+  String get forumDetailMenuUnpin => 'إلغاء تثبيت الموضوع';
+
+  @override
+  String get forumDetailMenuLock => 'قفل التعليقات';
+
+  @override
+  String get forumDetailMenuUnlock => 'فتح التعليقات';
+
+  @override
+  String get forumDetailMenuReport => 'إبلاغ';
+
+  @override
+  String get forumDetailMenuBlock => 'حظر الكاتب';
+
+  @override
+  String get forumDetailDeleteTitle => 'حذف هذا الموضوع؟';
+
+  @override
+  String get forumDetailDeleteBody =>
+      'ستتم إزالة الموضوع وتعليقاته. لا يمكن التراجع عن هذا الإجراء.';
+
+  @override
+  String get forumDetailDeleteConfirm => 'حذف';
+
+  @override
+  String get forumDetailDeleted => 'تم حذف الموضوع';
+
+  @override
+  String get forumDetailBlockTitle => 'حظر هذا الكاتب؟';
+
+  @override
+  String get forumDetailBlockBody =>
+      'لن ترى محتوى هذا الكاتب بعد الآن. إن كان مجهولًا فلن تُكشف هويته.';
+
+  @override
+  String get forumDetailBlockConfirm => 'حظر';
+
+  @override
+  String get forumDetailBlocked => 'تم حظر الكاتب';
+
+  @override
+  String get forumDetailNotificationsOffDone => 'تم إيقاف إشعارات هذا الموضوع';
+
+  @override
+  String get forumDetailNotificationsOnDone => 'تم تشغيل إشعارات هذا الموضوع';
+
+  @override
+  String get forumDetailPinnedDone => 'تم تثبيت الموضوع';
+
+  @override
+  String get forumDetailUnpinnedDone => 'تم إلغاء التثبيت';
+
+  @override
+  String get forumDetailLockedDone => 'تم قفل التعليقات';
+
+  @override
+  String get forumDetailUnlockedDone => 'تم فتح التعليقات';
+
+  @override
+  String forumDetailImageIndex(String i, String n) {
+    return '$i / $n';
+  }
+
+  @override
+  String forumDetailImageSemantic(String i, String n) {
+    return 'صورة الموضوع $i من $n';
+  }
+
+  @override
+  String get forumDetailChainRoot => 'سلسلة الردود';
+
+  @override
+  String get forumDetailFollowing => 'تتم متابعة الموضوع';
+
+  @override
+  String get forumDetailUnfollowed => 'تم إلغاء متابعة الموضوع';
+
+  @override
+  String get forumDetailSaved => 'تم حفظ الموضوع';
+
+  @override
+  String get forumDetailUnsaved => 'تمت الإزالة من المحفوظات';
+
+  @override
   String coreErrRetryAfterSec(String n) {
     return 'حاول مرة أخرى بعد $n ث.';
   }

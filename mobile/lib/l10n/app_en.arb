@@ -2228,6 +2228,211 @@
   "errMailQuota": "We cannot send verification codes right now. Please try again later.",
   "errServiceBusy": "The system is busy right now. Please try again in a few seconds.",
   "errLegalReaccept": "The agreements have been updated. You need to accept the updated agreements to continue.",
+  "forumCommentLikeSemantic": "Like, {n} likes",
+  "@forumCommentLikeSemantic": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentUnlikeSemantic": "Unlike, {n} likes",
+  "@forumCommentUnlikeSemantic": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentReadMore": "Read more",
+  "forumCommentReadLess": "Show less",
+  "forumDetailDeletedAccount": "Deleted account",
+  "forumCommentDeletedPlaceholder": "This comment was deleted",
+  "forumCommentAuthorBadge": "Author",
+  "forumCommentEdited": "Edited",
+  "forumCommentReply": "Reply",
+  "forumCommentMore": "More actions",
+  "forumCommentLockedHint": "This topic is locked. Comments are closed.",
+  "forumCommentEditingBanner": "Editing your comment",
+  "forumCommentReplyingTo": "Replying to {name}",
+  "@forumCommentReplyingTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentCancelTarget": "Cancel reply or edit",
+  "forumCommentHint": "Write a comment…",
+  "forumCommentHintReply": "Write your reply…",
+  "forumCommentAnonLabel": "Comment anonymously",
+  "forumCommentCounter": "{n} / {max}",
+  "@forumCommentCounter": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentSend": "Send",
+  "forumCommentSaveEdit": "Save",
+  "forumCommentShowReplies": "Show {n} replies",
+  "@forumCommentShowReplies": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentHideReplies": "Hide replies",
+  "forumCommentMoreReplies": "{n} more replies",
+  "@forumCommentMoreReplies": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentMoreRepliesGeneric": "More replies",
+  "forumCommentOpenChain": "Open reply chain ({n})",
+  "@forumCommentOpenChain": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCommentRepliesFailed": "Could not load replies.",
+  "forumCommentActionEdit": "Edit",
+  "forumCommentActionDelete": "Delete",
+  "forumCommentActionCopy": "Copy text",
+  "forumCommentActionShare": "Share link",
+  "forumCommentActionLike": "Like",
+  "forumCommentActionUnlike": "Unlike",
+  "forumCommentActionSave": "Save",
+  "forumCommentActionUnsave": "Remove from saved",
+  "forumCommentActionReport": "Report",
+  "forumCommentActionBlock": "Block user",
+  "forumCommentCopied": "Text copied",
+  "forumCommentDeleted": "Comment deleted",
+  "forumCommentDeleteTitle": "Delete this comment?",
+  "forumCommentDeleteBody": "This cannot be undone.",
+  "forumCommentDeleteConfirm": "Delete",
+  "forumCommentBlockTitle": "Block this user?",
+  "forumCommentBlockBody": "You will no longer see this person's content. An anonymous author's identity is never revealed.",
+  "forumCommentBlockConfirm": "Block",
+  "forumCommentBlocked": "User blocked",
+  "forumCommentSaved": "Saved",
+  "forumCommentUnsaved": "Removed from saved",
+  "forumCommentGone": "This comment no longer exists. The list was refreshed.",
+  "forumCommentConflict": "The comment was changed elsewhere. The list was refreshed.",
+  "forumCommentSent": "Comment posted",
+  "forumCommentReplySent": "Reply posted",
+  "forumCommentEditDone": "Comment updated",
+  "forumCommentLinkNotFound": "The linked comment could not be found",
+  "forumDetailSortBest": "Best",
+  "forumDetailSortNewest": "Newest",
+  "forumDetailSortOldest": "Oldest",
+  "forumDetailCommentsHeader": "Comments ({n})",
+  "@forumDetailCommentsHeader": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailNoComments": "No comments yet",
+  "forumDetailNoCommentsBody": "Be the first to comment.",
+  "forumDetailCommentsError": "Could not load comments",
+  "forumDetailSlow": "Slow connection, please wait a bit…",
+  "forumDetailSemanticTitle": "Topic",
+  "forumDetailNotFoundTitle": "This topic no longer exists",
+  "forumDetailNotFoundBody": "It may have been deleted or removed.",
+  "forumDetailRemovedTitle": "This topic was removed",
+  "forumDetailRemovedBody": "It was removed under the community rules.",
+  "forumDetailLockedBanner": "This topic is locked. New comments are closed.",
+  "forumDetailPinned": "Pinned",
+  "forumDetailEdited": "Edited",
+  "forumDetailLikeAction": "Like",
+  "forumDetailUnlikeAction": "Unlike",
+  "forumDetailSaveAction": "Save",
+  "forumDetailUnsaveAction": "Remove from saved",
+  "forumDetailFollowAction": "Follow",
+  "forumDetailUnfollowAction": "Unfollow",
+  "forumDetailShareAction": "Share",
+  "forumDetailCommentsAction": "Go to comments",
+  "forumDetailCommentCount": "{n} comments",
+  "@forumDetailCommentCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailLikeCount": "{n} likes",
+  "@forumDetailLikeCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailMenu": "Topic options",
+  "forumDetailMenuEdit": "Edit topic",
+  "forumDetailMenuDelete": "Delete topic",
+  "forumDetailMenuNotificationsOff": "Turn off notifications",
+  "forumDetailMenuNotificationsOn": "Turn on notifications",
+  "forumDetailMenuShare": "Share link",
+  "forumDetailMenuPin": "Pin topic",
+  "forumDetailMenuUnpin": "Unpin topic",
+  "forumDetailMenuLock": "Lock comments",
+  "forumDetailMenuUnlock": "Unlock comments",
+  "forumDetailMenuReport": "Report",
+  "forumDetailMenuBlock": "Block author",
+  "forumDetailDeleteTitle": "Delete this topic?",
+  "forumDetailDeleteBody": "The topic and its comments will be removed. This cannot be undone.",
+  "forumDetailDeleteConfirm": "Delete",
+  "forumDetailDeleted": "Topic deleted",
+  "forumDetailBlockTitle": "Block this author?",
+  "forumDetailBlockBody": "You will no longer see this author's content. If anonymous, the identity is never revealed.",
+  "forumDetailBlockConfirm": "Block",
+  "forumDetailBlocked": "Author blocked",
+  "forumDetailNotificationsOffDone": "Notifications for this topic are off",
+  "forumDetailNotificationsOnDone": "Notifications for this topic are on",
+  "forumDetailPinnedDone": "Topic pinned",
+  "forumDetailUnpinnedDone": "Topic unpinned",
+  "forumDetailLockedDone": "Comments locked",
+  "forumDetailUnlockedDone": "Comments unlocked",
+  "forumDetailImageIndex": "{i} / {n}",
+  "@forumDetailImageIndex": {
+    "placeholders": {
+      "i": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailImageSemantic": "Topic image {i} of {n}",
+  "@forumDetailImageSemantic": {
+    "placeholders": {
+      "i": {
+        "type": "String"
+      },
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "forumDetailChainRoot": "Reply chain",
+  "forumDetailFollowing": "Following this topic",
+  "forumDetailUnfollowed": "Unfollowed this topic",
+  "forumDetailSaved": "Topic saved",
+  "forumDetailUnsaved": "Removed from saved",
   "coreErrRetryAfterSec": "Try again in {n} s.",
   "coreErrRetryAfterMin": "Try again in {n} min.",
   "clubPostTextRequired": "Add some text to share with the image.",

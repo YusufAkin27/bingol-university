@@ -13470,6 +13470,678 @@ abstract class AppLocalizations {
   /// **'Sözleşmeler güncellendi. Devam etmek için güncel sözleşmeleri onaylamanız gerekiyor.'**
   String get errLegalReaccept;
 
+  /// No description provided for @forumCommentLikeSemantic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğen, {n} beğeni'**
+  String forumCommentLikeSemantic(String n);
+
+  /// No description provided for @forumCommentUnlikeSemantic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğenmekten vazgeç, {n} beğeni'**
+  String forumCommentUnlikeSemantic(String n);
+
+  /// No description provided for @forumCommentReadMore.
+  ///
+  /// In tr, this message translates to:
+  /// **'Devamını oku'**
+  String get forumCommentReadMore;
+
+  /// No description provided for @forumCommentReadLess.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daha az göster'**
+  String get forumCommentReadLess;
+
+  /// No description provided for @forumDetailDeletedAccount.
+  ///
+  /// In tr, this message translates to:
+  /// **'Silinmiş hesap'**
+  String get forumDetailDeletedAccount;
+
+  /// No description provided for @forumCommentDeletedPlaceholder.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yorum silindi'**
+  String get forumCommentDeletedPlaceholder;
+
+  /// No description provided for @forumCommentAuthorBadge.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yazar'**
+  String get forumCommentAuthorBadge;
+
+  /// No description provided for @forumCommentEdited.
+  ///
+  /// In tr, this message translates to:
+  /// **'Düzenlendi'**
+  String get forumCommentEdited;
+
+  /// No description provided for @forumCommentReply.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanıtla'**
+  String get forumCommentReply;
+
+  /// No description provided for @forumCommentMore.
+  ///
+  /// In tr, this message translates to:
+  /// **'Diğer işlemler'**
+  String get forumCommentMore;
+
+  /// No description provided for @forumCommentLockedHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu konu kilitli, yorum yazılamaz.'**
+  String get forumCommentLockedHint;
+
+  /// No description provided for @forumCommentEditingBanner.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumunu düzenliyorsun'**
+  String get forumCommentEditingBanner;
+
+  /// No description provided for @forumCommentReplyingTo.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} kişisine yanıt veriyorsun'**
+  String forumCommentReplyingTo(String name);
+
+  /// No description provided for @forumCommentCancelTarget.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanıtı veya düzenlemeyi iptal et'**
+  String get forumCommentCancelTarget;
+
+  /// No description provided for @forumCommentHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorum yaz…'**
+  String get forumCommentHint;
+
+  /// No description provided for @forumCommentHintReply.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanıtını yaz…'**
+  String get forumCommentHintReply;
+
+  /// No description provided for @forumCommentAnonLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anonim yaz'**
+  String get forumCommentAnonLabel;
+
+  /// No description provided for @forumCommentCounter.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} / {max}'**
+  String forumCommentCounter(String n, String max);
+
+  /// No description provided for @forumCommentSend.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönder'**
+  String get forumCommentSend;
+
+  /// No description provided for @forumCommentSaveEdit.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydet'**
+  String get forumCommentSaveEdit;
+
+  /// No description provided for @forumCommentShowReplies.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} yanıtı göster'**
+  String forumCommentShowReplies(String n);
+
+  /// No description provided for @forumCommentHideReplies.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanıtları gizle'**
+  String get forumCommentHideReplies;
+
+  /// No description provided for @forumCommentMoreReplies.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} yanıt daha'**
+  String forumCommentMoreReplies(String n);
+
+  /// No description provided for @forumCommentMoreRepliesGeneric.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daha fazla yanıt'**
+  String get forumCommentMoreRepliesGeneric;
+
+  /// No description provided for @forumCommentOpenChain.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanıt zincirini aç ({n})'**
+  String forumCommentOpenChain(String n);
+
+  /// No description provided for @forumCommentRepliesFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanıtlar yüklenemedi.'**
+  String get forumCommentRepliesFailed;
+
+  /// No description provided for @forumCommentActionEdit.
+  ///
+  /// In tr, this message translates to:
+  /// **'Düzenle'**
+  String get forumCommentActionEdit;
+
+  /// No description provided for @forumCommentActionDelete.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sil'**
+  String get forumCommentActionDelete;
+
+  /// No description provided for @forumCommentActionCopy.
+  ///
+  /// In tr, this message translates to:
+  /// **'Metni kopyala'**
+  String get forumCommentActionCopy;
+
+  /// No description provided for @forumCommentActionShare.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlantıyı paylaş'**
+  String get forumCommentActionShare;
+
+  /// No description provided for @forumCommentActionLike.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğen'**
+  String get forumCommentActionLike;
+
+  /// No description provided for @forumCommentActionUnlike.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğenmekten vazgeç'**
+  String get forumCommentActionUnlike;
+
+  /// No description provided for @forumCommentActionSave.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydet'**
+  String get forumCommentActionSave;
+
+  /// No description provided for @forumCommentActionUnsave.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydedilenlerden çıkar'**
+  String get forumCommentActionUnsave;
+
+  /// No description provided for @forumCommentActionReport.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şikâyet et'**
+  String get forumCommentActionReport;
+
+  /// No description provided for @forumCommentActionBlock.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanıcıyı engelle'**
+  String get forumCommentActionBlock;
+
+  /// No description provided for @forumCommentCopied.
+  ///
+  /// In tr, this message translates to:
+  /// **'Metin kopyalandı'**
+  String get forumCommentCopied;
+
+  /// No description provided for @forumCommentDeleted.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorum silindi'**
+  String get forumCommentDeleted;
+
+  /// No description provided for @forumCommentDeleteTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorum silinsin mi?'**
+  String get forumCommentDeleteTitle;
+
+  /// No description provided for @forumCommentDeleteBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu işlem geri alınamaz.'**
+  String get forumCommentDeleteBody;
+
+  /// No description provided for @forumCommentDeleteConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sil'**
+  String get forumCommentDeleteConfirm;
+
+  /// No description provided for @forumCommentBlockTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu kullanıcı engellensin mi?'**
+  String get forumCommentBlockTitle;
+
+  /// No description provided for @forumCommentBlockBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Engellediğin kişinin içeriklerini artık görmezsin. Anonim yazarlarda kimlik açığa çıkmaz.'**
+  String get forumCommentBlockBody;
+
+  /// No description provided for @forumCommentBlockConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'Engelle'**
+  String get forumCommentBlockConfirm;
+
+  /// No description provided for @forumCommentBlocked.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanıcı engellendi'**
+  String get forumCommentBlocked;
+
+  /// No description provided for @forumCommentSaved.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydedildi'**
+  String get forumCommentSaved;
+
+  /// No description provided for @forumCommentUnsaved.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydedilenlerden çıkarıldı'**
+  String get forumCommentUnsaved;
+
+  /// No description provided for @forumCommentGone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yorum artık yok. Liste yenilendi.'**
+  String get forumCommentGone;
+
+  /// No description provided for @forumCommentConflict.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorum başka bir yerde değişti. Liste yenilendi.'**
+  String get forumCommentConflict;
+
+  /// No description provided for @forumCommentSent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumun gönderildi'**
+  String get forumCommentSent;
+
+  /// No description provided for @forumCommentReplySent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanıtın gönderildi'**
+  String get forumCommentReplySent;
+
+  /// No description provided for @forumCommentEditDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorum güncellendi'**
+  String get forumCommentEditDone;
+
+  /// No description provided for @forumCommentLinkNotFound.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlantıdaki yorum bulunamadı'**
+  String get forumCommentLinkNotFound;
+
+  /// No description provided for @forumDetailSortBest.
+  ///
+  /// In tr, this message translates to:
+  /// **'En iyi'**
+  String get forumDetailSortBest;
+
+  /// No description provided for @forumDetailSortNewest.
+  ///
+  /// In tr, this message translates to:
+  /// **'En yeni'**
+  String get forumDetailSortNewest;
+
+  /// No description provided for @forumDetailSortOldest.
+  ///
+  /// In tr, this message translates to:
+  /// **'En eski'**
+  String get forumDetailSortOldest;
+
+  /// No description provided for @forumDetailCommentsHeader.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumlar ({n})'**
+  String forumDetailCommentsHeader(String n);
+
+  /// No description provided for @forumDetailNoComments.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz yorum yok'**
+  String get forumDetailNoComments;
+
+  /// No description provided for @forumDetailNoCommentsBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'İlk yorumu sen yaz.'**
+  String get forumDetailNoCommentsBody;
+
+  /// No description provided for @forumDetailCommentsError.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumlar yüklenemedi'**
+  String get forumDetailCommentsError;
+
+  /// No description provided for @forumDetailSlow.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlantı yavaş, biraz daha bekleyin…'**
+  String get forumDetailSlow;
+
+  /// No description provided for @forumDetailSemanticTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu'**
+  String get forumDetailSemanticTitle;
+
+  /// No description provided for @forumDetailNotFoundTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu konu artık yok'**
+  String get forumDetailNotFoundTitle;
+
+  /// No description provided for @forumDetailNotFoundBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Silinmiş ya da yayından kaldırılmış olabilir.'**
+  String get forumDetailNotFoundBody;
+
+  /// No description provided for @forumDetailRemovedTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu konu kaldırıldı'**
+  String get forumDetailRemovedTitle;
+
+  /// No description provided for @forumDetailRemovedBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Topluluk kuralları gereği yayından kaldırıldı.'**
+  String get forumDetailRemovedBody;
+
+  /// No description provided for @forumDetailLockedBanner.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu konu kilitli. Yeni yorum yazılamaz.'**
+  String get forumDetailLockedBanner;
+
+  /// No description provided for @forumDetailPinned.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sabitlendi'**
+  String get forumDetailPinned;
+
+  /// No description provided for @forumDetailEdited.
+  ///
+  /// In tr, this message translates to:
+  /// **'Düzenlendi'**
+  String get forumDetailEdited;
+
+  /// No description provided for @forumDetailLikeAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğen'**
+  String get forumDetailLikeAction;
+
+  /// No description provided for @forumDetailUnlikeAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğenmekten vazgeç'**
+  String get forumDetailUnlikeAction;
+
+  /// No description provided for @forumDetailSaveAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydet'**
+  String get forumDetailSaveAction;
+
+  /// No description provided for @forumDetailUnsaveAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydedilenlerden çıkar'**
+  String get forumDetailUnsaveAction;
+
+  /// No description provided for @forumDetailFollowAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takip et'**
+  String get forumDetailFollowAction;
+
+  /// No description provided for @forumDetailUnfollowAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takibi bırak'**
+  String get forumDetailUnfollowAction;
+
+  /// No description provided for @forumDetailShareAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Paylaş'**
+  String get forumDetailShareAction;
+
+  /// No description provided for @forumDetailCommentsAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumlara git'**
+  String get forumDetailCommentsAction;
+
+  /// No description provided for @forumDetailCommentCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} yorum'**
+  String forumDetailCommentCount(String n);
+
+  /// No description provided for @forumDetailLikeCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} beğeni'**
+  String forumDetailLikeCount(String n);
+
+  /// No description provided for @forumDetailMenu.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu seçenekleri'**
+  String get forumDetailMenu;
+
+  /// No description provided for @forumDetailMenuEdit.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konuyu düzenle'**
+  String get forumDetailMenuEdit;
+
+  /// No description provided for @forumDetailMenuDelete.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konuyu sil'**
+  String get forumDetailMenuDelete;
+
+  /// No description provided for @forumDetailMenuNotificationsOff.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirimleri kapat'**
+  String get forumDetailMenuNotificationsOff;
+
+  /// No description provided for @forumDetailMenuNotificationsOn.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirimleri aç'**
+  String get forumDetailMenuNotificationsOn;
+
+  /// No description provided for @forumDetailMenuShare.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlantıyı paylaş'**
+  String get forumDetailMenuShare;
+
+  /// No description provided for @forumDetailMenuPin.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konuyu sabitle'**
+  String get forumDetailMenuPin;
+
+  /// No description provided for @forumDetailMenuUnpin.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sabitlemeyi kaldır'**
+  String get forumDetailMenuUnpin;
+
+  /// No description provided for @forumDetailMenuLock.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumları kilitle'**
+  String get forumDetailMenuLock;
+
+  /// No description provided for @forumDetailMenuUnlock.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kilidi aç'**
+  String get forumDetailMenuUnlock;
+
+  /// No description provided for @forumDetailMenuReport.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şikâyet et'**
+  String get forumDetailMenuReport;
+
+  /// No description provided for @forumDetailMenuBlock.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yazarı engelle'**
+  String get forumDetailMenuBlock;
+
+  /// No description provided for @forumDetailDeleteTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu silinsin mi?'**
+  String get forumDetailDeleteTitle;
+
+  /// No description provided for @forumDetailDeleteBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu ve altındaki yorumlar kaldırılır. Bu işlem geri alınamaz.'**
+  String get forumDetailDeleteBody;
+
+  /// No description provided for @forumDetailDeleteConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sil'**
+  String get forumDetailDeleteConfirm;
+
+  /// No description provided for @forumDetailDeleted.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu silindi'**
+  String get forumDetailDeleted;
+
+  /// No description provided for @forumDetailBlockTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yazar engellensin mi?'**
+  String get forumDetailBlockTitle;
+
+  /// No description provided for @forumDetailBlockBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yazarın içeriklerini artık görmezsin. Anonim ise kimliği açığa çıkmaz.'**
+  String get forumDetailBlockBody;
+
+  /// No description provided for @forumDetailBlockConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'Engelle'**
+  String get forumDetailBlockConfirm;
+
+  /// No description provided for @forumDetailBlocked.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yazar engellendi'**
+  String get forumDetailBlocked;
+
+  /// No description provided for @forumDetailNotificationsOffDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu konunun bildirimleri kapatıldı'**
+  String get forumDetailNotificationsOffDone;
+
+  /// No description provided for @forumDetailNotificationsOnDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu konunun bildirimleri açıldı'**
+  String get forumDetailNotificationsOnDone;
+
+  /// No description provided for @forumDetailPinnedDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu sabitlendi'**
+  String get forumDetailPinnedDone;
+
+  /// No description provided for @forumDetailUnpinnedDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sabitleme kaldırıldı'**
+  String get forumDetailUnpinnedDone;
+
+  /// No description provided for @forumDetailLockedDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumlar kilitlendi'**
+  String get forumDetailLockedDone;
+
+  /// No description provided for @forumDetailUnlockedDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumların kilidi açıldı'**
+  String get forumDetailUnlockedDone;
+
+  /// No description provided for @forumDetailImageIndex.
+  ///
+  /// In tr, this message translates to:
+  /// **'{i} / {n}'**
+  String forumDetailImageIndex(String i, String n);
+
+  /// No description provided for @forumDetailImageSemantic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu görseli {i} / {n}'**
+  String forumDetailImageSemantic(String i, String n);
+
+  /// No description provided for @forumDetailChainRoot.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanıt zinciri'**
+  String get forumDetailChainRoot;
+
+  /// No description provided for @forumDetailFollowing.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu takip ediliyor'**
+  String get forumDetailFollowing;
+
+  /// No description provided for @forumDetailUnfollowed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu takibi bırakıldı'**
+  String get forumDetailUnfollowed;
+
+  /// No description provided for @forumDetailSaved.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu kaydedildi'**
+  String get forumDetailSaved;
+
+  /// No description provided for @forumDetailUnsaved.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydedilenlerden çıkarıldı'**
+  String get forumDetailUnsaved;
+
   /// No description provided for @coreErrRetryAfterSec.
   ///
   /// In tr, this message translates to:

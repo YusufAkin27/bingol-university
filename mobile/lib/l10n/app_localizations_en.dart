@@ -7327,6 +7327,377 @@ class AppLocalizationsEn extends AppLocalizations {
       'The agreements have been updated. You need to accept the updated agreements to continue.';
 
   @override
+  String forumCommentLikeSemantic(String n) {
+    return 'Like, $n likes';
+  }
+
+  @override
+  String forumCommentUnlikeSemantic(String n) {
+    return 'Unlike, $n likes';
+  }
+
+  @override
+  String get forumCommentReadMore => 'Read more';
+
+  @override
+  String get forumCommentReadLess => 'Show less';
+
+  @override
+  String get forumDetailDeletedAccount => 'Deleted account';
+
+  @override
+  String get forumCommentDeletedPlaceholder => 'This comment was deleted';
+
+  @override
+  String get forumCommentAuthorBadge => 'Author';
+
+  @override
+  String get forumCommentEdited => 'Edited';
+
+  @override
+  String get forumCommentReply => 'Reply';
+
+  @override
+  String get forumCommentMore => 'More actions';
+
+  @override
+  String get forumCommentLockedHint =>
+      'This topic is locked. Comments are closed.';
+
+  @override
+  String get forumCommentEditingBanner => 'Editing your comment';
+
+  @override
+  String forumCommentReplyingTo(String name) {
+    return 'Replying to $name';
+  }
+
+  @override
+  String get forumCommentCancelTarget => 'Cancel reply or edit';
+
+  @override
+  String get forumCommentHint => 'Write a comment…';
+
+  @override
+  String get forumCommentHintReply => 'Write your reply…';
+
+  @override
+  String get forumCommentAnonLabel => 'Comment anonymously';
+
+  @override
+  String forumCommentCounter(String n, String max) {
+    return '$n / $max';
+  }
+
+  @override
+  String get forumCommentSend => 'Send';
+
+  @override
+  String get forumCommentSaveEdit => 'Save';
+
+  @override
+  String forumCommentShowReplies(String n) {
+    return 'Show $n replies';
+  }
+
+  @override
+  String get forumCommentHideReplies => 'Hide replies';
+
+  @override
+  String forumCommentMoreReplies(String n) {
+    return '$n more replies';
+  }
+
+  @override
+  String get forumCommentMoreRepliesGeneric => 'More replies';
+
+  @override
+  String forumCommentOpenChain(String n) {
+    return 'Open reply chain ($n)';
+  }
+
+  @override
+  String get forumCommentRepliesFailed => 'Could not load replies.';
+
+  @override
+  String get forumCommentActionEdit => 'Edit';
+
+  @override
+  String get forumCommentActionDelete => 'Delete';
+
+  @override
+  String get forumCommentActionCopy => 'Copy text';
+
+  @override
+  String get forumCommentActionShare => 'Share link';
+
+  @override
+  String get forumCommentActionLike => 'Like';
+
+  @override
+  String get forumCommentActionUnlike => 'Unlike';
+
+  @override
+  String get forumCommentActionSave => 'Save';
+
+  @override
+  String get forumCommentActionUnsave => 'Remove from saved';
+
+  @override
+  String get forumCommentActionReport => 'Report';
+
+  @override
+  String get forumCommentActionBlock => 'Block user';
+
+  @override
+  String get forumCommentCopied => 'Text copied';
+
+  @override
+  String get forumCommentDeleted => 'Comment deleted';
+
+  @override
+  String get forumCommentDeleteTitle => 'Delete this comment?';
+
+  @override
+  String get forumCommentDeleteBody => 'This cannot be undone.';
+
+  @override
+  String get forumCommentDeleteConfirm => 'Delete';
+
+  @override
+  String get forumCommentBlockTitle => 'Block this user?';
+
+  @override
+  String get forumCommentBlockBody =>
+      'You will no longer see this person\'s content. An anonymous author\'s identity is never revealed.';
+
+  @override
+  String get forumCommentBlockConfirm => 'Block';
+
+  @override
+  String get forumCommentBlocked => 'User blocked';
+
+  @override
+  String get forumCommentSaved => 'Saved';
+
+  @override
+  String get forumCommentUnsaved => 'Removed from saved';
+
+  @override
+  String get forumCommentGone =>
+      'This comment no longer exists. The list was refreshed.';
+
+  @override
+  String get forumCommentConflict =>
+      'The comment was changed elsewhere. The list was refreshed.';
+
+  @override
+  String get forumCommentSent => 'Comment posted';
+
+  @override
+  String get forumCommentReplySent => 'Reply posted';
+
+  @override
+  String get forumCommentEditDone => 'Comment updated';
+
+  @override
+  String get forumCommentLinkNotFound =>
+      'The linked comment could not be found';
+
+  @override
+  String get forumDetailSortBest => 'Best';
+
+  @override
+  String get forumDetailSortNewest => 'Newest';
+
+  @override
+  String get forumDetailSortOldest => 'Oldest';
+
+  @override
+  String forumDetailCommentsHeader(String n) {
+    return 'Comments ($n)';
+  }
+
+  @override
+  String get forumDetailNoComments => 'No comments yet';
+
+  @override
+  String get forumDetailNoCommentsBody => 'Be the first to comment.';
+
+  @override
+  String get forumDetailCommentsError => 'Could not load comments';
+
+  @override
+  String get forumDetailSlow => 'Slow connection, please wait a bit…';
+
+  @override
+  String get forumDetailSemanticTitle => 'Topic';
+
+  @override
+  String get forumDetailNotFoundTitle => 'This topic no longer exists';
+
+  @override
+  String get forumDetailNotFoundBody => 'It may have been deleted or removed.';
+
+  @override
+  String get forumDetailRemovedTitle => 'This topic was removed';
+
+  @override
+  String get forumDetailRemovedBody =>
+      'It was removed under the community rules.';
+
+  @override
+  String get forumDetailLockedBanner =>
+      'This topic is locked. New comments are closed.';
+
+  @override
+  String get forumDetailPinned => 'Pinned';
+
+  @override
+  String get forumDetailEdited => 'Edited';
+
+  @override
+  String get forumDetailLikeAction => 'Like';
+
+  @override
+  String get forumDetailUnlikeAction => 'Unlike';
+
+  @override
+  String get forumDetailSaveAction => 'Save';
+
+  @override
+  String get forumDetailUnsaveAction => 'Remove from saved';
+
+  @override
+  String get forumDetailFollowAction => 'Follow';
+
+  @override
+  String get forumDetailUnfollowAction => 'Unfollow';
+
+  @override
+  String get forumDetailShareAction => 'Share';
+
+  @override
+  String get forumDetailCommentsAction => 'Go to comments';
+
+  @override
+  String forumDetailCommentCount(String n) {
+    return '$n comments';
+  }
+
+  @override
+  String forumDetailLikeCount(String n) {
+    return '$n likes';
+  }
+
+  @override
+  String get forumDetailMenu => 'Topic options';
+
+  @override
+  String get forumDetailMenuEdit => 'Edit topic';
+
+  @override
+  String get forumDetailMenuDelete => 'Delete topic';
+
+  @override
+  String get forumDetailMenuNotificationsOff => 'Turn off notifications';
+
+  @override
+  String get forumDetailMenuNotificationsOn => 'Turn on notifications';
+
+  @override
+  String get forumDetailMenuShare => 'Share link';
+
+  @override
+  String get forumDetailMenuPin => 'Pin topic';
+
+  @override
+  String get forumDetailMenuUnpin => 'Unpin topic';
+
+  @override
+  String get forumDetailMenuLock => 'Lock comments';
+
+  @override
+  String get forumDetailMenuUnlock => 'Unlock comments';
+
+  @override
+  String get forumDetailMenuReport => 'Report';
+
+  @override
+  String get forumDetailMenuBlock => 'Block author';
+
+  @override
+  String get forumDetailDeleteTitle => 'Delete this topic?';
+
+  @override
+  String get forumDetailDeleteBody =>
+      'The topic and its comments will be removed. This cannot be undone.';
+
+  @override
+  String get forumDetailDeleteConfirm => 'Delete';
+
+  @override
+  String get forumDetailDeleted => 'Topic deleted';
+
+  @override
+  String get forumDetailBlockTitle => 'Block this author?';
+
+  @override
+  String get forumDetailBlockBody =>
+      'You will no longer see this author\'s content. If anonymous, the identity is never revealed.';
+
+  @override
+  String get forumDetailBlockConfirm => 'Block';
+
+  @override
+  String get forumDetailBlocked => 'Author blocked';
+
+  @override
+  String get forumDetailNotificationsOffDone =>
+      'Notifications for this topic are off';
+
+  @override
+  String get forumDetailNotificationsOnDone =>
+      'Notifications for this topic are on';
+
+  @override
+  String get forumDetailPinnedDone => 'Topic pinned';
+
+  @override
+  String get forumDetailUnpinnedDone => 'Topic unpinned';
+
+  @override
+  String get forumDetailLockedDone => 'Comments locked';
+
+  @override
+  String get forumDetailUnlockedDone => 'Comments unlocked';
+
+  @override
+  String forumDetailImageIndex(String i, String n) {
+    return '$i / $n';
+  }
+
+  @override
+  String forumDetailImageSemantic(String i, String n) {
+    return 'Topic image $i of $n';
+  }
+
+  @override
+  String get forumDetailChainRoot => 'Reply chain';
+
+  @override
+  String get forumDetailFollowing => 'Following this topic';
+
+  @override
+  String get forumDetailUnfollowed => 'Unfollowed this topic';
+
+  @override
+  String get forumDetailSaved => 'Topic saved';
+
+  @override
+  String get forumDetailUnsaved => 'Removed from saved';
+
+  @override
   String coreErrRetryAfterSec(String n) {
     return 'Try again in $n s.';
   }
