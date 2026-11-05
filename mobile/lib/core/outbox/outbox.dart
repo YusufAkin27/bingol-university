@@ -111,6 +111,7 @@ class OutboxItem {
     this.errorCode,
     this.media = const [],
     this.viewOnce = false,
+    this.share,
   });
 
   final String clientId;
@@ -122,6 +123,9 @@ class OutboxItem {
   /// Yerel diskteki ekler (boşsa salt metin mesajı).
   final List<OutboxMedia> media;
   final bool viewOnce;
+
+  /// Paylaşım kartı (`{type,id}`: gönderi/Reels/haber/etkinlik); varsa metin boş olabilir (yalnız kart).
+  final Map<String, dynamic>? share;
   OutboxStatus status;
 
   /// Tüm başarısız denemeler (geri çekilmeyi belirler).
@@ -145,6 +149,7 @@ class OutboxItem {
         if (errorCode != null) 'e': errorCode,
         if (media.isNotEmpty) 'md': [for (final m in media) m.toJson()],
         if (viewOnce) 'o': true,
+        if (share != null) 'sh': share,
       };
 
   static OutboxItem? fromJson(Object? j) {
@@ -170,7 +175,16 @@ class OutboxItem {
             if (OutboxMedia.fromJson(e) != null) OutboxMedia.fromJson(e)!,
       ],
       viewOnce: j['o'] == true,
+      share: validShare(j['sh']),
     );
+  }
+
+  /// `share` gövdesi yalnız `{type: METİN, id: pozitif tamsayı}` ise geçerlidir (kuyruktaki bozuk veri sızmasın).
+  static Map<String, dynamic>? validShare(Object? v) {
+    if (v is! Map) return null;
+    final type = v['type'], id = v['id'];
+    if (type is! String || type.isEmpty || type.length > 16 || id is! int || id <= 0) return null;
+    return {'type': type, 'id': id};
   }
 }
 
@@ -350,6 +364,7 @@ class Outbox extends ChangeNotifier {
           if (i.replyToMessageId != null) 'replyToMessageId': i.replyToMessageId,
           if (i.media.isNotEmpty) 'attachmentIds': [for (final m in i.media) m.attId],
           if (i.media.isNotEmpty && i.viewOnce) 'viewOnce': true,
+          if (i.share != null) 'share': i.share,
         });
   }
 
@@ -667,7 +682,11 @@ class Outbox extends ChangeNotifier {
     final m = _messagesPath.firstMatch(path);
     if (m == null || body is! Map) return false;
     final text = body['text'], cid = body['clientId'];
-    if (text is! String || text.trim().isEmpty || cid is! String || cid.isEmpty || cid.length > 64) return false;
+    final share = OutboxItem.validShare(body['share']);
+    // Paylaşım kartı mesajında not boş olabilir; kartsız mesajda metin zorunlu.
+    if (text is! String || (text.trim().isEmpty && share == null) || cid is! String || cid.isEmpty || cid.length > 64) {
+      return false;
+    }
     final att = body['attachmentIds'];
     if ((att is List && att.isNotEmpty) || body['viewOnce'] == true) return false; // medya: kuyruğa alınmaz
     final reply = body['replyToMessageId'];
@@ -676,10 +695,16 @@ class Outbox extends ChangeNotifier {
       clientId: cid,
       text: text,
       replyToMessageId: reply is int ? reply : null,
+      share: share,
     );
   }
 
-  bool enqueue({required int conversationId, required String clientId, required String text, int? replyToMessageId}) {
+  bool enqueue(
+      {required int conversationId,
+      required String clientId,
+      required String text,
+      int? replyToMessageId,
+      Map<String, dynamic>? share}) {
     if (text.runes.length > maxTextLength || contains(clientId)) return false;
     _items.add(OutboxItem(
       clientId: clientId,
@@ -687,6 +712,7 @@ class Outbox extends ChangeNotifier {
       text: text,
       createdAt: _now().millisecondsSinceEpoch,
       replyToMessageId: replyToMessageId,
+      share: share,
       nextAttemptAt: _now().millisecondsSinceEpoch + backoff(1).inMilliseconds,
     ));
     _prune();
