@@ -108,6 +108,8 @@ public class AccountDataPurger {
             Map.entry("post_save.user_id", "PostAccountPurger -> CommentAccountPurger"),
             Map.entry("post_watch.user_id", "PostAccountPurger (Reels izleme gecmisi, ReelsService.purge)"),
             Map.entry("user_popularity.user_id", "PostAccountPurger (populerlik puani satiri silinir; Redis feedseen anahtari da)"),
+            Map.entry("forum_comment.user_id", "ForumCommentAccountPurger (yorum govdesi [silindi], mezar tasi; sayaclar duzelir)"),
+            Map.entry("forum_comment_like.user_id", "ForumCommentAccountPurger (begeniler silinir, yorum sayaci duser)"),
             Map.entry("user_follow.follower_id", "SocialAccountPurger"),
             Map.entry("user_follow.followee_id", "SocialAccountPurger"),
             Map.entry("user_follow_stats.user_id", "SocialAccountPurger"),
@@ -228,6 +230,9 @@ public class AccountDataPurger {
     /** Kesfet gonderi/yorum/begeni/medya temizligi (post paketi); testlerde yoksa atlanir. */
     private PostAccountPurger postPurger;
 
+    /** Forum yorumlari temizligi (forum.comment); testlerde yoksa atlanir. */
+    private edu.bingol.backend.forum.comment.ForumCommentAccountPurger forumCommentPurger;
+
     /** Akademik (ders programi/sinav/duyuru okundu) temizligi; testlerde yoksa atlanir. */
     private edu.bingol.backend.academic.AcademicAccountPurger academicPurger;
 
@@ -241,6 +246,11 @@ public class AccountDataPurger {
     @Autowired(required = false)
     void setPostPurger(PostAccountPurger postPurger) {
         this.postPurger = postPurger;
+    }
+
+    @Autowired(required = false)
+    void setForumCommentPurger(edu.bingol.backend.forum.comment.ForumCommentAccountPurger forumCommentPurger) {
+        this.forumCommentPurger = forumCommentPurger;
     }
 
     @Autowired(required = false)
@@ -278,6 +288,9 @@ public class AccountDataPurger {
         }
         if (postPurger != null) {
             postPurger.purge(userId);
+        }
+        if (forumCommentPurger != null) {
+            forumCommentPurger.purge(userId);
         }
         DELETES.forEach(sql -> jdbc.update(sql, userId));
         SCRUBS.forEach(sql -> jdbc.update(sql, userId));
