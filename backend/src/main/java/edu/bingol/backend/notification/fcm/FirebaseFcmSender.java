@@ -160,9 +160,11 @@ public class FirebaseFcmSender implements FcmSender {
     }
 
     private static MulticastMessage toMulticast(List<String> tokens, PushMessage m) {
-        return MulticastMessage.builder()
-                .setNotification(Notification.builder().setTitle(m.title()).setBody(m.body()).build())
-                .putAllData(m.data())
+        var builder = MulticastMessage.builder();
+        if (!edu.bingol.backend.notification.RichPushPayload.isRich(m)) {
+            builder.setNotification(Notification.builder().setTitle(m.title()).setBody(m.body()).build());
+        }
+        return builder.putAllData(m.data())
                 .setAndroidConfig(android(m))
                 .setApnsConfig(apns(m))
                 .addAllTokens(tokens)
@@ -189,13 +191,21 @@ public class FirebaseFcmSender implements FcmSender {
         if (m.badge() != null && m.badge() >= 0) {
             n.setNotificationCount(m.badge()); // baslatici rozeti (destekleyen Android'lerde)
         }
+        // Standart (zengin olmayan) kartta buyuk resim: haber/menu/gonderi gorseli (sohbet gorseli kendi yolunda)
+        String image = m.data() == null ? null : edu.bingol.backend.notification.RichChatPayload.mediaUrl(null, m.data().get("imageUrl"));
+        if (image != null && !"MESSAGE".equals(m.data().get("type"))) {
+            n.setImage(image);
+        }
         if (m.highPriority()) {
             n.setPriority(AndroidNotification.Priority.HIGH); // kanal onceligi olmayan eski surumlerde baslik ustu bildirim
             n.setDefaultVibrateTimings(true);
         }
         AndroidConfig.Builder b = AndroidConfig.builder()
-                .setPriority(m.highPriority() ? AndroidConfig.Priority.HIGH : AndroidConfig.Priority.NORMAL)
-                .setNotification(n.build());
+                // Zengin (veri-only) mesaj HER ZAMAN yuksek oncelik: uygulama kapaliyken/Doze'da onMessageReceived'in
+                // calisip yerel karti cizebilmesi icin (normal oncelikli veri mesaji ertelenir)
+                .setPriority(m.highPriority() || edu.bingol.backend.notification.RichPushPayload.isRich(m)
+                        ? AndroidConfig.Priority.HIGH : AndroidConfig.Priority.NORMAL);
+        if (!edu.bingol.backend.notification.RichPushPayload.isRich(m)) b.setNotification(n.build());
         if (m.ttlSeconds() != null && m.ttlSeconds() >= 0) {
             b.setTtl(m.ttlSeconds() * 1000L);
         }
@@ -213,7 +223,10 @@ public class FirebaseFcmSender implements FcmSender {
         if (m.category() != null) {
             aps.setCategory(m.category());
         }
-        if (!m.highPriority() && "social".equals(m.channelId())) {
+        java.util.Map<String, String> d = m.data() == null ? java.util.Map.of() : m.data();
+        if ("critical".equals(d.get("severity")) || "EXAM".equals(d.get("style"))) {
+            aps.putCustomData("interruption-level", "time-sensitive"); // guvenlik/sinav: odak modunu asabilir (yetki gerekir)
+        } else if (!m.highPriority() && "social".equals(m.channelId())) {
             aps.putCustomData("interruption-level", "passive"); // begeni/takip: ekrani uyandirmaz
         }
         ApnsConfig.Builder b = ApnsConfig.builder()

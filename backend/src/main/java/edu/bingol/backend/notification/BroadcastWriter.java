@@ -21,6 +21,11 @@ public class BroadcastWriter {
     /** Aralik basina kullanici sayisi. */
     public static final int RANGE = 1000;
 
+    /** Cihaz suzgeci: hepsi / zengin cizicisi (Android + rich_notifications) olmayanlar / yalniz zengin cizicililer. */
+    public static final int DEVICES_STANDARD = 0;
+    public static final int DEVICES_RICH = 1;
+    public static final int DEVICES_ALL = 2;
+
     /** Tercih sutunu secimi (NotificationRepository.insertForAll ile ayni). */
     private static final String PREF_OK = """
             COALESCE(CASE :col WHEN 'news' THEN p.news WHEN 'announcements' THEN p.announcements
@@ -49,6 +54,7 @@ public class BroadcastWriter {
             LEFT JOIN notification_pref p ON p.user_id = u.id
             WHERE u.id > :after AND u.id <= :hi
               AND (CAST(:lang AS varchar) IS NULL OR u.language = :lang)
+              AND (:devs = 2 OR (d.rich_notifications AND d.platform = 'ANDROID') = (:devs = 1))
               AND\s""" + PREF_OK + "  AND " + QuietSql.NOT_QUIET;
 
     private final NamedParameterJdbcTemplate jdbc;
@@ -88,8 +94,13 @@ public class BroadcastWriter {
      */
     public int enqueuePush(String payloadJson, short priority, String msgType, String prefColumn, String lang,
                            long after, long hi) {
+        return enqueuePush(payloadJson, priority, msgType, prefColumn, lang, after, hi, DEVICES_ALL);
+    }
+
+    public int enqueuePush(String payloadJson, short priority, String msgType, String prefColumn, String lang,
+                           long after, long hi, int devices) {
         return jdbc.update(INSERT_PUSH, new MapSqlParameterSource("payload", payloadJson).addValue("prio", priority)
                 .addValue("msgType", msgType).addValue("col", prefColumn).addValue("lang", lang)
-                .addValue("after", after).addValue("hi", hi));
+                .addValue("after", after).addValue("hi", hi).addValue("devs", devices));
     }
 }

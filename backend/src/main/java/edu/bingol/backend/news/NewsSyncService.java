@@ -247,7 +247,14 @@ public class NewsSyncService {
         };
         if (fresh.size() <= 3) {
             for (NewsItem n : fresh) {
-                notifications.broadcast(nt, n.getTitle(), n.getSummary(), java.util.Map.of("newsId", String.valueOf(n.getId())));
+                java.util.Map<String, String> d = new java.util.LinkedHashMap<>();
+                d.put("newsId", String.valueOf(n.getId()));
+                // Kucuk resim: yalniz kaynak sitenin mutlak https adresi (istemci/sunucu bingol.edu.tr kuralini uygular)
+                String img = n.getImageUrl();
+                if (img != null && img.startsWith("https://") && img.length() <= 300) {
+                    d.put("imageUrl", img);
+                }
+                notifications.broadcast(nt, n.getTitle(), n.getSummary(), d);
             }
         } else {
             String count = String.valueOf(fresh.size());

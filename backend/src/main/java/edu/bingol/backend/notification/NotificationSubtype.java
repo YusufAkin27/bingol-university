@@ -18,7 +18,9 @@ public enum NotificationSubtype {
     POLL(NotificationType.ANNOUNCEMENT),
     // Sinav hatirlatmasi (sinavdan 2 sa once): "Akademik duyurular" bayragini (academic_announcements) paylasir;
     // ayri sutun yok, kullanici tek akademik anahtarla ikisini birden yonetir.
-    EXAM_REMINDER(NotificationType.ANNOUNCEMENT);
+    EXAM_REMINDER(NotificationType.ANNOUNCEMENT),
+    // Gunluk menu bildirimi: notification_pref.meal_menu (V1271), varsayilan KAPALI (acikca secilir)
+    MEAL_MENU(NotificationType.ANNOUNCEMENT);
 
     private final NotificationType parent;
 
@@ -32,7 +34,7 @@ public enum NotificationSubtype {
 
     /** Alt tur bayragi notification_pref'te ayri sutunda tutuluyor mu (alt tur satiri degil). */
     public boolean flagBacked() {
-        return this == POLL || this == EXAM_REMINDER;
+        return this == POLL || this == EXAM_REMINDER || this == MEAL_MENU;
     }
 
     /** flagBacked alt turler icin kullanicinin bayragi; digerleri icin true. */
@@ -40,6 +42,7 @@ public enum NotificationSubtype {
         return switch (this) {
             case POLL -> p.isPolls();
             case EXAM_REMINDER -> p.isAcademicAnnouncements();
+            case MEAL_MENU -> p.isMealMenu();
             default -> true;
         };
     }

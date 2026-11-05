@@ -81,7 +81,7 @@ class PushDeliveryTest {
         assertEquals(7, m.badge());
         assertEquals("conv:9", m.threadId());
         assertEquals("chat", m.channelId());
-        assertEquals("MESSAGE", m.category());
+        assertEquals("BU_CHAT_DIRECT", m.category());
         assertTrue(m.highPriority());
         assertEquals("CONVERSATION", m.data().get("targetType"));
         assertEquals("9", m.data().get("targetId"));

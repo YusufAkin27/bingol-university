@@ -270,15 +270,19 @@ public class NotificationService {
             if (count > 1 && java.util.Objects.equals(pBody, c.stored())) {
                 pBody = i18n.msg("notif.message.many", c.lang(), String.valueOf(count));
             }
-            Map<String, String> pushData = data;
-            Map<String, String> extra = c.target().pushExtra();
-            if (extra != null && !extra.isEmpty()) {
-                pushData = new java.util.HashMap<>(data == null ? Map.of() : data);
-                pushData.putAll(extra);
-            }
+            Map<String, String> pushData = messagePushData(data, c.target().pushExtra());
+            pushData.put("recipientId", uid.toString());
+            pushData.put("locale", c.lang().code());
             push(toks, title, pBody, NotificationType.MESSAGE, sub, pushData, count, key,
                     (int) (badges.getOrDefault(uid, 0L) + 1));
         }
+    }
+
+    /** Push yukune yalniz-push alanlari (avatar, gorsel) eklenir; kaynak haritalar degismez. */
+    static Map<String, String> messagePushData(Map<String, String> data, Map<String, String> extra) {
+        var out = new java.util.HashMap<String, String>(data == null ? Map.of() : data);
+        if (extra != null) out.putAll(extra);
+        return out;
     }
 
     /** Saklanan govde (`body`) ile push govdesi (`pushBody`) ayri olabilir. */
@@ -295,6 +299,7 @@ public class NotificationService {
             if (type != NotificationType.SYSTEM && !guard.canReceive(userId)) {
                 return;
             }
+            data = PushDisplay.withBadge(data, i18n, data != null && data.containsKey("badgeKey") ? i18n.langOf(userId) : null);
             NotificationPref pref = prefs.findById(userId).orElse(null);
             // Kendi bayragi olan alt tur (anket / akademik duyuru): ana tur bayragi DA acik olmali (eski tercihler korunur)
             boolean allowed = enabled(pref, type)
@@ -374,11 +379,9 @@ public class NotificationService {
             }
             List<String> tokens = devices.findByUserId(userId).stream().map(Device::getFcmToken).toList();
             int badge = (int) badgeOf(userId);
-            Map<String, String> pushData = data;
-            if (pushExtra != null && !pushExtra.isEmpty()) {
-                pushData = new java.util.HashMap<>(data == null ? Map.of() : data);
-                pushData.putAll(pushExtra);
-            }
+            Map<String, String> pushData = messagePushData(data, pushExtra);
+            pushData.put("recipientId", userId.toString());
+            pushData.put("locale", i18n.langOf(userId).code());
             push(tokens, pTitle, pBody, type, subtype, pushData, count, key, badge);
         } catch (RuntimeException e) {
             log.warn("Bildirim gonderilemedi (kullanici {}): {}", userId, e.toString());
@@ -499,7 +502,7 @@ public class NotificationService {
     private record TemplGroup(Lang lang, String key) {}
 
     /** Yazilan satirin push adayi: ayni metin/sayac/rozet taşıyanlar tek dagitimda toplanir. */
-    private record TemplPush(String title, String body, String key, int count, int badge) {}
+    private record TemplPush(String title, String body, String key, int count, int badge, Map<String, String> data) {}
 
     private int templatedChunk(List<Long> chunk, NotificationTemplates.Template t, Map<String, String> data,
                                Function<Long, String> keyFn, String[] args) {
@@ -521,9 +524,6 @@ public class NotificationService {
         java.util.Set<Long> subOff = sub != null && !sub.flagBacked() && type != NotificationType.SYSTEM
                 ? new java.util.HashSet<>(notifications.subtypeDisabledAmong(receivable.keySet(), sub.name())) // 1 sorgu
                 : java.util.Set.of();
-        String json = toJson(data);
-        String storedData = json != null && json.length() > 1000 ? null : json;
-
         Map<TemplGroup, List<Long>> groups = new java.util.LinkedHashMap<>();
         for (Long id : chunk) {
             if (!receivable.containsKey(id)) {
@@ -542,7 +542,7 @@ public class NotificationService {
 
         boolean pushOn = dispatcher.enabled();
         // uid -> (metin, anahtar, sayac); satir yazildiktan sonra push adayi olur
-        record Pending(Long uid, String title, String body, String key, int count) {}
+        record Pending(Long uid, String title, String body, String key, int count, Map<String, String> data) {}
         List<Pending> pushCandidates = new ArrayList<>();
         int written = 0;
         for (Map.Entry<TemplGroup, List<Long>> e : groups.entrySet()) {
@@ -550,6 +550,9 @@ public class NotificationService {
             String key = e.getKey().key();
             String title = i18n.msg(t.key() + ".title", lang, (Object[]) args);
             String body = i18n.msg(t.key() + ".body", lang, (Object[]) args);
+            Map<String, String> gData = PushDisplay.withBadge(data, i18n, lang); // rozet metni alicinin dilinde
+            String json = toJson(gData);
+            String storedData = json != null && json.length() > 1000 ? null : json;
             Map<Long, NotificationBatchWriter.Row> rows = key != null
                     ? batchWriter.upsertUnread(e.getValue(), type, sub == null ? null : sub.name(), key,
                             truncate(title, 200), truncate(body, 500), storedData, 1, now)
@@ -575,7 +578,7 @@ public class NotificationService {
                     continue;
                 }
                 pushCandidates.add(new Pending(uid, count > 1 ? truncate(title, 180) + " (" + count + ")" : title,
-                        body, key, count));
+                        body, key, count, gData));
             }
         }
         if (pushCandidates.isEmpty()) {
@@ -599,9 +602,9 @@ public class NotificationService {
                 continue;
             }
             dispatches.computeIfAbsent(new TemplPush(p.title(), p.body(), p.key(), p.count(),
-                    (int) (long) badges.getOrDefault(p.uid(), 0L)), k -> new ArrayList<>()).addAll(toks);
+                    (int) (long) badges.getOrDefault(p.uid(), 0L), p.data()), k -> new ArrayList<>()).addAll(toks);
         }
-        dispatches.forEach((k, toks) -> push(toks, k.title(), k.body(), type, sub, data, k.count(), k.key(), k.badge()));
+        dispatches.forEach((k, toks) -> push(toks, k.title(), k.body(), type, sub, k.data(), k.count(), k.key(), k.badge()));
         return written;
     }
 
@@ -804,7 +807,8 @@ public class NotificationService {
     }
 
     /** Basit JSON (yalnizca dize degerler); kacis yapilir. */
-    static String toJson(Map<String, String> data) {
+    static String toJson(Map<String, String> source) {
+        Map<String, String> data = PushDisplay.stored(source); // yalniz-push alanlar kalici data'ya yazilmaz
         if (data == null || data.isEmpty()) {
             return null;
         }

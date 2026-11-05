@@ -20,7 +20,11 @@ public final class NotificationDtos {
 
     public record DeviceRequest(@NotBlank @Size(min = 16, max = 500) String fcmToken,
                                 @NotBlank @Pattern(regexp = "(?i)ANDROID|IOS|WEB") String platform,
-                                @Size(max = 32) String appVersion, @Size(max = 16) String locale) {}
+                                @Size(max = 32) String appVersion, @Size(max = 16) String locale, Boolean richNotifications) {
+        public DeviceRequest(String fcmToken, String platform, String appVersion, String locale) {
+            this(fcmToken, platform, appVersion, locale, false);
+        }
+    }
 
     /** Token'in tamami donmez (yalnizca son 6 karakter); silmek icin id kullanilir. */
     public record DeviceView(Long id, String platform, String tokenSuffix, String registeredAt, String updatedAt,
@@ -35,7 +39,25 @@ public final class NotificationDtos {
 
     /** subtype ve count (gruplanmis bildirimdeki adet) eklendi; mevcut alanlar aynen korunur. */
     public record NotificationView(Long id, NotificationType type, String title, String body, String data,
-                                   boolean read, String createdAt, String subtype, int count, String groupKey) {
+                                   boolean read, String createdAt, String subtype, int count, String groupKey,
+                                   String actorAvatarUrl, String sourceName) {
+        /** Eski 10 alanli kurucu (aktor avatari / kaynak adi yok). */
+        public NotificationView(Long id, NotificationType type, String title, String body, String data,
+                                boolean read, String createdAt, String subtype, int count, String groupKey) {
+            this(id, type, title, body, data, read, createdAt, subtype, count, groupKey, null, null);
+        }
+
+        /** Istek anindaki projeksiyon (gizlilik suzgeciyle); kalici `data`ya yazilmaz. */
+        public NotificationView withProjection(String actorAvatarUrl, String sourceName) {
+            return new NotificationView(id, type, title, body, data, read, createdAt, subtype, count, groupKey,
+                    actorAvatarUrl, sourceName);
+        }
+
+        public String getCategory() {
+            return edu.bingol.backend.notification.NotificationPresentation.category(type, subtype,
+                    edu.bingol.backend.notification.NotificationPresentation.data(data));
+        }
+
         public static NotificationView of(Notification n) {
             return new NotificationView(n.getId(), n.getType(), n.getTitle(), n.getBody(), n.getData(),
                     n.getReadAt() != null, n.getCreatedAt().toString(), n.getSubtype(), n.getGroupCount(), n.getCollapseKey());
@@ -71,7 +93,15 @@ public final class NotificationDtos {
     /** Yanit: 5 ana bayrak (eski istemciler yalniz bunlari okur) + sessiz saatler + alt tur bayraklari. */
     public record PrefsView(boolean news, boolean announcements, boolean events, boolean messages,
                             boolean communities, QuietHoursView quietHours, Map<String, Boolean> subtypes,
-                            boolean polls, boolean academicAnnouncements) {
+                            boolean polls, boolean academicAnnouncements, boolean mealMenu) {
+        /** Eski 9 alanli kurucu (mealMenu kapali). */
+        public PrefsView(boolean news, boolean announcements, boolean events, boolean messages,
+                         boolean communities, QuietHoursView quietHours, Map<String, Boolean> subtypes,
+                         boolean polls, boolean academicAnnouncements) {
+            this(news, announcements, events, messages, communities, quietHours, subtypes, polls, academicAnnouncements,
+                    false);
+        }
+
         public static PrefsView of(NotificationPref p) {
             return of(p, Map.of());
         }
@@ -83,18 +113,26 @@ public final class NotificationDtos {
                 all.put(s.name(), s.flagBacked() ? s.flag(p) : overrides.getOrDefault(s.name(), true));
             }
             return new PrefsView(p.isNews(), p.isAnnouncements(), p.isEvents(), p.isMessages(), p.isCommunities(),
-                    QuietHoursView.of(p), all, p.isPolls(), p.isAcademicAnnouncements());
+                    QuietHoursView.of(p), all, p.isPolls(), p.isAcademicAnnouncements(), p.isMealMenu());
         }
     }
 
     /** Kismi guncelleme: null alan degismez (eski 5 bayrakli istemciler geriye uyumlu). */
     public record PrefsUpdate(Boolean news, Boolean announcements, Boolean events, Boolean messages,
                               Boolean communities, @Valid QuietHoursView quietHours, Map<String, Boolean> subtypes,
-                              Boolean polls, Boolean academicAnnouncements) {
-        /** Eski 7 alanli kurucu (polls / academicAnnouncements degismez). */
+                              Boolean polls, Boolean academicAnnouncements, Boolean mealMenu) {
+        /** Eski 9 alanli kurucu (mealMenu degismez). */
+        public PrefsUpdate(Boolean news, Boolean announcements, Boolean events, Boolean messages,
+                           Boolean communities, QuietHoursView quietHours, Map<String, Boolean> subtypes,
+                           Boolean polls, Boolean academicAnnouncements) {
+            this(news, announcements, events, messages, communities, quietHours, subtypes, polls, academicAnnouncements,
+                    null);
+        }
+
+        /** Eski 7 alanli kurucu (polls / academicAnnouncements / mealMenu degismez). */
         public PrefsUpdate(Boolean news, Boolean announcements, Boolean events, Boolean messages,
                            Boolean communities, QuietHoursView quietHours, Map<String, Boolean> subtypes) {
-            this(news, announcements, events, messages, communities, quietHours, subtypes, null, null);
+            this(news, announcements, events, messages, communities, quietHours, subtypes, null, null, null);
         }
     }
 }

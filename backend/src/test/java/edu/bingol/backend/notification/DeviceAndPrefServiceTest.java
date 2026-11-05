@@ -126,7 +126,10 @@ class DeviceAndPrefServiceTest {
         assertFalse(v.quietHours().enabled());
         assertEquals("22:00", v.quietHours().start());
         assertEquals(NotificationSubtype.values().length, v.subtypes().size());
-        assertTrue(v.subtypes().values().stream().allMatch(b -> b));
+        // gunluk menu bildirimi varsayilan KAPALI (acikca secilir); digerleri acik
+        assertFalse(v.mealMenu());
+        assertFalse(v.subtypes().get("MEAL_MENU"));
+        assertTrue(v.subtypes().entrySet().stream().filter(e -> !"MEAL_MENU".equals(e.getKey())).allMatch(e -> e.getValue()));
     }
 
     @Test

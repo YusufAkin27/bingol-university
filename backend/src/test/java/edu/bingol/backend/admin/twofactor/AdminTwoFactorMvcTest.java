@@ -230,7 +230,7 @@ class AdminTwoFactorMvcTest {
         assertNull(after.getTwoFactorEnabledAt());
         assertEquals(0, devices.findByUserIdOrderByLastUsedAtDesc(target.getId()).size());
         verify(notifications).sendLocalized(target.getId(), NotificationType.SYSTEM, "notif.twofactor.disabled.title",
-                "notif.twofactor.disabled.body", null, null);
+                "notif.twofactor.disabled.body", null, java.util.Map.of("securityKind", "TWOFA_DISABLED"));
         // denetim baglami: hedef, gerekce, ozet (AuditInterceptor bunlari admin_audit'e yazar)
         AuditContext.Data audit = AuditContext.of(ok.getRequest());
         assertEquals("USER", audit.targetType());

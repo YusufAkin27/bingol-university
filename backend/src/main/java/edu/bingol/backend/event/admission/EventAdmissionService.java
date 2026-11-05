@@ -11,6 +11,7 @@ import edu.bingol.backend.community.Texts;
 import edu.bingol.backend.event.EventRsvp;
 import edu.bingol.backend.event.EventRsvpRepository;
 import edu.bingol.backend.event.EventService;
+import edu.bingol.backend.event.EventPushHints;
 import edu.bingol.backend.event.UserEvent;
 import edu.bingol.backend.event.UserEventRepository;
 import edu.bingol.backend.event.admission.AdmissionDtos.Action;
@@ -548,13 +549,26 @@ public class EventAdmissionService implements EventAdmissionHooks {
      * cikarilir: COMMIT sonrasi sinirli havuzda calisir (geri alinan islem bildirmez).
      */
     private void notifyAll(List<Long> users, String key, Long eventId, String title) {
+        notifyAll(users, key, eventId, title, null);
+    }
+
+    private void notifyAll(List<Long> users, String key, Long eventId, String title, Map<String, String> hint) {
         if (users.isEmpty()) {
             return;
         }
         List<Long> to = List.copyOf(users);
+        Map<String, String> payload = hint != null ? hint : data(eventId, null);
         FanoutNotifier.dispatch(fanout, "admission:" + key + ":" + eventId, () ->
                 notifications.sendTemplatedBulk(to, NotificationTemplates.of(key, NotificationType.EVENT),
-                        data(eventId, null), null, title));
+                        payload, null, title));
+    }
+
+    /** Kart alanlari (kulup adi, saat, yer, rozet); yoksa yalniz kimlikler gider. */
+    private EventPushHints hints;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setHints(EventPushHints hints) {
+        this.hints = hints;
     }
 
     /** Birim testleri icin yoktur (ayni is parcaciginda calisir); uretimde commit sonrasi havuz. */
@@ -574,7 +588,7 @@ public class EventAdmissionService implements EventAdmissionHooks {
             return;
         }
         apps.closeAll(e.getId(), open, Status.CANCELLED, Instant.now());
-        notifyAll(users, "notif.event.cancelled", e.getId(), e.getTitle());
+        notifyAll(users, "notif.event.cancelled", e.getId(), e.getTitle(), hints == null ? null : hints.cancelled(e));
     }
 
     @Override
@@ -759,7 +773,12 @@ public class EventAdmissionService implements EventAdmissionHooks {
     }
 
     private void notifyApp(UserEvent e, EventApplication app, String key) {
-        notifications.sendTemplated(app.getUserId(), NotificationType.EVENT, key, data(e.getId(), app.getId()), e.getTitle());
+        Map<String, String> d = data(e.getId(), app.getId());
+        if (hints != null) {
+            d = new java.util.LinkedHashMap<>(hints.of(e));
+            d.put("applicationId", app.getId().toString());
+        }
+        notifications.sendTemplated(app.getUserId(), NotificationType.EVENT, key, d, e.getTitle());
     }
 
     private static Map<String, String> data(Long eventId, Long appId) {

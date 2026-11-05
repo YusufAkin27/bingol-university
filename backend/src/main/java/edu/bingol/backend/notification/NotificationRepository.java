@@ -26,6 +26,33 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
                                     @Param("types") Collection<NotificationType> types,
                                     @Param("unreadOnly") boolean unreadOnly, Pageable pageable);
 
+    /** Category is applied before pagination; the unread count remains the global inbox count. */
+    @Query("""
+            SELECT n FROM Notification n WHERE n.userId = :uid AND (:cursor IS NULL OR n.id < :cursor)
+              AND n.type IN :types AND n.type <> edu.bingol.backend.notification.NotificationType.MESSAGE
+              AND (:unreadOnly = FALSE OR n.readAt IS NULL)
+              AND :category = CASE
+                WHEN n.subtype = 'POLL' OR n.data LIKE '%"pollId"%' OR (replace(n.data, ' ', '') LIKE '%"target":"POLL%' OR replace(n.data, ' ', '') LIKE '%"targetType":"POLL%') THEN 'POLL'
+                WHEN n.subtype IN ('EXAM_REMINDER', 'ACADEMIC_ANNOUNCEMENT')
+                  OR n.data LIKE '%"examId"%' OR (replace(n.data, ' ', '') LIKE '%"target":"ACADEMIC%' OR replace(n.data, ' ', '') LIKE '%"targetType":"ACADEMIC%')
+                  OR (replace(n.data, ' ', '') LIKE '%"target":"EXAM"%' OR replace(n.data, ' ', '') LIKE '%"targetType":"EXAM"%') OR (replace(n.data, ' ', '') LIKE '%"target":"TIMETABLE"%' OR replace(n.data, ' ', '') LIKE '%"targetType":"TIMETABLE"%')
+                  OR (replace(n.data, ' ', '') LIKE '%"target":"ANNOUNCEMENT_DEPT"%' OR replace(n.data, ' ', '') LIKE '%"targetType":"ANNOUNCEMENT_DEPT"%') THEN 'ACADEMIC'
+                WHEN n.type = edu.bingol.backend.notification.NotificationType.EVENT THEN 'EVENT'
+                WHEN n.type IN (edu.bingol.backend.notification.NotificationType.POST_LIKE,
+                  edu.bingol.backend.notification.NotificationType.POST_COMMENT,
+                  edu.bingol.backend.notification.NotificationType.COMMENT_REPLY,
+                  edu.bingol.backend.notification.NotificationType.POST_MENTION,
+                  edu.bingol.backend.notification.NotificationType.USER_FOLLOW,
+                  edu.bingol.backend.notification.NotificationType.FOLLOW_REQUEST,
+                  edu.bingol.backend.notification.NotificationType.FOLLOW_ACCEPTED) THEN 'SOCIAL'
+                WHEN n.type = edu.bingol.backend.notification.NotificationType.SYSTEM THEN 'SYSTEM'
+                ELSE 'ANNOUNCEMENT' END
+              ORDER BY n.id DESC""")
+    List<Notification> pageCategory(@Param("uid") Long userId, @Param("cursor") Long cursor,
+                                    @Param("types") Collection<NotificationType> types,
+                                    @Param("unreadOnly") boolean unreadOnly, @Param("category") String category,
+                                    Pageable pageable);
+
     long countByUserIdAndReadAtIsNull(Long userId);
 
     /**

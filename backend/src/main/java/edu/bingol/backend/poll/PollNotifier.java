@@ -99,7 +99,7 @@ public class PollNotifier {
             if (polls.markClosingNotified(p.getId(), clock.instant()) == 0) {
                 return false;
             }
-            send(p, recipients(p, true), "notif.poll.closing");
+            send(p, recipients(p, true), "notif.poll.closing", edu.bingol.backend.notification.PushDisplay.BADGE_LAST_24H);
             return true;
         } catch (RuntimeException e) {
             log.warn("Anket kapaniyor bildirimi gonderilemedi (anket {}): {}", p.getId(), e.toString());
@@ -120,11 +120,19 @@ public class PollNotifier {
     }
 
     private void send(Poll p, List<Long> userIds, String key) {
+        send(p, userIds, key, null);
+    }
+
+    private void send(Poll p, List<Long> userIds, String key, String badgeKey) {
         NotificationType type = p.getScope() == Poll.Scope.COMMUNITY ? NotificationType.COMMUNITY : NotificationType.ANNOUNCEMENT;
         // FINAL-ALL (P05 ertelenen): alici basina doSend yerine parca basina sabit sorgulu toplu yol
         // (tercih + alt tur + sessiz saat + PushGate ayni karar tablosu). Bu sinif zaten tek iscilik havuzda calisir.
+        Map<String, String> d = data(p);
+        if (badgeKey != null) {
+            d.put("badgeKey", badgeKey); // "Son 24 saat" cipi
+        }
         notifications.sendTemplatedBulk(userIds, new NotificationTemplates.Template(key, type, NotificationSubtype.POLL),
-                data(p), null, p.getTitle());
+                d, null, p.getTitle());
     }
 
     private static Map<String, String> data(Poll p) {

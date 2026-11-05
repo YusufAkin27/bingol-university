@@ -381,8 +381,10 @@ public class MessageService {
         }
         String title = conv.getType() == Conversation.Type.GROUP && conv.getTitle() != null ? conv.getTitle() : null;
         String preview = previewOf(m, view);
-        Map<String, String> data = Map.of("conversationId", String.valueOf(conv.getId()),
-                "messageId", String.valueOf(m.getId()), "conversationType", conv.getType().name());
+        Map<String, String> data = new java.util.HashMap<>(Map.of("conversationId", String.valueOf(conv.getId()),
+                "messageId", String.valueOf(m.getId()), "conversationType", conv.getType().name()));
+        Long imageId = edu.bingol.backend.notification.RichChatPayload.previewAttachmentId(view.attachments());
+        if (imageId != null) data.put("imageAttachmentId", imageId.toString());
         Long convId = conv.getId();
         // Sohbet basina birlestirme + dolu kuyrukta bekletme/metrik/WARN (sessiz atlama yok): bkz. ChatNotifyFanout
         fanoutQueue.submit(fanout, new ChatNotifyFanout.Job(senderId, convId, title, preview, data,
@@ -490,6 +492,15 @@ public class MessageService {
                     if (avatarOk.contains(id) && !related.contains(id)) {
                         // Avatar yalniz push yukunde; bildirim kutusuna (kalici data) yazilmaz
                         extra.put("senderAvatarUrl", avatar);
+                    }
+                    if (push && attachments != null && preview != null && data.get("imageAttachmentId") != null) {
+                        try {
+                            String thumb = attachments.link(id, conversationId, Long.valueOf(data.get("imageAttachmentId"))).thumbUrl();
+                            if (thumb != null) extra.put("imageUrl", thumb);
+                        } catch (RuntimeException e) {
+                            // Erisim kapanmis/gorsel silinmisse metin bildirimi yine gider.
+                            log.debug("Sohbet bildirim gorseli hazirlanamadi: {}", e.getClass().getSimpleName());
+                        }
                     }
                     batch.add(new NotificationService.MessageTarget(id, push, extra));
                 }

@@ -39,6 +39,9 @@ public class PushDispatcher {
         void schedule(Runnable task, long delayMs);
     }
 
+    @org.springframework.beans.factory.annotation.Value("${PUBLIC_WEB_URL:}")
+    private String publicWebUrl = "";
+
     private final FcmSender fcm;
     private final DeviceRepository devices;
     private final Executor executor;
@@ -109,9 +112,37 @@ public class PushDispatcher {
     }
 
     /** Kuyruga atar ve hemen doner; hata cagirana sizmaz. */
-    public void dispatch(Collection<String> tokens, PushMessage message) {
+    public void dispatch(Collection<String> tokens, PushMessage original) {
+        final PushMessage message = RichPushPayload.normalizeMedia(original, publicWebUrl);
         if (tokens == null || tokens.isEmpty()) {
             return;
+        }
+        if (!RichPushPayload.isRich(message)) {
+            try {
+                var all = List.copyOf(tokens);
+                var nativeTokens = new java.util.HashSet<String>();
+                var byLocale = new java.util.HashMap<String, java.util.List<String>>();
+                for (int i = 0; i < all.size(); i += CHUNK) {
+                    var rows = devices.findByFcmTokenIn(all.subList(i, Math.min(i + CHUNK, all.size())));
+                    if (rows != null) for (Device device : rows) {
+                        if (!device.isRichNotifications() || !"ANDROID".equals(device.getPlatform())) continue;
+                        nativeTokens.add(device.getFcmToken());
+                        String locale = device.getLocale() == null ? "tr" : device.getLocale();
+                        byLocale.computeIfAbsent(device.getUserId() + ":" + locale, k -> new ArrayList<>()).add(device.getFcmToken());
+                    }
+                }
+                for (var entry : byLocale.entrySet()) {
+                    String[] recipient = entry.getKey().split(":", 2);
+                    var rich = RichPushPayload.enrich(message, publicWebUrl, recipient[1], Long.valueOf(recipient[0]));
+                    // Oversized enrichment falls back once, without recursive re-enrichment.
+                    if (RichPushPayload.isRich(rich)) dispatch(entry.getValue(), rich);
+                    else nativeTokens.removeAll(entry.getValue());
+                }
+                tokens = all.stream().filter(t -> !nativeTokens.contains(t)).toList();
+                if (tokens.isEmpty()) return;
+            } catch (RuntimeException e) {
+                log.warn("Native notification capability check failed: {}", e.getClass().getSimpleName());
+            }
         }
         if (outbox != null) {
             if (!outbox.accepting()) {
@@ -149,15 +180,24 @@ public class PushDispatcher {
      * Genel yayin: kullanici kimligi araligindaki (after, hi] alicilarin cihazlarini TEK ifadeyle kuyruga yazar
      * ({@link #rangeBroadcastSupported()} true iken). Hata cagirana sizmaz.
      */
-    public void dispatchRange(PushMessage message, String prefColumn, String lang, long after, long hi) {
+    public void dispatchRange(PushMessage original, String prefColumn, String lang, long after, long hi) {
         if (!rangeBroadcastSupported()) {
             return;
         }
+        final PushMessage message = RichPushPayload.normalizeMedia(original, publicWebUrl);
         if (!outbox.accepting()) {
             return; // FCM yok, tutma kapali: birikmesin
         }
         try {
-            outbox.enqueueBroadcastRange(message, prefColumn, lang, after, hi);
+            // Android zengin cizici (veri-only, yuksek oncelik: uygulama kapaliyken de yerel kart) ve digerleri (standart
+            // FCM bildirimi / APNs alert) icin iki ayri yuk; cihaz kaydindaki `richNotifications` ayirir.
+            PushMessage rich = RichPushPayload.enrichBroadcast(message, publicWebUrl, lang);
+            if (RichPushPayload.isRich(rich)) {
+                outbox.enqueueBroadcastRange(message, prefColumn, lang, after, hi, BroadcastWriter.DEVICES_STANDARD);
+                outbox.enqueueBroadcastRange(rich, prefColumn, lang, after, hi, BroadcastWriter.DEVICES_RICH);
+            } else {
+                outbox.enqueueBroadcastRange(message, prefColumn, lang, after, hi);
+            }
         } catch (RuntimeException e) {
             recordFailure("kalici kuyruga toplu yazilamadi: " + e.getClass().getSimpleName());
         }

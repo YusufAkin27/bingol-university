@@ -44,6 +44,15 @@ public class TwoFactorNotifier {
         String key() {
             return key;
         }
+
+        /** Push yuku `securityKind` (docs/changes/push.md). */
+        String securityKind() {
+            return switch (this) {
+                case ENABLED -> "TWOFA_ENABLED";
+                case DISABLED_BY_USER, DISABLED_BY_ADMIN -> "TWOFA_DISABLED";
+                case WRONG_CODES -> "TWOFA_LOCKED";
+            };
+        }
     }
 
     private final NotificationService notifications;
@@ -64,7 +73,8 @@ public class TwoFactorNotifier {
         }
         try {
             notifications.sendLocalized(user.getId(), NotificationType.SYSTEM,
-                    "notif.twofactor." + event.key() + ".title", "notif.twofactor." + event.key() + ".body", null, null);
+                    "notif.twofactor." + event.key() + ".title", "notif.twofactor." + event.key() + ".body", null,
+                    java.util.Map.of("securityKind", event.securityKind()));
         } catch (RuntimeException e) {
             log.warn("2FA bildirimi gonderilemedi userId={} event={}: {}", user.getId(), event, e.toString());
         }

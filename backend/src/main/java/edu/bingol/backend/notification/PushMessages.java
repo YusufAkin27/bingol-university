@@ -27,6 +27,9 @@ final class PushMessages {
         String thread = threadId(type, payload);
         String channel = payload.containsKey("pollId") ? CHANNEL_POLL
                 : subtype == NotificationSubtype.EXAM_REMINDER ? CHANNEL_ACADEMIC : channel(type);
+        // APNs 4 KB siniri alert (baslik+govde) + ozel anahtarlari birlikte sayar: alert metni dusulup veri kirpilir
+        title = clip(title, 200);
+        body = clip(body, 600);
         Map<String, String> data = new java.util.LinkedHashMap<>(payload);
         data.put("channelId", channel);
         data.put("threadId", thread);
@@ -42,8 +45,20 @@ final class PushMessages {
         if (badge != null) {
             data.put("badge", String.valueOf(badge));
         }
-        return new PushMessage(title, body, data, collapseKey, thread, channel, type.name(), badge, urgent,
+        data = PushPayload.fit(data, ALERT_BUDGET - utf8(title) - utf8(body));
+        return new PushMessage(title, body, data, collapseKey, thread, channel, "BU_" + RichPushPayload.style(payload), badge, urgent,
                 ttlSeconds(type, subtype));
+    }
+
+    /** APNs 4096 bayttan aps iskeleti (ses, kategori, thread, rozet, mutable-content...) payi dusulmus butce. */
+    static final int ALERT_BUDGET = PushPayload.MAX_BYTES - 384;
+
+    private static int utf8(String s) {
+        return s == null ? 0 : s.getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
+    }
+
+    private static String clip(String s, int max) {
+        return s == null || s.length() <= max ? s : s.substring(0, max - 1) + "…";
     }
 
     /**

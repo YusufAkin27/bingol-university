@@ -1,6 +1,7 @@
 package edu.bingol.backend.notification.outbox;
 
 import edu.bingol.backend.common.Hashing;
+import edu.bingol.backend.notification.BroadcastWriter;
 import edu.bingol.backend.notification.Device;
 import edu.bingol.backend.notification.DeviceRepository;
 import edu.bingol.backend.notification.fcm.FcmSender;
@@ -119,6 +120,12 @@ public class PushOutboxService {
      * @return yazilan kayit sayisi
      */
     public int enqueueBroadcastRange(PushMessage message, String prefColumn, String lang, long after, long hi) {
+        return enqueueBroadcastRange(message, prefColumn, lang, after, hi, BroadcastWriter.DEVICES_ALL);
+    }
+
+    /** @param devices {@link BroadcastWriter#DEVICES_ALL}, {@code DEVICES_STANDARD} (zengin cizici olmayanlar) ya da {@code DEVICES_RICH} */
+    public int enqueueBroadcastRange(PushMessage message, String prefColumn, String lang, long after, long hi,
+                                     int devices) {
         if (!rangeEnqueueSupported()) {
             return 0;
         }
@@ -132,7 +139,7 @@ public class PushOutboxService {
         String msgType = message.category() == null ? null
                 : message.category().substring(0, Math.min(message.category().length(), 24));
         int n = broadcastWriter.enqueuePush(payload, (short) (message.highPriority() ? 1 : 0), msgType, prefColumn, lang,
-                after, hi);
+                after, hi, devices);
         if (n > 0) {
             metrics.counter("push.outbox.enqueued").increment(n);
             events.publishEvent(new PushQueued(n));

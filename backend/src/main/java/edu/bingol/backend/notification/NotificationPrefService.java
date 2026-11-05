@@ -73,9 +73,11 @@ public class NotificationPrefService {
             if (s == NotificationSubtype.EXAM_REMINDER) {
                 p.setAcademicAnnouncements(v);
             }
+            if (s == NotificationSubtype.MEAL_MENU) p.setMealMenu(v);
         });
         if (r.polls() != null) p.setPolls(r.polls());
         if (r.academicAnnouncements() != null) p.setAcademicAnnouncements(r.academicAnnouncements());
+        if (r.mealMenu() != null) p.setMealMenu(r.mealMenu());
         p.setQuietEnabled(qen);
         p.setQuietStart(qs);
         p.setQuietEnd(qe);

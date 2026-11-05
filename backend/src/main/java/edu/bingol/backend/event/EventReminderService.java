@@ -32,6 +32,13 @@ public class EventReminderService {
         this.notifications = notifications;
     }
 
+    private EventPushHints hints;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setHints(EventPushHints hints) {
+        this.hints = hints;
+    }
+
     @Scheduled(fixedDelayString = "${events.reminder.delay-ms:60000}", initialDelayString = "${events.reminder.initial-delay-ms:30000}")
     public void scheduled() {
         try {
@@ -84,8 +91,10 @@ public class EventReminderService {
             UserEvent e = events.get(en.getKey());
             String where = e.getLocation() == null ? "" : " (" + e.getLocation() + ")";
             try {
+                Map<String, String> hint = hints == null ? Map.of("eventId", e.getId().toString())
+                        : "notif.event.reminderDay".equals(key) ? hints.tomorrow(e) : hints.of(e);
                 notifications.sendTemplatedBulk(en.getValue(), NotificationTemplates.of(key, NotificationType.EVENT),
-                        Map.of("eventId", e.getId().toString()), null, e.getTitle() + where);
+                        hint, null, e.getTitle() + where);
                 sent += en.getValue().size();
             } catch (RuntimeException ex) {
                 log.warn("Hatirlatma gonderilemedi (etkinlik {}, {} alici): {}", e.getId(), en.getValue().size(), ex.toString());

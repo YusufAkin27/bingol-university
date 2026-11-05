@@ -78,8 +78,11 @@ public class PostNotifier {
             String body = others > 0
                     ? i18n.msg("notif.post.like.many.body", lang, name, String.valueOf(others))
                     : i18n.msg("notif.post.like.body", lang, name);
+            Map<String, String> d = data(postId);
+            d.put("actorId", String.valueOf(actorId)); // gelen kutusu avatar projeksiyonu icin (kisi kimligi)
+            putAvatar(d, actorId, postAuthorId);
             notifications.send(postAuthorId, NotificationType.POST_LIKE, NotificationSubtype.POST_LIKE, key, title, body,
-                    data(postId));
+                    d);
         } catch (RuntimeException e) {
             log.warn("Begeni bildirimi gonderilemedi (gonderi {}): {}", postId, e.toString());
         }
@@ -101,6 +104,7 @@ public class PostNotifier {
             d.put("target", "USER");
             d.put("value", String.valueOf(followerId));
             d.put("userId", String.valueOf(followerId));
+            putAvatar(d, followerId, followeeId);
             notifications.send(followeeId, NotificationType.USER_FOLLOW, NotificationSubtype.USER_FOLLOW,
                     "follow:" + followerId, i18n.msg("notif.user.follow.title", lang),
                     i18n.msg("notif.user.follow.body", lang, actorName(followerId)), d);
@@ -124,6 +128,7 @@ public class PostNotifier {
             d.put("target", "FOLLOW_REQUESTS");
             d.put("value", String.valueOf(requesterId));
             d.put("userId", String.valueOf(requesterId));
+            putAvatar(d, requesterId, targetId);
             notifications.send(targetId, NotificationType.FOLLOW_REQUEST, NotificationSubtype.FOLLOW_REQUEST,
                     "followreq:" + requesterId, i18n.msg("notif.follow.request.title", lang),
                     i18n.msg("notif.follow.request.body", lang, actorName(requesterId)), d);
@@ -144,6 +149,7 @@ public class PostNotifier {
             d.put("target", "USER");
             d.put("value", String.valueOf(accepterId));
             d.put("userId", String.valueOf(accepterId));
+            putAvatar(d, accepterId, requesterId);
             notifications.send(requesterId, NotificationType.FOLLOW_ACCEPTED, NotificationSubtype.FOLLOW_ACCEPTED,
                     "followacc:" + accepterId, i18n.msg("notif.follow.accepted.title", lang),
                     i18n.msg("notif.follow.accepted.body", lang, actorName(accepterId)), d);
@@ -180,6 +186,29 @@ public class PostNotifier {
     private boolean shouldNotify(Long actorId, Long recipientId) {
         return recipientId != null && actorId != null && !Objects.equals(actorId, recipientId)
                 && !blocks.isBlocked(actorId, recipientId);
+    }
+
+    /** Aktor avatari (yalniz push yuku; kalici data'ya yazilmaz): alicinin gormesine izin veriliyorsa. */
+    private edu.bingol.backend.profile.privacy.AvatarVisibility avatarVisibility;
+
+    @Autowired(required = false)
+    void setAvatarVisibility(edu.bingol.backend.profile.privacy.AvatarVisibility avatarVisibility) {
+        this.avatarVisibility = avatarVisibility;
+    }
+
+    private void putAvatar(Map<String, String> d, Long actorId, Long recipientId) {
+        try {
+            if (avatarVisibility == null) {
+                return;
+            }
+            String avatar = users.findById(actorId).map(User::getAvatarUrl).filter(u -> u != null && !u.isBlank()).orElse(null);
+            if (avatar != null && avatarVisibility.canSee(recipientId, actorId,
+                    edu.bingol.backend.profile.privacy.AvatarVisibility.Field.AVATAR)) {
+                d.put("senderAvatarUrl", avatar);
+            }
+        } catch (RuntimeException e) {
+            log.debug("Bildirim avatari eklenemedi: {}", e.getClass().getSimpleName());
+        }
     }
 
     private String actorName(Long actorId) {

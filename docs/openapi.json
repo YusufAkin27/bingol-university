@@ -5289,6 +5289,9 @@
             "minLength" : 1,
             "pattern" : "(?i)ANDROID|IOS|WEB",
             "type" : "string"
+          },
+          "richNotifications" : {
+            "type" : [ "boolean", "null" ]
           }
         },
         "required" : [ "fcmToken", "platform" ]
@@ -8383,7 +8386,13 @@
       },
       "NotificationView" : {
         "properties" : {
+          "actorAvatarUrl" : {
+            "type" : [ "string", "null" ]
+          },
           "body" : {
+            "type" : [ "string", "null" ]
+          },
+          "category" : {
             "type" : [ "string", "null" ]
           },
           "count" : {
@@ -8405,6 +8414,9 @@
           },
           "read" : {
             "type" : [ "boolean", "null" ]
+          },
+          "sourceName" : {
+            "type" : [ "string", "null" ]
           },
           "subtype" : {
             "type" : [ "string", "null" ]
@@ -9571,6 +9583,9 @@
           "events" : {
             "type" : [ "boolean", "null" ]
           },
+          "mealMenu" : {
+            "type" : [ "boolean", "null" ]
+          },
           "messages" : {
             "type" : [ "boolean", "null" ]
           },
@@ -9607,6 +9622,9 @@
             "type" : [ "boolean", "null" ]
           },
           "events" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "mealMenu" : {
             "type" : [ "boolean", "null" ]
           },
           "messages" : {
@@ -52654,6 +52672,13 @@
           "schema" : {
             "default" : false,
             "type" : "boolean"
+          }
+        }, {
+          "in" : "query",
+          "name" : "category",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
           }
         } ],
         "responses" : {

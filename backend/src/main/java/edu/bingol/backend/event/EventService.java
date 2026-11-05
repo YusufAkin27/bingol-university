@@ -325,6 +325,7 @@ public class EventService {
         if (r.location() != null) {
             e.setLocation(Texts.blankToNull(r.location()));
         }
+        Instant oldStart = e.getStartsAt();
         e.setStartsAt(start);
         e.setEndsAt(end);
         e.setUpdatedAt(now);
@@ -340,7 +341,7 @@ public class EventService {
             rsvps.resetReminders(e.getId());
         }
         if (scheduleChanged && e.getStatus() == UserEvent.Status.ACTIVE) {
-            notifyGoing(e, "notif.event.updated");
+            notifyGoing(e, "notif.event.updated", hints == null ? null : hints.updated(e, oldStart));
         }
         if (admission != null && r.capacity() != null) {
             admission.afterCapacityChanged(e);
@@ -441,7 +442,7 @@ public class EventService {
         events.saveAndFlush(e);
         media.release(oldCover);
         if (wasActive && e.getEndsAt().isAfter(Instant.now())) {
-            notifyGoing(e, "notif.event.cancelled");
+            notifyGoing(e, "notif.event.cancelled", hints == null ? null : hints.cancelled(e));
         }
         if (admission != null) {
             admission.onEventCancelled(e);
@@ -978,13 +979,13 @@ public class EventService {
      * FINAL-ALL (P05 ertelenen): GOING katilimcilara bildirim istek thread'inden ve acik islemden (etkinlik satir
      * kilidi dahil) cikarildi; COMMIT sonrasi havuzda, parca basina sabit sorguyla ({@code sendTemplatedBulk}) gider.
      */
-    private void notifyGoing(UserEvent e, String key) {
+    private void notifyGoing(UserEvent e, String key, Map<String, String> hint) {
         Long eventId = e.getId();
         Long organizerId = e.getCreatedBy();
         String title = e.getTitle();
         FanoutNotifier.dispatch(fanout, "event-going:" + eventId, () -> {
             NotificationTemplates.Template tpl = NotificationTemplates.of(key, NotificationType.EVENT);
-            Map<String, String> data = Map.of("eventId", eventId.toString());
+            Map<String, String> data = hint != null ? hint : Map.of("eventId", eventId.toString());
             // T-051: tum GOING katilimcilar (imecli sayfalar); eskiden ilk 500'de sessizce kesiliyordu
             boolean truncated = Paging.forEachChunk((after, n) -> rsvps.userIdsAfter(eventId, EventRsvp.Status.GOING, after, PageRequest.of(0, n)),
                     ids -> notifications.sendTemplatedBulk(ids.stream().filter(uid -> !uid.equals(organizerId)).toList(), tpl,
@@ -993,6 +994,14 @@ public class EventService {
                 log.warn("Etkinlik {} bildirimi alici tavaninda kesildi ({})", eventId, key);
             }
         });
+    }
+
+    /** Kart alanlari (kulup adi, saat, yer, rozet); yoksa yalniz eventId gider. */
+    private EventPushHints hints;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setHints(EventPushHints hints) {
+        this.hints = hints;
     }
 
     /** Birim testleri icin yoktur (ayni is parcaciginda calisir); uretimde commit sonrasi havuz. */
