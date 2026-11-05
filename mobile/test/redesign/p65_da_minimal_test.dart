@@ -56,7 +56,7 @@ void main() {
       expect(find.byType(RefCard), findsNothing);
       expect(find.byIcon(BuIcons.shieldCheck), findsNothing);
       // Kayıt notu tek sakin satır olarak durur.
-      expect(find.textContaining('bingol.edu.tr', findRichText: true), findsOneWidget);
+      expect(find.textContaining('Gmail, Outlook', findRichText: true), findsOneWidget);
       await unmount(tester);
     });
 
