@@ -85,7 +85,7 @@ class ChatdBarPill extends StatelessWidget {
     final box = Container(
       constraints: const BoxConstraints(minHeight: 36),
       padding: const EdgeInsets.symmetric(horizontal: 14),
-      decoration: BoxDecoration(color: color ?? kChatdNavy, borderRadius: BuRadius.bPill),
+      decoration: BoxDecoration(color: color ?? kChatdNavy, borderRadius: BuRadius.bControl),
       child: content,
     );
     if (onTap == null) {
@@ -159,7 +159,7 @@ class ChatdGlassButton extends StatelessWidget {
       button: true,
       child: Material(
         color: t.onMedia.withValues(alpha: .14),
-        shape: StadiumBorder(side: BorderSide(color: t.onMedia.withValues(alpha: .32))),
+        shape: RoundedRectangleBorder(borderRadius: BuRadius.bControl, side: BorderSide(color: t.onMedia.withValues(alpha: .32))),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: () {

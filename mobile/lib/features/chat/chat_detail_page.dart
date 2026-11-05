@@ -1,6 +1,5 @@
 import '../../core/analytics.dart';
 import 'dart:async';
-import 'dart:ui' show ImageFilter;
 
 import '../../core/push/active_conversation.dart';
 import 'package:flutter/material.dart';
@@ -1872,15 +1871,12 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       {IconData? icon}) async {
     final r = await BuDialog.show<bool>(
       context,
-      builder: (c) => BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-        child: _ChatConfirmDialog(
-            title: title,
-            body: body,
-            confirmLabel: action,
-            cancelLabel: c.l10n.chatDetailNevermind,
-            icon: icon),
-      ),
+      builder: (c) => _ChatConfirmDialog(
+          title: title,
+          body: body,
+          confirmLabel: action,
+          cancelLabel: c.l10n.chatDetailNevermind,
+          icon: icon),
     );
     return r ?? false;
   }
@@ -2639,7 +2635,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       excludeSemantics: true,
       child: InkWell(
         key: const ValueKey('roomPageChip'),
-        borderRadius: BuRadius.bPill,
+        borderRadius: BuRadius.bControl,
         onTap: _openRoomPage,
         child: SizedBox(
           height: 48,
@@ -2648,8 +2644,10 @@ class _ChatDetailPageState extends State<ChatDetailPage>
             child: Container(
               height: 32,
               padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration:
-                  BoxDecoration(color: t.soft, borderRadius: BuRadius.bPill),
+              decoration: BoxDecoration(
+                  color: t.sf2,
+                  border: Border.all(color: t.bd),
+                  borderRadius: BuRadius.bControl),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 Text(label,
                     maxLines: 1,
@@ -2779,7 +2777,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                        color: t.pr, borderRadius: BuRadius.bPill),
+                        color: t.pr, borderRadius: BuRadius.bXs),
                     child: Text('${_matchPos + 1} / ${_matches.length}',
                         textDirection: TextDirection.ltr,
                         style: tx.labelMedium!.copyWith(
@@ -2816,7 +2814,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: InkWell(
-                borderRadius: BuRadius.bPill,
+                borderRadius: BuRadius.bControl,
                 onTap: _searchOlder,
                 child: SizedBox(
                   height: 48,
@@ -2825,7 +2823,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                       height: 36,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       decoration: BoxDecoration(
-                          color: t.sf2, borderRadius: BuRadius.bPill),
+                          color: t.sf2,
+                          border: Border.all(color: t.bd),
+                          borderRadius: BuRadius.bControl),
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
                         Icon(BuIcons.history, size: 16, color: t.prText),
                         const SizedBox(width: 8),
@@ -3309,7 +3309,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         key: ValueKey(editing ? 'editBar' : 'replyBar'),
         width: double.infinity,
         decoration: BoxDecoration(
-            color: t.sf2, borderRadius: BorderRadius.circular(14)),
+            color: t.sf2,
+            border: Border.all(color: t.bd),
+            borderRadius: BorderRadius.circular(12)),
         clipBehavior: Clip.antiAlias,
         child: IntrinsicHeight(
           child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -3416,8 +3418,11 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                 child: Container(
                   constraints: const BoxConstraints(minHeight: 46),
                   padding: const EdgeInsets.symmetric(horizontal: 16),
+                  // Premium: düz yüzey + ince kenarlık (kabarık hap değil); odak halkası yok, imleç `pr`.
                   decoration: BoxDecoration(
-                      color: t.sf2, borderRadius: BorderRadius.circular(24)),
+                      color: t.sf,
+                      border: Border.all(color: t.bd),
+                      borderRadius: BorderRadius.circular(20)),
                   child: TextField(
                     key: const ValueKey('composerField'),
                     controller: _input,
@@ -3520,24 +3525,16 @@ class _ChatConfirmDialog extends StatelessWidget {
       return Expanded(
         child: Material(
           color: primary ? t.danger : t.sf2,
-          borderRadius: BuRadius.bMd,
+          borderRadius: BuRadius.bControl,
           elevation: 0,
           child: InkWell(
             key: key,
-            borderRadius: BuRadius.bMd,
+            borderRadius: BuRadius.bControl,
             onTap: onTap,
             child: Container(
               constraints: const BoxConstraints(minHeight: 52),
               padding: const EdgeInsets.symmetric(horizontal: 8),
               alignment: Alignment.center,
-              decoration: primary
-                  ? BoxDecoration(borderRadius: BuRadius.bMd, boxShadow: [
-                      BoxShadow(
-                          color: t.danger.withValues(alpha: .3),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4)),
-                    ])
-                  : null,
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 if (primary && icon != null) ...[
                   Icon(icon, size: 18, color: t.onPr),
@@ -3563,7 +3560,8 @@ class _ChatConfirmDialog extends StatelessWidget {
       backgroundColor: t.sf3,
       surfaceTintColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      shape: const RoundedRectangleBorder(borderRadius: BuRadius.bXl),
+      shape: RoundedRectangleBorder(
+          borderRadius: BuRadius.bLg, side: BorderSide(color: t.bd)),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
         child: Column(mainAxisSize: MainAxisSize.min, children: [

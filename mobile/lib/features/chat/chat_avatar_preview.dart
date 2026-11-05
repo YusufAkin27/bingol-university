@@ -1,6 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' show ImageFilter;
-
 import 'package:flutter/material.dart';
 
 import '../../core/cache/image_disk_cache.dart';
@@ -8,7 +6,7 @@ import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
 import 'chat_media.dart';
 
-/// Keeps the conversation visible behind a blurred, zoomable photo preview.
+/// Zoomable photo preview over a flat dark scrim (no blur: monochrome design system).
 Future<void> showChatAvatarPreview(
   BuildContext context, {
   required String name,
@@ -19,7 +17,7 @@ Future<void> showChatAvatarPreview(
       context: context,
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: context.bu.scrim.withValues(alpha: .32),
+      barrierColor: context.bu.scrim.withValues(alpha: .78),
       transitionDuration: BuMotion.of(context, BuMotion.medium),
       pageBuilder: (context, _, __) =>
           _AvatarPreview(name: name, url: url, headers: headers),
@@ -44,9 +42,8 @@ class _AvatarPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    return BackdropFilter(
+    return KeyedSubtree(
       key: const ValueKey('chatAvatarPreview'),
-      filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
       child: Material(
         type: MaterialType.transparency,
         child: Stack(fit: StackFit.expand, children: [
@@ -98,7 +95,7 @@ class _AvatarPreview extends StatelessWidget {
                           minScale: 1,
                           maxScale: 4,
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(28),
+                            borderRadius: BorderRadius.circular(20),
                             child: ColoredBox(
                               color: t.sf,
                               child: Image(

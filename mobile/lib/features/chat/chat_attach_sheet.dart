@@ -75,11 +75,11 @@ class ChatAttachMenu extends StatelessWidget {
           scopesRoute: true,
           explicitChildNodes: true,
           child: DecoratedBox(
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(22), boxShadow: BuElevation.of(context, 2)),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), boxShadow: BuElevation.of(context, 2)),
             child: Material(
               color: t.sf,
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: BorderSide(color: t.bdSubtle)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: t.bdSubtle)),
               clipBehavior: Clip.antiAlias,
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6),

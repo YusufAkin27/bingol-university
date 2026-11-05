@@ -271,11 +271,11 @@ void main() {
         await _pump(tester, _detail(makeSession(be)), b: b);
         expect(_iconColor(tester, _bubbleOf('gonderildi mesaj'), BuIcons.check), tk.onPr.withValues(alpha: .75));
         expect(_iconColor(tester, _bubbleOf('iletildi mesaj'), BuIcons.checkCheck), tk.onPr.withValues(alpha: .75));
-        // Okundu = mavi: açık temada kırmızı balonda gök mavisi, koyu temadaki açık pembe balonda koyu mavi.
+        // Okundu = mavi: açık temada koyu balonda gök mavisi, koyu temadaki açık balonda koyu mavi.
         expect(_iconColor(tester, _bubbleOf('okundu mesaj'), BuIcons.checkCheck), b == Brightness.dark ? tk.readDeep : tk.readSky);
         // Karşı tarafın mesajında tik yok.
         expect(find.descendant(of: _bubbleOf('karsi mesaj'), matching: find.byType(Icon)), findsNothing);
-        // Giden baloncuk zemini marka kırmızısı (t.pr); gelen t.sf.
+        // Giden baloncuk zemini birincil ton (t.pr); gelen gri yüzey (t.sf2).
         bool hasBg(Finder bubble, Color c) => find
             .descendant(
                 of: bubble,
@@ -284,7 +284,7 @@ void main() {
             .evaluate()
             .isNotEmpty;
         expect(hasBg(_bubbleOf('okundu mesaj'), tk.prPressed), isTrue);
-        expect(hasBg(_bubbleOf('karsi mesaj'), tk.sf), isTrue);
+        expect(hasBg(_bubbleOf('karsi mesaj'), tk.sf2), isTrue);
         // Yazılı durum metni yok.
         expect(find.textContaining('görüldü', findRichText: true), findsNothing);
         expect(find.textContaining('Okundu', findRichText: true), findsNothing);

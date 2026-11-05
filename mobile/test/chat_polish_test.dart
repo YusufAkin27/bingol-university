@@ -33,7 +33,7 @@ void main() {
   });
 
   testWidgets(
-      'info photo opens a blurred zoomable preview; close returns to info',
+      'info photo opens a zoomable preview; close returns to info',
       (tester) async {
     useScreen(tester, kPhoneMedium);
     final be = FakeBackend()
@@ -57,7 +57,7 @@ void main() {
     await settle(tester);
     expect(find.byKey(const ValueKey('chatAvatarPreview')), findsOneWidget);
     expect(find.byKey(const ValueKey('chatAvatarPreviewZoom')), findsOneWidget);
-    expect(find.byType(BackdropFilter), findsOneWidget);
+    expect(find.byType(BackdropFilter), findsNothing); // monochrome: bulanıklık yok, düz karartma
     await tester.tap(find.byKey(const ValueKey('chatAvatarPreviewClose')));
     await settle(tester);
     expect(find.byKey(const ValueKey('chatAvatarPreview')), findsNothing);

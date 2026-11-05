@@ -1108,7 +1108,7 @@ class _ConversationRow extends StatelessWidget {
                   start: 16 + 52 + 12,
                   end: 0,
                   bottom: 0,
-                  child: Container(height: 1, color: t.bd),
+                  child: Container(height: 1, color: t.bdSubtle),
                 ),
             ],
           ),

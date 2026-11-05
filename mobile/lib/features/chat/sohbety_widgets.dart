@@ -325,7 +325,8 @@ class SohbetyCheck extends StatelessWidget {
   }
 }
 
-/// Sekme denetimi (segment): ikincil zemin, seçili sekme marka tonu; 48 dp yüksek.
+/// Sekme denetimi (segment): ikincil zemin; seçili sekme yükseltilmiş yüzey + ince kenarlık (zemin tonu aynı
+/// olmasın diye `soft` değil `sf3`), seçilmeyen etiket soluk; 44 dp yüksek.
 class SohbetyTabs extends StatelessWidget {
   const SohbetyTabs({super.key, required this.labels, required this.selected, required this.onSelect});
 
@@ -339,7 +340,7 @@ class SohbetyTabs extends StatelessWidget {
     final tx = Theme.of(context).textTheme;
     return Container(
       padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bPill),
+      decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bControl),
       child: MediaQuery.withClampedTextScaling(
         maxScaleFactor: 1.15,
         child: Row(children: [
@@ -362,8 +363,9 @@ class SohbetyTabs extends StatelessWidget {
                     alignment: Alignment.center,
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     decoration: BoxDecoration(
-                      color: i == selected ? t.soft : t.soft.withValues(alpha: 0),
-                      borderRadius: BuRadius.bPill,
+                      color: i == selected ? t.sf3 : t.sf3.withValues(alpha: 0),
+                      border: Border.all(color: i == selected ? t.bd : t.bd.withValues(alpha: 0)),
+                      borderRadius: BuRadius.bSm,
                     ),
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
@@ -371,7 +373,7 @@ class SohbetyTabs extends StatelessWidget {
                           maxLines: 1,
                           softWrap: false,
                           style: tx.labelLarge!
-                              .copyWith(fontWeight: FontWeight.w400, color: i == selected ? t.onSoft : t.mut)),
+                              .copyWith(fontWeight: FontWeight.w400, color: i == selected ? t.ink : t.mut)),
                     ),
                   ),
                 ),

@@ -117,7 +117,7 @@ void main() {
     }
   }
 
-  testWidgets('giden balon marka kırmızısı, gelen kenarlıklı yüzey', (tester) async {
+  testWidgets('giden balon birincil ton, gelen gri yüzey (monochrome)', (tester) async {
     await _pump(tester, kPhoneMedium, Brightness.light);
     Color? colorOf(String text) {
       final box = find
@@ -129,8 +129,8 @@ void main() {
       return box.color;
     }
 
-    expect(colorOf('İyiyim, sen?'), BuTokens.light.prPressed); // giden balon = marka kırmızısı (koyu ton, beyaz yazıda AA)
-    expect(colorOf('Merhaba, nasılsın?'), BuTokens.light.sf);
+    expect(colorOf('İyiyim, sen?'), BuTokens.light.pr); // açık temada giden balon = koyu birincil ton (beyaz yazıda AA)
+    expect(colorOf('Merhaba, nasılsın?'), BuTokens.light.sf2); // gelen = gri yüzey + ince kenarlık
     await unmount(tester);
   });
 }

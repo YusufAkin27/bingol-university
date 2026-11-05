@@ -103,9 +103,9 @@ class _MessageInfoPageState extends State<MessageInfoPage> {
           width: 42,
           height: 42,
           decoration: BoxDecoration(
-              color: happened ? t.soft : t.sf2,
-              borderRadius: BorderRadius.circular(14)),
-          child: Icon(icon, color: happened ? t.onSoft : t.mut, size: 21),
+              color: happened ? t.pr : t.sf2,
+              borderRadius: BorderRadius.circular(12)),
+          child: Icon(icon, color: happened ? t.onPr : t.mut, size: 21),
         ),
         const SizedBox(width: 14),
         Expanded(

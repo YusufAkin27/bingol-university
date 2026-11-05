@@ -50,6 +50,18 @@ const List<ChatBgStyle> kChatWallpaperAssets = <ChatBgStyle>[];
 String chatWallpaperAssetPath(ChatBgStyle s, {required bool dark}) =>
     'assets/chat_wallpapers/${s.assetName}_${dark ? 'dark' : 'light'}.png';
 
+/// Varlık duvar kağıdının üstüne bindirilen tema zemini örtüsü (0..1): yüksek = desen daha silik. Monochrome
+/// tasarımda desen yalnız belli belirsiz görünür (balonlar ve metin öne çıkar).
+const double kChatWallpaperVeil = .62;
+
+/// Renk -> gri (Rec.709 parlaklık) matrisi: varlıktaki kırmızı/lacivert/krem tonları nötrleşir.
+const List<double> kChatWallpaperGray = <double>[
+  .2126, .7152, .0722, 0, 0,
+  .2126, .7152, .0722, 0, 0,
+  .2126, .7152, .0722, 0, 0,
+  0, 0, 0, 1, 0,
+];
+
 /// Seçili arka plan tercihi: cihazda, kullanıcıya özel (güvenli depoda tek anahtar; sunucu ucu yok). Varsayılan
 /// (Desen) kayıt tutmaz. Çıkışta [clear] silinir (bkz. `registerUserDataCleaners`).
 class ChatBackgroundPrefs extends ChangeNotifier {
@@ -391,17 +403,25 @@ class _ChatWallpaperState extends State<ChatWallpaper> {
                 child: LayoutBuilder(builder: (context, c) {
                   final dpr = MediaQuery.devicePixelRatioOf(context);
                   final w = c.hasBoundedWidth ? c.maxWidth : MediaQuery.sizeOf(context).width;
-                  return Image.asset(
-                    chatWallpaperAssetPath(style, dark: dark),
-                    key: const ValueKey('chatWallpaperAsset'),
-                    fit: BoxFit.cover,
-                    alignment: Alignment.topCenter,
-                    cacheWidth: (w * dpr).round(),
-                    gaplessPlayback: true,
-                    errorBuilder: (c, e, st) => const SizedBox.shrink(),
-                    frameBuilder: (c, child, frame, sync) => sync
-                        ? child
-                        : AnimatedOpacity(opacity: frame == null ? 0 : 1, duration: reduced ? Duration.zero : const Duration(milliseconds: 150), child: child),
+                  // PNG kullanıcının kendi dosyası (değişmez); monochrome için çizimde gri tonlanır (kırmızı/lacivert
+                  // vurgular nötrleşir) ve üstüne tema zemini bindirilir: desen çok düşük kontrastlı, mesajlar öne çıkar.
+                  return ColorFiltered(
+                    key: const ValueKey('chatWallpaperTone'),
+                    colorFilter: const ColorFilter.matrix(kChatWallpaperGray),
+                    child: Image.asset(
+                      chatWallpaperAssetPath(style, dark: dark),
+                      key: const ValueKey('chatWallpaperAsset'),
+                      fit: BoxFit.cover,
+                      alignment: Alignment.topCenter,
+                      cacheWidth: (w * dpr).round(),
+                      gaplessPlayback: true,
+                      color: t.bg.withValues(alpha: kChatWallpaperVeil),
+                      colorBlendMode: BlendMode.srcOver,
+                      errorBuilder: (c, e, st) => const SizedBox.shrink(),
+                      frameBuilder: (c, child, frame, sync) => sync
+                          ? child
+                          : AnimatedOpacity(opacity: frame == null ? 0 : 1, duration: reduced ? Duration.zero : const Duration(milliseconds: 150), child: child),
+                    ),
                   );
                 }),
               ),

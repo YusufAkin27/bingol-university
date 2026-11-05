@@ -138,12 +138,8 @@ class _MessageActionsOverlay extends StatelessWidget {
 
     void close([String? v]) => Navigator.of(context).pop(v);
 
-    final shadow = [
-      BoxShadow(
-          color: t.shadow.withValues(alpha: dark ? .35 : .12),
-          blurRadius: 12,
-          offset: const Offset(0, 3)),
-    ];
+    // Premium monochrome: gölge yok; yüzen paneller yüzey tonu + ince kenarlık + karartma ile ayrışır.
+    const shadow = <BoxShadow>[];
 
     // Rota Material/DefaultTextStyle atası taşımaz: olmazsa metinlerin altında sarı çift çizgi çıkar.
     return Material(
