@@ -313,15 +313,13 @@ class ForumNotifierTest {
         user(7, "F7", "tr");
         user(8, "F8", "tr");
         data.followers.put(100L, Set.of(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L));
-        for (long id : new long[] {4, 5, 6, 7, 8}) {
-            when(users.findAllById(any())).thenAnswer(inv -> {
-                java.util.List<User> out = new java.util.ArrayList<>();
-                for (Long uid : (Iterable<Long>) inv.getArgument(0)) {
-                    out.add(users.findById(uid).orElseThrow());
-                }
-                return out;
-            });
-        }
+        org.mockito.Mockito.doAnswer(inv -> {
+            java.util.List<User> out = new java.util.ArrayList<>();
+            for (Long uid : (Iterable<Long>) inv.getArgument(0)) {
+                out.add(users.findById(uid).orElseThrow());
+            }
+            return out;
+        }).when(users).findAllById(any());
         when(blocks.hiddenFrom(2L)).thenReturn(Set.of(6L)); // 6 engelli
         data.mutes.add("7:2"); // 7 yazari sessize almis
         pref(8, p -> p.setFollowedTopics(false)); // 8 takip bildirimini kapatmis
