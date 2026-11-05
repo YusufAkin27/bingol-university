@@ -27,6 +27,7 @@ TR_ONLY.add('admin-icerik.ts'); // PANEL-akademik-icerik
 TR_ONLY.add('admin-insan.ts'); // PANEL-insanlar
 TR_ONLY.add('admin-topluluk.ts'); // PANEL-topluluk
 TR_ONLY.add('admin-sys2.ts'); // PANEL-sistem-saglik
+TR_ONLY.add('admin-forum.ts'); // Kampus Forum yonetimi (yalniz Turkce)
 const problems = [];
 
 for (const f of readdirSync(join(root, 'tr')).filter((x) => x.endsWith('.ts') && !TR_ONLY.has(x))) {

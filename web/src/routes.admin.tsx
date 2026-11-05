@@ -67,6 +67,10 @@ const SettingsPage = lazy(() => import('./pages/admin/SettingsPage'));
 const AuditPage = lazy(() => import('./pages/admin/AuditPage'));
 const MessageAccessPage = lazy(() => import('./pages/admin/MessageAccessPage'));
 const RolesPage = lazy(() => import('./pages/admin/RolesPage'));
+const ForumReportsPage = lazy(() => import('./pages/admin/forum/ForumReportsPage'));
+const ForumTopicsPage = lazy(() => import('./pages/admin/forum/ForumTopicsPage'));
+const ForumActionsPage = lazy(() => import('./pages/admin/forum/ForumActionsPage'));
+const ForumCategoriesPage = lazy(() => import('./pages/admin/forum/ForumCategoriesPage'));
 const AdminNotFoundPage = lazy(() => import('./pages/admin/AdminNotFoundPage'));
 
 export default function AdminRoutes() {
@@ -135,6 +139,10 @@ export default function AdminRoutes() {
           <Route path="push/ops" element={<PushOpsPage />} />
           <Route path="events/applications" element={<EventApplicationsPage />} />
           <Route path="communities/audit" element={<ClubAuditPage />} />
+          <Route path="forum/reports" element={<ForumReportsPage />} />
+          <Route path="forum/topics" element={<ForumTopicsPage />} />
+          <Route path="forum/actions" element={<ForumActionsPage />} />
+          <Route path="forum/categories" element={<ForumCategoriesPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="audit" element={<AuditPage />} />
           <Route path="audit/message-access" element={<MessageAccessPage />} />

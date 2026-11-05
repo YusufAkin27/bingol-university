@@ -102,6 +102,22 @@ export const adminNav: AdminNavGroup[] = [
     ],
   },
   {
+    id: 'forum',
+    labelKey: 'admin.forum.nav.group',
+    items: [
+      { id: 'forumReports', perm: 'forum.read', to: paths.admin.forumReports, labelKey: 'admin.forum.nav.reports', icon: 'flag' },
+      { id: 'forumTopics', perm: 'forum.read', to: paths.admin.forumTopics, labelKey: 'admin.forum.nav.topics', icon: 'message' },
+      { id: 'forumActions', perm: 'forum.read', to: paths.admin.forumActions, labelKey: 'admin.forum.nav.actions', icon: 'clipboard' },
+      {
+        id: 'forumCategories',
+        perm: 'forum.categories',
+        to: paths.admin.forumCategories,
+        labelKey: 'admin.forum.nav.categories',
+        icon: 'tag',
+      },
+    ],
+  },
+  {
     id: 'academic',
     labelKey: 'admin.nav.group.academic',
     items: [

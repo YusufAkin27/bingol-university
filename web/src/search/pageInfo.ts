@@ -211,4 +211,20 @@ export const pageInfo: Record<string, PageInfo> = {
     d: 'Mesajların şifrelenme durumu ve anahtar bilgisi.',
     k: ['şifreleme', 'anahtar', 'şifre döndür', 'encrypt', 'mesaj şifresi', 'güvenlik', 'master key'],
   },
+  forumReports: {
+    d: 'Forumdaki konulara ve yorumlara gelen şikâyetler: incele, kaldır, yoksay.',
+    k: ['forum', 'şikâyet', 'tartışma', 'yorum şikâyeti', 'konu şikâyeti', 'anonim', 'moderasyon', 'kampüs forum'],
+  },
+  forumTopics: {
+    d: 'Forum konularını bul; sabitle, yorumlara kapat, kaldır ya da geri al.',
+    k: ['forum', 'konu', 'tartışma', 'sabitle', 'kilitle', 'konu ara', 'kampüs forum', 'başlık'],
+  },
+  forumActions: {
+    d: 'Forumda moderatörlerin yaptığı işlemlerin gerekçeli kaydı.',
+    k: ['forum', 'işlem kaydı', 'moderasyon kaydı', 'log', 'kim kaldırdı', 'denetim', 'gerekçe'],
+  },
+  forumCategories: {
+    d: 'Forum kategorilerini ekle, düzenle, sırala ya da arşivle.',
+    k: ['forum', 'kategori', 'gündem', 'yemekhane', 'sırala', 'arşivle', 'kampüs forum'],
+  },
 };
