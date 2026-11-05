@@ -101,7 +101,8 @@ public class ProfileService {
         User u = get(targetId);
         boolean self = viewerId.equals(targetId);
         // E-postasi dogrulanmamis (ertelenmis) hesap baskalarina gorunmez; sahibi kendi profilini gorur
-        if (!u.isActive() || (!self && !u.isEmailVerified())) {
+        // Profili tamamlanmamis (OAuth ile yeni acilan) hesap da baskalarina gorunmez (onboarding bitene kadar)
+        if (!u.isActive() || (!self && (!u.isEmailVerified() || !u.isProfileCompleted()))) {
             throw new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Kullanıcı bulunamadı.");
         }
         if (!self && blocks.isBlocked(viewerId, targetId)) {
@@ -413,9 +414,22 @@ public class ProfileService {
         // FIX-P08 (A01#11): bcrypt dogrulamasi (yavas) ve on kontroller ISLEM DISINDA; yalniz anonimlestirme kisa bir
         // islemde calisir (Hikari baglantisi ve PostgreSQL oturumu bcrypt boyunca "idle in transaction" kalmaz).
         User u = get(id);
-        if (!encoder.matches(password, u.getPasswordHash())) {
+        // Parolasiz (yalniz OAuth) hesapta parola yolu kapali: silme deleteAccountReauthenticated ile (saglayici token'i)
+        if (password == null || !encoder.matches(password, u.getPasswordHash())) {
             throw new ApiException(HttpStatus.FORBIDDEN, "WRONG_PASSWORD", "Şifre hatalı.");
         }
+        deleteVerified(id, u);
+    }
+
+    /**
+     * Yeniden dogrulama (parola ya da OAuth saglayici token'i) CAGIRANDA yapildiktan sonra hesabi siler; ayni on
+     * kontroller (yonetici kendini silemez, acik sikayet bekletmesi) ve anonimlestirme.
+     */
+    public void deleteAccountReauthenticated(Long id) {
+        deleteVerified(id, get(id));
+    }
+
+    private void deleteVerified(Long id, User u) {
         // Yonetici kendini silemez (T-002): once baska bir yonetici rolunu dusurmeli (panelde son yonetici/son FULL
         // korumasi orada isler); ADMIN_EMAILS hesaplari rol dusurulemedigi icin hic silemez.
         if (u.getRole() == Role.ADMIN || (adminProps != null && adminProps.isAdminEmail(u.getEmail()))) {
@@ -527,6 +541,12 @@ public class ProfileService {
         u.setGrade(null);
         u.setBio(null);
         u.setAvatarUrl(null);
+        // Onboarding/OAuth alanlari (kisisel veri): ad-soyad, kullanici adi (alan bos kalir, baskasi alabilir), universite
+        u.setFirstName(null);
+        u.setLastName(null);
+        u.setUsername(null);
+        u.setUsernameSetAt(null);
+        u.setUniversityName(null);
         u.setShowEmail(false);
         // Silinen hesapta yonetici yetkisi kalmasin (T-002): panelden/yanlis geri aciliste bile rol tasinmaz.
         u.setRole(Role.USER);

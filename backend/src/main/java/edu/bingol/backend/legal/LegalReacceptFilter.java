@@ -63,7 +63,8 @@ public class LegalReacceptFilter extends OncePerRequestFilter {
             }
         }
         // Hesap silme (DELETE /api/users/me) ve veri indirme: kullanici hakki, her zaman serbest
-        return !(uri.equals("/api/users/me") || uri.startsWith("/api/users/me/export"));
+        // Profil tamamlama (OAuth ile yeni hesap): sozlesme onayi onboarding govdesinde (acceptTerms) de alinir; kapi bunu engellememeli
+        return !(uri.equals("/api/users/me") || uri.startsWith("/api/users/me/export") || uri.equals("/api/users/me/onboarding"));
     }
 
     @Override

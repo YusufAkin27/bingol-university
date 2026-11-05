@@ -32,6 +32,35 @@ public class User {
     @Column(nullable = false, length = 80)
     private String displayName;
 
+    /** Ad / soyad (profil tamamlama; kullanici beyani). Eski hesaplarda null: gorunen ad tek alandi. */
+    @Column(length = 60)
+    private String firstName;
+
+    @Column(length = 60)
+    private String lastName;
+
+    /**
+     * Benzersiz kullanici adi: 3-24 karakter, yalniz kucuk harf/rakam/nokta/alt cizgi (buyuk-kucuk harf duyarsizligi
+     * KUCUK HARFE normallestirilerek saglanir; benzersiz indeks bu sutundadir). Eski hesaplarda null (sonradan atanir).
+     */
+    @Column(length = 24, unique = true)
+    private String username;
+
+    /** Kullanici adinin son atanma/degisim ani (degisim bekleme suresi icin). */
+    private Instant usernameSetAt;
+
+    /** Kullanici beyani universite adi (null = Bingol Universitesi varsayilani). Dogrulanmis ogrenci anlamina GELMEZ. */
+    @Column(length = 120)
+    private String universityName;
+
+    /**
+     * Profil tamamlanma ani. null = tamamlanmadi: yazma uclari 403 PROFILE_INCOMPLETE (ProfileIncompleteWriteFilter).
+     * DB varsayilani now(): ham INSERT yazan betikler/eski yollar kilitlenmesin; yalniz OAuth ile acilan hesap bilincli
+     * null yazar. Migration mevcut tum kullanicilar icin created_at atar.
+     */
+    @ColumnDefault("CURRENT_TIMESTAMP")
+    private Instant profileCompletedAt = Instant.now(); // yeni User() varsayilan TAMAM; OAuth yolu bilincli null yazar
+
     private boolean emailVerified;
 
     /**
@@ -114,5 +143,21 @@ public class User {
 
     public boolean isActive() {
         return status == UserStatus.ACTIVE;
+    }
+
+    /** OAuth ile acilan hesabin parola alani: bcrypt bicimine uymaz, matches() daima false doner (parola girisi kapali). */
+    public static final String NO_PASSWORD_PREFIX = "!oauth:";
+
+    /** Kullanilabilir bir parola ozeti var mi: "!" ile baslayan isaretler (OAuth "!oauth:", silinmis "!deleted:") parola DEGILDIR. */
+    public static boolean hasUsablePassword(String hash) {
+        return hash != null && !hash.isEmpty() && !hash.startsWith("!");
+    }
+
+    public boolean hasPassword() {
+        return hasUsablePassword(passwordHash);
+    }
+
+    public boolean isProfileCompleted() {
+        return profileCompletedAt != null;
     }
 }

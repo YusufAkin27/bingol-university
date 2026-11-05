@@ -77,6 +77,8 @@ public class AccountDataPurger {
             "DELETE FROM follow_request WHERE target_id = ?",
             // 2FA: guvenilen cihaz ozetleri (kisisel veri: cihaza bagli HMAC ozeti + platform/surum etiketi)
             "DELETE FROM two_factor_device WHERE user_id = ?",
+            // Google/Apple kimlik baglari (saglayici sub + e-posta = kisisel veri); Apple token iptali (revoke) bu surumde yok
+            "DELETE FROM auth_identity WHERE user_id = ?",
             // Kampus Forum (E): bildirim tercihi ve bildirim tekrar defteri (eden / alici kimlikleri)
             "DELETE FROM forum_notification_pref WHERE user_id = ?",
             "DELETE FROM forum_notify_seen WHERE actor_id = ?",
@@ -218,6 +220,7 @@ public class AccountDataPurger {
      * migration'lari tarar: yeni bir {@code *email*}/{@code to_address} sutunu burada yoksa test KIRMIZI olur.
      */
     public static final Map<String, String> EMAIL_KEYED = Map.ofEntries(
+            Map.entry("auth_identity.email", "DELETES: auth_identity satiri hesap silinince silinir (saglayici kimligi + e-posta)"),
             Map.entry("support_ticket.contact_email", "EMAIL_SCRUBS: adresle eslesen herkese acik talep temizlenir"),
             Map.entry("mail_outbox.to_address", "MAIL_BY_ADDRESS: kuyruktaki bekleyen kayitlar adresle silinir; 30 gun saklama politikasi"),
             Map.entry("mail_suppression.email_hash", "Posta bastirma listesi (bounce/sikayet): geri donuk gonderimi onlemek icin ozet kalir"),

@@ -141,6 +141,13 @@ services:
       # `VAR:` (degersiz) = .env'de TANIMLIYSA iletilir, degilse hic iletilmez (uygulamanin varsayilani gecerli; bos dize gecmez).
       # Smoke betikleri LEGAL_ENFORCE_REACCEPT=false ister. Tam liste: docker-compose.prod.yml backend.environment (T-144).
       LEGAL_ENFORCE_REACCEPT:
+      # Google/Apple ile giris (docs/OAUTH_SETUP.md): tanimsiz = KAPALI (OAuth uclari 404 OAUTH_DISABLED)
+      AUTH_OAUTH_ENABLED:
+      GOOGLE_CLIENT_IDS:
+      APPLE_CLIENT_IDS:
+      AUTH_OAUTH_REQUIRE_TERMS:
+      AUTH_PASSWORD_SIGNUPS_NEED_ONBOARDING:
+      AUTH_PROFILE_GATE_ENABLED:
       # FINAL-ALL: tanimsiz = varsayilan; duman/yerel ayarlari (bkz. CLAUDE.md "Duman betikleri")
       APP_CHAT_RECEIPTS_MAX_MEMBERS:
       APP_CHAT_RECEIPTS_ROOMS:

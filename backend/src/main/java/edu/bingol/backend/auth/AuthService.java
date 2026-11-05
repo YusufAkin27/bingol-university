@@ -543,7 +543,9 @@ public class AuthService {
         // Hesap yoksa bekleyen (dogrulanmamis) kaydin ozetiyle karsilastirilir; ikisi de yoksa sahte ozet (sure esit).
         Pending waiting = user == null ? pending.find(email) : null;
         String hash = user != null ? user.getPasswordHash() : (waiting != null ? waiting.passwordHash() : dummyHash);
-        boolean passwordOk = encoder.matches(password, hash);
+        // OAuth ile acilmis hesabin parolasi yok (bcrypt olmayan isaret): sure esit kalsin diye sahte ozetle karsilastirilir
+        boolean passwordless = user != null && !User.hasUsablePassword(hash);
+        boolean passwordOk = encoder.matches(password, passwordless ? dummyHash : hash) && !passwordless;
         if (!passwordOk || (user == null && waiting == null)) {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "E-posta veya şifre hatalı.");
         }
@@ -557,10 +559,21 @@ public class AuthService {
             throw new ApiException(HttpStatus.FORBIDDEN, "EMAIL_NOT_VERIFIED",
                     "Giriş için önce e-posta adresinizi doğrulayın.");
         }
+        return finishLogin(user, client, ctx, "/api/auth/login", true);
+    }
+
+    /**
+     * Kimlik kaniti (parola ya da dogrulanmis OAuth saglayici kimligi) gectikten SONRAKI ortak giris adimlari: hesap
+     * durumu, erisim engeli, (istenirse) yonetici terfisi, 2FA, cihaz gunlugu, tek cihaz kurali ve jeton uretimi.
+     * OAuth girisi yonetici terfisi YAPMAZ ({@code promoteAdmin=false}): ADMIN_EMAILS terfisi yalniz e-posta kodu/parola
+     * yolunda; OAuth ile yeni acilan hesap kendiliginden yonetici olmaz. 2FA'li hesapta OAuth girisi de
+     * {@link TwoFactorRequiredException} (202) akisina girer.
+     */
+    public TokenResponse finishLogin(User user, String client, ClientContext ctx, String path, boolean promoteAdmin) {
         requireActive(user);
         // Sifre dogru olduktan sonra kontrol: yanlis sifreyle engel durumu sizdirilmaz
-        requireNotBlocked(ctx, user.getId(), "/api/auth/login");
-        if (promoteIfAdmin(user)) {
+        requireNotBlocked(ctx, user.getId(), path);
+        if (promoteAdmin && promoteIfAdmin(user)) {
             users.save(user);
         }
         String c = RefreshTokenService.normalizeClient(client);

@@ -92,6 +92,14 @@ public class StompAuthInterceptor implements ChannelInterceptor {
         this.redis = redis;
     }
 
+    /** Profil tamamlama kapisi (opsiyonel baglanti): tamamlanmamis profil STOMP uzerinden de gonderemez. */
+    private edu.bingol.backend.auth.ProfileCompletionGate profileGate;
+
+    @Autowired(required = false)
+    void setProfileGate(edu.bingol.backend.auth.ProfileCompletionGate profileGate) {
+        this.profileGate = profileGate;
+    }
+
     /** Erisim engeli (opsiyonel baglanti: testlerde kurulmaz). */
     @Autowired(required = false)
     void setAccessControls(AccessGuard guard, ClientContexts contexts) {
@@ -130,6 +138,9 @@ public class StompAuthInterceptor implements ChannelInterceptor {
                 }
                 if (Boolean.TRUE.equals(redis.hasKey(JwtAuthFilter.SUSPENDED_KEY_PREFIX + uid))) {
                     throw new Rejected("SUSPENDED");
+                }
+                if (profileGate != null && profileGate.isIncomplete(uid)) {
+                    throw new Rejected("PROFILE_INCOMPLETE");
                 }
             }
             case SUBSCRIBE -> {

@@ -191,6 +191,13 @@ services:
       OPENAPI_DOCS_ENABLED:
       AUTH_VERIFY_REQUIRES_PASSWORD:
       LEGAL_ENFORCE_REACCEPT:
+      # Google/Apple ile giris (docs/OAUTH_SETUP.md): tanimsiz = KAPALI (OAuth uclari 404 OAUTH_DISABLED)
+      AUTH_OAUTH_ENABLED:
+      GOOGLE_CLIENT_IDS:
+      APPLE_CLIENT_IDS:
+      AUTH_OAUTH_REQUIRE_TERMS:
+      AUTH_PASSWORD_SIGNUPS_NEED_ONBOARDING:
+      AUTH_PROFILE_GATE_ENABLED:
       MAX_DEVICES_PER_USER:
       # FINAL-ALL (hepsi tanimsiz = bugunku/eski istemci uyumlu davranis; tanimlanirsa iletilir): makbuz/yaziyor kapatma
       # (eski mobil surumler elendikten sonra), menu gunluk yakalama cron'u (CLAUDE.md scraping kurali: sahibin karari),

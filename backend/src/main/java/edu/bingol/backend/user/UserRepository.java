@@ -26,6 +26,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmail(String email);
 
+    /** Kullanici adi KUCUK harfe normallestirilmis saklanir (benzersiz indeks bu degerde). */
+    Optional<User> findByUsername(String username);
+
     long countByStatus(UserStatus status);
 
     long countByRoleAndStatus(Role role, UserStatus status);
@@ -62,6 +65,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * LIKE kacisli (\, %, _) gelir; q = kacissiz katlanmis tam sorgu (esitlik icin).
      */
     @Query(value = "SELECT u.* FROM app_user u WHERE u.status = 'ACTIVE' AND u.email_verified = TRUE AND u.deleted_at IS NULL "
+            + "AND u.profile_completed_at IS NOT NULL "
             + "AND u.id NOT IN (:excluded) "
             + "AND " + NAME_FOLD + " LIKE concat('%', :t1, '%') ESCAPE '\\' "
             + "AND " + NAME_FOLD + " LIKE concat('%', :t2, '%') ESCAPE '\\' "

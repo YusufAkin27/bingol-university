@@ -195,6 +195,50 @@ WebSocket: el sıkışma isteğine aynı başlıklar eklenebilir; STOMP `CONNECT
 
 **`403 ACCESS_BLOCKED`** (`{"code":"ACCESS_BLOCKED","message":"…"}`): bu cihaza/ağa/hesaba erişim kapatılmıştır; sebep verilmez. Her uçta gelebilir (anonim uçlar dahil). İstemci: yenilemeyi **denemez**, oturumu yerelde siler (token + önbellek), tam ekran "erişim kapatıldı" ekranı gösterir (yazı `message`ten), WebSocket'i yeniden bağlamaz. Açık WebSocket'teyken sunucu `/user/queue/message-events` ile `{type:"access-blocked"}` gönderir ve bağlantıyı `ACCESS_BLOCKED` kapanış gerekçesiyle kapatır (`session-replaced` ile karıştırmayın; ondaki gibi yeniden giriş önerilmez). Başlıkları eklemeyen eski istemcilerde yalnızca IP ve hesap engeli çalışır.
 
+### 1.10 Google / Apple ile giriş ve profil tamamlama (onboarding)
+
+> **Özellik bayrağı:** sunucuda `AUTH_OAUTH_ENABLED` (varsayılan **kapalı**). Kapalıyken tüm `/api/auth/oauth/**` uçları `404 {"code":"OAUTH_DISABLED"}` döner: istemci bu kodu alırsa Google/Apple düğmelerini gizler (ya da "şu an kullanılamıyor" gösterir). Sunucu yapılandırması [OAUTH_SETUP.md](OAUTH_SETUP.md); ayrıntılı kurallar `docs/changes/auth.md`.
+
+**Okul e-postası zorunluluğu yoktur**; e-posta + şifre kaydı/girişi aynen sürer. Google/Apple ile giriş **kayıt ve giriş için aynı uçtur** (sunucu sağlayıcı kimliğinden yeni/mevcut kararını verir).
+
+**Akış**
+1. İstemci sağlayıcıdan token alır: Google **ID token** (`google_sign_in`, `serverClientId` = Web istemci kimliği), Apple **identityToken** + kendi ürettiği **ham `nonce`** (Apple'a `sha256(ham)` **hex** olarak verilir; sunucuya `nonce` alanında HAM değer gider).
+2. `POST /api/auth/oauth/google` `{"idToken","deviceName?","client?"}` ya da `POST /api/auth/oauth/apple` `{"identityToken","nonce","firstName?","lastName?","deviceName?","client?"}`. Apple adı yalnız **ilk** yetkilendirmede gelir: istemci o anda `firstName/lastName` gönderirse sunucu yeni hesapta saklar (sonraki girişlerde göndermeyin/boş gönderin). `client` verilmezse `mobile` sayılır (tek cihaz kuralı: başka cihazdaki mobil oturum düşer).
+3. **200** `{accessToken, refreshToken, expiresInSeconds, tokenType, profileCompleted, isNewUser}` (jeton alanları normal girişle aynı; saklama/yenileme 1.4-1.5). Hesabın **2FA'sı açıksa 202** + normal 2FA challenge (`POST /api/auth/login/2fa` ile tamamlanır; o yanıtta `profileCompleted` yoktur, `GET /api/users/me` okuyun).
+4. `profileCompleted=true` -> ana sayfa. `false` -> **profil tamamlama ekranı**; sunucu bunu zorlar: `profileCompleted=false` iken GET'ler (okuma) çalışır ama tüm **yazma/etkileşim uçları `403 PROFILE_INCOMPLETE`** döner (STOMP `SEND` dahil). İstemci bu kodu da onboarding ekranına yönlendirme işareti olarak ele almalıdır.
+5. Onboarding ekranı: `GET /api/catalog/academic` (fakülte/bölüm/sınıf listesi, 1.8) + `GET /api/users/username-available?u=` (musaitlik, dakikada 30; yalnız oturumlu) + isteğe bağlı fotoğraf `POST /api/users/me/avatar` (onboarding sırasında serbest) -> `PUT /api/users/me/onboarding`.
+6. Çıkış/hesap silme/cihaz kaydı (`/api/devices`) onboarding bitmeden de çalışır.
+
+**`PUT /api/users/me/onboarding`**
+```json
+{"firstName":"Ayşe","lastName":"Yılmaz","username":"ayse.yilmaz","universityName":null,
+ "facultyId":"muhendislik","departmentId":"bilgisayar-muhendisligi","classYear":"Y2",
+ "bio":"isteğe bağlı kısa metin","acceptTerms":true}
+```
+- `universityName` boş = Bingöl Üniversitesi (fakülte/bölüm katalogla doğrulanır, geçersiz = `422 ACADEMIC_INVALID`); başka üniversitede fakülte/bölüm serbest metin (`facultyName`/`departmentName`). Fakülte: `facultyId` **ya da** `facultyName`; bölüm: `departmentId` **ya da** `departmentName`. `classYear`: `PREP | Y1..Y6 | POSTGRAD | MASTER | PHD | OTHER`; `OTHER` dışında fakülte+bölüm zorunlu (`422 PROFILE_FIELD_REQUIRED {field}`).
+- `username`: 3-24 karakter, `[a-z0-9._]`, harfle başlar, ardışık nokta/alt çizgi yok, büyük/küçük harf duyarsız (küçük harfe çevrilip saklanır). Hatalar: `422 USERNAME_INVALID`, `422 USERNAME_RESERVED`, `422 CONTENT_PROFANITY {field:"username"}`, **`409 USERNAME_TAKEN {field:"username"}`** (eşzamanlı çift alım dahil; kullanıcıya başka ad seçtirin, profil tamamlanmamış kalır).
+- **`acceptTerms:true` gönderin** (kayıt sözleşmelerinin kabulü; onay kaydı sunucuda yazılır). Göndermezseniz ve `GET /api/legal/acceptance-status` bekleyen onay gösteriyorsa `400 TERMS_REQUIRED`. Onay ekranı olarak mevcut sözleşme akışını (`/api/legal`) kullanın.
+- Yanıt `200 {"profileCompleted":true,"user":{ProfileView}}`. **Idempotent:** tamamlanmış hesapta tekrar çağrı mevcut veriyi ezmez, aynı sonucu döner (ağ kopmasında güvenle yeniden deneyin). Alanlar **kullanıcı beyanıdır**: arayüzde "doğrulanmış öğrenci" gibi gösterilmez.
+- Tamamlandıktan sonra düzenleme: `PATCH /api/users/me` (ad, fakülte, bölüm, sınıf, biyografi), kullanıcı adı `PUT /api/users/me/username` `{"username"}` (30 günde bir değişim; **eski kullanıcılara kullanıcı adı boştur**, isteğe bağlı atanabilir).
+
+**`GET /api/users/me`** yanıtına eklendi: `profileCompleted` (bool; eski kullanıcılar `true`), `username` (varsa), `firstName`, `lastName`, `universityName`, `authProviders` (`["GOOGLE","APPLE"]`; yalnız bu uçta). **Soğuk açılışta** `profileCompleted=false` ise doğrudan onboarding ekranı açın.
+
+**Hata kodları (giriş)**
+| Kod | HTTP | İstemci davranışı |
+|---|---|---|
+| `OAUTH_DISABLED` | 404 | sağlayıcı düğmelerini gizle |
+| `OAUTH_TOKEN_INVALID` | 400 | imza/aud/iss/süre/nonce hatası: "Giriş doğrulanamadı", yeniden dene |
+| `OAUTH_EMAIL_UNVERIFIED` | 403 | Google hesabının e-postası doğrulanmamış |
+| `OAUTH_EMAIL_MISSING` | 400 | Apple e-posta vermedi ve hesap yok: kullanıcıya "e-posta paylaşımına izin verin/başka yöntem" |
+| **`OAUTH_LINK_REQUIRED`** | 409 | gövde `{code,message,provider,emailMasked}`: **otomatik birleştirme yok**. "`emailMasked` ile kayıtlı hesap var; önce e-posta ve şifrenizle girin, sonra bağlayın" ekranı. |
+| `ACCOUNT_SUSPENDED`, `ACCESS_BLOCKED`, `429` | | normal giriş gibi |
+
+**Hesap bağlama (güvenlik ekranı)**: `GET /api/auth/oauth/identities` -> `[{provider,email,emailPrivate,linkedAt}]`; `POST /api/auth/oauth/link` `{"provider":"GOOGLE"|"APPLE","token","nonce?","password"}` (oturum açık; **mevcut şifre yeniden doğrulanır**; parolasız hesapta `password` yerine bağlı sağlayıcının taze token'ı: `reauthProvider/reauthToken/reauthNonce`) -> `200 {"linked":true}`, hatalar `403 WRONG_PASSWORD`, `403 OAUTH_REAUTH_REQUIRED`, `409 OAUTH_IDENTITY_TAKEN` (bu hesap başka kullanıcıya bağlı), `409 OAUTH_PROVIDER_ALREADY_LINKED`; `DELETE /api/auth/oauth/link/{google|apple}` -> `200 {"linked":false}`, `409 OAUTH_LAST_LOGIN_METHOD` (parolası olmayan hesapta tek giriş yöntemi; önce `forgot-password` ile şifre belirletin).
+
+**Parolasız hesap**: OAuth ile açılan hesabın parolası yoktur; e-posta+şifre girişi `401 INVALID_CREDENTIALS` döner. Sonradan parola için mevcut şifre sıfırlama (1.7) kullanılır.
+
+**Hesap silme (`DELETE /api/users/me`)**: parolalı hesap `{"password"}` (eskisi gibi); **parolasız hesap** `{"provider":"GOOGLE"|"APPLE","token","nonce?"}` ile bağlı sağlayıcıdan alınmış TAZE token gönderir (yeniden doğrulama). Not: Apple token iptali (revoke) bu sürümde yoktur (yapılandırma bekliyor); Apple tarafındaki erişim Ayarlar > Apple Kimliği'nden kaldırılabilir.
+
 ## 2. Dil (Accept-Language) ve çok dillilik
 - Her istekte `Accept-Language` gönderin (uygulama dili). Sunucu `error.<KOD>` anahtarını bu dilde çevirir; çeviri yoksa Türkçe varsayılan metin döner.
 - Arayüz metinleri istemcide çevrilir; **içerik kaynaklı metinler** (haber başlığı, yemek adı) çevrilmez.

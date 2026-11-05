@@ -118,12 +118,38 @@ public class ProdSettingsValidator {
         }
 
         validateInfraHardening(env, errors, warnings);
+        validateOAuth(env, errors, warnings);
 
         if (!hasFcmCredentials(env)) {
             warnings.add("FCM kimlik bilgisi yok: push bildirimleri gonderilmez (uygulama ici bildirimler calisir)");
         }
         validateOpsWarnings(env, warnings);
         return new Result(errors, warnings);
+    }
+
+    /**
+     * Google/Apple ile giris: bayrak ACIKKEN en az bir saglayicinin istemci kimlik listesi (aud beyaz listesi) dolu
+     * olmali; ikisi de bos ise acilis REDDEDILIR (bos liste HICBIR token'i gecirmez: ozellik acik gorunup calismaz).
+     * Yalniz biri bos ise o saglayici girisi tum token'lari reddeder (UYARI). Bayrak kapaliyken denetlenmez.
+     */
+    static void validateOAuth(Environment env, List<String> errors, List<String> warnings) {
+        if (!env.getProperty("app.auth.oauth.enabled", Boolean.class, false)) {
+            return;
+        }
+        boolean google = hasAny(env.getProperty("app.auth.oauth.google-client-ids", ""));
+        boolean apple = hasAny(env.getProperty("app.auth.oauth.apple-client-ids", ""));
+        if (!google && !apple) {
+            errors.add("AUTH_OAUTH_ENABLED=true iken GOOGLE_CLIENT_IDS ve/veya APPLE_CLIENT_IDS zorunlu (virgullu istemci "
+                    + "kimlikleri; docs/OAUTH_SETUP.md)");
+        } else if (!google) {
+            warnings.add("GOOGLE_CLIENT_IDS bos: Google ile giris tum token'lari reddeder (docs/OAUTH_SETUP.md)");
+        } else if (!apple) {
+            warnings.add("APPLE_CLIENT_IDS bos: Apple ile giris tum token'lari reddeder (docs/OAUTH_SETUP.md)");
+        }
+    }
+
+    private static boolean hasAny(String csv) {
+        return countAddresses(csv) > 0;
     }
 
     /**

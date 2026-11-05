@@ -23,34 +23,52 @@ public final class ProfileDtos {
                               @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Long likesReceived,
                               @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Integer postCount,
                               @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Long reelCount,
-                              boolean emailVerified, boolean verificationDeferred) {
+                              boolean emailVerified, boolean verificationDeferred,
+                              boolean profileCompleted,
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String username,
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String firstName,
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String lastName,
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String universityName,
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) List<String> authProviders) {
         /** avatarHidden ve populerlik alanlari yok (null): yalnizca GET /users/me doldurur. */
         public static ProfileView of(User u) {
             return new ProfileView(u.getId(), u.getEmail(), u.getDisplayName(), u.getFaculty(), u.getDepartment(),
                     u.getClassYear(), u.getBio(), u.getAvatarUrl(), u.isShowEmail(), u.getRole(), u.getLanguage(),
                     u.getCreatedAt().toString(), u.getGrade(), null, null, null, null, null, null,
-                    u.isEmailVerified(), u.isVerificationDeferred() && !u.isEmailVerified());
+                    u.isEmailVerified(), u.isVerificationDeferred() && !u.isEmailVerified(),
+                    u.isProfileCompleted(), u.getUsername(), u.getFirstName(), u.getLastName(), u.getUniversityName(), null);
+        }
+
+        /** Bagli giris saglayicilari (GOOGLE, APPLE; yalniz GET /users/me doldurur; parola ile giris her zaman vardir). */
+        public ProfileView withAuthProviders(List<String> providers) {
+            return new ProfileView(id, email, displayName, faculty, department, classYear, bio, avatarUrl, showEmail,
+                    role, language, createdAt, grade, avatarHidden, popularityScore, followerCount, likesReceived,
+                    postCount, reelCount, emailVerified, verificationDeferred, profileCompleted, username, firstName,
+                    lastName, universityName, providers);
         }
 
         /** Profil fotografi moderasyonla gizlendi mi (mobil bilgi karti). */
         public ProfileView withAvatarHidden(boolean hidden) {
             return new ProfileView(id, email, displayName, faculty, department, classYear, bio, avatarUrl, showEmail,
                     role, language, createdAt, grade, hidden, popularityScore, followerCount, likesReceived, postCount, reelCount,
-                    emailVerified, verificationDeferred);
+                    emailVerified, verificationDeferred, profileCompleted, username, firstName, lastName, universityName,
+                    authProviders);
         }
 
         /** Populerlik puani (0..100) ve bilesenleri: takipci, alinan toplam begeni, gonderi sayisi (gercek sayilar). */
         public ProfileView withPopularity(int score, int followers, long likes, int posts) {
             return new ProfileView(id, email, displayName, faculty, department, classYear, bio, avatarUrl, showEmail,
                     role, language, createdAt, grade, avatarHidden, score, followers, likes, posts, reelCount,
-                    emailVerified, verificationDeferred);
+                    emailVerified, verificationDeferred, profileCompleted, username, firstName, lastName, universityName,
+                    authProviders);
         }
 
         /** Reels (video gonderi) sayisi (KS-BE2; yalniz GET /users/me doldurur). */
         public ProfileView withReelCount(long reels) {
             return new ProfileView(id, email, displayName, faculty, department, classYear, bio, avatarUrl, showEmail,
                     role, language, createdAt, grade, avatarHidden, popularityScore, followerCount, likesReceived,
-                    postCount, reels, emailVerified, verificationDeferred);
+                    postCount, reels, emailVerified, verificationDeferred, profileCompleted, username, firstName,
+                    lastName, universityName, authProviders);
         }
     }
 
@@ -170,7 +188,13 @@ public final class ProfileDtos {
                                        Boolean showEmail,
                                        @Pattern(regexp = "tr|en|ar") String language) {}
 
-    public record DeleteAccountRequest(@NotBlank String password) {}
+    /**
+     * Hesap silme yeniden dogrulamasi: parolasi olan hesapta `password` zorunlu. Parolasiz (yalniz OAuth) hesapta
+     * `provider` + `token` (+ Apple icin `nonce`) ile bagli saglayicinin TAZE token'i gerekir.
+     */
+    public record DeleteAccountRequest(@Size(max = 72) String password,
+                                       @Pattern(regexp = "(?i)google|apple") String provider,
+                                       @Size(max = 8192) String token, @Size(max = 256) String nonce) {}
 
     /** nextCursor null ise baska sayfa yok; devam icin `?cursor=<nextCursor>`. */
     public record UserSearchResult(List<PublicProfile> items, Long nextCursor) {}
