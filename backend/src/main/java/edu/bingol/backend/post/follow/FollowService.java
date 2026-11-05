@@ -307,10 +307,14 @@ public class FollowService {
 
     /** Onerilen aday ust siniri (kulup arkadasi ve bolum havuzu ayri ayri); sorgu maliyetini kullanici sayisindan ayirir. */
     static final int SUGGESTION_POOL = 300;
-    /** Onbellege alinan sirali aday sayisi (en fazla 20 istenir; takip/engel sonradan suzuldugu icin pay birakilir). */
-    private static final int SUGGESTION_CACHE_ROWS = 40;
+    /** Onbellege alinan sirali aday sayisi = sayfalamanin toplam ust siniri (takip/engel sonradan suzulur, pay icinde). */
+    static final int SUGGESTION_CACHE_ROWS = 200;
+    /** Sayfa basina en cok oneri. */
+    static final int SUGGESTION_MAX_SIZE = 50;
+    /** Profil eslemesi bu boyda parcalarla yapilir (sayfa dolunca durur; sayfa 0 icin 200 profil cekilmez). */
+    private static final int SUGGESTION_PROFILE_BATCH = 50;
     private static final long SUGGESTION_TTL_MS = 15 * 60_000L;
-    private static final int SUGGESTION_CACHE_MAX = 5_000;
+    private static final int SUGGESTION_CACHE_MAX = 2_000;
 
     private record CachedRows(long at, List<Object[]> rows) {}
 
@@ -328,13 +332,33 @@ public class FollowService {
         }
     }
 
-    /** Ortak kulup, ayni bolum+sinif, ayni bolum; takip edilenler ve engel iliskileri haric. */
+    /** Sayfalanmis oneri yaniti: ogeler + sonrasinda baska oneri var mi (`X-Has-More`). */
+    public record SuggestionPage(List<Suggestion> items, boolean hasMore) {}
+
+    /** Geriye uyumlu: ilk sayfa (sayfa 0). */
     @Transactional(readOnly = true)
     public List<Suggestion> suggestions(Long me, int size) {
-        int n = size <= 0 ? 10 : Math.min(size, 20);
+        return suggestionsPage(me, 0, size).items();
+    }
+
+    /**
+     * Ortak kulup, ayni bolum+sinif, ayni bolum; takip edilenler ve engel iliskileri haric.
+     * Sayfalama: sira kullanici basina onbellekli anlik goruntuden (tier, takipci sayisi, id) gelir; sabit sirada
+     * `page * size` ogeyi atlar. Ust sinir {@value #SUGGESTION_CACHE_ROWS} oneri; tasan sayfa bos liste doner.
+     * Not: bir kisi sayfalar arasinda takip edilirse listeden duser ve sonraki sayfa bir kayar (istemci id ile tekilleyin).
+     */
+    @Transactional(readOnly = true)
+    public SuggestionPage suggestionsPage(Long me, int page, int size) {
+        int n = size <= 0 ? 10 : Math.min(size, SUGGESTION_MAX_SIZE);
+        int pg = Math.max(page, 0);
+        long offsetL = (long) pg * n;
+        if (offsetL >= SUGGESTION_CACHE_ROWS) {
+            return new SuggestionPage(List.of(), false);
+        }
+        int offset = (int) offsetL;
         List<Object[]> rows = suggestionRows(me);
         if (rows.isEmpty()) {
-            return List.of();
+            return new SuggestionPage(List.of(), false);
         }
         // Onbellek bayatlamasin: sonradan takip edilen / engellenen adaylari okuma aninda ele (iki kucuk sorgu)
         List<Long> cachedIds = rows.stream().map(r -> (Long) r[0]).toList();
@@ -353,28 +377,35 @@ public class FollowService {
                 + ") UNION SELECT blocker_id FROM user_block WHERE blocked_id = ? AND blocker_id IN (" + in + ")",
                 Long.class, args));
         List<Object[]> kept = rows.stream().filter(r -> !skip.contains((Long) r[0])).toList();
-        if (kept.isEmpty()) {
-            return List.of();
-        }
-        List<Long> ids = kept.stream().map(r -> (Long) r[0]).toList();
-        Map<Long, PublicProfile> byId = new HashMap<>();
-        profiles.mapAll(me, users.findAllById(ids)).forEach(p -> byId.put(p.id(), p));
-        Map<Long, PrivateAccountGate.Relation> rel = gate == null ? Map.of() : gate.relations(me, ids);
-        List<Suggestion> out = new ArrayList<>();
-        for (Object[] r : kept) {
-            PublicProfile p = byId.get((Long) r[0]);
-            if (p == null || !reasonVisible((String) r[1], p)) {
-                continue;
+        // Sayfa + 1 gorunur oge bulunana dek parca parca esle (+1: hasMore icin)
+        int need = offset + n + 1;
+        List<Suggestion> visible = new ArrayList<>();
+        for (int from = 0; from < kept.size() && visible.size() < need; from += SUGGESTION_PROFILE_BATCH) {
+            List<Object[]> chunk = kept.subList(from, Math.min(kept.size(), from + SUGGESTION_PROFILE_BATCH));
+            List<Long> ids = chunk.stream().map(r -> (Long) r[0]).toList();
+            Map<Long, PublicProfile> byId = new HashMap<>();
+            profiles.mapAll(me, users.findAllById(ids)).forEach(p -> byId.put(p.id(), p));
+            Map<Long, PrivateAccountGate.Relation> rel = gate == null ? Map.of() : gate.relations(me, ids);
+            for (Object[] r : chunk) {
+                PublicProfile p = byId.get((Long) r[0]);
+                if (p == null || !reasonVisible((String) r[1], p)) {
+                    continue;
+                }
+                PrivateAccountGate.Relation rl = rel.get(p.id());
+                visible.add(new Suggestion(p.id(), p.displayName(), p.avatarUrl(), p.department(), (String) r[1],
+                        p.classYear(), rl == null ? null : rl.isPrivate(), rl == null ? null : rl.followState(),
+                        rl == null ? null : rl.locked()));
+                if (visible.size() >= need) {
+                    break;
+                }
             }
-            PrivateAccountGate.Relation rl = rel.get(p.id());
-            out.add(new Suggestion(p.id(), p.displayName(), p.avatarUrl(), p.department(), (String) r[1], p.classYear(),
-                    rl == null ? null : rl.isPrivate(), rl == null ? null : rl.followState(),
-                    rl == null ? null : rl.locked()));
-            if (out.size() >= n) {
-                break;
-            }
         }
-        return out;
+        if (visible.size() <= offset) {
+            return new SuggestionPage(List.of(), false);
+        }
+        int end = Math.min(visible.size(), offset + n);
+        boolean hasMore = visible.size() > end;
+        return new SuggestionPage(List.copyOf(visible.subList(offset, end)), hasMore);
     }
 
     /**

@@ -57795,6 +57795,15 @@
         "operationId" : "suggestions",
         "parameters" : [ {
           "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "default" : 0,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
           "name" : "size",
           "required" : false,
           "schema" : {
