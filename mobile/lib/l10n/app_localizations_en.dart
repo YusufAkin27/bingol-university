@@ -11082,4 +11082,235 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get calSyncWorking => 'Writing to calendar…';
+
+  @override
+  String get forumHomeA11y => 'Campus Forum';
+
+  @override
+  String get forumHomeHint => 'Where everyone on campus talks';
+
+  @override
+  String get forumHomeSearch => 'Search the forum';
+
+  @override
+  String get forumHomeNotifications => 'Notifications';
+
+  @override
+  String get forumHomeNewTopic => 'New topic';
+
+  @override
+  String get forumHomeSortTitle => 'Sort by';
+
+  @override
+  String get forumHomeSortForYou => 'For you';
+
+  @override
+  String get forumHomeSortNewest => 'Newest';
+
+  @override
+  String get forumHomeSortPopular => 'Popular';
+
+  @override
+  String get forumHomeSortMostCommented => 'Most commented';
+
+  @override
+  String get forumHomeSortFollowing => 'Following';
+
+  @override
+  String get forumHomeCategoryAll => 'All';
+
+  @override
+  String get forumHomeCategories => 'Categories';
+
+  @override
+  String get forumHomePinned => 'Pinned';
+
+  @override
+  String get forumHomeLocked => 'Locked';
+
+  @override
+  String get forumHomePoll => 'Poll';
+
+  @override
+  String get forumHomeEdited => 'edited';
+
+  @override
+  String forumHomeCommentsA11y(String n) {
+    return '$n comments';
+  }
+
+  @override
+  String forumHomeLikesA11y(String n) {
+    return '$n likes';
+  }
+
+  @override
+  String get forumHomeOpenComments => 'Open comments';
+
+  @override
+  String get forumHomeLike => 'Like';
+
+  @override
+  String get forumHomeUnlike => 'Unlike';
+
+  @override
+  String get forumHomeSave => 'Save';
+
+  @override
+  String get forumHomeUnsave => 'Remove from saved';
+
+  @override
+  String get forumHomeShare => 'Share';
+
+  @override
+  String get forumHomeMore => 'More actions';
+
+  @override
+  String get forumHomeMenuCopyLink => 'Copy link';
+
+  @override
+  String get forumHomeMenuReport => 'Report';
+
+  @override
+  String get forumHomeMenuMute => 'Mute user';
+
+  @override
+  String get forumHomeMenuBlock => 'Block author';
+
+  @override
+  String get forumHomeBlockTitle => 'Block this author?';
+
+  @override
+  String get forumHomeBlockBody =>
+      'This author\'s topics and comments will be hidden from you. If the author is anonymous, their identity stays hidden.';
+
+  @override
+  String get forumHomeBlockConfirm => 'Block';
+
+  @override
+  String get forumHomeMuteTitle => 'Mute this user?';
+
+  @override
+  String get forumHomeMuteBody =>
+      'Content from this user will be hidden from you. You can undo this at any time.';
+
+  @override
+  String get forumHomeMuteConfirm => 'Mute';
+
+  @override
+  String get forumHomeBlocked => 'Author blocked';
+
+  @override
+  String get forumHomeMuted => 'User muted';
+
+  @override
+  String get forumHomeLinkCopied => 'Link copied';
+
+  @override
+  String get forumHomeLikeFailed => 'Could not save your like';
+
+  @override
+  String get forumHomeSaveFailed => 'Could not save this topic';
+
+  @override
+  String get forumHomeEmptyTitle => 'No topics yet';
+
+  @override
+  String get forumHomeEmptyBody =>
+      'Start the first topic and get the campus talking.';
+
+  @override
+  String get forumHomeEmptyAction => 'Start a topic';
+
+  @override
+  String get forumHomeEmptyCategoryTitle => 'No topics in this category';
+
+  @override
+  String get forumHomeEmptyCategoryBody =>
+      'Try another category or start the first topic.';
+
+  @override
+  String get forumHomeEmptyFollowingTitle => 'You are not following any topics';
+
+  @override
+  String get forumHomeEmptyFollowingBody =>
+      'Follow a topic and its new comments will show up here.';
+
+  @override
+  String get forumHomeLoadMoreFailed => 'Could not load more';
+
+  @override
+  String get forumHomeStripSub => 'Where everyone on campus talks';
+
+  @override
+  String get forumHomeTalkedTitle => 'Talked about on campus';
+
+  @override
+  String get forumHomeTalkedAll => 'See all';
+
+  @override
+  String get forumStateOffline =>
+      'No internet connection. Try again when you are back online.';
+
+  @override
+  String get forumStateServerError =>
+      'The server is unavailable right now. Try again in a moment.';
+
+  @override
+  String get forumStateSessionExpired =>
+      'Your session has expired. Please sign in again.';
+
+  @override
+  String get forumStateNotFound =>
+      'This content could not be found or has been removed.';
+
+  @override
+  String get forumStateTopicRemoved => 'This topic has been removed.';
+
+  @override
+  String get forumStateCommentRemoved => 'This comment has been removed.';
+
+  @override
+  String get forumStateCommentDeleted => 'This comment was deleted.';
+
+  @override
+  String get forumStateLocked => 'Comments are closed on this topic.';
+
+  @override
+  String get forumStateNotOwner => 'You are not allowed to do this.';
+
+  @override
+  String get forumStateRateLimited =>
+      'You are going too fast. Wait a moment and try again.';
+
+  @override
+  String get forumStateDuplicate => 'You posted the same content a moment ago.';
+
+  @override
+  String get forumStateProfanity =>
+      'The text contains inappropriate language. Edit it and try again.';
+
+  @override
+  String get forumStatePollClosed => 'This poll has ended.';
+
+  @override
+  String get forumStateAlreadyVoted => 'You have already voted in this poll.';
+
+  @override
+  String get forumStateEmptyContent => 'Empty content cannot be posted.';
+
+  @override
+  String get forumStateNoAccess => 'You cannot access this content.';
+
+  @override
+  String get forumStateGeneric => 'Something went wrong. Please try again.';
+
+  @override
+  String get forumHomeMenuSaved => 'Saved topics';
+
+  @override
+  String get forumHomeMenuActivity => 'My forum activity';
+
+  @override
+  String get forumHomeMenuPrefs => 'Forum notification settings';
 }

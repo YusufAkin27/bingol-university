@@ -11043,4 +11043,234 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get calSyncWorking => 'Takvime yazılıyor…';
+
+  @override
+  String get forumHomeA11y => 'Kampüs Forum';
+
+  @override
+  String get forumHomeHint => 'Kampüste herkesin konuştuğu yer';
+
+  @override
+  String get forumHomeSearch => 'Forumda ara';
+
+  @override
+  String get forumHomeNotifications => 'Bildirimler';
+
+  @override
+  String get forumHomeNewTopic => 'Yeni konu';
+
+  @override
+  String get forumHomeSortTitle => 'Sırala';
+
+  @override
+  String get forumHomeSortForYou => 'Sana özel';
+
+  @override
+  String get forumHomeSortNewest => 'En yeni';
+
+  @override
+  String get forumHomeSortPopular => 'Popüler';
+
+  @override
+  String get forumHomeSortMostCommented => 'En çok yorumlanan';
+
+  @override
+  String get forumHomeSortFollowing => 'Takip ettiklerim';
+
+  @override
+  String get forumHomeCategoryAll => 'Tümü';
+
+  @override
+  String get forumHomeCategories => 'Kategoriler';
+
+  @override
+  String get forumHomePinned => 'Sabitlenmiş';
+
+  @override
+  String get forumHomeLocked => 'Kilitli';
+
+  @override
+  String get forumHomePoll => 'Anket';
+
+  @override
+  String get forumHomeEdited => 'düzenlendi';
+
+  @override
+  String forumHomeCommentsA11y(String n) {
+    return '$n yorum';
+  }
+
+  @override
+  String forumHomeLikesA11y(String n) {
+    return '$n beğeni';
+  }
+
+  @override
+  String get forumHomeOpenComments => 'Yorumları aç';
+
+  @override
+  String get forumHomeLike => 'Beğen';
+
+  @override
+  String get forumHomeUnlike => 'Beğenmekten vazgeç';
+
+  @override
+  String get forumHomeSave => 'Kaydet';
+
+  @override
+  String get forumHomeUnsave => 'Kaydı kaldır';
+
+  @override
+  String get forumHomeShare => 'Paylaş';
+
+  @override
+  String get forumHomeMore => 'Diğer işlemler';
+
+  @override
+  String get forumHomeMenuCopyLink => 'Bağlantıyı kopyala';
+
+  @override
+  String get forumHomeMenuReport => 'Şikâyet et';
+
+  @override
+  String get forumHomeMenuMute => 'Kullanıcıyı sessize al';
+
+  @override
+  String get forumHomeMenuBlock => 'Yazarı engelle';
+
+  @override
+  String get forumHomeBlockTitle => 'Yazar engellensin mi?';
+
+  @override
+  String get forumHomeBlockBody =>
+      'Bu yazarın konuları ve yorumları artık sana görünmez. Yazar anonimse kimliği açığa çıkmaz.';
+
+  @override
+  String get forumHomeBlockConfirm => 'Engelle';
+
+  @override
+  String get forumHomeMuteTitle => 'Kullanıcı sessize alınsın mı?';
+
+  @override
+  String get forumHomeMuteBody =>
+      'Bu kullanıcının içerikleri sana gösterilmez. İstediğin zaman geri alabilirsin.';
+
+  @override
+  String get forumHomeMuteConfirm => 'Sessize al';
+
+  @override
+  String get forumHomeBlocked => 'Yazar engellendi';
+
+  @override
+  String get forumHomeMuted => 'Kullanıcı sessize alındı';
+
+  @override
+  String get forumHomeLinkCopied => 'Bağlantı kopyalandı';
+
+  @override
+  String get forumHomeLikeFailed => 'Beğeni kaydedilemedi';
+
+  @override
+  String get forumHomeSaveFailed => 'Kaydetme işlemi yapılamadı';
+
+  @override
+  String get forumHomeEmptyTitle => 'Henüz konu yok';
+
+  @override
+  String get forumHomeEmptyBody =>
+      'İlk konuyu sen aç; kampüs seninle konuşsun.';
+
+  @override
+  String get forumHomeEmptyAction => 'Konu aç';
+
+  @override
+  String get forumHomeEmptyCategoryTitle => 'Bu kategoride konu yok';
+
+  @override
+  String get forumHomeEmptyCategoryBody =>
+      'Başka bir kategoriye bak ya da ilk konuyu sen aç.';
+
+  @override
+  String get forumHomeEmptyFollowingTitle => 'Takip ettiğin konu yok';
+
+  @override
+  String get forumHomeEmptyFollowingBody =>
+      'Bir konuyu takip edersen yeni yorumlar burada öne çıkar.';
+
+  @override
+  String get forumHomeLoadMoreFailed => 'Daha fazlası yüklenemedi';
+
+  @override
+  String get forumHomeStripSub => 'Kampüste herkesin konuştuğu yer';
+
+  @override
+  String get forumHomeTalkedTitle => 'Kampüste konuşulanlar';
+
+  @override
+  String get forumHomeTalkedAll => 'Tümü';
+
+  @override
+  String get forumStateOffline =>
+      'İnternet bağlantısı yok. Bağlanınca tekrar dene.';
+
+  @override
+  String get forumStateServerError =>
+      'Sunucuya şu an ulaşılamıyor. Biraz sonra tekrar dene.';
+
+  @override
+  String get forumStateSessionExpired =>
+      'Oturum süren doldu. Yeniden giriş yap.';
+
+  @override
+  String get forumStateNotFound => 'Bu içerik bulunamadı ya da kaldırılmış.';
+
+  @override
+  String get forumStateTopicRemoved => 'Bu konu kaldırıldı.';
+
+  @override
+  String get forumStateCommentRemoved => 'Bu yorum kaldırıldı.';
+
+  @override
+  String get forumStateCommentDeleted => 'Bu yorum silindi.';
+
+  @override
+  String get forumStateLocked => 'Bu konu yorumlara kapatıldı.';
+
+  @override
+  String get forumStateNotOwner => 'Bu işlem için yetkin yok.';
+
+  @override
+  String get forumStateRateLimited =>
+      'Çok hızlı gidiyorsun. Biraz bekleyip tekrar dene.';
+
+  @override
+  String get forumStateDuplicate => 'Aynı içeriği kısa süre önce gönderdin.';
+
+  @override
+  String get forumStateProfanity =>
+      'Metinde uygunsuz ifade var. Düzenleyip tekrar dene.';
+
+  @override
+  String get forumStatePollClosed => 'Bu anket sona erdi.';
+
+  @override
+  String get forumStateAlreadyVoted => 'Bu ankette zaten oy kullandın.';
+
+  @override
+  String get forumStateEmptyContent => 'Boş içerik gönderilemez.';
+
+  @override
+  String get forumStateNoAccess => 'Bu içeriğe erişemiyorsun.';
+
+  @override
+  String get forumStateGeneric => 'Bir sorun oluştu. Tekrar dene.';
+
+  @override
+  String get forumHomeMenuSaved => 'Kaydedilen konular';
+
+  @override
+  String get forumHomeMenuActivity => 'Forum faaliyetim';
+
+  @override
+  String get forumHomeMenuPrefs => 'Forum bildirim ayarları';
 }
