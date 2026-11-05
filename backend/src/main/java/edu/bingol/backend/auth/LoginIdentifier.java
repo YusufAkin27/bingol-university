@@ -22,7 +22,7 @@ public final class LoginIdentifier {
 
     /**
      * Kirpar, kucuk harfe cevirir; '@' yoksa bosluk/tire/nokta temizlenip 6-12 haneli numara beklenir.
-     * Gecersizse 400 VALIDATION_ERROR. E-posta alan adi dogrulamasi cagirana aittir (register).
+     * Gecersizse 400 VALIDATION_ERROR. E-posta bicim dogrulamasi cagirana aittir (register; alan adi kisiti yok).
      */
     public static String normalize(String raw) {
         if (raw == null || raw.isBlank()) {
@@ -39,14 +39,14 @@ public final class LoginIdentifier {
         return digits + "@" + STUDENT_DOMAIN;
     }
 
-    /** Yerel kisimda `+etiket` var mi (ali+1@bingol.edu.tr)? Kayitta reddedilir (tek kutu = tek hesap). */
+    /** Yerel kisimda `+etiket` var mi (ali+1@ornek.com)? Kayitta reddedilir (tek kutu = tek hesap). */
     public static boolean hasPlusAlias(String email) {
         int at = email == null ? -1 : email.lastIndexOf('@');
         return at > 0 && email.lastIndexOf('+', at) >= 0;
     }
 
     /**
-     * Hiz siniri/kota anahtari icin kanonik e-posta: `ali+x@bingol.edu.tr` -> `ali@bingol.edu.tr` (eski +etiketli
+     * Hiz siniri/kota anahtari icin kanonik e-posta: `ali+x@ornek.com` -> `ali@ornek.com` (eski +etiketli
      * hesaplar ayni sayaci paylasir). YALNIZ anahtar icindir; saklanan/gonderilen adres degismez.
      */
     public static String aliasKey(String email) {

@@ -13,7 +13,7 @@ import jakarta.validation.constraints.Size;
  * faculty/department/grade: opsiyonel; verilirse akademik katalogla dogrulanir (ACADEMIC_INVALID).
  * adminPortal: yonetici paneli kayit sayfasi true gonderir (opsiyonel, varsayilan false). YALNIZ daha siki davranis ister:
  * e-posta ADMIN_EMAILS listesinde degilse sunucu hicbir sey yapmadan genel 202 doner (kod gitmez, kayit yazilmaz).
- * Bayrak hicbir kuralı gevsetmez; genel kayit kurali (bingol.edu.tr + ADMIN_EMAILS istisnasi) aynen gecerlidir.
+ * Bayrak hicbir kuralı gevsetmez; genel kayit kurali (herhangi bir gecerli e-posta bicimi + e-posta kodu) aynen gecerlidir.
  * client: mobile | web (opsiyonel, varsayilan web); yalniz kota asiminda ertelenmis dogrulamada verilen jeton cifti etiketlenir.
  */
 public record RegisterRequest(@NotBlank @Size(max = 254) String email,

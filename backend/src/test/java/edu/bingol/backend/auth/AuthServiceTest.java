@@ -53,12 +53,65 @@ class AuthServiceTest {
     private final AuthService auth = new AuthService(users, new BCryptPasswordEncoder(4), jwt, refresh,
             verification, new AdminProperties(List.of()), accounts, pending, sessions, new CatalogService());
 
+    /** 2026-11-05: alan adi kisiti kalkti; her gecerli saglayici kabul, kod yine e-postaya gider (sahiplik kaniti). */
     @ParameterizedTest
-    @ValueSource(strings = {"a@gmail.com", "a@bingol.edu.tr.evil.com", "a@evilbingol.edu.tr", "a@bingol.edu.com"})
-    void rejectsNonUniversityEmails(String email) {
+    @ValueSource(strings = {"a@gmail.com", "ali.veli@outlook.com", "ali_veli@hotmail.com", "ali-veli@yahoo.com",
+            "a@bingol.edu.tr.evil.com", "a@evilbingol.edu.tr", "a@ogr.bingol.edu.tr", "a@mail.itu.edu.tr", "a@sub.ornek.com.tr",
+            "a@xn--bcher-kva.example"})
+    void acceptsAnyWellFormedEmailAndStillSendsTheVerificationCode(String email) {
+        when(users.findByEmail(email)).thenReturn(Optional.empty());
+
+        auth.register(email, "Kx7-mQ2vLp9z", "Ali", Lang.TR);
+
+        verify(verification).requireMailQuota();
+        verify(verification).issue(email, Lang.TR); // kod zorunlu: hesap yalniz dogrulamadan sonra
+        verify(pending).save(eq(email), any(Pending.class));
+        verify(users, never()).save(any());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"a@gmail", "a@.com", "@gmail.com", "a@gmail..com", "a b@gmail.com", "a@gmail.c",
+            "a@-gmail.com", "a@gmail-.com", "a@gm_ail.com", "a@@gmail.com", "a@gmail.com1", "<x>@gmail.com", "a,b@gmail.com"})
+    void rejectsMalformedEmailsWithTheGenericValidationError(String email) {
         ApiException e = assertThrows(ApiException.class, () -> auth.register(email, "Kx7-mQ2vLp9z", "Ali", Lang.TR));
 
-        assertEquals("EMAIL_DOMAIN_NOT_ALLOWED", e.code());
+        assertEquals("VALIDATION_ERROR", e.code());
+        assertEquals(HttpStatus.BAD_REQUEST, e.status());
+        verifyNoInteractions(users, verification, pending);
+    }
+
+    @Test
+    void emailFormatCheckIsLinearOnPathologicalInput() {
+        String evil = "a.".repeat(5000) + "@" + "b.".repeat(5000) + "c";
+
+        org.junit.jupiter.api.Assertions.assertTimeoutPreemptively(java.time.Duration.ofSeconds(2), () -> {
+            ApiException e = assertThrows(ApiException.class, () -> auth.register(evil, "Kx7-mQ2vLp9z", "Ali", Lang.TR));
+            assertEquals("VALIDATION_ERROR", e.code());
+        });
+    }
+
+    @Test
+    void existingSchoolEmailRegistrationIsUnchanged() {
+        when(users.findByEmail("226051015@bingol.edu.tr")).thenReturn(Optional.empty());
+
+        auth.register("226051015@bingol.edu.tr", "Kx7-mQ2vLp9z", "Ali", Lang.TR);
+
+        verify(verification).issue("226051015@bingol.edu.tr", Lang.TR);
+    }
+
+    @Test
+    void loginIdentifierKeepsStudentNumberSuffixAndFullEmailIsUsedAsIs() {
+        assertEquals("226051015@bingol.edu.tr", AuthService.normalizeEmail("226 051 015"));
+        assertEquals("kisi@gmail.com", AuthService.normalizeEmail("  Kisi@Gmail.COM "));
+        assertEquals("226051015@gmail.com", AuthService.normalizeEmail("226051015@gmail.com"));
+    }
+
+    @Test
+    void plusAliasBanAppliesToEveryDomain() {
+        for (String e : new String[] {"ali+1@gmail.com", "ali+1@bingol.edu.tr", "ali+x@outlook.com"}) {
+            ApiException ex = assertThrows(ApiException.class, () -> auth.register(e, "Kx7-mQ2vLp9z", "Ali", Lang.TR));
+            assertEquals("EMAIL_ALIAS_NOT_ALLOWED", ex.code(), e);
+        }
         verifyNoInteractions(users, verification, pending);
     }
 
@@ -827,22 +880,22 @@ class AuthServiceTest {
     }
 
     @Test
-    void nonAdminGmailIsStillRejectedWhenAdminListIsNonEmpty() {
-        ApiException e = assertThrows(ApiException.class, () ->
-                authWithAdmins("ysufakin23@gmail.com").register("baska@gmail.com", "Kx7-mQ2vLp9z", "Xyz", Lang.TR));
+    void nonAdminGmailRegistersNormallyAndIsNotPromoted() {
+        when(users.findByEmail("baska@gmail.com")).thenReturn(Optional.empty());
 
-        assertEquals("EMAIL_DOMAIN_NOT_ALLOWED", e.code());
-        verifyNoInteractions(users, verification, pending);
+        authWithAdmins("ysufakin23@gmail.com").register("baska@gmail.com", "Kx7-mQ2vLp9z", "Xyz", Lang.TR);
+
+        verify(verification).issue("baska@gmail.com", Lang.TR);
+        verify(users, never()).save(any());
     }
 
     @Test
-    void adminDomainExemptionIsExactAddressNotDomainOrPrefix() {
-        AuthService a = authWithAdmins("ysufakin23@gmail.com");
-        for (String bad : new String[]{"ysufakin23@gmail.com.evil.com", "xysufakin23@gmail.com", "ysufakin23@mail.gmail.com"}) {
-            ApiException e = assertThrows(ApiException.class, () -> a.register(bad, "Kx7-mQ2vLp9z", "Xyz", Lang.TR));
-            assertEquals("EMAIL_DOMAIN_NOT_ALLOWED", e.code());
+    void adminListIsExactAddressNotDomainOrPrefix() {
+        AdminProperties props = new AdminProperties(List.of("ysufakin23@gmail.com"));
+        assertTrue(props.isAdminEmail("ysufakin23@gmail.com"));
+        for (String other : new String[]{"ysufakin23@gmail.com.evil.com", "xysufakin23@gmail.com", "ysufakin23@mail.gmail.com"}) {
+            assertTrue(!props.isAdminEmail(other), other);
         }
-        verifyNoInteractions(users, verification, pending);
     }
 
     @Test
@@ -941,7 +994,7 @@ class AuthServiceTest {
     void registerRejectsPercentAndConsecutiveDotLocalParts(String email) {
         ApiException e = assertThrows(ApiException.class, () -> auth.register(email, PW, "Ali Veli", Lang.TR));
 
-        assertEquals("EMAIL_DOMAIN_NOT_ALLOWED", e.code());
+        assertEquals("VALIDATION_ERROR", e.code());
         verifyNoInteractions(users, verification, pending);
     }
 

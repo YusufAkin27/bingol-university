@@ -126,11 +126,11 @@ class DeferredVerificationServiceTest {
     }
 
     @Test
-    void domainRulesStillApplyBeforeTheDeferral() {
+    void formatRulesStillApplyBeforeTheDeferral() {
         doThrow(quotaExhausted()).when(verification).requireMailQuota();
 
-        ApiException e = assertThrows(ApiException.class, () -> register("kisi@gmail.com"));
-        assertEquals("EMAIL_DOMAIN_NOT_ALLOWED", e.code());
+        ApiException e = assertThrows(ApiException.class, () -> register("kisi@gmail"));
+        assertEquals("VALIDATION_ERROR", e.code());
         ApiException alias = assertThrows(ApiException.class, () -> register("ali+1@bingol.edu.tr"));
         assertEquals("EMAIL_ALIAS_NOT_ALLOWED", alias.code());
         ApiException weak = assertThrows(ApiException.class,

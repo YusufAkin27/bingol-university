@@ -44,9 +44,15 @@ public class AuthService {
 
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
-    /** bingol.edu.tr ve alt alan adlari (ogr.bingol.edu.tr gibi). */
-    private static final Pattern UNIVERSITY_EMAIL =
-            Pattern.compile("^[a-z0-9_+\\-]+(\\.[a-z0-9_+\\-]+)*@([a-z0-9\\-]+\\.)*bingol\\.edu\\.tr$");
+    /**
+     * Kayit e-postasi icin YALNIZ bicim denetimi (2026-11-05 karari: alan adi kisiti kalkti; gmail/outlook/hotmail/yahoo
+     * ve her gecerli saglayici kabul). Alan adi kara/beyaz listesi yok; sahiplik kaniti 6 haneli e-posta kodudur.
+     * Yerel kisim: harf/rakam/_/-/+ ve tek noktalar (basta/sonda/ardisik nokta ve % yok); alan adi: en az iki etiket,
+     * son etiket harf (ya da xn--). {@code matches()} tam eslesme; ic ice belirsiz nicelik yok (ReDoS yok).
+     */
+    private static final Pattern EMAIL_FORMAT = Pattern.compile(
+            "^[a-z0-9_+\\-]{1,64}(\\.[a-z0-9_+\\-]{1,64}){0,15}@([a-z0-9]([a-z0-9\\-]{0,61}[a-z0-9])?\\.){1,10}"
+                    + "([a-z]{2,24}|xn--[a-z0-9\\-]{2,58})$");
 
     private final UserRepository users;
     private final PasswordEncoder encoder;
@@ -205,16 +211,14 @@ public class AuthService {
         // gercek kutusu olmayan ogrencilerde kodun kaybolmasina yol aciyordu). Giris/sifre sifirlama numarayi kabul etmeye devam eder.
         if (rawEmail != null && !rawEmail.isBlank() && rawEmail.indexOf('@') < 0) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "EMAIL_FULL_REQUIRED",
-                    "Okul e-posta adresinizin tamamını yazın, örn. ad.soyad@bingol.edu.tr");
+                    "E-posta adresinizin tamamını yazın, örn. ad.soyad@ornek.com");
         }
         String email = normalizeEmail(rawEmail);
-        // Tek istisna: yapilandirmadaki yonetici adresleri (app.admin.emails / ADMIN_EMAILS) alan adi kisitindan muaftir
-        // (bagimsiz/gmail yonetici hesabi). Baska hicbir adres icin gevsemez; e-posta dogrulamasi ve diger kurallar aynidir.
         boolean authorizedAdmin = admin.isAdminEmail(email);
-        // Yonetici portalinda alan adi karari yoktur: yetkisiz adres asagida sessizce elenir (bingol.edu.tr dahil).
-        if (!adminPortal && !UNIVERSITY_EMAIL.matcher(email).matches() && !authorizedAdmin) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "EMAIL_DOMAIN_NOT_ALLOWED",
-                    "Yalnızca bingol.edu.tr uzantılı e-posta ile kayıt olunabilir.");
+        // Alan adi kisiti YOK (2026-11-05): yalniz bicim; gecersizse genel dogrulama hatasi. Yonetici portalinda bicim karari
+        // verilmez: yetkisiz adres asagida sessizce elenir.
+        if (!adminPortal && !authorizedAdmin && !EMAIL_FORMAT.matcher(email).matches()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Geçersiz istek.");
         }
         if (LoginIdentifier.hasPlusAlias(email)) {
             // Tek posta kutusu = tek hesap: +etiketli adresler sinirsiz hesap/oy/kota carpani olurdu.

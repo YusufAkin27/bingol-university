@@ -99,21 +99,22 @@ class AdminPortalRegisterTest {
     }
 
     @Test
-    void generalRegistrationStillRejectsAnUnlistedGmail() {
-        ApiException e = assertThrows(ApiException.class,
-                () -> auth.register("kisi@gmail.com", PW, "Ali", Lang.TR, null, null, null, false));
+    void generalRegistrationAcceptsAnUnlistedGmailWithTheCode() {
+        when(users.findByEmail("kisi@gmail.com")).thenReturn(Optional.empty());
 
-        assertEquals("EMAIL_DOMAIN_NOT_ALLOWED", e.code());
-        verifyNoInteractions(users, verification, pending);
+        auth.register("kisi@gmail.com", PW, "Ali", Lang.TR, null, null, null, false);
+
+        verify(verification).issue("kisi@gmail.com", Lang.TR);
+        verify(pending).save(org.mockito.ArgumentMatchers.eq("kisi@gmail.com"), any(Pending.class));
     }
 
     @Test
-    void generalRegistrationStillRejectsAnUnlistedGmailWhenTheFlagIsAbsent() {
-        ApiException e = assertThrows(ApiException.class,
-                () -> auth.register("kisi@gmail.com", PW, "Ali", Lang.TR));
+    void generalRegistrationAcceptsAnUnlistedGmailWhenTheFlagIsAbsent() {
+        when(users.findByEmail("kisi@gmail.com")).thenReturn(Optional.empty());
 
-        assertEquals("EMAIL_DOMAIN_NOT_ALLOWED", e.code());
-        verifyNoInteractions(users, verification, pending);
+        auth.register("kisi@gmail.com", PW, "Ali", Lang.TR);
+
+        verify(verification).issue("kisi@gmail.com", Lang.TR);
     }
 
     @Test

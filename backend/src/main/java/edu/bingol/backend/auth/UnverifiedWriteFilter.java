@@ -23,7 +23,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 /**
  * Kota asiminda ERTELENMIS e-posta dogrulama (QT-BE) icin YALNIZ OKUMA modu. Kimligi dogrulanmis kullanici
  * {@code verification_deferred AND NOT email_verified} ise {@code /api/**} altindaki yazma istekleri (GET/HEAD/OPTIONS
- * disindakiler) 403 {@code EMAIL_VERIFICATION_REQUIRED} alir. Gerekce: dogrulanmamis hesap baskasinin @bingol.edu.tr
+ * disindakiler) 403 {@code EMAIL_VERIFICATION_REQUIRED} alir. Gerekce: dogrulanmamis hesap baskasinin e-posta
  * adresiyle acilmis olabilir (kimlik taklidi); adres sahibi kodu girene kadar topluluga yazamaz.
  *
  * <p>Serbest yazmalar ({@link #EXEMPT_PREFIXES} + profil/avatar/hesap silme): kimlik/cikis/dogrulama

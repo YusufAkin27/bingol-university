@@ -55,7 +55,8 @@ NOTERMS="{\"email\":\"x$SFX@bingol.edu.tr\",\"password\":\"Zk7-Qmv-Lpx92w\",\"di
 check "sozlesme kabulsuz kayit" 400 "$(code -X POST -H "$H" $A/auth/register -d "$NOTERMS")"
 has "sozlesme hatasi EN" "agreements" "$(curl -s -X POST -H "$H" -H 'Accept-Language: en' $A/auth/register -d "$NOTERMS")"
 has "kayit mesaji EN" "verification code has been sent" "$(curl -s -X POST -H "$H" -H 'Accept-Language: en' $A/auth/register -d "{\"email\":\"y$SFX@bingol.edu.tr\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"Yy\",\"acceptTerms\":true}")"
-has "domain hatasi EN" "bingol.edu.tr" "$(curl -s -X POST -H "$H" -H 'Accept-Language: en' $A/auth/register -d "{\"email\":\"a@gmail.com\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"Yy\",\"acceptTerms\":true}")"
+check "gmail ile kayit kabul (alan adi kisiti yok; kod gerekir)" 202 "$(code -X POST -H "$H" $A/auth/register -d "{\"email\":\"g$SFX@gmail.com\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"Yy\",\"acceptTerms\":true}")"
+check "gecersiz e-posta bicimi 400" 400 "$(code -X POST -H "$H" $A/auth/register -d "{\"email\":\"a@gmail\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"Yy\",\"acceptTerms\":true}")"
 check "gecersiz dil degeri" 400 "$(code -X PATCH -H "$H" -H "$ATR" $A/users/me -d '{"language":"fr"}')"
 has "profil dili" '"language":"en"' "$(curl -s -H "$AEN" $A/users/me)"
 
