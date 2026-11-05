@@ -96,6 +96,8 @@ class OnboardingForm {
       'lastName': lastName.trim(),
       'username': username.trim().toLowerCase(),
       'universityName': universityName,
+      // Sunucu OAuth'ta sözleşme kabulünü onboarding'de kaydeder (giriş ekranında "Devam ederek ... kabul etmiş olursun").
+      'acceptTerms': true,
       if (clean(facultyId) != null) 'facultyId': facultyId,
       if (clean(facultyName) != null) 'facultyName': facultyName,
       if (clean(departmentId) != null) 'departmentId': departmentId,

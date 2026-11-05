@@ -99,6 +99,7 @@ void main() {
         'lastName': 'Yılmaz',
         'username': 'ayse.y',
         'universityName': 'Bingöl Üniversitesi',
+        'acceptTerms': true,
         'classYear': 'Y3',
       });
     });
@@ -457,6 +458,7 @@ void main() {
         'lastName': 'Yılmaz',
         'username': 'ayse.y',
         'universityName': 'Bingöl Üniversitesi',
+        'acceptTerms': true,
         'facultyId': 'muhendislik',
         'facultyName': 'Mühendislik Fakültesi',
         'departmentId': 'bilgisayar-muhendisligi',
