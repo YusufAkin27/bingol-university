@@ -6,13 +6,13 @@ const m = {
   'site.shot.delete.alt':
     'BÜ Kampüs Hesabı sil ekranı: işlemin geri alınamayacağı uyarısı, “Neler olur” listesi, onay kutusu ve “Devam et” düğmesi.',
 
-  'site.trust.security.pt1': 'Üyelik yalnızca bingol.edu.tr e-posta adresleriyle ve e-posta doğrulamasıyla yapılır.',
+  'site.trust.security.pt1': 'Üyelik, geçerli bir e-posta adresiyle ve e-posta doğrulamasıyla yapılır.',
   'site.trust.security.pt2':
     'Mesajlar sunucuda şifreli saklanır; yönetici erişimi yazılı gerekçeyle yapılır ve denetim kaydına yazılır.',
   'site.trust.security.pt3': 'Bağlantı HTTPS ile şifrelenir; şifreler ve oturum anahtarları yalnızca özet olarak saklanır.',
   'site.trust.security.pt4': 'Giriş ve yazma işlemlerinde hız sınırı vardır; bir açık bulursanız sorumlu bildirim yapabilirsiniz.',
 
-  'site.trust.child.pt1': 'Anonim kullanım yok: hesap yalnızca doğrulanmış bingol.edu.tr e-postasıyla açılır.',
+  'site.trust.child.pt1': 'Anonim kullanım yok: hesap yalnızca doğrulanmış bir e-postayla açılır.',
   'site.trust.child.pt2': 'Kullanıcı, mesaj, gönderi, kulüp ve etkinlikler uygulamadan bildirilebilir; kullanıcılar engellenebilir.',
   'site.trust.child.pt3':
     'Gönderi tek fotoğraf ve kısa metindir; gönderilerde yorum ve video yoktur. Yüklenen fotoğraflardan konum bilgisi temizlenir.',

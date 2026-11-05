@@ -436,13 +436,13 @@ Future<void> fillAcademic(WidgetTester tester) async {
   await tester.pump(const Duration(milliseconds: 400));
 }
 
-/// Tek sayfa kayıt formunu doldurur (ad soyad, okul numarası, şifre); "Kayıt ol" düğmesine basılmadan kalır.
+/// Tek sayfa kayıt formunu doldurur (ad soyad, e-posta, şifre); "Kayıt ol" düğmesine basılmadan kalır.
 Future<void> fillRegister(WidgetTester tester,
-    {String name = 'Ayşe Yılmaz', String number = '226051015', String password = 'Sifre1234'}) async {
+    {String name = 'Ayşe Yılmaz', String email = '226051015@bingol.edu.tr', String password = 'Sifre1234'}) async {
   final fields = find.byType(TextFormField);
   await tester.enterText(fields.at(0), name);
-  // Kayıt alanı yalnız rakam alır (okul numarası); istekte `<numara>@bingol.edu.tr` gider.
-  await tester.enterText(fields.at(1), number);
+  // Kayıt alanı herhangi bir geçerli e-posta alır (alan adı kısıtı yok); istekte aynen gider.
+  await tester.enterText(fields.at(1), email);
   await tester.enterText(fields.at(2), password);
   await tester.pump();
 }

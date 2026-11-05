@@ -10,7 +10,7 @@ const m = {
 
   'pg.childsafety.s1.h': 'Amaç ve kapsam',
   'pg.childsafety.s1.p1':
-    'BÜ Kampüs, Bingöl Üniversitesi öğrencileri ve personeli için geliştirilmiş bağımsız bir uygulamadır; üniversitenin resmî uygulaması değildir. Çocuklara yönelik değildir: hedef kitle 18 yaş ve üzeridir ve kayıt için doğrulanmış bir bingol.edu.tr e-posta adresi gerekir.',
+    'BÜ Kampüs, Bingöl Üniversitesi öğrencileri ve personeli için geliştirilmiş bağımsız bir uygulamadır; üniversitenin resmî uygulaması değildir. Çocuklara yönelik değildir: hedef kitle 18 yaş ve üzeridir ve kayıt için doğrulanmış bir e-posta adresi gerekir.',
   'pg.childsafety.s1.p2':
     'Bu sayfa, çocuğun cinsel istismarı ve sömürüsüne (CSAE) ve çocuk cinsel istismarı materyaline (CSAM) karşı standartlarımızı açıklar.',
   'pg.childsafety.s1.p3':
@@ -32,7 +32,7 @@ const m = {
   'pg.childsafety.s3.h': 'Önleme',
   'pg.childsafety.s3.p1': 'Riski azaltmak için uygulamanın yapısı şöyledir:',
   'pg.childsafety.s3.l1':
-    'Kayıt yalnızca doğrulanmış bir üniversite e-postasıyla (bingol.edu.tr) yapılır; e-postaya gelen kod girilmeden hesap açılmaz. Anonim kullanım yoktur.',
+    'Kayıt, doğrulanmış bir e-posta adresiyle yapılır; e-postaya gelen kod girilmeden hesap açılmaz. Anonim kullanım yoktur.',
   'pg.childsafety.s3.l2':
     'Kötüye kullanım amacıyla birden fazla hesap açmak yasaktır. Yasaklanan bir kullanıcının cihaz veya IP kaydıyla eşleşen yeni hesaplar engellenebilir.',
   'pg.childsafety.s3.l3':

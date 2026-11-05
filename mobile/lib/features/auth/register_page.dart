@@ -36,7 +36,7 @@ class _RegisterPageState extends State<RegisterPage> {
   String? _error;
   int _shake = 0;
 
-  /// Sunucudan dönen e-posta hatası (EMAIL_ALIAS_NOT_ALLOWED): numara alanının altında gösterilir.
+  /// Sunucudan dönen e-posta hatası (EMAIL_ALIAS_NOT_ALLOWED): e-posta alanının altında gösterilir.
   String? _emailFieldError;
   String _emailErrorFor = '';
   late final _termsLink = TapGestureRecognizer()..onTap = () => _openLegal('TERMS');
@@ -124,8 +124,8 @@ class _RegisterPageState extends State<RegisterPage> {
   String? _validateRegisterId(String? v) {
     final server = _emailFieldError;
     if (server != null) return server;
-    // Alan yalnız rakam kabul eder (6-12 hane): giriştekiyle aynı kural.
-    return validateSchoolNumber(v);
+    // Yalnız tam e-posta biçimi (alan adı kısıtı yok).
+    return validateRegisterEmail(v);
   }
 
   @override
@@ -163,11 +163,11 @@ class _RegisterPageState extends State<RegisterPage> {
                   validator: (v) => (v == null || v.trim().isEmpty) ? l.authNameRequired : null,
                 ),
                 const SizedBox(height: 28),
-                // Giriş ile aynı alan: okul numarası (iri rakamlar, rakam klavyesi, @bingol.edu.tr soneki). Kayıt e-postası
-                // `<numara>@bingol.edu.tr` olur; böylece girişte aynı numara geçer.
-                LoginNumberField(
+                // Kayıt: herhangi bir geçerli e-posta (Gmail, Outlook, Hotmail, Yahoo, okul...). Kod yazılan adrese gider.
+                LoginIdentifierField(
                   controller: _email,
                   boxed: true,
+                  allowStudentNumber: false,
                   enabled: !_busy,
                   validator: _validateRegisterId,
                 ),

@@ -20,7 +20,7 @@ const seo = {
     'Belgenin tam metni uygulama sunucusundan yüklenir. Metni görmek için tarayıcınızda JavaScript’i etkinleştirin ya da iletişim sayfasından bize yazın.',
   'seo.privacy.h': 'Kısaca gizlilik',
   'seo.privacy.l1':
-    'Uygulamaya yalnızca bingol.edu.tr uzantılı e-posta adresleriyle kayıt olunur; e-posta doğrulaması zorunludur.',
+    'Uygulamaya geçerli bir e-posta adresiyle kayıt olunur; e-posta doğrulaması zorunludur.',
   'seo.privacy.l2':
     'İşlenen veriler: profil bilgileri, bildirim tercihleri ve cihaz bildirim anahtarı, uygulama kullanım olayları, cihaz özeti ve IP kayıtları, mesajlar ve topluluk gönderileri.',
   'seo.privacy.l3': 'Mesaj içerikleri sunucuda şifrelenerek saklanır.',

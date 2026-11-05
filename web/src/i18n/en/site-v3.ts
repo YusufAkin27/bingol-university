@@ -7,7 +7,7 @@ const m = {
   'site.v3.footer.independent': 'An independent student app; not the official app of Bingöl University.',
   'site.v3.home.showTitle': 'The screens you will open every day on campus',
   'site.v3.home.showLead': 'From the dining menu to chat, from clubs to QR attendance, all in one app.',
-  'site.v3.cta.text': 'Sign up with your Bingöl University email address; campus in your pocket.',
+  'site.v3.cta.text': 'Sign up with your email address; campus in your pocket.',
   'site.v3.features.moreTitle': 'And more',
   'site.v3.features.moreLead': 'Details on privacy, notifications, languages and club management.',
   'site.v3.about.indTitle': 'An independent app',

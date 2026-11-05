@@ -286,7 +286,7 @@ Bu uygulama e-posta, ad, (ileride) rol/bölüm, cihaz token'ı ve **özel yazı�
 
 | Tehdit | Mevcut | Eklenecek |
 |---|---|---|
-| Toplu sahte kayıt / kod bombardımanı (e-posta gönderimi maliyeti, SMTP itibarı) | IP bazlı rate limit (kayıt 10/saat, tekrar kod 10/saat), e-posta alan adı kısıtı | E-posta başına kod gönderim sınırı (şu an `resend` yalnızca IP bazlı görünüyor), CAPTCHA/cihaz doğrulama (Play Integrity) gerekirse; kod deneme sayısı sınırı (kod başına en çok 5 yanlış) |
+| Toplu sahte kayıt / kod bombardımanı (e-posta gönderimi maliyeti, SMTP itibarı) | IP bazlı rate limit (kayıt 10/saat, tekrar kod 10/saat), e-posta doğrulama kodu (alan adı kısıtı 2026-11-05'te kaldırıldı) | E-posta başına kod gönderim sınırı (şu an `resend` yalnızca IP bazlı görünüyor), CAPTCHA/cihaz doğrulama (Play Integrity) gerekirse; kod deneme sayısı sınırı (kod başına en çok 5 yanlış) |
 | Başkası adına hesap açma | Kod e-postaya gidiyor, kutu sahibini doğrular | `@bingol.edu.tr` kutusunun bir kişiye ait olduğu varsayılır; ortak/bölüm kutuları kayıt olabilir (bkz. açık sorular) |
 | Mesaj spam'i / taciz | — | MVP-3: kullanıcı başı hız sınırı, engelle/raporla; MVP-4: otomatik tespit, askıya alma |
 | Kimliğe bürünme (sahte "Prof. X") | Görünen ad serbest | Görünen ad doğrulanmış rol rozetiyle birlikte gösterilir; ad değiştirme sınırlı; resmi odalarda yalnızca admin onaylı hesaplar |

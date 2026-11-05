@@ -25,12 +25,13 @@ class DeviceContactsProvider implements ContactsProvider {
 /// E-posta -> küçük harf, kırpılmış.
 String normalizeEmail(String e) => e.trim().toLowerCase();
 
-/// Yalnız `@bingol.edu.tr` ve alt alan adları gönderilir.
-bool isCampusEmail(String e) {
+/// Alan adı kısıtı yoktur (Gmail, Outlook... dahil): yalnız `yerel@alan.uzanti` biçimindeki adresler gönderilir
+/// (gizlilik: yalnız SHA-256 özeti sunucuya gider; eşleşme karşılıklı onay ister).
+bool isMatchableEmail(String e) {
   final i = e.lastIndexOf('@');
   if (i <= 0 || i == e.length - 1) return false;
   final host = e.substring(i + 1);
-  return host == 'bingol.edu.tr' || host.endsWith('.bingol.edu.tr');
+  return !host.contains(RegExp(r'\s|@')) && host.contains('.') && !host.startsWith('.') && !host.endsWith('.') && !host.contains('..');
 }
 
 /// Sunucu sözleşmesi: kırpılmış küçük harfli e-postanın UTF-8 SHA-256 özeti (küçük harf hex).
@@ -75,13 +76,13 @@ class ContactsMatcher {
   /// Saatlik pencere için istek zamanları (süreç ömrü; kalıcı değil).
   static final List<DateTime> _sent = [];
 
-  /// Rehber e-postalarını süz: kampüs alan adı, tekil, kendi adresin hariç.
+  /// Rehber e-postalarını süz: geçerli biçimli, tekil, kendi adresin hariç (alan adı kısıtı yok).
   List<String> campusEmails(Iterable<String> raw) {
     final own = ownEmail == null ? null : normalizeEmail(ownEmail!);
     final out = <String>{};
     for (final r in raw) {
       final e = normalizeEmail(r);
-      if (isCampusEmail(e) && e != own) out.add(e);
+      if (isMatchableEmail(e) && e != own) out.add(e);
     }
     return out.toList()..sort();
   }

@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -252,7 +253,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get loginWelcome => 'مرحبًا بك';
 
   @override
-  String get loginSubtitle => 'سجّل الدخول ببريدك الجامعي.';
+  String get loginSubtitle => 'سجّل الدخول ببريدك الإلكتروني.';
 
   @override
   String get loginReplacedNotice =>
@@ -289,7 +290,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authPasswordLabel => 'كلمة المرور';
 
   @override
-  String get authIdHint => 'بريدك الجامعي';
+  String get authIdHint => 'البريد الإلكتروني أو رقمك الجامعي';
 
   @override
   String get authIdNumberLabel => 'رقمك الجامعي';
@@ -299,7 +300,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get loginSubtitleNumber =>
-      'تُضاف @bingol.edu.tr تلقائيًا إلى رقمك الجامعي. سجّل الدخول بحساب بريدك الجامعي.';
+      'سجّل الدخول ببريدك الإلكتروني أو برقمك الجامعي. إذا كتبت رقمًا فقط تُضاف @bingol.edu.tr تلقائيًا.';
 
   @override
   String get authVerify => 'تحقق';
@@ -679,7 +680,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown) {
+    String type,
+    String title,
+    String date,
+    String countdown,
+  ) {
     return '$type: $title. $date. $countdown. المس للتعديل.';
   }
 
@@ -997,7 +1002,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end) {
+    String name,
+    String day,
+    String start,
+    String end,
+  ) {
     return '$name، $day من $start إلى $end';
   }
 
@@ -1984,7 +1993,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chatMiscContactsNoneText =>
-      'لم نجد أيًّا من جهات اتصالك يستخدم التطبيق ببريده الجامعي. سيظهر أصدقاؤك هنا عند انضمامهم.';
+      'لم نجد أيًّا من جهات اتصالك يستخدم التطبيق. سيظهر أصدقاؤك هنا عند انضمامهم.';
 
   @override
   String get chatMiscContactsSearchHint => 'ابحث في الأشخاص';
@@ -3224,7 +3233,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get coreIdEmpty => 'أدخل رقمك الجامعي أو بريدك الإلكتروني.';
 
   @override
-  String get coreIdDomain => 'يمكن استخدام عناوين bingol.edu.tr فقط.';
+  String get coreIdEmail => 'أدخل عنوان بريد إلكتروني صالحًا.';
 
   @override
   String get coreIdNumber => 'تحقق من رقمك الجامعي.';
@@ -5589,7 +5598,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authSectionPersonal => 'المعلومات الشخصية';
 
   @override
-  String get authHintPersonal => 'أدخل اسمك وبريدك الجامعي.';
+  String get authHintPersonal => 'أدخل اسمك وعنوان بريدك الإلكتروني.';
 
   @override
   String get authNext => 'متابعة';
@@ -5607,20 +5616,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authPwMaxErr => 'يجب ألا تزيد كلمة المرور عن 72 حرفًا.';
 
   @override
-  String get authIdHelper => '226051015 أو name.surname@bingol.edu.tr';
+  String get authIdHelper => '226051015 أو name.surname@gmail.com';
 
   @override
-  String get authRegIdLabel => 'بريدك الإلكتروني الجامعي';
+  String get authRegIdLabel => 'بريدك الإلكتروني';
 
   @override
-  String get authRegIdHelper => 'مثال: name.surname@bingol.edu.tr';
+  String get authRegIdHelper => 'مثال: name.surname@gmail.com';
 
   @override
-  String get authRegIdEmpty => 'أدخل بريدك الإلكتروني الجامعي.';
+  String get authRegIdEmpty => 'أدخل بريدك الإلكتروني.';
 
   @override
   String get authRegIdFull =>
-      'أدخل عنوان بريدك الإلكتروني الجامعي كاملاً، مثل name.surname@bingol.edu.tr';
+      'أدخل عنوان بريدك الإلكتروني كاملاً، مثل name.surname@gmail.com';
 
   @override
   String get supportCatAccount => 'الحساب';
@@ -5873,10 +5882,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get authForgotSubNumber =>
-      'أدخل رقمك الجامعي. سنرسل رمزًا من 6 أرقام إلى بريدك بصيغة رقمكالجامعي@bingol.edu.tr.';
+      'أدخل بريدك الإلكتروني أو رقمك الجامعي. سنرسل رمزًا من 6 أرقام إلى بريدك الإلكتروني.';
 
   @override
-  String get authForgotSub => 'أدخل بريدك الجامعي وسنرسل لك رمزًا من 6 أرقام.';
+  String get authForgotSub =>
+      'أدخل بريدك الإلكتروني وسنرسل لك رمزًا من 6 أرقام.';
 
   @override
   String get authBackToLogin => 'العودة لتسجيل الدخول';
@@ -5905,7 +5915,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get welcomeClubs => 'الأندية والفعاليات';
 
   @override
-  String get welcomeNote => 'التسجيل متاح فقط بالبريد الجامعي (bingol.edu.tr).';
+  String get welcomeNote =>
+      'يمكنك التسجيل ببريد Gmail أو Outlook أو Hotmail أو Yahoo أو أي بريد إلكتروني آخر.';
 
   @override
   String get welcomeLanguage => 'اللغة';
@@ -9527,8 +9538,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p23GroupNameHint => 'مثال: فريق مشروع الهندسة...';
 
   @override
-  String get p23NoneText =>
-      'لم يُعثر على أحد من جهات اتصالك يستخدم التطبيق ببريد جامعة بينغول.';
+  String get p23NoneText => 'لم يُعثر على أحد من جهات اتصالك يستخدم التطبيق.';
 
   @override
   String p09GradeYear(String n) {
@@ -10422,7 +10432,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get regSubtitle =>
-      'أدخل اسمك ورقمك الجامعي وكلمة مرور. سيُرسل رمز التحقق إلى بريدك بصيغة رقمكالجامعي@bingol.edu.tr.';
+      'أدخل اسمك وعنوان بريدك الإلكتروني وكلمة مرور. سيُرسل رمز التحقق إلى بريدك الإلكتروني.';
 
   @override
   String get profileSetupTitle => 'اختر قسمك';

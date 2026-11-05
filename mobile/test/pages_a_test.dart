@@ -88,7 +88,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 700)); // giriş animasyonu (Stitch v3 aşamalı giriş) bitmeden dokunma isabet etmez
       await tester.tap(find.text('Giriş yap'));
       await tester.pump();
-      expect(find.text('Okul numaranızı girin.'), findsOneWidget);
+      expect(find.text('Okul numaranızı veya e-posta adresinizi girin.'), findsOneWidget);
       expect(find.text('Şifrenizi girin.'), findsOneWidget);
       expect(b.count('/auth/login'), 0);
       noErr(tester);
@@ -338,7 +338,7 @@ void main() {
       await tester.pumpWidget(buildApp(ForgotPasswordPage(session: makeSession(b, signedIn: false))));
       await tester.tap(find.widgetWithText(RefButton, 'Kod gönder'));
       await tester.pump();
-      expect(find.text('Okul numaranızı girin.'), findsOneWidget);
+      expect(find.text('Okul numaranızı veya e-posta adresinizi girin.'), findsOneWidget);
       await tester.enterText(find.byType(TextFormField), '226051015');
       await tester.tap(find.widgetWithText(RefButton, 'Kod gönder'));
       await settle(tester, const Duration(milliseconds: 600));

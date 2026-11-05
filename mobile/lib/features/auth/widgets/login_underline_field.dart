@@ -361,7 +361,57 @@ class _Underline extends StatelessWidget {
   }
 }
 
+/// E-posta ya da okul numarası alanı (giriş, şifre sıfırlama) / yalnız e-posta alanı (kayıt, [allowStudentNumber] false).
+/// Alan adı kısıtı yoktur (Gmail, Outlook, Hotmail, Yahoo, okul...): yalnız biçim denetlenir. Yalnız rakam yazılırsa
+/// (okul numarası) sağda `@bingol.edu.tr` soneki görünür ve sunucu numarayı o adrese çevirir; tam adres yazılınca sonek kalkar.
+class LoginIdentifierField extends StatelessWidget {
+  const LoginIdentifierField(
+      {super.key,
+      required this.controller,
+      required this.enabled,
+      this.onSubmitted,
+      this.validator,
+      this.textInputAction = TextInputAction.next,
+      this.boxed = false,
+      this.allowStudentNumber = true});
+
+  final bool boxed;
+
+  /// Kapalıysa (kayıt) numara kısayolu yoktur: sonek yok, varsayılan doğrulayıcı tam e-posta ister.
+  final bool allowStudentNumber;
+
+  /// Varsayılan: giriş için [validateIdentifier], kayıt için [validateRegisterEmail]. Kayıtta sunucu hatasını da gösterir.
+  final String? Function(String?)? validator;
+  final TextInputAction textInputAction;
+  final TextEditingController controller;
+  final bool enabled;
+  final VoidCallback? onSubmitted;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    return ValueListenableBuilder<TextEditingValue>(
+      valueListenable: controller,
+      builder: (context, value, _) => LoginUnderlineField(
+        controller: controller,
+        label: allowStudentNumber ? l.authIdHint : l.authRegIdLabel,
+        boxed: boxed,
+        enabled: enabled,
+        keyboardType: TextInputType.emailAddress,
+        inputFormatters: [LengthLimitingTextInputFormatter(254)],
+        autofillHints: const [AutofillHints.username, AutofillHints.email],
+        validator: validator ?? (allowStudentNumber ? validateIdentifier : validateRegisterEmail),
+        textInputAction: textInputAction,
+        onSubmitted: onSubmitted,
+        hint: allowStudentNumber ? null : l.authRegIdHelper,
+        suffix: allowStudentNumber && isStudentNumberInput(value.text) ? '@$kEmailDomain' : null,
+      ),
+    );
+  }
+}
+
 /// Okul numarası alanı (lg4): yalnız rakam, rakam klavyesi, en çok 12 hane; rakam yazılınca sağda `@bingol.edu.tr`.
+/// Artık sayfalarda kullanılmaz (giriş/kayıt/şifre sıfırlama [LoginIdentifierField] kullanır); geriye dönük kalır.
 class LoginNumberField extends StatelessWidget {
   const LoginNumberField(
       {super.key,

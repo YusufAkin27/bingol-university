@@ -64,7 +64,7 @@ import 'app_localizations_tr.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -87,17 +87,17 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('ar'),
     Locale('en'),
-    Locale('tr')
+    Locale('tr'),
   ];
 
   /// No description provided for @chatReactionPickerTitle.
@@ -565,7 +565,7 @@ abstract class AppLocalizations {
   /// No description provided for @loginSubtitle.
   ///
   /// In tr, this message translates to:
-  /// **'Okul e-postanızla giriş yapın.'**
+  /// **'E-posta adresinizle giriş yapın.'**
   String get loginSubtitle;
 
   /// No description provided for @loginReplacedNotice.
@@ -637,7 +637,7 @@ abstract class AppLocalizations {
   /// No description provided for @authIdHint.
   ///
   /// In tr, this message translates to:
-  /// **'Okul e-postanız'**
+  /// **'E-posta ya da okul numaranız'**
   String get authIdHint;
 
   /// No description provided for @authIdNumberLabel.
@@ -655,7 +655,7 @@ abstract class AppLocalizations {
   /// No description provided for @loginSubtitleNumber.
   ///
   /// In tr, this message translates to:
-  /// **'Okul numaranıza @bingol.edu.tr otomatik eklenir. Üniversite e-posta hesabınızla giriş yapın.'**
+  /// **'E-posta adresinizle ya da okul numaranızla giriş yapın. Yalnız numara yazarsanız @bingol.edu.tr otomatik eklenir.'**
   String get loginSubtitleNumber;
 
   /// No description provided for @authVerify.
@@ -1359,7 +1359,11 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{type}: {title}. {date}. {countdown}. Düzenlemek için dokun.'**
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown);
+    String type,
+    String title,
+    String date,
+    String countdown,
+  );
 
   /// No description provided for @acadFormErrTitle.
   ///
@@ -1924,7 +1928,11 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{name}, {day} {start} ile {end} arası'**
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end);
+    String name,
+    String day,
+    String start,
+    String end,
+  );
 
   /// No description provided for @acadTimeCourseSemantic.
   ///
@@ -3753,7 +3761,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatMiscContactsNoneText.
   ///
   /// In tr, this message translates to:
-  /// **'Rehberindeki kişilerden Bingöl Üniversitesi e-postasıyla uygulamayı kullanan kimse bulunamadı. Arkadaşların katıldıkça burada görünür.'**
+  /// **'Rehberindeki kişilerden uygulamayı kullanan kimse bulunamadı. Arkadaşların katıldıkça burada görünür.'**
   String get chatMiscContactsNoneText;
 
   /// No description provided for @chatMiscContactsSearchHint.
@@ -6054,11 +6062,11 @@ abstract class AppLocalizations {
   /// **'Okul numaranızı veya e-posta adresinizi girin.'**
   String get coreIdEmpty;
 
-  /// No description provided for @coreIdDomain.
+  /// No description provided for @coreIdEmail.
   ///
   /// In tr, this message translates to:
-  /// **'Yalnızca bingol.edu.tr uzantılı adres kullanılabilir.'**
-  String get coreIdDomain;
+  /// **'Geçerli bir e-posta adresi girin.'**
+  String get coreIdEmail;
 
   /// No description provided for @coreIdNumber.
   ///
@@ -10413,7 +10421,7 @@ abstract class AppLocalizations {
   /// No description provided for @authHintPersonal.
   ///
   /// In tr, this message translates to:
-  /// **'Adınızı ve okul e-postanızı girin.'**
+  /// **'Adınızı ve e-posta adresinizi girin.'**
   String get authHintPersonal;
 
   /// No description provided for @authNext.
@@ -10449,31 +10457,31 @@ abstract class AppLocalizations {
   /// No description provided for @authIdHelper.
   ///
   /// In tr, this message translates to:
-  /// **'226051015 ya da ad.soyad@bingol.edu.tr'**
+  /// **'226051015 ya da ad.soyad@gmail.com'**
   String get authIdHelper;
 
   /// No description provided for @authRegIdLabel.
   ///
   /// In tr, this message translates to:
-  /// **'Okul e-posta adresiniz'**
+  /// **'E-posta adresiniz'**
   String get authRegIdLabel;
 
   /// No description provided for @authRegIdHelper.
   ///
   /// In tr, this message translates to:
-  /// **'Örn. ad.soyad@bingol.edu.tr'**
+  /// **'Örn. ad.soyad@gmail.com'**
   String get authRegIdHelper;
 
   /// No description provided for @authRegIdEmpty.
   ///
   /// In tr, this message translates to:
-  /// **'Okul e-posta adresinizi girin.'**
+  /// **'E-posta adresinizi girin.'**
   String get authRegIdEmpty;
 
   /// No description provided for @authRegIdFull.
   ///
   /// In tr, this message translates to:
-  /// **'Okul e-posta adresinizin tamamını yazın, örn. ad.soyad@bingol.edu.tr'**
+  /// **'E-posta adresinizin tamamını yazın, örn. ad.soyad@gmail.com'**
   String get authRegIdFull;
 
   /// No description provided for @supportCatAccount.
@@ -10947,13 +10955,13 @@ abstract class AppLocalizations {
   /// No description provided for @authForgotSubNumber.
   ///
   /// In tr, this message translates to:
-  /// **'Okul numaranızı girin. 6 haneli kodu okulnumaranız@bingol.edu.tr adresinize göndereceğiz.'**
+  /// **'E-posta adresinizi ya da okul numaranızı girin. 6 haneli kodu e-posta adresinize göndereceğiz.'**
   String get authForgotSubNumber;
 
   /// No description provided for @authForgotSub.
   ///
   /// In tr, this message translates to:
-  /// **'Okul e-postanızı girin, size 6 haneli bir kod gönderelim.'**
+  /// **'E-posta adresinizi girin, size 6 haneli bir kod gönderelim.'**
   String get authForgotSub;
 
   /// No description provided for @authBackToLogin.
@@ -11007,7 +11015,7 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeNote.
   ///
   /// In tr, this message translates to:
-  /// **'Yalnızca okul e-postası (bingol.edu.tr) ile kayıt olunabilir.'**
+  /// **'Gmail, Outlook, Hotmail, Yahoo ve diğer e-posta adresleriyle kayıt olabilirsiniz.'**
   String get welcomeNote;
 
   /// No description provided for @welcomeLanguage.
@@ -17481,7 +17489,7 @@ abstract class AppLocalizations {
   /// No description provided for @p23NoneText.
   ///
   /// In tr, this message translates to:
-  /// **'Rehberindeki kişilerden Bingöl Üniversitesi e-postasıyla uygulamayı kullanan kimse bulunamadı.'**
+  /// **'Rehberindeki kişilerden uygulamayı kullanan kimse bulunamadı.'**
   String get p23NoneText;
 
   /// No description provided for @p09GradeYear.
@@ -19083,7 +19091,7 @@ abstract class AppLocalizations {
   /// No description provided for @regSubtitle.
   ///
   /// In tr, this message translates to:
-  /// **'Adınızı, okul numaranızı ve şifrenizi girin. Doğrulama kodunuz okulnumaranız@bingol.edu.tr adresinize gönderilir.'**
+  /// **'Adınızı, e-posta adresinizi ve şifrenizi girin. Doğrulama kodunuz e-posta adresinize gönderilir.'**
   String get regSubtitle;
 
   /// No description provided for @profileSetupTitle.
@@ -21894,8 +21902,9 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-      'an issue with the localizations generation tool. Please file an issue '
-      'on GitHub with a reproducible sample app and the gen-l10n configuration '
-      'that was used.');
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
 }
