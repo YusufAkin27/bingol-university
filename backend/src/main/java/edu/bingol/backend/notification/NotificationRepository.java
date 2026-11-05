@@ -44,7 +44,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
                   edu.bingol.backend.notification.NotificationType.POST_MENTION,
                   edu.bingol.backend.notification.NotificationType.USER_FOLLOW,
                   edu.bingol.backend.notification.NotificationType.FOLLOW_REQUEST,
-                  edu.bingol.backend.notification.NotificationType.FOLLOW_ACCEPTED) THEN 'SOCIAL'
+                  edu.bingol.backend.notification.NotificationType.FOLLOW_ACCEPTED,
+                  edu.bingol.backend.notification.NotificationType.FORUM) THEN 'SOCIAL'
                 WHEN n.type = edu.bingol.backend.notification.NotificationType.SYSTEM THEN 'SYSTEM'
                 ELSE 'ANNOUNCEMENT' END
               ORDER BY n.id DESC""")

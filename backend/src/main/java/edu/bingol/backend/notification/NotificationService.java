@@ -356,8 +356,8 @@ public class NotificationService {
             if (!dispatcher.enabled()) {
                 return; // FCM kapali: uygulama ici kayit yazildi, push atlanir
             }
-            if (type == NotificationType.POST_LIKE && count > 1) {
-                return; // birlesen begeni: ilk begeniden push gitti, devami yalniz kutuda guncellenir
+            if ((type == NotificationType.POST_LIKE || type == NotificationType.FORUM) && count > 1) {
+                return; // birlesen begeni / forum yorum yagmuru: ilk bildirimden push gitti, devami yalniz kutuda guncellenir
             }
             String pTitle = title;
             String pBody = pushBody;
@@ -571,8 +571,8 @@ public class NotificationService {
                     continue; // sessiz saat: yalniz uygulama ici kayit
                 }
                 int count = row.groupCount();
-                if (type == NotificationType.POST_LIKE && count > 1) {
-                    continue; // birlesen begeni: ilk begeniden push gitti
+                if ((type == NotificationType.POST_LIKE || type == NotificationType.FORUM) && count > 1) {
+                    continue; // birlesen begeni / forum yorum yagmuru: ilk bildirimden push gitti
                 }
                 if (type != NotificationType.SYSTEM && !gate.allowGeneralPush(uid)) {
                     continue;
@@ -783,7 +783,7 @@ public class NotificationService {
             case EVENT -> p.isEvents();
             case MESSAGE -> p.isMessages();
             case COMMUNITY, POST_LIKE, POST_COMMENT, COMMENT_REPLY, POST_MENTION, USER_FOLLOW, FOLLOW_REQUEST,
-                 FOLLOW_ACCEPTED -> p.isCommunities();
+                 FOLLOW_ACCEPTED, FORUM -> p.isCommunities();
             case SYSTEM -> true;
         };
     }

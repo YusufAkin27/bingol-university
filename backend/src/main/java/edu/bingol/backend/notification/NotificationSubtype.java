@@ -14,6 +14,10 @@ public enum NotificationSubtype {
     COMMENT_REPLY(NotificationType.COMMENT_REPLY),
     POST_MENTION(NotificationType.POST_MENTION), USER_FOLLOW(NotificationType.USER_FOLLOW),
     FOLLOW_REQUEST(NotificationType.FOLLOW_REQUEST), FOLLOW_ACCEPTED(NotificationType.FOLLOW_ACCEPTED),
+    // Kampus Forum (FORUM_MODERATION alt tur DEGIL: SYSTEM alt tur alamaz; veride forumKind=FORUM_MODERATION)
+    FORUM_TOPIC_COMMENT(NotificationType.FORUM), FORUM_COMMENT_REPLY(NotificationType.FORUM),
+    FORUM_COMMENT_LIKE(NotificationType.FORUM), FORUM_TOPIC_LIKE(NotificationType.FORUM),
+    FORUM_FOLLOWED_TOPIC_COMMENT(NotificationType.FORUM),
     // Kendi bayragi olanlar (notification_pref.polls / academic_announcements, V880; ikincisi sinav hatirlatmasina kaldi): ana tur bayragindan bagimsizdir
     POLL(NotificationType.ANNOUNCEMENT),
     // Sinav hatirlatmasi (sinavdan 2 sa once): "Akademik duyurular" bayragini (academic_announcements) paylasir;

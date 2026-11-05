@@ -147,7 +147,14 @@ class ExtraExportersTest {
             // FOLLOWREQ: gonderdigim bekleyen takip istekleri (gelenler baskalarinin verisi, dahil degil)
             Map.entry("follow_request", "followRequests"),
             // 2FA (V1060): durum + guvenilen cihaz etiketleri (ham/ozet kimlik disa verilmez)
-            Map.entry("two_factor_device", "twoFactor"));
+            Map.entry("two_factor_device", "twoFactor"),
+            // Kampus Forum (E): hepsi tek "forum" bolumunde (ForumDataExporter); anonim paylasimlar da kullanicinin kendi verisidir
+            Map.entry("forum_topic", "forum"), Map.entry("forum_comment", "forum"),
+            Map.entry("forum_topic_like", "forum"), Map.entry("forum_comment_like", "forum"),
+            Map.entry("forum_bookmark", "forum"), Map.entry("forum_topic_follow", "forum"),
+            Map.entry("forum_poll_vote", "forum"), Map.entry("forum_user_mute", "forum"),
+            Map.entry("forum_anon_alias", "forum"), Map.entry("forum_notification_pref", "forum"),
+            Map.entry("forum_media", "forum"));
 
     /** Bilincli muaf: gecici push kuyrugu ve gizli oy secmen kaydi (kimlik-oy baglantisi tutulmaz, disari verilemez). */
     private static final Set<String> EXEMPT = Set.of("push_outbox", "poll_ballot",
@@ -159,7 +166,8 @@ class ExtraExportersTest {
             "conversation_add_ban",     // grup yeniden ekleme yasagi: baska kullanicinin tercihini ifsa eder
             "event_co_organizer",       // ortak organizator atamasi: etkinlik sahibinin verisi (createdEvents'te)
             "mail_outbox",              // gecici e-posta kuyrugu (30 gun), adresle eslesen bekleyen kayitlar silinir
-            "account_delete_hold");     // 7 gunluk silme bekletmesi: surec durumu, kisisel icerik yok
+            "account_delete_hold",      // 7 gunluk silme bekletmesi: surec durumu, kisisel icerik yok
+            "forum_notify_seen");       // forum bildirim tekrar defteri: (tur, hedef, eden, alici) kimlikleri, kisisel icerik yok
 
     private static Set<String> purgedTables() {
         Pattern p = Pattern.compile("(?:DELETE FROM|UPDATE)\\s+([a-z_]+)");

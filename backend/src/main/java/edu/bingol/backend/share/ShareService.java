@@ -171,6 +171,14 @@ public class ShareService {
         return Optional.ofNullable(resolve(null, List.of(ref)).get(ref));
     }
 
+    /** Kampus Forum konu/yorum cozumleyici (forum.share; yoksa forum turleri hic gorunmez). */
+    private ForumShareResolver forumResolver;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setForumResolver(ForumShareResolver forumResolver) {
+        this.forumResolver = forumResolver;
+    }
+
     // ------------------------------------------------------------------ cozum
 
     /**
@@ -182,12 +190,17 @@ public class ShareService {
         List<ShareRef> postRefs = new ArrayList<>();
         List<ShareRef> newsRefs = new ArrayList<>();
         List<ShareRef> eventRefs = new ArrayList<>();
+        List<ShareRef> forumRefs = new ArrayList<>();
         for (ShareRef r : refs) {
             switch (r.type()) {
                 case POST, REEL -> postRefs.add(r);
                 case NEWS -> newsRefs.add(r);
                 case EVENT -> eventRefs.add(r);
+                case FORUM_TOPIC, FORUM_COMMENT -> forumRefs.add(r);
             }
+        }
+        if (!forumRefs.isEmpty() && forumResolver != null) {
+            out.putAll(forumResolver.resolve(viewerId, forumRefs));
         }
         resolveNews(newsRefs, out);
         resolvePosts(viewerId, postRefs, out);

@@ -37,7 +37,7 @@ public final class RichPushPayload {
         if ("FOLLOW_ACCEPTED".equals(type)) return "FOLLOW_ACCEPTED";
         if ("USER_FOLLOW".equals(type)) return "FOLLOW";
         if ("POST_LIKE".equals(type)) return "LIKE";
-        if (type.startsWith("POST_") || "COMMENT_REPLY".equals(type)) return "SOCIAL";
+        if (type.startsWith("POST_") || "COMMENT_REPLY".equals(type) || "FORUM".equals(type)) return "SOCIAL";
         if (data.containsKey("ticketId") || data.containsKey("feedbackId")) return "SUPPORT";
         if ("MEAL".equals(data.get("target")) || "MEAL".equals(data.get("targetType"))) return "MEAL";
         if ("SYSTEM".equals(type)) {

@@ -51,6 +51,10 @@ public class SharePageController {
     private final ClientIp clientIp;
     private final SharePageRenderer renderer;
 
+    /** Forum konu kucuk resmi (forum.share; yoksa forum OG gorseli 404). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private ForumShareImageProvider forumImages;
+
     @Value("${app.share.ios-store-url:https://apps.apple.com/tr/app/id6830530499}")
     private String iosStoreUrl;
     @Value("${app.share.android-store-url:https://play.google.com/store/apps/details?id=tr.com.bukampus.app}")
@@ -103,7 +107,7 @@ public class SharePageController {
             log.debug("Paylasim gorseli hiz siniri atlandi: {}", e.toString());
         }
         ShareRef ref = parse(t, id);
-        if (ref == null || !ref.type().isPost()) {
+        if (ref == null || !(ref.type().isPost() || ref.type().isForum() && forumImages != null)) {
             return noImage();
         }
         Optional<Long> mediaId = shares.publicView(ref).map(ShareService.Resolved::mediaId);
@@ -111,7 +115,8 @@ public class SharePageController {
             return noImage();
         }
         try {
-            return postMedia.servePublicPreview(mediaId.get(), inm);
+            return ref.type().isForum() ? forumImages.servePublicPreview(mediaId.get(), inm)
+                    : postMedia.servePublicPreview(mediaId.get(), inm);
         } catch (ApiException e) {
             return noImage();
         }
@@ -148,6 +153,8 @@ public class SharePageController {
             case EVENT -> "share.label.EVENT";
             case REEL -> "share.label.REEL";
             case POST -> "VIDEO".equals(v.kind()) ? "share.label.REEL" : "share.label.POST";
+            case FORUM_TOPIC -> "share.label.FORUM_TOPIC";
+            case FORUM_COMMENT -> "share.label.FORUM_COMMENT";
         };
         String label = renderer.msg(labelKey, lang);
         String desc = v.description();

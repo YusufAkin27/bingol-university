@@ -10,7 +10,10 @@ public enum NotificationType {
     // Sosyal (etiket, takip): yine "communities" bayragi; alt tur ile ayri kapatilir
     POST_MENTION("communities"), USER_FOLLOW("communities"),
     // Gizli hesap takip istegi (hedefe) ve kabul (istek sahibine): "communities" bayragini paylasir
-    FOLLOW_REQUEST("communities"), FOLLOW_ACCEPTED("communities");
+    FOLLOW_REQUEST("communities"), FOLLOW_ACCEPTED("communities"),
+    // Kampus Forum (konu/yorum yaniti/begeni/takip): "communities" bayragini paylasir; ayrintili tercih
+    // forum_notification_pref + alt turler (NotificationSubtype FORUM_*). Moderasyon bildirimi SYSTEM gider.
+    FORUM("communities");
 
     private final String prefColumn;
 
