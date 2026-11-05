@@ -178,7 +178,7 @@ class _PollViewState extends State<PollView> {
     final t = context.bu;
     final l = context.l10n;
     final tt = Theme.of(context).textTheme;
-    final fmt = NumberFormat.decimalPatternDigits(locale: Localizations.localeOf(context).toString(), decimalDigits: 1);
+    final fmt = NumberFormat.decimalPatternDigits(locale: l.localeName, decimalDigits: 1);
     final closed = _closed;
     final q = (_poll.question ?? '').trim();
     final info = closed
