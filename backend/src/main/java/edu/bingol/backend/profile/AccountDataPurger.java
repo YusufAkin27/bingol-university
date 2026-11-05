@@ -122,7 +122,8 @@ public class AccountDataPurger {
             Map.entry("forum_topic_like.user_id", "ForumTopicAccountPurger (+ sayac duser)"),
             Map.entry("forum_bookmark.user_id", "ForumTopicAccountPurger"),
             Map.entry("forum_topic_follow.user_id", "ForumTopicAccountPurger"),
-            Map.entry("forum_anon_alias.user_id", "ForumTopicAccountPurger"));
+            Map.entry("forum_anon_alias.user_id", "ForumTopicAccountPurger"),
+            Map.entry("forum_poll_vote.user_id", "ForumPollAccountPurger (UserAccountDeletedEvent, ayni islemde: oy satiri silinir, secenek sayaci dusurulur)"));
 
     /**
      * Bilerek SILINMEYEN/ANONIMLESTIRILMEYEN kullanici baglantili sutunlar ("tablo.sutun" -> gerekce ve sure).
