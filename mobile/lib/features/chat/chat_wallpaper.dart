@@ -52,7 +52,7 @@ String chatWallpaperAssetPath(ChatBgStyle s, {required bool dark}) =>
 
 /// Varlık duvar kağıdının üstüne bindirilen tema zemini örtüsü (0..1): yüksek = desen daha silik. Monochrome
 /// tasarımda desen yalnız belli belirsiz görünür (balonlar ve metin öne çıkar).
-const double kChatWallpaperVeil = .62;
+const double kChatWallpaperVeil = .78;
 
 /// Renk -> gri (Rec.709 parlaklık) matrisi: varlıktaki kırmızı/lacivert/krem tonları nötrleşir.
 const List<double> kChatWallpaperGray = <double>[

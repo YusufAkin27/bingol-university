@@ -33,7 +33,7 @@ class StatStrip extends StatelessWidget {
     final big = MediaQuery.textScalerOf(context).scale(10) > 11 && cells.length > 3;
     Widget row(List<StatCell> part) => Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           for (var i = 0; i < part.length; i++) ...[
-            if (i > 0) VerticalDivider(width: 1, thickness: 1, color: t.bd),
+            if (i > 0) VerticalDivider(width: 1, thickness: 1, indent: 14, endIndent: 14, color: t.bdSubtle),
             Expanded(child: _Cell(cell: part[i])),
           ],
         ]);
@@ -42,13 +42,17 @@ class StatStrip extends StatelessWidget {
       final half = (cells.length / 2).ceil();
       body = Column(mainAxisSize: MainAxisSize.min, children: [
         IntrinsicHeight(child: row(cells.sublist(0, half))),
-        Divider(height: 1, thickness: 1, indent: 12, endIndent: 12, color: t.bd),
+        Divider(height: 1, thickness: 1, indent: 12, endIndent: 12, color: t.bdSubtle),
         IntrinsicHeight(child: row(cells.sublist(half))),
       ]);
     } else {
       body = IntrinsicHeight(child: row(cells));
     }
-    return BuCard(padding: EdgeInsets.zero, radius: 16, child: body);
+    // Büyük bilgi kartı yok: yalnız üst/alt ince çizgi arasında düz sayaç satırı.
+    return DecoratedBox(
+      decoration: BoxDecoration(border: Border.symmetric(horizontal: BorderSide(color: t.bdSubtle))),
+      child: body,
+    );
   }
 }
 
