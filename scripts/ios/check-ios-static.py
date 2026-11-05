@@ -155,11 +155,31 @@ def check_entitlements():
             ok(f'{name}: aps-environment={env}')
         else:
             bad(f'{name}: aps-environment={env} olmali')
+        if d.get('com.apple.developer.usernotifications.time-sensitive') is True:
+            ok(f'{name}: time-sensitive bildirim yetkisi (sinav/guvenlik teslimi)')
+        else:
+            bad(f'{name}: com.apple.developer.usernotifications.time-sensitive=true olmali')
     x = read(os.path.join(IOS, 'Flutter', 'BuPush.xcconfig.example'))
     if 'RunnerRelease.entitlements' in x and 'config=Release' in x:
         ok('BuPush.xcconfig.example: Release -> RunnerRelease.entitlements (production)')
     else:
         bad('BuPush.xcconfig.example Release icin RunnerRelease.entitlements baglamali')
+
+
+def check_push_categories():
+    """AppDelegate.registerPushCategories anahtarlari == NotificationContent Info.plist kategori listesi."""
+    app = read(os.path.join(RUNNER, 'AppDelegate.swift'))
+    body = app[app.index('let definitions'):app.index('setNotificationCategories')]
+    keys = set(re.findall(r'^\s*"([A-Z_]+)":', body, re.M)) | set(re.findall(r',\s*"([A-Z_]+)":', body))
+    plist = load_plist(os.path.join(IOS, 'NotificationContent', 'Info.plist'))
+    cats = plist['NSExtension']['NSExtensionAttributes']['UNNotificationExtensionCategory']
+    declared = {c[3:] for c in cats if c.startswith('BU_')}
+    if keys == declared and keys:
+        ok(f'Push kategorileri: AppDelegate ({len(keys)}) == NotificationContent Info.plist')
+    else:
+        bad(f'Push kategorileri uyusmuyor: yalniz AppDelegate {sorted(keys - declared)}, yalniz Info.plist {sorted(declared - keys)}')
+    for name in ('NotificationService/NotificationService.swift', 'NotificationContent/NotificationViewController.swift'):
+        (ok if os.path.isfile(os.path.join(IOS, name)) else bad)(f'{name} diskte')
 
 
 def check_privacy():
@@ -313,6 +333,7 @@ def main():
     info = check_info_plist()
     check_strings(info)
     check_entitlements()
+    check_push_categories()
     check_privacy()
     bundle = check_pbxproj()
     check_icons()
