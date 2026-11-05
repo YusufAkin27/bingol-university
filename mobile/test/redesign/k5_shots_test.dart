@@ -176,7 +176,8 @@ List<Map<String, dynamic>> _fullList() => [
     ];
 
 FakeBackend _listBackend({List<Map<String, dynamic>>? items, List<Map<String, dynamic>>? archived, bool network = false, Duration delay = Duration.zero}) {
-  final be = FakeBackend(delay: delay)..on('/conversations/unread-count', {'total': 18});
+  final be = FakeBackend(delay: delay)
+    ..on('/conversations/unread-count', {'total': 18, 'archivedChats': archived == null ? 2 : (archived.isEmpty ? 1 : archived.length), 'archivedUnreadChats': 1});
   be.on('/conversations?size=30', {'items': items ?? _fullList(), 'nextCursor': null});
   be.on('/conversations?size=30&archived=true', {
     'items': archived ??
@@ -378,11 +379,11 @@ final _boards = <_Board>[
     await t.longPress(find.text('Zeynep Demir'));
   }),
   _Board('L04_arsiv', () => _tab(_listBackend()), after: (t) async {
-    await t.tap(find.byIcon(BuIcons.archive).first);
+    await t.tap(find.byKey(const ValueKey('chat-archive-bar')));
     await settle(t, const Duration(milliseconds: 800));
   }),
   _Board('L04b_arsiv_bos', () => _tab(_listBackend(archived: [])), after: (t) async {
-    await t.tap(find.byIcon(BuIcons.archive).first);
+    await t.tap(find.byKey(const ValueKey('chat-archive-bar')));
     await settle(t, const Duration(milliseconds: 800));
   }),
   _Board('L05_bos', () => _tab(_listBackend(items: [])), height: 844),

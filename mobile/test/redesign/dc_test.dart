@@ -31,7 +31,7 @@ Map<String, dynamic> _row(int id, String type, String title) => {
     };
 
 FakeBackend _chatBe() => FakeBackend()
-  ..on('/conversations/unread-count', {'total': 2})
+  ..on('/conversations/unread-count', {'total': 2, 'archivedChats': 1, 'archivedUnreadChats': 0})
   ..on('/conversations*', {
     'items': [_row(1, 'CLUB', 'Fotografcilik Kulubu Duyurulari'), _row(2, 'DIRECT', 'Zeynep Demir')],
     'nextCursor': null,
@@ -119,7 +119,7 @@ void main() {
       expect(tester.getTopLeft(find.text('Sohbet')).dy, greaterThanOrEqualTo(inset), reason: 'baslik durum cubuguna binmemeli');
       expect(tester.getTopLeft(find.byTooltip('Yeni sohbet')).dy, greaterThanOrEqualTo(inset), reason: '+ dugmesi durum cubuguna binmemeli');
       // Arsiv gorunumu (BuHeader) da ayni inset'i alir.
-      await tester.tap(find.byTooltip('Arşiv'));
+      await tester.tap(find.byKey(const ValueKey('chat-archive-bar')));
       await settle(tester, const Duration(milliseconds: 600));
       expect(tester.getTopLeft(find.text('Arşiv')).dy, greaterThanOrEqualTo(inset));
       expect(tester.takeException(), isNull);

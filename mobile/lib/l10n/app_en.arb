@@ -3641,5 +3641,22 @@
   "calSyncUnavailable": "Calendar access is not supported on this device.",
   "calSyncRemoveDone": "{n} events removed from the calendar.",
   "calSyncCreateFail": "Could not create the calendar.",
-  "calSyncWorking": "Writing to calendar…"
+  "calSyncWorking": "Writing to calendar…",
+  "chatArchiveBarTitle": "Archived",
+  "chatArchiveBarCount": "{count, plural, =1{1 notification} other{{count} notifications}}",
+  "@chatArchiveBarCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatArchiveBarSemantics": "Archived, {count, plural, =1{1 notification} other{{count} notifications}}",
+  "@chatArchiveBarSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -110,7 +110,7 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('Stitch v3 hizalama: başlık, arama, çip, avatar hepsi 16 dp kenarda; sağ ikonlar referans merkezlerinde', (tester) async {
+    testWidgets('Stitch v3 hizalama: başlık, arama, çip, avatar hepsi 16 dp kenarda; sağ ikonlar referans merkezinde', (tester) async {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(ChatTab(session: makeSession(_be(items)), connectRealtime: false), size: kPhoneMedium));
       await settle(tester, const Duration(seconds: 1));
@@ -120,9 +120,9 @@ void main() {
       final chip = tester.getRect(find.ancestor(of: find.text('Tümü').first, matching: find.byType(BuChip)).first);
       expect(chip.left, closeTo(16, 1));
       expect(tester.getTopLeft(find.byType(ChatlistAvatar).first).dx, 16);
-      // "+" merkezi 356, arşiv merkezi 316 (referans).
+      // "+" merkezi 356; sağ üstteki arşiv ikonu kaldırıldı (arşiv artık listenin üstündeki çubukta).
       expect(tester.getCenter(find.byIcon(BuIcons.plus).first).dx, closeTo(356, 1));
-      expect(tester.getCenter(find.byIcon(BuIcons.archive).first).dx, closeTo(316, 1));
+      expect(find.byIcon(BuIcons.archive), findsNothing);
     });
 
     testWidgets('dolu listede + düğmesi düz ikon, 48 dp dokunma alanı; arama 52 dp', (tester) async {

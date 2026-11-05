@@ -5862,5 +5862,22 @@
     }
   },
   "calSyncCreateFail": "Takvim oluşturulamadı.",
-  "calSyncWorking": "Takvime yazılıyor…"
+  "calSyncWorking": "Takvime yazılıyor…",
+  "chatArchiveBarTitle": "Arşivlenenler",
+  "chatArchiveBarCount": "{count, plural, other{{count} bildirim}}",
+  "@chatArchiveBarCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatArchiveBarSemantics": "Arşivlenenler, {count, plural, other{{count} bildirim}}",
+  "@chatArchiveBarSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

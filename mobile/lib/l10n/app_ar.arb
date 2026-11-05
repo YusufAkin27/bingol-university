@@ -3641,5 +3641,22 @@
   "calSyncUnavailable": "الوصول إلى التقويم غير مدعوم على هذا الجهاز.",
   "calSyncRemoveDone": "تمت إزالة {n} حدث من التقويم.",
   "calSyncCreateFail": "تعذّر إنشاء التقويم.",
-  "calSyncWorking": "جارٍ الكتابة إلى التقويم…"
+  "calSyncWorking": "جارٍ الكتابة إلى التقويم…",
+  "chatArchiveBarTitle": "المؤرشفة",
+  "chatArchiveBarCount": "{count, plural, =1{إشعار واحد} =2{إشعاران} few{{count} إشعارات} many{{count} إشعارًا} other{{count} إشعار}}",
+  "@chatArchiveBarCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatArchiveBarSemantics": "المؤرشفة، {count, plural, =1{إشعار واحد} =2{إشعاران} few{{count} إشعارات} many{{count} إشعارًا} other{{count} إشعار}}",
+  "@chatArchiveBarSemantics": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

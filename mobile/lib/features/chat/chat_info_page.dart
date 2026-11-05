@@ -305,7 +305,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
       if (archived) {
         await _api.delete('/conversations/$_cid/archive');
       } else {
-        await _api.put('/conversations/$_cid/archive', {'keepArchived': false});
+        await _api.put('/conversations/$_cid/archive', {'keepArchived': true});
       }
       if (!mounted) return;
       setState(() => _merge({'archived': !archived}));
