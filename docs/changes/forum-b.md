@@ -13,11 +13,11 @@ Paket `edu.bingol.backend.forum.comment`, migration `V1410__forum_comments.sql`,
 | `PATCH /comments/{id}` | `{body}`; yalnız sahip. 60/dk (yazma). |
 | `DELETE /comments/{id}` | 204. Sahibi; zaten silinmişse yine 204 (çift dokunma). |
 | `PUT\|DELETE /comments/{id}/like` | `{liked, likeCount}`, 120/dk. |
-| `PUT\|DELETE /comments/{id}/bookmark` | `{saved}` (A'nın `ForumBookmarkService`'i). |
+| `PUT\|DELETE /comments/{id}/bookmark` | `{saved}` (A'nın `ForumBookmarkService.save/unsave(userId, "COMMENT", id)`'i). |
 
 ## Hata kodları (hepsi `forumc*.properties`'te üç dilde)
 
-`FORUM_COMMENT_NOT_FOUND` 404, `FORUM_NOT_OWNER` 403, `FORUM_TOPIC_LOCKED` 409, `FORUM_COMMENT_EMPTY` 400, `FORUM_COMMENT_TOO_LONG` 422, `FORUM_COMMENT_PARENT_UNAVAILABLE` 409 (silinmiş/kaldırılmış yoruma yanıt), `FORUM_COMMENT_DELETED` 409 (sahibi silmiş yorumu moderatör geri getiremez), `FORUM_COMMENT_CURSOR_INVALID` 400. Görünmez konu: `FORUM_TOPIC_NOT_FOUND` (A'nın anahtarı). Küfür filtresi: `ContentGuard` (422 `CONTENT_PROFANITY`, alan `body`).
+B'nin kendi kodları (`forumc*.properties`): `FORUM_COMMENT_NOT_FOUND` 404, `FORUM_COMMENT_EMPTY` 400, `FORUM_COMMENT_TOO_LONG` 422, `FORUM_COMMENT_PARENT_UNAVAILABLE` 409 (silinmiş/kaldırılmış yoruma yanıt), `FORUM_COMMENT_DELETED` 409 (sahibi silmiş yorumu moderatör geri getiremez). A'nın `forum*.properties`'inde tanımlı ve burada **yeniden kullanılan** kodlar (aynı anahtar iki dosyada olamaz): `FORUM_NOT_OWNER` 403, `FORUM_TOPIC_LOCKED` 409, `FORUM_CURSOR_INVALID` 400, `FORUM_TOPIC_NOT_FOUND` 404. Anonim ad metni A'nın `forum.anon.name` anahtarındandır. Küfür filtresi: `ContentGuard` (422 `CONTENT_PROFANITY`, alan `body`).
 
 ## Sayaç anlamları (tümü atomik `UPDATE`, okuma-değiştir-yaz yok)
 
@@ -33,7 +33,7 @@ Mezar taşı (`deleted_at` dolu ya da `status=REMOVED`): altında listelenen yan
 
 ## Anonimlik
 
-Anonim yorumda `author = {userId:null, displayName:"Anonim #N" (tr) / "Anonymous #N" (en) / "مجهول #N" (ar), avatarUrl:null, department:null, anonymous:true}`; `#N` A'nın `forum_anon_alias`'ından (konu başına kararlı; yazma sırasında `ForumAnonAliasService` ile oluşturulur, okuma toplu SQL). Yorumda anonimlik **ayrı** seçimdir. `mine:true` yalnız yazarın kendisine.
+Anonim yorumda `author = {userId:null, displayName:"Anonim #N" (tr) / "Anonymous #N" (en) / "مجهول #N" (ar), avatarUrl:null, department:null, anonymous:true}`; `#N` A'nın `forum_anon_alias`'ından (konu başına kararlı; yazma sırasında A'nın `ForumAuthorResolver`'ı numarayı tahsis eder; okuma da aynı çözümleyiciyle toplu yapılır (yazar görünümünün TEK üretim yeri)). Yorumda anonimlik **ayrı** seçimdir. `mine:true` yalnız yazarın kendisine.
 `topicAuthor`: konu sahibinin yorumunda `true`; **anonim konuda** yalnız yorum da anonimse `true` (kimlikli yorumda "Yazar" etiketi anonim konuyu açığa çıkarırdı). Engel/sessize alma süzgeci yazarı kimlik sızdırmadan sunucuda uygular (anonim yorum dahil).
 
 ## Sözleşmeye eklenenler / sapmalar
@@ -49,5 +49,7 @@ Anonim yorumda `author = {userId:null, displayName:"Anonim #N" (tr) / "Anonymous
 
 ## Bilinen sınırlamalar
 
-- PostgreSQL'e özel parçalar (kısmi indeksler, `BEST` puanındaki `EXTRACT(EPOCH ...)`/`POWER`, `ROW_NUMBER`) H2 testlerinde de çalışır; ancak gerçek PG üzerinde çalıştırma bu görevde yapılmadı (bkz. nihai rapor).
+- Migration (V1400 + V1410), `BEST` puan sorgusu, `ROW_NUMBER` önizleme sorgusu, `FOR UPDATE` ve benzersiz `(user_id, idempotency_key)` kısıtı gerçek `postgres:16` üzerinde elle doğrulandı (ayrı bir duman betiği yok). Hibernate `validate` PG üzerinde çalıştırılmadı.
+- `docs/openapi.json` bu dalda YENİDEN ÜRETİLMEDİ (paylaşımlı dosya, 5 backend dalı çakışır); birleşimden sonra bir kez `OpenApiExportTest -Dopenapi.out=../docs/openapi.json` ile üretilmeli.
+- Gece onarım işi yok: `like_count`/`reply_count`/`comment_count` yalnız atomik artış-azalışla tutulur (testlerde bütünlük SQL ile doğrulanır).
 - Askıya alınmış (SUSPENDED) kullanıcının yorumları kendiliğinden gizlenmez; moderasyon `remove` ile yapılır.
