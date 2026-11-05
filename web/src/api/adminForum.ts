@@ -8,7 +8,10 @@ type Idem = Pick<GuardOpts, 'idempotencyKey'>;
 
 // ---------- Ortak ----------
 export type ForumTargetType = 'FORUM_TOPIC' | 'FORUM_COMMENT';
-export type ForumContentStatus = 'ACTIVE' | 'REMOVED';
+/** DELETED: sahibi sildi; MISSING: kayıt bulunamadı (yalnız şikâyet önizlemesinde). Her ikisinde içerik eylemi yoktur. */
+export type ForumContentStatus = 'ACTIVE' | 'REMOVED' | 'DELETED' | 'MISSING';
+const contentStatus = (v: unknown): ForumContentStatus =>
+  v === 'REMOVED' || v === 'DELETED' || v === 'MISSING' ? v : 'ACTIVE';
 /** Konu için moderatör eylemleri (POST .../moderate). Yorum için yalnız REMOVE | RESTORE. */
 export type ForumTopicAction = 'PIN' | 'UNPIN' | 'LOCK' | 'UNLOCK' | 'REMOVE' | 'RESTORE';
 export type ForumCommentAction = 'REMOVE' | 'RESTORE';
@@ -49,12 +52,13 @@ export interface ForumCategory {
   active: boolean;
   topicCount: number;
 }
+/** Boş bırakılan alan GÖNDERİLMEZ: oluştururken sunucu Türkçe ada düşer, güncellerken mevcut değer kalır. */
 export interface ForumCategoryInput {
   slug?: string;
-  nameTr: string;
-  nameEn: string;
-  nameAr: string;
-  active: boolean;
+  nameTr?: string;
+  nameEn?: string;
+  nameAr?: string;
+  active?: boolean;
 }
 
 /** Yanıt `nameTr/nameEn/nameAr` ya da `names:{tr,en,ar}` olabilir; ikisini de kabul eder. */
@@ -115,7 +119,8 @@ export interface ForumTopicRow {
 }
 export interface ForumTopicFilters {
   q?: string;
-  status?: '' | ForumContentStatus;
+  /** '' = varsayılan (sahibinin silmedikleri); PINNED/LOCKED/DELETED/ALL sunucu süzgeçleri. */
+  status?: '' | 'ACTIVE' | 'REMOVED' | 'DELETED' | 'PINNED' | 'LOCKED' | 'ALL';
   categoryId?: string;
 }
 
@@ -133,7 +138,7 @@ export function normalizeTopic(raw: unknown): ForumTopicRow {
     // anonimde ad hiç taşınmaz: arayüz "Anonim" yazar (sunucu zaten kimlik vermez; burada ikinci emniyet)
     authorName: anonymous ? null : (str(author.displayName) ?? str(r.authorName)),
     anonymous,
-    status: r.status === 'REMOVED' ? 'REMOVED' : 'ACTIVE',
+    status: contentStatus(r.status),
     pinned: r.pinned === true || (typeof r.pinnedAt === 'string' && r.pinnedAt !== ''),
     locked: r.locked === true || (typeof r.lockedAt === 'string' && r.lockedAt !== ''),
     commentCount: num(r.commentCount),
@@ -237,7 +242,7 @@ export function normalizeReport(raw: unknown): ForumReportRow {
       body: str(p.body) ?? str(p.bodyPreview) ?? str(p.text),
       authorName: anonymousPreview ? null : (str(p.authorName) ?? str(author.displayName)),
       anonymous: anonymousPreview,
-      contentStatus: p.status === 'REMOVED' || p.contentStatus === 'REMOVED' || p.removed === true ? 'REMOVED' : 'ACTIVE',
+      contentStatus: contentStatus(p.contentStatus ?? p.status),
       pinned: p.pinned === true,
       locked: p.locked === true,
     },

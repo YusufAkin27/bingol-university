@@ -33,8 +33,11 @@ const DEFAULTS: ForumReportFilters = { status: 'OPEN', type: '', reason: '' };
 
 /** Şikâyet satırı için eylemler: içerik (kaldır/geri al), konuysa sabit/kilit, açıksa yoksay. */
 export function reportActions(r: Pick<ForumReportRow, 'targetType' | 'status' | 'preview'>): ModAction[] {
-  const out: ModAction[] = [r.preview.contentStatus === 'REMOVED' ? 'RESTORE' : 'REMOVE'];
-  if (r.targetType === 'FORUM_TOPIC' && r.preview.contentStatus !== 'REMOVED') {
+  const out: ModAction[] = [];
+  const cs = r.preview.contentStatus;
+  // sahibi silmiş / kaydı olmayan içerikte kaldır-geri al yoktur; yalnız şikâyet yoksayılabilir
+  if (cs === 'ACTIVE' || cs === 'REMOVED') out.push(cs === 'REMOVED' ? 'RESTORE' : 'REMOVE');
+  if (r.targetType === 'FORUM_TOPIC' && cs === 'ACTIVE') {
     out.push(r.preview.pinned ? 'UNPIN' : 'PIN', r.preview.locked ? 'UNLOCK' : 'LOCK');
   }
   if (r.status === 'OPEN') out.push('DISMISS');
@@ -121,6 +124,7 @@ export default function ForumReportsPage() {
                     <Badge tone={r.status === 'OPEN' ? 'warning' : 'success'}>{f(`admin.forum.reports.status.${r.status}`)}</Badge>
                     <ContentBadges
                       removed={r.preview.contentStatus === 'REMOVED'}
+                      gone={r.preview.contentStatus === 'DELETED' || r.preview.contentStatus === 'MISSING' ? r.preview.contentStatus : null}
                       pinned={r.preview.pinned}
                       locked={r.preview.locked}
                       anonymous={r.preview.anonymous}

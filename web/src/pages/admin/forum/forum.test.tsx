@@ -125,6 +125,21 @@ describe('kategoriler', () => {
     expect(w.body).toMatchObject({ nameTr: 'Burslar', nameEn: 'Scholarships', nameAr: 'منح', active: true });
   });
 
+  it('boş İngilizce/Arapça ad gönderilmez (sunucu Türkçe ada düşer, güncellemede mevcut kalır)', async () => {
+    const calls = setup([get('/api/admin/forum/categories', list()), post(/\/forum\/categories$/)]);
+    renderWithProviders(<ForumCategoriesPage />);
+    const user = userEvent.setup();
+    await screen.findAllByTestId('forum-cat-row');
+    await user.click(screen.getByRole('button', { name: 'Yeni kategori' }));
+    await user.type(screen.getByLabelText(/Ad \(Türkçe\)/), 'Burslar');
+    await user.click(screen.getByRole('button', { name: 'Kaydet' }));
+    await waitFor(() => expect(writes(calls)).toHaveLength(1));
+    const body = writes(calls)[0]!.body as Record<string, unknown>;
+    expect(body.nameTr).toBe('Burslar');
+    expect('nameEn' in body).toBe(false);
+    expect('nameAr' in body).toBe(false);
+  });
+
   it('geçersiz slug kaydı engeller', async () => {
     const calls = setup([get('/api/admin/forum/categories', list())]);
     renderWithProviders(<ForumCategoriesPage />);
@@ -373,6 +388,9 @@ describe('şikâyet kuyruğu', () => {
     expect(reportActions({ ...base, preview: { ...pv, pinned: true, locked: true } })).toEqual(['REMOVE', 'UNPIN', 'UNLOCK', 'DISMISS']);
     expect(reportActions({ ...base, preview: { ...pv, contentStatus: 'REMOVED' } })).toEqual(['RESTORE', 'DISMISS']);
     expect(reportActions({ targetType: 'FORUM_COMMENT', status: 'RESOLVED', preview: pv })).toEqual(['REMOVE']);
+    // sahibi silmiş / kaydı yok: kaldır-geri al yok, yalnız açık şikâyet yoksayılır
+    expect(reportActions({ ...base, preview: { ...pv, contentStatus: 'DELETED' } })).toEqual(['DISMISS']);
+    expect(reportActions({ targetType: 'FORUM_COMMENT', status: 'RESOLVED', preview: { ...pv, contentStatus: 'MISSING' } })).toEqual([]);
   });
 });
 
@@ -488,6 +506,7 @@ describe('konular', () => {
     expect(topicActions({ status: 'ACTIVE', pinned: false, locked: false })).toEqual(['PIN', 'LOCK', 'REMOVE']);
     expect(topicActions({ status: 'ACTIVE', pinned: true, locked: true })).toEqual(['UNPIN', 'UNLOCK', 'REMOVE']);
     expect(topicActions({ status: 'REMOVED', pinned: true, locked: false })).toEqual(['RESTORE']);
+    expect(topicActions({ status: 'DELETED', pinned: false, locked: false })).toEqual([]);
   });
 });
 

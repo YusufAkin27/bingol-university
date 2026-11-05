@@ -24,10 +24,13 @@ import fs from './forum.module.css';
 import { authorLabel, ContentBadges, excerpt, useForumCan, useForumModeration, type ModAction } from './shared';
 import { forumError, tf } from './tf';
 
+const goneOf = (s: string): 'DELETED' | 'MISSING' | null => (s === 'DELETED' || s === 'MISSING' ? s : null);
+
 const EMPTY: ForumTopicFilters = { q: '', status: '', categoryId: '' };
 
 /** Satıra uygun moderatör eylemleri (duruma göre karşıt çift): sabit, kilit, kaldır. */
 export function topicActions(t: Pick<ForumTopicRow, 'status' | 'pinned' | 'locked'>): ModAction[] {
+  if (t.status === 'DELETED' || t.status === 'MISSING') return []; // sahibi sildi: moderatör eylemi yok
   if (t.status === 'REMOVED') return ['RESTORE'];
   return [t.pinned ? 'UNPIN' : 'PIN', t.locked ? 'UNLOCK' : 'LOCK', 'REMOVE'];
 }
@@ -100,9 +103,13 @@ export default function ForumTopicsPage() {
           </FormField>
           <FormField label={f('admin.forum.topics.filter.status')}>
             <Select value={filters.status ?? ''} onChange={(e) => set({ status: e.target.value as ForumTopicFilters['status'] })}>
-              <option value="">{f('admin.forum.status.all')}</option>
+              <option value="">{f('admin.forum.topics.status.default')}</option>
               <option value="ACTIVE">{f('admin.forum.status.ACTIVE')}</option>
               <option value="REMOVED">{f('admin.forum.status.REMOVED')}</option>
+              <option value="PINNED">{f('admin.forum.status.PINNED')}</option>
+              <option value="LOCKED">{f('admin.forum.status.LOCKED')}</option>
+              <option value="DELETED">{f('admin.forum.status.DELETED')}</option>
+              <option value="ALL">{f('admin.forum.status.all')}</option>
             </Select>
           </FormField>
           {cats.data && cats.data.length > 0 && (
@@ -144,7 +151,7 @@ export default function ForumTopicsPage() {
                     <h2 className={fs.title} dir="auto">
                       {row.title}
                     </h2>
-                    <ContentBadges removed={row.status === 'REMOVED'} pinned={row.pinned} locked={row.locked} anonymous={row.anonymous} />
+                    <ContentBadges removed={row.status === 'REMOVED'} gone={goneOf(row.status)} pinned={row.pinned} locked={row.locked} anonymous={row.anonymous} />
                     {row.openReportCount > 0 && (
                       <Badge tone="danger">{f('admin.forum.reportsBadge', { n: formatNumber(row.openReportCount) })}</Badge>
                     )}
@@ -177,7 +184,7 @@ export default function ForumTopicsPage() {
               {open.title}
             </h3>
             <div className={styles.chips}>
-              <ContentBadges removed={open.status === 'REMOVED'} pinned={open.pinned} locked={open.locked} anonymous={open.anonymous} />
+              <ContentBadges removed={open.status === 'REMOVED'} gone={goneOf(open.status)} pinned={open.pinned} locked={open.locked} anonymous={open.anonymous} />
             </div>
             <p className={fs.snippet} dir="auto">
               {excerpt(open.body, 2000) || '—'}

@@ -33,7 +33,7 @@ import styles from '../moderation/moderation.module.css';
 import { useForumCan } from './shared';
 import { forumError, tf } from './tf';
 
-const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,39}$/;
+const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/; // sunucu ile aynı kural (en çok 60 karakter)
 
 interface FormState {
   slug: string;
@@ -75,7 +75,13 @@ export default function ForumCategoriesPage() {
 
   const save = useMutation({
     mutationFn: () => {
-      const names = { nameTr: form.nameTr.trim(), nameEn: form.nameEn.trim(), nameAr: form.nameAr.trim(), active: form.active };
+      // boş EN/AR adı gönderilmez: oluştururken sunucu Türkçe ada düşer, güncellerken mevcut çeviri kalır
+      const names = {
+        nameTr: form.nameTr.trim(),
+        nameEn: form.nameEn.trim() || undefined,
+        nameAr: form.nameAr.trim() || undefined,
+        active: form.active,
+      };
       if (editing === 'new') return createCategory({ ...names, slug: form.slug.trim() || undefined });
       return updateCategory((editing as ForumCategory).id, names);
     },
@@ -130,7 +136,8 @@ export default function ForumCategoriesPage() {
   });
 
   const nameInvalid = form.nameTr.trim().length === 0;
-  const slugInvalid = editing === 'new' && form.slug.trim() !== '' && !SLUG_RE.test(form.slug.trim());
+  const slugInvalid =
+    editing === 'new' && form.slug.trim() !== '' && (form.slug.trim().length > 60 || !SLUG_RE.test(form.slug.trim()));
 
   return (
     <>
@@ -189,7 +196,7 @@ export default function ForumCategoriesPage() {
               >
                 <Input
                   value={form.slug}
-                  maxLength={40}
+                  maxLength={60}
                   dir="ltr"
                   autoComplete="off"
                   disabled={editing !== 'new'}

@@ -35,11 +35,14 @@ export function excerpt(text: string | null | undefined, max = 280): string {
 
 export function ContentBadges({
   removed,
+  gone,
   pinned,
   locked,
   anonymous,
 }: {
   removed?: boolean;
+  /** Sahibi sildi ya da kayıt yok (DELETED / MISSING): içerik eylemi yoktur. */
+  gone?: 'DELETED' | 'MISSING' | null;
   pinned?: boolean;
   locked?: boolean;
   anonymous?: boolean;
@@ -48,6 +51,7 @@ export function ContentBadges({
   return (
     <>
       {removed && <Badge tone="danger">{td('admin.forum.badge.removed', 'Kaldırıldı')}</Badge>}
+      {gone && <Badge tone="neutral">{td(`admin.forum.badge.${gone}`, gone)}</Badge>}
       {pinned && <Badge tone="info">{td('admin.forum.badge.pinned', 'Sabit')}</Badge>}
       {locked && <Badge tone="warning">{td('admin.forum.badge.locked', 'Kilitli')}</Badge>}
       {anonymous && <Badge tone="neutral">{td('admin.forum.badge.anonymous', 'Anonim')}</Badge>}

@@ -110,7 +110,8 @@ export const adminNav: AdminNavGroup[] = [
       { id: 'forumActions', perm: 'forum.read', to: paths.admin.forumActions, labelKey: 'admin.forum.nav.actions', icon: 'clipboard' },
       {
         id: 'forumCategories',
-        perm: 'forum.categories',
+        // okuma forum.read (sunucu: GET /api/admin/forum/** forum.read); yazma düğmeleri sayfada forum.categories ister
+        perm: 'forum.read',
         to: paths.admin.forumCategories,
         labelKey: 'admin.forum.nav.categories',
         icon: 'tag',

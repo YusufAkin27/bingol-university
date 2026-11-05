@@ -22,5 +22,9 @@ Tarih: 2026-11-05. Dal: `deploy/forum-web-20261105`. Sözleşme: `docs/FORUM_API
 
 ## Backend ile birleşirken
 
-- `AdminPermissionPolicy` kuralları: `GET /api/admin/forum/{reports,topics,actions}` -> `forum.read`, `GET /api/admin/forum/categories` -> `forum.categories`; aksi halde `navPolicy.test.ts` menü izni ile politikanın ayrıştığını bildirir.
-- Yanıt alan adları belgeden ayrışırsa yalnız `web/src/api/adminForum.ts` içindeki `normalize*` işlevleri uyarlanır.
+- Uyum, `deploy/forum-d-20261105` (`bf94896a`) kaynağına göre yapıldı: `ForumAdminController`/`ForumAdminDtos` ile yanıt şekilleri, `AdminPermissionPolicy` (D'nin iki RBAC dosyası geçici kopyalanıp `navPolicy.test.ts` koşuldu: 4/4 yeşil).
+- Okuma ucu izinleri: `GET /api/admin/forum/**` hepsi `forum.read` (kategori listesi dahil); kategori yazma `forum.categories`, moderasyon `forum.moderate`. Bu yüzden Kategoriler menü öğesi `forum.read` ister, ekle/düzenle/sırala/arşivle düğmeleri `forum.categories` yoksa çizilmez.
+- `navPolicy.test.ts` D birleşmeden önce bu dalda kırmızıdır (RBAC kuralları yok); birleşince yeşile döner.
+- Şikâyet satırı = hedef (`id` = çözme kimliği); içerik durumu `ACTIVE|REMOVED|DELETED|MISSING` (DELETED/MISSING'de yalnız yoksay). Kategori güncellemede boş EN/AR adı gönderilmez (sunucu boş adı reddeder).
+- Konu süzgeci `status`: boş (varsayılan, silinmemiş) | ACTIVE | REMOVED | PINNED | LOCKED | DELETED | ALL. Sunucu hata kodları `FORUM_MOD_*` Türkçe karşılıklarıyla `admin-forum.ts` içindedir.
+- Yanıt alan adları değişirse yalnız `web/src/api/adminForum.ts` içindeki `normalize*` işlevleri uyarlanır.
