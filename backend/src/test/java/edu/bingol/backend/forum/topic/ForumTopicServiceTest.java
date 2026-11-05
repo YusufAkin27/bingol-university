@@ -144,7 +144,9 @@ class ForumTopicServiceTest {
         assertEquals(a.id(), b.id());
         assertEquals(1, topics.findAll(org.springframework.data.domain.PageRequest.of(0, 1000)).stream()
                 .filter(t -> t.getUserId().equals(me.getId())).count());
-        TopicView c2 = service.create(me.getId(), req("Tek", "govde", c.getId(), false), "other-" + key);
+        // farkli anahtar + AYNI metin: D'nin tekrar-icerik engeli (429); farkli metin yeni konu olur
+        assertEquals("FORUM_DUPLICATE_CONTENT", code(() -> service.create(me.getId(), req("Tek", "govde", c.getId(), false), "other-" + key)));
+        TopicView c2 = service.create(me.getId(), req("Tek iki", "govde", c.getId(), false), "other-" + key);
         assertNotEquals(a.id(), c2.id());
     }
 
@@ -284,8 +286,12 @@ class ForumTopicServiceTest {
         assertTrue(lookup.visibleTopic(anon.id(), viewer.getId()).isPresent());
 
         when(mutes.mutedBy(muter.getId())).thenReturn(Set.of(author.getId()));
-        assertTrue(lookup.visibleTopic(anon.id(), muter.getId()).isEmpty(), "sessize alinan ANONIM icerik de gizlenir");
-        assertEquals("FORUM_TOPIC_NOT_FOUND", code(() -> service.get(muter.getId(), anon.id())));
+        // karar: sessize alma anonim icerikte UYGULANMAZ (kimlik sinanamasin); acik (anonim olmayan) icerikte uygulanir
+        assertTrue(lookup.visibleTopic(anon.id(), muter.getId()).isPresent(), "sessize alinan ANONIM icerik gizlenmez");
+        assertEquals(anon.id(), service.get(muter.getId(), anon.id()).id());
+        TopicView named = service.create(author.getId(), req("Acik", "acik govde", c.getId(), false), null);
+        assertTrue(lookup.visibleTopic(named.id(), muter.getId()).isEmpty(), "sessize alinan ACIK icerik gizlenir");
+        assertEquals("FORUM_TOPIC_NOT_FOUND", code(() -> service.get(muter.getId(), named.id())));
 
         blocks.block(viewer.getId(), author.getId());
         assertTrue(lookup.visibleTopic(anon.id(), viewer.getId()).isEmpty(), "engel (bakan engelledi)");
