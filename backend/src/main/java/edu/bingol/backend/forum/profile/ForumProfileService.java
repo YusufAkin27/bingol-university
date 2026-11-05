@@ -13,11 +13,14 @@ import edu.bingol.backend.post.follow.PrivateAccountGate;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
 import java.nio.charset.StandardCharsets;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.ObjectProvider;
@@ -55,12 +58,13 @@ public class ForumProfileService {
         }
     }
 
-    /** Profil yorum satiri: B'nin CommentView'i + bagli konu. */
-    public record ProfileComment(Object comment, long topicId, String topicTitle) {}
-
-    /** Kaydedilen oge: kind=TOPIC ise {@code topic}, kind=COMMENT ise {@code comment} dolu. */
+    /**
+     * Kaydedilen oge. {@code type=TOPIC}: {@code topic} dolu, {@code comment} null. {@code type=COMMENT}: {@code comment}
+     * (B'nin CommentView alanlari DUZ + {@code topicTitle}) dolu, {@code topic} = yorumun bagli konusunun karti
+     * (gorunmuyorsa oge hic dönmez).
+     */
     @JsonInclude(JsonInclude.Include.ALWAYS)
-    public record SavedItem(String kind, Instant savedAt, TopicSummary topic, ProfileComment comment) {}
+    public record SavedItem(String type, Instant savedAt, TopicSummary topic, Map<String, Object> comment) {}
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record Summary(long topicCount, long commentCount, Boolean locked) {}
@@ -74,10 +78,11 @@ public class ForumProfileService {
     private final BlockService blocks;
     private final PrivateAccountGate gate;
     private final UserRepository users;
+    private final JsonMapper json;
 
     public ForumProfileService(ForumProfileRepository repo, ObjectProvider<ForumTopicSummaries> summaries,
                                ObjectProvider<ForumProfileComments> commentViews, ObjectProvider<ForumMuteLookup> mutes,
-                               BlockService blocks, PrivateAccountGate gate, UserRepository users) {
+                               BlockService blocks, PrivateAccountGate gate, UserRepository users, JsonMapper json) {
         this.repo = repo;
         this.summaries = summaries;
         this.commentViews = commentViews;
@@ -85,6 +90,7 @@ public class ForumProfileService {
         this.blocks = blocks;
         this.gate = gate;
         this.users = users;
+        this.json = json;
     }
 
     // ------------------------------------------------------------------ kendi
@@ -100,7 +106,7 @@ public class ForumProfileService {
     }
 
     @Transactional(readOnly = true)
-    public ProfilePage<ProfileComment> myComments(Long me, String cursor, Integer size) {
+    public ProfilePage<Map<String, Object>> myComments(Long me, String cursor, Integer size) {
         return commentPage(me, me, true, cursor, size);
     }
 
@@ -117,17 +123,29 @@ public class ForumProfileService {
         for (SavedRow r : page) {
             ("COMMENT".equals(r.type()) ? commentIds : topicIds).add(r.targetId());
         }
-        Map<Long, TopicSummary> topics = new HashMap<>();
-        if (!topicIds.isEmpty()) {
-            summaries.getObject().summaries(topicIds, me).forEach(s -> topics.put(s.id(), s));
+        Map<Long, ForumProfileRepository.CommentContext> ctx = Map.of();
+        Map<Long, Object> views = Map.of();
+        ForumProfileComments cv = commentViews.getIfAvailable();
+        if (!commentIds.isEmpty() && cv != null) {
+            views = cv.views(commentIds, me);
+            ctx = repo.commentContext(views.keySet());
         }
-        Map<Long, ProfileComment> comments = commentIds.isEmpty() ? Map.of() : profileComments(me, commentIds);
+        // konu kartlari: kaydedilen konular + kaydedilen yorumlarin bagli konulari (tek cagri)
+        List<Long> allTopicIds = new ArrayList<>(topicIds);
+        ctx.values().forEach(c -> allTopicIds.add(c.topicId()));
+        Map<Long, TopicSummary> topics = new HashMap<>();
+        if (!allTopicIds.isEmpty()) {
+            summaries.getObject().summaries(allTopicIds.stream().distinct().toList(), me)
+                    .forEach(s -> topics.put(s.id(), s));
+        }
         List<SavedItem> items = new ArrayList<>();
         for (SavedRow r : page) {
             if ("COMMENT".equals(r.type())) {
-                ProfileComment c = comments.get(r.targetId());
-                if (c != null) {
-                    items.add(new SavedItem("COMMENT", r.at(), null, c));
+                Object v = views.get(r.targetId());
+                var c = ctx.get(r.targetId());
+                TopicSummary t = c == null ? null : topics.get(c.topicId());
+                if (v != null && t != null) {
+                    items.add(new SavedItem("COMMENT", r.at(), t, flat(v, c.topicId(), c.title())));
                 }
             } else {
                 TopicSummary t = topics.get(r.targetId());
@@ -151,7 +169,7 @@ public class ForumProfileService {
     }
 
     @Transactional(readOnly = true)
-    public ProfilePage<ProfileComment> userComments(Long viewer, Long owner, String cursor, Integer size) {
+    public ProfilePage<Map<String, Object>> userComments(Long viewer, Long owner, String cursor, Integer size) {
         Access a = access(viewer, owner);
         if (a != Access.OPEN) {
             return a == Access.LOCKED ? ProfilePage.lockedPage() : ProfilePage.emptyPage();
@@ -205,7 +223,7 @@ public class ForumProfileService {
         return ProfilePage.of(items, next);
     }
 
-    private ProfilePage<ProfileComment> commentPage(Long viewer, Long owner, boolean includeAnonymous, String cursor,
+    private ProfilePage<Map<String, Object>> commentPage(Long viewer, Long owner, boolean includeAnonymous, String cursor,
                                                     Integer size) {
         int n = clamp(size);
         List<CommentRow> rows = repo.comments(owner, includeAnonymous, decode(cursor), n + 1);
@@ -217,27 +235,24 @@ public class ForumProfileService {
         }
         ForumProfileComments cv = commentViews.getIfAvailable();
         Map<Long, Object> views = cv == null ? Map.of() : cv.views(page.stream().map(CommentRow::id).toList(), viewer);
-        List<ProfileComment> items = new ArrayList<>();
+        List<Map<String, Object>> items = new ArrayList<>();
         for (CommentRow r : page) {
             Object v = views.get(r.id());
             if (v != null) {
-                items.add(new ProfileComment(v, r.topicId(), r.topicTitle()));
+                items.add(flat(v, r.topicId(), r.topicTitle()));
             }
         }
         return ProfilePage.of(items, next);
     }
 
-    /** Yorum kimliklerinden (kaydedilenler) bagli konu bilgisiyle profil yorumlari; gorunmeyen yorum yoktur. */
-    private Map<Long, ProfileComment> profileComments(Long viewer, Collection<Long> commentIds) {
-        ForumProfileComments cv = commentViews.getIfAvailable();
-        if (cv == null) {
-            return Map.of();
-        }
-        Map<Long, Object> views = cv.views(commentIds, viewer);
-        Map<Long, ProfileComment> out = new HashMap<>();
-        repo.commentContext(views.keySet()).forEach((id, ctx) -> out.put(id,
-                new ProfileComment(views.get(id), ctx.topicId(), ctx.title())));
-        return out;
+    private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() {};
+
+    /** B'nin CommentView'ini DUZ haritaya cevirir ve {@code topicId} + {@code topicTitle} ekler (istemci tek nesne okur). */
+    private Map<String, Object> flat(Object view, long topicId, String topicTitle) {
+        Map<String, Object> m = new LinkedHashMap<>(json.convertValue(view, MAP));
+        m.putIfAbsent("topicId", topicId);
+        m.put("topicTitle", topicTitle);
+        return m;
     }
 
     static int clamp(Integer size) {

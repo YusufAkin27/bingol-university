@@ -4,10 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import edu.bingol.backend.forum.profile.ForumProfileService.ProfileComment;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 import edu.bingol.backend.forum.profile.ForumProfileService.ProfilePage;
 import edu.bingol.backend.forum.profile.ForumProfileService.SavedItem;
 import edu.bingol.backend.forum.profile.ForumProfileService.Summary;
@@ -22,8 +20,8 @@ import org.junit.jupiter.api.Test;
 /** Istemci sozlesmesi: arama sonucu TopicSummary ile DUZ birlesir; locked yalniz true iken yazilir; kaydedilen oge sekli. */
 class ForumJsonShapeTest {
 
-    private static final ObjectMapper OM = new ObjectMapper().findAndRegisterModules()
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    /** Uretimle ayni seri hale getirici: Spring Boot 4 MVC Jackson 3 (tools.jackson) kullanir. */
+    private static final JsonMapper OM = JsonMapper.builder().build();
 
     private static TopicSummary summary(long id) {
         return new TopicSummary(id, "Baslik", "onizleme", null, new Author(null, "Anonim #1", null, null, true),
@@ -61,18 +59,19 @@ class ForumJsonShapeTest {
     }
 
     @Test
-    void savedItemCarriesKindAndExactlyOneOfTopicOrComment() throws Exception {
+    void savedItemCarriesTypeAndTopicCardPlusFlatComment() throws Exception {
         SavedItem t = new SavedItem("TOPIC", Instant.parse("2026-11-05T10:00:00Z"), summary(4), null);
         JsonNode tn = OM.readTree(OM.writeValueAsString(t));
-        assertEquals("TOPIC", tn.get("kind").asText());
+        assertEquals("TOPIC", tn.get("type").asText());
         assertEquals(4, tn.get("topic").get("id").asInt());
         assertTrue(tn.get("comment").isNull());
 
-        SavedItem c = new SavedItem("COMMENT", Instant.parse("2026-11-05T10:00:00Z"), null,
-                new ProfileComment(Map.of("id", 77, "body", "x"), 12, "Konu"));
+        SavedItem c = new SavedItem("COMMENT", Instant.parse("2026-11-05T10:00:00Z"), summary(12),
+                Map.of("id", 77, "body", "x", "topicId", 12, "topicTitle", "Konu"));
         JsonNode cn = OM.readTree(OM.writeValueAsString(c));
-        assertTrue(cn.get("topic").isNull());
-        assertEquals(77, cn.get("comment").get("comment").get("id").asInt());
+        assertEquals("COMMENT", cn.get("type").asText());
+        assertEquals(12, cn.get("topic").get("id").asInt());
+        assertEquals(77, cn.get("comment").get("id").asInt());
         assertEquals(12, cn.get("comment").get("topicId").asInt());
         assertEquals("Konu", cn.get("comment").get("topicTitle").asText());
     }

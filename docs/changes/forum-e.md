@@ -60,7 +60,8 @@ PostgreSQL'e özel: H2 testi yok, `scripts/smoke-forum-search.sh`.
 `/api/forum/me/topics|comments|saved|following` ve `/api/forum/users/{id}/topics|comments|summary`. Kendi: anonim dahil. Başkası: yalnız anonim
 olmayan; anonim konunun yazarının kendi konusuna adıyla yazdığı yorum listelenmez/sayılmaz. Kapılar: kullanıcı yok/pasif, engel, sessize alma =
 BOŞ liste (`post` modülündeki `byAuthor` ile aynı; var/yok ayrımı yok); gizli hesap ve takipçi değil = boş liste + `locked:true`
-(`PrivateAccountGate`). Yorum satırları B'nin `CommentView`'ini `ForumProfileComments` adaptöründen alır (B yoksa yorum listeleri boş).
+(`PrivateAccountGate`). Yorum satırları B'nin `CommentView`'ini `ForumProfileComments` adaptöründen alır, düz haritaya çevrilip `topicTitle` eklenir (B yoksa yorum listeleri boş).
+Mobil A'nın `ForumSavedItem`/`ForumComment` ayrıştırıcılarına (`type`, düz yorum) uyumludur.
 
 ## 4. Paylaşım
 `ShareType.FORUM_TOPIC("f")`, `FORUM_COMMENT("fc")`: `https://bukampus.com.tr/s/f/{id}`, `/s/fc/{id}` (+ `/img`). Web nginx/Caddy `/s/*` kuralı genel;
@@ -86,7 +87,7 @@ Sayfalama: `?cursor=&size=` (size ≤ 30, varsayılan 15), yanıt `{items, nextC
 - `GET /api/forum/search` → `items[]` = TopicSummary alanları DÜZ + `matchedIn` (`TITLE|BODY|COMMENT|CATEGORY`) + `snippet` (düz metin ≤160 | null). q < 2 karakter 400 `FORUM_SEARCH_QUERY_TOO_SHORT`.
 - `GET /api/forum/search/popular` → `TopicSummary[]` (düz dizi ≤10, son 7 gün).
 - `GET /api/forum/me/topics`, `/me/following` → `{items: TopicSummary[], nextCursor}`.
-- `GET /api/forum/me/comments`, `/users/{id}/comments` → `{items: [{comment: CommentView, topicId, topicTitle}], nextCursor}`.
-- `GET /api/forum/me/saved` → `{items: [{kind: "TOPIC"|"COMMENT", savedAt, topic: TopicSummary|null, comment: {comment, topicId, topicTitle}|null}], nextCursor}`.
+- `GET /api/forum/me/comments`, `/users/{id}/comments` → `{items: CommentView[] (alanlar DÜZ) + her birine topicTitle, nextCursor}`.
+- `GET /api/forum/me/saved` → `{items: [{type: "TOPIC"|"COMMENT", savedAt, topic: TopicSummary, comment: CommentView-düz+topicTitle|null}], nextCursor}` (COMMENT'te `topic` yorumun konusunun kartıdır).
 - `GET /api/forum/users/{id}/topics` → `{items: TopicSummary[], nextCursor, locked?: true}`; `/users/{id}/summary` → `{topicCount, commentCount, locked?: true}`.
 - `GET|PUT /api/forum/notification-prefs` → `{all, topicComments, commentReplies, likes, followedTopics}`.

@@ -2,12 +2,12 @@ package edu.bingol.backend.forum.profile;
 
 import edu.bingol.backend.common.CurrentUser;
 import edu.bingol.backend.common.RateLimiter;
-import edu.bingol.backend.forum.profile.ForumProfileService.ProfileComment;
 import edu.bingol.backend.forum.profile.ForumProfileService.ProfilePage;
 import edu.bingol.backend.forum.profile.ForumProfileService.SavedItem;
 import edu.bingol.backend.forum.profile.ForumProfileService.Summary;
 import edu.bingol.backend.forum.topic.dto.TopicSummary;
 import java.time.Duration;
+import java.util.Map;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,7 +43,7 @@ public class ForumProfileController {
     }
 
     @GetMapping("/me/comments")
-    public ProfilePage<ProfileComment> myComments(@RequestParam(required = false) String cursor,
+    public ProfilePage<Map<String, Object>> myComments(@RequestParam(required = false) String cursor,
                                                   @RequestParam(required = false) Integer size) {
         return profile.myComments(uid(), cursor, size);
     }
@@ -67,7 +67,7 @@ public class ForumProfileController {
     }
 
     @GetMapping("/users/{id}/comments")
-    public ProfilePage<ProfileComment> userComments(@PathVariable Long id,
+    public ProfilePage<Map<String, Object>> userComments(@PathVariable Long id,
                                                     @RequestParam(required = false) String cursor,
                                                     @RequestParam(required = false) Integer size) {
         return profile.userComments(uid(), id, cursor, size);
