@@ -18611,6 +18611,396 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bu işlem için e-postanızı doğrulayın'**
   String get errEmailVerificationRequired;
+
+  /// No description provided for @alarmClockNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarmlar telefonunuzun Saat uygulamasına eklenir. Silmek için Saat uygulamasını açın.'**
+  String get alarmClockNote;
+
+  /// No description provided for @alarmIosNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'iPhone, Saat uygulamasına alarm eklemeye izin vermez. Bu bildirim alarm yerine geçer; sessiz modda çalmayabilir.'**
+  String get alarmIosNote;
+
+  /// No description provided for @alarmUnavailable.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu cihazda Saat uygulaması bulunamadı.'**
+  String get alarmUnavailable;
+
+  /// No description provided for @alarmNotifOff.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirim izni kapalı. Hatırlatma için Ayarlar > BÜ Kampüs > Bildirimler iznini açın.'**
+  String get alarmNotifOff;
+
+  /// No description provided for @alarmExamAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'İlk sınav alarmlarını kur'**
+  String get alarmExamAction;
+
+  /// No description provided for @alarmExamActionIos.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınavları bildirimle hatırlat'**
+  String get alarmExamActionIos;
+
+  /// No description provided for @alarmExamSheetTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınav günü alarmları'**
+  String get alarmExamSheetTitle;
+
+  /// No description provided for @alarmExamSheetTitleIos.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınav günü bildirimleri'**
+  String get alarmExamSheetTitleIos;
+
+  /// No description provided for @alarmExamSheetSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Her günün yalnız ilk sınavı için, başlangıçtan 1 saat önceye tek seferlik.'**
+  String get alarmExamSheetSub;
+
+  /// No description provided for @alarmExamRow.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınav {exam} → Alarm {alarm}'**
+  String alarmExamRow(String exam, String alarm);
+
+  /// No description provided for @alarmExamSkipped.
+  ///
+  /// In tr, this message translates to:
+  /// **'{times} sınavı için alarm yok'**
+  String alarmExamSkipped(String times);
+
+  /// No description provided for @alarmExamNone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarm kurulacak yaklaşan sınav yok.'**
+  String get alarmExamNone;
+
+  /// No description provided for @alarmExamDeferred.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} alarm ileri tarihli. Android Saat uygulaması ileri tarihli tek seferlik alarmı desteklemez; sınav gününden önceki akşam size bildirimle hatırlatırız, tek dokunuşla kurarsınız.'**
+  String alarmExamDeferred(String n);
+
+  /// No description provided for @alarmExamDeferredRow.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınavdan önceki akşam hatırlatılır'**
+  String get alarmExamDeferredRow;
+
+  /// No description provided for @alarmSetCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} alarmı kur'**
+  String alarmSetCount(String n);
+
+  /// No description provided for @alarmNotifyCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} bildirimi kur'**
+  String alarmNotifyCount(String n);
+
+  /// No description provided for @alarmDoneSet.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} alarm kuruldu. Saat uygulamasından kontrol edin.'**
+  String alarmDoneSet(String n);
+
+  /// No description provided for @alarmDoneNotif.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} bildirim kuruldu.'**
+  String alarmDoneNotif(String n);
+
+  /// No description provided for @alarmDoneDeferred.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} alarm sınav gününden önce hatırlatılacak.'**
+  String alarmDoneDeferred(String n);
+
+  /// No description provided for @alarmDoneFail.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} alarm kurulamadı.'**
+  String alarmDoneFail(String n);
+
+  /// No description provided for @alarmDueBanner.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} sınav alarmı kurulmaya hazır.'**
+  String alarmDueBanner(String n);
+
+  /// No description provided for @alarmDueAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şimdi kur'**
+  String get alarmDueAction;
+
+  /// No description provided for @alarmNudgeTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınav alarmını kur'**
+  String get alarmNudgeTitle;
+
+  /// No description provided for @alarmNudgeBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'{title}: {time} alarmı hazır. Dokunup Sınavlar sayfasından kurun.'**
+  String alarmNudgeBody(String title, String time);
+
+  /// No description provided for @alarmExamLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınav {time}: {title}'**
+  String alarmExamLabel(String time, String title);
+
+  /// No description provided for @alarmExamNotifTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarm: Sınav 1 saat sonra'**
+  String get alarmExamNotifTitle;
+
+  /// No description provided for @alarmClassAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sabah alarmlarını kur'**
+  String get alarmClassAction;
+
+  /// No description provided for @alarmClassActionIos.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sabah dersleri için bildirim kur'**
+  String get alarmClassActionIos;
+
+  /// No description provided for @alarmClassSheetTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sabah ders alarmları'**
+  String get alarmClassSheetTitle;
+
+  /// No description provided for @alarmClassSheetTitleIos.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sabah ders bildirimleri'**
+  String get alarmClassSheetTitleIos;
+
+  /// No description provided for @alarmClassSheetSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Günün ilk dersi öğleden önce başlıyorsa, 1 saat önceye ve her hafta tekrarlı.'**
+  String get alarmClassSheetSub;
+
+  /// No description provided for @alarmClassRow.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ders {classTime} → Alarm {alarm} · her hafta'**
+  String alarmClassRow(String classTime, String alarm);
+
+  /// No description provided for @alarmClassSkipped.
+  ///
+  /// In tr, this message translates to:
+  /// **'{days}: ilk ders öğleden sonra, alarm yok'**
+  String alarmClassSkipped(String days);
+
+  /// No description provided for @alarmClassNone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sabah dersi yok; alarm kurulmayacak.'**
+  String get alarmClassNone;
+
+  /// No description provided for @alarmClassLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ders alarmı · ilk ders {time}'**
+  String alarmClassLabel(String time);
+
+  /// No description provided for @alarmClassNotifTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarm: Ders 1 saat sonra'**
+  String get alarmClassNotifTitle;
+
+  /// No description provided for @alarmClassNotifBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Günün ilk dersi {time} saatinde başlıyor.'**
+  String alarmClassNotifBody(String time);
+
+  /// No description provided for @alarmRepeatWarn.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu alarmlar {date} tarihinde kuruldu. Yeniden kurarsanız Saat uygulamasında çift alarm olabilir.'**
+  String alarmRepeatWarn(String date);
+
+  /// No description provided for @alarmSetAnyway.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yine de kur'**
+  String get alarmSetAnyway;
+
+  /// No description provided for @alarmDoneClassSet.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} tekrarlı alarm kuruldu. Saat uygulamasından kontrol edin; silmek de oradan.'**
+  String alarmDoneClassSet(String n);
+
+  /// No description provided for @calSyncRowTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Cihaz takvimine ekle'**
+  String get calSyncRowTitle;
+
+  /// No description provided for @calSyncRowSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm akademik takvim, o gün sabah 08:00 hatırlatıcıyla'**
+  String get calSyncRowSub;
+
+  /// No description provided for @calSyncRowDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Cihaz takviminde · {n} etkinlik'**
+  String calSyncRowDone(String n);
+
+  /// No description provided for @calSyncRowDoneSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güncelle ya da kaldır'**
+  String get calSyncRowDoneSub;
+
+  /// No description provided for @calSyncSheetBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Önümüzdeki 12 ayın akademik takvimi etkinlik olarak yazılır. Tüm gün kayıtlara o gün 08:00 hatırlatıcı eklenir; bildirimi takvim uygulamanız gönderir. Yalnız BÜ Kampüs etkinlikleri eklenir ve silinir.'**
+  String get calSyncSheetBody;
+
+  /// No description provided for @calSyncTarget.
+  ///
+  /// In tr, this message translates to:
+  /// **'Eklenecek takvim'**
+  String get calSyncTarget;
+
+  /// No description provided for @calSyncNewLocal.
+  ///
+  /// In tr, this message translates to:
+  /// **'BÜ Kampüs (yeni yerel takvim)'**
+  String get calSyncNewLocal;
+
+  /// No description provided for @calSyncAdd.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takvime ekle'**
+  String get calSyncAdd;
+
+  /// No description provided for @calSyncUpdate.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güncelle'**
+  String get calSyncUpdate;
+
+  /// No description provided for @calSyncRemove.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takvimden kaldır'**
+  String get calSyncRemove;
+
+  /// No description provided for @calSyncRemoveTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'BÜ Kampüs etkinlikleri kaldırılsın mı?'**
+  String get calSyncRemoveTitle;
+
+  /// No description provided for @calSyncRemoveBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takviminize bu uygulamanın eklediği {n} etkinlik silinir. Diğer etkinlikleriniz etkilenmez.'**
+  String calSyncRemoveBody(String n);
+
+  /// No description provided for @calSyncResult.
+  ///
+  /// In tr, this message translates to:
+  /// **'{added} etkinlik eklendi, {updated} güncellendi, {same} aynı kaldı.'**
+  String calSyncResult(String added, String updated, String same);
+
+  /// No description provided for @calSyncRemovedN.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} kaldırıldı.'**
+  String calSyncRemovedN(String n);
+
+  /// No description provided for @calSyncFailedN.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} yazılamadı.'**
+  String calSyncFailedN(String n);
+
+  /// No description provided for @calSyncRationale.
+  ///
+  /// In tr, this message translates to:
+  /// **'Akademik takvimi cihaz takviminize yazmak için takvim erişimi gerekir. Yalnızca BÜ Kampüs etkinlikleri eklenir ve silinir; başka etkinliklerinize dokunulmaz.'**
+  String get calSyncRationale;
+
+  /// No description provided for @calSyncDenied.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takvim izni kapalı. Ayarlar > BÜ Kampüs > Takvim iznini açın.'**
+  String get calSyncDenied;
+
+  /// No description provided for @calSyncOpenSettings.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ayarları aç'**
+  String get calSyncOpenSettings;
+
+  /// No description provided for @calSyncNoCalendar.
+  ///
+  /// In tr, this message translates to:
+  /// **'Cihazda yazılabilir takvim yok. BÜ Kampüs adlı yerel bir takvim oluşturulacak.'**
+  String get calSyncNoCalendar;
+
+  /// No description provided for @calSyncFetchError.
+  ///
+  /// In tr, this message translates to:
+  /// **'Akademik takvim alınamadı. Bağlantınızı kontrol edip tekrar deneyin.'**
+  String get calSyncFetchError;
+
+  /// No description provided for @calSyncEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yazılacak güncel akademik takvim kaydı yok.'**
+  String get calSyncEmpty;
+
+  /// No description provided for @calSyncUnavailable.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu cihazda takvim erişimi desteklenmiyor.'**
+  String get calSyncUnavailable;
+
+  /// No description provided for @calSyncRemoveDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} etkinlik takvimden kaldırıldı.'**
+  String calSyncRemoveDone(String n);
+
+  /// No description provided for @calSyncCreateFail.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takvim oluşturulamadı.'**
+  String get calSyncCreateFail;
+
+  /// No description provided for @calSyncWorking.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takvime yazılıyor…'**
+  String get calSyncWorking;
 }
 
 class _AppLocalizationsDelegate

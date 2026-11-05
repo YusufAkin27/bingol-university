@@ -61,6 +61,11 @@ class MainActivity : FlutterActivity() {
         return if (LocalReminderStore.verify(this, p, i.getStringExtra(LocalReminderStore.EXTRA_SIG))) p else null
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        BuCalendar.onRequestPermissionsResult(this, requestCode)
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         val push = trustedPush(intent)
@@ -80,6 +85,9 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         val messenger = flutterEngine.dartExecutor.binaryMessenger
+        // Cihaz takvimine yazma ve Saat uygulamasina alarm (lib/core/platform/device_calendar.dart, device_alarm.dart).
+        BuCalendar.register(messenger, this)
+        BuAlarm.register(messenger, this)
         pushChannel = MethodChannel(messenger, "bu_kampus/push_actions").apply {
             setMethodCallHandler { call, result ->
                 when (call.method) {

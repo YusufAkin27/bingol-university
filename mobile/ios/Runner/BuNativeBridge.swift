@@ -84,6 +84,9 @@ final class BuNativeBridge: NSObject, FlutterPlugin, UNUserNotificationCenterDel
     // Tek gösterimlik fotoğraf görüntüleyicisi için ekran koruması (BuSecureView, dosya sonunda).
     let secure = FlutterMethodChannel(name: "bu_kampus/secure", binaryMessenger: messenger)
     BuSecureView.shared.attach(secure)
+    // Cihaz takvimine yazma (EventKit) ve alarm yedeği (yerel bildirim): BuCalendarAlarmBridge.swift.
+    BuCalendarBridge.register(messenger: messenger)
+    BuAlarmBridge.register(messenger: messenger)
     registrar.addApplicationDelegate(instance)
   }
 

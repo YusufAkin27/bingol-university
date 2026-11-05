@@ -14,6 +14,9 @@ import 'academic_api.dart';
 import 'academic_models.dart';
 import 'academic_widgets.dart';
 import 'akad_widgets.dart';
+import 'alarm_service.dart';
+import 'alarm_sheets.dart';
+import '../../core/platform/device_alarm.dart';
 import 'exam_form_page.dart';
 import 'reminders.dart';
 
@@ -36,11 +39,60 @@ class _ExamsPageState extends State<ExamsPage> {
   List<Course> _courses = [];
   bool _loadingMine = true;
   Object? _errMine;
+  List<PendingExamAlarm> _due = const []; // ertelenmiş, artık Saat uygulamasına kurulabilir sınav alarmları
+  bool _settingDue = false;
 
   @override
   void initState() {
     super.initState();
     _loadMine();
+    _loadDue();
+  }
+
+  Future<void> _loadDue() async {
+    final d = await AlarmService.instance.dueNow();
+    if (mounted) setState(() => _due = d);
+  }
+
+  Future<void> _setDue() async {
+    final l = context.l10n;
+    setState(() => _settingDue = true);
+    final r = await AlarmService.instance.setDue(l);
+    if (!mounted) return;
+    setState(() => _settingDue = false);
+    academicToast(context, r.failed > 0 ? l.alarmDoneFail(r.failed.toString()) : l.alarmDoneSet(r.set.toString()), kind: r.failed > 0 ? BuToastKind.warning : BuToastKind.success);
+    await _loadDue();
+  }
+
+  Future<void> _openAlarms() async {
+    await showExamAlarmSheet(context, exams: _mine);
+    if (mounted) await _loadDue();
+  }
+
+  /// Sınavlar başlığının altı: kurulmaya hazır ertelenmiş alarm bandı + "ilk sınav alarmlarını kur" eylemi.
+  List<Widget> _alarmEntry() {
+    final l = context.l10n;
+    final now = academicClock();
+    final hasUpcoming = _mine.any((e) => e.startsAt.isAfter(now));
+    if (!hasUpcoming && _due.isEmpty) return const [];
+    final clock = DeviceAlarmService.instance.usesClockApp;
+    return [
+      if (_due.isNotEmpty)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+          child: AcadAmberNote(
+            text: l.alarmDueBanner(_due.length.toString()),
+            actionLabel: _settingDue ? null : l.alarmDueAction,
+            onAction: _settingDue ? null : _setDue,
+          ),
+        ),
+      if (hasUpcoming)
+        AcadActionRow(
+          icon: clock ? BuIcons.alarmClock : BuIcons.bell,
+          title: clock ? l.alarmExamAction : l.alarmExamActionIos,
+          onTap: _openAlarms,
+        ),
+    ];
   }
 
   Future<void> _loadMine() async {
@@ -122,6 +174,7 @@ class _ExamsPageState extends State<ExamsPage> {
               ),
             ),
             const SizedBox(height: 4),
+            ..._alarmEntry(),
             ..._mineBody(),
           ],
         ),

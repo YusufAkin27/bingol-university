@@ -19,6 +19,7 @@
 		BA5E0001A0000000000000B1 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = BA5E0001A0000000000000E3 /* PrivacyInfo.xcprivacy */; };
 		BA5E0001A0000000000000B2 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = BA5E0001A0000000000000C0 /* InfoPlist.strings */; };
 		BA5E0001A0000000000000B3 /* BuNativeBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA5E0001A0000000000000E5 /* BuNativeBridge.swift */; };
+		BA5E0001A0000000000000B4 /* BuCalendarAlarmBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA5E0001A0000000000000E7 /* BuCalendarAlarmBridge.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -66,6 +67,7 @@
 		BA5E0001A0000000000000E2 /* RunnerRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RunnerRelease.entitlements; sourceTree = "<group>"; };
 		BA5E0001A0000000000000E3 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		BA5E0001A0000000000000E5 /* BuNativeBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuNativeBridge.swift; sourceTree = "<group>"; };
+		BA5E0001A0000000000000E7 /* BuCalendarAlarmBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuCalendarAlarmBridge.swift; sourceTree = "<group>"; };
 		BA5E0001A0000000000000C1 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		BA5E0001A0000000000000C2 /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = tr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		BA5E0001A0000000000000C3 /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -138,6 +140,7 @@
 				BA5E0001A0000000000000E3 /* PrivacyInfo.xcprivacy */,
 				BA5E0001A0000000000000C0 /* InfoPlist.strings */,
 				BA5E0001A0000000000000E5 /* BuNativeBridge.swift */,
+				BA5E0001A0000000000000E7 /* BuCalendarAlarmBridge.swift */,
 				1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */,
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
@@ -363,6 +366,7 @@ A91700000000000000000001 = {isa = PBXCopyFilesBuildPhase; buildActionMask = 2147
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,
 				BA5E0001A0000000000000B3 /* BuNativeBridge.swift in Sources */,
+				BA5E0001A0000000000000B4 /* BuCalendarAlarmBridge.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

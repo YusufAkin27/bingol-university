@@ -53,12 +53,14 @@ REQUIRED_USAGE = [
     'NSPhotoLibraryUsageDescription',  # photo_manager, image_picker (galeri)
     'NSPhotoLibraryAddUsageDescription',  # gal (galeriye kaydet)
     'NSContactsUsageDescription',      # flutter_contacts (rehber eslestirme)
+    'NSCalendarsFullAccessUsageDescription',  # BuCalendarBridge (iOS 17+, akademik takvimi cihaz takvimine yazma)
+    'NSCalendarsUsageDescription',     # ayni islev, iOS 15-16 (dagitim hedefi 15.0)
 ]
 # Uygulamada KARSILIGI OLMAYAN izin anahtarlari: eklenirse App Review "kullanilmayan izin" sorar
 FORBIDDEN_USAGE = [
     'NSLocationWhenInUseUsageDescription', 'NSLocationAlwaysAndWhenInUseUsageDescription',
     'NSLocationAlwaysUsageDescription', 'NSUserTrackingUsageDescription', 'NSBluetoothAlwaysUsageDescription',
-    'NSCalendarsUsageDescription', 'NSRemindersUsageDescription', 'NSSpeechRecognitionUsageDescription',
+    'NSRemindersUsageDescription', 'NSSpeechRecognitionUsageDescription',
     'NSMotionUsageDescription', 'NSFaceIDUsageDescription', 'NSHealthShareUsageDescription',
 ]
 ALLOWED_REASONS = {
@@ -192,6 +194,7 @@ def check_pbxproj():
         ('PrivacyInfo.xcprivacy in Resources', 'PrivacyInfo.xcprivacy Resources fazinda'),
         ('InfoPlist.strings in Resources', 'InfoPlist.strings (tr/en/ar) Resources fazinda'),
         ('BuNativeBridge.swift in Sources', 'BuNativeBridge.swift Sources fazinda'),
+        ('BuCalendarAlarmBridge.swift in Sources', 'BuCalendarAlarmBridge.swift Sources fazinda'),
         ('Bundle GoogleService-Info.plist (optional)', 'GoogleService-Info.plist paketleme fazi'),
     ]
     for needle, label in checks:
@@ -224,7 +227,7 @@ def check_pbxproj():
     if 'Debug.xcconfig' in s and 'Release.xcconfig' in s:
         ok('Debug/Release xcconfig baglantili')
     # dosya var mi
-    for name in ('BuNativeBridge.swift', 'PrivacyInfo.xcprivacy', 'AppDelegate.swift', 'SceneDelegate.swift'):
+    for name in ('BuNativeBridge.swift', 'BuCalendarAlarmBridge.swift', 'PrivacyInfo.xcprivacy', 'AppDelegate.swift', 'SceneDelegate.swift'):
         (ok if os.path.isfile(os.path.join(RUNNER, name)) else bad)(f'Runner/{name} diskte')
     return next(iter(ids)) if len(ids) == 1 else None
 

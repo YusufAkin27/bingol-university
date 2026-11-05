@@ -10163,4 +10163,261 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get errEmailVerificationRequired =>
       'تحقق من بريدك الإلكتروني للقيام بذلك';
+
+  @override
+  String get alarmClockNote =>
+      'تُضاف المنبّهات إلى تطبيق الساعة في هاتفك. لحذفها افتح تطبيق الساعة.';
+
+  @override
+  String get alarmIosNote =>
+      'لا يسمح iPhone بإضافة منبّهات إلى تطبيق الساعة. هذا الإشعار يحلّ محل المنبّه وقد لا يصدر صوتًا في الوضع الصامت.';
+
+  @override
+  String get alarmUnavailable =>
+      'لم يتم العثور على تطبيق الساعة على هذا الجهاز.';
+
+  @override
+  String get alarmNotifOff =>
+      'الإشعارات مغلقة. فعّلها من الإعدادات > BÜ Kampüs > الإشعارات لتصلك التذكيرات.';
+
+  @override
+  String get alarmExamAction => 'ضبط منبّهات أول امتحان';
+
+  @override
+  String get alarmExamActionIos => 'تذكيري بالامتحانات بإشعارات';
+
+  @override
+  String get alarmExamSheetTitle => 'منبّهات يوم الامتحان';
+
+  @override
+  String get alarmExamSheetTitleIos => 'إشعارات يوم الامتحان';
+
+  @override
+  String get alarmExamSheetSub =>
+      'مرة واحدة، قبل ساعة من أول امتحان في كل يوم فقط.';
+
+  @override
+  String alarmExamRow(String exam, String alarm) {
+    return 'امتحان $exam ← منبّه $alarm';
+  }
+
+  @override
+  String alarmExamSkipped(String times) {
+    return 'لا منبّه لامتحان $times';
+  }
+
+  @override
+  String get alarmExamNone => 'لا توجد امتحانات قادمة لضبط منبّهات لها.';
+
+  @override
+  String alarmExamDeferred(String n) {
+    return '$n منبّه لتواريخ لاحقة. لا يدعم تطبيق الساعة في Android منبّهًا لمرة واحدة في تاريخ بعيد، لذا نذكّرك مساء اليوم السابق للامتحان لتضبطه بلمسة واحدة.';
+  }
+
+  @override
+  String get alarmExamDeferredRow => 'يُذكَّر مساء اليوم السابق';
+
+  @override
+  String alarmSetCount(String n) {
+    return 'ضبط $n منبّه';
+  }
+
+  @override
+  String alarmNotifyCount(String n) {
+    return 'جدولة $n إشعار';
+  }
+
+  @override
+  String alarmDoneSet(String n) {
+    return 'تم ضبط $n منبّه. تحقّق منها في تطبيق الساعة.';
+  }
+
+  @override
+  String alarmDoneNotif(String n) {
+    return 'تمت جدولة $n إشعار.';
+  }
+
+  @override
+  String alarmDoneDeferred(String n) {
+    return 'سيتم تذكيرك قبل يوم الامتحان بـ $n منبّه.';
+  }
+
+  @override
+  String alarmDoneFail(String n) {
+    return 'تعذّر ضبط $n منبّه.';
+  }
+
+  @override
+  String alarmDueBanner(String n) {
+    return '$n منبّه امتحان جاهز للضبط.';
+  }
+
+  @override
+  String get alarmDueAction => 'اضبط الآن';
+
+  @override
+  String get alarmNudgeTitle => 'اضبط منبّه الامتحان';
+
+  @override
+  String alarmNudgeBody(String title, String time) {
+    return '$title: منبّه $time جاهز. المس لضبطه من صفحة الامتحانات.';
+  }
+
+  @override
+  String alarmExamLabel(String time, String title) {
+    return 'امتحان $time: $title';
+  }
+
+  @override
+  String get alarmExamNotifTitle => 'منبّه: الامتحان بعد ساعة';
+
+  @override
+  String get alarmClassAction => 'ضبط منبّهات الصباح';
+
+  @override
+  String get alarmClassActionIos => 'إشعارات محاضرات الصباح';
+
+  @override
+  String get alarmClassSheetTitle => 'منبّهات محاضرات الصباح';
+
+  @override
+  String get alarmClassSheetTitleIos => 'إشعارات محاضرات الصباح';
+
+  @override
+  String get alarmClassSheetSub =>
+      'إذا بدأت أول محاضرة في اليوم قبل الظهر: قبل ساعة، وتتكرر كل أسبوع.';
+
+  @override
+  String alarmClassRow(String classTime, String alarm) {
+    return 'محاضرة $classTime ← منبّه $alarm · أسبوعيًا';
+  }
+
+  @override
+  String alarmClassSkipped(String days) {
+    return '$days: أول محاضرة بعد الظهر، لا منبّه';
+  }
+
+  @override
+  String get alarmClassNone => 'لا توجد محاضرات صباحية؛ لن يُضبط منبّه.';
+
+  @override
+  String alarmClassLabel(String time) {
+    return 'منبّه المحاضرة · الأولى $time';
+  }
+
+  @override
+  String get alarmClassNotifTitle => 'منبّه: المحاضرة بعد ساعة';
+
+  @override
+  String alarmClassNotifBody(String time) {
+    return 'تبدأ أول محاضرة لك الساعة $time.';
+  }
+
+  @override
+  String alarmRepeatWarn(String date) {
+    return 'تم ضبط هذه المنبّهات في $date. قد يؤدي ضبطها مجددًا إلى تكرارها في تطبيق الساعة.';
+  }
+
+  @override
+  String get alarmSetAnyway => 'اضبط على أي حال';
+
+  @override
+  String alarmDoneClassSet(String n) {
+    return 'تم ضبط $n منبّه متكرر. تحقّق منها أو احذفها من تطبيق الساعة.';
+  }
+
+  @override
+  String get calSyncRowTitle => 'إضافة إلى تقويم الجهاز';
+
+  @override
+  String get calSyncRowSub =>
+      'التقويم الأكاديمي كاملًا مع تذكير الساعة 08:00 في اليوم نفسه';
+
+  @override
+  String calSyncRowDone(String n) {
+    return 'في تقويم الجهاز · $n حدث';
+  }
+
+  @override
+  String get calSyncRowDoneSub => 'حدّث أو أزل';
+
+  @override
+  String get calSyncSheetBody =>
+      'يُكتب التقويم الأكاديمي للأشهر الاثني عشر القادمة كأحداث. تحصل الأحداث طوال اليوم على تذكير الساعة 08:00 في يومها، ويُرسل تطبيق التقويم الإشعار. تُضاف أحداث BÜ Kampüs وتُحذف فقط.';
+
+  @override
+  String get calSyncTarget => 'التقويم';
+
+  @override
+  String get calSyncNewLocal => 'BÜ Kampüs (تقويم محلي جديد)';
+
+  @override
+  String get calSyncAdd => 'إضافة إلى التقويم';
+
+  @override
+  String get calSyncUpdate => 'تحديث';
+
+  @override
+  String get calSyncRemove => 'إزالة من التقويم';
+
+  @override
+  String get calSyncRemoveTitle => 'إزالة أحداث BÜ Kampüs؟';
+
+  @override
+  String calSyncRemoveBody(String n) {
+    return 'سيتم حذف $n حدث أضافها هذا التطبيق إلى تقويمك. لا تتأثر أحداثك الأخرى.';
+  }
+
+  @override
+  String calSyncResult(String added, String updated, String same) {
+    return 'أُضيف $added وحُدّث $updated وبقي $same دون تغيير.';
+  }
+
+  @override
+  String calSyncRemovedN(String n) {
+    return 'أُزيل $n.';
+  }
+
+  @override
+  String calSyncFailedN(String n) {
+    return 'تعذّرت كتابة $n.';
+  }
+
+  @override
+  String get calSyncRationale =>
+      'يلزم الوصول إلى التقويم لكتابة التقويم الأكاديمي في تقويم جهازك. تُضاف أحداث BÜ Kampüs وتُحذف فقط ولا يُمسّ غيرها.';
+
+  @override
+  String get calSyncDenied =>
+      'إذن التقويم مغلق. فعّله من الإعدادات > BÜ Kampüs > التقويم.';
+
+  @override
+  String get calSyncOpenSettings => 'فتح الإعدادات';
+
+  @override
+  String get calSyncNoCalendar =>
+      'لا يوجد تقويم قابل للكتابة على الجهاز. سيتم إنشاء تقويم محلي باسم BÜ Kampüs.';
+
+  @override
+  String get calSyncFetchError =>
+      'تعذّر تحميل التقويم الأكاديمي. تحقّق من الاتصال وأعد المحاولة.';
+
+  @override
+  String get calSyncEmpty =>
+      'لا توجد إدخالات حالية في التقويم الأكاديمي لكتابتها.';
+
+  @override
+  String get calSyncUnavailable =>
+      'الوصول إلى التقويم غير مدعوم على هذا الجهاز.';
+
+  @override
+  String calSyncRemoveDone(String n) {
+    return 'تمت إزالة $n حدث من التقويم.';
+  }
+
+  @override
+  String get calSyncCreateFail => 'تعذّر إنشاء التقويم.';
+
+  @override
+  String get calSyncWorking => 'جارٍ الكتابة إلى التقويم…';
 }

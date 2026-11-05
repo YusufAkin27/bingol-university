@@ -10231,4 +10231,258 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get errEmailVerificationRequired =>
       'Bu işlem için e-postanızı doğrulayın';
+
+  @override
+  String get alarmClockNote =>
+      'Alarmlar telefonunuzun Saat uygulamasına eklenir. Silmek için Saat uygulamasını açın.';
+
+  @override
+  String get alarmIosNote =>
+      'iPhone, Saat uygulamasına alarm eklemeye izin vermez. Bu bildirim alarm yerine geçer; sessiz modda çalmayabilir.';
+
+  @override
+  String get alarmUnavailable => 'Bu cihazda Saat uygulaması bulunamadı.';
+
+  @override
+  String get alarmNotifOff =>
+      'Bildirim izni kapalı. Hatırlatma için Ayarlar > BÜ Kampüs > Bildirimler iznini açın.';
+
+  @override
+  String get alarmExamAction => 'İlk sınav alarmlarını kur';
+
+  @override
+  String get alarmExamActionIos => 'Sınavları bildirimle hatırlat';
+
+  @override
+  String get alarmExamSheetTitle => 'Sınav günü alarmları';
+
+  @override
+  String get alarmExamSheetTitleIos => 'Sınav günü bildirimleri';
+
+  @override
+  String get alarmExamSheetSub =>
+      'Her günün yalnız ilk sınavı için, başlangıçtan 1 saat önceye tek seferlik.';
+
+  @override
+  String alarmExamRow(String exam, String alarm) {
+    return 'Sınav $exam → Alarm $alarm';
+  }
+
+  @override
+  String alarmExamSkipped(String times) {
+    return '$times sınavı için alarm yok';
+  }
+
+  @override
+  String get alarmExamNone => 'Alarm kurulacak yaklaşan sınav yok.';
+
+  @override
+  String alarmExamDeferred(String n) {
+    return '$n alarm ileri tarihli. Android Saat uygulaması ileri tarihli tek seferlik alarmı desteklemez; sınav gününden önceki akşam size bildirimle hatırlatırız, tek dokunuşla kurarsınız.';
+  }
+
+  @override
+  String get alarmExamDeferredRow => 'Sınavdan önceki akşam hatırlatılır';
+
+  @override
+  String alarmSetCount(String n) {
+    return '$n alarmı kur';
+  }
+
+  @override
+  String alarmNotifyCount(String n) {
+    return '$n bildirimi kur';
+  }
+
+  @override
+  String alarmDoneSet(String n) {
+    return '$n alarm kuruldu. Saat uygulamasından kontrol edin.';
+  }
+
+  @override
+  String alarmDoneNotif(String n) {
+    return '$n bildirim kuruldu.';
+  }
+
+  @override
+  String alarmDoneDeferred(String n) {
+    return '$n alarm sınav gününden önce hatırlatılacak.';
+  }
+
+  @override
+  String alarmDoneFail(String n) {
+    return '$n alarm kurulamadı.';
+  }
+
+  @override
+  String alarmDueBanner(String n) {
+    return '$n sınav alarmı kurulmaya hazır.';
+  }
+
+  @override
+  String get alarmDueAction => 'Şimdi kur';
+
+  @override
+  String get alarmNudgeTitle => 'Sınav alarmını kur';
+
+  @override
+  String alarmNudgeBody(String title, String time) {
+    return '$title: $time alarmı hazır. Dokunup Sınavlar sayfasından kurun.';
+  }
+
+  @override
+  String alarmExamLabel(String time, String title) {
+    return 'Sınav $time: $title';
+  }
+
+  @override
+  String get alarmExamNotifTitle => 'Alarm: Sınav 1 saat sonra';
+
+  @override
+  String get alarmClassAction => 'Sabah alarmlarını kur';
+
+  @override
+  String get alarmClassActionIos => 'Sabah dersleri için bildirim kur';
+
+  @override
+  String get alarmClassSheetTitle => 'Sabah ders alarmları';
+
+  @override
+  String get alarmClassSheetTitleIos => 'Sabah ders bildirimleri';
+
+  @override
+  String get alarmClassSheetSub =>
+      'Günün ilk dersi öğleden önce başlıyorsa, 1 saat önceye ve her hafta tekrarlı.';
+
+  @override
+  String alarmClassRow(String classTime, String alarm) {
+    return 'Ders $classTime → Alarm $alarm · her hafta';
+  }
+
+  @override
+  String alarmClassSkipped(String days) {
+    return '$days: ilk ders öğleden sonra, alarm yok';
+  }
+
+  @override
+  String get alarmClassNone => 'Sabah dersi yok; alarm kurulmayacak.';
+
+  @override
+  String alarmClassLabel(String time) {
+    return 'Ders alarmı · ilk ders $time';
+  }
+
+  @override
+  String get alarmClassNotifTitle => 'Alarm: Ders 1 saat sonra';
+
+  @override
+  String alarmClassNotifBody(String time) {
+    return 'Günün ilk dersi $time saatinde başlıyor.';
+  }
+
+  @override
+  String alarmRepeatWarn(String date) {
+    return 'Bu alarmlar $date tarihinde kuruldu. Yeniden kurarsanız Saat uygulamasında çift alarm olabilir.';
+  }
+
+  @override
+  String get alarmSetAnyway => 'Yine de kur';
+
+  @override
+  String alarmDoneClassSet(String n) {
+    return '$n tekrarlı alarm kuruldu. Saat uygulamasından kontrol edin; silmek de oradan.';
+  }
+
+  @override
+  String get calSyncRowTitle => 'Cihaz takvimine ekle';
+
+  @override
+  String get calSyncRowSub =>
+      'Tüm akademik takvim, o gün sabah 08:00 hatırlatıcıyla';
+
+  @override
+  String calSyncRowDone(String n) {
+    return 'Cihaz takviminde · $n etkinlik';
+  }
+
+  @override
+  String get calSyncRowDoneSub => 'Güncelle ya da kaldır';
+
+  @override
+  String get calSyncSheetBody =>
+      'Önümüzdeki 12 ayın akademik takvimi etkinlik olarak yazılır. Tüm gün kayıtlara o gün 08:00 hatırlatıcı eklenir; bildirimi takvim uygulamanız gönderir. Yalnız BÜ Kampüs etkinlikleri eklenir ve silinir.';
+
+  @override
+  String get calSyncTarget => 'Eklenecek takvim';
+
+  @override
+  String get calSyncNewLocal => 'BÜ Kampüs (yeni yerel takvim)';
+
+  @override
+  String get calSyncAdd => 'Takvime ekle';
+
+  @override
+  String get calSyncUpdate => 'Güncelle';
+
+  @override
+  String get calSyncRemove => 'Takvimden kaldır';
+
+  @override
+  String get calSyncRemoveTitle => 'BÜ Kampüs etkinlikleri kaldırılsın mı?';
+
+  @override
+  String calSyncRemoveBody(String n) {
+    return 'Takviminize bu uygulamanın eklediği $n etkinlik silinir. Diğer etkinlikleriniz etkilenmez.';
+  }
+
+  @override
+  String calSyncResult(String added, String updated, String same) {
+    return '$added etkinlik eklendi, $updated güncellendi, $same aynı kaldı.';
+  }
+
+  @override
+  String calSyncRemovedN(String n) {
+    return '$n kaldırıldı.';
+  }
+
+  @override
+  String calSyncFailedN(String n) {
+    return '$n yazılamadı.';
+  }
+
+  @override
+  String get calSyncRationale =>
+      'Akademik takvimi cihaz takviminize yazmak için takvim erişimi gerekir. Yalnızca BÜ Kampüs etkinlikleri eklenir ve silinir; başka etkinliklerinize dokunulmaz.';
+
+  @override
+  String get calSyncDenied =>
+      'Takvim izni kapalı. Ayarlar > BÜ Kampüs > Takvim iznini açın.';
+
+  @override
+  String get calSyncOpenSettings => 'Ayarları aç';
+
+  @override
+  String get calSyncNoCalendar =>
+      'Cihazda yazılabilir takvim yok. BÜ Kampüs adlı yerel bir takvim oluşturulacak.';
+
+  @override
+  String get calSyncFetchError =>
+      'Akademik takvim alınamadı. Bağlantınızı kontrol edip tekrar deneyin.';
+
+  @override
+  String get calSyncEmpty => 'Yazılacak güncel akademik takvim kaydı yok.';
+
+  @override
+  String get calSyncUnavailable => 'Bu cihazda takvim erişimi desteklenmiyor.';
+
+  @override
+  String calSyncRemoveDone(String n) {
+    return '$n etkinlik takvimden kaldırıldı.';
+  }
+
+  @override
+  String get calSyncCreateFail => 'Takvim oluşturulamadı.';
+
+  @override
+  String get calSyncWorking => 'Takvime yazılıyor…';
 }

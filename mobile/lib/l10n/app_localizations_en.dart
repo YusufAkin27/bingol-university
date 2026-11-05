@@ -10264,4 +10264,260 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errEmailVerificationRequired => 'Verify your email to do this';
+
+  @override
+  String get alarmClockNote =>
+      'Alarms are added to the Clock app on your phone. Open the Clock app to delete them.';
+
+  @override
+  String get alarmIosNote =>
+      'iPhone does not allow adding alarms to the Clock app. This notification replaces an alarm and may not sound in silent mode.';
+
+  @override
+  String get alarmUnavailable => 'No Clock app was found on this device.';
+
+  @override
+  String get alarmNotifOff =>
+      'Notifications are off. Turn them on in Settings > BÜ Kampüs > Notifications to get the reminders.';
+
+  @override
+  String get alarmExamAction => 'Set first-exam alarms';
+
+  @override
+  String get alarmExamActionIos => 'Remind me of exams with notifications';
+
+  @override
+  String get alarmExamSheetTitle => 'Exam day alarms';
+
+  @override
+  String get alarmExamSheetTitleIos => 'Exam day notifications';
+
+  @override
+  String get alarmExamSheetSub =>
+      'One-time, 1 hour before the first exam of each day only.';
+
+  @override
+  String alarmExamRow(String exam, String alarm) {
+    return 'Exam $exam → Alarm $alarm';
+  }
+
+  @override
+  String alarmExamSkipped(String times) {
+    return 'No alarm for the $times exam';
+  }
+
+  @override
+  String get alarmExamNone => 'No upcoming exams to set alarms for.';
+
+  @override
+  String alarmExamDeferred(String n) {
+    return '$n alarms are for later dates. The Android Clock app cannot set a one-time alarm for a later date, so we notify you the evening before the exam day and you set it with one tap.';
+  }
+
+  @override
+  String get alarmExamDeferredRow => 'Reminded the evening before';
+
+  @override
+  String alarmSetCount(String n) {
+    return 'Set $n alarms';
+  }
+
+  @override
+  String alarmNotifyCount(String n) {
+    return 'Schedule $n notifications';
+  }
+
+  @override
+  String alarmDoneSet(String n) {
+    return '$n alarms set. Check them in the Clock app.';
+  }
+
+  @override
+  String alarmDoneNotif(String n) {
+    return '$n notifications scheduled.';
+  }
+
+  @override
+  String alarmDoneDeferred(String n) {
+    return '$n alarms will be reminded before the exam day.';
+  }
+
+  @override
+  String alarmDoneFail(String n) {
+    return '$n alarms could not be set.';
+  }
+
+  @override
+  String alarmDueBanner(String n) {
+    return '$n exam alarms are ready to set.';
+  }
+
+  @override
+  String get alarmDueAction => 'Set now';
+
+  @override
+  String get alarmNudgeTitle => 'Set your exam alarm';
+
+  @override
+  String alarmNudgeBody(String title, String time) {
+    return '$title: the $time alarm is ready. Tap to set it on the Exams page.';
+  }
+
+  @override
+  String alarmExamLabel(String time, String title) {
+    return 'Exam $time: $title';
+  }
+
+  @override
+  String get alarmExamNotifTitle => 'Alarm: Exam in 1 hour';
+
+  @override
+  String get alarmClassAction => 'Set morning alarms';
+
+  @override
+  String get alarmClassActionIos => 'Set morning class notifications';
+
+  @override
+  String get alarmClassSheetTitle => 'Morning class alarms';
+
+  @override
+  String get alarmClassSheetTitleIos => 'Morning class notifications';
+
+  @override
+  String get alarmClassSheetSub =>
+      'If the first class of a day starts before noon: 1 hour earlier, repeating every week.';
+
+  @override
+  String alarmClassRow(String classTime, String alarm) {
+    return 'Class $classTime → Alarm $alarm · weekly';
+  }
+
+  @override
+  String alarmClassSkipped(String days) {
+    return '$days: first class is in the afternoon, no alarm';
+  }
+
+  @override
+  String get alarmClassNone => 'No morning classes; no alarms to set.';
+
+  @override
+  String alarmClassLabel(String time) {
+    return 'Class alarm · first class $time';
+  }
+
+  @override
+  String get alarmClassNotifTitle => 'Alarm: Class in 1 hour';
+
+  @override
+  String alarmClassNotifBody(String time) {
+    return 'Your first class starts at $time.';
+  }
+
+  @override
+  String alarmRepeatWarn(String date) {
+    return 'These alarms were set on $date. Setting them again may create duplicates in the Clock app.';
+  }
+
+  @override
+  String get alarmSetAnyway => 'Set anyway';
+
+  @override
+  String alarmDoneClassSet(String n) {
+    return '$n repeating alarms set. Check or delete them in the Clock app.';
+  }
+
+  @override
+  String get calSyncRowTitle => 'Add to device calendar';
+
+  @override
+  String get calSyncRowSub =>
+      'The whole academic calendar, with an 08:00 reminder on the day';
+
+  @override
+  String calSyncRowDone(String n) {
+    return 'In device calendar · $n events';
+  }
+
+  @override
+  String get calSyncRowDoneSub => 'Update or remove';
+
+  @override
+  String get calSyncSheetBody =>
+      'The academic calendar for the next 12 months is written as events. All-day entries get a reminder at 08:00 on the day; your calendar app sends the notification. Only BÜ Kampüs events are added or removed.';
+
+  @override
+  String get calSyncTarget => 'Calendar';
+
+  @override
+  String get calSyncNewLocal => 'BÜ Kampüs (new local calendar)';
+
+  @override
+  String get calSyncAdd => 'Add to calendar';
+
+  @override
+  String get calSyncUpdate => 'Update';
+
+  @override
+  String get calSyncRemove => 'Remove from calendar';
+
+  @override
+  String get calSyncRemoveTitle => 'Remove BÜ Kampüs events?';
+
+  @override
+  String calSyncRemoveBody(String n) {
+    return 'The $n events this app added to your calendar will be deleted. Your other events are not affected.';
+  }
+
+  @override
+  String calSyncResult(String added, String updated, String same) {
+    return '$added events added, $updated updated, $same unchanged.';
+  }
+
+  @override
+  String calSyncRemovedN(String n) {
+    return '$n removed.';
+  }
+
+  @override
+  String calSyncFailedN(String n) {
+    return '$n could not be written.';
+  }
+
+  @override
+  String get calSyncRationale =>
+      'Calendar access is needed to write the academic calendar to your device calendar. Only BÜ Kampüs events are added or removed; your other events are left alone.';
+
+  @override
+  String get calSyncDenied =>
+      'Calendar access is off. Turn it on in Settings > BÜ Kampüs > Calendar.';
+
+  @override
+  String get calSyncOpenSettings => 'Open settings';
+
+  @override
+  String get calSyncNoCalendar =>
+      'There is no writable calendar on this device. A local calendar named BÜ Kampüs will be created.';
+
+  @override
+  String get calSyncFetchError =>
+      'Could not load the academic calendar. Check your connection and try again.';
+
+  @override
+  String get calSyncEmpty =>
+      'There are no current academic calendar entries to write.';
+
+  @override
+  String get calSyncUnavailable =>
+      'Calendar access is not supported on this device.';
+
+  @override
+  String calSyncRemoveDone(String n) {
+    return '$n events removed from the calendar.';
+  }
+
+  @override
+  String get calSyncCreateFail => 'Could not create the calendar.';
+
+  @override
+  String get calSyncWorking => 'Writing to calendar…';
 }

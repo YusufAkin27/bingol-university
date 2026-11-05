@@ -9,6 +9,11 @@
     <uses-permission android:name="android.permission.READ_CONTACTS"/>
     <!-- Yerel ders/sinav hatirlatmalarini cihaz yeniden basladiktan sonra tekrar kurmak icin. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <!-- Akademik takvimi cihaz takvimine yazma (calisma zamani izni, kullanici "Takvime ekle" deyince istenir). -->
+    <uses-permission android:name="android.permission.READ_CALENDAR"/>
+    <uses-permission android:name="android.permission.WRITE_CALENDAR"/>
+    <!-- Sinav/ders alarmini sistem Saat uygulamasina yazma (normal izin, ACTION_SET_ALARM). -->
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM"/>
     <!-- Gerektikce istenenler: QR/foto cekme ve ses/video kaydi. -->
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
@@ -101,6 +106,10 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- Android 11+ paket gorunurlugu: Saat uygulamasi alarm kurma etkinligi (BuAlarm.isAvailable). -->
+        <intent>
+            <action android:name="android.intent.action.SET_ALARM"/>
         </intent>
     </queries>
 </manifest>
