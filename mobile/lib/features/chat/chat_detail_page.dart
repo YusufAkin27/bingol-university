@@ -1600,6 +1600,10 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     return tok == null ? const {} : {'Authorization': 'Bearer $tok'};
   }
 
+  /// Yanıt hedefi: tek gösterimlik mesajın açıklaması yanıt çubuğuna/alıntıya taşınmaz.
+  Map<String, dynamic> _replyTarget(Map<String, dynamic> m) =>
+      isViewOnceMessage(m) ? (Map<String, dynamic>.from(m)..['text'] = '') : m;
+
   /// Tek gösterimlik fotoğrafı açar: bayt yetkili GET ile alınır; istek tüketilince baloncuk "Açıldı" olur.
   void _openViewOnce(Map<String, dynamic> m, Map<String, dynamic> att) {
     final aid = (att['id'] as num?)?.toInt();
@@ -1611,6 +1615,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           api: _api,
           conversationId: _cid,
           attachmentId: aid,
+          caption: m['text'] as String?,
           onConsumed: () {
             if (!mounted) return;
             setState(() => _markViewed(m, aid));
@@ -1993,7 +1998,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     if (failed && m['_state'] != 'failed') return;
     final deleted = m['deleted'] == true || m['removed'] == true;
     final mine = _isMine(m) || m['_state'] != null;
-    final hasText = ((m['text'] as String?) ?? '').trim().isNotEmpty;
+    final hasText = !isViewOnceMessage(m) && ((m['text'] as String?) ?? '').trim().isNotEmpty;
     final hasAtt = ((m['attachments'] as List?)?.isNotEmpty ?? false) ||
         m['_viewOnce'] == true ||
         m['_uploads'] != null ||
@@ -2053,7 +2058,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     switch (action) {
       case 'reply':
         setState(() {
-          _replyTo = m;
+          _replyTo = _replyTarget(m);
           _editing = null;
         });
         _focus.requestFocus();
@@ -2155,6 +2160,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         if (m['id'] != null &&
             m['deleted'] != true &&
             m['removed'] != true &&
+            !isViewOnceMessage(m) &&
             ((m['text'] as String?) ?? '').toLowerCase().contains(needle))
           (m['id'] as num).toInt(),
     ];
@@ -3130,7 +3136,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               ? null
               : () {
                   setState(() {
-                    _replyTo = m;
+                    _replyTo = _replyTarget(m);
                     _editing = null;
                   });
                   _focus.requestFocus();

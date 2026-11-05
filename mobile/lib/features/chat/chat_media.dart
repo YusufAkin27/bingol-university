@@ -49,6 +49,11 @@ Map<String, dynamic>? viewOnceAttachment(Map message) {
   return null;
 }
 
+/// Mesaj tek gösterimlik mi: sunucudan gelen ek ya da yerel bekleyen (`_viewOnce`). Açıklaması (`text`) balonda,
+/// listede, kopyalamada, aramada ve alıntıda ASLA gösterilmez; yalnız alıcı fotoğrafı açınca görüntüleyicide çıkar.
+bool isViewOnceMessage(Map message) =>
+    message['_viewOnce'] == true || viewOnceAttachment(message) != null;
+
 /// Sohbet listesi önizleme metni (ek varsa): tek gösterimlik -> "Fotoğraf (tek gösterimlik)",
 /// video -> "Video", diğer -> "Fotoğraf". Ek yoksa boş metin.
 /// [l10n] verilmezse Türkçe kullanılır (eski çağıranlar için).

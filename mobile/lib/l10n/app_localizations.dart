@@ -18533,6 +18533,18 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Uygulamayı iyileştirmek için ekranlarda geçirilen süre ve yapılan eylemler gibi kullanım bilgileri gönderilir. Mesaj içeriği, arama metni ve kişisel bilgiler gönderilmez. Kapatınca toplama durur, bekleyenler silinir.'**
   String get settingsAnalyticsSub;
+
+  /// No description provided for @chatSecureCaptured.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ekran kaydı sırasında görüntülenemez.'**
+  String get chatSecureCaptured;
+
+  /// No description provided for @chatSecureScreenshot.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ekran görüntüsü algılandı. Görüntü kapatıldı.'**
+  String get chatSecureScreenshot;
 }
 
 class _AppLocalizationsDelegate

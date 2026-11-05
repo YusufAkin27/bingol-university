@@ -2,7 +2,8 @@ import Flutter
 import UIKit
 import UserNotifications
 
-/// iOS yerel köprüsü (Android'deki MainActivity + LocalReminders.kt karşılığı). İki kanal:
+/// iOS yerel köprüsü (Android'deki MainActivity + LocalReminders.kt karşılığı). Ekran koruması kanalı `bu_kampus/secure`
+/// dosya sonundaki BuSecureView'dadır; aşağıdaki iki kanal:
 ///
 /// - `bu_kampus/notify`: ders/sınav yerel hatırlatmaları (UNUserNotificationCenter ile zamanlanır; sunucu
 ///   göndermez). Yöntemler Dart'taki `ChannelReminderBackend` ile aynıdır: replaceGroup, upsert, cancel, cancelGroup,
@@ -80,6 +81,9 @@ final class BuNativeBridge: NSObject, FlutterPlugin, UNUserNotificationCenterDel
     // KVKK "verilerimi indir": JSON dosyası sistem paylaşım sayfasıyla verilir, pano kullanılmaz.
     let share = FlutterMethodChannel(name: "bu_kampus/share", binaryMessenger: messenger)
     share.setMethodCallHandler { call, result in BuNativeBridge.handleShare(call, result) }
+    // Tek gösterimlik fotoğraf görüntüleyicisi için ekran koruması (BuSecureView, dosya sonunda).
+    let secure = FlutterMethodChannel(name: "bu_kampus/secure", binaryMessenger: messenger)
+    BuSecureView.shared.attach(secure)
     registrar.addApplicationDelegate(instance)
   }
 
@@ -279,5 +283,172 @@ final class BuNativeBridge: NSObject, FlutterPlugin, UNUserNotificationCenterDel
       pending = (payload: payload, at: Date())
     }
     completionHandler()
+  }
+}
+
+// MARK: - Tek gösterimlik fotoğraf için ekran koruması (kanal `bu_kampus/secure`)
+
+/// Görüntüleyici açıkken çağrılan `enable`, kapanınca `disable`. iOS'ta ekran görüntüsünü doğrudan ENGELLEYEN resmî
+/// API yoktur; burada dört katman vardır (hepsi en iyi çabadır, hiçbiri tek başına garanti değildir):
+///
+/// 1. Güvenli katman: pencere katmanı, `isSecureTextEntry = true` olan bir `UITextField`'ın iç katmanına taşınır.
+///    Sistem bu katmanı ekran görüntüsü/ekran kaydı/AirPlay çıktısında SİYAH çizer (DRM benzeri; resmî olmayan, ama
+///    yaygın kullanılan yöntem; iOS sürümleriyle iç katman düzeni değişebilir). Katman bulunamazsa ya da taşıma
+///    doğrulanamazsa her şey eski haline döner ve `secureLayer=false` bildirilir: uygulama çalışmaya devam eder.
+/// 2. `UIScreen.isCaptured` + `capturedDidChangeNotification`: kayıt/yansıtma başlayınca Dart'a `onCaptured`.
+/// 3. `userDidTakeScreenshotNotification`: ekran görüntüsü ALINDIKTAN SONRA Dart'a `onScreenshot` (engelleyemez).
+/// 4. `willResignActive`: uygulama değiştirici önizlemesi için opak siyah örtü; `didBecomeActive`'de kalkar.
+///
+/// UYARI: macOS/Xcode'da derlenip denenmedi (docs/IOS_RELEASE.md).
+final class BuSecureView: NSObject {
+  static let shared = BuSecureView()
+
+  private var channel: FlutterMethodChannel?
+  private var enabled = false
+  private var observers: [NSObjectProtocol] = []
+  private var cover: UIView?
+
+  // Güvenli katman durumu (kurulduysa geri almak için başvurular güçlü tutulur).
+  private var field: UITextField?
+  private var hostLayer: CALayer?
+  private var installedWindow: UIWindow?
+
+  func attach(_ channel: FlutterMethodChannel) {
+    self.channel = channel
+    channel.setMethodCallHandler { [weak self] call, result in
+      guard let self = self else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      switch call.method {
+      case "enable":
+        DispatchQueue.main.async { result(self.enable()) }
+      case "disable":
+        DispatchQueue.main.async {
+          self.disable()
+          result(nil)
+        }
+      case "isCaptured":
+        DispatchQueue.main.async { result(self.isCaptured()) }
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
+  }
+
+  private func keyWindow() -> UIWindow? {
+    return UIApplication.shared.connectedScenes
+      .compactMap { $0 as? UIWindowScene }
+      .flatMap { $0.windows }
+      .first(where: { $0.isKeyWindow })
+  }
+
+  private func isCaptured() -> Bool {
+    if let screen = keyWindow()?.screen { return screen.isCaptured }
+    return UIScreen.main.isCaptured
+  }
+
+  private func enable() -> [String: Any] {
+    if !enabled {
+      enabled = true
+      addObservers()
+    }
+    let layered = installSecureLayer()
+    return ["secureLayer": layered, "captured": isCaptured()]
+  }
+
+  private func disable() {
+    guard enabled else { return }
+    enabled = false
+    for token in observers { NotificationCenter.default.removeObserver(token) }
+    observers.removeAll()
+    hideCover()
+    removeSecureLayer()
+  }
+
+  // MARK: Güvenli katman
+
+  private func installSecureLayer() -> Bool {
+    if installedWindow != nil { return true }
+    guard let window = keyWindow(), let host = window.layer.superlayer else { return false }
+    let tf = UITextField()
+    tf.isUserInteractionEnabled = false
+    tf.translatesAutoresizingMaskIntoConstraints = false
+    tf.isSecureTextEntry = true
+    window.addSubview(tf)
+    tf.centerXAnchor.constraint(equalTo: window.centerXAnchor).isActive = true
+    tf.centerYAnchor.constraint(equalTo: window.centerYAnchor).isActive = true
+    tf.layoutIfNeeded()
+    host.addSublayer(tf.layer)
+    // İç güvenli katman: iOS 17 ve sonrasında son alt katman, öncesinde ilki.
+    let inner: CALayer?
+    if #available(iOS 17.0, *) {
+      inner = tf.layer.sublayers?.last
+    } else {
+      inner = tf.layer.sublayers?.first
+    }
+    guard let container = inner else {
+      tf.layer.removeFromSuperlayer()
+      tf.removeFromSuperview()
+      return false
+    }
+    container.addSublayer(window.layer)
+    guard window.layer.superlayer === container else {
+      // Taşıma tutmadı: pencere katmanını eski yerine koy, geçici nesneleri sök.
+      host.addSublayer(window.layer)
+      tf.layer.removeFromSuperlayer()
+      tf.removeFromSuperview()
+      return false
+    }
+    field = tf
+    hostLayer = host
+    installedWindow = window
+    return true
+  }
+
+  private func removeSecureLayer() {
+    guard let window = installedWindow, let host = hostLayer, let tf = field else { return }
+    host.addSublayer(window.layer)
+    tf.isSecureTextEntry = false
+    tf.layer.removeFromSuperlayer()
+    tf.removeFromSuperview()
+    field = nil
+    hostLayer = nil
+    installedWindow = nil
+  }
+
+  // MARK: Gözlemciler
+
+  private func addObservers() {
+    let center = NotificationCenter.default
+    observers.append(center.addObserver(forName: UIScreen.capturedDidChangeNotification, object: nil, queue: .main) { [weak self] _ in
+      guard let self = self else { return }
+      self.channel?.invokeMethod("onCaptured", arguments: ["captured": self.isCaptured()])
+    })
+    observers.append(center.addObserver(forName: UIApplication.userDidTakeScreenshotNotification, object: nil, queue: .main) { [weak self] _ in
+      self?.channel?.invokeMethod("onScreenshot", arguments: nil)
+    })
+    observers.append(center.addObserver(forName: UIApplication.willResignActiveNotification, object: nil, queue: .main) { [weak self] _ in
+      self?.showCover()
+    })
+    observers.append(center.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in
+      self?.hideCover()
+    })
+  }
+
+  /// Uygulama değiştirici anlık görüntüsü alınmadan önce içeriği opak örtüyle kapatır.
+  private func showCover() {
+    guard cover == nil, let window = keyWindow() else { return }
+    let view = UIView(frame: window.bounds)
+    view.backgroundColor = .black
+    view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+    view.isUserInteractionEnabled = false
+    window.addSubview(view)
+    cover = view
+  }
+
+  private func hideCover() {
+    cover?.removeFromSuperview()
+    cover = nil
   }
 }

@@ -10188,4 +10188,11 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get settingsAnalyticsSub =>
       'Uygulamayı iyileştirmek için ekranlarda geçirilen süre ve yapılan eylemler gibi kullanım bilgileri gönderilir. Mesaj içeriği, arama metni ve kişisel bilgiler gönderilmez. Kapatınca toplama durur, bekleyenler silinir.';
+
+  @override
+  String get chatSecureCaptured => 'Ekran kaydı sırasında görüntülenemez.';
+
+  @override
+  String get chatSecureScreenshot =>
+      'Ekran görüntüsü algılandı. Görüntü kapatıldı.';
 }
