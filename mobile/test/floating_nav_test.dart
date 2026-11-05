@@ -44,7 +44,7 @@ void main() {
     expect(find.byType(Icon), findsNWidgets(4));
     expect(find.byType(ChatlistAvatar), findsOneWidget);
     for (final l in _labels) {
-      expect(find.text(l), l == 'Ana Sayfa' ? findsOneWidget : findsNothing, reason: l);
+      expect(find.text(l), findsNothing, reason: 'etiket görünmez: $l'); // yalnız simge; etiket ekran okuyucuda
       expect(find.bySemanticsLabel(RegExp(l)), findsWidgets);
     }
     h.dispose();
@@ -115,11 +115,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       final cell = tester.getRect(find.byKey(ValueKey('nav-$i')));
       expect(pill().center.dx, closeTo(cell.center.dx, 0.6), reason: 'sekme $i');
-      expect(pill().width, closeTo(cell.width, 0.6), reason: 'sekme $i');
-      expect(pill().width, lessThanOrEqualTo(118.5));
-      expect(find.text(_labels[i]), findsOneWidget);
+      expect(pill().width, lessThanOrEqualTo(56.5), reason: 'vurgu zemini sabit dar hap (etiket yok)');
       for (var j = 0; j < 5; j++) {
-        if (j != i) expect(find.text(_labels[j]), findsNothing, reason: 'etiket yalniz seciliyse ($j)');
+        expect(find.text(_labels[j]), findsNothing, reason: 'hiçbir sekmede görünür etiket yok ($j)');
       }
     }
   });
@@ -140,7 +138,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 20));
     final cell = tester.getRect(find.byKey(const ValueKey('nav-4')));
     expect(tester.getRect(find.byKey(const ValueKey('nav-indicator'))).center.dx, closeTo(cell.center.dx, 0.6));
-    expect(find.text('Profil'), findsOneWidget);
+    expect(find.text('Profil'), findsNothing); // etiket görünmez (ekran okuyucuda var)
   });
 
   testWidgets('"+" basinca 0.94 olcege kuculur, birakinca doner; cubuktan yukari tasar', (tester) async {

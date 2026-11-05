@@ -65,8 +65,7 @@ class FloatingNav extends StatelessWidget {
   static const double _plusSlot = 48; // "+" hücresi
   static const double _plusSize = 52; // "+" dairesi çapı
   static const double _plusRise = 10; // dairenin çubuktan yukarı taşması
-  static const double _minItem = 44; // seçili olmayan sekme hücresi (en az)
-  static const double _maxSelected = 118; // seçili sekme hapı (en çok)
+  static const double _pillWidth = 56; // seçili sekme vurgu zemini genişliği
   static const double _pillHeight = 40;
   static const double _icon = 22;
   static const double _avatar = 22; // avatar çapı (halka dışı)
@@ -158,14 +157,11 @@ class _NavGeometry {
     final hasPlus = slots.contains(-1);
     final tabs = slots.where((i) => i >= 0).length;
     final remaining = inner - (hasPlus ? FloatingNav._plusSlot : 0);
-    final others = tabs - 1;
-    // Seçili hap, kalan alanın izin verdiği kadar (en çok 118) genişler; diğerleri en az 44 dp kalır.
-    maxSelected = (remaining - others * FloatingNav._minItem).clamp(FloatingNav._minItem, FloatingNav._maxSelected).toDouble();
-    final hasSel = selected >= 0 && slots.contains(selected);
-    final tabW = hasSel ? (remaining - maxSelected) / others : remaining / tabs;
+    // Etiket yok: tüm sekme hücreleri eşit genişlikte; seçili sekme yalnız simge + vurgu zemini (hap) ile belli olur.
+    final tabW = remaining / tabs;
     var x = 0.0;
     for (final i in slots) {
-      final w = i == -1 ? FloatingNav._plusSlot : (hasSel && i == selected ? maxSelected : tabW);
+      final w = i == -1 ? FloatingNav._plusSlot : tabW;
       lefts.add(x);
       widths.add(w);
       x += w;
@@ -174,7 +170,6 @@ class _NavGeometry {
 
   final lefts = <double>[];
   final widths = <double>[];
-  late final double maxSelected;
 }
 
 /// Hücreleri ve kayan hapı yerleştirir; seçim değişince hepsi aynı süre/eğriyle (220 ms, standard) animasyonlanır.
@@ -218,7 +213,8 @@ class _NavRowState extends State<_NavRow> {
     if (selPos >= 0) _pillSlot = selPos;
     return LayoutBuilder(builder: (context, c) {
       final geo = _NavGeometry(c.maxWidth - 2 * FloatingNav._hPad, slots, widget.index);
-      final labelMax = geo.maxSelected - 16 - FloatingNav._icon - 4;
+      // Vurgu zemini: simgenin etrafında sabit genişlikte hap (en çok 56 dp), hücrenin ortasında.
+      final pillW = geo.widths[_pillSlot] < FloatingNav._pillWidth ? geo.widths[_pillSlot] : FloatingNav._pillWidth;
       const top = FloatingNav.lift;
       const pillTop = top + (FloatingNav.height - FloatingNav._pillHeight) / 2;
       Widget cell(int pos, Widget child) => AnimatedPositionedDirectional(
@@ -237,8 +233,8 @@ class _NavRowState extends State<_NavRow> {
           AnimatedPositionedDirectional(
             duration: dur,
             curve: AppMotion.standard,
-            start: FloatingNav._hPad + geo.lefts[_pillSlot],
-            width: geo.widths[_pillSlot],
+            start: FloatingNav._hPad + geo.lefts[_pillSlot] + (geo.widths[_pillSlot] - pillW) / 2,
+            width: pillW,
             top: pillTop,
             height: FloatingNav._pillHeight,
             child: ExcludeSemantics(
@@ -271,7 +267,6 @@ class _NavRowState extends State<_NavRow> {
                   position: pos,
                   selected: slots[pos] == widget.index,
                   label: widget.labels[slots[pos]],
-                  labelMax: labelMax,
                   onTap: () {
                     if (slots[pos] != widget.index) buHaptic(BuHaptic.selection);
                     widget.onChanged(slots[pos]);
@@ -357,7 +352,6 @@ class _NavItem extends StatelessWidget {
     required this.position,
     required this.selected,
     required this.label,
-    required this.labelMax,
     required this.onTap,
     this.outline,
     this.filled,
@@ -372,8 +366,6 @@ class _NavItem extends StatelessWidget {
   final bool selected;
   final String label;
 
-  /// Etiketin sığabileceği en geniş alan (seçili hap genişliği - iç boşluk - simge); sığmazsa küçülür.
-  final double labelMax;
   final VoidCallback onTap;
   final IconData? outline;
   final IconData? filled;
@@ -386,48 +378,17 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final tx = Theme.of(context).textTheme;
     final fg = immersive ? t.onMedia : t.onSoft;
     final color = selected ? fg : (immersive ? t.onMedia.withValues(alpha: .8) : t.mut);
     final unread = badge;
     Widget glyph = _isProfile ? _profile(context, t, fg) : _icon(context, color);
     if (unread != null) glyph = _withBadge(context, glyph, unread);
-    final style = (tx.labelMedium ?? const TextStyle()).copyWith(fontSize: 12, height: 1.2, fontWeight: FontWeight.w600, color: fg);
+    // Etiket GÖRÜNMEZ (yalnız ekran okuyucu için `label`): seçili sekme vurgu zemini + dolu simge ile ayırt edilir.
     final visual = ExcludeSemantics(
       child: Center(
         child: FittedBox(
           fit: BoxFit.scaleDown,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              glyph,
-              // Etiket: 140 ms solarak (60 ms gecikmeli) açılır/kapanır; genişlik hapla aynı eğriyle değişir.
-              TweenAnimationBuilder<double>(
-                tween: Tween<double>(end: selected ? 1 : 0),
-                duration: AppMotion.of(context, AppMotion.normal),
-                curve: AppMotion.standard,
-                builder: (context, v, child) => v <= 0 && !selected
-                    ? const SizedBox.shrink()
-                    : ClipRect(
-                        child: Align(
-                          alignment: AlignmentDirectional.centerStart,
-                          widthFactor: v,
-                          child: Opacity(opacity: ((v - .3) / .7).clamp(0.0, 1.0), child: child),
-                        ),
-                      ),
-                child: Padding(
-                  padding: const EdgeInsetsDirectional.only(start: 4),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: labelMax < 0 ? 0 : labelMax),
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(label, maxLines: 1, softWrap: false, style: style),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+          child: glyph,
         ),
       ),
     );
