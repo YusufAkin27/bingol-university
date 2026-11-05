@@ -53,6 +53,11 @@ public class Message {
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
 
+    /** First recipient acknowledgement in a direct chat; historical times remain unknown. */
+    private Instant deliveredAt;
+
+    private Instant readAt;
+
     /** Moderasyonla gizlendi (yumusak silme): API icerik yerine sabit metin doner. */
     private Instant hiddenAt;
 
