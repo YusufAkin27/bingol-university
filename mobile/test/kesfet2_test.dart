@@ -417,7 +417,8 @@ void main() {
       await tester.tapAt(tester.getCenter(box(998)));
       await settle(tester, const Duration(milliseconds: 900));
       expect(find.byType(PostDetailPage), findsOneWidget);
-      expect(find.text('Gönderi'), findsOneWidget); // sabit ust cubuk basligi
+      expect(find.text('Gönderi'), findsNothing); // ust cubukta baslik metni yok (sadelestirme)
+      expect(find.byKey(const ValueKey('postBack')), findsOneWidget);
       expect(find.text('Metin 998'), findsOneWidget);
       final y998 = tester.getTopLeft(find.byKey(const ValueKey('stream-post-998'))).dy;
       expect(y998, lessThan(130), reason: 'tiklanan gonderi ust cubugun hemen altinda baslar');
@@ -525,12 +526,12 @@ void main() {
       await settle(tester, const Duration(milliseconds: 800));
       await tester.tapAt(tester.getCenter(box(1000)));
       await settle(tester, const Duration(milliseconds: 900));
-      expect(find.text('Gönderi'), findsOneWidget);
+      expect(find.text('Gönderi'), findsNothing);
       final backAt = tester.getCenter(find.byKey(const ValueKey('postBack')));
       expect(tester.getSize(find.byKey(const ValueKey('postBack'))), const Size(48, 48));
       await tester.drag(stream(), const Offset(0, -900));
       await settle(tester, const Duration(milliseconds: 400));
-      expect(find.text('Gönderi'), findsOneWidget); // baslik kaymaz
+      expect(find.text('Gönderi'), findsNothing); // baslik yok
       expect(tester.getCenter(find.byKey(const ValueKey('postBack'))), backAt); // sabit
       await tester.tap(find.byKey(const ValueKey('postBack')));
       await settle(tester, const Duration(milliseconds: 700));

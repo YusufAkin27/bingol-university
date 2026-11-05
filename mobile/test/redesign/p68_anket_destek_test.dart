@@ -162,7 +162,7 @@ void main() {
       useScreen(t, kPhoneMedium);
       await t.pumpWidget(buildApp(PollDetailPage(session: makeSession(_voteBe()), pollId: 1), size: kPhoneMedium));
       await settle(t, const Duration(milliseconds: 900));
-      expect(find.text('Anket'), findsOneWidget);
+      expect(find.text('Anket'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
       expect(find.text('Yeni dönem yemek menüsü'), findsOneWidget);
       expect(find.text('Yemek · Tek seçim · Gizli oy · 2 gün kaldı'), findsOneWidget);
       for (final o in _menuOpts) {
@@ -222,7 +222,7 @@ void main() {
       fakePolls(b, count: 0);
       await t.pumpWidget(buildApp(PollFormPage(session: makeSession(b), communityId: 5), size: const Size(390, 1800)));
       await settle(t, const Duration(milliseconds: 900));
-      expect(find.text('Anket oluştur'), findsOneWidget);
+      expect(find.text('Anket oluştur'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
       for (final s in ['Başlık', 'Açıklama (isteğe bağlı)', 'Tür', 'Seçenekler (2-12)', '2 / 12', 'Bitiş zamanı', 'Sonuçlar ne zaman görünsün?', 'Gizli oy', 'Bildirim gönder', 'Yayınla']) {
         expect(find.text(s), findsOneWidget, reason: s);
       }
@@ -360,7 +360,7 @@ void main() {
       useScreen(t, kPhoneMedium);
       await t.pumpWidget(buildApp(SuggestionsPage(session: makeSession(_supportBe())), size: kPhoneMedium));
       await settle(t, const Duration(milliseconds: 900));
-      expect(find.text('Öneriler'), findsOneWidget);
+      expect(find.text('Öneriler'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
       expect(find.text('En çok oylanan'), findsOneWidget);
       expect(find.text('Yeni'), findsOneWidget);
       expect(find.byType(BuCard), findsNothing);

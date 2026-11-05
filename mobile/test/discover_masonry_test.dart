@@ -30,7 +30,7 @@ void main() {
       expect(b.requests.any((r) => r.contains('/feed') && r.contains('scope=foryou')), isTrue);
       expect(b.requests.any((r) => r.contains('/news')), isFalse);
       expect(find.byType(DiscoverPostBox), findsWidgets);
-      expect(find.text('Keşfet'), findsOneWidget);
+      expect(find.text('Keşfet'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
       // Haber/kategori yok; kapsul filtre YOK (tek karma akis).
       expect(find.text('Haberler'), findsNothing);
       for (final t in ['Senin İçin', 'Popüler', 'Reels', 'En Yeni', 'Takip Ettiklerim']) {

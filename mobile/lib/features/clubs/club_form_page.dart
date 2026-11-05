@@ -465,11 +465,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
                     ClubBarIcon(icon: BuIcons.arrowLeft, tooltip: l10n.commonBack, onTap: _back),
                     const SizedBox(width: 6),
                     Expanded(
-                      child: Semantics(
-                        header: true,
-                        child: Text(_edit ? l10n.clubMgmtEditTitle : l10n.p51CreateClubTitle,
-                            maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.title.copyWith(color: t.ink)),
-                      ),
+                      child: Semantics(header: true, label: _edit ? l10n.clubMgmtEditTitle : l10n.p51CreateClubTitle, child: const SizedBox.shrink()),
                     ),
                   ],
                 ),

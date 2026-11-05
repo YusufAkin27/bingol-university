@@ -102,7 +102,7 @@ void main() {
       ));
       await settle(tester);
       final l = lookupAppLocalizations(Locale(code));
-      expect(find.text(l.settingsTitle), findsOneWidget);
+      expect(find.text(l.settingsTitle), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
       expect(find.text(l.settingsLanguage), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
@@ -117,8 +117,8 @@ void main() {
       const Locale('ar'),
     ));
     await settle(tester);
-    final title = tester.getTopRight(find.text('الإعدادات'));
-    // Başlık RTL'de sağ yarıda başlar (geri düğmesi sağda).
-    expect(title.dx, greaterThan(kPhoneMedium.width / 2));
+    // Sayfa başlığı görünmez (sadeleştirme); RTL'de geri oku sağ yarıdadır.
+    expect(find.text('الإعدادات'), findsNothing);
+    expect(tester.getCenter(find.byTooltip('رجوع')).dx, greaterThan(kPhoneMedium.width / 2));
   });
 }

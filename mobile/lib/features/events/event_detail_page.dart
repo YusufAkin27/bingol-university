@@ -436,7 +436,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
               centerTitle: false,
               backgroundColor: t.bg,
               scrolledUnderElevation: 0,
-              title: Text(l.eventFormEventTitle, style: BuType.title.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
+              title: Semantics(header: true, label: l.eventFormEventTitle, child: const SizedBox.shrink()),
               actions: [_shareAction(), _menu(), const SizedBox(width: 4)],
             ),
             SliverToBoxAdapter(

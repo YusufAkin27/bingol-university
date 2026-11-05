@@ -160,10 +160,7 @@ class ClubPageHeader extends StatelessWidget {
         child: Row(children: [
           ClubBarIcon(icon: BuIcons.arrowLeft, tooltip: context.l10n.commonBack, onTap: () => Navigator.maybePop(context), width: 48),
           Expanded(
-            child: Semantics(
-              header: true,
-              child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.title.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
-            ),
+            child: Semantics(header: true, label: title, child: const SizedBox.shrink()),
           ),
           ...actions,
         ]),

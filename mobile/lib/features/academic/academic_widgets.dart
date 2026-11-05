@@ -6,7 +6,7 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import 'akad_widgets.dart';
 
-/// Akademik sayfaların ortak iskeleti: başlık + gövde (+ alta sabit eylem çubuğu).
+/// Akademik sayfaların ortak iskeleti: geri oku + eylemler çubuğu (başlık metni görünmez) + gövde (+ alta sabit eylem çubuğu).
 /// Yeni sayfalar büyük başlıklı [BuPageScaffold] kullanır; bu iskelet gövdesi kendi kaydırmasını yöneten sayfalar içindir.
 class AcademicScaffold extends StatelessWidget {
   const AcademicScaffold(
@@ -22,7 +22,7 @@ class AcademicScaffold extends StatelessWidget {
   final String title;
   final String? subtitle;
 
-  /// false: üst çubukta yalnız geri oku durur (sayfa kendi büyük başlığını çizer; Stitch v3 Sınavlar).
+  /// Eski imza uyumu için durur; başlık artık hiçbir akademik sayfada çizilmez.
   final bool showTitle;
   final List<Widget> actions;
   final Widget child;
@@ -43,7 +43,7 @@ class AcademicScaffold extends StatelessWidget {
         children: [
           Column(
             children: [
-              _AkadHeader(title: title, subtitle: subtitle, actions: actions, showTitle: showTitle),
+              _AkadHeader(title: title, actions: actions),
               Expanded(child: child),
             ],
           ),
@@ -54,58 +54,20 @@ class AcademicScaffold extends StatelessWidget {
   }
 }
 
-//// Üst başlık (Stitch v3): sayfa zemininde düz çubuk (gölge/ayraç yok), geri oku 36 dp merkezde, başlık 64 dp'den
-/// 18 sp/700, sağda eylemler. 56 dp + güvenli alan.
+/// Üst çubuk: başlık metni görünmez (tasarım sadeleştirmesi); geri oku solda, [actions] sağda ([BuHeader]).
+/// Başlık yalnız ekran okuyucu için anlamsal etiket olarak taşınır.
 class _AkadHeader extends StatelessWidget {
-  const _AkadHeader({required this.title, required this.actions, this.subtitle, this.showTitle = true});
+  const _AkadHeader({required this.title, required this.actions});
 
   final String title;
-  final String? subtitle;
   final List<Widget> actions;
-  final bool showTitle;
 
   @override
-  Widget build(BuildContext context) {
-    if (showTitle) return BuHeader(
-      title: title, subtitle: subtitle, actions: actions,
-      onBack: () => Navigator.maybePop(context),
-    );
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    return ColoredBox(
-      color: t.bg,
-      child: Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(12, MediaQuery.paddingOf(context).top, 20, 0),
-        child: SizedBox(
-          height: 56,
-          child: Row(children: [
-            IconButton(
-              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-              tooltip: context.l10n.commonBack,
-              icon: Icon(buDirIcon(context, BuIcons.arrowLeft), size: 24, color: t.ink),
-              onPressed: () => Navigator.maybePop(context),
-            ),
-            const SizedBox(width: 4),
-            Expanded(
-              child: !showTitle
-                  ? const SizedBox.shrink()
-                  : MediaQuery.withClampedTextScaling(
-                      maxScaleFactor: 1.3,
-                      child: Semantics(
-                        header: true,
-                        child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
-                          if (subtitle != null) Text(subtitle!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
-                        ]),
-                      ),
-                    ),
-            ),
-            for (final a in actions) ...[const SizedBox(width: 8), a],
-          ]),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => BuHeader(
+        title: title,
+        actions: actions,
+        onBack: () => Navigator.maybePop(context),
+      );
 }
 
 // 503 (bakım) için bakım görünümü; diğer hatalarda [BuErrorState] (ağ yoksa "Bağlantı yok").

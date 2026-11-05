@@ -127,7 +127,7 @@ class _SavedNewsPageState extends State<SavedNewsPage> {
             controller: _scroll,
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
-              // Geri (40 dp daire) + büyük başlık "Favori haberler" + soluk "3 kayıtlı haber".
+              // Geri (40 dp daire) + soluk "3 kayıtlı haber".
               SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsetsDirectional.fromSTEB(16, MediaQuery.paddingOf(context).top + 24, 20, 0),
@@ -138,14 +138,9 @@ class _SavedNewsPageState extends State<SavedNewsPage> {
                   ),
                 ),
               ),
+              // Başlık metni görünmez (tasarım sadeleştirmesi); yalnız ekran okuyucu için anlamsal etiket.
               SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                  child: Semantics(
-                    header: true,
-                    child: BuFeatureTitle(title: l.icerikFavorites, icon: BuIcons.bookmark),
-                  ),
-                ),
+                child: Semantics(header: true, label: l.icerikFavorites, child: const SizedBox(height: 4)),
               ),
               if (_items.isNotEmpty)
                 SliverToBoxAdapter(

@@ -131,7 +131,6 @@ class _ExamsPageState extends State<ExamsPage> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final t = context.bu;
-    final tx = Theme.of(context).textTheme;
     final canAdd = !_loadingMine || _mine.isNotEmpty;
     return AcademicScaffold(
       title: l.acadExamsTitle,
@@ -147,12 +146,7 @@ class _ExamsPageState extends State<ExamsPage> {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(minHeight: 48),
                 child: Row(children: [
-                  Expanded(
-                    child: MediaQuery.withClampedTextScaling(
-                      maxScaleFactor: 1.3,
-                      child: Semantics(header: true, child: Text(l.acadExamsTitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.headlineLarge!.copyWith(fontWeight: FontWeight.w400, letterSpacing: 0, color: t.ink))),
-                    ),
-                  ),
+                  Expanded(child: Semantics(header: true, label: l.acadExamsTitle, child: const SizedBox.shrink())),
                   if (canAdd)
                     Semantics(
                       button: true,

@@ -962,7 +962,7 @@ void main() {
 
     testWidgets('Kulupler: baslik + metin sekmeleri + arama alani', (tester) async {
       await _pump(tester, build(makeSession(full())), size: kPhoneSmall);
-      expect(find.text('Kulüpler'), findsOneWidget); // Stitch v3 sayfa başlığı
+      expect(find.text('Kulüpler'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
       expect(find.text('Keşfet'), findsOneWidget); // metin sekmeleri
       expect(find.text('Kulüplerim'), findsOneWidget);
       await tester.tap(find.bySemanticsLabel('Ara'));

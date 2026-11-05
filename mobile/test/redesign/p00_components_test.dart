@@ -359,15 +359,11 @@ void main() {
       expect(find.byType(SliverAppBar), findsOneWidget);
     });
 
-    testWidgets('büyük başlık kaydırınca daralır', (t) async {
+    testWidgets('sayfa başlığı görünmez: büyük başlık yok, tek satır (56 dp) çubuk', (t) async {
       await t.pumpWidget(p00App(page(BuViewState.ready), scaffold: false));
       await t.pump(const Duration(milliseconds: 500));
-      final before = t.getTopLeft(find.text('Haberler').first).dy;
-      final sizeBefore = t.getSize(find.text('Haberler').first);
-      await t.drag(find.byType(CustomScrollView), const Offset(0, -400));
-      await t.pump();
-      expect(t.getTopLeft(find.text('Haberler').first).dy, lessThan(before));
-      expect(t.getSize(find.text('Haberler').first).height, lessThanOrEqualTo(sizeBefore.height));
+      expect(find.text('Haberler'), findsNothing);
+      expect(t.getSize(find.byType(AppBar).first).height, lessThanOrEqualTo(kToolbarHeight + 1));
     });
 
     testWidgets('çekerek yenile onRefresh çağırır', (t) async {

@@ -198,7 +198,6 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
 
   Widget _scanLayout(BuildContext context, String title) {
     final t = context.bu;
-    final tx = Theme.of(context).textTheme;
     final l = context.l10n;
     return LayoutBuilder(
       builder: (context, c) {
@@ -223,11 +222,8 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
                         onTap: () => Navigator.of(context).maybePop(),
                       ),
                       Expanded(
-                        child: Text(title,
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: tx.titleMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w400)),
+                        // Başlık metni görünmez (tasarım sadeleştirmesi); yalnız ekran okuyucu için anlamsal etiket.
+                        child: Semantics(header: true, label: title, child: const SizedBox.shrink()),
                       ),
                       if (_cam == true)
                         _TorchPill(label: l.qrTorch, on: _torch, onTap: _toggleTorch)

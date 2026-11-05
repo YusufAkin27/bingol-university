@@ -47,8 +47,8 @@ void main() {
             final be = _newsBackend(maintenance: true);
             await tester.pumpWidget(buildApp(_wrap(NewsListPage(session: makeSession(be)), rtl: rtl), brightness: b, size: size));
             await settle(tester);
-            // Büyük başlık (SliverAppBar.large) hem açık hem daralmış başlığı çizer.
-            expect(find.text('Haberler'), findsWidgets);
+            // Sayfa başlığı çizilmez; sekmeler ve kartlar kalır.
+            expect(find.text('Haberler'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
             expect(find.text('Haber'), findsWidgets);
             expect(find.text('Duyuru'), findsOneWidget);
             expect(find.text('Etkinlik'), findsOneWidget);
@@ -155,7 +155,7 @@ void main() {
             });
           await tester.pumpWidget(buildApp(SavedNewsPage(session: makeSession(be)), brightness: b, size: size));
           await settle(tester);
-          expect(find.text('Favori haberler'), findsWidgets);
+          expect(find.text('Favori haberler'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
           expect(find.text('3 kayıtlı haber'), findsOneWidget);
           expect(find.textContaining('Kayıtlı haber başlığı'), findsNWidgets(3));
           _ok(tester);

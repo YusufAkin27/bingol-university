@@ -48,7 +48,7 @@ void main() {
       final b = _backend();
       await tester.pumpWidget(buildApp(PrivacyDataPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
-      expect(find.text('Gizlilik ve engellenenler'), findsOneWidget);
+      expect(find.text('Gizlilik ve engellenenler'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
       expect(find.text('Ortak bağlam'), findsNWidgets(5)); // her alanın 3 parçalı seçicisinde bir tane
       await tester.tap(find.descendant(of: find.byKey(const ValueKey('privacy-select-avatar')), matching: find.text('Yalnızca ben')));
       await settle(tester);

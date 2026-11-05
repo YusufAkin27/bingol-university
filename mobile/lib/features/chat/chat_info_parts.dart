@@ -104,13 +104,8 @@ class ChatInfoBar extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Expanded(
-            child: Semantics(
-              header: true,
-              child: Text(title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
-            ),
+            // Başlık metni görünmez (tasarım sadeleştirmesi); yalnız ekran okuyucu için anlamsal etiket.
+            child: Semantics(header: true, label: title, child: const SizedBox.shrink()),
           ),
           const SizedBox(width: kChatInfoMargin),
         ]),

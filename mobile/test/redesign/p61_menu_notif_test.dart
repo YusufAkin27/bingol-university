@@ -285,7 +285,7 @@ void main() {
       await _show(tester, NotificationPrefsPage(session: makeSession(be())), size: const Size(390, 1500));
       await tester.tap(find.text('Ayrıntılı tercihler'));
       await settle(tester);
-      expect(find.text('Ayrıntılı tercihler'), findsOneWidget);
+      expect(find.text('Ayrıntılı tercihler'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
       expect(find.byIcon(BuIcons.slidersHorizontal), findsNothing);
       expect(find.text('Devre dışı'), findsNothing);
       expect(find.text('Kişisel mesajlar'), findsOneWidget);

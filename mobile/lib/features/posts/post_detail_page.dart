@@ -274,7 +274,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
   }
 }
 
-/// Sabit üst çubuk (56 dp): geri düğmesi (24 dp ok, 48 dp dokunma alanı) + "Gönderi" başlığı + alt çizgi.
+/// Sabit üst çubuk (56 dp): geri düğmesi (24 dp ok, 48 dp dokunma alanı) + alt çizgi (başlık metni görünmez, yalnız anlamsal etiket).
 class _TopBar extends StatelessWidget {
   const _TopBar({required this.onBack});
 
@@ -310,13 +310,7 @@ class _TopBar extends StatelessWidget {
             ),
             BuGap.w8,
             Expanded(
-              child: Semantics(
-                header: true,
-                child: Text(context.l10n.postViewPost,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(color: t.ink, fontSize: 18, fontWeight: FontWeight.w400)),
-              ),
+              child: Semantics(header: true, label: context.l10n.postViewPost, child: const SizedBox.shrink()),
             ),
           ]),
         ),

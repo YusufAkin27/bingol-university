@@ -207,6 +207,8 @@ class _LegalDocPageState extends State<LegalDocPage> {
           return Column(
             children: [
               BuHeader(
+                // Belge adı içeriktir (haber başlığı gibi) ve kalır; belge yüklenmeden genel "Sözleşmeler" adı görünmez.
+                visibleTitle: d != null,
                 title: (d?['title'] as String?) ?? l.profileLegalTitle,
                 subtitle: d == null ? null : (date.isEmpty ? l.profileVersion('${d['version']}') : l.p01LgMetaLine('${d['version']}', date)),
                 onBack: () => Navigator.pop(context),

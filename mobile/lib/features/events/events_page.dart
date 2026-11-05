@@ -755,11 +755,7 @@ class _EventsPageState extends State<EventsPage> {
           const SizedBox(width: 5),
         ],
         Expanded(
-          child: Semantics(
-            header: true,
-            child: Text(l.eventListTitle,
-                maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.display.copyWith(fontSize: 28, height: 1.2, color: t.ink)),
-          ),
+          child: Semantics(header: true, label: l.eventListTitle, child: const SizedBox(height: 48)),
         ),
         TextButton(
           key: const ValueKey('events-checkin'),

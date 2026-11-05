@@ -287,10 +287,8 @@ class _TopBar extends StatelessWidget {
           icon: Icon(BuIcons.x, color: d.ink),
         ),
         Expanded(
-          child: Text(title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(color: d.ink, fontWeight: FontWeight.w400)),
+          // Başlık metni görünmez (tasarım sadeleştirmesi); yalnız ekran okuyucu için anlamsal etiket.
+          child: Semantics(header: true, label: title, child: const SizedBox.shrink()),
         ),
         const SizedBox(width: 48),
       ]),

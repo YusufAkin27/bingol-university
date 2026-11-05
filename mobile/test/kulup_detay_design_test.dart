@@ -192,7 +192,7 @@ void main() {
         ..on('/communities/7/requests/20/approve', {}, status: 200);
       be.delay = const Duration(milliseconds: 300);
       await _pump(tester, ClubRequestsPage(session: makeSession(be), communityId: 7));
-      expect(find.text('Başvurular'), findsWidgets); // büyük başlık: genişlemiş + daralmış
+      expect(find.text('Başvurular'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
       await tester.tap(find.text('Onayla'));
       await tester.pump(const Duration(milliseconds: 50));
       expect(find.text('Onaylanıyor...'), findsOneWidget);
@@ -219,7 +219,7 @@ void main() {
           await unmount(tester);
           final fb = FakeBackend()..on('/communities/categories', [{'category': 'Sanat'}, {'category': 'Spor'}, {'category': 'Teknoloji'}, {'category': 'Bilim'}]);
           await _pump(tester, ClubFormPage(session: makeSession(fb)), b: b, size: kPhoneSmall, rtl: rtl);
-          expect(find.text('Kulüp oluştur'), findsOneWidget);
+          expect(find.text('Kulüp oluştur'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
           expect(find.text('Oluştur'), findsOneWidget);
           expect(tester.takeException(), isNull);
           await unmount(tester);

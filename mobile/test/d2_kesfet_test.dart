@@ -34,7 +34,7 @@ void main() {
       fakePosts(b);
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(find.text('Keşfet'), findsOneWidget);
+      expect(find.text('Keşfet'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
       expect(find.byKey(const ValueKey('discoverSearch')), findsOneWidget);
       expect(find.byTooltip('Gönderi oluştur'), findsOneWidget);
       expect(find.byType(BuChip), findsNothing);

@@ -40,7 +40,8 @@ void main() {
       // Paylas menusu -> Fotograf paylas -> olusturucu.
       await tester.tap(find.byKey(const ValueKey('composeMenuPhoto')));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(find.text('Yeni gönderi'), findsOneWidget);
+      expect(find.text('Yeni gönderi'), findsNothing); // üst çubukta başlık metni yok (sadeleştirme)
+      expect(find.byKey(const ValueKey('composeShare')), findsOneWidget);
       noErr(tester);
     });
 
@@ -50,7 +51,7 @@ void main() {
       b.on('/users/me/follow-suggestions*', {'items': <Object>[]});
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(find.text('Keşfet'), findsOneWidget); // baslik hata durumunda da var
+      expect(find.byKey(const ValueKey('discoverSearch')), findsOneWidget); // ust satir hata durumunda da var
       expect(find.byKey(const ValueKey('discoverOfflineStrip')), findsNothing);
       expect(find.textContaining('İnternet bağlantısı yok'), findsNothing);
       expect(find.text('Yüklenemedi'), findsOneWidget);
@@ -132,7 +133,7 @@ void main() {
       }
       await tester.pumpWidget(buildApp(UserPostsPage(session: makeSession(b), userId: 12, name: 'Ayşe')));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(find.text('Gönderiler'), findsOneWidget);
+      expect(find.text('Gönderiler'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
       final tile = find.byKey(const ValueKey('upost-1000'));
       final s = tester.getSize(tile);
       expect((s.width / s.height - .8).abs(), lessThan(.02));

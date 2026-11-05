@@ -116,12 +116,13 @@ void main() {
       tester.view.viewPadding = FakeViewPadding(top: inset);
       await tester.pumpWidget(p00App(ChatTab(session: makeSession(_chatBe()), connectRealtime: false), scaffold: false));
       await settle(tester, const Duration(seconds: 1));
-      expect(tester.getTopLeft(find.text('Sohbet')).dy, greaterThanOrEqualTo(inset), reason: 'baslik durum cubuguna binmemeli');
+      expect(find.text('Sohbet'), findsNothing); // baslik metni yok (sadelestirme)
       expect(tester.getTopLeft(find.byTooltip('Yeni sohbet')).dy, greaterThanOrEqualTo(inset), reason: '+ dugmesi durum cubuguna binmemeli');
       // Arsiv gorunumu (BuHeader) da ayni inset'i alir.
       await tester.tap(find.byTooltip('Arşiv'));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(tester.getTopLeft(find.text('Arşiv')).dy, greaterThanOrEqualTo(inset));
+      expect(find.text('Arşiv'), findsNothing); // arşiv başlığı da görünmez; geri oku güvenli alanın altında
+      expect(tester.getTopLeft(find.byTooltip('Geri')).dy, greaterThanOrEqualTo(inset));
       expect(tester.takeException(), isNull);
     });
   }

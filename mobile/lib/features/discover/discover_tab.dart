@@ -104,8 +104,6 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
-    final tt = Theme.of(context).textTheme;
     final l = context.l10n;
     return Padding(
       padding: EdgeInsets.fromLTRB(0, top + BuSpace.sm, 0, BuSpace.sm),
@@ -115,10 +113,7 @@ class _Header extends StatelessWidget {
           height: 44,
           child: Row(children: [
             Expanded(
-              child: Text(l.navDiscover,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: tt.headlineMedium?.copyWith(color: t.ink, fontSize: 28, fontWeight: FontWeight.w400)),
+              child: Semantics(header: true, label: l.navDiscover, child: const SizedBox.shrink()),
             ),
             BuIconButton(
               key: const ValueKey('discoverSearch'),

@@ -39,9 +39,11 @@ String? fileUrl(String? path) {
 
 bool _isArabic(BuildContext context) => Localizations.maybeLocaleOf(context)?.languageCode == 'ar';
 
-/// Ekran üst başlığı: isteğe bağlı geri düğmesi + büyük başlık + sağda eylemler.
+/// Ekran üst çubuğu: isteğe bağlı geri düğmesi + sağda eylemler. Ekranın genel adı (Ayarlar, Bildirimler...)
+/// varsayılan olarak GÖRÜNMEZ (tasarım sadeleştirmesi); yalnız ekran okuyucu için anlamsal başlık olarak taşınır.
+/// [visibleTitle] true ise büyük başlık çizilir (içerik adı olan belge başlıkları için).
 class BuHeader extends StatelessWidget {
-  const BuHeader({super.key, required this.title, this.onBack, this.actions = const [], this.subtitle, this.icon});
+  const BuHeader({super.key, required this.title, this.onBack, this.actions = const [], this.subtitle, this.icon, this.visibleTitle = false});
 
   final String title;
   final String? subtitle;
@@ -49,9 +51,29 @@ class BuHeader extends StatelessWidget {
   final VoidCallback? onBack;
   final List<Widget> actions;
 
+  /// false (varsayılan): başlık metni çizilmez.
+  final bool visibleTitle;
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    if (!visibleTitle) {
+      // Başlıksız çubuk: geri oku solda, eylemler sağda; ikisi de yoksa yalnız güvenli alan boşluğu kalır.
+      final hasContent = onBack != null || actions.isNotEmpty || icon != null;
+      return Padding(
+        padding: EdgeInsetsDirectional.fromSTEB(20, MediaQuery.of(context).padding.top + 8, 20, hasContent ? 4 : 0),
+        child: Row(
+          children: [
+            if (onBack != null) BuIconButton(icon: BuIcons.arrowLeft, onTap: onBack, tooltip: context.l10n.commonBack),
+            if (icon != null && onBack == null) BuFeatureIcon(icon: icon!),
+            Expanded(
+              child: Semantics(header: true, label: title, child: SizedBox(height: hasContent ? BuSize.iconBtn : 0)),
+            ),
+            for (var i = 0; i < actions.length; i++) ...[if (i > 0) const SizedBox(width: 8), actions[i]],
+          ],
+        ),
+      );
+    }
     return Padding(
       padding: EdgeInsetsDirectional.fromSTEB(20, MediaQuery.of(context).padding.top + 8, 20, 0),
       child: Row(

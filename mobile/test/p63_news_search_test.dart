@@ -239,7 +239,7 @@ void main() {
         });
       await tester.pumpWidget(buildApp(SavedNewsPage(session: makeSession(be)), size: kPhoneMedium));
       await settle(tester);
-      expect(find.text('Favori haberler'), findsOneWidget);
+      expect(find.text('Favori haberler'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
       expect(find.text('3 kayıtlı haber'), findsOneWidget);
       expect(find.byType(NewsRowDivider), findsNWidgets(2));
       expect(find.textContaining('Çevrimdışı'), findsNothing);
