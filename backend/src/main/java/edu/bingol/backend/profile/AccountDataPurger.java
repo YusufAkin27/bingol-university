@@ -112,7 +112,14 @@ public class AccountDataPurger {
             Map.entry("user_follow_stats.user_id", "SocialAccountPurger"),
             Map.entry("profile_privacy.user_id", "AvatarCleanups (gizlilik satiri silinir)"),
             Map.entry("conversation_member.user_id", "LEAVE_ROOMS (satir kalir, left_at dolar; sohbet gecmisi digerlerinin verisi)"),
-            Map.entry("community.owner_id", "CommunityAccountListener (sahiplik devri ya da kulup kapatma)"));
+            Map.entry("community.owner_id", "CommunityAccountListener (sahiplik devri ya da kulup kapatma)"),
+            // Kampus Forum, A alani (konu/medya/begeni/kayit/takip/takma ad): ForumTopicAccountPurger
+            Map.entry("forum_topic.user_id", "ForumTopicAccountPurger (yumusak silme + baslik/govde temizligi)"),
+            Map.entry("forum_media.owner_id", "ForumTopicAccountPurger (gorsel + bayt silinir)"),
+            Map.entry("forum_topic_like.user_id", "ForumTopicAccountPurger (+ sayac duser)"),
+            Map.entry("forum_bookmark.user_id", "ForumTopicAccountPurger"),
+            Map.entry("forum_topic_follow.user_id", "ForumTopicAccountPurger"),
+            Map.entry("forum_anon_alias.user_id", "ForumTopicAccountPurger"));
 
     /**
      * Bilerek SILINMEYEN/ANONIMLESTIRILMEYEN kullanici baglantili sutunlar ("tablo.sutun" -> gerekce ve sure).
@@ -248,6 +255,14 @@ public class AccountDataPurger {
         this.academicPurger = academicPurger;
     }
 
+    /** Kampus Forum konu verisi (A alani); testlerde yoksa atlanir. */
+    private edu.bingol.backend.forum.topic.ForumTopicAccountPurger forumTopicPurger;
+
+    @Autowired(required = false)
+    void setForumTopicPurger(edu.bingol.backend.forum.topic.ForumTopicAccountPurger forumTopicPurger) {
+        this.forumTopicPurger = forumTopicPurger;
+    }
+
     @Autowired(required = false)
     void setLedger(DeletionLedger ledger) {
         this.ledger = ledger;
@@ -264,6 +279,9 @@ public class AccountDataPurger {
     public void purge(Long userId, String oldEmail) {
         if (academicPurger != null) {
             academicPurger.purge(userId);
+        }
+        if (forumTopicPurger != null) {
+            forumTopicPurger.purge(userId);
         }
         if (postPurger != null) {
             postPurger.purge(userId);
