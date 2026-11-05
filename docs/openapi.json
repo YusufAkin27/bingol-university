@@ -4625,8 +4625,17 @@
             "minItems" : 0,
             "type" : "array"
           },
+          "mentionUserIds" : {
+            "items" : {
+              "format" : "int64",
+              "type" : "integer"
+            },
+            "maxItems" : 50,
+            "minItems" : 0,
+            "type" : "array"
+          },
           "text" : {
-            "maxLength" : 1000,
+            "maxLength" : 8000,
             "minLength" : 0,
             "type" : [ "string", "null" ]
           }
@@ -5435,7 +5444,7 @@
       "EditRequest" : {
         "properties" : {
           "text" : {
-            "maxLength" : 1000,
+            "maxLength" : 8000,
             "minLength" : 0,
             "type" : [ "string", "null" ]
           }
@@ -7531,6 +7540,17 @@
           }
         }
       },
+      "MentionView" : {
+        "properties" : {
+          "displayName" : {
+            "type" : [ "string", "null" ]
+          },
+          "userId" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          }
+        }
+      },
       "MenuBulkDeleteRequest" : {
         "properties" : {
           "dates" : {
@@ -9473,6 +9493,12 @@
           "media" : {
             "items" : {
               "$ref" : "#/components/schemas/MediaView"
+            },
+            "type" : "array"
+          },
+          "mentions" : {
+            "items" : {
+              "$ref" : "#/components/schemas/MentionView"
             },
             "type" : "array"
           },
@@ -13677,8 +13703,17 @@
       },
       "UpdatePostRequest" : {
         "properties" : {
+          "mentionUserIds" : {
+            "items" : {
+              "format" : "int64",
+              "type" : "integer"
+            },
+            "maxItems" : 50,
+            "minItems" : 0,
+            "type" : "array"
+          },
           "text" : {
-            "maxLength" : 1000,
+            "maxLength" : 8000,
             "minLength" : 0,
             "type" : [ "string", "null" ]
           }
@@ -54092,6 +54127,72 @@
           "bearerAuth" : [ ]
         } ],
         "tags" : [ "post-controller" ]
+      }
+    },
+    "/api/posts/liked" : {
+      "get" : {
+        "operationId" : "liked",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "kind",
+          "required" : false,
+          "schema" : {
+            "default" : "ALL",
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "default" : 12,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FeedPage"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "tags" : [ "liked-posts-controller" ]
       }
     },
     "/api/posts/media" : {

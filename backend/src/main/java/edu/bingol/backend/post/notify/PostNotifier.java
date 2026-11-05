@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Gönderi etkileşim bildirimleri (beğeni, takip). Hata bildirimi kullanıcı eylemini ASLA bozmaz.
+ * Gönderi etkileşim bildirimleri (beğeni, etiket, takip). Hata bildirimi kullanıcı eylemini ASLA bozmaz.
  *
  * <p>Beğeni birleştirme: mevcut {@code NotificationService} gruplamasına dayanır. Toplama anahtarı
  * {@code postlike:<postId>:<pencere>}; pencere = epoch saniye / 600 (sabit 10 dakikalık dilim). Aynı anahtarlı
@@ -85,6 +85,74 @@ public class PostNotifier {
                     d);
         } catch (RuntimeException e) {
             log.warn("Begeni bildirimi gonderilemedi (gonderi {}): {}", postId, e.toString());
+        }
+    }
+
+    /**
+     * Gonderide etiketlendi: etiketlenene "{ad} seni bir gonderide etiketledi". Hedef: gonderi (targetType POST).
+     * Kendi kendine, engel iliskisinde, alici gonderiyi goremiyorsa (yazar gizli hesap, alici kabul edilmis takipci degil:
+     * bildirim 404'e acilir) bildirim gitmez. collapseKey postmention:&lt;gonderi&gt;: ayni (gonderi, kisi) icin okunmus
+     * ya da silinmis olsa da ikinci bildirim yok (etiketi kaldirip yeniden eklemek bildirim spam'i olmasin).
+     * Tercih (sosyal/communities) ve alt tur POST_MENTION {@code NotificationService.send} icinde uygulanir.
+     * Push yuku: senderName, senderAvatarUrl (gizlilik suzgeciyle), imageUrl (gonderi kucuk resmi; yalniz push).
+     */
+    public void onMention(Long authorId, Long postId, Long targetId) {
+        try {
+            if (!shouldNotify(authorId, targetId)) {
+                return;
+            }
+            if (gate != null && !gate.canSeeContent(targetId, authorId)) {
+                return;
+            }
+            String key = "postmention:" + postId;
+            if (notificationRows.existsByUserIdAndCollapseKey(targetId, key)) {
+                return;
+            }
+            Lang lang = i18n.langOf(targetId);
+            String name = actorName(authorId);
+            Map<String, String> d = data(postId);
+            d.put("userId", String.valueOf(authorId)); // gelen kutusu avatar projeksiyonu icin (etiketleyen)
+            d.put("senderName", name);
+            putAvatar(d, authorId, targetId);
+            putPostThumb(d, postId);
+            notifications.send(targetId, NotificationType.POST_MENTION, NotificationSubtype.POST_MENTION, key,
+                    i18n.msg("notif.post.mention.title", lang), i18n.msg("notif.post.mention.body", lang, name), d);
+        } catch (RuntimeException e) {
+            log.warn("Etiket bildirimi gonderilemedi (gonderi {}): {}", postId, e.toString());
+        }
+    }
+
+    /** Gizli hesap kapisi (yoksa tum hesaplar acik sayilir). */
+    private edu.bingol.backend.post.follow.PrivateAccountGate gate;
+    private edu.bingol.backend.post.media.PostMediaRepository postMedia;
+    private edu.bingol.backend.media.transcode.MediaCdnLinks cdn;
+
+    @Autowired(required = false)
+    void setMentionDeps(edu.bingol.backend.post.follow.PrivateAccountGate gate,
+                        edu.bingol.backend.post.media.PostMediaRepository postMedia,
+                        edu.bingol.backend.media.transcode.MediaCdnLinks cdn) {
+        this.gate = gate;
+        this.postMedia = postMedia;
+        this.cdn = cdn;
+    }
+
+    /**
+     * Gonderi kucuk resmi (yalniz push yuku; kalici data'ya yazilmaz): CDN imzali baglanti aciksa o, degilse
+     * PostView.thumbUrl ile ayni oturumlu yol (/api/posts/media/&lt;id&gt;?thumb=true; sohbet bildirim gorseliyle ayni kural).
+     * Kucuk resmi olmayan (poster'siz video) gonderide imageUrl konmaz.
+     */
+    private void putPostThumb(Map<String, String> d, Long postId) {
+        try {
+            if (postMedia == null) {
+                return;
+            }
+            postMedia.findByPostIdOrderByPositionAscIdAsc(postId).stream()
+                    .filter(m -> m.getThumbKey() != null && !m.isHidden()).findFirst().ifPresent(m -> {
+                        String signed = cdn == null ? null : cdn.url(m.getId(), true);
+                        d.put("imageUrl", signed != null ? signed : "/api/posts/media/" + m.getId() + "?thumb=true");
+                    });
+        } catch (RuntimeException e) {
+            log.debug("Etiket bildirimi gorseli eklenemedi: {}", e.getClass().getSimpleName());
         }
     }
 

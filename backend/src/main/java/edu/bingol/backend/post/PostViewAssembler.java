@@ -50,6 +50,14 @@ public class PostViewAssembler {
         this.saveLookups = saveLookups;
     }
 
+    /** Etiketler (V1310; setter: kurucu imzasi degismesin, yoksa mentions bos liste). */
+    private edu.bingol.backend.post.mention.PostMentionService mentionService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setMentionService(edu.bingol.backend.post.mention.PostMentionService mentionService) {
+        this.mentionService = mentionService;
+    }
+
     /** Gosterim puani ve yazar populerligi (setter: kurucu imzasi degismesin; yoksa alanlar null). */
     private PostRankProperties rankProps;
     private UserPopularityService popularity;
@@ -79,6 +87,8 @@ public class PostViewAssembler {
         Set<Long> saved = saves == null ? Set.of() : saves.savedPostIds(viewerId, postIds);
         boolean admin = CurrentUser.isAdmin();
         Map<Long, UserPopularityService.Snapshot> pops = popularityOf(authorIds);
+        Map<Long, List<PostDtos.MentionView>> mentions = mentionService == null ? Map.of()
+                : mentionService.viewsFor(viewerId, postIds);
 
         List<PostView> out = new ArrayList<>(posts.size());
         for (Post p : posts) {
@@ -101,7 +111,8 @@ public class PostViewAssembler {
             out.add(new PostView(p.getId(), author, p.getBody(), mv,
                     p.getLikeCount(), liked.contains(p.getId()), mine, mine, mine || admin,
                     p.getCreatedAt(), p.getEditedAt(), video ? Post.KIND_VIDEO : Post.KIND_PHOTO, vv, viewCount,
-                    score, p.getCommentCount(), saved.contains(p.getId())));
+                    score, p.getCommentCount(), saved.contains(p.getId()),
+                    mentions.getOrDefault(p.getId(), List.of())));
         }
         return out;
     }

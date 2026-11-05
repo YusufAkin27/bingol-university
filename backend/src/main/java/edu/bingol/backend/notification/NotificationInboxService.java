@@ -71,7 +71,7 @@ public class NotificationInboxService {
     }
 
     private static final java.util.Set<NotificationType> ACTOR_TYPES = java.util.Set.of(NotificationType.POST_LIKE,
-            NotificationType.USER_FOLLOW, NotificationType.FOLLOW_REQUEST, NotificationType.FOLLOW_ACCEPTED);
+            NotificationType.POST_MENTION, NotificationType.USER_FOLLOW, NotificationType.FOLLOW_REQUEST, NotificationType.FOLLOW_ACCEPTED);
 
     /** Hata satiri bozmaz: projeksiyon basarisizsa alanlar bos kalir. */
     private List<NotificationView> project(Long viewerId, List<NotificationView> items) {

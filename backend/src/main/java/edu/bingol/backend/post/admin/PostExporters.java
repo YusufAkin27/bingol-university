@@ -52,4 +52,22 @@ public class PostExporters {
             return Map.of("count", rows.size(), "likes", rows);
         });
     }
+
+    /**
+     * Etiketler (V1310): benim etiketlendigim gonderiler (gonderi + yazar kimligi + zaman) ve kendi gonderilerimde
+     * etiketledigim kisilerin kimlikleri. Yalniz kimlik ve zaman; baskasinin adi/metni disa aktarilmaz.
+     */
+    @Bean
+    DataExporter postMentionsExporter(JdbcTemplate jdbc) {
+        return DataExporter.of("postMentions", uid -> {
+            List<Map<String, Object>> taggedIn = jdbc.queryForList("SELECT m.post_id AS \"postId\", p.author_id AS \"authorId\", "
+                    + "CAST(m.created_at AS varchar) AS \"taggedAt\" FROM post_mention m JOIN post p ON p.id = m.post_id "
+                    + "WHERE m.user_id = ? ORDER BY m.created_at DESC LIMIT " + MAX_ROWS, uid);
+            List<Map<String, Object>> tagged = jdbc.queryForList("SELECT m.post_id AS \"postId\", m.user_id AS \"userId\", "
+                    + "CAST(m.created_at AS varchar) AS \"taggedAt\" FROM post_mention m JOIN post p ON p.id = m.post_id "
+                    + "WHERE p.author_id = ? ORDER BY m.created_at DESC LIMIT " + MAX_ROWS, uid);
+            return Map.of("taggedInCount", taggedIn.size(), "taggedIn", taggedIn, "taggedCount", tagged.size(),
+                    "tagged", tagged);
+        });
+    }
 }

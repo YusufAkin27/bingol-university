@@ -156,9 +156,9 @@ class PostAdminTest {
         assertEquals(before + 1, notifCount(a.getId()), "yazara duzenleme bildirimi");
 
         assertNull(admin.editText(id, "   ").text(), "bos metin temizlenir (fotograf kalir)");
-        assertEquals("POST_TEXT_INVALID", assertThrows(ApiException.class, () -> admin.editText(id, "iki\nsatir")).code());
+        assertEquals("iki\nsatir", admin.editText(id, "iki\nsatir").text(), "cok satir serbest");
         assertEquals("POST_TEXT_TOO_LONG", assertThrows(ApiException.class,
-                () -> admin.editText(id, "bir iki uc dort bes alti yedi sekiz")).code());
+                () -> admin.editText(id, "a".repeat(2201))).code());
         assertEquals("POST_NOT_FOUND", assertThrows(ApiException.class, () -> admin.editText(-1, "x")).code());
         long textOnly = post(a, "fotografsiz");
         assertEquals("POST_EMPTY", assertThrows(ApiException.class, () -> admin.editText(textOnly, " ")).code());

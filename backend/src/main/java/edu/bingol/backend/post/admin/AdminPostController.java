@@ -34,7 +34,7 @@ public class AdminPostController {
     public record ReasonRequest(@Size(max = 300) String reason) {}
 
     /** Metin bos/bosluk ise temizlenir (fotograf kalir); bicim kurali serviste. */
-    public record EditRequest(@Size(max = 1000) String text) {}
+    public record EditRequest(@Size(max = edu.bingol.backend.post.PostDtos.RAW_TEXT_LIMIT) String text) {}
 
     private final AdminPostService service;
     private final RateLimiter limiter;

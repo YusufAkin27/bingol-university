@@ -98,6 +98,17 @@ public class PostService {
         this.gate = gate;
     }
 
+    /** Etiketleme (V1310) ve bildirimi (setter: kurucu imzasi degismesin; yoksa etiket istekleri yok sayilir). */
+    private edu.bingol.backend.post.mention.PostMentionService mentionService;
+    private edu.bingol.backend.post.notify.PostNotifier mentionNotifier;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setMentions(edu.bingol.backend.post.mention.PostMentionService mentionService,
+                     edu.bingol.backend.post.notify.PostNotifier mentionNotifier) {
+        this.mentionService = mentionService;
+        this.mentionNotifier = mentionNotifier;
+    }
+
     public PostService(PostRepository posts, UserRepository users, UserBlockRepository blocks,
                        PostViewAssembler assembler, ContentGuard guard, ObjectProvider<PostMediaBinder> binders,
                        ApplicationEventPublisher events) {
@@ -110,7 +121,7 @@ public class PostService {
         this.events = events;
     }
 
-    /** Gonderi: tam 1 medya (fotograf ya da video, zorunlu) + en cok 7 kelimelik, istege bagli tek satir metin. */
+    /** Gonderi: tam 1 medya (fotograf ya da video, zorunlu) + istege bagli metin (gizli ust sinir) + istege bagli etiketler. */
     @Transactional
     public PostView create(Long uid, CreatePostRequest req) {
         String text = normalize(req.text());
@@ -125,6 +136,8 @@ public class PostService {
         }
         checkText(text);
         guard.assertClean(ContentGuard.Entity.POST, "text", uid, text);
+        List<Long> mentionIds = mentionService == null ? null
+                : mentionService.validate(uid, req.mentionUserIds(), List.of());
         PostMediaBinder binder = binders.getIfAvailable();
         if (binder == null) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "POST_MEDIA_INVALID", "Seçilen medya geçersiz.");
@@ -141,7 +154,21 @@ public class PostService {
         binder.attach(p.getId(), uid, mediaIds);
         p.setMediaCount((short) mediaIds.size());
         p = posts.saveAndFlush(p);
+        applyMentions(uid, p.getId(), mentionIds);
         return assembler.assemble(uid, p);
+    }
+
+    /** Etiket listesini yazar ve YENI etiketlenenlere bildirim gonderir (hata gonderiyi bozmaz; bildirim en iyi caba). */
+    private void applyMentions(Long authorId, Long postId, List<Long> mentionIds) {
+        if (mentionService == null || mentionIds == null) {
+            return;
+        }
+        List<Long> added = mentionService.replace(postId, mentionIds);
+        if (mentionNotifier != null) {
+            for (Long target : added) {
+                mentionNotifier.onMention(authorId, postId, target);
+            }
+        }
     }
 
     @Transactional(readOnly = true)
@@ -151,6 +178,15 @@ public class PostService {
 
     @Transactional
     public PostView update(Long uid, Long id, String rawText) {
+        return update(uid, id, rawText, null);
+    }
+
+    /**
+     * Metin duzenleme + etiketler. mentionUserIds null: etiketler degismez (eski istemci); dolu (bos dahil): liste
+     * yeniden yazilir, yalniz YENI eklenenlere bildirim gider.
+     */
+    @Transactional
+    public PostView update(Long uid, Long id, String rawText, List<Long> mentionUserIds) {
         Post p = requireVisible(id, uid);
         if (!p.getAuthorId().equals(uid)) {
             throw new ApiException(HttpStatus.FORBIDDEN, "POST_FORBIDDEN", "Bu işlem için yetkiniz yok.");
@@ -161,15 +197,18 @@ public class PostService {
         }
         checkText(text);
         guard.assertChanged(ContentGuard.Entity.POST, "text", uid, p.getBody(), text);
+        List<Long> mentionIds = mentionService == null ? null
+                : mentionService.validate(uid, mentionUserIds, mentionService.idsOf(p.getId()));
         p.setBody(text);
         p.setEditedAt(Instant.now());
         Post saved = posts.saveAndFlush(p);
+        applyMentions(uid, saved.getId(), mentionIds);
         return assembler.assemble(uid, saved);
     }
 
     /**
      * Yonetici metin duzenlemesi (AdminPostService cagirir). Silinmis gonderi 404; gizli gonderi duzenlenebilir.
-     * Bicim kurali (tek satir, 7 kelime/60 karakter) uygulanir; ContentGuard (kufur suzgeci) bilincli olarak ATLANIR:
+     * Bicim kurali (gizli ust sinir: 2200 karakter / 40 satir) uygulanir; ContentGuard (kufur suzgeci) bilincli olarak ATLANIR:
      * yonetici ihlalli metni temizlemek icin duzenler, islem denetim kaydina (AuditInterceptor) yazilir. Bos metin
      * fotografli gonderide serbesttir (metin temizlenir).
      * @return gonderi yazarinin kimligi (bildirim icin)
@@ -499,32 +538,49 @@ public class PostService {
         return size <= 0 ? 10 : Math.min(size, 20);
     }
 
+    /**
+     * Metin temizligi: satir sonlari LF'ye indirgenir (CRLF, CR, NEL, U+2028/2029), kontrol karakterleri atilir
+     * (sekme bosluk olur), uc bosluklar kirpilir. Bos sonuc null (metin serbest).
+     */
     private static String normalize(String s) {
         if (s == null) {
             return null;
         }
-        String t = s.replaceAll("^[\\s\\p{Z}]+|[\\s\\p{Z}]+$", "");
+        StringBuilder sb = new StringBuilder(s.length());
+        int[] cps = s.codePoints().toArray();
+        for (int i = 0; i < cps.length; i++) {
+            int c = cps[i];
+            if (c == '\r') {
+                if (i + 1 < cps.length && cps[i + 1] == '\n') {
+                    i++;
+                }
+                sb.append('\n');
+            } else if (c == '\n' || c == 0x85 || c == 0x2028 || c == 0x2029 || c == 0x0B || c == 0x0C) {
+                sb.append('\n');
+            } else if (c == '\t') {
+                sb.append(' ');
+            } else if (Character.getType(c) == Character.CONTROL || c == 0x200B || c == 0xFEFF) {
+                // kontrol / sifir genislikli karakterler atilir
+            } else {
+                sb.appendCodePoint(c);
+            }
+        }
+        String t = sb.toString().replaceAll("^[\\s\\p{Z}]+|[\\s\\p{Z}]+$", "");
         return t.isEmpty() ? null : t;
     }
 
     /**
-     * Sade metin kurali: tek satir, en cok {@link PostDtos#MAX_WORDS} kelime (Unicode bosluga gore) ve
-     * {@link PostDtos#MAX_CHARS} karakter (kod noktasi). Bos metin serbest.
+     * Gizli ust sinir (kullaniciya gosterilmez): en cok {@link PostDtos#POST_TEXT_MAX_CHARS} karakter (kod noktasi) ve
+     * {@link PostDtos#POST_TEXT_MAX_LINES} satir; cok satirli metin serbest, bos metin serbest.
      */
     static void checkText(String text) {
         if (text == null) {
             return;
         }
-        if (text.codePoints().anyMatch(c -> c == '\n' || c == '\r' || c == 0x0B || c == 0x0C || c == 0x85
-                || c == 0x2028 || c == 0x2029)) {
-            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "POST_TEXT_INVALID",
-                    "Gönderi metni tek satır olmalıdır.");
-        }
-        int words = text.split("[\\s\\p{Z}]+").length;
-        if (words > PostDtos.MAX_WORDS || text.codePointCount(0, text.length()) > PostDtos.MAX_CHARS) {
+        long lines = text.chars().filter(c -> c == '\n').count() + 1;
+        if (text.codePointCount(0, text.length()) > PostDtos.POST_TEXT_MAX_CHARS || lines > PostDtos.POST_TEXT_MAX_LINES) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "POST_TEXT_TOO_LONG",
-                    "Gönderi metni en çok 7 kelime ve 60 karakter olabilir.", String.valueOf(PostDtos.MAX_WORDS),
-                    String.valueOf(PostDtos.MAX_CHARS));
+                    "Gönderi metni çok uzun.");
         }
     }
 

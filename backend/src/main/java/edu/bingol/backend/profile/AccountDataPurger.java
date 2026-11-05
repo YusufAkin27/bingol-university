@@ -66,6 +66,9 @@ public class AccountDataPurger {
             // W2-E tablolari: gorunen ad gecmisi (eski/yeni ad = kisisel veri) ve acik raporlu hesap silme bekletmesi
             "DELETE FROM display_name_history WHERE user_id = ?",
             "DELETE FROM account_delete_hold WHERE user_id = ?",
+            // V1310: baskalarinin gonderilerinde BENIM etiketlendigim satirlar (yazarin gonderilerindeki etiketler
+            // PostAccountPurger'da silinir)
+            "DELETE FROM post_mention WHERE user_id = ?",
             // FOLLOWREQ: bekleyen takip istekleri (gonderdigim ve aldigim; iki sutun da kisi kimligi)
             "DELETE FROM follow_request WHERE requester_id = ?",
             "DELETE FROM follow_request WHERE target_id = ?",

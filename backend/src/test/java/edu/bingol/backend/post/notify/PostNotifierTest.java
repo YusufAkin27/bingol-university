@@ -203,4 +203,40 @@ class PostNotifierTest {
         verify(notifications).send(eq(2L), eq(NotificationType.USER_FOLLOW), eq(NotificationSubtype.USER_FOLLOW),
                 eq("follow:1"), any(), any(), any());
     }
+
+    @Test
+    void mentionSendsPostTargetedNotificationWithSenderNameAndNoSelfOrBlocked() {
+        notifier.onMention(2L, 50L, 1L);
+
+        ArgumentCaptor<Map<String, String>> data = ArgumentCaptor.forClass(Map.class);
+        verify(notifications).send(eq(1L), eq(NotificationType.POST_MENTION), eq(NotificationSubtype.POST_MENTION),
+                eq("postmention:50"), eq("notif.post.mention.title"), eq("notif.post.mention.body|Ayse"), data.capture());
+        assertEquals("POST", data.getValue().get("target"));
+        assertEquals("50", data.getValue().get("value"));
+        assertEquals("50", data.getValue().get("postId"));
+        assertEquals("2", data.getValue().get("userId"));
+        assertEquals("Ayse", data.getValue().get("senderName"));
+
+        // kendi kendine yok
+        notifier.onMention(7L, 51L, 7L);
+        // engel iliskisinde yok
+        when(blocks.isBlocked(3L, 4L)).thenReturn(true);
+        notifier.onMention(3L, 52L, 4L);
+        // ayni (gonderi, kisi) icin ikinci bildirim yok (okunmus olsa da)
+        when(rows.existsByUserIdAndCollapseKey(5L, "postmention:53")).thenReturn(true);
+        notifier.onMention(2L, 53L, 5L);
+        verify(notifications, times(1)).send(anyLong(), eq(NotificationType.POST_MENTION), any(), anyString(),
+                anyString(), anyString(), anyMap());
+    }
+
+    @Test
+    void mentionSkippedWhenRecipientCannotSeeAuthorsPrivateContent() {
+        edu.bingol.backend.post.follow.PrivateAccountGate gate = mock(edu.bingol.backend.post.follow.PrivateAccountGate.class);
+        when(gate.canSeeContent(1L, 2L)).thenReturn(false);
+        notifier.setMentionDeps(gate, null, null);
+
+        notifier.onMention(2L, 50L, 1L);
+
+        verify(notifications, never()).send(anyLong(), any(), any(), anyString(), anyString(), anyString(), anyMap());
+    }
 }

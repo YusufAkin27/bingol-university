@@ -33,6 +33,7 @@ class NotifDesignContractTest {
         assertEquals("EVENT_UPDATE", RichPushPayload.style(Map.of("type", "EVENT", "subtype", "EVENT_UPDATE", "eventChange", "TIME")));
         assertEquals("LIKE", RichPushPayload.style(Map.of("type", "POST_LIKE")));
         assertEquals("SOCIAL", RichPushPayload.style(Map.of("type", "POST_COMMENT")));
+        assertEquals("SOCIAL", RichPushPayload.style(Map.of("type", "POST_MENTION", "subtype", "POST_MENTION")));
         assertEquals("FOLLOW", RichPushPayload.style(Map.of("type", "USER_FOLLOW")));
         assertEquals("MEAL", RichPushPayload.style(Map.of("type", "ANNOUNCEMENT", "subtype", "MEAL_MENU")));
         assertEquals("SECURITY", RichPushPayload.style(Map.of("type", "SYSTEM", "securityKind", "TWOFA_DISABLED")));
@@ -46,6 +47,8 @@ class NotifDesignContractTest {
         assertEquals("BU_EVENT_REMINDER", message(NotificationType.EVENT, NotificationSubtype.EVENT_REMINDER,
                 Map.of("eventId", "4")).category());
         assertEquals("BU_LIKE", message(NotificationType.POST_LIKE, NotificationSubtype.POST_LIKE, Map.of("postId", "1")).category());
+        assertEquals("BU_SOCIAL", message(NotificationType.POST_MENTION, NotificationSubtype.POST_MENTION,
+                Map.of("postId", "1", "senderName", "Ayse")).category());
         assertEquals("BU_SYSTEM", message(NotificationType.SYSTEM, null, Map.of()).category());
     }
 
