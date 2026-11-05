@@ -38,7 +38,7 @@ public class PgForumSearchRepository implements ForumSearchRepository {
                 CROSS JOIN qq
                WHERE t.deleted_at IS NULL AND t.status = 'ACTIVE'
                  AND (CAST(:cat AS BIGINT) IS NULL OR t.category_id = :cat)
-                 AND t.user_id NOT IN (:excluded)
+                 AND t.user_id NOT IN (:excluded) AND (t.anonymous = TRUE OR (0 - t.user_id) NOT IN (:excluded))
                  AND (t.search_vec @@ qq.tsq OR t.title ILIKE :pat
                       OR EXISTS (SELECT 1 FROM forum_category fc WHERE fc.id = t.category_id
                                   AND (fc.name_tr ILIKE :pat OR fc.name_en ILIKE :pat OR fc.name_ar ILIKE :pat)))
@@ -52,7 +52,8 @@ public class PgForumSearchRepository implements ForumSearchRepository {
                WHERE c.anonymous = FALSE AND c.status = 'ACTIVE' AND c.deleted_at IS NULL
                  AND c.search_vec @@ qq.tsq
                  AND (CAST(:cat AS BIGINT) IS NULL OR t.category_id = :cat)
-                 AND t.user_id NOT IN (:excluded) AND c.user_id NOT IN (:excluded)
+                 AND t.user_id NOT IN (:excluded) AND (t.anonymous = TRUE OR (0 - t.user_id) NOT IN (:excluded))
+                 AND c.user_id NOT IN (:excluded) AND (0 - c.user_id) NOT IN (:excluded)
             ),
             b AS (
               SELECT DISTINCT ON (topic_id) topic_id, matched_in, rank FROM cand
@@ -74,7 +75,7 @@ public class PgForumSearchRepository implements ForumSearchRepository {
               FROM forum_comment c
               JOIN app_user cu ON cu.id = c.user_id AND cu.status = 'ACTIVE'
              WHERE c.topic_id IN (:ids) AND c.anonymous = FALSE AND c.status = 'ACTIVE' AND c.deleted_at IS NULL
-               AND c.search_vec @@ plainto_tsquery('turkish', :q) AND c.user_id NOT IN (:excluded)
+               AND c.search_vec @@ plainto_tsquery('turkish', :q) AND c.user_id NOT IN (:excluded) AND (0 - c.user_id) NOT IN (:excluded)
              ORDER BY c.topic_id, ts_rank(c.search_vec, plainto_tsquery('turkish', :q)) DESC""";
 
     private final NamedParameterJdbcTemplate jdbc;
@@ -152,14 +153,14 @@ public class PgForumSearchRepository implements ForumSearchRepository {
                 SELECT t.id FROM forum_topic t
                   JOIN app_user u ON u.id = t.user_id AND u.status = 'ACTIVE'
                  WHERE t.deleted_at IS NULL AND t.status = 'ACTIVE' AND t.last_activity_at >= :since
-                   AND t.user_id NOT IN (:excluded)
+                   AND t.user_id NOT IN (:excluded) AND (t.anonymous = TRUE OR (0 - t.user_id) NOT IN (:excluded))
                  ORDER BY (t.like_count + 2 * t.comment_count) DESC, t.last_activity_at DESC, t.id DESC
                  LIMIT :lim""", p, Long.class);
     }
 
     /** NOT IN () bos listede gecersizdir: hicbir kullanicinin sahip olmadigi -1 koyulur. */
     static List<Long> excludedOrSentinel(Set<Long> excluded) {
-        return excluded == null || excluded.isEmpty() ? List.of(-1L) : List.copyOf(excluded);
+        return excluded == null || excluded.isEmpty() ? List.of(Long.MIN_VALUE) : List.copyOf(excluded);
     }
 
     /** Isaretleyicileri siler, bosluklari sadelestirir, 160 karaktere keser. */

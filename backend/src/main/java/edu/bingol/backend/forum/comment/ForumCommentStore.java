@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
 @Component
 class ForumCommentStore {
 
-    private static final Set<Long> NO_HIDDEN = Set.of(-1L);
+    private static final Set<Long> NO_HIDDEN = Set.of(Long.MIN_VALUE);
 
     static final String COLS = "c.id, c.topic_id, c.user_id, c.parent_comment_id, c.root_comment_id, c.depth, c.body, "
             + "c.anonymous, c.like_count, c.reply_count, c.status, c.removed_reason, c.created_at, c.edited_at, c.deleted_at";
@@ -122,7 +122,7 @@ class ForumCommentStore {
             p.addValue("a", afterId);
         }
         return named.queryForList("SELECT c.id FROM forum_comment c WHERE c.topic_id = :t AND c.parent_comment_id IS NULL AND "
-                + LISTED + " AND c.user_id NOT IN (:h)" + cursor + " ORDER BY c.id DESC LIMIT :n", p, Long.class);
+                + LISTED + " AND c.user_id NOT IN (:h) AND (c.anonymous = TRUE OR (0 - c.user_id) NOT IN (:h))" + cursor + " ORDER BY c.id DESC LIMIT :n", p, Long.class);
     }
 
     List<Long> topIdsOldest(long topicId, Collection<Long> hidden, Long afterId, int limit) {
@@ -134,7 +134,7 @@ class ForumCommentStore {
             p.addValue("a", afterId);
         }
         return named.queryForList("SELECT c.id FROM forum_comment c WHERE c.topic_id = :t AND c.parent_comment_id IS NULL AND "
-                + LISTED + " AND c.user_id NOT IN (:h)" + cursor + " ORDER BY c.id ASC LIMIT :n", p, Long.class);
+                + LISTED + " AND c.user_id NOT IN (:h) AND (c.anonymous = TRUE OR (0 - c.user_id) NOT IN (:h))" + cursor + " ORDER BY c.id ASC LIMIT :n", p, Long.class);
     }
 
     /** EN IYI: {id, puan} ciftleri; puan azalan, id azalan. afterScore/afterId null = ilk sayfa. */
@@ -147,7 +147,7 @@ class ForumCommentStore {
             p.addValue("cs", afterScore).addValue("ci", afterId);
         }
         return named.query("SELECT c.id AS cid, " + BEST_SCORE + " AS score FROM forum_comment c WHERE c.topic_id = :t "
-                + "AND c.parent_comment_id IS NULL AND " + LISTED + " AND c.user_id NOT IN (:h)" + cursor
+                + "AND c.parent_comment_id IS NULL AND " + LISTED + " AND c.user_id NOT IN (:h) AND (c.anonymous = TRUE OR (0 - c.user_id) NOT IN (:h))" + cursor
                 + " ORDER BY score DESC, c.id DESC LIMIT :n", p,
                 (rs, i) -> new long[] {rs.getLong("cid"), rs.getLong("score")});
     }
@@ -162,7 +162,7 @@ class ForumCommentStore {
             p.addValue("a", afterId);
         }
         return named.queryForList("SELECT c.id FROM forum_comment c WHERE c.parent_comment_id = :p AND " + LISTED
-                + " AND c.user_id NOT IN (:h)" + cursor + " ORDER BY c.id ASC LIMIT :n", p, Long.class);
+                + " AND c.user_id NOT IN (:h) AND (c.anonymous = TRUE OR (0 - c.user_id) NOT IN (:h))" + cursor + " ORDER BY c.id ASC LIMIT :n", p, Long.class);
     }
 
     /** Her ust yorumun ilk {@code per} listelenen yanitinin kimligi (ust kimlik -> kimlikler, id artan). */
@@ -175,7 +175,7 @@ class ForumCommentStore {
                 .addValue("per", per);
         named.query("SELECT t.cid, t.pid FROM (SELECT c.id AS cid, c.parent_comment_id AS pid, "
                 + "ROW_NUMBER() OVER (PARTITION BY c.parent_comment_id ORDER BY c.id) AS rn FROM forum_comment c "
-                + "WHERE c.parent_comment_id IN (:ps) AND " + LISTED + " AND c.user_id NOT IN (:h)) t "
+                + "WHERE c.parent_comment_id IN (:ps) AND " + LISTED + " AND c.user_id NOT IN (:h) AND (c.anonymous = TRUE OR (0 - c.user_id) NOT IN (:h))) t "
                 + "WHERE t.rn <= :per ORDER BY t.pid, t.cid", p, (rs, i) -> {
                     out.computeIfAbsent(rs.getLong("pid"), k -> new ArrayList<>()).add(rs.getLong("cid"));
                     return null;

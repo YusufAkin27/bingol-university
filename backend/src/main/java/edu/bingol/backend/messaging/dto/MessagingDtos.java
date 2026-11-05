@@ -59,7 +59,7 @@ public final class MessagingDtos {
      * 422 SHARE_TARGET_INVALID. `text` bu durumda bos olabilir (istege bagli kisa not); ek (attachmentIds) ve viewOnce
      * ile birlesmez.
      */
-    public record ShareRequest(@Size(max = 8) String type, Long id) {}
+    public record ShareRequest(@Size(max = 16) String type, Long id) {} // FORUM_COMMENT 13 karakter
 
     public record EditMessageRequest(@NotNull String text) {}
 

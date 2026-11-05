@@ -61,7 +61,7 @@ class ForumMediaServiceTest {
     }
 
     private TopicView topicWith(User by, List<Long> ids) {
-        return topics.create(by.getId(), new CreateTopicRequest("Resimli", "govde", cat.getId(), false, ids, null), null);
+        return topics.create(by.getId(), new CreateTopicRequest("Resimli " + java.util.UUID.randomUUID(), "govde", cat.getId(), false, ids, null), null);
     }
 
     private static String code(Runnable r) {

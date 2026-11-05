@@ -105,7 +105,8 @@ class ForumSearchServiceTest {
     void blockedAndMutedAuthorsAreExcludedButNotViewer() {
         repo.hits.add(new Hit(1, "TITLE", null));
         service.search(5L, "yemek", null, null, null, null);
-        assertEquals(Set.of(11L, 12L), repo.lastExcluded);
+        // engel (11) pozitif kimlik, sessize alma (12) NEGATIF kimlik: anonim icerikte sessize alma uygulanmaz
+        assertEquals(Set.of(11L, -12L), repo.lastExcluded);
         assertEquals("yemek", repo.lastQ);
         assertEquals(ForumSearchSort.RELEVANCE, repo.lastSort);
         assertNull(repo.lastCat);
@@ -155,12 +156,12 @@ class ForumSearchServiceTest {
         assertTrue(service.popular(5L).isEmpty());
         repo.popularIds = List.of(7L, 8L);
         assertEquals(2, service.popular(5L).size());
-        assertEquals(Set.of(11L, 12L), repo.lastExcluded);
+        assertEquals(Set.of(11L, -12L), repo.lastExcluded);
     }
 
     @Test
     void sqlHelpers() {
-        assertEquals(List.of(-1L), PgForumSearchRepository.excludedOrSentinel(Set.of()));
+        assertEquals(List.of(Long.MIN_VALUE), PgForumSearchRepository.excludedOrSentinel(Set.of()));
         assertEquals(List.of(4L), PgForumSearchRepository.excludedOrSentinel(Set.of(4L)));
         assertEquals("ilk parca", PgForumSearchRepository.clean("  ~~~ilk~~~   parca "));
         assertNull(PgForumSearchRepository.clean("~~~  ~~~"));

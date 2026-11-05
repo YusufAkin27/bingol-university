@@ -7,6 +7,7 @@ import edu.bingol.backend.forum.comment.ForumCommentDtos.CreateCommentRequest;
 import edu.bingol.backend.forum.comment.ForumCommentDtos.LikeState;
 import edu.bingol.backend.forum.comment.ForumCommentDtos.SaveState;
 import edu.bingol.backend.forum.comment.spi.ForumCommentCreateGuard;
+import edu.bingol.backend.forum.topic.ForumViewerFilter;
 import edu.bingol.backend.moderation.BlockService;
 import edu.bingol.backend.moderation.profanity.ContentGuard;
 import java.nio.charset.StandardCharsets;
@@ -14,6 +15,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -92,23 +94,36 @@ public class ForumCommentService {
         }
         String body = ForumCommentText.require(req.body());
         guard.assertClean(ContentGuard.Entity.COMMENT, "body", uid, body);
-        for (ForumCommentCreateGuard g : createGuards.orderedStream().toList()) {
-            g.beforeCreate(uid, topicId, body);
+        try {
+            for (ForumCommentCreateGuard g : createGuards.orderedStream().toList()) {
+                g.beforeCreate(uid, topicId, body);
+            }
+        } catch (ApiException e) {
+            // Ayni Idempotency-Key ile yarisan kardes istek (cift dokunma) zaten yaziyorsa onun yorumunu don, 429 verme
+            ForumCommentRow raced = key == null ? null : awaitKeyed(uid, key);
+            if (raced != null) {
+                return replay(uid, topic, raced, key);
+            }
+            throw e;
         }
         boolean anonymous = Boolean.TRUE.equals(req.anonymous());
         Set<Long> hidden = hiddenAuthors(uid);
-        if (anonymous) {
-            topics.ensureAlias(topicId, uid); // konu basina kararli "Anonim #N"
-        }
         ForumCommentRow created;
         try {
+            if (anonymous) {
+                topics.ensureAlias(topicId, uid); // konu basina kararli "Anonim #N"
+            }
             created = tx.execute(st -> insert(uid, topic, req.parentCommentId(), body, anonymous, key, hidden));
         } catch (DataIntegrityViolationException e) {
             ForumCommentRow existing = key == null ? null : store.findByIdempotencyKey(uid, key).orElse(null);
             if (existing == null) {
+                createFailed(uid, topicId, body);
                 throw e;
             }
             return replay(uid, topic, existing, key); // es zamanli cift gonderim: kazanan satir
+        } catch (RuntimeException e) {
+            createFailed(uid, topicId, body); // D: tekrar-icerik isareti geri alinsin (hata sonrasi ayni metin yeniden gonderilebilir)
+            throw e;
         }
         try {
             topics.commentCreated(created.id(), uid);
@@ -116,6 +131,29 @@ public class ForumCommentService {
             log.warn("Forum yorum bildirimi atlandi (yorum {}): {}", created.id(), e.toString());
         }
         return assembler.assemble(uid, topic, List.of(created)).get(0);
+    }
+
+    /** Yarisan ayni anahtarli istegin satirini en cok ~1 sn bekler (yalniz tekrar-icerik engeli tetiklenince). */
+    private ForumCommentRow awaitKeyed(Long uid, String key) {
+        for (int i = 0; i < 10; i++) {
+            ForumCommentRow r = store.findByIdempotencyKey(uid, key).orElse(null);
+            if (r != null) {
+                return r;
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                return null;
+            }
+        }
+        return null;
+    }
+
+    private void createFailed(Long uid, Long topicId, String body) {
+        for (ForumCommentCreateGuard g : createGuards.orderedStream().toList()) {
+            g.onCreateFailed(uid, topicId, body);
+        }
     }
 
     private CommentView replay(Long uid, ForumCommentTopics.TopicInfo topic, ForumCommentRow existing, String key) {
@@ -132,7 +170,7 @@ public class ForumCommentService {
         if (parentId != null) {
             // Ust yorumu KILITLE: ayni anda silinme / yanit yarisinda sirali (silme de bu satiri kilitler)
             parent = store.findForUpdate(parentId).orElseThrow(ForumCommentService::notFound);
-            if (parent.topicId() != topic.id() || (parent.live() && hidden.contains(parent.userId()))) {
+            if (parent.topicId() != topic.id() || (parent.live() && ForumViewerFilter.hides(hidden, parent.userId(), parent.anonymous()))) {
                 throw notFound();
             }
             if (!parent.live()) {
@@ -167,7 +205,7 @@ public class ForumCommentService {
             throw notFound();
         }
         if (row.userId() != uid) {
-            if (hiddenAuthors(uid).contains(row.userId())) {
+            if (ForumViewerFilter.hides(hiddenAuthors(uid), row.userId(), row.anonymous())) {
                 throw notFound();
             }
             throw new ApiException(HttpStatus.FORBIDDEN, "FORUM_NOT_OWNER", "Bu yorumu yalnızca yazarı değiştirebilir.");
@@ -196,7 +234,7 @@ public class ForumCommentService {
             ForumCommentRow r = store.findForUpdate(commentId).orElseThrow(ForumCommentService::notFound);
             if (r.userId() != uid) {
                 boolean visible = r.live() && topics.visible(r.topicId(), uid).isPresent()
-                        && !hiddenAuthors(uid).contains(r.userId());
+                        && !ForumViewerFilter.hides(hiddenAuthors(uid), r.userId(), r.anonymous());
                 if (!visible) {
                     throw notFound();
                 }
@@ -284,6 +322,34 @@ public class ForumCommentService {
         return assembler.assemble(viewer, topic, List.of(r)).get(0).withPath(store.ancestorPath(r));
     }
 
+    /**
+     * Profil / kaydedilenler listeleri icin toplu gorunum (E {@code ForumProfileComments}): yalniz CANLI, konusu bakana gorunur
+     * ve yazari bakandan gizli olmayan yorumlar haritada yer alir (gorunmeyen yoktur). Tek yorum {@link #get} kurallariyla ayni.
+     */
+    public Map<Long, CommentView> viewsFor(Collection<Long> commentIds, Long viewer) {
+        if (commentIds == null || commentIds.isEmpty()) {
+            return Map.of();
+        }
+        Set<Long> hidden = hiddenAuthors(viewer);
+        Map<Long, List<ForumCommentRow>> byTopic = new java.util.LinkedHashMap<>();
+        for (ForumCommentRow r : store.findAllOrdered(new ArrayList<>(commentIds))) {
+            if (r.live() && !ForumViewerFilter.hides(hidden, r.userId(), r.anonymous())) {
+                byTopic.computeIfAbsent(r.topicId(), k -> new ArrayList<>()).add(r);
+            }
+        }
+        Map<Long, CommentView> out = new java.util.HashMap<>();
+        for (Map.Entry<Long, List<ForumCommentRow>> e : byTopic.entrySet()) {
+            ForumCommentTopics.TopicInfo topic = topics.visible(e.getKey(), viewer).orElse(null);
+            if (topic == null) {
+                continue;
+            }
+            for (CommentView v : assembler.assemble(viewer, topic, e.getValue())) {
+                out.put(v.id(), v);
+            }
+        }
+        return out;
+    }
+
     // ---------------------------------------------------------------- begeni + kaydet
 
     /** Idempotent begeni (PK kisiti; eszamanli cift PUT tek begeni, sayac tek artar). */
@@ -351,7 +417,7 @@ public class ForumCommentService {
     private ForumCommentRow likeable(Long uid, Long commentId) {
         ForumCommentRow r = store.find(commentId).orElseThrow(ForumCommentService::notFound);
         topics.visible(r.topicId(), uid).orElseThrow(ForumCommentService::notFound);
-        if (!r.live() || hiddenAuthors(uid).contains(r.userId())) {
+        if (!r.live() || ForumViewerFilter.hides(hiddenAuthors(uid), r.userId(), r.anonymous())) {
             throw notFound();
         }
         return r;
@@ -361,7 +427,7 @@ public class ForumCommentService {
 
     /** Listede olmayan / gizli yorum 404: unlisted mezar tasi, ya da canli ve yazari bakandan gizli. */
     private void requireListed(ForumCommentRow r, Set<Long> hidden) {
-        if (!r.listed() || (r.live() && hidden.contains(r.userId()))) {
+        if (!r.listed() || (r.live() && ForumViewerFilter.hides(hidden, r.userId(), r.anonymous()))) {
             throw notFound();
         }
     }
@@ -403,7 +469,7 @@ public class ForumCommentService {
             return Set.of();
         }
         Set<Long> out = new HashSet<>(blocks.hiddenFrom(viewer));
-        out.addAll(topics.mutedBy(viewer));
+        topics.mutedBy(viewer).forEach(id -> out.add(ForumViewerFilter.mutedKey(id))); // negatif = sessize (anonimde uygulanmaz)
         return out;
     }
 

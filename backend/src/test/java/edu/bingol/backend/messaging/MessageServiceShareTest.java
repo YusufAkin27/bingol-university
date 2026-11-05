@@ -295,7 +295,7 @@ class MessageServiceShareTest {
     @Test
     void sharePreviewLabelsExistInAllLanguages() {
         ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
-        ms.setBasename("i18n/share");
+        ms.setBasenames("i18n/share", "i18n/forumn"); // forum paylasim etiketleri forumn dosyasinda (E)
         ms.setDefaultEncoding("UTF-8");
         ms.setFallbackToSystemLocale(false);
         for (String lang : new String[] {"tr", "en", "ar"}) {

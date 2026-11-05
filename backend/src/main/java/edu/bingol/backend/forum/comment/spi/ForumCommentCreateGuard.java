@@ -7,4 +7,8 @@ package edu.bingol.backend.forum.comment.spi;
 public interface ForumCommentCreateGuard {
 
     void beforeCreate(Long userId, Long topicId, String body);
+
+    /** {@link #beforeCreate} gecti ama kayit basarisiz oldu (isaretler geri alinabilsin). Varsayilan: bir sey yapma. */
+    default void onCreateFailed(Long userId, Long topicId, String body) {
+    }
 }

@@ -103,7 +103,7 @@ public class ForumNotifier {
                 return;
             }
             long owner = t.authorId();
-            if (!eligible(owner, actorId, t.id(), ForumNotifyKind.FORUM_TOPIC_LIKE, prefs.byUser(List.of(owner)).get(owner))
+            if (!eligible(owner, actorId, t.id(), isAnonActor(t, actorId, false), ForumNotifyKind.FORUM_TOPIC_LIKE, prefs.byUser(List.of(owner)).get(owner))
                     || !ledger.firstTime(ForumNotifyKind.FORUM_TOPIC_LIKE.ledgerKind(), t.id(), actorId, owner)) {
                 return;
             }
@@ -136,7 +136,7 @@ public class ForumNotifier {
                 return;
             }
             long owner = c.authorId();
-            if (!eligible(owner, actorId, t.id(), ForumNotifyKind.FORUM_COMMENT_LIKE, prefs.byUser(List.of(owner)).get(owner))
+            if (!eligible(owner, actorId, t.id(), isAnonActor(t, actorId, false), ForumNotifyKind.FORUM_COMMENT_LIKE, prefs.byUser(List.of(owner)).get(owner))
                     || !ledger.firstTime(ForumNotifyKind.FORUM_COMMENT_LIKE.ledgerKind(), c.id(), actorId, owner)) {
                 return;
             }
@@ -260,7 +260,7 @@ public class ForumNotifier {
 
     private void sendComment(long recipient, long actor, boolean forcedAnon, ForumNotifyKind kind, String keyBase,
                              String i18nBase, CommentInfo c, TopicInfo t, String preview) {
-        if (!eligible(recipient, actor, t.id(), kind, prefs.byUser(List.of(recipient)).get(recipient))
+        if (!eligible(recipient, actor, t.id(), isAnonActor(t, actor, forcedAnon), kind, prefs.byUser(List.of(recipient)).get(recipient))
                 || !ledger.firstTime(kind.ledgerKind(), c.id(), actor, recipient)) {
             return;
         }
@@ -295,7 +295,8 @@ public class ForumNotifier {
             if (cand.isEmpty()) {
                 continue;
             }
-            Set<Long> muters = reader.mutersAmong(cand, actor);
+            // Anonim gonderen icin sessize alma UYGULANMAZ (kimlik sinanamasin; engel yine gecerli)
+            Set<Long> muters = isAnonActor(t, actor, forcedAnon) ? Set.of() : reader.mutersAmong(cand, actor);
             Map<Long, ForumNotificationPref> pm = prefs.byUser(cand);
             Map<Lang, List<Long>> byLang = new EnumMap<>(Lang.class);
             for (User u : users.findAllById(cand)) {
@@ -329,20 +330,26 @@ public class ForumNotifier {
     // ------------------------------------------------------------------ ortak
 
     /** Kendine/engelli/sessiz/tercih/konu-kapali/pasif alici elenir. */
-    private boolean eligible(long recipient, long actor, long topicId, ForumNotifyKind kind, ForumNotificationPref pref) {
+    private boolean eligible(long recipient, long actor, long topicId, boolean anonymousActor, ForumNotifyKind kind,
+                            ForumNotificationPref pref) {
         if (recipient == actor || !kind.allowed(pref)) {
             return false;
         }
-        if (blocks.isBlocked(actor, recipient) || reader.muted(recipient, actor)) {
+        // Sessize alma yalniz gonderen ADIYLA gorunuyorsa uygulanir: anonim icerikte uygulanirsa 'bildirim gelmedi' kimlik sinamasi olur
+        if (blocks.isBlocked(actor, recipient) || (!anonymousActor && reader.muted(recipient, actor))) {
             return false;
         }
         return !reader.topicNotificationsOff(topicId, recipient) && guard.canReceive(recipient);
     }
 
+    /** Gonderen bu olayda anonim gorunuyor mu (senderName ile ayni kural). */
+    static boolean isAnonActor(TopicInfo topic, long actorId, boolean forcedAnonymous) {
+        return forcedAnonymous || (topic.anonymous() && topic.authorId() == actorId);
+    }
+
     /** Gonderen adi; anonimse "Anonim #N" (alici dilinde), kimlik/ad sizmaz. */
     String senderName(Lang lang, TopicInfo topic, long actorId, boolean forcedAnonymous) {
-        boolean anon = forcedAnonymous || (topic.anonymous() && topic.authorId() == actorId);
-        if (anon) {
+        if (isAnonActor(topic, actorId, forcedAnonymous)) {
             Integer n = reader.anonAlias(topic.id(), actorId);
             return n == null ? i18n.msg("notif.forum.anonPlain", lang)
                     : i18n.msg("notif.forum.anon", lang, String.valueOf(n));

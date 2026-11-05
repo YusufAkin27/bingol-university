@@ -88,9 +88,10 @@ public class ForumSearchService {
         Set<Long> out = new HashSet<>(blocks.hiddenFrom(viewerId));
         ForumMuteLookup m = mutes.getIfAvailable();
         if (m != null) {
-            out.addAll(m.mutedBy(viewerId));
+            m.mutedBy(viewerId).forEach(id -> out.add(edu.bingol.backend.forum.topic.ForumViewerFilter.mutedKey(id)));
         }
         out.remove(viewerId);
+        out.remove(edu.bingol.backend.forum.topic.ForumViewerFilter.mutedKey(viewerId));
         return out;
     }
 

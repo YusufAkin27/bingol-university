@@ -18,6 +18,7 @@ import org.springframework.data.repository.query.Param;
 public interface ForumTopicRepository extends JpaRepository<ForumTopic, Long> {
 
     String VISIBLE = "t.deletedAt IS NULL AND t.status = 'ACTIVE' AND t.userId NOT IN :hidden "
+            + "AND (t.anonymous = TRUE OR (0 - t.userId) NOT IN :hidden) "
             + "AND (t.userId = :viewer OR EXISTS (SELECT 1 FROM User u WHERE u.id = t.userId AND u.status = "
             + "edu.bingol.backend.user.UserStatus.ACTIVE))";
 

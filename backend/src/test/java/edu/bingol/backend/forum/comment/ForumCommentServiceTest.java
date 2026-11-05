@@ -731,9 +731,10 @@ class ForumCommentServiceTest {
         assertEquals(c1.id(), c2.id());
         assertEquals(1, topicCount(t));
         assertEquals("IDEMPOTENCY_KEY_REUSED", code(() -> service.create(a.getId(), other.getId(), req, key)));
-        // bicimsiz anahtar yok sayilir (korumasiz): iki yorum olusur
-        service.create(a.getId(), t.getId(), req, "x");
-        service.create(a.getId(), t.getId(), req, "x");
+        // bicimsiz anahtar yok sayilir (idempotency korumasiz); ayni metin ise D'nin tekrar-icerik engeline takilir
+        service.create(a.getId(), t.getId(), new CreateCommentRequest("farkli metin bir", null, null), "x");
+        service.create(a.getId(), t.getId(), new CreateCommentRequest("farkli metin iki", null, null), "x");
+        assertEquals("FORUM_DUPLICATE_CONTENT", code(() -> service.create(a.getId(), t.getId(), new CreateCommentRequest("farkli metin iki", null, null), "x")));
         assertEquals(3, topicCount(t));
     }
 

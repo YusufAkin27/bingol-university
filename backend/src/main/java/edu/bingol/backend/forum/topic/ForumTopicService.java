@@ -3,6 +3,7 @@ package edu.bingol.backend.forum.topic;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.forum.category.ForumCategoryService;
 import edu.bingol.backend.forum.media.ForumMediaService;
+import edu.bingol.backend.forum.moderation.spi.ForumSpamGuard;
 import edu.bingol.backend.forum.poll.spi.ForumPollService;
 import edu.bingol.backend.forum.topic.ForumTopicDtos.CreateTopicRequest;
 import edu.bingol.backend.forum.topic.ForumTopicDtos.UpdateTopicRequest;
@@ -41,12 +42,14 @@ public class ForumTopicService {
     private final ForumViewerFilter filter;
     private final ContentGuard guard;
     private final ObjectProvider<ForumPollService> polls;
+    private final ObjectProvider<ForumSpamGuard> spam;
     private final TransactionTemplate tx;
 
     public ForumTopicService(ForumTopicRepository topics, ForumCategoryService categories,
                              ForumMediaService mediaService, ForumAnonAliasService aliases,
                              ForumTopicAssembler assembler, ForumViewerFilter filter, ContentGuard guard,
-                             ObjectProvider<ForumPollService> polls, PlatformTransactionManager tm) {
+                             ObjectProvider<ForumPollService> polls, ObjectProvider<ForumSpamGuard> spam,
+                             PlatformTransactionManager tm) {
         this.topics = topics;
         this.categories = categories;
         this.mediaService = mediaService;
@@ -55,6 +58,7 @@ public class ForumTopicService {
         this.filter = filter;
         this.guard = guard;
         this.polls = polls;
+        this.spam = spam;
         this.tx = new TransactionTemplate(tm);
     }
 
@@ -86,6 +90,21 @@ public class ForumTopicService {
         ForumPollService pollService = polls.getIfAvailable();
         if (req.poll() != null && pollService == null) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "FORUM_POLL_UNAVAILABLE", "Anket şu anda eklenemiyor.");
+        }
+        // D: ayni metni kisa surede tekrar acma (429 FORUM_DUPLICATE_CONTENT); dogrulama + idempotent tekrar oynatmadan SONRA
+        ForumSpamGuard spamGuard = spam.getIfAvailable();
+        String spamBody = title + "\n" + body;
+        if (spamGuard != null) {
+            try {
+                spamGuard.assertNotDuplicate(userId, ForumSpamGuard.SCOPE_TOPIC, null, spamBody);
+            } catch (ApiException e) {
+                // Ayni Idempotency-Key ile yarisan kardes istek (cift dokunma) zaten yaziyorsa onun konusunu don, 429 verme
+                ForumTopic raced = key == null ? null : awaitKeyed(userId, key);
+                if (raced != null) {
+                    return replay(raced, userId);
+                }
+                throw e;
+            }
         }
         Long id;
         try {
@@ -120,9 +139,34 @@ public class ForumTopicService {
                     return replay(prior.get(), userId);
                 }
             }
+            if (spamGuard != null) {
+                spamGuard.forget(userId, ForumSpamGuard.SCOPE_TOPIC, null, spamBody);
+            }
+            throw e;
+        } catch (RuntimeException e) {
+            if (spamGuard != null) {
+                spamGuard.forget(userId, ForumSpamGuard.SCOPE_TOPIC, null, spamBody); // hata sonrasi ayni metin yeniden gonderilebilsin
+            }
             throw e;
         }
         return get(userId, id);
+    }
+
+    /** Yarisan ayni anahtarli istegin konusunu en cok ~1 sn bekler (yalniz tekrar-icerik engeli tetiklenince). */
+    private ForumTopic awaitKeyed(Long userId, String key) {
+        for (int i = 0; i < 10; i++) {
+            Optional<ForumTopic> prior = topics.findByUserIdAndIdemKey(userId, key);
+            if (prior.isPresent()) {
+                return prior.get();
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                return null;
+            }
+        }
+        return null;
     }
 
     private TopicView replay(ForumTopic prior, Long userId) {

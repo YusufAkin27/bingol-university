@@ -48,7 +48,8 @@ class ForumTopicServiceTest {
 
     @MockitoBean edu.bingol.backend.common.RateLimiter limiter;
     @MockitoBean ForumMuteLookup mutes;
-    @MockitoBean ForumPollService polls;
+    // C birlesti: ForumPollVoteService somut ForumPollServiceImpl ister; saf mock tipi bozar -> casus (gercek bean sarilir)
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean ForumPollService polls;
 
     @Autowired ForumTopicService service;
     @Autowired ForumTopicRepository topics;
@@ -312,13 +313,14 @@ class ForumTopicServiceTest {
         ForumCategory c = cat();
         CreatePollRequest poll = new CreatePollRequest("Soru", List.of("a", "b"), null, false);
         PollView pv = new PollView(1L, "Soru", List.of(), 0, null, null, false, false, true);
-        when(polls.pollFor(any(), any())).thenReturn(pv);
+        org.mockito.Mockito.doReturn(pv).when(polls).pollFor(any(), any());
         TopicView ok = service.create(me.getId(), new CreateTopicRequest("Anketli", "govde", c.getId(), false, List.of(), poll), null);
         verify(polls).createForTopic(ok.id(), poll);
         assertTrue(ok.hasPoll());
         assertNotNull(ok.poll());
 
-        when(polls.createForTopic(any(), any())).thenThrow(new ApiException(org.springframework.http.HttpStatus.BAD_REQUEST, "FORUM_POLL_INVALID", "x"));
+        org.mockito.Mockito.doThrow(new ApiException(org.springframework.http.HttpStatus.BAD_REQUEST, "FORUM_POLL_INVALID", "x"))
+                .when(polls).createForTopic(any(), any());
         long before = topics.findAll(org.springframework.data.domain.PageRequest.of(0, 1000)).stream()
                 .filter(t -> t.getUserId().equals(me.getId())).count();
         assertEquals("FORUM_POLL_INVALID", code(() -> service.create(me.getId(), new CreateTopicRequest("Bozuk", "govde", c.getId(), false, List.of(), poll), null)));
