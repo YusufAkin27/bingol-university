@@ -133,7 +133,7 @@ class _MenuDayStripState extends State<MenuDayStrip> {
                 child: AnimatedContainer(
                   duration: dur,
                   width: _pill,
-                  decoration: BoxDecoration(color: sel ? t.pr : t.pr.withValues(alpha: 0), borderRadius: BorderRadius.circular(BuRadius.pill)),
+                  decoration: BoxDecoration(color: sel ? t.pr : t.pr.withValues(alpha: 0), borderRadius: BorderRadius.circular(BuRadius.control)),
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   alignment: Alignment.center,
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -182,7 +182,7 @@ class MenuDayLabel extends StatelessWidget {
   }
 }
 
-/// Öğle yemeği yüzeyi (Stitch v3): tek beyaz yüzey (1 dp `bd`, 22 köşe, iç 20 dp). Başlık 20 sp/600 solda,
+/// Öğle yemeği yüzeyi: tek yüzey (1 dp `bd`, 16 köşe, gölge yok, iç 20 dp). Başlık 20 sp/600 solda,
 /// saat 14 sp soluk sağda; her yemek 1 dp çizgili satır (ad 16 sp, kcal 14 sp soluk; kcal yoksa "–");
 /// "Toplam enerji" satırı. Yönetici fotoğraf yüklediyse kartın üstünde 16:9 fotoğraf; yoksa yer tutucu çizilmez.
 class MenuMealCard extends StatelessWidget {
@@ -218,8 +218,8 @@ class MenuMealCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 14),
             child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-              Container(width: 40, height: 40, decoration: BoxDecoration(color: t.okSoft, borderRadius: BorderRadius.circular(14)),
-                child: Icon(BuIcons.utensils, size: 22, color: t.onOkSoft)),
+              Container(width: 40, height: 40, decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(12)),
+                child: Icon(BuIcons.utensils, size: 22, color: t.ink)),
               const SizedBox(width: 12),
               Expanded(
                 child: Semantics(
@@ -283,7 +283,7 @@ class _TotalRow extends StatelessWidget {
     final l = context.l10n;
     final number = BuType.caption.copyWith(fontSize: 15, height: 1.3, fontWeight: FontWeight.w400, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()]);
     return Container(
-      decoration: BoxDecoration(color: t.okSoft, borderRadius: BorderRadius.circular(14)),
+      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.only(top: 12),
       padding: const EdgeInsets.all(14),
       child: Semantics(
@@ -387,7 +387,7 @@ class MenuSkeleton extends StatelessWidget {
                 Row(children: [
                   for (var i = 0; i < 7; i++) ...[
                     if (i > 0) const SizedBox(width: 4),
-                    const Expanded(child: BuSkeleton(height: 48, radius: BuRadius.pill)),
+                    const Expanded(child: BuSkeleton(height: 48, radius: BuRadius.control)),
                   ],
                 ]),
                 const SizedBox(height: 16),

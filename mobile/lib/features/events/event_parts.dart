@@ -239,7 +239,9 @@ class EventJoinedChip extends StatelessWidget {
       height: large ? 54 : 36,
       padding: EdgeInsets.symmetric(horizontal: large ? 20 : 14),
       alignment: Alignment.center,
-      decoration: ShapeDecoration(color: t.okSoft, shape: const StadiumBorder()),
+      decoration: large
+          ? BoxDecoration(color: t.okSoft, borderRadius: BorderRadius.circular(BuRadius.control))
+          : BoxDecoration(color: t.okSoft, borderRadius: BorderRadius.circular(BuRadius.pill)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         Icon(BuIcons.calendarCheck, size: large ? 19 : 15, color: t.ok),
         const SizedBox(width: 8),
@@ -282,11 +284,11 @@ class EventStatusTag extends StatelessWidget {
       EventTone.warn => (t.warnSoft, t.onWarnSoft),
       EventTone.danger => (t.danger.withValues(alpha: .14), t.danger),
       EventTone.neutral => (t.mut.withValues(alpha: .12), t.mut),
-      EventTone.brand => (t.soft, t.onSoft),
+      EventTone.brand => (t.sf2, t.ink),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: ShapeDecoration(color: bg, shape: const StadiumBorder()),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(BuRadius.pill)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         if (dot) ...[
           Container(width: 7, height: 7, decoration: BoxDecoration(color: fg, shape: BoxShape.circle)),
@@ -319,9 +321,9 @@ class EventDateBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    // Kapak üstünde tema fark etmeksizin açık zemin + koyu kırmızı yazı (fotoğrafta yüksek kontrast).
-    final bg = onCover ? BuTokens.light.sf : t.soft;
-    final fg = onCover ? BuTokens.light.onSoft : t.onSoft;
+    // Kapak üstünde: tema yüzeyi (neredeyse opak) + `ink` yazı; gölge yok, ince kenarlık (fotoğrafta yüksek kontrast).
+    final bg = onCover ? t.sf.withValues(alpha: .94) : t.sf2;
+    final fg = t.ink;
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     return ExcludeSemantics(
       child: Container(
@@ -329,8 +331,8 @@ class EventDateBadge extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 6),
         decoration: BoxDecoration(
           color: bg,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: onCover ? [BoxShadow(color: t.scrim.withValues(alpha: .18), blurRadius: 8, offset: const Offset(0, 2))] : null,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: t.bd),
         ),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Text(day == null ? '' : eventMonthShortOf(context, day!.month),

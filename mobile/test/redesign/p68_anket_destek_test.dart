@@ -158,7 +158,7 @@ void main() {
   });
 
   group('Anketler 02/03 detay', () {
-    testWidgets('oy verme: 56 dp beyaz satir, secili = soft + pr 1.5 dp cerceve, Oy ver icerikte, gizli oy notu', (t) async {
+    testWidgets('oy verme: 56 dp beyaz satir, secili = soft + ink 1.5 dp cerceve, Oy ver icerikte, gizli oy notu', (t) async {
       useScreen(t, kPhoneMedium);
       await t.pumpWidget(buildApp(PollDetailPage(session: makeSession(_voteBe()), pollId: 1), size: kPhoneMedium));
       await settle(t, const Duration(milliseconds: 900));
@@ -176,7 +176,7 @@ void main() {
       final deco = t.widget<AnimatedContainer>(find.ancestor(of: find.text('Mevcut menü'), matching: find.byType(AnimatedContainer)).first).decoration! as BoxDecoration;
       final tk = t.element(find.text('Mevcut menü')).bu;
       expect(deco.color, tk.soft);
-      expect((deco.border! as Border).top.color, tk.pr);
+      expect((deco.border! as Border).top.color, tk.ink);
       expect((deco.border! as Border).top.width, 1.5);
       expect(find.byType(BottomAppBar), findsNothing);
       await unmount(t);

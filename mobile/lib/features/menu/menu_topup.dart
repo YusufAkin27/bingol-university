@@ -51,8 +51,8 @@ class _MenuTopUpCardState extends State<MenuTopUpCard> {
               Container(
                 width: 40,
                 height: 40,
-                decoration: BoxDecoration(color: t.infoSoft, borderRadius: BorderRadius.circular(14)),
-                child: Icon(BuIcons.idCard, size: 22, color: t.onInfoSoft),
+                decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(12)),
+                child: Icon(BuIcons.idCard, size: 22, color: t.ink),
               ),
               const SizedBox(width: 12),
               Expanded(

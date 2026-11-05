@@ -26,7 +26,7 @@ class AnketTabs extends StatelessWidget {
     final x = n < 2 ? 0.0 : -1 + 2 * index.clamp(0, n - 1) / (n - 1);
     return Container(
       padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(12)),
       child: Stack(children: [
         Positioned.fill(
           child: AnimatedAlign(
@@ -39,8 +39,8 @@ class AnketTabs extends StatelessWidget {
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: thumb,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: dark ? null : [BoxShadow(color: t.shadow.withValues(alpha: .12), blurRadius: 4, offset: const Offset(0, 1))],
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: t.bd),
                 ),
               ),
             ),

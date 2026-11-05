@@ -230,7 +230,7 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
             sliver: SliverList.list(children: [
               BuCard(
                 padding: const EdgeInsets.all(12),
-                radius: 20,
+                radius: 16,
                 child: Row(children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(BuRadius.sm),
@@ -286,7 +286,7 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
               ),
               BuCard(
                 padding: const EdgeInsets.all(12),
-                radius: 20,
+                radius: 16,
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                   Container(
                     constraints: const BoxConstraints(minHeight: 56),
@@ -354,7 +354,7 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
               Et2SectionTitle(l.etkinlik2SettingsRegChat),
               BuCard(
                 padding: EdgeInsets.zero,
-                radius: 20,
+                radius: 16,
                 child: Column(children: [
                   _switchRow(
                     icon: BuIcons.userCheck,
@@ -381,7 +381,7 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: t.sf,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: t.danger.withValues(alpha: .4)),
                 ),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -447,9 +447,9 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
           constraints: const BoxConstraints(minHeight: 72),
           padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 16, 12),
           decoration: BoxDecoration(
-            color: selected ? t.soft : t.sf,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: selected ? Colors.transparent : t.bd),
+            color: selected ? t.sf2 : t.sf,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: selected ? t.ink : t.bd, width: selected ? 1.5 : 1),
           ),
           child: Row(children: [
             AnimatedContainer(
@@ -466,13 +466,13 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
             const SizedBox(width: 14),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                Text(title, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: selected ? t.onSoft : t.ink)),
+                Text(title, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
                 const SizedBox(height: 2),
-                Text(sub, style: tx.bodySmall!.copyWith(height: 1.35, color: selected ? t.onSoft.withValues(alpha: .85) : t.mut)),
+                Text(sub, style: tx.bodySmall!.copyWith(height: 1.35, color: t.mut)),
               ]),
             ),
             const SizedBox(width: 8),
-            Icon(icon, size: 20, color: selected ? t.pr : t.mut),
+            Icon(icon, size: 20, color: selected ? t.ink : t.mut),
           ]),
         ),
       ),

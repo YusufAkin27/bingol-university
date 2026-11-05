@@ -12,13 +12,13 @@ import '../../core/academic_catalog.dart';
 /// Kulüp detayı kartları (K7, referans 27-01, 28-02, 28-04): rol rozeti, gönderi kartı, üye satırı, yazma kutusu.
 
 /// Sahip/yönetici/moderatör rozeti (üye satırlarında); sade üye için null.
-/// Referans: yönetici kırmızı tonlu, moderatör mavi tonlu + kalkan.
+/// Yönetici = ters renk (`pr`/`onPr`) dolgulu, moderatör = nötr yüzey + kalkan (renk yok; ayrım dolgu ve simgeyle).
 Widget? clubRoleBadge(BuildContext context, String? role) {
   final l = context.l10n;
-  final blue = context.bu.tint(1);
+  final t = context.bu;
   return switch (role) {
-    'OWNER' || 'ADMIN' => KulupRoleBadge(l.clubRoleOwner),
-    'MODERATOR' => KulupRoleBadge(l.clubRoleModerator, icon: BuIcons.shield, bg: blue.bg, fg: blue.fg),
+    'OWNER' || 'ADMIN' => KulupRoleBadge(l.clubRoleOwner, bg: t.pr, fg: t.onPr),
+    'MODERATOR' => KulupRoleBadge(l.clubRoleModerator, icon: BuIcons.shield, bg: t.sf2, fg: t.ink),
     _ => null,
   };
 }
@@ -323,7 +323,7 @@ class ClubComposer extends StatelessWidget {
                 child: Container(
                   constraints: const BoxConstraints(minHeight: 48),
                   padding: const EdgeInsetsDirectional.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bPill),
+                  decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bControl),
                   alignment: AlignmentDirectional.centerStart,
                   child: TextField(
                     controller: controller,
@@ -408,7 +408,7 @@ class _TonalPill extends StatelessWidget {
           child: Container(
             constraints: const BoxConstraints(minHeight: 48),
             padding: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bPill),
+            decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bControl),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [

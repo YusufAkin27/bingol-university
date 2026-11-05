@@ -646,7 +646,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     if (rsvp == 'PENDING') {
       return Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: t.warnSoft, borderRadius: BorderRadius.circular(20)),
+        decoration: BoxDecoration(color: t.warnSoft, borderRadius: BorderRadius.circular(16)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Row(children: [
             ExcludeSemantics(
@@ -677,7 +677,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     if (rsvp == 'REJECTED') {
       return Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: t.danger.withValues(alpha: .1), borderRadius: BorderRadius.circular(20)),
+        decoration: BoxDecoration(color: t.danger.withValues(alpha: .1), borderRadius: BorderRadius.circular(16)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             ExcludeSemantics(
@@ -702,7 +702,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     }
     if (eventIsClosed(_ev!)) return const SizedBox.shrink();
     return BuCard(
-      radius: 20,
+      radius: 16,
       padding: const EdgeInsets.all(14),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         BuButton(
@@ -826,7 +826,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
             ),
           Text('${ev['title'] ?? ''}',
               style: BuType.display.copyWith(
-                fontSize: 26,
+                fontSize: 28,
                 height: 1.25,
                 color: cancelled ? t.mut : t.ink,
                 decoration: cancelled ? TextDecoration.lineThrough : null,
@@ -1012,7 +1012,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     final pending = (_ev?['pendingCount'] as num?)?.toInt() ?? 0;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       BuCard(
-        radius: 20,
+        radius: 16,
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Row(children: [
@@ -1039,7 +1039,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
       ),
       const SizedBox(height: 12),
       BuCard(
-        radius: 20,
+        radius: 16,
         padding: EdgeInsets.zero,
         child: Column(children: [
           Padding(
@@ -1091,8 +1091,8 @@ class _OverlayChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final bg = danger ? t.danger : BuTokens.light.sf.withValues(alpha: .95);
-    final fg = danger ? t.onPr : BuTokens.light.ink;
+    final bg = danger ? t.danger : t.sf.withValues(alpha: .95);
+    final fg = danger ? t.onPr : t.ink;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
@@ -1121,11 +1121,11 @@ class _DetailSkeleton extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              const AspectRatio(aspectRatio: 16 / 9, child: BuSkeleton(radius: 20)),
+              const AspectRatio(aspectRatio: 16 / 9, child: BuSkeleton(radius: 16)),
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), border: Border.all(color: t.bd)),
+                decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(16), border: Border.all(color: t.bd)),
                 child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   BuSkeleton(width: 120, height: 20, radius: 10),
                   SizedBox(height: 12),

@@ -28,7 +28,7 @@ class KulupAvatar extends StatelessWidget {
   Widget build(BuildContext context) => BuAvatar(name: name, url: url, size: size);
 }
 
-/// Rol etiketi (Yönetici / Moderatör): marka tonlu hap, 24 dp yükseklik, isteğe bağlı simge.
+/// Rol etiketi (Yönetici / Moderatör): nötr hap, 24 dp yükseklik, isteğe bağlı simge.
 class KulupRoleBadge extends StatelessWidget {
   const KulupRoleBadge(this.text, {super.key, this.icon, this.bg, this.fg});
 
@@ -149,8 +149,8 @@ class KulupPillButton extends StatelessWidget {
       );
     }
     final (bg, fg, side) = switch (kind) {
-      KulupPillKind.primary => (t.prText, t.onPr, BorderSide.none),
-      KulupPillKind.soft => (t.soft, t.onSoft, BorderSide.none),
+      KulupPillKind.primary => (t.pr, t.onPr, BorderSide.none),
+      KulupPillKind.soft => (t.sf2, t.ink, BorderSide(color: t.bd)),
       KulupPillKind.outline => (t.sf2, t.mut, BorderSide(color: t.bd)),
     };
     final tx = Theme.of(context).textTheme;
@@ -161,7 +161,7 @@ class KulupPillButton extends StatelessWidget {
         child: Container(
           constraints: const BoxConstraints(minHeight: 36),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-          decoration: ShapeDecoration(color: bg, shape: StadiumBorder(side: side)),
+          decoration: ShapeDecoration(color: bg, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(BuRadius.xs + 2), side: side)),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
