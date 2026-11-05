@@ -79,7 +79,7 @@ void main() {
         await tester.pumpWidget(p00App(SizedBox(width: 200, height: 100, child: CalmCover(seed: seed, icon: Icons.event)), lang: 'tr', dark: false, scale: 1));
         await tester.pump();
         final deco = tester.widgetList<DecoratedBox>(find.descendant(of: find.byType(CalmCover), matching: find.byType(DecoratedBox))).first.decoration as BoxDecoration;
-        firsts.add((deco.gradient as LinearGradient).colors.first);
+        firsts.add(deco.color!);
       }
       expect(firsts.toSet().length, 1);
     });

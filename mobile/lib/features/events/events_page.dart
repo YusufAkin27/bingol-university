@@ -975,7 +975,7 @@ class _EventsPageState extends State<EventsPage> {
     final on = _selected == d;
     final today = d == _today;
     final dot = inMonth && busy.contains(_ymd(d));
-    final fg = on || today ? t.pr : (inMonth ? t.ink : t.mut.withValues(alpha: .45));
+    final fg = on ? t.onPr : (inMonth ? t.ink : t.mut.withValues(alpha: .45));
     return Semantics(
       button: true,
       selected: on,
@@ -993,9 +993,9 @@ class _EventsPageState extends State<EventsPage> {
                 width: 36,
                 height: 36,
                 child: Stack(alignment: Alignment.center, children: [
-                  // Seçili gün: yumuşak (soft) daire 0.6 -> 1 ölçekle belirir.
-                  // Bugün (seçili değilken): sönük yumuşak daire.
-                  if (today && !on) DecoratedBox(decoration: BoxDecoration(shape: BoxShape.circle, color: t.soft.withValues(alpha: .55)), child: const SizedBox.expand()),
+                  // Seçili gün: ters renk (`pr`) dolu daire 0.6 -> 1 ölçekle belirir.
+                  // Bugün (seçili değilken): ince `bdStrong` halka.
+                  if (today && !on) DecoratedBox(decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: t.bdStrong)), child: const SizedBox.expand()),
                   AnimatedScale(
                     scale: on ? 1 : .6,
                     duration: BuMotion.of(context, BuMotion.short),
@@ -1003,7 +1003,7 @@ class _EventsPageState extends State<EventsPage> {
                     child: AnimatedOpacity(
                       opacity: on ? 1 : 0,
                       duration: BuMotion.of(context, BuMotion.short),
-                      child: DecoratedBox(decoration: BoxDecoration(shape: BoxShape.circle, color: t.soft), child: const SizedBox.expand()),
+                      child: DecoratedBox(decoration: BoxDecoration(shape: BoxShape.circle, color: t.pr), child: const SizedBox.expand()),
                     ),
                   ),
                   AnimatedDefaultTextStyle(
@@ -1011,14 +1011,14 @@ class _EventsPageState extends State<EventsPage> {
                     style: tx.bodyMedium!.copyWith(color: fg, fontWeight: on || today ? FontWeight.w400 : BuType.emphasisWeight),
                     child: Text('${d.day}', maxLines: 1),
                   ),
-                  // Etkinlik noktası: muted (seçili günde marka), veri gelince 0 -> 1 ölçekle belirir.
+                  // Etkinlik noktası: muted (seçili günde `onPr`), veri gelince 0 -> 1 ölçekle belirir.
                   PositionedDirectional(
                     bottom: 3,
                     child: AnimatedScale(
                       scale: dot ? 1 : 0,
                       duration: BuMotion.of(context, BuMotion.short),
                       curve: BuMotion.emphasizedDecelerate,
-                      child: Container(width: 4, height: 4, decoration: BoxDecoration(shape: BoxShape.circle, color: on ? t.pr : t.mut.withValues(alpha: .7))),
+                      child: Container(width: 4, height: 4, decoration: BoxDecoration(shape: BoxShape.circle, color: on ? t.onPr : t.mut.withValues(alpha: .7))),
                     ),
                   ),
                 ]),

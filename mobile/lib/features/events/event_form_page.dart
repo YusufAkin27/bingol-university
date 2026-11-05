@@ -1296,7 +1296,7 @@ class _ClubPickerSheetState extends State<_ClubPickerSheet> {
           child: Container(
             constraints: const BoxConstraints(minHeight: 72),
             padding: const EdgeInsetsDirectional.fromSTEB(10, 8, 14, 8),
-            decoration: BoxDecoration(color: sel ? t.soft : Colors.transparent, borderRadius: BorderRadius.circular(BuRadius.md)),
+            decoration: BoxDecoration(color: sel ? t.sf2 : t.sf2.withValues(alpha: 0), borderRadius: BorderRadius.circular(BuRadius.md)),
             child: Row(children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(BuRadius.md),
@@ -1437,11 +1437,11 @@ class _FormSkeleton extends StatelessWidget {
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           BuSkeleton.line(width: 60),
           SizedBox(height: 10),
-          BuSkeleton(height: 80, radius: 20),
+          BuSkeleton(height: 80, radius: 16),
           SizedBox(height: 10),
           BuSkeleton(height: 44, radius: 16),
           SizedBox(height: 22),
-          BuSkeleton(height: 170, radius: 20),
+          BuSkeleton(height: 170, radius: 16),
           SizedBox(height: 22),
           BuSkeleton.line(width: 80),
           SizedBox(height: 10),
@@ -1475,7 +1475,7 @@ class _SubmittedDialog extends StatelessWidget {
                 Container(
                   width: 72,
                   height: 72,
-                  decoration: BoxDecoration(color: t.ink, shape: BoxShape.circle, boxShadow: [BoxShadow(color: t.pr.withValues(alpha: .18), blurRadius: 0, spreadRadius: 6)]),
+                  decoration: BoxDecoration(color: t.ink, shape: BoxShape.circle, border: Border.all(color: t.sf2, width: 6)),
                   child: Icon(BuIcons.check, size: 34, color: t.bg),
                 ),
                 PositionedDirectional(

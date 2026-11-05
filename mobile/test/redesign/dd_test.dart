@@ -46,7 +46,7 @@ FakeBackend _eventBe() => FakeBackend()
 void main() {
   setUpAll(loadTestFonts);
 
-  testWidgets('CalmCover palet tonundan boyanir, kirmizi vitrin gradyani kullanmaz', (tester) async {
+  testWidgets('CalmCover duz notr sf2 ile boyanir, gradyan ve sus dairesi yok', (tester) async {
     for (final dark in [false, true]) {
       for (var seed = 0; seed < 6; seed++) {
         late BuTokens tokens;
@@ -66,9 +66,8 @@ void main() {
             .widgetList<DecoratedBox>(find.descendant(of: find.byType(CalmCover), matching: find.byType(DecoratedBox)))
             .first
             .decoration as BoxDecoration;
-        final colors = (deco.gradient as LinearGradient).colors;
-        expect(colors.first, tokens.soft, reason: 'tek sakin ton (kategori rengi yok) seed=$seed dark=$dark');
-        expect(colors, isNot(contains(tokens.h1)));
+        expect(deco.gradient, isNull, reason: 'gradyan yok seed=$seed dark=$dark');
+        expect(deco.color, tokens.sf2, reason: 'tek notr ton (kategori rengi yok) seed=$seed dark=$dark');
       }
     }
   });

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../widgets/bu.dart';
 
 /// Anket ve destek ekranlarının boş durum illüstrasyonları (kodla çizilir, tema renkli, dosya yok).
-/// P0 illüstrasyonlarıyla aynı dil: 120x120 tuval, koyu mürekkep çizgisi, yumuşak zemin.
+/// Monochrome: 120x120 tuval, yalnız `ink` çizgi + nötr yüzey tonları (renkli vurgu, gölge ve süs noktası yok).
 enum AnketArt { ballot, chart, idea, ticket, help }
 
 /// Dekoratif (anlam dışı); [size] kenara ölçeklenir.
@@ -41,12 +41,9 @@ class _ArtPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     canvas.save();
     canvas.scale(size.width / 120);
-    // zemin: yumuşak daire + süs noktaları
-    canvas.drawCircle(const Offset(60, 62), 50, _fill(t.soft));
-    canvas.drawCircle(const Offset(60, 62), 36, _fill(t.soft.withValues(alpha: .55)));
-    canvas.drawCircle(const Offset(16, 32), 3.2, _fill(t.tint(1).fg.withValues(alpha: .55)));
-    canvas.drawCircle(const Offset(104, 22), 2.6, _fill(t.pr.withValues(alpha: .6)));
-    canvas.drawCircle(const Offset(108, 94), 3, _fill(t.tint(1).fg.withValues(alpha: .5)));
+    // zemin: nötr daire
+    canvas.drawCircle(const Offset(60, 62), 50, _fill(t.sf2));
+    canvas.drawCircle(const Offset(60, 62), 36, _fill(t.sf3.withValues(alpha: .6)));
     switch (kind) {
       case AnketArt.ballot:
         _ballot(canvas);
@@ -63,7 +60,6 @@ class _ArtPainter extends CustomPainter {
   }
 
   void _card(Canvas c, RRect r, {Color? fill}) {
-    c.drawRRect(r.shift(const Offset(0, 3)), _fill(t.shadow.withValues(alpha: .10)));
     c.drawRRect(r, _fill(fill ?? t.sf));
     c.drawRRect(r, _line(t.ink));
   }
@@ -79,8 +75,8 @@ class _ArtPainter extends CustomPainter {
     for (var i = 0; i < 3; i++) {
       final y = 52.0 + i * 16;
       final on = i == 0;
-      c.drawCircle(Offset(42, y), 5.2, _fill(on ? t.pr : t.sf));
-      c.drawCircle(Offset(42, y), 5.2, _line(on ? t.pr : t.ink, 2));
+      c.drawCircle(Offset(42, y), 5.2, _fill(on ? t.ink : t.sf));
+      c.drawCircle(Offset(42, y), 5.2, _line(t.ink, 2));
       if (on) {
         final p = Path()
           ..moveTo(39.4, y + .2)
@@ -88,7 +84,7 @@ class _ArtPainter extends CustomPainter {
           ..lineTo(45, y - 1.8);
         c.drawPath(p, _line(t.onPr, 1.9));
       }
-      c.drawLine(Offset(54, y), Offset(on ? 80 : (i == 1 ? 74 : 68), y), _line(on ? t.tint(1).fg : t.bd, 3));
+      c.drawLine(Offset(54, y), Offset(on ? 80 : (i == 1 ? 74 : 68), y), _line(on ? t.ink : t.bdStrong, 3));
     }
     c.restore();
     // kalem
@@ -98,7 +94,7 @@ class _ArtPainter extends CustomPainter {
       ..lineTo(108, 58)
       ..lineTo(90, 76)
       ..close();
-    c.drawPath(pen, _fill(t.tint(1).bg));
+    c.drawPath(pen, _fill(t.sf3));
     c.drawPath(pen, _line(t.ink, 2.2));
     final tip = Path()
       ..moveTo(84, 70)
@@ -108,26 +104,26 @@ class _ArtPainter extends CustomPainter {
     c.drawPath(tip, _fill(t.ink));
   }
 
-  // Sütun grafik: en uzun sütun marka renginde.
+  // Sütun grafik: en uzun sütun `ink`, diğerleri nötr gri.
   void _chart(Canvas c) {
     _card(c, RRect.fromRectAndRadius(const Rect.fromLTWH(24, 26, 72, 66), const Radius.circular(10)));
     final bars = [
-      (36.0, 26.0, t.tint(1).fg.withValues(alpha: .55)),
-      (52.0, 46.0, t.pr),
-      (68.0, 34.0, t.tint(1).fg.withValues(alpha: .6)),
-      (84.0, 18.0, t.tint(1).fg.withValues(alpha: .6)),
+      (36.0, 26.0, t.bdStrong),
+      (52.0, 46.0, t.ink),
+      (68.0, 34.0, t.bdStrong),
+      (84.0, 18.0, t.bdStrong),
     ];
     for (final b in bars) {
       final r = RRect.fromRectAndRadius(Rect.fromLTWH(b.$1 - 5, 82 - b.$2, 10, b.$2), const Radius.circular(3));
       c.drawRRect(r, _fill(b.$3));
     }
     c.drawLine(const Offset(30, 83), const Offset(90, 83), _line(t.ink, 2));
-    c.drawLine(const Offset(34, 36), const Offset(52, 36), _line(t.bd, 3));
+    c.drawLine(const Offset(34, 36), const Offset(52, 36), _line(t.bdStrong, 3));
   }
 
   // Ampul: öneri/fikir.
   void _idea(Canvas c) {
-    c.drawCircle(const Offset(60, 52), 24, _fill(t.tint(1).bg));
+    c.drawCircle(const Offset(60, 52), 24, _fill(t.sf3));
     c.drawCircle(const Offset(60, 52), 24, _line(t.ink));
     final base = RRect.fromRectAndRadius(const Rect.fromLTWH(50, 74, 20, 14), const Radius.circular(4));
     _card(c, base, fill: t.sf2);
@@ -138,12 +134,12 @@ class _ArtPainter extends CustomPainter {
       ..lineTo(57, 48)
       ..lineTo(63, 56)
       ..lineTo(67, 46);
-    c.drawPath(fil, _line(t.pr, 2.6));
+    c.drawPath(fil, _line(t.ink, 2.6));
     const o = Offset(60, 52);
     for (final deg in [-160.0, -125.0, -90.0, -55.0, -20.0]) {
       final a = deg * math.pi / 180;
       final d = Offset(math.cos(a), math.sin(a));
-      c.drawLine(o + d * 31, o + d * 38, _line(t.pr, 2.6));
+      c.drawLine(o + d * 31, o + d * 38, _line(t.ink, 2.6));
     }
   }
 
@@ -158,23 +154,21 @@ class _ArtPainter extends CustomPainter {
       ..lineTo(26, 56)
       ..arcToPoint(const Offset(26, 38), radius: const Radius.circular(9), clockwise: false)
       ..close();
-    c.drawPath(body.shift(const Offset(0, 3)), _fill(t.shadow.withValues(alpha: .10)));
     c.drawPath(body, _fill(t.sf));
     c.drawPath(body, _line(t.ink));
-    final dash = _line(t.bd, 2);
+    final dash = _line(t.bdStrong, 2);
     for (var y = 42.0; y < 82; y += 8) {
       c.drawLine(Offset(78, y), Offset(78, y + 4), dash);
     }
     c.drawLine(const Offset(36, 52), const Offset(66, 52), _line(t.ink, 2.8));
-    c.drawLine(const Offset(36, 64), const Offset(60, 64), _line(t.bd, 3));
-    c.drawLine(const Offset(36, 74), const Offset(52, 74), _line(t.bd, 3));
-    c.drawCircle(const Offset(86, 61), 5, _fill(t.pr));
+    c.drawLine(const Offset(36, 64), const Offset(60, 64), _line(t.bdStrong, 3));
+    c.drawLine(const Offset(36, 74), const Offset(52, 74), _line(t.bdStrong, 3));
+    c.drawCircle(const Offset(86, 61), 5, _fill(t.ink));
   }
 
   // Konuşma balonu + soru işareti: yardım.
   void _help(Canvas c) {
     final bubble = RRect.fromRectAndRadius(const Rect.fromLTWH(26, 26, 68, 50), const Radius.circular(16));
-    c.drawRRect(bubble.shift(const Offset(0, 3)), _fill(t.shadow.withValues(alpha: .10)));
     final tail = Path()
       ..moveTo(44, 74)
       ..lineTo(40, 92)
@@ -188,8 +182,8 @@ class _ArtPainter extends CustomPainter {
       ..moveTo(52, 46)
       ..arcToPoint(const Offset(68, 46), radius: const Radius.circular(8), clockwise: true)
       ..cubicTo(68, 52, 60, 52, 60, 58);
-    c.drawPath(q, _line(t.pr, 3));
-    c.drawCircle(const Offset(60, 66), 2.2, _fill(t.pr));
+    c.drawPath(q, _line(t.ink, 3));
+    c.drawCircle(const Offset(60, 66), 2.2, _fill(t.ink));
   }
 
   @override

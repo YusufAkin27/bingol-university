@@ -26,7 +26,7 @@ class ClubBtn extends StatelessWidget {
     final (bg, fg) = switch (kind) {
       ClubBtnKind.neutral => (t.sf2, t.ink),
       ClubBtnKind.danger => (t.danger, t.onPr),
-      ClubBtnKind.primary => (t.prText, t.onPr),
+      ClubBtnKind.primary => (t.pr, t.onPr),
       ClubBtnKind.ink => (t.ink, t.bg),
     };
     final on = onPressed != null && !busy;
@@ -49,7 +49,8 @@ class ClubBtn extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               color: on || busy ? bg : bg.withValues(alpha: .45),
-              borderRadius: BorderRadius.circular(BuRadius.md),
+              borderRadius: BorderRadius.circular(BuRadius.control),
+              border: kind == ClubBtnKind.neutral ? Border.all(color: t.bd) : null,
             ),
             alignment: Alignment.center,
             child: Row(
@@ -80,7 +81,7 @@ class ClubBtn extends StatelessWidget {
 // ---------------------------------------------------------------------------------------------------------------
 // Simge kutusu / daire
 
-/// Yuvarlatılmış kare (ya da daire) içinde simge: tonlu zemin. [danger] marka-kırmızı tonu verir.
+/// Yuvarlatılmış kare (ya da daire) içinde simge: tonlu zemin. [danger] hata/silme tonu (`dangerSoft` + `danger`) verir.
 class ClubIconBox extends StatelessWidget {
   const ClubIconBox({super.key, required this.icon, this.size = 40, this.danger = false, this.circle = false, this.iconSize});
 
@@ -98,11 +99,11 @@ class ClubIconBox extends StatelessWidget {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: danger ? t.soft : t.sf2,
+          color: danger ? t.dangerSoft : t.sf2,
           shape: circle ? BoxShape.circle : BoxShape.rectangle,
           borderRadius: circle ? null : BorderRadius.circular(size * .3),
         ),
-        child: Icon(icon, size: iconSize ?? size * .46, color: danger ? t.pr : t.ink),
+        child: Icon(icon, size: iconSize ?? size * .46, color: danger ? t.danger : t.ink),
       ),
     );
   }
@@ -158,14 +159,14 @@ class ClubSheetRow extends StatelessWidget {
                     Text(title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: tx.titleSmall!.copyWith(color: danger ? t.prText : t.ink, fontWeight: FontWeight.w400)),
+                        style: tx.titleSmall!.copyWith(color: danger ? t.danger : t.ink, fontWeight: FontWeight.w400)),
                     if (subtitle != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 2),
                         child: Text(subtitle!,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: tx.bodySmall!.copyWith(color: danger ? t.prText : t.mut)),
+                            style: tx.bodySmall!.copyWith(color: danger ? t.danger : t.mut)),
                       ),
                   ],
                 ),
@@ -173,7 +174,7 @@ class ClubSheetRow extends StatelessWidget {
               if (trailing != null) ...[const SizedBox(width: 8), trailing!],
               if (showChevron) ...[
                 const SizedBox(width: 8),
-                ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 18, color: danger ? t.pr : t.mut)),
+                ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 18, color: danger ? t.danger : t.mut)),
               ],
             ],
           ),
@@ -263,7 +264,7 @@ class ClubDialogCard extends StatelessWidget {
       elevation: 0,
       surfaceTintColor: t.sf3.withValues(alpha: 0),
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(BuRadius.xl)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(BuRadius.lg)),
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
         child: Column(
@@ -343,13 +344,13 @@ Future<String?> showClubDropdown(BuildContext anchor, List<ClubMenuEntry> entrie
           height: 48,
           child: Row(
             children: [
-              ExcludeSemantics(child: Icon(e.icon, size: 20, color: e.danger ? t.pr : t.ink)),
+              ExcludeSemantics(child: Icon(e.icon, size: 20, color: e.danger ? t.danger : t.ink)),
               const SizedBox(width: 14),
               Expanded(
                 child: Text(e.label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: tx.titleSmall!.copyWith(color: e.danger ? t.prText : t.ink, fontWeight: FontWeight.w400)),
+                    style: tx.titleSmall!.copyWith(color: e.danger ? t.danger : t.ink, fontWeight: FontWeight.w400)),
               ),
               if (e.count > 0) ...[const SizedBox(width: 10), BuCountBadge(e.count)],
             ],
@@ -385,7 +386,7 @@ class ClubLockCard extends StatelessWidget {
             Stack(
               clipBehavior: Clip.none,
               children: [
-                ClubIconBox(icon: icon, size: 56, danger: true, circle: true, iconSize: 26),
+                ClubIconBox(icon: icon, size: 56, circle: true, iconSize: 26),
                 if (badge != null)
                   PositionedDirectional(
                     end: -4,
@@ -410,7 +411,7 @@ class ClubLockCard extends StatelessWidget {
   }
 }
 
-/// Simge kutulu bilgi/uyarı kartı: başlık + gövde (+ isteğe bağlı eylem). [tone]: soft (kırmızı), warn (kehribar), neutral.
+/// Simge kutulu bilgi/uyarı kartı: başlık + gövde (+ isteğe bağlı eylem). [tone]: soft (nötr dolgulu), warn (kehribar), neutral (kenarlıklı).
 enum ClubNoteTone { soft, warn, neutral }
 
 class ClubNoteCard extends StatelessWidget {
@@ -430,15 +431,15 @@ class ClubNoteCard extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final (bg, fg, iconBg) = switch (tone) {
-      ClubNoteTone.soft => (t.soft, t.onSoft, t.pr.withValues(alpha: .14)),
+      ClubNoteTone.soft => (t.sf2, t.ink, t.sf3),
       ClubNoteTone.warn => (t.warnSoft, t.onWarnSoft, t.warn.withValues(alpha: .18)),
-      ClubNoteTone.neutral => (t.sf, t.ink, t.soft),
+      ClubNoteTone.neutral => (t.sf, t.ink, t.sf2),
     };
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(BuRadius.lg),
+        borderRadius: BorderRadius.circular(BuRadius.md),
         border: tone == ClubNoteTone.neutral ? Border.all(color: t.bd) : null,
       ),
       child: Row(
@@ -449,7 +450,7 @@ class ClubNoteCard extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(12)),
-              child: Icon(icon, size: 20, color: tone == ClubNoteTone.warn ? t.warn : t.pr),
+              child: Icon(icon, size: 20, color: tone == ClubNoteTone.warn ? t.warn : t.ink),
             ),
           ),
           const SizedBox(width: 12),

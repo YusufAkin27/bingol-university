@@ -28,7 +28,7 @@ class Et2BottomBar extends StatelessWidget {
 }
 
 /// İki (ya da daha çok) seçenekli segment: "Herkes katılabilir | İstek ile". Seçili parça kayarak yer değiştirir
-/// (marka tonu), yazı seçiliyken `onSoft`.
+/// (ters renk: `pr` zemin), yazı seçiliyken `onPr`.
 class Et2Segment<T> extends StatelessWidget {
   const Et2Segment({
     super.key,
@@ -73,7 +73,7 @@ class Et2Segment<T> extends StatelessWidget {
                 widthFactor: 1 / n,
                 heightFactor: 1,
                 child: DecoratedBox(
-                  decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(12)),
+                  decoration: BoxDecoration(color: t.pr, borderRadius: BorderRadius.circular(12)),
                 ),
               ),
             ),
@@ -102,7 +102,7 @@ class Et2Segment<T> extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       if (icons != null && i < icons!.length) ...[
-                        ExcludeSemantics(child: Icon(icons![i], size: 16, color: i == sel ? t.prText : t.mut)),
+                        ExcludeSemantics(child: Icon(icons![i], size: 16, color: i == sel ? t.onPr : t.mut)),
                         const SizedBox(width: 6),
                       ],
                       Flexible(
@@ -113,7 +113,7 @@ class Et2Segment<T> extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: tx.labelLarge!.copyWith(
                             fontWeight: FontWeight.w400,
-                            color: i == sel ? t.onSoft : (enabled ? t.ink : t.mut.withValues(alpha: .6)),
+                            color: i == sel ? t.onPr : (enabled ? t.ink : t.mut.withValues(alpha: .6)),
                           ),
                           child: Text(options[i].$2, maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center),
                         ),
@@ -277,8 +277,8 @@ class Et2IconBox extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
-        decoration: BoxDecoration(color: tint?.bg ?? t.soft, borderRadius: BorderRadius.circular(BuRadius.xs + 4)),
-        child: Icon(icon, size: size * .55, color: tint?.fg ?? t.pr),
+        decoration: BoxDecoration(color: tint?.bg ?? t.sf2, borderRadius: BorderRadius.circular(BuRadius.xs + 4)),
+        child: Icon(icon, size: size * .55, color: tint?.fg ?? t.ink),
       ),
     );
   }
@@ -534,7 +534,7 @@ class Et2GhostButton extends StatelessWidget {
   }
 }
 
-/// Takvim yaprağı biçimli tarih kutusu (kapak üstü): üstte marka şeridinde ay, altta gün.
+/// Takvim yaprağı biçimli tarih kutusu (kapak üstü): üstte ters renk (`pr`) şeritte ay, altta gün; gölge yok, ince kenarlık.
 class Et2DateChip extends StatelessWidget {
   const Et2DateChip({super.key, required this.month, required this.day});
 
@@ -552,7 +552,7 @@ class Et2DateChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: t.sf,
           borderRadius: BorderRadius.circular(BuRadius.md),
-          boxShadow: [BoxShadow(color: t.shadow.withValues(alpha: .35), blurRadius: 18, offset: const Offset(0, 8), spreadRadius: -8)],
+          border: Border.all(color: t.bd),
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(children: [
@@ -612,7 +612,6 @@ class Et2CircleButton extends StatelessWidget {
                 color: t.sf,
                 shape: BoxShape.circle,
                 border: Border.all(color: t.bd),
-                boxShadow: [BoxShadow(color: t.shadow.withValues(alpha: .3), blurRadius: 16, offset: const Offset(0, 6), spreadRadius: -10)],
               ),
               child: Icon(icon, size: 20, color: t.ink),
             ),
@@ -729,7 +728,7 @@ class Et2ErrorRow extends StatelessWidget {
                   alignment: Alignment.center,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.pill)),
+                    decoration: BoxDecoration(color: t.sf, border: Border.all(color: t.bd), borderRadius: BorderRadius.circular(BuRadius.control)),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       Icon(BuIcons.refreshCw, size: 14, color: t.danger),
                       const SizedBox(width: 6),
@@ -786,7 +785,7 @@ class Et2SectionTitle extends StatelessWidget {
 }
 
 
-/// Nötr gri dolgulu düğme (Vazgeç / geri dön): pembe tonal yerine soğuk gri zemin, koyu yazı. 48 dp.
+/// Nötr ikincil düğme (Vazgeç / geri dön): `sf` zemin + ince kenarlık, `ink` yazı. 48 dp.
 class Et2GreyButton extends StatelessWidget {
   const Et2GreyButton({super.key, required this.label, required this.onPressed, this.icon, this.compact = false});
 
@@ -794,7 +793,7 @@ class Et2GreyButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final IconData? icon;
 
-  /// true: içeriği kadar genişler (hap).
+  /// true: içeriği kadar genişler.
   final bool compact;
 
   @override
@@ -815,8 +814,9 @@ class Et2GreyButton extends StatelessWidget {
           constraints: const BoxConstraints(minHeight: 48),
           padding: const EdgeInsets.symmetric(horizontal: 20),
           decoration: BoxDecoration(
-            color: t.mut.withValues(alpha: .12),
-            borderRadius: BorderRadius.circular(compact ? BuRadius.pill : BuRadius.md),
+            color: t.sf,
+            border: Border.all(color: t.bdStrong),
+            borderRadius: BorderRadius.circular(BuRadius.control),
           ),
           child: Row(
             mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,

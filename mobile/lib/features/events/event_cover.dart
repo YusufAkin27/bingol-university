@@ -23,8 +23,8 @@ class EventCoverImage extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     Widget holder() => ColoredBox(
-          color: t.soft,
-          child: Center(child: Icon(BuIcons.image, size: 26, color: t.onSoft.withValues(alpha: .6))),
+          color: t.sf2,
+          child: Center(child: Icon(BuIcons.image, size: 26, color: t.mut)),
         );
     final dbg = debugProvider;
     if (dbg != null) {

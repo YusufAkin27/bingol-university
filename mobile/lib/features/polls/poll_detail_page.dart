@@ -503,7 +503,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
                           child: FractionallySizedBox(
                             widthFactor: v,
                             heightFactor: 1,
-                            child: DecoratedBox(decoration: BoxDecoration(color: t.pr, borderRadius: BuRadius.bPill)),
+                            child: DecoratedBox(decoration: BoxDecoration(color: t.ink, borderRadius: BuRadius.bPill)),
                           ),
                         ),
                       ),
@@ -566,8 +566,8 @@ class _OptionTile extends StatelessWidget {
             curve: BuMotion.standard,
             decoration: BoxDecoration(
               color: on ? t.soft : t.sf,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: on ? t.pr : Colors.transparent, width: 1.5),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: on ? t.ink : t.bd, width: 1.5),
             ),
             child: Material(
               type: MaterialType.transparency,

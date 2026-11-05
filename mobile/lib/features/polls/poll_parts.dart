@@ -94,7 +94,7 @@ class ResultBar extends StatelessWidget {
     final l = context.l10n;
     final pct = percent.round();
     final lead = top && percent > 0;
-    final fill = (mine || lead) ? t.pr : Color.alphaBlend(t.mut.withValues(alpha: .18), t.sf2);
+    final fill = (mine || lead) ? t.ink : Color.alphaBlend(t.mut.withValues(alpha: .18), t.sf2);
     final frac = (percent / 100).clamp(0, 1).toDouble();
     final name = tx.bodyLarge!.copyWith(fontSize: 16, color: t.ink, fontWeight: (mine || lead) ? FontWeight.w400 : FontWeight.w400, height: 1.3);
     final small = tx.bodySmall!.copyWith(color: t.mut, fontSize: 12, height: 1.35);

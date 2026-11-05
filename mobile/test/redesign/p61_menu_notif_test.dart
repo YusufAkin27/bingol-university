@@ -139,7 +139,7 @@ void main() {
       expect(filled, isEmpty);
     });
 
-    testWidgets('gun seridi: hap 42 x 48 dp, secili soft zemin + pr metin, digerlerinde zemin yok', (tester) async {
+    testWidgets('gun seridi: hap 42 x 48 dp, secili ters renk (pr) zemin + onPr metin, digerlerinde zemin yok', (tester) async {
       final n = DateTime.now();
       final d0 = DateTime(n.year, n.month, n.day);
       await _show(tester, Scaffold(body: MenuDayStrip(days: [for (var i = -2; i <= 4; i++) d0.add(Duration(days: i))], selected: d0, onSelect: (_) {})));
@@ -147,7 +147,7 @@ void main() {
       final pill = find.descendant(of: find.byKey(key), matching: find.byType(AnimatedContainer));
       expect(tester.getSize(pill).width, 42);
       expect(tester.getSize(find.byKey(key)).height, greaterThanOrEqualTo(48));
-      expect((tester.widget<AnimatedContainer>(pill).decoration as BoxDecoration).color, BuTokens.light.soft);
+      expect((tester.widget<AnimatedContainer>(pill).decoration as BoxDecoration).color, BuTokens.light.pr);
       final o = d0.add(const Duration(days: 1));
       final other = find.descendant(of: find.byKey(ValueKey('yemek_day_${o.year}-${o.month}-${o.day}')), matching: find.byType(AnimatedContainer));
       expect((tester.widget<AnimatedContainer>(other).decoration as BoxDecoration).color!.a, 0);

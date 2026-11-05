@@ -98,7 +98,7 @@ class EtkinlikPill extends StatelessWidget {
     final body = Container(
       constraints: BoxConstraints(minHeight: tappable ? 36 : 30),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-      decoration: ShapeDecoration(color: bg, shape: const StadiumBorder()),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(BuRadius.control)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         if (busy)
           SizedBox(
@@ -227,7 +227,7 @@ class EtkinlikActionButton extends StatelessWidget {
         child: Container(
           constraints: const BoxConstraints(minHeight: BuSize.button),
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(color: bg, borderRadius: BuRadius.bControl, border: selected ? Border.all(color: t.pr, width: 1.5) : null),
+          decoration: BoxDecoration(color: bg, borderRadius: BuRadius.bControl, border: selected ? Border.all(color: t.pr, width: 1.5) : (primary || off ? null : Border.all(color: t.bd))),
           child: Row(mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: [
             if (busy)
               SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: fg))
@@ -312,11 +312,11 @@ class EtkinlikSubChips extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: i == selected ? t.soft : t.sf,
+                    color: i == selected ? t.pr : t.sf,
                     borderRadius: BorderRadius.circular(BuRadius.pill),
-                    border: Border.all(color: i == selected ? t.selectedBorder : t.bd),
+                    border: Border.all(color: i == selected ? t.pr : t.bd),
                   ),
-                  child: Text(labels[i], style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w400, color: i == selected ? t.onSoft : t.mut)),
+                  child: Text(labels[i], style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w400, color: i == selected ? t.onPr : t.mut)),
                 ),
               ),
             ),
@@ -382,13 +382,13 @@ class EtkinlikEmptyCard extends StatelessWidget {
     final tx = Theme.of(context).textTheme;
     return BuCard(
       padding: const EdgeInsets.fromLTRB(20, 28, 20, 24),
-      radius: 20,
+      radius: 16,
       child: Column(children: [
         ExcludeSemantics(
           child: Container(
             width: 64,
             height: 64,
-            decoration: BoxDecoration(color: t.tint(1).bg, shape: BoxShape.circle),
+            decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
             child: Icon(icon, size: 28, color: t.ink),
           ),
         ),

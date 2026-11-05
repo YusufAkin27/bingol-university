@@ -424,7 +424,7 @@ class ClubJoinButton extends StatelessWidget {
           child: Container(
             constraints: const BoxConstraints(minWidth: 60, minHeight: 36),
             padding: const EdgeInsets.symmetric(horizontal: 17),
-            decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(18), border: Border.all(color: t.bdStrong)),
+            decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(16), border: Border.all(color: t.bdStrong)),
             child: Center(
               widthFactor: 1,
               child: busy
