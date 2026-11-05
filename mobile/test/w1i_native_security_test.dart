@@ -109,6 +109,8 @@ void main() {
       final exported = RegExp(r'<(activity|receiver|service|provider)\b[^>]*android:exported="true"[^>]*>')
           .allMatches(manifest)
           .map((m) => m.group(0)!)
+          // FCM alicisi yalniz Google'in SEND izniyle korunur (baska uygulama sahte yayin basamaz): izinli, zorunlu istisna.
+          .where((c) => !c.contains('android:permission="com.google.android.c2dm.permission.SEND"'))
           .toList();
       expect(exported, hasLength(1), reason: exported.join('\n'));
       expect(exported.single, contains('android:name=".MainActivity"'));

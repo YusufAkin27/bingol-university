@@ -87,4 +87,18 @@ void main() {
     expect(be.bodies['POST /conversations/4/messages'],
         {'text': 'Merhaba', 'clientId': 'reply-2', 'replyToMessageId': 19});
   });
+  test('QR ile Giris (checkin) etkinligi tarayici odakli acar, sunucu durumunu degistirmez', () async {
+    final be = FakeBackend();
+    Map<String, dynamic>? opened;
+    bool focus = false;
+    final actions = PushActions(makeSession(be)..state = SessionState.signedIn,
+        open: (data, {bool compose = false}) async {
+      opened = data;
+      focus = compose;
+    });
+    expect(await actions.perform({'notificationAction': 'checkin', 'eventId': '12', 'actionId': 'ci-1'}), isTrue);
+    expect(opened?['eventId'], '12');
+    expect(focus, isTrue);
+    expect(be.requests, isEmpty);
+  });
 }

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bildirim karti (RemoteViews) renkleri: kart her zaman beyaz zeminlidir (tasarim: bildirim-ekranlari). -->
+<resources>
+    <color name="push_brand">#ED211B</color>
+    <color name="push_navy">#171E33</color>
+    <color name="push_muted">#515460</color>
+    <color name="push_red_fg">#CE0012</color>
+    <color name="push_red_bg">#FDE9E7</color>
+    <color name="push_blue_fg">#2F4FB5</color>
+    <color name="push_blue_bg">#E4EAFB</color>
+    <color name="push_purple_fg">#5B3FB0</color>
+    <color name="push_purple_bg">#ECE6FB</color>
+    <color name="push_orange_fg">#C25A0B</color>
+    <color name="push_orange_bg">#FFEBDD</color>
+    <color name="push_green_fg">#1B7F4B</color>
+    <color name="push_green_bg">#E3F5EA</color>
+    <color name="push_gray_fg">#515460</color>
+    <color name="push_gray_bg">#ECEDEF</color>
+</resources>

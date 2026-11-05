@@ -39,10 +39,13 @@ String _fmtDate(BuildContext context, String pattern, DateTime d) {
 
 /// Etkinlik detayı: bilgi, RSVP, yoklama, organizatör araçları ve etkinlik sohbeti.
 class EventDetailPage extends StatefulWidget {
-  const EventDetailPage({super.key, required this.session, required this.eventId});
+  const EventDetailPage({super.key, required this.session, required this.eventId, this.autoScan = false});
 
   final Session session;
   final int eventId;
+
+  /// Bildirim "QR ile Giriş" düğmesi: yoklama açıksa ve katılımcıysa QR tarayıcı kendiliğinden açılır.
+  final bool autoScan;
 
   @override
   State<EventDetailPage> createState() => _EventDetailPageState();
@@ -60,6 +63,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
   bool _chatBusy = false;
   bool _checkBusy = false;
   bool _enterCode = false;
+  bool _autoScanned = false;
   String? _codeError;
   final _codeCtl = TextEditingController();
 
@@ -131,6 +135,11 @@ class _EventDetailPageState extends State<EventDetailPage> {
       try {
         final r = await api.get('$_path/my-attendance');
         if (mounted) setState(() => _myAtt = Map<String, dynamic>.from(r as Map));
+        final att = _myAtt;
+        if (mounted && widget.autoScan && !_autoScanned && att != null && att['checkInOpen'] == true && att['present'] != true) {
+          _autoScanned = true;
+          unawaited(_scan());
+        }
       } catch (_) {}
     } else if (mounted) {
       setState(() => _myAtt = null);

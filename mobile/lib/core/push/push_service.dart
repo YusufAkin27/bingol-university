@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 
 import '../../features/auth/permissions_page.dart';
+import '../api.dart' show apiOrigin;
 import '../locale_controller.dart';
 import '../notify/local_reminders.dart';
 import '../closed_conversations.dart';
@@ -194,6 +195,11 @@ class PushService with WidgetsBindingObserver {
         if (call.method == 'onTap' && call.arguments is Map) {
           await _nativePush(Map<String, dynamic>.from(call.arguments as Map));
         }
+        // Satır içi yanıt (Android RemoteInput): ekran açılmadan gönderilir; sonuç yerel koda döner (false/hata = "dokunarak gönder").
+        if (call.method == 'onAction' && call.arguments is Map) {
+          return await _actions.perform(Map<String, dynamic>.from(call.arguments as Map));
+        }
+        return null;
       });
     }
     try {
@@ -202,7 +208,11 @@ class PushService with WidgetsBindingObserver {
         WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_nativePush(payload)));
         WidgetsBinding.instance.scheduleFrame();
       }
-    } on MissingPluginException { /* Older native builds retain the FCM tap path. */ }
+    } on MissingPluginException {
+      /* Older native builds retain the FCM tap path. */
+    } on PlatformException {
+      /* Yerel köprü hatası açılışı düşürmez. */
+    }
   }
 
   /// Yerel hatırlatma dokunuşları (soğuk başlatma: bekleyen yük; ön plan: 'onTap') push ile aynı yönlendiriciye gider.
@@ -374,7 +384,13 @@ class PushService with WidgetsBindingObserver {
     }
     // Kullanıcıya özel yerel hatırlatmalar çıkışta silinir (başka hesapta görünmesin).
     unawaited(LocalReminders.instance.cancelAll());
-    try { await PushActions.channel.invokeMethod<void>('clear'); } on MissingPluginException { }
+    try {
+      await PushActions.channel.invokeMethod<void>('clear');
+    } on MissingPluginException {
+      /* Eski/yerel kod yok. */
+    } on PlatformException {
+      /* Yerel temizlik hatasi çıkışı engellemez. */
+    }
     final t = _token ?? registrar.token;
     _token = null;
     registrar.reset();
@@ -410,10 +426,11 @@ class PushService with WidgetsBindingObserver {
           final info = session.userId == null ? await session.api.get('/auth/me') : null;
           final current = session.userId ?? (info is Map ? int.tryParse((info['id'] as Object?)?.toString() ?? '') : null);
           if (session.state != SessionState.signedIn || current == null) throw StateError('No active push recipient');
-          await PushActions.channel.invokeMethod<void>('authorize', {'userId': current});
+          await PushActions.channel.invokeMethod<void>('authorize', {'userId': current, 'imageHost': Uri.tryParse(apiOrigin)?.host});
         }
       }
       on MissingPluginException { }
+      on PlatformException { rich = false; /* Yetenek/yetki kurulamadı: standart FCM kartı (zengin yük çizilemez). */ }
     }
     await _api.register(token, platform: Platform.isIOS ? 'IOS' : 'ANDROID', appVersion: _appVersion, richNotifications: rich);
     unawaited(_api.setState(token, active.foreground)); // uç yoksa sessiz
