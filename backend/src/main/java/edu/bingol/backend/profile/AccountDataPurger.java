@@ -70,7 +70,11 @@ public class AccountDataPurger {
             "DELETE FROM follow_request WHERE requester_id = ?",
             "DELETE FROM follow_request WHERE target_id = ?",
             // 2FA: guvenilen cihaz ozetleri (kisisel veri: cihaza bagli HMAC ozeti + platform/surum etiketi)
-            "DELETE FROM two_factor_device WHERE user_id = ?");
+            "DELETE FROM two_factor_device WHERE user_id = ?",
+            // Kampus Forum (E): bildirim tercihi ve bildirim tekrar defteri (eden / alici kimlikleri)
+            "DELETE FROM forum_notification_pref WHERE user_id = ?",
+            "DELETE FROM forum_notify_seen WHERE actor_id = ?",
+            "DELETE FROM forum_notify_seen WHERE recipient_user_id = ?");
 
     /** Serbest metinler temizlenir, satir (ve kimlik baglantisi) kalir; kullanici satiri anonimlestirildi. */
     public static final List<String> SCRUBS = List.of(

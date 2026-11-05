@@ -66,7 +66,7 @@ public class Message {
     private Long replyToMessageId;
 
     /** Icerik paylasimi (V1280): POST | REEL | NEWS | EVENT; yalnizca referans, kart okuma aninda hesaplanir. Ikisi birden dolu/bos. */
-    @Column(name = "share_type", length = 8)
+    @Column(name = "share_type", length = 16)
     private String shareType;
 
     @Column(name = "share_ref_id")

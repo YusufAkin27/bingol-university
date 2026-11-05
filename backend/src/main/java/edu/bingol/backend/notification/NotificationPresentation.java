@@ -31,7 +31,7 @@ public final class NotificationPresentation {
         return switch (type) {
             case MESSAGE -> "MESSAGE";
             case EVENT -> "EVENT";
-            case POST_LIKE, POST_COMMENT, COMMENT_REPLY, POST_MENTION, USER_FOLLOW, FOLLOW_REQUEST, FOLLOW_ACCEPTED -> "SOCIAL";
+            case POST_LIKE, POST_COMMENT, COMMENT_REPLY, POST_MENTION, USER_FOLLOW, FOLLOW_REQUEST, FOLLOW_ACCEPTED, FORUM -> "SOCIAL";
             case SYSTEM -> "SYSTEM";
             case NEWS, ANNOUNCEMENT, COMMUNITY -> "ANNOUNCEMENT";
         };

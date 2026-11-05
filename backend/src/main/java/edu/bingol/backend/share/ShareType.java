@@ -3,12 +3,14 @@ package edu.bingol.backend.share;
 import java.util.Locale;
 
 /**
- * Paylasilabilir icerik turleri ve herkese acik baglantidaki tek harfli kodlari
+ * Paylasilabilir icerik turleri ve herkese acik baglantidaki kodlari
  * ({@code https://bukampus.com.tr/s/{kod}/{id}}). POST ve REEL ayni gonderi tablosundan cozulur
  * (REEL = video gonderi; kod yalniz uygulamada hangi sekmede acilacagini soyler).
  */
 public enum ShareType {
-    POST("p"), REEL("r"), NEWS("n"), EVENT("e");
+    POST("p"), REEL("r"), NEWS("n"), EVENT("e"),
+    // Kampus Forum (E): konu `/s/f/{konuId}`, yorum `/s/fc/{yorumId}` (kod tek harfle sinirli degil)
+    FORUM_TOPIC("f"), FORUM_COMMENT("fc");
 
     private final String code;
 
@@ -49,5 +51,9 @@ public enum ShareType {
 
     public boolean isPost() {
         return this == POST || this == REEL;
+    }
+
+    public boolean isForum() {
+        return this == FORUM_TOPIC || this == FORUM_COMMENT;
     }
 }
