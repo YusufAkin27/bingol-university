@@ -40,3 +40,5 @@ Hız sınırı: oy ver / geri al 60/dk (kullanıcı başına ortak anahtar `foru
 - Görünmez konu da, anketsiz konu da 404 `FORUM_POLL_NOT_FOUND` (A'nın hata koduna bağımlılık yok).
 - Kilitli konuda oy 409 `FORUM_POLL_CLOSED` (kilitli konu = anket oylamaya kapalı); `Poll.closed` yalnız `ends_at`'a bakar, `canVote` kilidi bilmez (A, `TopicView.locked` ile birlikte sunar).
 - `GET .../poll` eklendi (yukarıda).
+- `ForumTopicLookup` `ObjectProvider` ile alinir: A birlesmeden uygulama acilir (konu gorunmez sayilir, oy ucu 404); A birlesince normal calisir.
+- `AccountDataPurgerCoverageTest` bu dalda YALNIZ A alaninin tablolari icin kirmizidir (forum_topic.user_id, forum_media.owner_id, forum_topic_like/follow/bookmark/anon_alias); C tablosu (`forum_poll_vote.user_id`) kayitlidir. Kararlari A ekler.
