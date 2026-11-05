@@ -133,7 +133,7 @@ void main() {
     await settle(tester);
     expect(find.text('Pzt'), findsOneWidget); // gun seridi (secili gun soft hap)
     expect(find.text('2'), findsOneWidget); // bugunun tarihi
-    expect(find.text(isolateIcs('Takvime aktar (.ics)')), findsOneWidget);
+    expect(find.text(isolateIcs('Takvime aktar (.ics)')), findsNothing); // takvime aktar kaldirildi
     expect(find.byTooltip('Ders ekle'), findsOneWidget); // ust satirdaki "+" 
     await unmount(tester);
   });

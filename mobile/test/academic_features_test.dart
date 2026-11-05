@@ -286,18 +286,6 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('ICS paylasimi', (tester) async {
-      useScreen(tester, kPhoneMedium);
-      final b = FakeBackend();
-      fakeAcademic(b).addCourse('Fizik', 1, '09:00', '10:50');
-      await tester.pumpWidget(buildApp(TimetablePage(session: makeSession(b)), size: kPhoneMedium));
-      await settle(tester);
-      await tester.tap(find.text(isolateIcs('Takvime aktar (.ics)')));
-      await settle(tester);
-      expect(platform.shared, contains('SUMMARY:Fizik'));
-      await unmount(tester);
-    });
-
     for (final br in Brightness.values) {
       for (final size in kPhoneSizes) {
         testWidgets('matris ${br.name} ${size.width.toInt()}', (tester) async {

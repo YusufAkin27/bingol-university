@@ -2,7 +2,6 @@ import '../../core/analytics.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
@@ -107,25 +106,6 @@ class _TimetablePageState extends State<TimetablePage> {
     }
   }
 
-  Future<void> _export() async {
-    final d = _data;
-    if (d == null || d.courses.isEmpty) {
-      academicToast(context, context.l10n.acadTimeExportNone, kind: BuToastKind.warning);
-      return;
-    }
-    final l = context.l10n;
-    var exams = <Exam>[];
-    try {
-      exams = await _api.exams();
-    } catch (_) {}
-    final ics = buildIcs(d.courses, d.semester, exams, l: l);
-    final shared = await ReminderService.platform.shareText(ics, 'bu-ders-programi.ics');
-    if (!shared) {
-      await Clipboard.setData(ClipboardData(text: ics));
-      if (mounted) academicToast(context, isolateIcs(context.l10n.acadTimeExportCopied), kind: BuToastKind.success);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
@@ -197,7 +177,6 @@ class _TimetablePageState extends State<TimetablePage> {
 
   List<Widget> _content(TimetableData data) {
     final l = context.l10n;
-    final t = context.bu;
     final sem = data.semester;
     final nowWall = istanbulWall(academicClock());
     if (sem == null && data.courses.isEmpty) {
@@ -293,13 +272,6 @@ class _TimetablePageState extends State<TimetablePage> {
           onAction: () => Navigator.of(context).push(MaterialPageRoute(settings: const RouteSettings(name: 'exams'), builder: (_) => ExamsPage(session: widget.session))),
         ),
       ],
-      Align(
-        alignment: AlignmentDirectional.centerStart,
-        child: Padding(
-          padding: const EdgeInsetsDirectional.only(start: 20),
-          child: AcadTextAction(isolateIcs(l.acadTimeExportTooltip), onTap: _export, size: 13, color: t.mut, semanticLabel: l.acadTimeExportTooltip),
-        ),
-      ),
       // Ders programı tamamlandığında: sabah derslerine 1 saat önceden haftalık alarm (Android Saat / iOS bildirim).
       AcadActionRow(
         icon: DeviceAlarmService.instance.usesClockApp ? BuIcons.alarmClock : BuIcons.bell,

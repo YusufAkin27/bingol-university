@@ -275,11 +275,6 @@ final _scenes = <_Scene>[
   _Scene('04c_gun_bos', (b) => TimetablePage(session: makeSession(b)), setup: _rich, now: _thu, height: 1000, after: (t) => _tapText(t, _l.acadTimeDayShort6)),
   _Scene('04d_bugun_kalan_yok', (b) => TimetablePage(session: makeSession(b)), setup: _rich, now: DateTime.utc(2026, 11, 5, 13, 0), height: 1100),
   _Scene('04e_hafta_bitti_donem_disi', (b) => TimetablePage(session: makeSession(b)), setup: _rich, now: DateTime.utc(2027, 2, 2, 5, 0), height: 1100),
-  _Scene('05c_ics_kopyalandi', (b) => TimetablePage(session: makeSession(b)), setup: _rich, now: _thu, height: 700, share: false, after: (t) async {
-    await t.tap(find.text(isolateIcs(_l.acadTimeExportTooltip)));
-    await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 300)));
-    await settle(t, const Duration(milliseconds: 700));
-  }),
   _Scene('05a_ders_hata', (b) => TimetablePage(session: makeSession(b)), setup: (b) {
     _fa(b);
     b.offline = true;
