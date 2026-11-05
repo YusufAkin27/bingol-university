@@ -2,8 +2,12 @@ import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/forum/data/forum_api.dart';
 import 'package:bu_kampus/features/forum/data/forum_feed_controller.dart';
 import 'package:bu_kampus/features/forum/data/forum_models.dart';
+import 'package:bu_kampus/features/forum/presentation/pages/forum_activity_page.dart';
 import 'package:bu_kampus/features/forum/presentation/pages/forum_home_page.dart';
 import 'package:bu_kampus/features/forum/presentation/pages/forum_placeholder_page.dart';
+import 'package:bu_kampus/features/forum/presentation/pages/forum_prefs_page.dart';
+import 'package:bu_kampus/features/forum/presentation/pages/forum_saved_page.dart';
+import 'package:bu_kampus/features/forum/presentation/pages/forum_search_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -273,7 +277,7 @@ void main() {
       expect(find.byType(ForumPlaceholderPage), findsNothing);
       await tester.tap(find.byKey(const ValueKey('forum-search')));
       await settle(tester);
-      expect(find.byType(ForumPlaceholderPage), findsOneWidget);
+      expect(find.byType(ForumSearchPage), findsOneWidget); // MB-D gerçek arama sayfası
       await unmount(tester);
     });
 
@@ -355,8 +359,9 @@ void main() {
         await settle(tester);
         await tester.tap(find.byKey(ValueKey('forum-more-menu-$i')));
         await settle(tester);
-        expect(find.byType(ForumPlaceholderPage), findsOneWidget);
-        await tester.pageBack();
+        // Sıra: kaydedilenler, faaliyetim, bildirim tercihleri (MB-D gerçek sayfaları).
+        expect(find.byType([ForumSavedPage, ForumActivityPage, ForumPrefsPage][i]), findsOneWidget);
+        await tester.tap(find.byTooltip('Geri')); // ForumPageBar: başlıksız üst çubukta geri düğmesi
         await settle(tester);
       }
       await unmount(tester);

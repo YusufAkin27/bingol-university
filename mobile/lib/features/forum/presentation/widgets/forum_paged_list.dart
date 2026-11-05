@@ -17,6 +17,9 @@ abstract interface class ForumListHandle<T> {
   /// Öğeyi çıkarır; döndürülen işlev öğeyi eski yerine geri koyar (hata geri alması).
   VoidCallback removeWhere(bool Function(T) test);
 
+  /// [test]'e uyan TÜM öğeleri çıkarır (yazar engeli/sessize alma).
+  void removeAllWhere(bool Function(T) test);
+
   Future<void> reload();
 }
 
@@ -152,6 +155,12 @@ class ForumPagedListState<T> extends State<ForumPagedList<T>> implements ForumLi
     final i = _items.indexWhere(test);
     if (i < 0) return;
     setState(() => _items[i] = next);
+  }
+
+  @override
+  void removeAllWhere(bool Function(T) test) {
+    if (!_items.any(test)) return;
+    setState(() => _items.removeWhere(test));
   }
 
   @override

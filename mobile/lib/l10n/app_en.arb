@@ -658,6 +658,7 @@
   "shareChatAnnouncementShared": "Shared an announcement",
   "shareChatEventShared": "Shared an event",
   "forumActivityAnonBadge": "Anonymous",
+  "forumActivityAnonBadgeLong": "Anonymous post: only you can see this",
   "forumActivityAnonymous": "Anonymous",
   "forumActivityCommentDeleted": "This comment was deleted",
   "forumActivityCounts": "{likes} likes, {comments} comments",

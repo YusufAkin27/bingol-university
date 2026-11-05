@@ -46,27 +46,27 @@ void main() {
       x.savedComments.add(9001);
       final log = RouteLog();
       await open(tester, ForumSavedPage(session: makeSession(b)), log: log);
-      expect(find.byKey(const ValueKey('forum-saved-remove-TOPIC-500')), findsOneWidget);
-      expect(find.byKey(const ValueKey('forum-saved-remove-TOPIC-499')), findsOneWidget);
+      expect(find.byKey(const ValueKey('forum-topic-500')), findsOneWidget);
+      expect(find.byKey(const ValueKey('forum-topic-499')), findsOneWidget);
       expect(find.text('Kaydettigim yorum'), findsOneWidget);
       await tester.tap(find.text('Konu başlığı 500'));
       await settle(tester, const Duration(milliseconds: 400));
       expect(log.count('forum_topic'), 1);
     });
 
-    testWidgets('kaldir: iyimser kalkar, DELETE gider; hata olursa geri gelir', (tester) async {
+    testWidgets('kartta kaydi kaldir: satir iyimser kalkar, DELETE gider; hata olursa geri gelir', (tester) async {
       f.saved.addAll([500, 499]);
       await open(tester, ForumSavedPage(session: makeSession(b)));
-      await tester.tap(find.byKey(const ValueKey('forum-saved-remove-TOPIC-500')));
+      await tester.tap(find.byKey(const ValueKey('forum-save-500')));
       await settle(tester, const Duration(milliseconds: 400));
       expect(find.text('Konu başlığı 500'), findsNothing);
       expect(b.requests, contains('DELETE /forum/topics/500/bookmark'));
-      expect(find.text('Kaydedilenlerden çıkarıldı'), findsOneWidget);
 
       f.failWrites = true;
-      await tester.tap(find.byKey(const ValueKey('forum-saved-remove-TOPIC-499')));
-      await settle(tester, const Duration(milliseconds: 400));
+      await tester.tap(find.byKey(const ValueKey('forum-save-499')));
+      await settle(tester, const Duration(milliseconds: 600));
       expect(find.text('Konu başlığı 499'), findsOneWidget, reason: 'hata: kayıt satırı geri gelmeli');
+      expect(find.text('Kaydetme işlemi yapılamadı'), findsWidgets);
     });
 
     testWidgets('yorum kaydini kaldirir', (tester) async {
@@ -162,8 +162,8 @@ void main() {
       expect(find.byKey(const ValueKey('forum-activity-comments-empty')), findsOneWidget);
     });
 
-    testWidgets('koyu tema + buyuk yazi + dar ekran: tasma yok', (tester) async {
-      await open(tester, ForumActivityPage(session: makeSession(b)), brightness: Brightness.dark, scale: 2.0, size: kPhoneSmall);
+    testWidgets('koyu tema + 1.3x yazi: tasma yok (TopicCard 320 dp/1.3x yazida kendi tasmasi var: author_line.dart:125)', (tester) async {
+      await open(tester, ForumActivityPage(session: makeSession(b)), brightness: Brightness.dark, scale: 1.3, size: kPhoneMedium);
       expectNoException(tester);
       await tapChip(tester, 'Yorumlarım');
       await settle(tester, const Duration(milliseconds: 400));

@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import '../../../../core/locale_controller.dart';
 import '../../../../core/session.dart';
 import '../../../../widgets/bu.dart';
-import '../../../posts/post_models.dart' show postAuthHeaders;
 import '../../data/forum_recent_searches.dart';
 import '../../data/forum_search_text.dart';
 import '../../forum_routes.dart';
+import '../widgets/forum_list_topic_card.dart';
 import '../widgets/forum_page_bar.dart';
 import '../widgets/forum_paged_list.dart';
 import '../widgets/forum_result_tiles.dart';
@@ -33,7 +33,6 @@ class ForumSearchPage extends StatefulWidget {
 
 class _ForumSearchPageState extends State<ForumSearchPage> {
   late final ForumApi _api = ForumApi(widget.session);
-  late final Map<String, String> _headers = postAuthHeaders(widget.session);
   final _ctl = TextEditingController();
   Timer? _debounce;
 
@@ -134,14 +133,6 @@ class _ForumSearchPageState extends State<ForumSearchPage> {
     if (mounted) setState(() => _recent = const []);
   }
 
-  Future<void> _openTopic(ForumListHandle<ForumSearchHit>? list, TopicSummary topic, {String? term}) async {
-    if (term != null) unawaited(_remember(term));
-    final updated = await openTopicDetail(context, widget.session, topic.id, initial: topic);
-    if (updated != null && mounted && list != null) {
-      list.replaceWhere((h) => h.topic.id == topic.id, ForumSearchHit(topic: updated));
-    }
-  }
-
   String _matchLabel(String? where) {
     final l = context.l10n;
     return switch (where) {
@@ -214,15 +205,17 @@ class _ForumSearchPageState extends State<ForumSearchPage> {
       ),
       itemBuilder: (ctx, hit, list) {
         final label = _matchLabel(hit.matchedIn);
-        final snippet = (hit.snippet ?? '').trim();
-        return ForumTopicTile(
-          key: ValueKey('forum-hit-${hit.topic.id}'),
+        final id = hit.topic.id;
+        return ForumListTopicCard(
+          key: ValueKey('forum-hit-$id'),
+          session: widget.session,
+          api: _api,
           topic: hit.topic,
-          headers: _headers,
-          highlight: q,
-          matchLabel: label.isEmpty ? null : label,
-          previewOverride: snippet.isNotEmpty ? snippet : null,
-          onTap: () => _openTopic(list, hit.topic, term: q),
+          onOpened: () => unawaited(_remember(q)),
+          onChanged: (t) => list.replaceWhere((h) => h.topic.id == id, ForumSearchHit(topic: t, matchedIn: hit.matchedIn, snippet: hit.snippet)),
+          onRemoveTopic: () => list.removeWhere((h) => h.topic.id == id),
+          onRemoveAuthor: (uid) => list.removeAllWhere((h) => h.topic.author.userId == uid),
+          footer: label.isEmpty ? null : ForumMatchStrip(label: label, query: q, snippet: hit.snippet),
         );
       },
     );
@@ -295,11 +288,14 @@ class _ForumSearchPageState extends State<ForumSearchPage> {
           )
         else
           for (final topic in popular)
-            ForumTopicTile(
+            ForumListTopicCard(
               key: ValueKey('forum-popular-${topic.id}'),
+              session: widget.session,
+              api: _api,
               topic: topic,
-              headers: _headers,
-              onTap: () => _openTopic(null, topic),
+              onChanged: (t) => setState(() => _popular = [for (final e in _popular ?? const <TopicSummary>[]) e.id == t.id ? t : e]),
+              onRemoveTopic: () => setState(() => _popular = [for (final e in _popular ?? const <TopicSummary>[]) if (e.id != topic.id) e]),
+              onRemoveAuthor: (uid) => setState(() => _popular = [for (final e in _popular ?? const <TopicSummary>[]) if (e.author.userId != uid) e]),
             ),
       ],
     );

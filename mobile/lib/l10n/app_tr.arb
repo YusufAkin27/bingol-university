@@ -1192,6 +1192,7 @@
   "shareChatAnnouncementShared": "Duyuru paylaştı",
   "shareChatEventShared": "Etkinlik paylaştı",
   "forumActivityAnonBadge": "Anonim",
+  "forumActivityAnonBadgeLong": "Anonim paylaşım: yalnız sen görürsün",
   "forumActivityAnonymous": "Anonim",
   "forumActivityCommentDeleted": "Bu yorum silindi",
   "forumActivityCounts": "{likes} beğeni, {comments} yorum",

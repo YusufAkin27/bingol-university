@@ -2,6 +2,16 @@
 
 Sözleşme: `FORUM_API.md` (§3). Bu not yalnız sözleşmeden küçük sapmaları, varsayımları ve ortak parçaları kaydeder.
 
+## Birleşim notları (MB-A ile)
+- Arama / kaydedilenler / faaliyet / başkasının faaliyeti listelerinde konu satırı MB-A'nın `TopicCard`ıdır
+  (`widgets/forum_list_topic_card.dart`: kart + altında isteğe bağlı şerit; arama eşleşme şeridi `ForumMatchStrip`, kendi anonim
+  konum için `ForumOwnAnonBadge`). Kart içi beğeni/kaydet/menü ana sayfadakiyle aynıdır; sonuçlar `ForumListHandle` ile listeye yansır.
+- `TopicCard` paylaş düğmesi artık gerçek paylaşım sayfasını açar (`openTopicShare`); menüdeki "Bağlantıyı kopyala" `shareForumTopic` olarak kaldı.
+- Yer tutucu (`ForumPlaceholderPage`) beklentisi olan MB-A testi (`forum_home_test.dart`) gerçek sayfa türlerine güncellendi; başlıksız
+  `ForumPageBar` standart geri düğmesi widget'ı olmadığından oradaki `pageBack` yerine `find.byTooltip('Geri')` kullanıldı.
+- BİLİNEN (MB-A bileşeni): `TopicCard` yazar satırı (`author_line.dart:125`) 320 dp + 1.3x ve üstü yazıda, ayrıca `topic_card.dart:144` eylem satırı
+  320 dp + 2.0x yazıda taşar; MB-D testleri bu yüzden kart içeren sayfalarda 390 dp + 1.3x ölçer.
+
 ## Ekranlar ve rotalar (`features/forum/forum_routes.dart`)
 - `openForumSearch` -> `ForumSearchPage`: 350 ms bekleme, en az 2 karakter, kategori çipleri, sıralama (İlgili/En yeni/Popüler),
   eşleşme etiketi (Başlıkta/Açıklamada/Yorumda/Kategoride) + vurgulu kesit (`t.prText`, kalın değil), imleçli sayfalama,

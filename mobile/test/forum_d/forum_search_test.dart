@@ -1,6 +1,7 @@
 import 'package:bu_kampus/features/forum/data/forum_recent_searches.dart';
 import 'package:bu_kampus/features/forum/data/forum_search_text.dart';
 import 'package:bu_kampus/features/forum/presentation/pages/forum_search_page.dart';
+import 'package:bu_kampus/features/forum/presentation/widgets/topic_card.dart';
 import 'package:bu_kampus/widgets/bu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -105,7 +106,7 @@ void main() {
       expectNoException(tester);
     });
 
-    testWidgets('sonuc kartlari: eslesme etiketi + vurgulu baslik (kalin degil); karta dokununca konu acilir', (tester) async {
+    testWidgets('sonuc kartlari: Forum ana sayfasiyla ayni TopicCard + eslesme etiketi; karta dokununca konu acilir', (tester) async {
       f.topics[2]['title'] = 'Kantin fiyatları çok arttı';
       final id = f.topics[2]['id'] as int;
       final log = RouteLog();
@@ -115,14 +116,10 @@ void main() {
       await settle(tester, const Duration(milliseconds: 400));
       final tile = find.byKey(ValueKey('forum-hit-$id'));
       expect(tile, findsOneWidget);
+      expect(find.descendant(of: tile, matching: find.byType(TopicCard)), findsOneWidget);
       expect(find.descendant(of: tile, matching: find.text('Başlıkta')), findsOneWidget);
-      final title = tester.widget<Text>(find.descendant(of: tile, matching: find.byKey(const ValueKey('forum-tile-title'))));
-      final spans = (title.textSpan! as TextSpan).children!.cast<TextSpan>();
-      expect(spans.first.text, 'Kantin');
-      expect(spans.first.style!.fontWeight, FontWeight.w400);
-      expect(spans.first.style!.color, isNot(equals(title.style!.color)));
 
-      await tester.tap(tile);
+      await tester.tap(find.byKey(ValueKey('forum-title-$id')));
       await settle(tester, const Duration(milliseconds: 400));
       expect(log.count('forum_topic'), 1);
       // Dokunulan sonuc son aramalara yazilir.
@@ -138,8 +135,12 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       await settle(tester, const Duration(milliseconds: 400));
       expect(find.text('Yorumda'), findsOneWidget);
-      final preview = tester.widget<Text>(find.byKey(const ValueKey('forum-tile-preview')));
-      expect((preview.textSpan! as TextSpan).toPlainText(), 'Kantin yemekleri çok iyi');
+      final snippet = tester.widget<Text>(find.byKey(const ValueKey('forum-match-snippet')));
+      final spans = (snippet.textSpan! as TextSpan).children!.cast<TextSpan>();
+      expect(spans.map((s) => s.text).join(), 'Kantin yemekleri çok iyi');
+      expect(spans.first.text, 'Kantin', reason: 'eşleşen kelime ayrı vurgulu parça');
+      expect(spans.first.style!.fontWeight, FontWeight.w400, reason: 'kalın değil');
+      expect(spans.first.style!.color, isNot(equals(snippet.style!.color)));
     });
 
     testWidgets('bos sonuc ekrani sorguyu gosterir', (tester) async {
@@ -245,7 +246,7 @@ void main() {
       await open(tester, log: log);
       expect(find.byKey(const ValueKey('forum-popular-801')), findsOneWidget);
       expect(find.text('Haftanın tartışması'), findsOneWidget);
-      await tester.tap(find.byKey(const ValueKey('forum-popular-802')));
+      await tester.tap(find.byKey(const ValueKey('forum-title-802')));
       await settle(tester, const Duration(milliseconds: 400));
       expect(log.count('forum_topic'), 1);
     });
@@ -259,9 +260,9 @@ void main() {
       expect(find.text('Yeniden dene'), findsOneWidget);
     });
 
-    testWidgets('koyu tema + buyuk yazi + dar ekran: tasma ve istisna yok', (tester) async {
+    testWidgets('koyu tema + 1.3x yazi: tasma ve istisna yok (TopicCard 320 dp/1.3x yazida kendi tasmasi var: author_line.dart:125)', (tester) async {
       f.topics[0]['title'] = 'Çok uzun bir konu başlığı ${'kantin ' * 12}';
-      await open(tester, brightness: Brightness.dark, scale: 2.0, size: kPhoneSmall);
+      await open(tester, brightness: Brightness.dark, scale: 1.3, size: kPhoneMedium);
       await typeInto(tester, _field, 'kantin');
       await tester.pump(const Duration(milliseconds: 400));
       await settle(tester, const Duration(milliseconds: 500));

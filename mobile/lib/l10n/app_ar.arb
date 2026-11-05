@@ -658,6 +658,7 @@
   "shareChatAnnouncementShared": "شارك إعلانًا",
   "shareChatEventShared": "شارك فعالية",
   "forumActivityAnonBadge": "مجهول",
+  "forumActivityAnonBadgeLong": "منشور مجهول: لا يراه سواك",
   "forumActivityAnonymous": "مجهول",
   "forumActivityCommentDeleted": "تم حذف هذا التعليق",
   "forumActivityCounts": "{likes} إعجاب، {comments} تعليق",

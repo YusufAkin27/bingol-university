@@ -5,12 +5,14 @@ import '../../../../core/session.dart';
 import '../../../../widgets/bu.dart';
 import '../../../posts/post_models.dart' show postAuthHeaders;
 import '../../forum_routes.dart';
+import '../widgets/forum_list_topic_card.dart';
 import '../widgets/forum_page_bar.dart';
 import '../widgets/forum_paged_list.dart';
 import '../widgets/forum_result_tiles.dart';
 
-/// Kaydedilen konu ve yorumlar (`GET /api/forum/me/saved`): kaldırma iyimser (hata olursa geri gelir), boş durum,
-/// sayfalama ve çekerek yenileme. [ForumActivityPage] "Kaydedilenler" sekmesi aynı listeyi kullanır.
+/// Kaydedilen konu ve yorumlar (`GET /api/forum/me/saved`): konu kartında kaydı kaldırınca satır anında kalkar (hata
+/// olursa geri gelir), yorum satırında "kaydı kaldır" düğmesi vardır; boş durum, sayfalama, çekerek yenileme.
+/// [ForumActivityPage] "Kaydedilenler" sekmesi aynı listeyi kullanır.
 class ForumSavedPage extends StatelessWidget {
   const ForumSavedPage({super.key, required this.session});
 
@@ -43,38 +45,37 @@ class _ForumSavedListState extends State<ForumSavedList> {
   late final ForumApi _api = ForumApi(widget.session);
   late final Map<String, String> _headers = postAuthHeaders(widget.session);
 
-  static bool _is(ForumSavedItem it, ForumSavedItem other) =>
-      it.type == other.type && (it.type == 'COMMENT' ? it.comment?.id == other.comment?.id : it.topic?.id == other.topic?.id);
+  /// Kart içinden kaydı kaldırılan konular için geri alma işlevleri (konu kimliği -> satırı geri koy).
+  final Map<int, VoidCallback> _restore = {};
 
-  Future<void> _remove(ForumListHandle<ForumSavedItem> list, ForumSavedItem item) async {
-    final restore = list.removeWhere((e) => _is(e, item));
+  static bool _isTopic(ForumSavedItem it, int id) => it.type != 'COMMENT' && it.topic?.id == id;
+  static bool _isComment(ForumSavedItem it, int id) => it.type == 'COMMENT' && it.comment?.id == id;
+
+  /// Kart eylemi sonucu: kayıt kapandıysa satır kalkar; kaydetme hata verip kart durumu geri alırsa satır geri gelir.
+  void _topicChanged(ForumListHandle<ForumSavedItem> list, TopicSummary t) {
+    if (!t.savedByMe) {
+      if (_restore.containsKey(t.id)) return;
+      // Satır sessizce kalkar (kartın kendi kaydetme isteği sürüyor); hata olursa geri gelir ve uyarı çıkar.
+      _restore[t.id] = list.removeWhere((e) => _isTopic(e, t.id));
+      return;
+    }
+    final undo = _restore.remove(t.id);
+    if (undo != null) {
+      undo();
+      if (mounted) BuToast.show(context, context.l10n.forumHomeSaveFailed, kind: BuToastKind.error);
+    } else {
+      list.replaceWhere((e) => _isTopic(e, t.id), ForumSavedItem(type: 'TOPIC', topic: t));
+    }
+  }
+
+  Future<void> _removeComment(ForumListHandle<ForumSavedItem> list, ForumComment c) async {
+    final restore = list.removeWhere((e) => _isComment(e, c.id));
     try {
-      if (item.type == 'COMMENT') {
-        await _api.bookmarkComment(item.comment!.id, false);
-      } else {
-        await _api.bookmarkTopic(item.topic!.id, false);
-      }
+      await _api.bookmarkComment(c.id, false);
       if (mounted) BuToast.show(context, context.l10n.forumSavedRemoved, kind: BuToastKind.info);
     } catch (e) {
       restore();
       if (mounted) BuToast.show(context, errorText(e), kind: BuToastKind.error);
-    }
-  }
-
-  Future<void> _open(ForumListHandle<ForumSavedItem> list, ForumSavedItem item) async {
-    if (item.type == 'COMMENT') {
-      final c = item.comment!;
-      await openTopicDetail(context, widget.session, c.topicId, commentId: c.id, initial: item.topic);
-      return;
-    }
-    final topic = item.topic!;
-    final updated = await openTopicDetail(context, widget.session, topic.id, initial: topic);
-    if (updated == null || !mounted) return;
-    // Detayda kaydı kaldırdıysa satır da kalkar.
-    if (!updated.savedByMe) {
-      list.removeWhere((e) => _is(e, item));
-    } else {
-      list.replaceWhere((e) => _is(e, item), ForumSavedItem(type: 'TOPIC', topic: updated));
     }
   }
 
@@ -91,22 +92,28 @@ class _ForumSavedListState extends State<ForumSavedList> {
         compact: true,
       ),
       itemBuilder: (ctx, item, list) {
-        final remove = _RemoveSavedButton(
-          key: ValueKey('forum-saved-remove-${item.type}-${item.type == 'COMMENT' ? item.comment?.id : item.topic?.id}'),
-          onTap: () => _remove(list, item),
-        );
-        if (item.type == 'COMMENT' && item.comment != null) {
+        final comment = item.comment;
+        if (item.type == 'COMMENT' && comment != null) {
           return ForumCommentTile(
-            comment: item.comment!,
+            comment: comment,
             topicTitle: item.topic?.title,
             headers: _headers,
-            trailing: remove,
-            onTap: () => _open(list, item),
+            trailing: _RemoveSavedButton(key: ValueKey('forum-saved-remove-COMMENT-${comment.id}'), onTap: () => _removeComment(list, comment)),
+            onTap: () => openTopicDetail(context, widget.session, comment.topicId, commentId: comment.id, initial: item.topic),
           );
         }
-        final topic = item.topic;
-        if (topic == null) return const SizedBox.shrink();
-        return ForumTopicTile(topic: topic, headers: _headers, trailing: remove, onTap: () => _open(list, item));
+        // Kaydedilenler listesindeki konu tanım gereği kayıtlıdır (sunucu bayrağı eksik gelse de kart doğru çizilsin).
+        final raw = item.topic;
+        if (raw == null) return const SizedBox.shrink();
+        final topic = raw.savedByMe ? raw : raw.copyWith(savedByMe: true);
+        return ForumListTopicCard(
+          session: widget.session,
+          api: _api,
+          topic: topic,
+          onChanged: (t) => _topicChanged(list, t),
+          onRemoveTopic: () => list.removeWhere((e) => _isTopic(e, topic.id)),
+          onRemoveAuthor: (uid) => list.removeAllWhere((e) => e.topic?.author.userId == uid),
+        );
       },
     );
   }

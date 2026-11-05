@@ -5,6 +5,7 @@ import '../../../../core/session.dart';
 import '../../../../widgets/bu.dart';
 import '../../../posts/post_models.dart' show postAuthHeaders;
 import '../../forum_routes.dart';
+import '../widgets/forum_list_topic_card.dart';
 import '../widgets/forum_page_bar.dart';
 import '../widgets/forum_paged_list.dart';
 import '../widgets/forum_result_tiles.dart';
@@ -30,11 +31,6 @@ class _ForumActivityPageState extends State<ForumActivityPage> {
   late final ForumApi _api = ForumApi(widget.session);
   late final Map<String, String> _headers = postAuthHeaders(widget.session);
 
-  Future<void> _openTopic(ForumListHandle<TopicSummary> list, TopicSummary topic) async {
-    final updated = await openTopicDetail(context, widget.session, topic.id, initial: topic);
-    if (updated != null && mounted) list.replaceWhere((e) => e.id == topic.id, updated);
-  }
-
   Widget _topics(
     String key,
     ForumFetch<TopicSummary> fetch,
@@ -46,9 +42,18 @@ class _ForumActivityPageState extends State<ForumActivityPage> {
       key: PageStorageKey<String>(key),
       fetch: fetch,
       empty: (ctx) => BuEmptyState(key: ValueKey('$key-empty'), icon: icon, title: emptyTitle, message: emptyBody, compact: true),
-      itemBuilder: (ctx, topic, list) => ForumTopicTile(topic: topic, headers: _headers, onTap: () => _openTopic(list, topic)),
+      itemBuilder: (ctx, topic, list) => _card(topic, list),
     );
   }
+
+  Widget _card(TopicSummary topic, ForumListHandle<TopicSummary> list) => ForumListTopicCard(
+        session: widget.session,
+        api: _api,
+        topic: topic,
+        onChanged: (t) => list.replaceWhere((e) => e.id == topic.id, t),
+        onRemoveTopic: () => list.removeWhere((e) => e.id == topic.id),
+        onRemoveAuthor: (uid) => list.removeAllWhere((e) => e.author.userId == uid),
+      );
 
   Widget _body(int i) {
     final l = context.l10n;
@@ -136,13 +141,13 @@ class _ForumUserActivityPageState extends State<ForumUserActivityPage> {
         fetch: (c) => _api.userTopics(widget.userId, cursor: c),
         empty: (ctx) => BuEmptyState(
             key: const ValueKey('forum-user-topics-empty'), icon: BuIcons.messageSquareText, title: l.forumActivityUserEmptyTopics, compact: true),
-        itemBuilder: (ctx, topic, list) => ForumTopicTile(
+        itemBuilder: (ctx, topic, list) => ForumListTopicCard(
+          session: widget.session,
+          api: _api,
           topic: topic,
-          headers: _headers,
-          onTap: () async {
-            final u = await openTopicDetail(context, widget.session, topic.id, initial: topic);
-            if (u != null && mounted) list.replaceWhere((e) => e.id == topic.id, u);
-          },
+          onChanged: (t) => list.replaceWhere((e) => e.id == topic.id, t),
+          onRemoveTopic: () => list.removeWhere((e) => e.id == topic.id),
+          onRemoveAuthor: (uid) => list.removeAllWhere((e) => e.author.userId == uid),
         ),
       );
     }

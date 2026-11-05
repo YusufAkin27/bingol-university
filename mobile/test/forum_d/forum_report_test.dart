@@ -1,3 +1,4 @@
+import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/features/forum/forum_routes.dart';
 import 'package:bu_kampus/features/forum/presentation/widgets/report_sheet.dart';
 import 'package:bu_kampus/widgets/bu.dart';
@@ -13,7 +14,7 @@ import '../support/forum_d_harness.dart';
 class _Host extends StatelessWidget {
   const _Host({required this.session, required this.onResult, this.type = kForumReportComment, this.id = 55, this.offerBlock = true});
 
-  final dynamic session;
+  final Session session;
   final void Function(Object?) onResult;
   final String type;
   final int id;

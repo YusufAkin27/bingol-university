@@ -143,7 +143,7 @@ class FakeForumExtras {
       if (failSaved) return err500;
       final items = <Map<String, dynamic>>[
         for (final id in f.saved)
-          if (f.byId(id) != null) {'type': 'TOPIC', 'topic': f.byId(id)},
+          if (f.byId(id) != null) {'type': 'TOPIC', 'topic': {...f.byId(id)!, 'savedByMe': true}},
         for (final id in savedComments)
           if (commentsById[id] != null)
             {

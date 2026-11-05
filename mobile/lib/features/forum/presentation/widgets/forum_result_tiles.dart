@@ -6,149 +6,79 @@ import '../../../../widgets/common.dart' show relativeTime;
 import '../../data/forum_models.dart';
 import '../../data/forum_search_text.dart';
 
-/// Arama / kaydedilenler / faaliyet listelerinin ortak, kompakt konu kartı. Görünüm Forum ana sayfasındaki konu
-/// kartıyla aynı dildedir (yüzey + ince çizgi, w400, kategori etiketi, 2 satır önizleme); kaydet/paylaş gibi eylemler
-/// detay sayfasındadır, listede yalnız sayaçlar görünür.
-class ForumTopicTile extends StatelessWidget {
-  const ForumTopicTile({
-    super.key,
-    required this.topic,
-    required this.onTap,
-    this.previewOverride,
-    this.highlight,
-    this.matchLabel,
-    this.trailing,
-    this.showMineAnonymous = true,
-    this.headers,
-  });
+/// Arama sonucu kartının altındaki eşleşme şeridi: "Yorumda" gibi etiket + (varsa) vurgulu kesit. Vurgu `prText`
+/// renginde, kalın DEĞİL. Etiket boşsa şerit çizilmez.
+class ForumMatchStrip extends StatelessWidget {
+  const ForumMatchStrip({super.key, required this.label, required this.query, this.snippet});
 
-  /// Yetkili medya/avatar uçları için istek başlıkları (`postAuthHeaders(session)`).
-  final Map<String, String>? headers;
-
-  final TopicSummary topic;
-  final VoidCallback onTap;
-
-  /// Verilirse gövde önizlemesi yerine bu metin (ör. arama kesiti) çizilir.
-  final String? previewOverride;
-
-  /// Arama terimi: başlıkta ve önizlemede eşleşen yerler marka tonunda (kalın DEĞİL) vurgulanır.
-  final String? highlight;
-
-  /// "Başlıkta" / "Yorumda" gibi eşleşme etiketi (arama).
-  final String? matchLabel;
-
-  /// Sayaç satırının sonunda eylem (ör. kaydı kaldır düğmesi).
-  final Widget? trailing;
-
-  /// Kendi anonim konumda "Anonim" rozetini göster.
-  final bool showMineAnonymous;
+  final String label;
+  final String query;
+  final String? snippet;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final l = context.l10n;
     final tx = Theme.of(context).textTheme;
-    final thumb = topic.thumbnail?.thumbUrl ?? topic.thumbnail?.url;
-    final previewText = (previewOverride ?? topic.bodyPreview).trim();
-    final removed = topic.removed;
-    final when = relativeTime(topic.createdAt, context: context);
-    final semantic = [
-      topic.title,
-      if (topic.category?.name.isNotEmpty ?? false) topic.category!.name,
-      topic.author.displayName,
-      when,
-      l.forumActivityCounts('${topic.likeCount}', '${topic.commentCount}'),
-    ].where((s) => s.isNotEmpty).join(', ');
+    final text = (snippet ?? '').trim();
+    final base = tx.bodySmall!.copyWith(color: t.mut, height: 1.4, fontWeight: FontWeight.w400);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 6, 16, 0),
       child: Semantics(
-        button: true,
-        label: semantic,
+        container: true,
+        label: text.isEmpty ? label : '$label: $text',
         excludeSemantics: true,
-        onTap: onTap,
-        child: Material(
-          color: t.sf,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: t.bd)),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
-                    Row(children: [
-                      if (topic.category != null && topic.category!.name.isNotEmpty) ...[
-                        Flexible(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(8)),
-                            child: Text(topic.category!.name,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: tx.labelSmall!.copyWith(color: t.onSoft, fontWeight: FontWeight.w400)),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                      ],
-                      if (matchLabel != null) ...[
-                        Text(matchLabel!, key: const ValueKey('forum-match-label'), style: tx.labelSmall!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
-                        const SizedBox(width: 8),
-                      ],
-                      Expanded(child: Text(when, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelSmall!.copyWith(color: t.mut))),
-                    ]),
-                    const SizedBox(height: 8),
-                    _hl(
-                      removed ? l.forumActivityRemoved : topic.title,
-                      tx.titleMedium!.copyWith(color: removed ? t.mut : t.ink, fontWeight: FontWeight.w400, height: 1.3),
-                      t,
-                      2,
-                      const ValueKey('forum-tile-title'),
-                      highlight,
-                    ),
-                    if (previewText.isNotEmpty && !removed) ...[
-                      const SizedBox(height: 4),
-                      _hl(previewText, tx.bodyMedium!.copyWith(color: t.mut, height: 1.4), t, 2, const ValueKey('forum-tile-preview'), highlight),
-                    ],
-                    const SizedBox(height: 10),
-                    ForumAuthorMini(author: topic.author, mine: topic.mine, showMineAnonymous: showMineAnonymous, headers: headers),
-                    const SizedBox(height: 8),
-                    Row(children: [
-                      _Counts(likes: topic.likeCount, comments: topic.commentCount, liked: topic.likedByMe),
-                      const Spacer(),
-                      if (trailing != null) trailing!,
-                    ]),
-                  ]),
-                ),
-                if (thumb != null) ...[
-                  const SizedBox(width: 12),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: BuImage(thumb, width: 64, height: 64, headers: headers, maxDecodeWidth: 200, placeholderIcon: BuIcons.image),
-                  ),
-                ],
-              ]),
-            ),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: Text(label, key: const ValueKey('forum-match-label'), style: tx.labelMedium!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
           ),
-        ),
+          if (text.isNotEmpty) ...[
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text.rich(
+                TextSpan(children: [
+                  for (final s in splitForumHighlight(text, query))
+                    TextSpan(text: s.text, style: s.highlight ? base.copyWith(color: t.prText, fontWeight: FontWeight.w400) : null),
+                ]),
+                key: const ValueKey('forum-match-snippet'),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: base,
+              ),
+            ),
+          ],
+        ]),
       ),
     );
   }
 }
 
-/// Düz ya da (arama terimi varsa) vurgulu metin.
-Widget _hl(String text, TextStyle style, BuTokens t, int maxLines, Key key, String? q) {
-  if (q == null || q.isEmpty) return Text(text, key: key, maxLines: maxLines, overflow: TextOverflow.ellipsis, style: style);
-  final segs = splitForumHighlight(text, q);
-  return Text.rich(
-    TextSpan(children: [
-      for (final s in segs) TextSpan(text: s.text, style: s.highlight ? style.copyWith(color: t.prText, fontWeight: FontWeight.w400) : null),
-    ]),
-    key: key,
-    maxLines: maxLines,
-    overflow: TextOverflow.ellipsis,
-    style: style,
-  );
+/// Kendi anonim konumun altında rozet: "Anonim paylaşım - yalnız sen görürsün". Başkasına gösterilmez; kimlik içermez.
+class ForumOwnAnonBadge extends StatelessWidget {
+  const ForumOwnAnonBadge({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 6, 16, 0),
+      child: Semantics(
+        container: true,
+        label: l.forumActivityAnonBadgeLong,
+        excludeSemantics: true,
+        child: Row(children: [
+          Icon(BuIcons.eyeOff, size: 14, color: t.mut),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(l.forumActivityAnonBadgeLong,
+                key: const ValueKey('forum-anon-badge'), style: tx.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
+          ),
+        ]),
+      ),
+    );
+  }
 }
 
 /// Yorum kartı (kaydedilen yorumlar, yorumlarım, başkasının profili): metin 3 satır, yazar satırı, beğeni sayısı.
@@ -156,12 +86,13 @@ class ForumCommentTile extends StatelessWidget {
   const ForumCommentTile({super.key, required this.comment, required this.onTap, this.topicTitle, this.trailing, this.headers});
 
   final Map<String, String>? headers;
-
   final ForumComment comment;
   final VoidCallback onTap;
 
   /// Yorumun bağlı olduğu konunun başlığı (varsa küçük bağlam satırı).
   final String? topicTitle;
+
+  /// Sayaç satırının sonunda eylem (ör. kaydı kaldır düğmesi).
   final Widget? trailing;
 
   @override
@@ -228,15 +159,13 @@ class ForumCommentTile extends StatelessWidget {
 }
 
 /// Küçük yazar satırı: avatar + ad. Anonim yazarda avatar/ad GİZLİ ("Anonim #N" yer tutucusu); kendi anonim
-/// içeriğimde ek "Anonim" rozeti (yalnız ben görürüm). Anonim yazara dokunma/profil yoktur.
+/// yorumumda ek "Anonim" rozeti (yalnız ben görürüm). Anonim yazara dokunma/profil yoktur.
 class ForumAuthorMini extends StatelessWidget {
-  const ForumAuthorMini({super.key, required this.author, this.mine = false, this.showMineAnonymous = true, this.headers});
+  const ForumAuthorMini({super.key, required this.author, this.mine = false, this.headers});
 
   final Map<String, String>? headers;
-
   final ForumAuthor author;
   final bool mine;
-  final bool showMineAnonymous;
 
   @override
   Widget build(BuildContext context) {
@@ -257,7 +186,7 @@ class ForumAuthorMini extends StatelessWidget {
         BuAvatar(name: name, url: author.avatarUrl, size: 22, headers: headers),
       const SizedBox(width: 8),
       Flexible(child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400))),
-      if (anon && mine && showMineAnonymous) ...[
+      if (anon && mine) ...[
         const SizedBox(width: 8),
         Container(
           key: const ValueKey('forum-anon-badge'),
