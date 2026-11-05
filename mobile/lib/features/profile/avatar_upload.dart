@@ -80,6 +80,10 @@ Future<void> removeAvatar(Session session) async {
   session.api.invalidate('/users/me');
 }
 
+/// Zaten seçilmiş/kırpılmış baytları yükler (profil tamamlama: fotoğraf seçilince hemen değil, profil kaydedilince gider).
+Future<AvatarUploadResult> uploadAvatarBytes(Session session, Uint8List bytes, {ImageService? images, MultipartUploader? uploader}) =>
+    _prepareAndUpload(session, bytes, images, uploader);
+
 Future<AvatarUploadResult> _prepareAndUpload(Session session, Uint8List bytes, ImageService? images, MultipartUploader? uploader) async {
   final prepared = await (images ?? ImageService()).prepare(bytes, avatar: true);
   final r = await (uploader ?? MultipartUploader(session)).upload('/users/me/avatar', prepared);

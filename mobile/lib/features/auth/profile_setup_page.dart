@@ -7,6 +7,7 @@ import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import 'onboarding/onboarding_flow.dart';
 import 'profile_photo_setup_page.dart';
 import 'widgets/auth_academic.dart';
 import 'widgets/auth_motion.dart';
@@ -29,6 +30,9 @@ bool isProfileComplete(Map<dynamic, dynamic> p) {
 /// - ağ yok / sunucu hatası / [loadTimeout] aşımı: kapı AÇILMAZ, [child] gösterilir; bağlantı gelince ve uygulama öne
 ///   gelince profil yeniden sorulur, eksikse o anda kapı kapanır (aşırı kısıtlama yok, ama atlanamaz);
 /// - tamamlanınca bir daha sorulmaz (profil verisi dolu olur);
+/// - OAuth (Google/Apple) hesapları: sunucu `profileCompleted:false` derse (ya da herhangi bir uç 403 `PROFILE_INCOMPLETE`
+///   dönerse, bkz. [Session.profileIncompleteSignal]) kabuk yerine 2 aşamalı [OnboardingFlow] gösterilir; `profileCompleted`
+///   alanı bool ise sunucunun kararı geçerlidir, alan yoksa (eski sunucu) bölüm + sınıf kuralı uygulanır;
 /// - bölüm + sınıf az önce ilk kez tamamlandıysa ve fotoğraf yoksa, kabuktan önce İSTEĞE BAĞLI [ProfilePhotoSetupPage] gelir
 ///   (atlanabilir; uygulama bu adımda kapatılırsa tekrar sorulmaz).
 class ProfileCompletionGate extends StatefulWidget {
@@ -49,7 +53,7 @@ class ProfileCompletionGate extends StatefulWidget {
   State<ProfileCompletionGate> createState() => _ProfileCompletionGateState();
 }
 
-enum _GateState { checking, complete, incomplete, photo, unknown }
+enum _GateState { checking, complete, incomplete, onboarding, photo, unknown }
 
 class _ProfileCompletionGateState extends State<ProfileCompletionGate> with WidgetsBindingObserver {
   _GateState _state = _GateState.checking;
@@ -62,6 +66,7 @@ class _ProfileCompletionGateState extends State<ProfileCompletionGate> with Widg
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     widget.session.api.connectivity.reconnects.addListener(_onReconnect);
+    widget.session.profileIncompleteSignal.addListener(_onIncompleteSignal);
     _timeout = Timer(widget.loadTimeout, () {
       if (mounted && _state == _GateState.checking) setState(() => _state = _GateState.unknown);
     });
@@ -73,11 +78,18 @@ class _ProfileCompletionGateState extends State<ProfileCompletionGate> with Widg
     _timeout?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     widget.session.api.connectivity.reconnects.removeListener(_onReconnect);
+    widget.session.profileIncompleteSignal.removeListener(_onIncompleteSignal);
     super.dispose();
   }
 
   void _onReconnect() {
-    if (mounted && _state != _GateState.complete && _state != _GateState.photo) _check();
+    if (mounted && _state != _GateState.complete && _state != _GateState.photo && _state != _GateState.onboarding) _check();
+  }
+
+  /// Sunucu bir uçta 403 PROFILE_INCOMPLETE döndü: kabuk kapanır, onboarding açılır (profil bitene dek başka yol yok).
+  void _onIncompleteSignal() {
+    if (!mounted || _state == _GateState.photo) return;
+    _settle(_GateState.onboarding);
   }
 
   @override
@@ -85,6 +97,7 @@ class _ProfileCompletionGateState extends State<ProfileCompletionGate> with Widg
     if (s == AppLifecycleState.resumed &&
         _state != _GateState.complete &&
         _state != _GateState.incomplete &&
+        _state != _GateState.onboarding &&
         _state != _GateState.photo) {
       _check();
     }
@@ -96,7 +109,7 @@ class _ProfileCompletionGateState extends State<ProfileCompletionGate> with Widg
     try {
       final r = await widget.session.api.get('/users/me');
       // Fotoğraf adımı sürerken gelen geç yanıt adımı bozmaz.
-      if (!mounted || _state == _GateState.photo) return;
+      if (!mounted || _state == _GateState.photo || _state == _GateState.onboarding) return;
       if (r is! Map) {
         _settle(_GateState.unknown);
         return;
@@ -104,10 +117,22 @@ class _ProfileCompletionGateState extends State<ProfileCompletionGate> with Widg
       widget.session.noteProfile(r); // açılışta e-posta doğrulama durumunu tazele
       final av = r['avatarUrl'];
       _hasAvatar = av is String && av.trim().isNotEmpty;
-      _settle(isProfileComplete(r) ? _GateState.complete : _GateState.incomplete);
+      // Sunucu `profileCompleted` bildiriyorsa onun kararı geçerli; yoksa OAuth girişinin ipucu, o da yoksa eski kural.
+      final server = r['profileCompleted'];
+      final bool? decided = server is bool ? server : (widget.session.profileCompletedHint == false ? false : null);
+      if (decided == false) {
+        _settle(_GateState.onboarding);
+      } else if (decided == true) {
+        _settle(_GateState.complete);
+      } else {
+        _settle(isProfileComplete(r) ? _GateState.complete : _GateState.incomplete);
+      }
+    } on ApiError catch (e) {
+      if (!mounted || _state == _GateState.photo || _state == _GateState.onboarding) return;
+      _settle(e.code == 'PROFILE_INCOMPLETE' ? _GateState.onboarding : _GateState.unknown);
     } catch (_) {
       // Ağ yok, 5xx, 429 ya da yetki hatası: kapı açılmaz (yetki hatasını oturum katmanı zaten ele alır).
-      if (mounted && _state != _GateState.photo) _settle(_GateState.unknown);
+      if (mounted && _state != _GateState.photo && _state != _GateState.onboarding) _settle(_GateState.unknown);
     } finally {
       _loading = false;
     }
@@ -127,6 +152,13 @@ class _ProfileCompletionGateState extends State<ProfileCompletionGate> with Widg
     setState(() => _state = hasAvatar ? _GateState.complete : _GateState.photo);
   }
 
+  /// Onboarding bitti (profil sunucuda tamamlandı): kabuğa geçilir; fotoğraf adımı onboarding içinde zaten vardı.
+  void _onboardingDone() {
+    if (!mounted) return;
+    widget.session.profileCompletedHint = true;
+    setState(() => _state = _GateState.complete);
+  }
+
   void _photoDone() {
     if (mounted) setState(() => _state = _GateState.complete);
   }
@@ -139,6 +171,8 @@ class _ProfileCompletionGateState extends State<ProfileCompletionGate> with Widg
         return Scaffold(backgroundColor: context.bu.bg);
       case _GateState.incomplete:
         return ProfileSetupPage(key: const ValueKey('profile-setup-gate'), session: widget.session, onDone: _done);
+      case _GateState.onboarding:
+        return OnboardingFlow(key: const ValueKey('onboarding-gate'), session: widget.session, onDone: _onboardingDone);
       case _GateState.photo:
         return ProfilePhotoSetupPage(key: const ValueKey('profile-photo-gate'), session: widget.session, onDone: _photoDone);
       case _GateState.complete:

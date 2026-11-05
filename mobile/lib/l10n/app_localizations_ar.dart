@@ -5601,6 +5601,225 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authTermsAutoSuffix => '.';
 
   @override
+  String get oaHeadline => 'جامعتك هنا.';
+
+  @override
+  String get oaSub => 'شارك واكتشف وانضم إلى مجتمعك.';
+
+  @override
+  String get oaContinueGoogle => 'المتابعة باستخدام Google';
+
+  @override
+  String get oaContinueApple => 'المتابعة باستخدام Apple';
+
+  @override
+  String get oaContinueEmail => 'المتابعة بالبريد الإلكتروني';
+
+  @override
+  String get oaOr => 'أو';
+
+  @override
+  String get oaLegalLead => 'بالمتابعة فإنك توافق على:';
+
+  @override
+  String get oaTermsLink => 'شروط الاستخدام';
+
+  @override
+  String get oaPrivacyLink => 'سياسة الخصوصية';
+
+  @override
+  String get oaProviderGoogle => 'Google';
+
+  @override
+  String get oaProviderApple => 'Apple';
+
+  @override
+  String get oaLinkTitle => 'لديك حساب بهذا البريد بالفعل';
+
+  @override
+  String oaLinkBody(String provider) {
+    return 'سجّل الدخول أولاً بالبريد الإلكتروني وكلمة المرور، ثم اربط حساب $provider من قسم الحساب والأمان.';
+  }
+
+  @override
+  String oaLinkMasked(String email) {
+    return 'الحساب: $email';
+  }
+
+  @override
+  String get oaErrFailed => 'تعذّر إكمال تسجيل الدخول. حاول مرة أخرى.';
+
+  @override
+  String get oaErrTokenInvalid =>
+      'تعذّر التحقق من تسجيل الدخول. حاول مرة أخرى.';
+
+  @override
+  String get oaErrEmailUnverified =>
+      'لم يتم التحقق من البريد الإلكتروني لهذا الحساب لدى المزوّد. تحقق منه أولاً أو تابع بالبريد الإلكتروني.';
+
+  @override
+  String get oaErrEmailMissing =>
+      'تعذّر الحصول على عنوان بريد إلكتروني من حسابك. يمكنك المتابعة بالبريد الإلكتروني.';
+
+  @override
+  String get oaErrDisabled =>
+      'طريقة تسجيل الدخول هذه غير متاحة حالياً. يمكنك المتابعة بالبريد الإلكتروني.';
+
+  @override
+  String get oaErrLastMethod =>
+      'هذه هي الطريقة الوحيدة لتسجيل الدخول إلى حسابك. عيّن كلمة مرور قبل إزالتها.';
+
+  @override
+  String get oaErrProfileIncomplete => 'أكمل ملفك الشخصي قبل المتابعة.';
+
+  @override
+  String get oaOb1Title => 'لنتعرّف أولاً.';
+
+  @override
+  String get oaOb1Sub => 'لنُنشئ ملفك الشخصي في BÜKampüs في بضع خطوات.';
+
+  @override
+  String get oaFirstName => 'الاسم';
+
+  @override
+  String get oaLastName => 'اللقب';
+
+  @override
+  String get oaFirstRequired => 'أدخل اسمك.';
+
+  @override
+  String get oaLastRequired => 'أدخل لقبك.';
+
+  @override
+  String get oaUsername => 'اسم المستخدم';
+
+  @override
+  String get oaUserRule => 'من 3 إلى 24 حرفاً: a-z و 0-9 ونقطة وشرطة سفلية.';
+
+  @override
+  String get oaUserChecking => 'جارٍ التحقق…';
+
+  @override
+  String get oaUserAvail => 'اسم المستخدم متاح.';
+
+  @override
+  String get oaUserTaken => 'اسم المستخدم هذا مستخدم.';
+
+  @override
+  String get oaUserInvalid =>
+      'يجب أن يتكوّن اسم المستخدم من 3 إلى 24 حرفاً؛ يُسمح فقط بـ a-z و 0-9 والنقطة والشرطة السفلية.';
+
+  @override
+  String get oaUserReserved => 'لا يمكن استخدام اسم المستخدم هذا.';
+
+  @override
+  String get oaUserRequired => 'اختر اسم مستخدم.';
+
+  @override
+  String get oaPhotoOptional => 'صورة الملف الشخصي (اختياري)';
+
+  @override
+  String get oaPhotoAdd => 'إضافة صورة';
+
+  @override
+  String get oaPhotoChange => 'تغيير الصورة';
+
+  @override
+  String oaStepOf(String a, String b) {
+    return 'الخطوة $a من $b';
+  }
+
+  @override
+  String get oaOb2Title => 'أين أنت في الحرم الجامعي؟';
+
+  @override
+  String get oaOb2Sub => 'اختر قسمك واكتشف المجتمعات المناسبة لك.';
+
+  @override
+  String get oaUniversity => 'الجامعة';
+
+  @override
+  String get oaUniversityName => 'جامعة بينغول';
+
+  @override
+  String get oaFaculty => 'الكلية';
+
+  @override
+  String get oaPickFaculty => 'اختر الكلية';
+
+  @override
+  String get oaPickFacultyFirst => 'اختر الكلية أولاً';
+
+  @override
+  String get oaSelectFaculty => 'اختر كليتك.';
+
+  @override
+  String get oaClassPostgrad => 'دراسات عليا';
+
+  @override
+  String get oaClassOther => 'أخرى';
+
+  @override
+  String get oaBio => 'نبذة قصيرة (اختياري)';
+
+  @override
+  String get oaBioHint => 'عرّف بنفسك في بضع كلمات';
+
+  @override
+  String get oaDeclareNote =>
+      'المعلومات التي تختارها هي إقرار منك ويمكنك تغييرها من ملفك الشخصي في أي وقت.';
+
+  @override
+  String get oaJoin => 'انضم إلى BÜKampüs';
+
+  @override
+  String get oaLinkedTitle => 'الحسابات المرتبطة';
+
+  @override
+  String get oaLinkedYes => 'مرتبط';
+
+  @override
+  String get oaLinkedNo => 'غير مرتبط';
+
+  @override
+  String get oaLinkAction => 'ربط';
+
+  @override
+  String get oaUnlinkAction => 'إلغاء الربط';
+
+  @override
+  String get oaLinkPwTitle => 'أكّد كلمة المرور';
+
+  @override
+  String oaLinkPwBody(String provider) {
+    return 'أدخل كلمة المرور الحالية لربط حساب $provider.';
+  }
+
+  @override
+  String get oaPasswordLabel => 'كلمة المرور';
+
+  @override
+  String oaLinkDone(String provider) {
+    return 'تم ربط حساب $provider.';
+  }
+
+  @override
+  String get oaUnlinkTitle => 'إزالة الربط؟';
+
+  @override
+  String oaUnlinkBody(String provider) {
+    return 'سيتم إزالة تسجيل الدخول عبر $provider؛ ستحتاج إلى طريقة أخرى لتسجيل الدخول.';
+  }
+
+  @override
+  String oaUnlinkDone(String provider) {
+    return 'تمت إزالة ربط $provider.';
+  }
+
+  @override
+  String get oaLinkedFailed => 'تعذّر تحميل الحسابات المرتبطة.';
+
+  @override
   String get authPwMinErr => 'يجب ألا تقل كلمة المرور عن 6 أحرف.';
 
   @override

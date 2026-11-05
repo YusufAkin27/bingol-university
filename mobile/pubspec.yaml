@@ -41,6 +41,8 @@ dependencies:
   # yayinci dogrulanmis, bakimda; baska eklentiyle ikamesi yok (url_launcher gelen baglanti dinlemez, paylasim sayfasi acmaz).
   share_plus: ^13.3.1
   app_links: ^7.2.2
+  google_sign_in: 7.2.0
+  sign_in_with_apple: 8.2.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -60,6 +62,7 @@ flutter:
     - assets/branding/mark.svg
     - assets/branding/mark_white.svg
     - assets/branding/mark_white.png
+    - assets/branding/google_g.svg
     - assets/branding/default_avatar.png
     - assets/branding/default_group.png
     - assets/chat_wallpapers/

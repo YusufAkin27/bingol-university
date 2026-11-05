@@ -4,7 +4,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'core/academic_catalog.dart';
 import 'core/analytics.dart';
@@ -36,9 +35,7 @@ import 'core/push/push_reply_headless.dart';
 import 'core/session.dart';
 import 'core/theme.dart';
 import 'core/theme_controller.dart';
-import 'features/auth/login_page.dart';
-import 'features/auth/register_page.dart';
-import 'features/auth/welcome_page.dart';
+import 'features/auth/auth_landing_page.dart';
 import 'features/auth/permissions_page.dart';
 import 'features/auth/profile_setup_page.dart';
 import 'features/legal/legal_reaccept_page.dart';
@@ -276,67 +273,13 @@ class BingolApp extends StatelessWidget {
   }
 }
 
-/// Çıkış yapmış kullanıcı: cihazda ilk kez açılıyorsa karşılama ekranı, sonrasında doğrudan giriş.
-class _SignedOutRoot extends StatefulWidget {
+/// Çıkış yapmış kullanıcı: premium giriş ekranı (Google / Apple / E-posta ile devam et). Eski ilk-açılış karşılaması
+/// ([WelcomePage]) artık kökte gösterilmez; e-posta/şifre girişi ve kayıt bu ekrandan açılır.
+class _SignedOutRoot extends StatelessWidget {
   const _SignedOutRoot({required this.session});
 
   final Session session;
 
   @override
-  State<_SignedOutRoot> createState() => _SignedOutRootState();
-}
-
-class _SignedOutRootState extends State<_SignedOutRoot> {
-  static const _key = 'welcome_seen';
-  final _storage = const FlutterSecureStorage();
-  bool? _seen;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    var seen = true; // okunamazsa karşılama ile engelleme
-    try {
-      seen = (await _storage.read(key: _key)) == '1';
-    } catch (_) {}
-    if (mounted) setState(() => _seen = seen);
-  }
-
-  Future<void> _finish({required bool register}) async {
-    try {
-      await _storage.write(key: _key, value: '1');
-    } catch (_) {}
-    if (!mounted) return;
-    setState(() => _seen = true);
-    if (register) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        Navigator.of(context).push(MaterialPageRoute(settings: const RouteSettings(name: 'register'), builder: (_) => RegisterPage(session: widget.session)));
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final seen = _seen;
-    // Karşılama -> giriş geçişi: kısa solma + hafif yukarı süzülme (200-300 ms).
-    final Widget page = seen == null
-        ? const SplashScreen()
-        : !seen
-            ? WelcomePage(onLogin: () => _finish(register: false), onRegister: () => _finish(register: true))
-            : LoginPage(session: widget.session);
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 320),
-      switchInCurve: Curves.easeOutCubic,
-      switchOutCurve: Curves.easeIn,
-      transitionBuilder: (child, anim) => FadeTransition(
-        opacity: anim,
-        child: SlideTransition(position: Tween(begin: const Offset(0, .03), end: Offset.zero).animate(anim), child: child),
-      ),
-      child: KeyedSubtree(key: ValueKey(page.runtimeType), child: page),
-    );
-  }
+  Widget build(BuildContext context) => AuthLandingPage(session: session);
 }

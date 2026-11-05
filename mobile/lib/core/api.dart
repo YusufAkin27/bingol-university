@@ -31,7 +31,7 @@ bool apiConfigValid({String origin = apiOrigin, bool release = kReleaseMode, boo
 
 /// Sunucunun `{code,message}` hatası. Mantık `code` üzerine kurulur; `message` kullanıcıya gösterilir.
 class ApiError implements Exception {
-  ApiError(this.status, this.code, this.message, {this.retryAfter});
+  ApiError(this.status, this.code, this.message, {this.retryAfter, this.data});
 
   final int status;
   final String code;
@@ -39,6 +39,9 @@ class ApiError implements Exception {
 
   /// 429/503'te sunucunun `Retry-After` başlığı (saniye); yoksa null.
   final int? retryAfter;
+
+  /// Hata gövdesinin tamamı (örn. 409 `OAUTH_LINK_REQUIRED` -> `{provider, emailMasked}`); yoksa null.
+  final Map<String, dynamic>? data;
 
   /// Ağ yok / zaman aşımı: oturum bitirilmez.
   bool get isNetwork => status == 0;
@@ -173,6 +176,10 @@ class ApiClient {
 
   /// 403 EMAIL_VERIFICATION_REQUIRED: hesap e-postası doğrulanmamış (kota aşımında ertelenen doğrulama), yazma reddedildi.
   void Function()? onEmailVerificationRequired;
+
+  /// 403 PROFILE_INCOMPLETE: OAuth ile açılan hesabın profili (onboarding) tamamlanmadan normal uç çağrıldı.
+  /// Oturum açık kalır; kapı kabuğun yerine "Profilini tamamla" akışını gösterir. Hata yine çağırana iletilir.
+  void Function()? onProfileIncomplete;
 
   Future<Tokens>? _inflight;
 
@@ -546,7 +553,8 @@ class ApiClient {
       if (res.statusCode == 403 && code == 'ACCESS_BLOCKED') onAccessBlocked?.call();
       if (res.statusCode == 403 && code == 'LEGAL_REACCEPT_REQUIRED') onLegalReaccept?.call(json['requiresAcceptance']);
       if (res.statusCode == 403 && code == 'EMAIL_VERIFICATION_REQUIRED') onEmailVerificationRequired?.call();
-      throw ApiError(res.statusCode, code, msg is String ? msg : '', retryAfter: retryAfter);
+      if (res.statusCode == 403 && code == 'PROFILE_INCOMPLETE') onProfileIncomplete?.call();
+      throw ApiError(res.statusCode, code, msg is String ? msg : '', retryAfter: retryAfter, data: json.cast<String, dynamic>());
     }
     throw ApiError(res.statusCode, 'HTTP_${res.statusCode}', '', retryAfter: retryAfter);
   }
