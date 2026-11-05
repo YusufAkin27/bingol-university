@@ -5630,5 +5630,256 @@
         "type": "String"
       }
     }
-  }
+  },
+  "alarmClockNote": "Alarmlar telefonunuzun Saat uygulamasına eklenir. Silmek için Saat uygulamasını açın.",
+  "alarmIosNote": "iPhone, Saat uygulamasına alarm eklemeye izin vermez. Bu bildirim alarm yerine geçer; sessiz modda çalmayabilir.",
+  "alarmUnavailable": "Bu cihazda Saat uygulaması bulunamadı.",
+  "alarmNotifOff": "Bildirim izni kapalı. Hatırlatma için Ayarlar > BÜ Kampüs > Bildirimler iznini açın.",
+  "alarmExamAction": "İlk sınav alarmlarını kur",
+  "alarmExamActionIos": "Sınavları bildirimle hatırlat",
+  "alarmExamSheetTitle": "Sınav günü alarmları",
+  "alarmExamSheetTitleIos": "Sınav günü bildirimleri",
+  "alarmExamSheetSub": "Her günün yalnız ilk sınavı için, başlangıçtan 1 saat önceye tek seferlik.",
+  "alarmExamRow": "Sınav {exam} → Alarm {alarm}",
+  "@alarmExamRow": {
+    "placeholders": {
+      "exam": {
+        "type": "String"
+      },
+      "alarm": {
+        "type": "String"
+      }
+    }
+  },
+  "alarmExamSkipped": "{times} sınavı için alarm yok",
+  "@alarmExamSkipped": {
+    "placeholders": {
+      "times": {
+        "type": "String"
+      }
+    }
+  },
+  "alarmExamNone": "Alarm kurulacak yaklaşan sınav yok.",
+  "alarmExamDeferred": "{n} alarm ileri tarihli. Android Saat uygulaması ileri tarihli tek seferlik alarmı desteklemez; sınav gününden önceki akşam size bildirimle hatırlatırız, tek dokunuşla kurarsınız.",
+  "@alarmExamDeferred": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "alarmExamDeferredRow": "Sınavdan önceki akşam hatırlatılır",
+  "alarmSetCount": "{n} alarmı kur",
+  "@alarmSetCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "alarmNotifyCount": "{n} bildirimi kur",
+  "@alarmNotifyCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "alarmDoneSet": "{n} alarm kuruldu. Saat uygulamasından kontrol edin.",
+  "@alarmDoneSet": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "alarmDoneNotif": "{n} bildirim kuruldu.",
+  "@alarmDoneNotif": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "alarmDoneDeferred": "{n} alarm sınav gününden önce hatırlatılacak.",
+  "@alarmDoneDeferred": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "alarmDoneFail": "{n} alarm kurulamadı.",
+  "@alarmDoneFail": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "alarmDueBanner": "{n} sınav alarmı kurulmaya hazır.",
+  "@alarmDueBanner": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "alarmDueAction": "Şimdi kur",
+  "alarmNudgeTitle": "Sınav alarmını kur",
+  "alarmNudgeBody": "{title}: {time} alarmı hazır. Dokunup Sınavlar sayfasından kurun.",
+  "@alarmNudgeBody": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "alarmExamLabel": "Sınav {time}: {title}",
+  "@alarmExamLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "alarmExamNotifTitle": "Alarm: Sınav 1 saat sonra",
+  "alarmClassAction": "Sabah alarmlarını kur",
+  "alarmClassActionIos": "Sabah dersleri için bildirim kur",
+  "alarmClassSheetTitle": "Sabah ders alarmları",
+  "alarmClassSheetTitleIos": "Sabah ders bildirimleri",
+  "alarmClassSheetSub": "Günün ilk dersi öğleden önce başlıyorsa, 1 saat önceye ve her hafta tekrarlı.",
+  "alarmClassRow": "Ders {classTime} → Alarm {alarm} · her hafta",
+  "@alarmClassRow": {
+    "placeholders": {
+      "classTime": {
+        "type": "String"
+      },
+      "alarm": {
+        "type": "String"
+      }
+    }
+  },
+  "alarmClassSkipped": "{days}: ilk ders öğleden sonra, alarm yok",
+  "@alarmClassSkipped": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "alarmClassNone": "Sabah dersi yok; alarm kurulmayacak.",
+  "alarmClassLabel": "Ders alarmı · ilk ders {time}",
+  "@alarmClassLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "alarmClassNotifTitle": "Alarm: Ders 1 saat sonra",
+  "alarmClassNotifBody": "Günün ilk dersi {time} saatinde başlıyor.",
+  "@alarmClassNotifBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "alarmRepeatWarn": "Bu alarmlar {date} tarihinde kuruldu. Yeniden kurarsanız Saat uygulamasında çift alarm olabilir.",
+  "@alarmRepeatWarn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "alarmSetAnyway": "Yine de kur",
+  "alarmDoneClassSet": "{n} tekrarlı alarm kuruldu. Saat uygulamasından kontrol edin; silmek de oradan.",
+  "@alarmDoneClassSet": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "calSyncRowTitle": "Cihaz takvimine ekle",
+  "calSyncRowSub": "Tüm akademik takvim, o gün sabah 08:00 hatırlatıcıyla",
+  "calSyncRowDone": "Cihaz takviminde · {n} etkinlik",
+  "@calSyncRowDone": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "calSyncRowDoneSub": "Güncelle ya da kaldır",
+  "calSyncSheetBody": "Önümüzdeki 12 ayın akademik takvimi etkinlik olarak yazılır. Tüm gün kayıtlara o gün 08:00 hatırlatıcı eklenir; bildirimi takvim uygulamanız gönderir. Yalnız BÜ Kampüs etkinlikleri eklenir ve silinir.",
+  "calSyncTarget": "Eklenecek takvim",
+  "calSyncNewLocal": "BÜ Kampüs (yeni yerel takvim)",
+  "calSyncAdd": "Takvime ekle",
+  "calSyncUpdate": "Güncelle",
+  "calSyncRemove": "Takvimden kaldır",
+  "calSyncRemoveTitle": "BÜ Kampüs etkinlikleri kaldırılsın mı?",
+  "calSyncRemoveBody": "Takviminize bu uygulamanın eklediği {n} etkinlik silinir. Diğer etkinlikleriniz etkilenmez.",
+  "@calSyncRemoveBody": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "calSyncResult": "{added} etkinlik eklendi, {updated} güncellendi, {same} aynı kaldı.",
+  "@calSyncResult": {
+    "placeholders": {
+      "added": {
+        "type": "String"
+      },
+      "updated": {
+        "type": "String"
+      },
+      "same": {
+        "type": "String"
+      }
+    }
+  },
+  "calSyncRemovedN": "{n} kaldırıldı.",
+  "@calSyncRemovedN": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "calSyncFailedN": "{n} yazılamadı.",
+  "@calSyncFailedN": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "calSyncRationale": "Akademik takvimi cihaz takviminize yazmak için takvim erişimi gerekir. Yalnızca BÜ Kampüs etkinlikleri eklenir ve silinir; başka etkinliklerinize dokunulmaz.",
+  "calSyncDenied": "Takvim izni kapalı. Ayarlar > BÜ Kampüs > Takvim iznini açın.",
+  "calSyncOpenSettings": "Ayarları aç",
+  "calSyncNoCalendar": "Cihazda yazılabilir takvim yok. BÜ Kampüs adlı yerel bir takvim oluşturulacak.",
+  "calSyncFetchError": "Akademik takvim alınamadı. Bağlantınızı kontrol edip tekrar deneyin.",
+  "calSyncEmpty": "Yazılacak güncel akademik takvim kaydı yok.",
+  "calSyncUnavailable": "Bu cihazda takvim erişimi desteklenmiyor.",
+  "calSyncRemoveDone": "{n} etkinlik takvimden kaldırıldı.",
+  "@calSyncRemoveDone": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "calSyncCreateFail": "Takvim oluşturulamadı.",
+  "calSyncWorking": "Takvime yazılıyor…"
 }

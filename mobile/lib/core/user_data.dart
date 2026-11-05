@@ -1,5 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../features/academic/alarm_service.dart';
 import '../features/academic/reminders.dart';
 import '../features/auth/help/public_support_api.dart' show TrackTokenStore;
 import '../features/chat/chat_wallpaper.dart';
@@ -29,6 +30,7 @@ void registerUserDataCleaners(ApiClient api) {
     ..add(RecentSearches.clear) // arama geçmişi (kişi adı olabilir)
     ..add(() => PhotoAutoSave.instance.reset()) // galeriye otomatik kayıt ayarı + kaydedilen ek kimlikleri
     ..add(ReminderService.clearUserData) // ders hatırlatıcı ayarı + kurulu yerel hatırlatmalar
+    ..add(AlarmService.clearUserData) // ertelenmiş sınav alarmları + hatırlatmaları + iOS alarm bildirimleri
     ..add(LanguageSync.clear) // son eşitlenen profil dili
     ..add(ChatBackgroundPrefs.clear) // sohbet arka planı tercihi (Desen/Hafif/Orta/Düz)
     ..add(RecentReactions.clear) // hesaba ozel son alti tepki

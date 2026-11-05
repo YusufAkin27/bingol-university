@@ -110,6 +110,10 @@
 	<string>Sohbetteki fotoğraf ve videoları, istediğinizde fotoğraf kitaplığınıza kaydedebilmeniz için izin gerekir.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>Rehberinizdeki kişilerden uygulamayı kullananları bulabilmeniz için kişilerin e-posta adresleri cihazınızda özetlenir (SHA-256) ve eşleştirme için yalnızca bu özetler sunucuya gönderilir. Adlar, telefon numaraları ve ham e-posta adresleri gönderilmez, özetler saklanmaz.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>Akademik takvimi cihaz takviminize yazabilmeniz için takvim erişimi gerekir. Yalnızca BÜ Kampüs tarafından eklenen etkinlikler eklenir, güncellenir ve silinir; diğer etkinliklerinize dokunulmaz.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Akademik takvimi cihaz takviminize yazabilmeniz için takvim erişimi gerekir. Yalnızca BÜ Kampüs tarafından eklenen etkinlikler eklenir, güncellenir ve silinir; diğer etkinliklerinize dokunulmaz.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Yalnızca geliştirme ve test sürümlerinde, yerel ağdaki test sunucusuna bağlanmak için kullanılır. Mağaza sürümü yerel ağdaki cihazlara erişmez.</string>
 </dict>

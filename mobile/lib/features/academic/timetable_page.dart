@@ -13,6 +13,8 @@ import 'acad_ref_widgets.dart';
 import 'academic_api.dart';
 import 'academic_models.dart';
 import 'academic_widgets.dart';
+import '../../core/platform/device_alarm.dart';
+import 'alarm_sheets.dart';
 import 'course_form_page.dart';
 import 'exams_page.dart';
 import 'reminders.dart';
@@ -297,6 +299,12 @@ class _TimetablePageState extends State<TimetablePage> {
           padding: const EdgeInsetsDirectional.only(start: 20),
           child: AcadTextAction(isolateIcs(l.acadTimeExportTooltip), onTap: _export, size: 13, color: t.mut, semanticLabel: l.acadTimeExportTooltip),
         ),
+      ),
+      // Ders programı tamamlandığında: sabah derslerine 1 saat önceden haftalık alarm (Android Saat / iOS bildirim).
+      AcadActionRow(
+        icon: DeviceAlarmService.instance.usesClockApp ? BuIcons.alarmClock : BuIcons.bell,
+        title: DeviceAlarmService.instance.usesClockApp ? l.alarmClassAction : l.alarmClassActionIos,
+        onTap: () => showClassAlarmSheet(context, courses: data.courses, semester: sem),
       ),
     ];
   }

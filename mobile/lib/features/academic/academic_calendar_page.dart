@@ -12,6 +12,9 @@ import 'academic_api.dart';
 import 'academic_models.dart';
 import 'academic_widgets.dart';
 import 'akad_widgets.dart';
+import 'alarm_sheets.dart' show AcadActionRow;
+import 'calendar_sync.dart';
+import 'calendar_sync_sheet.dart';
 import '../../core/academic_catalog.dart';
 
 /// Akademik takvim (Stitch v3 05): "DÖNEM YARIYILI" + "Güne dön", ay gezgini (< Ay Yıl >), kartsız ay ızgarası (önemli
@@ -39,10 +42,23 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
   bool _loading = true;
   Object? _error;
   int _gen = 0;
+  int _syncCount = 0; // cihaz takvimine yazdığımız ve henüz geçmemiş etkinlik sayısı
+
+  Future<void> _loadSyncCount() async {
+    final svc = CalendarSyncService.instance;
+    final st = await svc.state();
+    if (mounted) setState(() => _syncCount = st.activeCount(svc.todayIso));
+  }
+
+  Future<void> _openSync() async {
+    await showCalendarSyncSheet(context, loader: _api.calendarRange);
+    if (mounted) await _loadSyncCount();
+  }
 
   @override
   void initState() {
     super.initState();
+    _loadSyncCount();
     _load();
     _api.nextEvents().then((v) {
       if (mounted) setState(() => _next = v);
@@ -146,6 +162,13 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
             _monthNav(t, tx, l),
             _grid(t, istanbulWall(academicClock())),
             const SizedBox(height: 10),
+            const Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: AcadRule()),
+            AcadActionRow(
+              icon: _syncCount > 0 ? BuIcons.calendarCheck : BuIcons.calendarPlus,
+              title: _syncCount > 0 ? l.calSyncRowDone(_syncCount.toString()) : l.calSyncRowTitle,
+              sub: _syncCount > 0 ? l.calSyncRowDoneSub : l.calSyncRowSub,
+              onTap: _openSync,
+            ),
             const Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: AcadRule()),
             ..._list(maintenance),
           ],

@@ -87,6 +87,9 @@ final class BuNativeBridge: NSObject, FlutterPlugin, UNUserNotificationCenterDel
     BuSecureView.shared.attach(secure)
     // Video kapak karesi (gönderirken yerel dosyadan, gösterirken yetkili ağ adresinden): BuVideoFrames, dosya sonunda.
     BuVideoFrames.register(with: messenger)
+    // Cihaz takvimine yazma (EventKit) ve alarm yedeği (yerel bildirim): BuCalendarAlarmBridge.swift.
+    BuCalendarBridge.register(messenger: messenger)
+    BuAlarmBridge.register(messenger: messenger)
     registrar.addApplicationDelegate(instance)
   }
 

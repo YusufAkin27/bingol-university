@@ -60,6 +60,11 @@ class AcademicApi {
   Future<List<AcademicEvent>> calendar(int year, int month) async =>
       [for (final e in _items(await session.api.get('/academic/calendar?month=$year-${two(month)}'))) AcademicEvent.fromJson(e)];
 
+  /// Tarih aralığı (en çok 366 gün; aralıkla kesişen kayıtlar gelir).
+  Future<List<AcademicEvent>> calendarRange(DateTime from, DateTime to) async => [
+        for (final e in _items(await session.api.get('/academic/calendar?from=${isoDate(from)}&to=${isoDate(to)}'))) AcademicEvent.fromJson(e)
+      ];
+
   Future<List<AcademicEvent>> nextEvents({int limit = 5}) async =>
       [for (final e in _items(await session.api.get('/academic/calendar/next?limit=$limit'))) AcademicEvent.fromJson(e)];
 }
