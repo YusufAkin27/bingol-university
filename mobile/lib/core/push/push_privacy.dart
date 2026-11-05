@@ -1,16 +1,14 @@
 import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
-
-import '../notify/local_reminders.dart';
+import '../platform/notif_settings.dart';
 import '../session.dart';
 
 /// "Mesaj içeriğini gizle" tercihinin cihaza (Android yerel koduna) yansıması.
 ///
 /// Kaynak gerçek sunucudur (`GET/PUT /notifications/preferences` > `hideMessagePreview`): açıkken sunucu push
 /// gövdesini "Yeni mesaj"a çevirir. Zengin bildirimleri yerel kodun çizdiği Android'de kilit ekranı gizliliği için
-/// değer ayrıca `bu_kampus/notify` kanalının `setHidePreview {hide: bool}` yöntemiyle yerel koda iletilir; yerel
+/// değer ayrıca `bu_kampus/notif_settings` kanalının `setHidePreview {hide: bool}` yöntemiyle yerel koda iletilir; yerel
 /// kod bunu paylaşılan tercihlerde `bu.pref.hide_preview` (boolean) anahtarına yazar. Yerel kod yoksa
 /// (eski derleme, iOS) çağrı sessizce yok sayılır: iOS'ta sunucu tarafı gizleme yeterlidir.
 class PushPrivacy {
@@ -22,13 +20,8 @@ class PushPrivacy {
 
   static Future<void> _channelSink(bool hide) async {
     if (kIsWeb || !Platform.isAndroid) return;
-    try {
-      await ChannelReminderBackend.channel.invokeMethod<void>('setHidePreview', {'hide': hide});
-    } on MissingPluginException {
-      /* yerel kod yok */
-    } on PlatformException {
-      /* yerel hata tercihleri bozmaz */
-    }
+    // Yerel köprü `bu_kampus/notif_settings` (BuNotifSettings.kt): yoksa/hata verirse sessizce yok sayılır.
+    await NotifSettings.instance.setHidePreview(hide);
   }
 
   /// Yerel koda iletir; hata sızdırmaz.
