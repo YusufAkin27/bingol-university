@@ -68,6 +68,9 @@ services:
       context: ./web
       args:
         VITE_ADMIN_PATH: ${ADMIN_PATH:-}
+        # Uygulama baglantisi dogrulama dosyalari (.well-known/*): bos ise uretilmez (web/scripts/gen-app-links.mjs, docs/SHARING.md)
+        APPLE_TEAM_ID: ${APPLE_TEAM_ID:-}
+        PLAY_APP_SIGNING_SHA256: ${PLAY_APP_SIGNING_SHA256:-}
     image: ${WEB_IMAGE:-bu-web:local}
     restart: unless-stopped
     ports: !reset []                   # kok compose ile birlestirilse bile 8090 yayinlanmaz

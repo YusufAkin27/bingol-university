@@ -12,6 +12,11 @@ import edu.bingol.backend.messaging.dto.MessagingDtos.TypingEvent;
 import edu.bingol.backend.messaging.media.MessageAttachmentService;
 import edu.bingol.backend.messaging.ws.ChatEventBus;
 import edu.bingol.backend.messaging.ws.PresenceService;
+import edu.bingol.backend.i18n.I18n;
+import edu.bingol.backend.i18n.Lang;
+import edu.bingol.backend.share.ShareCard;
+import edu.bingol.backend.share.ShareRef;
+import edu.bingol.backend.share.ShareService;
 import edu.bingol.backend.moderation.BlockService;
 import edu.bingol.backend.moderation.ReportService;
 import edu.bingol.backend.moderation.ReportTargetType;
@@ -141,6 +146,22 @@ public class MessageService {
         this.attachments = attachments;
     }
 
+    /** Icerik paylasimi: gorunurluk dogrulamasi ve alici basina kart (setter enjeksiyonu; yoksa paylasim reddedilir). */
+    private ShareService shares;
+
+    @Autowired(required = false)
+    void setShares(ShareService shares) {
+        this.shares = shares;
+    }
+
+    /** Paylasim push onizlemesi alicinin dilinde (setter enjeksiyonu; yoksa yalniz simge). */
+    private I18n i18n;
+
+    @Autowired(required = false)
+    void setI18n(I18n i18n) {
+        this.i18n = i18n;
+    }
+
     public SendResult send(Long senderId, Long conversationId, String text, String clientId) {
         return send(senderId, conversationId, text, clientId, null);
     }
@@ -180,8 +201,19 @@ public class MessageService {
     /** `viewOnce` true: yalniz ek doluyken ve en fazla 1 ek ile; aksi 400 VIEW_ONCE_INVALID. */
     public SendResult send(Long senderId, Long conversationId, String text, String clientId, Long replyToMessageId,
                            List<Long> attachmentIds, Boolean viewOnceFlag) {
+        return send(senderId, conversationId, text, clientId, replyToMessageId, attachmentIds, viewOnceFlag, null);
+    }
+
+    /** Icerik paylasimi (gonderi/reel/haber/etkinlik) ve ek/tek gosterimlik birbirini dislar; aksi 422 SHARE_TARGET_INVALID. */
+    public SendResult send(Long senderId, Long conversationId, String text, String clientId, Long replyToMessageId,
+                           List<Long> attachmentIds, Boolean viewOnceFlag, MessagingDtos.ShareRequest share) {
         if (conversationId == null || clientId == null || clientId.isBlank() || clientId.length() > 64) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "conversationId ve clientId gerekli.");
+        }
+        boolean hasShare = share != null;
+        if (hasShare && ((attachmentIds != null && !attachmentIds.isEmpty()) || Boolean.TRUE.equals(viewOnceFlag)
+                || shares == null)) {
+            throw ShareService.invalid();
         }
         boolean hasMedia = attachmentIds != null && !attachmentIds.isEmpty();
         boolean viewOnce = Boolean.TRUE.equals(viewOnceFlag);
@@ -192,7 +224,7 @@ public class MessageService {
         if (hasMedia && attachments == null) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "ATTACHMENT_INVALID", "Geçersiz veya kullanılmış görsel eki.");
         }
-        String body = validatedBody(text, hasMedia);
+        String body = validatedBody(text, hasMedia || hasShare);
         // Ucuz (yalniz Redis) kullanici basi kaba sinir: DB sorgularindan ONCE ve tekrarli clientId yolunu da kapsar
         limiter.check("msg:all:" + senderId, COARSE_SEND_PER_MINUTE, Duration.ofMinutes(1));
         ConversationMember sender = requireMember(conversationId, senderId);
@@ -248,6 +280,8 @@ public class MessageService {
         // Ek dogrulamasi mesaj hakkini harcamadan once (baskasinin/kullanilmis/uygunsuz ek -> 400)
         List<Long> ids = hasMedia ? (viewOnce ? attachments.precheck(senderId, conversationId, attachmentIds, true)
                 : attachments.precheck(senderId, conversationId, attachmentIds)) : List.of();
+        // Paylasilan icerigi gonderen GOREBILIYOR olmali (mesaj hakkini harcamadan once)
+        ShareRef shareRef = hasShare ? shares.requireVisible(senderId, share.type(), share.id()) : null;
         limiter.check("msg:user:" + senderId, RATE_PER_MINUTE, Duration.ofMinutes(1));
         // FIX-P03 (A02#6): oda basina yavas mod; 500 uyeli odada kullanici basina 30/dk = 15.000 mesaj/dk olmasin
         if (policy != null && conv.getType() == Conversation.Type.GROUP && policy.isRoom(conversationId)) {
@@ -261,6 +295,10 @@ public class MessageService {
         draft.setClientId(clientId);
         draft.setReplyToMessageId(replyToMessageId);
         draft.setSuppressed(suppressed);
+        if (shareRef != null) {
+            draft.setShareType(shareRef.type().name());
+            draft.setShareRefId(shareRef.id());
+        }
         codec.seal(draft, body);
         Message saved;
         try {
@@ -360,15 +398,19 @@ public class MessageService {
         boolean viewOnce = view.attachments().stream().anyMatch(a -> a.viewOnce());
         MessageView others = viewOnce ? view.withAttachments(view.attachments().stream()
                 .map(a -> a.forRecipient(m.getConversationId())).toList()) : view;
+        // Icerik paylasimi: kart goruntuleyene gore (gizli hesap/engel/ozel kulup) alici basina hesaplanir
+        ShareRef shareRef = MessageViewAssembler.shareOf(m);
+        Map<Long, ShareCard> shareCards = shareRef == null || shares == null ? Map.of()
+                : shares.cardsForViewers(shareRef, recipients);
         if (viewOnce) {
             bus.publish("messages", List.of(senderId), view);
             bus.publish("messages", normal.stream().filter(id -> !id.equals(senderId)).toList(), others);
         } else {
-            bus.publish("messages", normal, view);
+            publishView(normal, view, shareCards);
         }
         List<Long> lateRecipients = recipients.stream().filter(late::contains).toList();
         if (!lateRecipients.isEmpty()) {
-            bus.publish("messages", lateRecipients, others.withoutReplyPreview());
+            publishView(lateRecipients, others.withoutReplyPreview(), shareCards);
         }
 
         // Sessize alinan konusma: push ve uygulama ici bildirim yok (okunmamis sayaci yine artar, WS yine iletilir).
@@ -388,7 +430,23 @@ public class MessageService {
         Long convId = conv.getId();
         // Sohbet basina birlestirme + dolu kuyrukta bekletme/metrik/WARN (sessiz atlama yok): bkz. ChatNotifyFanout
         fanoutQueue.submit(fanout, new ChatNotifyFanout.Job(senderId, convId, title, preview, data,
-                candidates, 1));
+                candidates, 1, shareRef == null ? null : shareRef.type().name()));
+    }
+
+    /**
+     * Paylasim mesaji yayini: alicilar kart kimligine gore gruplanir (cogu zaman tek grup = tek yayin); kart yoksa
+     * (paylasim degil) eski tek yayin.
+     */
+    private void publishView(List<Long> targets, MessageView v, Map<Long, ShareCard> cards) {
+        if (cards.isEmpty() || targets.isEmpty()) {
+            bus.publish("messages", targets, v);
+            return;
+        }
+        Map<ShareCard, List<Long>> byCard = new java.util.LinkedHashMap<>();
+        for (Long id : targets) {
+            byCard.computeIfAbsent(cards.get(id), k -> new java.util.ArrayList<>()).add(id);
+        }
+        byCard.forEach((card, ids) -> bus.publish("messages", ids, card == null ? v : v.withShare(card)));
     }
 
     /** Bildirim dagitim kuyrugu (T-035); is parcacigi havuzunda ({@code chatFanoutExecutor}) calisir. */
@@ -401,7 +459,7 @@ public class MessageService {
 
     private void runFanout(ChatNotifyFanout.Job j) {
         notifyOffline(j.senderId(), j.conversationId(), j.groupTitle(), j.preview(), j.data(),
-                j.candidates(), j.count());
+                j.candidates(), j.count(), j.shareType());
     }
 
     /**
@@ -418,8 +476,18 @@ public class MessageService {
         if (body == null) {
             return null;
         }
+        if (m.getShareType() != null) {
+            return body; // paylasim: yalniz gonderenin notu (etiketi sharePreview ekler)
+        }
         return body.isEmpty() ? viewOnceIcon(att) // yalniz medya (aciklamasiz)
                 : body.length() > PUSH_PREVIEW ? body.substring(0, PUSH_PREVIEW) + "…" : body;
+    }
+
+    /** Paylasim push govdesi: "🔗 Gonderi paylasti" (alici dilinde; bkz. i18n/share*.properties) + varsa kisa not. */
+    String sharePreview(String shareType, String note, Lang lang) {
+        String label = i18n == null ? "🔗" : i18n.msg("share.preview." + shareType, lang);
+        String n = note == null ? "" : note.strip();
+        return n.isEmpty() ? label : label + ": " + (n.length() > PUSH_PREVIEW ? n.substring(0, PUSH_PREVIEW) + "…" : n);
     }
 
     private static String viewOnceIcon(List<AttachmentView> att) {
@@ -452,7 +520,7 @@ public class MessageService {
      */
     private void notifyOffline(Long senderId, Long conversationId, String groupTitle, String preview,
                                Map<String, String> data, List<Long> candidates,
-                               int count) {
+                               int count, String shareType) {
         try {
             Set<Long> online = presence.onlineAmong(candidates);
             Set<Long> viewing = presence.viewingAmong(candidates, conversationId);
@@ -462,10 +530,12 @@ public class MessageService {
                 return;
             }
             Set<Long> inactive = new java.util.HashSet<>();
+            Map<Long, String> langOf = new java.util.HashMap<>();
             users.findAllById(targets).forEach(u -> {
                 if (!u.isActive()) {
                     inactive.add(u.getId());
                 }
+                langOf.put(u.getId(), u.getLanguage());
             });
             Set<Long> foreground = skipForegroundPush ? presence.foregroundAmong(targets) : Set.of();
             User sender = users.findById(senderId).orElse(null);
@@ -505,8 +575,16 @@ public class MessageService {
                     batch.add(new NotificationService.MessageTarget(id, push, extra));
                 }
             }
-            if (!batch.isEmpty()) {
+            if (!batch.isEmpty() && shareType == null) {
                 notifications.sendNewMessageBatch(batch, title, preview, data, count);
+            } else if (!batch.isEmpty()) {
+                // Paylasim: onizleme ALICININ dilinde notr etiket (+ varsa gonderenin notu); dil basina bir toplu cagri
+                Map<Lang, List<NotificationService.MessageTarget>> byLang = new java.util.EnumMap<>(Lang.class);
+                for (NotificationService.MessageTarget t : batch) {
+                    byLang.computeIfAbsent(Lang.of(langOf.get(t.userId())), l -> new java.util.ArrayList<>()).add(t);
+                }
+                byLang.forEach((lang, group) -> notifications.sendNewMessageBatch(group, title,
+                        sharePreview(shareType, preview, lang), data, count));
             }
         } catch (RuntimeException e) {
             log.warn("Mesaj bildirimi gonderilemedi: {}", e.toString());

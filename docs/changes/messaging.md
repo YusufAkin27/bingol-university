@@ -233,3 +233,16 @@ Tek gosterimlik medyanin aciklamasi (mesaj metni) yalniz medya acilinca istemcid
 - `app.chat.reactions` / `GET /api/messages/reactions` artik yalniz istemcinin "hizli tepki" onerisidir (dogrulama icin kullanilmaz).
 - Mesaj basina en cok 20 FARKLI emoji cesidi (`MessageActionService.MAX_DISTINCT_REACTIONS`); yeni cesit eklenirken doluysa `400 REACTION_LIMIT_REACHED` (tr/en/ar). Kullanicinin mevcut cesitlerden birine gecmesi/kendi tepkisini degistirmesi serbesttir; kullanici basina tek tepki kurali ve saklamada `U+FE0F` temizligi (`normalize`) degismedi.
 - Testler: `EmojiGraphemeTest`, `MessageActionServiceTest` (herhangi emoji, gecersiz girdi, cesit siniri).
+## Mesajla icerik paylasimi (SH-BE, 2026-11-05)
+Tam sozlesme: [docs/SHARING.md](../SHARING.md). Degisiklikler geriye uyumludur (yalniz ekleme).
+
+| Uc / alan | Degisiklik |
+|---|---|
+| `POST /api/conversations/{cid}/messages` ve WS `/app/chat.send` | Opsiyonel `share: {type: "POST\|REEL\|NEWS\|EVENT", id}`. Paylasan icerigi GOREBILIYOR olmali; aksi 422 `SHARE_TARGET_INVALID` (tr/en/ar, `messaging*.properties`). `text` paylasimda bos olabilir (kisa not); `attachmentIds`/`viewOnce` ile birlesmez (422). |
+| `MessageView.share` | Yeni opsiyonel alan (`ShareCard`: `type`, `id`, `available`, `title`, `subtitle`, `imageUrl`, `kind`, `url`). OKUMA ANINDA goruntuleyene gore hesaplanir; icerik silinmis/gizlenmis ya da alici goremiyorsa `available=false` ve baslik/gorsel hic gonderilmez. Silinen/gizlenen/engelli mesajda alan yok. WS'te her aliciya KENDI karti gider. |
+| Sohbet listesi `lastMessage` | Paylasimda `share` notr (yalniz `type`, `id`, `available`, `url`); notsuz paylasimda `text` istek dilinde `🔗 Gonderi paylasti` vb. |
+| Push/bildirim govdesi | Aliciya KAYITLI dilinde notr etiket (`share.preview.*`, `i18n/share*.properties`) + varsa gonderenin notu; baslik/gorsel yok. `ChatNotifyFanout.Job.shareType` yeni alan. |
+| Yanit alintisi | Notsuz paylasim mesajina yanit: `replyTo.text` = `"🔗"`. |
+| KVKK disa aktarma | `sentMessages[]` ogelerine `sharedContentType`, `sharedContentId`. |
+
+Sema: `V1280__message_share` (`message.share_type VARCHAR(8)`, `message.share_ref_id BIGINT`, ikisi de NULL'lanabilir; indeks/FK yok; icerik kopyasi tutulmaz). Sunucu ici: `edu.bingol.backend.share.ShareService` (gorunurluk kararinin TEK yeri: haber gizli degil; etkinlik ACTIVE + kulup ACTIVE ve herkese acik ya da uye; gonderi silinmemis/gizlenmemis + yazar ACTIVE + gizli hesap kapisi + engel), `MessageViewAssembler` sayfa basina toplu kart (setter enjeksiyonu), `MessageService.publishView` kart kimligine gore gruplu yayin.

@@ -1,5 +1,5 @@
 # BÜ Kampüs - Caddy (otomatik HTTPS / Let's Encrypt). docker-compose.prod.yml bu dosyayı bağlar.
-# Karar: Caddy önde; /api, /files, /ws doğrudan backend'e (video yüklemeleri nginx'in 12 MB sınırına takılmasın),
+# Karar: Caddy önde; /api, /files, /s (paylaşım sayfası), /ws doğrudan backend'e (video yüklemeleri nginx'in 12 MB sınırına takılmasın),
 # diğer her şey web (nginx) statik/SPA. Env: DOMAIN, ACME_EMAIL, MAX_BODY, BACKEND_HEALTH_PORT.
 {
 	email {$ACME_EMAIL}
@@ -86,7 +86,8 @@
 	}
 
 	# API, dosyalar, WebSocket: backend (/ws: yükseltme isteğinin gövdesi yok; STOMP çerçeveleri bu sınıra girmez)
-	@backend path /api/* /files/* /ws /ws/*
+	# /s/*: herkese acik paylasim sayfasi + OpenGraph gorseli (backend uretir: docs/SHARING.md; SPA ile cakismaz, site rotalari /tr /en /ar onekli)
+	@backend path /api/* /files/* /s/* /ws /ws/*
 	handle @backend {
 		import noindex
 		request_body {

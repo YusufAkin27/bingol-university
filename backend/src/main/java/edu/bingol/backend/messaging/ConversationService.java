@@ -66,6 +66,16 @@ public class ConversationService {
         this.attachments = attachments;
     }
 
+    /** Son mesaj paylasim ise notr onizleme (tur + kullanilabilirlik); setter enjeksiyonu, yoksa kart gonderilmez. */
+    private edu.bingol.backend.share.ShareService shares;
+    private edu.bingol.backend.i18n.I18n i18n;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setShares(edu.bingol.backend.share.ShareService shares, edu.bingol.backend.i18n.I18n i18n) {
+        this.shares = shares;
+        this.i18n = i18n;
+    }
+
     /** Kulup/etkinlik odasi baglantilari: gorunumde tur (CLUB/EVENT) ve kaynak kimligi buradan turetilir. */
     private edu.bingol.backend.messaging.room.ChatRoomLinkRepository roomLinks;
 
@@ -701,6 +711,17 @@ public class ConversationService {
         codec.openAll(new java.util.ArrayList<>(lastMessages.values())); // son mesaj onizlemesi: sifre cozulur
         Map<Long, List<AttachmentView>> lastAtt = attachments == null ? Map.of() : attachments.viewsFor(me, lastMessages.keySet());
         Set<Long> related = blocks.hiddenFrom(me);
+        // Son mesaj paylasim ise: goruntuleyene gore kullanilabilirlik (kart sonra notrlestirilir)
+        Map<edu.bingol.backend.share.ShareRef, edu.bingol.backend.share.ShareCard> lastCards = Map.of();
+        if (shares != null) {
+            List<edu.bingol.backend.share.ShareRef> shareRefs = lastMessages.values().stream()
+                    .filter(m -> !m.isDeleted() && !m.isHidden()).map(MessageViewAssembler::shareOf)
+                    .filter(java.util.Objects::nonNull).toList();
+            if (!shareRefs.isEmpty()) {
+                lastCards = shares.cards(me, shareRefs);
+            }
+        }
+        final Map<edu.bingol.backend.share.ShareRef, edu.bingol.backend.share.ShareCard> lastShareCards = lastCards;
         // Son mesajim ise makbuz durumu: uyeler zaten yuklu, ek sorgu yalniz askidaki kullanici denetimi
         Map<Long, String> lastStatus = receipts == null ? Map.of() : receipts.statuses(me, lastMessages.values(), fullBy,
                 page.stream().collect(Collectors.toMap(Conversation::getId, c -> c.getType() == Conversation.Type.DIRECT)));
@@ -752,6 +773,12 @@ public class ConversationService {
                     .withSenderName(direct || related.contains(last.getSenderId()) && !last.getSenderId().equals(me) ? null
                             : senderNames.get(last.getSenderId()))
                     .withViewOnceMask();
+            if (lastView != null && MessageViewAssembler.shareOf(last) != null && !lastShareCards.isEmpty()) {
+                // Notr onizleme: kart yalniz tur + kullanilabilirlik; aciklama bossa yerel dilde "Gonderi paylasti"
+                lastView = lastView.withShare(lastShareCards.get(MessageViewAssembler.shareOf(last)))
+                        .withNeutralShare(i18n == null ? null
+                                : i18n.current("share.preview." + MessageViewAssembler.shareOf(last).type().name()));
+            }
             boolean admin = ms.stream().anyMatch(m -> m.getUserId().equals(me) && m.isAdmin());
             ConversationMember mine = ms.stream().filter(m -> m.getUserId().equals(me)).findFirst().orElse(null);
             boolean muted = mine != null && mine.isMuted();

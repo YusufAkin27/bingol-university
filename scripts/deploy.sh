@@ -26,7 +26,10 @@
 #   DEPLOY_ADMIN_PATH (gizli yonetim yolu; web imajina VITE_ADMIN_PATH olarak derlenir),
 #   DEPLOY_STORAGE_DB_DISK_CAPACITY_BYTES (varsayilan 48 GiB), DEPLOY_STORAGE_RESERVED_BYTES (varsayilan 10 GiB),
 #   DEPLOY_BACKUP_REMOTE (rclone crypt uzak yedek hedefi; bos = yedekler YALNIZ sunucu diskinde, UYARI verilir),
-#   DEPLOY_BACKUP_WEBHOOK_URL (yedek hata bildirimi; bos = UYARI).
+#   DEPLOY_BACKUP_WEBHOOK_URL (yedek hata bildirimi; bos = UYARI),
+#   DEPLOY_APPLE_TEAM_ID (10 karakter; web imajinda .well-known/apple-app-site-association uretir) ve
+#   DEPLOY_PLAY_APP_SIGNING_SHA256 (Play uygulama imzalama sertifikasi, AA:BB:..., virgulle birden cok; assetlinks.json). Bos = dosya
+#   uretilmez ve UYARI verilir (paylasim baglantilari uygulamayi dogrudan acmaz; docs/SHARING.md, docs/DEPLOY.md).
 # .env.prod ANAHTAR SENKRONU: yukaridaki DEPLOY_* degerleri sunucudaki .env.prod'a YALNIZ anahtar yoksa/bossa ya da
 #   sablon (YER_TUTUCU/example) degerindeyse yazilir; elle degistirilmis deger ASLA ezilmez. ADMIN_PASSWORD ve
 #   ADMIN_BASIC_ENABLED'e dokunulmaz (uretimde Basic yonetici girisi kapali kalir).
@@ -386,6 +389,16 @@ if [ -n "${DEPLOY_ADMIN_PATH:-}" ]; then
   case "${ADMIN_PATH_V#/}" in api|api/*|files|files/*|ws|ws/*|assets|assets/*|fonts|fonts/*|actuator|actuator/*|tr|tr/*|en|en/*|ar|ar/*)
     die "DEPLOY_ADMIN_PATH ayrilmis bir yolla cakisiyor (api, files, ws, assets, fonts, actuator, tr, en, ar)";; esac
 fi
+# Uygulama baglantisi dogrulama degerleri (Universal Links / App Links): bicim denetimi, bos olabilir
+APPLE_TEAM_V="${DEPLOY_APPLE_TEAM_ID:-}"
+PLAY_SHA_V="$(printf '%s' "${DEPLOY_PLAY_APP_SIGNING_SHA256:-}" | tr 'a-f' 'A-F' | tr -d ' ')"
+if [ -n "$APPLE_TEAM_V" ]; then
+  printf '%s' "$APPLE_TEAM_V" | grep -Eq '^[A-Z0-9]{10}$' || die "DEPLOY_APPLE_TEAM_ID gecersiz (10 buyuk harf/rakam)"
+fi
+if [ -n "$PLAY_SHA_V" ]; then
+  printf '%s' "$PLAY_SHA_V" | grep -Eq '^([0-9A-F]{2}:){31}[0-9A-F]{2}(,([0-9A-F]{2}:){31}[0-9A-F]{2})*$' \
+    || die "DEPLOY_PLAY_APP_SIGNING_SHA256 gecersiz (32 bayt, AA:BB:..., birden cok ise virgulle)"
+fi
 STORAGE_CAP_V="${DEPLOY_STORAGE_DB_DISK_CAPACITY_BYTES:-51539607552}"   # 48 GiB (VDS diski 48 GB)
 STORAGE_RES_V="${DEPLOY_STORAGE_RESERVED_BYTES:-10737418240}"           # 10 GiB: isletim sistemi + docker imajlari + gunlukler
 case "$STORAGE_CAP_V$STORAGE_RES_V" in *[!0-9]*) die "DEPLOY_STORAGE_* yalniz rakam (bayt) olmali";; esac
@@ -395,6 +408,9 @@ if [ "$DRY" = 1 ]; then
   plan "    MAIL_FROM=$(mask_state "${DEPLOY_MAIL_FROM:-}") MAIL_REPLY_TO=$(mask_state "${DEPLOY_MAIL_REPLY_TO:-}") MAIL_FROM_NAME=$(mask_state "${DEPLOY_MAIL_FROM_NAME:-BU Kampus}")"
   plan "    ADMIN_PATH=$(mask_state "$ADMIN_PATH_V") (web imajina VITE_ADMIN_PATH olarak derlenir) ADMIN_EMAILS=$(mask_state "${DEPLOY_ADMIN_EMAILS:-}")"
   plan "    MAIL_USERNAME=$(mask_state "${DEPLOY_MAIL_USER:-}") MAIL_PASSWORD=$(mask_state "${DEPLOY_MAIL_PASSWORD:-}")"
+  plan "    APPLE_TEAM_ID=$(mask_state "$APPLE_TEAM_V") PLAY_APP_SIGNING_SHA256=$(mask_state "$PLAY_SHA_V") (web imajinda .well-known uygulama baglantisi dosyalari)"
+  [ -n "$APPLE_TEAM_V" ] || warn "DEPLOY_APPLE_TEAM_ID yok: sunucudaki .env.prod APPLE_TEAM_ID de bossa apple-app-site-association URETILMEZ (iOS paylasim baglantisi uygulamayi dogrudan acmaz; docs/SHARING.md)"
+  [ -n "$PLAY_SHA_V" ] || warn "DEPLOY_PLAY_APP_SIGNING_SHA256 yok: sunucudaki .env.prod PLAY_APP_SIGNING_SHA256 de bossa assetlinks.json URETILMEZ (Android App Links dogrulanmaz; docs/SHARING.md)"
   plan "    BACKUP_REMOTE=$(mask_state "${DEPLOY_BACKUP_REMOTE:-}") BACKUP_WEBHOOK_URL=$(mask_state "${DEPLOY_BACKUP_WEBHOOK_URL:-}")"
   [ -n "${DEPLOY_BACKUP_REMOTE:-}" ] || warn "DEPLOY_BACKUP_REMOTE yok: sunucudaki .env.prod'da da BACKUP_REMOTE bossa yedekler YALNIZ sunucu diskinde kalir (disk/sunucu kaybi = tum yedekler). rclone crypt hedefi verin (docs/BACKUP_RESTORE.md bolum 11, H-01)"
   [ -n "${DEPLOY_BACKUP_WEBHOOK_URL:-}" ] || warn "DEPLOY_BACKUP_WEBHOOK_URL yok: yedek hatasi yalniz log/metrik ile fark edilir (harici izleme: docs/LAUNCH_CHECKLIST.md)"
@@ -412,6 +428,7 @@ else
     printf 'V_MAIL_USER=%q\nV_MAIL_PASS=%q\nV_STORAGE_CAP=%q\nV_STORAGE_RES=%q\n' \
       "${DEPLOY_MAIL_USER:-}" "${DEPLOY_MAIL_PASSWORD:-}" "$STORAGE_CAP_V" "$STORAGE_RES_V"
     printf 'V_BACKUP_REMOTE=%q\nV_BACKUP_WEBHOOK=%q\n' "${DEPLOY_BACKUP_REMOTE:-}" "${DEPLOY_BACKUP_WEBHOOK_URL:-}"
+    printf 'V_APPLE_TEAM=%q\nV_PLAY_SHA=%q\n' "$APPLE_TEAM_V" "$PLAY_SHA_V"
     cat <<'REMOTE'
 set -euo pipefail
 ENVF=/opt/bukampus/.env.prod
@@ -462,10 +479,15 @@ sync_miss BACKUP_KEYS_DIR /opt/bukampus-data/backup-keys
 if [ -n "$(getv BACKUP_REMOTE)" ] && sudo -n true 2>/dev/null && ! sudo -n test -s /opt/bukampus-data/rclone/rclone.conf; then echo "ENVSYNC-UYARI: BACKUP_REMOTE dolu ama /opt/bukampus-data/rclone/rclone.conf yok: Drive yedegi 'rclone.conf icinde yok' hatasi verir (docs/BACKUP_GDRIVE.md bolum 5)"; fi
 if [ ! -s /opt/bukampus-data/backup-keys/verify.key ]; then echo "ENVSYNC-UYARI: /opt/bukampus-data/backup-keys/verify.key yok: haftalik otomatik geri yukleme dogrulamasi atlanir (docs/BACKUP_RESTORE.md)"; fi
 sync_miss BACKUP_WEBHOOK_URL "$V_BACKUP_WEBHOOK"
+# Uygulama baglantisi dogrulama (web imaji build arg): yoksa/bossa yazilir, elle degerler ezilmez
+sync_miss APPLE_TEAM_ID "$V_APPLE_TEAM"
+sync_miss PLAY_APP_SIGNING_SHA256 "$V_PLAY_SHA"
 echo "ENVSYNC: yazilan anahtarlar:${WROTE:- (yok; her sey zaten ayarli)}"
 if [ "$(getv ADMIN_BASIC_ENABLED)" = true ]; then echo "ENVSYNC-UYARI: ADMIN_BASIC_ENABLED=true (uretimde kapali olmali; elle degistirin)"; fi
 # --- dagitim oncesi uyarilar/engeller (guncel .env.prod uzerinden) ---
 if [ -z "$(getv BACKUP_REMOTE)" ]; then echo "ENVSYNC-UYARI: BACKUP_REMOTE bos: yedekler YALNIZ sunucu diskinde (disk/sunucu kaybi = tum yedekler). Farkli saglayicida rclone crypt hedefi verin (docs/BACKUP_RESTORE.md bolum 11)"; fi
+if [ -z "$(getv APPLE_TEAM_ID)" ]; then echo "ENVSYNC-UYARI: APPLE_TEAM_ID bos: apple-app-site-association uretilmez, iOS paylasim baglantisi uygulamayi dogrudan acmaz (docs/SHARING.md)"; fi
+if [ -z "$(getv PLAY_APP_SIGNING_SHA256)" ]; then echo "ENVSYNC-UYARI: PLAY_APP_SIGNING_SHA256 bos: assetlinks.json uretilmez, Android App Links dogrulanmaz (docs/SHARING.md)"; fi
 if [ -z "$(getv BACKUP_WEBHOOK_URL)" ]; then echo "ENVSYNC-UYARI: BACKUP_WEBHOOK_URL bos: yedek hatasi yalniz log/metrik ile fark edilir"; fi
 admins="$(getv ADMIN_EMAILS | tr ',' '\n' | sed 's/^ *//;s/ *$//' | grep -c . || true)"
 if [ "${admins:-0}" -lt 2 ]; then echo "ENVSYNC-UYARI: ADMIN_EMAILS $admins adres: en az 2 FULL yonetici onerilir (iki kisi onayi tek yoneticide kilitlenir)"; fi
@@ -483,6 +505,9 @@ REMOTE
   # T-145: derlemeden/baslatmadan ONCE yetkili denetim (sunucudaki guncel .env.prod): prod MAIL_ENABLED=false ile acilmaz
   if printf '%s' "$OUT" | grep -q 'ENVSYNC-MAIL: BAD'; then
     die "REDDEDILDI: sunucudaki .env.prod'da MAIL_ENABLED=true + gercek MAIL_USERNAME/MAIL_PASSWORD yok (ya da sablon degerinde) ve APP_MAIL_ALLOW_LOG_ONLY=true degil: prod backend ACILMAZ. $MAIL_HINT" 2
+  fi
+  if printf '%s' "$OUT" | grep -qE 'yazilan anahtarlar:.*(APPLE_TEAM_ID|PLAY_APP_SIGNING_SHA256)'; then
+    log "APPLE_TEAM_ID/PLAY_APP_SIGNING_SHA256 degisti: web imaji yeniden derlenecek (--no-build ile calistirmayin)"
   fi
   if printf '%s' "$OUT" | grep -q 'yazilan anahtarlar:.*ADMIN_PATH'; then
     log "ADMIN_PATH degisti: web imaji yeniden derlenecek (--no-build ile calistirmayin)"
