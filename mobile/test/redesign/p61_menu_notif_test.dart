@@ -357,8 +357,8 @@ void main() {
         final be = FakeBackend()..on('/notifications/preferences', _prefs);
         await _show(tester, NotificationPrefsPage(session: makeSession(be)), lang: lang, dark: dark, scale: 1.3, size: const Size(320, 700));
         final l = lookupAppLocalizations(Locale(lang));
-        // Kaydırmalı liste tembel kurulur: satır ağaçta olsa da ekran dışında kalabilir; en alta kadar kaydır.
-        await tester.drag(find.byType(Scrollable).first, const Offset(0, -3000));
+        // Kaydırmalı liste tembel kurulur: satır ekran dışında kalabilir (sosyal bölüm eklendi); görünene kadar kaydır.
+        await tester.scrollUntilVisible(find.text(l.profil1QuietTitle), 150, scrollable: find.byType(Scrollable).first);
         await settle(tester, const Duration(milliseconds: 600));
         await tester.tap(find.text(l.profil1QuietTitle));
         await settle(tester);

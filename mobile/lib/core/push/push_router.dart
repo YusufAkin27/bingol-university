@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import '../analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -34,6 +36,83 @@ class PushRouter {
   /// PushService tarafından atanır.
   static Session? session;
 
+  /// Oturum yokken dokunulan bildirimin yükü: güvenle saklanır, oturum açılınca [flushPending] açar.
+  /// Tek kayıt tutulur (son dokunuş kazanır); [pendingTtl] sonra bayatlar ve atılır.
+  static Map<String, dynamic>? _pending;
+  static bool _pendingLocal = false;
+  static DateTime? _pendingAt;
+  static const pendingTtl = Duration(minutes: 30);
+
+  /// Aynı bildirimin iki kez işlenmemesi: son [_maxSeen] benzersiz kimlik (LRU) ve işleme zamanı.
+  static final LinkedHashMap<String, DateTime> _seen = LinkedHashMap<String, DateTime>();
+  static const _maxSeen = 50;
+
+  /// Aynı kimlikli bildirimin yinelenen dokunuşu bu süre içinde yok sayılır (FCM + yerel köprü çift yolu, çift dokunuş).
+  static const dedupeWindow = Duration(seconds: 8);
+
+  /// Testte saat enjekte edilir.
+  @visibleForTesting
+  static DateTime Function() clock = DateTime.now;
+
+  /// Testler arasında statik durumu sıfırlar.
+  @visibleForTesting
+  static void resetForTest() {
+    _pending = null;
+    _pendingLocal = false;
+    _pendingAt = null;
+    _seen.clear();
+    _navRetries = 0;
+    clock = DateTime.now;
+    session = null;
+  }
+
+  static int _navRetries = 0;
+
+  /// Saklanan (oturum yokken dokunulan) yük var mı (test).
+  @visibleForTesting
+  static bool get hasPending => _pending != null;
+
+  /// Bildirimi benzersiz kılan kimlik: sohbet `messageId`, ileride genel `nid`/`notificationId`. Kimliksiz yük
+  /// (`conversationId`, `postId` vb.) tekilleştirilmez: aynı hedefe bilinçli ikinci dokunuş geçerlidir.
+  static String? _dedupeKey(Map<String, dynamic> d, {required bool compose}) {
+    for (final k in const ['messageId', 'nid', 'notificationId']) {
+      final v = '${d[k] ?? ''}'.trim();
+      if (v.isNotEmpty) return '$k:$v${compose ? ':c' : ''}';
+    }
+    return null;
+  }
+
+  /// true = aynı bildirim az önce işlendi (yok sayılmalı). Yeni ise kimliği kaydeder.
+  static bool _isDuplicate(String? key) {
+    if (key == null) return false;
+    final now = clock();
+    final prev = _seen.remove(key);
+    _seen[key] = now; // en sona (LRU)
+    while (_seen.length > _maxSeen) {
+      _seen.remove(_seen.keys.first);
+    }
+    return prev != null && now.difference(prev) < dedupeWindow;
+  }
+
+  /// Oturum açılınca çağrılır: oturum yokken dokunulan bildirim (süresi dolmadıysa) şimdi açılır.
+  static Future<bool> flushPending() async {
+    final d = _pending;
+    final at = _pendingAt;
+    final local = _pendingLocal;
+    _pending = null;
+    _pendingAt = null;
+    _pendingLocal = false;
+    if (d == null || at == null || clock().difference(at) > pendingTtl) return false;
+    return open(d, localReminder: local);
+  }
+
+  /// Yük başka bir hesaba mı ait (cihazda hesap değişti; sunucu yüküne `recipientId` koyar).
+  static bool _foreignRecipient(Map<String, dynamic> d, Session s) {
+    final r = int.tryParse('${d['recipientId'] ?? ''}');
+    final me = s.userId;
+    return r != null && r > 0 && me != null && r != me;
+  }
+
   /// [localReminder] = yük yerel hatırlatma dokunuşundan geldi (Android intent ekstrası dışarıdan sahte
   /// basılabilir): yalnız hedef anahtarları beyaz listeden geçer, sohbet durumu (kapandı/yeniden açıldı) ASLA
   /// işlenmez. Durum değiştiren anahtarlar (`event`...) yalnız sunucudan gelen FCM yükünde etkilidir.
@@ -44,11 +123,37 @@ class PushRouter {
       {bool localReminder = false, bool compose = false, bool listFallback = true}) async {
     final s = session;
     final payload = localReminder ? sanitizeLocalReminderPayload(data) : data;
+    if (!localReminder && s != null && s.state == SessionState.signedIn && _foreignRecipient(payload, s)) {
+      return false; // başka hesabın bildirimi: ne durum işlenir ne sayfa açılır
+    }
     // Sohbet kapatıldı/yeniden açıldı bildirimi: durum, hedef ekran açılmadan önce işlenir (bantlı açılsın).
     if (!localReminder) ClosedConversations.instance.applyPushData(payload);
     final target = resolvePushTarget(payload);
     final nav = rootNavigatorKey.currentState;
-    if (s == null || nav == null || s.state != SessionState.signedIn) return false;
+    if (s == null || s.state != SessionState.signedIn) {
+      // Oturum yok: yük atılmaz, giriş sonrası [flushPending] ile açılır.
+      if (payload.isNotEmpty) {
+        _pending = Map<String, dynamic>.from(data);
+        _pendingLocal = localReminder;
+        _pendingAt = clock();
+      }
+      return false;
+    }
+    if (nav == null) {
+      // Gezgin henüz kurulmadı (soğuk açılış): birkaç kare sonra yeniden dene.
+      if (_navRetries < 3) {
+        _navRetries++;
+        try {
+          WidgetsBinding.instance.addPostFrameCallback((_) => open(data, localReminder: localReminder, compose: compose, listFallback: listFallback));
+          WidgetsBinding.instance.scheduleFrame();
+        } catch (_) {
+          /* çerçeve altyapısı yok (saf birim testi) */
+        }
+      }
+      return false;
+    }
+    _navRetries = 0;
+    if (_isDuplicate(_dedupeKey(payload, compose: compose))) return true; // aynı bildirim zaten işlendi
     Analytics.instance.action('push_open', target: localReminder ? 'reminder' : 'push');
     try {
       if (await _go(nav, s, target, compose: !localReminder && compose)) return true;

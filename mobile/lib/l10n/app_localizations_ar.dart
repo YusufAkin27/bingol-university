@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -679,7 +680,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown) {
+    String type,
+    String title,
+    String date,
+    String countdown,
+  ) {
     return '$type: $title. $date. $countdown. المس للتعديل.';
   }
 
@@ -997,7 +1002,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end) {
+    String name,
+    String day,
+    String start,
+    String end,
+  ) {
     return '$name، $day من $start إلى $end';
   }
 
@@ -12033,4 +12042,68 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get forumHomeMenuPrefs => 'إعدادات إشعارات المنتدى';
+
+  @override
+  String get notif2SocialSection => 'التفاعل الاجتماعي';
+
+  @override
+  String get notif2LikeSub => 'عندما يعجب أحد بمنشورك';
+
+  @override
+  String get notif2CommentSub => 'عندما يعلّق أحد على منشورك';
+
+  @override
+  String get notif2ReplySub => 'عندما يرد أحد على تعليقك';
+
+  @override
+  String get notif2MentionSub => 'عندما تتم الإشارة إليك في منشور';
+
+  @override
+  String get notif2FollowSub => 'عندما يبدأ أحد بمتابعتك';
+
+  @override
+  String get notif2FollowRequestTitle => 'طلبات المتابعة';
+
+  @override
+  String get notif2FollowRequestSub => 'عندما يطلب أحد متابعتك';
+
+  @override
+  String get notif2FollowAcceptedTitle => 'الطلبات المقبولة';
+
+  @override
+  String get notif2FollowAcceptedSub => 'عندما يتم قبول طلب المتابعة الخاص بك';
+
+  @override
+  String get notif2AcademicTitle => 'الإعلانات الأكاديمية';
+
+  @override
+  String get notif2AcademicSub => 'تذكيرات الامتحانات والإعلانات الأكاديمية';
+
+  @override
+  String get notif2AcademicNeedsAnnouncements =>
+      'لا تصل الإشعارات الأكاديمية عند إيقاف الإعلانات';
+
+  @override
+  String get notif2PreviewSection => 'المعاينة';
+
+  @override
+  String get notif2HidePreviewTitle => 'إخفاء محتوى الرسالة';
+
+  @override
+  String get notif2HidePreviewSub =>
+      'عند التفعيل يظهر إشعار رسالة جديدة بدلا من النص ولا يظهر المحتوى على شاشة القفل.';
+
+  @override
+  String get notif2SystemSection => 'النظام والأمان';
+
+  @override
+  String get notif2SystemSettingsTitle => 'إعدادات إشعارات النظام';
+
+  @override
+  String get notif2SystemSettingsSub =>
+      'يتم إدارة الصوت والاهتزاز وفئات الإشعارات من إعدادات الجهاز.';
+
+  @override
+  String get notif2SecurityNote =>
+      'تصل إشعارات أمان الحساب والجلسات والإشراف دائما بغض النظر عن هذه الإعدادات.';
 }

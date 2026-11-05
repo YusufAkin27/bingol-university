@@ -29,7 +29,11 @@ class PushActions {
 
   Future<bool> perform(Map<String, dynamic> data) async {
     if (data['preview'] == '1') return true;
-    if (session.state != SessionState.signedIn) return false;
+    if (session.state != SessionState.signedIn) {
+      // Oturum yokken yalnız "aç" dokunuşu güvenle saklanır (giriş sonrası açılır); durum değiştiren eylemler asla.
+      if ('${data['notificationAction'] ?? 'open'}' == 'open') await open(data);
+      return false;
+    }
     final recipient = _id(data['recipientId']);
     if (recipient != null) {
       final current = session.userId ??

@@ -95,7 +95,8 @@ void main() {
         expect(find.text('Anlık bildirimler'), findsOneWidget);
         // Test yerelinde (en) büyük harf kuralı İngilizcedir.
         expect(find.text('Neler bildirilsin'), findsOneWidget);
-        await tester.drag(find.byType(ListView).first, const Offset(0, -300));
+        // Sosyal etkileşimler bölümü eklendi: sessiz saatler satırına kadar kaydır.
+        await tester.scrollUntilVisible(find.text('23:00 – 07:00'), 200, scrollable: find.byType(Scrollable).first);
         await settle(tester, const Duration(milliseconds: 600));
         // Stitch v3: sessiz saatler özet satırı; saatler kendi sayfasında.
         expect(find.text('23:00 – 07:00'), findsOneWidget);
@@ -122,7 +123,7 @@ void main() {
     final b = backend();
     await tester.pumpWidget(buildApp(NotificationPrefsPage(session: makeSession(b)), size: kPhoneMedium));
     await settle(tester);
-    await tester.drag(find.byType(ListView).first, const Offset(0, -500));
+    await tester.scrollUntilVisible(find.text('Sessiz saatler'), 200, scrollable: find.byType(Scrollable).first);
     await settle(tester, const Duration(milliseconds: 600));
     await tester.tap(find.text('Sessiz saatler'));
     await settle(tester);
@@ -139,7 +140,7 @@ void main() {
     final b = backend();
     await tester.pumpWidget(buildApp(NotificationPrefsPage(session: makeSession(b)), size: kPhoneMedium));
     await settle(tester);
-    await tester.drag(find.byType(ListView).first, const Offset(0, -300));
+    await tester.scrollUntilVisible(find.text('Ayrıntılı tercihler'), 200, scrollable: find.byType(Scrollable).first);
     await settle(tester, const Duration(milliseconds: 600));
     await tester.tap(find.text('Ayrıntılı tercihler'));
     await settle(tester);
