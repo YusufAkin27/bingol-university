@@ -27,6 +27,9 @@ public class ForumProfileRepository {
     /** Kaydedilen oge. */
     public record SavedRow(String type, long targetId, Instant at) {}
 
+    /** Yorumun bagli konusu (kaydedilenler listesinde baslik gostermek icin). */
+    public record CommentContext(long topicId, String title) {}
+
     /** Imlec noktasi (null = ilk sayfa). */
     public record Cursor(Instant at, long id) {}
 
@@ -89,6 +92,21 @@ public class ForumProfileRepository {
         args.add(limit);
         return jdbc.query(sql.toString(), (rs, i) -> new SavedRow(rs.getString(1), rs.getLong(2),
                 rs.getTimestamp(3).toInstant()), args.toArray());
+    }
+
+    /** Yorum kimliklerinin bagli (gorunur) konusu: kimlik -> (konu, baslik). Konusu silinmis/kaldirilmis yorum yoktur. */
+    public java.util.Map<Long, CommentContext> commentContext(java.util.Collection<Long> commentIds) {
+        java.util.Map<Long, CommentContext> out = new java.util.HashMap<>();
+        if (commentIds.isEmpty()) {
+            return out;
+        }
+        String in = String.join(",", java.util.Collections.nCopies(commentIds.size(), "?"));
+        jdbc.query("SELECT c.id, t.id, t.title FROM forum_comment c JOIN forum_topic t ON t.id = c.topic_id "
+                + "WHERE c.id IN (" + in + ") AND t.deleted_at IS NULL AND t.status = 'ACTIVE'",
+                rs -> {
+                    out.put(rs.getLong(1), new CommentContext(rs.getLong(2), rs.getString(3)));
+                }, commentIds.toArray());
+        return out;
     }
 
     /** Anonimsiz sayilar (baskasinin profili): gorunen konu sayisi. */
