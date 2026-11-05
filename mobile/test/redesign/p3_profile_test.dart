@@ -3,7 +3,6 @@ import 'package:bu_kampus/features/follow/follow_list_page.dart';
 import 'package:bu_kampus/features/follow/follow_summary.dart';
 import 'package:bu_kampus/features/profile/account_security_page.dart';
 import 'package:bu_kampus/features/profile/blocked_users_page.dart';
-import 'package:bu_kampus/features/profile/edit_profile_page.dart';
 import 'package:bu_kampus/features/profile/my_clubs_page.dart';
 import 'package:bu_kampus/features/profile/privacy_data_page.dart';
 import 'package:bu_kampus/features/profile/profil2_delete_account_page.dart';
@@ -13,7 +12,7 @@ import 'package:bu_kampus/features/profile/profil_widgets.dart' show ProfilRow, 
 import 'package:bu_kampus/features/profile/settings_page.dart';
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/profile/user_profile_page.dart';
-import 'package:bu_kampus/widgets/bu.dart' show BuCard, BuCountUp, LucideIcons;
+import 'package:bu_kampus/widgets/bu.dart' show BuCard, BuCountUp;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -150,9 +149,10 @@ void main() {
       }
       expect(find.byIcon(BuIcons.newspaper), findsNothing);
       expect(find.byIcon(BuIcons.bell), findsNothing);
+      // Satir ici duzenleme karti ilk ekrani uzattigindan alt gruplar tembel olusturulur: gorunen satirlar denetlenir.
       final rows = find.byType(ProfilRow);
-      expect(rows, findsNWidgets(9));
-      for (var i = 0; i < 9; i++) {
+      expect(rows.evaluate().length, greaterThanOrEqualTo(4));
+      for (var i = 0; i < rows.evaluate().length; i++) {
         expect(tester.getSize(rows.at(i)).height, greaterThanOrEqualTo(56));
       }
       // Kulup (3) ve Etkinlik (4) sayilari ilgili satirda deger olarak durur.
@@ -194,44 +194,7 @@ void main() {
     });
   });
 
-  group('Profil duzenle: tek sutun', () {
-    testWidgets('kart yok, etiket basina tek etiket, simgesiz', (tester) async {
-      await _open(tester, EditProfilePage(session: makeSession(_backend()), profile: const {
-        'displayName': 'Ayşe Kaya',
-        'email': 'ayse@bingol.edu.tr',
-        'faculty': 'Mühendislik Fakültesi',
-        'department': 'Bilgisayar Mühendisliği',
-        'grade': '3',
-        'bio': 'x',
-      }), size: kPhoneLarge);
-      expect(find.byType(BuCard), findsNothing);
-      expect(find.text('Ad soyad'), findsOneWidget);
-      expect(find.text('Bölüm'), findsOneWidget);
-      expect(find.text('Sınıf'), findsOneWidget);
-      expect(find.byIcon(LucideIcons.mail), findsNothing);
-      expect(find.byIcon(BuIcons.save), findsNothing);
-      expect(find.text('Kaydet'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-      await unmount(tester);
-    });
-  });
-
   group('Alt sayfalar (Stitch v3 birebir)', () {
-    testWidgets('Profili duzenle: rozetsiz 96 dp avatar, e-posta kilit simgesi', (tester) async {
-      await _open(tester, EditProfilePage(session: makeSession(_backend()), profile: const {
-        'displayName': 'Ayşe Kaya',
-        'email': 'ayse@bingol.edu.tr',
-        'department': 'Bilgisayar Mühendisliği',
-        'grade': '3',
-        'bio': 'x',
-      }), size: kPhoneLarge);
-      expect(find.byIcon(BuIcons.camera), findsNothing);
-      expect(tester.getSize(find.byKey(const ValueKey('avatar-camera'))).width, 96);
-      expect(find.byIcon(BuIcons.lock), findsOneWidget);
-      expect(find.byType(ProfilTopBar), findsOneWidget);
-      await unmount(tester);
-    });
-
     testWidgets('Gizlilik: tam genislik satirlar, segment 48 dp dokunma, ust cubuk duz', (tester) async {
       await _open(tester, PrivacyDataPage(session: makeSession(_backend())), size: kPhoneLarge);
       expect(find.byType(ProfilTopBar), findsOneWidget);
@@ -285,14 +248,7 @@ void main() {
 
   group('Matris (tr/en/ar x acik/koyu x 1.0/1.3 x 320/390): tasma yok', () {
     final screens = <String, Widget Function()>{
-      'EditProfilePage': () => EditProfilePage(session: makeSession(_backend()), profile: const {
-            'displayName': 'Ayşe Kaya',
-            'email': 'ayse@bingol.edu.tr',
-            'faculty': 'Mühendislik Fakültesi',
-            'department': 'Bilgisayar Mühendisliği',
-            'grade': '3',
-            'bio': 'Yazılım ve satranç.',
-          }),
+      'ProfileTab': () => ProfileTab(session: makeSession(_backend()), themeController: ThemeController()),
       'UserProfilePage': () => UserProfilePage(session: makeSession(_backend()), userId: 2, initialName: 'Mehmet'),
       'PrivacyDataPage': () => PrivacyDataPage(session: makeSession(_backend())),
       'MyDataPage': () => MyDataPage(session: makeSession(_backend())),

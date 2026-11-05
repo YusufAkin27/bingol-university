@@ -664,7 +664,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get acadExamsProfileIncomplete =>
-      'لا يوجد قسم في ملفك الشخصي؛ تُعرض الامتحانات العامة فقط. يمكنك إضافة قسمك عبر تعديل الملف الشخصي.';
+      'لا يوجد قسم في ملفك الشخصي؛ تُعرض الامتحانات العامة فقط. يمكنك إضافة قسمك عبر اختيار القسم.';
 
   @override
   String get acadExamsEmptyOfficial => 'لم يُنشر أي برنامج امتحانات رسمي بعد.';
@@ -4805,25 +4805,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profileDeptRequired => 'اختر القسم.';
 
   @override
-  String get profileDiscardTitle => 'لم يتم حفظ التغييرات';
-
-  @override
-  String get profileDiscardBody => 'إذا خرجت فستفقد التغييرات التي أجريتها.';
-
-  @override
-  String get profileKeepEditing => 'متابعة التعديل';
-
-  @override
-  String get profileDiscardExit => 'تجاهل والخروج';
-
-  @override
   String get profileChangePhotoSemantic => 'تغيير صورة الملف الشخصي';
 
   @override
   String get profileUploading => 'جارٍ الرفع…';
-
-  @override
-  String get profileChangePhoto => 'تغيير الصورة';
 
   @override
   String get profilePickGallery => 'اختيار من المعرض';
@@ -4848,10 +4833,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profilePhotoTooLarge => 'الحد الأقصى لحجم الصورة 2 ميغابايت.';
 
   @override
-  String get profileEditTitle => 'تعديل الملف الشخصي';
+  String get profileFullName => 'الاسم الكامل';
 
   @override
-  String get profileFullName => 'الاسم الكامل';
+  String get profileEditNameSemantic => 'تعديل الاسم الكامل';
+
+  @override
+  String get profileEditBioSemantic => 'تعديل نبذة عني';
+
+  @override
+  String get profileEditDeptSemantic => 'تغيير القسم';
+
+  @override
+  String get profileEditGradeSemantic => 'تغيير السنة الدراسية';
+
+  @override
+  String get profileBioEmptyCta => 'عرّف بنفسك';
+
+  @override
+  String get profileSavingSemantic => 'جارٍ الحفظ';
 
   @override
   String get profileNameMin => 'يجب أن يتكون الاسم من حرفين على الأقل.';
@@ -6028,9 +6028,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get profil1Legal => 'الاتفاقيات والسياسات';
-
-  @override
-  String get profil1CorpEmail => 'البريد الجامعي';
 
   @override
   String get profil1Remove => 'إزالة';
@@ -8277,9 +8274,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p17CourseInfoSemantic => 'تفاصيل المقرر';
 
   @override
-  String get p20EditProfile => 'تعديل الملف الشخصي';
-
-  @override
   String get p20HubExamPlan => 'خطة الجلسات';
 
   @override
@@ -9091,9 +9085,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p18ProfileTitle => 'ملفي';
 
   @override
-  String get p18Edit => 'تعديل';
-
-  @override
   String get p18ProfileLoadFailed => 'تعذّر التحميل، حاول مرة أخرى';
 
   @override
@@ -9213,19 +9204,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p19SaveFailedSub => 'حدث خطأ في الاتصال.';
-
-  @override
-  String get p19FormErrTitle => 'هناك حقول تحتاج إلى تصحيح';
-
-  @override
-  String get p19FormErrBody =>
-      'يرجى التحقق من صورة ملفك والحقول المطلوبة المحددة.';
-
-  @override
-  String get p19PhotoChange => 'تغيير الصورة';
-
-  @override
-  String get p19Cancel => 'إلغاء';
 
   @override
   String get p20GradeLevel => 'المستوى الدراسي';

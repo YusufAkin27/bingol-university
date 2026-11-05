@@ -11,7 +11,6 @@ import 'package:bu_kampus/core/theme_controller.dart';
 import 'package:bu_kampus/features/follow/follow_list_page.dart';
 import 'package:bu_kampus/features/profile/account_security_page.dart';
 import 'package:bu_kampus/features/profile/blocked_users_page.dart';
-import 'package:bu_kampus/features/profile/edit_profile_page.dart';
 import 'package:bu_kampus/features/profile/my_clubs_page.dart';
 import 'package:bu_kampus/features/profile/my_events_page.dart';
 import 'package:bu_kampus/features/profile/privacy_data_page.dart';
@@ -188,15 +187,6 @@ final _shots = <_Shot>[
     b.on('/users/2', _other());
     b.on('/users/2/presence', {'online': true});
   }, height: 1100),
-  _Shot('07_duzenle', (b, s) => EditProfilePage(session: s, profile: const {
-        'id': 1,
-        'displayName': 'Ayşe Kaya',
-        'email': 'seed.ayse@bingol.edu.tr',
-        'faculty': 'Mühendislik Fakültesi',
-        'department': 'Bilgisayar Mühendisliği',
-        'grade': '3',
-        'bio': 'Yazılım, satranç ve kampüs etkinlikleri.',
-      }), setup: _base, height: 1500),
   _Shot('08_gizlilik', (b, s) => PrivacyDataPage(session: s), setup: _base, height: 1300),
   _Shot('09_hesap_guvenligi', (b, s) => AccountSecurityPage(session: s), setup: _base),
   _Shot('10_verilerim', (b, s) => MyDataPage(session: s), setup: _base),

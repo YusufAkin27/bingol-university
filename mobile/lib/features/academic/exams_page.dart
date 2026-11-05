@@ -1,3 +1,4 @@
+import '../profile/profile_inline_edit.dart';
 import '../../core/analytics.dart';
 import 'dart:async';
 
@@ -320,8 +321,8 @@ class _ExamsPageState extends State<ExamsPage> {
       if (!_profileComplete)
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
-          child: AcadAmberNote(text: l.acadExamsProfileIncomplete, actionLabel: l.p20EditProfile, onAction: () async {
-            await openEditProfile(context, widget.session);
+          child: AcadAmberNote(text: l.acadExamsProfileIncomplete, actionLabel: l.pickSelectDepartment, onAction: () async {
+            await pickDepartmentAndSave(context, widget.session);
             if (mounted) unawaited(_loadOfficial());
           }),
         ),

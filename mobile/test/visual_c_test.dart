@@ -5,7 +5,6 @@ import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/core/theme_controller.dart';
 import 'package:bu_kampus/features/menu/menu_page.dart';
 import 'package:bu_kampus/features/notifications/notifications_page.dart';
-import 'package:bu_kampus/features/profile/edit_profile_page.dart';
 import 'package:bu_kampus/features/profile/profile_tab.dart';
 import 'package:bu_kampus/features/profile/settings_page.dart';
 import 'package:bu_kampus/features/search/search_page.dart';
@@ -78,25 +77,6 @@ final _extra = <PageCase>[
         {'type': 'TERMS', 'title': 'Kullanım Koşulları', 'version': 3, 'publishedAt': '2026-10-01T00:00:00', 'content': _md}),
     marker: 'Sürüm 3',
     failKeys: const ['/legal/TERMS'],
-  ),
-  PageCase(
-    'EditProfilePage',
-    (b, tc) => EditProfilePage(session: makeSession(b), profile: const {
-      'displayName': 'Ayşe Yılmaz Çok Uzun Bir Soyadı Olan Öğrenci',
-      'faculty': 'Mühendislik-Mimarlık Fakültesi',
-      'department': 'Bilgisayar Mühendisliği',
-      'classYear': 3,
-      'bio': 'Biyografi metni İstanbul ışık.',
-      'showEmail': true,
-      'language': 'tr',
-    }),
-    full: (b) {
-      b.on('/faculties', ['Mühendislik-Mimarlık Fakültesi', 'Fen-Edebiyat Fakültesi']);
-      fakeCatalog(b);
-    },
-    marker: 'Profili düzenle',
-    failKeys: const [],
-    checkLoading: false,
   ),
   PageCase(
     'UserProfilePage',
@@ -254,7 +234,6 @@ void main() {
     'MenuPage',
     'LegalDocPage',
     'LegalDocMarkdown',
-    'EditProfilePage',
     'BlockedUsersPage',
     'UserProfilePage',
     'PrivacyDataPage',
@@ -383,7 +362,7 @@ void main() {
       kPageCases.firstWhere((c) => c.name == 'ProfileTab').full(b);
       await tester.pumpWidget(buildApp(ProfileTab(session: makeSession(b), themeController: ThemeController())));
       await settle(tester);
-      expect(find.bySemanticsLabel('Profili düzenle'), findsWidgets);
+      expect(find.bySemanticsLabel('Ad soyadı düzenle'), findsWidgets);
       await unmount(tester);
       final b2 = FakeBackend();
       kPageCases.firstWhere((c) => c.name == 'MenuPage').full(b2);

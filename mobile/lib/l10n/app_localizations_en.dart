@@ -663,7 +663,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get acadExamsProfileIncomplete =>
-      'Only public exams are shown because your profile has no department. Add one by editing your profile.';
+      'Only public exams are shown because your profile has no department. Add one by choosing your department.';
 
   @override
   String get acadExamsEmptyOfficial =>
@@ -4846,25 +4846,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileDeptRequired => 'Select your department.';
 
   @override
-  String get profileDiscardTitle => 'Unsaved changes';
-
-  @override
-  String get profileDiscardBody => 'If you leave, your changes will be lost.';
-
-  @override
-  String get profileKeepEditing => 'Keep editing';
-
-  @override
-  String get profileDiscardExit => 'Discard and leave';
-
-  @override
   String get profileChangePhotoSemantic => 'Change profile photo';
 
   @override
   String get profileUploading => 'Uploading…';
-
-  @override
-  String get profileChangePhoto => 'Change photo';
 
   @override
   String get profilePickGallery => 'Choose from gallery';
@@ -4890,10 +4875,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profilePhotoTooLarge => 'The photo can be at most 2 MB.';
 
   @override
-  String get profileEditTitle => 'Edit profile';
+  String get profileFullName => 'Full name';
 
   @override
-  String get profileFullName => 'Full name';
+  String get profileEditNameSemantic => 'Edit full name';
+
+  @override
+  String get profileEditBioSemantic => 'Edit about me';
+
+  @override
+  String get profileEditDeptSemantic => 'Change department';
+
+  @override
+  String get profileEditGradeSemantic => 'Change year of study';
+
+  @override
+  String get profileBioEmptyCta => 'Introduce yourself';
+
+  @override
+  String get profileSavingSemantic => 'Saving';
 
   @override
   String get profileNameMin => 'Name must be at least 2 characters.';
@@ -6080,9 +6080,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profil1Legal => 'Agreements and policies';
-
-  @override
-  String get profil1CorpEmail => 'University email';
 
   @override
   String get profil1Remove => 'Remove';
@@ -8360,9 +8357,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p17CourseInfoSemantic => 'Course details';
 
   @override
-  String get p20EditProfile => 'Edit profile';
-
-  @override
   String get p20HubExamPlan => 'Exam plan';
 
   @override
@@ -9184,9 +9178,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p18ProfileTitle => 'My profile';
 
   @override
-  String get p18Edit => 'Edit';
-
-  @override
   String get p18ProfileLoadFailed => 'Could not load, try again';
 
   @override
@@ -9306,19 +9297,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p19SaveFailedSub => 'A connection error occurred.';
-
-  @override
-  String get p19FormErrTitle => 'Some fields need fixing';
-
-  @override
-  String get p19FormErrBody =>
-      'Please check your profile photo and the marked required fields.';
-
-  @override
-  String get p19PhotoChange => 'Change photo';
-
-  @override
-  String get p19Cancel => 'Cancel';
 
   @override
   String get p20GradeLevel => 'Grade Level';

@@ -1,7 +1,6 @@
 import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 
-import '../../core/academic_catalog.dart' show AcademicLabels, gradeLabelL;
 import '../../core/locale_controller.dart';
 import '../../core/platform/image_service.dart' show ImageSource;
 import '../../core/session.dart';
@@ -17,17 +16,17 @@ import '../posts/user_posts_page.dart';
 import '../support/support_page.dart';
 import '../media_crop/media_crop.dart' show PhotoSource, showPhotoSourceSheet;
 import 'avatar_upload.dart';
-import 'edit_profile_page.dart';
 import 'my_clubs_page.dart';
 import 'my_events_page.dart';
 import 'notification_prefs_page.dart';
 import 'popularity_card.dart';
 import 'profile_content_tabs.dart';
+import 'profile_inline_edit.dart';
 import 'profil_widgets.dart';
 import 'settings_page.dart';
 import 'saved_news_page.dart';
 
-/// Profil sekmesi (Stitch v3 birebir): "Profilim" + Düzenle çipi, kartsız profil üstü (88 dp avatar, ad, bölüm · sınıf, bio),
+/// Profil sekmesi (Stitch v3 birebir): "Profilim", satır içi düzenlenen kimlik kartı (88 dp avatar, ad, bölüm/sınıf çipleri, bio, e-posta anahtarı),
 /// tek kutuda 3 sütun sayaç (Takipçi · Takip · Gönderi) ve simgesiz 56 dp satır listeleri (İçeriğim, Uygulama tercihleri).
 /// Dil, tema, hesap, gizlilik, çıkış Ayarlar sayfasındadır. İlk yüklemede iskelet, çekerek yenile, aşamalı giriş.
 class ProfileTab extends StatefulWidget {
@@ -190,15 +189,12 @@ class _ProfileTabState extends State<ProfileTab> {
     }
   }
 
-  Future<void> _edit(Map<String, dynamic> p) async {
-    final changed = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(settings: const RouteSettings(name: 'edit_profile'), builder: (_) => EditProfilePage(session: widget.session, profile: p)),
-    );
-    if (changed == true) {
-      _load();
-      widget.session.refreshName();
-    }
+  /// Satır içi düzenleme: alanlar profil yanıtına birleşir (iyimser güncelleme ve hata halinde geri alma).
+  void _patchProfile(Map<String, dynamic> patch) {
+    if (!mounted) return;
+    final p = _profile;
+    if (p == null) return;
+    setState(() => _profile = {...p, ...patch});
   }
 
   @override
@@ -246,9 +242,18 @@ class _ProfileTabState extends State<ProfileTab> {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsetsDirectional.fromSTEB(20, top + 12, 20, kNavInset + 24),
         children: [
-          BuStaggerItem(index: 0, child: _TitleRow(onEdit: () => _edit(p))),
+          const BuStaggerItem(index: 0, child: _TitleRow()),
           const SizedBox(height: 16),
-          BuStaggerItem(index: 0, child: _ProfileHero(profile: p, busy: _avatarBusy, onAvatarTap: _avatarTap)),
+          BuStaggerItem(
+            index: 0,
+            child: InlineProfileHero(
+              session: widget.session,
+              profile: p,
+              onPatch: _patchProfile,
+              avatar: _TappableAvatar(
+                  name: p['displayName'] as String?, url: p['avatarUrl'] as String?, busy: _avatarBusy, onTap: _avatarTap),
+            ),
+          ),
           const SizedBox(height: 16),
           BuStaggerItem(
             index: 1,
@@ -363,117 +368,34 @@ class _ProfileTabState extends State<ProfileTab> {
   }
 }
 
-/// Sayfa başlığı ("Profilim", 28/700) + sağda "Düzenle" soft çipi (36 dp görünür, 48 dp dokunma alanı).
+/// Sayfa başlığı ("Profilim", 28/700). Düzenleme düğmesi yok: alanlar kimlik kartında yerinde düzenlenir.
 class _TitleRow extends StatelessWidget {
-  const _TitleRow({required this.onEdit});
-
-  final VoidCallback onEdit;
+  const _TitleRow();
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
-    return Row(children: [
-      Expanded(
-        child: Semantics(
-          container: true,
-          header: true,
-          child: Row(children: [
-            // Stitch profil-v4: 48 dp soft karo (16 dp köşe), simge vurgu rengi.
-            ExcludeSemantics(
-              child: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(16)),
-                child: Icon(BuIcons.user, size: 24, color: t.pr),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(l.p18ProfileTitle,
-                  maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.display.copyWith(fontSize: 28, height: 1.1, fontWeight: FontWeight.w700, color: t.ink)),
-            ),
-          ]),
+    return Semantics(
+      container: true,
+      header: true,
+      child: Row(children: [
+        // Stitch profil-v4: 48 dp soft karo (16 dp köşe), simge vurgu rengi.
+        ExcludeSemantics(
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(16)),
+            child: Icon(BuIcons.user, size: 24, color: t.pr),
+          ),
         ),
-      ),
-      const SizedBox(width: 12),
-      Semantics(
-          container: true,
-          button: true,
-          label: l.profileEditTitle,
-          excludeSemantics: true,
-          onTap: onEdit,
-          child: BuPressable(
-            onTap: onEdit,
-            haptic: BuHaptic.selection,
-            child: ConstrainedBox(
-              key: const ValueKey('profile-edit'),
-              constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-              child: Center(
-                widthFactor: 1,
-                child: Container(
-                  height: 36,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bPill),
-                  alignment: Alignment.center,
-                  child: ExcludeSemantics(
-                    child: Text(l.p18Edit,
-                        maxLines: 1, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 13, color: t.onSoft, fontWeight: FontWeight.w500)),
-                  ),
-                ),
-              ),
-            ),
-          )),
-    ]);
-  }
-}
-
-/// Profil üstü (Stitch v3): kartsız; ortada 88 dp avatar (halkasız), ad 22/700, "bölüm · sınıf" 15 mut, en çok 2 satır
-/// biyografi 15 mut.
-class _ProfileHero extends StatelessWidget {
-  const _ProfileHero({required this.profile, required this.busy, required this.onAvatarTap});
-
-  final Map<String, dynamic> profile;
-  final bool busy;
-  final VoidCallback onAvatarTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    final name = profile['displayName'] as String?;
-    final year = (profile['classYear'] as num?)?.toInt();
-    final g = profile['grade'];
-    final grade = (g is String && g.isNotEmpty) ? gradeLabelL(context.l10n, g) : (year != null && year > 0 ? context.l10n.profileGradeYear('$year') : '');
-    final facultyCanon = (profile['faculty'] as String?) ?? '';
-    final dept = context.departmentName((profile['department'] as String?) ?? '', faculty: facultyCanon);
-    final line1 = [dept, grade].where((s) => s.isNotEmpty).join(' · ');
-    final bio = (profile['bio'] as String?) ?? '';
-    return BuCard(
-        radius: 24,
-        style: BuCardStyle.outlined,
-        padding: const EdgeInsets.all(20),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          _TappableAvatar(name: name, url: profile['avatarUrl'] as String?, busy: busy, onTap: onAvatarTap),
-          const SizedBox(height: 16),
-          Text(name ?? '',
-              textAlign: TextAlign.center,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              style: tx.headlineSmall!.copyWith(fontSize: 22, color: t.ink, fontWeight: FontWeight.w700)),
-          if (line1.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(line1, textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(fontSize: 15, color: t.mut)),
-          ],
-          if (bio.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(bio,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: tx.bodyLarge!.copyWith(fontSize: 15, height: 1.4, color: t.mut)),
-          ],
-        ]));
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(l.p18ProfileTitle,
+              maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.display.copyWith(fontSize: 28, height: 1.1, fontWeight: FontWeight.w700, color: t.ink)),
+        ),
+      ]),
+    );
   }
 }
 

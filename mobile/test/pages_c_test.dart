@@ -2,7 +2,6 @@ import 'package:bu_kampus/core/theme_controller.dart';
 import 'package:bu_kampus/features/menu/menu_page.dart';
 import 'package:bu_kampus/features/notifications/notifications_page.dart';
 import 'package:bu_kampus/features/profile/blocked_users_page.dart';
-import 'package:bu_kampus/features/profile/edit_profile_page.dart';
 import 'package:bu_kampus/features/profile/legal_pages.dart';
 import 'package:bu_kampus/features/profile/my_clubs_page.dart';
 import 'package:bu_kampus/features/profile/my_events_page.dart';
@@ -639,48 +638,6 @@ void main() {
       await tester.tap(find.text('7'));
       await settle(tester);
       expect(find.text('7'), findsOneWidget, reason: 'hatada oy geri alınmalı');
-      noErr(tester);
-      await unmount(tester);
-    });
-
-    for (final br in Brightness.values) {
-      for (final size in kPhoneSizes) {
-        testWidgets('EditProfilePage ${br.name} ${size.width.toInt()} taşma yok', (tester) async {
-          final b = FakeBackend()..on('/faculties', ['Mühendislik-Mimarlık Fakültesi', 'Fen-Edebiyat Fakültesi']);
-          useScreen(tester, size);
-          await tester.pumpWidget(buildApp(
-            EditProfilePage(session: makeSession(b), profile: {
-              'displayName': 'Ayşe Yılmaz Çok Uzun Bir Soyadı Olan Öğrenci',
-              'faculty': 'Mühendislik-Mimarlık Fakültesi',
-              'department': 'Bilgisayar Mühendisliği',
-              'classYear': 3,
-              'bio': 'Biyografi ' * 20,
-              'showEmail': true,
-              'language': 'tr',
-            }),
-            brightness: br,
-            size: size,
-          ));
-          await settle(tester);
-          expect(find.text('Profili düzenle'), findsWidgets);
-          noErr(tester);
-          await unmount(tester);
-        });
-      }
-    }
-
-    testWidgets('EditProfilePage: kaydetme hatası gösterilir ve sayfa açık kalır', (tester) async {
-      final b = FakeBackend()
-        ..on('/faculties', ['Fen-Edebiyat Fakültesi'])
-        ..fail('/users/me');
-      useScreen(tester, kPhoneMedium);
-      await tester.pumpWidget(buildApp(EditProfilePage(
-          session: makeSession(b), profile: const {'displayName': 'Ayşe', 'department': 'Bilgisayar Mühendisliği', 'faculty': 'Mühendislik Fakültesi', 'language': 'tr'})));
-      await settle(tester);
-      await tester.tap(find.text('Kaydet').last);
-      await settle(tester);
-      expect(find.text('Bir sorun oluştu. Lütfen tekrar deneyin.'), findsWidgets);
-      expect(find.byType(EditProfilePage), findsOneWidget);
       noErr(tester);
       await unmount(tester);
     });

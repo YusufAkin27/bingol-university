@@ -663,7 +663,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get acadExamsProfileIncomplete =>
-      'Profilinde bölüm bilgisi yok; yalnız herkese açık sınavlar gösteriliyor. Profili düzenleyerek bölümünü ekleyebilirsin.';
+      'Profilinde bölüm bilgisi yok; yalnız herkese açık sınavlar gösteriliyor. Bölümünü seçerek ekleyebilirsin.';
 
   @override
   String get acadExamsEmptyOfficial =>
@@ -4825,26 +4825,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profileDeptRequired => 'Bölümü seçin.';
 
   @override
-  String get profileDiscardTitle => 'Değişiklikler kaydedilmedi';
-
-  @override
-  String get profileDiscardBody =>
-      'Çıkarsanız yaptığınız değişiklikler kaybolacak.';
-
-  @override
-  String get profileKeepEditing => 'Düzenlemeye devam et';
-
-  @override
-  String get profileDiscardExit => 'Vazgeç ve çık';
-
-  @override
   String get profileChangePhotoSemantic => 'Profil fotoğrafını değiştir';
 
   @override
   String get profileUploading => 'Yükleniyor…';
-
-  @override
-  String get profileChangePhoto => 'Fotoğrafı değiştir';
 
   @override
   String get profilePickGallery => 'Galeriden seç';
@@ -4870,10 +4854,25 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profilePhotoTooLarge => 'Fotoğraf en fazla 2 MB olabilir.';
 
   @override
-  String get profileEditTitle => 'Profili düzenle';
+  String get profileFullName => 'Ad soyad';
 
   @override
-  String get profileFullName => 'Ad soyad';
+  String get profileEditNameSemantic => 'Ad soyadı düzenle';
+
+  @override
+  String get profileEditBioSemantic => 'Hakkımda alanını düzenle';
+
+  @override
+  String get profileEditDeptSemantic => 'Bölümü değiştir';
+
+  @override
+  String get profileEditGradeSemantic => 'Sınıfı değiştir';
+
+  @override
+  String get profileBioEmptyCta => 'Kendini tanıt';
+
+  @override
+  String get profileSavingSemantic => 'Kaydediliyor';
 
   @override
   String get profileNameMin => 'Ad en az 2 karakter olmalı.';
@@ -6055,9 +6054,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get profil1Legal => 'Sözleşmeler ve politikalar';
-
-  @override
-  String get profil1CorpEmail => 'Kurumsal e-posta';
 
   @override
   String get profil1Remove => 'Kaldır';
@@ -8324,9 +8320,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p17CourseInfoSemantic => 'Ders bilgileri';
 
   @override
-  String get p20EditProfile => 'Profili düzenle';
-
-  @override
   String get p20HubExamPlan => 'Oturum planı';
 
   @override
@@ -9153,9 +9146,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p18ProfileTitle => 'Profilim';
 
   @override
-  String get p18Edit => 'Düzenle';
-
-  @override
   String get p18ProfileLoadFailed => 'Yüklenemedi, tekrar dene';
 
   @override
@@ -9276,19 +9266,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p19SaveFailedSub => 'Bağlantı hatası oluştu.';
-
-  @override
-  String get p19FormErrTitle => 'Formda düzeltilmesi gereken alanlar var';
-
-  @override
-  String get p19FormErrBody =>
-      'Lütfen profil fotoğrafınızı ve işaretlenen zorunlu alanları kontrol edin.';
-
-  @override
-  String get p19PhotoChange => 'Fotoğrafı değiştir';
-
-  @override
-  String get p19Cancel => 'İptal';
 
   @override
   String get p20GradeLevel => 'Sınıf Düzeyi';

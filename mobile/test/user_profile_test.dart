@@ -191,13 +191,13 @@ void main() {
     await unmount(tester);
   });
 
-  testWidgets('kendi profilinde eylem yok, Profili düzenle var', (tester) async {
+  testWidgets('kendi profilinde eylem yok, Profili düzenle düğmesi de yok', (tester) async {
     final be = FakeBackend()..on('/users/me', {'id': 1, 'displayName': 'Ayşe Yılmaz', 'email': 'ayse@bingol.edu.tr'});
     await _open(tester, be, userId: 1);
     expect(find.text('Mesaj gönder'), findsNothing);
     expect(find.byKey(const ValueKey('profile-more')), findsNothing);
     expect(find.text('Gizli'), findsNothing);
-    expect(find.text('Profili düzenle'), findsOneWidget);
+    expect(find.text('Profili düzenle'), findsNothing);
     expect(be.count('/presence'), 0);
     await unmount(tester);
   });

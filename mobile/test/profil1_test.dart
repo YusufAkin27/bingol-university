@@ -1,5 +1,4 @@
 import 'package:bu_kampus/core/theme_controller.dart';
-import 'package:bu_kampus/features/profile/edit_profile_page.dart';
 import 'package:bu_kampus/features/profile/notification_prefs_page.dart';
 import 'package:bu_kampus/features/profile/profile_tab.dart';
 import 'package:bu_kampus/widgets/bu.dart';
@@ -67,9 +66,11 @@ void main() {
             br: br,
             size: kPhoneSmall));
         await settle(tester);
-        expect(find.text('Düzenle'), findsOneWidget);
-        // Stitch v3: bölüm · sınıf tek satır; hesap/gizlilik/dil/tema/çıkış Ayarlar sayfasındadır.
-        expect(find.text('Bilgisayar Mühendisliği · 3. sınıf'), findsOneWidget);
+        expect(find.text('Düzenle'), findsNothing); // düzenle düğmesi yok: alanlar yerinde düzenlenir
+        expect(find.byKey(const ValueKey('inline-name')), findsOneWidget);
+        // Bölüm ve sınıf ayrı çipler; hesap/gizlilik/dil/tema/çıkış Ayarlar sayfasındadır.
+        expect(find.text('Bilgisayar Mühendisliği'), findsOneWidget);
+        expect(find.text('3. sınıf'), findsOneWidget);
         for (final s in ['Kayıtlı haberler', 'Kulüplerim', 'Etkinliklerim', 'Önerilen kişiler']) {
           await tester.scrollUntilVisible(find.text(s), 200, scrollable: find.byType(Scrollable).first);
           expect(find.text(s), findsOneWidget);
@@ -110,30 +111,6 @@ void main() {
         await unmount(tester);
       });
 
-      testWidgets('EditProfilePage $tag: kurumsal e-posta salt okunur, taşma yok', (tester) async {
-        useScreen(tester, kPhoneSmall);
-        final b = backend();
-        await tester.pumpWidget(wrap(
-            EditProfilePage(session: makeSession(b), profile: {
-              'displayName': 'Ayşe Yılmaz',
-              'email': 'ayse.yilmaz@bingol.edu.tr',
-              'faculty': 'Mühendislik Fakültesi',
-              'department': 'Bilgisayar Mühendisliği',
-              'grade': '3',
-              'bio': 'Biyografi ' * 20,
-              'avatarUrl': null,
-              'showEmail': true,
-            }),
-            rtl: rtl,
-            br: br,
-            size: kPhoneSmall));
-        await settle(tester);
-        await tester.scrollUntilVisible(find.text('Kurumsal e-posta'), 200, scrollable: find.byType(Scrollable).first);
-        expect(find.text('ayse.yilmaz@bingol.edu.tr'), findsOneWidget);
-        expect(find.text('Kaydet'), findsOneWidget);
-        expect(tester.takeException(), isNull);
-        await unmount(tester);
-      });
     }
   }
 

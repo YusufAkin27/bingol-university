@@ -1311,7 +1311,7 @@ abstract class AppLocalizations {
   /// No description provided for @acadExamsProfileIncomplete.
   ///
   /// In tr, this message translates to:
-  /// **'Profilinde bölüm bilgisi yok; yalnız herkese açık sınavlar gösteriliyor. Profili düzenleyerek bölümünü ekleyebilirsin.'**
+  /// **'Profilinde bölüm bilgisi yok; yalnız herkese açık sınavlar gösteriliyor. Bölümünü seçerek ekleyebilirsin.'**
   String get acadExamsProfileIncomplete;
 
   /// No description provided for @acadExamsEmptyOfficial.
@@ -8917,30 +8917,6 @@ abstract class AppLocalizations {
   /// **'Bölümü seçin.'**
   String get profileDeptRequired;
 
-  /// No description provided for @profileDiscardTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Değişiklikler kaydedilmedi'**
-  String get profileDiscardTitle;
-
-  /// No description provided for @profileDiscardBody.
-  ///
-  /// In tr, this message translates to:
-  /// **'Çıkarsanız yaptığınız değişiklikler kaybolacak.'**
-  String get profileDiscardBody;
-
-  /// No description provided for @profileKeepEditing.
-  ///
-  /// In tr, this message translates to:
-  /// **'Düzenlemeye devam et'**
-  String get profileKeepEditing;
-
-  /// No description provided for @profileDiscardExit.
-  ///
-  /// In tr, this message translates to:
-  /// **'Vazgeç ve çık'**
-  String get profileDiscardExit;
-
   /// No description provided for @profileChangePhotoSemantic.
   ///
   /// In tr, this message translates to:
@@ -8952,12 +8928,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Yükleniyor…'**
   String get profileUploading;
-
-  /// No description provided for @profileChangePhoto.
-  ///
-  /// In tr, this message translates to:
-  /// **'Fotoğrafı değiştir'**
-  String get profileChangePhoto;
 
   /// No description provided for @profilePickGallery.
   ///
@@ -9001,17 +8971,47 @@ abstract class AppLocalizations {
   /// **'Fotoğraf en fazla 2 MB olabilir.'**
   String get profilePhotoTooLarge;
 
-  /// No description provided for @profileEditTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Profili düzenle'**
-  String get profileEditTitle;
-
   /// No description provided for @profileFullName.
   ///
   /// In tr, this message translates to:
   /// **'Ad soyad'**
   String get profileFullName;
+
+  /// No description provided for @profileEditNameSemantic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ad soyadı düzenle'**
+  String get profileEditNameSemantic;
+
+  /// No description provided for @profileEditBioSemantic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hakkımda alanını düzenle'**
+  String get profileEditBioSemantic;
+
+  /// No description provided for @profileEditDeptSemantic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölümü değiştir'**
+  String get profileEditDeptSemantic;
+
+  /// No description provided for @profileEditGradeSemantic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınıfı değiştir'**
+  String get profileEditGradeSemantic;
+
+  /// No description provided for @profileBioEmptyCta.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kendini tanıt'**
+  String get profileBioEmptyCta;
+
+  /// No description provided for @profileSavingSemantic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydediliyor'**
+  String get profileSavingSemantic;
 
   /// No description provided for @profileNameMin.
   ///
@@ -11214,12 +11214,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Sözleşmeler ve politikalar'**
   String get profil1Legal;
-
-  /// No description provided for @profil1CorpEmail.
-  ///
-  /// In tr, this message translates to:
-  /// **'Kurumsal e-posta'**
-  String get profil1CorpEmail;
 
   /// No description provided for @profil1Remove.
   ///
@@ -15193,12 +15187,6 @@ abstract class AppLocalizations {
   /// **'Ders bilgileri'**
   String get p17CourseInfoSemantic;
 
-  /// No description provided for @p20EditProfile.
-  ///
-  /// In tr, this message translates to:
-  /// **'Profili düzenle'**
-  String get p20EditProfile;
-
   /// No description provided for @p20HubExamPlan.
   ///
   /// In tr, this message translates to:
@@ -16663,12 +16651,6 @@ abstract class AppLocalizations {
   /// **'Profilim'**
   String get p18ProfileTitle;
 
-  /// No description provided for @p18Edit.
-  ///
-  /// In tr, this message translates to:
-  /// **'Düzenle'**
-  String get p18Edit;
-
   /// No description provided for @p18ProfileLoadFailed.
   ///
   /// In tr, this message translates to:
@@ -16884,30 +16866,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bağlantı hatası oluştu.'**
   String get p19SaveFailedSub;
-
-  /// No description provided for @p19FormErrTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Formda düzeltilmesi gereken alanlar var'**
-  String get p19FormErrTitle;
-
-  /// No description provided for @p19FormErrBody.
-  ///
-  /// In tr, this message translates to:
-  /// **'Lütfen profil fotoğrafınızı ve işaretlenen zorunlu alanları kontrol edin.'**
-  String get p19FormErrBody;
-
-  /// No description provided for @p19PhotoChange.
-  ///
-  /// In tr, this message translates to:
-  /// **'Fotoğrafı değiştir'**
-  String get p19PhotoChange;
-
-  /// No description provided for @p19Cancel.
-  ///
-  /// In tr, this message translates to:
-  /// **'İptal'**
-  String get p19Cancel;
 
   /// No description provided for @p20GradeLevel.
   ///

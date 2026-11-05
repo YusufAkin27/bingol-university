@@ -1,19 +1,16 @@
 @Tags(['store-shots'])
 library;
 
-import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:bu_kampus/core/locale_controller.dart';
-import 'package:bu_kampus/core/platform/image_service.dart';
 import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/core/theme_controller.dart';
 import 'package:bu_kampus/features/follow/follow_list_page.dart';
 import 'package:bu_kampus/features/follow/follow_suggestions.dart';
 import 'package:bu_kampus/features/profile/account_security_page.dart';
-import 'package:bu_kampus/features/profile/edit_profile_page.dart';
 import 'package:bu_kampus/features/profile/privacy_data_page.dart';
 import 'package:bu_kampus/features/profile/profil2_delete_account_page.dart';
 import 'package:bu_kampus/features/profile/profil2_my_data_page.dart';
@@ -28,7 +25,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import '../support/fake_app.dart';
 import '../support/store_shots_images.dart';
-import 'package:bu_kampus/core/icons/bu_icons.dart';
 
 /// N1 ekran goruntuleri: Stitch 48 (takip, profil duzenle), 49 (ayarlar, hesap, gizlilik), 08 (verilerim, hesap sil).
 ///
@@ -62,8 +58,6 @@ class _Variant {
 }
 
 /// Sahte kirpma: ya hata firlatir ya da hic tamamlanmaz (yukleniyor durumu).
-Future<Uint8List?> _failCrop(ImageSource _) => Future<Uint8List?>.error(ImageException('TOO_LARGE'));
-Future<Uint8List?> _hangCrop(ImageSource _) => Completer<Uint8List?>().future;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Sahte veri
@@ -176,40 +170,6 @@ final _shots = <_Shot>[
   }, leaveLoading: true),
   _Shot('08_oneriler_bos', (b, s) => FollowSuggestionsPage(session: s),
       setup: (b) => b.on('/users/me/follow-suggestions*', {'items': <Object>[]})),
-  // ---- 48: profil duzenle
-  _Shot('09_profil_duzenle', (b, s) => EditProfilePage(session: s, profile: _profile()), height: 1000),
-  _Shot('10_profil_duzenle_hatalar', (b, s) => EditProfilePage(
-        session: s,
-        profile: _profile(name: 'E', dept: ''),
-        cropPhoto: _failCrop,
-      ), height: 1100, after: (t) async {
-    await t.tap(find.byKey(const ValueKey('avatar-camera')));
-    await t.pump(const Duration(seconds: 1));
-    await t.pump(const Duration(seconds: 1));
-    await t.tap(find.text(_s('Galeriden seç', 'Choose from gallery', 'اختيار من المعرض')).first);
-    await t.pump(const Duration(seconds: 1));
-    await t.pump(const Duration(seconds: 1));
-    // bolum alani bos birakilarak dogrulama hatasi
-    await t.tap(find.byKey(const ValueKey('edit-save')));
-    await t.pump(const Duration(milliseconds: 300));
-  }),
-  _Shot('11_profil_duzenle_yukleniyor', (b, s) => EditProfilePage(
-        session: s,
-        profile: _profile(),
-        cropPhoto: _hangCrop,
-      ), height: 1000, after: (t) async {
-    await t.tap(find.byKey(const ValueKey('avatar-camera')));
-    await t.pump(const Duration(seconds: 1));
-    await t.pump(const Duration(seconds: 1));
-    await t.tap(find.text(_s('Galeriden seç', 'Choose from gallery', 'اختيار من المعرض')).first);
-    await t.pump(const Duration(seconds: 1));
-    await t.pump(const Duration(seconds: 1));
-  }, leaveLoading: true),
-  _Shot('12_degisiklikleri_at', (b, s) => EditProfilePage(session: s, profile: _profile()), after: (t) async {
-    await _enter(t, find.byKey(const ValueKey('edit-name')), 'Elif Yıldız Demir');
-    await t.tap(find.byIcon(BuIcons.arrowLeft).first);
-    await t.pump(const Duration(milliseconds: 500));
-  }),
   // ---- 49: ayarlar
   _Shot('13_ayarlar', (b, s) => SettingsPage(session: s, themeController: ThemeController(), localeController: LocaleController.current),
       setup: _settings, height: 900),

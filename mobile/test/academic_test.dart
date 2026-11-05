@@ -1,7 +1,6 @@
 import 'package:bu_kampus/core/academic_catalog.dart';
 import 'package:bu_kampus/features/auth/register_page.dart';
 import 'package:bu_kampus/features/auth/verify_code_page.dart';
-import 'package:bu_kampus/features/profile/edit_profile_page.dart';
 import 'package:bu_kampus/features/profile/privacy_data_page.dart';
 import 'package:bu_kampus/features/profile/profile_tab.dart';
 import 'package:bu_kampus/core/theme_controller.dart';
@@ -336,100 +335,6 @@ void main() {
     }
   });
 
-  group('EditProfilePage akademik', () {
-    Map<String, dynamic> profile() => {
-          'displayName': 'Ayşe Yılmaz',
-          'faculty': 'Eski Serbest Fakülte',
-          'department': 'Eski Serbest Bölüm',
-          'grade': '2',
-          'language': 'tr',
-          'showEmail': false,
-        };
-
-    Future<FakeBackend> open(WidgetTester tester, {Map<String, dynamic>? p}) async {
-      useScreen(tester, const Size(390, 1400));
-      final b = FakeBackend();
-      fakeCatalog(b);
-      await tester.pumpWidget(buildApp(EditProfilePage(session: makeSession(b), profile: p ?? profile())));
-      await settle(tester, const Duration(milliseconds: 300));
-      return b;
-    }
-
-    testWidgets('serbest metin olduğu gibi gösterilir; değişmediyse gönderilmez', (tester) async {
-      final b = await open(tester);
-      // Yeni tasarımda fakülte ayrı gösterilmez (yalnız bölüm + sınıf seçilir); serbest metin bölümde olduğu gibi durur.
-      expect(find.text('Eski Serbest Bölüm'), findsOneWidget);
-      await tester.enterText(find.descendant(of: find.byKey(const ValueKey('edit-name')), matching: find.byType(TextField)), 'Ayşe Y.');
-      await tester.tap(find.text('Kaydet').last);
-      await settle(tester, const Duration(milliseconds: 500));
-      final body = b.bodies['PATCH /users/me'] as Map;
-      expect(body['displayName'], 'Ayşe Y.');
-      expect(body.containsKey('faculty'), isFalse);
-      expect(body.containsKey('department'), isFalse);
-      expect(body.containsKey('grade'), isFalse);
-      expect(body.containsKey('classYear'), isFalse);
-      // Bayat dil sunucudaki güncel dili ezmesin (L32).
-      expect(body.containsKey('language'), isFalse);
-      await unmount(tester);
-    });
-
-    testWidgets('yalnızca sınıf değişirse yalnızca grade gider', (tester) async {
-      final b = await open(tester);
-      // Sınıf seçici liste sayfası: mevcut sınıf satırına dokun, listeden 3. sınıfı seç.
-      await tester.tap(find.text('2. sınıf'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
-      await tester.tap(find.text('3. sınıf').last);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
-      await tester.pump(const Duration(milliseconds: 400));
-      await tester.tap(find.text('Kaydet').last);
-      await settle(tester, const Duration(milliseconds: 500));
-      final body = b.bodies['PATCH /users/me'] as Map;
-      expect(body['grade'], '3');
-      expect(body.containsKey('faculty'), isFalse);
-      expect(body.containsKey('department'), isFalse);
-      await unmount(tester);
-    });
-
-    testWidgets('bölüm seçilince fakülte otomatik değişir; fakülte seçici yok', (tester) async {
-      final b = await open(tester);
-      expect(find.text('Fakülte seçin'), findsNothing);
-      await tester.tap(find.text('Eski Serbest Bölüm'));
-      await pickFromSearch(tester, 'biyo', 'Biyoloji');
-      expect(find.text('Eski Serbest Bölüm'), findsNothing);
-      expect(find.text('Biyoloji'), findsOneWidget);
-      await tester.tap(find.text('Kaydet').last);
-      await settle(tester, const Duration(milliseconds: 500));
-      final body = b.bodies['PATCH /users/me'] as Map;
-      expect(body['faculty'], 'Fen-Edebiyat Fakültesi');
-      expect(body['department'], 'Biyoloji');
-      expect(body.containsKey('grade'), isFalse);
-      await unmount(tester);
-    });
-
-    for (final br in Brightness.values) {
-      for (final size in kPhoneSizes) {
-        testWidgets('EditProfilePage akademik ${br.name} ${size.width.toInt()} taşma yok', (tester) async {
-          useScreen(tester, size);
-          final b = FakeBackend();
-          fakeCatalog(b);
-          await tester.pumpWidget(buildApp(
-              EditProfilePage(session: makeSession(b), profile: {
-                ...profile(),
-                'faculty': 'Mühendislik-Mimarlık Fakültesi Çok Uzun Bir Fakülte Adı',
-                'department': 'Çok Uzun Bir Bölüm Adı Bilgisayar ve Yazılım Mühendisliği (İngilizce)',
-              }),
-              brightness: br,
-              size: size));
-          await settle(tester, const Duration(milliseconds: 300));
-          expect(tester.takeException(), isNull);
-          await unmount(tester);
-        });
-      }
-    }
-  });
-
   group('Profil özeti ve gizlilik', () {
     testWidgets('profil sekmesi "Bölüm · sınıf" özeti gösterir (Stitch v3: fakülte satırı yok)', (tester) async {
       useScreen(tester, kPhoneMedium);
@@ -445,8 +350,10 @@ void main() {
       await tester.pumpWidget(
           buildApp(ProfileTab(session: makeSession(b), themeController: ThemeController())));
       await settle(tester);
-      expect(find.text('Bilgisayar Mühendisliği · 3. sınıf'), findsOneWidget);
-      expect(find.text('Mühendislik Fakültesi'), findsNothing); // BIREBIR_PROFIL: yalnız "bölüm · sınıf" satırı
+      // Satır içi düzenleme: bölüm ve sınıf ayrı dokunulabilir çipler; fakülte gösterilmez.
+      expect(find.text('Bilgisayar Mühendisliği'), findsOneWidget);
+      expect(find.text('3. sınıf'), findsOneWidget);
+      expect(find.text('Mühendislik Fakültesi'), findsNothing);
       await unmount(tester);
     });
 

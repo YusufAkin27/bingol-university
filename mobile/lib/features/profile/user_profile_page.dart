@@ -17,7 +17,6 @@ import '../follow/locked_profile_block.dart';
 import '../posts/social_api.dart';
 import 'popularity_card.dart';
 import '../posts/social_models.dart';
-import 'edit_profile_page.dart';
 import 'profile_content_tabs.dart';
 
 /// Kullanıcı profili sayfasını açan ortak giriş. [fromConversationId], çağıranın zaten açık olan
@@ -242,19 +241,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   Future<void> _report() => ReportSheet.show(context, widget.session,
       targetType: 'USER', targetId: widget.userId, title: context.l10n.profileReportUser);
-
-  Future<void> _edit() async {
-    final p = _p;
-    if (p == null) return;
-    final changed = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute<bool>(settings: const RouteSettings(name: 'edit_profile'), builder: (_) => EditProfilePage(session: widget.session, profile: p)),
-    );
-    if (changed == true) {
-      widget.session.refreshName();
-      if (mounted) _load();
-    }
-  }
 
   void _toast(String m, {BuToastKind kind = BuToastKind.info}) {
     if (!mounted) return;
@@ -511,8 +497,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
               ]),
             ),
             Divider(height: 1, thickness: 1, color: t.bd),
-            const SizedBox(height: 14),
-            _actions(t, s),
+            if (!_self) ...[
+              const SizedBox(height: 14),
+              _actions(t, s),
+            ],
           ]),
         ),
         if (avatarHidden) ...[
@@ -566,7 +554,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   Widget _actions(BuTokens t, FollowStats? s) {
     final l = context.l10n;
-    if (_self) return BuButton(label: l.profileEditTitle, icon: BuIcons.squarePen, onPressed: _edit);
+    // Kendi profilinde eylem yok: alanlar Profilim sekmesinde yerinde düzenlenir.
+    if (_self) return const SizedBox.shrink();
     if (_blocked) {
       return Row(children: [
         Expanded(child: BuButton(label: l.profileUnblock, icon: BuIcons.lockOpen, kind: BuButtonKind.outline, busy: _busyBlock, onPressed: _toggleBlock)),
