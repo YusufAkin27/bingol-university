@@ -50,8 +50,8 @@ class AkadSection extends StatelessWidget {
   }
 }
 
-/// Çip (Stitch v3): seçili = `soft` zemin + `pr` yazı, seçili değil = beyaz yüzey + `ink` yazı; çerçevesiz, 34 dp
-/// görünür yükseklik, dokunma alanı >= 48 dp.
+/// Çip (monochrome): seçili = ters renk (`pr` zemin + `onPr` yazı), seçili değil = şeffaf zemin + ince kenarlık + `ink`
+/// yazı; 34 dp görünür yükseklik, dokunma alanı >= 48 dp.
 class AkadChip extends StatelessWidget {
   const AkadChip({super.key, required this.label, this.selected = false, this.onTap, this.expand = false, this.semanticLabel, this.fontSize = 14, this.radius});
 
@@ -71,7 +71,7 @@ class AkadChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final fg = selected ? t.prText : t.ink;
+    final fg = selected ? t.onPr : t.ink;
     final style = tx.labelLarge!.copyWith(fontWeight: selected ? FontWeight.w400 : FontWeight.w400, color: fg);
     final text = MediaQuery.withClampedTextScaling(
       maxScaleFactor: 1.3,
@@ -99,8 +99,10 @@ class AkadChip extends StatelessWidget {
               constraints: const BoxConstraints(minHeight: BuSize.chip),
               padding: EdgeInsets.symmetric(horizontal: expand ? 2 : 16),
               decoration: ShapeDecoration(
-                color: selected ? t.soft : t.sf,
-                shape: radius == null ? const StadiumBorder() : RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius!)),
+                color: selected ? t.pr : Colors.transparent,
+                shape: (radius == null ? const StadiumBorder() : RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius!))).copyWith(
+                  side: BorderSide(color: selected ? t.pr : t.bd),
+                ),
               ),
               child: Center(widthFactor: expand ? null : 1, heightFactor: 1, child: text),
             ),
@@ -138,7 +140,7 @@ class AkadPill extends StatelessWidget {
       );
 }
 
-/// Kart: yüzey rengi, ince çizgi, 20 yarıçap; [shadow] açıkken yumuşak gölge (koyuda yok). Tıklanabilirse basınca küçülür.
+/// Kart: yüzey rengi, ince çizgi, 16 yarıçap; gölge YOK ([shadow] eski imza, kullanılmaz). Tıklanabilirse basınca küçülür.
 class AkadCard extends StatelessWidget {
   const AkadCard({super.key, required this.child, this.padding = const EdgeInsets.all(14), this.onTap, this.borderColor, this.color, this.shadow = true});
 
@@ -151,13 +153,12 @@ class AkadCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    const r = BuRadius.bLg;
+    const r = BuRadius.bMd;
     final card = DecoratedBox(
       decoration: BoxDecoration(
         color: color ?? t.sf,
         borderRadius: r,
         border: Border.all(color: borderColor ?? t.bd),
-        boxShadow: shadow ? BuElevation.of(context, 1) : null,
       ),
       child: Material(
         type: MaterialType.transparency,
@@ -276,21 +277,21 @@ class AkadLabel extends StatelessWidget {
       );
 }
 
-//// Referanstaki alan biçimi: dolu (sf2) yüzey, çerçevesiz; odakta 2 dp marka, hatada tehlike çizgisi.
+//// Alan biçimi (monochrome): `sf` yüzey + ince kenarlık; odakta `ink` 1.5 dp, hatada tehlike çizgisi.
 InputDecoration akadInput(BuildContext context, {String? hint, String? error, bool tall = false, String? label}) {
   final t = context.bu;
-  OutlineInputBorder b(Color c, double w) => OutlineInputBorder(borderRadius: BuRadius.bMd, borderSide: BorderSide(color: c, width: w));
+  OutlineInputBorder b(Color c, double w) => OutlineInputBorder(borderRadius: BuRadius.bControl, borderSide: BorderSide(color: c, width: w));
   return InputDecoration(
     hintText: hint,
     errorText: error,
     counterText: '',
     filled: true,
-    fillColor: t.sf2,
+    fillColor: t.sf,
     hintStyle: Theme.of(context).textTheme.bodyLarge!.copyWith(color: t.mut),
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-    enabledBorder: b(Colors.transparent, 0),
-    disabledBorder: b(Colors.transparent, 0),
-    focusedBorder: b(t.pr, 2),
+    enabledBorder: b(t.bd, 1),
+    disabledBorder: b(t.bdSubtle, 1),
+    focusedBorder: b(t.ink, 1.5),
     errorBorder: b(t.danger, 1.5),
     focusedErrorBorder: b(t.danger, 2),
   );
@@ -382,7 +383,7 @@ class AkadTextField extends StatelessWidget {
           prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
           suffixIcon: error != null
               ? Icon(BuIcons.circleAlert, size: 18, color: t.danger)
-              : (trailingIcon == null ? null : Padding(padding: const EdgeInsetsDirectional.only(end: 14), child: Icon(trailingIcon, size: 18, color: t.pr))),
+              : (trailingIcon == null ? null : Padding(padding: const EdgeInsetsDirectional.only(end: 14), child: Icon(trailingIcon, size: 18, color: t.ink))),
         ),
       ),
     ]);
@@ -583,9 +584,9 @@ class AkadDashedButton extends StatelessWidget {
       child: BuPressable(
         scale: .98,
         child: CustomPaint(
-          foregroundPainter: _DashedRRect(color: t.pr.withValues(alpha: .55), radius: BuRadius.sm),
+          foregroundPainter: _DashedRRect(color: t.bdStrong, radius: BuRadius.sm),
           child: Material(
-            color: t.soft.withValues(alpha: .55),
+            color: Colors.transparent,
             borderRadius: BuRadius.bSm,
             child: InkWell(
               borderRadius: BuRadius.bSm,
@@ -599,13 +600,13 @@ class AkadDashedButton extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Icon(icon, size: 16, color: t.onSoft),
+                      Icon(icon, size: 16, color: t.ink),
                       const SizedBox(width: 6),
                       Flexible(
                         child: Text(label,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w400, color: t.onSoft)),
+                            style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
                       ),
                     ]),
                   ),
@@ -724,8 +725,8 @@ class AkadErrorCard extends StatelessWidget {
             Container(
               width: 40,
               height: 40,
-              decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-              child: ExcludeSemantics(child: Icon(BuIcons.circleAlert, size: 20, color: t.onSoft)),
+              decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+              child: ExcludeSemantics(child: Icon(BuIcons.circleAlert, size: 20, color: t.danger)),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -770,8 +771,8 @@ class AkadTitle extends StatelessWidget {
               Container(
                 constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
                 padding: const EdgeInsets.symmetric(horizontal: 7),
-                decoration: BoxDecoration(color: muted ? t.sf2 : t.soft, borderRadius: BuRadius.bPill),
-                child: Center(widthFactor: 1, child: Text('$count', style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: muted ? t.mut : t.onSoft))),
+                decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bPill),
+                child: Center(widthFactor: 1, child: Text('$count', style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: muted ? t.mut : t.ink))),
               ),
             if (chip != null) AkadPill(chip!, bg: t.sf2, fg: t.mut),
           ]),

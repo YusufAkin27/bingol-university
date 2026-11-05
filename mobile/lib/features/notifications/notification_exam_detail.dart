@@ -80,7 +80,7 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
         child:
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Row(children: [
-            Icon(Icons.school_outlined, color: t.pr),
+            Icon(Icons.school_outlined, color: t.ink),
             const SizedBox(width: 10),
             Expanded(
                 child: Text(l.p17ExamDetail,
@@ -121,7 +121,8 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
                         padding: const EdgeInsets.all(16),
                         margin: const EdgeInsets.only(bottom: 12),
                         decoration: BoxDecoration(
-                            color: t.dangerSoft,
+                            color: t.sf2,
+                            border: Border.all(color: t.bd),
                             borderRadius: BorderRadius.circular(16)),
                         child: Wrap(
                             alignment: WrapAlignment.spaceBetween,
@@ -130,12 +131,12 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
                             runSpacing: 8,
                             children: [
                               Row(mainAxisSize: MainAxisSize.min, children: [
-                                Icon(Icons.alarm, color: t.danger),
+                                Icon(Icons.alarm, color: t.ink),
                                 const SizedBox(width: 12),
                                 Flexible(
                                     child: Text(countdown,
                                         style: TextStyle(
-                                            color: t.danger,
+                                            color: t.ink,
                                             fontWeight: FontWeight.w400))),
                               ]),
                               if (_alarm != null)
@@ -145,8 +146,7 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
                                   child: InkWell(
                                     key: const ValueKey('exam-alarm-toggle'),
                                     onTap: _toggleAlarm,
-                                    borderRadius:
-                                        BorderRadius.circular(BuRadius.pill),
+                                    borderRadius: BorderRadius.circular(10),
                                     child: Container(
                                       constraints:
                                           const BoxConstraints(minHeight: 44),
@@ -154,8 +154,9 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
                                           horizontal: 14),
                                       decoration: BoxDecoration(
                                           color: t.sf,
-                                          borderRadius: BorderRadius.circular(
-                                              BuRadius.pill)),
+                                          border: Border.all(color: t.bd),
+                                          borderRadius:
+                                              BorderRadius.circular(10)),
                                       child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
@@ -187,8 +188,9 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                          color: BuColors.ink,
-                          borderRadius: BorderRadius.circular(20)),
+                          color: t.sf2,
+                          border: Border.all(color: t.bd),
+                          borderRadius: BorderRadius.circular(16)),
                       child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
@@ -199,36 +201,34 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
                                 children: [
                                   Text(examTypeLabelL(l, exam.type),
                                       style: TextStyle(
-                                          color: t.onMedia.withValues(alpha: .7),
+                                          color: t.mut,
                                           fontWeight: FontWeight.w400)),
                                   if (duration != null && duration > 0)
                                     Text(
                                         l.bildirimShortMin(duration.toString()),
-                                        style: TextStyle(
-                                            color: t.onMedia.withValues(alpha: .7))),
+                                        style: TextStyle(color: t.mut)),
                                 ]),
                             const SizedBox(height: 12),
                             if (exam.courseName?.isNotEmpty == true)
                               Text(exam.courseName!,
-                                  style: const TextStyle(
-                                      color: BuColors.red100)),
+                                  style: TextStyle(color: t.mut)),
                             Text(exam.title,
                                 style: TextStyle(
-                                    color: t.onMedia,
+                                    color: t.ink,
                                     fontSize: 24,
                                     height: 1.2,
                                     fontWeight: FontWeight.w400)),
                             Padding(
                                 padding: const EdgeInsets.symmetric(vertical: 10),
-                                child: Divider(color: t.onMedia.withValues(alpha: .24))),
+                                child: Divider(color: t.bd)),
                             Row(children: [
                               Icon(Icons.calendar_today_outlined,
-                                  color: t.onMedia.withValues(alpha: .7), size: 22),
+                                  color: t.mut, size: 22),
                               const SizedBox(width: 12),
                               Expanded(
                                   child: Text(fmtInstantL(l, exam.startsAt),
                                       style: TextStyle(
-                                          color: t.onMedia,
+                                          color: t.ink,
                                           fontWeight: FontWeight.w400))),
                             ]),
                             if (exam.endsAt != null)
@@ -236,8 +236,7 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
                                   padding: const EdgeInsetsDirectional.only(
                                       start: 34, top: 4),
                                   child: Text(fmtInstantL(l, exam.endsAt!),
-                                      style: TextStyle(
-                                          color: t.onMedia.withValues(alpha: .7)))),
+                                      style: TextStyle(color: t.mut))),
                           ]),
                     ),
                     if (exam.room?.isNotEmpty == true)
@@ -246,9 +245,10 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
                             color: t.sf2,
-                            borderRadius: BorderRadius.circular(20)),
+                            border: Border.all(color: t.bd),
+                            borderRadius: BorderRadius.circular(16)),
                         child: Row(children: [
-                          Icon(Icons.meeting_room_outlined, color: t.pr),
+                          Icon(Icons.meeting_room_outlined, color: t.ink),
                           const SizedBox(width: 12),
                           Expanded(
                               child: Text(exam.room!,
@@ -262,7 +262,8 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
                             color: t.sf2,
-                            borderRadius: BorderRadius.circular(20)),
+                            border: Border.all(color: t.bd),
+                            borderRadius: BorderRadius.circular(16)),
                         child: Text(exam.note!,
                             style: Theme.of(context).textTheme.bodyLarge),
                       ),

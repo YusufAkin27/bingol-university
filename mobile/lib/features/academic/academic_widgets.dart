@@ -187,8 +187,8 @@ Future<bool> confirmDialog(BuildContext context, {required String title, require
               child: Container(
                 width: 56,
                 height: 56,
-                decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-                child: ExcludeSemantics(child: Icon(icon ?? BuIcons.trash2, size: 24, color: t.pr)),
+                decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+                child: ExcludeSemantics(child: Icon(icon ?? BuIcons.trash2, size: 24, color: t.ink)),
               ),
             ),
             const SizedBox(height: 14),
@@ -228,7 +228,7 @@ Future<DateTime?> pickAcadDate(BuildContext context, {required DateTime initial,
 ThemeData _pickerTheme(BuildContext context) {
   final t = context.bu;
   final base = Theme.of(context);
-  final confirm = FilledButton.styleFrom(backgroundColor: t.prText, foregroundColor: t.onPr, minimumSize: const Size(72, 48));
+  final confirm = FilledButton.styleFrom(backgroundColor: t.ink, foregroundColor: t.onPr, minimumSize: const Size(72, 48));
   final cancel = TextButton.styleFrom(foregroundColor: t.ink, minimumSize: const Size(72, 48));
   return base.copyWith(
     datePickerTheme: base.datePickerTheme.copyWith(elevation: 0, confirmButtonStyle: confirm, cancelButtonStyle: cancel),

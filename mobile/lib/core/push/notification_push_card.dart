@@ -391,10 +391,10 @@ class NotificationPushCard extends StatelessWidget {
       final first = actions.first;
       final actionable = chat || style.startsWith('EVENT') || style == 'POLL';
       final subtitle = count > 1
-          ? Text(countLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(fontSize: 13, height: 1.3, fontWeight: FontWeight.w400, color: t.prText))
+          ? Text(countLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(fontSize: 13, height: 1.3, fontWeight: FontWeight.w400, color: t.ink))
           : start != null && style.startsWith('EVENT')
               ? Row(children: [
-                  Icon(Icons.schedule, size: 14, color: t.prText),
+                  Icon(Icons.schedule, size: 14, color: t.ink),
                   const SizedBox(width: 4),
                   Expanded(
                       child: Text([_hm(start), if (place != null) place].join(' · '),

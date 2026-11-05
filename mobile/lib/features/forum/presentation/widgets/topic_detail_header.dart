@@ -94,10 +94,11 @@ class _Chip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final fg = accent ? t.onSoft : t.mut;
+    // Monochrome: dolgu yok; ince kenarlık, vurgulu (sabit) etiket daha güçlü kenarlık + ink metin.
+    final fg = accent ? t.ink : t.mut;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(color: accent ? t.soft : t.sf2, borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(border: Border.all(color: accent ? t.bdStrong : t.bd), borderRadius: BorderRadius.circular(8)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         if (icon != null) ...[Icon(icon, size: 14, color: fg), const SizedBox(width: 6)],
         Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: fg))),
@@ -194,7 +195,7 @@ class _TopicGalleryState extends State<TopicGallery> {
   }
 }
 
-/// Beğeni / yorum / kaydet / takip / paylaş satırı. Her düğme en az 48 dp dokunma alanı; etkin durum kırmızı vurgu.
+/// Beğeni / yorum / kaydet / takip / paylaş satırı. Her düğme en az 48 dp dokunma alanı; etkin durum ink, beğeni kalbi `heart`.
 class TopicActionBar extends StatelessWidget {
   const TopicActionBar({
     super.key,
@@ -220,7 +221,7 @@ class TopicActionBar extends StatelessWidget {
     final s = topic;
     return Container(
       margin: const EdgeInsets.only(top: 16),
-      decoration: BoxDecoration(border: Border(top: BorderSide(color: t.bd), bottom: BorderSide(color: t.bd))),
+      decoration: BoxDecoration(border: Border(top: BorderSide(color: t.bdSubtle), bottom: BorderSide(color: t.bdSubtle))),
       child: Row(children: [
         _Act(
           key: const ValueKey('topicLike'),
@@ -286,7 +287,8 @@ class _Act extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final color = active ? t.prText : t.mut;
+    // Beğeni kalbi anlamsal kırmızı (`heart`); diğer etkin durumlar ink.
+    final color = active ? (icon == BuIcons.heartFilled ? t.heart : t.ink) : t.mut;
     return Expanded(
       child: Semantics(
         button: true,

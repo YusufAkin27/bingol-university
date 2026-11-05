@@ -6,7 +6,7 @@ import '../../../../widgets/common.dart' show relativeTime;
 import '../../data/forum_models.dart';
 import '../../data/forum_search_text.dart';
 
-/// Arama sonucu kartının altındaki eşleşme şeridi: "Yorumda" gibi etiket + (varsa) vurgulu kesit. Vurgu `prText`
+/// Arama sonucu kartının altındaki eşleşme şeridi: "Yorumda" gibi etiket + (varsa) vurgulu kesit. Vurgu `ink`
 /// renginde, kalın DEĞİL. Etiket boşsa şerit çizilmez.
 class ForumMatchStrip extends StatelessWidget {
   const ForumMatchStrip({super.key, required this.label, required this.query, this.snippet});
@@ -30,7 +30,7 @@ class ForumMatchStrip extends StatelessWidget {
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Padding(
             padding: const EdgeInsets.only(top: 1),
-            child: Text(label, key: const ValueKey('forum-match-label'), style: tx.labelMedium!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
+            child: Text(label, key: const ValueKey('forum-match-label'), style: tx.labelMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
           ),
           if (text.isNotEmpty) ...[
             const SizedBox(width: 8),
@@ -38,7 +38,7 @@ class ForumMatchStrip extends StatelessWidget {
               child: Text.rich(
                 TextSpan(children: [
                   for (final s in splitForumHighlight(text, query))
-                    TextSpan(text: s.text, style: s.highlight ? base.copyWith(color: t.prText, fontWeight: FontWeight.w400) : null),
+                    TextSpan(text: s.text, style: s.highlight ? base.copyWith(color: t.ink, fontWeight: FontWeight.w400) : null),
                 ]),
                 key: const ValueKey('forum-match-snippet'),
                 maxLines: 2,

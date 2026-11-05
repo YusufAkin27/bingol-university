@@ -237,7 +237,7 @@ class _ForumPrefsPageState extends State<ForumPrefsPage> {
             Flexible(
               child: TextButton(
                 key: ValueKey('forum-unmute-${u.userId}'),
-                style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48)),
+                style: TextButton.styleFrom(foregroundColor: t.ink, minimumSize: const Size(48, 48)),
                 onPressed: _unmuting.contains(u.userId) ? null : () => _unmute(u),
                 child: Text(context.l10n.forumPrefsUnmute, maxLines: 1, overflow: TextOverflow.ellipsis),
               ),

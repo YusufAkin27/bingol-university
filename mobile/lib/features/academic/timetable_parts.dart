@@ -40,7 +40,7 @@ class TtTopRow extends StatelessWidget {
         TextSpan(text: l.p69WeeklyFlow, style: tx.bodySmall!.copyWith(fontWeight: BuType.emphasisWeight, color: t.mut)),
         if (week != null) ...[
           TextSpan(text: '  •  ', style: tx.bodySmall!.copyWith(color: t.mut)),
-          TextSpan(text: l.p69WeekN(week.toString()), style: tx.bodySmall!.copyWith(fontWeight: FontWeight.w400, color: t.prText)),
+          TextSpan(text: l.p69WeekN(week.toString()), style: tx.bodySmall!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
         ],
       ]),
       maxLines: 2,
@@ -75,7 +75,7 @@ class TtTopRow extends StatelessWidget {
                       child: Container(
                         height: 32,
                         padding: const EdgeInsets.symmetric(horizontal: 14),
-                        decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.bPill, border: Border.all(color: t.bd)),
+                        decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.bSm, border: Border.all(color: t.bd)),
                         child: Row(mainAxisSize: MainAxisSize.min, children: [
                           Flexible(child: Text(semester, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontSize: 13, fontWeight: BuType.emphasisWeight, color: t.ink))),
                           const SizedBox(width: 6),
@@ -107,7 +107,7 @@ class TtTopRow extends StatelessWidget {
                     alignment: Alignment.topCenter,
                     child: Padding(
                       padding: const EdgeInsets.only(top: 7),
-                      child: Container(width: 30, height: 30, decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle), child: Icon(BuIcons.plus, size: 22, color: t.pr)),
+                      child: Container(width: 30, height: 30, decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle, border: Border.all(color: t.bd)), child: Icon(BuIcons.plus, size: 22, color: t.ink)),
                     ),
                   ),
                 ),
@@ -162,13 +162,13 @@ class TtDayStrip extends StatelessWidget {
                         curve: BuMotion.standard,
                         constraints: const BoxConstraints(minWidth: 44, minHeight: BuSize.touch),
                         padding: const EdgeInsets.fromLTRB(8, 7, 8, 6),
-                        decoration: BoxDecoration(color: sel ? t.soft : Colors.transparent, borderRadius: BorderRadius.circular(24)),
+                        decoration: BoxDecoration(color: sel ? t.pr : Colors.transparent, borderRadius: BorderRadius.circular(BuRadius.sm)),
                         child: Column(mainAxisSize: MainAxisSize.min, children: [
-                          Text(acadDayShort(l, d), maxLines: 1, style: tx.labelMedium!.copyWith(fontSize: 13, fontWeight: sel ? FontWeight.w400 : BuType.emphasisWeight, color: sel ? t.prText : t.mut)),
+                          Text(acadDayShort(l, d), maxLines: 1, style: tx.labelMedium!.copyWith(fontSize: 13, fontWeight: BuType.emphasisWeight, color: sel ? t.onPr : t.mut)),
                           const SizedBox(height: 2),
-                          Text(date == null ? '' : '${date.day}', maxLines: 1, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w400, color: sel ? t.prText : t.ink)),
+                          Text(date == null ? '' : '${date.day}', maxLines: 1, style: tx.headlineSmall!.copyWith(fontWeight: BuType.emphasisWeight, color: sel ? t.onPr : t.ink)),
                           const SizedBox(height: 3),
-                          SizedBox(height: 5, child: today ? const AcadDot(size: 5) : null),
+                          SizedBox(height: 5, child: today ? AcadDot(size: 5, color: sel ? t.onPr : t.ink) : null),
                         ]),
                       ),
                     ),
@@ -253,7 +253,7 @@ class TtSlotCard extends StatelessWidget {
                           flex: 0,
                           child: Padding(
                             padding: const EdgeInsets.only(top: 3),
-                            child: Text(trailing!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: ongoing ? FontWeight.w400 : FontWeight.w400, color: ongoing ? t.prText : t.mut)),
+                            child: Text(trailing!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: ongoing ? FontWeight.w400 : FontWeight.w400, color: ongoing ? t.ink : t.mut)),
                           ),
                         ),
                       ],
@@ -307,7 +307,7 @@ class TtNowLine extends StatelessWidget {
             child: Row(children: [
               const Padding(padding: EdgeInsetsDirectional.only(start: 4), child: AcadDot(size: 8)),
               const SizedBox(width: 6),
-              Text(text, maxLines: 1, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w400, color: t.prText, fontFeatures: const [FontFeature.tabularFigures()])),
+              Text(text, maxLines: 1, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w400, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()])),
               const SizedBox(width: 9),
               const Expanded(child: AcadRule()),
             ]),

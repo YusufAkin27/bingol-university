@@ -288,7 +288,7 @@ class _TargetRow extends StatelessWidget {
               ]),
             ),
             const SizedBox(width: 12),
-            SizedBox(width: 24, child: selected ? Icon(BuIcons.check, size: 20, color: t.pr) : null),
+            SizedBox(width: 24, child: selected ? Icon(BuIcons.check, size: 20, color: t.ink) : null),
           ]),
         ),
       ),

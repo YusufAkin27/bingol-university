@@ -473,8 +473,8 @@ String eventKindLabelL(AppLocalizations l, String k) => switch (k) {
     };
 
 Color eventKindColor(String k) => switch (k) {
-      // Tek vurgu: sınavlar (vize/final/büt) vurgulu, geri kalan her şey nötr. Tür simgeyle/etiketle ayrışır.
-      'VIZE' || 'FINAL' || 'BUT' => courseColor('red'),
+      // Monochrome: sınavlar koyu nötr, geri kalan her şey açık nötr (kırmızı vurgu yok). Tür simgeyle/etiketle ayrışır.
+      'VIZE' || 'FINAL' || 'BUT' => const Color(0xFF3F3F46),
       _ => courseColor('gray'),
     };
 

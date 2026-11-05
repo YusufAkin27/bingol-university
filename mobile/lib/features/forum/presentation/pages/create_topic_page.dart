@@ -615,14 +615,14 @@ class _TopBar extends StatelessWidget {
                 key: const ValueKey('forumPublish'),
                 color: Colors.transparent,
                 child: InkWell(
-                  customBorder: const StadiumBorder(),
+                  customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   onTap: canPublish ? onPublish : null,
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(minHeight: BuSize.touch, minWidth: 72),
                     child: Center(
                       widthFactor: 1,
                       child: DecoratedBox(
-                        decoration: BoxDecoration(color: t.pr, borderRadius: BorderRadius.circular(BuRadius.pill)),
+                        decoration: BoxDecoration(color: t.pr, borderRadius: BorderRadius.circular(10)),
                         child: SizedBox(
                           height: 36,
                           child: Padding(

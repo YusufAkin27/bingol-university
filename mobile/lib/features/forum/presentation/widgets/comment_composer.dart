@@ -5,6 +5,7 @@ import '../../../../core/icons/bu_icons.dart';
 import '../../../../core/locale_controller.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/theme/bu_motion.dart';
+import '../../../../core/theme/bu_shape.dart';
 import '../../../../widgets/bu_pressable.dart';
 import '../../data/forum_api.dart';
 
@@ -187,15 +188,15 @@ class CommentComposerState extends State<CommentComposer> {
                       key: const ValueKey('commentTargetBanner'),
                       margin: const EdgeInsetsDirectional.only(bottom: 6, end: 4),
                       padding: const EdgeInsetsDirectional.only(start: 12),
-                      decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(12)),
+                      decoration: BoxDecoration(color: t.sf2, border: Border.all(color: t.bd), borderRadius: BorderRadius.circular(12)),
                       child: Row(children: [
-                        Icon(widget.editing ? BuIcons.pencil : BuIcons.reply, size: 16, color: t.onSoft),
+                        Icon(widget.editing ? BuIcons.pencil : BuIcons.reply, size: 16, color: t.mut),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 8),
                             child: Text(bannerText,
-                                maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.onSoft)),
+                                maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
                           ),
                         ),
                         if (cancellable)
@@ -207,7 +208,7 @@ class CommentComposerState extends State<CommentComposer> {
                               key: const ValueKey('commentCancelTarget'),
                               onTap: widget.onCancelTarget,
                               radius: 24,
-                              child: SizedBox(width: 44, height: 40, child: Center(child: Icon(BuIcons.x, size: 18, color: t.onSoft))),
+                              child: SizedBox(width: 44, height: 40, child: Center(child: Icon(BuIcons.x, size: 18, color: t.mut))),
                             ),
                           )
                         else
@@ -232,12 +233,12 @@ class CommentComposerState extends State<CommentComposer> {
                     hintText: widget.replyName != null || widget.threadReplyName != null ? l.forumCommentHintReply : l.forumCommentHint,
                     hintStyle: tx.bodyMedium!.copyWith(color: t.mut),
                     filled: true,
-                    fillColor: t.sf2,
+                    fillColor: t.sf,
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(22), borderSide: BorderSide.none),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(22), borderSide: BorderSide.none),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(22), borderSide: BorderSide(color: t.bdStrong)),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(BuRadius.sm), borderSide: BorderSide(color: t.bd)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(BuRadius.sm), borderSide: BorderSide(color: t.bd)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(BuRadius.sm), borderSide: BorderSide(color: t.ink)),
                   ),
                 ),
               ),
@@ -269,7 +270,7 @@ class CommentComposerState extends State<CommentComposer> {
                               excludeSemantics: true,
                               child: Row(children: [
                                 const SizedBox(width: 4),
-                                Icon(BuIcons.eyeOff, size: 18, color: _anon ? t.prText : t.mut),
+                                Icon(BuIcons.eyeOff, size: 18, color: _anon ? t.ink : t.mut),
                                 const SizedBox(width: 8),
                                 Flexible(
                                     child: Text(l.forumCommentAnonLabel,
@@ -319,7 +320,7 @@ class _SendButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
-    final strong = Theme.of(context).brightness == Brightness.light ? t.prPressed : t.pr;
+    final strong = t.pr;
     return Semantics(
       button: true,
       enabled: enabled,

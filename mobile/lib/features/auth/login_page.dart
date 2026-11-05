@@ -249,7 +249,8 @@ class _LoginPageState extends State<LoginPage> {
                                   height: 52,
                                   padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
-                                      color: t.soft,
+                                      color: t.sf,
+                                      border: Border.all(color: t.bd),
                                       borderRadius: BorderRadius.circular(16)),
                                   child: ExcludeSemantics(
                                     child: SvgPicture.asset(

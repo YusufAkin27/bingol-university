@@ -81,7 +81,7 @@ class AcadTabs extends StatelessWidget {
                         duration: BuMotion.of(context, BuMotion.short),
                         curve: BuMotion.standard,
                         height: 2,
-                        color: on ? t.pr : t.pr.withValues(alpha: 0),
+                        color: on ? t.ink : t.ink.withValues(alpha: 0),
                       ),
                     ),
                   ]),
@@ -112,7 +112,7 @@ class AcadTextAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final c = onTap == null ? t.mut : (color ?? t.prText);
+    final c = onTap == null ? t.mut : (color ?? t.ink);
     return Semantics(
       button: true,
       enabled: onTap != null,
@@ -280,7 +280,7 @@ class AcadTextField extends StatelessWidget {
           hintStyle: tx.bodyLarge!.copyWith(color: t.mut),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
           enabledBorder: b(err ? t.danger : t.bdStrong, err ? 1.5 : 1),
-          focusedBorder: b(err ? t.danger : t.pr, 2),
+          focusedBorder: b(err ? t.danger : t.ink, 1.5),
         ),
       ),
     );
@@ -337,7 +337,7 @@ class AcadDot extends StatelessWidget {
   final Color? color;
 
   @override
-  Widget build(BuildContext context) => ExcludeSemantics(child: Container(width: size, height: size, decoration: BoxDecoration(color: color ?? context.bu.pr, shape: BoxShape.circle)));
+  Widget build(BuildContext context) => ExcludeSemantics(child: Container(width: size, height: size, decoration: BoxDecoration(color: color ?? context.bu.ink, shape: BoxShape.circle)));
 }
 
 /// Kehribar not (ikonsuz): `warnSoft` zemin, 14 dp köşe, 16 dp iç boşluk; [action] metin eylemi altta.

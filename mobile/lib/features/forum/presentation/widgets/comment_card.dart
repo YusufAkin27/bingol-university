@@ -77,7 +77,7 @@ class CommentCard extends StatelessWidget {
       key: ValueKey('commentCard-${n.id}'),
       duration: BuMotion.of(context, const Duration(milliseconds: 400)),
       curve: Curves.easeOut,
-      color: highlighted ? t.soft : Colors.transparent,
+      color: highlighted ? t.sf2 : Colors.transparent,
       child: Stack(children: [
         // Girinti kılavuz çizgileri (her seviye için ince dikey çizgi).
         for (var i = 0; i < level; i++)
@@ -86,7 +86,7 @@ class CommentCard extends StatelessWidget {
             top: 0,
             bottom: 0,
             width: 1,
-            child: ExcludeSemantics(child: ColoredBox(color: t.bd)),
+            child: ExcludeSemantics(child: ColoredBox(color: t.bdSubtle)),
           ),
         Padding(
           padding: EdgeInsetsDirectional.only(start: start, end: _pad, top: 8, bottom: 2),
@@ -155,8 +155,8 @@ class CommentCard extends StatelessWidget {
                 Container(
                   key: const ValueKey('commentAuthorBadge'),
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                  decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(6)),
-                  child: Text(l.forumCommentAuthorBadge, style: tx.bodySmall!.copyWith(color: t.onSoft, fontSize: 11.5)),
+                  decoration: BoxDecoration(border: Border.all(color: t.bdStrong), borderRadius: BorderRadius.circular(6)),
+                  child: Text(l.forumCommentAuthorBadge, style: tx.bodySmall!.copyWith(color: t.ink, fontSize: 11.5)),
                 ),
               if (time.isNotEmpty) Text(time, style: tx.bodySmall!.copyWith(color: t.mut)),
               if (n.edited)

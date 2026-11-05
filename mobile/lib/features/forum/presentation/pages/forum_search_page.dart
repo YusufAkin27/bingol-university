@@ -253,7 +253,7 @@ class _ForumSearchPageState extends State<ForumSearchPage> {
               TextButton(
                 key: const ValueKey('forum-recent-clear'),
                 onPressed: _clearRecent,
-                style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48)),
+                style: TextButton.styleFrom(foregroundColor: t.ink, minimumSize: const Size(48, 48)),
                 child: Text(loc.forumSearchClearAll),
               ),
             ]),

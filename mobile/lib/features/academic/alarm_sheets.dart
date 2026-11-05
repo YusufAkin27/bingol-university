@@ -35,7 +35,7 @@ class AcadActionRow extends StatelessWidget {
       semanticLabel: sub == null ? title : '$title. $sub',
       onTap: onTap,
       child: Row(children: [
-        ExcludeSemantics(child: Icon(icon, size: 20, color: t.pr)),
+        ExcludeSemantics(child: Icon(icon, size: 20, color: t.ink)),
         const SizedBox(width: 14),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [

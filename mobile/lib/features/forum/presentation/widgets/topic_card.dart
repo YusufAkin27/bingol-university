@@ -112,7 +112,7 @@ class ForumTopicImage extends StatelessWidget {
                   end: 8,
                   bottom: 8,
                   child: DecoratedBox(
-                    decoration: BoxDecoration(color: t.scrim.withValues(alpha: .6), borderRadius: BorderRadius.circular(BuRadius.pill)),
+                    decoration: BoxDecoration(color: t.scrim.withValues(alpha: .6), borderRadius: BorderRadius.circular(6)),
                     child: Padding(
                       padding: const EdgeInsetsDirectional.symmetric(horizontal: 8, vertical: 3),
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -154,8 +154,10 @@ class ForumStatusChip extends StatelessWidget {
   }
 }
 
-/// Forum akışı konu kartı: yazar satırı (+ üç nokta), rozetler, başlık, 4 satırlık önizleme, görsel, eylemler
-/// (beğeni, yorum, kaydet, paylaş). Beğeni/kaydet iyimser güncellenir; durum [onChanged] ile listeye yansır.
+/// Forum akışı konu satırı (monochrome, metin odaklı): kart kutusu/gölge YOK, satırlar ince `bdSubtle` çizgiyle
+/// ayrılır. Yazar satırı (+ üç nokta), rozetler, başlık (boyutla güçlü, kalın değil), 3 satırlık önizleme, görsel,
+/// eylemler (beğeni, yorum, kaydet, paylaş). Beğeni/kaydet iyimser güncellenir; durum [onChanged] ile listeye yansır.
+/// [showDivider] false ise alt çizgiyi çağıran çizer (altına şerit eklenen liste öğeleri).
 class TopicCard extends StatelessWidget {
   const TopicCard({
     super.key,
@@ -165,11 +167,13 @@ class TopicCard extends StatelessWidget {
     required this.onOpen,
     required this.onChanged,
     required this.onMenuResult,
+    this.showDivider = true,
   });
 
   final Session session;
   final ForumApi api;
   final TopicSummary topic;
+  final bool showDivider;
 
   /// Karta/yorum düğmesine dokunuş: konu detayı.
   final VoidCallback onOpen;
@@ -218,17 +222,14 @@ class TopicCard extends StatelessWidget {
       child: DecoratedBox(
         key: ValueKey('forum-topic-${topic.id}'),
         decoration: BoxDecoration(
-          color: t.sf,
-          borderRadius: BorderRadius.circular(BuRadius.lg),
-          border: Border.all(color: t.bd),
+          border: showDivider ? Border(bottom: BorderSide(color: t.bdSubtle)) : null,
         ),
         child: Material(
           type: MaterialType.transparency,
           child: InkWell(
-            borderRadius: BorderRadius.circular(BuRadius.lg),
             onTap: onOpen,
             child: Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 8, 4),
+              padding: const EdgeInsetsDirectional.fromSTEB(0, 14, 0, 6),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 ForumAuthorLine(
                   session: session,
@@ -253,7 +254,7 @@ class TopicCard extends StatelessWidget {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsetsDirectional.only(end: 8),
+                  padding: const EdgeInsetsDirectional.only(end: 4),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     if (badges.isNotEmpty) ...[
                       BuGap.h4,
@@ -264,13 +265,13 @@ class TopicCard extends StatelessWidget {
                         key: ValueKey('forum-title-${topic.id}'),
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
-                        style: tt.titleMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w400, height: 1.3)),
+                        style: tt.titleLarge?.copyWith(color: t.ink, fontWeight: BuType.emphasisWeight, height: 1.3)),
                     if (topic.bodyPreview.trim().isNotEmpty) ...[
                       BuGap.h6,
                       Text(topic.bodyPreview.trim(),
-                          maxLines: 4,
+                          maxLines: 3,
                           overflow: TextOverflow.ellipsis,
-                          style: tt.bodyMedium?.copyWith(color: t.mut, height: 1.45)),
+                          style: tt.bodyMedium?.copyWith(color: t.mut, height: 1.5)),
                     ],
                     if (topic.thumbnail != null) ...[
                       BuGap.h12,
@@ -325,9 +326,9 @@ class TopicCardSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     return DecoratedBox(
-      decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.lg), border: Border.all(color: t.bd)),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bdSubtle))),
       child: const Padding(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.symmetric(vertical: 16),
         child: BuSkeletonScope(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [

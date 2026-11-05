@@ -224,8 +224,8 @@ class ForumPagedListState<T> extends State<ForumPagedList<T>> implements ForumLi
         child: Center(
           child: TextButton.icon(
             onPressed: _loadMore,
-            icon: Icon(BuIcons.refreshCw, size: 16, color: t.prText),
-            label: Text(context.l10n.commonRetry, style: TextStyle(color: t.prText)),
+            icon: Icon(BuIcons.refreshCw, size: 16, color: t.ink),
+            label: Text(context.l10n.commonRetry, style: TextStyle(color: t.ink)),
           ),
         ),
       );
