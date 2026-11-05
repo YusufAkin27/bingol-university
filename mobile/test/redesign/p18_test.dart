@@ -168,9 +168,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('nav-1')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 16));
-      final pill = tester.getRect(find.byKey(const ValueKey('nav-indicator')));
-      final cell = tester.getRect(find.byKey(const ValueKey('nav-1')));
-      expect(pill.center.dx, closeTo(cell.center.dx, 0.6)); // animasyonlari azalt: kayma anlik
+      expect(find.byKey(const ValueKey('nav-indicator')), findsNothing); // seçili sekmede zemin yok
       expect(tester.takeException(), isNull);
       await unmount(tester);
     });

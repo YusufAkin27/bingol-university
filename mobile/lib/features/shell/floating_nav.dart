@@ -65,8 +65,6 @@ class FloatingNav extends StatelessWidget {
   static const double _plusSlot = 48; // "+" hücresi
   static const double _plusSize = 52; // "+" dairesi çapı
   static const double _plusRise = 10; // dairenin çubuktan yukarı taşması
-  static const double _pillWidth = 56; // seçili sekme vurgu zemini genişliği
-  static const double _pillHeight = 40;
   static const double _icon = 22;
   static const double _avatar = 22; // avatar çapı (halka dışı)
 
@@ -201,22 +199,13 @@ class _NavRow extends StatefulWidget {
 }
 
 class _NavRowState extends State<_NavRow> {
-  /// Hap son seçili konumda kalır (seçili sekme çubukta yoksa yalnızca solar).
-  int _pillSlot = 0;
-
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
     final dur = AppMotion.of(context, AppMotion.normal);
     final slots = widget.slots;
-    final selPos = slots.indexOf(widget.index);
-    if (selPos >= 0) _pillSlot = selPos;
     return LayoutBuilder(builder: (context, c) {
       final geo = _NavGeometry(c.maxWidth - 2 * FloatingNav._hPad, slots, widget.index);
-      // Vurgu zemini: simgenin etrafında sabit genişlikte hap (en çok 56 dp), hücrenin ortasında.
-      final pillW = geo.widths[_pillSlot] < FloatingNav._pillWidth ? geo.widths[_pillSlot] : FloatingNav._pillWidth;
       const top = FloatingNav.lift;
-      const pillTop = top + (FloatingNav.height - FloatingNav._pillHeight) / 2;
       Widget cell(int pos, Widget child) => AnimatedPositionedDirectional(
             duration: dur,
             curve: AppMotion.standard,
@@ -229,25 +218,6 @@ class _NavRowState extends State<_NavRow> {
       return Stack(
         clipBehavior: Clip.none,
         children: [
-          // Kayan hap: seçili hücrenin arkasında; hücrelerle birlikte genişler/daralır.
-          AnimatedPositionedDirectional(
-            duration: dur,
-            curve: AppMotion.standard,
-            start: FloatingNav._hPad + geo.lefts[_pillSlot] + (geo.widths[_pillSlot] - pillW) / 2,
-            width: pillW,
-            top: pillTop,
-            height: FloatingNav._pillHeight,
-            child: ExcludeSemantics(
-              child: AnimatedOpacity(
-                duration: AppMotion.of(context, AppMotion.fast),
-                opacity: selPos >= 0 ? 1 : 0,
-                child: DecoratedBox(
-                  key: const ValueKey('nav-indicator'),
-                  decoration: ShapeDecoration(color: widget.immersive ? t.onMedia.withValues(alpha: .22) : t.soft, shape: const StadiumBorder()),
-                ),
-              ),
-            ),
-          ),
           for (var pos = 0; pos < slots.length; pos++)
             if (slots[pos] == -1)
               AnimatedPositionedDirectional(
@@ -378,7 +348,8 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final fg = immersive ? t.onMedia : t.onSoft;
+    // Seçili sekmede zemin/hap YOK: yalnız simge kırmızı (marka rengi).
+    final fg = immersive ? t.onMedia : t.pr;
     final color = selected ? fg : (immersive ? t.onMedia.withValues(alpha: .8) : t.mut);
     final unread = badge;
     Widget glyph = _isProfile ? _profile(context, t, fg) : _icon(context, color);

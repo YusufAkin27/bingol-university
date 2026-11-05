@@ -104,18 +104,11 @@ void main() {
     await tester.pumpWidget(StatefulBuilder(
       builder: (c, set) => _nav(_idx, (i) => set(() => _idx = i), badge, kPhoneMedium, Brightness.light),
     ));
-    Rect pill() => tester.getRect(find.byKey(const ValueKey('nav-indicator')));
     for (final i in [4, 2, 0]) {
-      final before = pill();
       await tester.tap(find.byKey(ValueKey('nav-$i')));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 110));
-      final mid = pill();
-      expect(mid.left != before.left, isTrue, reason: 'hap yolda olmali ($i)');
-      await tester.pump(const Duration(milliseconds: 400));
-      final cell = tester.getRect(find.byKey(ValueKey('nav-$i')));
-      expect(pill().center.dx, closeTo(cell.center.dx, 0.6), reason: 'sekme $i');
-      expect(pill().width, lessThanOrEqualTo(56.5), reason: 'vurgu zemini sabit dar hap (etiket yok)');
+      await tester.pump(const Duration(milliseconds: 500));
+      // Seçili sekmede zemin/hap YOK: yalnız simge kırmızı.
+      expect(find.byKey(const ValueKey('nav-indicator')), findsNothing, reason: 'seçili sekmede vurgu zemini yok ($i)');
       for (var j = 0; j < 5; j++) {
         expect(find.text(_labels[j]), findsNothing, reason: 'hiçbir sekmede görünür etiket yok ($j)');
       }
@@ -137,7 +130,8 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 20));
     final cell = tester.getRect(find.byKey(const ValueKey('nav-4')));
-    expect(tester.getRect(find.byKey(const ValueKey('nav-indicator'))).center.dx, closeTo(cell.center.dx, 0.6));
+    expect(find.byKey(const ValueKey('nav-indicator')), findsNothing); // vurgu zemini yok
+    expect(cell.width, greaterThan(0));
     expect(find.text('Profil'), findsNothing); // etiket görünmez (ekran okuyucuda var)
   });
 
