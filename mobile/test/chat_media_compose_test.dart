@@ -107,7 +107,9 @@ class _FakeNative {
   bool captured;
   bool secureLayer;
 
-  ChatSecureView view({bool ios = true}) => ChatSecureView(channel: channel, isIOS: ios);
+  /// [layerTrick]: null = derleme varsayılanı (KAPALI); true = BU_SECURE_LAYER=true derlemesi.
+  ChatSecureView view({bool ios = true, bool? layerTrick}) =>
+      ChatSecureView(channel: channel, isIOS: ios, layerTrick: layerTrick);
 
   /// Yerelden Dart'a olay (UIKit bildirimi karşılığı).
   Future<void> emit(String method, [Object? args]) async {
@@ -296,24 +298,119 @@ void main() {
     late _FakeNative native;
     tearDown(() => native.dispose());
 
-    Future<FakeBackend> open(WidgetTester tester, ChatSecureView view, {String? caption}) async {
+    Future<FakeBackend> open(WidgetTester tester, ChatSecureView view,
+        {String? caption, VoidCallback? onConsumed, Size size = kPhoneMedium, Brightness b = Brightness.light}) async {
       final be = FakeBackend()..onBytes('/conversations/1/media/50', _png, once: true);
-      useScreen(tester, kPhoneMedium);
+      useScreen(tester, size);
       await tester.pumpWidget(buildApp(
-          ViewOnceViewer(api: makeSession(be).api, conversationId: 1, attachmentId: 50, caption: caption, secureView: view),
-          size: kPhoneMedium));
+          ViewOnceViewer(
+              api: makeSession(be).api,
+              conversationId: 1,
+              attachmentId: 50,
+              caption: caption,
+              senderName: 'Ali Veli',
+              onConsumed: onConsumed,
+              secureView: view),
+          brightness: b,
+          size: size));
       await settle(tester, const Duration(milliseconds: 700));
       return be;
     }
 
-    testWidgets('acilinca enable, kapaninca disable', (tester) async {
+    testWidgets('acilinca enable, kapaninca disable (iOS: 600 ms ertelenir, ekran goruntusu islemi bitsin)', (tester) async {
       native = _FakeNative();
       await open(tester, native.view());
       expect(native.calls, ['enable']);
-      await unmount(tester);
-      await tester.pump();
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(native.calls, ['enable']); // henuz sokulmedi
+      await tester.pump(const Duration(milliseconds: 400));
       expect(native.calls, ['enable', 'disable']);
     });
+
+    testWidgets('varsayilan (bayrak KAPALI): katman istenmez, acilir, koruma iddiasi yok', (tester) async {
+      native = _FakeNative(secureLayer: false);
+      var consumed = 0;
+      final be = await open(tester, native.view(), onConsumed: () => consumed++);
+      expect(be.count('GET /conversations/1/media/50'), 1);
+      expect(consumed, 1);
+      expect(find.byKey(const ValueKey('onceUnsupported')), findsNothing);
+      expect(find.byType(Image), findsOneWidget);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      await tester.pump();
+      expect(find.byKey(const ValueKey('onceCover')), findsOneWidget);
+      expect(find.text('Bu fotoğraf yalnızca bir kez görüntülenebilir ve korunmaktadır.'), findsNothing);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      await unmount(tester);
+    });
+
+    testWidgets('bayrak ACIK + katman kurulamadi: bayt ISTENMEZ, hak tuketilmez, guvenli acilamiyor karti', (tester) async {
+      native = _FakeNative(secureLayer: false);
+      var consumed = 0;
+      final be = await open(tester, native.view(layerTrick: true), onConsumed: () => consumed++);
+      expect(be.count('GET /conversations/1/media/50'), 0);
+      expect(consumed, 0); // mesaj karti "acilmamis" kalir
+      expect(find.byKey(const ValueKey('onceUnsupported')), findsOneWidget);
+      expect(find.text('Bu cihazda güvenli açılamıyor'), findsOneWidget);
+      expect(find.byType(Image), findsNothing);
+      expect(find.text('Ali Veli'), findsOneWidget);
+      // Kapat dugmesi calisir.
+      expect(find.byTooltip('Kapat'), findsOneWidget);
+      _ok(tester);
+      await unmount(tester);
+    });
+
+    testWidgets('bayrak ACIK + yerel kopru yok (MissingPlugin): acilis engelli', (tester) async {
+      native = _FakeNative(missing: true);
+      final be = await open(tester, native.view(layerTrick: true));
+      expect(be.count('GET /conversations/1/media/50'), 0);
+      expect(find.byKey(const ValueKey('onceUnsupported')), findsOneWidget);
+      await unmount(tester);
+    });
+
+    testWidgets('bayrak ACIK + katman kuruldu: normal acilis, enable layerTrick=true, korumali ortu metni', (tester) async {
+      native = _FakeNative(secureLayer: true);
+      final be = await open(tester, native.view(layerTrick: true));
+      expect(be.count('GET /conversations/1/media/50'), 1);
+      expect(find.byKey(const ValueKey('onceUnsupported')), findsNothing);
+      expect(find.byType(Image), findsOneWidget);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      await tester.pump();
+      expect(find.text('Ekran yakalama koruması'), findsOneWidget);
+      expect(find.text('Bu fotoğraf yalnızca bir kez görüntülenebilir ve korunmaktadır.'), findsOneWidget);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      await unmount(tester);
+    });
+
+    testWidgets('onLayerRevoked: goruntu HEMEN duser, guvenli acilamiyor karti', (tester) async {
+      native = _FakeNative(secureLayer: true);
+      await open(tester, native.view(layerTrick: true), caption: _secret);
+      expect(find.byType(Image), findsOneWidget);
+      await native.emit('onLayerRevoked');
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(Image), findsNothing);
+      expect(find.byKey(const ValueKey('onceCaption')), findsNothing);
+      expect(find.byKey(const ValueKey('onceUnsupported')), findsOneWidget);
+      expect(find.text('Ekran yakalama koruması devre dışı kaldığı için fotoğraf kapatıldı.'), findsOneWidget);
+      _ok(tester);
+      await unmount(tester);
+    });
+
+    for (final size in [kPhoneSmall, kPhoneMedium]) {
+      for (final b in [Brightness.light, Brightness.dark]) {
+        testWidgets('guvenli acilamiyor karti: tasma yok ${size.width.toInt()} dp x1.3 $b', (tester) async {
+          native = _FakeNative(secureLayer: false);
+          tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+          addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+          await open(tester, native.view(layerTrick: true), size: size, b: b);
+          expect(find.byKey(const ValueKey('onceUnsupported')), findsOneWidget);
+          _ok(tester);
+          await unmount(tester);
+        });
+      }
+    }
 
     testWidgets('Android: kanal cagrisi yok (FLAG_SECURE zaten pencere genelinde)', (tester) async {
       native = _FakeNative();
@@ -323,7 +420,7 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('yerel kopru yoksa (MissingPlugin) goruntuleyici yine calisir', (tester) async {
+    testWidgets('yerel kopru yoksa (MissingPlugin) VE bayrak kapaliysa (varsayilan) goruntuleyici yine calisir', (tester) async {
       native = _FakeNative(missing: true);
       final be = await open(tester, native.view());
       expect(be.count('GET /conversations/1/media/50'), 1);
@@ -334,11 +431,11 @@ void main() {
     testWidgets('ekran kaydi sirasinda acilirsa icerik istenmez; kayit bitince yuklenir', (tester) async {
       native = _FakeNative(captured: true);
       final be = await open(tester, native.view());
-      expect(find.text('Ekran kaydı sırasında görüntülenemez.'), findsOneWidget);
+      expect(find.text('Ekran kaydı sırasında bu içerik görüntülenemez.'), findsOneWidget);
       expect(be.count('GET /conversations/1/media/50'), 0); // tek gosterim tuketilmedi
       await native.emit('onCaptured', {'captured': false});
       await settle(tester, const Duration(milliseconds: 600));
-      expect(find.text('Ekran kaydı sırasında görüntülenemez.'), findsNothing);
+      expect(find.text('Ekran kaydı sırasında bu içerik görüntülenemez.'), findsNothing);
       expect(be.count('GET /conversations/1/media/50'), 1);
       await unmount(tester);
     });
@@ -350,7 +447,7 @@ void main() {
       await native.emit('onCaptured', {'captured': true});
       await tester.pump();
       expect(find.byKey(const ValueKey('onceCover')), findsOneWidget);
-      expect(find.text('Ekran kaydı sırasında görüntülenemez.'), findsOneWidget);
+      expect(find.text('Ekran kaydı sırasında bu içerik görüntülenemez.'), findsOneWidget);
       await native.emit('onCaptured', {'captured': false});
       await tester.pump();
       expect(find.byKey(const ValueKey('onceCover')), findsNothing);

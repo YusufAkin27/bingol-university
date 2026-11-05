@@ -1618,6 +1618,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           conversationId: _cid,
           attachmentId: aid,
           caption: m['text'] as String?,
+          senderName: _nameOf((m['senderId'] as num?)?.toInt()),
           onConsumed: () {
             if (!mounted) return;
             setState(() => _markViewed(m, aid));

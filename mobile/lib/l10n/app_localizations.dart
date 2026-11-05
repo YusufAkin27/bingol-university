@@ -64,7 +64,7 @@ import 'app_localizations_tr.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -87,17 +87,17 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('ar'),
     Locale('en'),
-    Locale('tr')
+    Locale('tr'),
   ];
 
   /// No description provided for @chatReactionPickerTitle.
@@ -1359,7 +1359,11 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{type}: {title}. {date}. {countdown}. Düzenlemek için dokun.'**
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown);
+    String type,
+    String title,
+    String date,
+    String countdown,
+  );
 
   /// No description provided for @acadFormErrTitle.
   ///
@@ -1924,7 +1928,11 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{name}, {day} {start} ile {end} arası'**
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end);
+    String name,
+    String day,
+    String start,
+    String end,
+  );
 
   /// No description provided for @acadTimeCourseSemantic.
   ///
@@ -19431,7 +19439,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatSecureCaptured.
   ///
   /// In tr, this message translates to:
-  /// **'Ekran kaydı sırasında görüntülenemez.'**
+  /// **'Ekran kaydı sırasında bu içerik görüntülenemez.'**
   String get chatSecureCaptured;
 
   /// No description provided for @chatSecureScreenshot.
@@ -19439,6 +19447,36 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Ekran görüntüsü algılandı. Görüntü kapatıldı.'**
   String get chatSecureScreenshot;
+
+  /// No description provided for @chatSecureProtectedTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ekran yakalama koruması'**
+  String get chatSecureProtectedTitle;
+
+  /// No description provided for @chatSecureProtectedBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu fotoğraf yalnızca bir kez görüntülenebilir ve korunmaktadır.'**
+  String get chatSecureProtectedBody;
+
+  /// No description provided for @chatSecureUnsupportedTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu cihazda güvenli açılamıyor'**
+  String get chatSecureUnsupportedTitle;
+
+  /// No description provided for @chatSecureUnsupportedBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ekran yakalama koruması kurulamadığı için tek gösterimlik fotoğraf açılmadı ve görüntüleme hakkın kullanılmadı.'**
+  String get chatSecureUnsupportedBody;
+
+  /// No description provided for @chatSecureRevokedBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ekran yakalama koruması devre dışı kaldığı için fotoğraf kapatıldı.'**
+  String get chatSecureRevokedBody;
 
   /// No description provided for @verifyEmailBannerTitle.
   ///
@@ -22014,8 +22052,9 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-      'an issue with the localizations generation tool. Please file an issue '
-      'on GitHub with a reproducible sample app and the gen-l10n configuration '
-      'that was used.');
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
 }

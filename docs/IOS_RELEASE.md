@@ -222,6 +222,16 @@ Bildirimin iOS'ta nasıl görüneceği (şerit, yığınlama, `passive`, ön pla
 
 **İlk macOS koşusunda bakılacaklar** (en olası ilk hatalar): (1) `permission_handler_apple` manifesti uygulama dizinini bulamazsa tüm izinler "denied" döner → CI çıktısında `PERMISSION_HANDLER_VERBOSE=1`; (2) `BuNativeBridge.swift` derleme hatası (Flutter 3.47 şablonuna göre `FlutterImplicitEngineBridge` imzaları) → `didInitializeImplicitFlutterEngine` içindeki `registrar(forPlugin:)` satırı; (3) bulut imzalama izni (API anahtarı rolü); (4) Xcode sürümü; (5) `flutter build ios --config-only` bayrak uyumu; (6) native assets (`objective_c`) derlemesi.
 
+## 9A. Tek görüntülemelik koruma: iPhone'da elle doğrulama listesi
+
+**Durum:** Katman hilesi (`isSecureTextEntry` iç katmanı) TestFlight'ta ekran görüntüsü alınınca uygulamayı ÇÖKERTTİ (neden cihazda doğrulanamadı); bu yüzden `ChatSecureView.layerTrickDefault` varsayılanı **KAPALI**. KAPALI iken tek görüntülemelik fotoğraf açılır ama koruma iddia edilmez (yalnız kayıt örtüsü, sonradan ekran görüntüsü algılama + görüntüyü kapatma, uygulama değiştirici örtüsü). Katman yöntemini ancak aşağıdaki liste iPhone'da çökmeden geçerse açın.
+
+1. TestFlight'a bugünkü (varsayılan KAPALI) sürümü yükle; iPhone 12-16 ve mümkünse iOS 16/17/18/26'da dene: (a) iki hesapla tek görüntülemelik fotoğraf gönder, alıcıda aç; (b) yan tuş + ses artırma ile EKRAN GÖRÜNTÜSÜ al: uygulama ÇÖKMEMELİ, görüntü kapanmalı + "Ekran görüntüsü algılandı. Görüntü kapatıldı." çıkmalı; Fotoğraflar'da görüntü büyük olasılıkla VAR (KAPALI modda engellenmez, beklenen); (c) ekran kaydı başlat (Denetim Merkezi) ve fotoğraf aç: içerik istenmemeli, "Ekran kaydı sırasında bu içerik görüntülenemez." görünmeli, kayıt bitince açılmalı; (d) açıkken uygulama değiştirici: örtü; (e) Mac'e QuickTime/AirPlay yansıtma: örtü; (f) mesaj kartı: açılınca "Açıldı", tekrar açılmaz.
+2. Çökme kaydını al: Xcode > Window > Devices and Simulators > View Device Logs (ya da TestFlight "Send Beta Feedback" + App Store Connect > Crashes) ve `BuSecureView`/`UITextField`/`CALayer` izini ara; sonuç `docs/changes/messaging.md`'ye not edilir.
+3. Katman yöntemini dene: `--dart-define=BU_SECURE_LAYER=true` ile TestFlight derlemesi al (CI'da `flutter build ipa` bayrağına ekle). Aynı adımları tekrarla: (b) ekran görüntüsünde Fotoğraflar'da görüntü SİYAH/boş mu bak; çökme YOK; pencere sağ-alta KAYMIYOR; (g) katman kurulamayan/kayan cihazda fotoğraf istenmemeli ve "Bu cihazda güvenli açılamıyor" kartı çıkmalı (sunucuda hak tüketilmemeli: aynı mesaj kartı "açılmamış" kalır); (h) görüntü sürerken uygulamayı arka plana al/ön plana getir: kayma yok.
+4. Sonucu kim/nasıl bildirir: testi yapan kişi her adım için ekran görüntüsü/ekran kaydı + cihaz modeli + iOS sürümü + PASS/FAIL ile bir tablo (ID, cihaz, iOS, adım, sonuç) hazırlar ve yöneticiye iletir; FAIL (çökme, kayma, siyah çıkmama) varsa bayrak KAPALI kalır ve çökme günlüğü eklenir. Hiçbir sonuç PASS yazılmadan "iOS'ta ekran görüntüsü engellendi" denmez.
+5. Bu ortamda (Windows) Swift yalnız `swiftc -parse` ile söz dizimi doğrulandı; macOS/Xcode'da derlenmedi, iPhone'da denenmedi.
+
 ## 10. Doğrulama komutları
 
 ```bash

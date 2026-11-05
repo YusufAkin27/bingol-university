@@ -6,18 +6,25 @@ import 'package:flutter/services.dart';
 
 /// Ekran koruması durumu (iOS yerel köprüsü `bu_kampus/secure` döner).
 class SecureStatus {
-  const SecureStatus({this.secureLayer = false, this.captured = false});
+  const SecureStatus({this.secureLayer = false, this.captured = false, this.layerRequested = false});
 
   /// Pencere, "güvenli metin alanı" katmanına taşındı: ekran görüntüsü/kaydında içerik SİYAH çıkar (iOS'ta resmî
   /// olmayan, ama yaygın yöntem; yalnız `layerTrick` açıkken; yerleşemez ya da pencere kayarsa false ve uygulama
-  /// normal çalışır).
+  /// normal çalışır). Katman istenmişse ([layerRequested]) tek gösterimlik fotoğraf iOS'ta YALNIZ bu true iken açılır
+  /// ([ChatSecureView.allowsViewOnce]).
   final bool secureLayer;
 
-  /// Ekran şu anda kaydediliyor / yansıtılıyor / AirPlay'e gidiyor (`UIScreen.isCaptured`).
+  /// Bu `enable` çağrısında katman hilesi istendi mi (derleme bayrağı `BU_SECURE_LAYER`). İstenmişse katman kurulamazsa
+  /// açılış engellenir; istenmemişse katman denenmez ve (operatör kararı) açılışa izin verilir, koruma İDDİA EDİLMEZ.
+  final bool layerRequested;
+
+  /// Ekran şu anda kaydediliyor / yansıtılıyor / AirPlay'e gidiyor (`UIScreen.isCaptured`, iOS 17+'da
+  /// `sceneCaptureState`).
   final bool captured;
 }
 
-enum SecureEventKind { captureStarted, captureEnded, screenshot }
+/// `layerRevoked`: yerel taraf güvenli katmanı sonradan geri aldı (pencere kaydı); görüntü hemen düşürülmelidir.
+enum SecureEventKind { captureStarted, captureEnded, screenshot, layerRevoked }
 
 /// Tek gösterimlik fotoğraf görüntüleyicisi için ekran koruması kanalı sarmalayıcısı.
 ///
@@ -27,23 +34,32 @@ enum SecureEventKind { captureStarted, captureEnded, screenshot }
 /// algılama (sonradan), (d) uygulama değiştirici önizlemesi için opak örtü. Hata sızdırmaz; kanal yoksa (test,
 /// masaüstü, eski yerel kod) koruma sessizce devre dışıdır.
 class ChatSecureView {
-  ChatSecureView({MethodChannel? channel, bool? isIOS})
+  ChatSecureView({MethodChannel? channel, bool? isIOS, bool? layerTrick})
       : _ch = channel ?? const MethodChannel('bu_kampus/secure'),
-        _ios = isIOS ?? (!kIsWeb && Platform.isIOS);
+        _ios = isIOS ?? (!kIsWeb && Platform.isIOS),
+        _layerTrick = layerTrick ?? layerTrickDefault;
 
   /// Uygulama genelinde paylaşılan örnek; testler [instance] değerini değiştirebilir.
   static ChatSecureView instance = ChatSecureView();
 
   /// "Güvenli alan katmanı" yöntemi (pencere katmanını `isSecureTextEntry` alanının içine taşıma): iOS'ta ekran
-  /// görüntüsü/ekran kaydı bu katmanı SİYAH çizer (tek gönderimlik fotoğrafta ekran görüntüsü boş çıkar). VARSAYILAN AÇIK
-  /// (ürün kararı). Eski bir denemede gerçek iPhone'da pencere içeriği sağ-alta kaymıştı; yerel taraf artık alanı
-  /// pencerede merkezler, taşımadan sonra yerleşimi ölçer, kayma görürse katmanı hemen geri alır ve ekran görüntüsünü
-  /// algılayıp görüntüyü kapatmaya (yedek) düşer. Cihazda kayma görülürse KOD DEĞİŞMEDEN kapatılır:
-  /// `--dart-define=BU_SECURE_LAYER=false` ile derle.
-  static const bool layerTrickDefault = bool.fromEnvironment('BU_SECURE_LAYER', defaultValue: true);
+  /// görüntüsü/ekran kaydı bu katmanı SİYAH çizer (tek gönderimlik fotoğrafta ekran görüntüsü boş çıkar).
+  ///
+  /// VARSAYILAN KAPALI: TestFlight'ta iPhone'da tek gösterimlik fotoğrafta ekran görüntüsü alınınca uygulama çöktü
+  /// (neden cihazda doğrulanamadı); iPhone'da kanıtlanana kadar katman denenmez. Açmak için
+  /// `--dart-define=BU_SECURE_LAYER=true` ile derle (docs/IOS_RELEASE.md "Katman hilesi doğrulama").
+  ///
+  /// İki mod (iOS; Android'de bayrak etkisizdir, FLAG_SECURE pencere genelinde):
+  /// - BAYRAK AÇIK: katman kurulamazsa/geri alınırsa fotoğraf HİÇ istenmez (sunucuda açma hakkı tüketilmez) ve
+  ///   "bu cihazda güvenli açılamıyor" kartı gösterilir; korumasız açılış yoktur.
+  /// - BAYRAK KAPALI (varsayılan): katman denenmez; açılışa izin verilir (operatör kararı), arayüz KORUMA İDDİA ETMEZ;
+  ///   yedekler çalışır: ekran kaydı sürerken içerik istenmez/örtülür, ekran görüntüsü ALINDIKTAN SONRA algılanırsa
+  ///   görüntü hemen düşer + uyarı (engelleyemez), uygulama değiştiricide opak örtü.
+  static const bool layerTrickDefault = bool.fromEnvironment('BU_SECURE_LAYER', defaultValue: false);
 
   final MethodChannel _ch;
   final bool _ios;
+  final bool _layerTrick;
   final _events = StreamController<SecureEventKind>.broadcast();
   int _holders = 0;
 
@@ -53,19 +69,26 @@ class ChatSecureView {
   /// Koruma bu platformda yerel destek arar mı (Android'de false: FLAG_SECURE zaten pencere genelinde).
   bool get supported => _ios;
 
+  /// Tek gösterimlik fotoğraf bu koruma durumunda açılabilir mi? Android: evet (FLAG_SECURE pencere genelinde,
+  /// release'te). iOS: katman hilesi İSTENMİŞSE yalnız katman kuruluysa (Apple ekran görüntüsünü engelleyen resmî bir
+  /// API vermez; istenen katman yoksa AÇILMAZ); istenmemişse (varsayılan) açılabilir ama [isProtected] false'tur.
+  bool allowsViewOnce(SecureStatus st) => !_ios || !st.layerRequested || st.secureLayer;
+
+  /// Arayüzün "korunmaktadır" diyebilmesi için koruma gerçekten doğrulandı mı (Android: pencere bayrağı; iOS: katman).
+  bool isProtected(SecureStatus st) => !_ios || st.secureLayer;
+
   /// Korumayı açar; her çağrı bir [disable] ile eşlenmelidir. Dönen durum, yakalama zaten sürüyorsa `captured` olur.
   /// [layerTrick]: güvenli alan katmanı yöntemi (bkz. [layerTrickDefault]); null ise varsayılan.
   Future<SecureStatus> enable({bool? layerTrick}) async {
     if (!_ios) return const SecureStatus();
     _holders++;
+    final lt = layerTrick ?? _layerTrick;
     _ch.setMethodCallHandler(_onCall);
     try {
       // Yerel taraf yanıt vermezse görüntüleyici bekletilmesin (koruma devre dışı kalır).
-      final r = await _ch
-          .invokeMethod<Object?>('enable', {'layerTrick': layerTrick ?? layerTrickDefault})
-          .timeout(const Duration(seconds: 3));
+      final r = await _ch.invokeMethod<Object?>('enable', {'layerTrick': lt}).timeout(const Duration(seconds: 3));
       if (r is Map) {
-        return SecureStatus(secureLayer: r['secureLayer'] == true, captured: r['captured'] == true);
+        return SecureStatus(secureLayer: r['secureLayer'] == true, captured: r['captured'] == true, layerRequested: lt);
       }
     } on MissingPluginException {
       // yerel köprü yok: koruma devre dışı
@@ -74,7 +97,7 @@ class ChatSecureView {
     } on TimeoutException {
       // yanıt gelmedi: koruma devre dışı
     }
-    return const SecureStatus();
+    return SecureStatus(layerRequested: lt);
   }
 
   /// Korumayı kapatır (son tutan kapatınca yerel taraf eski haline döner).
@@ -99,6 +122,8 @@ class ChatSecureView {
         _events.add(on ? SecureEventKind.captureStarted : SecureEventKind.captureEnded);
       case 'onScreenshot':
         _events.add(SecureEventKind.screenshot);
+      case 'onLayerRevoked':
+        _events.add(SecureEventKind.layerRevoked);
     }
     return null;
   }

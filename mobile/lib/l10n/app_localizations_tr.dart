@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -678,7 +679,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown) {
+    String type,
+    String title,
+    String date,
+    String countdown,
+  ) {
     return '$type: $title. $date. $countdown. Düzenlemek için dokun.';
   }
 
@@ -996,7 +1001,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end) {
+    String name,
+    String day,
+    String start,
+    String end,
+  ) {
     return '$name, $day $start ile $end arası';
   }
 
@@ -10673,11 +10682,30 @@ class AppLocalizationsTr extends AppLocalizations {
       'Uygulamayı iyileştirmek için ekranlarda geçirilen süre ve yapılan eylemler gibi kullanım bilgileri gönderilir. Mesaj içeriği, arama metni ve kişisel bilgiler gönderilmez. Kapatınca toplama durur, bekleyenler silinir.';
 
   @override
-  String get chatSecureCaptured => 'Ekran kaydı sırasında görüntülenemez.';
+  String get chatSecureCaptured =>
+      'Ekran kaydı sırasında bu içerik görüntülenemez.';
 
   @override
   String get chatSecureScreenshot =>
       'Ekran görüntüsü algılandı. Görüntü kapatıldı.';
+
+  @override
+  String get chatSecureProtectedTitle => 'Ekran yakalama koruması';
+
+  @override
+  String get chatSecureProtectedBody =>
+      'Bu fotoğraf yalnızca bir kez görüntülenebilir ve korunmaktadır.';
+
+  @override
+  String get chatSecureUnsupportedTitle => 'Bu cihazda güvenli açılamıyor';
+
+  @override
+  String get chatSecureUnsupportedBody =>
+      'Ekran yakalama koruması kurulamadığı için tek gösterimlik fotoğraf açılmadı ve görüntüleme hakkın kullanılmadı.';
+
+  @override
+  String get chatSecureRevokedBody =>
+      'Ekran yakalama koruması devre dışı kaldığı için fotoğraf kapatıldı.';
 
   @override
   String get verifyEmailBannerTitle => 'E-postanızı doğrulayın';

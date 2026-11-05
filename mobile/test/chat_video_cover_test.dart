@@ -264,12 +264,36 @@ void main() {
       args.clear();
     });
 
-    test('varsayilan ACIK: ekran goruntusu bos cikar (BU_SECURE_LAYER=false ile derlemede kapanir)', () async {
-      expect(ChatSecureView.layerTrickDefault, isTrue);
+    test('varsayilan KAPALI (TestFlight cokmesi sonrasi): katman denenmez, BU_SECURE_LAYER=true ile acilir', () async {
+      expect(ChatSecureView.layerTrickDefault, isFalse);
       final v = ChatSecureView(channel: ch, isIOS: true);
-      await v.enable();
-      expect((args.single as Map)['layerTrick'], true);
+      final st = await v.enable();
+      expect((args.single as Map)['layerTrick'], false);
+      expect(st.layerRequested, isFalse);
+      // Bayrak kapali: aciliş meşru ama koruma iddia edilmez.
+      expect(v.allowsViewOnce(st), isTrue);
+      expect(v.isProtected(st), isFalse);
       await v.disable();
+    });
+
+    test('bayrak ACIK + katman kurulamadi: acilis ENGELLI', () async {
+      final v = ChatSecureView(channel: ch, isIOS: true, layerTrick: true);
+      final st = await v.enable();
+      expect((args.single as Map)['layerTrick'], true);
+      expect(st.layerRequested, isTrue);
+      expect(v.allowsViewOnce(st), isFalse);
+      await v.disable();
+    });
+
+    test('bayrak ACIK + yerel kopru yok/zaman asimi: acilis ENGELLI; Android her zaman serbest', () async {
+      final v = ChatSecureView(channel: const MethodChannel('test/yok'), isIOS: true, layerTrick: true);
+      final st = await v.enable();
+      expect(st.secureLayer, isFalse);
+      expect(v.allowsViewOnce(st), isFalse);
+      await v.disable();
+      final a = ChatSecureView(isIOS: false, layerTrick: true);
+      expect(a.allowsViewOnce(await a.enable()), isTrue);
+      expect(a.isProtected(const SecureStatus()), isTrue);
     });
 
     test('acikca kapatilirse layerTrick=false gider', () async {

@@ -306,7 +306,8 @@ final class BuNativeBridge: NSObject, FlutterPlugin, UNUserNotificationCenterDel
 ///    (kullanıcı gerçek iPhone'da gördü). Bu yüzden: (a) alan pencerede MERKEZLENİR, (b) taşımadan önce/sonra pencere
 ///    katmanının ekrandaki konumu ölçülür, fark varsa HEMEN geri alınır (`secureLayer=false`), (c) 0,4 sn ve 1,5 sn
 ///    sonra ve uygulama öne gelince yeniden ölçülür, kayma varsa geri alınır (`onLayerRevoked`).
-/// 2. `UIScreen.isCaptured` + `capturedDidChangeNotification`: kayıt/yansıtma başlayınca Dart'a `onCaptured`.
+/// 2. `UIScreen.isCaptured` (+ iOS 17'de `traitCollection.sceneCaptureState`) + `capturedDidChangeNotification`:
+///    kayıt/yansıtma başlayınca native örtü HEMEN kapanır, ardından Dart'a `onCaptured` gider.
 /// 3. `userDidTakeScreenshotNotification`: ekran görüntüsü ALINDIKTAN SONRA Dart'a `onScreenshot` (engelleyemez).
 /// 4. `willResignActive`: uygulama değiştirici önizlemesi için opak siyah örtü; `didBecomeActive`'de kalkar.
 ///
@@ -318,6 +319,8 @@ final class BuSecureView: NSObject {
   private var enabled = false
   private var observers: [NSObjectProtocol] = []
   private var cover: UIView?
+  private var coverReasons = Set<String>()
+  private var lastScreenshotAt: Date?
 
   // Güvenli katman durumu (kurulduysa geri almak için başvurular güçlü tutulur).
   private var field: UITextField?
@@ -335,7 +338,12 @@ final class BuSecureView: NSObject {
       frame = window.frame
       bounds = window.bounds
       var root: CALayer = window.layer
-      while let up = root.superlayer { root = up }
+      // Sınırlı döngü: beklenmedik/dairesel katman zincirinde sonsuz dönmesin.
+      var depth = 0
+      while let up = root.superlayer, depth < 64 {
+        root = up
+        depth += 1
+      }
       origin = window.layer.convert(CGPoint.zero, to: root)
     }
 
@@ -382,8 +390,15 @@ final class BuSecureView: NSObject {
       .first(where: { $0.isKeyWindow })
   }
 
+  /// Ekran kaydı/yansıtma/AirPlay sürüyor mu. iOS 17+: pencerenin sahnesi için `sceneCaptureState` (Apple belgesi:
+  /// "scene is currently being mirrored or recorded"); her sürümde yedek: `UIScreen.isCaptured`. İkisinden biri
+  /// "yakalanıyor" derse yakalanıyor sayılır (güvenli yön).
   private func isCaptured() -> Bool {
-    if let screen = keyWindow()?.screen { return screen.isCaptured }
+    let window = keyWindow()
+    if #available(iOS 17.0, *) {
+      if let w = window, w.traitCollection.sceneCaptureState == .active { return true }
+    }
+    if let screen = window?.screen { return screen.isCaptured }
     return UIScreen.main.isCaptured
   }
 
@@ -394,7 +409,10 @@ final class BuSecureView: NSObject {
     }
     // Güvenli katman yalnız açıkça istenirse kurulur (yerleşimi kaydırma riski: sınıf açıklamasına bakın).
     let layered = layerTrick ? installSecureLayer() : false
-    return ["secureLayer": layered, "captured": isCaptured()]
+    let captured = isCaptured()
+    // Açılışta zaten yakalanıyorsa örtü Dart yanıtını beklemeden kapanır.
+    if captured { showCover("capture") }
+    return ["secureLayer": layered, "captured": captured]
   }
 
   private func disable() {
@@ -402,8 +420,25 @@ final class BuSecureView: NSObject {
     enabled = false
     for token in observers { NotificationCenter.default.removeObserver(token) }
     observers.removeAll()
-    hideCover()
-    removeSecureLayer()
+    clearCover()
+    // Ekran görüntüsü işlemi sürerken katman SÖKÜLMEZ: yeniden yerleştirme o sırada UIKit'te çökme riski taşır.
+    // Son ekran görüntüsünden bu yana kısa süre geçtiyse sökümü ertele (arada yeniden `enable` gelirse iptal).
+    let wait = screenshotSettleDelay()
+    if wait > 0 {
+      DispatchQueue.main.asyncAfter(deadline: .now() + wait) { [weak self] in
+        guard let self = self, !self.enabled else { return }
+        self.removeSecureLayer()
+      }
+    } else {
+      removeSecureLayer()
+    }
+  }
+
+  /// Son ekran görüntüsü olayından bu yana ekran görüntüsü işleminin bitmesi için beklenecek kalan süre (sn).
+  private func screenshotSettleDelay() -> TimeInterval {
+    guard let at = lastScreenshotAt else { return 0 }
+    let remaining = 1.5 - Date().timeIntervalSince(at)
+    return remaining > 0 ? remaining : 0
   }
 
   // MARK: Güvenli katman
@@ -453,14 +488,19 @@ final class BuSecureView: NSObject {
       return false
     }
     for delay in [0.4, 1.5] {
-      DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in self?.verifyLayer() }
+      DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+        guard let self = self, self.enabled else { return }
+        self.verifyLayer()
+      }
     }
     return true
   }
 
   /// Kurulu güvenli katman varken pencere kaymışsa katmanı geri alır ve Dart'a haber verir.
   private func verifyLayer() {
-    guard let window = installedWindow, let before = baseline else { return }
+    guard enabled, let window = installedWindow, let before = baseline else { return }
+    // Ekran görüntüsü işlemi sürerken katman değiştirilmez; bir sonraki doğrulama (öne gelince) yeniden dener.
+    if screenshotSettleDelay() > 0 { return }
     if !Geometry(window).matches(before) {
       removeSecureLayer()
       channel?.invokeMethod("onLayerRevoked", arguments: nil)
@@ -468,8 +508,10 @@ final class BuSecureView: NSObject {
   }
 
   private func restore(window: UIWindow, host: CALayer, index: Int?, field tf: UITextField) {
-    if let i = index, i <= (host.sublayers?.count ?? 0) {
-      host.insertSublayer(window.layer, at: UInt32(i))
+    // Dizin sınırı doğrulanır; negatif/büyük değer UInt32 dönüşümünde çökertmesin.
+    let count = host.sublayers?.count ?? 0
+    if let i = index, i >= 0, i <= count, let at = UInt32(exactly: i) {
+      host.insertSublayer(window.layer, at: at)
     } else {
       host.addSublayer(window.layer)
     }
@@ -494,22 +536,33 @@ final class BuSecureView: NSObject {
     let center = NotificationCenter.default
     observers.append(center.addObserver(forName: UIScreen.capturedDidChangeNotification, object: nil, queue: .main) { [weak self] _ in
       guard let self = self else { return }
-      self.channel?.invokeMethod("onCaptured", arguments: ["captured": self.isCaptured()])
+      let captured = self.isCaptured()
+      // Yakalama başladıysa opak örtü HEMEN kapanır (Dart olayı asenkron kanaldan gelir; o ana kadar kare sızmasın).
+      // Bitince örtü kalkar; yeniden açma hakkını Dart/sunucu belirler (tüketilmiş fotoğraf yeniden istenmez).
+      if captured { self.showCover("capture") } else { self.hideCover("capture") }
+      self.channel?.invokeMethod("onCaptured", arguments: ["captured": captured])
     })
     observers.append(center.addObserver(forName: UIApplication.userDidTakeScreenshotNotification, object: nil, queue: .main) { [weak self] _ in
+      // YALNIZ Dart'a haber verir; burada katman/örtü değiştirilmez (ekran görüntüsü işlemi sürüyor olabilir).
+      self?.lastScreenshotAt = Date()
       self?.channel?.invokeMethod("onScreenshot", arguments: nil)
     })
     observers.append(center.addObserver(forName: UIApplication.willResignActiveNotification, object: nil, queue: .main) { [weak self] _ in
-      self?.showCover()
+      self?.showCover("inactive")
     })
     observers.append(center.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in
-      self?.hideCover()
-      self?.verifyLayer()
+      guard let self = self else { return }
+      self.hideCover("inactive")
+      // Arka planda yakalama durumu değişmiş olabilir.
+      if self.isCaptured() { self.showCover("capture") } else { self.hideCover("capture") }
+      self.verifyLayer()
     })
   }
 
-  /// Uygulama değiştirici anlık görüntüsü alınmadan önce içeriği opak örtüyle kapatır.
-  private func showCover() {
+  /// İçeriği opak örtüyle kapatır (uygulama değiştirici anlık görüntüsü, ekran kaydı/yansıtma). Örtü, tüm nedenler
+  /// ([coverReasons]) kalkana kadar durur: yakalama bitse de uygulama hâlâ etkin değilse örtü kalkmaz.
+  private func showCover(_ reason: String) {
+    coverReasons.insert(reason)
     guard cover == nil, let window = keyWindow() else { return }
     let view = UIView(frame: window.bounds)
     view.backgroundColor = .black
@@ -519,7 +572,15 @@ final class BuSecureView: NSObject {
     cover = view
   }
 
-  private func hideCover() {
+  private func hideCover(_ reason: String) {
+    coverReasons.remove(reason)
+    guard coverReasons.isEmpty else { return }
+    cover?.removeFromSuperview()
+    cover = nil
+  }
+
+  private func clearCover() {
+    coverReasons.removeAll()
     cover?.removeFromSuperview()
     cover = nil
   }

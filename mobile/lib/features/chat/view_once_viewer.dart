@@ -24,11 +24,15 @@ class ViewOnceViewer extends StatefulWidget {
     this.onConsumed,
     this.caption,
     this.secureView,
+    this.senderName,
   });
 
   final ApiClient api;
   final int conversationId;
   final int attachmentId;
+
+  /// Gönderenin görünen adı: üst çubukta tek satır, küçük (yoksa çizilmez).
+  final String? senderName;
 
   /// Sunucu içeriği tükettiğinde (200 ya da 410) bir kez çağrılır: baloncuk "Açıldı" olur.
   final VoidCallback? onConsumed;
@@ -41,6 +45,39 @@ class ViewOnceViewer extends StatefulWidget {
 
   @override
   State<ViewOnceViewer> createState() => _ViewOnceViewerState();
+}
+
+/// Görüntüleyicinin engellenme nedeni: `unavailable` = koruma hiç kurulamadı (bayt istenmedi, hak tüketilmedi);
+/// `revoked` = görüntüleme sırasında koruma düştü (görüntü atıldı).
+enum _OnceBlock { none, unavailable, revoked }
+
+/// Koyu zeminde minimal durum kartı: kalkan simgesi, başlık, açıklama (kalın yazı yok).
+class _ShieldCard extends StatelessWidget {
+  const _ShieldCard({super.key, required this.icon, required this.title, required this.body});
+
+  final IconData icon;
+  final String title;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Icon(icon, size: 36, color: t.onMedia.withValues(alpha: .85)),
+        const SizedBox(height: 14),
+        Text(title,
+            textAlign: TextAlign.center,
+            style: tx.titleMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w400)),
+        const SizedBox(height: 8),
+        Text(body,
+            textAlign: TextAlign.center,
+            style: tx.bodyMedium!.copyWith(color: t.onMedia.withValues(alpha: .88), height: 1.45)),
+      ]),
+    );
+  }
 }
 
 class _ViewOnceViewerState extends State<ViewOnceViewer>
@@ -59,6 +96,11 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
   bool _covered = false;
   bool _screenshot = false;
 
+  // Koruma doğrulaması (iOS): güvenli katman kurulu değilse fotoğraf HİÇ istenmez (sunucuda açma hakkı tüketilmez);
+  // katman görüntüleme sırasında geri alınırsa görüntü hemen düşürülür. Her iki durumda korumasız gösterim yoktur.
+  _OnceBlock _block = _OnceBlock.none;
+  bool _protected = false;
+
   @override
   void initState() {
     super.initState();
@@ -70,6 +112,16 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
     _secureSub = _secure.events.listen(_onSecureEvent);
     final st = await _secure.enable();
     if (!mounted) return;
+    if (_block != _OnceBlock.none) return; // enable beklenirken katman geri alındı
+    if (!_secure.allowsViewOnce(st)) {
+      setState(() {
+        _block = _OnceBlock.unavailable;
+        _loading = false;
+      });
+      return;
+    }
+    // "Korunmaktadır" yalnız koruma doğrulandıysa yazılır; katman denenmediyse (varsayılan) iddia YOK.
+    _protected = _secure.isProtected(st);
     if (st.captured) {
       // Kayıt sürerken içerik istenmez: tek gösterim tüketilmesin; kayıt bitince yüklenir.
       setState(() {
@@ -88,10 +140,19 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
         setState(() => _captured = true);
       case SecureEventKind.captureEnded:
         setState(() => _captured = false);
-        if (_image == null && _error == null && !_screenshot && !_consumed) unawaited(_load());
+        if (_image == null && _error == null && !_screenshot && !_consumed && _block == _OnceBlock.none) {
+          unawaited(_load());
+        }
       case SecureEventKind.screenshot:
         _drop();
         setState(() => _screenshot = true);
+      case SecureEventKind.layerRevoked:
+        // Koruma katmanı geri alındı: görüntü HEMEN düşer, korumasız gösterim sürmez.
+        _drop();
+        setState(() {
+          _block = _OnceBlock.revoked;
+          _loading = false;
+        });
     }
   }
 
@@ -122,6 +183,11 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
       }
       _consume(); // istek başarılı: içerik tüketildi, görüntülenemese de "Açıldı" sayılır
       if (!mounted) return;
+      if (_block != _OnceBlock.none) {
+        // Bayt gelirken koruma düştü: görüntü hiç çizilmez.
+        setState(() => _loading = false);
+        return;
+      }
       setState(() {
         _image = MemoryImage(Uint8List.fromList(bytes));
         _loading = false;
@@ -176,7 +242,14 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _secureSub?.cancel();
-    unawaited(_secure.disable());
+    // iOS: ekran görüntüsü işlemi sürerken yerel katman/örtü sökümü çökme riski taşır; kapatma 600 ms ertelenir.
+    // (Android/test: yerel köprü yok, hemen.) Sayaçlı olduğundan arada yeni görüntüleyici açılırsa korumalı kalır.
+    final secure = _secure;
+    if (secure.supported) {
+      Timer(const Duration(milliseconds: 600), () => unawaited(secure.disable()));
+    } else {
+      unawaited(secure.disable());
+    }
     _drop();
     super.dispose();
   }
@@ -206,7 +279,12 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
                               style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: t.onMedia)),
                         ]),
                       )
-                    : const SizedBox.shrink(),
+                    : (_protected
+                        // Uygulama değiştirici anlık görüntüsü: içerik yok; "korunmaktadır" yalnız koruma
+                        // doğrulandıysa yazılır (iOS'ta katman kurulu, Android'de pencere bayrağı).
+                        ? _ShieldCard(
+                            icon: BuIcons.shieldCheck, title: l.chatSecureProtectedTitle, body: l.chatSecureProtectedBody)
+                        : const SizedBox.shrink()),
               ),
             ),
           ),
@@ -220,7 +298,21 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
               height: 48,
               child: Row(children: [
                 ChatdRoundButton(icon: BuIcons.x, tooltip: l.chatMiscClose, onPressed: () => Navigator.of(context).maybePop()),
-                const Spacer(),
+                if ((widget.senderName ?? '').trim().isEmpty)
+                  const Spacer()
+                else
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(widget.senderName!.trim(),
+                          key: const ValueKey('onceSender'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                              color: t.onMedia.withValues(alpha: .88), fontWeight: FontWeight.w400)),
+                    ),
+                  ),
                 // "Tek gösterimlik" hapı: koyu kırmızı zemin, kesikli "1" simgesi (Stitch'teki "!" yerine).
                 ChatdBarPill(
                   iconWidget: OnceBadge(color: t.onMedia, dashed: true, size: 20),
@@ -240,6 +332,23 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
     final bottom = MediaQuery.paddingOf(context).bottom + 20;
+    if (_block != _OnceBlock.none) {
+      // Koruma kurulamadı / düştü: fotoğraf yok, korumalı görünüm de iddia edilmez; yalnız durum açıklanır.
+      return Center(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(0, 24, 0, bottom),
+          child: Semantics(
+            liveRegion: true,
+            child: _ShieldCard(
+              key: const ValueKey('onceUnsupported'),
+              icon: BuIcons.shieldAlert,
+              title: l.chatSecureUnsupportedTitle,
+              body: _block == _OnceBlock.revoked ? l.chatSecureRevokedBody : l.chatSecureUnsupportedBody,
+            ),
+          ),
+        ),
+      );
+    }
     if (_loading) {
       return Center(child: ChatdRing(icon: BuIcons.image, semantics: l.chatdPhotoLoading));
     }

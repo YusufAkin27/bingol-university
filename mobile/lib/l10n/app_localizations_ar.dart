@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -679,7 +680,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown) {
+    String type,
+    String title,
+    String date,
+    String countdown,
+  ) {
     return '$type: $title. $date. $countdown. المس للتعديل.';
   }
 
@@ -997,7 +1002,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end) {
+    String name,
+    String day,
+    String start,
+    String end,
+  ) {
     return '$name، $day من $start إلى $end';
   }
 
@@ -10605,10 +10614,29 @@ class AppLocalizationsAr extends AppLocalizations {
       'تُرسل بيانات الاستخدام، مثل مدة البقاء في الشاشات والإجراءات، لتحسين التطبيق. لا يتم إرسال محتوى الرسائل أو نص البحث أو البيانات الشخصية. عند الإيقاف يتوقف الجمع وتُحذف البيانات المعلقة.';
 
   @override
-  String get chatSecureCaptured => 'لا يمكن العرض أثناء تسجيل الشاشة.';
+  String get chatSecureCaptured =>
+      'لا يمكن عرض هذا المحتوى أثناء تسجيل الشاشة.';
 
   @override
   String get chatSecureScreenshot => 'تم اكتشاف لقطة شاشة. تم إغلاق الصورة.';
+
+  @override
+  String get chatSecureProtectedTitle => 'حماية من التقاط الشاشة';
+
+  @override
+  String get chatSecureProtectedBody =>
+      'يمكن عرض هذه الصورة مرة واحدة فقط وهي محمية.';
+
+  @override
+  String get chatSecureUnsupportedTitle => 'لا يمكن الفتح بأمان على هذا الجهاز';
+
+  @override
+  String get chatSecureUnsupportedBody =>
+      'تعذّر إعداد الحماية من التقاط الشاشة، لذلك لم تُفتح هذه الصورة ذات العرض لمرة واحدة ولم يُستهلك حقّ العرض.';
+
+  @override
+  String get chatSecureRevokedBody =>
+      'أُغلقت الصورة لأن الحماية من التقاط الشاشة توقفت عن العمل.';
 
   @override
   String get verifyEmailBannerTitle => 'تحقق من بريدك الإلكتروني';

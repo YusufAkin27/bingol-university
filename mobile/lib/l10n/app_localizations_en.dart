@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -678,7 +679,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown) {
+    String type,
+    String title,
+    String date,
+    String countdown,
+  ) {
     return '$type: $title. $date. $countdown. Tap to edit.';
   }
 
@@ -997,7 +1002,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end) {
+    String name,
+    String day,
+    String start,
+    String end,
+  ) {
     return '$name, $day from $start to $end';
   }
 
@@ -10709,11 +10718,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatSecureCaptured =>
-      'It cannot be viewed while the screen is being recorded.';
+      'This content cannot be viewed while the screen is being recorded.';
 
   @override
   String get chatSecureScreenshot =>
       'Screenshot detected. The photo has been closed.';
+
+  @override
+  String get chatSecureProtectedTitle => 'Screen capture protection';
+
+  @override
+  String get chatSecureProtectedBody =>
+      'This photo can be viewed only once and is protected.';
+
+  @override
+  String get chatSecureUnsupportedTitle =>
+      'Can\'t be opened securely on this device';
+
+  @override
+  String get chatSecureUnsupportedBody =>
+      'Screen capture protection could not be set up, so this view-once photo was not opened and your view was not used.';
+
+  @override
+  String get chatSecureRevokedBody =>
+      'The photo was closed because screen capture protection stopped working.';
 
   @override
   String get verifyEmailBannerTitle => 'Verify your email';
