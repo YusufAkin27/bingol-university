@@ -34,12 +34,13 @@ class ChatSecureView {
   /// Uygulama genelinde paylaşılan örnek; testler [instance] değerini değiştirebilir.
   static ChatSecureView instance = ChatSecureView();
 
-  /// "Güvenli alan katmanı" yöntemi (pencere katmanını `isSecureTextEntry` alanının içine taşıma) varsayılan KAPALI.
-  /// Neden: gerçek iPhone'da tek gönderimlik fotoğraf açılınca tüm pencere içeriği SAĞ-ALTA kaydı (yerleşimi bozan
-  /// tek yerel yöntem buydu) ve macOS/iPhone olmadan doğrulanamıyor. Kapalıyken yerleşime hiç dokunulmaz; geriye
-  /// yakalama algılama (kayıt/yansıtma), ekran görüntüsü algılama + görüntüyü kapatma ve uygulama değiştirici örtüsü
-  /// kalır. Cihazda doğrulandıktan sonra `enable(layerTrick: true)` ile açılır.
-  static const bool layerTrickDefault = false;
+  /// "Güvenli alan katmanı" yöntemi (pencere katmanını `isSecureTextEntry` alanının içine taşıma): iOS'ta ekran
+  /// görüntüsü/ekran kaydı bu katmanı SİYAH çizer (tek gönderimlik fotoğrafta ekran görüntüsü boş çıkar). VARSAYILAN AÇIK
+  /// (ürün kararı). Eski bir denemede gerçek iPhone'da pencere içeriği sağ-alta kaymıştı; yerel taraf artık alanı
+  /// pencerede merkezler, taşımadan sonra yerleşimi ölçer, kayma görürse katmanı hemen geri alır ve ekran görüntüsünü
+  /// algılayıp görüntüyü kapatmaya (yedek) düşer. Cihazda kayma görülürse KOD DEĞİŞMEDEN kapatılır:
+  /// `--dart-define=BU_SECURE_LAYER=false` ile derle.
+  static const bool layerTrickDefault = bool.fromEnvironment('BU_SECURE_LAYER', defaultValue: true);
 
   final MethodChannel _ch;
   final bool _ios;

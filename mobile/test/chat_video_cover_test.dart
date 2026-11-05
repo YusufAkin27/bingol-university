@@ -264,10 +264,17 @@ void main() {
       args.clear();
     });
 
-    test('varsayilan KAPALI: yerlesimi kaydirabilen katman yontemi istenmez', () async {
-      expect(ChatSecureView.layerTrickDefault, isFalse);
+    test('varsayilan ACIK: ekran goruntusu bos cikar (BU_SECURE_LAYER=false ile derlemede kapanir)', () async {
+      expect(ChatSecureView.layerTrickDefault, isTrue);
       final v = ChatSecureView(channel: ch, isIOS: true);
       await v.enable();
+      expect((args.single as Map)['layerTrick'], true);
+      await v.disable();
+    });
+
+    test('acikca kapatilirse layerTrick=false gider', () async {
+      final v = ChatSecureView(channel: ch, isIOS: true);
+      await v.enable(layerTrick: false);
       expect((args.single as Map)['layerTrick'], false);
       await v.disable();
     });
