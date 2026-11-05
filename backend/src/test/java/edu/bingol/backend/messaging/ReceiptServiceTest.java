@@ -181,6 +181,36 @@ class ReceiptServiceTest {
     }
 
     @Test
+    void listFetchMarksUnreadLastMessagesDeliveredAndSwallowsErrors() {
+        group(member(A, 0, 0), member(B, 3, 3));
+        conv.setType(Conversation.Type.DIRECT);
+        when(members.findByConversationIdAndUserIdAndLeftAtIsNull(CID, B)).thenReturn(Optional.of(active.get(1)));
+        when(messages.maxIdFromOthers(CID, 9L, B)).thenReturn(9L);
+        when(members.advanceDelivered(CID, B, 9L)).thenReturn(1);
+        when(members.findByConversationIdAndUserIdAndLeftAtIsNull(99L, B)).thenReturn(Optional.empty()); // uye degil
+
+        var unread = mock(edu.bingol.backend.messaging.dto.MessagingDtos.ConversationView.class);
+        var last = mock(edu.bingol.backend.messaging.dto.MessagingDtos.MessageView.class);
+        when(last.id()).thenReturn(9L);
+        when(unread.id()).thenReturn(CID);
+        when(unread.unreadCount()).thenReturn(2L);
+        when(unread.lastMessage()).thenReturn(last);
+        var read = mock(edu.bingol.backend.messaging.dto.MessagingDtos.ConversationView.class);
+        when(read.id()).thenReturn(77L);
+        when(read.unreadCount()).thenReturn(0L); // okunmamis yok: dokunulmaz
+        var stranger = mock(edu.bingol.backend.messaging.dto.MessagingDtos.ConversationView.class);
+        when(stranger.id()).thenReturn(99L);
+        when(stranger.unreadCount()).thenReturn(1L);
+        when(stranger.lastMessage()).thenReturn(last);
+
+        svc.markListedDelivered(B, List.of(read, stranger, unread)); // hata (404) gerisini durdurmaz
+
+        verify(members).advanceDelivered(CID, B, 9L);
+        verify(bus).publish(eq("message-events"), eq(List.of(A)), any());
+        verify(members, never()).findByConversationIdAndUserIdAndLeftAtIsNull(77L, B);
+    }
+
+    @Test
     void ackNeverMovesBackwardAndOwnMessagesAreIgnored() {
         group(member(A, 0, 0), member(B, 20, 5));
         conv.setType(Conversation.Type.DIRECT);

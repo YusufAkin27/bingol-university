@@ -178,6 +178,26 @@ public class ReceiptService {
         }
     }
 
+    /**
+     * Cihaz konusma listesini cekti: okunmamis son mesaj artik cihazda demektir. Sohbet ekrani hic acilmasa da (uygulama
+     * baska ekranda / arka planda) gonderenin tiki "iletildi"ye (cift tik) ilerler. En iyi caba: hata listeyi bozmaz.
+     */
+    public void markListedDelivered(Long userId, java.util.List<edu.bingol.backend.messaging.dto.MessagingDtos.ConversationView> items) {
+        if (items == null) {
+            return;
+        }
+        for (var c : items) {
+            if (c.unreadCount() <= 0 || c.lastMessage() == null || c.lastMessage().id() == null) {
+                continue;
+            }
+            try {
+                markDelivered(userId, c.id(), c.lastMessage().id());
+            } catch (RuntimeException e) {
+                // uye degil / gecersiz imlec vb.: liste cevabini etkilemez
+            }
+        }
+    }
+
     /** `MessageService.markRead` ilerleme sonrasi cagirir: `read` olayi (+ iletildi imleci de ilerlediyse `delivered`). */
     public void onRead(Long userId, Long conversationId, long oldRead, long oldDelivered, long newCursor) {
         try {
