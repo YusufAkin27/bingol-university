@@ -164,7 +164,7 @@ void main() {
 
     await tester.tap(_bar);
     await settle(tester, const Duration(seconds: 1));
-    expect(find.text('Arşiv'), findsOneWidget); // arşiv ekranı başlığı
+    expect(find.text('Arşiv'), findsNothing); // sayfa başlığı görünmez (sadeleştirme); içerik aşağıda doğrulanır
     expect(find.text('Arşiv Bir'), findsOneWidget);
     expect(find.text('Arşiv İki'), findsOneWidget);
     expect(find.text('Ali Veli'), findsNothing);
