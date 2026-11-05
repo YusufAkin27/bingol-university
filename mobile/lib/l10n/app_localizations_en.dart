@@ -10708,4 +10708,127 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get calSyncWorking => 'Writing to calendar…';
+
+  @override
+  String get tfTitle => 'Two-factor authentication';
+
+  @override
+  String get tfSecSection => 'Sign-in security';
+
+  @override
+  String get tfOn => 'On';
+
+  @override
+  String get tfOff => 'Off';
+
+  @override
+  String get tfToggleSubOff =>
+      'Off. When you sign in from an unknown device, a code is sent to your e-mail.';
+
+  @override
+  String get tfToggleSubOn =>
+      'On. Signing in from an unknown device asks for the code sent to your e-mail.';
+
+  @override
+  String get tfIntro =>
+      'When your account is signed in from an unknown device, a 6-digit code is sent to your e-mail. Trusted devices are not asked for a code.';
+
+  @override
+  String get tfDevicesSection => 'Trusted devices';
+
+  @override
+  String get tfDevicesEmpty =>
+      'No trusted devices yet. Turn on Trust this device when signing in and it will be listed here.';
+
+  @override
+  String get tfDeviceThis => 'This device';
+
+  @override
+  String get tfDeviceUnnamed => 'Device';
+
+  @override
+  String tfDeviceLastUsed(String date) {
+    return 'Last used $date';
+  }
+
+  @override
+  String get tfDeviceRemove => 'Remove device';
+
+  @override
+  String get tfDeviceRemoveTitle => 'Remove this device?';
+
+  @override
+  String get tfDeviceRemoveBody =>
+      'A code will be asked again at the next sign-in from this device. The open session stays signed in.';
+
+  @override
+  String get tfDeviceRemoveConfirm => 'Remove';
+
+  @override
+  String get tfDeviceRemoved => 'Device removed.';
+
+  @override
+  String get tfEnabledToast => 'Two-factor authentication is on.';
+
+  @override
+  String get tfDisabledToast => 'Two-factor authentication is off.';
+
+  @override
+  String tfEnableSubtitle(String email) {
+    return 'To turn it on, enter the 6-digit code sent to $email. The code is valid for 10 minutes.';
+  }
+
+  @override
+  String get tfEnableSubtitleNoMail =>
+      'To turn it on, enter the 6-digit code sent to your e-mail. The code is valid for 10 minutes.';
+
+  @override
+  String get tfDisableTitle => 'Turn off two-factor authentication?';
+
+  @override
+  String get tfDisableBody =>
+      'Confirm with your password. All trusted devices are removed and your account is protected by the password only.';
+
+  @override
+  String get tfDisableConfirm => 'Turn off';
+
+  @override
+  String get tfWrongPassword => 'Incorrect password.';
+
+  @override
+  String tfLoginSubtitle(String email) {
+    return 'To sign in, enter the 6-digit code sent to $email. The code is valid for 10 minutes.';
+  }
+
+  @override
+  String get tfLoginSubtitleNoMail =>
+      'To sign in, enter the 6-digit code sent to your e-mail. The code is valid for 10 minutes.';
+
+  @override
+  String get tfTrustLabel => 'Trust this device';
+
+  @override
+  String get tfTrustHint =>
+      'No code is asked on later sign-ins from this device. Turn it on only on your own phone.';
+
+  @override
+  String get tfBackToLogin => 'Back to sign in';
+
+  @override
+  String get tfErrCodeInvalid =>
+      'The verification code is invalid or has expired.';
+
+  @override
+  String get tfErrChallengeExpired =>
+      'The verification session has expired. Please sign in again.';
+
+  @override
+  String get tfErrLocked =>
+      'Too many wrong verification codes were entered; sign-in from a new device is locked for 24 hours. You can sign in from a trusted device or reset your password.';
+
+  @override
+  String get tfErrAlreadyEnabled => 'Two-factor authentication is already on.';
+
+  @override
+  String get tfErrNotEnabled => 'Two-factor authentication is not on.';
 }

@@ -39,3 +39,8 @@
 
 ## Hata kodları (3 dilde çeviri zorunlu)
 `TWO_FACTOR_CODE_INVALID`, `TWO_FACTOR_CHALLENGE_EXPIRED`, `TWO_FACTOR_ALREADY_ENABLED`, `TWO_FACTOR_NOT_ENABLED`; e-posta şablonu `TWO_FACTOR_CODE` (tr/en/ar, HTML + düz metin).
+
+## Mobil istemci (Flutter)
+- **Giriş:** `Session.login` 202 + `twoFactorRequired:true` + `challengeToken` görünce oturum AÇMAZ, `TwoFactorChallenge` döner; `LoginPage` `TwoFactorLoginPage`'i açar (6 kutulu kod, `AuthResendRow` geri sayımı 60 sn, "Bu cihaza güven" anahtarı **varsayılan kapalı** ve kod kutularının üstünde, çünkü 6. hanede otomatik gönderilir). `Session.loginTwoFactor` `{challengeToken, code, trustDevice}` gönderir (`trustDevice` her zaman AÇIKÇA). Challenge belirteci yalnız bellekte tutulur (rota argümanı/depo/günlük/analitik yok; `toString` gizler). Hatalar: `TWO_FACTOR_CODE_INVALID` kutuları temizler; `TWO_FACTOR_CHALLENGE_EXPIRED` kod girişini kapatıp "Girişe dön" gösterir; 429 `Retry-After` metne eklenir; girişte 429 `TWO_FACTOR_LOCKED` kod ekranı açmadan giriş ekranında gösterilir.
+- **Ayar:** Ayarlar > Hesap ve güvenlik > Giriş güvenliği > İki faktörlü doğrulama (`TwoFactorPage`): durum anahtarı, açma (`enable/request` -> `TwoFactorEnablePage` -> `enable/confirm`), kapatma (şifre diyaloğu, `disable`), güvenilen cihaz listesi ve tek tek kaldırma. `closeOtherSessions` mobilde gönderilmez.
+- Testler: `mobile/test/two_factor_test.dart` + `test/support/fake_two_factor.dart`.

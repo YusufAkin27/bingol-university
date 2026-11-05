@@ -19331,6 +19331,216 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Takvime yazılıyor…'**
   String get calSyncWorking;
+
+  /// No description provided for @tfTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'İki faktörlü doğrulama'**
+  String get tfTitle;
+
+  /// No description provided for @tfSecSection.
+  ///
+  /// In tr, this message translates to:
+  /// **'Giriş güvenliği'**
+  String get tfSecSection;
+
+  /// No description provided for @tfOn.
+  ///
+  /// In tr, this message translates to:
+  /// **'Açık'**
+  String get tfOn;
+
+  /// No description provided for @tfOff.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kapalı'**
+  String get tfOff;
+
+  /// No description provided for @tfToggleSubOff.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kapalı. Tanımadığın bir cihazdan girişte e-postana kod gönderilir.'**
+  String get tfToggleSubOff;
+
+  /// No description provided for @tfToggleSubOn.
+  ///
+  /// In tr, this message translates to:
+  /// **'Açık. Tanımadığın bir cihazdan girişte e-postana gönderilen kod istenir.'**
+  String get tfToggleSubOn;
+
+  /// No description provided for @tfIntro.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabına tanımadığın bir cihazdan girildiğinde e-postana 6 haneli bir kod gönderilir. Güvendiğin cihazlarda kod istenmez.'**
+  String get tfIntro;
+
+  /// No description provided for @tfDevicesSection.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güvenilen cihazlar'**
+  String get tfDevicesSection;
+
+  /// No description provided for @tfDevicesEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz güvenilen cihaz yok. Girişte Bu cihaza güven seçeneğini açarsan cihaz burada listelenir.'**
+  String get tfDevicesEmpty;
+
+  /// No description provided for @tfDeviceThis.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu cihaz'**
+  String get tfDeviceThis;
+
+  /// No description provided for @tfDeviceUnnamed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Cihaz'**
+  String get tfDeviceUnnamed;
+
+  /// No description provided for @tfDeviceLastUsed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Son kullanım {date}'**
+  String tfDeviceLastUsed(String date);
+
+  /// No description provided for @tfDeviceRemove.
+  ///
+  /// In tr, this message translates to:
+  /// **'Cihazı kaldır'**
+  String get tfDeviceRemove;
+
+  /// No description provided for @tfDeviceRemoveTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Cihaz kaldırılsın mı?'**
+  String get tfDeviceRemoveTitle;
+
+  /// No description provided for @tfDeviceRemoveBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu cihazdan bir sonraki girişte yeniden kod istenir. Açık oturum kapanmaz.'**
+  String get tfDeviceRemoveBody;
+
+  /// No description provided for @tfDeviceRemoveConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaldır'**
+  String get tfDeviceRemoveConfirm;
+
+  /// No description provided for @tfDeviceRemoved.
+  ///
+  /// In tr, this message translates to:
+  /// **'Cihaz kaldırıldı.'**
+  String get tfDeviceRemoved;
+
+  /// No description provided for @tfEnabledToast.
+  ///
+  /// In tr, this message translates to:
+  /// **'İki faktörlü doğrulama açıldı.'**
+  String get tfEnabledToast;
+
+  /// No description provided for @tfDisabledToast.
+  ///
+  /// In tr, this message translates to:
+  /// **'İki faktörlü doğrulama kapatıldı.'**
+  String get tfDisabledToast;
+
+  /// No description provided for @tfEnableSubtitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Açmak için {email} adresine gönderilen 6 haneli kodu girin. Kod 10 dakika geçerlidir.'**
+  String tfEnableSubtitle(String email);
+
+  /// No description provided for @tfEnableSubtitleNoMail.
+  ///
+  /// In tr, this message translates to:
+  /// **'Açmak için e-posta adresinize gönderilen 6 haneli kodu girin. Kod 10 dakika geçerlidir.'**
+  String get tfEnableSubtitleNoMail;
+
+  /// No description provided for @tfDisableTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'İki faktörlü doğrulama kapatılsın mı?'**
+  String get tfDisableTitle;
+
+  /// No description provided for @tfDisableBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şifreni girerek onayla. Güvenilen tüm cihazlar silinir ve hesabın yalnız şifreyle korunur.'**
+  String get tfDisableBody;
+
+  /// No description provided for @tfDisableConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kapat'**
+  String get tfDisableConfirm;
+
+  /// No description provided for @tfWrongPassword.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şifre hatalı.'**
+  String get tfWrongPassword;
+
+  /// No description provided for @tfLoginSubtitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Giriş için {email} adresine gönderilen 6 haneli kodu girin. Kod 10 dakika geçerlidir.'**
+  String tfLoginSubtitle(String email);
+
+  /// No description provided for @tfLoginSubtitleNoMail.
+  ///
+  /// In tr, this message translates to:
+  /// **'Giriş için e-posta adresinize gönderilen 6 haneli kodu girin. Kod 10 dakika geçerlidir.'**
+  String get tfLoginSubtitleNoMail;
+
+  /// No description provided for @tfTrustLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu cihaza güven'**
+  String get tfTrustLabel;
+
+  /// No description provided for @tfTrustHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu cihazdan sonraki girişlerde kod istenmez. Yalnız kendi telefonunda aç.'**
+  String get tfTrustHint;
+
+  /// No description provided for @tfBackToLogin.
+  ///
+  /// In tr, this message translates to:
+  /// **'Girişe dön'**
+  String get tfBackToLogin;
+
+  /// No description provided for @tfErrCodeInvalid.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğrulama kodu geçersiz veya süresi dolmuş.'**
+  String get tfErrCodeInvalid;
+
+  /// No description provided for @tfErrChallengeExpired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğrulama oturumunun süresi doldu. Lütfen tekrar giriş yapın.'**
+  String get tfErrChallengeExpired;
+
+  /// No description provided for @tfErrLocked.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çok sayıda hatalı doğrulama kodu girildi; yeni cihazdan giriş 24 saat kilitlendi. Güvenilen bir cihazdan girebilir ya da şifrenizi sıfırlayabilirsiniz.'**
+  String get tfErrLocked;
+
+  /// No description provided for @tfErrAlreadyEnabled.
+  ///
+  /// In tr, this message translates to:
+  /// **'İki faktörlü doğrulama zaten açık.'**
+  String get tfErrAlreadyEnabled;
+
+  /// No description provided for @tfErrNotEnabled.
+  ///
+  /// In tr, this message translates to:
+  /// **'İki faktörlü doğrulama açık değil.'**
+  String get tfErrNotEnabled;
 }
 
 class _AppLocalizationsDelegate
