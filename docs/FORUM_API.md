@@ -73,3 +73,7 @@ E: `forum_notification_pref(user_id PK, all_enabled, topic_comments, comment_rep
 
 ## 5. Ortak disiplin
 `git add` dosya dosya; commit sonuna `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`; `git stash` YASAK; emülatör/adb/canlı sunucu/SSH YASAK; canlıya DEPLOY YOK; UTF-8 BOM'suz, CRLF'e duyarlı düzenleme; Docker Maven için PAYLAŞIMLI önbellek: `docker run --rm -v bu_m2:/root/.m2 -v "$(pwd -W):/w" -w /w/backend ... mvn -B -q clean test -Dtest=...` (Git Bash, `MSYS_NO_PATHCONV=1`); Flutter testleri ASCII junction'dan (PowerShell/cmd; PUB_CACHE=C:\pubcache); DİSK DAR (C: ~9 GB boş): `flutter build`/APK/IPA ÇALIŞTIRMA, işin bitince kendi worktree'nde `mobile\build`, `backend\target`, `web\node_modules` dizinlerini sil (kaynağa dokunma), Temp/başka klasör SİLME. Bitişte kendi dalını push et ve rapor ver: commit sha'ları, dosyalar, uçlar/ekranlar, test sayıları (gerçek), sözleşmeden sapmalar, çözemediklerin.
+
+## 6. Errata (sürüm entegrasyonu, 2026-11-05)
+- §0 "Engel/sessize alma ... anonim içerikte de uygulanır" maddesi DEĞİŞTİ: **engel** anonim içerikte de uygulanır; **sessize alma yalnız anonim olmayan içeriğe** uygulanır (kimlik sınaması önlemi). Ayrıntı: `docs/changes/forum-integration.md` bölüm 3.
+- `POST /api/conversations/{id}/messages` `share.type` artık `FORUM_TOPIC|FORUM_COMMENT` kabul eder (alan uzunluğu 16).

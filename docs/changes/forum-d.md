@@ -34,7 +34,8 @@ Yetki: `ROLE_ADMIN` + izin `forum.moderate` (MODERATOR, FULL). Sahiplik bu uçla
 - `PUT|DELETE /api/forum/mutes/{userId}` → `{muted:true|false}` (idempotent; kendini `400 FORUM_CANNOT_MUTE_SELF`; olmayan/pasif `404 FORUM_MUTE_USER_NOT_FOUND`; en çok 500 kişi `409 FORUM_MUTE_LIMIT`). `GET /api/forum/mutes?cursor=&size=` → `{items:[{userId,displayName,avatarUrl:null,mutedAt}], nextCursor}`.
 - `ForumMuteLookup` (A'nın SPI'ı) `ForumMuteLookupImpl` ile uygulanır (`mutedBy(viewerId)` → sessize aldıklarım).
 - `POST /api/forum/topics/{id}/block-author` ve `POST /api/forum/comments/{id}/block-author` → yalnız `{blocked:true}`. Yazar anonim olsa da mevcut `BlockService` engeli eklenir; kimlik hiçbir alanda dönmez. Kendi içeriği `400 FORUM_CANNOT_BLOCK_SELF`; görünmeyen içerik (silinmiş/kaldırılmış, yazar pasif ya da yazar bizi engellemiş) olmayanla aynı `404`.
-- **Bilinen risk (sözleşmeden gelen):** sessize alma/engel anonim içerikte de uygulandığından, bir kullanıcı kimliğini tahmin ettiği biri için sessize alma/engel deneyip anonim içeriğin kaybolup kaybolmadığına bakarak anonimliği sınayabilir. Hız sınırı (saatte 60) yalnız yavaşlatır. Kalıcı çözüm istenirse A/B sessize almayı (engeli değil) YALNIZ anonim olmayan içeriğe uygulamalı; karar A/B/sözleşme sahibinde.
+- **[ÇÖZÜLDÜ, sürüm entegrasyonu: bkz. `forum-integration.md` bölüm 3]** Aşağıdaki risk kapatıldı: sessize alma artık YALNIZ anonim olmayan içeriğe uygulanır, engel anonimde de uygulanır.
+- **Bilinen risk (sözleşmeden gelen; yukarıdaki karar öncesi):** sessize alma/engel anonim içerikte de uygulandığından, bir kullanıcı kimliğini tahmin ettiği biri için sessize alma/engel deneyip anonim içeriğin kaybolup kaybolmadığına bakarak anonimliği sınayabilir. Hız sınırı (saatte 60) yalnız yavaşlatır. Kalıcı çözüm istenirse A/B sessize almayı (engeli değil) YALNIZ anonim olmayan içeriğe uygulamalı; karar A/B/sözleşme sahibinde.
 
 ## 4. Güvenlik yardımcıları (A/B/C çağırır)
 
