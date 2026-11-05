@@ -139,4 +139,54 @@ class FollowSuggestionsTest {
         }
         assertEquals(3, follow.suggestions(me.getId(), 3).size());
     }
+
+    @Test
+    void pagesDoNotOverlapAndLastPageIsEmptyThenBeyondCapIsEmpty() {
+        String dept = "Sayfa-" + tag();
+        User me = user(dept, null);
+        java.util.Set<Long> all = new java.util.HashSet<>();
+        for (int i = 0; i < 7; i++) {
+            all.add(user(dept, null).getId());
+        }
+
+        FollowService.SuggestionPage p0 = follow.suggestionsPage(me.getId(), 0, 3);
+        FollowService.SuggestionPage p1 = follow.suggestionsPage(me.getId(), 1, 3);
+        FollowService.SuggestionPage p2 = follow.suggestionsPage(me.getId(), 2, 3);
+        FollowService.SuggestionPage p3 = follow.suggestionsPage(me.getId(), 3, 3);
+
+        assertEquals(3, p0.items().size());
+        assertEquals(3, p1.items().size());
+        assertEquals(1, p2.items().size());
+        assertTrue(p0.hasMore() && p1.hasMore());
+        assertFalse(p2.hasMore(), "son sayfada devam yok");
+        assertTrue(p3.items().isEmpty() && !p3.hasMore(), "tasan sayfa bos");
+        List<Long> ids = new java.util.ArrayList<>();
+        for (FollowService.SuggestionPage p : List.of(p0, p1, p2)) {
+            p.items().forEach(sg -> ids.add(sg.id()));
+        }
+        assertEquals(7, ids.size());
+        assertEquals(7, new java.util.HashSet<>(ids).size(), "sayfalar arasinda tekrar yok");
+        assertEquals(all, new java.util.HashSet<>(ids), "atlama yok");
+        // Ayni kullanici icin sira deterministik
+        assertEquals(p1.items(), follow.suggestionsPage(me.getId(), 1, 3).items());
+        // Eski imza = sayfa 0
+        assertEquals(p0.items(), follow.suggestions(me.getId(), 3));
+        // Ust sinir asimi 400 degil bos
+        assertTrue(follow.suggestionsPage(me.getId(), 1_000_000, 50).items().isEmpty());
+        assertTrue(follow.suggestionsPage(me.getId(), Integer.MAX_VALUE, 50).items().isEmpty());
+        assertTrue(follow.suggestionsPage(me.getId(), -5, 3).items().size() == 3, "negatif sayfa 0 sayilir");
+    }
+
+    @Test
+    void sizeIsCappedAtFifty() {
+        String dept = "Tavan-" + tag();
+        User me = user(dept, null);
+        for (int i = 0; i < 55; i++) {
+            user(dept, null);
+        }
+        FollowService.SuggestionPage p0 = follow.suggestionsPage(me.getId(), 0, 500);
+        assertEquals(50, p0.items().size());
+        assertTrue(p0.hasMore());
+        assertEquals(5, follow.suggestionsPage(me.getId(), 1, 50).items().size());
+    }
 }
