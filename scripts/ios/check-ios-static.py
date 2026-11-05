@@ -96,6 +96,16 @@ def check_info_plist():
         ok('UIBackgroundModes = remote-notification')
     else:
         bad('UIBackgroundModes yalniz remote-notification olmali (baska mod App Review gerekcesi ister)')
+    # Paylasim baglantisi (derin baglanti): Flutter'in kendi yonlendirmesi kapali, `bukampus` ozel semasi kayitli.
+    if info.get('FlutterDeepLinkingEnabled') is False:
+        ok('FlutterDeepLinkingEnabled=false (derin baglantiyi app_links isler)')
+    else:
+        bad('FlutterDeepLinkingEnabled=false olmali (aksi halde Flutter /s/... yolunu rota sanir)')
+    schemes = [s for t in info.get('CFBundleURLTypes', []) for s in t.get('CFBundleURLSchemes', [])]
+    if 'bukampus' in schemes:
+        ok('CFBundleURLTypes: bukampus:// ozel semasi kayitli')
+    else:
+        bad('CFBundleURLTypes: bukampus ozel semasi eksik (paylasim baglantisi yedegi)')
     if 'FirebaseAppDelegateProxyEnabled' in info:
         bad('FirebaseAppDelegateProxyEnabled tanimli: kaldirin (swizzling acik kalmali, bkz. docs/MOBILE_PUSH.md)')
     else:
@@ -155,6 +165,11 @@ def check_entitlements():
             ok(f'{name}: aps-environment={env}')
         else:
             bad(f'{name}: aps-environment={env} olmali')
+        # Evrensel baglanti (paylasilan icerik): yalniz imzali (BuPush.xcconfig) derlemede kullanilan dosyalardadir.
+        if 'applinks:bukampus.com.tr' in d.get('com.apple.developer.associated-domains', []):
+            ok(f'{name}: associated-domains = applinks:bukampus.com.tr')
+        else:
+            bad(f'{name}: com.apple.developer.associated-domains applinks:bukampus.com.tr icermeli')
     x = read(os.path.join(IOS, 'Flutter', 'BuPush.xcconfig.example'))
     if 'RunnerRelease.entitlements' in x and 'config=Release' in x:
         ok('BuPush.xcconfig.example: Release -> RunnerRelease.entitlements (production)')
