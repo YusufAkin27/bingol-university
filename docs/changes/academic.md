@@ -1,4 +1,6 @@
-# akademik modul (academic): ders programi, sinav takvimi, akademik takvim, bolum duyurulari
+# akademik modul (academic): ders programi, sinav takvimi, akademik takvim, (bolum duyurulari KALDIRILDI)
+
+> **2026-11-05 (V1251):** "bolum duyurulari" (`DepartmentAnnouncementService`, `AnnouncementNotifier`, `/api/announcements*`, `/api/admin/announcements*`) ve "resmi sinav programi" (`exam_schedule`, `GET /api/exams/official`, `/api/admin/academic/exams*`) ozellikleri kaldirildi; `department_announcement`, `announcement_read`, `exam_schedule` tablolari dusuruldu. Asagidaki duyuru/resmi sinav notlari TARIHSEL kayittir. Kalanlar: kisisel ders/sinav, akademik takvim, resmi ders programi, sinav hatirlatmasi (`academic_announcements` bayragi ile).
 
 Tam uc sozlesmesi: `docs/API_CONTRACTS_V2.md` "Akademik". Paket `edu.bingol.backend.academic`, migration `V320__academic.sql` (indeks oneki `acd320_`), ceviri `i18n/academic*.properties`.
 

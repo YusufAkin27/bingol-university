@@ -77,7 +77,7 @@ iOS push için ücretli Apple Developer hesabı gerekir. Adım adım kurulum (pl
 
 - Kimlik doğrulaması: yönetici olarak `POST /api/admin/push/fcm/validate` (kuru çalıştırma, cihaza gitmez). `validated=true` kimlik+proje+yetkinin geçerli olduğunu gösterir; `error` kodu (`UNAUTHENTICATED`, `PERMISSION_DENIED`...) nedeni verir. `GET .../status` yalnız kimliğin yüklenip yüklenmediğini ve Firebase proje kimliğini söyler.
 - Android kanalları: `chat`, `event`, `announcement`, `poll`, `social`; sohbet bastırma için istemci `PUT/DELETE /api/conversations/{id}/viewing` ve `PUT /api/devices/{fcmToken}/state` çağırır. Ayrıntı: `docs/changes/push.md`.
-- Ayarlar: `app.push.message-window-seconds` (0), `app.push.max-per-minute` (10), `app.push.max-messages-per-minute` (60), `app.push.message-skip-foreground` (false), `app.push.message-preview` (false; global), `app.push.message-preview-optin` (true; kullanıcı tercihi `messagePreview`). Ayrıntı: `docs/changes/push.md` "P1".
+- Ayarlar: `app.push.message-window-seconds` (0), `app.push.max-per-minute` (10), `app.push.max-messages-per-minute` (60), `app.push.message-skip-foreground` (false). (`app.push.message-preview*` ayarları ve kullanıcı tercihi V1252 ile kaldırıldı: mesaj önizlemesi her zaman gider.) Ayrıntı: `docs/changes/push.md` "P1".
 
 ## 6. `google-services.json` API anahtarını kısıtlama (Google Cloud Console)
 

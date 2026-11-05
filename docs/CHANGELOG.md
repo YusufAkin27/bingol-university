@@ -4,6 +4,13 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### Kaldırılanlar (2026-11-05, `deploy/nomap-20261105`)
+
+- **Kampüs haritası kaldırıldı:** `campus` paketi, `GET /api/campus/*`, `/api/admin/campus/**`, `campus.read|write` izinleri, `campus` önbellek ad alanı, `campus_place.photo_key` medya referansı, i18n `campus*`, yönetim paneli "Kampüs haritası" sayfası, `docs/CAMPUS_MAP.md`, `scripts/smoke-campus.sh`. **V1250** `campus_place` ve `campus_config` tablolarını düşürür (V1200/V1201 canlıda uygulanmış olduğundan dosyaları DEĞİŞMEZ).
+- **Akademik "bölüm duyuruları" kaldırıldı:** `DepartmentAnnouncementService`, `AnnouncementNotifier`, `/api/announcements*`, `/api/admin/announcements*`, `comms.announce` izni, bildirim alt türü `ACADEMIC_ANNOUNCEMENT` (+ `notif.academic.announcement` şablonu), toplu işlem/CSV `ANNOUNCEMENT` varlığı, panel sayfası. **V1251** `announcement_read`, `department_announcement` tablolarını düşürür ve eski bildirim/alt tür tercih satırlarını siler. (`notification_pref.academic_announcements` bayrağı sınav hatırlatması için kaldı. Haber türü "duyuru", `unitnews`, kulüp ve etkinlik duyuruları ayrı özelliklerdir, DEĞİŞMEDİ.)
+- **Resmi sınav programı kaldırıldı:** `GET /api/exams/official`, `/api/admin/academic/exams*`, toplu işlem/CSV `EXAM` varlığı, panel sayfası; **V1251** `exam_schedule` tablosunu düşürür. Kişisel sınavlar (`tt_exam`, Sınavlarım, sınav hatırlatması) ve resmi ders programı kalır.
+- **Mesaj önizleme tercihi kaldırıldı:** `messagePreview` (tercih API'si), `app.push.message-preview` / `message-preview-optin` ayarları, `PUSH_MESSAGE_PREVIEW`; push gövdesi her zaman mesaj metninin ilk 100 karakteridir, Android `chat` kanalı kilit ekranında `PUBLIC`. **V1252** `notification_pref.message_preview` sütununu düşürür.
+
 ### UNION (2026-11-04): iki dağıtım hattının birleşimi (`deploy/union-20261104`)
 
 - `deploy/final-all-20261101` (Drive yedek, 2FA, birim haberleri, admin arama/panel yenileme, P01-P10 düzeltmeleri, V1040-V1141) + `deploy/final-20261104` (Keşfet V1220-V1230, kampüs V1200-V1201, resmî ders programı V1150-V1160, parola/kod süresi, davranış analizi V1240, site yeniden tasarımı). Migration numarası çakışması yok; A'nın V1040-V1141 dosyaları ve B'nin V1150+ dosyaları kaynaklarıyla bayt bayt aynıdır (Flyway checksum korunur). Yeni numara yok: en yüksek V1240.

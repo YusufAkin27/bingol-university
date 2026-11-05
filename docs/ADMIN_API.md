@@ -381,12 +381,11 @@ Herkese açık okuma: `GET /api/communities/categories` (giriş gerekir) — ayr
 
 Şikâyet kuyruğu: `targetType` `FEED_POST` (kullanıcı `POST /api/reports` ile bildirir; `FEED_COMMENT` ve `STORY` türleri kaldırıldı, eski kayıtları V470 siler). `GET /api/admin/reports/{id}` bağlamında `context.content` = `{kind:"FEED_POST", id, text, ownerId, imageUrl, deleted, status:"VISIBLE"|"HIDDEN"|"DELETED", createdAt, postId, media:[{id,kind,url,thumbUrl}]}`; kuyruk önizlemesi (`preview`) ilk medya ya da metindir. Karar `HIDE` → gönderi gizlenir (geri alınabilir: otomatik gizleme eşiği, itiraz ve reddetmede `unhide`); kalıcı kaldırma için gönderi ekranındaki **Sil** kullanılır (açık şikâyetleri birlikte sonuçlandırır).
 
-## Akademik (`/api/admin/academic/*`, `/api/admin/announcements`)
+## Akademik (`/api/admin/academic/*`)
 
 Sözleşme: [API_CONTRACTS_V2.md](API_CONTRACTS_V2.md) "Akademik". Tüm uçlar yalnız ADMIN; yazma işlemleri denetim kaydına düşer.
 
 - **Akademik takvim:** `GET|POST /api/admin/academic/events`, `GET|PATCH|DELETE .../{id}`, `POST .../{id}/publish|unpublish`, `POST .../import` (`{text, publish}`; satır `TÜR;Başlık;başlangıç;bitiş?;bölüm?`, geçerli satırlar yazılır, hatalar satır numarasıyla döner).
-- **Resmi sınav programı:** `/api/admin/academic/exams` (aynı kalıp; `faculty|department|grade` boş = herkes).
 - **Resmi ders programı (V1150, Excel yükleme):** izin `content.read|write` (`/api/admin/academic/**` alanı). Sayfa `/admin/academic/timetable`, şablon `web/public/ders-programi-sablonu.xlsx`.
   - `POST /api/admin/academic/timetable/import` (multipart: `file` .xlsx ≤ 1,8 MB, `dryRun` varsayılan **true**, `term` isteğe bağlı) → `{dryRun, term, rows, programs, inserted, replacedPrograms, items[ProgramSummary], errors[{row,message}], warnings[…]}`. `dryRun=true` yazmaz (önizleme). `dryRun=false` ve hata varsa 422 `TIMETABLE_IMPORT_INVALID`. Okunan sayfa **"Ders Programı"** (yoksa ilk sayfa); başlık satırı ilk 15 satırda aranır; sütunlar: Dönem, Birim, Bölüm / Program, Sınıf, Grup / Şube, Gün, Başlangıç, Bitiş, Ders Kodu, Ders Adı, Öğretim Elemanı, Derslik, Not, Kaynak, Katalog Fakülte, Katalog Bölüm (zorunlu: Birim, Bölüm/Program, Sınıf, Gün, Başlangıç, Bitiş, Ders Adı; Dönem satırda ya da `term` ile).
   - **Değiştirme semantiği:** dosyadaki her (dönem, birim, program) için eski satırlar silinip yenisi yazılır (aynı dosya tekrar yüklenince çift kayıt olmaz; dosyada olmayan programa dokunulmaz). Aynı satır tekrar ederse atlanır (uyarı).
@@ -394,7 +393,7 @@ Sözleşme: [API_CONTRACTS_V2.md](API_CONTRACTS_V2.md) "Akademik". Tüm uçlar y
   - Katalog eşleşmesi: "Katalog Fakülte/Bölüm" geçerliyse o, değilse program adı `academic.json` bölüm adıyla (AudienceKey) birebir eşleşirse o; bulunamazsa uyarı + program adı olduğu gibi `department` olur (profildeki bölümle eşleşmeyebilir).
   - `GET .../timetable/programs?term=` (dönemler + program özeti), `GET .../timetable/entries?term&unit&program[&grade&page&size]`, `DELETE .../timetable/programs?term&unit&program`, `POST .../timetable/publish {term,unit,program,published}`.
   - Kullanıcı: `GET /api/timetable/official[?term&department&grade&unit]` → `{term, items[], units[], profileComplete}`; varsayılan profil bölümü + sınıfı, yalnız yayında olanlar. Aynı bölüm adı birden çok birimde olabilir (örn. Çocuk Gelişimi 3 MYO'da): `units` ile birim seçtirin.
-- **Duyurular:** `GET|POST /api/admin/announcements` (`status=all|draft|scheduled|active|expired`), `GET|PATCH|DELETE .../{id}`, `publish|unpublish`, `GET .../audience-count?department&faculty&grade`. `notify=true` görünür olunca hedef kitleye bir kez push gönderir; `pinned` sabitler; `attachmentUrl` yalnız https.
+- **Kaldırıldı (V1251):** "resmi sınav programı" (`/api/admin/academic/exams`, `GET /api/exams/official`) ve "bölüm duyuruları" (`/api/admin/announcements`, `/api/announcements*`) özellikleri silindi; kullanıcının kendi sınavları (`/api/timetable/exams`) ve resmi ders programı kalır. `comms.announce` izni de kalktı.
 - Gelecek: bölüm yetkilisi için `DEPT_ADMIN` rolü + `dept_admin_scope(user_id, department)` (bkz. `docs/changes/academic.md`). Şimdilik yalnız ADMIN.
 
 ## Anketler (`/api/admin/polls`) ve kalıcı push kuyruğu (`/api/admin/push/outbox`)
@@ -909,12 +908,12 @@ Haber, akademik içerik, yemek menüsü ve bekleyen kayıtlar için toplu işlem
 | Uç | Gövde / not |
 |---|---|
 | `POST /api/admin/news/bulk` | `{action: HIDE\|UNHIDE, ids (<=200), reason}` |
-| `POST /api/admin/academic/bulk` | `{entity: CALENDAR\|EXAM\|ANNOUNCEMENT, action: PUBLISH\|UNPUBLISH\|DELETE, ids (<=200), reason}`; mevcut servis metotları kullanılır; bildirimi açık duyuru yayınlanırsa servisin kendi kuralıyla (bir kez) hedef kitleye bildirim gider |
+| `POST /api/admin/academic/bulk` | `{entity: CALENDAR, action: PUBLISH\|UNPUBLISH\|DELETE, ids (<=200), reason}`; mevcut servis metotları kullanılır (`EXAM` ve `ANNOUNCEMENT` varlıkları V1251 ile kaldırıldı) |
 | `POST /api/admin/menu/bulk-delete` | `{dates ("yyyy-MM-dd", <=62), reason}`; gün satırı silinir, fotoğraf `MediaService.release` ile temizlenir (başka kayıt kullanıyorsa dosya kalır); geçersiz tarih 400 `MENU_DATE_INVALID`. Kaynak site aylık senkronda silinen günü yeniden yazabilir |
 | `POST /api/admin/pending-registrations/bulk-cancel` | `{emails (e-posta ya da okul numarası, <=200), reason}`; Redis `reg:<e-posta>` TAM e-posta ile saklanır (hash değil), normalize edilir; yanıt ve denetim satırında kimlik MASKELİ (`226***@bingol.edu.tr`) |
 | `POST /api/admin/sources/sync` | `{source: NEWS\|MENU, reason}`; mevcut senkron servisini çağırır (kaynak siteye istek atar: scraper kuralı gereği normalde yalnız zamanlayıcı, bu elle tetikleme bir istisnadır). Kaynak başına saatte 3 (tüm yöneticiler ortak), aşılırsa 429 + `Retry-After`. Yanıt `{source, changed, detail}` |
 
-**CSV (GET; UTF-8 BOM, CRLF, formül kaçırma `'`; en çok 50.000 satır; dakikada 10):** `GET /api/admin/news/export.csv?q=&type=&hidden=` (liste süzgeçleriyle aynı; içerik metni yazılmaz), `GET /api/admin/academic/export.csv?entity=CALENDAR|EXAM|ANNOUNCEMENT&q=&kind=&published=&status=` (`entity` yoksa 400 `EXPORT_ENTITY_INVALID`; duyuru gövdesi yazılmaz), `GET /api/admin/menu/export.csv?from=&to=`, `GET /api/admin/pending-registrations/export.csv?q=` (e-posta ve ad maskeli; `@AuditRead`: okuma denetim kaydına yazılır).
+**CSV (GET; UTF-8 BOM, CRLF, formül kaçırma `'`; en çok 50.000 satır; dakikada 10):** `GET /api/admin/news/export.csv?q=&type=&hidden=` (liste süzgeçleriyle aynı; içerik metni yazılmaz), `GET /api/admin/academic/export.csv?entity=CALENDAR&q=&kind=&published=` (`entity` yoksa 400 `EXPORT_ENTITY_INVALID`), `GET /api/admin/menu/export.csv?from=&to=`, `GET /api/admin/pending-registrations/export.csv?q=` (e-posta ve ad maskeli; `@AuditRead`: okuma denetim kaydına yazılır).
 
 **`GET /api/admin/sources/status`:** `{news:{maintenance, lastSuccess, lastAttempt, message (en çok 200 karakter), itemsLast7d, total, hidden, byType}, menu:{maintenance, lastSuccess, lastAttempt, message, totalDays, upcomingDays, withImage}, syncPerHour}`. Yalnız mevcut `SyncStatus` ve tablo sayılarını toplulaştırır; kaynak siteye istek atmaz.
 
@@ -946,7 +945,7 @@ Haber, akademik içerik, yemek menüsü ve bekleyen kayıtlar için toplu işlem
 | support.read | x |  | x |  | x |
 | support.write | x |  | x |  |  |
 | comms.read | x |  | x | x | x |
-| comms.write, comms.announce | x |  |  | x |  |
+| comms.write | x |  |  | x |  |
 | comms.single | x |  | x |  |  |
 | comms.send, legal.publish, settings.write, system.write, rbac.manage, admin.full | x |  |  |  |  |
 | settings.read, system.read, audit.read | x |  |  |  | x |
