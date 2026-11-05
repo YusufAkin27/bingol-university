@@ -129,7 +129,7 @@ void main() {
       await tester.tap(find.text('Yorumum burada'));
       await settle(tester, const Duration(milliseconds: 400));
       expect(log.count('forum_topic'), 1);
-      await tester.pageBack();
+      await tester.tap(find.byKey(const ValueKey('topicBack'))); // gerçek konu detayı (özel geri düğmesi)
       await settle(tester, const Duration(milliseconds: 400));
 
       await tapChip(tester, 'Kaydedilenler');

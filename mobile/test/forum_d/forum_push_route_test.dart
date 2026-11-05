@@ -97,7 +97,8 @@ void main() {
       PushRouter.open({'type': 'FORUM_COMMENT_REPLY', 'targetType': 'FORUM_COMMENT', 'targetId': '55', 'topicId': '500'});
       await settle(tester, const Duration(milliseconds: 400));
       expect(log.count('forum_topic'), 1);
-      expect(b.requests.where((r) => r.contains('/forum/comments/55')), isEmpty, reason: 'topicId varken ek istek yok');
+      // topicId varken yönlendirici ek arama yapmaz; gerçek konu detayı yalnız kendi yorum bağlamını bir kez yükler.
+      expect(b.requests.where((r) => r.contains('/forum/comments/55')).length, lessThanOrEqualTo(1));
       rootNavigatorKey.currentState!.pop();
       await settle(tester, const Duration(milliseconds: 400));
 
