@@ -186,7 +186,7 @@ void main() {
     testWidgets('satir: karti/simgesi yok, tur etiketi + zaman + tek nokta, bd cizgisi', (tester) async {
       final b = FakeBackend()..on('/notifications', _notifs());
       await _show(tester, NotificationsPage(session: makeSession(b)));
-      expect(find.text('Duyuru'), findsOneWidget);
+      // Tür etiketi satırda çizilmez (bildirim tasarımı 2.1.4); ekran okuyucu etiketinde kalır (aşağıdaki test).
       expect(find.text('Kariyer günleri yarın başlıyor'), findsOneWidget);
       // Ağaçta kalır, okunanlar ölçeksiz. Eski MESSAGE satırı (id 4) istemcide gizlenir: 3 satır.
       expect(find.byKey(const ValueKey('notif-unread-dot')), findsNWidgets(3));

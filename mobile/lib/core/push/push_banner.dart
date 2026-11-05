@@ -159,6 +159,8 @@ class PushBannerCenter {
     final callback = _actions[item.key];
     final fallback = _open[item.key];
     dismiss(item.key);
+    // "Anladım": yalnız şeridi kapatır; işlev yok, yönlendirme yok.
+    if (action == 'ack') return;
     if (callback != null) {
       callback(action, item.data);
     } else {

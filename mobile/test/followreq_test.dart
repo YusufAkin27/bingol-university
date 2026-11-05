@@ -557,7 +557,8 @@ void main() {
         });
       await tester.pumpWidget(buildApp(NotificationsPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester, const Duration(seconds: 1));
-      expect(find.text('Takip'), findsNWidgets(2));
+      // Tür etiketi satırda çizilmez (tasarım 08); ekran okuyucu etiketinde kalır.
+      expect(find.text('İstek kabul edildi'), findsOneWidget);
       expect(find.text('Yeni takip isteği'), findsOneWidget);
       await unmount(tester);
     });

@@ -10163,4 +10163,84 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get errEmailVerificationRequired =>
       'تحقق من بريدك الإلكتروني للقيام بذلك';
+
+  @override
+  String get notifActionAck => 'فهمت';
+
+  @override
+  String get notifActionQuickReply => 'رد سريع';
+
+  @override
+  String get notifActionOpenAll => 'فتح الكل';
+
+  @override
+  String get notifActionProgram => 'تفاصيل البرنامج';
+
+  @override
+  String notifKcalTotal(String n) {
+    return 'المجموع $n سعرة';
+  }
+
+  @override
+  String notifOldTime(String time) {
+    return 'الوقت السابق: $time';
+  }
+
+  @override
+  String notifNewTime(String time) {
+    return 'الوقت الجديد $time';
+  }
+
+  @override
+  String get notifBadgeImportant => 'مهم';
+
+  @override
+  String get notifSourceModeration => 'الإشراف';
+
+  @override
+  String notifAgoMin(String n) {
+    return 'منذ $n د';
+  }
+
+  @override
+  String notifAgoHour(String n) {
+    return 'منذ $n س';
+  }
+
+  @override
+  String notifAgoDay(String n) {
+    return 'منذ $n يوم';
+  }
+
+  @override
+  String notifYesterdayAt(String time) {
+    return 'أمس $time';
+  }
+
+  @override
+  String notifNewCount(String n) {
+    return '$n جديد';
+  }
+
+  @override
+  String notifGroupUnread(String n) {
+    return '$n غير مقروء';
+  }
+
+  @override
+  String get notifPrefMealMenu => 'قائمة اليوم';
+
+  @override
+  String get notifPrefMealMenuSub => 'إشعار بقائمة طعام اليوم. متوقف افتراضيا.';
+
+  @override
+  String get notifExamAlarmOn => 'التذكير مفعل';
+
+  @override
+  String get notifExamAlarmOff => 'التذكير متوقف';
+
+  @override
+  String notifCapacityFull(String n) {
+    return 'السعة: $n% ممتلئة';
+  }
 }

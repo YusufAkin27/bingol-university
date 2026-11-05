@@ -3455,5 +3455,95 @@
   "verifySheetBody": "Enter the 6-digit code sent to your email.",
   "verifyQuotaInfo": "The verification email cannot be sent right now. We will send it as soon as possible. You can enter the code here once it arrives.",
   "verifyDone": "Your email is verified",
-  "errEmailVerificationRequired": "Verify your email to do this"
+  "errEmailVerificationRequired": "Verify your email to do this",
+  "notifActionAck": "Got it",
+  "notifActionQuickReply": "Quick reply",
+  "notifActionOpenAll": "Open all",
+  "notifActionProgram": "Event details",
+  "notifKcalTotal": "Total {n} kcal",
+  "@notifKcalTotal": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifOldTime": "Old time: {time}",
+  "@notifOldTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notifNewTime": "New time {time}",
+  "@notifNewTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notifBadgeImportant": "IMPORTANT",
+  "notifSourceModeration": "Moderation",
+  "notifAgoMin": "{n} min ago",
+  "@notifAgoMin": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifAgoHour": "{n} hr ago",
+  "@notifAgoHour": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifAgoDay": "{n} d ago",
+  "@notifAgoDay": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifYesterdayAt": "Yesterday {time}",
+  "@notifYesterdayAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notifNewCount": "{n} New",
+  "@notifNewCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifGroupUnread": "{n} unread",
+  "@notifGroupUnread": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifPrefMealMenu": "Daily menu",
+  "notifPrefMealMenuSub": "A notification with the menu of the day. Off by default.",
+  "notifExamAlarmOn": "Reminder on",
+  "notifExamAlarmOff": "Reminder off",
+  "notifCapacityFull": "Capacity: {n}% full",
+  "@notifCapacityFull": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -6,9 +6,13 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../../core/push/notification_push_card.dart';
+import '../../core/push/push_actions.dart';
+import '../../core/push/push_card_parts.dart';
 import '../../core/push/push_router.dart';
 import '../../core/push/push_targets.dart';
 import '../../core/push/notification_presentation.dart';
+import '../chat/chatlist_widgets.dart' show ChatlistAvatar;
 import '../follow/follow_requests_api.dart';
 import '../follow/follow_requests_entry.dart';
 import '../news/news_tile.dart' show newsLocalDate, newsMonthName;
@@ -151,6 +155,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   Map<String, dynamic> _presentationData(Map<String, dynamic> n) => {
         ..._data(n),
+        // İstek anı projeksiyonları (sunucu kalıcı `data`'ya yazmaz).
+        if (n['actorAvatarUrl'] != null) 'actorAvatarUrl': n['actorAvatarUrl'],
+        if (n['sourceName'] != null) 'sourceName': n['sourceName'],
         'type': n['type'],
         if (n['subtype'] != null) 'subtype': n['subtype'],
         if (n['category'] != null) 'category': n['category'],
@@ -293,7 +300,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     }
   }
 
-  /// Sağ hizalı kısa zaman: şimdi / 5 dk / 2 sa / Dün / 3 g; bir haftadan eskide tarih.
+  /// Sağ hizalı zaman (tasarım 08): şimdi / 12 dk önce / 2 sa önce / Dün 11:30 / 3 gün önce; bir haftadan eskide tarih.
   String _ago(String? iso) {
     final l = context.l10n;
     final d = iso == null ? null : DateTime.tryParse(iso)?.toLocal();
@@ -302,14 +309,17 @@ class _NotificationsPageState extends State<NotificationsPage> {
     final diff = now.difference(d);
     if (diff.inMinutes < 1) return l.notifNow;
     if (diff.inMinutes < 60) {
-      return l.bildirimShortMin(diff.inMinutes.toString());
+      return l.notifAgoMin(diff.inMinutes.toString());
     }
     final days = DateTime(now.year, now.month, now.day)
         .difference(DateTime(d.year, d.month, d.day))
         .inDays;
-    if (days <= 0) return l.bildirimShortHour(diff.inHours.toString());
-    if (days == 1) return l.bildirimYesterday;
-    if (days < 7) return l.p03NotifShortDay(days.toString());
+    if (days <= 0) return l.notifAgoHour(diff.inHours.toString());
+    if (days == 1) {
+      return l.notifYesterdayAt(
+          '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}');
+    }
+    if (days < 7) return l.notifAgoDay(days.toString());
     // Aynı yıl: "22 Ekim"; daha eski: yıllı tam tarih.
     return d.year == now.year
         ? '${d.day} ${newsMonthName(context, d.month)}'
@@ -350,6 +360,33 @@ class _NotificationsPageState extends State<NotificationsPage> {
       if (mounted) _snack(errorText(e));
     } finally {
       _acting.remove(n['id']);
+      if (mounted) setState(() {});
+    }
+  }
+
+  /// Satır içi aksiyon: kartla aynı tablo (`pushCardActions`); işlev `PushActions` içindedir. Sonra bildirim okundu sayılır.
+  Future<void> _run(Map<String, dynamic> n, String action) async {
+    final key = '${n['id']}:$action';
+    if (!_acting.add(key)) return;
+    setState(() {});
+    try {
+      final ok = await PushActions(_s).perform({
+        ..._data(n),
+        'type': n['type'],
+        'notificationAction': action,
+        'actionId': 'inbox-$key-${DateTime.now().microsecondsSinceEpoch}',
+      });
+      if (!mounted) return;
+      if (!ok) {
+        _snack(context.l10n.notifTargetOpenFailed);
+      } else {
+        if (action == 'follow') setState(() => n['actionResolved'] = true);
+        await _markOne(n);
+      }
+    } catch (e) {
+      if (mounted) _snack(errorText(e));
+    } finally {
+      _acting.remove(key);
       if (mounted) setState(() {});
     }
   }
@@ -403,32 +440,50 @@ class _NotificationsPageState extends State<NotificationsPage> {
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
-    // Geniş ekranda "Tümünü okundu yap" başlık satırının sağında; dar ekran / büyük yazıda başlığın altında.
+    // "N Yeni" rozeti solda, "Tümünü okundu yap" sağda (tasarım 08); dar ekran / büyük yazıda metin 2 satıra iner.
     final bigText = MediaQuery.textScalerOf(context).scale(10) > 11.5 ||
         MediaQuery.sizeOf(context).width < 380;
-    final pill = _unread > 0 || _s.badges.notifications.value > 0
-        ? ConstrainedBox(
-            // Başlığı ezmesin: genişliğin sınırlı bölümü, metin kısalır.
-            constraints: BoxConstraints(
-                maxWidth:
-                    MediaQuery.sizeOf(context).width * (bigText ? .9 : .5)),
-            child: BuPressable(
-              onTap: _markAll,
-              child: Container(
-                constraints: const BoxConstraints(minHeight: 44),
+    final newCount = _s.badges.notifications.value > 0
+        ? _s.badges.notifications.value
+        : _unread;
+    final pill = newCount > 0
+        ? Row(children: [
+            Container(
+              key: const ValueKey('notif-new-badge'),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                  color: t.dangerSoft,
+                  borderRadius: BorderRadius.circular(BuRadius.pill)),
+              child: Text(l.notifNewCount(newCount.toString()),
+                  style: BuType.caption.copyWith(
+                      fontSize: 12,
+                      height: 1.3,
+                      fontWeight: FontWeight.w700,
+                      color: t.danger)),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Align(
                 alignment: AlignmentDirectional.centerEnd,
-                child: Text(l.notifMarkAll,
-                    maxLines: bigText ? 2 : 1,
-                    textAlign: TextAlign.end,
-                    overflow: TextOverflow.ellipsis,
-                    style: BuType.caption.copyWith(
-                        fontSize: 14,
-                        height: 1.3,
-                        fontWeight: FontWeight.w600,
-                        color: t.prText)),
+                child: BuPressable(
+                  onTap: _markAll,
+                  child: Container(
+                    constraints: const BoxConstraints(minHeight: 44),
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: Text(l.notifMarkAll,
+                        maxLines: bigText ? 2 : 1,
+                        textAlign: TextAlign.end,
+                        overflow: TextOverflow.ellipsis,
+                        style: BuType.caption.copyWith(
+                            fontSize: 14,
+                            height: 1.3,
+                            fontWeight: FontWeight.w600,
+                            color: t.prText)),
+                  ),
+                ),
               ),
             ),
-          )
+          ])
         : null;
 
     final shown =
@@ -474,6 +529,13 @@ class _NotificationsPageState extends State<NotificationsPage> {
       }
       String? last;
       var row = 0;
+      final groupUnread = <String, int>{};
+      for (final n in shown) {
+        if (n['read'] != true) {
+          final g = _group(n['createdAt'] as String?);
+          groupUnread[g] = (groupUnread[g] ?? 0) + 1;
+        }
+      }
       for (final n in shown) {
         final g = _group(n['createdAt'] as String?);
         if (g != last) {
@@ -483,13 +545,22 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 EdgeInsetsDirectional.fromSTEB(20, row == 0 ? 8 : 16, 20, 6),
             child: Semantics(
               header: true,
-              child: Text(trUpper(g),
-                  style: BuType.caption.copyWith(
-                      fontSize: 13,
-                      height: 1.3,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: .6,
-                      color: t.mut)),
+              child: Row(children: [
+                Expanded(
+                  child: Text(trUpper(g),
+                      style: BuType.caption.copyWith(
+                          fontSize: 13,
+                          height: 1.3,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: .6,
+                          color: t.mut)),
+                ),
+                if ((groupUnread[g] ?? 0) > 0)
+                  Text(l.notifGroupUnread('${groupUnread[g]}'),
+                      key: ValueKey('notif-group-unread-$g'),
+                      style: BuType.caption.copyWith(
+                          fontSize: 13, height: 1.3, color: t.mut)),
+              ]),
             ),
           ));
         }
@@ -560,13 +631,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
         BuHeader(
           title: l.notifTitle,
           onBack: () => Navigator.pop(context),
-          actions: [if (pill != null && !bigText) pill],
         ),
-        if (pill != null && bigText)
+        if (pill != null)
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-            child:
-                Align(alignment: AlignmentDirectional.centerEnd, child: pill),
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 0),
+            child: pill,
           ),
         FollowRequestsEntry(session: _s, refresh: _reqRefresh),
         _categories(),
@@ -576,18 +645,43 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
 
   Widget _tile(BuTokens t, Map<String, dynamic> n) {
+    final l = context.l10n;
     final un = n['read'] != true;
     final type = n['type'] as String?;
     final data = _presentationData(n);
     final category = notificationCategory(data);
-    final destination = resolvePushTarget(data).dest;
+    final style = pushCardStyle(data);
+    final person =
+        style.startsWith('FOLLOW') || style == 'SOCIAL' || style == 'LIKE';
+    final avatarUrl = pushImageUrl(
+        (n['actorAvatarUrl'] ?? data['senderAvatarUrl']) as String?);
+    final title = (n['title'] as String?) ?? '';
     final requester =
         int.tryParse((data['userId'] ?? data['requesterId'] ?? '').toString());
-    final followRequest = type == 'FOLLOW_REQUEST' &&
-        n['read'] != true &&
-        n['actionResolved'] != true &&
-        requester != null &&
-        requester > 0;
+    final destination = resolvePushTarget(data).dest;
+    final canAct = un && n['actionResolved'] != true;
+    // Satır içi aksiyonlar: kartla AYNI tablo; sohbet/dokunuşla açılan genel aksiyonlar satır dokunuşuyla zaten var.
+    const rowOnly = {'open', 'open_all', 'reply', 'mark_read', 'mute_hour', 'ack'};
+    final inline = !canAct
+        ? const <String>[]
+        : [
+            for (final a in pushCardActions(data))
+              if (!rowOnly.contains(a) &&
+                  switch (a) {
+                    'follow_accept' || 'follow_decline' =>
+                      type == 'FOLLOW_REQUEST' &&
+                          requester != null &&
+                          requester > 0,
+                    'follow' => requester != null && requester > 0,
+                    'calendar' || 'map' => destination == PushDest.event,
+                    _ => true,
+                  })
+                a,
+          ];
+    final securityKind =
+        data['securityKind'] is String ? data['securityKind'] as String : null;
+    final busy = _acting.any(
+        (k) => '$k' == '${n['id']}' || '$k'.startsWith('${n['id']}:'));
     return Dismissible(
       key: ValueKey('notif-${n['id']}'),
       direction: DismissDirection.endToStart,
@@ -600,51 +694,50 @@ class _NotificationsPageState extends State<NotificationsPage> {
         color: t.danger,
         alignment: AlignmentDirectional.centerEnd,
         padding: const EdgeInsetsDirectional.only(end: 24),
-        child: Text(context.l10n.bildirimDelete,
+        child: Text(l.bildirimDelete,
             style: BuType.caption.copyWith(
                 fontSize: 14, fontWeight: FontWeight.w600, color: t.onMedia)),
       ),
       child: NotifRow(
-        title: (n['title'] as String?) ?? '',
+        title: title,
         typeLabel: category == NotificationCategory.academic ||
                 category == NotificationCategory.system
             ? notificationCategoryLabel(context, category)
             : _typeLabel(type),
-        icon: notificationIcon(data),
+        style: style,
+        avatar: person
+            ? PushAvatar(
+                name: title,
+                url: avatarUrl,
+                role: pushAvatarRole(data),
+                headers: ChatlistAvatar.authHeadersFor(avatarUrl))
+            : null,
+        source:
+            data['sourceName'] is String ? data['sourceName'] as String : null,
+        badge: data['badgeText'] is String ? data['badgeText'] as String : null,
+        badgeTone: pushBadgeTone(data),
+        chips: pushInfoChips(l, data, style),
         critical: data['severity'] == 'critical',
         actions: [
-          if (followRequest) ...[
-            FilledButton(
-              style: FilledButton.styleFrom(
-                  minimumSize: const Size(0, 44),
-                  padding: const EdgeInsets.symmetric(horizontal: 16)),
-              onPressed: _acting.contains(n['id'])
+          for (final a in inline)
+            PushActionButton(
+              label: pushActionLabel(context, a, style,
+                  securityKind: securityKind),
+              icon: pushActionIcon(a, style),
+              kind: pushActionKind(a, style),
+              onPressed: busy
                   ? null
-                  : () => _decide(n, requester, true),
-              child: Text(context.l10n.frqReqAccept),
+                  : switch (a) {
+                      'follow_accept' => () => _decide(n, requester!, true),
+                      'follow_decline' => () => _decide(n, requester!, false),
+                      _ => () => _run(n, a),
+                    },
             ),
-            TextButton(
-              style: TextButton.styleFrom(
-                  minimumSize: const Size(0, 44),
-                  padding: const EdgeInsets.symmetric(horizontal: 16)),
-              onPressed: _acting.contains(n['id'])
-                  ? null
-                  : () => _decide(n, requester, false),
-              child: Text(context.l10n.frqReqDecline),
-            ),
-          ],
-          if (!followRequest &&
-              destination != PushDest.notifications &&
-              destination != PushDest.followRequests)
-            TextButton.icon(
-                onPressed: () => _open(n),
-                icon: const Icon(Icons.arrow_forward, size: 16),
-                label: Text(context.l10n.p14Detail)),
         ],
         body: (n['body'] as String?) ?? '',
         time: _ago(n['createdAt'] as String?),
         unread: un,
-        unreadLabel: context.l10n.notifUnread,
+        unreadLabel: l.notifUnread,
         onTap: () => _open(n),
       ),
     );
