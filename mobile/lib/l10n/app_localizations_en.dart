@@ -7698,6 +7698,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumDetailUnsaved => 'Removed from saved';
 
   @override
+  String get forumDetailLockedChip => 'Locked';
+
+  @override
   String coreErrRetryAfterSec(String n) {
     return 'Try again in $n s.';
   }

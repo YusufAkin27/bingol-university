@@ -2433,6 +2433,7 @@
   "forumDetailUnfollowed": "تم إلغاء متابعة الموضوع",
   "forumDetailSaved": "تم حفظ الموضوع",
   "forumDetailUnsaved": "تمت الإزالة من المحفوظات",
+  "forumDetailLockedChip": "مقفل",
   "coreErrRetryAfterSec": "حاول مرة أخرى بعد {n} ث.",
   "coreErrRetryAfterMin": "حاول مرة أخرى بعد {n} د.",
   "clubPostTextRequired": "أضف نصًا لمشاركته مع الصورة.",

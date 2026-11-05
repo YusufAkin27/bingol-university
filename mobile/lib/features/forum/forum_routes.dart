@@ -4,6 +4,7 @@ import '../../core/session.dart';
 import 'data/forum_models.dart';
 import 'presentation/pages/forum_home_page.dart';
 import 'presentation/pages/forum_placeholder_page.dart';
+import 'presentation/pages/topic_detail_page.dart';
 
 export 'data/forum_api.dart' show ForumApi;
 export 'data/forum_models.dart';
@@ -24,7 +25,7 @@ Future<void> openForumHome(BuildContext context, Session session) =>
 /// `Navigator.pop` ile döndürür: liste kartı güncellenir. Yeni konu ise liste başına eklenir.
 Future<TopicSummary?> openTopicDetail(BuildContext context, Session session, int topicId,
         {int? commentId, TopicSummary? initial}) =>
-    _push<TopicSummary>(context, 'forum_topic', (_) => const ForumPlaceholderPage(name: 'forum_topic'));
+    _push<TopicSummary>(context, 'forum_topic', (_) => TopicDetailPage(session: session, topicId: topicId, commentId: commentId, initial: initial));
 
 /// Yeni konu (MB-C). Başarıda konu detayına geçer; çağırana oluşan konunun özetini (iptalde null) döndürür.
 /// [categoryId] varsa kategori önceden seçilir.

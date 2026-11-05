@@ -14142,6 +14142,12 @@ abstract class AppLocalizations {
   /// **'Kaydedilenlerden çıkarıldı'**
   String get forumDetailUnsaved;
 
+  /// No description provided for @forumDetailLockedChip.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kilitli'**
+  String get forumDetailLockedChip;
+
   /// No description provided for @coreErrRetryAfterSec.
   ///
   /// In tr, this message translates to:

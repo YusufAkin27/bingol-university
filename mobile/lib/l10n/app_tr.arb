@@ -4121,6 +4121,7 @@
   "forumDetailUnfollowed": "Konu takibi bırakıldı",
   "forumDetailSaved": "Konu kaydedildi",
   "forumDetailUnsaved": "Kaydedilenlerden çıkarıldı",
+  "forumDetailLockedChip": "Kilitli",
   "coreErrRetryAfterSec": "{n} sn sonra tekrar deneyin.",
   "@coreErrRetryAfterSec": {
     "placeholders": {

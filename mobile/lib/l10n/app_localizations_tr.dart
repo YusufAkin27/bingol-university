@@ -7665,6 +7665,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get forumDetailUnsaved => 'Kaydedilenlerden çıkarıldı';
 
   @override
+  String get forumDetailLockedChip => 'Kilitli';
+
+  @override
   String coreErrRetryAfterSec(String n) {
     return '$n sn sonra tekrar deneyin.';
   }

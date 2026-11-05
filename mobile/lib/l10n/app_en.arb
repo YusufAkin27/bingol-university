@@ -2433,6 +2433,7 @@
   "forumDetailUnfollowed": "Unfollowed this topic",
   "forumDetailSaved": "Topic saved",
   "forumDetailUnsaved": "Removed from saved",
+  "forumDetailLockedChip": "Locked",
   "coreErrRetryAfterSec": "Try again in {n} s.",
   "coreErrRetryAfterMin": "Try again in {n} min.",
   "clubPostTextRequired": "Add some text to share with the image.",

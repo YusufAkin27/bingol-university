@@ -7631,6 +7631,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get forumDetailUnsaved => 'تمت الإزالة من المحفوظات';
 
   @override
+  String get forumDetailLockedChip => 'مقفل';
+
+  @override
   String coreErrRetryAfterSec(String n) {
     return 'حاول مرة أخرى بعد $n ث.';
   }
