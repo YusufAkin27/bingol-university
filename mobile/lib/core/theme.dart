@@ -235,7 +235,7 @@ class BuTokens extends ThemeExtension<BuTokens> {
     onNav: Color(0xFF09090B),
     h1: Color(0xFF18181B),
     h2: Color(0xFF18181B),
-    ok: Color(0xFF15803D),
+    ok: Color(0xFF166534),
     okSoft: Color(0xFFE7F5EC),
     onOkSoft: Color(0xFF14532D),
     danger: Color(0xFFC81E1E),

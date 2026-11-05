@@ -329,7 +329,7 @@ void main() {
       await tester.tap(find.descendant(of: box(999), matching: find.byKey(const ValueKey('like-heart'))));
       await settle(tester, const Duration(milliseconds: 900));
       final icon = tester.widget<Icon>(find.descendant(of: box(999), matching: find.byIcon(BuIcons.heartFilled)));
-      expect(icon.color, BuTokens.light.pr);
+      expect(icon.color, BuTokens.light.heart);
       expect(icon.color, isNot(BuTokens.light.onMedia));
       noErr(tester);
     });

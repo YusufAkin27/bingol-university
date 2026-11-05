@@ -116,9 +116,8 @@ class _PollDetailPageState extends State<PollDetailPage> {
         _editing = false;
         _resetSelection();
       });
-      final inv = Theme.of(context).brightness == Brightness.light ? BuTokens.dark : BuTokens.light;
       BuToast.show(context, context.l10n.pollVoteRetracted,
-          kind: BuToastKind.success, actionLabel: context.l10n.commonClose, actionColor: inv.tint(4).fg);
+          kind: BuToastKind.success, actionLabel: context.l10n.commonClose, actionColor: context.bu.ink);
     } catch (e) {
       if (mounted) await _fail(e);
     } finally {

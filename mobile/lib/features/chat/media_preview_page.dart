@@ -30,10 +30,10 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
   final _full = <String, Future<Uint8List?>>{};
   int _index = 0;
 
-  /// Marka rengi: medya sahnesi koyu olsa da uygulamanın (açık/koyu) kırmızısı kullanılır.
-  Color _pr = const Color(0x00000000);
-  Color _onPr = const Color(0x00000000);
-  Color _prPressed = const Color(0x00000000);
+  /// Birincil renk: medya sahnesi koyu olsa da uygulamanın (açık/koyu) birincil/ters rengi kullanılır.
+  Color _pr = Colors.transparent;
+  Color _onPr = Colors.transparent;
+  Color _prPressed = Colors.transparent;
 
   /// "Tek gönderimlik: alıcı yalnızca bir kez görebilir" bildirimi (kapatılabilir, kısa süre sonra kendiliğinden gider).
   bool _note = false;

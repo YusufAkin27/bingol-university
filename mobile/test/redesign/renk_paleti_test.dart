@@ -209,8 +209,6 @@ void main() {
     const colorLiteralAllow = {
       'lib/core/theme.dart',
       'lib/features/academic/academic_models.dart',
-      'lib/features/chat/sohbety_widgets.dart',
-      'lib/features/chat/media_preview_page.dart',
     };
     // Colors.white/black hicbir dosyada serbest degil.
     const colorsConstAllow = <String>{};

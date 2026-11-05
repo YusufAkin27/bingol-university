@@ -132,7 +132,7 @@ void main() {
     row('Yazar dokunma yüksekliği (≥44)', 44, authorTap.height < 44 ? authorTap.height : 44);
     // Beğenilmiş: DOLU KIRMIZI kalp (beyaz değil); beğenmemiş: boş çizgi kalp
     final filled = tester.widget<Icon>(find.descendant(of: box(1), matching: find.byIcon(BuIcons.heartFilled)));
-    expect(filled.color, BuTokens.light.pr);
+    expect(filled.color, BuTokens.light.heart);
     final outline = tester.widget<Icon>(find.descendant(of: box(2), matching: find.byIcon(BuIcons.heart)));
     expect(outline.color, BuTokens.light.ink);
     noErr(tester);

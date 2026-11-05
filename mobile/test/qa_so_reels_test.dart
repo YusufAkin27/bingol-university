@@ -193,7 +193,7 @@ void main() {
 
       final normal = await pill(false);
       expect(normal.color!.a, 1);
-      expect((normal.shadows ?? const []).isNotEmpty, isTrue);
+      expect(normal.shadows ?? const [], isEmpty, reason: 'monochrome: alt cubukta golge yok (sf + ince bd kenarlik)');
       final dark = await pill(true);
       expect(dark.color!.a, 0);
       expect(dark.shadows ?? const [], isEmpty);

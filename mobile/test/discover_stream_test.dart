@@ -282,7 +282,7 @@ void main() {
       await settle(tester, const Duration(milliseconds: 800));
       const t = BuTokens.light;
       final liked = tester.widget<Icon>(find.descendant(of: box(21), matching: find.byIcon(BuIcons.heartFilled)));
-      expect(liked.color, t.pr);
+      expect(liked.color, t.heart);
       expect(find.descendant(of: box(21), matching: find.byIcon(BuIcons.heart)), findsNothing);
       final empty = tester.widget<Icon>(find.descendant(of: box(22), matching: find.byIcon(BuIcons.heart)));
       expect(empty.color, t.ink);
@@ -295,7 +295,7 @@ void main() {
       await settle(tester, const Duration(milliseconds: 700));
       expect(b.requests.where((r) => r == 'PUT /posts/22/like').length, 1);
       final nowLiked = tester.widget<Icon>(find.descendant(of: box(22), matching: find.byIcon(BuIcons.heartFilled)));
-      expect(nowLiked.color, t.pr);
+      expect(nowLiked.color, t.heart);
       await tester.tap(find.descendant(of: box(21), matching: find.byKey(const ValueKey('like-heart'))));
       await settle(tester, const Duration(milliseconds: 700));
       expect(b.requests.where((r) => r == 'DELETE /posts/21/like').length, 1);
@@ -320,7 +320,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('postBack')));
       await settle(tester, const Duration(milliseconds: 800));
       final icon = tester.widget<Icon>(find.descendant(of: box(31), matching: find.byIcon(BuIcons.heartFilled)));
-      expect(icon.color, BuTokens.light.pr);
+      expect(icon.color, BuTokens.light.heart);
       noErr(tester);
     });
   });

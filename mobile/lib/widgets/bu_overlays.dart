@@ -352,8 +352,8 @@ abstract final class BuToast {
   }) {
     final messenger = ScaffoldMessenger.maybeOf(context);
     if (messenger == null) return;
-    // Koyu zeminli (ters yüzey) kutuda okunacak ton: açık temada koyu paletin renkleri, koyu temada açık paletin renkleri.
-    final inv = Theme.of(context).brightness == Brightness.light ? BuTokens.dark : BuTokens.light;
+    // Şerit tema yüzeyidir (`sf3` + ince kenarlık, bkz. snackBarTheme): simge renkleri aynı temanın anlamsal tonlarıdır.
+    final inv = context.bu;
     final (icon, color) = switch (kind) {
       BuToastKind.info => (BuIcons.info, inv.mut),
       BuToastKind.success => (BuIcons.circleCheck, inv.ok),

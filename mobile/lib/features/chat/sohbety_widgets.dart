@@ -8,11 +8,6 @@ import '../../widgets/bu.dart';
 /// Sohbet yardımcı ekranları (bilgi, yeni sohbet, rehber, ilet, kamera): ortak tasarım bileşenleri.
 /// Dış imzalar P6/P9/P7 tarafından kullanılır ve KİLİTLİDİR; görünüm P0 tasarım sistemine (M3 + BuTokens) taşındı.
 
-/// Eski sabit gölge (avatar halkası vb.). Yeni kod [BuElevation.of] kullanır.
-const sohbetyShadow = [
-  BoxShadow(color: Color(0x40171E33), blurRadius: 18, offset: Offset(0, 6), spreadRadius: -12),
-];
-
 /// Büyük harf etiketler ("MEDYA · 24"); Türkçede i/ı doğru büyütülür.
 String sohbetyUpper(BuildContext context, String s) {
   final lang = Localizations.maybeLocaleOf(context)?.languageCode;

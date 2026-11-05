@@ -69,7 +69,7 @@ void main() {
     final heart = tester.widget<Icon>(find.byKey(const ValueKey('double-tap-heart')));
     expect(heart.size, 88);
     expect(heart.color, isNot(Colors.white));
-    expect(heart.color, BuTokens.light.pr);
+    expect(heart.color, BuTokens.light.heart);
     await tester.pump(const Duration(seconds: 2));
     expect(tester.takeException(), isNull);
   });
