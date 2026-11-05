@@ -188,6 +188,9 @@ class DiskNetworkImage extends ImageProvider<DiskNetworkImage> {
     return codec;
   }
 
+  /// Tek görsel için bildirilen en büyük indirme (yükleme sınırları 3-12 MB; bunun üstü görsel değildir).
+  static const maxDownloadBytes = 40 * 1024 * 1024;
+
   static HttpClient? _shared;
   static HttpOverrides? _sharedFor;
 
@@ -217,6 +220,13 @@ class DiskNetworkImage extends ImageProvider<DiskNetworkImage> {
     if (res.statusCode != HttpStatus.ok) {
       await res.drain<void>();
       throw NetworkImageLoadException(statusCode: res.statusCode, uri: resolved);
+    }
+    // Bellek koruması: bildirilen boyutu aşırı büyük yanıt (yanlış adres/video/dosya) belleğe toplanmaz (OOM = süreç ölümü).
+    if (res.contentLength > maxDownloadBytes) {
+      try {
+        req.abort();
+      } catch (_) {}
+      throw NetworkImageLoadException(statusCode: HttpStatus.requestEntityTooLarge, uri: resolved);
     }
     final bytes = await consolidateHttpClientResponseBytes(res);
     if (bytes.lengthInBytes == 0) throw Exception('NetworkImage is an empty file: $resolved');

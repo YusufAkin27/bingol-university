@@ -35,30 +35,38 @@ class Utility(private val channelName: String) {
         val file = File(path)
         val retriever = MediaMetadataRetriever()
 
-        retriever.setDataSource(context, Uri.fromFile(file))
-
-        val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-        val title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE) ?: ""
-        val author = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_AUTHOR) ?: ""
-        val widthStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
-        val heightStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
-        val duration = java.lang.Long.parseLong(durationStr)
-        var width = java.lang.Long.parseLong(widthStr)
-        var height = java.lang.Long.parseLong(heightStr)
-        val filesize = file.length()
-        val orientation = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
-        } else {
-            null
+        var durationStr: String? = null
+        var title = ""
+        var author = ""
+        var widthStr: String? = null
+        var heightStr: String? = null
+        var orientation: String? = null
+        try {
+            retriever.setDataSource(context, Uri.fromFile(file))
+            durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+            title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE) ?: ""
+            author = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_AUTHOR) ?: ""
+            widthStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+            heightStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+            orientation = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
+        } finally {
+            // Ayrinti okunamasa da (bozuk dosya) yerel kaynak sizmasin.
+            try {
+                retriever.release()
+            } catch (ignored: RuntimeException) {
+            }
         }
+        // Eksik/bozuk metadata (sesli dosya, yarim cikti) NumberFormatException ile cokertmesin: 0 olarak raporlanir.
+        val duration = durationStr?.toLongOrNull() ?: 0L
+        var width = widthStr?.toLongOrNull() ?: 0L
+        var height = heightStr?.toLongOrNull() ?: 0L
+        val filesize = file.length()
         val ori = orientation?.toIntOrNull()
         if (ori != null && isLandscapeImage(ori)) {
             val tmp = width
             width = height
             height = tmp
         }
-
-        retriever.release()
 
         val json = JSONObject()
 
@@ -76,38 +84,43 @@ class Utility(private val channelName: String) {
         return json
     }
 
-    fun getBitmap(path: String, position: Long, result: MethodChannel.Result): Bitmap {
+    /**
+     * Videodan kare okur (en uzun kenar en cok 512 px). Bozuk dosya, kare yok ya da bellek yetmezligi (yuksek
+     * cozunurluklu video) durumunda null doner; YANIT VERMEZ: cagiran tek kez yanitlar. (Eskiden hata yolunda
+     * hem result.error hem result.success cagriliyor ve null bitmap `!!` ile NullPointerException veriyordu;
+     * OutOfMemoryError ise Error oldugundan kanal tarafindan yakalanmayip sureci oldururdu.)
+     */
+    fun getBitmap(path: String, position: Long): Bitmap? {
         var bitmap: Bitmap? = null
         val retriever = MediaMetadataRetriever()
 
         try {
             retriever.setDataSource(path)
             bitmap = retriever.getFrameAtTime(position, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
-        } catch (ex: IllegalArgumentException) {
-            result.error(channelName, "Assume this is a corrupt video file", null)
         } catch (ex: RuntimeException) {
-            result.error(channelName, "Assume this is a corrupt video file", null)
+            return null
+        } catch (ex: OutOfMemoryError) {
+            return null
         } finally {
             try {
                 retriever.release()
             } catch (ex: RuntimeException) {
-                result.error(channelName, "Ignore failures while cleaning up", null)
             }
         }
 
-        if (bitmap == null) result.success(emptyArray<Int>())
-
-        val width = bitmap!!.width
-        val height = bitmap.height
-        val max = Math.max(width, height)
+        val source = bitmap ?: return null
+        val max = Math.max(source.width, source.height)
         if (max > 512) {
             val scale = 512f / max
-            val w = Math.round(scale * width)
-            val h = Math.round(scale * height)
-            bitmap = Bitmap.createScaledBitmap(bitmap, w, h, true)
+            val w = Math.max(1, Math.round(scale * source.width))
+            val h = Math.max(1, Math.round(scale * source.height))
+            return try {
+                Bitmap.createScaledBitmap(source, w, h, true)
+            } catch (ex: OutOfMemoryError) {
+                source
+            }
         }
-
-        return bitmap!!
+        return source
     }
 
     fun getFileNameWithGifExtension(path: String): String {

@@ -56,7 +56,21 @@ class ErrorLog {
   static const maxFileBytes = 64 * 1024;
 
   /// O an görünen ekranın rota adı ([AnalyticsNavigatorObserver] günceller).
-  String? currentScreen;
+  String? get currentScreen => _currentScreen;
+  String? _currentScreen;
+
+  set currentScreen(String? v) {
+    if (v == _currentScreen) return;
+    _currentScreen = v;
+    final cb = onScreenChanged;
+    if (cb == null) return;
+    try {
+      cb(v);
+    } catch (_) {}
+  }
+
+  /// Ekran değişince çağrılır ([CrashReporter] oturum işaretini günceller). Hata fırlatmaz.
+  void Function(String? screen)? onScreenChanged;
 
   final Map<String, DateTime> _lastSent = {};
   final List<DateTime> _sentTimes = [];

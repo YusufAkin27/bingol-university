@@ -119,7 +119,7 @@ Future<void> _bootstrap() async {
   // kimlik hazır olmadan HİÇBİR istek atmaz (bkz. DeviceIdentity.ready); iOS yeniden-kurulum temizliği Session.restore'dan önce biter.
   unawaited(DeviceIdentity.instance.load()); // hata fırlatmaz
   final freshInstall = FreshInstallGuard.run(); // iOS: yeniden kurulumda Keychain'de kalan eski oturum/kuyruk kayıtlarını siler
-  final crashInit = CrashReporter.instance.init(); // ayar + bekleyen raporlar (hata fırlatmaz)
+  final crashInit = CrashReporter.instance.init(trackSession: true); // ayar + bekleyen raporlar + önceki oturum işareti (hata fırlatmaz)
   final connectivity = ConnectivityService.instance;
   final api = ApiClient(diskCache: DiskCache(), connectivity: connectivity);
   final outbox = Outbox();

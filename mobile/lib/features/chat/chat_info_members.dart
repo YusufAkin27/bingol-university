@@ -501,7 +501,7 @@ Future<dynamic> putMultipartImage(
       return send(true);
     }
     dynamic json;
-    final text = utf8.decode(res.bodyBytes);
+    final text = utf8.decode(res.bodyBytes, allowMalformed: true);
     if (text.isNotEmpty) {
       try {
         json = jsonDecode(text);
@@ -510,7 +510,7 @@ Future<dynamic> putMultipartImage(
     if (res.statusCode >= 200 && res.statusCode < 300) return json;
     if (json is Map && json['code'] is String) {
       throw ApiError(res.statusCode, json['code'] as String,
-          (json['message'] as String?) ?? '');
+          json['message'] is String ? json['message'] as String : '');
     }
     throw ApiError(res.statusCode, 'HTTP_${res.statusCode}', '');
   }

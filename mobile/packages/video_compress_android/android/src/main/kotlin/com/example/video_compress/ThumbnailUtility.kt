@@ -7,22 +7,30 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
 
-class ThumbnailUtility(channelName: String) {
+class ThumbnailUtility(private val channelName: String) {
     private val utility = Utility(channelName)
 
     fun getByteThumbnail(path: String, quality: Int, position: Long, result: MethodChannel.Result) {
-        val bmp = utility.getBitmap(path, position, result)
+        val bmp = utility.getBitmap(path, position)
+        if (bmp == null) {
+            result.error(channelName, "No frame could be read from the video", null)
+            return
+        }
 
         val stream = ByteArrayOutputStream()
         bmp.compress(Bitmap.CompressFormat.JPEG, quality, stream)
         val byteArray = stream.toByteArray()
         bmp.recycle()
-        result.success(byteArray.toList().toByteArray())
+        result.success(byteArray)
     }
 
     fun getFileThumbnail(context: Context, path: String, quality: Int, position: Long,
                              result: MethodChannel.Result) {
-        val bmp = utility.getBitmap(path, position, result)
+        val bmp = utility.getBitmap(path, position)
+        if (bmp == null) {
+            result.error(channelName, "No frame could be read from the video", null)
+            return
+        }
 
         val dir = context.getExternalFilesDir("video_compress")
 
