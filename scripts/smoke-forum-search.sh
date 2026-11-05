@@ -3,6 +3,7 @@
 # paylasim sayfasi, anonimlik sizintisi. GERCEK PostgreSQL gerekir (search_vec V1442; H2'de calismaz).
 # Kullanim: BASE=http://localhost:8080 ./scripts/smoke-forum-search.sh
 # Onkosul: compose'ta MAIL_ENABLED=false (dogrulama kodu log'dan okunur); A+B (konu/yorum) ve E birlesmis surum.
+# Ek: APP_PROFILE_DEFAULT_PRIVATE_ACCOUNT=false (yeni hesaplar gizli olmasin; herkese acik OG sayfasi gizli hesapta onizleme vermez).
 # Betik tekrar calistirilabilir. Betikler arasinda: docker compose exec -T redis redis-cli flushall (kayit ucu IP basina saatte 10).
 set -u
 BASE=${BASE:-http://localhost:8080}
@@ -31,7 +32,7 @@ register() { # email ad
   curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Zk7-Qmv-Lpx92w\"}" |
     grep -o '"accessToken":"[^"]*' | cut -d'"' -f4
 }
-uid_of() { curl -s -H "Authorization: Bearer $1" $A/profile | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2; }
+uid_of() { curl -s -H "Authorization: Bearer $1" $A/users/me | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2; }
 
 SFX=$RANDOM
 TA=$(register "fsa$SFX@bingol.edu.tr" "Forum Yazar")
@@ -124,7 +125,7 @@ curl -s -o /dev/null -X DELETE -H "$AB" $A/forum/topics/$T1/like
 curl -s -o /dev/null -X PUT -H "$AB" $A/forum/topics/$T1/like
 sleep 1
 N=$(curl -s -H "$AA" $A/notifications)
-CNT=$(printf '%s' "$N" | grep -o 'FORUM_TOPIC_LIKE' | wc -l | tr -d ' ')
+CNT=$(printf '%s' "$N" | grep -o '"subtype":"FORUM_TOPIC_LIKE"' | wc -l | tr -d ' ')
 check "al-ver-al tek begeni bildirimi" 1 "$CNT"
 NB=$(curl -s -H "$AB" $A/notifications)
 expect_not "kendi yorumum icin kendime bildirim yok" 'FORUM_TOPIC_COMMENT' "$NB"

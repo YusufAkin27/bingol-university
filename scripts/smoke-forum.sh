@@ -5,6 +5,7 @@
 # profil/kaydedilenler (yorum ogesi) -> paylasim (sohbette FORUM_TOPIC karti) -> yonetim listeleri.
 # Kullanim: BASE=http://localhost:8080 ADMIN_EMAIL=fsmadmin@gmail.com ./scripts/smoke-forum.sh
 # Onkosul: compose'ta MAIL_ENABLED=false, ADMIN_EMAILS=$ADMIN_EMAIL (moderator icin), LEGAL_ENFORCE_REACCEPT=false.
+#         APP_PROFILE_DEFAULT_PRIVATE_ACCOUNT=false (yeni hesaplar gizli olmasin; herkese acik OG sayfasi gizli hesapta onizleme vermez).
 # Tekrar calistirilabilir. Betikler arasinda: docker compose exec -T redis redis-cli flushall (kayit ucu IP basina saatte 10).
 set -u
 BASE=${BASE:-http://localhost:8080}
@@ -37,7 +38,7 @@ register() { # email ad -> accessToken
 login() { # email -> accessToken (kayitli kullanici; yonetici tekrar calismada zaten kayitlidir)
   curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4
 }
-uid_of() { curl -s -H "Authorization: Bearer $1" $A/profile | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2; }
+uid_of() { curl -s -H "Authorization: Bearer $1" $A/users/me | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2; }
 
 SFX=$RANDOM$RANDOM
 echo "== kayit (gmail adresleriyle: alan adi kisiti yok)"
@@ -125,6 +126,12 @@ expect_has "yorum sahibine yanit bildirimi" 'FORUM_COMMENT_REPLY' "$NB"
 echo "== sikayet + moderator"
 RP=$(curl -s -w ' %{http_code}' -X POST -H "$AB" -H "$H" $A/reports -d "{\"targetType\":\"FORUM_TOPIC\",\"targetId\":$T1,\"reason\":\"SPAM\"}")
 check "forum konusu sikayeti 201" 201 "${RP##* }"
+AR=$(curl -s -H "$AM" "$A/admin/forum/reports?status=OPEN")
+expect_has "yonetici sikayet kuyrugu konuyu gosterir" "\"targetId\":$T1" "$AR"
+RS=$(curl -s -w ' %{http_code}' -X POST -H "$AM" -H "$H" $A/admin/forum/reports/$(echo "$AR" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2)/resolve -d '{"action":"DISMISS","message":"duman testi"}')
+check "sikayet coz 200" 200 "${RS##* }"
+AR2=$(curl -s -H "$AM" "$A/admin/forum/reports?status=RESOLVED")
+expect_has "cozulen sikayet RESOLVED listesinde" "\"targetId\":$T1" "$AR2"
 check "kullanici moderator degil 403" 403 "$(code -X POST -H "$AB" -H "$H" $A/forum/topics/$T1/moderate -d '{"action":"LOCK"}')"
 check "moderator: sabitle 200" 200 "$(code -X POST -H "$AM" -H "$H" $A/forum/topics/$T1/moderate -d '{"action":"PIN","reason":"duman"}')"
 check "moderator: kilitle 200" 200 "$(code -X POST -H "$AM" -H "$H" $A/forum/topics/$T1/moderate -d '{"action":"LOCK","reason":"duman"}')"
@@ -141,16 +148,12 @@ check "geri acilan konu 200" 200 "$(code -H "$AB" $A/forum/topics/$T1)"
 TVM=$(curl -s -H "$AM" $A/forum/topics/$T1)
 expect_has "moderatore canModerate true (ForumPermissions<->PermissionMatrix)" '"canModerate":true' "$TVM"
 expect_has "okura canModerate false" '"canModerate":false' "$(curl -s -H "$AB" $A/forum/topics/$T1)"
-AR=$(curl -s -H "$AM" "$A/admin/forum/reports?status=OPEN")
-expect_has "yonetici sikayet kuyrugu konuyu gosterir" "\"targetId\":$T1" "$AR"
 AT=$(curl -s -H "$AM" "$A/admin/forum/topics?q=$W1")
 expect_has "yonetici konu listesi" "\"id\":$T1" "$AT"
 AX=$(curl -s -H "$AM" "$A/admin/forum/actions")
 expect_has "islem kayitlari" '"action":"REMOVE"' "$AX"
 check "yonetici kategoriler 200" 200 "$(code -H "$AM" $A/admin/forum/categories)"
 check "kullanici yonetici ucu 403" 403 "$(code -H "$AB" $A/admin/forum/topics)"
-RS=$(curl -s -w ' %{http_code}' -X POST -H "$AM" -H "$H" $A/admin/forum/reports/$(echo "$AR" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2)/resolve -d '{"action":"DISMISS","message":"duman testi"}')
-check "sikayet coz 200" 200 "${RS##* }"
 
 echo "== anonimlik: mute anonimde uygulanmaz, engel uygulanir"
 R2=$(curl -s -X POST -H "$AC" -H "$H" -H "Idempotency-Key: fsm-$SFX-2" $A/forum/topics \
@@ -184,7 +187,7 @@ expect_not "engel: acik konu da gizli" "\"id\":$T3," "$FEED"
 curl -s -o /dev/null -X DELETE -H "$AB" $A/users/$UC/block
 
 echo "== gorsel + herkese acik kucuk resim (/s/f/{id}/img; A medya kovasi <-> E paylasim)"
-PNG=$(mktemp)
+PNG="./.smoke-forum-$SFX.png"
 printf 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==' | base64 -d > "$PNG"
 MU=$(curl -s -w ' %{http_code}' -X POST -H "$AA" -F "file=@$PNG;type=image/png" $A/forum/media)
 MID=$(echo "$MU" | jid)
