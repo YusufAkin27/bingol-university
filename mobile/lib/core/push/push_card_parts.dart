@@ -17,6 +17,7 @@ IconData pushStyleIcon(String style) => switch (style) {
       'EVENT_UPDATE' || 'EVENT' => Icons.edit_calendar_outlined,
       'EVENT_CANCELLED' => Icons.event_busy_outlined,
       'MODERATION' => Icons.gavel_outlined,
+      'FORUM' => BuIcons.messageSquareText,
       'POLL' => Icons.poll_outlined,
       'SUPPORT' => Icons.support_agent,
       'MEAL' => Icons.restaurant,
@@ -33,7 +34,7 @@ BuTint pushStyleTint(BuTokens t, String style) => t.tints[switch (style) {
       'EVENT_REMINDER' || 'EVENT_ADMISSION' || 'EVENT_UPDATE' || 'EVENT' => BuTintId.blue,
       'POLL' => BuTintId.aqua,
       'MEAL' => BuTintId.amber,
-      'SUPPORT' || 'SYSTEM' || 'MODERATION' || 'LIKE' || 'SOCIAL' || 'FOLLOW' || 'FOLLOW_REQUEST' || 'FOLLOW_ACCEPTED' => BuTintId.slate,
+      'SUPPORT' || 'SYSTEM' || 'MODERATION' || 'FORUM' || 'LIKE' || 'SOCIAL' || 'FOLLOW' || 'FOLLOW_REQUEST' || 'FOLLOW_ACCEPTED' => BuTintId.slate,
       _ => BuTintId.brand,
     }];
 

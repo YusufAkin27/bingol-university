@@ -286,6 +286,13 @@ class _NotificationsPageState extends State<NotificationsPage> {
       case 'POLL_CLOSED':
       case 'POLL_NEW':
         return l.bildirimTypePoll;
+      case 'FORUM_TOPIC_COMMENT':
+      case 'FORUM_COMMENT_REPLY':
+      case 'FORUM_COMMENT_LIKE':
+      case 'FORUM_TOPIC_LIKE':
+      case 'FORUM_FOLLOWED_TOPIC_COMMENT':
+      case 'FORUM_MODERATION':
+        return l.forumPrefsNotifLabel;
       case 'POST_LIKE':
       case 'POST_COMMENT':
       case 'COMMENT_REPLY':

@@ -129,34 +129,6 @@ class _ProfileMenuPageState extends State<ProfileMenuPage> {
                     onTap: () => _go(MyEventsPage(session: s), 'my_events'),
                   ),
                 ]),
-                // Kampüs Forum faaliyetim: her satır ilgili sekmeyi doğrudan açar.
-                ProfilSection(l.forumActivitySection, top: 24),
-                ProfilCard(children: [
-                  ProfilRow(
-                    key: const ValueKey('menu-forum-topics'),
-                    icon: BuIcons.messageSquareText,
-                    label: l.forumActivityTabTopics,
-                    onTap: () => openMyForumActivity(context, s, initialTab: 0),
-                  ),
-                  ProfilRow(
-                    key: const ValueKey('menu-forum-comments'),
-                    icon: BuIcons.messageCircle,
-                    label: l.forumActivityTabComments,
-                    onTap: () => openMyForumActivity(context, s, initialTab: 1),
-                  ),
-                  ProfilRow(
-                    key: const ValueKey('menu-forum-saved'),
-                    icon: BuIcons.bookmark,
-                    label: l.forumActivityTabSaved,
-                    onTap: () => openMyForumActivity(context, s, initialTab: 2),
-                  ),
-                  ProfilRow(
-                    key: const ValueKey('menu-forum-following'),
-                    icon: BuIcons.bell,
-                    label: l.forumActivityTabFollowing,
-                    onTap: () => openMyForumActivity(context, s, initialTab: 3),
-                  ),
-                ]),
                 ProfilSection(l.p18SecPrefs, top: 24),
                 ProfilCard(children: [
                   ProfilRow(
@@ -189,6 +161,34 @@ class _ProfileMenuPageState extends State<ProfileMenuPage> {
                     icon: BuIcons.headset,
                     label: l.profil1Support,
                     onTap: () => _go(SupportPage(session: s), 'support'),
+                  ),
+                ]),
+                // Kampüs Forum faaliyetim: her satır ilgili sekmeyi doğrudan açar.
+                ProfilSection(l.forumActivitySection, top: 24),
+                ProfilCard(children: [
+                  ProfilRow(
+                    key: const ValueKey('menu-forum-topics'),
+                    icon: BuIcons.messageSquareText,
+                    label: l.forumActivityTabTopics,
+                    onTap: () => openMyForumActivity(context, s, initialTab: 0),
+                  ),
+                  ProfilRow(
+                    key: const ValueKey('menu-forum-comments'),
+                    icon: BuIcons.messageCircle,
+                    label: l.forumActivityTabComments,
+                    onTap: () => openMyForumActivity(context, s, initialTab: 1),
+                  ),
+                  ProfilRow(
+                    key: const ValueKey('menu-forum-saved'),
+                    icon: BuIcons.bookmark,
+                    label: l.forumActivityTabSaved,
+                    onTap: () => openMyForumActivity(context, s, initialTab: 2),
+                  ),
+                  ProfilRow(
+                    key: const ValueKey('menu-forum-following'),
+                    icon: BuIcons.bell,
+                    label: l.forumActivityTabFollowing,
+                    onTap: () => openMyForumActivity(context, s, initialTab: 3),
                   ),
                 ]),
               ],

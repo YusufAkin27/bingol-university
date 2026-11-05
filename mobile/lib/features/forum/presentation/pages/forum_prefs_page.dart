@@ -81,6 +81,12 @@ class _ForumPrefsPageState extends State<ForumPrefsPage> {
     }
   }
 
+  /// Güncel ekran durumundan türetir (kapanıştaki eski değerden değil): aynı karede art arda dokunuşlar birbirini ezmez.
+  void _update(ForumNotificationPrefs Function(ForumNotificationPrefs) change) {
+    final cur = _prefs;
+    if (cur != null) _set(change(cur));
+  }
+
   void _set(ForumNotificationPrefs next) {
     if (_prefs == next) return;
     buHaptic(BuHaptic.selection);
@@ -138,7 +144,7 @@ class _ForumPrefsPageState extends State<ForumPrefsPage> {
             label: l.forumPrefsAll,
             sub: l.forumPrefsAllSub,
             value: p.all,
-            onChanged: (v) => _set(p.copyWith(all: v)),
+            onChanged: (v) => _update((q) => q.copyWith(all: v)),
           ),
         ]),
         const SizedBox(height: 16),
@@ -147,25 +153,25 @@ class _ForumPrefsPageState extends State<ForumPrefsPage> {
             key: const ValueKey('forum-pref-topicComments'),
             label: l.forumPrefsTopicComments,
             value: on && p.topicComments,
-            onChanged: on ? (v) => _set(p.copyWith(topicComments: v)) : null,
+            onChanged: on ? (v) => _update((q) => q.copyWith(topicComments: v)) : null,
           ),
           ProfilToggleRow(
             key: const ValueKey('forum-pref-commentReplies'),
             label: l.forumPrefsReplies,
             value: on && p.commentReplies,
-            onChanged: on ? (v) => _set(p.copyWith(commentReplies: v)) : null,
+            onChanged: on ? (v) => _update((q) => q.copyWith(commentReplies: v)) : null,
           ),
           ProfilToggleRow(
             key: const ValueKey('forum-pref-likes'),
             label: l.forumPrefsLikes,
             value: on && p.likes,
-            onChanged: on ? (v) => _set(p.copyWith(likes: v)) : null,
+            onChanged: on ? (v) => _update((q) => q.copyWith(likes: v)) : null,
           ),
           ProfilToggleRow(
             key: const ValueKey('forum-pref-followedTopics'),
             label: l.forumPrefsFollowed,
             value: on && p.followedTopics,
-            onChanged: on ? (v) => _set(p.copyWith(followedTopics: v)) : null,
+            onChanged: on ? (v) => _update((q) => q.copyWith(followedTopics: v)) : null,
           ),
         ]),
         Padding(
@@ -227,11 +233,14 @@ class _ForumPrefsPageState extends State<ForumPrefsPage> {
             BuAvatar(name: u.displayName, url: u.avatarUrl, size: 40),
             const SizedBox(width: 12),
             Expanded(child: Text(u.displayName, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400))),
-            TextButton(
-              key: ValueKey('forum-unmute-${u.userId}'),
-              style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48)),
-              onPressed: _unmuting.contains(u.userId) ? null : () => _unmute(u),
-              child: Text(context.l10n.forumPrefsUnmute),
+            // Büyük yazıda dar ekrana sığsın: düğme kalan alanı adla paylaşır, metin tek satır kırpılır.
+            Flexible(
+              child: TextButton(
+                key: ValueKey('forum-unmute-${u.userId}'),
+                style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48)),
+                onPressed: _unmuting.contains(u.userId) ? null : () => _unmute(u),
+                child: Text(context.l10n.forumPrefsUnmute, maxLines: 1, overflow: TextOverflow.ellipsis),
+              ),
             ),
           ]),
         ),

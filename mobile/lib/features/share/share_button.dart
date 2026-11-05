@@ -75,7 +75,7 @@ ShareContent shareContentForTopic(Session session, TopicSummary topic) {
 
 /// Forum yorumu için paylaşım içeriği: başlık = yorum metninin başı; kaynak = konu başlığı (verilirse).
 ShareContent shareContentForComment(Session session, ForumComment comment, {String? topicTitle}) {
-  final body = (comment.body ?? '').trim().replaceAll(RegExp(r's+'), ' ');
+  final body = (comment.body ?? '').trim().replaceAll(RegExp(r'\s+'), ' ');
   final short = body.runes.length > 120 ? '${String.fromCharCodes(body.runes.take(119))}…' : body;
   final topic = topicTitle?.trim() ?? '';
   return ShareContent(
