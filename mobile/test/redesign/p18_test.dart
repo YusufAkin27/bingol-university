@@ -93,8 +93,7 @@ void main() {
       await settle(tester, const Duration(seconds: 1));
       expect(find.text('128'), findsOneWidget); // takipci
       expect(find.text('94'), findsOneWidget); // takip
-      expect(find.text('3'), findsWidgets);
-      expect(find.text('4'), findsWidgets);
+      expect(find.text('Gönderi'), findsOneWidget); // sayaç şeridi (satır listesi menüde)
       await unmount(tester);
     });
 

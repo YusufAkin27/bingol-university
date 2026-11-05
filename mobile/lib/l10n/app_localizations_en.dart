@@ -4899,7 +4899,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileBioHint => 'Tell us a little about yourself';
 
   @override
-  String get profileShowEmail => 'Show my email to other users';
+  String get profileMenuTitle => 'Menu';
 
   @override
   String get profileSave => 'Save';
@@ -5875,7 +5875,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'people you share a club, chat or event with.';
 
   @override
-  String get profil2ShowEmail => 'Show my email on my profile';
+  String get profil2ShowEmail => 'Show my email to other users';
 
   @override
   String get profil2ShowEmailSub => 'When off, only you can see it';

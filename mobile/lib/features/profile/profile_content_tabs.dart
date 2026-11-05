@@ -69,7 +69,7 @@ class ProfileGridItem {
 /// ve sayfalar ("Daha fazla göster"); ana kaydırmanın içine yerleştirilir (kendisi kaydırmaz). "Etiketlenenler" yok
 /// (sunucuda desteklenmiyor). Gizli hesapta ([locked]) içerik yerine kilit bilgisi gösterilir.
 ///
-/// Entegrasyon (`UserProfilePage`/`ProfileTab`): `ProfileContentTabs(session:, userId:, name:, locked:, postCount:, reelCount:)`.
+/// Entegrasyon (`UserProfilePage`/`ProfileTab`): `ProfileContentTabs(session:, userId:, name:, locked:)`.
 /// Kendi profilinde `userId == session.userId` (gönderiler `/posts/mine`).
 class ProfileContentTabs extends StatefulWidget {
   const ProfileContentTabs({
@@ -78,8 +78,6 @@ class ProfileContentTabs extends StatefulWidget {
     required this.userId,
     this.name,
     this.locked = false,
-    this.postCount,
-    this.reelCount,
     this.initialIndex = 0,
     this.onOpenReel,
     this.onPostsLoaded,
@@ -94,9 +92,6 @@ class ProfileContentTabs extends StatefulWidget {
   /// Gizli hesap ve ben takipçi değilim.
   final bool locked;
 
-  /// Profil sayaçları (biliniyorsa sekme etiketinde gösterilir).
-  final int? postCount;
-  final int? reelCount;
   final int initialIndex;
 
   /// Reel karosuna dokununca (Reels görüntüleyici entegrasyonu için); verilmezse gönderi ayrıntısı açılır.
@@ -216,7 +211,6 @@ class _ProfileContentTabsState extends State<ProfileContentTabs> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final t = context.bu;
-    String label(String base, int? n) => n == null ? base : '$base $n';
     return Semantics(
       container: true,
       label: l.srProfileTabsLabel,
@@ -224,7 +218,7 @@ class _ProfileContentTabsState extends State<ProfileContentTabs> {
         Padding(
           padding: EdgeInsets.symmetric(horizontal: widget.gutter),
           child: BuSegmented(
-            items: [label(l.srTabPosts, widget.postCount), label(l.srTabReels, widget.reelCount)],
+            items: [l.srTabPosts, l.srTabReels],
             index: _index,
             onChanged: _select,
           ),

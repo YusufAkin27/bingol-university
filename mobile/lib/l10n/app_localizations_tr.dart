@@ -4878,7 +4878,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profileBioHint => 'Kendinizden kısaca bahsedin';
 
   @override
-  String get profileShowEmail => 'E-postamı diğer kullanıcılara göster';
+  String get profileMenuTitle => 'Menü';
 
   @override
   String get profileSave => 'Kaydet';
@@ -5851,7 +5851,7 @@ class AppLocalizationsTr extends AppLocalizations {
       'ortak kulüp, sohbet veya etkinliğin olduğu kişiler.';
 
   @override
-  String get profil2ShowEmail => 'E-postamı profilimde göster';
+  String get profil2ShowEmail => 'E-postamı diğer kullanıcılara göster';
 
   @override
   String get profil2ShowEmailSub => 'Kapalıyken yalnızca sen görürsün';

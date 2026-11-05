@@ -398,4 +398,5 @@ abstract final class BuIcons {
   // Hugeicons ücretsiz kümesinde karşılığı olmayanlar: Lucide'de kalır (tek kapı).
   static const IconData delete = LucideIcons.delete;
   static const IconData keyboard = LucideIcons.keyboard;
+  static const IconData menu = LucideIcons.menu;
 }

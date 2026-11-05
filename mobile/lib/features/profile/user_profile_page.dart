@@ -529,8 +529,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
               name: _name,
               gutter: 0,
               pageSize: 9,
-              postCount: _profileCount('postCount'),
-              reelCount: _profileCount('reelCount'),
               onPostsLoaded: (n, more) {
                 if (mounted) setState(() => _postCount = '$n${more ? '+' : ''}');
               },

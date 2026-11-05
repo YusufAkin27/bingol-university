@@ -9,7 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'redesign/p00_support.dart';
 import 'support/fake_app.dart';
 
-/// Profilim satır içi düzenleme: ad / hakkımda yerinde, bölüm-sınıf seçici, e-posta anahtarı; alan başına kısmi PATCH,
+/// Profilim satır içi düzenleme: ad / hakkımda yerinde, bölüm-sınıf seçici; alan başına kısmi PATCH,
 /// iyimser güncelleme + hata halinde geri alma, tek anda tek alan, çift istek yok.
 
 const _patch = 'PATCH /users/me';
@@ -214,7 +214,7 @@ void main() {
     });
   });
 
-  group('Bölüm, sınıf, e-posta', () {
+  group('Bölüm, sınıf', () {
     testWidgets('bölüm seçimi anında kaydedilir (fakülte birlikte); geri alma yok', (tester) async {
       final b = FakeBackend();
       final out = await _open(tester, b);
@@ -261,22 +261,12 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('e-posta anahtarı değişince anında kaydedilir; hata olursa geri döner', (tester) async {
+    testWidgets('kimlik kartında e-posta anahtarı yok (Ayarlar > Gizlilik ve veriler sayfasındadır)', (tester) async {
       final b = FakeBackend();
-      final out = await _open(tester, b);
-      expect(tester.widget<Switch>(_k('inline-show-email')).value, isFalse);
-      await _tap(tester, _k('inline-show-email'));
-      expect(b.bodies[_patch], {'showEmail': true});
-      expect(out.value['showEmail'], true);
-      expect(tester.widget<Switch>(_k('inline-show-email')).value, isTrue);
-      await unmount(tester);
-
-      final b2 = FakeBackend();
-      _failPatch(b2, status: 500, code: 'SERVER_ERROR', message: '');
-      final out2 = await _open(tester, b2);
-      await _tap(tester, _k('inline-show-email'), 1200);
-      expect(out2.value['showEmail'], false);
-      expect(tester.widget<Switch>(_k('inline-show-email')).value, isFalse);
+      await _open(tester, b);
+      expect(_k('inline-show-email'), findsNothing);
+      expect(find.byType(Switch), findsNothing);
+      expect(find.text('E-postamı diğer kullanıcılara göster'), findsNothing);
       await unmount(tester);
     });
   });
@@ -324,12 +314,10 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsWidgets);
       // sürerken: aynı alana, anahtara ve çipe dokunmak yeni istek başlatmaz
       await tester.tap(_k('inline-name'), warnIfMissed: false);
-      await tester.tap(_k('inline-show-email'), warnIfMissed: false);
       await tester.tap(_k('inline-grade'), warnIfMissed: false);
       await tester.pump(const Duration(milliseconds: 50));
       await settle(tester, const Duration(seconds: 2));
       expect(b.bodyLog[_patch]!.length, 1);
-      expect(out.value['showEmail'], false);
       expect(find.byType(CircularProgressIndicator), findsNothing);
       await unmount(tester);
     });
@@ -374,7 +362,7 @@ void main() {
       expect(find.bySemanticsLabel('Hakkımda alanını düzenle'), findsOneWidget);
       expect(find.bySemanticsLabel('Bölümü değiştir'), findsOneWidget);
       expect(find.bySemanticsLabel('Sınıfı değiştir'), findsOneWidget);
-      for (final k in ['inline-name', 'inline-bio', 'inline-department', 'inline-grade', 'inline-show-email']) {
+      for (final k in ['inline-name', 'inline-bio', 'inline-department', 'inline-grade']) {
         expect(tester.getSize(_k(k)).height, greaterThanOrEqualTo(44), reason: k);
       }
       await _tap(tester, _k('inline-name'));

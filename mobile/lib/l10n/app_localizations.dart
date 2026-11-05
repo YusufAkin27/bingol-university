@@ -9036,11 +9036,11 @@ abstract class AppLocalizations {
   /// **'Kendinizden kısaca bahsedin'**
   String get profileBioHint;
 
-  /// No description provided for @profileShowEmail.
+  /// No description provided for @profileMenuTitle.
   ///
   /// In tr, this message translates to:
-  /// **'E-postamı diğer kullanıcılara göster'**
-  String get profileShowEmail;
+  /// **'Menü'**
+  String get profileMenuTitle;
 
   /// No description provided for @profileSave.
   ///
@@ -10851,7 +10851,7 @@ abstract class AppLocalizations {
   /// No description provided for @profil2ShowEmail.
   ///
   /// In tr, this message translates to:
-  /// **'E-postamı profilimde göster'**
+  /// **'E-postamı diğer kullanıcılara göster'**
   String get profil2ShowEmail;
 
   /// No description provided for @profil2ShowEmailSub.
