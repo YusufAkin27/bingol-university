@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../core/session.dart';
 import 'data/forum_models.dart';
+import 'presentation/pages/create_topic_page.dart';
+import 'presentation/pages/edit_topic_page.dart';
 import 'presentation/pages/forum_home_page.dart';
 import 'presentation/pages/forum_placeholder_page.dart';
 import 'presentation/pages/topic_detail_page.dart';
@@ -30,11 +32,11 @@ Future<TopicSummary?> openTopicDetail(BuildContext context, Session session, int
 /// Yeni konu (MB-C). Başarıda konu detayına geçer; çağırana oluşan konunun özetini (iptalde null) döndürür.
 /// [categoryId] varsa kategori önceden seçilir.
 Future<TopicSummary?> openCreateTopic(BuildContext context, Session session, {int? categoryId}) =>
-    _push<TopicSummary>(context, 'forum_create', (_) => const ForumPlaceholderPage(name: 'forum_create'));
+    _push<TopicSummary>(context, 'forum_create', (_) => CreateTopicPage(session: session, categoryId: categoryId));
 
 /// Konu düzenle (MB-C). Kaydedilince güncel [TopicView] döner (iptalde null).
 Future<TopicView?> openEditTopic(BuildContext context, Session session, TopicView topic) =>
-    _push<TopicView>(context, 'forum_edit', (_) => const ForumPlaceholderPage(name: 'forum_edit'));
+    _push<TopicView>(context, 'forum_edit', (_) => EditTopicPage(session: session, topic: topic));
 
 /// Forum araması (MB-D).
 Future<void> openForumSearch(BuildContext context, Session session) =>

@@ -7945,6 +7945,312 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p14Live => 'جارية الآن';
 
   @override
+  String get forumComposeClose => 'إغلاق';
+
+  @override
+  String get forumComposePublish => 'نشر';
+
+  @override
+  String get forumComposePublishing => 'جارٍ النشر';
+
+  @override
+  String get forumComposeTitleHint => 'العنوان';
+
+  @override
+  String get forumComposeBodyHint => 'ماذا تريد أن تناقش؟';
+
+  @override
+  String get forumComposeCategoryLabel => 'الفئة';
+
+  @override
+  String get forumComposeCategoryPick => 'اختر فئة';
+
+  @override
+  String get forumComposeCategoryLoading => 'جارٍ تحميل الفئات';
+
+  @override
+  String get forumComposeCategoryError => 'تعذر تحميل الفئات';
+
+  @override
+  String get forumComposeRetry => 'حاول مرة أخرى';
+
+  @override
+  String get forumComposeAddImage => 'إضافة صورة';
+
+  @override
+  String forumComposeImageCount(int count, int max) {
+    return '$count/$max صور';
+  }
+
+  @override
+  String get forumComposeGallery => 'اختيار من المعرض';
+
+  @override
+  String get forumComposeCamera => 'التقاط صورة';
+
+  @override
+  String get forumComposeImageRemove => 'إزالة الصورة';
+
+  @override
+  String get forumComposeImageUploading => 'جارٍ رفع الصورة';
+
+  @override
+  String get forumComposeImageRetry => 'إعادة رفع الصورة';
+
+  @override
+  String get forumComposeImagesPending => 'يمكنك النشر بعد اكتمال رفع الصور.';
+
+  @override
+  String get forumComposeImageFailedHint =>
+      'تعذر رفع صورة. أعد المحاولة أو أزلها.';
+
+  @override
+  String get forumComposeErrImageTooLarge => 'الصورة كبيرة جدًا.';
+
+  @override
+  String get forumComposeErrImageType => 'يمكن إضافة صور JPEG وPNG وWebP فقط.';
+
+  @override
+  String get forumComposeErrImageRead => 'تعذرت قراءة الصورة.';
+
+  @override
+  String get forumComposeErrImageUpload => 'تعذر رفع الصورة.';
+
+  @override
+  String get forumComposePollAdd => 'إضافة استطلاع';
+
+  @override
+  String get forumComposeAnonymous => 'النشر بشكل مجهول';
+
+  @override
+  String get forumComposeAnonymousDesc => 'لا يظهر اسمك للطلاب الآخرين.';
+
+  @override
+  String get forumComposeAnonymousNote =>
+      'يمكن للمشرفين مراجعة إساءة الاستخدام.';
+
+  @override
+  String get forumComposeNeedTitle => 'اكتب عنوانًا.';
+
+  @override
+  String get forumComposeNeedBody => 'اكتب وصفًا.';
+
+  @override
+  String get forumComposeNeedCategory => 'اختر فئة.';
+
+  @override
+  String get forumComposeNeedPoll =>
+      'يجب أن يحتوي الاستطلاع على خيارين على الأقل.';
+
+  @override
+  String get forumComposeDraftRestored => 'تمت استعادة المسودة';
+
+  @override
+  String get forumComposeDraftSheetTitle => 'هل تريد حفظ مسودة؟';
+
+  @override
+  String get forumComposeDraftSheetBody => 'سيعود ما كتبته في المرة القادمة.';
+
+  @override
+  String get forumComposeDraftSave => 'حفظ المسودة';
+
+  @override
+  String get forumComposeDraftDelete => 'حذف';
+
+  @override
+  String get forumComposeDraftContinue => 'متابعة';
+
+  @override
+  String get forumComposeErrNetwork =>
+      'لا يوجد اتصال بالإنترنت. تم الاحتفاظ بما كتبته.';
+
+  @override
+  String get forumComposeErrRate =>
+      'أنت تنشر بوتيرة عالية. انتظر قليلًا ثم حاول مجددًا.';
+
+  @override
+  String get forumComposeErrDuplicate => 'لقد نشرت المحتوى نفسه قبل قليل.';
+
+  @override
+  String get forumComposeErrProfanity =>
+      'يحتوي النص على ألفاظ غير لائقة. عدّله وحاول مجددًا.';
+
+  @override
+  String get forumComposeErrCategory =>
+      'هذه الفئة لم تعد متاحة. اختر فئة أخرى.';
+
+  @override
+  String get forumComposeErrInvalid =>
+      'المحتوى غير صالح. تحقق من العنوان والوصف.';
+
+  @override
+  String get forumComposeErrGeneric =>
+      'تعذر نشر الموضوع. تم الاحتفاظ بما كتبته، حاول مجددًا.';
+
+  @override
+  String get forumComposeEditSave => 'حفظ';
+
+  @override
+  String get forumComposeEditSaving => 'جارٍ الحفظ';
+
+  @override
+  String get forumComposeEditLocked => 'هذا الموضوع مقفل ولا يمكن تعديله.';
+
+  @override
+  String get forumComposeEditGone => 'هذا الموضوع لم يعد موجودًا.';
+
+  @override
+  String get forumComposeEditNotOwner => 'يمكن للمالك فقط تعديل هذا الموضوع.';
+
+  @override
+  String get forumComposeEditSaved => 'تم التعديل';
+
+  @override
+  String get forumComposeEditNote => 'لا يمكن تغيير الصور والاستطلاع لاحقًا.';
+
+  @override
+  String get forumPollQuestionHint => 'السؤال (اختياري)';
+
+  @override
+  String forumPollOptionHint(int n) {
+    return 'الخيار $n';
+  }
+
+  @override
+  String get forumPollAddOption => 'إضافة خيار';
+
+  @override
+  String get forumPollRemoveOption => 'إزالة الخيار';
+
+  @override
+  String forumPollMaxOptions(int max) {
+    return 'يمكن إضافة $max خيارات كحد أقصى.';
+  }
+
+  @override
+  String get forumPollEndsAt => 'ينتهي';
+
+  @override
+  String get forumPollEndsNone => 'بدون نهاية';
+
+  @override
+  String forumPollEndsDays(int n) {
+    return '$n أيام';
+  }
+
+  @override
+  String get forumPollEndsPickDate => 'اختر تاريخًا';
+
+  @override
+  String forumPollEndsOn(String date) {
+    return 'ينتهي في $date';
+  }
+
+  @override
+  String get forumPollAllowChange => 'يمكن تغيير الصوت';
+
+  @override
+  String get forumPollRemove => 'إزالة الاستطلاع';
+
+  @override
+  String forumPollVotes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صوت',
+      many: '$count صوتًا',
+      few: '$count أصوات',
+      two: 'صوتان',
+      one: 'صوت واحد',
+      zero: 'لا أصوات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String forumPollPercent(String p) {
+    return '$p%';
+  }
+
+  @override
+  String get forumPollMine => 'صوتك';
+
+  @override
+  String get forumPollEnded => 'انتهى الاستطلاع';
+
+  @override
+  String forumPollLeftDays(int n) {
+    return 'متبقي $n يوم';
+  }
+
+  @override
+  String forumPollLeftHours(int n) {
+    return 'متبقي $n ساعة';
+  }
+
+  @override
+  String forumPollLeftMinutes(int n) {
+    return 'متبقي $n دقيقة';
+  }
+
+  @override
+  String get forumPollCanChange => 'يمكنك تغيير صوتك';
+
+  @override
+  String get forumPollLocked => 'لا يمكن تغيير الصوت بعد التصويت';
+
+  @override
+  String get forumPollUndo => 'سحب صوتي';
+
+  @override
+  String forumPollSemantics(String text, String percent, String votes) {
+    return '$text، $percent، $votes';
+  }
+
+  @override
+  String get forumPollSelected => 'محدد';
+
+  @override
+  String get forumPollErrClosed => 'انتهى الاستطلاع.';
+
+  @override
+  String get forumPollErrAlready => 'تم تسجيل صوتك مسبقًا ولا يمكن تغييره.';
+
+  @override
+  String get forumPollErrNetwork =>
+      'لا يوجد اتصال بالإنترنت. لم يتم إرسال صوتك.';
+
+  @override
+  String get forumPollErrRate => 'عدد كبير من عمليات التصويت. انتظر قليلًا.';
+
+  @override
+  String get forumPollErrGone => 'هذا الموضوع أو الاستطلاع لم يعد موجودًا.';
+
+  @override
+  String get forumPollErrForbidden => 'لا يمكنك التصويت في هذا الاستطلاع.';
+
+  @override
+  String get forumPollErrGeneric => 'تعذر حفظ الصوت. حاول مجددًا.';
+
+  @override
+  String get forumPollTitle => 'استطلاع';
+
+  @override
+  String get forumComposeDiscardTitle => 'هل تريد تجاهل التغييرات؟';
+
+  @override
+  String get forumComposeDiscardConfirm => 'تجاهل';
+
+  @override
+  String get forumComposeDiscardKeep => 'متابعة التعديل';
+
+  @override
+  String get forumComposeCategorySheetEmpty => 'لا توجد فئات متاحة.';
+
+  @override
+  String get forumComposeEditErrGeneric => 'تعذر حفظ التغييرات. حاول مجددًا.';
+
+  @override
   String p14EventCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

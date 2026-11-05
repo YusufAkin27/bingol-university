@@ -7985,6 +7985,315 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p14Live => 'Şimdi';
 
   @override
+  String get forumComposeClose => 'Kapat';
+
+  @override
+  String get forumComposePublish => 'Yayınla';
+
+  @override
+  String get forumComposePublishing => 'Yayınlanıyor';
+
+  @override
+  String get forumComposeTitleHint => 'Başlık';
+
+  @override
+  String get forumComposeBodyHint => 'Ne konuşmak istiyorsun?';
+
+  @override
+  String get forumComposeCategoryLabel => 'Kategori';
+
+  @override
+  String get forumComposeCategoryPick => 'Kategori seç';
+
+  @override
+  String get forumComposeCategoryLoading => 'Kategoriler yükleniyor';
+
+  @override
+  String get forumComposeCategoryError => 'Kategoriler yüklenemedi';
+
+  @override
+  String get forumComposeRetry => 'Tekrar dene';
+
+  @override
+  String get forumComposeAddImage => 'Görsel ekle';
+
+  @override
+  String forumComposeImageCount(int count, int max) {
+    return '$count/$max görsel';
+  }
+
+  @override
+  String get forumComposeGallery => 'Galeriden seç';
+
+  @override
+  String get forumComposeCamera => 'Fotoğraf çek';
+
+  @override
+  String get forumComposeImageRemove => 'Görseli kaldır';
+
+  @override
+  String get forumComposeImageUploading => 'Görsel yükleniyor';
+
+  @override
+  String get forumComposeImageRetry => 'Görseli yeniden yükle';
+
+  @override
+  String get forumComposeImagesPending =>
+      'Görseller yüklenince yayınlayabilirsin.';
+
+  @override
+  String get forumComposeImageFailedHint =>
+      'Bir görsel yüklenemedi. Yeniden dene ya da kaldır.';
+
+  @override
+  String get forumComposeErrImageTooLarge => 'Görsel çok büyük.';
+
+  @override
+  String get forumComposeErrImageType =>
+      'Yalnızca JPEG, PNG ve WebP görseller eklenebilir.';
+
+  @override
+  String get forumComposeErrImageRead => 'Görsel okunamadı.';
+
+  @override
+  String get forumComposeErrImageUpload => 'Görsel yüklenemedi.';
+
+  @override
+  String get forumComposePollAdd => 'Anket ekle';
+
+  @override
+  String get forumComposeAnonymous => 'Anonim paylaş';
+
+  @override
+  String get forumComposeAnonymousDesc => 'Adın diğer öğrencilere gösterilmez.';
+
+  @override
+  String get forumComposeAnonymousNote =>
+      'Moderatörler kötüye kullanımı görebilir.';
+
+  @override
+  String get forumComposeNeedTitle => 'Bir başlık yaz.';
+
+  @override
+  String get forumComposeNeedBody => 'Bir açıklama yaz.';
+
+  @override
+  String get forumComposeNeedCategory => 'Bir kategori seç.';
+
+  @override
+  String get forumComposeNeedPoll => 'Ankette en az 2 dolu seçenek olmalı.';
+
+  @override
+  String get forumComposeDraftRestored => 'Taslak geri yüklendi';
+
+  @override
+  String get forumComposeDraftSheetTitle => 'Taslağı kaydedelim mi?';
+
+  @override
+  String get forumComposeDraftSheetBody =>
+      'Yazdıkların bir sonraki sefer geri gelir.';
+
+  @override
+  String get forumComposeDraftSave => 'Taslağı kaydet';
+
+  @override
+  String get forumComposeDraftDelete => 'Sil';
+
+  @override
+  String get forumComposeDraftContinue => 'Devam et';
+
+  @override
+  String get forumComposeErrNetwork =>
+      'İnternet bağlantısı yok. Yazdıkların korundu.';
+
+  @override
+  String get forumComposeErrRate =>
+      'Çok sık paylaşım yaptın. Biraz bekleyip tekrar dene.';
+
+  @override
+  String get forumComposeErrDuplicate => 'Aynı içeriği az önce paylaştın.';
+
+  @override
+  String get forumComposeErrProfanity =>
+      'Metinde uygunsuz ifade var. Düzenleyip tekrar dene.';
+
+  @override
+  String get forumComposeErrCategory =>
+      'Bu kategori artık kullanılamıyor. Başka bir kategori seç.';
+
+  @override
+  String get forumComposeErrInvalid =>
+      'İçerik geçersiz. Başlığı ve açıklamayı kontrol et.';
+
+  @override
+  String get forumComposeErrGeneric =>
+      'Konu yayınlanamadı. Yazdıkların korundu, tekrar dene.';
+
+  @override
+  String get forumComposeEditSave => 'Kaydet';
+
+  @override
+  String get forumComposeEditSaving => 'Kaydediliyor';
+
+  @override
+  String get forumComposeEditLocked => 'Bu konu kilitli, düzenlenemez.';
+
+  @override
+  String get forumComposeEditGone => 'Bu konu artık yok.';
+
+  @override
+  String get forumComposeEditNotOwner =>
+      'Bu konuyu yalnızca sahibi düzenleyebilir.';
+
+  @override
+  String get forumComposeEditSaved => 'Düzenlendi';
+
+  @override
+  String get forumComposeEditNote =>
+      'Görseller ve anket sonradan değiştirilemez.';
+
+  @override
+  String get forumPollQuestionHint => 'Soru (isteğe bağlı)';
+
+  @override
+  String forumPollOptionHint(int n) {
+    return 'Seçenek $n';
+  }
+
+  @override
+  String get forumPollAddOption => 'Seçenek ekle';
+
+  @override
+  String get forumPollRemoveOption => 'Seçeneği kaldır';
+
+  @override
+  String forumPollMaxOptions(int max) {
+    return 'En çok $max seçenek eklenebilir.';
+  }
+
+  @override
+  String get forumPollEndsAt => 'Bitiş';
+
+  @override
+  String get forumPollEndsNone => 'Süresiz';
+
+  @override
+  String forumPollEndsDays(int n) {
+    return '$n gün';
+  }
+
+  @override
+  String get forumPollEndsPickDate => 'Tarih seç';
+
+  @override
+  String forumPollEndsOn(String date) {
+    return '$date tarihinde biter';
+  }
+
+  @override
+  String get forumPollAllowChange => 'Oy değiştirilebilir';
+
+  @override
+  String get forumPollRemove => 'Anketi kaldır';
+
+  @override
+  String forumPollVotes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count oy',
+      one: '1 oy',
+      zero: 'Oy yok',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String forumPollPercent(String p) {
+    return '%$p';
+  }
+
+  @override
+  String get forumPollMine => 'Oyun';
+
+  @override
+  String get forumPollEnded => 'Anket sona erdi';
+
+  @override
+  String forumPollLeftDays(int n) {
+    return '$n gün kaldı';
+  }
+
+  @override
+  String forumPollLeftHours(int n) {
+    return '$n saat kaldı';
+  }
+
+  @override
+  String forumPollLeftMinutes(int n) {
+    return '$n dakika kaldı';
+  }
+
+  @override
+  String get forumPollCanChange => 'Oyunu değiştirebilirsin';
+
+  @override
+  String get forumPollLocked => 'Oy verdikten sonra değiştirilemez';
+
+  @override
+  String get forumPollUndo => 'Oyumu geri al';
+
+  @override
+  String forumPollSemantics(String text, String percent, String votes) {
+    return '$text, $percent, $votes';
+  }
+
+  @override
+  String get forumPollSelected => 'Seçili';
+
+  @override
+  String get forumPollErrClosed => 'Anket sona erdi.';
+
+  @override
+  String get forumPollErrAlready =>
+      'Bu ankette oyun zaten kayıtlı ve değiştirilemez.';
+
+  @override
+  String get forumPollErrNetwork => 'İnternet bağlantısı yok. Oy verilemedi.';
+
+  @override
+  String get forumPollErrRate => 'Çok sık oy işlemi yaptın. Biraz bekle.';
+
+  @override
+  String get forumPollErrGone => 'Bu konu ya da anket artık yok.';
+
+  @override
+  String get forumPollErrForbidden => 'Bu ankete oy verme iznin yok.';
+
+  @override
+  String get forumPollErrGeneric => 'Oy işlemi yapılamadı. Tekrar dene.';
+
+  @override
+  String get forumPollTitle => 'Anket';
+
+  @override
+  String get forumComposeDiscardTitle => 'Değişiklikler atılsın mı?';
+
+  @override
+  String get forumComposeDiscardConfirm => 'At';
+
+  @override
+  String get forumComposeDiscardKeep => 'Düzenlemeye devam';
+
+  @override
+  String get forumComposeCategorySheetEmpty =>
+      'Şu an seçilebilir kategori yok.';
+
+  @override
+  String get forumComposeEditErrGeneric =>
+      'Değişiklikler kaydedilemedi. Tekrar dene.';
+
+  @override
   String p14EventCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

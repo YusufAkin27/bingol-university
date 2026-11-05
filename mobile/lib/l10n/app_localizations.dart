@@ -14712,6 +14712,534 @@ abstract class AppLocalizations {
   /// **'Şimdi'**
   String get p14Live;
 
+  /// No description provided for @forumComposeClose.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kapat'**
+  String get forumComposeClose;
+
+  /// No description provided for @forumComposePublish.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yayınla'**
+  String get forumComposePublish;
+
+  /// No description provided for @forumComposePublishing.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yayınlanıyor'**
+  String get forumComposePublishing;
+
+  /// No description provided for @forumComposeTitleHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başlık'**
+  String get forumComposeTitleHint;
+
+  /// No description provided for @forumComposeBodyHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ne konuşmak istiyorsun?'**
+  String get forumComposeBodyHint;
+
+  /// No description provided for @forumComposeCategoryLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kategori'**
+  String get forumComposeCategoryLabel;
+
+  /// No description provided for @forumComposeCategoryPick.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kategori seç'**
+  String get forumComposeCategoryPick;
+
+  /// No description provided for @forumComposeCategoryLoading.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kategoriler yükleniyor'**
+  String get forumComposeCategoryLoading;
+
+  /// No description provided for @forumComposeCategoryError.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kategoriler yüklenemedi'**
+  String get forumComposeCategoryError;
+
+  /// No description provided for @forumComposeRetry.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tekrar dene'**
+  String get forumComposeRetry;
+
+  /// No description provided for @forumComposeAddImage.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görsel ekle'**
+  String get forumComposeAddImage;
+
+  /// No description provided for @forumComposeImageCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count}/{max} görsel'**
+  String forumComposeImageCount(int count, int max);
+
+  /// No description provided for @forumComposeGallery.
+  ///
+  /// In tr, this message translates to:
+  /// **'Galeriden seç'**
+  String get forumComposeGallery;
+
+  /// No description provided for @forumComposeCamera.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraf çek'**
+  String get forumComposeCamera;
+
+  /// No description provided for @forumComposeImageRemove.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görseli kaldır'**
+  String get forumComposeImageRemove;
+
+  /// No description provided for @forumComposeImageUploading.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görsel yükleniyor'**
+  String get forumComposeImageUploading;
+
+  /// No description provided for @forumComposeImageRetry.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görseli yeniden yükle'**
+  String get forumComposeImageRetry;
+
+  /// No description provided for @forumComposeImagesPending.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görseller yüklenince yayınlayabilirsin.'**
+  String get forumComposeImagesPending;
+
+  /// No description provided for @forumComposeImageFailedHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir görsel yüklenemedi. Yeniden dene ya da kaldır.'**
+  String get forumComposeImageFailedHint;
+
+  /// No description provided for @forumComposeErrImageTooLarge.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görsel çok büyük.'**
+  String get forumComposeErrImageTooLarge;
+
+  /// No description provided for @forumComposeErrImageType.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yalnızca JPEG, PNG ve WebP görseller eklenebilir.'**
+  String get forumComposeErrImageType;
+
+  /// No description provided for @forumComposeErrImageRead.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görsel okunamadı.'**
+  String get forumComposeErrImageRead;
+
+  /// No description provided for @forumComposeErrImageUpload.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görsel yüklenemedi.'**
+  String get forumComposeErrImageUpload;
+
+  /// No description provided for @forumComposePollAdd.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anket ekle'**
+  String get forumComposePollAdd;
+
+  /// No description provided for @forumComposeAnonymous.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anonim paylaş'**
+  String get forumComposeAnonymous;
+
+  /// No description provided for @forumComposeAnonymousDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Adın diğer öğrencilere gösterilmez.'**
+  String get forumComposeAnonymousDesc;
+
+  /// No description provided for @forumComposeAnonymousNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Moderatörler kötüye kullanımı görebilir.'**
+  String get forumComposeAnonymousNote;
+
+  /// No description provided for @forumComposeNeedTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir başlık yaz.'**
+  String get forumComposeNeedTitle;
+
+  /// No description provided for @forumComposeNeedBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir açıklama yaz.'**
+  String get forumComposeNeedBody;
+
+  /// No description provided for @forumComposeNeedCategory.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir kategori seç.'**
+  String get forumComposeNeedCategory;
+
+  /// No description provided for @forumComposeNeedPoll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ankette en az 2 dolu seçenek olmalı.'**
+  String get forumComposeNeedPoll;
+
+  /// No description provided for @forumComposeDraftRestored.
+  ///
+  /// In tr, this message translates to:
+  /// **'Taslak geri yüklendi'**
+  String get forumComposeDraftRestored;
+
+  /// No description provided for @forumComposeDraftSheetTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Taslağı kaydedelim mi?'**
+  String get forumComposeDraftSheetTitle;
+
+  /// No description provided for @forumComposeDraftSheetBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yazdıkların bir sonraki sefer geri gelir.'**
+  String get forumComposeDraftSheetBody;
+
+  /// No description provided for @forumComposeDraftSave.
+  ///
+  /// In tr, this message translates to:
+  /// **'Taslağı kaydet'**
+  String get forumComposeDraftSave;
+
+  /// No description provided for @forumComposeDraftDelete.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sil'**
+  String get forumComposeDraftDelete;
+
+  /// No description provided for @forumComposeDraftContinue.
+  ///
+  /// In tr, this message translates to:
+  /// **'Devam et'**
+  String get forumComposeDraftContinue;
+
+  /// No description provided for @forumComposeErrNetwork.
+  ///
+  /// In tr, this message translates to:
+  /// **'İnternet bağlantısı yok. Yazdıkların korundu.'**
+  String get forumComposeErrNetwork;
+
+  /// No description provided for @forumComposeErrRate.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çok sık paylaşım yaptın. Biraz bekleyip tekrar dene.'**
+  String get forumComposeErrRate;
+
+  /// No description provided for @forumComposeErrDuplicate.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aynı içeriği az önce paylaştın.'**
+  String get forumComposeErrDuplicate;
+
+  /// No description provided for @forumComposeErrProfanity.
+  ///
+  /// In tr, this message translates to:
+  /// **'Metinde uygunsuz ifade var. Düzenleyip tekrar dene.'**
+  String get forumComposeErrProfanity;
+
+  /// No description provided for @forumComposeErrCategory.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu kategori artık kullanılamıyor. Başka bir kategori seç.'**
+  String get forumComposeErrCategory;
+
+  /// No description provided for @forumComposeErrInvalid.
+  ///
+  /// In tr, this message translates to:
+  /// **'İçerik geçersiz. Başlığı ve açıklamayı kontrol et.'**
+  String get forumComposeErrInvalid;
+
+  /// No description provided for @forumComposeErrGeneric.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu yayınlanamadı. Yazdıkların korundu, tekrar dene.'**
+  String get forumComposeErrGeneric;
+
+  /// No description provided for @forumComposeEditSave.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydet'**
+  String get forumComposeEditSave;
+
+  /// No description provided for @forumComposeEditSaving.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydediliyor'**
+  String get forumComposeEditSaving;
+
+  /// No description provided for @forumComposeEditLocked.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu konu kilitli, düzenlenemez.'**
+  String get forumComposeEditLocked;
+
+  /// No description provided for @forumComposeEditGone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu konu artık yok.'**
+  String get forumComposeEditGone;
+
+  /// No description provided for @forumComposeEditNotOwner.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu konuyu yalnızca sahibi düzenleyebilir.'**
+  String get forumComposeEditNotOwner;
+
+  /// No description provided for @forumComposeEditSaved.
+  ///
+  /// In tr, this message translates to:
+  /// **'Düzenlendi'**
+  String get forumComposeEditSaved;
+
+  /// No description provided for @forumComposeEditNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görseller ve anket sonradan değiştirilemez.'**
+  String get forumComposeEditNote;
+
+  /// No description provided for @forumPollQuestionHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Soru (isteğe bağlı)'**
+  String get forumPollQuestionHint;
+
+  /// No description provided for @forumPollOptionHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçenek {n}'**
+  String forumPollOptionHint(int n);
+
+  /// No description provided for @forumPollAddOption.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçenek ekle'**
+  String get forumPollAddOption;
+
+  /// No description provided for @forumPollRemoveOption.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçeneği kaldır'**
+  String get forumPollRemoveOption;
+
+  /// No description provided for @forumPollMaxOptions.
+  ///
+  /// In tr, this message translates to:
+  /// **'En çok {max} seçenek eklenebilir.'**
+  String forumPollMaxOptions(int max);
+
+  /// No description provided for @forumPollEndsAt.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bitiş'**
+  String get forumPollEndsAt;
+
+  /// No description provided for @forumPollEndsNone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Süresiz'**
+  String get forumPollEndsNone;
+
+  /// No description provided for @forumPollEndsDays.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} gün'**
+  String forumPollEndsDays(int n);
+
+  /// No description provided for @forumPollEndsPickDate.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tarih seç'**
+  String get forumPollEndsPickDate;
+
+  /// No description provided for @forumPollEndsOn.
+  ///
+  /// In tr, this message translates to:
+  /// **'{date} tarihinde biter'**
+  String forumPollEndsOn(String date);
+
+  /// No description provided for @forumPollAllowChange.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oy değiştirilebilir'**
+  String get forumPollAllowChange;
+
+  /// No description provided for @forumPollRemove.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anketi kaldır'**
+  String get forumPollRemove;
+
+  /// No description provided for @forumPollVotes.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count, plural, =0{Oy yok} =1{1 oy} other{{count} oy}}'**
+  String forumPollVotes(int count);
+
+  /// No description provided for @forumPollPercent.
+  ///
+  /// In tr, this message translates to:
+  /// **'%{p}'**
+  String forumPollPercent(String p);
+
+  /// No description provided for @forumPollMine.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyun'**
+  String get forumPollMine;
+
+  /// No description provided for @forumPollEnded.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anket sona erdi'**
+  String get forumPollEnded;
+
+  /// No description provided for @forumPollLeftDays.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} gün kaldı'**
+  String forumPollLeftDays(int n);
+
+  /// No description provided for @forumPollLeftHours.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} saat kaldı'**
+  String forumPollLeftHours(int n);
+
+  /// No description provided for @forumPollLeftMinutes.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} dakika kaldı'**
+  String forumPollLeftMinutes(int n);
+
+  /// No description provided for @forumPollCanChange.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyunu değiştirebilirsin'**
+  String get forumPollCanChange;
+
+  /// No description provided for @forumPollLocked.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oy verdikten sonra değiştirilemez'**
+  String get forumPollLocked;
+
+  /// No description provided for @forumPollUndo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyumu geri al'**
+  String get forumPollUndo;
+
+  /// No description provided for @forumPollSemantics.
+  ///
+  /// In tr, this message translates to:
+  /// **'{text}, {percent}, {votes}'**
+  String forumPollSemantics(String text, String percent, String votes);
+
+  /// No description provided for @forumPollSelected.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçili'**
+  String get forumPollSelected;
+
+  /// No description provided for @forumPollErrClosed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anket sona erdi.'**
+  String get forumPollErrClosed;
+
+  /// No description provided for @forumPollErrAlready.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu ankette oyun zaten kayıtlı ve değiştirilemez.'**
+  String get forumPollErrAlready;
+
+  /// No description provided for @forumPollErrNetwork.
+  ///
+  /// In tr, this message translates to:
+  /// **'İnternet bağlantısı yok. Oy verilemedi.'**
+  String get forumPollErrNetwork;
+
+  /// No description provided for @forumPollErrRate.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çok sık oy işlemi yaptın. Biraz bekle.'**
+  String get forumPollErrRate;
+
+  /// No description provided for @forumPollErrGone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu konu ya da anket artık yok.'**
+  String get forumPollErrGone;
+
+  /// No description provided for @forumPollErrForbidden.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu ankete oy verme iznin yok.'**
+  String get forumPollErrForbidden;
+
+  /// No description provided for @forumPollErrGeneric.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oy işlemi yapılamadı. Tekrar dene.'**
+  String get forumPollErrGeneric;
+
+  /// No description provided for @forumPollTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anket'**
+  String get forumPollTitle;
+
+  /// No description provided for @forumComposeDiscardTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Değişiklikler atılsın mı?'**
+  String get forumComposeDiscardTitle;
+
+  /// No description provided for @forumComposeDiscardConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'At'**
+  String get forumComposeDiscardConfirm;
+
+  /// No description provided for @forumComposeDiscardKeep.
+  ///
+  /// In tr, this message translates to:
+  /// **'Düzenlemeye devam'**
+  String get forumComposeDiscardKeep;
+
+  /// No description provided for @forumComposeCategorySheetEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şu an seçilebilir kategori yok.'**
+  String get forumComposeCategorySheetEmpty;
+
+  /// No description provided for @forumComposeEditErrGeneric.
+  ///
+  /// In tr, this message translates to:
+  /// **'Değişiklikler kaydedilemedi. Tekrar dene.'**
+  String get forumComposeEditErrGeneric;
+
   /// No description provided for @p14EventCount.
   ///
   /// In tr, this message translates to:

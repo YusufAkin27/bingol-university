@@ -2528,6 +2528,180 @@
   "p14ClearDay": "Whole month",
   "p14Ended": "Ended",
   "p14Live": "Live now",
+  "forumComposeClose": "Close",
+  "forumComposePublish": "Publish",
+  "forumComposePublishing": "Publishing",
+  "forumComposeTitleHint": "Title",
+  "forumComposeBodyHint": "What do you want to talk about?",
+  "forumComposeCategoryLabel": "Category",
+  "forumComposeCategoryPick": "Choose a category",
+  "forumComposeCategoryLoading": "Loading categories",
+  "forumComposeCategoryError": "Could not load categories",
+  "forumComposeRetry": "Try again",
+  "forumComposeAddImage": "Add image",
+  "forumComposeImageCount": "{count}/{max} images",
+  "@forumComposeImageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "forumComposeGallery": "Choose from gallery",
+  "forumComposeCamera": "Take a photo",
+  "forumComposeImageRemove": "Remove image",
+  "forumComposeImageUploading": "Uploading image",
+  "forumComposeImageRetry": "Retry upload",
+  "forumComposeImagesPending": "You can publish once the images finish uploading.",
+  "forumComposeImageFailedHint": "An image failed to upload. Retry or remove it.",
+  "forumComposeErrImageTooLarge": "The image is too large.",
+  "forumComposeErrImageType": "Only JPEG, PNG and WebP images can be added.",
+  "forumComposeErrImageRead": "The image could not be read.",
+  "forumComposeErrImageUpload": "The image could not be uploaded.",
+  "forumComposePollAdd": "Add a poll",
+  "forumComposeAnonymous": "Post anonymously",
+  "forumComposeAnonymousDesc": "Your name is not shown to other students.",
+  "forumComposeAnonymousNote": "Moderators can review misuse.",
+  "forumComposeNeedTitle": "Write a title.",
+  "forumComposeNeedBody": "Write a description.",
+  "forumComposeNeedCategory": "Choose a category.",
+  "forumComposeNeedPoll": "A poll needs at least 2 filled options.",
+  "forumComposeDraftRestored": "Draft restored",
+  "forumComposeDraftSheetTitle": "Save as a draft?",
+  "forumComposeDraftSheetBody": "What you wrote will be here next time.",
+  "forumComposeDraftSave": "Save draft",
+  "forumComposeDraftDelete": "Discard",
+  "forumComposeDraftContinue": "Keep editing",
+  "forumComposeErrNetwork": "No internet connection. Your text is kept.",
+  "forumComposeErrRate": "You are posting too often. Wait a bit and try again.",
+  "forumComposeErrDuplicate": "You just posted the same content.",
+  "forumComposeErrProfanity": "The text contains inappropriate language. Edit it and try again.",
+  "forumComposeErrCategory": "This category is no longer available. Choose another one.",
+  "forumComposeErrInvalid": "The content is not valid. Check the title and description.",
+  "forumComposeErrGeneric": "The topic could not be published. Your text is kept, try again.",
+  "forumComposeEditSave": "Save",
+  "forumComposeEditSaving": "Saving",
+  "forumComposeEditLocked": "This topic is locked and cannot be edited.",
+  "forumComposeEditGone": "This topic no longer exists.",
+  "forumComposeEditNotOwner": "Only the owner can edit this topic.",
+  "forumComposeEditSaved": "Edited",
+  "forumComposeEditNote": "Images and the poll cannot be changed later.",
+  "forumPollQuestionHint": "Question (optional)",
+  "forumPollOptionHint": "Option {n}",
+  "@forumPollOptionHint": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollAddOption": "Add option",
+  "forumPollRemoveOption": "Remove option",
+  "forumPollMaxOptions": "At most {max} options can be added.",
+  "@forumPollMaxOptions": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollEndsAt": "Ends",
+  "forumPollEndsNone": "No end",
+  "forumPollEndsDays": "{n} days",
+  "@forumPollEndsDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollEndsPickDate": "Pick a date",
+  "forumPollEndsOn": "Ends on {date}",
+  "@forumPollEndsOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "forumPollAllowChange": "Votes can be changed",
+  "forumPollRemove": "Remove poll",
+  "forumPollVotes": "{count, plural, =0{No votes} =1{1 vote} other{{count} votes}}",
+  "@forumPollVotes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollPercent": "{p}%",
+  "@forumPollPercent": {
+    "placeholders": {
+      "p": {
+        "type": "String"
+      }
+    }
+  },
+  "forumPollMine": "Your vote",
+  "forumPollEnded": "Poll ended",
+  "forumPollLeftDays": "{n} days left",
+  "@forumPollLeftDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollLeftHours": "{n} hours left",
+  "@forumPollLeftHours": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollLeftMinutes": "{n} minutes left",
+  "@forumPollLeftMinutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollCanChange": "You can change your vote",
+  "forumPollLocked": "Votes cannot be changed once cast",
+  "forumPollUndo": "Withdraw my vote",
+  "forumPollSemantics": "{text}, {percent}, {votes}",
+  "@forumPollSemantics": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "votes": {
+        "type": "String"
+      }
+    }
+  },
+  "forumPollSelected": "Selected",
+  "forumPollErrClosed": "The poll has ended.",
+  "forumPollErrAlready": "Your vote is already recorded and cannot be changed.",
+  "forumPollErrNetwork": "No internet connection. Your vote was not sent.",
+  "forumPollErrRate": "Too many vote actions. Wait a moment.",
+  "forumPollErrGone": "This topic or poll no longer exists.",
+  "forumPollErrForbidden": "You cannot vote in this poll.",
+  "forumPollErrGeneric": "The vote could not be saved. Try again.",
+  "forumPollTitle": "Poll",
+  "forumComposeDiscardTitle": "Discard your changes?",
+  "forumComposeDiscardConfirm": "Discard",
+  "forumComposeDiscardKeep": "Keep editing",
+  "forumComposeCategorySheetEmpty": "There are no categories to choose from.",
+  "forumComposeEditErrGeneric": "Your changes could not be saved. Try again.",
   "p14EventCount": "{count, plural, =1{1 event} other{{count} events}}",
   "p14EmptyMonthBody": "Browse another month; new events show up here as soon as they are added.",
   "p14EmptyDayBody": "Pick another day or see the whole month.",

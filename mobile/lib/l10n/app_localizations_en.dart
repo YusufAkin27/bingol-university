@@ -8022,6 +8022,316 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p14Live => 'Live now';
 
   @override
+  String get forumComposeClose => 'Close';
+
+  @override
+  String get forumComposePublish => 'Publish';
+
+  @override
+  String get forumComposePublishing => 'Publishing';
+
+  @override
+  String get forumComposeTitleHint => 'Title';
+
+  @override
+  String get forumComposeBodyHint => 'What do you want to talk about?';
+
+  @override
+  String get forumComposeCategoryLabel => 'Category';
+
+  @override
+  String get forumComposeCategoryPick => 'Choose a category';
+
+  @override
+  String get forumComposeCategoryLoading => 'Loading categories';
+
+  @override
+  String get forumComposeCategoryError => 'Could not load categories';
+
+  @override
+  String get forumComposeRetry => 'Try again';
+
+  @override
+  String get forumComposeAddImage => 'Add image';
+
+  @override
+  String forumComposeImageCount(int count, int max) {
+    return '$count/$max images';
+  }
+
+  @override
+  String get forumComposeGallery => 'Choose from gallery';
+
+  @override
+  String get forumComposeCamera => 'Take a photo';
+
+  @override
+  String get forumComposeImageRemove => 'Remove image';
+
+  @override
+  String get forumComposeImageUploading => 'Uploading image';
+
+  @override
+  String get forumComposeImageRetry => 'Retry upload';
+
+  @override
+  String get forumComposeImagesPending =>
+      'You can publish once the images finish uploading.';
+
+  @override
+  String get forumComposeImageFailedHint =>
+      'An image failed to upload. Retry or remove it.';
+
+  @override
+  String get forumComposeErrImageTooLarge => 'The image is too large.';
+
+  @override
+  String get forumComposeErrImageType =>
+      'Only JPEG, PNG and WebP images can be added.';
+
+  @override
+  String get forumComposeErrImageRead => 'The image could not be read.';
+
+  @override
+  String get forumComposeErrImageUpload => 'The image could not be uploaded.';
+
+  @override
+  String get forumComposePollAdd => 'Add a poll';
+
+  @override
+  String get forumComposeAnonymous => 'Post anonymously';
+
+  @override
+  String get forumComposeAnonymousDesc =>
+      'Your name is not shown to other students.';
+
+  @override
+  String get forumComposeAnonymousNote => 'Moderators can review misuse.';
+
+  @override
+  String get forumComposeNeedTitle => 'Write a title.';
+
+  @override
+  String get forumComposeNeedBody => 'Write a description.';
+
+  @override
+  String get forumComposeNeedCategory => 'Choose a category.';
+
+  @override
+  String get forumComposeNeedPoll => 'A poll needs at least 2 filled options.';
+
+  @override
+  String get forumComposeDraftRestored => 'Draft restored';
+
+  @override
+  String get forumComposeDraftSheetTitle => 'Save as a draft?';
+
+  @override
+  String get forumComposeDraftSheetBody =>
+      'What you wrote will be here next time.';
+
+  @override
+  String get forumComposeDraftSave => 'Save draft';
+
+  @override
+  String get forumComposeDraftDelete => 'Discard';
+
+  @override
+  String get forumComposeDraftContinue => 'Keep editing';
+
+  @override
+  String get forumComposeErrNetwork =>
+      'No internet connection. Your text is kept.';
+
+  @override
+  String get forumComposeErrRate =>
+      'You are posting too often. Wait a bit and try again.';
+
+  @override
+  String get forumComposeErrDuplicate => 'You just posted the same content.';
+
+  @override
+  String get forumComposeErrProfanity =>
+      'The text contains inappropriate language. Edit it and try again.';
+
+  @override
+  String get forumComposeErrCategory =>
+      'This category is no longer available. Choose another one.';
+
+  @override
+  String get forumComposeErrInvalid =>
+      'The content is not valid. Check the title and description.';
+
+  @override
+  String get forumComposeErrGeneric =>
+      'The topic could not be published. Your text is kept, try again.';
+
+  @override
+  String get forumComposeEditSave => 'Save';
+
+  @override
+  String get forumComposeEditSaving => 'Saving';
+
+  @override
+  String get forumComposeEditLocked =>
+      'This topic is locked and cannot be edited.';
+
+  @override
+  String get forumComposeEditGone => 'This topic no longer exists.';
+
+  @override
+  String get forumComposeEditNotOwner => 'Only the owner can edit this topic.';
+
+  @override
+  String get forumComposeEditSaved => 'Edited';
+
+  @override
+  String get forumComposeEditNote =>
+      'Images and the poll cannot be changed later.';
+
+  @override
+  String get forumPollQuestionHint => 'Question (optional)';
+
+  @override
+  String forumPollOptionHint(int n) {
+    return 'Option $n';
+  }
+
+  @override
+  String get forumPollAddOption => 'Add option';
+
+  @override
+  String get forumPollRemoveOption => 'Remove option';
+
+  @override
+  String forumPollMaxOptions(int max) {
+    return 'At most $max options can be added.';
+  }
+
+  @override
+  String get forumPollEndsAt => 'Ends';
+
+  @override
+  String get forumPollEndsNone => 'No end';
+
+  @override
+  String forumPollEndsDays(int n) {
+    return '$n days';
+  }
+
+  @override
+  String get forumPollEndsPickDate => 'Pick a date';
+
+  @override
+  String forumPollEndsOn(String date) {
+    return 'Ends on $date';
+  }
+
+  @override
+  String get forumPollAllowChange => 'Votes can be changed';
+
+  @override
+  String get forumPollRemove => 'Remove poll';
+
+  @override
+  String forumPollVotes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count votes',
+      one: '1 vote',
+      zero: 'No votes',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String forumPollPercent(String p) {
+    return '$p%';
+  }
+
+  @override
+  String get forumPollMine => 'Your vote';
+
+  @override
+  String get forumPollEnded => 'Poll ended';
+
+  @override
+  String forumPollLeftDays(int n) {
+    return '$n days left';
+  }
+
+  @override
+  String forumPollLeftHours(int n) {
+    return '$n hours left';
+  }
+
+  @override
+  String forumPollLeftMinutes(int n) {
+    return '$n minutes left';
+  }
+
+  @override
+  String get forumPollCanChange => 'You can change your vote';
+
+  @override
+  String get forumPollLocked => 'Votes cannot be changed once cast';
+
+  @override
+  String get forumPollUndo => 'Withdraw my vote';
+
+  @override
+  String forumPollSemantics(String text, String percent, String votes) {
+    return '$text, $percent, $votes';
+  }
+
+  @override
+  String get forumPollSelected => 'Selected';
+
+  @override
+  String get forumPollErrClosed => 'The poll has ended.';
+
+  @override
+  String get forumPollErrAlready =>
+      'Your vote is already recorded and cannot be changed.';
+
+  @override
+  String get forumPollErrNetwork =>
+      'No internet connection. Your vote was not sent.';
+
+  @override
+  String get forumPollErrRate => 'Too many vote actions. Wait a moment.';
+
+  @override
+  String get forumPollErrGone => 'This topic or poll no longer exists.';
+
+  @override
+  String get forumPollErrForbidden => 'You cannot vote in this poll.';
+
+  @override
+  String get forumPollErrGeneric => 'The vote could not be saved. Try again.';
+
+  @override
+  String get forumPollTitle => 'Poll';
+
+  @override
+  String get forumComposeDiscardTitle => 'Discard your changes?';
+
+  @override
+  String get forumComposeDiscardConfirm => 'Discard';
+
+  @override
+  String get forumComposeDiscardKeep => 'Keep editing';
+
+  @override
+  String get forumComposeCategorySheetEmpty =>
+      'There are no categories to choose from.';
+
+  @override
+  String get forumComposeEditErrGeneric =>
+      'Your changes could not be saved. Try again.';
+
+  @override
   String p14EventCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

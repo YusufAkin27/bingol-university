@@ -2528,6 +2528,180 @@
   "p14ClearDay": "الشهر كاملًا",
   "p14Ended": "انتهت",
   "p14Live": "جارية الآن",
+  "forumComposeClose": "إغلاق",
+  "forumComposePublish": "نشر",
+  "forumComposePublishing": "جارٍ النشر",
+  "forumComposeTitleHint": "العنوان",
+  "forumComposeBodyHint": "ماذا تريد أن تناقش؟",
+  "forumComposeCategoryLabel": "الفئة",
+  "forumComposeCategoryPick": "اختر فئة",
+  "forumComposeCategoryLoading": "جارٍ تحميل الفئات",
+  "forumComposeCategoryError": "تعذر تحميل الفئات",
+  "forumComposeRetry": "حاول مرة أخرى",
+  "forumComposeAddImage": "إضافة صورة",
+  "forumComposeImageCount": "{count}/{max} صور",
+  "@forumComposeImageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "forumComposeGallery": "اختيار من المعرض",
+  "forumComposeCamera": "التقاط صورة",
+  "forumComposeImageRemove": "إزالة الصورة",
+  "forumComposeImageUploading": "جارٍ رفع الصورة",
+  "forumComposeImageRetry": "إعادة رفع الصورة",
+  "forumComposeImagesPending": "يمكنك النشر بعد اكتمال رفع الصور.",
+  "forumComposeImageFailedHint": "تعذر رفع صورة. أعد المحاولة أو أزلها.",
+  "forumComposeErrImageTooLarge": "الصورة كبيرة جدًا.",
+  "forumComposeErrImageType": "يمكن إضافة صور JPEG وPNG وWebP فقط.",
+  "forumComposeErrImageRead": "تعذرت قراءة الصورة.",
+  "forumComposeErrImageUpload": "تعذر رفع الصورة.",
+  "forumComposePollAdd": "إضافة استطلاع",
+  "forumComposeAnonymous": "النشر بشكل مجهول",
+  "forumComposeAnonymousDesc": "لا يظهر اسمك للطلاب الآخرين.",
+  "forumComposeAnonymousNote": "يمكن للمشرفين مراجعة إساءة الاستخدام.",
+  "forumComposeNeedTitle": "اكتب عنوانًا.",
+  "forumComposeNeedBody": "اكتب وصفًا.",
+  "forumComposeNeedCategory": "اختر فئة.",
+  "forumComposeNeedPoll": "يجب أن يحتوي الاستطلاع على خيارين على الأقل.",
+  "forumComposeDraftRestored": "تمت استعادة المسودة",
+  "forumComposeDraftSheetTitle": "هل تريد حفظ مسودة؟",
+  "forumComposeDraftSheetBody": "سيعود ما كتبته في المرة القادمة.",
+  "forumComposeDraftSave": "حفظ المسودة",
+  "forumComposeDraftDelete": "حذف",
+  "forumComposeDraftContinue": "متابعة",
+  "forumComposeErrNetwork": "لا يوجد اتصال بالإنترنت. تم الاحتفاظ بما كتبته.",
+  "forumComposeErrRate": "أنت تنشر بوتيرة عالية. انتظر قليلًا ثم حاول مجددًا.",
+  "forumComposeErrDuplicate": "لقد نشرت المحتوى نفسه قبل قليل.",
+  "forumComposeErrProfanity": "يحتوي النص على ألفاظ غير لائقة. عدّله وحاول مجددًا.",
+  "forumComposeErrCategory": "هذه الفئة لم تعد متاحة. اختر فئة أخرى.",
+  "forumComposeErrInvalid": "المحتوى غير صالح. تحقق من العنوان والوصف.",
+  "forumComposeErrGeneric": "تعذر نشر الموضوع. تم الاحتفاظ بما كتبته، حاول مجددًا.",
+  "forumComposeEditSave": "حفظ",
+  "forumComposeEditSaving": "جارٍ الحفظ",
+  "forumComposeEditLocked": "هذا الموضوع مقفل ولا يمكن تعديله.",
+  "forumComposeEditGone": "هذا الموضوع لم يعد موجودًا.",
+  "forumComposeEditNotOwner": "يمكن للمالك فقط تعديل هذا الموضوع.",
+  "forumComposeEditSaved": "تم التعديل",
+  "forumComposeEditNote": "لا يمكن تغيير الصور والاستطلاع لاحقًا.",
+  "forumPollQuestionHint": "السؤال (اختياري)",
+  "forumPollOptionHint": "الخيار {n}",
+  "@forumPollOptionHint": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollAddOption": "إضافة خيار",
+  "forumPollRemoveOption": "إزالة الخيار",
+  "forumPollMaxOptions": "يمكن إضافة {max} خيارات كحد أقصى.",
+  "@forumPollMaxOptions": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollEndsAt": "ينتهي",
+  "forumPollEndsNone": "بدون نهاية",
+  "forumPollEndsDays": "{n} أيام",
+  "@forumPollEndsDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollEndsPickDate": "اختر تاريخًا",
+  "forumPollEndsOn": "ينتهي في {date}",
+  "@forumPollEndsOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "forumPollAllowChange": "يمكن تغيير الصوت",
+  "forumPollRemove": "إزالة الاستطلاع",
+  "forumPollVotes": "{count, plural, =0{لا أصوات} =1{صوت واحد} =2{صوتان} few{{count} أصوات} many{{count} صوتًا} other{{count} صوت}}",
+  "@forumPollVotes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollPercent": "{p}%",
+  "@forumPollPercent": {
+    "placeholders": {
+      "p": {
+        "type": "String"
+      }
+    }
+  },
+  "forumPollMine": "صوتك",
+  "forumPollEnded": "انتهى الاستطلاع",
+  "forumPollLeftDays": "متبقي {n} يوم",
+  "@forumPollLeftDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollLeftHours": "متبقي {n} ساعة",
+  "@forumPollLeftHours": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollLeftMinutes": "متبقي {n} دقيقة",
+  "@forumPollLeftMinutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollCanChange": "يمكنك تغيير صوتك",
+  "forumPollLocked": "لا يمكن تغيير الصوت بعد التصويت",
+  "forumPollUndo": "سحب صوتي",
+  "forumPollSemantics": "{text}، {percent}، {votes}",
+  "@forumPollSemantics": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "votes": {
+        "type": "String"
+      }
+    }
+  },
+  "forumPollSelected": "محدد",
+  "forumPollErrClosed": "انتهى الاستطلاع.",
+  "forumPollErrAlready": "تم تسجيل صوتك مسبقًا ولا يمكن تغييره.",
+  "forumPollErrNetwork": "لا يوجد اتصال بالإنترنت. لم يتم إرسال صوتك.",
+  "forumPollErrRate": "عدد كبير من عمليات التصويت. انتظر قليلًا.",
+  "forumPollErrGone": "هذا الموضوع أو الاستطلاع لم يعد موجودًا.",
+  "forumPollErrForbidden": "لا يمكنك التصويت في هذا الاستطلاع.",
+  "forumPollErrGeneric": "تعذر حفظ الصوت. حاول مجددًا.",
+  "forumPollTitle": "استطلاع",
+  "forumComposeDiscardTitle": "هل تريد تجاهل التغييرات؟",
+  "forumComposeDiscardConfirm": "تجاهل",
+  "forumComposeDiscardKeep": "متابعة التعديل",
+  "forumComposeCategorySheetEmpty": "لا توجد فئات متاحة.",
+  "forumComposeEditErrGeneric": "تعذر حفظ التغييرات. حاول مجددًا.",
   "p14EventCount": "{count, plural, =0{لا فعاليات} =1{فعالية واحدة} =2{فعاليتان} few{{count} فعاليات} many{{count} فعالية} other{{count} فعالية}}",
   "p14EmptyMonthBody": "تصفح شهرًا آخر؛ ستظهر الفعاليات الجديدة هنا فور إضافتها.",
   "p14EmptyDayBody": "اختر يومًا آخر أو اعرض الشهر كاملًا.",
