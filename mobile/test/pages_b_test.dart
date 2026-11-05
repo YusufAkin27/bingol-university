@@ -619,10 +619,11 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('metin baloncuguna tek dokunus da menuyu acar', (tester) async {
+    testWidgets('metin baloncuguna tek dokunus menuyu ACMAZ (yalniz basili tutunca)', (tester) async {
       await _pump(tester, build(makeSession(withEmojis())));
       await openMenu(tester, find.text('Selam'), tap: true);
-      expect(find.byKey(card), findsOneWidget);
+      expect(find.byKey(card), findsNothing);
+      expect(find.byKey(bar), findsNothing);
       _noErrors(tester);
       await unmount(tester);
     });

@@ -153,7 +153,7 @@ final _shots = <_Shot>[
   _Shot('01_gezinme_ana', (b, s) => _navDemo(0, 0)),
   _Shot('02_gezinme_sohbet_rozet', (b, s) => _navDemo(4, 7)),
   _Shot('03_gezinme_rozet_99', (b, s) => _navDemo(1, 150)),
-  _Shot('04_kabuk_profil', (b, s) => AppShell(session: s, themeController: ThemeController()), setup: _base,
+  _Shot('04_kabuk_profil', (b, s) => AppShell(initialTab: AppTab.home, session: s, themeController: ThemeController()), setup: _base,
       after: (t) async {
     await t.tap(find.byIcon(BuIcons.user).first);
     await t.pump();

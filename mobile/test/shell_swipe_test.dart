@@ -14,7 +14,7 @@ void main() {
     final b = FakeBackend();
     await tester.pumpWidget(buildApp(Directionality(
       textDirection: dir,
-      child: AppShell(session: makeSession(b), themeController: ThemeController()),
+      child: AppShell(initialTab: AppTab.home, session: makeSession(b), themeController: ThemeController()),
     )));
     await settle(tester);
   }

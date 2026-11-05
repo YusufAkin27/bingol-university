@@ -55,7 +55,7 @@ void main() {
     Future<void> pumpShell(WidgetTester tester) async {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend();
-      await tester.pumpWidget(buildApp(AppShell(session: makeSession(b), themeController: ThemeController())));
+      await tester.pumpWidget(buildApp(AppShell(initialTab: AppTab.home, session: makeSession(b), themeController: ThemeController())));
       await settle(tester);
     }
 

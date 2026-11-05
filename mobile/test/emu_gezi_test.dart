@@ -69,7 +69,7 @@ void main() {
     testWidgets('ortu var, dokunmayi gecirir ve anlamsal dugum eklemez', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend();
-      await tester.pumpWidget(buildApp(AppShell(session: makeSession(b), themeController: ThemeController())));
+      await tester.pumpWidget(buildApp(AppShell(initialTab: AppTab.home, session: makeSession(b), themeController: ThemeController())));
       await settle(tester);
       final scrim = find.byKey(const ValueKey('status-bar-scrim'));
       expect(scrim, findsOneWidget);
@@ -82,7 +82,7 @@ void main() {
       testWidgets('durum cubugu simgesi ${br.name} temada tema parlakligina gore sabitlenir', (tester) async {
         useScreen(tester, kPhoneMedium);
         await tester.pumpWidget(buildApp(
-          AppShell(session: makeSession(FakeBackend()), themeController: ThemeController()),
+          AppShell(initialTab: AppTab.home, session: makeSession(FakeBackend()), themeController: ThemeController()),
           brightness: br,
         ));
         await settle(tester);

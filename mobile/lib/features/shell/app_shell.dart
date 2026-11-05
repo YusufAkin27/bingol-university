@@ -37,7 +37,10 @@ abstract final class AppTab {
 /// 140 ms'de solar; boş/dikey alanda sağa-sola sürükleme (eşik 60 dp ya da hızlı fırlatma) komşu sekmeye geçirir, sürüklerken
 /// içerik 12-16 dp paralaksla parmağı izler. Yatay kaydırılan iç bileşenler (haber şeridi) sürüklemeyi kendisi alır.
 class AppShell extends StatefulWidget {
-  const AppShell({super.key, required this.session, required this.themeController});
+  const AppShell({super.key, required this.session, required this.themeController, this.initialTab = AppTab.discover});
+
+  /// Uygulama açıldığında seçili sekme: varsayılan KEŞFET (her girişte ilgi çekici içerikle başla).
+  final int initialTab;
 
   final Session session;
   final ThemeController themeController; // profil -> ayarlar için
@@ -47,11 +50,11 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> with WidgetsBindingObserver, TickerProviderStateMixin {
-  int _tab = 0;
+  late int _tab = widget.initialTab;
   int _publishedVersion = 0;
   bool _publishing = false;
   // Bir kez açılmış sekmeler (tembel kurulum; kapanınca da canlı kalır).
-  final Set<int> _built = {AppTab.home};
+  late final Set<int> _built = {widget.initialTab};
   // Geçiş: 0 -> 1 (220 ms). Gelen sekme `enter` eğrisiyle, giden sekme ilk 140 ms'de solar.
   late final AnimationController _anim = AnimationController(vsync: this, duration: AppMotion.normal, value: 1);
   late final AnimationController _snap = AnimationController(vsync: this, duration: AppMotion.fast);

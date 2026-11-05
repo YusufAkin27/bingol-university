@@ -350,7 +350,7 @@ final List<_Shot> _shots = [
   ],
 ];
 
-Widget _shell(_Ctx c) => AppShell(session: c.session, themeController: c.theme);
+Widget _shell(_Ctx c) => AppShell(initialTab: AppTab.home, session: c.session, themeController: c.theme);
 
 Widget _canvasWidget(Widget app, String title, bool dark, GlobalKey boundary) {
   return Directionality(

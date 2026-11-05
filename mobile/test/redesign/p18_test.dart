@@ -128,7 +128,7 @@ void main() {
     testWidgets('ilk karede yalniz ana sekme agi baslatir; sekme ilk secimde kurulur ve sonra canli kalir', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = _backend();
-      await tester.pumpWidget(buildApp(AppShell(session: makeSession(b), themeController: ThemeController())));
+      await tester.pumpWidget(buildApp(AppShell(initialTab: AppTab.home, session: makeSession(b), themeController: ThemeController())));
       await settle(tester, const Duration(seconds: 1));
       // Profil ve Kulupler sekmeleri henuz kurulmadi. Kabuk yalniz alt gezinme avatari icin TEK sessiz GET /users/me atar.
       expect(b.requests.where((r) => r == 'GET /users/me').length, 1, reason: b.requests.join('\n'));
@@ -152,7 +152,7 @@ void main() {
       useScreen(tester, kPhoneMedium);
       final b = _backend()..on('/users/me', {'id': 1, 'displayName': 'Ayşe', 'avatarUrl': '/files/avatars/1.jpg'});
       final s = makeSession(b);
-      await tester.pumpWidget(buildApp(AppShell(session: s, themeController: ThemeController())));
+      await tester.pumpWidget(buildApp(AppShell(initialTab: AppTab.home, session: s, themeController: ThemeController())));
       await settle(tester, const Duration(seconds: 1));
       expect(s.avatarUrl.value, '/files/avatars/1.jpg');
       expect(find.byKey(const ValueKey('nav-4')), findsOneWidget);
@@ -164,7 +164,7 @@ void main() {
       useScreen(tester, kPhoneMedium);
       tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(disableAnimations: true);
       addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
-      await tester.pumpWidget(buildApp(AppShell(session: makeSession(_backend()), themeController: ThemeController())));
+      await tester.pumpWidget(buildApp(AppShell(initialTab: AppTab.home, session: makeSession(_backend()), themeController: ThemeController())));
       await settle(tester, const Duration(milliseconds: 600));
       await tester.tap(find.byKey(const ValueKey('nav-1')));
       await tester.pump();

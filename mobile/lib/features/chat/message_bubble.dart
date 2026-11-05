@@ -455,7 +455,7 @@ class MessageBubble extends StatelessWidget {
       builder: (bc) => BuPressable(
         scale: .985,
         onLongPress: state == 'pending' ? null : () => _openMenu(bc),
-        onTap: state == null || state == 'failed' ? () => _openMenu(bc) : null,
+        // Tek dokunuş menü AÇMAZ (yalnız basılı tutunca): medya/bağlantı/tekrar dene kendi dokunuşlarıyla çalışır.
         child: body,
       ),
     );

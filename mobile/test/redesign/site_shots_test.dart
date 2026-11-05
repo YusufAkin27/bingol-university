@@ -474,11 +474,11 @@ Future<void> _tapText(WidgetTester t, String text) async {
 }
 
 final _scenes = <_Scene>[
-  _Scene('home', (b, s) => AppShell(session: s, themeController: ThemeController()), tab: AppTab.home, setup: (b) {
+  _Scene('home', (b, s) => AppShell(initialTab: AppTab.home, session: s, themeController: ThemeController()), tab: AppTab.home, setup: (b) {
     _core(b);
     _homeData(b);
   }),
-  _Scene('discover', (b, s) => AppShell(session: s, themeController: ThemeController()), tab: AppTab.discover, setup: (b) {
+  _Scene('discover', (b, s) => AppShell(initialTab: AppTab.home, session: s, themeController: ThemeController()), tab: AppTab.discover, setup: (b) {
     _core(b);
     _discoverData(b);
   }),
@@ -497,7 +497,7 @@ final _scenes = <_Scene>[
             },
           ),
       setup: _chatData),
-  _Scene('clubs', (b, s) => AppShell(session: s, themeController: ThemeController()), tab: AppTab.clubs, setup: (b) {
+  _Scene('clubs', (b, s) => AppShell(initialTab: AppTab.home, session: s, themeController: ThemeController()), tab: AppTab.clubs, setup: (b) {
     _core(b);
     _clubsData(b);
   }),

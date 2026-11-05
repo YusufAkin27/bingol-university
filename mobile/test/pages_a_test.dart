@@ -619,7 +619,7 @@ void main() {
 
   // ---------------- SHELL ----------------
   group('shell', () {
-    Widget shell() => AppShell(session: makeSession(_b), themeController: ThemeController());
+    Widget shell() => AppShell(initialTab: AppTab.home, session: makeSession(_b), themeController: ThemeController());
 
     matrix('AppShell', shell, settleFor: const Duration(seconds: 1));
 
@@ -667,7 +667,7 @@ void main() {
       useScreen(tester, kPhoneMedium);
       final b = newB();
       final s = makeSession(b);
-      await tester.pumpWidget(buildApp(AppShell(session: s, themeController: ThemeController())));
+      await tester.pumpWidget(buildApp(AppShell(initialTab: AppTab.home, session: s, themeController: ThemeController())));
       await settle(tester, const Duration(seconds: 1));
       b.on('/me/summary', {'unreadNotifications': 4, 'unreadMessages': 2, 'communities': 0});
       await tester.pump(const Duration(minutes: 1, seconds: 1));

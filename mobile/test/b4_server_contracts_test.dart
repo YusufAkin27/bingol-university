@@ -461,7 +461,7 @@ void main() {
 
     testWidgets('shellTabRequest = Sohbet: kabuk Sohbet sekmesine gecer ve istegi tuketir', (tester) async {
       useScreen(tester, kPhoneMedium);
-      await tester.pumpWidget(buildApp(AppShell(session: makeSession(FakeBackend()), themeController: ThemeController())));
+      await tester.pumpWidget(buildApp(AppShell(initialTab: AppTab.home, session: makeSession(FakeBackend()), themeController: ThemeController())));
       await settle(tester);
       expect(tester.widget<FloatingNav>(find.byType(FloatingNav)).index, 0);
       shellTabRequest.value = AppTab.chat;

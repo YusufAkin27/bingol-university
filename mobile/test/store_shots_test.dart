@@ -372,7 +372,7 @@ final _shots = <_Shot>[
   }),
 ];
 
-Widget _shell(_Ctx c) => AppShell(session: c.session, themeController: c.theme);
+Widget _shell(_Ctx c) => AppShell(initialTab: AppTab.home, session: c.session, themeController: c.theme);
 
 /// Sahte durum çubuğu (9:41, tam şarj): gerçek cihaz çubuğu ekran görüntüsünde yok.
 class _StatusBar extends StatelessWidget {

@@ -108,9 +108,9 @@ Future<void> _tapKey(WidgetTester t, String key) async {
 }
 
 final _shots = <_Shot>[
-  _Shot('01_ana_sayfa', (b) => AppShell(session: makeSession(b), themeController: ThemeController())),
-  _Shot('02_kesfet', (b) => AppShell(session: makeSession(b), themeController: ThemeController()), after: (t) => _tapKey(t, 'nav-1')),
-  _Shot('03_reels', (b) => AppShell(session: makeSession(b), themeController: ThemeController()), after: (t) async {
+  _Shot('01_ana_sayfa', (b) => AppShell(initialTab: AppTab.home, session: makeSession(b), themeController: ThemeController())),
+  _Shot('02_kesfet', (b) => AppShell(initialTab: AppTab.home, session: makeSession(b), themeController: ThemeController()), after: (t) => _tapKey(t, 'nav-1')),
+  _Shot('03_reels', (b) => AppShell(initialTab: AppTab.home, session: makeSession(b), themeController: ThemeController()), after: (t) async {
     await _tapKey(t, 'nav-1');
     await _tapKey(t, 'discoverFilter-reels');
   }),
