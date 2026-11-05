@@ -11,6 +11,9 @@ import 'package:flutter/foundation.dart';
 ///
 /// Ek olarak sunucu 404 `OAUTH_DISABLED` dönerse o sağlayıcı bu uygulama oturumu boyunca gizlenir
 /// ([Session.oauthDisabled]).
+/// Google giriş SDK'sı derlemeye dahil mi (şu an HAYIR: iOS bağımlılık çakışması).
+const bool kGoogleSignInCompiled = false;
+
 class OAuthConfig {
   const OAuthConfig({
     this.googleFlag = false,
@@ -30,7 +33,9 @@ class OAuthConfig {
   static OAuthConfig current = OAuthConfig.fromEnvironment();
 
   factory OAuthConfig.fromEnvironment() => OAuthConfig(
-        googleFlag: _googleFlag,
+        // Google paketi bu sürümde çıkarıldı (iOS SwiftPM çakışması: `oauth_services.dart` notu): bayrak açık olsa bile
+        // üretimde düğme HER ZAMAN gizli (`kGoogleSignInCompiled`).
+        googleFlag: _googleFlag && kGoogleSignInCompiled,
         googleServerClientId: _googleServerClientId,
         googleIosClientId: _googleIosClientId,
         appleFlag: _appleFlag,

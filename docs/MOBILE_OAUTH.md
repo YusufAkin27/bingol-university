@@ -44,3 +44,7 @@ bölümü yalnız en az bir yöntem açıkken görünür.
 
 Sağlayıcı SDK'ları arayüz + sahte uygulama ile test edilir (`test/oauth_login_test.dart`, `test/oauth_onboarding_test.dart`).
 Gerçek Google/Apple girişi cihaz/kimlik gerektirir ve macOS/Android cihazda elle doğrulanmalıdır.
+
+## Google paketini geri ekleme (iOS bağımlılık çakışması)
+
+`google_sign_in` bu sürümde `pubspec.yaml`'dan ÇIKARILDI: iOS'ta SwiftPM `googlesignin-ios` 9 (`gtm-session-fetcher` 3.x) ile Firebase iOS SDK 13 (`firebase_messaging`, `gtm-session-fetcher` 4.x-5.x) birlikte çözülemiyor ve Codemagic "Could not resolve package dependencies" hatası veriyor. Google düğmesi `kGoogleSignInCompiled = false` ile her zaman gizli; `GoogleSignInServiceImpl` `GOOGLE_UNAVAILABLE` döner. Yeniden etkinleştirmek için: (1) uyumlu bir `google_sign_in_ios`/`googlesignin-ios` sürümü ya da CocoaPods ile çözüm bul (`flutter config --no-enable-swift-package-manager` denenebilir) ve iOS'ta temiz derlendiğini Codemagic'te doğrula, (2) `google_sign_in` bağımlılığını ekle, (3) `GoogleSignInServiceImpl.signIn` içinde `GoogleSignIn.instance.initialize/authenticate` kullan (git geçmişi: commit 57af75eb), (4) `kGoogleSignInCompiled = true`, (5) Google istemci kimliklerini ver.

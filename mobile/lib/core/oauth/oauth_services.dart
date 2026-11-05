@@ -3,10 +3,8 @@ import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
-import '../oauth_config.dart';
 
 /// Desteklenen dış kimlik sağlayıcıları. [wire]: sunucu yolundaki/gövdesindeki ad.
 enum OAuthProvider {
@@ -83,41 +81,14 @@ class OAuthServices {
   final AppleSignInService apple;
 }
 
-/// [GoogleSignIn] (google_sign_in 7.x): `serverClientId` = web istemci kimliği (ID token'ın hedef kitlesi).
+/// Google girişi BU SÜRÜMDE DERLENMİYOR: `google_sign_in` iOS'ta (SwiftPM) `googlesignin-ios` 9, `gtm-session-fetcher`
+/// 3.x ister; Firebase iOS SDK 13 (firebase_messaging) ise 4.x-5.x ister: ikisi birlikte çözülemez ve Codemagic iOS
+/// derlemesi "Could not resolve package dependencies" ile düşer. Google istemci kimlikleri henüz yapılandırılmadığı için
+/// düğme zaten gizliydi; paket çıkarıldı. Yeniden eklemek için `docs/MOBILE_OAUTH.md` "Google paketini geri ekleme".
+/// Bayrak açık olsa bile (yanlışlıkla) giriş denenirse `GOOGLE_UNAVAILABLE` hatası döner ve düğme hata gösterir.
 class GoogleSignInServiceImpl implements GoogleSignInService {
-  Future<void>? _init;
-
-  Future<void> _ensureInit() => _init ??= () async {
-        final c = OAuthConfig.current;
-        await GoogleSignIn.instance.initialize(
-          serverClientId: c.googleServerClientId,
-          clientId: c.googleIosClientId.isEmpty ? null : c.googleIosClientId,
-        );
-      }();
-
   @override
-  Future<GoogleCredential?> signIn() async {
-    try {
-      await _ensureInit();
-      final account = await GoogleSignIn.instance.authenticate();
-      final token = account.authentication.idToken;
-      // Bir sonraki dokunuşta hesap seçici yeniden açılsın (SDK oturumu uygulama oturumu değildir).
-      try {
-        await GoogleSignIn.instance.signOut();
-      } catch (_) {}
-      if (token == null || token.isEmpty) throw const OAuthFailure('NO_ID_TOKEN');
-      return GoogleCredential(idToken: token, displayName: account.displayName);
-    } on GoogleSignInException catch (e) {
-      if (e.code == GoogleSignInExceptionCode.canceled) return null;
-      _init = null; // yapılandırma hatası sonrası yeniden başlatılabilsin
-      throw OAuthFailure(e.code.name);
-    } on OAuthFailure {
-      rethrow;
-    } catch (e) {
-      _init = null;
-      throw const OAuthFailure('GOOGLE_ERROR');
-    }
-  }
+  Future<GoogleCredential?> signIn() async => throw const OAuthFailure('GOOGLE_UNAVAILABLE');
 }
 
 /// [SignInWithApple] (iOS yerel akış). Nonce: 32 bayt rastgele; Apple'a SHA-256 hex özeti, sunucuya ham değer gider.
