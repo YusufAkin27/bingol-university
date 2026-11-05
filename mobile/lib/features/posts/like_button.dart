@@ -34,6 +34,7 @@ class LikeButton extends StatefulWidget {
     this.a11yCount,
     this.detail = false,
     this.tile = false,
+    this.pill = false,
   });
 
   final Session session;
@@ -55,6 +56,10 @@ class LikeButton extends StatefulWidget {
   /// (13/600 tabular `onMedia`); beğenilmiş kalp dolu beyaz. Görünür satır küçüktür, dokunma alanı en az 44 dp
   /// yüksekliğinde (kutu içine taşar; satırın tamamı beğeni düğmesidir).
   final bool tile;
+
+  /// Keşfet kutusu: kalp + sayı, açık yarı saydam yüzey hapı içinde (fotoğraf/gradyan ne olursa okunur). Beğenmemiş:
+  /// BOŞ çizgi kalp (`ink`); beğenmiş: DOLU KIRMIZI kalp (`pr`). [tile] ile birlikte kullanılır.
+  final bool pill;
 
   /// Yalnız ekran okuyucu için sayı metni (görünür sayı yalnız rakamsa): "284 beğeni".
   final String Function(int count)? a11yCount;
@@ -241,7 +246,7 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
             : widget.detail
                 ? tt.titleSmall?.copyWith(fontSize: 15, fontWeight: FontWeight.w600)
                 : (widget.compact ? tt.titleSmall : tt.titleMedium))
-        ?.copyWith(color: widget.tile ? t.onMedia : t.ink, height: 1.2, fontFeatures: const [FontFeature.tabularFigures()]);
+        ?.copyWith(color: widget.tile && !widget.pill ? t.onMedia : t.ink, height: 1.2, fontFeatures: const [FontFeature.tabularFigures()]);
     final countText = Text(_label(_count), key: const ValueKey('like-count'), maxLines: 1, style: style);
     final count = AnimatedBuilder(
       animation: _countAnim,
@@ -302,9 +307,42 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
       height: size,
       child: AnimatedBuilder(
         animation: _anim,
-        builder: (c, _) => Transform.scale(scale: scale.value, child: _HeartIcon(filled: _liked, color: t.onMedia, size: size)),
+        builder: (c, _) =>
+            Transform.scale(scale: scale.value, child: _HeartIcon(filled: _liked, color: widget.pill ? (_liked ? t.pr : t.ink) : t.onMedia, size: size)),
       ),
     );
+    if (widget.pill) {
+      return Semantics(
+        button: true,
+        label: _liked ? context.l10n.postViewUnlike : context.l10n.postViewLike,
+        value: widget.a11yCount?.call(_count),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _toggle,
+          // Görünür hap küçük, dokunma alanı en az 44x44 dp (kutu içine taşar).
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+            child: Center(
+              widthFactor: 1,
+              child: DecoratedBox(
+                key: const ValueKey('like-pill'),
+                decoration: BoxDecoration(color: t.sf.withValues(alpha: .9), borderRadius: BorderRadius.circular(BuRadius.pill)),
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.symmetric(horizontal: 8, vertical: 5),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    icon,
+                    if (_count > 0 || _countAnim.value < 1) ...[
+                      const SizedBox(width: 4),
+                      ExcludeSemantics(child: count),
+                    ],
+                  ]),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
     return Semantics(
       button: true,
       label: _liked ? context.l10n.postViewUnlike : context.l10n.postViewLike,

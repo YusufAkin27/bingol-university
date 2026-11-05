@@ -5599,24 +5599,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get kesSegReels => 'Reels';
 
   @override
-  String get kesSegA11y => 'Keşfet görünümü';
-
-  @override
-  String get kesPopularity => 'Popülerlik';
-
-  @override
-  String kesPopularityOf(String score) {
-    return 'Popülerlik puanı $score / 100';
-  }
-
-  @override
-  String get kesPopularityHow =>
-      'Takipçi sayın, aldığın beğeniler ve gönderi sayından hesaplanır.';
-
-  @override
-  String get kesLikesReceived => 'Alınan beğeni';
-
-  @override
   String get kesPickVideo => 'Video seç';
 
   @override
@@ -5649,29 +5631,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get kesReelsEmptyBody => 'İlk videoyu sen paylaş.';
-
-  @override
-  String get kesSeenAll => 'Hepsini gördün, gönderiler yeniden gösteriliyor.';
-
-  @override
-  String get kesFilterForYou => 'Senin İçin';
-
-  @override
-  String get kesFilterPopular => 'Popüler';
-
-  @override
-  String get kesFilterLatest => 'En Yeni';
-
-  @override
-  String get kesFilterFollowing => 'Takip Ettiklerim';
-
-  @override
-  String get kesFollowingEmptyTitle =>
-      'Takip ettiklerin henüz bir şey paylaşmadı';
-
-  @override
-  String get kesFollowingEmptyBody =>
-      'Yeni kişiler takip et, paylaşımları burada görünsün.';
 
   @override
   String get kesReelsDoneTitle => 'Şimdilik tüm videoları gördün';

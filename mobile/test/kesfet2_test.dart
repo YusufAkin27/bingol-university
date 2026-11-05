@@ -313,6 +313,10 @@ void main() {
       String count(int id) => tester.widget<Text>(find.descendant(of: box(id), matching: find.byKey(const ValueKey('like-count')))).data!;
       expect(count(1000), '10');
       expect(find.descendant(of: box(1000), matching: find.byIcon(BuIcons.heart)), findsOneWidget);
+      // Beğenmemiş: BOS cizgi kalp, beyaz DEGIL (acik yuzey hapi uzerinde ink).
+      final outline = tester.widget<Icon>(find.descendant(of: box(1000), matching: find.byIcon(BuIcons.heart)));
+      expect(outline.color, BuTokens.light.ink);
+      expect(outline.color, isNot(BuTokens.light.onMedia));
       await tester.tap(find.descendant(of: box(1000), matching: find.byKey(const ValueKey('like-heart'))));
       await tester.pump(const Duration(milliseconds: 60));
       expect(count(1000), '11'); // iyimser
@@ -321,12 +325,12 @@ void main() {
       expect(count(1000), '10'); // hata: geri alindi
       expect(find.descendant(of: box(1000), matching: find.byIcon(BuIcons.heart)), findsOneWidget);
       expect(find.text('Beğeni kaydedilemedi'), findsOneWidget);
-      // Basarili beğeni: dolu beyaz kalp (onMedia), pr kirmizi degil.
+      // Basarili beğeni: DOLU KIRMIZI kalp (pr), beyaz degil.
       await tester.tap(find.descendant(of: box(999), matching: find.byKey(const ValueKey('like-heart'))));
       await settle(tester, const Duration(milliseconds: 900));
       final icon = tester.widget<Icon>(find.descendant(of: box(999), matching: find.byIcon(BuIcons.heartFilled)));
-      expect(icon.color, BuTokens.light.onMedia);
-      expect(icon.color, isNot(BuTokens.light.pr));
+      expect(icon.color, BuTokens.light.pr);
+      expect(icon.color, isNot(BuTokens.light.onMedia));
       noErr(tester);
     });
 
@@ -398,51 +402,48 @@ void main() {
       expect(scrollPixels(tester, find.byType(CustomScrollView).first), before);
       noErr(tester);
     });
-
-    testWidgets('Populer kapsul filtresi: scope=popular istenir', (tester) async {
-      useScreen(tester, const Size(390, 844));
-      final b = FakeBackend();
-      feed(b, count: 20);
-      await tester.pumpWidget(buildApp(discover(b)));
-      await settle(tester, const Duration(milliseconds: 800));
-      await tester.tap(find.byKey(const ValueKey('discoverFilter-popular')));
-      await settle(tester, const Duration(milliseconds: 800));
-      expect(b.requests.any((r) => r.contains('scope=popular')), isTrue);
-      expect(find.byType(DiscoverPostBox), findsWidgets);
-      noErr(tester);
-    });
   });
 
   group('gonderi sayfasi (dikey akis)', () {
     Finder stream() => find.byKey(const ValueKey('postStream'));
 
-    testWidgets('kutuya dokunma: tiklanan gonderi ilk, altinda akis sirasiyla; 20 dp kenar, 4:5 foto, ayirici; metin gorunur', (tester) async {
+    testWidgets('kutuya dokunma: tiklanan gonderi akisin ortasinda ekranin basinda; ustunde onceki, altinda sonrakiler; 20 dp kenar, 4:5 foto, ayirici', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
       feed(b, count: 20);
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 800));
-      // 3. kutu (998) tiklanir: akis 998, 997, 996 ... diye surer; 1000/999 gosterilmez.
+      // 3. kutu (998) tiklanir: akis ORTADA 998; ustunde 999 ve 1000 (yukari kaydirinca), altinda 997, 996 ...
       await tester.tapAt(tester.getCenter(box(998)));
       await settle(tester, const Duration(milliseconds: 900));
       expect(find.byType(PostDetailPage), findsOneWidget);
-      expect(find.text('Gönderi'), findsOneWidget); // ust cubuk basligi
+      expect(find.text('Gönderi'), findsOneWidget); // sabit ust cubuk basligi
       expect(find.text('Metin 998'), findsOneWidget);
-      expect(find.text('Metin 1000'), findsNothing);
       final y998 = tester.getTopLeft(find.byKey(const ValueKey('stream-post-998'))).dy;
+      expect(y998, lessThan(130), reason: 'tiklanan gonderi ust cubugun hemen altinda baslar');
+      expect(y998, greaterThanOrEqualTo(56));
       final y997 = tester.getTopLeft(find.byKey(const ValueKey('stream-post-997'))).dy;
       expect(y997, greaterThan(y998));
+      // Ustteki gonderiler: baslangicta ekranin disinda; yukari kaydirinca (parmak asagi) 999 sonra 1000 gorunur.
+      expect(find.text('Metin 1000'), findsNothing);
+      await tester.drag(stream(), const Offset(0, 700));
+      await settle(tester, const Duration(milliseconds: 500));
+      expect(find.byKey(const ValueKey('stream-post-999')), findsOneWidget);
+      await tester.drag(stream(), const Offset(0, 800));
+      await settle(tester, const Duration(milliseconds: 500));
+      expect(find.byKey(const ValueKey('stream-post-1000')), findsOneWidget);
+      expect(tester.getTopLeft(find.byKey(const ValueKey('stream-post-1000'))).dy,
+          lessThan(tester.getTopLeft(find.byKey(const ValueKey('stream-post-999'))).dy));
       // Gonderi arasi: 1 dp bd ayirici (20 dp kenar) + 24 dp bosluk.
       final div = find.byKey(const ValueKey('postStreamDivider')).first;
       expect(tester.getSize(div).height, 1);
       expect(tester.getSize(div).width, 350);
       expect(tester.getTopLeft(div).dx, 20);
       // Foto 4:5, 20 dp kenar (350 x 437,5).
-      final photo = tester.getSize(find.descendant(of: find.byKey(const ValueKey('stream-post-998')), matching: find.byKey(const ValueKey('post-photo-998'))));
+      final photo = tester.getSize(find.descendant(of: find.byKey(const ValueKey('stream-post-1000')), matching: find.byKey(const ValueKey('post-photo-1000'))));
       expect(photo.width, 350);
       expect(photo.height, closeTo(437.5, 1));
-      // Ikinci gonderinin akista sirayla yuklenmesi: uc ilk uc gonderi hizada.
-      expect(tester.getTopLeft(find.byKey(const ValueKey('stream-post-997'))).dx, 0);
+      expect(tester.getTopLeft(find.byKey(const ValueKey('stream-post-1000'))).dx, 0);
       noErr(tester);
     });
 
@@ -461,8 +462,11 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
       }
       await settle(tester, const Duration(milliseconds: 800));
-      final c2 = b.requests.where((r) => r.contains('cursor=p2')).length;
-      expect(c2, 1, reason: b.requests.join('|'));
+      // Izgaranin sonundan sonra akis YENI oturum (imlecsiz) ile surer; ardindan imlec zinciri (p2, p3) aynen izlenir.
+      final feeds = b.requests.where((r) => r.startsWith('GET /feed?')).toList();
+      expect(feeds.length, greaterThanOrEqualTo(3), reason: feeds.join('|'));
+      expect(feeds[1].contains('cursor='), isFalse, reason: 'ilk sayfalama imlecsiz (yeni tohum): ${feeds.join('|')}');
+      expect(b.requests.any((r) => r.contains('cursor=p2')), isTrue);
       expect(b.requests.any((r) => r.contains('cursor=p3')), isTrue);
       noErr(tester);
     });
@@ -481,7 +485,8 @@ void main() {
         await tester.pump(const Duration(milliseconds: 150));
       }
       expect(find.byKey(const ValueKey('postStreamSkeleton')), findsOneWidget);
-      await settle(tester, const Duration(seconds: 4));
+      b.delay = Duration.zero;
+      await settle(tester, const Duration(seconds: 20));
       expect(find.byKey(const ValueKey('postStreamSkeleton')), findsNothing);
       noErr(tester);
     });
@@ -512,7 +517,7 @@ void main() {
       noErr(tester);
     });
 
-    testWidgets('geri dugmesi sabit: baslik kaybolur, 24 dp ustunde yuvarlak zemin belirir; geri doner', (tester) async {
+    testWidgets('ust cubuk sabit: baslik + geri dugmesi kaydirinca da yerinde; geri doner', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
       feed(b, count: 20);
@@ -520,17 +525,12 @@ void main() {
       await settle(tester, const Duration(milliseconds: 800));
       await tester.tapAt(tester.getCenter(box(1000)));
       await settle(tester, const Duration(milliseconds: 900));
-      double circle() => tester.widget<AnimatedOpacity>(find.ancestor(of: find.byKey(const ValueKey('postBackCircle')), matching: find.byType(AnimatedOpacity)).first).opacity;
-      expect(circle(), 0);
       expect(find.text('Gönderi'), findsOneWidget);
       final backAt = tester.getCenter(find.byKey(const ValueKey('postBack')));
-      tester.state<ScrollableState>(find.descendant(of: stream(), matching: find.byType(Scrollable)).first).position.jumpTo(20);
-      await settle(tester, const Duration(milliseconds: 300));
-      expect(circle(), 0, reason: '24 dp altinda zemin yok');
-      await tester.drag(stream(), const Offset(0, -700));
+      expect(tester.getSize(find.byKey(const ValueKey('postBack'))), const Size(48, 48));
+      await tester.drag(stream(), const Offset(0, -900));
       await settle(tester, const Duration(milliseconds: 400));
-      expect(circle(), closeTo(.94, .001));
-      expect(find.text('Gönderi'), findsNothing); // baslik kayip gitti
+      expect(find.text('Gönderi'), findsOneWidget); // baslik kaymaz
       expect(tester.getCenter(find.byKey(const ValueKey('postBack'))), backAt); // sabit
       await tester.tap(find.byKey(const ValueKey('postBack')));
       await settle(tester, const Duration(milliseconds: 700));

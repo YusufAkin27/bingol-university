@@ -79,81 +79,21 @@ Widget discover(FakeBackend b) => DiscoverTab(session: makeSession(b), typeReque
 void main() {
   setUpAll(loadTestFonts);
 
-  group('5 kapsul filtre', () {
-    testWidgets('Senin Icin | Populer | Reels | En Yeni | Takip Ettiklerim; kapsamlar dogru; seen yalniz foryou/popular',
-        (tester) async {
+  group('Kesfet tek akis', () {
+    testWidgets('filtre kapsulu yok; yalniz scope=foryou istenir ve gorulenler POST /feed/seen ile bildirilir', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
       fakePosts(b);
-      b.on('/feed/reels*', {'items': [], 'nextCursor': null, 'exhausted': true});
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
       for (final f in ['Senin İçin', 'Popüler', 'Reels', 'En Yeni', 'Takip Ettiklerim']) {
-        expect(find.text(f), findsOneWidget, reason: f);
+        expect(find.text(f), findsNothing, reason: f);
       }
       expect(b.requests.any((r) => r.startsWith('GET /feed?') && r.contains('scope=foryou')), isTrue);
-      await tester.tap(find.byKey(const ValueKey('discoverFilter-popular')));
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(b.requests.any((r) => r.contains('scope=popular')), isTrue);
       await tester.pump(const Duration(seconds: 3));
-      final seenBefore = b.count('POST /feed/seen');
-      expect(seenBefore, greaterThanOrEqualTo(1));
-      await tester.tap(find.byKey(const ValueKey('discoverFilter-latest')));
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(b.requests.any((r) => r.contains('scope=latest')), isTrue);
-      await tester.pump(const Duration(seconds: 3));
-      // En Yeni kutulari gorulmus kumesine yazilmaz: yeni seen istegi yok.
-      expect(b.count('POST /feed/seen'), seenBefore);
-      await tester.tap(find.byKey(const ValueKey('discoverFilter-following')));
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(b.requests.any((r) => r.contains('scope=following')), isTrue);
-      await tester.tap(find.byKey(const ValueKey('discoverFilter-reels')));
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(b.count('GET /feed/reels'), 1);
-      noErr(tester);
-    });
-
-    testWidgets('her filtre kendi kaydirma konumunu korur; geri donunce yeniden yuklenmez', (tester) async {
-      useScreen(tester, const Size(390, 844));
-      final b = FakeBackend();
-      fakePosts(b, count: 40, pageSize: 40);
-      await tester.pumpWidget(buildApp(discover(b)));
-      await settle(tester, const Duration(milliseconds: 600));
-      final sc = find.byType(CustomScrollView).first;
-      await tester.drag(sc, const Offset(0, -700));
-      await settle(tester, const Duration(milliseconds: 400));
-      double offset() => tester.widget<CustomScrollView>(find.byType(CustomScrollView).first).controller!.offset;
-      final before = offset();
-      expect(before, greaterThan(300));
-      final fetches = b.count('GET /feed?');
-      final foryou = b.count('scope=foryou');
-      await tester.tap(find.byKey(const ValueKey('discoverFilter-popular')));
-      await settle(tester, const Duration(milliseconds: 600));
-      await tester.tap(find.byKey(const ValueKey('discoverFilter-forYou')));
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(offset(), closeTo(before, 1));
-      expect(b.count('scope=foryou'), foryou, reason: 'Senin Icin akisi yeniden istenmedi');
-      expect(b.count('GET /feed?'), fetches + 1); // yalniz Populer ilk kurulusu
-      noErr(tester);
-    });
-
-    testWidgets('Takip Ettiklerim bos: ozel bos durum metni', (tester) async {
-      useScreen(tester, const Size(390, 844));
-      final b = FakeBackend();
-      fakePosts(b);
-      b.handlers.insert(
-          0,
-          (req, path) => path == '/feed' && req.url.queryParameters['scope'] == 'following'
-              ? const FakeResult.json({'items': [], 'nextCursor': null})
-              : null);
-      await tester.pumpWidget(buildApp(discover(b)));
-      await settle(tester, const Duration(milliseconds: 500));
-      // Kapsul satiri yatay kaydirilir: sondaki "Takip Ettiklerim" once gorunur alana getirilir.
-      await tester.drag(find.byKey(const ValueKey('discoverFilters')), const Offset(-300, 0));
-      await settle(tester, const Duration(milliseconds: 300));
-      await tester.tap(find.byKey(const ValueKey('discoverFilter-following')));
-      await settle(tester, const Duration(milliseconds: 700));
-      expect(find.text('Takip ettiklerin henüz bir şey paylaşmadı'), findsOneWidget);
+      expect(b.count('POST /feed/seen'), greaterThanOrEqualTo(1));
+      expect(b.requests.any((r) => r.contains('scope=popular') || r.contains('scope=latest') || r.contains('scope=following')), isFalse);
+      expect(b.count('GET /feed/reels'), 0); // Reels akisi Kesfet'ten acilmaz
       noErr(tester);
     });
 

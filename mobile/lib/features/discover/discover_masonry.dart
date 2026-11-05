@@ -7,12 +7,14 @@ import '../../core/api.dart' show ApiError;
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../posts/feed_pager.dart';
 import '../posts/feed_seen.dart';
 import '../posts/post_actions.dart';
 import '../posts/post_api.dart';
 import '../posts/post_models.dart';
 import '../posts/post_routes.dart';
 import 'discover_box.dart';
+import 'discover_prefetch.dart';
 import 'masonry_layout.dart';
 
 export 'discover_box.dart' show DiscoverPostBox, discoverHeroTag, discoverBoxRatio;
@@ -26,31 +28,27 @@ class DiscoverFeedController {
   Future<void> refresh() async => _state?._refresh();
 }
 
-/// Keşfet (Stitch v3 kesfet2 A): yalnız öğrenci gönderileri, iki sütun masonry ızgara; her kutu foto + sol altta yazar,
-/// sağ altta beğeni ([DiscoverPostBox]). İmleçli sonsuz kaydırma, çekip yenileme, iskelet / hata / boş durumları.
-/// Engelleme/gizlilik süzmesi sunucudadır (`/feed`). [header] akışla birlikte kayar (başlık, çipler). [scope] değişince
-/// akış baştan yüklenir; daha önce görülen kapsam önbellekten anında çizilir, arka planda doğrulanır. [inline] tam
-/// genişlikli bant olarak ilk [inlineAfter] kutudan sonra masonry'yi böler (sütunlar dengeli olduğu en yakın noktada;
-/// az gönderi varsa sonda); yalnız oraya kaydırılınca kurulur (ağ isteği de o zaman). Kutuya dokununca gönderi sayfası
-/// açılır: o gönderiden başlayan aynı akış dikey ve sonsuz kaydırmalı sürer ([PostStreamSeed]).
+/// Keşfet: TEK karma akış (`GET /feed?scope=foryou`): fotoğraf ve video gönderileri iki sütun masonry ızgarada
+/// KARIŞIK; her kutu foto/poster + sol altta yazar, sağ altta beğeni ([DiscoverPostBox]). Filtre yok.
+///
+/// * Her yenilemede (aşağı çekme, sekmeye 3 dk+ sonra dönüş, hata sonrası yeniden deneme) imleçsiz ilk sayfa AĞDAN gelir:
+///   sunucu yeni tohumla, görülmemişleri önce verir; hepsi görüldüyse baştan karıştırır (`exhausted`). İstemci bunu
+///   kesintisiz sürdürür: sonsuz kaydırma, "tükendi" ekranı YOK ([FeedPager]); aynı gönderi ekranda iki kez çıkmaz.
+/// * Sayfa geldiği an, kullanıcı bakmadan ÖNCE yakındaki görseller ve videolar yerel diske indirilir ([DiscoverPrefetch]).
+/// * Engelleme/gizlilik süzmesi sunucudadır. [header] akışla birlikte kayar. [inline] tam genişlikli bant olarak ilk
+///   [inlineAfter] kutudan sonra masonry'yi böler. Kutuya dokununca gönderi akışı açılır: o gönderi ORTADA, ızgarada
+///   ondan önceki gönderiler yukarıda, sonrakiler ve rastgele yenileri aşağıda ([PostStreamSeed]).
 class DiscoverMasonryFeed extends StatefulWidget {
   const DiscoverMasonryFeed({
     super.key,
     required this.session,
     this.controller,
     this.header,
-    this.pinnedHeader,
-    this.scope = 'foryou',
     this.onCompose,
     this.inline,
     this.inlineAfter = 4,
-    this.emptyTitle,
-    this.emptyBody,
+    this.tabActive = true,
   });
-
-  /// Boş durum metni (null: varsayılan "henüz gönderi yok").
-  final String? emptyTitle;
-  final String? emptyBody;
 
   /// Akış içi öneri bölümü (ör. "Tanıyor Olabilirsin").
   final Widget? inline;
@@ -58,14 +56,22 @@ class DiscoverMasonryFeed extends StatefulWidget {
 
   final Session session;
   final DiscoverFeedController? controller;
-  final Widget? header;
 
-  /// Sabitlenen üst alan (kapsül filtreler kaydırınca da erişilebilir kalsın): [header] yerine kullanılır.
-  final SliverPersistentHeaderDelegate? pinnedHeader;
-  final String scope;
+  /// Akışla birlikte kayan üst alan (başlık satırı).
+  final Widget? header;
 
   /// Boş durumdaki "Gönderi oluştur" düğmesi.
   final VoidCallback? onCompose;
+
+  /// Sekme şu an görünür mü: gizliyken geçen süre [staleAfter]'i aşarsa görünür olunca akış yenilenir.
+  final bool tabActive;
+
+  /// Sekmeye dönüşte akışın yenilenmesi için gereken en kısa gizli kalma süresi.
+  static const staleAfter = Duration(minutes: 3);
+
+  /// Test kancası: saat (sahte zaman ilerletmek için).
+  @visibleForTesting
+  static DateTime Function() debugNow = DateTime.now;
 
   @override
   State<DiscoverMasonryFeed> createState() => _DiscoverMasonryFeedState();
@@ -76,29 +82,35 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
   static const _pageSize = 12;
 
   final _scroll = ScrollController();
-  final _scrollKey = GlobalKey(); // kapsam anahtarı değişince kaydırma durumu (ve denetleyici) taşınır, yeniden kurulmaz
+  final _scrollKey = GlobalKey(); // yenilemede kaydırma durumu (ve denetleyici) taşınır, yeniden kurulmaz
   final List<Post> _items = [];
   late PostApi _api;
   late FeedSeenReporter _seen;
+  late FeedPager _pager;
+  late DiscoverPrefetch _prefetch;
 
   int _gen = 0;
-  String? _cursor;
-  bool _hasMore = true;
   bool _loading = false;
   bool _loaded = false;
-  int _scopeGen = 0; // yalnız kapsam değişince artar: ilk 6 kutunun kademeli girişi o zaman yeniden oynar (yenilemede değil)
+  int _scopeGen = 0; // yalnız yeniden yüklemede artar: ilk 6 kutunun kademeli girişi o zaman yeniden oynar
   int? _freshId; // az önce oluşturulup başa eklenen gönderi: girişi ayrıca (solma + yükselme) oynar
   Object? _error;
   Object? _moreError;
   bool _stale = false; // ağ yokken önbellekten gösterilen akış: çevrimdışı notu (Stitch v3)
+  DateTime? _hiddenAt;
+  int _maxBuilt = -1; // kullanıcının ulaştığı en uzak ızgara indeksi (önyükleme yakınlığı)
+  Timer? _warmTimer;
 
   @override
   void initState() {
     super.initState();
     _api = PostApi(widget.session);
     _seen = FeedSeenReporter(_api);
+    _pager = FeedPager(_api, size: _pageSize);
+    _prefetch = DiscoverPrefetch(widget.session);
     widget.controller?._state = this;
     _scroll.addListener(_onScroll);
+    if (!widget.tabActive) _hiddenAt = DiscoverMasonryFeed.debugNow();
     _reload();
   }
 
@@ -113,13 +125,27 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
       _seen.dispose();
       _api = PostApi(widget.session);
       _seen = FeedSeenReporter(_api);
+      _pager = FeedPager(_api, size: _pageSize);
+      _prefetch = DiscoverPrefetch(widget.session);
     }
-    if (old.scope != widget.scope) _reload();
+    if (old.tabActive && !widget.tabActive) {
+      _hiddenAt = DiscoverMasonryFeed.debugNow();
+      unawaited(_seen.flush());
+    } else if (!old.tabActive && widget.tabActive) {
+      final at = _hiddenAt;
+      _hiddenAt = null;
+      // Uzun süre sonra dönüş: yeni gönderiler / yeni karışım için baştan, ağdan.
+      if (at != null && DiscoverMasonryFeed.debugNow().difference(at) >= DiscoverMasonryFeed.staleAfter && _loaded && !_loading) {
+        if (_scroll.hasClients) _scroll.jumpTo(0);
+        unawaited(_refresh());
+      }
+    }
   }
 
   @override
   void dispose() {
     if (widget.controller?._state == this) widget.controller!._state = null;
+    _warmTimer?.cancel();
     _seen.dispose();
     _scroll.dispose();
     super.dispose();
@@ -143,15 +169,21 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
     }
   }
 
-  /// Görülmüş kümesi yalnız Senin İçin ve Popüler akışlarında vardır (En Yeni/Takip Ettiklerim'de yok).
-  bool get _marksSeen => widget.scope == 'foryou' || widget.scope == 'popular' || widget.scope == 'top';
+  /// Önyükleme: ulaşılan konumdan sonraki görseller + videolar (kısa gecikmeyle birleştirilir).
+  void _schedulePrefetch() {
+    _warmTimer?.cancel();
+    _warmTimer = Timer(const Duration(milliseconds: 120), () {
+      if (mounted) _prefetch.onItems(_items, from: _maxBuilt);
+    });
+  }
 
+  /// Baştan yükler (ilk açılış, hata sonrası yeniden deneme): iskelet gösterilir.
   Future<void> _reload() async {
     final gen = ++_gen;
     setState(() {
       _items.clear();
-      _cursor = null;
-      _hasMore = true;
+      _pager.reset();
+      _maxBuilt = -1;
       _loaded = false;
       _scopeGen++;
       _freshId = null;
@@ -161,65 +193,54 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
     });
     // Önbellekteki eski sayfa BİLEREK gösterilmez: yenileyen kişiye aynı gönderiler yine gelmesin (sunucu görülmüşleri
     // hariç tutar). Eski sayfa yalnız ağ yokken yedek olarak çizilir (_fetch).
-    await _fetch(gen);
+    await _fetch(gen, replace: true);
   }
 
+  /// Çekip yenile: görünen liste yerinde kalır, yeni sayfa gelince değişir (yeni tohum, imleçsiz).
   Future<void> _refresh() async {
     final gen = ++_gen;
-    _cursor = null;
+    _pager.reset();
     await _fetch(gen, replace: true);
   }
 
   Future<void> _loadMore() async {
-    if (_loading || !_hasMore || !_loaded) return;
+    if (_loading || _pager.ended || !_loaded) return;
     await _fetch(_gen);
   }
 
-  /// [quiet]: arka plan doğrulaması; hata olursa görünen (önbellekten gelen) liste olduğu gibi kalır.
-  Future<void> _fetch(int gen, {bool replace = false, bool quiet = false}) async {
+  Future<void> _fetch(int gen, {bool replace = false}) async {
     if (_loading && !replace) return;
     setState(() {
       _loading = true;
       if (!replace) _moreError = null;
     });
     try {
-      // nextCursor opaktır: aynen geri gönderilir. Puan yenilenince (hint=RANK_REFRESHED) kopya gelebilir;
-      // id ile tekilleştirme aşağıda zaten yapılır.
-      final page = await _api.feed(scope: widget.scope, cursor: replace ? null : _cursor, size: _pageSize);
+      final chunk = await _pager.next(replace ? const <int>{} : {for (final e in _items) e.id});
       if (!mounted || gen != _gen) return;
       setState(() {
-        if (replace) _items.clear();
-        final seen = {for (final e in _items) e.id};
-        _items.addAll(page.items.where((e) => seen.add(e.id)));
-        _cursor = page.nextCursor;
-        _hasMore = page.hasMore;
+        if (replace) {
+          _items.clear();
+          _maxBuilt = -1;
+        }
+        _items.addAll(chunk.items);
         _loaded = true;
         _loading = false;
         _error = null;
         _moreError = null;
         _stale = false;
       });
-      // Bütün havuz görülmüştü: sunucu baştan tekrar ediyor; kısaca haber ver (yalnız ilk sayfada).
-      if (page.exhausted && (replace || _items.length == page.items.length) && page.items.isNotEmpty) {
-        BuToast.show(context, context.l10n.kesSeenAll);
-      }
+      _schedulePrefetch();
       // İçerik ekranı doldurmuyorsa kaydırma olmayacağından sonraki sayfayı kendimiz iste.
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _hasMore && _scroll.hasClients && _scroll.position.maxScrollExtent <= 0) _loadMore();
+        if (mounted && !_pager.ended && _scroll.hasClients && _scroll.position.maxScrollExtent <= 0) _loadMore();
       });
     } catch (e) {
       if (!mounted || gen != _gen) return;
-      // Bozuk/başka kapsamın imleci: akışı baştan (imleçsiz) yükle.
-      if (e is ApiError && e.code == 'POST_CURSOR_INVALID' && _cursor != null) {
-        _loading = false;
-        await _reload();
-        return;
-      }
       // Ağ yok ve hiç gönderi yüklenmedi: varsa önbellekteki eski ilk sayfayı yedek olarak göster.
       if (!_loaded && e is ApiError && e.isNetwork) {
         PostPage<Post>? cached;
         try {
-          cached = await _api.peekFeed(scope: widget.scope, size: _pageSize);
+          cached = await _api.peekFeed(scope: 'foryou', size: _pageSize);
         } catch (_) {
           cached = null;
         }
@@ -230,8 +251,8 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
             _items
               ..clear()
               ..addAll(page.items);
-            _cursor = page.nextCursor;
-            _hasMore = page.hasMore;
+            _pager.cursor = page.nextCursor;
+            _pager.renew = !page.hasMore;
             _loaded = true;
             _loading = false;
             _stale = true;
@@ -244,8 +265,6 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
         if (_loaded && e is ApiError && e.isNetwork) _stale = true;
         if (!_loaded) {
           _error = e;
-        } else if (quiet) {
-          // Önbellekten çizilmiş liste olduğu gibi kalır.
         } else if (replace) {
           BuToast.show(context, errorText(e), kind: BuToastKind.error);
         } else {
@@ -265,16 +284,14 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
     if (mounted) setState(() => _items.removeWhere((e) => e.id == id));
   }
 
-  /// Gönderi sayfası: tıklanan kutudan SONRAKİ gönderiler ve imleç, sayfanın dikey akışına tohum olur. Sayfada olan
-  /// beğeni/düzenleme/silme (akıştaki herhangi bir gönderi için) masonry'ye anında yansır; geri dönünce kaydırma konumu
-  /// aynen kalır (bu liste yerinden oynamaz).
+  /// Gönderi akışı: tıklanan gönderi ORTADA; ızgarada ondan ÖNCEKİLER yukarıda, SONRAKİLER aşağıda, ızgaranın sonundan
+  /// sonra sunucudan yeni (rastgele) sayfalar ([PostStreamSeed]). Akışta olan beğeni/düzenleme/silme (herhangi bir
+  /// gönderi için) ızgaraya anında yansır; geri dönünce kaydırma konumu aynen kalır (bu liste yerinden oynamaz).
   Future<void> _open(Post p) async {
     final i = _items.indexWhere((e) => e.id == p.id);
     final seed = PostStreamSeed(
-      scope: widget.scope,
+      before: i <= 0 ? const [] : List<Post>.of(_items.sublist(0, i)),
       items: i < 0 ? const [] : List<Post>.of(_items.sublist(i + 1)),
-      cursor: _cursor,
-      hasMore: _hasMore,
     );
     final r = await openPostDetail(context, widget.session, p.id,
         initial: p, heroTag: discoverHeroTag(p.id), stream: seed, onChanged: _changed, onDeleted: _removed);
@@ -299,8 +316,7 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
       body = SliverToBoxAdapter(
           child: _EntryRise(child: DiscoverErrorCard(offline: _error is ApiError && (_error as ApiError).isNetwork, onRetry: _reload)));
     } else if (_items.isEmpty) {
-      body = SliverToBoxAdapter(
-          child: _EntryRise(child: DiscoverEmptyCard(onCompose: widget.onCompose, title: widget.emptyTitle, body: widget.emptyBody)));
+      body = SliverToBoxAdapter(child: _EntryRise(child: DiscoverEmptyCard(onCompose: widget.onCompose)));
     } else {
       body = _masonry(context);
     }
@@ -313,10 +329,7 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
           controller: _scroll,
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            if (widget.pinnedHeader != null)
-              SliverPersistentHeader(pinned: true, delegate: widget.pinnedHeader!)
-            else if (widget.header != null)
-              SliverToBoxAdapter(child: widget.header),
+            if (widget.header != null) SliverToBoxAdapter(child: widget.header),
             if (_stale && _loaded && _items.isNotEmpty) const SliverToBoxAdapter(child: _OfflineNote(key: ValueKey('discoverOffline'))),
             body,
             SliverToBoxAdapter(child: _footer()),
@@ -355,7 +368,11 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
         delegate: SliverChildBuilderDelegate(
           (_, i) {
             final p = items[i];
-            if (_marksSeen) _seen.mark(p.id);
+            _seen.mark(p.id);
+            if (from + i > _maxBuilt) {
+              _maxBuilt = from + i;
+              _schedulePrefetch();
+            }
             Widget box = DiscoverPostBox(
               key: ValueKey('discover-post-${p.id}'),
               session: widget.session,
@@ -525,22 +542,18 @@ class _SkeletonBox extends StatelessWidget {
   }
 }
 
-/// Boş durum: sade kamera dairesi, tek cümle, tek eylem (kart/gölge yok; sayfa zemininde durur).
+/// Boş durum: sade, tek cümle, tek eylem (kart/gölge yok; sayfa zemininde durur).
 class DiscoverEmptyCard extends StatelessWidget {
-  const DiscoverEmptyCard({super.key, this.onCompose, this.title, this.body});
+  const DiscoverEmptyCard({super.key, this.onCompose});
 
   final VoidCallback? onCompose;
-
-  /// Verilirse varsayılan "gönderi yok" metninin yerine geçer.
-  final String? title;
-  final String? body;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final tt = Theme.of(context).textTheme;
     final l = context.l10n;
-    final parts = title != null ? [title!, if (body != null) body!] : l.postViewFeedEmpty.split(RegExp(r'(?<=[.!?])\s+'));
+    final parts = l.postViewFeedEmpty.split(RegExp(r'(?<=[.!?])\s+'));
     return Padding(
       padding: const EdgeInsets.fromLTRB(BuSpace.page, BuSpace.huge, BuSpace.page, 0),
       child: Column(

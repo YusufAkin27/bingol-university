@@ -5623,24 +5623,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kesSegReels => 'Reels';
 
   @override
-  String get kesSegA11y => 'Explore view';
-
-  @override
-  String get kesPopularity => 'Popularity';
-
-  @override
-  String kesPopularityOf(String score) {
-    return 'Popularity score $score out of 100';
-  }
-
-  @override
-  String get kesPopularityHow =>
-      'Calculated from your followers, the likes you receive and your post count.';
-
-  @override
-  String get kesLikesReceived => 'Likes received';
-
-  @override
   String get kesPickVideo => 'Choose video';
 
   @override
@@ -5673,29 +5655,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get kesReelsEmptyBody => 'Be the first to share a video.';
-
-  @override
-  String get kesSeenAll => 'You have seen everything, posts are shown again.';
-
-  @override
-  String get kesFilterForYou => 'For You';
-
-  @override
-  String get kesFilterPopular => 'Popular';
-
-  @override
-  String get kesFilterLatest => 'Latest';
-
-  @override
-  String get kesFilterFollowing => 'Following';
-
-  @override
-  String get kesFollowingEmptyTitle =>
-      'The people you follow have not posted yet';
-
-  @override
-  String get kesFollowingEmptyBody =>
-      'Follow more people to see their posts here.';
 
   @override
   String get kesReelsDoneTitle => 'You have watched all videos for now';

@@ -74,7 +74,8 @@ void main() {
     final titleCy = tester.getRect(find.text('Keşfet')).center.dy;
     final search = tester.widget<BuIconButton>(find.byKey(const ValueKey('discoverSearch')));
     row('Arama düğmesi görünür boyut', 44, search.size);
-    row('İlk kutu üstü - başlık merkezi (dikey)', 76, r1.top - titleCy);
+    // KE-MB: filtre kapsül satırı kalktı; ilk kutu başlık satırının hemen altında (referans 76 dp kapsül satırı dahildi).
+    row('İlk kutu üstü - başlık merkezi (dikey)', 30, r1.top - titleCy);
 
     // Izgara
     row('Yan kenar (sol)', 12, r1.left);
@@ -116,20 +117,24 @@ void main() {
 
     // Kalp + sayi (sag alt)
     final heart = find.descendant(of: box(1), matching: find.byKey(const ValueKey('like-heart')));
-    row('Kalp boyutu', 20, tester.getSize(heart).width);
+    // KE-MB: kalp + sayı açık yüzey hapı içinde (18 dp kalp), beğenmemiş boş çizgi, beğenmiş dolu kırmızı.
+    row('Kalp boyutu', 18, tester.getSize(heart).width);
     row('Kalp merkezi alttan', 22, r1.bottom - tester.getRect(heart).center.dy);
     final countF = find.descendant(of: box(1), matching: find.byKey(const ValueKey('like-count')));
     final count = tester.widget<Text>(countF);
     row('Sayı punto (sp)', 13, count.style!.fontSize!);
     expect(count.style!.fontWeight, FontWeight.w600);
-    row('Sayı sağ boşluk', 10, r1.right - tester.getRect(countF).right);
-    row('Kalp ile sayı arası', 5, tester.getRect(countF).left - tester.getRect(heart).right, tol: 2);
+    row('Sayı sağ boşluk (hap iç boşluğu dahil)', 16, r1.right - tester.getRect(countF).right);
+    row('Kalp ile sayı arası', 4, tester.getRect(countF).left - tester.getRect(heart).right, tol: 1);
     final tap = tester.getSize(find.ancestor(of: heart, matching: find.byType(GestureDetector)).first);
     row('Beğeni dokunma yüksekliği (≥44)', 44, tap.height < 44 ? tap.height : 44);
     final authorTap = tester.getSize(find.byKey(const ValueKey('discover-author-499')));
     row('Yazar dokunma yüksekliği (≥44)', 44, authorTap.height < 44 ? authorTap.height : 44);
-    // Beğenilmiş: dolu beyaz kalp
-    expect(find.descendant(of: box(1), matching: find.byIcon(BuIcons.heartFilled)), findsOneWidget);
+    // Beğenilmiş: DOLU KIRMIZI kalp (beyaz değil); beğenmemiş: boş çizgi kalp
+    final filled = tester.widget<Icon>(find.descendant(of: box(1), matching: find.byIcon(BuIcons.heartFilled)));
+    expect(filled.color, BuTokens.light.pr);
+    final outline = tester.widget<Icon>(find.descendant(of: box(2), matching: find.byIcon(BuIcons.heart)));
+    expect(outline.color, BuTokens.light.ink);
     noErr(tester);
   });
 
@@ -238,15 +243,11 @@ void main() {
     row('Ayırıcı -> sonraki avatar üstü', 32.5, next.top - div.bottom);
     row('Gönderi aralığı (avatar üstü -> avatar üstü)', 586, next.top - avatar.top, tol: 3);
 
-    // Kaydirilinca (09): baslik kaybolur, geri dugmesi yuvarlak zemin 40 dp, sol 9 ust 8,5
+    // KE-MB: üst çubuk SABİT (başlık + geri düğmesi kaydırınca da yerinde).
     tester.state<ScrollableState>(find.descendant(of: find.byKey(const ValueKey('postStream')), matching: find.byType(Scrollable)).first).position.jumpTo(500);
     await settle(tester, const Duration(milliseconds: 400));
-    final circle = tester.getRect(find.byKey(const ValueKey('postBackCircle')));
-    row('Geri dairesi çapı', 40, circle.width);
-    row('Geri dairesi sol', 9, circle.left);
-    row('Geri dairesi üst', 8.5, circle.top);
-    final op = tester.widget<AnimatedOpacity>(find.ancestor(of: find.byKey(const ValueKey('postBackCircle')), matching: find.byType(AnimatedOpacity)).first);
-    row('Daire zemin opaklığı (%)', 94, op.opacity * 100, tol: .5);
+    row('Kaydırınca başlık merkezi (y) sabit', 29, tester.getRect(find.text('Gönderi')).center.dy);
+    row('Kaydırınca geri düğmesi sabit (x)', 28, tester.getCenter(find.byKey(const ValueKey('postBack'))).dx);
     noErr(tester);
   });
 }

@@ -43,12 +43,6 @@ Map<String, dynamic>? _map(Object? v) => v is Map ? Map<String, dynamic>.from(v)
 List<Map<String, dynamic>> _maps(Object? v) =>
     v is List ? [for (final e in v) if (e is Map) Map<String, dynamic>.from(e)] : const [];
 
-/// Popülerlik puanı: sunucu 0..100 üretir; ondalıklı gelirse yuvarlanır, aralık dışı değer kıstırılır.
-int? _scoreOrNull(Object? v) {
-  final n = v is num ? v : (v is String ? num.tryParse(v) : null);
-  return n?.round().clamp(0, 100);
-}
-
 class PostAuthor {
   const PostAuthor({
     required this.id,
@@ -56,7 +50,6 @@ class PostAuthor {
     this.avatarUrl,
     this.department,
     this.followerCount,
-    this.popularityScore,
   });
 
   factory PostAuthor.fromJson(Map<String, dynamic>? j) => PostAuthor(
@@ -65,7 +58,6 @@ class PostAuthor {
         avatarUrl: _str(j?['avatarUrl']),
         department: _str(j?['department']),
         followerCount: _intOrNull(j?['followerCount']),
-        popularityScore: _scoreOrNull(j?['popularityScore']),
       );
 
   final int id;
@@ -75,9 +67,6 @@ class PostAuthor {
 
   /// Sunucunun hesapladığı gerçek takipçi sayısı (yoksa null: gösterilmez).
   final int? followerCount;
-
-  /// Yazarın popülerlik puanı 0..100 (yoksa null).
-  final int? popularityScore;
 }
 
 enum PostMediaKind { image, video }
@@ -181,7 +170,6 @@ class Post {
     this.canDelete = false,
     this.createdAt,
     this.editedAt,
-    this.popularityScore,
     this.viewCount,
     this.commentCount,
     this.savedByMe,
@@ -214,7 +202,6 @@ class Post {
       canDelete: j?['canDelete'] == true,
       createdAt: _str(j?['createdAt']),
       editedAt: _str(j?['editedAt']),
-      popularityScore: _scoreOrNull(j?['popularityScore']),
       viewCount: _intOrNull(j?['viewCount']),
       commentCount: _intOrNull(j?['commentCount']),
       savedByMe: j?['savedByMe'] is bool ? j!['savedByMe'] as bool : null,
@@ -235,9 +222,6 @@ class Post {
   final bool canDelete;
   final String? createdAt;
   final String? editedAt;
-
-  /// Gönderinin popülerlik puanı 0..100 (sunucu hesaplar; yoksa null: gösterge çizilmez).
-  final int? popularityScore;
 
   /// Yalnız video gönderide: izlenme sayısı (yoksa null).
   final int? viewCount;
@@ -277,7 +261,6 @@ class Post {
     String? text,
     String? editedAt,
     List<PostMedia>? media,
-    int? popularityScore,
     int? commentCount,
     bool? savedByMe,
   }) =>
@@ -294,7 +277,6 @@ class Post {
         canDelete: canDelete,
         createdAt: createdAt,
         editedAt: editedAt ?? this.editedAt,
-        popularityScore: popularityScore ?? this.popularityScore,
         viewCount: viewCount,
         commentCount: commentCount ?? this.commentCount,
         savedByMe: savedByMe ?? this.savedByMe,

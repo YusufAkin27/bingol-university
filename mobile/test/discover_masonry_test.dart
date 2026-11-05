@@ -1,9 +1,11 @@
 import 'package:bu_kampus/features/discover/discover_masonry.dart';
 import 'package:bu_kampus/features/discover/discover_tab.dart';
 import 'package:bu_kampus/features/posts/post_detail_page.dart';
+import 'package:bu_kampus/widgets/bu.dart' show BuChip;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'kesfet_ks_test.dart' show videoPost;
 import 'support/fake_app.dart';
 import 'package:bu_kampus/core/icons/bu_icons.dart';
 
@@ -29,11 +31,13 @@ void main() {
       expect(b.requests.any((r) => r.contains('/news')), isFalse);
       expect(find.byType(DiscoverPostBox), findsWidgets);
       expect(find.text('Keşfet'), findsOneWidget);
-      // Haber/kategori yok; 5 kapsul filtre.
+      // Haber/kategori yok; kapsul filtre YOK (tek karma akis).
       expect(find.text('Haberler'), findsNothing);
-      expect(find.text('Senin İçin'), findsOneWidget);
-      expect(find.text('Popüler'), findsOneWidget);
-      expect(find.text('En Yeni'), findsOneWidget);
+      for (final t in ['Senin İçin', 'Popüler', 'Reels', 'En Yeni', 'Takip Ettiklerim']) {
+        expect(find.text(t), findsNothing, reason: t);
+      }
+      expect(find.byKey(const ValueKey('discoverFilters')), findsNothing);
+      expect(find.byType(BuChip), findsNothing);
       // Iki sutun masonry (Stitch v3 kesfet2): kutular iki sol kenarda (12 ve 12+179+8) ve 179 dp genisliginde.
       final lefts = {
         for (final e in tester.elementList(find.byType(DiscoverPostBox))) tester.getTopLeft(find.byWidget(e.widget)).dx.round()
@@ -47,16 +51,38 @@ void main() {
       noErr(tester);
     });
 
-    testWidgets('Populer kapsul filtresi akisi scope=popular ile bastan yukler', (tester) async {
-      useScreen(tester, const Size(390, 844));
+    testWidgets('tek karma akis: fotograf ve video kutulari ayni izgarada, yalniz scope=foryou istenir', (tester) async {
+      useScreen(tester, const Size(390, 1800));
       final b = FakeBackend();
-      fakePosts(b);
+      fakePosts(b, count: 12, pageSize: 12);
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
-      await tester.tap(find.byKey(const ValueKey('discoverFilter-popular')));
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(b.requests.any((r) => r.contains('/feed') && r.contains('scope=popular')), isTrue);
-      expect(find.byType(DiscoverPostBox), findsWidgets);
+      final feeds = b.requests.where((r) => r.contains('/feed')).toList();
+      expect(feeds, isNotEmpty);
+      expect(feeds.every((r) => r.contains('scope=foryou')), isTrue, reason: feeds.join('|'));
+      expect(feeds.any((r) => r.contains('scope=popular') || r.contains('scope=latest') || r.contains('scope=following')), isFalse);
+      expect(find.byType(DiscoverPostBox), findsNWidgets(12));
+      noErr(tester);
+    });
+
+    testWidgets('karma akis: video gonderi kutusu poster + sure hapi, fotograf kutusuyla ayni izgarada', (tester) async {
+      useScreen(tester, const Size(390, 1200));
+      final b = FakeBackend();
+      b.on('/feed*', {
+        'items': [
+          samplePost(id: 11, text: 'Foto', media: [samplePostMedia(id: 110)]),
+          videoPost(id: 12),
+          samplePost(id: 13, text: 'Foto 2', media: [samplePostMedia(id: 130)]),
+          videoPost(id: 14),
+        ],
+        'nextCursor': null,
+      });
+      await tester.pumpWidget(buildApp(discover(b)));
+      await settle(tester, const Duration(milliseconds: 800));
+      expect(find.byType(DiscoverPostBox), findsNWidgets(4));
+      expect(find.byKey(const ValueKey('videoDuration')), findsNWidgets(2));
+      expect(find.descendant(of: find.byKey(const ValueKey('discover-post-11')), matching: find.byKey(const ValueKey('videoDuration'))), findsNothing);
+      expect(find.descendant(of: find.byKey(const ValueKey('discover-post-12')), matching: find.byKey(const ValueKey('videoDuration'))), findsOneWidget);
       noErr(tester);
     });
 
@@ -130,8 +156,8 @@ void main() {
       int count() => int.parse((tester.widget(find.descendant(of: card, matching: find.byKey(const ValueKey('like-count')))) as Text).data!);
       final before = count();
       expect((tester.widget(find.descendant(of: card, matching: find.byKey(const ValueKey('like-count')))) as Text).data, matches(r'^\d+$')); // gorunur: yalniz rakam (hap icinde)
-      // Kalp 20 dp; dokunma alani (kalp + sayi satirinin tamami) en az 44 dp yuksekliginde.
-      expect(tester.getSize(like).height, 20);
+      // Kalp 18 dp (acik yuzey hapi icinde); dokunma alani (hap + bosluk) en az 44 dp yuksekliginde.
+      expect(tester.getSize(like).height, 18);
       expect(tester.getSize(find.ancestor(of: like, matching: find.byType(GestureDetector)).first).height, greaterThanOrEqualTo(44));
       await tester.ensureVisible(like);
       await tester.pump();
@@ -265,7 +291,8 @@ void main() {
       return b;
     }
 
-    testWidgets('size=12, nextCursor opak aynen geri gider, son sayfada durur', (tester) async {
+    testWidgets('size=12, nextCursor opak aynen geri gider; zincir bitince imlecsiz yeni oturum, yalniz tekrar varsa durur',
+        (tester) async {
       useScreen(tester, const Size(390, 1800)  /* 24 dp bosluk + buyuk kartlar: tum kartlar bir ekrana sigsin */);
       final seen = <Uri>[];
       final b = topBackend([
@@ -282,11 +309,16 @@ void main() {
       expect(seen.first.queryParameters['size'], '12');
       await tester.drag(find.byType(CustomScrollView).last, const Offset(0, -3000));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(seen.length, 2);
       expect(seen[1].queryParameters['cursor'], 'Ab-_c9==x');
+      // nextCursor null: istemci "tukendi" gostermez, imlecsiz (yeni tohum) istekle surdurur; yalniz tekrardan olusan
+      // sayfalar gelirse (kucuk havuz) birkac denemeden sonra durur.
+      expect(seen[2].queryParameters.containsKey('cursor'), isFalse);
+      final n = seen.length;
+      expect(n, lessThanOrEqualTo(6));
       await tester.drag(find.byType(CustomScrollView).last, const Offset(0, -3000));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(seen.length, 2); // nextCursor null: yeni istek yok
+      expect(seen.length, n); // havuz ekrandakilerden ibaret: sonsuz istek dongusu yok
+      expect(find.byType(DiscoverPostBox), findsNWidgets(14)); // ayni gonderi iki kez gosterilmedi
       noErr(tester);
     });
 
@@ -302,7 +334,7 @@ void main() {
       await settle(tester, const Duration(milliseconds: 600));
       await tester.drag(find.byType(CustomScrollView).last, const Offset(0, -3000));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(seen.length, 2);
+      expect(seen.length, greaterThanOrEqualTo(2));
       expect(find.byType(DiscoverPostBox), findsNWidgets(3));
       noErr(tester);
     });
@@ -319,9 +351,10 @@ void main() {
       await settle(tester, const Duration(milliseconds: 600));
       await tester.drag(find.byType(CustomScrollView).last, const Offset(0, -3000));
       await settle(tester, const Duration(milliseconds: 800));
-      // 1) ilk sayfa, 2) bozuk imleç, 3) imlecsiz yeniden yukleme
+      // 1) ilk sayfa, 2) bozuk imleç, 3) imlecsiz yeniden yukleme (hata gosterilmez, ayni gonderiler tekrarlanmaz)
       expect(seen.length, greaterThanOrEqualTo(3));
-      expect(seen.last.queryParameters.containsKey('cursor'), isFalse);
+      expect(seen.skip(1).any((u) => !u.queryParameters.containsKey('cursor')), isTrue);
+      expect(find.text('Yeniden dene'), findsNothing);
       expect(find.byType(DiscoverPostBox), findsNWidgets(2));
       noErr(tester);
     });
