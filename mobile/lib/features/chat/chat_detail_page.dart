@@ -49,6 +49,8 @@ import 'media_picker_page.dart';
 import 'media_preview_page.dart';
 import 'message_bubble.dart';
 import 'photo_autosave.dart';
+import '../share/share_card.dart' show sharePreviewText;
+import '../share/share_open.dart' show openShared;
 
 /// "Video hazırlanıyor… %N" penceresi (Stitch 25-6; iptal edilebilir). Kapatmayı çağıran yapar.
 class _VideoPrepareDialog extends StatelessWidget {
@@ -398,6 +400,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         '_state': it.status == OutboxStatus.failed ? 'failed' : 'pending',
         '_queued': true,
         '_seq': _seq++,
+        if (it.share != null) 'share': it.share, // paylaşım kartı (yalnız tür+kimlik; ayrıntı teslimde gelir)
       };
       if (it.media.isNotEmpty) {
         if (it.viewOnce) {
@@ -3153,6 +3156,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           onOpenImage: _openImage,
           onOpenGallery: _openMessageGallery,
           onOpenViewOnce: (a) => _openViewOnce(m, a),
+          onOpenShare: (info) =>
+              openShared(context, widget.session, info.target, info: info),
           highlight: (_searching && _query.isNotEmpty) ? _query : null,
           onReact: (e) => _react(m, e),
         );
@@ -3295,7 +3300,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     final preview = text.isNotEmpty
         ? text
         : (first == null
-            ? ''
+            ? (sharePreviewText(context, banner) ?? '')
             : (isVideo ? l.chatMiscVideo : l.chatMiscPhoto));
     // Kompakt yanıt/düzenleme kutusu: yumuşak köşe, solda ince marka çizgisi, ad + tek satır önizleme, kapat.
     return Padding(

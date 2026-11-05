@@ -19,6 +19,7 @@ import 'message_bubble.dart' show OnceBadge;
 import 'message_requests_page.dart';
 import 'message_placeholder.dart';
 import 'new_chat_page.dart';
+import '../share/share_card.dart' show sharePreviewText;
 
 /// Sohbet sekmesi: konuşma listesi (birebir, grup, kulüp, etkinlik).
 /// Liste STOMP akışıyla yerinde güncellenir; bağlantı yoksa çekerek yenileme geçerlidir.
@@ -1039,6 +1040,9 @@ class _ConversationRow extends StatelessWidget {
     if (viewOnceAttachment(last) != null && last['deleted'] != true && last['removed'] != true) {
       return (l.chatMiscOnceText, null, true);
     }
+    // Paylaşım kartı: nötr metin ("Gönderi paylaştı"); sunucu yedek metne koyduğu bağlantı listeye sızmaz.
+    final shared = sharePreviewText(context, last);
+    if (shared != null) return (shared, BuIcons.share2, false);
     final text = (last['text'] as String?)?.trim() ?? '';
     if (text.isNotEmpty) {
       return (text.replaceAll(RegExp(r'\s+'), ' '), null, false);

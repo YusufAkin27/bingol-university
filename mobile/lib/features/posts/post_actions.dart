@@ -11,6 +11,8 @@ import 'post_api.dart';
 import 'post_media_uploader.dart' show postErrorText;
 import 'post_models.dart';
 import 'post_text_rules.dart';
+import '../share/share_button.dart' show shareContentForPost;
+import '../share/share_sheet.dart' show showShareSheet;
 
 /// Gönderi ⋯ menüsü (Stitch v3 04/05): alt sayfa, 56 dp satırlar. Yazara Düzenle/Sil, başkalarına Profili gör / Şikâyet et / Bu kullanıcıyı engelle.
 /// [anchorContext] ⋯ düğmesinin, [cardContext] kartın bağlamıdır (konum ölçümü için; verilmezse ortada açılır).
@@ -26,10 +28,13 @@ Future<void> showPostActions(
   BuildContext? cardContext,
   ValueChanged<bool>? onOpenChanged,
   bool notInterested = false,
+  bool share = false,
 }) async {
   final mine = post.mine || post.author.id == session.userId;
   final l = context.l10n;
   final actions = <PostMenuAction>[
+    // Kartta ayrı Paylaş düğmesi yoksa (Keşfet kutusu) menüden de paylaşılabilir.
+    if (share) PostMenuAction('share', l.shareTitle, BuIcons.share2),
     // Reels/Senin İçin önerisinden çıkar ("İlgilenmiyorum"): yalnız başkasının gönderisinde.
     if (notInterested && !mine) PostMenuAction('notInterested', l.kesNotInterested, BuIcons.eyeOff),
     if (post.canEdit) PostMenuAction('edit', l.postComposeEdit, BuIcons.squarePen),
@@ -63,6 +68,8 @@ Future<void> showPostActions(
   }
   if (id == null || !context.mounted) return;
   switch (id) {
+    case 'share':
+      await showShareSheet(context, session, shareContentForPost(session, post));
     case 'notInterested':
       try {
         await PostApi(session).notInterested(post.id);

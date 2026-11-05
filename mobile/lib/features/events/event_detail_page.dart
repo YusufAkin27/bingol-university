@@ -27,6 +27,8 @@ import 'event_cover.dart';
 import 'event_form_page.dart';
 import 'event_parts.dart';
 import 'events_page.dart';
+import '../share/share_button.dart' show ShareIconButton, shareContentForEvent;
+import '../share/share_sheet.dart' show showShareSheet;
 
 /// Dile göre intl biçimi; yerel ayar verisi yoksa varsayılana düşer.
 String _fmtDate(BuildContext context, String pattern, DateTime d) {
@@ -426,7 +428,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
               backgroundColor: t.bg,
               scrolledUnderElevation: 0,
               title: Text(l.eventFormEventTitle, style: BuType.title.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
-              actions: [_menu(), const SizedBox(width: 4)],
+              actions: [_shareAction(), _menu(), const SizedBox(width: 4)],
             ),
             SliverToBoxAdapter(
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: _content(context)),
@@ -439,6 +441,16 @@ class _EventDetailPageState extends State<EventDetailPage> {
       backgroundColor: t.bg,
       body: body,
       bottomNavigationBar: _barOrNull(),
+    );
+  }
+
+  /// Sağ üst Paylaş: yalnız yayında (iptal/inceleme/ret dışı) etkinliklerde; kişiye mesajla, bağlantı, diğer uygulamalar.
+  Widget _shareAction() {
+    final ev = _ev;
+    if (ev == null || eventIsCancelled(ev) || eventIsPendingReview(ev) || eventIsRejected(ev)) return const SizedBox.shrink();
+    return ShareIconButton(
+      key: const ValueKey('event-share'),
+      onTap: () => showShareSheet(context, widget.session, shareContentForEvent({...ev, 'id': widget.eventId})),
     );
   }
 
