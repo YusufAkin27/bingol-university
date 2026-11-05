@@ -827,7 +827,7 @@ class _SearchPageState extends State<SearchPage> {
     return TextSpan(children: spans);
   }
 
-  /// Kısaltma: kulüp için en çok 3, kişi için en çok 2 baş harf ("KFK", "EY").
+  /// Kulüp kısaltması (en çok 3 baş harf, "KFK"); kişi avatarı değildir, kulüp kendi yedeğini korur.
   String _initials(String name, int max) {
     final parts = name.trim().split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
     return trUpper(parts.take(max).map((e) => e.characters.first).join());
@@ -910,8 +910,9 @@ class _SearchPageState extends State<SearchPage> {
       case _Tab.person:
       case _Tab.all:
         // Kişi avatarına uzun basma = büyük önizleme (diğer avatarlarla tutarlı); fotoğraf yoksa hiçbir şey açılmaz.
-        final personAvatar = hasImg ? BuAvatar(name: h.title, url: h.imageUrl, size: 44) : _initialsCircle(t, h.title, 2);
-        leading = hasImg && h.type == 'USER'
+        // Fotoğrafı yoksa varsayılan profil görseli ([BuAvatar]).
+        final personAvatar = BuAvatar(name: h.title, url: h.imageUrl, size: 44, headers: h.type == 'USER' ? postAuthHeaders(widget.session) : null);
+        leading = h.type == 'USER'
             ? AvatarLongPress(imageUrl: h.imageUrl, headers: postAuthHeaders(widget.session), title: h.title, child: personAvatar)
             : personAvatar;
         sub = snip;

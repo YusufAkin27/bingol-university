@@ -5,7 +5,7 @@ import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
-import '../clubs/clubs_widgets.dart' show ClubPageHeader, ClubTextTabs, ClubsLogo;
+import '../clubs/clubs_widgets.dart' show ClubPageHeader, ClubTextTabs;
 import 'etkinlik2_settings_page.dart';
 import 'etkinlik2_widgets.dart';
 import '../../core/academic_catalog.dart';
@@ -401,7 +401,7 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
       padding: const EdgeInsetsDirectional.fromSTEB(0, 8, 0, 8),
       decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
       child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-        ClubsLogo(name: name, id: uid, url: fileUrl(a['avatarUrl'] as String?), size: 40),
+        BuAvatar(name: name, url: a['avatarUrl'] as String?, size: 40),
         const SizedBox(width: 12),
         Expanded(
           child: Padding(
@@ -436,7 +436,7 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
       decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
       padding: const EdgeInsetsDirectional.fromSTEB(0, 12, 0, 12),
       child: Row(children: [
-        ClubsLogo(name: name, id: _uid(a), url: fileUrl(a['avatarUrl'] as String?), size: 40),
+        BuAvatar(name: name, url: a['avatarUrl'] as String?, size: 40),
         const SizedBox(width: 12),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [

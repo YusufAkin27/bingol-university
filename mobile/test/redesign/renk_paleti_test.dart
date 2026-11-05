@@ -172,17 +172,16 @@ void main() {
   });
 
   group('koda sihirli renk sizmaz (lib/ taramasi)', () {
-    // Renk literali yalnizca bu dosyalarda serbest: belirtec kaynagi, baglamsiz painter paleti, ders renkleri,
+    // Renk literali yalnizca bu dosyalarda serbest: belirtec kaynagi, ders renkleri,
     // sabit golge ve bos baslangic degeri.
     const colorLiteralAllow = {
       'lib/core/theme.dart',
-      'lib/widgets/bu_default_avatar.dart',
       'lib/features/academic/academic_models.dart',
       'lib/features/chat/sohbety_widgets.dart',
       'lib/features/chat/media_preview_page.dart',
     };
-    // Colors.white/black yalniz baglamsiz painter'da (avatar parlamasi).
-    const colorsConstAllow = {'lib/widgets/bu_default_avatar.dart'};
+    // Colors.white/black hicbir dosyada serbest degil.
+    const colorsConstAllow = <String>{};
 
     final files = Directory('lib')
         .listSync(recursive: true)

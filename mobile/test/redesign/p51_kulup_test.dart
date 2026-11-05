@@ -1,3 +1,4 @@
+import 'package:bu_kampus/widgets/bu_widgets.dart' show BuAvatar;
 import 'package:bu_kampus/features/clubs/club_detail_page.dart';
 import 'package:bu_kampus/features/clubs/club_form_page.dart';
 import 'package:bu_kampus/features/clubs/clubs_tab.dart';
@@ -105,7 +106,7 @@ void main() {
     await tester.tap(find.text('Üyeler'));
     await settle(tester, const Duration(milliseconds: 700));
     expect(find.text('Elif Yıldız'), findsOneWidget);
-    expect(find.byType(ClubsLogo), findsWidgets);
+    expect(find.byType(BuAvatar), findsWidgets); // uye = kisi avatari (foto yoksa varsayilan gorsel)
     expect(find.byTooltip('Üye işlemleri'), findsNWidgets(2));
     await unmount(tester);
 

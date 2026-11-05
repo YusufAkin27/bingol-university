@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-
-import '../../core/cache/image_disk_cache.dart';
 import '../../core/push/push_router.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -166,7 +164,6 @@ class ChatlistAvatar extends StatelessWidget {
     this.circle = false,
     this.headers,
     this.heroTag,
-    this.monogram = false,
     this.cornerRadius,
     this.preview = false,
   });
@@ -177,9 +174,6 @@ class ChatlistAvatar extends StatelessWidget {
 
   /// Köşe yarıçapını sabitler (varsayılan: boyutun %34'ü; büyük avatarda 20 dp).
   final double? cornerRadius;
-
-  /// true: fotoğraf yoksa varsayılan görsel yerine baş harfler (Stitch v3 konuşma ekranı: `sf2` zemin, `ink` metin).
-  final bool monogram;
 
   /// Liste -> konuşma geçişinde paylaşılan avatar uçuşu etiketi (`chat-avatar-<id>`); null: Hero yok.
   final Object? heroTag;
@@ -221,15 +215,6 @@ class ChatlistAvatar extends StatelessWidget {
   /// true: işaret üst başta (kulüp), false: alt sonda (etkinlik).
   final bool badgeAtTop;
 
-  /// Baş harfler (yedek avatar artık baş harf çizmez; başka yerlerde metin için kullanılabilir).
-  static String initials(String name) {
-    final parts = name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
-    if (parts.isEmpty) return '?';
-    final a = String.fromCharCode(parts.first.runes.first);
-    final b = parts.length > 1 ? String.fromCharCode(parts.last.runes.first) : '';
-    return (a + b).toUpperCase();
-  }
-
   @override
   Widget build(BuildContext context) {
     final avatar = _avatar(context);
@@ -240,51 +225,17 @@ class ChatlistAvatar extends StatelessWidget {
   Widget _avatar(BuildContext context) {
     final t = context.bu;
     final radius = circle ? size / 2 : (cornerRadius ?? size * .34);
-    // Varsayılan profil görseli her zaman altta durur: görsel yüklenirken, hata verince ya da url yokken görünür.
-    final fallback = monogram
-        ? Container(
-            width: size,
-            height: size,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(radius)),
-            child: Text(initials(name),
-                maxLines: 1,
-                style: Theme.of(context).textTheme.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700, fontSize: size * .36, height: 1)),
-          )
-        : ClipRRect(
-            borderRadius: BorderRadius.circular(radius),
-            child: BuDefaultAvatar(seed: name, size: size, group: group),
-          );
-    final full = fileUrl(url);
-    final Widget base;
-    if (full == null) {
-      base = ExcludeSemantics(child: fallback);
-    } else {
-      final px = (size * MediaQuery.devicePixelRatioOf(context)).ceil();
-      base = ExcludeSemantics(
-        child: SizedBox(
-          width: size,
-          height: size,
-          child: Stack(fit: StackFit.expand, children: [
-            fallback,
-            ClipRRect(
-              borderRadius: BorderRadius.circular(radius),
-              child: Image(
-                image: persistentNetworkImage(full, headers: headers ?? authHeadersFor(url), cacheWidth: px),
-                width: size,
-                height: size,
-                fit: BoxFit.cover,
-                gaplessPlayback: true,
-                frameBuilder: (c, child, frame, sync) =>
-                    sync ? child : AnimatedOpacity(opacity: frame == null ? 0 : 1, duration: BuMotion.of(c, BuMotion.medium), curve: BuMotion.decelerate, child: child),
-                // Yüklenemezse alttaki varsayılan görsel kalır.
-                errorBuilder: (c, e, st) => const SizedBox.shrink(),
-              ),
-            ),
-          ]),
-        ),
-      );
-    }
+    // Tek kişi avatarı yolu [BuAvatar]: fotoğraf varsa o; yoksa/yüklenirken/hata verince varsayılan profil görseli.
+    final base = ExcludeSemantics(
+      child: BuAvatar(
+        name: name,
+        url: url,
+        size: size,
+        radius: radius,
+        group: group,
+        headers: headers ?? authHeadersFor(url),
+      ),
+    );
     final Widget shown = heroTag == null ? base : BuHero(tag: heroTag!, radius: radius, child: base);
     if (!online && badge == null) return shown;
     return SizedBox(

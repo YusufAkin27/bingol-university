@@ -252,7 +252,7 @@ class _SohbetyFieldState extends State<SohbetyField> {
   }
 }
 
-/// Fotoğrafsız avatar: marka tonu zemin + baş harf(ler); fotoğraf varsa yuvarlak görsel.
+/// Kişi avatarı (yuvarlak): fotoğraf varsa o; yoksa/yüklenirken/hata verince varsayılan profil görseli ([BuAvatar]).
 class SohbetyAvatar extends StatelessWidget {
   const SohbetyAvatar({super.key, required this.name, this.url, this.size = 48, this.headers, this.ring = false});
 
@@ -264,32 +264,11 @@ class SohbetyAvatar extends StatelessWidget {
   /// Beyaz halka + gölge (sohbet bilgisi büyük avatarı).
   final bool ring;
 
-  static String initial(String name) {
-    final s = name.trim();
-    if (s.isEmpty) return '?';
-    return String.fromCharCode(s.runes.first).toUpperCase();
-  }
-
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final has = url != null && url!.isNotEmpty;
-    final Widget inner = has
-        ? BuAvatar(name: name, url: url, size: size, headers: headers)
-        : ExcludeSemantics(
-            child: Container(
-              width: size,
-              height: size,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-              child: Text(initial(name),
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium!
-                      .copyWith(fontSize: size * .38, fontWeight: FontWeight.w800, color: t.onSoft)),
-            ),
-          );
-    if (!(ring && has)) return inner;
+    final inner = BuAvatar(name: name, url: url, size: size, headers: headers);
+    if (!ring) return inner;
     return Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,

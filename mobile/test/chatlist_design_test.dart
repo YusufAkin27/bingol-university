@@ -43,12 +43,6 @@ FakeBackend _be() => FakeBackend()
   });
 
 void main() {
-  test('baş harfler', () {
-    expect(ChatlistAvatar.initials('Ahmet Yıldız'), 'AY');
-    expect(ChatlistAvatar.initials('burak'), 'B');
-    expect(ChatlistAvatar.initials(''), '?');
-  });
-
   for (final b in Brightness.values) {
     for (final size in kPhoneSizes) {
       for (final rtl in [false, true]) {

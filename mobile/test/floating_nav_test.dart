@@ -187,12 +187,12 @@ void main() {
       size: kPhoneMedium,
     ));
     expect(find.byType(BuDefaultAvatar), findsOneWidget);
-    expect(find.byType(Image), findsNothing);
+    expect(find.byType(Image), findsOneWidget); // yalniz varsayilan gorsel (ag gorseli yok)
     url.value = '/files/avatars/me.jpg';
     await tester.pump();
     // Foto yuklenirken/hata verirse varsayilan gorsel altta kalir.
     expect(find.byType(BuDefaultAvatar), findsOneWidget);
-    expect(find.byType(Image), findsOneWidget);
+    expect(find.byType(Image), findsNWidgets(2)); // varsayilan (alt) + ag gorseli
   });
 
   testWidgets('klavye acikken cubuk gizlenir', (tester) async {

@@ -292,7 +292,7 @@ void main() {
       expect(find.text('Üyesin'), findsOneWidget);
       expect(find.text('Bilgisayar Mühendisliği · 2. sınıf'), findsOneWidget);
       expect(find.textContaining('elif@'), findsNothing);
-      expect(find.text('EY'), findsOneWidget);
+      expect(find.text('EY'), findsNothing); // kisi: baş harf yok, varsayilan avatar gorseli
       // Eşleşen "Kamp" marka rengi + 600.
       final pr = tester.element(find.byType(Scaffold).first).bu.prText;
       var found = false;

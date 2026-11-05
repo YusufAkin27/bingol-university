@@ -451,7 +451,8 @@ Future<void> fillRegister(WidgetTester tester,
 Finder contentImages() => find.byWidgetPredicate((w) {
       if (w is! Image) return false;
       if (w.key == const ValueKey('chatWallpaperAsset')) return false; // sohbet duvar kağıdı içerik değildir
-      final i = w.image;
+      var i = w.image;
+      if (i is ResizeImage) i = i.imageProvider; // varsayilan avatar cacheWidth ile ResizeImage sarar
       return !(i is AssetImage && i.assetName.contains('default_'));
     });
 

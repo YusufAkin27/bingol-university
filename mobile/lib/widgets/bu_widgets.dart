@@ -400,8 +400,8 @@ class BuBadge extends StatelessWidget {
   }
 }
 
-/// Görselli avatar. Fotoğraf yoksa / yüklenirken / yüklenemezse VARSAYILAN PROFİL GÖRSELİ ([BuDefaultAvatar]) görünür
-/// (baş harf yok; renk ad/seed'den kararlı). [square] true: yuvarlatılmış kare (kulüp/grup).
+/// Görselli avatar: uygulamadaki TEK kişi avatarı yolu. Fotoğraf yoksa / yüklenirken / yüklenemezse VARSAYILAN PROFİL
+/// GÖRSELİ ([BuDefaultAvatar]) görünür (baş harf yok). [square] true: yuvarlatılmış kare; [radius] köşeyi sabitler.
 /// [online] true ise sağ altta yeşil çevrimiçi noktası çizilir.
 class BuAvatar extends StatelessWidget {
   const BuAvatar({
@@ -414,9 +414,10 @@ class BuAvatar extends StatelessWidget {
     this.headers,
     this.group = false,
     this.online = false,
+    this.radius,
   });
 
-  /// Yalnız varsayılan görselin renk varyantı için (kişi her yerde aynı rengi alır).
+  /// Kişi adı: ekran okuyucu etiketi çağıranda durur; burada yalnız çağrı kolaylığı için taşınır.
   final String? name;
   final String? url;
 
@@ -432,17 +433,20 @@ class BuAvatar extends StatelessWidget {
   /// Çevrimiçi noktası.
   final bool online;
 
+  /// Köşe yarıçapı (dp); verilirse [square]'i geçersiz kılar (ör. sohbet listesi 52 dp kare, 20 dp köşe).
+  final double? radius;
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final radius = BorderRadius.circular(square ? size * .34 : size);
+    final corner = BorderRadius.circular(radius ?? (square ? size * .34 : size));
     // Varsayılan görsel HER ZAMAN altta durur: gerçek fotoğraf yüklenemezse (hata/yavaş ağ) o kalır.
-    final fallback = BuDefaultAvatar(seed: name, size: size, group: group);
+    final fallback = BuDefaultAvatar(size: size, group: group);
     final full = fileUrl(url);
     // Küçük avatar için tam çözünürlüklü görseli belleğe açma.
     final px = (size * MediaQuery.devicePixelRatioOf(context)).ceil();
     final img = ClipRRect(
-      borderRadius: radius,
+      borderRadius: corner,
       child: full == null
           ? fallback
           : SizedBox(
