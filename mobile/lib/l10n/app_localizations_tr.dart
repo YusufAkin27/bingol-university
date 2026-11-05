@@ -5898,17 +5898,17 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profil2VisEveryone => 'Herkes';
 
   @override
-  String get profil2VisShared => 'Ortak bağlam';
+  String get profil2VisShared => 'Tanıdıklarım';
 
   @override
   String get profil2VisOnlyMe => 'Yalnızca ben';
 
   @override
-  String get profil2SharedHintLead => 'Ortak bağlam:';
+  String get profil2SharedHintLead => 'Tanıdıklarım:';
 
   @override
   String get profil2SharedHintBody =>
-      'ortak kulüp, sohbet veya etkinliğin olduğu kişiler.';
+      'seninle aynı kulüpte, sohbette veya etkinlikte olan kişiler.';
 
   @override
   String get profil2ShowEmail => 'E-postamı diğer kullanıcılara göster';

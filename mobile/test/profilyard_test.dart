@@ -163,7 +163,7 @@ void main() {
     expect(find.text('Takipleşiyorsunuz'), findsOneWidget);
     expect(find.text('Seni takip ediyor'), findsOneWidget);
     expect(find.text('Takip et'), findsNWidgets(2));
-    expect(find.text('Takipte'), findsOneWidget); // Emre: düğme "Takipte"
+    expect(find.text('Takip ediliyor'), findsOneWidget); // Emre: düğme "Takipte"
     await tester.enterText(find.byType(TextField), 'selin');
     await tester.pump();
     expect(find.text('Selin Kaya'), findsOneWidget);

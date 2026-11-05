@@ -10947,7 +10947,7 @@ abstract class AppLocalizations {
   /// No description provided for @profil2VisShared.
   ///
   /// In tr, this message translates to:
-  /// **'Ortak bağlam'**
+  /// **'Tanıdıklarım'**
   String get profil2VisShared;
 
   /// No description provided for @profil2VisOnlyMe.
@@ -10959,13 +10959,13 @@ abstract class AppLocalizations {
   /// No description provided for @profil2SharedHintLead.
   ///
   /// In tr, this message translates to:
-  /// **'Ortak bağlam:'**
+  /// **'Tanıdıklarım:'**
   String get profil2SharedHintLead;
 
   /// No description provided for @profil2SharedHintBody.
   ///
   /// In tr, this message translates to:
-  /// **'ortak kulüp, sohbet veya etkinliğin olduğu kişiler.'**
+  /// **'seninle aynı kulüpte, sohbette veya etkinlikte olan kişiler.'**
   String get profil2SharedHintBody;
 
   /// No description provided for @profil2ShowEmail.

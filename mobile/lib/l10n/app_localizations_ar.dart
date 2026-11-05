@@ -5876,17 +5876,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profil2VisEveryone => 'الجميع';
 
   @override
-  String get profil2VisShared => 'سياق مشترك';
+  String get profil2VisShared => 'معارفي';
 
   @override
   String get profil2VisOnlyMe => 'أنا فقط';
 
   @override
-  String get profil2SharedHintLead => 'السياق المشترك:';
+  String get profil2SharedHintLead => 'معارفي:';
 
   @override
   String get profil2SharedHintBody =>
-      'الأشخاص الذين تشترك معهم في نادٍ أو محادثة أو فعالية.';
+      'الأشخاص الذين يشاركونك نادياً أو محادثة أو فعالية.';
 
   @override
   String get profil2ShowEmail => 'إظهار بريدي الإلكتروني للمستخدمين الآخرين';

@@ -212,7 +212,7 @@ class P2FieldLabel extends StatelessWidget {
   }
 }
 
-/// Üç seçenekli parçalı seçici (Herkes | Ortak bağlam | Yalnızca ben): seçili parça koyu (mürekkep).
+/// Üç seçenekli parçalı seçici (Herkes | Tanıdıklarım | Yalnızca ben): seçili parça koyu (mürekkep).
 class P2Segment3 extends StatelessWidget {
   const P2Segment3({super.key, required this.labels, required this.index, required this.onChanged, this.label, this.enabled = true});
 

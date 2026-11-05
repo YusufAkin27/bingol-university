@@ -5923,17 +5923,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profil2VisEveryone => 'Everyone';
 
   @override
-  String get profil2VisShared => 'Shared context';
+  String get profil2VisShared => 'People I know';
 
   @override
   String get profil2VisOnlyMe => 'Only me';
 
   @override
-  String get profil2SharedHintLead => 'Shared context:';
+  String get profil2SharedHintLead => 'People I know:';
 
   @override
   String get profil2SharedHintBody =>
-      'people you share a club, chat or event with.';
+      'people in the same club, chat or event as you.';
 
   @override
   String get profil2ShowEmail => 'Show my email to other users';

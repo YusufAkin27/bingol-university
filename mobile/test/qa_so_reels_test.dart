@@ -91,13 +91,13 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('reel-follow-btn-7')));
       await settle(tester, const Duration(milliseconds: 500));
       expect(b.count('POST /users/12/follow'), 1);
-      expect(find.text('Takipte'), findsOneWidget);
+      expect(find.text('Takip ediliyor'), findsOneWidget);
       // Aynı yazarın sonraki reeli: durum önbellekten (yeni GET /users/12 yok) ve "Takipte" gelir.
       await tester.fling(find.byKey(const ValueKey('reelsPager')), const Offset(0, -500), 1500);
       await settle(tester, const Duration(milliseconds: 900));
       expect(b.count('GET /users/12'), 1);
       expect(find.byKey(const ValueKey('reel-follow-btn-8')), findsOneWidget);
-      expect(find.text('Takipte'), findsOneWidget);
+      expect(find.text('Takip ediliyor'), findsOneWidget);
       noErr(tester);
       await unmount(tester);
     });
@@ -131,7 +131,7 @@ void main() {
       final b = backend([reel(7)], state: 'FOLLOWING');
       await tester.pumpWidget(buildApp(ReelsFeed(session: makeSession(b), active: true)));
       await settle(tester, const Duration(milliseconds: 700));
-      expect(find.text('Takipte'), findsOneWidget);
+      expect(find.text('Takip ediliyor'), findsOneWidget);
       await unmount(tester);
 
       final bad = FakeBackend();
