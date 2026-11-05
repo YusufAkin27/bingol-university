@@ -14,14 +14,13 @@ import 'academic_models.dart';
 import 'academic_widgets.dart';
 import 'acadhub_widgets.dart';
 import 'acad_ref_widgets.dart';
-import 'announcements_page.dart';
 import 'exams_page.dart';
 import 'reminder_settings_page.dart';
 import 'reminders.dart';
 import 'timetable_page.dart';
 
 /// Akademik giriş sayfası (Profil > Akademik; Stitch 43): sıradaki sınav, yaklaşan tarihler, ders programı, sınavlar,
-/// akademik takvim ve bölüm duyuruları kartları. Verisi olmayan kart boş durum kutusuna dönüşür.
+/// akademik takvim kartları. Verisi olmayan kart boş durum kutusuna dönüşür.
 class AcademicHubPage extends StatefulWidget {
   const AcademicHubPage({super.key, required this.session});
 
@@ -33,7 +32,6 @@ class AcademicHubPage extends StatefulWidget {
 
 class _AcademicHubPageState extends State<AcademicHubPage> {
   late final AcademicApi _api = AcademicApi(widget.session);
-  int? _unread;
   // Özet verisi tutulur, metin build'de dile göre üretilir.
   int? _courseCount;
   ({String name, String start})? _nextClass;
@@ -41,7 +39,6 @@ class _AcademicHubPageState extends State<AcademicHubPage> {
   int? _examCount;
   Exam? _nextExam;
   bool _maintenance = false;
-  bool _noDept = false;
 
   @override
   void initState() {
@@ -57,12 +54,6 @@ class _AcademicHubPageState extends State<AcademicHubPage> {
   }
 
   Future<void> _refresh() async {
-    try {
-      final c = await _api.unreadCount();
-      if (mounted) setState(() => _unread = c);
-    } catch (e) {
-      _note(e);
-    }
     try {
       final tt = await _api.timetable();
       final n = nextSlot(tt.courses, tt.semester, istanbulWall(academicClock()));
@@ -87,10 +78,6 @@ class _AcademicHubPageState extends State<AcademicHubPage> {
     } catch (e) {
       _note(e);
     }
-    try {
-      final o = await _api.officialExams();
-      if (mounted) setState(() => _noDept = !o.profileComplete);
-    } catch (_) {}
   }
 
   Future<void> _go(Widget page, [String? screen]) async {
@@ -104,13 +91,12 @@ class _AcademicHubPageState extends State<AcademicHubPage> {
     final l = context.l10n;
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final cc = _courseCount, nc = _nextClass, ec = _examCount, un = _unread;
+    final cc = _courseCount, nc = _nextClass, ec = _examCount;
     final ex = _nextExam;
     final timetableSub = cc == null
         ? l.acadHubTimetableSub
         : (cc == 0 ? l.acadHubAddCourses : (nc == null ? l.acadHubNoClassWeek : l.acadHubNext(nc.name, nc.start)));
     final examsSub = ec == null ? l.acadHubExamsSub : (ec == 0 ? l.acadHubNoExam : l.acadHubExamCount(ec.toString()));
-    final annSub = (un == null || un == 0) ? l.acadHubAnnouncementsSub : l.acadHubUnread(un.toString());
     return AcademicScaffold(
       title: l.acadHubTitle,
       actions: [AcadTextAction(l.acadHubReminders, onTap: () => _go(ReminderSettingsPage(session: s), 'reminder_settings'), size: 14)],
@@ -123,15 +109,6 @@ class _AcademicHubPageState extends State<AcademicHubPage> {
           padding: const EdgeInsets.only(bottom: 32),
           children: [
             if (_maintenance) Padding(padding: const EdgeInsets.fromLTRB(20, 4, 20, 12), child: AcadAmberNote(text: l.acadMaintenance)),
-            if (_noDept)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
-                child: AcadAmberNote(text: '${l.p20HubNoDeptTitle}. ${l.p20HubNoDeptBody}', actionLabel: l.p20EditProfile, onAction: () async {
-                  await openEditProfile(context, s);
-                  // Bölüm kaydedildiyse uyarı notu ve sınav/duyuru verileri çek-yenilemeyi beklemeden tazelenir.
-                  if (mounted) unawaited(_refresh());
-                }),
-              ),
             if (_semester != null)
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 1, 20, 0),
@@ -159,7 +136,6 @@ class _AcademicHubPageState extends State<AcademicHubPage> {
               sub: l.acadHubCalendarSub,
               onTap: () => _go(AcademicCalendarPage(session: s), 'academic_calendar'),
             ),
-            AcadhubNavRow(key: const ValueKey('acadhub-announcements'), icon: BuIcons.bell, title: l.acadAnnTitle, sub: annSub, onTap: () => _go(AnnouncementsPage(session: s), 'announcements')),
           ],
         ),
       ),

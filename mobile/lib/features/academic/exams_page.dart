@@ -17,13 +17,12 @@ import 'akad_widgets.dart';
 import 'exam_form_page.dart';
 import 'reminders.dart';
 
-/// Sınavlar (Stitch v3 03): geri oku + 28 sp başlık + `pr` "+"; metin sekmeleri (Sınavlarım | Okul programı);
-/// kartsız satırlar (ad, muted "tarih · saat · derslik", sağda kalan süre). Resmi program satırları aynı biçimde.
+/// Sınavlar (Stitch v3 03): geri oku + 28 sp başlık + `pr` "+"; kartsız satırlar (ad, muted "tarih · saat · derslik",
+/// sağda kalan süre). Tek içerik: kullanıcının kendi sınavları (okulun resmi sınav programı yoktur).
 class ExamsPage extends StatefulWidget {
-  const ExamsPage({super.key, required this.session, this.initialTab = 0});
+  const ExamsPage({super.key, required this.session});
 
   final Session session;
-  final int initialTab;
 
   @override
   State<ExamsPage> createState() => _ExamsPageState();
@@ -31,22 +30,17 @@ class ExamsPage extends StatefulWidget {
 
 class _ExamsPageState extends State<ExamsPage> {
   late final AcademicApi _api = AcademicApi(widget.session);
-  late int _tab = widget.initialTab;
   String? _filter; // tür süzgeci (null = tümü)
-  bool _showAll = false; // resmi program kapsamı: false = Bölümüm, true = Tümü (GET /exams/official?scope=all)
 
   List<Exam> _mine = [];
   List<Course> _courses = [];
-  List<OfficialExam> _official = [];
-  bool _profileComplete = true;
-  bool _loadingMine = true, _loadingOfficial = true;
-  Object? _errMine, _errOfficial;
+  bool _loadingMine = true;
+  Object? _errMine;
 
   @override
   void initState() {
     super.initState();
     _loadMine();
-    _loadOfficial();
   }
 
   Future<void> _loadMine() async {
@@ -71,37 +65,6 @@ class _ExamsPageState extends State<ExamsPage> {
     }
   }
 
-  Future<void> _loadOfficial() async {
-    setState(() => _loadingOfficial = true);
-    try {
-      final r = await _api.officialExams(all: _showAll);
-      if (!mounted) return;
-      setState(() {
-        _official = r.items;
-        _profileComplete = r.profileComplete;
-        _errOfficial = null;
-        _loadingOfficial = false;
-      });
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errOfficial = e;
-          _loadingOfficial = false;
-        });
-      }
-    }
-  }
-
-  void _toggleAll(bool all) {
-    if (_showAll == all) return;
-    setState(() {
-      _showAll = all;
-      _official = []; // eski kapsamın listesi yeni kapsam yüklenirken görünmesin
-      _errOfficial = null;
-    });
-    _loadOfficial();
-  }
-
   Future<void> _openForm([Exam? exam]) async {
     final ok = await Navigator.of(context).push<bool>(
       MaterialPageRoute(settings: const RouteSettings(name: 'exam_form'), builder: (_) => ExamFormPage(session: widget.session, exam: exam, courses: _courses)),
@@ -117,13 +80,12 @@ class _ExamsPageState extends State<ExamsPage> {
     final l = context.l10n;
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final mine = _tab == 0;
-    final canAdd = mine && (!_loadingMine || _mine.isNotEmpty);
+    final canAdd = !_loadingMine || _mine.isNotEmpty;
     return AcademicScaffold(
       title: l.acadExamsTitle,
       showTitle: false,
       child: RefreshIndicator(
-        onRefresh: Analytics.pullRefresh(mine ? _loadMine : _loadOfficial),
+        onRefresh: Analytics.pullRefresh(_loadMine),
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.only(bottom: 32),
@@ -160,32 +122,10 @@ class _ExamsPageState extends State<ExamsPage> {
               ),
             ),
             const SizedBox(height: 4),
-            AcadTabs(labels: [l.acadExamsTabMine, l.p69SchoolSchedule], index: _tab, onChanged: (i) => setState(() => _tab = i)),
-            if (!mine) Padding(padding: const EdgeInsets.fromLTRB(20, 4, 20, 0), child: _scopeChips()),
-            // Sekme değişince içerik yatay kayarak yer değiştirir (Sınavlarım <- -> Okul programı).
-            BuSharedAxis(
-              reverse: mine,
-              distance: 24,
-              child: KeyedSubtree(
-                key: ValueKey<int>(_tab),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: mine ? _mineBody() : _officialBody()),
-              ),
-            ),
+            ..._mineBody(),
           ],
         ),
       ),
-    );
-  }
-
-  /// Resmi program kapsamı (ürün kararı, referansta yok): küçük çip çifti, sekmelerin hemen altında.
-  Widget _scopeChips() {
-    final l = context.l10n;
-    return Align(
-      alignment: AlignmentDirectional.centerStart,
-      child: Wrap(spacing: 8, children: [
-        AkadChip(label: l.acadMyDept, selected: !_showAll, onTap: () => _toggleAll(false)),
-        AkadChip(label: l.acadAll, selected: _showAll, onTap: () => _toggleAll(true)),
-      ]),
     );
   }
 
@@ -201,7 +141,7 @@ class _ExamsPageState extends State<ExamsPage> {
     ].join(' · ');
   }
 
-  // ---- kişisel
+  // ---- sınavlarım
   List<Widget> _mineBody() {
     final l = context.l10n;
     final err = _mine.isEmpty ? _errMine : null;
@@ -305,68 +245,6 @@ class _ExamsPageState extends State<ExamsPage> {
           flex: 0,
           child: Text(right, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: first && !past ? t.prText : t.mut)),
         ),
-      ]),
-    );
-  }
-
-  // ---- resmi
-  List<Widget> _officialBody() {
-    final l = context.l10n;
-    final t = context.bu;
-    final now = academicClock();
-    if (_loadingOfficial && _official.isEmpty && _errOfficial == null) return const [AcadRowsSkeleton(count: 3)];
-    if (_official.isEmpty && _errOfficial != null) return _errorBlock(_errOfficial!, _loadOfficial);
-    return [
-      if (!_profileComplete)
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
-          child: AcadAmberNote(text: l.acadExamsProfileIncomplete, actionLabel: l.p20EditProfile, onAction: () async {
-            await openEditProfile(context, widget.session);
-            if (mounted) unawaited(_loadOfficial());
-          }),
-        ),
-      if (_official.isEmpty)
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 28, 20, 0),
-          child: Column(children: [
-            Semantics(header: true, child: Text(l.acadExamsEmptyOfficial, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w600, color: t.ink))),
-            const SizedBox(height: 6),
-            Text(l.p17OfficialEmptyBody, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.mut)),
-          ]),
-        )
-      else
-        BuStaggerScope(
-          child: Column(children: [
-            for (var i = 0; i < _official.length; i++) BuStaggerItem(index: i, child: _officialRow(_official[i], now)),
-          ]),
-        ),
-    ];
-  }
-
-  Widget _officialRow(OfficialExam e, DateTime now) {
-    final l = context.l10n;
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    final who = [if (e.department != null) context.departmentName(e.department), if (e.grade != null) gradeLabelL(l, e.grade)].join(' · ');
-    final sub = [if (e.courseCode != null) e.courseCode!, if (who.isNotEmpty) who].join(' · ');
-    final typeText = examTypeLabelL(l, e.type);
-    final semantic = e.room != null
-        ? l.acadOfficialSemanticRoom(typeText, e.title, fmtInstantL(l, e.startsAt), e.room!)
-        : l.acadOfficialSemantic(typeText, e.title, fmtInstantL(l, e.startsAt));
-    return AcadRow(
-      semanticLabel: semantic,
-      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Text(e.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w600, color: t.ink)),
-            const SizedBox(height: 4),
-            Text(_when(l, e.startsAt, now, e.room), maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
-            if (sub.isNotEmpty) Text(sub, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
-            if (e.note != null) Text(e.note!, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
-          ]),
-        ),
-        const SizedBox(width: 12),
-        Flexible(flex: 0, child: Text(typeText, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w500, color: t.mut))),
       ]),
     );
   }

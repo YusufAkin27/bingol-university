@@ -360,40 +360,6 @@ class Exam {
       );
 }
 
-class OfficialExam {
-  const OfficialExam({
-    required this.id,
-    required this.title,
-    this.type = 'DIGER',
-    this.courseCode,
-    this.department,
-    this.grade,
-    required this.startsAt,
-    this.endsAt,
-    this.room,
-    this.note,
-  });
-
-  final int id;
-  final String title, type;
-  final String? courseCode, department, grade, room, note;
-  final DateTime startsAt;
-  final DateTime? endsAt;
-
-  factory OfficialExam.fromJson(Map<String, dynamic> j) => OfficialExam(
-        id: _i(j['id']),
-        title: _s(j['title']),
-        type: _sn(j['type']) ?? 'DIGER',
-        courseCode: _sn(j['courseCode']),
-        department: _sn(j['department']),
-        grade: _sn(j['grade']),
-        startsAt: parseInstant(j['startsAt']) ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
-        endsAt: parseInstant(j['endsAt']),
-        room: _sn(j['room']),
-        note: _sn(j['note']),
-      );
-}
-
 String examTypeLabel(String t) => switch (t) {
       'VIZE' => 'Vize',
       'FINAL' => 'Final',
@@ -511,55 +477,6 @@ Color eventKindColor(String k) => switch (k) {
       'VIZE' || 'FINAL' || 'BUT' => courseColor('red'),
       _ => courseColor('gray'),
     };
-
-class Announcement {
-  const Announcement({
-    required this.id,
-    required this.title,
-    this.body = '',
-    this.truncated = false,
-    this.department,
-    this.faculty,
-    this.grade,
-    this.pinned = false,
-    this.publishAt,
-    this.attachmentUrl,
-    this.read = false,
-  });
-
-  final int id;
-  final String title, body;
-  final bool truncated, pinned, read;
-  final String? department, faculty, grade, attachmentUrl;
-  final DateTime? publishAt;
-
-  factory Announcement.fromJson(Map<String, dynamic> j) => Announcement(
-        id: _i(j['id']),
-        title: _s(j['title']),
-        body: _s(j['body']),
-        truncated: j['bodyTruncated'] == true,
-        department: _sn(j['department']),
-        faculty: _sn(j['faculty']),
-        grade: _sn(j['grade']),
-        pinned: j['pinned'] == true,
-        publishAt: parseInstant(j['publishAt'] ?? j['createdAt']),
-        attachmentUrl: _sn(j['attachmentUrl']),
-        read: j['read'] == true,
-      );
-
-  Announcement asRead() => Announcement(
-      id: id,
-      title: title,
-      body: body,
-      truncated: truncated,
-      department: department,
-      faculty: faculty,
-      grade: grade,
-      pinned: pinned,
-      publishAt: publishAt,
-      attachmentUrl: attachmentUrl,
-      read: true);
-}
 
 String two(int n) => n.toString().padLeft(2, '0');
 

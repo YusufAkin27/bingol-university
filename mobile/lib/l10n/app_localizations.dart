@@ -1144,12 +1144,6 @@ abstract class AppLocalizations {
   /// **'Akademik hizmetler bakımda. Daha sonra tekrar deneyin.'**
   String get acadMaintenance;
 
-  /// No description provided for @acadMyDept.
-  ///
-  /// In tr, this message translates to:
-  /// **'Bölümüm'**
-  String get acadMyDept;
-
   /// No description provided for @acadAll.
   ///
   /// In tr, this message translates to:
@@ -1222,18 +1216,6 @@ abstract class AppLocalizations {
   /// **'Dönem, kayıt ve sınav tarihleri'**
   String get acadHubCalendarSub;
 
-  /// No description provided for @acadHubAnnouncementsSub.
-  ///
-  /// In tr, this message translates to:
-  /// **'Bölümüne özel duyurular'**
-  String get acadHubAnnouncementsSub;
-
-  /// No description provided for @acadHubUnread.
-  ///
-  /// In tr, this message translates to:
-  /// **'{n} okunmamış'**
-  String acadHubUnread(String n);
-
   /// No description provided for @acadExamsTitle.
   ///
   /// In tr, this message translates to:
@@ -1245,12 +1227,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Sınav ekle'**
   String get acadExamsAdd;
-
-  /// No description provided for @acadExamsTabMine.
-  ///
-  /// In tr, this message translates to:
-  /// **'Sınavlarım'**
-  String get acadExamsTabMine;
 
   /// No description provided for @acadExamsTabOfficial.
   ///
@@ -1294,31 +1270,6 @@ abstract class AppLocalizations {
   /// **'{type}: {title}. {date}. {countdown}. Düzenlemek için dokun.'**
   String acadExamsSemanticCd(
       String type, String title, String date, String countdown);
-
-  /// No description provided for @acadOfficialSemantic.
-  ///
-  /// In tr, this message translates to:
-  /// **'{type}: {title}. {date}'**
-  String acadOfficialSemantic(String type, String title, String date);
-
-  /// No description provided for @acadOfficialSemanticRoom.
-  ///
-  /// In tr, this message translates to:
-  /// **'{type}: {title}. {date}, {room}'**
-  String acadOfficialSemanticRoom(
-      String type, String title, String date, String room);
-
-  /// No description provided for @acadExamsProfileIncomplete.
-  ///
-  /// In tr, this message translates to:
-  /// **'Profilinde bölüm bilgisi yok; yalnız herkese açık sınavlar gösteriliyor. Profili düzenleyerek bölümünü ekleyebilirsin.'**
-  String get acadExamsProfileIncomplete;
-
-  /// No description provided for @acadExamsEmptyOfficial.
-  ///
-  /// In tr, this message translates to:
-  /// **'Henüz yayınlanmış resmi sınav programı yok.'**
-  String get acadExamsEmptyOfficial;
 
   /// No description provided for @acadFormErrTitle.
   ///
@@ -1457,60 +1408,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Sınavı ekle'**
   String get acadFormAdd;
-
-  /// No description provided for @acadAnnTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Bölüm duyuruları'**
-  String get acadAnnTitle;
-
-  /// No description provided for @acadAnnDetailTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Duyuru'**
-  String get acadAnnDetailTitle;
-
-  /// No description provided for @acadAnnReadAll.
-  ///
-  /// In tr, this message translates to:
-  /// **'Tümünü okundu işaretle'**
-  String get acadAnnReadAll;
-
-  /// No description provided for @acadAnnEmptyMine.
-  ///
-  /// In tr, this message translates to:
-  /// **'Bölümünle ilgili duyuru yok.\nTüm duyurulara \"Tümü\" sekmesinden bakabilirsin.'**
-  String get acadAnnEmptyMine;
-
-  /// No description provided for @acadAnnEmptyAll.
-  ///
-  /// In tr, this message translates to:
-  /// **'Henüz duyuru yok.'**
-  String get acadAnnEmptyAll;
-
-  /// No description provided for @acadAnnAudienceAll.
-  ///
-  /// In tr, this message translates to:
-  /// **'Tüm üniversite'**
-  String get acadAnnAudienceAll;
-
-  /// No description provided for @acadAnnUnread.
-  ///
-  /// In tr, this message translates to:
-  /// **'Okunmamış'**
-  String get acadAnnUnread;
-
-  /// No description provided for @acadAnnPinned.
-  ///
-  /// In tr, this message translates to:
-  /// **'Sabitlenmiş'**
-  String get acadAnnPinned;
-
-  /// No description provided for @acadAnnLinkError.
-  ///
-  /// In tr, this message translates to:
-  /// **'Bağlantı açılamadı.'**
-  String get acadAnnLinkError;
 
   /// No description provided for @acadAnnOpenAttachment.
   ///
@@ -9559,12 +9456,6 @@ abstract class AppLocalizations {
   /// **'Anketler'**
   String get profilePrefsNotifPolls;
 
-  /// No description provided for @profilePrefsNotifAcademic.
-  ///
-  /// In tr, this message translates to:
-  /// **'Akademik duyurular'**
-  String get profilePrefsNotifAcademic;
-
   /// No description provided for @profilePrefsNotifStories.
   ///
   /// In tr, this message translates to:
@@ -15181,41 +15072,17 @@ abstract class AppLocalizations {
   /// **'Sınav takvimini oluşturmak ve geri sayımı takip etmek için ilk sınavını ekle.'**
   String get p17ExamsEmptyMineBody;
 
-  /// No description provided for @p17OfficialEmptyBody.
-  ///
-  /// In tr, this message translates to:
-  /// **'Bölümün sınav programı açıklandığında burada listelenecek.'**
-  String get p17OfficialEmptyBody;
-
   /// No description provided for @p17CourseInfoSemantic.
   ///
   /// In tr, this message translates to:
   /// **'Ders bilgileri'**
   String get p17CourseInfoSemantic;
 
-  /// No description provided for @p20EditProfile.
-  ///
-  /// In tr, this message translates to:
-  /// **'Profili düzenle'**
-  String get p20EditProfile;
-
   /// No description provided for @p20HubExamPlan.
   ///
   /// In tr, this message translates to:
   /// **'Oturum planı'**
   String get p20HubExamPlan;
-
-  /// No description provided for @p20HubNoDeptTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Profilinde bölüm bilgisi yok'**
-  String get p20HubNoDeptTitle;
-
-  /// No description provided for @p20HubNoDeptBody.
-  ///
-  /// In tr, this message translates to:
-  /// **'Ders programı ve kişiselleştirilmiş duyurular için fakülte bilgilerini tamamla.'**
-  String get p20HubNoDeptBody;
 
   /// No description provided for @p20HubTimetableEmptyBody.
   ///
@@ -15294,12 +15161,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Yeni akademik takvim ve sınav bildirimleri yayınlandığında bildirim alacaksın.'**
   String get p20AnnFooterBody;
-
-  /// No description provided for @p20AnnLinkErrBody.
-  ///
-  /// In tr, this message translates to:
-  /// **'Dosya sunucusuna ulaşılamadı. Lütfen ağ bağlantını kontrol et.'**
-  String get p20AnnLinkErrBody;
 
   /// No description provided for @p20RemPermTitle.
   ///
@@ -16369,12 +16230,6 @@ abstract class AppLocalizations {
   /// **'Öğrenci ve personel anketleri'**
   String get p20PrefPollsSub;
 
-  /// No description provided for @p20PrefAcademicSub.
-  ///
-  /// In tr, this message translates to:
-  /// **'Bölüm, fakülte ve sınav duyuruları'**
-  String get p20PrefAcademicSub;
-
   /// No description provided for @p20PrefDetailHead.
   ///
   /// In tr, this message translates to:
@@ -17101,24 +16956,6 @@ abstract class AppLocalizations {
   /// **'Ayarlar'**
   String get p22OpenSettings;
 
-  /// No description provided for @p21PreviewTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Bildirimde mesaj önizlemesi'**
-  String get p21PreviewTitle;
-
-  /// No description provided for @p21PreviewSub.
-  ///
-  /// In tr, this message translates to:
-  /// **'Açıkken mesajın ilk kısmı bildirimde ve kilit ekranında görünür; metin Google/Apple bildirim sunucularından geçer. Kapalıyken yalnızca gönderen adı gösterilir.'**
-  String get p21PreviewSub;
-
-  /// No description provided for @p26PrefNeedsAnnouncements.
-  ///
-  /// In tr, this message translates to:
-  /// **'Duyurular kapalıyken bildirim gelmez'**
-  String get p26PrefNeedsAnnouncements;
-
   /// No description provided for @p26PrefPollsNeedsParents.
   ///
   /// In tr, this message translates to:
@@ -17719,12 +17556,6 @@ abstract class AppLocalizations {
   /// **'{n} Kayıt'**
   String p69Records(String n);
 
-  /// No description provided for @p69OpenAttachment.
-  ///
-  /// In tr, this message translates to:
-  /// **'Ekli belgeyi aç'**
-  String get p69OpenAttachment;
-
   /// No description provided for @p69ExamReminder.
   ///
   /// In tr, this message translates to:
@@ -17772,12 +17603,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Henüz sınav eklemedin.'**
   String get p69NoExams;
-
-  /// No description provided for @p69AnnUnitDate.
-  ///
-  /// In tr, this message translates to:
-  /// **'{unit} · {date}'**
-  String p69AnnUnitDate(String unit, String date);
 
   /// No description provided for @p68New.
   ///
@@ -18036,18 +17861,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Sıralı'**
   String get p68TypeRanked;
-
-  /// No description provided for @p69SchoolSchedule.
-  ///
-  /// In tr, this message translates to:
-  /// **'Okul programı'**
-  String get p69SchoolSchedule;
-
-  /// No description provided for @p69WeeksAgo.
-  ///
-  /// In tr, this message translates to:
-  /// **'{n} hafta önce'**
-  String p69WeeksAgo(String n);
 
   /// No description provided for @p51EvAttList.
   ///
@@ -18739,509 +18552,17 @@ abstract class AppLocalizations {
   /// **'Profil fotoğrafınız kaldırıldı.'**
   String get avatarRemoved;
 
-  /// No description provided for @campusTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Harita'**
-  String get campusTitle;
-
-  /// No description provided for @campusOtherCampuses.
-  ///
-  /// In tr, this message translates to:
-  /// **'Diğer yerleşkeler'**
-  String get campusOtherCampuses;
-
-  /// No description provided for @campusUnitPage.
-  ///
-  /// In tr, this message translates to:
-  /// **'Birim sayfası'**
-  String get campusUnitPage;
-
-  /// No description provided for @campusBrand.
-  ///
-  /// In tr, this message translates to:
-  /// **'BU KAMPÜS'**
-  String get campusBrand;
-
-  /// No description provided for @campusCardTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Kampüs Haritası'**
-  String get campusCardTitle;
-
-  /// No description provided for @campusCardSub.
-  ///
-  /// In tr, this message translates to:
-  /// **'Bina, yemekhane, kütüphane ve daha fazlasını haritada bul.'**
-  String get campusCardSub;
-
-  /// No description provided for @campusCardOpen.
-  ///
-  /// In tr, this message translates to:
-  /// **'Haritayı aç'**
-  String get campusCardOpen;
-
-  /// No description provided for @campusSearchHint.
-  ///
-  /// In tr, this message translates to:
-  /// **'Kampüste ara'**
-  String get campusSearchHint;
-
-  /// No description provided for @campusOnlyCampus.
-  ///
-  /// In tr, this message translates to:
-  /// **'Yalnızca kampüs içi yerler'**
-  String get campusOnlyCampus;
-
-  /// No description provided for @campusAll.
-  ///
-  /// In tr, this message translates to:
-  /// **'Tümü'**
-  String get campusAll;
-
-  /// No description provided for @campusChipFood.
-  ///
-  /// In tr, this message translates to:
-  /// **'Yemekhane'**
-  String get campusChipFood;
-
-  /// No description provided for @campusChipLibrary.
-  ///
-  /// In tr, this message translates to:
-  /// **'Kütüphane'**
-  String get campusChipLibrary;
-
-  /// No description provided for @campusChipFaculties.
-  ///
-  /// In tr, this message translates to:
-  /// **'Fakülteler'**
-  String get campusChipFaculties;
-
-  /// No description provided for @campusNearby.
-  ///
-  /// In tr, this message translates to:
-  /// **'Kampüste yakınımda'**
-  String get campusNearby;
-
-  /// No description provided for @campusPlacesTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Kampüste yerler'**
-  String get campusPlacesTitle;
-
-  /// No description provided for @campusPlaceCount.
-  ///
-  /// In tr, this message translates to:
-  /// **'{count} yer'**
-  String campusPlaceCount(String count);
-
-  /// No description provided for @campusSeeAll.
-  ///
-  /// In tr, this message translates to:
-  /// **'Tümünü Gör'**
-  String get campusSeeAll;
-
-  /// No description provided for @campusDirections.
-  ///
-  /// In tr, this message translates to:
-  /// **'Yol tarifi'**
-  String get campusDirections;
-
-  /// No description provided for @campusOpenInMaps.
-  ///
-  /// In tr, this message translates to:
-  /// **'Haritada aç'**
-  String get campusOpenInMaps;
-
-  /// No description provided for @campusShare.
-  ///
-  /// In tr, this message translates to:
-  /// **'Bağlantıyı kopyala'**
-  String get campusShare;
-
-  /// No description provided for @campusDetailTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Bina Detayı'**
-  String get campusDetailTitle;
-
-  /// No description provided for @campusLocationLabel.
-  ///
-  /// In tr, this message translates to:
-  /// **'Konum'**
-  String get campusLocationLabel;
-
-  /// No description provided for @campusMainCampus.
-  ///
-  /// In tr, this message translates to:
-  /// **'Ana kampüs'**
-  String get campusMainCampus;
-
-  /// No description provided for @campusUnits.
-  ///
-  /// In tr, this message translates to:
-  /// **'Birimler'**
-  String get campusUnits;
-
   /// No description provided for @campusAbout.
   ///
   /// In tr, this message translates to:
   /// **'Hakkında'**
   String get campusAbout;
 
-  /// No description provided for @campusWalkTime.
-  ///
-  /// In tr, this message translates to:
-  /// **'Yürüyerek süre'**
-  String get campusWalkTime;
-
-  /// No description provided for @campusWalkValue.
-  ///
-  /// In tr, this message translates to:
-  /// **'{min} dk ({dist})'**
-  String campusWalkValue(String min, String dist);
-
-  /// No description provided for @campusWalkUnknown.
-  ///
-  /// In tr, this message translates to:
-  /// **'Konum açık değil'**
-  String get campusWalkUnknown;
-
-  /// No description provided for @campusDistanceNote.
-  ///
-  /// In tr, this message translates to:
-  /// **'Mesafeler ve süreler yaklaşık değerlerdir.'**
-  String get campusDistanceNote;
-
-  /// No description provided for @campusFavAdd.
-  ///
-  /// In tr, this message translates to:
-  /// **'Favorilere ekle'**
-  String get campusFavAdd;
-
-  /// No description provided for @campusFavRemove.
-  ///
-  /// In tr, this message translates to:
-  /// **'Favorilerden çıkar'**
-  String get campusFavRemove;
-
-  /// No description provided for @campusLinkCopied.
-  ///
-  /// In tr, this message translates to:
-  /// **'Yer bilgisi ve bağlantı kopyalandı'**
-  String get campusLinkCopied;
-
-  /// No description provided for @campusOpenFailed.
-  ///
-  /// In tr, this message translates to:
-  /// **'Harita uygulaması açılamadı'**
-  String get campusOpenFailed;
-
-  /// No description provided for @campusPermTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Konumunuzu kullanalım mı?'**
-  String get campusPermTitle;
-
-  /// No description provided for @campusPermBody.
-  ///
-  /// In tr, this message translates to:
-  /// **'Kampüs içindeki binaları ve fakülteleri haritada gösterebilmemiz için konum izni gerekir. Konumunuz yalnızca cihazınızda kullanılır ve paylaşılmaz.'**
-  String get campusPermBody;
-
-  /// No description provided for @campusPermChipLocal.
-  ///
-  /// In tr, this message translates to:
-  /// **'Cihazda kalır'**
-  String get campusPermChipLocal;
-
-  /// No description provided for @campusPermChipBattery.
-  ///
-  /// In tr, this message translates to:
-  /// **'Düşük pil tüketimi'**
-  String get campusPermChipBattery;
-
-  /// No description provided for @campusPermAllow.
-  ///
-  /// In tr, this message translates to:
-  /// **'İzin ver'**
-  String get campusPermAllow;
-
-  /// No description provided for @campusPermLater.
-  ///
-  /// In tr, this message translates to:
-  /// **'Şimdi değil'**
-  String get campusPermLater;
-
-  /// No description provided for @campusLocOffBand.
-  ///
-  /// In tr, this message translates to:
-  /// **'Konum kapalı'**
-  String get campusLocOffBand;
-
-  /// No description provided for @campusLocDeniedBody.
-  ///
-  /// In tr, this message translates to:
-  /// **'Konum izni yok. Harita yine çalışır; mesafeleri görmek için izni Ayarlar üzerinden açabilirsiniz.'**
-  String get campusLocDeniedBody;
-
-  /// No description provided for @campusOpenSettings.
-  ///
-  /// In tr, this message translates to:
-  /// **'Ayarları aç'**
-  String get campusOpenSettings;
-
-  /// No description provided for @campusLocServiceTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Konum Servisi Devre Dışı'**
-  String get campusLocServiceTitle;
-
-  /// No description provided for @campusLocServiceBadge.
-  ///
-  /// In tr, this message translates to:
-  /// **'Kapalı'**
-  String get campusLocServiceBadge;
-
-  /// No description provided for @campusLocServiceBody.
-  ///
-  /// In tr, this message translates to:
-  /// **'Cihaz konum servisleri kapalı. Kampüs içi yönlendirme için lütfen cihaz konumunu açın.'**
-  String get campusLocServiceBody;
-
-  /// No description provided for @campusOutsideCampus.
-  ///
-  /// In tr, this message translates to:
-  /// **'Şu an kampüsün dışındasınız.'**
-  String get campusOutsideCampus;
-
-  /// No description provided for @campusMyLocation.
-  ///
-  /// In tr, this message translates to:
-  /// **'Konumum'**
-  String get campusMyLocation;
-
-  /// No description provided for @campusZoomIn.
-  ///
-  /// In tr, this message translates to:
-  /// **'Yakınlaştır'**
-  String get campusZoomIn;
-
-  /// No description provided for @campusZoomOut.
-  ///
-  /// In tr, this message translates to:
-  /// **'Uzaklaştır'**
-  String get campusZoomOut;
-
-  /// No description provided for @campusLayers.
-  ///
-  /// In tr, this message translates to:
-  /// **'Harita katmanı'**
-  String get campusLayers;
-
-  /// No description provided for @campusLayerStandard.
-  ///
-  /// In tr, this message translates to:
-  /// **'Standart'**
-  String get campusLayerStandard;
-
-  /// No description provided for @campusLayerSatellite.
-  ///
-  /// In tr, this message translates to:
-  /// **'Uydu'**
-  String get campusLayerSatellite;
-
-  /// No description provided for @campusAttribution.
-  ///
-  /// In tr, this message translates to:
-  /// **'© OpenStreetMap katkıda bulunanları'**
-  String get campusAttribution;
-
-  /// No description provided for @campusMapError.
-  ///
-  /// In tr, this message translates to:
-  /// **'Harita yüklenemedi. Bağlantınızı kontrol edin.'**
-  String get campusMapError;
-
-  /// No description provided for @campusMaintenanceTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Kampüs haritası şu an bakımda'**
-  String get campusMaintenanceTitle;
-
-  /// No description provided for @campusMaintenanceBody.
-  ///
-  /// In tr, this message translates to:
-  /// **'Kısa süre sonra yeniden deneyin.'**
-  String get campusMaintenanceBody;
-
-  /// No description provided for @campusTilesFailing.
-  ///
-  /// In tr, this message translates to:
-  /// **'Harita parçaları yüklenemiyor. Bağlantınızı kontrol edin.'**
-  String get campusTilesFailing;
-
-  /// No description provided for @campusStaleNote.
-  ///
-  /// In tr, this message translates to:
-  /// **'Kaydedilmiş yer listesi gösteriliyor.'**
-  String get campusStaleNote;
-
-  /// No description provided for @campusNoPlaces.
-  ///
-  /// In tr, this message translates to:
-  /// **'Bu kategoride yer yok.'**
-  String get campusNoPlaces;
-
-  /// No description provided for @campusNoPlacesAll.
-  ///
-  /// In tr, this message translates to:
-  /// **'Henüz kampüs yeri eklenmemiş.'**
-  String get campusNoPlacesAll;
-
-  /// No description provided for @campusQuickRoute.
-  ///
-  /// In tr, this message translates to:
-  /// **'HIZLI ROTA'**
-  String get campusQuickRoute;
-
-  /// No description provided for @campusNearestTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'En yakın yer'**
-  String get campusNearestTitle;
-
-  /// No description provided for @campusNearestBody.
-  ///
-  /// In tr, this message translates to:
-  /// **'{name} için yaklaşık {min} dk yürüme mesafesindesiniz.'**
-  String campusNearestBody(String name, String min);
-
-  /// No description provided for @campusStart.
-  ///
-  /// In tr, this message translates to:
-  /// **'Başlat'**
-  String get campusStart;
-
-  /// No description provided for @campusRecent.
-  ///
-  /// In tr, this message translates to:
-  /// **'SON ARAMALAR'**
-  String get campusRecent;
-
-  /// No description provided for @campusClear.
-  ///
-  /// In tr, this message translates to:
-  /// **'Temizle'**
-  String get campusClear;
-
-  /// No description provided for @campusRemoveRecent.
-  ///
-  /// In tr, this message translates to:
-  /// **'Aramayı sil'**
-  String get campusRemoveRecent;
-
-  /// No description provided for @campusCategoriesTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Kategoriler'**
-  String get campusCategoriesTitle;
-
-  /// No description provided for @campusResultCount.
-  ///
-  /// In tr, this message translates to:
-  /// **'{count} Sonuç'**
-  String campusResultCount(String count);
-
-  /// No description provided for @campusNoResult.
-  ///
-  /// In tr, this message translates to:
-  /// **'Kampüs içinde sonuç bulunamadı. Farklı bir ad deneyin.'**
-  String get campusNoResult;
-
-  /// No description provided for @campusOutsideNote.
-  ///
-  /// In tr, this message translates to:
-  /// **'Kampüs dışındaki yerler aranamaz.'**
-  String get campusOutsideNote;
-
   /// No description provided for @campusSort.
   ///
   /// In tr, this message translates to:
   /// **'Sırala'**
   String get campusSort;
-
-  /// No description provided for @campusSortNear.
-  ///
-  /// In tr, this message translates to:
-  /// **'Yakınlık'**
-  String get campusSortNear;
-
-  /// No description provided for @campusSortName.
-  ///
-  /// In tr, this message translates to:
-  /// **'Ad'**
-  String get campusSortName;
-
-  /// No description provided for @campusFindMoreTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Aradığınız yeri bulamadınız mı?'**
-  String get campusFindMoreTitle;
-
-  /// No description provided for @campusFindMoreBody.
-  ///
-  /// In tr, this message translates to:
-  /// **'Tüm bina, amfi ve birimleri kampüste arayın.'**
-  String get campusFindMoreBody;
-
-  /// No description provided for @campusOnlyCampusShown.
-  ///
-  /// In tr, this message translates to:
-  /// **'Yalnızca kampüs içi yerler gösterilmektedir.'**
-  String get campusOnlyCampusShown;
-
-  /// No description provided for @campusPinLabel.
-  ///
-  /// In tr, this message translates to:
-  /// **'{name}, {category}'**
-  String campusPinLabel(String name, String category);
-
-  /// No description provided for @campusClusterLabel.
-  ///
-  /// In tr, this message translates to:
-  /// **'{count} yer'**
-  String campusClusterLabel(String count);
-
-  /// No description provided for @campusYouAreHere.
-  ///
-  /// In tr, this message translates to:
-  /// **'Konumunuz'**
-  String get campusYouAreHere;
-
-  /// No description provided for @campusCloseCard.
-  ///
-  /// In tr, this message translates to:
-  /// **'Yer kartını kapat'**
-  String get campusCloseCard;
-
-  /// No description provided for @campusDetails.
-  ///
-  /// In tr, this message translates to:
-  /// **'Detay'**
-  String get campusDetails;
-
-  /// No description provided for @campusWalkTo.
-  ///
-  /// In tr, this message translates to:
-  /// **'{name} için yol tarifi'**
-  String campusWalkTo(String name);
-
-  /// No description provided for @campusPanelHandle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Yer listesi paneli'**
-  String get campusPanelHandle;
 
   /// No description provided for @settingsAnalytics.
   ///

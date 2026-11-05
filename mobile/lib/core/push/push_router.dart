@@ -2,7 +2,6 @@ import '../analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../features/academic/announcements_page.dart';
 import '../../features/academic/exams_page.dart';
 import '../../features/academic/timetable_page.dart';
 import '../../features/chat/chat_detail_page.dart';
@@ -134,9 +133,6 @@ class PushRouter {
         return true;
       case PushDest.followRequests:
         push(FollowRequestsPage(session: s), 'follow_requests');
-        return true;
-      case PushDest.deptAnnouncement:
-        push(AnnouncementDetailPage(session: s, id: id!), 'announcement_detail');
         return true;
       case PushDest.timetable:
         push(TimetablePage(session: s), 'timetable');
