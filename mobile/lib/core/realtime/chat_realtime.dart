@@ -169,6 +169,22 @@ class ChatRealtime with WidgetsBindingObserver {
   void _onMessage(Map<String, dynamic> m) {
     _messages.add(m);
     ackOutbox(m);
+    ackDelivered(m);
+  }
+
+  /// Konuşma başına gönderilen en yüksek "iletildi" imleci (yalnız ilerler; aynı mesaj için tekrar yollanmaz).
+  final _deliveredSent = <int, int>{};
+
+  /// Başkasından gelen mesaj cihaza ULAŞTI: sohbet ekranı açık olmasa da (liste/başka sekme) gönderenin tiki çift tik
+  /// olsun diye "iletildi" imleci hemen gönderilir. Okundu ayrıdır: yalnız sohbet ekranı açıkken gönderilir.
+  @visibleForTesting
+  void ackDelivered(Map<String, dynamic> m) {
+    final uid = session.userId;
+    final cid = _i(m['conversationId']);
+    final id = _i(m['id']);
+    if (uid == null || cid <= 0 || id <= 0 || _i(m['senderId']) == uid) return;
+    if (id <= (_deliveredSent[cid] ?? 0)) return;
+    if (sendDelivered(cid, id)) _deliveredSent[cid] = id;
   }
 
   /// WS ile gönderilen metin mesajı sunucuda oluştu (ack ya da başka cihazdan yayın): Outbox'taki `clientId`
