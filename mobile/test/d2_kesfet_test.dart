@@ -28,7 +28,7 @@ void main() {
       DiscoverTab(session: makeSession(b), typeRequest: ValueNotifier<String?>(null));
 
   group('kesfet sade tasarim', () {
-    testWidgets('ust alan: baslik, arama ve paylas simgesi, 5 kapsul filtre (BuChip); anket ve "Ogrenci Akisi" basligi yok', (tester) async {
+    testWidgets('ust alan: baslik, arama ve paylas simgesi; kapsul filtre, anket ve "Ogrenci Akisi" basligi yok', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
       fakePosts(b);
@@ -37,8 +37,8 @@ void main() {
       expect(find.text('Keşfet'), findsOneWidget);
       expect(find.byKey(const ValueKey('discoverSearch')), findsOneWidget);
       expect(find.byTooltip('Gönderi oluştur'), findsOneWidget);
-      expect(find.byType(BuChip), findsNWidgets(5));
-      expect(find.text('Senin İçin'), findsOneWidget);
+      expect(find.byType(BuChip), findsNothing);
+      expect(find.text('Senin İçin'), findsNothing);
       expect(find.byTooltip('Anketler'), findsNothing);
       expect(find.byIcon(BuIcons.vote), findsNothing);
       expect(find.text('Anketler'), findsNothing);
@@ -136,39 +136,26 @@ void main() {
       noErr(tester);
     });
 
-    testWidgets('kurulmus filtre canli kalir: Senin Icin -> Populer -> Senin Icin iskelet gostermez, yeniden istek atmaz',
-        (tester) async {
+    testWidgets('sekme gizlenip kisa surede donunce akis yeniden istenmez, uzun sure sonra ag yenilemesi yapilir', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
-      // Sunucu ETag verir: yanit oturum onbellegine (ETag LRU) girer.
-      b.on(
-          '/feed*',
-          {
-            'items': [
-              for (var i = 0; i < 3; i++)
-                samplePost(id: 700 - i, text: 'Onbellek ', media: [samplePostMedia(id: 70 + i)]),
-            ],
-            'nextCursor': null,
-            'hint': null,
-          },
-          headers: {'etag': '"f1"'});
+      fakePosts(b);
       b.on('/users/me/follow-suggestions*', {'items': <Object>[]});
-      await tester.pumpWidget(buildApp(discover(b)));
+      final s = makeSession(b);
+      Widget tab(bool active) => buildApp(DiscoverTab(session: s, typeRequest: ValueNotifier<String?>(null), tabActive: active));
+      await tester.pumpWidget(tab(true));
       await settle(tester, const Duration(milliseconds: 600));
-      await tester.tap(find.byKey(const ValueKey('discoverFilter-popular')));
+      int feeds() => b.requests.where((r) => r.startsWith('GET /feed?')).length;
+      final first = feeds();
+      expect(first, 1);
+      await tester.pumpWidget(tab(false));
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpWidget(tab(true));
       await settle(tester, const Duration(milliseconds: 600));
-      b.delay = const Duration(seconds: 2);
-      final before = b.requests.where((r) => r.startsWith('GET /feed?')).length;
-      await tester.tap(find.byKey(const ValueKey('discoverFilter-forYou')));
-      await tester.pump(const Duration(milliseconds: 100));
-      await tester.pump(const Duration(milliseconds: 100));
-      // Senin Icin akisi canli kalmisti: liste simdi gorunur, iskelet yok, yeniden istek yok.
+      expect(feeds(), first, reason: 'kisa suredir gizliydi: yeniden istek yok');
       expect(find.byKey(const ValueKey('discoverSkeleton')), findsNothing);
       expect(find.byType(DiscoverPostBox), findsWidgets);
       await settle(tester, const Duration(seconds: 3));
-      expect(b.requests.where((r) => r.startsWith('GET /feed?')).length, before);
-      expect(find.byType(DiscoverPostBox), findsWidgets);
-      await settle(tester, const Duration(seconds: 5)); // gecikmeli "gorulmus" bildirimi tamamlansin
       noErr(tester);
     });
 

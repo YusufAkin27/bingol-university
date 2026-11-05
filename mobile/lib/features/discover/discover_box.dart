@@ -32,7 +32,8 @@ double discoverBoxRatio(Post p) {
 }
 
 /// Keşfet kutusu (Stitch v3 kesfet2 A): fotoğraf kutuyu tam kaplar (`BoxFit.cover`, köşe 16, gölge/çerçeve yok); alt %42'de
-/// yalnız okunaklılık için gradyan; SOL ALT yazar avatarı + ad (dokununca yazar), SAĞ ALT kalp + sayı (dokununca beğenir).
+/// yalnız okunaklılık için gradyan; SOL ALT yazar avatarı + ad (dokununca yazar), SAĞ ALT açık yüzey hapı içinde kalp +
+/// sayı: beğenmemişse BOŞ çizgi kalp, beğenmişse DOLU KIRMIZI kalp (dokununca beğenir / geri alır; beyaz kalp YOK).
 /// Gönderi metni kutuda yoktur (yalnız gönderi sayfasında; ekran okuyucu etiketinde vardır). Kutu boyutunu üst öğe (masonry
 /// ızgarası) verir. Dokunma: gönderi sayfası; uzun basma: gönderi menüsü ([onMenu]).
 class DiscoverPostBox extends StatelessWidget {
@@ -103,24 +104,24 @@ class DiscoverPostBox extends StatelessWidget {
             ),
           ),
         ),
-        // Video gönderi: ortada oynat rozeti, sağ üstte süre (otomatik oynatma yok; gönderi sayfasında oynar).
-        if (p.isVideo) ...[
-          const Center(child: IgnorePointer(child: PostPlayBadge())),
-          if (dur > 0) PositionedDirectional(top: 8, end: 8, child: IgnorePointer(child: DurationChip(durationMs: dur))),
-        ],
+        // Video gönderi: yalnız sağ üstte sade süre hapı (oynat simgeli; otomatik oynatma yok, gönderi akışında oynar).
+        if (p.isVideo)
+          PositionedDirectional(
+              top: 8, end: 8, child: IgnorePointer(child: dur > 0 ? DurationChip(durationMs: dur) : const PostPlayBadge(size: 28))),
         PositionedDirectional(
           start: 9,
-          end: 4,
+          end: 8,
           bottom: 0,
           child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
             Expanded(child: _AuthorLabel(session: session, post: p)),
-            // Kalp + sayı asla kırpılmaz: ad sütunu esnektir. Görünür sayı sağ kenardan 10 dp içeride (4 + 6 iç boşluk).
+            // Kalp + sayı asla kırpılmaz: ad sütunu esnektir. Hap açık yüzeyli: kalp çizgi `ink`, beğenilince kırmızı dolu.
             LikeButton(
               session: session,
               post: p,
               tile: true,
+              pill: true,
               compact: true,
-              size: 20,
+              size: 18,
               a11yCount: (n) => context.l10n.p04LikeCount('$n'),
               onChanged: onChanged,
             ),

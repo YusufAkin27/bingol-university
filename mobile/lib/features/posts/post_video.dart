@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:io' show File;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../core/cache/image_disk_cache.dart';
+import '../../core/cache/video_prefetch.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -19,8 +21,28 @@ typedef PostVideoControllerFactory = VideoPlayerController Function(Uri uri, Map
 VideoPlayerController _networkController(Uri uri, Map<String, String> headers) =>
     VideoPlayerController.networkUrl(uri, httpHeaders: headers, videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true));
 
+/// Yerel (önyüklenmiş) dosyadan oynatıcı; testlerde sahte denetleyici verilebilsin diye.
+typedef PostVideoFileControllerFactory = VideoPlayerController Function(File file);
+
+VideoPlayerController _fileController(File file) =>
+    VideoPlayerController.file(file, videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true));
+
 /// Test kancası: null değilse tüm gönderi videoları bununla kurulur.
 PostVideoControllerFactory? debugPostVideoControllerFactory;
+
+/// Test kancası: null değilse yerel dosyadan oynatılan videolar bununla kurulur.
+PostVideoFileControllerFactory? debugPostVideoFileControllerFactory;
+
+/// Dışarıdan (akış kartı) oynat/duraklat tetiklemek için ([PostVideoView.controller]).
+class PostVideoController {
+  _PostVideoViewState? _state;
+
+  /// Oynuyorsa duraklatır, duraklatılmışsa sürdürür (hazır değilse hiçbir şey yapmaz). İkon kısa süre görünüp solar.
+  void toggle() => _state?._togglePlay();
+
+  /// Şu an oynuyor mu.
+  bool get playing => _state?._c?.value.isPlaying ?? false;
+}
 
 /// Oturum boyunca ortak ses tercihi: akıştaki videolar SESSİZ başlar; biri açılınca sonrakiler de açık kalır.
 final ValueNotifier<bool> postVideoMuted = ValueNotifier<bool>(true);
@@ -81,10 +103,18 @@ class PostVideoView extends StatefulWidget {
     this.showControls = true,
     this.prepare = false,
     this.api,
+    this.controller,
+    this.flashIcon = false,
   });
 
   final Session session;
   final Post post;
+
+  /// Dışarıdan oynat/duraklat için (akış kartı).
+  final PostVideoController? controller;
+
+  /// true: oynat/duraklat ikonu yalnız KISA süre görünüp solar (kalıcı "oynat" diski çizilmez).
+  final bool flashIcon;
 
   /// null: kaydırma görünürlüğüne göre; true/false: dışarıdan (Reels sayfa göstergesi).
   final bool? active;
@@ -119,7 +149,7 @@ class PostVideoView extends StatefulWidget {
   State<PostVideoView> createState() => _PostVideoViewState();
 }
 
-class _PostVideoViewState extends State<PostVideoView> with WidgetsBindingObserver {
+class _PostVideoViewState extends State<PostVideoView> with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   /// Kaydırmayla oynatma için gereken görünür oran.
   static const _visibleFraction = .6;
 
@@ -135,6 +165,10 @@ class _PostVideoViewState extends State<PostVideoView> with WidgetsBindingObserv
   DateTime? _since;
   int _watchedMs = 0;
 
+  /// Oynat/duraklat ikonunun kısa görünüp solması (sonuç: oynuyor -> oynat ikonu, duraklatıldı -> duraklat ikonu).
+  late final AnimationController _flash = AnimationController(vsync: this, duration: const Duration(milliseconds: 700));
+  bool _flashPlay = true;
+
   PostVideo get _video => widget.post.video!;
 
   bool get _want => (widget.active ?? _visible) && _foreground && !_userPaused;
@@ -142,6 +176,7 @@ class _PostVideoViewState extends State<PostVideoView> with WidgetsBindingObserv
   @override
   void initState() {
     super.initState();
+    widget.controller?._state = this;
     WidgetsBinding.instance.addObserver(this);
     postVideoMuted.addListener(_applyVolume);
     // İlk çerçeveden sonra görünürlük (ya da dışarıdan verilen [active]) uygulanır.
@@ -167,6 +202,10 @@ class _PostVideoViewState extends State<PostVideoView> with WidgetsBindingObserv
   @override
   void didUpdateWidget(PostVideoView old) {
     super.didUpdateWidget(old);
+    if (old.controller != widget.controller) {
+      if (old.controller?._state == this) old.controller!._state = null;
+      widget.controller?._state = this;
+    }
     if (old.post.video?.url != widget.post.video?.url) {
       _release();
       _failed = false;
@@ -182,6 +221,8 @@ class _PostVideoViewState extends State<PostVideoView> with WidgetsBindingObserv
 
   @override
   void dispose() {
+    if (widget.controller?._state == this) widget.controller!._state = null;
+    _flash.dispose();
     WidgetsBinding.instance.removeObserver(this);
     postVideoMuted.removeListener(_applyVolume);
     _scroll?.removeListener(_check);
@@ -208,6 +249,8 @@ class _PostVideoViewState extends State<PostVideoView> with WidgetsBindingObserv
     }
     if (vis != _visible) {
       _visible = vis;
+      // Görünümden çıkınca duraklatma isteği unutulur: dönüşte yeniden kendiliğinden oynar.
+      if (!vis) _userPaused = false;
       _apply();
     }
   }
@@ -227,7 +270,11 @@ class _PostVideoViewState extends State<PostVideoView> with WidgetsBindingObserv
       }
     } else {
       final c = _c;
-      if (c != null && c.value.isInitialized && c.value.isPlaying) {
+      if (c != null && widget.active == null && !widget.prepare) {
+        // Kaydırmayla yönetilen video ekrandan çıktı: oynatıcı atılır (bellek); dönüşte yerel dosyadan hızla kurulur.
+        _release();
+        setState(() {});
+      } else if (c != null && c.value.isInitialized && c.value.isPlaying) {
         c.pause();
         _flushView();
         setState(() {});
@@ -240,11 +287,32 @@ class _PostVideoViewState extends State<PostVideoView> with WidgetsBindingObserv
   Future<void> _init() async {
     if (_initializing || _failed) return;
     _initializing = true;
-    final factory = debugPostVideoControllerFactory ?? _networkController;
-    final c = factory(Uri.parse(_video.url), postAuthHeaders(widget.session));
-    _c = c;
+    final headers = postAuthHeaders(widget.session);
+    final item = VideoPrefetchItem(_video.url, headers);
+    VideoPlayerController? c;
     try {
-      await c.initialize();
+      // Önce YEREL dosya (önyükleme hattı): hazırsa hemen, indiriliyorsa kısa süre beklenir. O sırada POSTER görünür
+      // kalır ve oynatıcı kurulmaz (donma yok). Dosya gelmezse (zaman aşımı/hata/ölçülü ağ) ağdan oynatılır.
+      final pf = VideoPrefetcher.instance;
+      final file = _want ? await pf.ensure(item) : await pf.localFile(item.url);
+      if (!mounted) return;
+      if (!_want && !widget.prepare) return; // beklerken kaydırıldı: oynatıcı kurulmaz
+      var local = file != null;
+      c = file != null
+          ? (debugPostVideoFileControllerFactory ?? _fileController)(file)
+          : (debugPostVideoControllerFactory ?? _networkController)(Uri.parse(_video.url), headers);
+      _c = c;
+      try {
+        await c.initialize();
+      } catch (_) {
+        if (!local) rethrow;
+        // Bozuk yerel dosya: ağdan yeniden dene.
+        local = false;
+        unawaited(c.dispose());
+        c = (debugPostVideoControllerFactory ?? _networkController)(Uri.parse(_video.url), headers);
+        _c = c;
+        await c.initialize();
+      }
       if (!mounted || _c != c) return;
       await c.setLooping(true);
       c.addListener(_onTick);
@@ -255,7 +323,7 @@ class _PostVideoViewState extends State<PostVideoView> with WidgetsBindingObserv
       }
       if (mounted) setState(() {});
     } catch (_) {
-      if (mounted && _c == c) {
+      if (mounted && c != null && _c == c) {
         setState(() {
           _failed = true;
         });
@@ -311,6 +379,11 @@ class _PostVideoViewState extends State<PostVideoView> with WidgetsBindingObserv
       postVideoMuted.value = !postVideoMuted.value;
       return;
     }
+    _togglePlay();
+  }
+
+  /// Oynuyorsa duraklatır, duraklatılmışsa sürdürür.
+  void _togglePlay() {
     final c = _c;
     if (c == null || !c.value.isInitialized) return;
     buHaptic(BuHaptic.selection);
@@ -318,10 +391,13 @@ class _PostVideoViewState extends State<PostVideoView> with WidgetsBindingObserv
       _userPaused = true;
       c.pause();
       _accumulate();
+      _flashPlay = false;
     } else {
       _userPaused = false;
       _apply();
+      _flashPlay = true;
     }
+    if (widget.flashIcon) _flash.forward(from: 0);
     setState(() {});
   }
 
@@ -372,9 +448,28 @@ class _PostVideoViewState extends State<PostVideoView> with WidgetsBindingObserv
                 ),
               ]),
             )
-          else if (!playing && widget.tap == PostVideoTap.playPause && _userPaused)
+          else if (!playing && widget.tap == PostVideoTap.playPause && _userPaused && !widget.flashIcon)
             // Reels'te kullanıcı duraklattıysa ortada sade oynat simgesi.
             Center(child: _Disc(icon: BuIcons.playFilled, size: 56, semantics: l.chatMiscPlayVideo)),
+          if (widget.flashIcon)
+            Center(
+              child: IgnorePointer(
+                child: AnimatedBuilder(
+                  animation: _flash,
+                  builder: (_, __) {
+                    // Önce görünür kalır, son %65'te solar; ikon yalnız animasyon sürerken çizilir.
+                    if (!_flash.isAnimating) return const SizedBox.shrink();
+                    final v = _flash.value;
+                    final o = v < .35 ? 1.0 : (1 - (v - .35) / .65).clamp(0.0, 1.0);
+                    return Opacity(
+                      key: const ValueKey('postVideoFlash'),
+                      opacity: o,
+                      child: _Disc(icon: _flashPlay ? BuIcons.playFilled : BuIcons.pauseFilled, size: 56),
+                    );
+                  },
+                ),
+              ),
+            ),
           if (widget.showProgress && ready)
             PositionedDirectional(start: 0, end: 0, bottom: widget.inset.bottom, child: _Progress(controller: c)),
           // Ses ve tam ekran düğmeleri (akış kartı bunları çift dokunuş sarmalayıcısının DIŞINDA kendisi çizer: aksi halde

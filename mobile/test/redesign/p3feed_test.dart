@@ -154,7 +154,7 @@ void main() {
   });
 
   group('Kesfet masonry kutusu (Stitch v3 kesfet2 A; onceki tek sutun kart kalkti)', () {
-    testWidgets('kutu 179 dp, 4:5 -> 224 dp, 16 dp kose, alt %42 gradyan, ad onMedia 13, kalp 20 dp (dokunma 44), kart sarmalayici/golge yok', (tester) async {
+    testWidgets('kutu 179 dp, 4:5 -> 224 dp, 16 dp kose, alt %42 gradyan, ad onMedia 13, kalp 18 dp hap icinde (dokunma 44), kart sarmalayici/golge yok', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
       fakePosts(b);
@@ -175,7 +175,7 @@ void main() {
       // Beyaz kart yuzeyi yok: gorsel disinda sf dolgulu DecoratedBox bulunmaz.
       expect(find.descendant(of: card, matching: find.byWidgetPredicate((w) => w is DecoratedBox && w.decoration is BoxDecoration && (w.decoration as BoxDecoration).color == BuTokens.light.sf)), findsNothing);
       final heart = find.descendant(of: card, matching: find.byKey(const ValueKey('like-heart')));
-      expect(tester.getSize(heart), const Size(20, 20));
+      expect(tester.getSize(heart), const Size(18, 18));
       final name = tester.widget<Text>(find.descendant(of: card, matching: find.text('Ayşe Yılmaz')).first);
       expect(name.style?.color, BuTokens.light.onMedia);
       expect(name.style?.fontSize, 13);

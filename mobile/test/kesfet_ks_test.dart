@@ -130,14 +130,12 @@ void main() {
   setUpAll(loadTestFonts);
 
   group('modeller', () {
-    test('video gonderi: video{} + type VIDEO + puan; poster fotograf yerine gecer', () {
+    test('video gonderi: video{} + type VIDEO; poster fotograf yerine gecer', () {
       final p = Post.fromJson(videoPost());
       expect(p.isVideo, isTrue);
       expect(p.video!.durationMs, 23000);
       expect(p.video!.url, endsWith('/api/posts/media/2001'));
-      expect(p.popularityScore, 72);
       expect(p.author.followerCount, 120);
-      expect(p.author.popularityScore, 64);
       expect(p.photo, isNotNull); // poster kare akis kutusu icin
       expect(p.photo!.thumbUrl, contains('thumb=true'));
       expect(p.hiddenInFeed, isFalse);
@@ -154,13 +152,9 @@ void main() {
       final photo = Post.fromJson(samplePost(id: 6, media: [samplePostMedia(id: 60)]));
       expect(photo.isVideo, isFalse);
       expect(photo.photo, isNotNull);
-      expect(photo.popularityScore, isNull);
     });
 
-    test('puan 0..100 araligina kistirilir; sayfa exhausted okunur', () {
-      expect(Post.fromJson({'id': 1, 'author': {}, 'popularityScore': 250}).popularityScore, 100);
-      expect(Post.fromJson({'id': 1, 'author': {}, 'popularityScore': -3}).popularityScore, 0);
-      expect(Post.fromJson({'id': 1, 'author': {}, 'popularityScore': 41.6}).popularityScore, 42);
+    test('sayfa exhausted okunur', () {
       final page = PostPage.parse({'items': [], 'exhausted': true}, Post.fromJson);
       expect(page.exhausted, isTrue);
       expect(PostPage.parse({'items': []}, Post.fromJson).exhausted, isFalse);

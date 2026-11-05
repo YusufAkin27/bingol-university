@@ -5712,24 +5712,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get kesSegReels => 'ريلز';
 
   @override
-  String get kesSegA11y => 'عرض الاستكشاف';
-
-  @override
-  String get kesPopularity => 'الشعبية';
-
-  @override
-  String kesPopularityOf(String score) {
-    return 'نقاط الشعبية $score من 100';
-  }
-
-  @override
-  String get kesPopularityHow =>
-      'تُحسب من عدد متابعيك والإعجابات التي تتلقاها وعدد منشوراتك.';
-
-  @override
-  String get kesLikesReceived => 'الإعجابات المتلقاة';
-
-  @override
   String get kesPickVideo => 'اختيار فيديو';
 
   @override
@@ -5762,28 +5744,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get kesReelsEmptyBody => 'كن أول من يشارك فيديو.';
-
-  @override
-  String get kesSeenAll => 'شاهدت كل شيء، تُعرض المنشورات مرة أخرى.';
-
-  @override
-  String get kesFilterForYou => 'لك';
-
-  @override
-  String get kesFilterPopular => 'الأكثر شعبية';
-
-  @override
-  String get kesFilterLatest => 'الأحدث';
-
-  @override
-  String get kesFilterFollowing => 'من أتابعهم';
-
-  @override
-  String get kesFollowingEmptyTitle => 'لم ينشر من تتابعهم شيئًا بعد';
-
-  @override
-  String get kesFollowingEmptyBody =>
-      'تابع المزيد من الأشخاص لتظهر منشوراتهم هنا.';
 
   @override
   String get kesReelsDoneTitle => 'شاهدت كل الفيديوهات حاليًا';

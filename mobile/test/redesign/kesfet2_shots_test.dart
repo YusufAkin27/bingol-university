@@ -215,7 +215,7 @@ void main() {
             session: session,
             postId: first.id,
             initial: first,
-            stream: PostStreamSeed(items: [for (var i = 1; i < 8; i++) Post.fromJson(_post(i))], hasMore: shot.state == 'loadingmore', cursor: 'c2'),
+            stream: PostStreamSeed(items: [for (var i = 1; i < 8; i++) Post.fromJson(_post(i))], hasMore: shot.state == 'loadingmore'),
           );
         } else {
           home = DiscoverTab(session: session, typeRequest: ValueNotifier<String?>(null));

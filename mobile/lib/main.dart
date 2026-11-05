@@ -15,6 +15,7 @@ import 'core/cache/cache_lifecycle.dart';
 import 'core/cache/disk_cache.dart';
 import 'core/cache/image_disk_cache.dart';
 import 'core/cache/message_cache.dart';
+import 'core/cache/video_prefetch.dart';
 import 'core/connectivity/connectivity_service.dart';
 import 'core/language_sync.dart';
 import 'core/user_data.dart';
@@ -167,6 +168,8 @@ void _wireOfflineStorage(ApiClient api, Outbox outbox, Session session) {
   outbox.uploader = outboxUploaderFor(session);
   MessageCache.instance = MessageCache(); // diskli örnekler (varsayılanları yalnız bellek/pasif)
   ImageDiskCache.instance = ImageDiskCache();
+  VideoPrefetcher.instance = VideoPrefetcher(); // Keşfet videoları önceden yerel diske iner (arka planda durur)
+  VideoPrefetchLifecycle.instance.attach();
   final rt = session.realtime;
   if (rt != null) {
     rt.connected.listen((on) {

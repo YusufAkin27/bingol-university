@@ -1,39 +1,41 @@
 import 'post_models.dart';
 
-/// Gönderi sayfasının dikey akışı için tohum (Stitch v3 kesfet2): açılan gönderinin ALTINDA hangi gönderilerin
-/// geleceğini ve akışın nereden sürdürüleceğini söyler. Akış `GET /feed` (`scope`) ile aynı imleçle sonsuz kaydırılır.
+/// Gönderi sayfasının dikey akışı için tohum (Instagram Keşfet gibi): açılan gönderinin ÜSTÜNDE ve ALTINDA hangi
+/// gönderilerin olacağını ve akışın nasıl sürdürüleceğini söyler.
 ///
-/// * Keşfet: kutuya dokunulunca masonry listesinin o kutudan SONRAKİ gönderileri + imleç ([primed] true).
+/// * Keşfet: ızgaranın tıklanan kutudan ÖNCEKİ gönderileri [before] (yukarı kaydırınca görünür), SONRAKİLERİ [items]
+///   (aşağıda). Izgaranın sonundan sonra sayfa, `GET /feed` ile YENİ oturum tohumuyla (rastgele, görülmemişler önce)
+///   sonsuz sayfalar ([hasMore] true iken).
 /// * Derin bağlantı / push: tohum boştur ([PostStreamSeed.fresh]); sayfa, açılan gönderiyi aldıktan sonra akışın ilk
 ///   sayfasını kendisi ister. Akış alınamazsa yalnız o gönderi gösterilir (hata gösterilmez).
 class PostStreamSeed {
   const PostStreamSeed({
-    this.scope = 'top',
+    this.scope = 'foryou',
+    this.before = const [],
     this.items = const [],
-    this.cursor,
     this.hasMore = true,
     this.primed = true,
   });
 
   /// Akışı hiç yüklenmemiş tohum: ilk sayfa sayfanın kendisince istenir.
-  const PostStreamSeed.fresh({this.scope = 'top'})
-      : items = const [],
-        cursor = null,
+  const PostStreamSeed.fresh({this.scope = 'foryou'})
+      : before = const [],
+        items = const [],
         hasMore = true,
         primed = false;
 
-  /// `GET /feed` kapsamı (`top` | `popular`).
+  /// `GET /feed` kapsamı (Keşfet: `foryou`).
   final String scope;
+
+  /// Açılan gönderiden ÖNCEKİ gönderiler, ızgara sırasıyla (yukarıdan aşağıya); akışta açılan gönderinin üstündedir.
+  final List<Post> before;
 
   /// Açılan gönderiden sonraki, zaten yüklü gönderiler (sırayla).
   final List<Post> items;
 
-  /// Sonraki sayfanın opak imleci (null: baştan).
-  final String? cursor;
-
-  /// Sunucuda daha gönderi olabilir mi.
+  /// Sunucudan sayfa istenebilir mi (false: yalnız [before]/[items] gösterilir).
   final bool hasMore;
 
-  /// [items] / [cursor] gerçek bir akış durumu mu (false: sayfa ilk sayfayı kendisi ister).
+  /// [items] gerçek bir akış durumu mu (false: sayfa ilk sayfayı kendisi ister).
   final bool primed;
 }

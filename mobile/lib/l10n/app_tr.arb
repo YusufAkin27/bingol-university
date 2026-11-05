@@ -3088,18 +3088,6 @@
   "kesfetSearchHint": "Gönderi veya kişi ara",
   "kesSegPosts": "Gönderiler",
   "kesSegReels": "Reels",
-  "kesSegA11y": "Keşfet görünümü",
-  "kesPopularity": "Popülerlik",
-  "kesPopularityOf": "Popülerlik puanı {score} / 100",
-  "@kesPopularityOf": {
-    "placeholders": {
-      "score": {
-        "type": "String"
-      }
-    }
-  },
-  "kesPopularityHow": "Takipçi sayın, aldığın beğeniler ve gönderi sayından hesaplanır.",
-  "kesLikesReceived": "Alınan beğeni",
   "kesPickVideo": "Video seç",
   "kesRecordVideo": "Video çek",
   "kesVideoLimits": "Video en fazla 60 saniye ve 50 MB olabilir.",
@@ -3124,13 +3112,6 @@
   "kesFullscreen": "Tam ekran izle",
   "kesReelsEmptyTitle": "Henüz reel yok",
   "kesReelsEmptyBody": "İlk videoyu sen paylaş.",
-  "kesSeenAll": "Hepsini gördün, gönderiler yeniden gösteriliyor.",
-  "kesFilterForYou": "Senin İçin",
-  "kesFilterPopular": "Popüler",
-  "kesFilterLatest": "En Yeni",
-  "kesFilterFollowing": "Takip Ettiklerim",
-  "kesFollowingEmptyTitle": "Takip ettiklerin henüz bir şey paylaşmadı",
-  "kesFollowingEmptyBody": "Yeni kişiler takip et, paylaşımları burada görünsün.",
   "kesReelsDoneTitle": "Şimdilik tüm videoları gördün",
   "kesReelsDoneBody": "Yeni videolar geldikçe burada olacak.",
   "kesReelsReplay": "Tekrar izle",

@@ -190,6 +190,39 @@ class DiskNetworkImage extends ImageProvider<DiskNetworkImage> {
 
   /// Tek görsel için bildirilen en büyük indirme (yükleme sınırları 3-12 MB; bunun üstü görsel değildir).
   static const maxDownloadBytes = 40 * 1024 * 1024;
+  static int _warming = 0;
+  static final List<Completer<void>> _warmWaiters = [];
+
+  /// Görseli kullanıcı bakmadan ÖNCE diske indirir (Keşfet önyüklemesi). Diskte varsa dokunmaz; en çok 3 eşzamanlı;
+  /// yalnız görsel baytları (JPEG/PNG/WebP/GIF) yazılır; hata sessizdir. Çözümleme/bellek önbelleği kullanılmaz.
+  static Future<void> warm(String url, {Map<String, String>? headers, ImageDiskCache? cache}) async {
+    final store = cache ?? ImageDiskCache.instance;
+    while (_warming >= 3) {
+      final c = Completer<void>();
+      _warmWaiters.add(c);
+      await c.future;
+    }
+    _warming++;
+    try {
+      if (await store.read(url) != null) return;
+      final key = DiskNetworkImage(url, headers: headers, cache: store);
+      final bytes = await key._download(key);
+      if (_looksLikeImage(bytes)) await store.write(url, bytes);
+    } catch (_) {
+      // sessiz: önyükleme yalnız hızlandırır
+    } finally {
+      _warming--;
+      if (_warmWaiters.isNotEmpty) _warmWaiters.removeAt(0).complete();
+    }
+  }
+
+  static bool _looksLikeImage(Uint8List b) {
+    if (b.length < 12) return false;
+    if (b[0] == 0xFF && b[1] == 0xD8) return true; // JPEG
+    if (b[0] == 0x89 && b[1] == 0x50 && b[2] == 0x4E && b[3] == 0x47) return true; // PNG
+    if (b[0] == 0x47 && b[1] == 0x49 && b[2] == 0x46) return true; // GIF
+    return b[0] == 0x52 && b[1] == 0x49 && b[2] == 0x46 && b[3] == 0x46 && b[8] == 0x57 && b[9] == 0x45; // WebP
+  }
 
   static HttpClient? _shared;
   static HttpOverrides? _sharedFor;

@@ -222,6 +222,7 @@ class _CardSurface extends StatelessWidget {
 
 class _PostCardState extends State<PostCard> {
   final _like = LikeController();
+  final _video = PostVideoController();
   final _cardKey = GlobalKey();
   bool _menuOpen = false;
 
@@ -322,20 +323,20 @@ class _PostCardState extends State<PostCard> {
               child: Stack(children: [
                 DoubleTapLike(
                   onLike: _like.like,
-                  // Tek dokunuş: ses aç/kapat (video sessiz başlar).
-                  onTap: () => postVideoMuted.value = !postVideoMuted.value,
+                  // Tek dokunuş: oynat/duraklat (ikon kısa görünüp solar); ses ayrı düğmeyle (varsayılan sessiz).
+                  onTap: _video.toggle,
                   radius: 16,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
                     child: AspectRatio(
                       aspectRatio: postVideoCardRatio(p),
-                      child: PostVideoView(session: widget.session, post: p, handleTap: false, showControls: false),
+                      child: PostVideoView(
+                          session: widget.session, post: p, handleTap: false, showControls: false, controller: _video, flashIcon: true),
                     ),
                   ),
                 ),
-                // Düğmeler çift dokunuş sarmalayıcısının DIŞINDA: dokunma gecikmez.
+                // Düğme çift dokunuş sarmalayıcısının DIŞINDA: dokunma gecikmez.
                 const PositionedDirectional(end: 0, bottom: 0, child: PostVideoSoundButton()),
-                PositionedDirectional(end: 0, top: 0, child: PostVideoFullscreenButton(session: widget.session, post: p)),
               ]),
             )
           else if (p.photo != null)

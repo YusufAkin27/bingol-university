@@ -10638,36 +10638,6 @@ abstract class AppLocalizations {
   /// **'Reels'**
   String get kesSegReels;
 
-  /// No description provided for @kesSegA11y.
-  ///
-  /// In tr, this message translates to:
-  /// **'Keşfet görünümü'**
-  String get kesSegA11y;
-
-  /// No description provided for @kesPopularity.
-  ///
-  /// In tr, this message translates to:
-  /// **'Popülerlik'**
-  String get kesPopularity;
-
-  /// No description provided for @kesPopularityOf.
-  ///
-  /// In tr, this message translates to:
-  /// **'Popülerlik puanı {score} / 100'**
-  String kesPopularityOf(String score);
-
-  /// No description provided for @kesPopularityHow.
-  ///
-  /// In tr, this message translates to:
-  /// **'Takipçi sayın, aldığın beğeniler ve gönderi sayından hesaplanır.'**
-  String get kesPopularityHow;
-
-  /// No description provided for @kesLikesReceived.
-  ///
-  /// In tr, this message translates to:
-  /// **'Alınan beğeni'**
-  String get kesLikesReceived;
-
   /// No description provided for @kesPickVideo.
   ///
   /// In tr, this message translates to:
@@ -10727,48 +10697,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'İlk videoyu sen paylaş.'**
   String get kesReelsEmptyBody;
-
-  /// No description provided for @kesSeenAll.
-  ///
-  /// In tr, this message translates to:
-  /// **'Hepsini gördün, gönderiler yeniden gösteriliyor.'**
-  String get kesSeenAll;
-
-  /// No description provided for @kesFilterForYou.
-  ///
-  /// In tr, this message translates to:
-  /// **'Senin İçin'**
-  String get kesFilterForYou;
-
-  /// No description provided for @kesFilterPopular.
-  ///
-  /// In tr, this message translates to:
-  /// **'Popüler'**
-  String get kesFilterPopular;
-
-  /// No description provided for @kesFilterLatest.
-  ///
-  /// In tr, this message translates to:
-  /// **'En Yeni'**
-  String get kesFilterLatest;
-
-  /// No description provided for @kesFilterFollowing.
-  ///
-  /// In tr, this message translates to:
-  /// **'Takip Ettiklerim'**
-  String get kesFilterFollowing;
-
-  /// No description provided for @kesFollowingEmptyTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Takip ettiklerin henüz bir şey paylaşmadı'**
-  String get kesFollowingEmptyTitle;
-
-  /// No description provided for @kesFollowingEmptyBody.
-  ///
-  /// In tr, this message translates to:
-  /// **'Yeni kişiler takip et, paylaşımları burada görünsün.'**
-  String get kesFollowingEmptyBody;
 
   /// No description provided for @kesReelsDoneTitle.
   ///

@@ -12,6 +12,7 @@ import 'api.dart';
 import 'cache/image_disk_cache.dart';
 import 'cache/message_cache.dart';
 import 'cache/video_cover_cache.dart';
+import 'cache/video_prefetch.dart';
 import 'language_sync.dart';
 
 /// Çıkış / hesap değişimi / hesap silme / oturum iptalinde silinmesi gereken kullanıcıya özel yerel depoların
@@ -27,6 +28,7 @@ void registerUserDataCleaners(ApiClient api) {
     ..add(() => MessageCache.instance.clear())
     ..add(() => ImageDiskCache.instance.clear())
     ..add(() => VideoCoverCache.instance.clear()) // istemcinin ürettiği video kapakları (bellek; disk yukarıda)
+    ..add(() => VideoPrefetcher.instance.clear()) // Keşfet önyüklenmiş videoları (yetkili, kullanıcıya özel içerik)
     ..add(RecentSearches.clear) // arama geçmişi (kişi adı olabilir)
     ..add(() => PhotoAutoSave.instance.reset()) // galeriye otomatik kayıt ayarı + kaydedilen ek kimlikleri
     ..add(ReminderService.clearUserData) // ders hatırlatıcı ayarı + kurulu yerel hatırlatmalar
