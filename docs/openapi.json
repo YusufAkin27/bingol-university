@@ -13564,6 +13564,9 @@
       },
       "UnreadItem" : {
         "properties" : {
+          "archived" : {
+            "type" : [ "boolean", "null" ]
+          },
           "conversationId" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
@@ -13579,6 +13582,14 @@
       },
       "UnreadSummary" : {
         "properties" : {
+          "archivedChats" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "archivedUnreadChats" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
           "conversations" : {
             "items" : {
               "$ref" : "#/components/schemas/UnreadItem"

@@ -33,7 +33,9 @@ class ConversationPrefsServiceTest {
     private final MessageRepository messages = mock(MessageRepository.class);
     private final ConversationService conversations = mock(ConversationService.class);
     private final BlockService blocks = mock(BlockService.class);
-    private final ConversationPrefsService service = new ConversationPrefsService(members, messages, conversations, blocks);
+    private final ConversationRepository convs = mock(ConversationRepository.class);
+    private final ConversationPrefsService service =
+            new ConversationPrefsService(members, messages, conversations, blocks, convs);
 
     private ConversationMember mine;
 
@@ -91,9 +93,11 @@ class ConversationPrefsServiceTest {
     }
 
     @Test
-    void archiveStickyAndUnarchive() {
-        service.archive(ME, CONV, true);
+    void archiveIsAlwaysStickyAndUnarchive() {
+        // keepArchived=false verilse bile arsiv yeni mesajla cikmaz (WhatsApp 'arsivi koru')
+        service.archive(ME, CONV, false);
         assertTrue(mine.getArchivedAt() != null && mine.isArchiveSticky());
+        verify(members).updateArchive(eq(CONV), eq(ME), any(), eq(true));
 
         service.unarchive(ME, CONV);
         assertNull(mine.getArchivedAt());
@@ -124,6 +128,53 @@ class ConversationPrefsServiceTest {
         assertEquals(5, s.mutedTotal());
         assertEquals(2, s.conversations().size()); // 12 numarali konusmada okunmamis yok
         assertTrue(s.conversations().stream().anyMatch(i -> i.conversationId().equals(11L) && i.muted()));
+    }
+
+    @Test
+    void archivedChatsCountOnceEachAndStayOutOfTheBadgeTotals() {
+        ConversationMember arch1 = ConversationMember.of(11L, ME, ConversationMember.Role.MEMBER);
+        arch1.setArchivedAt(Instant.now());
+        ConversationMember arch2 = ConversationMember.of(12L, ME, ConversationMember.Role.MEMBER);
+        arch2.setArchivedAt(Instant.now());
+        ConversationMember arch3 = ConversationMember.of(13L, ME, ConversationMember.Role.MEMBER);
+        arch3.setArchivedAt(Instant.now()); // okunmamisi yok
+        when(members.findByUserIdAndLeftAtIsNull(ME)).thenReturn(List.of(mine, arch1, arch2, arch3));
+        when(blocks.hiddenFrom(ME)).thenReturn(Set.of());
+        when(convs.countArchived(ME)).thenReturn(3L);
+        when(messages.unreadCounts(eq(ME), any(), any())).thenReturn(List.<Object[]>of(
+                new Object[] {CONV, 2L}, new Object[] {11L, 100L}, new Object[] {12L, 1L}));
+
+        UnreadSummary s = service.unreadSummary(ME);
+
+        assertEquals(2, s.total()); // arsivdekiler rozete girmez
+        assertEquals(0, s.mutedTotal());
+        assertEquals(3, s.archivedChats());
+        assertEquals(2, s.archivedUnreadChats()); // sohbet basina 1: 100 okunmamis da 1 sayilir
+        assertTrue(s.conversations().stream().anyMatch(i -> i.conversationId().equals(11L) && i.archived()));
+    }
+
+    @Test
+    void noArchivedChatsMeansNoArchiveQueryAndZeroes() {
+        when(members.findByUserIdAndLeftAtIsNull(ME)).thenReturn(List.of(mine));
+        when(blocks.hiddenFrom(ME)).thenReturn(Set.of());
+        when(messages.unreadCounts(eq(ME), any(), any())).thenReturn(List.<Object[]>of(new Object[] {CONV, 4L}));
+
+        UnreadSummary s = service.unreadSummary(ME);
+
+        assertEquals(0, s.archivedChats());
+        assertEquals(0, s.archivedUnreadChats());
+        org.mockito.Mockito.verifyNoInteractions(convs);
+    }
+
+    @Test
+    void unreadBadgeSkipsArchivedChats() {
+        ConversationMember arch = ConversationMember.of(11L, ME, ConversationMember.Role.MEMBER);
+        arch.setArchivedAt(Instant.now());
+        when(members.findByUserIdAndLeftAtIsNull(ME)).thenReturn(List.of(mine, arch));
+        when(blocks.hiddenFrom(ME)).thenReturn(Set.of());
+        when(messages.unreadCounts(eq(ME), eq(List.of(CONV)), any())).thenReturn(List.<Object[]>of(new Object[] {CONV, 3L}));
+
+        assertEquals(3, service.unreadBadge(ME));
     }
 
     @Test

@@ -29,10 +29,13 @@ public class ConversationPrefsService {
     private final MessageRepository messages;
     private final ConversationService conversations;
     private final BlockService blocks;
+    private final ConversationRepository convs;
 
     public ConversationPrefsService(ConversationMemberRepository members, MessageRepository messages,
-                                    ConversationService conversations, BlockService blocks) {
+                                    ConversationService conversations, BlockService blocks,
+                                    ConversationRepository convs) {
         this.blocks = blocks;
+        this.convs = convs;
         this.members = members;
         this.messages = messages;
         this.conversations = conversations;
@@ -47,7 +50,7 @@ public class ConversationPrefsService {
         List<ConversationMember> mine = members.findByUserIdAndLeftAtIsNull(userId).stream()
                 .filter(ConversationMember::isAccepted).toList();
         if (mine.isEmpty()) {
-            return new UnreadSummary(0, 0, List.of());
+            return new UnreadSummary(0, 0, List.of(), 0, 0);
         }
         // Liste satirlariyla AYNI sorgu ve ayni engel filtresi: sayilar birebir tutarli
         List<Long> ids = mine.stream().map(ConversationMember::getConversationId).toList();
@@ -58,6 +61,7 @@ public class ConversationPrefsService {
         }
         long total = 0;
         long mutedTotal = 0;
+        long archivedUnreadChats = 0;
         List<UnreadItem> items = new ArrayList<>();
         for (ConversationMember m : mine) {
             long n = unread.getOrDefault(m.getConversationId(), 0L);
@@ -65,14 +69,19 @@ public class ConversationPrefsService {
                 continue;
             }
             boolean muted = m.isMuted();
-            if (muted) {
+            boolean archived = m.getArchivedAt() != null;
+            if (archived) {
+                archivedUnreadChats++; // arsiv cubugu: sohbet basina 1 (rozet toplamina girmez)
+            } else if (muted) {
                 mutedTotal += n;
             } else {
                 total += n;
             }
-            items.add(new UnreadItem(m.getConversationId(), n, muted));
+            items.add(new UnreadItem(m.getConversationId(), n, muted, archived));
         }
-        return new UnreadSummary(total, mutedTotal, items);
+        boolean anyArchived = mine.stream().anyMatch(m -> m.getArchivedAt() != null);
+        long archivedChats = anyArchived ? convs.countArchived(userId) : 0;
+        return new UnreadSummary(total, mutedTotal, items, archivedChats, archivedUnreadChats);
     }
 
     /** Rozet toplami bu degerden buyukse "99+" gosterilir: sayim da burada kesilir (istemciler n > 99 icin 99+ yazar). */
@@ -80,11 +89,11 @@ public class ConversationPrefsService {
 
     /**
      * Ana sayfa rozeti icin hafif sayim: SESSIZ konusmalar sorguya hic girmez (yalniz `total` kullanildigindan
-     * sessizlerin sayilmasi bosuna), her konusmanin katkisi ve toplam {@link #BADGE_CAP} ile sinirlanir.
+     * sessizlerin sayilmasi bosuna; arsivdekiler de sayilmaz), her konusmanin katkisi ve toplam {@link #BADGE_CAP} ile sinirlanir.
      */
     public long unreadBadge(Long userId) {
         List<Long> ids = members.findByUserIdAndLeftAtIsNull(userId).stream()
-                .filter(m -> !m.isMuted() && m.isAccepted()).map(ConversationMember::getConversationId).toList();
+                .filter(m -> !m.isMuted() && m.getArchivedAt() == null && m.isAccepted()).map(ConversationMember::getConversationId).toList();
         if (ids.isEmpty()) {
             return 0;
         }
@@ -119,11 +128,15 @@ public class ConversationPrefsService {
         return view(userId, conversationId);
     }
 
+    /**
+     * Arsivle. Arsivli konusma yeni mesajla arsivden CIKMAZ ve bildirim uretmez (WhatsApp gibi); `keepArchived`
+     * eski istemciler icin kabul edilir ama artik etkisizdir (her arsiv "yapiskan" kaydedilir).
+     */
     public ConversationView archive(Long userId, Long conversationId, boolean keepArchived) {
         ConversationMember m = require(conversationId, userId);
         m.setArchivedAt(Instant.now());
-        m.setArchiveSticky(keepArchived);
-        members.updateArchive(conversationId, userId, m.getArchivedAt(), keepArchived);
+        m.setArchiveSticky(true);
+        members.updateArchive(conversationId, userId, m.getArchivedAt(), true);
         return view(userId, conversationId);
     }
 
