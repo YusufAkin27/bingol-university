@@ -10,6 +10,7 @@ import '../../widgets/bu.dart';
 import 'bubble_entry.dart';
 import 'bubble_text_meta.dart';
 import 'chat_media.dart';
+import 'chat_video_cover.dart';
 import 'chat_media_parts.dart';
 import 'chatd_parts.dart';
 import 'message_placeholder.dart';
@@ -968,6 +969,14 @@ class _AttachmentImage extends StatelessWidget {
         ? w
         : Stack(fit: StackFit.expand, children: [w, overlay!]);
 
+    Widget videoCover(String? posterUrl) => ChatVideoCover(
+          videoUrl: attachment['url'] as String?,
+          posterUrl: posterUrl,
+          headers: headers,
+          decodeWidth: decode,
+          initialBytes: placeholder,
+        );
+
     Widget box(Widget child) => ClipRRect(
           borderRadius: radius ?? BorderRadius.circular(18),
           child: SizedBox(width: width, height: height, child: child),
@@ -999,7 +1008,8 @@ class _AttachmentImage extends StatelessWidget {
         onTap: onTap,
         child: box(Stack(fit: StackFit.expand, children: [
           if (thumb == null)
-            withOverlay(ColoredBox(color: t.sf2))
+            // Videoda poster yoksa kapak videodan üretilir (önbellekli); fotoğrafta düz zemin.
+            withOverlay(video ? videoCover(null) : ColoredBox(color: t.sf2))
           else
             Image(
               // Yalnız normal/kalıcı ekler diske yazılır; tek gösterimlik ve kaldırılmış ekler asla (savunma: bu
@@ -1044,13 +1054,13 @@ class _AttachmentImage extends StatelessWidget {
                   ]),
                 ));
               },
-              errorBuilder: (c, e, s) => withOverlay(ColoredBox(
-                color: t.sf2,
-                // Videoda oynat simgesi zaten ortada: kırık görsel simgesi onunla üst üste binmesin.
-                child: video
-                    ? null
-                    : Center(child: Icon(BuIcons.imageOff, color: t.mut)),
-              )),
+              errorBuilder: (c, e, s) => withOverlay(video
+                  // Poster indirilemedi: kapak videodan üretilir (başarısızsa koyu yer tutucu + oynat simgesi).
+                  ? videoCover(null)
+                  : ColoredBox(
+                      color: t.sf2,
+                      child: Center(child: Icon(BuIcons.imageOff, color: t.mut)),
+                    )),
             ),
           if (video && more == 0) ...[
             ColoredBox(color: t.scrim.withValues(alpha: .12)),

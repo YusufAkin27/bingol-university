@@ -1,9 +1,10 @@
+import AVFoundation
 import Flutter
 import UIKit
 import UserNotifications
 
 /// iOS yerel köprüsü (Android'deki MainActivity + LocalReminders.kt karşılığı). Ekran koruması kanalı `bu_kampus/secure`
-/// dosya sonundaki BuSecureView'dadır; aşağıdaki iki kanal:
+/// (BuSecureView) ve video kapak karesi kanalı `bu_kampus/video_frame` (BuVideoFrames) dosya sonundadır; aşağıdaki iki kanal:
 ///
 /// - `bu_kampus/notify`: ders/sınav yerel hatırlatmaları (UNUserNotificationCenter ile zamanlanır; sunucu
 ///   göndermez). Yöntemler Dart'taki `ChannelReminderBackend` ile aynıdır: replaceGroup, upsert, cancel, cancelGroup,
@@ -84,6 +85,8 @@ final class BuNativeBridge: NSObject, FlutterPlugin, UNUserNotificationCenterDel
     // Tek gösterimlik fotoğraf görüntüleyicisi için ekran koruması (BuSecureView, dosya sonunda).
     let secure = FlutterMethodChannel(name: "bu_kampus/secure", binaryMessenger: messenger)
     BuSecureView.shared.attach(secure)
+    // Video kapak karesi (gönderirken yerel dosyadan, gösterirken yetkili ağ adresinden): BuVideoFrames, dosya sonunda.
+    BuVideoFrames.register(with: messenger)
     registrar.addApplicationDelegate(instance)
   }
 
@@ -291,15 +294,18 @@ final class BuNativeBridge: NSObject, FlutterPlugin, UNUserNotificationCenterDel
 /// Görüntüleyici açıkken çağrılan `enable`, kapanınca `disable`. iOS'ta ekran görüntüsünü doğrudan ENGELLEYEN resmî
 /// API yoktur; burada dört katman vardır (hepsi en iyi çabadır, hiçbiri tek başına garanti değildir):
 ///
-/// 1. Güvenli katman: pencere katmanı, `isSecureTextEntry = true` olan bir `UITextField`'ın iç katmanına taşınır.
-///    Sistem bu katmanı ekran görüntüsü/ekran kaydı/AirPlay çıktısında SİYAH çizer (DRM benzeri; resmî olmayan, ama
-///    yaygın kullanılan yöntem; iOS sürümleriyle iç katman düzeni değişebilir). Katman bulunamazsa ya da taşıma
-///    doğrulanamazsa her şey eski haline döner ve `secureLayer=false` bildirilir: uygulama çalışmaya devam eder.
+/// 1. Güvenli katman (YALNIZ Dart `enable(layerTrick: true)` derse; varsayılan KAPALI): pencere katmanı,
+///    `isSecureTextEntry = true` olan bir `UITextField`'ın iç katmanına taşınır. Sistem bu katmanı ekran
+///    görüntüsü/ekran kaydı/AirPlay çıktısında SİYAH çizer (resmî olmayan, ama yaygın kalıp: ScreenProtectorKit).
+///    RİSK: kalıp iOS sürümlerine ve alan yerleşimine bağlıdır; yanlış oturursa tüm pencere içeriği sağ-alta KAYAR
+///    (kullanıcı gerçek iPhone'da gördü). Bu yüzden: (a) alan pencerede MERKEZLENİR, (b) taşımadan önce/sonra pencere
+///    katmanının ekrandaki konumu ölçülür, fark varsa HEMEN geri alınır (`secureLayer=false`), (c) 0,4 sn ve 1,5 sn
+///    sonra ve uygulama öne gelince yeniden ölçülür, kayma varsa geri alınır (`onLayerRevoked`).
 /// 2. `UIScreen.isCaptured` + `capturedDidChangeNotification`: kayıt/yansıtma başlayınca Dart'a `onCaptured`.
 /// 3. `userDidTakeScreenshotNotification`: ekran görüntüsü ALINDIKTAN SONRA Dart'a `onScreenshot` (engelleyemez).
 /// 4. `willResignActive`: uygulama değiştirici önizlemesi için opak siyah örtü; `didBecomeActive`'de kalkar.
 ///
-/// UYARI: macOS/Xcode'da derlenip denenmedi (docs/IOS_RELEASE.md).
+/// 2-4 yerleşimi hiç değiştirmez. UYARI: macOS/Xcode'da derlenip denenmedi (docs/IOS_RELEASE.md).
 final class BuSecureView: NSObject {
   static let shared = BuSecureView()
 
@@ -311,7 +317,33 @@ final class BuSecureView: NSObject {
   // Güvenli katman durumu (kurulduysa geri almak için başvurular güçlü tutulur).
   private var field: UITextField?
   private var hostLayer: CALayer?
+  private var hostIndex: Int?
   private var installedWindow: UIWindow?
+
+  /// Pencere katmanının yerleşim özeti: taşımadan önce/sonra karşılaştırılır.
+  private struct Geometry {
+    let frame: CGRect
+    let bounds: CGRect
+    let origin: CGPoint
+
+    init(_ window: UIWindow) {
+      frame = window.frame
+      bounds = window.bounds
+      var root: CALayer = window.layer
+      while let up = root.superlayer { root = up }
+      origin = window.layer.convert(CGPoint.zero, to: root)
+    }
+
+    func matches(_ other: Geometry) -> Bool {
+      let tol: CGFloat = 0.5
+      return abs(origin.x - other.origin.x) <= tol && abs(origin.y - other.origin.y) <= tol
+        && abs(frame.minX - other.frame.minX) <= tol && abs(frame.minY - other.frame.minY) <= tol
+        && abs(frame.width - other.frame.width) <= tol && abs(frame.height - other.frame.height) <= tol
+        && abs(bounds.width - other.bounds.width) <= tol && abs(bounds.height - other.bounds.height) <= tol
+    }
+  }
+
+  private var baseline: Geometry?
 
   func attach(_ channel: FlutterMethodChannel) {
     self.channel = channel
@@ -322,7 +354,9 @@ final class BuSecureView: NSObject {
       }
       switch call.method {
       case "enable":
-        DispatchQueue.main.async { result(self.enable()) }
+        let args = call.arguments as? [String: Any]
+        let trick = (args?["layerTrick"] as? Bool) ?? false
+        DispatchQueue.main.async { result(self.enable(layerTrick: trick)) }
       case "disable":
         DispatchQueue.main.async {
           self.disable()
@@ -348,12 +382,13 @@ final class BuSecureView: NSObject {
     return UIScreen.main.isCaptured
   }
 
-  private func enable() -> [String: Any] {
+  private func enable(layerTrick: Bool) -> [String: Any] {
     if !enabled {
       enabled = true
       addObservers()
     }
-    let layered = installSecureLayer()
+    // Güvenli katman yalnız açıkça istenirse kurulur (yerleşimi kaydırma riski: sınıf açıklamasına bakın).
+    let layered = layerTrick ? installSecureLayer() : false
     return ["secureLayer": layered, "captured": isCaptured()]
   }
 
@@ -371,14 +406,18 @@ final class BuSecureView: NSObject {
   private func installSecureLayer() -> Bool {
     if installedWindow != nil { return true }
     guard let window = keyWindow(), let host = window.layer.superlayer else { return false }
+    let before = Geometry(window)
+    let index = host.sublayers?.firstIndex(where: { $0 === window.layer })
+
     let tf = UITextField()
+    tf.isSecureTextEntry = true
     tf.isUserInteractionEnabled = false
     tf.translatesAutoresizingMaskIntoConstraints = false
-    tf.isSecureTextEntry = true
     window.addSubview(tf)
-    tf.centerXAnchor.constraint(equalTo: window.centerXAnchor).isActive = true
+    // Alan pencerede MERKEZLENMELİ; aksi halde tüm pencere içeriği sağ-alta kayar.
     tf.centerYAnchor.constraint(equalTo: window.centerYAnchor).isActive = true
-    tf.layoutIfNeeded()
+    tf.centerXAnchor.constraint(equalTo: window.centerXAnchor).isActive = true
+    window.layoutIfNeeded()
     host.addSublayer(tf.layer)
     // İç güvenli katman: iOS 17 ve sonrasında son alt katman, öncesinde ilki.
     let inner: CALayer?
@@ -395,26 +434,53 @@ final class BuSecureView: NSObject {
     container.addSublayer(window.layer)
     guard window.layer.superlayer === container else {
       // Taşıma tutmadı: pencere katmanını eski yerine koy, geçici nesneleri sök.
-      host.addSublayer(window.layer)
-      tf.layer.removeFromSuperlayer()
-      tf.removeFromSuperview()
+      restore(window: window, host: host, index: index, field: tf)
       return false
     }
     field = tf
     hostLayer = host
+    hostIndex = index
     installedWindow = window
+    baseline = before
+    // Kayma denetimi: pencerenin ekrandaki konumu/boyutu değiştiyse HEMEN geri al.
+    if !Geometry(window).matches(before) {
+      removeSecureLayer()
+      return false
+    }
+    for delay in [0.4, 1.5] {
+      DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in self?.verifyLayer() }
+    }
     return true
+  }
+
+  /// Kurulu güvenli katman varken pencere kaymışsa katmanı geri alır ve Dart'a haber verir.
+  private func verifyLayer() {
+    guard let window = installedWindow, let before = baseline else { return }
+    if !Geometry(window).matches(before) {
+      removeSecureLayer()
+      channel?.invokeMethod("onLayerRevoked", arguments: nil)
+    }
+  }
+
+  private func restore(window: UIWindow, host: CALayer, index: Int?, field tf: UITextField) {
+    if let i = index, i <= (host.sublayers?.count ?? 0) {
+      host.insertSublayer(window.layer, at: UInt32(i))
+    } else {
+      host.addSublayer(window.layer)
+    }
+    tf.isSecureTextEntry = false
+    tf.layer.removeFromSuperlayer()
+    tf.removeFromSuperview()
   }
 
   private func removeSecureLayer() {
     guard let window = installedWindow, let host = hostLayer, let tf = field else { return }
-    host.addSublayer(window.layer)
-    tf.isSecureTextEntry = false
-    tf.layer.removeFromSuperlayer()
-    tf.removeFromSuperview()
+    restore(window: window, host: host, index: hostIndex, field: tf)
     field = nil
     hostLayer = nil
+    hostIndex = nil
     installedWindow = nil
+    baseline = nil
   }
 
   // MARK: Gözlemciler
@@ -433,6 +499,7 @@ final class BuSecureView: NSObject {
     })
     observers.append(center.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in
       self?.hideCover()
+      self?.verifyLayer()
     })
   }
 
@@ -450,5 +517,68 @@ final class BuSecureView: NSObject {
   private func hideCover() {
     cover?.removeFromSuperview()
     cover = nil
+  }
+}
+
+// MARK: - Video kapak karesi (kanal `bu_kampus/video_frame`)
+
+/// `frame {path | url, headers, positionMs, maxEdge, quality}` -> JPEG baytları (alınamazsa null).
+/// Yerel dosya (`path`, gönderirken) ya da yetkili ağ adresi (`url` + `headers`, eski mesajlarda kapak üretirken).
+/// `AVAssetImageGenerator`: dönüş (rotasyon) uygulanır, uzun kenar `maxEdge`'i aşmaz, en yakın anahtar kare alınır
+/// (tolerans sonsuz: ağ akışında hızlı ve güvenilir). İstenen an videodan uzunsa 0. saniyeye düşülür.
+/// UYARI: macOS/Xcode'da derlenip denenmedi.
+enum BuVideoFrames {
+  static func register(with messenger: FlutterBinaryMessenger) {
+    let channel = FlutterMethodChannel(name: "bu_kampus/video_frame", binaryMessenger: messenger)
+    channel.setMethodCallHandler { call, result in
+      guard call.method == "frame" else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      guard let args = call.arguments as? [String: Any] else {
+        result(FlutterError(code: "BAD_ARGS", message: "args", details: nil))
+        return
+      }
+      DispatchQueue.global(qos: .userInitiated).async {
+        let data = grab(args)
+        DispatchQueue.main.async {
+          if let data = data { result(FlutterStandardTypedData(bytes: data)) } else { result(nil) }
+        }
+      }
+    }
+  }
+
+  private static func grab(_ args: [String: Any]) -> Data? {
+    let asset: AVURLAsset
+    if let path = args["path"] as? String, !path.isEmpty {
+      asset = AVURLAsset(url: URL(fileURLWithPath: path))
+    } else if let raw = args["url"] as? String, let url = URL(string: raw),
+              url.scheme == "https" || url.scheme == "http" {
+      var options: [String: Any] = [:]
+      if let headers = args["headers"] as? [String: String], !headers.isEmpty {
+        options["AVURLAssetHTTPHeaderFieldsKey"] = headers
+      }
+      asset = AVURLAsset(url: url, options: options)
+    } else {
+      return nil
+    }
+    let generator = AVAssetImageGenerator(asset: asset)
+    generator.appliesPreferredTrackTransform = true
+    generator.requestedTimeToleranceBefore = .positiveInfinity
+    generator.requestedTimeToleranceAfter = .positiveInfinity
+    let edge = CGFloat(max(160, min(1280, (args["maxEdge"] as? NSNumber)?.intValue ?? 720)))
+    generator.maximumSize = CGSize(width: edge, height: edge)
+    let quality = CGFloat(max(0.3, min(0.95, (args["quality"] as? NSNumber)?.doubleValue ?? 0.8)))
+    let positionMs = max(0, (args["positionMs"] as? NSNumber)?.int64Value ?? 500)
+    var times = [CMTime(value: positionMs, timescale: 1000)]
+    if positionMs > 0 { times.append(.zero) }
+    for time in times {
+      var actual = CMTime.zero
+      if let image = try? generator.copyCGImage(at: time, actualTime: &actual),
+         let jpeg = UIImage(cgImage: image).jpegData(compressionQuality: quality) {
+        return jpeg
+      }
+    }
+    return nil
   }
 }

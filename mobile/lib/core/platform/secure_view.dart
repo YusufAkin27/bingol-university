@@ -9,7 +9,8 @@ class SecureStatus {
   const SecureStatus({this.secureLayer = false, this.captured = false});
 
   /// Pencere, "güvenli metin alanı" katmanına taşındı: ekran görüntüsü/kaydında içerik SİYAH çıkar (iOS'ta resmî
-  /// olmayan, ama yaygın yöntem; yerleşemezse false ve uygulama normal çalışır).
+  /// olmayan, ama yaygın yöntem; yalnız `layerTrick` açıkken; yerleşemez ya da pencere kayarsa false ve uygulama
+  /// normal çalışır).
   final bool secureLayer;
 
   /// Ekran şu anda kaydediliyor / yansıtılıyor / AirPlay'e gidiyor (`UIScreen.isCaptured`).
@@ -33,6 +34,13 @@ class ChatSecureView {
   /// Uygulama genelinde paylaşılan örnek; testler [instance] değerini değiştirebilir.
   static ChatSecureView instance = ChatSecureView();
 
+  /// "Güvenli alan katmanı" yöntemi (pencere katmanını `isSecureTextEntry` alanının içine taşıma) varsayılan KAPALI.
+  /// Neden: gerçek iPhone'da tek gönderimlik fotoğraf açılınca tüm pencere içeriği SAĞ-ALTA kaydı (yerleşimi bozan
+  /// tek yerel yöntem buydu) ve macOS/iPhone olmadan doğrulanamıyor. Kapalıyken yerleşime hiç dokunulmaz; geriye
+  /// yakalama algılama (kayıt/yansıtma), ekran görüntüsü algılama + görüntüyü kapatma ve uygulama değiştirici örtüsü
+  /// kalır. Cihazda doğrulandıktan sonra `enable(layerTrick: true)` ile açılır.
+  static const bool layerTrickDefault = false;
+
   final MethodChannel _ch;
   final bool _ios;
   final _events = StreamController<SecureEventKind>.broadcast();
@@ -45,13 +53,16 @@ class ChatSecureView {
   bool get supported => _ios;
 
   /// Korumayı açar; her çağrı bir [disable] ile eşlenmelidir. Dönen durum, yakalama zaten sürüyorsa `captured` olur.
-  Future<SecureStatus> enable() async {
+  /// [layerTrick]: güvenli alan katmanı yöntemi (bkz. [layerTrickDefault]); null ise varsayılan.
+  Future<SecureStatus> enable({bool? layerTrick}) async {
     if (!_ios) return const SecureStatus();
     _holders++;
     _ch.setMethodCallHandler(_onCall);
     try {
       // Yerel taraf yanıt vermezse görüntüleyici bekletilmesin (koruma devre dışı kalır).
-      final r = await _ch.invokeMethod<Object?>('enable').timeout(const Duration(seconds: 3));
+      final r = await _ch
+          .invokeMethod<Object?>('enable', {'layerTrick': layerTrick ?? layerTrickDefault})
+          .timeout(const Duration(seconds: 3));
       if (r is Map) {
         return SecureStatus(secureLayer: r['secureLayer'] == true, captured: r['captured'] == true);
       }

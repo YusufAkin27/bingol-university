@@ -5,7 +5,8 @@ import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
 import 'chat_info_parts.dart';
 import 'chat_media_viewer.dart';
-import 'message_bubble.dart' show chatMediaUrl;
+import 'chat_video_cover.dart';
+import 'chat_media.dart';
 
 /// Sohbet görsellerini mesaj geçmişini sayfalayarak süzer (backend'de ayrı medya listesi yok).
 /// Her yüklemede en çok [batch] görsel toplanır, istek sayısı [maxRequestsPerLoad] ile sınırlıdır.
@@ -64,15 +65,18 @@ class ChatMediaFeed extends ChangeNotifier {
         if (url == null) continue;
         final aid = (a['id'] as num?)?.toInt();
         if (aid != null && !_seen.add(aid)) continue;
-        if (a['kind'] == 'VIDEO') {
-          videoMeta[url] = (a['durationMs'] as num?)?.toInt();
-        }
+        final video = isVideoAttachment(a);
+        final dur = (a['durationMs'] as num?)?.toInt();
+        if (video) videoMeta[url] = dur;
         items.add(ChatMediaItem(
           url: url,
-          thumbUrl: (a['thumbUrl'] ?? a['url']) as String?,
+          // Videoda yalnız poster (yoksa null: kapak videodan üretilir; video adresi görsel olarak yüklenmez).
+          thumbUrl: video ? a['thumbUrl'] as String? : (a['thumbUrl'] ?? a['url']) as String?,
           sender: senderName(m),
           at: at,
           id: aid,
+          isVideo: video,
+          durationMs: dur,
         ));
       }
     }
@@ -172,14 +176,18 @@ class ChatInfoThumb extends StatelessWidget {
           child: ColoredBox(
             color: t.sf2,
             child: Stack(fit: StackFit.expand, children: [
-              Image.network(
-                chatMediaUrl(item.thumbUrl ?? item.url),
-                headers: headers,
-                fit: BoxFit.cover,
-                cacheWidth: 360,
-                gaplessPlayback: true,
-                errorBuilder: (c, e, s) => Center(child: Icon(BuIcons.imageOff, color: t.mut)),
-              ),
+              if (video)
+                // Videoda kapak: sunucu posteri, yoksa videodan üretilen kare, o da yoksa koyu yer tutucu.
+                ChatVideoCover(videoUrl: item.url, posterUrl: item.thumbUrl, headers: headers, decodeWidth: 360)
+              else
+                Image.network(
+                  chatMediaUrl(item.thumbUrl ?? item.url),
+                  headers: headers,
+                  fit: BoxFit.cover,
+                  cacheWidth: 360,
+                  gaplessPlayback: true,
+                  errorBuilder: (c, e, s) => Center(child: Icon(BuIcons.imageOff, color: t.mut)),
+                ),
               if (video) ...[
                 ColoredBox(color: t.scrim.withValues(alpha: .2)),
                 Center(

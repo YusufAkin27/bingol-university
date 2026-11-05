@@ -45,6 +45,48 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin {
         }
 
         when (call.method) {
+            // BU Kampus eki: ag adresinden (yetkili baslikla) kapak karesi; sohbet videosunda poster yoksa uretilir.
+            "getByteFrameUrl" -> {
+                val url = call.argument<String>("url")
+                if (url == null) {
+                    result.success(null)
+                    return
+                }
+                val headers = HashMap<String, String>()
+                call.argument<Map<String, Any?>>("headers")?.forEach { (k, v) -> if (v != null) headers[k] = v.toString() }
+                val positionMs = (call.argument<Number>("positionMs") ?: 500).toLong()
+                val maxEdge = (call.argument<Number>("maxEdge") ?: 720).toInt().coerceIn(160, 1280)
+                val quality = (call.argument<Number>("quality") ?: 80).toInt().coerceIn(30, 95)
+                val main = android.os.Handler(android.os.Looper.getMainLooper())
+                Thread {
+                    var bytes: ByteArray? = null
+                    val retriever = android.media.MediaMetadataRetriever()
+                    try {
+                        retriever.setDataSource(url, headers)
+                        var bmp = retriever.getFrameAtTime(positionMs * 1000, android.media.MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                            ?: retriever.getFrameAtTime(0, android.media.MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                        if (bmp != null) {
+                            val longEdge = Math.max(bmp.width, bmp.height)
+                            if (longEdge > maxEdge) {
+                                val scale = maxEdge.toFloat() / longEdge
+                                val scaled = android.graphics.Bitmap.createScaledBitmap(
+                                    bmp, Math.max(1, (bmp.width * scale).toInt()), Math.max(1, (bmp.height * scale).toInt()), true)
+                                if (scaled !== bmp) bmp.recycle()
+                                bmp = scaled
+                            }
+                            val stream = java.io.ByteArrayOutputStream()
+                            bmp.compress(android.graphics.Bitmap.CompressFormat.JPEG, quality, stream)
+                            bmp.recycle()
+                            bytes = stream.toByteArray()
+                        }
+                    } catch (e: Exception) {
+                        bytes = null
+                    } finally {
+                        try { retriever.release() } catch (e: Exception) {}
+                    }
+                    main.post { result.success(bytes) }
+                }.start()
+            }
             "getByteThumbnail" -> {
                 val path = call.argument<String>("path")
                 val quality = call.argument<Int>("quality")!!
