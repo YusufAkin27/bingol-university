@@ -416,7 +416,7 @@ void main() {
       await settle(tester);
       await openAll(tester);
       expect(find.byType(ChatMembersPage), findsOneWidget);
-      expect(find.text('Üyeler (30)'), findsOneWidget);
+      expect(find.text('Üyeler (30)'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
       expect(find.byType(TextField), findsOneWidget);
       await tester.drag(find.byType(ListView).last, const Offset(0, -2600));
       await settle(tester);
@@ -510,7 +510,7 @@ void main() {
       await settle(tester);
       expect(be.count('DELETE /conversations/5/members/3'), 1);
       expect(find.text('Üye 3 gruptan çıkarıldı'), findsOneWidget);
-      expect(find.text('Üyeler (7)'), findsOneWidget);
+      expect(find.text('Üyeler (7)'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
       await unmount(tester);
     });
 

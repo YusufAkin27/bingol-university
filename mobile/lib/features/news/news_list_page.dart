@@ -249,13 +249,7 @@ class _NewsListPageState extends State<NewsListPage> {
                     icon: buDirIcon(context, BuIcons.arrowLeft), label: l.commonBack, shadow: true, onTap: () => Navigator.maybePop(context)),
               if (Navigator.canPop(context)) const SizedBox(width: 4),
               Expanded(
-                child: Semantics(
-                  header: true,
-                  child: Text(l.icerikNewsTitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.headlineMedium!.copyWith(fontSize: 28, fontWeight: FontWeight.w400, height: 1.2, color: t.ink)),
-                ),
+                child: Semantics(header: true, label: l.icerikNewsTitle, child: const SizedBox(height: 48)),
               ),
               IcerikIconButton(
                   key: const ValueKey('news-search'), icon: BuIcons.search, label: l.commonSearchHint, shadow: true, onTap: _openSearch),

@@ -4,6 +4,7 @@ import 'package:bu_kampus/features/auth/widgets/auth_ref.dart';
 import 'package:bu_kampus/features/legal/legal_reaccept.dart';
 import 'package:bu_kampus/features/legal/legal_reaccept_page.dart';
 import 'package:bu_kampus/features/profile/legal_pages.dart';
+import 'package:bu_kampus/features/profile/profil2_delete_account_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -258,7 +259,7 @@ void main() {
       await settle(tester, const Duration(milliseconds: 400));
       await tester.tap(find.text('Hesabımı sil'));
       await settle(tester, const Duration(milliseconds: 500));
-      expect(find.text('Hesabı sil'), findsWidgets);
+      expect(find.byType(DeleteAccountPage), findsOneWidget); // sayfa başlığı görünmez; sayfa türüyle doğrulanır
       await unmount(tester);
     });
 

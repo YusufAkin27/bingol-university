@@ -126,6 +126,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
       child: BuPageScaffold(
         title: subject.isEmpty ? context.l10n.supportTicketTitle : subject,
         large: false,
+        showTitle: subject.isNotEmpty, // talep konusu bir varlık adıdır (ekran adı değil): görünür kalır
         state: state,
         error: _error,
         onRetry: _load,

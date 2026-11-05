@@ -87,7 +87,7 @@ void main() {
       ]);
       await _pump(tester, ContactsMatchPage(session: s, provider: provider, permissions: _granted()));
 
-      expect(find.text('Rehberden kişi bul'), findsOneWidget);
+      expect(find.text('Rehberden kişi bul'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
       expect(find.text('Veli Demir'), findsOneWidget);
       expect(find.text('Ali Kaya'), findsOneWidget);
       expect(find.text('Bilgisayar Mühendisliği'), findsOneWidget);

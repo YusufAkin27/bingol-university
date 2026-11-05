@@ -68,10 +68,9 @@ void main() {
     final r4 = tester.getRect(box(4)); // 4:5 sol
 
     // Baslik + ust alan (baslik satirina goreli)
-    final title = tester.widget<Text>(find.text('Keşfet'));
-    row('Başlık punto (sp)', 28, title.style!.fontSize!);
-    expect(title.style!.fontWeight, FontWeight.w400);
-    final titleCy = tester.getRect(find.text('Keşfet')).center.dy;
+    // Sayfa başlığı görünmez (tasarım sadeleştirmesi): satırın dikey merkezi arama düğmesinin merkezidir.
+    expect(find.text('Keşfet'), findsNothing);
+    final titleCy = tester.getRect(find.byKey(const ValueKey('discoverSearch'))).center.dy;
     final search = tester.widget<BuIconButton>(find.byKey(const ValueKey('discoverSearch')));
     row('Arama düğmesi görünür boyut', 44, search.size);
     // KE-MB: filtre kapsül satırı kalktı; ilk kutu başlık satırının hemen altında (referans 76 dp kapsül satırı dahildi).
@@ -211,11 +210,9 @@ void main() {
     await settle(tester, const Duration(milliseconds: 900));
     final card = find.byKey(ValueKey('stream-post-${p0.id}'));
     // Baslik: 18/600, x=60, merkez y=28-29
-    final title = tester.widget<Text>(find.text('Gönderi'));
-    row('Başlık punto (sp)', 18, title.style!.fontSize!);
-    expect(title.style!.fontWeight, FontWeight.w400);
-    row('Başlık sol (x)', 60, tester.getRect(find.text('Gönderi')).left);
-    row('Başlık merkezi (y)', 29, tester.getRect(find.text('Gönderi')).center.dy);
+    // Üst çubukta başlık metni yok (tasarım sadeleştirmesi); geri düğmesi aynı yerde.
+    expect(find.text('Gönderi'), findsNothing);
+    row('Geri düğmesi merkezi (y)', 29, tester.getCenter(find.byKey(const ValueKey('postBack'))).dy, tol: 2);
     row('Geri düğmesi dokunma alanı', 48, tester.getSize(find.byKey(const ValueKey('postBack'))).width);
     // Yazar satiri
     final avatar = tester.getRect(find.descendant(of: card, matching: find.byType(BuAvatar)).first);
@@ -246,7 +243,7 @@ void main() {
     // KE-MB: üst çubuk SABİT (başlık + geri düğmesi kaydırınca da yerinde).
     tester.state<ScrollableState>(find.descendant(of: find.byKey(const ValueKey('postStream')), matching: find.byType(Scrollable)).first).position.jumpTo(500);
     await settle(tester, const Duration(milliseconds: 400));
-    row('Kaydırınca başlık merkezi (y) sabit', 29, tester.getRect(find.text('Gönderi')).center.dy);
+    row('Kaydırınca geri düğmesi merkezi (y) sabit', 29, tester.getCenter(find.byKey(const ValueKey('postBack'))).dy, tol: 2);
     row('Kaydırınca geri düğmesi sabit (x)', 28, tester.getCenter(find.byKey(const ValueKey('postBack'))).dx);
     noErr(tester);
   });

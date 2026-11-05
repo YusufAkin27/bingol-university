@@ -741,11 +741,8 @@ class _ComposePostPageState extends State<ComposePostPage> {
             onPressed: _publishing ? null : _close,
           ),
           Expanded(
-            child: Text(context.l10n.postComposeNewPost,
-                textAlign: TextAlign.center,
-                style: tt.titleMedium?.copyWith(color: t.ink, fontSize: 17, fontWeight: FontWeight.w400),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis),
+            // Başlık metni görünmez (tasarım sadeleştirmesi); yalnız ekran okuyucu için anlamsal etiket.
+            child: Semantics(header: true, label: context.l10n.postComposeNewPost, child: const SizedBox.shrink()),
           ),
           // Küçük pr hap: görünür 36 dp, dokunma alanı 48 dp; hazır değilken %40 opak (150 ms geçiş).
           Padding(

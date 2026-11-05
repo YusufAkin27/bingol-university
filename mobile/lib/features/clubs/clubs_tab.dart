@@ -285,13 +285,7 @@ class _ClubsTabState extends State<ClubsTab> {
                   const SizedBox(width: 4),
                 ],
                 Expanded(
-                  child: Semantics(
-                    header: true,
-                    child: Text(context.l10n.clubMgmtClubsTitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: BuType.display.copyWith(fontSize: 28, height: 1.2, color: t.ink)),
-                  ),
+                  child: Semantics(header: true, label: context.l10n.clubMgmtClubsTitle, child: const SizedBox(height: 48)),
                 ),
                 BuPressable(
                   onTap: _toggleSearch,

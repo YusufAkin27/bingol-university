@@ -22,7 +22,7 @@ enum BuViewState {
   error,
 }
 
-/// Standart sayfa iskeleti: büyük, kaydırınca daralan başlık (M3 `SliverAppBar.large`) + çekerek yenile +
+/// Standart sayfa iskeleti: tek satırlık sade üst çubuk (sayfa başlığı metni görünmez, yalnız anlamsal etiket) + çekerek yenile +
 /// yükleniyor / boş / hata durum makinesi + üst şerit (çevrimdışı/bakım) yuvası.
 ///
 /// ```dart
@@ -57,6 +57,7 @@ class BuPageScaffold extends StatelessWidget {
     this.bottomInset = 24,
     this.controller,
     this.automaticallyImplyLeading = true,
+    this.showTitle = false,
   });
 
   final String title;
@@ -98,30 +99,26 @@ class BuPageScaffold extends StatelessWidget {
   final ScrollController? controller;
   final bool automaticallyImplyLeading;
 
+  /// true: başlık tek satırlık çubukta görünür. YALNIZ bir varlığın adı için (ör. destek talebi konusu);
+  /// ekranın genel adı (Ayarlar, Bildirimler...) için asla kullanılmaz.
+  final bool showTitle;
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final Widget bar = large
-        ? SliverAppBar.large(
-            pinned: true,
-            title: Text(title),
-            leading: leading,
-            actions: actions,
-            bottom: bottom,
-            automaticallyImplyLeading: automaticallyImplyLeading,
-            backgroundColor: t.bg,
-            scrolledUnderElevation: 0,
-          )
-        : SliverAppBar(
-            pinned: true,
-            title: Text(title),
-            leading: leading,
-            actions: actions,
-            bottom: bottom,
-            automaticallyImplyLeading: automaticallyImplyLeading,
-            backgroundColor: t.bg,
-            scrolledUnderElevation: 0,
-          );
+    // Sayfa başlığı görsel olarak YOK (tasarım sadeleştirmesi): tek satırlık sade üst çubuk; geri oku ve
+    // eylemler yerinde kalır. Başlık yalnız ekran okuyucu için anlamsal etiket olarak taşınır. [large] eski
+    // imza uyumu için durur, etkisizdir.
+    final Widget bar = SliverAppBar(
+      pinned: true,
+      title: showTitle ? Text(title, maxLines: 1, overflow: TextOverflow.ellipsis) : Semantics(header: true, label: title, child: const SizedBox.shrink()),
+      leading: leading,
+      actions: actions,
+      bottom: bottom,
+      automaticallyImplyLeading: automaticallyImplyLeading,
+      backgroundColor: t.bg,
+      scrolledUnderElevation: 0,
+    );
 
     // Boş/hata görünümü kalan alanı doldurur (SliverFillRemaining sığ ölçü ister; LayoutBuilder içeren görünümlerle çakışır).
     Widget fill(Widget child) => SliverLayoutBuilder(

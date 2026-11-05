@@ -114,7 +114,7 @@ void main() {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(ChatTab(session: makeSession(_be(items)), connectRealtime: false), size: kPhoneMedium));
       await settle(tester, const Duration(seconds: 1));
-      expect(tester.getTopLeft(find.text('Sohbet').first).dx, 16);
+      expect(find.text('Sohbet'), findsNothing); // başlık metni görünmez (sadeleştirme)
       expect(tester.getTopLeft(find.byType(ChatlistSearch)).dx, 16);
       expect(tester.getTopLeft(find.text('Tümü').first).dx, greaterThanOrEqualTo(16));
       final chip = tester.getRect(find.ancestor(of: find.text('Tümü').first, matching: find.byType(BuChip)).first);

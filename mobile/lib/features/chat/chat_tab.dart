@@ -590,7 +590,6 @@ class _ChatTabState extends State<ChatTab> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final tx = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: t.bg,
       body: RefreshIndicator(
@@ -614,8 +613,8 @@ class _ChatTabState extends State<ChatTab> {
                           Expanded(
                             child: Semantics(
                               header: true,
-                              child: Text(context.l10n.chatMiscChat,
-                                  maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.headlineMedium!.copyWith(color: t.ink)),
+                              label: context.l10n.chatMiscChat,
+                              child: const SizedBox(height: 48),
                             ),
                           ),
                           ChatlistNewButton(tooltip: context.l10n.chatMiscNewChat, onTap: _openNew),

@@ -273,7 +273,7 @@ class _ProfileTabState extends State<ProfileTab> {
   }
 }
 
-/// Sayfa başlığı ("Profilim", 28/700) + sağ üstte üç çizgi menü düğmesi (tüm liste satırları [ProfileMenuPage]'de).
+/// Üst satır (başlık metni görünmez, yalnız anlamsal etiket) + sağ üstte üç çizgi menü düğmesi (tüm liste satırları [ProfileMenuPage]'de).
 /// Düzenleme düğmesi yok: alanlar kimlik kartında yerinde düzenlenir. [badge]: bekleyen takip isteği noktası.
 class _TitleRow extends StatelessWidget {
   const _TitleRow({required this.onMenu, this.badge = false});
@@ -283,15 +283,10 @@ class _TitleRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
     final l = context.l10n;
     return Row(children: [
       Expanded(
-        child: Semantics(
-          header: true,
-          child: Text(l.p18ProfileTitle,
-              maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.display.copyWith(fontSize: 28, height: 1.1, fontWeight: FontWeight.w400, color: t.ink)),
-        ),
+        child: Semantics(header: true, label: l.p18ProfileTitle, child: const SizedBox(height: 48)),
       ),
       const SizedBox(width: 12),
       BuIconButton(key: const ValueKey('profile-menu-button'), icon: BuIcons.menu, tooltip: l.profileMenuTitle, badge: badge, onTap: onMenu),

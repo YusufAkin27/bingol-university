@@ -526,7 +526,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
       final gone = clubIsGone(_error!);
       return Scaffold(
         backgroundColor: t.bg,
-        appBar: AppBar(title: Text(l10n.clubTitle)),
+        appBar: AppBar(title: Semantics(header: true, label: l10n.clubTitle, child: const SizedBox.shrink())),
         body: gone
             ? ListView(
                 key: const ValueKey('clubUnavailable'),

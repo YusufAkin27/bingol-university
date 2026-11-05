@@ -57,7 +57,7 @@ void main() {
       expect(find.text('Mesaj istekleri (2)'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('message-requests-entry')));
       await settle(tester, const Duration(seconds: 1));
-      expect(find.text('Mesaj istekleri'), findsOneWidget);
+      expect(find.text('Mesaj istekleri'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
       expect(find.text('Zeynep Demir'), findsOneWidget);
       await unmount(tester);
     });

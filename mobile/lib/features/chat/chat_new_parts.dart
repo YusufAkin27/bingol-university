@@ -16,7 +16,6 @@ class NcHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final tx = Theme.of(context).textTheme;
     return SafeArea(
       bottom: false,
       child: Padding(
@@ -30,10 +29,8 @@ class NcHeader extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Expanded(
-            child: Semantics(
-              header: true,
-              child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
-            ),
+            // Başlık metni görünmez (tasarım sadeleştirmesi); yalnız ekran okuyucu için anlamsal etiket.
+            child: Semantics(header: true, label: title, child: const SizedBox.shrink()),
           ),
         ]),
       ),

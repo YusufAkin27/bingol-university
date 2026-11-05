@@ -162,7 +162,7 @@ void main() {
       useScreen(t, kPhoneMedium);
       await t.pumpWidget(p00App(ExamsPage(session: makeSession(_rich())), scaffold: false));
       await settle(t, const Duration(milliseconds: 900));
-      expect(find.text('Sınavlar'), findsOneWidget); // tek baslik (ust cubukta yinelenmez)
+      expect(find.text('Sınavlar'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
       expect(find.text('Veri Yapıları Vize'), findsOneWidget);
       expect(find.text('18 Kasım · 10:30 · B-204'), findsOneWidget);
       expect(find.text('13 gün kaldı'), findsOneWidget);

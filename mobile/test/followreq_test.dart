@@ -405,7 +405,7 @@ void main() {
       final b = reqBe();
       await tester.pumpWidget(buildApp(FollowRequestsPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester, const Duration(seconds: 1));
-      expect(find.text('Takip istekleri'), findsOneWidget);
+      expect(find.text('Takip istekleri'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
       expect(find.text('BEKLEYEN İSTEKLER (2)'), findsOneWidget);
       expect(find.text('Selin Kaya'), findsOneWidget);
       expect(find.textContaining('Hukuk'), findsNWidgets(2));

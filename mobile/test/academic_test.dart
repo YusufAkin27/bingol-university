@@ -366,7 +366,7 @@ void main() {
               buildApp(PrivacyDataPage(session: makeSession(b)), brightness: br, size: size));
           await settle(tester);
           // Stitch v3 Gizlilik: büyük harfli bölüm etiketi yok; üst çubuk başlığı + alan başına satır (etiket + 3'lü seçici).
-          expect(find.text('Gizlilik ve engellenenler'), findsOneWidget);
+          expect(find.text('Gizlilik ve engellenenler'), findsNothing); // sayfa başlığı görünmez (tasarım sadeleştirmesi)
           expect(find.byKey(const ValueKey('privacy-row-bio')), findsOneWidget);
           // Liste tembel kurulur: alttaki satır küçük ekranda kaydırılınca oluşur.
           await tester.scrollUntilVisible(find.text('Verilerim ve hesap'), 300, scrollable: find.byType(Scrollable).first);

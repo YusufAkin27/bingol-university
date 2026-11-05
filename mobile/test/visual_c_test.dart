@@ -349,7 +349,8 @@ void main() {
       await tester.pumpWidget(buildApp(NotificationsPage(session: makeSession(b))));
       await settle(tester);
       expect(find.bySemanticsLabel(RegExp('Okunmamış bildirim')), findsWidgets);
-      final head = tester.getSemantics(find.text('Bildirimler').first);
+      // Başlık metni görünmez; anlamsal başlık (header) olarak korunur.
+      final head = tester.getSemantics(find.bySemanticsLabel('Bildirimler').first);
       expect(head.getSemanticsData().flagsCollection.isHeader, isTrue);
       await unmount(tester);
       h.dispose();

@@ -166,7 +166,7 @@ void main() {
 
     testWidgets('profil: daire onizlemeler (96 + 40) ve kapak: "Kapagi kaldir" yan eylemi', (tester) async {
       await openCrop(tester, const CropSpec.profile(), (_) {});
-      expect(find.text('Fotoğrafı kırp'), findsOneWidget);
+      expect(find.text('Fotoğrafı kırp'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
       expect(find.text('Profilde böyle görünecek'), findsOneWidget);
       expect(tester.getSize(find.byKey(const ValueKey('cropPreviewBig'))), const Size(96, 96));
       await tester.tap(find.byKey(const ValueKey('cropClose')));
@@ -175,7 +175,7 @@ void main() {
 
       CropOutcome? out;
       await openCrop(tester, const CropSpec.cover(previewTitle: 'Bahar Şenliği', previewSubtitle: 'Müzik Kulübü', allowRemove: true), (o) => out = o);
-      expect(find.text('Kapak fotoğrafı'), findsOneWidget);
+      expect(find.text('Kapak fotoğrafı'), findsNothing); // üst çubukta başlık metni yok (sadeleştirme)
       expect(find.text('Bahar Şenliği'), findsOneWidget);
       await tester.ensureVisible(find.byKey(const ValueKey('cropRemove')));
       await tester.tap(find.byKey(const ValueKey('cropRemove')));

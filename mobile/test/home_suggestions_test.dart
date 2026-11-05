@@ -283,7 +283,7 @@ void main() {
         ..on('/users/103', {'id': 103, 'displayName': 'Kişi 3', 'followState': 'NONE'});
       await tester.pumpWidget(buildApp(FollowSuggestionsPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester, const Duration(milliseconds: 800));
-      expect(find.text('Önerilen kişiler'), findsOneWidget);
+      expect(find.text('Önerilen kişiler'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
       expect(find.text('Ortak kulüp'), findsOneWidget);
       expect(b.requests.where((r) => r.contains('size=20') && r.contains('page=0')).length, 1);
       await tester.tap(find.byKey(const ValueKey('followButton')).first);

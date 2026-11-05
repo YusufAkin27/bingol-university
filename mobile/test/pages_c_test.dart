@@ -453,7 +453,7 @@ void main() {
         useScreen(tester, kPhoneMedium);
         await tester.pumpWidget(buildApp(SettingsPage(session: makeSession(b), themeController: ThemeController())));
         await settle(tester, const Duration(seconds: 2));
-        expect(find.text('Ayarlar'), findsWidgets);
+        expect(find.text('Ayarlar'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
         expect(find.text('Görünüm'), findsWidgets);
         noErr(tester);
         await unmount(tester);

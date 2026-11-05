@@ -80,7 +80,7 @@ void main() {
     await tester.pumpWidget(_app(src));
     await tester.pumpAndSettle();
 
-    expect(find.text('Bildirimler çalışmıyor mu?'), findsOneWidget); // baslik
+    expect(find.text('Bildirimler çalışmıyor mu?'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
     expect(find.textContaining('engelleyen bir şey var'), findsOneWidget);
     expect(find.textContaining('Mesajlar kategorisi'), findsOneWidget);
     expect(find.text('Pil ve arka plan'), findsOneWidget);

@@ -105,7 +105,7 @@ void main() {
       await settle(tester, const Duration(seconds: 1));
       await _openMenu(tester);
       expect(find.byType(ProfileMenuPage), findsOneWidget);
-      expect(find.text('Menü'), findsWidgets);
+      expect(find.text('Menü'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
       for (final s in [
         'Gönderilerim',
         'Kayıtlı haberler',
