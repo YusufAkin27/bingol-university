@@ -144,7 +144,12 @@ class ForumStatusChip extends StatelessWidget {
     return Row(mainAxisSize: MainAxisSize.min, children: [
       ExcludeSemantics(child: Icon(icon, size: 14, color: t.mut)),
       const SizedBox(width: 4),
-      Text(label, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
+      Flexible(
+        child: Text(label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
+      ),
     ]);
   }
 }

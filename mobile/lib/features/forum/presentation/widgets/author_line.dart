@@ -122,14 +122,10 @@ class ForumAuthorLine extends StatelessWidget {
               if (badge != null) ...[BuGap.w6, badge!],
             ]),
             if (meta.isNotEmpty || (categoryName ?? '').isNotEmpty)
-              Row(children: [
-                if (meta.isNotEmpty)
-                  Flexible(
-                    flex: 0,
-                    child: Text(meta, maxLines: 1, overflow: TextOverflow.ellipsis, style: tt.bodySmall?.copyWith(color: t.mut)),
-                  ),
-                if (meta.isNotEmpty && (categoryName ?? '').isNotEmpty) BuGap.w6,
-                if ((categoryName ?? '').isNotEmpty) Flexible(child: ForumCategoryTag(label: categoryName!)),
+              // Büyük yazı/dar ekranda taşmasın: sığmayan parça alt satıra iner.
+              Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: 6, runSpacing: 2, children: [
+                if (meta.isNotEmpty) Text(meta, maxLines: 1, overflow: TextOverflow.ellipsis, style: tt.bodySmall?.copyWith(color: t.mut)),
+                if ((categoryName ?? '').isNotEmpty) ForumCategoryTag(label: categoryName!),
               ]),
           ],
         ),
