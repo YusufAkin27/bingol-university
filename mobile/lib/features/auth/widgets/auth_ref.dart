@@ -146,15 +146,15 @@ class RefIconTile extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(color: bg ?? t.soft, borderRadius: BorderRadius.circular(radius)),
-      child: Icon(icon, color: fg ?? t.pr, size: size * .46),
+      decoration: BoxDecoration(color: bg ?? t.sf2, border: Border.all(color: t.bd), borderRadius: BorderRadius.circular(radius)),
+      child: Icon(icon, color: fg ?? t.ink, size: size * .46),
     );
   }
 }
 
-/// Beyaz yuvarlak kart (28 dp), açık temada ince gölge.
+/// Yüzey kartı (16 dp): ince kenarlık, gölge yok.
 class RefCard extends StatelessWidget {
-  const RefCard({super.key, required this.child, this.padding = const EdgeInsets.all(20), this.radius = 28, this.color});
+  const RefCard({super.key, required this.child, this.padding = const EdgeInsets.all(20), this.radius = 16, this.color});
 
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -168,7 +168,7 @@ class RefCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: color ?? t.sf,
         borderRadius: BorderRadius.circular(radius),
-        boxShadow: BuElevation.of(context, 1),
+        border: Border.all(color: t.bd),
       ),
       child: Padding(padding: padding, child: child),
     );
@@ -908,7 +908,7 @@ class RefPill extends StatelessWidget {
   }
 }
 
-/// Marka karosu: kırmızı yuvarlak kare + beyaz "BU" (karşılama/giriş logosu); gölgesiz.
+/// Marka karosu: nötr (`pr`) yuvarlak kare + ters renk "BU" (karşılama/giriş logosu); gölgesiz.
 class RefBrandMark extends StatelessWidget {
   const RefBrandMark({super.key, this.size = 48, this.badge = false});
 
@@ -947,8 +947,8 @@ class RefBrandMark extends StatelessWidget {
                 child: Container(
                   width: size * .36,
                   height: size * .36,
-                  decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle, boxShadow: BuElevation.of(context, 1)),
-                  child: Icon(BuIcons.graduationCap, size: size * .2, color: t.pr),
+                  decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle, border: Border.all(color: t.bd)),
+                  child: Icon(BuIcons.graduationCap, size: size * .2, color: t.ink),
                 ),
               ),
           ],

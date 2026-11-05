@@ -143,7 +143,7 @@ class _PushHelpPageState extends State<PushHelpPage> with WidgetsBindingObserver
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final icon = ok == null ? BuIcons.info : (ok ? BuIcons.circleCheck : BuIcons.circleAlert);
-    final color = ok == null ? t.mut : (ok ? t.ok : t.pr);
+    final color = ok == null ? t.mut : (ok ? t.ok : t.danger);
     return AkadCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Row(crossAxisAlignment: CrossAxisAlignment.start, children: [

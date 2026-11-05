@@ -140,8 +140,8 @@ class _FeatureRow extends StatelessWidget {
           Container(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, size: 20, color: t.onSoft),
+            decoration: BoxDecoration(color: t.sf2, border: Border.all(color: t.bd), borderRadius: BorderRadius.circular(12)),
+            child: Icon(icon, size: 20, color: t.ink),
           ),
           const SizedBox(width: 12),
           Expanded(child: Text(label, style: tx.bodyLarge!.copyWith(color: t.ink, fontWeight: BuType.emphasisWeight))),
@@ -151,7 +151,7 @@ class _FeatureRow extends StatelessWidget {
   }
 }
 
-/// Sağ üst dil seçici: üç dilimli hap, seçili dilim yumuşak marka zemini. Dokununca dil hemen değişir.
+/// Sağ üst dil seçici: üç dilimli, seçili dilim ince kenarlıklı nötr zemin. Dokununca dil hemen değişir.
 class _LangPill extends StatelessWidget {
   const _LangPill();
 
@@ -174,7 +174,7 @@ class _LangPill extends StatelessWidget {
               button: true,
               selected: c == cur,
               child: InkWell(
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: BorderRadius.circular(10),
                 onTap: c == cur ? null : () => lc.set(c),
                 child: ConstrainedBox(
                   // Dokunma hedefi: >= 44 dp genişlik, 40 dp yükseklik (üst çubuğu doldurmaz).
@@ -185,12 +185,13 @@ class _LangPill extends StatelessWidget {
                     alignment: Alignment.center,
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     decoration: BoxDecoration(
-                      color: c == cur ? t.soft : Colors.transparent,
-                      borderRadius: BorderRadius.circular(999),
+                      color: c == cur ? t.sf2 : Colors.transparent,
+                      border: Border.all(color: c == cur ? t.bdStrong : Colors.transparent),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       c.toUpperCase(),
-                      style: tx.labelMedium!.copyWith(color: c == cur ? t.onSoft : t.mut, fontWeight: c == cur ? FontWeight.w400 : BuType.emphasisWeight),
+                      style: tx.labelMedium!.copyWith(color: c == cur ? t.ink : t.mut, fontWeight: c == cur ? FontWeight.w400 : BuType.emphasisWeight),
                     ),
                   ),
                 ),

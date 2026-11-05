@@ -98,7 +98,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
           padding: const EdgeInsets.all(24),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Row(children: [
-              AkadIconTile(icon: BuIcons.triangleAlert, bg: t.soft, fg: t.pr, size: 44, radius: 22, iconSize: 20),
+              AkadIconTile(icon: BuIcons.triangleAlert, bg: t.sf2, fg: t.danger, size: 44, radius: 22, iconSize: 20),
               const SizedBox(width: 12),
               Expanded(child: Semantics(header: true, child: Text(l.acadTimeConflictTitle, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink)))),
             ]),
@@ -263,7 +263,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
                   trailing: _color == null
                       ? null
                       : Text(l.p17ColorSelected(acadColorName(l, _color!)),
-                          maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: t.prText))),
+                          maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
               Row(children: [for (final k in courseColorKeys) Expanded(child: _swatch(t, k))]),
               const SizedBox(height: 4),
               Row(children: [
@@ -359,21 +359,21 @@ class _CourseFormPageState extends State<CourseFormPage> {
         container: true,
         child: Container(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bLg),
+          decoration: BoxDecoration(color: t.sf2, border: Border.all(color: t.danger.withValues(alpha: .5)), borderRadius: BuRadius.bMd),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
-              Icon(BuIcons.circleAlert, size: 18, color: t.onSoft),
+              Icon(BuIcons.circleAlert, size: 18, color: t.danger),
               const SizedBox(width: 8),
-              Expanded(child: Text(l.p17CheckFields, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w400, color: t.onSoft))),
+              Expanded(child: Text(l.p17CheckFields, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
             ]),
             const SizedBox(height: 8),
             for (final e in _bandErrors())
               Padding(
                 padding: const EdgeInsetsDirectional.only(start: 8, top: 4),
                 child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Padding(padding: const EdgeInsets.only(top: 7), child: Container(width: 6, height: 6, decoration: BoxDecoration(color: t.onSoft, shape: BoxShape.circle))),
+                  Padding(padding: const EdgeInsets.only(top: 7), child: Container(width: 6, height: 6, decoration: BoxDecoration(color: t.danger, shape: BoxShape.circle))),
                   const SizedBox(width: 10),
-                  Expanded(child: Text(e, style: tx.bodyMedium!.copyWith(color: t.onSoft))),
+                  Expanded(child: Text(e, style: tx.bodyMedium!.copyWith(color: t.ink))),
                 ]),
               ),
           ]),
@@ -436,7 +436,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
       padding: const EdgeInsets.all(16),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Row(children: [
-          Container(width: 8, height: 8, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle)),
+          Container(width: 8, height: 8, decoration: BoxDecoration(color: t.ink, shape: BoxShape.circle)),
           const SizedBox(width: 8),
           Expanded(child: Text(l.acadTimeSessionN((i + 1).toString()), style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
           if (_sessions.length > 1)

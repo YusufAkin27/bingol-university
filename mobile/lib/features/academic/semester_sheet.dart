@@ -162,8 +162,8 @@ class _SemesterSheetState extends State<SemesterSheet> {
         width: 24,
         height: 24,
         alignment: Alignment.center,
-        decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: on ? t.pr : t.mut, width: 2)),
-        child: on ? Container(width: 12, height: 12, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle)) : null,
+        decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: on ? t.ink : t.mut, width: 2)),
+        child: on ? Container(width: 12, height: 12, decoration: BoxDecoration(color: t.ink, shape: BoxShape.circle)) : null,
       );
 
   Widget _action(BuTokens t, {required IconData icon, required String label, required VoidCallback? onTap, bool danger = false}) {
@@ -219,7 +219,7 @@ class _SemesterSheetState extends State<SemesterSheet> {
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
                       Text(s.name, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
-                      if (s.current) AkadPill(l.acadTimeCurrent, bg: t.tint(1).bg, fg: t.tint(1).fg, dot: true),
+                      if (s.current) AkadPill(l.acadTimeCurrent, bg: t.sf2, fg: t.ink, dot: true),
                     ]),
                     if (range != null) Padding(padding: const EdgeInsets.only(top: 2), child: Text(range, style: tx.bodySmall!.copyWith(color: t.mut))),
                   ]),
@@ -257,7 +257,7 @@ class _SemesterSheetState extends State<SemesterSheet> {
     final tx = Theme.of(context).textTheme;
     final name = '${_official!['name'] ?? l.acadTimeOfficialDefault}';
     return Container(
-      decoration: BoxDecoration(color: t.soft.withValues(alpha: .55), borderRadius: BuRadius.bLg),
+      decoration: BoxDecoration(color: t.sf2, border: Border.all(color: t.bd), borderRadius: BuRadius.bMd),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Padding(
           padding: const EdgeInsetsDirectional.fromSTEB(14, 14, 14, 6),
@@ -265,8 +265,8 @@ class _SemesterSheetState extends State<SemesterSheet> {
             Container(
               width: 32,
               height: 32,
-              decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-              child: Icon(BuIcons.graduationCap, size: 16, color: t.onSoft),
+              decoration: BoxDecoration(color: t.sf3, shape: BoxShape.circle),
+              child: Icon(BuIcons.graduationCap, size: 16, color: t.ink),
             ),
             const SizedBox(width: 12),
             Expanded(child: Text(l.acadTimeOfficial(name), style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
@@ -339,7 +339,7 @@ class _NewSemesterDialogState extends State<_NewSemesterDialog> {
         padding: const EdgeInsets.all(24),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Row(children: [
-            AkadIconTile(icon: BuIcons.calendarDays, bg: t.soft, fg: t.pr, size: 44, radius: 14, iconSize: 20),
+            AkadIconTile(icon: BuIcons.calendarDays, bg: t.sf2, fg: t.ink, size: 44, radius: 14, iconSize: 20),
             const SizedBox(width: 12),
             Expanded(child: Semantics(header: true, child: Text(l.acadTimeNewSemester, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink)))),
           ]),
@@ -355,7 +355,7 @@ class _NewSemesterDialogState extends State<_NewSemesterDialog> {
           const SizedBox(height: 14),
           AkadPicker(
             icon: _start == null ? BuIcons.calendar : BuIcons.calendarCheck,
-            iconColor: t.prText,
+            iconColor: t.ink,
             label: l.acadTimeStartDate,
             hint: l.acadSelect,
             value: _start == null ? null : _fmt(_start!),
@@ -367,7 +367,7 @@ class _NewSemesterDialogState extends State<_NewSemesterDialog> {
           const SizedBox(height: 14),
           AkadPicker(
             icon: _end == null ? BuIcons.calendar : BuIcons.calendarCheck,
-            iconColor: t.prText,
+            iconColor: t.ink,
             label: l.acadTimeEndDate,
             hint: l.acadSelect,
             value: _end == null ? null : _fmt(_end!),
@@ -383,15 +383,15 @@ class _NewSemesterDialogState extends State<_NewSemesterDialog> {
                 liveRegion: true,
                 child: Container(
                   padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bMd),
+                  decoration: BoxDecoration(color: t.sf2, border: Border.all(color: t.danger.withValues(alpha: .5)), borderRadius: BuRadius.bMd),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     for (final e in _errors)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 2),
                         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Padding(padding: const EdgeInsets.only(top: 7), child: Container(width: 5, height: 5, decoration: BoxDecoration(color: t.onSoft, shape: BoxShape.circle))),
+                          Padding(padding: const EdgeInsets.only(top: 7), child: Container(width: 5, height: 5, decoration: BoxDecoration(color: t.danger, shape: BoxShape.circle))),
                           const SizedBox(width: 10),
-                          Expanded(child: Text(e, style: tx.bodySmall!.copyWith(color: t.onSoft))),
+                          Expanded(child: Text(e, style: tx.bodySmall!.copyWith(color: t.ink))),
                         ]),
                       ),
                   ]),

@@ -3,7 +3,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../core/academic_catalog.dart' show AcademicLabels, gradeLabelL;
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
@@ -160,7 +159,7 @@ class _ExamsPageState extends State<ExamsPage> {
                           onTap: () => _openForm(),
                           haptic: BuHaptic.selection,
                           scale: .94,
-                          child: SizedBox(width: 48, height: 48, child: Center(child: Icon(BuIcons.plus, size: 18, color: t.pr))),
+                          child: SizedBox(width: 48, height: 48, child: Center(child: Icon(BuIcons.plus, size: 18, color: t.ink))),
                         ),
                       ),
                     ),
@@ -290,7 +289,7 @@ class _ExamsPageState extends State<ExamsPage> {
         const SizedBox(width: 12),
         Flexible(
           flex: 0,
-          child: Text(right, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w400, color: first && !past ? t.prText : t.mut)),
+          child: Text(right, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w400, color: first && !past ? t.ink : t.mut)),
         ),
       ]),
     );

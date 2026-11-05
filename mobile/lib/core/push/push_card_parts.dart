@@ -54,6 +54,8 @@ class PushTile extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(color: tint.bg, borderRadius: BorderRadius.circular(size * .32)),
+      // Kenarlık yerleşimi daraltmasın (sabit boyutlu karoda taşma): ön plan dekorasyonu.
+      foregroundDecoration: BoxDecoration(borderRadius: BorderRadius.circular(size * .32), border: Border.all(color: context.bu.bd)),
       child: Icon(icon ?? pushStyleIcon(style), size: size * .5, color: tint.fg),
     );
   }
@@ -75,6 +77,7 @@ class PushDateTile extends StatelessWidget {
       height: size,
       alignment: Alignment.center,
       decoration: BoxDecoration(color: tint.bg, borderRadius: BorderRadius.circular(size * .3)),
+      foregroundDecoration: BoxDecoration(borderRadius: BorderRadius.circular(size * .3), border: Border.all(color: t.bd)),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Text(month, maxLines: 1, style: BuType.caption.copyWith(fontSize: 11, height: 1.1, fontWeight: FontWeight.w400, color: tint.fg)),
         Text(day, maxLines: 1, style: BuType.caption.copyWith(fontSize: 17, height: 1.1, fontWeight: FontWeight.w400, color: tint.fg)),
@@ -111,7 +114,7 @@ class PushAvatar extends StatelessWidget {
     final t = context.bu;
     final badge = size * .42;
     final roleStyle = switch (role) {
-      PushAvatarRole.like => (Icons.favorite, t.pr, t.onPr),
+      PushAvatarRole.like => (Icons.favorite, t.heart, t.onMedia),
       PushAvatarRole.follow => (Icons.person_add_alt_1, t.ink, t.bg),
       PushAvatarRole.request => (Icons.lock, t.ink, t.bg),
       PushAvatarRole.accepted => (Icons.check, t.ok, t.sf),
@@ -227,7 +230,7 @@ class PushActionButton extends StatelessWidget {
         backgroundColor: bg,
         disabledBackgroundColor: bg.withValues(alpha: .5),
         foregroundColor: fg,
-        shape: const StadiumBorder(),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         textStyle: BuType.caption.copyWith(fontSize: 12, fontWeight: FontWeight.w400),
       ),
       icon: Icon(icon, size: 14),

@@ -284,8 +284,10 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
     final sel = _selected == date;
     final has = evs.isNotEmpty;
     final exam = evs.any((e) => _isExam(e.kind));
-    final Color fg = sel || (isToday && inMonth)
-        ? t.prText
+    final Color fg = sel
+        ? t.onPr
+        : isToday && inMonth
+        ? t.ink
         : !inMonth
             ? t.mut.withValues(alpha: .4)
             : (weekend ? t.mut : t.ink);
@@ -312,7 +314,11 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
               curve: BuMotion.standard,
               width: 34,
               height: 38,
-              decoration: BoxDecoration(color: sel ? t.soft : Colors.transparent, borderRadius: BorderRadius.circular(19)),
+              decoration: BoxDecoration(color: sel ? t.pr : Colors.transparent, borderRadius: BorderRadius.circular(BuRadius.sm)),
+              // Bugün çerçevesi yerleşimi etkilemesin (içerik 2 dp daralıp taşmasın): ön plan dekorasyonu.
+              foregroundDecoration: isToday && inMonth && !sel
+                  ? BoxDecoration(border: Border.all(color: t.bdStrong), borderRadius: BorderRadius.circular(BuRadius.sm))
+                  : null,
               child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                 MediaQuery.withClampedTextScaling(
                   maxScaleFactor: 1.2,
@@ -323,12 +329,20 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
                   ),
                 ),
                 const SizedBox(height: 2),
-                // Önemli gün noktası: belirirken 0 -> 1 ölçeklenir (sınav `pr`, diğerleri `ink`).
+                // Önemli gün noktası: belirirken 0 -> 1 ölçeklenir (sınav dolu nokta, diğerleri içi boş halka; seçili günde onPr).
                 AnimatedScale(
                   scale: has ? 1 : 0,
                   duration: BuMotion.of(context, BuMotion.short),
                   curve: BuMotion.emphasizedDecelerate,
-                  child: Container(width: 5, height: 5, decoration: BoxDecoration(color: exam ? t.pr : t.ink, shape: BoxShape.circle)),
+                  child: Container(
+                    width: 5,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: exam ? (sel ? t.onPr : t.ink) : Colors.transparent,
+                      shape: BoxShape.circle,
+                      border: exam ? null : Border.all(color: sel ? t.onPr : t.ink, width: 1),
+                    ),
+                  ),
                 ),
               ]),
             ),
@@ -402,7 +416,7 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
     final l = context.l10n;
     final loc = Localizations.localeOf(context).toString();
     final exam = _isExam(e.kind);
-    final color = exam ? t.prText : t.ink;
+    final color = exam ? t.ink : t.ink;
     final d = e.startDay;
     final dayName = DateFormat('EEEE', loc).format(d);
     final multi = e.endDay != e.startDay;

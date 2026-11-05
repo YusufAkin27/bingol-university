@@ -230,7 +230,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
               children: [
                 Row(children: [
                   Icon(notificationIcon(_presentationData(n)),
-                      color: context.bu.pr),
+                      color: context.bu.ink),
                   const SizedBox(width: 10),
                   Expanded(
                       child: Text(_typeLabel(n['type'] as String?),
@@ -460,14 +460,15 @@ class _NotificationsPageState extends State<NotificationsPage> {
               key: const ValueKey('notif-new-badge'),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                  color: t.dangerSoft,
+                  color: t.sf2,
+                  border: Border.all(color: t.bd),
                   borderRadius: BorderRadius.circular(BuRadius.pill)),
               child: Text(l.notifNewCount(newCount.toString()),
                   style: BuType.caption.copyWith(
                       fontSize: 12,
                       height: 1.3,
                       fontWeight: FontWeight.w400,
-                      color: t.danger)),
+                      color: t.ink)),
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -486,7 +487,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                             fontSize: 14,
                             height: 1.3,
                             fontWeight: FontWeight.w400,
-                            color: t.prText)),
+                            color: t.ink)),
                   ),
                 ),
               ),
@@ -824,7 +825,7 @@ class _ErrorCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(l.commonRetry,
                 style: BuType.caption.copyWith(
-                    fontSize: 14, fontWeight: FontWeight.w400, color: t.prText)),
+                    fontSize: 14, fontWeight: FontWeight.w400, color: t.ink)),
           ),
         ),
       ]),
