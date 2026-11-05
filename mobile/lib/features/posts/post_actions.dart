@@ -34,7 +34,7 @@ Future<void> showPostActions(
   final l = context.l10n;
   final actions = <PostMenuAction>[
     // Kartta ayrı Paylaş düğmesi yoksa (Keşfet kutusu) menüden de paylaşılabilir.
-    if (share) PostMenuAction('share', l.shareTitle, BuIcons.share2),
+    if (share) PostMenuAction('share', l.shareTitle, BuIcons.arrowUp),
     // Reels/Senin İçin önerisinden çıkar ("İlgilenmiyorum"): yalnız başkasının gönderisinde.
     if (notInterested && !mine) PostMenuAction('notInterested', l.kesNotInterested, BuIcons.eyeOff),
     if (post.canEdit) PostMenuAction('edit', l.postComposeEdit, BuIcons.squarePen),

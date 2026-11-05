@@ -82,7 +82,7 @@ class ShareIconButton extends StatelessWidget {
           haptic: BuHaptic.light,
           child: ConstrainedBox(
             constraints: const BoxConstraints(minWidth: BuSize.touch, minHeight: BuSize.touch),
-            child: Center(child: Icon(BuIcons.share2, size: size, color: c)),
+            child: Center(child: Icon(BuIcons.arrowUp, size: size, color: c)),
           ),
         ),
       ),

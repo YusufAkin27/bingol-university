@@ -155,7 +155,7 @@ class _ForwardSheetState extends State<ForwardSheet> {
           label: _selected.isEmpty
               ? l.chatMiscSend
               : l.chatMiscSendCount(_selected.length.toString()),
-          icon: BuIcons.share2,
+          icon: BuIcons.arrowUp,
           onPressed: _selected.isEmpty
               ? null
               : () => Navigator.pop(context, List<int>.from(_selected)),
