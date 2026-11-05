@@ -543,7 +543,7 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
           listenable: _cc,
           builder: (context, _) => KeyedSubtree(
             key: _commentsKey,
-            child: Column(children: [
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               CommentsHeader(
                 count: topic.commentCount,
                 sort: _cc.sort,
