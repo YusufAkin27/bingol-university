@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -678,7 +679,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown) {
+    String type,
+    String title,
+    String date,
+    String countdown,
+  ) {
     return '$type: $title. $date. $countdown. Tap to edit.';
   }
 
@@ -997,7 +1002,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end) {
+    String name,
+    String day,
+    String start,
+    String end,
+  ) {
     return '$name, $day from $start to $end';
   }
 
@@ -12140,4 +12149,68 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get forumHomeMenuPrefs => 'Forum notification settings';
+
+  @override
+  String get notif2SocialSection => 'Social activity';
+
+  @override
+  String get notif2LikeSub => 'When someone likes your post';
+
+  @override
+  String get notif2CommentSub => 'When someone comments on your post';
+
+  @override
+  String get notif2ReplySub => 'When someone replies to your comment';
+
+  @override
+  String get notif2MentionSub => 'When you are mentioned in a post';
+
+  @override
+  String get notif2FollowSub => 'When someone starts following you';
+
+  @override
+  String get notif2FollowRequestTitle => 'Follow requests';
+
+  @override
+  String get notif2FollowRequestSub => 'When someone requests to follow you';
+
+  @override
+  String get notif2FollowAcceptedTitle => 'Accepted requests';
+
+  @override
+  String get notif2FollowAcceptedSub => 'When your follow request is accepted';
+
+  @override
+  String get notif2AcademicTitle => 'Academic announcements';
+
+  @override
+  String get notif2AcademicSub => 'Exam reminders and academic announcements';
+
+  @override
+  String get notif2AcademicNeedsAnnouncements =>
+      'Academic notifications are not sent while Announcements is off';
+
+  @override
+  String get notif2PreviewSection => 'Preview';
+
+  @override
+  String get notif2HidePreviewTitle => 'Hide message content';
+
+  @override
+  String get notif2HidePreviewSub =>
+      'When on, notifications say New message instead of the text, and nothing is shown on the lock screen.';
+
+  @override
+  String get notif2SystemSection => 'System and security';
+
+  @override
+  String get notif2SystemSettingsTitle => 'System notification settings';
+
+  @override
+  String get notif2SystemSettingsSub =>
+      'Sound, vibration and notification categories are managed in device settings.';
+
+  @override
+  String get notif2SecurityNote =>
+      'Account security, session and moderation notices are always delivered, regardless of these settings.';
 }

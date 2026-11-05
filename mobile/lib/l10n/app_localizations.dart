@@ -64,7 +64,7 @@ import 'app_localizations_tr.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -87,17 +87,17 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('ar'),
     Locale('en'),
-    Locale('tr')
+    Locale('tr'),
   ];
 
   /// No description provided for @chatReactionPickerTitle.
@@ -1359,7 +1359,11 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{type}: {title}. {date}. {countdown}. Düzenlemek için dokun.'**
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown);
+    String type,
+    String title,
+    String date,
+    String countdown,
+  );
 
   /// No description provided for @acadFormErrTitle.
   ///
@@ -1924,7 +1928,11 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{name}, {day} {start} ile {end} arası'**
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end);
+    String name,
+    String day,
+    String start,
+    String end,
+  );
 
   /// No description provided for @acadTimeCourseSemantic.
   ///
@@ -21863,6 +21871,126 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Forum bildirim ayarları'**
   String get forumHomeMenuPrefs;
+
+  /// No description provided for @notif2SocialSection.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sosyal etkileşimler'**
+  String get notif2SocialSection;
+
+  /// No description provided for @notif2LikeSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderin beğenildiğinde'**
+  String get notif2LikeSub;
+
+  /// No description provided for @notif2CommentSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderine yorum yapıldığında'**
+  String get notif2CommentSub;
+
+  /// No description provided for @notif2ReplySub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumuna yanıt geldiğinde'**
+  String get notif2ReplySub;
+
+  /// No description provided for @notif2MentionSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir gönderide etiketlendiğinde'**
+  String get notif2MentionSub;
+
+  /// No description provided for @notif2FollowSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Biri seni takip etmeye başladığında'**
+  String get notif2FollowSub;
+
+  /// No description provided for @notif2FollowRequestTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takip istekleri'**
+  String get notif2FollowRequestTitle;
+
+  /// No description provided for @notif2FollowRequestSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sana takip isteği geldiğinde'**
+  String get notif2FollowRequestSub;
+
+  /// No description provided for @notif2FollowAcceptedTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kabul edilen istekler'**
+  String get notif2FollowAcceptedTitle;
+
+  /// No description provided for @notif2FollowAcceptedSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takip isteğin kabul edildiğinde'**
+  String get notif2FollowAcceptedSub;
+
+  /// No description provided for @notif2AcademicTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Akademik duyurular'**
+  String get notif2AcademicTitle;
+
+  /// No description provided for @notif2AcademicSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınav hatırlatmaları ve akademik duyurular'**
+  String get notif2AcademicSub;
+
+  /// No description provided for @notif2AcademicNeedsAnnouncements.
+  ///
+  /// In tr, this message translates to:
+  /// **'Duyurular kapalıysa akademik bildirimler gelmez'**
+  String get notif2AcademicNeedsAnnouncements;
+
+  /// No description provided for @notif2PreviewSection.
+  ///
+  /// In tr, this message translates to:
+  /// **'Önizleme'**
+  String get notif2PreviewSection;
+
+  /// No description provided for @notif2HidePreviewTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesaj içeriğini gizle'**
+  String get notif2HidePreviewTitle;
+
+  /// No description provided for @notif2HidePreviewSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Açıkken bildirimde mesaj metni yerine Yeni mesaj yazar; kilit ekranında içerik görünmez.'**
+  String get notif2HidePreviewSub;
+
+  /// No description provided for @notif2SystemSection.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sistem ve güvenlik'**
+  String get notif2SystemSection;
+
+  /// No description provided for @notif2SystemSettingsTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sistem bildirim ayarları'**
+  String get notif2SystemSettingsTitle;
+
+  /// No description provided for @notif2SystemSettingsSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ses, titreşim ve bildirim kategorileri cihaz ayarlarından yönetilir.'**
+  String get notif2SystemSettingsSub;
+
+  /// No description provided for @notif2SecurityNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap güvenliği, oturum ve yönetici bildirimleri bu tercihlerden bağımsız olarak her zaman gelir.'**
+  String get notif2SecurityNote;
 }
 
 class _AppLocalizationsDelegate
@@ -21894,8 +22022,9 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-      'an issue with the localizations generation tool. Please file an issue '
-      'on GitHub with a reproducible sample app and the gen-l10n configuration '
-      'that was used.');
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
 }

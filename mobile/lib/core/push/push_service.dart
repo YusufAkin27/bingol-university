@@ -8,7 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 
 import '../../features/auth/permissions_page.dart';
-import '../api.dart' show apiOrigin;
+import '../api.dart' show ApiError, apiOrigin;
 import '../locale_controller.dart';
 import '../notify/local_reminders.dart';
 import '../closed_conversations.dart';
@@ -21,6 +21,7 @@ import 'push_actions.dart';
 import '../nav.dart';
 import '../../widgets/bu.dart';
 import 'push_banner.dart';
+import 'push_privacy.dart';
 import 'push_registrar.dart';
 import 'push_router.dart';
 
@@ -235,6 +236,12 @@ class PushService with WidgetsBindingObserver {
   Future<void> onSignedIn() async {
     _active = true;
     PushRouter.session = session;
+    // Oturum yokken dokunulan bildirim (ya da gezgin hazır olmadan gelen) şimdi açılır.
+    try {
+      WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(PushRouter.flushPending()));
+      WidgetsBinding.instance.scheduleFrame();
+    } catch (_) {}
+    unawaited(PushPrivacy.syncFromServer(session)); // "mesaj içeriğini gizle" yerel koda taşınır (Android kilit ekranı)
     unawaited(_attachReminderTaps());
     unawaited(_attachNativePush());
     unawaited(_syncChannelNames()); // FCM'den bağımsız: kanal adları/açıklamaları kullanıcının dilinde
@@ -283,7 +290,7 @@ class PushService with WidgetsBindingObserver {
   Future<void> _fetchAndRegister(FirebaseMessaging fm) async {
     // ignore: deprecated_member_use
     _refreshSub ??= fm.onTokenRefresh.listen((t) {
-      if (!_permDenied) unawaited(_register(t));
+      if (!_permDenied) unawaited(registerToken(t));
     }, onError: (_) {});
     final token = await fetchPushToken(
       isIOS: Platform.isIOS,
@@ -293,7 +300,7 @@ class PushService with WidgetsBindingObserver {
       fcm: fm.getToken,
       delay: Platform.isIOS ? const Duration(milliseconds: 500) : const Duration(seconds: 2),
     );
-    if (token != null) await _register(token);
+    if (token != null) await registerToken(token);
   }
 
   /// Ön plana dönüşte ve yardım ekranından: izin sonradan verildiyse jetonu kaydeder; kayıt eskidiyse
@@ -307,7 +314,12 @@ class PushService with WidgetsBindingObserver {
       final st = (await fm.getNotificationSettings()).authorizationStatus;
       _permDenied = st == AuthorizationStatus.denied;
       final ok = st == AuthorizationStatus.authorized || st == AuthorizationStatus.provisional;
-      if (!ok) return;
+      if (!ok) {
+        // İzin sistem ayarından geri alındı: sunucu bu cihaza boşuna göndermesin (izin geri verilince aşağıdaki
+        // yoldan yeniden kaydedilir; registrar sıfırlandığı için needsRefresh true olur).
+        if (_permDenied) await handlePermissionDenied();
+        return;
+      }
       if (!force && !registrar.needsRefresh) return;
       if (force) registrar.reset();
       await _fetchAndRegister(fm);
@@ -316,6 +328,22 @@ class PushService with WidgetsBindingObserver {
     } finally {
       _refreshing = false;
     }
+  }
+
+  /// Bildirim izni geri alındı: kayıtlı cihaz kaydı sunucudan silinir ve yerel kayıt durumu sıfırlanır.
+  /// Kayıt yoksa/oturum yoksa hiçbir şey yapmaz; ağ hatası sessizdir (sonraki ön plana dönüşte yeniden denenir).
+  @visibleForTesting
+  Future<void> handlePermissionDenied() async {
+    _permDenied = true;
+    final t = _token ?? registrar.token;
+    if (t == null || session.state != SessionState.signedIn || !registrar.registered) return;
+    try {
+      await _api.unregister(t);
+    } catch (e) {
+      if (e is! ApiError || e.status != 404) return; // silinemedi: kayıt durumu korunur, sonra yeniden denenir
+    }
+    _token = null;
+    registrar.reset();
   }
 
   /// Ön plan/arka plan durumu cihaz olarak sunucuya bildirilir; açık sohbet için görüntüleme sinyali başlar.
@@ -396,8 +424,10 @@ class PushService with WidgetsBindingObserver {
     registrar.reset();
     await _refreshSub?.cancel();
     await _fgSub?.cancel();
-    await _openSub?.cancel();
-    _refreshSub = _fgSub = _openSub = null;
+    // Dokunuş aboneliği çıkışta KAPANMAZ: oturum yokken dokunulan bildirim [PushRouter]da saklanır ve giriş
+    // sonrası açılır (aksi halde arka plandaki bildirim dokunuşu kaybolurdu).
+    _refreshSub = _fgSub = null;
+    unawaited(PushPrivacy.apply(false)); // bir sonraki hesabın tercihi oturum açılınca sunucudan gelir
     // Oturum zorla kapandıysa (başka cihaz) token yok: sunucu kaydı zaten silmiştir.
     if (t != null && session.api.tokens != null) {
       try {
@@ -436,9 +466,14 @@ class PushService with WidgetsBindingObserver {
     unawaited(_api.setState(token, active.foreground)); // uç yoksa sessiz
   }
 
-  Future<void> _register(String token) async {
+  /// Jetonu kaydeder (ilk alım ve `onTokenRefresh`). Jeton döndüyse eski kayıt sunucudan silinir: aynı cihaza iki
+  /// jetonla çift bildirim gitmesin.
+  @visibleForTesting
+  Future<void> registerToken(String token) async {
     if (session.state != SessionState.signedIn) return;
+    final old = _token ?? registrar.token;
     _token = token;
+    if (old != null && old != token) unawaited(_api.unregister(old).catchError((Object _) {}));
     await registrar.register(token);
   }
 

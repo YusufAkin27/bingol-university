@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../core/permissions/permission_service.dart';
 import '../../core/push/push_health.dart';
+import '../../core/push/push_privacy.dart';
 import '../../core/push/push_service.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -106,15 +107,18 @@ class PrefSwitchRow extends StatelessWidget {
 const _prefRows = ['news', 'announcements', 'events', 'messages', 'communities'];
 
 /// Sunucu yanıtında anahtar varsa gösterilen ek ana bayraklar (backend eklenene kadar gizli kalır).
-const _optionalRows = ['polls', 'mealMenu'];
+const _optionalRows = ['polls', 'mealMenu', 'academicAnnouncements'];
 
 /// Alt türler (`subtypes`): yalnızca sunucu yanıtında bulunanlar gösterilir; bilinmeyen anahtar gönderilmez (400).
-/// Kaldırılan türler (beğeni, yorum, bahsetme, takip) çizilmez.
 const _subtypeGroups = <String, List<String>>{
   'messages': ['MESSAGE_DIRECT', 'MESSAGE_GROUP'],
   'events': ['EVENT_REMINDER', 'EVENT_UPDATE', 'EVENT_ADMISSION'],
   'communities': ['COMMUNITY_POST', 'COMMUNITY_ROLE', 'COMMUNITY_JOIN'],
 };
+
+/// Sosyal alt türler (beğeni, yorum, yanıt, etiket, takip). Sunucuda ana bayrakları `communities`'tir; bu yüzden
+/// ekranda KENDİ satırlarıyla, "fiilen açık" (`communities` VE alt tür) anlamıyla gösterilir ([_PrefsStore.setSocial]).
+const _socialSubs = ['POST_LIKE', 'POST_COMMENT', 'COMMENT_REPLY', 'POST_MENTION', 'USER_FOLLOW', 'FOLLOW_REQUEST', 'FOLLOW_ACCEPTED'];
 
 /// Sunucu bayrak/alt tür kodunun ekrandaki adı (istek diline göre).
 String _prefLabel(BuildContext context, String key) {
@@ -127,6 +131,14 @@ String _prefLabel(BuildContext context, String key) {
     'messages' => l.profilePrefsNotifMessages,
     'polls' => l.profilePrefsNotifPolls,
     'mealMenu' => l.notifPrefMealMenu,
+    'academicAnnouncements' => l.notif2AcademicTitle,
+    'POST_LIKE' => l.profilePrefsNotifLike,
+    'POST_COMMENT' => l.profilePrefsNotifComment,
+    'COMMENT_REPLY' => l.profilePrefsNotifReply,
+    'POST_MENTION' => l.profilePrefsNotifMention,
+    'USER_FOLLOW' => l.profilePrefsNotifFollow,
+    'FOLLOW_REQUEST' => l.notif2FollowRequestTitle,
+    'FOLLOW_ACCEPTED' => l.notif2FollowAcceptedTitle,
     'MESSAGE_DIRECT' => l.profil1SubMsgDirect,
     'MESSAGE_GROUP' => l.profil1SubMsgGroup,
     'EVENT_REMINDER' => l.profil1SubEventReminder,
@@ -150,6 +162,7 @@ String? _prefSub(BuildContext context, String key) {
     'communities' => l.profil1ClubsSub,
     'polls' => l.p20PrefPollsSub,
     'mealMenu' => l.notifPrefMealMenuSub,
+    'academicAnnouncements' => l.notif2AcademicSub,
     _ => null,
   };
 }
@@ -165,6 +178,13 @@ String? _subSub(BuildContext context, String key) {
     'COMMUNITY_POST' => l.p20PrefSubClubPost,
     'COMMUNITY_ROLE' => l.p20PrefSubClubRole,
     'COMMUNITY_JOIN' => l.p20PrefSubClubJoin,
+    'POST_LIKE' => l.notif2LikeSub,
+    'POST_COMMENT' => l.notif2CommentSub,
+    'COMMENT_REPLY' => l.notif2ReplySub,
+    'POST_MENTION' => l.notif2MentionSub,
+    'USER_FOLLOW' => l.notif2FollowSub,
+    'FOLLOW_REQUEST' => l.notif2FollowRequestSub,
+    'FOLLOW_ACCEPTED' => l.notif2FollowAcceptedSub,
     _ => null,
   };
 }
@@ -198,31 +218,57 @@ class _PrefsStore extends ChangeNotifier {
 
   Map<String, dynamic>? get quiet => (prefs?['quietHours'] is Map) ? (prefs!['quietHours'] as Map).cast<String, dynamic>() : null;
 
-  Future<void> load() async {
+  /// "Mesaj içeriğini gizle": alan yalnız yeni sunucuda vardır; yoksa (eski sunucu) satır çizilmez.
+  bool get hasHidePreview => prefs?['hideMessagePreview'] is bool;
+
+  bool get hidePreview => prefs?['hideMessagePreview'] == true;
+
+  /// Bu alt tür ekranda hangi anahtarla gösterilsin: `communities` VE alt tür açıksa fiilen açıktır.
+  bool socialOn(String key) => prefs?['communities'] == true && subs[key] == true;
+
+  Future<void> load({bool silent = false}) async {
     error = null;
-    notifyListeners();
+    if (!silent) notifyListeners();
     try {
-      prefs = await session.api.get('/notifications/preferences') as Map<String, dynamic>;
+      final r = await session.api.get('/notifications/preferences');
+      if (r is! Map) throw const FormatException('prefs');
+      // Kayıt sürerken gelen (eski olabilecek) okuma iyimser durumu ezmesin.
+      if (_inFlight == 0) prefs = r.cast<String, dynamic>();
+      if (_inFlight == 0 && hasHidePreview) unawaited(PushPrivacy.apply(hidePreview));
     } catch (e) {
-      error = e;
+      // Sessiz yenilemede eldeki tercihler korunur; yalnız ilk yüklemede hata ekranı çıkar.
+      if (prefs == null || !silent) error = e;
     }
     notifyListeners();
   }
 
-  /// Yalnız değişen alan gönderilir (kısmi güncelleme); hatada eski değere dönülür.
-  Future<void> _save(Map<String, dynamic> body, void Function() apply) async {
+  int _inFlight = 0;
+  Future<void> _queue = Future<void>.value();
+
+  /// Yalnız değişen alan gönderilir (kısmi güncelleme); iyimser uygulanır, hatada eski değere dönülür.
+  /// İstekler sırayla gider (hızlı ardışık dokunuşlar birbirinin yanıtını ezmez).
+  Future<void> _save(Map<String, dynamic> body, void Function() apply) {
     final old = jsonDecode(jsonEncode(prefs)) as Map<String, dynamic>;
     saveError = null;
     apply();
+    _inFlight++;
     notifyListeners();
-    try {
-      final r = await session.api.put('/notifications/preferences', body);
-      if (r is Map<String, dynamic>) prefs = r;
-    } catch (e) {
-      prefs = old;
-      saveError = errorText(e);
-    }
-    notifyListeners();
+    final next = _queue.then((_) async {
+      try {
+        final r = await session.api.put('/notifications/preferences', body);
+        // Daha yeni bir kayıt bekliyorsa yanıt iyimser durumu ezmez; sonuncusu sunucu durumuna eşitler.
+        if (r is Map<String, dynamic> && _inFlight == 1) prefs = r;
+        if (hasHidePreview && body.containsKey('hideMessagePreview')) unawaited(PushPrivacy.apply(hidePreview));
+      } catch (e) {
+        prefs = old;
+        saveError = errorText(e);
+      } finally {
+        _inFlight--;
+      }
+      notifyListeners();
+    });
+    _queue = next;
+    return next;
   }
 
   Future<void> set(String key, bool value) => _save({key: value}, () => prefs![key] = value);
@@ -232,6 +278,27 @@ class _PrefsStore extends ChangeNotifier {
       }, () {
         prefs!['subtypes'] = Map<String, dynamic>.from(subs)..[key] = value;
       });
+
+  Future<void> setHidePreview(bool value) => _save({'hideMessagePreview': value}, () => prefs!['hideMessagePreview'] = value);
+
+  /// Sosyal alt tür anahtarı. Sunucuda üst bayrak `communities`'tir: o kapalıyken bir sosyal tür açılırsa
+  /// `communities` de açılır, ama saklı değeri `true` olan diğer kulüp/sosyal alt türler aynı istekte kapatılır
+  /// (kullanıcının görmediği bir bildirim türü bu açışla kendiliğinden açılmasın).
+  Future<void> setSocial(String key, bool value) {
+    final parentOn = prefs?['communities'] == true;
+    final subBody = <String, bool>{key: value};
+    final body = <String, dynamic>{'subtypes': subBody};
+    if (value && !parentOn) {
+      body['communities'] = true;
+      for (final k in [..._subtypeGroups['communities']!, ..._socialSubs]) {
+        if (k != key && subs[k] == true) subBody[k] = false;
+      }
+    }
+    return _save(body, () {
+      if (body.containsKey('communities')) prefs!['communities'] = true;
+      prefs!['subtypes'] = Map<String, dynamic>.from(subs)..addAll(subBody);
+    });
+  }
 
   /// Sessiz saat güncellemesi: `enabled` her istekte gönderilir (sunucuda zorunlu bayrak).
   Future<void> setQuiet({bool? enabled, String? start, String? end}) {
@@ -248,13 +315,16 @@ class _PrefsStore extends ChangeNotifier {
 /// Bildirim tercihleri gövdesi (Stitch 50): push durumu, ana anahtarlar, ayrıntılı tercihler, sessiz saatler,
 /// "Bu cihazda". Yüklenir, her değişiklik anında kaydedilir, hatada geri alınır.
 class NotificationPrefsGroup extends StatefulWidget {
-  const NotificationPrefsGroup({super.key, required this.session, this.push, this.showPushCard = false});
+  const NotificationPrefsGroup({super.key, required this.session, this.push, this.showPushCard = false, this.openSystemSettings});
 
   final Session session;
 
   /// Verilirse push durumu buradan okunur; yoksa Firebase başlatılmış mı diye bakılır.
   final PushService? push;
   final bool showPushCard;
+
+  /// "Sistem bildirim ayarları" satırının eylemi (testte sahtesi); yoksa [SystemPushHealthSource].
+  final Future<bool> Function()? openSystemSettings;
 
   @override
   State<NotificationPrefsGroup> createState() => _NotificationPrefsGroupState();
@@ -303,7 +373,10 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
   /// Sistem ayarlarından dönünce push kartı güncellenir (izin açılmış/kapatılmış olabilir).
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _refreshPushStatus();
+    if (state == AppLifecycleState.resumed) {
+      _refreshPushStatus();
+      unawaited(_store.load(silent: true)); // başka cihazda/web'de değişmiş olabilir; sessiz yenileme
+    }
   }
 
   void _openPushHelp() => Navigator.push<void>(
@@ -391,14 +464,15 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
     );
   }
 
-  /// Ana bayrağa bağlı satırlar (backend kuralı): "Duyurular" kapalıyken genel anket bildirimi gelmez;
-  /// kulüp anketi için ayrıca "Topluluklar" gerekir.
-  bool _lockedByParent(String key) => key == 'polls' && _store.prefs?['announcements'] != true;
+  /// Ana bayrağa bağlı satırlar (backend kuralı): "Duyurular" kapalıyken genel anket ve akademik (sınav)
+  /// bildirimi gelmez; kulüp anketi için ayrıca "Topluluklar" gerekir.
+  bool _lockedByParent(String key) => (key == 'polls' || key == 'academicAnnouncements') && _store.prefs?['announcements'] != true;
 
   /// Bağımlılık notu: satır pasifken (ya da anket için Topluluklar kapalıyken) açıklamanın yerine geçer.
   String? _dependencyNote(String key) {
     final l = context.l10n;
     if (key == 'polls' && (_lockedByParent(key) || _store.prefs?['communities'] != true)) return l.p26PrefPollsNeedsParents;
+    if (key == 'academicAnnouncements' && _lockedByParent(key)) return l.notif2AcademicNeedsAnnouncements;
     return null;
   }
 
@@ -418,6 +492,28 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
       ),
       if (!last) const _PrefDivider(),
     ]);
+  }
+
+  /// Sosyal alt tür satırı: "fiilen açık" durumu gösterir; açma/kapama [_PrefsStore.setSocial] ile.
+  Widget _socialRow(String key, {bool last = false}) {
+    final on = _store.socialOn(key);
+    return Column(children: [
+      _PrefRow(
+        title: _prefLabel(context, key),
+        sub: _subSub(context, key),
+        onTap: () => _store.setSocial(key, !on),
+        trailing: _PrefSwitch(value: on, onChanged: (v) => _store.setSocial(key, v)),
+      ),
+      if (!last) const _PrefDivider(),
+    ]);
+  }
+
+  /// Android'de uygulamanın bildirim/kanal ayarları, iOS'ta uygulama ayarları.
+  Future<void> _openSystemSettings() async {
+    final open = widget.openSystemSettings ?? SystemPushHealthSource(widget.push).openNotificationSettings;
+    try {
+      await open();
+    } catch (_) {}
   }
 
   @override
@@ -454,12 +550,24 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
       final hasSubs = [for (final g in _subtypeGroups.values) ...g].any(subs.containsKey);
       final quiet = _store.quiet;
       final quietOn = quiet?['enabled'] == true;
+      final pushOff = widget.showPushCard && _pushStatus != 'on' && _pushStatus != '...';
+      final social = [for (final k in _socialSubs) if (subs.containsKey(k)) k];
       children
         ..add(_section(l.profil1WhatSection, top: widget.showPushCard ? 24 : 0))
         ..add(Opacity(
-          opacity: widget.showPushCard && _pushStatus != 'on' && _pushStatus != '...' ? .5 : 1,
+          opacity: pushOff ? .5 : 1,
           child: _card(child: Column(children: [for (var i = 0; i < rows.length; i++) _toggleRow(rows[i], last: i == rows.length - 1)])),
         ));
+      // Sosyal etkileşimler: beğeni, yorum, yanıt, etiket, takip (sunucu alt türleri; her biri ayrı yönetilir).
+      if (social.isNotEmpty) {
+        children
+          ..add(_section(l.notif2SocialSection))
+          ..add(Opacity(
+            key: const ValueKey('prefs-social'),
+            opacity: pushOff ? .5 : 1,
+            child: _card(child: Column(children: [for (var i = 0; i < social.length; i++) _socialRow(social[i], last: i == social.length - 1)])),
+          ));
+      }
       if (hasSubs || quiet != null) {
         children
           ..add(const SizedBox(height: 24))
@@ -487,6 +595,23 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
           ));
       }
     }
+    // Önizleme: mesaj içeriğini bildirimde/kilit ekranında gizle (alan yalnız yeni sunucuda vardır).
+    if (prefs != null && _store.hasHidePreview) {
+      final hide = _store.hidePreview;
+      children
+        ..add(_section(l.notif2PreviewSection))
+        ..add(KeyedSubtree(
+          key: const ValueKey('prefs-preview'),
+          child: _card(
+            child: _PrefRow(
+              title: l.notif2HidePreviewTitle,
+              sub: l.notif2HidePreviewSub,
+              onTap: () => _store.setHidePreview(!hide),
+              trailing: _PrefSwitch(value: hide, onChanged: _store.setHidePreview),
+            ),
+          ),
+        ));
+    }
     // Kampüs Forum bildirimleri: ayrı sayfa (ana anahtar, konu/yanıt/beğeni/takip, sessize alınanlar).
     if (prefs != null) {
       children
@@ -503,6 +628,24 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
           ),
         ));
     }
+    // Sistem ve güvenlik: ses/titreşim/kategori cihaz ayarlarındadır; güvenlik bildirimleri tercihlerden bağımsızdır.
+    children
+      ..add(_section(l.notif2SystemSection))
+      ..add(KeyedSubtree(
+        key: const ValueKey('prefs-system'),
+        child: _card(
+          child: _PrefRow(
+            title: l.notif2SystemSettingsTitle,
+            sub: l.notif2SystemSettingsSub,
+            trailing: _chevron(),
+            onTap: () => unawaited(_openSystemSettings()),
+          ),
+        ),
+      ))
+      ..add(Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(4, 12, 4, 0),
+        child: Text(l.notif2SecurityNote, style: BuType.caption.copyWith(fontSize: 13, height: 1.5, color: t.mut)),
+      ));
     // "Bu cihazda": ders ve sınav hatırlatması anahtarı (yerel). Satıra dokunmak ayrıntı sayfasını açar.
     final rem = _rem;
     final remOn = rem != null && (rem.classEnabled || rem.examDayBefore);
@@ -803,10 +946,11 @@ class _QuietHoursPageState extends State<_QuietHoursPage> {
 
 /// Bildirim tercihleri sayfası (P9e).
 class NotificationPrefsPage extends StatelessWidget {
-  const NotificationPrefsPage({super.key, required this.session, this.push});
+  const NotificationPrefsPage({super.key, required this.session, this.push, this.openSystemSettings});
 
   final Session session;
   final PushService? push;
+  final Future<bool> Function()? openSystemSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -817,7 +961,7 @@ class NotificationPrefsPage extends StatelessWidget {
         Expanded(
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-            children: [NotificationPrefsGroup(session: session, push: push, showPushCard: true)],
+            children: [NotificationPrefsGroup(session: session, push: push, showPushCard: true, openSystemSettings: openSystemSettings)],
           ),
         ),
       ]),

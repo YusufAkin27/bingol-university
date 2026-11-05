@@ -289,7 +289,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Kişisel mesajlar'), findsOneWidget);
       expect(find.text('Etkinlik değişiklikleri'), findsOneWidget);
-      // Kaldırılan türler (bahsetme, takip) çizilmez.
+      // Sosyal alt türler (bahsetme, takip) ana sayfada kendi bölümünde yönetilir; ayrıntı sayfasında yer almaz.
       expect(find.text('Etiketlenmeler'), findsNothing);
       expect(find.text('Yeni takipçiler'), findsNothing);
 

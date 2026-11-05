@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -678,7 +679,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown) {
+    String type,
+    String title,
+    String date,
+    String countdown,
+  ) {
     return '$type: $title. $date. $countdown. Düzenlemek için dokun.';
   }
 
@@ -996,7 +1001,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end) {
+    String name,
+    String day,
+    String start,
+    String end,
+  ) {
     return '$name, $day $start ile $end arası';
   }
 
@@ -12095,4 +12104,68 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get forumHomeMenuPrefs => 'Forum bildirim ayarları';
+
+  @override
+  String get notif2SocialSection => 'Sosyal etkileşimler';
+
+  @override
+  String get notif2LikeSub => 'Gönderin beğenildiğinde';
+
+  @override
+  String get notif2CommentSub => 'Gönderine yorum yapıldığında';
+
+  @override
+  String get notif2ReplySub => 'Yorumuna yanıt geldiğinde';
+
+  @override
+  String get notif2MentionSub => 'Bir gönderide etiketlendiğinde';
+
+  @override
+  String get notif2FollowSub => 'Biri seni takip etmeye başladığında';
+
+  @override
+  String get notif2FollowRequestTitle => 'Takip istekleri';
+
+  @override
+  String get notif2FollowRequestSub => 'Sana takip isteği geldiğinde';
+
+  @override
+  String get notif2FollowAcceptedTitle => 'Kabul edilen istekler';
+
+  @override
+  String get notif2FollowAcceptedSub => 'Takip isteğin kabul edildiğinde';
+
+  @override
+  String get notif2AcademicTitle => 'Akademik duyurular';
+
+  @override
+  String get notif2AcademicSub => 'Sınav hatırlatmaları ve akademik duyurular';
+
+  @override
+  String get notif2AcademicNeedsAnnouncements =>
+      'Duyurular kapalıysa akademik bildirimler gelmez';
+
+  @override
+  String get notif2PreviewSection => 'Önizleme';
+
+  @override
+  String get notif2HidePreviewTitle => 'Mesaj içeriğini gizle';
+
+  @override
+  String get notif2HidePreviewSub =>
+      'Açıkken bildirimde mesaj metni yerine Yeni mesaj yazar; kilit ekranında içerik görünmez.';
+
+  @override
+  String get notif2SystemSection => 'Sistem ve güvenlik';
+
+  @override
+  String get notif2SystemSettingsTitle => 'Sistem bildirim ayarları';
+
+  @override
+  String get notif2SystemSettingsSub =>
+      'Ses, titreşim ve bildirim kategorileri cihaz ayarlarından yönetilir.';
+
+  @override
+  String get notif2SecurityNote =>
+      'Hesap güvenliği, oturum ve yönetici bildirimleri bu tercihlerden bağımsız olarak her zaman gelir.';
 }
