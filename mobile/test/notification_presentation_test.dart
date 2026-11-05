@@ -1,3 +1,4 @@
+import 'package:bu_kampus/core/push/push_card_parts.dart';
 import 'package:bu_kampus/core/push/notification_presentation.dart';
 import 'package:bu_kampus/core/push/push_targets.dart';
 import 'package:bu_kampus/features/notifications/notifications_page.dart';
@@ -77,10 +78,10 @@ void main() {
     await tester
         .pumpWidget(buildApp(NotificationsPage(session: makeSession(be))));
     await settle(tester);
-    await tester.tap(find.widgetWithText(FilledButton, 'Onayla'));
+    await tester.tap(find.widgetWithText(PushActionButton, 'Onayla'));
     await settle(tester);
     expect(be.requests, contains('POST /users/me/follow-requests/8/accept'));
-    expect(find.widgetWithText(FilledButton, 'Onayla'), findsNothing);
+    expect(find.widgetWithText(PushActionButton, 'Onayla'), findsNothing);
     await unmount(tester);
   });
 

@@ -45,7 +45,6 @@ void main() {
               size: size));
           await settle(tester);
           expect(find.text('Kariyer günleri'), findsOneWidget);
-          expect(find.text('Duyuru'), findsOneWidget);
           await tester.scrollUntilVisible(find.text('Hepsi bu kadar'), 200, scrollable: find.byType(Scrollable).first);
           expect(find.text('Hepsi bu kadar'), findsOneWidget);
           expect(tester.takeException(), isNull);

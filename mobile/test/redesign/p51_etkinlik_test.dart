@@ -147,7 +147,8 @@ void main() {
     await settle(tester, const Duration(milliseconds: 900));
     expect(find.text('482 913'), findsOneWidget);
     expect(find.text('Yoklama listesi'), findsOneWidget);
-    expect(find.textContaining('%'), findsOneWidget);
+    // Yoklama yüzdesi + (kapasite varsa) kapasite doluluğu.
+    expect(find.textContaining('%'), findsNWidgets(2));
     await unmount(tester);
   });
 

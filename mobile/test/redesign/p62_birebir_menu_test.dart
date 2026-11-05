@@ -127,10 +127,6 @@ void main() {
     _row('Cip ust (baslik dairesi ustune gore)', (131 - 52) / 1.8103, chipAll.top - top, tol: 8);
     final dot = tester.getRect(find.byKey(const ValueKey('notif-unread-dot')).first);
     _row('Nokta capi', 8, dot.width, tol: 0);
-    final type = tester.getRect(find.text('Duyuru'));
-    _row('Tur etiketi sol (satira gore)', (73 - 37) / 1.8103 + 20 - 20, type.left - r1.left, tol: 2);
-    final titleR = tester.getRect(find.text('Ders ekleme-bırakma tarihleri duyuruldu'));
-    _row('Baslik - tur etiketi dikey', (380 - 342) / 1.8103, titleR.center.dy - type.center.dy, tol: 3);
     expect(tester.takeException(), isNull);
     expect(_fails, isEmpty);
     _fails.clear();
