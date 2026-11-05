@@ -7338,6 +7338,24 @@ abstract class AppLocalizations {
   /// **'Önerilen kişiler'**
   String get followSuggestionsTitle;
 
+  /// No description provided for @followReasonClub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ortak kulüp'**
+  String get followReasonClub;
+
+  /// No description provided for @followReasonGrade.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aynı sınıf'**
+  String get followReasonGrade;
+
+  /// No description provided for @followReasonDepartment.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aynı bölüm'**
+  String get followReasonDepartment;
+
   /// No description provided for @followFeedHint.
   ///
   /// In tr, this message translates to:

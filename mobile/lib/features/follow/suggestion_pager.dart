@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../core/session.dart';
+import '../../l10n/app_localizations.dart';
 import '../posts/social_models.dart';
 
 /// Öneri satırı: kişi + (API verirse) öneri nedeni ve sınıf.
@@ -21,6 +22,22 @@ class SuggestedPerson {
 
   final SocialUser user;
   final String? reason;
+
+  /// Sunucu `reason` değerini ham simge olarak (CLUB / GRADE / DEPARTMENT) gönderir: yerel metne çevrilir.
+  /// Büyük harfli bilinmeyen simge (ham sunucu kodu) gösterilmez; okunur serbest metin olduğu gibi gösterilir.
+  String? reasonLabel(AppLocalizations l) {
+    final r = reason;
+    if (r == null) return null;
+    switch (r.toUpperCase()) {
+      case 'CLUB':
+        return l.followReasonClub;
+      case 'GRADE':
+        return l.followReasonGrade;
+      case 'DEPARTMENT':
+        return l.followReasonDepartment;
+    }
+    return RegExp(r'^[A-Z0-9_]+$').hasMatch(r) ? null : r;
+  }
   final int? classYear;
 }
 

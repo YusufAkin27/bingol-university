@@ -124,7 +124,7 @@ class _FollowSuggestionsListState extends State<FollowSuggestionsList> {
                   key: ValueKey('suggestion-row-${it.user.id}'),
                   session: widget.session,
                   user: it.user,
-                  reason: it.reason,
+                  reason: it.reasonLabel(l),
                   classLabel: it.classYear == null ? null : l.p18ClassYear('${it.classYear}'),
                 ),
               ),

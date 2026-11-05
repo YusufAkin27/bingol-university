@@ -3935,6 +3935,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get followSuggestionsTitle => 'Suggested people';
 
   @override
+  String get followReasonClub => 'Shared club';
+
+  @override
+  String get followReasonGrade => 'Same class year';
+
+  @override
+  String get followReasonDepartment => 'Same department';
+
+  @override
   String get followFeedHint => 'Posts from people you follow appear here.';
 
   @override

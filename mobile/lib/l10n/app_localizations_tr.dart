@@ -3920,6 +3920,15 @@ class AppLocalizationsTr extends AppLocalizations {
   String get followSuggestionsTitle => 'Önerilen kişiler';
 
   @override
+  String get followReasonClub => 'Ortak kulüp';
+
+  @override
+  String get followReasonGrade => 'Aynı sınıf';
+
+  @override
+  String get followReasonDepartment => 'Aynı bölüm';
+
+  @override
   String get followFeedHint => 'Takip ettiklerinin gönderileri burada görünür.';
 
   @override

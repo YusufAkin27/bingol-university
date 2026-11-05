@@ -232,8 +232,8 @@ class HomeSuggestionCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
                   style: tt.labelSmall?.copyWith(color: t.mut, fontSize: 12)),
-            if (person.reason != null)
-              Text(person.reason!,
+            if (person.reasonLabel(context.l10n) != null)
+              Text(person.reasonLabel(context.l10n)!,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,

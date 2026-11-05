@@ -3904,6 +3904,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get followSuggestionsTitle => 'أشخاص مقترحون';
 
   @override
+  String get followReasonClub => 'نادٍ مشترك';
+
+  @override
+  String get followReasonGrade => 'نفس السنة الدراسية';
+
+  @override
+  String get followReasonDepartment => 'نفس القسم';
+
+  @override
   String get followFeedHint => 'تظهر هنا منشورات من تتابعهم.';
 
   @override
