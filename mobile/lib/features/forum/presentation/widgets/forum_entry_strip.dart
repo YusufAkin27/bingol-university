@@ -29,7 +29,7 @@ class ForumEntryStrip extends StatelessWidget {
           child: DecoratedBox(
             decoration: BoxDecoration(
               color: t.sf,
-              borderRadius: BorderRadius.circular(BuRadius.lg),
+              borderRadius: BorderRadius.circular(BuRadius.md),
               border: Border.all(color: t.bd),
             ),
             child: Padding(
@@ -38,8 +38,8 @@ class ForumEntryStrip extends StatelessWidget {
                 Container(
                   width: 40,
                   height: 40,
-                  decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(BuRadius.sm)),
-                  child: Icon(BuIcons.messageSquareText, size: 22, color: t.pr),
+                  decoration: BoxDecoration(border: Border.all(color: t.bd), borderRadius: BorderRadius.circular(BuRadius.sm)),
+                  child: Icon(BuIcons.messageSquareText, size: 22, color: t.ink),
                 ),
                 BuGap.w12,
                 Expanded(

@@ -42,7 +42,7 @@ class ForumAvatar extends StatelessWidget {
       : BuAvatar(name: author.displayName, url: author.avatarUrl, size: size, headers: postAuthHeaders(session));
 }
 
-/// Küçük kategori etiketi (nötr hap; kırmızı kullanılmaz).
+/// Küçük kategori etiketi: dolgusuz, ince kenarlıklı (monochrome; hap/dolgu yok, kırmızı kullanılmaz).
 class ForumCategoryTag extends StatelessWidget {
   const ForumCategoryTag({super.key, required this.label});
 
@@ -53,9 +53,9 @@ class ForumCategoryTag extends StatelessWidget {
     final t = context.bu;
     return DecoratedBox(
       key: const ValueKey('forum-category-tag'),
-      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.pill)),
+      decoration: BoxDecoration(border: Border.all(color: t.bd), borderRadius: BorderRadius.circular(6)),
       child: Padding(
-        padding: const EdgeInsetsDirectional.symmetric(horizontal: 8, vertical: 2),
+        padding: const EdgeInsetsDirectional.symmetric(horizontal: 6, vertical: 1),
         child: Text(label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

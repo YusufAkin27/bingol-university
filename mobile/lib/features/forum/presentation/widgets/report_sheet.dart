@@ -167,11 +167,11 @@ class _ReportBodyState extends State<_ReportBody> {
             hintText: l.forumReportNoteHint,
             counterText: '',
             filled: true,
-            fillColor: t.sf2,
+            fillColor: t.sf,
             contentPadding: const EdgeInsets.all(14),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: t.pr, width: 2)),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(BuRadius.sm), borderSide: BorderSide(color: t.bd)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(BuRadius.sm), borderSide: BorderSide(color: t.bd)),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(BuRadius.sm), borderSide: BorderSide(color: t.ink)),
           ),
         ),
         if (widget.offerBlock) ...[
@@ -248,26 +248,29 @@ class _ReasonRow extends StatelessWidget {
       label: label,
       onTap: enabled ? onTap : null,
       child: Material(
-        color: selected ? t.soft : t.sf2,
-        borderRadius: BorderRadius.circular(16),
+        color: selected ? t.sf2 : t.sf,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(BuRadius.sm),
+          side: BorderSide(color: selected ? t.ink : t.bd, width: selected ? 1.5 : 1),
+        ),
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(BuRadius.sm),
           onTap: enabled ? onTap : null,
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: BuSize.row),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Row(children: [
-                Icon(forumReportReasonIcon(code), size: 18, color: selected ? t.onSoft : t.ink),
+                Icon(forumReportReasonIcon(code), size: 18, color: t.ink),
                 const SizedBox(width: 12),
-                Expanded(child: Text(label, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: selected ? t.onSoft : t.ink))),
+                Expanded(child: Text(label, style: tx.titleSmall!.copyWith(fontWeight: BuType.emphasisWeight, color: t.ink))),
                 const SizedBox(width: 12),
                 Container(
                   width: 22,
                   height: 22,
                   alignment: Alignment.center,
-                  decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle, border: Border.all(color: selected ? t.pr : t.bdStrong, width: 2)),
-                  child: selected ? Container(width: 10, height: 10, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle)) : null,
+                  decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle, border: Border.all(color: selected ? t.ink : t.bdStrong, width: selected ? 2 : 1)),
+                  child: selected ? Container(width: 10, height: 10, decoration: BoxDecoration(color: t.ink, shape: BoxShape.circle)) : null,
                 ),
               ]),
             ),

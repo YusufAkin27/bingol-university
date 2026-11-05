@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/session.dart';
+import '../../../../core/theme.dart';
 import '../../data/forum_api.dart';
 import '../../data/forum_models.dart';
 import '../../forum_routes.dart' show openTopicDetail;
@@ -52,30 +53,31 @@ class ForumListTopicCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final extra = footer ?? (topic.mine && topic.author.anonymous ? const ForumOwnAnonBadge() : null);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
-        TopicCard(
-          session: session,
-          api: api,
-          topic: topic,
-          onOpen: () => _open(context),
-          onChanged: onChanged,
-          onMenuResult: (t, r) {
-            switch (r) {
-              case TopicMenuResult.hideTopic:
-                onRemoveTopic();
-              case TopicMenuResult.hideAuthor:
-                final id = t.author.userId;
-                // Anonim yazar kimliği bilinmez: tüm anonimleri düşürmeyiz, yalnız bu konuyu.
-                id == null ? onRemoveTopic() : onRemoveAuthor(id);
-              case TopicMenuResult.none:
-                break;
-            }
-          },
-        ),
-        if (extra != null) extra,
-      ]),
-    );
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
+      TopicCard(
+        showDivider: extra == null,
+        session: session,
+        api: api,
+        topic: topic,
+        onOpen: () => _open(context),
+        onChanged: onChanged,
+        onMenuResult: (t, r) {
+          switch (r) {
+            case TopicMenuResult.hideTopic:
+              onRemoveTopic();
+            case TopicMenuResult.hideAuthor:
+              final id = t.author.userId;
+              // Anonim yazar kimliği bilinmez: tüm anonimleri düşürmeyiz, yalnız bu konuyu.
+              id == null ? onRemoveTopic() : onRemoveAuthor(id);
+            case TopicMenuResult.none:
+              break;
+          }
+        },
+      ),
+      if (extra != null) ...[
+        extra,
+        Divider(height: 1, thickness: 1, color: context.bu.bdSubtle),
+      ],
+    ]);
   }
 }

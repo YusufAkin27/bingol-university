@@ -134,7 +134,7 @@ class _ForumHomePageState extends State<ForumHomePage> {
             title: forumSortLabel(l, s),
             selected: s == _feed.sort,
             padding: const EdgeInsetsDirectional.symmetric(horizontal: 12, vertical: 6),
-            trailing: s == _feed.sort ? Icon(BuIcons.check, size: 20, color: ctx.bu.pr) : null,
+            trailing: s == _feed.sort ? Icon(BuIcons.check, size: 20, color: ctx.bu.ink) : null,
             onTap: () => Navigator.of(ctx).pop(s),
           ),
       ]),
@@ -337,7 +337,7 @@ class _ForumHomePageState extends State<ForumHomePage> {
           padding: EdgeInsetsDirectional.fromSTEB(BuSpace.page, 4, BuSpace.page, 24 + bottom),
           sliver: SliverList.separated(
             itemCount: 3,
-            separatorBuilder: (_, __) => BuGap.h12,
+            separatorBuilder: (_, __) => const SizedBox.shrink(),
             itemBuilder: (_, __) => const TopicCardSkeleton(key: ValueKey('forum-skeleton')),
           ),
         ),
@@ -375,7 +375,7 @@ class _ForumHomePageState extends State<ForumHomePage> {
         padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.page, 4, BuSpace.page, 0),
         sliver: SliverList.separated(
           itemCount: items.length,
-          separatorBuilder: (_, __) => BuGap.h12,
+          separatorBuilder: (_, __) => const SizedBox.shrink(),
           findItemIndexCallback: (key) {
             if (key is! ValueKey<String>) return null;
             final i = items.indexWhere((e) => 'forum-item-${e.id}' == key.value);

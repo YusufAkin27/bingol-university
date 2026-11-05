@@ -233,7 +233,7 @@ class _PollViewState extends State<PollView> {
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   tapTargetSize: MaterialTapTargetSize.padded,
                 ),
-                child: Text(l.forumPollUndo, style: tt.labelMedium?.copyWith(color: t.pr, fontWeight: FontWeight.w400)),
+                child: Text(l.forumPollUndo, style: tt.labelMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
               ),
           ],
         ),
@@ -299,7 +299,7 @@ class _OptionRow extends StatelessWidget {
         enabled: enabled,
         child: Material(
           color: t.sf,
-          shape: RoundedRectangleBorder(borderRadius: radius, side: BorderSide(color: selected ? t.pr : t.bd, width: selected ? 1.5 : 1)),
+          shape: RoundedRectangleBorder(borderRadius: radius, side: BorderSide(color: selected ? t.ink : t.bd, width: selected ? 1.5 : 1)),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             // Kapalı/değiştirilemez ankette de dokunuş kısa bilgi verir; görsel basış yalnız etkinken.
@@ -319,7 +319,7 @@ class _OptionRow extends StatelessWidget {
                         builder: (_, v, __) => FractionallySizedBox(
                           widthFactor: v,
                           heightFactor: 1,
-                          child: ColoredBox(color: selected ? t.soft : t.sf2),
+                          child: ColoredBox(color: selected ? t.sf3 : t.sf2),
                         ),
                       ),
                     ),
@@ -328,7 +328,7 @@ class _OptionRow extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     child: Row(children: [
                       if (selected) ...[
-                        ExcludeSemantics(child: Icon(BuIcons.circleCheck, size: 18, color: t.pr)),
+                        ExcludeSemantics(child: Icon(BuIcons.circleCheck, size: 18, color: t.ink)),
                         const SizedBox(width: 8),
                       ],
                       Expanded(

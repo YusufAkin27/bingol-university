@@ -103,7 +103,7 @@ class _Row extends StatelessWidget {
       label: label,
       value: action,
       danger: _danger(action),
-      iconColor: action == CommentAction.like && node.likedByMe ? t.prText : null,
+      iconColor: action == CommentAction.like && node.likedByMe ? t.heart : null,
     );
   }
 }

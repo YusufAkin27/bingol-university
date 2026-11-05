@@ -57,7 +57,7 @@ class _CommentTextState extends State<CommentText> {
               alignment: AlignmentDirectional.centerStart,
               widthFactor: 1,
               child: Text(_open ? l.forumCommentReadLess : l.forumCommentReadMore,
-                  style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.prText)),
+                  style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.ink)),
             ),
           ),
         ),

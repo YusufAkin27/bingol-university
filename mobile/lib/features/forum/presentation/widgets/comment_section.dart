@@ -7,6 +7,7 @@ import '../../../../core/locale_controller.dart';
 import '../../../../core/session.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/theme/bu_motion.dart';
+import '../../../../core/theme/bu_shape.dart';
 import '../../../../widgets/bu_pressable.dart';
 import '../../../../widgets/bu_skeleton.dart';
 import '../../../../widgets/bu_state.dart';
@@ -155,7 +156,7 @@ class _FooterLink extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final color = muted ? t.mut : t.prText;
+    final color = muted ? t.mut : t.ink;
     return Semantics(
       button: true,
       label: label,
@@ -205,11 +206,11 @@ class _ChainButton extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 44),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Icon(BuIcons.messageCircle, size: 18, color: t.prText),
+              Icon(BuIcons.messageCircle, size: 18, color: t.ink),
               const SizedBox(width: 8),
-              Flexible(child: Text(label, style: tx.bodySmall!.copyWith(color: t.prText))),
+              Flexible(child: Text(label, style: tx.bodySmall!.copyWith(color: t.ink))),
               const SizedBox(width: 4),
-              Icon(buIconDirection(context, BuIcons.chevronRight), size: 18, color: t.prText),
+              Icon(buIconDirection(context, BuIcons.chevronRight), size: 18, color: t.ink),
             ]),
           ),
         ),
@@ -272,7 +273,7 @@ class _RepliesError extends StatelessWidget {
         Expanded(child: Text(l.forumCommentRepliesFailed, style: tx.bodySmall!.copyWith(color: t.mut))),
         TextButton(
           key: ValueKey('commentRepliesRetry-${node.id}'),
-          style: TextButton.styleFrom(minimumSize: const Size(64, 44), foregroundColor: t.prText),
+          style: TextButton.styleFrom(minimumSize: const Size(64, 44), foregroundColor: t.ink),
           onPressed: () => controller.loadReplies(node, more: node.repliesLoaded),
           child: Text(l.commonRetry),
         ),
@@ -349,11 +350,11 @@ class _SortChip extends StatelessWidget {
               duration: BuMotion.of(context, BuMotion.short),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               decoration: BoxDecoration(
-                color: selected ? t.soft : Colors.transparent,
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: selected ? t.prText : t.bd),
+                color: selected ? t.pr : Colors.transparent,
+                borderRadius: BorderRadius.circular(BuRadius.sm),
+                border: Border.all(color: selected ? t.pr : t.bd),
               ),
-              child: Text(label, style: tx.bodySmall!.copyWith(color: selected ? t.onSoft : t.mut)),
+              child: Text(label, style: tx.bodySmall!.copyWith(color: selected ? t.onPr : t.mut)),
             ),
           ),
         ),
@@ -463,7 +464,7 @@ class CommentsFooter extends StatelessWidget {
           Text(errorText(c.moreError!), textAlign: TextAlign.center, style: tx.bodySmall!.copyWith(color: t.mut)),
           TextButton(
             key: const ValueKey('commentsMoreRetry'),
-            style: TextButton.styleFrom(minimumSize: const Size(64, 44), foregroundColor: t.prText),
+            style: TextButton.styleFrom(minimumSize: const Size(64, 44), foregroundColor: t.ink),
             onPressed: c.loadMore,
             child: Text(l.commonRetry),
           ),
