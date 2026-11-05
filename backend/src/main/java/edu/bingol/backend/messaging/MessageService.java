@@ -367,7 +367,7 @@ public class MessageService {
         }
         convs.touchLastVisible(m.getConversationId(), m.getId());
         members.advanceRead(m.getConversationId(), m.getSenderId(), m.getId()); // kendi mesaji okunmus sayilir
-        members.unarchiveOnMessage(m.getConversationId()); // yapiskan olmayan arsivler yeni mesajla cikar
+        // Arsivli sohbet yeni mesajla arsivden CIKMAZ (WhatsApp 'arsivi koru'); okunmamis sayaci artar, bildirim gitmez.
         members.unhideOnMessage(m.getConversationId()); // "sohbeti sil" yapanlarda konusma yeniden belirir
         return m;
     }
@@ -414,8 +414,8 @@ public class MessageService {
         }
 
         // Sessize alinan konusma: push ve uygulama ici bildirim yok (okunmamis sayaci yine artar, WS yine iletilir).
-        // Sessiz (muted/mutedForever) ve yapiskan arsivdeki (archiveSticky) uyelere de bildirim yok.
-        Set<Long> muted = active.stream().filter(a -> a.isMuted() || (a.getArchivedAt() != null && a.isArchiveSticky()))
+        // Sessiz (muted/mutedForever) ve arsivdeki uyelere de push/uygulama ici bildirim yok (WS ve sayac yine isler).
+        Set<Long> muted = active.stream().filter(a -> a.isMuted() || a.getArchivedAt() != null)
                 .map(ConversationMember::getUserId).collect(java.util.stream.Collectors.toSet());
         List<Long> candidates = recipients.stream().filter(id -> !id.equals(senderId) && !muted.contains(id)).toList();
         if (candidates.isEmpty()) {

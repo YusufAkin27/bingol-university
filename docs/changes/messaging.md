@@ -38,7 +38,7 @@ Yeni hata kodu yoktur.
 ## Konusma tercihleri
 
 - Sessize al: `PUT /api/conversations/{id}/mute {"durationMinutes":1..525600}` ya da `{"forever":true}` (ikisi birden 400). `DELETE` ile kaldir. Yanit `ConversationView`.
-- Arsiv: `PUT /api/conversations/{id}/archive {"keepArchived":false}`, `DELETE` ile cikar; liste: `GET /api/conversations?archived=true`.
+- Arsiv: `PUT /api/conversations/{id}/archive`, `DELETE` ile cikar; liste: `GET /api/conversations?archived=true`. (20261105: bkz. "Arsiv cubugu" bolumu: arsiv artik her zaman kalicidir.)
 - `ConversationView`: `{id,type,title,peer,memberCount,admin,lastMessage,unreadCount,blocked,createdAt,muted,mutedUntil,archived,mutedForever}`.
 - Rozet: `GET /api/conversations/unread-count` -> `{"total":3,"mutedTotal":5,"conversations":[{"conversationId":10,"unread":3,"muted":false}]}`.
 
@@ -255,3 +255,12 @@ Mobil "Mesaj bilgisi" ekrani `GET /api/messages/{id}/info` cagiriyordu; uc canli
 - **Migration:** `V1290__direct_message_info.sql` (`message.delivered_at`, `message.read_at` TIMESTAMPTZ, `IF NOT EXISTS`; `mi_msg_reply_idx` yanit sayfalama kismi indeksi).
 - Testler: `MessageInfoControllerTest`, `ReceiptServiceTest` (yazma kosullari), `MessageReceiptTimesTest` (gercek depo: ilk zaman kalir, aralik, golge engel).
 
+
+## Arsiv cubugu (20261105): arsiv kalici + sessiz
+
+Geriye uyumlu (yalniz ekleme; tek davranis degisikligi: arsiv artik yeni mesajla cikmaz).
+
+- **Arsivli sohbet yeni mesajla arsivden CIKMAZ** (WhatsApp "arsivi koru"). `PUT /conversations/{id}/archive` her zaman `archive_sticky=true` yazar; `keepArchived` govdesi kabul edilir ama etkisizdir. `ConversationMemberRepository.unarchiveOnMessage` kaldirildi. Daha once yapiskan olmadan arsivlenmis satirlar da artik arsivde kalir (veri gocu yok).
+- **Arsivli sohbete gelen mesaj sessizdir:** push ve uygulama ici bildirim uretilmez (`MessageService.deliver`: `muted || archivedAt != null`); mesaj kaydedilir, WebSocket ile iletilir, okunmamis sayaci artar.
+- **`GET /api/conversations/unread-count`** (`UnreadSummary`): arsivli sohbetler `total` ve `mutedTotal`a GIRMEZ (alt cubuk/uygulama simgesi rozeti saymaz); yeni alanlar `archivedChats` (arsivdeki, listede gorunen sohbet sayisi) ve `archivedUnreadChats` (okunmamisi olan arsivli sohbet sayisi; sohbet basina 1, bir sohbette 100 okunmamis olsa da 1). `conversations[]` ogesine `archived` eklendi. `/api/me/summary` rozeti (`unreadBadge`) de arsivlileri saymaz.
+- Testler: `ConversationPrefsServiceTest`, `MessageServiceTest`, `UnreadBadgeTest`.

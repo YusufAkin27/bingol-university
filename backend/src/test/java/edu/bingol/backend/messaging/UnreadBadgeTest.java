@@ -30,7 +30,8 @@ class UnreadBadgeTest {
     private final MessageRepository messages = mock(MessageRepository.class);
     private final BlockService blocks = mock(BlockService.class);
     private final ConversationPrefsService prefs =
-            new ConversationPrefsService(members, messages, mock(ConversationService.class), blocks);
+            new ConversationPrefsService(members, messages, mock(ConversationService.class), blocks,
+                    mock(ConversationRepository.class));
 
     private static ConversationMember member(long conv, boolean muted) {
         ConversationMember m = ConversationMember.of(conv, 1L, ConversationMember.Role.MEMBER);

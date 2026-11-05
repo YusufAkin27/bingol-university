@@ -326,10 +326,17 @@ public final class MessagingDtos {
      */
     public record ConversationRemovedEvent(String type, Long conversationId, String at) {}
 
-    public record UnreadItem(Long conversationId, long unread, boolean muted) {}
+    /** `archived`: konusma arsivde (arsivli konusmalar `total`/`mutedTotal`a girmez). */
+    public record UnreadItem(Long conversationId, long unread, boolean muted, boolean archived) {}
 
-    /** `total`: sessize alinmamis konusmalardaki toplam okunmamis (rozet sayisi); `mutedTotal`: sessizdekiler. */
-    public record UnreadSummary(long total, long mutedTotal, List<UnreadItem> conversations) {}
+    /**
+     * `total`: sessize alinmamis ve ARSIVDE OLMAYAN konusmalardaki toplam okunmamis (rozet sayisi); `mutedTotal`:
+     * sessizdekiler (arsivdekiler hicbirine girmez). Arsiv cubugu icin: `archivedChats` arsivdeki (listede gorunen)
+     * konusma sayisi, `archivedUnreadChats` bunlardan okunmamisi olanlarin sayisi (sohbet basina 1; bir sohbette
+     * 100 okunmamis olsa da 1).
+     */
+    public record UnreadSummary(long total, long mutedTotal, List<UnreadItem> conversations, long archivedChats,
+                                long archivedUnreadChats) {}
 
     /**
      * `blocked`: yalniz ENGELLEYEN tarafta true (golge engel: engellenen taraf bunu ogrenmez).

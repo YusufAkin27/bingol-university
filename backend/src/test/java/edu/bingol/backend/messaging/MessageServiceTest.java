@@ -150,7 +150,6 @@ class MessageServiceTest {
         verify(convs, never()).touchLastVisible(anyLong(), anyLong());
         verify(members).advanceOwnSuppressed(CONV, ME, 100L);
         verify(members, never()).unhideOnMessage(anyLong());
-        verify(members, never()).unarchiveOnMessage(anyLong());
     }
 
     @Test
@@ -462,10 +461,9 @@ Map<String, String> extra = sentBatch().of(PEER).pushExtra();
     }
 
     @Test
-    void stickyArchivedRecipientGetsNoNotification() {
+    void archivedRecipientGetsNoNotification() {
         ConversationMember archived = ConversationMember.of(CONV, PEER, ConversationMember.Role.MEMBER);
-        archived.setArchivedAt(java.time.Instant.now());
-        archived.setArchiveSticky(true);
+        archived.setArchivedAt(java.time.Instant.now()); // eski yapiskan olmayan arsivler de sessizdir
         when(members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(CONV)).thenReturn(List.of(
                 ConversationMember.of(CONV, ME, ConversationMember.Role.MEMBER), archived));
         when(presence.onlineAmong(any())).thenReturn(Set.of());
@@ -705,13 +703,6 @@ assertEquals("DIRECT", sentBatch().data().get("conversationType"));
         service.send(ME, CONV, "selam", "c1");
 
         assertTrue(sentBatch().of(PEER).push());
-    }
-
-    @Test
-    void newMessageUnarchivesNonStickyArchives() {
-        service.send(ME, CONV, "selam", "c1");
-
-        verify(members).unarchiveOnMessage(CONV);
     }
 
     @Test

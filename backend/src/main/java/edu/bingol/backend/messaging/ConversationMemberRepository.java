@@ -49,13 +49,6 @@ public interface ConversationMemberRepository extends JpaRepository<Conversation
 
     List<ConversationMember> findByUserIdAndLeftAtIsNull(Long userId);
 
-    /** Yeni mesaj gelince "yapiskan" olmayan arsivleri kaldirir (herkes icin). */
-    @Transactional
-    @Modifying
-    @Query("UPDATE ConversationMember m SET m.archivedAt = NULL "
-            + "WHERE m.conversationId = :cid AND m.archivedAt IS NOT NULL AND m.archiveSticky = false")
-    int unarchiveOnMessage(@Param("cid") Long conversationId);
-
     /** Yeni mesaj gelince "sohbeti silen" uyelerin listesinde konusma yeniden belirir (yalniz yeni mesajlarla). */
     @Transactional
     @Modifying
