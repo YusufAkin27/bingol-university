@@ -43,7 +43,7 @@ void main() {
             });
           await tester.pumpWidget(buildApp(home(b), brightness: dark ? Brightness.dark : Brightness.light));
           await settle(tester, const Duration(seconds: 2));
-          // Branded header, one shortcut group, then the campus map.
+          // Branded header, one shortcut group.
           expect(find.text('BÜ Kampüs'), findsOneWidget);
           expect(find.text('Bağımsız öğrenci uygulaması'), findsNothing);
           expect(find.textContaining('Ayşe'), findsOneWidget);
@@ -59,11 +59,10 @@ void main() {
           expect(find.text('ÖĞLE YEMEĞİ'), findsOneWidget);
           expect(find.textContaining('Mercimek çorbası, Orman kebabı +2'), findsOneWidget);
           expect(find.text('Menü Detayı'), findsNothing);
-          // Günün menüsü (Stitch v5): fotoğraf varsa 16:9 görsel, yoksa aynı alanda yer tutucu; ardından harita kartı.
+          // Günün menüsü (Stitch v5): fotoğraf varsa 16:9 görsel, yoksa aynı alanda yer tutucu.
           await tester.scrollUntilVisible(find.text('Günün menüsü'), 250, scrollable: find.byType(Scrollable).first);
           expect(find.text('Yeni görsel bekliyor'), photo ? findsNothing : findsOneWidget);
-          await tester.scrollUntilVisible(find.text('Kampüs Haritası'), 250, scrollable: find.byType(Scrollable).first);
-          expect(find.text('Kampüs Haritası'), findsOneWidget);
+          expect(find.text('Kampüs Haritası'), findsNothing);
           expect(tester.takeException(), isNull);
         });
       }

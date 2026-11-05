@@ -29,7 +29,7 @@ SIGN IN WITH APPLE (Guideline 4.8)
 The app uses only its own e-mail + password sign-in with a university e-mail; there is no third-party or social login, so Sign in with Apple is not required.
 
 PERMISSIONS (all optional, requested at the moment of use)
-Camera: scan QR codes for event check-in, take photos/videos. Microphone: sound of videos recorded in chat. Photos: pick/save images. Contacts: find colleagues; only SHA-256 hashes of e-mail addresses are matched, nothing else leaves the device, and hashes are not stored. Notifications: messages, event reminders, announcements. Location (while using, campus map only): shows your position and the distance to the nearest building; it is processed on the device and never sent to our server or stored. No tracking, no advertising, no App Tracking Transparency prompt.
+Camera: scan QR codes for event check-in, take photos/videos. Microphone: sound of videos recorded in chat. Photos: pick/save images. Contacts: find colleagues; only SHA-256 hashes of e-mail addresses are matched, nothing else leaves the device, and hashes are not stored. Notifications: messages, event reminders, announcements. Location is not requested or used. No tracking, no advertising, no App Tracking Transparency prompt.
 
 DATA SOURCES
 News, announcements and the dining menu are public content fetched by our server from the university's public web pages; the app itself never contacts those sites.

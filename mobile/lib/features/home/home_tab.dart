@@ -11,8 +11,6 @@ import '../../widgets/common.dart';
 import '../academic/academic_api.dart';
 import '../academic/academic_hub_page.dart';
 import '../academic/academic_models.dart';
-import '../campus_map/campus_home_card.dart';
-import '../campus_map/campus_nav.dart';
 import '../events/event_detail_page.dart';
 import '../events/events_page.dart';
 import '../menu/menu_models.dart';
@@ -594,7 +592,6 @@ class _HomeTabState extends State<HomeTab> {
           BuildContext context, HomeSection s, List<DaySlot> slots) =>
       switch (s) {
         HomeSection.quickAccess => _quickAccess(context),
-        HomeSection.campusMap => _campusMapSection(context),
         HomeSection.menu => _menuSection(context),
         HomeSection.todayClasses => _classesSection(context, slots),
         HomeSection.featuredNews => _newsSection(context, _newsFeedHaber),
@@ -604,13 +601,6 @@ class _HomeTabState extends State<HomeTab> {
 
   Widget _pad(Widget child) => Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20), child: child);
-
-  Widget _campusMapSection(BuildContext context) => _pad(CampusHomeCard(
-        onOpen: () => openCampusMap(context, _s),
-        onSearch: () => openCampusMap(context, _s, openSearch: true),
-        onChip: (category) =>
-            openCampusMap(context, _s, categoryHint: category),
-      ));
 
   /// Haber bölümü: "Öne çıkan haberler" (yatay şerit) ya da "Duyurular" (kısa liste). Veri bölüm görününce istenir.
   Widget _newsSection(BuildContext context, String type) {
@@ -849,11 +839,6 @@ class _HomeTabState extends State<HomeTab> {
     final l = context.l10n;
     final entries = <({String label, IconData icon, VoidCallback action})>[
       (
-        label: l.campusTitle,
-        icon: BuIcons.map,
-        action: () => openCampusMap(context, _s)
-      ),
-      (
         label: l.homeLibrary,
         icon: BuIcons.library,
         action: () => _openUrl('https://kutuphane.bingol.edu.tr/')
@@ -903,7 +888,6 @@ class _HomeTabState extends State<HomeTab> {
     final l = context.l10n;
     VoidCallback go(HomeShortcut sc) => switch (sc) {
           HomeShortcut.more => () => _openMore(context),
-          HomeShortcut.campusMap => () => openCampusMap(context, _s),
           HomeShortcut.news => () => _push(NewsListPage(session: _s), 'news_list'),
           HomeShortcut.menu => () => _push(MenuPage(session: _s), 'menu'),
           HomeShortcut.events => () => _push(EventsPage(session: _s), 'events'),
