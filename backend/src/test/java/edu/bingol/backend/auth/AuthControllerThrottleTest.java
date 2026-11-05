@@ -134,7 +134,7 @@ class AuthControllerThrottleTest {
         verify(limiter).check("register:email:" + digest, 5, Duration.ofHours(1));
         verify(limiter).check("codemail:day:" + digest, 20, Duration.ofHours(24));
         verify(limiter).check(startsWith("register:ip:"), anyInt(), any(Duration.class));
-        verify(auth).register(eq(EMAIL), eq("Sifre1234"), eq("Ali"), any(), any(), any(), any(), eq(true));
+        verify(auth).registerOrDefer(eq(EMAIL), eq("Sifre1234"), eq("Ali"), any(), any(), any(), any(), eq(true), any(), any());
     }
 
     @Test
@@ -142,7 +142,7 @@ class AuthControllerThrottleTest {
         controller.register(new RegisterRequest(EMAIL, "Sifre1234", "Ali", true, null, null, null, null, null),
                 from("203.0.113.9"));
 
-        verify(auth).register(eq(EMAIL), eq("Sifre1234"), eq("Ali"), any(), any(), any(), any(), eq(false));
+        verify(auth).registerOrDefer(eq(EMAIL), eq("Sifre1234"), eq("Ali"), any(), any(), any(), any(), eq(false), any(), any());
     }
 
     @Test
@@ -153,7 +153,7 @@ class AuthControllerThrottleTest {
         assertThrows(RateLimitedException.class, () -> controller.register(
                 new RegisterRequest(EMAIL, "Sifre1234", "Ali", true, null, null, null, null, null), from("203.0.113.9")));
 
-        verify(auth, never()).register(anyString(), anyString(), anyString(), any(), any(), any(), any(), anyBoolean());
+        verify(auth, never()).registerOrDefer(anyString(), anyString(), anyString(), any(), any(), any(), any(), anyBoolean(), any(), any());
     }
 
     @Test

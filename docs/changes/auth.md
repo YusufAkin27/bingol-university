@@ -260,3 +260,69 @@ Kaynak: backend inceleme raporu 01 (A01#2,#3,#5,#6,#7,#8,#10,#12,#13,#14) ve 08 
 - **Istemci etkisi:** mobil/web `POST /api/auth/refresh` icin `409 REFRESH_IN_PROGRESS` + `Retry-After` yeni; istemci bunu oturum sonu saymamali (bkz. `docs/MOBILE_API_GUIDE.md` 1.5). Yanit kaybi sonrasi yeniden deneme penceresi 5 dk.
 - **Ertelendi:** K9 (JWT sirrinin amaclara ayrilmasi), `rtu:` ZSET donusumu (A01#10 ikinci yarisi), ban basina tek Redis pipeline (A01#2 son cumle; `SessionService.revokeAll` ic yapisi). Migration yok (V1080-1089 kullanilmadi).
 - Testler: `RefreshIdempotencyTest`, `RefreshTokenServiceTest`, `AuthServiceTest`, `PendingRegistrationStoreTest` (yeni), `LoginThrottleTest`, `DeviceLogCapTest`, `AccessBanServiceTest`, `AccessBanCacheOutageTest` (yeni).
+
+## QT-BE (2026-11-05): kota asiminda ERTELENMIS e-posta dogrulama (kisitli mod)
+
+Kullanici karari: gunluk kod e-postasi kotasi (saglayici ~300/gun) dolu iken kayit olan kisi 503 ile geri cevrilmez; **iceri alinir ama e-postasi DOGRULANMAMIS ve YALNIZ OKUR** kalir. Profil sayfasinda "E-postanizi dogrulayin" gosterilir; dogrulama kota bosalinca tamamlanir. Sozlesme (mobil bunu temel alir):
+
+### Ne zaman devreye girer
+- Yalniz `POST /api/auth/register` ve yalniz **kayit dogrulama kodu** icin: `VerificationService.requireMailQuota()` **503 `MAIL_QUOTA_EXHAUSTED`** firlatacaksa (saglayici kotasi doldu ya da kimliksiz kayit butcesi doldu). Sifre sifirlama (`forgot-password`), 2FA ve anonim `resend-code` davranisi **DEGISMEZ** (kota doluysa eskisi gibi 503). IP basina gunluk kod sayaci (429 `RATE_LIMITED`) ertelemeyi tetiklemez.
+- Kota **dolu degilken** akis AYNEN: `202 {"message":...}` + e-posta kodu + Redis bekleyen kayit.
+- ADMIN_EMAILS adresleri ve yonetici portali kaydi (`adminPortal=true`) **ertelenmez** (kimlik taklidi ile yonetici terfisi riski): kota doluysa eskisi gibi 503.
+- Ayar: `app.auth.deferred-verification.enabled` (varsayilan `true`; `false` = eski davranis, 503).
+- Tum kayit kurallari AYNEN: `bingol.edu.tr` alan adi, `+etiket` yasagi, parola politikasi, katalog, uygunsuz ad, ihlal defteri, `acceptTerms=true` (sozlesme onayi `legal_acceptance`'a yazilir), IP/e-posta hiz sinirlari.
+
+### `POST /api/auth/register` (ertelenmis yanit)
+Istek gövdesine **opsiyonel** `client` (`mobile|web`, varsayilan web) eklendi (jeton etiketi; `verify-email` ile ayni). Yanit **201 Created** (normal akis 202):
+```json
+{
+  "message": "Hesabiniz olusturuldu. Dogrulama kodu su an gonderilemiyor; e-postanizi daha sonra dogrulayin.",
+  "emailVerified": false,
+  "verificationDeferred": true,
+  "accessToken": "eyJ...", "refreshToken": "...", "expiresInSeconds": 900, "tokenType": "Bearer"
+}
+```
+Normal 202 govdesi degismedi (`{"message":...}`; yeni alanlar yok). Istemci **HTTP durumuna degil `verificationDeferred===true` alanina** bakar. Ayni e-posta zaten dogrulanmissa `409 EMAIL_ALREADY_REGISTERED` (degismedi). Ayni e-posta icin dogrulanmamis satir varsa (onceki ertelenmis kayit) satir **yeniden kullanilir**: parola/ad ezilir ("son yazan kazanir", bekleyen kayitla ayni kural), eski oturumlari kapanir, yeni jetonlar verilir.
+
+### Giris (`POST /api/auth/login`)
+Ertelenmis hesap (`verification_deferred=true`, `email_verified=false`) dogru parolayla **girebilir**: `200` + `TokenResponse` ve ek alanlar `"emailVerified":false,"verificationDeferred":true` (alanlar yalniz ertelenmis hesapta vardir; normal giriste yoktur, geriye uyumlu). Diger dogrulanmamis hesap turleri (Redis bekleyen kayit, eski satirlar) **degismedi**: `403 EMAIL_NOT_VERIFIED`. `POST /api/auth/refresh` ertelenmis hesap icin de calisir (ayni ek alanlar). ADMIN_EMAILS terfisi dogrulanmamis hesapta **uygulanmaz** (`promoteIfAdmin` e-posta dogrulanana kadar atlanir).
+
+### `GET /api/users/me` (profil)
+`ProfileView` yanitina **her zaman** iki boolean eklendi: `emailVerified`, `verificationDeferred`. Mobil profil sayfasi `emailVerified==false && verificationDeferred==true` ise "E-postanizi dogrulayin" kartini gosterir. `GET /api/auth/me` (UserView) degismedi.
+
+### Kisitli (yalniz okuma) mod
+`legal.LegalReacceptFilter` kalibinda yeni `auth.UnverifiedWriteFilter`: kimligi dogrulanmis kullanici `verification_deferred AND NOT email_verified` ise `/api/**` altindaki **yazma** istekleri (POST/PUT/PATCH/DELETE) **403**:
+```json
+{"code":"EMAIL_VERIFICATION_REQUIRED","message":"Bu islem icin once e-posta adresinizi dogrulayin."}
+```
+(`message` istek dilinde tr/en/ar; `Cache-Control: no-store`.) Okuma (GET/HEAD/OPTIONS) serbesttir. Yazma **IZNI olanlar**: `/api/auth/**` (login/refresh/logout/logout-all/change-password ve yeni `verification/*`; **hariç** `/api/auth/2fa/**`), profil duzenleme `PATCH /api/users/me`, avatar `POST|DELETE /api/users/me/avatar`, hesap silme `DELETE /api/users/me`, `/api/legal/**` (sozlesme onayi), `/api/devices/**` (push token), `/api/analytics/**`, `/api/app/**`, `/api/support/**` (destek talebi), `/api/reports` (sikayet), `/api/notifications/**` (kendi bildirim durumu/tercihleri), `/api/public/**`. **Diger her yazma 403**: gonderi/begeni/takip, mesaj gonderme ve sohbet baslatma, kulup/etkinlik olusturma-katilma, basvuru, RSVP, anket oyu, medya yukleme, geri bildirim panosu vb. Gerekce: dogrulanmamis hesap baskasinin `@bingol.edu.tr` adresiyle girmis olabilir (kimlik taklidi); dogrulanana kadar topluluga yazamaz.
+- Gorunmezlik: dogrulanmamis hesaplar kullanici aramasinda, onerilerde, Kesfet/takip listelerinde, bildirim/e-posta kitlelerinde ve baskasinin `GET /api/users/{id}` profilinde (404 `USER_NOT_FOUND`) **gorunmez** (mevcut `email_verified` suzgeci + profil kontrolu).
+- Durum onbellegi: dogrulanmis sonucu bellekte tutulur; ertelenmis hesap her yazmada yeniden sorgulanir; dogrulama aninda aninda kalkar (ayni ornekte).
+
+### Dogrulamayi tamamlama (kimlik dogrulamali; anonim `verify-email`/`resend-code` ayri ve aynen calisir)
+Yeni uclar `SecurityConfig`'te `authenticated`; hepsi hiz sinirli.
+
+| Yontem + yol | Govde | Basari | Hatalar |
+|---|---|---|---|
+| `GET /api/auth/verification/status` | - | `200 {"emailVerified":false,"verificationDeferred":true,"email":"a@bingol.edu.tr"}` | 401 |
+| `POST /api/auth/verification/resend` | - | `202 {"message":"..."}` (kod 6 hane, 10 dk, e-postaya) | `429 RESEND_COOLDOWN` (180 sn, `Retry-After`), **`429 MAIL_QUOTA_EXCEEDED`** (gunluk kota dolu; `Retry-After` = kota sifirlanmasina kalan saniye; metin "yarin tekrar deneyin"), `409 EMAIL_ALREADY_VERIFIED`, `429 RATE_LIMITED` |
+| `POST /api/auth/verification/verify` | `{"code":"482913"}` | `200 {"emailVerified":true,"verificationDeferred":false}` (idempotent: zaten dogrulanmissa da 200) | `400 INVALID_CODE`, `429 TOO_MANY_ATTEMPTS` (5 yanlis deneme: adres 10 dk kilit) |
+
+- `verify` basarisinda `email_verified=true`, `verification_deferred=false`: kisitlar kalkar; **yeni jeton gerekmez** (rol/`ap` talepleri etkilenmez, mevcut oturum surer). ADMIN_EMAILS terfisi sonraki giriste yapilir (kayit-giris akisi degismedi).
+- Kod ayni Redis `vc:<email>` alanini kullanir (hash'li HMAC, 10 dk, 5 deneme, saatlik toplam yanlis siniri); `resend` kota korumasini (gunluk kota/butce) **uygular**.
+- Hiz sinirlari: `vresend:user:<id>` saatte 5 / gunde 10; `vverify:user:<id>` 10 dk'da 10; `vstatus:user:<id>` dakikada 30.
+
+### Otomatik tamamlama isi (`DeferredVerificationJob`)
+- `@Scheduled` (`app.auth.deferred-verification.poll-ms`, varsayilan 3 600 000 = saatlik; `SchedulerLock` `deferred-verification`). Kota bosalinca ertelenmis hesaplara, **en eski kayit once**, dogrulama kodunu e-posta kuyruguna ekler (`VerificationService.issue` -> `MailService`, hesap dilinde).
+- **Kayit dogrulama postalari oncelikli kalir:** is yalniz kayit butcesinin **kalan** payinin `app.auth.deferred-verification.max-share-of-remaining` (0.5) kadarini kullanir (`kalan = publicCap(REGISTRATION) - publicUsed`); saglayici kotasi tamamen doluysa hic gonderilmez. Tek calismada en cok `max-per-run` (200).
+- Kullanici basina **en cok kota gunu basina 1** posta (`app_user.verification_mailed_at`); el ile `resend` ayri sinirdir.
+- Saklama: `app.auth.deferred-verification.retention-days=14`. Gece 03:20 (`Europe/Istanbul`) 14 gunden eski, hala dogrulanmamis ertelenmis hesaplar **hesap silme (anonimlestirme) yolundan** (`ProfileService.anonymizeAccount` -> `AccountDataPurger` kapsami; KVKK) temizlenir; e-posta adresi serbest kalir.
+
+### Sema (V1260)
+`app_user.verification_deferred BOOLEAN NOT NULL DEFAULT FALSE`, `app_user.verification_mailed_at TIMESTAMPTZ NULL`, kismi indeks `qd_app_user_deferred_idx (created_at) WHERE verification_deferred AND NOT email_verified`.
+
+### Yonetici
+`GET /api/admin/users` satirlarina ve detaya `verificationDeferred` (boolean) eklendi; "dogrulanmamis" suzgeci (`verified=false`) ertelenmis hesaplari dondurur. Yonetici elle dogrulama (`POST /api/admin/users/{id}/verify`) ertelenmis isareti de kaldirir. Redis "bekleyen kayitlar" listesi (`/api/admin/pending-registrations`) degismedi (ertelenmisler Redis'te degil, kullanici satirindadir).
+
+### Yeni hata kodlari / metinler (tr/en/ar, auth*.properties)
+`EMAIL_VERIFICATION_REQUIRED` (403), `MAIL_QUOTA_EXCEEDED` (429), `EMAIL_ALREADY_VERIFIED` (409); `msg.register.deferred`, `msg.verification.sent`.

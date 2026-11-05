@@ -52,6 +52,20 @@ public class AccountCreator {
      */
     @Transactional
     public User create(String email, Pending p, boolean promoteAdmin) {
+        return save(email, p, promoteAdmin, false);
+    }
+
+    /**
+     * Kota asiminda ERTELENMIS dogrulama (QT-BE): e-posta KODLA kanitlanmadan acilan hesap. emailVerified=false,
+     * verificationDeferred=true; ADMIN_EMAILS terfisi YOK (kimlik taklidiyle yonetici olunamaz). Sozlesme onayi,
+     * gizlilik varsayilani ve ihlal defteri devri normal hesapla ayni.
+     */
+    @Transactional
+    public User createDeferred(String email, Pending p) {
+        return save(email, p, false, true);
+    }
+
+    private User save(String email, Pending p, boolean promoteAdmin, boolean deferred) {
         User user = users.findByEmail(email).orElseGet(User::new);
         user.setEmail(email);
         user.setPasswordHash(p.passwordHash());
@@ -60,7 +74,11 @@ public class AccountCreator {
         user.setFaculty(p.faculty());
         user.setDepartment(p.department());
         user.setGrade(p.grade());
-        user.setEmailVerified(true);
+        user.setEmailVerified(!deferred);
+        user.setVerificationDeferred(deferred);
+        if (deferred) {
+            user.setVerificationMailedAt(null);
+        }
         if (promoteAdmin && user.getRole() != Role.ADMIN && admin.isAdminEmail(email)) {
             user.setRole(Role.ADMIN);
             user.setAdminProfile(edu.bingol.backend.admin.rbac.AdminProfile.FULL); // ADMIN_EMAILS hesabi her zaman FULL

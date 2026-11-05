@@ -258,3 +258,4 @@ Saklama süresi değişiklikleri (W2-F):
 | `display_name_history` | gorunen ad degisimi (eski/yeni ad, zaman) | `ProfileService.anonymize` satirlari siler. `AccountDataPurger.HANDLED_ELSEWHERE` kaydi gerekir (W2-F listesi) |
 | `moderation_strike.inherited` | yeniden kayitta defterden devralinan strike | strike satiri gibi (yasal saklama / ihlal gecmisi) |
 | `profanity_term.category`, `profanity_hit_log.category` | kategori (PROFANITY/HATE/TERROR/SELF_HARM) | `profanity_hit_log` 90 gun |
+| `app_user.verification_deferred`, `app_user.verification_mailed_at` (V1260) | kota asiminda ertelenmis e-posta dogrulama bayragi ve son kod postasi zamani (kisisel veri degil; satirin kendisi hesap verisidir) | dogrulanmayan ertelenmis hesap `app.auth.deferred-verification.retention-days` (14) gun sonra `DeferredVerificationJob.purgeExpired` ile hesap silme (anonimlestirme) yolundan gecer; indeks `qd_app_user_deferred_idx` (kismi) |

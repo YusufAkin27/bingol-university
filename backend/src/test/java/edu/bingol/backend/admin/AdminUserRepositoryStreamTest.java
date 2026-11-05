@@ -32,7 +32,8 @@ class AdminUserRepositoryStreamTest {
                 + "display_name VARCHAR(100), faculty VARCHAR(100), department VARCHAR(100), class_year SMALLINT, "
                 + "language VARCHAR(5), role VARCHAR(10) DEFAULT 'USER', status VARCHAR(16) DEFAULT 'ACTIVE', "
                 + "email_verified BOOLEAN DEFAULT TRUE, created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP, "
-                + "last_seen_at TIMESTAMP WITH TIME ZONE, avatar_url VARCHAR(300), two_factor_enabled BOOLEAN DEFAULT FALSE)");
+                + "last_seen_at TIMESTAMP WITH TIME ZONE, avatar_url VARCHAR(300), two_factor_enabled BOOLEAN DEFAULT FALSE, "
+                + "verification_deferred BOOLEAN DEFAULT FALSE)");
         for (int i = 0; i < 2300; i++) {
             jdbc.update("INSERT INTO app_user (email, display_name, language) VALUES (?, ?, 'tr')",
                     "u" + i + "@bingol.edu.tr", "Kisi " + i);

@@ -44,6 +44,7 @@ class ShadowBlockProfileTest {
         u.setFaculty("Muhendislik");
         u.setAvatarUrl("/files/avatars/x" + id + ".jpg");
         u.setShowEmail(true);
+        u.setEmailVerified(true); // dogrulanmamis (ertelenmis) hesap baskalarina gorunmez
         u.setEmail("u" + id + "@bingol.edu.tr");
         return u;
     }

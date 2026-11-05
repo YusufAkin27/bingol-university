@@ -34,6 +34,16 @@ public class User {
 
     private boolean emailVerified;
 
+    /**
+     * Kota asiminda ertelenmis dogrulama (QT-BE): hesap kod gonderilemedigi icin dogrulanmamis acildi; yalniz okur.
+     * email_verified=true olunca anlamsizdir (dogrulama anlik false yapar).
+     */
+    @ColumnDefault("false")
+    private boolean verificationDeferred;
+
+    /** DeferredVerificationJob'un bu hesaba son kod postasi kuyruga aldigi an (kota gunu basina en cok 1). */
+    private Instant verificationMailedAt;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 16)
     private Role role = Role.USER;

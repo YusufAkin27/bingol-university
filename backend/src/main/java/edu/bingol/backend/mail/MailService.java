@@ -83,6 +83,11 @@ public class MailService {
         }
     }
 
+    /** Kota sifirlanmasina kalan saniye (kota korumasi kapaliysa 3600). */
+    public long secondsUntilQuotaReset() {
+        return quota == null || !props.enabled() ? 3600 : quota.secondsUntilReset();
+    }
+
     /** Genel giris: sablonu degiskenleriyle kuyruga yazar. Gonderim arka planda yapilir. */
     public void enqueue(String to, MailTemplate template, Lang lang, Map<String, String> vars) {
         enqueue(to, template, lang, vars, null);

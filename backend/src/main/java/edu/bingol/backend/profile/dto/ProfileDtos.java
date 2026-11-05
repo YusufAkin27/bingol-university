@@ -22,31 +22,35 @@ public final class ProfileDtos {
                               @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Integer followerCount,
                               @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Long likesReceived,
                               @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Integer postCount,
-                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Long reelCount) {
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Long reelCount,
+                              boolean emailVerified, boolean verificationDeferred) {
         /** avatarHidden ve populerlik alanlari yok (null): yalnizca GET /users/me doldurur. */
         public static ProfileView of(User u) {
             return new ProfileView(u.getId(), u.getEmail(), u.getDisplayName(), u.getFaculty(), u.getDepartment(),
                     u.getClassYear(), u.getBio(), u.getAvatarUrl(), u.isShowEmail(), u.getRole(), u.getLanguage(),
-                    u.getCreatedAt().toString(), u.getGrade(), null, null, null, null, null, null);
+                    u.getCreatedAt().toString(), u.getGrade(), null, null, null, null, null, null,
+                    u.isEmailVerified(), u.isVerificationDeferred() && !u.isEmailVerified());
         }
 
         /** Profil fotografi moderasyonla gizlendi mi (mobil bilgi karti). */
         public ProfileView withAvatarHidden(boolean hidden) {
             return new ProfileView(id, email, displayName, faculty, department, classYear, bio, avatarUrl, showEmail,
-                    role, language, createdAt, grade, hidden, popularityScore, followerCount, likesReceived, postCount, reelCount);
+                    role, language, createdAt, grade, hidden, popularityScore, followerCount, likesReceived, postCount, reelCount,
+                    emailVerified, verificationDeferred);
         }
 
         /** Populerlik puani (0..100) ve bilesenleri: takipci, alinan toplam begeni, gonderi sayisi (gercek sayilar). */
         public ProfileView withPopularity(int score, int followers, long likes, int posts) {
             return new ProfileView(id, email, displayName, faculty, department, classYear, bio, avatarUrl, showEmail,
-                    role, language, createdAt, grade, avatarHidden, score, followers, likes, posts, reelCount);
+                    role, language, createdAt, grade, avatarHidden, score, followers, likes, posts, reelCount,
+                    emailVerified, verificationDeferred);
         }
 
         /** Reels (video gonderi) sayisi (KS-BE2; yalniz GET /users/me doldurur). */
         public ProfileView withReelCount(long reels) {
             return new ProfileView(id, email, displayName, faculty, department, classYear, bio, avatarUrl, showEmail,
                     role, language, createdAt, grade, avatarHidden, popularityScore, followerCount, likesReceived,
-                    postCount, reels);
+                    postCount, reels, emailVerified, verificationDeferred);
         }
     }
 

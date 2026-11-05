@@ -1272,6 +1272,9 @@
           "twoFactorTrustedDeviceCount" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
+          },
+          "verificationDeferred" : {
+            "type" : [ "boolean", "null" ]
           }
         }
       },
@@ -1321,6 +1324,9 @@
             "type" : [ "string", "null" ]
           },
           "twoFactorEnabled" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "verificationDeferred" : {
             "type" : [ "boolean", "null" ]
           }
         }
@@ -9781,6 +9787,9 @@
           "email" : {
             "type" : [ "string", "null" ]
           },
+          "emailVerified" : {
+            "type" : [ "boolean", "null" ]
+          },
           "faculty" : {
             "type" : [ "string", "null" ]
           },
@@ -9819,6 +9828,9 @@
             "type" : [ "string", "null" ]
           },
           "showEmail" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "verificationDeferred" : {
             "type" : [ "boolean", "null" ]
           }
         }
@@ -10644,6 +10656,10 @@
           "adminPortal" : {
             "type" : [ "boolean", "null" ]
           },
+          "client" : {
+            "pattern" : "(?i)mobile|web",
+            "type" : [ "string", "null" ]
+          },
           "department" : {
             "maxLength" : 120,
             "minLength" : 0,
@@ -10680,6 +10696,32 @@
           }
         },
         "required" : [ "email", "password" ]
+      },
+      "RegisterResponse" : {
+        "properties" : {
+          "accessToken" : {
+            "type" : [ "string", "null" ]
+          },
+          "emailVerified" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "expiresInSeconds" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "message" : {
+            "type" : [ "string", "null" ]
+          },
+          "refreshToken" : {
+            "type" : [ "string", "null" ]
+          },
+          "tokenType" : {
+            "type" : [ "string", "null" ]
+          },
+          "verificationDeferred" : {
+            "type" : [ "boolean", "null" ]
+          }
+        }
       },
       "RegistrationPoint" : {
         "properties" : {
@@ -12338,15 +12380,14 @@
       },
       "StatusResponse" : {
         "properties" : {
-          "currentDeviceTrusted" : {
+          "email" : {
+            "type" : [ "string", "null" ]
+          },
+          "emailVerified" : {
             "type" : [ "boolean", "null" ]
           },
-          "enabled" : {
+          "verificationDeferred" : {
             "type" : [ "boolean", "null" ]
-          },
-          "trustedDeviceCount" : {
-            "format" : "int64",
-            "type" : [ "integer", "null" ]
           }
         }
       },
@@ -13192,6 +13233,9 @@
           "accessToken" : {
             "type" : [ "string", "null" ]
           },
+          "emailVerified" : {
+            "type" : [ "boolean", "null" ]
+          },
           "expiresInSeconds" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
@@ -13201,6 +13245,9 @@
           },
           "tokenType" : {
             "type" : [ "string", "null" ]
+          },
+          "verificationDeferred" : {
+            "type" : [ "boolean", "null" ]
           }
         }
       },
@@ -14009,6 +14056,16 @@
           }
         }
       },
+      "VerifiedResponse" : {
+        "properties" : {
+          "emailVerified" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "verificationDeferred" : {
+            "type" : [ "boolean", "null" ]
+          }
+        }
+      },
       "VerifiedUser" : {
         "properties" : {
           "createdAt" : {
@@ -14026,6 +14083,16 @@
             "type" : [ "integer", "null" ]
           }
         }
+      },
+      "VerifyCodeRequest" : {
+        "properties" : {
+          "code" : {
+            "maxLength" : 6,
+            "minLength" : 6,
+            "type" : "string"
+          }
+        },
+        "required" : [ "code" ]
       },
       "VerifyEmailRequest" : {
         "properties" : {
@@ -41132,15 +41199,15 @@
           "required" : true
         },
         "responses" : {
-          "202" : {
+          "200" : {
             "content" : {
               "*/*" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/MessageResponse"
+                  "$ref" : "#/components/schemas/RegisterResponse"
                 }
               }
             },
-            "description" : "Accepted"
+            "description" : "OK"
           },
           "400" : {
             "content" : {
@@ -41255,6 +41322,143 @@
               "*/*" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/MessageResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ ],
+        "tags" : [ "auth-controller" ]
+      }
+    },
+    "/api/auth/verification/resend" : {
+      "post" : {
+        "operationId" : "resendVerification",
+        "responses" : {
+          "202" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MessageResponse"
+                }
+              }
+            },
+            "description" : "Accepted"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ ],
+        "tags" : [ "auth-controller" ]
+      }
+    },
+    "/api/auth/verification/status" : {
+      "get" : {
+        "operationId" : "verificationStatus",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StatusResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          }
+        },
+        "security" : [ ],
+        "tags" : [ "auth-controller" ]
+      }
+    },
+    "/api/auth/verification/verify" : {
+      "post" : {
+        "operationId" : "verifyOwnEmail",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/VerifyCodeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/VerifiedResponse"
                 }
               }
             },

@@ -99,10 +99,11 @@ public class ProfileService {
     /** Baskasinin profili: silinmis/askidaki hesaplar ve engel iliskisi olanlar bulunamaz. */
     public PublicProfile publicProfile(Long viewerId, Long targetId) {
         User u = get(targetId);
-        if (!u.isActive()) {
+        boolean self = viewerId.equals(targetId);
+        // E-postasi dogrulanmamis (ertelenmis) hesap baskalarina gorunmez; sahibi kendi profilini gorur
+        if (!u.isActive() || (!self && !u.isEmailVerified())) {
             throw new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Kullanıcı bulunamadı.");
         }
-        boolean self = viewerId.equals(targetId);
         if (!self && blocks.isBlocked(viewerId, targetId)) {
             // Golge engel: 404 degil; sohbet gecmisinde ad gerekebilir. Tek tutarli "bos profil" (foto/bilgi/e-posta yok).
             // blockedByMe yalniz benim engelimi gosterir; karsi tarafin beni engellemesi sizdirilmaz (false).

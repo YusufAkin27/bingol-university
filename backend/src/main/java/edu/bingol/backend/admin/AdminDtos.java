@@ -22,7 +22,16 @@ public final class AdminDtos {
 
     public record AdminUserRow(Long id, String email, String displayName, String faculty, String department,
                                Short classYear, String language, Role role, UserStatus status, boolean emailVerified,
-                               String createdAt, String lastSeenAt, String avatarUrl, boolean twoFactorEnabled) {
+                               String createdAt, String lastSeenAt, String avatarUrl, boolean twoFactorEnabled,
+                               boolean verificationDeferred) {
+        /** Eski 14 alanli kurucu (verificationDeferred=false). */
+        public AdminUserRow(Long id, String email, String displayName, String faculty, String department,
+                            Short classYear, String language, Role role, UserStatus status, boolean emailVerified,
+                            String createdAt, String lastSeenAt, String avatarUrl, boolean twoFactorEnabled) {
+            this(id, email, displayName, faculty, department, classYear, language, role, status, emailVerified,
+                    createdAt, lastSeenAt, avatarUrl, twoFactorEnabled, false);
+        }
+
         /** P16: maskeli profiller (users.pii yok) icin e-posta maskelenir. */
         public AdminUserRow masked() {
             if (edu.bingol.backend.admin.rbac.PermissionAwareMasking.canSeePii()) {
@@ -30,7 +39,7 @@ public final class AdminDtos {
             }
             return new AdminUserRow(id, edu.bingol.backend.admin.rbac.PermissionAwareMasking.maskEmail(email),
                     displayName, faculty, department, classYear, language, role, status, emailVerified, createdAt,
-                    lastSeenAt, avatarUrl, twoFactorEnabled);
+                    lastSeenAt, avatarUrl, twoFactorEnabled, verificationDeferred);
         }
     }
 
@@ -46,7 +55,22 @@ public final class AdminDtos {
                                   String bio, String suspendedReason, String deletedAt, long deviceCount,
                                   List<String> platforms, Counts counts, List<Consent> consents,
                                   List<DayOpens> recentActivity, Extras extras, boolean twoFactorEnabled,
-                                  long twoFactorTrustedDeviceCount, String twoFactorEnabledAt) {
+                                  long twoFactorTrustedDeviceCount, String twoFactorEnabledAt,
+                                  boolean verificationDeferred) {
+        /** Eski 25 alanli kurucu (verificationDeferred=false). */
+        public AdminUserDetail(Long id, String email, String displayName, String faculty, String department,
+                               Short classYear, String language, Role role, UserStatus status,
+                               boolean emailVerified, String createdAt, String lastSeenAt, String avatarUrl,
+                               String bio, String suspendedReason, String deletedAt, long deviceCount,
+                               List<String> platforms, Counts counts, List<Consent> consents,
+                               List<DayOpens> recentActivity, Extras extras, boolean twoFactorEnabled,
+                               long twoFactorTrustedDeviceCount, String twoFactorEnabledAt) {
+            this(id, email, displayName, faculty, department, classYear, language, role, status, emailVerified,
+                    createdAt, lastSeenAt, avatarUrl, bio, suspendedReason, deletedAt, deviceCount, platforms, counts,
+                    consents, recentActivity, extras, twoFactorEnabled, twoFactorTrustedDeviceCount,
+                    twoFactorEnabledAt, false);
+        }
+
         /** P16: maskeli profiller (users.pii yok) icin e-posta maskelenir. */
         public AdminUserDetail masked() {
             if (edu.bingol.backend.admin.rbac.PermissionAwareMasking.canSeePii()) {
@@ -55,7 +79,8 @@ public final class AdminDtos {
             return new AdminUserDetail(id, edu.bingol.backend.admin.rbac.PermissionAwareMasking.maskEmail(email),
                     displayName, faculty, department, classYear, language, role, status, emailVerified, createdAt,
                     lastSeenAt, avatarUrl, bio, suspendedReason, deletedAt, deviceCount, platforms, counts, consents,
-                    recentActivity, extras, twoFactorEnabled, twoFactorTrustedDeviceCount, twoFactorEnabledAt);
+                    recentActivity, extras, twoFactorEnabled, twoFactorTrustedDeviceCount, twoFactorEnabledAt,
+                    verificationDeferred);
         }
     }
 

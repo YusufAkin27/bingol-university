@@ -22,7 +22,7 @@ public class AdminUserRepository {
 
     static final int RECENT_ACTIVITY_DAYS = 30;
     private static final String ROW_COLUMNS = "id, email, display_name, faculty, department, class_year, language, "
-            + "role, status, email_verified, created_at, last_seen_at, avatar_url, two_factor_enabled";
+            + "role, status, email_verified, created_at, last_seen_at, avatar_url, two_factor_enabled, verification_deferred";
 
     private final NamedParameterJdbcTemplate jdbc;
     private final ActivityRepository activity;
@@ -161,7 +161,7 @@ public class AdminUserRepository {
                 rs.getString("faculty"), rs.getString("department"), shortOrNull(rs, "class_year"),
                 rs.getString("language"), Role.valueOf(rs.getString("role")), UserStatus.valueOf(rs.getString("status")),
                 rs.getBoolean("email_verified"), ts(rs, "created_at"), ts(rs, "last_seen_at"), rs.getString("avatar_url"),
-                rs.getBoolean("two_factor_enabled"));
+                rs.getBoolean("two_factor_enabled"), rs.getBoolean("verification_deferred"));
     }
 
     /** Alt listeler (platforms, consents, recentActivity) sonradan doldurulur. */
@@ -175,7 +175,7 @@ public class AdminUserRepository {
                         rs.getLong("c_filed"), rs.getLong("c_conv"), rs.getLong("c_comm"), rs.getLong("c_events"),
                         rs.getLong("c_bookmarks")),
                 List.of(), List.of(), null, rs.getBoolean("two_factor_enabled"), rs.getLong("c_tf_devices"),
-                ts(rs, "two_factor_enabled_at"));
+                ts(rs, "two_factor_enabled_at"), rs.getBoolean("verification_deferred"));
     }
 
     static String ts(ResultSet rs, String col) throws SQLException {

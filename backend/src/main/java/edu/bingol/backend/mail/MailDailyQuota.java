@@ -173,6 +173,20 @@ public class MailDailyQuota {
         return enabled() && publicUsed() >= publicCap(kind);
     }
 
+    /** Tur icin kimliksiz kod butcesinden bugun KALAN pay (limit kapaliysa sinirsiz). */
+    public long publicRemaining(CodeKind kind) {
+        if (!enabled()) {
+            return Long.MAX_VALUE;
+        }
+        return Math.max(0, publicCap(kind) - publicUsed());
+    }
+
+    /** Kota sifirlanmasina (bir sonraki kota gunu + marj) kalan saniye (en az 60). */
+    public long secondsUntilReset() {
+        Instant now = Instant.now();
+        return Math.max(60, Duration.between(now, nextReset(now)).toSeconds());
+    }
+
     /** Kuyruga alinan her kimliksiz kod postasindan sonra cagrilir. */
     public void recordPublicCode() {
         incr(counterKey("pub", "all"));
