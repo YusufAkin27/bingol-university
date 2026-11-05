@@ -8,6 +8,6 @@ final class TopicRefs {
     private TopicRefs() {}
 
     static TopicRef of(long topicId, boolean locked, String status) {
-        return new TopicRef(topicId, 1L, false, locked, 1L, status);
+        return new TopicRef(topicId, 1L, false, locked, 1L, TopicRef.Status.valueOf(status));
     }
 }

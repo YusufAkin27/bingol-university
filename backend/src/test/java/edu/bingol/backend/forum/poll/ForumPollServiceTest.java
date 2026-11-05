@@ -157,6 +157,48 @@ class ForumPollServiceTest {
         assertEquals("FORUM_POLL_EXISTS", api(() -> create(false, "c", "d")).code());
     }
 
+    // ---------- konu + anket tek islem (A'nin konu olusturma akisinin simulasyonu) ----------
+
+    @Autowired org.springframework.transaction.PlatformTransactionManager txm;
+
+    @Test
+    void invalidPollRollsBackTheWholeOuterTransaction() {
+        long marker = TOPIC_SEQ.incrementAndGet(); // "konu" satirinin yerine gecen ayni islemdeki yazma
+        var tx = new org.springframework.transaction.support.TransactionTemplate(txm);
+        ApiException e = assertThrows(ApiException.class, () -> tx.executeWithoutResult(s -> {
+            ForumPoll marked = new ForumPoll();
+            marked.setTopicId(marker);
+            polls.saveAndFlush(marked);
+            // gecersiz anket (tek secenek): istisna islemin disina cikar, A'nin konusu da geri alinir
+            service.createForTopic(topic, new CreatePollRequest("q", List.of("tek"), null, false));
+        }));
+        assertEquals("FORUM_POLL_OPTIONS_INVALID", e.code());
+        assertTrue(polls.findByTopicId(marker).isEmpty(), "ayni islemdeki onceki yazma geri alinmali");
+        assertTrue(polls.findByTopicId(topic).isEmpty());
+    }
+
+    @Test
+    void validPollCommitsOnlyWithTheOuterTransaction() {
+        var tx = new org.springframework.transaction.support.TransactionTemplate(txm);
+        assertThrows(IllegalStateException.class, () -> tx.executeWithoutResult(s -> {
+            create(false, "a", "b");
+            throw new IllegalStateException("konu olusturma sonradan basarisiz");
+        }));
+        assertTrue(polls.findByTopicId(topic).isEmpty());
+        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM forum_poll_option o WHERE NOT EXISTS "
+                + "(SELECT 1 FROM forum_poll p WHERE p.id = o.poll_id)", Integer.class));
+        tx.executeWithoutResult(s -> create(false, "a", "b"));
+        assertTrue(polls.findByTopicId(topic).isPresent());
+    }
+
+    @Test
+    void topicIdsWithPollReportsOnlyTopicsThatHavePolls() {
+        create(false, "a", "b");
+        long none = TOPIC_SEQ.incrementAndGet();
+        assertEquals(java.util.Set.of(topic), service.topicIdsWithPoll(List.of(topic, none)));
+        assertTrue(service.topicIdsWithPoll(List.of()).isEmpty());
+    }
+
     // ---------- oy ----------
 
     @Test

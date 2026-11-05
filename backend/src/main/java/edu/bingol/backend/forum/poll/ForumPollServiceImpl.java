@@ -10,6 +10,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -124,9 +125,23 @@ public class ForumPollServiceImpl implements ForumPollService {
         return polls.findByTopicId(topicId).map(p -> view(p, viewerId)).orElse(null);
     }
 
+    /** Verilen konulardan anketi olanlar (liste kartlarindaki hasPoll icin tek sorgu). */
+    @Override
+    @Transactional(readOnly = true)
+    public Set<Long> topicIdsWithPoll(Collection<Long> topicIds) {
+        if (topicIds == null || topicIds.isEmpty()) {
+            return Set.of();
+        }
+        Set<Long> out = new HashSet<>();
+        for (ForumPoll p : polls.findByTopicIdIn(topicIds)) {
+            out.add(p.getTopicId());
+        }
+        return out;
+    }
+
     /** Konu listeleri icin toplu (N+1 yok): konu kimligi -> anket gorunumu. */
     @Transactional(readOnly = true)
-    public Map<Long, PollView> pollsFor(java.util.Collection<Long> topicIds, Long viewerId) {
+    public Map<Long, PollView> pollsFor(Collection<Long> topicIds, Long viewerId) {
         if (topicIds.isEmpty()) {
             return Map.of();
         }
@@ -154,14 +169,14 @@ public class ForumPollServiceImpl implements ForumPollService {
     }
 
     /** Tek anket gorunumu (oy ucundan da kullanilir). */
-    PollView view(ForumPoll p, Long viewerId) {
+    public PollView view(ForumPoll p, Long viewerId) {
         Long mine = viewerId == null ? null : votes.optionOf(p.getId(), viewerId).orElse(null);
         return view(p, options.findByPollIdOrderByPositionAscIdAsc(p.getId()), viewerId, mine, clock.instant());
     }
 
     /** Saf gorunum: yuzde 1 ondalik, toplam 0 ise %0; oy veren kimligi YOK. */
-    PollView view(ForumPoll p, List<ForumPollOption> opts, Long viewerId, Long myOptionId, Instant now) {
-        long total = 0;
+    public PollView view(ForumPoll p, List<ForumPollOption> opts, Long viewerId, Long myOptionId, Instant now) {
+        int total = 0;
         for (ForumPollOption o : opts) {
             total += o.getVoteCount();
         }

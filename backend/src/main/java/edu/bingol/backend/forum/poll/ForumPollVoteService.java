@@ -5,8 +5,8 @@ import edu.bingol.backend.forum.poll.spi.PollView;
 import edu.bingol.backend.forum.topic.spi.ForumTopicLookup;
 import edu.bingol.backend.forum.topic.spi.TopicRef;
 import java.time.Clock;
-import java.time.Instant;
 import java.util.Optional;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
@@ -35,13 +35,14 @@ public class ForumPollVoteService {
     private final ForumPollRepository polls;
     private final ForumPollOptionRepository options;
     private final ForumPollVoteRepository votes;
-    private final ForumTopicLookup topics;
+    /** A alani uygular; bean yoksa (A henuz birlesmedi) uygulama yine acilir, konu gorunmez sayilir (404). */
+    private final ObjectProvider<ForumTopicLookup> topics;
     private final ForumPollServiceImpl service;
     private final Clock clock;
     private final TransactionTemplate tx;
 
     public ForumPollVoteService(ForumPollRepository polls, ForumPollOptionRepository options, ForumPollVoteRepository votes,
-                                ForumTopicLookup topics, ForumPollServiceImpl service, Clock clock,
+                                ObjectProvider<ForumTopicLookup> topics, ForumPollServiceImpl service, Clock clock,
                                 PlatformTransactionManager txManager) {
         this.polls = polls;
         this.options = options;
@@ -89,8 +90,9 @@ public class ForumPollVoteService {
 
     /** Konu gorunur mu, anket var mi; {@code forWrite} ise konu aktif ve kilitsiz olmali. */
     private ForumPoll open(Long topicId, Long viewerId, boolean forWrite) {
-        Optional<TopicRef> ref = topics.visibleTopic(topicId, viewerId);
-        if (ref.isEmpty() || (forWrite && !"ACTIVE".equals(ref.get().status()))) {
+        ForumTopicLookup lookup = topics.getIfAvailable();
+        Optional<TopicRef> ref = lookup == null ? Optional.empty() : lookup.visibleTopic(topicId, viewerId);
+        if (ref.isEmpty() || (forWrite && ref.get().status() != TopicRef.Status.ACTIVE)) {
             throw notFound();
         }
         ForumPoll p = polls.findByTopicId(topicId).orElseThrow(ForumPollVoteService::notFound);
