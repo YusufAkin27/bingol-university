@@ -7941,6 +7941,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumPollTitle => 'Poll';
 
   @override
+  String get forumComposeDiscardTitle => 'Discard your changes?';
+
+  @override
+  String get forumComposeDiscardConfirm => 'Discard';
+
+  @override
+  String get forumComposeDiscardKeep => 'Keep editing';
+
+  @override
+  String get forumComposeCategorySheetEmpty =>
+      'There are no categories to choose from.';
+
+  @override
+  String get forumComposeEditErrGeneric =>
+      'Your changes could not be saved. Try again.';
+
+  @override
   String p14EventCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

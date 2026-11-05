@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/locale_controller.dart';
 import '../../../../widgets/bu.dart';
+import '../../data/forum_models.dart';
 
 /// Forum formlarında ortak giriş kutusu: yüzey zemini + ince çizgi; odakta/hatada çizgi vurgulanır.
 /// İçine çıplak (kenarlıksız) bir `TextField` konur ([composeInputDecoration]).
@@ -114,6 +116,138 @@ class ComposeSwitchRow extends StatelessWidget {
               const SizedBox(width: 8),
               ExcludeSemantics(child: Switch(value: value, onChanged: onChanged)),
             ]),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Kategori seçici satırı: seçili ad (ya da "Kategori seç") + aşağı ok; dokununca alt sayfa listesi.
+/// Yüklenirken / hata durumunda satır kendi durumunu gösterir ([onRetry] ile yeniden dener).
+class CategoryPickerRow extends StatelessWidget {
+  const CategoryPickerRow({
+    super.key,
+    required this.categories,
+    required this.selectedId,
+    required this.onSelected,
+    this.loading = false,
+    this.failed = false,
+    this.onRetry,
+    this.fallbackName,
+    this.enabled = true,
+  });
+
+  final List<ForumCategory> categories;
+  final int? selectedId;
+  final ValueChanged<ForumCategory> onSelected;
+  final bool loading;
+  final bool failed;
+  final VoidCallback? onRetry;
+
+  /// Kategori listesi gelmeden gösterilecek ad (düzenlemede mevcut kategori).
+  final String? fallbackName;
+  final bool enabled;
+
+  String? get _selectedName {
+    for (final c in categories) {
+      if (c.id == selectedId) return c.name;
+    }
+    return selectedId == null ? null : fallbackName;
+  }
+
+  Future<void> _open(BuildContext context) async {
+    final l = context.l10n;
+    final picked = await BuSheet.show<ForumCategory>(
+      context,
+      title: l.forumComposeCategoryPick,
+      padding: const EdgeInsetsDirectional.fromSTEB(8, 0, 8, 8),
+      builder: (ctx) {
+        final t = ctx.bu;
+        final tt = Theme.of(ctx).textTheme;
+        if (categories.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(l.forumComposeCategorySheetEmpty,
+                textAlign: TextAlign.center, style: tt.bodyMedium?.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
+          );
+        }
+        return Column(mainAxisSize: MainAxisSize.min, children: [
+          for (final c in categories)
+            InkWell(
+              key: ValueKey('forumCategory${c.id}'),
+              borderRadius: BuRadius.bSm,
+              onTap: () {
+                buHaptic(BuHaptic.selection);
+                Navigator.pop(ctx, c);
+              },
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: BuSize.row),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(children: [
+                    Expanded(child: Text(c.name, style: tt.bodyLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w400))),
+                    if (c.id == selectedId) Icon(BuIcons.check, size: 20, color: t.pr),
+                  ]),
+                ),
+              ),
+            ),
+        ]);
+      },
+    );
+    if (picked != null) onSelected(picked);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final l = context.l10n;
+    final tt = Theme.of(context).textTheme;
+    final name = _selectedName;
+    final String text;
+    final Color color;
+    if (loading && name == null) {
+      text = l.forumComposeCategoryLoading;
+      color = t.mut;
+    } else if (failed && categories.isEmpty && name == null) {
+      text = l.forumComposeCategoryError;
+      color = t.danger;
+    } else {
+      text = name ?? l.forumComposeCategoryPick;
+      color = name == null ? t.mut : t.ink;
+    }
+    final canRetry = failed && categories.isEmpty;
+    return Semantics(
+      button: true,
+      label: '${l.forumComposeCategoryLabel}: $text',
+      excludeSemantics: true,
+      child: Material(
+        color: t.sf,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(BuRadius.md), side: BorderSide(color: t.bd)),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          key: const ValueKey('forumCategoryField'),
+          onTap: !enabled
+              ? null
+              : canRetry
+                  ? onRetry
+                  : (categories.isEmpty ? null : () => _open(context)),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: BuSize.field),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 12, 8),
+              child: Row(children: [
+                Icon(BuIcons.hash, size: 18, color: t.mut),
+                const SizedBox(width: 10),
+                Expanded(child: Text(text, style: tt.bodyLarge?.copyWith(color: color, fontWeight: FontWeight.w400))),
+                if (loading && categories.isEmpty)
+                  SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: t.mut))
+                else if (canRetry)
+                  Icon(BuIcons.refreshCw, size: 18, color: t.mut)
+                else
+                  Icon(BuIcons.chevronDown, size: 18, color: t.mut),
+              ]),
+            ),
           ),
         ),
       ),

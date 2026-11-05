@@ -4227,6 +4227,11 @@
   "forumPollErrForbidden": "Bu ankete oy verme iznin yok.",
   "forumPollErrGeneric": "Oy işlemi yapılamadı. Tekrar dene.",
   "forumPollTitle": "Anket",
+  "forumComposeDiscardTitle": "Değişiklikler atılsın mı?",
+  "forumComposeDiscardConfirm": "At",
+  "forumComposeDiscardKeep": "Düzenlemeye devam",
+  "forumComposeCategorySheetEmpty": "Şu an seçilebilir kategori yok.",
+  "forumComposeEditErrGeneric": "Değişiklikler kaydedilemedi. Tekrar dene.",
   "p14EventCount": "{count, plural, other{{count} Etkinlik}}",
   "@p14EventCount": {
     "placeholders": {

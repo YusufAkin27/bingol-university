@@ -7906,6 +7906,23 @@ class AppLocalizationsTr extends AppLocalizations {
   String get forumPollTitle => 'Anket';
 
   @override
+  String get forumComposeDiscardTitle => 'Değişiklikler atılsın mı?';
+
+  @override
+  String get forumComposeDiscardConfirm => 'At';
+
+  @override
+  String get forumComposeDiscardKeep => 'Düzenlemeye devam';
+
+  @override
+  String get forumComposeCategorySheetEmpty =>
+      'Şu an seçilebilir kategori yok.';
+
+  @override
+  String get forumComposeEditErrGeneric =>
+      'Değişiklikler kaydedilemedi. Tekrar dene.';
+
+  @override
   String p14EventCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

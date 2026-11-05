@@ -14532,6 +14532,36 @@ abstract class AppLocalizations {
   /// **'Anket'**
   String get forumPollTitle;
 
+  /// No description provided for @forumComposeDiscardTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Değişiklikler atılsın mı?'**
+  String get forumComposeDiscardTitle;
+
+  /// No description provided for @forumComposeDiscardConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'At'**
+  String get forumComposeDiscardConfirm;
+
+  /// No description provided for @forumComposeDiscardKeep.
+  ///
+  /// In tr, this message translates to:
+  /// **'Düzenlemeye devam'**
+  String get forumComposeDiscardKeep;
+
+  /// No description provided for @forumComposeCategorySheetEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şu an seçilebilir kategori yok.'**
+  String get forumComposeCategorySheetEmpty;
+
+  /// No description provided for @forumComposeEditErrGeneric.
+  ///
+  /// In tr, this message translates to:
+  /// **'Değişiklikler kaydedilemedi. Tekrar dene.'**
+  String get forumComposeEditErrGeneric;
+
   /// No description provided for @p14EventCount.
   ///
   /// In tr, this message translates to:

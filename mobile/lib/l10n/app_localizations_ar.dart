@@ -7866,6 +7866,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get forumPollTitle => 'استطلاع';
 
   @override
+  String get forumComposeDiscardTitle => 'هل تريد تجاهل التغييرات؟';
+
+  @override
+  String get forumComposeDiscardConfirm => 'تجاهل';
+
+  @override
+  String get forumComposeDiscardKeep => 'متابعة التعديل';
+
+  @override
+  String get forumComposeCategorySheetEmpty => 'لا توجد فئات متاحة.';
+
+  @override
+  String get forumComposeEditErrGeneric => 'تعذر حفظ التغييرات. حاول مجددًا.';
+
+  @override
   String p14EventCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
