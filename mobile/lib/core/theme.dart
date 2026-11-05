@@ -78,6 +78,9 @@ class BuTokens extends ThemeExtension<BuTokens> {
     this.dangerSoft = const Color(0xFFFBE4E8),
     this.info = const Color(0xFF1F4E96),
     this.infoSoft = const Color(0xFFE4ECF8),
+    // Okundu (mavi çift tik): kırmızı balonda/koyu şeritte açık gök mavisi, açık pembe balonda koyu mavi (tema bağımsız sabitler).
+    this.readSky = const Color(0xFF9FDBFF),
+    this.readDeep = const Color(0xFF0B4F9C),
     this.onInfoSoft = const Color(0xFF173F7B),
     this.aqua = const Color(0xFF0B6E86),
     this.aquaSoft = const Color(0xFFDDF1F6),
@@ -147,6 +150,8 @@ class BuTokens extends ThemeExtension<BuTokens> {
   /// Bilgi / haber / duyuru: koyu mavi ana ton, yumuşak zemin ve zemin üstü yazı.
   final Color info;
   final Color infoSoft;
+  final Color readSky;
+  final Color readDeep;
   final Color onInfoSoft;
 
   /// İkincil vurgu: su mavisi ana ton, yumuşak zemin ve zemin üstü yazı.
@@ -306,6 +311,8 @@ class BuTokens extends ThemeExtension<BuTokens> {
     Color? dangerSoft,
     Color? info,
     Color? infoSoft,
+    Color? readSky,
+    Color? readDeep,
     Color? onInfoSoft,
     Color? aqua,
     Color? aquaSoft,
@@ -347,6 +354,8 @@ class BuTokens extends ThemeExtension<BuTokens> {
         dangerSoft: dangerSoft ?? this.dangerSoft,
         info: info ?? this.info,
         infoSoft: infoSoft ?? this.infoSoft,
+        readSky: readSky ?? this.readSky,
+        readDeep: readDeep ?? this.readDeep,
         onInfoSoft: onInfoSoft ?? this.onInfoSoft,
         aqua: aqua ?? this.aqua,
         aquaSoft: aquaSoft ?? this.aquaSoft,
@@ -393,6 +402,8 @@ class BuTokens extends ThemeExtension<BuTokens> {
       dangerSoft: c(dangerSoft, other.dangerSoft),
       info: c(info, other.info),
       infoSoft: c(infoSoft, other.infoSoft),
+      readSky: c(readSky, other.readSky),
+      readDeep: c(readDeep, other.readDeep),
       onInfoSoft: c(onInfoSoft, other.onInfoSoft),
       aqua: c(aqua, other.aqua),
       aquaSoft: c(aquaSoft, other.aquaSoft),

@@ -193,7 +193,7 @@ class MessageBubble extends StatelessWidget {
       if (m['edited'] == true && !deleted) context.l10n.chatMiscEdited,
       if (d != null) '${_two(d.hour)}:${_two(d.minute)}',
     ].join(' · ');
-    // Tik durumu: pending (saat) | SENT (tek tik) | DELIVERED (çift tik, gri) | READ (çift tik, kırmızı).
+    // Tik durumu: pending (saat) | SENT (tek tik) | DELIVERED (çift tik, gri) | READ (mavi çift tik).
     final String? tick = (!mine || ghost)
         ? null
         : state == 'pending'
@@ -219,7 +219,11 @@ class MessageBubble extends StatelessWidget {
             _Tick(
                 status: tick,
                 color: color,
-                readColor: readColor ?? (solidMine ? t.onPr : t.pr),
+                // Okundu = MAVİ çift tik: kırmızı balonda gök mavisi, koyu temadaki açık pembe balonda koyu mavi.
+                readColor: readColor ??
+                    (solidMine
+                        ? (Theme.of(context).brightness == Brightness.dark ? t.readDeep : t.readSky)
+                        : t.info),
                 failedColor: t.danger),
           ],
         ]);
@@ -263,7 +267,7 @@ class MessageBubble extends StatelessWidget {
         PositionedDirectional(
           end: 8,
           bottom: 8,
-          child: ChatdPill(child: metaRow(t.onMedia, readColor: t.onMedia)),
+          child: ChatdPill(child: metaRow(t.onMedia, readColor: t.readSky)),
         ),
       ]);
     }
@@ -299,7 +303,7 @@ class MessageBubble extends StatelessWidget {
                 end: 8,
                 bottom: 8,
                 child:
-                    ChatdPill(child: metaRow(t.onMedia, readColor: t.onMedia)))
+                    ChatdPill(child: metaRow(t.onMedia, readColor: t.readSky)))
             : null,
       );
     } else if (atts.length > 1) {
@@ -346,7 +350,7 @@ class MessageBubble extends StatelessWidget {
                 onceLocked
                     ? t.onMedia
                     : (solidMine ? t.onSoft.withValues(alpha: .8) : metaColor),
-                readColor: onceLocked ? t.onMedia : (solidMine ? t.pr : null)),
+                readColor: onceLocked ? t.readSky : (solidMine ? t.info : null)),
       );
     }
 
@@ -658,7 +662,7 @@ class _ReactionChip extends StatelessWidget {
 }
 
 /// Saat+durum ikonu. Durum değişince hafif çapraz geçişle yenilenir.
-/// pending: saat; SENT: tek tik; DELIVERED: çift tik; READ: çift tik ([readColor], marka kırmızısı).
+/// pending: saat; SENT: tek tik; DELIVERED: çift tik; READ: MAVİ çift tik ([readColor]).
 class _Tick extends StatelessWidget {
   const _Tick(
       {required this.status,
