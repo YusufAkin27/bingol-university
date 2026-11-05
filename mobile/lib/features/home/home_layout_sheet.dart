@@ -81,7 +81,7 @@ class HomeLayoutPage extends StatelessWidget {
                 onTap: () => Navigator.of(context).maybePop(),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(minHeight: BuSize.touch, minWidth: BuSize.touch),
-                  child: Center(widthFactor: 1, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: Text(l.p60Done, style: BuType.body.copyWith(fontSize: 15, fontWeight: FontWeight.w400, color: t.prText)))),
+                  child: Center(widthFactor: 1, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: Text(l.p60Done, style: BuType.body.copyWith(fontSize: 15, fontWeight: FontWeight.w400, color: t.ink)))),
                 ),
               ),
             ),
@@ -143,8 +143,8 @@ Widget _lifted(BuildContext context, Widget child, int index, Animation<double> 
           decoration: BoxDecoration(
             color: t.sf,
             borderRadius: BorderRadius.circular(BuRadius.md),
-            border: Border.all(color: t.pr.withValues(alpha: .4)),
-            boxShadow: [BoxShadow(color: t.shadow.withValues(alpha: .12 * a), blurRadius: 16, offset: const Offset(0, 4))],
+            // Sürüklenen satır: gölge yok; ince güçlü kenarlık yükselmeyi anlatır.
+            border: Border.all(color: Color.lerp(t.bd, t.bdStrong, a)!),
           ),
           child: Material(type: MaterialType.transparency, child: c),
         ),
@@ -317,7 +317,7 @@ class _SectionRow extends StatelessWidget {
                 index: index,
                 child: Semantics(
                   label: name,
-                  child: SizedBox(width: 40, height: BuSize.touch, child: Center(child: Icon(BuIcons.gripVertical, size: 16, color: dragging ? t.prText : t.mut))),
+                  child: SizedBox(width: 40, height: BuSize.touch, child: Center(child: Icon(BuIcons.gripVertical, size: 16, color: dragging ? t.ink : t.mut))),
                 ),
               ),
               Expanded(
@@ -374,7 +374,7 @@ class _ShortcutEditor extends StatelessWidget {
               decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(BuRadius.pill)),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                child: Text('${v.shortcutOn.length}/${HomeLayout.maxShortcuts}', style: BuType.label.copyWith(fontSize: 13, fontWeight: FontWeight.w400, color: t.prText, fontFeatures: const [FontFeature.tabularFigures()])),
+                child: Text('${v.shortcutOn.length}/${HomeLayout.maxShortcuts}', style: BuType.label.copyWith(fontSize: 13, fontWeight: FontWeight.w400, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()])),
               ),
             ),
           ]),

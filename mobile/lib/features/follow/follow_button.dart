@@ -196,18 +196,18 @@ class _FollowStateButtonState extends State<FollowStateButton> {
           label: label,
           icon: BuIcons.userPlus,
           compact: widget.compact,
-          background: context.bu.prPressed, // Stitch profil-v4: #B93833
+          background: context.bu.pr, // birincil eylem: ters renk (pr)
           onPressed: _tap,
         );
     }
   }
 
-  /// Liste satırı: Takip et = dolu (prPressed); İstek gönderildi = çizgili (bd, soluk); Takiptesin = tonal (soft).
+  /// Liste satırı: Takip et = dolu (pr); İstek gönderildi = çizgili (bd, soluk); Takiptesin = tonal (nötr soft).
   Widget _row(BuildContext context) {
     final t = context.bu;
     final none = _state == FollowState.none;
     final req = _state == FollowState.requested;
-    final r = BorderRadius.circular(BuRadius.pill);
+    final r = BorderRadius.circular(12); // düğme: pill değil (monochrome)
     return BuPressable(
       onTap: _busy ? null : _tap,
       child: ConstrainedBox(
@@ -222,9 +222,9 @@ class _FollowStateButtonState extends State<FollowStateButton> {
             curve: BuMotion.standard,
             height: 40,
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            // Stitch profil-v4: Takip et = dolu (prPressed, beyaz yazı AA), Takipte = tonal soft, istek = çizgili.
+            // Takip et = dolu (pr + onPr), Takipte = tonal soft, istek = çizgili.
             decoration: BoxDecoration(
-              color: none ? t.prPressed : (req ? Colors.transparent : t.soft),
+              color: none ? t.pr : (req ? Colors.transparent : t.soft),
               border: req ? Border.all(color: t.bd) : null,
               borderRadius: r,
             ),
@@ -257,10 +257,10 @@ class _FollowStateButtonState extends State<FollowStateButton> {
       curve: BuMotion.standard,
       decoration: ShapeDecoration(
         color: on ? t.pr : t.sf2,
-        shape: StadiumBorder(side: on ? BorderSide.none : BorderSide(color: t.bd)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: on ? BorderSide.none : BorderSide(color: t.bd)),
       ),
       child: InkWell(
-        customBorder: const StadiumBorder(),
+        customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         onTap: _busy ? null : _tap,
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 44, minWidth: 96),
@@ -297,7 +297,7 @@ class _FollowStateButtonState extends State<FollowStateButton> {
     );
   }
 
-  /// Reels: video üstünde şeffaf hap; Takip et = belirgin açık çerçeve, İstek/Takipte = soluk.
+  /// Reels: video üstünde şeffaf düğme; Takip et = belirgin açık çerçeve, İstek/Takipte = soluk.
   Widget _media(BuildContext context) {
     final t = context.bu;
     final none = _state == FollowState.none;
@@ -316,7 +316,7 @@ class _FollowStateButtonState extends State<FollowStateButton> {
             padding: const EdgeInsets.symmetric(horizontal: 12),
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(BuRadius.pill),
+              borderRadius: BorderRadius.circular(10),
               border: Border.all(color: t.onMedia.withValues(alpha: none ? .9 : .45)),
             ),
             child: Text(_text(context, row: true),
@@ -332,7 +332,7 @@ class _FollowStateButtonState extends State<FollowStateButton> {
     );
   }
 
-  /// Keşfet öneri kartı: ince çerçeveli hap (dolgu yok); Takip Et = bdStrong, diğerleri bd + soluk metin.
+  /// Keşfet öneri kartı: ince çerçeveli düğme (dolgu yok); Takip Et = bdStrong, diğerleri bd + soluk metin.
   Widget _chip(BuildContext context) {
     final t = context.bu;
     final none = _state == FollowState.none;
@@ -351,7 +351,7 @@ class _FollowStateButtonState extends State<FollowStateButton> {
             alignment: Alignment.center,
             padding: const EdgeInsets.symmetric(horizontal: 6),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(BuRadius.pill),
+              borderRadius: BorderRadius.circular(10),
               border: Border.all(color: none ? t.bdStrong : t.bd),
             ),
             child: Text(_text(context, chip: true),

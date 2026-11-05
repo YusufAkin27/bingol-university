@@ -38,7 +38,7 @@ class IcerikCard extends StatelessWidget {
         color: t.sf,
         borderRadius: r,
         border: Border.all(color: t.bd),
-        boxShadow: shadow ? BuElevation.of(context, 1) : null,
+        // Gölge yok (monochrome): ayrım ince kenarlık + yüzey tonu; [shadow] eski çağrılar için kabul edilir.
       ),
       child: Material(
         type: MaterialType.transparency,
@@ -84,7 +84,7 @@ class IcerikIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final Color bg = plain ? Colors.transparent : (overlay ? t.sf.withValues(alpha: .88) : t.sf);
-    final Color fg = on ? t.prText : t.ink;
+    final Color fg = t.ink; // seçili durum dolgu/ikon biçimiyle (on) ayrışır, renkle değil
     return Semantics(
       button: true,
       toggled: toggled,
@@ -106,9 +106,7 @@ class IcerikIconButton extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: bg,
-                  boxShadow: shadow && !plain && !overlay
-                      ? [BoxShadow(color: t.shadow.withValues(alpha: .06), blurRadius: 3, offset: const Offset(0, 1))]
-                      : null,
+                  border: shadow && !plain && !overlay ? Border.all(color: t.bd) : null,
                 ),
                 child: Material(
                   type: MaterialType.transparency,
@@ -195,7 +193,7 @@ class IcerikBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final bg = tint?.bg ?? (soft ? t.soft : t.prText);
+    final bg = tint?.bg ?? (soft ? t.soft : t.ink);
     final fg = tint?.fg ?? (soft ? t.onSoft : t.onPr);
     // Genişlik içeriğe göre (Wrap/Column içinde şeritlenmez); yükseklik yazı ölçeğiyle büyür.
     return Container(
@@ -251,7 +249,7 @@ class IcerikTabs extends StatelessWidget {
     this.raised = false,
   });
 
-  /// true: seçili parça beyaz yüzey + marka rengi yazı (referans 13); false: marka tonlu gösterge.
+  /// true: seçili parça `sf` yüzey + ince kenarlık + `ink` yazı; false: ters renk (`pr` zemin + `onPr` yazı).
   final bool raised;
   final List<String> labels;
   final int index;
@@ -271,7 +269,7 @@ class IcerikTabs extends StatelessWidget {
       label: semanticLabel,
       child: Container(
         padding: const EdgeInsets.all(3),
-        decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.pill)),
+        decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(12)),
         child: SizedBox(
           height: 48,
           child: Stack(children: [
@@ -286,9 +284,10 @@ class IcerikTabs extends StatelessWidget {
                     heightFactor: 1,
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: raised ? t.sf : t.soft,
-                        borderRadius: BorderRadius.circular(BuRadius.pill),
-                        border: Border.all(color: raised ? t.bd : t.pr.withValues(alpha: .22)),
+                        // Seçili parça: ters renk (pr zemin, onPr yazı); yükseltilmiş varyantta sf + ince kenarlık.
+                        color: raised ? t.sf : t.pr,
+                        borderRadius: BorderRadius.circular(10),
+                        border: raised ? Border.all(color: t.bd) : null,
                       ),
                     ),
                   ),
@@ -317,13 +316,13 @@ class IcerikTabs extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 6),
                             child: Row(mainAxisSize: MainAxisSize.min, children: [
                               if (icons != null && i < icons!.length) ...[
-                                Icon(icons![i], size: 16, color: i == index ? (raised ? t.prText : t.onSoft) : t.mut),
+                                Icon(icons![i], size: 16, color: i == index ? (raised ? t.ink : t.onPr) : t.mut),
                                 const SizedBox(width: 6),
                               ],
                               AnimatedDefaultTextStyle(
                                 duration: BuMotion.of(context, BuMotion.short),
                                 style: tx.labelLarge!.copyWith(
-                                    fontWeight: FontWeight.w400, color: i == index ? (raised ? t.prText : t.onSoft) : t.mut),
+                                    fontWeight: FontWeight.w400, color: i == index ? (raised ? t.ink : t.onPr) : t.mut),
                                 child: Text(labels[i], maxLines: 1),
                               ),
                             ]),
@@ -566,7 +565,7 @@ class IcerikErrorCard extends StatelessWidget {
             buHaptic(BuHaptic.selection);
             onRetry();
           },
-          child: Text(retryLabel, style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w400, color: t.prText)),
+          child: Text(retryLabel, style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w400, color: t.ink)),
         ),
       ]),
     );

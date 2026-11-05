@@ -144,7 +144,7 @@ class _HomeSuggestionsState extends State<HomeSuggestions> {
                       child: Text(l.homeViewAll,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: BuType.label.copyWith(fontSize: 14, fontWeight: FontWeight.w400, color: t.prText)),
+                          style: BuType.label.copyWith(fontSize: 14, fontWeight: FontWeight.w400, color: t.ink)),
                     ),
                   ),
                 ),

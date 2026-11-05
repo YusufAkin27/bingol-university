@@ -125,8 +125,8 @@ class NewsTile extends StatelessWidget {
     } else {
       thumb = Container(
         width: 48, height: 52,
-        decoration: BoxDecoration(color: t.infoSoft, borderRadius: BorderRadius.circular(14)),
-        child: Icon(newsTypeIcon(type), size: 24, color: t.onInfoSoft),
+        decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(12), border: Border.all(color: t.bd)),
+        child: Icon(newsTypeIcon(type), size: 24, color: t.mut),
       );
     }
     return Padding(
@@ -187,7 +187,7 @@ class _MetaLine extends StatelessWidget {
   }
 }
 
-/// Keşfet'in öne çıkan büyük kartı: kapak görseli (yoksa marka gradyanı) + altta başlık ve tarih.
+/// Keşfet'in öne çıkan büyük kartı: kapak görseli (yoksa düz yüzey) + altta başlık ve tarih.
 class NewsFeaturedCard extends StatelessWidget {
   const NewsFeaturedCard({
     super.key,
@@ -211,7 +211,7 @@ class NewsFeaturedCard extends StatelessWidget {
     final type = item['type'] as String?;
     final id = (item['id'] as num?)?.toInt();
     final tint = newsTypeTint(t, type);
-    final r = BorderRadius.circular(24);
+    final r = BorderRadius.circular(16);
     Widget cover = hasImg
         ? BuImage(img, height: 220, width: double.infinity, maxDecodeWidth: 1200)
         : DecoratedBox(
@@ -228,11 +228,11 @@ class NewsFeaturedCard extends StatelessWidget {
               ),
             ),
           );
-    if (id != null && hasImg) cover = newsHero(id: id, radius: 24, child: cover);
+    if (id != null && hasImg) cover = newsHero(id: id, radius: 16, child: cover);
     return BuPressable(
       scale: .98,
       child: DecoratedBox(
-        decoration: BoxDecoration(borderRadius: r, boxShadow: BuElevation.of(context, 1)),
+        decoration: BoxDecoration(borderRadius: r, border: Border.all(color: t.bd)),
         child: ClipRRect(
           borderRadius: r,
           child: SizedBox(
@@ -320,7 +320,8 @@ class _SaveIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final label = saved ? context.l10n.newsSaveRemove : context.l10n.newsSaveAdd;
-    final fg = overlay ? (saved ? t.prText : t.onMedia) : (saved ? t.prText : t.ink);
+    // Kayıtlı durum dolu simgeyle ayrışır; medya üstünde her zaman açık ton.
+    final fg = overlay ? t.onMedia : t.ink;
     final icon = Icon(
       saved ? BuIcons.bookmarkFilled : BuIcons.bookmark,
       key: ValueKey(saved),

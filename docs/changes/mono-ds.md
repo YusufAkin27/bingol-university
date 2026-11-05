@@ -74,3 +74,13 @@ Her ajan: kendi grubunda `t.pr/prText/soft/tint` kullanımını tek tek gözden 
 ## 4. Test sonucu ve bilinen kırıklar
 
 Tam tur (`flutter test --concurrency=4 --timeout=90s`, 2026-11-05): +5944 geçti, ~1738 atlandı (skip), -34 kırık (turun sonunda). Bu dalganın neden olduğu 8 kırık düzeltildi (kalp renk beklentileri `t.heart`, FloatingNav artık gölgesiz, `ok/okSoft` AA için `ok` #166534); düzeltilen testler tek tek yeniden koşuldu ve geçti. Kalan kırıklar önceden bilinenlerdir: `bu_icons_test`, `db_redesign` (bildirim), `p49_motion` (3), `p61`/`p62` (yemek/bildirim ölçüleri), `p63`, `pages_a` (home Tümü), `p3_profile` (Gizlilik), `w1j`, `student_number`, `p17`/`p69` kontrast, `p65`/`da_auth` (Sözleşme listesi), `p3feed` "tam ekran" (tek dokunuşta tam ekran kaldırıldığı için), ayrıca `p16_test` "Yoklama açık: kontrast" (Gelmedi çipi, yazı 12.5 sp, `textContrastGuideline` 3.4:1 ölçüyor; belirteç çifti `mut/sf` 7.6:1; ölçüm kaynağı ekran görüntüsü örnekleme gibi görünüyor, bu dalganın bozduğu doğrulanmadı). `test/share_test.dart:288` analyze hatası dal başlangıcından gelir.
+
+## 5. 2. dalga, Grup 2: Ana sayfa / Keşfet / Gönderi / Haber / Arama / Takip (`feat/mono-home`)
+
+- Ana sayfa: `HomeSurface` ve haber/etkinlik kartları 16 radius + `bd` kenarlık, gölge yok; arama kutusu hap değil radius 12; başlık "BÜ Kampüs" minimal yazı wordmark (logo görseli ve kırmızı yok); `prPressed/prText` -> `ink`/`pr`; yerleşim düzenleme sayfasında sürüklenen satır gölgesiz (kenarlık güçlenir).
+- Gönderi: `PostCard` yüzeyi `sf` + `bd`, radius 16 (gölge yok), fotoğraf radius 16; oluşturma/video kırpma düğmeleri radius 12 (hap değil), medya üstü düğmeler 10; kalp kırmızısı yalnız `t.heart`.
+- Haber: `IcerikTabs` seçili parça ters renk (`pr` + `onPr`), yükseltilmiş varyantta `sf` + kenarlık; `IcerikCard`/`NewsFeaturedCard` gölgesiz, radius 16; yer tutucu karolar nötr; kayıtlı durum dolu simgeyle ayrışır (renkle değil).
+- Arama: giriş alanları radius 12, odakta `ink` kenarlık; seçili çip ters renk; eşleşme vurgusu renksiz alt çizgi (`searchHighlight`); "Katıl" küçük düğmesi `pr` zemin radius 10.
+- Takip: düğmeler (satır/hap/çip/medya) radius 10-12; birincil = `pr`/`onPr`.
+- Korunan medya karartmaları (okunurluk için `scrim` gradyanı) ve kaydırma kenarı solması (`bg` -> şeffaf) bilerek kalır. Kategori süzgeci (Senin için/Takip/...) Keşfet'e EKLENMEDİ: önceki kararla "filtre/kapsül yok", sunucu uçları da yok.
+- Test: `test/redesign/mono_home_group_test.dart` (iki temada yüzey/arama/segment/vurgu).
