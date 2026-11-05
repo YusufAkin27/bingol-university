@@ -275,32 +275,18 @@ void main() {
   });
 
   group('gonderi olustur', () {
-    testWidgets('kelime sayaci: renk gecisi yumusak (AnimatedDefaultTextStyle) ve sinirda koyu; uyari satiri belirir', (tester) async {
+    testWidgets('metin alaninda sayac ve kelime siniri uyarisi yok; uzun metin uyari cikarmaz', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
       fakePosts(b);
       await tester.pumpWidget(buildApp(ComposePostPage(session: makeSession(b))));
       await settle(tester, const Duration(milliseconds: 300));
-      final counter = find.byKey(const ValueKey('composeCounter'));
-      final bu = tester.element(counter).bu;
-      TextStyle style() => tester.widget<AnimatedDefaultTextStyle>(find.ancestor(of: counter, matching: find.byType(AnimatedDefaultTextStyle)).first).style;
-      expect(style().color, bu.mut);
-      expect(style().fontFeatures, isNotEmpty, reason: 'tabular rakamlar');
+      expect(find.byKey(const ValueKey('composeCounter')), findsNothing);
       final field = find.byType(TextField);
-      await tester.enterText(field, 'bir iki uc dort bes alti yedi');
+      await tester.enterText(field, 'bir iki uc dort bes alti yedi sekiz dokuz on');
       await tester.pump(const Duration(milliseconds: 60));
-      final mid = tester.widget<AnimatedDefaultTextStyle>(find.ancestor(of: counter, matching: find.byType(AnimatedDefaultTextStyle)).first);
-      expect(mid.duration, const Duration(milliseconds: 150));
-      await settle(tester, const Duration(milliseconds: 300));
-      expect(find.text('7/7 kelime'), findsOneWidget);
-      // 8 kelime: uyari satiri AnimatedSize icinde belirir.
       expect(find.byKey(const ValueKey('composeLimitWarn')), findsNothing);
-      await tester.enterText(field, 'bir iki uc dort bes alti yedi sekiz');
-      await tester.pump(const Duration(milliseconds: 60));
-      expect(find.byKey(const ValueKey('composeLimitWarn')), findsOneWidget);
-      expect(find.ancestor(of: find.byKey(const ValueKey('composeLimitWarn')), matching: find.byType(AnimatedSize)), findsOneWidget);
-      await settle(tester, const Duration(milliseconds: 400));
-      expect(style().color, bu.danger);
+      expect(find.textContaining('kelime'), findsNothing);
       noErr(tester);
     });
   });

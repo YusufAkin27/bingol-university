@@ -304,7 +304,7 @@ void main() {
       await settle(tester, const Duration(milliseconds: 500));
       expect(find.byKey(const ValueKey('composeVideoGallery')), findsOneWidget);
       expect(find.byKey(const ValueKey('composeVideoCamera')), findsOneWidget);
-      expect(find.text('Video en fazla 60 saniye ve 50 MB olabilir.'), findsOneWidget);
+      expect(find.byKey(const ValueKey('composeVideoLimits')), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('composeVideoGallery')));
       await settle(tester, const Duration(milliseconds: 800));
       expect(find.byKey(const ValueKey('composeVideoPreview')), findsOneWidget);

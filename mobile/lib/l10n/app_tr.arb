@@ -3311,7 +3311,7 @@
   "anasayfaMealLunch": "Bugünün yemeği · Öğle",
   "anasayfaAnnouncements": "Duyurular",
   "anasayfaQuickAcademic": "Akademik",
-  "gonderiTextHint": "Birkaç kelime yaz…",
+  "gonderiTextHint": "Bir şeyler yaz…",
   "gonderiWordCount": "{n}/{max} kelime",
   "@gonderiWordCount": {
     "placeholders": {
@@ -3331,6 +3331,90 @@
       }
     }
   },
+  "composeTrimTitle": "Videoyu kırp",
+  "composeTrimDone": "Bitti",
+  "composeTrimEdit": "Düzenle",
+  "composeTrimCta": "Videoyu kırp",
+  "composeTrimming": "Video kırpılıyor…",
+  "composeTrimSelected": "Seçilen süre {dur}",
+  "@composeTrimSelected": {
+    "placeholders": {
+      "dur": {
+        "type": "String"
+      }
+    }
+  },
+  "composeTrimHint": "Tutamaçları sürükleyerek bir bölüm seç. En çok {max}.",
+  "@composeTrimHint": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "composeTrimTooLong": "Video çok uzun. Paylaşmak için en çok {max} uzunluğunda bir bölüm seç.",
+  "@composeTrimTooLong": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "composeTrimStart": "Başlangıç",
+  "composeTrimEnd": "Bitiş",
+  "composeTrimPlay": "Oynat",
+  "composeTrimPause": "Duraklat",
+  "composeTooLongTitle": "Video çok uzun",
+  "composeTooLongBody": "Bu video {dur} uzunluğunda. En çok {max} paylaşabilirsin, bu yüzden önce kırpman gerekiyor.",
+  "@composeTooLongBody": {
+    "placeholders": {
+      "dur": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "composeTooLongOther": "Başka video seç",
+  "composeVideoLimitsHint": "Video en fazla {n} saniye; uzunsa kırpabilirsin.",
+  "@composeVideoLimitsHint": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "composeTagPerson": "Kişi etiketle",
+  "composeTagRemove": "{name} etiketini kaldır",
+  "@composeTagRemove": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "composeMentionSearch": "Takip ettiklerinde ara",
+  "composeMentionEmpty": "Etiketlemek için kişileri takip et",
+  "composeMentionNoMatch": "Eşleşen kişi yok",
+  "composeMentionMax": "En çok {max} kişi etiketleyebilirsin.",
+  "@composeMentionMax": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "composeMentionDone": "Tamam",
+  "postMentionOpen": "{name} profilini aç",
+  "@postMentionOpen": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "postComposeErrTextTooLong": "Gönderi metni çok uzun. Biraz kısaltıp tekrar dene.",
   "gonderiPickPhoto": "Fotoğraf seç",
   "gonderiTakePhoto": "Fotoğraf çek",
   "gonderiPhotoRequired": "Paylaşmak için bir fotoğraf seç.",

@@ -92,18 +92,21 @@ class PostApi {
 
   Future<Post> get(int id) async => Post.fromJson(_m(await session.api.get('/posts/$id')));
 
-  /// Tek fotoğraf ([mediaId], önce `POST /posts/media` ile yüklenir) + isteğe bağlı kısa metin.
-  Future<Post> create({String? text, required int mediaId}) async {
+  /// Tek medya ([mediaId], önce `POST /posts/media` ile yüklenir) + isteğe bağlı metin (istenen uzunlukta; sunucunun
+  /// gizli üst sınırı aşılırsa 422 `POST_TEXT_TOO_LONG`) + etiketlenen kişiler ([mentionUserIds]: yalnız takip ettiklerim,
+  /// en çok 10; metindeki `@Ad Soyad` düz metni ayrıca gönderilir).
+  Future<Post> create({String? text, required int mediaId, List<int> mentionUserIds = const []}) async {
     final r = await session.api.post('/posts', {
       if (text != null && text.trim().isNotEmpty) 'text': text.trim(),
       'mediaIds': [mediaId],
+      if (mentionUserIds.isNotEmpty) 'mentionUserIds': mentionUserIds,
     });
     Analytics.instance.action('post_create');
     return Post.fromJson(_m(r));
   }
 
-  Future<Post> update(int id, String text) async =>
-      Post.fromJson(_m(await session.api.patch('/posts/$id', {'text': text})));
+  Future<Post> update(int id, String text, {List<int>? mentionUserIds}) async => Post.fromJson(_m(await session.api
+      .patch('/posts/$id', {'text': text, if (mentionUserIds != null) 'mentionUserIds': mentionUserIds})));
 
   Future<void> delete(int id) => session.api.delete('/posts/$id');
 

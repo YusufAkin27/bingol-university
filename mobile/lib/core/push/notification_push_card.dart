@@ -54,6 +54,7 @@ String pushCardStyle(Map<String, dynamic> data) {
   if (type == 'FOLLOW_REQUEST') return 'FOLLOW_REQUEST';
   if (type == 'FOLLOW_ACCEPTED') return 'FOLLOW_ACCEPTED';
   if (type == 'USER_FOLLOW') return 'FOLLOW';
+  if (type == 'POST_MENTION') return 'MENTION';
   if (type.startsWith('POST_') || type == 'COMMENT_REPLY') return 'SOCIAL';
   if (data['pollId'] != null || subtype == 'POLL') return 'POLL';
   if (data['examId'] != null || subtype == 'EXAM_REMINDER') return 'EXAM';
@@ -164,11 +165,13 @@ PushAvatarRole? pushAvatarRole(Map<String, dynamic> data) {
   final type = '${data['type'] ?? ''}'.toUpperCase();
   return switch (type) {
     'POST_LIKE' => PushAvatarRole.like,
+    'POST_MENTION' => PushAvatarRole.mention,
     'USER_FOLLOW' => PushAvatarRole.follow,
     'FOLLOW_REQUEST' => PushAvatarRole.request,
     'FOLLOW_ACCEPTED' => PushAvatarRole.accepted,
     _ => switch (pushCardStyle(data)) {
         'LIKE' => PushAvatarRole.like,
+        'MENTION' => PushAvatarRole.mention,
         'FOLLOW' => PushAvatarRole.follow,
         'FOLLOW_REQUEST' => PushAvatarRole.request,
         'FOLLOW_ACCEPTED' => PushAvatarRole.accepted,
@@ -244,7 +247,7 @@ String pushSectionLabel(AppLocalizations l, Map<String, dynamic> data, String st
     'MODERATION' => l.notifSourceModeration,
     'SUPPORT' => l.supportTitle,
     'MEAL' => l.p03HomeMenuDetail,
-    'SOCIAL' || 'LIKE' || 'FOLLOW' || 'FOLLOW_REQUEST' || 'FOLLOW_ACCEPTED' => l.profilePrefsSocial,
+    'SOCIAL' || 'LIKE' || 'MENTION' || 'FOLLOW' || 'FOLLOW_REQUEST' || 'FOLLOW_ACCEPTED' => l.profilePrefsSocial,
     'SYSTEM' => l.bildirimTypeOther,
     _ => l.bildirimTypeAnnouncement,
   };
@@ -300,7 +303,7 @@ class NotificationPushCard extends StatelessWidget {
     final l = context.l10n;
     final style = pushCardStyle(data);
     final chat = style.startsWith('CHAT');
-    final social = style.startsWith('FOLLOW') || style == 'SOCIAL' || style == 'LIKE';
+    final social = style.startsWith('FOLLOW') || style == 'SOCIAL' || style == 'LIKE' || style == 'MENTION';
     final person = chat || social;
     final image = pushImageUrl(_text(data, 'imageUrl'));
     final avatar = pushImageUrl(_text(data, 'senderAvatarUrl') ?? _text(data, 'actorAvatarUrl'));

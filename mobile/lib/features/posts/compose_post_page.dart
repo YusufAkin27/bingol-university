@@ -10,14 +10,21 @@ import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/platform/image_service.dart';
 import '../../core/platform/video_service.dart';
+import '../../core/platform/video_frame.dart' show VideoFrameSource;
+import '../../core/platform/video_trim.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../media_crop/media_crop.dart';
+import 'mention_picker_sheet.dart';
+import '../chat/chat_media.dart' show formatMediaDuration;
 import 'post_api.dart';
 import 'post_media_uploader.dart';
 import 'post_models.dart';
 import 'post_text_rules.dart';
 import 'post_video.dart';
+import 'post_video_limits.dart';
+import 'social_models.dart' show SocialUser;
+import 'video_trim_page.dart';
 
 /// Galeriden ya da kameradan tek fotoğraf baytı döndürür (iptalde null); testlerde sahtesi verilir.
 typedef PostPhotoPicker = Future<Uint8List?> Function(ImageSource source);
@@ -80,9 +87,11 @@ enum _Err { none, generic, profanity, rate, network }
 /// Önizleme / boş alan köşesi (Stitch v3: 24 dp).
 const double kComposeRadius = 24;
 
-/// Sade gönderi oluşturucu: tam 1 fotoğraf (4:5 kırpılır) VEYA 1 video (en çok 60 sn, 50 MB) + isteğe bağlı kısa metin
-/// (en çok 7 kelime, canlı sayaç). Medya `POST /posts/media` ile yüklenir (video: ilerleme çubuğu, poster karesiyle),
-/// sonra gönderi `mediaIds: [id]` ile oluşturulur.
+/// Gönderi oluşturucu: tam 1 fotoğraf (4:5 kırpılır) VEYA 1 video (en çok [PostVideoLimits.maxDurationMs] / 50 MB;
+/// daha uzunsa uygulamada kırpılır) + isteğe bağlı, istenen uzunlukta çok satırlı metin (sayaç/sınır metni YOK; sunucunun
+/// gizli sınırında giriş sessizce durur) + takip ettiğim kişilerden etiketler (`@Ad Soyad`, en çok 10). Medya
+/// `POST /posts/media` ile yüklenir (video: ilerleme çubuğu, poster karesiyle), sonra gönderi
+/// `mediaIds: [id]` + `mentionUserIds` ile oluşturulur.
 class ComposePostPage extends StatefulWidget {
   const ComposePostPage({
     super.key,
@@ -94,6 +103,9 @@ class ComposePostPage extends StatefulWidget {
     this.videoService,
     this.videoUploader,
     this.initialKind,
+    this.trimService,
+    this.trimFrames,
+    this.mentionFetch,
   });
 
   final Session session;
@@ -104,6 +116,11 @@ class ComposePostPage extends StatefulWidget {
   /// Testler için: video seçme/hazırlama ve yükleme enjeksiyonu.
   final VideoService? videoService;
   final VideoUploader? videoUploader;
+
+  /// Testler için: kırpma motoru, kırpma ekranının küçük resim kaynağı ve takip listesi sayfası.
+  final VideoTrimService? trimService;
+  final VideoFrameSource? trimFrames;
+  final FollowingFetcher? mentionFetch;
 
   /// Testler için: seçici/kırpıcı/yükleyici/API enjeksiyonu.
   final PostPhotoPicker? pickPhoto;
@@ -120,7 +137,9 @@ class _ComposePostPageState extends State<ComposePostPage> {
   final _focus = FocusNode();
   late final PostMediaUploader _uploader = widget.uploader ?? PostMediaUploader(widget.session);
   late final PostApi _api = widget.api ?? PostApi(widget.session);
-  late final VideoService _videoSvc = widget.videoService ?? VideoService(limitBytes: VideoService.postMaxBytes);
+  late final VideoService _videoSvc = widget.videoService ??
+      VideoService(limitBytes: PostVideoLimits.maxBytes, limitMs: PostVideoLimits.maxDurationMs);
+  late final VideoTrimService _trimSvc = widget.trimService ?? VideoTrimService.instance;
   late final VideoUploader _videoUp = widget.videoUploader ?? VideoUploader(widget.session);
 
   // Video: seçildi + hazırlandı (en çok 60 sn / 50 MB), yüklendi mi, ilerleme (0..1).
@@ -130,7 +149,20 @@ class _ComposePostPageState extends State<ComposePostPage> {
   List<Uint8List> _frames = const []; // kapak karesi adayları (video başına en çok 6)
   int _coverIndex = 0;
   bool _preparing = false;
+  bool _trimming = false; // hazırlama etiketi: "Video kırpılıyor…"
   double _progress = 0;
+
+  // Video kırpma: seçilen özgün dosya (yeniden düzenleme için tutulur), son aralık, kesimle üretilen geçici dosya ve
+  // sınırdan uzun olup henüz kırpılmamış video (paylaşım kapalı, "Videoyu kırp" gösterilir).
+  String? _srcPath;
+  int _srcMs = 0;
+  VideoTrimRange? _range;
+  String? _trimmedPath;
+  ({String path, int durationMs})? _longPending;
+
+  // Etiketler: seçilen kişiler; metinde `@Ad Soyad` olarak durdukları sürece geçerlidir.
+  final _mentions = <SocialUser>[];
+  String _prevText = '';
 
   Uint8List? _original; // kırpılmamış seçim (yeniden kırpmak için)
   Uint8List? _photo; // düzenlenmiş fotoğraf (varsayılan 4:5; düzenleyicide oran seçilebilir)
@@ -162,16 +194,16 @@ class _ComposePostPageState extends State<ComposePostPage> {
   @override
   void dispose() {
     _prepCancel?.cancel();
+    final tmp = _trimmedPath;
+    if (tmp != null) unawaited(_trimSvc.discard(tmp));
     _timer?.cancel();
     _text.dispose();
     _focus.dispose();
     super.dispose();
   }
 
-  int get _words => postWordCount(_text.text);
-  bool get _textOk => postTextOk(_text.text);
-  bool get _dirty => _photo != null || _video != null || _preparing || _text.text.trim().isNotEmpty;
-  bool get _canShare => !_publishing && !_preparing && (_photo != null || _video != null) && _textOk;
+  bool get _dirty => _photo != null || _video != null || _preparing || _longPending != null || _text.text.trim().isNotEmpty;
+  bool get _canShare => !_publishing && !_preparing && (_photo != null || _video != null);
 
   CropSpec get _spec => CropSpec.post(
         previewName: widget.session.displayName,
@@ -246,26 +278,126 @@ class _ComposePostPageState extends State<ComposePostPage> {
     await _pick(src == PhotoSource.camera ? ImageSource.camera : ImageSource.gallery);
   }
 
-  /// Video seç/çek: sınırlar (60 sn, 50 MB) hazırlama adımında denetlenir; Android'de gerekirse 720p'ye sıkıştırılır.
+  /// Video seç/çek. Süre ölçülür: sınırdan uzunsa kırpma ekranı ZORUNLU açılır (kırpılmadan paylaşılamaz); değilse
+  /// doğrudan hazırlanır (Android'de gerekirse 720p'ye sıkıştırılır). "Düzenle" ile istenirse yine kırpılabilir.
   Future<void> _pickVideo(ImageSource source) async {
     if (_publishing || _preparing) return;
     FocusScope.of(context).unfocus();
-    final cancel = VideoCancel();
     try {
       final picked = await _videoSvc.pick(source);
       if (picked == null || !mounted) return;
+      final info = await _videoSvc.info(picked.path);
+      if (!mounted) return;
+      final dur = info?.durationMs ?? 0;
+      _srcPath = picked.path;
+      _srcMs = dur;
+      _range = null;
+      if (PostVideoLimits.needsTrim(dur)) {
+        setState(() {
+          _longPending = (path: picked.path, durationMs: dur);
+          _video = null;
+          _uploadedVideo = null;
+          _frames = const [];
+          _photo = null;
+          _original = null;
+          _uploaded = null;
+          _err = _Err.none;
+        });
+        await _openTrim(mandatory: true);
+        return;
+      }
+      await _prepareVideo(picked.path);
+    } catch (e) {
+      if (mounted) setState(() => _setError(e));
+    }
+  }
+
+  /// Kırpma ekranını açar; aralık seçilirse videoyu keser ve hazırlama hattına sokar.
+  Future<void> _openTrim({required bool mandatory}) async {
+    final path = _srcPath;
+    if (path == null || _publishing || _preparing) return;
+    if (!_trimSvc.supported) {
+      setState(() => _setError(VideoException('UNSUPPORTED')));
+      return;
+    }
+    FocusScope.of(context).unfocus();
+    final range = await Navigator.of(context).push<VideoTrimRange>(MaterialPageRoute(
+      settings: const RouteSettings(name: 'video_trim'),
+      fullscreenDialog: true,
+      builder: (_) => VideoTrimPage(
+        path: path,
+        durationMs: _srcMs,
+        maxDurationMs: PostVideoLimits.maxDurationMs,
+        mandatory: mandatory,
+        initial: _range,
+        frames: widget.trimFrames,
+      ),
+    ));
+    if (range == null || !mounted) return;
+    if (range.coversAll(_srcMs) && !PostVideoLimits.needsTrim(_srcMs)) {
+      // Tüm video seçildi ve sınıra sığıyor: kesmeye gerek yok.
+      _range = null;
+      await _discardTrimmed();
+      await _prepareVideo(path);
+      return;
+    }
+    setState(() {
+      _preparing = true;
+      _trimming = true;
+      _progress = 0;
+      _err = _Err.none;
+    });
+    try {
+      final out = await _trimSvc.trim(
+        path: path,
+        startMs: range.startMs,
+        endMs: range.endMs,
+        maxMs: PostVideoLimits.maxDurationMs,
+      );
+      if (!mounted) {
+        unawaited(_trimSvc.discard(out));
+        return;
+      }
+      await _discardTrimmed();
+      _trimmedPath = out;
+      _range = range;
+      await _prepareVideo(out);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _preparing = false;
+        _trimming = false;
+        _setError(e);
+      });
+    }
+  }
+
+  Future<void> _discardTrimmed() async {
+    final tmp = _trimmedPath;
+    _trimmedPath = null;
+    if (tmp != null) await _trimSvc.discard(tmp);
+  }
+
+  Future<void> _editVideo() => _openTrim(mandatory: false);
+
+  /// Sıkıştırma/doğrulama (süre ve boyut sınırı) ve poster; sonuç `_video` olur.
+  Future<void> _prepareVideo(String path) async {
+    final cancel = VideoCancel();
+    try {
       setState(() {
         _preparing = true;
+        _trimming = false;
         _prepCancel = cancel;
         _progress = 0;
         _err = _Err.none;
       });
-      final prepared = await _videoSvc.prepare(picked, cancel: cancel, onProgress: (p) {
+      final prepared = await _videoSvc.prepare(PickedVideo(path), cancel: cancel, onProgress: (p) {
         if (mounted) setState(() => _progress = p);
       });
       if (!mounted) return;
       setState(() {
         _video = prepared;
+        _longPending = null;
         _uploadedVideo = null;
         _frames = const [];
         _coverIndex = 0;
@@ -273,6 +405,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
         _original = null;
         _uploaded = null;
         _preparing = false;
+        _trimming = false;
         _prepCancel = null;
       });
       unawaited(_loadFrames(prepared));
@@ -280,6 +413,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
       if (!mounted) return;
       setState(() {
         _preparing = false;
+        _trimming = false;
         _prepCancel = null;
         if (!(e is VideoException && e.code == 'CANCELLED')) _setError(e);
       });
@@ -360,10 +494,15 @@ class _ComposePostPageState extends State<ComposePostPage> {
 
   void _removeVideo() {
     if (_publishing) return;
+    unawaited(_discardTrimmed());
     setState(() {
       _frames = const [];
       _video = null;
       _uploadedVideo = null;
+      _longPending = null;
+      _srcPath = null;
+      _srcMs = 0;
+      _range = null;
       _err = _Err.none;
     });
   }
@@ -401,6 +540,97 @@ class _ComposePostPageState extends State<ComposePostPage> {
     });
   }
 
+  // ---- Etiketler ------------------------------------------------------------------------------------------------------
+
+  /// Gönderilecek kimlikler: yalnız metinde hâlâ `@Ad Soyad` olarak duranlar (silinen düşer), en çok 10.
+  List<int> _mentionIds() {
+    final text = _text.text;
+    final ids = <int>[];
+    for (final u in _mentions) {
+      if (u.displayName.isNotEmpty && text.contains('@${u.displayName}') && !ids.contains(u.id)) ids.add(u.id);
+    }
+    return ids.take(kPostMaxMentions).toList();
+  }
+
+  void _syncMentions() => _mentions.removeWhere((u) => !_text.text.contains('@${u.displayName}'));
+
+  /// Metinden ilk `@ad` (ve ardındaki bir boşluk) çıkar.
+  static String _removeToken(String text, String name) {
+    final token = '@$name';
+    final i = text.indexOf(token);
+    if (i < 0) return text;
+    var end = i + token.length;
+    if (end < text.length && text[end] == ' ') end++;
+    return text.substring(0, i) + text.substring(end);
+  }
+
+  void _onTextChanged(String v) {
+    final sel = _text.selection;
+    // Boşluktan/satırbaşından sonra tek `@` yazıldıysa seçici kendiliğinden açılır.
+    final typedAt = v.length == _prevText.length + 1 &&
+        sel.isValid &&
+        sel.isCollapsed &&
+        sel.baseOffset > 0 &&
+        sel.baseOffset <= v.length &&
+        v[sel.baseOffset - 1] == '@' &&
+        (sel.baseOffset == 1 || RegExp(r'\s').hasMatch(v[sel.baseOffset - 2]));
+    _prevText = v;
+    setState(_syncMentions);
+    if (typedAt && !_publishing) unawaited(_openMentionPicker(atIndex: sel.baseOffset - 1));
+  }
+
+  void _setText(String text, int caret) {
+    final clamped = clampPostText(text);
+    _text.value = TextEditingValue(text: clamped, selection: TextSelection.collapsed(offset: caret.clamp(0, clamped.length).toInt()));
+    _prevText = clamped;
+    _syncMentions();
+  }
+
+  /// Takip ettiklerimden seçici: seçilenler metne `@Ad Soyad ` olarak eklenir, çıkarılanların etiketi metinden silinir.
+  Future<void> _openMentionPicker({int? atIndex}) async {
+    if (_publishing) return;
+    FocusScope.of(context).unfocus();
+    final res = await showMentionPicker(context, widget.session, selected: List.of(_mentions), fetch: widget.mentionFetch);
+    if (res == null || !mounted) return;
+    var text = _text.text;
+    final removed = [for (final u in _mentions) if (!res.any((r) => r.id == u.id)) u];
+    final added = [for (final r in res) if (r.displayName.isNotEmpty && !_mentions.any((m) => m.id == r.id)) r];
+    for (final u in removed) {
+      text = _removeToken(text, u.displayName);
+    }
+    final names = added.map((u) => '@${u.displayName}').join(' ');
+    var caret = text.length;
+    final trigger = atIndex != null && removed.isEmpty && atIndex < text.length && text[atIndex] == '@';
+    if (names.isNotEmpty) {
+      if (trigger) {
+        text = '${text.substring(0, atIndex)}$names ${text.substring(atIndex + 1)}';
+        caret = atIndex + names.length + 1;
+      } else {
+        final sep = text.isEmpty || text.endsWith(' ') || text.endsWith('\n') ? '' : ' ';
+        text = '$text$sep$names ';
+        caret = text.length;
+      }
+    } else if (trigger) {
+      // Seçici `@` ile açıldı ama kimse seçilmedi: yazılan `@` silinir.
+      text = text.substring(0, atIndex) + text.substring(atIndex + 1);
+      caret = atIndex;
+    }
+    setState(() {
+      _mentions
+        ..clear()
+        ..addAll(res);
+      _setText(text, caret);
+    });
+  }
+
+  void _removeMention(SocialUser u) {
+    if (_publishing) return;
+    setState(() {
+      _mentions.removeWhere((m) => m.id == u.id);
+      _setText(_removeToken(_text.text, u.displayName), _text.selection.baseOffset);
+    });
+  }
+
   Future<void> _publish() async {
     final bytes = _photo;
     final video = _video;
@@ -416,7 +646,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
       final PostMedia media = video != null
           ? (_uploadedVideo ??= await _uploadVideo(video))
           : (_uploaded ??= await _uploader.upload(bytes!));
-      final post = await _api.create(text: _text.text, mediaId: media.id);
+      final post = await _api.create(text: _text.text, mediaId: media.id, mentionUserIds: _mentionIds());
       if (!mounted) return;
       messenger?.showSnackBar(SnackBar(content: Text(context.l10n.postComposeShared), duration: const Duration(seconds: 2)));
       Navigator.pop(context, post);
@@ -472,12 +702,14 @@ class _ComposePostPageState extends State<ComposePostPage> {
                       duration: BuMotion.of(context, BuMotion.medium),
                       switchInCurve: BuMotion.standard,
                       switchOutCurve: BuMotion.standard,
-                      child: KeyedSubtree(key: ValueKey('${_photo != null}-${_video != null}-$_preparing'), child: _photoArea(t)),
+                      child: KeyedSubtree(
+                          key: ValueKey('${_photo != null}-${_video != null}-$_preparing-${_longPending != null}'), child: _photoArea(t)),
                     ),
                     const SizedBox(height: 16),
                     if (_video != null && _frames.length >= 2 && !_publishing) _coverStrip(t),
                     const SizedBox(height: 16),
                     _textField(t),
+                    _tagSection(t),
                     // Uyarı/hata satırları açılırken yükseklik yumuşakça büyür, satır solarak belirir.
                     AnimatedSize(
                       duration: BuMotion.of(context, BuMotion.short),
@@ -567,7 +799,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
   }
 
   /// Video hazırlama/yükleme ilerlemesi: ön izleme üstünde ince çubuk + yüzde.
-  Widget _progressOverlay(BuTokens t, String label) {
+  Widget _progressOverlay(BuTokens t, String label, {bool indeterminate = false}) {
     final tt = Theme.of(context).textTheme;
     return ColoredBox(
       key: const ValueKey('composeVideoProgress'),
@@ -581,7 +813,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
             ClipRRect(
               borderRadius: BorderRadius.circular(3),
               child: LinearProgressIndicator(
-                value: _progress <= 0 ? null : _progress.clamp(0.0, 1.0),
+                value: indeterminate || _progress <= 0 ? null : _progress.clamp(0.0, 1.0),
                 minHeight: 6,
                 color: t.onMedia,
                 backgroundColor: t.onMedia.withValues(alpha: .25),
@@ -613,17 +845,23 @@ class _ComposePostPageState extends State<ComposePostPage> {
               if (video.path != null) _LocalVideoPreview(path: video.path!),
               if (!_publishing) const Center(child: PostPlayBadge(size: 56)),
               if (video.durationMs > 0) PositionedDirectional(start: 12, top: 12, child: DurationChip(durationMs: video.durationMs)),
-              if (!_publishing)
+              if (!_publishing) ...[
+                // Belirgin giriş noktası: "Düzenle" (kırp), marka renginde dolu hap. Kırpma bu cihazda yoksa gizlenir.
+                if (_trimSvc.supported && _srcPath != null)
+                  PositionedDirectional(
+                    start: 12,
+                    bottom: 12,
+                    child: _editPill(t),
+                  ),
                 PositionedDirectional(
-                  start: 12,
-                  end: 12,
-                  bottom: 12,
-                  child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                    Flexible(child: _pill(const ValueKey('composeVideoChange'), BuIcons.video, context.l10n.kesVideoChange, () => _pickVideo(ImageSource.gallery))),
-                    const SizedBox(width: 8),
-                    Flexible(child: _pill(const ValueKey('composeVideoRemove'), BuIcons.x, context.l10n.postComposeDelete, _removeVideo)),
+                  end: 6,
+                  top: 6,
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    _roundBtn(const ValueKey('composeVideoChange'), BuIcons.video, context.l10n.kesVideoChange, () => _pickVideo(ImageSource.gallery)),
+                    _roundBtn(const ValueKey('composeVideoRemove'), BuIcons.x, context.l10n.postComposeDelete, _removeVideo),
                   ]),
                 ),
+              ],
               if (_publishing) _progressOverlay(t, context.l10n.kesVideoUploading(_pct())),
             ]),
           ),
@@ -636,10 +874,14 @@ class _ComposePostPageState extends State<ComposePostPage> {
         decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(kComposeRadius)),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(kComposeRadius),
-          child: AspectRatio(aspectRatio: 4 / 5, child: _progressOverlay(t, context.l10n.kesVideoPreparing(_pct()))),
+          child: AspectRatio(
+              aspectRatio: 4 / 5,
+              child: _progressOverlay(t, _trimming ? context.l10n.composeTrimming : context.l10n.kesVideoPreparing(_pct()), indeterminate: _trimming)),
         ),
       );
     }
+    final long = _longPending;
+    if (long != null) return _longCard(t, tt, long.durationMs);
     final bytes = _photo;
     if (bytes != null) {
       return Container(
@@ -699,7 +941,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
                   child: Text(label, style: tt.labelLarge?.copyWith(color: t.mut, fontSize: 15, fontWeight: FontWeight.w500)),
                 ),
             ]),
-            Text(context.l10n.kesVideoLimits, textAlign: TextAlign.center, style: tt.bodySmall?.copyWith(color: t.mut, fontSize: 12)),
+            Text(context.l10n.composeVideoLimitsHint((PostVideoLimits.maxDurationMs ~/ 1000).toString()), key: const ValueKey('composeVideoLimits'), textAlign: TextAlign.center, style: tt.bodySmall?.copyWith(color: t.mut, fontSize: 12)),
             if (hint) ...[
               const SizedBox(height: 8),
               Text(context.l10n.gonderiPhotoRequired,
@@ -708,6 +950,173 @@ class _ComposePostPageState extends State<ComposePostPage> {
                   style: tt.bodySmall?.copyWith(color: t.mut)),
             ],
           ]),
+        ),
+      ),
+    );
+  }
+
+  /// Sınırdan uzun video: kırpılmadan paylaşılamaz. Kırpma ekranı kapatıldıysa buradan yeniden açılır.
+  Widget _longCard(BuTokens t, TextTheme tt, int durationMs) {
+    final l = context.l10n;
+    return DecoratedBox(
+      key: const ValueKey('composeVideoTooLong'),
+      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(kComposeRadius)),
+      child: AspectRatio(
+        aspectRatio: 4 / 5,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: BuSpace.xxxl),
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            ExcludeSemantics(child: Icon(BuIcons.crop, size: 32, color: t.mut)),
+            const SizedBox(height: 12),
+            Text(l.composeTooLongTitle, textAlign: TextAlign.center, style: tt.titleMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
+            const SizedBox(height: 6),
+            Text(l.composeTooLongBody(formatMediaDuration(durationMs), formatMediaDuration(PostVideoLimits.maxDurationMs)),
+                key: const ValueKey('composeTooLongBody'), textAlign: TextAlign.center, style: tt.bodyMedium?.copyWith(color: t.mut)),
+            const SizedBox(height: 16),
+            BuButton(key: const ValueKey('composeTrimCta'), label: l.composeTrimCta, icon: BuIcons.crop, onPressed: () => _openTrim(mandatory: true)),
+            TextButton(
+              key: const ValueKey('composeVideoOther'),
+              onPressed: _removeVideo,
+              style: TextButton.styleFrom(minimumSize: const Size(BuSize.touch, BuSize.touch), foregroundColor: t.mut),
+              child: Text(l.composeTooLongOther, style: tt.labelLarge?.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  Widget _editPill(BuTokens t) {
+    return Semantics(
+      button: true,
+      label: context.l10n.composeTrimEdit,
+      child: Material(
+        key: const ValueKey('composeVideoEdit'),
+        color: t.pr,
+        shape: const StadiumBorder(),
+        child: InkWell(
+          customBorder: const StadiumBorder(),
+          onTap: _editVideo,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: BuSize.touch),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(BuIcons.crop, size: 18, color: t.onPr),
+                const SizedBox(width: 8),
+                Text(context.l10n.composeTrimEdit,
+                    maxLines: 1, style: Theme.of(context).textTheme.labelLarge?.copyWith(color: t.onPr, fontWeight: FontWeight.w400)),
+              ]),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Önizleme köşesi: 48 dp dokunma alanlı yuvarlak, yarı saydam koyu düğme.
+  Widget _roundBtn(Key key, IconData icon, String label, VoidCallback onTap) {
+    final t = context.bu;
+    return Tooltip(
+      message: label,
+      child: Semantics(
+        button: true,
+        label: label,
+        child: SizedBox(
+          width: BuSize.touch,
+          height: BuSize.touch,
+          child: Center(
+            child: Material(
+              key: key,
+              color: t.scrim.withValues(alpha: .45),
+              shape: const CircleBorder(),
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: onTap,
+                child: SizedBox(width: 40, height: 40, child: Icon(icon, size: 18, color: t.onMedia)),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// "Kişi etiketle" satırı + seçilenler çip olarak (✕ ile kaldırılır).
+  Widget _tagSection(BuTokens t) {
+    final l = context.l10n;
+    final tt = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Semantics(
+          button: true,
+          enabled: !_publishing,
+          label: l.composeTagPerson,
+          child: Material(
+            key: const ValueKey('composeTagButton'),
+            color: t.sf,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(BuRadius.md), side: BorderSide(color: t.bdStrong)),
+            child: InkWell(
+              customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(BuRadius.md)),
+              onTap: _publishing ? null : () => _openMentionPicker(),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 52),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(children: [
+                    ExcludeSemantics(child: Icon(BuIcons.atSign, size: 20, color: t.ink)),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text(l.composeTagPerson, style: tt.bodyLarge?.copyWith(color: t.ink, fontSize: 15))),
+                    ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mut)),
+                  ]),
+                ),
+              ),
+            ),
+          ),
+        ),
+        if (_mentions.isNotEmpty)
+          Padding(
+            key: const ValueKey('composeTagChips'),
+            padding: const EdgeInsets.only(top: 6),
+            child: Wrap(spacing: 8, children: [for (final u in _mentions) _tagChip(t, tt, u)]),
+          ),
+      ]),
+    );
+  }
+
+  Widget _tagChip(BuTokens t, TextTheme tt, SocialUser u) {
+    return Semantics(
+      button: true,
+      label: context.l10n.composeTagRemove(u.displayName),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: BuSize.touch),
+        child: Center(
+          widthFactor: 1,
+          child: Material(
+            key: ValueKey('composeTagChip-${u.id}'),
+            color: t.soft,
+            shape: const StadiumBorder(),
+            child: InkWell(
+              customBorder: const StadiumBorder(),
+              onTap: _publishing ? null : () => _removeMention(u),
+              child: Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(6, 6, 12, 6),
+                child: ExcludeSemantics(
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    BuAvatar(name: u.displayName, url: u.avatarUrl, size: 24, headers: postAuthHeaders(widget.session)),
+                    const SizedBox(width: 8),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 160),
+                      child: Text(u.displayName, maxLines: 1, overflow: TextOverflow.ellipsis, style: tt.labelLarge?.copyWith(color: t.onSoft, fontWeight: FontWeight.w400)),
+                    ),
+                    const SizedBox(width: 6),
+                    Icon(BuIcons.x, size: 16, color: t.onSoft),
+                  ]),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -739,67 +1148,47 @@ class _ComposePostPageState extends State<ComposePostPage> {
   }
 
   Widget _textField(BuTokens t) {
-    final over = !_textOk;
     final tt = Theme.of(context).textTheme;
-    return AnimatedContainer(
-      duration: BuMotion.of(context, BuMotion.short),
-      curve: BuMotion.standard,
-      constraints: const BoxConstraints(minHeight: BuSize.field),
+    return Container(
+      constraints: const BoxConstraints(minHeight: 120),
       decoration: BoxDecoration(
         color: t.sf,
         borderRadius: BorderRadius.circular(BuRadius.md),
-        border: Border.all(color: over ? t.danger : t.bdStrong, width: over ? 1.5 : 1),
+        border: Border.all(color: t.bdStrong),
       ),
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 14, 0),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-        Expanded(
-          child: TextField(
-            key: const ValueKey('composeText'),
-            controller: _text,
-            focusNode: _focus,
-            enabled: !_publishing,
-            minLines: 1,
-            maxLines: 3,
-            textInputAction: TextInputAction.done,
-            textCapitalization: TextCapitalization.sentences,
-            inputFormatters: [
-              FilteringTextInputFormatter.deny(RegExp(r'[\r\n]')),
-              LengthLimitingTextInputFormatter(kPostMaxChars),
-            ],
-            onChanged: (_) => setState(() {}),
-            style: tt.bodyLarge?.copyWith(color: t.ink, fontSize: 15),
-            decoration: InputDecoration(
-              hintText: context.l10n.gonderiTextHint,
-              hintStyle: tt.bodyLarge?.copyWith(color: t.mut, fontSize: 15),
-              filled: false,
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              disabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              errorBorder: InputBorder.none,
-              focusedErrorBorder: InputBorder.none,
-              isDense: true,
-              contentPadding: const EdgeInsets.symmetric(vertical: 14),
-            ),
-          ),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 4),
+      // Sayaç, kelime sınırı ya da uyarı YOK: sunucunun gizli üst sınırında giriş sessizce durur.
+      child: TextField(
+        key: const ValueKey('composeText'),
+        controller: _text,
+        focusNode: _focus,
+        enabled: !_publishing,
+        minLines: 4,
+        maxLines: 10,
+        keyboardType: TextInputType.multiline,
+        textInputAction: TextInputAction.newline,
+        textCapitalization: TextCapitalization.sentences,
+        inputFormatters: const [PostTextLimiter()],
+        onChanged: _onTextChanged,
+        style: tt.bodyLarge?.copyWith(color: t.ink, fontSize: 15, height: 1.4),
+        decoration: InputDecoration(
+          hintText: context.l10n.gonderiTextHint,
+          hintStyle: tt.bodyLarge?.copyWith(color: t.mut, fontSize: 15),
+          filled: false,
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          disabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+          focusedErrorBorder: InputBorder.none,
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(vertical: 12),
         ),
-        const SizedBox(width: 8),
-        // Sessiz sayaç: 12 sp mut; yalnız sınırda (7/7) ve aşımda vurgulanır; renk 150 ms geçer, tabular rakam.
-        AnimatedDefaultTextStyle(
-          duration: BuMotion.of(context, BuMotion.short),
-          curve: BuMotion.standard,
-          style: (tt.labelSmall ?? const TextStyle()).copyWith(
-              color: over ? t.danger : (_words >= kPostMaxWords ? t.ink : t.mut),
-              fontSize: 12,
-              fontWeight: over || _words >= kPostMaxWords ? FontWeight.w400 : FontWeight.w400,
-              fontFeatures: const [FontFeature.tabularFigures()]),
-          child: Text(context.l10n.gonderiWordCount(_words.toString(), kPostMaxWords.toString()), key: const ValueKey('composeCounter')),
-        ),
-      ]),
+      ),
     );
   }
 
-  /// Doğrulama ve gönderim hataları (referans 10/3): kelime sınırı, içerik uyarısı kartı, hız sınırı, ağ.
+  /// Gönderim hataları (referans 10/3): içerik uyarısı kartı, hız sınırı, ağ, genel.
   List<Widget> _errors(BuTokens t) {
     final tt = Theme.of(context).textTheme;
     final l = context.l10n;
@@ -812,11 +1201,6 @@ class _ComposePostPageState extends State<ComposePostPage> {
           ]),
         );
     final items = <Widget>[
-      if (!_textOk)
-        row(BuIcons.circleAlert,
-            Text(l.gonderiWordLimit(kPostMaxWords.toString()),
-                key: const ValueKey('composeLimitWarn'), style: tt.labelLarge?.copyWith(color: t.danger, fontWeight: FontWeight.w400)),
-            color: t.danger),
       if (_err == _Err.profanity)
         Padding(
           padding: const EdgeInsets.only(top: 12),

@@ -66,6 +66,7 @@ IconData notificationIcon(Map<String, dynamic> data) {
     return Icons.support_agent;
   }
   if (type == 'POST_LIKE') return Icons.favorite_outline;
+  if (type == 'POST_MENTION') return Icons.alternate_email;
   if (type == 'FOLLOW_REQUEST' || type == 'USER_FOLLOW') {
     return Icons.person_add_alt_1_outlined;
   }

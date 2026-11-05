@@ -5,7 +5,6 @@ import '../../core/locale_controller.dart';
 import '../../core/platform/image_service.dart';
 import '../../widgets/bu.dart';
 import '../../widgets/common.dart';
-import '../posts/post_text_rules.dart';
 import 'club_detail_parts.dart';
 import 'kulup_widgets.dart';
 import '../../core/academic_catalog.dart';
@@ -22,6 +21,15 @@ Widget? clubRoleBadge(BuildContext context, String? role) {
     'MODERATOR' => KulupRoleBadge(l.clubRoleModerator, icon: BuIcons.shield, bg: blue.bg, fg: blue.fg),
     _ => null,
   };
+}
+
+/// Kulüp yazı kutusu kuralı (Keşfet gönderisinden bağımsız): en çok 7 kelime / 60 karakter, tek satır.
+const _kClubMaxWords = 7;
+const _kClubMaxChars = 60;
+
+int _clubWordCount(String text) {
+  final t = text.trim();
+  return t.isEmpty ? 0 : t.split(RegExp(r'\s+')).length;
 }
 
 /// Gönderi kartı: yazar, zaman, sabit rozeti, ⋯ menüsü, metin, isteğe bağlı görsel, (varsa) beğeni sayısı.
@@ -280,8 +288,8 @@ class ClubComposer extends StatelessWidget {
     final tx = Theme.of(context).textTheme;
     final l10n = context.l10n;
     final text = controller.text;
-    final words = postWordCount(text);
-    final ok = postTextOk(text);
+    final words = _clubWordCount(text);
+    final ok = words <= _kClubMaxWords && text.trim().length <= _kClubMaxChars;
     final hasText = text.trim().isNotEmpty;
     final canSend = !sending && ok && (hasText || image != null);
     final missingText = image != null && !hasText;
@@ -323,7 +331,7 @@ class ClubComposer extends StatelessWidget {
                     maxLines: 1,
                     onChanged: (_) => onChanged(),
                     inputFormatters: [
-                      LengthLimitingTextInputFormatter(kPostMaxChars),
+                      LengthLimitingTextInputFormatter(_kClubMaxChars),
                       FilteringTextInputFormatter.deny(RegExp(r'[\r\n]')),
                     ],
                     textInputAction: TextInputAction.send,
@@ -367,7 +375,7 @@ class ClubComposer extends StatelessWidget {
             Padding(
               padding: const EdgeInsetsDirectional.only(top: 8, start: 4),
               child: Text(
-                ok ? l10n.gonderiWordCount(words.toString(), kPostMaxWords.toString()) : l10n.gonderiWordLimit(kPostMaxWords.toString()),
+                ok ? l10n.gonderiWordCount(words.toString(), _kClubMaxWords.toString()) : l10n.gonderiWordLimit(_kClubMaxWords.toString()),
                 style: tx.bodySmall!.copyWith(color: ok ? t.mut : t.danger),
               ),
             ),

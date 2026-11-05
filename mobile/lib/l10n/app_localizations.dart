@@ -11583,7 +11583,7 @@ abstract class AppLocalizations {
   /// No description provided for @gonderiTextHint.
   ///
   /// In tr, this message translates to:
-  /// **'Birkaç kelime yaz…'**
+  /// **'Bir şeyler yaz…'**
   String get gonderiTextHint;
 
   /// No description provided for @gonderiWordCount.
@@ -11597,6 +11597,156 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'En çok {max} kelime yazabilirsin.'**
   String gonderiWordLimit(String max);
+
+  /// No description provided for @composeTrimTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Videoyu kırp'**
+  String get composeTrimTitle;
+
+  /// No description provided for @composeTrimDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bitti'**
+  String get composeTrimDone;
+
+  /// No description provided for @composeTrimEdit.
+  ///
+  /// In tr, this message translates to:
+  /// **'Düzenle'**
+  String get composeTrimEdit;
+
+  /// No description provided for @composeTrimCta.
+  ///
+  /// In tr, this message translates to:
+  /// **'Videoyu kırp'**
+  String get composeTrimCta;
+
+  /// No description provided for @composeTrimming.
+  ///
+  /// In tr, this message translates to:
+  /// **'Video kırpılıyor…'**
+  String get composeTrimming;
+
+  /// No description provided for @composeTrimSelected.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçilen süre {dur}'**
+  String composeTrimSelected(String dur);
+
+  /// No description provided for @composeTrimHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tutamaçları sürükleyerek bir bölüm seç. En çok {max}.'**
+  String composeTrimHint(String max);
+
+  /// No description provided for @composeTrimTooLong.
+  ///
+  /// In tr, this message translates to:
+  /// **'Video çok uzun. Paylaşmak için en çok {max} uzunluğunda bir bölüm seç.'**
+  String composeTrimTooLong(String max);
+
+  /// No description provided for @composeTrimStart.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başlangıç'**
+  String get composeTrimStart;
+
+  /// No description provided for @composeTrimEnd.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bitiş'**
+  String get composeTrimEnd;
+
+  /// No description provided for @composeTrimPlay.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oynat'**
+  String get composeTrimPlay;
+
+  /// No description provided for @composeTrimPause.
+  ///
+  /// In tr, this message translates to:
+  /// **'Duraklat'**
+  String get composeTrimPause;
+
+  /// No description provided for @composeTooLongTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Video çok uzun'**
+  String get composeTooLongTitle;
+
+  /// No description provided for @composeTooLongBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu video {dur} uzunluğunda. En çok {max} paylaşabilirsin, bu yüzden önce kırpman gerekiyor.'**
+  String composeTooLongBody(String dur, String max);
+
+  /// No description provided for @composeTooLongOther.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başka video seç'**
+  String get composeTooLongOther;
+
+  /// No description provided for @composeVideoLimitsHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Video en fazla {n} saniye; uzunsa kırpabilirsin.'**
+  String composeVideoLimitsHint(String n);
+
+  /// No description provided for @composeTagPerson.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kişi etiketle'**
+  String get composeTagPerson;
+
+  /// No description provided for @composeTagRemove.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} etiketini kaldır'**
+  String composeTagRemove(String name);
+
+  /// No description provided for @composeMentionSearch.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takip ettiklerinde ara'**
+  String get composeMentionSearch;
+
+  /// No description provided for @composeMentionEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etiketlemek için kişileri takip et'**
+  String get composeMentionEmpty;
+
+  /// No description provided for @composeMentionNoMatch.
+  ///
+  /// In tr, this message translates to:
+  /// **'Eşleşen kişi yok'**
+  String get composeMentionNoMatch;
+
+  /// No description provided for @composeMentionMax.
+  ///
+  /// In tr, this message translates to:
+  /// **'En çok {max} kişi etiketleyebilirsin.'**
+  String composeMentionMax(String max);
+
+  /// No description provided for @composeMentionDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tamam'**
+  String get composeMentionDone;
+
+  /// No description provided for @postMentionOpen.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} profilini aç'**
+  String postMentionOpen(String name);
+
+  /// No description provided for @postComposeErrTextTooLong.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderi metni çok uzun. Biraz kısaltıp tekrar dene.'**
+  String get postComposeErrTextTooLong;
 
   /// No description provided for @gonderiPickPhoto.
   ///

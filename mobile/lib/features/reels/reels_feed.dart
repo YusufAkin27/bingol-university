@@ -17,6 +17,7 @@ import '../share/share_sheet.dart' show showShareSheet;
 import '../posts/post_api.dart';
 import '../posts/post_media_uploader.dart' show postErrorText;
 import '../posts/post_models.dart';
+import '../posts/post_rich_text.dart';
 import '../posts/post_video.dart';
 import '../posts/social_api.dart';
 import '../posts/social_models.dart';
@@ -521,10 +522,16 @@ class _ReelPageState extends State<_ReelPage> {
               key: ValueKey('reel-caption-${p.id}'),
               behavior: HitTestBehavior.opaque,
               onTap: () => setState(() => _expanded = !_expanded),
-              child: Text(text,
+              child: PostRichText(
+                  session: widget.session,
+                  text: text,
+                  mentions: p.mentions,
+                  // Koyu video zemini: marka rengi okunmaz; etiket tam beyaz + alt çizgi (yazı hafif şeffaf).
+                  mentionColor: t.onMedia,
+                  mentionUnderline: true,
                   maxLines: _expanded ? null : 2,
                   overflow: _expanded ? TextOverflow.visible : TextOverflow.ellipsis,
-                  style: tt.bodyLarge?.copyWith(color: t.onMedia, fontSize: 15, height: 1.35)),
+                  style: tt.bodyLarge?.copyWith(color: t.onMedia.withValues(alpha: .86), fontSize: 15, height: 1.35)),
             ),
           ],
           if (p.viewCount != null && p.viewCount! > 0) ...[

@@ -283,7 +283,7 @@ void main() {
       noErr(tester);
     });
 
-    testWidgets('duzenleme: bos metin kaydedilmez ("Metin bos olamaz."), 8. kelimede kirmizi sayac, kaydet PATCH atar', (tester) async {
+    testWidgets('duzenleme: bos metin kaydedilmez ("Metin bos olamaz."), sayac/kelime siniri yok, kaydet PATCH atar', (tester) async {
       final (b, _) = await open(tester, post(mine: true));
       await tester.tap(find.byKey(const ValueKey('post-menu-button')));
       await settle(tester, const Duration(milliseconds: 900));
@@ -291,23 +291,53 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.text('Gönderiyi düzenle'), findsOneWidget);
-      expect(find.text('3/7 kelime'), findsOneWidget);
+      expect(find.byKey(const ValueKey('edit-post-counter')), findsNothing);
       bool saveEnabled() => tester.widget<BuButton>(find.byKey(const ValueKey('edit-post-save'))).onPressed != null;
       final field = find.byKey(const ValueKey('edit-post-text'));
       await tester.enterText(field, '');
       await tester.pump();
       expect(find.byKey(const ValueKey('edit-post-empty')), findsOneWidget);
       expect(saveEnabled(), isFalse);
-      await tester.enterText(field, 'bir iki uc dort bes alti yedi sekiz');
+      await tester.enterText(field, 'bir iki uc dort bes alti yedi sekiz dokuz on\nikinci satir');
       await tester.pump();
-      expect(find.text('8/7 kelime'), findsOneWidget);
-      expect(saveEnabled(), isFalse);
+      expect(find.byKey(const ValueKey('edit-post-counter')), findsNothing);
+      expect(saveEnabled(), isTrue);
       await tester.enterText(field, 'Yeni not');
       await tester.pump();
       expect(saveEnabled(), isTrue);
       await tester.tap(find.byKey(const ValueKey('edit-post-save')));
       await settle(tester, const Duration(milliseconds: 600));
       expect(b.requests.any((r) => r.startsWith('PATCH /posts/1000')), isTrue, reason: b.requests.join('|'));
+      noErr(tester);
+    });
+  });
+
+  group('duzenleme: etiketler korunur', () {
+    testWidgets('PATCH yalniz metinde hala @Ad Soyad olan kisilerin kimligini gonderir', (tester) async {
+      useScreen(tester, const Size(390, 844));
+      final b = FakeBackend();
+      fakePosts(b);
+      final j = samplePost(id: 1000, media: [samplePostMedia(id: 7)], text: 'Selam @Ali Veli ve @Ayşe Kaya', mine: true, authorId: 1)
+        ..['mentions'] = [
+          {'userId': 3, 'displayName': 'Ali Veli'},
+          {'userId': 4, 'displayName': 'Ayşe Kaya'},
+        ];
+      await tester.pumpWidget(buildApp(Scaffold(
+        body: ListView(children: [PostCard(session: makeSession(b), post: Post.fromJson(j), onChanged: (_) {}, onDeleted: (_) {})]),
+      )));
+      await settle(tester, const Duration(milliseconds: 300));
+      await tester.tap(find.byKey(const ValueKey('post-menu-button')));
+      await settle(tester, const Duration(milliseconds: 900));
+      await tester.tap(find.byKey(const ValueKey('post-act-edit')));
+      await settle(tester, const Duration(milliseconds: 600));
+      // Ayse metinden silindi: kimligi de gonderilmez.
+      await tester.enterText(find.byKey(const ValueKey('edit-post-text')), 'Selam @Ali Veli\nyeni satir');
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('edit-post-save')));
+      await settle(tester, const Duration(milliseconds: 600));
+      final body = b.bodies['PATCH /posts/1000'] as Map;
+      expect(body['mentionUserIds'], [3]);
+      expect(body['text'], 'Selam @Ali Veli\nyeni satir');
       noErr(tester);
     });
   });

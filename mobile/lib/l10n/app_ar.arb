@@ -1913,9 +1913,93 @@
   "anasayfaMealLunch": "وجبة اليوم · الغداء",
   "anasayfaAnnouncements": "الإعلانات",
   "anasayfaQuickAcademic": "الأكاديمي",
-  "gonderiTextHint": "اكتب بضع كلمات…",
+  "gonderiTextHint": "اكتب شيئًا…",
   "gonderiWordCount": "{n}/{max}",
   "gonderiWordLimit": "الحد الأقصى للكلمات: {max}.",
+  "composeTrimTitle": "قصّ الفيديو",
+  "composeTrimDone": "تم",
+  "composeTrimEdit": "تعديل",
+  "composeTrimCta": "قصّ الفيديو",
+  "composeTrimming": "جارٍ قصّ الفيديو…",
+  "composeTrimSelected": "المدة المحددة {dur}",
+  "@composeTrimSelected": {
+    "placeholders": {
+      "dur": {
+        "type": "String"
+      }
+    }
+  },
+  "composeTrimHint": "اسحب المقبضين لاختيار مقطع. حتى {max}.",
+  "@composeTrimHint": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "composeTrimTooLong": "الفيديو طويل جدًا. اختر مقطعًا لا يتجاوز {max} لمشاركته.",
+  "@composeTrimTooLong": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "composeTrimStart": "البداية",
+  "composeTrimEnd": "النهاية",
+  "composeTrimPlay": "تشغيل",
+  "composeTrimPause": "إيقاف مؤقت",
+  "composeTooLongTitle": "الفيديو طويل جدًا",
+  "composeTooLongBody": "مدة هذا الفيديو {dur}. يمكنك مشاركة {max} كحد أقصى، لذا قصّه أولًا.",
+  "@composeTooLongBody": {
+    "placeholders": {
+      "dur": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "composeTooLongOther": "اختر فيديو آخر",
+  "composeVideoLimitsHint": "حتى {n} ثانية؛ يمكنك قصّ الفيديو الأطول.",
+  "@composeVideoLimitsHint": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "composeTagPerson": "وسم أشخاص",
+  "composeTagRemove": "إزالة وسم {name}",
+  "@composeTagRemove": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "composeMentionSearch": "ابحث بين من تتابعهم",
+  "composeMentionEmpty": "تابع أشخاصًا لتتمكن من وسمهم",
+  "composeMentionNoMatch": "لا يوجد أشخاص مطابقون",
+  "composeMentionMax": "يمكنك وسم {max} أشخاص كحد أقصى.",
+  "@composeMentionMax": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "composeMentionDone": "تم",
+  "postMentionOpen": "فتح ملف {name}",
+  "@postMentionOpen": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "postComposeErrTextTooLong": "نص المنشور طويل جدًا. اختصره قليلًا وحاول مرة أخرى.",
   "gonderiPickPhoto": "اختر صورة",
   "gonderiTakePhoto": "التقط صورة",
   "gonderiPhotoRequired": "اختر صورة للمشاركة.",

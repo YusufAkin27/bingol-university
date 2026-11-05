@@ -88,6 +88,8 @@ class MainActivity : FlutterActivity() {
         // Cihaz takvimine yazma ve Saat uygulamasina alarm (lib/core/platform/device_calendar.dart, device_alarm.dart).
         BuCalendar.register(messenger, this)
         BuAlarm.register(messenger, this)
+        // Video kirpma (yeniden kodlamadan, MediaExtractor + MediaMuxer): lib/core/platform/video_trim.dart.
+        BuVideoTrim.register(messenger, this)
         pushChannel = MethodChannel(messenger, "bu_kampus/push_actions").apply {
             setMethodCallHandler { call, result ->
                 when (call.method) {

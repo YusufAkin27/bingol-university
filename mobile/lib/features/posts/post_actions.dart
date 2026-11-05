@@ -202,8 +202,9 @@ Future<void> _confirmBlock(BuildContext context, Session session, Post post, Voi
   }
 }
 
-/// Metin düzenleme (referans 11/3): en çok 7 kelime (~60 karakter), satır sonu yok; boş metin kaydedilmez; küfür filtresi
-/// (422) iletisi diyalogda gösterilir.
+/// Metin düzenleme (referans 11/3): istenen uzunlukta çok satırlı metin (sayaç/sınır metni yok; sunucu üst sınırında giriş
+/// sessizce durur); boş metin kaydedilmez; küfür filtresi (422) iletisi diyalogda gösterilir. Etiketler korunur: metinde
+/// hâlâ `@Ad Soyad` olarak duranların kimlikleri `mentionUserIds` ile gönderilir (silinen düşer).
 class _EditDialog extends StatefulWidget {
   const _EditDialog({required this.session, required this.post});
 
@@ -226,7 +227,7 @@ class _EditDialogState extends State<_EditDialog> {
   }
 
   bool get _empty => _c.text.trim().isEmpty;
-  bool get _canSave => !_busy && !_empty && postTextOk(_c.text);
+  bool get _canSave => !_busy && !_empty;
 
   Future<void> _save() async {
     final text = _c.text.trim();
@@ -240,7 +241,11 @@ class _EditDialogState extends State<_EditDialog> {
       _error = null;
     });
     try {
-      final p = await PostApi(widget.session).update(widget.post.id, text);
+      final keep = [
+        for (final m in widget.post.mentions)
+          if (text.contains('@${m.displayName}')) m.userId,
+      ];
+      final p = await PostApi(widget.session).update(widget.post.id, text, mentionUserIds: keep);
       if (mounted) Navigator.pop(context, p);
     } catch (e) {
       if (!mounted) return;
@@ -260,7 +265,6 @@ class _EditDialogState extends State<_EditDialog> {
     final t = context.bu;
     final tt = Theme.of(context).textTheme;
     final l = context.l10n;
-    final over = !postTextOk(_c.text);
     return _DialogShell(
       child: SingleChildScrollView(
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -271,7 +275,7 @@ class _EditDialogState extends State<_EditDialog> {
             decoration: BoxDecoration(
               color: t.sf,
               borderRadius: BorderRadius.circular(BuRadius.md),
-              border: Border.all(color: over || _error != null ? t.danger : t.bdStrong),
+              border: Border.all(color: _error != null ? t.danger : t.bdStrong),
             ),
             child: ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 72),
@@ -282,12 +286,11 @@ class _EditDialogState extends State<_EditDialog> {
                   controller: _c,
                   enabled: !_busy,
                   autofocus: true,
-                  maxLines: 3,
+                  maxLines: 8,
                   minLines: 2,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.deny(RegExp(r'[\r\n]')),
-                    LengthLimitingTextInputFormatter(kPostMaxChars),
-                  ],
+                  keyboardType: TextInputType.multiline,
+                  textCapitalization: TextCapitalization.sentences,
+                  inputFormatters: const [PostTextLimiter()],
                   onChanged: (_) => setState(() => _error = null),
                   style: tt.bodyLarge?.copyWith(color: t.ink),
                   decoration: InputDecoration(
@@ -303,15 +306,6 @@ class _EditDialogState extends State<_EditDialog> {
                   ),
                 ),
               ),
-            ),
-          ),
-          Align(
-            alignment: AlignmentDirectional.centerEnd,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: Text(l.gonderiWordCount(postWordCount(_c.text).toString(), kPostMaxWords.toString()),
-                  key: const ValueKey('edit-post-counter'),
-                  style: tt.labelSmall?.copyWith(color: over ? t.danger : t.mut, fontSize: 12, fontWeight: over ? FontWeight.w400 : FontWeight.w400)),
             ),
           ),
           if (_error != null)

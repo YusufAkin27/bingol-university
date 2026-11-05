@@ -1913,9 +1913,93 @@
   "anasayfaMealLunch": "Today’s meal · Lunch",
   "anasayfaAnnouncements": "Announcements",
   "anasayfaQuickAcademic": "Academic",
-  "gonderiTextHint": "Write a few words…",
+  "gonderiTextHint": "Write something…",
   "gonderiWordCount": "{n}/{max} words",
   "gonderiWordLimit": "You can write up to {max} words.",
+  "composeTrimTitle": "Trim video",
+  "composeTrimDone": "Done",
+  "composeTrimEdit": "Edit",
+  "composeTrimCta": "Trim video",
+  "composeTrimming": "Trimming video…",
+  "composeTrimSelected": "Selected length {dur}",
+  "@composeTrimSelected": {
+    "placeholders": {
+      "dur": {
+        "type": "String"
+      }
+    }
+  },
+  "composeTrimHint": "Drag the handles to choose a section. Up to {max}.",
+  "@composeTrimHint": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "composeTrimTooLong": "This video is too long. Choose a section up to {max} to share it.",
+  "@composeTrimTooLong": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "composeTrimStart": "Start",
+  "composeTrimEnd": "End",
+  "composeTrimPlay": "Play",
+  "composeTrimPause": "Pause",
+  "composeTooLongTitle": "Video is too long",
+  "composeTooLongBody": "This video is {dur} long. You can share up to {max}, so trim it first.",
+  "@composeTooLongBody": {
+    "placeholders": {
+      "dur": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "composeTooLongOther": "Choose another video",
+  "composeVideoLimitsHint": "Up to {n} seconds; trim longer videos.",
+  "@composeVideoLimitsHint": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "composeTagPerson": "Tag people",
+  "composeTagRemove": "Remove tag for {name}",
+  "@composeTagRemove": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "composeMentionSearch": "Search people you follow",
+  "composeMentionEmpty": "Follow people to tag them",
+  "composeMentionNoMatch": "No matching people",
+  "composeMentionMax": "You can tag up to {max} people.",
+  "@composeMentionMax": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "composeMentionDone": "Done",
+  "postMentionOpen": "Open the profile of {name}",
+  "@postMentionOpen": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "postComposeErrTextTooLong": "The post text is too long. Shorten it a little and try again.",
   "gonderiPickPhoto": "Choose a photo",
   "gonderiTakePhoto": "Take a photo",
   "gonderiPhotoRequired": "Choose a photo to share.",
