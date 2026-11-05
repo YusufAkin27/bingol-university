@@ -20,28 +20,40 @@ import io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingService
  */
 class BuMessagingService : FlutterFirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        val data = remoteMessage.data
-        if (!PushSpec.isRich(data, remoteMessage.notification != null)) {
-            super.onMessageReceived(remoteMessage)
-            return
+        var data: Map<String, String> = emptyMap()
+        try {
+            data = remoteMessage.data
+            if (!PushSpec.isRich(data, remoteMessage.notification != null)) {
+                super.onMessageReceived(remoteMessage)
+                return
+            }
+            if (BuApplication.foreground) return
+            BuRichRender.render(applicationContext, data)
+        } catch (error: Throwable) {
+            // Hicbir hata FCM isleyici surecini dusurmesin; bildirim kaybolmasin: duz yedek kart.
+            android.util.Log.w("RichPush", "onMessageReceived failed: " + error.javaClass.simpleName)
+            try { RichPushNotifications.showPlain(applicationContext, data) } catch (_: Throwable) { }
         }
-        if (BuApplication.foreground) return
-        BuRichRender.render(applicationContext, data)
     }
 }
 
 /** Eklentinin alicisi: rich + arka plan mesajda Dart motoru acilmaz (servis cizer); digerleri eklentiye gider. */
 class BuFcmReceiver : FlutterFirebaseMessagingReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val extras = intent.extras
-        if (extras != null && !BuApplication.foreground) {
-            val rich = try {
-                val m = RemoteMessage(extras)
-                PushSpec.isRich(m.data, m.notification != null)
-            } catch (_: Exception) { false }
-            if (rich) return
+        // Tum govde korunur: eklentinin alicisi goAsync() acar ve finish()'i kendisi cagirir; burada hicbir istisna sizmamali.
+        try {
+            val extras = intent.extras
+            if (extras != null && !BuApplication.foreground) {
+                val rich = try {
+                    val m = RemoteMessage(extras)
+                    PushSpec.isRich(m.data, m.notification != null)
+                } catch (_: Throwable) { false }
+                if (rich) return
+            }
+            super.onReceive(context, intent)
+        } catch (error: Throwable) {
+            android.util.Log.w("RichPush", "FCM receiver failed: " + error.javaClass.simpleName)
         }
-        super.onReceive(context, intent)
     }
 }
 

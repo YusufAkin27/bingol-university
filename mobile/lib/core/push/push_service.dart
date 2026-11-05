@@ -208,7 +208,11 @@ class PushService with WidgetsBindingObserver {
         WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_nativePush(payload)));
         WidgetsBinding.instance.scheduleFrame();
       }
-    } on MissingPluginException { /* Older native builds retain the FCM tap path. */ }
+    } on MissingPluginException {
+      /* Older native builds retain the FCM tap path. */
+    } on PlatformException {
+      /* Yerel köprü hatası açılışı düşürmez. */
+    }
   }
 
   /// Yerel hatırlatma dokunuşları (soğuk başlatma: bekleyen yük; ön plan: 'onTap') push ile aynı yönlendiriciye gider.
@@ -380,7 +384,13 @@ class PushService with WidgetsBindingObserver {
     }
     // Kullanıcıya özel yerel hatırlatmalar çıkışta silinir (başka hesapta görünmesin).
     unawaited(LocalReminders.instance.cancelAll());
-    try { await PushActions.channel.invokeMethod<void>('clear'); } on MissingPluginException { }
+    try {
+      await PushActions.channel.invokeMethod<void>('clear');
+    } on MissingPluginException {
+      /* Eski/yerel kod yok. */
+    } on PlatformException {
+      /* Yerel temizlik hatasi çıkışı engellemez. */
+    }
     final t = _token ?? registrar.token;
     _token = null;
     registrar.reset();
@@ -420,6 +430,7 @@ class PushService with WidgetsBindingObserver {
         }
       }
       on MissingPluginException { }
+      on PlatformException { rich = false; /* Yetenek/yetki kurulamadı: standart FCM kartı (zengin yük çizilemez). */ }
     }
     await _api.register(token, platform: Platform.isIOS ? 'IOS' : 'ANDROID', appVersion: _appVersion, richNotifications: rich);
     unawaited(_api.setState(token, active.foreground)); // uç yoksa sessiz

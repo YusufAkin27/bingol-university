@@ -34,10 +34,14 @@ import org.json.JSONObject
  */
 class RichPushActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val tag = intent.getStringExtra("tag") ?: return
-        when (intent.getStringExtra("kind")) {
-            "ack" -> RichPushNotifications.dismiss(context, tag)
-            "reply" -> RichPushNotifications.reply(context, intent, tag, goAsync())
+        try {
+            val tag = intent.getStringExtra("tag") ?: return
+            when (intent.getStringExtra("kind")) {
+                "ack" -> RichPushNotifications.dismiss(context, tag)
+                "reply" -> RichPushNotifications.reply(context, intent, tag, goAsync())
+            }
+        } catch (error: Throwable) {
+            android.util.Log.w("RichPush", "Action receiver failed: " + error.javaClass.simpleName)
         }
     }
 }
@@ -267,22 +271,31 @@ object RichPushNotifications {
         }
         publish(null, null, null, false)
         if (!plan.wantsAvatar && !plan.wantsImage) return
+        // Medya isi bir iscide calisir: burada firlayan HICBIR hata (OOM dahil) yakalanmadan birakilamaz, aksi halde surec olur.
+        // Metinli kart zaten yayinda; gorsel basarisizsa kart gorselsiz kalir (gerekirse duz kartla degistirilir).
         val job = Runnable {
-            val person = bitmap(context, data["senderAvatarUrl"], 128)
-            val picture = bitmap(context, data["imageUrl"], 512)
-            val photo = if (plan.wideImage && picture != null) PushArt.roundedCrop(picture, dp(context, 320), dp(context, 107), dp(context, 12).toFloat()) else null
-            val thumb = if (!plan.wideImage && picture != null) PushArt.roundedCrop(picture, dp(context, 56), dp(context, 56), dp(context, 12).toFloat()) else null
-            synchronized(renderLock) {
-                val current = manager.activeNotifications.firstOrNull { it.tag == tag }?.notification
-                // Kapatilmis karti diriltmez, ayni sohbetteki daha yeni mesajin yerine gecmez.
-                if ((person != null || photo != null || thumb != null) && current?.extras?.getString("bu.renderId") == renderId) {
-                    try { publish(person, thumb, photo, true) } catch (_: Exception) { }
+            try {
+                val person = bitmap(context, data["senderAvatarUrl"], 128)
+                val picture = bitmap(context, data["imageUrl"], 512)
+                val photo = if (plan.wideImage && picture != null) PushArt.roundedCrop(picture, dp(context, 320), dp(context, 107), dp(context, 12).toFloat()) else null
+                val thumb = if (!plan.wideImage && picture != null) PushArt.roundedCrop(picture, dp(context, 56), dp(context, 56), dp(context, 12).toFloat()) else null
+                synchronized(renderLock) {
+                    val current = manager.activeNotifications.firstOrNull { it.tag == tag }?.notification
+                    // Kapatilmis karti diriltmez, ayni sohbetteki daha yeni mesajin yerine gecmez.
+                    if ((person != null || photo != null || thumb != null) && current?.extras?.getString("bu.renderId") == renderId) {
+                        try { publish(person, thumb, photo, true) } catch (error: Throwable) {
+                            android.util.Log.w("RichPush", "Media publish failed: " + error.javaClass.simpleName)
+                            try { showPlain(context, data) } catch (_: Throwable) { }
+                        }
+                    }
                 }
+            } catch (error: Throwable) {
+                android.util.Log.w("RichPush", "Media job failed: " + error.javaClass.simpleName)
             }
         }
         if (awaitMedia) {
             // Servis yasadigi surece (onMessageReceived donene dek) sinirli bekleme: surec dondurulmeden gorsel yetisir.
-            try { mediaWorker.submit(job).get(3, java.util.concurrent.TimeUnit.SECONDS) } catch (_: Exception) { }
+            try { mediaWorker.submit(job).get(3, java.util.concurrent.TimeUnit.SECONDS) } catch (_: Throwable) { }
         } else mediaWorker.execute(job)
     }
 
@@ -343,6 +356,15 @@ object RichPushNotifications {
      * kaldirilir. Motor yok/hata/zaman asimi: AYNI actionId ile "dokunarak gonder" bildirimi (sunucuda clientId ile tekil).
      */
     fun reply(context: Context, intent: Intent, tag: String, pending: BroadcastReceiver.PendingResult) {
+        try {
+            replyInner(context, intent, tag, pending)
+        } catch (error: Throwable) {
+            android.util.Log.w("RichPush", "Reply failed: " + error.javaClass.simpleName)
+            try { pending.finish() } catch (_: Throwable) { }
+        }
+    }
+
+    private fun replyInner(context: Context, intent: Intent, tag: String, pending: BroadcastReceiver.PendingResult) {
         val app = context.applicationContext
         val manager = app.getSystemService(NotificationManager::class.java)
         val text = RemoteInput.getResultsFromIntent(intent)?.getCharSequence(KEY_REPLY)?.toString()?.trim().orEmpty()
@@ -366,7 +388,8 @@ object RichPushNotifications {
             }
         }
         val bridge = actionBridge
-        if (bridge == null || !bridge(payload, ::done)) done(false) else main.postDelayed({ done(false) }, 8000)
+        val handedOver = try { bridge != null && bridge(payload, ::done) } catch (_: Throwable) { false }
+        if (!handedOver) done(false) else main.postDelayed({ done(false) }, 8000)
     }
 
     private fun replyFailed(context: Context, data: Map<String, String>, tag: String, payload: Map<String, String>) {

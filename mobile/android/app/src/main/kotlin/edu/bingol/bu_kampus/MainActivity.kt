@@ -105,14 +105,14 @@ class MainActivity : FlutterActivity() {
         // Satir ici yanit (RemoteInput): Flutter motoru hazirsa metin ekran acilmadan Dart PushActions'a gider.
         RichPushNotifications.actionBridge = { payload, done ->
             val channel = pushChannel
-            if (channel == null || !pushReady) false else {
+            if (channel == null || !pushReady) false else try {
                 channel.invokeMethod("onAction", payload, object : MethodChannel.Result {
                     override fun success(result: Any?) = done(result == true)
                     override fun error(code: String, message: String?, details: Any?) = done(false)
                     override fun notImplemented() = done(false)
                 })
                 true
-            }
+            } catch (_: Throwable) { false }
         }
         val ch = MethodChannel(messenger, "bu_kampus/notify")
         notifyChannel = ch
