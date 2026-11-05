@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/theme.dart';
 import '../../widgets/bu.dart';
-import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import 'profil_widgets.dart' show ProfilFlatGroup, ProfilTopBar;
 import 'profily_widgets.dart';
@@ -176,9 +174,9 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
       button: true,
       label: context.l10n.profilyardUnblockOf(name),
       excludeSemantics: true,
-      // Stitch v3: sağda çizgili (bdStrong) "Engeli kaldır", 36 dp görünür hap, 48 dp dokunma alanı.
+      // Sağda çizgili (bdStrong) "Engeli kaldır", 36 dp görünür düğme (12 dp köşe), 48 dp dokunma alanı.
       child: InkWell(
-        customBorder: const StadiumBorder(),
+        customBorder: const RoundedRectangleBorder(borderRadius: BuRadius.bControl),
         onTap: busy ? null : () => _unblock(u),
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 48, minWidth: 96),
@@ -189,7 +187,7 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
               height: 36,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               alignment: Alignment.center,
-              decoration: BoxDecoration(shape: BoxShape.rectangle, borderRadius: BorderRadius.circular(999), border: Border.all(color: t.bdStrong)),
+              decoration: BoxDecoration(shape: BoxShape.rectangle, borderRadius: BuRadius.bControl, border: Border.all(color: t.bdStrong)),
               child: busy
                   ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.4, color: t.ink))
                   : Text(context.l10n.profilePrefsUnblock,

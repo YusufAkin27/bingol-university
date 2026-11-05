@@ -343,10 +343,10 @@ class _MyEventsPageState extends State<MyEventsPage> {
     ];
 
     return BuCard(
-      style: BuCardStyle.elevated,
+      style: BuCardStyle.outlined,
       key: ValueKey('my-ev-$id'),
       padding: const EdgeInsetsDirectional.fromSTEB(14, 14, 10, 12),
-      radius: 20,
+      radius: 16,
       onTap: () => _open(e),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -366,13 +366,13 @@ class _MyEventsPageState extends State<MyEventsPage> {
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 if (org != null && org.isNotEmpty)
                   Row(mainAxisSize: MainAxisSize.min, children: [
-                    ExcludeSemantics(child: Icon(BuIcons.users, size: 14, color: past ? t.mut : t.prText)),
+                    ExcludeSemantics(child: Icon(BuIcons.users, size: 14, color: past ? t.mut : t.ink)),
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(org,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: past ? t.mut : t.prText)),
+                          style: tx.labelMedium!.copyWith(color: past ? t.mut : t.ink)),
                     ),
                   ]),
                 const SizedBox(height: 2),
@@ -477,7 +477,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
   }
 }
 
-/// "Katılıyorum" hapı: açık mavi zemin + yeşil nokta.
+/// "Katılıyorum" etiketi: nötr (sf2) zemin + yeşil durum noktası.
 class _GoingPill extends StatelessWidget {
   const _GoingPill(this.label);
 
@@ -488,7 +488,7 @@ class _GoingPill extends StatelessWidget {
     final t = context.bu;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(color: t.tint(1).bg, borderRadius: BorderRadius.circular(999)),
+      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(999)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         Container(width: 8, height: 8, decoration: BoxDecoration(color: t.ok, shape: BoxShape.circle)),
         const SizedBox(width: 8),

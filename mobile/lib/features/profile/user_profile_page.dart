@@ -291,11 +291,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
         Widget item(Key key, IconData icon, String label, VoidCallback onTap, {bool danger = false}) => Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: Material(
-                color: danger ? t.soft : t.sf2,
-                borderRadius: BorderRadius.circular(16),
+                color: t.sf2,
+                borderRadius: BorderRadius.circular(12),
                 child: InkWell(
                   key: key,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(12),
                   onTap: () {
                     Navigator.pop(c);
                     onTap();
@@ -305,10 +305,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       child: Row(children: [
-                        AkadIconTile(icon: icon, bg: danger ? t.pr : t.sf, fg: danger ? t.onPr : t.ink, size: 40, radius: 12, iconSize: 20),
+                        AkadIconTile(icon: icon, bg: t.sf, fg: danger ? t.danger : t.ink, size: 40, radius: 12, iconSize: 20),
                         const SizedBox(width: 14),
-                        Expanded(child: Text(label, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: danger ? t.onSoft : t.ink))),
-                        Icon(buDirIcon(context, BuIcons.chevronRight), size: 18, color: danger ? t.pr : t.mut),
+                        Expanded(child: Text(label, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: danger ? t.danger : t.ink))),
+                        Icon(buDirIcon(context, BuIcons.chevronRight), size: 18, color: t.mut),
                       ]),
                     ),
                   ),
@@ -383,7 +383,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Widget _card({required Widget child, EdgeInsetsGeometry padding = const EdgeInsets.all(16)}) => DecoratedBox(
-        decoration: BoxDecoration(color: context.bu.sf, borderRadius: BorderRadius.circular(24), border: Border.all(color: context.bu.bd)),
+        decoration: BoxDecoration(color: context.bu.sf, borderRadius: BorderRadius.circular(16), border: Border.all(color: context.bu.bd)),
         child: Padding(padding: padding, child: child),
       );
 
@@ -426,17 +426,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
         if (_blocked && !_self) ...[
           Container(
             padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(16)),
+            decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(12), border: Border.all(color: t.bd)),
             child: Row(children: [
-              Icon(BuIcons.shieldBan, size: 20, color: t.onSoft),
+              Icon(BuIcons.shieldBan, size: 20, color: t.danger),
               const SizedBox(width: 12),
-              Expanded(child: Text(l.profileBlocked, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: t.onSoft))),
+              Expanded(child: Text(l.profileBlocked, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
             ]),
           ),
           const SizedBox(height: 12),
         ],
-        _card(
-          child: Column(children: [
+        // Kart YOK: avatar, büyük sade ad, sayaç satırı ve eylemler doğrudan sayfa zemininde.
+        Column(children: [
             GestureDetector(
               key: const Key('profile-avatar'),
               onTap: _viewAvatar,
@@ -449,8 +449,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     child: Container(
                       width: 32,
                       height: 32,
-                      decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle, border: Border.all(color: t.sf, width: 3)),
-                      child: Icon(BuIcons.ban, size: 16, color: t.onPr),
+                      decoration: BoxDecoration(color: t.danger, shape: BoxShape.circle, border: Border.all(color: t.bg, width: 3)),
+                      child: Icon(BuIcons.ban, size: 16, color: t.onMedia),
                     ),
                   ),
               ]),
@@ -458,7 +458,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             const SizedBox(height: 12),
             Semantics(
               header: true,
-              child: Text(_name, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
+              child: Text(_name, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.displaySmall!.copyWith(fontWeight: BuType.emphasisWeight, color: t.ink)),
             ),
             if (_blocked && dept.isNotEmpty) ...[
               const SizedBox(height: 4),
@@ -480,8 +480,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
               const SizedBox(height: 8),
               AkadPill(s.followedByMe ? l.profilyardFollowMutual : l.profilyardFollowsYou,
                   key: const ValueKey('followRelationPill'),
-                  bg: s.followedByMe ? t.tint(1).bg : t.soft,
-                  fg: s.followedByMe ? t.tint(1).fg : t.onSoft,
+                  bg: t.sf2,
+                  fg: t.ink,
                   icon: s.followedByMe ? BuIcons.arrowLeftRight : BuIcons.userPlus),
             ],
             const SizedBox(height: 16),
@@ -502,16 +502,15 @@ class _UserProfilePageState extends State<UserProfilePage> {
               _actions(t, s),
             ],
           ]),
-        ),
         if (avatarHidden) ...[
           const SizedBox(height: 14),
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(20)),
+            decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16), border: Border.all(color: t.bd)),
             child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Container(width: 32, height: 32, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle), child: Icon(BuIcons.info, size: 18, color: t.onPr)),
+              Container(width: 32, height: 32, decoration: BoxDecoration(color: t.sf3, shape: BoxShape.circle), child: Icon(BuIcons.info, size: 18, color: t.ink)),
               const SizedBox(width: 12),
-              Expanded(child: Text(l.p20AvatarHidden, style: tx.bodyMedium!.copyWith(color: t.onSoft))),
+              Expanded(child: Text(l.p20AvatarHidden, style: tx.bodyMedium!.copyWith(color: t.ink))),
             ]),
           ),
         ],
@@ -559,7 +558,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         IconButton(
           constraints: const BoxConstraints(minWidth: 54, minHeight: BuSize.button),
           tooltip: l.icerikUserMenu,
-          style: IconButton.styleFrom(backgroundColor: t.sf2, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+          style: IconButton.styleFrom(backgroundColor: t.sf2, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
           icon: Icon(BuIcons.ellipsis, size: 20, color: t.ink),
           onPressed: _openMenu,
         ),
@@ -713,9 +712,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 ]),
                 const SizedBox(height: 14),
                 const Row(children: [
-                  Expanded(child: BuSkeleton(height: 48, radius: 24)),
+                  Expanded(child: BuSkeleton(height: 48, radius: 12)),
                   SizedBox(width: 10),
-                  Expanded(child: BuSkeleton(height: 48, radius: 24)),
+                  Expanded(child: BuSkeleton(height: 48, radius: 12)),
                 ]),
               ]),
             ),
@@ -775,11 +774,6 @@ class _AvatarViewer extends StatelessWidget {
     return Scaffold(
       backgroundColor: t.scrim,
       body: Stack(children: [
-        Positioned.fill(
-          child: DecoratedBox(
-            decoration: BoxDecoration(gradient: RadialGradient(radius: .85, colors: [BuTokens.light.ink.withValues(alpha: .55), t.scrim])),
-          ),
-        ),
         Center(
           child: InteractiveViewer(
             minScale: 1,

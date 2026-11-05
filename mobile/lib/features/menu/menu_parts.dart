@@ -133,7 +133,7 @@ class _MenuDayStripState extends State<MenuDayStrip> {
                 child: AnimatedContainer(
                   duration: dur,
                   width: _pill,
-                  decoration: BoxDecoration(color: sel ? t.soft : t.soft.withValues(alpha: 0), borderRadius: BorderRadius.circular(BuRadius.pill)),
+                  decoration: BoxDecoration(color: sel ? t.pr : t.pr.withValues(alpha: 0), borderRadius: BorderRadius.circular(BuRadius.pill)),
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   alignment: Alignment.center,
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -141,7 +141,7 @@ class _MenuDayStripState extends State<MenuDayStrip> {
                     AnimatedDefaultTextStyle(
                       duration: dur,
                       maxLines: 1,
-                      style: BuType.caption.copyWith(fontSize: 11.5, height: 1.2, fontWeight: sel ? FontWeight.w400 : BuType.emphasisWeight, color: sel ? t.prText : t.mut),
+                      style: BuType.caption.copyWith(fontSize: 11.5, height: 1.2, color: sel ? t.onPr : t.mut),
                       child: Text(dayName),
                     ),
                     const SizedBox(height: 2),
@@ -151,8 +151,7 @@ class _MenuDayStripState extends State<MenuDayStrip> {
                       style: BuType.caption.copyWith(
                           fontSize: 15,
                           height: 1.3,
-                          fontWeight: sel ? FontWeight.w400 : FontWeight.w400,
-                          color: sel ? t.prText : t.ink,
+                          color: sel ? t.onPr : t.ink,
                           fontFeatures: const [FontFeature.tabularFigures()]),
                       child: Text('${d.day}'),
                     ),
@@ -197,7 +196,7 @@ class MenuMealCard extends StatelessWidget {
     final t = context.bu;
     final l = context.l10n;
     return DecoratedBox(
-      decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(22), border: Border.all(color: t.bd), boxShadow: BuElevation.of(context, 1)),
+      decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(16), border: Border.all(color: t.bd)),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [

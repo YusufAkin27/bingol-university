@@ -40,7 +40,7 @@ class _MenuPhotoGateState extends State<MenuPhotoGate> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted && _failedUrl != url) setState(() => _failedUrl = url);
         });
-        return ColoredBox(color: t.soft);
+        return ColoredBox(color: t.sf2);
       },
     );
     return widget.builder(context, photo);

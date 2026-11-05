@@ -181,8 +181,8 @@ class _LegalReacceptPageState extends State<LegalReacceptPage> {
                     child: Container(
                       width: 64,
                       height: 64,
-                      decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-                      child: Icon(BuIcons.triangleAlert, size: 30, color: t.pr),
+                      decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle, border: Border.all(color: t.bd)),
+                      child: Icon(BuIcons.triangleAlert, size: 30, color: t.ink),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -347,7 +347,7 @@ class _AckCard extends StatelessWidget {
           type: MaterialType.transparency,
           child: InkWell(
             key: const ValueKey('legalReacceptAck'),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(16),
             onTap: enabled
                 ? () {
                     authHaptic(AuthHaptic.tap);

@@ -24,9 +24,10 @@ import 'profil_widgets.dart';
 
 const _langNames = {'tr': 'Türkçe', 'en': 'English', 'ar': 'العربية'};
 
-/// Ayarlar (Stitch v3 kategori 5, birebir): üst çubuk (geri + başlık), bölüm etiketi 13/500 mut (büyük harf değil),
-/// tam genişlik 56 dp satırlar (sf zemin, 1 dp bd ayırıcı; kutu/kart/simge karosu yok), satır yazısı 16 ink, değer 15 mut,
-/// chevron 20 mut. Bölümler: Görünüm (Dil, Tema), Sohbet, Bildirimler, Gizlilik ve hesap. En altta soluk sürüm yazısı.
+/// Ayarlar: üst çubuk (geri + başlık), bölüm etiketi 13 mut (büyük harf değil), ince çerçeveli 16 dp gruplar
+/// (56 dp satırlar, 1 dp ince ayırıcı; simge karosu yok), satır yazısı 16 ink, değer 15 mut, chevron 20 mut.
+/// Bölümler: Görünüm (Dil, Tema: önizlemeli Sistem/Açık/Koyu seçici), Sohbet, Bildirimler, Gizlilik ve hesap.
+/// En altta soluk sürüm yazısı.
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key, required this.session, required this.themeController, this.push, this.localeController});
 
@@ -134,35 +135,6 @@ class _SettingsPageState extends State<SettingsPage> {
     } catch (_) {}
   }
 
-  static const _modes = ['system', 'light', 'dark'];
-
-  String _modeId() => switch (widget.themeController.mode) {
-        ThemeMode.system => 'system',
-        ThemeMode.light => 'light',
-        ThemeMode.dark => 'dark',
-      };
-
-  String _modeName(String id) => switch (id) {
-        'light' => context.l10n.themeLight,
-        'dark' => context.l10n.themeDark,
-        _ => context.l10n.themeSystem,
-      };
-
-  Future<void> _pickTheme() async {
-    final chosen = await showProfilChoiceSheet(
-      context,
-      title: context.l10n.profil1Theme,
-      selected: _modeId(),
-      options: [for (final m in _modes) (m, _modeName(m))],
-    );
-    if (chosen == null) return;
-    widget.themeController.set(const {
-      'system': ThemeMode.system,
-      'light': ThemeMode.light,
-      'dark': ThemeMode.dark,
-    }[chosen]!);
-  }
-
   void _push(Widget page, [String? screen]) => Navigator.push(context, MaterialPageRoute(settings: RouteSettings(name: screen), builder: (_) => page));
 
   @override
@@ -197,13 +169,30 @@ class _SettingsPageState extends State<SettingsPage> {
                     value: langName,
                     onTap: lc != null ? _pickLang : null,
                   ),
-                  ProfilFlatRow(
-                    plainIcon: true,
+                  // Tema: Sistem / Açık / Koyu tek dokunuşla (önizlemeli seçici; alt sayfa yok).
+                  Column(
                     key: const ValueKey('settings-theme'),
-                    icon: BuIcons.palette,
-                    label: l.profil1Theme,
-                    value: _modeName(_modeId()),
-                    onTap: _pickTheme,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsetsDirectional.fromSTEB(16, 14, 16, 12),
+                        child: Row(children: [
+                          ExcludeSemantics(child: Icon(BuIcons.palette, size: 22, color: t.ink)),
+                          const SizedBox(width: 14),
+                          Expanded(child: Text(l.profil1Theme, style: tx.bodyLarge!.copyWith(fontSize: 16, color: t.ink))),
+                        ]),
+                      ),
+                      ListenableBuilder(
+                        listenable: widget.themeController,
+                        builder: (_, __) => ProfilThemePicker(
+                          mode: widget.themeController.mode,
+                          onChanged: widget.themeController.set,
+                          systemLabel: l.themeSystem,
+                          lightLabel: l.themeLight,
+                          darkLabel: l.themeDark,
+                        ),
+                      ),
+                    ],
                   ),
                 ]),
                 ProfilFlatSection(l.navChat),

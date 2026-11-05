@@ -267,10 +267,9 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
       constraints: BoxConstraints(maxWidth: maxW),
       padding: const EdgeInsetsDirectional.fromSTEB(15, 14, 15, 8),
       decoration: BoxDecoration(
-        color: staff ? t.sf : t.soft,
+        color: staff ? t.sf : t.sf2,
         border: staff ? Border.all(color: t.bd) : null,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: staff ? BuElevation.of(context, 1) : null,
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Text('${m['text'] ?? ''}', style: tx.bodyLarge!.copyWith(fontSize: 16, height: 1.45, color: t.ink)),

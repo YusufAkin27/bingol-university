@@ -15,14 +15,11 @@ class DestekCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    return DecoratedBox(
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(22), boxShadow: BuElevation.of(context, 1)),
-      child: Material(
-        color: t.sf,
-        clipBehavior: clip ? Clip.antiAlias : Clip.none,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: BorderSide(color: t.bd)),
-        child: padding == null ? child : Padding(padding: padding!, child: child),
-      ),
+    return Material(
+      color: t.sf,
+      clipBehavior: clip ? Clip.antiAlias : Clip.none,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: t.bd)),
+      child: padding == null ? child : Padding(padding: padding!, child: child),
     );
   }
 }
@@ -59,7 +56,7 @@ class DestekChipRow extends StatelessWidget {
       );
 }
 
-/// Alta sabit eylem çubuğu: zemin rengine doğru solan geçiş (tasarımdaki .fadeb).
+/// Alta sabit eylem çubuğu: düz zemin + üstte ince ayırıcı (gradyan yok).
 class DestekBottomBar extends StatelessWidget {
   const DestekBottomBar({super.key, required this.child});
 
@@ -68,15 +65,9 @@ class DestekBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    // Gradyan YOK: düz sayfa zemini + üstte ince ayırıcı (içerik altından kayarken düğme çubuğu net ayrışır).
     return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.bottomCenter,
-          end: Alignment.topCenter,
-          stops: const [.7, 1],
-          colors: [t.bg, t.bg.withValues(alpha: 0)],
-        ),
-      ),
+      decoration: BoxDecoration(color: t.bg, border: Border(top: BorderSide(color: t.bdSubtle))),
       child: Padding(
         padding: EdgeInsetsDirectional.fromSTEB(20, 16, 20, 16 + MediaQuery.paddingOf(context).bottom),
         child: child,

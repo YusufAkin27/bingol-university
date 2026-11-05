@@ -383,7 +383,7 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
             child: TextButton(
               onPressed: () => PermissionService.instance.openSettings(),
               style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: EdgeInsets.zero),
-              child: Text(l.p20RemOpenSettings, style: BuType.caption.copyWith(fontSize: 14, fontWeight: FontWeight.w400, color: t.prText)),
+              child: Text(l.p20RemOpenSettings, style: BuType.caption.copyWith(fontSize: 14, color: t.ink)),
             ),
           ),
         ]),
@@ -556,8 +556,8 @@ class _PrefCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => BuCard(
-        radius: 22,
-        style: BuCardStyle.elevated,
+        radius: 16,
+        style: BuCardStyle.outlined,
         padding: EdgeInsets.zero,
         child: child,
       );
