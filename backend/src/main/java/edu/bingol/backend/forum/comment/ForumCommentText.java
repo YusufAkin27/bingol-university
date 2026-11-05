@@ -15,12 +15,12 @@ final class ForumCommentText {
 
     private static final Pattern HTML_COMMENT = Pattern.compile("<!--.*?-->", Pattern.DOTALL);
     private static final Pattern TAG = Pattern.compile("</?[A-Za-z][^<>]{0,300}>");
-    private static final Pattern CONTROL = Pattern.compile("[\p{Cc}&&[^\n]]");
+    private static final Pattern CONTROL = Pattern.compile("[\\p{Cc}&&[^\\n]]");
     /** Yon degistirme (RLO/LRO/isolate), sifir genislik bosluk, BOM, word joiner: gorunmez yanilticilik. ZWNJ/ZWJ kalir. */
     private static final Pattern INVISIBLE = Pattern.compile("[\u202A-\u202E\u2066-\u2069\u200B\uFEFF\u2060]");
-    private static final Pattern EDGE_WS = Pattern.compile("^[\s\p{Z}]+|[\s\p{Z}]+$");
-    private static final Pattern MANY_NL = Pattern.compile("\n{3,}");
-    private static final Pattern LINE_TRAIL = Pattern.compile("[ \t\p{Z}]+\n");
+    private static final Pattern EDGE_WS = Pattern.compile("^[\\s\\p{Z}]+|[\\s\\p{Z}]+$");
+    private static final Pattern MANY_NL = Pattern.compile("\\n{3,}");
+    private static final Pattern LINE_TRAIL = Pattern.compile("[ \\t\\p{Z}]+\\n");
 
     /** Temizler; bos (yalniz bosluk) ise null. */
     static String clean(String raw) {

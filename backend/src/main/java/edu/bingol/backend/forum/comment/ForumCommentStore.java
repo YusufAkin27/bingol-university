@@ -193,7 +193,8 @@ class ForumCommentStore {
         named.query("SELECT c.id AS cid, c.parent_comment_id AS pid FROM forum_comment c "
                 + "WHERE c.id = :r OR c.root_comment_id = :r", new MapSqlParameterSource("r", root), (rs, i) -> {
                     long pid = rs.getLong("pid");
-                    parentOf.put(rs.getLong("cid"), rs.wasNull() ? null : pid);
+                    boolean noParent = rs.wasNull(); // wasNull son okunan sutun icindir: ONCE bakilir
+                    parentOf.put(rs.getLong("cid"), noParent ? null : pid);
                     return null;
                 });
         List<Long> rev = new ArrayList<>();

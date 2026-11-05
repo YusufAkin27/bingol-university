@@ -17,7 +17,6 @@ import edu.bingol.backend.forum.comment.ForumCommentDtos.LikeState;
 import edu.bingol.backend.forum.comment.spi.ForumCommentLookup;
 import edu.bingol.backend.forum.comment.spi.ForumCommentStateService;
 import edu.bingol.backend.forum.topic.ForumTopic;
-import edu.bingol.backend.forum.topic.ForumTopicRepository;
 import edu.bingol.backend.moderation.UserBlock;
 import edu.bingol.backend.moderation.UserBlockRepository;
 import edu.bingol.backend.user.User;
@@ -38,19 +37,31 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /** Forum yorum sistemi (B alani; H2): yazma, agac, yer tutucu, sayaclar, begeni yarisi, siralama + imlec, anonimlik, engel. */
-@SpringBootTest
+@SpringBootTest(properties = "spring.messages.basename=i18n/messages,i18n/forum,i18n/forumc")
 class ForumCommentServiceTest {
 
     @Autowired ForumCommentService service;
     @Autowired ForumCommentStateService state;
     @Autowired ForumCommentLookup lookup;
     @Autowired ForumCommentAccountPurger purger;
-    @Autowired ForumTopicRepository topicRepo;
+    @Autowired jakarta.persistence.EntityManager em;
+    @Autowired org.springframework.transaction.PlatformTransactionManager tm;
     @Autowired UserRepository users;
     @Autowired UserBlockRepository blocks;
     @Autowired JdbcTemplate jdbc;
 
     private static final ObjectMapper OM = new ObjectMapper().findAndRegisterModules();
+
+    @org.junit.jupiter.api.BeforeEach
+    void turkish() {
+        // Istek disi cagrilarda dil JVM yerelinden gelir: Turkce metni sabitle
+        org.springframework.context.i18n.LocaleContextHolder.setLocale(java.util.Locale.forLanguageTag("tr"));
+    }
+
+    @org.junit.jupiter.api.AfterEach
+    void resetLocale() {
+        org.springframework.context.i18n.LocaleContextHolder.resetLocaleContext();
+    }
 
     // ---------------------------------------------------------------- yardimcilar
 
@@ -64,13 +75,7 @@ class ForumCommentServiceTest {
     }
 
     private ForumTopic topic(User author, boolean anonymous) {
-        ForumTopic t = new ForumTopic();
-        t.setUserId(author.getId());
-        t.setCategoryId(1L);
-        t.setTitle("Baslik");
-        t.setBody("Aciklama");
-        t.setAnonymous(anonymous);
-        return topicRepo.saveAndFlush(t);
+        return ForumTopicFixtures.topic(em, tm, author.getId(), anonymous);
     }
 
     private ForumTopic topic(User author) {
@@ -687,7 +692,7 @@ class ForumCommentServiceTest {
         assertIntegrity(t);
 
         // sahibi silmis yorum geri getirilemez
-        service.delete(a.getId(), child.id());
+        service.delete(owner.getId(), child.id());
         assertEquals("FORUM_COMMENT_DELETED", code(() -> state.restore(child.id())));
         assertEquals("FORUM_COMMENT_NOT_FOUND", code(() -> state.remove(31_337L, "yok")));
     }

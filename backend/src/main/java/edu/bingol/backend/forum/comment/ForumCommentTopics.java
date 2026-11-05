@@ -1,7 +1,7 @@
 package edu.bingol.backend.forum.comment;
 
 import edu.bingol.backend.forum.notify.spi.ForumEventPublisher;
-import edu.bingol.backend.forum.topic.ForumAnonAliasService;
+import edu.bingol.backend.forum.topic.spi.ForumAuthorResolver;
 import edu.bingol.backend.forum.topic.spi.ForumMuteLookup;
 import edu.bingol.backend.forum.topic.spi.ForumTopicLookup;
 import edu.bingol.backend.forum.topic.spi.TopicRef;
@@ -24,15 +24,15 @@ class ForumCommentTopics {
     record TopicInfo(long id, long authorId, boolean anonymous, boolean locked) {}
 
     private final ForumTopicLookup topics;
-    private final ForumAnonAliasService aliases;
+    private final ForumAuthorResolver authors;
     private final ObjectProvider<ForumMuteLookup> mutes;
     private final ObjectProvider<ForumEventPublisher> events;
     private final JdbcTemplate jdbc;
 
-    ForumCommentTopics(ForumTopicLookup topics, ForumAnonAliasService aliases, ObjectProvider<ForumMuteLookup> mutes,
+    ForumCommentTopics(ForumTopicLookup topics, ForumAuthorResolver authors, ObjectProvider<ForumMuteLookup> mutes,
                        ObjectProvider<ForumEventPublisher> events, JdbcTemplate jdbc) {
         this.topics = topics;
-        this.aliases = aliases;
+        this.authors = authors;
         this.mutes = mutes;
         this.events = events;
         this.jdbc = jdbc;
@@ -47,9 +47,12 @@ class ForumCommentTopics {
         return new TopicInfo(t.id(), t.authorId(), t.anonymous(), t.locked());
     }
 
-    /** (konu, kullanici) icin kararli anonim takma ad numarasi (yoksa olusturur). */
-    int ensureAlias(Long topicId, Long userId) {
-        return aliases.aliasFor(topicId, userId);
+    /**
+     * (konu, kullanici) icin kararli anonim takma adi ONCEDEN tahsis ettirir: A'nin yazar cozumleyicisi eksik numarayi
+     * olusturur, boylece numara ilk anonim yorumun yazildigi siraya gore kalici olur.
+     */
+    void ensureAlias(Long topicId, Long userId) {
+        authors.resolve(userId, new ForumAuthorResolver.Key(topicId, userId, true));
     }
 
     /** Bakanin sessize aldigi kullanicilar (D yoksa bos). */

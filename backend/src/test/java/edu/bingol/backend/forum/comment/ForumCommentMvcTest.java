@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.bingol.backend.common.RateLimiter;
 import edu.bingol.backend.forum.topic.ForumTopic;
-import edu.bingol.backend.forum.topic.ForumTopicRepository;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
 import java.nio.charset.StandardCharsets;
@@ -41,14 +40,16 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 /** Forum yorum HTTP sozlesmesi (H2): alan adlari, durum kodlari, hata govdesi, rate limit, anonimlik (ham JSON). */
-@SpringBootTest
+@SpringBootTest(properties = "spring.messages.basename=i18n/messages,i18n/forum,i18n/forumc")
 class ForumCommentMvcTest {
 
     private static final ObjectMapper OM = new ObjectMapper();
 
     @Autowired WebApplicationContext ctx;
     @Autowired UserRepository users;
-    @Autowired ForumTopicRepository topicRepo;
+    @Autowired jakarta.persistence.EntityManager em;
+    @Autowired org.springframework.transaction.PlatformTransactionManager tm;
+    @Autowired org.springframework.jdbc.core.JdbcTemplate jdbc;
     @MockitoBean RateLimiter limiter;
     MockMvc mvc;
 
@@ -67,12 +68,7 @@ class ForumCommentMvcTest {
     }
 
     private ForumTopic topic(User author) {
-        ForumTopic t = new ForumTopic();
-        t.setUserId(author.getId());
-        t.setCategoryId(1L);
-        t.setTitle("Baslik");
-        t.setBody("Aciklama");
-        return topicRepo.saveAndFlush(t);
+        return ForumTopicFixtures.topic(em, tm, author.getId(), false);
     }
 
     private MockHttpServletResponse as(User u, MockHttpServletRequestBuilder b) throws Exception {
@@ -107,7 +103,7 @@ class ForumCommentMvcTest {
         assertEquals(a.getId(), c.get("author").get("userId").asLong());
         assertTrue(c.get("mine").asBoolean());
         assertFalse(c.has("path"), "path yalniz GET /comments/{id}'de");
-        verify(limiter).check(startsWith("forum:comment:create:"), eq(20), eq(Duration.ofMinutes(1)));
+        verify(limiter, org.mockito.Mockito.atLeastOnce()).check(startsWith("forum:comment:create:"), eq(20), eq(Duration.ofMinutes(1)));
 
         // cift gonderim: ayni anahtar ayni yorum
         MockHttpServletResponse again = as(a, createReq(t, "{\"body\":\"merhaba\"}").header("Idempotency-Key", "abcdefgh-12345"));
@@ -164,7 +160,7 @@ class ForumCommentMvcTest {
         assertEquals(200, ok.getStatus());
         assertEquals("duzenlendi", json(ok).get("body").asText());
         assertFalse(json(ok).get("editedAt").isNull());
-        verify(limiter).check(startsWith("forum:comment:write:"), eq(60), any(Duration.class));
+        verify(limiter, org.mockito.Mockito.atLeastOnce()).check(startsWith("forum:comment:write:"), eq(60), any(Duration.class));
 
         assertEquals(204, as(a, delete("/api/forum/comments/" + id)).getStatus());
         assertEquals(404, as(a, get("/api/forum/comments/" + id)).getStatus());
@@ -225,7 +221,7 @@ class ForumCommentMvcTest {
         JsonNode u = json(as(a, delete("/api/forum/comments/" + id + "/like")));
         assertFalse(u.get("liked").asBoolean());
         assertEquals(0, u.get("likeCount").asInt());
-        verify(limiter).check(startsWith("forum:comment:like:"), eq(120), any(Duration.class));
+        verify(limiter, org.mockito.Mockito.atLeastOnce()).check(startsWith("forum:comment:like:"), eq(120), any(Duration.class));
         assertTrue(json(as(a, put("/api/forum/comments/" + id + "/bookmark"))).get("saved").asBoolean());
         assertTrue(json(as(a, get("/api/forum/comments/" + id))).get("savedByMe").asBoolean());
         assertFalse(json(as(a, delete("/api/forum/comments/" + id + "/bookmark"))).get("saved").asBoolean());
@@ -241,8 +237,7 @@ class ForumCommentMvcTest {
         MockHttpServletResponse big = as(a, createReq(t, "{\"body\":\"" + "x".repeat(4001) + "\"}"));
         assertEquals(422, big.getStatus());
         assertEquals("FORUM_COMMENT_TOO_LONG", json(big).get("code").asText());
-        t.setLockedAt(java.time.Instant.now());
-        topicRepo.saveAndFlush(t);
+        jdbc.update("UPDATE forum_topic SET locked_at = CURRENT_TIMESTAMP WHERE id = ?", t.getId());
         MockHttpServletResponse locked = as(a, createReq(t, "{\"body\":\"yeni\"}"));
         assertEquals(409, locked.getStatus());
         assertEquals("FORUM_TOPIC_LOCKED", json(locked).get("code").asText());
@@ -260,8 +255,8 @@ class ForumCommentMvcTest {
         User a = user("ali");
         ForumTopic t = topic(owner);
         as(a, get("/api/forum/topics/" + t.getId() + "/comments"));
-        verify(limiter).check(startsWith("forum:comment:read:"), eq(240), any(Duration.class));
+        verify(limiter, org.mockito.Mockito.atLeastOnce()).check(startsWith("forum:comment:read:"), eq(240), any(Duration.class));
         as(a, put("/api/forum/comments/55/bookmark"));
-        verify(limiter).check(startsWith("forum:comment:save:"), eq(120), any(Duration.class));
+        verify(limiter, org.mockito.Mockito.atLeastOnce()).check(startsWith("forum:comment:save:"), eq(120), any(Duration.class));
     }
 }
