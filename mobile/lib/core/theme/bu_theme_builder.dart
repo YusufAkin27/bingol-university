@@ -22,7 +22,11 @@ abstract final class BuThemeBuilder {
       textTheme: tx,
       extensions: [t],
       scaffoldBackgroundColor: t.bg,
-      dividerColor: t.bd,
+      dividerColor: t.bdSubtle,
+      // Klavye/anahtar odağı: nötr, görünür halka (ink yarı saydam); dokunmatik basış/üzerine gelme çok hafif.
+      focusColor: t.ink.withValues(alpha: .16),
+      hoverColor: t.ink.withValues(alpha: .05),
+      highlightColor: t.ink.withValues(alpha: .06),
       materialTapTargetSize: MaterialTapTargetSize.padded,
       visualDensity: VisualDensity.standard,
       pageTransitionsTheme: BuPageTransitions.theme,

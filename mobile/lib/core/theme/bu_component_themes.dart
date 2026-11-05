@@ -174,7 +174,7 @@ class BuComponentThemes {
         shape: BuRadius.rect(BuRadius.md, side: BorderSide(color: t.bd)),
       );
 
-  DividerThemeData get divider => DividerThemeData(color: t.bd, space: 1, thickness: 1);
+  DividerThemeData get divider => DividerThemeData(color: t.bdSubtle, space: 1, thickness: 1);
 
   BottomSheetThemeData get bottomSheet => BottomSheetThemeData(
         backgroundColor: t.sf3,
@@ -423,9 +423,9 @@ class BuComponentThemes {
   DatePickerThemeData get datePicker => DatePickerThemeData(
         backgroundColor: t.sf3,
         surfaceTintColor: Colors.transparent,
-        elevation: 3,
-        shadowColor: t.shadow,
-        shape: BuRadius.rect(BuRadius.xl),
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        shape: BuRadius.rect(BuRadius.lg, side: BorderSide(color: t.bd)),
         headerBackgroundColor: Colors.transparent,
         headerForegroundColor: t.ink,
         dividerColor: t.bd,
@@ -454,7 +454,7 @@ class BuComponentThemes {
 
   TimePickerThemeData get timePicker => TimePickerThemeData(
         backgroundColor: t.sf3,
-        shape: BuRadius.rect(BuRadius.xl),
+        shape: BuRadius.rect(BuRadius.lg, side: BorderSide(color: t.bd)),
         hourMinuteShape: BuRadius.rect(BuRadius.md),
         dayPeriodShape: BuRadius.rect(BuRadius.md),
         hourMinuteColor: WidgetStateColor.resolveWith((s) => s.contains(WidgetState.selected) ? t.soft : t.sf2),

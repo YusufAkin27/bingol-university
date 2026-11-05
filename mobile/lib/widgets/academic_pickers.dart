@@ -355,15 +355,15 @@ class _InfoRow extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     return RefCard(
-      radius: 20,
+      radius: 16,
       padding: const EdgeInsets.all(14),
       child: Row(
         children: [
           Container(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(color: action == null ? t.sf2 : t.soft, shape: BoxShape.circle),
-            child: Icon(icon, size: 20, color: action == null ? t.mut : t.pr),
+            decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+            child: Icon(icon, size: 20, color: action == null ? t.mut : t.ink),
           ),
           const SizedBox(width: 12),
           Expanded(child: Text(text, style: tx.bodyMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400))),
@@ -376,7 +376,7 @@ class _InfoRow extends StatelessWidget {
                 foregroundColor: t.onSoft,
                 minimumSize: const Size(48, 40),
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                shape: const StadiumBorder(),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: t.bd)),
               ),
               child: Text(action!, style: tx.labelLarge!.copyWith(color: t.onSoft, fontWeight: FontWeight.w400)),
             ),

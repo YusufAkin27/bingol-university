@@ -78,8 +78,10 @@ Projede karşılığı olan `Bu*` bileşenler yeniden yazılmadı; `App*` adlar�
 | `AppSkeleton` | `BuSkeleton` |
 | `AppPostCard` | `PostCard` |
 | `AppListTile` | `BuListTile` |
-| `AppTextField` | YENİ: etiket üstte, tema girişi (radius 12, odakta `ink` kenarlık) |
-| `AppReactionBar` / `AppReaction` | YENİ: beğen/yorum/paylaş/kaydet satırı (`heart` yalnız beğeni) |
+| `AppTextField` | YENİ: etiket üstte, tema girişi (radius 12, odakta `ink` kenarlık); `readOnly`+`onTap` (seçici), `inputFormatters`, `textCapitalization`, `semanticLabel` |
+| `AppButtonKind`, `AppIconButton`, `AppChip`, `AppSegmented` (seçili = TERS RENK `pr`/`onPr`, radius 12), `AppBadge`, `AppCountBadge`, `AppSettingsTile` | takma adlar (`BuButtonKind`, `BuIconButton`, `BuChip`, `BuSegmented`, `BuBadge`, `BuCountBadge`, `BuSettingsTile`) |
+| `AppSheet`, `AppConfirmSheet`, `AppToast`/`AppToastKind`, `AppErrorState`, `AppSkeletonList` | takma adlar (`BuSheet`, `BuConfirmSheet`, `BuToast`, `BuErrorState`, `BuSkeletonList`) |
+| `AppReactionBar` / `AppReaction` | YENİ: beğen/yorum/paylaş/kaydet satırı (`heart` yalnız beğeni); ekran okuyucu etiketi sayıyı içerir ("Beğen, 12"), düğme >= 48 dp |
 | `AppDivider`, `AppRadius` | YENİ: `bdSubtle` ayraç, radius kısayolları |
 
 ## 2d. Tema yönetimi

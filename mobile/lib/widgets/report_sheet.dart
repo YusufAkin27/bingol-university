@@ -68,7 +68,7 @@ abstract final class ReportSheet {
           backgroundColor: t.sf3,
           elevation: 0,
           insetPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: t.bd)),
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -76,7 +76,7 @@ abstract final class ReportSheet {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-                child: ExcludeSemantics(child: Icon(BuIcons.ban, size: 22, color: t.pr)),
+                child: ExcludeSemantics(child: Icon(BuIcons.ban, size: 22, color: t.ink)),
               ),
               const SizedBox(height: 16),
               Semantics(header: true, child: Text(l.profileBlockTitle, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
@@ -262,9 +262,9 @@ class _SheetBodyState extends State<_SheetBody> {
       onTap: _busy ? null : () => setState(() => _reason = code),
       child: Material(
         color: sel ? t.soft : t.sf2,
-        borderRadius: BorderRadius.circular(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: sel ? t.selectedBorder : t.bdSubtle)),
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           onTap: _busy ? null : () => setState(() => _reason = code),
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: BuSize.row),

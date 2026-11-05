@@ -140,7 +140,7 @@ abstract final class BuConfirmSheet {
       builder: (ctx) {
         final t = ctx.bu;
         final tx = Theme.of(ctx).textTheme;
-        final accent = destructive ? t.danger : t.pr;
+        final accent = destructive ? t.danger : t.ink;
         return Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -151,8 +151,9 @@ abstract final class BuConfirmSheet {
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
-                    color: destructive ? Theme.of(ctx).colorScheme.errorContainer : t.soft,
-                    borderRadius: BuRadius.bXl,
+                    color: destructive ? t.dangerSoft : t.sf2,
+                    border: Border.all(color: destructive ? t.danger.withValues(alpha: .25) : t.bdSubtle),
+                    borderRadius: BuRadius.bMd,
                   ),
                   child: Icon(icon ?? (destructive ? BuIcons.trash2 : BuIcons.circleHelp), size: 28, color: accent),
                 ),
@@ -230,7 +231,7 @@ class BuDialogAction extends StatelessWidget {
   }
 }
 
-/// M3 diyalog (28 dp köşe, tonal yüzey). 25 elle yazılmış `AlertDialog` bunun yerine geçer.
+/// Diyalog (tema: `sf3` yüzey + ince kenarlık, köşe 20, gölgesiz). 25 elle yazılmış `AlertDialog` bunun yerine geçer.
 ///
 /// ```dart
 /// final ok = await BuDialog.confirm(context, title: 'Çıkış yapılsın mı?', confirmLabel: 'Çıkış yap', destructive: true);
@@ -262,7 +263,7 @@ class BuDialog extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     return AlertDialog(
-      icon: icon == null ? null : Icon(icon, size: 28, color: destructive ? t.danger : t.pr),
+      icon: icon == null ? null : Icon(icon, size: 28, color: destructive ? t.danger : t.ink),
       title: Text(title, textAlign: icon == null ? TextAlign.start : TextAlign.center),
       content: (message == null && content == null)
           ? null

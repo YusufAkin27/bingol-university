@@ -18,7 +18,7 @@ abstract final class SistemTones {
   static Color radioOff(BuildContext c) => c.bu.mut.withValues(alpha: .7);
 }
 
-/// Yumuşak zeminli köşeli ikon karosu (tasarımdaki `.tile` / `.big`).
+/// Nötr (sf2 + ince kenarlık) köşeli ikon karosu (tasarımdaki `.tile` / `.big`).
 class SistemTile extends StatelessWidget {
   const SistemTile({super.key, required this.icon, this.size = 48, this.radius, this.iconSize});
 
@@ -35,8 +35,12 @@ class SistemTile extends StatelessWidget {
         width: size,
         height: size,
         alignment: Alignment.center,
-        decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(radius ?? size / 3)),
-        child: Icon(icon, size: iconSize ?? size * 0.46, color: t.pr),
+        decoration: BoxDecoration(
+          color: t.sf2,
+          border: Border.all(color: t.bdSubtle),
+          borderRadius: BorderRadius.circular(radius ?? size / 3),
+        ),
+        child: Icon(icon, size: iconSize ?? size * 0.46, color: t.ink),
       ),
     );
   }
@@ -44,7 +48,7 @@ class SistemTile extends StatelessWidget {
 
 enum SistemButtonKind { primary, outline, link }
 
-/// Tasarımın düğmeleri: dolu kırmızı (gölgeli), çerçeveli, düz bağlantı.
+/// Düğmeler: dolu birincil (`pr`, gölgesiz), ince kenarlıklı, düz bağlantı. Köşe [BuRadius.control], hap değil.
 class SistemButton extends StatelessWidget {
   const SistemButton({
     super.key,
@@ -76,10 +80,7 @@ class SistemButton extends StatelessWidget {
     final deco = BoxDecoration(
       color: primary ? t.pr : Colors.transparent,
       borderRadius: BorderRadius.circular(radius),
-      border: kind == SistemButtonKind.outline ? Border.all(color: t.bd, width: 1.5) : null,
-      boxShadow: primary && onPressed != null
-          ? [BoxShadow(color: t.pr.withValues(alpha: .35), blurRadius: 26, offset: const Offset(0, 14), spreadRadius: -12)]
-          : null,
+      border: kind == SistemButtonKind.outline ? Border.all(color: t.bd) : null,
     );
     return Semantics(
       button: true,
@@ -157,7 +158,7 @@ class SistemStatusView extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        SistemTile(icon: icon, size: 88, radius: 30, iconSize: 40),
+                        SistemTile(icon: icon, size: 80, radius: 20, iconSize: 36),
                         const SizedBox(height: 16),
                         Text(title,
                             textAlign: TextAlign.center,
@@ -191,7 +192,7 @@ class SistemStatusView extends StatelessWidget {
   }
 }
 
-/// Bakım bandı (Sm4): sıcak sarı yuvarlak şerit.
+/// Bakım bandı (Sm4): anlamsal uyarı tonlu (`warnSoft`) şerit.
 class MaintenanceBand extends StatelessWidget {
   const MaintenanceBand({super.key, required this.text, this.icon = BuIcons.info, this.margin = EdgeInsets.zero});
 
@@ -208,7 +209,7 @@ class MaintenanceBand extends StatelessWidget {
       decoration: BoxDecoration(
         color: SistemTones.bandBg(context),
         border: Border.all(color: SistemTones.bandBd(context)),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(BuRadius.control),
       ),
       child: Row(
         children: [

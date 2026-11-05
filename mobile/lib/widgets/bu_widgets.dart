@@ -141,7 +141,7 @@ IconData buDirIcon(BuildContext context, IconData icon) {
   return icon;
 }
 
-/// Yuvarlak, çizgili ikon düğmesi (üst başlıkta). [filled] true ise kırmızı dolgulu.
+/// Yuvarlak, çizgili ikon düğmesi (üst başlıkta). [filled] true ise birincil (: koyuda beyaz, açıkta siyah) dolgulu.
 /// Görsel boyut [size] ([BuSize.iconBtn] = 40); dokunma alanı en az 48x48 dp. Basılınca hafifçe küçülür.
 class BuIconButton extends StatelessWidget {
   const BuIconButton({
@@ -407,7 +407,7 @@ class BuBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final bg = color ?? (soft ? t.soft : t.ink);
-    final fg = onColor ?? (soft ? t.onSoft : t.bg);
+    final fg = onColor ?? (soft ? t.onSoft : t.onPr);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)),
@@ -638,13 +638,14 @@ class BuSegmented extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final n = items.length;
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    // Seçili parça zeminden ayrışır: koyuda `sf3` (en açık yüzey), açıkta beyaz `sf3` + ince kenarlık.
-    final thumb = t.sf3;
+    // Seçili parça TERS RENK (`pr` zemin + `onPr` yazı): koyuda beyaz, açıkta siyah; seçilmemiş `mut` yazı.
+    final thumb = t.pr;
     final x = n < 2 ? 0.0 : -1 + 2 * index.clamp(0, n - 1) / (n - 1);
     return Container(
       constraints: const BoxConstraints(minHeight: BuSize.touch),
-      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuSize.touch / 2)),
+      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.control)),
+      // Kenarlık yerleşimi büyütmez (48 dp dokunma yüksekliği korunur).
+      foregroundDecoration: BoxDecoration(border: Border.all(color: t.bdSubtle), borderRadius: BorderRadius.circular(BuRadius.control)),
       child: Stack(
         children: [
           if (n > 0)
@@ -662,8 +663,7 @@ class BuSegmented extends StatelessWidget {
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         color: thumb,
-                        borderRadius: BorderRadius.circular(22),
-                        border: Border.all(color: dark ? t.bd : t.bd),
+                        borderRadius: BorderRadius.circular(BuRadius.control - 3),
                       ),
                     ),
                   ),
@@ -692,7 +692,7 @@ class BuSegmented extends StatelessWidget {
                           fit: BoxFit.scaleDown,
                           child: AnimatedDefaultTextStyle(
                             duration: BuMotion.of(context, BuMotion.short),
-                            style: BuType.bodyStrong.copyWith(color: i == index ? t.ink : t.mut),
+                            style: BuType.bodyStrong.copyWith(color: i == index ? t.onPr : t.mut),
                             child: Text(items[i], maxLines: 1, textAlign: TextAlign.center),
                           ),
                         ),
@@ -955,7 +955,7 @@ class BuGroup extends StatelessWidget {
       child: Column(
         children: [
           for (var i = 0; i < children.length; i++) ...[
-            if (i > 0) Divider(height: 1, indent: dividerIndent, color: t.bd),
+            if (i > 0) Divider(height: 1, indent: dividerIndent, color: t.bdSubtle),
             children[i],
           ],
         ],
@@ -964,7 +964,7 @@ class BuGroup extends StatelessWidget {
   }
 }
 
-/// Tema renkli, tasarımdaki gibi büyük "BÜ" yer tutucusu yerine kullanılan marka işareti.
+/// Marka işareti (logo varlığı; arayüz rengi değildir).
 class BuMark extends StatelessWidget {
   const BuMark({super.key, this.height = 52});
 

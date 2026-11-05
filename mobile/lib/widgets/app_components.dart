@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show TextInputFormatter;
 
 import '../core/theme.dart';
 import '../core/theme/bu_shape.dart';
 import '../core/theme/bu_sizes.dart';
 import '../core/typography.dart';
 import '../features/posts/post_card.dart' show PostCard;
-import 'bu_list.dart' show BuListTile;
-import 'bu_overlays.dart' show BuBottomSheet, BuDialog;
+import 'bu_list.dart' show BuCountBadge, BuListTile, BuSettingsTile;
+import 'bu_overlays.dart' show BuBottomSheet, BuConfirmSheet, BuDialog, BuSheet, BuToast, BuToastKind;
 import 'bu_pressable.dart';
-import 'bu_skeleton.dart' show BuSkeleton;
-import 'bu_state.dart' show BuEmptyState;
-import 'bu_widgets.dart' show BuAvatar, BuButton, BuCard, BuHeader;
+import 'bu_skeleton.dart' show BuSkeleton, BuSkeletonList;
+import 'bu_state.dart' show BuEmptyState, BuErrorState;
+import 'bu_widgets.dart' show BuAvatar, BuBadge, BuButton, BuButtonKind, BuCard, BuChip, BuHeader, BuIconButton, BuSegmented;
 import '../features/shell/floating_nav.dart' show FloatingNav;
 
 /// PREMIUM MONOCHROME ortak bileşen adları (docs/MOBILE_DESIGN_SYSTEM.md "Bileşen eşlemesi").
@@ -29,6 +30,22 @@ typedef AppEmptyState = BuEmptyState;
 typedef AppSkeleton = BuSkeleton;
 typedef AppPostCard = PostCard;
 typedef AppListTile = BuListTile;
+
+// Yardımcı takma adlar (aynı sınıflar; yeni ekranlar `App*` ya da `Bu*` adını kullanabilir):
+/// Düğme türleri: primary (`pr` dolu), outline (ince kenarlık), soft (sf2), text, danger.
+typedef AppButtonKind = BuButtonKind;
+typedef AppIconButton = BuIconButton;
+typedef AppChip = BuChip;
+typedef AppSegmented = BuSegmented;
+typedef AppBadge = BuBadge;
+typedef AppCountBadge = BuCountBadge;
+typedef AppSettingsTile = BuSettingsTile;
+typedef AppSheet = BuSheet;
+typedef AppConfirmSheet = BuConfirmSheet;
+typedef AppToast = BuToast;
+typedef AppToastKind = BuToastKind;
+typedef AppErrorState = BuErrorState;
+typedef AppSkeletonList = BuSkeletonList;
 
 /// Metin alanı: tema `InputDecorationTheme` (radius 12, ince kenarlık, odakta `ink` kenarlık) üstüne ince sarmalayıcı.
 /// Etiket alanın ÜSTÜNDE (kayan etiket yok), hata/yardım metni altında; dokunma yüksekliği >= [BuSize.field].
@@ -54,6 +71,12 @@ class AppTextField extends StatelessWidget {
     this.onChanged,
     this.onSubmitted,
     this.autofillHints,
+    this.readOnly = false,
+    this.onTap,
+    this.inputFormatters,
+    this.textCapitalization = TextCapitalization.none,
+    this.textAlign = TextAlign.start,
+    this.semanticLabel,
   });
 
   final TextEditingController? controller;
@@ -76,6 +99,16 @@ class AppTextField extends StatelessWidget {
   final ValueChanged<String>? onSubmitted;
   final Iterable<String>? autofillHints;
 
+  /// Salt okunur alan (seçici/açılır liste tetikleyicisi): [onTap] ile birlikte kullanılır.
+  final bool readOnly;
+  final VoidCallback? onTap;
+  final List<TextInputFormatter>? inputFormatters;
+  final TextCapitalization textCapitalization;
+  final TextAlign textAlign;
+
+  /// Ekran okuyucu etiketi; null ise [label] (yoksa [hint]) kullanılır.
+  final String? semanticLabel;
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
@@ -85,32 +118,40 @@ class AppTextField extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (label != null) ...[
-          Text(label!, style: tx.bodySmall!.copyWith(color: t.mut)),
+          ExcludeSemantics(child: Text(label!, style: tx.bodySmall!.copyWith(color: error != null ? t.danger : t.mut))),
           const SizedBox(height: 6),
         ],
-        TextField(
-          controller: controller,
-          focusNode: focusNode,
-          enabled: enabled,
-          autofocus: autofocus,
-          obscureText: obscureText,
-          keyboardType: keyboardType,
-          textInputAction: textInputAction,
-          maxLines: obscureText ? 1 : maxLines,
-          minLines: minLines,
-          maxLength: maxLength,
-          autofillHints: autofillHints,
-          onChanged: onChanged,
-          onSubmitted: onSubmitted,
-          style: tx.bodyLarge!.copyWith(color: t.ink),
-          cursorColor: t.ink,
-          decoration: InputDecoration(
-            hintText: hint,
-            helperText: helper,
-            errorText: error,
-            prefixIcon: prefix,
-            suffixIcon: suffix,
-            counterText: maxLength == null ? null : '',
+        Semantics(
+          label: semanticLabel ?? label,
+          child: TextField(
+            controller: controller,
+            readOnly: readOnly,
+            onTap: onTap,
+            inputFormatters: inputFormatters,
+            textCapitalization: textCapitalization,
+            textAlign: textAlign,
+            focusNode: focusNode,
+            enabled: enabled,
+            autofocus: autofocus,
+            obscureText: obscureText,
+            keyboardType: keyboardType,
+            textInputAction: textInputAction,
+            maxLines: obscureText ? 1 : maxLines,
+            minLines: minLines,
+            maxLength: maxLength,
+            autofillHints: autofillHints,
+            onChanged: onChanged,
+            onSubmitted: onSubmitted,
+            style: tx.bodyLarge!.copyWith(color: t.ink),
+            cursorColor: t.ink,
+            decoration: InputDecoration(
+              hintText: hint,
+              helperText: helper,
+              errorText: error,
+              prefixIcon: prefix,
+              suffixIcon: suffix,
+              counterText: maxLength == null ? null : '',
+            ),
           ),
         ),
       ],
@@ -165,7 +206,8 @@ class AppReactionBar extends StatelessWidget {
         for (final r in items)
           Semantics(
             button: true,
-            label: r.label,
+            label: r.count != null && r.count! > 0 ? '${r.label}, ${r.count}' : r.label,
+            enabled: r.onTap != null,
             selected: r.active,
             child: BuPressable(
               onTap: r.onTap,
@@ -215,7 +257,7 @@ class AppDivider extends StatelessWidget {
       Divider(height: 1, thickness: 1, indent: indent, color: context.bu.bdSubtle);
 }
 
-/// Radius belirteçleri kısayolu (kart 16, buton/input 12, çip pill): ekranlarda sihirli sayı yazmamak için.
+/// Radius belirteçleri kısayolu (kart 16, buton/input 12, alt sayfa/dialog 20; çip/rozet hap kalabilir): ekranlarda sihirli sayı yazmamak için.
 abstract final class AppRadius {
   static const double card = BuRadius.md;
   static const double control = BuRadius.control;

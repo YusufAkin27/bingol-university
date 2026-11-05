@@ -112,9 +112,10 @@ class BuEmptyState extends StatelessWidget {
                         width: mini ? 48 : (compact ? 64 : 80),
                         height: mini ? 48 : (compact ? 64 : 80),
                         decoration: BoxDecoration(
-                            color: t.soft,
-                            borderRadius: BorderRadius.circular(BuRadius.xl)),
-                        child: Icon(icon, size: compact ? 28 : 34, color: t.pr),
+                            color: t.sf2,
+                            border: Border.all(color: t.bdSubtle),
+                            borderRadius: BorderRadius.circular(BuRadius.md)),
+                        child: Icon(icon, size: compact ? 28 : 34, color: t.ink),
                       ),
                     )
                   else
@@ -266,8 +267,10 @@ class BuOfflineBanner extends StatelessWidget {
       child: Container(
         margin: margin ?? const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 4),
         padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 8, 10),
-        decoration:
-            BoxDecoration(color: t.warnSoft, borderRadius: BuRadius.bMd),
+        decoration: BoxDecoration(
+            color: t.sf2,
+            border: Border.all(color: t.bd),
+            borderRadius: BuRadius.bControl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -278,7 +281,7 @@ class BuOfflineBanner extends StatelessWidget {
                   padding: const EdgeInsets.only(top: 2),
                   child: ExcludeSemantics(
                       child: Icon(BuIcons.wifiOff,
-                          size: 18, color: t.onWarnSoft)),
+                          size: 18, color: t.ink)),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -289,12 +292,12 @@ class BuOfflineBanner extends StatelessWidget {
                       children: [
                         Text(message ?? l.cevrimdisiInternetYok,
                             style: tx.labelLarge!.copyWith(
-                                color: t.onWarnSoft,
+                                color: t.ink,
                                 fontWeight: FontWeight.w400)),
                         if (showCachedHint && message == null)
                           Text(l.cevrimdisiKayitliVeri,
                               style:
-                                  tx.bodySmall!.copyWith(color: t.onWarnSoft)),
+                                  tx.bodySmall!.copyWith(color: t.ink)),
                       ],
                     ),
                   ),
@@ -307,7 +310,7 @@ class BuOfflineBanner extends StatelessWidget {
                 child: TextButton(
                   onPressed: onRetry,
                   style: TextButton.styleFrom(
-                      foregroundColor: t.onWarnSoft,
+                      foregroundColor: t.ink,
                       minimumSize: const Size(48, 48)),
                   child: Text(l.cevrimdisiYenidenDene),
                 ),

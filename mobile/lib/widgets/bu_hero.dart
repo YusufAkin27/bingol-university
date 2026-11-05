@@ -10,7 +10,7 @@ import '../core/typography.dart';
 
 /// Süs deseni türü.
 enum BuHeroPattern {
-  /// Büyük yarı saydam daireler (varsayılan).
+  /// Büyük yarı saydam daireler.
   orbs,
 
   /// İç içe halkalar.
@@ -19,21 +19,21 @@ enum BuHeroPattern {
   /// Yumuşak dalga şeritleri.
   waves,
 
-  /// Desen yok, yalnız gradyan.
+  /// Desen yok (varsayılan).
   none,
 }
 
-/// Vitrin yüzeyleri için sınırlı gradyan kart: marka kırmızısı gradyan + `CustomPainter` deseni.
+/// Vitrin yüzeyi (ad tarihseldir): PREMIUM MONOCHROME'da gradyan YOKTUR; düz koyu zemin (`h1`, iki uç eşit) + ince
+/// kenarlık. Varsayılan [BuHeroPattern.none]: süs deseni çizilmez (desenler yalnız açıkça istenirse, çok düşük alfa).
 /// Kullanım yeri YALNIZ vitrin: Ana Sayfa öne çıkan kart, etkinlik/kulüp kapağı, karşılama, profil başlığı.
 /// Liste öğesi, form ve ayar ekranlarında kullanılmaz. İçerideki yazı/ikon `onMedia` (beyaz) renginde başlar.
-/// Desen `RepaintBoundary` içinde bir kez boyanır; RTL'de aynalanır.
 class BuGradientHero extends StatelessWidget {
   const BuGradientHero({
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(20),
-    this.radius = BuRadius.xl,
-    this.pattern = BuHeroPattern.orbs,
+    this.radius = BuRadius.md,
+    this.pattern = BuHeroPattern.none,
     this.minHeight,
     this.onTap,
     this.semanticLabel,
@@ -75,7 +75,7 @@ class BuGradientHero extends StatelessWidget {
     );
     if (minHeight != null) body = ConstrainedBox(constraints: BoxConstraints(minHeight: minHeight!), child: body);
     final deco = DecoratedBox(
-      decoration: BoxDecoration(color: t.h1, borderRadius: br),
+      decoration: BoxDecoration(color: t.h1, borderRadius: br, border: Border.all(color: t.bd)),
       child: onTap == null
           ? body
           : Material(
@@ -141,7 +141,7 @@ class _HeroPainter extends CustomPainter {
   bool shouldRepaint(_HeroPainter old) => old.pattern != pattern || old.color != color || old.rtl != rtl;
 }
 
-/// Adım göstergesi: çubuk dizisi (tamamlanan/geçerli adımlar marka renginde, dolum animasyonlu) + isteğe bağlı etiketler.
+/// Adım göstergesi: çubuk dizisi (tamamlanan/geçerli adımlar `pr` renginde, dolum animasyonlu) + isteğe bağlı etiketler.
 /// Ekran okuyucu "Adım 2 / 3" okur. [current] sıfır tabanlıdır (0 = ilk adım).
 class BuProgressSteps extends StatelessWidget {
   const BuProgressSteps({super.key, required this.count, required this.current, this.labels, this.height = 6})

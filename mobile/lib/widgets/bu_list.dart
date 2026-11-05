@@ -107,7 +107,7 @@ class BuListTile extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
 
-  /// Seçili satır marka tonunda boyanır (çoklu seçim, geçerli sohbet).
+  /// Seçili satır nötr `soft` zeminle boyanır (çoklu seçim, geçerli sohbet).
   final bool selected;
 
   /// Sonda yön oku (RTL'de aynalanır).
@@ -168,7 +168,7 @@ class BuListTile extends StatelessWidget {
   }
 }
 
-/// Ayar satırı: yumuşak zeminli simge karosu + başlık (+ alt metin) + sağda değer/ok ya da anahtar.
+/// Ayar satırı: nötr zeminli simge karosu + başlık (+ alt metin) + sağda değer/ok ya da anahtar.
 /// Satırları [BuGroup] içinde dizin (`dividerIndent: 64`). Anahtarlı satır için [BuSettingsTile.toggle].
 class BuSettingsTile extends StatelessWidget {
   const BuSettingsTile({
@@ -210,7 +210,7 @@ class BuSettingsTile extends StatelessWidget {
   final VoidCallback? onTap;
   final bool danger;
 
-  /// Simge karosu rengi (`context.bu.tint(i)`); null: marka tonu.
+  /// Simge karosu rengi (`context.bu.tint(i)`, nötr); null: `sf2` + `ink`.
   final BuTint? tint;
 
   final bool? switchValue;
@@ -220,10 +220,9 @@ class BuSettingsTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final cs = Theme.of(context).colorScheme;
     final isSwitch = switchValue != null;
-    final bg = danger ? cs.errorContainer : (tint?.bg ?? t.soft);
-    final fg = danger ? t.danger : (tint?.fg ?? t.pr);
+    final bg = danger ? t.dangerSoft : (tint?.bg ?? t.sf2);
+    final fg = danger ? t.danger : (tint?.fg ?? t.ink);
     final row = ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 60),
       child: Padding(

@@ -45,7 +45,7 @@ class SimpleMarkdown extends StatelessWidget {
             decoration: BoxDecoration(
               color: t.soft,
               borderRadius: BorderRadius.circular(12),
-              border: BorderDirectional(start: BorderSide(color: t.pr, width: 3)),
+              border: BorderDirectional(start: BorderSide(color: t.bdStrong, width: 3)),
             ),
             child: SelectableText.rich(
                 _inline(b.text, BuType.body.copyWith(height: 1.55, color: t.onSoft), t)),

@@ -17,7 +17,7 @@ class BuSkeletonScope extends StatefulWidget {
 }
 
 class _BuSkeletonScopeState extends State<BuSkeletonScope> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1100));
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400));
   bool? _reduced;
 
   @override
@@ -86,7 +86,7 @@ class BuSkeleton extends StatelessWidget {
     final box = RepaintBoundary(
       child: CustomPaint(
         size: Size(width ?? double.infinity, height),
-        painter: _SkeletonPainter(anim, t.sf2, t.bd, radius, _circle),
+        painter: _SkeletonPainter(anim, t.sf2, Color.lerp(t.sf2, t.bd, .8)!, radius, _circle),
       ),
     );
     return ExcludeSemantics(
@@ -106,6 +106,7 @@ class _SkeletonPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    // Çok hafif nötr nabız: sf2 -> bd'ye %80 (parlama/kayan ışık yok).
     final p = Paint()..color = Color.lerp(a, b, Curves.easeInOut.transform(anim.value))!;
     if (circle) {
       canvas.drawCircle(size.center(Offset.zero), size.shortestSide / 2, p);
@@ -209,7 +210,7 @@ class _CardSkeleton extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            BuSkeleton(height: 150, radius: 20),
+            BuSkeleton(height: 150, radius: 12),
             SizedBox(height: 12),
             BuSkeleton.line(width: 220, height: 16),
             SizedBox(height: 8),
@@ -234,9 +235,9 @@ class _GridSkeleton extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 12),
             child: Row(
               children: [
-                Expanded(child: BuSkeleton(height: r.isEven ? 190 : 150, radius: 20)),
+                Expanded(child: BuSkeleton(height: r.isEven ? 190 : 150, radius: 12)),
                 const SizedBox(width: 12),
-                Expanded(child: BuSkeleton(height: r.isEven ? 150 : 190, radius: 20)),
+                Expanded(child: BuSkeleton(height: r.isEven ? 150 : 190, radius: 12)),
               ],
             ),
           ),
