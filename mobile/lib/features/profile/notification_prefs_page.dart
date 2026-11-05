@@ -105,7 +105,7 @@ class PrefSwitchRow extends StatelessWidget {
 const _prefRows = ['news', 'announcements', 'events', 'messages', 'communities'];
 
 /// Sunucu yanıtında anahtar varsa gösterilen ek ana bayraklar (backend eklenene kadar gizli kalır).
-const _optionalRows = ['polls'];
+const _optionalRows = ['polls', 'mealMenu'];
 
 /// Alt türler (`subtypes`): yalnızca sunucu yanıtında bulunanlar gösterilir; bilinmeyen anahtar gönderilmez (400).
 /// Kaldırılan türler (beğeni, yorum, bahsetme, takip) çizilmez.
@@ -125,6 +125,7 @@ String _prefLabel(BuildContext context, String key) {
     'communities' => l.profil1NotifClubs,
     'messages' => l.profilePrefsNotifMessages,
     'polls' => l.profilePrefsNotifPolls,
+    'mealMenu' => l.notifPrefMealMenu,
     'MESSAGE_DIRECT' => l.profil1SubMsgDirect,
     'MESSAGE_GROUP' => l.profil1SubMsgGroup,
     'EVENT_REMINDER' => l.profil1SubEventReminder,
@@ -147,6 +148,7 @@ String? _prefSub(BuildContext context, String key) {
     'messages' => l.profil1MsgSub,
     'communities' => l.profil1ClubsSub,
     'polls' => l.p20PrefPollsSub,
+    'mealMenu' => l.notifPrefMealMenuSub,
     _ => null,
   };
 }

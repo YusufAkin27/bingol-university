@@ -18611,6 +18611,126 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bu işlem için e-postanızı doğrulayın'**
   String get errEmailVerificationRequired;
+
+  /// No description provided for @notifActionAck.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anladım'**
+  String get notifActionAck;
+
+  /// No description provided for @notifActionQuickReply.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hızlı Yanıtla'**
+  String get notifActionQuickReply;
+
+  /// No description provided for @notifActionOpenAll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tümünü Aç'**
+  String get notifActionOpenAll;
+
+  /// No description provided for @notifActionProgram.
+  ///
+  /// In tr, this message translates to:
+  /// **'Program Detayı'**
+  String get notifActionProgram;
+
+  /// No description provided for @notifKcalTotal.
+  ///
+  /// In tr, this message translates to:
+  /// **'Toplam {n} kcal'**
+  String notifKcalTotal(String n);
+
+  /// No description provided for @notifOldTime.
+  ///
+  /// In tr, this message translates to:
+  /// **'Eski saat: {time}'**
+  String notifOldTime(String time);
+
+  /// No description provided for @notifNewTime.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni saat {time}'**
+  String notifNewTime(String time);
+
+  /// No description provided for @notifBadgeImportant.
+  ///
+  /// In tr, this message translates to:
+  /// **'ÖNEMLİ'**
+  String get notifBadgeImportant;
+
+  /// No description provided for @notifSourceModeration.
+  ///
+  /// In tr, this message translates to:
+  /// **'Moderasyon'**
+  String get notifSourceModeration;
+
+  /// No description provided for @notifAgoMin.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} dk önce'**
+  String notifAgoMin(String n);
+
+  /// No description provided for @notifAgoHour.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} sa önce'**
+  String notifAgoHour(String n);
+
+  /// No description provided for @notifAgoDay.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} gün önce'**
+  String notifAgoDay(String n);
+
+  /// No description provided for @notifYesterdayAt.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dün {time}'**
+  String notifYesterdayAt(String time);
+
+  /// No description provided for @notifNewCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} Yeni'**
+  String notifNewCount(String n);
+
+  /// No description provided for @notifGroupUnread.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} okunmamış'**
+  String notifGroupUnread(String n);
+
+  /// No description provided for @notifPrefMealMenu.
+  ///
+  /// In tr, this message translates to:
+  /// **'Günlük menü'**
+  String get notifPrefMealMenu;
+
+  /// No description provided for @notifPrefMealMenuSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Günün yemek listesi bildirimi. Varsayılan olarak kapalıdır.'**
+  String get notifPrefMealMenuSub;
+
+  /// No description provided for @notifExamAlarmOn.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hatırlatıcı açık'**
+  String get notifExamAlarmOn;
+
+  /// No description provided for @notifExamAlarmOff.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hatırlatıcı kapalı'**
+  String get notifExamAlarmOff;
+
+  /// No description provided for @notifCapacityFull.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kapasite: %{n} dolu'**
+  String notifCapacityFull(String n);
 }
 
 class _AppLocalizationsDelegate

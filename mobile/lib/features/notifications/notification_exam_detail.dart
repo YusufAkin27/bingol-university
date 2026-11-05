@@ -7,6 +7,7 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../academic/academic_api.dart';
 import '../academic/academic_models.dart';
+import '../academic/reminders.dart';
 
 /// Notification detail reads the current exam, so changed times/rooms never come from an old push.
 class NotificationExamDetail extends StatefulWidget {
@@ -23,6 +24,28 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
   late Future<Exam?> _exam;
   Timer? _timer;
 
+  /// Sınav hatırlatıcısı (yerel, "bir gün önce"): genel ayardır, sınav başına değil; etiket bunu dürüstçe söyler.
+  bool? _alarm;
+
+  Future<void> _loadAlarm() async {
+    try {
+      final s = await ReminderService.store.load();
+      if (mounted) setState(() => _alarm = s.examDayBefore);
+    } catch (_) {}
+  }
+
+  Future<void> _toggleAlarm() async {
+    final on = _alarm;
+    if (on == null) return;
+    try {
+      final cur = await ReminderService.store.load();
+      final next = cur.copyWith(examDayBefore: !on);
+      await ReminderService.store.save(next);
+      if (mounted) setState(() => _alarm = !on);
+      await ReminderService.sync(AcademicApi(widget.session), settings: next);
+    } catch (_) {}
+  }
+
   Future<Exam?> _load() async {
     final exams = await AcademicApi(widget.session).exams();
     for (final exam in exams) {
@@ -35,6 +58,7 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
   void initState() {
     super.initState();
     _exam = _load();
+    _loadAlarm();
     _timer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) setState(() {});
     });
@@ -97,22 +121,73 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
                         padding: const EdgeInsets.all(16),
                         margin: const EdgeInsets.only(bottom: 12),
                         decoration: BoxDecoration(
-                            color: t.pr.withValues(alpha: .12),
+                            color: t.dangerSoft,
                             borderRadius: BorderRadius.circular(16)),
-                        child: Row(children: [
-                          Icon(Icons.alarm, color: t.pr),
-                          const SizedBox(width: 12),
-                          Expanded(
-                              child: Text(countdown,
-                                  style: TextStyle(
-                                      color: t.prText,
-                                      fontWeight: FontWeight.w700))),
-                        ]),
+                        child: Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 12,
+                            runSpacing: 8,
+                            children: [
+                              Row(mainAxisSize: MainAxisSize.min, children: [
+                                Icon(Icons.alarm, color: t.danger),
+                                const SizedBox(width: 12),
+                                Flexible(
+                                    child: Text(countdown,
+                                        style: TextStyle(
+                                            color: t.danger,
+                                            fontWeight: FontWeight.w700))),
+                              ]),
+                              if (_alarm != null)
+                                Semantics(
+                                  button: true,
+                                  toggled: _alarm,
+                                  child: InkWell(
+                                    key: const ValueKey('exam-alarm-toggle'),
+                                    onTap: _toggleAlarm,
+                                    borderRadius:
+                                        BorderRadius.circular(BuRadius.pill),
+                                    child: Container(
+                                      constraints:
+                                          const BoxConstraints(minHeight: 44),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 14),
+                                      decoration: BoxDecoration(
+                                          color: t.sf,
+                                          borderRadius: BorderRadius.circular(
+                                              BuRadius.pill)),
+                                      child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                                _alarm!
+                                                    ? Icons.notifications_active_outlined
+                                                    : Icons.notifications_off_outlined,
+                                                size: 18,
+                                                color: t.ink),
+                                            const SizedBox(width: 6),
+                                            Flexible(
+                                                child: Text(
+                                                _alarm!
+                                                    ? l.notifExamAlarmOn
+                                                    : l.notifExamAlarmOff,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                    color: t.ink,
+                                                    fontSize: 13,
+                                                    fontWeight:
+                                                        FontWeight.w600))),
+                                          ]),
+                                    ),
+                                  ),
+                                ),
+                            ]),
                       ),
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                          color: const Color(0xff191e34),
+                          color: BuColors.ink,
                           borderRadius: BorderRadius.circular(20)),
                       child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -123,37 +198,37 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
                                 runSpacing: 8,
                                 children: [
                                   Text(examTypeLabelL(l, exam.type),
-                                      style: const TextStyle(
-                                          color: Colors.white70,
+                                      style: TextStyle(
+                                          color: t.onMedia.withValues(alpha: .7),
                                           fontWeight: FontWeight.w700)),
                                   if (duration != null && duration > 0)
                                     Text(
                                         l.bildirimShortMin(duration.toString()),
-                                        style: const TextStyle(
-                                            color: Colors.white70)),
+                                        style: TextStyle(
+                                            color: t.onMedia.withValues(alpha: .7))),
                                 ]),
                             const SizedBox(height: 12),
                             if (exam.courseName?.isNotEmpty == true)
                               Text(exam.courseName!,
                                   style: const TextStyle(
-                                      color: Color(0xffffada5))),
+                                      color: BuColors.red100)),
                             Text(exam.title,
-                                style: const TextStyle(
-                                    color: Colors.white,
+                                style: TextStyle(
+                                    color: t.onMedia,
                                     fontSize: 24,
                                     height: 1.2,
                                     fontWeight: FontWeight.w800)),
-                            const Padding(
-                                padding: EdgeInsets.symmetric(vertical: 10),
-                                child: Divider(color: Colors.white24)),
+                            Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                child: Divider(color: t.onMedia.withValues(alpha: .24))),
                             Row(children: [
-                              const Icon(Icons.calendar_today_outlined,
-                                  color: Colors.white70, size: 22),
+                              Icon(Icons.calendar_today_outlined,
+                                  color: t.onMedia.withValues(alpha: .7), size: 22),
                               const SizedBox(width: 12),
                               Expanded(
                                   child: Text(fmtInstantL(l, exam.startsAt),
-                                      style: const TextStyle(
-                                          color: Colors.white,
+                                      style: TextStyle(
+                                          color: t.onMedia,
                                           fontWeight: FontWeight.w700))),
                             ]),
                             if (exam.endsAt != null)
@@ -161,8 +236,8 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
                                   padding: const EdgeInsetsDirectional.only(
                                       start: 34, top: 4),
                                   child: Text(fmtInstantL(l, exam.endsAt!),
-                                      style: const TextStyle(
-                                          color: Colors.white70))),
+                                      style: TextStyle(
+                                          color: t.onMedia.withValues(alpha: .7)))),
                           ]),
                     ),
                     if (exam.room?.isNotEmpty == true)

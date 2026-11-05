@@ -5483,5 +5483,95 @@
   "verifySheetBody": "E-postanıza gelen 6 haneli kodu girin.",
   "verifyQuotaInfo": "Doğrulama e-postası şu an gönderilemiyor, en kısa sürede göndereceğiz. Kod gelince buraya girebilirsiniz.",
   "verifyDone": "E-postanız doğrulandı",
-  "errEmailVerificationRequired": "Bu işlem için e-postanızı doğrulayın"
+  "errEmailVerificationRequired": "Bu işlem için e-postanızı doğrulayın",
+  "notifActionAck": "Anladım",
+  "notifActionQuickReply": "Hızlı Yanıtla",
+  "notifActionOpenAll": "Tümünü Aç",
+  "notifActionProgram": "Program Detayı",
+  "notifKcalTotal": "Toplam {n} kcal",
+  "@notifKcalTotal": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifOldTime": "Eski saat: {time}",
+  "@notifOldTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notifNewTime": "Yeni saat {time}",
+  "@notifNewTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notifBadgeImportant": "ÖNEMLİ",
+  "notifSourceModeration": "Moderasyon",
+  "notifAgoMin": "{n} dk önce",
+  "@notifAgoMin": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifAgoHour": "{n} sa önce",
+  "@notifAgoHour": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifAgoDay": "{n} gün önce",
+  "@notifAgoDay": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifYesterdayAt": "Dün {time}",
+  "@notifYesterdayAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notifNewCount": "{n} Yeni",
+  "@notifNewCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifGroupUnread": "{n} okunmamış",
+  "@notifGroupUnread": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifPrefMealMenu": "Günlük menü",
+  "notifPrefMealMenuSub": "Günün yemek listesi bildirimi. Varsayılan olarak kapalıdır.",
+  "notifExamAlarmOn": "Hatırlatıcı açık",
+  "notifExamAlarmOff": "Hatırlatıcı kapalı",
+  "notifCapacityFull": "Kapasite: %{n} dolu",
+  "@notifCapacityFull": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -10264,4 +10264,85 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errEmailVerificationRequired => 'Verify your email to do this';
+
+  @override
+  String get notifActionAck => 'Got it';
+
+  @override
+  String get notifActionQuickReply => 'Quick reply';
+
+  @override
+  String get notifActionOpenAll => 'Open all';
+
+  @override
+  String get notifActionProgram => 'Event details';
+
+  @override
+  String notifKcalTotal(String n) {
+    return 'Total $n kcal';
+  }
+
+  @override
+  String notifOldTime(String time) {
+    return 'Old time: $time';
+  }
+
+  @override
+  String notifNewTime(String time) {
+    return 'New time $time';
+  }
+
+  @override
+  String get notifBadgeImportant => 'IMPORTANT';
+
+  @override
+  String get notifSourceModeration => 'Moderation';
+
+  @override
+  String notifAgoMin(String n) {
+    return '$n min ago';
+  }
+
+  @override
+  String notifAgoHour(String n) {
+    return '$n hr ago';
+  }
+
+  @override
+  String notifAgoDay(String n) {
+    return '$n d ago';
+  }
+
+  @override
+  String notifYesterdayAt(String time) {
+    return 'Yesterday $time';
+  }
+
+  @override
+  String notifNewCount(String n) {
+    return '$n New';
+  }
+
+  @override
+  String notifGroupUnread(String n) {
+    return '$n unread';
+  }
+
+  @override
+  String get notifPrefMealMenu => 'Daily menu';
+
+  @override
+  String get notifPrefMealMenuSub =>
+      'A notification with the menu of the day. Off by default.';
+
+  @override
+  String get notifExamAlarmOn => 'Reminder on';
+
+  @override
+  String get notifExamAlarmOff => 'Reminder off';
+
+  @override
+  String notifCapacityFull(String n) {
+    return 'Capacity: $n% full';
+  }
 }

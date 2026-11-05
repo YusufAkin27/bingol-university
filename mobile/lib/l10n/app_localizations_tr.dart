@@ -10231,4 +10231,85 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get errEmailVerificationRequired =>
       'Bu işlem için e-postanızı doğrulayın';
+
+  @override
+  String get notifActionAck => 'Anladım';
+
+  @override
+  String get notifActionQuickReply => 'Hızlı Yanıtla';
+
+  @override
+  String get notifActionOpenAll => 'Tümünü Aç';
+
+  @override
+  String get notifActionProgram => 'Program Detayı';
+
+  @override
+  String notifKcalTotal(String n) {
+    return 'Toplam $n kcal';
+  }
+
+  @override
+  String notifOldTime(String time) {
+    return 'Eski saat: $time';
+  }
+
+  @override
+  String notifNewTime(String time) {
+    return 'Yeni saat $time';
+  }
+
+  @override
+  String get notifBadgeImportant => 'ÖNEMLİ';
+
+  @override
+  String get notifSourceModeration => 'Moderasyon';
+
+  @override
+  String notifAgoMin(String n) {
+    return '$n dk önce';
+  }
+
+  @override
+  String notifAgoHour(String n) {
+    return '$n sa önce';
+  }
+
+  @override
+  String notifAgoDay(String n) {
+    return '$n gün önce';
+  }
+
+  @override
+  String notifYesterdayAt(String time) {
+    return 'Dün $time';
+  }
+
+  @override
+  String notifNewCount(String n) {
+    return '$n Yeni';
+  }
+
+  @override
+  String notifGroupUnread(String n) {
+    return '$n okunmamış';
+  }
+
+  @override
+  String get notifPrefMealMenu => 'Günlük menü';
+
+  @override
+  String get notifPrefMealMenuSub =>
+      'Günün yemek listesi bildirimi. Varsayılan olarak kapalıdır.';
+
+  @override
+  String get notifExamAlarmOn => 'Hatırlatıcı açık';
+
+  @override
+  String get notifExamAlarmOff => 'Hatırlatıcı kapalı';
+
+  @override
+  String notifCapacityFull(String n) {
+    return 'Kapasite: %$n dolu';
+  }
 }

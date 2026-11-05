@@ -3455,5 +3455,95 @@
   "verifySheetBody": "أدخل الرمز المكوّن من 6 أرقام المرسل إلى بريدك الإلكتروني.",
   "verifyQuotaInfo": "تعذّر إرسال رسالة التحقق حاليًا، وسنرسلها في أقرب وقت. يمكنك إدخال الرمز هنا عند وصوله.",
   "verifyDone": "تم التحقق من بريدك الإلكتروني",
-  "errEmailVerificationRequired": "تحقق من بريدك الإلكتروني للقيام بذلك"
+  "errEmailVerificationRequired": "تحقق من بريدك الإلكتروني للقيام بذلك",
+  "notifActionAck": "فهمت",
+  "notifActionQuickReply": "رد سريع",
+  "notifActionOpenAll": "فتح الكل",
+  "notifActionProgram": "تفاصيل البرنامج",
+  "notifKcalTotal": "المجموع {n} سعرة",
+  "@notifKcalTotal": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifOldTime": "الوقت السابق: {time}",
+  "@notifOldTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notifNewTime": "الوقت الجديد {time}",
+  "@notifNewTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notifBadgeImportant": "مهم",
+  "notifSourceModeration": "الإشراف",
+  "notifAgoMin": "منذ {n} د",
+  "@notifAgoMin": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifAgoHour": "منذ {n} س",
+  "@notifAgoHour": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifAgoDay": "منذ {n} يوم",
+  "@notifAgoDay": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifYesterdayAt": "أمس {time}",
+  "@notifYesterdayAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notifNewCount": "{n} جديد",
+  "@notifNewCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifGroupUnread": "{n} غير مقروء",
+  "@notifGroupUnread": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifPrefMealMenu": "قائمة اليوم",
+  "notifPrefMealMenuSub": "إشعار بقائمة طعام اليوم. متوقف افتراضيا.",
+  "notifExamAlarmOn": "التذكير مفعل",
+  "notifExamAlarmOff": "التذكير متوقف",
+  "notifCapacityFull": "السعة: {n}% ممتلئة",
+  "@notifCapacityFull": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  }
 }

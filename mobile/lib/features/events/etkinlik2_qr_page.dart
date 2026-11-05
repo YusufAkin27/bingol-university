@@ -162,8 +162,19 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
   Widget _strip(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    return Text('${widget.event['title'] ?? ''}',
+    final title = Text('${widget.event['title'] ?? ''}',
         maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(fontWeight: FontWeight.w600, color: t.mut));
+    // Kapasite doluluğu: yalnız sınırlı kontenjanlı etkinlikte (capacity > 0) ve katılım sayısı biliniyorsa.
+    final cap = (widget.event['capacity'] as num?)?.toInt() ?? 0;
+    final going = (widget.event['goingCount'] as num?)?.toInt();
+    if (cap <= 0 || going == null) return title;
+    final pct = ((going / cap) * 100).round().clamp(0, 100);
+    return Column(children: [
+      title,
+      const SizedBox(height: 6),
+      Text(context.l10n.notifCapacityFull('$pct'),
+          key: const ValueKey('et2-capacity'), textAlign: TextAlign.center, style: tx.bodySmall!.copyWith(fontWeight: FontWeight.w700, color: t.prText)),
+    ]);
   }
 
   /// "Kod 4 sn sonra yenilenir" gibi metinde [token] (sayı) vurgulanır.
