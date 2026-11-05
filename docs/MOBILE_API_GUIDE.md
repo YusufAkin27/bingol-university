@@ -951,3 +951,6 @@ Tam sözleşme (alanlar, hata kodları, birleşme notları): [changes/post.md](c
 - Şikâyet: `POST /api/reports` `{targetType:"COMMENT", targetId, reason}`. Bildirim: `POST_COMMENT` / `COMMENT_REPLY` (push `data.target=POST`, `postId`, `commentId`).
 - Hata kodları (tr/en/ar): `COMMENT_NOT_FOUND` 404, `COMMENT_EMPTY` 400, `COMMENT_TOO_LONG` 422, `COMMENT_FORBIDDEN` 403; küfür `422 CONTENT_PROFANITY` (`field:"text"`).
 - Hız sınırları: yorum yazma dakikada 20 / saatte 200, kaydet/beğeni dakikada 120, okuma dakikada 240.
+
+## İçerik paylaşımı (SH-BE, 2026-11-05)
+Gönderi / Reels / haber-duyuru / etkinlik: mesajla paylaşım (`POST /api/conversations/{cid}/messages` gövdesinde `share:{type,id}`, yanıtta `MessageView.share` kartı, hata `422 SHARE_TARGET_INVALID`), herkese açık bağlantı `https://bukampus.com.tr/s/{p|r|n|e}/{id}` (OpenGraph önizleme sayfası; uygulama yoksa mağaza) ve uygulamada açma (`bukampus://s/{t}/{id}` + evrensel bağlantı). Tam sözleşme ve JSON örnekleri: [SHARING.md](SHARING.md).

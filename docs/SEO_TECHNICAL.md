@@ -137,6 +137,8 @@ Zamanlama (systemd; yeni iki dosya, **henüz eklenmedi**; deploy betiğine dokun
 
 ## 7. Uygulama bağlantısı doğrulama dosyaları (App Links / Universal Links)
 
+**Güncel yöntem (SH, paylaşım bağlantıları `/s/*`):** dosyalar elle değil, web imajı derlenirken `web/scripts/gen-app-links.mjs` ile `APPLE_TEAM_ID` / `PLAY_APP_SIGNING_SHA256` değerlerinden üretilir (değer yoksa üretilmez, 404 kalır); yollar yalnız `/s/*`. Adımlar: [DEPLOY.md §8.2](DEPLOY.md), sözleşme: [SHARING.md](SHARING.md). Aşağıdaki elle yöntem yedektir (örnek `/*/news/*` yolu artık kullanılmaz).
+
 nginx hazır (bölüm 1); **dosyaları uydurmadık** (parmak izi/Team ID kullanıcıdadır). Değerleri verince:
 
 1. **Android** — Play Console → *Uygulama bütünlüğü → Play Uygulama İmzalama* → **SHA-256 sertifika parmak izi** (yükleme anahtarının DEĞİL, Play'in uygulama imzalama anahtarının). Paket: `tr.com.bukampus.app`. Dosyayı oluşturun: `web/public/.well-known/assetlinks.json`

@@ -233,6 +233,20 @@ docker compose up -d backend web     # Flyway migration'ları açılışta otoma
   Yükleme biçimi: satır başına `IP-veya-CIDR [etiket]`, `#` yorum; en çok 5000 satır/istek (daha uzun listeyi parçalayın: `split -l 4000 tor-exit.txt part_`). VPN/veri merkezi aralıkları aynı biçimde `source` etiketiyle yüklenir; yenilemek için `DELETE /api/admin/access-bans/anonymizers?source=tor-exit` sonra yeniden yükleyin. `BLOCK_ANONYMIZERS=true` olmadan liste uygulanmaz.
 - **Zamanlayıcı:** `AccessBanRetentionJob` (gece 04:30) cihaz/deneme günlüğünü 90 gün sonra siler; `SchedulerLock` ile çok örnekte tek çalışır. Vuruş sayaçları bellekte toplanıp 5 sn'de bir yazılır (çok örnekte her örnek kendi sayacını ekler).
 
+## 8.2 Paylaşım bağlantıları: /s/* yönlendirmesi ve uygulama bağlantısı doğrulama (SH)
+
+Sözleşme: [SHARING.md](SHARING.md). `https://bukampus.com.tr/s/{p|r|n|e}/{id}` bağlantıları backend'in önizleme sayfasına gider.
+
+1. **Proxy:** `deploy/Caddyfile` `@backend` listesinde `/s/*` vardır (Caddy yeniden yüklenir/yeniden başlar; `deploy/Caddyfile.bukampus` bunu içe aktarır). Caddy'siz kurulumda `web/nginx.conf` `location ^~ /s/` aynı işi yapar. Web router'ında `/s` rotası yoktur (çakışma yok). İlk doğrulama: `curl -sI https://bukampus.com.tr/s/p/1` → `200`, `content-type: text/html`, `x-robots-tag: noindex, nofollow`.
+2. **Uygulamayı doğrudan açma (Universal/App Links):** iki değer KULLANICIDAN gelir, uydurulmaz:
+   - `APPLE_TEAM_ID` — Apple Developer > Membership > Team ID (10 karakter).
+   - `PLAY_APP_SIGNING_SHA256` — Play Console > Uygulama bütünlüğü > **Play Uygulama İmzalama** sertifikasının SHA-256 parmak izi (yükleme anahtarının değil; virgülle birden çok).
+   `.env.prod`'a yazın ya da `scripts/deploy.sh` için `.deploy.env`'e `DEPLOY_APPLE_TEAM_ID` / `DEPLOY_PLAY_APP_SIGNING_SHA256` verin (yalnız `.env.prod`'da boş/yoksa yazılır, elle değer ezilmez). Değerler **web imajı derlenirken** (`web/Dockerfile` build arg; `docker-compose*.yml`) `web/scripts/gen-app-links.mjs` ile `/.well-known/apple-app-site-association` (+ kökte aynısı) ve `/.well-known/assetlinks.json` olarak üretilir; **değişince web imajı yeniden derlenmelidir** (`--no-build` kullanmayın). Değer yoksa dosya üretilmez, `deploy.sh` UYARI basar, bağlantılar yine mağazaya/web sayfasına düşer.
+3. **Doğrulama:** `curl -sI https://bukampus.com.tr/.well-known/apple-app-site-association` → `200`, `application/json`, yönlendirme yok; `curl -s https://bukampus.com.tr/.well-known/assetlinks.json`; Google: `https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://bukampus.com.tr&relation=delegate_permission/common.handle_all_urls`; Apple: `https://app-site-association.cdn-apple.com/a/v1/bukampus.com.tr` (CDN önbelleği birkaç saat gecikebilir).
+4. **Uygulama tarafı** (mobil sürümle birlikte): iOS Associated Domains `applinks:bukampus.com.tr`; Android `autoVerify` + `/s/` yol filtresi.
+5. **Migration sırası:** `V1280__message_share` (message tablosuna iki NULL'lanabilir sütun; tabloyu yeniden yazmaz/taramaz). `prod`'da `out-of-order=false`: aynı dağıtımda önceki sürümlü (ör. V1270) migration'lar ile birlikte sırayla uygulanır; V1280 canlıya V1270'ten ÖNCE tek başına çıkmamalıdır.
+6. **Hız sınırı / önbellek:** sayfa IP başına dakikada 300 (`app.share.page-per-minute`), `Cache-Control: public, max-age=300`. Sosyal medya tarayıcıları (WhatsApp, Facebook) az sayıda IP'den çok istek atabilir: 429 görülürse eşiği yükseltin.
+
 ## 9. KVKK saklama süreleri
 
 | Veri | Süre | Mekanizma |
