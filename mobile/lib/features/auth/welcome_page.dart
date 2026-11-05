@@ -203,7 +203,7 @@ class _LangPill extends StatelessWidget {
   }
 }
 
-/// "Yalnızca okul e-postası (bingol.edu.tr) ile kayıt olunabilir." tek sakin satır; alan adı kalın.
+/// "Gmail, Outlook, Hotmail, Yahoo ve diğer e-posta adresleriyle kayıt olabilirsiniz." tek sakin satır.
 class _DomainNote extends StatelessWidget {
   const _DomainNote(this.text);
 
@@ -213,21 +213,10 @@ class _DomainNote extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    const dom = 'bingol.edu.tr';
-    final at = text.indexOf(dom);
     final base = tx.bodySmall!.copyWith(color: t.mut, height: 1.4);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: at < 0
-          ? Text(text, textAlign: TextAlign.center, style: base)
-          : Text.rich(
-              TextSpan(style: base, children: [
-                TextSpan(text: text.substring(0, at)),
-                TextSpan(text: dom, style: TextStyle(color: t.ink, fontWeight: FontWeight.w400)),
-                TextSpan(text: text.substring(at + dom.length)),
-              ]),
-              textAlign: TextAlign.center,
-            ),
+      child: Text(text, textAlign: TextAlign.center, style: base),
     );
   }
 }

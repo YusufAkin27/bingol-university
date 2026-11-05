@@ -247,7 +247,7 @@ void main() {
       await settle(tester, const Duration(milliseconds: 300));
       expect(find.byType(TextFormField), findsNWidgets(3));
       expect(find.text('Ad soyad'), findsOneWidget);
-      expect(find.text('Okul numaranız'), findsOneWidget);
+      expect(find.text('E-posta adresiniz'), findsOneWidget);
       expect(find.text('Şifre (en az 6 karakter)'), findsOneWidget);
       expect(find.text('Bölüm seçin'), findsNothing);
       expect(find.text('Sınıf seçin'), findsNothing);
@@ -270,7 +270,7 @@ void main() {
       await tester.tap(find.text('Kayıt ol').last);
       await tester.pump();
       expect(find.text('Adınızı ve soyadınızı girin.'), findsOneWidget);
-      expect(find.text('Okul numaranızı girin.'), findsOneWidget);
+      expect(find.text('E-posta adresinizi girin.'), findsOneWidget);
       expect(find.text('Şifre en az 6 karakter olmalı.'), findsOneWidget);
       expect(b.count('/auth/register'), 0);
       await unmount(tester);

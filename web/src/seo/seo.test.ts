@@ -243,7 +243,7 @@ describe('önrender çıktısı', () => {
     expect(html).toContain('name="twitter:card" content="summary_large_image"');
     expect(html).toContain('<noscript>');
     expect(html).toContain('<h1>Gizlilik politikası</h1>');
-    expect(html).toContain('bingol.edu.tr uzantılı e-posta');
+    expect(html).toContain('geçerli bir e-posta adresiyle kayıt olunur');
     expect(html).toContain('<div id="root"><noscript>');
     expect(html).toContain('/assets/index-abc.js');
     expect(html).not.toContain('<title>BÜ Kampüs</title>');

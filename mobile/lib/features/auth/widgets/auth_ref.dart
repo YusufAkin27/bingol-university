@@ -520,7 +520,7 @@ class RefTextField extends StatefulWidget {
   /// Sağ uçta (göz düğmesi gibi) parça.
   final Widget? trailing;
 
-  /// Sağ uçta beyaz hap içinde sabit metin (ör. "@bingol.edu.tr").
+  /// Sağ uçta beyaz hap içinde sabit metin (ör. "@bingol.edu.tr", yalnız okul numarası yazılırken).
   final String? suffixChip;
   final VoidCallback? onSubmitted;
   final ValueChanged<String>? onChanged;
@@ -823,8 +823,8 @@ class _RefPasswordFieldState extends State<RefPasswordField> {
   }
 }
 
-/// Okul numarası ya da e-posta alanı. Yalnız rakam yazılırken (okul numarası) sağda `@bingol.edu.tr` hapı görünür;
-/// tam adres yazılınca hap kalkar. `allowStudentNumber: false` (kayıt): yalnız tam e-posta; hap yok, yardımcı metin
+/// Okul numarası ya da e-posta alanı (alan adı kısıtı yok). Yalnız rakam yazılırken (okul numarası) sağda `@bingol.edu.tr` hapı
+/// görünür; tam adres yazılınca hap kalkar. `allowStudentNumber: false` (kayıt): yalnız tam e-posta; hap yok, yardımcı metin
 /// e-posta örneği verir.
 class RefIdentifierField extends StatelessWidget {
   const RefIdentifierField({
@@ -857,7 +857,7 @@ class RefIdentifierField extends StatelessWidget {
   final String? forceError;
   final bool helper;
 
-  /// Etiket (varsayılan: okul e-postanız).
+  /// Etiket (varsayılan: e-posta ya da okul numaranız).
   final String? label;
 
   @override

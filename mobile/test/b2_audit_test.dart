@@ -136,20 +136,18 @@ void main() {
   });
 
   group('Kayıt: EMAIL_ALIAS_NOT_ALLOWED', () {
-    testWidgets('+ etiketi yazılamaz: alan yalnız rakam alır (harf, + ve @ süzülür); boş alan reddedilir', (tester) async {
+    testWidgets('boş e-posta alanı reddedilir; istek atılmaz', (tester) async {
       useScreen(tester, const Size(390, 1800));
       final b = FakeBackend();
       await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(b, signedIn: false))));
       await settle(tester, const Duration(milliseconds: 300));
       final fields = find.byType(TextFormField);
       await tester.enterText(fields.at(0), 'Ayşe Yılmaz');
-      await tester.enterText(fields.at(1), 'ayse+etiket@bingol.edu.tr');
       await tester.enterText(fields.at(2), 'Sifre1234');
       await tester.pump();
-      expect(tester.widget<TextField>(find.byType(TextField).at(1)).controller!.text, '');
       await tester.tap(find.text('Kayıt ol').last);
       await tester.pump();
-      expect(find.text('Okul numaranızı girin.'), findsOneWidget);
+      expect(find.text('E-posta adresinizi girin.'), findsOneWidget);
       expect(b.count('/auth/register'), 0);
       await unmount(tester);
     });

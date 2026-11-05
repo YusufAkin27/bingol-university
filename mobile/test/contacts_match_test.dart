@@ -56,19 +56,24 @@ void main() {
       expect(emailHash('  AYSE@Bingol.edu.TR '), known);
     });
 
-    test('yalniz bingol.edu.tr ve alt alanlari', () {
-      expect(isCampusEmail('a@bingol.edu.tr'), isTrue);
-      expect(isCampusEmail('a@ogr.bingol.edu.tr'), isTrue);
-      expect(isCampusEmail('a@gmail.com'), isFalse);
-      expect(isCampusEmail('a@evilbingol.edu.tr'), isFalse);
-      expect(isCampusEmail('a@bingol.edu.tr.evil.com'), isFalse);
-      expect(isCampusEmail('bingol.edu.tr'), isFalse);
-      expect(isCampusEmail('@bingol.edu.tr'), isFalse);
+    test('alan adi kisiti yok: her gecerli bicimli e-posta (gmail, outlook, okul...)', () {
+      expect(isMatchableEmail('a@bingol.edu.tr'), isTrue);
+      expect(isMatchableEmail('a@ogr.bingol.edu.tr'), isTrue);
+      expect(isMatchableEmail('a@gmail.com'), isTrue);
+      expect(isMatchableEmail('a@outlook.com'), isTrue);
+      expect(isMatchableEmail('a@hotmail.com'), isTrue);
+      expect(isMatchableEmail('a@yahoo.com'), isTrue);
+      expect(isMatchableEmail('bingol.edu.tr'), isFalse);
+      expect(isMatchableEmail('@bingol.edu.tr'), isFalse);
+      expect(isMatchableEmail('a@'), isFalse);
+      expect(isMatchableEmail('a@gmail'), isFalse);
+      expect(isMatchableEmail('a@gmail..com'), isFalse);
+      expect(isMatchableEmail('a@x y.com'), isFalse);
     });
   });
 
   group('ContactsMatchPage', () {
-    testWidgets('alan disi e-posta gonderilmez, kendi adres haric, sonuclar listelenir', (tester) async {
+    testWidgets('gecersiz bicim gonderilmez, kendi adres haric, sonuclar listelenir', (tester) async {
       final be = FakeBackend()
         ..on('/users/contacts/match', {
           'matches': [
@@ -82,7 +87,7 @@ void main() {
         'ali@ogr.bingol.edu.tr',
         'ayse@bingol.edu.tr', // kendi adresim
         'x@gmail.com',
-        'y@evilbingol.edu.tr',
+        'bozuk-adres', // geçersiz biçim: gönderilmez
         'veli@bingol.edu.tr', // tekrar
       ]);
       await _pump(tester, ContactsMatchPage(session: s, provider: provider, permissions: _granted()));
@@ -96,8 +101,8 @@ void main() {
 
       final body = be.bodies['POST /users/contacts/match'] as Map;
       final hashes = (body['hashes'] as List).cast<String>();
-      expect(hashes.toSet(), {emailHash('veli@bingol.edu.tr'), emailHash('ali@ogr.bingol.edu.tr')});
-      expect(hashes.length, 2);
+      expect(hashes.toSet(), {emailHash('veli@bingol.edu.tr'), emailHash('ali@ogr.bingol.edu.tr'), emailHash('x@gmail.com')});
+      expect(hashes.length, 3);
       expect(be.count('POST /users/contacts/match'), 1);
 
       // Arama
@@ -148,11 +153,11 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('rehberde kampus adresi yoksa bos durum, istek atilmaz', (tester) async {
+    testWidgets('rehberde gecerli e-posta yoksa bos durum, istek atilmaz', (tester) async {
       final be = FakeBackend();
       final s = makeSession(be);
       await _pump(tester,
-          ContactsMatchPage(session: s, provider: _FakeContacts(['a@gmail.com']), permissions: _granted()));
+          ContactsMatchPage(session: s, provider: _FakeContacts(['bozuk-adres', 'a@gmail']), permissions: _granted()));
       expect(find.text('Eşleşen kişi yok'), findsOneWidget);
       expect(be.count('contacts/match'), 0);
       _noErrors(tester);

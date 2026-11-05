@@ -4,12 +4,12 @@ import 'package:flutter/widgets.dart';
 
 import '../../core/locale_controller.dart';
 
-final _emailRe = RegExp(r'^[a-z0-9._%+\-]+@([a-z0-9\-]+\.)*bingol\.edu\.tr$');
+final _emailRe = RegExp(r'^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$');
 
 String? validateEmail(String? v) {
   final s = (v ?? '').trim().toLowerCase();
   if (s.isEmpty) return 'E-posta adresinizi girin.';
-  if (!_emailRe.hasMatch(s)) return 'Yalnızca bingol.edu.tr uzantılı adres kullanılabilir.';
+  if (!_emailRe.hasMatch(s)) return 'Geçerli bir e-posta adresi girin.';
   return null;
 }
 

@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -251,7 +252,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginWelcome => 'Welcome';
 
   @override
-  String get loginSubtitle => 'Log in with your school email.';
+  String get loginSubtitle => 'Log in with your email address.';
 
   @override
   String get loginReplacedNotice =>
@@ -288,7 +289,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authPasswordLabel => 'Password';
 
   @override
-  String get authIdHint => 'Your school email';
+  String get authIdHint => 'Email or student number';
 
   @override
   String get authIdNumberLabel => 'Your student number';
@@ -298,7 +299,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loginSubtitleNumber =>
-      '@bingol.edu.tr is added to your student number automatically. Log in with your university email account.';
+      'Log in with your email address or student number. If you type only a number, @bingol.edu.tr is added automatically.';
 
   @override
   String get authVerify => 'Verify';
@@ -678,7 +679,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown) {
+    String type,
+    String title,
+    String date,
+    String countdown,
+  ) {
     return '$type: $title. $date. $countdown. Tap to edit.';
   }
 
@@ -997,7 +1002,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end) {
+    String name,
+    String day,
+    String start,
+    String end,
+  ) {
     return '$name, $day from $start to $end';
   }
 
@@ -1997,7 +2006,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatMiscContactsNoneText =>
-      'None of your contacts use the app with a Bingöl University email yet. Your friends will appear here as they join.';
+      'None of your contacts use the app yet. Your friends will appear here as they join.';
 
   @override
   String get chatMiscContactsSearchHint => 'Search contacts';
@@ -3248,7 +3257,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get coreIdEmpty => 'Enter your student number or email address.';
 
   @override
-  String get coreIdDomain => 'Only bingol.edu.tr addresses can be used.';
+  String get coreIdEmail => 'Enter a valid email address.';
 
   @override
   String get coreIdNumber => 'Check your student number.';
@@ -5637,7 +5646,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authSectionPersonal => 'Personal details';
 
   @override
-  String get authHintPersonal => 'Enter your name and school email.';
+  String get authHintPersonal => 'Enter your name and email address.';
 
   @override
   String get authNext => 'Continue';
@@ -5655,20 +5664,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authPwMaxErr => 'Password can be at most 72 characters.';
 
   @override
-  String get authIdHelper => '226051015 or first.last@bingol.edu.tr';
+  String get authIdHelper => '226051015 or first.last@gmail.com';
 
   @override
-  String get authRegIdLabel => 'Your school email address';
+  String get authRegIdLabel => 'Your email address';
 
   @override
-  String get authRegIdHelper => 'e.g. first.last@bingol.edu.tr';
+  String get authRegIdHelper => 'e.g. first.last@gmail.com';
 
   @override
-  String get authRegIdEmpty => 'Enter your school email address.';
+  String get authRegIdEmpty => 'Enter your email address.';
 
   @override
   String get authRegIdFull =>
-      'Enter your full school email address, e.g. first.last@bingol.edu.tr';
+      'Enter your full email address, e.g. first.last@gmail.com';
 
   @override
   String get supportCatAccount => 'Account';
@@ -5922,11 +5931,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authForgotSubNumber =>
-      'Enter your student number. We will send a 6-digit code to your studentnumber@bingol.edu.tr address.';
+      'Enter your email address or student number. We will send a 6-digit code to your email address.';
 
   @override
   String get authForgotSub =>
-      'Enter your school email and we will send you a 6-digit code.';
+      'Enter your email address and we will send you a 6-digit code.';
 
   @override
   String get authBackToLogin => 'Back to log in';
@@ -5955,7 +5964,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get welcomeClubs => 'Clubs and events';
 
   @override
-  String get welcomeNote => 'Sign-up requires a school email (bingol.edu.tr).';
+  String get welcomeNote =>
+      'You can sign up with Gmail, Outlook, Hotmail, Yahoo or any other email address.';
 
   @override
   String get welcomeLanguage => 'Language';
@@ -9622,8 +9632,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p23GroupNameHint => 'E.g. Engineering Project Team...';
 
   @override
-  String get p23NoneText =>
-      'None of your contacts use the app with a Bingöl University email.';
+  String get p23NoneText => 'None of your contacts use the app.';
 
   @override
   String p09GradeYear(String n) {
@@ -10526,7 +10535,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get regSubtitle =>
-      'Enter your name, student number and a password. Your verification code will be sent to studentnumber@bingol.edu.tr.';
+      'Enter your name, email address and a password. Your verification code will be sent to your email address.';
 
   @override
   String get profileSetupTitle => 'Choose your department';

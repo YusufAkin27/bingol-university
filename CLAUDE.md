@@ -6,7 +6,7 @@ Bu dosya, repoda çalışan yapay zekâ ajanları ve geliştiriciler için kıla
 
 ## 1. Proje özeti ve mimari
 
-Bingöl Üniversitesi öğrenci/personel uygulaması: haber-duyuru-etkinlik ve yemek listesi, üyelik (yalnız `bingol.edu.tr`), profil, bildirimler, mesajlaşma, topluluklar, etkinlikler (QR + elle yoklama), favoriler/arama, destek, sözleşmeler, yönetim paneli.
+Bingöl Üniversitesi öğrenci/personel uygulaması: haber-duyuru-etkinlik ve yemek listesi, üyelik (herhangi bir geçerli e-posta adresi + e-posta doğrulama kodu; alan adı kısıtı yok), profil, bildirimler, mesajlaşma, topluluklar, etkinlikler (QR + elle yoklama), favoriler/arama, destek, sözleşmeler, yönetim paneli.
 
 - `backend/` — Spring Boot 4.1.x, Java 17, Maven; PostgreSQL 16 (Flyway), Redis, WebSocket/STOMP, JJWT, jsoup, Firebase Admin (isteğe bağlı), Lombok
 - `web/` — React + TypeScript (Vite): herkese açık tanıtım sitesi + `/admin` yönetim paneli (bkz. `web/README.md`)
@@ -122,7 +122,7 @@ Yapı: `lib/core/` (tek HTTP katmanı `api.dart` + ETag/304 LRU önbelleği, `se
 
 ## 4. Güvenlik kuralları (kesin)
 1. **Sırlar kodda/commit'te olmaz.** `.env`, anahtarlar, FCM JSON'u, `data/` commit'lenmez. Varsayılan `dev-only-…` JWT anahtarı yalnızca yerel içindir.
-2. **Kayıt yalnızca `bingol.edu.tr`** (alt alanlar dahil) ve **sözleşme kabulüyle** (`acceptTerms=true`; onaylar `legal_acceptance`'a yazılır). **E-posta doğrulaması şart.** Tek istisna: yapılandırmadaki `ADMIN_EMAILS` adresleri alan adı kısıtından muaftır (`AuthService.register`; bağımsız/gmail yönetici hesabı için; kod yine o adrese gider, `+etiket` yasağı ve diğer kurallar aynıdır).
+2. **Kayıt herhangi bir geçerli e-posta adresiyle yapılır** (Gmail, Outlook, Hotmail, Yahoo, okul adresleri...; kullanıcı kararı 2026-11-05: `bingol.edu.tr` zorunluluğu KALDIRILDI) ve **sözleşme kabulüyle** (`acceptTerms=true`; onaylar `legal_acceptance`'a yazılır). **E-posta doğrulaması (6 haneli kod) şart**: hesap yalnız adrese gelen kod girilince açılır. Sunucu adreste YALNIZ biçim denetler (`AuthService.EMAIL_FORMAT`; geçersizse genel 400 `VALIDATION_ERROR`); alan adı kara/beyaz listesi ve tek kullanımlık e-posta listesi YOKTUR (eklemeyin). `+etiket` yasağı (`EMAIL_ALIAS_NOT_ALLOWED`), rate limit, enumerasyona karşı genel cevaplar, honeypot aynen sürer. `ADMIN_EMAILS` yalnız yönetici belirler (alan adı istisnası artık gereksiz). Giriş/şifre sıfırlama: tam e-posta aynen kullanılır, yalnız rakam girilirse eski numara kısayolu (`<no>@bingol.edu.tr`). Ayrıntı: `docs/changes/auth.md` "E-posta alan adı kısıtı kaldırıldı (2026-11-05)".
 3. **Token'lar:** access JWT 15 dk (`role` claim'i içerir); refresh opak, tek kullanımlık, Redis'te hash'li. Doğrulama kodları hash'li, 10 dk, 5 deneme.
 4. **Auth ve yazma uçlarında rate limit zorunlu** (`RateLimiter`); yeni uç → limit.
 5. **Enumerasyona karşı genel cevaplar** (login, resend-code, geçersiz kod).
@@ -149,6 +149,7 @@ Yapı: `lib/core/` (tek HTTP katmanı `api.dart` + ETag/304 LRU önbelleği, `se
 - BOM eklemek; `target/`, `data/`, `node_modules/`, `dist/` commit'lemek.
 
 ## 8. Bilinen sınırlamalar
+- **E-posta alan adı kısıtı kalktı (2026-11-05):** herkes kayıt olabilir; bölüm/fakülte e-postadan türetilmez (profil kurulumundan gelir). Sözleşme/KVKK/SSS metinleri (V99/V290/V370/V480/V820 + V3 SSS tohumu "Kimler kayıt olabilir?") hâlâ "yalnız bingol.edu.tr" der: yeni sürüm hukuk danışmanı kararı bekliyor (`docs/LEGAL_NOTES.md` bölüm 13). Gmail noktası/takma adı gibi alan adına özel tekilleştirme yapılmaz (kullanıcı yalnız biçim denetimi istedi).
 - Haberlerde yalnızca ilk sayfa (20 kayıt/tür) çekilir; harici alt sitelerdeki duyurularda içerik yoktur.
 - Rate limit sabit pencere; IP, `prod` profilinde `forward-headers-strategy=framework` ile `X-Forwarded-For`'dan alınır — proxy bu başlığı iletmelidir (profilsiz yerelde `getRemoteAddr()`).
 - `register`, doğrulanmış e-posta için 409 döner (sınırlı enumerasyon; bilinen taviz).

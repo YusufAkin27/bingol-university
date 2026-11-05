@@ -90,17 +90,17 @@ describe('yönetici hesabı kaydı', () => {
     expect(screen.getByText(/Kod gelmediyse adresiniz yetkili değildir/)).toBeInTheDocument();
   });
 
-  it('sunucu alan adını reddederse sunucu mesajı gösterilir, form korunur', async () => {
+  it('sunucu e-posta biçimini reddederse sunucu mesajı gösterilir, form korunur', async () => {
     const user = userEvent.setup();
     mockFetch((url) =>
       url.endsWith('/auth/register')
-        ? jsonResponse(400, { code: 'EMAIL_DOMAIN_NOT_ALLOWED', message: 'Yalnızca bingol.edu.tr uzantılı e-posta ile kayıt olunabilir.' })
+        ? jsonResponse(400, { code: 'VALIDATION_ERROR', message: 'Geçersiz istek.' })
         : jsonResponse(404),
     );
     render(<App />);
     await fillForm(user, 'baska@gmail.com');
 
-    expect(await screen.findByText(/Yalnızca bingol\.edu\.tr/)).toBeInTheDocument();
+    expect(await screen.findByText(/Girdiğiniz bilgileri kontrol edin/)).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'E-postanızı doğrulayın' })).toBeNull();
   });
 

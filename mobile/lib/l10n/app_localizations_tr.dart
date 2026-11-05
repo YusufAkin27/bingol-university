@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -251,7 +252,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get loginWelcome => 'Hoş geldiniz';
 
   @override
-  String get loginSubtitle => 'Okul e-postanızla giriş yapın.';
+  String get loginSubtitle => 'E-posta adresinizle giriş yapın.';
 
   @override
   String get loginReplacedNotice =>
@@ -288,7 +289,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get authPasswordLabel => 'Şifre';
 
   @override
-  String get authIdHint => 'Okul e-postanız';
+  String get authIdHint => 'E-posta ya da okul numaranız';
 
   @override
   String get authIdNumberLabel => 'Okul numaranız';
@@ -298,7 +299,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get loginSubtitleNumber =>
-      'Okul numaranıza @bingol.edu.tr otomatik eklenir. Üniversite e-posta hesabınızla giriş yapın.';
+      'E-posta adresinizle ya da okul numaranızla giriş yapın. Yalnız numara yazarsanız @bingol.edu.tr otomatik eklenir.';
 
   @override
   String get authVerify => 'Doğrula';
@@ -678,7 +679,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown) {
+    String type,
+    String title,
+    String date,
+    String countdown,
+  ) {
     return '$type: $title. $date. $countdown. Düzenlemek için dokun.';
   }
 
@@ -996,7 +1001,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end) {
+    String name,
+    String day,
+    String start,
+    String end,
+  ) {
     return '$name, $day $start ile $end arası';
   }
 
@@ -1987,7 +1996,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get chatMiscContactsNoneText =>
-      'Rehberindeki kişilerden Bingöl Üniversitesi e-postasıyla uygulamayı kullanan kimse bulunamadı. Arkadaşların katıldıkça burada görünür.';
+      'Rehberindeki kişilerden uygulamayı kullanan kimse bulunamadı. Arkadaşların katıldıkça burada görünür.';
 
   @override
   String get chatMiscContactsSearchHint => 'Kişilerde ara';
@@ -3232,8 +3241,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get coreIdEmpty => 'Okul numaranızı veya e-posta adresinizi girin.';
 
   @override
-  String get coreIdDomain =>
-      'Yalnızca bingol.edu.tr uzantılı adres kullanılabilir.';
+  String get coreIdEmail => 'Geçerli bir e-posta adresi girin.';
 
   @override
   String get coreIdNumber => 'Okul numarasını kontrol edin.';
@@ -5612,7 +5620,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get authSectionPersonal => 'Kişisel bilgiler';
 
   @override
-  String get authHintPersonal => 'Adınızı ve okul e-postanızı girin.';
+  String get authHintPersonal => 'Adınızı ve e-posta adresinizi girin.';
 
   @override
   String get authNext => 'Devam';
@@ -5630,20 +5638,20 @@ class AppLocalizationsTr extends AppLocalizations {
   String get authPwMaxErr => 'Şifre en çok 72 karakter olabilir.';
 
   @override
-  String get authIdHelper => '226051015 ya da ad.soyad@bingol.edu.tr';
+  String get authIdHelper => '226051015 ya da ad.soyad@gmail.com';
 
   @override
-  String get authRegIdLabel => 'Okul e-posta adresiniz';
+  String get authRegIdLabel => 'E-posta adresiniz';
 
   @override
-  String get authRegIdHelper => 'Örn. ad.soyad@bingol.edu.tr';
+  String get authRegIdHelper => 'Örn. ad.soyad@gmail.com';
 
   @override
-  String get authRegIdEmpty => 'Okul e-posta adresinizi girin.';
+  String get authRegIdEmpty => 'E-posta adresinizi girin.';
 
   @override
   String get authRegIdFull =>
-      'Okul e-posta adresinizin tamamını yazın, örn. ad.soyad@bingol.edu.tr';
+      'E-posta adresinizin tamamını yazın, örn. ad.soyad@gmail.com';
 
   @override
   String get supportCatAccount => 'Hesap';
@@ -5896,11 +5904,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get authForgotSubNumber =>
-      'Okul numaranızı girin. 6 haneli kodu okulnumaranız@bingol.edu.tr adresinize göndereceğiz.';
+      'E-posta adresinizi ya da okul numaranızı girin. 6 haneli kodu e-posta adresinize göndereceğiz.';
 
   @override
   String get authForgotSub =>
-      'Okul e-postanızı girin, size 6 haneli bir kod gönderelim.';
+      'E-posta adresinizi girin, size 6 haneli bir kod gönderelim.';
 
   @override
   String get authBackToLogin => 'Girişe dön';
@@ -5930,7 +5938,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get welcomeNote =>
-      'Yalnızca okul e-postası (bingol.edu.tr) ile kayıt olunabilir.';
+      'Gmail, Outlook, Hotmail, Yahoo ve diğer e-posta adresleriyle kayıt olabilirsiniz.';
 
   @override
   String get welcomeLanguage => 'Dil';
@@ -9590,7 +9598,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p23NoneText =>
-      'Rehberindeki kişilerden Bingöl Üniversitesi e-postasıyla uygulamayı kullanan kimse bulunamadı.';
+      'Rehberindeki kişilerden uygulamayı kullanan kimse bulunamadı.';
 
   @override
   String p09GradeYear(String n) {
@@ -10492,7 +10500,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get regSubtitle =>
-      'Adınızı, okul numaranızı ve şifrenizi girin. Doğrulama kodunuz okulnumaranız@bingol.edu.tr adresinize gönderilir.';
+      'Adınızı, e-posta adresinizi ve şifrenizi girin. Doğrulama kodunuz e-posta adresinize gönderilir.';
 
   @override
   String get profileSetupTitle => 'Bölümünüzü seçin';

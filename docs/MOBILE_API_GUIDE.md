@@ -46,7 +46,7 @@ Accept-Language: tr
 
 **Mail kuyruğu:** `register`/`resend-code` e-postayı kuyruğa yazıp hemen döner; gönderim arka planda yapılır, yani **kod birkaç saniye (SMTP sorunlarında daha geç) sonra gelir**. Arayüzde "kod gönderildi" deyip geri sayımı hemen başlatın, ekranı kilitlemeyin. Kuyruğa yazılamazsa `503 MAIL_UNAVAILABLE`. Gönderim başarısızsa sunucu en çok 5 kez yeniden dener (1 dk, 5 dk, 30 dk, 2 sa, 12 sa); kullanıcı yine de "kodu yeniden gönder" ile yeni kod isteyebilir.
 
-- Yalnızca `bingol.edu.tr` ve alt alanları; aksi `400 EMAIL_DOMAIN_NOT_ALLOWED`. `acceptTerms` **true olmalı** (sözleşme kabulü sunucuda kaydedilir); `password` 8-72 karakter; `displayName` ≤ 80; `language` isteğe bağlı `tr|en|ar` (verilmezse `Accept-Language`).
+- Herhangi bir geçerli e-posta adresi (Gmail, Outlook, Hotmail, Yahoo, okul...; alan adı kısıtı yok, 2026-11-05). Yalnız biçim denetlenir: geçersizse `400 VALIDATION_ERROR`; `@` içermeyen girdi `400 EMAIL_FULL_REQUIRED`; `+etiket` `400 EMAIL_ALIAS_NOT_ALLOWED`. Kod yine adrese gider, doğrulama şart. `acceptTerms` **true olmalı** (sözleşme kabulü sunucuda kaydedilir); `password` 8-72 karakter; `displayName` ≤ 80; `language` isteğe bağlı `tr|en|ar` (verilmezse `Accept-Language`).
 - E-postası zaten doğrulanmış hesap için `409 EMAIL_ALREADY_REGISTERED` (kullanıcıyı giriş ekranına yönlendirin).
 - IP başına saatte 10 kayıt (`429 RATE_LIMITED`); `resend-code` IP başına saatte 10, e-posta başına saatte 5.
 - **Akademik alanlar (isteğe bağlı):** `faculty`, `department`, `grade` (bkz. 1.8). Verilirse katalogla doğrulanır; geçersizse `400 ACADEMIC_INVALID`. Bekleyen kayıtla taşınır, `verify-email` ile hesaba yazılır.
@@ -506,7 +506,6 @@ Genel durum kodları: `400` doğrulama/iş kuralı, `401` kimlik, `403` yetki/as
 | `COMMUNITY_NOT_FOUND` | 404 | Topluluk bulunamadı. | Community not found. | المجتمع غير موجود. |
 | `CONVERSATION_NOT_FOUND` | 404 | Konuşma bulunamadı. | Conversation not found. | المحادثة غير موجودة. |
 | `EMAIL_ALREADY_REGISTERED` | 409 | Bu e-posta ile zaten kayıt olunmuş. | This email is already registered. | هذا البريد الإلكتروني مسجّل مسبقًا. |
-| `EMAIL_DOMAIN_NOT_ALLOWED` | 400 | Yalnızca bingol.edu.tr uzantılı e-posta ile kayıt olunabilir. | Only email addresses ending in bingol.edu.tr can register. | يمكن التسجيل فقط بعناوين البريد الإلكتروني المنتهية بـ bingol.edu.tr. |
 | `EMAIL_NOT_VERIFIED` | 403 | Giriş için önce e-posta adresinizi doğrulayın. | Please verify your email address before signing in. | يرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول. |
 | `EMPTY_MESSAGE` | 400 | Mesaj boş olamaz. | The message cannot be empty. | لا يمكن أن تكون الرسالة فارغة. |
 | `EVENT_ENDED` | 409 | Etkinlik sona erdi. | The event has ended. | انتهت الفعالية. |

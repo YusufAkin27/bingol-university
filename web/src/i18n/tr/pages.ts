@@ -174,7 +174,7 @@ const m = {
     'Yönetici erişimi kayıt altındadır: yetkili yöneticiler güvenlik ve yasal yükümlülükler için konuşmaları görüntüleyebilir ve her erişim değiştirilemez bir denetim kaydına yazılır. Silinen mesajlar güvenlik ve yasal yükümlülükler için saklanabilir.',
   'pg.security.s1.l4':
     'Şifreler geri döndürülemeyecek biçimde (özet olarak) saklanır; oturum yenileme anahtarları da yalnızca özet olarak tutulur.',
-  'pg.security.s1.l5': 'Kayıt yalnızca bingol.edu.tr e-posta adresleriyle ve e-posta doğrulamasıyla yapılabilir.',
+  'pg.security.s1.l5': 'Kayıt, geçerli bir e-posta adresiyle ve e-posta doğrulamasıyla yapılabilir.',
   'pg.security.s1.l6': 'Giriş, doğrulama ve yazma uçlarında hız sınırı uygulanır.',
   'pg.security.s2.h': 'Güvenlik açığı bildirimi',
   'pg.security.s2.p1':

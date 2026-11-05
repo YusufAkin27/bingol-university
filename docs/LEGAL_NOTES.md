@@ -222,3 +222,15 @@ Hukuki sebep önerisi: KVKK m.5/2-f meşru menfaat (hizmetin iyileştirilmesi, k
 5. *Saklama tablosu:* "Kullanım olayları (oturum/ekran/eylem): ham 45 gün, günlük toplu özet süresiz (kimliksiz)".
 
 **Yayın adımları (kod tarafı):** avukat onayından sonra `docs/legal/*_{tr,en,ar}.md` güncellenir ve yeni bir migration betiğiyle (V480/V620/V820 dondurulmuş) yeni sürüm üretilir; yeniden onay (`app.legal.enforce-reaccept`) kararı avukata aittir (yeni veri kategorisi sayılırsa gerekebilir).
+
+## 13. E-posta alan adı zorunluluğu kalktı: metinlerde "yalnız bingol.edu.tr" ifadeleri (2026-11-05) - KARAR BEKLİYOR
+
+Kullanıcı kararı: kayıt artık `@bingol.edu.tr` ya da başka bir üniversite uzantısı ile sınırlı değil (Gmail, Outlook, Hotmail, Yahoo ve her geçerli e-posta; yalnız e-posta kodu doğrulaması şart). **Bu işte hiçbir sözleşme migration'ı YAZILMADI** (V99/V290/V370/V480/V620/V820 dondurulmuş sürümler dokunulmadı); aşağıdaki ifadeler kod davranışıyla ÇELİŞİR ve yeni bir sürüm için hukuk danışmanı/kullanıcı kararı bekler:
+
+- **Kullanım Koşulları "Kimler kayıt olabilir?"** (`docs/legal/terms_{tr,en,ar}.md`; V820 içinde yayında): "Kayıt yalnızca Bingöl Üniversitesi öğrencileri ve personeli içindir ve yalnızca `bingol.edu.tr` uzantılı e-posta adresiyle yapılır." Üniversite mensubu olmayanlar da artık kayıt olabilir; hedef kitle ifadesi (öğrenci/personel), 18+ ve ilgili sorumluluk cümleleri gözden geçirilmeli.
+- **Gizlilik / KVKK Aydınlatma veri tabloları:** "Hesap: e-posta (bingol.edu.tr)", "Kurumsal e-posta adresi (bingol.edu.tr)" (`privacy_*.md`, `kvkk_*.md`): artık "e-posta adresi" (kurumsal olmayabilir).
+- **SSS tohumu** (V3 `faq` satırı "Kimler kayıt olabilir?", Hesap kategorisi) ve eski sürümlerin metinleri: SSS yönetim panelinden düzenlenebilir (migration gerekmez); sözleşme metinleri ise yeni sürüm migration'ı ister (`scripts/build-legal-migration-v620.js` düzeni; yeniden onay kararı `app.legal.enforce-reaccept`).
+- **Çocuk güvenliği sayfası (CSAE) ve tanıtım sitesi metinleri** (web i18n `child-safety`, `site`, `site-trust`, `seo`, `pages`) bu işte kod tarafında güncellendi ("doğrulanmış e-posta"); avukat incelemesindeki "yalnız doğrulanmış bingol.edu.tr e-postasıyla" cümlesi (bölüm 11) artık geçersizdir, yeniden okunmalıdır.
+- `docs/legal/internal/*` (ilgili kişi başvuru prosedürü, VERBİS rehberi) "bingol.edu.tr adresinizden" ifadeleri: kurumsal adres varsayımı kalktı.
+
+Risk notu (avukata): alan adı kısıtı kalkınca "üniversite topluluğu" güvencesi (doğrulanmış mensubiyet) yoktur; kimlik doğrulaması yalnız e-posta sahipliği kanıtıdır. Kulüp/etkinlik/duyuru hedefleme "öğrenci" varsayımları ürün tarafında ayrıca düşünülmelidir.

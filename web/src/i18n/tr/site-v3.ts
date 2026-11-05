@@ -7,7 +7,7 @@ const m = {
   'site.v3.footer.independent': 'Bağımsız öğrenci uygulaması; Bingöl Üniversitesi’nin resmî uygulaması değildir.',
   'site.v3.home.showTitle': 'Kampüste her gün açacağınız ekranlar',
   'site.v3.home.showLead': 'Yemek listesinden sohbete, kulüplerden QR yoklamaya kadar hepsi tek uygulamada.',
-  'site.v3.cta.text': 'Bingöl Üniversitesi e-posta adresinizle kaydolun; kampüs cebinizde.',
+  'site.v3.cta.text': 'E-posta adresinizle kaydolun; kampüs cebinizde.',
   'site.v3.features.moreTitle': 'Ve daha fazlası',
   'site.v3.features.moreLead': 'Gizlilik, bildirimler, dil seçenekleri ve kulüp yönetimi için ayrıntılar.',
   'site.v3.about.indTitle': 'Bağımsız bir uygulama',
