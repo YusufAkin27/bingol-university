@@ -3,7 +3,6 @@ import 'package:bu_kampus/core/push/notification_presentation.dart';
 import 'package:bu_kampus/core/push/notification_push_card.dart';
 import 'package:bu_kampus/core/push/push_router.dart';
 import 'package:bu_kampus/core/push/push_targets.dart';
-import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/notifications/notifications_page.dart';
 import 'package:bu_kampus/widgets/bu.dart';
 import 'package:flutter/material.dart';

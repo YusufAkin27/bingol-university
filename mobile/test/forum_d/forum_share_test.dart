@@ -123,8 +123,8 @@ void main() {
     testWidgets('forum karti: ustte kategori adi, baslik, yazar; anonimde yazar satiri yok', (tester) async {
       await mount(
         tester,
-        Scaffold(
-          body: Column(children: const [
+        const Scaffold(
+          body: Column(children: [
             ShareCard(
               info: ShareInfo(type: ShareType.forumTopic, id: 12, title: 'Kantin fiyatları', subtitle: 'Mehmet Kaya', category: 'Yemekhane'),
               mine: false,
@@ -146,8 +146,8 @@ void main() {
     testWidgets('kategori yoksa tur etiketi "Forum"; kullanilamayan icerik yer tutucu; koyu tema + buyuk yazi', (tester) async {
       await mount(
         tester,
-        Scaffold(
-          body: Column(children: const [
+        const Scaffold(
+          body: Column(children: [
             ShareCard(info: ShareInfo(type: ShareType.forumComment, id: 9, title: 'Yorum metni'), mine: false, width: 220),
             ShareCard(info: ShareInfo(type: ShareType.forumTopic, id: 9, available: false), mine: false, width: 220),
           ]),

@@ -4,7 +4,6 @@ import 'package:bu_kampus/features/forum/presentation/pages/forum_search_page.da
 import 'package:bu_kampus/features/forum/presentation/widgets/topic_card.dart';
 import 'package:bu_kampus/widgets/bu.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../support/fake_app.dart';
