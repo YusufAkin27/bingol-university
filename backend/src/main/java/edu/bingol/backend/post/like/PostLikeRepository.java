@@ -37,4 +37,22 @@ public interface PostLikeRepository extends JpaRepository<PostLike, PostLikeId> 
 
     @Query("SELECT COUNT(l) " + LIKERS)
     long countLikers(@Param("pid") Long postId, @Param("hidden") Collection<Long> hidden);
+
+    /**
+     * Kullanicinin begendigi, hala GORUNUR gonderiler (silinmis/gizli/engelli/pasif yazar/gizli hesap elenir) + begeni anı.
+     * :kind = ALL | PHOTO | VIDEO (VIDEO = Reels: gorunur VIDEO medyasi olan gonderi). Sira: begeni anina gore yeniden eskiye.
+     */
+    String LIKED = "FROM Post p, PostLike l WHERE l.id.postId = p.id AND l.id.userId = :viewer AND "
+            + PostRepository.VISIBLE + PostRepository.MEDIA
+            + "AND (:kind = 'ALL' OR (:kind = 'VIDEO' AND EXISTS (SELECT 1 FROM PostMedia vm WHERE vm.postId = p.id "
+            + "AND vm.kind = 'VIDEO' AND vm.hiddenAt IS NULL)) OR (:kind = 'PHOTO' AND NOT EXISTS (SELECT 1 FROM PostMedia vm "
+            + "WHERE vm.postId = p.id AND vm.kind = 'VIDEO' AND vm.hiddenAt IS NULL))) ";
+
+    @Query("SELECT p, l.createdAt " + LIKED + "ORDER BY l.createdAt DESC, p.id DESC")
+    List<Object[]> likedFirst(@Param("viewer") Long viewer, @Param("kind") String kind, Pageable page);
+
+    @Query("SELECT p, l.createdAt " + LIKED + "AND (l.createdAt < :at OR (l.createdAt = :at AND p.id < :cid)) "
+            + "ORDER BY l.createdAt DESC, p.id DESC")
+    List<Object[]> likedAfter(@Param("viewer") Long viewer, @Param("kind") String kind, @Param("at") Instant at,
+                              @Param("cid") Long cid, Pageable page);
 }
