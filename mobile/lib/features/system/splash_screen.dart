@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../widgets/bu.dart';
 
-/// Açılış ekranı (Stitch v3 "18"): tam ekran marka kırmızısı (koyu temada düz zemin), ortada "BÜ Kampüs" ve 24 dp altında
+/// Açılış ekranı: tema zemini (monochrome), ortada "BÜ Kampüs" ve 24 dp altında
 /// ince ilerleme halkası; monogram/karo/ikon yok. Oturum durumu çözülürken gösterilir; ağ beklemez.
 /// "Animasyonları azalt" açıkken halka sabit (dolu yay) durur.
 class SplashScreen extends StatelessWidget {
@@ -12,11 +12,10 @@ class SplashScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final dark = Theme.of(context).brightness == Brightness.dark;
     final rtl = Directionality.of(context) == TextDirection.rtl;
-    final fg = dark ? t.ink : t.onMedia;
+    final fg = t.ink;
     return Scaffold(
-      backgroundColor: dark ? t.bg : t.h1,
+      backgroundColor: t.bg,
       body: Center(
         child: Semantics(
           label: 'BÜ Kampüs',

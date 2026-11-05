@@ -62,7 +62,7 @@ class _ChatMediaGalleryPageState extends State<ChatMediaGalleryPage>
             unselectedLabelColor: t.mut,
             labelStyle: chatInfoLabel14(context),
             unselectedLabelStyle:
-                chatInfoLabel14(context).copyWith(fontWeight: FontWeight.w500),
+                chatInfoLabel14(context).copyWith(fontWeight: BuType.emphasisWeight),
             overlayColor: WidgetStatePropertyAll(t.sf2),
             tabs: [
               Tab(text: l.chatInfoTabPhotos),

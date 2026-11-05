@@ -314,7 +314,7 @@ class ChatInfoQuickAction extends StatelessWidget {
                 maxLines: 2,
                 textAlign: TextAlign.center,
                 overflow: TextOverflow.ellipsis,
-                style: chatInfoLabel12(context).copyWith(fontWeight: FontWeight.w500, color: t.ink)),
+                style: chatInfoLabel12(context).copyWith(fontWeight: BuType.emphasisWeight, color: t.ink)),
           ]),
         ),
       ),

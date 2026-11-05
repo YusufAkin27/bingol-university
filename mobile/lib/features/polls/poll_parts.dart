@@ -148,7 +148,7 @@ class ResultBar extends StatelessWidget {
                       ? Row(children: [
                           ExcludeSemantics(child: Icon(BuIcons.circleCheckFilled, size: 14, color: t.prText)),
                           const SizedBox(width: 4),
-                          Flexible(child: Text(l.p68MyVote, maxLines: 1, overflow: TextOverflow.ellipsis, style: small.copyWith(color: t.prText, fontWeight: FontWeight.w500))),
+                          Flexible(child: Text(l.p68MyVote, maxLines: 1, overflow: TextOverflow.ellipsis, style: small.copyWith(color: t.prText, fontWeight: BuType.emphasisWeight))),
                         ])
                       : const SizedBox.shrink(),
                 ),

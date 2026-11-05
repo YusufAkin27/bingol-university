@@ -340,7 +340,7 @@ class _FaqTile extends StatelessWidget {
               child: Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(16, open ? 17 : 12, 16, open ? 10 : 12),
                 child: Row(children: [
-                  Expanded(child: Text(question, style: tx.titleMedium!.copyWith(color: t.ink, fontSize: 16, fontWeight: FontWeight.w500, height: 1.35))),
+                  Expanded(child: Text(question, style: tx.titleMedium!.copyWith(color: t.ink, fontSize: 16, fontWeight: BuType.emphasisWeight, height: 1.35))),
                   const SizedBox(width: 12),
                   // Ok tek simge: açılınca 180 derece döner (yalnız transform).
                   AnimatedRotation(
@@ -425,7 +425,7 @@ class _TicketTile extends StatelessWidget {
             Text.rich(
               TextSpan(style: meta, children: [
                 TextSpan(text: '$date · '),
-                TextSpan(text: st.label, style: TextStyle(color: statusColor, fontWeight: FontWeight.w500)),
+                TextSpan(text: st.label, style: TextStyle(color: statusColor, fontWeight: BuType.emphasisWeight)),
               ]),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

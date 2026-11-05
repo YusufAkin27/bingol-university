@@ -65,7 +65,7 @@ class AnketTextTabs extends StatelessWidget {
                           child: AnimatedDefaultTextStyle(
                             duration: BuMotion.of(context, BuMotion.short),
                             curve: BuMotion.standard,
-                            style: tx.bodyMedium!.copyWith(fontWeight: on ? FontWeight.w400 : FontWeight.w500, color: on ? t.prText : t.mut),
+                            style: tx.bodyMedium!.copyWith(fontWeight: on ? FontWeight.w400 : BuType.emphasisWeight, color: on ? t.prText : t.mut),
                             child: Text(labels[i], maxLines: 1, softWrap: false),
                           ),
                         ),

@@ -68,7 +68,7 @@ class AcadTabs extends StatelessWidget {
                         child: AnimatedDefaultTextStyle(
                           duration: BuMotion.of(context, BuMotion.short),
                           curve: BuMotion.standard,
-                          style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: on ? FontWeight.w400 : FontWeight.w500, color: on ? t.ink : t.mut),
+                          style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: on ? FontWeight.w400 : BuType.emphasisWeight, color: on ? t.ink : t.mut),
                           child: Text(labels[i], maxLines: 1, softWrap: false),
                         ),
                       ),
@@ -213,7 +213,7 @@ class AcadLabeled extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 7),
                 child: Semantics(
                   liveRegion: true,
-                  child: Text(error!, style: tx.bodySmall!.copyWith(color: t.danger, fontWeight: FontWeight.w500, height: 1.2)),
+                  child: Text(error!, style: tx.bodySmall!.copyWith(color: t.danger, fontWeight: BuType.emphasisWeight, height: 1.2)),
                 ),
               ),
       ),

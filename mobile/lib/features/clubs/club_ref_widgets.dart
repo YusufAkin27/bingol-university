@@ -532,7 +532,7 @@ class ClubFieldError extends StatelessWidget {
       padding: const EdgeInsetsDirectional.fromSTEB(0, 6, 0, 0),
       child: Semantics(
         liveRegion: true,
-        child: Text(text, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.danger, fontWeight: FontWeight.w500, height: 1.35)),
+        child: Text(text, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.danger, fontWeight: BuType.emphasisWeight, height: 1.35)),
       ),
     );
   }

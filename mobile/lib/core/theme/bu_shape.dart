@@ -8,8 +8,8 @@ abstract final class BuRadius {
   static const double md = 16;
 
   /// Düğme ve giriş alanı köşesi (Stitch rounded-xl ~12-14; 48 dp düğmede 16 fazla yuvarlak görünür).
-  static const double control = 14;
-  static const double lg = 20;
+  static const double control = 12;
+  static const double lg = 20; // alt sayfa/dialog
   static const double xl = 28;
   static const double pill = 999;
 
@@ -22,7 +22,7 @@ abstract final class BuRadius {
   static const BorderRadius bPill = BorderRadius.all(Radius.circular(pill));
 
   /// Yalnız üst köşeler yuvarlak (alt sayfa).
-  static const BorderRadius topXl = BorderRadius.vertical(top: Radius.circular(xl));
+  static const BorderRadius topXl = BorderRadius.vertical(top: Radius.circular(lg));
 
   /// Yuvarlatılmış dikdörtgen şekil; [side] verilirse çerçeveli.
   static RoundedRectangleBorder rect(double radius, {BorderSide side = BorderSide.none}) =>

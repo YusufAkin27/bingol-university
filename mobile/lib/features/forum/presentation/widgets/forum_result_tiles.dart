@@ -213,7 +213,7 @@ class _Counts extends StatelessWidget {
     final s = tx.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w400);
     return ExcludeSemantics(
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(liked ? BuIcons.heartFilled : BuIcons.heart, size: 15, color: liked ? t.pr : t.mut),
+        Icon(liked ? BuIcons.heartFilled : BuIcons.heart, size: 15, color: liked ? t.heart : t.mut),
         const SizedBox(width: 4),
         Text('$likes', style: s),
         const SizedBox(width: 14),

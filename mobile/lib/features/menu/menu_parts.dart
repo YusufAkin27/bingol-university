@@ -141,7 +141,7 @@ class _MenuDayStripState extends State<MenuDayStrip> {
                     AnimatedDefaultTextStyle(
                       duration: dur,
                       maxLines: 1,
-                      style: BuType.caption.copyWith(fontSize: 11.5, height: 1.2, fontWeight: sel ? FontWeight.w400 : FontWeight.w500, color: sel ? t.prText : t.mut),
+                      style: BuType.caption.copyWith(fontSize: 11.5, height: 1.2, fontWeight: sel ? FontWeight.w400 : BuType.emphasisWeight, color: sel ? t.prText : t.mut),
                       child: Text(dayName),
                     ),
                     const SizedBox(height: 2),
@@ -297,7 +297,7 @@ class _TotalRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
                 children: [
-                  Flexible(child: Text(l.p03MenuTotalEnergy, style: BuType.caption.copyWith(fontSize: 14, height: 1.43, fontWeight: FontWeight.w500, color: t.ink))),
+                  Flexible(child: Text(l.p03MenuTotalEnergy, style: BuType.caption.copyWith(fontSize: 14, height: 1.43, fontWeight: BuType.emphasisWeight, color: t.ink))),
                   const SizedBox(width: 12),
                   if (complete)
                     // Toplam kalori gün değişince 0'dan sayarak oturur (animasyonları azalt açıkken anında).

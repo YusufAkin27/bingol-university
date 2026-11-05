@@ -786,7 +786,7 @@ class _NotifFilterChip extends StatelessWidget {
                 style: BuType.caption.copyWith(
                     fontSize: 14,
                     height: 1.3,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: BuType.emphasisWeight,
                     color: selected ? t.bg : t.ink)),
           ),
         ),

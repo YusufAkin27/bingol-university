@@ -427,7 +427,7 @@ class _SheetRow extends StatelessWidget {
               child: Text(action.label,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: color, fontSize: 16, fontWeight: FontWeight.w500)),
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: color, fontSize: 16, fontWeight: BuType.emphasisWeight)),
             ),
           ]),
         ),

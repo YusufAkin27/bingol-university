@@ -228,7 +228,7 @@ class _Tile extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(8, 18, 8, 8),
                   child: Row(children: [
-                    Icon(BuIcons.heartFilled, size: 14, color: t.prText),
+                    Icon(BuIcons.heartFilled, size: 14, color: t.heart),
                     const SizedBox(width: 4),
                     Flexible(
                       child: Text('${post.likeCount}',

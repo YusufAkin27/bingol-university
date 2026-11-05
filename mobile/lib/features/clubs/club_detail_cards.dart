@@ -76,7 +76,7 @@ class ClubPostCard extends StatelessWidget {
                       ],
                     ),
                     Text(relativeTime(p['createdAt']?.toString(), context: context),
-                        maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w500)),
+                        maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: t.mut, fontWeight: BuType.emphasisWeight)),
                   ],
                 ),
               ),
@@ -110,7 +110,7 @@ class ClubPostCard extends StatelessWidget {
               padding: const EdgeInsetsDirectional.only(end: 8),
               child: Row(
                 children: [
-                  ExcludeSemantics(child: Icon(BuIcons.heart, size: 20, color: p['liked'] == true ? t.pr : t.mut)),
+                  ExcludeSemantics(child: Icon(BuIcons.heart, size: 20, color: p['liked'] == true ? t.heart : t.mut)),
                   const SizedBox(width: 8),
                   Text(context.l10n.p11LikeCount('$likes'), style: tx.labelLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
                 ],

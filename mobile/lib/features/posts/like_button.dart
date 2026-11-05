@@ -203,7 +203,7 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
     final tt = Theme.of(context).textTheme;
     final size = widget.size ?? (widget.compact ? 22.0 : 26.0);
     // Görsel üstü hapta beğeni kırmızı değil: dolu beyaz kalp (Stitch v3); normal yerde marka kırmızısı.
-    final color = _liked ? t.pr : (widget.detail ? t.ink : t.mut);
+    final color = _liked ? t.heart : (widget.detail ? t.ink : t.mut);
     const box = 44.0;
     final scale = TweenSequence<double>([
       TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.38).chain(CurveTween(curve: Curves.easeOut)), weight: 40),
@@ -228,7 +228,7 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
             child: AnimatedBuilder(
               animation: _anim,
               builder: (c, _) => CustomPaint(
-                painter: _BurstPainter(progress: _anim.isAnimating ? _anim.value : 0, color: t.pr),
+                painter: _BurstPainter(progress: _anim.isAnimating ? _anim.value : 0, color: t.heart),
                 child: Transform.scale(
                   scale: scale.value,
                   child: _HeartIcon(filled: _liked, color: color, size: size),
@@ -308,7 +308,7 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
       child: AnimatedBuilder(
         animation: _anim,
         builder: (c, _) =>
-            Transform.scale(scale: scale.value, child: _HeartIcon(filled: _liked, color: widget.pill ? (_liked ? t.pr : t.ink) : t.onMedia, size: size)),
+            Transform.scale(scale: scale.value, child: _HeartIcon(filled: _liked, color: widget.pill ? (_liked ? t.heart : t.ink) : t.onMedia, size: size)),
       ),
     );
     if (widget.pill) {
@@ -503,14 +503,14 @@ class _DoubleTapLikeState extends State<DoubleTapLike> with SingleTickerProvider
                           scale: scale.value,
                           // Kırmızı kalp + çevresinde kısa nokta patlaması (beğenilmiş kalp rengi t.pr).
                           child: CustomPaint(
-                            painter: _BurstPainter(progress: calm ? 0 : _c.value, color: t.pr, spread: 2.6),
+                            painter: _BurstPainter(progress: calm ? 0 : _c.value, color: t.heart, spread: 2.6),
                             child: SizedBox(
                               width: 88,
                               height: 88,
                               child: Icon(BuIcons.heartFilled,
                                   key: const ValueKey('double-tap-heart'),
                                   size: 88,
-                                  color: t.pr),
+                                  color: t.heart),
                             ),
                           ),
                         ),

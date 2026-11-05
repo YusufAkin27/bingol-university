@@ -228,7 +228,7 @@ class RefBanner extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(text, style: tx.bodyMedium!.copyWith(color: t.danger, height: 1.4, fontWeight: FontWeight.w500)),
+            Text(text, style: tx.bodyMedium!.copyWith(color: t.danger, height: 1.4, fontWeight: BuType.emphasisWeight)),
             if (sub != null)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
@@ -263,7 +263,7 @@ class RefBanner extends StatelessWidget {
                         padding: const EdgeInsets.only(top: 4),
                         child: Row(
                           children: [
-                            Flexible(child: Text(sub!, style: tx.bodySmall!.copyWith(color: fg, fontWeight: FontWeight.w500))),
+                            Flexible(child: Text(sub!, style: tx.bodySmall!.copyWith(color: fg, fontWeight: BuType.emphasisWeight))),
                           ],
                         ),
                       ),
@@ -619,7 +619,7 @@ class _RefTextFieldState extends State<RefTextField> {
         : _focused
             ? t.pr
             : t.bdStrong;
-        final textStyle = tx.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w500);
+        final textStyle = tx.bodyLarge!.copyWith(color: t.ink, fontWeight: BuType.emphasisWeight);
     final input = TextFormField(
       key: _key,
       controller: widget.controller,
@@ -672,7 +672,7 @@ class _RefTextFieldState extends State<RefTextField> {
             child: Row(
               children: [
                 Expanded(
-                  child: Text(widget.label, style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w500)),
+                  child: Text(widget.label, style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: BuType.emphasisWeight)),
                 ),
                 if (widget.labelAction != null) widget.labelAction!,
               ],
@@ -701,7 +701,7 @@ class _RefTextFieldState extends State<RefTextField> {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(widget.label, style: tx.bodySmall!.copyWith(color: hasError ? t.danger : t.mut, fontWeight: FontWeight.w500)),
+                            Text(widget.label, style: tx.bodySmall!.copyWith(color: hasError ? t.danger : t.mut, fontWeight: BuType.emphasisWeight)),
                             const SizedBox(height: 4),
                             input,
                           ],
@@ -731,7 +731,7 @@ class _RefTextFieldState extends State<RefTextField> {
                   builder: (context, v, child) => Opacity(opacity: v, child: child),
                   child: Padding(
                     padding: const EdgeInsetsDirectional.only(top: 8, start: 4),
-                    child: Text(err, style: tx.bodySmall!.copyWith(color: t.danger, fontWeight: FontWeight.w500, height: 1.3)),
+                    child: Text(err, style: tx.bodySmall!.copyWith(color: t.danger, fontWeight: BuType.emphasisWeight, height: 1.3)),
                   ),
                 )
               : const SizedBox(width: double.infinity),
@@ -903,7 +903,7 @@ class RefPill extends StatelessWidget {
     return Semantics(
       liveRegion: true,
       container: true,
-      child: Text(text, style: tx.bodyMedium!.copyWith(color: color, fontWeight: FontWeight.w500, height: 1.3)),
+      child: Text(text, style: tx.bodyMedium!.copyWith(color: color, fontWeight: BuType.emphasisWeight, height: 1.3)),
     );
   }
 }

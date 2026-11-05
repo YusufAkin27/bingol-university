@@ -183,7 +183,7 @@ class _RemoveButton extends StatelessWidget {
                 child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
                   Icon(BuIcons.userMinus, size: compact ? 20 : 16, color: t.onSoft),
                   if (!compact) const SizedBox(width: 4),
-                  if (!compact) Flexible(child: Text(label, maxLines: 2, overflow: TextOverflow.ellipsis, style: chatInfoLabel14(context, color: t.onSoft).copyWith(fontWeight: FontWeight.w500))),
+                  if (!compact) Flexible(child: Text(label, maxLines: 2, overflow: TextOverflow.ellipsis, style: chatInfoLabel14(context, color: t.onSoft).copyWith(fontWeight: BuType.emphasisWeight))),
                 ]),
               ),
             ),

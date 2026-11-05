@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-/// Görünüm seçimi: Sistem / Açık / Koyu. Seçim cihazda saklanır.
+/// Görünüm seçimi: Sistem / Açık / Koyu. Seçim cihazda saklanır (kalıcı). Tercih HİÇ yoksa (ilk açılış) varsayılan
+/// Premium Black (koyu) olur; kayıtlı kullanıcı tercihi (sistem dahil) aynen korunur. `Sistem` seçiliyken platform
+/// parlaklığı değişince `MaterialApp` temayı anında günceller (uygulama yeniden başlamaz, ekran durumu korunur).
 class ThemeController extends ChangeNotifier {
-  ThemeMode mode = ThemeMode.system;
+  /// Tercih yokken varsayılan: Premium Black.
+  static const ThemeMode defaultMode = ThemeMode.dark;
+
+  ThemeMode mode = defaultMode;
   final _storage = const FlutterSecureStorage();
   static const _key = 'theme_mode';
 
@@ -12,7 +17,8 @@ class ThemeController extends ChangeNotifier {
       mode = switch (await _storage.read(key: _key)) {
         'light' => ThemeMode.light,
         'dark' => ThemeMode.dark,
-        _ => ThemeMode.system,
+        'system' => ThemeMode.system,
+        _ => defaultMode,
       };
       notifyListeners();
     } catch (_) {

@@ -474,7 +474,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             StarRating(value: avg?.round(), size: 16, compact: true),
             Text(l.pollRatingCount('$n'), style: tx.bodySmall!.copyWith(color: t.mut, fontSize: 13)),
-            if (p.myRating != null) Text(l.pollYourRating('${p.myRating}'), style: tx.bodySmall!.copyWith(color: t.prText, fontSize: 13, fontWeight: FontWeight.w500)),
+            if (p.myRating != null) Text(l.pollYourRating('${p.myRating}'), style: tx.bodySmall!.copyWith(color: t.prText, fontSize: 13, fontWeight: BuType.emphasisWeight)),
           ]),
         ),
       ]),
@@ -605,7 +605,7 @@ class _OptionTile extends StatelessWidget {
                           if (ranked) ...[
                             const SizedBox(height: 2),
                             Text(on && rank != null ? l.p13PollRankLabel('$rank') : l.p13PollRankTap,
-                                style: tx.bodySmall!.copyWith(color: on ? t.prText : t.mut, fontSize: 12.5, fontWeight: FontWeight.w500)),
+                                style: tx.bodySmall!.copyWith(color: on ? t.prText : t.mut, fontSize: 12.5, fontWeight: BuType.emphasisWeight)),
                           ],
                         ]),
                       ),

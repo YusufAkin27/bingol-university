@@ -224,9 +224,21 @@ class BingolApp extends StatelessWidget {
         darkTheme: BuTheme.dark(),
         themeMode: themeController.mode,
         scrollBehavior: const BuScrollBehavior(),
-        builder: (context, child) => AcademicCatalogScope(
-          session: session,
-          child: AppGate(api: session.api, child: child),
+        // Sistem/durum çubuğu ikonları temaya uyar (Android: statusBarIconBrightness, iOS: statusBarBrightness);
+        // tema değişince alt ağaç yeniden KURULMAZ (anahtar yok), yalnız bu bölge güncellenir.
+        builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Theme.of(context).brightness == Brightness.dark ? Brightness.light : Brightness.dark,
+            statusBarBrightness: Theme.of(context).brightness,
+            systemNavigationBarColor: Theme.of(context).scaffoldBackgroundColor,
+            systemNavigationBarIconBrightness:
+                Theme.of(context).brightness == Brightness.dark ? Brightness.light : Brightness.dark,
+          ),
+          child: AcademicCatalogScope(
+            session: session,
+            child: AppGate(api: session.api, child: child),
+          ),
         ),
         home: ListenableBuilder(
           listenable: Listenable.merge([session, session.accessBlocked]),

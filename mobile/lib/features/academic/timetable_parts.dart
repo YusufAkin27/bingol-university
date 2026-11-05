@@ -37,7 +37,7 @@ class TtTopRow extends StatelessWidget {
     final l = context.l10n;
     final left = Text.rich(
       TextSpan(children: [
-        TextSpan(text: l.p69WeeklyFlow, style: tx.bodySmall!.copyWith(fontWeight: FontWeight.w500, color: t.mut)),
+        TextSpan(text: l.p69WeeklyFlow, style: tx.bodySmall!.copyWith(fontWeight: BuType.emphasisWeight, color: t.mut)),
         if (week != null) ...[
           TextSpan(text: '  •  ', style: tx.bodySmall!.copyWith(color: t.mut)),
           TextSpan(text: l.p69WeekN(week.toString()), style: tx.bodySmall!.copyWith(fontWeight: FontWeight.w400, color: t.prText)),
@@ -77,7 +77,7 @@ class TtTopRow extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 14),
                         decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.bPill, border: Border.all(color: t.bd)),
                         child: Row(mainAxisSize: MainAxisSize.min, children: [
-                          Flexible(child: Text(semester, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.ink))),
+                          Flexible(child: Text(semester, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontSize: 13, fontWeight: BuType.emphasisWeight, color: t.ink))),
                           const SizedBox(width: 6),
                           ExcludeSemantics(child: Icon(BuIcons.chevronDown, size: 16, color: t.ink)),
                         ]),
@@ -164,7 +164,7 @@ class TtDayStrip extends StatelessWidget {
                         padding: const EdgeInsets.fromLTRB(8, 7, 8, 6),
                         decoration: BoxDecoration(color: sel ? t.soft : Colors.transparent, borderRadius: BorderRadius.circular(24)),
                         child: Column(mainAxisSize: MainAxisSize.min, children: [
-                          Text(acadDayShort(l, d), maxLines: 1, style: tx.labelMedium!.copyWith(fontSize: 13, fontWeight: sel ? FontWeight.w400 : FontWeight.w500, color: sel ? t.prText : t.mut)),
+                          Text(acadDayShort(l, d), maxLines: 1, style: tx.labelMedium!.copyWith(fontSize: 13, fontWeight: sel ? FontWeight.w400 : BuType.emphasisWeight, color: sel ? t.prText : t.mut)),
                           const SizedBox(height: 2),
                           Text(date == null ? '' : '${date.day}', maxLines: 1, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w400, color: sel ? t.prText : t.ink)),
                           const SizedBox(height: 3),
@@ -236,7 +236,7 @@ class TtSlotCard extends StatelessWidget {
                 SizedBox(
                   width: 48,
                   child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                    Text(s.session.start, maxLines: 1, style: tx.titleSmall!.copyWith(fontSize: 15, fontWeight: past ? FontWeight.w500 : FontWeight.w400, color: past ? t.mut : t.ink, fontFeatures: const [FontFeature.tabularFigures()])),
+                    Text(s.session.start, maxLines: 1, style: tx.titleSmall!.copyWith(fontSize: 15, fontWeight: past ? BuType.emphasisWeight : FontWeight.w400, color: past ? t.mut : t.ink, fontFeatures: const [FontFeature.tabularFigures()])),
                     Text(s.session.end, maxLines: 1, style: tx.bodySmall!.copyWith(fontSize: 13, color: past ? t.mut : t.ink.withValues(alpha: .8), fontFeatures: const [FontFeature.tabularFigures()])),
                   ]),
                 ),
@@ -264,7 +264,7 @@ class TtSlotCard extends StatelessWidget {
                     ],
                     if (c.instructor != null) ...[
                       const SizedBox(height: 6),
-                      Text(c.instructor!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.ink.withValues(alpha: .8))),
+                      Text(c.instructor!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: BuType.emphasisWeight, color: t.ink.withValues(alpha: .8))),
                     ],
                   ]),
                 ),

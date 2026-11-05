@@ -155,7 +155,7 @@ class TypeBadge extends StatelessWidget {
       ),
       child: Text(
         label(type, context),
-        style: BuType.caption.copyWith(fontWeight: FontWeight.w500, color: isEvent ? cs.onPrimaryContainer : cs.onSecondary),
+        style: BuType.caption.copyWith(fontWeight: BuType.emphasisWeight, color: isEvent ? cs.onPrimaryContainer : cs.onSecondary),
       ),
     );
   }

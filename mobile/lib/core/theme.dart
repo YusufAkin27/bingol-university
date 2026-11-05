@@ -4,9 +4,8 @@ import 'locale_controller.dart';
 import 'theme/bu_theme_builder.dart';
 import 'typography.dart';
 
-/// Marka renkleri (Kampüs Kırmızısı + lacivert mürekkep). `red600` uygulama simgesiyle aynıdır; arayüzdeki eylem
-/// kırmızısı (`red700`) simge tonundan türetilip biraz sakinleştirildi. Arayüz renkleri [BuTokens] içindedir
-/// (bkz. docs/MOBILE_DESIGN_SYSTEM.md); web (`web/src/styles/tokens.css`) bu paleti henüz almadı.
+/// Marka renkleri (yalnız logo/simge/splash varlıkları için; arayüzde kullanılmaz). Arayüz PREMIUM MONOCHROME'dur:
+/// renkler [BuTokens] içindedir (bkz. docs/MOBILE_DESIGN_SYSTEM.md); marka kırmızısı arayüzden çekildi.
 class BuColors {
   BuColors._();
 
@@ -38,17 +37,17 @@ abstract final class BuTintId {
   static const slate = 5; // nötr (sistem, ayar)
 }
 
-/// Tasarım belirteçleri (mobile/design/*.dc.html içindeki CSS değişkenleriyle birebir).
+/// Tasarım belirteçleri: PREMIUM MONOCHROME (zinc nötrleri; varsayılan tema koyu = "Premium Black").
 /// Kullanım: `final t = context.bu;` sonra `t.pr`, `t.sf`, `t.mut`...
 ///
-/// P0 ile eklenen alanlar isteğe bağlıdır: `sf3`, `warn`, `warnSoft`, `onWarnSoft`,
-/// `onMedia`, `scrim`, `qrInk`, `qrPaper`, `shadow`, `tints`. RENK-1 ile eklenenler (hepsi isteğe bağlı):
-/// `info*` (koyu mavi), `aqua*` (su mavisi), `onOkSoft`, `dangerSoft`.
+/// **Arayüz siyah-beyazdır.** `pr` (birincil eylem) koyuda #FAFAFA / açıkta #09090B'dir, `onPr` tersi; `prText`,
+/// `soft`/`onSoft`, `selectedBorder` nötrdür (marka kırmızısı YOK). Yüzey ladder'ı: `bg` < `sf` < `sf2` < `sf3`
+/// (yükseltilmiş: dialog/alt sayfa/menü). Metin: `ink` (birincil) > `mut` (ikincil, AA) > `mutSoft` (üçüncül,
+/// yalnız dekoratif/büyük metin). Kenarlık: `bd`, ince ayraç `bdSubtle`, kontrol çerçevesi `bdStrong` (>= 3:1).
 ///
-/// **Palet tek ve küçüktür: marka (kırmızı) + 4 anlam ailesi.** Her aile üç tondur: ana (simge/çizgi/yazı),
-/// yumuşak zemin, zemin üstü yazı. Mavi = bilgi/haber/duyuru, su mavisi = ikincil vurgu, yeşil = başarı/yemek,
-/// amber = uyarı/hatırlatma/bekleyen, `danger` = hata (marka kırmızısından ayrı: daha koyu, pembeye yakın).
-/// Kategori ayrımı renkten çok simge + etiketle yapılır.
+/// **Renkli kalanlar yalnızca anlamsal:** `danger` (hata/silme/engelle), `heart` (beğeni kalbi), `ok` (başarı),
+/// `warn` (uyarı), `info` (bilgi; okundu çift tiki `readSky/readDeep`). Kategori karoları ([tints]) nötrdür.
+/// Kullanıcı fotoğrafı/medya doğal renkte kalır.
 @immutable
 class BuTokens extends ThemeExtension<BuTokens> {
   const BuTokens({
@@ -73,32 +72,36 @@ class BuTokens extends ThemeExtension<BuTokens> {
     required this.mutSoft,
     required this.bdSubtle,
     this.sf3 = const Color(0xFFFFFFFF),
-    this.bdStrong = const Color(0xFF8A857E),
-    this.onOkSoft = const Color(0xFF0F5132),
-    this.dangerSoft = const Color(0xFFFBE4E8),
-    this.info = const Color(0xFF1F4E96),
-    this.infoSoft = const Color(0xFFE4ECF8),
-    // Okundu (mavi çift tik): kırmızı balonda/koyu şeritte açık gök mavisi, açık pembe balonda koyu mavi (tema bağımsız sabitler).
+    this.bdStrong = const Color(0xFF8A8A93),
+    this.onOkSoft = const Color(0xFF14532D),
+    this.dangerSoft = const Color(0xFFFEECEC),
+    this.info = const Color(0xFF356BB8),
+    this.infoSoft = const Color(0xFFE8F0FB),
+    // Okundu (mavi çift tik): koyu balonda/şeritte açık gök mavisi, açık balonda koyu mavi (tema bağımsız sabitler).
     this.readSky = const Color(0xFF9FDBFF),
     this.readDeep = const Color(0xFF0B4F9C),
-    this.onInfoSoft = const Color(0xFF173F7B),
-    this.aqua = const Color(0xFF0B6E86),
-    this.aquaSoft = const Color(0xFFDDF1F6),
-    this.onAquaSoft = const Color(0xFF0A5468),
-    this.warn = const Color(0xFF9A5700),
-    this.warnSoft = const Color(0xFFFFF1D6),
-    this.onWarnSoft = const Color(0xFF6B3E00),
+    this.onInfoSoft = const Color(0xFF224D8A),
+    this.aqua = const Color(0xFF52525B),
+    this.aquaSoft = const Color(0xFFF4F4F5),
+    this.onAquaSoft = const Color(0xFF27272A),
+    this.warn = const Color(0xFF946010),
+    this.warnSoft = const Color(0xFFFDF3DC),
+    this.onWarnSoft = const Color(0xFF7A4F10),
+    this.heart = const Color(0xFFDC2626),
     this.onMedia = const Color(0xFFFFFFFF),
     this.scrim = const Color(0xFF000000),
     this.qrInk = const Color(0xFF000000),
     this.qrPaper = const Color(0xFFFFFFFF),
-    this.shadow = const Color(0xFF171E33),
+    this.shadow = const Color(0xFF09090B),
     this.tints = _tintsLight,
   });
 
-  /// Kullanıcının yeni referansındaki Kulüpler kısayolu; ana paleti değiştirmez.
-  Color get campusClubSoft => bg.computeLuminance() > .5 ? const Color(0xFFF1EAFF) : const Color(0xFF30243F);
-  Color get onCampusClubSoft => bg.computeLuminance() > .5 ? const Color(0xFF5426A1) : const Color(0xFFDCC4FF);
+  /// Eski "Kulüpler" kısayol karosu: artık nötr (sf2 + ink).
+  Color get campusClubSoft => sf2;
+  Color get onCampusClubSoft => ink;
+
+  /// Beğeni kalbi (dolu kalp + patlama): kırmızı KALIR (anlamsal; marka rengi değil).
+  final Color heart;
 
   final Color bg; // sayfa zemini
   final Color sf; // kart/yüzey
@@ -106,14 +109,14 @@ class BuTokens extends ThemeExtension<BuTokens> {
   final Color ink; // ana yazı
   final Color mut; // soluk yazı
   final Color bd; // çizgi
-  final Color pr; // eylem kırmızısı
+  final Color pr; // birincil eylem: koyuda beyaz, açıkta siyah (düğme, seçili durum, aktif gösterge)
   final Color onPr; // pr üstündeki yazı
-  final Color soft; // pr'nin yumuşak zemini
+  final Color soft; // nötr ince yüzey (sf2); seçili/vurgusuz satır zemini
   final Color onSoft; // soft üstündeki yazı
   final Color nav; // yüzen gezinme zemini
   final Color onNav;
-  final Color h1; // hero gradyan başı
-  final Color h2; // hero gradyan sonu
+  final Color h1; // koyu yer tutucu/splash zemini (gradyan YOK: iki uç eşit)
+  final Color h2;
   final Color ok;
   final Color okSoft;
   final Color danger;
@@ -135,11 +138,12 @@ class BuTokens extends ThemeExtension<BuTokens> {
   final Color bdStrong;
 
   /// Seçili çip/segment çerçevesi: tek "seçili" stili = [soft] zemin + [onSoft] yazı + bu çerçeve (A6-03).
-  /// Metin ve küçük (<18 dp) simge için AA geçen marka kırmızısı: açıkta `prPressed` (beyaz üstünde 5.7:1),
-  /// koyuda `pr`. Dolgu/rozet/ilerleme/seçili çerçeve gibi dekoratif kullanımlar `pr` kalır.
-  Color get prText => bg.computeLuminance() > .5 ? prPressed : pr;
+  /// Metin/küçük simge üstünde "vurgu" rengi: monochrome'da vurgu = birincil metin rengi (`ink`); bağlantı/eylem
+  /// metni renkle değil konumla/alt çizgiyle ayrışır. Kırmızı değildir.
+  Color get prText => ink;
 
-  Color get selectedBorder => pr.withValues(alpha: .45);
+  /// Seçili çip/segment çerçevesi: nötr, ink'in yarı saydamı.
+  Color get selectedBorder => ink.withValues(alpha: .5);
 
   /// `okSoft` zemini üstündeki yazı/simge (başarı ailesinin "zemin üstü yazı" tonu).
   final Color onOkSoft;
@@ -190,92 +194,96 @@ class BuTokens extends ThemeExtension<BuTokens> {
   /// [tints] içinden döngüsel seçim (`tint(club.id)`).
   BuTint tint(int i) => tints[i.abs() % tints.length];
 
+  // Kategori karoları NÖTR: ayrım renkle değil simge + etiketle yapılır (indeksler [BuTintId] yine geçerli).
   static const _tintsLight = <BuTint>[
-    BuTint(Color(0xFFFCECEB), Color(0xFF922D29)), // 0 marka
-    BuTint(Color(0xFFE8F0FB), Color(0xFF224D8A)), // 1 mavi (bilgi/haber/duyuru)
-    BuTint(Color(0xFFE3F3EC), Color(0xFF14533C)), // 2 yeşil (başarı/yemek)
-    BuTint(Color(0xFFFDF3DC), Color(0xFF7A4F10)), // 3 amber (uyarı/hatırlatma)
-    BuTint(Color(0xFFDDF1F6), Color(0xFF0A5468)), // 4 su mavisi (ikincil)
-    BuTint(Color(0xFFF1F3F5), Color(0xFF3F3F46)), // 5 nötr
+    BuTint(Color(0xFFF4F4F5), Color(0xFF09090B)), // 0 marka (artık nötr)
+    BuTint(Color(0xFFF1F1F3), Color(0xFF18181B)), // 1 bilgi/haber
+    BuTint(Color(0xFFEEEEF0), Color(0xFF18181B)), // 2 başarı/yemek
+    BuTint(Color(0xFFEBEBEE), Color(0xFF18181B)), // 3 uyarı/hatırlatma
+    BuTint(Color(0xFFE8E8EB), Color(0xFF18181B)), // 4 ikincil
+    BuTint(Color(0xFFF7F7F8), Color(0xFF27272A)), // 5 nötr
   ];
 
   static const _tintsDark = <BuTint>[
-    BuTint(Color(0xFF3B2223), Color(0xFFFFBBB2)),
-    BuTint(Color(0xFF1B2B45), Color(0xFFB9D2FA)),
-    BuTint(Color(0xFF16301F), Color(0xFF9BE3BE)),
-    BuTint(Color(0xFF3A2B0E), Color(0xFFFFD98F)),
-    BuTint(Color(0xFF11323B), Color(0xFFA6E3F0)),
-    BuTint(Color(0xFF2E2F32), Color(0xFFC9C7C2)),
+    BuTint(Color(0xFF1C1C1F), Color(0xFFFAFAFA)),
+    BuTint(Color(0xFF202023), Color(0xFFF4F4F5)),
+    BuTint(Color(0xFF232326), Color(0xFFF4F4F5)),
+    BuTint(Color(0xFF252528), Color(0xFFF4F4F5)),
+    BuTint(Color(0xFF28282B), Color(0xFFF4F4F5)),
+    BuTint(Color(0xFF1F1F22), Color(0xFFE4E4E7)),
   ];
 
+  /// PREMIUM WHITE (açık): bağımsız tasarım, koyunun tersi DEĞİL. Zemin saf beyaz, kartlar #FAFAFA + ince kenarlık
+  /// (gölge neredeyse yok), ikincil yüzey #F4F4F5; siyah yalnız düğme/seçili durumda (`pr`).
   static const light = BuTokens(
-    // Premium nötr yüzeyler (açık gri zemin, beyaz kart), yumuşak koyu metin, ölçülü marka kırmızısı.
-    // `pr` marka vurgusudur (aktif ikon, gösterge, büyük metin); küçük BEYAZ yazılı dolu düğmeler AA için
-    // `prPressed` kullanır (beyaz üstünde `pr` 4.07:1, `prPressed` 5.7:1).
-    bg: Color(0xFFF8F9FA),
-    sf: Color(0xFFFFFFFF),
-    sf2: Color(0xFFF1F3F5),
-    ink: Color(0xFF18181B),
-    mut: Color(0xFF6B6B74),
-    bd: Color(0xFFE4E4E7), // kart/ayraç çizgisi; kontrol çerçevesi için bdStrong
-    pr: Color(0xFFDC4C46),
-    onPr: Color(0xFFFFFFFF),
-    soft: Color(0xFFFCECEB),
-    onSoft: Color(0xFF922D29),
-    nav: Color(0xFFFFFFFF),
-    onNav: Color(0xFF18181B),
-    h1: Color(0xFFB93833),
-    h2: Color(0xFFB93833),
-    ok: Color(0xFF1C775A),
-    okSoft: Color(0xFFE3F3EC),
-    danger: Color(0xFFC43030),
-    prPressed: Color(0xFFB93833),
-    mutSoft: Color(0xFFA1A1AA),
-    bdSubtle: Color(0xFFF1F1F3),
+    bg: Color(0xFFFFFFFF),
+    sf: Color(0xFFFAFAFA),
+    sf2: Color(0xFFF4F4F5),
+    sf3: Color(0xFFFFFFFF), // yükseltilmiş yüzey: dialog/alt sayfa (kenarlıkla ayrışır)
+    ink: Color(0xFF09090B),
+    mut: Color(0xFF52525B), // ikincil metin (AA)
+    mutSoft: Color(0xFF71717A), // üçüncül/ipucu
+    bd: Color(0xFFE4E4E7),
+    bdSubtle: Color(0xFFEFEFF1),
     bdStrong: Color(0xFF8A8A93),
-    onOkSoft: Color(0xFF14533C),
-    dangerSoft: Color(0xFFFCE9E9),
+    pr: Color(0xFF09090B),
+    onPr: Color(0xFFFFFFFF),
+    prPressed: Color(0xFF09090B),
+    soft: Color(0xFFF4F4F5),
+    onSoft: Color(0xFF09090B),
+    nav: Color(0xFFFAFAFA),
+    onNav: Color(0xFF09090B),
+    h1: Color(0xFF18181B),
+    h2: Color(0xFF18181B),
+    ok: Color(0xFF15803D),
+    okSoft: Color(0xFFE7F5EC),
+    onOkSoft: Color(0xFF14532D),
+    danger: Color(0xFFC81E1E),
+    dangerSoft: Color(0xFFFEECEC),
+    heart: Color(0xFFDC2626),
     info: Color(0xFF356BB8),
     infoSoft: Color(0xFFE8F0FB),
     onInfoSoft: Color(0xFF224D8A),
     warn: Color(0xFF946010),
     warnSoft: Color(0xFFFDF3DC),
     onWarnSoft: Color(0xFF7A4F10),
-    shadow: Color(0xFF18181B),
+    shadow: Color(0xFF09090B),
   );
 
+  /// PREMIUM BLACK (koyu, varsayılan): zemin #09090B, kartlar #141416, ikincil #1C1C1F, yükseltilmiş #252528;
+  /// gölge yerine yüzey tonu + ince kenarlık; birincil düğme beyaz + siyah yazı.
   static const dark = BuTokens(
-    // Koyu: yumuşak kömür yüzeyler (saf siyah değil), aynı görsel hiyerarşi; marka tonu açık ve pastel.
-    bg: Color(0xFF101114),
-    sf: Color(0xFF191B20),
-    sf2: Color(0xFF24262D),
-    ink: Color(0xFFF4F4F5),
+    bg: Color(0xFF09090B),
+    sf: Color(0xFF141416),
+    sf2: Color(0xFF1C1C1F),
+    sf3: Color(0xFF252528),
+    ink: Color(0xFFFAFAFA),
     mut: Color(0xFFA1A1AA),
-    bd: Color(0xFF33363D),
-    pr: Color(0xFFF0726C),
-    onPr: Color(0xFF2B0A07),
-    soft: Color(0xFF3B2223),
-    onSoft: Color(0xFFFFBBB2),
-    nav: Color(0xFF191B20),
-    onNav: Color(0xFFF4F4F5),
-    h1: Color(0xFFB5362B),
-    h2: Color(0xFFB5362B),
-    ok: Color(0xFF6FD0A0),
-    okSoft: Color(0xFF16301F),
-    danger: Color(0xFFFF8FA0),
-    prPressed: Color(0xFFF58A84),
     mutSoft: Color(0xFF71717A),
-    bdSubtle: Color(0xFF24262D),
-    sf3: Color(0xFF24262D),
-    bdStrong: Color(0xFF7A7E87),
-    onOkSoft: Color(0xFF9BE3BE),
-    dangerSoft: Color(0xFF3D1D24),
+    bd: Color(0xFF303034),
+    bdSubtle: Color(0xFF242427),
+    bdStrong: Color(0xFF71717A),
+    pr: Color(0xFFFAFAFA),
+    onPr: Color(0xFF09090B),
+    prPressed: Color(0xFFFAFAFA),
+    soft: Color(0xFF1C1C1F),
+    onSoft: Color(0xFFFAFAFA),
+    nav: Color(0xFF141416),
+    onNav: Color(0xFFFAFAFA),
+    h1: Color(0xFF1C1C1F),
+    h2: Color(0xFF1C1C1F),
+    ok: Color(0xFF4ADE80),
+    okSoft: Color(0xFF0F2A1A),
+    onOkSoft: Color(0xFF86EFAC),
+    danger: Color(0xFFF87171),
+    dangerSoft: Color(0xFF2A1517),
+    heart: Color(0xFFEF4444),
     info: Color(0xFF8DB4F0),
     infoSoft: Color(0xFF1B2B45),
     onInfoSoft: Color(0xFFB9D2FA),
-    aqua: Color(0xFF6CCBE0),
-    aquaSoft: Color(0xFF11323B),
-    onAquaSoft: Color(0xFFA6E3F0),
+    aqua: Color(0xFFA1A1AA),
+    aquaSoft: Color(0xFF1C1C1F),
+    onAquaSoft: Color(0xFFD4D4D8),
     warn: Color(0xFFF2B24A),
     warnSoft: Color(0xFF3A2B0E),
     onWarnSoft: Color(0xFFFFD98F),
@@ -320,6 +328,7 @@ class BuTokens extends ThemeExtension<BuTokens> {
     Color? warn,
     Color? warnSoft,
     Color? onWarnSoft,
+    Color? heart,
     Color? onMedia,
     Color? scrim,
     Color? qrInk,
@@ -363,6 +372,7 @@ class BuTokens extends ThemeExtension<BuTokens> {
         warn: warn ?? this.warn,
         warnSoft: warnSoft ?? this.warnSoft,
         onWarnSoft: onWarnSoft ?? this.onWarnSoft,
+        heart: heart ?? this.heart,
         onMedia: onMedia ?? this.onMedia,
         scrim: scrim ?? this.scrim,
         qrInk: qrInk ?? this.qrInk,
@@ -411,6 +421,7 @@ class BuTokens extends ThemeExtension<BuTokens> {
       warn: c(warn, other.warn),
       warnSoft: c(warnSoft, other.warnSoft),
       onWarnSoft: c(onWarnSoft, other.onWarnSoft),
+      heart: c(heart, other.heart),
       onMedia: c(onMedia, other.onMedia),
       scrim: c(scrim, other.scrim),
       qrInk: c(qrInk, other.qrInk),

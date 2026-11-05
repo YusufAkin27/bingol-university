@@ -353,7 +353,7 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
                           child: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 8),
                             child: Text(l.chatMiscOnceToast,
-                                style: tx.bodySmall!.copyWith(color: t.onMedia, fontWeight: FontWeight.w500)),
+                                style: tx.bodySmall!.copyWith(color: t.onMedia, fontWeight: BuType.emphasisWeight)),
                           ),
                         ),
                         Semantics(

@@ -62,7 +62,7 @@ class _HomeMenuRatingState extends State<HomeMenuRating> {
         child: Text(context.l10n.homeMenuRate,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: BuType.label.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.mut)),
+            style: BuType.label.copyWith(fontSize: 13, fontWeight: BuType.emphasisWeight, color: t.mut)),
       ),
       const SizedBox(width: 4),
       StarRating(

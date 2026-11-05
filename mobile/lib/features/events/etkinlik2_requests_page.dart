@@ -322,7 +322,7 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(color: t.warnSoft, borderRadius: BorderRadius.circular(16)),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(_full ? l.p16ReqFullBody : l.p51EvQuotaNote, style: tx.bodyMedium!.copyWith(height: 1.4, color: t.onWarnSoft, fontWeight: FontWeight.w500)),
+            Text(_full ? l.p16ReqFullBody : l.p51EvQuotaNote, style: tx.bodyMedium!.copyWith(height: 1.4, color: t.onWarnSoft, fontWeight: BuType.emphasisWeight)),
             if (_full)
               TextButton(
                 style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: EdgeInsets.zero, alignment: AlignmentDirectional.centerStart),
@@ -407,7 +407,7 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 6),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-              Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w500, color: t.ink)),
+              Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: BuType.emphasisWeight, color: t.ink)),
               if (sub.isNotEmpty) Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut, fontSize: 13)),
               if (note.isNotEmpty)
                 Padding(
@@ -440,7 +440,7 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
         const SizedBox(width: 12),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w500, color: t.ink)),
+            Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: BuType.emphasisWeight, color: t.ink)),
             if (sub.isNotEmpty) Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut, fontSize: 13)),
           ]),
         ),

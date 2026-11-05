@@ -153,7 +153,7 @@ class _SelectCard extends StatelessWidget {
                           has ? value! : placeholder,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: tx.titleLarge!.copyWith(color: has ? t.ink : t.mutSoft, fontWeight: has ? FontWeight.w400 : FontWeight.w500),
+                          style: tx.titleLarge!.copyWith(color: has ? t.ink : t.mutSoft, fontWeight: has ? FontWeight.w400 : BuType.emphasisWeight),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -171,7 +171,7 @@ class _SelectCard extends StatelessWidget {
           child: hasError
               ? Padding(
                   padding: const EdgeInsetsDirectional.only(top: 8, start: 4),
-                  child: Text(error!, style: tx.bodySmall!.copyWith(color: t.danger, fontWeight: FontWeight.w500)),
+                  child: Text(error!, style: tx.bodySmall!.copyWith(color: t.danger, fontWeight: BuType.emphasisWeight)),
                 )
               : const SizedBox(width: double.infinity),
         ),

@@ -1063,7 +1063,7 @@ class _ConversationRow extends StatelessWidget {
                                 Expanded(
                                   child: Text.rich(
                                     TextSpan(children: [
-                                      if (prefix != null) TextSpan(text: '$prefix: ', style: tx.bodyMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w500)),
+                                      if (prefix != null) TextSpan(text: '$prefix: ', style: tx.bodyMedium!.copyWith(color: t.ink, fontWeight: BuType.emphasisWeight)),
                                       TextSpan(text: preview),
                                     ]),
                                     maxLines: 1,

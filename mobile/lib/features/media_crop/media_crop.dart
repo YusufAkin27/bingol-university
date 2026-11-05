@@ -187,7 +187,7 @@ Future<PhotoSource?> _showSimpleSourceSheet(BuildContext context) {
               child: Row(children: [
                 Icon(icon, size: 24, color: t.ink),
                 const SizedBox(width: 16),
-                Expanded(child: Text(label, style: tt.bodyLarge?.copyWith(color: t.ink, fontSize: 16, fontWeight: FontWeight.w500))),
+                Expanded(child: Text(label, style: tt.bodyLarge?.copyWith(color: t.ink, fontSize: 16, fontWeight: BuType.emphasisWeight))),
               ]),
             ),
           );

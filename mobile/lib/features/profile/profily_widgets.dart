@@ -95,7 +95,7 @@ class ProfilyTitleBlock extends StatelessWidget {
             child: Text(sub!,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: tx.bodySmall!.copyWith(fontWeight: FontWeight.w500, color: t.mut)),
+                style: tx.bodySmall!.copyWith(fontWeight: BuType.emphasisWeight, color: t.mut)),
           ),
         if (pill != null) Padding(padding: const EdgeInsets.only(top: 4), child: pill),
       ],

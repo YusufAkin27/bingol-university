@@ -6,6 +6,7 @@ import '../core/locale_controller.dart';
 import '../core/theme.dart';
 import '../core/theme/bu_motion.dart';
 import '../core/theme/bu_shape.dart';
+import '../core/typography.dart';
 
 /// Süs deseni türü.
 enum BuHeroPattern {
@@ -74,7 +75,7 @@ class BuGradientHero extends StatelessWidget {
     );
     if (minHeight != null) body = ConstrainedBox(constraints: BoxConstraints(minHeight: minHeight!), child: body);
     final deco = DecoratedBox(
-      decoration: BoxDecoration(gradient: t.hero, borderRadius: br),
+      decoration: BoxDecoration(color: t.h1, borderRadius: br),
       child: onTap == null
           ? body
           : Material(
@@ -189,7 +190,7 @@ class BuProgressSteps extends StatelessWidget {
                         textAlign: TextAlign.start,
                         style: tx.labelSmall!.copyWith(
                           color: i <= cur ? t.ink : t.mut,
-                          fontWeight: i == cur ? FontWeight.w400 : FontWeight.w500,
+                          fontWeight: i == cur ? FontWeight.w400 : BuType.emphasisWeight,
                         ),
                       ),
                     ),

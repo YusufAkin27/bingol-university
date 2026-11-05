@@ -629,7 +629,7 @@ class _EventFormPageState extends State<EventFormPage> {
     return Padding(
       key: key,
       padding: const EdgeInsetsDirectional.only(top: 6),
-      child: Semantics(liveRegion: true, child: Text(text, style: tx.bodySmall!.copyWith(fontWeight: FontWeight.w500, color: t.danger))),
+      child: Semantics(liveRegion: true, child: Text(text, style: tx.bodySmall!.copyWith(fontWeight: BuType.emphasisWeight, color: t.danger))),
     );
   }
 
@@ -778,7 +778,7 @@ class _EventFormPageState extends State<EventFormPage> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(color: _clubInstant ? t.soft : t.warnSoft, borderRadius: BorderRadius.circular(16)),
           child: Row(children: [
-            Flexible(child: Text(_clubInstant ? l.evcInfoInstant : l.evcInfoReview, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w500, color: _clubInstant ? t.onSoft : t.onWarnSoft))),
+            Flexible(child: Text(_clubInstant ? l.evcInfoInstant : l.evcInfoReview, style: tx.bodyMedium!.copyWith(fontWeight: BuType.emphasisWeight, color: _clubInstant ? t.onSoft : t.onWarnSoft))),
             if (_clubInstant) Flexible(flex: 0, child: Text(' • ${l.p15PublishRoleActive}', maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.onSoft.withValues(alpha: .8)))),
           ]),
         ),
@@ -870,7 +870,7 @@ class _EventFormPageState extends State<EventFormPage> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(l.evdEndAdjusted,
-                  key: const ValueKey('evd-adjusted'), style: tx.bodySmall!.copyWith(fontWeight: FontWeight.w500, color: t.onWarnSoft)),
+                  key: const ValueKey('evd-adjusted'), style: tx.bodySmall!.copyWith(fontWeight: BuType.emphasisWeight, color: t.onWarnSoft)),
             ),
           ]),
         ),

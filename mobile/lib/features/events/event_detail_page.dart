@@ -818,7 +818,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                       widthFactor: 1,
                       child: Text(
                           (club != null && club.isNotEmpty) ? club : '${l.etkinlik2Organizer}: $orgName',
-                          style: tx.bodyMedium!.copyWith(color: cid == null ? t.mut : t.prText, fontWeight: FontWeight.w500)),
+                          style: tx.bodyMedium!.copyWith(color: cid == null ? t.mut : t.prText, fontWeight: BuType.emphasisWeight)),
                     ),
                   ),
                 ),
@@ -994,7 +994,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
             padding: const EdgeInsets.only(top: 6),
             child: Semantics(
               liveRegion: true,
-              child: Text(_codeError!, key: const ValueKey('detail-code-error'), style: tx.bodySmall!.copyWith(color: t.danger, fontWeight: FontWeight.w500)),
+              child: Text(_codeError!, key: const ValueKey('detail-code-error'), style: tx.bodySmall!.copyWith(color: t.danger, fontWeight: BuType.emphasisWeight)),
             ),
           ),
         const SizedBox(height: 12),

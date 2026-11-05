@@ -225,7 +225,7 @@ class MessageBubble extends StatelessWidget {
           if (metaText.isNotEmpty)
             Text(metaText,
                 style: tx.labelSmall!
-                    .copyWith(color: color, fontWeight: FontWeight.w500)),
+                    .copyWith(color: color, fontWeight: BuType.emphasisWeight)),
           if (tick != null) ...[
             const SizedBox(width: 4),
             _Tick(

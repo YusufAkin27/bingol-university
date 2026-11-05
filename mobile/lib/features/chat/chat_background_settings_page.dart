@@ -114,7 +114,7 @@ class _ChatBackgroundSettingsPageState extends State<ChatBackgroundSettingsPage>
                     key: const ValueKey('chatBgReset'),
                     onPressed: _reset,
                     style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48)),
-                    child: Text(l.p67ChatBgReset, style: tx.bodyMedium!.copyWith(color: t.prText, fontWeight: FontWeight.w500)),
+                    child: Text(l.p67ChatBgReset, style: tx.bodyMedium!.copyWith(color: t.prText, fontWeight: BuType.emphasisWeight)),
                   ),
                 ),
               ],
@@ -137,7 +137,7 @@ class _PreviewPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
       decoration: BoxDecoration(color: t.sf2, border: Border.all(color: t.bd), borderRadius: BuRadius.bPill),
-      child: Text(text, style: Theme.of(context).textTheme.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w500)),
+      child: Text(text, style: Theme.of(context).textTheme.labelSmall!.copyWith(color: t.mut, fontWeight: BuType.emphasisWeight)),
     );
   }
 }

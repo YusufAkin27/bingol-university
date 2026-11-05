@@ -961,7 +961,7 @@ class _AlbumRowState extends State<_AlbumRow> {
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(color: sel ? t.sf : t.sf2, borderRadius: BuRadius.bPill),
                     child: Text(count,
-                        style: tx.labelMedium!.copyWith(color: sel ? t.prText : t.mut, fontWeight: sel ? FontWeight.w400 : FontWeight.w500)),
+                        style: tx.labelMedium!.copyWith(color: sel ? t.prText : t.mut, fontWeight: sel ? FontWeight.w400 : BuType.emphasisWeight)),
                   ),
                   BuGap.w4,
                   Flexible(

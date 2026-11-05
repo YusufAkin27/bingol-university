@@ -73,7 +73,7 @@ class _AboutPageState extends State<AboutPage> {
                       constraints: const BoxConstraints(minHeight: 56),
                       child: Row(
                         children: [
-                          Expanded(child: Text(r.$1, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w500))),
+                          Expanded(child: Text(r.$1, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: BuType.emphasisWeight))),
                           Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mut),
                         ],
                       ),

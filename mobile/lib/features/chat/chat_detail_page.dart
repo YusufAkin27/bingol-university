@@ -2960,7 +2960,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                           color: t.pr, borderRadius: BorderRadius.circular(8)),
                       child: Text(n > 99 ? '99+' : '$n',
                           style: BuType.caption.copyWith(
-                              color: t.onPr, fontWeight: FontWeight.w500)),
+                              color: t.onPr, fontWeight: BuType.emphasisWeight)),
                     ),
                   ),
               ]),

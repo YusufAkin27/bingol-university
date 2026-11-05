@@ -319,7 +319,7 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
       child: TextButton(
         onPressed: _openPushHelp,
         style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 4)),
-        child: Text(context.l10n.p21HelpLink, style: BuType.caption.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.mut)),
+        child: Text(context.l10n.p21HelpLink, style: BuType.caption.copyWith(fontSize: 13, fontWeight: BuType.emphasisWeight, color: t.mut)),
       ),
     );
   }
@@ -341,7 +341,7 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
     final t = context.bu;
     return Padding(
       padding: const EdgeInsetsDirectional.only(start: 4, top: 24, bottom: 8),
-      child: Semantics(header: true, child: Text(text, style: BuType.caption.copyWith(fontSize: 13, height: 1.3, fontWeight: FontWeight.w500, color: t.mut))),
+      child: Semantics(header: true, child: Text(text, style: BuType.caption.copyWith(fontSize: 13, height: 1.3, fontWeight: BuType.emphasisWeight, color: t.mut))),
     );
   }
 
@@ -600,7 +600,7 @@ class _PrefRow extends StatelessWidget {
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                     Text(title,
                         style: BuType.caption.copyWith(
-                            fontSize: strong ? 16 : 15, height: 1.5, fontWeight: strong ? FontWeight.w400 : FontWeight.w500, color: t.ink)),
+                            fontSize: strong ? 16 : 15, height: 1.5, fontWeight: strong ? FontWeight.w400 : BuType.emphasisWeight, color: t.ink)),
                     if (sub != null) ...[
                       const SizedBox(height: 2),
                       Text(sub!, style: BuType.caption.copyWith(fontSize: 13, height: 1.5, color: t.mut)),

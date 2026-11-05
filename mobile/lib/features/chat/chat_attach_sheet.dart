@@ -141,7 +141,7 @@ class _Row extends StatelessWidget {
                 child: Text(label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w500)),
+                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: t.ink, fontWeight: BuType.emphasisWeight)),
               ),
             ]),
           ),

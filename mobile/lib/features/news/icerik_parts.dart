@@ -365,7 +365,7 @@ class IcerikNotice extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(text, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, height: 1.4, color: c.fg)),
+              Text(text, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: BuType.emphasisWeight, height: 1.4, color: c.fg)),
               if (sub != null) ...[
                 const SizedBox(height: 4),
                 Text(sub!, style: tx.bodySmall!.copyWith(fontSize: 12, height: 1.3, color: c.fg.withValues(alpha: .8))),
@@ -429,7 +429,7 @@ class IcerikUnderlineTabs extends StatelessWidget {
                     AnimatedDefaultTextStyle(
                       duration: d,
                       style: tx.bodyMedium!.copyWith(
-                          fontSize: 15, height: 1.3, fontWeight: i == index ? FontWeight.w400 : FontWeight.w500, color: i == index ? t.ink : t.mut),
+                          fontSize: 15, height: 1.3, fontWeight: i == index ? FontWeight.w400 : BuType.emphasisWeight, color: i == index ? t.ink : t.mut),
                       child: Text(labels[i], maxLines: 1),
                     ),
                     const SizedBox(height: 10),

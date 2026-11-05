@@ -434,7 +434,7 @@ Future<PhotoSource?> showChatPhotoSheet(
                       ),
                     ),
                     const SizedBox(width: 16),
-                    Expanded(child: Text(label, style: chatInfoTitle16(c, color: danger ? t.danger : t.ink).copyWith(fontWeight: FontWeight.w500))),
+                    Expanded(child: Text(label, style: chatInfoTitle16(c, color: danger ? t.danger : t.ink).copyWith(fontWeight: BuType.emphasisWeight))),
                     Icon(buDirIcon(c, BuIcons.chevronRight), size: 20, color: danger ? t.danger : t.mut),
                   ]),
                 ),

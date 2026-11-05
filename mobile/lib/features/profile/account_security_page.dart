@@ -358,7 +358,7 @@ class _PwFieldState extends State<_PwField> {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Padding(
         padding: const EdgeInsetsDirectional.only(start: 2, bottom: 6),
-        child: Text(widget.label, style: tx.bodyLarge!.copyWith(fontSize: 15, fontWeight: FontWeight.w500, color: t.ink)),
+        child: Text(widget.label, style: tx.bodyLarge!.copyWith(fontSize: 15, fontWeight: BuType.emphasisWeight, color: t.ink)),
       ),
       TextField(
         controller: widget.controller,

@@ -180,7 +180,7 @@ class _CropPageState extends State<CropPage> {
                       onPressed: _busy ? null : () => Navigator.of(context).pop(),
                       style: TextButton.styleFrom(minimumSize: const Size(BuSize.touch, BuSize.touch), foregroundColor: d.onMedia),
                       child: Text(l.postComposeCancel,
-                          style: Theme.of(context).textTheme.labelLarge?.copyWith(color: d.onMedia.withValues(alpha: .8), fontSize: 15, fontWeight: FontWeight.w500)),
+                          style: Theme.of(context).textTheme.labelLarge?.copyWith(color: d.onMedia.withValues(alpha: .8), fontSize: 15, fontWeight: BuType.emphasisWeight)),
                     ),
                     const Spacer(),
                     Material(

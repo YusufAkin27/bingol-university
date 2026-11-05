@@ -2,24 +2,21 @@ import 'package:flutter/material.dart';
 
 import '../theme.dart';
 
-/// Marka belirteçlerinden Material 3 [ColorScheme] (tohum: marka kırmızısı; tüm roller açıkça verilir,
-/// bu yüzden `fromSeed` hesabı yapılmaz ve tema kurulumu ucuzdur).
+/// Monochrome belirteçlerden Material 3 [ColorScheme] (tüm roller açıkça verilir, `fromSeed` hesabı yok).
 ///
-/// Eşleme: primary = `prPressed` (beyaz yazıda AA); primaryContainer = `soft`; secondary = `ink`; **secondaryContainer = `soft`**
-/// (NavigationBar göstergesi, FilledTonalButton, seçili çip/segment marka tonunda olur);
-/// tertiary = `ok` (başarı); error = `danger`; surface = `sf` (kart); yüzey konteynerleri `sf`..`sf3`.
+/// Eşleme: primary = `pr` (koyuda beyaz, açıkta siyah; `onPr` tersi); primaryContainer/secondaryContainer = `soft` (nötr sf2);
+/// secondary = `ink`; tertiary = `ok` (başarı); error = `danger`; surface = `sf` (kart); yüzey konteynerleri `sf`..`sf3`.
 abstract final class BuColorScheme {
   static ColorScheme build(BuTokens t, Brightness b) {
     final dark = b == Brightness.dark;
     return ColorScheme(
       brightness: b,
-      // Material bileşenleri (dolu düğme, odak, ilerleme) AA için `prPressed` kullanır; marka vurgusu `pr` ayrıdır.
-      primary: t.prPressed,
+      primary: t.pr,
       onPrimary: t.onPr,
       primaryContainer: t.soft,
       onPrimaryContainer: t.onSoft,
       primaryFixed: BuTokens.light.soft,
-      primaryFixedDim: BuTokens.light.pr.withValues(alpha: .35),
+      primaryFixedDim: BuTokens.light.bd,
       onPrimaryFixed: BuTokens.light.onSoft,
       onPrimaryFixedVariant: BuTokens.light.pr,
       secondary: t.ink,

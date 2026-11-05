@@ -134,7 +134,7 @@ class _HelpFormPageState extends State<HelpFormPage> {
                 validator: (v) => validatePublicSupport(name: 'x', email: v ?? '', message: 'x' * 10).email == null ? null : l.p66ErrEmail,
               ),
               const SizedBox(height: 24),
-              Text(l.p66FieldTopic, style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w500)),
+              Text(l.p66FieldTopic, style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: BuType.emphasisWeight)),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,

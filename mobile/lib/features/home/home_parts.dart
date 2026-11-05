@@ -131,7 +131,7 @@ class HomeQuickTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final style = BuType.label.copyWith(
-        fontSize: 12, fontWeight: FontWeight.w500, height: 1.15, color: t.ink);
+        fontSize: 12, fontWeight: BuType.emphasisWeight, height: 1.15, color: t.ink);
     // En çok 1,3x ölçek: kutu sabit yükseklikli, taşmaz.
     final scaler = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.3);
     final labelBoxH = lines * scaler.scale(style.fontSize!) * 1.15 + 1;
@@ -238,7 +238,7 @@ class _HomeQuickGridState extends State<HomeQuickGrid>
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, c) {
       final style =
-          BuType.label.copyWith(fontSize: 12, fontWeight: FontWeight.w500);
+          BuType.label.copyWith(fontSize: 12, fontWeight: BuType.emphasisWeight);
       final scaler =
           MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.3);
       var longest = 0.0;
@@ -316,7 +316,7 @@ class _TextLink extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: (style ??
                           BuType.label.copyWith(
-                              fontSize: 13, fontWeight: FontWeight.w500))
+                              fontSize: 13, fontWeight: BuType.emphasisWeight))
                       .copyWith(color: color)),
             ),
           ),
@@ -713,7 +713,7 @@ class HomeInlineLink extends StatelessWidget {
                 child: Text(label,
                     style: BuType.label.copyWith(
                         fontSize: 13,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: BuType.emphasisWeight,
                         color: t.prPressed)),
               ),
             ),
@@ -762,7 +762,7 @@ class HomeClassList extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: BuType.body.copyWith(
                               fontSize: 15,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: BuType.emphasisWeight,
                               color: t.ink)),
                       if (rows[i].sub.isNotEmpty) ...[
                         const SizedBox(height: 2),
@@ -813,7 +813,7 @@ class HomeEventList extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: BuType.label.copyWith(
                       fontSize: 13,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: BuType.emphasisWeight,
                       color: t.prPressed))),
         ]);
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -921,7 +921,7 @@ class HomeAnnouncementList extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: BuType.body.copyWith(
                                 fontSize: 15,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: BuType.emphasisWeight,
                                 color: t.ink)),
                       ),
                       const SizedBox(width: 12),
@@ -1196,7 +1196,7 @@ class HomeFeaturedShortcuts extends StatelessWidget {
                                     style: BuType.label.copyWith(
                                         fontSize: 12,
                                         height: 1.2,
-                                        fontWeight: FontWeight.w500,
+                                        fontWeight: BuType.emphasisWeight,
                                         color: t.ink))),
                         ]),
                       ]),

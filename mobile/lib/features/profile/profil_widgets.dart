@@ -79,7 +79,7 @@ class ProfilFlatSection extends StatelessWidget {
             style: Theme.of(context)
                 .textTheme
                 .labelLarge!
-                .copyWith(fontSize: 13, fontWeight: upper ? FontWeight.w400 : FontWeight.w500, letterSpacing: upper && lang != 'ar' ? .4 : 0, color: t.mut)),
+                .copyWith(fontSize: 13, fontWeight: upper ? FontWeight.w400 : BuType.emphasisWeight, letterSpacing: upper && lang != 'ar' ? .4 : 0, color: t.mut)),
       ),
     );
   }
@@ -158,7 +158,7 @@ class ProfilFlatRow extends StatelessWidget {
               child: Text(label,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: tx.bodyLarge!.copyWith(fontSize: 16, color: danger ? t.danger : t.ink, fontWeight: FontWeight.w500)),
+                  style: tx.bodyLarge!.copyWith(fontSize: 16, color: danger ? t.danger : t.ink, fontWeight: BuType.emphasisWeight)),
             ),
             if (value != null && value!.isNotEmpty) ...[
               const SizedBox(width: 8),
@@ -239,7 +239,7 @@ class ProfilSection extends StatelessWidget {
       padding: EdgeInsetsDirectional.only(start: 4, bottom: 10, top: top),
       child: Semantics(
         header: true,
-        child: Text(text, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 15, fontWeight: FontWeight.w500, color: t.mut)),
+        child: Text(text, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 15, fontWeight: BuType.emphasisWeight, color: t.mut)),
       ),
     );
   }

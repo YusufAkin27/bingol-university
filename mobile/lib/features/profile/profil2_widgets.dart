@@ -175,7 +175,7 @@ class P2NoticeCard extends StatelessWidget {
               for (final s in lines)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 1),
-                  child: Text(bullets ? '•  $s' : s, style: tx.bodyMedium!.copyWith(color: fg, height: 1.35, fontWeight: FontWeight.w500)),
+                  child: Text(bullets ? '•  $s' : s, style: tx.bodyMedium!.copyWith(color: fg, height: 1.35, fontWeight: BuType.emphasisWeight)),
                 ),
             ]),
           ),
@@ -204,7 +204,7 @@ class P2FieldLabel extends StatelessWidget {
           child: Text(text,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.mut)),
+              style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 13, fontWeight: BuType.emphasisWeight, color: t.mut)),
         ),
         if (trailing != null) trailing!,
       ]),

@@ -22,9 +22,10 @@ void main() {
       for (final b in Brightness.values) {
         final t = b == Brightness.light ? BuTokens.light : BuTokens.dark;
         final cs = BuTheme.forLocale(b, 'tr').colorScheme;
-        expect(cs.primary, t.prPressed);
+        expect(cs.primary, t.pr);
+        expect(cs.onPrimary, t.onPr);
         expect(cs.primaryContainer, t.soft);
-        expect(cs.secondaryContainer, t.soft, reason: 'NavigationBar gostergesi/tonal dugme marka tonu');
+        expect(cs.secondaryContainer, t.soft, reason: 'tonal dugme/secili nötr ton');
         expect(cs.surface, t.sf);
         expect(cs.surfaceContainerHighest, t.sf2);
         expect(cs.surfaceContainerHigh, t.sf3);
@@ -58,7 +59,7 @@ void main() {
 
     test('bilesen temalari tanimli', () {
       final t = BuTheme.light();
-      expect(t.navigationBarTheme.indicatorColor, BuTokens.light.soft);
+      expect(t.navigationBarTheme.indicatorColor, Colors.transparent, reason: 'aktif sekmede hap/zemin yok');
       expect(t.navigationBarTheme.labelBehavior, NavigationDestinationLabelBehavior.alwaysShow);
       expect(t.bottomSheetTheme.shape, isNotNull);
       expect(t.dialogTheme.shape, isNotNull);

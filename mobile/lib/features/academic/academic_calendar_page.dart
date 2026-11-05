@@ -152,7 +152,7 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
                       child: _semester == null
                           ? const SizedBox.shrink()
                           : Text(akadUpper(context, l.p69SemesterTerm(_semester!)),
-                              maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelSmall!.copyWith(fontSize: 12, fontWeight: FontWeight.w500, letterSpacing: l.localeName == 'ar' ? 0 : .6, color: t.mut)),
+                              maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelSmall!.copyWith(fontSize: 12, fontWeight: BuType.emphasisWeight, letterSpacing: l.localeName == 'ar' ? 0 : .6, color: t.mut)),
                     ),
                   ),
                   AcadTextAction(l.p69TodayJump, onTap: _goToday, top: true),
@@ -250,7 +250,7 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
                 child: ExcludeSemantics(
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
-                    child: Text(dayShortL(l, i + 1), style: Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 12, fontWeight: FontWeight.w500, color: i >= 5 ? t.mut.withValues(alpha: .75) : t.mut)),
+                    child: Text(dayShortL(l, i + 1), style: Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 12, fontWeight: BuType.emphasisWeight, color: i >= 5 ? t.mut.withValues(alpha: .75) : t.mut)),
                   ),
                 ),
               ),
@@ -318,7 +318,7 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
                   maxScaleFactor: 1.2,
                   child: AnimatedDefaultTextStyle(
                     duration: BuMotion.of(context, BuMotion.short),
-                    style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: sel || (isToday && inMonth) ? FontWeight.w400 : FontWeight.w500, color: fg),
+                    style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: sel || (isToday && inMonth) ? FontWeight.w400 : BuType.emphasisWeight, color: fg),
                     child: Text('${date.day}'),
                   ),
                 ),

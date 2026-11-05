@@ -291,7 +291,7 @@ class _SectionRow extends StatelessWidget {
     final name = homeSectionLabel(l, section);
     final quick = section == HomeSection.quickAccess;
     final label = Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-      Text(name, maxLines: 3, overflow: TextOverflow.ellipsis, style: BuType.body.copyWith(fontSize: 15, fontWeight: FontWeight.w500, color: t.ink)),
+      Text(name, maxLines: 3, overflow: TextOverflow.ellipsis, style: BuType.body.copyWith(fontSize: 15, fontWeight: BuType.emphasisWeight, color: t.ink)),
       if (quick)
         Padding(
           padding: const EdgeInsets.only(top: 2),
@@ -411,7 +411,7 @@ class _ShortcutEditor extends StatelessWidget {
                         ),
                         SizedBox(width: 24, child: Text('${i + 1}', style: BuType.body.copyWith(fontSize: 13, fontWeight: FontWeight.w400, color: t.mut, fontFeatures: const [FontFeature.tabularFigures()]))),
                         const SizedBox(width: 8),
-                        Expanded(child: Text(name, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.body.copyWith(fontSize: 14, fontWeight: FontWeight.w500, color: t.ink))),
+                        Expanded(child: Text(name, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.body.copyWith(fontSize: 14, fontWeight: BuType.emphasisWeight, color: t.ink))),
                         _GhostRemove(
                           tooltip: l.p60Remove(name),
                           onTap: v.shortcutOn.length > 1
@@ -460,7 +460,7 @@ class _ShortcutEditor extends StatelessWidget {
                             child: Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 12),
                               child: Row(children: [
-                                Expanded(child: Text(name, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.body.copyWith(fontSize: 14, fontWeight: FontWeight.w500, color: t.ink))),
+                                Expanded(child: Text(name, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.body.copyWith(fontSize: 14, fontWeight: BuType.emphasisWeight, color: t.ink))),
                                 const SizedBox(width: 12),
                                 AnimatedContainer(
                                   duration: BuMotion.of(context, BuMotion.short),

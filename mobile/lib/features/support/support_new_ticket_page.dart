@@ -202,7 +202,7 @@ class _CategoryChip extends StatelessWidget {
                 borderRadius: BorderRadius.circular(17),
                 border: Border.all(color: selected ? t.soft : t.bdStrong),
               ),
-              child: Center(widthFactor: 1, child: Text(label, maxLines: 1, style: Theme.of(context).textTheme.labelLarge!.copyWith(color: selected ? t.onSoft : t.ink, fontWeight: FontWeight.w500))),
+              child: Center(widthFactor: 1, child: Text(label, maxLines: 1, style: Theme.of(context).textTheme.labelLarge!.copyWith(color: selected ? t.onSoft : t.ink, fontWeight: BuType.emphasisWeight))),
             ),
           ),
         ),

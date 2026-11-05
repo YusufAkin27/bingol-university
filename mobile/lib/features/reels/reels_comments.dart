@@ -568,7 +568,7 @@ class _CommentRow extends StatelessWidget {
             width: BuSize.touch,
             height: BuSize.touch,
             child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(c.likedByMe ? BuIcons.heartFilled : BuIcons.heart, size: 18, color: c.likedByMe ? t.pr : t.mut),
+              Icon(c.likedByMe ? BuIcons.heartFilled : BuIcons.heart, size: 18, color: c.likedByMe ? t.heart : t.mut),
               if (c.likeCount > 0)
                 Text('${c.likeCount}', style: tt.labelSmall?.copyWith(color: t.mut, fontFeatures: const [FontFeature.tabularFigures()])),
             ]),

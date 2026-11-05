@@ -214,7 +214,7 @@ class MaintenanceBand extends StatelessWidget {
         children: [
           ExcludeSemantics(child: Icon(icon, size: 16, color: fg)),
           const SizedBox(width: 10),
-          Expanded(child: Text(text, style: BuType.label.copyWith(color: fg, height: 1.4, fontWeight: FontWeight.w500))),
+          Expanded(child: Text(text, style: BuType.label.copyWith(color: fg, height: 1.4, fontWeight: BuType.emphasisWeight))),
         ],
       ),
     );

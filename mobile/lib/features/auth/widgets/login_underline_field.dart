@@ -148,7 +148,7 @@ class _LoginUnderlineFieldState extends State<LoginUnderlineField> {
       color: t.ink,
       fontSize: widget.boxed ? 17 : (widget.big ? (compact ? 24 : 32) : 22),
       fontWeight:
-          !widget.boxed && widget.big ? FontWeight.w400 : FontWeight.w500,
+          !widget.boxed && widget.big ? FontWeight.w400 : BuType.emphasisWeight,
       letterSpacing: widget.big ? .4 : 0,
       height: 1.15,
       fontFeatures: const [FontFeature.tabularFigures()],
@@ -236,7 +236,7 @@ class _LoginUnderlineFieldState extends State<LoginUnderlineField> {
                         textDirection: TextDirection.ltr,
                         style: (compact ? tx.bodyMedium! : tx.bodyLarge!)
                             .copyWith(
-                                color: t.mut, fontWeight: FontWeight.w500),
+                                color: t.mut, fontWeight: BuType.emphasisWeight),
                       ),
                     ),
                   ),
@@ -302,7 +302,7 @@ class _LoginUnderlineFieldState extends State<LoginUnderlineField> {
                         child: Text(_error!,
                             style: tx.bodySmall!.copyWith(
                                 color: t.danger,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: BuType.emphasisWeight,
                                 height: 1.3)),
                       ),
                     )

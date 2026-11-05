@@ -505,7 +505,7 @@ class _SearchPageState extends State<SearchPage> {
             TextButton(
               style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 4)),
               onPressed: _clearRecent,
-              child: Text(l.searchClearRecent, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.prText)),
+              child: Text(l.searchClearRecent, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: BuType.emphasisWeight, color: t.prText)),
             ),
           ]),
           for (var i = 0; i < _recent.length; i++)
@@ -692,7 +692,7 @@ class _SearchPageState extends State<SearchPage> {
           style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 4)),
           onPressed: onRetry,
           icon: Icon(BuIcons.refreshCw, size: 16, color: t.prText),
-          label: Text(l.commonRetry, style: tx.bodyMedium!.copyWith(fontSize: 14, fontWeight: FontWeight.w500, color: t.prText)),
+          label: Text(l.commonRetry, style: tx.bodyMedium!.copyWith(fontSize: 14, fontWeight: BuType.emphasisWeight, color: t.prText)),
         ),
       ]),
       if (limited) ...[
@@ -731,7 +731,7 @@ class _SearchPageState extends State<SearchPage> {
                 TextButton(
                   style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 4)),
                   onPressed: () => _selectTab(tab),
-                  child: Text(l.p05SearchSeeAllN('${hits.length}'), style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.prText)),
+                  child: Text(l.p05SearchSeeAllN('${hits.length}'), style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: BuType.emphasisWeight, color: t.prText)),
                 ),
               ]),
             ),
@@ -977,7 +977,7 @@ class _ClubPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final style = Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 12.5, fontWeight: FontWeight.w500, color: member ? t.ink : t.prText);
+    final style = Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 12.5, fontWeight: BuType.emphasisWeight, color: member ? t.ink : t.prText);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
@@ -1188,7 +1188,7 @@ class _TabChipsState extends State<_TabChips> {
                       child: AnimatedDefaultTextStyle(
                         duration: BuMotion.of(context, BuMotion.short),
                         style: tx.labelLarge!.copyWith(
-                            fontSize: 13, fontWeight: i == widget.selected ? FontWeight.w500 : FontWeight.w400, color: i == widget.selected ? t.prText : t.ink),
+                            fontSize: 13, fontWeight: i == widget.selected ? BuType.emphasisWeight : FontWeight.w400, color: i == widget.selected ? t.prText : t.ink),
                         child: Text(widget.labels[i]),
                       ),
                     ),

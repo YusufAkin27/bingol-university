@@ -677,7 +677,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               Text(context.l10n.icerikHidden, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: t.mut)),
             ])
           : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(label, style: tx.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.mut)),
+              Text(label, style: tx.labelMedium!.copyWith(fontSize: 13, fontWeight: BuType.emphasisWeight, color: t.mut)),
               const SizedBox(height: 4),
               Text(value, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontSize: 15, fontWeight: FontWeight.w400, color: t.ink)),
             ]),

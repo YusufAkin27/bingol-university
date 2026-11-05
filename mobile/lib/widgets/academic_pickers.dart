@@ -279,7 +279,7 @@ class _DeptRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final base = tx.bodyLarge!.copyWith(color: selected ? t.prText : t.ink, fontWeight: selected ? FontWeight.w400 : FontWeight.w500);
+    final base = tx.bodyLarge!.copyWith(color: selected ? t.prText : t.ink, fontWeight: selected ? FontWeight.w400 : BuType.emphasisWeight);
     final q = foldTr(query);
     final at = q.isEmpty ? -1 : foldTr(name).indexOf(q);
     final Widget title = at < 0 || at + q.length > name.length
@@ -455,7 +455,7 @@ Future<String?> showGradeSheet(BuildContext context, {required List<AcademicGrad
                                         child: Text(
                                           loc == g.id ? g.name : loc,
                                           style: tx.bodyLarge!.copyWith(
-                                              color: isSel ? t.prText : t.ink, fontWeight: isSel ? FontWeight.w400 : FontWeight.w500),
+                                              color: isSel ? t.prText : t.ink, fontWeight: isSel ? FontWeight.w400 : BuType.emphasisWeight),
                                         ),
                                       ),
                                       if (isSel) const _Radio(selected: true),

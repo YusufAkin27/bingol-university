@@ -47,7 +47,7 @@ class _CommentLikeButtonState extends State<CommentLikeButton> with SingleTicker
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
     final liked = widget.liked;
-    final color = liked ? t.prText : t.mut;
+    final color = liked ? t.heart : t.mut;
     final scale = TweenSequence<double>([
       TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.28).chain(CurveTween(curve: Curves.easeOut)), weight: 45),
       TweenSequenceItem(tween: Tween(begin: 1.28, end: 1.0).chain(CurveTween(curve: Curves.easeIn)), weight: 55),

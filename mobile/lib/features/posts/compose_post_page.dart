@@ -935,7 +935,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
                   key: ValueKey(key),
                   onPressed: onTap,
                   style: TextButton.styleFrom(minimumSize: const Size(BuSize.touch, BuSize.touch), foregroundColor: t.mut),
-                  child: Text(label, style: tt.labelLarge?.copyWith(color: t.mut, fontSize: 15, fontWeight: FontWeight.w500)),
+                  child: Text(label, style: tt.labelLarge?.copyWith(color: t.mut, fontSize: 15, fontWeight: BuType.emphasisWeight)),
                 ),
             ]),
             Text(context.l10n.composeVideoLimitsHint((PostVideoLimits.maxDurationMs ~/ 1000).toString()), key: const ValueKey('composeVideoLimits'), textAlign: TextAlign.center, style: tt.bodySmall?.copyWith(color: t.mut, fontSize: 12)),

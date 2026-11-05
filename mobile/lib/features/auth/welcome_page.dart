@@ -144,7 +144,7 @@ class _FeatureRow extends StatelessWidget {
             child: Icon(icon, size: 20, color: t.onSoft),
           ),
           const SizedBox(width: 12),
-          Expanded(child: Text(label, style: tx.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w500))),
+          Expanded(child: Text(label, style: tx.bodyLarge!.copyWith(color: t.ink, fontWeight: BuType.emphasisWeight))),
         ],
       ),
     );
@@ -190,7 +190,7 @@ class _LangPill extends StatelessWidget {
                     ),
                     child: Text(
                       c.toUpperCase(),
-                      style: tx.labelMedium!.copyWith(color: c == cur ? t.onSoft : t.mut, fontWeight: c == cur ? FontWeight.w400 : FontWeight.w500),
+                      style: tx.labelMedium!.copyWith(color: c == cur ? t.onSoft : t.mut, fontWeight: c == cur ? FontWeight.w400 : BuType.emphasisWeight),
                     ),
                   ),
                 ),

@@ -593,7 +593,7 @@ class ShareStripItem extends StatelessWidget {
                 style: Theme.of(context)
                     .textTheme
                     .labelMedium!
-                    .copyWith(color: selected ? t.ink : t.mut, fontWeight: selected ? FontWeight.w400 : FontWeight.w500)),
+                    .copyWith(color: selected ? t.ink : t.mut, fontWeight: selected ? FontWeight.w400 : BuType.emphasisWeight)),
           ]),
         ),
       ),
@@ -672,7 +672,7 @@ class ShareActionTile extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w500)),
+                  style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.ink, fontWeight: BuType.emphasisWeight)),
             ),
           ]),
         ),

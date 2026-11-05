@@ -213,7 +213,7 @@ class _SortText extends StatelessWidget {
                     widthFactor: 1,
                     child: AnimatedDefaultTextStyle(
                       duration: BuMotion.of(context, BuMotion.short),
-                      style: tx.bodyMedium!.copyWith(color: i == index ? t.prText : t.mut, fontWeight: i == index ? FontWeight.w500 : FontWeight.w400),
+                      style: tx.bodyMedium!.copyWith(color: i == index ? t.prText : t.mut, fontWeight: i == index ? BuType.emphasisWeight : FontWeight.w400),
                       child: Text(labels[i], maxLines: 1),
                     ),
                   ),

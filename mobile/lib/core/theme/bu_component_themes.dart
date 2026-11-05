@@ -5,6 +5,7 @@ import '../theme.dart';
 import 'bu_shape.dart';
 import 'bu_sizes.dart';
 import '../icons/bu_icons.dart';
+import '../typography.dart';
 
 /// Material 3 bileşen temaları (marka belirteçleriyle). Yalnız `BuThemeBuilder` kullanır.
 ///
@@ -17,7 +18,7 @@ class BuComponentThemes {
   final ColorScheme cs;
   final TextTheme tx;
 
-  TextStyle get _label => tx.labelLarge!.copyWith(fontWeight: FontWeight.w400);
+  TextStyle get _label => tx.labelLarge!.copyWith(fontWeight: BuType.emphasisWeight);
   TextStyle get _body => tx.bodyMedium!;
   RoundedRectangleBorder get _md => BuRadius.rect(BuRadius.md);
   RoundedRectangleBorder get _ctl => BuRadius.rect(BuRadius.control);
@@ -25,6 +26,7 @@ class BuComponentThemes {
   // --- Düğmeler -----------------------------------------------------------------------------------------
 
   /// Tam genişlik [BuSize.button] (48 dp, Stitch oranı); satır içi düğmede `minimumSize: Size(0, 48)` verin.
+  /// Birincil düğme: koyuda beyaz zemin + siyah yazı, açıkta siyah zemin + beyaz yazı; devre dışı = `bd` zemin.
   FilledButtonThemeData get filledButton => FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size.fromHeight(BuSize.button),
@@ -34,19 +36,20 @@ class BuComponentThemes {
         ),
       );
 
+  /// İkincil düğme: şeffaf zemin + ince kenarlık.
   OutlinedButtonThemeData get outlinedButton => OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: t.ink,
           minimumSize: const Size.fromHeight(BuSize.button),
           shape: _ctl,
-          side: BorderSide(color: t.bdStrong, width: 1.2),
+          side: BorderSide(color: t.bd),
           textStyle: _label,
         ),
       );
 
   TextButtonThemeData get textButton => TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: t.prPressed,
+          foregroundColor: t.ink,
           minimumSize: const Size(48, 48),
           shape: _md,
           textStyle: _label,
@@ -58,10 +61,12 @@ class BuComponentThemes {
           minimumSize: const Size.fromHeight(BuSize.button),
           shape: _ctl,
           textStyle: _label,
-          elevation: 1,
-          shadowColor: t.shadow,
-          backgroundColor: t.sf,
-          foregroundColor: t.pr,
+          elevation: 0,
+          shadowColor: Colors.transparent,
+          backgroundColor: t.pr,
+          foregroundColor: t.onPr,
+          disabledBackgroundColor: t.bd,
+          disabledForegroundColor: t.mutSoft,
         ),
       );
 
@@ -72,11 +77,11 @@ class BuComponentThemes {
   SegmentedButtonThemeData get segmented => SegmentedButtonThemeData(
         style: ButtonStyle(
           minimumSize: const WidgetStatePropertyAll(Size(0, 44)),
-          shape: const WidgetStatePropertyAll(StadiumBorder()),
-          side: WidgetStatePropertyAll(BorderSide(color: t.bd, width: 1.2)),
+          shape: WidgetStatePropertyAll(_ctl),
+          side: WidgetStatePropertyAll(BorderSide(color: t.bd)),
           textStyle: WidgetStatePropertyAll(tx.labelLarge),
-          backgroundColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? t.soft : t.sf),
-          foregroundColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? t.onSoft : t.ink),
+          backgroundColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? t.pr : t.sf),
+          foregroundColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? t.onPr : t.ink),
         ),
         selectedIcon: const Icon(BuIcons.check, size: 18),
       );
@@ -84,10 +89,10 @@ class BuComponentThemes {
   FloatingActionButtonThemeData get fab => FloatingActionButtonThemeData(
         backgroundColor: t.pr,
         foregroundColor: t.onPr,
-        elevation: 2,
-        highlightElevation: 3,
-        focusElevation: 3,
-        hoverElevation: 3,
+        elevation: 0,
+        highlightElevation: 0,
+        focusElevation: 0,
+        hoverElevation: 0,
         shape: BuRadius.rect(BuRadius.md),
         extendedTextStyle: _label,
         sizeConstraints: const BoxConstraints.tightFor(width: BuSize.fab, height: BuSize.fab),
@@ -95,31 +100,28 @@ class BuComponentThemes {
 
   // --- Gezinme ------------------------------------------------------------------------------------------
 
-  /// M3 NavigationBar: hap gösterge (marka tonu), etiket her zaman görünür.
+  /// M3 NavigationBar: gösterge/hap yok; aktif simge `ink`, pasif `mut`.
   NavigationBarThemeData get navigationBar => NavigationBarThemeData(
         height: BuSize.nav,
-        backgroundColor: t.sf3,
+        backgroundColor: t.sf,
         surfaceTintColor: Colors.transparent,
-        shadowColor: t.shadow,
+        shadowColor: Colors.transparent,
         elevation: 0,
-        indicatorColor: t.soft,
+        indicatorColor: Colors.transparent,
         indicatorShape: const StadiumBorder(),
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         iconTheme: WidgetStateProperty.resolveWith(
-          (s) => IconThemeData(size: 22, color: s.contains(WidgetState.selected) ? t.onSoft : t.mut),
+          (s) => IconThemeData(size: 22, color: s.contains(WidgetState.selected) ? t.ink : t.mut),
         ),
         labelTextStyle: WidgetStateProperty.resolveWith(
-          (s) => tx.labelMedium!.copyWith(
-            color: s.contains(WidgetState.selected) ? t.ink : t.mut,
-            fontWeight: s.contains(WidgetState.selected) ? FontWeight.w400 : FontWeight.w500,
-          ),
+          (s) => tx.labelMedium!.copyWith(color: s.contains(WidgetState.selected) ? t.ink : t.mut),
         ),
       );
 
   NavigationRailThemeData get navigationRail => NavigationRailThemeData(
-        backgroundColor: t.sf3,
-        indicatorColor: t.soft,
-        selectedIconTheme: IconThemeData(color: t.onSoft),
+        backgroundColor: t.sf,
+        indicatorColor: Colors.transparent,
+        selectedIconTheme: IconThemeData(color: t.ink),
         unselectedIconTheme: IconThemeData(color: t.mut),
       );
 
@@ -149,27 +151,27 @@ class BuComponentThemes {
   TabBarThemeData get tabBar => TabBarThemeData(
         labelColor: t.ink,
         unselectedLabelColor: t.mut,
-        labelStyle: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400),
-        unselectedLabelStyle: tx.titleSmall!.copyWith(fontWeight: FontWeight.w500),
-        indicatorColor: t.pr,
+        labelStyle: tx.titleSmall!.copyWith(fontWeight: BuType.emphasisWeight),
+        unselectedLabelStyle: tx.titleSmall!.copyWith(fontWeight: BuType.emphasisWeight),
+        indicatorColor: t.ink,
         indicatorSize: TabBarIndicatorSize.label,
         dividerColor: t.bd,
         dividerHeight: 1,
-        overlayColor: WidgetStatePropertyAll(t.pr.withValues(alpha: .08)),
+        overlayColor: WidgetStatePropertyAll(t.ink.withValues(alpha: .06)),
         splashBorderRadius: BuRadius.bMd,
       );
 
   // --- Yüzeyler -----------------------------------------------------------------------------------------
 
-  /// Kart: beyaz yüzey + ince çizgi (outlined). Dolgulu/gölgeli varyant için `BuCard(style:)`.
+  /// Kart: `sf` yüzey + ince çizgi (outlined), radius 16, gölge yok. Gölgeli varyant için `BuCard(style:)`.
   CardThemeData get card => CardThemeData(
         color: t.sf,
         elevation: 0,
-        shadowColor: t.shadow,
+        shadowColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         margin: EdgeInsets.zero,
         clipBehavior: Clip.antiAlias,
-        shape: BuRadius.rect(BuRadius.lg, side: BorderSide(color: t.bd)),
+        shape: BuRadius.rect(BuRadius.md, side: BorderSide(color: t.bd)),
       );
 
   DividerThemeData get divider => DividerThemeData(color: t.bd, space: 1, thickness: 1);
@@ -178,8 +180,8 @@ class BuComponentThemes {
         backgroundColor: t.sf3,
         surfaceTintColor: Colors.transparent,
         modalBackgroundColor: t.sf3,
-        modalBarrierColor: t.scrim.withValues(alpha: .45),
-        shadowColor: t.shadow,
+        modalBarrierColor: t.scrim.withValues(alpha: .5),
+        shadowColor: Colors.transparent,
         elevation: 0,
         modalElevation: 0,
         // Tutamaç `BuSheet.show` ile açılır (`showDragHandle: true`); eski elle çizilen tutamaçlı sayfalarda çift çıkmasın.
@@ -194,37 +196,35 @@ class BuComponentThemes {
   DialogThemeData get dialog => DialogThemeData(
         backgroundColor: t.sf3,
         surfaceTintColor: Colors.transparent,
-        shadowColor: t.shadow,
-        elevation: 3,
+        shadowColor: Colors.transparent,
+        elevation: 0,
         titleTextStyle: tx.titleLarge!.copyWith(color: t.ink),
         contentTextStyle: tx.bodyMedium!.copyWith(color: t.mut, height: 1.5),
-        iconColor: t.pr,
+        iconColor: t.ink,
         actionsPadding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 12),
         insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-        shape: BuRadius.rect(BuRadius.xl),
+        shape: BuRadius.rect(BuRadius.lg, side: BorderSide(color: t.bd)),
       );
 
-  SnackBarThemeData get snackBar {
-    final inv = cs.brightness == Brightness.light ? BuTokens.dark : BuTokens.light;
-    return SnackBarThemeData(
-      behavior: SnackBarBehavior.floating,
-      backgroundColor: t.ink,
-      contentTextStyle: _body.copyWith(color: t.bg),
-      actionTextColor: inv.pr,
-      disabledActionTextColor: t.mut,
-      elevation: 3,
-      insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      shape: _md,
-    );
-  }
+  /// Bildirim şeridi: yükseltilmiş yüzey (`sf3`) + ince kenarlık + `ink` yazı (iki temada da okunur).
+  SnackBarThemeData get snackBar => SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: t.sf3,
+        contentTextStyle: _body.copyWith(color: t.ink),
+        actionTextColor: t.ink,
+        disabledActionTextColor: t.mut,
+        elevation: 0,
+        insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        shape: BuRadius.rect(BuRadius.control, side: BorderSide(color: t.bd)),
+      );
 
   PopupMenuThemeData get popupMenu => PopupMenuThemeData(
         color: t.sf3,
         surfaceTintColor: Colors.transparent,
-        shadowColor: t.shadow,
-        elevation: 4,
+        shadowColor: Colors.transparent,
+        elevation: 0,
         textStyle: tx.bodyLarge!.copyWith(color: t.ink),
-        shape: BuRadius.rect(BuRadius.md, side: BorderSide(color: t.bd)),
+        shape: BuRadius.rect(BuRadius.control, side: BorderSide(color: t.bd)),
         menuPadding: const EdgeInsets.symmetric(vertical: 6),
       );
 
@@ -232,8 +232,8 @@ class BuComponentThemes {
         style: MenuStyle(
           backgroundColor: WidgetStatePropertyAll(t.sf3),
           surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
-          shadowColor: WidgetStatePropertyAll(t.shadow),
-          elevation: const WidgetStatePropertyAll(4),
+          shadowColor: const WidgetStatePropertyAll(Colors.transparent),
+          elevation: const WidgetStatePropertyAll(0),
           shape: WidgetStatePropertyAll(BuRadius.rect(BuRadius.md, side: BorderSide(color: t.bd))),
         ),
       );
@@ -266,12 +266,12 @@ class BuComponentThemes {
       border: border(t.bdStrong),
       enabledBorder: border(t.bdStrong),
       disabledBorder: border(t.bd),
-      focusedBorder: border(t.pr, 2),
+      focusedBorder: border(t.ink, 1.6),
       errorBorder: border(t.danger),
       focusedErrorBorder: border(t.danger, 2),
       hintStyle: _body.copyWith(color: t.mut),
       labelStyle: _body.copyWith(color: t.mut),
-      floatingLabelStyle: tx.bodySmall!.copyWith(color: t.pr, fontWeight: FontWeight.w400),
+      floatingLabelStyle: tx.bodySmall!.copyWith(color: t.ink, fontWeight: BuType.emphasisWeight),
       helperStyle: tx.bodySmall!.copyWith(color: t.mut),
       errorStyle: tx.bodySmall!.copyWith(color: t.danger),
       prefixIconColor: t.mut,
@@ -280,19 +280,19 @@ class BuComponentThemes {
   }
 
   TextSelectionThemeData get textSelection => TextSelectionThemeData(
-        cursorColor: t.pr,
-        selectionColor: t.pr.withValues(alpha: .28),
-        selectionHandleColor: t.pr,
+        cursorColor: t.ink,
+        selectionColor: t.ink.withValues(alpha: .22),
+        selectionHandleColor: t.ink,
       );
 
   SearchBarThemeData get searchBar => SearchBarThemeData(
         elevation: const WidgetStatePropertyAll(0),
         backgroundColor: WidgetStatePropertyAll(t.sf),
         surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
-        shadowColor: WidgetStatePropertyAll(t.shadow),
+        shadowColor: const WidgetStatePropertyAll(Colors.transparent),
         constraints: const BoxConstraints(minHeight: BuSize.search),
         padding: const WidgetStatePropertyAll(EdgeInsetsDirectional.symmetric(horizontal: 16)),
-        shape: WidgetStatePropertyAll(StadiumBorder(side: BorderSide(color: t.bdStrong, width: 1.2))),
+        shape: WidgetStatePropertyAll(BuRadius.rect(BuRadius.control, side: BorderSide(color: t.bdStrong))),
         textStyle: WidgetStatePropertyAll(tx.bodyLarge!.copyWith(color: t.ink)),
         hintStyle: WidgetStatePropertyAll(tx.bodyLarge!.copyWith(color: t.mut)),
       );
@@ -324,7 +324,7 @@ class BuComponentThemes {
           (s) => s.contains(WidgetState.selected) ? Colors.transparent : t.mut,
         ),
         trackOutlineWidth: const WidgetStatePropertyAll(1.6),
-        overlayColor: WidgetStatePropertyAll(t.pr.withValues(alpha: .10)),
+        overlayColor: WidgetStatePropertyAll(t.ink.withValues(alpha: .08)),
         materialTapTargetSize: MaterialTapTargetSize.padded,
       );
 
@@ -336,19 +336,19 @@ class BuComponentThemes {
         side: WidgetStateBorderSide.resolveWith(
           (s) => BorderSide(color: s.contains(WidgetState.selected) ? t.pr : t.mut, width: 2),
         ),
-        overlayColor: WidgetStatePropertyAll(t.pr.withValues(alpha: .10)),
+        overlayColor: WidgetStatePropertyAll(t.ink.withValues(alpha: .08)),
       );
 
   RadioThemeData get radio => RadioThemeData(
         fillColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? t.pr : t.mut),
-        overlayColor: WidgetStatePropertyAll(t.pr.withValues(alpha: .10)),
+        overlayColor: WidgetStatePropertyAll(t.ink.withValues(alpha: .08)),
       );
 
   SliderThemeData get slider => SliderThemeData(
         activeTrackColor: t.pr,
         inactiveTrackColor: t.sf2,
         thumbColor: t.pr,
-        overlayColor: t.pr.withValues(alpha: .12),
+        overlayColor: t.ink.withValues(alpha: .10),
         valueIndicatorColor: t.ink,
         valueIndicatorTextStyle: tx.labelMedium!.copyWith(color: t.bg),
         trackHeight: 4,
@@ -367,21 +367,21 @@ class BuComponentThemes {
         smallSize: 8,
         largeSize: 18,
         padding: const EdgeInsets.symmetric(horizontal: 5),
-        textStyle: tx.labelSmall!.copyWith(fontWeight: FontWeight.w400),
+        textStyle: tx.labelSmall!.copyWith(fontWeight: BuType.emphasisWeight),
       );
 
   // --- Çip ve liste -------------------------------------------------------------------------------------
 
-  /// Filtre/seçim/giriş/yardım çipi: hap şekli, seçili = marka tonu (onay işareti yok; renk + ağırlık ayırır).
+  /// Filtre/seçim/giriş/yardım çipi: seçili = TERS RENK (`pr` zemin + `onPr` yazı; onay işareti yok).
   ChipThemeData get chip => ChipThemeData(
         backgroundColor: t.sf,
-        selectedColor: t.soft,
+        selectedColor: t.pr,
         disabledColor: t.sf2,
         surfaceTintColor: Colors.transparent,
         side: BorderSide(color: t.bd),
         shape: const StadiumBorder(),
         labelStyle: tx.labelLarge!.copyWith(color: t.mut),
-        secondaryLabelStyle: tx.labelLarge!.copyWith(color: t.onSoft),
+        secondaryLabelStyle: tx.labelLarge!.copyWith(color: t.onPr),
         iconTheme: IconThemeData(size: 18, color: t.mut),
         showCheckmark: false,
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
@@ -397,7 +397,7 @@ class BuComponentThemes {
         minLeadingWidth: 24,
         iconColor: t.mut,
         textColor: t.ink,
-        titleTextStyle: tx.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400),
+        titleTextStyle: tx.bodyLarge!.copyWith(color: t.ink, fontWeight: BuType.emphasisWeight),
         subtitleTextStyle: tx.bodyMedium!.copyWith(color: t.mut),
         leadingAndTrailingTextStyle: tx.labelMedium!.copyWith(color: t.mut),
         selectedColor: t.onSoft,
@@ -408,7 +408,7 @@ class BuComponentThemes {
   ExpansionTileThemeData get expansionTile => ExpansionTileThemeData(
         backgroundColor: Colors.transparent,
         collapsedBackgroundColor: Colors.transparent,
-        iconColor: t.pr,
+        iconColor: t.ink,
         collapsedIconColor: t.mut,
         textColor: t.ink,
         collapsedTextColor: t.ink,

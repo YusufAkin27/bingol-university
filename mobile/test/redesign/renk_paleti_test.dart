@@ -95,82 +95,114 @@ void main() {
     }
   });
 
-  group('aileler', () {
-    test('tints indeksleri anlamli ailelere baglidir (BuTintId)', () {
-      for (final t in themes.values) {
-        expect(t.tints[BuTintId.brand].bg, t.soft);
-        expect(t.tints[BuTintId.brand].fg, t.onSoft);
-        expect(t.tints[BuTintId.blue].bg, t.infoSoft);
-        expect(t.tints[BuTintId.blue].fg, t.onInfoSoft);
-        expect(t.tints[BuTintId.green].bg, t.okSoft);
-        expect(t.tints[BuTintId.green].fg, t.onOkSoft);
-        expect(t.tints[BuTintId.amber].bg, t.warnSoft);
-        expect(t.tints[BuTintId.amber].fg, t.onWarnSoft);
-        expect(t.tints[BuTintId.aqua].bg, t.aquaSoft);
-        expect(t.tints[BuTintId.aqua].fg, t.onAquaSoft);
-      }
+  group('aileler (PREMIUM MONOCHROME)', () {
+    double sat(Color c) => HSLColor.fromColor(c).saturation;
+    double hue(Color c) => HSLColor.fromColor(c).hue;
+
+    test('Premium Black degerleri brief ile birebir', () {
+      final t = BuTokens.dark;
+      expect(t.bg.toARGB32(), 0xFF09090B);
+      expect(t.sf.toARGB32(), 0xFF141416);
+      expect(t.sf2.toARGB32(), 0xFF1C1C1F);
+      expect(t.sf3.toARGB32(), 0xFF252528);
+      expect(t.ink.toARGB32(), 0xFFFAFAFA);
+      expect(t.mut.toARGB32(), 0xFFA1A1AA);
+      expect(t.mutSoft.toARGB32(), 0xFF71717A);
+      expect(t.bd.toARGB32(), 0xFF303034);
+      expect(t.bdSubtle.toARGB32(), 0xFF242427);
+      expect(t.pr.toARGB32(), 0xFFFAFAFA); // birincil dugme beyaz
+      expect(t.onPr.toARGB32(), 0xFF09090B); // yazi siyah
     });
 
-    double hue(Color c) => HSLColor.fromColor(c).hue;
-    double sat(Color c) => HSLColor.fromColor(c).saturation;
+    test('Premium White degerleri brief ile birebir', () {
+      final t = BuTokens.light;
+      expect(t.bg.toARGB32(), 0xFFFFFFFF);
+      expect(t.sf.toARGB32(), 0xFFFAFAFA);
+      expect(t.sf2.toARGB32(), 0xFFF4F4F5);
+      expect(t.ink.toARGB32(), 0xFF09090B);
+      expect(t.mut.toARGB32(), 0xFF52525B);
+      expect(t.bd.toARGB32(), 0xFFE4E4E7);
+      expect(t.pr.toARGB32(), 0xFF09090B); // birincil dugme siyah
+      expect(t.onPr.toARGB32(), 0xFFFFFFFF); // yazi beyaz
+    });
 
-    test('mor/pembe/turkuaz-yesil karisimi yok: tum renklerin tonu izinli araliklarda', () {
-      // Kirmizi/turuncu [0,45] ve [330,360], amber/sari [30,50], yesil [130,165], su mavisi [185,200], mavi [205,225].
-      bool ok(double h) => (h <= 50) || (h >= 340) || (h >= 130 && h <= 165) || (h >= 183 && h <= 232);
+    test('marka kirmizisi arayuzde yok: pr/prText/soft/onSoft/yuzeyler/tintler notr (doygunluk dusuk)', () {
       for (final e in themes.entries) {
         final t = e.value;
-        final named = <String, Color>{
-          'pr': t.pr, 'soft': t.soft, 'onSoft': t.onSoft, 'danger': t.danger, 'dangerSoft': t.dangerSoft,
-          'ok': t.ok, 'okSoft': t.okSoft, 'onOkSoft': t.onOkSoft, 'warn': t.warn, 'warnSoft': t.warnSoft,
-          'info': t.info, 'infoSoft': t.infoSoft, 'onInfoSoft': t.onInfoSoft,
-          'aqua': t.aqua, 'aquaSoft': t.aquaSoft, 'onAquaSoft': t.onAquaSoft,
+        final neutral = <String, Color>{
+          'pr': t.pr, 'onPr': t.onPr, 'prText': t.prText, 'soft': t.soft, 'onSoft': t.onSoft, 'bg': t.bg, 'sf': t.sf,
+          'sf2': t.sf2, 'sf3': t.sf3, 'ink': t.ink, 'mut': t.mut, 'mutSoft': t.mutSoft, 'bd': t.bd, 'bdSubtle': t.bdSubtle,
+          'bdStrong': t.bdStrong, 'nav': t.nav, 'aqua': t.aqua, 'aquaSoft': t.aquaSoft, 'onAquaSoft': t.onAquaSoft,
+          'h1': t.h1, 'h2': t.h2,
         };
-        named.forEach((k, c) {
-          if (sat(c) < .08) return; // notr
-          expect(ok(hue(c)), isTrue, reason: '${e.key} $k ton ${hue(c).toStringAsFixed(0)} izinli ailelerde degil');
-        });
+        neutral.forEach((k, c) => expect(sat(c), lessThan(.12), reason: '${e.key} $k notr olmali'));
         for (var i = 0; i < t.tints.length; i++) {
-          for (final c in [t.tints[i].bg, t.tints[i].fg]) {
-            if (sat(c) < .08) continue;
-            expect(ok(hue(c)), isTrue, reason: '${e.key} tint $i ton ${hue(c).toStringAsFixed(0)}');
-          }
+          expect(sat(t.tints[i].bg), lessThan(.12), reason: '${e.key} tint $i bg');
+          expect(sat(t.tints[i].fg), lessThan(.12), reason: '${e.key} tint $i fg');
         }
       }
     });
 
-    test('danger ve marka ayri belirtectir (ton yakin: hata simge + metinle de ayirt edilir)', () {
-      for (final e in themes.entries) {
-        expect(e.value.danger, isNot(e.value.pr), reason: e.key);
+    test('kalan renkler yalniz anlamsal: danger/heart kirmizi, ok yesil, warn amber, info mavi', () {
+      bool red(Color c) => hue(c) <= 12 || hue(c) >= 345;
+      for (final t in themes.values) {
+        expect(red(t.danger), isTrue);
+        expect(red(t.heart), isTrue);
+        expect(red(t.dangerSoft), isTrue);
+        expect(hue(t.ok), inInclusiveRange(120, 165));
+        expect(hue(t.warn), inInclusiveRange(25, 50));
+        expect(hue(t.info), inInclusiveRange(205, 225));
+        expect(t.danger, isNot(t.pr));
       }
     });
 
-    test('yuzeyler notr ve doygunluk dusuk (bg/sf/sf2/bd), koyu tema saf siyah degil', () {
-      for (final t in themes.values) {
-        // Premium palet: açık zemin #F8F9FA.
-        if (identical(t, BuTokens.light)) expect(t.bg.toARGB32(), 0xFFF8F9FA);
-        for (final c in [t.sf, t.sf2, t.sf3, t.bd, if (!identical(t, BuTokens.light)) t.bg]) {
-          expect(sat(c), lessThan(.3)); // HSL doygunlugu: acik sicak notrler ~.2-.25 cikar, kromatik degil
-        }
-      }
-      expect(BuTokens.dark.bg.computeLuminance(), greaterThan(0.005));
+    test('yuzey ladder: bg < sf < sf2 < sf3 (koyu), saf siyah degil; acikta sf/sf2 beyazdan ince ayrisir', () {
+      final d = BuTokens.dark;
+      expect(d.bg.computeLuminance(), lessThan(d.sf.computeLuminance()));
+      expect(d.sf.computeLuminance(), lessThan(d.sf2.computeLuminance()));
+      expect(d.sf2.computeLuminance(), lessThan(d.sf3.computeLuminance()));
+      expect(d.bg, isNot(const Color(0xFF000000)));
+      final l = BuTokens.light;
+      expect(l.bg.computeLuminance(), greaterThan(l.sf.computeLuminance()));
+      expect(l.sf.computeLuminance(), greaterThan(l.sf2.computeLuminance()));
     });
 
-    test('hero gradyani cok hafif (iki ucun parlakligi neredeyse esit)', () {
+    test('iki tema bagimsiz: acik tema koyunun yalniz tersi degil (yuzeyler/ayrac/danger/ok farkli, siyah yalniz pr)', () {
+      final l = BuTokens.light, d = BuTokens.dark;
+      // Acik temada buyuk siyah alan yok: hero/yuzey belirteclerinden hicbiri (h1 haric, yalniz splash/yer tutucu) siyah degil.
+      for (final c in [l.bg, l.sf, l.sf2, l.sf3, l.soft, l.nav]) {
+        expect(c.computeLuminance(), greaterThan(.85));
+      }
+      expect(l.pr.computeLuminance(), lessThan(.02)); // siyah yalniz birincil dugme/secili durum
+      expect(l.bdSubtle, isNot(d.bdSubtle));
+      expect(l.danger, isNot(d.danger));
+      expect(l.ok, isNot(d.ok));
+    });
+
+    test('tints nötr 6 adet, indeksler gecerli (BuTintId)', () {
       for (final t in themes.values) {
-        expect((t.h1.computeLuminance() - t.h2.computeLuminance()).abs(), lessThan(.04));
+        expect(t.tints.length, 6);
+        expect(t.tint(BuTintId.slate), t.tints[BuTintId.slate]);
+        expect(t.tint(7), t.tints[1]);
+      }
+    });
+
+    test('hero gradyani yok (iki ucun parlakligi esit)', () {
+      for (final t in themes.values) {
+        expect(t.h1, t.h2);
       }
     });
 
     test('lerp/copyWith yeni alanlari tasir', () {
       final m = BuTokens.light.lerp(BuTokens.dark, 1);
       expect(m.info, BuTokens.dark.info);
-      expect(m.aquaSoft, BuTokens.dark.aquaSoft);
+      expect(m.heart, BuTokens.dark.heart);
       expect(m.dangerSoft, BuTokens.dark.dangerSoft);
       expect(BuTokens.light.copyWith(info: Colors.green).info, Colors.green);
+      expect(BuTokens.light.copyWith(heart: Colors.pink).heart, Colors.pink);
       expect(BuTokens.light.copyWith().onAquaSoft, BuTokens.light.onAquaSoft);
     });
   });
-
   group('koda sihirli renk sizmaz (lib/ taramasi)', () {
     // Renk literali yalnizca bu dosyalarda serbest: belirtec kaynagi, ders renkleri,
     // sabit golge ve bos baslangic degeri.

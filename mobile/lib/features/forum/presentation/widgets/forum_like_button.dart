@@ -131,13 +131,13 @@ class _ForumLikeButtonState extends State<ForumLikeButton> with SingleTickerProv
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
-    final color = _liked ? t.pr : t.mut;
+    final color = _liked ? t.heart : t.mut;
     final scale = TweenSequence<double>([
       TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.3).chain(CurveTween(curve: Curves.easeOut)), weight: 40),
       TweenSequenceItem(tween: Tween(begin: 1.3, end: 1.0).chain(CurveTween(curve: Curves.easeInOut)), weight: 60),
     ]).animate(_anim);
     final style = Theme.of(context).textTheme.labelLarge?.copyWith(
-      color: _liked ? t.pr : t.mut,
+      color: _liked ? t.heart : t.mut,
       fontWeight: FontWeight.w400,
       fontFeatures: const [FontFeature.tabularFigures()],
     );

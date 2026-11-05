@@ -437,7 +437,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
             TextButton(
               style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 4)),
               onPressed: _clearRecent,
-              child: Text(l.searchClearRecent, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.prText)),
+              child: Text(l.searchClearRecent, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: BuType.emphasisWeight, color: t.prText)),
             ),
           ]),
           for (var i = 0; i < _recent.length; i++)
@@ -566,7 +566,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
               key: ValueKey('see-all-${tab.name}'),
               style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 8)),
               onPressed: () => _selectTab(tab),
-              child: Text(context.l10n.srSeeAll, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.prText)),
+              child: Text(context.l10n.srSeeAll, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: BuType.emphasisWeight, color: t.prText)),
             ),
         ]),
       ),

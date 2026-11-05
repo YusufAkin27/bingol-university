@@ -424,7 +424,7 @@ class _OfflineNote extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Text(context.l10n.p64FeedOffline,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: t.onWarnSoft, fontSize: 14, fontWeight: FontWeight.w500)),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: t.onWarnSoft, fontSize: 14, fontWeight: BuType.emphasisWeight)),
         ),
       ),
     );

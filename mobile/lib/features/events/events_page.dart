@@ -801,7 +801,7 @@ class _EventsPageState extends State<EventsPage> {
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(color: t.warnSoft, borderRadius: BorderRadius.circular(16)),
-      child: Text(text, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.onWarnSoft, height: 1.4, fontWeight: FontWeight.w500)),
+      child: Text(text, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.onWarnSoft, height: 1.4, fontWeight: BuType.emphasisWeight)),
     );
   }
 
@@ -1008,7 +1008,7 @@ class _EventsPageState extends State<EventsPage> {
                   ),
                   AnimatedDefaultTextStyle(
                     duration: BuMotion.of(context, BuMotion.short),
-                    style: tx.bodyMedium!.copyWith(color: fg, fontWeight: on || today ? FontWeight.w400 : FontWeight.w500),
+                    style: tx.bodyMedium!.copyWith(color: fg, fontWeight: on || today ? FontWeight.w400 : BuType.emphasisWeight),
                     child: Text('${d.day}', maxLines: 1),
                   ),
                   // Etkinlik noktası: muted (seçili günde marka), veri gelince 0 -> 1 ölçekle belirir.
@@ -1357,7 +1357,7 @@ class _EventsPageState extends State<EventsPage> {
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   if (org != null && org.isNotEmpty)
-                    Text(org, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: dim ? t.mut : t.prText, fontWeight: FontWeight.w500)),
+                    Text(org, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: dim ? t.mut : t.prText, fontWeight: BuType.emphasisWeight)),
                   Padding(
                     padding: const EdgeInsets.only(top: 2),
                     child: Text('${ev['title'] ?? ''}',

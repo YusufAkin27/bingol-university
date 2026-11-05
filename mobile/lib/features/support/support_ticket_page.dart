@@ -248,7 +248,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
             child: Text(_dayLabel(m),
                 maxLines: 1,
                 style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                    color: t.mut, fontSize: 12, fontWeight: FontWeight.w500, letterSpacing: Localizations.localeOf(context).languageCode == 'ar' ? 0 : .5)),
+                    color: t.mut, fontSize: 12, fontWeight: BuType.emphasisWeight, letterSpacing: Localizations.localeOf(context).languageCode == 'ar' ? 0 : .5)),
           ),
           Expanded(child: Container(height: 1, color: t.bd)),
         ]),

@@ -469,7 +469,7 @@ class TopStrip extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: tx.labelMedium!
-                    .copyWith(color: danger ? t.ink : t.mut, fontWeight: danger ? FontWeight.w400 : FontWeight.w500, decoration: TextDecoration.none)),
+                    .copyWith(color: danger ? t.ink : t.mut, fontWeight: danger ? FontWeight.w400 : BuType.emphasisWeight, decoration: TextDecoration.none)),
           ),
           if (trailingText != null) ...[
             const SizedBox(width: 8),
@@ -481,7 +481,7 @@ class TopStrip extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.end,
-                  style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w500, decoration: TextDecoration.none)),
+                  style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: BuType.emphasisWeight, decoration: TextDecoration.none)),
             ),
           ],
           if (actionLabel != null && onAction != null) ...[
@@ -544,7 +544,7 @@ class GateNoticeStrip extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(text,
-                  style: Theme.of(context).textTheme.labelMedium!.copyWith(color: fg, fontWeight: FontWeight.w500, height: 1.3, decoration: TextDecoration.none)),
+                  style: Theme.of(context).textTheme.labelMedium!.copyWith(color: fg, fontWeight: BuType.emphasisWeight, height: 1.3, decoration: TextDecoration.none)),
             ),
           ],
         ),

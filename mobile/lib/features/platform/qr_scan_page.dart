@@ -503,7 +503,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
           style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400, letterSpacing: 2),
           decoration: InputDecoration(
             hintText: l.sistemuiQrManualHint,
-            hintStyle: tx.titleMedium!.copyWith(color: t.mut.withValues(alpha: .7), fontWeight: FontWeight.w500, letterSpacing: .5),
+            hintStyle: tx.titleMedium!.copyWith(color: t.mut.withValues(alpha: .7), fontWeight: BuType.emphasisWeight, letterSpacing: .5),
             filled: true,
             fillColor: err != null ? t.soft : t.sf2,
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -521,7 +521,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
               children: [
                 ExcludeSemantics(child: Icon(BuIcons.circleX, size: 14, color: t.danger)),
                 const SizedBox(width: 6),
-                Expanded(child: Text(err, style: tx.labelMedium!.copyWith(color: t.danger, fontWeight: FontWeight.w500))),
+                Expanded(child: Text(err, style: tx.labelMedium!.copyWith(color: t.danger, fontWeight: BuType.emphasisWeight))),
               ],
             ),
           ),

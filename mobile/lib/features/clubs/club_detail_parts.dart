@@ -493,7 +493,7 @@ class ClubAboutRow extends StatelessWidget {
         children: [
           Text(label, style: tx.bodyLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
           const SizedBox(width: 16),
-          Expanded(child: Text(value, textAlign: TextAlign.end, style: tx.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w500))),
+          Expanded(child: Text(value, textAlign: TextAlign.end, style: tx.bodyLarge!.copyWith(color: t.ink, fontWeight: BuType.emphasisWeight))),
         ],
       ),
     );

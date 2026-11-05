@@ -11,13 +11,12 @@ import '../../widgets/bu_pressable.dart' show BuHaptic, BuPressable, buHaptic;
 import '../chat/chatlist_widgets.dart' show ChatlistAvatar;
 import '../../core/icons/bu_icons.dart';
 
-/// Yüzen alt gezinme (Stitch ana sayfa v5, `docs/MOBILE_MOTION_TABS.md`): kenarlardan ve alttan 16 dp boşluklu,
-/// 64 dp yüksekliğinde beyaz hap (ince `bd` kenarlık, çok hafif gölge). Beş öğe: Ana Sayfa, Keşfet, ortada "+"
-/// (`prPressed` daire, çubuktan yukarı taşar), Sohbet (okunmamış rozeti), Profil (kullanıcının avatarı).
+/// Yüzen alt gezinme (PREMIUM MONOCHROME): kenarlardan ve alttan 16 dp boşluklu, 64 dp yüksekliğinde hap şekilli
+/// `sf` yüzey + ince `bd` kenarlık (cam/gölge yok). Beş öğe: Ana Sayfa, Keşfet, ortada "+" (Paylaş: `pr` daire =
+/// koyuda beyaz zemin + siyah artı, açıkta tersi; çubuktan yukarı taşar), Sohbet (okunmamış rozeti), Profil (avatar).
 ///
-/// Seçili sekmede `soft` zeminli "kayan hap" ve yanında etiket görünür (diğerlerinde yalnız ikon). Sekme değişince
-/// hap yeni sekmeye yayılarak kayar (220 ms, `AppMotion.standard`; genişlik etiket uzunluğuna göre uzar/kısalır),
-/// ikon çizgiden doluya geçer (140 ms) ve 1.0 -> 1.08 -> 1.0 ölçeklenir, etiket 140 ms solarak açılır/kapanır.
+/// Seçili sekmede zemin/hap YOK: aktif simge `ink` (dolu), pasif simge `mut` (çizgi); etiket görünmez (ekran okuyucu
+/// için var). İkon çizgiden doluya geçer (140 ms) ve 1.0 -> 1.08 -> 1.0 ölçeklenir.
 /// "+" basılınca 80 ms'de 0.94'e küçülür, bırakınca 140 ms'de döner (zıplama/dönme yok). Rozet ilk belirişte
 /// 140 ms ölçeklenir. "Animasyonları azalt" açıkken hepsi anlıktır. İçerik kaydırılırken çubuk sabit kalır.
 ///
@@ -90,15 +89,10 @@ class FloatingNav extends StatelessWidget {
 
   Widget _bar(BuildContext context) {
     final t = context.bu;
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    final shape = StadiumBorder(
-        side: BorderSide(color: immersive ? t.bd.withValues(alpha: 0) : (dark ? t.onMedia.withValues(alpha: .10) : t.bd)));
-    final surface = immersive ? t.sf.withValues(alpha: 0) : (dark ? t.sf3 : t.sf);
-    final shadows = immersive
-        ? <BoxShadow>[]
-        : dark
-            ? [BoxShadow(color: t.scrim.withValues(alpha: .32), blurRadius: 20, offset: const Offset(0, 6))]
-            : [BoxShadow(color: t.shadow.withValues(alpha: .08), blurRadius: 16, offset: const Offset(0, 4))];
+    // Yüzey = `sf` + ince `bd` kenarlık; cam/gölge YOK (iki temada da aynı kural). Tam ekran videoda saydam.
+    final shape = StadiumBorder(side: BorderSide(color: immersive ? t.bd.withValues(alpha: 0) : t.bd));
+    final surface = immersive ? t.sf.withValues(alpha: 0) : t.sf;
+    const shadows = <BoxShadow>[];
     final slots = onPublish == null ? const [0, 1, 2, 3, 4] : const [0, 1, -1, 2, 4];
     return SafeArea(
       top: false,
@@ -299,11 +293,8 @@ class _PlusButtonState extends State<_PlusButton> {
                 curve: AppMotion.standard,
                 child: DecoratedBox(
                   key: const ValueKey('nav-publish'),
-                  decoration: BoxDecoration(
-                    color: t.prPressed,
-                    shape: BoxShape.circle,
-                    boxShadow: [BoxShadow(color: t.prPressed.withValues(alpha: .22), blurRadius: 10, offset: const Offset(0, 3))],
-                  ),
+                  // Paylaş: koyuda beyaz zemin + siyah artı, açıkta siyah zemin + beyaz artı (`pr`/`onPr`); gölge yok.
+                  decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle, border: Border.all(color: t.bg, width: 3)),
                   child: Center(child: Icon(BuIcons.plus, size: 26, color: t.onPr)),
                 ),
               ),
@@ -348,8 +339,8 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    // Seçili sekmede zemin/hap YOK: yalnız simge kırmızı (marka rengi).
-    final fg = immersive ? t.onMedia : t.pr;
+    // Seçili sekmede zemin/hap YOK: yalnız simge `ink` (koyuda beyaz, açıkta siyah); pasif `mut`.
+    final fg = immersive ? t.onMedia : t.ink;
     final color = selected ? fg : (immersive ? t.onMedia.withValues(alpha: .8) : t.mut);
     final unread = badge;
     Widget glyph = _isProfile ? _profile(context, t, fg) : _icon(context, color);

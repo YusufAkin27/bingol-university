@@ -259,7 +259,7 @@ class _ExamFormPageState extends State<ExamFormPage> {
                 ? const SizedBox(width: double.infinity)
                 : Padding(
                     padding: const EdgeInsets.only(top: 12),
-                    child: Semantics(liveRegion: true, container: true, child: Text(_serverErr!, style: tx.bodyMedium!.copyWith(color: t.danger, fontWeight: FontWeight.w500))),
+                    child: Semantics(liveRegion: true, container: true, child: Text(_serverErr!, style: tx.bodyMedium!.copyWith(color: t.danger, fontWeight: BuType.emphasisWeight))),
                   ),
           ),
           const SizedBox(height: 22),

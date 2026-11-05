@@ -253,7 +253,7 @@ class BuCard extends StatelessWidget {
     this.padding = const EdgeInsets.all(14),
     this.onTap,
     this.color,
-    this.radius = 20,
+    this.radius = 16,
     this.border = true,
     this.style,
     this.onLongPress,
@@ -278,7 +278,7 @@ class BuCard extends StatelessWidget {
     final st = style ?? (border ? BuCardStyle.outlined : BuCardStyle.filled);
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(radius),
-      side: st == BuCardStyle.outlined ? BorderSide(color: t.bd) : BorderSide.none,
+      side: st == BuCardStyle.outlined || st == BuCardStyle.elevated ? BorderSide(color: t.bd) : BorderSide.none,
     );
     final bg = color ?? (st == BuCardStyle.tonal ? t.sf2 : t.sf);
     Widget card = Material(
@@ -299,20 +299,14 @@ class BuCard extends StatelessWidget {
           child: card,
         );
       } else {
-        // Koyu temada gölge yok: ince çizgiyle ayrışır.
-        card = Material(
-          color: bg,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius), side: BorderSide(color: t.bd)),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(onTap: onTap, onLongPress: onLongPress, child: Padding(padding: padding, child: child)),
-        );
+        // Koyu temada gölge yok: ince çizgi (üstte `shape`) + yüzey tonu ile ayrışır.
       }
     }
     return onTap == null && onLongPress == null ? card : BuPressable(scale: .985, child: card);
   }
 }
 
-/// Yatay filtre çipi (seçili: marka tonu + kalın yazı). Görünür [BuSize.chip] (34) dp, dokunma alanı 48 dp, hap şekli.
+/// Yatay filtre çipi (seçili: TERS RENK `pr` zemin + `onPr` yazı; seçilmemiş: `sf` + ince kenarlık). Görünür [BuSize.chip] (34) dp, dokunma alanı 48 dp, hap şekli.
 class BuChip extends StatelessWidget {
   const BuChip({super.key, required this.label, this.selected = false, this.onTap, this.icon});
 
@@ -326,7 +320,7 @@ class BuChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final fg = selected ? t.onSoft : t.mut;
+    final fg = selected ? t.onPr : t.mut;
     // Görünür çip 34 dp ([BuSize.chip]); dokunma alanı 48 dp (dış GestureDetector boşluğu da yakalar).
     return Semantics(
       button: true,
@@ -349,8 +343,8 @@ class BuChip extends StatelessWidget {
               duration: BuMotion.of(context, BuMotion.short),
               curve: BuMotion.standard,
               decoration: ShapeDecoration(
-                color: selected ? t.soft : t.sf,
-                shape: StadiumBorder(side: BorderSide(color: selected ? t.pr.withValues(alpha: .45) : t.bd)),
+                color: selected ? t.pr : t.sf,
+                shape: StadiumBorder(side: BorderSide(color: selected ? t.pr : t.bd)),
               ),
               child: Material(
                 type: MaterialType.transparency,
@@ -400,7 +394,7 @@ class BuChip extends StatelessWidget {
   }
 }
 
-/// Küçük rozet. [soft] true: kırmızı yumuşak zemin; false: koyu zemin.
+/// Küçük rozet. [soft] true: nötr yumuşak zemin; false: ters renk (`ink` zemin + `bg` yazı).
 class BuBadge extends StatelessWidget {
   const BuBadge(this.text, {super.key, this.soft = false, this.color, this.onColor});
 
@@ -417,7 +411,7 @@ class BuBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)),
-      child: Text(text, style: BuType.caption.copyWith(color: fg, fontWeight: FontWeight.w500)),
+      child: Text(text, style: BuType.caption.copyWith(color: fg, fontWeight: BuType.emphasisWeight)),
     );
   }
 }
@@ -518,7 +512,10 @@ class BuAvatar extends StatelessWidget {
 /// Düğme türü: [primary] dolu marka, [soft] tonal, [outline] çerçeveli, [text] düz metin, [danger] dolu kırmızı (silme/çıkış).
 enum BuButtonKind { primary, outline, soft, text, danger }
 
-/// Hap biçimli (compact) ya da tam genişlikli düğme. Basılınca hafifçe küçülür, dokununca titrer.
+const BorderRadius _compactRadius = BorderRadius.all(Radius.circular(10));
+
+/// Birincil = `pr` (koyuda beyaz zemin + siyah yazı, açıkta tersi), ikincil = ince kenarlık, tehlike = `danger`.
+/// Köşe 12 (compact: 10), HAP DEĞİL. Basılınca hafifçe küçülür, dokununca titrer.
 class BuButton extends StatelessWidget {
   const BuButton({
     super.key,
@@ -538,21 +535,21 @@ class BuButton extends StatelessWidget {
   final bool busy;
   final bool compact;
 
-  /// Yalnız [BuButtonKind.primary] zemini (örn. `prPressed`: beyaz yazıyla AA); null = `pr`.
+  /// Yalnız [BuButtonKind.primary] zemini; null = `pr`.
   final Color? background;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final cs = Theme.of(context).colorScheme;
-    // Açık temada beyaz yazı AA için koyu ton ister (`pr` 4.07:1, `prPressed` 5.7:1).
-    final strong = Theme.of(context).brightness == Brightness.light ? t.prPressed : t.pr;
+    final disabled = onPressed == null;
+    // Devre dışı birincil/tehlike: sönük nötr zemin (`bd`) + soluk yazı; diğerleri yarı saydam.
     final (bg, fg, side) = switch (kind) {
-      BuButtonKind.primary => (background ?? strong, t.onPr, BorderSide.none),
+      BuButtonKind.primary => disabled && background == null ? (t.bd, t.mutSoft, BorderSide.none) : (background ?? t.pr, t.onPr, BorderSide.none),
       BuButtonKind.soft => (t.soft, t.onSoft, BorderSide.none),
-      BuButtonKind.outline => (Colors.transparent, t.ink, BorderSide(color: t.bd, width: 1.2)),
-      BuButtonKind.text => (Colors.transparent, strong, BorderSide.none),
-      BuButtonKind.danger => (cs.error, cs.onError, BorderSide.none),
+      BuButtonKind.outline => (Colors.transparent, t.ink, BorderSide(color: t.bd)),
+      BuButtonKind.text => (Colors.transparent, t.ink, BorderSide.none),
+      BuButtonKind.danger => disabled ? (t.bd, t.mutSoft, BorderSide.none) : (cs.error, cs.onError, BorderSide.none),
     };
     final h = compact ? BuSize.buttonCompact : BuSize.button;
     final tx = Theme.of(context).textTheme;
@@ -583,10 +580,7 @@ class BuButton extends StatelessWidget {
             ),
       ),
     );
-    final shape = compact
-        ? StadiumBorder(side: side)
-        : RoundedRectangleBorder(borderRadius: BuRadius.bControl, side: side);
-    final disabled = onPressed == null;
+    final shape = RoundedRectangleBorder(borderRadius: compact ? _compactRadius : BuRadius.bControl, side: side);
     final tap = busy || disabled
         ? null
         : () {
@@ -595,10 +589,10 @@ class BuButton extends StatelessWidget {
           };
     final btn = Material(
       animationDuration: BuMotion.of(context, BuMotion.short),
-      color: disabled ? bg.withValues(alpha: .5) : bg,
+      color: disabled && (kind == BuButtonKind.soft) ? bg.withValues(alpha: .5) : bg,
       shape: shape,
       child: InkWell(
-        customBorder: compact ? const StadiumBorder() : const RoundedRectangleBorder(borderRadius: BuRadius.bControl),
+        customBorder: RoundedRectangleBorder(borderRadius: compact ? _compactRadius : BuRadius.bControl),
         onTap: tap,
         // Container(alignment) sınırlı yükseklikte (altta gezinme çubuğu, kaydırılabilir olmayan gövde)
         // tüm yüksekliği kaplar: ortalamayı heightFactor:1 ile yapıp yüksekliği içeriğe bağlıyoruz.
@@ -645,8 +639,8 @@ class BuSegmented extends StatelessWidget {
     final t = context.bu;
     final n = items.length;
     final dark = Theme.of(context).brightness == Brightness.dark;
-    // Koyu temada seçili parça zeminden AÇIK olsun (sf, sf2'den koyu kalıp seçimi gizliyordu).
-    final thumb = dark ? Color.alphaBlend(t.ink.withValues(alpha: .16), t.sf2) : t.sf;
+    // Seçili parça zeminden ayrışır: koyuda `sf3` (en açık yüzey), açıkta beyaz `sf3` + ince kenarlık.
+    final thumb = t.sf3;
     final x = n < 2 ? 0.0 : -1 + 2 * index.clamp(0, n - 1) / (n - 1);
     return Container(
       constraints: const BoxConstraints(minHeight: BuSize.touch),
@@ -669,7 +663,7 @@ class BuSegmented extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: thumb,
                         borderRadius: BorderRadius.circular(22),
-                        boxShadow: dark ? null : [BoxShadow(color: t.shadow.withValues(alpha: .12), blurRadius: 3, offset: const Offset(0, 1))],
+                        border: Border.all(color: dark ? t.bd : t.bd),
                       ),
                     ),
                   ),
@@ -778,12 +772,12 @@ class _BuSearchFieldState extends State<BuSearchField> {
       padding: const EdgeInsetsDirectional.only(start: 16, end: 4),
       decoration: BoxDecoration(
         color: t.sf,
-        borderRadius: BorderRadius.circular(widget.radius ?? BuSize.search / 2),
-        border: Border.all(color: focused ? t.pr : t.bd, width: focused ? 2 : 1),
+        borderRadius: BorderRadius.circular(widget.radius ?? BuRadius.control),
+        border: Border.all(color: focused ? t.ink : t.bd, width: focused ? 1.5 : 1),
       ),
       child: Row(
         children: [
-          Icon(BuIcons.search, size: 18, color: focused ? t.pr : t.mut),
+          Icon(BuIcons.search, size: 18, color: focused ? t.ink : t.mut),
           const SizedBox(width: 10),
           Expanded(
             child: TextField(
@@ -865,9 +859,9 @@ class BuSectionTitle extends StatelessWidget {
   }
 }
 
-/// Kırmızı gradyanlı büyük kart (hero). Süs daireleri tasarımdakiyle aynı; RTL'de aynalanır.
+/// Hero kart: nötr `sf2` yüzey + ince kenarlık (gradyan/süs yok), yazı `ink`.
 class BuHeroCard extends StatelessWidget {
-  const BuHeroCard({super.key, required this.child, this.padding = const EdgeInsets.all(18), this.radius = 26});
+  const BuHeroCard({super.key, required this.child, this.padding = const EdgeInsets.all(18), this.radius = 16});
 
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -877,28 +871,9 @@ class BuHeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     return RepaintBoundary(
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(radius),
-        child: Container(
-          decoration: BoxDecoration(gradient: t.hero),
-          child: Stack(
-            children: [
-              PositionedDirectional(
-                end: -40,
-                top: -50,
-                child: Container(
-                    width: 170, height: 170, decoration: BoxDecoration(color: t.onMedia.withValues(alpha: .14), shape: BoxShape.circle)),
-              ),
-              PositionedDirectional(
-                end: 46,
-                bottom: -60,
-                child: Container(
-                    width: 120, height: 120, decoration: BoxDecoration(color: t.onMedia.withValues(alpha: .10), shape: BoxShape.circle)),
-              ),
-              Padding(padding: padding, child: DefaultTextStyle.merge(style: TextStyle(color: t.onMedia), child: child)),
-            ],
-          ),
-        ),
+      child: DecoratedBox(
+        decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(radius), border: Border.all(color: t.bd)),
+        child: Padding(padding: padding, child: DefaultTextStyle.merge(style: TextStyle(color: t.ink), child: child)),
       ),
     );
   }
@@ -1003,8 +978,8 @@ class BuMark extends StatelessWidget {
 /// Kaydırılabilir sayfa gövdesi altına yüzen gezinme payı ([BuSize.navInset] = 96 dp) bırakmak için.
 const double kNavInset = BuSize.navInset;
 
-/// Kırmızı hero rengi (tema bağımsız logo vb. için).
-const Color kBrandRed = BuColors.red600;
+/// Marka kırmızısı (tema bağımsız logo vb. için; arayüz monochrome).
+const Color kBrandRed = BuColors.red600; // yalnız logo/simge varlıkları için; arayüzde KULLANMAYIN
 
 /// Ana sayfayla aynı ikon dili; dekoratif simge ekran okuyucuda tekrar edilmez.
 class BuFeatureIcon extends StatelessWidget {

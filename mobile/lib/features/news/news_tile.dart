@@ -215,7 +215,7 @@ class NewsFeaturedCard extends StatelessWidget {
     Widget cover = hasImg
         ? BuImage(img, height: 220, width: double.infinity, maxDecodeWidth: 1200)
         : DecoratedBox(
-            decoration: BoxDecoration(gradient: t.hero),
+            decoration: BoxDecoration(color: t.sf2),
             child: SizedBox(
               height: 220,
               width: double.infinity,
@@ -223,7 +223,7 @@ class NewsFeaturedCard extends StatelessWidget {
                 alignment: AlignmentDirectional.topEnd,
                 child: Padding(
                   padding: const EdgeInsetsDirectional.only(end: 28, top: 56),
-                  child: Icon(newsTypeIcon(type), size: 84, color: t.onMedia.withValues(alpha: .16)),
+                  child: Icon(newsTypeIcon(type), size: 84, color: t.ink.withValues(alpha: .10)),
                 ),
               ),
             ),

@@ -454,7 +454,7 @@ class _Chip extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                            fontSize: 14, fontWeight: empty ? FontWeight.w400 : FontWeight.w500, color: empty ? t.prText : t.ink)),
+                            fontSize: 14, fontWeight: empty ? FontWeight.w400 : BuType.emphasisWeight, color: empty ? t.prText : t.ink)),
                   ),
                   const SizedBox(width: 6),
                   if (saving) const _Saving() else Icon(BuIcons.chevronDown, size: 16, color: t.mut),
