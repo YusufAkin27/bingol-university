@@ -513,6 +513,17 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
         return write(m, thumb, rangeHeader, ifNoneMatch, resp, maxAgeSeconds);
     }
 
+    /**
+     * Herkese acik paylasim onizlemesi (OpenGraph gorseli, /s/{t}/{id}/img): YETKI CAGIRANDA dogrulandi (gonderi
+     * herkese acik hesaptan, silinmemis/gizlenmemis; bkz. share.ShareService#publicView). Yalniz kucuk resim/poster;
+     * medya gizliyse ya da onizleme yoksa 404. `public, max-age=300`.
+     */
+    public ResponseEntity<Resource> servePublicPreview(Long mediaId, String ifNoneMatch) {
+        PostMedia m = repo.findById(mediaId).filter(x -> !x.isHidden() && x.getPostId() != null
+                && x.getThumbKey() != null).orElseThrow(PostMediaService::notFound);
+        return write(m, true, null, ifNoneMatch, null, 300L);
+    }
+
     /** Yonetici: yetki denetimi cagiranda (ADMIN); silinmis/gizli/baglanmamis da akar. */
     public ResponseEntity<Resource> serveForAdmin(Long mediaId, boolean thumb, String rangeHeader,
                                                   String ifNoneMatch, HttpServletResponse resp) {

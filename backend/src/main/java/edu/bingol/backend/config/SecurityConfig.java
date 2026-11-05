@@ -92,7 +92,9 @@ public class SecurityConfig {
                 .addHeaderWriter(new DelegatingRequestMatcherHeaderWriter(
                         new NegatedRequestMatcher(new OrRequestMatcher(
                                 PathPatternRequestMatcher.withDefaults().matcher("/swagger-ui/**"),
-                                PathPatternRequestMatcher.withDefaults().matcher("/swagger-ui.html"))),
+                                PathPatternRequestMatcher.withDefaults().matcher("/swagger-ui.html"),
+                                // paylasim sayfasi kendi CSP basligini yazar (docs/SHARING.md)
+                                PathPatternRequestMatcher.withDefaults().matcher("/s/**"))),
                         new StaticHeadersWriter("Content-Security-Policy",
                                 "default-src 'none'; frame-ancestors 'none'; base-uri 'none'"))))
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -122,6 +124,8 @@ public class SecurityConfig {
                 // Birim (bolum) haberleri kisiseldir: giris gerekli (genel haber uclarindan once)
                 .requestMatchers("/api/news/unit", "/api/news/unit/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/news","/api/news/**", "/api/menu", "/api/menu/**", "/api/status").permitAll()
+                // Herkese acik paylasim sayfasi + OpenGraph gorseli (SharePageController; yalniz herkese acik icerik, IP hiz siniri)
+                .requestMatchers(HttpMethod.GET, "/s/*/*", "/s/*/*/img").permitAll()
                 .requestMatchers("/api/hello", "/actuator/health", "/files/**", "/error").permitAll()
                 // WebSocket el sikismasi acik; kimlik STOMP CONNECT'te (JWT) zorunlu (bkz. messaging.ws.StompAuthInterceptor)
                 .requestMatchers("/ws", "/ws/**").permitAll()

@@ -3,7 +3,9 @@ package edu.bingol.backend.messaging.dto;
 import edu.bingol.backend.messaging.Message;
 import edu.bingol.backend.messaging.media.AttachmentView;
 import edu.bingol.backend.moderation.ReportReason;
+import edu.bingol.backend.share.ShareCard;
 import edu.bingol.backend.user.User;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -36,7 +38,13 @@ public final class MessagingDtos {
      * (en fazla 4) doluysa `text` bos olabilir (yalniz gorsel).
      */
     public record SendMessageRequest(String text, @NotBlank @Size(max = 64) String clientId, Long replyToMessageId,
-                                     @Size(max = 50) List<Long> attachmentIds, Boolean viewOnce) {
+                                     @Size(max = 50) List<Long> attachmentIds, Boolean viewOnce,
+                                     @Valid ShareRequest share) {
+        public SendMessageRequest(String text, String clientId, Long replyToMessageId, List<Long> attachmentIds,
+                                  Boolean viewOnce) {
+            this(text, clientId, replyToMessageId, attachmentIds, viewOnce, null);
+        }
+
         public SendMessageRequest(String text, String clientId, Long replyToMessageId, List<Long> attachmentIds) {
             this(text, clientId, replyToMessageId, attachmentIds, null);
         }
@@ -45,6 +53,13 @@ public final class MessagingDtos {
             this(text, clientId, replyToMessageId, null, null);
         }
     }
+
+    /**
+     * Icerik paylasimi (type: POST | REEL | NEWS | EVENT, id: icerik kimligi). Gonderen icerigi GOREBILIYOR olmali; aksi
+     * 422 SHARE_TARGET_INVALID. `text` bu durumda bos olabilir (istege bagli kisa not); ek (attachmentIds) ve viewOnce
+     * ile birlesmez.
+     */
+    public record ShareRequest(@Size(max = 8) String type, Long id) {}
 
     public record EditMessageRequest(@NotNull String text) {}
 
@@ -149,7 +164,18 @@ public final class MessagingDtos {
                               String myReaction, List<AttachmentView> attachments,
                               String status,
                               @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String senderName,
-                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String placeholderKind) {
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String placeholderKind,
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) ShareCard share) {
+        /** Paylasim karti olmayan (eski) 18 bilesenli kurucu. */
+        public MessageView(Long id, Long conversationId, Long senderId, String clientId, String text,
+                           boolean removed, String createdAt, Long replyToMessageId, ReplyPreview replyTo,
+                           boolean edited, String editedAt, boolean deleted, List<ReactionCount> reactions,
+                           String myReaction, List<AttachmentView> attachments, String status, String senderName,
+                           String placeholderKind) {
+            this(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId, replyTo, edited,
+                    editedAt, deleted, reactions, myReaction, attachments, status, senderName, placeholderKind, null);
+        }
+
         /**
          * `placeholderKind` (C2): `text` bir yer tutucuysa BLOCKED (engelli gonderen) | UNREADABLE (cozulemeyen govde),
          * yoksa gonderilmez. Istemci kind'a gore kendi dilinde metin gosterir; `text` eski surumler icin Turkce kalir.
@@ -190,19 +216,19 @@ public final class MessagingDtos {
         /** Makbuz durumu (SENT | DELIVERED | READ); yalniz istek sahibinin kendi mesajlarinda dolu. */
         public MessageView withStatus(String s) {
             return new MessageView(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId,
-                    replyTo, edited, editedAt, deleted, reactions, myReaction, attachments, s, senderName, placeholderKind);
+                    replyTo, edited, editedAt, deleted, reactions, myReaction, attachments, s, senderName, placeholderKind, share);
         }
 
         public MessageView withSenderName(String name) {
             return new MessageView(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId,
-                    replyTo, edited, editedAt, deleted, reactions, myReaction, attachments, status, name, placeholderKind);
+                    replyTo, edited, editedAt, deleted, reactions, myReaction, attachments, status, name, placeholderKind, share);
         }
 
         /** T8: gorsel ekleri ekler (gizlenen/silinen/engelli mesajda ek gosterilmez). */
         public MessageView withAttachments(List<AttachmentView> list) {
             return removed || list == null ? this : new MessageView(id, conversationId, senderId, clientId, text,
                     removed, createdAt, replyToMessageId, replyTo, edited, editedAt, deleted, reactions, myReaction,
-                    List.copyOf(list), status, senderName, placeholderKind);
+                    List.copyOf(list), status, senderName, placeholderKind, share);
         }
 
         public static MessageView of(Message m) {
@@ -226,7 +252,28 @@ public final class MessagingDtos {
 
         public MessageView withExtras(ReplyPreview reply, List<ReactionCount> counts, String mine) {
             return new MessageView(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId,
-                    reply, edited, editedAt, deleted, counts, mine, attachments, status, senderName, placeholderKind);
+                    reply, edited, editedAt, deleted, counts, mine, attachments, status, senderName, placeholderKind, share);
+        }
+
+        /**
+         * Icerik paylasim karti (okuma aninda goruntuleyene gore hesaplanir). Gizlenen/silinen/engelli/cozulemeyen
+         * mesajda (removed) kart gosterilmez.
+         */
+        public MessageView withShare(ShareCard card) {
+            return removed || card == null ? this : new MessageView(id, conversationId, senderId, clientId, text,
+                    removed, createdAt, replyToMessageId, replyTo, edited, editedAt, deleted, reactions, myReaction,
+                    attachments, status, senderName, placeholderKind, card);
+        }
+
+        /** Sohbet listesi son mesaji: kart notr (yalniz tur + kullanilabilirlik); bos aciklama yerine notr etiket. */
+        public MessageView withNeutralShare(String neutralLabel) {
+            if (share == null) {
+                return this;
+            }
+            String t = (text == null || text.isBlank()) && neutralLabel != null ? neutralLabel : text;
+            return new MessageView(id, conversationId, senderId, clientId, t, removed, createdAt, replyToMessageId,
+                    replyTo, edited, editedAt, deleted, reactions, myReaction, attachments, status, senderName,
+                    placeholderKind, share.neutral());
         }
 
         /**
@@ -239,7 +286,7 @@ public final class MessagingDtos {
             }
             return new MessageView(id, conversationId, senderId, clientId, "", removed, createdAt, replyToMessageId,
                     replyTo, edited, editedAt, deleted, reactions, myReaction, attachments, status, senderName,
-                    placeholderKind);
+                    placeholderKind, share);
         }
 
         public MessageView withoutReplyPreview() {
@@ -312,7 +359,12 @@ public final class MessagingDtos {
     // --- WebSocket ---
 
     public record ChatSend(Long conversationId, String text, String clientId, Long replyToMessageId,
-                           List<Long> attachmentIds, Boolean viewOnce) {
+                           List<Long> attachmentIds, Boolean viewOnce, ShareRequest share) {
+        public ChatSend(Long conversationId, String text, String clientId, Long replyToMessageId,
+                        List<Long> attachmentIds, Boolean viewOnce) {
+            this(conversationId, text, clientId, replyToMessageId, attachmentIds, viewOnce, null);
+        }
+
         public ChatSend(Long conversationId, String text, String clientId, Long replyToMessageId,
                         List<Long> attachmentIds) {
             this(conversationId, text, clientId, replyToMessageId, attachmentIds, null);

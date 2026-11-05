@@ -29,10 +29,16 @@ final class ChatNotifyFanout {
 
     /** Bir sohbet icin dagitim isi: son mesajin bilgileri ve birlestirilen mesaj adedi. */
     record Job(Long senderId, Long conversationId, String groupTitle, String preview,
-               Map<String, String> data, List<Long> candidates, int count) {
+               Map<String, String> data, List<Long> candidates, int count, String shareType) {
+        /** Paylasim olmayan mesaj (shareType yok). */
+        Job(Long senderId, Long conversationId, String groupTitle, String preview,
+            Map<String, String> data, List<Long> candidates, int count) {
+            this(senderId, conversationId, groupTitle, preview, data, candidates, count, null);
+        }
+
         Job merged(Job latest) {
             return new Job(latest.senderId, latest.conversationId, latest.groupTitle, latest.preview,
-                    latest.data, latest.candidates, count + latest.count);
+                    latest.data, latest.candidates, count + latest.count, latest.shareType);
         }
     }
 

@@ -60,6 +60,13 @@ public class Message {
     @Column(name = "reply_to_message_id")
     private Long replyToMessageId;
 
+    /** Icerik paylasimi (V1280): POST | REEL | NEWS | EVENT; yalnizca referans, kart okuma aninda hesaplanir. Ikisi birden dolu/bos. */
+    @Column(name = "share_type", length = 8)
+    private String shareType;
+
+    @Column(name = "share_ref_id")
+    private Long shareRefId;
+
     /** Gonderen duzenlediyse zamani; onceki sifreli surumler `message_revision` tablosunda (yonetici goruntuleyici). */
     private Instant editedAt;
 

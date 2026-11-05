@@ -69,7 +69,7 @@ public class MessageController {
     @PostMapping("/conversations/{id}/messages")
     public ResponseEntity<MessageView> send(@PathVariable Long id, @Valid @RequestBody SendMessageRequest r) {
         MessageService.SendResult res = messages.send(CurrentUser.id(), id, r.text(), r.clientId(), r.replyToMessageId(),
-                r.attachmentIds(), r.viewOnce());
+                r.attachmentIds(), r.viewOnce(), r.share());
         return ResponseEntity.status(res.created() ? HttpStatus.CREATED : HttpStatus.OK).body(res.message());
     }
 
