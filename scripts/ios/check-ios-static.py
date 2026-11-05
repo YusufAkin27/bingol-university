@@ -167,15 +167,14 @@ def check_entitlements():
             ok(f'{name}: aps-environment={env}')
         else:
             bad(f'{name}: aps-environment={env} olmali')
-        if d.get('com.apple.developer.usernotifications.time-sensitive') is True:
-            ok(f'{name}: time-sensitive bildirim yetkisi (sinav/guvenlik teslimi)')
-        else:
-            bad(f'{name}: com.apple.developer.usernotifications.time-sensitive=true olmali')
-        # Evrensel baglanti (paylasilan icerik): yalniz imzali (BuPush.xcconfig) derlemede kullanilan dosyalardadir.
-        if 'applinks:bukampus.com.tr' in d.get('com.apple.developer.associated-domains', []):
-            ok(f'{name}: associated-domains = applinks:bukampus.com.tr')
-        else:
-            bad(f'{name}: com.apple.developer.associated-domains applinks:bukampus.com.tr icermeli')
+        # time-sensitive ve associated-domains yetkileri KASITLI olarak YOK: App ID'de (developer.apple.com) bu iki yetenek
+        # acilip profil yenilenmeden imza hatasi verir (Codemagic: "Provisioning profile ... doesn't include ...").
+        # Acilinca geri eklenir (bkz. docs/IOS_RELEASE.md). Yokken bildirim normal duzeyde teslim edilir (kod uyumlu).
+        for key in ('com.apple.developer.usernotifications.time-sensitive', 'com.apple.developer.associated-domains'):
+            if key in d:
+                bad(f'{name}: {key} App ID yetkisi acilmadan eklenmemeli (imza hatasi)')
+            else:
+                ok(f'{name}: {key} yok (App ID yetkisi acilana kadar kapali)')
     x = read(os.path.join(IOS, 'Flutter', 'BuPush.xcconfig.example'))
     if 'RunnerRelease.entitlements' in x and 'config=Release' in x:
         ok('BuPush.xcconfig.example: Release -> RunnerRelease.entitlements (production)')
