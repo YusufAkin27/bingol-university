@@ -612,25 +612,28 @@ void main() {
       await settle(tester, const Duration(milliseconds: 300));
     }
 
-    testWidgets('kullanılabilir gönderi: tür etiketi, başlık, kaynak; dokununca onOpenShare', (tester) async {
+    testWidgets('kullanılabilir gönderi: yalnız görsel + sahibinin adı (etiket/açıklama yok); dokununca onOpenShare', (tester) async {
       ShareInfo? opened;
       await pumpBubble(
           tester,
           bubble(msg({'type': 'POST', 'id': 7, 'title': 'Güz manzarası', 'subtitle': 'Ayşe Yılmaz', 'available': true}), onOpen: (i) => opened = i));
-      expect(find.byKey(const ValueKey('share-card-kind')), findsOneWidget);
-      expect(find.text('GÖNDERİ'), findsOneWidget);
-      expect(find.text('Güz manzarası'), findsOneWidget);
+      expect(find.byKey(const ValueKey('share-card-kind')), findsNothing);
+      expect(find.text('GÖNDERİ'), findsNothing);
+      expect(find.text('Güz manzarası'), findsNothing, reason: 'açıklama kartta gösterilmez');
       expect(find.text('Ayşe Yılmaz'), findsOneWidget);
-      await tester.tap(find.byKey(const ValueKey('share-card-title')));
+      await tester.tap(find.byKey(const ValueKey('share-card-source')));
       await settle(tester, const Duration(milliseconds: 300));
       expect(opened?.target, const ShareTarget(ShareType.post, 7));
       noErr(tester);
       await unmount(tester);
     });
 
-    testWidgets('tür etiketleri: Reels (oynat rozeti), Haber, Duyuru, Etkinlik', (tester) async {
+    testWidgets('tür etiketleri: Haber, Duyuru, Etkinlik (gönderi/Reels kartında etiket yok)', (tester) async {
+      await pumpBubble(tester, bubble(msg({'type': 'REEL', 'id': 1, 'title': 'R', 'subtitle': 'Yazar'})));
+      expect(find.text('REELS'), findsNothing);
+      expect(find.text('Yazar'), findsOneWidget);
+      await unmount(tester);
       for (final c in [
-        ({'type': 'REEL', 'id': 1, 'title': 'R'}, 'REELS'),
         ({'type': 'NEWS', 'id': 2, 'title': 'N'}, 'HABER'),
         ({'type': 'NEWS', 'id': 3, 'title': 'D', 'kind': 'DUYURU'}, 'DUYURU'),
         ({'type': 'EVENT', 'id': 4, 'title': 'E'}, 'ETKİNLİK'),
@@ -666,7 +669,7 @@ void main() {
             'kind': 'PHOTO',
             'url': 'https://bukampus.com.tr/s/p/123',
           })));
-      expect(find.text('Kampüste bahar'), findsOneWidget);
+      expect(find.text('Kampüste bahar'), findsNothing); // gönderi kartında açıklama yok
       expect(find.text('Ayşe Yılmaz'), findsOneWidget);
       await unmount(tester);
     });

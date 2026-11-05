@@ -1046,7 +1046,7 @@ class _ConversationRow extends StatelessWidget {
     // Notsuz paylaşım (ya da sunucunun "🔗 ..." yedek metni / bağlantısı) nötr metin olur; gönderenin notu varsa not görünür.
     final shared = sharePreviewText(context, last);
     if (shared != null && (text.isEmpty || text.startsWith('🔗') || isShareLinkText(text))) {
-      return (shared, BuIcons.arrowUp, false);
+      return (shared, BuIcons.send, false);
     }
     if (text.isNotEmpty) {
       return (text.replaceAll(RegExp(r'\s+'), ' '), null, false);

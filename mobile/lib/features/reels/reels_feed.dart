@@ -569,7 +569,7 @@ class _ReelPageState extends State<_ReelPage> {
             ),
           _RailButton(
             key: ValueKey('reel-share-${p.id}'),
-            icon: BuIcons.arrowUp,
+            icon: BuIcons.send,
             tooltip: l.shareTitle,
             onTap: () => showShareSheet(context, widget.session, shareContentForPost(widget.session, p)),
           ),

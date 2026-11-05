@@ -96,7 +96,9 @@ class ShareCard extends StatelessWidget {
     final title = (info.title ?? '').trim();
     final source = (info.subtitle ?? '').trim();
     final hasImage = ready && info.imageUrl != null;
-    final imgH = width * 9 / 16;
+    // Gönderi/Reels: yalnız görsel + sahibinin adı (tür etiketi, açıklama yok). Görsel gönderiye sadık, kareye yakın.
+    final authorOnly = ready && (info.type == ShareType.post || info.type == ShareType.reel);
+    final imgH = authorOnly ? width : width * 9 / 16;
 
     Widget media;
     if (!ready) {
@@ -137,6 +139,18 @@ class ShareCard extends StatelessWidget {
         color: cardBg,
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
           media,
+          if (authorOnly)
+            (source.isEmpty
+                ? const SizedBox.shrink()
+                : Padding(
+                    padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 12, 10),
+                    child: Text(source,
+                        key: const ValueKey('share-card-source'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: tx.bodyMedium!.copyWith(color: fg, fontWeight: FontWeight.w400)),
+                  ))
+          else
           Padding(
             padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 12, 12),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
@@ -181,7 +195,7 @@ class ShareCard extends StatelessWidget {
       scale: .985,
       onTap: onTap,
       enabled: onTap != null,
-      semanticLabel: ready ? '$label, ${title.isNotEmpty ? title : source}' : '$label, ${context.l10n.shareUnavailable}',
+      semanticLabel: ready ? '$label, ${authorOnly ? source : (title.isNotEmpty ? title : source)}' : '$label, ${context.l10n.shareUnavailable}',
       child: card,
     );
     return SizedBox(

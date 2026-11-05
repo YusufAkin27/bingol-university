@@ -241,7 +241,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                       ),
                       IcerikIconButton(
                           key: const ValueKey('news-share'),
-                          icon: BuIcons.arrowUp,
+                          icon: BuIcons.send,
                           label: l.icerikShare,
                           overlay: overlay,
                           onTap: _share),

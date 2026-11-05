@@ -341,7 +341,7 @@ class _ShareSheetState extends State<ShareSheet> {
               child: Builder(
                 builder: (bc) => ShareActionTile(
                   key: const ValueKey('share-external'),
-                  icon: BuIcons.arrowUp,
+                  icon: BuIcons.send,
                   label: l.shareMoreApps,
                   onTap: () => _external(bc),
                 ),
