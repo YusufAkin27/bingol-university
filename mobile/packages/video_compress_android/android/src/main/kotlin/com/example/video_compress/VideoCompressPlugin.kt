@@ -150,25 +150,46 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin {
                         .setAudioTrackStrategy(audioTrackStrategy)
                         .setVideoTrackStrategy(videoTrackStrategy)
                         .setListener(object : TranscoderListener {
-                            override fun onTranscodeProgress(progress: Double) {
-                                channel.invokeMethod("updateProgress", progress * 100.00)
+                            // Bu geri cagrilar ana is parcaciginda calisir: burada yakalanmayan her istisna surecin
+                            // cokmesidir. Sonuc tek kez yanitlanir, hata = null sonuc (Dart sikistirmasiz yola duser).
+                            private var replied = false
+
+                            private fun reply(value: String?) {
+                                if (replied) return
+                                replied = true
+                                try {
+                                    result.success(value)
+                                } catch (ignored: Exception) {
+                                }
                             }
+
+                            override fun onTranscodeProgress(progress: Double) {
+                                try {
+                                    channel.invokeMethod("updateProgress", progress * 100.00)
+                                } catch (ignored: Exception) {
+                                }
+                            }
+
                             override fun onTranscodeCompleted(successCode: Int) {
-                                channel.invokeMethod("updateProgress", 100.00)
-                                val json = Utility(channelName).getMediaInfoJson(context, destPath)
-                                json.put("isCancel", false)
-                                result.success(json.toString())
-                                if (deleteOrigin) {
-                                    File(path).delete()
+                                try {
+                                    channel.invokeMethod("updateProgress", 100.00)
+                                    val json = Utility(channelName).getMediaInfoJson(context, destPath)
+                                    json.put("isCancel", false)
+                                    reply(json.toString())
+                                    if (deleteOrigin) {
+                                        File(path).delete()
+                                    }
+                                } catch (ignored: Exception) {
+                                    reply(null)
                                 }
                             }
 
                             override fun onTranscodeCanceled() {
-                                result.success(null)
+                                reply(null)
                             }
 
                             override fun onTranscodeFailed(exception: Throwable) {
-                                result.success(null)
+                                reply(null)
                             }
                         }).transcode()
             }

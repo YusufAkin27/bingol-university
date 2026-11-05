@@ -147,7 +147,8 @@ class MultipartUploader {
       return _send(path, image, true, method);
     }
 
-    final text = utf8.decode(res.bodyBytes);
+    // Geçersiz UTF-8 (proxy/portal gövdesi) FormatException sızdırmasın: ApiError akışı bozulmaz (ApiClient ile aynı kural).
+    final text = utf8.decode(res.bodyBytes, allowMalformed: true);
     dynamic json;
     if (text.isNotEmpty) {
       try {

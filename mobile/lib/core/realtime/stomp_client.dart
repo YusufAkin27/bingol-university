@@ -140,7 +140,7 @@ class StompClient {
       var token = accessToken();
       if (token == null) {
         _setState(StompState.disconnected);
-        _fatalCtl.add(StompFatal.sessionExpired);
+        _emitFatal(StompFatal.sessionExpired);
         _wanted = false;
         return;
       }
@@ -153,7 +153,7 @@ class StompClient {
       _ch = ch;
       await ch.ready.timeout(const Duration(seconds: 10));
       if (gen != _gen || !_wanted) {
-        ch.sink.close();
+        _closeSink(ch);
         return;
       }
       _lastRecv = DateTime.now();
@@ -166,7 +166,7 @@ class StompClient {
             _wanted = false;
             _teardown();
             _setState(StompState.disconnected);
-            _fatalCtl.add(StompFatal.sessionReplaced);
+            _emitFatal(StompFatal.sessionReplaced);
             return;
           }
           _onClosed(gen);
@@ -194,7 +194,7 @@ class StompClient {
     // Refresh'in kesin reddi (ApiError 401, ağ dışı) oturumun bittiğini gösterir.
     if (e is ApiError && e.isAuthRejected) {
       _wanted = false;
-      _fatalCtl.add(StompFatal.sessionExpired);
+      _emitFatal(StompFatal.sessionExpired);
       return;
     }
     _scheduleReconnect();
@@ -203,7 +203,8 @@ class StompClient {
   void _onData(int gen, dynamic data) {
     if (gen != _gen) return;
     _lastRecv = DateTime.now();
-    final text = data is String ? data : utf8.decode(data as List<int>);
+    // Bozuk/ikili çerçeve FormatException ile dinleyiciyi düşürmesin (allowMalformed): ayrıştırıcı çöpü yok sayar.
+    final text = data is String ? data : (data is List<int> ? utf8.decode(data, allowMalformed: true) : '');
     for (final f in StompFrame.parse(text)) {
       switch (f.command) {
         case 'CONNECTED':
@@ -272,19 +273,19 @@ class StompClient {
     switch (code) {
       case 'SESSION_REPLACED':
         _wanted = false;
-        _fatalCtl.add(StompFatal.sessionReplaced);
+        _emitFatal(StompFatal.sessionReplaced);
       case 'SUSPENDED':
         _wanted = false;
-        _fatalCtl.add(StompFatal.suspended);
+        _emitFatal(StompFatal.suspended);
       case 'FORBIDDEN_DESTINATION':
         _wanted = false;
-        _fatalCtl.add(StompFatal.forbidden);
+        _emitFatal(StompFatal.forbidden);
       case 'UNAUTHORIZED' || 'TOKEN_EXPIRED':
         // Taze token de reddediliyorsa (rol/şifre değişimi, saat kayması) döngüye girme: üstel geri çekilme +
         // art arda [maxAuthFailures] reddte oturum bitti say (A15-09: 3 sn'de 191 bağlantı + 190 refresh).
         if (++_authFailures >= maxAuthFailures) {
           _wanted = false;
-          _fatalCtl.add(StompFatal.sessionExpired);
+          _emitFatal(StompFatal.sessionExpired);
           return;
         }
         try {
@@ -343,7 +344,8 @@ class StompClient {
     }
     _wsSub?.cancel();
     try {
-      _ch?.sink.close();
+      final ch = _ch;
+      if (ch != null) _closeSink(ch);
     } catch (_) {}
     _wsSub = null;
     _ch = null;
@@ -357,6 +359,18 @@ class StompClient {
   void _raw(String s) {
     try {
       _ch?.sink.add(s);
+    } catch (_) {}
+  }
+
+  /// Kapanmış denetleyiciye olay eklemek (dispose sonrası geç gelen hata) StateError fırlatır; sessizce atlanır.
+  void _emitFatal(StompFatal f) {
+    if (!_fatalCtl.isClosed) _fatalCtl.add(f);
+  }
+
+  /// `sink.close()` ağ kopukken ASENKRON hata verir (try/catch yakalayamaz): beklenmeyen hata olarak çökme raporuna düşmesin.
+  void _closeSink(WebSocketChannel ch) {
+    try {
+      unawaited(ch.sink.close().catchError((Object _) {}));
     } catch (_) {}
   }
 

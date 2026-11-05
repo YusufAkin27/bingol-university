@@ -369,7 +369,8 @@ class VideoUploader {
       }
       return _send(path, video, onProgress, true);
     }
-    final text = utf8.decode(res.bodyBytes);
+    // Geçersiz UTF-8 FormatException sızdırmasın (bkz. MultipartUploader).
+    final text = utf8.decode(res.bodyBytes, allowMalformed: true);
     dynamic json;
     if (text.isNotEmpty) {
       try {

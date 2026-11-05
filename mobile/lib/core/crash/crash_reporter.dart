@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleState, WidgetsBinding, WidgetsBindingObserver;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -17,7 +18,14 @@ import '../error_log.dart';
 /// hata iletisi, kullanıcı kimliği. Çevrimdışıysa yerelde (en çok [maxQueue] kayıt, dosya) biriktirir; bağlantı
 /// gelince gönderir. Aynı hata (imza) oturum başına yalnız bir kez gönderilir. Ayarlardan kapatılabilir
 /// (kapalıyken hiçbir şey kaydedilmez/gönderilmez). Hiçbir yöntem fırlatmaz.
-class CrashReporter extends ChangeNotifier {
+///
+/// Yakalanamayan çökmeler (yerel/native çökme, ANR, bellek yetersizliğiyle süreç öldürme) Dart'tan GÖRÜNMEZ. Bunun
+/// için oturum işareti tutulur (`session_marker.json`: sürüm, ön planda mı, son ekran, zaman; kişisel veri yok):
+/// uygulama ön plana gelince `fg=true`, arka plana/etkisize geçince `fg=false` yazılır. Sonraki açılışta işaret
+/// hâlâ `fg=true` ise önceki oturum ön plandayken beklenmedik biçimde ölmüştür ve tek bir `UnexpectedTermination`
+/// raporu (önceki oturumun sürümü ve son ekranıyla) kuyruğa alınır. Yığın izi yoktur; amaç hangi sürüm/ekranda
+/// kaç oturumun ön planda öldüğünü yönetim panelinde görmektir (yığın için Play Console > Android vitals).
+class CrashReporter extends ChangeNotifier with WidgetsBindingObserver {
   CrashReporter({bool? active, FlutterSecureStorage? storage, DateTime Function()? now, String? osVersion})
       : active = active ?? kReleaseMode,
         _storage = storage ?? const FlutterSecureStorage(),
@@ -30,6 +38,9 @@ class CrashReporter extends ChangeNotifier {
   static const maxQueue = 20;
 
   static const settingKey = 'crash_reports_enabled';
+
+  /// Önceki oturumun ön planda ölmesi için sentetik hata türü ([UnexpectedTermination]).
+  static const unexpectedExitType = 'UnexpectedTermination';
   static const endpoint = '/app/crash-reports';
 
   /// false: hata kaydedilmez/gönderilmez (debug/test derlemesi; testler true verir).
@@ -42,6 +53,12 @@ class CrashReporter extends ChangeNotifier {
   bool _enabled = true;
   Future<void>? _flushing;
   File? _file;
+  File? _marker;
+  bool _fg = false;
+  bool _trackSession = false;
+  bool _observing = false;
+  bool _markerBusy = false;
+  bool _markerDirty = false;
   ApiClient? _api;
   final List<Map<String, Object?>> _queue = [];
   final Set<String> _seen = {};
@@ -77,7 +94,8 @@ class CrashReporter extends ChangeNotifier {
   static const maxStackChars = 6000;
 
   /// Ayarı ve diskteki kuyruğu yükler. Hata fırlatmaz.
-  Future<void> init({Directory? dir}) async {
+  Future<void> init({Directory? dir, bool trackSession = false}) async {
+    _trackSession = trackSession;
     try {
       _enabled = (await _storage.read(key: settingKey)) != '0';
     } catch (_) {
@@ -86,6 +104,7 @@ class CrashReporter extends ChangeNotifier {
     try {
       final d = dir ?? await getApplicationSupportDirectory();
       _file = File('${d.path}${Platform.pathSeparator}crash_queue.json');
+      _marker = File('${d.path}${Platform.pathSeparator}session_marker.json');
       if (!_enabled) {
         await _deleteFile();
       } else if (await _file!.exists()) {
@@ -99,7 +118,114 @@ class CrashReporter extends ChangeNotifier {
     } catch (_) {
       _file = null;
     }
+    if (trackSession) await _startSessionMarker();
     notifyListeners();
+  }
+
+  /// Önceki oturumun işaretini okur (ön planda ölmüşse rapor üretir), sonra bu oturum için işareti yazar. Hata fırlatmaz.
+  Future<void> _startSessionMarker() async {
+    final f = _marker;
+    if (f == null || !active) return;
+    try {
+      if (!_enabled) {
+        await _deleteMarker();
+        return;
+      }
+      if (await f.exists()) {
+        final j = jsonDecode(await f.readAsString());
+        if (j is Map && j['fg'] == true) _enqueueUnexpectedExit(j);
+      }
+      await _beginObserving();
+    } catch (_) {}
+  }
+
+  /// Bu oturum için işareti yazmaya ve yaşam döngüsünü/ekran değişimini izlemeye başlar.
+  Future<void> _beginObserving() async {
+    if (_marker == null || !active || !_enabled) return;
+    final st = WidgetsBinding.instance.lifecycleState;
+    _fg = st == null || st == AppLifecycleState.resumed;
+    if (!_observing) {
+      _observing = true;
+      WidgetsBinding.instance.addObserver(this);
+      ErrorLog.instance.onScreenChanged = (_) => unawaited(_writeMarker());
+    }
+    await _writeMarker();
+  }
+
+  static final _versionOk = RegExp(r'^[A-Za-z0-9._+\-]{1,32}$');
+
+  void _enqueueUnexpectedExit(Map<dynamic, dynamic> j) {
+    final v = j['v'];
+    final sc = j['screen'];
+    final at = DateTime.tryParse('${j['at']}');
+    final now = _now();
+    final when = at == null || at.isAfter(now) ? now : at;
+    _queue.add({
+      'appVersion': v is String && _versionOk.hasMatch(v) ? v : appVersion,
+      'platform': DeviceIdentity.platform.toUpperCase(),
+      if (_osVersion != null || _defaultOs() != null) 'osVersion': _osVersion ?? _defaultOs(),
+      'errorType': unexpectedExitType,
+      'stackTrace': '(yığın yok)',
+      if (sc is String && _screenOk.hasMatch(sc)) 'screen': sc,
+      'fatal': true,
+      'occurredAt': when.toUtc().toIso8601String(),
+    });
+    while (_queue.length > maxQueue) {
+      _queue.removeAt(0);
+    }
+    unawaited(_persist());
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Yalnız `resumed` ön plandır: `inactive` (son uygulamalar, izin penceresi) da çıkış sayılır ki hızlı kaydırarak
+    // kapatma sahte "çökme" üretmesin.
+    final fg = state == AppLifecycleState.resumed;
+    if (fg == _fg) return;
+    _fg = fg;
+    unawaited(_writeMarker());
+  }
+
+  /// İşareti yazar (eşzamanlı çağrılar birleşir). Kapalıyken/etkin değilken hiçbir şey yazmaz.
+  Future<void> _writeMarker() async {
+    final f = _marker;
+    if (f == null || !active || !_enabled) return;
+    if (_markerBusy) {
+      _markerDirty = true;
+      return;
+    }
+    _markerBusy = true;
+    try {
+      do {
+        _markerDirty = false;
+        final cs = ErrorLog.instance.currentScreen;
+        await f.writeAsString(jsonEncode({
+          'v': appVersion,
+          'fg': _fg,
+          'at': _now().toUtc().toIso8601String(),
+          if (cs != null && _screenOk.hasMatch(cs)) 'screen': cs,
+        }));
+      } while (_markerDirty);
+    } catch (_) {
+    } finally {
+      _markerBusy = false;
+    }
+  }
+
+  Future<void> _deleteMarker() async {
+    try {
+      final f = _marker;
+      if (f != null && await f.exists()) await f.delete();
+    } catch (_) {}
+  }
+
+  @override
+  void dispose() {
+    if (_observing) {
+      _observing = false;
+      WidgetsBinding.instance.removeObserver(this);
+    }
+    super.dispose();
   }
 
   /// Gönderimde kullanılacak API katmanı; yeniden bağlanınca bekleyenler gönderilir.
@@ -118,8 +244,10 @@ class CrashReporter extends ChangeNotifier {
       _queue.clear();
       _seen.clear();
       await _deleteFile();
+      await _deleteMarker();
     }
     notifyListeners();
+    if (v && _trackSession) unawaited(_beginObserving());
     try {
       await _storage.write(key: settingKey, value: v ? '1' : '0');
     } catch (_) {}
