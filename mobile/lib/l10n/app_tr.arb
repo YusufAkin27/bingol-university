@@ -4058,6 +4058,175 @@
   "p14ClearDay": "Tüm ay",
   "p14Ended": "Sona erdi",
   "p14Live": "Şimdi",
+  "forumComposeClose": "Kapat",
+  "forumComposePublish": "Yayınla",
+  "forumComposePublishing": "Yayınlanıyor",
+  "forumComposeTitleHint": "Başlık",
+  "forumComposeBodyHint": "Ne konuşmak istiyorsun?",
+  "forumComposeCategoryLabel": "Kategori",
+  "forumComposeCategoryPick": "Kategori seç",
+  "forumComposeCategoryLoading": "Kategoriler yükleniyor",
+  "forumComposeCategoryError": "Kategoriler yüklenemedi",
+  "forumComposeRetry": "Tekrar dene",
+  "forumComposeAddImage": "Görsel ekle",
+  "forumComposeImageCount": "{count}/{max} görsel",
+  "@forumComposeImageCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "forumComposeGallery": "Galeriden seç",
+  "forumComposeCamera": "Fotoğraf çek",
+  "forumComposeImageRemove": "Görseli kaldır",
+  "forumComposeImageUploading": "Görsel yükleniyor",
+  "forumComposeImageRetry": "Görseli yeniden yükle",
+  "forumComposeImagesPending": "Görseller yüklenince yayınlayabilirsin.",
+  "forumComposeImageFailedHint": "Bir görsel yüklenemedi. Yeniden dene ya da kaldır.",
+  "forumComposeErrImageTooLarge": "Görsel çok büyük.",
+  "forumComposeErrImageType": "Yalnızca JPEG, PNG ve WebP görseller eklenebilir.",
+  "forumComposeErrImageRead": "Görsel okunamadı.",
+  "forumComposeErrImageUpload": "Görsel yüklenemedi.",
+  "forumComposePollAdd": "Anket ekle",
+  "forumComposeAnonymous": "Anonim paylaş",
+  "forumComposeAnonymousDesc": "Adın diğer öğrencilere gösterilmez.",
+  "forumComposeAnonymousNote": "Moderatörler kötüye kullanımı görebilir.",
+  "forumComposeNeedTitle": "Bir başlık yaz.",
+  "forumComposeNeedBody": "Bir açıklama yaz.",
+  "forumComposeNeedCategory": "Bir kategori seç.",
+  "forumComposeNeedPoll": "Ankette en az 2 dolu seçenek olmalı.",
+  "forumComposeDraftRestored": "Taslak geri yüklendi",
+  "forumComposeDraftSheetTitle": "Taslağı kaydedelim mi?",
+  "forumComposeDraftSheetBody": "Yazdıkların bir sonraki sefer geri gelir.",
+  "forumComposeDraftSave": "Taslağı kaydet",
+  "forumComposeDraftDelete": "Sil",
+  "forumComposeDraftContinue": "Devam et",
+  "forumComposeErrNetwork": "İnternet bağlantısı yok. Yazdıkların korundu.",
+  "forumComposeErrRate": "Çok sık paylaşım yaptın. Biraz bekleyip tekrar dene.",
+  "forumComposeErrDuplicate": "Aynı içeriği az önce paylaştın.",
+  "forumComposeErrProfanity": "Metinde uygunsuz ifade var. Düzenleyip tekrar dene.",
+  "forumComposeErrCategory": "Bu kategori artık kullanılamıyor. Başka bir kategori seç.",
+  "forumComposeErrInvalid": "İçerik geçersiz. Başlığı ve açıklamayı kontrol et.",
+  "forumComposeErrGeneric": "Konu yayınlanamadı. Yazdıkların korundu, tekrar dene.",
+  "forumComposeEditSave": "Kaydet",
+  "forumComposeEditSaving": "Kaydediliyor",
+  "forumComposeEditLocked": "Bu konu kilitli, düzenlenemez.",
+  "forumComposeEditGone": "Bu konu artık yok.",
+  "forumComposeEditNotOwner": "Bu konuyu yalnızca sahibi düzenleyebilir.",
+  "forumComposeEditSaved": "Düzenlendi",
+  "forumComposeEditNote": "Görseller ve anket sonradan değiştirilemez.",
+  "forumPollQuestionHint": "Soru (isteğe bağlı)",
+  "forumPollOptionHint": "Seçenek {n}",
+  "@forumPollOptionHint": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollAddOption": "Seçenek ekle",
+  "forumPollRemoveOption": "Seçeneği kaldır",
+  "forumPollMaxOptions": "En çok {max} seçenek eklenebilir.",
+  "@forumPollMaxOptions": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollEndsAt": "Bitiş",
+  "forumPollEndsNone": "Süresiz",
+  "forumPollEndsDays": "{n} gün",
+  "@forumPollEndsDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollEndsPickDate": "Tarih seç",
+  "forumPollEndsOn": "{date} tarihinde biter",
+  "@forumPollEndsOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "forumPollAllowChange": "Oy değiştirilebilir",
+  "forumPollRemove": "Anketi kaldır",
+  "forumPollVotes": "{count, plural, =0{Oy yok} =1{1 oy} other{{count} oy}}",
+  "@forumPollVotes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollPercent": "%{p}",
+  "@forumPollPercent": {
+    "placeholders": {
+      "p": {
+        "type": "String"
+      }
+    }
+  },
+  "forumPollMine": "Oyun",
+  "forumPollEnded": "Anket sona erdi",
+  "forumPollLeftDays": "{n} gün kaldı",
+  "@forumPollLeftDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollLeftHours": "{n} saat kaldı",
+  "@forumPollLeftHours": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollLeftMinutes": "{n} dakika kaldı",
+  "@forumPollLeftMinutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "forumPollCanChange": "Oyunu değiştirebilirsin",
+  "forumPollLocked": "Oy verdikten sonra değiştirilemez",
+  "forumPollUndo": "Oyumu geri al",
+  "forumPollSemantics": "{text}, {percent}, {votes}",
+  "@forumPollSemantics": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "votes": {
+        "type": "String"
+      }
+    }
+  },
+  "forumPollSelected": "Seçili",
+  "forumPollErrClosed": "Anket sona erdi.",
+  "forumPollErrAlready": "Bu ankette oyun zaten kayıtlı ve değiştirilemez.",
+  "forumPollErrNetwork": "İnternet bağlantısı yok. Oy verilemedi.",
+  "forumPollErrRate": "Çok sık oy işlemi yaptın. Biraz bekle.",
+  "forumPollErrGone": "Bu konu ya da anket artık yok.",
+  "forumPollErrForbidden": "Bu ankete oy verme iznin yok.",
+  "forumPollErrGeneric": "Oy işlemi yapılamadı. Tekrar dene.",
+  "forumPollTitle": "Anket",
   "p14EventCount": "{count, plural, other{{count} Etkinlik}}",
   "@p14EventCount": {
     "placeholders": {
