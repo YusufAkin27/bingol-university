@@ -136,6 +136,21 @@ class _CommentThreadPageState extends State<CommentThreadPage> with CommentInter
     final index = {for (var i = 0; i < rows.length; i++) rows[i].key: i};
     return Scaffold(
       backgroundColor: t.bg,
+      resizeToAvoidBottomInset: false,
+      bottomNavigationBar: Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+        child: CommentComposer(
+          locked: widget.locked,
+          replyName: replyTo == null ? null : commentAuthorName(context, replyTo!),
+          threadReplyName: commentAuthorName(context, root),
+          editing: editing != null,
+          editText: editing?.body,
+          onCancelTarget: cancelTarget,
+          onSend: (b, a, k) => sendComment(b, a, k, defaultParent: root),
+          onSave: saveEdit,
+          onError: composerError,
+        ),
+      ),
       body: Column(children: [
         TopicDetailBar(onBack: () => Navigator.of(context).maybePop()),
         Expanded(
@@ -166,17 +181,6 @@ class _CommentThreadPageState extends State<CommentThreadPage> with CommentInter
               const SliverToBoxAdapter(child: SizedBox(height: 24)),
             ],
           ),
-        ),
-        CommentComposer(
-          locked: widget.locked,
-          replyName: replyTo == null ? null : commentAuthorName(context, replyTo!),
-          threadReplyName: commentAuthorName(context, root),
-          editing: editing != null,
-          editText: editing?.body,
-          onCancelTarget: cancelTarget,
-          onSend: (b, a, k) => sendComment(b, a, k, defaultParent: root),
-          onSave: saveEdit,
-          onError: composerError,
         ),
       ]),
     );

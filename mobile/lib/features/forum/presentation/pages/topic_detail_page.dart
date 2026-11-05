@@ -121,7 +121,10 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
   }
 
   void _onCc() {
-    if (!_cc.loading) {
+    if (_cc.loading) {
+      // Yükleme uzarsa "bağlantı yavaş" ipucu çıkar.
+      if (!(_slowTimer?.isActive ?? false) && !_slow) _startSlowTimer();
+    } else {
       _slowTimer?.cancel();
       if (_slow && mounted) setState(() => _slow = false);
     }
@@ -158,7 +161,6 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
         _gone = t.removed;
       });
       if (t.removed) return;
-      _startSlowTimer();
       await _cc.load(silent: refresh);
       if (!mounted) return;
       if (!refresh && widget.commentId != null) await _focusComment(widget.commentId!);
@@ -466,21 +468,28 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
       },
       child: Scaffold(
         backgroundColor: t.bg,
+        // Yazma çubuğu bottomNavigationBar'dır: bildirimler (SnackBar) çubuğun ÜSTÜNDE çıkar, gönder düğmesini
+        // örtmez. Klavye payını çubuğa kendimiz veririz (gövde Scaffold'un alt çubuk yüksekliğiyle küçülür).
+        resizeToAvoidBottomInset: false,
+        bottomNavigationBar: showComposer
+            ? Padding(
+                padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+                child: CommentComposer(
+                  key: _composerKey,
+                  locked: topic.locked,
+                  replyName: replyTo == null ? null : commentAuthorName(context, replyTo!),
+                  editing: editing != null,
+                  editText: editing?.body,
+                  onCancelTarget: cancelTarget,
+                  onSend: (b, a, k) => sendComment(b, a, k),
+                  onSave: saveEdit,
+                  onError: composerError,
+                ),
+              )
+            : null,
         body: Column(children: [
           TopicDetailBar(onBack: _back, onMore: topic != null && !_gone ? _openMenu : null),
           Expanded(child: body),
-          if (showComposer)
-            CommentComposer(
-              key: _composerKey,
-              locked: topic.locked,
-              replyName: replyTo == null ? null : commentAuthorName(context, replyTo!),
-              editing: editing != null,
-              editText: editing?.body,
-              onCancelTarget: cancelTarget,
-              onSend: (b, a, k) => sendComment(b, a, k),
-              onSave: saveEdit,
-              onError: composerError,
-            ),
         ]),
       ),
     );
