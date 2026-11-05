@@ -142,8 +142,23 @@ public class RemoteJwksKeyProvider implements OAuthKeyProvider {
 
     /** Sabit adresler; kisa zaman asimi; yonlendirme yok; govde siniri. */
     private static final class HttpFetcher implements Function<OAuthProvider, String> {
-        private final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2))
-                .followRedirects(HttpClient.Redirect.NEVER).build();
+        /** Tembel: bean olusurken (ve OAuth hic kullanilmazken / test baglamlarinda) is parcacigi ve baglanti havuzu acilmasin. */
+        private volatile HttpClient client;
+
+        private HttpClient client() {
+            HttpClient c = client;
+            if (c == null) {
+                synchronized (this) {
+                    c = client;
+                    if (c == null) {
+                        c = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2))
+                                .followRedirects(HttpClient.Redirect.NEVER).build();
+                        client = c;
+                    }
+                }
+            }
+            return c;
+        }
 
         @Override
         public String apply(OAuthProvider p) {
@@ -151,7 +166,7 @@ public class RemoteJwksKeyProvider implements OAuthKeyProvider {
             try {
                 HttpRequest req = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(3))
                         .header("Accept", "application/json").GET().build();
-                HttpResponse<java.io.InputStream> res = client.send(req, HttpResponse.BodyHandlers.ofInputStream());
+                HttpResponse<java.io.InputStream> res = client().send(req, HttpResponse.BodyHandlers.ofInputStream());
                 try (java.io.InputStream in = res.body()) {
                     if (res.statusCode() != 200) {
                         throw new IllegalStateException("HTTP " + res.statusCode());

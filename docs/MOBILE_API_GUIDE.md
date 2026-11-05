@@ -667,6 +667,7 @@ Tam liste ve şemalar için `docs/openapi.json` (gruplar: `1-public`, `2-authent
 - **Engeller:** `GET /api/users/me/blocks?cursor=&limit=` düz dizi + `X-Next-Cursor` (bölüm 3).
 - Cihaz kaydı ve push `data` değişiklikleri bölüm 6'da, `logout-all` ile şifre sıfırlama bölüm 1'dedir.
 - **Hesap silme** artık cihazları, bildirimleri, favorileri, kulüp başvuru yanıtlarını ve topluluk üyeliklerini de temizler; yerel veriyi silmek istemcinin işidir.
+- **Google/Apple girişi + profil tamamlama (bölüm 1.10, bayrak `AUTH_OAUTH_ENABLED`, varsayılan kapalı):** `POST /api/auth/oauth/google|apple`, `POST /api/auth/oauth/link`, `DELETE /api/auth/oauth/link/{provider}`, `GET /api/auth/oauth/identities`, `GET /api/users/username-available?u=`, `PUT /api/users/me/onboarding`, `PUT /api/users/me/username`; `GET /api/users/me` yanıtına `profileCompleted`, `username`, `firstName`, `lastName`, `universityName`, `authProviders[]`; tamamlanmamış profilde tüm yazma uçları `403 PROFILE_INCOMPLETE`; `DELETE /api/users/me` gövdesinde `password` artık zorunlu değil (parolasız hesap: `provider`+`token`). Yeni kodlar: `OAUTH_*`, `PROFILE_INCOMPLETE`, `USERNAME_*`, `PROFILE_FIELD_REQUIRED`, `TERMS_REQUIRED`.
 
 `/api/admin/**` yönetim panelidir (web); mobil istemci kullanmaz.
 
