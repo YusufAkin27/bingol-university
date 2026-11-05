@@ -181,7 +181,7 @@ void main() {
       noErr(tester);
     });
 
-    testWidgets('detay: fotografa dokununca tam ekran gorunturu acilir; kapat dugmesi 48 dp; geri doner', (tester) async {
+    testWidgets('detay: fotografa tek dokunus tam ekran acmaz (tam ekran modu yok)', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
       fakePosts(b);
@@ -189,12 +189,6 @@ void main() {
       await settle(tester, const Duration(milliseconds: 1200));
       await tester.tap(find.byKey(const ValueKey('post-photo-999')), warnIfMissed: false);
       await settle(tester, const Duration(milliseconds: 1000));
-      expect(find.byType(PostPhotoViewer), findsOneWidget);
-      final close = tester.getSize(find.byKey(const ValueKey('postViewerClose')));
-      expect(close.width, greaterThanOrEqualTo(48));
-      expect(close.height, greaterThanOrEqualTo(48));
-      await tester.tap(find.byKey(const ValueKey('postViewerClose')));
-      await settle(tester, const Duration(milliseconds: 600));
       expect(find.byType(PostPhotoViewer), findsNothing);
       expect(find.byType(PostDetailPage), findsOneWidget);
       noErr(tester);

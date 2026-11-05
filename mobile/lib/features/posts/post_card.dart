@@ -8,7 +8,6 @@ import 'like_button.dart';
 import 'post_actions.dart';
 import 'post_models.dart';
 import 'avatar_preview.dart';
-import 'post_photo_viewer.dart';
 import 'post_routes.dart';
 import 'post_video.dart';
 import '../share/share_button.dart' show PostShareButton;
@@ -240,9 +239,6 @@ class _PostCardState extends State<PostCard> {
     }
   }
 
-  /// Detayda fotoğrafa dokunma: tam ekran görüntüleyici (yakınlaştırma + sürükleyerek kapatma).
-  void _openViewer() => openPostPhotoViewer(context, widget.session, p, heroTag: _heroTag);
-
   /// Gönderi detayı (Stitch v3 01): yazar satırı (40 dp avatar, ad 15/600, "bölüm · zaman" 13 mut, ⋯), 20 dp kenar içinde
   /// 4:5 fotoğraf (köşe 16, kart/gölge yok), altında kalp 22 + sayı 15/600 + "·" + metin 15, 6 dp altta "düzenlendi" 12 mut.
   Widget _buildDetail(BuildContext context, {required bool mine, required bool hasMenu}) {
@@ -344,7 +340,7 @@ class _PostCardState extends State<PostCard> {
               padding: BuSpace.pageH,
               child: DoubleTapLike(
                 onLike: _like.like,
-                onTap: _openViewer,
+                // Tek dokunuş tam ekran açmaz (tam ekran modu yok); yalnız çift dokunuş beğenir.
                 radius: 16,
                 child: PostPhoto(
                   session: widget.session,
@@ -366,7 +362,6 @@ class _PostCardState extends State<PostCard> {
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     excludeFromSemantics: true,
-                    onTap: _openViewer,
                     child: Text(text, key: const ValueKey('post-text'), style: tt.bodyLarge?.copyWith(color: t.ink, fontSize: 15, height: 1.4)),
                   ),
                 ),
@@ -470,7 +465,7 @@ class _PostCardState extends State<PostCard> {
               BuGap.h16,
               DoubleTapLike(
                 onLike: _like.like,
-                onTap: widget.detail ? _openViewer : _open,
+                onTap: widget.detail ? null : _open,
                 // Detayda fotoğraf ekran kenarlarına dayanır: köşe yuvarlağı ekran kenarında bozuk görünür.
                 radius: detail ? 0 : BuRadius.lg,
                 child: Stack(alignment: Alignment.center, children: [
