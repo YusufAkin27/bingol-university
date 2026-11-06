@@ -31,6 +31,7 @@ class _PollFormPageState extends State<PollFormPage> {
   final _desc = TextEditingController();
   final List<TextEditingController> _opts = [TextEditingController(), TextEditingController()];
   final _errKey = GlobalKey();
+  final _addKey = GlobalKey();
   PollType _type = PollType.single;
   bool _anonymous = true; // kulüp anketinde varsayılan gizli oy (sunucu da COMMUNITY için gizli varsayar)
   bool _notify = true;
@@ -88,6 +89,7 @@ class _PollFormPageState extends State<PollFormPage> {
   }
 
   Future<void> _submit() async {
+    BuKeyboard.dismiss();
     final opts = [for (final c in _opts) c.text];
     final err = validatePollDraft(title: _title.text, type: _type, options: opts, closesAt: _closesAt, l10n: context.l10n);
     if (err != null) {
@@ -139,7 +141,14 @@ class _PollFormPageState extends State<PollFormPage> {
       _justAdded = c;
     });
     buHaptic(BuHaptic.selection);
+    _revealAddRow();
   }
+
+  /// Yeni seçenek eklenince alan klavyenin üstünde görünür kalsın (sayfa kendiliğinden kayar).
+  void _revealAddRow() => WidgetsBinding.instance.addPostFrameCallback((_) {
+        final c = _addKey.currentContext;
+        if (c != null && mounted) BuKeyboard.ensureVisible(c, alignment: .6);
+      });
 
   void _removeOption(int i) {
     setState(() => _opts.removeAt(i).dispose());
@@ -171,7 +180,8 @@ class _PollFormPageState extends State<PollFormPage> {
     return BuPageScaffold(
       title: l.pollCreate,
       large: false,
-      bottomInset: 32,
+      bottomInset: 24,
+      bottomBar: BuFormActionBar(child: BuButton(label: l.pollPublish, busy: _busy, onPressed: _submit)),
       slivers: [
         SliverPadding(
           padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 16.5, kAnketPad, 0),
@@ -251,6 +261,7 @@ class _PollFormPageState extends State<PollFormPage> {
                           ),
                           if (_opts.length < _maxOptions)
                             TextButton(
+                              key: _addKey,
                               style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsetsDirectional.only(start: 12)),
                               onPressed: _addOption,
                               child: Text('+ ${l.pollAddOption}', style: tx.titleSmall!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
@@ -293,8 +304,6 @@ class _PollFormPageState extends State<PollFormPage> {
                         child: Semantics(liveRegion: true, container: true, child: Text(err, style: tx.bodyMedium!.copyWith(color: t.danger, height: 1.4))),
                       ),
               ),
-              const SizedBox(height: 33),
-              BuButton(label: l.pollPublish, busy: _busy, onPressed: _submit),
             ]),
           ),
         ),

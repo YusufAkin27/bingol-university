@@ -156,8 +156,10 @@ class _ExamFormPageState extends State<ExamFormPage> {
       actions: [
         if (_editing) BuIconButton(icon: BuIcons.trash2, tooltip: l.acadFormDeleteTitle, onTap: _busy ? null : _delete),
       ],
+      bottomBar: AkadBottomBar(children: [BuButton(label: l.acadSave, busy: _busy, onPressed: _busy ? null : _save)]),
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 1, 20, 32),
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        padding: const EdgeInsets.fromLTRB(20, 1, 20, 32 + AkadBottomBar.reserve),
         children: [
           AcadTextField(
             label: l.p69ExamName,
@@ -262,8 +264,6 @@ class _ExamFormPageState extends State<ExamFormPage> {
                     child: Semantics(liveRegion: true, container: true, child: Text(_serverErr!, style: tx.bodyMedium!.copyWith(color: t.danger, fontWeight: BuType.emphasisWeight))),
                   ),
           ),
-          const SizedBox(height: 22),
-          BuButton(label: l.acadSave, busy: _busy, onPressed: _busy ? null : _save),
         ],
       ),
     );

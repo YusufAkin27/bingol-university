@@ -803,9 +803,10 @@ class _EventFormPageState extends State<EventFormPage> {
           margin: const EdgeInsets.only(top: 10),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(color: _clubInstant ? t.soft : t.sf2, borderRadius: BorderRadius.circular(16)),
-          child: Row(children: [
-            Flexible(child: Text(_clubInstant ? l.evcInfoInstant : l.evcInfoReview, style: tx.bodyMedium!.copyWith(fontWeight: BuType.emphasisWeight, color: _clubInstant ? t.onSoft : t.ink))),
-            if (_clubInstant) Flexible(flex: 0, child: Text(' • ${l.p15PublishRoleActive}', maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.onSoft.withValues(alpha: .8)))),
+          // Wrap: büyük yazıda/dar ekranda ikinci parça alt satıra iner (Row iki Flexible ile taşıyordu).
+          child: Wrap(crossAxisAlignment: WrapCrossAlignment.center, children: [
+            Text(_clubInstant ? l.evcInfoInstant : l.evcInfoReview, style: tx.bodyMedium!.copyWith(fontWeight: BuType.emphasisWeight, color: _clubInstant ? t.onSoft : t.ink)),
+            if (_clubInstant) Text(' • ${l.p15PublishRoleActive}', style: tx.bodySmall!.copyWith(color: t.onSoft.withValues(alpha: .8))),
           ]),
         ),
     ]);
@@ -1033,6 +1034,17 @@ class _EventFormPageState extends State<EventFormPage> {
     final descLen = _desc.text.length;
     return Scaffold(
       backgroundColor: t.bg,
+      resizeToAvoidBottomInset: true,
+      // Oluştur/Kaydet klavyenin hemen üstünde sabit; uzun formda hep erişilebilir.
+      bottomNavigationBar: BuFormActionBar(
+        top: locked ? Text(l.p15ErrLocked('${errors.length}'), textAlign: TextAlign.center, style: tx.bodySmall!.copyWith(color: t.mut)) : null,
+        child: BuButton(
+          key: const ValueKey('evc-submit'),
+          label: _editing ? l.eventFormSave : l.eventFormCreate,
+          busy: _busy,
+          onPressed: (_busy || locked) ? null : _save,
+        ),
+      ),
       body: Column(children: [
         ClubPageHeader(title: _editing ? l.eventFormEditTitle : l.eventFormNewTitle),
         Expanded(
@@ -1187,18 +1199,6 @@ class _EventFormPageState extends State<EventFormPage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
                   child: Text(l.p15ErrHint, style: tx.bodySmall!.copyWith(height: 1.4, color: t.mut)),
-                ),
-              const SizedBox(height: 24),
-              BuButton(
-                key: const ValueKey('evc-submit'),
-                label: _editing ? l.eventFormSave : l.eventFormCreate,
-                busy: _busy,
-                onPressed: (_busy || locked) ? null : _save,
-              ),
-              if (locked)
-                Padding(
-                  padding: const EdgeInsets.only(top: 10),
-                  child: Text(l.p15ErrLocked('${errors.length}'), textAlign: TextAlign.center, style: tx.bodySmall!.copyWith(color: t.mut)),
                 ),
             ]),
           ),
