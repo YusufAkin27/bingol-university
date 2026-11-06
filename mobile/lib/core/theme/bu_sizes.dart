@@ -30,7 +30,7 @@ abstract final class BuSize {
   static const double iconBtn = 40;
 
   /// Alt gezinme hapı içerik yüksekliği (yazı ölçeği 1).
-  static const double nav = 64;
+  static const double nav = 68;
 
   /// Alt gezinme hapı dış boşluğu (kenar ve alt).
   static const double navGap = 16;

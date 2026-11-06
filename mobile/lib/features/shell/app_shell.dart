@@ -20,9 +20,9 @@ import '../home/home_tab.dart';
 import '../profile/profile_tab.dart';
 import '../posts/post_routes.dart' show openComposePost;
 import '../widgets/widget_sync_service.dart';
-import 'floating_nav.dart';
+import 'bukampus_bottom_navigation_bar.dart';
 
-export 'floating_nav.dart' show FloatingNav;
+export 'bukampus_bottom_navigation_bar.dart' show BukampusBottomNavigationBar;
 
 /// Sekme sırası: 0 Ana Sayfa, 1 Keşfet, 2 Sohbet, 3 Kulüpler, 4 Profil.
 abstract final class AppTab {
@@ -411,7 +411,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Ticker
         listenable: s,
         builder: (context, _) => ValueListenableBuilder<bool>(
           valueListenable: shellImmersive,
-          builder: (context, immersive, _) => FloatingNav(
+          builder: (context, immersive, _) => BukampusBottomNavigationBar(
             index: _tab,
             immersive: immersive && _tab == AppTab.discover,
             onPublish: _publish,
@@ -420,8 +420,6 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Ticker
               if (i == AppTab.chat) _refreshBadges();
             },
             chatBadge: s.badges.chat,
-            avatarUrl: s.avatarUrl,
-            avatarName: s.displayName,
           ),
         ),
       ),

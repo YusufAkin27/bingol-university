@@ -5,6 +5,8 @@ Kullanıcı kararı (2026-11-03): uygulamadaki **sağa/sola kaydırarak sekme de
 Değerler `AppMotion` belirteçlerine bağlanır ([MOBILE_DESIGN_SYSTEM.md](MOBILE_DESIGN_SYSTEM.md)): `fast` 140 ms, `normal` 220 ms; eğriler `standard` (easeInOutCubic) ve `enter` (easeOutCubic). Azaltılmış harekette (`AppMotion.of`) tüm geçişler anlıktır.
 
 ## Alt çubuk
+> **Güncel (2026-11-07):** alt çubuk "Soft Glow Premium" olarak yeniden tasarlandı (`features/shell/bukampus_bottom_navigation_bar.dart`: 68 dp kapsül, 58 dp kırmızı Paylaş düğmesi, etiketli outline simgeler, kırmızı vurgu yalnız bu çubukta). Kayan hap yerine aktif simgenin arkasında çok hafif kırmızı yumuşak zemin 220 ms `easeOutCubic` ile kayar; sürükle-esnet kaldırıldı. Aşağıdaki tablo tarihsel belirtimdir; sayfa kaydırma bölümü geçerlidir.
+
 Yüzen beyaz hap, yükseklik 64, kenar boşluğu 16, ince `bd` kenarlık, çok hafif gölge. Öğeler: Ana Sayfa, Keşfet, ortada "+" (yuvarlak, `prPressed` zemin, çubuktan 18 px yukarı taşar), Sohbet (okunmamış rozeti), Profil.
 
 | Öğe | Hareket |

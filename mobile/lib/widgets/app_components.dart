@@ -12,7 +12,7 @@ import 'bu_pressable.dart';
 import 'bu_skeleton.dart' show BuSkeleton, BuSkeletonList;
 import 'bu_state.dart' show BuEmptyState, BuErrorState;
 import 'bu_widgets.dart' show BuAvatar, BuBadge, BuButton, BuButtonKind, BuCard, BuChip, BuHeader, BuIconButton, BuSegmented;
-import '../features/shell/floating_nav.dart' show FloatingNav;
+import '../features/shell/bukampus_bottom_navigation_bar.dart' show BukampusBottomNavigationBar;
 
 /// PREMIUM MONOCHROME ortak bileşen adları (docs/MOBILE_DESIGN_SYSTEM.md "Bileşen eşlemesi").
 ///
@@ -25,7 +25,7 @@ typedef AppAvatar = BuAvatar;
 typedef AppBottomSheet = BuBottomSheet;
 typedef AppDialog = BuDialog;
 typedef AppTopBar = BuHeader;
-typedef AppBottomNavigation = FloatingNav;
+typedef AppBottomNavigation = BukampusBottomNavigationBar;
 typedef AppEmptyState = BuEmptyState;
 typedef AppSkeleton = BuSkeleton;
 typedef AppPostCard = PostCard;
