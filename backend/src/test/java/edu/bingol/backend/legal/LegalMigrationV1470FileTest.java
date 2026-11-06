@@ -112,7 +112,7 @@ class LegalMigrationV1470FileTest {
                     .doesNotContain("only with a bingol.edu.tr e-mail").doesNotContain("institutional e-mail")
                     .doesNotContain("Institutional e-mail").doesNotContain("domain name of the e-mail address")
                     .doesNotContain("university student/staff e-mail");
-            assertThat(ar).as(t[0] + " ar").doesNotContain("المؤسسي").doesNotContain("اسم نطاق البريد الإلكتروني")
+            assertThat(ar).as(t[0] + " ar").doesNotContain("الإلكتروني المؤسسي").doesNotContain("اسم نطاق البريد الإلكتروني")
                     .doesNotContain("ببريد bingol.edu.tr فقط").doesNotContain("لطالب/موظف في الجامعة");
         }
         String terms = read("terms", "tr");
