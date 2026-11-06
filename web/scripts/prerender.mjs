@@ -46,7 +46,7 @@ const manifestPath = join(dist, '.vite', 'manifest.json');
 const manifest = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, 'utf8')) : null;
 const PAGE_SRC = {
   home: 'HomePage', features: 'FeaturesPage', about: 'AboutPage', download: 'DownloadPage', news: 'NewsListPage',
-  menu: 'MenuPage', help: 'HelpPage', faq: 'FaqPage', contact: 'ContactPage', brand: 'BrandPage',
+  menu: 'MenuPage', help: 'HelpPage', faq: 'FaqPage', contact: 'ContactPage',
   changelog: 'ChangelogPage', deleteAccount: 'DeleteAccountPage', dataRequest: 'DataRequestPage',
   privacy: 'LegalPage', terms: 'LegalPage', legal: 'LegalListPage', legalKvkk: 'LegalPage',
   legalCommunityRules: 'LegalPage', legalExplicitConsent: 'LegalPage', legalContentRemoval: 'LegalPage',

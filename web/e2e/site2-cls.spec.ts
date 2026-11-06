@@ -41,7 +41,7 @@ for (const width of [390, 1280]) {
   test.describe(`Bilgi sayfaları CLS ve taşma (${width} px)`, () => {
     test.use({ viewport: { width, height: 844 } });
     for (const lang of ['tr', 'en', 'ar']) {
-      for (const path of ['/faq', '/help', '/contact', '/menu', '/news', '/brand', '/changelog', '/sitemap', '/zzz-yok']) {
+      for (const path of ['/faq', '/help', '/contact', '/menu', '/news', '/changelog', '/sitemap', '/zzz-yok']) {
         const route = `/${lang}${path}`;
         test(`${route} CLS < 0.1, yatay kaydırma yok`, async ({ page }) => {
           const m = await measure(page, route);

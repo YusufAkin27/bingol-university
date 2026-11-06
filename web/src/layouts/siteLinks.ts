@@ -13,7 +13,6 @@ export const SITE_GROUPS: { title: TranslationKey; links: SiteLink[] }[] = [
     links: [
       { to: paths.site.about, label: 'site.nav.about' },
       { to: paths.site.contact, label: 'site.nav.contact' },
-      { to: paths.site.brand, label: 'pg.brand.title' },
     ],
   },
   {
@@ -64,7 +63,6 @@ export const FOOTER_GROUPS: { title: TranslationKey; links: SiteLink[] }[] = [
     links: [
       { to: paths.site.about, label: 'site.nav.about' },
       { to: paths.site.contact, label: 'site.nav.contact' },
-      { to: paths.site.brand, label: 'pg.brand.title' },
       { to: paths.site.changelog, label: 'pg.changelog.title' },
     ],
   },

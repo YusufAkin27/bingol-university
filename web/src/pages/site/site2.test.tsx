@@ -156,15 +156,6 @@ describe('bilgi sayfaları (SITE2)', () => {
     expect(main.getByRole('img', { name: /Ana Sayfa ekranı/ })).toBeInTheDocument();
   });
 
-  it('Basın kiti: üç uygulama ekranı, hepsinin alt metni var; indirme bağlantısı sayısı değişmez', async () => {
-    renderAt('/brand');
-    await screen.findByRole('heading', { level: 1, name: 'Basın ve marka kiti' });
-    const section = screen.getByRole('heading', { level: 2, name: 'Uygulama ekranları' }).closest('section') as HTMLElement;
-    const imgs = within(section).getAllByRole('img');
-    expect(imgs).toHaveLength(3);
-    for (const img of imgs) expect(img.getAttribute('alt')?.trim()).toBeTruthy();
-  });
-
   it.each([
     ['tr', 'Sayfa bulunamadı'],
     ['en', 'Page not found'],
