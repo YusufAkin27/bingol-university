@@ -71,12 +71,20 @@ class AuthServiceOAuthLoginTest {
 
     @Test
     void oauthLoginIssuesTokensAndAppliesTheSingleDeviceRuleForMobile() {
+        // cok oturum varsayilan (V1460); tek cihaz kurali yalniz AUTH_SINGLE_MOBILE_SESSION=true iken uygulanir
+        auth.setSingleMobileSession(true);
         TokenResponse t = auth.finishLogin(user("a@gmail.com"), "mobile", null, "/api/auth/oauth", false);
 
         assertEquals("access", t.accessToken());
         assertEquals("refresh", t.refreshToken());
         assertEquals(null, t.emailVerified()); // dogrulanmis hesap: ertelenmis isareti yok
         verify(sessions).revokeClient(9L, "mobile", true);
+    }
+
+    @Test
+    void multiSessionByDefaultDoesNotRevokeOtherMobileSessions() {
+        auth.finishLogin(user("a@gmail.com"), "mobile", null, "/api/auth/oauth", false);
+        verify(sessions, never()).revokeClient(anyLong(), anyString(), anyBoolean());
     }
 
     @Test

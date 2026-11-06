@@ -78,6 +78,8 @@ class OAuthMvcTest {
         ValueOperations<String, String> ops = org.mockito.Mockito.mock(ValueOperations.class);
         when(redis.opsForValue()).thenReturn(ops);
         when(refresh.issue(anyLong(), anyString())).thenReturn("refresh-token");
+        // cok oturum (V1460): giris bir oturum kimligi (sid) uretir, refresh 4 argumanli issue ile yazilir
+        when(refresh.issue(anyLong(), anyString(), anyLong(), any())).thenReturn("refresh-token");
         when(keys.key(any(), eq(OAuthTestSupport.KID))).thenReturn(t.pair.getPublic());
         // MockMvc'ye HER servlet suzgeci otomatik girmez: profil kapisini guvenlik zincirinden SONRA ekle
         mvc = MockMvcBuilders.webAppContextSetup(ctx).apply(springSecurity()).addFilters(profileGate).build();
