@@ -71,6 +71,70 @@ class ClubCategory {
         return BuIcons.heart;
       case 'culture':
         return BuIcons.globe;
+      // Genişletilmiş kategori listesi (V1550) ve eski varsayılan simge adları.
+      case 'school':
+      case 'career':
+        return BuIcons.graduationCap;
+      case 'theatre':
+      case 'theater':
+        return BuIcons.mic;
+      case 'cinema':
+        return BuIcons.clapperboard;
+      case 'photo':
+        return BuIcons.camera;
+      case 'literature':
+        return BuIcons.notebookPen;
+      case 'library':
+        return BuIcons.library;
+      case 'history':
+        return BuIcons.landmark;
+      case 'bulb':
+        return BuIcons.lightbulb;
+      case 'language':
+        return BuIcons.globe;
+      case 'debate':
+        return BuIcons.megaphone;
+      case 'media':
+        return BuIcons.newspaper;
+      case 'software':
+      case 'code':
+        return BuIcons.laptop;
+      case 'robotics':
+        return BuIcons.cpu;
+      case 'ai':
+      case 'space':
+        return BuIcons.atom;
+      case 'gaming':
+      case 'rocket':
+        return BuIcons.zap;
+      case 'engineering':
+        return BuIcons.wrench;
+      case 'nature':
+        return BuIcons.compass;
+      case 'hiking':
+        return BuIcons.footprints;
+      case 'football':
+        return BuIcons.trophy;
+      case 'volleyball':
+        return BuIcons.volleyball;
+      case 'fitness':
+        return BuIcons.dumbbell;
+      case 'volunteer':
+        return BuIcons.hand;
+      case 'travel':
+        return BuIcons.backpack;
+      case 'food':
+        return BuIcons.utensils;
+      case 'craft':
+        return BuIcons.palette;
+      case 'architecture':
+        return BuIcons.building2;
+      case 'politics':
+        return BuIcons.vote;
+      case 'finance':
+        return BuIcons.chartPie;
+      case 'fun':
+        return BuIcons.star;
       default:
         return BuIcons.tag;
     }
