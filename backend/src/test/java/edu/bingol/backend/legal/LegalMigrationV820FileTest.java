@@ -79,7 +79,11 @@ class LegalMigrationV820FileTest {
     @Test
     void sqlIcerigi_markdownKaynaklariylaBirebirAyni() throws Exception {
         LegalDocsGuard.requireDocs(Files.isDirectory(DOCS), "docs/legal bu calisma dizininden gorunmuyor");
-        String sql = Files.readString(SQL, StandardCharsets.UTF_8);
+        // Windows'ta core.autocrlf=true ile alinan arsiv/calisma agaci SQL'i CRLF olabilir; icerik karsilastirmasi satir sonundan bagimsiz
+        String sql = Files.readString(SQL, StandardCharsets.UTF_8).replace("
+", "
+").replace("", "
+");
         for (String[] t : TYPES) {
             for (String lang : LANGS) {
                 String raw = read(t[0], lang);
@@ -169,7 +173,9 @@ class LegalMigrationV820FileTest {
         assertThat(prop(props, "app.chat.media.max-attachments-per-message")).isEqualTo("10");
         assertThat(prop(props, "app.chat.media.video-max-seconds")).isEqualTo("60");
         assertThat(prop(props, "app.chat.media.video-max-bytes")).isEqualTo("41943040"); // 40 MB
-        assertThat(prop(props, "app.media.chat.max-dimension")).isEqualTo("1600");
+        // Sohbet gorseli uzun kenari 1600 -> 2560'a cikarildi (kalite artisi, 07a15f4a). Yayindaki metin "en cok 1600 piksel"
+        // der (asagidaki terms beyani): yeni hukuki surumde 2560'a guncellenmeli (hukuki surum islemi, bekliyor).
+        assertThat(prop(props, "app.media.chat.max-dimension")).isEqualTo("2560");
         assertThat(prop(props, "app.post.media.deleted-retention-days")).isEqualTo("30");
         assertThat(prop(props, "app.post.media.unattached-hours")).isEqualTo("24");
         assertThat(props).contains("jwt.access-ttl-minutes=15").contains("jwt.refresh-ttl-days=30");
