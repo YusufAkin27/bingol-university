@@ -140,9 +140,17 @@ class MailBrandTest {
         MimeMessage m = buildCode(props("noreply@bukampus.online", ""), Lang.TR);
 
         List<Part> images = ofType(m, "image/png");
-        assertThat(images).hasSize(1);
-        assertThat(((MimePart) images.get(0)).getContentID()).isEqualTo("<bu-logo>");
-        assertThat(images.get(0).getDisposition()).isEqualToIgnoringCase(Part.INLINE);
+        assertThat(images).hasSize(2); // acik zemin (siyah glif) + koyu zemin (beyaz glif)
+        assertThat(images.stream().map(i -> {
+            try {
+                return ((MimePart) i).getContentID();
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
+        })).containsExactlyInAnyOrder("<bu-logo>", "<bu-logo-dark>");
+        for (Part img : images) {
+            assertThat(img.getDisposition()).isEqualToIgnoringCase(Part.INLINE);
+        }
         // yapi: multipart/related { multipart/alternative { text/plain, text/html }, image/png }
         assertThat(raw(m)).contains("multipart/related").contains("multipart/alternative");
 
@@ -154,7 +162,8 @@ class MailBrandTest {
         String plain = (String) plains.get(0).getContent();
         String html = (String) htmls.get(0).getContent();
         assertThat(plain).doesNotContain("cid:").doesNotContain("<");
-        assertThat(html).contains("<img src=\"cid:bu-logo\"").contains("alt=\"BÜ Kampüs\"");
+        assertThat(html).contains("src=\"cid:bu-logo\"").contains("src=\"cid:bu-logo-dark\"")
+                .contains("alt=\"BÜ Kampüs\"");
     }
 
     @Test
@@ -173,30 +182,34 @@ class MailBrandTest {
         MimeMessage m = build(props("noreply@bukampus.online", ""), r, MailCategory.ANNOUNCEMENT);
 
         assertThat(m.getHeader("List-Unsubscribe", null)).startsWith("<https://");
-        assertThat(ofType(m, "image/png")).hasSize(1);
+        assertThat(ofType(m, "image/png")).hasSize(2);
     }
 
     // ---------- HTML yapisi (tr/en/ar) ----------
 
     @Test
-    void headerBandIsRedWithWhiteLogoAltTextOnBothLightAndDarkSchemes() {
+    void headerIsBlackAndWhiteWithBothLogosAndDarkSchemeSwap() {
         String html = new MailRenderer().render(MailTemplate.PASSWORD_RESET_CODE, Lang.EN,
                 Map.of("code", "654321", "minutes", "15")).html();
 
-        // bant rengi satir ici (acik) + koyu kipte sabit; alt metin beyaz+kalin -> gorsel yuklenmese de iki kipte okunur
-        assertThat(html).contains("class=\"brandbar\"").contains("background-color:#C62A20")
-                .contains(".brandbar { background-color: #C62A20 !important; }");
-        assertThat(html).contains("color:#ffffff").contains("alt=\"BÜ Kampüs\"");
+        // siyah-beyaz: kirmizi bant yok; acik logo gorunur, koyu logo gizli ve koyu medya sorgusunda degisir;
+        // gorsel yuklenmese de yanindaki "BÜ Kampüs" yazisi marka adini tasir
+        assertThat(html).doesNotContain("brandbar").doesNotContainIgnoringCase("#C62A20");
+        assertThat(html).contains("class=\"logo-light\"").contains("class=\"logo-dark\"")
+                .contains(".logo-dark { display: block !important;").contains(".logo-light { display: none !important; }")
+                .contains("@media (prefers-color-scheme: dark)").contains("alt=\"BÜ Kampüs\"");
+        assertThat(html).contains(">BÜ Kampüs</td>");
         assertThat(html).doesNotContain("{{").doesNotContain("}}");
     }
 
     @Test
-    void arabicLayoutIsRtlAndBrandBarFollowsDirection() {
+    void arabicLayoutIsRtlAndHeaderFollowsDirection() {
         String html = new MailRenderer().render(MailTemplate.VERIFICATION_CODE, Lang.AR,
                 Map.of("code", "111222", "minutes", "10")).html();
 
         assertThat(html).contains("<html lang=\"ar\" dir=\"rtl\">");
-        assertThat(html).contains("<td class=\"brandbar\" dir=\"rtl\"");
+        assertThat(html).contains("<table role=\"presentation\" dir=\"rtl\" cellpadding=\"0\"")
+                .contains("align=\"right\"").contains("padding-left:12px;");
         assertThat(html).contains("dir=\"ltr\""); // kod kutusu LTR kalir
         assertThat(html).contains("111222");
     }

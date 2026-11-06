@@ -94,7 +94,9 @@ public class SecurityConfig {
                                 PathPatternRequestMatcher.withDefaults().matcher("/swagger-ui/**"),
                                 PathPatternRequestMatcher.withDefaults().matcher("/swagger-ui.html"),
                                 // paylasim sayfasi kendi CSP basligini yazar (docs/SHARING.md)
-                                PathPatternRequestMatcher.withDefaults().matcher("/s/**"))),
+                                PathPatternRequestMatcher.withDefaults().matcher("/s/**"),
+                                // abonelikten cik sayfasi stil/logo icin kendi (dar) CSP basligini yazar (MailUnsubscribeController)
+                                PathPatternRequestMatcher.withDefaults().matcher("/api/public/mail/unsubscribe"))),
                         new StaticHeadersWriter("Content-Security-Policy",
                                 "default-src 'none'; frame-ancestors 'none'; base-uri 'none'"))))
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

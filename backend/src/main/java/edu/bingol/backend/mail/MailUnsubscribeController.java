@@ -77,33 +77,48 @@ public class MailUnsubscribeController {
         return l != null ? l : Lang.of(LocaleContextHolder.getLocale());
     }
 
-    /** Kucuk, betiksiz, kendi kendine yeten sayfa; metinler i18n/mail*.properties (mail.unsub.*). */
+    /** Kucuk, betiksiz, kendi kendine yeten siyah-beyaz sayfa; metinler i18n/mail*.properties (mail.unsub.*). */
     ResponseEntity<String> page(HttpStatus status, Lang lang, String kind, String token) {
         String title = esc(i18n.msg("mail.unsub." + kind + ".title", lang));
         String body = esc(i18n.msg("mail.unsub." + kind + ".body", lang));
-        StringBuilder h = new StringBuilder(1024);
+        boolean rtl = lang == Lang.AR;
+        StringBuilder h = new StringBuilder(2048);
         h.append("<!DOCTYPE html><html lang=\"").append(lang.code()).append("\" dir=\"")
-                .append(lang == Lang.AR ? "rtl" : "ltr").append("\"><head><meta charset=\"UTF-8\">")
+                .append(rtl ? "rtl" : "ltr").append("\"><head><meta charset=\"UTF-8\">")
                 .append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">")
-                .append("<meta name=\"robots\" content=\"noindex\"><title>").append(title).append("</title></head>")
-                .append("<body style=\"margin:0;padding:24px 16px;font-family:Arial,Helvetica,sans-serif;")
-                .append("background:#FAF6F3;color:#171E33;\"><main style=\"max-width:480px;margin:40px auto;")
-                .append("background:#fff;padding:28px;border-radius:8px;\"><h1 style=\"font-size:22px;margin:0 0 16px;\">")
-                .append(title).append("</h1><p style=\"line-height:1.6;\">").append(body).append("</p>");
+                .append("<meta name=\"color-scheme\" content=\"light dark\">")
+                .append("<meta name=\"robots\" content=\"noindex\"><title>").append(title).append("</title><style>")
+                .append("body{margin:0;padding:24px 16px;background:#F4F4F5;color:#27272A;font-weight:400;")
+                .append("font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;}")
+                .append("main{max-width:480px;margin:40px auto;background:#fff;padding:28px 32px;")
+                .append("border:1px solid #E4E4E7;border-radius:12px;}")
+                .append("h1{font-size:26px;line-height:1.25;font-weight:400;margin:24px 0 16px;color:#09090B;}")
+                .append("p{line-height:1.6;margin:0 0 16px;}.note{font-size:13px;color:#52525B;line-height:1.5;}")
+                .append("button{background:#09090B;color:#fff;border:1px solid #09090B;border-radius:12px;")
+                .append("padding:14px 28px;font-size:16px;font-weight:400;cursor:pointer;margin:0 0 16px;}")
+                .append(".logo-dark{display:none;}")
+                .append("@media (prefers-color-scheme:dark){body{background:#09090B;color:#E4E4E7;}")
+                .append("main{background:#141416;border-color:#303034;}h1,.txt{color:#FAFAFA !important;}")
+                .append(".note{color:#A1A1AA;}button{background:#fff;color:#09090B;border-color:#fff;}")
+                .append(".logo-light{display:none !important;}.logo-dark{display:block !important;max-height:none !important;}}")
+                .append("</style></head><body><main>")
+                .append(MailBrand.forPreview(MailBrand.headerHtml(MailLayout.brand(lang), rtl)))
+                .append("<h1>").append(title).append("</h1><p>").append(body).append("</p>");
         if ("confirm".equals(kind)) {
             h.append("<form method=\"post\" action=\"/api/public/mail/unsubscribe?lang=").append(lang.code())
                     .append("\"><input type=\"hidden\" name=\"token\" value=\"").append(esc(token)).append("\">")
-                    .append("<button type=\"submit\" style=\"background:#C62A20;color:#fff;border:0;border-radius:6px;")
-                    .append("padding:12px 20px;font-size:16px;cursor:pointer;\">")
+                    .append("<button type=\"submit\">")
                     .append(esc(i18n.msg("mail.unsub.confirm.button", lang))).append("</button></form>");
         }
         if (!"invalid".equals(kind)) {
-            h.append("<p style=\"font-size:13px;color:#6b6f80;line-height:1.5;\">")
-                    .append(esc(i18n.msg("mail.unsub.note", lang))).append("</p>");
+            h.append("<p class=\"note\">").append(esc(i18n.msg("mail.unsub.note", lang))).append("</p>");
         }
         h.append("</main></body></html>");
         return ResponseEntity.status(status).contentType(HTML).cacheControl(CacheControl.noStore())
                 .header("Referrer-Policy", "no-referrer").header("X-Robots-Tag", "noindex")
+                // sayfaya ozel: yalniz satir ici stil + gomulu (data:) logo + kendi sitesine form; betik yok
+                .header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; img-src data:; "
+                        + "form-action 'self'; frame-ancestors 'none'; base-uri 'none'")
                 .body(h.toString());
     }
 

@@ -246,12 +246,13 @@ class PublicSupportServiceTest {
 
     @Test
     void mailHtmlEscapesRawHtmlAndLinksUrls() {
-        String html = PublicSupportMailer.html("<script>alert(1)</script>\nsee https://x.test/a?b=1&c=2", Lang.AR);
+        String html = PublicSupportMailer.html("Konu", "<script>alert(1)</script>\nsee https://x.test/a?b=1&c=2",
+                Lang.AR, null, null);
 
         assertFalse(html.contains("<script>"));
         assertTrue(html.contains("&lt;script&gt;"));
-        assertTrue(html.contains("<br>"));
-        assertTrue(html.contains("<a href=\"https://x.test/a?b=1&amp;c=2\">"));
+        assertTrue(html.contains("white-space:pre-line")); // satir sonlari paragraf icinde korunur
+        assertTrue(html.contains("<a class=\"link\" href=\"https://x.test/a?b=1&amp;c=2\""));
         assertTrue(html.contains("dir=\"rtl\""));
     }
 

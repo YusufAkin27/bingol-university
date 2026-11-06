@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -57,7 +58,7 @@ class PublicSupportMailerAbuseTest {
         assertTrue(ok);
         // govde sablonuna yalniz kod ve sure gecer (ad yok)
         verify(i18n).msg("mail.support.code.body", Lang.TR, "123456", "10");
-        verify(mail).sendPublicCode(eq("kurban@gmail.com"), eq("konu"), eq("govde"), anyString(), anyString());
+        verify(mail).sendPublicCode(eq("kurban@gmail.com"), eq("konu"), contains("govde"), anyString(), anyString());
         // genel (ad-iceren) gonderim yolu kullanilmaz: kota/alici siniri sendPublicCode'da
         verify(mail, never()).sendRich(anyString(), anyString(), anyString(), anyString(), anyString());
     }

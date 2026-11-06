@@ -72,8 +72,12 @@ public class MailTransport {
         applyHeaders(helper, to, subject, replyTo);
         helper.setText(plain, html);
         if (html != null && MailBrand.hasLogo() && html.contains("cid:" + MailBrand.LOGO_CID)) {
-            // Gomulu logo (multipart/related): Gmail data: URI'yi engeller, CID gosterilir. Duz metin parcasinda logo yok.
+            // Gomulu logolar (multipart/related): Gmail data: URI'yi engeller, CID gosterilir. Acik zemin (siyah glif) her
+            // zaman; koyu zemin (beyaz glif) yalniz HTML basvuruyorsa. Duz metin parcasinda logo yok.
             helper.addInline(MailBrand.LOGO_CID, new ByteArrayResource(MailBrand.logoPng()), "image/png");
+            if (html.contains("cid:" + MailBrand.LOGO_DARK_CID)) {
+                helper.addInline(MailBrand.LOGO_DARK_CID, new ByteArrayResource(MailBrand.logoDarkPng()), "image/png");
+            }
         }
         if (category == MailCategory.ANNOUNCEMENT) {
             message.setHeader("Precedence", "bulk");

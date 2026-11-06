@@ -1,6 +1,8 @@
 package edu.bingol.backend.observability;
 
 import edu.bingol.backend.config.SchedulerLock;
+import edu.bingol.backend.i18n.Lang;
+import edu.bingol.backend.mail.MailLayout;
 import edu.bingol.backend.mail.MailService;
 import edu.bingol.backend.notification.NotificationService;
 import edu.bingol.backend.notification.NotificationType;
@@ -155,7 +157,12 @@ public class SystemAlertService {
         if (to != null && !to.isBlank()) {
             String subject = alertSubject(count);
             String plain = "CRIT gostergeler: " + summary + "\nAyrinti: yonetim paneli > Sistem durumu.";
-            boolean sent = mail.sendRich(to.trim(), subject, plain, "<p>" + escape(plain).replace("\n", "<br>") + "</p>", null);
+            String title = subject.replaceFirst("^\\[BÜ Kampüs\\]\\s*", "");
+            String html = MailLayout.page(Lang.TR, title, MailLayout.fromPlain(plain, null, null),
+                    MailLayout.Footer.AUTOMATED);
+            String plainFull = MailLayout.brand(Lang.TR) + "\n\n" + plain + "\n\n"
+                    + MailLayout.plainTail(Lang.TR, MailLayout.Footer.AUTOMATED);
+            boolean sent = mail.sendRich(to.trim(), subject, plainFull, html, null);
             if (!sent) {
                 log.warn("Sistem uyari e-postasi gonderilemedi ({})", LogMasking.email(to));
             }

@@ -4,6 +4,12 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### E-posta markası: siyah-beyaz + yeni logo (2026-11-06, `deploy/mail-20261106`)
+
+- Tüm giden e-postalar (doğrulama/sıfırlama/2FA/destek kodu, hesap silindi, yeni cihaz, şifre değişti, 2FA bildirimi, duyuru, yönetici şablonları/kampanya, destek talebi alındı/yanıt/kod, sistem uyarısı) ve abonelikten çık sayfası tek siyah-beyaz çerçeveye (`MailLayout` + `layout.html`) taşındı: serif "BÜ" amblemi (CID gömülü, açık/koyu iki PNG), renkli bant/kırmızı vurgu yok, gradient/gölge yok, font-weight 400, 1 px kenarlık, 12 px köşe, siyah birincil düğme, kod kutusu, güvenlik notu, koyu mod (`prefers-color-scheme`), Outlook için tablo yerleşimi, Arapça RTL, düz metin alternatifi markalı. İçerik cümleleri değişmedi; yeni i18n anahtarları `mail.tpl.org`, `mail.tpl.footer.support`, `mail.tpl.action.track`.
+- Abonelikten çık sayfası artık stilli açılır (kendi dar CSP'si; genel `default-src 'none'` satır içi stili engelliyordu). Yönetici şablonlarındaki eski kırmızı marka renkleri render anında siyaha çevrilir.
+- Önizleme: `MailPreviewFilesTest` + `scripts/ops/render-mail-previews.mjs`. Ayrıntı: `docs/changes/mail.md` "Marka: siyah-beyaz + yeni logo (2026-11-06)".
+
 ### Çoklu oturum + Cihazlarım (2026-11-06, `deploy/multisession-20261106`)
 
 - **Tek cihaz kuralı kalktı:** mobil giriş artık önceki mobil oturumları kapatmaz ve FCM kayıtlarını silmez; eski davranış `app.auth.single-mobile-session=true` (`AUTH_SINGLE_MOBILE_SESSION`) ile geri gelir. Bildirimler kullanıcının tüm cihazlarına gider.
