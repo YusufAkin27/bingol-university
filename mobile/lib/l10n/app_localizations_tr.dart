@@ -13093,4 +13093,38 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get evtEditEndedNote =>
       'Etkinlik sona erdi: yalnız açıklama düzenlenebilir.';
+
+  @override
+  String get unitNewsTitle => 'Bölümüm';
+
+  @override
+  String get unitNewsSemantic => 'Bölümümün duyuruları';
+
+  @override
+  String get unitNewsAttachments => 'Ekler';
+
+  @override
+  String get unitNewsError => 'Duyuru yüklenemedi.';
+
+  @override
+  String get qa1DelReauthBody =>
+      'Hesabın Google veya Apple ile açıldığı için şifren yok. Silmek için bağlı hesabınla kimliğini yeniden doğrula. Bu işlem geri alınamaz.';
+
+  @override
+  String get qa1DelReauthAction => 'Kimliği doğrula ve hesabı sil';
+
+  @override
+  String get qa1NoPasswordNote =>
+      'Hesabın Google veya Apple ile açıldığı için şifren yok. İstersen e-postana gelen kodla bir şifre belirleyebilirsin; sonra e-posta ve şifreyle de girebilirsin.';
+
+  @override
+  String get qa1PwSetButton => 'Şifre belirle';
+
+  @override
+  String get qa1TfNeedPassword =>
+      'İki adımlı doğrulamayı kapatmak şifre ister. Hesabının şifresi yok: önce Şifre ekranından e-postana gelen kodla bir şifre belirle.';
+
+  @override
+  String get qa1TfDisableReauthBody =>
+      'Hesabın şifresiz olduğu için Google veya Apple ile kimliğini doğrulayarak onayla. Güvenilen tüm cihazlar silinir.';
 }

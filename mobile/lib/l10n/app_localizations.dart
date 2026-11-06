@@ -23609,6 +23609,66 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Etkinlik sona erdi: yalnız açıklama düzenlenebilir.'**
   String get evtEditEndedNote;
+
+  /// No description provided for @unitNewsTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölümüm'**
+  String get unitNewsTitle;
+
+  /// No description provided for @unitNewsSemantic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölümümün duyuruları'**
+  String get unitNewsSemantic;
+
+  /// No description provided for @unitNewsAttachments.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ekler'**
+  String get unitNewsAttachments;
+
+  /// No description provided for @unitNewsError.
+  ///
+  /// In tr, this message translates to:
+  /// **'Duyuru yüklenemedi.'**
+  String get unitNewsError;
+
+  /// No description provided for @qa1DelReauthBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabın Google veya Apple ile açıldığı için şifren yok. Silmek için bağlı hesabınla kimliğini yeniden doğrula. Bu işlem geri alınamaz.'**
+  String get qa1DelReauthBody;
+
+  /// No description provided for @qa1DelReauthAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kimliği doğrula ve hesabı sil'**
+  String get qa1DelReauthAction;
+
+  /// No description provided for @qa1NoPasswordNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabın Google veya Apple ile açıldığı için şifren yok. İstersen e-postana gelen kodla bir şifre belirleyebilirsin; sonra e-posta ve şifreyle de girebilirsin.'**
+  String get qa1NoPasswordNote;
+
+  /// No description provided for @qa1PwSetButton.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şifre belirle'**
+  String get qa1PwSetButton;
+
+  /// No description provided for @qa1TfNeedPassword.
+  ///
+  /// In tr, this message translates to:
+  /// **'İki adımlı doğrulamayı kapatmak şifre ister. Hesabının şifresi yok: önce Şifre ekranından e-postana gelen kodla bir şifre belirle.'**
+  String get qa1TfNeedPassword;
+
+  /// No description provided for @qa1TfDisableReauthBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabın şifresiz olduğu için Google veya Apple ile kimliğini doğrulayarak onayla. Güvenilen tüm cihazlar silinir.'**
+  String get qa1TfDisableReauthBody;
 }
 
 class _AppLocalizationsDelegate

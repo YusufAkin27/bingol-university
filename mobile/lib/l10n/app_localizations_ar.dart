@@ -2146,13 +2146,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get qa4ContactsConsentTitle => 'يمكن العثور عليّ عبر جهات الاتصال';
 
   @override
-  String get qa4ContactsConsentText => 'فعّل هذا الخيار أولاً للعثور على الأشخاص من جهات اتصالك. المطابقة متبادلة: لا تجد إلا من فعّلوا الخيار أيضًا، ولا يجدك غيرك إلا عند تفعيله. يمكنك إيقافه في أي وقت.';
+  String get qa4ContactsConsentText =>
+      'فعّل هذا الخيار أولاً للعثور على الأشخاص من جهات اتصالك. المطابقة متبادلة: لا تجد إلا من فعّلوا الخيار أيضًا، ولا يجدك غيرك إلا عند تفعيله. يمكنك إيقافه في أي وقت.';
 
   @override
   String get qa4ContactsConsentAction => 'تفعيل ومتابعة';
 
   @override
-  String get qa4ContactsConsentOff => 'إيقاف إمكانية العثور عليّ عبر جهات الاتصال';
+  String get qa4ContactsConsentOff =>
+      'إيقاف إمكانية العثور عليّ عبر جهات الاتصال';
 
   @override
   String get chatMiscContactsNoSearchMatch => 'لا يوجد أشخاص مطابقون لبحثك.';
@@ -13020,4 +13022,38 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get evtEditEndedNote => 'انتهت الفعالية: يمكن تعديل الوصف فقط.';
+
+  @override
+  String get unitNewsTitle => 'قسمي';
+
+  @override
+  String get unitNewsSemantic => 'إعلانات قسمي';
+
+  @override
+  String get unitNewsAttachments => 'المرفقات';
+
+  @override
+  String get unitNewsError => 'تعذّر تحميل الإعلان.';
+
+  @override
+  String get qa1DelReauthBody =>
+      'تم إنشاء حسابك عبر Google أو Apple لذلك لا توجد له كلمة مرور. أكّد هويتك بالحساب المرتبط لحذفه. لا يمكن التراجع عن هذا الإجراء.';
+
+  @override
+  String get qa1DelReauthAction => 'تأكيد الهوية وحذف الحساب';
+
+  @override
+  String get qa1NoPasswordNote =>
+      'تم إنشاء حسابك عبر Google أو Apple لذلك لا توجد لك كلمة مرور. يمكنك تعيين واحدة برمز يصل إلى بريدك الإلكتروني، ثم الدخول أيضًا بالبريد وكلمة المرور.';
+
+  @override
+  String get qa1PwSetButton => 'تعيين كلمة مرور';
+
+  @override
+  String get qa1TfNeedPassword =>
+      'إيقاف التحقق بخطوتين يتطلب كلمة مرور وحسابك بلا كلمة مرور: عيّن واحدة أولًا من شاشة كلمة المرور برمز يصل إلى بريدك الإلكتروني.';
+
+  @override
+  String get qa1TfDisableReauthBody =>
+      'حسابك بلا كلمة مرور، لذا أكّد هويتك عبر Google أو Apple. تُحذف جميع الأجهزة الموثوقة.';
 }

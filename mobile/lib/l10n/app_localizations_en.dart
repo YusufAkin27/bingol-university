@@ -2161,7 +2161,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get qa4ContactsConsentTitle => 'Findable from contacts';
 
   @override
-  String get qa4ContactsConsentText => 'Turn this setting on before finding people from your contacts. Matching is mutual: you only find people who also turned it on, and they can only find you while it is on. You can turn it off any time.';
+  String get qa4ContactsConsentText =>
+      'Turn this setting on before finding people from your contacts. Matching is mutual: you only find people who also turned it on, and they can only find you while it is on. You can turn it off any time.';
 
   @override
   String get qa4ContactsConsentAction => 'Turn on and continue';
@@ -13142,4 +13143,38 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get evtEditEndedNote =>
       'This event has ended: only the description can be edited.';
+
+  @override
+  String get unitNewsTitle => 'My department';
+
+  @override
+  String get unitNewsSemantic => 'Announcements for my department';
+
+  @override
+  String get unitNewsAttachments => 'Attachments';
+
+  @override
+  String get unitNewsError => 'Could not load the announcement.';
+
+  @override
+  String get qa1DelReauthBody =>
+      'Your account was created with Google or Apple, so it has no password. Confirm your identity with the linked account to delete it. This cannot be undone.';
+
+  @override
+  String get qa1DelReauthAction => 'Verify identity and delete account';
+
+  @override
+  String get qa1NoPasswordNote =>
+      'Your account was created with Google or Apple, so it has no password. You can set one with a code sent to your e-mail, then also sign in with e-mail and password.';
+
+  @override
+  String get qa1PwSetButton => 'Set a password';
+
+  @override
+  String get qa1TfNeedPassword =>
+      'Turning off two-step verification needs a password. Your account has none: first set one on the Password screen with the code sent to your e-mail.';
+
+  @override
+  String get qa1TfDisableReauthBody =>
+      'Your account has no password, so confirm with Google or Apple. All trusted devices are removed.';
 }
