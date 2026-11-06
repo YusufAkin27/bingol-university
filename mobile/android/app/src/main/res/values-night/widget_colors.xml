@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ana ekran widget renkleri (KOYU). Kaynak: design/widget-previews/DESIGN_SYSTEM.md; WidgetTokens.kt ile birebir. -->
+<resources>
+    <color name="bu_widget_bg">#09090B</color>
+    <color name="bu_widget_chip">#1C1C1F</color>
+    <color name="bu_widget_border">#303034</color>
+    <color name="bu_widget_text1">#FAFAFA</color>
+    <color name="bu_widget_text2">#A1A1AA</color>
+    <color name="bu_widget_text3">#71717A</color>
+    <color name="bu_widget_inverse_bg">#FAFAFA</color>
+    <color name="bu_widget_inverse_fg">#09090B</color>
+    <color name="bu_widget_bar_fill">#FAFAFA</color>
+    <color name="bu_widget_bar_track">#303034</color>
+    <color name="bu_widget_badge_fill">#1C1C1F</color>
+    <color name="bu_widget_badge_border">#303034</color>
+    <color name="bu_widget_dot_passive">#71717A</color>
+    <color name="bu_widget_heart">#EF4444</color>
+    <color name="bu_widget_danger">#F87171</color>
+</resources>
