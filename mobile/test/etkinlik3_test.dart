@@ -464,12 +464,12 @@ void main() {
     _noErr(tester);
   });
 
-  testWidgets('detay: bulusma noktasi bolumu + Haritada ac (koordinat varsa); yoksa bolum gizli', (tester) async {
+  testWidgets('detay: bulusma noktasi bolumu (koordinat/harita baglantisi yok); yoksa bolum gizli', (tester) async {
     final be = _be()..on('/events/5', _ev(meeting: true));
     await _pump(tester, EventDetailPage(session: makeSession(be), eventId: 5));
     expect(find.byKey(const ValueKey('detail-meeting')), findsOneWidget);
     expect(find.text('Mühendislik Fakültesi önü, ana giriş'), findsOneWidget);
-    expect(find.byKey(const ValueKey('detail-meeting-map')), findsOneWidget);
+    expect(find.byKey(const ValueKey('detail-meeting-map')), findsNothing); // enlem/boylam kaldirildi
     await unmount(tester);
     await _pump(tester, EventDetailPage(session: makeSession(_be()), eventId: 5));
     expect(find.byKey(const ValueKey('detail-meeting')), findsNothing);
@@ -484,26 +484,22 @@ void main() {
     await unmount(tester);
   });
 
-  testWidgets('form: bulusma noktasi duzenlemede doldurulur; PATCH meetingPoint + koordinat gonderir; gecersiz koordinat engellenir', (tester) async {
+  testWidgets('form: bulusma noktasi duzenlemede doldurulur; PATCH yalniz meetingPoint gonderir, koordinat alani/alanlari yok', (tester) async {
     final be = _be(manage: true);
     be.on('/events/5', _ev(manage: true, meeting: true));
     await _pump(tester, EventFormPage(session: makeSession(be), event: _ev(manage: true, meeting: true)));
     expect(find.byKey(const ValueKey('evc-meet')), findsOneWidget);
     expect((tester.widget(find.byKey(const ValueKey('evc-meet'))) as TextField).controller!.text, 'Mühendislik Fakültesi önü, ana giriş');
+    expect(find.byKey(const ValueKey('evc-meet-lat')), findsNothing);
+    expect(find.byKey(const ValueKey('evc-meet-lng')), findsNothing);
     await tester.scrollUntilVisible(find.byKey(const ValueKey('evc-submit')), 300, scrollable: find.byType(Scrollable).first);
-    await tester.enterText(find.byKey(const ValueKey('evc-meet-lat')), '95');
-    await tester.pump(const Duration(milliseconds: 200));
-    expect(find.byKey(const ValueKey('evc-meet-err')), findsOneWidget);
-    await tester.enterText(find.byKey(const ValueKey('evc-meet-lat')), '38,9');
-    await tester.pump(const Duration(milliseconds: 200));
-    expect(find.byKey(const ValueKey('evc-meet-err')), findsNothing);
     be.on('/events/5', _ev(manage: true, meeting: true));
     await tester.tap(find.byKey(const ValueKey('evc-submit')));
     await settle(tester, const Duration(milliseconds: 500));
     final body = be.bodies['PATCH /events/5'] as Map;
     expect(body['meetingPoint'], 'Mühendislik Fakültesi önü, ana giriş');
-    expect(body['meetingLat'], 38.9);
-    expect(body['meetingLng'], 40.4986);
+    expect(body.containsKey('meetingLat'), isFalse);
+    expect(body.containsKey('meetingLng'), isFalse);
     expect(body['location'], 'Halı saha'); // yer ayri alan
     _noErr(tester);
   });

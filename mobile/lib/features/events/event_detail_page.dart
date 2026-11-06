@@ -3,7 +3,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
@@ -423,22 +422,6 @@ class _EventDetailPageState extends State<EventDetailPage> {
     if (mounted) _loadExtras();
   }
 
-  /// Buluşma noktasını harita uygulamasında açar (koordinat varsa; yoksa metinle arama).
-  Future<void> _openMap() async {
-    final ev = _ev;
-    if (ev == null) return;
-    final lat = (ev['meetingLat'] as num?)?.toDouble();
-    final lng = (ev['meetingLng'] as num?)?.toDouble();
-    final q = lat != null && lng != null ? '$lat,$lng' : '${ev['meetingPoint'] ?? ''}';
-    final u = Uri.https('www.google.com', '/maps/search/', {'api': '1', 'query': q});
-    final failText = context.l10n.evtMeetMapFail;
-    var ok = false;
-    try {
-      ok = await launchUrl(u, mode: LaunchMode.externalApplication);
-    } catch (_) {}
-    if (!ok) _toast(failText);
-  }
-
   Future<void> _openChat() async {
     if (_chatBusy) return;
     setState(() => _chatBusy = true);
@@ -762,8 +745,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
   Widget _pad(Widget w, {double top = 0}) => Padding(padding: EdgeInsetsDirectional.fromSTEB(20, top, 20, 0), child: w);
 
   /// Etiket-değer satırı (ikonsuz): etiket muted solda, değer ink/600 sağda; altında ince ayraç.
-  /// Buluşma noktası: etkinlik yerinden ayrı belirgin bölüm (simge + metin); koordinat varsa "Haritada aç".
-  Widget _meetingBlock(String text, {required bool hasCoords}) {
+  /// Buluşma noktası: etkinlik yerinden ayrı belirgin bölüm (simge + metin). Koordinat/harita bağlantısı yok.
+  Widget _meetingBlock(String text) {
     final t = context.bu;
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
@@ -783,17 +766,6 @@ class _EventDetailPageState extends State<EventDetailPage> {
             ]),
           ),
         ]),
-        if (hasCoords)
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: TextButton.icon(
-              key: const ValueKey('detail-meeting-map'),
-              style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsetsDirectional.only(start: 28, end: 8)),
-              onPressed: _openMap,
-              icon: Icon(BuIcons.navigation, size: 18, color: t.prText),
-              label: Text(l.evtMeetOpenMap, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
-            ),
-          ),
       ]),
     );
   }
@@ -920,7 +892,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
           if (starts != null) _kv(l.p51EvLblDate, _fmtDate(context, 'd MMMM EEEE', starts), strike: cancelled),
           if (starts != null) _kv(l.p51EvLblTime, ends == null ? _hm(starts) : '${_hm(starts)} – ${_hm(ends)}', strike: cancelled),
           if (location != null && location.isNotEmpty) _kv(l.p51EvLblPlace, location),
-          if (meeting != null && meeting.trim().isNotEmpty && !cancelled) _meetingBlock(meeting.trim(), hasCoords: ev['meetingLat'] != null && ev['meetingLng'] != null),
+          if (meeting != null && meeting.trim().isNotEmpty && !cancelled) _meetingBlock(meeting.trim()),
           if (!cancelled) _kv(l.p51EvLblAttendees, peopleText, key: const ValueKey('detail-attendees')),
           if (!cancelled && _approval) _kv(l.clubMgmtJoinLabel, l.etkinlik2PolicyApprovalTag),
           if (full && !_approval && !cancelled) Padding(padding: const EdgeInsets.only(top: 10), child: Text(l.eventFormFullHint, style: tx.bodySmall!.copyWith(height: 1.4, color: t.mut))),
