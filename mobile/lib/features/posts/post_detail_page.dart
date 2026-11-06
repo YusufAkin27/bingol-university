@@ -10,6 +10,7 @@ import 'feed_pager.dart';
 import 'feed_seen.dart';
 import 'post_api.dart';
 import 'post_card.dart';
+import 'block_bus.dart';
 import 'post_models.dart';
 import 'post_pager.dart';
 import 'post_stream.dart';
@@ -80,12 +81,14 @@ class _PostDetailPageState extends State<PostDetailPage> {
       if (seed.hasMore) _pager = FeedPager(_api, scope: seed.scope);
     }
     _scroll.addListener(_onScroll);
+    BlockBus.instance.addListener(_onBlocked);
     _loadPost();
     _warm();
   }
 
   @override
   void dispose() {
+    BlockBus.instance.removeListener(_onBlocked);
     _seen.dispose();
     _scroll.dispose();
     super.dispose();
@@ -177,6 +180,16 @@ class _PostDetailPageState extends State<PostDetailPage> {
       }
     }
     if (found) widget.onChanged?.call(p);
+  }
+
+  void _onBlocked() {
+    final uid = BlockBus.instance.lastBlocked;
+    if (!mounted) return;
+    setState(() {
+      _after.removeWhere((e) => e.author.id == uid);
+      _before.removeWhere((e) => e.author.id == uid);
+    });
+    if (_after.isEmpty && _before.isEmpty) Navigator.of(context).pop();
   }
 
   void _onPostDeleted(int id) {

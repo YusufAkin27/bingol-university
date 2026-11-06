@@ -168,7 +168,15 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
       _confirmedLiked = res.liked;
       _confirmedCount = res.likeCount;
       _inflight = false;
-      if (!mounted) return;
+      if (!mounted) {
+        // Uçuştayken ekrandan çıkıldı ve kullanıcı bu arada yön değiştirmişti: son niyet kaybolmasın.
+        if (_liked != _confirmedLiked) {
+          final id = _post.id;
+          final next = _liked;
+          unawaited((next ? api.put('/posts/$id/like') : api.delete('/posts/$id/like')).catchError((_) {}));
+        }
+        return;
+      }
       if (_timer == null && _liked == want) {
         // Kullanıcı bu arada değiştirmediyse sunucu sayısını esas al.
         setState(() {

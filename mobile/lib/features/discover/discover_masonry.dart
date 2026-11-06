@@ -13,6 +13,7 @@ import '../posts/post_actions.dart';
 import '../posts/post_api.dart';
 import '../posts/post_models.dart';
 import '../posts/post_routes.dart';
+import '../posts/block_bus.dart';
 import 'discover_box.dart';
 import 'discover_prefetch.dart';
 import 'masonry_layout.dart';
@@ -109,6 +110,7 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
     _pager = FeedPager(_api, size: _pageSize);
     _prefetch = DiscoverPrefetch(widget.session);
     widget.controller?._state = this;
+    BlockBus.instance.addListener(_onBlocked);
     _scroll.addListener(_onScroll);
     if (!widget.tabActive) _hiddenAt = DiscoverMasonryFeed.debugNow();
     _reload();
@@ -145,6 +147,7 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
   @override
   void dispose() {
     if (widget.controller?._state == this) widget.controller!._state = null;
+    BlockBus.instance.removeListener(_onBlocked);
     _warmTimer?.cancel();
     _seen.dispose();
     _scroll.dispose();
@@ -278,6 +281,12 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
     final i = _items.indexWhere((e) => e.id == p.id);
     if (i < 0 || !mounted) return;
     setState(() => _items[i] = p);
+  }
+
+  /// Engellenen yazarın bütün kutuları ızgaradan hemen düşer (yalnız tıklanan gönderi değil).
+  void _onBlocked() {
+    final uid = BlockBus.instance.lastBlocked;
+    if (mounted) setState(() => _items.removeWhere((e) => e.author.id == uid));
   }
 
   void _removed(int id) {
