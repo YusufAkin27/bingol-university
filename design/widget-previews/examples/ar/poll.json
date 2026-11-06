@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "slug": "poll",
+  "state": "ok",
+  "generatedAt": "2026-11-06T10:00:00+03:00",
+  "expiresAt": "2026-11-07T10:00:00+03:00",
+  "lang": "ar",
+  "rtl": true,
+  "deepLink": "bukampus://poll/42",
+  "a11y": "استطلاع اليوم: Yemekhanede akşam menüsü nasıl?",
+  "strings": {
+    "signedOutTitle": "تسجيل الدخول",
+    "signedOutSub": "افتح BÜ Kampüs",
+    "caption": "استطلاع",
+    "captionFull": "استطلاع اليوم",
+    "vote": "صوّت",
+    "voted": "تم التصويت",
+    "voteMicro": "{votes} · سري",
+    "voteCount": "{n} صوت",
+    "secretLine": "الأصوات سرية · {votes}",
+    "detail": "التفاصيل",
+    "emptyTitle": "لا استطلاع اليوم",
+    "emptySmallSub": "عند نشر استطلاع جديد",
+    "emptySub": "سيظهر هنا استطلاع جديد"
+  },
+  "pollId": 42,
+  "question": "Yemekhanede akşam menüsü nasıl?",
+  "userVoted": true,
+  "resultsVisible": true,
+  "totalVotes": 1280,
+  "totalVotesLabel": "1,280 صوت",
+  "microLine": "1,280 صوت · سري",
+  "secretLine": "الأصوات سرية · 1,280 صوت",
+  "leaderIndex": 0,
+  "options": [
+    {
+      "label": "Çok iyi",
+      "percent": 54,
+      "percentText": "%54"
+    },
+    {
+      "label": "İdare eder",
+      "percent": 31,
+      "percentText": "%31"
+    },
+    {
+      "label": "Kötü",
+      "percent": 15,
+      "percentText": "%15"
+    }
+  ]
+}

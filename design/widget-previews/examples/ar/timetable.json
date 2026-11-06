@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "slug": "timetable",
+  "state": "ok",
+  "generatedAt": "2026-11-06T10:00:00+03:00",
+  "expiresAt": "2026-11-13T00:00:00+03:00",
+  "lang": "ar",
+  "rtl": true,
+  "deepLink": "bukampus://timetable",
+  "a11y": "الجدول الدراسي: 10:30 Algoritma Analizi, 13:30 Veri Yapıları",
+  "strings": {
+    "signedOutTitle": "تسجيل الدخول",
+    "signedOutSub": "افتح BÜ Kampüs",
+    "captionNext": "التالية",
+    "captionNone": "المحاضرات",
+    "captionFull": "الجدول الدراسي",
+    "headerNext": "{date} · التالية",
+    "nowBadge": "الآن",
+    "inMin": "بعد {n} د",
+    "inHour": "بعد {n} س",
+    "endsAt": "تنتهي {time}",
+    "todayCount": "{n} محاضرات اليوم",
+    "lastEnds": "آخر محاضرة تنتهي {time}",
+    "more": "+{n} محاضرات أخرى",
+    "emptyTitle": "لا محاضرات اليوم",
+    "nextSmall": "التالية: {day}",
+    "nextFull": "المحاضرة التالية: {day}"
+  },
+  "date": "2026-11-06",
+  "dateLabel": "الجمعة, 6 نوفمبر",
+  "dayName": "الجمعة",
+  "count": 2,
+  "lessons": [
+    {
+      "start": "10:30",
+      "end": "11:20",
+      "startMin": 630,
+      "endMin": 680,
+      "title": "Algoritma Analizi",
+      "room": "B-204"
+    },
+    {
+      "start": "13:30",
+      "end": "15:20",
+      "startMin": 810,
+      "endMin": 920,
+      "title": "Veri Yapıları",
+      "room": "A-101"
+    }
+  ],
+  "next": {
+    "date": "2026-11-06",
+    "time": "10:30",
+    "dayName": "الجمعة",
+    "dayShort": "جم",
+    "labelFull": "الجمعة 10:30",
+    "labelShort": "جم 10:30"
+  },
+  "upcoming": [
+    {
+      "date": "2026-11-07",
+      "dateLabel": "السبت, 7 نوفمبر",
+      "dayName": "السبت",
+      "count": 0,
+      "lessons": []
+    },
+    {
+      "date": "2026-11-08",
+      "dateLabel": "الأحد, 8 نوفمبر",
+      "dayName": "الأحد",
+      "count": 0,
+      "lessons": []
+    },
+    {
+      "date": "2026-11-09",
+      "dateLabel": "الاثنين, 9 نوفمبر",
+      "dayName": "الاثنين",
+      "count": 1,
+      "lessons": [
+        {
+          "start": "08:30",
+          "end": "10:20",
+          "startMin": 510,
+          "endMin": 620,
+          "title": "Olasılık",
+          "room": null
+        }
+      ]
+    },
+    {
+      "date": "2026-11-10",
+      "dateLabel": "الثلاثاء, 10 نوفمبر",
+      "dayName": "الثلاثاء",
+      "count": 0,
+      "lessons": []
+    },
+    {
+      "date": "2026-11-11",
+      "dateLabel": "الأربعاء, 11 نوفمبر",
+      "dayName": "الأربعاء",
+      "count": 0,
+      "lessons": []
+    },
+    {
+      "date": "2026-11-12",
+      "dateLabel": "الخميس, 12 نوفمبر",
+      "dayName": "الخميس",
+      "count": 0,
+      "lessons": []
+    }
+  ]
+}
