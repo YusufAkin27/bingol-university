@@ -77,8 +77,8 @@ describe('renk anlamı (AUD1 ORT-8/9, AUD2 X-5/X-6, AUD3 G4, AUD4 G9)', () => {
     expect(/\.control:hover:not\(:disabled\)\s*\{([^}]*)\}/.exec(ui('Fields.module.css'))![1]).not.toContain('--primary');
   });
 
-  it('yönetim alanında bağlantı rengi bilgi mavisi', () => {
-    expect(css('styles/tokens.css')).toMatch(/html:root\[data-area='admin'\]\s*\{\s*--link:\s*var\(--info\)/);
+  it('yönetim alanında bağlantı rengi nötr (marka/mavi yok): metin rengi', () => {
+    expect(css('styles/tokens.css')).toMatch(/html:root\[data-area='admin'\]\s*\{[^}]*--link:\s*var\(--text\)/);
   });
 
   it('yönetim bağlantı kuralı koyu tema bloklarını özgüllükle yener (koyu temada kırmızı kalmaz)', () => {
@@ -99,9 +99,11 @@ describe('renk anlamı (AUD1 ORT-8/9, AUD2 X-5/X-6, AUD3 G4, AUD4 G9)', () => {
       const sel = m[1].trim().split('@media')[0].replace(/^[^{]*\)\s*/, '').trim();
       rules.push({ sel: sel || m[1].trim(), at: m.index ?? 0 });
     }
-    const admin = rules.find((r) => r.sel.includes("data-area='admin'"))!;
+    // yönetim kapsamı: --link tanımlayan TÜM data-area='admin' kuralları (açık + iki koyu) site kurallarını yenmeli
+    const adminRules = rules.filter((r) => r.sel.includes("data-area='admin'"));
+    const admin = adminRules[0];
     expect(admin).toBeTruthy();
-    const others = rules.filter((r) => r !== admin);
+    const others = rules.filter((r) => !r.sel.includes("data-area='admin'"));
     expect(others.length).toBeGreaterThanOrEqual(2); // açık + iki koyu kural
     for (const o of others) {
       expect(cmp(specificity(admin.sel), specificity(o.sel)), `${admin.sel} > ${o.sel}`).toBeGreaterThan(0);
@@ -109,15 +111,25 @@ describe('renk anlamı (AUD1 ORT-8/9, AUD2 X-5/X-6, AUD3 G4, AUD4 G9)', () => {
     }
   });
 
-  it('grafik paleti iki temada aynı sırada: 1 mavi, 2 mercan', () => {
+  it('grafik paleti: sitede 1 mavi 2 mercan; yönetimde tüm seri tonları nötr (monochrome)', () => {
     const tokens = css('styles/tokens.css').toLowerCase();
-    const c1 = [...tokens.matchAll(/--chart-1:\s*(#[0-9a-f]{6})/g)].map((m) => m[1]);
-    const c2 = [...tokens.matchAll(/--chart-2:\s*(#[0-9a-f]{6})/g)].map((m) => m[1]);
+    const cut = tokens.indexOf('premium monochrome (mobil');
+    expect(cut).toBeGreaterThan(0);
+    const site = tokens.slice(0, cut);
+    const adminCss = tokens.slice(cut);
+    const c1 = [...site.matchAll(/--chart-1:\s*(#[0-9a-f]{6})/g)].map((m) => m[1]);
+    const c2 = [...site.matchAll(/--chart-2:\s*(#[0-9a-f]{6})/g)].map((m) => m[1]);
     const blueish = (hex: string) => parseInt(hex.slice(5, 7), 16) > parseInt(hex.slice(1, 3), 16);
     const redish = (hex: string) => parseInt(hex.slice(1, 3), 16) > parseInt(hex.slice(5, 7), 16);
     expect(c1).toHaveLength(3);
     c1.forEach((h) => expect(blueish(h)).toBe(true));
     c2.forEach((h) => expect(redish(h)).toBe(true));
+    const adminSeries = [...adminCss.matchAll(/--chart-[1-6]:\s*(#[0-9a-f]{6})/g)].map((m) => m[1]);
+    expect(adminSeries).toHaveLength(18); // 6 ton x (açık + iki koyu)
+    for (const h of adminSeries) {
+      const [r, g, b2] = [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+      expect(Math.max(r, g, b2) - Math.min(r, g, b2), h).toBeLessThanOrEqual(16);
+    }
   });
 
   it('ProgressBar: bitince yeşil, sürerken mavi, kırmızı yalnız danger', () => {
@@ -282,7 +294,7 @@ describe('kontrast (AUD1 ORT-7, AUD2 X-13/PL-4)', () => {
     const clear = screen.getByRole('button', { name: 'Seçimi temizle' });
     expect(clear.className).toMatch(/clear/);
     expect(container).toBeTruthy();
-    expect(ui('BulkBar.module.css')).toMatch(/\.bar \.clear\s*\{[^}]*color:\s*#fff/);
+    expect(ui('BulkBar.module.css')).toMatch(/\.bar \.clear\s*\{[^}]*color:\s*var\(--on-chrome\)/);
   });
 
   it('grafik açıklaması metni seri renginde değil okunur renkte', () => {

@@ -83,6 +83,8 @@ export function BarChart<T extends object>({
             dataKey={s.key}
             name={s.label}
             fill={s.color ?? CHART_COLORS[i % CHART_COLORS.length]}
+            stroke="var(--surface)"
+            strokeWidth={stacked || series.length > 1 ? 1 : 0}
             stackId={stacked ? 'a' : undefined}
             radius={stacked ? 0 : [4, 4, 0, 0]}
             maxBarSize={36}

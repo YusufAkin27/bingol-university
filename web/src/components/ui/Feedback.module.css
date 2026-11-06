@@ -30,16 +30,17 @@
   vertical-align: middle;
   min-width: 2em;
   border-radius: var(--radius-xs);
-  background: linear-gradient(90deg, var(--skeleton-a) 25%, var(--skeleton-b) 50%, var(--skeleton-a) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s ease-in-out infinite;
+  background: var(--surface-3);
+  animation: shimmer 1.6s ease-in-out infinite;
 }
+/* düz yüzey + yavaş nefes (gradient/parlama yok); hareket azaltma tercihinde globalde kapanır */
 @keyframes shimmer {
-  from {
-    background-position: 200% 0;
+  0%,
+  100% {
+    opacity: 0.55;
   }
-  to {
-    background-position: -200% 0;
+  50% {
+    opacity: 1;
   }
 }
 
@@ -103,5 +104,5 @@
   overflow-wrap: anywhere;
 }
 .inlineText strong {
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }

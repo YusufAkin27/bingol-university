@@ -35,11 +35,27 @@
   cursor: pointer;
   appearance: none;
   border: 0;
+  background: transparent;
+  color: inherit;
+  font-weight: var(--fw-emphasis);
   font-size: var(--text-base);
+  min-height: 44px;
+  padding-inline: 0 var(--space-3);
+  cursor: pointer;
 }
 .select option {
   background: var(--surface);
   color: var(--text);
+}
+.compact {
+  max-width: 6.5rem;
+}
+.code {
+  display: none;
+  font-size: var(--text-xs);
+  font-weight: var(--fw-emphasis);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 .wrap:focus-within {
   outline: 3px solid var(--focus);

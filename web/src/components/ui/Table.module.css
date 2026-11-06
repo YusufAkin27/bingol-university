@@ -33,7 +33,7 @@
   top: 0;
   z-index: 1;
   background: var(--surface-2);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--text-muted);
   padding: var(--space-2) var(--space-4);
   border-block-end: 1px solid var(--border);
@@ -159,7 +159,7 @@
   padding: 2px var(--space-3);
   border-radius: var(--radius-pill);
   background: var(--chrome);
-  color: #fff;
+  color: var(--on-chrome);
   font-size: var(--text-xs);
   text-align: center;
   pointer-events: none;

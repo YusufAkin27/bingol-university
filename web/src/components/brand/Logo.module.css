@@ -35,7 +35,7 @@ a.logo {
   flex-direction: column;
   line-height: 1;
   font-family: var(--font-display);
-  font-weight: 800;
+  font-weight: var(--fw-black);
   letter-spacing: -0.02em;
   white-space: nowrap;
   /* Latin yazı: Arapça arayüzde de aynı kalır */
