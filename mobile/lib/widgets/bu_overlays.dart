@@ -42,11 +42,10 @@ class BuBottomSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final mq = MediaQuery.of(context);
     final body = Padding(padding: padding, child: child);
     return AnimatedPadding(
       duration: BuMotion.of(context, const Duration(milliseconds: 120)),
-      padding: EdgeInsets.only(bottom: mq.viewInsets.bottom),
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: SafeArea(
         top: false,
         child: Column(
@@ -67,7 +66,7 @@ class BuBottomSheet extends StatelessWidget {
                   ],
                 ),
               ),
-            if (scrollable) Flexible(child: SingleChildScrollView(child: body)) else Flexible(child: body),
+            if (scrollable) Flexible(child: SingleChildScrollView(keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag, child: body)) else Flexible(child: body),
             if (actions != null && actions!.isNotEmpty)
               Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 12),
@@ -101,6 +100,8 @@ abstract final class BuSheet {
     EdgeInsetsGeometry? padding,
   }) {
     final maxH = MediaQuery.sizeOf(context).height * maxHeightFactor;
+    // Açılırken klavye kapalıysa, alt sayfadaki alanın odağı kapanışta temizlenir (klavye geride açık kalmaz).
+    final kbWasOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
     return showModalBottomSheet<T>(
       context: context,
       isScrollControlled: true,
@@ -119,7 +120,9 @@ abstract final class BuSheet {
         padding: padding ?? const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 8),
         child: builder(ctx),
       ),
-    );
+    ).whenComplete(() {
+      if (!kbWasOpen) FocusManager.instance.primaryFocus?.unfocus();
+    });
   }
 }
 

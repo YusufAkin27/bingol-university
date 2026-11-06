@@ -92,7 +92,8 @@ class _NewTicketPageState extends State<NewTicketPage> {
     return BuPageScaffold(
       title: l.supportNewTicketTitle,
       large: false,
-      bottomInset: 32,
+      bottomInset: 24,
+      bottomBar: BuFormActionBar(child: BuButton(label: l.supportSend, busy: _busy, onPressed: _submit)),
       slivers: [
         SliverToBoxAdapter(
           child: Padding(
@@ -161,8 +162,6 @@ class _NewTicketPageState extends State<NewTicketPage> {
                 alignment: Alignment.topCenter,
                 child: _error == null ? const SizedBox(width: double.infinity) : AnketFieldError(_error!),
               ),
-              const SizedBox(height: 26),
-              BuButton(label: l.supportSend, busy: _busy, onPressed: _submit),
             ]),
           ),
         ),

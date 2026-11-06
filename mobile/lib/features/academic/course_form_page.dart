@@ -227,8 +227,18 @@ class _CourseFormPageState extends State<CourseFormPage> {
       actions: [
         if (_editing) BuIconButton(icon: BuIcons.trash2, tooltip: l.acadTimeDeleteCourse, onTap: _busy ? null : _delete),
       ],
+      // Kaydet düğmesi klavyenin hemen üstünde sabit; liste altına çubuk payı bırakılır.
+      bottomBar: AkadBottomBar(children: [
+        BuButton(
+          label: _editing ? l.acadTimeSave : l.acadTimeAddCourseBtn,
+          icon: BuIcons.circleCheck,
+          busy: _busy,
+          onPressed: _busy ? null : () => _save(),
+        ),
+      ]),
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32 + AkadBottomBar.reserve),
         children: [
           if (_bandErrors().isNotEmpty) ...[_errorBand(t, tx, l), const SizedBox(height: 14)],
           AkadCard(
@@ -331,13 +341,6 @@ class _CourseFormPageState extends State<CourseFormPage> {
               hint: l.acadTimeNoteHint,
               icon: BuIcons.textAlignStart,
             ),
-          ),
-          const SizedBox(height: 24),
-          BuButton(
-            label: _editing ? l.acadTimeSave : l.acadTimeAddCourseBtn,
-            icon: BuIcons.circleCheck,
-            busy: _busy,
-            onPressed: _busy ? null : () => _save(),
           ),
         ],
       ),

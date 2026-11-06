@@ -66,7 +66,8 @@ class RefPage extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: SingleChildScrollView(
+              child: BuTapOutsideUnfocus(
+                child: SingleChildScrollView(
                 keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                 padding: EdgeInsetsDirectional.fromSTEB(kRefPad, 0, kRefPad, bottomPad),
                 child: Center(
@@ -76,6 +77,7 @@ class RefPage extends StatelessWidget {
                     child: BuStaggerScope(child: Column(crossAxisAlignment: crossAxisAlignment, children: children)),
                   ),
                 ),
+              ),
               ),
             ),
           ],

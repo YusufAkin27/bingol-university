@@ -68,7 +68,9 @@ class _PollBuilderState extends State<PollBuilder> {
     setState(() => _opts.add(o));
     _emit();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) o.f.requestFocus();
+      if (!mounted) return;
+      o.f.requestFocus();
+      BuKeyboard.ensureVisible(context, alignment: .6); // yeni seçenek klavyenin üstünde kalsın
     });
   }
 

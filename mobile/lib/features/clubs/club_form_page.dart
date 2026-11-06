@@ -452,6 +452,14 @@ class _ClubFormPageState extends State<ClubFormPage> {
       child: Scaffold(
         backgroundColor: t.bg,
         resizeToAvoidBottomInset: true,
+        // Oluştur/Kaydet klavyenin hemen üstünde sabit (uzun formda hep erişilebilir).
+        bottomNavigationBar: BuFormActionBar(
+          child: BuButton(
+            label: _edit ? l10n.clubMgmtSave : l10n.p51Create,
+            busy: _busy && !_partial,
+            onPressed: _submit,
+          ),
+        ),
         body: Column(
           children: [
             // Üst çubuk (Stitch v3 06): geri oku + 22/600 başlık, altında ince ayraç.
@@ -531,12 +539,6 @@ class _ClubFormPageState extends State<ClubFormPage> {
                       const SizedBox(height: 14),
                       Text(_formError!, style: tx.bodySmall!.copyWith(color: t.danger)),
                     ],
-                    const SizedBox(height: 24),
-                    BuButton(
-                      label: _edit ? l10n.clubMgmtSave : l10n.p51Create,
-                      busy: _busy && !_partial,
-                      onPressed: _submit,
-                    ),
                   ],
                 ),
               ),

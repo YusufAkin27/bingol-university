@@ -1,3 +1,4 @@
+import 'widgets/bu_keyboard.dart' show BuFocusRouteObserver, BuTapOutsideUnfocus;
 import 'dart:async';
 
 
@@ -222,7 +223,7 @@ class BingolApp extends StatelessWidget {
         title: 'BÜ Kampüs',
         debugShowCheckedModeBanner: false,
         navigatorKey: rootNavigatorKey,
-        navigatorObservers: [_observer],
+        navigatorObservers: [_observer, BuFocusRouteObserver()],
         theme: BuTheme.light(),
         darkTheme: BuTheme.dark(),
         themeMode: themeController.mode,
@@ -240,7 +241,8 @@ class BingolApp extends StatelessWidget {
           ),
           child: AcademicCatalogScope(
             session: session,
-            child: AppGate(api: session.api, child: child),
+            // Boş alana dokunmak odağı bırakır (klavye kapanır); düğme/alan dokunuşlarını engellemez.
+            child: AppGate(api: session.api, child: BuTapOutsideUnfocus(child: child ?? const SizedBox.shrink())),
           ),
         ),
         home: ListenableBuilder(
