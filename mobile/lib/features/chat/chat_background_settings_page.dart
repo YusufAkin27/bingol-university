@@ -5,7 +5,7 @@ import '../../widgets/bu.dart';
 import 'chat_bubble_colors.dart';
 import 'chat_wallpaper.dart';
 
-/// Profil > Ayarlar > Sohbetler > "Sohbet arka planı": mini konuşma önizlemesi, desen seçici (Kampüs, Ders, Sosyal,
+/// Profil > Ayarlar > Sohbetler > "Sohbet arka planı": mini konuşma önizlemesi, desen seçici (Ders, Sosyal,
 /// Bilim, Geometri; düz zemin YOK), Yoğunluk Hafif | Orta, "Uygula", "Varsayılana dön".
 ///
 /// Seçim "Uygula" ile cihazda (kullanıcıya özel) saklanır; arka plan konuşmada sabittir (kaydırmayla oynamaz).
@@ -40,16 +40,15 @@ class _ChatBackgroundSettingsPageState extends State<ChatBackgroundSettingsPage>
 
   Future<void> _reset() async {
     setState(() {
-      _style = ChatBgStyle.campus;
+      _style = ChatBgStyle.study;
       _density = ChatBgDensity.soft;
     });
-    await ChatBackgroundPrefs.instance.set(ChatBgStyle.campus, density: ChatBgDensity.soft);
+    await ChatBackgroundPrefs.instance.set(ChatBgStyle.study, density: ChatBgDensity.soft);
   }
 
   String _label(ChatBgStyle s) {
     final l = context.l10n;
     return switch (s) {
-      ChatBgStyle.campus => l.p67ChatBgStyleCampus,
       ChatBgStyle.study => l.p67ChatBgStyleStudy,
       ChatBgStyle.social => l.p67ChatBgStyleSocial,
       ChatBgStyle.science => l.p67ChatBgStyleScience,

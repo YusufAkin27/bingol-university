@@ -89,7 +89,7 @@ void main() {
   final out = Platform.environment['P3BG_OUT'];
   final skip = out == null ? 'P3BG_OUT tanimli degil' : null;
   final lang = Platform.environment['P3BG_LANG'] ?? 'tr';
-  final styleName = Platform.environment['P3BG_STYLE']; // campus(varsayilan)|study|social|science|geometry
+  final styleName = Platform.environment['P3BG_STYLE']; // study(varsayilan)|social|science|geometry
   setUpAll(loadTestFonts);
 
   final boards = <(String, Widget Function(), double, Future<void> Function(WidgetTester)?)>[

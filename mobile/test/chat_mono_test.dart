@@ -66,12 +66,4 @@ void main() {
     expect(ChatBubbleColors.of(BuTokens.light).readOnOutgoing, BuTokens.light.readSky);
     expect(ChatBubbleColors.of(BuTokens.dark).readOnOutgoing, BuTokens.dark.readDeep);
   });
-
-  test('duvar kağıdı örtüsü yüksek (desen çok silik) ve gri matris nötr', () {
-    expect(kChatWallpaperVeil, greaterThanOrEqualTo(.5));
-    expect(kChatWallpaperVeil, lessThan(1));
-    // Her çıkış kanalı aynı katsayılar: R=G=B (renk tonu yok).
-    expect(kChatWallpaperGray.sublist(0, 5), kChatWallpaperGray.sublist(5, 10));
-    expect(kChatWallpaperGray.sublist(0, 5), kChatWallpaperGray.sublist(10, 15));
-  });
 }

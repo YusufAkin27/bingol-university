@@ -9,22 +9,18 @@ import '../../widgets/bu.dart';
 
 /// Sohbet arka planı (konuşma ekranı duvar kağıdı; sohbet LİSTESİNE uygulanmaz).
 ///
-/// Her zaman desenlidir (düz zemin seçeneği YOKTUR). Beş desen sunulur ([ChatBgStyle]): Kampüs (kullanıcının verdiği
-/// doodle PNG'si), Ders, Sosyal, Bilim (aynı çizgi-ikon dilinde, farklı ikon havuzları) ve Geometri (küçük çizgi
-/// şekiller). Yoğunluk ([ChatBgDensity]) Hafif | Orta ayrı bir ayardır ve her desene uygulanır. Kırmızı/mavi vurgu YOK;
-/// yordamsal desenler yalnız `ink` jetonunun düşük alfa tonudur.
+/// Her zaman desenlidir (düz zemin seçeneği YOKTUR). Dört desen sunulur ([ChatBgStyle]): Ders (varsayılan), Sosyal, Bilim
+/// (aynı çizgi-ikon dilinde, farklı ikon havuzları) ve Geometri (küçük çizgi şekiller). Yoğunluk ([ChatBgDensity]) Hafif |
+/// Orta ayrı bir ayardır ve her desene uygulanır. Kırmızı/mavi vurgu YOK; desen yalnız `ink` jetonunun düşük alfa tonudur.
 ///
 /// SABİT: desen mesaj alanının arkasında durur, kaydırmayla oynamaz; ayrıca katman ekran yüksekliğinde çizilip üstten
 /// hizalanır, bu yüzden klavye açılıp mesaj alanı küçülünce desen ölçek değiştirmez / zıplamaz (yalnız kırpılır).
 ///
-/// Performans: yordamsal desen TEK SEFER küçük bir kare dokuya (480 × 480 dp) çizilir (`Picture.toImageSync`),
+/// Performans: desen TEK SEFER küçük bir kare dokuya (480 × 480 dp) çizilir (`Picture.toImageSync`),
 /// (desen, tema, yoğunluk, piksel oranı) anahtarıyla önbelleğe alınır ve `ImageShader` ile döşenir; kaydırırken
 /// yeniden hesap/çizim yok (ayrı `RepaintBoundary`), blur/BackdropFilter yok.
 enum ChatBgStyle {
-  /// Kampüs doodle PNG'si (`wp_a_light.png` / `wp_a_dark.png`, 941x1672) — VARSAYILAN.
-  campus,
-
-  /// Ders / sınav / kütüphane ikonları.
+  /// Ders / sınav / kütüphane ikonları — VARSAYILAN.
   study,
 
   /// Kulüp, yemekhane, spor, müzik, sosyal yaşam ikonları.
@@ -34,43 +30,14 @@ enum ChatBgStyle {
   science,
 
   /// Küçük çizgi şekillerden (daire, eşkenar dörtgen, artı, üçgen, nokta) kaymalı ızgara.
-  geometry;
-
-  /// Varlık dosyası adı; yordamsal desenlerde null.
-  String? get assetName => switch (this) {
-        ChatBgStyle.campus => 'wp_a',
-        _ => null,
-      };
-
-  bool get isAsset => assetName != null;
+  geometry,
 }
 
-/// Desen yoğunluğu: Hafif (varsayılan) | Orta. Varlık desende bindirme örtüsünü, yordamsal desenlerde opaklığı değiştirir.
+/// Desen yoğunluğu: Hafif (varsayılan) | Orta (desen opaklığı).
 enum ChatBgDensity { soft, strong }
 
-/// Varlık dosya yolu (tema başına ayrı görsel).
-String chatWallpaperAssetPath(ChatBgStyle s, {required bool dark}) =>
-    'assets/chat_wallpapers/${s.assetName}_${dark ? 'dark' : 'light'}.png';
-
-/// Varlık duvar kağıdının üstüne bindirilen tema zemini örtüsü (0..1): yüksek = desen daha silik. Hafif yoğunlukta
-/// desen yalnız belli belirsiz görünür (balonlar ve metin öne çıkar).
-const double kChatWallpaperVeil = .78;
-
-/// Orta yoğunlukta örtü (desen daha belirgin).
-const double kChatWallpaperVeilStrong = .62;
-
-double chatWallpaperVeil(ChatBgDensity d) => d == ChatBgDensity.strong ? kChatWallpaperVeilStrong : kChatWallpaperVeil;
-
-/// Renk -> gri (Rec.709 parlaklık) matrisi: varlıktaki kırmızı/lacivert/krem tonları nötrleşir.
-const List<double> kChatWallpaperGray = <double>[
-  .2126, .7152, .0722, 0, 0,
-  .2126, .7152, .0722, 0, 0,
-  .2126, .7152, .0722, 0, 0,
-  0, 0, 0, 1, 0,
-];
-
 /// Seçili arka plan tercihi: cihazda, kullanıcıya özel (güvenli depoda iki anahtar; sunucu ucu yok). Varsayılan
-/// (Kampüs + Hafif) kayıt tutmaz. Çıkışta [clear] silinir (bkz. `registerUserDataCleaners`).
+/// (Ders + Hafif) kayıt tutmaz. Çıkışta [clear] silinir (bkz. `registerUserDataCleaners`).
 class ChatBackgroundPrefs extends ChangeNotifier {
   ChatBackgroundPrefs._();
 
@@ -79,7 +46,7 @@ class ChatBackgroundPrefs extends ChangeNotifier {
   static const densityKey = 'chat_background_density';
   static const _storage = FlutterSecureStorage();
 
-  ChatBgStyle _style = ChatBgStyle.campus;
+  ChatBgStyle _style = ChatBgStyle.study;
   ChatBgDensity _density = ChatBgDensity.soft;
   bool _loaded = false;
   Future<void>? _loading;
@@ -98,7 +65,7 @@ class ChatBackgroundPrefs extends ChangeNotifier {
       final rawDensity = await _storage.read(key: densityKey);
       final found = ChatBgStyle.values.where((s) => s.name == raw);
       if (found.isNotEmpty) _style = found.first;
-      // Eski sürüm değerleri: pattern/soft/plain -> Kampüs Hafif; strong -> Kampüs Orta ("düz" artık yok).
+      // Eski sürüm değerleri: campus/pattern/soft/plain -> Ders Hafif; strong -> Ders Orta ("düz" ve "Kampüs" artık yok).
       if (raw == 'strong') _density = ChatBgDensity.strong;
       if (rawDensity == ChatBgDensity.strong.name) _density = ChatBgDensity.strong;
     } catch (_) {}
@@ -116,7 +83,7 @@ class ChatBackgroundPrefs extends ChangeNotifier {
       notifyListeners();
     }
     try {
-      if (s == ChatBgStyle.campus) {
+      if (s == ChatBgStyle.study) {
         await _storage.delete(key: key);
       } else {
         await _storage.write(key: key, value: s.name);
@@ -132,7 +99,7 @@ class ChatBackgroundPrefs extends ChangeNotifier {
   /// Çıkış / hesap silme / oturum değişimi: tercih silinir, bellekteki değer varsayılana döner.
   static Future<void> clear() async {
     final p = instance;
-    p._style = ChatBgStyle.campus;
+    p._style = ChatBgStyle.study;
     p._density = ChatBgDensity.soft;
     p._loaded = true;
     p._loading = Future<void>.value();
@@ -147,7 +114,7 @@ class ChatBackgroundPrefs extends ChangeNotifier {
   @visibleForTesting
   static void debugReset() {
     final p = instance;
-    p._style = ChatBgStyle.campus;
+    p._style = ChatBgStyle.study;
     p._density = ChatBgDensity.soft;
     p._loaded = false;
     p._loading = null;
@@ -349,10 +316,8 @@ class ChatWallpaper extends StatefulWidget {
     }
   }
 
-  /// Yordamsal desenlerin opaklığı (ink jetonu üstüne): çok düşük kontrast, mesajlar net ayrışır. Kampüs (varlık)
-  /// deseninde yoğunluk örtüden gelir ([chatWallpaperVeil]); orada 0 döner.
+  /// Desen opaklığı (ink jetonu üstüne): çok düşük kontrast, mesajlar net ayrışır.
   static double alphaOf(ChatBgStyle s, ChatBgDensity d, bool dark) {
-    if (s.isAsset) return 0;
     return switch (d) {
       ChatBgDensity.soft => dark ? .06 : .07,
       ChatBgDensity.strong => dark ? .10 : .12,
@@ -381,7 +346,7 @@ class ChatWallpaper extends StatefulWidget {
 
   /// Dokuyu üretir (önbellekte yoksa) ve döndürür; üretilemezse null (yalnız tema zemini kalır).
   static ui.Image? tile(ChatBgStyle s, Color ink, double alpha, double dpr) {
-    if (alpha <= 0 || s.isAsset) return null;
+    if (alpha <= 0) return null;
     final key = _keyOf(s, ink, alpha, dpr);
     final hit = _cache[key];
     if (hit != null) return hit;
@@ -460,9 +425,7 @@ class _ChatWallpaperState extends State<ChatWallpaper> {
           final w = c.hasBoundedWidth ? c.maxWidth : MediaQuery.sizeOf(context).width;
           // SABİT: katman her zaman en az ekran yüksekliğinde ve üstten hizalı; klavye alanı daraltınca ölçek değişmez.
           final h = math.max(c.hasBoundedHeight ? c.maxHeight : 0.0, screenH);
-          final Widget layer = style.isAsset
-              ? _assetLayer(t, style, density, dark, reduced, w)
-              : _tileLayer(t, style, density, dark, dpr, reduced);
+          final Widget layer = _tileLayer(t, style, density, dark, dpr, reduced);
           return Stack(
             fit: StackFit.expand,
             clipBehavior: Clip.hardEdge,
@@ -502,39 +465,6 @@ class _ChatWallpaperState extends State<ChatWallpaper> {
             opacity: opacity,
             duration: reduced ? Duration.zero : const Duration(milliseconds: 150),
             child: CustomPaint(painter: _TilePainter(img, dpr), size: Size.infinite),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Varlık duvar kağıdı (Kampüs): tam yüzey, `BoxFit.cover`, ekran genişliği x dpr kadar çözülür; yüklenemezse
-  /// tema zemini kalır.
-  Widget _assetLayer(BuTokens t, ChatBgStyle style, ChatBgDensity density, bool dark, bool reduced, double w) {
-    final dpr = MediaQuery.devicePixelRatioOf(context);
-    // PNG kullanıcının kendi dosyası (değişmez); monochrome için çizimde gri tonlanır (kırmızı/lacivert vurgular
-    // nötrleşir) ve üstüne tema zemini bindirilir: desen çok düşük kontrastlı, mesajlar öne çıkar.
-    return RepaintBoundary(
-      key: const ValueKey('chatWallpaper'),
-      child: IgnorePointer(
-        child: ExcludeSemantics(
-          child: ColorFiltered(
-            key: const ValueKey('chatWallpaperTone'),
-            colorFilter: const ColorFilter.matrix(kChatWallpaperGray),
-            child: Image.asset(
-              chatWallpaperAssetPath(style, dark: dark),
-              key: const ValueKey('chatWallpaperAsset'),
-              fit: BoxFit.cover,
-              alignment: Alignment.topCenter,
-              cacheWidth: (w * dpr).round(),
-              gaplessPlayback: true,
-              color: t.bg.withValues(alpha: chatWallpaperVeil(density)),
-              colorBlendMode: BlendMode.srcOver,
-              errorBuilder: (c, e, st) => const SizedBox.shrink(),
-              frameBuilder: (c, child, frame, sync) => sync
-                  ? child
-                  : AnimatedOpacity(opacity: frame == null ? 0 : 1, duration: reduced ? Duration.zero : const Duration(milliseconds: 150), child: child),
-            ),
           ),
         ),
       ),
