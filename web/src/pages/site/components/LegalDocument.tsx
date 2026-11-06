@@ -1,8 +1,8 @@
-import { useId, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Icon, MarkdownText } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
-import { useMediaQuery } from '../../../lib/useMediaQuery';
 import { prepareLegal } from './legalDoc';
+import { ReadingToc } from './ReadingToc';
 import styles from './LegalDocument.module.css';
 
 interface Props {
@@ -19,45 +19,17 @@ interface Props {
 export function LegalDocument({ title, content, docLang }: Props) {
   const { t, lang } = useI18n();
   const doc = useMemo(() => prepareLegal(content), [content]);
-  const compact = useMediaQuery('(max-width: 900px)');
-  const [open, setOpen] = useState(false);
-  const panelId = useId();
-  const links = (
-    <ol>
-      {doc.toc.map((e) => (
-        <li key={e.id}>
-          <a href={`#${e.id}`} onClick={() => setOpen(false)}>
-            {e.title}
-          </a>
-        </li>
-      ))}
-    </ol>
-  );
   return (
     <div className={styles.layout}>
-      {doc.toc.length > 1 &&
-        (compact ? (
-          <nav className={`${styles.toc} ${styles.tocCompact}`} aria-label={t('legal.toc')}>
-            <button
-              type="button"
-              className={styles.tocBtn}
-              aria-expanded={open}
-              aria-controls={panelId}
-              onClick={() => setOpen((v) => !v)}
-            >
-              <span>{t('legal.onThisPage')}</span>
-              <Icon name="chevronDown" size={20} className={`${styles.chev} ${open ? styles.chevOpen : ''}`} />
-            </button>
-            <div id={panelId} hidden={!open} className={styles.tocPanel}>
-              {links}
-            </div>
-          </nav>
-        ) : (
-          <nav className={styles.toc} aria-label={t('legal.toc')}>
-            <h2 className={styles.tocTitle}>{t('legal.toc')}</h2>
-            {links}
-          </nav>
-        ))}
+      {doc.toc.length > 1 && (
+        <ReadingToc
+          items={doc.toc}
+          navLabel={t('legal.toc')}
+          heading={t('legal.toc')}
+          buttonLabel={t('legal.onThisPage')}
+          compactBelow={900}
+        />
+      )}
       <article className={styles.article} lang={docLang}>
         <h2 className={styles.printTitle}>{title}</h2>
         {docLang !== lang && (

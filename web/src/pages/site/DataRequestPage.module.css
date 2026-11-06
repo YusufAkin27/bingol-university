@@ -1,31 +1,40 @@
+/* Veri talebi / KVKK hakları (monochrome): bölümler ince çizgiyle ayrılır, okuma ölçüsü sınırlı, vurgu rengi yok. */
 .page {
   display: grid;
   gap: 0;
-  padding-block-end: clamp(2.5rem, 7vw, 5rem);
+  padding-block: var(--space-6) clamp(2.5rem, 7vw, 5rem);
 }
 .block {
   display: grid;
   gap: var(--space-5);
   padding-block: clamp(1.75rem, 5vw, 3rem);
-  border-block-start: 1px solid var(--border);
+  border-block-start: var(--rule);
   max-width: 52rem;
 }
 .block:first-child {
   border-block-start: 0;
   padding-block-start: var(--space-2);
 }
+.block h2 {
+  /* okuma sayfası: bölüm başlığı sayfa başlığından küçük (ortak SectionHeading büyük site ölçeğindedir) */
+  font-size: var(--text-h3);
+  line-height: 1.2;
+  max-width: none;
+}
 .muted {
   display: block;
+  margin-block-start: var(--space-1);
   color: var(--text-muted);
   font-size: var(--text-sm);
+  line-height: 1.55;
 }
+/* haklar: tek çerçeve içinde ince çizgili satırlar */
 .rights {
   list-style: none;
   margin: 0;
-  padding: var(--space-4);
+  padding: 0;
   display: grid;
-  gap: var(--space-3);
-  border: 1px solid var(--border);
+  border: var(--rule);
   border-radius: var(--radius-lg);
   background: var(--surface);
 }
@@ -34,10 +43,16 @@
   grid-template-columns: auto minmax(0, 1fr);
   gap: var(--space-3);
   align-items: start;
+  padding: var(--space-3) var(--space-4);
+  border-block-end: var(--rule);
+  line-height: 1.55;
+}
+.rights li:last-child {
+  border-block-end: 0;
 }
 .rights svg {
-  color: var(--success);
-  margin-block-start: 4px;
+  color: var(--text);
+  margin-block-start: 0.2rem;
 }
 .apply {
   list-style: none;
@@ -52,18 +67,26 @@
   gap: var(--space-3);
   align-items: start;
   padding: var(--space-4);
-  border: 1px solid var(--border);
+  border: var(--rule);
   border-radius: var(--radius-lg);
   background: var(--surface);
   overflow-wrap: anywhere;
 }
 .apply svg {
-  color: var(--primary);
-  margin-block-start: 2px;
+  color: var(--text-muted);
+  margin-block-start: 0.15rem;
+}
+.apply a {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 3px;
 }
 .note {
   color: var(--text-muted);
-  max-width: 62ch;
+  max-width: var(--read-measure);
+  line-height: 1.65;
 }
 .actions {
   display: flex;
@@ -75,18 +98,37 @@
   padding-inline-start: 1.3em;
   display: grid;
   gap: var(--space-2);
-  max-width: 62ch;
+  max-width: var(--read-measure);
+  color: var(--text-muted);
+  line-height: 1.65;
 }
 .ret li::marker {
-  color: var(--primary);
+  color: var(--text-faint);
 }
 .link {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  min-height: 44px;
-  font-weight: 700;
+  min-height: var(--touch-min);
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 3px;
+}
+.link:hover {
+  text-decoration-color: var(--text);
 }
 :global(:root[dir='rtl']) .arrow {
   transform: scaleX(-1);
+}
+@media print {
+  .rights,
+  .apply li {
+    border-color: #000;
+    background: none;
+  }
+  .actions {
+    display: none;
+  }
 }

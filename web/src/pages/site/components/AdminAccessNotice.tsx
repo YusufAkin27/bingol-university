@@ -1,5 +1,4 @@
 import { useI18n } from '../../../i18n/I18nProvider';
-import shared from './site.module.css';
 import styles from './AdminAccessNotice.module.css';
 
 /**
@@ -10,7 +9,7 @@ export function AdminAccessNotice() {
   const { t } = useI18n();
   return (
     <aside className={styles.box} aria-labelledby="admin-access-title" data-testid="admin-access-notice">
-      <h2 id="admin-access-title" className={shared.h3}>
+      <h2 id="admin-access-title" className={styles.title}>
         {t('legal.adminAccess.title')}
       </h2>
       <p>{t('legal.adminAccess.body1')}</p>

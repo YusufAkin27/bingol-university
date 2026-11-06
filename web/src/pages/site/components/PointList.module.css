@@ -1,3 +1,4 @@
+/* Simgeli kısa madde ızgarası: ince kenarlıklı yüzey, çizgi halkalı simge; vurgu yok. */
 .list {
   list-style: none;
   margin: 0;
@@ -9,10 +10,10 @@
 .item {
   display: flex;
   align-items: flex-start;
-  gap: var(--space-3);
+  gap: var(--space-4);
   height: 100%;
   padding: var(--space-4);
-  border: 1px solid var(--border);
+  border: var(--rule);
   border-radius: var(--radius-lg);
   background: var(--surface);
 }
@@ -20,18 +21,33 @@
   flex: none;
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-pill);
-  background: var(--primary-soft);
-  color: var(--primary);
+  background: transparent;
+  color: var(--text);
 }
 .text {
-  padding-block-start: 5px;
+  min-width: 0;
+  padding-block-start: var(--space-2);
   color: var(--text);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 @media (min-width: 700px) {
   .list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media print {
+  .item {
+    break-inside: avoid;
+    background: none;
+    border-color: #000;
+  }
+  .ico {
+    border-color: #000;
+    color: #000;
   }
 }

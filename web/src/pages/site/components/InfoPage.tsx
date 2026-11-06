@@ -3,6 +3,7 @@ import type { TranslationKey } from '../../../i18n';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { PageHero } from './PageHero';
 import { PointList, type Point } from './PointList';
+import { ReadingToc, usePrintDoc } from './ReadingToc';
 import { Reveal } from './Reveal';
 import { Steps } from './Steps';
 import { infoRouteId } from '../../../seo/routeMeta';
@@ -57,6 +58,7 @@ export function InfoPage({ slug, sections, children, after, intro, figure, highl
   const title = t(k(`pg.${slug}.title`));
   usePageMeta({ route: infoRouteId(slug) });
   const showToc = toc ?? sections.length >= 5;
+  usePrintDoc();
   return (
     <>
       <PageHero title={title} lead={t(k(`pg.${slug}.lead`))} crumbs={[{ label: title }]} />
@@ -70,16 +72,13 @@ export function InfoPage({ slug, sections, children, after, intro, figure, highl
       )}
       <div className={`container ${styles.layout} ${showToc ? styles.withToc : ''}`}>
         {showToc && (
-          <nav className={styles.toc} aria-label={t('site.trust.toc')}>
-            <p className={styles.tocTitle}>{t('site.trust.toc')}</p>
-            <ol>
-              {sections.map((s) => (
-                <li key={s.id}>
-                  <a href={`#${slug}-${s.id}`}>{t(k(`pg.${slug}.${s.id}.h`))}</a>
-                </li>
-              ))}
-            </ol>
-          </nav>
+          <ReadingToc
+            items={sections.map((s) => ({ id: `${slug}-${s.id}`, title: t(k(`pg.${slug}.${s.id}.h`)) }))}
+            navLabel={t('site.trust.toc')}
+            heading={t('site.trust.toc')}
+            buttonLabel={t('site.trust.toc')}
+            compactBelow={1039}
+          />
         )}
         <div className={styles.body}>
           {intro}

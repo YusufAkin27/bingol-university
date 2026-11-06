@@ -1,39 +1,53 @@
+/* Hesap silme (monochrome): uygulama satırı + veri/işlem/süre tablosu; dar ekranda satırlar kart olur. */
 .app {
   padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--border);
+  border: var(--rule);
   border-radius: var(--radius-lg);
   background: var(--surface);
-  font-weight: 600;
+  color: var(--text);
   overflow-wrap: anywhere;
 }
 /* Tablo yatay kaydırma kapsayıcısında: sayfayı taşırmaz, klavyeyle kaydırılabilir (tabindex=0) */
 .wrap {
   overflow-x: auto;
   max-width: 100%;
-  border: 1px solid var(--border);
+  border: var(--rule);
   border-radius: var(--radius-lg);
   background: var(--surface);
+}
+.wrap:focus-visible {
+  outline: var(--focus-w) solid var(--focus);
+  outline-offset: 2px;
 }
 .table {
   border-collapse: collapse;
   width: 100%;
   min-width: 36rem;
   font-size: var(--text-sm);
+  line-height: 1.5;
 }
 .table th,
 .table td {
-  padding: var(--space-3);
+  padding: var(--space-3) var(--space-4);
   text-align: start;
   vertical-align: top;
-  border-block-end: 1px solid var(--border);
+  border-block-end: var(--rule);
+}
+.table td {
+  color: var(--text-muted);
 }
 .table thead th {
   background: var(--surface-2);
-  font-weight: 700;
+  font-weight: var(--fw-emphasis);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  letter-spacing: var(--label-track);
+  text-transform: uppercase;
   white-space: nowrap;
 }
 .table tbody th {
-  font-weight: 600;
+  font-weight: var(--fw-emphasis);
+  color: var(--text);
   min-width: 14rem;
 }
 .table tbody tr:last-child th,
@@ -70,7 +84,7 @@
     gap: var(--space-3);
   }
   .table tr {
-    border: 1px solid var(--border);
+    border: var(--rule);
     border-radius: var(--radius-lg);
     background: var(--surface);
     overflow: hidden;
@@ -87,7 +101,18 @@
     content: attr(data-label);
     display: block;
     font-size: var(--text-xs);
-    color: var(--text-muted);
-    font-weight: 600;
+    color: var(--text-faint);
+  }
+}
+@media print {
+  .wrap,
+  .table tr {
+    border-color: #000;
+    background: none;
+  }
+  .table th,
+  .table td {
+    color: #000;
+    border-color: #000;
   }
 }

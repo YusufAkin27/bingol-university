@@ -245,3 +245,19 @@
 html:root[data-area='admin'] {
   --link: var(--info);
 }
+
+/* site: okuma (hukuki/bilgi sayfalari, marka kiti) */
+:root {
+  --read-measure: 68ch; /* uzun metin satir olcusu (60-75 karakter) */
+  --read-size: 1.0625rem; /* gövde 17 px */
+  --read-leading: 1.75;
+  --touch-min: 2.75rem; /* dokunma hedefi >= 44 px */
+  --rule: 1px solid var(--border); /* ince ayirici cizgi */
+  --label-track: 0.08em; /* kucuk buyuk-harf etiket aralığı (Arapçada 0) */
+}
+:root:lang(ar) {
+  --label-track: 0;
+}
+:root {
+  --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif; /* yalniz marka kitindeki baslik ornegi (BU logosu serif) */
+}

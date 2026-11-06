@@ -1,16 +1,32 @@
+/* Yönetici erişim bildirimi: ince çerçeveli, sol (RTL'de sağ) kenarında koyu çizgi; vurgu rengi yok. */
 .box {
   display: grid;
   gap: var(--space-2);
-  max-inline-size: 860px;
+  max-inline-size: 54rem;
   margin-inline: auto;
   margin-block-start: var(--space-6);
   padding: var(--space-5);
-  border: 1px solid var(--border-strong);
-  border-inline-start: 4px solid var(--primary);
+  border: var(--rule);
+  border-inline-start: 2px solid var(--text);
   border-radius: var(--radius-lg);
-  background: var(--surface-2);
+  background: var(--surface);
+}
+.title {
+  font-size: var(--text-lg);
+  font-weight: var(--fw-emphasis);
+  line-height: 1.3;
+  color: var(--text);
 }
 .box p {
   margin: 0;
+  max-width: var(--read-measure);
+  color: var(--text-muted);
+  line-height: 1.65;
   overflow-wrap: anywhere;
+}
+@media print {
+  .box {
+    border-color: #000;
+    background: none;
+  }
 }

@@ -2,7 +2,6 @@
 // API: GET /api/legal/{type} (herkese açık; Accept-Language'e göre, yoksa tr) → api/legal.ts `getLegal`, `parseLegalType`;
 //      GET /api/legal/{type}/versions (sürüm geçmişi). Metin <MarkdownText> ile gösterilir (HTML enjekte edilmez).
 import { useQuery } from '@tanstack/react-query';
-import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Link } from '../../components/LocalizedLink';
 import { isApiError } from '../../api/client';
@@ -17,6 +16,7 @@ import { AdminAccessNotice } from './components/AdminAccessNotice';
 import { LegalDocument } from './components/LegalDocument';
 import { listPublicLegalVersions } from './components/legalApi';
 import { PageHero } from './components/PageHero';
+import { usePrintDoc } from './components/ReadingToc';
 import { legalRouteId } from '../../seo/routeMeta';
 import { usePageMeta } from './components/usePageMeta';
 import shared from './components/site.module.css';
@@ -46,11 +46,8 @@ function LegalDocPage({ type }: { type: LegalType }) {
   const title = doc.data?.title ?? t(`legal.title.${type}`);
   usePageMeta({ route: legalRouteId(type), title });
 
-  // Yazdırma görünümü: site üst/alt bilgisi gizlenir (LegalPage.module.css)
-  useEffect(() => {
-    document.documentElement.classList.add('print-doc');
-    return () => document.documentElement.classList.remove('print-doc');
-  }, []);
+  // Yazdırma görünümü: site üst/alt bilgisi gizlenir (ReadingToc.module.css)
+  usePrintDoc();
 
   const lead = doc.data
     ? `${t('legal.version', { version: doc.data.version })}, ${t('legal.publishedAt', {
@@ -73,6 +70,7 @@ function LegalDocPage({ type }: { type: LegalType }) {
           <div className={`${styles.tools} ${styles.noPrint}`}>
             <Link to={paths.site.dataRequest} className={styles.toolLink}>
               {t('legal.dataRequest')}
+              <Icon name="chevronRight" size={16} className={styles.arrow} />
             </Link>
             <Button
               variant="secondary"
@@ -111,13 +109,13 @@ function LegalDocPage({ type }: { type: LegalType }) {
 
           <div className={`${styles.more} ${styles.noPrint}`}>
             <section aria-labelledby="legal-versions">
-              <h2 id="legal-versions" className={shared.h3}>
+              <h2 id="legal-versions" className={styles.moreTitle}>
                 {t('legal.versions')}
               </h2>
               {older.length === 0 ? (
-                <p className={shared.muted}>{t('legal.versionsNone')}</p>
+                <p className={styles.none}>{t('legal.versionsNone')}</p>
               ) : (
-                <ul>
+                <ul className={styles.rows}>
                   {older.map((v) => (
                     <li key={`${v.version}-${v.lang}`}>
                       {t('legal.versionRow', { version: v.version, date: formatDate(v.publishedAt) })}
@@ -127,17 +125,23 @@ function LegalDocPage({ type }: { type: LegalType }) {
               )}
             </section>
             <nav aria-labelledby="legal-others">
-              <h2 id="legal-others" className={shared.h3}>
+              <h2 id="legal-others" className={styles.moreTitle}>
                 {t('legal.otherDocs')}
               </h2>
-              <ul>
+              <ul className={styles.rows}>
                 {TYPES.filter((x) => x !== type).map((x) => (
                   <li key={x}>
-                    <Link to={paths.site.legal(x)}>{t(`legal.title.${x}`)}</Link>
+                    <Link to={paths.site.legal(x)}>
+                      {t(`legal.title.${x}`)}
+                      <Icon name="chevronRight" size={16} className={styles.arrow} />
+                    </Link>
                   </li>
                 ))}
                 <li>
-                  <Link to={LEGAL_INDEX}>{t('legal.allDocs')}</Link>
+                  <Link to={LEGAL_INDEX}>
+                    {t('legal.allDocs')}
+                    <Icon name="chevronRight" size={16} className={styles.arrow} />
+                  </Link>
                 </li>
               </ul>
             </nav>
