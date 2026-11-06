@@ -20,19 +20,28 @@ final class UnsubscribeFooter {
         MESSAGES.setFallbackToSystemLocale(false);
     }
 
+    /** layout.html alt bilgi hucresindeki yer isareti. */
+    static final String FOOTER_MARK = "<!--bu-footer-extra-->";
+
     private UnsubscribeFooter() {
     }
 
     static MailRenderer.Rendered append(MailRenderer.Rendered mail, String url, Lang lang) {
         String label = MESSAGES.getMessage("mail.tpl.unsubscribe.text", null, "Unsubscribe:", lang.locale());
         String host = host(url);
-        String htmlPart = "<p class=\"muted\" style=\"margin:0;padding:8px 28px 24px 28px;font-family:Arial,Helvetica,sans-serif;"
-                + "font-size:12px;line-height:1.5;color:#6b6f80;\">" + HtmlUtils.htmlEscape(label, "UTF-8") + " <a href=\""
-                + HtmlUtils.htmlEscape(url, "UTF-8") + "\" style=\"color:#6b6f80;\">" + HtmlUtils.htmlEscape(host, "UTF-8")
-                + "</a></p>\n";
+        String htmlPart = "<p class=\"muted\" style=\"margin:10px 0 0 0;font-size:13px;line-height:1.55;font-weight:400;"
+                + "color:#52525B;\">" + HtmlUtils.htmlEscape(label, "UTF-8") + " <a class=\"link\" href=\""
+                + HtmlUtils.htmlEscape(url, "UTF-8") + "\" style=\"color:#52525B;text-decoration:underline;\">"
+                + HtmlUtils.htmlEscape(host, "UTF-8") + "</a></p>\n";
         String html = mail.html();
-        int body = html.toLowerCase(Locale.ROOT).lastIndexOf("</body>");
-        String newHtml = body >= 0 ? html.substring(0, body) + htmlPart + html.substring(body) : html + htmlPart;
+        // Yerlesimin alt bilgi hucresindeki isaret (kartin icinde); yoksa (yonetici yerlesimi vb.) govdeden once
+        String newHtml;
+        if (html.contains(FOOTER_MARK)) {
+            newHtml = html.replace(FOOTER_MARK, htmlPart + FOOTER_MARK);
+        } else {
+            int body = html.toLowerCase(Locale.ROOT).lastIndexOf("</body>");
+            newHtml = body >= 0 ? html.substring(0, body) + htmlPart + html.substring(body) : html + htmlPart;
+        }
         String text = mail.text() + "\n" + label + " " + url + "\n";
         return new MailRenderer.Rendered(mail.subject(), newHtml, text);
     }
