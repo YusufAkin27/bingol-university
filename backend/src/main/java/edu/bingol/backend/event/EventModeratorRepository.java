@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface EventModeratorRepository extends JpaRepository<EventModerator, Long> {
 
+    List<EventModerator> findByUserId(Long userId);
+
     Optional<EventModerator> findByEventIdAndUserId(Long eventId, Long userId);
 
     List<EventModerator> findByEventIdOrderByCreatedAtAsc(Long eventId);

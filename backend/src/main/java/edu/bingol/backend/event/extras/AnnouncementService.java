@@ -63,7 +63,7 @@ public class AnnouncementService {
     }
 
     public AnnouncementResult send(Actor a, Long eventId, String title, String message, Instant now) {
-        UserEvent e = events.requireManager(a, events.load(eventId));
+        UserEvent e = events.requireManagerOrPerm(a, events.load(eventId), edu.bingol.backend.event.EventModerator.Perm.SEND_ANNOUNCEMENT);
         if (e.getStatus() != UserEvent.Status.ACTIVE) {
             throw new ApiException(HttpStatus.CONFLICT, "EVENT_NOT_OPEN", "Etkinlik henüz yayında değil.");
         }

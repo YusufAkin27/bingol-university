@@ -39,6 +39,12 @@ public class EventModeratorService {
     private final UserEventRepository eventRepo;
     private final EventModeratorRepository mods;
     private final CommunityService communities;
+    private edu.bingol.backend.notification.NotificationService notifications;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setNotifications(edu.bingol.backend.notification.NotificationService notifications) {
+        this.notifications = notifications;
+    }
 
     public EventModeratorService(EventService events, UserEventRepository eventRepo, EventModeratorRepository mods,
                                  CommunityService communities) {
@@ -93,6 +99,7 @@ public class EventModeratorService {
             throw new ApiException(HttpStatus.CONFLICT, "MODERATOR_NOT_MEMBER", "Moderatör yalnızca kulüp üyeleri arasından seçilir.");
         }
         EventModerator m = mods.findByEventIdAndUserId(eventId, userId).orElse(null);
+        boolean isNew = m == null;
         if (m == null) {
             if (mods.findByEventIdOrderByCreatedAtAsc(eventId).size() >= MAX_MODERATORS) {
                 throw new ApiException(HttpStatus.CONFLICT, "MODERATOR_LIMIT", "En fazla " + MAX_MODERATORS + " moderatör eklenebilir.",
@@ -108,6 +115,9 @@ public class EventModeratorService {
         mods.save(m);
         // Denetim izi: kim kime hangi yetkiyi verdi
         log.info("event-moderator event={} user={} perms={} by={}", eventId, userId, bits, a.id());
+        if (isNew) {
+            notifyUser(userId, "notif.event.moderatorAdded", e);
+        }
         return new ModeratorView(userId, u.getDisplayName() == null ? "Kullanıcı" : u.getDisplayName(), names(bits), m.getCreatedAt());
     }
 
@@ -117,6 +127,7 @@ public class EventModeratorService {
         mods.findByEventIdAndUserId(e.getId(), userId).ifPresent(m -> {
             mods.delete(m);
             log.info("event-moderator-removed event={} user={} by={}", eventId, userId, a.id());
+            notifyUser(userId, "notif.event.moderatorRemoved", e);
         });
     }
 
@@ -145,6 +156,28 @@ public class EventModeratorService {
             perms = names(m.getPermissions());
         }
         return new MyPermissions(false, e.isAttendanceOpen(), perms);
+    }
+
+    private void notifyUser(Long userId, String key, UserEvent e) {
+        if (notifications == null) {
+            return;
+        }
+        try {
+            notifications.sendTemplated(userId, edu.bingol.backend.notification.NotificationType.EVENT,
+                    edu.bingol.backend.notification.NotificationSubtype.EVENT_UPDATE, key,
+                    Map.of("eventId", e.getId().toString()), e.getTitle());
+        } catch (RuntimeException ex) {
+            log.warn("Moderator bildirimi gonderilemedi: {}", ex.toString());
+        }
+    }
+
+    /** KVKK dislama: kullanicinin moderator oldugu etkinlikler ve yetkileri. */
+    public List<Map<String, Object>> exportFor(Long userId) {
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (EventModerator m : mods.findByUserId(userId)) {
+            out.add(Map.of("eventId", m.getEventId(), "permissions", names(m.getPermissions()), "since", m.getCreatedAt().toString()));
+        }
+        return out;
     }
 
     /** Sahip-ozel islem: moderator 403 EVENT_PERMISSION_DENIED alir, yabanci kullanici requireManager kuralini (404/403). */

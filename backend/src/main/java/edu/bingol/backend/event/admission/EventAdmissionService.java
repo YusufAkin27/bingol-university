@@ -270,7 +270,7 @@ public class EventAdmissionService implements EventAdmissionHooks {
 
     @Transactional(readOnly = true)
     public CursorPage<ApplicantView> list(Actor a, Long eventId, Status status, Long cursor, int size) {
-        events.requireManager(a, events.load(eventId));
+        events.requireManagerOrPerm(a, events.load(eventId), edu.bingol.backend.event.EventModerator.Perm.MANAGE_REQUESTS);
         int s = CursorPage.clampSize(size);
         PageRequest page = PageRequest.of(0, s + 1);
         List<EventApplication> rows = status == null
@@ -297,7 +297,7 @@ public class EventAdmissionService implements EventAdmissionHooks {
 
     @Transactional(readOnly = true)
     public AdmissionSummary summary(Actor a, Long eventId) {
-        UserEvent e = events.requireManager(a, events.load(eventId));
+        UserEvent e = events.requireManagerOrPerm(a, events.load(eventId), edu.bingol.backend.event.EventModerator.Perm.MANAGE_REQUESTS);
         Mode mode = configs.findById(eventId).map(EventAdmission::getMode).orElse(Mode.OPEN);
         return new AdmissionSummary(eventId, mode, e.getCapacity(), eventRepo.goingCount(eventId),
                 apps.countByEventIdAndStatus(eventId, Status.PENDING), apps.countByEventIdAndStatus(eventId, Status.ACCEPTED),
@@ -308,7 +308,7 @@ public class EventAdmissionService implements EventAdmissionHooks {
     /** Toplu karar: her kimlik bagimsiz sonuclanir (hatali olan digerlerini engellemez). */
     @Transactional
     public DecisionResult decide(Actor a, Long eventId, List<Long> ids, Action action, String reason) {
-        UserEvent e = events.requireManager(a, events.load(eventId));
+        UserEvent e = events.requireManagerOrPerm(a, events.load(eventId), edu.bingol.backend.event.EventModerator.Perm.MANAGE_REQUESTS);
         requireOpenForAdmission(e);
         eventRows.lock(eventId);
         String note = Texts.blankToNull(reason);
@@ -331,7 +331,7 @@ public class EventAdmissionService implements EventAdmissionHooks {
     /** Tek karar; gecersiz gecis hata olarak doner. */
     @Transactional
     public DecisionItem decideOne(Actor a, Long eventId, Long appId, Action action, String reason) {
-        UserEvent e = events.requireManager(a, events.load(eventId));
+        UserEvent e = events.requireManagerOrPerm(a, events.load(eventId), edu.bingol.backend.event.EventModerator.Perm.MANAGE_REQUESTS);
         requireOpenForAdmission(e);
         eventRows.lock(eventId);
         EventApplication app = apps.findByIdAndEventId(appId, eventId).orElseThrow(EventAdmissionService::appNotFound);
@@ -344,7 +344,7 @@ public class EventAdmissionService implements EventAdmissionHooks {
      */
     @Transactional
     public DecisionItem approveRequest(Actor a, Long eventId, Long userId) {
-        UserEvent e = events.requireManager(a, events.load(eventId));
+        UserEvent e = events.requireManagerOrPerm(a, events.load(eventId), edu.bingol.backend.event.EventModerator.Perm.MANAGE_REQUESTS);
         requireOpenForAdmission(e);
         eventRows.lock(eventId);
         EventApplication app = apps.findByEventIdAndUserId(eventId, userId).orElseThrow(EventAdmissionService::appNotFound);
@@ -360,7 +360,7 @@ public class EventAdmissionService implements EventAdmissionHooks {
     /** Istegi kullanici kimligiyle reddeder (kabul edilmis katilimci da cikarilir). */
     @Transactional
     public DecisionItem rejectRequest(Actor a, Long eventId, Long userId, String reason) {
-        UserEvent e = events.requireManager(a, events.load(eventId));
+        UserEvent e = events.requireManagerOrPerm(a, events.load(eventId), edu.bingol.backend.event.EventModerator.Perm.MANAGE_REQUESTS);
         requireOpenForAdmission(e);
         eventRows.lock(eventId);
         EventApplication app = apps.findByEventIdAndUserId(eventId, userId).orElseThrow(EventAdmissionService::appNotFound);
