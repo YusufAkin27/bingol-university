@@ -23183,6 +23183,150 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Yoklama açık: giriş için QR kodunu göster.'**
   String get evtAttOpenYou;
+
+  /// No description provided for @evtModTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Moderatörler'**
+  String get evtModTitle;
+
+  /// No description provided for @evtModSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp üyelerinden seç; yetkileri tek tek aç veya kapat.'**
+  String get evtModSub;
+
+  /// No description provided for @evtModAdd.
+  ///
+  /// In tr, this message translates to:
+  /// **'Moderatör ekle'**
+  String get evtModAdd;
+
+  /// No description provided for @evtModEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz moderatör yok.'**
+  String get evtModEmpty;
+
+  /// No description provided for @evtModRemove.
+  ///
+  /// In tr, this message translates to:
+  /// **'Moderatörlüğü kaldır'**
+  String get evtModRemove;
+
+  /// No description provided for @evtModSearch.
+  ///
+  /// In tr, this message translates to:
+  /// **'Üye ara'**
+  String get evtModSearch;
+
+  /// No description provided for @evtModOwnerNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinliği kapatma, iptal, yoklamayı açıp kapatma ve moderatör yönetimi yalnız sahiptedir.'**
+  String get evtModOwnerNote;
+
+  /// No description provided for @evtModRole.
+  ///
+  /// In tr, this message translates to:
+  /// **'Moderatör'**
+  String get evtModRole;
+
+  /// No description provided for @evtModNoMembers.
+  ///
+  /// In tr, this message translates to:
+  /// **'Eklenebilecek kulüp üyesi bulunamadı.'**
+  String get evtModNoMembers;
+
+  /// No description provided for @evtPermTakeAttendance.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklama al'**
+  String get evtPermTakeAttendance;
+
+  /// No description provided for @evtPermTakeAttendanceSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR okut ve elle yoklama işaretle.'**
+  String get evtPermTakeAttendanceSub;
+
+  /// No description provided for @evtPermManageRequests.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılım isteklerini yönet'**
+  String get evtPermManageRequests;
+
+  /// No description provided for @evtPermManageRequestsSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstekleri onayla veya reddet.'**
+  String get evtPermManageRequestsSub;
+
+  /// No description provided for @evtPermViewAttendees.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılımcı listesini gör'**
+  String get evtPermViewAttendees;
+
+  /// No description provided for @evtPermViewAttendeesSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılanları ve yoklama durumunu görüntüle.'**
+  String get evtPermViewAttendeesSub;
+
+  /// No description provided for @evtPermSendAnnouncement.
+  ///
+  /// In tr, this message translates to:
+  /// **'Duyuru gönder'**
+  String get evtPermSendAnnouncement;
+
+  /// No description provided for @evtPermSendAnnouncementSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılımcılara etkinlik duyurusu gönder.'**
+  String get evtPermSendAnnouncementSub;
+
+  /// No description provided for @evtPermEditInfo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bilgileri düzenle'**
+  String get evtPermEditInfo;
+
+  /// No description provided for @evtPermEditInfoSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başlık, açıklama ve yeri değiştir.'**
+  String get evtPermEditInfoSub;
+
+  /// No description provided for @evtPermEditSchedule.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tarih ve saati düzenle'**
+  String get evtPermEditSchedule;
+
+  /// No description provided for @evtPermEditScheduleSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başlangıç ve bitiş zamanını değiştir.'**
+  String get evtPermEditScheduleSub;
+
+  /// No description provided for @evtModManageTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Moderatör yetkilerin'**
+  String get evtModManageTitle;
+
+  /// No description provided for @evtModManageNone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu etkinlikte sana verilmiş bir yetki yok.'**
+  String get evtModManageNone;
+
+  /// No description provided for @evtAttClosedNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklama şu an kapalı.'**
+  String get evtAttClosedNote;
 }
 
 class _AppLocalizationsDelegate

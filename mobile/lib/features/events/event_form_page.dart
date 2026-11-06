@@ -70,19 +70,12 @@ Future<bool> uploadEventCover({
   }
 }
 
-/// Kulüp etkinlik oluşturabilir mi? Yönetici (OWNER/ADMIN/MODERATOR) doğrudan yayınlar;
-/// `MANAGE_EVENTS` izinli üye onaya gönderir; diğerleri oluşturamaz (null).
-/// Dönüş: true = hemen yayınlanır, false = admin onayına gider, null = oluşturamaz.
+/// Kulüp etkinlik oluşturabilir mi? YALNIZ kulüp sahibi (OWNER) oluşturur ve etkinlik doğrudan yayınlanır;
+/// yönetici/moderatör/izinli üye oluşturamaz (null). Dönüş: true = sahip, null = oluşturamaz.
 bool? eventClubPublishMode(Map<String, dynamic> club) {
   final st = club['myStatus'];
   if (st != null && st != 'ACTIVE') return null;
-  final role = club['myRole'];
-  if (role == 'OWNER' || role == 'ADMIN' || role == 'MODERATOR') return true;
-  final perms = club['myPermissions'] ?? club['permissions'];
-  if (club['canManageEvents'] == true || (perms is List && perms.contains('MANAGE_EVENTS'))) {
-    return false;
-  }
-  return null;
+  return club['myRole'] == 'OWNER' ? true : null;
 }
 
 /// Etkinlik oluşturma / düzenleme. [event] verilirse düzenleme (PATCH), yoksa oluşturma (POST).

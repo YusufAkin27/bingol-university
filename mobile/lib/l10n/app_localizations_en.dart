@@ -12896,4 +12896,81 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get evtAttOpenYou =>
       'Check-in is open: show your QR code at the entrance.';
+
+  @override
+  String get evtModTitle => 'Moderators';
+
+  @override
+  String get evtModSub =>
+      'Pick club members and switch each permission on or off.';
+
+  @override
+  String get evtModAdd => 'Add moderator';
+
+  @override
+  String get evtModEmpty => 'No moderators yet.';
+
+  @override
+  String get evtModRemove => 'Remove moderator';
+
+  @override
+  String get evtModSearch => 'Search members';
+
+  @override
+  String get evtModOwnerNote =>
+      'Closing, cancelling, opening check-in and managing moderators belong to the owner only.';
+
+  @override
+  String get evtModRole => 'Moderator';
+
+  @override
+  String get evtModNoMembers => 'No club member available to add.';
+
+  @override
+  String get evtPermTakeAttendance => 'Take attendance';
+
+  @override
+  String get evtPermTakeAttendanceSub =>
+      'Scan QR codes and mark attendance by hand.';
+
+  @override
+  String get evtPermManageRequests => 'Manage join requests';
+
+  @override
+  String get evtPermManageRequestsSub => 'Approve or reject requests.';
+
+  @override
+  String get evtPermViewAttendees => 'See attendee list';
+
+  @override
+  String get evtPermViewAttendeesSub =>
+      'View attendees and their check-in status.';
+
+  @override
+  String get evtPermSendAnnouncement => 'Send announcements';
+
+  @override
+  String get evtPermSendAnnouncementSub =>
+      'Send event announcements to attendees.';
+
+  @override
+  String get evtPermEditInfo => 'Edit details';
+
+  @override
+  String get evtPermEditInfoSub => 'Change title, description and place.';
+
+  @override
+  String get evtPermEditSchedule => 'Edit date and time';
+
+  @override
+  String get evtPermEditScheduleSub => 'Change start and end time.';
+
+  @override
+  String get evtModManageTitle => 'Your moderator permissions';
+
+  @override
+  String get evtModManageNone => 'You have no permission for this event.';
+
+  @override
+  String get evtAttClosedNote => 'Check-in is closed right now.';
 }

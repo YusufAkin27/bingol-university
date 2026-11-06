@@ -12782,4 +12782,77 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get evtAttOpenYou => 'تسجيل الحضور مفتوح: اعرض رمزك عند الدخول.';
+
+  @override
+  String get evtModTitle => 'المشرفون';
+
+  @override
+  String get evtModSub => 'اختر من أعضاء النادي وفعّل كل صلاحية أو عطّلها.';
+
+  @override
+  String get evtModAdd => 'إضافة مشرف';
+
+  @override
+  String get evtModEmpty => 'لا يوجد مشرفون بعد.';
+
+  @override
+  String get evtModRemove => 'إزالة المشرف';
+
+  @override
+  String get evtModSearch => 'ابحث عن عضو';
+
+  @override
+  String get evtModOwnerNote =>
+      'الإغلاق والإلغاء وفتح تسجيل الحضور وإدارة المشرفين من صلاحيات المالك فقط.';
+
+  @override
+  String get evtModRole => 'مشرف';
+
+  @override
+  String get evtModNoMembers => 'لا يوجد أعضاء متاحون للإضافة.';
+
+  @override
+  String get evtPermTakeAttendance => 'تسجيل الحضور';
+
+  @override
+  String get evtPermTakeAttendanceSub => 'مسح الرموز وتسجيل الحضور يدويًا.';
+
+  @override
+  String get evtPermManageRequests => 'إدارة طلبات الانضمام';
+
+  @override
+  String get evtPermManageRequestsSub => 'قبول الطلبات أو رفضها.';
+
+  @override
+  String get evtPermViewAttendees => 'عرض قائمة المشاركين';
+
+  @override
+  String get evtPermViewAttendeesSub => 'عرض المشاركين وحالة حضورهم.';
+
+  @override
+  String get evtPermSendAnnouncement => 'إرسال الإعلانات';
+
+  @override
+  String get evtPermSendAnnouncementSub => 'إرسال إعلانات الفعالية للمشاركين.';
+
+  @override
+  String get evtPermEditInfo => 'تعديل التفاصيل';
+
+  @override
+  String get evtPermEditInfoSub => 'تغيير العنوان والوصف والمكان.';
+
+  @override
+  String get evtPermEditSchedule => 'تعديل التاريخ والوقت';
+
+  @override
+  String get evtPermEditScheduleSub => 'تغيير وقت البدء والانتهاء.';
+
+  @override
+  String get evtModManageTitle => 'صلاحياتك كمشرف';
+
+  @override
+  String get evtModManageNone => 'ليست لديك صلاحية في هذه الفعالية.';
+
+  @override
+  String get evtAttClosedNote => 'تسجيل الحضور مغلق حاليًا.';
 }

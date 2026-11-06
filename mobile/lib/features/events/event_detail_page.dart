@@ -19,6 +19,7 @@ import 'checkin_input.dart';
 import 'etkinlik2_apply_sheet.dart';
 import 'etkinlik2_attendance_page.dart';
 import 'etkinlik2_qr_page.dart';
+import 'etkinlik3_moderators_page.dart';
 import 'etkinlik3_my_qr_page.dart';
 import 'etkinlik3_scan_page.dart';
 import 'etkinlik2_requests_page.dart';
@@ -65,6 +66,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
 
   bool _attOpen = false; // sahip yoklamayı açtı mı (my-permissions)
   bool _attOpenBusy = false;
+  List<String> _perms = const []; // moderatörün bu etkinlikteki yetkileri (sahipte boş)
   bool _rsvpBusy = false;
   bool _chatBusy = false;
   bool _checkBusy = false;
@@ -137,12 +139,15 @@ class _EventDetailPageState extends State<EventDetailPage> {
         if (mounted) setState(() => _attendance = _list(r));
       } catch (_) {}
     }
-    if (_manage || _rsvp == 'GOING') {
-      try {
-        final r = await api.get('$_path/my-permissions');
-        if (mounted && r is Map) setState(() => _attOpen = r['attendanceOpen'] == true);
-      } catch (_) {}
-    }
+    try {
+      final r = await api.get('$_path/my-permissions');
+      if (mounted && r is Map) {
+        setState(() {
+          _attOpen = r['attendanceOpen'] == true;
+          _perms = r['owner'] == true ? const [] : [for (final p in (r['permissions'] as List? ?? const [])) '$p'];
+        });
+      }
+    } catch (_) {}
     if (_rsvp == 'GOING') {
       try {
         final r = await api.get('$_path/my-attendance');
@@ -346,6 +351,58 @@ class _EventDetailPageState extends State<EventDetailPage> {
       MaterialPageRoute(settings: const RouteSettings(name: 'etkinlik3_scan'), builder: (_) => Etkinlik3ScanPage(session: widget.session, event: _ev!)),
     );
     if (mounted) _loadExtras();
+  }
+
+  bool get _isMod => !_manage && _perms.isNotEmpty;
+
+  Future<void> _openModerators() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(settings: const RouteSettings(name: 'etkinlik3_moderators'), builder: (_) => Etkinlik3ModeratorsPage(session: widget.session, event: _ev!)),
+    );
+  }
+
+  /// Moderatör: yalnız kendisine verilen yetkilerin eylemleri görünür; sahip-özel eylemler (kapatma, iptal,
+  /// yoklamayı açıp kapatma, moderatör yönetimi) hiç çizilmez.
+  Widget _moderatorBlock() {
+    final t = context.bu;
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    final rows = <Widget>[];
+    void add(Widget w) => rows.add(w);
+    final pending = (_ev?['pendingCount'] as num?)?.toInt() ?? 0;
+    if (_perms.contains('TAKE_ATTENDANCE')) {
+      add(_attOpen
+          ? Et2NavRow(key: const ValueKey('detail-mod-scan'), icon: BuIcons.qrCode, title: l.evtQrScanTitle, sub: l.evtPermTakeAttendanceSub, top: rows.isNotEmpty, onTap: _openScanner)
+          : Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(l.evtAttClosedNote, key: const ValueKey('detail-mod-closed'), style: tx.bodyMedium!.copyWith(color: t.mut)),
+            ));
+    }
+    if (_perms.contains('VIEW_ATTENDEES') || _perms.contains('TAKE_ATTENDANCE')) {
+      add(Et2NavRow(key: const ValueKey('detail-mod-list'), icon: BuIcons.clipboardCheck, title: l.etkinlik2ManageAttendance, sub: l.evtPermViewAttendeesSub, top: rows.isNotEmpty, onTap: _openAttendance));
+    }
+    if (_perms.contains('MANAGE_REQUESTS') && _approval) {
+      add(Et2NavRow(
+          key: const ValueKey('detail-mod-requests'),
+          icon: BuIcons.userCheck,
+          title: l.etkinlik2ManageRequests,
+          sub: pending == 0 ? l.etkinlik2ManageNoPending : l.etkinlik2ManagePending('$pending'),
+          top: rows.isNotEmpty,
+          onTap: _openRequests));
+    }
+    return BuCard(
+      key: const ValueKey('detail-mod-block'),
+      radius: 16,
+      padding: EdgeInsets.zero,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 4),
+          child: Text(l.evtModManageTitle, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
+        ),
+        if (rows.isEmpty) Padding(padding: const EdgeInsets.all(16), child: Text(l.evtModManageNone, style: tx.bodyMedium!.copyWith(color: t.mut))) else ...rows,
+      ]),
+    );
   }
 
   Future<void> _openMyQr() async {
@@ -922,6 +979,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
           top: 12,
         ),
       if (_manage && !cancelled) _pad(_manageBlock(), top: 12),
+      if (_isMod && !cancelled) _pad(_moderatorBlock(), top: 12),
       if (_approval && !_manage && !cancelled && !pendingReview && !rejected && rsvp != 'GOING' && rsvp != 'REJECTED') _pad(_requestCard(), top: 12),
       if (!cancelled) _pad(_chatRow(member: member), top: 4),
       if (desc != null && desc.trim().isNotEmpty) _pad(Text(desc, style: tx.titleMedium!.copyWith(height: 1.6, color: t.ink, fontWeight: FontWeight.w400)), top: 24),
@@ -1133,6 +1191,15 @@ class _EventDetailPageState extends State<EventDetailPage> {
             sub: total == 0 ? l.eventFormNoAttendance : l.eventFormAttendanceCount('$present', '$total'),
             onTap: _openAttendance,
           ),
+          if ((_ev?['communityId'] as num?) != null)
+            Et2NavRow(
+              key: const ValueKey('detail-open-moderators'),
+              top: true,
+              icon: BuIcons.users,
+              title: l.evtModTitle,
+              sub: l.evtModSub,
+              onTap: _openModerators,
+            ),
           Et2NavRow(
             top: true,
             icon: BuIcons.settings,

@@ -12849,4 +12849,80 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get evtAttOpenYou => 'Yoklama açık: giriş için QR kodunu göster.';
+
+  @override
+  String get evtModTitle => 'Moderatörler';
+
+  @override
+  String get evtModSub =>
+      'Kulüp üyelerinden seç; yetkileri tek tek aç veya kapat.';
+
+  @override
+  String get evtModAdd => 'Moderatör ekle';
+
+  @override
+  String get evtModEmpty => 'Henüz moderatör yok.';
+
+  @override
+  String get evtModRemove => 'Moderatörlüğü kaldır';
+
+  @override
+  String get evtModSearch => 'Üye ara';
+
+  @override
+  String get evtModOwnerNote =>
+      'Etkinliği kapatma, iptal, yoklamayı açıp kapatma ve moderatör yönetimi yalnız sahiptedir.';
+
+  @override
+  String get evtModRole => 'Moderatör';
+
+  @override
+  String get evtModNoMembers => 'Eklenebilecek kulüp üyesi bulunamadı.';
+
+  @override
+  String get evtPermTakeAttendance => 'Yoklama al';
+
+  @override
+  String get evtPermTakeAttendanceSub => 'QR okut ve elle yoklama işaretle.';
+
+  @override
+  String get evtPermManageRequests => 'Katılım isteklerini yönet';
+
+  @override
+  String get evtPermManageRequestsSub => 'İstekleri onayla veya reddet.';
+
+  @override
+  String get evtPermViewAttendees => 'Katılımcı listesini gör';
+
+  @override
+  String get evtPermViewAttendeesSub =>
+      'Katılanları ve yoklama durumunu görüntüle.';
+
+  @override
+  String get evtPermSendAnnouncement => 'Duyuru gönder';
+
+  @override
+  String get evtPermSendAnnouncementSub =>
+      'Katılımcılara etkinlik duyurusu gönder.';
+
+  @override
+  String get evtPermEditInfo => 'Bilgileri düzenle';
+
+  @override
+  String get evtPermEditInfoSub => 'Başlık, açıklama ve yeri değiştir.';
+
+  @override
+  String get evtPermEditSchedule => 'Tarih ve saati düzenle';
+
+  @override
+  String get evtPermEditScheduleSub => 'Başlangıç ve bitiş zamanını değiştir.';
+
+  @override
+  String get evtModManageTitle => 'Moderatör yetkilerin';
+
+  @override
+  String get evtModManageNone => 'Bu etkinlikte sana verilmiş bir yetki yok.';
+
+  @override
+  String get evtAttClosedNote => 'Yoklama şu an kapalı.';
 }
