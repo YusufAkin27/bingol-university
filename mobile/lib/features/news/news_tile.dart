@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
 import '../../widgets/common.dart';
+import '../academic/academic_models.dart' show istanbulWall;
 import 'icerik_parts.dart';
 
 /// Tür rozeti tonu: haber koyu mavi (null = varsayılan), duyuru su mavisi, etkinlik amber (tarihli/hatırlatma).
@@ -60,7 +61,9 @@ String newsWeekdayName(BuildContext context, int weekday, {bool short = false}) 
 
 /// "26 Ekim 2026" (ISO tarih ya da zaman damgasından); ayrıştırılamazsa sayısal biçim.
 String newsLocalDate(BuildContext context, String? iso) {
-  final d = iso == null ? null : DateTime.tryParse(iso)?.toLocal();
+  final inst = iso == null ? null : DateTime.tryParse(iso);
+  // Ofsetli zaman damgası kampüs saatine (Europe/Istanbul) çevrilir; ofsetsiz tarih (yyyy-MM-dd) aynen kalır.
+  final d = inst == null ? null : (inst.isUtc ? istanbulWall(inst) : inst);
   return d == null ? fmtDate(iso) : '${d.day} ${newsMonthName(context, d.month)} ${d.year}';
 }
 

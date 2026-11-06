@@ -290,8 +290,6 @@ class PushRouter {
         final u = t.url == null ? null : Uri.tryParse(t.url!);
         if (u == null || u.scheme != 'https') return false;
         return launchUrl(u, mode: LaunchMode.externalApplication);
-      case PushDest
-            .signOut: // ölü değer (bkz. PushDest.signOut): hiçbir yük buraya çözülmez, çıkış yapılmaz
       case PushDest.notifications:
         return false;
     }

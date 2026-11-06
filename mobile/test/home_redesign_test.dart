@@ -47,7 +47,7 @@ void main() {
           expect(find.text('BÜ Kampüs'), findsOneWidget);
           expect(find.text('Bağımsız öğrenci uygulaması'), findsNothing);
           expect(find.textContaining('Ayşe'), findsOneWidget);
-          expect(find.byTooltip('Ana sayfayı düzenle'), findsOneWidget);
+          expect(find.byTooltip('Ana sayfayı düzenle'), findsNothing); // başlıktaki kalem kaldırıldı (d26533b7); düzenleme Hızlı erişim > Diğer ve uzun basma
           expect(find.text('Hızlı erişim'), findsOneWidget);
           expect(find.text('Etkinlikler'), findsOneWidget);
           expect(find.text('Anketler'), findsOneWidget);

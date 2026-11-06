@@ -6950,9 +6950,21 @@
   "evtQrScanTitle": "QR okut",
   "evtQrScanHint": "Katılımcının QR kodunu çerçeveye alın.",
   "evtQrScanMarked": "{name} katıldı",
-  "@evtQrScanMarked": {"placeholders": {"name": {"type": "String"}}},
+  "@evtQrScanMarked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "evtQrScanAlready": "{name} zaten katıldı",
-  "@evtQrScanAlready": {"placeholders": {"name": {"type": "String"}}},
+  "@evtQrScanAlready": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "evtQrMyTitle": "QR kodum",
   "evtQrMyHint": "Girişte bu kodu etkinlik görevlisine okutun. Kod kısa sürede yenilenir.",
   "evtQrMyNotApproved": "QR kodun, katılımın onaylanınca burada görünür.",
@@ -6997,34 +7009,94 @@
   "evtAtt2ScanQr": "QR okut",
   "evtAtt2Search": "Katılımcı ara",
   "evtAtt2Pending": "Bekliyor",
-  "evtAtt2Counter": "{present} geldi · {absent} gelmedi · {pending} bekliyor",
-  "@evtAtt2Counter": {"placeholders":{"present":{"type":"String"},"absent":{"type":"String"},"pending":{"type":"String"}}},
+  "evtAtt2Counter": "{present} geldi · {absent} gelmedi · {pending} bekliyor",
+  "@evtAtt2Counter": {
+    "placeholders": {
+      "present": {
+        "type": "String"
+      },
+      "absent": {
+        "type": "String"
+      },
+      "pending": {
+        "type": "String"
+      }
+    }
+  },
   "evtAtt2MarkPresent": "Geldi",
   "evtAtt2MarkAbsent": "Gelmedi",
   "evtAtt2MarkReset": "Sıfırla (bekliyor)",
-  "evtAtt2SheetTitle": "{name} için yoklama",
-  "@evtAtt2SheetTitle": {"placeholders":{"name":{"type":"String"}}},
+  "evtAtt2SheetTitle": "{name} için yoklama",
+  "@evtAtt2SheetTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "evtAtt2BulkRest": "Kalanları gelmedi işaretle",
   "evtAtt2BulkTitle": "Kalanlar gelmedi işaretlensin mi?",
-  "evtAtt2BulkBody": "{count} kişi \"Gelmedi\" olarak işaretlenecek. Sonra tek tek değiştirebilirsin.",
-  "@evtAtt2BulkBody": {"placeholders":{"count":{"type":"String"}}},
-  "evtAtt2BulkDone": "{count} kişi gelmedi işaretlendi",
-  "@evtAtt2BulkDone": {"placeholders":{"count":{"type":"String"}}},
+  "evtAtt2BulkBody": "{count} kişi \"Gelmedi\" olarak işaretlenecek. Sonra tek tek değiştirebilirsin.",
+  "@evtAtt2BulkBody": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "evtAtt2BulkDone": "{count} kişi gelmedi işaretlendi",
+  "@evtAtt2BulkDone": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "evtAtt2SrcQr": "QR",
   "evtAtt2SrcManual": "Elle",
-  "evtAtt2ByScanner": "Okutan: {name}",
-  "@evtAtt2ByScanner": {"placeholders":{"name":{"type":"String"}}},
-  "evtAtt2ByMarker": "İşaretleyen: {name}",
-  "@evtAtt2ByMarker": {"placeholders":{"name":{"type":"String"}}},
+  "evtAtt2ByScanner": "Okutan: {name}",
+  "@evtAtt2ByScanner": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "evtAtt2ByMarker": "İşaretleyen: {name}",
+  "@evtAtt2ByMarker": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "evtAtt2ViewOnly": "Listeyi yalnız görüntüleyebilirsin; işaretleme yetkin yok.",
   "evtAtt2NoMatch": "Aramana uyan katılımcı yok.",
   "evtAtt2ListEmpty": "Henüz onaylı katılımcı yok.",
-  "evtAtt2ToastAbsent": "{name} gelmedi olarak işaretlendi",
-  "@evtAtt2ToastAbsent": {"placeholders":{"name":{"type":"String"}}},
-  "evtAtt2ToastPresent": "{name} geldi olarak işaretlendi",
-  "@evtAtt2ToastPresent": {"placeholders":{"name":{"type":"String"}}},
-  "evtAtt2ToastReset": "{name} sıfırlandı",
-  "@evtAtt2ToastReset": {"placeholders":{"name":{"type":"String"}}},
+  "evtAtt2ToastAbsent": "{name} gelmedi olarak işaretlendi",
+  "@evtAtt2ToastAbsent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "evtAtt2ToastPresent": "{name} geldi olarak işaretlendi",
+  "@evtAtt2ToastPresent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "evtAtt2ToastReset": "{name} sıfırlandı",
+  "@evtAtt2ToastReset": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "evtAtt2StaffNoQr": "Yoklamayı alanların kişisel QR kodu yoktur; katılımcıların QR kodunu okutursun.",
   "evtAtt2ParticipantHint": "Yoklama alınırken görevliye bu kodu göster. Başka bir şey yapman gerekmez.",
   "evtAtt2StatusArrived": "Yoklaman alındı",
@@ -7036,5 +7108,9 @@
   "evtMeetLat": "Enlem (isteğe bağlı)",
   "evtMeetLng": "Boylam (isteğe bağlı)",
   "evtMeetCoordInvalid": "Enlem -90 ile 90, boylam -180 ile 180 arasında olmalı ve ikisi birlikte girilmeli.",
-  "evtEditEndedNote": "Etkinlik sona erdi: yalnız açıklama düzenlenebilir."
+  "evtEditEndedNote": "Etkinlik sona erdi: yalnız açıklama düzenlenebilir.",
+  "unitNewsTitle": "Bölümüm",
+  "unitNewsSemantic": "Bölümümün duyuruları",
+  "unitNewsAttachments": "Ekler",
+  "unitNewsError": "Duyuru yüklenemedi."
 }

@@ -4597,9 +4597,21 @@
   "evtQrScanTitle": "مسح الرمز",
   "evtQrScanHint": "وجّه الكاميرا نحو رمز QR الخاص بالمشارك.",
   "evtQrScanMarked": "تم تسجيل حضور {name}",
-  "@evtQrScanMarked": {"placeholders": {"name": {"type": "String"}}},
+  "@evtQrScanMarked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "evtQrScanAlready": "{name} سُجّل حضوره مسبقًا",
-  "@evtQrScanAlready": {"placeholders": {"name": {"type": "String"}}},
+  "@evtQrScanAlready": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "evtQrMyTitle": "رمزي",
   "evtQrMyHint": "اعرض هذا الرمز على منظم الفعالية عند الدخول. يتجدد خلال وقت قصير.",
   "evtQrMyNotApproved": "يظهر رمزك هنا بعد الموافقة على مشاركتك.",
@@ -4644,34 +4656,94 @@
   "evtAtt2ScanQr": "مسح QR",
   "evtAtt2Search": "ابحث عن مشارك",
   "evtAtt2Pending": "قيد الانتظار",
-  "evtAtt2Counter": "{present} حضروا · {absent} غابوا · {pending} قيد الانتظار",
-  "@evtAtt2Counter": {"placeholders":{"present":{"type":"String"},"absent":{"type":"String"},"pending":{"type":"String"}}},
+  "evtAtt2Counter": "{present} حضروا · {absent} غابوا · {pending} قيد الانتظار",
+  "@evtAtt2Counter": {
+    "placeholders": {
+      "present": {
+        "type": "String"
+      },
+      "absent": {
+        "type": "String"
+      },
+      "pending": {
+        "type": "String"
+      }
+    }
+  },
   "evtAtt2MarkPresent": "حضر",
   "evtAtt2MarkAbsent": "غائب",
   "evtAtt2MarkReset": "إعادة التعيين (قيد الانتظار)",
-  "evtAtt2SheetTitle": "الحضور لـ {name}",
-  "@evtAtt2SheetTitle": {"placeholders":{"name":{"type":"String"}}},
+  "evtAtt2SheetTitle": "الحضور لـ {name}",
+  "@evtAtt2SheetTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "evtAtt2BulkRest": "تسجيل الباقين كغائبين",
   "evtAtt2BulkTitle": "تسجيل الباقين كغائبين؟",
-  "evtAtt2BulkBody": "سيتم تسجيل {count} شخصًا كـ \"غائب\". يمكنك تغيير كل واحد لاحقًا.",
-  "@evtAtt2BulkBody": {"placeholders":{"count":{"type":"String"}}},
-  "evtAtt2BulkDone": "تم تسجيل {count} شخصًا كغائبين",
-  "@evtAtt2BulkDone": {"placeholders":{"count":{"type":"String"}}},
+  "evtAtt2BulkBody": "سيتم تسجيل {count} شخصًا كـ \"غائب\". يمكنك تغيير كل واحد لاحقًا.",
+  "@evtAtt2BulkBody": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "evtAtt2BulkDone": "تم تسجيل {count} شخصًا كغائبين",
+  "@evtAtt2BulkDone": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "evtAtt2SrcQr": "QR",
   "evtAtt2SrcManual": "يدويًا",
-  "evtAtt2ByScanner": "مسحه {name}",
-  "@evtAtt2ByScanner": {"placeholders":{"name":{"type":"String"}}},
-  "evtAtt2ByMarker": "سجّله {name}",
-  "@evtAtt2ByMarker": {"placeholders":{"name":{"type":"String"}}},
+  "evtAtt2ByScanner": "مسحه {name}",
+  "@evtAtt2ByScanner": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "evtAtt2ByMarker": "سجّله {name}",
+  "@evtAtt2ByMarker": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "evtAtt2ViewOnly": "يمكنك عرض القائمة فقط؛ ليس لديك صلاحية التسجيل.",
   "evtAtt2NoMatch": "لا يوجد مشارك يطابق بحثك.",
   "evtAtt2ListEmpty": "لا يوجد مشاركون معتمدون بعد.",
-  "evtAtt2ToastAbsent": "تم تسجيل {name} كغائب",
-  "@evtAtt2ToastAbsent": {"placeholders":{"name":{"type":"String"}}},
-  "evtAtt2ToastPresent": "تم تسجيل {name} كحاضر",
-  "@evtAtt2ToastPresent": {"placeholders":{"name":{"type":"String"}}},
-  "evtAtt2ToastReset": "تمت إعادة تعيين {name}",
-  "@evtAtt2ToastReset": {"placeholders":{"name":{"type":"String"}}},
+  "evtAtt2ToastAbsent": "تم تسجيل {name} كغائب",
+  "@evtAtt2ToastAbsent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "evtAtt2ToastPresent": "تم تسجيل {name} كحاضر",
+  "@evtAtt2ToastPresent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "evtAtt2ToastReset": "تمت إعادة تعيين {name}",
+  "@evtAtt2ToastReset": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "evtAtt2StaffNoQr": "من يأخذون الحضور ليس لديهم رمز QR شخصي؛ تقوم بمسح رموز المشاركين.",
   "evtAtt2ParticipantHint": "اعرض هذا الرمز على المسؤول عن الحضور. لا حاجة لأي شيء آخر.",
   "evtAtt2StatusArrived": "تم تسجيل حضورك",
@@ -4683,5 +4755,9 @@
   "evtMeetLat": "خط العرض (اختياري)",
   "evtMeetLng": "خط الطول (اختياري)",
   "evtMeetCoordInvalid": "يجب أن يكون خط العرض بين -90 و90 وخط الطول بين -180 و180 ويُدخلان معًا.",
-  "evtEditEndedNote": "انتهت الفعالية: يمكن تعديل الوصف فقط."
+  "evtEditEndedNote": "انتهت الفعالية: يمكن تعديل الوصف فقط.",
+  "unitNewsTitle": "قسمي",
+  "unitNewsSemantic": "إعلانات قسمي",
+  "unitNewsAttachments": "المرفقات",
+  "unitNewsError": "تعذّر تحميل الإعلان."
 }

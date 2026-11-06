@@ -4,6 +4,7 @@ import 'package:bu_kampus/features/news/news_list_page.dart';
 import 'package:bu_kampus/features/profile/saved_news_page.dart';
 import 'package:bu_kampus/features/search/search_page.dart';
 import 'package:bu_kampus/widgets/bu.dart';
+import 'package:bu_kampus/widgets/linkified_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -155,10 +156,10 @@ void main() {
       expect(tester.getSize(find.byType(FlexibleSpaceBar)).height, 240);
       expect(find.text('HABER'), findsOneWidget);
       expect(find.textContaining('2026 · bingol.edu.tr'), findsOneWidget);
-      final h = tester.widget<Text>(find.text(title).last);
+      final h = tester.widgetList<Text>(find.text(title)).firstWhere((x) => x.style?.fontSize == 26); // başlık Text'i (daraltılmış çubuktaki kopya stilsiz olabilir)
       expect(h.style!.fontSize, 26);
       expect(h.style!.fontWeight, FontWeight.w400);
-      final body = tester.widget<Text>(find.text('İlk paragraf.'));
+      final body = tester.widget<LinkifiedText>(find.widgetWithText(LinkifiedText, 'İlk paragraf.')); // gövde artık bağlantılı metin
       expect(body.style!.fontSize, 16);
       expect(body.style!.height, 1.5);
       expect(find.text('İçeriğin tamamı için kaynak sayfayı açın.'), findsOneWidget);
