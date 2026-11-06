@@ -123,13 +123,14 @@ void main() {
       final rt = ChatRealtime(s);
       s.realtime = rt;
       await _pump(tester, ChatTab(session: s, connectRealtime: false));
-      bool hasIcon(IconData d) => tester.widgetList<Icon>(find.byType(Icon)).any((w) => w.icon == d);
-      expect(hasIcon(BuIcons.check), isTrue);
-      expect(hasIcon(BuIcons.checkCheck), isFalse);
+      // Tik ikonu tek birlesik bilesen (MessageStatusIcon): durum anahtari `msg-status-<DURUM>`.
+      bool hasStatus(String st) => find.byKey(ValueKey<String>('msg-status-$st')).evaluate().isNotEmpty;
+      expect(hasStatus('SENT'), isTrue);
+      expect(hasStatus('DELIVERED'), isFalse);
 
       rt.debugEmitMessageEvent(_receipt('delivered', 5, 'DELIVERED'));
       await settle(tester, const Duration(milliseconds: 400));
-      expect(hasIcon(BuIcons.checkCheck), isTrue);
+      expect(hasStatus('DELIVERED'), isTrue);
       expect(tester.takeException(), isNull);
     });
   });

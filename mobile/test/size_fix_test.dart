@@ -20,7 +20,7 @@ void main() {
     expect(BuSize.chip, lessThan(BuSize.touch));
     expect(BuSize.iconBtn, lessThan(BuSize.touch));
     expect(BuSize.field, greaterThanOrEqualTo(BuSize.touch));
-    expect(BuSize.nav, 64);
+    expect(BuSize.nav, 68); // Soft Glow alt bar (2026-11-07)
     expect(BuSize.navInset, BuSize.nav + 2 * BuSize.navGap);
     expect(kNavInset, BuSize.navInset);
   });
