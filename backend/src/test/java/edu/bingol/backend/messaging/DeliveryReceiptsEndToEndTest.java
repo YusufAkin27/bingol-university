@@ -42,6 +42,7 @@ class DeliveryReceiptsEndToEndTest {
     @Autowired ReceiptService receipts;
     @Autowired ConversationMemberRepository members;
     @Autowired MessageRepository messageRepo;
+    @Autowired ConversationRepository convRepo;
 
     @MockitoBean ChatEventBus bus;
     @MockitoBean RateLimiter limiter;
@@ -61,14 +62,16 @@ class DeliveryReceiptsEndToEndTest {
                 .filter(m -> m.id().equals(messageId)).findFirst().orElseThrow().status();
     }
 
+    /** Birebir konusma: `openDirect` PostgreSQL'e ozel (ON CONFLICT) oldugundan H2'de depolarla kurulur. */
     Long openDirect(User a, User b) {
-        Long cid = conversations.openDirect(a.getId(), b.getId()).conversation().id();
-        // Ortak baglam politikasi karsi tarafi "istek"e dusurebilir: bu test teslim akisini sinar, kabul edilmis say
-        members.findByConversationIdAndUserId(cid, b.getId()).ifPresent(m -> {
-            m.setRequestState(ConversationMember.RequestState.ACCEPTED);
-            members.save(m);
-        });
-        return cid;
+        Conversation c = new Conversation();
+        c.setType(Conversation.Type.DIRECT);
+        c.setDirectKey(Conversation.directKey(a.getId(), b.getId()));
+        c.setCreatedBy(a.getId());
+        c = convRepo.saveAndFlush(c);
+        members.save(ConversationMember.of(c.getId(), a.getId(), ConversationMember.Role.MEMBER));
+        members.save(ConversationMember.of(c.getId(), b.getId(), ConversationMember.Role.MEMBER));
+        return c.getId();
     }
 
     @SuppressWarnings("unchecked")
