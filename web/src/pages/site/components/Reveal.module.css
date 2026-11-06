@@ -1,27 +1,24 @@
-/*
- * Varsayılan DURUM GÖRÜNÜR: gizleme yalnız Reveal.tsx öğeyi tarayıcıda "silahladığında" (.hidden) olur.
- * Böylece JS çalışmazsa, animasyon başarısız olursa ya da önrender/yazdırma çıktısında içerik asla kaybolmaz.
- */
+/* Kaydırınca beliren öğeler: yalnız opacity + transform, 240 ms; reduced-motion'da hep görünür */
 .reveal {
-  transition:
-    opacity 0.7s var(--ease),
-    transform 0.7s var(--ease);
-}
-.hidden {
   opacity: 0;
-  transform: translateY(20px);
+  transform: translateY(12px);
+  transition:
+    opacity 240ms var(--ease),
+    transform 240ms var(--ease);
+}
+.shown {
+  opacity: 1;
+  transform: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  .reveal,
-  .hidden {
+  .reveal {
     opacity: 1;
     transform: none;
     transition: none;
   }
 }
 @media print {
-  .reveal,
-  .hidden {
+  .reveal {
     opacity: 1;
     transform: none;
   }

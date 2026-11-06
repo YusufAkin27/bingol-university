@@ -16,7 +16,7 @@ import {
   renderSecurityTxt,
   routeJsonLd,
 } from './prerender';
-import { ROUTE_META, infoRouteId, legalRouteId, localizedLangs, matchRouteMeta, resolveMeta, routeById } from './routeMeta';
+import { ROUTE_META, infoRouteId, legalRouteId, matchRouteMeta, resolveMeta, routeById } from './routeMeta';
 
 const ORIGIN = 'https://example.org';
 const TEMPLATE = `<!doctype html>
@@ -69,9 +69,9 @@ describe('routeMeta (tek kaynak)', () => {
     }
   });
 
-  it('ana sayfa başlığı "BÜ Kampüs | Başlık", diğerleri "Başlık | BÜ Kampüs"', () => {
-    expect(resolveMeta(routeById('home'), 'tr').fullTitle).toBe('BÜ Kampüs | Bingöl Üniversitesi Kampüs Uygulaması');
-    expect(resolveMeta(routeById('privacy'), 'tr').fullTitle).toBe('Gizlilik Politikası ve Kişisel Veriler | BÜ Kampüs');
+  it('ana sayfa başlığı "BÜ Kampüs · slogan", diğerleri "Başlık · BÜ Kampüs"', () => {
+    expect(resolveMeta(routeById('home'), 'tr').fullTitle).toBe('BÜ Kampüs · Öğrencilere özel kampüs sosyal ağı');
+    expect(resolveMeta(routeById('privacy'), 'tr').fullTitle).toBe('Gizlilik politikası · BÜ Kampüs');
   });
 
   it('eş adlar ve arama', () => {
@@ -125,7 +125,7 @@ describe('headModel', () => {
       lang: 'en',
       origin: ORIGIN,
       path: '/privacy',
-      title: 'Privacy | BÜ Kampüs',
+      title: 'Privacy · BÜ Kampüs',
       description: 'd',
       appName: 'BÜ Kampüs',
     });
@@ -141,7 +141,7 @@ describe('headModel', () => {
     expect(get('og:url')).toEqual([`${ORIGIN}/en/privacy`]);
     expect(get('og:locale')).toEqual(['en_US']);
     expect(get('og:locale:alternate').sort()).toEqual(['ar_AR', 'tr_TR']);
-    expect(get('twitter:title')).toEqual(['Privacy | BÜ Kampüs']);
+    expect(get('twitter:title')).toEqual(['Privacy · BÜ Kampüs']);
     expect(get('twitter:description')).toEqual(['d']);
     expect(get('twitter:card')).toEqual(['summary_large_image']);
   });
@@ -149,7 +149,7 @@ describe('headModel', () => {
   it('noindex sayfada alternatif/hreflang yok, robots var', () => {
     const m = buildHeadModel({ lang: 'tr', origin: ORIGIN, path: '/x', title: 't', appName: 'a', noindex: true });
     expect(m.links.filter((l) => l.rel === 'alternate')).toEqual([]);
-    expect(m.metas.find((x) => x.key === 'robots')?.content).toBe('noindex, nofollow');
+    expect(m.metas.find((x) => x.key === 'robots')?.content).toBe('noindex');
   });
 
   it('pageUrl ve normalizeOrigin', () => {
@@ -167,21 +167,19 @@ describe('sitemap.xml', () => {
   it('yer tutucu yok, hepsi mutlak https adres', () => {
     expect(xml).not.toContain('ALAN-ADI');
     const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
-    // Yalnız bazı dillerde yerelleştirilmiş rotalar (routeMeta.langs) yalnız o dillerle girer; diğerleri her dilde
-    expect(locs.length).toBe(ROUTE_META.reduce((n, r) => n + localizedLangs(r).length, 0));
+    expect(locs.length).toBe(ROUTE_META.length * LANGS.length);
     for (const l of locs) expect(l).toMatch(/^https:\/\/example\.org\/(tr|en|ar)(\/|$)/);
     expect(new Set(locs).size).toBe(locs.length);
     expect(xml).toContain('<lastmod>2026-10-28</lastmod>');
   });
 
-  it('hreflang karşılıklı: her url kendi dahil dilleri ve x-default listeler (Türkçe-only rotada yalnız tr)', () => {
+  it('hreflang karşılıklı: her url kendi dahil üç dili ve x-default listeler', () => {
     const blocks = xml.split('<url>').slice(1);
     const hrefsOf = (b: string) => [...b.matchAll(/hreflang="([^"]+)" href="([^"]+)"/g)].map((m) => [m[1], m[2]]);
     const byLoc = new Map<string, string[][]>();
     for (const b of blocks) byLoc.set(/<loc>([^<]+)<\/loc>/.exec(b)![1], hrefsOf(b));
     for (const [loc, alts] of byLoc) {
-      const route = ROUTE_META.find((r) => (loc.replace(ORIGIN, '').replace(/^\/(tr|en|ar)/, '') || '/') === r.path)!;
-      expect(alts.map((a) => a[0])).toEqual([...localizedLangs(route), 'x-default']);
+      expect(alts.map((a) => a[0])).toEqual(['tr', 'en', 'ar', 'x-default']);
       // kendisi alternatiflerde var
       expect(alts.map((a) => a[1])).toContain(loc);
       // alternatifin kendi bloğu da bu url'yi listeler (karşılıklılık)
@@ -231,7 +229,7 @@ describe('önrender çıktısı', () => {
   it('tr/privacy: title, description, canonical, hreflang, OG, noscript, html lang/dir', () => {
     const html = out.files.get('tr/privacy/index.html')!;
     expect(html).toContain('<html lang="tr" dir="ltr">');
-    expect(html).toContain('<title>Gizlilik Politikası ve Kişisel Veriler | BÜ Kampüs</title>');
+    expect(html).toContain('<title>Gizlilik politikası · BÜ Kampüs</title>');
     expect(html).toContain('<meta name="description" content="BÜ Kampüs gizlilik politikası');
     expect(html).toContain(`<link rel="canonical" href="${ORIGIN}/tr/privacy" data-pre="1" />`);
     for (const l of ['tr', 'en', 'ar'])
@@ -241,11 +239,11 @@ describe('önrender çıktısı', () => {
     expect(html).toContain('property="og:image:alt"');
     expect(html).toContain('property="og:locale" content="tr_TR"');
     expect(html).toContain('property="og:locale:alternate" content="en_US"');
-    expect(html).toContain('name="twitter:title" content="Gizlilik Politikası ve Kişisel Veriler | BÜ Kampüs"');
+    expect(html).toContain('name="twitter:title" content="Gizlilik politikası · BÜ Kampüs"');
     expect(html).toContain('name="twitter:card" content="summary_large_image"');
     expect(html).toContain('<noscript>');
     expect(html).toContain('<h1>Gizlilik politikası</h1>');
-    expect(html).toContain('bingol.edu.tr uzantılı e-posta');
+    expect(html).toContain('geçerli bir e-posta adresiyle kayıt olunur');
     expect(html).toContain('<div id="root"><noscript>');
     expect(html).toContain('/assets/index-abc.js');
     expect(html).not.toContain('<title>BÜ Kampüs</title>');
@@ -277,7 +275,7 @@ describe('önrender çıktısı', () => {
 
   it('iletişim sayfası noscript metni ve doğru başlık', () => {
     const html = out.files.get('en/contact/index.html')!;
-    expect(html).toContain('<title>Contact Us and Request Support | BÜ Kampüs</title>');
+    expect(html).toContain('<title>Contact · BÜ Kampüs</title>');
     expect(html).toMatch(/<noscript>[\s\S]*<h1>Contact<\/h1>/);
     expect(html).toContain(`rel="canonical" href="${ORIGIN}/en/contact"`);
   });
@@ -322,10 +320,10 @@ describe('JSON-LD (önrender)', () => {
   const types = (id: string, lang: 'tr' | 'en' | 'ar' = 'tr') =>
     routeJsonLd(routeById(id), lang, ORIGIN).map((b) => (b as { '@type': string })['@type']);
 
-  it('ana sayfa: kuruluş + mobil uygulama; diğer sayfalar BreadcrumbList', () => {
-    expect(types('home')).toEqual(['Organization', 'WebSite', 'MobileApplication']);
+  it('ana sayfa: site + kuruluş + mobil uygulama; diğer sayfalar BreadcrumbList', () => {
+    expect(types('home')).toEqual(['WebSite', 'EducationalOrganization', 'MobileApplication']);
     expect(types('download')).toEqual(['MobileApplication', 'BreadcrumbList']);
-    expect(types('about')).toEqual(['Organization', 'BreadcrumbList']);
+    expect(types('about')).toEqual(['EducationalOrganization', 'BreadcrumbList']);
     expect(types('privacy')).toEqual(['BreadcrumbList']);
   });
 

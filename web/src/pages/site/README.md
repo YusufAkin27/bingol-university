@@ -3,8 +3,8 @@
 Kalan site sayfalarını yazacak ajanlar için. Tüm bileşenler `src/pages/site/components/` altındadır; stiller CSS Modules + `src/styles/tokens.css` belirteçleri, mantıksal CSS özellikleri (RTL), dış font/CDN yok.
 
 1. **Sayfa iskeleti:** `usePageMeta({ route })` (SEO tek kaynağı `seo/routeMeta.ts`) + `<PageHero eyebrow title lead crumbs />` (tüm iç sayfaların minimal başlığı: bol boşluk, hafif kırmızı ışıma; tek `h1` burada) + içerik bölümleri (`<section className="container">`, dikey boşluk `clamp(2.75rem, 7vw, 5rem)`) + sayfa sonu `<CtaBand title text />`.
-2. **Telefon:** `<PhoneMockup shot="home" />` (iPhone görünümlü saf CSS çerçeve; ekran `<img width height>`, alt metni çevrilir). `shot` kimlikleri `screenshots.ts`'te: `home, discover, chat, clubs, events, qr, menu, poll, academic`. Boyut: `width="min(60vw, 240px)"` ya da bağlamda `--phone-w`. `tilt={±2..6}` hafif eğim, `crop={0.6}` (tam boy ekranın oranı) kart içinde kısa telefon, `peek` alttan solma (altı boş ekranlar zaten peek). Sayfada yalnız ilk ekrandaki telefona `priority` verin (LCP: `fetchpriority=high`, `loading=eager`); diğerleri lazy.
-3. **Yeni ekran görüntüsü eklemek:** PNG'yi 600 px genişlikte WebP'ye çevirin (<= 60 KB, ASCII ad, `src/assets/site/app-<ad>.webp`), kişi adı/e-posta/uydurma sayı içermesin, `screenshots.ts`'e `{src,width,height,peek,alt}` ekleyin ve `site.shot.<ad>.alt` anahtarını üç dile yazın (`site.test`/`site1.test.tsx` boyut ve çeviri denetler).
+2. **Telefon:** `<PhoneMockup shot="home" />` (iPhone 15 Pro görünümlü saf CSS+SVG çerçeve: ince siyah çerçeve, Dynamic Island, iOS durum çubuğu 9:41, ana gösterge, ince yan tuşlar; gölge yok). Ekran görüntüsü sayfa TEMASINA göre seçilir (açık/koyu), `<img width=1179 height=2556>` sabit (CLS yok), `object-fit: cover; object-position: top`, alt metin çevrilir. Dosya yoksa önce `.png` yedeği, o da yoksa boş zemin (çökmez). Boyut: `width="min(60vw, 240px)"` ya da bağlamda `--phone-w`. `crop={0.6}` kısa telefon (alttan solar, ana gösterge yok), `priority` yalnız ilk ekrandaki telefona (LCP). `shot` kimlikleri `screenshots.ts`: `home, menu, clubs, events, news, profile, settings` (+ `support`/`delete` = Ayarlar görseline eşlenir).
+3. **Yeni ekran görüntüsü eklemek:** `web/public/site/screens/<ad>-<light|dark>.webp` (+ `.png` yedek), 1179x2556, sistem çubukları kırpılmış, <= 140 KB; üretim `web/scripts/make-screens.py`. `screenshots.ts`'e `shot('<ad>', 'site.shot.<ad>.alt')` ekleyin ve alt metni üç dile yazın. **Keşfet (gönderi akışı) ekranı ve başka kullanıcıların içeriği/fotoğrafı/adı siteye KONMAZ (KVKK)**: sosyal akış `FeedSketch` soyut çizimiyle anlatılır.
 4. **Mağaza düğmesi:** `<StoreButton store="android|ios" href={stores.android} size="lg" />`; `stores = useStoreLinks()`. Bağlantı BOŞSA rozet tıklanamaz ve "Yakında" der; ASLA sahte adres yazmayın. Alt bilgide ince ön ayar `components/StoreBadge`. Koyu zemin için `onDark`, açık yüzey için `variant="outline"`.
 5. **Başlıklar ve ritim:** `<SectionHeading eyebrow title lead align level />` (h2 varsayılan). Sayfada tek h1; bölümler h2, kart başlıkları h3.
 6. **Özellik satırı:** `<FeatureRow shot secondShot title text flip />` (zikzak; RTL'de otomatik aynalanır); satırları `<ul><li>` içine koyun. Veri: `components/features.ts` (`SHOWCASE` = ekranlı 8 özellik, `FEATURES` = 14 ayrıntı, metinler `site.show.*` / `site.feat.*`).
@@ -15,21 +15,11 @@ Kalan site sayfalarını yazacak ajanlar için. Tüm bileşenler `src/pages/site
 
 ## Ekran görüntüleri (kaynak → web)
 
-Kaynak: GÜNCEL uygulamanın gerçek ekran çıktıları. Tek üretici: `mobile/test/redesign/site_shots_test.dart` (gerçek widget'lar + uydurma veri: "Elif K." gibi sade adlar, gerçek kişi/e-posta yok; Türkçe, açık tema, 390x844 dp, dpr 3 = 1170x2532 PNG, elle çizilmiş 9:41 durum çubuğu). Üretim (PowerShell, `C:u_mobile` içinde): `$env:SITE_SHOTS_OUT='C:u_qa\shots\site2'; flutter test test/redesign/site_shots_test.dart --tags store-shots` (`SITE_SHOTS_ONLY=home,menu` ile daraltılır). PNG'ler 900 px genişlikte WebP'ye çevrilir (Pillow, quality 82, her biri <= 90 KB; `app-<ad>.webp`, 900x1948). Altı kısa kalan iki ekran (`qr`, `academic`) içeriğin altından kırpılır ve `peek` çizilir.
+Kaynak: emülatörde alınan GERÇEK ekran çıktıları (`web/scripts/make-screens.py`: 1080x2400 → üst/alt sistem çubuğu kırpılır → 1179x2556). Çıktı: `web/public/site/screens/<ad>-<light|dark>.png|webp` (home, menu, clubs, events, news, profile, settings). `PhoneMockup` kendi iOS durum çubuğunu ve ana göstergesini çizer; görsel durum çubuğunun altından başlar. Eski kırmızı logolu `src/assets/site/app-*.webp` görselleri kaldırıldı.
 
-| Web yolu (`src/assets/site/`) | Test sahnesi (kaynak ekran) |
-|---|---|
-| `app-home.webp` | `home`: `AppShell` Ana Sayfa sekmesi (alt gezinme çubuğu dahil) |
-| `app-discover.webp` | `discover`: `AppShell` Keşfet sekmesi (2 sütun masonry) |
-| `app-chat.webp` | `chat`: `ChatDetailPage` birebir konuşma (görsel + okundu) |
-| `app-clubs.webp` | `clubs`: `AppShell` Kulüpler sekmesi (Keşfet) |
-| `app-events.webp` | `events`: `EventsPage` (takvim + gün listesi) |
-| `app-qr.webp` | `qr`: `Etkinlik2QrPage` (yoklama QR, 900x1538 kırpık, peek) |
-| `app-menu.webp` | `menu`: `MenuPage` (günün menüsü + kalori + "Yemek kartı bakiyesi / Bakiye yükle" kartı) |
-| `app-poll.webp` | `poll`: `PollDetailPage` (oy verme, "Oy ver" düğmesi) |
-| `app-academic.webp` | `academic`: `AcademicHubPage` (sıradaki sınav + 4 kart, 900x1462 kırpık, peek) |
-| `app-delete.webp` | `delete`: `DeleteAccountPage` (Hesabı sil) |
-| `app-support.webp` | `support`: `SupportPage` (SSS açık + taleplerim + Yeni talep) |
+## Monochrome (2026-11-06)
+
+Herkese açık site yönetim paneliyle aynı Premium Monochrome dilindedir: `tokens.css` "/* site */" bloğu (yalnız `data-area='admin'` DIŞINDA geçerli) eski marka belirteçlerini nötr siyah-beyaz-gri ile ezer; marka/vurgu rengi yok, kırmızı yalnız `--danger*`, kalın yazı yok (`--fw-emphasis` 400), köşe 10-16, ince kenarlık, gradient/ışıma/cam/ağır gölge yok, animasyon 200-240 ms ve reduced-motion'da kapalı. Site ritmi `--site-section-y`, başlık ölçekleri `--text-display/--text-h2/--text-h3`.
 
 ## Hukuki ve güven sayfaları (SITE3)
 

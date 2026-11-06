@@ -6,8 +6,8 @@ const m = {
     'BÜ Kampüs is an independent app built for students and staff of Bingöl University; it is not the university’s official app.',
   'site.v3.footer.independent': 'An independent student app; not the official app of Bingöl University.',
   'site.v3.home.showTitle': 'The screens you will open every day on campus',
-  'site.v3.home.showLead': 'From the dining menu to chat, from clubs to QR attendance, all in one app.',
-  'site.v3.cta.text': 'Sign up with your Bingöl University email address; campus in your pocket.',
+  'site.v3.home.showLead': 'From the dining menu to clubs, from events to your profile, all in one app.',
+  'site.v3.cta.text': 'Sign up with your email address; campus in your pocket.',
   'site.v3.features.moreTitle': 'And more',
   'site.v3.features.moreLead': 'Details on privacy, notifications, languages and club management.',
   'site.v3.about.indTitle': 'An independent app',
@@ -32,10 +32,16 @@ const m = {
   'site.show.polls.text': 'Join club and campus polls. Votes are secret: nobody is shown who voted for what.',
   'site.show.academic.title': 'Academic',
   'site.show.academic.text':
-    'Class schedule, exam calendar and academic calendar, with reminders.',
+    'Class schedule, exam calendar, academic calendar and department announcements, with reminders.',
+  'site.show.news.title': 'News and announcements',
+  'site.show.news.text': 'News, announcements and events from the university in one feed. Save what you read to favourites.',
+  'site.show.profile.title': 'Profile',
+  'site.show.profile.text': 'Your photo, department and short bio, with your posts and the people you follow in one place.',
+  'site.show.settings.title': 'Settings and theme',
+  'site.show.settings.text': 'Light or dark theme, language, notification and privacy choices on one screen. Download your data any time.',
 
   'site.shot.home.alt': 'BÜ Kampüs Home screen: today’s meal, next class, quick access and the menu of the day.',
-  'site.shot.discover.alt': 'BÜ Kampüs Discover screen: a two-column photo feed with the author and like count on each tile.',
+  'site.shot.discover.alt': 'BÜ Kampüs Discover screen: a single-photo post from campus.',
   'site.shot.chat.alt': 'BÜ Kampüs Chat screen: a conversation with date dividers and a message box.',
   'site.shot.clubs.alt': 'BÜ Kampüs Clubs screen: category chips and a list of clubs you can join.',
   'site.shot.events.alt': 'BÜ Kampüs Events screen: a monthly calendar and the events of the day.',
@@ -46,6 +52,36 @@ const m = {
 
   // SITE2: information pages (FAQ, Help, Menu, News, Press kit)
   'site.shot.support.alt': 'BÜ Kampüs Support screen: frequently asked questions, my requests list and a “New request” button.',
+  'site.shot.profile.alt': 'BÜ Kampüs Profile screen: profile photo, name, department, bio and follow counts.',
+  'site.shot.news.alt': 'BÜ Kampüs News screen: a feed of university news, announcements and events.',
+  'site.shot.settings.alt': 'BÜ Kampüs Settings screen: theme, language, notification and privacy choices.',
+  'site.home.social.title': 'The social side of campus',
+  'site.home.social.lead':
+    'Share photos and Reels on the Discover feed, like, and follow friends and departments. It all stays inside the student community.',
+  'site.home.social.p1.title': 'Discover feed',
+  'site.home.social.p1.text': 'Photos and short videos (Reels) from campus, only inside the university community.',
+  'site.home.social.p2.title': 'Likes and follows',
+  'site.home.social.p2.text': 'Like, and follow people and departments; your feed follows your interests.',
+  'site.home.social.p3.title': 'Clubs and chat',
+  'site.home.social.p3.text': 'Join clubs, meet in club and event chats, and message friends one-to-one.',
+  'site.home.social.p4.title': 'Campus Forum',
+  'site.home.social.p4.text':
+    'Ask questions in a text-first forum, share experiences and talk topics through together.',
+  'site.home.safe.title': 'A safe space made for students',
+  'site.home.safe.lead':
+    'No ads, no selling of data. Every account is opened with a verified email and content is moderated.',
+  'site.home.safe1': 'Ad-free: no ads and no paid attention in your feed.',
+  'site.home.safe2': 'Moderated: inappropriate content is filtered; you can report and block users.',
+  'site.home.safe3': 'Every account is opened with a verified email; there is no anonymous use.',
+  'site.home.safe4': 'Your data is never sold; you can download it and delete your account any time.',
+  'site.show.social.title': 'Discover feed',
+  'site.show.social.text':
+    'Photos and Reels from campus; like and follow. Posts stay inside the university community and are reviewed afterwards.',
+  'site.feat.forum.title': 'Campus Forum',
+  'site.feat.forum.text': 'Ask questions with text-first topics, share experiences and discuss inside the community.',
+  'site.feat.moderation.title': 'Ad-free and moderated',
+  'site.feat.moderation.text':
+    'No ads in the feed. Inappropriate content is filtered; reporting and blocking tools are always at hand.',
   'site.s2.help.appTitle': 'Support lives inside the app',
   'site.s2.help.appText':
     'Browse the frequently asked questions in the app’s Support section, open a new request and follow the replies in the same place.',

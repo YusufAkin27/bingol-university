@@ -8,7 +8,8 @@ const site = {
   'site.nav.main': 'Main menu',
   'site.nav.openMenu': 'Open menu',
   'site.nav.closeMenu': 'Close menu',
-  'site.footer.tagline': 'Announcements, events, the dining menu and your campus community, in your pocket.',
+  'site.footer.tagline':
+    'The campus social network built for students: feed, clubs, chat, events and the dining menu in your pocket.',
   'site.footer.rights': '© {year} BÜ Kampüs. All rights reserved.',
   'site.store.googlePlay': 'Google Play',
   'site.store.appStore': 'App Store',
@@ -19,9 +20,9 @@ const site = {
   'site.store.newTab': 'Opens in a new tab',
 
   'site.meta.home':
-    'Announcements, news, the dining menu, events and campus communication for Bingöl University students and staff, in one app.',
+    'BÜ Kampüs: an ad-free, safe and moderated campus social network for the Bingöl University community. Discover feed, clubs, chat, events, news and the dining menu in one app.',
   'site.meta.features':
-    'News and announcements, dining menu, messaging, communities, events with QR attendance, support and notifications: the features of the BÜ Kampüs app.',
+    'Discover feed, photos and Reels, clubs, chat, Campus Forum, events, QR attendance, news and the dining menu: the features of the BÜ Kampüs app.',
   'site.meta.about':
     'The purpose, values and workings of the BÜ Kampüs app. Available only with bingol.edu.tr accounts.',
   'site.meta.download': 'Download the BÜ Kampüs app for Android and iOS.',
@@ -32,9 +33,9 @@ const site = {
   'site.meta.legal': 'Terms of use, privacy policy, KVKK notice and community rules.',
   'site.maintenance.title': 'Maintenance',
 
-  'site.home.heroTitle': 'Campus life in one app',
+  'site.home.heroTitle': 'The campus social network built for students',
   'site.home.heroLead':
-    'Announcements, news, events, the dining menu and student communities in the BÜ Kampüs app.',
+    'Share photos and Reels, join clubs, chat with friends. Ad-free, safe and moderated, made for the university community.',
   'site.home.ctaDownload': 'Download the app',
   'site.home.ctaFeatures': 'Explore features',
   'site.home.trust': 'Available only with bingol.edu.tr accounts.',
@@ -58,7 +59,8 @@ const site = {
   'site.home.ctaText': 'Store links for the Android and iOS versions will appear here once they are published.',
 
   'site.features.title': 'Features',
-  'site.features.lead': 'What you need on campus every day, in one app and three languages.',
+  'site.features.lead':
+    'From the campus social feed to the dining menu, from clubs to chat: student life in one app and three languages.',
   'site.features.ctaTitle': 'Download the app to try them all',
   'site.feat.news.title': 'News, announcements and events',
   'site.feat.news.text':
@@ -67,7 +69,7 @@ const site = {
   'site.feat.menu.text': 'See today’s and this week’s menu the moment you open the app.',
   'site.feat.chat.title': 'Messaging',
   'site.feat.chat.text':
-    'Chat one-to-one with university accounts. You can block or report a user whenever you need to.',
+    'One-to-one and group chats with your campus friends. You can block or report a user whenever you need to.',
   'site.feat.communities.title': 'Communities',
   'site.feat.communities.text': 'Discover student communities, join them and follow their posts and announcements.',
   'site.feat.events.title': 'Events and QR attendance',
@@ -86,15 +88,16 @@ const site = {
 
   'site.about.title': 'About',
   'site.about.lead':
-    'An app built so that Bingöl University students and staff can reach official announcements, the dining menu, events and campus communication in one place.',
+    'An ad-free, moderated campus social network built for the Bingöl University community; news, the dining menu and events are in the same place.',
   'site.about.purposeTitle': 'Our purpose',
   'site.about.purposeText':
-    'University information is spread across many pages. The app brings it together, so you do not have to go looking to find out what is happening, and your link to campus is a single screen.',
+    'Campus life is scattered: announcements on one site, friends in another app. BÜ Kampüs brings them together in a single calm and safe place made for students.',
   'site.about.valuesTitle': 'Our values',
   'site.about.value.privacy.title': 'Privacy',
   'site.about.value.privacy.text': 'We process only the data the service needs, and we never sell it.',
   'site.about.value.security.title': 'Security',
-  'site.about.value.security.text': 'Only university accounts can sign in, and sessions use short-lived keys.',
+  'site.about.value.security.text':
+    'Accounts are opened with a verified email; content is moderated and reporting is built in; sessions use short-lived keys.',
   'site.about.value.access.title': 'Accessibility',
   'site.about.value.access.text': 'Keyboard navigation, readable contrast and screen reader support are part of the design.',
   'site.about.value.lang.title': 'Multilingual',
