@@ -53,23 +53,10 @@ class ChatSecureView {
   Widget secureImage(Uint8List bytes) =>
       (_imageBuilder ?? _nativeImage)(bytes);
 
-  /// Ekran görüntüsünde fotoğrafın yerine görünen kapak resmi (siyah ekran yerine); [enable] önceden yükler.
-  static Uint8List? _cover;
-
-  static Future<void> _loadCover() async {
-    if (_cover != null) return;
-    try {
-      final d = await rootBundle.load('assets/branding/screenshot_cover.jpg');
-      _cover = d.buffer.asUint8List(d.offsetInBytes, d.lengthInBytes);
-    } catch (_) {
-      // kapak yoksa ekran görüntüsü siyah/boş çıkar; koruma yine geçerli
-    }
-  }
-
   static Widget _nativeImage(Uint8List bytes) => UiKitView(
         key: const ValueKey('secureNativeImage'),
         viewType: 'bu_kampus/secure_image',
-        creationParams: <String, Object?>{'bytes': bytes, if (_cover != null) 'cover': _cover},
+        creationParams: <String, Object?>{'bytes': bytes},
         creationParamsCodec: const StandardMessageCodec(),
       );
 
@@ -120,7 +107,6 @@ class ChatSecureView {
   Future<SecureStatus> enable({bool? layerTrick}) async {
     if (!_ios) return const SecureStatus();
     _holders++;
-    await _loadCover();
     final lt = layerTrick ?? _layerTrick;
     _ch.setMethodCallHandler(_onCall);
     try {
