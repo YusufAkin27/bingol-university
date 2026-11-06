@@ -31,6 +31,7 @@ class _NewsListPageState extends State<NewsListPage> {
   final _scroll = ScrollController();
   final List<Map<String, dynamic>> _items = [];
   final Set<int> _savedIds = {};
+  final Set<int> _saving = {};
 
   late int _tab = _types.indexOf(widget.initialType).clamp(0, _types.length - 1);
   int _gen = 0; // eski yanıtların yeni sekmeyi ezmesini önler
@@ -118,12 +119,17 @@ class _NewsListPageState extends State<NewsListPage> {
     _loadStatus();
     _loadSavedIds();
     final gen = ++_gen;
-    _page = 0;
     await _fetch(gen, replace: true);
   }
 
   Future<void> _loadMore() async {
     if (_loading || !_hasMore || !_loaded || _error != null) return;
+    await _fetch(_gen);
+  }
+
+  /// Altbilgi "Tekrar dene": hata bayrağı açıkken de çalışır (`_loadMore` hata varken geri döner).
+  Future<void> _retryMore() async {
+    if (_loading) return;
     await _fetch(_gen);
   }
 
@@ -134,17 +140,22 @@ class _NewsListPageState extends State<NewsListPage> {
       if (!replace) _error = null;
     });
     try {
-      final res = await widget.session.api.getResponse('/news?type=$_type&page=$_page&size=$_pageSize', force: replace);
+      // Yenilemede sayfa sayacı başarıdan önce sıfırlanmaz (hatada kopya sayfa çekilmesin).
+      final page = replace ? 0 : _page;
+      final res = await widget.session.api.getResponse('/news?type=$_type&page=$page&size=$_pageSize', force: replace);
       final r = res.body as Map<String, dynamic>;
       final fresh = <Map<String, dynamic>>[
-        for (final e in (r['items'] as List? ?? [])) e as Map<String, dynamic>,
+        for (final e in (r['items'] as List? ?? []))
+          if (e is Map && e['id'] is num) Map<String, dynamic>.from(e),
       ];
       final total = (r['totalPages'] as num?)?.toInt() ?? 0;
-      final next = _page + 1;
+      final next = page + 1;
       if (!mounted || gen != _gen) return;
       setState(() {
         if (replace) _items.clear();
-        _items.addAll(fresh);
+        // Sayfa kaymasında (araya yeni haber girince) aynı kayıt iki kez gelmesin.
+        final have = {for (final x in _items) (x['id'] as num).toInt()};
+        _items.addAll(fresh.where((x) => have.add((x['id'] as num).toInt())));
         _page = next;
         _hasMore = next < total;
         _loaded = true;
@@ -167,6 +178,15 @@ class _NewsListPageState extends State<NewsListPage> {
   /// Kaydetme/kaldırma; kesinleşen "kayıtlı mı" durumunu döndürür (hatada eski durum: açık detay sayfası buna eşitlenir).
   Future<bool> _toggleSave(Map<String, dynamic> n) async {
     final id = (n['id'] as num).toInt();
+    if (!_saving.add(id)) return _savedIds.contains(id); // çift dokunuşta ters istek yarışı olmasın
+    try {
+      return await _toggleSaveInner(n, id);
+    } finally {
+      _saving.remove(id);
+    }
+  }
+
+  Future<bool> _toggleSaveInner(Map<String, dynamic> n, int id) async {
     final was = _savedIds.contains(id);
     setState(() => was ? _savedIds.remove(id) : _savedIds.add(id));
     try {
@@ -367,7 +387,7 @@ class _NewsListPageState extends State<NewsListPage> {
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Center(
           child: BuButton(
-              label: context.l10n.commonRetry, compact: true, kind: BuButtonKind.outline, onPressed: _loadMore),
+              label: context.l10n.commonRetry, compact: true, kind: BuButtonKind.outline, onPressed: _retryMore),
         ),
       );
     }

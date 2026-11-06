@@ -5,11 +5,18 @@ import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../../widgets/common.dart';
+import '../academic/academic_models.dart' show istanbulWall;
 import '../news/news_tile.dart' show newsMonthName, newsWeekdayName;
 import '../polls/poll_menu_card.dart';
 import 'menu_models.dart';
 import 'menu_parts.dart';
 import 'menu_topup.dart';
+
+/// Bugünün Europe/Istanbul takvim günü (cihaz saat dilimi başka olsa da menü günü şaşmaz).
+DateTime menuToday([DateTime? now]) {
+  final w = istanbulWall(now ?? DateTime.now());
+  return DateTime(w.year, w.month, w.day);
+}
 
 String _monthParam(DateTime m) => '${m.year}-${m.month.toString().padLeft(2, '0')}';
 
@@ -30,24 +37,44 @@ class _MenuPageState extends State<MenuPage> {
 
   late DateTime _month;
   late DateTime _selected;
-  late final List<DateTime> _days;
+  late List<DateTime> _days;
+  late DateTime _anchor; // gün şeridinin kurulduğu "bugün" (gece yarısı geçişinde yenilenir)
   final Map<String, Map<int, MenuDay>> _byMonth = {}; // 'yyyy-MM' -> gün -> menü
   bool _loading = true;
   bool _maintenance = false;
   Object? _error;
   int _reqId = 0;
 
+  // Seçici: bir hafta öncesinden dört hafta sonrasına (ay sınırı aşılınca o ay yüklenir).
+  void _buildDays(DateTime today) {
+    _anchor = today;
+    _days = [for (var i = -7; i <= 28; i++) DateTime(today.year, today.month, today.day + i)];
+  }
+
+  /// Uygulama gece yarısını aşarak açık kaldıysa şerit ve seçim yeni güne taşınır.
+  void _rollOverIfNeeded() {
+    final today = menuToday();
+    if (today == _anchor) return;
+    final wasOnToday = _selected == _anchor;
+    _buildDays(today);
+    if (wasOnToday) {
+      _selected = today;
+      if (today.year != _month.year || today.month != _month.month) {
+        _month = DateTime(today.year, today.month);
+        if (!_byMonth.containsKey(_monthParam(_month))) WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _load() : null);
+      }
+    }
+  }
+
   Map<int, MenuDay> get _menus => _byMonth[_monthParam(_month)] ?? const {};
 
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    _month = DateTime(now.year, now.month);
+    final today = menuToday();
+    _month = DateTime(today.year, today.month);
     _selected = today;
-    // Seçici: bir hafta öncesinden dört hafta sonrasına (ay sınırı aşılınca o ay yüklenir).
-    _days = [for (var i = -7; i <= 28; i++) DateTime(today.year, today.month, today.day + i)];
+    _buildDays(today);
     _load();
   }
 
@@ -104,12 +131,13 @@ class _MenuPageState extends State<MenuPage> {
   }
 
   bool _isToday(DateTime d) {
-    final n = DateTime.now();
+    final n = menuToday();
     return d.year == n.year && d.month == n.month && d.day == n.day;
   }
 
   @override
   Widget build(BuildContext context) {
+    _rollOverIfNeeded();
     final t = context.bu;
     return Scaffold(
       backgroundColor: t.bg,
