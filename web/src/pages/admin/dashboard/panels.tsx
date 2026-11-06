@@ -106,7 +106,7 @@ export function SourcesPanel() {
   );
 }
 
-const DEVICE_COLORS = ['var(--chart-1)', 'var(--chart-3)', 'var(--chart-4)'];
+const DEVICE_COLORS = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-4)'];
 
 /** Android / iOS / web cihaz dağılımı: yığılı çubuk + sayı listesi. */
 export function DevicePanel({ overview }: { overview: UseQueryResult<AnalyticsOverview> }) {

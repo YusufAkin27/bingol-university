@@ -57,7 +57,7 @@
   color: var(--text-muted);
 }
 .reason {
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .note {
   color: var(--text-muted);
@@ -115,7 +115,7 @@
 }
 .facts dd {
   margin: 0;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   overflow-wrap: anywhere;
 }
 .noteLabel {
@@ -247,7 +247,7 @@
   gap: var(--space-1);
   min-block-size: 44px;
   padding-inline: var(--space-2);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--info);
   cursor: pointer;
 }
@@ -256,7 +256,7 @@
   outline-offset: 1px;
 }
 .sheetTitle {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   color: var(--text-muted);
   font-size: var(--text-sm);
 }

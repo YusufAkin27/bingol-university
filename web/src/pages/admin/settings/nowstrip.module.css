@@ -38,7 +38,7 @@
 .chipLabel {
   font-size: var(--text-xs);
   color: var(--text-muted);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .dirty {
   position: sticky;
@@ -54,5 +54,5 @@
   background: var(--warning-soft);
   border: 2px solid var(--warning);
   border-radius: var(--radius-md);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }

@@ -137,7 +137,7 @@
 }
 .quotaStats dd {
   margin: 0;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .bar {
   display: flex;
@@ -185,7 +185,7 @@
   align-items: center;
   gap: var(--space-2);
   min-block-size: 2.75rem;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   cursor: pointer;
 }
 .filterPanel .filters {
@@ -213,7 +213,7 @@
   border: 0;
   color: var(--link);
   font: inherit;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   text-decoration: underline;
   cursor: pointer;
 }
@@ -221,7 +221,7 @@
   min-block-size: 2.75rem;
   display: flex;
   align-items: center;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   cursor: pointer;
 }
 .history {
@@ -265,6 +265,6 @@
   background: var(--danger, var(--primary));
 }
 .historyNum {
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   font-size: var(--text-xs);
 }

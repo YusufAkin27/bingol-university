@@ -48,7 +48,7 @@
 }
 .matrix tbody th {
   text-align: start;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   display: grid;
   gap: var(--space-1);
 }
@@ -57,7 +57,7 @@
 }
 .yes {
   color: var(--success, currentColor);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .no {
   color: var(--text-muted);

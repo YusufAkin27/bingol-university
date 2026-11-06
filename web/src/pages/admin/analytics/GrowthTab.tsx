@@ -72,7 +72,7 @@ export default function GrowthTab({ range }: { range: DateRange }) {
               <LineAreaChart
                 data={d.points}
                 xKey="date"
-                series={[{ key: 'cumulative', label: t('admin.analytics.overview.cumSeries'), color: 'var(--chart-5)' }]}
+                series={[{ key: 'cumulative', label: t('admin.analytics.overview.cumSeries'), color: 'var(--chart-1)' }]}
                 ariaLabel={t('admin.analytics.growth.cum')}
                 formatX={fmt}
                 emptyLabel={t('admin.analytics.chart.noData')}

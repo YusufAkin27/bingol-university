@@ -58,7 +58,7 @@ export default function OverviewTab({ range }: { range: DateRange }) {
               <LineAreaChart
                 data={d.points}
                 xKey="date"
-                series={[{ key: 'dau', label: t('admin.analytics.overview.dauSeries'), color: 'var(--chart-3)' }]}
+                series={[{ key: 'dau', label: t('admin.analytics.overview.dauSeries'), color: 'var(--chart-1)' }]}
                 ariaLabel={t('admin.analytics.overview.dau')}
                 formatX={fmt}
                 emptyLabel={t('admin.analytics.chart.noData')}

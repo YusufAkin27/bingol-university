@@ -65,7 +65,7 @@
 }
 .chipValue {
   font-size: var(--text-lg);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
 }
 .tableToggle {
@@ -82,7 +82,7 @@
 }
 .sub {
   font-size: var(--text-sm);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   font-family: var(--font-sans);
   margin-block: var(--space-4) var(--space-2);
 }
@@ -121,7 +121,7 @@
   overflow-wrap: anywhere;
 }
 .barValue {
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -163,7 +163,7 @@
   font-size: var(--text-sm);
 }
 .cohort th {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   color: var(--text-muted);
   padding: var(--space-2) var(--space-3);
   text-align: center;
@@ -177,7 +177,7 @@
   text-align: center;
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-xs);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .cohortPending {
   background: var(--surface-2);
@@ -227,7 +227,7 @@
 }
 .hintBox a {
   color: inherit;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   text-decoration: underline;
 }
 .unknownTag {

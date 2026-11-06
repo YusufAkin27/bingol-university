@@ -63,7 +63,7 @@
   min-inline-size: 0;
 }
 .authorName {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   overflow-wrap: anywhere;
 }
 .email {
@@ -144,8 +144,8 @@
   inset-block-end: 0.25rem;
   padding: 0 0.35rem;
   border-radius: var(--radius-sm);
-  background: rgb(0 0 0 / 0.65);
-  color: #fff;
+  background: var(--scrim-media-soft);
+  color: var(--on-media);
   font-size: var(--text-xs);
 }
 .actions {

@@ -33,7 +33,7 @@
   margin: 0;
   color: var(--success);
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .cards {
   display: grid;
@@ -66,12 +66,12 @@
 .cardTitle {
   margin: 0;
   font-size: var(--text-base);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .big {
   margin: 0;
   font-size: var(--text-xl);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   overflow-wrap: anywhere;
 }
 .level {
@@ -80,7 +80,7 @@
   gap: var(--space-1);
   margin: 0;
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .card[data-status='WARN'] .level {
   color: var(--warning);
@@ -121,7 +121,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
   font-size: var(--text-xs, var(--text-sm));
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .source[data-source='MEASURED'] {
   color: var(--success);
@@ -249,7 +249,7 @@
   min-inline-size: 0;
 }
 .bannerLink {
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   text-decoration: underline;
 }
 

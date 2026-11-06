@@ -5,16 +5,14 @@
   align-items: center;
   gap: var(--space-3);
 }
-/* Cihaz çerçevesi her iki temada koyu kalır; bildirim kartı temadan bağımsız okunaklıdır. */
+/* Cihaz maketi: her iki temada sabit siyah-beyaz (--phone-*); düz yüzey, gradient yok. */
 .phone {
   position: relative;
   width: min(100%, 300px);
   border-radius: var(--radius-xl);
   padding: 10px;
-  background: #171e33;
-  box-shadow:
-    0 0 0 2px #26324a,
-    var(--shadow-2);
+  background: var(--phone-frame);
+  box-shadow: 0 0 0 1px var(--phone-ring);
 }
 .notch {
   position: absolute;
@@ -24,45 +22,42 @@
   width: 78px;
   height: 20px;
   border-radius: var(--radius-md);
-  background: #000;
+  background: var(--phone-notch);
   z-index: 1;
 }
 .screen {
   border-radius: calc(var(--radius-xl) - 8px);
   min-height: 220px;
   padding: 52px 12px 24px;
-  background:
-    radial-gradient(120% 70% at 20% 0%, #c62a20 0%, transparent 60%),
-    linear-gradient(170deg, #232b47 0%, #171e33 55%, #0c0e15 100%);
+  background: var(--phone-screen);
   direction: ltr;
 }
 .clock {
   text-align: center;
-  color: #fff;
+  color: var(--phone-clock);
   font-size: 2.4rem;
-  font-weight: 300;
+  font-weight: var(--fw-regular);
   letter-spacing: 0.02em;
   margin-block-end: var(--space-4);
   font-variant-numeric: tabular-nums;
 }
 .notif {
-  background: rgba(255, 255, 255, 0.94);
-  color: #101c33;
+  background: var(--phone-card);
+  color: var(--phone-card-ink);
   border-radius: var(--radius-lg);
   padding: 10px 12px 12px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
   text-align: start;
 }
 .sample .nTitle,
 .sample .nBody {
-  color: #4d5870; /* açık zeminde >= 4,5:1 (eskiden #6f7b93 = 3,79:1) */
+  color: var(--phone-card-muted);
 }
 .notifHead {
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 0.78rem;
-  color: #47536b;
+  color: var(--phone-card-muted);
   direction: ltr;
   margin-block-end: 6px;
 }
@@ -71,7 +66,7 @@
   flex: none;
 }
 .appName {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -85,16 +80,16 @@
 }
 .sys {
   margin-inline-start: auto;
-  background: #b3261e;
-  color: #fff;
+  background: var(--phone-chip);
+  color: var(--phone-chip-ink);
   border-radius: var(--radius-pill);
   padding: 1px 7px;
   font-size: 0.66rem;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   white-space: nowrap;
 }
 .nTitle {
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   font-size: 0.92rem;
   line-height: 1.3;
   overflow-wrap: anywhere;

@@ -4,7 +4,7 @@
 .list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
 .row { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); padding: var(--space-3) var(--space-4); display: grid; gap: var(--space-2); }
 .rowHead { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
-.title { font-weight: 600; margin: 0; overflow-wrap: anywhere; }
+.title { font-weight: var(--fw-semibold); margin: 0; overflow-wrap: anywhere; }
 .muted { color: var(--text-muted); font-size: var(--text-sm); }
 .actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .form { display: grid; gap: var(--space-3); min-inline-size: 0; }
@@ -21,12 +21,12 @@
 .section { margin-block-start: var(--space-6); }
 .statGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: var(--space-3); margin-block: var(--space-3); }
 .titleCell { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
-.linkBtn { background: none; border: 0; padding: 0; color: var(--info); text-decoration: underline; text-underline-offset: 2px; min-block-size: 44px; font: inherit; font-weight: 600; text-align: start; cursor: pointer; overflow-wrap: anywhere; }
+.linkBtn { background: none; border: 0; padding: 0; color: var(--info); text-decoration: underline; text-underline-offset: 2px; min-block-size: 44px; font: inherit; font-weight: var(--fw-semibold); text-align: start; cursor: pointer; overflow-wrap: anywhere; }
 .linkBtn:hover { text-decoration: underline; }
 .linkBtn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: var(--radius-sm); }
 .checks { display: flex; flex-wrap: wrap; gap: var(--space-4); }
 .fieldset { display: grid; gap: var(--space-3); border: 0; padding: 0; margin: 0; min-inline-size: 0; }
-.fieldset > legend { font-weight: 600; padding: 0; margin-block-end: var(--space-2); }
+.fieldset > legend { font-weight: var(--fw-semibold); padding: 0; margin-block-end: var(--space-2); }
 .notice { margin: 0; padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); background: var(--surface-muted, var(--border)); font-size: var(--text-sm); }
 .desc { margin: 0; overflow-wrap: anywhere; }
 .meta { display: grid; grid-template-columns: minmax(0, max-content) minmax(0, 1fr); gap: var(--space-1) var(--space-3); margin: 0; font-size: var(--text-sm); }
