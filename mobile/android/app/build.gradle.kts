@@ -109,4 +109,6 @@ dependencies {
     implementation("com.google.firebase:firebase-messaging")
     // Saf Kotlin birim testleri (PushSpec/PushRenderPlan): android bagimsiz.
     testImplementation("junit:junit:4.13.2")
+    // Widget JSON ayristirma birim testleri (Android stub org.json JVM testinde calismaz).
+    testImplementation("org.json:json:20240303")
 }

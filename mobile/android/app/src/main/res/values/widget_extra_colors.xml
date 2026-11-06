@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Lider olmayan anket cubugu: barFill %45 opaklik (DESIGN_SYSTEM bolum 3). -->
+    <color name="bu_widget_bar_fill_dim">#7309090B</color>
+</resources>

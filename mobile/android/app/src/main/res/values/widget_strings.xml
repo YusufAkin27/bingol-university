@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Uretilmis: mobile/tool/gen_android_widgets_meta.py. Widget secici etiketleri/aciklamalari; icerik metinleri snapshot ile gelir. -->
+<resources>
+    <string name="bw_label_menu">Yemek Menüsü</string>
+    <string name="bw_desc_menu">Günün yemek menüsü</string>
+    <string name="bw_label_timetable">Ders Programım</string>
+    <string name="bw_desc_timetable">Sıradaki ders ve bugünün programı</string>
+    <string name="bw_label_events">Yaklaşan Etkinlikler</string>
+    <string name="bw_desc_events">Kulüplerin yaklaşan etkinlikleri</string>
+    <string name="bw_label_announcements">Kampüs Duyuruları</string>
+    <string name="bw_desc_announcements">Son kampüs duyuruları</string>
+    <string name="bw_label_poll">Günün Anketi</string>
+    <string name="bw_desc_poll">Günün anketi ve sonuçlar</string>
+    <string name="bw_label_quickaccess">Hızlı Erişim</string>
+    <string name="bw_desc_quickaccess">Sık kullanılan ekranlara kısayollar</string>
+    <string name="bw_label_social">Sosyal Özet</string>
+    <string name="bw_desc_social">Mesaj, bildirim ve beğeni sayıları</string>
+    <string name="bw_signed_out_title">Giriş yap</string>
+    <string name="bw_signed_out_sub">BÜ Kampüs\'ü aç</string>
+</resources>

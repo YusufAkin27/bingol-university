@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Uretilmis: mobile/tool/gen_android_widgets_layouts.py -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/bu_widget_inverse_bg" />
+    <corners android:radius="8dp" />
+</shape>
