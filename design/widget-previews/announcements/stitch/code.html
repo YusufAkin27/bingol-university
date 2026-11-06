@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BU Kampüs - Kampüs Duyuruları Widget Ailesi</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    * {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+      font-weight: 400 !important; /* STRICT RULE: NO BOLD TEXT ANYWHERE */
+      letter-spacing: -0.011em;
+    }
+    .weight-light { font-weight: 300 !important; }
+    .widget-radius {
+      border-radius: 24px;
+    }
+    /* iOS Widget smooth border treatment */
+    .widget-box {
+      background-color: #18181B;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+    }
+    .widget-box:hover {
+      border-color: rgba(255, 255, 255, 0.14);
+    }
+    .truncate-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .truncate-4 {
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body class="bg-[#09090B] text-white min-h-screen antialiased selection:bg-zinc-800 selection:text-white pb-20">
+
+  <!-- Presentation Header -->
+  <header class="w-full px-5 pt-8 pb-6 border-b border-zinc-900/90 sticky top-0 bg-[#09090B]/90 backdrop-blur-md z-30">
+    <div class="max-w-md mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img src="https://lh3.googleusercontent.com/aida/ALJJyrDgLQjYRfzrYsDqbZOw1ck0Cn_3VxqPSg5ZCuTCrDrrAfJJXfT8SPPl-a_o9bPipOBaEQ8Iz1gMUmzrhl5Rl0KOJU_4sCcaIfkZl_18YGhxwQ0bPNFSLyCRQ7dhre-s58Kysy7ewtwP910RmGF5FXsNT5ZiGEMVikzXooR0wOP4cmw5P94Bw7N0L13YjtERUqvE5E8TdnWi0_D5qR0dY7Men_fUUb64HFX23MlewxGVIw" alt="BU Emblem" class="w-7 h-7 rounded-lg border border-zinc-800 object-cover" />
+        <div>
+          <span class="text-[11px] tracking-wider uppercase text-zinc-500 block leading-tight">BİNGÖL ÜNİVERSİTESİ</span>
+          <h1 class="text-[15px] text-zinc-100 leading-tight">BU Kampüs &bull; Widget Ailesi</h1>
+        </div>
+      </div>
+      <div class="text-right">
+        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] text-zinc-400 bg-zinc-900 border border-zinc-800">
+          iOS 18+ HIG
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-md mx-auto px-4 pt-6 space-y-10">
+
+    <!-- Meta / Philosophy Banner -->
+    <section class="border border-zinc-800/80 rounded-2xl p-4 bg-zinc-950/60">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[12px] text-zinc-400">Konsept: Kampüs Duyuruları</span>
+        <span class="text-[11px] text-zinc-500 font-mono">Premium Monochrome</span>
+      </div>
+      <p class="text-[12px] text-zinc-400 leading-relaxed">
+        Yalnızca saf siyah & beyaz, Inter (maksimum ağırlık 400), 1px hassas kenarlıklar ve 22-24pt kavis. Hiyerarşi yalnızca punto, ton ve hava payı ile kurulur.
+      </p>
+    </section>
+
+    <!-- SECTION 1: WIDGET SMALL (158x158 pt) -->
+    <section class="space-y-3">
+      <div class="flex items-baseline justify-between px-1">
+        <div class="flex items-center gap-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-zinc-400"></span>
+          <h2 class="text-xs uppercase tracking-wider text-zinc-400">Widget Small</h2>
+        </div>
+        <span class="text-[11px] font-mono text-zinc-600">158 &times; 158 pt</span>
+      </div>
+
+      <div class="flex justify-center sm:justify-start">
+        <!-- iOS Small Widget Container -->
+        <article class="widget-box widget-radius w-[158px] h-[158px] p-3.5 flex flex-col justify-between select-none relative group transition-all duration-200">
+          
+          <!-- Top Row: Source badge and status indicator -->
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] uppercase tracking-wider text-zinc-400 border border-zinc-800 px-1.5 py-0.5 rounded bg-zinc-900/60 leading-none">
+              SKS
+            </span>
+            <span class="w-1 h-1 rounded-full bg-zinc-500"></span>
+          </div>
+
+          <!-- Middle: Announcement title max 4 lines -->
+          <div class="my-auto py-1">
+            <p class="text-[12px] text-zinc-100 leading-[1.35] truncate-4" title="Yemekhane Öğle Servis Saatleri Güncellendi">
+              Yemekhane Öğle Servis Saatleri Güncellendi
+            </p>
+          </div>
+
+          <!-- Bottom: Date & live indicator -->
+          <div class="flex items-center justify-between border-t border-zinc-800/80 pt-2 text-[10px]">
+            <span class="text-zinc-400">05 Kas</span>
+            <span class="text-zinc-600 text-[9px] tracking-tight">Son Duyuru</span>
+          </div>
+        </article>
+      </div>
+      <p class="text-[11px] text-zinc-600 px-1">Tekil odak: Öğrencinin en güncel akıştan anlık haberdar olması için kompakt kart.</p>
+    </section>
+
+    <!-- SECTION 2: WIDGET MEDIUM (338x158 pt) -->
+    <section class="space-y-3">
+      <div class="flex items-baseline justify-between px-1">
+        <div class="flex items-center gap-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-zinc-400"></span>
+          <h2 class="text-xs uppercase tracking-wider text-zinc-400">Widget Medium</h2>
+        </div>
+        <span class="text-[11px] font-mono text-zinc-600">338 &times; 158 pt</span>
+      </div>
+
+      <!-- iOS Medium Widget Container -->
+      <article class="widget-box widget-radius w-full max-w-[338px] h-[158px] p-3.5 flex flex-col justify-between select-none mx-auto sm:mx-0 transition-all duration-200">
+        
+        <!-- Header row inside widget -->
+        <div class="flex items-center justify-between pb-1.5 border-b border-zinc-800/80">
+          <div class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+              <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+            </svg>
+            <span class="text-[11px] text-zinc-300">Kampüs Duyuruları</span>
+          </div>
+          <span class="text-[10px] text-zinc-500 font-mono">3 Yeni</span>
+        </div>
+
+        <!-- Rows: up to 3 single-line rows with ellipsis -->
+        <div class="flex-1 flex flex-col justify-around py-1 space-y-1.5">
+          <!-- Row 1 -->
+          <div class="flex items-center justify-between gap-3 group/item">
+            <div class="flex items-center gap-2 min-w-0 flex-1">
+              <span class="w-1 h-1 rounded-full bg-white shrink-0"></span>
+              <p class="text-[11.5px] text-zinc-100 truncate leading-snug">
+                Yemekhane Öğle Servis Saatleri Güncellendi
+              </p>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0 text-[10px] text-zinc-500">
+              <span>SKS</span>
+              <span>&bull;</span>
+              <span>05 Kas</span>
+            </div>
+          </div>
+
+          <!-- Row 2 -->
+          <div class="flex items-center justify-between gap-3 group/item">
+            <div class="flex items-center gap-2 min-w-0 flex-1">
+              <span class="w-1 h-1 rounded-full bg-zinc-600 shrink-0"></span>
+              <p class="text-[11.5px] text-zinc-300 truncate leading-snug">
+                2026-2027 Güz Dönemi Ara Sınav Takvimi
+              </p>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0 text-[10px] text-zinc-500">
+              <span>Öğrenci İşleri</span>
+              <span>&bull;</span>
+              <span>04 Kas</span>
+            </div>
+          </div>
+
+          <!-- Row 3 -->
+          <div class="flex items-center justify-between gap-3 group/item">
+            <div class="flex items-center gap-2 min-w-0 flex-1">
+              <span class="w-1 h-1 rounded-full bg-zinc-600 shrink-0"></span>
+              <p class="text-[11.5px] text-zinc-300 truncate leading-snug">
+                Erasmus+ Başvuru Sonuçları Açıklandı
+              </p>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0 text-[10px] text-zinc-500">
+              <span>Uluslararası</span>
+              <span>&bull;</span>
+              <span>03 Kas</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subtle footer status -->
+        <div class="pt-1 flex items-center justify-between text-[9px] text-zinc-600 border-t border-zinc-900">
+          <span>Bingöl Üniversitesi Portal</span>
+          <span>Güncellendi: 12:40</span>
+        </div>
+      </article>
+      <p class="text-[11px] text-zinc-600 px-1">Özet liste görünümü: Tek satır başlıklar, kesme (ellipsis), birincil/ikincil ton dengesi.</p>
+    </section>
+
+    <!-- SECTION 3: WIDGET LARGE (338x354 pt) -->
+    <section class="space-y-3">
+      <div class="flex items-baseline justify-between px-1">
+        <div class="flex items-center gap-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-zinc-400"></span>
+          <h2 class="text-xs uppercase tracking-wider text-zinc-400">Widget Large</h2>
+        </div>
+        <span class="text-[11px] font-mono text-zinc-600">338 &times; 354 pt</span>
+      </div>
+
+      <!-- iOS Large Widget Container -->
+      <article class="widget-box widget-radius w-full max-w-[338px] h-[354px] p-4 flex flex-col justify-between select-none mx-auto sm:mx-0 transition-all duration-200">
+        
+        <!-- Header with small BU Emblem and text "Kampus Duyurulari" -->
+        <header class="flex items-center justify-between pb-3 border-b border-zinc-800/80">
+          <div class="flex items-center gap-2.5">
+            <img src="https://lh3.googleusercontent.com/aida/ALJJyrDgLQjYRfzrYsDqbZOw1ck0Cn_3VxqPSg5ZCuTCrDrrAfJJXfT8SPPl-a_o9bPipOBaEQ8Iz1gMUmzrhl5Rl0KOJU_4sCcaIfkZl_18YGhxwQ0bPNFSLyCRQ7dhre-s58Kysy7ewtwP910RmGF5FXsNT5ZiGEMVikzXooR0wOP4cmw5P94Bw7N0L13YjtERUqvE5E8TdnWi0_D5qR0dY7Men_fUUb64HFX23MlewxGVIw" alt="BU" class="w-6 h-6 rounded-md border border-zinc-800 object-cover" />
+            <div>
+              <h3 class="text-[12.5px] text-zinc-100 leading-none">Kampüs Duyuruları</h3>
+              <p class="text-[10px] text-zinc-500 mt-0.5 leading-none">BU Kampüs &bull; Bingöl</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="inline-block w-1.5 h-1.5 rounded-full bg-zinc-300"></span>
+            <span class="text-[10px] text-zinc-400 font-mono">Canlı Akış</span>
+          </div>
+        </header>
+
+        <!-- 4 Rows with two-line titles, source and date -->
+        <div class="flex-1 flex flex-col justify-between py-2 space-y-2.5">
+          
+          <!-- Item 1 -->
+          <div class="pb-2 border-b border-zinc-800/50">
+            <p class="text-[12px] text-zinc-100 leading-snug truncate-2" title="Yemekhane Öğle Servis Saatleri Güncellendi">
+              Yemekhane Öğle Servis Saatleri Güncellendi
+            </p>
+            <div class="flex items-center justify-between text-[10px] text-zinc-400 mt-1">
+              <span class="tracking-wide">SKS &bull; Sağlık, Kültür ve Spor</span>
+              <span class="text-zinc-500 font-mono">05 Kas</span>
+            </div>
+          </div>
+
+          <!-- Item 2 -->
+          <div class="pb-2 border-b border-zinc-800/50">
+            <p class="text-[12px] text-zinc-200 leading-snug truncate-2" title="2026-2027 Güz Dönemi Ara Sınav Takvimi ve Sınav Salonları">
+              2026-2027 Güz Dönemi Ara Sınav Takvimi
+            </p>
+            <div class="flex items-center justify-between text-[10px] text-zinc-400 mt-1">
+              <span class="tracking-wide">Öğrenci İşleri Daire Bşk.</span>
+              <span class="text-zinc-500 font-mono">04 Kas</span>
+            </div>
+          </div>
+
+          <!-- Item 3 -->
+          <div class="pb-2 border-b border-zinc-800/50">
+            <p class="text-[12px] text-zinc-200 leading-snug truncate-2" title="Erasmus+ Başvuru Sonuçları Açıklandı">
+              Erasmus+ Başvuru Sonuçları Açıklandı
+            </p>
+            <div class="flex items-center justify-between text-[10px] text-zinc-400 mt-1">
+              <span class="tracking-wide">Uluslararası İlişkiler Ofisi</span>
+              <span class="text-zinc-500 font-mono">03 Kas</span>
+            </div>
+          </div>
+
+          <!-- Item 4 -->
+          <div>
+            <p class="text-[12px] text-zinc-200 leading-snug truncate-2" title="Kütüphane Hafta Sonu Açık Kalacak">
+              Kütüphane Hafta Sonu Açık Kalacak
+            </p>
+            <div class="flex items-center justify-between text-[10px] text-zinc-400 mt-1">
+              <span class="tracking-wide">Kütüphane ve Dokümantasyon</span>
+              <span class="text-zinc-500 font-mono">01 Kas</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Footer indicator -->
+        <footer class="pt-2.5 border-t border-zinc-800/80 flex items-center justify-between text-[10px] text-zinc-500">
+          <div class="flex items-center gap-1.5">
+            <svg class="w-3 h-3 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span>Tüm duyurular senkronize</span>
+          </div>
+          <span class="text-zinc-400 hover:text-white transition-colors cursor-pointer text-[10px]">Uygulamada Aç &rarr;</span>
+        </footer>
+
+      </article>
+      <p class="text-[11px] text-zinc-600 px-1">Detaylı akış: İki satırlı başlıklar, birim unvanları, tarih damgası ve doğrudan erişim.</p>
+    </section>
+
+    <!-- DESIGN SPECIFICATIONS & TOKEN GUIDE -->
+    <section class="border-t border-zinc-800/80 pt-6 space-y-4">
+      <h4 class="text-xs uppercase tracking-wider text-zinc-500">Tasarım İlkeleri ve Belirtimler</h4>
+      
+      <div class="grid grid-cols-2 gap-2.5 text-[11px]">
+        <div class="p-3 rounded-xl bg-zinc-900/70 border border-zinc-800">
+          <span class="text-zinc-500 block text-[10px]">Renk Paleti</span>
+          <span class="text-zinc-200 mt-0.5 block">Zemin: #09090B</span>
+          <span class="text-zinc-400 block">Yüzey: #18181B</span>
+          <span class="text-zinc-500 block">Çerçeve: 1px (#27272A)</span>
+        </div>
+
+        <div class="p-3 rounded-xl bg-zinc-900/70 border border-zinc-800">
+          <span class="text-zinc-500 block text-[10px]">Tipografi & Kural</span>
+          <span class="text-zinc-200 mt-0.5 block">Inter (Max 400 Weight)</span>
+          <span class="text-zinc-400 block">Kalın yazı (Bold) = Yok</span>
+          <span class="text-zinc-500 block">Kavis: 22-24pt iOS</span>
+        </div>
+      </div>
+
+      <!-- Urgent / Danger notice example (pure red token rule) -->
+      <div class="p-3 rounded-xl bg-zinc-950 border border-red-500/20 flex items-start gap-2.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0"></span>
+        <div>
+          <span class="text-[11px] text-red-400 block">Acil Durum Bildirim Kuralı</span>
+          <p class="text-[10px] text-zinc-400 mt-0.5 leading-normal">
+            Monochrome palet içerisinde kırmızı renk yalnızca afet, sınav iptali veya acil duyurular için rezerve edilmiştir.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+</body>
+</html>

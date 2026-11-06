@@ -1,0 +1,8 @@
+# Stitch istemi (BU Widget - announcements)
+
+Stitch projesi: "BU Widget - announcements" (stitch.withgoogle.com). Tek istem, App modu:
+
+> Design a presentation board for a home-screen widget family named "Kampus Duyurulari" (Campus Announcements) of a Turkish university student app "BU Kampus" (Bingol Universitesi). Premium Monochrome style: pure black and white only, red only for danger, NO brand color, single typeface Inter, NO bold text (max weight 400 ...), thin 1px borders, rounded corners 22pt ... Dark theme: background #09090B, surface #18181B, text white, secondary #A1A1AA. Three iOS widgets: Small 158x158pt (latest announcement: source label "SKS", title max 4 lines "Yemekhane Ogle Servis Saatleri Guncellendi", date "05 Kas"), Medium 338x158pt (up to 3 rows: title one line with ellipsis, source and date in secondary tone), Large 338x354pt (4 rows with two-line titles, source and date, header with small BU emblem and "Kampus Duyurulari"). Content: "Yemekhane Ogle Servis Saatleri Guncellendi - SKS - 05 Kas", "2026-2027 Guz Donemi Ara Sinav Takvimi - Ogrenci Isleri - 04 Kas", "Erasmus+ Basvuru Sonuclari Aciklandi - Uluslararasi Iliskiler - 03 Kas", "Kutuphane Hafta Sonu Acik Kalacak - Kutuphane - 01 Kas". No user names or photos.
+
+Stitch ayrica "Kampus Duyurulari Monochrome" adli bir tasarim sistemi karti uretti (renk/tipografi). Stitch'in "Acil Durum" kirmizi notu: kirmizi yalniz acil/tehlike duyurusu icin (README'de aynen korundu).
+Cikti: `screen.png`, `code.html`. Diger boyut/tema/Android ciktilari `render.html` (`?w=announcements&p=ios|android&s=small|medium|large&t=light|dark&e=0|1`) ve `make_home_mockups.py` ile uretildi. Belirtimin tek kaynagi `../README.md`.
