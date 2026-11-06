@@ -170,6 +170,27 @@ const site = {
   'site.notFound.title': 'Sayfa bulunamadı',
   'site.notFound.hint': 'Aradığınız sayfa taşınmış ya da hiç var olmamış olabilir.',
   'site.notFound.home': 'Ana sayfaya dön',
+  'site.contact.inApp2': 'Destek bölümünden yeni talep oluşturun.',
+  'site.contact.inApp3': 'Konuyu yazıp gönderin; talebin durumunu aynı yerden izleyin.',
+  'site.dataRequest.right1': 'Kişisel verilerinizin işlenip işlenmediğini öğrenme',
+  'site.dataRequest.right2': 'İşlenmişse buna ilişkin bilgi talep etme',
+  'site.dataRequest.right3': 'İşlenme amacını ve amacına uygun kullanılıp kullanılmadığını öğrenme',
+  'site.dataRequest.right4': 'Yurt içinde veya yurt dışında verilerin aktarıldığı üçüncü kişileri bilme',
+  'site.dataRequest.right5': 'Eksik veya yanlış işlenmişse düzeltilmesini isteme',
+  'site.dataRequest.right6': 'Kanun’da öngörülen şartlar çerçevesinde silinmesini veya yok edilmesini isteme',
+  'site.dataRequest.right7': 'Düzeltme ve silme işlemlerinin verilerin aktarıldığı üçüncü kişilere bildirilmesini isteme',
+  'site.dataRequest.right8': 'Verilerin otomatik sistemlerle analiz edilmesi sonucu aleyhinize bir sonuç çıkmasına itiraz etme',
+  'site.dataRequest.right9': 'Kanuna aykırı işleme nedeniyle zarara uğramanız hâlinde zararın giderilmesini talep etme',
+  'site.dataRequest.self1.title': 'Verilerinizi indirin',
+  'site.dataRequest.self1.text':
+    'Uygulamada Profil > Verilerimi indir bölümünden hesabınıza ait verileri bir dosya olarak alın.',
+  'site.dataRequest.self2.title': 'Hesabınızı silin',
+  'site.dataRequest.self2.text':
+    'Uygulamadaki hesap ayarlarından hesabınızı silebilirsiniz. Silme, kişisel verilerinizi anonimleştirir ve geri alınamaz.',
+  'site.dataRequest.ret1': 'Analitik olaylar: 180 gün sonra otomatik silinir.',
+  'site.dataRequest.ret2': 'Hesap silindiğinde: kişisel verileriniz anonimleştirilir.',
+  'site.dataRequest.ret3': 'Hesabınız açıkken: hesap ve kullanım verileriniz hizmeti sunmak için saklanır.',
+  'site.dataRequest.ret4': 'Diğer veri türlerinin ayrıntıları için güncel aydınlatma metnine bakın veya bize yazın.',
 } as const;
 
 export default site;

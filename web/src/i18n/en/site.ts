@@ -170,6 +170,27 @@ const site = {
   'site.notFound.title': 'Page not found',
   'site.notFound.hint': 'The page you are looking for may have moved or never existed.',
   'site.notFound.home': 'Back to home',
+  'site.contact.inApp2': 'Create a new request in the Support section.',
+  'site.contact.inApp3': 'Describe the issue and send it; follow its status in the same place.',
+  'site.dataRequest.right1': 'Learn whether your personal data is processed',
+  'site.dataRequest.right2': 'Request information if it has been processed',
+  'site.dataRequest.right3': 'Learn the purpose of processing and whether it is used accordingly',
+  'site.dataRequest.right4': 'Know the third parties to whom your data is transferred, in Turkey or abroad',
+  'site.dataRequest.right5': 'Request correction if data is incomplete or inaccurate',
+  'site.dataRequest.right6': 'Request deletion or destruction within the conditions set by the law',
+  'site.dataRequest.right7': 'Request that corrections and deletions be notified to third parties who received your data',
+  'site.dataRequest.right8': 'Object to a result against you produced by analysing data with automated systems',
+  'site.dataRequest.right9': 'Claim compensation if you suffer damage from unlawful processing',
+  'site.dataRequest.self1.title': 'Download your data',
+  'site.dataRequest.self1.text':
+    'In the app, go to Profile > Download my data to get the data of your account as a file.',
+  'site.dataRequest.self2.title': 'Delete your account',
+  'site.dataRequest.self2.text':
+    'You can delete your account from the account settings in the app. Deleting anonymises your personal data and cannot be undone.',
+  'site.dataRequest.ret1': 'Analytics events: deleted automatically after 180 days.',
+  'site.dataRequest.ret2': 'When an account is deleted: your personal data is anonymised.',
+  'site.dataRequest.ret3': 'While your account is open: account and usage data are kept to provide the service.',
+  'site.dataRequest.ret4': 'For other kinds of data, see the current notice or write to us.',
 } as const;
 
 export default site;
