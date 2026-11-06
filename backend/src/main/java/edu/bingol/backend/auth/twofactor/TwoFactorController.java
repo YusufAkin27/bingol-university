@@ -110,7 +110,7 @@ public class TwoFactorController {
         limiter.check("tf:enconf:user:" + userId, 10, Duration.ofMinutes(10));
         limiter.check("tf:enconf:ip:" + clientIp.limitKey(http), limits.verifyIpMax(), Duration.ofMinutes(10));
         twoFactor.confirmEnable(userId, r.code(), contexts.of(http), r.closeOthers());
-        return new EnabledResponse(true, r.closeOthers() ? auth.reissueTokens(userId, callerClient(http)) : null);
+        return new EnabledResponse(true, r.closeOthers() ? auth.reissueTokens(userId, callerClient(http), contexts.of(http)) : null);
     }
 
     /**
@@ -125,7 +125,7 @@ public class TwoFactorController {
         limiter.check("tf:disable:user:" + userId, 5, Duration.ofMinutes(15));
         limiter.check("tf:disable:ip:" + clientIp.limitKey(http), limits.changePasswordIpMax(), Duration.ofHours(1));
         twoFactor.disable(userId, r.password(), r.closeOthers());
-        return new EnabledResponse(false, r.closeOthers() ? auth.reissueTokens(userId, callerClient(http)) : null);
+        return new EnabledResponse(false, r.closeOthers() ? auth.reissueTokens(userId, callerClient(http), contexts.of(http)) : null);
     }
 
     @GetMapping("/2fa/devices")

@@ -203,6 +203,7 @@ class AuthTwoFactorFlowTest {
     @Test
     void verifyingTheCodeGives200AndTrustsTheDeviceSoTheNextLoginNeedsNoCode() {
         user.setTwoFactorEnabled(true);
+        auth.setSingleMobileSession(true); // eski tek mobil oturum kurali acikken de ikinci adim ayni davranisi korur
         LoginChallengeResponse ch = asChallenge(login(DEV_A));
 
         TokenResponse t = complete(ch, lastCode(), true, DEV_A);

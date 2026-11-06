@@ -54,6 +54,12 @@ public interface DeviceRepository extends JpaRepository<Device, Long> {
     @Modifying
     void deleteByFcmTokenIn(Collection<String> tokens);
 
+    /** Tek oturum kapatilinca (Cihazlarim / cikis): yalniz o oturumdan kaydolmus cihaz kaydi silinir. */
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
+    @Modifying
+    @Query("DELETE FROM Device d WHERE d.userId = :userId AND d.sessionId = :sid")
+    int deleteBySessionId(@Param("userId") Long userId, @Param("sid") String sid);
+
     /**
      * Verilen turu kapatmamis, aktif ve sessiz saatte olmayan kullanicilarin cihaz token'lari (toplu bildirim icin).
      * Sessiz saatteki kullanicilarin uygulama ici kaydi dusulur, yalnizca push atlanir (SYSTEM haric).

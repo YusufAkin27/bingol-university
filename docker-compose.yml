@@ -148,6 +148,8 @@ services:
       AUTH_OAUTH_REQUIRE_TERMS:
       AUTH_PASSWORD_SIGNUPS_NEED_ONBOARDING:
       AUTH_PROFILE_GATE_ENABLED:
+      # Cok oturum varsayilan; smoke-single-session.sh eski tek mobil oturum kurali icin AUTH_SINGLE_MOBILE_SESSION=true ister
+      AUTH_SINGLE_MOBILE_SESSION:
       # FINAL-ALL: tanimsiz = varsayilan; duman/yerel ayarlari (bkz. CLAUDE.md "Duman betikleri")
       APP_CHAT_RECEIPTS_MAX_MEMBERS:
       APP_CHAT_RECEIPTS_ROOMS:

@@ -150,6 +150,8 @@ class ExtraExportersTest {
             Map.entry("two_factor_device", "twoFactor"),
             // OAuth (V1450): Google/Apple kimlik baglari (saglayici sub disari verilmez; saglayici, e-posta, zamanlar verilir)
             Map.entry("auth_identity", "authIdentities"),
+            // Cok oturum (V1460): acik oturum kayitlari (cihaz adi, maskeli IP; ham IP/cihaz kimligi yok)
+            Map.entry("user_session", "sessions"),
             // Kampus Forum (E): hepsi tek "forum" bolumunde (ForumDataExporter); anonim paylasimlar da kullanicinin kendi verisidir
             Map.entry("forum_topic", "forum"), Map.entry("forum_comment", "forum"),
             Map.entry("forum_topic_like", "forum"), Map.entry("forum_comment_like", "forum"),

@@ -7,6 +7,7 @@ import edu.bingol.backend.auth.dto.TokenResponse;
 import edu.bingol.backend.auth.dto.VerificationDtos;
 import edu.bingol.backend.auth.dto.UserView;
 import edu.bingol.backend.auth.jwt.JwtService;
+import edu.bingol.backend.auth.session.UserSessionService;
 import edu.bingol.backend.auth.token.PendingRegistrationStore;
 import edu.bingol.backend.auth.token.PendingRegistrationStore.Pending;
 import edu.bingol.backend.auth.token.MilliTick;
@@ -72,6 +73,12 @@ public class AuthService {
     private int passwordMinLength = PasswordPolicy.DEFAULT_MIN;
     @org.springframework.beans.factory.annotation.Value("${app.auth.password-min-length-admin:12}")
     private int passwordMinLengthAdmin = PasswordPolicy.DEFAULT_ADMIN_MIN;
+    /**
+     * Tek mobil oturum kurali (eski davranis): true iken mobil giris onceki MOBIL oturumlari kapatir ve FCM kayitlarini
+     * siler. Varsayilan false = COKLU OTURUM: girisler birbirini kapatmaz, "Cihazlarim"dan tek tek cikilir.
+     */
+    @org.springframework.beans.factory.annotation.Value("${app.auth.single-mobile-session:false}")
+    private boolean singleMobileSession = false;
     /** Kota asiminda ertelenmis e-posta dogrulama (QT-BE); false = eski davranis (503 MAIL_QUOTA_EXHAUSTED). */
     @org.springframework.beans.factory.annotation.Value("${app.auth.deferred-verification.enabled:true}")
     private boolean deferredVerificationEnabled = true;
@@ -136,6 +143,18 @@ public class AuthService {
     @Autowired
     void setTwoFactor(TwoFactorService twoFactor) {
         this.twoFactor = twoFactor;
+    }
+
+    /** Oturum kayitlari ("Cihazlarim"); yoksa (kayit olmadan kurulan birim testleri) token'lar sid'siz uretilir. */
+    private UserSessionService userSessions;
+
+    @Autowired(required = false)
+    void setUserSessions(UserSessionService userSessions) {
+        this.userSessions = userSessions;
+    }
+
+    void setSingleMobileSession(boolean v) {
+        this.singleMobileSession = v;
     }
 
     @Autowired(required = false)
@@ -319,7 +338,7 @@ public class AuthService {
         }
         log.info("Kota dolu: ertelenmis dogrulamayla hesap acildi (userId={}, {})", user.getId(), LogMasking.email(email));
         logDevice(user.getId(), ctx, "REGISTER");
-        return tokens(user, client);
+        return newSessionTokens(user, client, ctx, false);
     }
 
     public void resendCode(String rawEmail) {
@@ -419,6 +438,11 @@ public class AuthService {
      * kullanicinin TUM eski token'larini reddeder). Sifre/ozet log'a yazilmaz.
      */
     public TokenResponse changePassword(Long userId, String currentPassword, String newPassword, String client) {
+        return changePassword(userId, currentPassword, newPassword, client, null);
+    }
+
+    public TokenResponse changePassword(Long userId, String currentPassword, String newPassword, String client,
+                                        ClientContext ctx) {
         User user = users.findById(userId).filter(User::isActive)
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Oturum geçersiz."));
         // 72 bayt ustu parola bcrypt'te istisna firlatirdi (500); sistemde boyle bir parola olamaz.
@@ -440,7 +464,7 @@ public class AuthService {
         // Iptal isareti `iatms <= isaret` token'lari reddeder: yeni token'in iatms'i kesin buyuk olsun.
         MilliTick.awaitNext();
         notifyPasswordChanged(user);
-        return tokens(user, client);
+        return newSessionTokens(user, client, ctx, false);
     }
 
     private void notifyPasswordChanged(User user) {
@@ -518,7 +542,7 @@ public class AuthService {
             MilliTick.awaitNext();
         }
         logDevice(user.getId(), ctx, "REGISTER");
-        return tokens(user, client);
+        return newSessionTokens(user, client, ctx, false);
     }
 
     public TokenResponse login(String rawEmail, String password) {
@@ -588,10 +612,10 @@ public class AuthService {
             }
         }
         logDevice(user.getId(), ctx, "LOGIN");
-        if (RefreshTokenService.MOBILE.equals(c)) {
+        if (singleMobileSession && RefreshTokenService.MOBILE.equals(c)) {
             sessions.revokeClient(user.getId(), c, true);
         }
-        return tokens(user, c);
+        return newSessionTokens(user, c, ctx, true);
     }
 
     /**
@@ -614,10 +638,10 @@ public class AuthService {
         }
         logDevice(user.getId(), ctx, "LOGIN");
         String c = RefreshTokenService.normalizeClient(ch.client());
-        if (RefreshTokenService.MOBILE.equals(c)) {
+        if (singleMobileSession && RefreshTokenService.MOBILE.equals(c)) {
             sessions.revokeClient(user.getId(), c, true);
         }
-        return tokens(user, c);
+        return newSessionTokens(user, c, ctx, true);
     }
 
     /** 2FA kodunu ayni challenge icin yeniden gonderir; kalan omur (sn) doner. Sinir controller'da. */
@@ -662,10 +686,14 @@ public class AuthService {
      * Iptal isareti `iatms <= isaret` token'lari reddeder, yeni token'in iatms'i kesin buyuk olsun (changePassword gibi).
      */
     public TokenResponse reissueTokens(Long userId, String client) {
+        return reissueTokens(userId, client, null);
+    }
+
+    public TokenResponse reissueTokens(Long userId, String client, ClientContext ctx) {
         User user = users.findById(userId).filter(User::isActive)
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Oturum geçersiz."));
         MilliTick.awaitNext();
-        return tokens(user, client);
+        return newSessionTokens(user, client, ctx, false);
     }
 
     public TokenResponse refresh(String refreshToken) {
@@ -711,6 +739,7 @@ public class AuthService {
                 RefreshTokenService.Reuse r = reused.get();
                 if (r.familyKnown()) {
                     int n = refresh.revokeFamily(r.userId(), r.client(), r.authTimeMs());
+                    endSessionFamily(r.userId(), r.authTimeMs(), r.sid());
                     log.warn("Refresh token yeniden kullanimi tespit edildi (user {}): oturum ailesi kapatildi ({} token)",
                             r.userId(), n);
                 } else {
@@ -735,8 +764,12 @@ public class AuthService {
         }
         requireNotBlocked(ctx, user.getId(), "/api/auth/refresh");
         logDevice(user.getId(), ctx, "REFRESH");
-        TokenResponse next = tokens(user, s.client(), s.authTimeMs());
-        // Tuketme ile yeni token uretimi arasinda revokeAll araya girdiyse (sifre sifirlama) yeni cift de kapanir.
+        // Oturum kaydi: sid korunur (kayit yoksa/eski zincirse devralinir); kayit hatasi yenilemeyi bozmaz.
+        String sid = userSessions == null ? s.sid()
+                : userSessions.refreshed(user.getId(), s.sid(), s.client(), s.authTimeMs(), ctx);
+        TokenResponse next = tokens(user, s.client(), s.authTimeMs(), sid);
+        // Tuketme ile yeni token uretimi arasinda revokeAll araya girdiyse (sifre sifirlama) yeni cift de kapanir;
+        // ayni sekilde bu oturum (sid) tek basina iptal edildiyse.
         if (sessionRevoked(s)) {
             refresh.revoke(next.refreshToken());
             throw invalidRefresh();
@@ -776,7 +809,18 @@ public class AuthService {
 
     /** Oturum, acilisindan sonra "tum cihazlardan cik"/sifre degisimi/tek cihaz kuraliyla kapatildi mi (eski token: hayir). */
     private boolean sessionRevoked(RefreshTokenService.Session s) {
-        return s.authTimeMs() > 0 && sessions.isRevokedSince(s.userId(), s.client(), s.authTimeMs());
+        return (s.authTimeMs() > 0 && sessions.isRevokedSince(s.userId(), s.client(), s.authTimeMs()))
+                || (s.sid() != null && sessions.isSidRevoked(s.sid()));
+    }
+
+    /** Calinti suphesiyle kapanan refresh ailesinin oturum kaydi kapanir; sid biliniyorsa erisim isareti de konur. */
+    private void endSessionFamily(Long userId, long authTimeMs, String sid) {
+        if (userSessions != null) {
+            userSessions.markFamilyRevoked(userId, authTimeMs);
+        }
+        if (sid != null) {
+            sessions.revokeSession(userId, sid);
+        }
     }
 
     private static ApiException invalidRefresh() {
@@ -790,9 +834,17 @@ public class AuthService {
     /** fcmToken verilirse o cihazin push kaydi da silinir (cikis yapan kullanicinin bildirimi telefonda kalmasin). */
     public void logout(String refreshToken, String fcmToken) {
         Long userId = fcmToken == null || fcmToken.isBlank() ? null : refresh.peekUserId(refreshToken);
-        refresh.revoke(refreshToken);
+        RefreshTokenService.Session ended = refresh.revoke(refreshToken);
         if (userId != null) {
             sessions.deviceLoggedOut(userId, fcmToken.trim());
+        }
+        // Cok oturum: yalniz bu cihazin oturum kaydi kapanir, access token'i aninda gecersiz olur, o oturumdan
+        // kaydolmus push cihazi silinir; kullanicinin diger cihazlari etkilenmez.
+        if (ended != null && ended.sid() != null) {
+            if (userSessions != null) {
+                userSessions.markRevoked(ended.sid());
+            }
+            sessions.revokeSession(ended.userId(), ended.sid());
         }
     }
 
@@ -837,15 +889,28 @@ public class AuthService {
         return false;
     }
 
-    private TokenResponse tokens(User user, String client) {
-        return tokens(user, client, 0L);
+    /**
+     * YENI giris zinciri: oturum kaydi acilir (sid), token'lar sid'li uretilir. `announce`: yeni cihaz bildirimi
+     * tetiklensin mi (yalniz gercek giris; sifre degisimi/2FA sonrasi yeniden duzenleme degil). Kayit servisi yoksa
+     * ya da kayit acilamazsa eski bicimde (sid'siz) token verilir.
+     */
+    private TokenResponse newSessionTokens(User user, String client, ClientContext ctx, boolean announce) {
+        String c = RefreshTokenService.normalizeClient(client);
+        if (userSessions == null) {
+            return tokens(user, c, 0L, null);
+        }
+        long auth = System.currentTimeMillis();
+        String sid = userSessions.open(user.getId(), c, auth, ctx, announce);
+        return tokens(user, c, auth, sid);
     }
 
     /** `authTimeMs` > 0 ise rotasyondur: oturumun ilk giris ani korunur (mutlak omur + iptal karsilastirmasi). */
-    private TokenResponse tokens(User user, String client, long authTimeMs) {
+    private TokenResponse tokens(User user, String client, long authTimeMs, String sid) {
         String c = RefreshTokenService.normalizeClient(client);
-        String rt = authTimeMs > 0 ? refresh.issue(user.getId(), c, authTimeMs) : refresh.issue(user.getId(), c);
-        TokenResponse t = new TokenResponse(jwt.createAccessToken(user, c), rt, jwt.accessTtl().toSeconds(), "Bearer");
+        String rt = sid != null ? refresh.issue(user.getId(), c, authTimeMs, sid)
+                : authTimeMs > 0 ? refresh.issue(user.getId(), c, authTimeMs) : refresh.issue(user.getId(), c);
+        String at = sid != null ? jwt.createAccessToken(user, c, sid) : jwt.createAccessToken(user, c);
+        TokenResponse t = new TokenResponse(at, rt, jwt.accessTtl().toSeconds(), "Bearer");
         return user.isVerificationDeferred() && !user.isEmailVerified() ? t.asDeferred() : t;
     }
 

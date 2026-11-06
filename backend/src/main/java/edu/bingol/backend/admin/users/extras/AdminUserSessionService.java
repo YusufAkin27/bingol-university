@@ -45,6 +45,20 @@ public class AdminUserSessionService {
         this.clock = clock;
     }
 
+    /**
+     * Cok oturum (V1460): refresh kaydinin 4. alani oturum kimligidir (sid). Tek oturum kapatilinca o oturumun access
+     * token'i da aninda gecersiz olur, push cihazi silinir ve `user_session` satiri kapanir (yoksa sid'siz eski mantik).
+     */
+    private edu.bingol.backend.auth.token.SessionService sessionService;
+    private edu.bingol.backend.auth.session.UserSessionService userSessions;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setSessions(edu.bingol.backend.auth.token.SessionService sessionService,
+                     edu.bingol.backend.auth.session.UserSessionService userSessions) {
+        this.sessionService = sessionService;
+        this.userSessions = userSessions;
+    }
+
     public SessionList list(Long userId) {
         Targets.existing(users, userId);
         Set<String> hashes = redis.opsForSet().members(userKey(userId));
@@ -55,7 +69,7 @@ public class AdminUserSessionService {
                 if (v == null) {
                     continue; // suresi dolmus (kume uyesi bayat kalabilir)
                 }
-                String[] p = v.split(":", 3);
+                String[] p = v.split(":", 4); // uid:client:authTimeMs[:sid]
                 String client = p.length < 2 ? "web" : p[1];
                 long auth = p.length < 3 ? 0L : parse(p[2]);
                 Long ttl = redis.getExpire(TOKEN_PREFIX + h, TimeUnit.SECONDS);
@@ -84,14 +98,27 @@ public class AdminUserSessionService {
                 }
             }
         }
-        if (match == null || redis.opsForValue().get(TOKEN_PREFIX + match) == null) {
+        String value = match == null ? null : redis.opsForValue().get(TOKEN_PREFIX + match);
+        if (match == null || value == null) {
             throw notFound();
         }
+        String[] parts = value.split(":", 4);
+        String sid = parts.length >= 4 && !parts[3].isBlank() ? parts[3] : null;
         redis.delete(TOKEN_PREFIX + match);
         redis.opsForSet().remove(userKey(userId), match);
         // Mezar tasi: istemci "baska yerden kapatildi" ile "suresi doldu" ayrimini yapabilsin (RefreshTokenService ile ayni)
         redis.opsForValue().set(TOMBSTONE_PREFIX + match, String.valueOf(userId),
                 Duration.ofDays(Math.max(1, jwt.refreshTtlDays())));
+        if (sid != null && sessionService != null) {
+            try {
+                sessionService.revokeSession(userId, sid); // access token'i da aninda keser, push cihazini siler
+                if (userSessions != null) {
+                    userSessions.markRevoked(sid);
+                }
+            } catch (RuntimeException ignored) {
+                // refresh zaten kesildi; kayit temizligi en-iyi-caba
+            }
+        }
     }
 
     private static ApiException notFound() {

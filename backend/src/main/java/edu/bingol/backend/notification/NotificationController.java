@@ -47,12 +47,14 @@ public class NotificationController {
 
     @PostMapping("/devices")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void registerDevice(@Valid @RequestBody DeviceRequest r) {
+    public void registerDevice(@Valid @RequestBody DeviceRequest r, jakarta.servlet.http.HttpServletRequest http) {
         Long uid = CurrentUser.id();
         // Uygulama her acilista/token yenilemede kaydolur: dar sinir (eski 30/sa) 429 ile kaydi dusurup kullaniciyi
         // push'suz birakabilirdi. Silme sayaci ayri tutulur.
         limiter.check("dev-reg:" + uid, 120, Duration.ofHours(1));
-        devices.register(uid, r.fcmToken(), r.platform(), r.appVersion(), r.locale(), Boolean.TRUE.equals(r.richNotifications()));
+        Object sid = http == null ? null : http.getAttribute(edu.bingol.backend.auth.jwt.JwtAuthFilter.SESSION_ID_ATTR);
+        devices.register(uid, r.fcmToken(), r.platform(), r.appVersion(), r.locale(),
+                Boolean.TRUE.equals(r.richNotifications()), sid instanceof String s ? s : null);
     }
 
     @GetMapping("/devices")

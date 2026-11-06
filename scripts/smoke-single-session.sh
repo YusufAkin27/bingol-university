@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-# Tek cihaz (tek oturum) kurali icin uctan uca duman testi (mobil istemciler).
-# Kullanim: BASE=http://localhost:8080 ./scripts/smoke-single-session.sh
+# ESKI tek cihaz (tek oturum) kurali icin uctan uca duman testi (mobil istemciler).
+# Kullanim: AUTH_SINGLE_MOBILE_SESSION=true docker compose up -d backend  sonra
+#           BASE=http://localhost:8080 ./scripts/smoke-single-session.sh
+# Varsayilan artik COKLU OTURUM (bkz. scripts/smoke-multi-session.sh): bayrak kapaliyken ilk mobil token ikinci giristen
+# sonra da gecerli kalir; bu betik bunu algilar ve ATLANDI (cikis kodu 2) der.
 # Onkosul: compose'ta MAIL_ENABLED=false (kod log'dan okunur). Betik arasi: redis flushall gerekmez (tek kayit).
 set -u
 BASE=${BASE:-http://localhost:8080}
@@ -35,6 +38,10 @@ D1=$(login mobile); AT1=$(echo "$D1" | field accessToken); RT1=$(echo "$D1" | fi
 check "cihaz 1 istegi" 200 "$(status "$AT1")"
 D2=$(login mobile); AT2=$(echo "$D2" | field accessToken); RT2=$(echo "$D2" | field refreshToken)
 check "cihaz 2 hemen sonra istegi" 200 "$(status "$AT2")"
+if [ "$(status "$AT1")" = "200" ]; then
+  echo "ATLANDI: coklu oturum modu (AUTH_SINGLE_MOBILE_SESSION=true ile calistirin; coklu icin smoke-multi-session.sh)"
+  exit 2
+fi
 check "cihaz 1 eski token" 401 "$(status "$AT1")"
 has "SESSION_REPLACED (tr)" '"code":"SESSION_REPLACED"' "$(body "$AT1")"
 has "mesaj en" "another device" "$(body "$AT1" en)"

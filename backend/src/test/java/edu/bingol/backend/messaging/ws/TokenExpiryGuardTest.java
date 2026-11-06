@@ -115,4 +115,22 @@ class TokenExpiryGuardTest {
         verify(mobile).close(TokenExpiryGuard.REVOKED);
         verify(web).close(TokenExpiryGuard.REVOKED);
     }
+
+    @Test
+    void closingOneSessionByIdLeavesTheUsersOtherDevicesConnected() throws Exception {
+        WebSocketSession phone = connectClient("p", 7L, "mobile");
+        phone.getAttributes().put(StompAuthInterceptor.SID_ATTR, "sid-phone");
+        WebSocketSession tablet = connectClient("t", 7L, "mobile");
+        tablet.getAttributes().put(StompAuthInterceptor.SID_ATTR, "sid-tablet");
+        WebSocketSession legacy = connectClient("l", 7L, "mobile"); // sid'siz eski baglanti
+        WebSocketSession stranger = connectClient("s", 8L, "mobile");
+        stranger.getAttributes().put(StompAuthInterceptor.SID_ATTR, "sid-phone");
+
+        guard.onSessionRevoked(new edu.bingol.backend.auth.token.SessionRevokedEvent(7L, "sid-phone"));
+
+        verify(phone).close(TokenExpiryGuard.REVOKED);
+        verify(tablet, never()).close(any(CloseStatus.class));
+        verify(legacy, never()).close(any(CloseStatus.class));
+        verify(stranger, never()).close(any(CloseStatus.class));
+    }
 }

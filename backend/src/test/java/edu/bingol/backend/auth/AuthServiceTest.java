@@ -645,8 +645,20 @@ class AuthServiceTest {
     }
 
     @Test
-    void mobileLoginRevokesPreviousMobileSessionsBeforeIssuingTokens() {
+    void multiSessionIsTheDefaultMobileLoginRevokesNothing() {
         loginUser();
+
+        auth.login(EMAIL, "Kx7-mQ2vLp9z", "mobile");
+
+        verify(sessions, never()).revokeClient(any(), anyString(), org.mockito.ArgumentMatchers.anyBoolean());
+        verify(sessions, never()).revokeAll(any());
+        verify(refresh).issue(7L, "mobile");
+    }
+
+    @Test
+    void singleMobileSessionFlagRevokesPreviousMobileSessionsBeforeIssuingTokens() {
+        loginUser();
+        auth.setSingleMobileSession(true);
 
         auth.login(EMAIL, "Kx7-mQ2vLp9z", "mobile");
 

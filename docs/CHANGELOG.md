@@ -4,6 +4,13 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### Çoklu oturum + Cihazlarım (2026-11-06, `deploy/multisession-20261106`)
+
+- **Tek cihaz kuralı kalktı:** mobil giriş artık önceki mobil oturumları kapatmaz ve FCM kayıtlarını silmez; eski davranış `app.auth.single-mobile-session=true` (`AUTH_SINGLE_MOBILE_SESSION`) ile geri gelir. Bildirimler kullanıcının tüm cihazlarına gider.
+- **Cihazlarım:** her giriş bir oturum kimliği (`sid`, JWT `sid` talebi + refresh kaydı) ve `user_session` satırı alır (**V1460**: tablo + `device.session_id`). Yeni uçlar `GET /api/auth/sessions`, `DELETE /api/auth/sessions/{sid}` (tek cihazdan çıkış: o sid'in token'ları anında 401, o cihazın push kaydı silinir, WS kapanır); `logout-all` aynen. `POST /api/auth/logout` artık yalnız o cihazın access token'ını da hemen geçersiz kılar. Girişte `X-Device-Name` başlığı okunur (yoksa User-Agent/platform).
+- **Yeni cihaz girişi:** başka açık oturum varken bilinmeyen cihazdan giriş → tüm cihazlara uygulama içi bildirim + push (`SYSTEM`, tercihten bağımsız, `targetType=SECURITY`/`devices`) ve `SECURITY_NEW_LOGIN` e-postası.
+- Saklama 100 gün (`app.dbmaint.session-days`), hesap silme/KVKK dışa aktarım kapsamı eklendi. Ayrıntı: `docs/changes/auth.md` "Çoklu oturum + Cihazlarım". Duman: `scripts/smoke-multi-session.sh`; `smoke-single-session.sh` yalnız bayrak açıkken koşar (aksi halde ATLANDI).
+
 ### Kaldırılanlar (2026-11-05, `deploy/nomap-20261105`)
 
 - **Kampüs haritası kaldırıldı:** `campus` paketi, `GET /api/campus/*`, `/api/admin/campus/**`, `campus.read|write` izinleri, `campus` önbellek ad alanı, `campus_place.photo_key` medya referansı, i18n `campus*`, yönetim paneli "Kampüs haritası" sayfası, `docs/CAMPUS_MAP.md`, `scripts/smoke-campus.sh`. **V1250** `campus_place` ve `campus_config` tablolarını düşürür (V1200/V1201 canlıda uygulanmış olduğundan dosyaları DEĞİŞMEZ).
