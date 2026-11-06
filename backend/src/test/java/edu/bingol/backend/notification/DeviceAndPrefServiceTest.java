@@ -126,7 +126,7 @@ class DeviceAndPrefServiceTest {
         assertFalse(v.quietHours().enabled());
         assertEquals("22:00", v.quietHours().start());
         assertEquals(NotificationSubtype.values().length, v.subtypes().size());
-        // gunluk menu bildirimi de varsayilan ACIK (V1460): tum alt turler acik gelir
+        // gunluk menu bildirimi de varsayilan ACIK (V1461): tum alt turler acik gelir
         assertTrue(v.mealMenu());
         assertTrue(v.subtypes().get("MEAL_MENU"));
         assertTrue(v.subtypes().values().stream().allMatch(e -> e));

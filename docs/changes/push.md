@@ -304,4 +304,4 @@ Gönderide etiketlenene: `type=POST_MENTION`, alt tür `POST_MENTION` (gelen kut
 
 ## Günlük menü bildirimi varsayılan AÇIK (2026-11-06)
 
-`notification_pref.meal_menu` varsayılanı açık oldu (V1460: sütun varsayılanı TRUE + mevcut satırlar TRUE yapıldı; `NotificationPref.mealMenu=true`). `MealMenuNotifier` artık tercih satırı hiç olmayan aktif kullanıcıları da kapsar (yalnız `meal_menu=FALSE` olanlar atlanır). Kullanıcı Ayarlar > Bildirimler'den kapatabilir. **Dağıtım sırası:** oauth dalındaki V1450 (`deploy/oauth-20261106`) bu migration'dan ÖNCE canlıya gitmeli (`out-of-order=false`).
+`notification_pref.meal_menu` varsayılanı açık oldu (V1461: sütun varsayılanı TRUE + mevcut satırlar TRUE yapıldı; `NotificationPref.mealMenu=true`). `MealMenuNotifier` artık tercih satırı hiç olmayan aktif kullanıcıları da kapsar (yalnız `meal_menu=FALSE` olanlar atlanır). Kullanıcı Ayarlar > Bildirimler'den kapatabilir. **Dağıtım sırası:** oauth dalı (V1450) ve çoklu oturum dalı (V1460, `deploy/multisession-20261106`) bu migration'dan ÖNCE canlıya gitmeli (`out-of-order=false`).
