@@ -4,24 +4,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../core/locale_controller.dart';
 
-final _emailRe = RegExp(r'^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$');
-
-String? validateEmail(String? v) {
-  final s = (v ?? '').trim().toLowerCase();
-  if (s.isEmpty) return 'E-posta adresinizi girin.';
-  if (!_emailRe.hasMatch(s)) return 'Geçerli bir e-posta adresi girin.';
-  return null;
-}
-
-String? validateNewPassword(String? v) {
-  final s = v ?? '';
-  if (s.length < 6) return 'Şifre en az 6 karakter olmalı.';
-  if (s.length > 72) return 'Şifre en çok 72 karakter olabilir.';
-  if (utf8.encode(s).length > 72) return 'Şifre en fazla 72 bayt olabilir.';
-  return null;
-}
-
-/// Dile göre hata metni veren yeni şifre doğrulayıcı (kuralları [validateNewPassword] ile aynı).
+/// Dile göre hata metni veren yeni şifre doğrulayıcı (6-72 karakter ve en çok 72 bayt; sunucu ile aynı).
 String? Function(String?) newPasswordValidator(BuildContext context) {
   final l = context.l10n;
   return (v) {

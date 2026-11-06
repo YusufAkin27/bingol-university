@@ -3,10 +3,13 @@ import 'package:intl/intl.dart';
 
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
+import '../../core/oauth/oauth_api.dart';
+import '../../core/oauth/oauth_reauth.dart';
 import '../../core/session.dart';
 import '../../core/two_factor.dart';
 import '../../widgets/bu.dart';
 import '../auth/two_factor_code_page.dart';
+import 'password_page.dart';
 import 'profil_widgets.dart';
 
 /// İki faktörlü doğrulama ayarı (Ayarlar > Hesap ve güvenlik > Giriş güvenliği): durum, açma (e-posta koduyla onay),
@@ -98,9 +101,61 @@ class _TwoFactorPageState extends State<TwoFactorPage> {
   }
 
   Future<void> _disable() async {
+    if (widget.session.hasPassword == false) {
+      await _disableWithProvider();
+      return;
+    }
     final ok = await BuDialog.show<bool>(context, builder: (_) => _DisableDialog(api: _api));
     if (!mounted || ok != true) return;
     _toast(context.l10n.tfDisabledToast, kind: BuToastKind.success);
+    await _load();
+  }
+
+  /// Parolasız (Google/Apple) hesap: şifre sorulamaz; bağlı sağlayıcının taze kimliğiyle kapatılır. Bağlı sağlayıcı
+  /// bulunamazsa kullanıcı şifre belirlemeye yönlendirilir (şifreyle de kapatılabilir).
+  Future<void> _disableWithProvider() async {
+    final l = context.l10n;
+    final yes = await BuDialog.confirm(
+      context,
+      title: l.tfDisableTitle,
+      message: l.qa1TfDisableReauthBody,
+      confirmLabel: l.tfDisableConfirm,
+      cancelLabel: l.commonCancel,
+      destructive: true,
+      icon: BuIcons.shieldX,
+    );
+    if (!yes || !mounted) return;
+    setState(() => _busy = true);
+    try {
+      final ids = await OAuthApi(widget.session.api).identities();
+      if (ids.isEmpty) {
+        if (!mounted) return;
+        setState(() => _busy = false);
+        _toast(l.qa1TfNeedPassword, kind: BuToastKind.info);
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            settings: const RouteSettings(name: PasswordPage.routeName),
+            builder: (_) => PasswordPage(session: widget.session),
+          ),
+        );
+        return;
+      }
+      final re = await freshOAuthCredential(ids.first.provider);
+      if (re == null) {
+        if (mounted) setState(() => _busy = false); // iptal: sessiz
+        return;
+      }
+      await _api.disableWithProvider(re.provider.wire, token: re.token, nonce: re.nonce);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _busy = false);
+      _toast(e is ApiError ? errorText(e) : l.oaErrFailed, kind: BuToastKind.error);
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _busy = false);
+    _toast(l.tfDisabledToast, kind: BuToastKind.success);
     await _load();
   }
 

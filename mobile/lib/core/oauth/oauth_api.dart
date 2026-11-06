@@ -34,14 +34,38 @@ class OAuthApi {
 
   /// `POST /auth/oauth/link {provider, token, nonce?, password}`: şifre yeniden doğrulaması zorunludur.
   /// 403 `WRONG_PASSWORD`, 409 (başka hesaba bağlı) ApiError olarak çıkar.
-  Future<void> link(OAuthProvider provider, {required String token, String? nonce, required String password}) async {
+  ///
+  /// Parolasız (yalnız Google/Apple ile açılmış) hesapta parola yerine bağlı bir sağlayıcının TAZE kimliği gönderilir:
+  /// [reauthProvider] + [reauthToken] (+ Apple için [reauthNonce]); sunucu aksi halde 403 `OAUTH_REAUTH_REQUIRED` döner.
+  Future<void> link(
+    OAuthProvider provider, {
+    required String token,
+    String? nonce,
+    String? password,
+    OAuthProvider? reauthProvider,
+    String? reauthToken,
+    String? reauthNonce,
+  }) async {
     await api.post('/auth/oauth/link', {
       'provider': provider.wire,
       'token': token,
       if (nonce != null) 'nonce': nonce,
-      'password': password,
+      if (password != null && password.isNotEmpty) 'password': password,
+      if (reauthProvider != null && reauthToken != null) ...{
+        'reauthProvider': reauthProvider.wire,
+        'reauthToken': reauthToken,
+        if (reauthNonce != null) 'reauthNonce': reauthNonce,
+      },
     });
   }
+
+  /// Hesap silme (`DELETE /users/me`) için parolasız hesapta sağlayıcı yeniden doğrulaması.
+  Future<void> deleteAccountWithProvider(OAuthProvider provider, {required String token, String? nonce}) =>
+      api.delete('/users/me', {
+        'provider': provider.wire,
+        'token': token,
+        if (nonce != null) 'nonce': nonce,
+      });
 
   /// `DELETE /auth/oauth/link/{provider}`: 409 `OAUTH_LAST_LOGIN_METHOD` = tek giriş yöntemi, kaldırılamaz.
   Future<void> unlink(OAuthProvider provider) => api.delete('/auth/oauth/link/${provider.wire}');
