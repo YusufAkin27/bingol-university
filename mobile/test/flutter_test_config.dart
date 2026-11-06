@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bu_kampus/core/cache/image_disk_cache.dart';
 import 'package:bu_kampus/core/cache/message_cache.dart';
+import 'package:bu_kampus/features/posts/post_video.dart' show PostVideoVolumeKeys;
 import 'package:flutter_test/flutter_test.dart';
 
 /// Her test dosyasından önce çalışır: yerel önbellekler her testte TEMİZ ve yalnız bellek/pasif olur
@@ -11,6 +12,7 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   setUp(() {
     MessageCache.instance = MessageCache.memoryOnly();
     ImageDiskCache.instance = ImageDiskCache.disabled();
+    PostVideoVolumeKeys.enabled = false; // ses tuşu eklentisi testte yok
   });
   await testMain();
 }

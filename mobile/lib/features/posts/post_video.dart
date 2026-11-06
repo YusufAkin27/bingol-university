@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:volume_controller/volume_controller.dart';
 
 import '../../core/cache/image_disk_cache.dart';
 import '../../core/cache/video_prefetch.dart';
@@ -44,8 +45,60 @@ class PostVideoController {
   bool get playing => _state?._c?.value.isPlaying ?? false;
 }
 
-/// Oturum boyunca ortak ses tercihi: akıştaki videolar SESSİZ başlar; biri açılınca sonrakiler de açık kalır.
-final ValueNotifier<bool> postVideoMuted = ValueNotifier<bool>(true);
+/// Oturum boyunca ortak ses tercihi: akıştaki videolar SESLİ başlar (varsayılan açık); kullanıcı ses düğmesiyle
+/// kapatırsa sonrakiler de kapalı kalır. Telefonun SES ARTIRMA tuşuna basılınca (kapalıysa) ses yeniden açılır.
+final ValueNotifier<bool> postVideoMuted = ValueNotifier<bool>(false);
+
+/// Donanım ses tuşu dinleyicisi: sistem ses seviyesi YÜKSELİNCE ve video sesi kapalıysa sesi açar.
+/// Oynatıcı sayısı kadar sayaçlıdır; ilk oynatıcıda başlar, sonuncusu kapanınca bırakılır. Eklenti yoksa
+/// (testler/masaüstü) hata sessizce yutulur.
+abstract final class PostVideoVolumeKeys {
+  /// Testlerde (eklenti yok) `flutter_test_config.dart` kapatır.
+  @visibleForTesting
+  static bool enabled = true;
+
+  static int _users = 0;
+  static double? _last;
+  static StreamSubscription<double>? _sub;
+
+  static void acquire() {
+    if (!enabled) return;
+    _users++;
+    if (_users > 1) return;
+    _last = null;
+    try {
+      final sub = VolumeController.instance.addListener(onVolume);
+      sub.onError((Object _) {});
+      _sub = sub;
+    } catch (_) {}
+  }
+
+  static void release() {
+    if (!enabled || _users == 0 || --_users > 0) return;
+    final sub = _sub;
+    _sub = null;
+    _last = null;
+    try {
+      sub?.cancel();
+      VolumeController.instance.removeListener();
+    } catch (_) {}
+  }
+
+  /// Ses seviyesi bildirimi: ilk değer yalnız başlangıç seviyesidir; sonraki artış sesi açar.
+  @visibleForTesting
+  static void onVolume(double v) {
+    final last = _last;
+    _last = v;
+    if (last != null && v > last + 0.0005 && postVideoMuted.value) postVideoMuted.value = false;
+  }
+
+  @visibleForTesting
+  static void reset() {
+    _users = 0;
+    _last = null;
+    _sub = null;
+  }
+}
 
 /// Gönderi videosunun tam ekran izlenmesi (sesli, kaydırma çubuklu; sohbet oynatıcısı yeniden kullanılır).
 Future<void> openPostVideoViewer(BuildContext context, Session session, Post post) {
@@ -179,6 +232,7 @@ class _PostVideoViewState extends State<PostVideoView> with WidgetsBindingObserv
     widget.controller?._state = this;
     WidgetsBinding.instance.addObserver(this);
     postVideoMuted.addListener(_applyVolume);
+    PostVideoVolumeKeys.acquire();
     // İlk çerçeveden sonra görünürlük (ya da dışarıdan verilen [active]) uygulanır.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _check();
@@ -225,6 +279,7 @@ class _PostVideoViewState extends State<PostVideoView> with WidgetsBindingObserv
     _flash.dispose();
     WidgetsBinding.instance.removeObserver(this);
     postVideoMuted.removeListener(_applyVolume);
+    PostVideoVolumeKeys.release();
     _scroll?.removeListener(_check);
     _flushView();
     _c?.dispose();
