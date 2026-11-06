@@ -2158,6 +2158,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Hourly request limit reached; the remaining contacts will be matched later.';
 
   @override
+  String get qa4ContactsConsentTitle => 'Findable from contacts';
+
+  @override
+  String get qa4ContactsConsentText => 'Turn this setting on before finding people from your contacts. Matching is mutual: you only find people who also turned it on, and they can only find you while it is on. You can turn it off any time.';
+
+  @override
+  String get qa4ContactsConsentAction => 'Turn on and continue';
+
+  @override
+  String get qa4ContactsConsentOff => 'Turn off findability from contacts';
+
+  @override
   String get chatMiscContactsNoSearchMatch => 'No one matches your search.';
 
   @override

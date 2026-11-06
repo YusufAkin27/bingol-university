@@ -247,6 +247,11 @@ class ChatRealtime with WidgetsBindingObserver {
   void debugEmitError(ChatError e) => _errors.add(e);
 
   void stop() {
+    // Oturum kapanırken hesaba özel durum sıfırlanır: aynı süreçte başka hesap açılırsa (konuşma kimlikleri çakışabilir)
+    // önceki hesabın "iletildi" imleci yeni hesabın tik gönderimini bastırmasın (QA-CHAT-09).
+    _deliveredSent.clear();
+    _lastTypingSent.clear();
+    _awaitingAck.clear();
     if (!_started) return;
     _started = false;
     WidgetsBinding.instance.removeObserver(this);

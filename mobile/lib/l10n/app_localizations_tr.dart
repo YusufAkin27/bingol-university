@@ -2148,6 +2148,19 @@ class AppLocalizationsTr extends AppLocalizations {
       'Saatlik istek sınırına ulaşıldı; kalan kişiler daha sonra eşleştirilecek.';
 
   @override
+  String get qa4ContactsConsentTitle => 'Rehberden bulunabilirim';
+
+  @override
+  String get qa4ContactsConsentText =>
+      'Rehberindeki kişileri bulmak için önce bu ayarı açman gerekir. Eşleşme karşılıklıdır: yalnız bu ayarı açmış kişileri bulursun, onlar da seni yalnız bu ayar açıkken bulabilir. İstediğin zaman kapatabilirsin.';
+
+  @override
+  String get qa4ContactsConsentAction => 'Aç ve devam et';
+
+  @override
+  String get qa4ContactsConsentOff => 'Rehberden bulunabilirliği kapat';
+
+  @override
   String get chatMiscContactsNoSearchMatch => 'Aramanla eşleşen kişi yok.';
 
   @override

@@ -838,7 +838,10 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         _rtOn = on;
         if (on) _poll(force: true);
       }),
-      _rt.resync.listen((_) => _poll(force: true)),
+      _rt.resync.listen((_) {
+        _poll(force: true);
+        _confirmReceipts();
+      }),
       // Soket kalıcı durdu (yetkisiz hedef): sessizce ölmesin; mesajlar REST yoklamasıyla gelmeye devam eder.
       _rt.fatal.listen((f) {
         if (!mounted || f == StompFatal.sessionExpired || f == StompFatal.sessionReplaced) return;
@@ -1067,6 +1070,25 @@ class _ChatDetailPageState extends State<ChatDetailPage>
 
   int _key(Map<String, dynamic> m) =>
       (m['id'] as num?)?.toInt() ?? (1 << 50) + ((m['_seq'] as int?) ?? 0);
+
+  /// WS ile giden okundu/iletildi imleçlerinin sunucu onayı yoktur: yarı-ölü soket yazımı sessizce yutarsa imleç
+  /// sunucuda geride kalır ve yeni mesaj gelene dek yeniden gönderilmezdi (QA-CHAT-07). Soket yeniden kurulunca
+  /// (`resync`) bilinen son imleçler REST ile bir kez teyit edilir (sunucuda imleç yalnız ilerler: idempotent).
+  Future<void> _confirmReceipts() async {
+    final read = _lastRead;
+    final delivered = _lastDelivered;
+    if (_leaving || !mounted) return;
+    try {
+      if (read > 0) {
+        await _api.post('/conversations/$_cid/read', {'lastMessageId': read});
+      }
+      if (delivered > 0) {
+        await _api.post('/conversations/$_cid/delivered', {'lastMessageId': delivered});
+      }
+    } catch (_) {
+      // Teyit en iyi çabadır; bir sonraki yeniden bağlanmada yeniden denenir.
+    }
+  }
 
   Future<void> _markRead() async {
     final id = _newestServerId;
@@ -1793,6 +1815,18 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         _input.clear();
       });
     } catch (e) {
+      // Süre doldu / düzenleme sınırı / mesaj silinmiş: düzenleme kalıcı olarak mümkün değil. Düzenleme kipinde
+      // kalmak kullanıcıyı aynı hatayı tekrar almaya iter; kipten çık ve giriş alanını boşalt (QA-CHAT-04).
+      if (e is ApiError &&
+          const {'MESSAGE_EDIT_EXPIRED', 'MESSAGE_EDIT_LIMIT', 'MESSAGE_NOT_EDITABLE', 'MESSAGE_NOT_FOUND', 'MESSAGE_NOT_OWNER'}
+              .contains(e.code)) {
+        if (mounted && identical(_editing, target)) {
+          setState(() {
+            _editing = null;
+            _input.clear();
+          });
+        }
+      }
       _toastError(e);
     }
   }
