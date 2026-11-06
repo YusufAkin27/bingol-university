@@ -77,3 +77,31 @@ Teknik taraf sağlam: mobilde yatay taşma yok, 13 px altı yazı yok, içerik t
 5. **Alt bilgi**: "Yasal" sütunu 11 bağlantı ile çok uzun; iletişim bloğunda kişisel Gmail adresi, kişisel telefon ve Gaziantep adresi var: **kurumsal güven sorunu** (tasarım değil içerik; yönetim panelinde "Ayarlar" ile düzeltilir).
 6. **Reveal**: kaydırmadan alınan tam sayfa görüntüde üç bölüm boş çıkıyor. Kaydırınca içerik geliyor (hata değil) ama animasyon başarısız olursa içerik gizli kalmamalı (bkz. ilke 6).
 7. Bu taramada **incelenmeyenler**: koyu tema, Arapça (RTL), tablet genişliği ve iç sayfalar (Özellikler, Haberler, Yemek listesi, Yardım, Hakkımızda, İndir, hukuki metinler) ve yönetim paneli.
+
+## 7. Yönetim paneli: Premium Monochrome (2026-11-06)
+
+`/admin` (giriş/kayıt dahil) mobil uygulamanın "Premium Monochrome" diline getirildi: **marka/vurgu rengi yok, kırmızı yalnız tehlike/hata, kalın yazı yok**. `AdminScope` `<html data-area="admin">` koyar; `tokens.css` sonundaki üç blok (açık, sistem koyu, elle koyu; özgüllük `html:root[data-area='admin']` = 0,2,1) eski marka belirteçlerini nötr tonlarla ezer. Bileşen CSS'i değişmeden kalır: renkler belirteçten gelir, bu yüzden herkese açık site (`data-area` yok) bu bloklardan etkilenmez.
+
+**Belirteçler (yönetim kapsamı)**
+
+| Belirteç | Açık (Premium White) | Koyu (Premium Black) |
+|---|---|---|
+| `--bg` | `#ffffff` | `#09090b` |
+| `--surface` / `--surface-2` / `--surface-3` | `#fafafa` / `#f4f4f5` / `#e4e4e7` | `#141416` / `#1c1c1f` / `#252528` |
+| `--text` / `--text-muted` / `--text-faint` | `#09090b` / `#52525b` / `#5f5f68` | `#fafafa` / `#a1a1aa` / `#8e8e97` |
+| `--border` / `--border-strong` | `#e4e4e7` / `#71717a` (girdi çerçevesi >= 3:1) | `#303034` / `#74747c` |
+| `--primary`, `--accent`, `--link`, `--focus`, `--chrome` | `--text` (ters yüzey: düğme, bağlantı, odak halkası 2 px, ipucu) | aynı: `--text` |
+| `--primary-contrast`, `--on-chrome` | `--bg` | `--bg` |
+| `--danger` / `--danger-soft` | `#b3261e` / `#fbeeed` (tek renkli belirteç) | `#ff8a82` / `#2a1514` |
+| `--success`, `--warning`, `--info` | nötr (`--text` / `--text-muted`); anlam simge + kenarlık biçimi + etiketle verilir | aynı |
+| `--chart-1…6` | `#09090b #52525b #7a7a84 #8e8e96 #a8a8b0 #c4c4ca` | `#fafafa #a1a1aa #7b7b84 #62626a #4f4f55 #3f3f44` |
+| `--sb-*` (yan menü) | yüzey `--surface` + 1 px kenarlık; etkin öğe zemin farkı + 3 px işaret | aynı |
+| `--fw-emphasis` | **400** (tek anahtar); `--fw-regular/medium/semibold/bold/black` ve `--weight-display` buna bağlı | aynı |
+
+**Kurallar**
+- Ham renk yok: yeni renk önce `tokens.css`'e (açık + koyu). Kırmızı yalnız `--danger*` (silme, engelleme, doğrulama hatası). Kullanıcı fotoğrafı/medya doğal renkte kalır; e-posta önizleme zemini (`--paper`), medya karartması (`--scrim-media`) ve bildirim telefonu maketi (`--phone-*`) sabit siyah-beyazdır.
+- Kalın yazı yok: CSS'te `font-weight: var(--fw-semibold)` gibi **belirteç** yazılır (ham 500/600/700/800 yazılmaz); hiyerarşi boyut + renk + boşlukla kurulur. Kullanıcı kalın isterse tek satır: `--fw-emphasis: 600` (yönetim bloğu).
+- Durum (başarı/uyarı/bilgi/tehlike): `Badge` renk yerine simge (onay, üçgen, çarpı, i) ve kenarlık biçimiyle ayrışır (başarı dolu gri, uyarı kesikli, bilgi çizgili, tehlike kırmızı çerçeve); `StatusPill` dolu/halka nokta; `StatusDot` zaten simge taşır. Renk tek başına anlam taşımaz (renk körlüğü dostu).
+- Grafik: tek ton skalası; seri ayrımı ek olarak çizgi stili (`CHART_DASHES`: düz, kesik, noktalı...), yığılı/çok serili çubukta 1 px yüzey boşluğu, her zaman açıklama (legend) ve doğrudan etiket/tablo görünümüyle yapılır; tek seri tam kontrast `--chart-1`. 5. ve 6. ton yalnız dolgu ayrımıdır (< 3:1): 4'ten çok seri "Diğer"e katlanır.
+- Köşe 10-12-16 (`--radius-sm/md/lg`), ince 1 px kenarlık, gölge yalnız açılır katmanlarda (`--shadow-2/3` çok hafif), gradient/neon/cam yok (iskelet yüklemesi düz yüzey + nefes opaklığı). Animasyon 180-250 ms, `prefers-reduced-motion`'da kapalı.
+- Denetim: `web/src/adminMono.test.ts` (yönetim CSS/TSX'inde ham renk yok, `font-weight > 400` yok, yönetim blok belirteçleri nötr, gradient renksiz). Görsel doğrulama: `web/e2e/admin-mono-shots.spec.ts` (backendsiz, tüm sayfalar x açık/koyu x 1440/390/768; `INDEX.md`).
