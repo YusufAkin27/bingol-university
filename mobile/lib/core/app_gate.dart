@@ -11,12 +11,17 @@ import 'api.dart';
 import 'device_identity.dart';
 import 'icons/bu_icons.dart';
 
-const appVersion = String.fromEnvironment('APP_VERSION', defaultValue: '2.0.8');
+const appVersion = String.fromEnvironment('APP_VERSION', defaultValue: '2.2.0');
 
 /// Sayısal sürümleri karşılaştırır (1.2.3); eksik parça 0 sayılır. a<b -> -1.
 int compareVersions(String a, String b) {
-  List<int> p(String s) =>
-      s.split('.').map((e) => int.tryParse(e.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0).toList();
+  // "2.2.0+22006" / "2.1.3-beta": yapı numarası ve ön sürüm eki karşılaştırmaya KATILMAZ (yoksa "0+22006" -> 22006 olurdu).
+  List<int> p(String s) => s
+      .split(RegExp(r'[+\-]'))
+      .first
+      .split('.')
+      .map((e) => int.tryParse(e.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0)
+      .toList();
   final x = p(a), y = p(b);
   final n = x.length > y.length ? x.length : y.length;
   for (var i = 0; i < n; i++) {
@@ -186,7 +191,8 @@ class _AppGateState extends State<AppGate> with WidgetsBindingObserver {
         _getMap('/app/info', force: force),
       ]);
       // Ağ yokken zorunlu güncelleme kapısı kendiliğinden açılmasın: önceki karar korunur.
-      if (r[0] == null && r[1] == null && _d.kind == GateKind.updateRequired) return;
+      // Kısmi kesintide de (yalnız sürüm ucu düşerse) zorunlu güncelleme kapısı kendiliğinden kalkmaz.
+      if (r[0] == null && _d.kind == GateKind.updateRequired) return;
       final d = decideGate(r[0], r[1]);
       var showNotice = false;
       if (d.kind == GateKind.updateAvailable) {

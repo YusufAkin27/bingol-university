@@ -96,7 +96,7 @@ class ForumDraftStore {
   final FlutterSecureStorage _s;
 
   @visibleForTesting
-  static String keyFor(int? userId) => 'forum_draft_v1_${userId ?? 0}';
+  static String keyFor(int? userId) => '$_prefix${userId ?? 0}';
 
   Future<ForumDraft?> load(int? userId) async {
     try {
@@ -125,4 +125,18 @@ class ForumDraftStore {
       await _s.delete(key: keyFor(userId));
     } catch (_) {}
   }
+
+  /// Çıkış / hesap değişimi / hesap silme: TÜM kullanıcıların taslakları silinir (taslak başlık, metin ve
+  /// yüklenmiş görsel adresleri içerir; ortak cihazda kalmamalı. `registerUserDataCleaners` çağırır).
+  static Future<void> clearAll({FlutterSecureStorage? storage}) async {
+    try {
+      final s = storage ?? kDeviceSecureStorage;
+      final all = await s.readAll();
+      for (final k in all.keys) {
+        if (k.startsWith(_prefix)) await s.delete(key: k);
+      }
+    } catch (_) {}
+  }
+
+  static const _prefix = 'forum_draft_v1_';
 }
