@@ -80,10 +80,7 @@ class LegalMigrationV820FileTest {
     void sqlIcerigi_markdownKaynaklariylaBirebirAyni() throws Exception {
         LegalDocsGuard.requireDocs(Files.isDirectory(DOCS), "docs/legal bu calisma dizininden gorunmuyor");
         // Windows'ta core.autocrlf=true ile alinan arsiv/calisma agaci SQL'i CRLF olabilir; icerik karsilastirmasi satir sonundan bagimsiz
-        String sql = Files.readString(SQL, StandardCharsets.UTF_8).replace("
-", "
-").replace("", "
-");
+        String sql = Files.readString(SQL, StandardCharsets.UTF_8).replace("\r\n", "\n").replace("\r", "\n");
         for (String[] t : TYPES) {
             for (String lang : LANGS) {
                 String raw = read(t[0], lang);
