@@ -8,6 +8,7 @@ import '../../core/nav.dart' show shellImmersive;
 import '../../core/session.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/bu.dart';
+import '../../widgets/pinch_zoomable.dart';
 import '../posts/avatar_preview.dart';
 import '../posts/feed_seen.dart';
 import '../posts/like_button.dart';
@@ -431,18 +432,21 @@ class _ReelPageState extends State<_ReelPage> {
     final mine = p.mine || p.author.id == widget.session.userId;
     final text = (p.text ?? '').trim();
     return Stack(fit: StackFit.expand, children: [
-      PostVideoView(
-        session: widget.session,
-        post: p,
-        active: widget.active,
-        fit: p.video!.aspect >= 1 ? BoxFit.contain : BoxFit.cover,
-        tap: PostVideoTap.playPause,
-        showFullscreen: false,
-        showProgress: true,
-        prepare: widget.prepare,
-        soundOnTop: true,
-        inset: EdgeInsets.only(top: widget.topInset, bottom: kNavInset),
-        api: widget.api,
+      // İki parmakla yakınlaştırma: tek parmak dikey sayfa kaydırmasına ve oynat/duraklat dokunuşuna kalır.
+      PinchZoomable(
+        child: PostVideoView(
+          session: widget.session,
+          post: p,
+          active: widget.active,
+          fit: p.video!.aspect >= 1 ? BoxFit.contain : BoxFit.cover,
+          tap: PostVideoTap.playPause,
+          showFullscreen: false,
+          showProgress: true,
+          prepare: widget.prepare,
+          soundOnTop: true,
+          inset: EdgeInsets.only(top: widget.topInset, bottom: kNavInset),
+          api: widget.api,
+        ),
       ),
       // Okunaklılık için alt gradyan.
       Align(

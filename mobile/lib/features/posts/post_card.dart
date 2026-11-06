@@ -4,6 +4,7 @@ import '../../core/cache/image_disk_cache.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../../widgets/pinch_zoomable.dart';
 import 'like_button.dart';
 import 'post_actions.dart';
 import 'post_models.dart';
@@ -29,6 +30,7 @@ class PostPhoto extends StatelessWidget {
     this.progressive = false,
     this.thumbOnly = false,
     this.heroTag,
+    this.zoomLayer = false,
   });
 
   final Session session;
@@ -36,6 +38,13 @@ class PostPhoto extends StatelessWidget {
   final double radius;
   final double aspectRatio;
   final bool progressive;
+
+  /// İki parmakla yakınlaştırma kopyası ([PinchZoomable] kök katmanı): anahtarlar ayrışır (kartla çakışmaz) ve
+  /// yüklü görselin üstüne yüksek çözünürlüklü katman biner (aynı disk önbelleğinden, ek ağ isteği yok).
+  final bool zoomLayer;
+
+  /// Yakınlaştırma kopyasının yüksek çözünürlüklü katmanı (px).
+  static const _zoomPx = 2048;
 
   /// Küçük kutu (Keşfet masonry): yalnız küçük resim (`thumbUrl`, yoksa tam boy) yüklenir; tam boy hiç indirilmez
   /// (bellek ve veri tasarrufu). [progressive] yok sayılır.
@@ -95,7 +104,7 @@ class PostPhoto extends StatelessWidget {
                 if (thumb != null)
                   Image(
                     image: persistentNetworkImage(thumb, headers: headers, cacheWidth: px < _thumbPx ? px : _thumbPx),
-                    key: ValueKey('post-thumb-${post.id}'),
+                    key: ValueKey('${zoomLayer ? 'zoom-' : ''}post-thumb-${post.id}'),
                     fit: BoxFit.cover,
                     gaplessPlayback: true,
                     excludeFromSemantics: true,
@@ -108,7 +117,7 @@ class PostPhoto extends StatelessWidget {
                 // Disk destekli: Keşfet fotoğrafları ikinci açılışta ağdan değil diskten gelir (çıkışta silinir).
                 Image(
                   image: persistentNetworkImage(m.url, headers: headers, cacheWidth: px),
-                  key: ValueKey('post-photo-${post.id}'),
+                  key: ValueKey('${zoomLayer ? 'zoom-' : ''}post-photo-${post.id}'),
                   fit: BoxFit.cover,
                   gaplessPlayback: true,
                   frameBuilder: (context, child, frame, sync) => sync
@@ -122,6 +131,19 @@ class PostPhoto extends StatelessWidget {
                   errorBuilder: (_, __, ___) =>
                       thumb != null ? const SizedBox.shrink() : Center(child: Icon(BuIcons.image, color: t.mut)),
                 ),
+                // Yakınlaştırma kopyası: kart çözünürlüğü anında görünür, yüksek çözünürlük hazır olunca üstüne biner.
+                if (zoomLayer)
+                  Image(
+                    image: persistentNetworkImage(m.url, headers: headers, cacheWidth: _zoomPx),
+                    key: ValueKey('zoom-hires-${post.id}'),
+                    fit: BoxFit.cover,
+                    gaplessPlayback: true,
+                    excludeFromSemantics: true,
+                    frameBuilder: (context, child, frame, sync) => sync
+                        ? child
+                        : AnimatedOpacity(opacity: frame == null ? 0 : 1, duration: fade, curve: BuMotion.standard, child: child),
+                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                  ),
               ]),
             ),
           );
@@ -230,6 +252,12 @@ class _PostCardState extends State<PostCard> {
 
   Object? get _heroTag => widget.heroTag ?? (!widget.detail && widget.onOpen == null ? 'post-card-${p.id}' : null);
 
+  /// Fotoğraf: iki parmakla kök katmanda yakınlaşır (kopya: yüksek çözünürlüklü, aynı önbellek, Hero yok).
+  Widget _pinchPhoto({required Widget child, required double radius}) => PinchZoomable(
+        overlayBuilder: (_) => PostPhoto(session: widget.session, post: p, radius: radius, progressive: true, zoomLayer: true),
+        child: child,
+      );
+
   void _open() {
     if (widget.detail) return;
     final cb = widget.onOpen;
@@ -323,12 +351,15 @@ class _PostCardState extends State<PostCard> {
                   // Tek dokunuş: oynat/duraklat (ikon kısa görünüp solar); ses ayrı düğmeyle (varsayılan sessiz).
                   onTap: _video.toggle,
                   radius: 16,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: AspectRatio(
-                      aspectRatio: postVideoCardRatio(p),
-                      child: PostVideoView(
-                          session: widget.session, post: p, handleTap: false, showControls: false, controller: _video, flashIcon: true),
+                  // İki parmakla yakınlaştırma (video: o anki kare kopyalanır, oynatıcı ikinci kez kurulmaz).
+                  child: PinchZoomable(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: AspectRatio(
+                        aspectRatio: postVideoCardRatio(p),
+                        child: PostVideoView(
+                            session: widget.session, post: p, handleTap: false, showControls: false, controller: _video, flashIcon: true),
+                      ),
                     ),
                   ),
                 ),
@@ -343,12 +374,15 @@ class _PostCardState extends State<PostCard> {
                 onLike: _like.like,
                 // Tek dokunuş tam ekran açmaz (tam ekran modu yok); yalnız çift dokunuş beğenir.
                 radius: 16,
-                child: PostPhoto(
-                  session: widget.session,
-                  post: p,
+                child: _pinchPhoto(
                   radius: 16,
-                  progressive: true,
-                  heroTag: _heroTag,
+                  child: PostPhoto(
+                    session: widget.session,
+                    post: p,
+                    radius: 16,
+                    progressive: true,
+                    heroTag: _heroTag,
+                  ),
                 ),
               ),
             ),
@@ -474,17 +508,20 @@ class _PostCardState extends State<PostCard> {
                 onTap: widget.detail ? null : _open,
                 // Detayda fotoğraf ekran kenarlarına dayanır: köşe yuvarlağı ekran kenarında bozuk görünür.
                 radius: detail ? 0 : BuRadius.md,
-                child: Stack(alignment: Alignment.center, children: [
-                  PostPhoto(
-                    session: widget.session,
-                    post: p,
-                    radius: detail ? 0 : BuRadius.md,
-                    // Detayda küçük resim de kullanılır: Hero uçuşunda ve ilk açılışta boş kare görünmez.
-                    progressive: detail,
-                    heroTag: _heroTag,
-                  ),
-                  if (p.isVideo) const IgnorePointer(child: PostPlayBadge()),
-                ]),
+                child: _pinchPhoto(
+                  radius: detail ? 0 : BuRadius.md,
+                  child: Stack(alignment: Alignment.center, children: [
+                    PostPhoto(
+                      session: widget.session,
+                      post: p,
+                      radius: detail ? 0 : BuRadius.md,
+                      // Detayda küçük resim de kullanılır: Hero uçuşunda ve ilk açılışta boş kare görünmez.
+                      progressive: detail,
+                      heroTag: _heroTag,
+                    ),
+                    if (p.isVideo) const IgnorePointer(child: PostPlayBadge()),
+                  ]),
+                ),
               ),
             ] else if (p.isVideo) ...[
               BuGap.h16,
