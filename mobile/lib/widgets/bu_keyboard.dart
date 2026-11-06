@@ -64,6 +64,8 @@ class BuTapOutsideUnfocus extends StatelessWidget {
   @override
   Widget build(BuildContext context) => GestureDetector(
         behavior: HitTestBehavior.translucent,
+        // Anlamsal düğüm üretmez: ekran okuyucuda "etiketsiz dokunma hedefi" oluşmasın.
+        excludeFromSemantics: true,
         onTap: BuKeyboard.dismiss,
         child: child,
       );
