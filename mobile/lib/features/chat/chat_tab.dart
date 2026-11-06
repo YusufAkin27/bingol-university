@@ -12,6 +12,7 @@ import '../../widgets/bu.dart';
 import 'chat_detail_page.dart';
 import 'chat_info_parts.dart' show ChatConfirmLayout, showChatInfoConfirm;
 import 'chat_media.dart';
+import 'chat_security_page.dart';
 import 'chat_sheet_parts.dart' show showChatMuteSheet;
 import 'chatlist_widgets.dart';
 import 'conversation_actions.dart';
@@ -703,12 +704,26 @@ class _ChatTabState extends State<ChatTab> {
         onAction: _resetSearch,
       );
     } else {
-      view = BuEmptyState(
-        illustration: BuIllustration.message,
-        title: l.chatMiscEmptyNone,
-        actionLabel: l.chatMiscNewChat,
-        onAction: _openNew,
-      );
+      // Boş sohbet listesi: altta gürültüsüz tek satır "mesajların şifrelenir" bilgisi.
+      view = Column(children: [
+        Expanded(
+          child: BuEmptyState(
+            illustration: BuIllustration.message,
+            title: l.chatMiscEmptyNone,
+            actionLabel: l.chatMiscNewChat,
+            onAction: _openNew,
+          ),
+        ),
+        ChatEncryptionFootnote(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute<void>(
+              settings: const RouteSettings(name: 'chat_security'),
+              builder: (_) => ChatSecurityPage(session: widget.session),
+            ),
+          ),
+        ),
+      ]);
     }
     return SliverFillRemaining(
       hasScrollBody: true,

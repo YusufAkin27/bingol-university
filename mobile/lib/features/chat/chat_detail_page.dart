@@ -34,6 +34,7 @@ import 'chatlist_widgets.dart' show ChatlistAvatar;
 import 'recent_reactions.dart';
 import 'message_info_page.dart';
 import 'chat_media_viewer.dart';
+import 'chat_security_page.dart';
 import 'chat_video_player.dart';
 import 'chat_wallpaper.dart';
 import 'forward_sheet.dart';
@@ -271,6 +272,19 @@ class _ChatDetailPageState extends State<ChatDetailPage>
             : _avatars[uid],
         fromConversationId: _cid);
   }
+
+  /// Konuşma başındaki "mesajların şifreli" bildirimine dokununca: sohbet güvenliği açıklaması.
+  void _openSecurity() {
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        settings: const RouteSettings(name: 'chat_security'),
+        builder: (_) => ChatSecurityPage(session: widget.session),
+      ),
+    );
+  }
+
+  Widget _encNotice() => ChatEncryptionNotice(kind: chatSecurityKindOf(_type), onTap: _openSecurity);
 
   /// Başlığa dokununca: sohbet bilgisi + medya ızgarası.
   Future<void> _openInfo() async {
@@ -2853,9 +2867,15 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     if (_loading) return _skeleton(t);
     if (_error != null) return ErrorView(error: _error!, onRetry: _boot);
     if (_msgs.isEmpty) {
-      return BuEmptyState(
-          illustration: BuIllustration.message,
-          title: context.l10n.p07ChatEmptyTitle);
+      // Boş konuşmada da güvenlik bildirimi en üstte görünür.
+      return Column(children: [
+        _encNotice(),
+        Expanded(
+          child: BuEmptyState(
+              illustration: BuIllustration.message,
+              title: context.l10n.p07ChatEmptyTitle),
+        ),
+      ]);
     }
     return Stack(children: [
       Positioned.fill(
@@ -3004,16 +3024,26 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           },
           itemBuilder: (c, i) {
             if (i == _msgs.length) {
-              return _loadingMore
-                  ? const Padding(
-                      padding: EdgeInsets.all(12),
-                      child: Center(
-                          child: SizedBox(
-                              width: 20,
-                              height: 20,
-                              child:
-                                  CircularProgressIndicator(strokeWidth: 2))))
-                  : const SizedBox(height: 4);
+              // Ters liste: son öğe görsel olarak en üsttür. Geçmişin başına inildiyse (başka eski sayfa yok)
+              // şifreleme bildirimi en üstte durur; daha eski mesajlar yükleniyorsa önce göstergesi.
+              return Column(
+                  key: const ValueKey('chatTopItem'),
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_loadingMore)
+                      const Padding(
+                          padding: EdgeInsets.all(12),
+                          child: Center(
+                              child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2)))),
+                    if (_beforeCursor == null)
+                      _encNotice()
+                    else if (!_loadingMore)
+                      const SizedBox(height: 4),
+                  ]);
             }
             final m = _msgs[i];
             final newDay = _startsDay(i);

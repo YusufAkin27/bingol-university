@@ -4,6 +4,11 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### Sohbet güvenliği bildirimi (CHATENC)
+
+- **Mobil:** konuşmanın en üstünde (mesaj geçmişinin başında) kilit simgeli "Mesajların aktarım sırasında ve sunucuda şifrelenir. Daha fazla bilgi" bildirimi (birebir/grup/kulüp-etkinlik odası için ayrı alt metin, tr/en/ar); dokununca yeni "Sohbet güvenliği" sayfası (doğrulanmış korumalar + dürüst "Bilmen gerekenler" + Gizlilik Politikası / Topluluk Kuralları bağlantıları). Sohbet bilgisinde "Şifreleme ve güvenlik" satırı; boş sohbet listesi ve yeni sohbet ekranında tek satır alt bilgi.
+- **Doğruluk:** mesajlaşma uçtan uca şifreli değildir (sunucu tarafı AES-256-GCM + TLS/WSS, yönetici erişimi kayıtlı); metinler bunu açıkça söyler, "uçtan uca"/"kimse okuyamaz" iddiası yoktur ve testle denetlenir. Backend/web değişmedi. Bkz. MOBILE_UI.md bölüm 14.
+
 ### Resmî ders programı (Excel yükleme, V1070) + yeni hesap varsayılanı
 
 - **Ders programı:** yönetim panelinde `Akademik > Resmî ders programı` (`/admin/academic/timetable`): şablon Excel yüklenir, önce önizleme (program/oturum sayısı, hata ve uyarılar), onaylanınca birim+program bazında değiştirilerek yazılır. Tablolar `official_timetable_batch|entry`; kullanıcı ucu `GET /api/timetable/official`. Ayrıntı: `docs/ADMIN_API.md` "Resmi ders programı". Excel okuyucu bağımlılıksızdır (`XlsxReader`, StAX; XXE ve zip-bombası sınırları).

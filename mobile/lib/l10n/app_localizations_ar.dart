@@ -289,17 +289,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authPasswordLabel => 'كلمة المرور';
 
   @override
-  String get authIdHint => 'البريد الإلكتروني أو رقمك الجامعي';
+  String get authIdHint => 'البريد الإلكتروني';
 
   @override
-  String get authIdNumberLabel => 'رقمك الجامعي';
-
-  @override
-  String get authIdNumberEmpty => 'أدخل رقمك الجامعي.';
-
-  @override
-  String get loginSubtitleNumber =>
-      'سجّل الدخول ببريدك الإلكتروني أو برقمك الجامعي. إذا كتبت رقمًا فقط تُضاف @bingol.edu.tr تلقائيًا.';
+  String get loginSubtitleNumber => 'سجّل الدخول ببريدك الإلكتروني.';
 
   @override
   String get authVerify => 'تحقق';
@@ -1277,6 +1270,162 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chatDetailToday => 'اليوم';
+
+  @override
+  String get chatEncNoticeDirect => 'يتم تشفير رسائلك أثناء النقل وعلى الخادم.';
+
+  @override
+  String get chatEncNoticeGroup =>
+      'يتم تشفير رسائل هذه المحادثة أثناء النقل وعلى الخادم. يمكن لجميع أعضاء المحادثة رؤيتها.';
+
+  @override
+  String get chatEncNoticeRoom =>
+      'يتم تشفير رسائل هذه الغرفة أثناء النقل وعلى الخادم. يمكن لجميع أعضاء الغرفة رؤيتها.';
+
+  @override
+  String get chatEncMore => 'معرفة المزيد';
+
+  @override
+  String get chatEncPageTitle => 'أمان المحادثة';
+
+  @override
+  String get chatEncHeroTitle => 'رسائلك مشفّرة';
+
+  @override
+  String get chatEncHeroBody =>
+      'يتم تشفير رسائلك أثناء النقل وعلى الخادم. نشرح لك أدناه بوضوح ما الذي يُحمى وكيف، وما الذي ينبغي أن تنتبه إليه.';
+
+  @override
+  String get chatEncSecHow => 'كيف تتم الحماية';
+
+  @override
+  String get chatEncTlsTitle => 'مشفّرة أثناء النقل';
+
+  @override
+  String get chatEncTlsBody =>
+      'تنتقل رسائلك وصور المحادثة بين التطبيق والخادم عبر اتصال مشفّر (TLS/WSS).';
+
+  @override
+  String get chatEncRestTitle => 'تخزين مشفّر على الخادم';
+
+  @override
+  String get chatEncRestBody =>
+      'تُخزَّن الرسائل مشفّرة بخوارزمية AES-256-GCM بمفتاح مستقل لكل محادثة، وتُخزَّن صور المحادثة ومقاطع الفيديو مشفّرة أيضًا. تُحفظ المفاتيح بعيدًا عن قاعدة البيانات في بيئة الخادم، مما يصعّب قراءة الرسائل حتى لو تم الحصول على نسخة احتياطية من قاعدة البيانات.';
+
+  @override
+  String get chatEncAuditTitle => 'وصول المشرفين مسجَّل';
+
+  @override
+  String get chatEncAuditBody =>
+      'لا يمكن الاطلاع على محادثاتك إلا للمشرفين المخوّلين، ولأسباب مثل مراجعة البلاغات أو الأمان أو الطلبات القانونية. يُكتب كل اطلاع في سجل وصول لا يمكن حذفه قبل عرض المحتوى.';
+
+  @override
+  String get chatEncBlockTitle => 'الحظر والإبلاغ';
+
+  @override
+  String get chatEncBlockBody =>
+      'يمكنك حظر من لا تريد التواصل معه والإبلاغ عن الرسائل والمستخدمين غير اللائقين. لا تصلك رسائل من حظرتَه.';
+
+  @override
+  String get chatEncOnceTitle => 'صورة تُعرض مرة واحدة';
+
+  @override
+  String get chatEncOnceBody =>
+      'يمكن للمستلم فتح الصورة التي تُعرض مرة واحدة مرة واحدة فقط، ولا يستطيع رؤيتها مجددًا بعد فتحها.';
+
+  @override
+  String get chatEncDeleteTitle => 'الحذف للجميع';
+
+  @override
+  String get chatEncDeleteBody =>
+      'يمكنك حذف رسالتك للجميع، ويرى الآخرون إشعارًا بأنها حُذفت بدل الرسالة.';
+
+  @override
+  String get chatEncExifTitle => 'إزالة الموقع من الصور';
+
+  @override
+  String get chatEncExifBody =>
+      'تتم إعادة ترميز الصور التي ترسلها على الخادم وإزالة بيانات EXIF مثل الموقع.';
+
+  @override
+  String get chatEncDataTitle => 'بياناتك لك';
+
+  @override
+  String get chatEncDataBody =>
+      'من قسم الملف الشخصي يمكنك تنزيل بياناتك أو حذف حسابك.';
+
+  @override
+  String get chatEncNoSellTitle => 'لا تُباع ولا تُشارك للإعلانات';
+
+  @override
+  String get chatEncNoSellBody =>
+      'لا نبيع بياناتك ولا نشاركها مع أطراف ثالثة لأغراض الإعلان.';
+
+  @override
+  String get chatEncSecKnow => 'ما ينبغي أن تعرفه';
+
+  @override
+  String get chatEncNotE2eeTitle => 'غير مشفّرة من طرف إلى طرف';
+
+  @override
+  String get chatEncNotE2eeBody =>
+      'الرسائل في هذا التطبيق غير مشفّرة من طرف إلى طرف. تُحفظ مفاتيح التشفير على الخادم، لذلك يمكن للنظام فك تشفير الرسائل عند الضرورة. يرجى استخدام التطبيق مع أخذ ذلك في الاعتبار.';
+
+  @override
+  String get chatEncRetainTitle => 'قد يُحتفظ بالمحتوى المحذوف';
+
+  @override
+  String get chatEncRetainBody =>
+      'قد يُحتفظ على الخادم بنسخة مشفّرة من الرسائل المحذوفة للجميع وسجل تعديلاتها ونسخة مشفّرة من الصور التي تُعرض مرة واحدة لأغراض المراجعة الأمنية. مدد الاحتفاظ مذكورة في سياسة الخصوصية.';
+
+  @override
+  String get chatEncMembersTitle => 'الجميع يرى في المجموعات';
+
+  @override
+  String get chatEncMembersBody =>
+      'يمكن لجميع أعضاء المجموعات وغرف النوادي وغرف الفعاليات رؤية الرسائل في الغرفة.';
+
+  @override
+  String get chatEncScreenshotTitle => 'لا يمكن منع لقطات الشاشة';
+
+  @override
+  String get chatEncScreenshotBody =>
+      'يمكن للطرف الآخر حفظ الرسالة بلقطة شاشة أو بجهاز آخر ومشاركتها. لا يمكننا منع ذلك تمامًا حتى في الصور التي تُعرض مرة واحدة.';
+
+  @override
+  String get chatEncAccountTitle => 'تبقى الرسائل بعد حذف الحساب';
+
+  @override
+  String get chatEncAccountBody =>
+      'إذا حذفت حسابك تُجعل بياناتك الشخصية مجهولة الهوية، وتبقى الرسائل التي أرسلتها جزءًا من المحادثة باسم كاتب مجهول.';
+
+  @override
+  String get chatEncSecHelp => 'الإبلاغ والحظر';
+
+  @override
+  String chatEncHelpMessage(String report) {
+    return 'للإبلاغ عن رسالة، اضغط عليها مطولًا ثم اختر $report.';
+  }
+
+  @override
+  String chatEncHelpPerson(String block, String report) {
+    return 'لحظر شخص أو الإبلاغ عنه في محادثة فردية، اضغط على الاسم في الأعلى، ثم في معلومات المحادثة استخدم $block أو $report.';
+  }
+
+  @override
+  String get chatEncSecRead => 'المزيد';
+
+  @override
+  String get chatEncPrivacyLink => 'سياسة الخصوصية';
+
+  @override
+  String get chatEncRulesLink => 'قواعد المجتمع';
+
+  @override
+  String get chatEncInfoRow => 'التشفير والأمان';
+
+  @override
+  String get chatEncFootnote => 'يتم تشفير رسائلك أثناء النقل وعلى الخادم.';
 
   @override
   String get chatDetailYesterday => 'أمس';
@@ -3221,13 +3370,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get coreErrGeneric => 'حدث خطأ ما. يرجى المحاولة مرة أخرى.';
 
   @override
-  String get coreIdEmpty => 'أدخل رقمك الجامعي أو بريدك الإلكتروني.';
+  String get coreIdEmpty => 'أدخل بريدك الإلكتروني.';
 
   @override
   String get coreIdEmail => 'أدخل عنوان بريد إلكتروني صالحًا.';
-
-  @override
-  String get coreIdNumber => 'تحقق من رقمك الجامعي.';
 
   @override
   String get coreOffline => 'غير متصل';
@@ -4390,7 +4536,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pollCreate => 'إنشاء استطلاع';
 
   @override
-  String get pollClubEmpty => 'لا توجد استطلاعات لهذا النادي.';
+  String get pollClubEmpty => 'لا توجد استطلاعات بعد.';
 
   @override
   String get pollSeeAll => 'عرض كل الاستطلاعات';
@@ -4810,6 +4956,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get postComposeNewPost => 'منشور جديد';
+
+  @override
+  String get postPickerCameraHint =>
+      'اضغط لالتقاط صورة، واضغط مطولًا لتسجيل فيديو';
+
+  @override
+  String get postPickerLimitedBody =>
+      'تظهر فقط الصور ومقاطع الفيديو التي سمحت بها. يمكنك إضافة المزيد للمشاركة.';
+
+  @override
+  String get postPickerDeniedBody =>
+      'اسمح بالوصول إلى المعرض لمشاركة منشور. يمكنك أيضًا الاختيار من معرض النظام.';
+
+  @override
+  String get postPickerUseSystem => 'استخدام معرض النظام';
 
   @override
   String get postComposeShare => 'مشاركة';
@@ -5826,20 +5987,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authPwMaxErr => 'يجب ألا تزيد كلمة المرور عن 72 حرفًا.';
 
   @override
-  String get authIdHelper => '226051015 أو name.surname@gmail.com';
-
-  @override
-  String get authRegIdLabel => 'بريدك الإلكتروني';
-
-  @override
-  String get authRegIdHelper => 'مثال: name.surname@gmail.com';
-
-  @override
   String get authRegIdEmpty => 'أدخل بريدك الإلكتروني.';
 
   @override
-  String get authRegIdFull =>
-      'أدخل عنوان بريدك الإلكتروني كاملاً، مثل name.surname@gmail.com';
+  String get authRegIdFull => 'أدخل عنوان بريدك الإلكتروني كاملاً.';
 
   @override
   String get supportCatAccount => 'الحساب';
@@ -6092,7 +6243,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get authForgotSubNumber =>
-      'أدخل بريدك الإلكتروني أو رقمك الجامعي. سنرسل رمزًا من 6 أرقام إلى بريدك الإلكتروني.';
+      'أدخل بريدك الإلكتروني. سنرسل رمزًا من 6 أرقام إلى بريدك الإلكتروني.';
 
   @override
   String get authForgotSub =>
@@ -6100,6 +6251,57 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get authBackToLogin => 'العودة لتسجيل الدخول';
+
+  @override
+  String get realEmailTitle => 'عنوان بريدك الإلكتروني الحقيقي';
+
+  @override
+  String get realEmailSubtitle =>
+      'لا يستطيع عنوان Apple المخفي استلام الإشعارات ورسائل إعادة تعيين كلمة المرور. أدخل عنوان بريدك الإلكتروني الذي تستخدمه فعليًا؛ سيكون البريد الوحيد لحسابك.';
+
+  @override
+  String get realEmailSoftNote =>
+      'هذه الخطوة اختيارية لكنها موصى بها لإعادة تعيين كلمة المرور والإشعارات.';
+
+  @override
+  String get realEmailSendCode => 'إرسال الرمز';
+
+  @override
+  String get realEmailLater => 'ليس الآن';
+
+  @override
+  String get realEmailCodeTitle => 'أدخل الرمز';
+
+  @override
+  String get realEmailNoCodeHint =>
+      'إذا لم يصل الرمز فتحقق من مجلد الرسائل غير المرغوب فيها. إذا كان العنوان مسجلًا في حساب آخر فلا يمكن إكمال التحقق؛ سجّل الدخول إلى ذلك الحساب أو جرّب عنوانًا آخر.';
+
+  @override
+  String get realEmailDoneTitle => 'تم تحديث بريدك الإلكتروني';
+
+  @override
+  String realEmailDoneBody(String email) {
+    return 'أصبح بريد حسابك الإلكتروني $email. ستصل الإشعارات وإعادة تعيين كلمة المرور إلى هذا العنوان.';
+  }
+
+  @override
+  String get realEmailContinue => 'متابعة';
+
+  @override
+  String get realEmailErrRelay =>
+      'لا يمكن استخدام عنوان مخفي (مؤقت). أدخل عنوان بريدك الإلكتروني الحقيقي الذي تستخدمه فعليًا.';
+
+  @override
+  String get realEmailErrUnavailable =>
+      'لا يمكن استخدام عنوان البريد الإلكتروني هذا. جرّب عنوانًا آخر أو سجّل الدخول إلى الحساب المفتوح به.';
+
+  @override
+  String get realEmailErrUnchanged =>
+      'هذا هو عنوان البريد الإلكتروني الحالي لحسابك بالفعل.';
+
+  @override
+  String get realEmailErrRequired =>
+      'أضف بريدك الإلكتروني الحقيقي والنشط وتحقّق منه قبل المتابعة.';
 
   @override
   String get authChangeEmail => 'تغيير البريد الإلكتروني';
@@ -12425,4 +12627,116 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get devPlatformWeb => 'Web';
+
+  @override
+  String get pwRowLabel => 'كلمة المرور';
+
+  @override
+  String get pwRowSub => 'حدّث كلمة المرور';
+
+  @override
+  String get pwpIntro => 'أدخل كلمة المرور الحالية لتعيين كلمة مرور جديدة.';
+
+  @override
+  String get pwpForgotTitle => 'نسيت كلمة المرور؟';
+
+  @override
+  String get pwpForgotBody =>
+      'سنرسل رمز تحقق من 6 أرقام إلى البريد الإلكتروني المسجّل في حسابك لتتمكن من تعيين كلمة مرور جديدة.';
+
+  @override
+  String pwpForgotTo(String email) {
+    return 'يُرسل الرمز إلى $email.';
+  }
+
+  @override
+  String get pwpForgotButton => 'أرسل رمز التحقق';
+
+  @override
+  String get pwpExpired => 'انتهت مهلة التحقق. اطلب رمزًا جديدًا.';
+
+  @override
+  String get pwpDoneTitle => 'تم تحديث كلمة المرور';
+
+  @override
+  String get pwpDoneBody =>
+      'حفاظًا على أمانك، أُغلقت جميع الجلسات على كل الأجهزة بما فيها هذا الجهاز. سجّل الدخول من جديد بكلمة مرورك الجديدة.';
+
+  @override
+  String get cplLockTitle => 'انضم إلى النادي لعرض استطلاعاته';
+
+  @override
+  String get cplLockBody => 'استطلاعات النادي متاحة للأعضاء فقط.';
+
+  @override
+  String get cplLockBodyApproval =>
+      'استطلاعات النادي متاحة للأعضاء فقط. ستظهر هنا بعد الموافقة على طلب انضمامك.';
+
+  @override
+  String get cplPendingTitle => 'طلب عضويتك بانتظار الموافقة';
+
+  @override
+  String get cplPendingBody => 'عند الموافقة ستظهر استطلاعات النادي هنا.';
+
+  @override
+  String get cplEmptyManagerBody => 'أنشئ أول استطلاع لمعرفة آراء الأعضاء.';
+
+  @override
+  String get chcEmptyTitle => 'لا توجد أندية بعد';
+
+  @override
+  String get chcEmptyBody => 'أسّس أول نادٍ وادعُ أصدقاءك.';
+
+  @override
+  String get chcLoadFailed => 'تعذّر تحميل الأندية.';
+
+  @override
+  String clsSortLabel(String name) {
+    return 'الترتيب: $name';
+  }
+
+  @override
+  String get clsSortTitle => 'ترتيب حسب';
+
+  @override
+  String get clsSortPopular => 'الأكثر شعبية';
+
+  @override
+  String get clsSortNewest => 'الأحدث';
+
+  @override
+  String get clsSortAz => 'أ-ي';
+
+  @override
+  String clsCount(String count) {
+    return '$count نادي';
+  }
+
+  @override
+  String get clsMoreFailed => 'تعذّر تحميل المزيد من الأندية.';
+
+  @override
+  String get forumCatAll => 'كل الفئات';
+
+  @override
+  String get forumCatPickerA11y => 'اختيار الفئة';
+
+  @override
+  String get forumCatSearchHint => 'ابحث في الفئات';
+
+  @override
+  String get forumCatEmptyTitle => 'لم يتم العثور على فئات';
+
+  @override
+  String forumCatEmptyBody(String q) {
+    return 'لا توجد فئة مطابقة لـ “$q”. جرّب كلمة أخرى.';
+  }
+
+  @override
+  String forumCatTopicCount(int count) {
+    return '$count موضوع';
+  }
+
+  @override
+  String get forumCatLoadFailed => 'تعذر تحميل الفئات';
 }

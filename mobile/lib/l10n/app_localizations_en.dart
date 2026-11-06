@@ -288,17 +288,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authPasswordLabel => 'Password';
 
   @override
-  String get authIdHint => 'Email or student number';
+  String get authIdHint => 'Email';
 
   @override
-  String get authIdNumberLabel => 'Your student number';
-
-  @override
-  String get authIdNumberEmpty => 'Enter your student number.';
-
-  @override
-  String get loginSubtitleNumber =>
-      'Log in with your email address or student number. If you type only a number, @bingol.edu.tr is added automatically.';
+  String get loginSubtitleNumber => 'Log in with your email address.';
 
   @override
   String get authVerify => 'Verify';
@@ -1282,6 +1275,164 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatDetailToday => 'Today';
+
+  @override
+  String get chatEncNoticeDirect =>
+      'Your messages are encrypted in transit and on the server.';
+
+  @override
+  String get chatEncNoticeGroup =>
+      'Messages in this chat are encrypted in transit and on the server. All members of the chat can see them.';
+
+  @override
+  String get chatEncNoticeRoom =>
+      'Messages in this room are encrypted in transit and on the server. All members of the room can see them.';
+
+  @override
+  String get chatEncMore => 'Learn more';
+
+  @override
+  String get chatEncPageTitle => 'Chat security';
+
+  @override
+  String get chatEncHeroTitle => 'Your messages are encrypted';
+
+  @override
+  String get chatEncHeroBody =>
+      'Your messages are encrypted in transit and on the server. Below we explain plainly what is protected, how, and what you should keep in mind.';
+
+  @override
+  String get chatEncSecHow => 'How it is protected';
+
+  @override
+  String get chatEncTlsTitle => 'Encrypted in transit';
+
+  @override
+  String get chatEncTlsBody =>
+      'Your messages and chat photos travel between the app and the server over an encrypted connection (TLS/WSS).';
+
+  @override
+  String get chatEncRestTitle => 'Encrypted storage on the server';
+
+  @override
+  String get chatEncRestBody =>
+      'Messages are stored encrypted with AES-256-GCM using a separate key for each chat; chat photos and videos are stored encrypted too. The keys are kept apart from the database, in the server environment. This makes messages harder to read even if a database backup is obtained.';
+
+  @override
+  String get chatEncAuditTitle => 'Admin access is logged';
+
+  @override
+  String get chatEncAuditBody =>
+      'Only authorized administrators can look at conversations, and only for reasons such as reviewing a report, security or legal requests. Every view is written to a tamper-proof access log before the content is shown.';
+
+  @override
+  String get chatEncBlockTitle => 'Block and report';
+
+  @override
+  String get chatEncBlockBody =>
+      'You can block people you do not want to hear from and report inappropriate messages and users. Messages from someone you blocked are not delivered to you.';
+
+  @override
+  String get chatEncOnceTitle => 'View-once photos';
+
+  @override
+  String get chatEncOnceBody =>
+      'The recipient can open a view-once photo only one time; after opening it they cannot see it again.';
+
+  @override
+  String get chatEncDeleteTitle => 'Delete for everyone';
+
+  @override
+  String get chatEncDeleteBody =>
+      'You can delete your own message for everyone; others see a note that it was deleted instead of the message.';
+
+  @override
+  String get chatEncExifTitle => 'Location is removed from photos';
+
+  @override
+  String get chatEncExifBody =>
+      'Photos you send are re-encoded on the server and EXIF data such as location is removed.';
+
+  @override
+  String get chatEncDataTitle => 'Your data is yours';
+
+  @override
+  String get chatEncDataBody =>
+      'From the Profile section you can download your data or delete your account.';
+
+  @override
+  String get chatEncNoSellTitle => 'Not sold, not shared for ads';
+
+  @override
+  String get chatEncNoSellBody =>
+      'We do not sell your data and we do not share it with third parties for advertising.';
+
+  @override
+  String get chatEncSecKnow => 'What you should know';
+
+  @override
+  String get chatEncNotE2eeTitle => 'Not end-to-end encrypted';
+
+  @override
+  String get chatEncNotE2eeBody =>
+      'Messages in this app are not end-to-end encrypted. The encryption keys are held on the server, so the system can decrypt messages when necessary. Please use the app with this in mind.';
+
+  @override
+  String get chatEncRetainTitle => 'Deleted content may be kept';
+
+  @override
+  String get chatEncRetainBody =>
+      'The encrypted copy of messages deleted for everyone, their edit history and the encrypted copy of view-once photos may be kept on the server for security review. Retention periods are stated in the Privacy Policy.';
+
+  @override
+  String get chatEncMembersTitle => 'Everyone in a group can see';
+
+  @override
+  String get chatEncMembersBody =>
+      'Messages in groups, club rooms and event rooms can be seen by all members of the room.';
+
+  @override
+  String get chatEncScreenshotTitle => 'Screenshots cannot be prevented';
+
+  @override
+  String get chatEncScreenshotBody =>
+      'The other person can capture a message with a screenshot or another device and share it. We cannot fully prevent this, even for view-once photos.';
+
+  @override
+  String get chatEncAccountTitle => 'Messages remain after account deletion';
+
+  @override
+  String get chatEncAccountBody =>
+      'If you delete your account, your personal details are anonymized; the messages you sent remain as part of the chat under an anonymous author.';
+
+  @override
+  String get chatEncSecHelp => 'Report and block';
+
+  @override
+  String chatEncHelpMessage(String report) {
+    return 'To report a message, press and hold it and tap $report.';
+  }
+
+  @override
+  String chatEncHelpPerson(String block, String report) {
+    return 'To block or report someone in a one-to-one chat, tap the name at the top; in chat info use $block or $report.';
+  }
+
+  @override
+  String get chatEncSecRead => 'More';
+
+  @override
+  String get chatEncPrivacyLink => 'Privacy Policy';
+
+  @override
+  String get chatEncRulesLink => 'Community Rules';
+
+  @override
+  String get chatEncInfoRow => 'Encryption and security';
+
+  @override
+  String get chatEncFootnote =>
+      'Your messages are encrypted in transit and on the server.';
 
   @override
   String get chatDetailYesterday => 'Yesterday';
@@ -3245,13 +3396,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get coreErrGeneric => 'Something went wrong. Please try again.';
 
   @override
-  String get coreIdEmpty => 'Enter your student number or email address.';
+  String get coreIdEmpty => 'Enter your email address.';
 
   @override
   String get coreIdEmail => 'Enter a valid email address.';
-
-  @override
-  String get coreIdNumber => 'Check your student number.';
 
   @override
   String get coreOffline => 'Offline';
@@ -4426,7 +4574,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pollCreate => 'Create poll';
 
   @override
-  String get pollClubEmpty => 'This club has no polls.';
+  String get pollClubEmpty => 'No polls yet.';
 
   @override
   String get pollSeeAll => 'See all polls';
@@ -4853,6 +5001,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get postComposeNewPost => 'New post';
+
+  @override
+  String get postPickerCameraHint => 'Tap for a photo, hold for a video';
+
+  @override
+  String get postPickerLimitedBody =>
+      'Only the photos and videos you allowed are shown. You can add more to share.';
+
+  @override
+  String get postPickerDeniedBody =>
+      'Allow access to your gallery to share a post. You can also choose from the system gallery instead.';
+
+  @override
+  String get postPickerUseSystem => 'Use system gallery';
 
   @override
   String get postComposeShare => 'Share';
@@ -5876,20 +6038,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authPwMaxErr => 'Password can be at most 72 characters.';
 
   @override
-  String get authIdHelper => '226051015 or first.last@gmail.com';
-
-  @override
-  String get authRegIdLabel => 'Your email address';
-
-  @override
-  String get authRegIdHelper => 'e.g. first.last@gmail.com';
-
-  @override
   String get authRegIdEmpty => 'Enter your email address.';
 
   @override
-  String get authRegIdFull =>
-      'Enter your full email address, e.g. first.last@gmail.com';
+  String get authRegIdFull => 'Enter your full email address.';
 
   @override
   String get supportCatAccount => 'Account';
@@ -6143,7 +6295,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authForgotSubNumber =>
-      'Enter your email address or student number. We will send a 6-digit code to your email address.';
+      'Enter your email address. We will send a 6-digit code to your email address.';
 
   @override
   String get authForgotSub =>
@@ -6151,6 +6303,57 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authBackToLogin => 'Back to log in';
+
+  @override
+  String get realEmailTitle => 'Your real email address';
+
+  @override
+  String get realEmailSubtitle =>
+      'Your hidden Apple address cannot receive notifications or password reset emails. Enter the email address you actively use; it will be the only email on your account.';
+
+  @override
+  String get realEmailSoftNote =>
+      'This step is optional but recommended for password reset and notifications.';
+
+  @override
+  String get realEmailSendCode => 'Send code';
+
+  @override
+  String get realEmailLater => 'Not now';
+
+  @override
+  String get realEmailCodeTitle => 'Enter the code';
+
+  @override
+  String get realEmailNoCodeHint =>
+      'If the code does not arrive, check your spam folder. If the address belongs to another account, verification cannot be completed; sign in to that account or try another address.';
+
+  @override
+  String get realEmailDoneTitle => 'Your email is updated';
+
+  @override
+  String realEmailDoneBody(String email) {
+    return 'Your account email is now $email. Notifications and password reset will be sent to this address.';
+  }
+
+  @override
+  String get realEmailContinue => 'Continue';
+
+  @override
+  String get realEmailErrRelay =>
+      'A hidden (temporary) address cannot be used. Enter the real email address you actively use.';
+
+  @override
+  String get realEmailErrUnavailable =>
+      'This email address cannot be used. Try another address or sign in to the account opened with it.';
+
+  @override
+  String get realEmailErrUnchanged =>
+      'This is already your account email address.';
+
+  @override
+  String get realEmailErrRequired =>
+      'Add and verify your real, active email address before continuing.';
 
   @override
   String get authChangeEmail => 'Change email';
@@ -12534,4 +12737,118 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get devPlatformWeb => 'Web';
+
+  @override
+  String get pwRowLabel => 'Password';
+
+  @override
+  String get pwRowSub => 'Update your password';
+
+  @override
+  String get pwpIntro => 'Enter your current password to set a new one.';
+
+  @override
+  String get pwpForgotTitle => 'Forgot your password?';
+
+  @override
+  String get pwpForgotBody =>
+      'We will send a 6-digit verification code to your account email so you can set a new password.';
+
+  @override
+  String pwpForgotTo(String email) {
+    return 'The code is sent to $email.';
+  }
+
+  @override
+  String get pwpForgotButton => 'Send verification code';
+
+  @override
+  String get pwpExpired => 'Verification expired. Request a new code.';
+
+  @override
+  String get pwpDoneTitle => 'Your password is updated';
+
+  @override
+  String get pwpDoneBody =>
+      'For your security, all sessions on every device, including this one, were signed out. Log in again with your new password.';
+
+  @override
+  String get cplLockTitle => 'Join the club to see its polls';
+
+  @override
+  String get cplLockBody => 'Club polls are open to members only.';
+
+  @override
+  String get cplLockBodyApproval =>
+      'Club polls are open to members only. They appear here once your join request is approved.';
+
+  @override
+  String get cplPendingTitle => 'Your membership request is awaiting approval';
+
+  @override
+  String get cplPendingBody =>
+      'Once approved, you will see the club polls here.';
+
+  @override
+  String get cplEmptyManagerBody =>
+      'Create the first poll to hear from your members.';
+
+  @override
+  String get chcEmptyTitle => 'No clubs yet';
+
+  @override
+  String get chcEmptyBody => 'Start the first club and invite your friends.';
+
+  @override
+  String get chcLoadFailed => 'Could not load clubs.';
+
+  @override
+  String clsSortLabel(String name) {
+    return 'Sort: $name';
+  }
+
+  @override
+  String get clsSortTitle => 'Sort by';
+
+  @override
+  String get clsSortPopular => 'Popular';
+
+  @override
+  String get clsSortNewest => 'Newest';
+
+  @override
+  String get clsSortAz => 'A-Z';
+
+  @override
+  String clsCount(String count) {
+    return '$count clubs';
+  }
+
+  @override
+  String get clsMoreFailed => 'Could not load more clubs.';
+
+  @override
+  String get forumCatAll => 'All categories';
+
+  @override
+  String get forumCatPickerA11y => 'Category picker';
+
+  @override
+  String get forumCatSearchHint => 'Search categories';
+
+  @override
+  String get forumCatEmptyTitle => 'No categories found';
+
+  @override
+  String forumCatEmptyBody(String q) {
+    return 'No category matches “$q”. Try another word.';
+  }
+
+  @override
+  String forumCatTopicCount(int count) {
+    return '$count topics';
+  }
+
+  @override
+  String get forumCatLoadFailed => 'Could not load categories';
 }

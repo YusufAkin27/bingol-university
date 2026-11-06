@@ -8,6 +8,7 @@ import '../../widgets/bu.dart';
 import '../profile/user_profile_page.dart';
 import 'chat_detail_page.dart';
 import 'chat_new_parts.dart';
+import 'chat_security_page.dart';
 import 'chatlist_widgets.dart';
 import 'contacts_match_page.dart';
 import '../../core/academic_catalog.dart';
@@ -259,6 +260,16 @@ class _NewChatPageState extends State<NewChatPage> {
                   const SizedBox(height: 16),
                 ],
                 ..._resultWidgets(t),
+                if (showActions)
+                  ChatEncryptionFootnote(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        settings: const RouteSettings(name: 'chat_security'),
+                        builder: (_) => ChatSecurityPage(session: widget.session),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

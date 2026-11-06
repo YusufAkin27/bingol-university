@@ -288,17 +288,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get authPasswordLabel => 'Şifre';
 
   @override
-  String get authIdHint => 'E-posta ya da okul numaranız';
+  String get authIdHint => 'E-posta';
 
   @override
-  String get authIdNumberLabel => 'Okul numaranız';
-
-  @override
-  String get authIdNumberEmpty => 'Okul numaranızı girin.';
-
-  @override
-  String get loginSubtitleNumber =>
-      'E-posta adresinizle ya da okul numaranızla giriş yapın. Yalnız numara yazarsanız @bingol.edu.tr otomatik eklenir.';
+  String get loginSubtitleNumber => 'E-posta adresinizle giriş yapın.';
 
   @override
   String get authVerify => 'Doğrula';
@@ -1278,6 +1271,164 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get chatDetailToday => 'Bugün';
+
+  @override
+  String get chatEncNoticeDirect =>
+      'Mesajların aktarım sırasında ve sunucuda şifrelenir.';
+
+  @override
+  String get chatEncNoticeGroup =>
+      'Bu sohbetteki mesajlar aktarım sırasında ve sunucuda şifrelenir. Mesajları sohbetteki tüm üyeler görebilir.';
+
+  @override
+  String get chatEncNoticeRoom =>
+      'Bu odadaki mesajlar aktarım sırasında ve sunucuda şifrelenir. Mesajları odadaki tüm üyeler görebilir.';
+
+  @override
+  String get chatEncMore => 'Daha fazla bilgi';
+
+  @override
+  String get chatEncPageTitle => 'Sohbet güvenliği';
+
+  @override
+  String get chatEncHeroTitle => 'Mesajların şifreli';
+
+  @override
+  String get chatEncHeroBody =>
+      'Mesajların aktarım sırasında ve sunucuda şifrelenir. Neyin nasıl korunduğunu ve nelere dikkat etmen gerektiğini aşağıda açıkça anlattık.';
+
+  @override
+  String get chatEncSecHow => 'Nasıl korunuyor';
+
+  @override
+  String get chatEncTlsTitle => 'Aktarım sırasında şifreli';
+
+  @override
+  String get chatEncTlsBody =>
+      'Mesajların ve sohbet fotoğraflarının uygulama ile sunucu arasındaki yolculuğu şifreli bağlantıdan (TLS/WSS) geçer.';
+
+  @override
+  String get chatEncRestTitle => 'Sunucuda şifreli saklama';
+
+  @override
+  String get chatEncRestBody =>
+      'Mesajlar her sohbet için ayrı bir anahtarla AES-256-GCM ile şifrelenerek saklanır; sohbet fotoğrafları ve videoları da şifreli saklanır. Anahtarlar veritabanında değil, sunucu ortamında ayrı tutulur. Bu, veritabanı yedeği ele geçirilse bile mesajların okunmasını zorlaştırır.';
+
+  @override
+  String get chatEncAuditTitle => 'Yönetici erişimi kayıt altında';
+
+  @override
+  String get chatEncAuditBody =>
+      'Yazışmalarına yalnızca yetkili yöneticiler bakabilir; bu da şikâyet incelemesi, güvenlik ve yasal talepler gibi gerekçelerle olur. Her görüntüleme, içerik gösterilmeden önce silinemeyen bir erişim kaydına yazılır.';
+
+  @override
+  String get chatEncBlockTitle => 'Engelle ve şikâyet et';
+
+  @override
+  String get chatEncBlockBody =>
+      'İstemediğin kişiyi engelleyebilir, uygunsuz mesaj ve kullanıcıları şikâyet edebilirsin. Engellediğin kişinin mesajları sana iletilmez.';
+
+  @override
+  String get chatEncOnceTitle => 'Tek gösterimlik fotoğraf';
+
+  @override
+  String get chatEncOnceBody =>
+      'Tek gösterimlik fotoğrafı alıcı yalnızca bir kez açabilir; açtıktan sonra yeniden göremez.';
+
+  @override
+  String get chatEncDeleteTitle => 'Mesajı herkes için sil';
+
+  @override
+  String get chatEncDeleteBody =>
+      'Kendi mesajını herkes için silebilirsin; diğer kişiler mesaj yerine silindiği bilgisini görür.';
+
+  @override
+  String get chatEncExifTitle => 'Fotoğraflardan konum temizlenir';
+
+  @override
+  String get chatEncExifBody =>
+      'Gönderdiğin fotoğraflar sunucuda yeniden kodlanır ve konum gibi EXIF bilgileri temizlenir.';
+
+  @override
+  String get chatEncDataTitle => 'Verilerin sende';
+
+  @override
+  String get chatEncDataBody =>
+      'Profil bölümünden verilerini indirebilir ya da hesabını silebilirsin.';
+
+  @override
+  String get chatEncNoSellTitle => 'Satılmaz, reklam için paylaşılmaz';
+
+  @override
+  String get chatEncNoSellBody =>
+      'Verilerini satmayız ve reklam amacıyla üçüncü kişilerle paylaşmayız.';
+
+  @override
+  String get chatEncSecKnow => 'Bilmen gerekenler';
+
+  @override
+  String get chatEncNotE2eeTitle => 'Uçtan uca şifreli değildir';
+
+  @override
+  String get chatEncNotE2eeBody =>
+      'Bu uygulamadaki mesajlar uçtan uca şifreli değildir. Şifreleme anahtarları sunucuda tutulur, bu yüzden sistem gerektiğinde mesajları çözebilir. Bunu bilerek kullan.';
+
+  @override
+  String get chatEncRetainTitle => 'Silinen içerik saklanabilir';
+
+  @override
+  String get chatEncRetainBody =>
+      'Herkes için silinen mesajların şifreli kopyası, düzenleme geçmişi ve tek gösterimlik fotoğrafların şifreli kopyası güvenlik incelemesi için sunucuda saklanabilir. Süreler Gizlilik Politikasında yazılıdır.';
+
+  @override
+  String get chatEncMembersTitle => 'Gruplarda herkes görür';
+
+  @override
+  String get chatEncMembersBody =>
+      'Grup, kulüp ve etkinlik odalarındaki mesajları odadaki tüm üyeler görebilir.';
+
+  @override
+  String get chatEncScreenshotTitle => 'Ekran görüntüsü engellenemez';
+
+  @override
+  String get chatEncScreenshotBody =>
+      'Karşındaki kişi mesajı ekran görüntüsüyle ya da başka bir cihazla kaydedip paylaşabilir. Tek gösterimlik fotoğraflarda da bunu tamamen engelleyemeyiz.';
+
+  @override
+  String get chatEncAccountTitle => 'Hesabı silince mesajlar kalır';
+
+  @override
+  String get chatEncAccountBody =>
+      'Hesabını silersen kişisel bilgilerin anonimleştirilir; gönderdiğin mesajlar sohbetin parçası olarak anonim yazarla kalır.';
+
+  @override
+  String get chatEncSecHelp => 'Şikâyet et ve engelle';
+
+  @override
+  String chatEncHelpMessage(String report) {
+    return 'Bir mesajı şikâyet etmek için mesaja basılı tut ve $report seçeneğine dokun.';
+  }
+
+  @override
+  String chatEncHelpPerson(String block, String report) {
+    return 'Birebir sohbette kişiyi engellemek ya da şikâyet etmek için üstteki ada dokun; sohbet bilgisinde $block veya $report seçeneğini kullan.';
+  }
+
+  @override
+  String get chatEncSecRead => 'Daha fazlası';
+
+  @override
+  String get chatEncPrivacyLink => 'Gizlilik Politikası';
+
+  @override
+  String get chatEncRulesLink => 'Topluluk Kuralları';
+
+  @override
+  String get chatEncInfoRow => 'Şifreleme ve güvenlik';
+
+  @override
+  String get chatEncFootnote =>
+      'Mesajların aktarım sırasında ve sunucuda şifrelenir.';
 
   @override
   String get chatDetailYesterday => 'Dün';
@@ -3229,13 +3380,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get coreErrGeneric => 'Bir sorun oluştu. Lütfen tekrar deneyin.';
 
   @override
-  String get coreIdEmpty => 'Okul numaranızı veya e-posta adresinizi girin.';
+  String get coreIdEmpty => 'E-posta adresinizi girin.';
 
   @override
   String get coreIdEmail => 'Geçerli bir e-posta adresi girin.';
-
-  @override
-  String get coreIdNumber => 'Okul numarasını kontrol edin.';
 
   @override
   String get coreOffline => 'Çevrimdışı';
@@ -4409,7 +4557,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get pollCreate => 'Anket oluştur';
 
   @override
-  String get pollClubEmpty => 'Bu kulübün anketi yok.';
+  String get pollClubEmpty => 'Henüz anket yok.';
 
   @override
   String get pollSeeAll => 'Tüm anketleri gör';
@@ -4830,6 +4978,21 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get postComposeNewPost => 'Yeni gönderi';
+
+  @override
+  String get postPickerCameraHint =>
+      'Fotoğraf için dokun, video için basılı tut';
+
+  @override
+  String get postPickerLimitedBody =>
+      'Yalnızca izin verdiğin fotoğraf ve videolar görünüyor. Paylaşmak istediklerini ekleyebilirsin.';
+
+  @override
+  String get postPickerDeniedBody =>
+      'Gönderi paylaşmak için galerine erişim izni vermelisin. İstersen sistemin kendi galerisinden de seçebilirsin.';
+
+  @override
+  String get postPickerUseSystem => 'Sistem galerisini kullan';
 
   @override
   String get postComposeShare => 'Paylaş';
@@ -5848,20 +6011,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get authPwMaxErr => 'Şifre en çok 72 karakter olabilir.';
 
   @override
-  String get authIdHelper => '226051015 ya da ad.soyad@gmail.com';
-
-  @override
-  String get authRegIdLabel => 'E-posta adresiniz';
-
-  @override
-  String get authRegIdHelper => 'Örn. ad.soyad@gmail.com';
-
-  @override
   String get authRegIdEmpty => 'E-posta adresinizi girin.';
 
   @override
-  String get authRegIdFull =>
-      'E-posta adresinizin tamamını yazın, örn. ad.soyad@gmail.com';
+  String get authRegIdFull => 'E-posta adresinizin tamamını yazın.';
 
   @override
   String get supportCatAccount => 'Hesap';
@@ -6114,7 +6267,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get authForgotSubNumber =>
-      'E-posta adresinizi ya da okul numaranızı girin. 6 haneli kodu e-posta adresinize göndereceğiz.';
+      'E-posta adresinizi girin. 6 haneli kodu e-posta adresinize göndereceğiz.';
 
   @override
   String get authForgotSub =>
@@ -6122,6 +6275,57 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get authBackToLogin => 'Girişe dön';
+
+  @override
+  String get realEmailTitle => 'Gerçek e-posta adresiniz';
+
+  @override
+  String get realEmailSubtitle =>
+      'Gizli Apple adresiniz bildirimleri ve şifre sıfırlama e-postalarını alamaz. Aktif olarak kullandığınız e-posta adresinizi girin; hesabınızın tek e-postası bu olacak.';
+
+  @override
+  String get realEmailSoftNote =>
+      'Bu adım zorunlu değil ama şifre sıfırlama ve bildirimler için önerilir.';
+
+  @override
+  String get realEmailSendCode => 'Kod gönder';
+
+  @override
+  String get realEmailLater => 'Şimdi değil';
+
+  @override
+  String get realEmailCodeTitle => 'Kodu girin';
+
+  @override
+  String get realEmailNoCodeHint =>
+      'Kod gelmediyse spam klasörüne bakın. Adres başka bir hesapta kayıtlıysa doğrulama tamamlanamaz; o hesapla giriş yapın ya da başka bir adres deneyin.';
+
+  @override
+  String get realEmailDoneTitle => 'E-postanız güncellendi';
+
+  @override
+  String realEmailDoneBody(String email) {
+    return 'Hesabınızın e-postası artık $email. Bildirimler ve şifre sıfırlama bu adrese gelecek.';
+  }
+
+  @override
+  String get realEmailContinue => 'Devam et';
+
+  @override
+  String get realEmailErrRelay =>
+      'Gizli (geçici) bir adres kullanılamaz. Aktif olarak kullandığınız gerçek e-posta adresinizi yazın.';
+
+  @override
+  String get realEmailErrUnavailable =>
+      'Bu e-posta adresi kullanılamıyor. Başka bir adres deneyin ya da bu adresle açılmış hesaba giriş yapın.';
+
+  @override
+  String get realEmailErrUnchanged =>
+      'Bu adres zaten hesabınızın e-posta adresi.';
+
+  @override
+  String get realEmailErrRequired =>
+      'Devam etmeden önce gerçek ve aktif e-posta adresinizi ekleyip doğrulayın.';
 
   @override
   String get authChangeEmail => 'E-postayı değiştir';
@@ -12487,4 +12691,118 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get devPlatformWeb => 'Web';
+
+  @override
+  String get pwRowLabel => 'Şifre';
+
+  @override
+  String get pwRowSub => 'Şifreni güncelle';
+
+  @override
+  String get pwpIntro => 'Mevcut şifreni girerek yeni bir şifre belirle.';
+
+  @override
+  String get pwpForgotTitle => 'Şifreni mi unuttun?';
+
+  @override
+  String get pwpForgotBody =>
+      'Hesabındaki e-posta adresine 6 haneli bir doğrulama kodu gönderelim; kodu girince yeni şifreni belirleyebilirsin.';
+
+  @override
+  String pwpForgotTo(String email) {
+    return 'Kod $email adresine gönderilir.';
+  }
+
+  @override
+  String get pwpForgotButton => 'Doğrulama kodu gönder';
+
+  @override
+  String get pwpExpired => 'Doğrulama süresi doldu. Yeni bir kod iste.';
+
+  @override
+  String get pwpDoneTitle => 'Şifren güncellendi';
+
+  @override
+  String get pwpDoneBody =>
+      'Güvenlik için tüm cihazlardaki oturumlar, bu cihaz dahil kapatıldı. Yeni şifrenle yeniden giriş yapabilirsin.';
+
+  @override
+  String get cplLockTitle => 'Anketleri görmek için kulübe katıl';
+
+  @override
+  String get cplLockBody => 'Kulüp anketleri yalnızca üyelere açıktır.';
+
+  @override
+  String get cplLockBodyApproval =>
+      'Kulüp anketleri yalnızca üyelere açıktır. Katılma isteğin onaylanınca burada görünür.';
+
+  @override
+  String get cplPendingTitle => 'Üyelik isteğin onay bekliyor';
+
+  @override
+  String get cplPendingBody =>
+      'Onaylandığında kulüp anketlerini burada göreceksin.';
+
+  @override
+  String get cplEmptyManagerBody =>
+      'Üyelerin fikrini almak için ilk anketi oluştur.';
+
+  @override
+  String get chcEmptyTitle => 'Henüz kulüp yok';
+
+  @override
+  String get chcEmptyBody => 'İlk kulübü sen kur, arkadaşlarını davet et.';
+
+  @override
+  String get chcLoadFailed => 'Kulüpler yüklenemedi.';
+
+  @override
+  String clsSortLabel(String name) {
+    return 'Sırala: $name';
+  }
+
+  @override
+  String get clsSortTitle => 'Sıralama';
+
+  @override
+  String get clsSortPopular => 'Popüler';
+
+  @override
+  String get clsSortNewest => 'Yeni';
+
+  @override
+  String get clsSortAz => 'A-Z';
+
+  @override
+  String clsCount(String count) {
+    return '$count kulüp';
+  }
+
+  @override
+  String get clsMoreFailed => 'Daha fazla kulüp yüklenemedi.';
+
+  @override
+  String get forumCatAll => 'Tüm kategoriler';
+
+  @override
+  String get forumCatPickerA11y => 'Kategori seçici';
+
+  @override
+  String get forumCatSearchHint => 'Kategori ara';
+
+  @override
+  String get forumCatEmptyTitle => 'Kategori bulunamadı';
+
+  @override
+  String forumCatEmptyBody(String q) {
+    return '“$q” ile eşleşen kategori yok. Başka bir kelime dene.';
+  }
+
+  @override
+  String forumCatTopicCount(int count) {
+    return '$count konu';
+  }
+
+  @override
+  String get forumCatLoadFailed => 'Kategoriler yüklenemedi';
 }

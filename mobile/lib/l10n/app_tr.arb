@@ -110,10 +110,8 @@
   "authShowPassword": "Şifreyi göster",
   "authHidePassword": "Şifreyi gizle",
   "authPasswordLabel": "Şifre",
-  "authIdHint": "E-posta ya da okul numaranız",
-  "authIdNumberLabel": "Okul numaranız",
-  "authIdNumberEmpty": "Okul numaranızı girin.",
-  "loginSubtitleNumber": "E-posta adresinizle ya da okul numaranızla giriş yapın. Yalnız numara yazarsanız @bingol.edu.tr otomatik eklenir.",
+  "authIdHint": "E-posta",
+  "loginSubtitleNumber": "E-posta adresinizle giriş yapın.",
   "authVerify": "Doğrula",
   "authResendCode": "Kodu yeniden gönder",
   "authResendInTime": "Yeniden gönder ({time})",
@@ -740,6 +738,68 @@
   "chatDetailMsgDeleted": "Bu mesaj silindi",
   "chatDetailNevermind": "Vazgeç",
   "chatDetailToday": "Bugün",
+  "chatEncNoticeDirect": "Mesajların aktarım sırasında ve sunucuda şifrelenir.",
+  "chatEncNoticeGroup": "Bu sohbetteki mesajlar aktarım sırasında ve sunucuda şifrelenir. Mesajları sohbetteki tüm üyeler görebilir.",
+  "chatEncNoticeRoom": "Bu odadaki mesajlar aktarım sırasında ve sunucuda şifrelenir. Mesajları odadaki tüm üyeler görebilir.",
+  "chatEncMore": "Daha fazla bilgi",
+  "chatEncPageTitle": "Sohbet güvenliği",
+  "chatEncHeroTitle": "Mesajların şifreli",
+  "chatEncHeroBody": "Mesajların aktarım sırasında ve sunucuda şifrelenir. Neyin nasıl korunduğunu ve nelere dikkat etmen gerektiğini aşağıda açıkça anlattık.",
+  "chatEncSecHow": "Nasıl korunuyor",
+  "chatEncTlsTitle": "Aktarım sırasında şifreli",
+  "chatEncTlsBody": "Mesajların ve sohbet fotoğraflarının uygulama ile sunucu arasındaki yolculuğu şifreli bağlantıdan (TLS/WSS) geçer.",
+  "chatEncRestTitle": "Sunucuda şifreli saklama",
+  "chatEncRestBody": "Mesajlar her sohbet için ayrı bir anahtarla AES-256-GCM ile şifrelenerek saklanır; sohbet fotoğrafları ve videoları da şifreli saklanır. Anahtarlar veritabanında değil, sunucu ortamında ayrı tutulur. Bu, veritabanı yedeği ele geçirilse bile mesajların okunmasını zorlaştırır.",
+  "chatEncAuditTitle": "Yönetici erişimi kayıt altında",
+  "chatEncAuditBody": "Yazışmalarına yalnızca yetkili yöneticiler bakabilir; bu da şikâyet incelemesi, güvenlik ve yasal talepler gibi gerekçelerle olur. Her görüntüleme, içerik gösterilmeden önce silinemeyen bir erişim kaydına yazılır.",
+  "chatEncBlockTitle": "Engelle ve şikâyet et",
+  "chatEncBlockBody": "İstemediğin kişiyi engelleyebilir, uygunsuz mesaj ve kullanıcıları şikâyet edebilirsin. Engellediğin kişinin mesajları sana iletilmez.",
+  "chatEncOnceTitle": "Tek gösterimlik fotoğraf",
+  "chatEncOnceBody": "Tek gösterimlik fotoğrafı alıcı yalnızca bir kez açabilir; açtıktan sonra yeniden göremez.",
+  "chatEncDeleteTitle": "Mesajı herkes için sil",
+  "chatEncDeleteBody": "Kendi mesajını herkes için silebilirsin; diğer kişiler mesaj yerine silindiği bilgisini görür.",
+  "chatEncExifTitle": "Fotoğraflardan konum temizlenir",
+  "chatEncExifBody": "Gönderdiğin fotoğraflar sunucuda yeniden kodlanır ve konum gibi EXIF bilgileri temizlenir.",
+  "chatEncDataTitle": "Verilerin sende",
+  "chatEncDataBody": "Profil bölümünden verilerini indirebilir ya da hesabını silebilirsin.",
+  "chatEncNoSellTitle": "Satılmaz, reklam için paylaşılmaz",
+  "chatEncNoSellBody": "Verilerini satmayız ve reklam amacıyla üçüncü kişilerle paylaşmayız.",
+  "chatEncSecKnow": "Bilmen gerekenler",
+  "chatEncNotE2eeTitle": "Uçtan uca şifreli değildir",
+  "chatEncNotE2eeBody": "Bu uygulamadaki mesajlar uçtan uca şifreli değildir. Şifreleme anahtarları sunucuda tutulur, bu yüzden sistem gerektiğinde mesajları çözebilir. Bunu bilerek kullan.",
+  "chatEncRetainTitle": "Silinen içerik saklanabilir",
+  "chatEncRetainBody": "Herkes için silinen mesajların şifreli kopyası, düzenleme geçmişi ve tek gösterimlik fotoğrafların şifreli kopyası güvenlik incelemesi için sunucuda saklanabilir. Süreler Gizlilik Politikasında yazılıdır.",
+  "chatEncMembersTitle": "Gruplarda herkes görür",
+  "chatEncMembersBody": "Grup, kulüp ve etkinlik odalarındaki mesajları odadaki tüm üyeler görebilir.",
+  "chatEncScreenshotTitle": "Ekran görüntüsü engellenemez",
+  "chatEncScreenshotBody": "Karşındaki kişi mesajı ekran görüntüsüyle ya da başka bir cihazla kaydedip paylaşabilir. Tek gösterimlik fotoğraflarda da bunu tamamen engelleyemeyiz.",
+  "chatEncAccountTitle": "Hesabı silince mesajlar kalır",
+  "chatEncAccountBody": "Hesabını silersen kişisel bilgilerin anonimleştirilir; gönderdiğin mesajlar sohbetin parçası olarak anonim yazarla kalır.",
+  "chatEncSecHelp": "Şikâyet et ve engelle",
+  "chatEncHelpMessage": "Bir mesajı şikâyet etmek için mesaja basılı tut ve {report} seçeneğine dokun.",
+  "@chatEncHelpMessage": {
+    "placeholders": {
+      "report": {
+        "type": "String"
+      }
+    }
+  },
+  "chatEncHelpPerson": "Birebir sohbette kişiyi engellemek ya da şikâyet etmek için üstteki ada dokun; sohbet bilgisinde {block} veya {report} seçeneğini kullan.",
+  "@chatEncHelpPerson": {
+    "placeholders": {
+      "block": {
+        "type": "String"
+      },
+      "report": {
+        "type": "String"
+      }
+    }
+  },
+  "chatEncSecRead": "Daha fazlası",
+  "chatEncPrivacyLink": "Gizlilik Politikası",
+  "chatEncRulesLink": "Topluluk Kuralları",
+  "chatEncInfoRow": "Şifreleme ve güvenlik",
+  "chatEncFootnote": "Mesajların aktarım sırasında ve sunucuda şifrelenir.",
   "chatDetailYesterday": "Dün",
   "chatDetailMonth1": "Ocak",
   "chatDetailMonth2": "Şubat",
@@ -1688,9 +1748,8 @@
   "coreErrNetwork": "Sunucuya ulaşılamadı. Bağlantınızı kontrol edin.",
   "coreErrTooMany": "Çok fazla deneme. Lütfen biraz bekleyin.",
   "coreErrGeneric": "Bir sorun oluştu. Lütfen tekrar deneyin.",
-  "coreIdEmpty": "Okul numaranızı veya e-posta adresinizi girin.",
+  "coreIdEmpty": "E-posta adresinizi girin.",
   "coreIdEmail": "Geçerli bir e-posta adresi girin.",
-  "coreIdNumber": "Okul numarasını kontrol edin.",
   "coreOffline": "Çevrimdışı",
   "coreMaintenance": "Sistem bakımda.",
   "coreOpen": "Aç",
@@ -2233,7 +2292,7 @@
   "pollEmptyClosed": "Kapanan anket yok.",
   "pollLoadFailedRetry": "Yüklenemedi, tekrar dene",
   "pollCreate": "Anket oluştur",
-  "pollClubEmpty": "Bu kulübün anketi yok.",
+  "pollClubEmpty": "Henüz anket yok.",
   "pollSeeAll": "Tüm anketleri gör",
   "pollMenuRateToday": "Bugünün menüsünü puanla",
   "pollYourRating": "Puanınız: {rating}",
@@ -2509,6 +2568,10 @@
   "postComposeContinue": "Devam",
   "postComposeDiscardDraft": "Taslağı sil",
   "postComposeNewPost": "Yeni gönderi",
+  "postPickerCameraHint": "Fotoğraf için dokun, video için basılı tut",
+  "postPickerLimitedBody": "Yalnızca izin verdiğin fotoğraf ve videolar görünüyor. Paylaşmak istediklerini ekleyebilirsin.",
+  "postPickerDeniedBody": "Gönderi paylaşmak için galerine erişim izni vermelisin. İstersen sistemin kendi galerisinden de seçebilirsin.",
+  "postPickerUseSystem": "Sistem galerisini kullan",
   "postComposeShare": "Paylaş",
   "postComposeDraftBanner": "Kayıtlı bir taslağın var.",
   "postComposeRestoreDraft": "Taslağı geri yükle",
@@ -3139,11 +3202,8 @@
   "oaLinkedFailed": "Bağlı hesaplar yüklenemedi.",
   "authPwMinErr": "Şifre en az 6 karakter olmalı.",
   "authPwMaxErr": "Şifre en çok 72 karakter olabilir.",
-  "authIdHelper": "226051015 ya da ad.soyad@gmail.com",
-  "authRegIdLabel": "E-posta adresiniz",
-  "authRegIdHelper": "Örn. ad.soyad@gmail.com",
   "authRegIdEmpty": "E-posta adresinizi girin.",
-  "authRegIdFull": "E-posta adresinizin tamamını yazın, örn. ad.soyad@gmail.com",
+  "authRegIdFull": "E-posta adresinizin tamamını yazın.",
   "supportCatAccount": "Hesap",
   "supportCatTechnical": "Teknik",
   "supportCatContent": "İçerik",
@@ -3267,9 +3327,30 @@
       }
     }
   },
-  "authForgotSubNumber": "E-posta adresinizi ya da okul numaranızı girin. 6 haneli kodu e-posta adresinize göndereceğiz.",
+  "authForgotSubNumber": "E-posta adresinizi girin. 6 haneli kodu e-posta adresinize göndereceğiz.",
   "authForgotSub": "E-posta adresinizi girin, size 6 haneli bir kod gönderelim.",
   "authBackToLogin": "Girişe dön",
+  "realEmailTitle": "Gerçek e-posta adresiniz",
+  "realEmailSubtitle": "Gizli Apple adresiniz bildirimleri ve şifre sıfırlama e-postalarını alamaz. Aktif olarak kullandığınız e-posta adresinizi girin; hesabınızın tek e-postası bu olacak.",
+  "realEmailSoftNote": "Bu adım zorunlu değil ama şifre sıfırlama ve bildirimler için önerilir.",
+  "realEmailSendCode": "Kod gönder",
+  "realEmailLater": "Şimdi değil",
+  "realEmailCodeTitle": "Kodu girin",
+  "realEmailNoCodeHint": "Kod gelmediyse spam klasörüne bakın. Adres başka bir hesapta kayıtlıysa doğrulama tamamlanamaz; o hesapla giriş yapın ya da başka bir adres deneyin.",
+  "realEmailDoneTitle": "E-postanız güncellendi",
+  "realEmailDoneBody": "Hesabınızın e-postası artık {email}. Bildirimler ve şifre sıfırlama bu adrese gelecek.",
+  "@realEmailDoneBody": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "realEmailContinue": "Devam et",
+  "realEmailErrRelay": "Gizli (geçici) bir adres kullanılamaz. Aktif olarak kullandığınız gerçek e-posta adresinizi yazın.",
+  "realEmailErrUnavailable": "Bu e-posta adresi kullanılamıyor. Başka bir adres deneyin ya da bu adresle açılmış hesaba giriş yapın.",
+  "realEmailErrUnchanged": "Bu adres zaten hesabınızın e-posta adresi.",
+  "realEmailErrRequired": "Devam etmeden önce gerçek ve aktif e-posta adresinizi ekleyip doğrulayın.",
   "authChangeEmail": "E-postayı değiştir",
   "authNewPwSub": "Bu şifre eski şifrenizin yerine geçer. Tüm cihazlardaki oturumlar kapanır.",
   "welcomeHeadline": "Kampüs artık\ncebinizde",
@@ -6797,5 +6878,73 @@
   "devAllHint": "Bu cihaz dahil, tüm cihazlardaki oturumlar kapatılır.",
   "devPlatformAndroid": "Android",
   "devPlatformIos": "iOS",
-  "devPlatformWeb": "Web"
+  "devPlatformWeb": "Web",
+  "pwRowLabel": "Şifre",
+  "pwRowSub": "Şifreni güncelle",
+  "pwpIntro": "Mevcut şifreni girerek yeni bir şifre belirle.",
+  "pwpForgotTitle": "Şifreni mi unuttun?",
+  "pwpForgotBody": "Hesabındaki e-posta adresine 6 haneli bir doğrulama kodu gönderelim; kodu girince yeni şifreni belirleyebilirsin.",
+  "pwpForgotTo": "Kod {email} adresine gönderilir.",
+  "@pwpForgotTo": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "pwpForgotButton": "Doğrulama kodu gönder",
+  "pwpExpired": "Doğrulama süresi doldu. Yeni bir kod iste.",
+  "pwpDoneTitle": "Şifren güncellendi",
+  "pwpDoneBody": "Güvenlik için tüm cihazlardaki oturumlar, bu cihaz dahil kapatıldı. Yeni şifrenle yeniden giriş yapabilirsin.",
+  "cplLockTitle": "Anketleri görmek için kulübe katıl",
+  "cplLockBody": "Kulüp anketleri yalnızca üyelere açıktır.",
+  "cplLockBodyApproval": "Kulüp anketleri yalnızca üyelere açıktır. Katılma isteğin onaylanınca burada görünür.",
+  "cplPendingTitle": "Üyelik isteğin onay bekliyor",
+  "cplPendingBody": "Onaylandığında kulüp anketlerini burada göreceksin.",
+  "cplEmptyManagerBody": "Üyelerin fikrini almak için ilk anketi oluştur.",
+  "chcEmptyTitle": "Henüz kulüp yok",
+  "chcEmptyBody": "İlk kulübü sen kur, arkadaşlarını davet et.",
+  "chcLoadFailed": "Kulüpler yüklenemedi.",
+  "clsSortLabel": "Sırala: {name}",
+  "@clsSortLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "clsSortTitle": "Sıralama",
+  "clsSortPopular": "Popüler",
+  "clsSortNewest": "Yeni",
+  "clsSortAz": "A-Z",
+  "clsCount": "{count} kulüp",
+  "@clsCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "clsMoreFailed": "Daha fazla kulüp yüklenemedi.",
+  "forumCatAll": "Tüm kategoriler",
+  "forumCatPickerA11y": "Kategori seçici",
+  "forumCatSearchHint": "Kategori ara",
+  "forumCatEmptyTitle": "Kategori bulunamadı",
+  "forumCatEmptyBody": "“{q}” ile eşleşen kategori yok. Başka bir kelime dene.",
+  "@forumCatEmptyBody": {
+    "placeholders": {
+      "q": {
+        "type": "String"
+      }
+    }
+  },
+  "forumCatTopicCount": "{count} konu",
+  "@forumCatTopicCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "forumCatLoadFailed": "Kategoriler yüklenemedi"
 }

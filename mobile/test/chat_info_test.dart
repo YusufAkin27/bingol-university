@@ -270,7 +270,8 @@ void main() {
 
   testWidgets('birebir: hızlı eylemler, profil, medya, sessiz, engelle ve şikâyet satırları; üye bölümü yok', (tester) async {
     final be = backend()..on('/users/2', {'id': 2, 'displayName': 'Mehmet Kaya', 'department': 'Bilgisayar Mühendisliği', 'classYear': 3});
-    await pump(tester, be);
+    // "Şifreleme ve güvenlik" kartı eklendi: liste tembel olduğundan alt satırlar için ekran yükseltilir.
+    await pump(tester, be, size: const Size(390, 1100));
     await settle(tester);
     expect(find.text('Ara'), findsOneWidget);
     expect(find.text('Sessize al'), findsOneWidget);
@@ -655,7 +656,8 @@ void main() {
     expect(find.text('Bu sohbet kapalı'), findsOneWidget);
     expect(find.text('Yeni mesaj gönderilemez'), findsOneWidget);
     expect(find.text('Etkinlik sayfasını aç'), findsOneWidget);
-    expect(find.byIcon(BuIcons.lock), findsOneWidget);
+    // Kapalı kartı + "Şifreleme ve güvenlik" satırı.
+    expect(find.byIcon(BuIcons.lock), findsNWidgets(2));
     await unmount(tester);
   });
 

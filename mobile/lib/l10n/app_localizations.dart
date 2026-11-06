@@ -637,25 +637,13 @@ abstract class AppLocalizations {
   /// No description provided for @authIdHint.
   ///
   /// In tr, this message translates to:
-  /// **'E-posta ya da okul numaranız'**
+  /// **'E-posta'**
   String get authIdHint;
-
-  /// No description provided for @authIdNumberLabel.
-  ///
-  /// In tr, this message translates to:
-  /// **'Okul numaranız'**
-  String get authIdNumberLabel;
-
-  /// No description provided for @authIdNumberEmpty.
-  ///
-  /// In tr, this message translates to:
-  /// **'Okul numaranızı girin.'**
-  String get authIdNumberEmpty;
 
   /// No description provided for @loginSubtitleNumber.
   ///
   /// In tr, this message translates to:
-  /// **'E-posta adresinizle ya da okul numaranızla giriş yapın. Yalnız numara yazarsanız @bingol.edu.tr otomatik eklenir.'**
+  /// **'E-posta adresinizle giriş yapın.'**
   String get loginSubtitleNumber;
 
   /// No description provided for @authVerify.
@@ -2429,6 +2417,276 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bugün'**
   String get chatDetailToday;
+
+  /// No description provided for @chatEncNoticeDirect.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesajların aktarım sırasında ve sunucuda şifrelenir.'**
+  String get chatEncNoticeDirect;
+
+  /// No description provided for @chatEncNoticeGroup.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu sohbetteki mesajlar aktarım sırasında ve sunucuda şifrelenir. Mesajları sohbetteki tüm üyeler görebilir.'**
+  String get chatEncNoticeGroup;
+
+  /// No description provided for @chatEncNoticeRoom.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu odadaki mesajlar aktarım sırasında ve sunucuda şifrelenir. Mesajları odadaki tüm üyeler görebilir.'**
+  String get chatEncNoticeRoom;
+
+  /// No description provided for @chatEncMore.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daha fazla bilgi'**
+  String get chatEncMore;
+
+  /// No description provided for @chatEncPageTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sohbet güvenliği'**
+  String get chatEncPageTitle;
+
+  /// No description provided for @chatEncHeroTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesajların şifreli'**
+  String get chatEncHeroTitle;
+
+  /// No description provided for @chatEncHeroBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesajların aktarım sırasında ve sunucuda şifrelenir. Neyin nasıl korunduğunu ve nelere dikkat etmen gerektiğini aşağıda açıkça anlattık.'**
+  String get chatEncHeroBody;
+
+  /// No description provided for @chatEncSecHow.
+  ///
+  /// In tr, this message translates to:
+  /// **'Nasıl korunuyor'**
+  String get chatEncSecHow;
+
+  /// No description provided for @chatEncTlsTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aktarım sırasında şifreli'**
+  String get chatEncTlsTitle;
+
+  /// No description provided for @chatEncTlsBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesajların ve sohbet fotoğraflarının uygulama ile sunucu arasındaki yolculuğu şifreli bağlantıdan (TLS/WSS) geçer.'**
+  String get chatEncTlsBody;
+
+  /// No description provided for @chatEncRestTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sunucuda şifreli saklama'**
+  String get chatEncRestTitle;
+
+  /// No description provided for @chatEncRestBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesajlar her sohbet için ayrı bir anahtarla AES-256-GCM ile şifrelenerek saklanır; sohbet fotoğrafları ve videoları da şifreli saklanır. Anahtarlar veritabanında değil, sunucu ortamında ayrı tutulur. Bu, veritabanı yedeği ele geçirilse bile mesajların okunmasını zorlaştırır.'**
+  String get chatEncRestBody;
+
+  /// No description provided for @chatEncAuditTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yönetici erişimi kayıt altında'**
+  String get chatEncAuditTitle;
+
+  /// No description provided for @chatEncAuditBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yazışmalarına yalnızca yetkili yöneticiler bakabilir; bu da şikâyet incelemesi, güvenlik ve yasal talepler gibi gerekçelerle olur. Her görüntüleme, içerik gösterilmeden önce silinemeyen bir erişim kaydına yazılır.'**
+  String get chatEncAuditBody;
+
+  /// No description provided for @chatEncBlockTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Engelle ve şikâyet et'**
+  String get chatEncBlockTitle;
+
+  /// No description provided for @chatEncBlockBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstemediğin kişiyi engelleyebilir, uygunsuz mesaj ve kullanıcıları şikâyet edebilirsin. Engellediğin kişinin mesajları sana iletilmez.'**
+  String get chatEncBlockBody;
+
+  /// No description provided for @chatEncOnceTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tek gösterimlik fotoğraf'**
+  String get chatEncOnceTitle;
+
+  /// No description provided for @chatEncOnceBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tek gösterimlik fotoğrafı alıcı yalnızca bir kez açabilir; açtıktan sonra yeniden göremez.'**
+  String get chatEncOnceBody;
+
+  /// No description provided for @chatEncDeleteTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesajı herkes için sil'**
+  String get chatEncDeleteTitle;
+
+  /// No description provided for @chatEncDeleteBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kendi mesajını herkes için silebilirsin; diğer kişiler mesaj yerine silindiği bilgisini görür.'**
+  String get chatEncDeleteBody;
+
+  /// No description provided for @chatEncExifTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraflardan konum temizlenir'**
+  String get chatEncExifTitle;
+
+  /// No description provided for @chatEncExifBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderdiğin fotoğraflar sunucuda yeniden kodlanır ve konum gibi EXIF bilgileri temizlenir.'**
+  String get chatEncExifBody;
+
+  /// No description provided for @chatEncDataTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Verilerin sende'**
+  String get chatEncDataTitle;
+
+  /// No description provided for @chatEncDataBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil bölümünden verilerini indirebilir ya da hesabını silebilirsin.'**
+  String get chatEncDataBody;
+
+  /// No description provided for @chatEncNoSellTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Satılmaz, reklam için paylaşılmaz'**
+  String get chatEncNoSellTitle;
+
+  /// No description provided for @chatEncNoSellBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Verilerini satmayız ve reklam amacıyla üçüncü kişilerle paylaşmayız.'**
+  String get chatEncNoSellBody;
+
+  /// No description provided for @chatEncSecKnow.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bilmen gerekenler'**
+  String get chatEncSecKnow;
+
+  /// No description provided for @chatEncNotE2eeTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Uçtan uca şifreli değildir'**
+  String get chatEncNotE2eeTitle;
+
+  /// No description provided for @chatEncNotE2eeBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu uygulamadaki mesajlar uçtan uca şifreli değildir. Şifreleme anahtarları sunucuda tutulur, bu yüzden sistem gerektiğinde mesajları çözebilir. Bunu bilerek kullan.'**
+  String get chatEncNotE2eeBody;
+
+  /// No description provided for @chatEncRetainTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Silinen içerik saklanabilir'**
+  String get chatEncRetainTitle;
+
+  /// No description provided for @chatEncRetainBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Herkes için silinen mesajların şifreli kopyası, düzenleme geçmişi ve tek gösterimlik fotoğrafların şifreli kopyası güvenlik incelemesi için sunucuda saklanabilir. Süreler Gizlilik Politikasında yazılıdır.'**
+  String get chatEncRetainBody;
+
+  /// No description provided for @chatEncMembersTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gruplarda herkes görür'**
+  String get chatEncMembersTitle;
+
+  /// No description provided for @chatEncMembersBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Grup, kulüp ve etkinlik odalarındaki mesajları odadaki tüm üyeler görebilir.'**
+  String get chatEncMembersBody;
+
+  /// No description provided for @chatEncScreenshotTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ekran görüntüsü engellenemez'**
+  String get chatEncScreenshotTitle;
+
+  /// No description provided for @chatEncScreenshotBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Karşındaki kişi mesajı ekran görüntüsüyle ya da başka bir cihazla kaydedip paylaşabilir. Tek gösterimlik fotoğraflarda da bunu tamamen engelleyemeyiz.'**
+  String get chatEncScreenshotBody;
+
+  /// No description provided for @chatEncAccountTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabı silince mesajlar kalır'**
+  String get chatEncAccountTitle;
+
+  /// No description provided for @chatEncAccountBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabını silersen kişisel bilgilerin anonimleştirilir; gönderdiğin mesajlar sohbetin parçası olarak anonim yazarla kalır.'**
+  String get chatEncAccountBody;
+
+  /// No description provided for @chatEncSecHelp.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şikâyet et ve engelle'**
+  String get chatEncSecHelp;
+
+  /// No description provided for @chatEncHelpMessage.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir mesajı şikâyet etmek için mesaja basılı tut ve {report} seçeneğine dokun.'**
+  String chatEncHelpMessage(String report);
+
+  /// No description provided for @chatEncHelpPerson.
+  ///
+  /// In tr, this message translates to:
+  /// **'Birebir sohbette kişiyi engellemek ya da şikâyet etmek için üstteki ada dokun; sohbet bilgisinde {block} veya {report} seçeneğini kullan.'**
+  String chatEncHelpPerson(String block, String report);
+
+  /// No description provided for @chatEncSecRead.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daha fazlası'**
+  String get chatEncSecRead;
+
+  /// No description provided for @chatEncPrivacyLink.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gizlilik Politikası'**
+  String get chatEncPrivacyLink;
+
+  /// No description provided for @chatEncRulesLink.
+  ///
+  /// In tr, this message translates to:
+  /// **'Topluluk Kuralları'**
+  String get chatEncRulesLink;
+
+  /// No description provided for @chatEncInfoRow.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şifreleme ve güvenlik'**
+  String get chatEncInfoRow;
+
+  /// No description provided for @chatEncFootnote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesajların aktarım sırasında ve sunucuda şifrelenir.'**
+  String get chatEncFootnote;
 
   /// No description provided for @chatDetailYesterday.
   ///
@@ -6051,7 +6309,7 @@ abstract class AppLocalizations {
   /// No description provided for @coreIdEmpty.
   ///
   /// In tr, this message translates to:
-  /// **'Okul numaranızı veya e-posta adresinizi girin.'**
+  /// **'E-posta adresinizi girin.'**
   String get coreIdEmpty;
 
   /// No description provided for @coreIdEmail.
@@ -6059,12 +6317,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Geçerli bir e-posta adresi girin.'**
   String get coreIdEmail;
-
-  /// No description provided for @coreIdNumber.
-  ///
-  /// In tr, this message translates to:
-  /// **'Okul numarasını kontrol edin.'**
-  String get coreIdNumber;
 
   /// No description provided for @coreOffline.
   ///
@@ -8265,7 +8517,7 @@ abstract class AppLocalizations {
   /// No description provided for @pollClubEmpty.
   ///
   /// In tr, this message translates to:
-  /// **'Bu kulübün anketi yok.'**
+  /// **'Henüz anket yok.'**
   String get pollClubEmpty;
 
   /// No description provided for @pollSeeAll.
@@ -9005,6 +9257,30 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Yeni gönderi'**
   String get postComposeNewPost;
+
+  /// No description provided for @postPickerCameraHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraf için dokun, video için basılı tut'**
+  String get postPickerCameraHint;
+
+  /// No description provided for @postPickerLimitedBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yalnızca izin verdiğin fotoğraf ve videolar görünüyor. Paylaşmak istediklerini ekleyebilirsin.'**
+  String get postPickerLimitedBody;
+
+  /// No description provided for @postPickerDeniedBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderi paylaşmak için galerine erişim izni vermelisin. İstersen sistemin kendi galerisinden de seçebilirsin.'**
+  String get postPickerDeniedBody;
+
+  /// No description provided for @postPickerUseSystem.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sistem galerisini kullan'**
+  String get postPickerUseSystem;
 
   /// No description provided for @postComposeShare.
   ///
@@ -10842,24 +11118,6 @@ abstract class AppLocalizations {
   /// **'Şifre en çok 72 karakter olabilir.'**
   String get authPwMaxErr;
 
-  /// No description provided for @authIdHelper.
-  ///
-  /// In tr, this message translates to:
-  /// **'226051015 ya da ad.soyad@gmail.com'**
-  String get authIdHelper;
-
-  /// No description provided for @authRegIdLabel.
-  ///
-  /// In tr, this message translates to:
-  /// **'E-posta adresiniz'**
-  String get authRegIdLabel;
-
-  /// No description provided for @authRegIdHelper.
-  ///
-  /// In tr, this message translates to:
-  /// **'Örn. ad.soyad@gmail.com'**
-  String get authRegIdHelper;
-
   /// No description provided for @authRegIdEmpty.
   ///
   /// In tr, this message translates to:
@@ -10869,7 +11127,7 @@ abstract class AppLocalizations {
   /// No description provided for @authRegIdFull.
   ///
   /// In tr, this message translates to:
-  /// **'E-posta adresinizin tamamını yazın, örn. ad.soyad@gmail.com'**
+  /// **'E-posta adresinizin tamamını yazın.'**
   String get authRegIdFull;
 
   /// No description provided for @supportCatAccount.
@@ -11343,7 +11601,7 @@ abstract class AppLocalizations {
   /// No description provided for @authForgotSubNumber.
   ///
   /// In tr, this message translates to:
-  /// **'E-posta adresinizi ya da okul numaranızı girin. 6 haneli kodu e-posta adresinize göndereceğiz.'**
+  /// **'E-posta adresinizi girin. 6 haneli kodu e-posta adresinize göndereceğiz.'**
   String get authForgotSubNumber;
 
   /// No description provided for @authForgotSub.
@@ -11357,6 +11615,90 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Girişe dön'**
   String get authBackToLogin;
+
+  /// No description provided for @realEmailTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gerçek e-posta adresiniz'**
+  String get realEmailTitle;
+
+  /// No description provided for @realEmailSubtitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gizli Apple adresiniz bildirimleri ve şifre sıfırlama e-postalarını alamaz. Aktif olarak kullandığınız e-posta adresinizi girin; hesabınızın tek e-postası bu olacak.'**
+  String get realEmailSubtitle;
+
+  /// No description provided for @realEmailSoftNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu adım zorunlu değil ama şifre sıfırlama ve bildirimler için önerilir.'**
+  String get realEmailSoftNote;
+
+  /// No description provided for @realEmailSendCode.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kod gönder'**
+  String get realEmailSendCode;
+
+  /// No description provided for @realEmailLater.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şimdi değil'**
+  String get realEmailLater;
+
+  /// No description provided for @realEmailCodeTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kodu girin'**
+  String get realEmailCodeTitle;
+
+  /// No description provided for @realEmailNoCodeHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kod gelmediyse spam klasörüne bakın. Adres başka bir hesapta kayıtlıysa doğrulama tamamlanamaz; o hesapla giriş yapın ya da başka bir adres deneyin.'**
+  String get realEmailNoCodeHint;
+
+  /// No description provided for @realEmailDoneTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'E-postanız güncellendi'**
+  String get realEmailDoneTitle;
+
+  /// No description provided for @realEmailDoneBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabınızın e-postası artık {email}. Bildirimler ve şifre sıfırlama bu adrese gelecek.'**
+  String realEmailDoneBody(String email);
+
+  /// No description provided for @realEmailContinue.
+  ///
+  /// In tr, this message translates to:
+  /// **'Devam et'**
+  String get realEmailContinue;
+
+  /// No description provided for @realEmailErrRelay.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gizli (geçici) bir adres kullanılamaz. Aktif olarak kullandığınız gerçek e-posta adresinizi yazın.'**
+  String get realEmailErrRelay;
+
+  /// No description provided for @realEmailErrUnavailable.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu e-posta adresi kullanılamıyor. Başka bir adres deneyin ya da bu adresle açılmış hesaba giriş yapın.'**
+  String get realEmailErrUnavailable;
+
+  /// No description provided for @realEmailErrUnchanged.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu adres zaten hesabınızın e-posta adresi.'**
+  String get realEmailErrUnchanged;
+
+  /// No description provided for @realEmailErrRequired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Devam etmeden önce gerçek ve aktif e-posta adresinizi ekleyip doğrulayın.'**
+  String get realEmailErrRequired;
 
   /// No description provided for @authChangeEmail.
   ///
@@ -22571,6 +22913,204 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Web'**
   String get devPlatformWeb;
+
+  /// No description provided for @pwRowLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şifre'**
+  String get pwRowLabel;
+
+  /// No description provided for @pwRowSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şifreni güncelle'**
+  String get pwRowSub;
+
+  /// No description provided for @pwpIntro.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mevcut şifreni girerek yeni bir şifre belirle.'**
+  String get pwpIntro;
+
+  /// No description provided for @pwpForgotTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şifreni mi unuttun?'**
+  String get pwpForgotTitle;
+
+  /// No description provided for @pwpForgotBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabındaki e-posta adresine 6 haneli bir doğrulama kodu gönderelim; kodu girince yeni şifreni belirleyebilirsin.'**
+  String get pwpForgotBody;
+
+  /// No description provided for @pwpForgotTo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kod {email} adresine gönderilir.'**
+  String pwpForgotTo(String email);
+
+  /// No description provided for @pwpForgotButton.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğrulama kodu gönder'**
+  String get pwpForgotButton;
+
+  /// No description provided for @pwpExpired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğrulama süresi doldu. Yeni bir kod iste.'**
+  String get pwpExpired;
+
+  /// No description provided for @pwpDoneTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şifren güncellendi'**
+  String get pwpDoneTitle;
+
+  /// No description provided for @pwpDoneBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güvenlik için tüm cihazlardaki oturumlar, bu cihaz dahil kapatıldı. Yeni şifrenle yeniden giriş yapabilirsin.'**
+  String get pwpDoneBody;
+
+  /// No description provided for @cplLockTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anketleri görmek için kulübe katıl'**
+  String get cplLockTitle;
+
+  /// No description provided for @cplLockBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp anketleri yalnızca üyelere açıktır.'**
+  String get cplLockBody;
+
+  /// No description provided for @cplLockBodyApproval.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp anketleri yalnızca üyelere açıktır. Katılma isteğin onaylanınca burada görünür.'**
+  String get cplLockBodyApproval;
+
+  /// No description provided for @cplPendingTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Üyelik isteğin onay bekliyor'**
+  String get cplPendingTitle;
+
+  /// No description provided for @cplPendingBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Onaylandığında kulüp anketlerini burada göreceksin.'**
+  String get cplPendingBody;
+
+  /// No description provided for @cplEmptyManagerBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Üyelerin fikrini almak için ilk anketi oluştur.'**
+  String get cplEmptyManagerBody;
+
+  /// No description provided for @chcEmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz kulüp yok'**
+  String get chcEmptyTitle;
+
+  /// No description provided for @chcEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'İlk kulübü sen kur, arkadaşlarını davet et.'**
+  String get chcEmptyBody;
+
+  /// No description provided for @chcLoadFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüpler yüklenemedi.'**
+  String get chcLoadFailed;
+
+  /// No description provided for @clsSortLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sırala: {name}'**
+  String clsSortLabel(String name);
+
+  /// No description provided for @clsSortTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıralama'**
+  String get clsSortTitle;
+
+  /// No description provided for @clsSortPopular.
+  ///
+  /// In tr, this message translates to:
+  /// **'Popüler'**
+  String get clsSortPopular;
+
+  /// No description provided for @clsSortNewest.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni'**
+  String get clsSortNewest;
+
+  /// No description provided for @clsSortAz.
+  ///
+  /// In tr, this message translates to:
+  /// **'A-Z'**
+  String get clsSortAz;
+
+  /// No description provided for @clsCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} kulüp'**
+  String clsCount(String count);
+
+  /// No description provided for @clsMoreFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daha fazla kulüp yüklenemedi.'**
+  String get clsMoreFailed;
+
+  /// No description provided for @forumCatAll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm kategoriler'**
+  String get forumCatAll;
+
+  /// No description provided for @forumCatPickerA11y.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kategori seçici'**
+  String get forumCatPickerA11y;
+
+  /// No description provided for @forumCatSearchHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kategori ara'**
+  String get forumCatSearchHint;
+
+  /// No description provided for @forumCatEmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kategori bulunamadı'**
+  String get forumCatEmptyTitle;
+
+  /// No description provided for @forumCatEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'“{q}” ile eşleşen kategori yok. Başka bir kelime dene.'**
+  String forumCatEmptyBody(String q);
+
+  /// No description provided for @forumCatTopicCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} konu'**
+  String forumCatTopicCount(int count);
+
+  /// No description provided for @forumCatLoadFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kategoriler yüklenemedi'**
+  String get forumCatLoadFailed;
 }
 
 class _AppLocalizationsDelegate

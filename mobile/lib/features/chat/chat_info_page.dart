@@ -16,6 +16,7 @@ import 'chat_info_members.dart';
 import 'chat_info_parts.dart';
 import 'chat_sheet_parts.dart';
 import 'chat_media_viewer.dart';
+import 'chat_security_page.dart';
 import 'chatlist_widgets.dart';
 import 'sohbety_add_members.dart';
 import '../../core/academic_catalog.dart';
@@ -587,6 +588,27 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
         ],
       ]);
 
+  /// "Şifreleme ve güvenlik": sohbet güvenliği açıklama sayfası.
+  void _openSecurity() => Navigator.push(
+        context,
+        MaterialPageRoute<void>(
+          settings: const RouteSettings(name: 'chat_security'),
+          builder: (_) => ChatSecurityPage(session: widget.session),
+        ),
+      );
+
+  Widget _securityCard() => ChatInfoCard(
+        child: ChatInfoRow(
+          key: const ValueKey('info-security'),
+          icon: BuIcons.lock,
+          label: context.l10n.chatEncInfoRow,
+          soft: true,
+          dotSize: 36,
+          minHeight: 64,
+          onTap: _openSecurity,
+        ),
+      );
+
   /// Sohbet içinde mesaj arama: sohbet ekranı `'search'` sonucuyla kendi arama çubuğunu açar.
   void _searchInChat() => Navigator.pop(context, 'search');
 
@@ -791,6 +813,8 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
       const SizedBox(height: 24),
       _mediaCard(t, direct: true),
       const SizedBox(height: 24),
+      _securityCard(),
+      const SizedBox(height: 24),
       ChatInfoRows(children: [
         ChatInfoRow(
             key: const ValueKey('info-block'),
@@ -871,6 +895,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
           ),
         _membersCard(t),
         _mediaCard(t, direct: false),
+        _securityCard(),
         if (_userGroup)
           ChatInfoCard(
             padding: const EdgeInsets.all(4),
@@ -901,6 +926,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
       _gap([
         _membersCard(t),
         _mediaCard(t, direct: false),
+        _securityCard(),
       ]),
     ];
   }
