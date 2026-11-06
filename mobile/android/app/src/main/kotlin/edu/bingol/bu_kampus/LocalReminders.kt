@@ -167,8 +167,8 @@ object LocalReminderStore {
 }
 
 object Channels {
-    /** Marka kirmizisi (#F73B2E); bildirim vurgusu ve isik rengi. res/values/colors.xml notification_accent ile ayni. */
-    const val ACCENT = 0xFFF73B2E.toInt()
+    /** Marka vurgusu (#09090B, kirmizi kaldirildi); bildirim vurgusu ve isik rengi. res/values/colors.xml notification_accent ile ayni. */
+    const val ACCENT = 0xFF09090B.toInt()
 
     private const val PREFS = "bu_channels"
 

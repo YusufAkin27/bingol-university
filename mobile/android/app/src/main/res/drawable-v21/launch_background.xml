@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Yerel acilis: duz marka kirmizisi (Flutter splash ile ayni zemin), gorsel yok. -->
+<!-- Yerel acilis (acik tema): beyaz zemin + ortada siyah BU (splash_logo); Flutter splash ile ayni zemin/konum. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/splash_bg" />
+    <item>
+        <bitmap android:src="@drawable/splash_logo" android:gravity="center" />
+    </item>
 </layer-list>

@@ -1,40 +1,33 @@
 # BÜ Kampüs — mobil marka varlıkları
 
-Bu klasör `brand/build.js` ile üretilir (kaynak: `brand/source/logo.png`); elle düzenlemeyin.
-Flutter bu makinede kurulu değil, bu yüzden `android/` ve `ios/` klasörleri yok: kaynaklar hazır tutulur.
+Marka logosu iki kaynak dosyadır (kalıcı, repo içinde): `brand/source/dark_logo.png` (siyah zemin, beyaz "BÜ") ve
+`brand/source/light_logo.png` (beyaz zemin, siyah "BÜ"); ikisi de 1254x1254 RGB. Uygulamanın her yerinde **tema duyarlıdır**:
+koyu temada dark_logo (beyaz glif), açık temada light_logo (siyah glif). Marka rengi kırmızı **kaldırıldı** (Premium
+Black/White monochrome).
 
-## Platform klasörleri üretildikten sonra
+## Üretim
 
 ```bash
-cd mobile
-flutter create --platforms=android,ios --project-name bu_kampus --org edu.bingol .   # android/ ve ios/ üretir (lib/ ve pubspec.yaml'a dokunmaz)
-cp -r branding/android/res/. android/app/src/main/res/ && cp -r branding/ios/AppIcon.appiconset/. ios/Runner/Assets.xcassets/AppIcon.appiconset/
+python -I -X utf8 mobile/tool/make_brand_assets.py     # repo kökünden; yalnız Pillow ister
 ```
 
-Bu iki komut yeterlidir: adaptive + monochrome başlatıcı simgesi, eski/yuvarlak simgeler, bildirim simgesi
-(`drawable-*/ic_stat_notification.png`), Android 12 açılış ikonu (`drawable/splash_icon.png`), `app_name` ("BÜ Kampüs")
-ve iOS `AppIcon` seti yerleşir. Alternatif olarak `dart run flutter_launcher_icons` (yapılandırma `pubspec.yaml`'da) başlatıcı
-simgelerini kendisi üretir; bildirim ve açılış ikonu için yine `res/` kopyası gerekir.
-
-Elle bir kez yapılacaklar:
-- `AndroidManifest.xml` → `<application android:label="@string/app_name" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round">`
-  ve FCM varsayılan bildirim simgesi: `<meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/ic_stat_notification"/>`
-- Android 12 açılış ekranı (`res/values-v31/styles.xml`): `windowSplashScreenBackground` = `@color/ic_launcher_background`,
-  `windowSplashScreenAnimatedIcon` = `@drawable/splash_icon`.
-- iOS `ios/Runner/Info.plist`: `CFBundleDisplayName` = `BÜ Kampüs` (bkz. `ios/Info.plist.snippet.xml`).
-
-## İçerik
+Betik zeminli kaynaklardan parlaklığı alfaya çevirerek (eşikli, anti-alias) şeffaf glif üretir ve doğrudan gerçek
+platform klasörlerine yazar (`android/`, `ios/` zaten repoda; `flutter create` / kopyalama adımı yok). Üretilenler:
 
 | Yol | Ne |
 |---|---|
-| `android/res/mipmap-*/ic_launcher.png`, `ic_launcher_round.png` | Eski (API < 26) kare ve yuvarlak simgeler |
-| `android/res/mipmap-*/ic_launcher_foreground.png` | Adaptive ön plan: 108 dp tuval, kırmızı kare 72 dp, harfler 66 dp güvenli dairenin içinde |
-| `android/res/mipmap-*/ic_launcher_monochrome.png` | Android 13 temalı simge (yalnız harfler, alfa) |
-| `android/res/mipmap-anydpi-v26/ic_launcher(_round).xml` | Adaptive tanım (arka plan + ön plan + monochrome) |
-| `android/res/values/ic_launcher_background.xml`, `strings.xml` | Arka plan rengi `#F73A2E`; `app_name` = BÜ Kampüs |
-| `android/res/drawable-*/ic_stat_notification.png` | Bildirim simgesi (beyaz, harfleri oyuk kare; 24 dp mdpi→xxxhdpi) |
-| `android/res/drawable/splash_icon.png` | Android 12 açılış ikonu (288 dp tuval) |
-| `store/play-store-512.png` | Play Store 512x512, köşesi yuvarlatılmamış tam kare |
-| `store/feature-graphic-1024x500.png` | Play Store öne çıkan görsel (logo + "BÜ Kampüs" + "BİNGÖL ÜNİVERSİTESİ") |
-| `ios/AppIcon.appiconset/` | iOS 1024 + tüm gerekli boyutlar, alfa kanalsız, `Contents.json` |
-| `../assets/branding/` | Uygulama içi görseller (`logo_horizontal*.png`, `mark.png`) ve `flutter_launcher_icons` kaynakları |
+| `assets/branding/logo_dark.png`, `logo_light.png` | Uygulama içi şeffaf glif (640 px genişlik, ortak tuval); Dart tarafı `BuLogo` (`lib/widgets/bu_widgets.dart`) |
+| `assets/branding/icon_1024.png`, `adaptive_foreground.png`, `adaptive_monochrome.png` | `flutter_launcher_icons` yedek yolu kaynakları |
+| `android/app/src/main/res/mipmap-*/ic_launcher.png` | Eski (API < 26) simge = light_logo |
+| `…/res/drawable-*/ic_launcher_foreground.png`, `ic_launcher_monochrome.png` | Adaptive ön plan + Android 13 temalı simge (siyah glif, 54 dp, güvenli daire içinde); arka plan `ic_launcher_background` = beyaz |
+| `…/res/drawable-*/ic_stat_bu.png` | Bildirim küçük simgesi (beyaz glif) |
+| `…/res/drawable-xxxhdpi/splash_icon(_dark).png` | Android 12+ açılış simgesi (288 dp tuval, 144 dp glif); `values-v31` / `values-night-v31` |
+| `…/res/drawable-xxhdpi/splash_logo(_dark).png` | Android < 12 ve pencere arka planı (`drawable/`, `drawable-v21/`, `drawable-night/launch_background.xml`) |
+| `ios/Runner/Assets.xcassets/AppIcon.appiconset/` | Tek boyut (Xcode 14+) 1024: açık = light_logo, koyu (iOS 18) = dark_logo, tinted = gri tonlu dark_logo; hepsi alfasız |
+| `ios/Runner/Assets.xcassets/LaunchImage.imageset/`, `LaunchBackground.colorset/` | iOS açılış: açık/koyu zemin + 120 pt glif (`Base.lproj/LaunchScreen.storyboard`) |
+| `store/play-store-512.png`, `store/feature-graphic-1024x500.png` | Play Store 512 (light_logo) ve öne çıkan görsel (koyu zemin, beyaz glif + "BÜ Kampüs") |
+
+Renkler: açık zemin `#FFFFFF`, koyu zemin `#09090B` (`BuTokens.bg` ile aynı); bildirim vurgusu `#09090B`.
+
+Uyarı: `brand/build.js` (eski kırmızı logo hattı, web için) artık mobil çıktıları ÜRETMEZ ve çalıştırılmamalıdır
+(`mobile/branding/{android,ios}` ve `assets/branding/mark*` kaldırıldı).

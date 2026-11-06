@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="splash_bg">#C62A20</color>
-	<color name="ic_launcher_background">#F73B2E</color>
-    <color name="notification_accent">#F73B2E</color>
+    <!-- Marka: acik tema beyaz zemin + siyah BU (light_logo); koyu tema values-night. Kirmizi marka rengi kaldirildi. -->
+    <color name="splash_bg">#FFFFFF</color>
+    <color name="ic_launcher_background">#FFFFFF</color>
+    <color name="notification_accent">#09090B</color>
 </resources>

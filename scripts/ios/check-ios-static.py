@@ -8,6 +8,7 @@ Bu betik Xcode'un yerine GECMEZ: yalnizca plist/pbxproj/varlik tutarliligini ve 
 reddettigi dosya duzeyi hatalari yakalar. Derleme/imza/yukleme macOS'ta dogrulanir (docs/IOS_RELEASE.md).
 """
 import glob
+import json
 import os
 import plistlib
 import re
@@ -284,23 +285,33 @@ def png_size_alpha(path):
 
 
 def check_icons():
+    # Tek boyut (Xcode 14+) AppIcon: acik + koyu (iOS 18) + tinted 1024 px, hepsi alfasiz (App Store Connect reddeder).
     base = os.path.join(RUNNER, 'Assets.xcassets', 'AppIcon.appiconset')
-    mk = os.path.join(base, 'Icon-App-1024x1024@1x.png')
-    w, h, alpha = png_size_alpha(mk)
-    if (w, h) != (1024, 1024):
-        bad(f'App Store simgesi 1024x1024 olmali ({w}x{h})')
-    elif alpha:
-        bad('App Store simgesi (1024) ALFA kanali iceriyor: App Store Connect reddeder')
-    else:
-        ok('AppIcon 1024x1024, alfasiz')
-    bad_alpha = [os.path.basename(p) for p in glob.glob(os.path.join(base, '*.png')) if png_size_alpha(p)[2]]
-    (ok if not bad_alpha else bad)('Diger AppIcon boyutlari alfasiz' if not bad_alpha else f'Alfali simgeler: {bad_alpha}')
+    contents = json.loads(read(os.path.join(base, 'Contents.json')))
+    files = [i.get('filename') for i in contents.get('images', [])]
+    if len(files) != 3:
+        bad(f'AppIcon Contents.json 3 gorsel (acik/koyu/tinted) icermeli: {files}')
+    for fn in files:
+        path = os.path.join(base, fn or '')
+        if not os.path.isfile(path):
+            bad(f'AppIcon dosyasi yok: {fn}')
+            continue
+        w, h, alpha = png_size_alpha(path)
+        if (w, h) != (1024, 1024):
+            bad(f'{fn} 1024x1024 olmali ({w}x{h})')
+        elif alpha:
+            bad(f'{fn} ALFA kanali iceriyor: App Store Connect reddeder')
+        else:
+            ok(f'{fn} 1024x1024, alfasiz')
+    vals = sorted(a['value'] for i in contents.get('images', []) for a in i.get('appearances', []))
+    (ok if vals == ['dark', 'tinted'] else bad)(f'AppIcon gorunumleri (dark, tinted): {vals}')
     ls = os.path.join(RUNNER, 'Base.lproj', 'LaunchScreen.storyboard')
     t = read(ls)
-    if 'red="0.7765" green="0.1647" blue="0.1255"' in t:
-        ok('LaunchScreen: marka zemini #C62A20 (Android splash_bg ile ayni)')
+    cs = os.path.join(RUNNER, 'Assets.xcassets', 'LaunchBackground.colorset', 'Contents.json')
+    if 'name="LaunchBackground"' in t and os.path.isfile(cs):
+        ok('LaunchScreen: acik/koyu zemin (LaunchBackground renk kumesi) + acik/koyu logo (LaunchImage)')
     else:
-        warn('LaunchScreen zemin rengi #C62A20 degil')
+        warn('LaunchScreen LaunchBackground renk kumesine bagli degil')
 
 
 def check_google_plist(bundle):

@@ -60,13 +60,8 @@ flutter:
   uses-material-design: true
   generate: true
   assets:
-    - assets/branding/logo_horizontal.png
-    - assets/branding/logo_horizontal_dark.png
-    - assets/branding/logo.png
-    - assets/branding/mark.png
-    - assets/branding/mark.svg
-    - assets/branding/mark_white.svg
-    - assets/branding/mark_white.png
+    - assets/branding/logo_dark.png
+    - assets/branding/logo_light.png
     - assets/branding/google_g.svg
     - assets/branding/default_avatar.png
     - assets/branding/default_group.png
@@ -91,13 +86,14 @@ flutter:
         - asset: assets/fonts/Inter-ExtraBold.ttf
           weight: 800
 
-# Başlatıcı simgeleri: `dart run flutter_launcher_icons` (kaynaklar: node tool/make_icon_from_logo.js, kaynak assets/branding/logo.png)
+# Başlatıcı simgeleri: gerçek res/xcassets dosyaları `python -I -X utf8 mobile/tool/make_brand_assets.py` ile üretilir
+# (kaynak brand/source/dark_logo.png + light_logo.png); flutter_launcher_icons yalnız yedek yoldur.
 flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/branding/icon_1024.png"
   remove_alpha_ios: true
   min_sdk_android: 21
-  adaptive_icon_background: "#F73B2E"
+  adaptive_icon_background: "#FFFFFF"
   adaptive_icon_foreground: "assets/branding/adaptive_foreground.png"
   adaptive_icon_monochrome: "assets/branding/adaptive_monochrome.png"

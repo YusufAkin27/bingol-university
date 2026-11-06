@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../core/api.dart';
 import '../core/cache/image_disk_cache.dart';
 import '../core/locale_controller.dart';
@@ -964,15 +963,47 @@ class BuGroup extends StatelessWidget {
   }
 }
 
-/// Marka işareti (logo varlığı; arayüz rengi değildir).
-class BuMark extends StatelessWidget {
-  const BuMark({super.key, this.height = 52});
+/// Marka logosu ("BÜ"): TEMA DUYARLI tek kaynak. Koyu temada `logo_dark.png` (beyaz glif), açık temada `logo_light.png`
+/// (siyah glif); ikisi de şeffaf zeminli, aynı tuval ölçüsünde (tema değişince logo oynamaz). Kaynaklar:
+/// `brand/source/dark_logo.png` / `light_logo.png`, üretim: `mobile/tool/make_brand_assets.py`.
+/// Genişlik/yükseklikten biri verilir (ikisi de yoksa [height] 40); en-boy oranı korunur.
+class BuLogo extends StatelessWidget {
+  const BuLogo({super.key, this.width, this.height, this.semanticLabel = 'BÜ Kampüs', this.brightness});
 
-  final double height;
+  static const String darkAsset = 'assets/branding/logo_dark.png';
+  static const String lightAsset = 'assets/branding/logo_light.png';
+
+  /// Varlıkların en-boy oranı (640x463): çözülmeden önce de yer ayrılır, yerleşim zıplamaz.
+  static const double aspect = 640 / 463;
+
+  /// Verilen parlaklığa uygun varlık yolu (koyu → beyaz glif).
+  static String assetFor(Brightness b) => b == Brightness.dark ? darkAsset : lightAsset;
+
+  final double? width;
+  final double? height;
+
+  /// Ekran okuyucu etiketi; dekoratif kullanımda `null` verin (dışlanır).
+  final String? semanticLabel;
+
+  /// Verilmezse `Theme.of(context).brightness`.
+  final Brightness? brightness;
 
   @override
-  Widget build(BuildContext context) =>
-      SvgPicture.asset('assets/branding/mark_white.svg', height: height, width: height, semanticsLabel: 'BÜ Kampüs');
+  Widget build(BuildContext context) {
+    final b = brightness ?? Theme.of(context).brightness;
+    final h = height ?? (width != null ? width! / aspect : 40.0);
+    final w = width ?? h * aspect;
+    return Image.asset(
+      assetFor(b),
+      key: ValueKey(assetFor(b)),
+      width: w,
+      height: h,
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.high,
+      semanticLabel: semanticLabel,
+      excludeFromSemantics: semanticLabel == null,
+    );
+  }
 }
 
 /// Kaydırılabilir sayfa gövdesi altına yüzen gezinme payı ([BuSize.navInset] = 96 dp) bırakmak için.

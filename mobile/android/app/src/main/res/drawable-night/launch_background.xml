@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Yerel acilis (koyu tema): #09090B zemin + ortada beyaz BU (splash_logo_dark). -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/splash_bg" />
+    <item>
+        <bitmap android:src="@drawable/splash_logo_dark" android:gravity="center" />
+    </item>
+</layer-list>

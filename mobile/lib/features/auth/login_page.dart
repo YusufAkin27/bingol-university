@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/api.dart';
 import '../../core/app_gate.dart' show appVersion;
@@ -244,21 +243,8 @@ class _LoginPageState extends State<LoginPage> {
                             padding: const EdgeInsets.only(top: 8, bottom: 40),
                             child: Row(
                               children: [
-                                Container(
-                                  width: 52,
-                                  height: 52,
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                      color: t.sf,
-                                      border: Border.all(color: t.bd),
-                                      borderRadius: BorderRadius.circular(16)),
-                                  child: ExcludeSemantics(
-                                    child: SvgPicture.asset(
-                                        'assets/branding/mark_white.svg',
-                                        colorFilter: ColorFilter.mode(
-                                            t.pr, BlendMode.srcIn)),
-                                  ),
-                                ),
+                                // Marka logosu: tema duyarlı BÜ (koyu: beyaz, açık: siyah glif).
+                                const BuLogo(width: 56, semanticLabel: null),
                                 const SizedBox(width: 14),
                                 Expanded(
                                   child: Column(

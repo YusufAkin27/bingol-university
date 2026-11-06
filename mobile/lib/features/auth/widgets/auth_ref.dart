@@ -908,7 +908,7 @@ class RefPill extends StatelessWidget {
   }
 }
 
-/// Marka karosu: nötr (`pr`) yuvarlak kare + ters renk "BU" (karşılama/giriş logosu); gölgesiz.
+/// Marka logosu (karşılama/giriş): tema duyarlı BÜ ([BuLogo]: koyu temada beyaz, açıkta siyah glif); karo yok, gölgesiz.
 class RefBrandMark extends StatelessWidget {
   const RefBrandMark({super.key, this.size = 48, this.badge = false});
 
@@ -920,17 +920,9 @@ class RefBrandMark extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final tile = Container(
-      width: size,
-      height: size,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: t.pr,
-        borderRadius: BorderRadius.circular(size * .28),
-      ),
-      child: Text('BU',
-          style: Theme.of(context).textTheme.titleLarge!.copyWith(
-              color: t.onPr, fontWeight: FontWeight.w400, fontSize: size * .42, letterSpacing: -.5, height: 1)),
+    final tile = Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: BuLogo(width: size, semanticLabel: null),
     );
     return ExcludeSemantics(
       child: SizedBox(
