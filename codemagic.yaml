@@ -6,7 +6,7 @@
 #   GOOGLE_SIGNIN / APPLE_SIGNIN (true: Google / Apple dugmesini acar; sunucuda GOOGLE_CLIENT_IDS / APPLE_CLIENT_IDS hazir olunca; varsayilan false);
 #   APP_STORE_APPLE_ID (App Store Connect > Uygulama > Genel Bilgi > Apple ID, sayi) ekleyin: yapi numarasi
 #   TestFlight'taki son numara + 1 olur (yoksa pubspec +N ile Codemagic kosu sayaci toplanir).
-#   (3) Code signing identities'e gerek yok: ios_signing App Store Connect API anahtariyla profili/sertifikayi otomatik uretir.
+#   (3) Code signing identities: sertifika bu_dist + 3 profil (bu_app_store, bu_notif_service, bu_notif_content) elle yuklenir (bkz. ios_signing).
 workflows:
   ios-release:
     name: BU Kampus iOS (TestFlight)
@@ -23,9 +23,16 @@ workflows:
       cocoapods: default
       vars:
         BUNDLE_ID: "tr.com.bukampus.app"   # KULLANICI KARARI (2026-10-31), Android applicationId ile ayni
+      # ELLE imza: uygulama + 2 bildirim uzantisi (NotificationService, NotificationContent) = 3 App Store profili.
+      # Codemagic > Settings > Code signing identities: sertifika referans adi bu_dist; iOS provisioning profiles sekmesine
+      # 3 profil yuklenir (referans adlari asagidaki gibi). Profiller Apple Developer > Profiles > App Store Connect, sertifika bu_dist.
       ios_signing:
-        distribution_type: app_store
-        bundle_identifier: tr.com.bukampus.app
+        certificates:
+          - bu_dist
+        provisioning_profiles:
+          - bu_app_store
+          - bu_notif_service
+          - bu_notif_content
     triggering:
       events: []   # yalniz elle (Codemagic arayuzu veya API)
     scripts:

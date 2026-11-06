@@ -342,7 +342,7 @@ def check_bundle_consistency(bundle):
         if os.path.isfile(p) and old in read(p):
             bad(f'{rel}: eski bundle id ({old}) kalmis')
     for rel, needle in (('mobile/ios/fastlane/Appfile', 'app_identifier("%s")' % bundle),
-                        ('codemagic.yaml', 'bundle_identifier: %s' % bundle)):
+                        ('codemagic.yaml', 'BUNDLE_ID: "%s"' % bundle)):
         p = os.path.join(ROOT, rel)
         if os.path.isfile(p):
             (ok if needle in read(p) else bad)(f'{rel}: bundle id {bundle}' + ('' if needle in read(p) else ' ile UYUSMUYOR'))
