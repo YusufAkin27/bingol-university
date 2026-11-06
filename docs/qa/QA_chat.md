@@ -87,12 +87,47 @@ Siddet: kritik / yuksek / orta / dusuk. Tur: HATA / YANLIS MANTIK / IYILESTIRME.
 | QA-CHAT-04 | ORTA | YANLIS MANTIK | Sohbet detayi | 24 saatten eski kendi mesajini duzenle | Beklenen: surenin doldugu belirtilip duzenleme kipi kapanir. Gercek: "Duzenle" her kendi metin mesajinda gorunur, sunucu 403 `MESSAGE_EDIT_EXPIRED` (prod 1440 dk) / 409 `MESSAGE_EDIT_LIMIT` (10) verir; istemci toast gosterip duzenleme kipinde kalir, ayni hata tekrar tekrar alinir | `_saveEdit` kalici hatalari ayirt etmiyordu | DUZELTILDI: kalici duzenleme hatalarinda kipten cik + alan bosalir (gecici hatada metin korunur). 4 test |
 | QA-CHAT-09 | DUSUK | YANLIS MANTIK | Gercek zamanli katman | Hesap A cikis, ayni surecte hesap B giris | `ChatRealtime` oturumla birlikte tek ornek; `_deliveredSent` (konusma -> iletildi imleci) cikista sifirlanmiyordu. Konusma kimlikleri ortaksa B'nin WS ile gelen mesajlari icin "iletildi" gonderilmez (gonderenin cift tiki gecikir) | `stop()` hesaba ozel durumu temizlemiyordu | DUZELTILDI: `stop()` `_deliveredSent`, `_lastTypingSent`, `_awaitingAck` temizler. 1 test |
 | QA-CHAT-10 | ORTA | YANLIS MANTIK | Sohbet listesi | 30'dan fazla sohbet; Kulupler/Etkinlikler cipi ya da arama | Beklenen: 2. sayfadaki kulup/kisi bulunur. Gercek: suzgec/arama yalniz yuklu ilk 30 satiri suzer; liste kisaldigi icin kaydirma olmaz ve `_onScroll` sonraki sayfayi hic cekmez: bos sonuc ("bulunamadi") gosterilir | Sayfalama yalniz kaydirmaya bagliydi | DUZELTILDI: `_fillForFilter` suzgec/arama etkinken gorunen < 12 ise sonraki sayfalari kendiliginden ceker (hata olunca dongu yok). 2 test |
-| QA-CHAT-05 | DUSUK | YANLIS MANTIK | Backend push birlestirme | Yuk altinda iki gonderenli ayni sohbet | `ChatNotifyFanout.Job.merged` yalniz son isin `candidates` ve `senderId` degerini tutar: ilk gonderenin alicilari (ornegin ikinci gonderen) ilk mesajin bildirimini almaz, ilk gonderen kendi mesajini sayan "N yeni mesaj" alabilir | Birlestirmede alici kumesi birlesmiyor | NOT (yalniz havuz doygunlugunda, dusuk etki; karar: alici kumesi birlestirilsin mi) |
-| QA-CHAT-06 | DUSUK | IYILESTIRME | Backend | `addMembers` / `removeMember` | `requireGroupAdmin` kulup/etkinlik odalarini ayirmaz; odalarda hic kimse `Role.ADMIN` olmadigi icin su an istismar yok (RoomConversations aciklamasi), ama savunma derinligi yok (`requireUserGroupAdmin` kullanilmali) | Tek koruma "oda ADMIN uretmez" varsayimi | NOT (kod degisikligi riski dusuk, gerek gormedim) |
-| QA-CHAT-07 | DUSUK | IYILESTIRME | Sohbet detayi | `_markRead` WS ile giderse | `sendRead` true doner ama yazma sessizce kaybolursa (yari-olu soket) `_lastRead` ilerlemis kalir; yeni mesaj gelene dek yeniden gonderilmez. `resync` sonrasi `_markRead` zaten yeni sayfa ile yeniden tetiklenir | Gonderim onayi yok | NOT |
-| QA-CHAT-08 | DUSUK | IYILESTIRME | Urun | Sesli mesaj, dosya eki | Uygulamada ve backend'de yok | - | KARAR BEKLIYOR (urun) |
+| QA-CHAT-05 | DUSUK | YANLIS MANTIK | Backend push birlestirme | Yuk altinda iki gonderenli ayni sohbet | `ChatNotifyFanout.Job.merged` yalniz son isin `candidates` degerini tutuyordu: ilk gonderenin alicilari (ikinci gonderen dahil) ilk mesajin bildirimini kaciriyordu | Birlestirmede alici kumesi birlesmiyordu | DUZELTILDI (backend): alici kumesi birlesimi + `senders` kumesi (tum gonderenler); 1 test |
+| QA-CHAT-06 | DUSUK | IYILESTIRME | Backend | `addMembers` / `removeMember` | `requireGroupAdmin` kulup/etkinlik odasini ayirmiyordu (savunma derinligi yoktu; odalarda ADMIN uretilmedigi icin istismar yoktu) | Tek koruma "oda ADMIN uretmez" varsayimiydi | DUZELTILDI (backend): `requireUserGroupAdmin` -> oda 400 `NOT_A_GROUP`; 1 test (ADMIN rolu verilse bile) |
+| QA-CHAT-07 | DUSUK | IYILESTIRME | Sohbet detayi | WS ile okundu/iletildi, yari-olu soket | WS imleci sunucu onayi yok; yazim sessizce kaybolursa imlec geride kalip yeni mesaja dek gonderilmezdi | Gonderim onayi yok | DUZELTILDI (mobil): soket yeniden kurulunca (`resync`) bilinen son okundu/iletildi imleci REST ile bir kez teyit edilir (sunucuda imlec yalniz ilerler); 1 test |
+| QA-CHAT-08 | DUSUK | IYILESTIRME | Urun | Sesli mesaj, dosya eki | Uygulamada ve backend'de yok | - | URUN KARARI BEKLIYOR (karar: simdilik uygulanmayacak) |
+| QA-CHAT-11 | DUSUK | IYILESTIRME | Backend hiz siniri | `GET /api/conversations` | Liste ucunun (toplu gorunum + iletildi isaretleme yazimi) hiz siniri yoktu; digerlerinde vardi | Eksik `limiter.check` | DUZELTILDI (backend): `conv:list` 180/dk (mobil en cok 500 ms'de bir tazeler); 1 test |
 
 Incelenip SORUN BULUNMAYANLAR (kanit icin): mesaj duzenleme/silme/tepki yetkisi (`MessageActionService.access`: uye degil/katilim oncesi 404, sahip degil 403, golge engel sessiz); grup yonetimi yetkileri (`requireGroupAdmin`, oda 400); ek erisimi (`MessageAttachmentService.accessible`: uye, silinmis, gizli, katilim oncesi, engel, "sohbeti sil"); rehber esleme gizliligi (karsilikli riza, numara@ haric, gunluk tavan, hash'ler saklanmaz); push yuku -> hedef esleme (`push_targets` beyaz liste); yerel hatirlatma yuku temizligi; WS yeniden baglanma (gen sayaci, ustel geri cekilme, kararli baglanti sifirlamasi, yetki hatasi dongusu siniri); abonelik/zamanlayici sizintisi (`dispose` tum zamanlayici ve abonelikleri iptal ediyor); E2EE iddiasi yok.
 
-## 3. Calistirilan testler
-Bkz. rapor: mobil alan testleri ve backend hedefli testler (messaging, crypto).
+## 3. Etkilesimli test eslemesi (ikinci tur) ve durum matrisi
+
+Dosyalar (mobil/test): `qa_chat_logic_test.dart` (mantik regresyonlari), `qa_chat_matrix_test.dart` (ekran x durum + gorunum matrisi + etkilesim), `qa_chat_push_test.dart` (bildirim eylemleri), `contacts_match_test.dart` (rehber), ayrica mevcut: chat_archive_bar, chat_extras, chat_info, chat_media_compose, chat_status_video, chat_offline, p31_chat_ws, p31_stomp_backoff, msg_requests, media_picker, p22_chat_photo, chat_encryption, pages_b, push_reply_headless, outbox, share_*.
+
+| Ekran / oge | Etkilesim testi | Durumlar (yukleniyor/bos/hata/basari) | 401/403/429/5xx + cevrimdisi | tr/en/ar+RTL, 1.3, 320/390, acik/koyu |
+|---|---|---|---|---|
+| Sohbet listesi: filtre cipleri | matrix (Kisiler/Kulupler/Tumu) | matrix | matrix (401/403/429/500/cevrimdisi + Yeniden dene) | matrix (p00Matrix 24 birlesim) + chatlist_design |
+| Arama | logic (2. sayfa), chat_archive_bar | logic | - | chatlist_design |
+| Uzun basma menusu: sessize al / arsivle / sil | matrix (sessize al + 429 geri alma), pages_b (sil/vazgec/hata), chat_archive_bar | pages_b | matrix (429) | pages_b |
+| Sabitle (pin) | YOK ozellik: menude cikmadigi dogrulandi (matrix) | - | - | - |
+| Kaydirarak arsivle, arsiv cubugu | chat_archive_bar (10 test) | var | geri alma hatasi | tr/en/ar + RTL |
+| Mesaj istekleri | msg_requests | bos/hata/yukleniyor | hata | matris |
+| Yeni sohbet: arama, Yeni grup, uye secimi | pages_b (grup adi bos, debounce, 320), matrix (giris gorunumu) | var | - | matris (matrix + pages_b) |
+| Rehberden kisi bul: riza -> esleme -> sonuc -> sohbet | matrix (tam akis), contacts_match (7 + 5 test) | riza/izin/bos/hata/kismi | matrix (discoverable 401/403/429/500/cevrimdisi), contacts (403 riza, 429) | matrix (riza karti) + contacts (tasma 320/390/430) |
+| Sohbet detayi: gonderme, hizli art arda, uzun/emoji/RTL, kuyruk, yeniden dene | p31_chat_ws, chat_offline, matrix | matrix (yukleniyor->bos) | matrix (mesaj sayfasi 401/403/429/500/cevrimdisi; gonderim 403/429) | matrix (24 birlesim, karisik mesajlar) |
+| Mesaj menusu: yanitla / kopyala / duzenle / sil / ilet / bilgi / sikayet / tepki | matrix (yetki ayrimi, yanitla gonderimi, herkesten sil + 404), chat_extras (ilet), chat_polish (tepki secici), chat_info (sikayet), logic (duzenleme hata kipi) | var | duzenleme 403/409, silme 404 | chat_polish, chatd_bubbles |
+| Kaydirarak yanit (jest) | KOD INCELEMESI (message_bubble.dart `onHorizontalDrag*`), yanitla menusu testi ayni yolu surer | - | - | - |
+| Okundu / iletildi tikleri | chat_status_video, logic (iletildi imleci), matrix (resync teyidi) | var | - | chat_status_video (3 dil/RTL) |
+| STOMP durum gostergeleri | matrix (kopma + yeniden baglanma), p31_stomp_backoff, p31_chat_ws (conversation-removed) | - | TOKEN_EXPIRED/UNAUTHORIZED dongusu | - |
+| Medya secici + kamera, izin reddi | media_picker (sinirli erisim/reddedilince Ayarlar'dan ac), chat_media_compose | var | - | media_picker (RTL 320) |
+| Tek gosterimlik foto: acma, 2. acma (410), sure/koruma | chat_extras, chat_media_compose, view_once_layout | var | 403/410/ag hatasi | RTL + 320 x1.3 |
+| Mesaj arama | chat_extras (vurgu, oklar, daha eski sayfa) | var | - | - |
+| Sohbet bilgisi: uyeler, grup adi/foto, yonetici ata*, sessize al, engelle/sikayet | chat_info (30+ test) | var | liste hatasi + Yeniden dene | matris (chat_info) |
+| Sohbet arka plani: 4 desen + yogunluk + eski kayit goçü | matrix (sayfa + prefs goç testleri) | - | - | matrix (24 birlesim) |
+| Sohbet guvenligi sayfasi | chat_encryption (E2EE iddiasi yok testi) | var | - | 3 dil x acik/koyu x 320 x1.3 |
+| Push eylemleri: yanitla / okundu / sessize al | qa_chat_push (6), push_actions, push_reply_headless | - | 4xx fail / 5xx retry | - |
+
+(*) "Yonetici ata" uygulamada YOK: grup uyesini yonetici yapan arayuz/uc bulunmuyor (yonetici yalniz olusturan; ayrilinca en eski uye devralir). Urun karari bekliyor.
+
+Kaydirarak yanit jesti etkilesim testi (drag) yazilmadi: widget testinde yatay surukleme + esik animasyonu kirilgan; menu uzerinden Yanitla yolu test edildi.
+
+## 4. Calistirilan testler (ikinci tur)
+Mobil: qa_chat_matrix + qa_chat_push + qa_chat_logic + p31_chat_ws + chat_offline + chat_extras + chat_status_video + chat_archive_bar + contacts_match = 185 test yesil. Backend: messaging + crypto + admin.chat 530 test yesil; ayrica ChatNotifyFanoutTest, ConversationServiceTest, ConversationControllerRateLimitTest, UnreadBadgeCacheEvictionTest yesil.
+
+## 5. Backend tarama (ikinci tur)
+Hiz siniri haritasi: gecmis, gonderim (servis), duzenleme, silme, tepki, sikayet, iletildi, okundu (kaba+pencere), typing, presence, sessize alma/arsiv, grup yonetimi (conv:manage), avatar, medya (yukleme dakika/gun/video, indirme, silme, sikayet), mesaj bilgisi, viewing/devstate: hepsi var. Eksik olan yalniz GET /conversations idi (QA-CHAT-11). Yetki: mesaj eylemleri, medya erisimi (uye/katilim/silinmis/gizli/engel/"sohbeti sil"), grup yonetimi (oda dahil), engel golgesi (duzenleme/tepki sessiz yazilmaz), rehber esleme (riza + kota). Sozlesme: iletildi/okundu uclari ve WS makbuz olaylari mobil ile uyumlu.
