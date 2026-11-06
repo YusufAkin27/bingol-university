@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
-import '../../../core/identifier.dart';
 import '../../../core/locale_controller.dart';
 import '../../../widgets/bu.dart';
 import 'auth_motion.dart';
@@ -520,7 +519,7 @@ class RefTextField extends StatefulWidget {
   /// Sağ uçta (göz düğmesi gibi) parça.
   final Widget? trailing;
 
-  /// Sağ uçta beyaz hap içinde sabit metin (ör. "@bingol.edu.tr", yalnız okul numarası yazılırken).
+  /// Sağ uçta beyaz hap içinde sabit metin (ör. birim eki).
   final String? suffixChip;
   final VoidCallback? onSubmitted;
   final ValueChanged<String>? onChanged;
@@ -818,67 +817,6 @@ class _RefPasswordFieldState extends State<RefPasswordField> {
           authHaptic(AuthHaptic.tap);
           setState(() => _hidden = !_hidden);
         },
-      ),
-    );
-  }
-}
-
-/// Okul numarası ya da e-posta alanı (alan adı kısıtı yok). Yalnız rakam yazılırken (okul numarası) sağda `@bingol.edu.tr` hapı
-/// görünür; tam adres yazılınca hap kalkar. `allowStudentNumber: false` (kayıt): yalnız tam e-posta; hap yok, yardımcı metin
-/// e-posta örneği verir.
-class RefIdentifierField extends StatelessWidget {
-  const RefIdentifierField({
-    super.key,
-    required this.controller,
-    this.onSubmitted,
-    this.enabled = true,
-    this.validator,
-    this.textInputAction = TextInputAction.next,
-    this.onCard = false,
-    this.forceError,
-    this.helper = true,
-    this.label,
-    this.allowStudentNumber = true,
-    this.numberOnly = false,
-  });
-
-  /// Açıksa (giriş) yalnız okul numarası yazılır: rakam klavyesi, harf girilemez (en çok 12 hane).
-  final bool numberOnly;
-
-  /// Kapalıysa (kayıt) okul numarası kısayolu yoktur: hap gösterilmez, varsayılan doğrulayıcı tam e-posta ister.
-  final bool allowStudentNumber;
-
-  final TextEditingController controller;
-  final String? Function(String?)? validator;
-  final VoidCallback? onSubmitted;
-  final bool enabled;
-  final TextInputAction textInputAction;
-  final bool onCard;
-  final String? forceError;
-  final bool helper;
-
-  /// Etiket (varsayılan: e-posta ya da okul numaranız).
-  final String? label;
-
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<TextEditingValue>(
-      valueListenable: controller,
-      builder: (context, value, _) => RefTextField(
-        controller: controller,
-        label: label ?? (numberOnly ? context.l10n.authIdNumberLabel : allowStudentNumber ? context.l10n.authIdHint : context.l10n.authRegIdLabel),
-        helper: helper ? (allowStudentNumber ? context.l10n.authIdHelper : context.l10n.authRegIdHelper) : null,
-        enabled: enabled,
-        onCard: onCard,
-        forceError: forceError,
-        keyboardType: numberOnly ? TextInputType.number : TextInputType.emailAddress,
-        inputFormatters: numberOnly ? [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(12)] : null,
-        textInputAction: textInputAction,
-        autocorrect: false,
-        autofillHints: numberOnly ? const [AutofillHints.username] : const [AutofillHints.username, AutofillHints.email],
-        validator: validator ?? (allowStudentNumber ? validateIdentifier : validateRegisterEmail),
-        onSubmitted: onSubmitted,
-        suffixChip: numberOnly || (allowStudentNumber && isStudentNumberInput(value.text)) ? '@$kEmailDomain' : null,
       ),
     );
   }

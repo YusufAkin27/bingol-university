@@ -12,11 +12,15 @@ import 'widgets/auth_motion.dart';
 import 'widgets/auth_ref.dart';
 
 /// Şifremi unuttum, 2. adım (Stitch 03): kodu doğrula. Doğruysa yeni şifre ekranına geçilir.
+///
+/// [accountMode]: oturum açıkken Şifre sayfasından açılır (e-posta hesabın kendi adresidir, "E-postayı değiştir" yok; sonraki
+/// adımlar oturum kapanışıyla biter).
 class ResetCodePage extends StatefulWidget {
-  const ResetCodePage({super.key, required this.session, required this.email});
+  const ResetCodePage({super.key, required this.session, required this.email, this.accountMode = false});
 
   final Session session;
   final String email;
+  final bool accountMode;
 
   @override
   State<ResetCodePage> createState() => _ResetCodePageState();
@@ -71,7 +75,7 @@ class _ResetCodePageState extends State<ResetCodePage> {
         context,
         MaterialPageRoute(settings: const RouteSettings(name: 'new_password'), 
           builder: (_) => NewPasswordPage(
-              session: widget.session, email: widget.email, resetToken: token),
+              session: widget.session, email: widget.email, resetToken: token, accountMode: widget.accountMode),
         ),
       );
     } catch (e) {
@@ -111,7 +115,7 @@ class _ResetCodePageState extends State<ResetCodePage> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final mail = fullEmail(widget.email);
+    final mail = normalizeIdentifier(widget.email);
     return RefPage(
       children: [
         RefHeading(title: l.authEnterCode, subtitle: l.authCodeSentTo(mail)),
@@ -144,7 +148,8 @@ class _ResetCodePageState extends State<ResetCodePage> {
               waitingLabel: (s) => l.authResendInTime('${s ~/ 60}:${(s % 60).toString().padLeft(2, '0')}'),
               resendLabel: l.authResendCode,
             ),
-            RefLink(label: l.authChangeEmail, compact: true, onPressed: _busy ? null : () => Navigator.maybePop(context)),
+            if (!widget.accountMode)
+              RefLink(label: l.authChangeEmail, compact: true, onPressed: _busy ? null : () => Navigator.maybePop(context)),
           ],
         ),
         const SizedBox(height: 24),

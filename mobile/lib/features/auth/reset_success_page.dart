@@ -6,8 +6,12 @@ import 'widgets/auth_ref.dart';
 
 /// Şifre sıfırlama başarı ekranı (Stitch 03): yeşil onay işareti, kısa açıklama, tek eylem (girişe dön).
 /// Geri tuşu da girişe döner (sıfırlama adımlarına geri gidilmez).
+///
+/// [accountMode]: oturum açıkken Şifre sayfasından sıfırlanınca; oturumlar bu cihaz dahil kapanmıştır.
 class ResetSuccessPage extends StatelessWidget {
-  const ResetSuccessPage({super.key});
+  const ResetSuccessPage({super.key, this.accountMode = false});
+
+  final bool accountMode;
 
   void _toLogin(BuildContext context) => Navigator.of(context).popUntil((r) => r.isFirst);
 
@@ -45,11 +49,11 @@ class ResetSuccessPage extends StatelessWidget {
                           Semantics(
                             header: true,
                             liveRegion: true,
-                            child: Text(l.authResetDoneTitle,
+                            child: Text(accountMode ? l.pwpDoneTitle : l.authResetDoneTitle,
                                 textAlign: TextAlign.center, style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                           ),
                           const SizedBox(height: 8),
-                          Text(l.authResetDoneBody, textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(color: t.mut, height: 1.5)),
+                          Text(accountMode ? l.pwpDoneBody : l.authResetDoneBody, textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(color: t.mut, height: 1.5)),
                         ],
                       ),
                     ),

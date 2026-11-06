@@ -171,7 +171,7 @@ final _shots = <_Shot>[
     await t.pump(const Duration(milliseconds: 400));
   }),
   _Shot('03a_giris_yukleniyor', (b, s) => LoginPage(session: s), delay: const Duration(seconds: 30), after: (t, s) async {
-    await _type(t, 0, '226051015');
+    await _type(t, 0, 'ali@gmail.com');
     await _type(t, 1, 'Kampus2026!!');
     await t.tap(find.text(_l.loginSubmit).last);
     await t.pump(const Duration(milliseconds: 400));
@@ -180,7 +180,7 @@ final _shots = <_Shot>[
       setup: (b, s) => b.on('/auth/login', {'code': 'TOO_MANY_REQUESTS', 'message': 'Çok fazla deneme. Lütfen biraz bekleyin.'},
           status: 429, headers: {'retry-after': '40'}),
       after: (t, s) async {
-    await _type(t, 0, '226051015');
+    await _type(t, 0, 'ali@gmail.com');
     await _type(t, 1, 'Kampus2026!!');
     await t.tap(find.text(_l.loginSubmit).last);
     await t.pump(const Duration(milliseconds: 600));
@@ -266,7 +266,7 @@ final _shots = <_Shot>[
   }),
   _Shot('12_sifre_unuttum_gonderildi', (b, s) => ForgotPasswordPage(session: s),
       setup: (b, s) => b.on('/auth/forgot-password', {}), after: (t, s) async {
-    await _type(t, 0, '226051015');
+    await _type(t, 0, 'ali@gmail.com');
     await t.tap(find.text(_l.authSendCode));
     await t.pump(const Duration(milliseconds: 600));
     await t.pump(const Duration(milliseconds: 600));
@@ -299,13 +299,13 @@ final _shots = <_Shot>[
       setup: (b, s) => b.on('/auth/forgot-password', {'code': 'TOO_MANY_REQUESTS', 'message': 'Çok fazla deneme. Lütfen biraz bekleyin.'},
           status: 429, headers: {'retry-after': '60'}),
       after: (t, s) async {
-    await _type(t, 0, '226051015');
+    await _type(t, 0, 'ali@gmail.com');
     await t.tap(find.text(_l.authSendCode));
     await t.pump(const Duration(milliseconds: 600));
   }),
   _Shot('16b_sifre_unuttum_ag_hatasi', (b, s) => ForgotPasswordPage(session: s), setup: (b, s) => b.network('/auth/forgot-password'),
       after: (t, s) async {
-    await _type(t, 0, '226051015');
+    await _type(t, 0, 'ali@gmail.com');
     await t.tap(find.text(_l.authSendCode));
     await t.pump(const Duration(milliseconds: 800));
     await t.pump(const Duration(milliseconds: 800));

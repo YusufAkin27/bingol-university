@@ -88,7 +88,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 700)); // giriş animasyonu (Stitch v3 aşamalı giriş) bitmeden dokunma isabet etmez
       await tester.tap(find.text('Giriş yap'));
       await tester.pump();
-      expect(find.text('Okul numaranızı veya e-posta adresinizi girin.'), findsOneWidget);
+      expect(find.text('E-posta adresinizi girin.'), findsOneWidget);
       expect(find.text('Şifrenizi girin.'), findsOneWidget);
       expect(b.count('/auth/login'), 0);
       noErr(tester);
@@ -97,7 +97,7 @@ void main() {
     testWidgets('yanlis sifre sunucu mesajini gosterir, dugme tekrar aktif', (tester) async {
       final b = newB()..fail('/auth/login', status: 401, code: 'INVALID_CREDENTIALS', message: 'E-posta veya şifre hatalı.');
       await tester.pumpWidget(buildApp(LoginPage(session: makeSession(b, signedIn: false))));
-      await tester.enterText(find.byType(TextFormField).at(0), '226051015');
+      await tester.enterText(find.byType(TextFormField).at(0), 'ali@gmail.com');
       await tester.enterText(find.byType(TextFormField).at(1), 'Sifre1234');
       await tester.pump(const Duration(milliseconds: 700)); // giriş animasyonu (Stitch v3 aşamalı giriş) bitmeden dokunma isabet etmez
       await tester.tap(find.text('Giriş yap'));
@@ -110,7 +110,7 @@ void main() {
     testWidgets('ag hatasi yerel metin gosterir', (tester) async {
       final b = newB()..network('/auth/login');
       await tester.pumpWidget(buildApp(LoginPage(session: makeSession(b, signedIn: false))));
-      await tester.enterText(find.byType(TextFormField).at(0), '226051015');
+      await tester.enterText(find.byType(TextFormField).at(0), 'ali@gmail.com');
       await tester.enterText(find.byType(TextFormField).at(1), 'Sifre1234');
       await tester.pump(const Duration(milliseconds: 700)); // giriş animasyonu (Stitch v3 aşamalı giriş) bitmeden dokunma isabet etmez
       await tester.tap(find.text('Giriş yap'));
@@ -122,7 +122,7 @@ void main() {
     testWidgets('EMAIL_NOT_VERIFIED dogrulama ekranina gider ve kodu yeniden gonderir', (tester) async {
       final b = newB()..fail('/auth/login', status: 403, code: 'EMAIL_NOT_VERIFIED');
       await tester.pumpWidget(buildApp(LoginPage(session: makeSession(b, signedIn: false))));
-      await tester.enterText(find.byType(TextFormField).at(0), '226051015');
+      await tester.enterText(find.byType(TextFormField).at(0), 'ali@gmail.com');
       await tester.enterText(find.byType(TextFormField).at(1), 'Sifre1234');
       await tester.pump(const Duration(milliseconds: 700)); // giriş animasyonu (Stitch v3 aşamalı giriş) bitmeden dokunma isabet etmez
       await tester.tap(find.text('Giriş yap'));
@@ -203,11 +203,11 @@ void main() {
       await tester.pumpWidget(buildApp(ForgotPasswordPage(session: s)));
       expect(find.text('Şifrenizi mi unuttunuz?'), findsOneWidget);
       noOld();
-      await tester.enterText(find.byType(TextFormField), '226051015');
+      await tester.enterText(find.byType(TextFormField), 'ali@gmail.com');
       await tester.tap(find.text('Kod gönder'));
       await settle(tester, const Duration(milliseconds: 600));
       expect(find.byType(ResetCodePage), findsOneWidget);
-      expect(find.text('226051015@bingol.edu.tr adresine gönderdiğimiz 6 haneli kodu girin.'), findsOneWidget);
+      expect(find.text('ali@gmail.com adresine gönderdiğimiz 6 haneli kodu girin.'), findsOneWidget);
       expect(find.textContaining('Yeniden gönder (3:00)'), findsOneWidget);
       noOld();
       await tester.enterText(find.byType(EditableText).first, '123456');
@@ -338,8 +338,8 @@ void main() {
       await tester.pumpWidget(buildApp(ForgotPasswordPage(session: makeSession(b, signedIn: false))));
       await tester.tap(find.widgetWithText(RefButton, 'Kod gönder'));
       await tester.pump();
-      expect(find.text('Okul numaranızı veya e-posta adresinizi girin.'), findsOneWidget);
-      await tester.enterText(find.byType(TextFormField), '226051015');
+      expect(find.text('E-posta adresinizi girin.'), findsOneWidget);
+      await tester.enterText(find.byType(TextFormField), 'ali@gmail.com');
       await tester.tap(find.widgetWithText(RefButton, 'Kod gönder'));
       await settle(tester, const Duration(milliseconds: 600));
       expect(find.byType(ResetCodePage), findsOneWidget);

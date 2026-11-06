@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/profile/account_security_page.dart';
+import 'package:bu_kampus/features/profile/password_page.dart';
 import 'package:bu_kampus/features/profile/privacy_data_page.dart';
 import 'package:bu_kampus/features/profile/profil2_delete_account_page.dart';
 import 'package:bu_kampus/features/profile/profil2_my_data_page.dart';
@@ -356,9 +357,9 @@ void main() {
 
   group('Hesap ve güvenlik', () {
     Future<void> fill(WidgetTester tester, {String cur = 'eskiSifre1', String nw = 'YeniSifre123', String rep = 'YeniSifre123'}) async {
-      await tester.enterText(find.descendant(of: find.byKey(const ValueKey('sec-current')), matching: find.byType(TextField)), cur);
-      await tester.enterText(find.descendant(of: find.byKey(const ValueKey('sec-new')), matching: find.byType(TextField)), nw);
-      await tester.enterText(find.descendant(of: find.byKey(const ValueKey('sec-repeat')), matching: find.byType(TextField)), rep);
+      await tester.enterText(find.descendant(of: find.byKey(const ValueKey('pw-current')), matching: find.byType(TextField)), cur);
+      await tester.enterText(find.descendant(of: find.byKey(const ValueKey('pw-new')), matching: find.byType(TextField)), nw);
+      await tester.enterText(find.descendant(of: find.byKey(const ValueKey('pw-repeat')), matching: find.byType(TextField)), rep);
     }
 
     testWidgets('e-posta ve Cihazlarım satırı görünür', (tester) async {
@@ -370,14 +371,29 @@ void main() {
       await unmount(tester);
     });
 
+    testWidgets('satır içi şifre formu YOK; Şifre satırı ayrı sayfayı açar', (tester) async {
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(AccountSecurityPage(session: makeSession(FakeBackend())), size: kPhoneMedium));
+      await settle(tester);
+      expect(find.byType(TextField), findsNothing);
+      expect(find.byKey(const ValueKey('pw-current')), findsNothing);
+      expect(find.byKey(const ValueKey('sec-password')), findsOneWidget);
+      expect(find.text('Şifreni güncelle'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('sec-password')));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.byType(PasswordPage), findsOneWidget);
+      expect(find.byKey(const ValueKey('pw-current')), findsOneWidget);
+      await unmount(tester);
+    });
+
     testWidgets('eşleşmeyen şifre sunucuya gitmez', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend();
-      await tester.pumpWidget(buildApp(AccountSecurityPage(session: makeSession(b)), size: kPhoneMedium));
+      await tester.pumpWidget(buildApp(PasswordPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
       await fill(tester, rep: 'baska12345');
-      await tester.ensureVisible(find.byKey(const ValueKey('sec-submit')));
-      await tester.tap(find.byKey(const ValueKey('sec-submit')));
+      await tester.ensureVisible(find.byKey(const ValueKey('pw-submit')));
+      await tester.tap(find.byKey(const ValueKey('pw-submit')));
       await settle(tester);
       expect(find.text('Şifreler eşleşmiyor.'), findsOneWidget);
       expect(b.count('POST /auth/change-password'), 0);
@@ -387,11 +403,11 @@ void main() {
     testWidgets('başarıda doğru gövde gönderilir', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend();
-      await tester.pumpWidget(buildApp(AccountSecurityPage(session: makeSession(b)), size: kPhoneMedium));
+      await tester.pumpWidget(buildApp(PasswordPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
       await fill(tester);
-      await tester.ensureVisible(find.byKey(const ValueKey('sec-submit')));
-      await tester.tap(find.byKey(const ValueKey('sec-submit')));
+      await tester.ensureVisible(find.byKey(const ValueKey('pw-submit')));
+      await tester.tap(find.byKey(const ValueKey('pw-submit')));
       await settle(tester);
       expect(b.bodies['POST /auth/change-password'], {'currentPassword': 'eskiSifre1', 'newPassword': 'YeniSifre123'});
       expect(find.text('Şifren güncellendi.'), findsOneWidget);
@@ -401,13 +417,13 @@ void main() {
     testWidgets('yanlış mevcut şifre alanın altında gösterilir', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend()..fail('/auth/change-password', status: 403, code: 'WRONG_PASSWORD');
-      await tester.pumpWidget(buildApp(AccountSecurityPage(session: makeSession(b)), size: kPhoneMedium));
+      await tester.pumpWidget(buildApp(PasswordPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
       await fill(tester);
-      await tester.ensureVisible(find.byKey(const ValueKey('sec-submit')));
-      await tester.tap(find.byKey(const ValueKey('sec-submit')));
+      await tester.ensureVisible(find.byKey(const ValueKey('pw-submit')));
+      await tester.tap(find.byKey(const ValueKey('pw-submit')));
       await settle(tester);
-      expect(find.byKey(const ValueKey('sec-errors')), findsOneWidget);
+      expect(find.byKey(const ValueKey('pw-errors')), findsOneWidget);
       expect(find.text('Mevcut şifre hatalı.'), findsOneWidget);
       await unmount(tester);
     });
@@ -415,26 +431,30 @@ void main() {
     testWidgets('uç yoksa (404) genel hata', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend()..fail('/auth/change-password', status: 404, code: 'NOT_FOUND');
-      await tester.pumpWidget(buildApp(AccountSecurityPage(session: makeSession(b)), size: kPhoneMedium));
+      await tester.pumpWidget(buildApp(PasswordPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
       await fill(tester);
-      await tester.ensureVisible(find.byKey(const ValueKey('sec-submit')));
-      await tester.tap(find.byKey(const ValueKey('sec-submit')));
+      await tester.ensureVisible(find.byKey(const ValueKey('pw-submit')));
+      await tester.tap(find.byKey(const ValueKey('pw-submit')));
       await settle(tester);
       expect(find.text('Şifre güncellenemedi. Lütfen daha sonra tekrar deneyin.'), findsOneWidget);
       await unmount(tester);
     });
 
     for (final dark in [false, true]) {
-      testWidgets('320 x2 ${dark ? 'koyu' : 'acik'} taşma yok', (tester) async {
+      testWidgets('320 x2 ${dark ? 'koyu' : 'acik'} taşma yok (hesap ve güvenlik + şifre)', (tester) async {
         useScreen(tester, kPhoneSmall);
         tester.platformDispatcher.textScaleFactorTestValue = 2.0;
         addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-        await tester.pumpWidget(buildApp(AccountSecurityPage(session: makeSession(FakeBackend())),
-            brightness: dark ? Brightness.dark : Brightness.light, size: kPhoneSmall));
-        await settle(tester);
-        expect(tester.takeException(), isNull);
-        await unmount(tester);
+        for (final page in [
+          AccountSecurityPage(session: makeSession(FakeBackend())),
+          PasswordPage(session: makeSession(FakeBackend())),
+        ]) {
+          await tester.pumpWidget(buildApp(page, brightness: dark ? Brightness.dark : Brightness.light, size: kPhoneSmall));
+          await settle(tester);
+          expect(tester.takeException(), isNull);
+          await unmount(tester);
+        }
       });
     }
 

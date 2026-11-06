@@ -247,7 +247,7 @@ void main() {
       await settle(tester, const Duration(milliseconds: 300));
       expect(find.byType(TextFormField), findsNWidgets(3));
       expect(find.text('Ad soyad'), findsOneWidget);
-      expect(find.text('E-posta adresiniz'), findsOneWidget);
+      expect(find.text('E-posta'), findsOneWidget);
       expect(find.text('Şifre (en az 6 karakter)'), findsOneWidget);
       expect(find.text('Bölüm seçin'), findsNothing);
       expect(find.text('Sınıf seçin'), findsNothing);

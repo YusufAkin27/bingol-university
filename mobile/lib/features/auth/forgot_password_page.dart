@@ -132,7 +132,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         )
                       : const SizedBox(width: double.infinity),
                 ),
-                // Giriş ile aynı alan: e-posta ya da okul numarası (yalnız rakamsa @bingol.edu.tr soneki).
+                // Giriş ile aynı alan: yalnız e-posta (istemci alan adı eklemez).
                 LoginIdentifierField(
                   controller: _email,
                   boxed: true,

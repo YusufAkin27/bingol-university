@@ -29,7 +29,7 @@ void main() {
   final cases = <String, Future<void> Function(WidgetTester t, FakeBackend b)>{
     '1_bos': (t, b) async {},
     '2_dolu_odakta': (t, b) async {
-      await t.enterText(find.byType(TextFormField).at(0), '226051015');
+      await t.enterText(find.byType(TextFormField).at(0), 'ali@gmail.com');
       await t.pump();
       await t.tap(find.byType(TextFormField).at(1));
       await t.pump();
@@ -39,7 +39,7 @@ void main() {
     '3_klavye': (t, b) async {
       t.view.viewInsets = const FakeViewPadding(bottom: 320 * dpr);
       await t.tap(find.byType(TextFormField).at(0));
-      await t.enterText(find.byType(TextFormField).at(0), '226051015');
+      await t.enterText(find.byType(TextFormField).at(0), 'ali@gmail.com');
       await t.pump(const Duration(milliseconds: 500));
     },
     '4_dogrulama_hatasi': (t, b) async {
@@ -49,7 +49,7 @@ void main() {
       await t.pump(const Duration(milliseconds: 500));
     },
     '5_sunucu_hatasi': (t, b) async {
-      await t.enterText(find.byType(TextFormField).at(0), '226051015');
+      await t.enterText(find.byType(TextFormField).at(0), 'ali@gmail.com');
       await t.enterText(find.byType(TextFormField).at(1), 'Kampus2026!!');
       await t.pump();
       await t.tap(find.text(lookupAppLocalizations(Locale(lang)).loginSubmit).last);

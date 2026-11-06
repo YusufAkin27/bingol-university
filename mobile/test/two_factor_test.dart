@@ -31,7 +31,7 @@ Widget _ar(Widget page, Size size, {bool dark = false}) => MaterialApp(
     );
 
 Future<void> _submitLogin(WidgetTester t) async {
-  await t.enterText(find.byType(TextFormField).at(0), '210001001');
+  await t.enterText(find.byType(TextFormField).at(0), 'ogr.test@gmail.com');
   await t.enterText(find.byType(TextFormField).at(1), 'Sifre1234');
   await t.pump();
   await t.tap(find.text('Giriş yap').last);

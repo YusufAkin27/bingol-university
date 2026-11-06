@@ -11,6 +11,7 @@ import 'package:bu_kampus/core/theme_controller.dart';
 import 'package:bu_kampus/features/follow/follow_list_page.dart';
 import 'package:bu_kampus/features/follow/follow_suggestions.dart';
 import 'package:bu_kampus/features/profile/account_security_page.dart';
+import 'package:bu_kampus/features/profile/password_page.dart';
 import 'package:bu_kampus/features/profile/privacy_data_page.dart';
 import 'package:bu_kampus/features/profile/profil2_delete_account_page.dart';
 import 'package:bu_kampus/features/profile/profil2_my_data_page.dart';
@@ -179,11 +180,11 @@ final _shots = <_Shot>[
     await t.pump(const Duration(milliseconds: 600));
   }),
   _Shot('15_hesap_guvenlik', (b, s) => AccountSecurityPage(session: s), height: 900),
-  _Shot('16_hesap_guvenlik_hatalar', (b, s) => AccountSecurityPage(session: s), height: 900, after: (t) async {
-    await _enter(t, find.byKey(const ValueKey('sec-current')), 'eskiSifre1');
-    await _enter(t, find.byKey(const ValueKey('sec-new')), 'eskiSifre1');
-    await _enter(t, find.byKey(const ValueKey('sec-repeat')), 'baskaSifre2');
-    await t.tap(find.byKey(const ValueKey('sec-submit')));
+  _Shot('16_sifre_hatalar', (b, s) => PasswordPage(session: s), height: 900, after: (t) async {
+    await _enter(t, find.byKey(const ValueKey('pw-current')), 'eskiSifre1');
+    await _enter(t, find.byKey(const ValueKey('pw-new')), 'eskiSifre1');
+    await _enter(t, find.byKey(const ValueKey('pw-repeat')), 'baskaSifre2');
+    await t.tap(find.byKey(const ValueKey('pw-submit')));
     await t.pump(const Duration(milliseconds: 300));
   }),
   _Shot('17_gizlilik', (b, s) => PrivacyDataPage(session: s), setup: _privacy, height: 1100),

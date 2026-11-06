@@ -17,7 +17,6 @@ class LoginUnderlineField extends StatefulWidget {
     required this.controller,
     required this.label,
     required this.validator,
-    this.big = false,
     this.boxed = false,
     this.keyboardType,
     this.inputFormatters,
@@ -26,7 +25,6 @@ class LoginUnderlineField extends StatefulWidget {
     this.obscureText = false,
     this.enabled = true,
     this.onSubmitted,
-    this.suffix,
     this.trailing,
     this.hint,
     this.textCapitalization = TextCapitalization.none,
@@ -38,9 +36,6 @@ class LoginUnderlineField extends StatefulWidget {
   final String label;
   final String? Function(String?) validator;
 
-  /// Okul numarası: iri rakamlar (32 sp, sabit genişlikli); kapalıyken şifre ölçeği (22 sp).
-  final bool big;
-
   /// Login uses outlined surfaces; other auth screens keep the underline style.
   final bool boxed;
   final TextInputType? keyboardType;
@@ -50,9 +45,6 @@ class LoginUnderlineField extends StatefulWidget {
   final bool obscureText;
   final bool enabled;
   final VoidCallback? onSubmitted;
-
-  /// Girişin sağında ikincil renkli sabit parça (ör. "@bingol.edu.tr"); null ise yok.
-  final String? suffix;
 
   /// Satır sonunda parça (göz düğmesi).
   final Widget? trailing;
@@ -129,27 +121,20 @@ class _LoginUnderlineFieldState extends State<LoginUnderlineField> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-        builder: (context, c) => _content(context, compact: c.maxWidth < 340));
+    return _content(context);
   }
 
-  /// [compact]: dar ekranda (320 dp) rakamlar küçülür ve sonek ölçeklenmez; 9 hane + sonek tek satıra sığar.
-  Widget _content(BuildContext context, {required bool compact}) {
+  Widget _content(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final hasError = _error != null;
     final fast = AppMotion.of(context, AppMotion.fast);
 
-    // Büyük rakamlar yalnız 1.15x'e kadar ölçeklenir: 12 hane + sonek dar ekrana sığsın (alan kaydırılır).
-    final scaler = MediaQuery.textScalerOf(context)
-        .clamp(maxScaleFactor: widget.big ? 1.15 : 1.3);
-    final inputStyle =
-        (widget.big ? tx.displaySmall! : tx.headlineSmall!).copyWith(
+    final scaler = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.3);
+    final inputStyle = tx.headlineSmall!.copyWith(
       color: t.ink,
-      fontSize: widget.boxed ? 17 : (widget.big ? (compact ? 24 : 32) : 22),
-      fontWeight:
-          !widget.boxed && widget.big ? FontWeight.w400 : BuType.emphasisWeight,
-      letterSpacing: widget.big ? .4 : 0,
+      fontSize: widget.boxed ? 17 : 22,
+      fontWeight: BuType.emphasisWeight,
       height: 1.15,
       fontFeatures: const [FontFeature.tabularFigures()],
     );
@@ -185,7 +170,7 @@ class _LoginUnderlineFieldState extends State<LoginUnderlineField> {
       onFieldSubmitted: (_) => widget.onSubmitted?.call(),
       style: inputStyle,
       cursorColor: t.pr,
-      cursorWidth: widget.big ? 2.5 : 2,
+      cursorWidth: 2,
       decoration: InputDecoration(
         isCollapsed: true,
         isDense: true,
@@ -204,43 +189,12 @@ class _LoginUnderlineFieldState extends State<LoginUnderlineField> {
       ),
     );
 
-    final suffix = widget.suffix;
     final row = MediaQuery(
       data: MediaQuery.of(context).copyWith(textScaler: scaler),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(child: input),
-          // Sonek yalnız rakam yazılınca belirir; yumuşakça solar (azalt açıkken anında).
-          AnimatedSwitcher(
-            duration: fast,
-            switchInCurve: AppMotion.enter,
-            switchOutCurve: AppMotion.exit,
-            child: suffix == null
-                ? const SizedBox.shrink(key: ValueKey('login-suffix-none'))
-                : Padding(
-                    key: const ValueKey('login-suffix'),
-                    padding: const EdgeInsetsDirectional.only(start: 8, top: 6),
-                    // Adres soneki her dilde soldan sağa okunur (RTL'de ters dizilmesin).
-                    child: MediaQuery(
-                      data: MediaQuery.of(context).copyWith(
-                        textScaler: compact
-                            ? MediaQuery.textScalerOf(context)
-                                .clamp(maxScaleFactor: 1.0)
-                            : scaler,
-                      ),
-                      child: Text(
-                        suffix,
-                        maxLines: 1,
-                        softWrap: false,
-                        textDirection: TextDirection.ltr,
-                        style: (compact ? tx.bodyMedium! : tx.bodyLarge!)
-                            .copyWith(
-                                color: t.mut, fontWeight: BuType.emphasisWeight),
-                      ),
-                    ),
-                  ),
-          ),
           if (widget.trailing != null) widget.trailing!,
         ],
       ),
@@ -361,9 +315,9 @@ class _Underline extends StatelessWidget {
   }
 }
 
-/// E-posta ya da okul numarası alanı (giriş, şifre sıfırlama) / yalnız e-posta alanı (kayıt, [allowStudentNumber] false).
-/// Alan adı kısıtı yoktur (Gmail, Outlook, Hotmail, Yahoo, okul...): yalnız biçim denetlenir. Yalnız rakam yazılırsa
-/// (okul numarası) sağda `@bingol.edu.tr` soneki görünür ve sunucu numarayı o adrese çevirir; tam adres yazılınca sonek kalkar.
+/// E-posta alanı (giriş, kayıt, şifre sıfırlama). Alan adı kısıtı yoktur (Gmail, Outlook, Hotmail, Yahoo, okul...): kullanıcı
+/// ne yazarsa o gider, istemci hiçbir alan adı eklemez; yalnız biçim denetlenir. Görünüm [LoginPasswordField] ve ad alanıyla
+/// aynı bileşendir ([boxed] aynı sayfadaki diğer alanlarla eşleşmelidir).
 class LoginIdentifierField extends StatelessWidget {
   const LoginIdentifierField(
       {super.key,
@@ -373,14 +327,14 @@ class LoginIdentifierField extends StatelessWidget {
       this.validator,
       this.textInputAction = TextInputAction.next,
       this.boxed = false,
-      this.allowStudentNumber = true});
+      this.strict = false});
 
   final bool boxed;
 
-  /// Kapalıysa (kayıt) numara kısayolu yoktur: sonek yok, varsayılan doğrulayıcı tam e-posta ister.
-  final bool allowStudentNumber;
+  /// Kayıt: sunucunun biçim kuralıyla aynı sıkı doğrulama ([validateRegisterEmail]); kapalıysa gevşek ([validateIdentifier]).
+  final bool strict;
 
-  /// Varsayılan: giriş için [validateIdentifier], kayıt için [validateRegisterEmail]. Kayıtta sunucu hatasını da gösterir.
+  /// Varsayılan: [strict] ise [validateRegisterEmail], değilse [validateIdentifier]. Kayıtta sunucu hatasını da gösterir.
   final String? Function(String?)? validator;
   final TextInputAction textInputAction;
   final TextEditingController controller;
@@ -389,72 +343,17 @@ class LoginIdentifierField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l = context.l10n;
-    return ValueListenableBuilder<TextEditingValue>(
-      valueListenable: controller,
-      builder: (context, value, _) => LoginUnderlineField(
-        controller: controller,
-        label: allowStudentNumber ? l.authIdHint : l.authRegIdLabel,
-        boxed: boxed,
-        enabled: enabled,
-        keyboardType: TextInputType.emailAddress,
-        inputFormatters: [LengthLimitingTextInputFormatter(254)],
-        autofillHints: const [AutofillHints.username, AutofillHints.email],
-        validator: validator ?? (allowStudentNumber ? validateIdentifier : validateRegisterEmail),
-        textInputAction: textInputAction,
-        onSubmitted: onSubmitted,
-        hint: allowStudentNumber ? null : l.authRegIdHelper,
-        suffix: allowStudentNumber && isStudentNumberInput(value.text) ? '@$kEmailDomain' : null,
-      ),
-    );
-  }
-}
-
-/// Okul numarası alanı (lg4): yalnız rakam, rakam klavyesi, en çok 12 hane; rakam yazılınca sağda `@bingol.edu.tr`.
-/// Artık sayfalarda kullanılmaz (giriş/kayıt/şifre sıfırlama [LoginIdentifierField] kullanır); geriye dönük kalır.
-class LoginNumberField extends StatelessWidget {
-  const LoginNumberField(
-      {super.key,
-      required this.controller,
-      required this.enabled,
-      this.onSubmitted,
-      this.validator,
-      this.textInputAction = TextInputAction.next,
-      this.boxed = false});
-
-  final bool boxed;
-
-  /// Varsayılan: [validateIdentifier] (6-12 rakam). Kayıtta sunucu hatasını da gösterir.
-  final String? Function(String?)? validator;
-  final TextInputAction textInputAction;
-  final TextEditingController controller;
-  final bool enabled;
-  final VoidCallback? onSubmitted;
-
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<TextEditingValue>(
-      valueListenable: controller,
-      builder: (context, value, _) => LoginUnderlineField(
-        controller: controller,
-        label: context.l10n.authIdNumberLabel,
-        big: true,
-        boxed: boxed,
-        enabled: enabled,
-        keyboardType: TextInputType.number,
-        inputFormatters: [
-          FilteringTextInputFormatter.digitsOnly,
-          LengthLimitingTextInputFormatter(12)
-        ],
-        autofillHints: const [AutofillHints.username],
-        validator: validator ?? validateSchoolNumber,
-        textInputAction: textInputAction,
-        onSubmitted: onSubmitted,
-        hint: '000000000',
-        suffix: boxed || isStudentNumberInput(value.text)
-            ? '@$kEmailDomain'
-            : null,
-      ),
+    return LoginUnderlineField(
+      controller: controller,
+      label: context.l10n.authIdHint,
+      boxed: boxed,
+      enabled: enabled,
+      keyboardType: TextInputType.emailAddress,
+      inputFormatters: [LengthLimitingTextInputFormatter(254)],
+      autofillHints: const [AutofillHints.username, AutofillHints.email],
+      validator: validator ?? (strict ? validateRegisterEmail : validateIdentifier),
+      textInputAction: textInputAction,
+      onSubmitted: onSubmitted,
     );
   }
 }

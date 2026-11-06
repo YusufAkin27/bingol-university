@@ -118,9 +118,12 @@ class ProfilFlatGroup extends StatelessWidget {
 
 /// 56 dp düz satır: etiket 16 ink, sağda değer 15 mut + chevron 20 mut. [danger]: etiket danger (chevron yok).
 class ProfilFlatRow extends StatelessWidget {
-  const ProfilFlatRow({super.key, required this.label, this.value, this.onTap, this.danger = false, this.chevron = true, this.trailing, this.icon, this.plainIcon = false});
+  const ProfilFlatRow({super.key, required this.label, this.value, this.onTap, this.danger = false, this.chevron = true, this.trailing, this.icon, this.plainIcon = false, this.sub});
 
   final IconData? icon;
+
+  /// Etiketin altında kısa ikincil metin (13 sp mut); null ise yok.
+  final String? sub;
 
   /// true: simge karosuz, düz 22 dp simge (danger renginde).
   final bool plainIcon;
@@ -155,10 +158,14 @@ class ProfilFlatRow extends StatelessWidget {
               SizedBox(width: plainIcon ? 14 : 12),
             ],
             Expanded(
-              child: Text(label,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: tx.bodyLarge!.copyWith(fontSize: 16, color: danger ? t.danger : t.ink, fontWeight: BuType.emphasisWeight)),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                Text(label,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: tx.bodyLarge!.copyWith(fontSize: 16, color: danger ? t.danger : t.ink, fontWeight: BuType.emphasisWeight)),
+                if (sub != null && sub!.isNotEmpty)
+                  Text(sub!, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut, height: 1.35)),
+              ]),
             ),
             if (value != null && value!.isNotEmpty) ...[
               const SizedBox(width: 8),

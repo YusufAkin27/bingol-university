@@ -130,7 +130,7 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
     final t = context.bu;
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
-    final mail = widget.displayEmail ?? fullEmail(widget.email);
+    final mail = widget.displayEmail ?? normalizeIdentifier(widget.email);
     return RefPage(
       children: [
         RefHeading(

@@ -4,6 +4,7 @@ import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import 'auth_widgets.dart' show newPasswordValidator;
+import '../profile/password_page.dart' show PasswordPage;
 import 'forgot_password_page.dart';
 import 'reset_success_page.dart';
 import 'widgets/auth_motion.dart';
@@ -11,17 +12,22 @@ import 'widgets/auth_ref.dart';
 import 'widgets/login_underline_field.dart';
 
 /// Şifremi unuttum, 3. adım (Stitch 03): kod doğrulandıktan sonra yeni şifre + tekrarı. Başarıda onay ekranı açılır.
+///
+/// [accountMode]: oturum açıkken Şifre sayfasından gelinir. Sunucu başarılı sıfırlamada kullanıcının TÜM oturumlarını
+/// kapatır (bu cihaz dahil), bu yüzden yerel oturum da kapatılır ve onay ekranı girişe yönlendirir.
 class NewPasswordPage extends StatefulWidget {
   const NewPasswordPage({
     super.key,
     required this.session,
     required this.email,
     required this.resetToken,
+    this.accountMode = false,
   });
 
   final Session session;
   final String email;
   final String resetToken;
+  final bool accountMode;
 
   @override
   State<NewPasswordPage> createState() => _NewPasswordPageState();
@@ -58,15 +64,22 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
     });
     try {
       await widget.session.resetPassword(widget.email, widget.resetToken, _password.text);
+      if (widget.accountMode) await widget.session.signOut(remote: false);
       if (!mounted) return;
-      await Navigator.of(context).pushReplacement(MaterialPageRoute(settings: const RouteSettings(name: 'reset_success'), builder: (_) => const ResetSuccessPage()));
+      await Navigator.of(context).pushReplacement(MaterialPageRoute(
+          settings: const RouteSettings(name: 'reset_success'), builder: (_) => ResetSuccessPage(accountMode: widget.accountMode)));
       return;
     } on ApiError catch (e) {
       if (!mounted) return;
       if (e.code == 'INVALID_CODE') {
         // Anahtarın süresi dolmuş: "Şifremi unuttum" ekranına dön, "Süre doldu" bandıyla yeni kod iste.
-        ForgotPasswordPage.expiredNotice.value = true;
-        Navigator.of(context).popUntil((r) => r.isFirst || r.settings.name == kForgotPasswordRoute);
+        if (widget.accountMode) {
+          PasswordPage.expiredNotice.value = true;
+          Navigator.of(context).popUntil((r) => r.isFirst || r.settings.name == PasswordPage.routeName);
+        } else {
+          ForgotPasswordPage.expiredNotice.value = true;
+          Navigator.of(context).popUntil((r) => r.isFirst || r.settings.name == kForgotPasswordRoute);
+        }
         return;
       }
       _fail(errorText(e));

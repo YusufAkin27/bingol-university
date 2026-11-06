@@ -24,7 +24,7 @@ class RegisterPage extends StatefulWidget {
   State<RegisterPage> createState() => _RegisterPageState();
 }
 
-/// Kayıt tek sayfadır: ad soyad + okul numarası + şifre. Bölüm ve sınıf burada istenmez; e-posta doğrulanıp oturum
+/// Kayıt tek sayfadır: ad soyad + e-posta + şifre. Bölüm ve sınıf burada istenmez; e-posta doğrulanıp oturum
 /// açılınca zorunlu "bölümünü seç" adımında bir kez alınır ([ProfileSetupPage]). Sözleşme onayı kayıtla birlikte
 /// otomatik verilmiş sayılır (sunucuya `acceptTerms=true` gider); kullanıcıya yalnız bağlantılı bilgi satırı gösterilir.
 class _RegisterPageState extends State<RegisterPage> {
@@ -48,7 +48,7 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   void initState() {
     super.initState();
-    // Kullanıcı numarayı değiştirince eski sunucu hatası kalkar.
+    // Kullanıcı e-postayı değiştirince eski sunucu hatası kalkar.
     _email.addListener(() {
       if (_emailFieldError != null && _email.text != _emailErrorFor) setState(() => _emailFieldError = null);
     });
@@ -75,9 +75,9 @@ class _RegisterPageState extends State<RegisterPage> {
       _error = null;
     });
     try {
-      final res = await widget.session.registerAccount(email: fullEmail(_email.text), password: _password.text, displayName: _name.text);
+      final res = await widget.session.registerAccount(email: normalizeIdentifier(_email.text), password: _password.text, displayName: _name.text);
       final full = res.email;
-      final id = normalizeIdentifier(fullEmail(_email.text));
+      final id = normalizeIdentifier(_email.text);
       if (res.deferred) {
         // Günlük posta kotası aşıldı: sunucu kullanıcıyı sisteme aldı (oturum açıldı), e-posta DOĞRULANMAMIŞ kalır.
         // Doğrulama kodu ekranına gitmez; kök ekran zorunlu bölüm + sınıf (ve isteğe bağlı fotoğraf) adımlarını
@@ -166,8 +166,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 // Kayıt: herhangi bir geçerli e-posta (Gmail, Outlook, Hotmail, Yahoo, okul...). Kod yazılan adrese gider.
                 LoginIdentifierField(
                   controller: _email,
-                  boxed: true,
-                  allowStudentNumber: false,
+                  strict: true,
                   enabled: !_busy,
                   validator: _validateRegisterId,
                 ),

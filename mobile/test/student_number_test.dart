@@ -6,11 +6,13 @@ import 'package:bu_kampus/features/auth/login_page.dart';
 import 'package:bu_kampus/features/auth/register_page.dart';
 import 'package:bu_kampus/features/auth/reset_code_page.dart';
 import 'package:bu_kampus/features/auth/verify_code_page.dart';
+import 'package:bu_kampus/features/auth/widgets/login_underline_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_app.dart';
 
+/// Istemci hicbir alan adi eklemez: eski "@bingol.edu.tr" soneki hicbir yerde gorunmez.
 Finder _suffix() => find.text('@bingol.edu.tr');
 
 Future<void> _fillLogin(WidgetTester tester, String id, String pw) async {
@@ -24,15 +26,11 @@ void main() {
   setUpAll(loadTestFonts);
 
   group('istemci dogrulama', () {
-    test('okul numarasi 6-12 hane', () {
-      expect(validateIdentifier('226051015'), isNull);
-      expect(validateIdentifier('226 051-015'), isNull);
-      expect(validateIdentifier('12345'), 'Okul numarasını kontrol edin.');
-      expect(validateIdentifier('1234567890123'), 'Okul numarasını kontrol edin.');
-      expect(validateIdentifier('22605a015'), 'Okul numarasını kontrol edin.');
-      expect(validateIdentifier(''), isNotNull);
-    });
-    test('e-posta: alan adi kisiti yok, yalniz bicim', () {
+    test('giris/sifirlama alani: yalniz e-posta bicimi; rakam-only reddedilir (alan adi eklenmez)', () {
+      expect(validateIdentifier('226051015'), 'Geçerli bir e-posta adresi girin.');
+      expect(validateIdentifier('226 051-015'), 'Geçerli bir e-posta adresi girin.');
+      expect(validateIdentifier('ad.soyad'), 'Geçerli bir e-posta adresi girin.');
+      expect(validateIdentifier(''), 'E-posta adresinizi girin.');
       expect(validateIdentifier('ayse.yilmaz@bingol.edu.tr'), isNull);
       expect(validateIdentifier('a@ogr.bingol.edu.tr'), isNull);
       expect(validateIdentifier('a@gmail.com'), isNull);
@@ -42,8 +40,8 @@ void main() {
       expect(validateIdentifier('a@gmail'), 'Geçerli bir e-posta adresi girin.');
       expect(validateIdentifier('a@@gmail.com'), isNotNull);
     });
-    test('kayit alani yalniz TAM e-posta kabul eder (numara kisayolu yok)', () {
-      const full = 'E-posta adresinizin tamamını yazın, örn. ad.soyad@gmail.com';
+    test('kayit alani yalniz TAM e-posta kabul eder', () {
+      const full = 'E-posta adresinizin tamamını yazın.';
       expect(validateRegisterEmail('226051015'), full);
       expect(validateRegisterEmail('226 051-015'), full);
       expect(validateRegisterEmail('ad.soyad'), full);
@@ -57,30 +55,31 @@ void main() {
       expect(validateRegisterEmail('a@yahoo.com'), isNull);
       expect(validateRegisterEmail('a@gmail'), 'Geçerli bir e-posta adresi girin.');
       expect(validateRegisterEmail('a..b@gmail.com'), 'Geçerli bir e-posta adresi girin.');
-      // giris/sifre sifirlama dogrulayicisi numarayi kabul etmeye devam eder
-      expect(validateIdentifier('226051015'), isNull);
     });
-    test('normalize ve tam e-posta', () {
-      expect(normalizeIdentifier(' 226-051 015 '), '226051015');
-      expect(fullEmail('226051015'), '226051015@bingol.edu.tr');
-      expect(fullEmail(' Ayse@Bingol.edu.tr'), 'ayse@bingol.edu.tr');
-      expect(fullEmail(' Ayse@Gmail.com'), 'ayse@gmail.com');
-      expect(fullEmail('226051015@gmail.com'), '226051015@gmail.com');
+    test('normalize: yalniz bosluk temizler ve kucuk harfe cevirir; alan adi EKLEMEZ', () {
+      expect(normalizeIdentifier(' 226-051 015 '), '226-051015');
+      expect(normalizeIdentifier('226051015'), '226051015');
+      expect(normalizeIdentifier(' Ayse@Bingol.edu.tr'), 'ayse@bingol.edu.tr');
+      expect(normalizeIdentifier(' Ayse@Gmail.com'), 'ayse@gmail.com');
+      expect(normalizeIdentifier('226051015@gmail.com'), '226051015@gmail.com');
+      expect(normalizeIdentifier(null), '');
     });
   });
 
   group('giris', () {
-    testWidgets('yalniz rakam: sonek gorunur; tam e-posta yazilinca sonek kalkar (e-posta klavyesi)', (tester) async {
+    testWidgets('etiket yalniz E-posta; rakam yazilinca sonek/alan adi eklenmez; e-posta klavyesi', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend();
       await tester.pumpWidget(buildApp(LoginPage(session: makeSession(b, signedIn: false))));
       await settle(tester, const Duration(milliseconds: 200));
       expect(_suffix(), findsNothing);
-      expect(find.text('E-posta ya da okul numaranız'), findsOneWidget);
-      await tester.enterText(find.byType(TextFormField).at(0), '226051015');
+      expect(find.text('E-posta'), findsOneWidget);
+      expect(find.textContaining('okul numara'), findsNothing);
+      await tester.enterText(find.byType(TextFormField).at(0), '266');
       await tester.pump();
-      expect(_suffix(), findsOneWidget);
-      // Tam e-posta (herhangi bir sağlayıcı) aynen kalır, sonek görünmez.
+      expect(_suffix(), findsNothing);
+      expect(find.textContaining('bingol.edu.tr'), findsNothing);
+      expect(tester.widget<TextField>(find.byType(TextField).at(0)).controller!.text, '266');
       await tester.enterText(find.byType(TextFormField).at(0), 'ayse@gmail.com');
       await tester.pump();
       expect(tester.widget<TextField>(find.byType(TextField).at(0)).controller!.text, 'ayse@gmail.com');
@@ -89,25 +88,14 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('gecersiz numara hata verir, istek atilmaz', (tester) async {
+    testWidgets('yalniz rakam gecersiz e-posta sayilir: hata verir, istek atilmaz, alan adi eklenmez', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend();
       await tester.pumpWidget(buildApp(LoginPage(session: makeSession(b, signedIn: false))));
-      await _fillLogin(tester, '12345', 'Sifre1234');
+      await _fillLogin(tester, '226051015', 'Sifre1234');
       await tester.pump();
-      expect(find.text('Okul numarasını kontrol edin.'), findsOneWidget);
+      expect(find.text('Geçerli bir e-posta adresi girin.'), findsOneWidget);
       expect(b.count('/auth/login'), 0);
-      await unmount(tester);
-    });
-
-    testWidgets('numara govdede aynen gider; basarida oturum acilir', (tester) async {
-      final b = FakeBackend()..on('/auth/login', {'accessToken': 'a', 'refreshToken': 'r'});
-      final s = makeSession(b, signedIn: false);
-      await tester.pumpWidget(buildApp(LoginPage(session: s)));
-      await _fillLogin(tester, '226 051 015', 'Sifre1234');
-      await settle(tester, const Duration(milliseconds: 400));
-      expect((b.bodies['POST /auth/login'] as Map)['email'], '226051015');
-      expect(s.state, SessionState.signedIn);
       await unmount(tester);
     });
 
@@ -136,15 +124,15 @@ void main() {
       final b = FakeBackend()..fail('/auth/login', status: 403, code: 'EMAIL_NOT_VERIFIED');
       final s = makeSession(b, signedIn: false);
       await tester.pumpWidget(buildApp(LoginPage(session: s)));
-      await _fillLogin(tester, '226051015', 'Sifre1234');
+      await _fillLogin(tester, 'ali@gmail.com', 'Sifre1234');
       await settle(tester, const Duration(milliseconds: 500));
       expect(b.count('/auth/resend-code'), 1);
-      expect((b.bodies['POST /auth/resend-code'] as Map)['email'], '226051015');
+      expect((b.bodies['POST /auth/resend-code'] as Map)['email'], 'ali@gmail.com');
       expect(find.byType(VerifyCodePage), findsOneWidget);
       expect(find.textContaining('E-postanı doğrula'), findsOneWidget);
-      expect(find.textContaining('226051015@bingol.edu.tr adresine gönderildi'), findsOneWidget);
+      expect(find.textContaining('ali@gmail.com adresine gönderildi'), findsOneWidget);
       expect(find.text('Başka hesapla giriş yap'), findsOneWidget);
-      expect((await s.pending.load())?.identifier, '226051015');
+      expect((await s.pending.load())?.identifier, 'ali@gmail.com');
       await unmount(tester);
     });
 
@@ -153,7 +141,7 @@ void main() {
         ..fail('/auth/login', status: 403, code: 'EMAIL_NOT_VERIFIED')
         ..fail('/auth/resend-code', status: 429, code: 'RESEND_COOLDOWN', message: 'Bekleyin.');
       await tester.pumpWidget(buildApp(LoginPage(session: makeSession(b, signedIn: false))));
-      await _fillLogin(tester, '226051015', 'Sifre1234');
+      await _fillLogin(tester, 'ali@gmail.com', 'Sifre1234');
       await settle(tester, const Duration(milliseconds: 500));
       expect(find.byType(VerifyCodePage), findsOneWidget);
       expect(find.text('Bekleyin.'), findsNothing);
@@ -164,7 +152,7 @@ void main() {
       final b = FakeBackend()
         ..fail('/auth/login', status: 401, code: 'INVALID_CREDENTIALS', message: 'Bilgiler hatalı.');
       await tester.pumpWidget(buildApp(LoginPage(session: makeSession(b, signedIn: false))));
-      await _fillLogin(tester, '226051015', 'yanlis');
+      await _fillLogin(tester, 'ali@gmail.com', 'yanlis');
       await settle(tester, const Duration(milliseconds: 300));
       expect(find.text('Bilgiler hatalı.'), findsOneWidget);
       expect(find.byType(VerifyCodePage), findsNothing);
@@ -178,11 +166,11 @@ void main() {
         ..on('/auth/verify-email', {'accessToken': 'a', 'refreshToken': 'r'});
       final s = makeSession(b, signedIn: false);
       await tester.pumpWidget(buildApp(LoginPage(session: s)));
-      await _fillLogin(tester, '226051015', 'Sifre1234');
+      await _fillLogin(tester, 'ali@gmail.com', 'Sifre1234');
       await settle(tester, const Duration(milliseconds: 500));
       await tester.enterText(find.byType(EditableText).first, '123456');
       await settle(tester, const Duration(milliseconds: 600));
-      expect((b.bodies['POST /auth/verify-email'] as Map)['email'], '226051015');
+      expect((b.bodies['POST /auth/verify-email'] as Map)['email'], 'ali@gmail.com');
       // Parola kaniti: girişte girilen şifre doğrulama isteğine eklenir
       expect((b.bodies['POST /auth/verify-email'] as Map)['password'], 'Sifre1234');
       expect(s.state, SessionState.signedIn);
@@ -196,13 +184,13 @@ void main() {
         ..on('/auth/verify-email', <String, dynamic>{});
       final s = makeSession(b, signedIn: false);
       await tester.pumpWidget(buildApp(LoginPage(session: s)));
-      await _fillLogin(tester, '226051015', 'Sifre1234');
+      await _fillLogin(tester, 'ali@gmail.com', 'Sifre1234');
       await settle(tester, const Duration(milliseconds: 500));
       b.on('/auth/login', {'accessToken': 'a', 'refreshToken': 'r'});
       await tester.enterText(find.byType(EditableText).first, '123456');
       await settle(tester, const Duration(milliseconds: 600));
       expect(b.count('/auth/login'), 2);
-      expect((b.bodies['POST /auth/login'] as Map)['email'], '226051015@bingol.edu.tr');
+      expect((b.bodies['POST /auth/login'] as Map)['email'], 'ali@gmail.com');
       expect(s.state, SessionState.signedIn);
       await unmount(tester);
     });
@@ -213,10 +201,10 @@ void main() {
       var now = DateTime(2026, 1, 1, 10);
       final st = PendingVerificationStore.memory(now: () => now);
       expect(await st.load(), isNull);
-      await st.save('226051015');
+      await st.save('ali@gmail.com');
       final p = await st.load();
-      expect(p!.identifier, '226051015');
-      expect(p.email, '226051015@bingol.edu.tr');
+      expect(p!.identifier, 'ali@gmail.com');
+      expect(p.email, 'ali@gmail.com');
       now = now.add(const Duration(hours: 71));
       expect(await st.load(), isNotNull);
       now = now.add(const Duration(hours: 2));
@@ -230,7 +218,7 @@ void main() {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend();
       final s = makeSession(b, signedIn: false);
-      await s.pending.save('226051015');
+      await s.pending.save('ali@gmail.com');
       await tester.pumpWidget(buildApp(LoginPage(session: s)));
       await settle(tester, const Duration(milliseconds: 300));
       expect(find.text('Doğrulamayı tamamla'), findsOneWidget);
@@ -253,7 +241,7 @@ void main() {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend();
       final s = makeSession(b, signedIn: false);
-      await s.pending.save('226051015');
+      await s.pending.save('ali@gmail.com');
       await tester.pumpWidget(buildApp(LoginPage(session: s)));
       await settle(tester, const Duration(milliseconds: 300));
       await tester.tap(find.byKey(const ValueKey('pending-verify-banner')));
@@ -325,6 +313,23 @@ void main() {
       await unmount(tester);
     });
 
+    testWidgets('e-posta alani Ad soyad ve Sifre ile AYNI alt cizgili tasarimda; ornek adres/okul numarasi metni yok', (tester) async {
+      useScreen(tester, const Size(390, 1800));
+      await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(FakeBackend(), signedIn: false))));
+      await settle(tester, const Duration(milliseconds: 300));
+      final fields = tester.widgetList<LoginUnderlineField>(find.byType(LoginUnderlineField)).toList();
+      expect(fields.length, 3);
+      expect(fields.map((f) => f.boxed).toSet(), {false});
+      expect(find.text('E-posta'), findsOneWidget);
+      expect(find.textContaining('ad.soyad@gmail.com'), findsNothing);
+      expect(find.textContaining('Örn.'), findsNothing);
+      expect(find.textContaining('okul numara'), findsNothing);
+      await tester.enterText(find.byType(TextFormField).at(1), '226051015');
+      await tester.pump();
+      expect(_suffix(), findsNothing);
+      await unmount(tester);
+    });
+
     testWidgets('yalniz rakam (okul numarasi) kayitta tam e-posta ister: istek yok', (tester) async {
       useScreen(tester, const Size(390, 1800));
       final b = FakeBackend();
@@ -333,7 +338,7 @@ void main() {
       await fillRegister(tester, email: '226051015');
       await tester.tap(find.text('Kayıt ol').last);
       await tester.pump();
-      expect(find.text('E-posta adresinizin tamamını yazın, örn. ad.soyad@gmail.com'), findsOneWidget);
+      expect(find.text('E-posta adresinizin tamamını yazın.'), findsOneWidget);
       expect(b.count('/auth/register'), 0);
       await unmount(tester);
     });
@@ -365,15 +370,19 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('numarayla kod ister; kod ekraninda tam e-posta gorunur', (tester) async {
+    testWidgets('yalniz e-posta alani: okul numarasi metni yok, rakam yazilinca alan adi eklenmez ve istek atilmaz', (tester) async {
       final b = FakeBackend();
       await tester.pumpWidget(buildApp(ForgotPasswordPage(session: makeSession(b, signedIn: false))));
+      await settle(tester, const Duration(milliseconds: 200));
+      expect(find.text('E-posta'), findsOneWidget);
+      expect(find.textContaining('okul numara'), findsNothing);
       await tester.enterText(find.byType(TextFormField), '226051015');
+      await tester.pump();
+      expect(_suffix(), findsNothing);
       await tester.tap(find.text('Kod gönder'));
-      await settle(tester, const Duration(milliseconds: 600));
-      expect((b.bodies['POST /auth/forgot-password'] as Map)['email'], '226051015');
-      expect(find.byType(ResetCodePage), findsOneWidget);
-      expect(find.text('226051015@bingol.edu.tr adresine gönderdiğimiz 6 haneli kodu girin.'), findsOneWidget);
+      await tester.pump();
+      expect(find.text('Geçerli bir e-posta adresi girin.'), findsOneWidget);
+      expect(b.count('/auth/forgot-password'), 0);
       await unmount(tester);
     });
   });
@@ -400,14 +409,14 @@ void main() {
 
     for (final br in Brightness.values) {
       for (final size in kPhoneSizes) {
-        testWidgets('numara + sonek + bant | ${br.name} ${size.width.toInt()}', (tester) async {
+        testWidgets('e-posta + bant | ${br.name} ${size.width.toInt()}', (tester) async {
           useScreen(tester, size);
           final b = FakeBackend();
           final s = makeSession(b, signedIn: false);
-          await s.pending.save('226051015');
+          await s.pending.save('ali@gmail.com');
           await tester.pumpWidget(buildApp(LoginPage(session: s), brightness: br, size: size));
           await settle(tester, const Duration(milliseconds: 300));
-          await tester.enterText(find.byType(TextFormField).at(0), '226051015');
+          await tester.enterText(find.byType(TextFormField).at(0), 'ali@gmail.com');
           await tester.enterText(find.byType(TextFormField).at(1), 'x');
           // Odaklanan alanı görünür kılan kaydırma animasyonu bitmeden dokunuşlar yok sayılır.
           await settle(tester, const Duration(milliseconds: 600));

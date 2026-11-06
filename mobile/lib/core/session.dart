@@ -129,7 +129,7 @@ class Session extends ChangeNotifier {
   // Kayıt/girişte girilen şifre yalnızca bellekte, doğrulama sonrası otomatik giriş için tutulur.
   String? _memId, _memPassword;
   void rememberCredentials(String identifier, String password) {
-    _memId = fullEmail(identifier);
+    _memId = normalizeIdentifier(identifier);
     _memPassword = password;
   }
 
@@ -406,7 +406,7 @@ class Session extends ChangeNotifier {
       api.post('/auth/resend-code', {'email': normalizeIdentifier(email)}, false);
 
   /// Kayıt sırasında girilen şifre bellekte duruyor mu (doğrulama adımı parola kanıtı için)?
-  bool hasRememberedPassword(String email) => _memPassword != null && _memId == fullEmail(email);
+  bool hasRememberedPassword(String email) => _memPassword != null && _memId == normalizeIdentifier(email);
 
   /// `password`: parola kanıtı (sunucu bekleyen kaydın şifre özetiyle karşılaştırır; uyuşmazsa genel
   /// INVALID_CODE). Verilmezse kayıt/girişte bellekte tutulan şifre kullanılır.
@@ -424,7 +424,7 @@ class Session extends ChangeNotifier {
       false,
     );
     await pending.clear();
-    final id = _memId ?? fullEmail(email);
+    final id = _memId ?? normalizeIdentifier(email);
     _memPassword = null;
     _memId = null;
     if (res is Map && res['accessToken'] != null) {

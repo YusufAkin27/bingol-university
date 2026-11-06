@@ -282,7 +282,7 @@ class _LoginPageState extends State<LoginPage> {
                   Text(l.loginSubtitleNumber,
                       style: tx.bodyLarge!.copyWith(color: t.mut, height: 1.5)),
                   SizedBox(height: keyboard ? 24 : 32),
-                  // E-posta (her sağlayıcı) ya da okul numarası; yalnız rakam yazılırsa @bingol.edu.tr soneki görünür.
+                  // E-posta (her sağlayıcı); yazılan aynen gider, istemci alan adı eklemez.
                   LoginIdentifierField(
                       controller: _email, enabled: !_busy, boxed: true),
                   const SizedBox(height: 22),

@@ -12,7 +12,7 @@ import 'package:bu_kampus/features/auth/login_page.dart';
 import 'package:bu_kampus/features/auth/verify_code_page.dart';
 import 'package:bu_kampus/features/chat/chat_detail_page.dart';
 import 'package:bu_kampus/features/notifications/notifications_page.dart';
-import 'package:bu_kampus/features/profile/account_security_page.dart';
+import 'package:bu_kampus/features/profile/password_page.dart';
 import 'package:bu_kampus/features/profile/avatar_upload.dart';
 import 'package:bu_kampus/features/profile/settings_page.dart';
 import 'package:bu_kampus/features/support/support_feedback_page.dart';
@@ -212,7 +212,7 @@ void main() {
         ..fail('/auth/resend-code', status: 500, code: 'SERVER_ERROR');
       await t.pumpWidget(buildApp(LoginPage(session: makeSession(b, signedIn: false))));
       await settle(t, const Duration(milliseconds: 900));
-      await t.enterText(find.byType(TextFormField).at(0), '210001001');
+      await t.enterText(find.byType(TextFormField).at(0), 'ogr.test@gmail.com');
       await t.enterText(find.byType(TextFormField).at(1), 'Sifre123');
       await t.pump();
       await t.tap(find.text('Giriş yap').last);
@@ -229,7 +229,7 @@ void main() {
         ..fail('/auth/resend-code', status: 429, code: 'TOO_MANY_REQUESTS');
       await t.pumpWidget(buildApp(LoginPage(session: makeSession(b, signedIn: false))));
       await settle(t, const Duration(milliseconds: 900));
-      await t.enterText(find.byType(TextFormField).at(0), '210001001');
+      await t.enterText(find.byType(TextFormField).at(0), 'ogr.test@gmail.com');
       await t.enterText(find.byType(TextFormField).at(1), 'Sifre123');
       await t.pump();
       await t.tap(find.text('Giriş yap').last);
@@ -318,7 +318,7 @@ void main() {
     testWidgets('72 bayt kuralı: 40 Türkçe karakter (80 bayt) yerelde reddedilir, istek atılmaz', (t) async {
       useScreen(t, const Size(390, 1600));
       final b = FakeBackend();
-      await t.pumpWidget(buildApp(AccountSecurityPage(session: makeSession(b))));
+      await t.pumpWidget(buildApp(PasswordPage(session: makeSession(b))));
       await settle(t, const Duration(milliseconds: 600));
       final fields = find.byType(TextField);
       await t.enterText(fields.at(0), 'EskiSifre1');

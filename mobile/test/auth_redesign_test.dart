@@ -110,12 +110,12 @@ void main() {
   });
 
   group('satır içi doğrulama', () {
-    testWidgets('okul numarası alanı: yazarken hata yok, alandan çıkınca hata, düzeltince anında kalkar', (tester) async {
+    testWidgets('e-posta alanı: yazarken hata yok, alandan çıkınca hata, düzeltince anında kalkar', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend();
       await tester.pumpWidget(_app(ForgotPasswordPage(session: _s(b))));
       await settle(tester, const Duration(milliseconds: 1200));
-      const err = 'Okul numarasını kontrol edin.';
+      const err = 'Geçerli bir e-posta adresi girin.';
       await tester.tap(find.byType(TextFormField));
       await tester.enterText(find.byType(TextFormField), '123');
       await tester.pump();
@@ -124,7 +124,7 @@ void main() {
       FocusManager.instance.primaryFocus?.unfocus();
       await settle(tester, const Duration(milliseconds: 300));
       expect(find.text(err), findsOneWidget);
-      await tester.enterText(find.byType(TextFormField), '226051015');
+      await tester.enterText(find.byType(TextFormField), 'ali@gmail.com');
       await tester.pump();
       expect(find.text(err), findsNothing);
       await unmount(tester);

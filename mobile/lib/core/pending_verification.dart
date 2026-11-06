@@ -11,7 +11,7 @@ class PendingVerification {
   final String identifier;
   final DateTime at;
 
-  String get email => fullEmail(identifier);
+  String get email => normalizeIdentifier(identifier);
 }
 
 /// Bekleyen e-posta doğrulamasını güvenli yerel depoda tutar; 72 saat sonra silinir.
