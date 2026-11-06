@@ -367,9 +367,26 @@ public class TwoFactorService {
                 || !encoder.matches(password, u.getPasswordHash())) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_PASSWORD", "Şifre hatalı.");
         }
+        finishDisable(u, closeOtherSessions);
+    }
+
+    /** Yeniden dogrulama cagiranda (saglayici token'i) yapildi: yalniz parolasiz hesapta kapatma. */
+    @Transactional
+    public void disableReauthenticated(Long userId, boolean closeOtherSessions) {
+        User u = activeUser(userId);
+        if (!u.isTwoFactorEnabled()) {
+            throw notEnabled();
+        }
+        if (u.hasPassword()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_PASSWORD", "Şifre hatalı.");
+        }
+        finishDisable(u, closeOtherSessions);
+    }
+
+    private void finishDisable(User u, boolean closeOtherSessions) {
         if (closeOtherSessions) {
             // reset'ten ONCE: olay dinleyicisi cihazlari AYRI islemde siler; bu islem ayni satirlari silmisse kilitlenirdi
-            sessions.revokeAll(userId);
+            sessions.revokeAll(u.getId());
         }
         reset(u);
         notifier.notify(u, TwoFactorNotifier.Event.DISABLED_BY_USER);

@@ -158,4 +158,17 @@ class AuthServiceOAuthLoginTest {
         assertFalse(User.hasUsablePassword(null));
         assertFalse(User.hasUsablePassword(""));
     }
+
+    /** QA-AUTH-01: /auth/me parolasiz (yalniz OAuth) hesabi bildirir; istemci silme/baglama/2FA kapatmada bunu kullanir. */
+    @Test
+    void meReportsWhetherTheAccountHasAUsablePassword() {
+        User oauthOnly = user("o@gmail.com");
+        when(users.findById(9L)).thenReturn(Optional.of(oauthOnly));
+        assertFalse(auth.me(9L).hasPassword());
+
+        User withPassword = user("p@gmail.com");
+        withPassword.setPasswordHash("$2a$04$abcdefghijklmnopqrstuuabcdefghijklmnopqrstuvwxyz01234");
+        when(users.findById(9L)).thenReturn(Optional.of(withPassword));
+        org.junit.jupiter.api.Assertions.assertTrue(auth.me(9L).hasPassword());
+    }
 }

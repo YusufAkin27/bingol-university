@@ -37,9 +37,23 @@ public final class TwoFactorDtos {
         }
     }
 
-    public record DisableRequest(@NotBlank @Size(max = 200) String password, Boolean closeOtherSessions) {
+    /**
+     * Kapatma yeniden dogrulamasi: parolasi olan hesapta `password`; parolasiz (yalniz OAuth) hesapta bagli saglayicinin
+     * TAZE token'i (`provider` + `token`, Apple icin `nonce`).
+     */
+    public record DisableRequest(@Size(max = 200) String password, Boolean closeOtherSessions,
+                                 @jakarta.validation.constraints.Pattern(regexp = "(?i)google|apple") String provider,
+                                 @Size(max = 8192) String token, @Size(max = 256) String nonce) {
+        public DisableRequest(String password, Boolean closeOtherSessions) {
+            this(password, closeOtherSessions, null, null, null);
+        }
+
         public DisableRequest(String password) {
-            this(password, null);
+            this(password, null, null, null, null);
+        }
+
+        public boolean passwordless() {
+            return password == null || password.isBlank();
         }
 
         public boolean closeOthers() {

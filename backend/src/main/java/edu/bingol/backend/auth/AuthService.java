@@ -862,7 +862,7 @@ public class AuthService {
     public UserView me(Long userId) {
         User u = users.findById(userId)
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Oturum geçersiz."));
-        return new UserView(u.getId(), u.getEmail(), u.getDisplayName());
+        return new UserView(u.getId(), u.getEmail(), u.getDisplayName(), u.hasPassword());
     }
 
     private static String blankToNull(String s) {

@@ -52,6 +52,14 @@ public class TwoFactorController {
     private final I18n i18n;
     private final JwtService jwt;
 
+    /** Parolasiz hesapta 2FA kapatma yeniden dogrulamasi (istege bagli: OAuth modulu yoksa yok). */
+    private edu.bingol.backend.auth.oauth.OAuthService oauth;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setOauth(edu.bingol.backend.auth.oauth.OAuthService oauth) {
+        this.oauth = oauth;
+    }
+
     public TwoFactorController(AuthService auth, TwoFactorService twoFactor, RateLimiter limiter, ClientIp clientIp,
                                ClientContexts contexts, RateLimitProperties limits, I18n i18n, JwtService jwt) {
         this.auth = auth;
@@ -124,7 +132,17 @@ public class TwoFactorController {
         // Calinmis oturumla sifre tahmini: kullanici basina dar, IP basina genis
         limiter.check("tf:disable:user:" + userId, 5, Duration.ofMinutes(15));
         limiter.check("tf:disable:ip:" + clientIp.limitKey(http), limits.changePasswordIpMax(), Duration.ofHours(1));
-        twoFactor.disable(userId, r.password(), r.closeOthers());
+        if (r.passwordless()) {
+            // Parolasiz (yalniz OAuth) hesap: bagli saglayicinin taze kimligi. Parolali hesapta reauthenticate 403 verir.
+            if (oauth == null || r.provider() == null) {
+                throw new edu.bingol.backend.common.ApiException(HttpStatus.BAD_REQUEST, "INVALID_PASSWORD", "Şifre hatalı.");
+            }
+            oauth.reauthenticateById(userId, null, edu.bingol.backend.auth.oauth.OAuthProvider.parse(r.provider()),
+                    r.token(), r.nonce());
+            twoFactor.disableReauthenticated(userId, r.closeOthers());
+        } else {
+            twoFactor.disable(userId, r.password(), r.closeOthers());
+        }
         return new EnabledResponse(false, r.closeOthers() ? auth.reissueTokens(userId, callerClient(http), contexts.of(http)) : null);
     }
 
