@@ -79,6 +79,17 @@ public class ConversationService {
     /** Kulup/etkinlik odasi baglantilari: gorunumde tur (CLUB/EVENT) ve kaynak kimligi buradan turetilir. */
     private edu.bingol.backend.messaging.room.ChatRoomLinkRepository roomLinks;
 
+    /** Oda avatari: etkinlik kapagi / kulup logosu (konusmanin kendi avatari yoksa). */
+    private edu.bingol.backend.event.UserEventRepository roomEvents;
+    private edu.bingol.backend.community.CommunityRepository roomCommunities;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setRoomSources(edu.bingol.backend.event.UserEventRepository roomEvents,
+                        edu.bingol.backend.community.CommunityRepository roomCommunities) {
+        this.roomEvents = roomEvents;
+        this.roomCommunities = roomCommunities;
+    }
+
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     void setRoomLinks(edu.bingol.backend.messaging.room.ChatRoomLinkRepository roomLinks) {
         this.roomLinks = roomLinks;
@@ -749,6 +760,34 @@ public class ConversationService {
                 : roomLinks.findByConversationIdIn(ids).stream().collect(Collectors.toMap(
                         edu.bingol.backend.messaging.room.ChatRoomLink::getConversationId, Function.identity(), (x, y) -> x));
 
+        // Oda avatari: etkinlik odasinda yoneticinin yukledigi kapak, kulup odasinda logo (tek toplu okuma)
+        Map<Long, String> eventCovers = new HashMap<>();
+        Map<Long, String> clubLogos = new HashMap<>();
+        try {
+            Set<Long> evIds = roomOf.values().stream()
+                    .filter(l -> l.getKind() == edu.bingol.backend.messaging.room.RoomKind.EVENT)
+                    .map(edu.bingol.backend.messaging.room.ChatRoomLink::getRefId).collect(Collectors.toSet());
+            Set<Long> clIds = roomOf.values().stream()
+                    .filter(l -> l.getKind() == edu.bingol.backend.messaging.room.RoomKind.COMMUNITY)
+                    .map(edu.bingol.backend.messaging.room.ChatRoomLink::getRefId).collect(Collectors.toSet());
+            if (roomEvents != null && !evIds.isEmpty()) {
+                roomEvents.findAllById(evIds).forEach(e -> {
+                    if (e.getCoverUrl() != null) {
+                        eventCovers.put(e.getId(), e.getCoverUrl());
+                    }
+                });
+            }
+            if (roomCommunities != null && !clIds.isEmpty()) {
+                roomCommunities.findAllById(clIds).forEach(k -> {
+                    if (k.getLogoUrl() != null) {
+                        clubLogos.put(k.getId(), k.getLogoUrl());
+                    }
+                });
+            }
+        } catch (RuntimeException ignored) {
+            // avatar yalniz sus; liste gorunumu bozulmaz
+        }
+
         return page.stream().map(c -> {
             List<ConversationMember> ms = membersBy.getOrDefault(c.getId(), List.of());
             boolean direct = c.getType() == Conversation.Type.DIRECT;
@@ -796,7 +835,10 @@ public class ConversationService {
                     unread.getOrDefault(c.getId(), 0L), iBlockedPeer,
                     c.getCreatedAt().toString(), muted, muted ? mine.getMutedUntil().toString() : null,
                     mine != null && mine.getArchivedAt() != null, mine != null && mine.isMutedForever(),
-                    club ? room.getRefId() : null, event ? room.getRefId() : null, c.getAvatarUrl(), canModerate,
+                    club ? room.getRefId() : null, event ? room.getRefId() : null,
+                    c.getAvatarUrl() != null ? c.getAvatarUrl()
+                            : event ? eventCovers.get(room.getRefId()) : club ? clubLogos.get(room.getRefId()) : null,
+                    canModerate,
                     mine != null && !mine.isAccepted() ? mine.getRequestState().name() : null);
         }).toList();
     }
