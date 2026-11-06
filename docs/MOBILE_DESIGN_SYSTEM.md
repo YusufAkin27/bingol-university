@@ -1,6 +1,6 @@
 # Mobil tasarım sistemi: PREMIUM MONOCHROME
 
-Hedef: cursor.com'un sakin, rafine, tipografi odaklı karakteri, mobile uyarlanmış. **Arayüz siyah-beyazdır**; kullanıcı fotoğrafı/medya doğal renkte kalır. Gradyan, neon, glow, cam efekti, aşırı gölge, devasa kart, emoji simge ve "her düğme pill" yoktur. İki tema vardır ve ikisi de ayrı tasarlanır (açık tema koyunun tersi değildir):
+Hedef: cursor.com'un sakin, rafine, tipografi odaklı karakteri, mobile uyarlanmış. **Arayüz siyah-beyazdır**; kullanıcı fotoğrafı/medya doğal renkte kalır. Gradyan, neon, glow, cam efekti (tek istisna: alt çubuk, bkz. 5b), aşırı gölge, devasa kart, emoji simge ve "her düğme pill" yoktur. İki tema vardır ve ikisi de ayrı tasarlanır (açık tema koyunun tersi değildir):
 
 - **Premium Black** (koyu, **varsayılan**): zemin #09090B, kart #141416, ikincil yüzey #1C1C1F, yükseltilmiş yüzey #252528, yazı #FAFAFA, düğme beyaz zemin + siyah yazı. Gölge yok: ayrım yüzey tonu + ince kenarlık.
 - **Premium White** (açık): zemin #FFFFFF, kart #FAFAFA, ikincil yüzey #F4F4F5, yazı #09090B, kenarlık #E4E4E7, düğme siyah zemin + beyaz yazı. İnce kenarlık + çok hafif yüzey farkı, gölge neredeyse yok, büyük siyah alan yok (siyah yalnız düğme/seçili durum).
@@ -118,6 +118,38 @@ Eğriler: `standard` easeInOutCubic, `enter` easeOutCubic, `exit` easeInCubic, `
 
 - 60 FPS hedefi, 90/120 Hz'de doğal akıcılık; büyük listelerde pahalı animasyon yok; `RepaintBoundary` yalnız gerekli yerde; `AnimationController` dispose edilir; gereksiz `setState`/rebuild azaltılır. Ölçüm (profil) yapmadan performans iyileştirdiğini iddia etmeyin.
 - Azaltılmış hareket tercihine saygı; anlam yalnız animasyonla iletilmez; AA kontrast; büyük yazı tipinde yerleşim bozulmaz; animasyon kullanıcı işlemini engellemez.
+
+## 5b. Alt çubuk: Liquid Glass (tek istisna)
+
+Kullanıcı kararı (2026-11-06): "cam efekti yok" kuralı **yalnız ana alt gezinme çubuğu (`FloatingNav`) için** bilinçli olarak geçersizdir; başka hiçbir yüzeye (kart, sayfa, üst çubuk, alt sayfa, rozet) cam eklenmez. Hedef: iOS 26 "Liquid Glass" malzemesi. Kod: `lib/widgets/bu_glass.dart` (malzeme) + `lib/features/shell/floating_nav.dart` (davranış).
+
+**Malzeme nasıl çalışır (Apple):** arkadaki içeriği bulanıklaştırıp canlandırır, kenarlarda içeriği bükerek (kırılma) ve ışığa duyarlı ince bir rim/spekular çizgiyle "kalın cam" hissi verir; içerik rengine göre açık/koyu uyum sağlar; seçili öğe çubuğun içinde akışkan bir cam kapsül olarak öğeler arasında yay (spring) hareketiyle kayar, basılı tutunca/sürükleyince esner; iOS 26'da kaydırınca küçülebilir (`tabBarMinimizeBehavior`); "Saydamlığı azalt" ile opak yüzeye düşer.
+
+**Karar: paket YOK, özel bileşen.** `liquid_glass_renderer` (1.0.0-dev.2, ön sürüm), `liquid_glass_widgets` (1.16.x) ve `liquid_glass_easy` shader tabanlıdır; tam görünüm Impeller ister, Skia'da düşük kaliteye döner, genelde küresel başlatma/`wrap()` ve arka plan yakalama kapsamı (`LiquidGlassScope`) gerektirir. Uygulamanın sekme katmanı (`Offstage` + paralaks) ve SwiftPM/Firebase sürüm kilitleri bu yapıyla çakışma riski taşır; `cupertino_native_better`/`native_liquid_glass` ise yerel iOS bağımlılığıdır (kullanılmaz). Tek bir çubuk için 90+ bileşenli paket gereksizdir. Özel malzeme: Impeller ve Skia'da aynı çalışır (Android dahil), yeni bağımlılık yok.
+
+**Parametreler (`BuGlass`):**
+
+| Parametre | Değer |
+|---|---|
+| Bulanıklık | `ImageFilter.blur` sigma **22** (aralık 18-28), yalnız çubuk alanı (`ClipRRect` + `RepaintBoundary`) |
+| Doygunluk | **1.45** (renk matrisi; arka plan cam arkasında canlı kalır) |
+| Açık dolgu | beyaz, üstte %72 -> altta %58 |
+| Koyu dolgu | `bg` tabanı %68 + beyaz üstte %12 -> altta %4 |
+| Kenar kırılması | 9 dp bulanık iç parıltı + üst yarıda spekular şerit + altta iç gölge |
+| Rim | 1.3 dp: köşegen (sol-üst parlak, sağ-alt orta) + dikey (üst parlak, alt sönük); dış hairline 0.8 dp |
+| Gölge | yalnız şeklin DIŞINA (iç kırpılır), sigma 11, y 6 dp; açıkta %16, koyuda %45 |
+| Kapsül | 46 dp yüksek, sekme hücresi - 8 (en çok 64 dp); açıkta hafif koyu cam + beyaz rim, koyuda açık cam (beyaz %22->10) |
+| Kayış | `Cubic(.25, 1.28, .42, 1)` 360 ms (hafif aşımlı yay); sürüklerken parmağı anında izler |
+| Esneme | basılı tutma/sürükleme: ölçek 1.14 x 1.08, 180 ms `easeOutBack`; rim ve dolgu güçlenir |
+| Simge | aktif `ink` (dolu), pasif `ink` %64 (açık) / %78 (koyu) |
+| Tam ekran video (Reels) | koyu cam + `onMedia` simgeler |
+| "+" Paylaş | işlev/konum aynı; `pr` zemin + `onPr` artı, cam üstünde 2 dp `bg` %55 halka + gölge |
+
+Sürükleme: kapsüle ya da çubuğa yatay sürükleyince kapsül parmağı izler, bırakınca en yakın sekme seçilir (seçim titreşimi sekme sınırında). Çubuk içeriğin üstünde yüzer (`Scaffold.extendBody`); sayfa alt dolgusu `kNavInset` (96 dp) aynen kalır.
+
+**Erişilebilirlik / yedek:** "animasyonları azalt" (`MediaQuery.disableAnimations`), "yüksek karşıtlık" (`highContrast`) ya da `FloatingNav(glass: false)` iken bulanıklık/rim/kapsül **yok**: önceki opak `sf` yüzey + ince `bd` kenarlık (seçili sekme dolu simgeyle belli olur). Flutter'da iOS "Saydamlığı azalt" için ayrı bayrak yoktur; `highContrast` en yakın karşılıktır. Karşıtlık sözleşmesi (`test/liquid_glass_nav_test.dart`): cam arkası siyah/gri/beyaz olsa da aktif simge >= 4.5:1, pasif simge >= 3:1.
+
+**Performans:** tek `BackdropFilter` (390 x 64 dp), shader yok, her karede yalnız çubuk alanı yeniden bulanır; kapsül bulanıklığı yoktur (yalnız `CustomPaint`). Sınırlama: kaydırınca küçülme (iOS `tabBarMinimizeBehavior`) uygulanmaz (çubuk sabit kalır, `docs/MOBILE_MOTION_TABS.md`); gerçek mercek kırılması (arka planı bükme) shader gerektirir ve yapılmadı, kenar parıltısı/rim ile taklit edilir.
 
 ## 6. Uygulama durumu
 

@@ -1,6 +1,7 @@
 import 'package:bu_kampus/core/nav.dart';
 import 'package:bu_kampus/features/reels/reels_feed.dart';
 import 'package:bu_kampus/features/shell/floating_nav.dart';
+import 'package:bu_kampus/widgets/bu_glass.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 // ignore: depend_on_referenced_packages
@@ -183,20 +184,20 @@ void main() {
       useScreen(tester, const Size(390, 844));
       final badge = ValueNotifier<int>(0);
       addTearDown(badge.dispose);
-      Future<ShapeDecoration> pill(bool immersive) async {
+      Future<BuGlassBar> pill(bool immersive) async {
         await tester.pumpWidget(buildApp(Scaffold(
             bottomNavigationBar: FloatingNav(index: 1, onChanged: (_) {}, chatBadge: badge, immersive: immersive))));
         await tester.pump(const Duration(milliseconds: 400));
-        final c = tester.widget<AnimatedContainer>(find.byKey(const ValueKey('nav-pill')));
-        return c.decoration! as ShapeDecoration;
+        return tester.widget<BuGlassBar>(find.byKey(const ValueKey('nav-pill')));
       }
 
+      // Liquid Glass: normalde tema malzemesi (açık temada açık cam); Reels'te koyu cam + açık simge.
       final normal = await pill(false);
-      expect(normal.color!.a, 1);
-      expect(normal.shadows ?? const [], isEmpty, reason: 'monochrome: alt cubukta golge yok (sf + ince bd kenarlik)');
+      expect(normal.opaque, isFalse);
+      expect(normal.dark, isFalse);
       final dark = await pill(true);
-      expect(dark.color!.a, 0);
-      expect(dark.shadows ?? const [], isEmpty);
+      expect(dark.opaque, isFalse);
+      expect(dark.dark, isTrue, reason: 'tam ekran videoda koyu cam malzeme');
       noErr(tester);
     });
   });

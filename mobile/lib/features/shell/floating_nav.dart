@@ -6,23 +6,29 @@ import '../../core/motion/bu_count_up.dart' show BuPop;
 import '../../core/theme.dart';
 import '../../core/theme/bu_motion.dart';
 import '../../core/theme/bu_sizes.dart';
+import '../../widgets/bu_glass.dart';
 import '../../widgets/bu_list.dart' show BuCountBadge;
 import '../../widgets/bu_pressable.dart' show BuHaptic, BuPressable, buHaptic;
 import '../chat/chatlist_widgets.dart' show ChatlistAvatar;
 import '../../core/icons/bu_icons.dart';
 
-/// Yüzen alt gezinme (PREMIUM MONOCHROME): kenarlardan ve alttan 16 dp boşluklu, 64 dp yüksekliğinde hap şekilli
-/// `sf` yüzey + ince `bd` kenarlık (cam/gölge yok). Beş öğe: Ana Sayfa, Keşfet, ortada "+" (Paylaş: `pr` daire =
-/// koyuda beyaz zemin + siyah artı, açıkta tersi; çubuktan yukarı taşar), Sohbet (okunmamış rozeti), Profil (avatar).
+/// Yüzen alt gezinme (PREMIUM MONOCHROME + LIQUID GLASS): kenarlardan ve alttan 16 dp boşluklu, 64 dp yüksekliğinde hap.
+/// Beş öğe: Ana Sayfa, Keşfet, ortada "+" (Paylaş: `pr` daire = koyuda beyaz zemin + siyah artı, açıkta tersi; çubuktan
+/// yukarı taşar), Sohbet (okunmamış rozeti), Profil (avatar).
 ///
-/// Seçili sekmede zemin/hap YOK: aktif simge `ink` (dolu), pasif simge `mut` (çizgi); etiket görünmez (ekran okuyucu
-/// için var). İkon çizgiden doluya geçer (140 ms) ve 1.0 -> 1.08 -> 1.0 ölçeklenir.
-/// "+" basılınca 80 ms'de 0.94'e küçülür, bırakınca 140 ms'de döner (zıplama/dönme yok). Rozet ilk belirişte
-/// 140 ms ölçeklenir. "Animasyonları azalt" açıkken hepsi anlıktır. İçerik kaydırılırken çubuk sabit kalır.
+/// **Malzeme (iOS 26 Liquid Glass):** yüzey arkasındaki içeriği bulanıklaştırıp canlandırır (`BackdropFilter`, sigma 22,
+/// doygunluk 1.45), yarı saydam nötr dolgu + kenar kırılması (iç parıltı, üst spekular şerit, köşegen rim) + yalnız dışa
+/// düşen yumuşak gölge çizer (`lib/widgets/bu_glass.dart`). Seçili sekme, çubuğun içinde kayan daha açık bir cam
+/// KAPSÜL'dür: sekmeler arasında yay benzeri eğriyle akar (hafif aşım), basılı tutulunca/sürüklenince esner (1.14 x 1.08)
+/// ve sürükleme bırakılınca en yakın sekmeyi seçer. Aktif simge `ink` (dolu), pasif simge `ink` %62-70 (çizgi); etiket
+/// görünmez (ekran okuyucu için var).
 ///
-/// Sınıf adı ve zorunlu parametreler eski gezinmeyle aynıdır (kabuk ve testler değişmeden kullanır). Klavye açılınca
-/// çubuk gizlenir. Erişilebilirlik: her sekme tek düğüm ("Sohbet, 3 okunmamış", seçili durumu, "Tab 3 of 5").
-/// Yazı ölçeği etiketlerde en çok 1.15'e sınırlanır (hap taşmasın).
+/// **Yedek:** "animasyonları azalt", "yüksek karşıtlık" ya da `glass: false` iken bulanıklık/rim YOK: önceki opak `sf`
+/// yüzey + ince `bd` kenarlık. Klavye açılınca çubuk gizlenir. Tam ekran videoda (`immersive`) koyu cam malzeme + açık
+/// simgeler kullanılır. İçerik kaydırılırken çubuk sabit kalır.
+///
+/// Sınıf adı ve zorunlu parametreler eski gezinmeyle aynıdır (kabuk ve testler değişmeden kullanır). Erişilebilirlik: her
+/// sekme tek düğüm ("Sohbet, 3 okunmamış", seçili durumu, "Tab 3 of 5"). Yazı ölçeği etiketlerde en çok 1.15'e sınırlanır.
 class FloatingNav extends StatelessWidget {
   const FloatingNav({
     super.key,
@@ -33,13 +39,16 @@ class FloatingNav extends StatelessWidget {
     this.avatarName,
     this.onPublish,
     this.immersive = false,
+    this.glass = true,
   });
 
   final VoidCallback? onPublish;
 
-  /// Tam ekran video (Reels) üstünde: çubuk yüzeyi saydamlaşır (kenarlık/gölge yok), simgeler açık renk olur;
-  /// video engellenmez. Geçiş 180 ms.
+  /// Tam ekran video (Reels) üstünde: koyu cam malzeme, simgeler açık renk olur; video engellenmez. Geçiş 180 ms.
   final bool immersive;
+
+  /// Cam malzeme açık mı (false: opak yedek; performans/erişilebilirlik anahtarı).
+  final bool glass;
 
   final int index;
   final ValueChanged<int> onChanged;
@@ -66,6 +75,7 @@ class FloatingNav extends StatelessWidget {
   static const double _plusRise = 10; // dairenin çubuktan yukarı taşması
   static const double _icon = 22;
   static const double _avatar = 22; // avatar çapı (halka dışı)
+  static const double _capsuleH = 46; // seçili sekme kapsülü yüksekliği
 
   static const _outline = [BuIcons.home, BuIcons.discover, BuIcons.chat, BuIcons.users];
   static const _filled = [BuIcons.homeFilled, BuIcons.discoverFilled, BuIcons.chatFilled, BuIcons.usersFilled];
@@ -73,6 +83,12 @@ class FloatingNav extends StatelessWidget {
   static List<String> _labels(BuildContext context) {
     final l = context.l10n;
     return [l.navHome, l.navDiscover, l.navChat, l.navClubs, l.navProfile];
+  }
+
+  /// Cam yerine opak yüzey kullanılmalı mı: kapalı anahtar, "animasyonları azalt" ya da yüksek karşıtlık.
+  static bool opaqueFallback(BuildContext context, {bool glass = true}) {
+    final mq = MediaQuery.maybeOf(context);
+    return !glass || (mq?.disableAnimations ?? false) || (mq?.highContrast ?? false);
   }
 
   @override
@@ -89,10 +105,9 @@ class FloatingNav extends StatelessWidget {
 
   Widget _bar(BuildContext context) {
     final t = context.bu;
-    // Yüzey = `sf` + ince `bd` kenarlık; cam/gölge YOK (iki temada da aynı kural). Tam ekran videoda saydam.
-    final shape = StadiumBorder(side: BorderSide(color: immersive ? t.bd.withValues(alpha: 0) : t.bd));
-    final surface = immersive ? t.sf.withValues(alpha: 0) : t.sf;
-    const shadows = <BoxShadow>[];
+    final opaque = opaqueFallback(context, glass: glass);
+    // Koyu malzeme: koyu tema ya da tam ekran video üstü.
+    final dark = immersive || Theme.of(context).brightness == Brightness.dark;
     final slots = onPublish == null ? const [0, 1, 2, 3, 4] : const [0, 1, -1, 2, 4];
     return SafeArea(
       top: false,
@@ -110,11 +125,15 @@ class FloatingNav extends StatelessWidget {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                child: AnimatedContainer(
+                child: BuGlassBar(
                   key: const ValueKey('nav-pill'),
-                  duration: AppMotion.of(context, AppMotion.fast),
-                  curve: AppMotion.standard,
-                  decoration: ShapeDecoration(color: surface, shape: shape, shadows: shadows),
+                  dark: dark,
+                  white: t.onMedia,
+                  base: t.bg,
+                  ink: t.ink,
+                  opaque: opaque,
+                  opaqueColor: immersive ? Colors.transparent : t.sf,
+                  opaqueBorder: immersive ? Colors.transparent : t.bd,
                 ),
               ),
               Positioned.fill(
@@ -130,6 +149,8 @@ class FloatingNav extends StatelessWidget {
                     avatarUrl: avatarUrl,
                     avatarName: avatarName,
                     immersive: immersive,
+                    dark: dark,
+                    opaque: opaque,
                   ),
                 ),
               ),
@@ -143,14 +164,18 @@ class FloatingNav extends StatelessWidget {
 
 const _chatIndex = 2; // AppTab.chat (döngüsel içe aktarmayı önlemek için)
 
-/// Hücre yerleşimi: her slotun başlangıcı ve genişliği + seçili hapın en geniş hâli.
+/// Kapsülün sekmeler arasındaki kayışı: yay benzeri, hafif aşımlı eğri (iOS 26 sıvı kayma hissi).
+const Curve _glide = Cubic(0.25, 1.28, 0.42, 1.0);
+const Duration _glideDuration = Duration(milliseconds: 360);
+
+/// Hücre yerleşimi: her slotun başlangıcı ve genişliği.
 class _NavGeometry {
-  _NavGeometry(double inner, List<int> slots, int selected) {
+  _NavGeometry(double inner, List<int> slots) {
     final hasPlus = slots.contains(-1);
     final tabs = slots.where((i) => i >= 0).length;
     final remaining = inner - (hasPlus ? FloatingNav._plusSlot : 0);
-    // Etiket yok: tüm sekme hücreleri eşit genişlikte; seçili sekme yalnız simge + vurgu zemini (hap) ile belli olur.
-    final tabW = remaining / tabs;
+    // Etiket yok: tüm sekme hücreleri eşit genişlikte; seçili sekme cam kapsülle belli olur.
+    tabW = remaining / tabs;
     var x = 0.0;
     for (final i in slots) {
       final w = i == -1 ? FloatingNav._plusSlot : tabW;
@@ -160,11 +185,12 @@ class _NavGeometry {
     }
   }
 
+  late final double tabW;
   final lefts = <double>[];
   final widths = <double>[];
 }
 
-/// Hücreleri ve kayan hapı yerleştirir; seçim değişince hepsi aynı süre/eğriyle (220 ms, standard) animasyonlanır.
+/// Hücreleri ve kayan cam kapsülü yerleştirir; sürükleme/basılı tutma kapsülü esnetir.
 class _NavRow extends StatefulWidget {
   const _NavRow({
     required this.index,
@@ -172,6 +198,8 @@ class _NavRow extends StatefulWidget {
     required this.labels,
     required this.onChanged,
     required this.chatBadge,
+    required this.dark,
+    required this.opaque,
     this.onPublish,
     this.avatarUrl,
     this.avatarName,
@@ -179,6 +207,8 @@ class _NavRow extends StatefulWidget {
   });
 
   final bool immersive;
+  final bool dark;
+  final bool opaque;
   final int index;
   final List<int> slots;
   final List<String> labels;
@@ -193,13 +223,108 @@ class _NavRow extends StatefulWidget {
 }
 
 class _NavRowState extends State<_NavRow> {
+  // Son yerleşim (hareket işleyicileri için; start-koordinatı = yazı yönünde soldan/sağdan uzaklık).
+  final Map<int, double> _centers = {};
+  double _maxW = 0;
+  double _plusStart = -1;
+  bool _rtl = false;
+
+  bool _down = false; // parmak çubuk üstünde (Paylaş hariç)
+  double? _dragCenter; // sürüklenen kapsülün merkezi
+  int? _hover; // sürüklerken en yakın sekme
+
+  bool get _dragging => _dragCenter != null;
+
+  void _setDown(bool v) {
+    if (_down != v && mounted) setState(() => _down = v);
+  }
+
+  int _nearest(double c) {
+    var best = widget.index;
+    var d = double.infinity;
+    _centers.forEach((tab, x) {
+      final dd = (x - c).abs();
+      if (dd < d) {
+        d = dd;
+        best = tab;
+      }
+    });
+    return best;
+  }
+
+  /// Parmağın yazı yönündeki (start) konumu; kapsül parmağı mutlak olarak izler (iOS 26 gibi).
+  double _finger(Offset local) => _rtl ? _maxW - local.dx : local.dx;
+
+  double _clampCenter(double x) {
+    final lo = _centers.values.reduce((a, b) => a < b ? a : b);
+    final hi = _centers.values.reduce((a, b) => a > b ? a : b);
+    return x.clamp(lo, hi);
+  }
+
+  void _dragStart(DragStartDetails d) {
+    if (_centers.isEmpty || !_centers.containsKey(widget.index)) return;
+    final c = _clampCenter(_finger(d.localPosition));
+    setState(() {
+      _dragCenter = c;
+      _hover = _nearest(c);
+    });
+  }
+
+  void _dragUpdate(DragUpdateDetails d) {
+    if (_dragCenter == null) return;
+    final next = _clampCenter(_finger(d.localPosition));
+    final near = _nearest(next);
+    if (near != _hover) buHaptic(BuHaptic.selection);
+    setState(() {
+      _dragCenter = next;
+      _hover = near;
+    });
+  }
+
+  void _dragEnd([DragEndDetails? _]) {
+    final pick = _hover;
+    setState(() {
+      _dragCenter = null;
+      _hover = null;
+      _down = false;
+    });
+    if (pick != null && pick != widget.index) widget.onChanged(pick);
+  }
+
+  void _dragCancel() {
+    if (!_dragging && !_down) return;
+    setState(() {
+      _dragCenter = null;
+      _hover = null;
+      _down = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final t = context.bu;
+    final reduced = BuMotion.reduced(context);
     final dur = AppMotion.of(context, AppMotion.normal);
     final slots = widget.slots;
+    _rtl = Directionality.of(context) == TextDirection.rtl;
+    // Simge renkleri: cam üstünde pasif simge `ink` %62-70 (WCAG: arka plan değişse de >= 3:1); opak yedekte `mut`.
+    final fg = widget.immersive ? t.onMedia : t.ink;
+    final passive = widget.opaque
+        ? (widget.immersive ? t.onMedia.withValues(alpha: .8) : t.mut)
+        : fg.withValues(alpha: widget.dark ? .78 : .64);
+    final lit = _hover ?? widget.index;
     return LayoutBuilder(builder: (context, c) {
-      final geo = _NavGeometry(c.maxWidth - 2 * FloatingNav._hPad, slots, widget.index);
+      final geo = _NavGeometry(c.maxWidth - 2 * FloatingNav._hPad, slots);
       const top = FloatingNav.lift;
+      _maxW = c.maxWidth;
+      _centers.clear();
+      for (var pos = 0; pos < slots.length; pos++) {
+        if (slots[pos] == -1) {
+          _plusStart = FloatingNav._hPad + geo.lefts[pos];
+        } else {
+          _centers[slots[pos]] = FloatingNav._hPad + geo.lefts[pos] + geo.widths[pos] / 2;
+        }
+      }
       Widget cell(int pos, Widget child) => AnimatedPositionedDirectional(
             duration: dur,
             curve: AppMotion.standard,
@@ -209,51 +334,110 @@ class _NavRowState extends State<_NavRow> {
             height: FloatingNav.height,
             child: child,
           );
-      return Stack(
-        clipBehavior: Clip.none,
-        children: [
-          for (var pos = 0; pos < slots.length; pos++)
-            if (slots[pos] == -1)
-              AnimatedPositionedDirectional(
-                duration: dur,
-                curve: AppMotion.standard,
-                start: FloatingNav._hPad + geo.lefts[pos] + (FloatingNav._plusSlot - FloatingNav._plusSize) / 2,
-                width: FloatingNav._plusSize,
-                top: top - FloatingNav._plusRise,
-                height: FloatingNav._plusSize,
-                child: _PlusButton(onPublish: widget.onPublish),
-              )
-            else
-              cell(
-                pos,
-                _NavItem(
-                  key: ValueKey('nav-${slots[pos]}'),
-                  position: pos,
-                  selected: slots[pos] == widget.index,
-                  label: widget.labels[slots[pos]],
-                  onTap: () {
-                    if (slots[pos] != widget.index) buHaptic(BuHaptic.selection);
-                    widget.onChanged(slots[pos]);
-                  },
-                  outline: slots[pos] < 4 ? FloatingNav._outline[slots[pos]] : (widget.onPublish == null ? null : BuIcons.user),
-                  filled: slots[pos] < 4 ? FloatingNav._filled[slots[pos]] : null,
-                  badge: slots[pos] == _chatIndex ? widget.chatBadge : null,
-                  avatarUrl: slots[pos] == 4 ? widget.avatarUrl : null,
-                  avatarName: widget.avatarName,
-                  immersive: widget.immersive,
+
+      // Kapsül: seçili sekmenin hücresine kayar; sürüklerken parmağı izler (anında), bırakınca en yakın sekmeye akar.
+      final capW = (geo.tabW - 8).clamp(40.0, 64.0);
+      final center = _dragCenter ?? _centers[widget.index];
+      final stretch = !reduced && (_down || _dragging);
+      Widget? capsule;
+      if (center != null && !widget.opaque) {
+        capsule = AnimatedPositionedDirectional(
+          duration: _dragging || reduced ? Duration.zero : _glideDuration,
+          curve: _glide,
+          start: center - capW / 2,
+          width: capW,
+          top: top + (FloatingNav.height - FloatingNav._capsuleH) / 2,
+          height: FloatingNav._capsuleH,
+          child: IgnorePointer(
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(end: stretch ? 1 : 0),
+              duration: reduced ? Duration.zero : const Duration(milliseconds: 180),
+              curve: Curves.easeOutBack,
+              builder: (context, v, child) => Transform(
+                alignment: Alignment.center,
+                transform: Matrix4.diagonal3Values(1 + .14 * v, 1 + .08 * v, 1),
+                child: BuGlassCapsule(
+                  key: const ValueKey('nav-indicator'),
+                  dark: widget.dark,
+                  white: t.onMedia,
+                  base: t.bg,
+                  ink: t.ink,
+                  energy: v.clamp(0.0, 1.0),
                 ),
               ),
-        ],
+            ),
+          ),
+        );
+      }
+      return Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: (e) {
+          final sx = _rtl ? _maxW - e.localPosition.dx : e.localPosition.dx;
+          final onPlus = widget.onPublish != null && sx >= _plusStart && sx <= _plusStart + FloatingNav._plusSlot;
+          if (!onPlus) _setDown(true);
+        },
+        onPointerUp: (_) {
+          if (!_dragging) _setDown(false);
+        },
+        onPointerCancel: (_) => _dragCancel(),
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onHorizontalDragStart: _dragStart,
+          onHorizontalDragUpdate: _dragUpdate,
+          onHorizontalDragEnd: _dragEnd,
+          onHorizontalDragCancel: _dragCancel,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              if (capsule != null) capsule,
+              for (var pos = 0; pos < slots.length; pos++)
+                if (slots[pos] == -1)
+                  AnimatedPositionedDirectional(
+                    duration: dur,
+                    curve: AppMotion.standard,
+                    start: FloatingNav._hPad + geo.lefts[pos] + (FloatingNav._plusSlot - FloatingNav._plusSize) / 2,
+                    width: FloatingNav._plusSize,
+                    top: top - FloatingNav._plusRise,
+                    height: FloatingNav._plusSize,
+                    child: _PlusButton(onPublish: widget.onPublish, glass: !widget.opaque),
+                  )
+                else
+                  cell(
+                    pos,
+                    _NavItem(
+                      key: ValueKey('nav-${slots[pos]}'),
+                      position: pos,
+                      selected: slots[pos] == widget.index,
+                      lit: slots[pos] == lit,
+                      label: widget.labels[slots[pos]],
+                      onTap: () {
+                        if (slots[pos] != widget.index) buHaptic(BuHaptic.selection);
+                        widget.onChanged(slots[pos]);
+                      },
+                      outline: slots[pos] < 4 ? FloatingNav._outline[slots[pos]] : (widget.onPublish == null ? null : BuIcons.user),
+                      filled: slots[pos] < 4 ? FloatingNav._filled[slots[pos]] : null,
+                      badge: slots[pos] == _chatIndex ? widget.chatBadge : null,
+                      avatarUrl: slots[pos] == 4 ? widget.avatarUrl : null,
+                      avatarName: widget.avatarName,
+                      active: fg,
+                      passive: passive,
+                    ),
+                  ),
+            ],
+          ),
+        ),
       );
     });
   }
 }
 
-/// Ortadaki "+" düğmesi: `prPressed` daire; basınca 80 ms'de 0.94'e küçülür, bırakınca 140 ms'de döner.
+/// Ortadaki "+" düğmesi: `pr` daire; basınca 80 ms'de 0.94'e küçülür, bırakınca 140 ms'de döner.
+/// Cam çubuk üstünde okunur kalması için ince `bg` halka + yumuşak gölge taşır (opak yedekte eski 3 dp `bg` halka).
 class _PlusButton extends StatefulWidget {
-  const _PlusButton({this.onPublish});
+  const _PlusButton({this.onPublish, this.glass = false});
 
   final VoidCallback? onPublish;
+  final bool glass;
 
   @override
   State<_PlusButton> createState() => _PlusButtonState();
@@ -293,8 +477,15 @@ class _PlusButtonState extends State<_PlusButton> {
                 curve: AppMotion.standard,
                 child: DecoratedBox(
                   key: const ValueKey('nav-publish'),
-                  // Paylaş: koyuda beyaz zemin + siyah artı, açıkta siyah zemin + beyaz artı (`pr`/`onPr`); gölge yok.
-                  decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle, border: Border.all(color: t.bg, width: 3)),
+                  // Paylaş: koyuda beyaz zemin + siyah artı, açıkta siyah zemin + beyaz artı (`pr`/`onPr`).
+                  decoration: BoxDecoration(
+                    color: t.pr,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: widget.glass ? t.bg.withValues(alpha: .55) : t.bg, width: widget.glass ? 2 : 3),
+                    boxShadow: widget.glass
+                        ? [BoxShadow(color: t.shadow.withValues(alpha: .20), blurRadius: 12, offset: const Offset(0, 4))]
+                        : const <BoxShadow>[],
+                  ),
                   child: Center(child: Icon(BuIcons.plus, size: 26, color: t.onPr)),
                 ),
               ),
@@ -306,28 +497,36 @@ class _PlusButtonState extends State<_PlusButton> {
   }
 }
 
-/// Tek sekme: simge (Profil'de avatar) + yalnız seçiliyken etiket; tüm hücre dokunma alanıdır (en az 44 x 64 dp).
+/// Tek sekme: simge (Profil'de avatar); tüm hücre dokunma alanıdır (en az 44 x 64 dp).
 class _NavItem extends StatelessWidget {
   const _NavItem({
     super.key,
     required this.position,
     required this.selected,
+    required this.lit,
     required this.label,
     required this.onTap,
+    required this.active,
+    required this.passive,
     this.outline,
     this.filled,
     this.badge,
     this.avatarUrl,
     this.avatarName,
-    this.immersive = false,
   });
 
-  final bool immersive;
   final int position;
+
+  /// Gerçek seçili sekme (ekran okuyucu + rozet gizleme).
   final bool selected;
+
+  /// Görsel olarak vurgulu (sürüklerken kapsülün altındaki sekme; aksi halde [selected] ile aynı).
+  final bool lit;
   final String label;
 
   final VoidCallback onTap;
+  final Color active;
+  final Color passive;
   final IconData? outline;
   final IconData? filled;
   final ValueNotifier<int>? badge;
@@ -338,14 +537,11 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
-    // Seçili sekmede zemin/hap YOK: yalnız simge `ink` (koyuda beyaz, açıkta siyah); pasif `mut`.
-    final fg = immersive ? t.onMedia : t.ink;
-    final color = selected ? fg : (immersive ? t.onMedia.withValues(alpha: .8) : t.mut);
+    final color = lit ? active : passive;
     final unread = badge;
-    Widget glyph = _isProfile ? _profile(context, t, fg) : _icon(context, color);
+    Widget glyph = _isProfile ? _profile(context) : _icon(context, color);
     if (unread != null) glyph = _withBadge(context, glyph, unread);
-    // Etiket GÖRÜNMEZ (yalnız ekran okuyucu için `label`): seçili sekme vurgu zemini + dolu simge ile ayırt edilir.
+    // Etiket GÖRÜNMEZ (yalnız ekran okuyucu için `label`): seçili sekme cam kapsül + dolu simge ile ayırt edilir.
     final visual = ExcludeSemantics(
       child: Center(
         child: FittedBox(
@@ -383,20 +579,20 @@ class _NavItem extends StatelessWidget {
 
   Widget _icon(BuildContext context, Color color) {
     return _IconPop(
-      selected: selected,
+      selected: lit,
       child: AnimatedSwitcher(
         duration: AppMotion.of(context, AppMotion.fast),
-        child: Icon(selected ? filled : outline, key: ValueKey(selected), size: FloatingNav._icon, color: color),
+        child: Icon(lit ? filled : outline, key: ValueKey(lit), size: FloatingNav._icon, color: color),
       ),
     );
   }
 
-  Widget _profile(BuildContext context, BuTokens t, Color fg) {
+  Widget _profile(BuildContext context) {
     final dur = AppMotion.of(context, AppMotion.fast);
     final source = avatarUrl;
     Widget avatar(String? url) => ChatlistAvatar(name: avatarName ?? '', url: url, size: FloatingNav._avatar, circle: true);
     return _IconPop(
-      selected: selected,
+      selected: lit,
       child: AnimatedContainer(
         duration: dur,
         curve: AppMotion.standard,
@@ -405,7 +601,7 @@ class _NavItem extends StatelessWidget {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(color: selected ? fg : (immersive ? t.onMedia.withValues(alpha: .6) : t.mut.withValues(alpha: .45)), width: selected ? 2 : 1.25),
+          border: Border.all(color: lit ? active : passive.withValues(alpha: .75), width: lit ? 2 : 1.25),
         ),
         child: source == null
             ? avatar(null)

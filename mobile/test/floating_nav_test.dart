@@ -106,9 +106,13 @@ void main() {
     ));
     for (final i in [4, 2, 0]) {
       await tester.tap(find.byKey(ValueKey('nav-$i')));
+      await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
-      // Seçili sekmede zemin/hap YOK: yalnız simge kırmızı.
-      expect(find.byKey(const ValueKey('nav-indicator')), findsNothing, reason: 'seçili sekmede vurgu zemini yok ($i)');
+      // Seçili sekmenin altında cam kapsül var ve o hücrenin ortasına oturur.
+      expect(find.byKey(const ValueKey('nav-indicator')), findsOneWidget, reason: 'cam kapsül var ($i)');
+      final cap = tester.getCenter(find.byKey(const ValueKey('nav-indicator')));
+      final cellC = tester.getCenter(find.byKey(ValueKey('nav-$i')));
+      expect((cap.dx - cellC.dx).abs(), lessThan(1.5), reason: 'kapsül sekme $i hücresinde');
       for (var j = 0; j < 5; j++) {
         expect(find.text(_labels[j]), findsNothing, reason: 'hiçbir sekmede görünür etiket yok ($j)');
       }
