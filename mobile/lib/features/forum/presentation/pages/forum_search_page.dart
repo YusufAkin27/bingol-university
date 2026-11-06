@@ -11,7 +11,9 @@ import '../../forum_routes.dart';
 import '../widgets/forum_list_topic_card.dart';
 import '../widgets/forum_page_bar.dart';
 import '../widgets/forum_paged_list.dart';
+import '../widgets/category_chips.dart';
 import '../widgets/forum_result_tiles.dart';
+import 'forum_category_picker_page.dart';
 
 /// Arama yazıldıktan sonra isteğin gitmesi için beklenen süre (her tuşta istek atılmaz).
 const Duration kForumSearchDebounce = Duration(milliseconds: 350);
@@ -39,7 +41,7 @@ class _ForumSearchPageState extends State<ForumSearchPage> {
   /// Sunucuya giden (bekleme dolmuş) sorgu; boş = arama yok.
   String _active = '';
   int _sortIdx = 0;
-  int _catIdx = 0;
+  int? _catId;
   List<ForumCategory> _categories = const [];
 
   List<String> _recent = const [];
@@ -88,6 +90,12 @@ class _ForumSearchPageState extends State<ForumSearchPage> {
     } catch (_) {
       // Kategori çipleri isteğe bağlıdır; yüklenemezse yalnız "Tümü" gibi süzgeçsiz arama sürer.
     }
+  }
+
+  Future<void> _openCategoryPicker() async {
+    final r = await openForumCategoryPicker(context, api: _api, categories: _categories, selectedId: _catId);
+    if (!mounted || r == null) return;
+    setState(() => _catId = r.category?.id);
   }
 
   void _onChanged(String v) {
@@ -149,8 +157,7 @@ class _ForumSearchPageState extends State<ForumSearchPage> {
     final t = context.bu;
     final l = context.l10n;
     final searching = _active.isNotEmpty;
-    final catLabels = [l.forumSearchAllCategories, ..._categories.map((c) => c.name)];
-    final catId = _catIdx > 0 && _catIdx <= _categories.length ? _categories[_catIdx - 1].id : null;
+    final catId = _categories.any((c) => c.id == _catId) ? _catId : null;
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(children: [
@@ -167,12 +174,12 @@ class _ForumSearchPageState extends State<ForumSearchPage> {
         ),
         if (searching) ...[
           if (_categories.isNotEmpty)
-            BuChipRow(
-              key: const ValueKey('forum-search-categories'),
-              labels: catLabels,
-              selected: _catIdx,
-              padding: const EdgeInsetsDirectional.symmetric(horizontal: 16),
-              onSelected: (i) => setState(() => _catIdx = i),
+            ForumCategoryChips(
+              listKey: const ValueKey('forum-search-categories'),
+              categories: _categories,
+              selectedId: catId,
+              onSelected: (id) => setState(() => _catId = id),
+              onOpenAll: _openCategoryPicker,
             ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),

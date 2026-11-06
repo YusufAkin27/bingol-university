@@ -38,8 +38,11 @@ class ForumApi {
 
   // ---- Kategoriler ----------------------------------------------------------------------------------------
 
-  Future<List<ForumCategory>> categories({bool force = false}) async {
-    final r = await _api.get('/forum/categories', force: force);
+  /// Kategoriler (gruplu). [q] verilirse sunucu ad/slug/grup adında Türkçe karakter duyarsız süzer
+  /// (`GET /forum/categories?q=`); verilmezse tam liste.
+  Future<List<ForumCategory>> categories({bool force = false, String? q}) async {
+    final query = q?.trim() ?? '';
+    final r = await _api.get('/forum/categories${query.isEmpty ? '' : _q({'q': query})}', force: force);
     final list = r is List ? r : (r is Map && r['items'] is List ? r['items'] as List : const []);
     return [for (final e in list) if (e is Map) ForumCategory.fromJson(Map<String, dynamic>.from(e))];
   }

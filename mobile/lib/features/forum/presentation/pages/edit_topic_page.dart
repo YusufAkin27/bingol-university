@@ -233,6 +233,7 @@ class _EditTopicPageState extends State<EditTopicPage> {
                           ),
                   ),
                   CategoryPickerRow(
+                    api: _api,
                     categories: _cats,
                     selectedId: _categoryId,
                     fallbackName: widget.topic.category?.name,

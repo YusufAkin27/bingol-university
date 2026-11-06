@@ -453,6 +453,7 @@ class _CreateTopicPageState extends State<CreateTopicPage> {
                         : (hint != null ? _Notice(key: const ValueKey('forumComposeHint'), text: hint) : const SizedBox(width: double.infinity)),
                   ),
                   CategoryPickerRow(
+                    api: _api,
                     categories: _cats,
                     selectedId: _categoryId,
                     loading: _catsLoading,

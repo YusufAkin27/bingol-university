@@ -120,6 +120,10 @@ class FakeForum {
 
   final List<Map<String, dynamic>> categories = [];
 
+  /// `GET /forum/categories` sorgu dizeleri (q= dahil) ve isteğe bağlı sunucu tarafı arama simülasyonu.
+  final List<String> categoryQueries = [];
+  List<Map<String, dynamic>> Function(String q)? categorySearch;
+
   /// En yeni başta.
   final List<Map<String, dynamic>> topics = [];
 
@@ -171,7 +175,13 @@ class FakeForum {
     const err500 = FakeResult.json({'code': 'SERVER_ERROR', 'message': 'Hata'}, status: 500);
     const notFound = FakeResult.json({'code': 'FORUM_TOPIC_NOT_FOUND', 'message': 'Konu bulunamadı.'}, status: 404);
 
-    if (path == '/forum/categories' && m == 'GET') return FakeResult.json(categories);
+    if (path == '/forum/categories' && m == 'GET') {
+      categoryQueries.add(uri.query);
+      final q = uri.queryParameters['q'];
+      final search = categorySearch;
+      if (q != null && q.isNotEmpty && search != null) return FakeResult.json(search(q));
+      return FakeResult.json(categories);
+    }
 
     if (path == '/forum/topics' && m == 'GET') {
       if (failTopics) return err500;

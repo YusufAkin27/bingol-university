@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/locale_controller.dart';
 import '../../../../widgets/bu.dart';
+import '../../data/forum_api.dart';
 import '../../data/forum_models.dart';
+import '../pages/forum_category_picker_page.dart';
 
 /// Forum formlarında ortak giriş kutusu: yüzey zemini + ince çizgi; odakta/hatada çizgi vurgulanır.
 /// İçine çıplak (kenarlıksız) bir `TextField` konur ([composeInputDecoration]).
@@ -128,6 +130,7 @@ class ComposeSwitchRow extends StatelessWidget {
 class CategoryPickerRow extends StatelessWidget {
   const CategoryPickerRow({
     super.key,
+    required this.api,
     required this.categories,
     required this.selectedId,
     required this.onSelected,
@@ -138,6 +141,8 @@ class CategoryPickerRow extends StatelessWidget {
     this.enabled = true,
   });
 
+  /// Seçici sunucu aramasını (`?q=`) ve gerekirse yüklemeyi bu uçla yapar.
+  final ForumApi api;
   final List<ForumCategory> categories;
   final int? selectedId;
   final ValueChanged<ForumCategory> onSelected;
@@ -156,46 +161,12 @@ class CategoryPickerRow extends StatelessWidget {
     return selectedId == null ? null : fallbackName;
   }
 
+  /// Aramalı, gruplu kategori seçicisini açar (tam sayfa; "Tümü" satırı yok: konu bir kategoriye aittir).
   Future<void> _open(BuildContext context) async {
-    final l = context.l10n;
-    final picked = await BuSheet.show<ForumCategory>(
-      context,
-      title: l.forumComposeCategoryPick,
-      padding: const EdgeInsetsDirectional.fromSTEB(8, 0, 8, 8),
-      builder: (ctx) {
-        final t = ctx.bu;
-        final tt = Theme.of(ctx).textTheme;
-        if (categories.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text(l.forumComposeCategorySheetEmpty,
-                textAlign: TextAlign.center, style: tt.bodyMedium?.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
-          );
-        }
-        return Column(mainAxisSize: MainAxisSize.min, children: [
-          for (final c in categories)
-            InkWell(
-              key: ValueKey('forumCategory${c.id}'),
-              borderRadius: BuRadius.bSm,
-              onTap: () {
-                buHaptic(BuHaptic.selection);
-                Navigator.pop(ctx, c);
-              },
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: BuSize.row),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Row(children: [
-                    Expanded(child: Text(c.name, style: tt.bodyLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w400))),
-                    if (c.id == selectedId) Icon(BuIcons.check, size: 20, color: t.pr),
-                  ]),
-                ),
-              ),
-            ),
-        ]);
-      },
-    );
-    if (picked != null) onSelected(picked);
+    final picked =
+        await openForumCategoryPicker(context, api: api, categories: categories, selectedId: selectedId, allowAll: false);
+    final c = picked?.category;
+    if (c != null) onSelected(c);
   }
 
   @override

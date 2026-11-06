@@ -312,6 +312,8 @@ void main() {
       await tester.pumpWidget(_page(b));
       await settle(tester);
       await tester.scrollUntilVisible(find.byKey(const ValueKey('forum-more-497')), 300, scrollable: find.byType(Scrollable).first);
+      await tester.ensureVisible(find.byKey(const ValueKey('forum-more-497')));
+      await tester.pump();
       await tester.tap(find.byKey(const ValueKey('forum-more-497'))); // i=3: anonim
       await settle(tester);
       expect(find.byKey(const ValueKey('forum-menu-mute')), findsNothing);

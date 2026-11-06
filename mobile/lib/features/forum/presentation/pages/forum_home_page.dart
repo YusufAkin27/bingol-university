@@ -10,6 +10,7 @@ import '../../../notifications/notifications_page.dart';
 import '../../data/forum_feed_controller.dart';
 import '../../forum_routes.dart';
 import '../widgets/category_chips.dart';
+import 'forum_category_picker_page.dart';
 import '../widgets/forum_state_views.dart';
 import '../widgets/topic_actions.dart';
 import '../widgets/topic_card.dart';
@@ -122,6 +123,17 @@ class _ForumHomePageState extends State<ForumHomePage> {
     }
   }
 
+  /// "Tüm kategoriler": aramalı, gruplu seçici sayfası; seçim akışı o kategoriye (ya da "Tümü"ne) çevirir.
+  Future<void> _openCategoryPicker() async {
+    final r = await openForumCategoryPicker(context,
+        api: _api, categories: _cats, selectedId: _feed.categoryId);
+    if (!mounted || r == null) return;
+    final id = r.category?.id;
+    if (id == _feed.categoryId) return;
+    if (_scroll.hasClients) _scroll.jumpTo(0);
+    await _feed.setCategory(id);
+  }
+
   Future<void> _pickSort() async {
     final l = context.l10n;
     final picked = await BuSheet.show<ForumSort>(
@@ -209,13 +221,6 @@ class _ForumHomePageState extends State<ForumHomePage> {
                   child: Semantics(header: true, label: l.forumHomeA11y, child: const SizedBox.expand()),
                 ),
                 BuIconButton(
-                  key: const ValueKey('forum-search'),
-                  icon: BuIcons.search,
-                  tooltip: l.forumHomeSearch,
-                  onTap: () => openForumSearch(context, widget.session),
-                ),
-                BuGap.w8,
-                BuIconButton(
                   key: const ValueKey('forum-bell'),
                   icon: BuIcons.bell,
                   tooltip: l.forumHomeNotifications,
@@ -245,10 +250,28 @@ class _ForumHomePageState extends State<ForumHomePage> {
         ),
       ),
       SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.page, 0, BuSpace.page, 8),
+          // Görünür arama kutusu: dokununca tam arama sayfası açılır (yazma orada; son aramalar + popüler konular).
+          child: Semantics(
+            button: true,
+            label: l.forumHomeSearch,
+            excludeSemantics: true,
+            child: BuSearchField(
+              key: const ValueKey('forum-search'),
+              hint: l.forumSearchHint,
+              readOnly: true,
+              onTap: () => openForumSearch(context, widget.session),
+            ),
+          ),
+        ),
+      ),
+      SliverToBoxAdapter(
         child: ForumCategoryChips(
           categories: _cats,
           selectedId: _feed.categoryId,
           loading: _catsLoading,
+          onOpenAll: _openCategoryPicker,
           onSelected: (id) {
             if (_scroll.hasClients) _scroll.jumpTo(0);
             _feed.setCategory(id);

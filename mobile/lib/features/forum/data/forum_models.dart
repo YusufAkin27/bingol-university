@@ -23,6 +23,9 @@ class ForumCategory {
     required this.name,
     this.sortOrder = 0,
     this.topicCount = 0,
+    this.groupKey,
+    this.groupName,
+    this.groupOrder = 0,
   });
 
   factory ForumCategory.fromJson(Map<String, dynamic>? j) => ForumCategory(
@@ -31,6 +34,9 @@ class ForumCategory {
         name: _str(j?['name']) ?? '',
         sortOrder: _int(j?['sortOrder']),
         topicCount: _int(j?['topicCount']),
+        groupKey: _str(j?['groupKey']),
+        groupName: _str(j?['groupName']),
+        groupOrder: _int(j?['groupOrder']),
       );
 
   final int id;
@@ -38,6 +44,11 @@ class ForumCategory {
   final String name;
   final int sortOrder;
   final int topicCount;
+
+  /// Mantıksal grup (V1480; eski sunucu/grupsuz kategori: null). Kategori seçicide bölüm başlığıdır.
+  final String? groupKey;
+  final String? groupName;
+  final int groupOrder;
 }
 
 /// Konu özetindeki kısa kategori bilgisi (`category:{id,name,slug}`).
