@@ -1,4 +1,5 @@
 import '../../core/analytics.dart';
+import '../../core/idempotency_key.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
@@ -27,6 +28,7 @@ class _NewTicketPageState extends State<NewTicketPage> {
   final _message = TextEditingController();
   String _category = 'ACCOUNT';
   bool _busy = false;
+  String? _idemKey; // bu gönderme niyetinin Idempotency-Key'i (ağ hatasında yeniden denemede aynı)
   String? _subjectErr;
   String? _messageErr;
   String? _error;
@@ -64,12 +66,15 @@ class _NewTicketPageState extends State<NewTicketPage> {
       _error = null;
     });
     try {
-      await widget.session.api.post('/support/tickets', {'category': _category, 'subject': s, 'message': m});
+      _idemKey ??= newIdempotencyKey('t');
+      await widget.session.api.post('/support/tickets', {'category': _category, 'subject': s, 'message': m}, true, {'Idempotency-Key': _idemKey!});
+      _idemKey = null;
       Analytics.instance.action('ticket_create');
       if (!mounted) return;
       supportSnack(context, context.l10n.supportTicketReceived, BuToastKind.success);
       Navigator.pop(context, true);
     } catch (e) {
+      if (!keepKeyAfterError(e)) _idemKey = null;
       if (!mounted) return;
       setState(() {
         _busy = false;

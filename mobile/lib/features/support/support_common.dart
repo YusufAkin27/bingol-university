@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
+import '../../core/text_limits.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/bu.dart';
 import '../polls/anket_style.dart';
@@ -175,15 +176,15 @@ class SupportField extends StatelessWidget {
       textField: true,
       child: TextField(
         controller: controller,
-        maxLength: maxLength,
+        inputFormatters: [if (maxLength != null) Utf16LengthLimiter(maxLength!)], // UTF-16 birimi = sunucu @Size (QA5-12)
         minLines: minLines,
         maxLines: maxLines,
         textCapitalization: TextCapitalization.sentences,
         style: tx.bodyLarge!.copyWith(height: 1.45, color: t.ink),
-        buildCounter: (ctx, {required currentLength, required isFocused, maxLength}) => counter && maxLength != null
+        buildCounter: (ctx, {required currentLength, required isFocused, maxLength}) => counter && this.maxLength != null
             ? Padding(
                 padding: const EdgeInsets.only(top: 2),
-                child: Text(ctx.l10n.profilyardFbCounter('$currentLength', '$maxLength'),
+                child: Text(ctx.l10n.profilyardFbCounter('${controller.text.length}', '${this.maxLength}'),
                     style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: t.mut)),
               )
             : const SizedBox.shrink(),

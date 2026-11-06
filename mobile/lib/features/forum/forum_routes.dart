@@ -18,9 +18,8 @@ import 'presentation/widgets/report_sheet.dart';
 export 'data/forum_api.dart' show ForumApi;
 export 'data/forum_models.dart';
 
-/// Kampüs Forum gezinme noktaları (TEK giriş). İmzalar SABİTTİR (FORUM_API.md §3); gerçek ekranı yazan ajan
-/// yalnız kendi fonksiyonunun GÖVDESİNDEKİ `builder` satırını değiştirir. Yer tutucular
-/// `ForumPlaceholderPage`'dir (görünür metin yok). Rota adları analitik/geri akışı için sabittir.
+/// Kampüs Forum gezinme noktaları (TEK giriş). İmzalar SABİTTİR (FORUM_API.md §3). Rota adları analitik/geri akışı
+/// için sabittir.
 
 Future<T?> _push<T>(BuildContext context, String name, WidgetBuilder builder) =>
     Navigator.of(context).push<T>(MaterialPageRoute<T>(settings: RouteSettings(name: name), builder: builder));

@@ -1,7 +1,6 @@
 import 'package:bu_kampus/features/discover/discover_tab.dart';
 import 'package:bu_kampus/features/forum/presentation/pages/forum_home_page.dart';
 import 'package:bu_kampus/features/forum/presentation/pages/topic_detail_page.dart';
-import 'package:bu_kampus/features/forum/presentation/pages/forum_placeholder_page.dart';
 import 'package:bu_kampus/features/home/home_layout.dart';
 import 'package:bu_kampus/features/home/home_tab.dart';
 import 'package:flutter/material.dart';

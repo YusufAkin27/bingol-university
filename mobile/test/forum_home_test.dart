@@ -5,7 +5,6 @@ import 'package:bu_kampus/features/forum/data/forum_models.dart';
 import 'package:bu_kampus/features/forum/presentation/pages/create_topic_page.dart';
 import 'package:bu_kampus/features/forum/presentation/pages/forum_activity_page.dart';
 import 'package:bu_kampus/features/forum/presentation/pages/forum_home_page.dart';
-import 'package:bu_kampus/features/forum/presentation/pages/forum_placeholder_page.dart';
 import 'package:bu_kampus/features/forum/presentation/pages/forum_prefs_page.dart';
 import 'package:bu_kampus/features/forum/presentation/pages/forum_saved_page.dart';
 import 'package:bu_kampus/features/forum/presentation/pages/forum_search_page.dart';
