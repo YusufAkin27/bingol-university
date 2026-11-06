@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/app_gate.dart' show appVersion;
+import '../../core/idempotency_key.dart';
 import '../../core/device_identity.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
@@ -26,6 +27,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
   final _message = TextEditingController();
   late String _category = const ['BUG', 'SUGGESTION', 'COMPLAINT', 'PRAISE'].contains(widget.initialCategory) ? widget.initialCategory : 'BUG';
   bool _busy = false;
+  String? _idemKey; // bu gönderme niyetinin Idempotency-Key'i
   String? _formError;
   int _tab = 0; // 0 form, 1 gonderdiklerim
 
@@ -88,6 +90,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
       _formError = null;
     });
     try {
+      _idemKey ??= newIdempotencyKey('fb');
       await widget.session.api.post('/feedback', {
         'category': _category,
         'subject': s,
@@ -96,7 +99,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
         if (DeviceIdentity.platform == 'ios') 'platform': 'IOS',
         if (DeviceIdentity.platform == 'android') 'platform': 'ANDROID',
         'appVersion': appVersion,
-      });
+      }, true, {'Idempotency-Key': _idemKey!});
+      _idemKey = null;
       if (!mounted) return;
       _subject.clear();
       _message.clear();
@@ -107,6 +111,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
       });
       _loadMine(reset: true);
     } catch (e) {
+      if (!keepKeyAfterError(e)) _idemKey = null;
       if (!mounted) return;
       setState(() {
         _busy = false;

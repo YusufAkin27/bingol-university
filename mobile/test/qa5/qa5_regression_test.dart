@@ -6,7 +6,6 @@ import 'package:bu_kampus/core/app_gate.dart';
 import 'package:bu_kampus/features/forum/data/forum_api.dart';
 import 'package:bu_kampus/features/forum/data/forum_draft_store.dart';
 import 'package:bu_kampus/features/forum/presentation/widgets/comment_controller.dart';
-import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';

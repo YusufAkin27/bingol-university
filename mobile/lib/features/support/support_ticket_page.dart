@@ -4,6 +4,7 @@ import 'package:intl/intl.dart' show DateFormat;
 
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
+import '../../core/text_limits.dart';
 import '../../widgets/bu.dart';
 import '../../widgets/common.dart' show niceDate;
 import '../polls/anket_flat.dart';
@@ -309,7 +310,9 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
               controller: _reply,
               minLines: 1,
               maxLines: 4,
-              maxLength: 2000,
+              inputFormatters: const [Utf16LengthLimiter(2000)], // UTF-16 birimi = sunucu @Size
+              buildCounter: (c, {required currentLength, required isFocused, maxLength}) =>
+                  Text('${_reply.text.length}/2000', style: tx.labelMedium!.copyWith(color: t.mut)),
               textCapitalization: TextCapitalization.sentences,
               style: tx.bodyLarge!.copyWith(color: t.ink),
               decoration: anketFieldDeco(context, hint: context.l10n.p68ReplyHint),

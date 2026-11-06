@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../../../core/analytics.dart';
 import '../../../core/api.dart';
+import '../../../core/idempotency_key.dart' as idem;
 import '../../../core/platform/image_service.dart';
 import '../../../core/session.dart';
 import 'forum_models.dart';
@@ -31,9 +32,7 @@ class ForumApi {
   /// Çift gönderimi engelleyen anahtar: aynı anahtarla tekrar gönderilen istek aynı kaydı döner. Bir "gönderme niyeti"
   /// için BİR kez üretilip yeniden denemelerde aynen kullanılmalıdır.
   static String newIdempotencyKey() {
-    final t = DateTime.now().microsecondsSinceEpoch.toRadixString(36);
-    final r = (Object().hashCode ^ t.hashCode).toRadixString(36);
-    return 'f$t-$r';
+    return idem.newIdempotencyKey('f');
   }
 
   // ---- Kategoriler ----------------------------------------------------------------------------------------
