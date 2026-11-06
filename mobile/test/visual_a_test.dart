@@ -19,7 +19,7 @@ import 'package:bu_kampus/features/posts/compose_post_page.dart';
 import 'package:bu_kampus/features/posts/post_detail_page.dart';
 import 'package:bu_kampus/features/posts/post_models.dart';
 import 'package:bu_kampus/features/posts/user_posts_page.dart';
-import 'package:bu_kampus/features/shell/floating_nav.dart';
+import 'package:bu_kampus/features/shell/bukampus_bottom_navigation_bar.dart';
 import 'package:bu_kampus/features/system/gate_views.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -144,7 +144,7 @@ final _cases = <_Case>[
       'floating_nav',
       (b) => Scaffold(
             body: const SizedBox.expand(),
-            bottomNavigationBar: FloatingNav(index: 1, onChanged: (_) {}, chatBadge: ValueNotifier<int>(120)),
+            bottomNavigationBar: BukampusBottomNavigationBar(index: 1, onChanged: (_) {}, chatBadge: ValueNotifier<int>(120)),
           )),
 ];
 

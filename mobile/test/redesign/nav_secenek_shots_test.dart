@@ -8,7 +8,7 @@ import 'package:bu_kampus/core/theme/bu_motion.dart';
 import 'package:bu_kampus/features/chat/chatlist_widgets.dart' show ChatlistAvatar;
 import 'package:bu_kampus/features/discover/discover_tab.dart';
 import 'package:bu_kampus/features/home/home_tab.dart';
-import 'package:bu_kampus/features/shell/floating_nav.dart';
+import 'package:bu_kampus/features/shell/bukampus_bottom_navigation_bar.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:bu_kampus/widgets/bu_list.dart' show BuCountBadge;
 import 'package:bu_kampus/widgets/bu_pressable.dart' show BuHaptic, buHaptic;
@@ -596,7 +596,7 @@ class _Host extends StatefulWidget {
   final int initial;
   final int unread;
   final bool compact;
-  final bool old; // mevcut FloatingNav (once/sonra karsilastirmasi)
+  final bool old; // mevcut BukampusBottomNavigationBar (once/sonra karsilastirmasi)
 
   @override
   State<_Host> createState() => _HostState();
@@ -615,7 +615,7 @@ class _HostState extends State<_Host> {
         return widget.body;
       }),
       bottomNavigationBar: widget.old
-          ? FloatingNav(index: index, onChanged: (i) => setState(() => index = i), chatBadge: unread)
+          ? BukampusBottomNavigationBar(index: index, onChanged: (i) => setState(() => index = i), chatBadge: unread)
           : ProtoNav(
               variant: widget.variant,
               index: index,
@@ -1002,7 +1002,7 @@ void main() {
     print('\nNAV-OLCUM\n$report');
   });
 
-  testWidgets('nav olcum: mevcut FloatingNav (HEAD) gercek yukseklik vs kNavInset', (tester) async {
+  testWidgets('nav olcum: mevcut BukampusBottomNavigationBar (HEAD) gercek yukseklik vs kNavInset', (tester) async {
     for (final inset in [0.0, 34.0]) {
       _view(tester, 390, 844, inset);
       LocaleController.current = LocaleController(deviceLocales: () => [const Locale('tr')])..pref = 'tr';
@@ -1011,15 +1011,15 @@ void main() {
         Scaffold(
           extendBody: true,
           body: const SizedBox.expand(),
-          bottomNavigationBar: FloatingNav(index: 0, onChanged: (_) {}, chatBadge: ValueNotifier<int>(0)),
+          bottomNavigationBar: BukampusBottomNavigationBar(index: 0, onChanged: (_) {}, chatBadge: ValueNotifier<int>(0)),
         ),
         false,
         key,
       ));
       await tester.pump(const Duration(milliseconds: 400));
-      final s = tester.getSize(find.byType(FloatingNav));
+      final s = tester.getSize(find.byType(BukampusBottomNavigationBar));
       final pill = tester.getSize(find.byKey(const ValueKey('nav-pill')));
-      report.writeln('MEVCUT FloatingNav inset=$inset: toplam alt alan ${s.height} dp, hap ${pill.height} dp, sabit BuSize.navInset=96 (HEAD kNavInset=100)');
+      report.writeln('MEVCUT BukampusBottomNavigationBar inset=$inset: toplam alt alan ${s.height} dp, hap ${pill.height} dp, sabit BuSize.navInset=96 (HEAD kNavInset=100)');
     }
     LocaleController.current = null;
   });

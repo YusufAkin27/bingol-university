@@ -624,7 +624,7 @@ void main() {
     matrix('AppShell', shell, settleFor: const Duration(seconds: 1));
 
     for (final size in kPhoneSizes) {
-      testWidgets('FloatingNav ${size.width.toInt()} tum sekmeler', (tester) async {
+      testWidgets('BukampusBottomNavigationBar ${size.width.toInt()} tum sekmeler', (tester) async {
         final h = sem(tester);
         useScreen(tester, size);
         var idx = 0;
@@ -633,7 +633,7 @@ void main() {
         await tester.pumpWidget(buildApp(StatefulBuilder(
           builder: (c, set) => Scaffold(
               bottomNavigationBar:
-                  FloatingNav(index: idx, onChanged: (i) => set(() => idx = i), chatBadge: badge)),
+                  BukampusBottomNavigationBar(index: idx, onChanged: (i) => set(() => idx = i), chatBadge: badge)),
         ), size: size));
         for (var i = 0; i < 5; i++) {
           await tester.tap(find.bySemanticsLabel(RegExp(['Ana Sayfa', 'Keşfet', 'Sohbet', 'Kulüpler', 'Profil'][i])).first);

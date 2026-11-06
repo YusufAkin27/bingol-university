@@ -19,7 +19,7 @@ void main() {
     await settle(tester);
   }
 
-  int navIndex(WidgetTester tester) => tester.widget<FloatingNav>(find.byType(FloatingNav)).index;
+  int navIndex(WidgetTester tester) => tester.widget<BukampusBottomNavigationBar>(find.byType(BukampusBottomNavigationBar)).index;
 
   // Üst başlık/arama dışında, bölümlerin ortasında bir nokta (haber şeridi gibi yatay kaydırıcıların dışı).
   Offset spot(WidgetTester tester) => Offset(200, tester.view.physicalSize.height / tester.view.devicePixelRatio * .55);

@@ -13,7 +13,7 @@ import 'package:bu_kampus/features/discover/discover_tab.dart';
 import 'package:bu_kampus/features/notifications/notifications_page.dart';
 import 'package:bu_kampus/features/profile/profile_tab.dart';
 import 'package:bu_kampus/features/profile/settings_page.dart';
-import 'package:bu_kampus/features/shell/floating_nav.dart';
+import 'package:bu_kampus/features/shell/bukampus_bottom_navigation_bar.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -69,7 +69,7 @@ Widget _navShot(int idx, int badge) {
   final n = ValueNotifier<int>(badge);
   return Scaffold(
     body: const SizedBox.expand(),
-    bottomNavigationBar: FloatingNav(index: idx, onChanged: (_) {}, chatBadge: n, avatarName: 'Ayşe Kaya'),
+    bottomNavigationBar: BukampusBottomNavigationBar(index: idx, onChanged: (_) {}, chatBadge: n),
   );
 }
 

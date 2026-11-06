@@ -155,7 +155,8 @@ void main() {
       await settle(tester, const Duration(seconds: 1));
       expect(s.avatarUrl.value, '/files/avatars/1.jpg');
       expect(find.byKey(const ValueKey('nav-4')), findsOneWidget);
-      expect(find.descendant(of: find.byKey(const ValueKey('nav-4')), matching: find.byType(ChatlistAvatar)), findsOneWidget);
+      // Soft Glow tasarimi: Profil sekmesi outline kullanici simgesi; foto avatar ikon olarak KULLANILMAZ.
+      expect(find.descendant(of: find.byKey(const ValueKey('nav-4')), matching: find.byType(ChatlistAvatar)), findsNothing);
       await unmount(tester);
     });
 
@@ -168,7 +169,9 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('nav-1')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 16));
-      expect(find.byKey(const ValueKey('nav-indicator')), findsNothing); // seçili sekmede zemin yok
+      // Azaltilmis harekette kayan zemin anlik yerine oturur (animasyonsuz).
+      final dx = (tester.getCenter(find.byKey(const ValueKey('nav-indicator'))).dx - tester.getCenter(find.byKey(const ValueKey('nav-1'))).dx).abs();
+      expect(dx, lessThan(1.5));
       expect(tester.takeException(), isNull);
       await unmount(tester);
     });

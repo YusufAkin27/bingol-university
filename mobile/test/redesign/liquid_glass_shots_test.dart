@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
-import 'package:bu_kampus/features/shell/floating_nav.dart';
+import 'package:bu_kampus/features/shell/bukampus_bottom_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -61,7 +61,7 @@ void main() {
                 Positioned.fill(child: backdrop(dark)),
                 Align(
                   alignment: Alignment.bottomCenter,
-                  child: FloatingNav(index: index, onChanged: (i) => set(() => index = i), chatBadge: badge, onPublish: () {}),
+                  child: BukampusBottomNavigationBar(index: index, onChanged: (i) => set(() => index = i), chatBadge: badge, onPublish: () {}),
                 ),
               ],
             ),

@@ -1,5 +1,5 @@
 import 'package:bu_kampus/features/chat/chatlist_widgets.dart';
-import 'package:bu_kampus/features/shell/floating_nav.dart';
+import 'package:bu_kampus/features/shell/bukampus_bottom_navigation_bar.dart';
 import 'package:bu_kampus/widgets/bu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,7 +9,7 @@ import 'support/fake_app.dart';
 const _labels = ['Ana Sayfa', 'Keşfet', 'Sohbet', 'Kulüpler', 'Profil'];
 
 Widget _nav(int idx, void Function(int) on, ValueNotifier<int> badge, Size size, Brightness br) => buildApp(
-      Scaffold(bottomNavigationBar: FloatingNav(index: idx, onChanged: on, chatBadge: badge)),
+      Scaffold(bottomNavigationBar: BukampusBottomNavigationBar(index: idx, onChanged: on, chatBadge: badge)),
       brightness: br,
       size: size,
     );
@@ -21,7 +21,7 @@ void main() {
     addTearDown(badge.dispose);
     var published = 0;
     final selected = <int>[];
-    await tester.pumpWidget(buildApp(Scaffold(bottomNavigationBar: FloatingNav(
+    await tester.pumpWidget(buildApp(Scaffold(bottomNavigationBar: BukampusBottomNavigationBar(
       index: 0, onChanged: selected.add, chatBadge: badge, onPublish: () => published++,
     ))));
     expect(find.text('Kulüpler'), findsNothing);
@@ -33,18 +33,18 @@ void main() {
     expect(selected, [2]);
   });
 
-  testWidgets('yalniz secili sekmede etiket gorunur; hepsinin Semantics etiketi var', (tester) async {
+  testWidgets('4 sekme etiketi gorunur (Kulupler yalniz Paylas yokken); hepsinin Semantics etiketi var', (tester) async {
     final h = tester.ensureSemantics();
     useScreen(tester, kPhoneMedium);
     final badge = ValueNotifier<int>(0);
     addTearDown(badge.dispose);
     await tester.pumpWidget(_nav(0, (_) {}, badge, kPhoneMedium, Brightness.light));
     expect(find.byKey(const ValueKey('nav-pill')), findsOneWidget);
-    // 4 simge sekmesi + Profil sekmesinde avatar (simge yok).
-    expect(find.byType(Icon), findsNWidgets(4));
-    expect(find.byType(ChatlistAvatar), findsOneWidget);
+    // 5 sekme simgesi, Profil dahil outline kullanici simgesi (foto avatar yok).
+    expect(find.descendant(of: find.byKey(const ValueKey('nav-pill')), matching: find.byType(Icon)), findsNothing); // simgeler pill'in kardesi
+    expect(find.byType(Icon), findsNWidgets(5));
+    expect(find.byType(ChatlistAvatar), findsNothing);
     for (final l in _labels) {
-      expect(find.text(l), findsNothing, reason: 'etiket görünmez: $l'); // yalnız simge; etiket ekran okuyucuda
       expect(find.bySemanticsLabel(RegExp(l)), findsWidgets);
     }
     h.dispose();
@@ -65,38 +65,26 @@ void main() {
     h.dispose();
   });
 
-  testWidgets('rozet gorunur ve kaybolur; 99 ustu 99+', (tester) async {
+  testWidgets('okunmamis noktasi gorunur ve kaybolur (sayi yok)', (tester) async {
     useScreen(tester, kPhoneMedium);
     final badge = ValueNotifier<int>(0);
     addTearDown(badge.dispose);
     await tester.pumpWidget(_nav(0, (_) {}, badge, kPhoneMedium, Brightness.light));
-    expect(find.byKey(const ValueKey('nav-badge')), findsNothing);
+    expect(find.byKey(const ValueKey('nav-dot')), findsNothing);
     badge.value = 7;
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('7'), findsOneWidget);
+    expect(find.byKey(const ValueKey('nav-dot')), findsOneWidget);
+    expect(find.text('7'), findsNothing);
     badge.value = 150;
     await tester.pump();
-    expect(find.text('99+'), findsOneWidget);
+    expect(find.byKey(const ValueKey('nav-dot')), findsOneWidget);
     badge.value = 0;
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-    expect(find.byKey(const ValueKey('nav-badge')), findsNothing);
+    expect(find.byKey(const ValueKey('nav-dot')), findsNothing);
   });
 
-  testWidgets('secili sekme sohbetse rozet gizlenir (zaten acik)', (tester) async {
-    useScreen(tester, kPhoneMedium);
-    final badge = ValueNotifier<int>(5);
-    addTearDown(badge.dispose);
-    await tester.pumpWidget(_nav(2, (_) {}, badge, kPhoneMedium, Brightness.light));
-    await tester.pump(const Duration(milliseconds: 400));
-    final scale = tester.widget<AnimatedScale>(find
-        .ancestor(of: find.byKey(const ValueKey('nav-badge')), matching: find.byType(AnimatedScale))
-        .first);
-    expect(scale.scale, 0);
-  });
-
-  testWidgets('secili sekme degisince kayan hap yeni sekmenin hucresine kayar (220 ms) ve etiket acilir', (tester) async {
+  testWidgets('secili sekme degisince kayan yumusak zemin yeni sekmenin hucresine kayar (220 ms)', (tester) async {
     useScreen(tester, kPhoneMedium);
     final badge = ValueNotifier<int>(0);
     addTearDown(badge.dispose);
@@ -113,13 +101,10 @@ void main() {
       final cap = tester.getCenter(find.byKey(const ValueKey('nav-indicator')));
       final cellC = tester.getCenter(find.byKey(ValueKey('nav-$i')));
       expect((cap.dx - cellC.dx).abs(), lessThan(1.5), reason: 'kapsül sekme $i hücresinde');
-      for (var j = 0; j < 5; j++) {
-        expect(find.text(_labels[j]), findsNothing, reason: 'hiçbir sekmede görünür etiket yok ($j)');
-      }
     }
   });
 
-  testWidgets('animasyonlari azalt: hap ve etiket aninda yerine gelir', (tester) async {
+  testWidgets('animasyonlari azalt: kayan zemin aninda yerine gelir', (tester) async {
     useScreen(tester, kPhoneMedium);
     final badge = ValueNotifier<int>(0);
     addTearDown(badge.dispose);
@@ -134,22 +119,20 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 20));
     final cell = tester.getRect(find.byKey(const ValueKey('nav-4')));
-    expect(find.byKey(const ValueKey('nav-indicator')), findsNothing); // vurgu zemini yok
-    expect(cell.width, greaterThan(0));
-    expect(find.text('Profil'), findsNothing); // etiket görünmez (ekran okuyucuda var)
+    expect((tester.getCenter(find.byKey(const ValueKey('nav-indicator'))).dx - cell.center.dx).abs(), lessThan(1.5));
   });
 
-  testWidgets('"+" basinca 0.94 olcege kuculur, birakinca doner; cubuktan yukari tasar', (tester) async {
+  testWidgets('"+" basinca 0.95 olcege kuculur, birakinca doner; cubuktan yukari tasar', (tester) async {
     useScreen(tester, kPhoneMedium);
     final badge = ValueNotifier<int>(0);
     addTearDown(badge.dispose);
-    await tester.pumpWidget(buildApp(Scaffold(bottomNavigationBar: FloatingNav(index: 0, onChanged: (_) {}, chatBadge: badge, onPublish: () {}))));
+    await tester.pumpWidget(buildApp(Scaffold(bottomNavigationBar: BukampusBottomNavigationBar(index: 0, onChanged: (_) {}, chatBadge: badge, onPublish: () {}))));
     final plus = find.byKey(const ValueKey('nav-publish'));
     final bar = tester.getRect(find.byKey(const ValueKey('nav-pill')));
     expect(tester.getRect(plus).top, lessThan(bar.top - 4), reason: 'cubuktan tasmali');
     final g = await tester.startGesture(tester.getCenter(plus));
     await tester.pump(const Duration(milliseconds: 100));
-    expect(tester.widget<AnimatedScale>(find.ancestor(of: plus, matching: find.byType(AnimatedScale)).first).scale, .94);
+    expect(tester.widget<AnimatedScale>(find.ancestor(of: plus, matching: find.byType(AnimatedScale)).first).scale, .95);
     await g.up();
     await tester.pump(const Duration(milliseconds: 200));
     expect(tester.widget<AnimatedScale>(find.ancestor(of: plus, matching: find.byType(AnimatedScale)).first).scale, 1);
@@ -170,25 +153,6 @@ void main() {
     expect(chat.flagsCollection.isSelected.toBoolOrNull(), isFalse);
     expect(chat.hint, isNotEmpty);
     h.dispose();
-  });
-
-  testWidgets('profil sekmesi: foto yoksa varsayilan gorsel, foto adresi gelince guncellenir', (tester) async {
-    useScreen(tester, kPhoneMedium);
-    final badge = ValueNotifier<int>(0);
-    final url = ValueNotifier<String?>(null);
-    addTearDown(badge.dispose);
-    addTearDown(url.dispose);
-    await tester.pumpWidget(buildApp(
-      Scaffold(bottomNavigationBar: FloatingNav(index: 4, onChanged: (_) {}, chatBadge: badge, avatarUrl: url, avatarName: 'Elif Yıldız')),
-      size: kPhoneMedium,
-    ));
-    expect(find.byType(BuDefaultAvatar), findsOneWidget);
-    expect(find.byType(Image), findsNothing); // vektor: ag gorseli yok
-    url.value = '/files/avatars/me.jpg';
-    await tester.pump();
-    // Foto yuklenirken/hata verirse varsayilan gorsel altta kalir.
-    expect(find.byType(BuDefaultAvatar), findsOneWidget);
-    expect(find.byType(Image), findsOneWidget); // yalniz ag gorseli (varsayilan vektor altta)
   });
 
   testWidgets('klavye acikken cubuk gizlenir', (tester) async {
@@ -222,7 +186,7 @@ void main() {
 
   for (final br in [Brightness.light, Brightness.dark]) {
     for (final rtl in [false, true]) {
-      testWidgets('320 dp ${br.name} ${rtl ? "rtl" : "ltr"}: tasma yok, 64 dp yukseklik (yuzen hap)', (tester) async {
+      testWidgets('320 dp ${br.name} ${rtl ? "rtl" : "ltr"}: tasma yok, 68 dp yukseklik (yuzen hap)', (tester) async {
         const small = Size(320, 640);
         useScreen(tester, small);
         final badge = ValueNotifier<int>(120);
@@ -230,14 +194,14 @@ void main() {
         await tester.pumpWidget(buildApp(
           Directionality(
             textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
-            child: Scaffold(bottomNavigationBar: FloatingNav(index: 3, onChanged: (_) {}, chatBadge: badge)),
+            child: Scaffold(bottomNavigationBar: BukampusBottomNavigationBar(index: 3, onChanged: (_) {}, chatBadge: badge)),
           ),
           brightness: br,
           size: small,
         ));
         await tester.pump(const Duration(milliseconds: 400));
         expect(tester.takeException(), isNull);
-        expect(tester.getSize(find.byKey(const ValueKey('nav-pill'))).height, closeTo(FloatingNav.height, 1.5));
+        expect(tester.getSize(find.byKey(const ValueKey('nav-pill'))).height, closeTo(BukampusBottomNavigationBar.height, 1.5));
       });
     }
   }

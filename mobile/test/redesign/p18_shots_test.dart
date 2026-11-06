@@ -136,7 +136,7 @@ Widget _navDemo(int index, int badge) => Builder(builder: (context) {
         backgroundColor: t.bg,
         body: Center(child: Text('Gezinme', style: Theme.of(context).textTheme.headlineSmall)),
         bottomNavigationBar:
-            FloatingNav(index: index, onChanged: (_) {}, chatBadge: ValueNotifier<int>(badge)),
+            BukampusBottomNavigationBar(index: index, onChanged: (_) {}, chatBadge: ValueNotifier<int>(badge)),
       );
     });
 

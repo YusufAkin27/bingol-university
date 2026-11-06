@@ -5,7 +5,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:bu_kampus/features/auth/widgets/auth_ref.dart';
-import 'package:bu_kampus/features/shell/floating_nav.dart';
+import 'package:bu_kampus/features/shell/bukampus_bottom_navigation_bar.dart';
 import 'package:bu_kampus/widgets/bu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -23,7 +23,7 @@ void main() {
 
   Widget kesfet(ValueNotifier<int> badge) => Scaffold(
         extendBody: true,
-        bottomNavigationBar: FloatingNav(index: 3, onChanged: (_) {}, chatBadge: badge),
+        bottomNavigationBar: BukampusBottomNavigationBar(index: 3, onChanged: (_) {}, chatBadge: badge),
         body: ListView(
           physics: const NeverScrollableScrollPhysics(),
           padding: EdgeInsets.zero,
