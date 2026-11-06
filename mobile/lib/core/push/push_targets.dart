@@ -240,7 +240,7 @@ PushTarget resolvePushTarget(Map<String, dynamic>? data) {
 
   final dest = _destOf(target);
   if (eventId != null) return PushTarget(PushDest.event, id: eventId);
-  if (communityId != null && dest != PushDest.post)
+  if (communityId != null && (dest == null || dest == PushDest.community))
     return PushTarget(PushDest.community, id: communityId);
   if (newsId != null) return PushTarget(PushDest.news, id: newsId);
 

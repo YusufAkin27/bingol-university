@@ -328,7 +328,7 @@ class _HomeTabState extends State<HomeTab> {
 
   String _greeting(BuildContext context) {
     final l = context.l10n;
-    final h = DateTime.now().hour;
+    final h = istanbulWall(DateTime.now()).hour; // kampüs saati (cihaz saat diliminden bağımsız)
     if (h < 6) return l.homeGreetNight;
     if (h < 12) return l.homeGreetMorning;
     if (h < 18) return l.homeGreetDay;
