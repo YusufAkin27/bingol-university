@@ -9,7 +9,7 @@ Bayrak değerleri tek yerde: `lib/core/oauth_config.dart` (`--dart-define`, vars
 
 | Düğme | Görünme koşulu |
 |---|---|
-| Google ile devam et | `--dart-define=GOOGLE_SIGNIN=true` **ve** `--dart-define=GOOGLE_SERVER_CLIENT_ID=<web istemci kimliği>` |
+| Google ile devam et | `--dart-define=GOOGLE_SIGNIN=true` (varsayılan KAPALI; sunucuda `GOOGLE_CLIENT_IDS` hazır olunca açılır) **ve** web istemci kimliği dolu (varsayılanı kodda gömülü, `GOOGLE_SERVER_CLIENT_ID` ile geçersiz kılınır) |
 | Apple ile devam et | `--dart-define=APPLE_SIGNIN=true` **ve** platform iOS (Android'de Apple için sunucuda Services ID yapılandırılmadı: düğme gizli) |
 | E-posta ile devam et | her zaman |
 
@@ -18,10 +18,15 @@ bölümü yalnız en az bir yöntem açıkken görünür.
 
 ## Kullanıcının yapması gerekenler (kod değil, yapılandırma)
 
-- **Google**: Google Cloud'da web + Android (paket `tr.com.bukampus.app`, imza SHA-1/SHA-256) + iOS OAuth istemcileri.
-  `GOOGLE_SERVER_CLIENT_ID` = web istemci kimliği (sunucunun doğruladığı ID token hedef kitlesi). iOS için ayrıca
-  `Info.plist`'e `GIDClientID` (ya da `--dart-define=GOOGLE_IOS_CLIENT_ID=...`) ve ters istemci kimliği URL şeması
-  (`CFBundleURLTypes`) eklenmelidir. Bu repoda gerçek kimlik YOKTUR.
+- **Google**: istemci kimlikleri (proje bu-kampus, numara 825713637416) KODDA varsayılan olarak gömülüdür (gizli değil, herkese açık
+  tanımlayıcı): `lib/core/oauth_config.dart` (`kDefaultGoogleServerClientId` = WEB, `kDefaultGoogleIosClientId` = iOS) ve iOS'ta
+  `ios/Runner/Info.plist` (`GIDClientID` + ters kimlik URL şeması `com.googleusercontent.apps.<no>-<id>`). Android istemcisi
+  (paket `tr.com.bukampus.app` + imza SHA-1) yalnız Google Cloud eşlemesidir, kodda gerekmez; Android'de `serverClientId` = WEB
+  kimliği kullanılır. Play App Signing kullanılıyorsa Play Console'daki **uygulama imzalama** SHA-1 de ayrıca bir Android
+  istemcisi olarak eklenmelidir (yükleme anahtarı yetmez). Değiştirmek için: `--dart-define=GOOGLE_SERVER_CLIENT_ID=...` /
+  `GOOGLE_IOS_CLIENT_ID=...` (Codemagic/`build-ipa.sh`: aynı adlı ortam değişkenleri); iOS kimliğini değiştirirseniz Info.plist de
+  değişmeli (`python -I -X utf8 scripts/ios/check-ios-static.py` tutarlılığı denetler). Düğmeyi açmak: `GOOGLE_SIGNIN=true`
+  (yalnızca sunucu `GOOGLE_CLIENT_IDS` = web,android,ios ile hazırken).
 - **Apple**: Apple Developer'da App ID için "Sign in with Apple" yeteneği açılmalı, sonra `Runner.entitlements` içine
   `com.apple.developer.applesignin` eklenmeli (bu iş mobil ajan tarafından yapılmadı: yetenek açılmadan imza hatası olur).
   Ardından `--dart-define=APPLE_SIGNIN=true` ile derlenir.
@@ -45,6 +50,16 @@ bölümü yalnız en az bir yöntem açıkken görünür.
 Sağlayıcı SDK'ları arayüz + sahte uygulama ile test edilir (`test/oauth_login_test.dart`, `test/oauth_onboarding_test.dart`).
 Gerçek Google/Apple girişi cihaz/kimlik gerektirir ve macOS/Android cihazda elle doğrulanmalıdır.
 
-## Google paketini geri ekleme (iOS bağımlılık çakışması)
+## Google paketi ve iOS bağımlılık çözümü (SwiftPM)
 
-`google_sign_in` bu sürümde `pubspec.yaml`'dan ÇIKARILDI: iOS'ta SwiftPM `googlesignin-ios` 9 (`gtm-session-fetcher` 3.x) ile Firebase iOS SDK 13 (`firebase_messaging`, `gtm-session-fetcher` 4.x-5.x) birlikte çözülemiyor ve Codemagic "Could not resolve package dependencies" hatası veriyor. Google düğmesi `kGoogleSignInCompiled = false` ile her zaman gizli; `GoogleSignInServiceImpl` `GOOGLE_UNAVAILABLE` döner. Yeniden etkinleştirmek için: (1) uyumlu bir `google_sign_in_ios`/`googlesignin-ios` sürümü ya da CocoaPods ile çözüm bul (`flutter config --no-enable-swift-package-manager` denenebilir) ve iOS'ta temiz derlendiğini Codemagic'te doğrula, (2) `google_sign_in` bağımlılığını ekle, (3) `GoogleSignInServiceImpl.signIn` içinde `GoogleSignIn.instance.initialize/authenticate` kullan (git geçmişi: commit 57af75eb), (4) `kGoogleSignInCompiled = true`, (5) Google istemci kimliklerini ver.
+Çözüm: `google_sign_in: 7.2.0` + `google_sign_in_ios: ^6.4.0` (alt sınır ZORUNLU, düşürmeyin). Neden: `firebase_core 5.1.0` /
+`firebase_messaging 17.0.1` Firebase iOS SDK **13.1.1**'e kilitlidir (`exact`); bu SDK `gtm-session-fetcher "4.0.0"..<"6.0.0"` ve
+`app-check "12.0.0"..<"13.0.0"` ister. `google_sign_in_ios 6.3.x` GoogleSignIn-iOS 9.x'e (`gtm-session-fetcher` 3.x, SwiftPM
+`from: 3.3.0` = <4.0.0) bağlıydı: çakışma. `google_sign_in_ios 6.4.0` (2026-11-05) GoogleSignIn-iOS `"9.0.0"..<"11.0.0"` kabul eder ve
+SwiftPM 10.1.0'ı seçer (`gtm-session-fetcher "3.3.0"..<"6.0.0"`, `app-check "11.0.0"..<"13.0.0"`, GTMAppAuth 6, AppAuth 3);
+GoogleSignIn-iOS 10.1.0 değişiklik günlüğü bunu açıkça belirtir ("apps using Swift Package Manager can now upgrade to Firebase 13").
+Aralıkların kesişimi: gtm-session-fetcher 4.x-5.x, app-check 12.x, GoogleUtilities 8.1.4+ (hepsi çözülebilir). 10.0.0 sürümü
+`app-check 11.x` ister ve Firebase 13 ile ÇAKIŞIR; SwiftPM yine de 10.1.0'ı seçebilir. iOS 15 alt sınırı projeyle uyumludur.
+Windows'ta SwiftPM çözümlemesi çalıştırılamaz: gerçek doğrulama Codemagic/macOS derlemesindedir. Bu çözüm tutmazsa yedek:
+`flutter config --no-enable-swift-package-manager` (CocoaPods; Firebase 13 pod'u ile GoogleSignIn 10.1.0 pod'u da uyumlu aralıktadır)
+ya da `kGoogleSignInCompiled=false` + paketi çıkarma (commit 0aee636f).

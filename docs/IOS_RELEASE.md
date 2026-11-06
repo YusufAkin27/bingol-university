@@ -246,3 +246,7 @@ cd mobile && PERMISSION_HANDLER_VERBOSE=1 flutter build ios --config-only --rele
 # macOS: arşivdeki yetkiler (aps-environment=production bekleniyor)
 codesign -d --entitlements :- mobile/build/ios-release/Runner.xcarchive/Products/Applications/Runner.app
 ```
+
+## Google ile giriş (iOS) ve SwiftPM bağımlılık çakışması
+
+`google_sign_in 7.2.0` + `google_sign_in_ios ^6.4.0` (GoogleSignIn-iOS 10.1.0) Firebase iOS SDK 13.1.1 ile aynı SwiftPM grafiğinde çözülmek üzere seçildi (kanıt ve yedek yol: `docs/MOBILE_OAUTH.md` "Google paketi ve iOS bağımlılık çözümü"). **Windows'ta doğrulanamadı**: ilk Codemagic koşusunda "Could not resolve package dependencies" çıkarsa `docs/MOBILE_OAUTH.md` yedek yoluna bakın. `Info.plist` içinde `GIDClientID` ve ters istemci kimliği URL şeması hazırdır (`check-ios-static.py` tutarlılığını denetler). Düğmeyi açmak: Codemagic `bu_ios` grubunda `GOOGLE_SIGNIN=true` (sunucuda `GOOGLE_CLIENT_IDS` hazır olunca). Not: Firebase `GoogleService-Info.plist` içinde `CLIENT_ID` bulunmaz (Google ile giriş Firebase Auth üzerinden DEĞİL, doğrudan GoogleSignIn ile yapılır).

@@ -108,6 +108,16 @@ def check_info_plist():
         ok('CFBundleURLTypes: bukampus:// ozel semasi kayitli')
     else:
         bad('CFBundleURLTypes: bukampus ozel semasi eksik (paylasim baglantisi yedegi)')
+    # Google ile giris (iOS): GIDClientID + ters istemci kimligi URL semasi birbiriyle tutarli olmali.
+    gid = info.get('GIDClientID', '')
+    if gid.endswith('.apps.googleusercontent.com'):
+        rev = 'com.googleusercontent.apps.' + gid[: -len('.apps.googleusercontent.com')]
+        if rev in schemes:
+            ok('Google girisi: GIDClientID + ters kimlik URL semasi tutarli')
+        else:
+            bad('Google girisi: GIDClientID var ama ters kimlik URL semasi (com.googleusercontent.apps.<no>) CFBundleURLTypes icinde yok')
+    else:
+        warn('Google girisi: Info.plist GIDClientID tanimsiz/gecersiz (iOS Google dugmesi calismaz)')
     if 'FirebaseAppDelegateProxyEnabled' in info:
         bad('FirebaseAppDelegateProxyEnabled tanimli: kaldirin (swizzling acik kalmali, bkz. docs/MOBILE_PUSH.md)')
     else:

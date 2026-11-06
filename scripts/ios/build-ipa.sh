@@ -9,6 +9,7 @@
 #   IOS_API_ISSUER_ID        Issuer ID (UUID)
 #   IOS_API_KEY_P8_BASE64    AuthKey_<KEYID>.p8 dosyasinin base64'u
 # Istege bagli:
+#   GOOGLE_SIGNIN (true: Google dugmesi), GOOGLE_SERVER_CLIENT_ID, GOOGLE_IOS_CLIENT_ID (varsayilanlar kodda),
 #   IOS_BUILD_NUMBER (CFBundleVersion; varsayilan pubspec +N), API_BASE (varsayilan https://bukampus.com.tr), APP_VERSION (varsayilan pubspec surum adi),
 #   OUT_DIR (varsayilan mobile/build/ios-release, gitignored), SKIP_FLUTTER_TEST yok (testler ayri is akisinda kosar)
 # Cikti: $OUT_DIR/ipa/*.ipa, $OUT_DIR/symbols (--split-debug-info; SAKLAYIN: cokme izleri icin), $OUT_DIR/Runner.xcarchive
@@ -59,11 +60,17 @@ mkdir -p "$OUT_DIR" "$OUT_DIR/symbols" "$OUT_DIR/ipa"
 cd "$MOBILE"
 flutter pub get
 
+# Google ile giris dugmesi yalniz GOOGLE_SIGNIN=true iken gorunur (varsayilan false; sunucuda GOOGLE_CLIENT_IDS hazir olunca).
+# Istemci kimlikleri kodda/Info.plist'te gomulu; GOOGLE_SERVER_CLIENT_ID / GOOGLE_IOS_CLIENT_ID verilirse dart-define ile gecersiz kilinir.
+OAUTH_DEFINES="--dart-define=GOOGLE_SIGNIN=${GOOGLE_SIGNIN:-false}"
+if [ -n "${GOOGLE_SERVER_CLIENT_ID:-}" ]; then OAUTH_DEFINES="$OAUTH_DEFINES --dart-define=GOOGLE_SERVER_CLIENT_ID=$GOOGLE_SERVER_CLIENT_ID"; fi
+if [ -n "${GOOGLE_IOS_CLIENT_ID:-}" ]; then OAUTH_DEFINES="$OAUTH_DEFINES --dart-define=GOOGLE_IOS_CLIENT_ID=$GOOGLE_IOS_CLIENT_ID"; fi
+
 # Flutter yapilandirmasi (Generated.xcconfig, eklenti Swift paketi) - derleme xcodebuild'e birakilir
 flutter build ios --config-only --release --no-codesign \
   --obfuscate --split-debug-info="$OUT_DIR/symbols" \
   --build-name="$BUILD_NAME" --build-number="$BUILD_NUMBER" \
-  --dart-define=API_BASE="$API_BASE" --dart-define=APP_VERSION="$APP_VERSION"
+  --dart-define=API_BASE="$API_BASE" --dart-define=APP_VERSION="$APP_VERSION"   $OAUTH_DEFINES
 
 cd "$MOBILE/ios"
 xcodebuild archive \

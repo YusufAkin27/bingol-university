@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:bu_kampus/core/api.dart';
 import 'package:bu_kampus/core/oauth/oauth_services.dart';
@@ -107,6 +108,23 @@ void main() {
       expect(const OAuthConfig(appleFlag: true).appleEnabled, isFalse, reason: 'Android/diğer: gizli');
       expect(const OAuthConfig(appleFlag: true, appleSupportedPlatform: true).appleEnabled, isTrue);
       expect(const OAuthConfig(appleSupportedPlatform: true).appleEnabled, isFalse, reason: 'bayrak kapalı');
+    });
+
+    test('Google: SDK derlemede, varsayılan kimlikler dolu ve Info.plist ile tutarlı, bayrak varsayılan KAPALI', () {
+      expect(kGoogleSignInCompiled, isTrue);
+      final env = OAuthConfig.fromEnvironment();
+      expect(env.googleServerClientId, kDefaultGoogleServerClientId);
+      expect(env.googleIosClientId, kDefaultGoogleIosClientId);
+      expect(env.googleServerClientId, endsWith('.apps.googleusercontent.com'));
+      expect(env.googleIosClientId, endsWith('.apps.googleusercontent.com'));
+      expect(env.googleServerClientId, isNot(env.googleIosClientId), reason: 'web ve iOS istemcileri ayrı');
+      expect(env.googleEnabled, isFalse, reason: 'GOOGLE_SIGNIN dart-define verilmedikçe düğme gizli');
+      // iOS: Info.plist GIDClientID + ters kimlik URL şeması bu sabitle birebir aynı olmalı.
+      final plist = File('ios/Runner/Info.plist').readAsStringSync();
+      expect(plist, contains('<key>GIDClientID</key>'));
+      expect(plist, contains('<string>$kDefaultGoogleIosClientId</string>'));
+      final reversed = 'com.googleusercontent.apps.${kDefaultGoogleIosClientId.replaceAll('.apps.googleusercontent.com', '')}';
+      expect(plist, contains('<string>$reversed</string>'));
     });
 
     testWidgets('bayraklar kapalı: Google/Apple yok, "veya" yok, e-posta düğmesi ana düğme', (tester) async {

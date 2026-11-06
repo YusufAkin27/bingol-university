@@ -40,9 +40,21 @@
 				<string>bukampus</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>google.signin</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.825713637416-e9vlno4a7bk0sa9cvftmdqe0alklur4j</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>GIDClientID</key>
+	<string>825713637416-e9vlno4a7bk0sa9cvftmdqe0alklur4j.apps.googleusercontent.com</string>
 	<key>FlutterDeepLinkingEnabled</key>
 	<false/>
 	<key>ITSAppUsesNonExemptEncryption</key>

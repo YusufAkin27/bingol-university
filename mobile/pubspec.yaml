@@ -42,6 +42,12 @@ dependencies:
   share_plus: ^13.3.1
   app_links: ^7.2.2
   sign_in_with_apple: 8.2.0
+  # Google ile giris. iOS SwiftPM cozumu: firebase_core/messaging 5.1/17.0 -> firebase-ios-sdk 13.1.1 (gtm-session-fetcher
+  # 4.x-5.x, app-check 12.x ister). google_sign_in_ios 6.3.x GoogleSignIn-iOS 9.x ister (gtm-session-fetcher 3.x): CATISIR.
+  # google_sign_in_ios >=6.4.0 GoogleSignIn-iOS "9.0.0"..<"11.0.0" kabul eder; SwiftPM 10.1.0'i secer
+  # (gtm-session-fetcher 3.3-6.0, app-check 11-13: Firebase 13 ile uyumlu). Bu yuzden ALT SINIR ZORUNLU: dusurmeyin.
+  google_sign_in: 7.2.0
+  google_sign_in_ios: ^6.4.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
