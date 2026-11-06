@@ -127,7 +127,7 @@ def receivers():
     for slug, cls, labels, descs in SLUGS:
         for size, cw, ch, _, suffix in SIZES:
             name = '%sWidget%sReceiver' % (cls, suffix)
-            man.append('''        <receiver android:name=".widgets.%s" android:exported="true" android:label="@string/bw_label_%s">
+            man.append('''        <receiver android:name=".widgets.%s" android:exported="false" android:label="@string/bw_label_%s">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/bw_%s_%s_info"/>
         </receiver>''' % (name, slug, slug, size))
