@@ -199,6 +199,8 @@ services:
       AUTH_OAUTH_REQUIRE_TERMS:
       AUTH_PASSWORD_SIGNUPS_NEED_ONBOARDING:
       AUTH_PROFILE_GATE_ENABLED:
+      # Gercek e-posta kapisi (Apple gizli adresli yeni hesap): tanimsiz = ACIK; acil kapatma icin false
+      AUTH_REAL_EMAIL_GATE_ENABLED:
       MAX_DEVICES_PER_USER:
       # FINAL-ALL (hepsi tanimsiz = bugunku/eski istemci uyumlu davranis; tanimlanirsa iletilir): makbuz/yaziyor kapatma
       # (eski mobil surumler elendikten sonra), menu gunluk yakalama cron'u (CLAUDE.md scraping kurali: sahibin karari),

@@ -24,7 +24,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
  *
  * <p>Serbest yazmalar: onboarding ({@code PUT /api/users/me/onboarding}), avatar yukleme/kaldirma, hesap silme
  * ({@code DELETE /api/users/me}), kimlik/cikis/baglama ({@code /api/auth/**}), sozlesme onayi, cihaz/push kaydi,
- * analitik, uygulama bilgisi/cokme raporu, destek talebi. {@link UnverifiedWriteFilter} ile ayni kalip; ikisi ayri
+ * analitik, uygulama bilgisi/cokme raporu, destek talebi, gercek e-posta akisi ({@code /api/users/me/email/**}).
+ * {@link UnverifiedWriteFilter} ile ayni kalip; ikisi ayri
  * nedenlerle (dogrulanmamis e-posta / tamamlanmamis profil) bagimsiz calisir. Mesajlasma STOMP SEND kanali bu
  * suzgecten gecmez: {@code StompAuthInterceptor} ayni {@link ProfileCompletionGate} ile reddeder.
  */
@@ -35,7 +36,8 @@ public class ProfileIncompleteWriteFilter extends OncePerRequestFilter {
     private static final Set<String> READ_METHODS = Set.of("GET", "HEAD", "OPTIONS", "TRACE");
     /** Tamamlanmamis profilde de yazilabilen yol onekleri (segment siniri gozetilir). */
     static final List<String> EXEMPT_PREFIXES = List.of(
-            "/api/auth", "/api/legal", "/api/support", "/api/public", "/api/analytics", "/api/app", "/api/devices");
+            "/api/auth", "/api/legal", "/api/support", "/api/public", "/api/analytics", "/api/app", "/api/devices",
+            "/api/users/me/email");
 
     private final ProfileCompletionGate gate;
     private final I18n i18n;

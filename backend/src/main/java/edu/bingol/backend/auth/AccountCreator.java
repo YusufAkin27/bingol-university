@@ -38,6 +38,10 @@ public class AccountCreator {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private edu.bingol.backend.auth.oauth.OAuthProperties oauthProps;
 
+    /** Yeni role (Apple gizli e-posta) hesabini gercek e-posta dogrulanana kadar kapida tut (kolay kapatma: bayrak). */
+    @org.springframework.beans.factory.annotation.Value("${app.auth.real-email-gate.enabled:true}")
+    private boolean realEmailGateEnabled = true;
+
     public AccountCreator(UserRepository users, LegalService legal, AdminProperties admin) {
         this.users = users;
         this.legal = legal;
@@ -104,7 +108,19 @@ public class AccountCreator {
      */
     @Transactional
     public User createFromOAuth(String email, String displayName, String firstName, String lastName, String language) {
+        return createFromOAuth(email, displayName, firstName, lastName, language, false);
+    }
+
+    /**
+     * `relay=true`: e-posta Apple "E-postami gizle" role adresi. Hesap acilir ama {@code emailRelay} + (bayrak aciksa)
+     * {@code realEmailRequired} isaretlenir: gercek e-posta kodla dogrulanana kadar yazma uclari kapali (REAL_EMAIL_REQUIRED).
+     */
+    @Transactional
+    public User createFromOAuth(String email, String displayName, String firstName, String lastName, String language,
+                                boolean relay) {
         User user = new User();
+        user.setEmailRelay(relay);
+        user.setRealEmailRequired(relay && realEmailGateEnabled);
         user.setEmail(email);
         user.setPasswordHash(User.NO_PASSWORD_PREFIX + java.util.UUID.randomUUID());
         user.setDisplayName(displayName);

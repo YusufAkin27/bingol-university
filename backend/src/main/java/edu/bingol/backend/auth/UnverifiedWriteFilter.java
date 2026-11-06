@@ -143,7 +143,7 @@ public class UnverifiedWriteFilter extends OncePerRequestFilter {
         clearUntil.put(uid, System.currentTimeMillis() + CLEAR_TTL_MS);
     }
 
-    static Lang lang(String header) {
+    public static Lang lang(String header) {
         if (header == null || header.isBlank()) {
             return Lang.DEFAULT;
         }

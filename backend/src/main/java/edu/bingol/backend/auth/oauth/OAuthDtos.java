@@ -33,13 +33,23 @@ public final class OAuthDtos {
      * Jeton cifti + profil durumu. `emailVerified`/`verificationDeferred` OAuth'ta hic gelmez (hesap dogrulanmis acilir).
      * `isNewUser`: bu istekte hesap acildi mi; `profileCompleted=false` iken sunucu yazma uclarini kapatir
      * (403 PROFILE_INCOMPLETE) ve onboarding (PUT /api/users/me/onboarding) beklenir.
+     * `emailNeedsReal`: hesap e-postasi Apple gizli (role) adresi: uygulama "gercek e-posta" adimini gosterir
+     * (POST /api/users/me/email/start + /verify). `realEmailRequired`: yeni role hesapta ZORUNLU kapi (gercek adres
+     * dogrulanana kadar yazma uclari 403 REAL_EMAIL_REQUIRED); mevcut role hesaplarda false (yumusak adim).
      */
     public record OAuthLoginResponse(String accessToken, String refreshToken, long expiresInSeconds, String tokenType,
                                      boolean profileCompleted,
-                                     @JsonProperty("isNewUser") boolean isNewUser) {
+                                     @JsonProperty("isNewUser") boolean isNewUser,
+                                     boolean emailNeedsReal, boolean realEmailRequired) {
         public static OAuthLoginResponse of(TokenResponse t, boolean profileCompleted, boolean isNewUser) {
             return new OAuthLoginResponse(t.accessToken(), t.refreshToken(), t.expiresInSeconds(), t.tokenType(),
-                    profileCompleted, isNewUser);
+                    profileCompleted, isNewUser, false, false);
+        }
+
+        public static OAuthLoginResponse of(TokenResponse t, edu.bingol.backend.user.User user, boolean isNewUser) {
+            return new OAuthLoginResponse(t.accessToken(), t.refreshToken(), t.expiresInSeconds(), t.tokenType(),
+                    user.isProfileCompleted(), isNewUser, user.isEmailRelay(),
+                    user.isEmailRelay() && user.isRealEmailRequired());
         }
     }
 

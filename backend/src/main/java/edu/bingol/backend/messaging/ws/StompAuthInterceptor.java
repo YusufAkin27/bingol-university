@@ -102,6 +102,14 @@ public class StompAuthInterceptor implements ChannelInterceptor {
         this.profileGate = profileGate;
     }
 
+    /** Gercek e-posta kapisi (opsiyonel baglanti): role adresli yeni hesap gercek adres dogrulanana kadar gonderemez. */
+    private edu.bingol.backend.auth.realemail.RealEmailGate realEmailGate;
+
+    @Autowired(required = false)
+    void setRealEmailGate(edu.bingol.backend.auth.realemail.RealEmailGate realEmailGate) {
+        this.realEmailGate = realEmailGate;
+    }
+
     /** Erisim engeli (opsiyonel baglanti: testlerde kurulmaz). */
     @Autowired(required = false)
     void setAccessControls(AccessGuard guard, ClientContexts contexts) {
@@ -143,6 +151,9 @@ public class StompAuthInterceptor implements ChannelInterceptor {
                 }
                 if (profileGate != null && profileGate.isIncomplete(uid)) {
                     throw new Rejected("PROFILE_INCOMPLETE");
+                }
+                if (realEmailGate != null && realEmailGate.isRequired(uid)) {
+                    throw new Rejected("REAL_EMAIL_REQUIRED");
                 }
             }
             case SUBSCRIBE -> {

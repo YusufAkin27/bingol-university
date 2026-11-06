@@ -64,6 +64,23 @@ public class User {
     private boolean emailVerified;
 
     /**
+     * Hesap e-postasi Apple "E-postami gizle" role adresi mi (RelayEmails; V1472). true = bildirim/sifre sifirlama
+     * postasi guvenilir ulasmaz; kullanicidan gercek adres istenir (POST /api/users/me/email/start).
+     */
+    @ColumnDefault("false")
+    private boolean emailRelay;
+
+    /**
+     * Gercek e-posta KAPISI (V1472): yalniz YENI role hesaplarda true; gercek adres dogrulanana kadar yazma uclari
+     * 403 REAL_EMAIL_REQUIRED. Mevcut canli role hesaplar false kalir (yumusak adim; kilitlenmezler).
+     */
+    @ColumnDefault("false")
+    private boolean realEmailRequired;
+
+    /** Gercek adresin kodla dogrulandigi an (role hesaplar icin); null = hic role olmadi / henuz dogrulanmadi. */
+    private Instant realEmailVerifiedAt;
+
+    /**
      * Kota asiminda ertelenmis dogrulama (QT-BE): hesap kod gonderilemedigi icin dogrulanmamis acildi; yalniz okur.
      * email_verified=true olunca anlamsizdir (dogrulama anlik false yapar).
      */

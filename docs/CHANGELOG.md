@@ -18,6 +18,13 @@ Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_AP
 
 - **V1480**: forum kategorileri 8 -> 79 (8 grup: Genel, Akademik, Kampüs Yaşamı, Kariyer & Gelişim, Fakülte & Alanlar, Bingöl, Hobi & Eğlence, Yaşam; tr/en/ar), `forum_category_group` + `forum_category.group_key`. Eski kategorilerin kimlik/slug/sırası değişmedi.
 - `GET /api/forum/categories` yanıtı `groupKey/groupName/groupOrder` taşır; yeni `?q=` parametresi (Türkçe karakter duyarsız ad/slug/grup araması). Konu araması kategori adıyla da eşleşir. Ayrıntı: `docs/changes/forum-categories.md`. Duman: `scripts/smoke-forum-categories.sh`.
+### Gerçek e-posta (Apple gizli adres) doğrulaması (2026-11-06, `deploy/appleemail-20261106`)
+
+- **Sorun:** Apple "E-postamı gizle" ile açılan hesabın e-postası `xxxx@privaterelay.appleid.com` oluyordu (şifre sıfırlama/2FA/bildirim e-postaları ulaşmaz). **Çözüm:** röle adresli hesapta kullanıcıdan GERÇEK, aktif e-posta istenir, 6 haneli kodla doğrulanır ve hesabın TEK e-postası olur; röle adresine posta gönderilmez, eski röle adresi saklanmaz.
+- **Uçlar:** `POST /api/users/me/email/start` + `/verify` (kimlikli, hız sınırlı, kod yeni adrese bağlı; adres çakışması enumerasyon sızdırmadan yalnız doğru kodda `409 EMAIL_UNAVAILABLE`). `GET /api/users/me` ve OAuth giriş yanıtına `emailNeedsReal` + `realEmailRequired`.
+- **Kapı:** YENİ röle hesapta gerçek e-posta doğrulanana kadar yazma uçları `403 REAL_EMAIL_REQUIRED` (`RealEmailRequiredWriteFilter` + STOMP; bayrak `AUTH_REAL_EMAIL_GATE_ENABLED`, varsayılan açık). **Mevcut** röle hesaplar kilitlenmez: yalnız `email_relay=true` işaretlenir, uygulama yumuşak (atlanabilir) adım gösterir.
+- **Şema:** **V1472** (`app_user.email_relay`, `real_email_required`, `real_email_verified_at`; geriye dönük işaretleme). V1470 `deploy/legal-20261106` dalındadır: canlıya ÖNCE o inmelidir (`out-of-order=false`).
+- Yönetici hesapları bu uçtan adres değiştiremez ve kimse `ADMIN_EMAILS` adresine taşınamaz. E-posta kodu şablonu metni ("hesabınızı etkinleştirmek") genel "e-posta adresini doğrulamak" olarak güncellendi (tr/en/ar). Ayrıntı: `docs/changes/auth.md` "Gercek e-posta (role) dogrulamasi". Duman: `scripts/smoke-real-email.sh`.
 
 ### Çoklu oturum + Cihazlarım (2026-11-06, `deploy/multisession-20261106`)
 
