@@ -301,3 +301,7 @@ Tasarlanan kart, uygulama AÇIKKEN olduğu kadar KAPALIYKEN / arka plandayken de
 
 ### Gönderi etiketi bildirimi (`POST_MENTION`, 2026-11-05)
 Gönderide etiketlenene: `type=POST_MENTION`, alt tür `POST_MENTION` (gelen kutusu "Sosyal"), kanal `social`, `style=SOCIAL` (APNs `BU_SOCIAL`), başlık "Yeni etiket", gövde `{ad} seni bir gönderide etiketledi` (tr/en/ar, alıcı dilinde). `data`: `target=POST`, `value`/`postId`, `userId` (etiketleyen; kutu avatar projeksiyonu), `senderName`. Yalnız push yükü: `senderAvatarUrl` (`AvatarVisibility` süzgeci), `imageUrl` (gönderi küçük resmi; kalıcı `data`ya yazılmaz). `collapseKey=postmention:<postId>`: aynı (gönderi, kişi) için ömür boyu bir bildirim. Tercih: "communities" bayrağı + alt tür `POST_MENTION` (mevcut `subtypes` ucuyla kapatılır). Üretici: `PostNotifier.onMention`; ayrıntı `docs/changes/post.md` bölüm 11.
+
+## Günlük menü bildirimi varsayılan AÇIK (2026-11-06)
+
+`notification_pref.meal_menu` varsayılanı açık oldu (V1461: sütun varsayılanı TRUE + mevcut satırlar TRUE yapıldı; `NotificationPref.mealMenu=true`). `MealMenuNotifier` artık tercih satırı hiç olmayan aktif kullanıcıları da kapsar (yalnız `meal_menu=FALSE` olanlar atlanır). Kullanıcı Ayarlar > Bildirimler'den kapatabilir. **Dağıtım sırası:** oauth dalı (V1450) ve çoklu oturum dalı (V1460, `deploy/multisession-20261106`) bu migration'dan ÖNCE canlıya gitmeli (`out-of-order=false`).

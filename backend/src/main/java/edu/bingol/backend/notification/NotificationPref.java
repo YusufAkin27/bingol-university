@@ -24,9 +24,9 @@ public class NotificationPref {
     private boolean polls = true;
     @Column(columnDefinition = "boolean not null default true")
     private boolean academicAnnouncements = true;
-    /** Gunluk menu bildirimi (V1271): VARSAYILAN KAPALI; kullanici acikca acar. */
-    @Column(columnDefinition = "boolean not null default false")
-    private boolean mealMenu = false;
+    /** Gunluk menu bildirimi (V1271, varsayilan V1461 ile ACIK): kullanici tercihlerden kapatabilir. */
+    @Column(columnDefinition = "boolean not null default true")
+    private boolean mealMenu = true;
 
     /** Sessiz saatler: gunun dakikasi (0-1439); varsayilan 22:00-07:00, kullanici saat diliminde. */
     private boolean quietEnabled = false;
