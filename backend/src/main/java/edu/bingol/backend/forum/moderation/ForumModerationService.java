@@ -44,6 +44,8 @@ public class ForumModerationService {
     public record Result(String targetType, Long targetId, String action, String status, boolean pinned, boolean locked) {}
 
     static final int MAX_REASON = 300;
+    /** Eszamanli sabitlenebilecek konu ust siniri (ForumFeedService.MAX_PINNED ile ayni). */
+    static final int MAX_PINNED = 5;
 
     private final ForumContentLookup content;
     private final ForumStatePort port;
@@ -69,6 +71,13 @@ public class ForumModerationService {
         switch (action) {
             case PIN -> {
                 require(t.active() && !t.pinned());
+                // Akis en cok MAX_PINNED sabitlenmisi gosterir: fazlasi Sana Ozel/En Yeni'de hic gorunmezdi (QA5-07)
+                Long pinnedNow = jdbc.queryForObject("SELECT COUNT(*) FROM forum_topic WHERE pinned_at IS NOT NULL "
+                        + "AND deleted_at IS NULL AND status = 'ACTIVE'", Long.class);
+                if (pinnedNow != null && pinnedNow >= MAX_PINNED) {
+                    throw new ApiException(HttpStatus.CONFLICT, "FORUM_PIN_LIMIT",
+                            "En fazla " + MAX_PINNED + " konu sabitlenebilir. Önce birini kaldırın.", String.valueOf(MAX_PINNED));
+                }
                 port.pinTopic(topicId);
             }
             case UNPIN -> {
