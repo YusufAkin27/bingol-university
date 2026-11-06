@@ -383,9 +383,14 @@ public class EventService {
             e.setLocation(Texts.blankToNull(r.location()));
         }
         if (r.meetingPoint() != null || r.meetingLat() != null || r.meetingLng() != null) {
-            applyMeeting(e, r.meetingPoint() != null ? r.meetingPoint() : e.getMeetingPoint(),
-                    r.meetingPoint() != null && r.meetingPoint().isBlank() ? null : (r.meetingLat() != null ? r.meetingLat() : e.getMeetingLat()),
-                    r.meetingPoint() != null && r.meetingPoint().isBlank() ? null : (r.meetingLng() != null ? r.meetingLng() : e.getMeetingLng()));
+            // Metin gonderildiyse bulusma grubu (metin + koordinat) istekteki haliyle degisir (bos koordinat = silinir);
+            // yalniz koordinat gonderildiyse mevcut metne eklenir.
+            if (r.meetingPoint() != null) {
+                applyMeeting(e, r.meetingPoint(), r.meetingLat(), r.meetingLng());
+            } else {
+                applyMeeting(e, e.getMeetingPoint(), r.meetingLat() != null ? r.meetingLat() : e.getMeetingLat(),
+                        r.meetingLng() != null ? r.meetingLng() : e.getMeetingLng());
+            }
         }
         Instant oldStart = e.getStartsAt();
         e.setStartsAt(start);
@@ -438,8 +443,12 @@ public class EventService {
         if (r.meetingPoint() == null && r.meetingLat() == null && r.meetingLng() == null) {
             return false;
         }
-        return (r.meetingPoint() != null && !r.meetingPoint().trim().equals(e.getMeetingPoint() == null ? "" : e.getMeetingPoint()))
-                || (r.meetingLat() != null && !r.meetingLat().equals(e.getMeetingLat()))
+        if (r.meetingPoint() != null) {
+            return !r.meetingPoint().trim().equals(e.getMeetingPoint() == null ? "" : e.getMeetingPoint())
+                    || !java.util.Objects.equals(r.meetingLat(), e.getMeetingLat())
+                    || !java.util.Objects.equals(r.meetingLng(), e.getMeetingLng());
+        }
+        return (r.meetingLat() != null && !r.meetingLat().equals(e.getMeetingLat()))
                 || (r.meetingLng() != null && !r.meetingLng().equals(e.getMeetingLng()));
     }
 
