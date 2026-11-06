@@ -1,6 +1,6 @@
 // SAYFA: Basın / marka kiti (/brand)
 // API: GET /api/app/info (contactEmail / supportEmail → basın iletişimi). Logolar web/public/brand/ altındadır
-// (brand/dist'ten kopyalanır, bkz. brand/README.md); indirmeler düz <a download> bağlantılarıdır.
+// (web/scripts/build-brand.py üretir; kaynak dark_logo.png / light_logo.png); indirmeler düz <a download> bağlantılarıdır.
 import { ButtonLink, CopyButton, Icon } from '../../components/ui';
 import { useAppInfo } from '../../api/hooks';
 import type { TranslationKey } from '../../i18n';
@@ -14,14 +14,14 @@ import { usePageMeta } from './components/usePageMeta';
 import shared from './components/site.module.css';
 import styles from './BrandPage.module.css';
 
-type Group = 'horizontal' | 'vertical' | 'mark';
+type Group = 'mark' | 'square';
 
 interface LogoFile {
   file: string;
   name: TranslationKey;
   group: Group;
   /** Önizleme zemini */
-  bg: 'light' | 'dark' | 'red';
+  bg: 'light' | 'dark';
   /** Piksel boyutu (PNG) ve dosya boyutları (bayt) */
   w: number;
   h: number;
@@ -29,104 +29,37 @@ interface LogoFile {
   svgBytes?: number;
 }
 
+/** Dosyalar `web/scripts/build-brand.py` ile üretilir (kaynak: dark_logo.png / light_logo.png). */
 export const BRAND_LOGOS: LogoFile[] = [
+  { file: 'mark-light', name: 'pg.brand.logo.markLight', group: 'mark', bg: 'light', w: 512, h: 371, pngBytes: 19437 },
+  { file: 'mark-dark', name: 'pg.brand.logo.markDark', group: 'mark', bg: 'dark', w: 512, h: 363, pngBytes: 15863 },
   {
-    file: 'horizontal-light',
-    name: 'pg.brand.logo.horizontalLight',
-    group: 'horizontal',
+    file: 'square-light',
+    name: 'pg.brand.logo.squareLight',
+    group: 'square',
     bg: 'light',
-    w: 1965,
-    h: 512,
-    pngBytes: 45867,
-    svgBytes: 69438,
+    w: 1024,
+    h: 1024,
+    pngBytes: 11079,
   },
   {
-    file: 'horizontal-dark',
-    name: 'pg.brand.logo.horizontalDark',
-    group: 'horizontal',
+    file: 'square-dark',
+    name: 'pg.brand.logo.squareDark',
+    group: 'square',
     bg: 'dark',
-    w: 1965,
-    h: 512,
-    pngBytes: 46171,
-    svgBytes: 69438,
-  },
-  {
-    file: 'horizontal-white',
-    name: 'pg.brand.logo.horizontalWhite',
-    group: 'horizontal',
-    bg: 'red',
-    w: 1965,
-    h: 512,
-    pngBytes: 60612,
-  },
-  {
-    file: 'horizontal-black',
-    name: 'pg.brand.logo.horizontalBlack',
-    group: 'horizontal',
-    bg: 'light',
-    w: 1965,
-    h: 512,
-    pngBytes: 60474,
-  },
-  {
-    file: 'vertical-light',
-    name: 'pg.brand.logo.verticalLight',
-    group: 'vertical',
-    bg: 'light',
-    w: 958,
-    h: 776,
-    pngBytes: 40311,
-    svgBytes: 69437,
-  },
-  {
-    file: 'vertical-dark',
-    name: 'pg.brand.logo.verticalDark',
-    group: 'vertical',
-    bg: 'dark',
-    w: 958,
-    h: 776,
-    pngBytes: 40183,
-    svgBytes: 69437,
-  },
-  {
-    file: 'mark',
-    name: 'pg.brand.logo.mark',
-    group: 'mark',
-    bg: 'light',
     w: 1024,
     h: 1024,
-    pngBytes: 730629,
-    svgBytes: 60280,
-  },
-  {
-    file: 'mark-white',
-    name: 'pg.brand.logo.markWhite',
-    group: 'mark',
-    bg: 'red',
-    w: 1024,
-    h: 1024,
-    pngBytes: 247394,
-  },
-  {
-    file: 'mark-black',
-    name: 'pg.brand.logo.markBlack',
-    group: 'mark',
-    bg: 'light',
-    w: 1024,
-    h: 1024,
-    pngBytes: 243622,
+    pngBytes: 9055,
   },
 ];
 
-const GROUPS: Group[] = ['horizontal', 'vertical', 'mark'];
+const GROUPS: Group[] = ['mark', 'square'];
 
+/** Marka siyah-beyazdır; eylem kırmızısı yalnız arayüz vurgusudur (logoda kullanılmaz). */
 export const BRAND_COLORS = [
-  { id: 'campus', hex: '#F73A2E' },
+  { id: 'ink', hex: '#09090B' },
+  { id: 'paper', hex: '#FFFFFF' },
   { id: 'action', hex: '#C62A20' },
-  { id: 'deep', hex: '#8E1B13' },
-  { id: 'soft', hex: '#FDE7E4' },
-  { id: 'ink', hex: '#171E33' },
-  { id: 'paper', hex: '#FAF6F3' },
 ] as const;
 
 const RULES = [1, 2, 3, 4, 5] as const;
@@ -216,7 +149,7 @@ export default function BrandPage() {
               <p className={shared.muted}>{t('pg.brand.space.text')}</p>
               <div className={styles.spaceBox} aria-hidden="true">
                 <div className={styles.spaceInner}>
-                  <img src="/brand/horizontal-light.svg" alt="" height={64} loading="lazy" decoding="async" />
+                  <img src="/brand/mark-light.png" alt="" height={64} loading="lazy" decoding="async" />
                 </div>
                 <span className={`${styles.x} ${styles.xTop}`}>x</span>
                 <span className={`${styles.x} ${styles.xBottom}`}>x</span>
@@ -229,16 +162,12 @@ export default function BrandPage() {
               <p className={shared.muted}>{t('pg.brand.min.text')}</p>
               <ul className={styles.minRow}>
                 <li>
-                  <img src="/brand/mark.svg" alt="" width={16} height={16} loading="lazy" decoding="async" />
+                  <img src="/brand/mark-light.png" alt="" width={22} height={16} loading="lazy" decoding="async" />
                   <span>{t('pg.brand.min.mark')}</span>
                 </li>
                 <li>
-                  <img src="/brand/horizontal-light.svg" alt="" height={28} loading="lazy" decoding="async" />
-                  <span>{t('pg.brand.min.horizontal')}</span>
-                </li>
-                <li>
-                  <img src="/brand/vertical-light.svg" alt="" height={64} loading="lazy" decoding="async" />
-                  <span>{t('pg.brand.min.vertical')}</span>
+                  <img src="/brand/square-light.png" alt="" width={48} height={48} loading="lazy" decoding="async" />
+                  <span>{t('pg.brand.min.square')}</span>
                 </li>
               </ul>
             </div>
@@ -252,7 +181,7 @@ export default function BrandPage() {
             <ul className={styles.donts}>
               <li className={styles.dont}>
                 <div className={`${styles.preview} ${styles.light}`}>
-                  <img src="/brand/horizontal-light.svg" alt="" height={56} loading="lazy" decoding="async" />
+                  <img src="/brand/mark-light.png" alt="" height={56} loading="lazy" decoding="async" />
                   <span className={`${styles.badge} ${styles.badgeOk}`}>
                     <Icon name="check" size={14} />
                     <span className="sr-only">{t('pg.brand.do.label')}</span>
@@ -262,10 +191,10 @@ export default function BrandPage() {
               </li>
               {(['stretch', 'rotate', 'recolor', 'shadow', 'busy'] as const).map((k) => (
                 <li key={k} className={styles.dont}>
-                  <div className={`${styles.preview} ${k === 'busy' ? styles.red : styles.light}`}>
+                  <div className={`${styles.preview} ${k === 'busy' ? styles.busy : styles.light}`}>
                     <img
                       className={styles[`bad_${k}`]}
-                      src={k === 'busy' ? '/brand/horizontal-light.svg' : '/brand/mark.svg'}
+                      src="/brand/mark-light.png"
                       alt=""
                       loading="lazy"
                       decoding="async"

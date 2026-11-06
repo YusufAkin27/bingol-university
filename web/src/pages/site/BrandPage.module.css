@@ -52,13 +52,13 @@
   object-fit: contain;
 }
 .light {
-  background: #fff;
+  background: var(--logo-ink-on-dark);
 }
 .dark {
-  background: #171e33;
+  background: var(--logo-ink-on-light);
 }
-.red {
-  background: #f73a2e;
+.busy {
+  background: var(--danger);
 }
 .dl {
   display: flex;

@@ -14,7 +14,7 @@ Bu belge **mevcut** web tasarım sisteminin envanteridir ve yeni sayfa/bileşen 
 
 | Grup | Değişkenler |
 |---|---|
-| Marka | `--ink #171e33` (lacivert), `--red-600 #f73a2e` (logo), `--red-700 #c62a20` (eylem), `--red-800`, `--chrome` (koyu kabuk), `--hero`/`--hero-end` |
+| Marka | `--logo-ink` (logo yazısı/glifi: açık temada `#09090b`, koyu temada `#fff`), `--logo-ink-on-light #09090b` / `--logo-ink-on-dark #fff` (zorunlu zemin için sabit tonlar), `--ink #171e33` (lacivert metin), `--red-700 #c62a20` (eylem), `--red-600`/`--red-800`, `--chrome` (koyu kabuk), `--hero`/`--hero-end` |
 | Anlamsal (açık) | `--bg #faf6f3`, `--surface`, `--surface-2/3`, `--border`, `--border-strong`, `--text`, `--text-muted`, `--text-faint`, `--primary*`, `--accent*`, `--link`, `--focus #1f5fd1` |
 | Durum | `--success`, `--warning`, `--danger`, `--info` (+ `-soft`), `--select-bg/-border` (seçim nötr-mavi; kırmızı yalnız marka/tehlike) |
 | Boşluk | `--space-1…8` = 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4.5 rem |
@@ -25,6 +25,12 @@ Bu belge **mevcut** web tasarım sisteminin envanteridir ve yeni sayfa/bileşen 
 | Tema | Açık varsayılan; koyu: `@media (prefers-color-scheme: dark)` **ve** `:root[data-theme='dark']`. Her yeni token iki temada tanımlanır. |
 
 Kural: bileşen CSS'inde **ham renk/piksel yok**, yalnız token. Yeni değer gerekiyorsa önce `tokens.css`'e (açık+koyu) eklenir.
+
+### Marka / logo (siyah-beyaz, 2026-11-06)
+- Marka logosu artık **yalnız siyah ve beyazdır** (kırmızı BÜ karesi kaldırıldı). Kaynak: repo kökündeki `dark_logo.png` (siyah zemin, beyaz glif) ve `light_logo.png` (beyaz zemin, siyah glif). Kırmızı yalnız arayüz eylem vurgusudur (`--red-700`), logoda kullanılmaz.
+- Varlıklar `python -I -X utf8 web/scripts/build-brand.py` ile üretilir (Pillow; kök PNG yoksa `web/public/brand/square-*.png` kaynak alınır): şeffaf glif `src/assets/brand/mark-{light,dark}.png` (192 px, paketlenir) ve `public/brand/mark-*.png` (512) / `square-*.png` (1024, basın kiti); sekme ikonları `favicon-light.png` / `favicon-dark.png` (+ `favicon.ico`, açık tabanlı), `apple-touch-icon.png`, `icon-192/512.png`, `icon-maskable-512.png` (güvenli alan), `og.png` (koyu zemin, beyaz logo + metin).
+- Tek bileşen: `components/brand/Logo` (`variant` mark|horizontal|vertical, `tone` auto|light|dark). `auto` iki `<img>` basar ve `[data-theme]` / `prefers-color-scheme` ile birini gösterir: koyu temada beyaz, açık temada siyah glif. Yatay/dikey sürümde glifin yanındaki "Kampüs" yazısı HTML metnidir (`--logo-ink`). Koyu kabuk üzerinde (yönetim yan menüsü) `tone="dark"` verilir. Yeni logo yeri bu bileşenle yapılır; `<img src="/brand/...">` yalnız basın kiti sayfasındadır.
+- `index.html`: `<link rel="icon" media="(prefers-color-scheme: ...)">` ile sekme ikonu sistem temasına uyar; `theme-color` açık `#FFFFFF`, koyu `#09090B`; `site.webmanifest` `theme_color #09090B`, `background_color #FFFFFF`.
 
 ## 3. Bileşen envanteri
 
