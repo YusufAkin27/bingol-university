@@ -4,7 +4,9 @@ import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../../widgets/common.dart';
+import 'emoji_presentation.dart';
 import 'message_bubble.dart';
+import 'recent_reactions.dart';
 
 class MessageInfoPage extends StatefulWidget {
   const MessageInfoPage(
@@ -206,8 +208,8 @@ class _MessageInfoPageState extends State<MessageInfoPage> {
                           border: Border.all(color: t.bdSubtle),
                           borderRadius: BorderRadius.circular(999)),
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        Text('${rx['emoji']}',
-                            style: const TextStyle(fontSize: 18)),
+                        Text(RecentReactions.display('${rx['emoji']}'),
+                            style: kEmojiFontStyle.copyWith(fontSize: 18)),
                         const SizedBox(width: 6),
                         Text('${rx['count'] ?? 1}',
                             style: Theme.of(context)

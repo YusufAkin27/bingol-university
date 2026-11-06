@@ -651,7 +651,8 @@ class MessageBubble extends StatelessWidget {
       '[\u{FE0F}\u{1F3FB}-\u{1F3FF}]?(?:\u{200D}[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2640}\u{2642}][\u{FE0F}\u{1F3FB}-\u{1F3FF}]?)*)+',
       unicode: true);
 
-  static const double emojiScale = 1.3;
+  /// Emoji, düz yazıya göre 1.7 kat (iki kez %30) büyük çizilir.
+  static const double emojiScale = 1.7;
 
   static List<InlineSpan> _emojiRuns(String s, TextStyle style) {
     if (s.isEmpty) return const [];
@@ -659,7 +660,7 @@ class MessageBubble extends StatelessWidget {
     final ms = _emojiRe.allMatches(s).toList();
     if (ms.isEmpty) return [TextSpan(text: s)];
     final base = style.fontSize ?? 16;
-    final big = TextStyle(fontSize: base * emojiScale);
+    final big = kEmojiFontStyle.copyWith(fontSize: base * emojiScale);
     final out = <InlineSpan>[];
     var i = 0;
     for (final m in ms) {
@@ -725,8 +726,8 @@ class _ReactionChip extends StatelessWidget {
               TextSpan(children: [
                 TextSpan(
                     text: RecentReactions.display(emoji),
-                    style: TextStyle(
-                        fontSize: (tx.labelMedium!.fontSize ?? 12) * 1.3)),
+                    style: kEmojiFontStyle.copyWith(
+                        fontSize: (tx.labelMedium!.fontSize ?? 12) * 1.7)),
                 if (count > 1) TextSpan(text: ' $count'),
               ]),
               textAlign: TextAlign.center,
@@ -773,8 +774,9 @@ class _Tick extends StatelessWidget {
       label: label,
       child: ExcludeSemantics(
         child: SizedBox(
-          width: 16,
-          height: 14,
+          // Tik simgesi önceki boyuta (16x14, simge 13) göre %35 büyük: 22x19, simge 17.5.
+          width: 22,
+          height: 19,
           child: AnimatedSwitcher(
             duration: BuMotion.of(context, BuMotion.short),
             // Saat -> tek tik -> çift tik: eski simge solar, yenisi hafifçe büyüyerek gelir.
@@ -786,7 +788,7 @@ class _Tick extends StatelessWidget {
             ),
             child: Icon(icon,
                 key: ValueKey<String>(status),
-                size: 13,
+                size: 17.5,
                 color: status == 'READ'
                     ? readColor
                     : (status == 'failed' ? failedColor : color)),
