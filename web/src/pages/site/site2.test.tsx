@@ -71,8 +71,8 @@ describe('SITE2 metinleri ve görseli', () => {
     }
   });
 
-  it('destek ekranı kayıt defterinde, tam boy oranında', () => {
-    expect(SHOTS.support).toMatchObject({ width: 900, height: 1948, peek: false });
+  it('destek ekranı kayıt defterinde (Ayarlar görseline eşlenir), iPhone 15 Pro oranında', () => {
+    expect(SHOTS.support).toMatchObject({ name: 'settings', width: 1179, height: 2556 });
   });
 
   it('metinlerde resmî uygulama iddiası yok; bağımsızlık belirtilir', () => {
@@ -91,9 +91,9 @@ describe('AppCallout ve PageHero', () => {
     const { unmount } = renderWithProviders(<AppCallout shot="support" title="Başlık" text="Metin" />);
     expect(screen.getByRole('heading', { level: 2, name: 'Başlık' })).toBeInTheDocument();
     const img = screen.getByRole('img');
-    expect(img).toHaveAttribute('width', '900');
-    expect(img).toHaveAttribute('height', '1948');
-    expect(img.getAttribute('alt')).toMatch(/Destek ekranı/);
+    expect(img).toHaveAttribute('width', '1179');
+    expect(img).toHaveAttribute('height', '2556');
+    expect(img.getAttribute('alt')).toMatch(/Ayarlar ekranı/);
     expect(screen.getAllByRole('button', { name: /Yakında/ })).toHaveLength(2);
     unmount();
     renderWithProviders(<AppCallout shot="menu" title="B" text="M" stores={false} />);
@@ -115,7 +115,7 @@ describe('bilgi sayfaları (SITE2)', () => {
     expect(await screen.findByRole('button', { name: 'Kimler kayıt olabilir?' })).toBeInTheDocument();
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
     const main = within(screen.getByRole('main'));
-    expect(main.getByRole('img', { name: /Destek ekranı/ })).toBeInTheDocument();
+    expect(main.getByRole('img', { name: /Ayarlar ekranı/ })).toBeInTheDocument();
     expect(main.getByRole('heading', { level: 2, name: 'Aradığınızı bulamadınız mı?' })).toBeInTheDocument();
     expect(main.getByRole('heading', { level: 2, name: 'Kampüsü cebinize alın' })).toBeInTheDocument();
     expect(main.getAllByRole('button', { name: /Yakında/ })).toHaveLength(2);
@@ -126,7 +126,7 @@ describe('bilgi sayfaları (SITE2)', () => {
     await screen.findByRole('heading', { level: 1, name: 'Yardım merkezi' });
     const main = within(screen.getByRole('main'));
     expect(main.getByRole('heading', { level: 2, name: 'Destek uygulamanın içinde' })).toBeInTheDocument();
-    expect(main.getByRole('img', { name: /Destek ekranı/ })).toBeInTheDocument();
+    expect(main.getByRole('img', { name: /Ayarlar ekranı/ })).toBeInTheDocument();
     expect(main.getAllByRole('button', { name: /Yakında/ })).toHaveLength(2);
   });
 

@@ -51,11 +51,12 @@ export function mobileAppLd(
     '@type': 'MobileApplication',
     name: info?.appName ?? 'BÜ Kampüs',
     alternateName: ALT_NAMES,
-    applicationCategory: 'EducationApplication',
+    // bağımsız öğrenci uygulaması: üniversite yayıncı DEĞİLDİR (publisher yazılmaz); kategori sosyal ağ
+    applicationCategory: 'SocialNetworkingApplication',
+    audience: { '@type': 'EducationalAudience', educationalRole: 'student' },
     operatingSystem: [links.android ? 'Android' : null, links.ios ? 'iOS' : null].filter(Boolean).join(', '),
     url: origin,
     installUrl: installs[0],
-    publisher: { '@type': 'EducationalOrganization', name: 'Bingöl Üniversitesi' },
   });
 }
 

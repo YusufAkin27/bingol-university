@@ -9,12 +9,13 @@
 }
 
 .more {
-  padding-block: clamp(3rem, 8vw, 6rem);
-  background: var(--surface-2);
+  padding-block: var(--site-section-y);
+  background: var(--surface);
+  border-block: 1px solid var(--border);
 }
 .grid {
   list-style: none;
-  margin: var(--space-6) 0 0;
+  margin: var(--space-7) 0 0;
   padding: 0;
   display: grid;
   gap: var(--space-3);
@@ -39,22 +40,28 @@
   padding: var(--space-5);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  background: var(--surface);
+  background: var(--bg);
 }
 .ico {
   display: grid;
   place-items: center;
   width: 40px;
   height: 40px;
-  margin-block-end: var(--space-1);
-  border-radius: var(--radius-pill);
-  background: var(--primary-soft);
-  color: var(--primary);
+  margin-block-end: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
 }
 .cardTitle {
   font-size: var(--text-lg);
+  letter-spacing: -0.01em;
+}
+:global(:lang(ar)) .cardTitle {
+  letter-spacing: 0;
 }
 .cardText {
   color: var(--text-muted);
   font-size: var(--text-sm);
+  line-height: 1.55;
 }

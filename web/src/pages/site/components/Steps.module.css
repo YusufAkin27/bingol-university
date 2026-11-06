@@ -1,10 +1,11 @@
+/* Adımlar: soluk küçük rakam + başlık + metin, üstte ince çizgi. Rakam süs (CSS sayacı); anlam <ol> ve metinde. */
 .steps {
   list-style: none;
   margin: 0;
   padding: 0;
   counter-reset: step;
   display: grid;
-  gap: var(--space-5);
+  gap: var(--space-6);
   grid-template-columns: minmax(0, 1fr);
 }
 .steps > li {
@@ -14,37 +15,35 @@
   position: relative;
   display: grid;
   gap: var(--space-2);
-  padding-block-start: var(--space-5);
-  border-block-start: 1px solid var(--border);
+  align-content: start;
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--border-strong);
 }
-/* numara başlığın önünde yuvarlak bir işaret (süs) */
 .title {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  font-size: var(--text-lg);
+  display: grid;
+  gap: var(--space-5);
+  font-size: var(--text-h3);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 .title::before {
-  content: counter(step);
-  display: inline-grid;
-  place-items: center;
-  flex: none;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-pill);
-  background: var(--primary-soft);
-  color: var(--on-soft);
+  content: counter(step, decimal-leading-zero);
+  color: var(--text-faint);
   font-size: var(--text-sm);
-  font-weight: 800;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+:global(:lang(ar)) .title {
+  letter-spacing: 0;
+}
+:global(:lang(ar)) .title::before {
+  direction: ltr;
+  justify-self: start;
 }
 .solo {
-  align-items: flex-start;
-  font-size: var(--text-base);
-  font-weight: 600;
+  font-size: var(--text-lg);
   line-height: 1.4;
-}
-.solo::before {
-  margin-block-start: -4px;
+  letter-spacing: -0.01em;
 }
 .text {
   color: var(--text-muted);
@@ -57,17 +56,24 @@
   }
 }
 
-/* stack: yan yana sütun yok; adımlar tek sütunda, aralarında ince çizgi (hesap silme gibi uzun cümleli yönergeler) */
+/* stack: tek sütun; adımlar arası ince çizgi (hesap silme gibi uzun cümleli yönergeler) */
 .steps.stack {
   grid-template-columns: minmax(0, 1fr);
   gap: 0;
 }
 .stack .step {
   padding-block: var(--space-4);
+  border-block-start: 1px solid var(--border);
 }
 .stack > li:last-child .step {
   border-block-end: 1px solid var(--border);
 }
+.stack .title {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: var(--space-4);
+}
 .stack .solo {
-  font-weight: 500;
+  font-size: var(--text-base);
+  line-height: 1.55;
 }

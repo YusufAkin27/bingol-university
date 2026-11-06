@@ -47,7 +47,7 @@ export default function AboutPage() {
             <p className={styles.purposeText}>{t('site.about.purposeText')}</p>
           </Reveal>
           <Reveal className={styles.purposeShot} delay={80}>
-            <PhoneMockup shot="menu" width="min(56vw, 230px)" tilt={-2} />
+            <PhoneMockup shot="menu" width="min(52vw, 230px)" />
           </Reveal>
         </div>
       </section>

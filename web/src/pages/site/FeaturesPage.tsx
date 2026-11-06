@@ -1,11 +1,12 @@
 // SAYFA: Özellikler (/features)
 // API: yok (statik içerik; mağaza bağlantıları CtaBand içinde useStoreLinks ile).
-// Yapı: sekiz ekran vitrini (zikzak FeatureRow: telefon + başlık + metin) > "Ve daha fazlası" ayrıntı ızgarası > alt CTA.
+// Yapı: sosyal akış (soyut çizim) + yedi ekran vitrini (zikzak FeatureRow: telefon + başlık + metin) > "Ve daha fazlası" ayrıntı ızgarası > alt CTA.
 import { Icon } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { CtaBand } from './components/CtaBand';
 import { FEATURES, MORE_FEATURE_IDS, SHOWCASE } from './components/features';
 import { FeatureRow } from './components/FeatureRow';
+import { FeedSketch } from './components/FeedSketch';
 import { PageHero } from './components/PageHero';
 import { Reveal } from './components/Reveal';
 import { SectionHeading } from './components/SectionHeading';
@@ -22,6 +23,15 @@ export default function FeaturesPage() {
       <PageHero eyebrow={t('site.v3.eyebrow')} title={t('site.features.title')} lead={t('site.features.lead')} />
       <section className="container" aria-label={t('site.features.title')}>
         <ul className={styles.rows}>
+          {/* Sosyal akış: gerçek kullanıcı içeriği içermeyen soyut çizim (mahremiyet); diğer satırlar uygulamanın kendi ekranları */}
+          <li>
+            <FeatureRow
+              id="feat-social"
+              figure={<FeedSketch />}
+              title={t('site.show.social.title')}
+              text={t('site.show.social.text')}
+            />
+          </li>
           {SHOWCASE.map((s, i) => (
             <li key={s.id}>
               <FeatureRow
@@ -30,7 +40,7 @@ export default function FeaturesPage() {
                 secondShot={s.secondShot}
                 title={t(s.title)}
                 text={t(s.text)}
-                flip={i % 2 === 1}
+                flip={i % 2 === 0}
               />
             </li>
           ))}

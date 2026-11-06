@@ -1,6 +1,8 @@
 // SAYFA: Ana sayfa (/)
 // API: GET /api/app/info (useAppInfo: bakım/iletişim), mağaza bağlantıları için useStoreLinks (info.stores ya da GET /api/app/version).
-// Yapı: Hero (başlık + iki mağaza rozeti + 2 telefon) > ekran vitrini (4 kart) > 3 adım > güvenlik/gizlilik > alt CTA.
+// Yapı: Hero (ortalı başlık + iki mağaza rozeti + alttan solan 3 telefon) > kampüsün sosyal tarafı (akış çizimi + 4 madde) > ekran vitrini (4 kart, 2x2)
+//       > 3 adım > öğrencilere özel güvenli alan (reklamsız, moderasyonlu) > alt CTA.
+// Keşfet ekranı maketlerde KULLANILMAZ (gerçek kullanıcı içeriği): akış, soyut FeedSketch çizimiyle anlatılır.
 // Mobil öncelikli (390 px); telefon görselleri uygulamanın kendi ekran çıktılarıdır (bkz. components/screenshots.ts).
 import { Link } from '../../components/LocalizedLink';
 import { useAppInfo, useStoreLinks } from '../../api/hooks';
@@ -10,6 +12,7 @@ import { paths } from '../../paths';
 import { siteOrigin } from '../../seo/siteUrl';
 import { CtaBand } from './components/CtaBand';
 import { SHOWCASE } from './components/features';
+import { FeedSketch } from './components/FeedSketch';
 import { mobileAppLd, organizationLd, websiteLd } from './components/jsonLd';
 import { MaintenanceNotice } from './components/Notices';
 import { useHeadingFocus } from './components/PageHero';
@@ -23,8 +26,9 @@ import { usePageMeta } from './components/usePageMeta';
 import styles from './HomePage.module.css';
 
 /** Ana sayfada kart olarak gösterilen vitrin özellikleri (tümü Özellikler sayfasında). */
-const TILES = SHOWCASE.filter((s) => ['menu', 'chat', 'clubs', 'events'].includes(s.id));
-const PRIVACY_ICONS: IconName[] = ['shield', 'download', 'eyeOff', 'message'];
+const TILES = SHOWCASE.filter((s) => ['clubs', 'events', 'menu', 'profile'].includes(s.id));
+const SOCIAL_ICONS: IconName[] = ['image', 'users', 'community', 'message'];
+const SAFE_ICONS: IconName[] = ['eyeOff', 'shield', 'check', 'download'];
 
 export default function HomePage() {
   const { t } = useI18n();
@@ -37,9 +41,9 @@ export default function HomePage() {
     jsonLd: [websiteLd(info.data, origin), organizationLd(info.data, origin), mobileAppLd(info.data, stores, origin)],
   });
 
-  const privacy: Point[] = ([1, 2, 3, 4] as const).map((n) => ({
-    icon: PRIVACY_ICONS[n - 1],
-    text: t(`site.home.privacy${n}` as 'site.home.privacy1'),
+  const safe: Point[] = ([1, 2, 3, 4] as const).map((n) => ({
+    icon: SAFE_ICONS[n - 1],
+    text: t(`site.home.safe${n}` as 'site.home.safe1'),
   }));
 
   return (
@@ -59,18 +63,45 @@ export default function HomePage() {
             </div>
             <p className={styles.trust}>
               <Icon name="shield" size={18} />
-              {t('site.home.trust')}
+              <span>{t('site.home.trust')}</span>
             </p>
             <Link to={paths.site.features} className={styles.more}>
               {t('site.home.ctaFeatures')}
               <Icon name="chevronRight" size={18} className={styles.moreIcon} />
             </Link>
           </div>
+          {/* Üç telefon yelpazesi: ortadaki önde ve büyük (LCP), yanlar biraz aşağıda; hepsi alttan solar */}
           <div className={styles.stage}>
-            <span className={styles.glow} aria-hidden="true" />
-            <PhoneMockup shot="discover" tilt={6} className={styles.back} />
-            <PhoneMockup shot="home" tilt={-2} priority className={styles.front} />
+            <PhoneMockup shot="clubs" crop={0.6} className={styles.sideStart} />
+            <PhoneMockup shot="home" crop={0.66} priority className={styles.center} />
+            <PhoneMockup shot="profile" crop={0.6} className={styles.sideEnd} />
           </div>
+        </div>
+      </section>
+
+      <section className={styles.sec} aria-labelledby="home-social">
+        <div className={`container ${styles.social}`}>
+          <div className={styles.socialCopy}>
+            <SectionHeading id="home-social" title={t('site.home.social.title')} lead={t('site.home.social.lead')} />
+            <ul className={styles.socialList}>
+              {([1, 2, 3, 4] as const).map((n, i) => (
+                <li key={n}>
+                  <Reveal delay={(i % 2) * 70} className={styles.socialItem}>
+                    <span className={styles.socialIco}>
+                      <Icon name={SOCIAL_ICONS[n - 1]} size={20} />
+                    </span>
+                    <div>
+                      <h3 className={styles.socialTitle}>{t(`site.home.social.p${n}.title` as 'site.home.social.p1.title')}</h3>
+                      <p className={styles.socialText}>{t(`site.home.social.p${n}.text` as 'site.home.social.p1.text')}</p>
+                    </div>
+                  </Reveal>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <Reveal className={styles.socialFigure} delay={80}>
+            <FeedSketch />
+          </Reveal>
         </div>
       </section>
 
@@ -85,12 +116,12 @@ export default function HomePage() {
           <ul className={styles.tiles}>
             {TILES.map((s, i) => (
               <li key={s.id}>
-                <Reveal delay={i * 80} className={styles.tile}>
-                  <div className={styles.tileShot}>
-                    <PhoneMockup shot={s.shot} crop={0.62} className={styles.tilePhone} />
-                  </div>
+                <Reveal delay={(i % 2) * 80} className={styles.tile}>
                   <h3 className={styles.tileTitle}>{t(s.title)}</h3>
                   <p className={styles.tileText}>{t(s.text)}</p>
+                  <div className={styles.tileShot}>
+                    <PhoneMockup shot={s.shot} crop={0.56} />
+                  </div>
                 </Reveal>
               </li>
             ))}
@@ -118,16 +149,16 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className={styles.sec} aria-labelledby="home-privacy">
+      <section className={styles.sec} aria-labelledby="home-safe">
         <div className={`container ${styles.privacy}`}>
           <div className={styles.privacyHead}>
-            <SectionHeading id="home-privacy" title={t('site.home.privacyTitle')} lead={t('site.home.trust')} />
+            <SectionHeading id="home-safe" title={t('site.home.safe.title')} lead={t('site.home.safe.lead')} />
             <Link to={paths.site.legal('PRIVACY')} className={styles.more}>
               {t('site.home.privacyLink')}
               <Icon name="chevronRight" size={18} className={styles.moreIcon} />
             </Link>
           </div>
-          <PointList items={privacy} />
+          <PointList items={safe} />
         </div>
       </section>
 

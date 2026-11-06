@@ -1,5 +1,6 @@
+/* İndir: solda mağazalar + adımlar + not, sağda sahne panelinde alttan taşan iki telefon. Yalnız belirteçler, gölge/ışıma yok. */
 .sec {
-  padding-block: var(--space-4) clamp(3rem, 8vw, 6rem);
+  padding-block: var(--space-6) var(--site-section-y);
 }
 .layout {
   display: grid;
@@ -8,7 +9,7 @@
 }
 .main {
   display: grid;
-  gap: var(--space-6);
+  gap: var(--space-7);
   min-width: 0;
 }
 .platforms {
@@ -34,33 +35,41 @@
 .glyph {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-pill);
-  background: var(--surface-2);
+  width: 44px;
+  height: 44px;
+  margin-block-end: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
   color: var(--text);
 }
 .platformTitle {
-  font-size: var(--text-lg);
+  font-size: var(--text-h3);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+:global(:lang(ar)) .platformTitle {
+  letter-spacing: 0;
 }
 .after {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-5);
 }
 .note {
   display: flex;
   gap: var(--space-3);
   align-items: flex-start;
   padding: var(--space-4);
-  border-radius: var(--radius-lg);
-  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   color: var(--text-muted);
   font-size: var(--text-sm);
+  line-height: 1.55;
 }
 .note svg {
   flex: none;
   margin-block-start: 2px;
-  color: var(--primary);
+  color: var(--text);
 }
 .note strong {
   color: var(--text);
@@ -69,22 +78,20 @@
   margin-block-start: var(--space-2);
 }
 
-/* Telefonlar: mobilde metnin altında, masaüstünde sağ sütunda */
+/* Telefonlar: sahne paneli; mobilde metnin altında, masaüstünde sağ sütunda yapışkan */
 .visual {
-  --phone-w: min(44vw, 190px);
+  --phone-w: min(44vw, 180px);
   position: relative;
   display: grid;
   grid-template-columns: auto auto;
   justify-content: center;
   align-items: start;
-  padding-block: var(--space-3);
-}
-.glow {
-  position: absolute;
-  inset: 6% 4% 0;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, color-mix(in srgb, var(--primary) 14%, transparent), transparent);
-  pointer-events: none;
+  overflow: hidden;
+  height: clamp(340px, 100vw, 480px);
+  padding-block-start: var(--space-6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
 }
 .front {
   grid-column: 1;
@@ -95,20 +102,18 @@
 .back {
   grid-column: 2;
   grid-row: 1;
-  margin-inline-start: calc(var(--phone-w) * -0.04);
-  margin-block-start: calc(var(--phone-w) * 0.28);
+  margin-inline-start: calc(var(--phone-w) * -0.1);
+  margin-block-start: calc(var(--phone-w) * 0.2);
 }
 @media (min-width: 900px) {
   .layout {
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: var(--space-8);
   }
   .visual {
-    --phone-w: 250px;
+    --phone-w: 230px;
+    height: 600px;
     position: sticky;
     inset-block-start: calc(var(--header-h) + var(--space-5));
-  }
-  .back {
-    --phone-w: 220px;
-    margin-block-start: calc(var(--phone-w) * 0.34);
   }
 }

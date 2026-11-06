@@ -9,7 +9,8 @@ const site = {
   'site.nav.main': 'Ana menü',
   'site.nav.openMenu': 'Menüyü aç',
   'site.nav.closeMenu': 'Menüyü kapat',
-  'site.footer.tagline': 'Duyurular, etkinlikler, yemek listesi ve kampüs topluluğu cebinizde.',
+  'site.footer.tagline':
+    'Öğrencilere özel kampüs sosyal ağı: akış, kulüpler, sohbet, etkinlikler ve yemek listesi cebinizde.',
   'site.footer.rights': '© {year} BÜ Kampüs. Tüm hakları saklıdır.',
   'site.store.googlePlay': 'Google Play',
   'site.store.appStore': 'App Store',
@@ -19,8 +20,10 @@ const site = {
   'site.store.soonNote': 'Mağaza bağlantısı henüz yayınlanmadı. Yayınlandığında bu düğme çalışır hâle gelecek.',
   'site.store.newTab': 'Yeni sekmede açılır',
 
-  'site.meta.home': 'BÜ Kampüs (bukampus): Bingöl Üniversitesi öğrencileri ve personeli için duyurular, haberler, yemek listesi, ders programı ve etkinlikler tek uygulamada.',
-  'site.meta.features': 'Haber ve duyurular, yemek listesi, mesajlaşma, topluluklar, QR yoklamalı etkinlikler, destek ve bildirimler: BÜ Kampüs uygulamasının özellikleri.',
+  'site.meta.home':
+    'BÜ Kampüs: Bingöl Üniversitesi topluluğu için reklamsız, güvenli ve moderasyonlu kampüs sosyal ağı. Keşfet akışı, kulüpler, sohbet, etkinlikler, haberler ve yemek listesi tek uygulamada.',
+  'site.meta.features':
+    'Keşfet akışı, fotoğraf ve Reels, kulüpler, sohbet, Kampüs Forum, etkinlikler, QR yoklama, haberler ve yemek listesi: BÜ Kampüs uygulamasının özellikleri.',
   'site.meta.about': 'BÜ Kampüs uygulamasının amacı, değerleri ve nasıl çalıştığı. Geçerli herhangi bir e-posta adresiyle kullanılır.',
   'site.meta.download': 'BÜ Kampüs uygulamasını Android ve iOS için indirin.',
   'site.meta.faq': 'BÜ Kampüs uygulaması hakkında sık sorulan sorular ve yanıtları.',
@@ -29,9 +32,9 @@ const site = {
   'site.meta.legal': 'Kullanım koşulları, gizlilik politikası, KVKK aydınlatma metni ve topluluk kuralları.',
   'site.maintenance.title': 'Bakım çalışması',
 
-  'site.home.heroTitle': 'Kampüs hayatı tek uygulamada',
+  'site.home.heroTitle': 'Öğrencilere özel kampüs sosyal ağı',
   'site.home.heroLead':
-    'Duyurular, haberler, etkinlikler, yemek listesi ve öğrenci toplulukları BÜ Kampüs uygulamasında.',
+    'Fotoğraf ve Reels paylaşın, kulüplere katılın, arkadaşlarınızla yazışın. Reklamsız, güvenli ve moderasyonlu; üniversite topluluğu için.',
   'site.home.ctaDownload': 'Uygulamayı indir',
   'site.home.ctaFeatures': 'Özellikleri keşfet',
   'site.home.trust': 'Gmail, Outlook ve diğer e-posta adresleriyle kullanılır.',
@@ -55,7 +58,8 @@ const site = {
   'site.home.ctaText': 'Android ve iOS sürümleri için mağaza bağlantıları yayınlandığında burada görünür.',
 
   'site.features.title': 'Özellikler',
-  'site.features.lead': 'Kampüste her gün ihtiyaç duyduğunuz şeyler, aynı uygulamada ve üç dilde.',
+  'site.features.lead':
+    'Kampüsün sosyal akışından yemek listesine, kulüplerden sohbete: öğrenci hayatı tek uygulamada ve üç dilde.',
   'site.features.ctaTitle': 'Hepsini denemek için uygulamayı indirin',
   'site.feat.news.title': 'Haber, duyuru ve etkinlikler',
   'site.feat.news.text':
@@ -64,7 +68,7 @@ const site = {
   'site.feat.menu.text': 'Günün ve haftanın yemek listesine uygulamayı açar açmaz ulaşın.',
   'site.feat.chat.title': 'Mesajlaşma',
   'site.feat.chat.text':
-    'Üniversite hesaplarıyla birebir yazışın. Gerekirse kullanıcıyı engelleyebilir veya şikâyet edebilirsiniz.',
+    'Kampüs arkadaşlarınızla birebir ve grup sohbetleri. Gerekirse kullanıcıyı engelleyebilir veya şikâyet edebilirsiniz.',
   'site.feat.communities.title': 'Topluluklar',
   'site.feat.communities.text': 'Öğrenci topluluklarını keşfedin, katılın, gönderileri ve duyuruları izleyin.',
   'site.feat.events.title': 'Etkinlik ve QR yoklama',
@@ -83,15 +87,16 @@ const site = {
 
   'site.about.title': 'Hakkımızda',
   'site.about.lead':
-    'Bingöl Üniversitesi öğrenci ve personelinin resmî duyurulara, yemek listesine, etkinliklere ve kampüs iletişimine tek yerden ulaşması için geliştirilen bir uygulama.',
+    'Bingöl Üniversitesi topluluğu için geliştirilen, reklamsız ve moderasyonlu bir kampüs sosyal ağı; haberlere, yemek listesine ve etkinliklere de aynı yerden ulaşılır.',
   'site.about.purposeTitle': 'Amacımız',
   'site.about.purposeText':
-    'Üniversite bilgisi birçok sayfaya dağılmış durumda. Uygulama bunları bir araya getirir; böylece ne olduğunu öğrenmek için dolaşmanız gerekmez, kampüsle bağınız tek ekrandan kurulur.',
+    'Kampüs hayatı birçok yere dağılmış durumda: duyurular bir sitede, arkadaşlar başka bir uygulamada. BÜ Kampüs bunları öğrencilere özel tek, sakin ve güvenli bir yerde toplar.',
   'site.about.valuesTitle': 'Değerlerimiz',
   'site.about.value.privacy.title': 'Gizlilik',
   'site.about.value.privacy.text': 'Yalnızca hizmet için gereken veriyi işleriz; verilerinizi satmayız.',
   'site.about.value.security.title': 'Güvenlik',
-  'site.about.value.security.text': 'Yalnızca üniversite hesapları girebilir; oturumlar kısa ömürlü anahtarlarla yönetilir.',
+  'site.about.value.security.text':
+    'Hesap doğrulanmış e-posta ile açılır; içerik moderasyonu ve şikâyet yolu vardır; oturumlar kısa ömürlü anahtarlarla yönetilir.',
   'site.about.value.access.title': 'Erişilebilirlik',
   'site.about.value.access.text': 'Klavye ile gezinme, okunaklı kontrast ve ekran okuyucu desteği gözetilir.',
   'site.about.value.lang.title': 'Çok dillilik',

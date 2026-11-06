@@ -1,3 +1,4 @@
+/* Herkese açık site kabuğu: monochrome, düz yüzeyler, ince çizgiler (cam/gradient/gölge yok). Yalnız belirteçler. */
 .shell {
   min-height: 100vh;
   display: flex;
@@ -5,23 +6,23 @@
 }
 .banner {
   background: var(--chrome);
-  color: #fff;
+  color: var(--on-chrome);
   text-align: center;
   padding: var(--space-2) var(--space-4);
   font-size: var(--text-sm);
 }
 .banner a {
-  color: #fff;
-  font-weight: 700;
+  color: var(--on-chrome);
+  font-weight: var(--fw-emphasis);
+  text-underline-offset: 3px;
 }
 
-/* ---- Üst çubuk: yarı saydam, ince alt çizgi ---- */
+/* ---- Üst çubuk: düz sayfa zemini, ince alt çizgi ---- */
 .header {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: saturate(1.4) blur(12px);
+  background: var(--bg);
   border-block-end: 1px solid var(--border);
 }
 .bar {
@@ -39,23 +40,31 @@
   flex: 1;
 }
 .link {
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-pill);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-sm);
   color: var(--text-muted);
-  font-weight: 600;
   font-size: var(--text-sm);
   text-decoration: none;
-  transition:
-    color 0.15s var(--ease),
-    background-color 0.15s var(--ease);
+  transition: color var(--site-dur) var(--ease);
 }
 .link:hover {
   color: var(--text);
-  background: var(--surface-2);
 }
+/* etkin sayfa: metin rengi + ince alt çizgi (zemin dolgusu yok) */
 .active {
   color: var(--text);
-  background: var(--surface-2);
+}
+.active::after {
+  content: '';
+  position: absolute;
+  inset-inline: var(--space-3);
+  inset-block-end: 6px;
+  height: 1px;
+  background: var(--text);
 }
 .cta {
   margin-inline-start: auto;
@@ -84,7 +93,7 @@
   }
 }
 
-/* Mobil: gezinme, çubuğun altında açılan sade bir sayfa (büyük dokunma hedefleri, tam genişlik İndir) */
+/* Mobil: gezinme, çubuğun altında açılan sade sayfa (büyük yazı, 56 px satırlar, tam genişlik İndir) */
 @media (max-width: 1020px) {
   .burger {
     display: inline-grid;
@@ -98,25 +107,34 @@
     align-items: stretch;
     gap: 0;
     margin: 0;
-    padding: var(--space-2) var(--space-4) var(--space-4);
+    padding: var(--space-2) var(--space-4) var(--space-5);
+    max-height: calc(100vh - var(--header-h));
+    overflow-y: auto;
     background: var(--bg);
     border-block-end: 1px solid var(--border);
-    box-shadow: var(--shadow-2);
   }
   .navOpen {
     display: flex;
-    animation: navIn 0.2s var(--ease);
+    animation: navIn var(--site-dur) var(--ease);
   }
   .link {
-    padding: var(--space-3) var(--space-2);
-    min-height: 48px;
-    display: flex;
-    align-items: center;
-    border-radius: var(--radius-md);
-    font-size: var(--text-base);
+    min-height: 56px;
+    padding: 0;
+    border-radius: 0;
+    border-block-end: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: var(--text-lg);
+    letter-spacing: -0.01em;
+  }
+  .active {
+    color: var(--text);
+  }
+  .active::after {
+    display: none;
   }
   .cta {
-    margin: var(--space-3) 0 0;
+    margin: var(--space-4) 0 0;
+    width: 100%;
   }
 }
 @keyframes navIn {
@@ -135,9 +153,9 @@
   }
 }
 
-/* ---- Alt bilgi: açık yüzey, ince üst çizgi ---- */
+/* ---- Alt bilgi: sayfa zemini, ince üst çizgi ---- */
 .footer {
-  background: var(--surface);
+  background: var(--bg);
   border-block-start: 1px solid var(--border);
   color: var(--text-muted);
   padding-block: var(--space-7) var(--space-5);
@@ -195,7 +213,7 @@
 .footTitle {
   font-family: var(--font-sans);
   font-size: var(--text-sm);
-  font-weight: 700;
+  font-weight: var(--fw-emphasis);
   color: var(--text);
   margin-block-end: var(--space-3);
   letter-spacing: 0;
@@ -214,6 +232,7 @@
 .footer a {
   color: var(--text-muted);
   text-decoration: none;
+  transition: color var(--site-dur) var(--ease);
 }
 .footer a:hover {
   color: var(--text);
@@ -238,7 +257,7 @@
 .accBtn {
   display: flex;
   width: 100%;
-  min-height: 48px;
+  min-height: 52px;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
@@ -246,14 +265,15 @@
   background: none;
   border: 0;
   color: var(--text);
-  font-weight: 700;
-  font-size: var(--text-sm);
+  font-weight: var(--fw-emphasis);
+  font-size: var(--text-base);
   text-align: start;
   cursor: pointer;
 }
 .accChev {
   flex: none;
-  transition: transform 0.2s var(--ease);
+  color: var(--text-muted);
+  transition: transform var(--site-dur) var(--ease);
 }
 .accChevOpen {
   transform: rotate(180deg);

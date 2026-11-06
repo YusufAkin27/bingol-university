@@ -28,6 +28,8 @@ export const FEATURES: Feature[] = [
   },
   { id: 'secure', icon: 'shield', title: 'site.feat.secure.title', text: 'site.feat.secure.text' },
   { id: 'notifications', icon: 'bell', title: 'site.feat.notifications.title', text: 'site.feat.notifications.text' },
+  { id: 'forum', icon: 'message', title: 'site.feat.forum.title', text: 'site.feat.forum.text' },
+  { id: 'moderation', icon: 'shield', title: 'site.feat.moderation.title', text: 'site.feat.moderation.text' },
   { id: 'languages', icon: 'globe', title: 'site.feat.languages.title', text: 'site.feat.languages.text' },
   { id: 'privacy', icon: 'shield', title: 'site.feat.privacy.title', text: 'site.feat.privacy.text' },
 ];
@@ -44,13 +46,12 @@ export interface Showcase {
 
 export const SHOWCASE: Showcase[] = [
   { id: 'home', shot: 'home', title: 'site.show.home.title', text: 'site.show.home.text' },
-  { id: 'discover', shot: 'discover', title: 'site.show.discover.title', text: 'site.show.discover.text' },
-  { id: 'chat', shot: 'chat', title: 'site.show.chat.title', text: 'site.show.chat.text' },
-  { id: 'clubs', shot: 'clubs', title: 'site.show.clubs.title', text: 'site.show.clubs.text' },
-  { id: 'events', shot: 'events', secondShot: 'qr', title: 'site.show.events.title', text: 'site.show.events.text' },
   { id: 'menu', shot: 'menu', title: 'site.show.menu.title', text: 'site.show.menu.text' },
-  { id: 'polls', shot: 'poll', title: 'site.show.polls.title', text: 'site.show.polls.text' },
-  { id: 'academic', shot: 'academic', title: 'site.show.academic.title', text: 'site.show.academic.text' },
+  { id: 'clubs', shot: 'clubs', title: 'site.show.clubs.title', text: 'site.show.clubs.text' },
+  { id: 'events', shot: 'events', title: 'site.show.events.title', text: 'site.show.events.text' },
+  { id: 'news', shot: 'news', title: 'site.show.news.title', text: 'site.show.news.text' },
+  { id: 'profile', shot: 'profile', title: 'site.show.profile.title', text: 'site.show.profile.text' },
+  { id: 'settings', shot: 'settings', title: 'site.show.settings.title', text: 'site.show.settings.text' },
 ];
 
 /** Ayrıntı ızgarasında, satırlarla çakışmayan (yinelenmeyen) özellikler. */

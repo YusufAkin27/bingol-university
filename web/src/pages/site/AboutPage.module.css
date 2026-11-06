@@ -1,33 +1,43 @@
+/* Hakkımızda: okunur tipografi, ince çizgili bölümler, telefon sakin bir sahne panelinde. Yalnız belirteçler. */
 .sec {
-  padding-block: clamp(2.75rem, 7vw, 5rem);
+  padding-block: var(--site-section-y);
 }
 .soft {
-  background: var(--surface-2);
+  background: var(--surface);
+  border-block: 1px solid var(--border);
 }
 .block {
-  margin-block-start: var(--space-6);
+  margin-block-start: var(--space-7);
 }
 .h2 {
-  font-size: clamp(1.625rem, 1.15rem + 1.9vw, 2.5rem);
-  line-height: 1.15;
-  max-width: 24ch;
+  font-size: var(--text-h2);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  max-width: 20ch;
+}
+:global(:lang(ar)) .h2 {
+  letter-spacing: 0;
+  line-height: 1.3;
 }
 .muted {
   display: block;
   color: var(--text-muted);
   font-size: var(--text-sm);
+  margin-block-start: var(--space-1);
 }
 .more {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
   min-height: 44px;
-  font-weight: 600;
   font-size: var(--text-sm);
-  text-decoration: none;
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 4px;
 }
 .more:hover {
-  text-decoration: underline;
+  text-decoration-color: var(--text);
 }
 :global(:root[dir='rtl']) .moreIcon {
   transform: scaleX(-1);
@@ -44,17 +54,28 @@
 }
 .purposeText {
   font-size: var(--text-lg);
+  line-height: 1.6;
   color: var(--text-muted);
   max-width: 52ch;
 }
 .purposeShot {
   display: grid;
   justify-items: center;
+  align-items: start;
+  overflow: hidden;
+  height: clamp(340px, 100vw, 460px);
+  padding-block-start: var(--space-6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
 }
 @media (min-width: 860px) {
   .purpose {
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
     gap: var(--space-8);
+  }
+  .purposeShot {
+    height: 520px;
   }
 }
 
@@ -66,11 +87,12 @@
   display: grid;
   gap: var(--space-3);
   justify-items: start;
+  align-content: start;
 }
 @media (min-width: 900px) {
   .commit {
     grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-    gap: var(--space-7);
+    gap: var(--space-8);
     align-items: start;
   }
 }

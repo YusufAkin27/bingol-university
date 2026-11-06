@@ -1,56 +1,66 @@
-/* Mobil: tek sütun, önce metin sonra telefon. >=860: iki sütun; .flip ile sıra ters (RTL'de grid yönü kendiliğinden aynalanır). */
+/*
+ * Mobil: tek sütun, önce metin sonra telefon. >=860: iki sütun; .flip ile sıra ters (RTL'de grid yönü kendiliğinden aynalanır).
+ * Telefon, ince kenarlıklı sakin bir sahne panelinde durur ve panelin alt kenarından taşarak kırpılır.
+ */
 .row {
   display: grid;
   gap: var(--space-6);
   align-items: center;
   grid-template-columns: minmax(0, 1fr);
-  padding-block: clamp(2.5rem, 7vw, 5rem);
+  padding-block: clamp(2.5rem, 7vw, 5.5rem);
 }
 .copy {
   display: grid;
   gap: var(--space-3);
   justify-items: start;
-  max-width: 34rem;
+  max-width: 30rem;
 }
 .title {
-  font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.25rem);
-  line-height: 1.15;
+  font-size: var(--text-h2);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+:global(:lang(ar)) .title {
+  line-height: 1.3;
+  letter-spacing: 0;
 }
 .text {
   font-size: var(--text-lg);
+  line-height: 1.55;
   color: var(--text-muted);
 }
 .visual {
   position: relative;
   display: grid;
   justify-items: center;
-  /* telefon yan eğimi ve gölgesi için nefes payı */
-  padding-block: var(--space-2);
+  align-items: start;
+  overflow: hidden;
+  padding-block-start: clamp(1.5rem, 5vw, 2.5rem);
+  height: clamp(360px, 105vw, 520px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
 }
-.visual::before {
-  content: '';
-  position: absolute;
-  inset: 6% 8%;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, color-mix(in srgb, var(--primary) 10%, transparent), transparent);
-  pointer-events: none;
+.figure {
+  align-items: center;
+  padding: var(--space-5) var(--space-4);
 }
 .phones {
-  --phone-w: min(68vw, 250px);
+  --phone-w: min(58vw, 240px);
   position: relative;
   display: grid;
   justify-items: center;
 }
 .pair {
-  --phone-w: min(46vw, 200px);
+  --phone-w: min(44vw, 200px);
   grid-template-columns: auto auto;
   gap: 0;
   align-items: start;
 }
-/* çift telefonda arka telefon aşağıda ve hafif örtülü */
+/* çift telefonda arka telefon aşağıda */
 .second {
   order: 2;
-  margin-inline-start: calc(var(--phone-w) * -0.12);
+  margin-inline-start: calc(var(--phone-w) * -0.1);
   margin-block-start: calc(var(--phone-w) * 0.22);
   z-index: 0;
 }
@@ -71,10 +81,13 @@
   .flip .visual {
     order: 1;
   }
+  .visual {
+    height: 560px;
+  }
   .phones {
     --phone-w: 270px;
   }
   .pair {
-    --phone-w: 220px;
+    --phone-w: 230px;
   }
 }

@@ -70,7 +70,7 @@ describe('routeMeta (tek kaynak)', () => {
   });
 
   it('ana sayfa başlığı "BÜ Kampüs · slogan", diğerleri "Başlık · BÜ Kampüs"', () => {
-    expect(resolveMeta(routeById('home'), 'tr').fullTitle).toBe('BÜ Kampüs · Kampüs hayatı tek uygulamada');
+    expect(resolveMeta(routeById('home'), 'tr').fullTitle).toBe('BÜ Kampüs · Öğrencilere özel kampüs sosyal ağı');
     expect(resolveMeta(routeById('privacy'), 'tr').fullTitle).toBe('Gizlilik politikası · BÜ Kampüs');
   });
 

@@ -67,9 +67,8 @@ export default function DownloadPage() {
             </Reveal>
           </div>
           <div className={styles.visual}>
-            <span className={styles.glow} aria-hidden="true" />
-            <PhoneMockup shot="clubs" tilt={4} className={styles.back} />
-            <PhoneMockup shot="home" tilt={-1.5} priority className={styles.front} />
+            <PhoneMockup shot="clubs" className={styles.back} />
+            <PhoneMockup shot="home" priority className={styles.front} />
           </div>
         </div>
       </section>
