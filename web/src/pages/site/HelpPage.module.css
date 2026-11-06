@@ -12,7 +12,8 @@
 .card {
   display: grid;
   gap: var(--space-2);
-  align-content: start;
+  /* ico, başlık, metin, bağlantı: metin esner, bağlantı hep alta hizalanır */
+  grid-template-rows: auto auto 1fr auto;
   padding: var(--space-5);
   background: var(--surface);
   border: 1px solid var(--border);
