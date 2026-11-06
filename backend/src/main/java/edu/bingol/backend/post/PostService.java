@@ -124,6 +124,42 @@ public class PostService {
     /** Gonderi: tam 1 medya (fotograf ya da video, zorunlu) + istege bagli metin (gizli ust sinir) + istege bagli etiketler. */
     @Transactional
     public PostView create(Long uid, CreatePostRequest req) {
+        return create(uid, req, null);
+    }
+
+    /** Idempotency-Key bicimi: 8-64 karakter, harf/rakam/tire/alt cizgi. */
+    static String cleanKey(String key) {
+        if (key == null || key.isBlank()) {
+            return null;
+        }
+        String k = key.trim();
+        if (!k.matches("[A-Za-z0-9_-]{8,64}")) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "IDEMPOTENCY_KEY_INVALID", "Geçersiz Idempotency-Key.");
+        }
+        return k;
+    }
+
+    /** Ayni anahtarla daha once olusan gonderi (yoksa null); silinmisse anahtar yeniden kullanilamaz (422). */
+    @Transactional(readOnly = true)
+    public PostView replayByKey(Long uid, String rawKey) {
+        String key = cleanKey(rawKey);
+        if (key == null) {
+            return null;
+        }
+        Post p = posts.findFirstByAuthorIdAndIdempotencyKey(uid, key).orElse(null);
+        if (p == null) {
+            return null;
+        }
+        if (p.getDeletedAt() != null) {
+            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "IDEMPOTENCY_KEY_REUSED",
+                    "Bu Idempotency-Key başka bir istek için kullanılmış.");
+        }
+        return assembler.assemble(uid, p);
+    }
+
+    @Transactional
+    public PostView create(Long uid, CreatePostRequest req, String rawKey) {
+        String idemKey = cleanKey(rawKey);
         String text = normalize(req.text());
         List<Long> mediaIds = req.mediaIds() == null ? List.of() : req.mediaIds().stream().distinct().toList();
         int requested = req.mediaIds() == null ? 0 : req.mediaIds().size();
@@ -146,6 +182,7 @@ public class PostService {
         Post p = new Post();
         p.setAuthorId(uid);
         p.setBody(text);
+        p.setIdempotencyKey(idemKey);
         p.setKind("VIDEO".equals(kind) ? Post.KIND_VIDEO : Post.KIND_PHOTO);
         if (rank != null) {
             p.setRankScore(rank.initialScore(p)); // soguk baslangic: yeni gonderi hemen gorunur

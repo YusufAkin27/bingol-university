@@ -10,6 +10,9 @@ import org.springframework.data.repository.query.Param;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
 
+    /** Idempotency-Key ile onceden olusturulmus gonderi (silinmis olsa da satir doner). */
+    java.util.Optional<Post> findFirstByAuthorIdAndIdempotencyKey(Long authorId, String idempotencyKey);
+
     /** Gorunur gonderi: silinmemis, gizlenmemis, yazar aktif ve bakan ile arada engel yok. */
     String VISIBLE = "p.deletedAt IS NULL AND p.hiddenAt IS NULL "
             + "AND EXISTS (SELECT 1 FROM User u WHERE u.id = p.authorId AND u.status = edu.bingol.backend.user.UserStatus.ACTIVE) "
