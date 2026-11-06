@@ -41,6 +41,17 @@ public class UserEvent {
     @Column(length = 200)
     private String location;
 
+    /** Katilimcilarin toplanacagi nokta (etkinlik yeri `location`'dan ayri) + opsiyonel harita koordinati (V1491). */
+    @Column(length = 200)
+    private String meetingPoint;
+
+    private Double meetingLat;
+
+    private Double meetingLng;
+
+    /** Son "etkinlik bilgisi degisti" bildirimi (10 dk kisma). */
+    private Instant updateNotifiedAt;
+
     @Column(length = 300)
     private String coverUrl;
 

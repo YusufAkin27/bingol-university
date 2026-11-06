@@ -5,6 +5,7 @@ import edu.bingol.backend.community.Actor;
 import edu.bingol.backend.community.CommunityService;
 import edu.bingol.backend.event.EventAttendance.Method;
 import edu.bingol.backend.event.admission.EventAdmissionHooks;
+import edu.bingol.backend.event.dto.EventDtos.AttendanceRoster;
 import edu.bingol.backend.event.dto.EventDtos.AttendanceRow;
 import edu.bingol.backend.event.dto.EventDtos.BulkEntry;
 import edu.bingol.backend.event.dto.EventDtos.BulkResult;
@@ -23,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -124,6 +126,11 @@ public class AttendanceService {
     public MyTicket issueTicket(Actor a, Long eventId, Instant now) {
         UserEvent e = events.loadVisible(a, eventId);
         requireActive(e);
+        // Yoklamayi alanlar (sahip/yonetici/moderator) QR uretmez; yalniz onayli katilimci QR uretir.
+        if (events.canManage(a, e) || (moderators != null && moderators.isModerator(e, a.id()))) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "TICKET_NOT_FOR_STAFF",
+                    "Yoklamayı alanlar için kişisel QR kodu yoktur; katılımcıların QR kodunu okutursunuz.");
+        }
         EventRsvp rsvp = rsvps.findByEventIdAndUserId(eventId, a.id()).orElse(null);
         if (rsvp == null || rsvp.getStatus() != EventRsvp.Status.GOING) {
             throw new ApiException(HttpStatus.FORBIDDEN, "NOT_RSVPED", "Yoklama için etkinliğe \"Katılacağım\" demiş olmalısınız.");
@@ -134,9 +141,39 @@ public class AttendanceService {
                 CheckinCodeService.TICKET_VALID_SECONDS);
     }
 
-    /** Organizator: katilimcinin QR'ini okutur ve yoklamayi isler. Idempotent (ALREADY). */
-    @Transactional
+    /**
+     * Organizator/moderator: katilimcinin QR'ini okutur ve yoklamayi isler. Cok okutucu: ayni kisi iki okutucuda ayni
+     * anda okutulursa benzersiz kisit biri icin CHECKIN_CONFLICT dondurur; islem yeni transaction'da bir kez tekrarlanir
+     * ve ikinci okutucu "ALREADY" alir (tek kayit).
+     */
     public ScanResult scan(Actor a, Long eventId, String payload, Instant now) {
+        return retryOnConflict(() -> self().scanOnce(a, eventId, payload, now));
+    }
+
+    private AttendanceService self;
+
+    @Autowired
+    public void setSelf(@Lazy AttendanceService self) {
+        this.self = self;
+    }
+
+    private AttendanceService self() {
+        return self != null ? self : this;
+    }
+
+    private static <T> T retryOnConflict(Supplier<T> op) {
+        try {
+            return op.get();
+        } catch (ApiException ex) {
+            if (!"CHECKIN_CONFLICT".equals(ex.code())) {
+                throw ex;
+            }
+            return op.get();
+        }
+    }
+
+    @Transactional
+    public ScanResult scanOnce(Actor a, Long eventId, String payload, Instant now) {
         UserEvent e = access(a, eventId, EventModerator.Perm.TAKE_ATTENDANCE);
         requireActive(e);
         requireAttendanceOpen(e, now);
@@ -215,7 +252,8 @@ public class AttendanceService {
                     extras.getOrDefault(uid, CommunityService.ProfileExtra.NONE).department(),
                     rsvp == null ? null : rsvp.getStatus(),
                     r != null && r.isPresent(), r == null ? null : r.getMethod(), r == null ? null : r.getMarkedBy(),
-                    by == null ? null : by.getDisplayName(), r == null ? null : r.getMarkedAt()));
+                    by == null ? null : by.getDisplayName(), r == null ? null : r.getMarkedAt(),
+                    r == null ? "NONE" : r.isPresent() ? "PRESENT" : "ABSENT"));
         }
         rows.sort(Comparator.comparing(AttendanceRow::displayName, String.CASE_INSENSITIVE_ORDER)
                 .thenComparing(AttendanceRow::userId));
@@ -226,27 +264,107 @@ public class AttendanceService {
      * Tek kullaniciyi elle isaretler. T-044: yalniz bu etkinlikte GOING olan (ya da zaten yoklama kaydi olan) kullanici;
      * RSVP'siz keyfi kullanici kimligine sahte yoklama ve ad/bolum sizintisi olmasin (olmayan kimlikle ayni 404).
      */
-    @Transactional
     public void mark(Actor a, Long eventId, Long userId, boolean present, Instant now) {
-        UserEvent e = access(a, eventId, EventModerator.Perm.TAKE_ATTENDANCE);
-        requireActive(e);
-        requireManualOpen(e, now);
-        markOne(e, a, userId, present, now);
+        mark(a, eventId, userId, present ? "PRESENT" : "ABSENT", now);
+    }
+
+    /** status: PRESENT | ABSENT | NONE (kaydi siler: bekliyor). Elle isaretleme pencere acildiktan sonra (etkinlik bitince de) serbesttir. */
+    public void mark(Actor a, Long eventId, Long userId, String status, Instant now) {
+        String st = parseStatus(status);
+        retryOnConflict(() -> {
+            self().markTx(a, eventId, userId, st, now);
+            return null;
+        });
     }
 
     @Transactional
+    public void markTx(Actor a, Long eventId, Long userId, String st, Instant now) {
+        UserEvent e = access(a, eventId, EventModerator.Perm.TAKE_ATTENDANCE);
+        requireActive(e);
+        requireManualOpen(e, now);
+        markOne(e, a, userId, st, now);
+    }
+
     public BulkResult bulk(Actor a, Long eventId, List<BulkEntry> entries, Instant now) {
         if (entries == null || entries.isEmpty() || entries.size() > MAX_BULK) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR",
                     "Toplu işaretleme 1-" + MAX_BULK + " kayıt içermelidir.");
         }
+        return retryOnConflict(() -> self().bulkTx(a, eventId, entries, null, null, false, now));
+    }
+
+    /** Yeni toplu: status + (userIds | rest = hala bekleyen tum onayli katilimcilar). */
+    public BulkResult bulkStatus(Actor a, Long eventId, String status, List<Long> userIds, boolean rest, Instant now) {
+        String st = parseStatus(status);
+        if (!rest && (userIds == null || userIds.isEmpty() || userIds.size() > MAX_BULK)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR",
+                    "Toplu işaretleme 1-" + MAX_BULK + " kayıt içermelidir.");
+        }
+        return retryOnConflict(() -> self().bulkTx(a, eventId, null, st, userIds, rest, now));
+    }
+
+    @Transactional
+    public BulkResult bulkTx(Actor a, Long eventId, List<BulkEntry> entries, String st, List<Long> userIds, boolean rest,
+                             Instant now) {
         UserEvent e = access(a, eventId, EventModerator.Perm.TAKE_ATTENDANCE);
         requireActive(e);
         requireManualOpen(e, now);
-        for (BulkEntry en : entries) {
-            markOne(e, a, en.userId(), en.present(), now);
+        int n = 0;
+        if (entries != null) {
+            for (BulkEntry en : entries) {
+                markOne(e, a, en.userId(), en.present() ? "PRESENT" : "ABSENT", now);
+                n++;
+            }
+            return new BulkResult(n);
         }
-        return new BulkResult(entries.size());
+        List<Long> targets = new ArrayList<>();
+        if (rest) {
+            // "Kalanlar": onayli katilimcilardan henuz kaydi olmayanlar (bekleyenler).
+            Set<Long> recorded = new HashSet<>();
+            attendance.findByEventId(eventId).forEach(r -> recorded.add(r.getUserId()));
+            for (EventRsvp r : rsvps.findByEventIdAndStatus(eventId, EventRsvp.Status.GOING)) {
+                if (!recorded.contains(r.getUserId())) {
+                    targets.add(r.getUserId());
+                }
+            }
+            if (targets.size() > 5000) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Çok fazla kayıt.");
+            }
+        } else {
+            targets.addAll(userIds);
+        }
+        for (Long uid : targets) {
+            markOne(e, a, uid, st, now);
+            n++;
+        }
+        return new BulkResult(n);
+    }
+
+    private static String parseStatus(String s) {
+        String v = s == null ? "" : s.trim().toUpperCase(java.util.Locale.ROOT);
+        if (!v.equals("PRESENT") && !v.equals("ABSENT") && !v.equals("NONE")) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Geçersiz yoklama durumu.");
+        }
+        return v;
+    }
+
+    /** Liste + sayaclar: onayli (GOING) katilimcilar uzerinden geldi/gelmedi/bekliyor. */
+    @Transactional(readOnly = true)
+    public AttendanceRoster roster(Actor a, Long eventId) {
+        List<AttendanceRow> rows = list(a, eventId);
+        int p = 0, ab = 0, pe = 0, tot = 0;
+        for (AttendanceRow r : rows) {
+            if (r.rsvpStatus() != EventRsvp.Status.GOING && "NONE".equals(r.status())) {
+                continue;
+            }
+            tot++;
+            switch (r.status()) {
+                case "PRESENT" -> p++;
+                case "ABSENT" -> ab++;
+                default -> pe++;
+            }
+        }
+        return new AttendanceRoster(rows, p, ab, pe, tot);
     }
 
     /** Yoklama listesi CSV (UTF-8); hucreler CSV enjeksiyonuna karsi kacirilir. */
@@ -284,7 +402,7 @@ public class AttendanceService {
 
     // ---- ic yardimcilar ----
 
-    private void markOne(UserEvent e, Actor a, Long userId, boolean present, Instant now) {
+    private void markOne(UserEvent e, Actor a, Long userId, String st, Instant now) {
         User u = communities.usersById(List.of(userId)).get(userId);
         if (u == null || u.getStatus() != UserStatus.ACTIVE) {
             throw new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Kullanıcı bulunamadı.");
@@ -298,12 +416,21 @@ public class AttendanceService {
         if (admission != null) {
             admission.requireEligibleForMark(e, userId);
         }
-        EventAttendance rec = attendance.findByEventIdAndUserId(e.getId(), userId).orElseGet(() -> {
-            EventAttendance n = new EventAttendance();
-            n.setEventId(e.getId());
-            n.setUserId(userId);
-            return n;
-        });
+        EventAttendance existing = attendance.findByEventIdAndUserId(e.getId(), userId).orElse(null);
+        if ("NONE".equals(st)) {
+            if (existing != null) {
+                attendance.delete(existing);
+                attendance.flush();
+            }
+            return;
+        }
+        boolean present = "PRESENT".equals(st);
+        if (existing != null && existing.isPresent() && present) {
+            return; // zaten geldi (QR ya da elle): kaynak/okutan korunur
+        }
+        EventAttendance rec = existing != null ? existing : new EventAttendance();
+        rec.setEventId(e.getId());
+        rec.setUserId(userId);
         rec.setPresent(present);
         rec.setMethod(Method.MANUAL);
         rec.setMarkedBy(a.id());
