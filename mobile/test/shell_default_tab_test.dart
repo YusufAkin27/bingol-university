@@ -17,7 +17,7 @@ void main() {
     await settle(tester);
   }
 
-  int navIndex(WidgetTester tester) => tester.widget<FloatingNav>(find.byType(FloatingNav)).index;
+  int navIndex(WidgetTester tester) => tester.widget<BukampusBottomNavigationBar>(find.byType(BukampusBottomNavigationBar)).index;
 
   testWidgets('varsayilan acilis sekmesi Kesfet', (tester) async {
     await pumpShell(tester);

@@ -6,7 +6,7 @@ import 'dart:ui' as ui;
 
 import 'package:bu_kampus/core/locale_controller.dart';
 import 'package:bu_kampus/features/chat/chatlist_widgets.dart';
-import 'package:bu_kampus/features/shell/floating_nav.dart';
+import 'package:bu_kampus/features/shell/bukampus_bottom_navigation_bar.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:bu_kampus/widgets/bu.dart';
 import 'package:flutter/material.dart';
@@ -74,7 +74,7 @@ Widget _row(BuildContext context, int idx, ValueNotifier<int> badge, {ValueNotif
       Positioned.fill(child: _backdrop(context)),
       Align(
         alignment: Alignment.bottomCenter,
-        child: FloatingNav(index: idx, onChanged: (_) {}, chatBadge: badge, avatarUrl: url, avatarName: name),
+        child: BukampusBottomNavigationBar(index: idx, onChanged: (_) {}, chatBadge: badge),
       ),
     ]),
   );
@@ -210,7 +210,7 @@ void main() {
               valueListenable: idx,
               builder: (_, i, __) => Stack(children: [
                 Positioned.fill(child: _backdrop(context)),
-                Align(alignment: Alignment.bottomCenter, child: FloatingNav(index: i, onChanged: (v) => idx.value = v, chatBadge: badge)),
+                Align(alignment: Alignment.bottomCenter, child: BukampusBottomNavigationBar(index: i, onChanged: (v) => idx.value = v, chatBadge: badge)),
               ]),
             ),
           ),

@@ -93,6 +93,14 @@ class BuTokens extends ThemeExtension<BuTokens> {
     this.qrInk = const Color(0xFF000000),
     this.qrPaper = const Color(0xFFFFFFFF),
     this.shadow = const Color(0xFF09090B),
+    this.navBase = const Color(0xFF141418),
+    this.navGlass = const Color(0xCC202026),
+    this.navAccent = const Color(0xFFF73A2E),
+    this.navAccentHi = const Color(0xFFFF544A),
+    this.navIconIdle = const Color(0xFFE0E0E5),
+    this.navTextIdle = const Color(0xFFB7B7C0),
+    this.navBorder = const Color(0x47F73A2E),
+    this.navGlow = const Color(0x29F73A2E),
     this.tints = _tintsLight,
   });
 
@@ -181,6 +189,17 @@ class BuTokens extends ThemeExtension<BuTokens> {
   /// Gölge rengi.
   final Color shadow;
 
+  /// ALT NAVİGASYON "Soft Glow Premium" belirteçleri. Kırmızı YALNIZ alt çubukta kullanılır (kullanıcı kararı
+  /// 2026-11-07); uygulamanın başka yerinde `nav*` kırmızı belirteçleri kullanılmaz.
+  final Color navBase; // çubuk zemini (opak yedek, nokta halkası)
+  final Color navGlass; // cam yüzey (yarı saydam)
+  final Color navAccent; // aktif simge/etiket + Paylaş düğmesi
+  final Color navAccentHi; // okunmamış noktası vurgusu
+  final Color navIconIdle; // pasif simge
+  final Color navTextIdle; // pasif etiket
+  final Color navBorder; // ince dış kenarlık
+  final Color navGlow; // yumuşak kırmızı ışık yansıması
+
   /// Kategori renkleri (kulüp/ders/haber türü): 6 çift, indeksler [BuTintId]. [tint] ile `id` bazlı döngüsel seçilir.
   /// Değerler yukarıdaki ailelerden gelir: marka, mavi, yeşil, amber, su mavisi, nötr (mor/turkuaz/pembe yok).
   final List<BuTint> tints;
@@ -248,6 +267,12 @@ class BuTokens extends ThemeExtension<BuTokens> {
     warnSoft: Color(0xFFFDF3DC),
     onWarnSoft: Color(0xFF7A4F10),
     shadow: Color(0xFF09090B),
+    navBase: Color(0xFFFFFFFF),
+    navGlass: Color(0xE6FAFAFC),
+    navIconIdle: Color(0xFF555761),
+    navTextIdle: Color(0xFF24242A),
+    navBorder: Color(0xFFE8E8EC),
+    navGlow: Color(0x14F73A2E),
   );
 
   /// PREMIUM BLACK (koyu, varsayılan): zemin #09090B, kartlar #141416, ikincil #1C1C1F, yükseltilmiş #252528;
@@ -334,6 +359,14 @@ class BuTokens extends ThemeExtension<BuTokens> {
     Color? qrInk,
     Color? qrPaper,
     Color? shadow,
+    Color? navBase,
+    Color? navGlass,
+    Color? navAccent,
+    Color? navAccentHi,
+    Color? navIconIdle,
+    Color? navTextIdle,
+    Color? navBorder,
+    Color? navGlow,
     List<BuTint>? tints,
   }) =>
       BuTokens(
@@ -378,6 +411,14 @@ class BuTokens extends ThemeExtension<BuTokens> {
         qrInk: qrInk ?? this.qrInk,
         qrPaper: qrPaper ?? this.qrPaper,
         shadow: shadow ?? this.shadow,
+        navBase: navBase ?? this.navBase,
+        navGlass: navGlass ?? this.navGlass,
+        navAccent: navAccent ?? this.navAccent,
+        navAccentHi: navAccentHi ?? this.navAccentHi,
+        navIconIdle: navIconIdle ?? this.navIconIdle,
+        navTextIdle: navTextIdle ?? this.navTextIdle,
+        navBorder: navBorder ?? this.navBorder,
+        navGlow: navGlow ?? this.navGlow,
         tints: tints ?? this.tints,
       );
 
@@ -427,6 +468,14 @@ class BuTokens extends ThemeExtension<BuTokens> {
       qrInk: c(qrInk, other.qrInk),
       qrPaper: c(qrPaper, other.qrPaper),
       shadow: c(shadow, other.shadow),
+      navBase: c(navBase, other.navBase),
+      navGlass: c(navGlass, other.navGlass),
+      navAccent: c(navAccent, other.navAccent),
+      navAccentHi: c(navAccentHi, other.navAccentHi),
+      navIconIdle: c(navIconIdle, other.navIconIdle),
+      navTextIdle: c(navTextIdle, other.navTextIdle),
+      navBorder: c(navBorder, other.navBorder),
+      navGlow: c(navGlow, other.navGlow),
       tints: [
         for (var i = 0; i < tints.length && i < other.tints.length; i++) BuTint.lerp(tints[i], other.tints[i], t),
       ],

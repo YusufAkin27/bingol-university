@@ -17,7 +17,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:bu_kampus/features/shell/floating_nav.dart';
+import 'package:bu_kampus/features/shell/bukampus_bottom_navigation_bar.dart';
 import '../support/fake_app.dart';
 import '../support/store_shots_images.dart';
 
@@ -129,7 +129,7 @@ Widget _home(FakeBackend b) => HomeTab(session: makeSession(b), onOpenTab: (i, {
 final _previewBadge = ValueNotifier<int>(2);
 Widget _phone(FakeBackend b) => Stack(children: [
   Positioned.fill(child: _home(b)),
-  Positioned(left: 0, right: 0, bottom: 0, child: FloatingNav(index: 0, onChanged: (_) {}, chatBadge: _previewBadge, onPublish: () {})),
+  Positioned(left: 0, right: 0, bottom: 0, child: BukampusBottomNavigationBar(index: 0, onChanged: (_) {}, chatBadge: _previewBadge, onPublish: () {})),
 ]);
 
 final _shots = <_Shot>[

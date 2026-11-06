@@ -69,7 +69,7 @@ void main() {
       await back(tester);
       await settle(tester);
       expect(find.byType(PostGalleryPickerPage), findsNothing);
-      expect(tester.widget<FloatingNav>(find.byType(FloatingNav)).index, 0);
+      expect(tester.widget<BukampusBottomNavigationBar>(find.byType(BukampusBottomNavigationBar)).index, 0);
       await unmount(tester);
     });
 
@@ -80,13 +80,13 @@ void main() {
       expect(find.byType(PostGalleryPickerPage), findsOneWidget);
       Navigator.of(tester.element(find.byType(PostGalleryPickerPage))).pop(Post.fromJson({'id': 99, 'author': {'id': 1, 'displayName': 'Ayşe'}}));
       await settle(tester);
-      expect(tester.widget<FloatingNav>(find.byType(FloatingNav)).index, 1);
+      expect(tester.widget<BukampusBottomNavigationBar>(find.byType(BukampusBottomNavigationBar)).index, 1);
       expect(find.byType(PostGalleryPickerPage), findsNothing);
       noErr(tester);
       await unmount(tester);
     });
 
-    int navIndex(WidgetTester tester) => tester.widget<FloatingNav>(find.byType(FloatingNav)).index;
+    int navIndex(WidgetTester tester) => tester.widget<BukampusBottomNavigationBar>(find.byType(BukampusBottomNavigationBar)).index;
 
     testWidgets('sekmeden geri -> Ana Sayfa, cikis yok', (tester) async {
       final h = tester.ensureSemantics();
@@ -138,7 +138,7 @@ void main() {
 
     testWidgets('ic sayfa aciksa once o kapanir; kabuk yerinde kalir', (tester) async {
       await pumpShell(tester);
-      final ctx = tester.element(find.byType(FloatingNav));
+      final ctx = tester.element(find.byType(BukampusBottomNavigationBar));
       unawaited(Navigator.of(ctx).push(MaterialPageRoute<void>(builder: (_) => const Scaffold(body: Text('ic sayfa')))));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
@@ -146,7 +146,7 @@ void main() {
       await back(tester);
       await settle(tester, const Duration(milliseconds: 800));
       expect(find.text('ic sayfa'), findsNothing);
-      expect(find.byType(FloatingNav), findsOneWidget);
+      expect(find.byType(BukampusBottomNavigationBar), findsOneWidget);
       expect(exits, 0);
       expect(find.text('Çıkmak için tekrar geri basın'), findsNothing);
       noErr(tester);
@@ -160,7 +160,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 20));
       }
       noErr(tester);
-      expect(find.byType(FloatingNav), findsOneWidget);
+      expect(find.byType(BukampusBottomNavigationBar), findsOneWidget);
       await unmount(tester);
     });
   });

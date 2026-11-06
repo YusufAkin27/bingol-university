@@ -25,7 +25,7 @@ import '../support/store_shots_images.dart';
 /// Uretim: STORE_SHOTS_OUT='C:/bu_qa/shots/tasarim/kesfet2' flutter test test/redesign/kesfet2_shots_test.dart
 /// Istege bagli: `K2_LANG=tr|en|ar`, `K2_ONLY=01,08`, `K2_MODES=light,dark,x13`, `K2_REF=C:/bu_design/stitch/v3_kesfet2`.
 /// Not: test render'inda fotograflar uretilmis soyut sahnelerdir (referanstaki gercek fotograflar degil); alt bar
-/// (FloatingNav) ayri bilesen oldugundan sag tarafta yoktur.
+/// (BukampusBottomNavigationBar) ayri bilesen oldugundan sag tarafta yoktur.
 const _dpr = 2.0;
 String _lang = 'tr';
 

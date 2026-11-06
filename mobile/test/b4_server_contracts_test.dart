@@ -463,10 +463,10 @@ void main() {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(AppShell(initialTab: AppTab.home, session: makeSession(FakeBackend()), themeController: ThemeController())));
       await settle(tester);
-      expect(tester.widget<FloatingNav>(find.byType(FloatingNav)).index, 0);
+      expect(tester.widget<BukampusBottomNavigationBar>(find.byType(BukampusBottomNavigationBar)).index, 0);
       shellTabRequest.value = AppTab.chat;
       await settle(tester, const Duration(milliseconds: 400));
-      expect(tester.widget<FloatingNav>(find.byType(FloatingNav)).index, AppTab.chat);
+      expect(tester.widget<BukampusBottomNavigationBar>(find.byType(BukampusBottomNavigationBar)).index, AppTab.chat);
       expect(shellTabRequest.value, isNull);
     });
   });

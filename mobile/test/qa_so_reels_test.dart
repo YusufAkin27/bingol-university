@@ -1,7 +1,7 @@
 import 'package:bu_kampus/core/nav.dart';
 import 'package:bu_kampus/features/reels/reels_feed.dart';
-import 'package:bu_kampus/features/shell/floating_nav.dart';
-import 'package:bu_kampus/widgets/bu_glass.dart';
+import 'package:bu_kampus/features/shell/bukampus_bottom_navigation_bar.dart';
+import 'package:bu_kampus/core/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 // ignore: depend_on_referenced_packages
@@ -180,24 +180,19 @@ void main() {
       expect(shellImmersive.value, isFalse);
     });
 
-    testWidgets('FloatingNav immersive: yüzey saydam, kenarlık/gölge yok; seçili hap onMedia tonu', (tester) async {
+    testWidgets('BukampusBottomNavigationBar immersive: acik temada bile koyu palet (Soft Glow)', (tester) async {
       useScreen(tester, const Size(390, 844));
       final badge = ValueNotifier<int>(0);
       addTearDown(badge.dispose);
-      Future<BuGlassBar> pill(bool immersive) async {
+      Future<Color> idleIcon(bool immersive) async {
         await tester.pumpWidget(buildApp(Scaffold(
-            bottomNavigationBar: FloatingNav(index: 1, onChanged: (_) {}, chatBadge: badge, immersive: immersive))));
+            bottomNavigationBar: BukampusBottomNavigationBar(index: 1, onChanged: (_) {}, chatBadge: badge, immersive: immersive))));
         await tester.pump(const Duration(milliseconds: 400));
-        return tester.widget<BuGlassBar>(find.byKey(const ValueKey('nav-pill')));
+        return tester.widget<Icon>(find.descendant(of: find.byKey(const ValueKey('nav-0')), matching: find.byType(Icon))).color!;
       }
 
-      // Liquid Glass: normalde tema malzemesi (açık temada açık cam); Reels'te koyu cam + açık simge.
-      final normal = await pill(false);
-      expect(normal.opaque, isFalse);
-      expect(normal.dark, isFalse);
-      final dark = await pill(true);
-      expect(dark.opaque, isFalse);
-      expect(dark.dark, isTrue, reason: 'tam ekran videoda koyu cam malzeme');
+      expect(await idleIcon(false), BuTokens.light.navIconIdle);
+      expect(await idleIcon(true), BuTokens.dark.navIconIdle, reason: 'tam ekran videoda koyu palet');
       noErr(tester);
     });
   });

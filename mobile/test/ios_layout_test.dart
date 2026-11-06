@@ -4,7 +4,7 @@ import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/auth/login_page.dart';
 import 'package:bu_kampus/features/auth/register_page.dart';
 import 'package:bu_kampus/features/auth/welcome_page.dart';
-import 'package:bu_kampus/features/shell/floating_nav.dart';
+import 'package:bu_kampus/features/shell/bukampus_bottom_navigation_bar.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -127,7 +127,7 @@ void main() {
     final badge = ValueNotifier<int>(0);
     addTearDown(badge.dispose);
     await tester.pumpWidget(buildApp(
-      Scaffold(bottomNavigationBar: FloatingNav(index: 0, onChanged: (_) {}, chatBadge: badge)),
+      Scaffold(bottomNavigationBar: BukampusBottomNavigationBar(index: 0, onChanged: (_) {}, chatBadge: badge)),
     ));
     await tester.pump(const Duration(milliseconds: 400));
     expect(tester.takeException(), isNull);

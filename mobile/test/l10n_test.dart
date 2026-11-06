@@ -2,7 +2,7 @@ import 'package:bu_kampus/core/locale_controller.dart';
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/auth/login_page.dart';
 import 'package:bu_kampus/features/profile/settings_page.dart';
-import 'package:bu_kampus/features/shell/floating_nav.dart';
+import 'package:bu_kampus/features/shell/bukampus_bottom_navigation_bar.dart';
 import 'package:bu_kampus/core/theme_controller.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -82,7 +82,7 @@ void main() {
       final badge = ValueNotifier<int>(0);
       addTearDown(badge.dispose);
       await tester.pumpWidget(_app(
-        Scaffold(bottomNavigationBar: FloatingNav(index: 0, onChanged: (_) {}, chatBadge: badge)),
+        Scaffold(bottomNavigationBar: BukampusBottomNavigationBar(index: 0, onChanged: (_) {}, chatBadge: badge)),
         Locale(code),
       ));
       // M3 NavigationBar etikete konum metni ekler ("Ana Sayfa Tab 1 of 5"): etiketle başlayan düğüm aranır.

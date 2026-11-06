@@ -16,7 +16,7 @@ import 'package:bu_kampus/features/profile/privacy_data_page.dart';
 import 'package:bu_kampus/features/profile/profil2_delete_account_page.dart';
 import 'package:bu_kampus/features/profile/profil2_my_data_page.dart';
 import 'package:bu_kampus/features/profile/profile_tab.dart';
-import 'package:bu_kampus/features/shell/floating_nav.dart';
+import 'package:bu_kampus/features/shell/bukampus_bottom_navigation_bar.dart';
 import 'package:bu_kampus/features/profile/settings_page.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -140,7 +140,7 @@ void _profileBase(FakeBackend b) {
 Widget _profileShell(Session s, {int index = 4, int badge = 3}) => Scaffold(
       extendBody: true,
       body: ProfileTab(session: s, themeController: ThemeController()),
-      bottomNavigationBar: FloatingNav(index: index, onChanged: (_) {}, chatBadge: ValueNotifier<int>(badge)),
+      bottomNavigationBar: BukampusBottomNavigationBar(index: index, onChanged: (_) {}, chatBadge: ValueNotifier<int>(badge)),
     );
 
 // ---------------------------------------------------------------------------------------------------------------
