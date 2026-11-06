@@ -13177,4 +13177,49 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get qa1TfDisableReauthBody =>
       'Your account has no password, so confirm with Google or Apple. All trusted devices are removed.';
+
+  @override
+  String get widgetsRowTitle => 'Home screen widgets';
+
+  @override
+  String get widgetsInfoTitle => 'Home screen widgets';
+
+  @override
+  String get widgetsIntro =>
+      'See meals, classes, events, announcements, the poll and your social summary on the home screen without opening the app.';
+
+  @override
+  String get widgetsListTitle => 'Available widgets';
+
+  @override
+  String get widgetsList =>
+      'Meal menu, Timetable, Upcoming events, Campus announcements, Today\'s poll, Quick access and Social summary.';
+
+  @override
+  String get widgetsIosTitle => 'iPhone';
+
+  @override
+  String get widgetsIosSteps =>
+      'Touch and hold an empty spot on the home screen, tap the + button at the top left, choose BU Campus and add the widget you want.';
+
+  @override
+  String get widgetsAndroidTitle => 'Android';
+
+  @override
+  String get widgetsAndroidSteps =>
+      'Touch and hold an empty spot on the home screen, tap Widgets, find BU Campus and drag the widget you want onto the home screen.';
+
+  @override
+  String get widgetsRefreshTitle => 'Updates';
+
+  @override
+  String get widgetsRefresh =>
+      'Information refreshes when you open the app, when something changes and at regular intervals. Tapping a widget opens the related screen.';
+
+  @override
+  String get widgetsPrivacyTitle => 'Privacy';
+
+  @override
+  String get widgetsPrivacy =>
+      'Widgets never show other users\' names, messages or photos; the social summary shows counts only. When you sign out, widget data is deleted and widgets return to the Sign in state.';
 }

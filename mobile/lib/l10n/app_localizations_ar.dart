@@ -13056,4 +13056,49 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get qa1TfDisableReauthBody =>
       'حسابك بلا كلمة مرور، لذا أكّد هويتك عبر Google أو Apple. تُحذف جميع الأجهزة الموثوقة.';
+
+  @override
+  String get widgetsRowTitle => 'ودجات الشاشة الرئيسية';
+
+  @override
+  String get widgetsInfoTitle => 'ودجات الشاشة الرئيسية';
+
+  @override
+  String get widgetsIntro =>
+      'شاهد الوجبات والمحاضرات والفعاليات والإعلانات والاستطلاع والملخص الاجتماعي من الشاشة الرئيسية دون فتح التطبيق.';
+
+  @override
+  String get widgetsListTitle => 'الودجات المتاحة';
+
+  @override
+  String get widgetsList =>
+      'قائمة الطعام، الجدول الدراسي، الفعاليات القادمة، إعلانات الحرم الجامعي، استطلاع اليوم، الوصول السريع والملخص الاجتماعي.';
+
+  @override
+  String get widgetsIosTitle => 'iPhone';
+
+  @override
+  String get widgetsIosSteps =>
+      'اضغط مطولاً على مساحة فارغة في الشاشة الرئيسية، ثم اضغط زر + في الأعلى، واختر BÜ Kampüs وأضف الودجت الذي تريده.';
+
+  @override
+  String get widgetsAndroidTitle => 'Android';
+
+  @override
+  String get widgetsAndroidSteps =>
+      'اضغط مطولاً على مساحة فارغة في الشاشة الرئيسية، ثم اضغط على الودجات، وابحث عن BÜ Kampüs واسحب الودجت الذي تريده إلى الشاشة الرئيسية.';
+
+  @override
+  String get widgetsRefreshTitle => 'التحديث';
+
+  @override
+  String get widgetsRefresh =>
+      'تتحدث المعلومات عند فتح التطبيق وعند حدوث تغيير وبشكل دوري. الضغط على الودجت يفتح الشاشة المناسبة.';
+
+  @override
+  String get widgetsPrivacyTitle => 'الخصوصية';
+
+  @override
+  String get widgetsPrivacy =>
+      'لا تعرض الودجات أسماء المستخدمين الآخرين أو رسائلهم أو صورهم؛ يعرض الملخص الاجتماعي الأعداد فقط. عند تسجيل الخروج تُحذف بيانات الودجات وتعود إلى حالة تسجيل الدخول.';
 }

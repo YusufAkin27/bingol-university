@@ -18,6 +18,7 @@ import '../support/support_page.dart';
 import 'account_security_page.dart';
 import 'blocked_users_page.dart';
 import 'notification_prefs_page.dart';
+import '../widgets/widgets_info_page.dart';
 import 'privacy_data_page.dart';
 import 'profil_widgets.dart';
 
@@ -265,6 +266,16 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ]),
                 ),
+                ProfilFlatSection(l.widgetsRowTitle),
+                ProfilFlatGroup(outlined: true, children: [
+                  ProfilFlatRow(
+                    plainIcon: true,
+                    key: const ValueKey('settings-widgets'),
+                    icon: BuIcons.smartphone,
+                    label: l.widgetsRowTitle,
+                    onTap: () => _push(const WidgetsInfoPage(), 'widgets_info'),
+                  ),
+                ]),
                 const SizedBox(height: 24),
                 Center(
                   child: Text(l.settingsVersion(appVersion), style: tx.bodySmall!.copyWith(fontSize: 12, color: t.mut)),

@@ -7122,5 +7122,18 @@
   "qa1NoPasswordNote": "Hesabın Google veya Apple ile açıldığı için şifren yok. İstersen e-postana gelen kodla bir şifre belirleyebilirsin; sonra e-posta ve şifreyle de girebilirsin.",
   "qa1PwSetButton": "Şifre belirle",
   "qa1TfNeedPassword": "İki adımlı doğrulamayı kapatmak şifre ister. Hesabının şifresi yok: önce Şifre ekranından e-postana gelen kodla bir şifre belirle.",
-  "qa1TfDisableReauthBody": "Hesabın şifresiz olduğu için Google veya Apple ile kimliğini doğrulayarak onayla. Güvenilen tüm cihazlar silinir."
+  "qa1TfDisableReauthBody": "Hesabın şifresiz olduğu için Google veya Apple ile kimliğini doğrulayarak onayla. Güvenilen tüm cihazlar silinir.",
+  "widgetsRowTitle": "Ana ekran widgetları",
+  "widgetsInfoTitle": "Ana ekran widgetları",
+  "widgetsIntro": "Yemek, ders, etkinlik, duyuru, anket ve sosyal özet bilgilerini uygulamayı açmadan ana ekranından gör.",
+  "widgetsListTitle": "Hangi widgetlar var",
+  "widgetsList": "Yemek menüsü, Ders programı, Yaklaşan etkinlikler, Kampüs duyuruları, Günün anketi, Hızlı erişim ve Sosyal özet.",
+  "widgetsIosTitle": "iPhone",
+  "widgetsIosSteps": "Ana ekranda boş bir yere uzun bas, sol üstteki + düğmesine dokun, BÜ Kampüs uygulamasını seç ve istediğin widgetı ekle.",
+  "widgetsAndroidTitle": "Android",
+  "widgetsAndroidSteps": "Ana ekranda boş bir yere uzun bas, Widgetlar seçeneğine dokun, BÜ Kampüs uygulamasını bul ve istediğin widgetı ana ekrana sürükle.",
+  "widgetsRefreshTitle": "Yenilenme",
+  "widgetsRefresh": "Bilgiler uygulamayı açtığında, bir şey değiştiğinde ve düzenli aralıklarla yenilenir. Widgeta dokununca ilgili ekran açılır.",
+  "widgetsPrivacyTitle": "Gizlilik",
+  "widgetsPrivacy": "Widgetlarda başka kullanıcıların adı, mesajı veya fotoğrafı görünmez; sosyal özet yalnızca sayıları gösterir. Çıkış yapınca widgetlardaki bilgiler silinir ve Giriş yap durumuna döner."
 }
