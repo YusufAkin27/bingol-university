@@ -75,7 +75,7 @@ class ForumSearchServiceTest {
         when(sp.getObject()).thenReturn(summaries);
         ObjectProvider<ForumMuteLookup> mp = mock(ObjectProvider.class);
         when(mp.getIfAvailable()).thenReturn(muteLookup);
-        service = new ForumSearchService(repo, sp, blocks, mp);
+        service = new ForumSearchService(repo, sp, blocks, mp, mock(edu.bingol.backend.forum.category.ForumCategoryService.class));
         when(blocks.hiddenFrom(anyLong())).thenReturn(Set.of(11L));
         when(muteLookup.mutedBy(anyLong())).thenReturn(Set.of(12L));
     }

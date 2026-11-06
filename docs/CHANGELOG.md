@@ -14,6 +14,10 @@ Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_AP
 - Tüm giden e-postalar (doğrulama/sıfırlama/2FA/destek kodu, hesap silindi, yeni cihaz, şifre değişti, 2FA bildirimi, duyuru, yönetici şablonları/kampanya, destek talebi alındı/yanıt/kod, sistem uyarısı) ve abonelikten çık sayfası tek siyah-beyaz çerçeveye (`MailLayout` + `layout.html`) taşındı: serif "BÜ" amblemi (CID gömülü, açık/koyu iki PNG), renkli bant/kırmızı vurgu yok, gradient/gölge yok, font-weight 400, 1 px kenarlık, 12 px köşe, siyah birincil düğme, kod kutusu, güvenlik notu, koyu mod (`prefers-color-scheme`), Outlook için tablo yerleşimi, Arapça RTL, düz metin alternatifi markalı. İçerik cümleleri değişmedi; yeni i18n anahtarları `mail.tpl.org`, `mail.tpl.footer.support`, `mail.tpl.action.track`.
 - Abonelikten çık sayfası artık stilli açılır (kendi dar CSP'si; genel `default-src 'none'` satır içi stili engelliyordu). Yönetici şablonlarındaki eski kırmızı marka renkleri render anında siyaha çevrilir.
 - Önizleme: `MailPreviewFilesTest` + `scripts/ops/render-mail-previews.mjs`. Ayrıntı: `docs/changes/mail.md` "Marka: siyah-beyaz + yeni logo (2026-11-06)".
+### Forum: 79 kategori + kategori araması (2026-11-06, `deploy/forumcat-20261106`)
+
+- **V1480**: forum kategorileri 8 -> 79 (8 grup: Genel, Akademik, Kampüs Yaşamı, Kariyer & Gelişim, Fakülte & Alanlar, Bingöl, Hobi & Eğlence, Yaşam; tr/en/ar), `forum_category_group` + `forum_category.group_key`. Eski kategorilerin kimlik/slug/sırası değişmedi.
+- `GET /api/forum/categories` yanıtı `groupKey/groupName/groupOrder` taşır; yeni `?q=` parametresi (Türkçe karakter duyarsız ad/slug/grup araması). Konu araması kategori adıyla da eşleşir. Ayrıntı: `docs/changes/forum-categories.md`. Duman: `scripts/smoke-forum-categories.sh`.
 
 ### Çoklu oturum + Cihazlarım (2026-11-06, `deploy/multisession-20261106`)
 

@@ -33,6 +33,10 @@ public class ForumCategory {
     @Column(nullable = false, length = 80)
     private String nameAr;
 
+    /** Mantiksal grup ({@code forum_category_group.group_key}); bos = grupsuz (listede "Diger"). */
+    @Column(length = 30)
+    private String groupKey;
+
     @Column(nullable = false)
     private int sortOrder;
 

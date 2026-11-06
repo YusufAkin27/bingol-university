@@ -39,7 +39,7 @@ public class PgForumSearchRepository implements ForumSearchRepository {
                WHERE t.deleted_at IS NULL AND t.status = 'ACTIVE'
                  AND (CAST(:cat AS BIGINT) IS NULL OR t.category_id = :cat)
                  AND t.user_id NOT IN (:excluded) AND (t.anonymous = TRUE OR (0 - t.user_id) NOT IN (:excluded))
-                 AND (t.search_vec @@ qq.tsq OR t.title ILIKE :pat
+                 AND (t.search_vec @@ qq.tsq OR t.title ILIKE :pat OR t.category_id IN (:catIds)
                       OR EXISTS (SELECT 1 FROM forum_category fc WHERE fc.id = t.category_id
                                   AND (fc.name_tr ILIKE :pat OR fc.name_en ILIKE :pat OR fc.name_ar ILIKE :pat)))
               UNION ALL
@@ -96,7 +96,14 @@ public class PgForumSearchRepository implements ForumSearchRepository {
     @Override
     public List<Hit> search(String q, Long categoryId, ForumSearchSort sort, Set<Long> excludedAuthors, int offset,
                             int limit) {
+        return search(q, categoryId, sort, excludedAuthors, Set.of(), offset, limit);
+    }
+
+    @Override
+    public List<Hit> search(String q, Long categoryId, ForumSearchSort sort, Set<Long> excludedAuthors,
+                            Set<Long> categoryNameMatches, int offset, int limit) {
         MapSqlParameterSource p = new MapSqlParameterSource()
+                .addValue("catIds", excludedOrSentinel(categoryNameMatches))
                 .addValue("q", q)
                 .addValue("pat", ForumSearchService.likePattern(q))
                 .addValue("cat", categoryId, java.sql.Types.BIGINT)
