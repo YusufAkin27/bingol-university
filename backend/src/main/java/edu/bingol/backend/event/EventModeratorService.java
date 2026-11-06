@@ -155,7 +155,10 @@ public class EventModeratorService {
         if (m != null && (e.getCommunityId() == null || communities.roleOf(e.getCommunityId(), a.id()).isPresent())) {
             perms = names(m.getPermissions());
         }
-        return new MyPermissions(false, e.isAttendanceOpen(), perms);
+        // Katilimci/moderator icin "yoklama acik" = sahip anahtari VEYA etkinlik yoklama penceresi (QR gosterilebilir);
+        // sahip yanit(true) anahtarin gercek degerini gosterir (anahtar arayuzu).
+        boolean effective = e.isAttendanceOpen() || AttendanceService.inWindow(e, java.time.Instant.now());
+        return new MyPermissions(false, effective, perms);
     }
 
     private void notifyUser(Long userId, String key, UserEvent e) {
