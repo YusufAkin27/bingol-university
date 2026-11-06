@@ -25,6 +25,9 @@ Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_AP
 - **Kapı:** YENİ röle hesapta gerçek e-posta doğrulanana kadar yazma uçları `403 REAL_EMAIL_REQUIRED` (`RealEmailRequiredWriteFilter` + STOMP; bayrak `AUTH_REAL_EMAIL_GATE_ENABLED`, varsayılan açık). **Mevcut** röle hesaplar kilitlenmez: yalnız `email_relay=true` işaretlenir, uygulama yumuşak (atlanabilir) adım gösterir.
 - **Şema:** **V1472** (`app_user.email_relay`, `real_email_required`, `real_email_verified_at`; geriye dönük işaretleme). V1470 `deploy/legal-20261106` dalındadır: canlıya ÖNCE o inmelidir (`out-of-order=false`).
 - Yönetici hesapları bu uçtan adres değiştiremez ve kimse `ADMIN_EMAILS` adresine taşınamaz. E-posta kodu şablonu metni ("hesabınızı etkinleştirmek") genel "e-posta adresini doğrulamak" olarak güncellendi (tr/en/ar). Ayrıntı: `docs/changes/auth.md` "Gercek e-posta (role) dogrulamasi". Duman: `scripts/smoke-real-email.sh`.
+### Uygunsuz ifade filtresi v2 (2026-11-06, `deploy/profanity-20261106`)
+
+- TR/EN/AR için uzun yerleşik liste (`profanity-v2-*.txt`, üretici `scripts/profanity/gen-v2.js`), nefret söylemi (`HATE`), uyuşturucu satış argosu, Latin harfli Arapça; geniş masum/nötr kimlik izin listesi. Eşleşme motoru: 4-5 harfli kökler artık rastgele ek almaz, yeni `+`/`~` güvenli ek zinciri, izin listesi bilinen ek zinciriyle sınırlı. Migration yok. Sohbet mesajları muaf kalır. Ayrıntı: `docs/changes/ops.md` "Filtre v2".
 
 ### Çoklu oturum + Cihazlarım (2026-11-06, `deploy/multisession-20261106`)
 

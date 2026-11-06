@@ -1,0 +1,563 @@
+# Nefret soylemi (HATE) - Ingilizce v2 (uretici: scripts/profanity/gen-v2.js). Neutral identity words are never blocked.
+
+# --- Group patterns ---
+jews are vermin
+jews are subhuman
+jews are animals
+jews are filth
+jews are scum
+jews are cancer
+jews are disgusting
+jews are inferior
+jews should die
+jews must die
+jews deserve to die
+jews are a disease
+jews are parasites
+jews are rats
+jews are trash
+jews are dogs
+jews are monkeys
+jews are pigs
+kill all jews
+kill the jews
+death to jews
+hate jews
+i hate jews
+exterminate jews
+exterminate the jews
+go back to your country jews
+jewish people are subhuman
+jewish people should die
+muslims are vermin
+muslims are subhuman
+muslims are animals
+muslims are filth
+muslims are scum
+muslims are cancer
+muslims are disgusting
+muslims are inferior
+muslims should die
+muslims must die
+muslims deserve to die
+muslims are a disease
+muslims are parasites
+muslims are rats
+muslims are trash
+muslims are dogs
+muslims are monkeys
+muslims are pigs
+kill all muslims
+kill the muslims
+death to muslims
+hate muslims
+i hate muslims
+exterminate muslims
+exterminate the muslims
+go back to your country muslims
+muslim people are subhuman
+muslim people should die
+blacks are vermin
+blacks are subhuman
+blacks are animals
+blacks are filth
+blacks are scum
+blacks are cancer
+blacks are disgusting
+blacks are inferior
+blacks should die
+blacks must die
+blacks deserve to die
+blacks are a disease
+blacks are parasites
+blacks are rats
+blacks are trash
+blacks are dogs
+blacks are monkeys
+blacks are pigs
+kill all blacks
+kill the blacks
+death to blacks
+hate blacks
+i hate blacks
+exterminate blacks
+exterminate the blacks
+go back to your country blacks
+black people are subhuman
+black people should die
+gays are vermin
+gays are subhuman
+gays are animals
+gays are filth
+gays are scum
+gays are cancer
+gays are disgusting
+gays are inferior
+gays should die
+gays must die
+gays deserve to die
+gays are a disease
+gays are parasites
+gays are rats
+gays are trash
+gays are dogs
+gays are monkeys
+gays are pigs
+kill all gays
+kill the gays
+death to gays
+hate gays
+i hate gays
+exterminate gays
+exterminate the gays
+go back to your country gays
+gay people are subhuman
+gay people should die
+asians are vermin
+asians are subhuman
+asians are animals
+asians are filth
+asians are scum
+asians are cancer
+asians are disgusting
+asians are inferior
+asians should die
+asians must die
+asians deserve to die
+asians are a disease
+asians are parasites
+asians are rats
+asians are trash
+asians are dogs
+asians are monkeys
+asians are pigs
+kill all asians
+kill the asians
+death to asians
+hate asians
+i hate asians
+exterminate asians
+exterminate the asians
+go back to your country asians
+asian people are subhuman
+asian people should die
+mexicans are vermin
+mexicans are subhuman
+mexicans are animals
+mexicans are filth
+mexicans are scum
+mexicans are cancer
+mexicans are disgusting
+mexicans are inferior
+mexicans should die
+mexicans must die
+mexicans deserve to die
+mexicans are a disease
+mexicans are parasites
+mexicans are rats
+mexicans are trash
+mexicans are dogs
+mexicans are monkeys
+mexicans are pigs
+kill all mexicans
+kill the mexicans
+death to mexicans
+hate mexicans
+i hate mexicans
+exterminate mexicans
+exterminate the mexicans
+go back to your country mexicans
+mexican people are subhuman
+mexican people should die
+arabs are vermin
+arabs are subhuman
+arabs are animals
+arabs are filth
+arabs are scum
+arabs are cancer
+arabs are disgusting
+arabs are inferior
+arabs should die
+arabs must die
+arabs deserve to die
+arabs are a disease
+arabs are parasites
+arabs are rats
+arabs are trash
+arabs are dogs
+arabs are monkeys
+arabs are pigs
+kill all arabs
+kill the arabs
+death to arabs
+hate arabs
+i hate arabs
+exterminate arabs
+exterminate the arabs
+go back to your country arabs
+arab people are subhuman
+arab people should die
+turks are vermin
+turks are subhuman
+turks are animals
+turks are filth
+turks are scum
+turks are cancer
+turks are disgusting
+turks are inferior
+turks should die
+turks must die
+turks deserve to die
+turks are a disease
+turks are parasites
+turks are rats
+turks are trash
+turks are dogs
+turks are monkeys
+turks are pigs
+kill all turks
+kill the turks
+death to turks
+hate turks
+i hate turks
+exterminate turks
+exterminate the turks
+go back to your country turks
+turkish people are subhuman
+turkish people should die
+kurds are vermin
+kurds are subhuman
+kurds are animals
+kurds are filth
+kurds are scum
+kurds are cancer
+kurds are disgusting
+kurds are inferior
+kurds should die
+kurds must die
+kurds deserve to die
+kurds are a disease
+kurds are parasites
+kurds are rats
+kurds are trash
+kurds are dogs
+kurds are monkeys
+kurds are pigs
+kill all kurds
+kill the kurds
+death to kurds
+hate kurds
+i hate kurds
+exterminate kurds
+exterminate the kurds
+go back to your country kurds
+kurdish people are subhuman
+kurdish people should die
+armenians are vermin
+armenians are subhuman
+armenians are animals
+armenians are filth
+armenians are scum
+armenians are cancer
+armenians are disgusting
+armenians are inferior
+armenians should die
+armenians must die
+armenians deserve to die
+armenians are a disease
+armenians are parasites
+armenians are rats
+armenians are trash
+armenians are dogs
+armenians are monkeys
+armenians are pigs
+kill all armenians
+kill the armenians
+death to armenians
+hate armenians
+i hate armenians
+exterminate armenians
+exterminate the armenians
+go back to your country armenians
+armenian people are subhuman
+armenian people should die
+christians are vermin
+christians are subhuman
+christians are animals
+christians are filth
+christians are scum
+christians are cancer
+christians are disgusting
+christians are inferior
+christians should die
+christians must die
+christians deserve to die
+christians are a disease
+christians are parasites
+christians are rats
+christians are trash
+christians are dogs
+christians are monkeys
+christians are pigs
+kill all christians
+kill the christians
+death to christians
+hate christians
+i hate christians
+exterminate christians
+exterminate the christians
+go back to your country christians
+christian people are subhuman
+christian people should die
+immigrants are vermin
+immigrants are subhuman
+immigrants are animals
+immigrants are filth
+immigrants are scum
+immigrants are cancer
+immigrants are disgusting
+immigrants are inferior
+immigrants should die
+immigrants must die
+immigrants deserve to die
+immigrants are a disease
+immigrants are parasites
+immigrants are rats
+immigrants are trash
+immigrants are dogs
+immigrants are monkeys
+immigrants are pigs
+kill all immigrants
+kill the immigrants
+death to immigrants
+hate immigrants
+i hate immigrants
+exterminate immigrants
+exterminate the immigrants
+go back to your country immigrants
+immigrant people are subhuman
+immigrant people should die
+refugees are vermin
+refugees are subhuman
+refugees are animals
+refugees are filth
+refugees are scum
+refugees are cancer
+refugees are disgusting
+refugees are inferior
+refugees should die
+refugees must die
+refugees deserve to die
+refugees are a disease
+refugees are parasites
+refugees are rats
+refugees are trash
+refugees are dogs
+refugees are monkeys
+refugees are pigs
+kill all refugees
+kill the refugees
+death to refugees
+hate refugees
+i hate refugees
+exterminate refugees
+exterminate the refugees
+go back to your country refugees
+refugee people are subhuman
+refugee people should die
+lesbians are vermin
+lesbians are subhuman
+lesbians are animals
+lesbians are filth
+lesbians are scum
+lesbians are cancer
+lesbians are disgusting
+lesbians are inferior
+lesbians should die
+lesbians must die
+lesbians deserve to die
+lesbians are a disease
+lesbians are parasites
+lesbians are rats
+lesbians are trash
+lesbians are dogs
+lesbians are monkeys
+lesbians are pigs
+kill all lesbians
+kill the lesbians
+death to lesbians
+hate lesbians
+i hate lesbians
+exterminate lesbians
+exterminate the lesbians
+go back to your country lesbians
+lesbian people are subhuman
+lesbian people should die
+transgender people are vermin
+transgender people are subhuman
+transgender people are animals
+transgender people are filth
+transgender people are scum
+transgender people are cancer
+transgender people are disgusting
+transgender people are inferior
+transgender people should die
+transgender people must die
+transgender people deserve to die
+transgender people are a disease
+transgender people are parasites
+transgender people are rats
+transgender people are trash
+transgender people are dogs
+transgender people are monkeys
+transgender people are pigs
+kill all transgender people
+kill the transgender people
+death to transgender people
+hate transgender people
+i hate transgender people
+exterminate transgender people
+exterminate the transgender people
+go back to your country transgender people
+trans people are subhuman
+trans people should die
+disabled people are vermin
+disabled people are subhuman
+disabled people are animals
+disabled people are filth
+disabled people are scum
+disabled people are cancer
+disabled people are disgusting
+disabled people are inferior
+disabled people should die
+disabled people must die
+disabled people deserve to die
+disabled people are a disease
+disabled people are parasites
+disabled people are rats
+disabled people are trash
+disabled people are dogs
+disabled people are monkeys
+disabled people are pigs
+kill all disabled people
+kill the disabled people
+death to disabled people
+hate disabled people
+i hate disabled people
+exterminate disabled people
+exterminate the disabled people
+go back to your country disabled people
+disabled persons are subhuman
+disabled persons should die
+women are vermin
+women are subhuman
+women are animals
+women are filth
+women are scum
+women are cancer
+women are disgusting
+women are inferior
+women should die
+women must die
+women deserve to die
+women are a disease
+women are parasites
+women are rats
+women are trash
+women are dogs
+women are monkeys
+women are pigs
+kill all women
+kill the women
+death to women
+hate women
+i hate women
+exterminate women
+exterminate the women
+go back to your country women
+females are subhuman
+females should die
+indians are vermin
+indians are subhuman
+indians are animals
+indians are filth
+indians are scum
+indians are cancer
+indians are disgusting
+indians are inferior
+indians should die
+indians must die
+indians deserve to die
+indians are a disease
+indians are parasites
+indians are rats
+indians are trash
+indians are dogs
+indians are monkeys
+indians are pigs
+kill all indians
+kill the indians
+death to indians
+hate indians
+i hate indians
+exterminate indians
+exterminate the indians
+go back to your country indians
+indian people are subhuman
+indian people should die
+africans are vermin
+africans are subhuman
+africans are animals
+africans are filth
+africans are scum
+africans are cancer
+africans are disgusting
+africans are inferior
+africans should die
+africans must die
+africans deserve to die
+africans are a disease
+africans are parasites
+africans are rats
+africans are trash
+africans are dogs
+africans are monkeys
+africans are pigs
+kill all africans
+kill the africans
+death to africans
+hate africans
+i hate africans
+exterminate africans
+exterminate the africans
+go back to your country africans
+african people are subhuman
+african people should die
+gypsies are vermin
+gypsies are subhuman
+gypsies are animals
+gypsies are filth
+gypsies are scum
+gypsies are cancer
+gypsies are disgusting
+gypsies are inferior
+gypsies should die
+gypsies must die
+gypsies deserve to die
+gypsies are a disease
+gypsies are parasites
+gypsies are rats
+gypsies are trash
+gypsies are dogs
+gypsies are monkeys
+gypsies are pigs
+kill all gypsies
+kill the gypsies
+death to gypsies
+hate gypsies
+i hate gypsies
+exterminate gypsies
+exterminate the gypsies
+go back to your country gypsies
+gypsy people are subhuman
+gypsy people should die

@@ -50,6 +50,14 @@ TID=$(echo "$LIST" | idof)
 CHK=$(curl -s -X POST -H "$H" -H "$AAD" $A/admin/profanity/check -d "{\"text\":\"merhaba ${WORD}lar\"}")
 has "check blocked" '"blocked":true' "$CHK"
 has "check temiz metin" '"blocked":false' "$(curl -s -X POST -H "$H" -H "$AAD" $A/admin/profanity/check -d '{"text":"Amasya ve Sinop gezisi"}')"
+# v2 motor (profanity-v2): kisa kok alt dize olarak ARANMAZ; masum sozcuk gecer, kok kendisi engellenir (ASCII)
+for W in klasik mesela basik sikke sistem Amasya ambulans tasarim kullanici Scunthorpe classic assessment; do
+  has "masum '$W' temiz" '"blocked":false' "$(curl -s -X POST -H "$H" -H "$AAD" $A/admin/profanity/check -d "{\"text\":\"bu $W guzel\"}")"
+done
+has "kok 'sik' tek basina engellenir" '"blocked":true' "$(curl -s -X POST -H "$H" -H "$AAD" $A/admin/profanity/check -d '{"text":"sik"}')"
+has "bosluklu harf engellenir" '"blocked":true' "$(curl -s -X POST -H "$H" -H "$AAD" $A/admin/profanity/check -d '{"text":"s i k t i r"}')"
+has "EN cekim engellenir" '"blocked":true' "$(curl -s -X POST -H "$H" -H "$AAD" $A/admin/profanity/check -d '{"text":"fuckers"}')"
+has "notr kimlik sozcugu temiz" '"blocked":false' "$(curl -s -X POST -H "$H" -H "$AAD" $A/admin/profanity/check -d '{"text":"Kurt Turk Arap gay engelli Musluman"}')"
 has "info" '"builtIn"' "$(curl -s -H "$AAD" $A/admin/profanity/info)"
 has "stats" '"last24h"' "$(curl -s -H "$AAD" $A/admin/profanity/stats)"
 has "csv" "term,kind,lang" "$(curl -s -H "$AAD" "$A/admin/profanity/export.csv?kind=BLOCK")"
