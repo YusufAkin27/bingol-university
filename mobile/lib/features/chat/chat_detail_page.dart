@@ -2,6 +2,7 @@ import '../../core/analytics.dart';
 import 'dart:async';
 
 import '../../core/push/active_conversation.dart';
+import 'package:flutter/foundation.dart' show kDebugMode, debugPrint;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' show ValueListenable;
@@ -704,7 +705,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     // Üstte başka sayfa (profil, medya, bilgi...) varken arka planda yoklama yapılmaz; geri dönünce sıradaki tur çalışır.
     if (!force && _route != null && !_route!.isCurrent) return;
     _tick++;
-    if (_rtOn && !force && _tick % 5 != 0) return;
+    if (_rtOn && !force && _tick % 5 != 0 && !(_tick % 2 == 0 && _awaitingPeerReceipt)) return;
     // Çevrimdışıyken her 4 sn'de ölü ağa vurma (pil): yaklaşık 30 sn'de bir dener; bağlantı gelince STOMP/öne gelme
     // `force` ile hemen tetikler.
     if (!force && !_api.connectivity.online && _tick % 8 != 0) return;
@@ -717,7 +718,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         added = r.added > 0;
         changed = r.changed;
       }
-      if (_tick % 5 == 0 || force) {
+      if (_tick % 5 == 0 || force || _awaitingPeerReceipt) {
         final page = await _api.get('/conversations/$_cid/messages?size=30')
             as Map<String, dynamic>;
         final r = _mergeCount(_items(page));
@@ -890,7 +891,22 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         changed = true;
       }
     }
+    if (kDebugMode) debugPrint('[receipt] detail cid=$_cid upTo=$upTo $status changed=$changed');
     if (changed && mounted) setState(() {});
+  }
+
+  /// Kendi en yeni sunucu mesajım henüz "iletildi" değilse (SENT) ve yeniyse true: `receipt` olayı kaçmış olabilir
+  /// (Redis pub/sub kalıcı değil); sunucudaki gerçek durum hızlıca (REST) teyit edilir. Eski/çevrimdışı alıcıda
+  /// sonsuz sorgu olmasın diye yalnız son 2 dakika.
+  bool get _awaitingPeerReceipt {
+    for (final m in _msgs) {
+      final id = (m['id'] as num?)?.toInt();
+      if (id == null || !_isMine(m)) continue;
+      if (_rankOf(m['status']) >= 2) return false;
+      final at = DateTime.tryParse('${m['createdAt'] ?? ''}');
+      return at != null && DateTime.now().difference(at.toLocal()).inMinutes < 2;
+    }
+    return false;
   }
 
   int? get _newestPeerId {
@@ -914,6 +930,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     final id = _newestPeerId;
     if (id == null || id <= _lastDelivered || !mounted) return;
     _lastDelivered = id;
+    if (kDebugMode) debugPrint('[delivered] detail cid=$_cid msg=$id rt=$_rtOn');
     if (_rtOn && _rt.sendDelivered(_cid, id)) return;
     try {
       await _api.post('/conversations/$_cid/delivered', {'lastMessageId': id});
