@@ -187,6 +187,96 @@ void main() {
       _noErrors(tester);
     });
 
+    // QA-CHAT-01: sunucu karsilikli riza ister (varsayilan KAPALI); mobilde rizayi acan arayuz yoktu.
+    testWidgets('QA-CHAT-01: bulunabilirim kapaliyken riza karti, rehber/izin istenmez; Ac ve devam et PUT + eslestirme', (tester) async {
+      final be = FakeBackend()
+        ..on('/users/contacts/discoverable', {'enabled': false})
+        ..on('/users/contacts/match', {
+          'matches': [_match('veli@bingol.edu.tr', 7, 'Veli Demir')],
+        });
+      final s = makeSession(be);
+      final provider = _FakeContacts(['veli@bingol.edu.tr']);
+      final perms = FakePermissionService();
+      await _pump(tester, ContactsMatchPage(session: s, provider: provider, permissions: perms));
+      expect(find.text('Rehberden bulunabilirim'), findsOneWidget);
+      expect(provider.reads, 0);
+      expect(perms.requested, isEmpty);
+      expect(be.count('POST /users/contacts/match'), 0);
+
+      be.on('/users/contacts/discoverable', {'enabled': true});
+      await tester.tap(find.text('Aç ve devam et'));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(be.bodies['PUT /users/contacts/discoverable'], {'enabled': true});
+      // Riza verildikten sonra normal akis (izin gerekcesi)
+      expect(find.textContaining('rehbere erişmemiz gerekir'), findsOneWidget);
+      _noErrors(tester);
+      await unmount(tester);
+    });
+
+    testWidgets('QA-CHAT-01: eslestirme 403 CONTACTS_DISCOVERABLE_REQUIRED donerse riza kartina doner', (tester) async {
+      final be = FakeBackend()
+        ..on('/users/contacts/discoverable', {'enabled': true})
+        ..fail('/users/contacts/match', status: 403, code: 'CONTACTS_DISCOVERABLE_REQUIRED');
+      final s = makeSession(be);
+      await _pump(tester,
+          ContactsMatchPage(session: s, provider: _FakeContacts(['veli@bingol.edu.tr']), permissions: _granted()));
+      expect(find.text('Aç ve devam et'), findsOneWidget);
+      expect(find.text('Yeniden dene'), findsNothing);
+      _noErrors(tester);
+    });
+
+    testWidgets('QA-CHAT-01: bulunabilirligi kapat PUT enabled=false ve riza kartina doner', (tester) async {
+      final be = FakeBackend()
+        ..on('/users/contacts/discoverable', {'enabled': true})
+        ..on('/users/contacts/match', {
+          'matches': [_match('veli@bingol.edu.tr', 7, 'Veli Demir')],
+        });
+      final s = makeSession(be);
+      await _pump(tester,
+          ContactsMatchPage(session: s, provider: _FakeContacts(['veli@bingol.edu.tr']), permissions: _granted()));
+      expect(find.text('Veli Demir'), findsOneWidget);
+      await tester.ensureVisible(find.text('Rehberden bulunabilirliği kapat'));
+      await tester.tap(find.text('Rehberden bulunabilirliği kapat'));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(be.bodies['PUT /users/contacts/discoverable'], {'enabled': false});
+      expect(find.text('Veli Demir'), findsNothing);
+      expect(find.text('Aç ve devam et'), findsOneWidget);
+      _noErrors(tester);
+    });
+
+    // QA-CHAT-02: gunluk aday tavani 2000 = 4 parca; 5. parca 429 iken ilk 4 parcanin eslesmeleri atiliyordu.
+    testWidgets('QA-CHAT-02: 5. parca 429 (gunluk tavan) ise onceki eslesmeler korunur + kismi uyari', (tester) async {
+      final be = FakeBackend()..on('/users/contacts/discoverable', {'enabled': true});
+      var n = 0;
+      be.handlers.add((req, path) {
+        if (path != '/users/contacts/match') return null;
+        n++;
+        if (n >= 5) return const FakeResult.json({'code': 'RATE_LIMITED', 'message': 'x'}, status: 429);
+        return FakeResult.json({
+          'matches': n == 1 ? [_match('u0@bingol.edu.tr', 7, 'Veli Demir')] : <Object>[]
+        });
+      });
+      final s = makeSession(be);
+      final provider = _FakeContacts([for (var i = 0; i < 2600; i++) 'u$i@bingol.edu.tr']);
+      await _pump(tester, ContactsMatchPage(session: s, provider: provider, permissions: _granted()));
+      expect(n, 5);
+      expect(find.text('Veli Demir'), findsOneWidget);
+      expect(find.textContaining('Saatlik istek sınırına ulaşıldı'), findsOneWidget);
+      expect(find.text('Yeniden dene'), findsNothing);
+      _noErrors(tester);
+    });
+
+    testWidgets('QA-CHAT-02: ilk parca 429 ise hata ekrani (kismi sonuc yok)', (tester) async {
+      final be = FakeBackend()
+        ..on('/users/contacts/discoverable', {'enabled': true})
+        ..fail('/users/contacts/match', status: 429, code: 'RATE_LIMITED');
+      final s = makeSession(be);
+      await _pump(tester,
+          ContactsMatchPage(session: s, provider: _FakeContacts(['veli@bingol.edu.tr']), permissions: _granted()));
+      expect(find.text('Yeniden dene'), findsOneWidget);
+      _noErrors(tester);
+    });
+
     testWidgets('hata + yeniden dene', (tester) async {
       final be = FakeBackend()..network('/users/contacts/match');
       final s = makeSession(be);

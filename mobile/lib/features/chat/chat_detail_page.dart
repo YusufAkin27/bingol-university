@@ -1793,6 +1793,18 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         _input.clear();
       });
     } catch (e) {
+      // Süre doldu / düzenleme sınırı / mesaj silinmiş: düzenleme kalıcı olarak mümkün değil. Düzenleme kipinde
+      // kalmak kullanıcıyı aynı hatayı tekrar almaya iter; kipten çık ve giriş alanını boşalt (QA-CHAT-04).
+      if (e is ApiError &&
+          const {'MESSAGE_EDIT_EXPIRED', 'MESSAGE_EDIT_LIMIT', 'MESSAGE_NOT_EDITABLE', 'MESSAGE_NOT_FOUND', 'MESSAGE_NOT_OWNER'}
+              .contains(e.code)) {
+        if (mounted && identical(_editing, target)) {
+          setState(() {
+            _editing = null;
+            _input.clear();
+          });
+        }
+      }
       _toastError(e);
     }
   }
