@@ -198,6 +198,30 @@ public class EventService {
         this.chat = chat;
     }
 
+    /** Etkinlik moderatorleri (setter + @Lazy; null iken moderator kavrami yok). */
+    private EventModeratorService moderators;
+
+    @Autowired
+    public void setModerators(@Lazy EventModeratorService moderators) {
+        this.moderators = moderators;
+    }
+
+    /**
+     * Sahip (ya da sistem yoneticisi) VEYA verilen yetkilerden birine sahip moderator. Yetkisiz moderator 403
+     * EVENT_PERMISSION_DENIED; moderator olmayan icin requireManager kurali.
+     */
+    public UserEvent requireManagerOrPerm(Actor a, UserEvent e, EventModerator.Perm... perms) {
+        if (!canManage(a, e) && moderators != null) {
+            for (EventModerator.Perm p : perms) {
+                if (moderators.has(e, a.id(), p)) {
+                    ensureVisible(a, e);
+                    return e;
+                }
+            }
+        }
+        return requireManager(a, e);
+    }
+
     // ---- olusturma / guncelleme / silme ----
 
     /**
@@ -234,7 +258,12 @@ public class EventService {
         }
         // MANAGE_EVENTS yoksa 403. Yonetici/yetkili (MODERATOR+, sistem ADMIN'i) dogrudan yayinda; ozel yetki verilmis
         // sade uye (ornek: EVENT_MANAGER sablonu) yonetici onayina gider.
-        communities.require(a, c.getId(), ClubPermission.MANAGE_EVENTS);
+        // Etkinligi yalniz KULUP SAHIBI (OWNER) acar; yonetici/MANAGE_EVENTS'li uye acamaz (sistem ADMIN'i panelden her zaman).
+        // Mevcut etkinlikler ve onlarin yonetimi bundan etkilenmez.
+        if (!a.systemAdmin(PermissionMatrix.CONTENT_WRITE)
+                && communities.roleOf(c.getId(), a.id()).orElse(null) != CommunityMember.Role.OWNER) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "EVENT_CREATE_OWNER_ONLY", "Etkinliği yalnızca kulüp sahibi oluşturabilir.");
+        }
         // FIX-P05 (A05#6, K14): acik etkinlik / gunluk acma sinirlari (eskiden hic cagrilmiyordu); sistem ADMIN'i muaf
         if (admission != null) {
             admission.beforeCreate(a);
@@ -268,7 +297,22 @@ public class EventService {
     @Transactional
     public EventView update(Actor a, Long id, UpdateEventRequest r) {
         UserEvent e = load(id);
-        requireManager(a, e);
+        if (canManage(a, e) || moderators == null) {
+            requireManager(a, e);
+        } else {
+            // Moderator: yalniz izinli alanlar. Kapasite ve katilim turu sahip-ozeldir.
+            boolean info = moderators.has(e, a.id(), EventModerator.Perm.EDIT_INFO);
+            boolean sched = moderators.has(e, a.id(), EventModerator.Perm.EDIT_SCHEDULE);
+            if (!info && !sched) {
+                requireManager(a, e);
+            }
+            ensureVisible(a, e);
+            boolean wantsInfo = r.title() != null || r.description() != null || r.location() != null;
+            boolean wantsSched = r.startsAt() != null || r.endsAt() != null;
+            if ((wantsInfo && !info) || (wantsSched && !sched) || r.capacity() != null || r.joinPolicy() != null) {
+                throw new ApiException(HttpStatus.FORBIDDEN, "EVENT_PERMISSION_DENIED", "Bu işlem için yetkiniz yok.");
+            }
+        }
         if (e.getStatus() != UserEvent.Status.ACTIVE && e.getStatus() != UserEvent.Status.PENDING_REVIEW) {
             throw new ApiException(HttpStatus.CONFLICT, "EVENT_NOT_EDITABLE", "Bu etkinlik düzenlenemez.");
         }
@@ -764,7 +808,7 @@ public class EventService {
     /** Katilimci listesi (organizatore). status verilmezse GOING. */
     @Transactional(readOnly = true)
     public CursorPage<AttendeeView> attendees(Actor a, Long id, EventRsvp.Status status, Long cursor, int size) {
-        requireManager(a, load(id));
+        requireManagerOrPerm(a, load(id), EventModerator.Perm.VIEW_ATTENDEES, EventModerator.Perm.MANAGE_REQUESTS);
         int s = CursorPage.clampSize(size);
         List<EventRsvp> rows = rsvps.page(id, status == null ? EventRsvp.Status.GOING : status,
                 Paging.ascStart(cursor), PageRequest.of(0, s + 1));
@@ -853,6 +897,9 @@ public class EventService {
         if (!canManage(a, e)) {
             // Gorunmeyen (onay bekleyen/gizli topluluk) etkinligin varligi sizmasin: once 404, gorunenlerde 403.
             ensureVisible(a, e);
+            if (moderators != null && moderators.isModerator(e, a.id())) {
+                throw new ApiException(HttpStatus.FORBIDDEN, "EVENT_PERMISSION_DENIED", "Bu işlem için yetkiniz yok.");
+            }
             throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "Bu işlem için etkinlik organizatörü olmalısınız.");
         }
         if (a.viaUserApi() && !isOrganizer(a.id(), e)) { // yetki yalniz sistem yoneticisi mudahalesinden geliyor

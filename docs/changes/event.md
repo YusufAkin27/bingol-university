@@ -188,3 +188,16 @@ Ek (B1): `CalendarItem.pendingCount` (yalnız `manageableIds` içindeki etkinlik
 - **Rapor/itiraz yarislari (A05#10).** Es zamanli cift rapor `409 ALREADY_REPORTED`; rapor/itiraz karari satir kilidiyle okunur (cift strike/bildirim yok); toplu karar beklenmeyen hatada `INTERNAL_ERROR` satiri doner, kalan kimlikler islenir.
 - **Ozel kulupten ayrilan (A05#11).** Kabul edilmis basvuru `CANCELLED` olur, bekleme listesinden siradaki terfi eder, etkinlik sohbet odasindan cikarilir.
 - **CSV (A05#9).** Moderasyon rapor/itiraz ve kulup CSV'si 50.000 satiri bellekte listelemez (kimlik imecli parcalar); etkinlik yoklama CSV'si 5.000 satirda kesildiyse son satir `TRUNCATED,...` olur. Saklama temizligi (`profanity_hit_log`, `violation_ledger`, `account_delete_hold`) ChunkedDeleter + SchedulerLock ile.
+
+
+## Kisisel QR ile yoklama, yoklama acma anahtari, etkinlik moderatorleri (2026-11-06, V1490)
+
+**Kok neden (hata):** `GET /events/{id}/checkin-code` yoklama penceresi (baslangic-30 dk .. bitis+30 dk) disinda 409 `CHECKIN_CLOSED` doner; mobil bu hatayi sabit "Sunucu ile baglanti kurulamadi" metniyle gizliyordu. Mobil artik sunucu mesajini gosterir. Ters akis eklendi: katilimci kisisel QR gosterir, sahip/moderator okutur.
+
+**Etkinlik olusturma:** yalniz KULUP SAHIBI (OWNER) etkinlik olusturur (`403 EVENT_CREATE_OWNER_ONLY`); kulup yoneticisi / `MANAGE_EVENTS` izinli uye (eski 202 PENDING_REVIEW yolu) artik olusturamaz. Sistem ADMIN'i panelden yonetmeye devam eder. Mevcut etkinlikler ve yonetimleri degismez.
+
+**Yoklama acma anahtari:** `user_event.attendance_open` (varsayilan kapali). `PUT /events/{id}/attendance-open {open}` yalniz sahip. Kapaliyken `GET /events/{id}/my-ticket` ve `POST /events/{id}/scan` 409 `ATTENDANCE_NOT_OPEN`. Zaman penceresi kurali aynen gecerlidir. Eski `checkin-code`/`check-in` uclari degismedi.
+
+**Kisisel QR:** `GET /events/{id}/my-ticket` yalniz GOING katilimciya; `bingol-ticket:{etkinlik}.{kullanici}.{pencere}.{HMAC}`, 60 sn pencere, ~3 dk gecerli. `POST /events/{id}/scan {code}` sahip/moderator (`TAKE_ATTENDANCE`): `MARKED` | `ALREADY`; hatalar `INVALID_CODE`, `NOT_RSVPED_SCAN`, `CHECKIN_CLOSED`. Rate limit: 60/dk (bilet), 120/dk (okutma).
+
+**Moderatorler (`event_moderator`):** sahip, kulup uyeleri arasindan moderator ekler/cikarir (`GET|PUT|DELETE /events/{id}/moderators[/{userId}]`, en cok 20). `GET /events/{id}/my-permissions` -> `{owner, attendanceOpen, permissions[]}`. Yetkiler tek tek: `TAKE_ATTENDANCE` (QR okut + elle yoklama), `MANAGE_REQUESTS` (basvuru onay/ret/liste), `VIEW_ATTENDEES` (katilimci + yoklama listesi), `SEND_ANNOUNCEMENT`, `EDIT_INFO` (baslik/aciklama/yer), `EDIT_SCHEDULE` (tarih/saat). `PUT /events/{id}` moderatorde alan bazlidir; kapasite ve katilim turu sahip-ozeldir. Sahip-ozel (moderatore ASLA verilemez): etkinligi kapatma/iptal/silme, kayit kapatma, yoklamayi acip kapatma, moderator ve yetki yonetimi, ayarlar. Yetkisiz moderator `403 EVENT_PERMISSION_DENIED`. Moderator, kulup uyeligi surdukce gecerlidir. Ekleme/cikarmada moderatore bildirim (`notif.event.moderatorAdded|moderatorRemoved`, tr/en/ar); verilen yetki denetim icin log'a yazilir. KVKK: hesap silmede satirlar silinir (`AccountDataPurger`), disa aktarim bolumu `eventModerator`.

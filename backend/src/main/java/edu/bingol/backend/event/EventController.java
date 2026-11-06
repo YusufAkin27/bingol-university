@@ -233,6 +233,23 @@ public class EventController {
         return attendance.issueCode(a, id, Instant.now());
     }
 
+    /** Onayli katilimci: kisisel, imzali, kisa omurlu giris QR'i (istemci ~1 dk'da yeniler). */
+    @GetMapping("/events/{id}/my-ticket")
+    public edu.bingol.backend.event.dto.EventDtos.MyTicket myTicket(@PathVariable Long id) {
+        Actor a = Actor.current();
+        limiter.check("my-ticket:user:" + a.id(), 60, Duration.ofMinutes(1));
+        return attendance.issueTicket(a, id, Instant.now());
+    }
+
+    /** Organizator: katilimcinin QR'ini okutur, yoklamayi isler. */
+    @PostMapping("/events/{id}/scan")
+    public edu.bingol.backend.event.dto.EventDtos.ScanResult scan(@PathVariable Long id,
+            @Valid @RequestBody edu.bingol.backend.event.dto.EventDtos.ScanRequest r) {
+        Actor a = Actor.current();
+        limiter.check("event-scan:user:" + a.id(), 120, Duration.ofMinutes(1));
+        return attendance.scan(a, id, r.code(), Instant.now());
+    }
+
     @PostMapping("/events/{id}/check-in")
     public MyAttendance checkIn(@PathVariable Long id, @Valid @RequestBody CheckinRequest r) {
         Actor a = Actor.current();

@@ -90,6 +90,61 @@ public class CheckinCodeService {
         return MessageDigest.isEqual(mac(id, w).getBytes(StandardCharsets.UTF_8), p[2].getBytes(StandardCharsets.UTF_8));
     }
 
+    // ---- katilimci bileti (kisisel QR): "{eventId}.{userId}.{pencere}.{HMAC}" ----
+
+    /** Bilet penceresi (sn): katilimci ekraninda ~1 dk'da bir yenilenir. */
+    static final long TICKET_STEP_SECONDS = 60;
+    /** Bilet en cok guncel + iki onceki pencere boyunca gecerli (saat farki ve ag gecikmesi payi). */
+    static final int TICKET_VALID_SECONDS = (int) (TICKET_STEP_SECONDS * 3);
+    static final String TICKET_PREFIX = "bingol-ticket:";
+
+    /** Onayli katilimciya ozel, imzali ve kisa omurlu QR yuku (onek yok; istemci onek ekler). */
+    public String generateTicket(long eventId, long userId, Instant now) {
+        long w = now.getEpochSecond() / TICKET_STEP_SECONDS;
+        return eventId + "." + userId + "." + w + "." + ticketMac(eventId, userId, w);
+    }
+
+    /** Bilet gecerliyse kullanici kimligini, degilse -1 doner. Etkinlik kimligi eslesmezse gecersiz. */
+    public long verifyTicket(long eventId, String payload, Instant now) {
+        if (payload == null) {
+            return -1;
+        }
+        String s = payload.trim();
+        if (s.startsWith(TICKET_PREFIX)) {
+            s = s.substring(TICKET_PREFIX.length());
+        }
+        String[] p = s.split("\\.", -1);
+        if (p.length != 4) {
+            return -1;
+        }
+        long id;
+        long uid;
+        long w;
+        try {
+            id = Long.parseLong(p[0]);
+            uid = Long.parseLong(p[1]);
+            w = Long.parseLong(p[2]);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+        long current = now.getEpochSecond() / TICKET_STEP_SECONDS;
+        if (id != eventId || w > current || w < current - 2) {
+            return -1;
+        }
+        boolean ok = MessageDigest.isEqual(ticketMac(id, uid, w).getBytes(StandardCharsets.UTF_8),
+                p[3].getBytes(StandardCharsets.UTF_8));
+        return ok ? uid : -1;
+    }
+
+    public Instant ticketExpiresAt(Instant now) {
+        return Instant.ofEpochSecond((now.getEpochSecond() / TICKET_STEP_SECONDS + 3) * TICKET_STEP_SECONDS);
+    }
+
+    private String ticketMac(long eventId, long userId, long window) {
+        byte[] full = hmac(key, "ticket:" + eventId + "." + userId + "." + window);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(Arrays.copyOf(full, 16));
+    }
+
     private static String normalizeManual(String code) {
         return code == null ? "" : code.replaceAll("[\\s-]", "").toUpperCase(java.util.Locale.ROOT);
     }

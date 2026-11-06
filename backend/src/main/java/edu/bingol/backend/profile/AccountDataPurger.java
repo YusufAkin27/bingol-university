@@ -66,6 +66,7 @@ public class AccountDataPurger {
             "DELETE FROM conversation_add_ban WHERE user_id = ?",
             "DELETE FROM conversation_add_ban WHERE adder_id = ?",
             "DELETE FROM event_co_organizer WHERE user_id = ?",
+            "DELETE FROM event_moderator WHERE user_id = ?",
             // W2-E tablolari: gorunen ad gecmisi (eski/yeni ad = kisisel veri) ve acik raporlu hesap silme bekletmesi
             "DELETE FROM display_name_history WHERE user_id = ?",
             "DELETE FROM account_delete_hold WHERE user_id = ?",
@@ -174,6 +175,7 @@ public class AccountDataPurger {
             Map.entry("event_application.decided_by", "Organizator karar izi"),
             Map.entry("event_attendance.marked_by", "Yoklamayi isaretleyen organizator izi"),
             Map.entry("event_co_organizer.added_by", "Ortak organizator ekleme izi"),
+            Map.entry("event_moderator.added_by", "Etkinlik moderatoru ekleyen sahip izi"),
             Map.entry("access_ban.created_by", "Erisim engeli yonetici izi"),
             Map.entry("blocked_content_hash.created_by", "Engelli icerik ozeti yonetici izi"),
             Map.entry("club_invite.created_by", "Kulup davet izi"),
