@@ -172,7 +172,7 @@ const m = {
     'Administrator access is recorded: authorised administrators may view conversations for security and legal obligations, and every access is written to an immutable audit log. Deleted messages may be retained for security and legal obligations.',
   'pg.security.s1.l4':
     'Passwords are stored irreversibly (as hashes); session refresh tokens are also kept only as hashes.',
-  'pg.security.s1.l5': 'Sign-up is only possible with bingol.edu.tr email addresses and email verification.',
+  'pg.security.s1.l5': 'Sign-up requires a valid email address and email verification.',
   'pg.security.s1.l6': 'Rate limits apply to sign-in, verification and write endpoints.',
   'pg.security.s2.h': 'Reporting a vulnerability',
   'pg.security.s2.p1':

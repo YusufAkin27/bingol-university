@@ -10,7 +10,6 @@ const m = {
   'site.rd10.foot.sitemap': 'خريطة الموقع',
   'site.rd10.foot.cookiePrefs': 'تفضيلات ملفات تعريف الارتباط',
   'site.rd10.foot.contactLabel': 'بيانات التواصل',
-  'site.rd10.foot.domainNote': 'العضوية متاحة فقط بعناوين البريد الإلكتروني bingol.edu.tr.',
 
   'site.rd10.cookie.title': 'حول تخزين المتصفح',
   'site.rd10.cookie.prefs': 'التفضيلات',

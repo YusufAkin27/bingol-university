@@ -10,7 +10,6 @@ const m = {
   'site.rd10.foot.sitemap': 'Sitemap',
   'site.rd10.foot.cookiePrefs': 'Cookie preferences',
   'site.rd10.foot.contactLabel': 'Contact details',
-  'site.rd10.foot.domainNote': 'Membership is only available with bingol.edu.tr email addresses.',
 
   'site.rd10.cookie.title': 'About browser storage',
   'site.rd10.cookie.prefs': 'Preferences',

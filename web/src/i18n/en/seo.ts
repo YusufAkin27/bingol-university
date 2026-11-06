@@ -17,7 +17,7 @@ const seo = {
   'seo.legal.note':
     'The full text of this document is loaded from the app server. Enable JavaScript in your browser to read it, or write to us through the contact page.',
   'seo.privacy.h': 'Privacy at a glance',
-  'seo.privacy.l1': 'You can only sign up with a bingol.edu.tr email address, and email verification is required.',
+  'seo.privacy.l1': 'You can sign up with any valid email address, and email verification is required.',
   'seo.privacy.l2':
     'Data we process: profile details, notification preferences and the device push token, app usage events, a device digest and IP records, messages and community posts.',
   'seo.privacy.l3': 'Message contents are stored encrypted on the server.',

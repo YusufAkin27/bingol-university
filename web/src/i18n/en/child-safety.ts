@@ -9,7 +9,7 @@ const m = {
 
   'pg.childsafety.s1.h': 'Purpose and scope',
   'pg.childsafety.s1.p1':
-    'BÜ Kampüs is an independent app built for students and staff of Bingöl University; it is not the university’s official app. It is not directed at children: the target audience is 18 and over, and signing up requires a verified bingol.edu.tr email address.',
+    'BÜ Kampüs is an independent app built for students and staff of Bingöl University; it is not the university’s official app. It is not directed at children: the target audience is 18 and over, and signing up requires a verified email address.',
   'pg.childsafety.s1.p2':
     'This page describes our standards against child sexual abuse and exploitation (CSAE) and child sexual abuse material (CSAM).',
   'pg.childsafety.s1.p3':
@@ -31,7 +31,7 @@ const m = {
   'pg.childsafety.s3.h': 'Prevention',
   'pg.childsafety.s3.p1': 'To reduce risk, the app is built like this:',
   'pg.childsafety.s3.l1':
-    'Sign-up works only with a verified university email (bingol.edu.tr); no account is created until the emailed code is entered. There is no anonymous use.',
+    'Sign-up works only with a verified email address; no account is created until the emailed code is entered. There is no anonymous use.',
   'pg.childsafety.s3.l2':
     'Opening several accounts to abuse the service is prohibited. New accounts that match the device or IP record of a banned user can be blocked.',
   'pg.childsafety.s3.l3':

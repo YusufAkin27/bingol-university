@@ -10,7 +10,6 @@ const m = {
   'site.rd10.foot.sitemap': 'Site haritası',
   'site.rd10.foot.cookiePrefs': 'Çerez tercihleri',
   'site.rd10.foot.contactLabel': 'İletişim bilgileri',
-  'site.rd10.foot.domainNote': 'Üyelik yalnızca bingol.edu.tr e-posta adresleriyle yapılır.',
 
   'site.rd10.cookie.title': 'Tarayıcı depolaması hakkında',
   'site.rd10.cookie.prefs': 'Tercihler',
