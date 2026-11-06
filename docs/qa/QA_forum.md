@@ -96,4 +96,8 @@ sınırı; moderasyon yalnız yetkili profil (`ForumPermissionPolicy`, `RbacCove
 Taranan: sayaç atomikliği, anonimlik (DTO/arama/profil), moderasyon yetkileri, hız sınırları (tüm `@RestController` yazma uçları),
 silinmiş/gizli içerik, arama SQL'i, bildirim tekrar koruması, KVKK silme/dışa aktarma. Yeni bulgu: QA5-07 (PIN sınırı), QA5-09
 (destek idempotency), QA5-10 (temizleyici), QA5-06 (sürüm ucu). Hedefli koşu: `forum/**`, `support/**`, `legal/**`, `appinfo/**`,
-`IdempotencyFilterTest`, `I18nMessagesIntegrityTest`, `RbacCoverageTest` (sonuçlar rapor/commit mesajında).
+`IdempotencyFilterTest`, `I18nMessagesIntegrityTest`, `RbacCoverageTest`.
+Sonuç: tüm forum/support/appinfo/Idempotency/i18n testleri yeşil. İki ortam notu: (1) `ForumMediaServiceTest.attachRulesAreStrictAndAtomic`
+bir koşuda `CONTENT_PROFANITY` verdi: konu başlığı `"Resimli " + UUID` rastgele olduğundan küfür filtresiyle ara sıra çakışan
+KARARSIZ test (yeniden koşuda geçti; düzeltme önerisi: sabit başlık). (2) `LegalMigrationV820FileTest` 2 test kırık (SQL V820 ile
+`docs/legal/*.md` ve beyan edilen sayı 1600/2560 uyuşmuyor); bu dalın dokunmadığı alan, LF arşivinde de kırık (QA5 öncesi var).
