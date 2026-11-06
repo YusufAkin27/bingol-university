@@ -48,6 +48,7 @@ import 'media_pick.dart';
 import 'media_picker_page.dart';
 import 'media_preview_page.dart';
 import 'message_bubble.dart';
+import 'emoji_presentation.dart';
 import 'photo_autosave.dart';
 import '../share/share_card.dart' show sharePreviewText;
 import '../share/share_open.dart' show openShared;
@@ -1154,7 +1155,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       'id': null,
       'clientId': _newClientId(),
       'senderId': _myId,
-      'text': text,
+      'text': withEmojiPresentation(text),
       'createdAt': DateTime.now().toUtc().toIso8601String(),
       'replyToMessageId': reply?['id'],
       'replyTo': reply == null
@@ -1806,7 +1807,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     final id = (target['id'] as num).toInt();
     if (_overLimit(text)) return;
     try {
-      final res = await _api.patch('/messages/$id', {'text': text})
+      final res = await _api.patch('/messages/$id', {'text': withEmojiPresentation(text)})
           as Map<String, dynamic>;
       if (!mounted) return;
       setState(() {

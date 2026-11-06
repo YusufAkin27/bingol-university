@@ -15,6 +15,7 @@ import 'chat_video_cover.dart';
 import 'chat_media_parts.dart';
 import 'chatd_parts.dart';
 import 'message_placeholder.dart';
+import 'emoji_presentation.dart';
 import 'recent_reactions.dart';
 import '../share/share_card.dart';
 import '../share/share_models.dart';
@@ -654,6 +655,7 @@ class MessageBubble extends StatelessWidget {
 
   static List<InlineSpan> _emojiRuns(String s, TextStyle style) {
     if (s.isEmpty) return const [];
+    s = withEmojiPresentation(s);
     final ms = _emojiRe.allMatches(s).toList();
     if (ms.isEmpty) return [TextSpan(text: s)];
     final base = style.fontSize ?? 16;

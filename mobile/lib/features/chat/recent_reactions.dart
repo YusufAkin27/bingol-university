@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import 'emoji_presentation.dart';
+
 /// User-specific recently used reactions (up to 8 stored, 6 shown in the quick bar); cleared on account changes.
 abstract final class RecentReactions {
   static const key = 'chat_recent_reactions';
@@ -13,8 +15,8 @@ abstract final class RecentReactions {
   static Future<void> _writes = Future<void>.value();
   static int _epoch = 0;
 
-  static String display(String emoji) =>
-      emoji.replaceAll('\uFE0F', '') == '❤' ? '❤️' : emoji;
+  /// Görünüm seçicisi eksik emojiler (❤) renkli çizilsin diye tamamlanır.
+  static String display(String emoji) => withEmojiPresentation(emoji);
 
   static bool isEmoji(String value) =>
       value.isNotEmpty &&
