@@ -17,6 +17,8 @@ interface LogoProps {
   to?: string;
   /** Süs amaçlı kullanım (yanında ad yazıyorsa): alt metin boş, ekran okuyuculardan gizli */
   decorative?: boolean;
+  /** Sayfa üstü (LCP) logo: açık ton hemen yüklenir; öncelik yoksa tembel yüklenir. */
+  priority?: boolean;
   className?: string;
 }
 
@@ -61,6 +63,7 @@ export function Logo({
   height,
   to,
   decorative = false,
+  priority = false,
   className,
 }: LogoProps) {
   const { t } = useI18n();
@@ -75,11 +78,11 @@ export function Logo({
   const glyphs =
     tone === 'auto' ? (
       <>
-        <Glyph asset={markAssets.light} glyphH={glyphH} alt={alt} lazy cls={`${styles.img} ${styles.forLight}`} />
-        <Glyph asset={markAssets.dark} glyphH={glyphH} alt="" lazy cls={`${styles.img} ${styles.forDark}`} />
+        <Glyph asset={markAssets.light} glyphH={glyphH} alt={alt} lazy={!priority} cls={`${styles.img} ${styles.forLight}`} />
+        <Glyph asset={markAssets.dark} glyphH={glyphH} alt={alt} lazy cls={`${styles.img} ${styles.forDark}`} />
       </>
     ) : (
-      <Glyph asset={markAssets[tone]} glyphH={glyphH} alt={alt} cls={styles.img} />
+      <Glyph asset={markAssets[tone]} glyphH={glyphH} alt={alt} lazy={!priority} cls={styles.img} />
     );
 
   const content = (
