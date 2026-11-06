@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart' show kDebugMode, debugPrint;
 import 'package:flutter/widgets.dart';
 
 import '../api.dart';
@@ -86,7 +87,10 @@ class ChatRealtime with WidgetsBindingObserver {
     _client.states.listen((s) {
       _connected.add(s == StompState.connected);
       if (s != StompState.connected) _awaitingAck.clear(); // koptu: ack beklenenler artık yalnız Outbox'a güvenir
-      if (s == StompState.connected) _resync.add(null);
+      if (s == StompState.connected) {
+        _resync.add(null);
+        _onConnectedReceipts();
+      }
     });
     _client.fatal.listen((f) {
       _fatal.add(f);
@@ -184,7 +188,41 @@ class ChatRealtime with WidgetsBindingObserver {
     final id = _i(m['id']);
     if (uid == null || cid <= 0 || id <= 0 || _i(m['senderId']) == uid) return;
     if (id <= (_deliveredSent[cid] ?? 0)) return;
-    if (sendDelivered(cid, id)) _deliveredSent[cid] = id;
+    final ok = sendDelivered(cid, id);
+    if (kDebugMode) debugPrint('[delivered] ack cid=$cid msg=$id ws=${ok ? 'sent' : 'skipped(offline)'}');
+    if (ok) _deliveredSent[cid] = id;
+  }
+
+  /// Soket (yeniden) kurulunca "iletildi" güvencesi, YALNIZ gerçekten cihaza ulaşmış mesajlar için:
+  /// (1) Daha önce WS ile yollanan imleçler (yarı-ölü soket yazımı yutmuş olabilir) bir kez yeniden gönderilir; sunucuda
+  ///     imleç yalnız ilerler, aynı değer no-op. (2) Çevrimdışıyken gelen mesajlar cihaza henüz inmedi; okunmamışı varsa
+  ///     liste bir kez çekilir (sunucu çekilen listede okunmamış son mesajı bu istemci adına "iletildi" yazar). Hiçbiri
+  ///     push/FCM'e dayanmaz: teslim kanıtı = bu istemcinin kendi isteği.
+  void _onConnectedReceipts() {
+    var n = 0;
+    for (final e in _deliveredSent.entries) {
+      if (n++ >= 20) break;
+      sendDelivered(e.key, e.value);
+    }
+    unawaited(_sweepMissed());
+  }
+
+  DateTime? _lastSweep;
+
+  Future<void> _sweepMissed() async {
+    final now = DateTime.now();
+    final last = _lastSweep;
+    if (last != null && now.difference(last) < const Duration(seconds: 30)) return;
+    _lastSweep = now;
+    try {
+      final r = await session.api.get('/conversations/unread-count', force: true);
+      final total = r is Map ? (r['total'] as num?)?.toInt() ?? 0 : 0;
+      if (kDebugMode) debugPrint('[delivered] sweep unread=$total');
+      if (total <= 0) return;
+      await session.api.get('/conversations?size=20', force: true);
+    } catch (_) {
+      // En iyi çaba: sohbet listesi açılınca sunucu zaten işaretler.
+    }
   }
 
   /// WS ile gönderilen metin mesajı sunucuda oluştu (ack ya da başka cihazdan yayın): Outbox'taki `clientId`
@@ -211,6 +249,9 @@ class ChatRealtime with WidgetsBindingObserver {
     if (m['type'] == 'receipt') {
       final kind = '${m['kind'] ?? ''}';
       if (kind != 'delivered' && kind != 'read') return;
+      if (kDebugMode) {
+        debugPrint('[receipt] event cid=${_i(m['conversationId'])} kind=$kind upTo=${_i(m['upToMessageId'])} status=${m['status']}');
+      }
       _receipts.add(ReceiptEvent(_i(m['conversationId']), kind, _i(m['upToMessageId']), m['status'] as String?));
       return;
     }

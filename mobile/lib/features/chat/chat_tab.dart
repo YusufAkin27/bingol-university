@@ -1,6 +1,7 @@
 import '../../core/analytics.dart';
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kDebugMode, debugPrint;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -94,6 +95,7 @@ class _ChatTabState extends State<ChatTab> {
     _subs
       ..add(_rt.messages.listen(_onMessage))
       ..add(_rt.readReceipts.listen(_onRead))
+      ..add(_rt.receipts.listen(_onReceipt))
       ..add(_rt.resync.listen((_) => _scheduleReload()));
     _load();
     _refreshBadge();
@@ -329,6 +331,30 @@ class _ChatTabState extends State<ChatTab> {
     });
     _persistList();
     _scheduleBadge();
+  }
+
+  static const _tickRank = {'SENT': 1, 'DELIVERED': 2, 'READ': 3};
+
+  /// Karşı taraf mesajımı aldı/okudu (`receipt` olayı): listedeki son mesajın tiki ANINDA ilerler (daha önce yalnız
+  /// sohbet ekranı açıkken güncelleniyordu; liste yeniden çekilene dek tek tikte kalıyordu). Asla geri gitmez;
+  /// yalnız kendi son mesajımda (`senderId` ben) ve olayın kapsadığı kimlikte.
+  void _onReceipt(ReceiptEvent e) {
+    if (!mounted) return;
+    final i = _items.indexWhere((c) => (c['id'] as num?)?.toInt() == e.conversationId);
+    if (i < 0) return;
+    final last = _items[i]['lastMessage'];
+    if (last is! Map) return;
+    final id = (last['id'] as num?)?.toInt();
+    if (id == null || id > e.upToMessageId) return;
+    if ((last['senderId'] as num?)?.toInt() != widget.session.userId) return;
+    final next = e.effectiveStatus.toUpperCase();
+    final nr = _tickRank[next];
+    if (nr == null) return;
+    final cur = _tickRank['${last['status'] ?? 'SENT'}'.toUpperCase()] ?? 1;
+    if (nr <= cur) return;
+    if (kDebugMode) debugPrint('[receipt] list cid=${e.conversationId} msg=$id $next');
+    setState(() => _items[i] = {..._items[i], 'lastMessage': {...Map<String, dynamic>.from(last), 'status': next}});
+    _persistList();
   }
 
   void _onRead(ReadReceipt r) {
