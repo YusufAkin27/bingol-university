@@ -55,10 +55,25 @@ public class PostController {
 
     @PostMapping("/posts")
     @ResponseStatus(HttpStatus.CREATED)
-    public PostView create(@Valid @RequestBody CreatePostRequest req) {
+    public PostView create(@Valid @RequestBody CreatePostRequest req,
+                           @org.springframework.web.bind.annotation.RequestHeader(value = "Idempotency-Key", required = false) String idemKey) {
         Long uid = CurrentUser.id();
+        // Tekrar deneme (zaman asimi sonrasi): ayni anahtarla olusmus gonderi varsa onu don; hiz sinirina sayilmaz
+        PostView replay = service.replayByKey(uid, idemKey);
+        if (replay != null) {
+            return replay;
+        }
         limiter.check("post:create:" + uid, 20, Duration.ofHours(1));
-        return service.create(uid, req);
+        try {
+            return service.create(uid, req, idemKey);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            // es zamanli cift gonderim: kazanan satir
+            PostView winner = service.replayByKey(uid, idemKey);
+            if (winner == null) {
+                throw e;
+            }
+            return winner;
+        }
     }
 
     /**

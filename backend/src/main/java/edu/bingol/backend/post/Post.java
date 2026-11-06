@@ -28,6 +28,10 @@ public class Post {
     @Column(columnDefinition = "TEXT")
     private String body;
 
+    /** Istemci Idempotency-Key (V1540): ayni yazar + anahtar ikinci gonderi uretmez. Istemciye donmez. */
+    @Column(length = 64)
+    private String idempotencyKey;
+
     @Column(nullable = false)
     private int likeCount;
 
