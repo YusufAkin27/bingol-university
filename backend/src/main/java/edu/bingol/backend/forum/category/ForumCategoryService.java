@@ -30,13 +30,17 @@ public class ForumCategoryService {
 
     /** Kategori sayisi icin kati ust sinir (okuma sinirlidir; yonetici birkac satir tanimlar). */
     static final int MAX_CATEGORIES = 200;
+    static final int MAX_GROUPS = 50;
     private static final Pattern SLUG = Pattern.compile("[a-z0-9]+(-[a-z0-9]+)*");
 
     private final ForumCategoryRepository categories;
+    private final ForumCategoryGroupRepository groups;
     private final ForumTopicRepository topics;
 
-    public ForumCategoryService(ForumCategoryRepository categories, ForumTopicRepository topics) {
+    public ForumCategoryService(ForumCategoryRepository categories, ForumCategoryGroupRepository groups,
+                                ForumTopicRepository topics) {
         this.categories = categories;
+        this.groups = groups;
         this.topics = topics;
     }
 
@@ -44,14 +48,77 @@ public class ForumCategoryService {
 
     @Transactional(readOnly = true)
     public List<CategoryView> publicList() {
+        return publicList(null);
+    }
+
+    /**
+     * Aktif kategoriler (sira: sort_order). {@code q} doluysa ad (tr/en/ar), adres ve grup adinda Turkce karakter /
+     * buyuk-kucuk harf duyarsiz, sozcuk bazli VE eslesmesiyle suzulur; bos ise tum liste.
+     */
+    @Transactional(readOnly = true)
+    public List<CategoryView> publicList(String q) {
         Lang lang = Lang.of(LocaleContextHolder.getLocale());
         Map<Long, Long> counts = counts();
+        Map<String, ForumCategoryGroup> groupMap = groupMap();
+        List<String> tokens = ForumCategorySearchText.tokens(q);
         List<CategoryView> out = new ArrayList<>();
         for (ForumCategory c : categories.activeOrdered(PageRequest.of(0, MAX_CATEGORIES))) {
+            ForumCategoryGroup g = c.getGroupKey() == null ? null : groupMap.get(c.getGroupKey());
+            if (!tokens.isEmpty() && !ForumCategorySearchText.matches(tokens, haystack(c, g))) {
+                continue;
+            }
             out.add(new CategoryView(c.getId(), c.getSlug(), nameOf(c, lang), c.getSortOrder(),
-                    counts.getOrDefault(c.getId(), 0L)));
+                    counts.getOrDefault(c.getId(), 0L), g == null ? null : g.getGroupKey(),
+                    g == null ? null : groupNameOf(g, lang), g == null ? Integer.MAX_VALUE : g.getSortOrder()));
         }
         return out;
+    }
+
+    /**
+     * Sorgunun ad/adres/grup adinda (Turkce karakter duyarsiz) eslestigi AKTIF kategori kimlikleri. Konu aramasi
+     * "muzik" yazan kullaniciya "Muzik" kategorisindeki konulari da getirsin diye kullanilir. Bos sorgu = bos kume.
+     */
+    @Transactional(readOnly = true)
+    public java.util.Set<Long> matchingActiveIds(String q) {
+        List<String> tokens = ForumCategorySearchText.tokens(q);
+        java.util.Set<Long> out = new java.util.HashSet<>();
+        if (tokens.isEmpty()) {
+            return out;
+        }
+        for (ForumCategory c : categories.activeOrdered(PageRequest.of(0, MAX_CATEGORIES))) {
+            // grup adi KATILMAZ: "kampus" yazan her kampus konusunu degil, adi eslesen kategoriyi getirir
+            if (ForumCategorySearchText.matches(tokens, haystack(c, null))) {
+                out.add(c.getId());
+            }
+        }
+        return out;
+    }
+
+    private static String haystack(ForumCategory c, ForumCategoryGroup g) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(c.getNameTr()).append(' ').append(c.getNameEn()).append(' ').append(c.getNameAr()).append(' ')
+                .append(c.getSlug().replace('-', ' '));
+        if (g != null) {
+            sb.append(' ').append(g.getNameTr()).append(' ').append(g.getNameEn()).append(' ').append(g.getNameAr());
+        }
+        return ForumCategorySearchText.fold(sb.toString());
+    }
+
+    private Map<String, ForumCategoryGroup> groupMap() {
+        Map<String, ForumCategoryGroup> m = new HashMap<>();
+        for (ForumCategoryGroup g : groups.allOrdered(PageRequest.of(0, MAX_GROUPS))) {
+            m.put(g.getGroupKey(), g);
+        }
+        return m;
+    }
+
+    static String groupNameOf(ForumCategoryGroup g, Lang lang) {
+        String n = switch (lang) {
+            case EN -> g.getNameEn();
+            case AR -> g.getNameAr();
+            default -> g.getNameTr();
+        };
+        return n == null || n.isBlank() ? g.getNameTr() : n;
     }
 
     /** Adi istek diline gore (bos ise Turkce). */
@@ -126,6 +193,7 @@ public class ForumCategoryService {
         c.setNameAr(ar);
         c.setSortOrder(in.sortOrder() != null ? in.sortOrder() : categories.maxSortOrder() + 10);
         c.setActive(in.active() == null || in.active());
+        c.setGroupKey(resolveGroup(in.groupKey(), null));
         return adminView(categories.save(c), 0L);
     }
 
@@ -156,6 +224,9 @@ public class ForumCategoryService {
             }
             if (in.active() != null) {
                 c.setActive(in.active());
+            }
+            if (in.groupKey() != null) {
+                c.setGroupKey(resolveGroup(in.groupKey(), c.getGroupKey()));
             }
         }
         categories.save(c);
@@ -212,7 +283,7 @@ public class ForumCategoryService {
 
     private static AdminCategoryView adminView(ForumCategory c, long topicCount) {
         return new AdminCategoryView(c.getId(), c.getSlug(), c.getNameTr(), c.getNameEn(), c.getNameAr(),
-                c.getSortOrder(), c.isActive(), topicCount);
+                c.getSortOrder(), c.isActive(), topicCount, c.getGroupKey());
     }
 
     private String uniqueSlug(String base) {
@@ -243,6 +314,21 @@ public class ForumCategoryService {
             throw invalid();
         }
         return n;
+    }
+
+    /** Bos/null = grupsuz; aksi halde var olan grup anahtari (yoksa 400). */
+    private String resolveGroup(String key, String current) {
+        if (key == null) {
+            return current;
+        }
+        String k = key.trim().toLowerCase(Locale.ROOT);
+        if (k.isEmpty()) {
+            return null;
+        }
+        if (!groups.existsById(k)) {
+            throw invalid();
+        }
+        return k;
     }
 
     private static ApiException invalid() {

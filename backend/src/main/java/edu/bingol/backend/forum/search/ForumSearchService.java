@@ -1,6 +1,7 @@
 package edu.bingol.backend.forum.search;
 
 import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.forum.category.ForumCategoryService;
 import edu.bingol.backend.forum.search.ForumSearchRepository.Hit;
 import edu.bingol.backend.forum.topic.dto.ForumPage;
 import edu.bingol.backend.forum.topic.dto.TopicSummary;
@@ -41,9 +42,11 @@ public class ForumSearchService {
     private final ObjectProvider<ForumTopicSummaries> summaries;
     private final BlockService blocks;
     private final ObjectProvider<ForumMuteLookup> mutes;
+    private final ForumCategoryService categories;
 
     public ForumSearchService(ForumSearchRepository repo, ObjectProvider<ForumTopicSummaries> summaries, BlockService blocks,
-                              ObjectProvider<ForumMuteLookup> mutes) {
+                              ObjectProvider<ForumMuteLookup> mutes, ForumCategoryService categories) {
+        this.categories = categories;
         this.repo = repo;
         this.summaries = summaries;
         this.blocks = blocks;
@@ -59,7 +62,8 @@ public class ForumSearchService {
         if (offset >= MAX_OFFSET) {
             return new ForumPage<>(List.of(), null);
         }
-        List<Hit> hits = repo.search(q, categoryId, sort, excluded(viewerId), offset, size + 1);
+        List<Hit> hits = repo.search(q, categoryId, sort, excluded(viewerId), categories.matchingActiveIds(q),
+                offset, size + 1);
         boolean more = hits.size() > size;
         List<Hit> page = more ? hits.subList(0, size) : hits;
         String next = more && offset + size < MAX_OFFSET ? encodeOffset(offset + size) : null;

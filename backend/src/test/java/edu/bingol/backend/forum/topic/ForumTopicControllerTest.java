@@ -161,9 +161,18 @@ class ForumTopicControllerTest {
 
     @Test
     void categoriesAndMediaEndpoints() throws Exception {
-        when(categories.publicList()).thenReturn(List.of(new CategoryView(1L, "gundem", "Gundem", 10, 4)));
+        when(categories.publicList((String) null)).thenReturn(List.of(new CategoryView(1L, "gundem", "Gundem", 10, 4)));
         mvc.perform(get("/api/forum/categories")).andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].slug").value("gundem")).andExpect(jsonPath("$[0].topicCount").value(4));
+
+        // kategori aramasi: q servise gecer, ayri hiz siniri uygulanir; grup alanlari JSON'da
+        when(categories.publicList("muzik")).thenReturn(List.of(
+                new CategoryView(5L, "muzik", "Müzik", 610, 0, "hobi", "Hobi ve Eğlence", 70)));
+        mvc.perform(get("/api/forum/categories").param("q", "muzik")).andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].slug").value("muzik"))
+                .andExpect(jsonPath("$[0].groupKey").value("hobi"))
+                .andExpect(jsonPath("$[0].groupOrder").value(70));
+        verify(limiter).check(eq("forum:catq:42"), eq(90), eq(Duration.ofMinutes(1)));
 
         when(media.upload(eq(42L), any())).thenReturn(new ForumMediaService.Uploaded(9L, "/api/forum/media/9",
                 "/api/forum/media/9?thumb=true", 64, 48));

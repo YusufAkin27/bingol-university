@@ -4,6 +4,11 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### Forum: 79 kategori + kategori araması (2026-11-06, `deploy/forumcat-20261106`)
+
+- **V1480**: forum kategorileri 8 -> 79 (8 grup: Genel, Akademik, Kampüs Yaşamı, Kariyer & Gelişim, Fakülte & Alanlar, Bingöl, Hobi & Eğlence, Yaşam; tr/en/ar), `forum_category_group` + `forum_category.group_key`. Eski kategorilerin kimlik/slug/sırası değişmedi.
+- `GET /api/forum/categories` yanıtı `groupKey/groupName/groupOrder` taşır; yeni `?q=` parametresi (Türkçe karakter duyarsız ad/slug/grup araması). Konu araması kategori adıyla da eşleşir. Ayrıntı: `docs/changes/forum-categories.md`. Duman: `scripts/smoke-forum-categories.sh`.
+
 ### Çoklu oturum + Cihazlarım (2026-11-06, `deploy/multisession-20261106`)
 
 - **Tek cihaz kuralı kalktı:** mobil giriş artık önceki mobil oturumları kapatmaz ve FCM kayıtlarını silmez; eski davranış `app.auth.single-mobile-session=true` (`AUTH_SINGLE_MOBILE_SESSION`) ile geri gelir. Bildirimler kullanıcının tüm cihazlarına gider.

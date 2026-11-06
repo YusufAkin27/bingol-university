@@ -32,6 +32,7 @@ class ForumCategoryServiceTest {
 
     @Autowired ForumCategoryService service;
     @Autowired ForumCategoryRepository repo;
+    @Autowired ForumCategoryGroupRepository groupRepo;
     @Autowired ForumTopicRepository topics;
     @Autowired UserRepository users;
     @Autowired ForumTopicStateService state;
@@ -119,6 +120,74 @@ class ForumCategoryServiceTest {
         List<Long> pub = service.publicList().stream().map(CategoryView::id).toList();
         assertTrue(pub.indexOf(c.id()) < pub.indexOf(a.id()) && pub.indexOf(a.id()) < pub.indexOf(b.id()));
         assertEquals("FORUM_CATEGORY_NOT_FOUND", code(() -> service.reorder(List.of(a.id(), 424242L))));
+    }
+
+    @Test
+    void groupsAreReturnedLocalizedAndValidated() {
+        ForumCategoryGroup g = new ForumCategoryGroup();
+        g.setGroupKey(uniq("g").toLowerCase(Locale.ROOT));
+        g.setNameTr("Akademik Grup");
+        g.setNameEn("Academic Group");
+        g.setNameAr("مجموعة");
+        g.setSortOrder(20);
+        groupRepo.save(g);
+        AdminCategoryView c = service.create(new CategoryInput(uniq("gc-"), "Gruplu", "Grouped", "مجمعة", 7, null, g.getGroupKey()));
+        assertEquals(g.getGroupKey(), c.groupKey());
+        assertEquals("FORUM_CATEGORY_INVALID",
+                code(() -> service.create(new CategoryInput(uniq("gx-"), "X", "X", "X", 8, null, "yok-boyle-grup"))));
+
+        CategoryView tr = find(service.publicList(), c.id());
+        assertEquals("Akademik Grup", tr.groupName());
+        assertEquals(20, tr.groupOrder());
+        LocaleContextHolder.setLocale(Locale.forLanguageTag("en"));
+        assertEquals("Academic Group", find(service.publicList(), c.id()).groupName());
+
+        AdminCategoryView cleared = service.update(c.id(), new CategoryInput(null, null, null, null, null, null, " "));
+        assertEquals(null, cleared.groupKey());
+        assertEquals(null, find(service.publicList(), c.id()).groupKey());
+        assertEquals(Integer.MAX_VALUE, find(service.publicList(), c.id()).groupOrder());
+    }
+
+    @Test
+    void searchFiltersByNameSlugAndGroupIgnoringTurkishCharsAndCase() {
+        String tag = uniq("zz").toLowerCase(Locale.ROOT);
+        ForumCategoryGroup g = new ForumCategoryGroup();
+        g.setGroupKey(uniq("g").toLowerCase(Locale.ROOT));
+        g.setNameTr("Hobi " + tag);
+        g.setNameEn("Hobbies " + tag);
+        g.setNameAr("هوايات");
+        g.setSortOrder(70);
+        groupRepo.save(g);
+        AdminCategoryView muzik = service.create(new CategoryInput(uniq("m-"), "Müzik " + tag, "Music " + tag, "الموسيقى", 9, null, g.getGroupKey()));
+        AdminCategoryView yurt = service.create(new CategoryInput(uniq("y-"), "Yurtlar " + tag, "Dorms " + tag, "السكن", 10, null, null));
+
+        // Turkce karakter + buyuk/kucuk duyarsiz, kismi sozcuk
+        assertEquals(List.of(muzik.id()), ids(service.publicList("MUZIK " + tag)));
+        assertEquals(List.of(muzik.id()), ids(service.publicList("MÜZİK " + tag.toUpperCase(Locale.ROOT))));
+        // ingilizce ad ve arapca ad
+        assertEquals(List.of(muzik.id()), ids(service.publicList("music " + tag)));
+        assertTrue(ids(service.publicList("موسيقى")).contains(muzik.id()));
+        // grup adi ile: gruptaki kategori gelir, grupsuz gelmez
+        List<Long> byGroup = ids(service.publicList("hobi " + tag));
+        assertTrue(byGroup.contains(muzik.id()) && !byGroup.contains(yurt.id()));
+        // konu aramasi icin kategori kimlikleri: ad eslesir, grup adi KATILMAZ
+        assertTrue(service.matchingActiveIds("MUZIK " + tag).contains(muzik.id()));
+        assertFalse(service.matchingActiveIds("hobi " + tag).contains(muzik.id()));
+        assertTrue(service.matchingActiveIds("  ").isEmpty());
+        // tum sozcukler eslesmeli (VE)
+        assertTrue(service.publicList("müzik yurtlar " + tag).isEmpty());
+        // bos / bosluk = tum liste; eslesmeyen = bos
+        assertTrue(ids(service.publicList("   ")).containsAll(List.of(muzik.id(), yurt.id())));
+        assertTrue(service.publicList("hicbirsey-yok-" + tag + "q").isEmpty());
+        // LIKE ozel karakterleri sorguda literal: % hepsini getirmez
+        assertTrue(service.publicList("%").isEmpty());
+        // arsivli kategori aramada da yok
+        service.archive(muzik.id());
+        assertTrue(service.publicList("müzik " + tag).isEmpty());
+    }
+
+    private static List<Long> ids(List<CategoryView> l) {
+        return l.stream().map(CategoryView::id).toList();
     }
 
     private static CategoryView find(List<CategoryView> l, Long id) {
