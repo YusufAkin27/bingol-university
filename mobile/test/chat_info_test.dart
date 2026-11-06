@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:bu_kampus/core/platform/image_service.dart';
 import 'package:bu_kampus/features/chat/chat_info_media.dart';
+import 'package:bu_kampus/features/chat/chatlist_widgets.dart';
 import 'package:bu_kampus/features/chat/chat_info_members.dart';
 import 'package:bu_kampus/features/chat/chat_info_page.dart';
 import 'package:bu_kampus/features/chat/chat_media_gallery_page.dart';
@@ -658,6 +659,27 @@ void main() {
     expect(find.text('Etkinlik sayfasını aç'), findsOneWidget);
     // Kapalı kartı + "Şifreleme ve güvenlik" satırı.
     expect(find.byIcon(BuIcons.lock), findsNWidgets(2));
+    await unmount(tester);
+  });
+
+  testWidgets('etkinlik odası: yöneticinin kapak görseli üst görsel olur; yoksa yedek', (tester) async {
+    final be = backend(images: 0);
+    await pump(tester, be,
+        conv: {'id': 5, 'type': 'EVENT', 'title': 'Bahar Hackathonu', 'memberCount': 4, 'avatarUrl': '/files/cover-1.jpg'},
+        members: _manyMembers(3),
+        onOpenRoom: () {});
+    await settle(tester);
+    expect(
+        find.byWidgetPredicate((w) => w is ChatlistAvatar && w.url == '/files/cover-1.jpg'),
+        findsOneWidget);
+    await unmount(tester);
+
+    await pump(tester, be,
+        conv: {'id': 5, 'type': 'EVENT', 'title': 'Bahar Hackathonu', 'memberCount': 4},
+        members: _manyMembers(3),
+        onOpenRoom: () {});
+    await settle(tester);
+    expect(find.byWidgetPredicate((w) => w is ChatlistAvatar && w.url != null), findsNothing);
     await unmount(tester);
   });
 
