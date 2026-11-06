@@ -7,6 +7,7 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../../widgets/report_sheet.dart';
 import '../profile/user_profile_page.dart';
+import 'block_bus.dart';
 import 'post_api.dart';
 import 'post_media_uploader.dart' show postErrorText;
 import 'post_models.dart';
@@ -162,6 +163,12 @@ Future<void> _confirmDelete(BuildContext context, Session session, Post post, Vo
     onDeleted?.call();
     if (context.mounted) BuToast.show(context, l.postComposeDeleted, kind: BuToastKind.success);
   } catch (e) {
+    // Gönderi zaten silinmiş/gizlenmiş (404): sonuç aynıdır, akıştan düşür (silme idempotent).
+    if (e is ApiError && e.status == 404) {
+      onDeleted?.call();
+      if (context.mounted) BuToast.show(context, l.postComposeDeleted, kind: BuToastKind.success);
+      return;
+    }
     if (context.mounted) BuToast.show(context, errorText(e), kind: BuToastKind.error);
   }
 }
@@ -195,6 +202,7 @@ Future<void> _confirmBlock(BuildContext context, Session session, Post post, Voi
   if (ok != true || !context.mounted) return;
   try {
     await session.api.post('/users/${post.author.id}/block');
+    BlockBus.instance.blocked(post.author.id);
     onDeleted?.call();
     if (context.mounted) BuToast.show(context, l.postComposeBlocked, kind: BuToastKind.success);
   } catch (e) {

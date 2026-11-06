@@ -24,6 +24,7 @@ import '../posts/social_api.dart';
 import '../posts/social_models.dart';
 import '../follow/follow_button.dart';
 import '../profile/user_profile_page.dart' show openUserProfile;
+import '../posts/block_bus.dart';
 import 'reels_comments.dart';
 
 /// Reels: dikey, tam ekran video akışı (`GET /feed/reels`). Yalnız video gönderiler; öneri sırası sunucudadır (izlenmemiş
@@ -105,6 +106,7 @@ class _ReelsFeedState extends State<ReelsFeed> {
   @override
   void initState() {
     super.initState();
+    BlockBus.instance.addListener(_onBlocked);
     _syncImmersive();
     if (widget.active) _reload();
   }
@@ -171,6 +173,7 @@ class _ReelsFeedState extends State<ReelsFeed> {
       _immersiveOn = false;
       WidgetsBinding.instance.addPostFrameCallback((_) => shellImmersive.value = false);
     }
+    BlockBus.instance.removeListener(_onBlocked);
     _seen.dispose();
     _pager.dispose();
     super.dispose();
@@ -252,6 +255,11 @@ class _ReelsFeedState extends State<ReelsFeed> {
   void _changed(Post p) {
     final i = _items.indexWhere((e) => e.id == p.id);
     if (i >= 0 && mounted) setState(() => _items[i] = p);
+  }
+
+  void _onBlocked() {
+    final uid = BlockBus.instance.lastBlocked;
+    if (mounted) setState(() => _items.removeWhere((e) => e.author.id == uid));
   }
 
   void _removed(int id) {
