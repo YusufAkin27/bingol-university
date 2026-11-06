@@ -3,32 +3,30 @@ import { renderWithProviders } from '../../test/utils';
 import { Logo } from './Logo';
 
 describe('Logo', () => {
-  it('işaret: kare ve çevirili alt metin', () => {
-    renderWithProviders(<Logo variant="mark" height={40} />);
-    const img = screen.getByAltText('BÜ Kampüs logosu');
-    expect(img).toHaveAttribute('width', '40');
-    expect(img).toHaveAttribute('height', '40');
+  it('işaret: yalnız glif, oran korunur, çevirili alt metin', () => {
+    const { container } = renderWithProviders(<Logo variant="mark" height={40} />);
+    const imgs = container.querySelectorAll('img');
+    expect(imgs).toHaveLength(2); // auto: açık + koyu glif
+    expect(screen.getAllByAltText('BÜ Kampüs logosu')).toHaveLength(1);
+    expect(imgs[0]).toHaveAttribute('height', '40');
+    expect(Number(imgs[0].getAttribute('width')) / 40).toBeGreaterThan(1.2); // geniş BÜ glifi
+    expect(container.textContent).toBe('');
   });
 
-  it('yatay: oran korunur, auto iki ton basar (ikisi de alt metinli: koyu temada link adı boş kalmaz)', () => {
+  it('yatay: auto iki tonu basar (açık/koyu), yanında Kampüs yazısı vardır', () => {
     const { container } = renderWithProviders(<Logo variant="horizontal" height={36} />);
     const imgs = container.querySelectorAll('img');
     expect(imgs).toHaveLength(2);
-    expect(screen.getAllByAltText('BÜ Kampüs logosu')).toHaveLength(2);
-    // gizli ton tembel yüklenir (indirilmez); öncelikli logo açık tonu hemen yükler
-    expect(imgs[1]).toHaveAttribute('loading', 'lazy');
-    const w = Number(imgs[0].getAttribute('width'));
-    expect(imgs[0]).toHaveAttribute('height', '36');
-    expect(w / 36).toBeGreaterThan(3); // geniş yatay kilit
     expect(imgs[0].className).toContain('forLight');
     expect(imgs[1].className).toContain('forDark');
+    expect(container.textContent).toBe('Kampüs');
+    expect(container.querySelector('[aria-hidden="true"]:not(img)')).not.toBeNull();
   });
 
-  it('tone=dark tek görsel basar; dikey daha yüksek orana sahiptir', () => {
+  it('tone=dark tek görsel (beyaz glif) basar; dikey düzen işaretlenir', () => {
     const { container } = renderWithProviders(<Logo variant="vertical" tone="dark" height={96} />);
-    const imgs = container.querySelectorAll('img');
-    expect(imgs).toHaveLength(1);
-    expect(Number(imgs[0].getAttribute('width'))).toBeLessThan(150);
+    expect(container.querySelectorAll('img')).toHaveLength(1);
+    expect(container.firstElementChild).toHaveAttribute('data-variant', 'vertical');
   });
 
   it('dil değişince alt metin çevrilir (ar)', () => {
@@ -36,9 +34,9 @@ describe('Logo', () => {
     expect(screen.getByAltText('شعار BÜ Kampüs')).toBeInTheDocument();
   });
 
-  it('decorative: boş alt, bağlantıda erişilebilir ad yok sayılmaz', () => {
+  it('decorative: boş alt', () => {
     const { container } = renderWithProviders(<Logo variant="mark" decorative />);
-    expect(container.querySelector('img')).toHaveAttribute('alt', '');
+    container.querySelectorAll('img').forEach((i) => expect(i).toHaveAttribute('alt', ''));
   });
 
   it('to verilince bağlantı olur', () => {

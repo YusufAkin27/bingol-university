@@ -8,7 +8,7 @@
   /* Marka */
   --ink: #171e33;
   --red-100: #fde7e4;
-  --red-600: #f73a2e; /* logo kirmizisi: buyuk yuzeyler, hero, dekor (brand/dist/colors.json) */
+  --red-600: #f73a2e; /* eski logo kirmizisi: yalniz buyuk yuzey/hero/dekor; logo artik siyah-beyaz (--logo-ink) */
   --red-700: #c62a20; /* eylem kirmizisi: dugme/baglanti, beyaz yazi 5,6:1 */
   --red-800: #8e1b13; /* yumusak zemin ustunde yazi, hero dugmesi yazisi */
   --chrome: #171e33; /* koyu kabuk: alt bilgi, yonetim yan menusu, ipucu */
@@ -17,6 +17,11 @@
   --hero-end: #c62a20;
   --hero-line: rgba(255, 255, 255, 0.8); /* hero uzerindeki cerceve: zemine karsi >= 3:1 */
   --hero-contrast: #ffffff;
+
+  /* Logo (siyah-beyaz marka): glif ve yazı rengi temaya göre; sabit tonlar zorunlu zemin içindir */
+  --logo-ink: #09090b;
+  --logo-ink-on-light: #09090b;
+  --logo-ink-on-dark: #ffffff;
 
   /* Anlamsal renkler (açık tema) */
   --bg: #faf6f3;
@@ -137,6 +142,7 @@
     --border: #2e3247;
     --border-strong: #6a7190;
     --text: #f4efeb;
+    --logo-ink: #ffffff;
     --text-muted: #a5a9ba;
     --text-faint: #8e93a6;
     --primary: #ff6a5f;
@@ -197,6 +203,7 @@
   --border: #2e3247;
   --border-strong: #6a7190;
   --text: #f4efeb;
+  --logo-ink: #ffffff;
   --text-muted: #a5a9ba;
   --text-faint: #8e93a6;
   --primary: #ff6a5f;

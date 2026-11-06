@@ -1,10 +1,22 @@
 .logo {
   display: inline-flex;
   align-items: center;
+  gap: 0.6em;
   flex: none;
   line-height: 0;
   text-decoration: none;
   max-width: 100%;
+  color: var(--logo-ink);
+}
+.logo[data-variant='vertical'] {
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.onLight {
+  color: var(--logo-ink-on-light);
+}
+.onDark {
+  color: var(--logo-ink-on-dark);
 }
 /* Bağlantı olan logo: dokunma hedefi en az 44px yükseklik */
 a.logo {
@@ -14,10 +26,27 @@ a.logo {
   display: block;
   max-width: 100%;
   height: auto;
-  /* width/height öznitelikleri oranı korur (CLS yok); logo RTL'de de aynı yöne bakar */
+  /* width/height öznitelikleri oranı korur (CLS yok); glif RTL'de de aynı yöne bakar */
 }
 
-/* tone="auto": açık temada açık zemin görseli, koyu temada koyu zemin görseli */
+/* Yazı: BÜ glifinin yanındaki "Kampüs"; mantıksal yerleşim, RTL'de glifin soluna geçer */
+.word {
+  display: inline-flex;
+  flex-direction: column;
+  line-height: 1;
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  /* Latin yazı: Arapça arayüzde de aynı kalır */
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+.logo[data-variant='vertical'] .word {
+  align-items: center;
+}
+
+/* tone="auto": açık temada siyah glif, koyu temada beyaz glif */
 .forDark {
   display: none;
 }
