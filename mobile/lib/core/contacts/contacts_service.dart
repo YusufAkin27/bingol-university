@@ -109,7 +109,18 @@ class ContactsMatcher {
       }
       final chunk = hashes.sublist(i, i + contactsChunkSize > hashes.length ? hashes.length : i + contactsChunkSize);
       _sent.add(DateTime.now());
-      final res = await api.post('/users/contacts/match', {'hashes': chunk});
+      Object? res;
+      try {
+        res = await api.post('/users/contacts/match', {'hashes': chunk});
+      } on ApiError catch (e) {
+        // Sunucunun günlük aday tavanı (2000) 500'lük parçalarla 5. parçada aşılır: önceki parçaların eşleşmeleri
+        // atılmaz, kısmi sonuç gösterilir (ilk parça hatası yine hata ekranına gider).
+        if (e.status == 429 && i > 0) {
+          truncated = true;
+          break;
+        }
+        rethrow;
+      }
       final list = (res is Map ? res['matches'] : null) as List? ?? const [];
       for (final m in list.whereType<Map>()) {
         try {

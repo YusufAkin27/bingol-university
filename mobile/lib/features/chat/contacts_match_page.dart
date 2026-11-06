@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/api.dart';
 import '../../core/contacts/contacts_service.dart';
 import '../../core/locale_controller.dart';
 import '../../core/permissions/ensure_permission.dart';
@@ -33,7 +34,7 @@ class ContactsEntryRow extends StatelessWidget {
   }
 }
 
-enum _Phase { loading, needPermission, ready, error }
+enum _Phase { loading, needConsent, needPermission, ready, error }
 
 /// Telefon rehberindeki Bingöl Üniversitesi kişilerini bulur; yalnız e-posta özetleri (SHA-256) sunucuya gider.
 /// Telefon numarası gösterilmez ve davet/SMS yoktur.
@@ -59,6 +60,7 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
   String _q = '';
   int? _opening;
   String? _openError;
+  bool _consentBusy = false;
 
   ContactsProvider get _provider => widget.provider ?? DeviceContactsProvider();
 
@@ -80,6 +82,26 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
       _phase = _Phase.loading;
       _error = null;
     });
+    // Karşılıklı rıza (T-061): "Rehberden bulunabilirim" kapalıyken sunucu eşleştirmeyi 403 ile reddeder. Önce rıza,
+    // sonra işletim sistemi izni: rıza vermeyen kullanıcıdan rehber izni istenmez.
+    try {
+      final d = await widget.session.api.get('/users/contacts/discoverable', force: true);
+      if (!mounted) return;
+      if (d is Map && d['enabled'] == false) {
+        setState(() => _phase = _Phase.needConsent);
+        return;
+      }
+    } catch (e) {
+      if (!mounted) return;
+      // Eski sunucuda uç yoksa (404) rıza zorunlu değildir: eşleştirme akışı sürer.
+      if (!(e is ApiError && e.status == 404)) {
+        setState(() {
+          _error = e;
+          _phase = _Phase.error;
+        });
+        return;
+      }
+    }
     final ok = await ensurePermission(
       context,
       AppPermission.contacts,
@@ -103,10 +125,37 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
       });
     } catch (e) {
       if (!mounted) return;
+      // Rıza başka cihazdan kapatılmış olabilir: sunucu 403 CONTACTS_DISCOVERABLE_REQUIRED derse rıza ekranına dön.
+      if (e is ApiError && e.code == 'CONTACTS_DISCOVERABLE_REQUIRED') {
+        setState(() => _phase = _Phase.needConsent);
+        return;
+      }
       setState(() {
         _error = e;
         _phase = _Phase.error;
       });
+    }
+  }
+
+  Future<void> _setDiscoverable(bool on) async {
+    if (_consentBusy) return;
+    setState(() => _consentBusy = true);
+    try {
+      await widget.session.api.put('/users/contacts/discoverable', {'enabled': on});
+      if (!mounted) return;
+      setState(() => _consentBusy = false);
+      if (on) {
+        await _load();
+      } else {
+        setState(() {
+          _all = [];
+          _phase = _Phase.needConsent;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _consentBusy = false);
+      BuToast.show(context, errorText(e), kind: BuToastKind.warning);
     }
   }
 
@@ -176,6 +225,20 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
             Text(errorText(_error!), style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.mut)),
           ],
         ]);
+      case _Phase.needConsent:
+        return _scroll([
+          NcStateCard(
+            icon: BuIcons.userCheck,
+            title: l.qa4ContactsConsentTitle,
+            text: l.qa4ContactsConsentText,
+            children: [
+              const SizedBox(height: 20),
+              NcNote(icon: BuIcons.lock, text: l.p23PrivacyShort),
+              const SizedBox(height: 16),
+              BuButton(label: l.qa4ContactsConsentAction, icon: BuIcons.userCheck, busy: _consentBusy, onPressed: () => _setDiscoverable(true)),
+            ],
+          ),
+        ]);
       case _Phase.needPermission:
         return _scroll([
           NcStateCard(
@@ -219,6 +282,8 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
         for (final m in list) _row(t, m),
       ],
       if (_all.isNotEmpty) ...[const SizedBox(height: 4), _PrivacyNote()],
+      const SizedBox(height: 12),
+      BuButton(label: l.qa4ContactsConsentOff, icon: BuIcons.lock, kind: BuButtonKind.outline, busy: _consentBusy, onPressed: () => _setDiscoverable(false)),
     ]);
   }
 

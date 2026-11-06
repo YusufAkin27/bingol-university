@@ -155,6 +155,7 @@ class _ChatTabState extends State<ChatTab> {
       _persistList();
       _refreshBadge();
       _loadMsgReq();
+      _fillForFilter();
     } catch (e) {
       if (!mounted || my != _seq) return;
       setState(() {
@@ -186,9 +187,20 @@ class _ChatTabState extends State<ChatTab> {
         _cursor = page.$2;
         _loadingMore = false;
       });
+      _fillForFilter();
     } catch (_) {
       if (mounted) setState(() => _loadingMore = false);
     }
+  }
+
+  /// Süzgeç çipi ya da arama etkinken yüklü sayfalarda yeterli eşleşme yoksa sonraki sayfaları kendiliğinden çeker.
+  /// Aksi halde ilk 30 sohbette eşleşmeyen bir kulüp/etkinlik/kişi (ör. 2. sayfadaki) hiç bulunamazdı: kısa liste
+  /// kaydırılamadığı için `_onScroll` sonraki sayfayı tetiklemez (QA-CHAT-10). Hata olunca döngü kurulmaz.
+  void _fillForFilter() {
+    if (!mounted || _cursor == null || _loadingMore || _loading) return;
+    if (_filter == 0 && _query.trim().isEmpty) return;
+    if (_visible.length >= 12) return;
+    _loadMore();
   }
 
   (List<Map<String, dynamic>>, int?) _parse(dynamic res) {
@@ -631,8 +643,14 @@ class _ChatTabState extends State<ChatTab> {
                 controller: _search,
                 showChips: !_archived,
                 showSearch: !_archived,
-                onQuery: (v) => setState(() => _query = v),
-                onSelect: (i) => setState(() => _filter = i),
+                onQuery: (v) {
+                  setState(() => _query = v);
+                  _fillForFilter();
+                },
+                onSelect: (i) {
+                  setState(() => _filter = i);
+                  _fillForFilter();
+                },
               ),
             ),
             // Arşiv çubuğu: listenin en üstünde; arama/süzgeç etkinken gizlenir (arşiv süzülmez).

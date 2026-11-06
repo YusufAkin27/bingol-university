@@ -4026,6 +4026,30 @@ abstract class AppLocalizations {
   /// **'Saatlik istek sınırına ulaşıldı; kalan kişiler daha sonra eşleştirilecek.'**
   String get chatMiscContactsTruncated;
 
+  /// No description provided for @qa4ContactsConsentTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rehberden bulunabilirim'**
+  String get qa4ContactsConsentTitle;
+
+  /// No description provided for @qa4ContactsConsentText.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rehberindeki kişileri bulmak için önce bu ayarı açman gerekir. Eşleşme karşılıklıdır: yalnız bu ayarı açmış kişileri bulursun, onlar da seni yalnız bu ayar açıkken bulabilir. İstediğin zaman kapatabilirsin.'**
+  String get qa4ContactsConsentText;
+
+  /// No description provided for @qa4ContactsConsentAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aç ve devam et'**
+  String get qa4ContactsConsentAction;
+
+  /// No description provided for @qa4ContactsConsentOff.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rehberden bulunabilirliği kapat'**
+  String get qa4ContactsConsentOff;
+
   /// No description provided for @chatMiscContactsNoSearchMatch.
   ///
   /// In tr, this message translates to:

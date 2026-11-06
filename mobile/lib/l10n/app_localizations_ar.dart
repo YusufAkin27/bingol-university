@@ -2101,6 +2101,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatMiscContactsTruncated => 'تم بلوغ حد الطلبات في الساعة؛ ستتم مطابقة بقية الأشخاص لاحقًا.';
 
   @override
+  String get qa4ContactsConsentTitle => 'يمكن العثور عليّ عبر جهات الاتصال';
+
+  @override
+  String get qa4ContactsConsentText => 'فعّل هذا الخيار أولاً للعثور على الأشخاص من جهات اتصالك. المطابقة متبادلة: لا تجد إلا من فعّلوا الخيار أيضًا، ولا يجدك غيرك إلا عند تفعيله. يمكنك إيقافه في أي وقت.';
+
+  @override
+  String get qa4ContactsConsentAction => 'تفعيل ومتابعة';
+
+  @override
+  String get qa4ContactsConsentOff => 'إيقاف إمكانية العثور عليّ عبر جهات الاتصال';
+
+  @override
   String get chatMiscContactsNoSearchMatch => 'لا يوجد أشخاص مطابقون لبحثك.';
 
   @override
