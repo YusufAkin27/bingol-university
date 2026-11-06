@@ -371,17 +371,11 @@ void main() {
       noErr(tester);
     });
 
-    testWidgets('tam ekran: saf siyah zemin, yalniz sol ustte 24 dp beyaz x (48 dp hedef)', (tester) async {
+    testWidgets('kalici kural: fotografa tek dokunus TAM EKRAN acmaz (yalniz iki parmakla yakinlastirma)', (tester) async {
       await openDetail(tester);
       await tester.tap(find.byKey(const ValueKey('post-photo-999')), warnIfMissed: false);
       await settle(tester, const Duration(milliseconds: 1000));
-      final close = find.byKey(const ValueKey('postViewerClose'));
-      expect(close, findsOneWidget);
-      expect(tester.getSize(close).width, greaterThanOrEqualTo(48));
-      expect(tester.getTopLeft(close).dx, lessThan(20)); // sol ust
-      final icon = tester.widget<Icon>(find.descendant(of: close, matching: find.byType(Icon)));
-      expect(icon.size, 24);
-      expect(icon.color, BuTokens.light.onMedia);
+      expect(find.byKey(const ValueKey('postViewerClose')), findsNothing);
       noErr(tester);
     });
 

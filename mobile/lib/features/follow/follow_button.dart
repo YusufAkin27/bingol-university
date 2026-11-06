@@ -73,10 +73,19 @@ class _FollowStateButtonState extends State<FollowStateButton> {
   late FollowState _state = widget.state;
   bool _busy = false;
 
+  /// İstek sürerken dıştan gelen yeni durum (QA-P-08): istek bitince uygulanır, bayat düğme kalmaz.
+  FollowState? _deferredExternal;
+
   @override
   void didUpdateWidget(FollowStateButton old) {
     super.didUpdateWidget(old);
-    if (old.state != widget.state && !_busy) _state = widget.state;
+    if (old.state != widget.state) {
+      if (_busy) {
+        _deferredExternal = widget.state;
+      } else {
+        _state = widget.state;
+      }
+    }
   }
 
   void _emit(FollowState s, FollowResult? r) {
@@ -128,6 +137,9 @@ class _FollowStateButtonState extends State<FollowStateButton> {
       _emit(prev, null);
     } finally {
       _busy = false;
+      final ext = _deferredExternal;
+      _deferredExternal = null;
+      if (ext != null && mounted && ext != _state) setState(() => _state = ext);
     }
   }
 

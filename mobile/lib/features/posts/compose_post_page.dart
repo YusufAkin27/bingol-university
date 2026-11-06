@@ -144,6 +144,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
   Uint8List? _original; // kırpılmamış seçim (yeniden kırpmak için)
   Uint8List? _photo; // düzenlenmiş fotoğraf (varsayılan 4:5; düzenleyicide oran seçilebilir)
   double _photoAspect = 4 / 5; // önizleme oranı: düzenlenmiş fotoğrafın gerçek oranı (0.5-1.91)
+  final String _idemKey = PostApi.newIdempotencyKey(); // bu paylaşma niyeti için tek anahtar (yeniden denemede aynı)
   PostMedia? _uploaded; // aynı fotoğraf için yeniden yüklemeyi önler (metin hatasından sonra tekrar dene)
   bool _publishing = false;
   _Err _err = _Err.none;
@@ -681,7 +682,8 @@ class _ComposePostPageState extends State<ComposePostPage> {
       final PostMedia media = video != null
           ? (_uploadedVideo ??= await _uploadVideo(video))
           : (_uploaded ??= await _uploader.upload(bytes!));
-      final post = await _api.create(text: _text.text, mediaId: media.id, mentionUserIds: _mentionIds());
+      final post = await _api.create(
+          text: _text.text, mediaId: media.id, mentionUserIds: _mentionIds(), idempotencyKey: _idemKey);
       if (!mounted) return;
       messenger?.showSnackBar(SnackBar(content: Text(context.l10n.postComposeShared), duration: const Duration(seconds: 2)));
       Navigator.pop(context, post);

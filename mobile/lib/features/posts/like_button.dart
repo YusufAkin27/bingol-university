@@ -1,4 +1,5 @@
 import '../../core/analytics.dart';
+import '../../core/api.dart' show ApiError;
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -168,7 +169,15 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
       _confirmedLiked = res.liked;
       _confirmedCount = res.likeCount;
       _inflight = false;
-      if (!mounted) return;
+      if (!mounted) {
+        // Uçuştayken ekrandan çıkıldı ve kullanıcı bu arada yön değiştirmişti: son niyet kaybolmasın.
+        if (_liked != _confirmedLiked) {
+          final id = _post.id;
+          final next = _liked;
+          unawaited((next ? api.put('/posts/$id/like') : api.delete('/posts/$id/like')).catchError((_) {}));
+        }
+        return;
+      }
       if (_timer == null && _liked == want) {
         // Kullanıcı bu arada değiştirmediyse sunucu sayısını esas al.
         setState(() {
@@ -188,12 +197,16 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
       });
       widget.onChanged?.call(_post.copyWith(likedByMe: _liked, likeCount: _count));
       // İyimser güncelleme geri alındı: uyarı + "Tekrar dene" (aynı beğeni/vazgeçme yeniden denenir).
+      // Gönderi artık yok/görünmüyor (404/403): tekrar denemek boşuna, yalnız bilgi ver (QA-P-10).
+      final gone = e is ApiError && (e.status == 404 || e.status == 403);
       BuToast.show(context, context.l10n.postViewLikeFailed,
           kind: BuToastKind.warning,
-          actionLabel: context.l10n.commonRetryShort,
-          onAction: () {
-            if (mounted) _setLiked(want);
-          });
+          actionLabel: gone ? null : context.l10n.commonRetryShort,
+          onAction: gone
+              ? null
+              : () {
+                  if (mounted) _setLiked(want);
+                });
     }
   }
 

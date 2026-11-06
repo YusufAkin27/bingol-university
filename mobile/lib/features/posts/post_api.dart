@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import '../../core/analytics.dart';
 import '../../core/session.dart';
 import 'post_models.dart';
@@ -95,12 +97,24 @@ class PostApi {
   /// Tek medya ([mediaId], önce `POST /posts/media` ile yüklenir) + isteğe bağlı metin (istenen uzunlukta; sunucunun
   /// gizli üst sınırı aşılırsa 422 `POST_TEXT_TOO_LONG`) + etiketlenen kişiler ([mentionUserIds]: yalnız takip ettiklerim,
   /// en çok 10; metindeki `@Ad Soyad` düz metni ayrıca gönderilir).
-  Future<Post> create({String? text, required int mediaId, List<int> mentionUserIds = const []}) async {
-    final r = await session.api.post('/posts', {
-      if (text != null && text.trim().isNotEmpty) 'text': text.trim(),
-      'mediaIds': [mediaId],
-      if (mentionUserIds.isNotEmpty) 'mentionUserIds': mentionUserIds,
-    });
+  /// Bir "paylaşma niyeti" için BİR kez üretilip yeniden denemelerde aynen kullanılır: zaman aşımından sonra
+  /// sunucu gönderiyi oluşturmuşsa aynı anahtar aynı gönderiyi döndürür (çift gönderi / yanlış hata olmaz).
+  static String newIdempotencyKey() {
+    final r = math.Random.secure();
+    return 'p${List.generate(24, (_) => r.nextInt(16).toRadixString(16)).join()}';
+  }
+
+  Future<Post> create(
+      {String? text, required int mediaId, List<int> mentionUserIds = const [], String? idempotencyKey}) async {
+    final r = await session.api.post(
+        '/posts',
+        {
+          if (text != null && text.trim().isNotEmpty) 'text': text.trim(),
+          'mediaIds': [mediaId],
+          if (mentionUserIds.isNotEmpty) 'mentionUserIds': mentionUserIds,
+        },
+        true,
+        {'Idempotency-Key': idempotencyKey ?? newIdempotencyKey()});
     Analytics.instance.action('post_create');
     return Post.fromJson(_m(r));
   }
