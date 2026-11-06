@@ -89,6 +89,9 @@ class AttendanceServiceTest {
         assertEquals("CHECKIN_CLOSED", error(() -> svc.issueCode(organizer, 5L, end.plus(Duration.ofMinutes(31)))).code());
         svc.issueCode(organizer, 5L, start.minus(Duration.ofMinutes(29)));
         svc.issueCode(organizer, 5L, end.plus(Duration.ofMinutes(29)));
+        // sahip anahtari acikken pencere disinda da kod uretilir
+        event.setAttendanceOpen(true);
+        svc.issueCode(organizer, 5L, start.minus(Duration.ofHours(5)));
     }
 
     // ---- QR ile yoklama ----

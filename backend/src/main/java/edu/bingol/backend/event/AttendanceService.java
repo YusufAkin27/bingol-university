@@ -70,7 +70,9 @@ public class AttendanceService {
     public CheckinCode issueCode(Actor a, Long eventId, Instant now) {
         UserEvent e = events.requireManager(a, events.load(eventId));
         requireActive(e);
-        requireWindow(e, now);
+        if (!e.isAttendanceOpen()) {
+            requireWindow(e, now); // sahip anahtari acmadiysa yalniz pencere icinde
+        }
         String code = codes.generate(eventId, now);
         return new CheckinCode(code, "bingol-checkin:" + code, codes.expiresAt(now), CheckinCodeService.MAX_VALID_SECONDS,
                 codes.generateManual(eventId, now));
