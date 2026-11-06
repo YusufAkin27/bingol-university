@@ -405,3 +405,7 @@ Yalniz **RS256** (`none`/HS* reddedilir; algoritma karistirma korumasi), anahtar
 - Parolasiz (yalniz OAuth) hesap 2FA'yi acabilir ama **kapatmak parola ister** (`TwoFactorService.disable`); once `forgot-password` ile parola belirlemelidir. Parola degistirme (`change-password`) de mevcut parolayi ister: parolasiz hesapta `403 WRONG_PASSWORD`, yol `forgot-password`.
 - Bolume gore sinif suzmesi yok (katalogda bolum suresi verisi yok); onboarding `OTHER` sinifi fakulte/bolumsuz kabul eder.
 - Gercek Google/Apple token'i ile uctan uca duman BU SURUMDE DOGRULANMADI (yapilandirma yok); dogrulama yerel RSA anahtarli birim/MVC testleriyle yapildi (`scripts/smoke-oauth.sh` yalniz bayrak/dogrulama/kullanici adi).
+
+## Hukuki metinler: e-posta alan adı kısıtı kalktı (2026-11-06, V1470/V1471)
+- Kullanım Koşulları / Gizlilik / KVKK yeni sürüm (`V1470__legal_texts_any_email.sql`, `require_reaccept=FALSE`: mevcut kullanıcıdan yeni onay istenmez): kayıt herhangi bir geçerli e-posta + 6 haneli e-posta doğrulama kodu; isteğe bağlı Google/Apple girişinin veri kategorisi (sağlayıcı adı, sağlayıcı kimliği, sağlayıcının bildirdiği e-posta, ad) eklendi. `V1471__faq_any_email.sql`: SSS "Kimler kayıt olabilir?" yalnız eski varsayılan metinle birebir eşleşiyorsa güncellenir.
+- `error.ACCOUNT_NOT_FOUND` (`forgot-password`, tr/en/ar): "okul numarası" yerine "e-posta adresi". Ayrıntı: `docs/LEGAL_NOTES.md` bölüm 14.

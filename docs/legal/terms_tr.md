@@ -14,14 +14,14 @@ Bu metin, BÜ Kampüs uygulaması ve web sitesinin ("**Hizmet**") nasıl kullan�
 
 ## 2. Hesap ve uygunluk
 
-1. **Kimler kayıt olabilir?** Kayıt yalnızca Bingöl Üniversitesi öğrencileri ve personeli içindir ve yalnızca `bingol.edu.tr` (alt alan adları dahil) uzantılı e-posta adresiyle yapılır. E-posta adresinize gönderilen doğrulama kodunu girmeden hesap açılmaz. Doğrulama kodu 10 dakika geçerlidir ve sınırlı sayıda deneme hakkı vardır.
+1. **Kimler kayıt olabilir?** Hizmet, Bingöl Üniversitesi topluluğuna yönelik hazırlanmıştır; ancak kayıt için `bingol.edu.tr` uzantılı e-posta adresi zorunlu değildir. Gmail, Outlook, Hotmail, Yahoo gibi sağlayıcıların adresleri ile okul veya kurum e-postaları dahil, size ait geçerli herhangi bir e-posta adresiyle kayıt olabilirsiniz. Hesap, yalnızca e-posta adresinize gönderilen 6 haneli doğrulama kodunu girdiğinizde etkinleşir; kodu girmeden hesap açılmaz. Doğrulama kodu 10 dakika geçerlidir ve sınırlı sayıda deneme hakkı vardır. Kayıt için kullandığınız e-posta adresi üniversiteyle bağlantınızı doğrulamaz; bölüm, fakülte ve sınıf gibi bilgiler profilde sizin beyan ettiğiniz bilgilerdir.
 2. **Bilgilerin doğruluğu.** Hesap bilgilerinizin doğru olmasından ve şifrenizin güvenliğinden siz sorumlusunuz. Şifrenizi kimseyle paylaşmayın. Hesabınızın izinsiz kullanıldığını fark ederseniz derhal Destek bölümünden bize bildirin; "tüm oturumları kapat" seçeneğini kullanabilirsiniz.
 3. **Hesap devredilemez.** Hesabınızı başkasına devredemez, satamaz veya paylaşamazsınız. Bir kişi birden fazla hesabı kötüye kullanım amacıyla açamaz.
-4. **Yaş.** Hizmet üniversite öğrencileri ve personeline yöneliktir; 18 yaşından küçük kullanıcılara özel olarak yönelik değildir. 18 yaşından küçük bir öğrenci kullanıyorsa, yasal temsilcisinin bilgisi ve izni dahilinde kullanması esastır; bu durumda ilgili kişisel verilerin işlenmesine ilişkin yasal temsilcinin onayı gerekebilir. Bu durumu fark ettiğimiz hesaplarda ek doğrulama isteyebiliriz.
+4. **Yaş.** Hizmet üniversite topluluğuna yöneliktir; 18 yaşından küçük kullanıcılara özel olarak yönelik değildir. 18 yaşından küçük bir öğrenci kullanıyorsa, yasal temsilcisinin bilgisi ve izni dahilinde kullanması esastır; bu durumda ilgili kişisel verilerin işlenmesine ilişkin yasal temsilcinin onayı gerekebilir. Bu durumu fark ettiğimiz hesaplarda ek doğrulama isteyebiliriz.
 5. **Tek cihaz kuralı (mobil).** Güvenliğiniz için mobil uygulamada aynı anda tek oturum açık kalır: başka bir mobil cihazdan giriş yaptığınızda önceki mobil oturumlarınız sonlandırılır ve önceki cihaza "yeni cihazdan giriş" uyarısı e-postası gönderilebilir. Web üzerindeki oturumlar bu kuraldan etkilenmez.
 6. **Oturum süresi.** Erişim anahtarınız kısa ömürlüdür (15 dakika) ve otomatik yenilenir; yenileme anahtarı en çok 30 gün geçerlidir ve tek kullanımlıktır. Şifre sıfırlandığında tüm oturumlarınız kapatılır.
 
-> **Özetle:** Yalnızca bingol.edu.tr e-postasıyla, doğrulayarak kayıt olursunuz. Hesap size aittir ve devredilemez. Mobilde aynı anda tek cihazda oturum açık kalır.
+> **Özetle:** Herhangi bir geçerli e-posta adresiyle (bingol.edu.tr zorunlu değildir) kayıt olur, adresinize gelen kodla doğrularsınız. Hesap size aittir ve devredilemez. Mobilde aynı anda tek cihazda oturum açık kalır.
 
 ## 3. Kullanıcı içerikleri ve lisans
 
@@ -137,7 +137,7 @@ Bu koşulları, Topluluk Kurallarını veya hukuku ihlal etmeniz nedeniyle işle
 ## 17. Delil sözleşmesi ve tebligat
 
 1. Taraflar, Hizmet sunucularındaki kayıtların (sözleşme onay kayıtları, oturum/IP ve cihaz özeti kayıtları, moderasyon ve erişim günlükleri, e-posta ve bildirim kayıtları) 6100 sayılı Hukuk Muhakemeleri Kanunu m.193 anlamında **kesin delil** niteliğinde olduğunu kabul eder. Bu hüküm, emredici hukuka ve Kişisel Verileri Koruma Kurulu veya mahkemenin delil değerlendirme yetkisine halel getirmez; kayıtlara karşı gerçeğe aykırılığı ispat hakkınız saklıdır.
-2. Size yapılacak bildirim ve tebligatlar, kayıtlı kurumsal e-posta adresinize ve uygulama içi bildirim kutusuna gönderilir; gönderim anında tebliğ edilmiş sayılır. E-posta adresinizi ve iletişim bilgilerinizi güncel tutmak sizin sorumluluğunuzdadır. Bize yapılacak bildirimler {{support.email|uygulama içi Destek bölümü}} üzerinden{{?controller.kep}} veya {{controller.kep}} KEP adresine{{/controller.kep}} iletilir.
+2. Size yapılacak bildirim ve tebligatlar, kayıtlı e-posta adresinize ve uygulama içi bildirim kutusuna gönderilir; gönderim anında tebliğ edilmiş sayılır. E-posta adresinizi ve iletişim bilgilerinizi güncel tutmak sizin sorumluluğunuzdadır. Bize yapılacak bildirimler {{support.email|uygulama içi Destek bölümü}} üzerinden{{?controller.kep}} veya {{controller.kep}} KEP adresine{{/controller.kep}} iletilir.
 
 ## 18. Genel hükümler
 

@@ -28,7 +28,9 @@ const TYPES = [
 ];
 
 function load(prefix, lang) {
-  const file = path.join(SRC, `${prefix}_${lang}.md`);
+  // terms/privacy/kvkk metinleri V1470'te degisti: V820 kaynaklari docs/legal/archive/v820 altinda DONDURULDU.
+  const archived = path.join(SRC, 'archive', 'v820', `${prefix}_${lang}.md`);
+  const file = fs.existsSync(archived) ? archived : path.join(SRC, `${prefix}_${lang}.md`);
   const raw = fs.readFileSync(file, 'utf8').replace(/^﻿/, '').replace(/\r\n?/g, '\n');
   const m = /^# (.+)\n/.exec(raw);
   if (!m) throw new Error(`${file}: ilk satir "# Baslik" olmali`);

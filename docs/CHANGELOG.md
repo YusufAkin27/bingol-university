@@ -4,6 +4,12 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### Hukuki metinler: e-posta alan adı kısıtı kalktı (2026-11-06, `deploy/legal-20261106`)
+
+- **V1470** Kullanım Koşulları, Gizlilik Politikası ve KVKK Aydınlatma için yeni sürüm (tr/en/ar, `require_reaccept=FALSE`: yeniden onay istenmez): "yalnız bingol.edu.tr" kısıtı kalktı (herhangi bir geçerli e-posta + e-posta doğrulama kodu), isteğe bağlı Google/Apple girişi veri kategorisi eklendi, "kurumsal e-posta" ve alan adı denetimi ifadeleri düzeltildi. Üretim: `scripts/build-legal-migration-v1470.js`; V820 kaynakları `docs/legal/archive/v820/`.
+- **V1471** SSS "Kimler kayıt olabilir?" (tr/en/ar) yalnız eski V3 varsayılanıyla birebir eşleşiyorsa güncellenir (yönetici düzenlemesi ezilmez).
+- `error.ACCOUNT_NOT_FOUND` üç dilde "okul numarası" yerine "e-posta adresi". Metinler taslaktır; hukuk incelemesi önerilir (`docs/LEGAL_NOTES.md` bölüm 14).
+
 ### Çoklu oturum + Cihazlarım (2026-11-06, `deploy/multisession-20261106`)
 
 - **Tek cihaz kuralı kalktı:** mobil giriş artık önceki mobil oturumları kapatmaz ve FCM kayıtlarını silmez; eski davranış `app.auth.single-mobile-session=true` (`AUTH_SINGLE_MOBILE_SESSION`) ile geri gelir. Bildirimler kullanıcının tüm cihazlarına gider.

@@ -229,7 +229,10 @@ class LegalMigrationV820FileTest {
     // ---------------------------------------------------------------- yardimcilar
 
     private static String read(String prefix, String lang) throws Exception {
-        return Files.readString(DOCS.resolve(prefix + "_" + lang + ".md"), StandardCharsets.UTF_8)
+        // terms/privacy/kvkk metinleri V1470'te degisti: V820 kaynaklari docs/legal/archive/v820 altinda dondurulmustur
+        Path archived = DOCS.resolve("archive/v820").resolve(prefix + "_" + lang + ".md");
+        Path file = Files.exists(archived) ? archived : DOCS.resolve(prefix + "_" + lang + ".md");
+        return Files.readString(file, StandardCharsets.UTF_8)
                 .replace("\r\n", "\n").replace("\r", "\n");
     }
 

@@ -207,3 +207,30 @@ Not: `relation` ve `jurisdiction` anahtarları V480 ile boş eklendi, V481 ile d
 5. "Gecikmeden incelenir, ağır ihlaller öncelikli" dışında süre taahhüdü verilmedi; kodda CSAE'ye özel öncelik/SLA yok (genel kuyruk önceliği: açık farklı raporlayıcı sayısı).
 6. Arapça ve İngilizce çeviri anadil/hukuk incelemesi ister.
 7. Metin değiştiğinde `pg.childsafety.s6.p4` ("Son güncelleme") tarihi elle güncellenmelidir (3 dilde).
+
+## 14. V1470/V1471: e-posta alan adı kısıtı kalktı, metinler güncellendi (2026-11-06)
+
+**Karar (kullanıcı):** kayıt artık herhangi bir geçerli e-posta adresiyle (Gmail, Outlook, Hotmail, Yahoo, okul/kurum adresleri) ve e-posta doğrulama koduyla yapılır; `bingol.edu.tr` zorunlu değildir. Metinler buna göre yeni sürüm olarak yayımlandı. **Metinler TASLAKTIR; yayın öncesi hukuk danışmanı incelemesi hâlâ önerilir** (bölüm 5 ve 13'teki risk notu geçerli: alan adı kısıtı kalkınca "doğrulanmış üniversite mensubu" güvencesi yoktur, kimlik doğrulaması yalnız e-posta sahipliği kanıtıdır).
+
+**Ne değişti?** `docs/legal/{terms,privacy,kvkk}_{tr,en,ar}.md` güncellendi; `scripts/build-legal-migration-v1470.js` ile `V1470__legal_texts_any_email.sql` üretildi (TERMS, PRIVACY, KVKK için tek yeni sürüm, tr+en+ar aynı numara, eskiler pasif; eski sürümler ve kayıtlı onaylar değişmez). V820 kaynakları `docs/legal/archive/v820/` altına donduruldu (`build-legal-migration-v820.js` ve `LegalMigrationV820FileTest` oradan okur). `V1471__faq_any_email.sql` SSS "Kimler kayıt olabilir?" cevabını (tr/en/ar) **yalnız V3 tohumundaki eski metinle birebir eşleşiyorsa** günceller (yönetici panelinden değiştirilmiş satıra dokunmaz). `auth*.properties` `error.ACCOUNT_NOT_FOUND` ("okul numarası" yerine "e-posta adresi") üç dilde düzeltildi.
+
+| Belge | Önce | Sonra |
+|---|---|---|
+| Kullanım Koşulları 2.1 "Kimler kayıt olabilir?" | "Kayıt yalnızca öğrenci/personel içindir, yalnızca bingol.edu.tr" | Hizmet üniversite topluluğuna yöneliktir; bingol.edu.tr zorunlu değildir, size ait geçerli herhangi bir e-posta; hesap 6 haneli kodla etkinleşir; e-posta üniversiteyle bağı doğrulamaz, bölüm/fakülte/sınıf kullanıcı beyanıdır |
+| Kullanım Koşulları 2.4 (yaş), özet satırı, 17.2 (bildirim adresi) | "üniversite öğrencileri ve personeline yöneliktir", "yalnızca bingol.edu.tr", "kurumsal e-posta" | "üniversite topluluğuna yöneliktir", "herhangi bir geçerli e-posta", "kayıtlı e-posta" |
+| Gizlilik 2 (veri tablosu) | "Hesap: e-posta (bingol.edu.tr)" | "e-posta adresi (herhangi bir sağlayıcıdan)"; **yeni satır: Google/Apple ile giriş (isteğe bağlı)**: sağlayıcı adı, sağlayıcının hesap için verdiği kimlik numarası, sağlayıcının bildirdiği e-posta (Apple'da gizli aktarım adresi olabilir), ad-soyad; sözleşmenin ifası; hesap silinince silinir |
+| Gizlilik 4 / KVKK 5 (alıcılar) | "kayıtta yalnızca e-posta alan adını (bingol.edu.tr) denetler"; "bingol.edu.tr posta kutusunu işleten kurum (üniversite)" | Alan adı denetimi cümlesi kalktı; e-posta sağlayıcısı notu genelleşti; Google/Apple girişinde kimlik doğrulamasının cihaz ile sağlayıcı arasında olduğu, sunucunun yalnız imzalı belirteci doğrulayıp sağlayıcıya veri göndermediği yazıldı |
+| Gizlilik 10 (çocuklar) | "yalnızca üniversite öğrenci/personel e-postasıyla kayıt olunur" | "herhangi bir e-posta ile kayıt olunabildiğinden kayıt sırasında yaş sorulmaz veya doğrulanmaz" (kodla doğrulandı: kayıt isteğinde doğum tarihi yok) |
+| Gizlilik 14 | "ör. a•••@bingol.edu.tr" | "ör. a•••@gmail.com" |
+| KVKK 2 (kategoriler) | "Kurumsal e-posta adresi (bingol.edu.tr)" | "E-posta adresi (herhangi bir sağlayıcıdan; Google/Apple'da sağlayıcının bildirdiği adres)"; Kimlik satırına isteğe bağlı sağlayıcı adı + sağlayıcı kimlik numarası |
+| KVKK 11 (başvuru yolu) | "kayıtlı kurumsal e-posta adresinizden" | "kayıtlı e-posta adresinizden" |
+| `docs/legal/internal/02` | "kayıtlı bingol.edu.tr adresinizden" | "kayıtlı e-posta adresinizden" |
+
+**`require_reaccept` kararı: FALSE (üç tür).** Gerekçe: (1) kısıt kaldırıldı, yani kullanıcı lehine genişleme; kullanıcı aleyhine yeni yükümlülük yok; (2) yeni açık rıza gerektiren işleme yok; Google/Apple girişi sözleşmenin ifası (m.5/2-c) kapsamında isteğe bağlıdır ve bayrak kapalıyken (`AUTH_OAUTH_ENABLED=false`) işlenen veri de yoktur; bu bir KVKK m.10 aydınlatma güncellemesidir; (3) V620/V820 ile aynı çizgi. Yeni kayıtlar `acceptTerms` ile güncel sürümü (V1470 sürümü) onaylar. **Mevcut kullanıcılardan yeni onay İSTENMEZ**: `LegalService.pending` en yeni `require_reaccept=TRUE` sürümü (V480) arar; V480'i onaylamış kullanıcı bekleyen sayılmaz. `app.legal.enforce-reaccept` zaten varsayılan kapalıdır. Avukat farklı görürse yeni bir migration ile `require_reaccept=TRUE` sürüm yayımlanabilir (sıra: bölüm 8 "Zorlamayı açma sırası").
+
+**Bilerek DEĞİŞTİRİLMEYENLER (kapsam dışı, ama hâlâ güncel olmayan beyanlar var; yeni sürüm kararı gerekir):**
+- Topluluk Kuralları girişi: "BÜ Kampüs, Bingöl Üniversitesi öğrencileri ve personeli için güvenli ve saygılı bir ortamdır" (hedef kitle vurgusu; kayıt kısıtı değil).
+- Kullanım Koşulları 2.5 ve özet satırındaki **"tek cihaz kuralı"**: `app.auth.single-mobile-session` varsayılanı artık `false` (V1460 çoklu oturum); metin güncel davranışla uyuşmaz.
+- V820 metinlerinde kodla artık uyuşmayan beyanlar (`LegalMigrationV820FileTest` içindeki notlar): gönderi "en çok 7 kelime" (kod 2200 karakter), tek gösterimlik medya 365 gün (kod 7 gün), yönetici gerekçe uzunlukları.
+- SSS V3 tohumu "Şifremi unuttum." cevabı ("yakında eklenecek") şifre sıfırlama varken eskidir; yönetici panelinden ya da yeni migration ile düzeltilmeli.
+- Web tanıtım sitesi/çocuk güvenliği metinleri ve mobil istemci metinleri ayrı işlerdir (bölüm 13).

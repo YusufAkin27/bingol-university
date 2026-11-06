@@ -16,14 +16,14 @@ This text explains how the BÜ Kampüs application and website (the "**Service**
 
 ## 2. Account and eligibility
 
-1. **Who can register?** Registration is only for Bingöl University students and staff and is only possible with an e-mail address ending in `bingol.edu.tr` (including subdomains). No account is opened without entering the verification code sent to your e-mail address. The verification code is valid for 10 minutes and there is a limited number of attempts.
+1. **Who can register?** The Service is designed for the Bingöl University community, but an e-mail address ending in `bingol.edu.tr` is not required to register. You can register with any valid e-mail address that belongs to you, including addresses from providers such as Gmail, Outlook, Hotmail and Yahoo and school or organisation e-mail addresses. The account is activated only when you enter the 6-digit verification code sent to your e-mail address; no account is opened without entering the code. The verification code is valid for 10 minutes and there is a limited number of attempts. The e-mail address you register with does not verify your connection to the university; information such as department, faculty and class year in your profile is declared by you.
 2. **Accuracy of information.** You are responsible for the accuracy of your account information and for the security of your password. Do not share your password with anyone. If you notice that your account is being used without permission, notify us immediately through the Support section; you can use the "sign out of all sessions" option.
 3. **The account is not transferable.** You may not transfer, sell or share your account with anyone else. One person may not open multiple accounts for the purpose of abuse.
-4. **Age.** The Service is aimed at university students and staff; it is not specifically aimed at users under 18. If a student under 18 uses it, use with the knowledge and permission of their legal representative is essential; in that case the consent of the legal representative to the processing of the relevant personal data may be required. In accounts where we notice this, we may ask for additional verification.
+4. **Age.** The Service is aimed at the university community; it is not specifically aimed at users under 18. If a student under 18 uses it, use with the knowledge and permission of their legal representative is essential; in that case the consent of the legal representative to the processing of the relevant personal data may be required. In accounts where we notice this, we may ask for additional verification.
 5. **Single-device rule (mobile).** For your security, only one session stays open at a time in the mobile app: when you sign in from another mobile device, your previous mobile sessions are ended and a "sign-in from a new device" warning e-mail may be sent for the previous device. Sessions on the web are not affected by this rule.
 6. **Session duration.** Your access token is short-lived (15 minutes) and is renewed automatically; the refresh token is valid for at most 30 days and is single-use. When your password is reset, all your sessions are closed.
 
-> **In short:** You register only with a bingol.edu.tr e-mail, with verification. The account belongs to you and cannot be transferred. On mobile only one device stays signed in at a time.
+> **In short:** You register with any valid e-mail address (bingol.edu.tr is not required) and verify it with the code sent to that address. The account belongs to you and cannot be transferred. On mobile only one device stays signed in at a time.
 
 ## 3. User content and licence
 
@@ -139,7 +139,7 @@ You are liable, in proportion to your fault, for compensating reasonable damages
 ## 17. Evidence agreement and notices
 
 1. The parties accept that the records on the Service's servers (agreement acceptance records, session/IP and device digest records, moderation and access logs, e-mail and notification records) constitute **conclusive evidence** within the meaning of Article 193 of the Code of Civil Procedure No. 6100. This provision does not prejudice mandatory law or the power of the Personal Data Protection Board or the court to evaluate evidence; your right to prove that the records are untrue is reserved.
-2. Notices and communications to you are sent to your registered institutional e-mail address and the in-app notification inbox; they are deemed served at the time of sending. Keeping your e-mail address and contact details up to date is your responsibility. Notices to us are made through {{support.email|the in-app Support section}}{{?controller.kep}} or to the KEP address {{controller.kep}}{{/controller.kep}}.
+2. Notices and communications to you are sent to your registered e-mail address and the in-app notification inbox; they are deemed served at the time of sending. Keeping your e-mail address and contact details up to date is your responsibility. Notices to us are made through {{support.email|the in-app Support section}}{{?controller.kep}} or to the KEP address {{controller.kep}}{{/controller.kep}}.
 
 ## 18. General provisions
 

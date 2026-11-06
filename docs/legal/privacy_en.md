@@ -18,7 +18,8 @@ Data controller: {{controller.name}}{{?controller.address}}, {{controller.addres
 
 | Data | Why | Legal basis | Retention period |
 |---|---|---|---|
-| **Account:** e-mail (bingol.edu.tr), name, password (only as a one-way digest), language preference | Membership, authentication, providing the service | Performance of a contract (KVKK Art. 5/2-c) | While the account is open; anonymised on deletion |
+| **Account:** e-mail address (from any provider), name, password (only as a one-way digest), language preference | Membership, authentication, providing the service | Performance of a contract (KVKK Art. 5/2-c) | While the account is open; anonymised on deletion |
+| **Sign in with Google / Apple (optional):** name of the provider, the identifier the provider assigns to your account, the e-mail address reported by the provider (may be a private relay address with Apple) and your name; your Google/Apple password never reaches us | Passwordless sign-in and matching the account to the provider identity | Performance of a contract (KVKK Art. 5/2-c) | While the account is open; deleted on account deletion |
 | **Profile:** faculty, department, year, biography, profile photo, your privacy settings | Showing your profile to other users (can be hidden field by field) | Performance of a contract; explicit consent for optional fields (Art. 5/1) | While the account is open |
 | **Pending registration and verification code:** e-mail, digest of the code | E-mail verification | Pre-contractual step / performance of a contract | Pending registration 1 hour; verification code 10 minutes |
 | **Session:** digest of the refresh token, session state | Secure session management | Legitimate interest (Art. 5/2-f) | Refresh token at most 30 days; deleted on sign-out/password change |
@@ -69,7 +70,7 @@ Data controller: {{controller.name}}{{?controller.address}}, {{controller.addres
 | **Hosting / server provider** | All service data (including encrypted messages) | Hosting the service | {{hosting.location|The hosting location is stated before publication}} |
 | **Competent public authorities** (court, public prosecutor, law enforcement, the KVKK Board, etc.) | Data within the scope of the request | Legal obligation | Domestic |
 
-We do not share data with advertising networks, data brokers or social-media tracking tools. **We do not transfer user data to Bingöl University or its units;** the Service only reads publicly available news, announcements, events and menu content from the university's sites and, at registration, only checks the domain name of the e-mail address (bingol.edu.tr). Management panel administrators do not act on behalf of the university (see 14). A note: because our e-mails are sent to your registered bingol.edu.tr address, the institution that operates that mailbox (the university) may technically process the e-mail on its own infrastructure; this is not a data transfer made by us but the nature of e-mail.
+We do not share data with advertising networks, data brokers or social-media tracking tools. **We do not transfer user data to Bingöl University or its units;** the Service only reads publicly available news, announcements, events and menu content from the university's sites. Management panel administrators do not act on behalf of the university (see 14). A note: because our e-mails are sent to your registered e-mail address, the organisation that operates that mailbox (your e-mail provider; the university if you use a bingol.edu.tr address) may technically process the e-mail on its own infrastructure; this is not a data transfer made by us but the nature of e-mail. If you sign in with Google or Apple, authentication takes place between your device and that provider; our server only verifies the provider's signed identity token and sends no data to the provider on your behalf. The providers' own processing is subject to their own privacy policies.
 
 ## 5. Permissions and optional features
 
@@ -115,7 +116,7 @@ We do not share data with advertising networks, data brokers or social-media tra
 
 ## 10. Children's data
 
-The Service is not designed for persons under 18; registration is only with a university student/staff e-mail. If the registration of a user under 18 is detected, the knowledge and consent of the legal representative may be requested; if necessary the account is closed and the data is deleted/anonymised.
+The Service is not designed for persons under 18; because registration is possible with any valid e-mail address, age is not asked or verified at registration. If the registration of a user under 18 is detected, the knowledge and consent of the legal representative may be requested; if necessary the account is closed and the data is deleted/anonymised.
 
 ## 11. Your rights
 
@@ -135,7 +136,7 @@ We may update this policy. For important changes we ask for your re-acceptance; 
 ## 14. Administrator roles and access powers
 
 1. **Who are they?** Accounts that access the management panel are defined by the Operator and carry one of five roles: *full administrator*, *moderator*, *support*, *editor*, *read-only*. Administrators do not act on behalf of the university; an administrator role does not mean that personal data is transferred to the university.
-2. **Access to personal data is limited by role.** Only the full administrator and moderator see the unmasked e-mail, IP and device details; in the support, editor and read-only roles these fields are masked (e.g. a•••@bingol.edu.tr). The support role manages support requests and feedback, the editor manages news, announcement and communication content, and the read-only role only monitors.
+2. **Access to personal data is limited by role.** Only the full administrator and moderator see the unmasked e-mail, IP and device details; in the support, editor and read-only roles these fields are masked (e.g. a•••@gmail.com). The support role manages support requests and feedback, the editor manages news, announcement and communication content, and the read-only role only monitors.
 3. **Private correspondence.** Only the full administrator and moderator can access the content of messages and chat media; no one who is not an administrator can. This access is subject to the conditions in section 3: only for reasons such as report review, security/suspected abuse or a legal request, with a written reason and a tamper-resistant access record (730 days). Because the management panel can technically list a user's chats, preventing this power from being used for other purposes rests solely on these rules and the record; viewing for any other purpose is prohibited.
 4. **Intervention powers.** Authorised administrators may hide (reversibly) or permanently delete a message, close a chat, remove a member from a chat, hide or remove posts and other content, close a club, suspend an account or define an access ban. Write operations are written to the administrator action record (365 days); for critical operations (message/chat intervention, role changes, account and club operations) a written reason is mandatory.
 5. **Management of roles.** The assignment and changing of administrator roles is also written to the audit log.
