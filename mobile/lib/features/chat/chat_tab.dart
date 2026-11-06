@@ -19,6 +19,7 @@ import 'conversation_actions.dart';
 import 'message_bubble.dart' show OnceBadge;
 import 'message_requests_page.dart';
 import 'message_placeholder.dart';
+import 'message_status_icon.dart';
 import 'new_chat_page.dart';
 import '../share/share_card.dart' show sharePreviewText;
 import '../share/share_models.dart' show isShareLinkText;
@@ -997,9 +998,7 @@ class _ConversationRow extends StatelessWidget {
     }
 
     final tick = switch (status) {
-      'SENT' => (BuIcons.check, t.mut),
-      'DELIVERED' => (BuIcons.checkCheck, t.mut),
-      'READ' => (BuIcons.checkCheck, t.mut), // okundu: çift tik yeter; marka vurgusu yalnız okunmamış rozetinde
+      'SENT' || 'DELIVERED' || 'READ' => status, // okundu: gri çift tik; marka vurgusu yalnız okunmamış rozetinde
       _ => null,
     };
     final bodyColor = hot ? t.ink : t.mut;
@@ -1080,7 +1079,7 @@ class _ConversationRow extends StatelessWidget {
                             Expanded(
                               child: Row(children: [
                                 if (tick != null) ...[
-                                  Icon(tick.$1, size: 16, color: tick.$2),
+                                  MessageStatusIcon(status: tick, size: 16, color: t.mut, readColor: t.mut, failedColor: t.danger),
                                   const SizedBox(width: 6),
                                 ],
                                 if (removedMsg) ...[

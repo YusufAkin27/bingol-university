@@ -15,6 +15,7 @@ import 'chat_video_cover.dart';
 import 'chat_media_parts.dart';
 import 'chatd_parts.dart';
 import 'message_placeholder.dart';
+import 'message_status_icon.dart';
 import 'emoji_presentation.dart';
 import 'recent_reactions.dart';
 import '../share/share_card.dart';
@@ -231,7 +232,7 @@ class MessageBubble extends StatelessWidget {
                     .copyWith(color: color, fontWeight: BuType.emphasisWeight)),
           if (tick != null) ...[
             const SizedBox(width: 4),
-            _Tick(
+            MessageStatusIcon(
                 status: tick,
                 color: color,
                 // Okundu = MAVİ çift tik (anlamsal): açık balonda koyu mavi, koyu balonda gök mavisi (kontrast testli).
@@ -735,74 +736,6 @@ class _ReactionChip extends StatelessWidget {
                   color: mine ? t.onSoft : t.ink,
                   fontWeight: FontWeight.w400,
                   fontFeatures: const [FontFeature.tabularFigures()])),
-        ),
-      ),
-    );
-  }
-}
-
-/// Saat+durum ikonu. Durum değişince hafif çapraz geçişle yenilenir.
-/// pending: saat; SENT: tek tik; DELIVERED: çift tik; READ: MAVİ çift tik ([readColor]).
-class _Tick extends StatelessWidget {
-  const _Tick(
-      {required this.status,
-      required this.color,
-      required this.readColor,
-      required this.failedColor});
-
-  final String status;
-  final Color color;
-  final Color readColor;
-  final Color failedColor;
-
-  @override
-  Widget build(BuildContext context) {
-    final icon = switch (status) {
-      'pending' => BuIcons.clock,
-      'failed' => BuIcons.circleAlert,
-      'SENT' => BuIcons.check,
-      _ => BuIcons.checkCheck,
-    };
-    final label = switch (status) {
-      'pending' => context.l10n.chatMiscStatusSending,
-      'failed' => context.l10n.chatMiscSendFailed,
-      'SENT' => context.l10n.chatMiscStatusSent,
-      'DELIVERED' => context.l10n.chatMiscStatusDelivered,
-      _ => context.l10n.chatMiscStatusRead,
-    };
-    return Semantics(
-      label: label,
-      child: ExcludeSemantics(
-        child: SizedBox(
-          // Tik simgesi önceki boyuta (16x14, simge 13) göre %35 büyük: simge 17.5. Kutu simge genişliğinde:
-          // tüm durumlar balonun sağ kenarına aynı yaslanır (saat hemen solunda).
-          width: 17.5,
-          height: 19,
-          child: AnimatedSwitcher(
-            duration: BuMotion.of(context, BuMotion.short),
-            // Saat -> tek tik -> çift tik: eski simge solar, yenisi hafifçe büyüyerek gelir.
-            transitionBuilder: (c, anim) => FadeTransition(
-              opacity: anim,
-              child: ScaleTransition(
-                  scale: Tween<double>(begin: .7, end: 1).animate(anim),
-                  child: c),
-            ),
-            child: Transform.translate(
-              key: ValueKey<String>(status),
-              // Lucide'te tek tik (check) 24 birimlik ızgarada 4..20'yi, çift tik (check-check) 2..22'yi kaplar:
-              // tek tik 2/24 sağa kaydırılır ki sağ kenarları aynı hizada bitsin.
-              offset: Offset(
-                  icon == BuIcons.check
-                      ? (Directionality.of(context) == TextDirection.rtl ? -1 : 1) * 17.5 * 2 / 24
-                      : 0,
-                  0),
-              child: Icon(icon,
-                  size: 17.5,
-                  color: status == 'READ'
-                      ? readColor
-                      : (status == 'failed' ? failedColor : color)),
-            ),
-          ),
         ),
       ),
     );
