@@ -94,8 +94,13 @@ export function AdminLayout() {
   const asideRef = useRef<HTMLElement>(null);
   // Yönetim alanı işareti: bağlantı rengi (tehlike kırmızısından ayrı) ve diyaloglar gibi portal içeriği de kapsansın
   useEffect(() => {
-    document.documentElement.setAttribute('data-area', 'admin');
-    return () => document.documentElement.removeAttribute('data-area');
+    const root = document.documentElement;
+    const prev = root.getAttribute('data-area'); // AdminScope zaten koyduysa (giriş sayfasına dönüşte) iptalde koru
+    root.setAttribute('data-area', 'admin');
+    return () => {
+      if (prev) root.setAttribute('data-area', prev);
+      else root.removeAttribute('data-area');
+    };
   }, []);
   useSearchAnchorFocus(); // arama sonucu derin bağlantısı (#anchor): kaydır + vurgula
   const [menuSearch, setMenuSearch] = useState<MenuSearchModule | null>(null);
@@ -234,7 +239,7 @@ export function AdminLayout() {
               <Logo to={paths.admin.dashboard} variant="mark" height={36} />
             ) : (
               <>
-                <Logo to={paths.admin.dashboard} tone="dark" height={32} />
+                <Logo to={paths.admin.dashboard} height={32} />
                 <span className={styles.brandSub}>{t('admin.nav.title')}</span>
               </>
             )}

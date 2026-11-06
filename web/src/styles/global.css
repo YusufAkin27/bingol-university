@@ -80,7 +80,7 @@ h4 {
 }
 h3,
 h4 {
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 :lang(ar) h1,
 :lang(ar) h2,
@@ -105,6 +105,14 @@ a:hover {
 html[data-area='admin'] a:where(:not([class])):hover {
   color: var(--text);
 }
+/* Yönetim paneli monochrome: tarayıcının varsayılan kalın öğeleri de --fw-emphasis'e (tek anahtar, bkz. tokens.css) bağlanır */
+html[data-area='admin'] :is(strong, b, th, dt, summary, legend, optgroup) {
+  font-weight: var(--fw-emphasis);
+}
+/* Herkese açık site da monochrome: kalın yazı yok (tokens.css site bloğu) */
+html:not([data-area='admin']) :is(strong, b, th, dt, summary, legend, optgroup) {
+  font-weight: var(--fw-emphasis);
+}
 
 img,
 svg {
@@ -120,14 +128,14 @@ textarea {
 }
 
 :focus-visible {
-  outline: 3px solid var(--focus);
+  outline: var(--focus-w) solid var(--focus);
   outline-offset: 2px;
   border-radius: var(--radius-xs);
 }
 
 ::selection {
-  background: var(--red-700);
-  color: #fff;
+  background: var(--selection-bg);
+  color: var(--selection-fg);
 }
 
 /* Tanım listesi değerleri (e-posta, yol, kod) dar ekranda taşmasın */

@@ -44,7 +44,7 @@
   min-width: 0;
 }
 .title {
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   font-size: var(--text-base);
   overflow-wrap: anywhere;
 }
@@ -75,7 +75,7 @@
 .pair dt {
   font-size: var(--text-xs);
   color: var(--text-muted);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .pair dd {
   margin: 0;
@@ -91,7 +91,7 @@
   min-block-size: 44px;
   color: var(--link);
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   cursor: pointer;
 }
 .actions {
@@ -124,7 +124,7 @@
   min-width: 0;
   font-size: var(--text-sm);
   color: var(--text-muted);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .sortSelect {
   flex: 1 1 auto;

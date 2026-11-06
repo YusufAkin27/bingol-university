@@ -9,13 +9,13 @@
   margin-block-start: var(--space-3);
   padding: var(--space-2) var(--space-4);
   background: var(--chrome);
-  color: #fff;
+  color: var(--on-chrome);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-2);
 }
 .count {
   font-size: var(--text-sm);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .actions {
   display: flex;
@@ -24,17 +24,17 @@
   margin-inline-start: auto;
 }
 .bar :focus-visible {
-  outline-color: #fff;
+  outline-color: var(--on-chrome);
 }
 
 /* Koyu çubuk üzerinde "Seçimi temizle": açık temada koyu yazı koyu zeminde görünmezdi (1.00:1); beyaz yazı + çerçeve */
 .bar .clear {
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.55);
+  color: var(--on-chrome);
+  border-color: color-mix(in srgb, var(--on-chrome) 55%, transparent);
 }
 .bar .clear:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.16);
-  color: #fff;
+  background: color-mix(in srgb, var(--on-chrome) 16%, transparent);
+  color: var(--on-chrome);
 }
 @media (max-width: 639.98px) {
   .bar {

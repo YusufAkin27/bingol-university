@@ -7,7 +7,7 @@ interface Props {
   size?: number;
 }
 
-/** Fotoğraf yoksa ya da yüklenemezse adın baş harfleri (ad rengi sabit, ad'dan türetilir). */
+/** Fotoğraf yoksa ya da yüklenemezse adın baş harfleri (monochrome: nötr zemin, renk türetilmez; fotoğraf doğal renkte kalır). */
 export function Avatar({ name, src, size = 36 }: Props) {
   const [failed, setFailed] = useState(false);
   const initials = name
@@ -17,8 +17,6 @@ export function Avatar({ name, src, size = 36 }: Props) {
     .map((p) => p.charAt(0))
     .join('')
     .toLocaleUpperCase();
-  let h = 0;
-  for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) % 360;
   const showImg = !!src && !failed;
   return (
     <span
@@ -27,7 +25,6 @@ export function Avatar({ name, src, size = 36 }: Props) {
         width: size,
         height: size,
         fontSize: size * 0.4,
-        background: showImg ? undefined : `hsl(${h} 38% 32%)`,
       }}
       role="img"
       aria-label={name}

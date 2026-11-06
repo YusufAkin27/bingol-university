@@ -36,5 +36,5 @@
   margin-block-start: var(--space-2);
 }
 .home {
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }

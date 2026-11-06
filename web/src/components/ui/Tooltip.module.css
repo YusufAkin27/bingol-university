@@ -11,9 +11,9 @@
   padding: 4px 10px;
   border-radius: var(--radius-sm);
   background: var(--chrome);
-  color: #fff;
+  color: var(--on-chrome);
   font-size: var(--text-xs);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   white-space: nowrap;
   pointer-events: none;
   opacity: 0;

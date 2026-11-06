@@ -4,8 +4,10 @@
   place-items: center;
   border-radius: 50%;
   overflow: hidden;
-  color: #fff;
-  font-weight: 700;
+  background: var(--avatar-bg);
+  color: var(--avatar-fg);
+  border: 1px solid var(--border);
+  font-weight: var(--fw-bold);
   line-height: 1;
   user-select: none;
 }

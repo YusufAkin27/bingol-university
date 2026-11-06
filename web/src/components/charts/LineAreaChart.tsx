@@ -1,6 +1,6 @@
 import { Area, AreaChart, CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts';
 import { useI18n } from '../../i18n/I18nProvider';
-import { axisProps, CHART_COLORS, ChartFrame, tooltipStyle } from './ChartFrame';
+import { axisProps, CHART_COLORS, CHART_DASHES, ChartFrame, tooltipStyle } from './ChartFrame';
 
 export interface Series {
   key: string;
@@ -64,6 +64,7 @@ export function LineAreaChart<T extends object>({
                 fill={c}
                 fillOpacity={0.16}
                 strokeWidth={2}
+                strokeDasharray={series.length > 1 ? CHART_DASHES[i % CHART_DASHES.length] : undefined}
                 dot={false}
               />
             );
@@ -80,6 +81,7 @@ export function LineAreaChart<T extends object>({
               name={s.label}
               stroke={s.color ?? CHART_COLORS[i % CHART_COLORS.length]}
               strokeWidth={2}
+              strokeDasharray={series.length > 1 ? CHART_DASHES[i % CHART_DASHES.length] : undefined}
               dot={false}
             />
           ))}

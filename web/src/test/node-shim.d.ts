@@ -7,5 +7,7 @@ declare module 'node:fs' {
 }
 declare module 'node:path' {
   export function join(...parts: string[]): string;
+  export function relative(from: string, to: string): string;
+  export const sep: string;
 }
 declare const process: { cwd(): string };

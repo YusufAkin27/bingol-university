@@ -24,14 +24,14 @@
 }
 .md a {
   color: var(--link);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 
 .md blockquote {
   margin: 0;
   padding: var(--space-3);
   border-inline-start: 4px solid var(--link);
-  background: var(--surface-2, rgba(127, 127, 127, 0.1));
+  background: var(--surface-2);
   border-radius: var(--radius-sm);
 }
 .md blockquote p {
@@ -48,11 +48,11 @@
 }
 .md th,
 .md td {
-  border: 1px solid var(--border, rgba(127, 127, 127, 0.35));
+  border: 1px solid var(--border);
   padding: var(--space-2) var(--space-3);
   text-align: start;
   vertical-align: top;
 }
 .md th {
-  background: var(--surface-2, rgba(127, 127, 127, 0.12));
+  background: var(--surface-2);
 }

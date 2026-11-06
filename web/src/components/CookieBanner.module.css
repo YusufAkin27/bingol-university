@@ -13,9 +13,9 @@
   padding: var(--space-3) var(--space-4);
   background: var(--surface);
   color: var(--text);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-3);
+  box-shadow: var(--shadow-2);
 }
 .text {
   flex: 1;
@@ -27,8 +27,9 @@
   display: none;
 }
 .link {
-  font-weight: 700;
+  font-weight: var(--fw-emphasis);
   white-space: nowrap;
+  color: var(--text);
 }
 @media (max-width: 640px) {
   .banner {
