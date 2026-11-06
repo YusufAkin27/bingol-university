@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
 import '../core/theme/bu_motion.dart';
+import 'bu_keyboard.dart';
 import 'bu_pressable.dart';
 import 'bu_skeleton.dart';
 import 'bu_state.dart';
@@ -136,6 +137,7 @@ class BuPageScaffold extends StatelessWidget {
     Widget scroll = CustomScrollView(
       controller: controller,
       physics: const AlwaysScrollableScrollPhysics(),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       slivers: [bar, if (banner != null) SliverToBoxAdapter(child: banner), body],
     );
     if (onRefresh != null) {
@@ -154,8 +156,8 @@ class BuPageScaffold extends StatelessWidget {
     return Scaffold(
       backgroundColor: t.bg,
       floatingActionButton: floatingActionButton,
-      bottomNavigationBar: bottomBar,
-      body: scroll,
+      bottomNavigationBar: bottomBar == null ? null : BuKeyboardLift(child: bottomBar!),
+      body: BuTapOutsideUnfocus(child: scroll),
     );
   }
 }

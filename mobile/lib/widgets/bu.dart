@@ -17,6 +17,7 @@ export 'bu_hero.dart';
 export 'bu_hero_transition.dart';
 export 'bu_illustrations.dart';
 export 'bu_image.dart';
+export 'bu_keyboard.dart';
 export 'bu_list.dart';
 export 'bu_motion_widgets.dart';
 export 'bu_overlays.dart';
