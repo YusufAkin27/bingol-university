@@ -298,7 +298,7 @@ void main() {
       await tester.tap(find.text('Ayrıl'));
       await settle(tester, const Duration(seconds: 1));
       expect(be.requests, contains('DELETE /communities/7/membership'));
-      expect(find.text('Katıl'), findsOneWidget);
+      expect(find.text('Katıl'), findsNWidgets(2)); // ana eylem + anket kilidi düğmesi
       expect(find.text('Kulüp sohbeti'), findsNothing);
       expect(session.badges.conversationsDirty.value, 1);
       await unmount(tester);

@@ -399,8 +399,7 @@ final _shots = <_Shot>[
   _Shot('12_01_kesfet_liste', _tabBe, (b) => ClubsTab(session: makeSession(b))),
   _Shot('12_04_kuluplerim_bos', () => _tabBe(mine: false), (b) => ClubsTab(session: makeSession(b)), after: (t, b) => _tapText(t, _l.clubMgmtTabMine)),
   _Shot('12_05_arama_sonuc_yok', () => _tabBe(empty: true), (b) => ClubsTab(session: makeSession(b)), after: (t, b) async {
-    await _tapTip(t, _l.clubMgmtSearch);
-    await t.enterText(find.byType(TextField).first, 'xyz');
+    await t.enterText(find.byType(TextField).first, 'xyz'); // arama kutusu artik hep gorunur
     await t.testTextInput.receiveAction(TextInputAction.search);
     await settle(t, const Duration(milliseconds: 700));
   }),

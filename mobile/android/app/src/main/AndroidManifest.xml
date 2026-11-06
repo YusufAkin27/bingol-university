@@ -20,6 +20,8 @@
     <!-- Sohbet galeri secici: Android 13+ medya izinleri, 12 ve alti icin okuma izni. -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+    <!-- Android 14+ "secili fotograflar" kismi erisimi (galeri secici sinirli erisim kipinde calisir). -->
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
     <uses-feature android:name="android.hardware.camera.any" android:required="false"/>

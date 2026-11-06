@@ -16,6 +16,7 @@ String homeSectionLabel(AppLocalizations l, HomeSection s) => switch (s) {
       HomeSection.todayClasses => l.p60SectionClasses,
       HomeSection.suggestions => l.followSuggestionsTitle,
       HomeSection.forum => l.forumHomeTalkedTitle,
+      HomeSection.clubs => l.clubMgmtClubsTitle,
     };
 
 /// Kısayol adı (Hızlı Erişim karosu etiketi ve seçici satırı).

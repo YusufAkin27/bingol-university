@@ -7,7 +7,7 @@ import 'poll_list_page.dart';
 import 'poll_models.dart';
 
 export 'poll_menu_card.dart' show PollMenuCard;
-export 'poll_club_section.dart' show PollClubSection;
+export 'poll_club_section.dart' show ClubPollAccess, PollClubSection;
 
 /// Anket ekranlarına ince yönlendirme (tek giriş noktası).
 

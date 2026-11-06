@@ -4572,7 +4572,6 @@
   "clsSortNewest": "الأحدث",
   "clsSortAz": "أ-ي",
   "clsCount": "{count} نادي",
-  "clsMoreFailed": "تعذّر تحميل المزيد من الأندية.",
   "forumCatAll": "كل الفئات",
   "forumCatPickerA11y": "اختيار الفئة",
   "forumCatSearchHint": "ابحث في الفئات",
@@ -4593,5 +4592,20 @@
       }
     }
   },
-  "forumCatLoadFailed": "تعذر تحميل الفئات"
+  "forumCatLoadFailed": "تعذر تحميل الفئات",
+  "cplSendRequest": "إرسال طلب",
+  "evtQrScanTitle": "مسح الرمز",
+  "evtQrScanHint": "وجّه الكاميرا نحو رمز QR الخاص بالمشارك.",
+  "evtQrScanMarked": "تم تسجيل حضور {name}",
+  "@evtQrScanMarked": {"placeholders": {"name": {"type": "String"}}},
+  "evtQrScanAlready": "{name} سُجّل حضوره مسبقًا",
+  "@evtQrScanAlready": {"placeholders": {"name": {"type": "String"}}},
+  "evtQrMyTitle": "رمزي",
+  "evtQrMyHint": "اعرض هذا الرمز على منظم الفعالية عند الدخول. يتجدد خلال وقت قصير.",
+  "evtQrMyNotApproved": "يظهر رمزك هنا بعد الموافقة على مشاركتك.",
+  "evtQrMyBeforeStart": "يُفتح تسجيل الحضور في موعد الفعالية؛ يمكنك تجهيز رمزك الآن.",
+  "evtQrScanClosed": "لم يُفتح تسجيل الحضور بعد أو أُغلق.",
+  "evtAttOpenTitle": "تسجيل الحضور مفتوح",
+  "evtAttOpenSub": "أثناء الفتح يعرض المشاركون رموزهم ويقوم المنظم والمشرفون بمسحها.",
+  "evtAttOpenYou": "تسجيل الحضور مفتوح: اعرض رمزك عند الدخول."
 }

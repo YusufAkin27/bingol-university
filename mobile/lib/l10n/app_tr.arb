@@ -6925,7 +6925,6 @@
       }
     }
   },
-  "clsMoreFailed": "Daha fazla kulüp yüklenemedi.",
   "forumCatAll": "Tüm kategoriler",
   "forumCatPickerA11y": "Kategori seçici",
   "forumCatSearchHint": "Kategori ara",
@@ -6946,5 +6945,20 @@
       }
     }
   },
-  "forumCatLoadFailed": "Kategoriler yüklenemedi"
+  "forumCatLoadFailed": "Kategoriler yüklenemedi",
+  "cplSendRequest": "İstek gönder",
+  "evtQrScanTitle": "QR okut",
+  "evtQrScanHint": "Katılımcının QR kodunu çerçeveye alın.",
+  "evtQrScanMarked": "{name} katıldı",
+  "@evtQrScanMarked": {"placeholders": {"name": {"type": "String"}}},
+  "evtQrScanAlready": "{name} zaten katıldı",
+  "@evtQrScanAlready": {"placeholders": {"name": {"type": "String"}}},
+  "evtQrMyTitle": "QR kodum",
+  "evtQrMyHint": "Girişte bu kodu etkinlik görevlisine okutun. Kod kısa sürede yenilenir.",
+  "evtQrMyNotApproved": "QR kodun, katılımın onaylanınca burada görünür.",
+  "evtQrMyBeforeStart": "Yoklama etkinlik saatinde açılır; kodu şimdiden hazır tutabilirsin.",
+  "evtQrScanClosed": "Yoklama henüz açılmadı veya kapandı.",
+  "evtAttOpenTitle": "Yoklama açık",
+  "evtAttOpenSub": "Açıkken katılımcılar QR kodlarını gösterir; siz ve moderatörler okutur.",
+  "evtAttOpenYou": "Yoklama açık: giriş için QR kodunu göster."
 }

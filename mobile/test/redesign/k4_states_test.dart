@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:bu_kampus/features/discover/discover_masonry.dart';
 import 'package:bu_kampus/features/discover/discover_tab.dart';
 import 'package:bu_kampus/features/media_crop/crop_engine.dart';
+import 'package:bu_kampus/features/posts/post_gallery_picker_page.dart';
 import 'package:bu_kampus/features/posts/user_posts_page.dart';
 import 'package:bu_kampus/widgets/bu.dart' show BuSkeleton;
 import 'package:flutter/material.dart';
@@ -37,11 +38,11 @@ void main() {
       expect(find.byType(DiscoverPostBox), findsNothing);
       await tester.tap(find.byKey(const ValueKey('discoverEmptyCompose')));
       await settle(tester, const Duration(milliseconds: 600));
-      // Paylas menusu -> Fotograf paylas -> olusturucu.
-      await tester.tap(find.byKey(const ValueKey('composeMenuPhoto')));
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(find.text('Yeni gönderi'), findsNothing); // üst çubukta başlık metni yok (sadeleştirme)
-      expect(find.byKey(const ValueKey('composeShare')), findsOneWidget);
+      // Secenek sayfasi yok: dogrudan galeri secici (ilk karo kamera).
+      expect(find.byKey(const ValueKey('composeMenuPhoto')), findsNothing);
+      expect(find.byType(PostGalleryPickerPage), findsOneWidget);
+      expect(find.byKey(const ValueKey('postPickerClose')), findsOneWidget);
+      expect(find.text('Yeni gönderi'), findsNothing); // başlık metni yok (sadeleştirme)
       noErr(tester);
     });
 

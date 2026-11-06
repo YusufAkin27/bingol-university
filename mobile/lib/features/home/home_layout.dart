@@ -17,7 +17,10 @@ enum HomeSection {
   suggestions('suggestions', true, insertAfterId: 'menu'),
 
   /// "Kampüste konuşulanlar" (Kampüs Forum): en çok yorumlanan 3 konu. Kayıtlı düzeni olanlarda Önerilen kişilerin ardına eklenir.
-  forum('forum', true, insertAfterId: 'suggestions');
+  forum('forum', true, insertAfterId: 'suggestions'),
+
+  /// "Kulüpler": yatay kulüp kartları (Kulüplerim + popüler). Kayıtlı düzeni olanlarda Kampüste konuşulanların ardına eklenir.
+  clubs('clubs', true, insertAfterId: 'forum');
 
   const HomeSection(this.id, this.defaultVisible, {this.insertAfterId});
 
@@ -80,7 +83,7 @@ class HomeLayout {
   final List<HomeShortcut> shortcutOn;
 
   static const defaults = HomeLayout(
-    order: [HomeSection.quickAccess, HomeSection.menu, HomeSection.suggestions, HomeSection.forum, HomeSection.featuredNews, HomeSection.todayClasses, HomeSection.upcomingEvents, HomeSection.announcements],
+    order: [HomeSection.quickAccess, HomeSection.menu, HomeSection.suggestions, HomeSection.forum, HomeSection.clubs, HomeSection.featuredNews, HomeSection.todayClasses, HomeSection.upcomingEvents, HomeSection.announcements],
     hidden: <HomeSection>{},
     shortcutOn: [HomeShortcut.news, HomeShortcut.events, HomeShortcut.polls, HomeShortcut.schedule, HomeShortcut.more],
   );

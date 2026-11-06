@@ -12779,9 +12779,6 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get clsMoreFailed => 'Daha fazla kulüp yüklenemedi.';
-
-  @override
   String get forumCatAll => 'Tüm kategoriler';
 
   @override
@@ -12805,4 +12802,51 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get forumCatLoadFailed => 'Kategoriler yüklenemedi';
+
+  @override
+  String get cplSendRequest => 'İstek gönder';
+
+  @override
+  String get evtQrScanTitle => 'QR okut';
+
+  @override
+  String get evtQrScanHint => 'Katılımcının QR kodunu çerçeveye alın.';
+
+  @override
+  String evtQrScanMarked(String name) {
+    return '$name katıldı';
+  }
+
+  @override
+  String evtQrScanAlready(String name) {
+    return '$name zaten katıldı';
+  }
+
+  @override
+  String get evtQrMyTitle => 'QR kodum';
+
+  @override
+  String get evtQrMyHint =>
+      'Girişte bu kodu etkinlik görevlisine okutun. Kod kısa sürede yenilenir.';
+
+  @override
+  String get evtQrMyNotApproved =>
+      'QR kodun, katılımın onaylanınca burada görünür.';
+
+  @override
+  String get evtQrMyBeforeStart =>
+      'Yoklama etkinlik saatinde açılır; kodu şimdiden hazır tutabilirsin.';
+
+  @override
+  String get evtQrScanClosed => 'Yoklama henüz açılmadı veya kapandı.';
+
+  @override
+  String get evtAttOpenTitle => 'Yoklama açık';
+
+  @override
+  String get evtAttOpenSub =>
+      'Açıkken katılımcılar QR kodlarını gösterir; siz ve moderatörler okutur.';
+
+  @override
+  String get evtAttOpenYou => 'Yoklama açık: giriş için QR kodunu göster.';
 }

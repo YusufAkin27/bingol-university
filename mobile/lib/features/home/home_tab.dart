@@ -33,6 +33,7 @@ import 'home_menu_rating.dart';
 import 'home_parts.dart';
 import 'home_suggestions.dart';
 import '../forum/presentation/widgets/home_forum_talked.dart';
+import 'home_clubs.dart';
 
 /// Ana sayfa (Stitch v3): selamlama + düzenle/zil, arama, "Bugün" tek bakış yüzeyi, ardından kullanıcının sıraladığı
 /// bölümler (Hızlı erişim, Günün menüsü, Bugünkü dersler, Öne çıkan haberler, Yaklaşan etkinlikler, Duyurular).
@@ -631,6 +632,12 @@ class _HomeTabState extends State<HomeTab> {
             onUnavailable: () {
               if (mounted && !_noForum) setState(() => _noForum = true);
             },
+          ),
+        HomeSection.clubs => HomeClubs(
+            session: _s,
+            refreshToken: _suggestionsTick,
+            onLongPressTitle: _editLayout,
+            onOpenAll: () => widget.onOpenTab(AppTab.clubs),
           ),
       };
 

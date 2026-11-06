@@ -23064,12 +23064,6 @@ abstract class AppLocalizations {
   /// **'{count} kulüp'**
   String clsCount(String count);
 
-  /// No description provided for @clsMoreFailed.
-  ///
-  /// In tr, this message translates to:
-  /// **'Daha fazla kulüp yüklenemedi.'**
-  String get clsMoreFailed;
-
   /// No description provided for @forumCatAll.
   ///
   /// In tr, this message translates to:
@@ -23111,6 +23105,84 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Kategoriler yüklenemedi'**
   String get forumCatLoadFailed;
+
+  /// No description provided for @cplSendRequest.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek gönder'**
+  String get cplSendRequest;
+
+  /// No description provided for @evtQrScanTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR okut'**
+  String get evtQrScanTitle;
+
+  /// No description provided for @evtQrScanHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılımcının QR kodunu çerçeveye alın.'**
+  String get evtQrScanHint;
+
+  /// No description provided for @evtQrScanMarked.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} katıldı'**
+  String evtQrScanMarked(String name);
+
+  /// No description provided for @evtQrScanAlready.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} zaten katıldı'**
+  String evtQrScanAlready(String name);
+
+  /// No description provided for @evtQrMyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR kodum'**
+  String get evtQrMyTitle;
+
+  /// No description provided for @evtQrMyHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Girişte bu kodu etkinlik görevlisine okutun. Kod kısa sürede yenilenir.'**
+  String get evtQrMyHint;
+
+  /// No description provided for @evtQrMyNotApproved.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR kodun, katılımın onaylanınca burada görünür.'**
+  String get evtQrMyNotApproved;
+
+  /// No description provided for @evtQrMyBeforeStart.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklama etkinlik saatinde açılır; kodu şimdiden hazır tutabilirsin.'**
+  String get evtQrMyBeforeStart;
+
+  /// No description provided for @evtQrScanClosed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklama henüz açılmadı veya kapandı.'**
+  String get evtQrScanClosed;
+
+  /// No description provided for @evtAttOpenTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklama açık'**
+  String get evtAttOpenTitle;
+
+  /// No description provided for @evtAttOpenSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Açıkken katılımcılar QR kodlarını gösterir; siz ve moderatörler okutur.'**
+  String get evtAttOpenSub;
+
+  /// No description provided for @evtAttOpenYou.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklama açık: giriş için QR kodunu göster.'**
+  String get evtAttOpenYou;
 }
 
 class _AppLocalizationsDelegate

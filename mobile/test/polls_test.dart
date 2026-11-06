@@ -438,7 +438,8 @@ void main() {
       await show(tester,
           Scaffold(body: SingleChildScrollView(child: PollClubSection(session: makeSession(b), communityId: 5, canCreate: true))));
       expect(find.text('+ Yeni'), findsOneWidget);
-      expect(find.text('Bu kulübün anketi yok.'), findsOneWidget);
+      expect(find.text('Henüz anket yok.'), findsOneWidget);
+      expect(find.text('Anket oluştur'), findsOneWidget); // yönetici: boş durumda oluşturma eylemi
     });
 
     testWidgets('form dogrulama ve gonderim', (tester) async {

@@ -960,14 +960,12 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('Kulupler: baslik + metin sekmeleri + arama alani', (tester) async {
+    testWidgets('Kulupler: baslik + metin sekmeleri + hep gorunur arama alani', (tester) async {
       await _pump(tester, build(makeSession(full())), size: kPhoneSmall);
       expect(find.text('Kulüpler'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
       expect(find.text('Keşfet'), findsOneWidget); // metin sekmeleri
       expect(find.text('Kulüplerim'), findsOneWidget);
-      await tester.tap(find.bySemanticsLabel('Ara'));
-      await tester.pump();
-      expect(find.byType(TextField), findsOneWidget);
+      expect(find.byType(TextField), findsOneWidget); // arama kutusu artık hep görünür (açma düğmesi yok)
       _noErrors(tester);
       await unmount(tester);
     });
@@ -1035,7 +1033,7 @@ void main() {
 
     testWidgets('uye olmayan kullanici (Katil)', (tester) async {
       await _pump(tester, build(makeSession(full(status: 'NONE', role: null))), size: kPhoneSmall);
-      expect(find.text('Katıl'), findsOneWidget);
+      expect(find.text('Katıl'), findsNWidgets(2)); // ana eylem + anket bölümündeki kilit düğmesi
       expect(find.text('Kulüp sohbeti'), findsNothing);
       _noErrors(tester);
       await unmount(tester);

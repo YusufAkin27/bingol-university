@@ -12713,9 +12713,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get clsMoreFailed => 'تعذّر تحميل المزيد من الأندية.';
-
-  @override
   String get forumCatAll => 'كل الفئات';
 
   @override
@@ -12739,4 +12736,50 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get forumCatLoadFailed => 'تعذر تحميل الفئات';
+
+  @override
+  String get cplSendRequest => 'إرسال طلب';
+
+  @override
+  String get evtQrScanTitle => 'مسح الرمز';
+
+  @override
+  String get evtQrScanHint => 'وجّه الكاميرا نحو رمز QR الخاص بالمشارك.';
+
+  @override
+  String evtQrScanMarked(String name) {
+    return 'تم تسجيل حضور $name';
+  }
+
+  @override
+  String evtQrScanAlready(String name) {
+    return '$name سُجّل حضوره مسبقًا';
+  }
+
+  @override
+  String get evtQrMyTitle => 'رمزي';
+
+  @override
+  String get evtQrMyHint =>
+      'اعرض هذا الرمز على منظم الفعالية عند الدخول. يتجدد خلال وقت قصير.';
+
+  @override
+  String get evtQrMyNotApproved => 'يظهر رمزك هنا بعد الموافقة على مشاركتك.';
+
+  @override
+  String get evtQrMyBeforeStart =>
+      'يُفتح تسجيل الحضور في موعد الفعالية؛ يمكنك تجهيز رمزك الآن.';
+
+  @override
+  String get evtQrScanClosed => 'لم يُفتح تسجيل الحضور بعد أو أُغلق.';
+
+  @override
+  String get evtAttOpenTitle => 'تسجيل الحضور مفتوح';
+
+  @override
+  String get evtAttOpenSub =>
+      'أثناء الفتح يعرض المشاركون رموزهم ويقوم المنظم والمشرفون بمسحها.';
+
+  @override
+  String get evtAttOpenYou => 'تسجيل الحضور مفتوح: اعرض رمزك عند الدخول.';
 }

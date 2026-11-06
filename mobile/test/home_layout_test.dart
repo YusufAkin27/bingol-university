@@ -34,6 +34,7 @@ void main() {
         HomeSection.menu,
         HomeSection.suggestions,
         HomeSection.forum,
+        HomeSection.clubs,
         HomeSection.featuredNews,
         HomeSection.todayClasses,
         HomeSection.upcomingEvents,
@@ -101,6 +102,7 @@ void main() {
         HomeSection.menu,
         HomeSection.suggestions,
         HomeSection.forum,
+        HomeSection.clubs,
         HomeSection.todayClasses,
         HomeSection.upcomingEvents,
         HomeSection.announcements,
@@ -124,6 +126,28 @@ void main() {
       expect(v.isVisible(HomeSection.menu), isFalse);
       expect(v.isVisible(HomeSection.quickAccess), isTrue, reason: 'yeni bolum varsayilan gorunur');
       expect(v.shortcuts, [HomeShortcut.chat, HomeShortcut.news, HomeShortcut.menu, HomeShortcut.events, HomeShortcut.polls]);
+    });
+
+    test('kulupler bolumu: eski kayitta (kulupsuz) forumun ardina, gorunur eklenir; forum da yoksa sona', () {
+      // Kulup bolumunden onceki surumde kaydedilmis duzen: kullanicinin sirasi korunur, kulupler forumdan hemen sonra.
+      final v = HomeLayout.fromJson({
+        'u': 7,
+        'order': ['menu', 'suggestions', 'forum', 'featuredNews', 'quickAccess', 'todayClasses', 'upcomingEvents', 'announcements'],
+        'hidden': <String>['menu'],
+        'sOn': ['news'],
+      }, 7);
+      expect(v.order.take(4), [HomeSection.menu, HomeSection.suggestions, HomeSection.forum, HomeSection.clubs]);
+      expect(v.isVisible(HomeSection.clubs), isTrue, reason: 'yeni bolum varsayilan gorunur');
+      expect(v.isVisible(HomeSection.menu), isFalse, reason: 'eski gizleme korunur');
+      expect(v.order.length, HomeSection.values.length);
+      // Forum da yoksa (daha eski kayit) kulupler sona eklenir; kullanici kulupleri gizlediyse gizli kalir.
+      final old = HomeLayout.fromJson({'u': 7, 'order': ['menu', 'quickAccess'], 'hidden': <String>[], 'sOn': ['news']}, 7);
+      expect(old.order.indexOf(HomeSection.clubs), greaterThan(old.order.indexOf(HomeSection.forum)));
+      final hidden = HomeLayout.fromJson({'u': 7, 'order': ['menu', 'clubs'], 'hidden': ['clubs'], 'sOn': ['news']}, 7);
+      expect(hidden.isVisible(HomeSection.clubs), isFalse);
+      // Gidis-donus: yeni bolum de kaydedilir/okunur.
+      final rt = HomeLayout.fromJson(jsonDecode(jsonEncode(HomeLayout.defaults.moveSection(HomeSection.clubs, -2).toJson(7))), 7);
+      expect(rt.order.indexOf(HomeSection.clubs), 2);
     });
 
     test('kisayol kaydi bos/gecersizse varsayilan kisayollar', () {
@@ -238,9 +262,52 @@ void main() {
       await unmount(tester);
     });
 
+    testWidgets('kulupler bolumu: forumdan sonra/haberlerden once; kartlar; Tumunu gor kulupler sekmesini acar', (tester) async {
+      useScreen(tester, const Size(390, 2400));
+      final b = be()
+        ..on('/me/communities*', {
+          'items': [
+            {'id': 1, 'name': 'Fotoğraf Kulübü', 'category': 'Sanat', 'memberCount': 40, 'myStatus': 'ACTIVE', 'myRole': 'MEMBER'},
+          ],
+          'nextCursor': null,
+        })
+        ..on('/communities*', {
+          'items': [
+            {'id': 2, 'name': 'Satranç Kulübü', 'category': 'Spor', 'memberCount': 90, 'myStatus': 'NONE', 'joinPolicy': 'OPEN'},
+          ],
+          'nextCursor': null,
+        });
+      final opened = <int>[];
+      await tester.pumpWidget(buildApp(Scaffold(body: HomeTab(session: makeSession(b), onOpenTab: (i, {newsType}) => opened.add(i)))));
+      await settle(tester, const Duration(seconds: 2));
+      expect(b.count('/me/communities'), 1);
+      expect(find.byKey(const ValueKey('homeClubs')), findsOneWidget);
+      expect(find.text('Fotoğraf Kulübü'), findsOneWidget);
+      expect(find.text('Satranç Kulübü'), findsOneWidget);
+      double y(Finder f) => tester.getTopLeft(f).dy;
+      final club = find.byKey(const ValueKey('homeClubs'));
+      expect(y(club), greaterThan(y(find.text('Günün menüsü'))));
+      expect(y(club), lessThan(y(find.text('Öne çıkan haberler'))));
+      await tester.tap(find.descendant(of: club, matching: find.text('Tümünü gör')));
+      await tester.pump();
+      expect(opened, hasLength(1));
+      await unmount(tester);
+    });
+
+    testWidgets('kulupler bolumu gizlenebilir (kayitli duzen)', (tester) async {
+      useScreen(tester, const Size(390, 2400));
+      await saved(HomeLayout.defaults.setVisible(HomeSection.clubs, false));
+      final b = be();
+      await tester.pumpWidget(buildApp(home(b)));
+      await settle(tester, const Duration(seconds: 2));
+      expect(find.byKey(const ValueKey('homeClubs')), findsNothing);
+      expect(b.count('/me/communities'), 0, reason: 'gizli bolum veri istemez');
+      await unmount(tester);
+    });
+
     testWidgets('kayitli siralama uygulanir: haberler menuden once', (tester) async {
       useScreen(tester, const Size(390, 2400));
-      await saved(HomeLayout.defaults.reorderSection(4, 1)); // haberler (forum bolumu 3. siradadir): menuden once
+      await saved(HomeLayout.defaults.reorderSection(5, 1)); // haberler (forum 3., kulupler 4. siradadir): menuden once
       final b = be();
       await tester.pumpWidget(buildApp(home(b)));
       await settle(tester, const Duration(seconds: 2));

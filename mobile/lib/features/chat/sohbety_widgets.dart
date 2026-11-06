@@ -412,7 +412,11 @@ class SohbetyCameraChrome extends StatelessWidget {
     this.progress = 0,
     this.showFlash = true,
     this.canFlip = true,
+    this.hint,
   });
+
+  /// Deklanşörün üstünde kısa kullanım ipucu (örn. "Fotoğraf için dokun, video için basılı tut"); kayıtta gizlenir.
+  final String? hint;
 
   final bool recording;
 
@@ -560,6 +564,16 @@ class SohbetyCameraChrome extends StatelessWidget {
             ),
           ),
           const Spacer(),
+          if (hint != null && !recording)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Container(
+                key: const ValueKey('cameraHint'),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(color: t.scrim.withValues(alpha: .45), borderRadius: BuRadius.bPill),
+                child: Text(hint!, textAlign: TextAlign.center, style: tx.labelMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w400)),
+              ),
+            ),
           Padding(
             padding: EdgeInsetsDirectional.fromSTEB(24, 0, 24, pad.bottom + 28),
             child: SizedBox(

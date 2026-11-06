@@ -232,7 +232,8 @@ class ClubsRowCard extends StatelessWidget {
       required this.busy,
       required this.onOpen,
       required this.onJoin,
-      this.mine = false});
+      this.mine = false,
+      this.showDescription = false});
 
   final Map<String, dynamic> club;
   final bool busy;
@@ -240,12 +241,16 @@ class ClubsRowCard extends StatelessWidget {
   final VoidCallback onJoin;
   final bool mine;
 
+  /// Keşfet listesi: ad ve "Kategori · N üye" satırının altına kısa açıklama (tek satır) eklenir.
+  final bool showDescription;
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
     final name = (club['name'] as String?) ?? '';
+    final desc = showDescription ? ((club['description'] as String?) ?? '').trim().replaceAll(RegExp(r'\s+'), ' ') : '';
     final category = ClubCategories.labelFor(club['category'] as String?);
     final count = ((club['memberCount'] as num?) ?? 0).toInt();
     final status = (club['myStatus'] as String?) ?? 'NONE';
@@ -293,6 +298,10 @@ class ClubsRowCard extends StatelessWidget {
                           style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
                       const SizedBox(height: 2),
                       Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut, fontSize: 13)),
+                      if (desc.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(desc, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.ink.withValues(alpha: .72), fontSize: 13)),
+                      ],
                     ],
                   ),
                 ),

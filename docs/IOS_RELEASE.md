@@ -119,7 +119,7 @@ Bu belge, **Apple Developer hesabı açıldığında** uygulamanın TestFlight v
 |---|---|---|
 | Kamera | `NSCameraUsageDescription` | `mobile_scanner` (QR yoklama), `camera` (sohbet kamerası), `image_picker` (kamera) |
 | Mikrofon | `NSMicrophoneUsageDescription` | video kaydının ses kanalı (`camera`, `image_picker`) |
-| Fotoğraf okuma | `NSPhotoLibraryUsageDescription` | `photo_manager` (sohbet galerisi), `image_picker` |
+| Fotoğraf okuma | `NSPhotoLibraryUsageDescription` | `photo_manager` (sohbet galerisi ve Paylaş (+) galeri seçici; iOS 14+ sınırlı erişim + `presentLimited`), `image_picker` (izin reddinde sistem seçicisi yedeği) |
 | Fotoğraf ekleme | `NSPhotoLibraryAddUsageDescription` | `gal` (görseli galeriye kaydet) |
 | Rehber | `NSContactsUsageDescription` | `flutter_contacts` (e-posta SHA-256 özetiyle eşleştirme; isteğe bağlı) |
 | Takvim | `NSCalendarsFullAccessUsageDescription` (iOS 17+) + `NSCalendarsUsageDescription` (iOS 15-16) | `BuCalendarAlarmBridge.swift` (EventKit): akademik takvimi cihaz takvimine yazma; yalnız kullanıcı "Cihaz takvimine ekle" deyince istenir. Tam erişim gerekir (kimlikle güncelle/sil); `NSCalendarsWriteOnlyAccessUsageDescription` kullanılmaz |

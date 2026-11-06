@@ -1,6 +1,7 @@
 import 'package:bu_kampus/core/platform/video_service.dart';
 import 'package:bu_kampus/features/discover/discover_tab.dart';
 import 'package:bu_kampus/features/posts/compose_post_page.dart';
+import 'package:bu_kampus/features/posts/post_gallery_picker_page.dart';
 import 'package:bu_kampus/features/reels/reels_comments.dart';
 import 'package:bu_kampus/features/reels/reels_feed.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import 'package:video_player_platform_interface/video_player_platform_interface.
 
 import 'kesfet_ks_test.dart' show FakeVideoPlatformKs, videoPost;
 import 'support/fake_app.dart';
+import 'support/fake_media.dart';
 
 /// KS-MB 2. tur: 5 kapsül filtre (konum koruma), Reels tükendi/Tekrar izle/İlgilenmiyorum/yorum paneli, Paylaş menüsü,
 /// kapak karesi seçimi, avatar uzun basma önizlemesi.
@@ -241,18 +243,20 @@ void main() {
   });
 
   group('Paylas menusu + kapak', () {
-    testWidgets('Paylas menusu: Fotograf paylas | Video / Reels paylas (metin gonderisi yok)', (tester) async {
+    testWidgets('Paylas (+): secenek sayfasi yok, dogrudan galeri secici (metin gonderisi yok)', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
       fakePosts(b);
       final s = makeSession(b);
       await tester.pumpWidget(buildApp(Builder(
-        builder: (c) => Scaffold(body: Center(child: TextButton(onPressed: () => openComposePost(c, s), child: const Text('ac')))),
+        builder: (c) => Scaffold(body: Center(child: TextButton(onPressed: () => openComposePost(c, s, library: FakeMediaLibrary.photos(3)), child: const Text('ac')))),
       )));
       await tester.tap(find.text('ac'));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(find.text('Fotoğraf paylaş'), findsOneWidget);
-      expect(find.text('Video / Reels paylaş'), findsOneWidget);
+      expect(find.text('Fotoğraf paylaş'), findsNothing);
+      expect(find.text('Video / Reels paylaş'), findsNothing);
+      expect(find.byType(PostGalleryPickerPage), findsOneWidget);
+      expect(find.byKey(const ValueKey('postCameraTile')), findsOneWidget);
       expect(find.textContaining('Metin'), findsNothing);
       noErr(tester);
     });

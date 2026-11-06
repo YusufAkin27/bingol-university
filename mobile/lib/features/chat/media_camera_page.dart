@@ -16,16 +16,19 @@ import 'sohbety_widgets.dart';
 /// Kamerayı açıp bir öğe (fotoğraf ya da video) döndüren işlev; testlerde sahtesi verilir.
 typedef MediaCameraLauncher = Future<MediaPick?> Function(BuildContext context);
 
-Future<MediaPick?> openMediaCamera(BuildContext context) => Navigator.push<MediaPick>(
+/// [hint] verilirse deklanşörün üstünde kısa kullanım ipucu gösterilir (gönderi akışı: dokun = fotoğraf, basılı tut = video).
+Future<MediaPick?> openMediaCamera(BuildContext context, {String? hint}) => Navigator.push<MediaPick>(
       context,
-      MaterialPageRoute(settings: const RouteSettings(name: 'media_camera'), fullscreenDialog: true, builder: (_) => const MediaCameraPage()),
+      MaterialPageRoute(settings: const RouteSettings(name: 'media_camera'), fullscreenDialog: true, builder: (_) => MediaCameraPage(hint: hint)),
     );
 
 /// Uygulama içi sade kamera: dokununca fotoğraf, basılı tutunca video (en çok 60 sn, yalnız süre sayacı).
 /// Kullanıcı kararı 2026-10-30: odak çerçevesi/ipucu/galeri küçük resmi yok; dokunarak odak ve iki parmakla
 /// yakınlaştırma sessiz çalışır (ekranda gösterge çizilmez).
 class MediaCameraPage extends StatefulWidget {
-  const MediaCameraPage({super.key});
+  const MediaCameraPage({super.key, this.hint});
+
+  final String? hint;
 
   @override
   State<MediaCameraPage> createState() => _MediaCameraPageState();
@@ -316,6 +319,7 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
               flash: _flash,
               showFlash: _hasFlash,
               canFlip: _cams.length > 1,
+              hint: widget.hint,
               onClose: () => Navigator.pop(context),
               onFlash: _toggleFlash,
               onFlip: _flip,

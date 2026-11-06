@@ -4572,7 +4572,6 @@
   "clsSortNewest": "Newest",
   "clsSortAz": "A-Z",
   "clsCount": "{count} clubs",
-  "clsMoreFailed": "Could not load more clubs.",
   "forumCatAll": "All categories",
   "forumCatPickerA11y": "Category picker",
   "forumCatSearchHint": "Search categories",
@@ -4593,5 +4592,20 @@
       }
     }
   },
-  "forumCatLoadFailed": "Could not load categories"
+  "forumCatLoadFailed": "Could not load categories",
+  "cplSendRequest": "Send request",
+  "evtQrScanTitle": "Scan QR",
+  "evtQrScanHint": "Point the camera at the attendee QR code.",
+  "evtQrScanMarked": "{name} checked in",
+  "@evtQrScanMarked": {"placeholders": {"name": {"type": "String"}}},
+  "evtQrScanAlready": "{name} already checked in",
+  "@evtQrScanAlready": {"placeholders": {"name": {"type": "String"}}},
+  "evtQrMyTitle": "My QR code",
+  "evtQrMyHint": "Show this code to the event organizer at the entrance. It refreshes shortly.",
+  "evtQrMyNotApproved": "Your QR code appears here once your attendance is approved.",
+  "evtQrMyBeforeStart": "Check-in opens at the event time; you can keep your code ready.",
+  "evtQrScanClosed": "Check-in has not opened yet or has closed.",
+  "evtAttOpenTitle": "Check-in open",
+  "evtAttOpenSub": "While open, attendees show their QR codes and you and moderators scan them.",
+  "evtAttOpenYou": "Check-in is open: show your QR code at the entrance."
 }

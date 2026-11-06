@@ -563,7 +563,7 @@ void main() {
       await settle(tester, const Duration(seconds: 1));
       expect(find.text('Yaklaşan etkinlik yok'), findsOneWidget);
       expect(find.text('Henüz haber yok.'), findsOneWidget);
-      expect(b.count('/me/communities'), 0); // uyelik yoksa istenmez
+      expect(b.count('/me/communities'), 1); // Ana Sayfa Kulüpler bölümü (Kulüplerim önce)
       noErr(tester);
     });
 

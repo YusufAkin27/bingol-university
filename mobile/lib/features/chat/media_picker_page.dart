@@ -258,7 +258,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
   Future<void> _chooseAlbum() async {
     final a = await showSohbetySheet<GalleryAlbum>(
       context,
-      (c) => _AlbumSheet(library: widget.library, albums: _albums, current: _album),
+      (c) => GalleryAlbumSheet(library: widget.library, albums: _albums, current: _album),
     );
     if (a == null || a.id == _album?.id || !mounted) return;
     _album = a;
@@ -794,8 +794,8 @@ class _GalleryTileState extends State<_GalleryTile> {
 }
 
 /// Albüm alt sayfası (Stitch 25-3): başlık + albüm sayısı, küçük resimli satırlar, seçili olanda onay.
-class _AlbumSheet extends StatelessWidget {
-  const _AlbumSheet({required this.library, required this.albums, required this.current});
+class GalleryAlbumSheet extends StatelessWidget {
+  const GalleryAlbumSheet({super.key, required this.library, required this.albums, required this.current});
 
   final MediaLibrary library;
   final List<GalleryAlbum> albums;

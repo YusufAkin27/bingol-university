@@ -11,7 +11,7 @@ import 'package:bu_kampus/features/profile/blocked_users_page.dart';
 import 'package:bu_kampus/features/profile/settings_page.dart';
 import 'package:bu_kampus/features/search/search_page.dart';
 import 'package:bu_kampus/features/shell/app_shell.dart';
-import 'package:bu_kampus/features/posts/compose_post_page.dart';
+import 'package:bu_kampus/features/posts/post_gallery_picker_page.dart';
 import 'package:bu_kampus/features/posts/post_models.dart';
 import 'package:bu_kampus/features/support/support_page.dart';
 import 'package:flutter/material.dart';
@@ -63,16 +63,12 @@ void main() {
       await pumpShell(tester);
       await tester.tap(find.byKey(const ValueKey('nav-publish')));
       await settle(tester);
-      // Paylas menusu: Fotograf paylas | Video / Reels paylas.
-      await tester.tap(find.byKey(const ValueKey('composeMenuPhoto')));
-      await settle(tester);
-      expect(find.byType(ComposePostPage), findsOneWidget);
-      await back(tester); // acilista kendiliginden gelen kaynak sayfasi kapanir
-      await settle(tester);
-      expect(find.byType(ComposePostPage), findsOneWidget);
+      // Secenek sayfasi yok: dogrudan galeri secici (ilk karo kamera) acilir.
+      expect(find.byKey(const ValueKey('composeMenuPhoto')), findsNothing);
+      expect(find.byType(PostGalleryPickerPage), findsOneWidget);
       await back(tester);
       await settle(tester);
-      expect(find.byType(ComposePostPage), findsNothing);
+      expect(find.byType(PostGalleryPickerPage), findsNothing);
       expect(tester.widget<FloatingNav>(find.byType(FloatingNav)).index, 0);
       await unmount(tester);
     });
@@ -81,14 +77,11 @@ void main() {
       await pumpShell(tester);
       await tester.tap(find.byKey(const ValueKey('nav-publish')));
       await settle(tester);
-      await tester.tap(find.byKey(const ValueKey('composeMenuPhoto')));
-      await settle(tester);
-      await back(tester); // kaynak sayfasi
-      await settle(tester);
-      Navigator.of(tester.element(find.byType(ComposePostPage))).pop(Post.fromJson({'id': 99, 'author': {'id': 1, 'displayName': 'Ayşe'}}));
+      expect(find.byType(PostGalleryPickerPage), findsOneWidget);
+      Navigator.of(tester.element(find.byType(PostGalleryPickerPage))).pop(Post.fromJson({'id': 99, 'author': {'id': 1, 'displayName': 'Ayşe'}}));
       await settle(tester);
       expect(tester.widget<FloatingNav>(find.byType(FloatingNav)).index, 1);
-      expect(find.byType(ComposePostPage), findsNothing);
+      expect(find.byType(PostGalleryPickerPage), findsNothing);
       noErr(tester);
       await unmount(tester);
     });

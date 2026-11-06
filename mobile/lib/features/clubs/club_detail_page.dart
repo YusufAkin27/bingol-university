@@ -839,7 +839,10 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
             session: widget.session,
             communityId: widget.communityId,
             canCreate: _isManager,
-            hideWhenEmpty: true),
+            access: ClubPollAccess.fromStatus(_status),
+            needsApproval: _club!['joinPolicy'] == 'APPROVAL' || _club!['visibility'] == 'PRIVATE',
+            joinBusy: _busy,
+            onJoin: _join),
       ),
     ];
   }

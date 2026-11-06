@@ -97,5 +97,9 @@ String pollErrorText(Object e, [AppLocalizations? l10n]) {
   return errorText(e);
 }
 
+/// Kulüp anketi isteği üye olmayan/uygun olmayan kullanıcıda 403 `POLL_NOT_ELIGIBLE` döner (tasarım gereği):
+/// bu bir hata değil, "önce kulübe katıl" durumudur.
+bool isPollNotEligible(Object e) => e is ApiError && e.code == 'POLL_NOT_ELIGIBLE';
+
 /// Sunucu durumuyla çelişen (ekranın yeniden yüklenmesi gereken) hata kodları.
 const pollStateErrors = {'POLL_CLOSED', 'POLL_NOT_OPEN', 'POLL_ALREADY_VOTED', 'POLL_NOT_ELIGIBLE'};

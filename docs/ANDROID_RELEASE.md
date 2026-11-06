@@ -70,7 +70,8 @@ flutter build apk --release --target-platform android-arm64 `
 | `READ_CONTACTS` | Rehber eşleştirme (yalnız e-posta özetleri/hash sunucuya gider) |
 | `CAMERA` | QR yoklama, fotoğraf/video çekimi |
 | `RECORD_AUDIO` | Video/ses kaydı |
-| `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO` | Sohbet galeri seçici (Android 13+) |
+| `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO` | Sohbet galeri seçici ve Paylaş (+) galeri seçici (Android 13+) |
+| `READ_MEDIA_VISUAL_USER_SELECTED` | Android 14+ "seçili fotoğraflar" kısmi erişimi (galeri seçici sınırlı kipte çalışır; `photo_manager`) |
 | `READ_EXTERNAL_STORAGE` (<=32) | Aynı, Android 12 ve altı |
 | `WRITE_EXTERNAL_STORAGE` (<=28) | Görseli galeriye kaydetme, Android 9 ve altı |
 

@@ -113,7 +113,7 @@ void main() {
     useScreen(tester, kPhoneMedium);
     await tester.pumpWidget(buildApp(ClubDetailPage(session: makeSession(_detailBe(status: 'NONE', role: null)), communityId: 7), size: kPhoneMedium));
     await settle(tester, const Duration(milliseconds: 900));
-    expect(find.text('Katıl'), findsOneWidget);
+    expect(find.text('Katıl'), findsNWidgets(2)); // ana eylem + anket bölümündeki kilit düğmesi
     expect(find.text('Kulüp sohbeti'), findsNothing);
     await unmount(tester);
   });

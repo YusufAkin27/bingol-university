@@ -17,7 +17,9 @@ import '../../widgets/bu.dart';
 import '../media_crop/media_crop.dart';
 import 'mention_picker_sheet.dart';
 import '../chat/chat_media.dart' show formatMediaDuration;
+import '../chat/media_library.dart' show MediaLibrary;
 import 'post_api.dart';
+import 'post_gallery_picker_page.dart';
 import 'post_media_uploader.dart';
 import 'post_models.dart';
 import 'post_text_rules.dart';
@@ -40,45 +42,13 @@ Future<Uint8List?> _defaultPicker(ImageSource source) async {
 /// Paylaşım türü: fotoğraf ya da video/Reels (metin-only gönderi backend'de yoktur: menüde de yok).
 enum ComposeKind { photo, video }
 
-/// Paylaş (+) menüsü: Fotoğraf paylaş | Video / Reels paylaş. Seçilen tür oluşturucuyu doğrudan ilgili seçiciyle açar.
-/// [kind] verilirse menü atlanır. Vazgeçilirse null.
-Future<Post?> openComposePost(BuildContext context, Session session, {ComposeKind? kind, bool menu = true}) async {
-  var k = kind;
-  if (k == null && menu) {
-    k = await BuSheet.show<ComposeKind>(
-      context,
-      scrollable: false,
-      padding: EdgeInsets.zero,
-      builder: (ctx) {
-        final t = ctx.bu;
-        Widget row(Key key, IconData icon, String label, ComposeKind v) => InkWell(
-              key: key,
-              onTap: () => Navigator.pop(ctx, v),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 56),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: BuSpace.page),
-                  child: Row(children: [
-                    Icon(icon, size: 22, color: t.ink),
-                    const SizedBox(width: 14),
-                    Expanded(
-                        child: Text(label, style: Theme.of(ctx).textTheme.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w400))),
-                  ]),
-                ),
-              ),
-            );
-        return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          row(const ValueKey('composeMenuPhoto'), BuIcons.image, ctx.l10n.kesComposeMenuPhoto, ComposeKind.photo),
-          Divider(height: 1, color: t.bd),
-          row(const ValueKey('composeMenuVideo'), BuIcons.video, ctx.l10n.kesComposeMenuVideo, ComposeKind.video),
-          SizedBox(height: MediaQuery.paddingOf(ctx).bottom > 0 ? 0 : 8),
-        ]);
-      },
-    );
-    if (k == null || !context.mounted) return null;
-  }
+/// Paylaş girişi (alt çubuk "+", Keşfet "+", Profil "Gönderi ekle"...): seçenek sayfası YOK; doğrudan galeri seçici
+/// ([PostGalleryPickerPage]: ilk karede kamera, fotoğraf + video ızgarası) açılır, seçilen öğe oluşturucuya geçer.
+/// [kind] verilirse ya da [menu] false ise seçici atlanıp boş oluşturucu açılır (eski doğrudan yol). Vazgeçilirse null.
+Future<Post?> openComposePost(BuildContext context, Session session, {ComposeKind? kind, bool menu = true, MediaLibrary? library}) {
+  if (kind == null && menu) return openPostGalleryPicker(context, session, library: library);
   return Navigator.of(context).push<Post>(
-    MaterialPageRoute(settings: const RouteSettings(name: 'compose_post'), fullscreenDialog: true, builder: (_) => ComposePostPage(session: session, initialKind: k)),
+    MaterialPageRoute(settings: const RouteSettings(name: 'compose_post'), fullscreenDialog: true, builder: (_) => ComposePostPage(session: session, initialKind: kind)),
   );
 }
 
@@ -103,6 +73,8 @@ class ComposePostPage extends StatefulWidget {
     this.videoService,
     this.videoUploader,
     this.initialKind,
+    this.initialPhoto,
+    this.initialVideoPath,
     this.trimService,
     this.trimFrames,
     this.mentionFetch,
@@ -110,8 +82,13 @@ class ComposePostPage extends StatefulWidget {
 
   final Session session;
 
-  /// Açılışta doğrudan ilgili kaynak seçiciyi aç (Paylaş menüsünden gelince).
+  /// Açılışta doğrudan ilgili kaynak seçiciyi aç (eski doğrudan yol).
   final ComposeKind? initialKind;
+
+  /// Galeri seçiciden gelen öğe: fotoğraf baytı (hemen kırpma düzenleyicisi açılır) ya da video yolu (süre sınırı
+  /// aşılıyorsa zorunlu kırpma, değilse hazırlama). Bu kipte "Değiştir"/vazgeçme galeri seçiciye geri döner.
+  final Uint8List? initialPhoto;
+  final String? initialVideoPath;
 
   /// Testler için: video seçme/hazırlama ve yükleme enjeksiyonu.
   final VideoService? videoService;
@@ -174,9 +151,24 @@ class _ComposePostPageState extends State<ComposePostPage> {
   int _wait = 0; // hız sınırı geri sayımı (sn)
   Timer? _timer;
 
+  /// Galeri seçiciden açıldı: medya değiştirme/silme ve vazgeçme galeriye geri döner (boş seçici ekranı yok).
+  bool get _fromGallery => widget.initialPhoto != null || widget.initialVideoPath != null;
+
   @override
   void initState() {
     super.initState();
+    final photo = widget.initialPhoto;
+    final video = widget.initialVideoPath;
+    if (photo != null || video != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        if (photo != null) {
+          await _startPhoto(photo);
+        } else {
+          await _acceptVideo(video!);
+        }
+      });
+    }
     final k = widget.initialKind;
     if (k != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -270,6 +262,39 @@ class _ComposePostPageState extends State<ComposePostPage> {
     }
   }
 
+  /// Galeri seçiciden gelen fotoğraf: kırpma düzenleyicisi hemen açılır; vazgeçilir ya da "Değiştir" denirse galeriye dönülür.
+  Future<void> _startPhoto(Uint8List bytes) async {
+    try {
+      final out = await _crop(bytes);
+      if (!mounted) return;
+      final cropped = out?.bytes;
+      if (out == null || out.changeRequested || cropped == null) {
+        Navigator.pop(context);
+        return;
+      }
+      setState(() {
+        _original = bytes;
+        _photo = cropped;
+        _photoAspect = _aspectOf(cropped);
+        _uploaded = null;
+        _err = _Err.none;
+      });
+    } catch (e) {
+      if (mounted) setState(() => _setError(e));
+    }
+  }
+
+  /// Galeriye dön (oluşturucuyu kapat); yazılmış metin varsa önce vazgeçme onayı sorulur.
+  Future<void> _backToGallery() async {
+    if (_publishing || _preparing) return;
+    if (_text.text.trim().isNotEmpty) {
+      final ok = await showDialog<bool>(context: context, builder: (c) => const _DiscardDialog());
+      if (ok != true || !mounted) return;
+    }
+    unawaited(_discardTrimmed());
+    Navigator.pop(context);
+  }
+
   /// "Fotoğraf seç": iki satırlık kaynak sayfası (Galeri / Kamera); kamera izni tek istemle ImageService'te istenir.
   Future<void> _chooseSource() async {
     if (_publishing) return;
@@ -286,15 +311,25 @@ class _ComposePostPageState extends State<ComposePostPage> {
     try {
       final picked = await _videoSvc.pick(source);
       if (picked == null || !mounted) return;
-      final info = await _videoSvc.info(picked.path);
+      await _acceptVideo(picked.path);
+    } catch (e) {
+      if (mounted) setState(() => _setError(e));
+    }
+  }
+
+  /// Seçilen/çekilen videoyu işler (sistem seçicisi, kamera ya da galeri ızgarası ortak yolu): süre sınırı aşılıyorsa
+  /// kırpma zorunlu, değilse doğrudan hazırlanır.
+  Future<void> _acceptVideo(String path) async {
+    try {
+      final info = await _videoSvc.info(path);
       if (!mounted) return;
       final dur = info?.durationMs ?? 0;
-      _srcPath = picked.path;
+      _srcPath = path;
       _srcMs = dur;
       _range = null;
       if (PostVideoLimits.needsTrim(dur)) {
         setState(() {
-          _longPending = (path: picked.path, durationMs: dur);
+          _longPending = (path: path, durationMs: dur);
           _video = null;
           _uploadedVideo = null;
           _frames = const [];
@@ -306,7 +341,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
         await _openTrim(mandatory: true);
         return;
       }
-      await _prepareVideo(picked.path);
+      await _prepareVideo(path);
     } catch (e) {
       if (mounted) setState(() => _setError(e));
     }
@@ -854,8 +889,9 @@ class _ComposePostPageState extends State<ComposePostPage> {
                   end: 6,
                   top: 6,
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    _roundBtn(const ValueKey('composeVideoChange'), BuIcons.video, context.l10n.kesVideoChange, () => _pickVideo(ImageSource.gallery)),
-                    _roundBtn(const ValueKey('composeVideoRemove'), BuIcons.x, context.l10n.postComposeDelete, _removeVideo),
+                    _roundBtn(const ValueKey('composeVideoChange'), BuIcons.video, context.l10n.kesVideoChange,
+                        _fromGallery ? _backToGallery : () => _pickVideo(ImageSource.gallery)),
+                    _roundBtn(const ValueKey('composeVideoRemove'), BuIcons.x, context.l10n.postComposeDelete, _fromGallery ? _backToGallery : _removeVideo),
                   ]),
                 ),
               ],
@@ -897,7 +933,9 @@ class _ComposePostPageState extends State<ComposePostPage> {
                   end: 12,
                   bottom: 12,
                   child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                    Flexible(child: _pill(const ValueKey('composeChange'), BuIcons.images, context.l10n.gonderiChangePhoto, () => _pick(ImageSource.gallery))),
+                    Flexible(
+                        child: _pill(const ValueKey('composeChange'), BuIcons.images, context.l10n.gonderiChangePhoto,
+                            _fromGallery ? _backToGallery : () => _pick(ImageSource.gallery))),
                     const SizedBox(width: 8),
                     Flexible(child: _pill(const ValueKey('composeRecrop'), BuIcons.crop, context.l10n.p04Recrop, _recrop)),
                   ]),
@@ -973,7 +1011,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
             BuButton(key: const ValueKey('composeTrimCta'), label: l.composeTrimCta, icon: BuIcons.crop, onPressed: () => _openTrim(mandatory: true)),
             TextButton(
               key: const ValueKey('composeVideoOther'),
-              onPressed: _removeVideo,
+              onPressed: _fromGallery ? _backToGallery : _removeVideo,
               style: TextButton.styleFrom(minimumSize: const Size(BuSize.touch, BuSize.touch), foregroundColor: t.mut),
               child: Text(l.composeTooLongOther, style: tt.labelLarge?.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
             ),

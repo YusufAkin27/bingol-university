@@ -12825,9 +12825,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get clsMoreFailed => 'Could not load more clubs.';
-
-  @override
   String get forumCatAll => 'All categories';
 
   @override
@@ -12851,4 +12848,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get forumCatLoadFailed => 'Could not load categories';
+
+  @override
+  String get cplSendRequest => 'Send request';
+
+  @override
+  String get evtQrScanTitle => 'Scan QR';
+
+  @override
+  String get evtQrScanHint => 'Point the camera at the attendee QR code.';
+
+  @override
+  String evtQrScanMarked(String name) {
+    return '$name checked in';
+  }
+
+  @override
+  String evtQrScanAlready(String name) {
+    return '$name already checked in';
+  }
+
+  @override
+  String get evtQrMyTitle => 'My QR code';
+
+  @override
+  String get evtQrMyHint =>
+      'Show this code to the event organizer at the entrance. It refreshes shortly.';
+
+  @override
+  String get evtQrMyNotApproved =>
+      'Your QR code appears here once your attendance is approved.';
+
+  @override
+  String get evtQrMyBeforeStart =>
+      'Check-in opens at the event time; you can keep your code ready.';
+
+  @override
+  String get evtQrScanClosed => 'Check-in has not opened yet or has closed.';
+
+  @override
+  String get evtAttOpenTitle => 'Check-in open';
+
+  @override
+  String get evtAttOpenSub =>
+      'While open, attendees show their QR codes and you and moderators scan them.';
+
+  @override
+  String get evtAttOpenYou =>
+      'Check-in is open: show your QR code at the entrance.';
 }
