@@ -6991,5 +6991,9 @@
   "evtQrMyOwnerTitle": "Bu etkinliğin organizatörüsün",
   "evtQrMyOwnerBody": "Yoklamayı katılımcıların QR kodlarını okutarak alırsın.",
   "evtQrMyOwnerScan": "QR okut",
-  "evtQrMyOwnerJoin": "Katılımcı olarak da katıl"
+  "evtQrMyOwnerJoin": "Katılımcı olarak da katıl",
+  "unitNewsTitle": "Bölümüm",
+  "unitNewsSemantic": "Bölümümün duyuruları",
+  "unitNewsAttachments": "Ekler",
+  "unitNewsError": "Duyuru yüklenemedi."
 }

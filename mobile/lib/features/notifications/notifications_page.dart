@@ -15,6 +15,7 @@ import '../../core/push/notification_presentation.dart';
 import '../chat/chatlist_widgets.dart' show ChatlistAvatar;
 import '../follow/follow_requests_api.dart';
 import '../follow/follow_requests_entry.dart';
+import '../academic/academic_models.dart' show istanbulWall;
 import '../news/news_tile.dart' show newsLocalDate, newsMonthName;
 import 'notif_row.dart';
 
@@ -215,7 +216,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     // Tek yönlendirme tablosu: push dokunuşu ile aynı (core/push/push_targets.dart).
     final d = _data(n);
     final t = resolvePushTarget(d);
-    if (t.dest == PushDest.notifications || t.dest == PushDest.signOut) {
+    if (t.dest == PushDest.notifications) {
       await showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
@@ -258,14 +259,14 @@ class _NotificationsPageState extends State<NotificationsPage> {
     if (!opened && mounted) _snack(context.l10n.notifTargetOpenFailed);
   }
 
-  String _group(String? iso) {
+  String _group(String? iso, [DateTime? nowOverride]) {
     final l = context.l10n;
-    final d = iso == null ? null : DateTime.tryParse(iso)?.toLocal();
-    if (d == null) return l.notifGroupOlder;
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final day = DateTime(d.year, d.month, d.day);
-    final diff = today.difference(day).inDays;
+    final inst = iso == null ? null : DateTime.tryParse(iso);
+    if (inst == null) return l.notifGroupOlder;
+    // Gün sınırı Europe/Istanbul takvimine göre (cihaz saat diliminden bağımsız).
+    final d = istanbulWall(inst);
+    final now = istanbulWall(nowOverride ?? DateTime.now());
+    final diff = DateTime.utc(now.year, now.month, now.day).difference(DateTime.utc(d.year, d.month, d.day)).inDays;
     if (diff <= 0) return l.notifGroupToday;
     if (diff == 1) return l.notifGroupYesterday;
     return l.notifGroupOlder;
@@ -311,17 +312,17 @@ class _NotificationsPageState extends State<NotificationsPage> {
   /// Sağ hizalı zaman (tasarım 08): şimdi / 12 dk önce / 2 sa önce / Dün 11:30 / 3 gün önce; bir haftadan eskide tarih.
   String _ago(String? iso) {
     final l = context.l10n;
-    final d = iso == null ? null : DateTime.tryParse(iso)?.toLocal();
-    if (d == null) return '';
-    final now = DateTime.now();
-    final diff = now.difference(d);
+    final inst = iso == null ? null : DateTime.tryParse(iso);
+    if (inst == null) return '';
+    final nowI = DateTime.now();
+    final diff = nowI.difference(inst);
     if (diff.inMinutes < 1) return l.notifNow;
     if (diff.inMinutes < 60) {
       return l.notifAgoMin(diff.inMinutes.toString());
     }
-    final days = DateTime(now.year, now.month, now.day)
-        .difference(DateTime(d.year, d.month, d.day))
-        .inDays;
+    final d = istanbulWall(inst);
+    final now = istanbulWall(nowI);
+    final days = DateTime.utc(now.year, now.month, now.day).difference(DateTime.utc(d.year, d.month, d.day)).inDays;
     if (days <= 0) return l.notifAgoHour(diff.inHours.toString());
     if (days == 1) {
       return l.notifYesterdayAt(

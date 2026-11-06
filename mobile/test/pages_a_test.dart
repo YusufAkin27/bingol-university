@@ -587,9 +587,9 @@ void main() {
       await tester.pumpWidget(buildApp(Scaffold(body: HomeTab(session: makeSession(b), onOpenTab: (i, {newsType}) {}))));
       await settle(tester, const Duration(seconds: 1));
       await toNews(tester);
-      final all = find.text('Tümü');
-      await tester.ensureVisible(all.first);
-      await tester.tap(all.first);
+      final all = find.text('Tümünü gör'); // başlık eylemi (homeViewAll)
+      await tester.ensureVisible(all.last);
+      await tester.tap(all.last);
       await settle(tester, const Duration(milliseconds: 600));
       expect(find.byType(NewsListPage), findsOneWidget);
       noErr(tester);

@@ -12948,4 +12948,16 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get evtQrMyOwnerJoin => 'Katılımcı olarak da katıl';
+
+  @override
+  String get unitNewsTitle => 'Bölümüm';
+
+  @override
+  String get unitNewsSemantic => 'Bölümümün duyuruları';
+
+  @override
+  String get unitNewsAttachments => 'Ekler';
+
+  @override
+  String get unitNewsError => 'Duyuru yüklenemedi.';
 }

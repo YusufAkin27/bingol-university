@@ -23369,6 +23369,30 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Katılımcı olarak da katıl'**
   String get evtQrMyOwnerJoin;
+
+  /// No description provided for @unitNewsTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölümüm'**
+  String get unitNewsTitle;
+
+  /// No description provided for @unitNewsSemantic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölümümün duyuruları'**
+  String get unitNewsSemantic;
+
+  /// No description provided for @unitNewsAttachments.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ekler'**
+  String get unitNewsAttachments;
+
+  /// No description provided for @unitNewsError.
+  ///
+  /// In tr, this message translates to:
+  /// **'Duyuru yüklenemedi.'**
+  String get unitNewsError;
 }
 
 class _AppLocalizationsDelegate

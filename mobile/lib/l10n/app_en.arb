@@ -4638,5 +4638,9 @@
   "evtQrMyOwnerTitle": "You organize this event",
   "evtQrMyOwnerBody": "You take attendance by scanning attendees' QR codes.",
   "evtQrMyOwnerScan": "Scan QR",
-  "evtQrMyOwnerJoin": "Also join as an attendee"
+  "evtQrMyOwnerJoin": "Also join as an attendee",
+  "unitNewsTitle": "My department",
+  "unitNewsSemantic": "Announcements for my department",
+  "unitNewsAttachments": "Attachments",
+  "unitNewsError": "Could not load the announcement."
 }

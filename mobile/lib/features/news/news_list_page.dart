@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../academic/academic_models.dart' show istanbulWall;
 import '../profile/saved_news_page.dart';
 import '../search/search_page.dart';
 import 'icerik_parts.dart';
 import 'news_detail_page.dart';
 import 'news_tile.dart';
+import 'unit_news.dart';
 
 /// Haber listesi (Ic2): Haber / Duyuru / Etkinlik sekmeleri, favoriler ve arama kısayolları,
 /// kaynak bakımda bandı. Veri: `GET /news?type=&page=&size=`, `GET /status`, `/bookmarks/news/*`.
@@ -34,6 +36,7 @@ class _NewsListPageState extends State<NewsListPage> {
   final Set<int> _saving = {};
 
   late int _tab = _types.indexOf(widget.initialType).clamp(0, _types.length - 1);
+  int _unitTick = 0; // "Bölümüm" şeridini yeniler
   int _gen = 0; // eski yanıtların yeni sekmeyi ezmesini önler
   int _page = 0;
   bool _hasMore = true;
@@ -116,6 +119,7 @@ class _NewsListPageState extends State<NewsListPage> {
   }
 
   Future<void> _refresh() async {
+    setState(() => _unitTick++);
     _loadStatus();
     _loadSavedIds();
     final gen = ++_gen;
@@ -241,10 +245,11 @@ class _NewsListPageState extends State<NewsListPage> {
 
   /// "14:32" (bugün) ya da "20 Ekim 14:32"; ayrıştırılamazsa null.
   String? _lastUpdateText() {
-    final d = _lastSuccess == null ? null : DateTime.tryParse(_lastSuccess!)?.toLocal();
-    if (d == null) return null;
+    final inst = _lastSuccess == null ? null : DateTime.tryParse(_lastSuccess!);
+    if (inst == null) return null;
+    final d = istanbulWall(inst);
     final hm = '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
-    final n = DateTime.now();
+    final n = istanbulWall(DateTime.now());
     final today = d.year == n.year && d.month == n.month && d.day == n.day;
     return context.l10n.p63NewsLastUpdate(today ? hm : '${d.day} ${newsMonthName(context, d.month)} $hm');
   }
@@ -307,6 +312,8 @@ class _NewsListPageState extends State<NewsListPage> {
                           child: IcerikNotice(text: l.icerikMaintenance, icon: BuIcons.refreshCw, sub: _lastUpdateText()),
                         ),
                       ),
+                    // Bölümüm: yalnız Duyuru sekmesinde; eşleşme/veri yoksa hiçbir şey çizilmez.
+                    if (_type == 'DUYURU') SliverToBoxAdapter(child: UnitNewsStrip(session: widget.session, refresh: _unitTick)),
                     ..._slivers(),
                     SliverToBoxAdapter(child: SizedBox(height: MediaQuery.paddingOf(context).bottom + 24)),
                   ],

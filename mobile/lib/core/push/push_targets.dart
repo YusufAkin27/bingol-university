@@ -2,10 +2,6 @@
 /// Hem [PushRouter] (push dokunuşu, yerel hatırlatma dokunuşu) hem bildirim listesi bunu kullanır.
 /// Bilinmeyen / bozuk yük [PushDest.notifications] olur; hiçbir durumda exception fırlatmaz.
 enum PushDest {
-  /// ÖLÜ: [resolvePushTarget] artık üretmez (sunucu `session_replaced` push'u hiç göndermez; oturum iptali 401/WS ile
-  /// gelir, A4-01/A13-13). Yalnız `notifications_page.dart` (W2-I sahibi) hâlâ bu değere bakar; orası temizlenince
-  /// bu değer de silinebilir.
-  signOut,
   conversation,
 
   /// Sohbet sekmesi (liste): yönetici üyeliği kaldırdı (`CONVERSATION_REMOVED`), açılacak sohbet yok.
