@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/oauth/oauth_api.dart';
+import '../../core/oauth/oauth_reauth.dart';
 import '../../core/oauth/oauth_services.dart';
 import '../../core/oauth_config.dart';
 import '../../core/session.dart';
@@ -109,6 +110,11 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
       return;
     }
     if (!mounted) return;
+    if (widget.session.hasPassword == false) {
+      // Parolasız hesap: şifre sorulamaz (hiç şifresi yok). Bağlı sağlayıcıyla taze yeniden doğrulama gönderilir.
+      await _linkWithReauth(p, token: token, nonce: nonce);
+      return;
+    }
     final done = await showDialog<bool>(
       context: context,
       builder: (ctx) => _PasswordDialog(
@@ -130,6 +136,34 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
       ),
     );
     if (done != true || !mounted) return;
+    _toast(l.oaLinkDone(_providerName(p)), kind: BuToastKind.success);
+    await _loadIdentities();
+  }
+
+  /// Parolasız hesapta bağlama: zaten bağlı sağlayıcının taze kimliği `reauth*` alanlarıyla gider.
+  Future<void> _linkWithReauth(OAuthProvider p, {required String token, String? nonce}) async {
+    final l = context.l10n;
+    final linked = _identities?.map((i) => i.provider).where((x) => x != p).toList() ?? const <OAuthProvider>[];
+    if (linked.isEmpty) {
+      _toast(l.oaErrFailed, kind: BuToastKind.error);
+      return;
+    }
+    OAuthReauth? re;
+    try {
+      re = await freshOAuthCredential(linked.first);
+    } catch (_) {
+      if (mounted) _toast(l.oaErrFailed, kind: BuToastKind.error);
+      return;
+    }
+    if (re == null || !mounted) return; // iptal: sessiz
+    try {
+      await _oauth.link(p, token: token, nonce: nonce, reauthProvider: re.provider, reauthToken: re.token, reauthNonce: re.nonce);
+    } catch (e) {
+      if (e is ApiError && e.code == 'OAUTH_DISABLED') widget.session.disableOAuth(p);
+      if (mounted) _toast(errorText(e), kind: BuToastKind.error);
+      return;
+    }
+    if (!mounted) return;
     _toast(l.oaLinkDone(_providerName(p)), kind: BuToastKind.success);
     await _loadIdentities();
   }

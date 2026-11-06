@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
+import '../../core/oauth/oauth_api.dart';
+import '../../core/oauth/oauth_reauth.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import 'profil2_my_data_page.dart';
@@ -166,8 +168,46 @@ class _DeleteConfirmSheetState extends State<DeleteConfirmSheet> {
     super.dispose();
   }
 
+  /// Parolasız (yalnız Google/Apple) hesap: şifre sorulamaz; bağlı sağlayıcıyla taze yeniden doğrulama gider.
+  bool get _noPassword => widget.session.hasPassword == false;
+
+  Future<void> _submitReauth() async {
+    final l = context.l10n;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      final api = OAuthApi(widget.session.api);
+      final ids = await api.identities();
+      if (ids.isEmpty) {
+        if (mounted) {
+          setState(() {
+            _busy = false;
+            _error = l.oaErrFailed;
+          });
+        }
+        return;
+      }
+      final re = await freshOAuthCredential(ids.first.provider);
+      if (re == null) {
+        if (mounted) setState(() => _busy = false); // iptal: sessiz
+        return;
+      }
+      await api.deleteAccountWithProvider(re.provider, token: re.token, nonce: re.nonce);
+      if (mounted) Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _error = e is ApiError ? errorText(e) : l.oaErrFailed;
+      });
+    }
+  }
+
   Future<void> _submit() async {
     if (_busy) return;
+    if (_noPassword) return _submitReauth();
     if (_pw.text.isEmpty) {
       setState(() => _error = context.l10n.profilePrefsEnterPassword);
       return;
@@ -215,12 +255,14 @@ class _DeleteConfirmSheetState extends State<DeleteConfirmSheet> {
         ]),
         Padding(
           padding: const EdgeInsets.only(top: 12, bottom: 14),
-          child: Text(l.profil2DelConfirmBody, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.5)),
+          child: Text(_noPassword ? l.qa1DelReauthBody : l.profil2DelConfirmBody, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.5)),
         ),
-        Padding(
-          padding: const EdgeInsetsDirectional.only(start: 2, bottom: 6),
-          child: Text(l.profilePrefsPassword, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
-        ),
+        if (!_noPassword)
+          Padding(
+            padding: const EdgeInsetsDirectional.only(start: 2, bottom: 6),
+            child: Text(l.profilePrefsPassword, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
+          ),
+        if (!_noPassword)
         TextField(
           key: const ValueKey('delete-password'),
           controller: _pw,
@@ -268,7 +310,7 @@ class _DeleteConfirmSheetState extends State<DeleteConfirmSheet> {
         const SizedBox(height: 16),
         BuButton(
           key: const ValueKey('delete-submit'),
-          label: l.profilePrefsDeleteMyAccount,
+          label: _noPassword ? l.qa1DelReauthAction : l.profilePrefsDeleteMyAccount,
           icon: BuIcons.trash2,
           kind: BuButtonKind.danger,
           busy: _busy,

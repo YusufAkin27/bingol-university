@@ -4638,5 +4638,10 @@
   "evtQrMyOwnerTitle": "You organize this event",
   "evtQrMyOwnerBody": "You take attendance by scanning attendees' QR codes.",
   "evtQrMyOwnerScan": "Scan QR",
-  "evtQrMyOwnerJoin": "Also join as an attendee"
+  "evtQrMyOwnerJoin": "Also join as an attendee",
+  "qa1DelReauthBody": "Your account was created with Google or Apple, so it has no password. Confirm your identity with the linked account to delete it. This cannot be undone.",
+  "qa1DelReauthAction": "Verify identity and delete account",
+  "qa1NoPasswordNote": "Your account was created with Google or Apple, so it has no password. You can set one with a code sent to your e-mail, then also sign in with e-mail and password.",
+  "qa1PwSetButton": "Set a password",
+  "qa1TfNeedPassword": "Turning off two-step verification needs a password. Your account has none: first set one on the Password screen with the code sent to your e-mail."
 }

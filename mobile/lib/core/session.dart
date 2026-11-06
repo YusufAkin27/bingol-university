@@ -148,6 +148,11 @@ class Session extends ChangeNotifier {
   }
 
   SessionState state = SessionState.loading;
+
+  /// Hesapta kullanılabilir parola var mı (`GET /auth/me` `hasPassword`)? Yalnız Google/Apple ile açılan hesapta false:
+  /// hesap silme, hesap bağlama ve 2FA kapatma parola yerine sağlayıcı yeniden doğrulaması ister. Null: bilinmiyor
+  /// (eski sunucu ya da `/auth/me` henüz gelmedi) = parola varmış gibi davranılır.
+  bool? hasPassword;
   int? userId;
   String? displayName;
   String? email;
@@ -229,6 +234,8 @@ class Session extends ChangeNotifier {
       userId = id is num ? id.toInt() : null;
       displayName = dn is String ? dn : null;
       email = em is String ? em : null;
+      final hp = me['hasPassword'];
+      hasPassword = hp is bool ? hp : null;
     }
   }
 
@@ -504,6 +511,7 @@ class Session extends ChangeNotifier {
       userId = null;
       displayName = null;
       email = null;
+      hasPassword = null;
       avatarUrl.value = null;
       emailUnverified.value = false;
       profileCompletedHint = null;
@@ -542,10 +550,14 @@ class Session extends ChangeNotifier {
     userId = null;
     displayName = null;
     email = null;
+    hasPassword = null;
     avatarUrl.value = null;
     emailUnverified.value = false;
     profileCompletedHint = null;
     _set(SessionState.signedOut);
+    // Süresi dolan oturum (401, geçersiz refresh) ekranlardan biri açıkken kapanabilir: üstte kalan sayfalar
+    // (Ayarlar, Şifre...) giriş ekranını örtmesin. Çağıranların kendi popUntil'i zararsızdır.
+    rootNavigatorKey.currentState?.popUntil((r) => r.isFirst);
   }
 
   Future<void> _accept(dynamic res) async {

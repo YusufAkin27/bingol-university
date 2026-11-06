@@ -146,8 +146,15 @@ class _PasswordPageState extends State<PasswordPage> {
         _setErrors([e.message.isNotEmpty ? e.message : l.profil2SecSame], {'new'});
       } else if (e is ApiError && e.code == 'PASSWORD_TOO_LONG') {
         _setErrors([errorText(e)], {'new'});
+      } else if (e is ApiError && (e.code == 'PASSWORD_TOO_WEAK' || e.code == 'PASSWORD_TOO_SHORT') && e.message.isNotEmpty) {
+        // Yönetici hesaplarında sunucu daha sıkı parola politikası uygular (en az 12 karakter, yaygın şifre yasağı):
+        // neden alanın altında gösterilir ("güncellenemedi" genel mesajı yanıltıcıydı).
+        _setErrors([e.message], {'new'});
       } else if (e is ApiError && (e.status == 429 || e.status == 422 || e.isNetwork || knownErrorText(e, l) != null)) {
         _toast(errorText(e), kind: BuToastKind.error);
+      } else if (e is ApiError && e.status >= 400 && e.status < 500 && e.status != 404 && e.message.isNotEmpty) {
+        // Sunucunun istek dilindeki gerekçesi varsa genel metin yerine o gösterilir.
+        _toast(e.message, kind: BuToastKind.error);
       } else {
         // Uç yoksa (404) ya da beklenmeyen hata: genel mesaj.
         _toast(l.profil2SecFailed, kind: BuToastKind.error);
@@ -167,23 +174,32 @@ class _PasswordPageState extends State<PasswordPage> {
     });
     try {
       await widget.session.forgotPassword(email);
+    } catch (e) {
       if (!mounted) return;
-      setState(() => _sending = false);
-      await Navigator.push(
+      // 180 sn bekleme (RESEND_COOLDOWN): kod zaten gönderilmiş ve geçerli; kod ekranına dönülebilmeli.
+      if (e is ApiError && e.code == 'RESEND_COOLDOWN') {
+        setState(() => _sending = false);
+        await _openCodePage(email);
+        return;
+      }
+      setState(() {
+        _sending = false;
+        _forgotError = errorText(e);
+      });
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _sending = false);
+    await _openCodePage(email);
+  }
+
+  Future<void> _openCodePage(String email) => Navigator.push(
         context,
         MaterialPageRoute(
           settings: const RouteSettings(name: 'reset_code'),
           builder: (_) => ResetCodePage(session: widget.session, email: email, accountMode: true),
         ),
       );
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _sending = false;
-        _forgotError = errorText(e);
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -191,6 +207,7 @@ class _PasswordPageState extends State<PasswordPage> {
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
     final email = widget.session.email ?? '';
+    final noPassword = widget.session.hasPassword == false;
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(
@@ -201,6 +218,16 @@ class _PasswordPageState extends State<PasswordPage> {
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               padding: const EdgeInsets.only(bottom: 32),
               children: [
+                if (noPassword) ...[
+                  // Parolasız (Google/Apple) hesap: "mevcut şifre" yoktur; tek yol e-posta koduyla şifre belirlemek.
+                  ProfilFlatSection(l.profil2SecPwSection, top: 8, upper: true),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(l.qa1NoPasswordNote, key: const ValueKey('pw-none-note'), style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.4)),
+                  ),
+                  const SizedBox(height: 24),
+                  Divider(height: 1, thickness: 1, color: t.bd),
+                ] else ...[
                 ProfilFlatSection(l.profil2SecPwSection, top: 8, upper: true),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -267,11 +294,12 @@ class _PasswordPageState extends State<PasswordPage> {
                 ),
                 const SizedBox(height: 24),
                 Divider(height: 1, thickness: 1, color: t.bd),
-                ProfilFlatSection(l.pwpForgotTitle, top: 24, upper: true),
+                ],
+                ProfilFlatSection(noPassword ? l.qa1PwSetButton : l.pwpForgotTitle, top: 24, upper: true),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                    Text(l.pwpForgotBody, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.4)),
+                    if (!noPassword) Text(l.pwpForgotBody, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.4)),
                     if (email.isNotEmpty) ...[
                       const SizedBox(height: 8),
                       // Oturum açıkken kod, hesabın kendi adresine gider; adres değiştirilemez (salt okunur metin).
@@ -291,7 +319,7 @@ class _PasswordPageState extends State<PasswordPage> {
                     const SizedBox(height: 16),
                     BuButton(
                       key: const ValueKey('pw-forgot-send'),
-                      label: l.pwpForgotButton,
+                      label: noPassword ? l.qa1PwSetButton : l.pwpForgotButton,
                       kind: BuButtonKind.outline,
                       busy: _sending,
                       onPressed: (_sending || email.isEmpty) ? null : _sendCode,

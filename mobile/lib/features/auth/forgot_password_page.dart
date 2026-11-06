@@ -63,6 +63,14 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     super.dispose();
   }
 
+  Future<void> _openCodePage() => Navigator.push(
+        context,
+        MaterialPageRoute(
+          settings: const RouteSettings(name: 'reset_code'),
+          builder: (_) => ResetCodePage(session: widget.session, email: normalizeIdentifier(_email.text)),
+        ),
+      );
+
   Future<void> _sendCode() async {
     if (_busy) return;
     if (!_form.currentState!.validate()) {
@@ -80,14 +88,14 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       await widget.session.forgotPassword(_email.text);
       if (!mounted) return;
       setState(() => _sent = true);
-      await Navigator.push(
-        context,
-        MaterialPageRoute(settings: const RouteSettings(name: 'reset_code'), 
-          builder: (_) => ResetCodePage(session: widget.session, email: normalizeIdentifier(_email.text)),
-        ),
-      );
+      await _openCodePage();
     } catch (e) {
-      if (mounted) {
+      if (mounted && e is ApiError && e.code == 'RESEND_COOLDOWN') {
+        // 180 sn bekleme: kod az önce gönderildi ve hâlâ geçerli. Geri dönüp tekrar basan kullanıcı "bekle" hatasında
+        // kalıp kod ekranına ulaşamıyordu; bekleme hata değil, mevcut kodu girmeye devam etme sinyalidir.
+        setState(() => _sent = true);
+        await _openCodePage();
+      } else if (mounted) {
         authHaptic(AuthHaptic.error);
         final l = context.l10n;
         String text = errorText(e);

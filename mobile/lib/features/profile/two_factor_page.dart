@@ -7,6 +7,7 @@ import '../../core/session.dart';
 import '../../core/two_factor.dart';
 import '../../widgets/bu.dart';
 import '../auth/two_factor_code_page.dart';
+import 'password_page.dart';
 import 'profil_widgets.dart';
 
 /// İki faktörlü doğrulama ayarı (Ayarlar > Hesap ve güvenlik > Giriş güvenliği): durum, açma (e-posta koduyla onay),
@@ -98,6 +99,18 @@ class _TwoFactorPageState extends State<TwoFactorPage> {
   }
 
   Future<void> _disable() async {
+    if (widget.session.hasPassword == false) {
+      // Parolasız (Google/Apple) hesap: kapatma şifre ister ve hiç şifresi yok; kullanıcıyı çıkmaza sokmadan yönlendir.
+      _toast(context.l10n.qa1TfNeedPassword, kind: BuToastKind.info);
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          settings: const RouteSettings(name: PasswordPage.routeName),
+          builder: (_) => PasswordPage(session: widget.session),
+        ),
+      );
+      return;
+    }
     final ok = await BuDialog.show<bool>(context, builder: (_) => _DisableDialog(api: _api));
     if (!mounted || ok != true) return;
     _toast(context.l10n.tfDisabledToast, kind: BuToastKind.success);

@@ -23369,6 +23369,36 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Katılımcı olarak da katıl'**
   String get evtQrMyOwnerJoin;
+
+  /// No description provided for @qa1DelReauthBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabın Google veya Apple ile açıldığı için şifren yok. Silmek için bağlı hesabınla kimliğini yeniden doğrula. Bu işlem geri alınamaz.'**
+  String get qa1DelReauthBody;
+
+  /// No description provided for @qa1DelReauthAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kimliği doğrula ve hesabı sil'**
+  String get qa1DelReauthAction;
+
+  /// No description provided for @qa1NoPasswordNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabın Google veya Apple ile açıldığı için şifren yok. İstersen e-postana gelen kodla bir şifre belirleyebilirsin; sonra e-posta ve şifreyle de girebilirsin.'**
+  String get qa1NoPasswordNote;
+
+  /// No description provided for @qa1PwSetButton.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şifre belirle'**
+  String get qa1PwSetButton;
+
+  /// No description provided for @qa1TfNeedPassword.
+  ///
+  /// In tr, this message translates to:
+  /// **'İki adımlı doğrulamayı kapatmak şifre ister. Hesabının şifresi yok: önce Şifre ekranından e-postana gelen kodla bir şifre belirle.'**
+  String get qa1TfNeedPassword;
 }
 
 class _AppLocalizationsDelegate
