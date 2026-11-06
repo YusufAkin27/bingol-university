@@ -5,6 +5,8 @@ import edu.bingol.backend.event.EventRsvp;
 import edu.bingol.backend.event.UserEvent;
 import edu.bingol.backend.event.admission.EventAdmission;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -29,7 +31,14 @@ public final class EventDtos {
             @Min(1) @Max(100000) Integer capacity,
             Long communityId,
             /** Bos = OPEN. APPROVAL: katilim organizator onayiyla. */
-            EventAdmission.Mode joinPolicy) {
+            EventAdmission.Mode joinPolicy,
+            @Size(max = 200) String meetingPoint,
+            @DecimalMin("-90") @DecimalMax("90") Double meetingLat,
+            @DecimalMin("-180") @DecimalMax("180") Double meetingLng) {
+        public CreateEventRequest(String title, String description, Instant startsAt, Instant endsAt, String location,
+                                  Integer capacity, Long communityId, EventAdmission.Mode joinPolicy) {
+            this(title, description, startsAt, endsAt, location, capacity, communityId, joinPolicy, null, null, null);
+        }
     }
 
     /** Hepsi opsiyonel. capacity = 0 sinirsiz yapar. */
@@ -41,7 +50,15 @@ public final class EventDtos {
             @Size(max = 200) String location,
             @Min(0) @Max(100000) Integer capacity,
             /** Bos = degismez. APPROVAL -> OPEN: bekleyen istekler kapanir, kabul edilenler kalir. */
-            EventAdmission.Mode joinPolicy) {
+            EventAdmission.Mode joinPolicy,
+            /** Bos = degismez; bosluk dizesi bulusma noktasini (ve koordinati) siler. */
+            @Size(max = 200) String meetingPoint,
+            @DecimalMin("-90") @DecimalMax("90") Double meetingLat,
+            @DecimalMin("-180") @DecimalMax("180") Double meetingLng) {
+        public UpdateEventRequest(String title, String description, Instant startsAt, Instant endsAt, String location,
+                                  Integer capacity, EventAdmission.Mode joinPolicy) {
+            this(title, description, startsAt, endsAt, location, capacity, joinPolicy, null, null, null);
+        }
     }
 
     public record OrganizerView(Long id, String displayName, String avatarUrl) {
@@ -61,7 +78,22 @@ public final class EventDtos {
                             String communityLogoUrl,
                             @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String cancelReason,
                             @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String rejectReason,
-                            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String chatAccess) {
+                            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String chatAccess,
+                            String meetingPoint, Double meetingLat, Double meetingLng) {
+        /** Eski 26 alanli kurucu (bulusma noktasi yok). */
+        public EventView(Long id, String title, String description, Instant startsAt, Instant endsAt,
+                         String location, String coverUrl, Integer capacity, int goingCount,
+                         Long interestedCount, Long communityId, String communityName, Long createdBy,
+                         String organizerName, UserEvent.Status status, EventRsvp.Status myRsvp,
+                         boolean canManage, Instant createdAt, boolean registrationClosed,
+                         EventAdmission.Mode joinPolicy, OrganizerView organizer, Long pendingCount,
+                         String communityLogoUrl, String cancelReason, String rejectReason, String chatAccess) {
+            this(id, title, description, startsAt, endsAt, location, coverUrl, capacity, goingCount, interestedCount,
+                    communityId, communityName, createdBy, organizerName, status, myRsvp, canManage, createdAt,
+                    registrationClosed, joinPolicy, organizer, pendingCount, communityLogoUrl, cancelReason,
+                    rejectReason, chatAccess, null, null, null);
+        }
+
         /** Eski 25 alanli kurucu (chatAccess yok). */
         public EventView(Long id, String title, String description, Instant startsAt, Instant endsAt,
                          String location, String coverUrl, Integer capacity, int goingCount,
@@ -73,7 +105,7 @@ public final class EventDtos {
             this(id, title, description, startsAt, endsAt, location, coverUrl, capacity, goingCount, interestedCount,
                     communityId, communityName, createdBy, organizerName, status, myRsvp, canManage, createdAt,
                     registrationClosed, joinPolicy, organizer, pendingCount, communityLogoUrl, cancelReason,
-                    rejectReason, null);
+                    rejectReason, null, null, null, null);
         }
 
         /** chatAccess: OPEN (odaya girebilir) | MEMBERS (katilimci olmak gerekir) | LOCKED (kapali/bitmis); yalniz detayda. */
@@ -81,7 +113,7 @@ public final class EventDtos {
             return new EventView(id, title, description, startsAt, endsAt, location, coverUrl, capacity, goingCount,
                     interestedCount, communityId, communityName, createdBy, organizerName, status, myRsvp, canManage,
                     createdAt, registrationClosed, joinPolicy, organizer, pendingCount, communityLogoUrl, cancelReason,
-                    rejectReason, access);
+                    rejectReason, access, meetingPoint, meetingLat, meetingLng);
         }
     }
 
@@ -151,18 +183,41 @@ public final class EventDtos {
                                Instant markedAt, boolean checkInOpen) {
     }
 
+    /** status: PRESENT | ABSENT | NONE (bekliyor); present geriye uyumluluk icin (status == PRESENT). */
     public record AttendanceRow(Long userId, String displayName, String department, EventRsvp.Status rsvpStatus,
                                 boolean present, Method method, Long markedBy, String markedByName,
-                                Instant markedAt) {
+                                Instant markedAt, String status) {
+        public AttendanceRow(Long userId, String displayName, String department, EventRsvp.Status rsvpStatus,
+                             boolean present, Method method, Long markedBy, String markedByName, Instant markedAt) {
+            this(userId, displayName, department, rsvpStatus, present, method, markedBy, markedByName, markedAt,
+                    method == null ? "NONE" : present ? "PRESENT" : "ABSENT");
+        }
     }
 
-    public record MarkRequest(@NotNull Boolean present) {
+    /** Yoklama listesi + sayaclar (onayli katilimcilar uzerinden: geldi / gelmedi / bekliyor). */
+    public record AttendanceRoster(List<AttendanceRow> rows, int present, int absent, int pending, int total) {
+    }
+
+    /** present (eski istemci) veya status: PRESENT | ABSENT | NONE (kaydi siler = bekliyor). */
+    public record MarkRequest(Boolean present, String status) {
+        public MarkRequest(Boolean present) {
+            this(present, null);
+        }
+    }
+
+    /** Toplu: status + (userIds | rest=true: hala bekleyen tum onayli katilimcilar). */
+    public record BulkStatusRequest(@NotNull String status, List<Long> userIds, Boolean rest) {
     }
 
     public record BulkEntry(@NotNull Long userId, @NotNull Boolean present) {
     }
 
-    public record BulkRequest(@NotEmpty @Size(max = 500) List<@Valid BulkEntry> entries) {
+    /** Eski: entries; yeni: status + (userIds | rest). */
+    public record BulkRequest(@Size(max = 500) List<@Valid BulkEntry> entries, String status,
+                              @Size(max = 500) List<Long> userIds, Boolean rest) {
+        public BulkRequest(List<BulkEntry> entries) {
+            this(entries, null, null, null);
+        }
     }
 
     public record BulkResult(int updated) {

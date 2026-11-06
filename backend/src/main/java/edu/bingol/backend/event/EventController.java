@@ -272,18 +272,32 @@ public class EventController {
         return attendance.list(Actor.current(), id);
     }
 
+    /** Liste + sayaclar (geldi / gelmedi / bekliyor); cok okutucu icin istemci periyodik yeniler. */
+    @GetMapping("/events/{id}/attendance/roster")
+    public edu.bingol.backend.event.dto.EventDtos.AttendanceRoster attendanceRoster(@PathVariable Long id) {
+        Actor a = Actor.current();
+        limiter.check("attendance-roster:user:" + a.id(), 120, Duration.ofMinutes(1));
+        return attendance.roster(a, id);
+    }
+
     @PutMapping("/events/{id}/attendance/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void mark(@PathVariable Long id, @PathVariable Long userId, @Valid @RequestBody MarkRequest r) {
         Actor a = Actor.current();
         limiter.check("attendance-mark:user:" + a.id(), 120, Duration.ofMinutes(1));
-        attendance.mark(a, id, userId, r.present(), Instant.now());
+        if (r.status() == null && r.present() == null) {
+            throw new edu.bingol.backend.common.ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Durum gerekli.");
+        }
+        attendance.mark(a, id, userId, r.status() != null ? r.status() : (r.present() ? "PRESENT" : "ABSENT"), Instant.now());
     }
 
     @PostMapping("/events/{id}/attendance/bulk")
     public BulkResult bulk(@PathVariable Long id, @Valid @RequestBody BulkRequest r) {
         Actor a = Actor.current();
         limiter.check("attendance-bulk:user:" + a.id(), 20, Duration.ofMinutes(1));
+        if (r.status() != null) {
+            return attendance.bulkStatus(a, id, r.status(), r.userIds(), Boolean.TRUE.equals(r.rest()), Instant.now());
+        }
         return attendance.bulk(a, id, r.entries(), Instant.now());
     }
 

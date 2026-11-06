@@ -35,6 +35,7 @@ public class EventPushHints {
         }
         PushDisplay.put(d, "eventStartsAt", PushDisplay.iso(e.getStartsAt()), 32);
         PushDisplay.put(d, "location", e.getLocation(), 80);
+        PushDisplay.put(d, "meetingPoint", e.getMeetingPoint(), 80);
         return d;
     }
 

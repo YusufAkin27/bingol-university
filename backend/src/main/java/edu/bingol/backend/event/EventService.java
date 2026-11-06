@@ -248,6 +248,8 @@ public class EventService {
         ContentGuard.clean(guard, Entity.EVENT, "title", a.id(), r.title());
         ContentGuard.clean(guard, Entity.EVENT, "description", a.id(), r.description());
         ContentGuard.clean(guard, Entity.EVENT, "location", a.id(), r.location());
+        validateMeeting(r.meetingPoint());
+        ContentGuard.clean(guard, Entity.EVENT, "meetingPoint", a.id(), r.meetingPoint());
         // T-052: kurum/yonetici taklidi gibi gorunen baslik onaysiz yayina girmez
         boolean reservedTitle = !a.systemAdmin(PermissionMatrix.CONTENT_WRITE)
                 && edu.bingol.backend.profile.naming.DisplayNamePolicy.looksReserved(r.title());
@@ -275,6 +277,7 @@ public class EventService {
         e.setStartsAt(r.startsAt());
         e.setEndsAt(r.endsAt());
         e.setLocation(Texts.blankToNull(r.location()));
+        applyMeeting(e, r.meetingPoint(), r.meetingLat(), r.meetingLng());
         e.setCapacity(r.capacity());
         e.setCreatedBy(a.id());
         events.save(e);
@@ -307,7 +310,8 @@ public class EventService {
                 requireManager(a, e);
             }
             ensureVisible(a, e);
-            boolean wantsInfo = r.title() != null || r.description() != null || r.location() != null;
+            boolean wantsInfo = r.title() != null || r.description() != null || r.location() != null
+                    || r.meetingPoint() != null || r.meetingLat() != null || r.meetingLng() != null;
             boolean wantsSched = r.startsAt() != null || r.endsAt() != null;
             if ((wantsInfo && !info) || (wantsSched && !sched) || r.capacity() != null || r.joinPolicy() != null) {
                 throw new ApiException(HttpStatus.FORBIDDEN, "EVENT_PERMISSION_DENIED", "Bu işlem için yetkiniz yok.");
@@ -318,8 +322,16 @@ public class EventService {
         }
         Instant now = Instant.now();
         if (e.getEndsAt().isBefore(now)) {
-            throw new ApiException(HttpStatus.CONFLICT, "EVENT_ENDED", "Sona ermiş etkinlik düzenlenemez.");
+            // Bitmis etkinlikte yalniz aciklama/not duzenlenebilir; baska alan 409 EVENT_ENDED.
+            boolean onlyNote = r.title() == null && r.location() == null && r.startsAt() == null && r.endsAt() == null
+                    && r.capacity() == null && r.joinPolicy() == null && r.meetingPoint() == null
+                    && r.meetingLat() == null && r.meetingLng() == null && r.description() != null;
+            if (!onlyNote) {
+                throw new ApiException(HttpStatus.CONFLICT, "EVENT_ENDED", "Sona ermiş etkinlik düzenlenemez.");
+            }
         }
+        validateMeeting(r.meetingPoint());
+        ContentGuard.changed(guard, Entity.EVENT, "meetingPoint", a.id(), e.getMeetingPoint(), r.meetingPoint());
         ContentGuard.changed(guard, Entity.EVENT, "title", a.id(), e.getTitle(), r.title());
         ContentGuard.changed(guard, Entity.EVENT, "description", a.id(), e.getDescription(), r.description());
         ContentGuard.changed(guard, Entity.EVENT, "location", a.id(), e.getLocation(), r.location());
@@ -349,11 +361,12 @@ public class EventService {
                 e.setCapacity(r.capacity());
             }
         }
+        boolean meetingChanged = meetingWouldChange(e, r);
         boolean scheduleChanged = startChanged || !end.equals(e.getEndsAt())
-                || (r.location() != null && !r.location().trim().equals(e.getLocation()));
+                || (r.location() != null && !r.location().trim().equals(e.getLocation())) || meetingChanged;
         // T-041: onayli (ACTIVE) kulup etkinliginin metnini sade uye (staff degil) degistirirse yeniden onaya duser
         boolean textChanged = changed(r.title(), e.getTitle()) != null || changed(r.description(), e.getDescription()) != null
-                || changed(r.location(), e.getLocation()) != null;
+                || changed(r.location(), e.getLocation()) != null || changed(r.meetingPoint(), e.getMeetingPoint()) != null;
         // T-052: baslik rezerve ifadeye cevrilirse (yonetici haric) staff da olsa yeniden onaya duser
         boolean reservedNow = !a.systemAdmin(PermissionMatrix.CONTENT_WRITE) && changed(r.title(), e.getTitle()) != null
                 && edu.bingol.backend.profile.naming.DisplayNamePolicy.looksReserved(r.title());
@@ -368,6 +381,11 @@ public class EventService {
         }
         if (r.location() != null) {
             e.setLocation(Texts.blankToNull(r.location()));
+        }
+        if (r.meetingPoint() != null || r.meetingLat() != null || r.meetingLng() != null) {
+            applyMeeting(e, r.meetingPoint() != null ? r.meetingPoint() : e.getMeetingPoint(),
+                    r.meetingPoint() != null && r.meetingPoint().isBlank() ? null : (r.meetingLat() != null ? r.meetingLat() : e.getMeetingLat()),
+                    r.meetingPoint() != null && r.meetingPoint().isBlank() ? null : (r.meetingLng() != null ? r.meetingLng() : e.getMeetingLng()));
         }
         Instant oldStart = e.getStartsAt();
         e.setStartsAt(start);
@@ -384,13 +402,45 @@ public class EventService {
             // Yeni saat icin hatirlatmalar yeniden gonderilebilsin.
             rsvps.resetReminders(e.getId());
         }
-        if (scheduleChanged && e.getStatus() == UserEvent.Status.ACTIVE) {
+        // Spam onleme: saat degismedikce (yer/bulusma noktasi) ayni etkinlik icin 10 dk'da tek "bilgi degisti" bildirimi.
+        boolean throttled = !startChanged && e.getUpdateNotifiedAt() != null
+                && e.getUpdateNotifiedAt().isAfter(now.minus(UPDATE_NOTIFY_THROTTLE));
+        if (scheduleChanged && e.getStatus() == UserEvent.Status.ACTIVE && !throttled) {
+            e.setUpdateNotifiedAt(now);
+            events.save(e);
             notifyGoing(e, "notif.event.updated", hints == null ? null : hints.updated(e, oldStart));
         }
         if (admission != null && r.capacity() != null) {
             admission.afterCapacityChanged(e);
         }
         return views(List.of(e), a, true).get(0);
+    }
+
+    static final java.time.Duration UPDATE_NOTIFY_THROTTLE = java.time.Duration.ofMinutes(10);
+
+    void validateMeeting(String meetingPoint) {
+        if (meetingPoint != null && meetingPoint.trim().length() > 200) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Buluşma noktası en fazla 200 karakter olabilir.");
+        }
+        Texts.requireNoInvisible(meetingPoint);
+    }
+
+    /** Bulusma noktasi bos ise koordinat da silinir; koordinat ancak metinle birlikte tutulur. */
+    private static void applyMeeting(UserEvent e, String point, Double lat, Double lng) {
+        String p = Texts.blankToNull(point);
+        e.setMeetingPoint(p == null ? null : p.trim());
+        boolean ok = p != null && lat != null && lng != null;
+        e.setMeetingLat(ok ? lat : null);
+        e.setMeetingLng(ok ? lng : null);
+    }
+
+    private static boolean meetingWouldChange(UserEvent e, UpdateEventRequest r) {
+        if (r.meetingPoint() == null && r.meetingLat() == null && r.meetingLng() == null) {
+            return false;
+        }
+        return (r.meetingPoint() != null && !r.meetingPoint().trim().equals(e.getMeetingPoint() == null ? "" : e.getMeetingPoint()))
+                || (r.meetingLat() != null && !r.meetingLat().equals(e.getMeetingLat()))
+                || (r.meetingLng() != null && !r.meetingLng().equals(e.getMeetingLng()));
     }
 
     /** Silme = iptal (yumusak); katilimcilara haber verilir. */
@@ -1093,7 +1143,8 @@ public class EventService {
                     e.getCommunityId() == null || clubs.get(e.getCommunityId()) == null ? null
                             : clubs.get(e.getCommunityId()).getLogoUrl(),
                     cancelReasonFor(e, manageable.contains(e.getId()), mine.get(e.getId())),
-                    manageable.contains(e.getId()) && e.getStatus() == UserEvent.Status.REJECTED ? e.getReviewNote() : null));
+                    manageable.contains(e.getId()) && e.getStatus() == UserEvent.Status.REJECTED ? e.getReviewNote() : null,
+                    null, e.getMeetingPoint(), e.getMeetingLat(), e.getMeetingLng()));
         }
         return out;
     }
