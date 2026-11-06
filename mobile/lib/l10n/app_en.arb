@@ -4631,5 +4631,12 @@
   "evtPermEditScheduleSub": "Change start and end time.",
   "evtModManageTitle": "Your moderator permissions",
   "evtModManageNone": "You have no permission for this event.",
-  "evtAttClosedNote": "Check-in is closed right now."
+  "evtAttClosedNote": "Check-in is closed right now.",
+  "evtQrOwnerClosed": "Attendance is closed: attendees cannot show their QR.",
+  "evtQrOwnerOpenAction": "Open attendance",
+  "evtQrOwnerOutside": "It is outside the event hours; attendance opens by itself 30 min before the start. You can open it now if you like.",
+  "evtQrMyOwnerTitle": "You organize this event",
+  "evtQrMyOwnerBody": "You take attendance by scanning attendees' QR codes.",
+  "evtQrMyOwnerScan": "Scan QR",
+  "evtQrMyOwnerJoin": "Also join as an attendee"
 }

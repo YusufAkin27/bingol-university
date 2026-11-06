@@ -4631,5 +4631,12 @@
   "evtPermEditScheduleSub": "تغيير وقت البدء والانتهاء.",
   "evtModManageTitle": "صلاحياتك كمشرف",
   "evtModManageNone": "ليست لديك صلاحية في هذه الفعالية.",
-  "evtAttClosedNote": "تسجيل الحضور مغلق حاليًا."
+  "evtAttClosedNote": "تسجيل الحضور مغلق حاليًا.",
+  "evtQrOwnerClosed": "الحضور مغلق: لا يستطيع المشاركون عرض رمز QR.",
+  "evtQrOwnerOpenAction": "فتح الحضور",
+  "evtQrOwnerOutside": "نحن خارج أوقات الفعالية؛ يُفتح الحضور تلقائيًا قبل البداية بـ 30 دقيقة. يمكنك فتحه الآن.",
+  "evtQrMyOwnerTitle": "أنت منظم هذه الفعالية",
+  "evtQrMyOwnerBody": "تسجّل الحضور بمسح رموز QR الخاصة بالمشاركين.",
+  "evtQrMyOwnerScan": "مسح QR",
+  "evtQrMyOwnerJoin": "انضم كمشارك أيضًا"
 }

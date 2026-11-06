@@ -39,6 +39,8 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
   Timer? _refresh;
   Timer? _tick;
   DateTime? _expires;
+  bool? _attOpen; // sahip yoklamayı açtı mı (my-permissions); null = bilinmiyor
+  bool _attBusy = false;
 
   /// Kalan saniye: yalnız sayaç parçaları dinler (sayfanın tamamı her saniye yeniden kurulmaz).
   final _left = ValueNotifier<int>(0);
@@ -50,6 +52,7 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
     super.initState();
     _loadCode();
     _loadCounts();
+    _loadOpen();
     _tick = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted && _expires != null) _left.value = _secsLeft;
     });
@@ -72,6 +75,54 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
         _present = r.whereType<Map>().where((e) => e['present'] == true).length;
       });
     } catch (_) {}
+  }
+
+  Future<void> _loadOpen() async {
+    try {
+      final r = await widget.session.api.get('/events/$_id/my-permissions');
+      if (mounted && r is Map) setState(() => _attOpen = r['attendanceOpen'] == true);
+    } catch (_) {}
+  }
+
+  Future<void> _openAttendance() async {
+    if (_attBusy) return;
+    setState(() => _attBusy = true);
+    try {
+      await widget.session.api.put('/events/$_id/attendance-open', {'open': true});
+      if (mounted) setState(() => _attOpen = true);
+      await _loadCode();
+    } catch (e) {
+      if (mounted) setState(() => _failed = errorText(e));
+    } finally {
+      if (mounted) setState(() => _attBusy = false);
+    }
+  }
+
+  bool get _outsideWindow {
+    final s = DateTime.tryParse('${widget.event['startsAt']}');
+    final e = DateTime.tryParse('${widget.event['endsAt']}');
+    if (s == null || e == null) return false;
+    final n = _now();
+    return n.isBefore(s.subtract(const Duration(minutes: 30))) || n.isAfter(e.add(const Duration(minutes: 30)));
+  }
+
+  /// Yoklama kapalıyken sahibe belirgin uyarı + tek dokunuşla açma.
+  Widget _closedBanner(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(key: const ValueKey('et2-att-closed'), crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text(l.evtQrOwnerClosed, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
+        if (_outsideWindow) ...[
+          const SizedBox(height: 4),
+          Text(l.evtQrOwnerOutside, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
+        ],
+        const SizedBox(height: 8),
+        BuButton(label: l.evtQrOwnerOpenAction, busy: _attBusy, onPressed: _attBusy ? null : _openAttendance),
+      ]),
+    );
   }
 
   Future<void> _loadCode() async {
@@ -149,6 +200,7 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
             children: [
               _strip(context),
               const SizedBox(height: 20),
+              if (_attOpen == false) _closedBanner(context),
               Center(child: _qrCard(context)),
               if (failed) ...[
                 const SizedBox(height: 16),

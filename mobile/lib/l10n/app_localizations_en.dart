@@ -12479,4 +12479,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get evtAttClosedNote => 'Check-in is closed right now.';
+
+  @override
+  String get evtQrOwnerClosed => 'Attendance is closed: attendees cannot show their QR.';
+
+  @override
+  String get evtQrOwnerOpenAction => 'Open attendance';
+
+  @override
+  String get evtQrOwnerOutside => 'It is outside the event hours; attendance opens by itself 30 min before the start. You can open it now if you like.';
+
+  @override
+  String get evtQrMyOwnerTitle => 'You organize this event';
+
+  @override
+  String get evtQrMyOwnerBody => 'You take attendance by scanning attendees\' QR codes.';
+
+  @override
+  String get evtQrMyOwnerScan => 'Scan QR';
+
+  @override
+  String get evtQrMyOwnerJoin => 'Also join as an attendee';
 }

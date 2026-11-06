@@ -6984,5 +6984,12 @@
   "evtPermEditScheduleSub": "Başlangıç ve bitiş zamanını değiştir.",
   "evtModManageTitle": "Moderatör yetkilerin",
   "evtModManageNone": "Bu etkinlikte sana verilmiş bir yetki yok.",
-  "evtAttClosedNote": "Yoklama şu an kapalı."
+  "evtAttClosedNote": "Yoklama şu an kapalı.",
+  "evtQrOwnerClosed": "Yoklama kapalı: katılımcılar QR gösteremez.",
+  "evtQrOwnerOpenAction": "Yoklamayı aç",
+  "evtQrOwnerOutside": "Yoklama etkinlik saatleri dışında; başlangıçtan 30 dk önce kendiliğinden açılır. İstersen şimdi açabilirsin.",
+  "evtQrMyOwnerTitle": "Bu etkinliğin organizatörüsün",
+  "evtQrMyOwnerBody": "Yoklamayı katılımcıların QR kodlarını okutarak alırsın.",
+  "evtQrMyOwnerScan": "QR okut",
+  "evtQrMyOwnerJoin": "Katılımcı olarak da katıl"
 }

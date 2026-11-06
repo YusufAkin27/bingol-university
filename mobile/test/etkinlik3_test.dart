@@ -216,6 +216,49 @@ void main() {
     await unmount(tester);
   });
 
+  testWidgets('qr kodum: 4xx sonrasi otomatik tekrar yok', (tester) async {
+    final be = _be(rsvp: 'GOING');
+    be.fail('/events/5/my-ticket', status: 409, code: 'ATTENDANCE_NOT_OPEN', message: 'Yoklama kapali.');
+    await _pump(tester, Etkinlik3MyQrPage(session: makeSession(be), event: _ev(rsvp: 'GOING')));
+    final n = be.requests.where((r) => r.contains('/events/5/my-ticket')).length;
+    await tester.pump(const Duration(seconds: 90));
+    expect(be.requests.where((r) => r.contains('/events/5/my-ticket')).length, n);
+    await unmount(tester);
+  });
+
+  testWidgets('qr kodum: ag/5xx hatasinda mevcut QR kalir', (tester) async {
+    final be = _be(rsvp: 'GOING', open: true);
+    await _pump(tester, Etkinlik3MyQrPage(session: makeSession(be), event: _ev(rsvp: 'GOING')));
+    expect(find.byKey(const ValueKey('et3-my-qr')), findsOneWidget);
+    be.fail('/events/5/my-ticket', status: 500, message: 'Sunucu hatasi');
+    await tester.pump(const Duration(seconds: 61));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byKey(const ValueKey('et3-my-qr-error')), findsOneWidget);
+    expect(find.byKey(const ValueKey('et3-my-qr')), findsOneWidget);
+    await unmount(tester);
+  });
+
+  testWidgets('qr kodum: sahip 403 NOT_RSVPED yerine yoklama araclarina yonlendirilir', (tester) async {
+    final be = _be(manage: true, owner: true);
+    be.fail('/events/5/my-ticket', status: 403, code: 'NOT_RSVPED', message: 'Katilimci degilsin.');
+    await _pump(tester, Etkinlik3MyQrPage(session: makeSession(be), event: _ev(manage: true)));
+    expect(find.byKey(const ValueKey('et3-my-qr-owner')), findsOneWidget);
+    expect(find.byKey(const ValueKey('et3-my-qr-join')), findsOneWidget);
+    expect(find.text('Katilimci degilsin.'), findsNothing);
+    await unmount(tester);
+  });
+
+  testWidgets('yoklama kodu sayfasi: kapaliysa uyari + Yoklamayi ac PUT yapar', (tester) async {
+    final be = _be(manage: true, owner: true, open: false);
+    await _pump(tester, Etkinlik2QrPage(session: makeSession(be), event: _ev(manage: true)));
+    expect(find.byKey(const ValueKey('et2-att-closed')), findsOneWidget);
+    await tester.tap(find.text('Yoklamayı aç'));
+    await settle(tester, const Duration(milliseconds: 300));
+    expect(be.requests.any((r) => r.contains('PUT') && r.contains('/events/5/attendance-open')), isTrue);
+    expect(find.byKey(const ValueKey('et2-att-closed')), findsNothing);
+    await unmount(tester);
+  });
+
   testWidgets('yoklama kodu sayfasi: pencere disi 409 gercek mesaji gosterir (kok neden)', (tester) async {
     final be = _be(manage: true);
     be.fail('/events/5/checkin-code', status: 409, code: 'CHECKIN_CLOSED', message: 'Yoklama henüz açılmadı.');
