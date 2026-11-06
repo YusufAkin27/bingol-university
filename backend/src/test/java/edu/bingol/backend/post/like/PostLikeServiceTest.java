@@ -133,6 +133,23 @@ class PostLikeServiceTest {
         assertThrows(ApiException.class, () -> service.like(b.getId(), p.getId()));
     }
 
+    /** QA-P-04: yazar engellendikten sonra eski begeni geri alinabilir (satir + sayac duser); satir yoksa 404. */
+    @Test
+    void unlikeStillWorksAfterAuthorBecomesInvisible() {
+        User a = user("yazar");
+        User b = user("okur");
+        Post p = post(a);
+        service.like(b.getId(), p.getId());
+        assertEquals(1, count(p));
+        blocks.save(new UserBlock(a.getId(), b.getId()));
+        assertThrows(ApiException.class, () -> service.like(b.getId(), p.getId()));
+        LikeState u = service.unlike(b.getId(), p.getId());
+        assertFalse(u.liked());
+        assertEquals(0, count(p));
+        assertFalse(likes.likedAmong(b.getId(), List.of(p.getId())).contains(p.getId()));
+        assertThrows(ApiException.class, () -> service.unlike(b.getId(), p.getId()));
+    }
+
     @Test
     void likersPagingTotalAndBlockedHidden() {
         User a = user("yazar");
