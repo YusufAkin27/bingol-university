@@ -3,10 +3,16 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
 /// Ekran koruması durumu (iOS yerel köprüsü `bu_kampus/secure` döner).
 class SecureStatus {
-  const SecureStatus({this.secureLayer = false, this.captured = false, this.layerRequested = false});
+  const SecureStatus(
+      {this.secureLayer = false, this.captured = false, this.layerRequested = false, this.secureImage = false});
+
+  /// iOS: fotoğraf, güvenli metin alanının iç kapsayıcısındaki yerel görünümde ([ChatSecureView.secureImage])
+  /// gösterilebilir; ekran görüntüsü/kaydında bu görünüm BOŞ çıkar. Pencereye dokunmaz (çökme/kayma riski yok).
+  final bool secureImage;
 
   /// Pencere, "güvenli metin alanı" katmanına taşındı: ekran görüntüsü/kaydında içerik SİYAH çıkar (iOS'ta resmî
   /// olmayan, ama yaygın yöntem; yalnız `layerTrick` açıkken; yerleşemez ya da pencere kayarsa false ve uygulama
@@ -34,10 +40,25 @@ enum SecureEventKind { captureStarted, captureEnded, screenshot, layerRevoked }
 /// algılama (sonradan), (d) uygulama değiştirici önizlemesi için opak örtü. Hata sızdırmaz; kanal yoksa (test,
 /// masaüstü, eski yerel kod) koruma sessizce devre dışıdır.
 class ChatSecureView {
-  ChatSecureView({MethodChannel? channel, bool? isIOS, bool? layerTrick})
+  ChatSecureView({MethodChannel? channel, bool? isIOS, bool? layerTrick, Widget Function(Uint8List bytes)? imageBuilder})
       : _ch = channel ?? const MethodChannel('bu_kampus/secure'),
         _ios = isIOS ?? (!kIsWeb && Platform.isIOS),
-        _layerTrick = layerTrick ?? layerTrickDefault;
+        _layerTrick = layerTrick ?? layerTrickDefault,
+        _imageBuilder = imageBuilder;
+
+  final Widget Function(Uint8List bytes)? _imageBuilder;
+
+  /// Ekran görüntüsünde BOŞ çıkan yerel fotoğraf görünümü (iOS PlatformView `bu_kampus/secure_image`): baytlar
+  /// yerel tarafa verilir, Flutter bunları ASLA çizmez. Yalnız [SecureStatus.secureImage] true iken kullanılır.
+  Widget secureImage(Uint8List bytes) =>
+      (_imageBuilder ?? _nativeImage)(bytes);
+
+  static Widget _nativeImage(Uint8List bytes) => UiKitView(
+        key: const ValueKey('secureNativeImage'),
+        viewType: 'bu_kampus/secure_image',
+        creationParams: <String, Object?>{'bytes': bytes},
+        creationParamsCodec: const StandardMessageCodec(),
+      );
 
   /// Uygulama genelinde paylaşılan örnek; testler [instance] değerini değiştirebilir.
   static ChatSecureView instance = ChatSecureView();
@@ -72,10 +93,14 @@ class ChatSecureView {
   /// Tek gösterimlik fotoğraf bu koruma durumunda açılabilir mi? Android: evet (FLAG_SECURE pencere genelinde,
   /// release'te). iOS: katman hilesi İSTENMİŞSE yalnız katman kuruluysa (Apple ekran görüntüsünü engelleyen resmî bir
   /// API vermez; istenen katman yoksa AÇILMAZ); istenmemişse (varsayılan) açılabilir ama [isProtected] false'tur.
-  bool allowsViewOnce(SecureStatus st) => !_ios || !st.layerRequested || st.secureLayer;
+  ///
+  /// iOS (GÜNCEL): yalnız ekran görüntüsünü gerçekten boş çıkaran bir yol kuruluysa ([SecureStatus.secureImage] ya da
+  /// [SecureStatus.secureLayer]) açılır; yoksa (yerel köprü yok, kapsayıcı bulunamadı) fail-closed: fotoğraf istenmez.
+  bool allowsViewOnce(SecureStatus st) => !_ios || st.secureImage || st.secureLayer;
 
-  /// Arayüzün "korunmaktadır" diyebilmesi için koruma gerçekten doğrulandı mı (Android: pencere bayrağı; iOS: katman).
-  bool isProtected(SecureStatus st) => !_ios || st.secureLayer;
+  /// Arayüzün "korunmaktadır" diyebilmesi için koruma gerçekten doğrulandı mı (Android: pencere bayrağı; iOS: yerel
+  /// güvenli görünüm ya da katman).
+  bool isProtected(SecureStatus st) => !_ios || st.secureImage || st.secureLayer;
 
   /// Korumayı açar; her çağrı bir [disable] ile eşlenmelidir. Dönen durum, yakalama zaten sürüyorsa `captured` olur.
   /// [layerTrick]: güvenli alan katmanı yöntemi (bkz. [layerTrickDefault]); null ise varsayılan.
@@ -88,7 +113,11 @@ class ChatSecureView {
       // Yerel taraf yanıt vermezse görüntüleyici bekletilmesin (koruma devre dışı kalır).
       final r = await _ch.invokeMethod<Object?>('enable', {'layerTrick': lt}).timeout(const Duration(seconds: 3));
       if (r is Map) {
-        return SecureStatus(secureLayer: r['secureLayer'] == true, captured: r['captured'] == true, layerRequested: lt);
+        return SecureStatus(
+            secureLayer: r['secureLayer'] == true,
+            secureImage: r['secureImage'] == true,
+            captured: r['captured'] == true,
+            layerRequested: lt);
       }
     } on MissingPluginException {
       // yerel köprü yok: koruma devre dışı

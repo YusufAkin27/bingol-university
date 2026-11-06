@@ -92,11 +92,13 @@ Future<void> _openPreview(WidgetTester tester, List<dynamic> picks,
 
 /// Yerel kanal sahtesi: çağrıları kaydeder, `enable` için verilen durumu döner.
 class _FakeNative {
-  _FakeNative({this.captured = false, this.secureLayer = true, bool missing = false}) {
+  _FakeNative({this.captured = false, this.secureLayer = true, this.secureImage = false, bool missing = false}) {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(channel, (call) async {
       calls.add(call.method);
       if (missing) throw MissingPluginException();
-      if (call.method == 'enable') return {'secureLayer': secureLayer, 'captured': captured};
+      if (call.method == 'enable') {
+        return {'secureLayer': secureLayer, 'captured': captured, 'secureImage': secureImage};
+      }
       return null;
     });
   }
@@ -106,10 +108,15 @@ class _FakeNative {
   final calls = <String>[];
   bool captured;
   bool secureLayer;
+  bool secureImage;
 
   /// [layerTrick]: null = derleme varsayılanı (KAPALI); true = BU_SECURE_LAYER=true derlemesi.
-  ChatSecureView view({bool ios = true, bool? layerTrick}) =>
-      ChatSecureView(channel: channel, isIOS: ios, layerTrick: layerTrick);
+  /// Yerel güvenli fotoğraf görünümü testte işaretli bir kutuyla temsil edilir (UiKitView yalnız iOS'ta çalışır).
+  ChatSecureView view({bool ios = true, bool? layerTrick}) => ChatSecureView(
+      channel: channel,
+      isIOS: ios,
+      layerTrick: layerTrick,
+      imageBuilder: (b) => SizedBox(key: const ValueKey('secureNativeImage'), width: 50, height: 50, child: Text('${b.length}')));
 
   /// Yerelden Dart'a olay (UIKit bildirimi karşılığı).
   Future<void> emit(String method, [Object? args]) async {
@@ -328,20 +335,34 @@ void main() {
       expect(native.calls, ['enable', 'disable']);
     });
 
-    testWidgets('varsayilan (bayrak KAPALI): katman istenmez, acilir, koruma iddiasi yok', (tester) async {
-      native = _FakeNative(secureLayer: false);
+    testWidgets('iOS yerel guvenli gorunum: foto Flutter Image ile CIZILMEZ, yerel gorunume verilir', (tester) async {
+      native = _FakeNative(secureLayer: false, secureImage: true);
       var consumed = 0;
       final be = await open(tester, native.view(), onConsumed: () => consumed++);
       expect(be.count('GET /conversations/1/media/50'), 1);
       expect(consumed, 1);
       expect(find.byKey(const ValueKey('onceUnsupported')), findsNothing);
-      expect(find.byType(Image), findsOneWidget);
+      // Ekran goruntusune acik Flutter Image YOK; piksel yalniz yerel guvenli gorunumde.
+      expect(find.byType(Image), findsNothing);
+      expect(find.byKey(const ValueKey('secureNativeImage')), findsOneWidget);
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
       await tester.pump();
       expect(find.byKey(const ValueKey('onceCover')), findsOneWidget);
-      expect(find.text('Bu fotoğraf yalnızca bir kez görüntülenebilir ve korunmaktadır.'), findsNothing);
+      expect(find.text('Bu fotoğraf yalnızca bir kez görüntülenebilir ve korunmaktadır.'), findsOneWidget);
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
       await tester.pump();
+      await unmount(tester);
+    });
+
+    testWidgets('iOS guvenli gorunum kurulamadi (ne katman ne gorunum): bayt ISTENMEZ, hak tuketilmez', (tester) async {
+      native = _FakeNative(secureLayer: false, secureImage: false);
+      var consumed = 0;
+      final be = await open(tester, native.view(), onConsumed: () => consumed++);
+      expect(be.count('GET /conversations/1/media/50'), 0);
+      expect(consumed, 0);
+      expect(find.byKey(const ValueKey('onceUnsupported')), findsOneWidget);
+      expect(find.byType(Image), findsNothing);
+      expect(find.byKey(const ValueKey('secureNativeImage')), findsNothing);
       await unmount(tester);
     });
 
@@ -420,10 +441,11 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('yerel kopru yoksa (MissingPlugin) VE bayrak kapaliysa (varsayilan) goruntuleyici yine calisir', (tester) async {
+    testWidgets('yerel kopru yoksa (MissingPlugin) iOS: FAIL-CLOSED, foto istenmez', (tester) async {
       native = _FakeNative(missing: true);
       final be = await open(tester, native.view());
-      expect(be.count('GET /conversations/1/media/50'), 1);
+      expect(be.count('GET /conversations/1/media/50'), 0);
+      expect(find.byKey(const ValueKey('onceUnsupported')), findsOneWidget);
       _ok(tester);
       await unmount(tester);
     });

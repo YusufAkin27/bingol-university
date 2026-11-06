@@ -85,6 +85,7 @@ final class BuNativeBridge: NSObject, FlutterPlugin, UNUserNotificationCenterDel
     // Tek gösterimlik fotoğraf görüntüleyicisi için ekran koruması (BuSecureView, dosya sonunda).
     let secure = FlutterMethodChannel(name: "bu_kampus/secure", binaryMessenger: messenger)
     BuSecureView.shared.attach(secure)
+    registrar.register(BuSecureImageFactory(), withId: "bu_kampus/secure_image")
     // Video kapak karesi (gönderirken yerel dosyadan, gösterirken yetkili ağ adresinden): BuVideoFrames, dosya sonunda.
     BuVideoFrames.register(with: messenger)
     // Video kırpma (AVAssetExportSession, yeniden kodlamadan): lib/core/platform/video_trim.dart.
@@ -412,7 +413,8 @@ final class BuSecureView: NSObject {
     let captured = isCaptured()
     // Açılışta zaten yakalanıyorsa örtü Dart yanıtını beklemeden kapanır.
     if captured { showCover("capture") }
-    return ["secureLayer": layered, "captured": captured]
+    // `secureImage`: fotoğraf, ekran görüntüsünde siyah çıkan yerel görünümde (BuSecureImageHost) gösterilebilir mi.
+    return ["secureLayer": layered, "captured": captured, "secureImage": BuSecureCanvas.isAvailable()]
   }
 
   private func disable() {
@@ -583,6 +585,94 @@ final class BuSecureView: NSObject {
     coverReasons.removeAll()
     cover?.removeFromSuperview()
     cover = nil
+  }
+}
+
+// MARK: - Ekran görüntüsünden korunan fotoğraf (PlatformView `bu_kampus/secure_image`)
+
+/// iOS'ta ekran görüntüsünü/ekran kaydını GERÇEKTEN boş (siyah) çıkaran tek yol: içeriği `isSecureTextEntry = true`
+/// bir `UITextField`'ın iç çizim kapsayıcısına (`_UITextLayoutCanvasView`) koymak. Sistem bu kapsayıcıyı yakalama
+/// çıktısında çizmez (parola alanları gibi). Eski yöntemin (tüm pencere katmanını taşıma) aksine pencere/katman
+/// ağacına DOKUNMAZ: yalnız bu görünümün kendi alt görünümleri değişir, bu yüzden kayma/çökme riski yoktur.
+/// Güvenli kapsayıcı bulunamazsa görünüm HİÇBİR ŞEY çizmez (korumasız gösterim yok) ve `enable` yanıtında
+/// `secureImage=false` döner; Dart fotoğrafı hiç istemez.
+enum BuSecureCanvas {
+  /// Güvenli alanın iç kapsayıcısı; bulunamazsa nil (sıkı eşleşme: yanlış görünüm korumasız olabilir).
+  static func container(of field: UITextField) -> UIView? {
+    field.isSecureTextEntry = true
+    field.layoutIfNeeded()
+    return field.subviews.first(where: { String(describing: type(of: $0)).contains("CanvasView") })
+  }
+
+  /// Bu cihazda/iOS sürümünde güvenli kapsayıcı kurulabiliyor mu (görüntüleyici açılmadan önce yoklanır).
+  static func isAvailable() -> Bool {
+    let probe = UITextField(frame: CGRect(x: 0, y: 0, width: 16, height: 16))
+    return container(of: probe) != nil
+  }
+}
+
+final class BuSecureImageHost: UIView {
+  private let field = UITextField()
+  private let imageView = UIImageView()
+  private var canvas: UIView?
+
+  init(frame: CGRect, image: UIImage?) {
+    super.init(frame: frame)
+    backgroundColor = .clear
+    clipsToBounds = true
+    field.backgroundColor = .clear
+    field.frame = bounds
+    addSubview(field)
+    // Kapsayıcı yoksa görüntü HİÇ eklenmez (fail-closed).
+    guard let c = BuSecureCanvas.container(of: field) else { return }
+    canvas = c
+    c.isUserInteractionEnabled = true
+    imageView.image = image
+    imageView.contentMode = .scaleAspectFit
+    imageView.clipsToBounds = true
+    imageView.translatesAutoresizingMaskIntoConstraints = false
+    c.addSubview(imageView)
+    NSLayoutConstraint.activate([
+      imageView.topAnchor.constraint(equalTo: c.topAnchor),
+      imageView.bottomAnchor.constraint(equalTo: c.bottomAnchor),
+      imageView.leadingAnchor.constraint(equalTo: c.leadingAnchor),
+      imageView.trailingAnchor.constraint(equalTo: c.trailingAnchor),
+    ])
+  }
+
+  required init?(coder: NSCoder) { fatalError("init(coder:) yok") }
+
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    field.frame = bounds
+    field.layoutIfNeeded()
+  }
+
+  deinit { imageView.image = nil }
+}
+
+final class BuSecureImagePlatformView: NSObject, FlutterPlatformView {
+  private let host: BuSecureImageHost
+
+  init(frame: CGRect, args: Any?) {
+    var image: UIImage?
+    if let map = args as? [String: Any], let data = map["bytes"] as? FlutterStandardTypedData {
+      image = UIImage(data: data.data)
+    }
+    host = BuSecureImageHost(frame: frame, image: image)
+    super.init()
+  }
+
+  func view() -> UIView { host }
+}
+
+final class BuSecureImageFactory: NSObject, FlutterPlatformViewFactory {
+  func createArgsCodec() -> FlutterMessageCodec & NSObjectProtocol {
+    return FlutterStandardMessageCodec.sharedInstance()
+  }
+
+  func create(withFrame frame: CGRect, viewIdentifier viewId: Int64, arguments args: Any?) -> FlutterPlatformView {
+    return BuSecureImagePlatformView(frame: frame, args: args)
   }
 }
 

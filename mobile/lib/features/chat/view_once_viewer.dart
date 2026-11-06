@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
@@ -101,6 +102,11 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
   _OnceBlock _block = _OnceBlock.none;
   bool _protected = false;
 
+  // iOS: fotoğraf Flutter'da ÇİZİLMEZ; baytlar yerel güvenli görünüme verilir (ekran görüntüsünde boş çıkar).
+  bool _nativeImg = false;
+  Uint8List? _bytes;
+  double _aspect = 0; // 0 = bilinmiyor (alan doldurulur)
+
   @override
   void initState() {
     super.initState();
@@ -122,6 +128,7 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
     }
     // "Korunmaktadır" yalnız koruma doğrulandıysa yazılır; katman denenmediyse (varsayılan) iddia YOK.
     _protected = _secure.isProtected(st);
+    _nativeImg = _secure.supported && st.secureImage && !st.secureLayer;
     if (st.captured) {
       // Kayıt sürerken içerik istenmez: tek gösterim tüketilmesin; kayıt bitince yüklenir.
       setState(() {
@@ -188,8 +195,32 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
         setState(() => _loading = false);
         return;
       }
+      final data = Uint8List.fromList(bytes);
+      if (_nativeImg) {
+        // Yalnız en/boy oranı için çözülür; piksel Flutter'a çizilmez. Çözülemez/gecikirse alan doldurulur
+        // (yerel görünüm zaten `scaleAspectFit`: görüntü bozulmaz, yalnız köşe yuvarlama alanı doldurur).
+        var ratio = 0.0;
+        try {
+          final codec = await ui.instantiateImageCodec(data).timeout(const Duration(milliseconds: 450));
+          final frame = await codec.getNextFrame().timeout(const Duration(milliseconds: 450));
+          ratio = frame.image.width / (frame.image.height == 0 ? 1 : frame.image.height);
+          frame.image.dispose();
+          codec.dispose();
+        } catch (_) {}
+        if (!mounted) return;
+        if (_block != _OnceBlock.none) {
+          setState(() => _loading = false);
+          return;
+        }
+        setState(() {
+          _bytes = data;
+          _aspect = ratio;
+          _loading = false;
+        });
+        return;
+      }
       setState(() {
-        _image = MemoryImage(Uint8List.fromList(bytes));
+        _image = MemoryImage(data);
         _loading = false;
       });
     } on ApiError catch (e) {
@@ -222,6 +253,7 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
   void _drop() {
     final img = _image;
     _image = null;
+    _bytes = null;
     if (img != null) img.evict();
   }
 
@@ -370,7 +402,8 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
       );
     }
     final img = _image;
-    if (img == null) return const SizedBox.shrink();
+    final nbytes = _bytes;
+    if (img == null && nbytes == null) return const SizedBox.shrink();
     final caption = (widget.caption ?? '').trim();
     // Fotoğraf, üst çubuk ile alt ipucu arasındaki alanın ORTASINDA durur (üste yapışmaz, kenara kaymaz): Expanded + Center.
     return Column(mainAxisAlignment: MainAxisAlignment.start, children: [
@@ -382,8 +415,16 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
             key: const ValueKey('onceImageBox'),
             borderRadius: BorderRadius.circular(20),
             child: Stack(children: [
+              if (nbytes != null)
+                (_aspect > 0
+                    ? AspectRatio(aspectRatio: _aspect, child: _secure.secureImage(nbytes))
+                    : SizedBox(
+                        height: MediaQuery.sizeOf(context).height * .6,
+                        width: MediaQuery.sizeOf(context).width - 32,
+                        child: _secure.secureImage(nbytes)))
+              else
               Image(
-                image: img,
+                image: img!,
                 fit: BoxFit.contain,
                 frameBuilder: (c, child, frame, sync) => sync
                     ? child

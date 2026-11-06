@@ -248,12 +248,14 @@ void main() {
   group('ChatSecureView: guvenli katman kapisi', () {
     const ch = MethodChannel('test/bu_secure_gate');
     final args = <Object?>[];
+    var secureImage = false;
 
     setUp(() {
+      secureImage = false;
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(ch, (call) async {
         if (call.method == 'enable') {
           args.add(call.arguments);
-          return {'secureLayer': false, 'captured': false};
+          return {'secureLayer': false, 'captured': false, 'secureImage': secureImage};
         }
         return null;
       });
@@ -264,14 +266,24 @@ void main() {
       args.clear();
     });
 
-    test('varsayilan KAPALI (TestFlight cokmesi sonrasi): katman denenmez, BU_SECURE_LAYER=true ile acilir', () async {
+    test('varsayilan KAPALI (TestFlight cokmesi sonrasi): pencere katmani denenmez; yerel guvenli gorunum yeterli', () async {
       expect(ChatSecureView.layerTrickDefault, isFalse);
+      secureImage = true;
       final v = ChatSecureView(channel: ch, isIOS: true);
       final st = await v.enable();
       expect((args.single as Map)['layerTrick'], false);
       expect(st.layerRequested, isFalse);
-      // Bayrak kapali: aciliş meşru ama koruma iddia edilmez.
+      expect(st.secureImage, isTrue);
       expect(v.allowsViewOnce(st), isTrue);
+      expect(v.isProtected(st), isTrue);
+      await v.disable();
+    });
+
+    test('iOS: guvenli gorunum kurulamadi -> FAIL-CLOSED (korumasiz acilis yok)', () async {
+      secureImage = false;
+      final v = ChatSecureView(channel: ch, isIOS: true);
+      final st = await v.enable();
+      expect(v.allowsViewOnce(st), isFalse);
       expect(v.isProtected(st), isFalse);
       await v.disable();
     });
