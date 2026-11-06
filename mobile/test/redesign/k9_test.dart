@@ -16,7 +16,7 @@ FakeBackend _be({bool two = false, bool none = false}) => FakeBackend()
         ? <Object>[]
         : [
             _club(7, 'Müzik Kulübü', 'OWNER', members: 342),
-            if (two) _club(8, 'Tiyatro ve Sahne Sanatları Kulübü', 'MODERATOR', members: 180),
+            if (two) _club(8, 'Tiyatro ve Sahne Sanatları Kulübü', 'OWNER', members: 180),
           ]
   })
   ..on('/events', {'id': 77});
@@ -98,7 +98,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 700));
     expect(find.text('342 üye'), findsOneWidget);
-    expect(find.text('Moderatör'), findsWidgets);
+    expect(find.text('Yönetici'), findsWidgets); // yalnız sahip kulüpleri listelenir
     await tester.enterText(find.byKey(const ValueKey('evc-club-search')), 'tiyatro');
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('342 üye'), findsNothing);

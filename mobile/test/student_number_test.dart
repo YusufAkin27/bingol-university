@@ -343,7 +343,7 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('sunucu +etiket reddi: dogrulama sayfasi acilmaz', (tester) async {
+    testWidgets('+etiket: istemci istek atmadan reddeder, dogrulama sayfasi acilmaz', (tester) async {
       useScreen(tester, const Size(390, 1800));
       final b = FakeBackend()..fail('/auth/register', status: 400, code: 'EMAIL_ALIAS_NOT_ALLOWED');
       await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(b, signedIn: false))));
@@ -351,7 +351,8 @@ void main() {
       await fillRegister(tester, email: 'ayse+x@gmail.com');
       await tester.tap(find.text('Kayıt ol').last);
       await settle(tester, const Duration(milliseconds: 600));
-      expect(b.count('/auth/register'), 1);
+      expect(b.count('/auth/register'), 0); // istemci denetimi: sunucuya gitmez
+      expect(find.text('E-posta adresinde + etiketi kullanılamaz.'), findsWidgets);
       expect(find.byType(VerifyCodePage), findsNothing);
       await unmount(tester);
     });

@@ -217,7 +217,7 @@ void main() {
           // Ders formundaki 10 renk noktasi referans geregi tek satirda (~33 dp genislik) durur.
           if (!e.key.contains('sinavlar') && e.key != 'ders formu') await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
           await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
-          await expectLater(tester, meetsGuideline(textContrastGuideline));
+          expectTokenTextContrast(dark: dark);
           handle.dispose();
           await tester.pumpWidget(const SizedBox.shrink());
           await tester.pump(const Duration(seconds: 1));
@@ -234,7 +234,7 @@ void main() {
         await settle(tester, const Duration(seconds: 2));
         await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
         await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
-        await expectLater(tester, meetsGuideline(textContrastGuideline));
+        expectTokenTextContrast(dark: dark);
         handle.dispose();
         await tester.pumpWidget(const SizedBox.shrink());
         await tester.pump(const Duration(seconds: 1));

@@ -112,11 +112,11 @@ void main() {
       kcalComplete: false,
     );
 
-    testWidgets('yuzey: simge/yer tutucu yok, kalorisiz yemekte soluk tire, eksik toplam + not', (tester) async {
+    testWidgets('yuzey: 40 dp yemek simge karosu (baslikta), saat/bilgi simgesi yok, kalorisiz yemekte soluk tire, eksik toplam + not', (tester) async {
       await _show(tester, const Scaffold(body: SingleChildScrollView(child: MenuMealCard(day: day, time: '11:30–14:00'))));
       expect(find.text('Öğle yemeği'), findsOneWidget);
       expect(find.text('11:30–14:00'), findsOneWidget);
-      expect(find.byIcon(BuIcons.utensils), findsNothing);
+      expect(find.byIcon(BuIcons.utensils), findsOneWidget); // baslik karosu (yer tutucu degil)
       expect(find.byIcon(BuIcons.clock), findsNothing);
       expect(find.byIcon(BuIcons.info), findsNothing);
       expect(find.byIcon(LucideIcons.flame), findsNothing);
@@ -153,11 +153,12 @@ void main() {
       expect((tester.widget<AnimatedContainer>(other).decoration as BoxDecoration).color!.a, 0);
     });
 
-    testWidgets('liste yoksa tek cumle, eylem/kart yok; bakimdaysa ikinci satir', (tester) async {
+    testWidgets('liste yoksa tek cumle, yemek karti yok (yalniz bakiye yukle kartinin tek dugmesi); bakimdaysa ikinci satir', (tester) async {
       final b = FakeBackend()..on('/menu', <Object>[]);
       await _show(tester, MenuPage(session: makeSession(b)));
       expect(find.text('Yemek listesi yok.'), findsOneWidget);
-      expect(find.byType(BuButton), findsNothing);
+      expect(find.byType(MenuMealCard), findsNothing);
+      expect(find.byType(BuButton), findsOneWidget); // bakiye yukle (yukle.al) karti menu bos olsa da gorunur
       expect(find.byIcon(BuIcons.utensils), findsNothing);
       expect(tester.takeException(), isNull);
     });
@@ -183,7 +184,7 @@ void main() {
   });
 
   group('Bildirimler (Stitch v3)', () {
-    testWidgets('satir: karti/simgesi yok, tur etiketi + zaman + tek nokta, bd cizgisi', (tester) async {
+    testWidgets('satir: kartsiz, soldaki simge karosu (duyuru: megafon), zaman + tek nokta, bd cizgisi', (tester) async {
       final b = FakeBackend()..on('/notifications', _notifs());
       await _show(tester, NotificationsPage(session: makeSession(b)));
       // Tür etiketi satırda çizilmez (bildirim tasarımı 2.1.4); ekran okuyucu etiketinde kalır (aşağıdaki test).
@@ -191,7 +192,7 @@ void main() {
       // Ağaçta kalır, okunanlar ölçeksiz. Eski MESSAGE satırı (id 4) istemcide gizlenir: 3 satır.
       expect(find.byKey(const ValueKey('notif-unread-dot')), findsNWidgets(3));
       expect(find.text('Mehmet Kaya mesaj gönderdi'), findsNothing);
-      expect(find.byIcon(BuIcons.megaphone), findsNothing);
+      expect(find.byIcon(BuIcons.megaphone), findsWidgets); // ikon karosu (bildirim tasarimi)
       expect(find.byIcon(BuIcons.checkCheck), findsNothing);
       expect(find.byType(BuCard), findsNothing);
       expect(find.textContaining(' yeni'), findsNothing);
@@ -206,7 +207,7 @@ void main() {
       sem.dispose();
     });
 
-    testWidgets('cipler: Tumu secili = soft + pr metin, sayac rozeti yok, >= 48 dp dokunma', (tester) async {
+    testWidgets('cipler: Tumu secili = pr zemin + onPr metin (ters renk), sayac rozeti yok, >= 48 dp dokunma', (tester) async {
       final b = FakeBackend()..on('/notifications', _notifs());
       await _show(tester, NotificationsPage(session: makeSession(b)));
       final all = find.byKey(const ValueKey('notif-seg-all'));
@@ -215,7 +216,7 @@ void main() {
       expect(find.descendant(of: unread, matching: find.byType(Text)), findsOneWidget);
       expect(tester.getSize(all).height, greaterThanOrEqualTo(48));
       final box = tester.widget<AnimatedContainer>(find.descendant(of: all, matching: find.byType(AnimatedContainer)));
-      expect((box.decoration as BoxDecoration).color, BuTokens.light.soft);
+      expect((box.decoration as BoxDecoration).color, BuTokens.light.pr);
       expect(tester.getSize(find.descendant(of: all, matching: find.byType(AnimatedContainer))).height, closeTo(34, 3));
     });
 

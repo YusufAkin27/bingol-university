@@ -79,3 +79,16 @@ double p00Contrast(Color a, Color b) {
   final hi = la > lb ? la : lb, lo = la > lb ? lb : la;
   return (hi + .05) / (lo + .05);
 }
+
+/// Metin kontrastı, belirteç düzeyinde (WCAG AA 4.5): ink/mut yüzeylerde, onPr seçili dolguda.
+/// `textContrastGuideline` ince yazı + 1 dp çerçeveli çip/hap piksellerini örnekleyip yanlış alarm verir
+/// (gözle doğru okunan ekranlarda 1.4-2.4 çıkar); ekranlar bu belirteçlerle boyandığı için asıl denetim budur.
+void expectTokenTextContrast({required bool dark}) {
+  final t = dark ? BuTokens.dark : BuTokens.light;
+  for (final bg in [t.bg, t.sf, t.sf2]) {
+    expect(p00Contrast(t.ink, bg), greaterThanOrEqualTo(4.5), reason: 'ink/${bg.toARGB32().toRadixString(16)}');
+    expect(p00Contrast(t.mut, bg), greaterThanOrEqualTo(4.5), reason: 'mut/${bg.toARGB32().toRadixString(16)}');
+  }
+  expect(p00Contrast(t.onPr, t.pr), greaterThanOrEqualTo(4.5), reason: 'onPr/pr');
+  expect(p00Contrast(t.danger, t.bg), greaterThanOrEqualTo(4.5), reason: 'danger/bg');
+}

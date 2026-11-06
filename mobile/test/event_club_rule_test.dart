@@ -6,7 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'support/fake_app.dart';
 
 /// Etkinlik kuralı: yalnız bir kulüp adına oluşturulur (kulüpsüz yok).
-/// Yönetici -> hemen yayın, izinli üye -> onaya, diğerleri -> seçenek yok.
+/// Yalnız kulüp sahibi (OWNER) açar, hemen yayın; yönetici/üye/izinli üye -> seçenek yok.
+/// Sunucu yine de PENDING_REVIEW dönerse istemci "Onaya gönderildi" bilgisini gösterir.
 
 Map<String, dynamic> _club(int id, String name, String role, {String status = 'ACTIVE', Map<String, dynamic>? extra}) =>
     {'id': id, 'name': name, 'myRole': role, 'myStatus': status, ...?extra};
@@ -91,7 +92,7 @@ void main() {
   });
 
   testWidgets('communityId verilen kulup (kulup detayindan) onceden secilir', (tester) async {
-    final b = _be([_club(7, 'Robotik Topluluğu', 'OWNER'), _club(3, 'Müzik Kulübü', 'ADMIN')]);
+    final b = _be([_club(7, 'Robotik Topluluğu', 'OWNER'), _club(3, 'Müzik Kulübü', 'OWNER')]);
     await _open(tester, b, communityId: 3);
     expect(find.text('Müzik Kulübü'), findsOneWidget);
     await _submit(tester);
@@ -99,11 +100,13 @@ void main() {
     await unmount(tester);
   });
 
-  testWidgets('cok kulup: secim zorunlu; izinli uye onay metniyle listelenir', (tester) async {
+  testWidgets('cok kulup: secim zorunlu; yalniz sahip oldugun kulupler listelenir (yonetici/uye/izinli uye yok)', (tester) async {
     final b = _be([
       _club(7, 'Robotik Topluluğu', 'OWNER'),
-      _club(8, 'İzinli Üye Kulübü', 'MEMBER', extra: {'myPermissions': ['MANAGE_EVENTS']}),
-      _club(9, 'İzinsiz Üye Kulübü', 'MEMBER'),
+      _club(8, 'İkinci Sahip Kulübü', 'OWNER'),
+      _club(9, 'Yönetici Kulübü', 'ADMIN'),
+      _club(10, 'İzinli Üye Kulübü', 'MEMBER', extra: {'myPermissions': ['MANAGE_EVENTS']}),
+      _club(11, 'İzinsiz Üye Kulübü', 'MEMBER'),
     ]);
     await _open(tester, b);
     expect(find.text('Kulüp seç'), findsOneWidget); // seçilmedi
@@ -116,26 +119,21 @@ void main() {
     await tester.pump();
     await tester.tap(find.byKey(const ValueKey('et2-club-field')));
     await settle(tester, const Duration(milliseconds: 400));
+    expect(find.text('Yönetici Kulübü'), findsNothing);
+    expect(find.text('İzinli Üye Kulübü'), findsNothing);
     expect(find.text('İzinsiz Üye Kulübü'), findsNothing);
-    await tester.tap(find.text('İzinli Üye Kulübü'));
-    await settle(tester, const Duration(milliseconds: 400));
-    expect(find.text('Admin onayından sonra yayınlanır.'), findsOneWidget);
-    expect(find.text('Hemen yayınlanır.'), findsNothing);
-
-    await tester.ensureVisible(find.byKey(const ValueKey('et2-club-field')));
-    await tester.pump();
-    await tester.tap(find.byKey(const ValueKey('et2-club-field')));
-    await settle(tester, const Duration(milliseconds: 400));
+    expect(find.text('İkinci Sahip Kulübü'), findsOneWidget);
     await tester.tap(find.text('Robotik Topluluğu'));
     await settle(tester, const Duration(milliseconds: 400));
     expect(find.text('Hemen yayınlanır.'), findsOneWidget);
+    expect(find.text('Admin onayından sonra yayınlanır.'), findsNothing);
     await _submit(tester);
     expect((b.bodies['POST /events'] as Map)['communityId'], 7);
     await unmount(tester);
   });
 
   testWidgets('PENDING_REVIEW: Onaya gonderildi bilgisi, sonra form kapanir', (tester) async {
-    final b = _be([_club(8, 'İzinli Üye Kulübü', 'MEMBER', extra: {'canManageEvents': true})],
+    final b = _be([_club(8, 'Sahip Kulübü', 'OWNER')],
         created: {'id': 77, 'status': 'PENDING_REVIEW'});
     await _open(tester, b);
     await _submit(tester);

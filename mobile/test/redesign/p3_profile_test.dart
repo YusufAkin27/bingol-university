@@ -200,12 +200,12 @@ void main() {
   });
 
   group('Alt sayfalar (Stitch v3 birebir)', () {
-    testWidgets('Gizlilik: tam genislik satirlar, segment 48 dp dokunma, ust cubuk duz', (tester) async {
+    testWidgets('Gizlilik: 20 dp kenar bosluklu cerceveli grup (satirlar grup genisliginde), segment 48 dp dokunma, ust cubuk duz', (tester) async {
       await _open(tester, PrivacyDataPage(session: makeSession(_backend())), size: kPhoneLarge);
       expect(find.byType(ProfilTopBar), findsOneWidget);
       expect(tester.getSize(find.byKey(const ValueKey('privacy-select-avatar'))).height, greaterThanOrEqualTo(48));
       final row = tester.getSize(find.byKey(const ValueKey('privacy-row-avatar')));
-      expect(row.width, kPhoneLarge.width); // kartsiz, tam genislik
+      expect(row.width, kPhoneLarge.width - 40); // premium monochrome: 20 dp kenar boslugu + cerceveli 16 dp grup, satir grup genisliginde
       await unmount(tester);
     });
 

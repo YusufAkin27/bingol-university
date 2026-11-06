@@ -223,7 +223,7 @@ void main() {
       final be = await pumpChat(tester);
       expect(be.requests, contains('PUT /messages/5/reaction'));
       expect(be.bodies['PUT /messages/5/reaction'], {'emoji': _tr});
-      expect(find.textContaining('$_tr 1'), findsOneWidget);
+      expect(find.textContaining(_tr), findsOneWidget); // sayi 1 ise yazilmaz (383bae9d): kapsulda yalniz emoji
       await unmount(tester);
     });
 

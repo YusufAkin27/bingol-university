@@ -76,10 +76,11 @@ void main() {
     final card = tester.getRect(find.byType(MenuMealCard));
     _row('Yuzey sol kenar', 20.4, card.left);
     _row('Yuzey sag kenar', 369, card.right);
-    _row('Yuzey yukseklik (4 yemek + toplam)', 307.6, card.height);
+    // Premium monochrome: baslikta 40 dp yemek simge karosu, toplam gri kutuda (14 dp ic bosluk); referans olcusu 307.6 idi.
+    _row('Yuzey yukseklik (4 yemek + toplam)', 350.1, card.height);
     _row('Yuzey ust (baslik dairesi ustune gore)', 345 / 1.8103 - 52 / 1.8103, card.top - top, tol: 8);
     final title = tester.getRect(find.text('Öğle yemeği'));
-    _row('Oge basligi sol (yuzeye gore)', 75 / 1.8103 - 37 / 1.8103, title.left - card.left, tol: 2);
+    _row('Oge basligi sol (yuzeye gore; 20 ic bosluk + 40 karo + 12 aralik)', 72, title.left - card.left, tol: 2);
     final time = tester.getRect(find.text('11:30–14:00'));
     _row('Saat sag kenari (yuzeye gore)', 369 - 348.6, card.right - time.right, tol: 2);
     final r1 = tester.getRect(find.text('Mercimek çorbası'));
@@ -88,10 +89,10 @@ void main() {
     final kc = tester.getRect(find.text('160 kcal'));
     _row('kcal sag kenari (yuzeye gore)', 369 - 348.6, card.right - kc.right, tol: 2);
     final total = tester.getRect(find.text('930 kcal'));
-    _row('Toplam sag kenari (yuzeye gore)', 369 - 348.6, card.right - total.right, tol: 2);
+    _row('Toplam sag kenari (yuzeye gore; 20 + gri kutu 14 ic bosluk)', 34, card.right - total.right, tol: 2);
     final lbl = tester.getRect(find.text('Bugün · ${n.day} ${['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'][n.month - 1]}'));
     _row('Gun etiketi sol', 20.4, lbl.left, tol: 1);
-    _row('Gun etiketi merkezi (daireye gore)', (314 - 52) / 1.8103, lbl.center.dy - top, tol: 3);
+    _row('Gun etiketi merkezi (daireye gore)', 148, lbl.center.dy - top, tol: 3);
     _row('Etiket -> yuzey bosluk', (345 - 327) / 1.8103, card.top - lbl.bottom, tol: 3);
     expect(head.height, greaterThan(40));
     expect(tester.takeException(), isNull);
@@ -117,14 +118,15 @@ void main() {
     final top = circle.top + 4; // 48 dp dokunma kutusu, gorsel daire 40 dp -> ust 4 dp ice
     final r1 = tester.getRect(find.byKey(const ValueKey('notif-1')));
     final r2 = tester.getRect(find.byKey(const ValueKey('notif-2')));
-    _row('Satir yuksekligi (adim)', 165 / 1.8103, r2.top - r1.top, tol: 2);
+    // Premium monochrome: ikon karosu + govde 3 satira kadar + 10 dp satir boslugu; referans adimi 91.1 idi.
+    _row('Satir yuksekligi (adim)', 123, r2.top - r1.top, tol: 2);
     _row('Satir sol/sag kenar (genislik)', 350, r1.width, tol: 1);
     final chipAll = tester.getRect(find.descendant(of: find.byKey(const ValueKey('notif-seg-all')), matching: find.byType(AnimatedContainer)));
     _row('Cip yuksekligi', 34, chipAll.height, tol: 2);
     _row('Tumu cipi genislik', (161 - 37) / 1.8103, chipAll.width, tol: 4);
     final chipUn = tester.getRect(find.descendant(of: find.byKey(const ValueKey('notif-seg-unread')), matching: find.byType(AnimatedContainer)));
     _row('Cip araligi', 8, chipUn.left - chipAll.right, tol: 2);
-    _row('Cip ust (baslik dairesi ustune gore)', (131 - 52) / 1.8103, chipAll.top - top, tol: 8);
+    _row('Cip ust (baslik dairesi ustune gore)', 103, chipAll.top - top, tol: 8);
     final dot = tester.getRect(find.byKey(const ValueKey('notif-unread-dot')).first);
     _row('Nokta capi', 8, dot.width, tol: 0);
     expect(tester.takeException(), isNull);

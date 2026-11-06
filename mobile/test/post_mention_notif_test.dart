@@ -1,3 +1,4 @@
+import 'package:bu_kampus/core/icons/bu_icons.dart';
 import 'package:bu_kampus/core/push/notification_presentation.dart';
 import 'package:bu_kampus/core/push/notification_push_card.dart';
 import 'package:bu_kampus/core/push/push_card_parts.dart';
@@ -22,9 +23,9 @@ void main() {
 
     test('kategori sosyal; simge @; kart stili MENTION; kose rozeti mention', () {
       expect(notificationCategory(mention), NotificationCategory.social);
-      expect(notificationIcon(mention), Icons.alternate_email);
+      expect(notificationIcon(mention), BuIcons.atSign);
       expect(pushCardStyle(mention), 'MENTION');
-      expect(pushStyleIcon('MENTION'), Icons.alternate_email);
+      expect(pushStyleIcon('MENTION'), BuIcons.atSign);
       expect(pushAvatarRole(mention), PushAvatarRole.mention);
     });
 

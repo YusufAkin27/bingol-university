@@ -86,7 +86,7 @@ void main() {
     await unmount(tester);
   });
 
-  testWidgets('bildirim: govdesiz baslik iki satira kadar okunur, govdeli tek satir', (tester) async {
+  testWidgets('bildirim: baslik govdeli/govdesiz uc satira kadar okunur (tek tip satir)', (tester) async {
     useScreen(tester, const Size(390, 844));
     const long = 'Ders ekleme-bırakma tarihleri duyuruldu ve çok uzun bir başlık deneme metni burada sürüyor';
     final b = FakeBackend()
@@ -102,8 +102,8 @@ void main() {
     await settle(tester, const Duration(seconds: 1));
     final titles = tester.widgetList<Text>(find.text(long)).toList();
     expect(titles.length, 2);
-    expect(titles[0].maxLines, 2);
-    expect(titles[1].maxLines, 1);
+    expect(titles[0].maxLines, 3);
+    expect(titles[1].maxLines, 3);
     expect(tester.takeException(), isNull);
     await unmount(tester);
   });

@@ -290,14 +290,15 @@ void main() {
       await tester.pumpWidget(_wrap(
           SettingsPage(session: makeSession(b), themeController: ThemeController()), kPhoneSmall, false, outer: true));
       await settle(tester);
-      await tester.scrollUntilVisible(find.textContaining('cihazlardan'), 100, scrollable: find.byType(Scrollable).first);
+      final signOut = find.byKey(const ValueKey('settings-sign-out'));
+      await tester.scrollUntilVisible(signOut, 100, scrollable: find.byType(Scrollable).first);
       // scrollUntilVisible satır önbellek alanında oluşunca durur (ekran dışı kalabilir): önce görünür yap.
-      await tester.ensureVisible(find.textContaining('cihazlardan').last);
+      await tester.ensureVisible(signOut);
       await tester.pump();
-      await tester.tap(find.textContaining('cihazlardan').last);
+      await tester.tap(signOut);
       await settle(tester, const Duration(milliseconds: 600));
       // Diyalog gerçekten açılmış olmalı (dokunuş ekran dışında kalırsa test sessizce geçmesin).
-      expect(find.text('Tüm cihazlardan çıkış'), findsOneWidget);
+      expect(find.text('Çıkış yapılsın mı?'), findsOneWidget);
       if (_shots) await _shot(tester, 'Dialog_cikis_acik');
       noErr(tester);
       await unmount(tester);

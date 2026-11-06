@@ -30,14 +30,15 @@ void main() {
     expect(find.text('BU KAMPÜS'), findsNothing);
   });
 
-  testWidgets('A9-03: ana sayfa üst çubuğunda selamlama (Stitch v3: uygulama adı/logo yok, "BU KAMPÜS" yazımı asla)', (tester) async {
+  testWidgets('A9-03: ana sayfa üst çubuğu: yazı marka adı "BÜ Kampüs" + "Merhaba, Ad" (logo karosu yok), yanlış yazımlar asla', (tester) async {
     useScreen(tester, const Size(390, 844));
     await tester.pumpWidget(buildApp(const Scaffold(
       body: HomeBrandHeader(actions: [SizedBox()], hello: 'Merhaba, Ayşe', greeting: 'İyi günler'),
     )));
     await settle(tester, const Duration(milliseconds: 300));
     expect(find.text('Merhaba, Ayşe'), findsOneWidget);
-    expect(find.text('İyi günler'), findsOneWidget);
+    expect(find.text('BÜ Kampüs'), findsOneWidget); // yalnız yazı (wordmark)
     expect(find.text('BU KAMPÜS'), findsNothing);
+    expect(find.text('BU Kampüs'), findsNothing);
   });
 }

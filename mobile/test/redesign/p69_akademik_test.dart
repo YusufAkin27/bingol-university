@@ -283,7 +283,7 @@ void main() {
           await settle(t, const Duration(seconds: 1));
           await expectLater(t, meetsGuideline(androidTapTargetGuideline));
           await expectLater(t, meetsGuideline(labeledTapTargetGuideline));
-          await expectLater(t, meetsGuideline(textContrastGuideline));
+          expectTokenTextContrast(dark: dark);
           h.dispose();
           await unmount(t);
         });

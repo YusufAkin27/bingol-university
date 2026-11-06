@@ -302,18 +302,26 @@ void main() {
           ),
         );
 
+    // Nokta artik boyut degistirmez (yerlesim sabit, 8x8); okundu olunca rengi seffafa solar.
     double dot(WidgetTester tester) => tester.getRect(find.descendant(of: find.byKey(const ValueKey('notif-unread-dot')), matching: find.byType(DecoratedBox))).width;
+    double dotAlpha(WidgetTester tester) {
+      final box = tester.widget<DecoratedBox>(find.descendant(of: find.byKey(const ValueKey('notif-unread-dot')), matching: find.byType(DecoratedBox)));
+      return ((box.decoration as BoxDecoration).color ?? const Color(0x00000000)).a;
+    }
 
-    testWidgets('okundu olunca nokta kuculerek kaybolur; satir yeniden kurulmaz', (tester) async {
+    testWidgets('okundu olunca nokta solarak kaybolur (yerlesim sabit); satir yeniden kurulmaz', (tester) async {
       useScreen(tester, const Size(390, 844));
       await tester.pumpWidget(buildApp(row(true)));
       await tester.pump(const Duration(milliseconds: 300));
       expect(dot(tester), 8);
+      expect(dotAlpha(tester), 1);
       await tester.pumpWidget(buildApp(row(false)));
       await tester.pump(const Duration(milliseconds: 100));
-      expect(dot(tester), allOf(greaterThan(0), lessThan(8)));
+      expect(dot(tester), 8);
+      expect(dotAlpha(tester), allOf(greaterThan(0), lessThan(1)));
       await tester.pump(const Duration(milliseconds: 400));
-      expect(dot(tester), 0);
+      expect(dot(tester), 8);
+      expect(dotAlpha(tester), 0);
       expect(tester.takeException(), isNull);
     });
 
@@ -324,7 +332,7 @@ void main() {
       await tester.pump();
       await tester.pumpWidget(buildApp(row(false)));
       await tester.pump(const Duration(milliseconds: 1));
-      expect(dot(tester), 0);
+      expect(dotAlpha(tester), 0);
     });
 
     testWidgets('anlamsal etiket ve dokunma alani korunur', (tester) async {
