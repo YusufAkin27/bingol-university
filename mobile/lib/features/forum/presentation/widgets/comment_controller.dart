@@ -280,10 +280,19 @@ class CommentsController extends ChangeNotifier {
 
   /// Siler: yanıtı olan yorum "silindi" yer tutucusu olarak kalır, olmayan listeden kalkar.
   Future<void> remove(CommentNode n) async {
-    await api.deleteComment(n.id);
-    _applyRemoved(n);
-    notifyListeners();
+    // Çift silme: sunucu ikinci silmeye de 204 döner; yerel sayaç yine de YALNIZ BİR KEZ düşmeli (aynı yorum için
+    // yavaş ağda eylem sayfası yeniden açılıp ikinci kez onaylanabilir).
+    if (n.deleted || !_removing.add(n.id)) return;
+    try {
+      await api.deleteComment(n.id);
+      if (!n.deleted) _applyRemoved(n);
+      notifyListeners();
+    } finally {
+      _removing.remove(n.id);
+    }
   }
+
+  final Set<int> _removing = {};
 
   void _applyRemoved(CommentNode n) {
     onCountDelta?.call(-1);

@@ -7,6 +7,7 @@ import '../features/auth/help/public_support_api.dart' show TrackTokenStore;
 import '../features/chat/chat_wallpaper.dart';
 import '../features/chat/photo_autosave.dart';
 import '../features/chat/recent_reactions.dart';
+import '../features/forum/data/forum_draft_store.dart';
 import '../features/forum/data/forum_recent_searches.dart';
 import '../features/home/home_layout.dart';
 import '../features/search/recent_searches.dart';
@@ -33,6 +34,7 @@ void registerUserDataCleaners(ApiClient api) {
     ..add(() => VideoPrefetcher.instance.clear()) // Keşfet önyüklenmiş videoları (yetkili, kullanıcıya özel içerik)
     ..add(RecentSearches.clear) // arama geçmişi (kişi adı olabilir)
     ..add(ForumRecentSearches.clear) // forum son aramaları (cihazda, kullanıcıya özel)
+    ..add(ForumDraftStore.clearAll) // yarım kalan forum konu taslakları (başlık/metin/görsel adresi)
     ..add(() => PhotoAutoSave.instance.reset()) // galeriye otomatik kayıt ayarı + kaydedilen ek kimlikleri
     ..add(ReminderService.clearUserData) // ders hatırlatıcı ayarı + kurulu yerel hatırlatmalar
     ..add(AlarmService.clearUserData) // ertelenmiş sınav alarmları + hatırlatmaları + iOS alarm bildirimleri
