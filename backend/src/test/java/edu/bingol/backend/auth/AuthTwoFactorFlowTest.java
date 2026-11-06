@@ -443,6 +443,42 @@ class AuthTwoFactorFlowTest {
         verify(limiter, org.mockito.Mockito.times(2)).check(eq("tf:disable:user:5"), eq(5), eq(Duration.ofMinutes(15)));
     }
 
+    /** QA-AUTH-05: parolasiz (yalniz OAuth) hesap 2FA'yi saglayici yeniden dogrulamasiyla kapatabilir. */
+    @Test
+    void passwordlessAccountDisablesTwoFactorWithProviderReauth() {
+        enableAndTrust(DEV_A);
+        edu.bingol.backend.auth.oauth.OAuthService oauth = mock(edu.bingol.backend.auth.oauth.OAuthService.class);
+        tfController.setOauth(oauth);
+        user.setPasswordHash(User.NO_PASSWORD_PREFIX + "x");
+
+        // saglayici yok: 400 INVALID_PASSWORD, 2FA acik kalir
+        assertEquals("INVALID_PASSWORD", assertThrows(ApiException.class,
+                () -> tfController.disable(new TwoFactorDtos.DisableRequest(null), principal(), req(DEV_A))).code());
+        assertTrue(user.isTwoFactorEnabled());
+
+        // yeniden dogrulama reddedilirse (sunucu 403 firlatir) kapanmaz
+        org.mockito.Mockito.doThrow(new ApiException(HttpStatus.FORBIDDEN, "OAUTH_REAUTH_REQUIRED", "x"))
+                .when(oauth).reauthenticateById(eq(5L), any(), any(), eq("kotu"), any());
+        assertEquals("OAUTH_REAUTH_REQUIRED", assertThrows(ApiException.class, () -> tfController.disable(
+                new TwoFactorDtos.DisableRequest(null, null, "google", "kotu", null), principal(), req(DEV_A))).code());
+        assertTrue(user.isTwoFactorEnabled());
+
+        TwoFactorDtos.EnabledResponse off = tfController.disable(
+                new TwoFactorDtos.DisableRequest(null, null, "google", "taze", null), principal(), req(DEV_A));
+        assertFalse(off.enabled());
+        assertFalse(user.isTwoFactorEnabled());
+    }
+
+    @Test
+    void accountWithPasswordCannotBypassThePasswordViaProviderToken() {
+        enableAndTrust(DEV_A);
+        tfController.setOauth(mock(edu.bingol.backend.auth.oauth.OAuthService.class));
+
+        assertEquals("INVALID_PASSWORD", assertThrows(ApiException.class, () -> tfController.disable(
+                new TwoFactorDtos.DisableRequest(null, null, "google", "taze", null), principal(), req(DEV_A))).code());
+        assertTrue(user.isTwoFactorEnabled());
+    }
+
     @Test
     void deviceListAndRemovalThroughTheController() {
         enableAndTrust(DEV_A);
