@@ -124,7 +124,6 @@ void main() {
       ));
       await tester.runAsync(() async {
         final ctx = tester.element(find.byType(Scaffold).first);
-        await precacheImage(const AssetImage('assets/branding/default_avatar.png'), ctx);
       });
       await settle(tester, const Duration(milliseconds: 900));
       final err = tester.takeException();

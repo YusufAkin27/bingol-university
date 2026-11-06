@@ -147,18 +147,7 @@ class _ProfilePhotoSetupPageState extends State<ProfilePhotoSetupPage> {
               ),
             ),
             // Dekoratif kamera rozeti: dokunma hedefi avatarın tamamıdır.
-            PositionedDirectional(
-              end: 0,
-              bottom: 0,
-              child: ExcludeSemantics(
-                child: Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(color: t.prPressed, shape: BoxShape.circle, border: Border.all(color: t.bg, width: 3)),
-                  child: Icon(BuIcons.camera, size: 22, color: t.onPr),
-                ),
-              ),
-            ),
+            BuAvatarBadge(avatarSize: _avatarSize, fill: t.prPressed),
           ]),
         ),
       ),

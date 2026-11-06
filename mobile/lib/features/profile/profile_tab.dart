@@ -324,7 +324,7 @@ class _TappableAvatar extends StatelessWidget {
         child: SizedBox(
           width: _size,
           height: _size,
-          child: Stack(children: [
+          child: Stack(clipBehavior: Clip.none, children: [
             Positioned.fill(
               child: AnimatedSwitcher(
                 duration: BuMotion.of(context, BuMotion.medium),
@@ -341,18 +341,7 @@ class _TappableAvatar extends StatelessWidget {
                   ),
                 ),
               ),
-            PositionedDirectional(
-              end: 0,
-              bottom: 0,
-              child: ExcludeSemantics(
-                child: Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(color: t.sf3, shape: BoxShape.circle, border: Border.all(color: t.bd)),
-                  child: Icon(BuIcons.camera, size: 15, color: t.mut),
-                ),
-              ),
-            ),
+            const BuAvatarBadge(avatarSize: _size),
           ]),
         ),
       ),

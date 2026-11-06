@@ -223,7 +223,6 @@ void main() {
         await tester.pumpWidget(_app(home, v.$2, key, v.$3));
         await tester.runAsync(() async {
           final ctx = tester.element(find.byType(Scaffold).first);
-          await precacheImage(const AssetImage('assets/branding/default_avatar.png'), ctx);
         });
         if (shot.state == 'loading') {
           await tester.pump(const Duration(milliseconds: 400));

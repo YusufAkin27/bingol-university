@@ -656,7 +656,6 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   static const _avatarSize = 120.0;
 
   Widget _bigAvatar({bool badge = false}) {
-    final t = context.bu;
     final au = _avatarUrl;
     final avatar = Semantics(
       button: au != null,
@@ -680,31 +679,10 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
       height: _avatarSize,
       child: Stack(clipBehavior: Clip.none, children: [
         avatar,
-        PositionedDirectional(
-          end: -8,
-          bottom: -8,
-          child: SizedBox(
-            width: 48,
-            height: 48,
-            child: Center(
-              child: Tooltip(
-                message: context.l10n.chatInfoChangePhoto,
-                child: BuPressable(
-                  onTap: _avatarSheet,
-                  haptic: BuHaptic.selection,
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                        color: t.danger,
-                        shape: BoxShape.circle,
-                        boxShadow: BuElevation.of(context, 2)),
-                    child: Icon(BuIcons.camera, size: 18, color: t.onPr),
-                  ),
-                ),
-              ),
-            ),
-          ),
+        BuAvatarBadge(
+          avatarSize: _avatarSize,
+          onTap: _avatarSheet,
+          tooltip: context.l10n.chatInfoChangePhoto,
         ),
       ]),
     );

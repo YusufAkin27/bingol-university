@@ -335,7 +335,6 @@ void main() {
         await tester.pumpWidget(_app(shot.build(b, session), v.dark, key, v.scale));
         await tester.runAsync(() async {
           final ctx = tester.element(find.byType(Scaffold).first);
-          await precacheImage(const AssetImage('assets/branding/default_avatar.png'), ctx);
         });
         await settle(tester, const Duration(milliseconds: 900));
         // Aga bagli gorseller (gonderi kucuk resimleri) yuklensin.

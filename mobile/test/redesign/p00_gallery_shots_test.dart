@@ -667,8 +667,6 @@ void main() {
         // Varsayilan avatar gorselleri testte esenkron cozulur: onceden yukle.
         await tester.runAsync(() async {
           final ctx = tester.element(find.byType(Scaffold).first);
-          await precacheImage(const AssetImage('assets/branding/default_avatar.png'), ctx);
-          await precacheImage(const AssetImage('assets/branding/default_group.png'), ctx);
         });
         await settle(tester, const Duration(milliseconds: 900));
         if (b.after != null) {

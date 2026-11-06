@@ -290,7 +290,6 @@ void main() {
         await tester.pumpWidget(_app(shot.build(session), v.$2, key, v.$3));
         await tester.runAsync(() async {
           final ctx = tester.element(find.byType(Scaffold).first);
-          await precacheImage(const AssetImage('assets/branding/default_avatar.png'), ctx);
         });
         await settle(tester, const Duration(milliseconds: 1000));
         if (shot.after != null) {
