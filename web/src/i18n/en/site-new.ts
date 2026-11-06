@@ -15,7 +15,6 @@ const m = {
   'site.feat.secure.title': 'Encrypted transfer and storage',
   'site.feat.secure.text':
     'Your messages are encrypted in transit and stored encrypted on the server. The server manages the keys; authorised administrators can view messages when needed and every access is written to an immutable audit log.',
-  'site.home.privacy4': 'Messages are sent and stored encrypted; administrator access is written to the audit log. Deleted messages may be retained for security and legal obligations.',
 
   'site.faq.new.title': 'About the new features',
   'site.faq.new.apply.q': 'How do I apply to an event?',

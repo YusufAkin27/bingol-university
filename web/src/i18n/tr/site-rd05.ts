@@ -5,7 +5,6 @@ const m = {
   'site.rd05.totalAtLeast': 'En az {n} kcal',
   'site.rd05.totalLabel': 'Günün toplamı',
   'site.rd05.totalPartial': 'Bazı yemeklerin kalorisi henüz girilmedi.',
-  'site.rd05.photoAlt': 'Günün menüsünün fotoğrafı',
   'site.rd05.maintSince': 'Son başarılı güncelleme: {date}',
   'site.rd05.nextMenu': 'Menü olan sonraki günü göster',
 } as const;

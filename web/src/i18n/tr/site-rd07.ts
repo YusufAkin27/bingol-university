@@ -1,14 +1,5 @@
 // Hakkımızda ve İletişim sayfalarının yeniden tasarımı (web tasarım ajanı 07).
 const m = {
-  'site.rd07.about.verifyEyebrow': 'Doğrulama',
-  'site.rd07.about.missionEyebrow': 'Amaç ve yöntem',
-  'site.rd07.about.missionTitle': 'Misyonumuz',
-  'site.rd07.about.visionEyebrow': 'Gelecek',
-  'site.rd07.about.visionTitle': 'Vizyonumuz',
-  'site.rd07.about.visionText':
-    'Öğrencilerin kampüs hayatına dair ihtiyaç duyduğu her şeye sade, güvenilir ve kendi dillerinde ulaşabildiği bir uygulama olmak.',
-  'site.rd07.about.contactTitle': 'Bize ulaşın',
-  'site.rd07.about.contactLink': 'İletişim sayfasına git',
   'site.rd07.contact.eyebrow': 'Destek ve geri bildirim',
   'site.rd07.contact.directTitle': 'Doğrudan iletişim',
   'site.rd07.contact.directSub': 'Yayımlanan iletişim kanalları',

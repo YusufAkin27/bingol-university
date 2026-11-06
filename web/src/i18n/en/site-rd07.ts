@@ -1,14 +1,5 @@
 // Redesign of the About and Contact pages (web design agent 07).
 const m = {
-  'site.rd07.about.verifyEyebrow': 'Verification',
-  'site.rd07.about.missionEyebrow': 'Purpose and method',
-  'site.rd07.about.missionTitle': 'Our mission',
-  'site.rd07.about.visionEyebrow': 'The future',
-  'site.rd07.about.visionTitle': 'Our vision',
-  'site.rd07.about.visionText':
-    'To be an app where students reach everything they need for campus life in a simple, trustworthy way and in their own language.',
-  'site.rd07.about.contactTitle': 'Get in touch',
-  'site.rd07.about.contactLink': 'Go to the contact page',
   'site.rd07.contact.eyebrow': 'Support and feedback',
   'site.rd07.contact.directTitle': 'Direct contact',
   'site.rd07.contact.directSub': 'Published contact channels',

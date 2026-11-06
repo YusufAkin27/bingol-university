@@ -5,7 +5,6 @@ const m = {
   'site.rd05.totalAtLeast': 'At least {n} kcal',
   'site.rd05.totalLabel': 'Daily total',
   'site.rd05.totalPartial': 'Calories have not been entered for some dishes yet.',
-  'site.rd05.photoAlt': 'Photo of the day’s menu',
   'site.rd05.maintSince': 'Last successful update: {date}',
   'site.rd05.nextMenu': 'Show the next day with a menu',
 } as const;

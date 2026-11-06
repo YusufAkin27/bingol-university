@@ -1,7 +1,6 @@
 // غلاف الموقع وشاشات الحالة (RD10): القائمة الجانبية للجوال، التذييل، تفضيلات التخزين، 404، الخطأ، التحميل.
 const m = {
   'site.rd10.nav.drawerTitle': 'التنقل',
-  'site.rd10.nav.settings': 'المظهر واللغة',
   'site.rd10.theme.label': 'المظهر',
   'site.rd10.theme.light': 'فاتح',
   'site.rd10.theme.dark': 'داكن',
@@ -44,7 +43,6 @@ const m = {
   'site.rd10.err.eyebrow.maintenance': 'صيانة مجدولة',
   'site.rd10.err.linksTitle': 'روابط مفيدة',
   'site.rd10.err.linksText': 'يمكنك في هذه الأثناء تصفح أقسام أخرى من الموقع.',
-  'site.rd10.err.refresh': 'تحديث',
 
   'site.rd10.loading.label': 'جارٍ تجهيز المحتوى',
 } as const;

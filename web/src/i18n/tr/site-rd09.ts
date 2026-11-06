@@ -10,7 +10,6 @@ const m = {
   'site.rd09.legal.readTime': 'Yaklaşık {n} dk okuma',
   'site.rd09.legal.prev': 'Önceki belge',
   'site.rd09.legal.next': 'Sonraki belge',
-  'site.rd09.legal.history': 'Sürüm geçmişi',
   'site.rd09.legal.current': 'Güncel',
   'site.rd09.info.related': 'İlgili sayfalar',
 } as const;

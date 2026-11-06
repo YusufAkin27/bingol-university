@@ -8,7 +8,6 @@ const m = {
   'site.rd04.filterRemove': 'إزالة مرشح {label}',
   'site.rd04.clearFilters': 'مسح المرشحات',
   'site.rd04.shown': 'عرض {shown} من {total} عنصرًا',
-  'site.rd04.sourceLabel': 'المصدر',
   'site.rd04.appTitle': 'تابع الأخبار في التطبيق',
   'site.rd04.appText': 'أنت من يختار في التطبيق الإشعارات التي تصلك عن الأخبار والإعلانات الجديدة.',
   'site.rd04.allNews': 'عرض كل الأخبار',

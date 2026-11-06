@@ -2,328 +2,328 @@
   "version": 1,
   "pages": {
     "about:ar": {
-      "hash": "ej0tdegia4",
-      "lastmod": "2026-11-04"
+      "hash": "1qxsplr1jos",
+      "lastmod": "2026-11-06"
     },
     "about:en": {
-      "hash": "ylqhni89y7",
-      "lastmod": "2026-11-04"
+      "hash": "p8zichs6k6",
+      "lastmod": "2026-11-06"
     },
     "about:tr": {
-      "hash": "hn80dc0ktp",
-      "lastmod": "2026-11-04"
+      "hash": "2bf9t51d09c",
+      "lastmod": "2026-11-06"
     },
     "accessibility:ar": {
-      "hash": "oyvphfc5kx",
-      "lastmod": "2026-11-01"
+      "hash": "2d2678qs30f",
+      "lastmod": "2026-11-06"
     },
     "accessibility:en": {
-      "hash": "1h99w7mtkmx",
-      "lastmod": "2026-11-01"
+      "hash": "1uncxzddvzn",
+      "lastmod": "2026-11-06"
     },
     "accessibility:tr": {
-      "hash": "11hirgavmce",
-      "lastmod": "2026-11-01"
+      "hash": "1tco8d5sdcy",
+      "lastmod": "2026-11-06"
     },
     "brand:ar": {
-      "hash": "3rwhet4x9i",
-      "lastmod": "2026-11-01"
+      "hash": "1uu3ztj0umj",
+      "lastmod": "2026-11-06"
     },
     "brand:en": {
-      "hash": "1cxt2zq46tf",
-      "lastmod": "2026-11-01"
+      "hash": "2fudzz5xdcm",
+      "lastmod": "2026-11-06"
     },
     "brand:tr": {
-      "hash": "oohf0y5ypr",
-      "lastmod": "2026-11-01"
+      "hash": "rmjstxioz",
+      "lastmod": "2026-11-06"
     },
     "changelog:ar": {
-      "hash": "26u5pu9skvx",
-      "lastmod": "2026-11-01"
+      "hash": "1vx87hmvms6",
+      "lastmod": "2026-11-06"
     },
     "changelog:en": {
-      "hash": "p3bxg9lyqz",
-      "lastmod": "2026-11-01"
+      "hash": "m7rfiiwxkp",
+      "lastmod": "2026-11-06"
     },
     "changelog:tr": {
-      "hash": "266eat2i45z",
-      "lastmod": "2026-11-01"
+      "hash": "tb2j7ez2ik",
+      "lastmod": "2026-11-06"
     },
     "childSafety:ar": {
-      "hash": "47rm687jum",
-      "lastmod": "2026-11-01"
+      "hash": "h7x3je5guk",
+      "lastmod": "2026-11-06"
     },
     "childSafety:en": {
-      "hash": "124ddz3db7o",
-      "lastmod": "2026-11-01"
+      "hash": "1n2pqou19eq",
+      "lastmod": "2026-11-06"
     },
     "childSafety:tr": {
-      "hash": "63gfslcw54",
-      "lastmod": "2026-11-01"
+      "hash": "1usbuxi0pyk",
+      "lastmod": "2026-11-06"
     },
     "contact:ar": {
-      "hash": "7f30somrsg",
-      "lastmod": "2026-11-04"
+      "hash": "151c0kz8zwe",
+      "lastmod": "2026-11-06"
     },
     "contact:en": {
-      "hash": "x63457gnqo",
-      "lastmod": "2026-11-04"
+      "hash": "hw9sq12vzl",
+      "lastmod": "2026-11-06"
     },
     "contact:tr": {
-      "hash": "td9n2y7ccv",
-      "lastmod": "2026-11-04"
+      "hash": "1oy79fzvrs7",
+      "lastmod": "2026-11-06"
     },
     "cookies:ar": {
-      "hash": "121z24f6ve6",
-      "lastmod": "2026-11-01"
+      "hash": "ki4500lou0",
+      "lastmod": "2026-11-06"
     },
     "cookies:en": {
-      "hash": "1vk37j4mtt1",
-      "lastmod": "2026-11-01"
+      "hash": "1pmgx1ynvkd",
+      "lastmod": "2026-11-06"
     },
     "cookies:tr": {
-      "hash": "11gsvmc3zk7",
-      "lastmod": "2026-11-01"
+      "hash": "1591sin7ijn",
+      "lastmod": "2026-11-06"
     },
     "dataRequest:ar": {
-      "hash": "1ljltjrfdem",
-      "lastmod": "2026-11-01"
+      "hash": "3nb5uzrpfm",
+      "lastmod": "2026-11-06"
     },
     "dataRequest:en": {
-      "hash": "tckdy5wrn9",
-      "lastmod": "2026-11-01"
+      "hash": "2fao3irl0bv",
+      "lastmod": "2026-11-06"
     },
     "dataRequest:tr": {
-      "hash": "cnqdk8q488",
-      "lastmod": "2026-11-01"
+      "hash": "1ukn0e72csm",
+      "lastmod": "2026-11-06"
     },
     "deleteAccount:ar": {
-      "hash": "1qdg5nsh1w2",
-      "lastmod": "2026-11-01"
+      "hash": "iri3grenni",
+      "lastmod": "2026-11-06"
     },
     "deleteAccount:en": {
-      "hash": "qndksmsvrt",
-      "lastmod": "2026-11-01"
+      "hash": "2g8zy9ba4hx",
+      "lastmod": "2026-11-06"
     },
     "deleteAccount:tr": {
-      "hash": "1bt87ikob5p",
-      "lastmod": "2026-11-01"
+      "hash": "cpk63h78jd",
+      "lastmod": "2026-11-06"
     },
     "download:ar": {
-      "hash": "11rh9jd9max",
-      "lastmod": "2026-11-04"
+      "hash": "1yw87p4hpr4",
+      "lastmod": "2026-11-06"
     },
     "download:en": {
-      "hash": "1w3ja3escxm",
-      "lastmod": "2026-11-04"
+      "hash": "1kiekc83s1a",
+      "lastmod": "2026-11-06"
     },
     "download:tr": {
-      "hash": "1b2j3389xfw",
-      "lastmod": "2026-11-04"
+      "hash": "1wadfgq02e9",
+      "lastmod": "2026-11-06"
     },
     "faq:ar": {
-      "hash": "26zxp5dq3zn",
-      "lastmod": "2026-11-05"
+      "hash": "2dga4jgoguc",
+      "lastmod": "2026-11-06"
     },
     "faq:en": {
-      "hash": "1fratxk91lw",
-      "lastmod": "2026-11-05"
+      "hash": "2em6kkefh00",
+      "lastmod": "2026-11-06"
     },
     "faq:tr": {
-      "hash": "a5xx17pjj8",
-      "lastmod": "2026-11-05"
+      "hash": "18y14my489s",
+      "lastmod": "2026-11-06"
     },
     "features:ar": {
-      "hash": "1tgog1ej4wl",
-      "lastmod": "2026-11-01"
+      "hash": "78lgp0ul0u",
+      "lastmod": "2026-11-06"
     },
     "features:en": {
-      "hash": "19gx62vlv7b",
-      "lastmod": "2026-11-01"
+      "hash": "4tblq52a27",
+      "lastmod": "2026-11-06"
     },
     "features:tr": {
-      "hash": "1kqv2wgyzlf",
-      "lastmod": "2026-11-01"
+      "hash": "1ugmcwj8ukf",
+      "lastmod": "2026-11-06"
     },
     "guidelines:ar": {
-      "hash": "o36122p3au",
-      "lastmod": "2026-11-01"
+      "hash": "v28zza0fzp",
+      "lastmod": "2026-11-06"
     },
     "guidelines:en": {
-      "hash": "26yyl53tyqr",
-      "lastmod": "2026-11-01"
+      "hash": "2cdo96f2tqk",
+      "lastmod": "2026-11-06"
     },
     "guidelines:tr": {
-      "hash": "20idw9a0cd2",
-      "lastmod": "2026-11-01"
+      "hash": "23r8a59t5te",
+      "lastmod": "2026-11-06"
     },
     "help:ar": {
-      "hash": "1gx17gq5nky",
-      "lastmod": "2026-11-01"
+      "hash": "2a08rgb1w5a",
+      "lastmod": "2026-11-06"
     },
     "help:en": {
-      "hash": "1tznuiabge9",
-      "lastmod": "2026-11-01"
+      "hash": "2fasy4hm0j3",
+      "lastmod": "2026-11-06"
     },
     "help:tr": {
-      "hash": "2of8jbow2l",
-      "lastmod": "2026-11-01"
+      "hash": "1ld3km3asi3",
+      "lastmod": "2026-11-06"
     },
     "home:ar": {
-      "hash": "13qoqok7x8s",
-      "lastmod": "2026-11-04"
+      "hash": "jclc1qg7n0",
+      "lastmod": "2026-11-06"
     },
     "home:en": {
-      "hash": "1idslh2iaty",
-      "lastmod": "2026-11-04"
+      "hash": "hdp3x4pjxz",
+      "lastmod": "2026-11-06"
     },
     "home:tr": {
-      "hash": "1brwqm87o5m",
-      "lastmod": "2026-11-04"
+      "hash": "1m123fk823g",
+      "lastmod": "2026-11-06"
     },
     "legal:ar": {
-      "hash": "1w71nnlcudo",
-      "lastmod": "2026-11-01"
+      "hash": "1u9jnsjncvo",
+      "lastmod": "2026-11-06"
     },
     "legal:en": {
-      "hash": "1zl8b72hqm9",
-      "lastmod": "2026-11-01"
+      "hash": "dwhdusal3h",
+      "lastmod": "2026-11-06"
     },
     "legal:tr": {
-      "hash": "j9v7776w8g",
-      "lastmod": "2026-11-01"
+      "hash": "10wxb4ftptz",
+      "lastmod": "2026-11-06"
     },
     "legalCommunityRules:ar": {
-      "hash": "9bkzh2wsu2",
-      "lastmod": "2026-11-01"
+      "hash": "1w6ib1d88pu",
+      "lastmod": "2026-11-06"
     },
     "legalCommunityRules:en": {
-      "hash": "1xq1yealoz5",
-      "lastmod": "2026-11-01"
+      "hash": "1ibrgalupab",
+      "lastmod": "2026-11-06"
     },
     "legalCommunityRules:tr": {
-      "hash": "1d3prx08pj7",
-      "lastmod": "2026-11-01"
+      "hash": "1ottra8s4sc",
+      "lastmod": "2026-11-06"
     },
     "legalContentRemoval:ar": {
-      "hash": "rhbl1cw7qy",
-      "lastmod": "2026-11-01"
+      "hash": "wijo0l1vjy",
+      "lastmod": "2026-11-06"
     },
     "legalContentRemoval:en": {
-      "hash": "ijl1tl59vu",
-      "lastmod": "2026-11-01"
+      "hash": "14t8zk8zyvp",
+      "lastmod": "2026-11-06"
     },
     "legalContentRemoval:tr": {
-      "hash": "121jq8lv6qf",
-      "lastmod": "2026-11-01"
+      "hash": "evnrbgjvkx",
+      "lastmod": "2026-11-06"
     },
     "legalExplicitConsent:ar": {
-      "hash": "1cc4pqnwclj",
-      "lastmod": "2026-11-01"
+      "hash": "12rfpmhth5u",
+      "lastmod": "2026-11-06"
     },
     "legalExplicitConsent:en": {
-      "hash": "qlzjdvu7xy",
-      "lastmod": "2026-11-01"
+      "hash": "eq31thsgcv",
+      "lastmod": "2026-11-06"
     },
     "legalExplicitConsent:tr": {
-      "hash": "1em7y57kw9g",
-      "lastmod": "2026-11-01"
+      "hash": "r0ognkig7c",
+      "lastmod": "2026-11-06"
     },
     "legalKvkk:ar": {
-      "hash": "5ikdsykk2v",
-      "lastmod": "2026-11-01"
+      "hash": "8yhvw225kw",
+      "lastmod": "2026-11-06"
     },
     "legalKvkk:en": {
-      "hash": "1faqgh6f8wg",
-      "lastmod": "2026-11-01"
+      "hash": "6xxyly2nib",
+      "lastmod": "2026-11-06"
     },
     "legalKvkk:tr": {
-      "hash": "29rb8n98nha",
-      "lastmod": "2026-11-01"
+      "hash": "1tgslg6fhfp",
+      "lastmod": "2026-11-06"
     },
     "legalRetention:ar": {
-      "hash": "xba12gz34z",
-      "lastmod": "2026-11-01"
+      "hash": "1vkxy0atip9",
+      "lastmod": "2026-11-06"
     },
     "legalRetention:en": {
-      "hash": "29dd9kndd6s",
-      "lastmod": "2026-11-01"
+      "hash": "2a3o46vg29s",
+      "lastmod": "2026-11-06"
     },
     "legalRetention:tr": {
-      "hash": "21kfrz282ms",
-      "lastmod": "2026-11-01"
+      "hash": "13luxfk6iu4",
+      "lastmod": "2026-11-06"
     },
     "menu:ar": {
-      "hash": "235k0gzzcrw",
-      "lastmod": "2026-11-01"
+      "hash": "1x9irnppfjo",
+      "lastmod": "2026-11-06"
     },
     "menu:en": {
-      "hash": "1m7tjs1nhkt",
-      "lastmod": "2026-11-01"
+      "hash": "2bfwnexypco",
+      "lastmod": "2026-11-06"
     },
     "menu:tr": {
-      "hash": "272shcx594b",
-      "lastmod": "2026-11-01"
+      "hash": "1ce9fwfvfno",
+      "lastmod": "2026-11-06"
     },
     "news:ar": {
-      "hash": "26wvemlvxng",
-      "lastmod": "2026-11-01"
+      "hash": "5d8i0pvtbd",
+      "lastmod": "2026-11-06"
     },
     "news:en": {
-      "hash": "3xgun5m2rk",
-      "lastmod": "2026-11-01"
+      "hash": "121fehuh9o0",
+      "lastmod": "2026-11-06"
     },
     "news:tr": {
-      "hash": "1b93pu9qu05",
-      "lastmod": "2026-11-01"
+      "hash": "1k5utccastx",
+      "lastmod": "2026-11-06"
     },
     "privacy:ar": {
-      "hash": "2amamcaxbc5",
-      "lastmod": "2026-11-01"
+      "hash": "1ywt3gy796v",
+      "lastmod": "2026-11-06"
     },
     "privacy:en": {
-      "hash": "tn5zwdsog3",
-      "lastmod": "2026-11-01"
+      "hash": "16ccars5vzo",
+      "lastmod": "2026-11-06"
     },
     "privacy:tr": {
-      "hash": "29s8js1zr66",
-      "lastmod": "2026-11-01"
+      "hash": "1zz6mnbbbg2",
+      "lastmod": "2026-11-06"
     },
     "security:ar": {
-      "hash": "vt2k6an6wj",
-      "lastmod": "2026-11-01"
+      "hash": "1yfen6lgye7",
+      "lastmod": "2026-11-06"
     },
     "security:en": {
-      "hash": "29uxu4my125",
-      "lastmod": "2026-11-01"
+      "hash": "26z2baug6hb",
+      "lastmod": "2026-11-06"
     },
     "security:tr": {
-      "hash": "1n45onydy7d",
-      "lastmod": "2026-11-01"
+      "hash": "jwrn6v95bk",
+      "lastmod": "2026-11-06"
     },
     "sitemap:ar": {
-      "hash": "ae6ociwhjm",
-      "lastmod": "2026-11-01"
+      "hash": "12gxyvzwlkf",
+      "lastmod": "2026-11-06"
     },
     "sitemap:en": {
-      "hash": "xjgipjvroa",
-      "lastmod": "2026-11-01"
+      "hash": "1ghh9awe80o",
+      "lastmod": "2026-11-06"
     },
     "sitemap:tr": {
-      "hash": "10pb2qnblqf",
-      "lastmod": "2026-11-01"
+      "hash": "12zt0rjqq5h",
+      "lastmod": "2026-11-06"
     },
     "terms:ar": {
-      "hash": "255ud786kxq",
-      "lastmod": "2026-11-01"
+      "hash": "66nxl58hau",
+      "lastmod": "2026-11-06"
     },
     "terms:en": {
-      "hash": "mj9i5vlo0p",
-      "lastmod": "2026-11-01"
+      "hash": "28t74un0h6f",
+      "lastmod": "2026-11-06"
     },
     "terms:tr": {
-      "hash": "1wlsyu8s4pg",
-      "lastmod": "2026-11-01"
+      "hash": "23qs8qrhk4b",
+      "lastmod": "2026-11-06"
     }
   }
 }

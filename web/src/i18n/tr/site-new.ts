@@ -15,7 +15,6 @@ const m = {
   'site.feat.secure.title': 'Şifreli iletim ve saklama',
   'site.feat.secure.text':
     'Mesajlarınız iletim sırasında şifrelenir ve sunucuda şifreli olarak saklanır. Anahtarları sunucu yönetir; yetkili yöneticiler gerektiğinde mesajları görüntüleyebilir ve her erişim değiştirilemez denetim kaydına yazılır.',
-  'site.home.privacy4': 'Mesajlar şifreli iletilir ve şifreli saklanır; yönetici erişimi denetim kaydına yazılır. Silinen mesajlar güvenlik ve yasal yükümlülükler için saklanabilir.',
 
   'site.faq.new.title': 'Yeni özellikler hakkında',
   'site.faq.new.apply.q': 'Etkinliğe nasıl başvururum?',

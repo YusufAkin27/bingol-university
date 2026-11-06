@@ -8,7 +8,6 @@ const m = {
   'site.rd04.filterRemove': 'Remove the {label} filter',
   'site.rd04.clearFilters': 'Clear filters',
   'site.rd04.shown': 'Showing {shown} of {total} items',
-  'site.rd04.sourceLabel': 'Source',
   'site.rd04.appTitle': 'Follow the news in the app',
   'site.rd04.appText':
     'You choose in the app which notifications you receive for new news and announcements.',
