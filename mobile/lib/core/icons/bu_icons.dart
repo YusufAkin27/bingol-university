@@ -399,4 +399,8 @@ abstract final class BuIcons {
   static const IconData delete = LucideIcons.delete;
   static const IconData keyboard = LucideIcons.keyboard;
   static const IconData menu = LucideIcons.menu;
+  // Video denetimleri (tam ekran / ses): kare çerçeve ve hoparlör.
+  static const IconData maximize = LucideIcons.maximize;
+  static const IconData volume2 = LucideIcons.volume2;
+  static const IconData volumeOff = LucideIcons.volumeOff;
 }

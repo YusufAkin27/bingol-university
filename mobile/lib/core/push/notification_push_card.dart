@@ -134,23 +134,23 @@ String pushActionLabel(BuildContext context, String action, String style, {bool 
 }
 
 IconData pushActionIcon(String action, String style) => switch (action) {
-      'reply' => Icons.reply,
-      'mark_read' => Icons.done_all,
-      'mute_hour' => Icons.notifications_off_outlined,
-      'follow_accept' => Icons.check,
-      'follow_decline' => Icons.close,
-      'follow' => Icons.person_add_outlined,
-      'calendar' => Icons.event_available_outlined,
-      'map' => Icons.location_on_outlined,
-      'security' => Icons.shield_outlined,
-      'ack' => Icons.check_circle_outline,
-      'open_all' => Icons.expand_more,
+      'reply' => BuIcons.reply,
+      'mark_read' => BuIcons.checkCheck,
+      'mute_hour' => BuIcons.bellOff,
+      'follow_accept' => BuIcons.check,
+      'follow_decline' => BuIcons.x,
+      'follow' => BuIcons.userPlus,
+      'calendar' => BuIcons.calendarCheck,
+      'map' => BuIcons.mapPin,
+      'security' => BuIcons.shield,
+      'ack' => BuIcons.circleCheck,
+      'open_all' => BuIcons.chevronDown,
       _ => switch (style) {
-          'POLL' => Icons.how_to_vote_outlined,
-          'EVENT_ADMISSION' => Icons.badge_outlined,
-          'EVENT_UPDATE' => Icons.info_outline,
-          'SUPPORT' => Icons.arrow_forward,
-          _ => Icons.visibility_outlined,
+          'POLL' => BuIcons.vote,
+          'EVENT_ADMISSION' => BuIcons.idCard,
+          'EVENT_UPDATE' => BuIcons.info,
+          'SUPPORT' => BuIcons.arrowRight,
+          _ => BuIcons.eye,
         },
     };
 
@@ -267,10 +267,10 @@ List<Widget> pushInfoChips(AppLocalizations l, Map<String, dynamic> data, String
     if (start != null && (style.startsWith('EVENT') || style == 'EXAM' || style == 'ACADEMIC'))
       PushChip(
           label: [pushWhenLabel(l, start), if (place != null) place].join(' · '),
-          icon: Icons.event_outlined,
+          icon: BuIcons.calendar,
           tone: style == 'EXAM' ? PushChipTone.danger : PushChipTone.info,
           maxWidth: 260),
-    if (kcal != null) PushChip(label: kcal, icon: Icons.local_fire_department_outlined, tone: PushChipTone.ok),
+    if (kcal != null) PushChip(label: kcal, icon: BuIcons.zap, tone: PushChipTone.ok),
   ];
 }
 
@@ -380,7 +380,7 @@ class NotificationPushCard extends StatelessWidget {
                 onPressed: onClose,
                 visualDensity: VisualDensity.compact,
                 constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
-                icon: Icon(Icons.close, size: 17, color: t.mut))
+                icon: Icon(BuIcons.x, size: 17, color: t.mut))
           else
             const SizedBox(width: 2),
         ]);
@@ -394,7 +394,7 @@ class NotificationPushCard extends StatelessWidget {
           ? Text(countLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(fontSize: 13, height: 1.3, fontWeight: FontWeight.w400, color: t.ink))
           : start != null && style.startsWith('EVENT')
               ? Row(children: [
-                  Icon(Icons.schedule, size: 14, color: t.ink),
+                  Icon(BuIcons.clock, size: 14, color: t.ink),
                   const SizedBox(width: 4),
                   Expanded(
                       child: Text([_hm(start), if (place != null) place].join(' · '),
@@ -430,7 +430,7 @@ class NotificationPushCard extends StatelessWidget {
                           padding: const EdgeInsetsDirectional.only(start: 8),
                           child: PushActionButton(
                               label: chat ? pushActionLabel(context, first, style, many: count > 1, securityKind: securityKind) : l.p14Detail,
-                              icon: chat ? pushActionIcon(first, style) : Icons.chevron_right,
+                              icon: chat ? pushActionIcon(first, style) : BuIcons.chevronRight,
                               kind: chat ? PushButtonKind.secondary : PushButtonKind.primary,
                               onPressed: () => onAction(first))),
                   ])),

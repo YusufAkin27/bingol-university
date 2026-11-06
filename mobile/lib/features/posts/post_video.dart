@@ -514,7 +514,7 @@ class PostVideoSoundButton extends StatelessWidget {
           child: SizedBox(
             width: BuSize.touch,
             height: BuSize.touch,
-            child: Center(child: _Disc(icon: muted ? Icons.volume_off_rounded : Icons.volume_up_rounded, size: 32, iconSize: 18)),
+            child: Center(child: _Disc(icon: muted ? BuIcons.volumeOff : BuIcons.volume2, size: 32, iconSize: 18)),
           ),
         ),
       ),
@@ -540,7 +540,7 @@ class PostVideoFullscreenButton extends StatelessWidget {
           child: const SizedBox(
             width: BuSize.touch,
             height: BuSize.touch,
-            child: Center(child: _Disc(icon: Icons.fullscreen_rounded, size: 32, iconSize: 20)),
+            child: Center(child: _Disc(icon: BuIcons.maximize, size: 32, iconSize: 20)),
           ),
         ),
       );

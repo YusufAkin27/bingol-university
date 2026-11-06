@@ -239,7 +239,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   IconButton(
                       tooltip: context.l10n.commonClose,
                       onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close)),
+                      icon: const Icon(BuIcons.x)),
                 ]),
                 const SizedBox(height: 12),
                 Text(n['title'] as String? ?? '',

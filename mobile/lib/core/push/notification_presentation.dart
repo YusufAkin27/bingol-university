@@ -66,20 +66,20 @@ IconData notificationIcon(Map<String, dynamic> data) {
   if (isForumPush(data)) return BuIcons.messageSquareText;
   final dest = resolvePushTarget(data).dest;
   if (dest == PushDest.ticket || dest == PushDest.feedback) {
-    return Icons.support_agent;
+    return BuIcons.headset;
   }
-  if (type == 'POST_LIKE') return Icons.favorite_outline;
-  if (type == 'POST_MENTION') return Icons.alternate_email;
+  if (type == 'POST_LIKE') return BuIcons.heart;
+  if (type == 'POST_MENTION') return BuIcons.atSign;
   if (type == 'FOLLOW_REQUEST' || type == 'USER_FOLLOW') {
-    return Icons.person_add_alt_1_outlined;
+    return BuIcons.userPlus;
   }
-  if (type == 'FOLLOW_ACCEPTED') return Icons.how_to_reg_outlined;
+  if (type == 'FOLLOW_ACCEPTED') return BuIcons.userCheck;
   return switch (notificationCategory(data)) {
-    NotificationCategory.event => Icons.event_outlined,
-    NotificationCategory.announcement => Icons.campaign_outlined,
-    NotificationCategory.academic => Icons.school_outlined,
-    NotificationCategory.poll => Icons.poll_outlined,
-    NotificationCategory.social => Icons.people_outline,
-    NotificationCategory.system => Icons.shield_outlined,
+    NotificationCategory.event => BuIcons.calendar,
+    NotificationCategory.announcement => BuIcons.megaphone,
+    NotificationCategory.academic => BuIcons.graduationCap,
+    NotificationCategory.poll => BuIcons.vote,
+    NotificationCategory.social => BuIcons.users,
+    NotificationCategory.system => BuIcons.shield,
   };
 }

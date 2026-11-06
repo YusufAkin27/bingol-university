@@ -80,7 +80,7 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
         child:
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Row(children: [
-            Icon(Icons.school_outlined, color: t.ink),
+            Icon(BuIcons.graduationCap, color: t.ink),
             const SizedBox(width: 10),
             Expanded(
                 child: Text(l.p17ExamDetail,
@@ -88,7 +88,7 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
             IconButton(
                 tooltip: l.commonClose,
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close)),
+                icon: const Icon(BuIcons.x)),
           ]),
           const SizedBox(height: 16),
           FutureBuilder<Exam?>(
@@ -131,7 +131,7 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
                             runSpacing: 8,
                             children: [
                               Row(mainAxisSize: MainAxisSize.min, children: [
-                                Icon(Icons.alarm, color: t.ink),
+                                Icon(BuIcons.alarmClock, color: t.ink),
                                 const SizedBox(width: 12),
                                 Flexible(
                                     child: Text(countdown,
@@ -162,8 +162,8 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
                                           children: [
                                             Icon(
                                                 _alarm!
-                                                    ? Icons.notifications_active_outlined
-                                                    : Icons.notifications_off_outlined,
+                                                    ? BuIcons.bellRing
+                                                    : BuIcons.bellOff,
                                                 size: 18,
                                                 color: t.ink),
                                             const SizedBox(width: 6),
@@ -222,7 +222,7 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
                                 padding: const EdgeInsets.symmetric(vertical: 10),
                                 child: Divider(color: t.bd)),
                             Row(children: [
-                              Icon(Icons.calendar_today_outlined,
+                              Icon(BuIcons.calendar,
                                   color: t.mut, size: 22),
                               const SizedBox(width: 12),
                               Expanded(
@@ -248,7 +248,7 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
                             border: Border.all(color: t.bd),
                             borderRadius: BorderRadius.circular(16)),
                         child: Row(children: [
-                          Icon(Icons.meeting_room_outlined, color: t.ink),
+                          Icon(BuIcons.doorOpen, color: t.ink),
                           const SizedBox(width: 12),
                           Expanded(
                               child: Text(exam.room!,

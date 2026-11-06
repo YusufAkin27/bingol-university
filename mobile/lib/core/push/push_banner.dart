@@ -70,14 +70,14 @@ IconData bannerIcon(Map<String, dynamic> data) {
     case PushDest.followRequests:
       return BuIcons.userPlus;
     case PushDest.meal:
-      return Icons.restaurant;
+      return BuIcons.utensils;
     case PushDest.accountSecurity:
-      return Icons.shield_outlined;
+      return BuIcons.shield;
     case PushDest.devices:
       return BuIcons.smartphone;
     case PushDest.ticket:
     case PushDest.feedback:
-      return Icons.support_agent;
+      return BuIcons.headset;
     case PushDest.timetable:
     case PushDest.exams:
       return BuIcons.graduationCap;

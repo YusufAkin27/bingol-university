@@ -10,23 +10,23 @@ enum PushAvatarRole { like, follow, request, accepted, mention }
 
 /// [style] anahtarÄ±na gÃ¶re simge + renk ailesi (karo zemini/simgesi). Palet: marka, mavi, yeÅŸil, amber, su mavisi, nÃ¶tr.
 IconData pushStyleIcon(String style) => switch (style) {
-      'SECURITY' => Icons.shield_outlined,
-      'EXAM' || 'ACADEMIC' => Icons.school_outlined,
-      'EVENT_REMINDER' => Icons.event_outlined,
-      'EVENT_ADMISSION' => Icons.event_available_outlined,
-      'EVENT_UPDATE' || 'EVENT' => Icons.edit_calendar_outlined,
-      'EVENT_CANCELLED' => Icons.event_busy_outlined,
-      'MODERATION' => Icons.gavel_outlined,
+      'SECURITY' => BuIcons.shield,
+      'EXAM' || 'ACADEMIC' => BuIcons.graduationCap,
+      'EVENT_REMINDER' => BuIcons.calendar,
+      'EVENT_ADMISSION' => BuIcons.calendarCheck,
+      'EVENT_UPDATE' || 'EVENT' => BuIcons.calendarClock,
+      'EVENT_CANCELLED' => BuIcons.calendarX,
+      'MODERATION' => BuIcons.shieldAlert,
       'FORUM' => BuIcons.messageSquareText,
-      'POLL' => Icons.poll_outlined,
-      'SUPPORT' => Icons.support_agent,
-      'MEAL' => Icons.restaurant,
-      'SYSTEM' => Icons.info_outline,
-      'MENTION' => Icons.alternate_email,
-      'FOLLOW' || 'FOLLOW_REQUEST' || 'FOLLOW_ACCEPTED' || 'SOCIAL' || 'LIKE' => Icons.people_outline,
-      'CHAT_GROUP' => Icons.groups_outlined,
-      'CHAT_DIRECT' || 'CHAT_MEDIA' => Icons.chat_bubble_outline,
-      _ => Icons.campaign_outlined,
+      'POLL' => BuIcons.vote,
+      'SUPPORT' => BuIcons.headset,
+      'MEAL' => BuIcons.utensils,
+      'SYSTEM' => BuIcons.info,
+      'MENTION' => BuIcons.atSign,
+      'FOLLOW' || 'FOLLOW_REQUEST' || 'FOLLOW_ACCEPTED' || 'SOCIAL' || 'LIKE' => BuIcons.users,
+      'CHAT_GROUP' => BuIcons.users,
+      'CHAT_DIRECT' || 'CHAT_MEDIA' => BuIcons.messageCircle,
+      _ => BuIcons.megaphone,
     };
 
 BuTint pushStyleTint(BuTokens t, String style) => t.tints[switch (style) {
@@ -114,11 +114,11 @@ class PushAvatar extends StatelessWidget {
     final t = context.bu;
     final badge = size * .42;
     final roleStyle = switch (role) {
-      PushAvatarRole.like => (Icons.favorite, t.heart, t.onMedia),
-      PushAvatarRole.follow => (Icons.person_add_alt_1, t.ink, t.bg),
-      PushAvatarRole.request => (Icons.lock, t.ink, t.bg),
-      PushAvatarRole.accepted => (Icons.check, t.ok, t.sf),
-      PushAvatarRole.mention => (Icons.alternate_email, t.pr, t.onPr),
+      PushAvatarRole.like => (BuIcons.heartFilled, t.heart, t.onMedia),
+      PushAvatarRole.follow => (BuIcons.userPlus, t.ink, t.bg),
+      PushAvatarRole.request => (BuIcons.lock, t.ink, t.bg),
+      PushAvatarRole.accepted => (BuIcons.check, t.ok, t.sf),
+      PushAvatarRole.mention => (BuIcons.atSign, t.pr, t.onPr),
       null => null,
     };
     return SizedBox(
