@@ -19,7 +19,9 @@ curl -s -o /dev/null -X POST -H "$H" $A/auth/register \
   -d "{\"email\":\"$EMAIL\",\"password\":\"$PW\",\"displayName\":\"Coklu Oturum\",\"acceptTerms\":true}"
 sleep 1
 CODE=$(docker compose logs backend 2>&1 | grep "$EMAIL icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-curl -s -o /dev/null -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$EMAIL\",\"code\":\"$CODE\",\"password\":\"$PW\"}"
+V0=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$EMAIL\",\"code\":\"$CODE\",\"password\":\"$PW\"}")
+# verify-email de bir oturum acar (kayit oturumu): sayimlar bozulmasin diye hemen kapatilir
+curl -s -o /dev/null -X POST -H "$H" $A/auth/logout -d "{\"refreshToken\":\"$(echo "$V0" | field refreshToken)\"}"
 
 # $1 = cihaz kimligi (X-Device-Id, 8+ karakter), $2 = cihaz adi
 login() {
