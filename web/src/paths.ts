@@ -25,7 +25,6 @@ export const paths = {
     newsItem: (id: number | string) => `/news/${id}`,
     menu: '/menu',
     supportTrack: '/support/track',
-    brand: '/brand',
     changelog: '/changelog',
     legal: (type: string) => `/legal/${type.toLowerCase().replace(/_/g, '-')}`,
   },

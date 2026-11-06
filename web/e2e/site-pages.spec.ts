@@ -15,7 +15,6 @@ const PAGES: [string, string][] = [
   ['/help', 'Yardım merkezi'],
   ['/news', 'Haberler ve duyurular'],
   ['/menu', 'Yemek listesi'],
-  ['/brand', 'Basın ve marka kiti'],
   ['/changelog', 'Sürüm notları'],
 ];
 

@@ -38,10 +38,13 @@ function Glyph({
   /** Gizli (CSS ile display:none) tema varyantı: tarayıcı lazy görseli düzen kutusu yokken indirmez. */
   lazy?: boolean;
 }) {
+  const w = Math.round((glyphH * asset.width) / asset.height);
   return (
     <img
       src={asset.src}
-      width={Math.round((glyphH * asset.width) / asset.height)}
+      srcSet={asset.srcSet}
+      sizes={`${w}px`}
+      width={w}
       height={glyphH}
       alt={alt}
       aria-hidden={alt === '' ? true : undefined}

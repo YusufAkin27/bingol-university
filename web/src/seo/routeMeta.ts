@@ -71,7 +71,6 @@ const RAW_ROUTES: RouteMetaInput[] = [
   { id: 'help', path: paths.site.help, titleKey: 'pg.help.title', descKey: 'pg.help.meta', leadKey: 'pg.help.lead', changefreq: 'monthly', priority: 0.6 },
   { id: 'faq', path: paths.site.faq, titleKey: 'site.faq.title', descKey: 'site.meta.faq', leadKey: 'site.faq.lead', faq: true, changefreq: 'monthly', priority: 0.6 },
   { id: 'contact', path: paths.site.contact, titleKey: 'site.contact.title', descKey: 'site.meta.contact', leadKey: 'site.contact.lead', changefreq: 'yearly', priority: 0.7 },
-  { id: 'brand', path: paths.site.brand, titleKey: 'pg.brand.title', descKey: 'pg.brand.meta', leadKey: 'pg.brand.lead', changefreq: 'yearly', priority: 0.3 },
   { id: 'changelog', path: paths.site.changelog, titleKey: 'pg.changelog.title', descKey: 'pg.changelog.meta', leadKey: 'pg.changelog.lead', changefreq: 'weekly', priority: 0.4 },
   {
     id: 'deleteAccount',

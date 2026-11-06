@@ -184,28 +184,41 @@ export function SiteLayout() {
               </FootGroup>
             ))}
           </div>
-          <div className={styles.bottom}>
-            <div className={styles.notes}>
-              <p className={styles.indep}>{t('site.v3.footer.independent')}</p>
-            </div>
-            <div className={styles.contact}>
-              <h2 className="sr-only">{t('pg.foot.contactTitle')}</h2>
-              <ul className={styles.contactList} aria-label={t('site.rd10.foot.contactLabel')}>
-                {data?.contactEmail && (
-                  <li>
-                    <a href={`mailto:${data.contactEmail}`} className="ltr">
-                      {data.contactEmail}
-                    </a>
-                  </li>
-                )}
-                {data?.phone && (
-                  <li>
-                    <a href={`tel:${data.phone.replace(/\s+/g, '')}`} className="ltr">
-                      {data.phone}
-                    </a>
-                  </li>
-                )}
-                {data?.address && <li>{data.address}</li>}
+          <div className={styles.contact}>
+            <h2 className="sr-only">{t('pg.foot.contactTitle')}</h2>
+            <ul className={styles.contactList} aria-label={t('site.rd10.foot.contactLabel')}>
+              {data?.contactEmail && (
+                <li>
+                  <Icon name="mail" size={18} className={styles.cIcon} />
+                  <a href={`mailto:${data.contactEmail}`} className="ltr">
+                    {data.contactEmail}
+                  </a>
+                </li>
+              )}
+              {data?.phone && (
+                <li>
+                  <Icon name="phone" size={18} className={styles.cIcon} />
+                  <a href={`tel:${data.phone.replace(/\s+/g, '')}`} className="ltr">
+                    {data.phone}
+                  </a>
+                </li>
+              )}
+              {data?.address && (
+                <li className={styles.cAddr}>
+                  <Icon name="pin" size={18} className={styles.cIcon} />
+                  <span>{data.address}</span>
+                </li>
+              )}
+              {/* Uygulama bilgisi gelmediyse / iletişim alanları boşsa: iletişim sayfasına yedek bağlantı */}
+              {!hasContact && (
+                <li>
+                  <Icon name="mail" size={18} className={styles.cIcon} />
+                  <Link to={paths.site.contact}>{t('pg.foot.contactLink')}</Link>
+                </li>
+              )}
+            </ul>
+            {(data?.social.instagram || data?.social.twitter || data?.social.youtube) && (
+              <ul className={styles.socials}>
                 {data?.social.instagram && (
                   <li>
                     <a href={data.social.instagram} target="_blank" rel="noopener noreferrer">
@@ -227,25 +240,22 @@ export function SiteLayout() {
                     </a>
                   </li>
                 )}
-                {/* Uygulama bilgisi gelmediyse / iletişim alanları boşsa: iletişim sayfasına yedek bağlantı */}
-                {!hasContact && (
-                  <li>
-                    <Link to={paths.site.contact}>{t('pg.foot.contactLink')}</Link>
-                  </li>
-                )}
               </ul>
-              <p className={styles.sub}>{t('site.footer.rights', { year: new Date().getFullYear() })}</p>
-              <ul className={styles.metaLinks}>
-                <li>
-                  <Link to={paths.site.sitemap}>{t('site.rd10.foot.sitemap')}</Link>
-                </li>
-                <li>
-                  <button type="button" className={styles.linkBtn} onClick={() => setPrefsOpen(true)}>
-                    {t('site.rd10.foot.cookiePrefs')}
-                  </button>
-                </li>
-              </ul>
-            </div>
+            )}
+          </div>
+          <div className={styles.bottom}>
+            <p className={styles.sub}>{t('site.footer.rights', { year: new Date().getFullYear() })}</p>
+            <ul className={styles.metaLinks}>
+              <li>
+                <Link to={paths.site.sitemap}>{t('site.rd10.foot.sitemap')}</Link>
+              </li>
+              <li>
+                <button type="button" className={styles.linkBtn} onClick={() => setPrefsOpen(true)}>
+                  {t('site.rd10.foot.cookiePrefs')}
+                </button>
+              </li>
+            </ul>
+            <p className={styles.indep}>{t('site.v3.footer.independent')}</p>
           </div>
         </div>
       </footer>

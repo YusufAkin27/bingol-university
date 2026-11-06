@@ -305,3 +305,122 @@
     min-height: 44px;
   }
 }
+
+/* ---- Alt bilgi: marka, iletişim, alt çubuk ---- */
+.footBrand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+.brandMain p {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.footer ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.contact {
+  display: grid;
+  gap: var(--space-3);
+  padding-block-start: var(--space-5);
+  border-block-start: 1px solid var(--border);
+}
+.contactList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-6);
+  font-size: var(--text-sm);
+}
+.contactList li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.contactList .cAddr {
+  align-items: center;
+}
+.cIcon {
+  flex: none;
+  color: var(--text-faint);
+}
+.contactList a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-5);
+  font-size: var(--text-sm);
+}
+.socials a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-5);
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--border);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.sub,
+.indep {
+  margin: 0;
+  font-size: var(--text-xs);
+}
+.metaLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-4);
+  font-size: var(--text-xs);
+}
+.metaLinks a,
+.linkBtn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.linkBtn {
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  color: var(--text-muted);
+  cursor: pointer;
+  text-decoration: none;
+  border-radius: var(--radius-xs);
+  transition: color var(--site-dur) var(--ease);
+}
+.linkBtn:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+.linkBtn:focus-visible,
+.footer a:focus-visible {
+  outline: var(--focus-w) solid var(--focus);
+  outline-offset: 2px;
+}
+.indep {
+  flex: 1 1 100%;
+}
+@media (min-width: 768px) {
+  .indep {
+    flex: 1 1 auto;
+    margin-inline-start: auto;
+    text-align: end;
+  }
+}

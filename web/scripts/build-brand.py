@@ -74,6 +74,10 @@ mark_dark = crop_mark(glyph(dark_gray, WHITE, invert=False))    # beyaz glif (ko
 # 1) Logo bileşeni görselleri (hashli, paketlenir): 192 genişlik (2x retina için 36-44 px yükseklik yeter)
 for name, m in (('light', mark_light), ('dark', mark_dark)):
     save_png(fit_width(m, 192), os.path.join(ASSETS, f'mark-{name}.png'))
+    # srcset basamakları (1x/2x/3x sadakat): tarayıcı ekran yoğunluğuna uygun olanı seçer, aşırı küçültme bulanıklığı olmaz
+    save_png(fit_width(m, 384), os.path.join(ASSETS, f'mark-{name}-384.png'))
+    # 96 px dosya public'te: 4 KB altı olduğundan assets'te JS paketine base64 gömülürdü (bundle bütçesi)
+    save_png(fit_width(m, 96), os.path.join(BRAND, f'mark-{name}-96.png'))
     save_png(fit_width(m, 512), os.path.join(BRAND, f'mark-{name}.png'))
 
 # 2) Marka sayfası indirmeleri: tam kare (özgün) logolar, 1024
