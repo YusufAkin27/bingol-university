@@ -176,9 +176,13 @@ public class ReceiptService {
         Long target = messages.maxIdFromOthers(conversationId, upTo, userId);
         long before = me.getLastDeliveredMessageId();
         if (target == null || target <= before) {
+            // Yinelenen / geriye giden / kendi mesajina ack: imlec degismez, olay yayinlanmaz (idempotent)
+            log.debug("delivered no-op conv={} user={} requested={} cursor={} target={}", conversationId, userId,
+                    lastMessageId, before, target);
             return;
         }
         if (members.advanceDelivered(conversationId, userId, target) > 0) {
+            log.debug("delivered advanced conv={} user={} {}->{}", conversationId, userId, before, target);
             if (conv.getType() == Conversation.Type.DIRECT) {
                 messages.recordDelivered(conversationId, userId, before, target, Instant.now());
             }

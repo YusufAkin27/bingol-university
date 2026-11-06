@@ -264,3 +264,11 @@ Geriye uyumlu (yalniz ekleme; tek davranis degisikligi: arsiv artik yeni mesajla
 - **Arsivli sohbete gelen mesaj sessizdir:** push ve uygulama ici bildirim uretilmez (`MessageService.deliver`: `muted || archivedAt != null`); mesaj kaydedilir, WebSocket ile iletilir, okunmamis sayaci artar.
 - **`GET /api/conversations/unread-count`** (`UnreadSummary`): arsivli sohbetler `total` ve `mutedTotal`a GIRMEZ (alt cubuk/uygulama simgesi rozeti saymaz); yeni alanlar `archivedChats` (arsivdeki, listede gorunen sohbet sayisi) ve `archivedUnreadChats` (okunmamisi olan arsivli sohbet sayisi; sohbet basina 1, bir sohbette 100 okunmamis olsa da 1). `conversations[]` ogesine `archived` eklendi. `/api/me/summary` rozeti (`unreadBadge`) de arsivlileri saymaz.
 - Testler: `ConversationPrefsServiceTest`, `MessageServiceTest`, `UnreadBadgeTest`.
+
+## Teslim tikleri: uc uca denetim ve istemci boslugu kapatma (2026-11-07)
+
+- Durum modeli (degismedi, migration yok): uye imleci `last_delivered_message_id`/`last_read_message_id` (yalniz ilerler) + birebirde `message.delivered_at/read_at` (ilk zaman kazanir). Gonderen tiki: SENT (kayit) -> DELIVERED (ALICI istemci `POST /conversations/{id}/delivered` / STOMP `/app/chat.delivered` / alicinin sohbet listesini cekmesi) -> READ. Okundu iletildiyi de ilerletir. FCM/push tek basina teslim kaniti DEGILDIR: sunucu push gonderince hicbir imlec yazilmaz.
+- Yetki: yalniz konusmanin aktif, kabul etmis UYESI kendi adina yazar (uye degil 404 `CONVERSATION_NOT_FOUND`); gonderen kendi mesajini ackleyemez (no-op); imlec geri gitmez, ayni deger tekrarinda olay yayinlanmaz (idempotent); dakikada 120 (`delivered:<uid>`). Grup: tum diger uygun uyeler esigi gecince DELIVERED/READ (degismedi).
+- Gonderen sohbet LISTESI artik `receipt` olayini dinler (once yalniz acik sohbet ekrani guncelliyordu; liste yenilenene dek son mesaj tek tikte kaliyordu). Acik sohbette son mesajim 2 dk icinde hala SENT ise REST ile hizli teyit (olay kacmis olabilir; Redis pub/sub kalici degil).
+- Alici istemci soket (yeniden) kurulunca: bilinen iletildi imleclerini yeniden yollar, okunmamisi varsa listeyi bir kez ceker (sunucu `markListedDelivered`); push'a dayanmaz. Soket yokken (arka plan/cevrimdisi) istemci iletildi YAZMAZ (muhafazakar).
+- Test: `DeliveryReceiptsEndToEndTest` (iki hesap, H2), mobil `dlv_delivery_ticks_test.dart`.
