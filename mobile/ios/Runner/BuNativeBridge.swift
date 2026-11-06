@@ -616,10 +616,20 @@ final class BuSecureImageHost: UIView {
   private let imageView = UIImageView()
   private var canvas: UIView?
 
-  init(frame: CGRect, image: UIImage?) {
+  /// Ekran görüntüsünde güvenli kapsayıcı çıkmaz; arkadaki bu NORMAL görünüm kalır. Güvenli fotoğraf opak siyah
+  /// zeminlidir (kenar boşluğundan kapak sızmasın), görüntülerken kapak hiç görünmez.
+  private let coverView = UIImageView()
+
+  init(frame: CGRect, image: UIImage?, cover: UIImage? = nil) {
     super.init(frame: frame)
     backgroundColor = .clear
     clipsToBounds = true
+    coverView.image = cover
+    coverView.contentMode = .scaleAspectFill
+    coverView.clipsToBounds = true
+    coverView.frame = bounds
+    coverView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+    addSubview(coverView)
     field.backgroundColor = .clear
     field.frame = bounds
     addSubview(field)
@@ -630,6 +640,7 @@ final class BuSecureImageHost: UIView {
     imageView.image = image
     imageView.contentMode = .scaleAspectFit
     imageView.clipsToBounds = true
+    imageView.backgroundColor = .black
     imageView.translatesAutoresizingMaskIntoConstraints = false
     c.addSubview(imageView)
     NSLayoutConstraint.activate([
@@ -648,7 +659,10 @@ final class BuSecureImageHost: UIView {
     field.layoutIfNeeded()
   }
 
-  deinit { imageView.image = nil }
+  deinit {
+    imageView.image = nil
+    coverView.image = nil
+  }
 }
 
 final class BuSecureImagePlatformView: NSObject, FlutterPlatformView {
@@ -656,10 +670,12 @@ final class BuSecureImagePlatformView: NSObject, FlutterPlatformView {
 
   init(frame: CGRect, args: Any?) {
     var image: UIImage?
-    if let map = args as? [String: Any], let data = map["bytes"] as? FlutterStandardTypedData {
-      image = UIImage(data: data.data)
+    var cover: UIImage?
+    if let map = args as? [String: Any] {
+      if let data = map["bytes"] as? FlutterStandardTypedData { image = UIImage(data: data.data) }
+      if let data = map["cover"] as? FlutterStandardTypedData { cover = UIImage(data: data.data) }
     }
-    host = BuSecureImageHost(frame: frame, image: image)
+    host = BuSecureImageHost(frame: frame, image: image, cover: cover)
     super.init()
   }
 
