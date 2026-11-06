@@ -1,0 +1,17 @@
+/* BU Kampus widget'lari - Turkce (tr). Widget Galerisi adlari/aciklamalari + uygulama hic eslesmediyse oturumsuz metinler. */
+"signedout.title" = "Giriş yap";
+"signedout.sub" = "BÜ Kampüs'ü aç";
+"widget.menu.name" = "Günün Yemek Menüsü";
+"widget.menu.desc" = "Bugünün yemekhane menüsünü ve kalorisini gösterir.";
+"widget.timetable.name" = "Ders Programım";
+"widget.timetable.desc" = "Sıradaki dersini ve bugünkü programını gösterir.";
+"widget.events.name" = "Yaklaşan Etkinlikler";
+"widget.events.desc" = "Kulüplerin yaklaşan etkinliklerini gösterir.";
+"widget.announcements.name" = "Kampüs Duyuruları";
+"widget.announcements.desc" = "Üniversitenin son duyurularını gösterir.";
+"widget.poll.name" = "Günün Anketi";
+"widget.poll.desc" = "Günün anketini ve sonuçlarını gösterir.";
+"widget.quickaccess.name" = "Hızlı Erişim";
+"widget.quickaccess.desc" = "Sık kullandığın bölümlere tek dokunuşla ulaş.";
+"widget.social.name" = "Sosyal Özet";
+"widget.social.desc" = "Okunmamış mesaj, bildirim ve beğeni sayılarını gösterir (yalnızca sayılar).";
