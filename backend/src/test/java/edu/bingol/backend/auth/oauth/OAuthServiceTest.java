@@ -175,6 +175,63 @@ class OAuthServiceTest {
         assertEquals("Mehmet Demir", u.getDisplayName());
         AuthIdentity id = identities.findByProviderAndSubject(OAuthProvider.APPLE, "a1-" + tag).orElseThrow();
         assertTrue(id.isEmailIsPrivate());
+        // gizli adres: hesap "role" isaretlenir ve gercek e-posta kapisi (yeni hesap) kapali baslar
+        assertTrue(u.isEmailRelay());
+        assertTrue(u.isRealEmailRequired());
+    }
+
+    @Test
+    void googleAndRealAppleEmailAccountsAreNotRelayAndNotGated() {
+        User g = svc.signInGoogle(googleToken("gr-" + tag, email("gercek"))).user();
+        assertFalse(g.isEmailRelay());
+        assertFalse(g.isRealEmailRequired());
+
+        // Apple "E-postami paylas" derse gercek adres gelir (is_private_email yok): role degil
+        String real = t.sign(t.appleClaims("ar-" + tag, email("applegercek"), "nr"));
+        User a = svc.signInApple(real, "nr", null, null).user();
+        assertFalse(a.isEmailRelay());
+        assertFalse(a.isRealEmailRequired());
+    }
+
+    @Test
+    void afterTheRealEmailIsVerifiedANewAppleLoginNeverWritesTheRelayAddressBack() {
+        String relay = "geri" + tag + "@privaterelay.appleid.com";
+        User u = svc.signInApple(t.sign(t.appleClaims("ag-" + tag, relay, "n1")), "n1", null, null).user();
+        String real = email("dogrulanmis");
+        // RealEmailService.apply'in sonucunu taklit et: gercek adres + role bayragi kapali + kimlik e-postasi bos
+        u.setEmail(real);
+        u.setEmailRelay(false);
+        u.setRealEmailRequired(false);
+        users.save(u);
+        AuthIdentity id = identities.findByProviderAndSubject(OAuthProvider.APPLE, "ag-" + tag).orElseThrow();
+        id.setEmail(null);
+        id.setEmailIsPrivate(false);
+        identities.save(id);
+
+        // Apple yine role adresini gonderir
+        User again = svc.signInApple(t.sign(t.appleClaims("ag-" + tag, relay, "n2")), "n2", null, null).user();
+
+        assertEquals(u.getId(), again.getId());
+        assertEquals(real, users.findById(u.getId()).orElseThrow().getEmail());
+        AuthIdentity after = identities.findByProviderAndSubject(OAuthProvider.APPLE, "ag-" + tag).orElseThrow();
+        assertNull(after.getEmail(), "KVKK: eski role adresi geri yazilmaz");
+        assertFalse(after.isEmailIsPrivate());
+    }
+
+    @Test
+    void legacyRelayAccountIsSelfFlaggedOnNextLoginWithoutTheGate() {
+        String relay = "mirasi" + tag + "@privaterelay.appleid.com";
+        User u = svc.signInApple(t.sign(t.appleClaims("al-" + tag, relay, "n1")), "n1", null, null).user();
+        // migration oncesi hesap: bayraklar yok
+        u.setEmailRelay(false);
+        u.setRealEmailRequired(false);
+        users.save(u);
+
+        User again = svc.signInApple(t.sign(t.appleClaims("al-" + tag, relay, "n2")), "n2", null, null).user();
+
+        User stored = users.findById(again.getId()).orElseThrow();
+        assertTrue(stored.isEmailRelay(), "role alan adli hesap kendini onarir");
+        assertFalse(stored.isRealEmailRequired(), "mevcut hesap kilitlenmez");
     }
 
     @Test

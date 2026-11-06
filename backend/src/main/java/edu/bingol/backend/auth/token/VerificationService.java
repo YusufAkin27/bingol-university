@@ -47,6 +47,8 @@ public class VerificationService {
     private static final String RESET = "pr";
     /** Iki faktorlu giris/etkinlestirme kodu: anahtar `tf:<kullanici kimligi>` (bkz. issueTwoFactor). */
     private static final String TWO_FACTOR = "tf";
+    /** Gercek e-posta (role adresi degisimi) kodu: anahtar `ce:<kullanici>:<yeni e-posta>`; kod YENI adrese gider. */
+    private static final String EMAIL_CHANGE = "ce";
 
     private final StringRedisTemplate redis;
     private final MailService mail;
@@ -195,6 +197,27 @@ public class VerificationService {
         redis.delete(List.of(TWO_FACTOR + ":" + subject, TWO_FACTOR + ":att:" + subject,
                 TWO_FACTOR + ":lock:" + subject, TWO_FACTOR + ":gatt:" + subject));
         clearScoped(TWO_FACTOR, subject);
+    }
+
+    /**
+     * Gercek e-posta kodu ("ce" anahtar alani): `subject` = `<kullanici>:<yeni e-posta>`, kod `to` (yeni adres) adresine
+     * gider. Kimlikli akis; 180 sn yeniden gonderim beklemesi, hash'li kod, 10 dk, 5 deneme ve saatlik toplam sinir ayni.
+     * Kod yeni adrese baglidir: baska adres icin uretilmis kod bu adresi dogrulayamaz.
+     */
+    public void issueEmailChange(String subject, String to, Lang lang) {
+        issue(EMAIL_CHANGE, subject, to, lang, true);
+    }
+
+    /** Gercek e-posta kodu dogruysa true (ve tuketilir); kilit/limit asilirsa 429. `scope`: istemci anahtari. */
+    public boolean verifyEmailChange(String subject, String code, String scope) {
+        return verify(EMAIL_CHANGE, subject, code, scope);
+    }
+
+    /** Bekleyen gercek e-posta kodunu, sayaclarini ve kilidini siler (adres degisince / dogrulama bitince). */
+    public void clearEmailChange(String subject) {
+        redis.delete(List.of(EMAIL_CHANGE + ":" + subject, EMAIL_CHANGE + ":att:" + subject,
+                EMAIL_CHANGE + ":lock:" + subject, EMAIL_CHANGE + ":gatt:" + subject, EMAIL_CHANGE + ":cd:" + subject));
+        clearScoped(EMAIL_CHANGE, subject);
     }
 
     private void issue(String ns, String email, Lang lang) {

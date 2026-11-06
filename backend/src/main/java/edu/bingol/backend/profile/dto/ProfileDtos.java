@@ -29,14 +29,16 @@ public final class ProfileDtos {
                               @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String firstName,
                               @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String lastName,
                               @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String universityName,
-                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) List<String> authProviders) {
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) List<String> authProviders,
+                              boolean emailNeedsReal, boolean realEmailRequired) {
         /** avatarHidden ve populerlik alanlari yok (null): yalnizca GET /users/me doldurur. */
         public static ProfileView of(User u) {
             return new ProfileView(u.getId(), u.getEmail(), u.getDisplayName(), u.getFaculty(), u.getDepartment(),
                     u.getClassYear(), u.getBio(), u.getAvatarUrl(), u.isShowEmail(), u.getRole(), u.getLanguage(),
                     u.getCreatedAt().toString(), u.getGrade(), null, null, null, null, null, null,
                     u.isEmailVerified(), u.isVerificationDeferred() && !u.isEmailVerified(),
-                    u.isProfileCompleted(), u.getUsername(), u.getFirstName(), u.getLastName(), u.getUniversityName(), null);
+                    u.isProfileCompleted(), u.getUsername(), u.getFirstName(), u.getLastName(), u.getUniversityName(), null,
+                    u.isEmailRelay(), u.isEmailRelay() && u.isRealEmailRequired());
         }
 
         /** Bagli giris saglayicilari (GOOGLE, APPLE; yalniz GET /users/me doldurur; parola ile giris her zaman vardir). */
@@ -44,7 +46,7 @@ public final class ProfileDtos {
             return new ProfileView(id, email, displayName, faculty, department, classYear, bio, avatarUrl, showEmail,
                     role, language, createdAt, grade, avatarHidden, popularityScore, followerCount, likesReceived,
                     postCount, reelCount, emailVerified, verificationDeferred, profileCompleted, username, firstName,
-                    lastName, universityName, providers);
+                    lastName, universityName, providers, emailNeedsReal, realEmailRequired);
         }
 
         /** Profil fotografi moderasyonla gizlendi mi (mobil bilgi karti). */
@@ -52,7 +54,7 @@ public final class ProfileDtos {
             return new ProfileView(id, email, displayName, faculty, department, classYear, bio, avatarUrl, showEmail,
                     role, language, createdAt, grade, hidden, popularityScore, followerCount, likesReceived, postCount, reelCount,
                     emailVerified, verificationDeferred, profileCompleted, username, firstName, lastName, universityName,
-                    authProviders);
+                    authProviders, emailNeedsReal, realEmailRequired);
         }
 
         /** Populerlik puani (0..100) ve bilesenleri: takipci, alinan toplam begeni, gonderi sayisi (gercek sayilar). */
@@ -60,7 +62,7 @@ public final class ProfileDtos {
             return new ProfileView(id, email, displayName, faculty, department, classYear, bio, avatarUrl, showEmail,
                     role, language, createdAt, grade, avatarHidden, score, followers, likes, posts, reelCount,
                     emailVerified, verificationDeferred, profileCompleted, username, firstName, lastName, universityName,
-                    authProviders);
+                    authProviders, emailNeedsReal, realEmailRequired);
         }
 
         /** Reels (video gonderi) sayisi (KS-BE2; yalniz GET /users/me doldurur). */
@@ -68,7 +70,7 @@ public final class ProfileDtos {
             return new ProfileView(id, email, displayName, faculty, department, classYear, bio, avatarUrl, showEmail,
                     role, language, createdAt, grade, avatarHidden, popularityScore, followerCount, likesReceived,
                     postCount, reels, emailVerified, verificationDeferred, profileCompleted, username, firstName,
-                    lastName, universityName, authProviders);
+                    lastName, universityName, authProviders, emailNeedsReal, realEmailRequired);
         }
     }
 

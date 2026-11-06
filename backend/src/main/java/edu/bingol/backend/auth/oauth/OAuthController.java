@@ -87,7 +87,7 @@ public class OAuthController {
         } catch (TwoFactorRequiredException e) {
             return ResponseEntity.status(HttpStatus.ACCEPTED).body(e.challenge());
         }
-        return ResponseEntity.ok(OAuthLoginResponse.of(t, s.user().isProfileCompleted(), s.isNew()));
+        return ResponseEntity.ok(OAuthLoginResponse.of(t, s.user(), s.isNew()));
     }
 
     /** KIMLIKLI: mevcut hesaba saglayici baglar (yeniden dogrulama zorunlu). */

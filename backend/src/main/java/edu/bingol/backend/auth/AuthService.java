@@ -175,6 +175,11 @@ public class AuthService {
         }
     }
 
+    /** Kayit ile ayni bicim denetimi (alan adi kisiti yok): kucuk harfe normallestirilmis tam adres uygunsa true. */
+    public static boolean isValidEmailFormat(String normalizedEmail) {
+        return normalizedEmail != null && EMAIL_FORMAT.matcher(normalizedEmail).matches();
+    }
+
     /** E-posta ya da okul numarasi -> tam e-posta (bkz. LoginIdentifier); gecersizse 400 VALIDATION_ERROR. */
     public static String normalizeEmail(String email) {
         return LoginIdentifier.normalize(email);

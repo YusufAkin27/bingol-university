@@ -1,6 +1,7 @@
 package edu.bingol.backend.auth.oauth;
 
 import edu.bingol.backend.auth.AccountCreator;
+import edu.bingol.backend.auth.realemail.RelayEmails;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.ShortTx;
 import edu.bingol.backend.i18n.Lang;
@@ -113,9 +114,15 @@ public class OAuthService {
                 throw new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "Giriş yapılamadı.");
             }
             known.setLastLoginAt(Instant.now());
-            if (claims.email() != null) {
+            // Gercek e-postasini dogrulamis hesapta role adresi geri yazilmaz (KVKK: eski role adresi saklanmaz)
+            boolean skipRelayEcho = claims.emailPrivate() && !user.isEmailRelay();
+            if (claims.email() != null && !skipRelayEcho) {
                 known.setEmail(claims.email());
                 known.setEmailIsPrivate(claims.emailPrivate());
+            }
+            if (!user.isEmailRelay() && RelayEmails.isRelay(user.getEmail())) {
+                user.setEmailRelay(true); // kendini onarma: role alan adli hesap her zaman isaretli (kapi zorlamaz)
+                users.save(user);
             }
             identities.save(known);
             return new SignIn(user, false);
@@ -130,8 +137,9 @@ public class OAuthService {
         }
         String first = cleanName(claims.givenName() != null ? claims.givenName() : hintFirst);
         String last = cleanName(claims.familyName() != null ? claims.familyName() : hintLast);
+        boolean relay = claims.emailPrivate() || RelayEmails.isRelay(claims.email());
         User created = accounts.createFromOAuth(claims.email(), prefillName(claims.email(), first, last), first, last,
-                Lang.of(LocaleContextHolder.getLocale()).code());
+                Lang.of(LocaleContextHolder.getLocale()).code(), relay);
         AuthIdentity id = newIdentity(created.getId(), claims);
         id.setLastLoginAt(Instant.now());
         identities.saveAndFlush(id);
