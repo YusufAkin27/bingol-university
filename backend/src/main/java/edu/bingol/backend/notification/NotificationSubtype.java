@@ -23,7 +23,7 @@ public enum NotificationSubtype {
     // Sinav hatirlatmasi (sinavdan 2 sa once): "Akademik duyurular" bayragini (academic_announcements) paylasir;
     // ayri sutun yok, kullanici tek akademik anahtarla ikisini birden yonetir.
     EXAM_REMINDER(NotificationType.ANNOUNCEMENT),
-    // Gunluk menu bildirimi: notification_pref.meal_menu (V1271), varsayilan KAPALI (acikca secilir)
+    // Gunluk menu bildirimi: notification_pref.meal_menu (V1271), varsayilan ACIK (V1460; kullanici tercihlerden kapatir)
     MEAL_MENU(NotificationType.ANNOUNCEMENT);
 
     private final NotificationType parent;

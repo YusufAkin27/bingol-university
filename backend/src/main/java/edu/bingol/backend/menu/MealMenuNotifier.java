@@ -21,7 +21,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Gunluk menu bildirimi: yalniz tercihi ACIK (`notification_pref.meal_menu`, varsayilan kapali) kullanicilara, gunde en
+ * Gunluk menu bildirimi: tercihi KAPATMAMIS (`notification_pref.meal_menu` FALSE olmayan; satiri olmayanlar dahil, varsayilan acik) aktif kullanicilara, gunde en
  * cok bir kez ve yalniz o gun icin menu varsa. Kalori toplami YALNIZ tum yemeklerin kalorisi girilmisse ({@code
  * kcalComplete}), gorsel yalniz menu icerigine bagli gorsel varsa ("yeni gorsel bekliyor" ise yok) eklenir. Kaynak
  * siteye istek atmaz (senkron zaten veritabanina yazmistir). Servis sozlesmesi: istisna sizdirmaz.
@@ -78,8 +78,9 @@ public class MealMenuNotifier {
         int sent = 0;
         long after = 0;
         for (int i = 0; i < MAX_PAGES; i++) {
-            List<Long> ids = jdbc.queryForList("SELECT user_id FROM notification_pref WHERE meal_menu = TRUE AND user_id > ? "
-                    + "ORDER BY user_id LIMIT " + PAGE, Long.class, after);
+            List<Long> ids = jdbc.queryForList("SELECT u.id FROM app_user u WHERE u.status = 'ACTIVE' AND u.id > ? AND NOT EXISTS (SELECT 1 FROM notification_pref p "
+                    + "WHERE p.user_id = u.id AND p.meal_menu = FALSE) "
+                    + "ORDER BY u.id LIMIT " + PAGE, Long.class, after);
             if (ids.isEmpty()) {
                 break;
             }
