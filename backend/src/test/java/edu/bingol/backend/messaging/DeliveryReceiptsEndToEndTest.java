@@ -36,6 +36,43 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 @SpringBootTest
 class DeliveryReceiptsEndToEndTest {
 
+    /** `conversation_key` tablosu H2'de yok (Flyway kapali): mesaj sifreleme anahtarlari bellekte tutulur. */
+    @org.springframework.boot.test.context.TestConfiguration
+    static class MemoryKeys {
+        @org.springframework.context.annotation.Bean
+        @org.springframework.context.annotation.Primary
+        edu.bingol.backend.crypto.ConversationKeyStore memoryKeyStore() {
+            return new edu.bingol.backend.crypto.ConversationKeyStore() {
+                final java.util.Map<String, StoredKey> map = new java.util.concurrent.ConcurrentHashMap<>();
+
+                public java.util.Optional<StoredKey> find(long cid, int version) {
+                    return java.util.Optional.ofNullable(map.get(cid + ":" + version));
+                }
+
+                public java.util.Optional<StoredKey> findActive(long cid) {
+                    return map.values().stream().filter(k -> k.conversationId() == cid && k.active())
+                            .max(java.util.Comparator.comparingInt(StoredKey::version));
+                }
+
+                public boolean insert(StoredKey k) {
+                    return map.putIfAbsent(k.conversationId() + ":" + k.version(), k) == null;
+                }
+
+                public List<StoredKey> pageNotWrappedBy(String id, long after, int v, int limit) {
+                    return List.of();
+                }
+
+                public boolean rewrap(long cid, int version, String o, String n, byte[] w) {
+                    return false;
+                }
+
+                public java.util.Map<String, Long> countsByMasterKey() {
+                    return java.util.Map.of();
+                }
+            };
+        }
+    }
+
     @Autowired UserRepository users;
     @Autowired ConversationService conversations;
     @Autowired MessageService messages;
