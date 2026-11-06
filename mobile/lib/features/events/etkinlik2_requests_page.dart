@@ -320,9 +320,9 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
         child: Container(
           key: _full ? const ValueKey('et2-full-banner') : null,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(color: t.warnSoft, borderRadius: BorderRadius.circular(16)),
+          decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(_full ? l.p16ReqFullBody : l.p51EvQuotaNote, style: tx.bodyMedium!.copyWith(height: 1.4, color: t.onWarnSoft, fontWeight: BuType.emphasisWeight)),
+            Text(_full ? l.p16ReqFullBody : l.p51EvQuotaNote, style: tx.bodyMedium!.copyWith(height: 1.4, color: t.ink, fontWeight: BuType.emphasisWeight)),
             if (_full)
               TextButton(
                 style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: EdgeInsets.zero, alignment: AlignmentDirectional.centerStart),
@@ -445,7 +445,7 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
           ]),
         ),
         const SizedBox(width: 8),
-        Text(ok ? l.etkinlik2ApprovedTag : l.etkinlik2RejectedTag, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w400, color: ok ? t.ok : t.danger)),
+        Text(ok ? l.etkinlik2ApprovedTag : l.etkinlik2RejectedTag, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w400, color: ok ? t.ink : t.danger)),
       ]),
     );
   }

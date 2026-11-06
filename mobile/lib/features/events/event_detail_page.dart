@@ -19,6 +19,8 @@ import 'checkin_input.dart';
 import 'etkinlik2_apply_sheet.dart';
 import 'etkinlik2_attendance_page.dart';
 import 'etkinlik2_qr_page.dart';
+import 'etkinlik3_my_qr_page.dart';
+import 'etkinlik3_scan_page.dart';
 import 'etkinlik2_requests_page.dart';
 import 'etkinlik2_settings_page.dart';
 import 'etkinlik2_widgets.dart';
@@ -61,6 +63,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
   Map<String, dynamic>? _myAtt;
   List<Map<String, dynamic>> _attendance = []; // yalnızca organizatör: özet sayısı için
 
+  bool _attOpen = false; // sahip yoklamayı açtı mı (my-permissions)
+  bool _attOpenBusy = false;
   bool _rsvpBusy = false;
   bool _chatBusy = false;
   bool _checkBusy = false;
@@ -131,6 +135,12 @@ class _EventDetailPageState extends State<EventDetailPage> {
       try {
         final r = await api.get('$_path/attendance');
         if (mounted) setState(() => _attendance = _list(r));
+      } catch (_) {}
+    }
+    if (_manage || _rsvp == 'GOING') {
+      try {
+        final r = await api.get('$_path/my-permissions');
+        if (mounted && r is Map) setState(() => _attOpen = r['attendanceOpen'] == true);
       } catch (_) {}
     }
     if (_rsvp == 'GOING') {
@@ -328,6 +338,38 @@ class _EventDetailPageState extends State<EventDetailPage> {
       MaterialPageRoute(settings: const RouteSettings(name: 'etkinlik2_qr'), builder: (_) => Etkinlik2QrPage(session: widget.session, event: _ev!)),
     );
     if (mounted) _loadExtras();
+  }
+
+  Future<void> _openScanner() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(settings: const RouteSettings(name: 'etkinlik3_scan'), builder: (_) => Etkinlik3ScanPage(session: widget.session, event: _ev!)),
+    );
+    if (mounted) _loadExtras();
+  }
+
+  Future<void> _openMyQr() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(settings: const RouteSettings(name: 'etkinlik3_my_qr'), builder: (_) => Etkinlik3MyQrPage(session: widget.session, event: _ev!)),
+    );
+  }
+
+  /// Yoklamayı aç/kapat (yalnız sahip). Açıkken katılımcılar kişisel QR'ını gösterir, sahip/moderatör okutur.
+  Future<void> _toggleAttendanceOpen(bool open) async {
+    if (_attOpenBusy) return;
+    setState(() {
+      _attOpenBusy = true;
+      _attOpen = open;
+    });
+    try {
+      await widget.session.api.put('$_path/attendance-open', {'open': open});
+    } catch (e) {
+      if (mounted) setState(() => _attOpen = !open);
+      _toast(errorText(e));
+    } finally {
+      if (mounted) setState(() => _attOpenBusy = false);
+    }
   }
 
   Future<void> _openAttendance() async {
@@ -584,7 +626,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
               child: Row(children: [
                 Flexible(child: Text(l.p51EvGoingYou, style: tx.bodyMedium!.copyWith(color: t.mut))),
                 const SizedBox(width: 4),
-                ExcludeSemantics(child: Icon(BuIcons.check, size: 16, color: t.ok)),
+                ExcludeSemantics(child: Icon(BuIcons.check, size: 16, color: t.ink)),
               ]),
             ),
             const SizedBox(width: 12),
@@ -646,22 +688,22 @@ class _EventDetailPageState extends State<EventDetailPage> {
     if (rsvp == 'PENDING') {
       return Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: t.warnSoft, borderRadius: BorderRadius.circular(16)),
+        decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Row(children: [
             ExcludeSemantics(
               child: Container(
                 width: 44,
                 height: 44,
-                decoration: BoxDecoration(color: t.warn.withValues(alpha: .18), shape: BoxShape.circle),
-                child: Icon(BuIcons.hourglass, size: 22, color: t.onWarnSoft),
+                decoration: BoxDecoration(color: t.mut.withValues(alpha: .18), shape: BoxShape.circle),
+                child: Icon(BuIcons.hourglass, size: 22, color: t.ink),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(l.etkinlik2RequestSent, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.onWarnSoft)),
-                Text(l.etkinlik2AwaitingReply, style: tx.bodyMedium!.copyWith(color: t.onWarnSoft.withValues(alpha: .85))),
+                Text(l.etkinlik2RequestSent, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
+                Text(l.etkinlik2AwaitingReply, style: tx.bodyMedium!.copyWith(color: t.ink.withValues(alpha: .85))),
               ]),
             ),
           ]),
@@ -866,14 +908,14 @@ class _EventDetailPageState extends State<EventDetailPage> {
         _pad(
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(color: pendingReview ? t.warnSoft : t.danger.withValues(alpha: .1), borderRadius: BorderRadius.circular(16)),
+            decoration: BoxDecoration(color: pendingReview ? t.sf2 : t.danger.withValues(alpha: .1), borderRadius: BorderRadius.circular(16)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(pendingReview ? l.evcStatusPending : l.evcStatusRejected,
-                  style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: pendingReview ? t.onWarnSoft : t.danger)),
+                  style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: pendingReview ? t.ink : t.danger)),
               if (pendingReview || eventRejectReason(ev) != null) ...[
                 const SizedBox(height: 2),
                 Text(pendingReview ? l.evcInfoReview : l.evcRejectReason(eventRejectReason(ev)!),
-                    style: tx.bodySmall!.copyWith(height: 1.4, color: pendingReview ? t.onWarnSoft : t.danger)),
+                    style: tx.bodySmall!.copyWith(height: 1.4, color: pendingReview ? t.ink : t.danger)),
               ],
             ]),
           ),
@@ -936,8 +978,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
           alignment: Alignment.center,
           constraints: const BoxConstraints(minHeight: 48),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(color: t.okSoft, borderRadius: BorderRadius.circular(16)),
-          child: Text(text, textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(color: t.ok, fontWeight: FontWeight.w400)),
+          decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
+          child: Text(text, textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
         );
     if (att['present'] == true) {
       // Başarı onayı: not 0.9 -> 1 ölçekle yaylanarak belirir (tek seferlik).
@@ -952,6 +994,17 @@ class _EventDetailPageState extends State<EventDetailPage> {
     final open = att['checkInOpen'] == true;
     return Column(key: const ValueKey('detail-attendance'), crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       if (open) note(l.p51EvAttOpen) else Text(l.eventFormCheckInLater, style: tx.bodyMedium!.copyWith(color: t.mut)),
+      if (_attOpen) ...[
+        const SizedBox(height: 12),
+        Container(
+          key: const ValueKey('detail-att-open-note'),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
+          child: Text(l.evtAttOpenYou, style: tx.bodyMedium!.copyWith(color: t.ink)),
+        ),
+        const SizedBox(height: 8),
+        ClubOutlineButton(key: const ValueKey('detail-my-qr'), label: l.evtQrMyTitle, onPressed: _openMyQr),
+      ],
       if (open && _enterCode) ...[
         const SizedBox(height: 16),
         Row(children: [
@@ -1029,6 +1082,22 @@ class _EventDetailPageState extends State<EventDetailPage> {
           const SizedBox(height: 12),
           Et2Progress(fraction: total == 0 ? 0 : present / total, height: 8),
           const SizedBox(height: 12),
+          SwitchListTile(
+            key: const ValueKey('detail-att-open-switch'),
+            contentPadding: EdgeInsets.zero,
+            title: Text(l.evtAttOpenTitle, style: tx.bodyLarge!.copyWith(color: t.ink)),
+            subtitle: Text(l.evtAttOpenSub, style: tx.bodySmall!.copyWith(color: t.mut)),
+            value: _attOpen,
+            onChanged: _attOpenBusy ? null : _toggleAttendanceOpen,
+          ),
+          const SizedBox(height: 8),
+          EtkinlikActionButton(
+            key: const ValueKey('detail-scan-qr'),
+            label: l.evtQrScanTitle,
+            icon: BuIcons.qrCode,
+            onTap: _openScanner,
+          ),
+          const SizedBox(height: 8),
           EtkinlikActionButton(
             key: const ValueKey('detail-open-qr'),
             label: l.eventFormCheckInCode,

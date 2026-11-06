@@ -681,14 +681,14 @@ class _EventFormPageState extends State<EventFormPage> {
       child: Container(
         key: const ValueKey('evc-server-error'),
         padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 4, 8),
-        decoration: BoxDecoration(color: danger ? t.danger.withValues(alpha: .1) : t.warnSoft, borderRadius: BorderRadius.circular(16)),
+        decoration: BoxDecoration(color: danger ? t.danger.withValues(alpha: .1) : t.sf2, borderRadius: BorderRadius.circular(16)),
         child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 6),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                if (title != null) Text(title, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: danger ? t.danger : t.onWarnSoft)),
-                Text(_error!, style: tx.bodySmall!.copyWith(height: 1.4, color: danger ? t.danger : t.onWarnSoft)),
+                if (title != null) Text(title, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: danger ? t.danger : t.ink)),
+                Text(_error!, style: tx.bodySmall!.copyWith(height: 1.4, color: danger ? t.danger : t.ink)),
               ]),
             ),
           ),
@@ -776,9 +776,9 @@ class _EventFormPageState extends State<EventFormPage> {
           key: const ValueKey('evc-club-info'),
           margin: const EdgeInsets.only(top: 10),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(color: _clubInstant ? t.soft : t.warnSoft, borderRadius: BorderRadius.circular(16)),
+          decoration: BoxDecoration(color: _clubInstant ? t.soft : t.sf2, borderRadius: BorderRadius.circular(16)),
           child: Row(children: [
-            Flexible(child: Text(_clubInstant ? l.evcInfoInstant : l.evcInfoReview, style: tx.bodyMedium!.copyWith(fontWeight: BuType.emphasisWeight, color: _clubInstant ? t.onSoft : t.onWarnSoft))),
+            Flexible(child: Text(_clubInstant ? l.evcInfoInstant : l.evcInfoReview, style: tx.bodyMedium!.copyWith(fontWeight: BuType.emphasisWeight, color: _clubInstant ? t.onSoft : t.ink))),
             if (_clubInstant) Flexible(flex: 0, child: Text(' • ${l.p15PublishRoleActive}', maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.onSoft.withValues(alpha: .8)))),
           ]),
         ),
@@ -864,13 +864,13 @@ class _EventFormPageState extends State<EventFormPage> {
         Container(
           margin: const EdgeInsets.only(top: 10),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(color: t.warnSoft, borderRadius: BorderRadius.circular(BuRadius.md)),
+          decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.md)),
           child: Row(children: [
-            ExcludeSemantics(child: Icon(BuIcons.wandSparkles, size: 18, color: t.onWarnSoft)),
+            ExcludeSemantics(child: Icon(BuIcons.wandSparkles, size: 18, color: t.ink)),
             const SizedBox(width: 10),
             Expanded(
               child: Text(l.evdEndAdjusted,
-                  key: const ValueKey('evd-adjusted'), style: tx.bodySmall!.copyWith(fontWeight: BuType.emphasisWeight, color: t.onWarnSoft)),
+                  key: const ValueKey('evd-adjusted'), style: tx.bodySmall!.copyWith(fontWeight: BuType.emphasisWeight, color: t.ink)),
             ),
           ]),
         ),

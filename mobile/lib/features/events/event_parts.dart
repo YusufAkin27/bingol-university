@@ -240,16 +240,16 @@ class EventJoinedChip extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: large ? 20 : 14),
       alignment: Alignment.center,
       decoration: large
-          ? BoxDecoration(color: t.okSoft, borderRadius: BorderRadius.circular(BuRadius.control))
-          : BoxDecoration(color: t.okSoft, borderRadius: BorderRadius.circular(BuRadius.pill)),
+          ? BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.control))
+          : BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.pill)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(BuIcons.calendarCheck, size: large ? 19 : 15, color: t.ok),
+        Icon(BuIcons.calendarCheck, size: large ? 19 : 15, color: t.ink),
         const SizedBox(width: 8),
         Flexible(
           child: Text(label ?? context.l10n.eventListInMine,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: (large ? tx.titleMedium! : tx.labelLarge!).copyWith(color: t.ok, fontWeight: FontWeight.w400)),
+              style: (large ? tx.titleMedium! : tx.labelLarge!).copyWith(color: t.ink, fontWeight: FontWeight.w400)),
         ),
       ]),
     );
@@ -280,8 +280,8 @@ class EventStatusTag extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final (bg, fg) = switch (tone) {
-      EventTone.ok => (t.okSoft, t.ok),
-      EventTone.warn => (t.warnSoft, t.onWarnSoft),
+      EventTone.ok => (t.sf2, t.ink),
+      EventTone.warn => (t.sf2, t.ink),
       EventTone.danger => (t.danger.withValues(alpha: .14), t.danger),
       EventTone.neutral => (t.mut.withValues(alpha: .12), t.mut),
       EventTone.brand => (t.sf2, t.ink),

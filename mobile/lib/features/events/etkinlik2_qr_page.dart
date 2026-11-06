@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -95,12 +96,16 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
         }
       });
     } catch (e) {
+      // Sunucunun gerçek nedeni gösterilir (ör. "Yoklama henüz açılmadı"); eskiden her hata "Sunucu ile bağlantı
+      // kurulamadı" yazıyordu. Ağ hatası ve 5xx dışındaki (4xx) cevaplar tekrar denenmez: durum kendiliğinden değişmez.
       if (mounted) setState(() => _failed = errorText(e));
-      // Yenileme hatasında zamanlayıcı yeniden kurulur: kod sessizce bayatlamasın.
       _refresh?.cancel();
-      _refresh = Timer(const Duration(seconds: 5), () {
-        if (mounted) _loadCode();
-      });
+      final retriable = e is! ApiError || e.isNetwork || e.status >= 500;
+      if (retriable) {
+        _refresh = Timer(const Duration(seconds: 5), () {
+          if (mounted) _loadCode();
+        });
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -288,7 +293,7 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
       child: Column(key: const ValueKey('et2-qr-error'), crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Text(l.eventFormCodeFailed, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
         const SizedBox(height: 4),
-        Text(l.p16QrErrBody, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
+        Text(_failed ?? l.p16QrErrBody, key: const ValueKey('et2-qr-error-body'), textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
         const SizedBox(height: 8),
         BuButton(label: l.eventFormRefreshCode, busy: _busy, onPressed: _busy ? null : _loadCode),
         const SizedBox(height: 4),

@@ -228,8 +228,8 @@ class Et2Banner extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final bg = warn ? t.warnSoft : t.soft;
-    final fg = warn ? t.onWarnSoft : t.onSoft;
+    final bg = warn ? t.sf2 : t.soft;
+    final fg = warn ? t.ink : t.onSoft;
     return Semantics(
       container: true,
       liveRegion: true,
@@ -337,7 +337,7 @@ class Et2Tag extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final (bg, fg) = dark
-        ? (t.okSoft, t.ok)
+        ? (t.sf2, t.ink)
         : danger
             ? (t.danger.withValues(alpha: .12), t.danger)
             : muted

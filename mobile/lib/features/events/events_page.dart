@@ -800,8 +800,8 @@ class _EventsPageState extends State<EventsPage> {
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(color: t.warnSoft, borderRadius: BorderRadius.circular(16)),
-      child: Text(text, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.onWarnSoft, height: 1.4, fontWeight: BuType.emphasisWeight)),
+      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
+      child: Text(text, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.ink, height: 1.4, fontWeight: BuType.emphasisWeight)),
     );
   }
 
@@ -1293,7 +1293,7 @@ class _EventsPageState extends State<EventsPage> {
           stColor = t.danger;
         } else if (pendingReview) {
           st = l.evcStatusPending;
-          stColor = t.onWarnSoft;
+          stColor = t.ink;
         } else if (rejected) {
           st = l.evcStatusRejected;
           stColor = t.danger;
