@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -21,10 +22,11 @@ class Etkinlik3MyQrPage extends StatefulWidget {
   State<Etkinlik3MyQrPage> createState() => _Etkinlik3MyQrPageState();
 }
 
-class _Etkinlik3MyQrPageState extends State<Etkinlik3MyQrPage> {
+class _Etkinlik3MyQrPageState extends State<Etkinlik3MyQrPage> with WidgetsBindingObserver {
   String? _payload;
   String? _error;
   bool _busy = false;
+  int _fails = 0;
   Timer? _refresh;
 
   int get _id => (widget.event['id'] as num).toInt();
@@ -32,11 +34,19 @@ class _Etkinlik3MyQrPageState extends State<Etkinlik3MyQrPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _load();
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Arka plandan dönünce bileti hemen yenile (zamanlayıcı uykudayken bayatlamış olabilir).
+    if (state == AppLifecycleState.resumed) _load();
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _refresh?.cancel();
     super.dispose();
   }
@@ -52,13 +62,24 @@ class _Etkinlik3MyQrPageState extends State<Etkinlik3MyQrPage> {
         _payload = m['qrPayload'] as String?;
         _error = null;
       });
-      // Bilet ~3 dk geçerli; 60 sn'de bir yenilenir (okutma sırasında bayat kod kalmasın).
+      // Bilet ~5 dk geçerli; 60 sn'de bir yenilenir (okutma sırasında bayat kod kalmasın).
+      _fails = 0;
       _refresh?.cancel();
       _refresh = Timer(const Duration(seconds: 60), () {
         if (mounted) _load();
       });
     } catch (e) {
+      // Mevcut QR korunur (süresi dolana kadar çalışır); 4xx'te otomatik tekrar yok, ağ/5xx'te üstel geri çekilme.
       if (mounted) setState(() => _error = errorText(e));
+      _refresh?.cancel();
+      final retriable = e is! ApiError || e.isNetwork || e.status >= 500;
+      if (retriable) {
+        _fails++;
+        final secs = (5 << (_fails > 4 ? 4 : _fails)).clamp(10, 60);
+        _refresh = Timer(Duration(seconds: secs), () {
+          if (mounted) _load();
+        });
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
