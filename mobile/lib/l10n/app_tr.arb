@@ -99,7 +99,7 @@
   },
   "loginWelcome": "Hoş geldiniz",
   "loginSubtitle": "E-posta adresinizle giriş yapın.",
-  "loginReplacedNotice": "Hesabına başka bir cihazdan giriş yapıldı. Güvenliğin için bu cihazdaki oturum kapatıldı.",
+  "loginReplacedNotice": "Bu cihazdaki oturum kapatıldı. Başka bir cihazdan çıkış yaptırılmış olabilir; devam etmek için yeniden giriş yap.",
   "loginPasswordRequired": "Şifrenizi girin.",
   "loginForgotPassword": "Şifremi unuttum",
   "loginSubmit": "Giriş yap",
@@ -6755,5 +6755,47 @@
   "notif2SystemSection": "Sistem ve güvenlik",
   "notif2SystemSettingsTitle": "Sistem bildirim ayarları",
   "notif2SystemSettingsSub": "Ses, titreşim ve bildirim kategorileri cihaz ayarlarından yönetilir.",
-  "notif2SecurityNote": "Hesap güvenliği, oturum ve yönetici bildirimleri bu tercihlerden bağımsız olarak her zaman gelir."
+  "notif2SecurityNote": "Hesap güvenliği, oturum ve yönetici bildirimleri bu tercihlerden bağımsız olarak her zaman gelir.",
+  "devTitle": "Cihazlarım",
+  "devIntro": "Hesabına giriş yapılmış cihazlar. Tanımadığın bir cihaz görürsen oradan çıkış yap ve şifreni değiştir.",
+  "devSection": "Açık oturumlar",
+  "devThisDevice": "Bu cihaz",
+  "devLastUsed": "Son kullanım: {when}",
+  "@devLastUsed": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "devNameAndroid": "Android cihaz",
+  "devNameIos": "iPhone",
+  "devNameWeb": "Web tarayıcı",
+  "devNameUnknown": "Bilinmeyen cihaz",
+  "devSignOut": "Çıkış yap",
+  "devSignOutTitle": "Bu cihazdan çıkış yapılsın mı?",
+  "devSignOutBody": "{device} cihazındaki oturum kapatılacak. Tekrar kullanmak için yeniden giriş yapılması gerekir.",
+  "@devSignOutBody": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "devSignOutThisBody": "Bu cihazdaki oturumun kapatılacak ve giriş ekranına döneceksin.",
+  "devSignedOut": "{device} cihazından çıkış yapıldı.",
+  "@devSignedOut": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "devGone": "Bu oturum zaten kapatılmış.",
+  "devEmpty": "Listelenecek açık oturum yok.",
+  "devAllSection": "Tüm cihazlar",
+  "devAllHint": "Bu cihaz dahil, tüm cihazlardaki oturumlar kapatılır.",
+  "devPlatformAndroid": "Android",
+  "devPlatformIos": "iOS",
+  "devPlatformWeb": "Web"
 }

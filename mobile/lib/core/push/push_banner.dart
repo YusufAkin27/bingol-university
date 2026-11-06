@@ -73,6 +73,8 @@ IconData bannerIcon(Map<String, dynamic> data) {
       return Icons.restaurant;
     case PushDest.accountSecurity:
       return Icons.shield_outlined;
+    case PushDest.devices:
+      return BuIcons.smartphone;
     case PushDest.ticket:
     case PushDest.feedback:
       return Icons.support_agent;

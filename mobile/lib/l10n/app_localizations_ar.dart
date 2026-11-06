@@ -256,7 +256,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get loginReplacedNotice =>
-      'تم تسجيل الدخول إلى حسابك من جهاز آخر. حفاظًا على أمانك أُغلقت الجلسة على هذا الجهاز.';
+      'تم إغلاق الجلسة على هذا الجهاز. ربما تم تسجيل الخروج منه من جهاز آخر؛ سجّل الدخول مجددا للمتابعة.';
 
   @override
   String get loginPasswordRequired => 'أدخل كلمة المرور.';
@@ -12353,4 +12353,76 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get notif2SecurityNote =>
       'تصل إشعارات أمان الحساب والجلسات والإشراف دائما بغض النظر عن هذه الإعدادات.';
+
+  @override
+  String get devTitle => 'أجهزتي';
+
+  @override
+  String get devIntro =>
+      'الأجهزة التي سُجّل الدخول منها إلى حسابك. إذا رأيت جهازا لا تعرفه فاخرج منه وغيّر كلمة المرور.';
+
+  @override
+  String get devSection => 'الجلسات المفتوحة';
+
+  @override
+  String get devThisDevice => 'هذا الجهاز';
+
+  @override
+  String devLastUsed(String when) {
+    return 'آخر استخدام: $when';
+  }
+
+  @override
+  String get devNameAndroid => 'جهاز أندرويد';
+
+  @override
+  String get devNameIos => 'آيفون';
+
+  @override
+  String get devNameWeb => 'متصفح الويب';
+
+  @override
+  String get devNameUnknown => 'جهاز غير معروف';
+
+  @override
+  String get devSignOut => 'تسجيل الخروج';
+
+  @override
+  String get devSignOutTitle => 'تسجيل الخروج من هذا الجهاز؟';
+
+  @override
+  String devSignOutBody(String device) {
+    return 'سيتم إغلاق الجلسة على $device. ستحتاج إلى تسجيل الدخول مجددا لاستخدامه.';
+  }
+
+  @override
+  String get devSignOutThisBody =>
+      'سيتم إغلاق الجلسة على هذا الجهاز وستعود إلى شاشة تسجيل الدخول.';
+
+  @override
+  String devSignedOut(String device) {
+    return 'تم تسجيل الخروج من $device.';
+  }
+
+  @override
+  String get devGone => 'هذه الجلسة مغلقة بالفعل.';
+
+  @override
+  String get devEmpty => 'لا توجد جلسات مفتوحة لعرضها.';
+
+  @override
+  String get devAllSection => 'كل الأجهزة';
+
+  @override
+  String get devAllHint =>
+      'سيتم إغلاق الجلسات على كل الأجهزة بما فيها هذا الجهاز.';
+
+  @override
+  String get devPlatformAndroid => 'Android';
+
+  @override
+  String get devPlatformIos => 'iOS';
+
+  @override
+  String get devPlatformWeb => 'Web';
 }

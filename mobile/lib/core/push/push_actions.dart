@@ -107,8 +107,10 @@ class PushActions {
             await open(data);
           }
         case 'security':
-          // "Bu ben değilim" / "Hemen Sıfırla" / "2FA Aç": oturumları kapatma ve şifre değiştirme bu sayfadadır.
-          await open({'targetType': 'ACCOUNT_SECURITY'});
+          // "Bu ben değilim" (yeni cihaz girişi) Cihazlarım'ı açar: tanınmayan cihazdan çıkış orada yapılır.
+          // "Hemen Sıfırla" / "2FA Aç": şifre değiştirme ve 2FA Hesap güvenliği sayfasındadır.
+          final kind = '${data['securityKind'] ?? ''}'.toUpperCase();
+          await open({'targetType': kind == 'NEW_DEVICE' ? 'DEVICES' : 'ACCOUNT_SECURITY'});
         case 'checkin':
           // "QR ile Giriş": etkinlik sayfası, yoklama açıksa QR tarayıcıyı kendiliğinden açar.
           await open(data, compose: true);

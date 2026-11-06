@@ -9,7 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_app.dart';
 
-const _notice = 'Hesabına başka bir cihazdan giriş yapıldı. Güvenliğin için bu cihazdaki oturum kapatıldı.';
+const _notice = 'Bu cihazdaki oturum kapatıldı. Başka bir cihazdan çıkış yaptırılmış olabilir; devam etmek için yeniden giriş yap.';
 
 Widget _app(Session s) => MaterialApp(
       navigatorKey: rootNavigatorKey,

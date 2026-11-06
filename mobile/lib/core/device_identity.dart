@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
@@ -67,11 +68,43 @@ class DeviceIdentity {
     }
   }
 
+  /// Testlerde cihaz adını sabitlemek için (null = gerçek hesap).
+  @visibleForTesting
+  static String? debugNameOverride;
+
+  /// "Cihazlarım" listesinde görünen ad (`X-Device-Name`). Model adı okunmaz (ek eklenti/yerel kod yok): platform ve
+  /// işletim sistemi sürümü yeter. Android: "Android 14" (çekirdek sürüm dizgesindeki `androidNN`; yoksa "Android"),
+  /// iOS: "iPhone (iOS 17.5)". Yalnız ASCII; sunucu ayrıca temizler ve 80 karakterle sınırlar.
+  static String get deviceName => debugNameOverride ?? deviceNameFor(defaultTargetPlatform, _osVersion());
+
+  static String _osVersion() {
+    try {
+      return Platform.operatingSystemVersion;
+    } catch (_) {
+      return '';
+    }
+  }
+
+  @visibleForTesting
+  static String deviceNameFor(TargetPlatform p, String osVersion) {
+    switch (p) {
+      case TargetPlatform.android:
+        final m = RegExp(r'android[ _-]?(\d{1,2})', caseSensitive: false).firstMatch(osVersion);
+        return m == null ? 'Android' : 'Android ${m.group(1)}';
+      case TargetPlatform.iOS:
+        final m = RegExp(r'(\d{1,2}\.\d{1,2})').firstMatch(osVersion);
+        return m == null ? 'iPhone' : 'iPhone (iOS ${m.group(1)})';
+      default:
+        return 'Mobil';
+    }
+  }
+
   /// HTTP istek başlıkları.
   Map<String, String> get httpHeaders => {
         if (_id != null) 'X-Device-Id': _id!,
         'X-Device-Platform': platform,
         'X-App-Version': appVersion,
+        'X-Device-Name': deviceName,
       };
 
   /// STOMP CONNECT başlıkları.

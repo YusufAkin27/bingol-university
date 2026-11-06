@@ -18,6 +18,7 @@ import '../../features/polls/poll_detail_page.dart';
 import '../../features/posts/post_routes.dart';
 import '../../features/profile/user_profile_page.dart';
 import '../../features/profile/account_security_page.dart';
+import '../../features/profile/devices_page.dart';
 import '../../features/menu/menu_page.dart';
 import '../../features/support/support_page.dart';
 import '../../features/support/support_ticket_page.dart';
@@ -277,6 +278,9 @@ class PushRouter {
         return true;
       case PushDest.accountSecurity:
         push(AccountSecurityPage(session: s), 'account_security');
+        return true;
+      case PushDest.devices:
+        push(DevicesPage(session: s), DevicesPage.routeName);
         return true;
       case PushDest.feedback:
         push(SupportPage(session: s), 'support');

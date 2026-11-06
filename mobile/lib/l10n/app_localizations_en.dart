@@ -255,7 +255,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loginReplacedNotice =>
-      'Your account was logged in on another device, so this session was closed for your security.';
+      'The session on this device was closed. It may have been signed out from another device; sign in again to continue.';
 
   @override
   String get loginPasswordRequired => 'Enter your password.';
@@ -12462,4 +12462,76 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notif2SecurityNote =>
       'Account security, session and moderation notices are always delivered, regardless of these settings.';
+
+  @override
+  String get devTitle => 'My devices';
+
+  @override
+  String get devIntro =>
+      'Devices signed in to your account. If you see one you do not recognise, sign it out and change your password.';
+
+  @override
+  String get devSection => 'Active sessions';
+
+  @override
+  String get devThisDevice => 'This device';
+
+  @override
+  String devLastUsed(String when) {
+    return 'Last used: $when';
+  }
+
+  @override
+  String get devNameAndroid => 'Android device';
+
+  @override
+  String get devNameIos => 'iPhone';
+
+  @override
+  String get devNameWeb => 'Web browser';
+
+  @override
+  String get devNameUnknown => 'Unknown device';
+
+  @override
+  String get devSignOut => 'Sign out';
+
+  @override
+  String get devSignOutTitle => 'Sign out of this device?';
+
+  @override
+  String devSignOutBody(String device) {
+    return 'The session on $device will be closed. You will need to sign in again to use it.';
+  }
+
+  @override
+  String get devSignOutThisBody =>
+      'The session on this device will be closed and you will return to the sign-in screen.';
+
+  @override
+  String devSignedOut(String device) {
+    return 'Signed out of $device.';
+  }
+
+  @override
+  String get devGone => 'This session is already closed.';
+
+  @override
+  String get devEmpty => 'There are no active sessions to list.';
+
+  @override
+  String get devAllSection => 'All devices';
+
+  @override
+  String get devAllHint =>
+      'Sessions on every device, including this one, will be closed.';
+
+  @override
+  String get devPlatformAndroid => 'Android';
+
+  @override
+  String get devPlatformIos => 'iOS';
+
+  @override
+  String get devPlatformWeb => 'Web';
 }

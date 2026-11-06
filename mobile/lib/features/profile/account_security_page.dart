@@ -10,6 +10,7 @@ import '../../core/oauth_config.dart';
 import '../../core/session.dart';
 import '../../core/two_factor.dart';
 import '../../widgets/bu.dart';
+import 'devices_page.dart';
 import 'profil_widgets.dart';
 import 'two_factor_page.dart';
 
@@ -23,7 +24,7 @@ Future<void> changePasswordRequest(Session session, {required String current, re
   }
 }
 
-/// Hesap ve güvenlik (Stitch 49-2): e-posta kartı, şifre güncelleme, tüm cihazlardan çıkış.
+/// Hesap ve güvenlik (Stitch 49-2): e-posta kartı, şifre güncelleme, 2FA, bağlı hesaplar, Cihazlarım girişi.
 class AccountSecurityPage extends StatefulWidget {
   const AccountSecurityPage({super.key, required this.session});
 
@@ -38,7 +39,6 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
   final _new = TextEditingController();
   final _repeat = TextEditingController();
   bool _busy = false;
-  bool _loggingOut = false;
 
   /// İki faktörlü doğrulama durumu (satırın değeri). Sessizce yüklenir; alınamazsa satır değersiz kalır, sayfa bozulmaz.
   bool? _twoFactorOn;
@@ -287,29 +287,14 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
     }
   }
 
-  Future<void> _logoutAll() async {
-    final l = context.l10n;
-    final ok = await BuDialog.confirm(
+  Future<void> _openDevices() async {
+    await Navigator.push(
       context,
-      title: l.settingsLogoutAllTitle,
-      message: l.settingsLogoutAllBody,
-      confirmLabel: l.settingsLogoutAllConfirm,
-      cancelLabel: l.commonCancel,
-      destructive: true,
-      icon: BuIcons.logOut,
+      MaterialPageRoute(
+        settings: const RouteSettings(name: DevicesPage.routeName),
+        builder: (_) => DevicesPage(session: widget.session),
+      ),
     );
-    if (!ok || !mounted) return;
-    setState(() => _loggingOut = true);
-    try {
-      await widget.session.logoutAll();
-    } catch (e) {
-      if (mounted) {
-        setState(() => _loggingOut = false);
-        _toast(errorText(e), kind: BuToastKind.error);
-      }
-      return;
-    }
-    if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
   }
 
   @override
@@ -449,14 +434,13 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
                 ],
                 ProfilFlatSection(l.profil2SecSessions, top: 24, upper: true),
                 ProfilFlatGroup(outlined: true, children: [
+                  // "Tüm cihazlardan çık" bu sayfaya taşındı (Cihazlarım'ın altında); burada yalnız giriş satırı var.
                   ProfilFlatRow(
-                    key: const ValueKey('sec-logout-all'),
-                    icon: BuIcons.logOut,
+                    key: const ValueKey('sec-devices'),
+                    icon: BuIcons.smartphone,
                     plainIcon: true,
-                    label: l.settingsLogoutAll,
-                    danger: true,
-                    trailing: _loggingOut ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : null,
-                    onTap: _loggingOut ? null : _logoutAll,
+                    label: l.devTitle,
+                    onTap: _openDevices,
                   ),
                 ]),
               ],

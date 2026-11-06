@@ -361,12 +361,12 @@ void main() {
       await tester.enterText(find.descendant(of: find.byKey(const ValueKey('sec-repeat')), matching: find.byType(TextField)), rep);
     }
 
-    testWidgets('e-posta ve çıkış satırı görünür', (tester) async {
+    testWidgets('e-posta ve Cihazlarım satırı görünür', (tester) async {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(AccountSecurityPage(session: makeSession(FakeBackend())), size: kPhoneMedium));
       await settle(tester);
       expect(find.text('ayse@bingol.edu.tr'), findsOneWidget);
-      expect(find.text('Tüm cihazlardan çıkış yap'), findsOneWidget);
+      expect(find.text('Cihazlarım'), findsOneWidget);
       await unmount(tester);
     });
 

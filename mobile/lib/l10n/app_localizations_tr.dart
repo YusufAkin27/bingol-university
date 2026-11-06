@@ -255,7 +255,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get loginReplacedNotice =>
-      'Hesabına başka bir cihazdan giriş yapıldı. Güvenliğin için bu cihazdaki oturum kapatıldı.';
+      'Bu cihazdaki oturum kapatıldı. Başka bir cihazdan çıkış yaptırılmış olabilir; devam etmek için yeniden giriş yap.';
 
   @override
   String get loginPasswordRequired => 'Şifrenizi girin.';
@@ -12415,4 +12415,76 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get notif2SecurityNote =>
       'Hesap güvenliği, oturum ve yönetici bildirimleri bu tercihlerden bağımsız olarak her zaman gelir.';
+
+  @override
+  String get devTitle => 'Cihazlarım';
+
+  @override
+  String get devIntro =>
+      'Hesabına giriş yapılmış cihazlar. Tanımadığın bir cihaz görürsen oradan çıkış yap ve şifreni değiştir.';
+
+  @override
+  String get devSection => 'Açık oturumlar';
+
+  @override
+  String get devThisDevice => 'Bu cihaz';
+
+  @override
+  String devLastUsed(String when) {
+    return 'Son kullanım: $when';
+  }
+
+  @override
+  String get devNameAndroid => 'Android cihaz';
+
+  @override
+  String get devNameIos => 'iPhone';
+
+  @override
+  String get devNameWeb => 'Web tarayıcı';
+
+  @override
+  String get devNameUnknown => 'Bilinmeyen cihaz';
+
+  @override
+  String get devSignOut => 'Çıkış yap';
+
+  @override
+  String get devSignOutTitle => 'Bu cihazdan çıkış yapılsın mı?';
+
+  @override
+  String devSignOutBody(String device) {
+    return '$device cihazındaki oturum kapatılacak. Tekrar kullanmak için yeniden giriş yapılması gerekir.';
+  }
+
+  @override
+  String get devSignOutThisBody =>
+      'Bu cihazdaki oturumun kapatılacak ve giriş ekranına döneceksin.';
+
+  @override
+  String devSignedOut(String device) {
+    return '$device cihazından çıkış yapıldı.';
+  }
+
+  @override
+  String get devGone => 'Bu oturum zaten kapatılmış.';
+
+  @override
+  String get devEmpty => 'Listelenecek açık oturum yok.';
+
+  @override
+  String get devAllSection => 'Tüm cihazlar';
+
+  @override
+  String get devAllHint =>
+      'Bu cihaz dahil, tüm cihazlardaki oturumlar kapatılır.';
+
+  @override
+  String get devPlatformAndroid => 'Android';
+
+  @override
+  String get devPlatformIos => 'iOS';
+
+  @override
+  String get devPlatformWeb => 'Web';
 }

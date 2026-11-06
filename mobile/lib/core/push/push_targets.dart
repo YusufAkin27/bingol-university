@@ -30,6 +30,10 @@ enum PushDest {
   ticket,
   feedback,
   accountSecurity,
+
+  /// Cihazlarım (Hesap ve güvenlik > Cihazlarım): yeni cihaz girişi bildirimi (`target=SECURITY`, `value=devices`,
+  /// `securityKind=NEW_DEVICE`) ve `targetType=DEVICES`.
+  devices,
   meal,
 
   /// Kampanya `target=URL`: yalnız https adresi, dış tarayıcıda açılır ([PushTarget.url]).
@@ -157,6 +161,8 @@ PushDest? _destOf(String t) {
     case 'SECURITY':
     case 'ACCOUNT_SECURITY':
       return PushDest.accountSecurity;
+    case 'DEVICES':
+      return PushDest.devices;
     case 'TICKET':
       return PushDest.ticket;
     case 'FEEDBACK':
@@ -224,6 +230,14 @@ PushTarget resolvePushTarget(Map<String, dynamic>? data) {
     return const PushTarget(PushDest.notifications);
   }
 
+  // Yeni cihaz girişi: güvenlik hedefi + `devices` değeri (ya da securityKind NEW_DEVICE) Cihazlarım'a gider.
+  final secValue = '${d['targetId'] ?? d['value'] ?? ''}'.trim().toLowerCase();
+  if (target == 'DEVICES' ||
+      ((target == 'SECURITY' || target == 'ACCOUNT_SECURITY') &&
+          (secValue == 'devices' || '${d['securityKind'] ?? ''}'.toUpperCase() == 'NEW_DEVICE'))) {
+    return const PushTarget(PushDest.devices);
+  }
+
   final dest = _destOf(target);
   if (eventId != null) return PushTarget(PushDest.event, id: eventId);
   if (communityId != null && dest != PushDest.post)
@@ -238,6 +252,7 @@ PushTarget resolvePushTarget(Map<String, dynamic>? data) {
             id: value); // kimliksiz de geçerli: ilgili listeyi açar
       case PushDest.meal:
       case PushDest.accountSecurity:
+      case PushDest.devices:
       case PushDest.followRequests:
         return PushTarget(dest); // kimlik yok: istekler ekranı
       case PushDest.post:

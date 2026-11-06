@@ -42,7 +42,7 @@ NotificationCategory notificationCategory(Map<String, dynamic> data) {
       target == PushDest.followRequests) {
     return NotificationCategory.social;
   }
-  if (type == 'SYSTEM' || target == PushDest.accountSecurity) {
+  if (type == 'SYSTEM' || target == PushDest.accountSecurity || target == PushDest.devices) {
     return NotificationCategory.system;
   }
   return NotificationCategory.announcement;

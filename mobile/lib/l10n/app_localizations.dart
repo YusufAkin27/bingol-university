@@ -571,7 +571,7 @@ abstract class AppLocalizations {
   /// No description provided for @loginReplacedNotice.
   ///
   /// In tr, this message translates to:
-  /// **'Hesabına başka bir cihazdan giriş yapıldı. Güvenliğin için bu cihazdaki oturum kapatıldı.'**
+  /// **'Bu cihazdaki oturum kapatıldı. Başka bir cihazdan çıkış yaptırılmış olabilir; devam etmek için yeniden giriş yap.'**
   String get loginReplacedNotice;
 
   /// No description provided for @loginPasswordRequired.
@@ -22445,6 +22445,132 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Hesap güvenliği, oturum ve yönetici bildirimleri bu tercihlerden bağımsız olarak her zaman gelir.'**
   String get notif2SecurityNote;
+
+  /// No description provided for @devTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Cihazlarım'**
+  String get devTitle;
+
+  /// No description provided for @devIntro.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabına giriş yapılmış cihazlar. Tanımadığın bir cihaz görürsen oradan çıkış yap ve şifreni değiştir.'**
+  String get devIntro;
+
+  /// No description provided for @devSection.
+  ///
+  /// In tr, this message translates to:
+  /// **'Açık oturumlar'**
+  String get devSection;
+
+  /// No description provided for @devThisDevice.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu cihaz'**
+  String get devThisDevice;
+
+  /// No description provided for @devLastUsed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Son kullanım: {when}'**
+  String devLastUsed(String when);
+
+  /// No description provided for @devNameAndroid.
+  ///
+  /// In tr, this message translates to:
+  /// **'Android cihaz'**
+  String get devNameAndroid;
+
+  /// No description provided for @devNameIos.
+  ///
+  /// In tr, this message translates to:
+  /// **'iPhone'**
+  String get devNameIos;
+
+  /// No description provided for @devNameWeb.
+  ///
+  /// In tr, this message translates to:
+  /// **'Web tarayıcı'**
+  String get devNameWeb;
+
+  /// No description provided for @devNameUnknown.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bilinmeyen cihaz'**
+  String get devNameUnknown;
+
+  /// No description provided for @devSignOut.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çıkış yap'**
+  String get devSignOut;
+
+  /// No description provided for @devSignOutTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu cihazdan çıkış yapılsın mı?'**
+  String get devSignOutTitle;
+
+  /// No description provided for @devSignOutBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'{device} cihazındaki oturum kapatılacak. Tekrar kullanmak için yeniden giriş yapılması gerekir.'**
+  String devSignOutBody(String device);
+
+  /// No description provided for @devSignOutThisBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu cihazdaki oturumun kapatılacak ve giriş ekranına döneceksin.'**
+  String get devSignOutThisBody;
+
+  /// No description provided for @devSignedOut.
+  ///
+  /// In tr, this message translates to:
+  /// **'{device} cihazından çıkış yapıldı.'**
+  String devSignedOut(String device);
+
+  /// No description provided for @devGone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu oturum zaten kapatılmış.'**
+  String get devGone;
+
+  /// No description provided for @devEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Listelenecek açık oturum yok.'**
+  String get devEmpty;
+
+  /// No description provided for @devAllSection.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm cihazlar'**
+  String get devAllSection;
+
+  /// No description provided for @devAllHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu cihaz dahil, tüm cihazlardaki oturumlar kapatılır.'**
+  String get devAllHint;
+
+  /// No description provided for @devPlatformAndroid.
+  ///
+  /// In tr, this message translates to:
+  /// **'Android'**
+  String get devPlatformAndroid;
+
+  /// No description provided for @devPlatformIos.
+  ///
+  /// In tr, this message translates to:
+  /// **'iOS'**
+  String get devPlatformIos;
+
+  /// No description provided for @devPlatformWeb.
+  ///
+  /// In tr, this message translates to:
+  /// **'Web'**
+  String get devPlatformWeb;
 }
 
 class _AppLocalizationsDelegate
