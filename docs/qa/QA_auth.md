@@ -51,10 +51,11 @@ Siddet: kritik / yuksek / orta / dusuk. Tur: HATA, YANLIS MANTIK, IYILESTIRME.
 | QA-AUTH-02 | yuksek | YANLIS MANTIK | Sifremi unuttum (giris + Sifre sayfasi) | Kod gonder > kod ekrani > geri > yeniden "Kod gonder" | Beklenen: kod hala gecerli, kod ekranina donulur. Gercek: sunucu 180 sn icinde 429 RESEND_COOLDOWN verir, kullanici hata bandinda kalir; gecerli kodu girecegi ekrana ulasamaz (ekran yigininda geri donus yok) | Bekleme hatasi "basarisiz" sayiliyordu; oysa kod zaten gonderilmis | YAPILDI: `RESEND_COOLDOWN` > kod ekrani acilir (iki akista). Test: `qa_auth1_test` |
 | QA-AUTH-03 | yuksek | HATA | Kok navigator, oturum suresi dolmasi | Ayarlar/Sifre gibi bir alt sayfa acikken refresh basarisiz (401) | Beklenen: giris ekrani. Gercek: `signOut(remote:false)` rota yigitini temizlemiyor; ust sayfa giris ekranini orter, istekler 401 verir | Yalniz `forceSignOut` `popUntil` yapiyordu | YAPILDI: `signOut` sonunda `popUntil(isFirst)`. Test: `qa_auth1_test` (QA-AUTH-04 grubu) |
 | QA-AUTH-04 | orta | YANLIS MANTIK | Sifre degistirme | Yonetici hesabi (min 12 karakter, yaygin sifre yasagi) mobilde 8 karakterlik sifre girer | Beklenen: sunucunun gerekcesi. Gercek: 400 PASSWORD_TOO_WEAK/SHORT > genel "Sifre guncellenemedi" (yaniltici) | Istemci politikasi sunucudan farkli; kod ozel ele alinmiyordu | YAPILDI: gerekce alanin altinda; diger 4xx icin sunucu mesaji gosterilir. Test: `qa_auth1_test` |
-| QA-AUTH-05 | orta | YANLIS MANTIK | 2FA | Parolasiz hesap 2FA'yi acar, sonra kapatmak ister | Sunucu kapatmada sifre ister (`INVALID_PASSWORD`); sifre yok > hesap kalici olarak 2FA'da kalir | Sunucu kuralı | KISMEN: mobil yonlendirir (QA-AUTH-01). Kalici cozum (sagayici/e-posta kodu ile 2FA kapatma) KARAR BEKLIYOR (guvenlik tasarimi) |
-| QA-AUTH-06 | dusuk | IYILESTIRME | Sifre sayfasi | Gonderilirken alanlar kilitlenmiyor (mevcut/yeni/tekrar) | Gonderim sirasinda duzenlenebilir | `_PwField` `enabled` almiyor | YAPILMADI (dusuk; cift gonderim `_busy` ile engelli) |
-| QA-AUTH-07 | dusuk | OLU KOD / YEREL. | `auth_widgets.dart` | `validateEmail`, `validateNewPassword` | Sert kodlu Turkce metin, uygulamada kullanilmiyor (yalniz `auth_test`) | Eski dogrulayicilar | YAPILMADI (testi `auth_test` kullaniyor; silmek test degisikligi ister). Yeni kod `newPasswordValidator(context)` kullanir |
-| QA-AUTH-08 | dusuk | YANLIS MANTIK | Kayit | Kayit e-postasi `+etiket` | Istemci regex'i `+`'ya izin verir, sunucu 400 EMAIL_ALIAS_NOT_ALLOWED > alan altinda gosterilir | Bilincli (sunucu hatasi yerelde gosteriliyor) | DUZELTILMEDI (calisiyor) |
+| QA-AUTH-05 | orta | YANLIS MANTIK | 2FA | Parolasiz hesap 2FA'yi acar, sonra kapatmak ister | Sunucu kapatmada sifre ister (`INVALID_PASSWORD`); sifre yok > hesap kalici olarak 2FA'da kalir | Sunucu kuralı | YAPILDI (2. tur, kullanici karari): backend `POST /auth/2fa/disable` parolasiz hesapta `{provider,token,nonce}` kabul eder (OAuthService.reauthenticateById; parolali hesap bu yoldan 400 INVALID_PASSWORD alir, 2FA kapanmaz). Mobil: onay diyalogu + saglayici yeniden dogrulamasi; bagli saglayici yoksa Sifre ekranina yonlendirir. Test: AuthTwoFactorFlowTest (2 yeni), qa_auth1_test (2 yeni) |
+| QA-AUTH-06 | dusuk | IYILESTIRME | Sifre sayfasi | Gonderilirken alanlar kilitlenmiyor (mevcut/yeni/tekrar) | Gonderim sirasinda duzenlenebilir | `_PwField` `enabled` almiyor | YAPILDI (2. tur): gonderim suresince 3 alan kilitlenir (`_PwField.enabled`) |
+| QA-AUTH-07 | dusuk | OLU KOD / YEREL. | `auth_widgets.dart` | `validateEmail`, `validateNewPassword` | Sert kodlu Turkce metin, uygulamada kullanilmiyor (yalniz `auth_test`) | Eski dogrulayicilar | YAPILDI (2. tur): `validateEmail`/`validateNewPassword` silindi; `auth_test` canli dogrulayicilara (validateIdentifier, validateRegisterEmail, newPasswordValidator) tasindi |
+| QA-AUTH-08 | dusuk | YANLIS MANTIK | Kayit | Kayit e-postasi `+etiket` | Istemci regex'i `+`'ya izin verir, sunucu 400 EMAIL_ALIAS_NOT_ALLOWED > alan altinda gosterilir | Bilincli (sunucu hatasi yerelde gosteriliyor) | YAPILDI (2. tur): `validateRegisterEmail` +etiketi istek atmadan reddeder (sunucu 400 ile ayni metin) |
+| QA-AUTH-10 | orta | HATA | Bildirim tercihleri | Sayfa yuklenirken (yavas ag) geri donmek | Beklenen: sessiz kapanis. Gercek: yukleme bitince ölü `_PrefsStore.notifyListeners` "used after being disposed" (debug assert; surum yarisi) | Kapanmis bildiriciye yanit geliyor | YAPILDI (2. tur): `_PrefsStore` dispose sonrasi bildirmez. Test: qa_auth2_test matrisi (notification-prefs x yukleniyor) |
 | QA-AUTH-09 | bilgi | KARAR | Sifremi unuttum | Kayitsiz e-posta | 404 ACCOUNT_NOT_FOUND (hesap varligi sezilir) | Kullanici karari (CLAUDE.md: bilincli istisna), IP/e-posta hiz sinirlari var | Degistirilmedi |
 
 ## 3. Kod incelemesi: kontrol edilip sorun bulunmayanlar
@@ -68,3 +69,41 @@ Siddet: kritik / yuksek / orta / dusuk. Tur: HATA, YANLIS MANTIK, IYILESTIRME.
 ## 4. Test sayilari
 
 Bkz. rapor (alan testleri + `test/qa_auth1_test.dart`).
+
+## 5. Ikinci tur (eksiksizlik)
+
+### 5.1 Ek envanter ve test kapsami (ekran x durum)
+
+`test/qa_auth2_test.dart` parametrik matris: 18 ekran x 9 durum (bos/varsayilan, yukleniyor, 500, 503 DB_TIMEOUT, 401, 403, 409, 422, 429, cevrimdisi)
+x 3 ortam (tr acik 390; ar koyu 320 + yazi 1.3 (RTL); en koyu 390 + 1.3) = 486 test. Ekranlar: giris, kayit, sifremi unuttum, dogrulama,
+sifre kodu, yeni sifre, ayarlar, hesap guvenligi, sifre, 2FA, cihazlar, engellenenler, gizlilik, verilerim, hesap sil, bildirim tercihleri,
+yasal liste, yasal metin. Her kombinasyonda cokme/tasma (takeException) yok.
+
+Mevcut (bu turdan once var olan) davranis testleri alanin geri kalanini kapsar; dosya ve konu:
+
+| Alan | Test dosyasi | Kapsam |
+|---|---|---|
+| Profil kurulumu / onboarding | `profile_setup_test` (14), `oauth_onboarding_test`, `student_number_test` | bolum+sinif secici, eksik alan hatasi, sistem geri tusu, cikis, fotograf adimi atlama, cevrimdisi/yavas kapisi, tasma matrisi |
+| Fotograf adimi | `profile_photo_setup_test` | secim, kirpma, yukleme hatasi, atla |
+| Izin adimi | `permissions_test` (19) | tek sefer, "Simdi degil", verildi/reddedildi/kalici ret, kamera, sheet akislari, tasma |
+| Gercek e-posta | `real_email_test` (19) | e-posta > kod > basari, hata yollari (EMAIL_UNAVAILABLE, alias, 429 RESEND_COOLDOWN), zorunlu/yumusak adim, kapi 403 REAL_EMAIL_REQUIRED, profil sirasi, tasma; **3 gun erteleme (`RealEmailSoftSkip`) bu turda `qa_auth2_test` ile eklendi** |
+| Yasal | `legal_reaccept_test` (18), `qa_auth2_test` matrisi | liste/okuma, acceptance-status, yeniden onay, kabul govdesi, hata durumlari |
+| OAuth dugmeleri | `oauth_login_test`, `qa_auth1_test` | gorunurluk (bayrak + sunucu 404 OAUTH_DISABLED gizleme), iptal, cift dokunma, hata dallari, 2FA, parolasiz baglama |
+| 2FA | `two_factor_test` (28), `qa_auth1_test` | kurulum, kapatma (parola ve saglayici), guvenilen cihaz listesi/silme, 404/409 |
+| Cihazlar | `devices_page_test` (21) | liste, tek cikis, tumunden cik, mevcut cihaz, 404 |
+| Hesap silme / verilerim | `profil2_test`, `qa_auth1_test` | parola ve parolasiz (saglayici) kimlik turleri |
+| Bildirim tercihleri | `notif2_prefs_test` (21), `notif_settings_test`, `qa_auth2_test` | alt turler, sessiz saatler, onizleme, gunun menusu varsayilan ACIK (backend V1461) |
+
+### 5.2 Backend taramasi (auth, user, profile, legal, notification prefs)
+
+| Kontrol | Sonuc |
+|---|---|
+| Yetki | `/api/auth/2fa/**`, `/users/me/**`, `/legal/consents`, `/notifications/**` JWT ister; `/legal` metin okuma ve `/auth/login|register|...` herkese acik; `/api/admin/**` RBAC (RbacCoverageTest). Sorun yok |
+| Hiz siniri | Tum yazan uclarda `limiter.check` var (auth, oauth, 2fa, realemail, profile PATCH/DELETE/avatar, legal accept 20/sa, notif PUT/devices). Okuma uclari (GET `/users/me`, `/notifications/preferences`, `/legal*`) sinirsiz: dusuk risk, kabul |
+| Enumerasyon | login/resend/verify genel cevap; `forgot-password` 404 ACCOUNT_NOT_FOUND bilincli (kullanici karari, IP/e-posta siniri); `verify-reset-code` bilinmeyen hesapta INVALID_CODE (ayni cevap) |
+| Dogrulama | parola 72 bayt, e-posta bicimi, +etiket, `quietHours` start==end 400 INVALID_QUIET_HOURS, bilinmeyen alt tur 400. Sorun yok |
+| Oturum iptali | parola degisimi/sifirlama `revokeAll` + `pwchg` isareti + guvenilen cihaz temizligi; hesap silme `revokeAll`; 2FA kapatma `closeOtherSessions`. Sorun yok |
+| Alan adi / null sozlesmesi | **`/auth/me` `hasPassword` eklendi** (ek alan); eski sunucuda alan yok = mobilde null = parolali sayilir |
+| KVKK silme | `AccountDataPurger`: `auth_identity`, `user_session`, `two_factor_device`, `event_moderator`, `notification_pref*`, `device`, `display_name_history` SILINIR; `legal_acceptance` hukuki kanit olarak korunur (gerekce kayitli). `AccountDataPurgerCoverageTest` yeni kullanici sutunlarini ve e-posta sutunlarini (`EMAIL_KEYED`) denetler. Sorun yok |
+| KVKK disa aktarma | `DataExporter`: OAuth (auth_identity), oturumlar (`SessionExporters`), 2FA cihazlari (`TwoFactorExporters`), bildirim (`NotificationExporters`), etkinlik moderatorleri, gizlilik, mesaj, forum... Sorun yok |
+| QA-AUTH-05 | Duzeltildi (bkz. bulgu tablosu); yeni yetki yolu parolasiz hesapla sinirli ve yeniden dogrulamali |

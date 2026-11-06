@@ -23,6 +23,8 @@ String? validateRegisterEmail(String? v) {
   final l = lookupAppLocalizations(LocaleController.current?.locale ?? const Locale('tr'));
   if (s.isEmpty) return l.authRegIdEmpty;
   if (!s.contains('@')) return l.authRegIdFull;
+  // Tek posta kutusu = tek hesap: sunucu +etiketi 400 EMAIL_ALIAS_NOT_ALLOWED ile reddeder; istemci istek atmadan söyler.
+  if (s.substring(0, s.indexOf('@')).contains('+')) return l.errEmailAliasNotAllowed;
   return _registerEmailRe.hasMatch(s) ? null : l.coreIdEmail;
 }
 

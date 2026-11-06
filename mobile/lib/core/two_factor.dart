@@ -95,5 +95,10 @@ class TwoFactorApi {
   /// Şifre ister; yanlışsa 400 INVALID_PASSWORD. Tüm güvenilen cihazlar silinir.
   Future<void> disable(String password) => api.post('/auth/2fa/disable', {'password': password});
 
+  /// Parolasız (yalnız Google/Apple) hesapta kapatma: bağlı sağlayıcının TAZE kimliği (`provider` + `token`, Apple için
+  /// `nonce`). Parolalı hesapta sunucu 400 INVALID_PASSWORD döner.
+  Future<void> disableWithProvider(String provider, {required String token, String? nonce}) =>
+      api.post('/auth/2fa/disable', {'provider': provider, 'token': token, if (nonce != null) 'nonce': nonce});
+
   Future<void> removeDevice(int id) => api.delete('/auth/2fa/devices/$id');
 }

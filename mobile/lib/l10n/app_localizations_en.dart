@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -671,7 +672,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown) {
+    String type,
+    String title,
+    String date,
+    String countdown,
+  ) {
     return '$type: $title. $date. $countdown. Tap to edit.';
   }
 
@@ -990,7 +995,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end) {
+    String name,
+    String day,
+    String start,
+    String end,
+  ) {
     return '$name, $day from $start to $end';
   }
 
@@ -13015,4 +13024,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get qa1TfNeedPassword =>
       'Turning off two-step verification needs a password. Your account has none: first set one on the Password screen with the code sent to your e-mail.';
+
+  @override
+  String get qa1TfDisableReauthBody =>
+      'Your account has no password, so confirm with Google or Apple. All trusted devices are removed.';
 }

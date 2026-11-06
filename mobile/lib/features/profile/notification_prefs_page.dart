@@ -214,6 +214,20 @@ class _PrefsStore extends ChangeNotifier {
   Object? error;
   String? saveError;
 
+  /// Sayfa kapandıktan sonra tamamlanan yükleme/kayıt isteği ölü bildiriciyi uyandırmasın ("used after being disposed").
+  bool _disposed = false;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
+  @override
+  void notifyListeners() {
+    if (!_disposed) super.notifyListeners();
+  }
+
   Map<String, dynamic> get subs => (prefs?['subtypes'] is Map) ? (prefs!['subtypes'] as Map).cast<String, dynamic>() : {};
 
   Map<String, dynamic>? get quiet => (prefs?['quietHours'] is Map) ? (prefs!['quietHours'] as Map).cast<String, dynamic>() : null;

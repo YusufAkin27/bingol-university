@@ -162,14 +162,41 @@ void main() {
       expect(find.byType(ResetCodePage), findsOneWidget);
     });
 
-    testWidgets('2FA kapatma: sifresiz hesap sifre diyalogu yerine Sifre ekranina yonlendirilir', (t) async {
+    testWidgets('2FA kapatma: sifresiz hesap sifre yerine saglayici yeniden dogrulamasiyla kapatir', (t) async {
       useScreen(t, kPhoneMedium);
-      final b = FakeBackend()..on('/auth/2fa', {'enabled': true, 'trustedDeviceCount': 0})..on('/auth/2fa/devices', []);
+      final google = _Google();
+      OAuthServices.current = OAuthServices(google: google, apple: _Apple());
+      final b = FakeBackend()
+        ..on('/auth/2fa', {'enabled': true, 'trustedDeviceCount': 0})
+        ..on('/auth/2fa/devices', [])
+        ..on('/auth/oauth/identities', [
+          {'provider': 'GOOGLE'}
+        ])
+        ..on('/auth/2fa/disable', {'enabled': false});
       await t.pumpWidget(_localized(TwoFactorPage(session: _passwordless(b))));
       await settle(t);
       await t.tap(find.byType(Switch).first);
       await settle(t, const Duration(milliseconds: 600));
       expect(find.byKey(const ValueKey('tf-disable-password')), findsNothing);
+      await t.tap(find.text('Kapat'));
+      await settle(t, const Duration(milliseconds: 600));
+      expect(google.calls, 1);
+      expect(b.bodies['POST /auth/2fa/disable'], {'provider': 'google', 'token': 'g-fresh'});
+      OAuthServices.current = OAuthServices();
+    });
+
+    testWidgets('2FA kapatma: bagli saglayici yoksa Sifre ekranina yonlendirilir', (t) async {
+      useScreen(t, kPhoneMedium);
+      final b = FakeBackend()
+        ..on('/auth/2fa', {'enabled': true, 'trustedDeviceCount': 0})
+        ..on('/auth/2fa/devices', [])
+        ..on('/auth/oauth/identities', []);
+      await t.pumpWidget(_localized(TwoFactorPage(session: _passwordless(b))));
+      await settle(t);
+      await t.tap(find.byType(Switch).first);
+      await settle(t, const Duration(milliseconds: 600));
+      await t.tap(find.text('Kapat'));
+      await settle(t, const Duration(milliseconds: 600));
       expect(find.byType(PasswordPage), findsOneWidget);
       expect(b.count('POST /auth/2fa/disable'), 0);
     });

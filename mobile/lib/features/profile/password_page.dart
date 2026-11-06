@@ -236,6 +236,7 @@ class _PasswordPageState extends State<PasswordPage> {
                     const SizedBox(height: 16),
                     _PwField(
                       key: const ValueKey('pw-current'),
+                      enabled: !_busy,
                       label: l.profil2SecCurrentLabel,
                       hint: l.profil2SecCurrentHint,
                       controller: _current,
@@ -246,6 +247,7 @@ class _PasswordPageState extends State<PasswordPage> {
                     const SizedBox(height: 16),
                     _PwField(
                       key: const ValueKey('pw-new'),
+                      enabled: !_busy,
                       label: l.profil2SecNewLabel,
                       hint: l.profil2SecNewHint,
                       controller: _new,
@@ -258,6 +260,7 @@ class _PasswordPageState extends State<PasswordPage> {
                     const SizedBox(height: 16),
                     _PwField(
                       key: const ValueKey('pw-repeat'),
+                      enabled: !_busy,
                       label: l.profil2SecRepeatLabel,
                       hint: l.profil2SecRepeatHint,
                       controller: _repeat,
@@ -346,8 +349,11 @@ class _PwField extends StatefulWidget {
     this.action = TextInputAction.done,
     this.hints,
     this.onSubmitted,
+    this.enabled = true,
   });
 
+  /// Gönderim sürerken alanlar kilitlenir.
+  final bool enabled;
   final String label;
   final String hint;
   final TextEditingController controller;
@@ -377,6 +383,7 @@ class _PwFieldState extends State<_PwField> {
       ),
       TextField(
         controller: widget.controller,
+        enabled: widget.enabled,
         obscureText: _hidden,
         autocorrect: false,
         enableSuggestions: false,
