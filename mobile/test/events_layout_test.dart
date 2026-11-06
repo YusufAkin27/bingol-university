@@ -233,7 +233,7 @@ void main() {
               ]
             })
             ..on('/events/5/attendees*', _page([]))
-            ..on('/events/5/attendance', <Object>[])
+            ..on('/events/5/attendance/roster', <Object>[])
             ..on('/events/5/checkin-code', {'code': '5.1.a', 'qrPayload': 'x', 'validForSeconds': 30})
             ..on('/events/5/my-attendance', {'present': false, 'checkInOpen': false});
           await _pump(tester, c, EventDetailPage(session: makeSession(b), eventId: 5));

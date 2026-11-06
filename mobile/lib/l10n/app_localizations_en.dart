@@ -60,7 +60,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatReactionUnsupported => 'This emoji is not supported right now';
 
   @override
-  String get chatReactionLimit => 'This message cannot have more different emojis';
+  String get chatReactionLimit =>
+      'This message cannot have more different emojis';
 
   @override
   String get chatMessageInfoTitle => 'Message info';
@@ -120,7 +121,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonSomethingWentWrong => 'Something went wrong';
 
   @override
-  String get configError => 'Configuration error: the server address (API_BASE) is not secure (HTTPS). Rebuild the app with the correct address.';
+  String get configError =>
+      'Configuration error: the server address (API_BASE) is not secure (HTTPS). Rebuild the app with the correct address.';
 
   @override
   String get exitAgainHint => 'Press back again to exit';
@@ -144,7 +146,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get updateRequiredTitle => 'Update required';
 
   @override
-  String get updateRequiredBody => 'Update to the latest version to keep using the app.';
+  String get updateRequiredBody =>
+      'Update to the latest version to keep using the app.';
 
   @override
   String get updateAvailable => 'A new version is available.';
@@ -158,7 +161,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accessBlockedTitle => 'Access blocked';
 
   @override
-  String get accessBlockedBody => 'Access from this device or network has been blocked. If you think this is a mistake, contact support.';
+  String get accessBlockedBody =>
+      'Access from this device or network has been blocked. If you think this is a mistake, contact support.';
 
   @override
   String get settingsTitle => 'Settings';
@@ -232,7 +236,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsLogoutAllTitle => 'Log out of all devices';
 
   @override
-  String get settingsLogoutAllBody => 'You will be logged out on all devices and will need to log in again.';
+  String get settingsLogoutAllBody =>
+      'You will be logged out on all devices and will need to log in again.';
 
   @override
   String get settingsLogoutAllConfirm => 'Log out';
@@ -249,7 +254,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginSubtitle => 'Log in with your email address.';
 
   @override
-  String get loginReplacedNotice => 'The session on this device was closed. It may have been signed out from another device; sign in again to continue.';
+  String get loginReplacedNotice =>
+      'The session on this device was closed. It may have been signed out from another device; sign in again to continue.';
 
   @override
   String get loginPasswordRequired => 'Enter your password.';
@@ -331,7 +337,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get authUnverifiedNotice => 'Verify your email to log in. Your account must be verified first.';
+  String get authUnverifiedNotice =>
+      'Verify your email to log in. Your account must be verified first.';
 
   @override
   String get authUseOtherAccount => 'Log in with another account';
@@ -367,7 +374,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authSelectGrade => 'Select your year of study.';
 
   @override
-  String get authDepartmentsLoadFailed => 'Could not load the department list. Please try again.';
+  String get authDepartmentsLoadFailed =>
+      'Could not load the department list. Please try again.';
 
   @override
   String get authNameRequired => 'Enter your first and last name.';
@@ -591,7 +599,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get acadSelect => 'Select';
 
   @override
-  String get acadMaintenance => 'Academic services are under maintenance. Please try again later.';
+  String get acadMaintenance =>
+      'Academic services are under maintenance. Please try again later.';
 
   @override
   String get acadAll => 'All';
@@ -643,7 +652,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get acadExamsTabOfficial => 'Official schedule';
 
   @override
-  String get acadExamsEmptyMine => 'You have not added any personal exams.\nTrack your midterm, final or quiz dates here.';
+  String get acadExamsEmptyMine =>
+      'You have not added any personal exams.\nTrack your midterm, final or quiz dates here.';
 
   @override
   String get acadExamsUpcoming => 'Upcoming';
@@ -660,7 +670,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String acadExamsSemanticCd(String type, String title, String date, String countdown) {
+  String acadExamsSemanticCd(
+      String type, String title, String date, String countdown) {
     return '$type: $title. $date. $countdown. Tap to edit.';
   }
 
@@ -883,7 +894,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get acadTimeExportNone => 'No courses to export.';
 
   @override
-  String get acadTimeExportCopied => 'Calendar (.ics) text copied to clipboard.';
+  String get acadTimeExportCopied =>
+      'Calendar (.ics) text copied to clipboard.';
 
   @override
   String get acadTimeTitle => 'Timetable';
@@ -906,7 +918,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get acadTimeEmptyText => 'You have not added any courses yet.\nAdd your courses to build your weekly timetable.';
+  String get acadTimeEmptyText =>
+      'You have not added any courses yet.\nAdd your courses to build your weekly timetable.';
 
   @override
   String get acadTimeAddFirst => 'Add your first course';
@@ -976,7 +989,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get acadTimeStatusDone => 'Done';
 
   @override
-  String acadTimeSlotSemantic(String name, String day, String start, String end) {
+  String acadTimeSlotSemantic(
+      String name, String day, String start, String end) {
     return '$name, $day from $start to $end';
   }
 
@@ -1054,7 +1068,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get acadTimeColorAuto => 'A color is assigned automatically if you do not choose one.';
+  String get acadTimeColorAuto =>
+      'A color is assigned automatically if you do not choose one.';
 
   @override
   String get acadTimeDaysAndTimes => 'Days and times';
@@ -1095,7 +1110,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get acadTimeSemester => 'Semester';
 
   @override
-  String get acadTimeNoSemester => 'No semesters yet. Add a semester to organize your courses.';
+  String get acadTimeNoSemester =>
+      'No semesters yet. Add a semester to organize your courses.';
 
   @override
   String get acadTimeAddSemester => 'Add semester';
@@ -1144,7 +1160,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get acadTimeSemesterNeedAll => 'A name and both dates are required.';
 
   @override
-  String get acadTimeSemesterEndAfter => 'End date must be after the start date.';
+  String get acadTimeSemesterEndAfter =>
+      'End date must be after the start date.';
 
   @override
   String get acadTimeAdd => 'Add';
@@ -1153,7 +1170,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get acadTimeRemindersTitle => 'Reminders';
 
   @override
-  String get acadTimeRemindersIntro => 'Notifications are scheduled on your device; no internet is needed. They refresh when your timetable or exams change.';
+  String get acadTimeRemindersIntro =>
+      'Notifications are scheduled on your device; no internet is needed. They refresh when your timetable or exams change.';
 
   @override
   String get acadTimeClassReminder => 'Class reminder';
@@ -1208,22 +1226,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatDetailVideoTooLong => 'Videos can be up to 60 seconds long.';
 
   @override
-  String get chatDetailVideoTooLarge => 'The video is too large. Choose a shorter one.';
+  String get chatDetailVideoTooLarge =>
+      'The video is too large. Choose a shorter one.';
 
   @override
-  String get chatDetailVideoUnsupported => 'Videos cannot be sent on this device.';
+  String get chatDetailVideoUnsupported =>
+      'Videos cannot be sent on this device.';
 
   @override
   String get chatDetailVideoFailed => 'The video could not be prepared.';
 
   @override
-  String get chatDetailVideosSplit => 'The videos are large, so they will be sent as multiple messages.';
+  String get chatDetailVideosSplit =>
+      'The videos are large, so they will be sent as multiple messages.';
 
   @override
-  String get chatDetailImageTooLarge => 'The image is too large. Choose a smaller one.';
+  String get chatDetailImageTooLarge =>
+      'The image is too large. Choose a smaller one.';
 
   @override
-  String get chatDetailImageTypes => 'Only JPEG, PNG or WebP images can be sent.';
+  String get chatDetailImageTypes =>
+      'Only JPEG, PNG or WebP images can be sent.';
 
   @override
   String get chatDetailImageUnreadable => 'The image could not be read.';
@@ -1238,7 +1261,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatDetailDeleteTitle => 'Delete message?';
 
   @override
-  String get chatDetailDeleteBody => 'This message will be deleted for everyone.';
+  String get chatDetailDeleteBody =>
+      'This message will be deleted for everyone.';
 
   @override
   String get chatDetailDelete => 'Delete';
@@ -1253,13 +1277,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatDetailToday => 'Today';
 
   @override
-  String get chatEncNoticeDirect => 'Your messages are encrypted in transit and on the server.';
+  String get chatEncNoticeDirect =>
+      'Your messages are encrypted in transit and on the server.';
 
   @override
-  String get chatEncNoticeGroup => 'Messages in this chat are encrypted in transit and on the server. All members of the chat can see them.';
+  String get chatEncNoticeGroup =>
+      'Messages in this chat are encrypted in transit and on the server. All members of the chat can see them.';
 
   @override
-  String get chatEncNoticeRoom => 'Messages in this room are encrypted in transit and on the server. All members of the room can see them.';
+  String get chatEncNoticeRoom =>
+      'Messages in this room are encrypted in transit and on the server. All members of the room can see them.';
 
   @override
   String get chatEncMore => 'Learn more';
@@ -1271,7 +1298,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatEncHeroTitle => 'Your messages are encrypted';
 
   @override
-  String get chatEncHeroBody => 'Your messages are encrypted in transit and on the server. Below we explain plainly what is protected, how, and what you should keep in mind.';
+  String get chatEncHeroBody =>
+      'Your messages are encrypted in transit and on the server. Below we explain plainly what is protected, how, and what you should keep in mind.';
 
   @override
   String get chatEncSecHow => 'How it is protected';
@@ -1280,55 +1308,64 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatEncTlsTitle => 'Encrypted in transit';
 
   @override
-  String get chatEncTlsBody => 'Your messages and chat photos travel between the app and the server over an encrypted connection (TLS/WSS).';
+  String get chatEncTlsBody =>
+      'Your messages and chat photos travel between the app and the server over an encrypted connection (TLS/WSS).';
 
   @override
   String get chatEncRestTitle => 'Encrypted storage on the server';
 
   @override
-  String get chatEncRestBody => 'Messages are stored encrypted with AES-256-GCM using a separate key for each chat; chat photos and videos are stored encrypted too. The keys are kept apart from the database, in the server environment. This makes messages harder to read even if a database backup is obtained.';
+  String get chatEncRestBody =>
+      'Messages are stored encrypted with AES-256-GCM using a separate key for each chat; chat photos and videos are stored encrypted too. The keys are kept apart from the database, in the server environment. This makes messages harder to read even if a database backup is obtained.';
 
   @override
   String get chatEncAuditTitle => 'Admin access is logged';
 
   @override
-  String get chatEncAuditBody => 'Only authorized administrators can look at conversations, and only for reasons such as reviewing a report, security or legal requests. Every view is written to a tamper-proof access log before the content is shown.';
+  String get chatEncAuditBody =>
+      'Only authorized administrators can look at conversations, and only for reasons such as reviewing a report, security or legal requests. Every view is written to a tamper-proof access log before the content is shown.';
 
   @override
   String get chatEncBlockTitle => 'Block and report';
 
   @override
-  String get chatEncBlockBody => 'You can block people you do not want to hear from and report inappropriate messages and users. Messages from someone you blocked are not delivered to you.';
+  String get chatEncBlockBody =>
+      'You can block people you do not want to hear from and report inappropriate messages and users. Messages from someone you blocked are not delivered to you.';
 
   @override
   String get chatEncOnceTitle => 'View-once photos';
 
   @override
-  String get chatEncOnceBody => 'The recipient can open a view-once photo only one time; after opening it they cannot see it again.';
+  String get chatEncOnceBody =>
+      'The recipient can open a view-once photo only one time; after opening it they cannot see it again.';
 
   @override
   String get chatEncDeleteTitle => 'Delete for everyone';
 
   @override
-  String get chatEncDeleteBody => 'You can delete your own message for everyone; others see a note that it was deleted instead of the message.';
+  String get chatEncDeleteBody =>
+      'You can delete your own message for everyone; others see a note that it was deleted instead of the message.';
 
   @override
   String get chatEncExifTitle => 'Location is removed from photos';
 
   @override
-  String get chatEncExifBody => 'Photos you send are re-encoded on the server and EXIF data such as location is removed.';
+  String get chatEncExifBody =>
+      'Photos you send are re-encoded on the server and EXIF data such as location is removed.';
 
   @override
   String get chatEncDataTitle => 'Your data is yours';
 
   @override
-  String get chatEncDataBody => 'From the Profile section you can download your data or delete your account.';
+  String get chatEncDataBody =>
+      'From the Profile section you can download your data or delete your account.';
 
   @override
   String get chatEncNoSellTitle => 'Not sold, not shared for ads';
 
   @override
-  String get chatEncNoSellBody => 'We do not sell your data and we do not share it with third parties for advertising.';
+  String get chatEncNoSellBody =>
+      'We do not sell your data and we do not share it with third parties for advertising.';
 
   @override
   String get chatEncSecKnow => 'What you should know';
@@ -1337,31 +1374,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatEncNotE2eeTitle => 'Not end-to-end encrypted';
 
   @override
-  String get chatEncNotE2eeBody => 'Messages in this app are not end-to-end encrypted. The encryption keys are held on the server, so the system can decrypt messages when necessary. Please use the app with this in mind.';
+  String get chatEncNotE2eeBody =>
+      'Messages in this app are not end-to-end encrypted. The encryption keys are held on the server, so the system can decrypt messages when necessary. Please use the app with this in mind.';
 
   @override
   String get chatEncRetainTitle => 'Deleted content may be kept';
 
   @override
-  String get chatEncRetainBody => 'The encrypted copy of messages deleted for everyone, their edit history and the encrypted copy of view-once photos may be kept on the server for security review. Retention periods are stated in the Privacy Policy.';
+  String get chatEncRetainBody =>
+      'The encrypted copy of messages deleted for everyone, their edit history and the encrypted copy of view-once photos may be kept on the server for security review. Retention periods are stated in the Privacy Policy.';
 
   @override
   String get chatEncMembersTitle => 'Everyone in a group can see';
 
   @override
-  String get chatEncMembersBody => 'Messages in groups, club rooms and event rooms can be seen by all members of the room.';
+  String get chatEncMembersBody =>
+      'Messages in groups, club rooms and event rooms can be seen by all members of the room.';
 
   @override
   String get chatEncScreenshotTitle => 'Screenshots cannot be prevented';
 
   @override
-  String get chatEncScreenshotBody => 'The other person can capture a message with a screenshot or another device and share it. We cannot fully prevent this, even for view-once photos.';
+  String get chatEncScreenshotBody =>
+      'The other person can capture a message with a screenshot or another device and share it. We cannot fully prevent this, even for view-once photos.';
 
   @override
   String get chatEncAccountTitle => 'Messages remain after account deletion';
 
   @override
-  String get chatEncAccountBody => 'If you delete your account, your personal details are anonymized; the messages you sent remain as part of the chat under an anonymous author.';
+  String get chatEncAccountBody =>
+      'If you delete your account, your personal details are anonymized; the messages you sent remain as part of the chat under an anonymous author.';
 
   @override
   String get chatEncSecHelp => 'Report and block';
@@ -1389,7 +1431,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatEncInfoRow => 'Encryption and security';
 
   @override
-  String get chatEncFootnote => 'Your messages are encrypted in transit and on the server.';
+  String get chatEncFootnote =>
+      'Your messages are encrypted in transit and on the server.';
 
   @override
   String get chatDetailYesterday => 'Yesterday';
@@ -1538,7 +1581,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatDetailLeaveTitle => 'Leave this chat?';
 
   @override
-  String get chatDetailLeaveBody => 'You will no longer receive messages from this chat.';
+  String get chatDetailLeaveBody =>
+      'You will no longer receive messages from this chat.';
 
   @override
   String get chatDetailLeave => 'Leave';
@@ -1547,7 +1591,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatDetailBlockTitle => 'Block this user?';
 
   @override
-  String get chatDetailBlockBody => 'You will not be able to message people you block.';
+  String get chatDetailBlockBody =>
+      'You will not be able to message people you block.';
 
   @override
   String get chatDetailUserBlocked => 'User blocked';
@@ -1561,7 +1606,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get chatDetailMembersLoadFailed => 'The member list could not be loaded.';
+  String get chatDetailMembersLoadFailed =>
+      'The member list could not be loaded.';
 
   @override
   String get chatDetailAdmin => 'Admin';
@@ -1673,10 +1719,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatInfoDeleteConvTitle => 'Delete this chat?';
 
   @override
-  String get chatInfoDeleteConvGroup => 'You will leave the group and delete this chat.';
+  String get chatInfoDeleteConvGroup =>
+      'You will leave the group and delete this chat.';
 
   @override
-  String get chatInfoDeleteConvDirect => 'This chat will be deleted only for you. The other person is not affected.';
+  String get chatInfoDeleteConvDirect =>
+      'This chat will be deleted only for you. The other person is not affected.';
 
   @override
   String get chatInfoUser => 'User';
@@ -1735,7 +1783,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatInfoLeaveTitle => 'Leave this chat?';
 
   @override
-  String get chatInfoLeaveBody => 'You will no longer receive messages from this chat.';
+  String get chatInfoLeaveBody =>
+      'You will no longer receive messages from this chat.';
 
   @override
   String get chatInfoLeave => 'Leave';
@@ -1747,7 +1796,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatInfoBlockTitle => 'Block this user?';
 
   @override
-  String get chatInfoBlockBody => 'You will not be able to message people you block.';
+  String get chatInfoBlockBody =>
+      'You will not be able to message people you block.';
 
   @override
   String get chatInfoBlock => 'Block';
@@ -1782,10 +1832,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatInfoRemovePhoto => 'Remove photo';
 
   @override
-  String get chatInfoImageTooLarge => 'The image is too large. Choose a smaller one.';
+  String get chatInfoImageTooLarge =>
+      'The image is too large. Choose a smaller one.';
 
   @override
-  String get chatInfoImageTypeOnly => 'Only JPEG, PNG or WebP images are allowed.';
+  String get chatInfoImageTypeOnly =>
+      'Only JPEG, PNG or WebP images are allowed.';
 
   @override
   String get chatInfoTitle => 'Chat info';
@@ -1915,7 +1967,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatInfoFilesUnsupportedTitle => 'File sharing is not supported';
 
   @override
-  String get chatInfoFilesUnsupportedBody => 'For now only photos and videos can be shared in this chat.';
+  String get chatInfoFilesUnsupportedBody =>
+      'For now only photos and videos can be shared in this chat.';
 
   @override
   String get chatInfoReported => 'Reported';
@@ -2074,7 +2127,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatMiscContactsFind => 'Find people from contacts';
 
   @override
-  String get chatMiscContactsRationale => 'We need access to your contacts to find people from Bingöl University. Your contacts are never sent to the server; only hashed email addresses are matched.';
+  String get chatMiscContactsRationale =>
+      'We need access to your contacts to find people from Bingöl University. Your contacts are never sent to the server; only hashed email addresses are matched.';
 
   @override
   String get chatMiscContactsSubtitle => 'People from Bingöl University';
@@ -2083,7 +2137,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatMiscContactsPermTitle => 'Contacts permission required';
 
   @override
-  String get chatMiscContactsPermText => 'Allow access to your contacts so we can find campus people among them.';
+  String get chatMiscContactsPermText =>
+      'Allow access to your contacts so we can find campus people among them.';
 
   @override
   String get chatMiscContactsPermAction => 'Allow';
@@ -2092,13 +2147,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatMiscContactsNoneTitle => 'No matching people';
 
   @override
-  String get chatMiscContactsNoneText => 'None of your contacts use the app yet. Your friends will appear here as they join.';
+  String get chatMiscContactsNoneText =>
+      'None of your contacts use the app yet. Your friends will appear here as they join.';
 
   @override
   String get chatMiscContactsSearchHint => 'Search contacts';
 
   @override
-  String get chatMiscContactsTruncated => 'Hourly request limit reached; the remaining contacts will be matched later.';
+  String get chatMiscContactsTruncated =>
+      'Hourly request limit reached; the remaining contacts will be matched later.';
 
   @override
   String get chatMiscContactsNoSearchMatch => 'No one matches your search.';
@@ -2112,7 +2169,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatMiscMessage => 'Message';
 
   @override
-  String get chatMiscContactsPrivacy => 'Your contacts are never sent to the server; only hashed email addresses are matched.';
+  String get chatMiscContactsPrivacy =>
+      'Your contacts are never sent to the server; only hashed email addresses are matched.';
 
   @override
   String get chatMiscGroupMax => 'A group can have at most 50 people.';
@@ -2144,7 +2202,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatMiscMax50 => 'Max 50';
 
   @override
-  String get chatMiscSearchMin => 'Type at least 2 characters to search for people.';
+  String get chatMiscSearchMin =>
+      'Type at least 2 characters to search for people.';
 
   @override
   String get chatMiscNoMatchPeople => 'No matching people found.';
@@ -2207,7 +2266,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get shareQueued => 'You are offline; it will be sent when you are back online';
+  String get shareQueued =>
+      'You are offline; it will be sent when you are back online';
 
   @override
   String get shareFailedAll => 'Could not send. Try again.';
@@ -2254,7 +2314,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumActivityAnonBadge => 'Anonymous';
 
   @override
-  String get forumActivityAnonBadgeLong => 'Anonymous post: only you can see this';
+  String get forumActivityAnonBadgeLong =>
+      'Anonymous post: only you can see this';
 
   @override
   String get forumActivityAnonymous => 'Anonymous';
@@ -2268,22 +2329,26 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get forumActivityEmptyCommentsBody => 'Comments you write will appear here.';
+  String get forumActivityEmptyCommentsBody =>
+      'Comments you write will appear here.';
 
   @override
   String get forumActivityEmptyCommentsTitle => 'No comments yet';
 
   @override
-  String get forumActivityEmptyFollowingBody => 'Follow a topic to hear about new comments.';
+  String get forumActivityEmptyFollowingBody =>
+      'Follow a topic to hear about new comments.';
 
   @override
   String get forumActivityEmptyFollowingTitle => 'You follow no topics';
 
   @override
-  String get forumActivityEmptyTopicsBody => 'Topics you start are listed here. Anonymous ones are visible only to you.';
+  String get forumActivityEmptyTopicsBody =>
+      'Topics you start are listed here. Anonymous ones are visible only to you.';
 
   @override
-  String get forumActivityEmptyTopicsTitle => 'You have not started a topic yet';
+  String get forumActivityEmptyTopicsTitle =>
+      'You have not started a topic yet';
 
   @override
   String get forumActivityRemoved => 'This topic was removed';
@@ -2327,7 +2392,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumPrefsAll => 'All forum notifications';
 
   @override
-  String get forumPrefsAllSub => 'Turning this off stops all of the notifications below.';
+  String get forumPrefsAllSub =>
+      'Turning this off stops all of the notifications below.';
 
   @override
   String get forumPrefsFollowed => 'Topics I follow';
@@ -2336,7 +2402,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumPrefsLikes => 'Like notifications';
 
   @override
-  String get forumPrefsModerationNote => 'Moderation notices (for example when your content is removed) cannot be turned off.';
+  String get forumPrefsModerationNote =>
+      'Moderation notices (for example when your content is removed) cannot be turned off.';
 
   @override
   String get forumPrefsMutedEmpty => 'You have not muted anyone.';
@@ -2375,10 +2442,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumReportAlsoBlock => 'Also block this author';
 
   @override
-  String get forumReportAlsoBlockHint => 'Their content is hidden from you. Their identity is never shown.';
+  String get forumReportAlsoBlockHint =>
+      'Their content is hidden from you. Their identity is never shown.';
 
   @override
-  String get forumReportBlockBody => 'All of this author’s forum topics and comments are hidden from you. Even if they are anonymous, you will not learn who they are.';
+  String get forumReportBlockBody =>
+      'All of this author’s forum topics and comments are hidden from you. Even if they are anonymous, you will not learn who they are.';
 
   @override
   String get forumReportBlockConfirm => 'Block';
@@ -2428,7 +2497,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumReportTitle => 'Report';
 
   @override
-  String get forumSavedEmptyBody => 'Tap the save icon on topics and comments to add them here.';
+  String get forumSavedEmptyBody =>
+      'Tap the save icon on topics and comments to add them here.';
 
   @override
   String get forumSavedEmptyTitle => 'Nothing saved yet';
@@ -2496,7 +2566,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumSearchSortRelevance => 'Relevant';
 
   @override
-  String get forumSearchStartBody => 'Search by topic title, description, comment or category name.';
+  String get forumSearchStartBody =>
+      'Search by topic title, description, comment or category name.';
 
   @override
   String get forumSearchStartTitle => 'Search the forum';
@@ -2517,7 +2588,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumShareKindTopic => 'Forum';
 
   @override
-  String get sharePrivateHint => 'Posts from private accounts can only be shared with people by message.';
+  String get sharePrivateHint =>
+      'Posts from private accounts can only be shared with people by message.';
 
   @override
   String get shareNotFoundTitle => 'Content not found';
@@ -2529,7 +2601,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatMiscChatNotFound => 'No chats found.';
 
   @override
-  String get chatMiscGalleryRationale => 'We need access to your gallery to show your photos and videos.';
+  String get chatMiscGalleryRationale =>
+      'We need access to your gallery to show your photos and videos.';
 
   @override
   String get chatMiscVideoMax60 => 'Videos can be up to 60 seconds long';
@@ -2569,10 +2642,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get chatMiscCameraRationale => 'We need camera access so you can take photos and videos.';
+  String get chatMiscCameraRationale =>
+      'We need camera access so you can take photos and videos.';
 
   @override
-  String get chatMiscMicRationale => 'We need microphone access to record sound with your videos.';
+  String get chatMiscMicRationale =>
+      'We need microphone access to record sound with your videos.';
 
   @override
   String get chatMiscPhotoFailed => 'The photo could not be taken.';
@@ -2590,7 +2665,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatMiscFlipCamera => 'Flip camera';
 
   @override
-  String get chatMiscOnceToast => 'View once: the recipient can open it only once';
+  String get chatMiscOnceToast =>
+      'View once: the recipient can open it only once';
 
   @override
   String get chatMiscAddCaption => 'Add a caption…';
@@ -2602,13 +2678,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatMiscOnceGone => 'This photo can no longer be viewed.';
 
   @override
-  String get chatMiscOnceOwn => 'You cannot open a view-once photo that you sent.';
+  String get chatMiscOnceOwn =>
+      'You cannot open a view-once photo that you sent.';
 
   @override
-  String get chatMiscOnceNetwork => 'The photo could not be loaded. Check your connection. As a view-once photo, it may not be possible to open it again.';
+  String get chatMiscOnceNetwork =>
+      'The photo could not be loaded. Check your connection. As a view-once photo, it may not be possible to open it again.';
 
   @override
-  String get chatMiscOnceShowFailed => 'The photo could not be displayed. As a view-once photo, it may not be possible to open it again.';
+  String get chatMiscOnceShowFailed =>
+      'The photo could not be displayed. As a view-once photo, it may not be possible to open it again.';
 
   @override
   String get chatMiscOnceTitle => 'View once';
@@ -2617,7 +2696,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatMiscRetry => 'Try again';
 
   @override
-  String get chatMiscSaveUnsupported => 'Saving is not supported on this device.';
+  String get chatMiscSaveUnsupported =>
+      'Saving is not supported on this device.';
 
   @override
   String get chatMiscSaveDenied => 'Gallery permission was not granted.';
@@ -2653,7 +2733,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clubImageTooLarge => 'The image is too large.';
 
   @override
-  String get clubImageUnsupported => 'Only JPEG, PNG or WebP images can be uploaded.';
+  String get clubImageUnsupported =>
+      'Only JPEG, PNG or WebP images can be uploaded.';
 
   @override
   String get clubImageUnreadable => 'The image could not be read.';
@@ -2671,7 +2752,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clubChatClosed => 'The club chat is currently closed.';
 
   @override
-  String get clubChatPreparing => 'The club chat is being set up. Try again shortly.';
+  String get clubChatPreparing =>
+      'The club chat is being set up. Try again shortly.';
 
   @override
   String get clubChat => 'Club chat';
@@ -2816,7 +2898,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clubRoleModerator => 'Moderator';
 
   @override
-  String get clubDeleteBody => 'Members, events and the chat will be deleted. This cannot be undone.';
+  String get clubDeleteBody =>
+      'Members, events and the chat will be deleted. This cannot be undone.';
 
   @override
   String clubDeleteTypeName(String name) {
@@ -2827,7 +2910,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clubNameHint => 'Club name';
 
   @override
-  String get clubOwnerCannotLeave => 'The club owner cannot leave. Transfer ownership or delete the club first.';
+  String get clubOwnerCannotLeave =>
+      'The club owner cannot leave. Transfer ownership or delete the club first.';
 
   @override
   String get clubCannotLeaveTitle => 'You cannot leave the club';
@@ -2936,7 +3020,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clubMgmtPendingTitle => 'Club submitted for approval';
 
   @override
-  String get clubMgmtPendingBody => 'The club will be published once an admin approves it. Track its status under My clubs.';
+  String get clubMgmtPendingBody =>
+      'The club will be published once an admin approves it. Track its status under My clubs.';
 
   @override
   String get clubMgmtOk => 'OK';
@@ -2945,7 +3030,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clubMgmtImageTooLarge => 'The image is too large.';
 
   @override
-  String get clubMgmtImageUnsupported => 'Only JPEG, PNG or WebP images can be uploaded.';
+  String get clubMgmtImageUnsupported =>
+      'Only JPEG, PNG or WebP images can be uploaded.';
 
   @override
   String get clubMgmtImageUnreadable => 'The image could not be read.';
@@ -2960,13 +3046,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clubMgmtNameMax => 'The club name can be at most 80 characters.';
 
   @override
-  String get clubMgmtDescMax => 'The description can be at most 1000 characters.';
+  String get clubMgmtDescMax =>
+      'The description can be at most 1000 characters.';
 
   @override
-  String get clubMgmtCategoryMax => 'The category can be at most 40 characters.';
+  String get clubMgmtCategoryMax =>
+      'The category can be at most 40 characters.';
 
   @override
-  String get clubMgmtSavedWithWarning => 'The club was saved, but the cover or join questions could not be saved.';
+  String get clubMgmtSavedWithWarning =>
+      'The club was saved, but the cover or join questions could not be saved.';
 
   @override
   String get clubMgmtEditTitle => 'Edit club';
@@ -2990,7 +3079,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clubMgmtCategoryLabel => 'Category';
 
   @override
-  String get clubMgmtCategoryHint => 'Choose from the list or type your own (optional)';
+  String get clubMgmtCategoryHint =>
+      'Choose from the list or type your own (optional)';
 
   @override
   String get clubMgmtVisibility => 'Visibility';
@@ -3002,7 +3092,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clubMgmtPrivate => 'Private';
 
   @override
-  String get clubMgmtPrivateHint => 'Only members see the club content; joining requires approval.';
+  String get clubMgmtPrivateHint =>
+      'Only members see the club content; joining requires approval.';
 
   @override
   String get clubMgmtPublicHint => 'The club appears in the Discover list.';
@@ -3017,7 +3108,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clubMgmtApprovalPolicy => 'Approval';
 
   @override
-  String get clubMgmtApprovalHint => 'People send a join request and you approve it.';
+  String get clubMgmtApprovalHint =>
+      'People send a join request and you approve it.';
 
   @override
   String get clubMgmtOpenHint => 'Anyone can join directly.';
@@ -3223,31 +3315,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get permNotificationsTitle => 'Notifications';
 
   @override
-  String get permNotificationsText => 'Get instant alerts about messages, events and announcements.';
+  String get permNotificationsText =>
+      'Get instant alerts about messages, events and announcements.';
 
   @override
   String get permContactsTitle => 'Contacts';
 
   @override
-  String get permContactsText => 'Needed to find Bingöl University people in your contacts and start chats. Your contacts are not sent to the server.';
+  String get permContactsText =>
+      'Needed to find Bingöl University people in your contacts and start chats. Your contacts are not sent to the server.';
 
   @override
   String get permCameraTitle => 'Camera';
 
   @override
-  String get permCameraText => 'We need camera access to scan QR codes and take photos.';
+  String get permCameraText =>
+      'We need camera access to scan QR codes and take photos.';
 
   @override
   String get permMicrophoneTitle => 'Microphone';
 
   @override
-  String get permMicrophoneText => 'We need microphone access so you can record audio and video.';
+  String get permMicrophoneText =>
+      'We need microphone access so you can record audio and video.';
 
   @override
   String get permPhotosTitle => 'Photos';
 
   @override
-  String get permPhotosText => 'We need access to your gallery so you can pick and share photos.';
+  String get permPhotosText =>
+      'We need access to your gallery so you can pick and share photos.';
 
   @override
   String get permContinue => 'Continue';
@@ -3270,7 +3367,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get permPageTitle => 'A few permissions';
 
   @override
-  String get permPageIntro => 'Allow what you like now; you can change the rest later in Settings.';
+  String get permPageIntro =>
+      'Allow what you like now; you can change the rest later in Settings.';
 
   @override
   String get permStart => 'Get started';
@@ -3288,7 +3386,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get permAllow => 'Allow';
 
   @override
-  String get coreErrNetwork => 'Could not reach the server. Check your connection.';
+  String get coreErrNetwork =>
+      'Could not reach the server. Check your connection.';
 
   @override
   String get coreErrTooMany => 'Too many attempts. Please wait a moment.';
@@ -3312,13 +3411,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get coreOpen => 'Open';
 
   @override
-  String get eventFormJoinFull => 'The event is full. You can still mark yourself as Interested.';
+  String get eventFormJoinFull =>
+      'The event is full. You can still mark yourself as Interested.';
 
   @override
   String get eventFormLeaveTitle => 'Leave event';
 
   @override
-  String get eventFormLeaveMessage => 'This event will be removed from your My events list.';
+  String get eventFormLeaveMessage =>
+      'This event will be removed from your My events list.';
 
   @override
   String get eventFormLeaveConfirm => 'Leave';
@@ -3333,7 +3434,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventFormCancelTitle => 'Cancel event';
 
   @override
-  String get eventFormCancelMessage => 'This event will be cancelled for all attendees.';
+  String get eventFormCancelMessage =>
+      'This event will be cancelled for all attendees.';
 
   @override
   String get eventFormCancelAction => 'Cancel event';
@@ -3345,7 +3447,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventFormScanTitle => 'Scan the check-in QR code';
 
   @override
-  String get eventFormWrongEventCode => 'This code belongs to a different event.';
+  String get eventFormWrongEventCode =>
+      'This code belongs to a different event.';
 
   @override
   String get eventFormCheckedIn => 'You are checked in';
@@ -3416,7 +3519,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventFormInterestedShort => 'Interested';
 
   @override
-  String get eventFormFullHint => 'The event is full; you can still mark yourself as interested.';
+  String get eventFormFullHint =>
+      'The event is full; you can still mark yourself as interested.';
 
   @override
   String get eventFormChat => 'Event chat';
@@ -3434,7 +3538,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventFormEnterCode => 'Enter code manually';
 
   @override
-  String get eventFormEnterOrganizerCode => 'Enter the code shown by the organizer';
+  String get eventFormEnterOrganizerCode =>
+      'Enter the code shown by the organizer';
 
   @override
   String get eventFormCheckInCode => 'Check-in code';
@@ -3496,16 +3601,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventFormTakePhoto => 'Take a photo';
 
   @override
-  String get eventFormImgTooLarge => 'The image is too large. Choose a smaller one.';
+  String get eventFormImgTooLarge =>
+      'The image is too large. Choose a smaller one.';
 
   @override
-  String get eventFormImgUnsupported => 'Only JPEG, PNG or WebP images can be uploaded.';
+  String get eventFormImgUnsupported =>
+      'Only JPEG, PNG or WebP images can be uploaded.';
 
   @override
   String get eventFormImgUnreadable => 'Could not read the image.';
 
   @override
-  String get eventFormImgPickFail => 'Could not select the image. Check permissions.';
+  String get eventFormImgPickFail =>
+      'Could not select the image. Check permissions.';
 
   @override
   String get eventFormTitleTooShort => 'Title must be at least 3 characters.';
@@ -3619,13 +3727,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get eventListFull => 'The event is full. You can still mark yourself as Interested.';
+  String get eventListFull =>
+      'The event is full. You can still mark yourself as Interested.';
 
   @override
   String get eventListLeaveTitle => 'Leave event';
 
   @override
-  String get eventListLeaveMsg => 'This event will be removed from your My events list.';
+  String get eventListLeaveMsg =>
+      'This event will be removed from your My events list.';
 
   @override
   String get eventListLeave => 'Leave';
@@ -3643,7 +3753,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventListCancelTitle => 'Cancel event';
 
   @override
-  String get eventListCancelMsg => 'This event will be cancelled for all attendees.';
+  String get eventListCancelMsg =>
+      'This event will be cancelled for all attendees.';
 
   @override
   String get eventListCancelConfirm => 'Cancel event';
@@ -3658,7 +3769,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventListNotCode => 'This is not a check-in code.';
 
   @override
-  String get eventListShortCodeNeedsEvent => 'None of your events has check-in open right now. Enter the short code on the event page under “Enter code manually”.';
+  String get eventListShortCodeNeedsEvent =>
+      'None of your events has check-in open right now. Enter the short code on the event page under “Enter code manually”.';
 
   @override
   String get eventListCheckedIn => 'You are checked in.';
@@ -3673,7 +3785,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventListPastMonth => 'Past month: view only.';
 
   @override
-  String get eventListTruncated => 'Not all events for this month could be loaded.';
+  String get eventListTruncated =>
+      'Not all events for this month could be loaded.';
 
   @override
   String get eventListUpcoming => 'Upcoming';
@@ -3682,7 +3795,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventListPast => 'Past';
 
   @override
-  String get eventListCreatedHint => 'You can manage the events you created here.';
+  String get eventListCreatedHint =>
+      'You can manage the events you created here.';
 
   @override
   String get eventListEmptyUpcoming => 'You have no upcoming events.';
@@ -3741,7 +3855,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventListClose => 'Close registration';
 
   @override
-  String get eventListRegClosedError => 'Registration for this event is closed.';
+  String get eventListRegClosedError =>
+      'Registration for this event is closed.';
 
   @override
   String get eventListAddedMine => 'Added to my events';
@@ -3894,7 +4009,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeMaintenanceDefault => 'The system is under maintenance.';
 
   @override
-  String get homeSourceUnreachable => 'Source site unreachable; data may be outdated.';
+  String get homeSourceUnreachable =>
+      'Source site unreachable; data may be outdated.';
 
   @override
   String get homeSearchHint => 'Search campus';
@@ -4115,7 +4231,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get discoverNoCategory => 'No content in this category yet.';
 
   @override
-  String get discoverDeptHint => 'Choose your department in your profile to see its posts here.';
+  String get discoverDeptHint =>
+      'Choose your department in your profile to see its posts here.';
 
   @override
   String get discoverDeptEmpty => 'No posts from your department yet.';
@@ -4139,25 +4256,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get discoverNews => 'News';
 
   @override
-  String get discoverSourceMaint => 'The source site is under maintenance. Data may be out of date.';
+  String get discoverSourceMaint =>
+      'The source site is under maintenance. Data may be out of date.';
 
   @override
   String get menuTitle => 'Meal menu';
 
   @override
-  String get menuStale => 'The menu could not be updated; showing the last known menu.';
+  String get menuStale =>
+      'The menu could not be updated; showing the last known menu.';
 
   @override
   String get menuTopUpTitle => 'Meal card balance';
 
   @override
-  String get menuTopUpBody => 'Out of balance? Top up your cafeteria card securely on yukle.al.';
+  String get menuTopUpBody =>
+      'Out of balance? Top up your cafeteria card securely on yukle.al.';
 
   @override
   String get menuTopUpAction => 'Top up balance';
 
   @override
-  String get menuTopUpFailed => 'Could not open the link. Please visit yukle.al in your browser.';
+  String get menuTopUpFailed =>
+      'Could not open the link. Please visit yukle.al in your browser.';
 
   @override
   String get menuPrevMonth => 'Previous month';
@@ -4174,7 +4295,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuNoMenuDay => 'No menu for this day.';
 
   @override
-  String get menuNoMenuMonth => 'The menu for this month has not been published yet.';
+  String get menuNoMenuMonth =>
+      'The menu for this month has not been published yet.';
 
   @override
   String get menuNoList => 'No menu available.';
@@ -4269,7 +4391,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get srSearchTabsLabel => 'Search result types';
 
   @override
-  String get srSearchPrompt => 'Type at least 2 characters to search users, posts or reels.';
+  String get srSearchPrompt =>
+      'Type at least 2 characters to search users, posts or reels.';
 
   @override
   String get srSeeAll => 'See all';
@@ -4325,7 +4448,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get srAvatarLongPressHint => 'Long press to see the large photo';
 
   @override
-  String get searchPrompt => 'Type at least 2 characters to search news, announcements, clubs, events or people.';
+  String get searchPrompt =>
+      'Type at least 2 characters to search news, announcements, clubs, events or people.';
 
   @override
   String get searchRecent => 'Recent searches';
@@ -4402,16 +4526,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get qrConfirm => 'Confirm';
 
   @override
-  String get qrCameraDenied => 'Camera permission was not granted. You can enter the code manually or grant permission and try scanning again.';
+  String get qrCameraDenied =>
+      'Camera permission was not granted. You can enter the code manually or grant permission and try scanning again.';
 
   @override
   String get qrGrantCamera => 'Grant camera permission';
 
   @override
-  String get qrDeniedSettings => 'Camera permission was not granted. You can allow it in Settings > BÜ Kampüs or enter the code manually.';
+  String get qrDeniedSettings =>
+      'Camera permission was not granted. You can allow it in Settings > BÜ Kampüs or enter the code manually.';
 
   @override
-  String get qrCameraFailed => 'The camera could not be opened. You can enter the code manually.';
+  String get qrCameraFailed =>
+      'The camera could not be opened. You can enter the code manually.';
 
   @override
   String get qrTorch => 'Flashlight';
@@ -4549,16 +4676,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get pollBlockedNotEligible => 'You are not eligible to take part in this poll.';
+  String get pollBlockedNotEligible =>
+      'You are not eligible to take part in this poll.';
 
   @override
-  String get pollBlockedClosed => 'This poll is closed. Voting is not possible.';
+  String get pollBlockedClosed =>
+      'This poll is closed. Voting is not possible.';
 
   @override
   String get pollBlockedNotOpen => 'This poll has not opened yet.';
 
   @override
-  String get pollBlockedAlreadyVoted => 'Your vote is saved; votes cannot be changed in this poll.';
+  String get pollBlockedAlreadyVoted =>
+      'Your vote is saved; votes cannot be changed in this poll.';
 
   @override
   String get pollBlockedDefault => 'You cannot vote in this poll.';
@@ -4629,10 +4759,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pollSecretVote => 'Your vote is secret';
 
   @override
-  String get pollResultsAfterClose => 'Results will be shown when the poll closes.';
+  String get pollResultsAfterClose =>
+      'Results will be shown when the poll closes.';
 
   @override
-  String get pollHintRanked => 'Tap in order of preference: the first one you tap is your top choice.';
+  String get pollHintRanked =>
+      'Tap in order of preference: the first one you tap is your top choice.';
 
   @override
   String pollHintMax(String n) {
@@ -4708,7 +4840,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pollPublish => 'Publish';
 
   @override
-  String get postComposeErrBadResponse => 'Unexpected response from the server.';
+  String get postComposeErrBadResponse =>
+      'Unexpected response from the server.';
 
   @override
   String get postComposeErrPrepare => 'Could not prepare the media.';
@@ -4717,7 +4850,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postComposeErrImageTooLarge => 'The image is too large.';
 
   @override
-  String get postComposeErrImageUnsupported => 'This image format is not supported.';
+  String get postComposeErrImageUnsupported =>
+      'This image format is not supported.';
 
   @override
   String get postComposeErrImageUnreadable => 'The image could not be read.';
@@ -4726,13 +4860,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postComposeErrNetwork => 'No connection. Try again.';
 
   @override
-  String get postComposeErrVideoTooLarge => 'The video is too large (40 MB max).';
+  String get postComposeErrVideoTooLarge =>
+      'The video is too large (40 MB max).';
 
   @override
   String get postComposeErrVideoTooLong => 'Videos can be 60 seconds at most.';
 
   @override
-  String get postComposeErrVideoInvalid => 'This video format is not supported.';
+  String get postComposeErrVideoInvalid =>
+      'This video format is not supported.';
 
   @override
   String get postComposeErrBlocked => 'This content cannot be shared.';
@@ -4741,10 +4877,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postComposeErrMediaInvalid => 'Invalid media. Upload it again.';
 
   @override
-  String get postComposeErrProfanity => 'Inappropriate language is not allowed here. Please edit the text.';
+  String get postComposeErrProfanity =>
+      'Inappropriate language is not allowed here. Please edit the text.';
 
   @override
-  String get postComposeErrRate => 'You are posting too quickly. Please wait a moment.';
+  String get postComposeErrRate =>
+      'You are posting too quickly. Please wait a moment.';
 
   @override
   String get postComposeErrFileTooLarge => 'The file is too large.';
@@ -4753,7 +4891,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postComposeErrGeneric => 'Something went wrong. Try again.';
 
   @override
-  String get postComposeErrVideoUnsupported => 'Video cannot be prepared on this device.';
+  String get postComposeErrVideoUnsupported =>
+      'Video cannot be prepared on this device.';
 
   @override
   String get postComposeErrCancelled => 'Cancelled.';
@@ -4798,7 +4937,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postComposeBlockTitle => 'Block this user?';
 
   @override
-  String get postComposeBlockBody => 'You will not see their posts or be able to message them.';
+  String get postComposeBlockBody =>
+      'You will not see their posts or be able to message them.';
 
   @override
   String get postComposeBlock => 'Block';
@@ -4813,7 +4953,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postComposeTextEmpty => 'The text cannot be empty.';
 
   @override
-  String get postComposeProfanityFallback => 'The text contains inappropriate language.';
+  String get postComposeProfanityFallback =>
+      'The text contains inappropriate language.';
 
   @override
   String get postComposeHint => 'What is on your mind?';
@@ -4835,10 +4976,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get postComposeInvalidRetry => 'Some media was invalid and will be uploaded again. Tap Share again.';
+  String get postComposeInvalidRetry =>
+      'Some media was invalid and will be uploaded again. Tap Share again.';
 
   @override
-  String get postComposeNetworkDraftKept => 'No connection. Your draft is saved. Try again.';
+  String get postComposeNetworkDraftKept =>
+      'No connection. Your draft is saved. Try again.';
 
   @override
   String get postComposeShared => 'Shared';
@@ -4847,7 +4990,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postComposeDiscardTitle => 'Discard the draft?';
 
   @override
-  String get postComposeDiscardBody => 'Your text and selected media will be discarded.';
+  String get postComposeDiscardBody =>
+      'Your text and selected media will be discarded.';
 
   @override
   String get postComposeContinue => 'Keep editing';
@@ -4862,10 +5006,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postPickerCameraHint => 'Tap for a photo, hold for a video';
 
   @override
-  String get postPickerLimitedBody => 'Only the photos and videos you allowed are shown. You can add more to share.';
+  String get postPickerLimitedBody =>
+      'Only the photos and videos you allowed are shown. You can add more to share.';
 
   @override
-  String get postPickerDeniedBody => 'Allow access to your gallery to share a post. You can also choose from the system gallery instead.';
+  String get postPickerDeniedBody =>
+      'Allow access to your gallery to share a post. You can also choose from the system gallery instead.';
 
   @override
   String get postPickerUseSystem => 'Use system gallery';
@@ -4895,13 +5041,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postComposeCamera => 'Camera';
 
   @override
-  String get postComposeSaveUnsupported => 'Saving is not supported on this device.';
+  String get postComposeSaveUnsupported =>
+      'Saving is not supported on this device.';
 
   @override
   String get postComposeSaveDenied => 'Gallery permission was not granted.';
 
   @override
-  String get postComposeSaveNoSpace => 'Not enough storage space on this device.';
+  String get postComposeSaveNoSpace =>
+      'Not enough storage space on this device.';
 
   @override
   String get postComposeImageSaveFailed => 'The image could not be saved.';
@@ -5236,10 +5384,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileRemovePhoto => 'Remove photo';
 
   @override
-  String get profilePhotoTooLargeHint => 'The photo can be at most 2 MB. Choose a smaller one.';
+  String get profilePhotoTooLargeHint =>
+      'The photo can be at most 2 MB. Choose a smaller one.';
 
   @override
-  String get profilePhotoUnsupported => 'Only JPEG, PNG or WebP photos can be uploaded.';
+  String get profilePhotoUnsupported =>
+      'Only JPEG, PNG or WebP photos can be uploaded.';
 
   @override
   String get profilePhotoUnreadable => 'The selected file could not be read.';
@@ -5295,7 +5445,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileBlockTitle => 'Block this user?';
 
   @override
-  String get profileBlockBody => 'You will not be able to message people you block.';
+  String get profileBlockBody =>
+      'You will not be able to message people you block.';
 
   @override
   String get profileCancel => 'Cancel';
@@ -5364,7 +5515,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileSignOutTitle => 'Log out?';
 
   @override
-  String get profileSignOutBody => 'Your session on this device will be closed.';
+  String get profileSignOutBody =>
+      'Your session on this device will be closed.';
 
   @override
   String get profileSignOut => 'Log out';
@@ -5415,7 +5567,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileReminders => 'Class and exam reminders';
 
   @override
-  String get profileSavedEmpty => 'You have not saved any news yet. Tap the bookmark icon on a news item.';
+  String get profileSavedEmpty =>
+      'You have not saved any news yet. Tap the bookmark icon on a news item.';
 
   @override
   String get profileRetry => 'Try again';
@@ -5453,7 +5606,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profilePrefsDataCopied => 'Your data was copied to the clipboard';
 
   @override
-  String get profilePrefsExportLimit => 'You can download your data at most 3 times a day.';
+  String get profilePrefsExportLimit =>
+      'You can download your data at most 3 times a day.';
 
   @override
   String get profilePrefsBlockedUsers => 'Blocked users';
@@ -5480,7 +5634,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profilePrefsDeleteAccountTitle => 'Delete account';
 
   @override
-  String get profilePrefsDeleteAccountBody => 'Your account and personal data will be deleted. This cannot be undone. Enter your password to confirm.';
+  String get profilePrefsDeleteAccountBody =>
+      'Your account and personal data will be deleted. This cannot be undone. Enter your password to confirm.';
 
   @override
   String get profilePrefsPassword => 'Password';
@@ -5492,7 +5647,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profilePrefsWithdrawTitle => 'Withdraw request';
 
   @override
-  String get profilePrefsWithdrawBody => 'Do you want to withdraw your join request?';
+  String get profilePrefsWithdrawBody =>
+      'Do you want to withdraw your join request?';
 
   @override
   String get profilePrefsWithdrawConfirm => 'Withdraw';
@@ -5704,22 +5860,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get oaErrFailed => 'Sign-in could not be completed. Please try again.';
 
   @override
-  String get oaErrTokenInvalid => 'We could not verify this sign-in. Please try again.';
+  String get oaErrTokenInvalid =>
+      'We could not verify this sign-in. Please try again.';
 
   @override
-  String get oaErrEmailUnverified => 'The email address of this account is not verified by the provider. Verify it first or continue with email.';
+  String get oaErrEmailUnverified =>
+      'The email address of this account is not verified by the provider. Verify it first or continue with email.';
 
   @override
-  String get oaErrEmailMissing => 'We could not get an email address from your account. You can continue with email.';
+  String get oaErrEmailMissing =>
+      'We could not get an email address from your account. You can continue with email.';
 
   @override
-  String get oaErrDisabled => 'This sign-in method is unavailable right now. You can continue with email.';
+  String get oaErrDisabled =>
+      'This sign-in method is unavailable right now. You can continue with email.';
 
   @override
-  String get oaErrLastMethod => 'This is the only way you can sign in to your account. Set a password before removing it.';
+  String get oaErrLastMethod =>
+      'This is the only way you can sign in to your account. Set a password before removing it.';
 
   @override
-  String get oaErrProfileIncomplete => 'Please complete your profile before continuing.';
+  String get oaErrProfileIncomplete =>
+      'Please complete your profile before continuing.';
 
   @override
   String get oaOb1Title => 'Let us meet first.';
@@ -5755,7 +5917,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get oaUserTaken => 'This username is taken.';
 
   @override
-  String get oaUserInvalid => 'The username must be 3-24 characters; only a-z, 0-9, dot and underscore are allowed.';
+  String get oaUserInvalid =>
+      'The username must be 3-24 characters; only a-z, 0-9, dot and underscore are allowed.';
 
   @override
   String get oaUserReserved => 'This username cannot be used.';
@@ -5781,7 +5944,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get oaOb2Title => 'Where are you on campus?';
 
   @override
-  String get oaOb2Sub => 'Pick your department and discover communities for you.';
+  String get oaOb2Sub =>
+      'Pick your department and discover communities for you.';
 
   @override
   String get oaUniversity => 'University';
@@ -5814,7 +5978,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get oaBioHint => 'Describe yourself in a few words';
 
   @override
-  String get oaDeclareNote => 'The details you choose are self-declared; you can change them in your profile at any time.';
+  String get oaDeclareNote =>
+      'The details you choose are self-declared; you can change them in your profile at any time.';
 
   @override
   String get oaJoin => 'Join BÜKampüs';
@@ -5927,7 +6092,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get supportStatusOpen => 'Open';
 
   @override
-  String get supportTooManyRequests => 'You have sent too many requests. Please wait a moment and try again.';
+  String get supportTooManyRequests =>
+      'You have sent too many requests. Please wait a moment and try again.';
 
   @override
   String get supportLabelCategory => 'CATEGORY';
@@ -6014,13 +6180,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get supportAddSuggestion => 'Add suggestion';
 
   @override
-  String get supportNoSuggestions => 'No suggestions have been published yet. Be the first to add one.';
+  String get supportNoSuggestions =>
+      'No suggestions have been published yet. Be the first to add one.';
 
   @override
   String get supportCloseTicketTitle => 'Close request';
 
   @override
-  String get supportCloseTicketBody => 'This request will be closed and you will not be able to write new replies. Continue?';
+  String get supportCloseTicketBody =>
+      'This request will be closed and you will not be able to write new replies. Continue?';
 
   @override
   String get supportCancel => 'Cancel';
@@ -6038,7 +6206,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get supportStaff => 'Support team';
 
   @override
-  String get storyVideoTooLong => 'A story video can be at most 30 seconds long.';
+  String get storyVideoTooLong =>
+      'A story video can be at most 30 seconds long.';
 
   @override
   String get storyCreateTitle => 'Create story';
@@ -6125,10 +6294,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get authForgotSubNumber => 'Enter your email address. We will send a 6-digit code to your email address.';
+  String get authForgotSubNumber =>
+      'Enter your email address. We will send a 6-digit code to your email address.';
 
   @override
-  String get authForgotSub => 'Enter your email address and we will send you a 6-digit code.';
+  String get authForgotSub =>
+      'Enter your email address and we will send you a 6-digit code.';
 
   @override
   String get authBackToLogin => 'Back to log in';
@@ -6137,10 +6308,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get realEmailTitle => 'Your real email address';
 
   @override
-  String get realEmailSubtitle => 'Your hidden Apple address cannot receive notifications or password reset emails. Enter the email address you actively use; it will be the only email on your account.';
+  String get realEmailSubtitle =>
+      'Your hidden Apple address cannot receive notifications or password reset emails. Enter the email address you actively use; it will be the only email on your account.';
 
   @override
-  String get realEmailSoftNote => 'This step is optional but recommended for password reset and notifications.';
+  String get realEmailSoftNote =>
+      'This step is optional but recommended for password reset and notifications.';
 
   @override
   String get realEmailSendCode => 'Send code';
@@ -6152,7 +6325,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get realEmailCodeTitle => 'Enter the code';
 
   @override
-  String get realEmailNoCodeHint => 'If the code does not arrive, check your spam folder. If the address belongs to another account, verification cannot be completed; sign in to that account or try another address.';
+  String get realEmailNoCodeHint =>
+      'If the code does not arrive, check your spam folder. If the address belongs to another account, verification cannot be completed; sign in to that account or try another address.';
 
   @override
   String get realEmailDoneTitle => 'Your email is updated';
@@ -6166,28 +6340,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get realEmailContinue => 'Continue';
 
   @override
-  String get realEmailErrRelay => 'A hidden (temporary) address cannot be used. Enter the real email address you actively use.';
+  String get realEmailErrRelay =>
+      'A hidden (temporary) address cannot be used. Enter the real email address you actively use.';
 
   @override
-  String get realEmailErrUnavailable => 'This email address cannot be used. Try another address or sign in to the account opened with it.';
+  String get realEmailErrUnavailable =>
+      'This email address cannot be used. Try another address or sign in to the account opened with it.';
 
   @override
-  String get realEmailErrUnchanged => 'This is already your account email address.';
+  String get realEmailErrUnchanged =>
+      'This is already your account email address.';
 
   @override
-  String get realEmailErrRequired => 'Add and verify your real, active email address before continuing.';
+  String get realEmailErrRequired =>
+      'Add and verify your real, active email address before continuing.';
 
   @override
   String get authChangeEmail => 'Change email';
 
   @override
-  String get authNewPwSub => 'This replaces your old password. You will be logged out on all devices.';
+  String get authNewPwSub =>
+      'This replaces your old password. You will be logged out on all devices.';
 
   @override
   String get welcomeHeadline => 'Campus is now\nin your pocket';
 
   @override
-  String get welcomeSub => 'Announcements, the menu, clubs and events in one app.';
+  String get welcomeSub =>
+      'Announcements, the menu, clubs and events in one app.';
 
   @override
   String get welcomeNews => 'News and announcements';
@@ -6199,7 +6379,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get welcomeClubs => 'Clubs and events';
 
   @override
-  String get welcomeNote => 'You can sign up with Gmail, Outlook, Hotmail, Yahoo or any other email address.';
+  String get welcomeNote =>
+      'You can sign up with Gmail, Outlook, Hotmail, Yahoo or any other email address.';
 
   @override
   String get welcomeLanguage => 'Language';
@@ -6419,7 +6600,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profil2PrivacyTitle => 'Privacy and blocked users';
 
   @override
-  String get profil2PrivacyIntro => 'Choose who can see each part of your profile. You always see your own profile in full.';
+  String get profil2PrivacyIntro =>
+      'Choose who can see each part of your profile. You always see your own profile in full.';
 
   @override
   String get profil2VisibilitySection => 'Profile visibility';
@@ -6452,7 +6634,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profil2SharedHintLead => 'People I know:';
 
   @override
-  String get profil2SharedHintBody => 'people in the same club, chat or event as you.';
+  String get profil2SharedHintBody =>
+      'people in the same club, chat or event as you.';
 
   @override
   String get profil2ShowEmail => 'Show my email to other users';
@@ -6464,10 +6647,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profil2BlockedSection => 'Blocked';
 
   @override
-  String get profil2BlockedHint => 'People you block cannot see you or message you.';
+  String get profil2BlockedHint =>
+      'People you block cannot see you or message you.';
 
   @override
-  String get profil2AvatarModerated => 'Your profile photo was hidden by moderation.';
+  String get profil2AvatarModerated =>
+      'Your profile photo was hidden by moderation.';
 
   @override
   String get profil2SaveFailed => 'Could not save the change.';
@@ -6479,7 +6664,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profil2DataTitle => 'My data';
 
   @override
-  String get profil2DataIntro => 'You can download a copy of your personal data stored in the app, as provided by data protection law.';
+  String get profil2DataIntro =>
+      'You can download a copy of your personal data stored in the app, as provided by data protection law.';
 
   @override
   String get profil2DataFileSub => 'Prepared as a JSON file';
@@ -6491,7 +6677,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profil2DataItemProfile => 'Your profile details';
 
   @override
-  String get profil2DataItemPrefs => 'Your privacy and notification preferences';
+  String get profil2DataItemPrefs =>
+      'Your privacy and notification preferences';
 
   @override
   String get profil2DataItemClubs => 'Your club and event records';
@@ -6503,7 +6690,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profil2DataItemSupport => 'Your support and feedback records';
 
   @override
-  String get profil2DataLimit => 'You can download up to 3 times a day. Keep the file safe; it contains personal information.';
+  String get profil2DataLimit =>
+      'You can download up to 3 times a day. Keep the file safe; it contains personal information.';
 
   @override
   String get profil2DataOther => 'Other';
@@ -6515,28 +6703,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profil2DelWarnLead => 'This cannot be undone.';
 
   @override
-  String get profil2DelWarnBody => 'Your account will be anonymized and you will no longer be able to log in.';
+  String get profil2DelWarnBody =>
+      'Your account will be anonymized and you will no longer be able to log in.';
 
   @override
   String get profil2DelWhatHappens => 'What happens';
 
   @override
-  String get profil2DelItem1 => 'Your name, email, photo and profile details are deleted. The account remains as \"Deleted user\".';
+  String get profil2DelItem1 =>
+      'Your name, email, photo and profile details are deleted. The account remains as \"Deleted user\".';
 
   @override
-  String get profil2DelItem2 => 'Your notifications, saved news, device records and preferences are deleted.';
+  String get profil2DelItem2 =>
+      'Your notifications, saved news, device records and preferences are deleted.';
 
   @override
-  String get profil2DelItem3 => 'Your club memberships and event participations are removed.';
+  String get profil2DelItem3 =>
+      'Your club memberships and event participations are removed.';
 
   @override
   String get profil2DelItem4 => 'Your sessions on all devices are closed.';
 
   @override
-  String get profil2DelBackupHint => 'You can download your data before deleting your account.';
+  String get profil2DelBackupHint =>
+      'You can download your data before deleting your account.';
 
   @override
-  String get profil2DelAck => 'I understand my account will be permanently deleted and this cannot be undone.';
+  String get profil2DelAck =>
+      'I understand my account will be permanently deleted and this cannot be undone.';
 
   @override
   String get profil2Continue => 'Continue';
@@ -6545,7 +6739,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profil2DelConfirmTitle => 'Confirm deletion';
 
   @override
-  String get profil2DelConfirmBody => 'Enter your password to continue. Your account is anonymized right away and you are logged out on all devices.';
+  String get profil2DelConfirmBody =>
+      'Enter your password to continue. Your account is anonymized right away and you are logged out on all devices.';
 
   @override
   String get profil2SecTitle => 'Account and security';
@@ -6578,7 +6773,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profil2SecRepeatHint => 'Repeat the new password';
 
   @override
-  String get profil2SecPwRule => 'At least 6 characters. Mixing letters and digits makes it stronger.';
+  String get profil2SecPwRule =>
+      'At least 6 characters. Mixing letters and digits makes it stronger.';
 
   @override
   String get profil2SecPwButton => 'Update password';
@@ -6587,13 +6783,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profil2SecMismatch => 'Passwords do not match.';
 
   @override
-  String get profil2SecSame => 'The new password cannot be the same as the current one.';
+  String get profil2SecSame =>
+      'The new password cannot be the same as the current one.';
 
   @override
   String get profil2SecWrongCurrent => 'The current password is wrong.';
 
   @override
-  String get profil2SecFailed => 'Could not update the password. Please try again later.';
+  String get profil2SecFailed =>
+      'Could not update the password. Please try again later.';
 
   @override
   String get profil2SecUpdated => 'Your password was updated.';
@@ -6870,7 +7068,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get postComposeErrTextTooLong => 'The post text is too long. Shorten it a little and try again.';
+  String get postComposeErrTextTooLong =>
+      'The post text is too long. Shorten it a little and try again.';
 
   @override
   String get gonderiPickPhoto => 'Choose a photo';
@@ -6891,7 +7090,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gonderiDiscardTitle => 'Discard this post?';
 
   @override
-  String get gonderiDiscardBody => 'The photo you chose and your text will be discarded.';
+  String get gonderiDiscardBody =>
+      'The photo you chose and your text will be discarded.';
 
   @override
   String get gonderiDiscardYes => 'Discard';
@@ -6952,10 +7152,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get anketScopeMenu => 'Meal';
 
   @override
-  String get anketSecretNote => 'Your vote is secret. Only you can see your choice; nobody, including admins, can see who chose what.';
+  String get anketSecretNote =>
+      'Your vote is secret. Only you can see your choice; nobody, including admins, can see who chose what.';
 
   @override
-  String get anketSecretVoteNote => 'Your vote stays secret; nobody can see who chose what.';
+  String get anketSecretVoteNote =>
+      'Your vote stays secret; nobody can see who chose what.';
 
   @override
   String get anketMineBadge => 'Your pick';
@@ -7036,7 +7238,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get icerikFavorites => 'Favorite news';
 
   @override
-  String get icerikMaintenance => 'The news source is unreachable right now. Showing the latest saved news.';
+  String get icerikMaintenance =>
+      'The news source is unreachable right now. Showing the latest saved news.';
 
   @override
   String get icerikOpenSource => 'Open on source site';
@@ -7056,7 +7259,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get icerikSavedMoreTitle => 'Save more news';
 
   @override
-  String get icerikSavedMoreBody => 'Use the bookmark on a news page to add it here.';
+  String get icerikSavedMoreBody =>
+      'Use the bookmark on a news page to add it here.';
 
   @override
   String get icerikSavedList => 'Favorites';
@@ -7180,22 +7384,26 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get sistemuiPermNotifText => 'To get instant updates about messages, events and announcements.';
+  String get sistemuiPermNotifText =>
+      'To get instant updates about messages, events and announcements.';
 
   @override
-  String get sistemuiPermContactsText => 'To find university contacts in your address book and start chats. Your contacts are never sent to the server.';
+  String get sistemuiPermContactsText =>
+      'To find university contacts in your address book and start chats. Your contacts are never sent to the server.';
 
   @override
   String get sistemuiPermCameraTitle => 'Camera and gallery';
 
   @override
-  String get sistemuiPermCameraText => 'To scan QR codes, take photos and share them.';
+  String get sistemuiPermCameraText =>
+      'To scan QR codes, take photos and share them.';
 
   @override
   String get sistemuiOfflineTitle => 'No connection';
 
   @override
-  String get sistemuiOfflineBody => 'Check your internet connection and try again.';
+  String get sistemuiOfflineBody =>
+      'Check your internet connection and try again.';
 
   @override
   String get sistemuiErrorTitle => 'Something went wrong';
@@ -7204,10 +7412,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sistemuiMaintTitle => 'System under maintenance';
 
   @override
-  String get sistemuiMaintBody => 'Please try again shortly. Your data is safe.';
+  String get sistemuiMaintBody =>
+      'Please try again shortly. Your data is safe.';
 
   @override
-  String get sistemuiMaintBand => 'Some features may be temporarily unavailable.';
+  String get sistemuiMaintBand =>
+      'Some features may be temporarily unavailable.';
 
   @override
   String sistemuiUpdateVersions(String current, String required) {
@@ -7221,7 +7431,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sistemuiQrHint => 'Align the QR code within the frame';
 
   @override
-  String get sistemuiQrNotice => 'Check-in opens at the event time. Scan the code shown by the organizer.';
+  String get sistemuiQrNotice =>
+      'Check-in opens at the event time. Scan the code shown by the organizer.';
 
   @override
   String get sistemuiQrOr => 'or';
@@ -7233,13 +7444,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sistemuiQrSubmit => 'Submit check-in';
 
   @override
-  String get profilyardBlockedNote => 'People you block cannot see your profile, message you or follow you.';
+  String get profilyardBlockedNote =>
+      'People you block cannot see your profile, message you or follow you.';
 
   @override
   String get profilyardBlockedEmptyTitle => 'You have not blocked anyone';
 
   @override
-  String get profilyardBlockedEmptyBody => 'You can block someone from their profile.';
+  String get profilyardBlockedEmptyBody =>
+      'You can block someone from their profile.';
 
   @override
   String profilyardUnblockOf(String name) {
@@ -7274,7 +7487,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profilyardClubsEmptyTitle => 'You have no clubs yet';
 
   @override
-  String get profilyardClubsEmptyBody => 'Discover and join clubs, or start your own.';
+  String get profilyardClubsEmptyBody =>
+      'Discover and join clubs, or start your own.';
 
   @override
   String get profilyardClubsDiscover => 'Discover clubs';
@@ -7340,7 +7554,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profilyardFollowNoMatch => 'No matching people.';
 
   @override
-  String get profilyardFbIntro => 'Help us improve the app. Share a suggestion, a bug you found or your thoughts.';
+  String get profilyardFbIntro =>
+      'Help us improve the app. Share a suggestion, a bug you found or your thoughts.';
 
   @override
   String get profilyardFbType => 'Type';
@@ -7413,7 +7628,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get etkinlik2JoinPolicyLabel => 'Participation';
 
   @override
-  String get etkinlik2PolicyApprovalHint => 'With \"By request\", you approve each participant.';
+  String get etkinlik2PolicyApprovalHint =>
+      'With \"By request\", you approve each participant.';
 
   @override
   String get etkinlik2FormClub => 'On behalf of a club (optional)';
@@ -7434,7 +7650,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get etkinlik2ChatAutoTitle => 'Event chat opens automatically';
 
   @override
-  String get etkinlik2ChatAutoBody => 'You and the participants are added to the chat automatically. With join by request, only approved people get in.';
+  String get etkinlik2ChatAutoBody =>
+      'You and the participants are added to the chat automatically. With join by request, only approved people get in.';
 
   @override
   String get etkinlik2CapacityOptional => 'Capacity (optional)';
@@ -7451,13 +7668,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get etkinlik2RegOpen => 'Registration open';
 
   @override
-  String get etkinlik2ApprovalByOrganizer => 'The organizer approves participation';
+  String get etkinlik2ApprovalByOrganizer =>
+      'The organizer approves participation';
 
   @override
   String get etkinlik2SendRequest => 'Send join request';
 
   @override
-  String get etkinlik2RequestHint => 'You join the event chat once the organizer approves.';
+  String get etkinlik2RequestHint =>
+      'You join the event chat once the organizer approves.';
 
   @override
   String get etkinlik2RequestSent => 'Request sent';
@@ -7481,7 +7700,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get etkinlik2RejectedTitle => 'Your request was declined';
 
   @override
-  String get etkinlik2RejectedBody => 'The organizer did not accept your request for this event.';
+  String get etkinlik2RejectedBody =>
+      'The organizer did not accept your request for this event.';
 
   @override
   String get etkinlik2RequestSentToast => 'Your join request was sent.';
@@ -7531,7 +7751,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get etkinlik2ReqNoLimit => 'No capacity limit';
 
   @override
-  String get etkinlik2ReqFullBanner => 'Capacity is full; new requests cannot be approved. Raise the capacity to free spots.';
+  String get etkinlik2ReqFullBanner =>
+      'Capacity is full; new requests cannot be approved. Raise the capacity to free spots.';
 
   @override
   String etkinlik2ReqPendingHeader(String n) {
@@ -7595,13 +7816,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get etkinlik2SettingsRegOpen => 'Registration open';
 
   @override
-  String get etkinlik2SettingsRegHint => 'If you turn it off, no new requests or joins are accepted.';
+  String get etkinlik2SettingsRegHint =>
+      'If you turn it off, no new requests or joins are accepted.';
 
   @override
   String get etkinlik2SettingsChatOpen => 'Event chat open';
 
   @override
-  String get etkinlik2SettingsChatHint => 'If you turn it off, messages stop and history is kept.';
+  String get etkinlik2SettingsChatHint =>
+      'If you turn it off, messages stop and history is kept.';
 
   @override
   String get etkinlik2SettingsDanger => 'Danger zone';
@@ -7738,10 +7961,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get evcClubRequiredHint => 'Select a club first.';
 
   @override
-  String get evcEmptyTitle => 'You need to be a club manager to create an event';
+  String get evcEmptyTitle =>
+      'You need to be a club manager to create an event';
 
   @override
-  String get evcEmptyBody => 'Events are created on behalf of clubs. Once you manage a club you can create events here.';
+  String get evcEmptyBody =>
+      'Events are created on behalf of clubs. Once you manage a club you can create events here.';
 
   @override
   String get evcBrowseClubs => 'Browse clubs';
@@ -7750,7 +7975,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get evcSubmittedTitle => 'Submitted for approval';
 
   @override
-  String get evcSubmittedBody => 'Your event will be published after admin approval. You can follow its status in the Created tab.';
+  String get evcSubmittedBody =>
+      'Your event will be published after admin approval. You can follow its status in the Created tab.';
 
   @override
   String get evcOk => 'OK';
@@ -7767,10 +7993,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get evcErrClubRequired => 'Events are created on behalf of a club. Select a club.';
+  String get evcErrClubRequired =>
+      'Events are created on behalf of a club. Select a club.';
 
   @override
-  String get evcErrForbidden => 'You are not allowed to create events for this club.';
+  String get evcErrForbidden =>
+      'You are not allowed to create events for this club.';
 
   @override
   String get evcErrClubNotActive => 'This club is not active right now.';
@@ -7782,7 +8010,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get evcErrDates => 'The end must be after the start.';
 
   @override
-  String get evcErrProfanity => 'The text contains inappropriate language. Please edit it.';
+  String get evcErrProfanity =>
+      'The text contains inappropriate language. Please edit it.';
 
   @override
   String get evdLabelDate => 'Date';
@@ -7830,7 +8059,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get evdErrEndBeforeStart => 'The end must be after the start.';
 
   @override
-  String get evdEndAdjusted => 'The end was automatically set to 1 hour after the start.';
+  String get evdEndAdjusted =>
+      'The end was automatically set to 1 hour after the start.';
 
   @override
   String evdDescCounter(String count, String max) {
@@ -7843,7 +8073,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get evdErrDescTooLongServer => 'The description is too long. Please shorten it.';
+  String get evdErrDescTooLongServer =>
+      'The description is too long. Please shorten it.';
 
   @override
   String get clubMgmtCategoryNone => 'Not selected';
@@ -7854,31 +8085,40 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get clubMgmtCategoryInvalid => 'The selected category is not valid. Choose another one from the list.';
+  String get clubMgmtCategoryInvalid =>
+      'The selected category is not valid. Choose another one from the list.';
 
   @override
-  String get errEmailAliasNotAllowed => 'A + tag cannot be used in the email address.';
+  String get errEmailAliasNotAllowed =>
+      'A + tag cannot be used in the email address.';
 
   @override
-  String get errPasswordTooLong => 'The password is too long: at most 72 bytes (Turkish and Arabic characters take more than one byte).';
+  String get errPasswordTooLong =>
+      'The password is too long: at most 72 bytes (Turkish and Arabic characters take more than one byte).';
 
   @override
-  String get errPayloadTooLarge => 'The data you sent is too large. Try a smaller file or shorter text.';
+  String get errPayloadTooLarge =>
+      'The data you sent is too large. Try a smaller file or shorter text.';
 
   @override
-  String get errUploadBusy => 'Another upload is in progress or the server is busy. Please wait a moment and try again.';
+  String get errUploadBusy =>
+      'Another upload is in progress or the server is busy. Please wait a moment and try again.';
 
   @override
-  String get errUploadQuota => 'You have uploaded too much. Please try again a little later.';
+  String get errUploadQuota =>
+      'You have uploaded too much. Please try again a little later.';
 
   @override
-  String get errMailQuota => 'We cannot send verification codes right now. Please try again later.';
+  String get errMailQuota =>
+      'We cannot send verification codes right now. Please try again later.';
 
   @override
-  String get errServiceBusy => 'The system is busy right now. Please try again in a few seconds.';
+  String get errServiceBusy =>
+      'The system is busy right now. Please try again in a few seconds.';
 
   @override
-  String get errLegalReaccept => 'The agreements have been updated. You need to accept the updated agreements to continue.';
+  String get errLegalReaccept =>
+      'The agreements have been updated. You need to accept the updated agreements to continue.';
 
   @override
   String coreErrRetryAfterSec(String n) {
@@ -7906,10 +8146,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get legalReacceptTitle => 'Agreements updated';
 
   @override
-  String get legalReacceptIntro => 'We have updated our terms and privacy documents. To keep using the app, please read and accept the updated documents.';
+  String get legalReacceptIntro =>
+      'We have updated our terms and privacy documents. To keep using the app, please read and accept the updated documents.';
 
   @override
-  String get legalReacceptIntroSoft => 'New versions of some documents have been published. You can review and accept them now or later; you will need to accept them in the coming days.';
+  String get legalReacceptIntroSoft =>
+      'New versions of some documents have been published. You can review and accept them now or later; you will need to accept them in the coming days.';
 
   @override
   String get legalReacceptListTitle => 'Updated documents';
@@ -7927,10 +8169,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get legalReacceptTypeRules => 'Community Rules';
 
   @override
-  String get legalReacceptNoteExplicit => 'Optional explicit consents are separate from this acceptance and are not given by it.';
+  String get legalReacceptNoteExplicit =>
+      'Optional explicit consents are separate from this acceptance and are not given by it.';
 
   @override
-  String get legalReacceptCheck => 'I have read and accept the updated documents';
+  String get legalReacceptCheck =>
+      'I have read and accept the updated documents';
 
   @override
   String get legalReacceptAccept => 'Accept';
@@ -7942,10 +8186,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get legalReacceptDecline => 'I do not accept';
 
   @override
-  String get legalReacceptDeclineTitle => 'You cannot continue without accepting';
+  String get legalReacceptDeclineTitle =>
+      'You cannot continue without accepting';
 
   @override
-  String get legalReacceptDeclineBody => 'If you do not accept the current agreements you cannot use the app. You can delete your account, or sign out and decide again later.';
+  String get legalReacceptDeclineBody =>
+      'If you do not accept the current agreements you cannot use the app. You can delete your account, or sign out and decide again later.';
 
   @override
   String get legalReacceptDeleteAccount => 'Delete my account';
@@ -7954,46 +8200,56 @@ class AppLocalizationsEn extends AppLocalizations {
   String get legalReacceptSignOut => 'Sign out';
 
   @override
-  String get legalReacceptOutdated => 'The documents were updated again. Please review the new versions and accept again.';
+  String get legalReacceptOutdated =>
+      'The documents were updated again. Please review the new versions and accept again.';
 
   @override
   String get authVerifyPasswordLabel => 'The password you chose at sign-up';
 
   @override
-  String get authVerifyPasswordNote => 'For security, enter the password you used when registering again.';
+  String get authVerifyPasswordNote =>
+      'For security, enter the password you used when registering again.';
 
   @override
-  String get authVerifyPasswordRequired => 'Enter the password you chose at sign-up.';
+  String get authVerifyPasswordRequired =>
+      'Enter the password you chose at sign-up.';
 
   @override
-  String get chatClosedBanner => 'This conversation was closed by an administrator.';
+  String get chatClosedBanner =>
+      'This conversation was closed by an administrator.';
 
   @override
-  String get chatRealtimeLost => 'Live connection lost; messages are refreshed periodically.';
+  String get chatRealtimeLost =>
+      'Live connection lost; messages are refreshed periodically.';
 
   @override
-  String get chatAdminRemovedMsg => 'This message was removed by an administrator';
+  String get chatAdminRemovedMsg =>
+      'This message was removed by an administrator';
 
   @override
   String get chatModRemovedMsg => 'This message was removed';
 
   @override
-  String get errCertificateRevoked => 'This certificate was revoked by an administrator.';
+  String get errCertificateRevoked =>
+      'This certificate was revoked by an administrator.';
 
   @override
   String get clubUnavailable => 'This club is not available right now.';
 
   @override
-  String get profil2DelItemUsage => 'Your device, IP and usage (analytics) records are deleted immediately.';
+  String get profil2DelItemUsage =>
+      'Your device, IP and usage (analytics) records are deleted immediately.';
 
   @override
-  String get profil2DelItemClubOwner => 'Clubs you own are transferred to an admin member; if there is no candidate, the club is closed.';
+  String get profil2DelItemClubOwner =>
+      'Clubs you own are transferred to an admin member; if there is no candidate, the club is closed.';
 
   @override
   String get settingsCrashReports => 'Send crash reports';
 
   @override
-  String get settingsCrashReportsDesc => 'When the app hits an error or closes unexpectedly, an anonymous crash report is sent to the BÜ Kampüs server: app version, operating system, error type and a technical stack trace without personal data. Your email, password, message content or identity are never sent, and nothing goes to third-party services. You can turn this off at any time.';
+  String get settingsCrashReportsDesc =>
+      'When the app hits an error or closes unexpectedly, an anonymous crash report is sent to the BÜ Kampüs server: app version, operating system, error type and a technical stack trace without personal data. Your email, password, message content or identity are never sent, and nothing goes to third-party services. You can turn this off at any time.';
 
   @override
   String get welcomeChipNews => 'News';
@@ -8014,19 +8270,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authResetDoneTitle => 'Password updated';
 
   @override
-  String get authResetDoneBody => 'You can now sign in with your new password. Sessions on other devices were signed out.';
+  String get authResetDoneBody =>
+      'You can now sign in with your new password. Sessions on other devices were signed out.';
 
   @override
-  String get authTrustAcademic => 'Your department is used to show you relevant announcements and clubs.';
+  String get authTrustAcademic =>
+      'Your department is used to show you relevant announcements and clubs.';
 
   @override
-  String get authTrustName => 'Your name is visible to other students on your profile and in chats.';
+  String get authTrustName =>
+      'Your name is visible to other students on your profile and in chats.';
 
   @override
-  String get authTrustPassword => 'Your password is stored only as a one-way hash; nobody can read it.';
+  String get authTrustPassword =>
+      'Your password is stored only as a one-way hash; nobody can read it.';
 
   @override
-  String get authTrustCode => 'If the email has not arrived, check your spam folder too.';
+  String get authTrustCode =>
+      'If the email has not arrived, check your spam folder too.';
 
   @override
   String get authTrustSecure => 'Your connection is encrypted and secure.';
@@ -8037,7 +8298,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get p05NewsEmptyBody => 'New items will show up here when they arrive.';
+  String get p05NewsEmptyBody =>
+      'New items will show up here when they arrive.';
 
   @override
   String get p05SavedEmptyTitle => 'No favorites yet';
@@ -8098,13 +8360,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p16ReqNoneBody => 'New join requests will show up here.';
 
   @override
-  String get p16AttEmptyBody => 'Attendees are listed here as they join the event.';
+  String get p16AttEmptyBody =>
+      'Attendees are listed here as they join the event.';
 
   @override
   String get p16AttFilterEmpty => 'No one matches this filter.';
 
   @override
-  String get p16PolicyOpenHint => 'Anyone can join directly without sending a request.';
+  String get p16PolicyOpenHint =>
+      'Anyone can join directly without sending a request.';
 
   @override
   String p16AttPresentCount(String n) {
@@ -8130,7 +8394,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p10SourceVideo => 'Video';
 
   @override
-  String get p10SourceVideoHint => 'Pick a video from your library (up to 60 s)';
+  String get p10SourceVideoHint =>
+      'Pick a video from your library (up to 60 s)';
 
   @override
   String get p10SourceCamera => 'Camera';
@@ -8139,7 +8404,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p10SourceCameraHint => 'Take a photo or record a video';
 
   @override
-  String get p10PrivacyNote => 'Only the items you pick are shared. Your whole library stays private.';
+  String get p10PrivacyNote =>
+      'Only the items you pick are shared. Your whole library stays private.';
 
   @override
   String get p10PickedHeader => 'Selected';
@@ -8148,7 +8414,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p10EmptyTitle => 'Nothing selected yet';
 
   @override
-  String get p10EmptyBody => 'Start by choosing photos, a video or the camera above.';
+  String get p10EmptyBody =>
+      'Start by choosing photos, a video or the camera above.';
 
   @override
   String get p10Preview => 'Preview';
@@ -8186,19 +8453,23 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get p14EmptyMonthBody => 'Browse another month; new events show up here as soon as they are added.';
+  String get p14EmptyMonthBody =>
+      'Browse another month; new events show up here as soon as they are added.';
 
   @override
   String get p14EmptyDayBody => 'Pick another day or see the whole month.';
 
   @override
-  String get p14EmptyUpcomingBody => 'Join club events and the ones you attend are collected here.';
+  String get p14EmptyUpcomingBody =>
+      'Join club events and the ones you attend are collected here.';
 
   @override
-  String get p14EmptyPastBody => 'Events you attended are kept here once they end.';
+  String get p14EmptyPastBody =>
+      'Events you attended are kept here once they end.';
 
   @override
-  String get p14EmptyCreatedBody => 'Create an event for your club and manage requests and attendance here.';
+  String get p14EmptyCreatedBody =>
+      'Create an event for your club and manage requests and attendance here.';
 
   @override
   String get p13SuppAskTitle => 'How can we help you?';
@@ -8207,19 +8478,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p13SuppAskBody => 'Browse the FAQ or write to the support team.';
 
   @override
-  String get p13TicketIntro => 'Describe your issue briefly; the support team will reply as soon as possible.';
+  String get p13TicketIntro =>
+      'Describe your issue briefly; the support team will reply as soon as possible.';
 
   @override
-  String get p13TicketsEmptyHint => 'If you run into a problem, you can create a new request.';
+  String get p13TicketsEmptyHint =>
+      'If you run into a problem, you can create a new request.';
 
   @override
-  String get p13FeedbackEmptyHint => 'The suggestions and bug reports you send are listed here.';
+  String get p13FeedbackEmptyHint =>
+      'The suggestions and bug reports you send are listed here.';
 
   @override
   String get p13SugEmptyTitle => 'Ideas gather here';
 
   @override
-  String get p13PollEmptyOpenHint => 'New polls will appear here when they open.';
+  String get p13PollEmptyOpenHint =>
+      'New polls will appear here when they open.';
 
   @override
   String get p13PollEmptyMineHint => 'Polls you vote in are listed here.';
@@ -8257,7 +8532,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p08Seek => 'Video position';
 
   @override
-  String get p08OnceHint => 'Once you close it, this photo can\'t be opened again.';
+  String get p08OnceHint =>
+      'Once you close it, this photo can\'t be opened again.';
 
   @override
   String get p13TicketsHeading => 'My requests';
@@ -8290,7 +8566,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p11RequestsEmptyBody => 'New join requests will show up here.';
 
   @override
-  String get p06EmptyNoneBody => 'Start messaging your friends, student clubs or event groups.';
+  String get p06EmptyNoneBody =>
+      'Start messaging your friends, student clubs or event groups.';
 
   @override
   String p06NoMatchBody(String q) {
@@ -8301,7 +8578,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p06ResetSearch => 'Reset search';
 
   @override
-  String get p06ArchiveEmptyBody => 'Archived chats are kept here and keep your inbox tidy.';
+  String get p06ArchiveEmptyBody =>
+      'Archived chats are kept here and keep your inbox tidy.';
 
   @override
   String get p06BackToChats => 'Back to chats';
@@ -8310,7 +8588,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p06LoadFailedTitle => 'Could not load, try again';
 
   @override
-  String get p06LoadFailedBody => 'A connection error occurred while updating the chat list. Please check your connection.';
+  String get p06LoadFailedBody =>
+      'A connection error occurred while updating the chat list. Please check your connection.';
 
   @override
   String get p06MenuDeleteChat => 'Delete chat';
@@ -8339,7 +8618,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p01ConfigTitle => 'Configuration error';
 
   @override
-  String get p01ConfigBody => 'The server address (API_BASE) is not secure (https). Rebuild the app with the correct address.';
+  String get p01ConfigBody =>
+      'The server address (API_BASE) is not secure (https). Rebuild the app with the correct address.';
 
   @override
   String get p01ConfigCode => 'ERROR CODE • BUILD_ENV';
@@ -8373,7 +8653,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p07ChatEmptyBody => 'Send the first one.';
 
   @override
-  String get p07ChatBlockedLine => 'You can\'t message someone you have blocked.';
+  String get p07ChatBlockedLine =>
+      'You can\'t message someone you have blocked.';
 
   @override
   String get p02WelcomeNewsSub => 'Instant alerts and campus updates.';
@@ -8408,7 +8689,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p02PendingTitle => 'Verify your email';
 
   @override
-  String get p02PendingBody => 'Your account must be verified before you can sign in.';
+  String get p02PendingBody =>
+      'Your account must be verified before you can sign in.';
 
   @override
   String get p02ReplacedTitle => 'Session ended';
@@ -8470,13 +8752,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p03HomeMealTitle => 'Menu of the day';
 
   @override
-  String get p03HomeNoMenuBody => 'The cafeteria menu has not been entered yet.';
+  String get p03HomeNoMenuBody =>
+      'The cafeteria menu has not been entered yet.';
 
   @override
   String get p03HomeEventsTitle => 'Upcoming Events';
 
   @override
-  String get p03HomeNoEventBody => 'There are no scheduled club events right now.';
+  String get p03HomeNoEventBody =>
+      'There are no scheduled club events right now.';
 
   @override
   String get p05NewsOpenSource => 'Open source page';
@@ -8485,7 +8769,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p05NewsErrorTitle => 'Could not load the content';
 
   @override
-  String get p05NewsErrorBody => 'There was a problem loading the content. Please check your internet connection and try again.';
+  String get p05NewsErrorBody =>
+      'There was a problem loading the content. Please check your internet connection and try again.';
 
   @override
   String p05SearchCountFor(String q) {
@@ -8529,34 +8814,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p11PendingInfoTitle => 'Application under review';
 
   @override
-  String get p11PendingInfoBody => 'Your join request is waiting for the club managers to approve it. You will be notified once it is decided.';
+  String get p11PendingInfoBody =>
+      'Your join request is waiting for the club managers to approve it. You will be notified once it is decided.';
 
   @override
   String get p11LockPrivateTitle => 'This club is private';
 
   @override
-  String get p11LockPrivateBody => 'Only approved members can see its posts and member list.';
+  String get p11LockPrivateBody =>
+      'Only approved members can see its posts and member list.';
 
   @override
   String get p11LockMembersTitle => 'Content is for members only';
 
   @override
-  String get p11LockMembersBody => 'Club posts become visible after your request is approved.';
+  String get p11LockMembersBody =>
+      'Club posts become visible after your request is approved.';
 
   @override
   String get p11LockBannedTitle => 'Content unavailable';
 
   @override
-  String get p11LockBannedBody => 'Club content is hidden because your access is restricted.';
+  String get p11LockBannedBody =>
+      'Club content is hidden because your access is restricted.';
 
   @override
   String get p11BannedTitle => 'You were removed from the club';
 
   @override
-  String get p11BannedBody => 'You cannot join this club or apply to its events.';
+  String get p11BannedBody =>
+      'You cannot join this club or apply to its events.';
 
   @override
-  String get p11ApprovalNote => 'Club content opens once the managers approve your request.';
+  String get p11ApprovalNote =>
+      'Club content opens once the managers approve your request.';
 
   @override
   String get p11PostPinSub => 'Place it at the top of the club page';
@@ -8582,10 +8873,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p11ClearSearch => 'Clear search';
 
   @override
-  String get p11RequestsEmptyAll => 'All requests have been answered or none has arrived yet.';
+  String get p11RequestsEmptyAll =>
+      'All requests have been answered or none has arrived yet.';
 
   @override
-  String get p11LoadErrorBody => 'A connection error occurred. The data could not be fetched.';
+  String get p11LoadErrorBody =>
+      'A connection error occurred. The data could not be fetched.';
 
   @override
   String get p12LogoAdd => 'Add logo';
@@ -8606,7 +8899,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p12QuestionPlaceholder => 'Write your question...';
 
   @override
-  String get p12ConsentNote => 'By creating a club you agree to follow the community guidelines and student rules.';
+  String get p12ConsentNote =>
+      'By creating a club you agree to follow the community guidelines and student rules.';
 
   @override
   String get p12PartialTitle => 'Partially saved';
@@ -8615,7 +8909,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p12CategorySheetTitle => 'Choose a category';
 
   @override
-  String get p12JoinNote => 'You will be notified when your request is approved.';
+  String get p12JoinNote =>
+      'You will be notified when your request is approved.';
 
   @override
   String p12CountClubs(String count) {
@@ -8657,10 +8952,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get p15ErrBannerBody => 'Some of the information you entered is missing or breaks the rules. Check the marked fields.';
+  String get p15ErrBannerBody =>
+      'Some of the information you entered is missing or breaks the rules. Check the marked fields.';
 
   @override
-  String get p15ErrHint => 'The create button becomes active automatically once the required fields are fixed.';
+  String get p15ErrHint =>
+      'The create button becomes active automatically once the required fields are fixed.';
 
   @override
   String p15ErrLocked(String n) {
@@ -8674,7 +8971,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p15ErrInactiveTitle => 'Club is inactive';
 
   @override
-  String get p15PickerSubtitle => 'The club you manage that will host the event';
+  String get p15PickerSubtitle =>
+      'The club you manage that will host the event';
 
   @override
   String get p15PickerSearch => 'Search clubs…';
@@ -8691,10 +8989,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p15PickerInfoTitle => 'About permissions';
 
   @override
-  String get p15PickerInfoBody => 'Events in clubs where you are a manager or moderator are published right away. Events by members with event permission are published after admin approval.';
+  String get p15PickerInfoBody =>
+      'Events in clubs where you are a manager or moderator are published right away. Events by members with event permission are published after admin approval.';
 
   @override
-  String get p15PickerEmptyBody => 'You are not a manager or moderator of any club.';
+  String get p15PickerEmptyBody =>
+      'You are not a manager or moderator of any club.';
 
   @override
   String get p15RefreshPerms => 'Refresh permissions';
@@ -8718,7 +9018,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p16ReqFullTitle => 'Capacity reached';
 
   @override
-  String get p16ReqFullBody => 'New requests can\'t be approved. Raise the capacity or update the attendee list to free up a spot.';
+  String get p16ReqFullBody =>
+      'New requests can\'t be approved. Raise the capacity or update the attendee list to free up a spot.';
 
   @override
   String get p16ReqRaiseQuota => 'Raise capacity';
@@ -8738,7 +9039,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p16ReqBackToEvent => 'Back to event details';
 
   @override
-  String get p16ReqEmptyBody => 'All requests have been answered or no new request has arrived yet.';
+  String get p16ReqEmptyBody =>
+      'All requests have been answered or no new request has arrived yet.';
 
   @override
   String p16SetApproved(String n) {
@@ -8749,7 +9051,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p16SetOpenSub => 'Everyone who registers is approved right away.';
 
   @override
-  String get p16SetApprovalSub => 'Every request goes through organizer approval.';
+  String get p16SetApprovalSub =>
+      'Every request goes through organizer approval.';
 
   @override
   String get p16SetCapLabel => 'Capacity (people)';
@@ -8786,7 +9089,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p16QrRefreshing => 'Refreshing…';
 
   @override
-  String get p16QrErrBody => 'Couldn\'t reach the server or the session timed out.';
+  String get p16QrErrBody =>
+      'Couldn\'t reach the server or the session timed out.';
 
   @override
   String get p16QrCopyBtn => 'Copy';
@@ -8844,19 +9148,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p17NoCourseTitle => 'You have not added a course yet';
 
   @override
-  String get p17NoCourseBody => 'Save your first course to build your weekly timetable.';
+  String get p17NoCourseBody =>
+      'Save your first course to build your weekly timetable.';
 
   @override
-  String get p17DayFreeBody => 'Spend the day resting, studying in the library or having a coffee on campus!';
+  String get p17DayFreeBody =>
+      'Spend the day resting, studying in the library or having a coffee on campus!';
 
   @override
-  String get p17TodayDoneBody => 'You have finished all of today\'s classes. Enjoy your rest.';
+  String get p17TodayDoneBody =>
+      'You have finished all of today\'s classes. Enjoy your rest.';
 
   @override
-  String get p17WeekDoneBody => 'This week\'s schedule is over. You are ready for next week!';
+  String get p17WeekDoneBody =>
+      'This week\'s schedule is over. You are ready for next week!';
 
   @override
-  String get p17OutOfRangeBody => 'The selected day is outside the academic calendar.';
+  String get p17OutOfRangeBody =>
+      'The selected day is outside the academic calendar.';
 
   @override
   String get p17LoadErrTitle => 'There was a problem loading the timetable.';
@@ -8873,13 +9182,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p17ExamDetail => 'Details';
 
   @override
-  String get p17ExamsNoUpcomingBody => 'Congratulations! There is no upcoming midterm, final or quiz right now.';
+  String get p17ExamsNoUpcomingBody =>
+      'Congratulations! There is no upcoming midterm, final or quiz right now.';
 
   @override
   String get p17ExamsEmptyMineTitle => 'You have not added a personal exam.';
 
   @override
-  String get p17ExamsEmptyMineBody => 'Add your first exam to build your schedule and follow the countdown.';
+  String get p17ExamsEmptyMineBody =>
+      'Add your first exam to build your schedule and follow the countdown.';
 
   @override
   String get p17CourseInfoSemantic => 'Course details';
@@ -8888,13 +9199,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p20HubExamPlan => 'Exam plan';
 
   @override
-  String get p20HubTimetableEmptyBody => 'Add your courses to follow your weekly flow and build your class calendar.';
+  String get p20HubTimetableEmptyBody =>
+      'Add your courses to follow your weekly flow and build your class calendar.';
 
   @override
   String get p20HubExamBadge => 'Midterm & Final';
 
   @override
-  String get p20HubExamEmptyBody => 'Congratulations! No midterm or final is planned in your calendar right now.';
+  String get p20HubExamEmptyBody =>
+      'Congratulations! No midterm or final is planned in your calendar right now.';
 
   @override
   String get p20HubCalEmptySub => 'The in-semester date ranges are over';
@@ -8903,7 +9216,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p20HubAnnEmptyTitle => 'No unread announcements';
 
   @override
-  String get p20HubAnnEmptyBody => 'New notices from your department office or advisor will be listed here.';
+  String get p20HubAnnEmptyBody =>
+      'New notices from your department office or advisor will be listed here.';
 
   @override
   String get p20HubDateTime => 'Date & time';
@@ -8926,13 +9240,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p20AnnFooterTitle => 'No more announcements for your department.';
 
   @override
-  String get p20AnnFooterBody => 'You will be notified when new calendar and exam notices are published.';
+  String get p20AnnFooterBody =>
+      'You will be notified when new calendar and exam notices are published.';
 
   @override
   String get p20RemPermTitle => 'Notification permission not granted';
 
   @override
-  String get p20RemPermBody => 'Reminders need the system notification permission to ring on time.';
+  String get p20RemPermBody =>
+      'Reminders need the system notification permission to ring on time.';
 
   @override
   String get p20RemOpenSettings => 'Open in settings';
@@ -8960,7 +9276,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p13PollClosingSoon => 'Ending soon';
 
   @override
-  String get p13PollClubEmptyBody => 'Club managers have not shared any poll for voting yet.';
+  String get p13PollClubEmptyBody =>
+      'Club managers have not shared any poll for voting yet.';
 
   @override
   String get p13PollDateTime => 'Date and time';
@@ -8969,16 +9286,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p13PollEditMode => 'Changing your vote';
 
   @override
-  String get p13PollEditNote => 'When you change your choice, your previous vote is cancelled automatically and your new choice is counted.';
+  String get p13PollEditNote =>
+      'When you change your choice, your previous vote is cancelled automatically and your new choice is counted.';
 
   @override
-  String get p13PollEmptyClosedBody => 'Concluded polls are moved to the archive.';
+  String get p13PollEmptyClosedBody =>
+      'Concluded polls are moved to the archive.';
 
   @override
-  String get p13PollEmptyMineBody => 'Polls you have voted in are collected here.';
+  String get p13PollEmptyMineBody =>
+      'Polls you have voted in are collected here.';
 
   @override
-  String get p13PollEmptyOpenBody => 'New polls will be listed here when they open.';
+  String get p13PollEmptyOpenBody =>
+      'New polls will be listed here when they open.';
 
   @override
   String get p13PollErrBody => 'Could not connect to the server';
@@ -9025,7 +9346,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p13PollRateCta => 'Rate';
 
   @override
-  String get p13PollSecretBody => 'Your identity cannot be seen by any administrator, club representative or student.';
+  String get p13PollSecretBody =>
+      'Your identity cannot be seen by any administrator, club representative or student.';
 
   @override
   String p13PollSelectedCount(String n, String max) {
@@ -9122,7 +9444,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p13PollNoMoreActive => 'This club has no other active poll.';
 
   @override
-  String get p13PollNoMoreBody => 'Community decisions and event preferences are published here.';
+  String get p13PollNoMoreBody =>
+      'Community decisions and event preferences are published here.';
 
   @override
   String get p04DiscoverSub => 'Catch the pulse of campus and live posts';
@@ -9154,7 +9477,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get p11UnavailableBody => 'This community is temporarily frozen or under review.';
+  String get p11UnavailableBody =>
+      'This community is temporarily frozen or under review.';
 
   @override
   String get p11UnderReview => 'Under review';
@@ -9163,7 +9487,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p12ConsentBold => 'community guidelines';
 
   @override
-  String get p03NotifLoadFailedBody => 'The latest updates could not be synced with the server. Please check your connection.';
+  String get p03NotifLoadFailedBody =>
+      'The latest updates could not be synced with the server. Please check your connection.';
 
   @override
   String p03NotifShortDay(String n) {
@@ -9179,7 +9504,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p05SearchErrorTitle => 'Could not load';
 
   @override
-  String get p05SearchErrorBody => 'A connection error occurred while fetching search results.';
+  String get p05SearchErrorBody =>
+      'A connection error occurred while fetching search results.';
 
   @override
   String get p13PollDistribution => 'Option Distribution';
@@ -9227,7 +9553,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p04CropCrop => 'Crop';
 
   @override
-  String get p04CropError => 'The photo could not be processed. Try another photo.';
+  String get p04CropError =>
+      'The photo could not be processed. Try another photo.';
 
   @override
   String get p04CropPreviewProfile => 'How it will look on your profile';
@@ -9263,7 +9590,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p04Recrop => 'Crop again';
 
   @override
-  String get p04PostNotFound => 'Post not found (it may have been deleted or hidden)';
+  String get p04PostNotFound =>
+      'Post not found (it may have been deleted or hidden)';
 
   @override
   String get p04PostSharing => 'Sharing...';
@@ -9335,10 +9663,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p10ItemUnit => 'items';
 
   @override
-  String get p10LimitedBody => 'You can pick more photos from your library to send in chat.';
+  String get p10LimitedBody =>
+      'You can pick more photos from your library to send in chat.';
 
   @override
-  String get p10DeniedBody => 'To send photos and videos, allow gallery access in the app settings.';
+  String get p10DeniedBody =>
+      'To send photos and videos, allow gallery access in the app settings.';
 
   @override
   String get p10GalleryEmpty => 'There are no photos or videos in the gallery.';
@@ -9375,13 +9705,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p14OfflineStrip => 'No internet connection · Showing saved data';
 
   @override
-  String get p14EmptyUpcomingBody2 => 'Browse campus club events and join right away.';
+  String get p14EmptyUpcomingBody2 =>
+      'Browse campus club events and join right away.';
 
   @override
-  String get p14EmptyPastBody2 => 'Events you attended or that have finished are archived here.';
+  String get p14EmptyPastBody2 =>
+      'Events you attended or that have finished are archived here.';
 
   @override
-  String get p14EmptyCreatedBody2 => 'Manage the workshops, seminars and meetups you plan with your club here.';
+  String get p14EmptyCreatedBody2 =>
+      'Manage the workshops, seminars and meetups you plan with your club here.';
 
   @override
   String get p14Detail => 'Details';
@@ -9404,13 +9737,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p18FollowErrorTitle => 'Connection error';
 
   @override
-  String get p18FollowersEmptyBody => 'As your profile gets active, your friends will start following you here.';
+  String get p18FollowersEmptyBody =>
+      'As your profile gets active, your friends will start following you here.';
 
   @override
-  String get p18FollowingEmptyBody => 'Follow students and club members you like so you do not miss campus posts.';
+  String get p18FollowingEmptyBody =>
+      'Follow students and club members you like so you do not miss campus posts.';
 
   @override
-  String get p18FollowNoMatchBody => 'No user matched your search. Check the spelling and try again.';
+  String get p18FollowNoMatchBody =>
+      'No user matched your search. Check the spelling and try again.';
 
   @override
   String p18AllFollowers(String n) {
@@ -9426,16 +9762,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p19AcademicInfo => 'Academic information';
 
   @override
-  String get p19ShowEmailDesc => 'Students who visit your profile can see your email address.';
+  String get p19ShowEmailDesc =>
+      'Students who visit your profile can see your email address.';
 
   @override
   String get p19LangSystemDesc => 'Uses your device default language';
 
   @override
-  String get p19CrashReportsShort => 'An anonymous crash report is sent when the app hits an error.';
+  String get p19CrashReportsShort =>
+      'An anonymous crash report is sent when the app hits an error.';
 
   @override
-  String get p19LogoutAllSub => 'Closes your other open phone and browser sessions.';
+  String get p19LogoutAllSub =>
+      'Closes your other open phone and browser sessions.';
 
   @override
   String get p05NewsLoadingMore => 'Loading';
@@ -9447,25 +9786,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p05SavedEmptyTitle2 => 'You have no saved news yet.';
 
   @override
-  String get p05SavedEmptyBody2 => 'Use the bookmark on a news page to add items here.';
+  String get p05SavedEmptyBody2 =>
+      'Use the bookmark on a news page to add items here.';
 
   @override
   String get p05ListErrorTitle => 'Could not load, try again';
 
   @override
-  String get p05ListErrorBody => 'There was a problem connecting to the server. Please check your internet connection.';
+  String get p05ListErrorBody =>
+      'There was a problem connecting to the server. Please check your internet connection.';
 
   @override
   String get p13SuppLoadFailed => 'Could not load';
 
   @override
-  String get p13SuppFaqEmptyBody => 'No articles have been added for this category yet.';
+  String get p13SuppFaqEmptyBody =>
+      'No articles have been added for this category yet.';
 
   @override
   String get p13SuppFaqNoMatchBody => 'No results match your search.';
 
   @override
-  String get p13SuppTicketsEmptyBody => 'You have no active or past support records.';
+  String get p13SuppTicketsEmptyBody =>
+      'You have no active or past support records.';
 
   @override
   String get p13SuppFeedbackSub => 'Rate your app experience';
@@ -9489,10 +9832,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p20AcademicInfo => 'Academic Info';
 
   @override
-  String get p20AvatarHidden => 'Your profile photo was hidden by moderation. Your initials are shown until you upload a photo that follows campus rules.';
+  String get p20AvatarHidden =>
+      'Your profile photo was hidden by moderation. Your initials are shown until you upload a photo that follows campus rules.';
 
   @override
-  String get p20BlockInfo => 'You will not see this person\'s posts and cannot message them.';
+  String get p20BlockInfo =>
+      'You will not see this person\'s posts and cannot message them.';
 
   @override
   String get p20ReportSendHint => 'You can briefly describe the situation...';
@@ -9501,7 +9846,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p20PrefPollsSub => 'Student and staff polls';
 
   @override
-  String get p20PrefDetailHead => 'Manage the sub-types of each category one by one. Turning off the main switch silences the related sub-types.';
+  String get p20PrefDetailHead =>
+      'Manage the sub-types of each category one by one. Turning off the main switch silences the related sub-types.';
 
   @override
   String get p20PrefDetailSub => 'Sub-categories and notification types';
@@ -9579,7 +9925,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p20RemDaySub => 'Remind one day before the exam';
 
   @override
-  String get p20RemHourSub => 'Sent by the server, even when the app is closed; follows the Academic announcements setting';
+  String get p20RemHourSub =>
+      'Sent by the server, even when the app is closed; follows the Academic announcements setting';
 
   @override
   String get p13SugSortTop => 'Most voted';
@@ -9588,7 +9935,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p13SugAdd => 'Add suggestion';
 
   @override
-  String get p13SugApprovalNote => 'Suggestions are published after administrator approval.';
+  String get p13SugApprovalNote =>
+      'Suggestions are published after administrator approval.';
 
   @override
   String get p13SugVoteHint => 'Tap to vote';
@@ -9672,7 +10020,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p15AboutTitle => 'About the event';
 
   @override
-  String get p15AttOpenHint => 'Scan the QR code in the hall or enter the code the organizer announced to record your attendance.';
+  String get p15AttOpenHint =>
+      'Scan the QR code in the hall or enter the code the organizer announced to record your attendance.';
 
   @override
   String get p15CheckedInBody => 'Your attendance has been recorded.';
@@ -9709,7 +10058,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p14UpcomingOther => 'Upcoming on other days';
 
   @override
-  String get p14ErrorBodyCache => 'There was a problem reaching the server. Showing the offline cache.';
+  String get p14ErrorBodyCache =>
+      'There was a problem reaching the server. Showing the offline cache.';
 
   @override
   String get p14Completed => 'Completed';
@@ -9776,22 +10126,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p20GradeLevel => 'Grade Level';
 
   @override
-  String get p21ChanChatDesc => 'Direct and group chat messages. Arrive with sound and vibration.';
+  String get p21ChanChatDesc =>
+      'Direct and group chat messages. Arrive with sound and vibration.';
 
   @override
-  String get p21ChanEventDesc => 'Event reminders, changes and attendance results.';
+  String get p21ChanEventDesc =>
+      'Event reminders, changes and attendance results.';
 
   @override
-  String get p21ChanAnnouncementDesc => 'News, announcements, club and system notifications.';
+  String get p21ChanAnnouncementDesc =>
+      'News, announcements, club and system notifications.';
 
   @override
-  String get p21ChanSocialDesc => 'Like and follow notifications. Delivered silently.';
+  String get p21ChanSocialDesc =>
+      'Like and follow notifications. Delivered silently.';
 
   @override
   String get p21ChanPollDesc => 'New polls and their results.';
 
   @override
-  String get p21ChanAcademicDesc => 'Local reminders before your classes and exams.';
+  String get p21ChanAcademicDesc =>
+      'Local reminders before your classes and exams.';
 
   @override
   String get p21HelpTitle => 'Notifications not working?';
@@ -9803,7 +10158,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p21HelpAllGood => 'Everything looks fine on this device.';
 
   @override
-  String get p21HelpSomeIssue => 'Something is preventing you from receiving notifications. See the steps below.';
+  String get p21HelpSomeIssue =>
+      'Something is preventing you from receiving notifications. See the steps below.';
 
   @override
   String get p21HelpPermTitle => 'Notification permission';
@@ -9812,28 +10168,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p21HelpPermOk => 'App notifications are on.';
 
   @override
-  String get p21HelpPermOff => 'Notifications are turned off in system settings. You will not receive any until you turn them on.';
+  String get p21HelpPermOff =>
+      'Notifications are turned off in system settings. You will not receive any until you turn them on.';
 
   @override
   String get p21HelpChanTitle => 'Notification categories';
 
   @override
-  String get p21HelpChanChat => 'The Messages category is turned off in system settings. Turn it on or you will not get new message notifications.';
+  String get p21HelpChanChat =>
+      'The Messages category is turned off in system settings. Turn it on or you will not get new message notifications.';
 
   @override
-  String get p21HelpChanOther => 'Some notification categories are turned off in system settings. Turn on the ones you want.';
+  String get p21HelpChanOther =>
+      'Some notification categories are turned off in system settings. Turn on the ones you want.';
 
   @override
   String get p21HelpDeviceTitle => 'This device registration';
 
   @override
-  String get p21HelpDeviceOk => 'Your device is registered so we can send notifications.';
+  String get p21HelpDeviceOk =>
+      'Your device is registered so we can send notifications.';
 
   @override
-  String get p21HelpDeviceBad => 'Your device is not registered yet. Check your internet connection and register again.';
+  String get p21HelpDeviceBad =>
+      'Your device is not registered yet. Check your internet connection and register again.';
 
   @override
-  String get p21HelpDeviceUnsupported => 'Push notifications are not configured in this version.';
+  String get p21HelpDeviceUnsupported =>
+      'Push notifications are not configured in this version.';
 
   @override
   String get p21HelpDeviceRetry => 'Register again';
@@ -9842,40 +10204,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p21HelpBatteryTitle => 'Battery and background';
 
   @override
-  String get p21HelpBatteryOem => 'Your phone may shut the app down to save battery. If notifications do not arrive while the app is closed, remove the restriction for BÜ Kampüs in battery settings, allow Autostart if your phone has it, and lock the app in recent apps.';
+  String get p21HelpBatteryOem =>
+      'Your phone may shut the app down to save battery. If notifications do not arrive while the app is closed, remove the restriction for BÜ Kampüs in battery settings, allow Autostart if your phone has it, and lock the app in recent apps.';
 
   @override
-  String get p21HelpBatteryGeneric => 'If notifications do not arrive while the app is closed, remove the battery restriction for BÜ Kampüs in battery settings. Swiping the app away from recent apps stops notifications on some phones.';
+  String get p21HelpBatteryGeneric =>
+      'If notifications do not arrive while the app is closed, remove the battery restriction for BÜ Kampüs in battery settings. Swiping the app away from recent apps stops notifications on some phones.';
 
   @override
   String get p21HelpBatteryOpen => 'Open battery settings';
 
   @override
-  String get p21HelpFooter => 'Quiet hours and notification preferences can also block a notification. Check them in Notification preferences.';
+  String get p21HelpFooter =>
+      'Quiet hours and notification preferences can also block a notification. Check them in Notification preferences.';
 
   @override
   String get p22SaveGalleryTitle => 'Save photos to gallery';
 
   @override
-  String get p22SaveGalleryDesc => 'Photos you receive and send in chats are saved to your gallery; view-once photos are never saved.';
+  String get p22SaveGalleryDesc =>
+      'Photos you receive and send in chats are saved to your gallery; view-once photos are never saved.';
 
   @override
-  String get p22SaveGalleryCloud => 'If your gallery has cloud backup turned on, the photos may be uploaded there too.';
+  String get p22SaveGalleryCloud =>
+      'If your gallery has cloud backup turned on, the photos may be uploaded there too.';
 
   @override
-  String get p22SaveDeniedToast => 'Photos could not be saved to the gallery: permission was not granted. You can allow it in Settings.';
+  String get p22SaveDeniedToast =>
+      'Photos could not be saved to the gallery: permission was not granted. You can allow it in Settings.';
 
   @override
   String get p22OpenSettings => 'Settings';
 
   @override
-  String get p26PrefPollsNeedsParents => 'No poll notifications while Announcements or Clubs is off';
+  String get p26PrefPollsNeedsParents =>
+      'No poll notifications while Announcements or Clubs is off';
 
   @override
-  String get p32ExportShareFailed => 'Your data could not be prepared for sharing. Please try again.';
+  String get p32ExportShareFailed =>
+      'Your data could not be prepared for sharing. Please try again.';
 
   @override
-  String get p31ChatPlaceholderBlocked => 'Message from a user you blocked is hidden';
+  String get p31ChatPlaceholderBlocked =>
+      'Message from a user you blocked is hidden';
 
   @override
   String get p31ChatPlaceholderUnreadable => 'This message cannot be displayed';
@@ -9892,7 +10263,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p30AutosaveConsentTitle => 'Save photos to your gallery?';
 
   @override
-  String get p30AutosaveConsentBody => 'Photos you send and receive in one-to-one chats are saved to your phone\'s gallery (BU Kampus album). View-once photos are never saved. You can turn this off here at any time.';
+  String get p30AutosaveConsentBody =>
+      'Photos you send and receive in one-to-one chats are saved to your phone\'s gallery (BU Kampus album). View-once photos are never saved. You can turn this off here at any time.';
 
   @override
   String get p30AutosaveConsentOk => 'Turn on';
@@ -9901,7 +10273,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p60EditHome => 'Edit home';
 
   @override
-  String get p60EditHint => 'Drag sections to reorder; use the switch to show or hide them.';
+  String get p60EditHint =>
+      'Drag sections to reorder; use the switch to show or hide them.';
 
   @override
   String get p60Done => 'Done';
@@ -9931,7 +10304,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get p60ShortcutsHint => 'Choose up to 5 shortcuts; drag to change the order.';
+  String get p60ShortcutsHint =>
+      'Choose up to 5 shortcuts; drag to change the order.';
 
   @override
   String get p60EmptyTitle => 'Your home is empty';
@@ -9987,7 +10361,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p66HelpAction => 'Get help';
 
   @override
-  String get p66HelpSub => 'If you can’t sign in, write to us. We will email you a verification code.';
+  String get p66HelpSub =>
+      'If you can’t sign in, write to us. We will email you a verification code.';
 
   @override
   String get p66FieldName => 'Full name';
@@ -10044,13 +10419,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p66MyTicket => 'My request';
 
   @override
-  String get p66AboutBody => 'An independent student app built for the students and staff of Bingöl University.';
+  String get p66AboutBody =>
+      'An independent student app built for the students and staff of Bingöl University.';
 
   @override
   String get p67AttachRecent => 'Recent photos';
 
   @override
-  String get p67AttachOnceHint => 'To send a view-once photo, select it and tap the 1 icon.';
+  String get p67AttachOnceHint =>
+      'To send a view-once photo, select it and tap the 1 icon.';
 
   @override
   String get p67AttachGrant => 'Allow';
@@ -10100,7 +10477,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p64CropDone => 'Done';
 
   @override
-  String get p64FeedOffline => 'You are offline. Posts shown may be out of date.';
+  String get p64FeedOffline =>
+      'You are offline. Posts shown may be out of date.';
 
   @override
   String get p67ChatBgDensity => 'Density';
@@ -10192,7 +10570,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p69TimeLabel => 'Time';
 
   @override
-  String get p69ExamNote => 'You get a local reminder 1 day before and a push notification 2 hours before the exam.';
+  String get p69ExamNote =>
+      'You get a local reminder 1 day before and a push notification 2 hours before the exam.';
 
   @override
   String p69SemesterTerm(String name) {
@@ -10214,7 +10593,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p69ExamReminder => 'Exam reminder';
 
   @override
-  String get p69ExamReminderSub => 'On your phone 1 day before the exam, as a notification 2 hours before.';
+  String get p69ExamReminderSub =>
+      'On your phone 1 day before the exam, as a notification 2 hours before.';
 
   @override
   String p69ClassReminderSub(String n) {
@@ -10231,7 +10611,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p69RemindersFooter => 'Reminders are created on this phone.';
 
   @override
-  String get p69PermOff => 'Notification permission is off. Allow it in settings to get reminders.';
+  String get p69PermOff =>
+      'Notification permission is off. Allow it in settings to get reminders.';
 
   @override
   String get p69NoExams => 'You haven\'t added any exams yet.';
@@ -10278,7 +10659,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p68MessageHint => 'Describe the problem or request step by step…';
 
   @override
-  String get p68ReplyNote => 'You will get the reply by notification and email.';
+  String get p68ReplyNote =>
+      'You will get the reply by notification and email.';
 
   @override
   String get p68CategoryLabel => 'Category';
@@ -10359,7 +10741,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get p51EvQuotaNote => 'New requests can\'t be approved once the capacity is full.';
+  String get p51EvQuotaNote =>
+      'New requests can\'t be approved once the capacity is full.';
 
   @override
   String p51EvPresentAbsent(String present, String absent) {
@@ -10432,13 +10815,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get frqPrivateTitle => 'Private account';
 
   @override
-  String get frqPrivateSub => 'With a private account, only people you approve can see your posts and follower list. Your current followers stay.';
+  String get frqPrivateSub =>
+      'With a private account, only people you approve can see your posts and follower list. Your current followers stay.';
 
   @override
   String get frqPrivateOffTitle => 'Make account public?';
 
   @override
-  String get frqPrivateOffBody => 'Pending follow requests are accepted automatically. Everyone can see your posts and follower list.';
+  String get frqPrivateOffBody =>
+      'Pending follow requests are accepted automatically. Everyone can see your posts and follower list.';
 
   @override
   String get frqPrivateOffConfirm => 'Make public';
@@ -10456,7 +10841,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get frqUnfollowBody => 'You will no longer follow this person.';
 
   @override
-  String get frqUnfollowBodyPrivate => 'This account is private. If you unfollow, you will need to send a new request.';
+  String get frqUnfollowBodyPrivate =>
+      'This account is private. If you unfollow, you will need to send a new request.';
 
   @override
   String get frqUnfollowConfirm => 'Unfollow';
@@ -10465,7 +10851,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get frqCancelReqTitle => 'Withdraw request?';
 
   @override
-  String get frqCancelReqBody => 'Your follow request will be withdrawn. You can send it again later.';
+  String get frqCancelReqBody =>
+      'Your follow request will be withdrawn. You can send it again later.';
 
   @override
   String get frqCancelReqConfirm => 'Withdraw request';
@@ -10477,7 +10864,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get frqLockedBody => 'Send a follow request to see their posts.';
 
   @override
-  String get frqLockedBodyRequested => 'You can see their posts once your request is approved.';
+  String get frqLockedBodyRequested =>
+      'You can see their posts once your request is approved.';
 
   @override
   String get frqReqTitle => 'Follow requests';
@@ -10523,7 +10911,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get frqMsgReqTitle => 'Message requests';
 
   @override
-  String get frqMsgReqInfo => 'Messages from people you do not follow and who share no club or event with you appear here. Until you accept, the sender cannot see whether you have read their messages. Replying accepts the request automatically.';
+  String get frqMsgReqInfo =>
+      'Messages from people you do not follow and who share no club or event with you appear here. Until you accept, the sender cannot see whether you have read their messages. Replying accepts the request automatically.';
 
   @override
   String get frqMsgReqAccept => 'Accept';
@@ -10541,7 +10930,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get frqMsgReqDeclineGroupTitle => 'Delete group invite?';
 
   @override
-  String get frqMsgReqDeclineGroupBody => 'You will leave the group and the person who added you cannot add you again.';
+  String get frqMsgReqDeclineGroupBody =>
+      'You will leave the group and the person who added you cannot add you again.';
 
   @override
   String get frqMsgReqDeclineGroupConfirm => 'Delete invite';
@@ -10577,19 +10967,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get regTitle => 'Create your account';
 
   @override
-  String get regSubtitle => 'Enter your name, email address and a password. Your verification code will be sent to your email address.';
+  String get regSubtitle =>
+      'Enter your name, email address and a password. Your verification code will be sent to your email address.';
 
   @override
   String get profileSetupTitle => 'Choose your department';
 
   @override
-  String get profileSetupSubtitle => 'Enter your department and year once; you can change them later from your profile.';
+  String get profileSetupSubtitle =>
+      'Enter your department and year once; you can change them later from your profile.';
 
   @override
   String get photoSetupTitle => 'Would you like to add a profile photo?';
 
   @override
-  String get photoSetupSubtitle => 'Other students will recognize you more easily. You can add or change it from your profile at any time.';
+  String get photoSetupSubtitle =>
+      'Other students will recognize you more easily. You can add or change it from your profile at any time.';
 
   @override
   String get photoSetupPick => 'Choose photo';
@@ -10667,7 +11060,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get avatarEdBgSand => 'Sand';
 
   @override
-  String get avatarEdBgHint => 'If the photo is smaller than the frame, the gap is filled with this backdrop.';
+  String get avatarEdBgHint =>
+      'If the photo is smaller than the frame, the gap is filled with this backdrop.';
 
   @override
   String get avatarEdFOriginal => 'Original';
@@ -10703,7 +11097,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get avatarEdVignette => 'Vignette';
 
   @override
-  String get avatarEdStageSemantic => 'Photo editing area. Drag, pinch to zoom in or out, double-tap to fit.';
+  String get avatarEdStageSemantic =>
+      'Photo editing area. Drag, pinch to zoom in or out, double-tap to fit.';
 
   @override
   String get photoEdTabRatio => 'Ratio';
@@ -10712,7 +11107,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get photoEdRatioFree => 'Free';
 
   @override
-  String get photoEdRatioHint => 'Pick the frame ratio; the photo is cropped to it. Free keeps the photo\'s own ratio.';
+  String get photoEdRatioHint =>
+      'Pick the frame ratio; the photo is cropped to it. Free keeps the photo\'s own ratio.';
 
   @override
   String get avatarSheetTitle => 'Profile photo';
@@ -10724,13 +11120,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get avatarRemoveTitle => 'Remove your profile photo?';
 
   @override
-  String get avatarRemoveBody => 'The default picture will be shown. You can add a photo again at any time.';
+  String get avatarRemoveBody =>
+      'The default picture will be shown. You can add a photo again at any time.';
 
   @override
   String get avatarRemoveConfirm => 'Remove';
 
   @override
-  String get avatarFetchFailed => 'Could not open the current photo. Check your connection and try again.';
+  String get avatarFetchFailed =>
+      'Could not open the current photo. Check your connection and try again.';
 
   @override
   String get avatarUpdated => 'Your profile photo was updated.';
@@ -10748,34 +11146,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAnalytics => 'Usage analytics';
 
   @override
-  String get settingsAnalyticsSub => 'Usage data such as time spent on screens and actions is sent to improve the app. Message content, search text and personal details are never sent. Turning this off stops collection and deletes anything pending.';
+  String get settingsAnalyticsSub =>
+      'Usage data such as time spent on screens and actions is sent to improve the app. Message content, search text and personal details are never sent. Turning this off stops collection and deletes anything pending.';
 
   @override
-  String get chatSecureCaptured => 'This content cannot be viewed while the screen is being recorded.';
+  String get chatSecureCaptured =>
+      'This content cannot be viewed while the screen is being recorded.';
 
   @override
-  String get chatSecureScreenshot => 'Screenshot detected. The photo has been closed.';
+  String get chatSecureScreenshot =>
+      'Screenshot detected. The photo has been closed.';
 
   @override
   String get chatSecureProtectedTitle => 'Screen capture protection';
 
   @override
-  String get chatSecureProtectedBody => 'This photo can be viewed only once and is protected.';
+  String get chatSecureProtectedBody =>
+      'This photo can be viewed only once and is protected.';
 
   @override
-  String get chatSecureUnsupportedTitle => 'Can\'t be opened securely on this device';
+  String get chatSecureUnsupportedTitle =>
+      'Can\'t be opened securely on this device';
 
   @override
-  String get chatSecureUnsupportedBody => 'Screen capture protection could not be set up, so this view-once photo was not opened and your view was not used.';
+  String get chatSecureUnsupportedBody =>
+      'Screen capture protection could not be set up, so this view-once photo was not opened and your view was not used.';
 
   @override
-  String get chatSecureRevokedBody => 'The photo was closed because screen capture protection stopped working.';
+  String get chatSecureRevokedBody =>
+      'The photo was closed because screen capture protection stopped working.';
 
   @override
   String get verifyEmailBannerTitle => 'Verify your email';
 
   @override
-  String get verifyEmailBannerBody => 'Until you verify, some actions (posts, messages, following...) are unavailable.';
+  String get verifyEmailBannerBody =>
+      'Until you verify, some actions (posts, messages, following...) are unavailable.';
 
   @override
   String get verifyEmailBannerCta => 'Enter code';
@@ -10787,7 +11193,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get verifySheetBody => 'Enter the 6-digit code sent to your email.';
 
   @override
-  String get verifyQuotaInfo => 'The verification email cannot be sent right now. We will send it as soon as possible. You can enter the code here once it arrives.';
+  String get verifyQuotaInfo =>
+      'The verification email cannot be sent right now. We will send it as soon as possible. You can enter the code here once it arrives.';
 
   @override
   String get verifyDone => 'Your email is verified';
@@ -10862,7 +11269,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifPrefMealMenu => 'Daily menu';
 
   @override
-  String get notifPrefMealMenuSub => 'A notification with the menu of the day. Off by default.';
+  String get notifPrefMealMenuSub =>
+      'A notification with the menu of the day. Off by default.';
 
   @override
   String get notifExamAlarmOn => 'Reminder on';
@@ -10876,16 +11284,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get alarmClockNote => 'Alarms are added to the Clock app on your phone. Open the Clock app to delete them.';
+  String get alarmClockNote =>
+      'Alarms are added to the Clock app on your phone. Open the Clock app to delete them.';
 
   @override
-  String get alarmIosNote => 'iPhone does not allow adding alarms to the Clock app. This notification replaces an alarm and may not sound in silent mode.';
+  String get alarmIosNote =>
+      'iPhone does not allow adding alarms to the Clock app. This notification replaces an alarm and may not sound in silent mode.';
 
   @override
   String get alarmUnavailable => 'No Clock app was found on this device.';
 
   @override
-  String get alarmNotifOff => 'Notifications are off. Turn them on in Settings > BÜ Kampüs > Notifications to get the reminders.';
+  String get alarmNotifOff =>
+      'Notifications are off. Turn them on in Settings > BÜ Kampüs > Notifications to get the reminders.';
 
   @override
   String get alarmExamAction => 'Set first-exam alarms';
@@ -10900,7 +11311,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alarmExamSheetTitleIos => 'Exam day notifications';
 
   @override
-  String get alarmExamSheetSub => 'One-time, 1 hour before the first exam of each day only.';
+  String get alarmExamSheetSub =>
+      'One-time, 1 hour before the first exam of each day only.';
 
   @override
   String alarmExamRow(String exam, String alarm) {
@@ -10990,7 +11402,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alarmClassSheetTitleIos => 'Morning class notifications';
 
   @override
-  String get alarmClassSheetSub => 'If the first class of a day starts before noon: 1 hour earlier, repeating every week.';
+  String get alarmClassSheetSub =>
+      'If the first class of a day starts before noon: 1 hour earlier, repeating every week.';
 
   @override
   String alarmClassRow(String classTime, String alarm) {
@@ -11035,7 +11448,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calSyncRowTitle => 'Add to device calendar';
 
   @override
-  String get calSyncRowSub => 'The whole academic calendar, with an 08:00 reminder on the day';
+  String get calSyncRowSub =>
+      'The whole academic calendar, with an 08:00 reminder on the day';
 
   @override
   String calSyncRowDone(String n) {
@@ -11046,7 +11460,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calSyncRowDoneSub => 'Update or remove';
 
   @override
-  String get calSyncSheetBody => 'The academic calendar for the next 12 months is written as events. All-day entries get a reminder at 08:00 on the day; your calendar app sends the notification. Only BÜ Kampüs events are added or removed.';
+  String get calSyncSheetBody =>
+      'The academic calendar for the next 12 months is written as events. All-day entries get a reminder at 08:00 on the day; your calendar app sends the notification. Only BÜ Kampüs events are added or removed.';
 
   @override
   String get calSyncTarget => 'Calendar';
@@ -11087,25 +11502,31 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get calSyncRationale => 'Calendar access is needed to write the academic calendar to your device calendar. Only BÜ Kampüs events are added or removed; your other events are left alone.';
+  String get calSyncRationale =>
+      'Calendar access is needed to write the academic calendar to your device calendar. Only BÜ Kampüs events are added or removed; your other events are left alone.';
 
   @override
-  String get calSyncDenied => 'Calendar access is off. Turn it on in Settings > BÜ Kampüs > Calendar.';
+  String get calSyncDenied =>
+      'Calendar access is off. Turn it on in Settings > BÜ Kampüs > Calendar.';
 
   @override
   String get calSyncOpenSettings => 'Open settings';
 
   @override
-  String get calSyncNoCalendar => 'There is no writable calendar on this device. A local calendar named BÜ Kampüs will be created.';
+  String get calSyncNoCalendar =>
+      'There is no writable calendar on this device. A local calendar named BÜ Kampüs will be created.';
 
   @override
-  String get calSyncFetchError => 'Could not load the academic calendar. Check your connection and try again.';
+  String get calSyncFetchError =>
+      'Could not load the academic calendar. Check your connection and try again.';
 
   @override
-  String get calSyncEmpty => 'There are no current academic calendar entries to write.';
+  String get calSyncEmpty =>
+      'There are no current academic calendar entries to write.';
 
   @override
-  String get calSyncUnavailable => 'Calendar access is not supported on this device.';
+  String get calSyncUnavailable =>
+      'Calendar access is not supported on this device.';
 
   @override
   String calSyncRemoveDone(String n) {
@@ -11131,19 +11552,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tfOff => 'Off';
 
   @override
-  String get tfToggleSubOff => 'Off. When you sign in from an unknown device, a code is sent to your e-mail.';
+  String get tfToggleSubOff =>
+      'Off. When you sign in from an unknown device, a code is sent to your e-mail.';
 
   @override
-  String get tfToggleSubOn => 'On. Signing in from an unknown device asks for the code sent to your e-mail.';
+  String get tfToggleSubOn =>
+      'On. Signing in from an unknown device asks for the code sent to your e-mail.';
 
   @override
-  String get tfIntro => 'When your account is signed in from an unknown device, a 6-digit code is sent to your e-mail. Trusted devices are not asked for a code.';
+  String get tfIntro =>
+      'When your account is signed in from an unknown device, a 6-digit code is sent to your e-mail. Trusted devices are not asked for a code.';
 
   @override
   String get tfDevicesSection => 'Trusted devices';
 
   @override
-  String get tfDevicesEmpty => 'No trusted devices yet. Turn on Trust this device when signing in and it will be listed here.';
+  String get tfDevicesEmpty =>
+      'No trusted devices yet. Turn on Trust this device when signing in and it will be listed here.';
 
   @override
   String get tfDeviceThis => 'This device';
@@ -11163,7 +11588,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tfDeviceRemoveTitle => 'Remove this device?';
 
   @override
-  String get tfDeviceRemoveBody => 'A code will be asked again at the next sign-in from this device. The open session stays signed in.';
+  String get tfDeviceRemoveBody =>
+      'A code will be asked again at the next sign-in from this device. The open session stays signed in.';
 
   @override
   String get tfDeviceRemoveConfirm => 'Remove';
@@ -11183,13 +11609,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get tfEnableSubtitleNoMail => 'To turn it on, enter the 6-digit code sent to your e-mail. The code is valid for 10 minutes.';
+  String get tfEnableSubtitleNoMail =>
+      'To turn it on, enter the 6-digit code sent to your e-mail. The code is valid for 10 minutes.';
 
   @override
   String get tfDisableTitle => 'Turn off two-factor authentication?';
 
   @override
-  String get tfDisableBody => 'Confirm with your password. All trusted devices are removed and your account is protected by the password only.';
+  String get tfDisableBody =>
+      'Confirm with your password. All trusted devices are removed and your account is protected by the password only.';
 
   @override
   String get tfDisableConfirm => 'Turn off';
@@ -11203,25 +11631,30 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get tfLoginSubtitleNoMail => 'To sign in, enter the 6-digit code sent to your e-mail. The code is valid for 10 minutes.';
+  String get tfLoginSubtitleNoMail =>
+      'To sign in, enter the 6-digit code sent to your e-mail. The code is valid for 10 minutes.';
 
   @override
   String get tfTrustLabel => 'Trust this device';
 
   @override
-  String get tfTrustHint => 'No code is asked on later sign-ins from this device. Turn it on only on your own phone.';
+  String get tfTrustHint =>
+      'No code is asked on later sign-ins from this device. Turn it on only on your own phone.';
 
   @override
   String get tfBackToLogin => 'Back to sign in';
 
   @override
-  String get tfErrCodeInvalid => 'The verification code is invalid or has expired.';
+  String get tfErrCodeInvalid =>
+      'The verification code is invalid or has expired.';
 
   @override
-  String get tfErrChallengeExpired => 'The verification session has expired. Please sign in again.';
+  String get tfErrChallengeExpired =>
+      'The verification session has expired. Please sign in again.';
 
   @override
-  String get tfErrLocked => 'Too many wrong verification codes were entered; sign-in from a new device is locked for 24 hours. You can sign in from a trusted device or reset your password.';
+  String get tfErrLocked =>
+      'Too many wrong verification codes were entered; sign-in from a new device is locked for 24 hours. You can sign in from a trusted device or reset your password.';
 
   @override
   String get tfErrAlreadyEnabled => 'Two-factor authentication is already on.';
@@ -11289,7 +11722,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumCommentMore => 'More actions';
 
   @override
-  String get forumCommentLockedHint => 'This topic is locked. Comments are closed.';
+  String get forumCommentLockedHint =>
+      'This topic is locked. Comments are closed.';
 
   @override
   String get forumCommentEditingBanner => 'Editing your comment';
@@ -11395,7 +11829,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumCommentBlockTitle => 'Block this user?';
 
   @override
-  String get forumCommentBlockBody => 'You will no longer see this person\'s content. An anonymous author\'s identity is never revealed.';
+  String get forumCommentBlockBody =>
+      'You will no longer see this person\'s content. An anonymous author\'s identity is never revealed.';
 
   @override
   String get forumCommentBlockConfirm => 'Block';
@@ -11410,10 +11845,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumCommentUnsaved => 'Removed from saved';
 
   @override
-  String get forumCommentGone => 'This comment no longer exists. The list was refreshed.';
+  String get forumCommentGone =>
+      'This comment no longer exists. The list was refreshed.';
 
   @override
-  String get forumCommentConflict => 'The comment was changed elsewhere. The list was refreshed.';
+  String get forumCommentConflict =>
+      'The comment was changed elsewhere. The list was refreshed.';
 
   @override
   String get forumCommentSent => 'Comment posted';
@@ -11425,7 +11862,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumCommentEditDone => 'Comment updated';
 
   @override
-  String get forumCommentLinkNotFound => 'The linked comment could not be found';
+  String get forumCommentLinkNotFound =>
+      'The linked comment could not be found';
 
   @override
   String get forumDetailSortBest => 'Best';
@@ -11466,10 +11904,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumDetailRemovedTitle => 'This topic was removed';
 
   @override
-  String get forumDetailRemovedBody => 'It was removed under the community rules.';
+  String get forumDetailRemovedBody =>
+      'It was removed under the community rules.';
 
   @override
-  String get forumDetailLockedBanner => 'This topic is locked. New comments are closed.';
+  String get forumDetailLockedBanner =>
+      'This topic is locked. New comments are closed.';
 
   @override
   String get forumDetailPinned => 'Pinned';
@@ -11551,7 +11991,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumDetailDeleteTitle => 'Delete this topic?';
 
   @override
-  String get forumDetailDeleteBody => 'The topic and its comments will be removed. This cannot be undone.';
+  String get forumDetailDeleteBody =>
+      'The topic and its comments will be removed. This cannot be undone.';
 
   @override
   String get forumDetailDeleteConfirm => 'Delete';
@@ -11563,7 +12004,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumDetailBlockTitle => 'Block this author?';
 
   @override
-  String get forumDetailBlockBody => 'You will no longer see this author\'s content. If anonymous, the identity is never revealed.';
+  String get forumDetailBlockBody =>
+      'You will no longer see this author\'s content. If anonymous, the identity is never revealed.';
 
   @override
   String get forumDetailBlockConfirm => 'Block';
@@ -11572,10 +12014,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumDetailBlocked => 'Author blocked';
 
   @override
-  String get forumDetailNotificationsOffDone => 'Notifications for this topic are off';
+  String get forumDetailNotificationsOffDone =>
+      'Notifications for this topic are off';
 
   @override
-  String get forumDetailNotificationsOnDone => 'Notifications for this topic are on';
+  String get forumDetailNotificationsOnDone =>
+      'Notifications for this topic are on';
 
   @override
   String get forumDetailPinnedDone => 'Topic pinned';
@@ -11671,16 +12115,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumComposeImageRetry => 'Retry upload';
 
   @override
-  String get forumComposeImagesPending => 'You can publish once the images finish uploading.';
+  String get forumComposeImagesPending =>
+      'You can publish once the images finish uploading.';
 
   @override
-  String get forumComposeImageFailedHint => 'An image failed to upload. Retry or remove it.';
+  String get forumComposeImageFailedHint =>
+      'An image failed to upload. Retry or remove it.';
 
   @override
   String get forumComposeErrImageTooLarge => 'The image is too large.';
 
   @override
-  String get forumComposeErrImageType => 'Only JPEG, PNG and WebP images can be added.';
+  String get forumComposeErrImageType =>
+      'Only JPEG, PNG and WebP images can be added.';
 
   @override
   String get forumComposeErrImageRead => 'The image could not be read.';
@@ -11695,7 +12142,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumComposeAnonymous => 'Post anonymously';
 
   @override
-  String get forumComposeAnonymousDesc => 'Your name is not shown to other students.';
+  String get forumComposeAnonymousDesc =>
+      'Your name is not shown to other students.';
 
   @override
   String get forumComposeAnonymousNote => 'Moderators can review misuse.';
@@ -11719,7 +12167,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumComposeDraftSheetTitle => 'Save as a draft?';
 
   @override
-  String get forumComposeDraftSheetBody => 'What you wrote will be here next time.';
+  String get forumComposeDraftSheetBody =>
+      'What you wrote will be here next time.';
 
   @override
   String get forumComposeDraftSave => 'Save draft';
@@ -11731,25 +12180,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumComposeDraftContinue => 'Keep editing';
 
   @override
-  String get forumComposeErrNetwork => 'No internet connection. Your text is kept.';
+  String get forumComposeErrNetwork =>
+      'No internet connection. Your text is kept.';
 
   @override
-  String get forumComposeErrRate => 'You are posting too often. Wait a bit and try again.';
+  String get forumComposeErrRate =>
+      'You are posting too often. Wait a bit and try again.';
 
   @override
   String get forumComposeErrDuplicate => 'You just posted the same content.';
 
   @override
-  String get forumComposeErrProfanity => 'The text contains inappropriate language. Edit it and try again.';
+  String get forumComposeErrProfanity =>
+      'The text contains inappropriate language. Edit it and try again.';
 
   @override
-  String get forumComposeErrCategory => 'This category is no longer available. Choose another one.';
+  String get forumComposeErrCategory =>
+      'This category is no longer available. Choose another one.';
 
   @override
-  String get forumComposeErrInvalid => 'The content is not valid. Check the title and description.';
+  String get forumComposeErrInvalid =>
+      'The content is not valid. Check the title and description.';
 
   @override
-  String get forumComposeErrGeneric => 'The topic could not be published. Your text is kept, try again.';
+  String get forumComposeErrGeneric =>
+      'The topic could not be published. Your text is kept, try again.';
 
   @override
   String get forumComposeEditSave => 'Save';
@@ -11758,7 +12213,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumComposeEditSaving => 'Saving';
 
   @override
-  String get forumComposeEditLocked => 'This topic is locked and cannot be edited.';
+  String get forumComposeEditLocked =>
+      'This topic is locked and cannot be edited.';
 
   @override
   String get forumComposeEditGone => 'This topic no longer exists.';
@@ -11770,7 +12226,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumComposeEditSaved => 'Edited';
 
   @override
-  String get forumComposeEditNote => 'Images and the poll cannot be changed later.';
+  String get forumComposeEditNote =>
+      'Images and the poll cannot be changed later.';
 
   @override
   String get forumPollQuestionHint => 'Question (optional)';
@@ -11875,10 +12332,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumPollErrClosed => 'The poll has ended.';
 
   @override
-  String get forumPollErrAlready => 'Your vote is already recorded and cannot be changed.';
+  String get forumPollErrAlready =>
+      'Your vote is already recorded and cannot be changed.';
 
   @override
-  String get forumPollErrNetwork => 'No internet connection. Your vote was not sent.';
+  String get forumPollErrNetwork =>
+      'No internet connection. Your vote was not sent.';
 
   @override
   String get forumPollErrRate => 'Too many vote actions. Wait a moment.';
@@ -11905,10 +12364,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumComposeDiscardKeep => 'Keep editing';
 
   @override
-  String get forumComposeCategorySheetEmpty => 'There are no categories to choose from.';
+  String get forumComposeCategorySheetEmpty =>
+      'There are no categories to choose from.';
 
   @override
-  String get forumComposeEditErrGeneric => 'Your changes could not be saved. Try again.';
+  String get forumComposeEditErrGeneric =>
+      'Your changes could not be saved. Try again.';
 
   @override
   String get forumHomeA11y => 'Campus Forum';
@@ -12008,7 +12469,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumHomeBlockTitle => 'Block this author?';
 
   @override
-  String get forumHomeBlockBody => 'This author\'s topics and comments will be hidden from you. If the author is anonymous, their identity stays hidden.';
+  String get forumHomeBlockBody =>
+      'This author\'s topics and comments will be hidden from you. If the author is anonymous, their identity stays hidden.';
 
   @override
   String get forumHomeBlockConfirm => 'Block';
@@ -12017,7 +12479,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumHomeMuteTitle => 'Mute this user?';
 
   @override
-  String get forumHomeMuteBody => 'Content from this user will be hidden from you. You can undo this at any time.';
+  String get forumHomeMuteBody =>
+      'Content from this user will be hidden from you. You can undo this at any time.';
 
   @override
   String get forumHomeMuteConfirm => 'Mute';
@@ -12041,7 +12504,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumHomeEmptyTitle => 'No topics yet';
 
   @override
-  String get forumHomeEmptyBody => 'Start the first topic and get the campus talking.';
+  String get forumHomeEmptyBody =>
+      'Start the first topic and get the campus talking.';
 
   @override
   String get forumHomeEmptyAction => 'Start a topic';
@@ -12050,13 +12514,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumHomeEmptyCategoryTitle => 'No topics in this category';
 
   @override
-  String get forumHomeEmptyCategoryBody => 'Try another category or start the first topic.';
+  String get forumHomeEmptyCategoryBody =>
+      'Try another category or start the first topic.';
 
   @override
   String get forumHomeEmptyFollowingTitle => 'You are not following any topics';
 
   @override
-  String get forumHomeEmptyFollowingBody => 'Follow a topic and its new comments will show up here.';
+  String get forumHomeEmptyFollowingBody =>
+      'Follow a topic and its new comments will show up here.';
 
   @override
   String get forumHomeLoadMoreFailed => 'Could not load more';
@@ -12071,16 +12537,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumHomeTalkedAll => 'See all';
 
   @override
-  String get forumStateOffline => 'No internet connection. Try again when you are back online.';
+  String get forumStateOffline =>
+      'No internet connection. Try again when you are back online.';
 
   @override
-  String get forumStateServerError => 'The server is unavailable right now. Try again in a moment.';
+  String get forumStateServerError =>
+      'The server is unavailable right now. Try again in a moment.';
 
   @override
-  String get forumStateSessionExpired => 'Your session has expired. Please sign in again.';
+  String get forumStateSessionExpired =>
+      'Your session has expired. Please sign in again.';
 
   @override
-  String get forumStateNotFound => 'This content could not be found or has been removed.';
+  String get forumStateNotFound =>
+      'This content could not be found or has been removed.';
 
   @override
   String get forumStateTopicRemoved => 'This topic has been removed.';
@@ -12098,13 +12568,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forumStateNotOwner => 'You are not allowed to do this.';
 
   @override
-  String get forumStateRateLimited => 'You are going too fast. Wait a moment and try again.';
+  String get forumStateRateLimited =>
+      'You are going too fast. Wait a moment and try again.';
 
   @override
   String get forumStateDuplicate => 'You posted the same content a moment ago.';
 
   @override
-  String get forumStateProfanity => 'The text contains inappropriate language. Edit it and try again.';
+  String get forumStateProfanity =>
+      'The text contains inappropriate language. Edit it and try again.';
 
   @override
   String get forumStatePollClosed => 'This poll has ended.';
@@ -12167,7 +12639,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notif2AcademicSub => 'Exam reminders and academic announcements';
 
   @override
-  String get notif2AcademicNeedsAnnouncements => 'Academic notifications are not sent while Announcements is off';
+  String get notif2AcademicNeedsAnnouncements =>
+      'Academic notifications are not sent while Announcements is off';
 
   @override
   String get notif2PreviewSection => 'Preview';
@@ -12176,7 +12649,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notif2HidePreviewTitle => 'Hide message content';
 
   @override
-  String get notif2HidePreviewSub => 'When on, notifications say New message instead of the text, and nothing is shown on the lock screen.';
+  String get notif2HidePreviewSub =>
+      'When on, notifications say New message instead of the text, and nothing is shown on the lock screen.';
 
   @override
   String get notif2SystemSection => 'System and security';
@@ -12185,16 +12659,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notif2SystemSettingsTitle => 'System notification settings';
 
   @override
-  String get notif2SystemSettingsSub => 'Sound, vibration and notification categories are managed in device settings.';
+  String get notif2SystemSettingsSub =>
+      'Sound, vibration and notification categories are managed in device settings.';
 
   @override
-  String get notif2SecurityNote => 'Account security, session and moderation notices are always delivered, regardless of these settings.';
+  String get notif2SecurityNote =>
+      'Account security, session and moderation notices are always delivered, regardless of these settings.';
 
   @override
   String get devTitle => 'My devices';
 
   @override
-  String get devIntro => 'Devices signed in to your account. If you see one you do not recognise, sign it out and change your password.';
+  String get devIntro =>
+      'Devices signed in to your account. If you see one you do not recognise, sign it out and change your password.';
 
   @override
   String get devSection => 'Active sessions';
@@ -12231,7 +12708,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get devSignOutThisBody => 'The session on this device will be closed and you will return to the sign-in screen.';
+  String get devSignOutThisBody =>
+      'The session on this device will be closed and you will return to the sign-in screen.';
 
   @override
   String devSignedOut(String device) {
@@ -12248,7 +12726,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get devAllSection => 'All devices';
 
   @override
-  String get devAllHint => 'Sessions on every device, including this one, will be closed.';
+  String get devAllHint =>
+      'Sessions on every device, including this one, will be closed.';
 
   @override
   String get devPlatformAndroid => 'Android';
@@ -12272,7 +12751,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pwpForgotTitle => 'Forgot your password?';
 
   @override
-  String get pwpForgotBody => 'We will send a 6-digit verification code to your account email so you can set a new password.';
+  String get pwpForgotBody =>
+      'We will send a 6-digit verification code to your account email so you can set a new password.';
 
   @override
   String pwpForgotTo(String email) {
@@ -12289,7 +12769,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pwpDoneTitle => 'Your password is updated';
 
   @override
-  String get pwpDoneBody => 'For your security, all sessions on every device, including this one, were signed out. Log in again with your new password.';
+  String get pwpDoneBody =>
+      'For your security, all sessions on every device, including this one, were signed out. Log in again with your new password.';
 
   @override
   String get cplLockTitle => 'Join the club to see its polls';
@@ -12298,16 +12779,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cplLockBody => 'Club polls are open to members only.';
 
   @override
-  String get cplLockBodyApproval => 'Club polls are open to members only. They appear here once your join request is approved.';
+  String get cplLockBodyApproval =>
+      'Club polls are open to members only. They appear here once your join request is approved.';
 
   @override
   String get cplPendingTitle => 'Your membership request is awaiting approval';
 
   @override
-  String get cplPendingBody => 'Once approved, you will see the club polls here.';
+  String get cplPendingBody =>
+      'Once approved, you will see the club polls here.';
 
   @override
-  String get cplEmptyManagerBody => 'Create the first poll to hear from your members.';
+  String get cplEmptyManagerBody =>
+      'Create the first poll to hear from your members.';
 
   @override
   String get chcEmptyTitle => 'No clubs yet';
@@ -12388,13 +12872,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get evtQrMyTitle => 'My QR code';
 
   @override
-  String get evtQrMyHint => 'Show this code to the event organizer at the entrance. It refreshes shortly.';
+  String get evtQrMyHint =>
+      'Show this code to the event organizer at the entrance. It refreshes shortly.';
 
   @override
-  String get evtQrMyNotApproved => 'Your QR code appears here once your attendance is approved.';
+  String get evtQrMyNotApproved =>
+      'Your QR code appears here once your attendance is approved.';
 
   @override
-  String get evtQrMyBeforeStart => 'Check-in opens at the event time; you can keep your code ready.';
+  String get evtQrMyBeforeStart =>
+      'Check-in opens at the event time; you can keep your code ready.';
 
   @override
   String get evtQrScanClosed => 'Check-in has not opened yet or has closed.';
@@ -12403,16 +12890,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get evtAttOpenTitle => 'Check-in open';
 
   @override
-  String get evtAttOpenSub => 'While open, attendees show their QR codes and you and moderators scan them.';
+  String get evtAttOpenSub =>
+      'While open, attendees show their QR codes and you and moderators scan them.';
 
   @override
-  String get evtAttOpenYou => 'Check-in is open: show your QR code at the entrance.';
+  String get evtAttOpenYou =>
+      'Check-in is open: show your QR code at the entrance.';
 
   @override
   String get evtModTitle => 'Moderators';
 
   @override
-  String get evtModSub => 'Pick club members and switch each permission on or off.';
+  String get evtModSub =>
+      'Pick club members and switch each permission on or off.';
 
   @override
   String get evtModAdd => 'Add moderator';
@@ -12427,7 +12917,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get evtModSearch => 'Search members';
 
   @override
-  String get evtModOwnerNote => 'Closing, cancelling, opening check-in and managing moderators belong to the owner only.';
+  String get evtModOwnerNote =>
+      'Closing, cancelling, opening check-in and managing moderators belong to the owner only.';
 
   @override
   String get evtModRole => 'Moderator';
@@ -12439,7 +12930,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get evtPermTakeAttendance => 'Take attendance';
 
   @override
-  String get evtPermTakeAttendanceSub => 'Scan QR codes and mark attendance by hand.';
+  String get evtPermTakeAttendanceSub =>
+      'Scan QR codes and mark attendance by hand.';
 
   @override
   String get evtPermManageRequests => 'Manage join requests';
@@ -12451,13 +12943,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get evtPermViewAttendees => 'See attendee list';
 
   @override
-  String get evtPermViewAttendeesSub => 'View attendees and their check-in status.';
+  String get evtPermViewAttendeesSub =>
+      'View attendees and their check-in status.';
 
   @override
   String get evtPermSendAnnouncement => 'Send announcements';
 
   @override
-  String get evtPermSendAnnouncementSub => 'Send event announcements to attendees.';
+  String get evtPermSendAnnouncementSub =>
+      'Send event announcements to attendees.';
 
   @override
   String get evtPermEditInfo => 'Edit details';
@@ -12481,23 +12975,159 @@ class AppLocalizationsEn extends AppLocalizations {
   String get evtAttClosedNote => 'Check-in is closed right now.';
 
   @override
-  String get evtQrOwnerClosed => 'Attendance is closed: attendees cannot show their QR.';
+  String get evtQrOwnerClosed =>
+      'Attendance is closed: attendees cannot show their QR.';
 
   @override
   String get evtQrOwnerOpenAction => 'Open attendance';
 
   @override
-  String get evtQrOwnerOutside => 'It is outside the event hours; attendance opens by itself 30 min before the start. You can open it now if you like.';
+  String get evtQrOwnerOutside =>
+      'It is outside the event hours; attendance opens by itself 30 min before the start. You can open it now if you like.';
 
   @override
   String get evtQrMyOwnerTitle => 'You organize this event';
 
   @override
-  String get evtQrMyOwnerBody => 'You take attendance by scanning attendees\' QR codes.';
+  String get evtQrMyOwnerBody =>
+      'You take attendance by scanning attendees\' QR codes.';
 
   @override
   String get evtQrMyOwnerScan => 'Scan QR';
 
   @override
   String get evtQrMyOwnerJoin => 'Also join as an attendee';
+
+  @override
+  String get evtAtt2ToolTitle => 'Attendance tool';
+
+  @override
+  String get evtAtt2ToolSub => 'Scan QR codes, mark from the list';
+
+  @override
+  String get evtAtt2ScanQr => 'Scan QR';
+
+  @override
+  String get evtAtt2Search => 'Search attendees';
+
+  @override
+  String get evtAtt2Pending => 'Pending';
+
+  @override
+  String evtAtt2Counter(String present, String absent, String pending) {
+    return '$present arrived · $absent absent · $pending pending';
+  }
+
+  @override
+  String get evtAtt2MarkPresent => 'Arrived';
+
+  @override
+  String get evtAtt2MarkAbsent => 'Absent';
+
+  @override
+  String get evtAtt2MarkReset => 'Reset (pending)';
+
+  @override
+  String evtAtt2SheetTitle(String name) {
+    return 'Attendance for $name';
+  }
+
+  @override
+  String get evtAtt2BulkRest => 'Mark the rest as absent';
+
+  @override
+  String get evtAtt2BulkTitle => 'Mark the rest as absent?';
+
+  @override
+  String evtAtt2BulkBody(String count) {
+    return '$count people will be marked \"Absent\". You can change each one later.';
+  }
+
+  @override
+  String evtAtt2BulkDone(String count) {
+    return '$count people marked absent';
+  }
+
+  @override
+  String get evtAtt2SrcQr => 'QR';
+
+  @override
+  String get evtAtt2SrcManual => 'Manual';
+
+  @override
+  String evtAtt2ByScanner(String name) {
+    return 'Scanned by $name';
+  }
+
+  @override
+  String evtAtt2ByMarker(String name) {
+    return 'Marked by $name';
+  }
+
+  @override
+  String get evtAtt2ViewOnly =>
+      'You can only view the list; you cannot mark attendance.';
+
+  @override
+  String get evtAtt2NoMatch => 'No attendee matches your search.';
+
+  @override
+  String get evtAtt2ListEmpty => 'No confirmed attendees yet.';
+
+  @override
+  String evtAtt2ToastAbsent(String name) {
+    return '$name marked absent';
+  }
+
+  @override
+  String evtAtt2ToastPresent(String name) {
+    return '$name marked arrived';
+  }
+
+  @override
+  String evtAtt2ToastReset(String name) {
+    return '$name reset';
+  }
+
+  @override
+  String get evtAtt2StaffNoQr =>
+      'Staff taking attendance have no personal QR code; you scan the attendees QR codes.';
+
+  @override
+  String get evtAtt2ParticipantHint =>
+      'Show this code to the staff member taking attendance. Nothing else is needed.';
+
+  @override
+  String get evtAtt2StatusArrived => 'You are checked in';
+
+  @override
+  String get evtMeetLabel => 'Meeting point';
+
+  @override
+  String get evtMeetHint =>
+      'E.g. In front of the Engineering Faculty, main entrance';
+
+  @override
+  String get evtMeetHelp =>
+      'Where attendees will gather (separate from the event venue).';
+
+  @override
+  String get evtMeetOpenMap => 'Open in maps';
+
+  @override
+  String get evtMeetMapFail => 'Could not open the map.';
+
+  @override
+  String get evtMeetLat => 'Latitude (optional)';
+
+  @override
+  String get evtMeetLng => 'Longitude (optional)';
+
+  @override
+  String get evtMeetCoordInvalid =>
+      'Latitude must be -90 to 90 and longitude -180 to 180, entered together.';
+
+  @override
+  String get evtEditEndedNote =>
+      'This event has ended: only the description can be edited.';
 }

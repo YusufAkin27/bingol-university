@@ -306,7 +306,7 @@ Map<String, dynamic> _backendFor(String lang, FakeBackend b) {
 
   // --- QR yoklama ---
   b
-    ..on('/events/9/attendance', [
+    ..on('/events/9/attendance/roster', [
       for (var i = 0; i < 24; i++)
         {'userId': 100 + i, 'displayName': 'Katılımcı $i', 'present': i < 17, 'method': 'QR', 'markedAt': _iso(now)},
     ])

@@ -269,7 +269,7 @@ void main() {
       ..on('/events/5', _ev(5, title: 'Detay etkinliği', rsvp: rsvp, manage: manage, closed: closed))
       ..on('/events/5/attendees/preview', {'goingCount': 4, 'avatars': <Object>[]})
       ..on('/events/5/attendees*', _page([]))
-      ..on('/events/5/attendance', <Object>[])
+      ..on('/events/5/attendance/roster', <Object>[])
       ..on('/events/5/checkin-code', {'code': '5.1.a', 'qrPayload': 'bingol-checkin:5.1.a', 'validForSeconds': 30})
       ..on('/events/5/my-attendance', {'present': false, 'checkInOpen': false});
 

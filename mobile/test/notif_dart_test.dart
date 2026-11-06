@@ -314,7 +314,7 @@ void main() {
       useScreen(tester, kPhoneMedium);
       final be = FakeBackend()
         ..on('/events/7/checkin-code', {'code': 'abcdef123456', 'manualCode': 'AB12CD', 'validForSeconds': 60, 'qrPayload': 'x'})
-        ..on('/events/7/attendance', <dynamic>[]);
+        ..on('/events/7/attendance/roster', <dynamic>[]);
       await tester.pumpWidget(buildApp(Etkinlik2QrPage(session: makeSession(be), event: const {'id': 7, 'title': 'Atölye', 'capacity': 50, 'goingCount': 44})));
       await settle(tester);
       expect(find.text('Kapasite: %88 dolu'), findsOneWidget);

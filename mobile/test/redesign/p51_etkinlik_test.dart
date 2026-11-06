@@ -50,7 +50,7 @@ FakeBackend _detailBe({String? rsvp, bool open = false, String policy = 'OPEN'})
 
 FakeBackend _manageBe() => FakeBackend()
   ..on('/events/5/checkin-code', {'code': '482913', 'qrPayload': 'bingol-checkin:5.1.abc', 'validForSeconds': 30})
-  ..on('/events/5/attendance', [
+  ..on('/events/5/attendance/roster', [
     {'userId': 1, 'displayName': 'Zeynep Kaya', 'present': true, 'method': 'QR'},
     {'userId': 3, 'displayName': 'Elif Demir', 'present': false},
   ])
@@ -86,8 +86,8 @@ void main() {
     expect(find.text('Katıl'), findsOneWidget);
     expect(find.text('Katılıyorsun'), findsOneWidget);
     expect(find.byType(ClubJoinButton), findsOneWidget);
-    // Yoklama metin dugmesi + "+" duz ikon.
-    expect(find.byKey(const ValueKey('events-checkin')), findsOneWidget);
+    // "Yoklama" (QR/kod girisi) dugmesi kalkti; yalniz "+" duz ikon.
+    expect(find.byKey(const ValueKey('events-checkin')), findsNothing);
     expect(find.byKey(const ValueKey('events-create')), findsOneWidget);
     expect(tester.takeException(), isNull);
     await unmount(tester);
@@ -120,8 +120,8 @@ void main() {
     await tester.pumpWidget(buildApp(EventDetailPage(session: makeSession(_detailBe(rsvp: 'GOING', open: true)), eventId: 5), size: kPhoneMedium));
     await settle(tester, const Duration(milliseconds: 900));
     expect(find.text('Yoklama açık'), findsOneWidget);
-    expect(find.text('QR ile yoklama ver'), findsOneWidget);
-    expect(find.text('Kodu elle gir'), findsOneWidget);
+    expect(find.text('QR kodum'), findsOneWidget);
+    expect(find.text('Kodu elle gir'), findsNothing);
     expect(find.text('Katılımdan ayrıl'), findsOneWidget);
     await unmount(tester);
   });

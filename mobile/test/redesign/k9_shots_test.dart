@@ -90,7 +90,7 @@ Map<String, dynamic> _applicant(int id, String name, {String? dep, String? note,
 FakeBackend _base({Duration delay = Duration.zero, int going = 12, int? cap = 50}) {
   final b = FakeBackend(delay: delay)
     ..on('/events/5', _ev(going: going, capacity: cap))
-    ..on('/events/5/attendance', _att())
+    ..on('/events/5/attendance/roster', _att())
     ..on('/events/5/checkin-code', {
       'code': 'K7M4QX',
       'qrPayload': 'bingol-checkin:K7M4QX',
@@ -230,7 +230,7 @@ final _scenes = <_Scene>[
   }),
   _Scene('42g_yoklama_gelmedi_bos', () {
     final b = _base();
-    b.on('/events/5/attendance', _att().where((e) => e['present'] == true).toList());
+    b.on('/events/5/attendance/roster', _att().where((e) => e['present'] == true).toList());
     return b;
   }, (b) => Etkinlik2AttendancePage(session: makeSession(b), event: _ev(policy: 'OPEN')), after: (t) async {
     await _tapKeyOr(t, 'et2-filter-absent', 'Gelmedi');
@@ -238,14 +238,14 @@ final _scenes = <_Scene>[
   }),
   _Scene('42h_yoklama_hata', () {
     final b = _base();
-    b.network('/events/5/attendance');
+    b.network('/events/5/attendance/roster');
     return b;
   }, (b) => Etkinlik2AttendancePage(session: makeSession(b), event: _ev(policy: 'OPEN'))),
   _Scene('42i_yoklama_yukleniyor', () => _base(delay: const Duration(seconds: 3)), (b) => Etkinlik2AttendancePage(session: makeSession(b), event: _ev(policy: 'OPEN')),
       pre: const Duration(milliseconds: 500), drain: const Duration(seconds: 12)),
   _Scene('42j_yoklama_bos', () {
     final b = _base();
-    b.on('/events/5/attendance', <Object>[]);
+    b.on('/events/5/attendance/roster', <Object>[]);
     return b;
   }, (b) => Etkinlik2AttendancePage(session: makeSession(b), event: _ev(policy: 'OPEN'))),
 ];

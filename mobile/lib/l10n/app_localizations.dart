@@ -23369,6 +23369,222 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Katılımcı olarak da katıl'**
   String get evtQrMyOwnerJoin;
+
+  /// No description provided for @evtAtt2ToolTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklama aracı'**
+  String get evtAtt2ToolTitle;
+
+  /// No description provided for @evtAtt2ToolSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR okut, listeden işaretle'**
+  String get evtAtt2ToolSub;
+
+  /// No description provided for @evtAtt2ScanQr.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR okut'**
+  String get evtAtt2ScanQr;
+
+  /// No description provided for @evtAtt2Search.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılımcı ara'**
+  String get evtAtt2Search;
+
+  /// No description provided for @evtAtt2Pending.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bekliyor'**
+  String get evtAtt2Pending;
+
+  /// No description provided for @evtAtt2Counter.
+  ///
+  /// In tr, this message translates to:
+  /// **'{present} geldi · {absent} gelmedi · {pending} bekliyor'**
+  String evtAtt2Counter(String present, String absent, String pending);
+
+  /// No description provided for @evtAtt2MarkPresent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Geldi'**
+  String get evtAtt2MarkPresent;
+
+  /// No description provided for @evtAtt2MarkAbsent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gelmedi'**
+  String get evtAtt2MarkAbsent;
+
+  /// No description provided for @evtAtt2MarkReset.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıfırla (bekliyor)'**
+  String get evtAtt2MarkReset;
+
+  /// No description provided for @evtAtt2SheetTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} için yoklama'**
+  String evtAtt2SheetTitle(String name);
+
+  /// No description provided for @evtAtt2BulkRest.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kalanları gelmedi işaretle'**
+  String get evtAtt2BulkRest;
+
+  /// No description provided for @evtAtt2BulkTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kalanlar gelmedi işaretlensin mi?'**
+  String get evtAtt2BulkTitle;
+
+  /// No description provided for @evtAtt2BulkBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} kişi \"Gelmedi\" olarak işaretlenecek. Sonra tek tek değiştirebilirsin.'**
+  String evtAtt2BulkBody(String count);
+
+  /// No description provided for @evtAtt2BulkDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} kişi gelmedi işaretlendi'**
+  String evtAtt2BulkDone(String count);
+
+  /// No description provided for @evtAtt2SrcQr.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR'**
+  String get evtAtt2SrcQr;
+
+  /// No description provided for @evtAtt2SrcManual.
+  ///
+  /// In tr, this message translates to:
+  /// **'Elle'**
+  String get evtAtt2SrcManual;
+
+  /// No description provided for @evtAtt2ByScanner.
+  ///
+  /// In tr, this message translates to:
+  /// **'Okutan: {name}'**
+  String evtAtt2ByScanner(String name);
+
+  /// No description provided for @evtAtt2ByMarker.
+  ///
+  /// In tr, this message translates to:
+  /// **'İşaretleyen: {name}'**
+  String evtAtt2ByMarker(String name);
+
+  /// No description provided for @evtAtt2ViewOnly.
+  ///
+  /// In tr, this message translates to:
+  /// **'Listeyi yalnız görüntüleyebilirsin; işaretleme yetkin yok.'**
+  String get evtAtt2ViewOnly;
+
+  /// No description provided for @evtAtt2NoMatch.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aramana uyan katılımcı yok.'**
+  String get evtAtt2NoMatch;
+
+  /// No description provided for @evtAtt2ListEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz onaylı katılımcı yok.'**
+  String get evtAtt2ListEmpty;
+
+  /// No description provided for @evtAtt2ToastAbsent.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} gelmedi olarak işaretlendi'**
+  String evtAtt2ToastAbsent(String name);
+
+  /// No description provided for @evtAtt2ToastPresent.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} geldi olarak işaretlendi'**
+  String evtAtt2ToastPresent(String name);
+
+  /// No description provided for @evtAtt2ToastReset.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} sıfırlandı'**
+  String evtAtt2ToastReset(String name);
+
+  /// No description provided for @evtAtt2StaffNoQr.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklamayı alanların kişisel QR kodu yoktur; katılımcıların QR kodunu okutursun.'**
+  String get evtAtt2StaffNoQr;
+
+  /// No description provided for @evtAtt2ParticipantHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklama alınırken görevliye bu kodu göster. Başka bir şey yapman gerekmez.'**
+  String get evtAtt2ParticipantHint;
+
+  /// No description provided for @evtAtt2StatusArrived.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklaman alındı'**
+  String get evtAtt2StatusArrived;
+
+  /// No description provided for @evtMeetLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Buluşma noktası'**
+  String get evtMeetLabel;
+
+  /// No description provided for @evtMeetHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Örn. Mühendislik Fakültesi önü, ana giriş'**
+  String get evtMeetHint;
+
+  /// No description provided for @evtMeetHelp.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılımcıların toplanacağı yer (etkinlik yerinden ayrıdır).'**
+  String get evtMeetHelp;
+
+  /// No description provided for @evtMeetOpenMap.
+  ///
+  /// In tr, this message translates to:
+  /// **'Haritada aç'**
+  String get evtMeetOpenMap;
+
+  /// No description provided for @evtMeetMapFail.
+  ///
+  /// In tr, this message translates to:
+  /// **'Harita açılamadı.'**
+  String get evtMeetMapFail;
+
+  /// No description provided for @evtMeetLat.
+  ///
+  /// In tr, this message translates to:
+  /// **'Enlem (isteğe bağlı)'**
+  String get evtMeetLat;
+
+  /// No description provided for @evtMeetLng.
+  ///
+  /// In tr, this message translates to:
+  /// **'Boylam (isteğe bağlı)'**
+  String get evtMeetLng;
+
+  /// No description provided for @evtMeetCoordInvalid.
+  ///
+  /// In tr, this message translates to:
+  /// **'Enlem -90 ile 90, boylam -180 ile 180 arasında olmalı ve ikisi birlikte girilmeli.'**
+  String get evtMeetCoordInvalid;
+
+  /// No description provided for @evtEditEndedNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlik sona erdi: yalnız açıklama düzenlenebilir.'**
+  String get evtEditEndedNote;
 }
 
 class _AppLocalizationsDelegate

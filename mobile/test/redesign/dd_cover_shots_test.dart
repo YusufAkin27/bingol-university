@@ -79,7 +79,7 @@ FakeBackend _be(Map<String, dynamic> ev, {bool checkInOpen = false, bool present
     ..on('/events/5', ev)
     ..on('/events/5/my-attendance', {'present': present, 'checkInOpen': checkInOpen})
     ..on('/events/5/admission', {'eventId': 5, 'mode': ev['joinPolicy'], 'questions': ['Neden katılmak istiyorsun?']})
-    ..on('/events/5/attendance', [
+    ..on('/events/5/attendance/roster', [
       for (var i = 0; i < 42; i++) {'userId': 100 + i, 'displayName': 'K $i', 'present': i < 18},
     ]);
   return b;

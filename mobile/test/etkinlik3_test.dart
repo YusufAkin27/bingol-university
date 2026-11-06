@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:bu_kampus/core/theme.dart';
+import 'package:bu_kampus/features/events/etkinlik2_attendance_page.dart';
 import 'package:bu_kampus/features/events/etkinlik2_qr_page.dart';
 import 'package:bu_kampus/features/events/etkinlik3_moderators_page.dart';
 import 'package:bu_kampus/features/events/etkinlik3_my_qr_page.dart';
@@ -18,7 +19,7 @@ import 'support/fake_app.dart';
 
 String _iso(DateTime d) => d.toUtc().toIso8601String();
 
-Map<String, dynamic> _ev({bool manage = false, String? rsvp}) {
+Map<String, dynamic> _ev({bool manage = false, String? rsvp, bool meeting = false}) {
   final s = DateTime.now().add(const Duration(hours: 3));
   return {
     'id': 5,
@@ -36,7 +37,36 @@ Map<String, dynamic> _ev({bool manage = false, String? rsvp}) {
     'createdBy': 2,
     'organizer': {'id': 2, 'displayName': 'Mehmet Kaya', 'avatarUrl': null},
     'organizerName': 'Mehmet Kaya',
+    if (meeting) ...{'meetingPoint': 'Mühendislik Fakültesi önü, ana giriş', 'meetingLat': 38.8847, 'meetingLng': 40.4986},
   };
+}
+
+/// Sunucu yoklama listesi: [st] 4 katılımcının durumu (PRESENT | ABSENT | NONE); sayaçlar satırlardan türer.
+Map<String, dynamic> _roster({List<String> st = const ['PRESENT', 'ABSENT', 'NONE', 'NONE']}) {
+  const people = [
+    (11, 'Ayşe Yılmaz', 'Bilgisayar Mühendisliği'),
+    (12, 'Can Demir', 'İşletme'),
+    (13, 'Elif Kaya', 'Hukuk'),
+    (14, 'Burak Çelik', null),
+  ];
+  final rows = <Map<String, dynamic>>[
+    for (var i = 0; i < people.length; i++)
+      {
+        'userId': people[i].$1,
+        'displayName': people[i].$2,
+        if (people[i].$3 != null) 'department': people[i].$3,
+        'rsvpStatus': 'GOING',
+        'present': st[i] == 'PRESENT',
+        'status': st[i],
+        if (st[i] != 'NONE') ...{
+          'method': st[i] == 'PRESENT' ? 'QR' : 'MANUAL',
+          'markedByName': st[i] == 'PRESENT' ? 'Mehmet Kaya' : 'Zeynep Arslan',
+          'markedAt': _iso(DateTime.now()),
+        },
+      },
+  ];
+  int n(String s) => st.where((e) => e == s).length;
+  return {'rows': rows, 'present': n('PRESENT'), 'absent': n('ABSENT'), 'pending': n('NONE'), 'total': st.length};
 }
 
 FakeBackend _be({
@@ -49,10 +79,7 @@ FakeBackend _be({
     FakeBackend()
       ..on('/events/5', _ev(manage: manage, rsvp: rsvp))
       ..on('/events/5/attendees/preview', {'goingCount': 9, 'avatars': <Object>[]})
-      ..on('/events/5/attendance', [
-        {'userId': 11, 'displayName': 'Ayşe Yılmaz', 'present': true, 'method': 'QR'},
-        {'userId': 12, 'displayName': 'Can Demir', 'present': false},
-      ])
+      ..on('/events/5/attendance/roster', _roster())
       ..on('/events/5/my-attendance', {'present': false, 'checkInOpen': true})
       ..on('/events/5/my-permissions', {'owner': owner || manage, 'attendanceOpen': open, 'permissions': perms})
       ..on('/events/5/my-ticket', {'code': '5.1.1.abc', 'qrPayload': 'bingol-ticket:5.1.1.abc', 'validForSeconds': 180})
@@ -121,6 +148,10 @@ void main() {
     'detay_sahip': (() => _be(manage: true, open: true), (b) => EventDetailPage(session: makeSession(b), eventId: 5)),
     'detay_moderator': (() => _be(open: true, perms: ['TAKE_ATTENDANCE', 'VIEW_ATTENDEES']), (b) => EventDetailPage(session: makeSession(b), eventId: 5)),
     'detay_katilimci_acik': (() => _be(rsvp: 'GOING', open: true), (b) => EventDetailPage(session: makeSession(b), eventId: 5)),
+    'yoklama_araci': (() => _be(manage: true), (b) => Etkinlik2AttendancePage(session: makeSession(b), event: _ev(manage: true))),
+    'yoklama_goruntule': (() => _be(perms: ['VIEW_ATTENDEES']), (b) => Etkinlik2AttendancePage(session: makeSession(b), event: _ev(), canTake: false)),
+    'detay_bulusma': (() => _be()..on('/events/5', _ev(meeting: true)), (b) => EventDetailPage(session: makeSession(b), eventId: 5)),
+    'form_duzenle': (() => _be(manage: true), (b) => EventFormPage(session: makeSession(b), event: _ev(manage: true, meeting: true))),
   };
 
   for (final lang in ['tr', 'ar']) {
@@ -170,10 +201,12 @@ void main() {
 
   testWidgets('katilimci: yoklama aciksa QR kodum gorunur, kapaliysa gorunmez', (tester) async {
     await _pump(tester, EventDetailPage(session: makeSession(_be(rsvp: 'GOING', open: true)), eventId: 5));
-    await tester.scrollUntilVisible(find.byKey(const ValueKey('detail-my-qr')), 300, scrollable: find.byType(Scrollable).first);
-    expect(find.byKey(const ValueKey('detail-my-qr')), findsOneWidget);
+    expect(find.byKey(const ValueKey('detail-my-qr')), findsOneWidget); // alt çubuk: tek eylem
+    expect(find.byKey(const ValueKey('detail-enter-code')), findsNothing);
+    expect(find.byKey(const ValueKey('detail-scan')), findsNothing);
     await unmount(tester);
-    await _pump(tester, EventDetailPage(session: makeSession(_be(rsvp: 'GOING', open: false)), eventId: 5));
+    final closed = _be(rsvp: 'GOING', open: false)..on('/events/5/my-attendance', {'present': false, 'checkInOpen': false});
+    await _pump(tester, EventDetailPage(session: makeSession(closed), eventId: 5));
     expect(find.byKey(const ValueKey('detail-my-qr')), findsNothing);
     await unmount(tester);
   });
@@ -238,13 +271,16 @@ void main() {
     await unmount(tester);
   });
 
-  testWidgets('qr kodum: sahip 403 NOT_RSVPED yerine yoklama araclarina yonlendirilir', (tester) async {
+  testWidgets('qr kodum: sahip/moderator icin 403 TICKET_NOT_FOR_STAFF: kisisel QR yok, aciklama gosterilir, yeniden deneme yok', (tester) async {
     final be = _be(manage: true, owner: true);
-    be.fail('/events/5/my-ticket', status: 403, code: 'NOT_RSVPED', message: 'Katilimci degilsin.');
+    be.fail('/events/5/my-ticket', status: 403, code: 'TICKET_NOT_FOR_STAFF', message: 'sunucu');
     await _pump(tester, Etkinlik3MyQrPage(session: makeSession(be), event: _ev(manage: true)));
-    expect(find.byKey(const ValueKey('et3-my-qr-owner')), findsOneWidget);
-    expect(find.byKey(const ValueKey('et3-my-qr-join')), findsOneWidget);
-    expect(find.text('Katilimci degilsin.'), findsNothing);
+    expect(find.byKey(const ValueKey('et3-my-qr-error')), findsOneWidget);
+    expect(find.textContaining('kişisel QR kodu yoktur'), findsOneWidget);
+    expect(find.text('Yeniden dene'), findsNothing);
+    final n = be.requests.where((r) => r.contains('/events/5/my-ticket')).length;
+    await tester.pump(const Duration(seconds: 90));
+    expect(be.requests.where((r) => r.contains('/events/5/my-ticket')).length, n);
     await unmount(tester);
   });
 
@@ -290,5 +326,185 @@ void main() {
     expect(eventClubPublishMode({'myRole': 'ADMIN'}), isNull);
     expect(eventClubPublishMode({'myRole': 'MODERATOR'}), isNull);
     expect(eventClubPublishMode({'myRole': 'MEMBER', 'canManageEvents': true}), isNull);
+  });
+
+  // ---- Yoklama modeli v2: rol matrisi + yoklama araci ----
+
+  testWidgets('rol matrisi: katilimci yalniz QR kodum; sahip ve moderator QR kodum gormez', (tester) async {
+    // katilimci
+    await _pump(tester, EventDetailPage(session: makeSession(_be(rsvp: 'GOING', open: true)), eventId: 5));
+    expect(find.byKey(const ValueKey('detail-my-qr')), findsOneWidget);
+    expect(find.byKey(const ValueKey('detail-open-attendance')), findsNothing);
+    expect(find.byKey(const ValueKey('detail-mod-list')), findsNothing);
+    await unmount(tester);
+    // sahip (katilimci kaydi da olsa)
+    await _pump(tester, EventDetailPage(session: makeSession(_be(manage: true, rsvp: 'GOING', open: true)), eventId: 5));
+    expect(find.byKey(const ValueKey('detail-my-qr')), findsNothing);
+    expect(find.byKey(const ValueKey('detail-checked-in')), findsNothing);
+    await unmount(tester);
+    // moderator (yetkili) katilimci kaydi olsa da
+    await _pump(tester, EventDetailPage(session: makeSession(_be(rsvp: 'GOING', open: true, perms: ['TAKE_ATTENDANCE'])), eventId: 5));
+    expect(find.byKey(const ValueKey('detail-my-qr')), findsNothing);
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('detail-mod-block')), 300, scrollable: find.byType(Scrollable).first);
+    expect(find.byKey(const ValueKey('detail-mod-scan')), findsOneWidget);
+    expect(find.byKey(const ValueKey('detail-mod-list')), findsOneWidget);
+    await unmount(tester);
+    // yetkisiz moderator: yalniz liste gorme (VIEW_ATTENDEES); okutma yok
+    await _pump(tester, EventDetailPage(session: makeSession(_be(open: true, perms: ['VIEW_ATTENDEES'])), eventId: 5));
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('detail-mod-block')), 300, scrollable: find.byType(Scrollable).first);
+    expect(find.byKey(const ValueKey('detail-mod-list')), findsOneWidget);
+    expect(find.byKey(const ValueKey('detail-mod-scan')), findsNothing);
+    await unmount(tester);
+  });
+
+  testWidgets('yoklama araci: sayac, arama ve suzge; satira dokununca Sifirla PUT {status: NONE}', (tester) async {
+    final be = _be(manage: true);
+    await _pump(tester, Etkinlik2AttendancePage(session: makeSession(be), event: _ev(manage: true)));
+    expect(find.text('1 geldi · 1 gelmedi · 2 bekliyor'), findsOneWidget);
+    expect(find.byKey(const ValueKey('att-scan')), findsOneWidget);
+    // arama
+    await tester.enterText(find.byKey(const ValueKey('att-search')), 'elif');
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Elif Kaya'), findsOneWidget);
+    expect(find.text('Can Demir'), findsNothing);
+    await tester.enterText(find.byKey(const ValueKey('att-search')), 'zzz');
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byKey(const ValueKey('att-no-match')), findsOneWidget);
+    await tester.enterText(find.byKey(const ValueKey('att-search')), '');
+    await tester.pump(const Duration(milliseconds: 300));
+    // gelmedi satirini sifirla
+    await tester.tap(find.byKey(const ValueKey('att-row-12')));
+    await settle(tester, const Duration(milliseconds: 400));
+    await tester.tap(find.byKey(const ValueKey('att-opt-reset')));
+    await settle(tester, const Duration(milliseconds: 400));
+    expect(be.bodies['PUT /events/5/attendance/12'], {'status': 'NONE'});
+    expect(find.text('1 geldi · 0 gelmedi · 3 bekliyor'), findsOneWidget);
+    // bekleyen -> gelmedi
+    await tester.tap(find.byKey(const ValueKey('att-row-13')));
+    await settle(tester, const Duration(milliseconds: 400));
+    await tester.tap(find.byKey(const ValueKey('att-opt-absent')));
+    await settle(tester, const Duration(milliseconds: 400));
+    expect(be.bodies['PUT /events/5/attendance/13'], {'status': 'ABSENT'});
+    expect(find.text('1 geldi · 1 gelmedi · 2 bekliyor'), findsOneWidget);
+    _noErr(tester);
+    await unmount(tester);
+  });
+
+  testWidgets('yoklama araci: Kalanlari gelmedi isaretle onayli toplu istek yapar', (tester) async {
+    final be = _be(manage: true);
+    await _pump(tester, Etkinlik2AttendancePage(session: makeSession(be), event: _ev(manage: true)));
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('att-bulk')), 300, scrollable: find.byType(Scrollable).first);
+    be.on('/events/5/attendance/bulk', {'updated': 2});
+    be.on('/events/5/attendance/roster', _roster(st: ['PRESENT', 'ABSENT', 'ABSENT', 'ABSENT']));
+    await tester.tap(find.byKey(const ValueKey('att-bulk')));
+    await settle(tester, const Duration(milliseconds: 400));
+    expect(be.requests.where((r) => r.contains('/attendance/bulk')), isEmpty); // onay bekler
+    await tester.tap(find.text('Kalanları gelmedi işaretle').last);
+    await settle(tester, const Duration(milliseconds: 500));
+    expect(be.bodies['POST /events/5/attendance/bulk'], {'status': 'ABSENT', 'rest': true});
+    expect(find.text('1 geldi · 3 gelmedi · 0 bekliyor'), findsOneWidget);
+    expect(find.byKey(const ValueKey('att-bulk')), findsNothing);
+    _noErr(tester);
+    await unmount(tester);
+  });
+
+  testWidgets('yoklama araci: yalniz goruntuleme (canTake=false): okut, toplu ve satir secimi yok', (tester) async {
+    final be = _be();
+    await _pump(tester, Etkinlik2AttendancePage(session: makeSession(be), event: _ev(), canTake: false));
+    expect(find.byKey(const ValueKey('att-view-only')), findsOneWidget);
+    expect(find.byKey(const ValueKey('att-scan')), findsNothing);
+    expect(find.byKey(const ValueKey('att-bulk')), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('att-row-13')));
+    await settle(tester, const Duration(milliseconds: 300));
+    expect(find.byKey(const ValueKey('att-opt-present')), findsNothing);
+    expect(be.requests.where((r) => r.startsWith('PUT')), isEmpty);
+    await unmount(tester);
+  });
+
+  testWidgets('yoklama araci: QR okutunca satir Geldi olur (liste donuste yenilenir)', (tester) async {
+    final be = _be(manage: true);
+    void Function(String)? send;
+    await _pump(
+        tester,
+        Etkinlik2AttendancePage(
+            session: makeSession(be),
+            event: _ev(manage: true),
+            scannerBuilder: (c, f) {
+              send = f;
+              return const SizedBox.expand();
+            }));
+    await tester.tap(find.byKey(const ValueKey('att-scan')));
+    await settle(tester, const Duration(milliseconds: 500));
+    expect(find.byType(Etkinlik3ScanPage), findsOneWidget);
+    be.on('/events/5/scan', {'status': 'MARKED', 'userId': 13, 'displayName': 'Elif Kaya'});
+    be.on('/events/5/attendance/roster', _roster(st: ['PRESENT', 'ABSENT', 'PRESENT', 'NONE']));
+    send!('bingol-ticket:x');
+    await settle(tester, const Duration(milliseconds: 400));
+    expect(find.text('Elif Kaya katıldı'), findsOneWidget);
+    await tester.tap(find.text('Yoklama listesi')); // listeye don
+    await settle(tester, const Duration(milliseconds: 500));
+    expect(find.byType(Etkinlik3ScanPage), findsNothing);
+    expect(find.text('2 geldi · 1 gelmedi · 1 bekliyor'), findsOneWidget);
+    expect(find.textContaining('Okutan: Mehmet Kaya'), findsWidgets); // Ayşe (önceki) + Elif (yeni)
+    _noErr(tester);
+    await unmount(tester);
+  });
+
+  testWidgets('yoklama araci: baska okutucunun isaretlemesi sessiz yenilemeyle (15 sn) gorunur', (tester) async {
+    final be = _be(manage: true);
+    await _pump(tester, Etkinlik2AttendancePage(session: makeSession(be), event: _ev(manage: true), refreshEvery: const Duration(seconds: 2)));
+    expect(find.text('1 geldi · 1 gelmedi · 2 bekliyor'), findsOneWidget);
+    final n = be.requests.where((r) => r.contains('/attendance/roster')).length;
+    be.on('/events/5/attendance/roster', _roster(st: ['PRESENT', 'ABSENT', 'PRESENT', 'NONE']));
+    await tester.pump(const Duration(seconds: 2));
+    await settle(tester, const Duration(milliseconds: 300));
+    expect(be.requests.where((r) => r.contains('/attendance/roster')).length, greaterThan(n));
+    expect(find.text('2 geldi · 1 gelmedi · 1 bekliyor'), findsOneWidget);
+    await unmount(tester); // zamanlayici iptal edilmeli
+    _noErr(tester);
+  });
+
+  testWidgets('detay: bulusma noktasi bolumu + Haritada ac (koordinat varsa); yoksa bolum gizli', (tester) async {
+    final be = _be()..on('/events/5', _ev(meeting: true));
+    await _pump(tester, EventDetailPage(session: makeSession(be), eventId: 5));
+    expect(find.byKey(const ValueKey('detail-meeting')), findsOneWidget);
+    expect(find.text('Mühendislik Fakültesi önü, ana giriş'), findsOneWidget);
+    expect(find.byKey(const ValueKey('detail-meeting-map')), findsOneWidget);
+    await unmount(tester);
+    await _pump(tester, EventDetailPage(session: makeSession(_be()), eventId: 5));
+    expect(find.byKey(const ValueKey('detail-meeting')), findsNothing);
+    await unmount(tester);
+  });
+
+  testWidgets('form: bulusma alani goruntusu (uzun ekran)', (tester) async {
+    final key = GlobalKey();
+    final be = _be(manage: true);
+    await _pump(tester, EventFormPage(session: makeSession(be), event: _ev(manage: true, meeting: true)), size: const Size(390, 2000), key: key);
+    await _shot(tester, key, 'etk3_form_bulusma_light_tr');
+    await unmount(tester);
+  });
+
+  testWidgets('form: bulusma noktasi duzenlemede doldurulur; PATCH meetingPoint + koordinat gonderir; gecersiz koordinat engellenir', (tester) async {
+    final be = _be(manage: true);
+    be.on('/events/5', _ev(manage: true, meeting: true));
+    await _pump(tester, EventFormPage(session: makeSession(be), event: _ev(manage: true, meeting: true)));
+    expect(find.byKey(const ValueKey('evc-meet')), findsOneWidget);
+    expect((tester.widget(find.byKey(const ValueKey('evc-meet'))) as TextField).controller!.text, 'Mühendislik Fakültesi önü, ana giriş');
+    await tester.scrollUntilVisible(find.byKey(const ValueKey('evc-submit')), 300, scrollable: find.byType(Scrollable).first);
+    await tester.enterText(find.byKey(const ValueKey('evc-meet-lat')), '95');
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(find.byKey(const ValueKey('evc-meet-err')), findsOneWidget);
+    await tester.enterText(find.byKey(const ValueKey('evc-meet-lat')), '38,9');
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(find.byKey(const ValueKey('evc-meet-err')), findsNothing);
+    be.on('/events/5', _ev(manage: true, meeting: true));
+    await tester.tap(find.byKey(const ValueKey('evc-submit')));
+    await settle(tester, const Duration(milliseconds: 500));
+    final body = be.bodies['PATCH /events/5'] as Map;
+    expect(body['meetingPoint'], 'Mühendislik Fakültesi önü, ana giriş');
+    expect(body['meetingLat'], 38.9);
+    expect(body['meetingLng'], 40.4986);
+    expect(body['location'], 'Halı saha'); // yer ayri alan
+    _noErr(tester);
   });
 }

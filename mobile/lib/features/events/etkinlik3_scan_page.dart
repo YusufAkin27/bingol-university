@@ -13,10 +13,13 @@ import 'etkinlik2_widgets.dart';
 /// Etkinlik düzenleyeni: katılımcıların kişisel QR'larını art arda okutur (sayfa kapanmaz).
 /// Her okuma `POST /events/{id}/scan` ile doğrulanır; sonuç "X katıldı" / "X zaten katıldı" / hata olarak gösterilir.
 class Etkinlik3ScanPage extends StatefulWidget {
-  const Etkinlik3ScanPage({super.key, required this.session, required this.event, this.scannerBuilder, this.permissionService});
+  const Etkinlik3ScanPage({super.key, required this.session, required this.event, this.fromList = false, this.scannerBuilder, this.permissionService});
 
   final Session session;
   final Map<String, dynamic> event;
+
+  /// Yoklama aracından açıldıysa "Listeyi aç" düğmesi geri döner (aynı listeye ikinci sayfa yığılmaz).
+  final bool fromList;
 
   /// Yalnız test: kamera yerine konacak parça; verilen `onCode` okunan değeri iletir.
   @visibleForTesting
@@ -67,11 +70,14 @@ class _Etkinlik3ScanPageState extends State<Etkinlik3ScanPage> {
 
   Future<void> _loadCounts() async {
     try {
-      final r = await widget.session.api.get('/events/$_id/attendance');
-      if (!mounted || r is! List) return;
+      final r = await widget.session.api.get('/events/$_id/attendance/roster');
+      if (!mounted || r is! Map) return;
+      final p = (r['present'] as num?)?.toInt() ?? 0;
+      final a = (r['absent'] as num?)?.toInt() ?? 0;
+      final n = (r['pending'] as num?)?.toInt() ?? 0;
       setState(() {
-        _total = r.length;
-        _present = r.whereType<Map>().where((e) => e['present'] == true).length;
+        _total = p + a + n;
+        _present = p;
       });
     } catch (_) {}
   }
@@ -111,9 +117,13 @@ class _Etkinlik3ScanPageState extends State<Etkinlik3ScanPage> {
   }
 
   Future<void> _openList() async {
+    if (widget.fromList) {
+      Navigator.pop(context);
+      return;
+    }
     await Navigator.push(
       context,
-      MaterialPageRoute(settings: const RouteSettings(name: 'etkinlik2_attendance'), builder: (_) => Etkinlik2AttendancePage(session: widget.session, event: widget.event, fromQr: true)),
+      MaterialPageRoute(settings: const RouteSettings(name: 'etkinlik2_attendance'), builder: (_) => Etkinlik2AttendancePage(session: widget.session, event: widget.event)),
     );
     if (mounted) _loadCounts();
   }

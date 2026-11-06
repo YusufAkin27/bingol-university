@@ -1218,18 +1218,11 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('Yoklama: elle kod girisi (kamera yok) check-in gonderir', (tester) async {
+    testWidgets('Yoklama (QR/kod girisi) dugmesi yok: katilimci yoklamayi kendisi vermez', (tester) async {
       final be = full();
-      be.on('/events/5/check-in', {'present': true});
       await _pump(tester, build(makeSession(be)));
-      await tester.tap(find.text('Yoklama'));
-      await settle(tester, const Duration(milliseconds: 500));
-      expect(find.byType(QrScanPage), findsOneWidget);
-      await tester.enterText(find.byType(TextField).last, 'bingol-checkin:5.123.abc');
-      await tester.tap(find.text('Yoklamayı gönder').last);
-      await settle(tester, const Duration(milliseconds: 500));
-      expect(be.requests, contains('POST /events/5/check-in'));
-      expect(be.bodies['POST /events/5/check-in'], {'code': '5.123.abc'});
+      expect(find.byKey(const ValueKey('events-checkin')), findsNothing);
+      expect(find.byType(QrScanPage), findsNothing);
       _noErrors(tester);
       await unmount(tester);
     });
@@ -1252,7 +1245,7 @@ void main() {
         ],
         'nextCursor': 7,
       })
-      ..on('/events/5/attendance', [
+      ..on('/events/5/attendance/roster', [
         {'present': true},
         {'present': false},
       ])
@@ -1316,21 +1309,13 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('elle yoklama kodu', (tester) async {
+    testWidgets('katilimci: yalniz QR kodum, kod girisi yok', (tester) async {
       final be = full(manage: false);
-      be.on('/events/5/check-in', {'present': true});
       await _pump(tester, build(makeSession(be)), size: kPhoneSmall);
-      await _reveal(tester, find.text('Kodu elle gir'));
-      await tester.tap(find.text('Kodu elle gir'));
-      await tester.pump();
-      await tester.enterText(find.byType(TextField), '5.123.abc');
-      await _reveal(tester, find.text('Yoklamayı gönder'));
-      // Düğme kaydırma sonunda üstteki yüzen çubuğun altında kalabilir: ortaya getir.
-      await tester.drag(find.byType(Scrollable).first, const Offset(0, 160), warnIfMissed: false);
-      await tester.pump(const Duration(milliseconds: 300));
-      await tester.tap(find.text('Yoklamayı gönder'));
-      await settle(tester, const Duration(milliseconds: 300));
-      expect(be.requests, contains('POST /events/5/check-in'));
+      expect(find.byKey(const ValueKey('detail-my-qr')), findsOneWidget);
+      expect(find.text('Kodu elle gir'), findsNothing);
+      expect(find.text('Yoklamayı gönder'), findsNothing);
+      expect(be.requests.where((r) => r.contains('check-in')), isEmpty);
       _noErrors(tester);
       await unmount(tester);
     });
@@ -1346,9 +1331,9 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('yonetici: sayfa kapaninca kod zamanlayicisi iptal edilir', (tester) async {
+    testWidgets('yonetici: sayfa kapaninca zamanlayici kalmaz', (tester) async {
       await _pump(tester, build(makeSession(full())), size: kPhoneMedium);
-      expect(find.text('Yoklama kodu'), findsOneWidget);
+      expect(find.text('Yoklama aracı'), findsOneWidget);
       await unmount(tester); // bekleyen 27 sn'lik Timer kalmamalı
       _noErrors(tester);
     });

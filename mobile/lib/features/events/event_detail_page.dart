@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
@@ -12,13 +13,9 @@ import '../../widgets/common.dart';
 import '../chat/chat_detail_page.dart';
 import '../../widgets/report_sheet.dart';
 import '../clubs/club_detail_page.dart';
-import '../clubs/club_ref_widgets.dart' show clubFill;
 import '../clubs/clubs_widgets.dart' show ClubJoinButton, ClubOutlineButton, clubsInitials;
-import '../platform/qr_scan_page.dart';
-import 'checkin_input.dart';
 import 'etkinlik2_apply_sheet.dart';
 import 'etkinlik2_attendance_page.dart';
-import 'etkinlik2_qr_page.dart';
 import 'etkinlik3_moderators_page.dart';
 import 'etkinlik3_my_qr_page.dart';
 import 'etkinlik3_scan_page.dart';
@@ -69,27 +66,14 @@ class _EventDetailPageState extends State<EventDetailPage> {
   List<String> _perms = const []; // moderatörün bu etkinlikteki yetkileri (sahipte boş)
   bool _rsvpBusy = false;
   bool _chatBusy = false;
-  bool _checkBusy = false;
-  bool _enterCode = false;
   bool _autoScanned = false;
-  String? _codeError;
-  final _codeCtl = TextEditingController();
 
   String get _path => '/events/${widget.eventId}';
 
   @override
   void initState() {
     super.initState();
-    _codeCtl.addListener(() {
-      if (mounted) setState(() {});
-    });
     _load();
-  }
-
-  @override
-  void dispose() {
-    _codeCtl.dispose();
-    super.dispose();
   }
 
   List<Map<String, dynamic>> _list(dynamic v) =>
@@ -135,8 +119,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
     final api = widget.session.api;
     if (_manage) {
       try {
-        final r = await api.get('$_path/attendance');
-        if (mounted) setState(() => _attendance = _list(r));
+        final r = await api.get('$_path/attendance/roster');
+        if (mounted) setState(() => _attendance = _list(r is Map ? r['rows'] : r));
       } catch (_) {}
     }
     try {
@@ -153,9 +137,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
         final r = await api.get('$_path/my-attendance');
         if (mounted) setState(() => _myAtt = Map<String, dynamic>.from(r as Map));
         final att = _myAtt;
-        if (mounted && widget.autoScan && !_autoScanned && att != null && att['checkInOpen'] == true && att['present'] != true) {
+        if (mounted && widget.autoScan && !_autoScanned && att != null && att['checkInOpen'] == true && att['present'] != true && !_manage && !_isMod) {
           _autoScanned = true;
-          unawaited(_scan());
+          unawaited(_openMyQr()); // katılımcı yalnız QR'ını gösterir
         }
       } catch (_) {}
     } else if (mounted) {
@@ -337,14 +321,6 @@ class _EventDetailPageState extends State<EventDetailPage> {
     if (mounted) _load(refresh: true);
   }
 
-  Future<void> _openQr() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(settings: const RouteSettings(name: 'etkinlik2_qr'), builder: (_) => Etkinlik2QrPage(session: widget.session, event: _ev!)),
-    );
-    if (mounted) _loadExtras();
-  }
-
   Future<void> _openScanner() async {
     await Navigator.push(
       context,
@@ -354,6 +330,13 @@ class _EventDetailPageState extends State<EventDetailPage> {
   }
 
   bool get _isMod => !_manage && _perms.isNotEmpty;
+
+  /// Onaylı katılımcıda (sahip/moderatör değil) "QR kodum" görünür: yoklama açık (sahip anahtarı ya da pencere) ve henüz gelmedi.
+  bool get _canShowMyQr {
+    final att = _myAtt;
+    if (_rsvp != 'GOING' || att == null || _manage || _isMod) return false;
+    return (att['checkInOpen'] == true || _attOpen) && att['present'] != true;
+  }
 
   Future<void> _openModerators() async {
     await Navigator.push(
@@ -380,7 +363,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
             ));
     }
     if (_perms.contains('VIEW_ATTENDEES') || _perms.contains('TAKE_ATTENDANCE')) {
-      add(Et2NavRow(key: const ValueKey('detail-mod-list'), icon: BuIcons.clipboardCheck, title: l.etkinlik2ManageAttendance, sub: l.evtPermViewAttendeesSub, top: rows.isNotEmpty, onTap: _openAttendance));
+      add(Et2NavRow(key: const ValueKey('detail-mod-list'), icon: BuIcons.clipboardCheck, title: l.evtAtt2ToolTitle, sub: l.evtAtt2ToolSub, top: rows.isNotEmpty, onTap: _openAttendance));
     }
     if (_perms.contains('MANAGE_REQUESTS') && _approval) {
       add(Et2NavRow(
@@ -432,56 +415,28 @@ class _EventDetailPageState extends State<EventDetailPage> {
   Future<void> _openAttendance() async {
     await Navigator.push(
       context,
-      MaterialPageRoute(settings: const RouteSettings(name: 'etkinlik2_attendance'), builder: (_) => Etkinlik2AttendancePage(session: widget.session, event: _ev!)),
+      MaterialPageRoute(
+        settings: const RouteSettings(name: 'etkinlik2_attendance'),
+        builder: (_) => Etkinlik2AttendancePage(session: widget.session, event: _ev!, canTake: _manage || _perms.contains('TAKE_ATTENDANCE')),
+      ),
     );
     if (mounted) _loadExtras();
   }
 
-  /// QR tarayıcı sayfasındaki doğrulama kancası: hata metni dönerse sayfada kalır, null = yoklama alındı.
-  Future<String?> _verifyScanned(String raw) async {
-    final l = context.l10n;
-    final input = CheckinInput.parse(raw);
-    if (input == null) return l.eventListNotCode;
-    // Uzun jeton etkinlik kimliğini taşır (başka etkinliğin QR'ı istemcide elenir); kısa elle kod bu sayfanın etkinliğine yazılır.
-    if (!input.isShort && input.eventId != widget.eventId) return l.eventFormWrongEventCode;
-    final code = input.code;
+  /// Buluşma noktasını harita uygulamasında açar (koordinat varsa; yoksa metinle arama).
+  Future<void> _openMap() async {
+    final ev = _ev;
+    if (ev == null) return;
+    final lat = (ev['meetingLat'] as num?)?.toDouble();
+    final lng = (ev['meetingLng'] as num?)?.toDouble();
+    final q = lat != null && lng != null ? '$lat,$lng' : '${ev['meetingPoint'] ?? ''}';
+    final u = Uri.https('www.google.com', '/maps/search/', {'api': '1', 'query': q});
+    final failText = context.l10n.evtMeetMapFail;
+    var ok = false;
     try {
-      final r = await widget.session.api.post('$_path/check-in', {'code': code});
-      Analytics.instance.action('checkin', target: 'qr');
-      if (mounted) setState(() => _myAtt = Map<String, dynamic>.from(r as Map));
-      return null;
-    } catch (e) {
-      return errorText(e);
-    }
-  }
-
-  /// QR ile tara (doğrulama tarayıcı sayfasında yapılır).
-  Future<void> _scan() async {
-    await Navigator.push<String>(
-      context,
-      MaterialPageRoute(settings: const RouteSettings(name: 'qr_scan'), builder: (_) => QrScanPage(title: context.l10n.eventFormScanTitle, onSubmit: _verifyScanned)),
-    );
-  }
-
-  /// Elle girilen kod: hata alanın altında kırmızı gösterilir.
-  Future<void> _checkIn() async {
-    if (_checkBusy) return;
-    final raw = _codeCtl.text.trim();
-    if (raw.isEmpty) return;
-    setState(() {
-      _checkBusy = true;
-      _codeError = null;
-    });
-    final err = await _verifyScanned(raw);
-    if (!mounted) return;
-    setState(() {
-      _checkBusy = false;
-      _codeError = err;
-      if (err == null) {
-        _enterCode = false;
-        _codeCtl.clear();
-      }
-    });
+      ok = await launchUrl(u, mode: LaunchMode.externalApplication);
+    } catch (_) {}
+    if (!ok) _toast(failText);
   }
 
   Future<void> _openChat() async {
@@ -623,22 +578,10 @@ class _EventDetailPageState extends State<EventDetailPage> {
     );
   }
 
-  /// Yoklama açıkken "QR ile yoklama ver" + muted "Kodu elle gir" (katılan herkes için; açık ve onaylı etkinlik).
+  /// Yoklama açıkken tek eylem: "QR kodum" (katılımcı yalnız QR'ını gösterir; okutmaz, kod girmez).
   Widget _checkInButtons() {
     final l = context.l10n;
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      BuButton(key: const ValueKey('detail-scan'), label: l.p51EvScanQr, onPressed: _scan),
-      Center(
-        child: TextButton(
-          key: const ValueKey('detail-enter-code'),
-          style: TextButton.styleFrom(foregroundColor: t.mut, minimumSize: const Size(48, 48)),
-          onPressed: () => setState(() => _enterCode = !_enterCode),
-          child: Text(l.eventFormEnterCode, style: tx.bodyLarge!.copyWith(color: t.mut)),
-        ),
-      ),
-    ]);
+    return BuButton(key: const ValueKey('detail-my-qr'), label: l.evtQrMyTitle, icon: BuIcons.qrCode, onPressed: _openMyQr);
   }
 
   /// Altta sabit eylem çubuğu (Stitch v3).
@@ -661,8 +604,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
       }
       // Katılımı onaylanan kişi de yoklama verebilmeli: yoklama açıkken yalnız QR + elle kod düğmeleri
       // ("Katılımdan ayrıl" sayfa gövdesinde zaten var, çubukta tekrarlanmaz).
-      final att = _myAtt;
-      final canCheck = _rsvp == 'GOING' && att != null && att['checkInOpen'] == true && att['present'] != true;
+      final canCheck = _canShowMyQr;
       if (!canCheck) return null;
       return Et2BottomBar(child: _checkInButtons());
     }
@@ -673,8 +615,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     final rsvp = _rsvp;
     final full = cap != null && going >= cap && rsvp != 'GOING';
     if (rsvp == 'GOING') {
-      final att = _myAtt;
-      final canCheck = att != null && att['checkInOpen'] == true && att['present'] != true;
+      final canCheck = _canShowMyQr;
       return Et2BottomBar(
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           if (canCheck) _checkInButtons(),
@@ -821,6 +762,42 @@ class _EventDetailPageState extends State<EventDetailPage> {
   Widget _pad(Widget w, {double top = 0}) => Padding(padding: EdgeInsetsDirectional.fromSTEB(20, top, 20, 0), child: w);
 
   /// Etiket-değer satırı (ikonsuz): etiket muted solda, değer ink/600 sağda; altında ince ayraç.
+  /// Buluşma noktası: etkinlik yerinden ayrı belirgin bölüm (simge + metin); koordinat varsa "Haritada aç".
+  Widget _meetingBlock(String text, {required bool hasCoords}) {
+    final t = context.bu;
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    return Container(
+      key: const ValueKey('detail-meeting'),
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          ExcludeSemantics(child: Icon(BuIcons.mapPin, size: 20, color: t.ink)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(l.evtMeetLabel, style: tx.bodyMedium!.copyWith(color: t.mut)),
+              const SizedBox(height: 2),
+              Text(text, key: const ValueKey('detail-meeting-text'), style: tx.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400, height: 1.4)),
+            ]),
+          ),
+        ]),
+        if (hasCoords)
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton.icon(
+              key: const ValueKey('detail-meeting-map'),
+              style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsetsDirectional.only(start: 28, end: 8)),
+              onPressed: _openMap,
+              icon: Icon(BuIcons.navigation, size: 18, color: t.prText),
+              label: Text(l.evtMeetOpenMap, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
+            ),
+          ),
+      ]),
+    );
+  }
+
   Widget _kv(String label, String value, {bool strike = false, Key? key}) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
@@ -854,6 +831,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     final orgName = '${org?['displayName'] ?? ev['organizerName'] ?? ''}'.trim();
     final cid = (ev['communityId'] as num?)?.toInt();
     final location = ev['location'] as String?;
+    final meeting = ev['meetingPoint'] as String?;
     final desc = ev['description'] as String?;
     final going = (ev['goingCount'] as num?)?.toInt() ?? 0;
     final cap = (ev['capacity'] as num?)?.toInt();
@@ -897,7 +875,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     return [
       cover0,
       // Yoklama durumu (Stitch v3 04): kapağın hemen altında yeşil not; durum değişince solarak yer değiştirir.
-      if (rsvp == 'GOING' && !cancelled) _pad(BuFadeThrough(duration: BuMotion.short, child: _attendanceBlock()), top: 16),
+      if (rsvp == 'GOING' && !cancelled && !_manage && !_isMod) _pad(BuFadeThrough(duration: BuMotion.short, child: _attendanceBlock()), top: 16),
       _pad(
         Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           if (who.isNotEmpty)
@@ -942,6 +920,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
           if (starts != null) _kv(l.p51EvLblDate, _fmtDate(context, 'd MMMM EEEE', starts), strike: cancelled),
           if (starts != null) _kv(l.p51EvLblTime, ends == null ? _hm(starts) : '${_hm(starts)} – ${_hm(ends)}', strike: cancelled),
           if (location != null && location.isNotEmpty) _kv(l.p51EvLblPlace, location),
+          if (meeting != null && meeting.trim().isNotEmpty && !cancelled) _meetingBlock(meeting.trim(), hasCoords: ev['meetingLat'] != null && ev['meetingLng'] != null),
           if (!cancelled) _kv(l.p51EvLblAttendees, peopleText, key: const ValueKey('detail-attendees')),
           if (!cancelled && _approval) _kv(l.clubMgmtJoinLabel, l.etkinlik2PolicyApprovalTag),
           if (full && !_approval && !cancelled) Padding(padding: const EdgeInsets.only(top: 10), child: Text(l.eventFormFullHint, style: tx.bodySmall!.copyWith(height: 1.4, color: t.mut))),
@@ -1024,7 +1003,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     );
   }
 
-  /// Yoklama durumu (Stitch v3): açıkken yeşil "Yoklama açık" notu, alınınca yeşil onay notu; kod alanı "Kodu elle gir" ile açılır.
+  /// Yoklama durumu: açıkken "Yoklama açık" notu (QR düğmesi alt çubukta), alınınca onay notu. Kod girişi yoktur.
   Widget _attendanceBlock() {
     final t = context.bu;
     final l = context.l10n;
@@ -1049,68 +1028,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
         child: note(l.eventFormCheckedIn, key: const ValueKey('detail-checked-in')),
       );
     }
-    final open = att['checkInOpen'] == true;
+    final open = att['checkInOpen'] == true || _attOpen;
     return Column(key: const ValueKey('detail-attendance'), crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       if (open) note(l.p51EvAttOpen) else Text(l.eventFormCheckInLater, style: tx.bodyMedium!.copyWith(color: t.mut)),
-      if (_attOpen) ...[
-        const SizedBox(height: 12),
-        Container(
-          key: const ValueKey('detail-att-open-note'),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
-          child: Text(l.evtAttOpenYou, style: tx.bodyMedium!.copyWith(color: t.ink)),
-        ),
-        const SizedBox(height: 8),
-        ClubOutlineButton(key: const ValueKey('detail-my-qr'), label: l.evtQrMyTitle, onPressed: _openMyQr),
-      ],
-      if (open && _enterCode) ...[
-        const SizedBox(height: 16),
-        Row(children: [
-          Expanded(child: Text(l.eventFormCheckInCode, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
-          Text(l.p15CodeChars('${_codeCtl.text.length}'), style: tx.labelSmall!.copyWith(color: t.mut)),
-        ]),
-        Text(l.eventFormEnterOrganizerCode, style: tx.bodySmall!.copyWith(color: t.mut)),
-        const SizedBox(height: 8),
-        TextField(
-          key: const ValueKey('detail-code-field'),
-          controller: _codeCtl,
-          autofocus: true,
-          textCapitalization: TextCapitalization.characters,
-          autocorrect: false,
-          enableSuggestions: false,
-          textInputAction: TextInputAction.done,
-          onChanged: (_) {
-            if (_codeError != null) setState(() => _codeError = null);
-          },
-          onSubmitted: (_) => _checkIn(),
-          textAlign: TextAlign.center,
-          style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w400, letterSpacing: 2, color: t.ink),
-          decoration: clubFill(context,
-              hint: l.sistemuiQrManualHint,
-              hasError: _codeError != null,
-              suffixIcon: _codeCtl.text.isEmpty
-                  ? null
-                  : IconButton(
-                      key: const ValueKey('detail-code-clear'),
-                      tooltip: l.p15ClearField,
-                      icon: Icon(BuIcons.x, size: 18, color: t.mut),
-                      onPressed: () {
-                        _codeCtl.clear();
-                        if (_codeError != null) setState(() => _codeError = null);
-                      },
-                    )),
-        ),
-        if (_codeError != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 6),
-            child: Semantics(
-              liveRegion: true,
-              child: Text(_codeError!, key: const ValueKey('detail-code-error'), style: tx.bodySmall!.copyWith(color: t.danger, fontWeight: BuType.emphasisWeight)),
-            ),
-          ),
-        const SizedBox(height: 12),
-        BuButton(label: l.eventFormSendCheckIn, busy: _checkBusy, onPressed: _checkBusy ? null : _checkIn),
-      ],
     ]);
   }
 
@@ -1118,8 +1038,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
     final t = context.bu;
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
-    final present = _attendance.where((r) => r['present'] == true).length;
-    final total = _attendance.length;
+    final counted = _attendance.where((r) => r['rsvpStatus'] == null || r['rsvpStatus'] == 'GOING' || attendanceStatusOf(r) != 'NONE');
+    final present = counted.where((r) => attendanceStatusOf(r) == 'PRESENT').length;
+    final total = counted.length;
     final pending = (_ev?['pendingCount'] as num?)?.toInt() ?? 0;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       BuCard(
@@ -1155,13 +1076,6 @@ class _EventDetailPageState extends State<EventDetailPage> {
             icon: BuIcons.qrCode,
             onTap: _openScanner,
           ),
-          const SizedBox(height: 8),
-          EtkinlikActionButton(
-            key: const ValueKey('detail-open-qr'),
-            label: l.eventFormCheckInCode,
-            icon: BuIcons.qrCode,
-            onTap: _openQr,
-          ),
         ]),
       ),
       const SizedBox(height: 12),
@@ -1187,7 +1101,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
           Et2NavRow(
             top: _approval,
             icon: BuIcons.clipboardCheck,
-            title: l.etkinlik2ManageAttendance,
+            key: const ValueKey('detail-open-attendance'),
+            title: l.evtAtt2ToolTitle,
             sub: total == 0 ? l.eventFormNoAttendance : l.eventFormAttendanceCount('$present', '$total'),
             onTap: _openAttendance,
           ),

@@ -87,7 +87,7 @@ List<Map<String, dynamic>> _att() => [
 
 FakeBackend _manageBe() => FakeBackend()
   ..on('/events/5/checkin-code', {'code': '482913', 'qrPayload': 'bingol-checkin:5.1.abc', 'validForSeconds': 30})
-  ..on('/events/5/attendance', _att())
+  ..on('/events/5/attendance/roster', _att())
   ..on('/events/5', {'id': 5, 'goingCount': 31, 'capacity': 40})
   ..on('/events/5/requests*', {
     'items': [

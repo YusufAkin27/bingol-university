@@ -36,7 +36,7 @@ Map<String, dynamic> _app(int id, String name, {String? dep, String? note}) =>
 
 FakeBackend _be({Duration delay = Duration.zero, bool emptyReq = false, bool emptyAtt = false}) => FakeBackend(delay: delay)
   ..on('/events/5', _ev())
-  ..on('/events/5/attendance', emptyAtt
+  ..on('/events/5/attendance/roster', emptyAtt
       ? <Object>[]
       : [
           {'userId': 11, 'displayName': 'Ayşe Yılmaz', 'department': 'Bilgisayar Mühendisliği', 'present': true, 'method': 'QR', 'markedAt': _iso(DateTime.now())},
@@ -106,7 +106,7 @@ void main() {
     });
 
     testWidgets('hata: yeniden dene gorunur', (tester) async {
-      final be = _be()..network('/events/5/attendance');
+      final be = _be()..network('/events/5/attendance/roster');
       await p00Matrix(tester, () => Etkinlik2AttendancePage(session: makeSession(be), event: _ev()),
           scaffold: false, widths: const [320], check: (t, lang, dark, scale) async {
         expect(find.byKey(const ValueKey('et2-att-error')), findsOneWidget);
@@ -189,7 +189,7 @@ void main() {
 
     testWidgets('yoklama: suzge bos sonucu gosterir', (tester) async {
       final be = _be();
-      be.on('/events/5/attendance', [
+      be.on('/events/5/attendance/roster', [
         {'userId': 11, 'displayName': 'Ayşe Yılmaz', 'present': true, 'method': 'QR'},
       ]);
       tester.view.devicePixelRatio = 1;
@@ -197,7 +197,7 @@ void main() {
       addTearDown(tester.view.reset);
       await tester.pumpWidget(p00App(Etkinlik2AttendancePage(session: makeSession(be), event: _ev()), scaffold: false));
       await tester.pump(const Duration(milliseconds: 900));
-      await tester.tap(find.byKey(const ValueKey('et2-filter-absent')));
+      await tester.tap(find.descendant(of: find.byKey(const ValueKey('att-filters')), matching: find.text('Gelmedi')));
       await tester.pump(const Duration(milliseconds: 400));
       expect(find.text('Bu filtreye uygun katılımcı kaydı bulunamadı.'), findsOneWidget);
       expect(find.text('Ayşe Yılmaz'), findsNothing);

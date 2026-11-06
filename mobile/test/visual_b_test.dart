@@ -364,7 +364,7 @@ FakeBackend _eventDetailBe({String? rsvp, bool manage = false}) => FakeBackend()
     ],
     'nextCursor': null
   })
-  ..on('/events/5/attendance', {'items': [], 'checkedIn': 0, 'total': 0})
+  ..on('/events/5/attendance/roster', {'items': [], 'checkedIn': 0, 'total': 0})
   ..on('/events/5/my-attendance', {'checkedIn': false})
   ..on('/events/5/checkin-code', {'code': '123456', 'expiresAt': _iso(DateTime.now().add(const Duration(minutes: 5)))})
   ..on('/events/5/attendees/preview', {'items': [], 'total': 0});

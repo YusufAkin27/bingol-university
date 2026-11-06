@@ -1,3 +1,4 @@
+// ESKI (kullanimdan kalkti): sahibin "yoklama kodu" ekrani. Yeni modelde katilimci yalniz QR kodunu gosterir, yoklamayi sahip/moderator Etkinlik2AttendancePage araciyla alir; bu sayfa arayuzden acilmaz.
 import 'dart:async';
 import 'dart:ui' as ui;
 
@@ -68,7 +69,8 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
 
   Future<void> _loadCounts() async {
     try {
-      final r = await widget.session.api.get('/events/$_id/attendance');
+      final res = await widget.session.api.get('/events/$_id/attendance/roster');
+      final r = res is Map ? res['rows'] : res;
       if (!mounted || r is! List) return;
       setState(() {
         _total = r.length;
@@ -165,7 +167,7 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
   Future<void> _openList() async {
     await Navigator.push(
       context,
-      MaterialPageRoute(settings: const RouteSettings(name: 'etkinlik2_attendance'), builder: (_) => Etkinlik2AttendancePage(session: widget.session, event: widget.event, fromQr: true)),
+      MaterialPageRoute(settings: const RouteSettings(name: 'etkinlik2_attendance'), builder: (_) => Etkinlik2AttendancePage(session: widget.session, event: widget.event)),
     );
     if (mounted) _loadCounts();
   }

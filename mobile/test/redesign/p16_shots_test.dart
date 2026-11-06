@@ -64,7 +64,7 @@ Map<String, dynamic> _applicant(int id, String name, {String? dep, String? note}
 FakeBackend _base({Duration delay = Duration.zero, int going = 9, int? cap = 14}) {
   final b = FakeBackend(delay: delay)
     ..on('/events/5', _ev(going: going, capacity: cap))
-    ..on('/events/5/attendance', _att())
+    ..on('/events/5/attendance/roster', _att())
     ..on('/events/5/checkin-code', {
       'code': '5.123.abcdef',
       'qrPayload': 'bingol-checkin:5.123.abcdef',
@@ -177,14 +177,14 @@ final _scenes = <_Scene>[
   }),
   _Scene('15_yoklama_bos', () {
     final b = _base();
-    b.on('/events/5/attendance', <Object>[]);
+    b.on('/events/5/attendance/roster', <Object>[]);
     return b;
   }, (b) => Etkinlik2AttendancePage(session: makeSession(b), event: _ev(policy: 'OPEN'))),
   _Scene('16_yoklama_yukleniyor', () => _base(delay: const Duration(seconds: 3)), (b) => Etkinlik2AttendancePage(session: makeSession(b), event: _ev(policy: 'OPEN')),
       pre: const Duration(milliseconds: 500), drain: const Duration(seconds: 12)),
   _Scene('17_yoklama_hata', () {
     final b = _base();
-    b.network('/events/5/attendance');
+    b.network('/events/5/attendance/roster');
     return b;
   }, (b) => Etkinlik2AttendancePage(session: makeSession(b), event: _ev(policy: 'OPEN'))),
 ];

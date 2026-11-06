@@ -9,8 +9,6 @@ import '../clubs/club_detail_parts.dart' show ClubBarIcon;
 import '../clubs/clubs_tab.dart';
 import '../clubs/clubs_widgets.dart' show ClubJoinButton, ClubTextTabs;
 import '../news/news_detail_page.dart';
-import '../platform/qr_scan_page.dart';
-import 'checkin_input.dart';
 import 'event_detail_page.dart';
 import 'event_form_page.dart';
 import 'etkinlik_parts.dart';
@@ -613,69 +611,6 @@ class _EventsPageState extends State<EventsPage> {
     }
   }
 
-  /// QR'ı tara (ya da elle kod gir); koddaki etkinlik kimliğiyle yoklama gönderilir. Doğrulama tarayıcı sayfasında
-  /// yapılır: hata orada kalıp gösterilir, başarıda "Yoklaman alındı" gösterilip sayfa kapanır.
-  /// Kod biçimi: "bingol-checkin:{etkinlikId}.{pencere}.{imza}" (elle girişte önek olmayabilir).
-  Future<void> _scanCheckin() async {
-    await Navigator.push<String>(
-      context,
-      MaterialPageRoute(settings: const RouteSettings(name: 'qr_scan'), builder: (_) => QrScanPage(title: context.l10n.eventListScanTitle, onSubmit: _verifyCheckin)),
-    );
-  }
-
-  Future<String?> _verifyCheckin(String raw) async {
-    final l = context.l10n;
-    final input = CheckinInput.parse(raw);
-    if (input == null) return l.eventListNotCode;
-    try {
-      if (!input.isShort) {
-        await widget.session.api.post('/events/${input.eventId}/check-in', {'code': input.code});
-      } else {
-        // Kısa elle kod etkinlik kimliği taşımaz: şu an yoklama penceresinde olan "Katılıyorum" etkinliklerine sırayla denenir
-        // (etkinlik başına dakikada 8 deneme sınırı sunucuda). Aday yoksa kullanıcı etkinlik sayfasına yönlendirilir.
-        final ids = await _checkinCandidates();
-        if (ids.isEmpty) return l.eventListShortCodeNeedsEvent;
-        Object? lastInvalid;
-        var ok = false;
-        for (final id in ids) {
-          try {
-            await widget.session.api.post('/events/$id/check-in', {'code': input.code});
-            ok = true;
-            break;
-          } on ApiError catch (e) {
-            if (e.code != 'INVALID_CODE') rethrow;
-            lastInvalid = e;
-          }
-        }
-        if (!ok) return lastInvalid == null ? l.eventListNotCode : errorText(lastInvalid);
-      }
-      Analytics.instance.action('checkin', target: 'qr');
-      buHaptic(BuHaptic.medium);
-      return null;
-    } catch (e) {
-      return errorText(e);
-    }
-  }
-
-  /// Yoklama penceresi (başlangıç - 30 dk ... bitiş + 30 dk) şu an açık olan, katılacağım dediğim etkinlikler (en çok 5).
-  Future<List<int>> _checkinCandidates() async {
-    final res = await widget.session.api.get('/me/events?mode=attending&size=20');
-    final list = (res is Map ? res['items'] : res) as List? ?? const [];
-    final now = DateTime.now();
-    final ids = <int>[];
-    for (final e in list.whereType<Map>()) {
-      final id = (e['id'] as num?)?.toInt();
-      final start = DateTime.tryParse('${e['startsAt'] ?? ''}')?.toLocal();
-      final end = DateTime.tryParse('${e['endsAt'] ?? ''}')?.toLocal() ?? start?.add(const Duration(hours: 2));
-      if (id == null || start == null || end == null) continue;
-      if (e['myRsvp'] != 'GOING' || e['status'] == 'CANCELLED') continue;
-      if (now.isBefore(start.subtract(const Duration(minutes: 30))) || now.isAfter(end.add(const Duration(minutes: 30)))) continue;
-      ids.add(id);
-      if (ids.length >= 5) break;
-    }
-    return ids;
-  }
-
   void _toast(String m, {BuToastKind kind = BuToastKind.info}) {
     if (!mounted) return;
     BuToast.show(context, m, kind: kind);
@@ -742,9 +677,7 @@ class _EventsPageState extends State<EventsPage> {
 
   /// Başlık: (varsa) geri oku + "Etkinlikler" 28/700; sağda marka renkli "Yoklama" metni ve "+" (yeni etkinlik).
   Widget _header() {
-    final t = context.bu;
     final l = context.l10n;
-    final tx = Theme.of(context).textTheme;
     final canPop = Navigator.of(context).canPop();
     final top = MediaQuery.paddingOf(context).top;
     return Padding(
@@ -756,15 +689,6 @@ class _EventsPageState extends State<EventsPage> {
         ],
         Expanded(
           child: Semantics(header: true, label: l.eventListTitle, child: const SizedBox(height: 48)),
-        ),
-        TextButton(
-          key: const ValueKey('events-checkin'),
-          style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 8)),
-          onPressed: () {
-            buHaptic(BuHaptic.selection);
-            _scanCheckin();
-          },
-          child: Text(l.eventListCheckin, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
         ),
         ClubBarIcon(key: const ValueKey('events-create'), icon: BuIcons.plus, tooltip: l.eventListCreate, onTap: _create, width: 44),
       ]),

@@ -345,7 +345,7 @@ void _qrData(FakeBackend b) {
       'validForSeconds': 30,
       'expiresAt': _iso(now.add(const Duration(seconds: 30))),
     })
-    ..on('/events/5/attendance', [
+    ..on('/events/5/attendance/roster', [
       for (var i = 0; i < 31; i++)
         {'userId': 100 + i, 'displayName': 'Katılımcı ${i + 1}', 'present': i < 22, 'method': 'QR', if (i < 22) 'checkedInAt': _iso(now)},
     ])

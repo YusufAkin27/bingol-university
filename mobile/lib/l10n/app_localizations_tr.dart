@@ -12948,4 +12948,136 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get evtQrMyOwnerJoin => 'Katılımcı olarak da katıl';
+
+  @override
+  String get evtAtt2ToolTitle => 'Yoklama aracı';
+
+  @override
+  String get evtAtt2ToolSub => 'QR okut, listeden işaretle';
+
+  @override
+  String get evtAtt2ScanQr => 'QR okut';
+
+  @override
+  String get evtAtt2Search => 'Katılımcı ara';
+
+  @override
+  String get evtAtt2Pending => 'Bekliyor';
+
+  @override
+  String evtAtt2Counter(String present, String absent, String pending) {
+    return '$present geldi · $absent gelmedi · $pending bekliyor';
+  }
+
+  @override
+  String get evtAtt2MarkPresent => 'Geldi';
+
+  @override
+  String get evtAtt2MarkAbsent => 'Gelmedi';
+
+  @override
+  String get evtAtt2MarkReset => 'Sıfırla (bekliyor)';
+
+  @override
+  String evtAtt2SheetTitle(String name) {
+    return '$name için yoklama';
+  }
+
+  @override
+  String get evtAtt2BulkRest => 'Kalanları gelmedi işaretle';
+
+  @override
+  String get evtAtt2BulkTitle => 'Kalanlar gelmedi işaretlensin mi?';
+
+  @override
+  String evtAtt2BulkBody(String count) {
+    return '$count kişi \"Gelmedi\" olarak işaretlenecek. Sonra tek tek değiştirebilirsin.';
+  }
+
+  @override
+  String evtAtt2BulkDone(String count) {
+    return '$count kişi gelmedi işaretlendi';
+  }
+
+  @override
+  String get evtAtt2SrcQr => 'QR';
+
+  @override
+  String get evtAtt2SrcManual => 'Elle';
+
+  @override
+  String evtAtt2ByScanner(String name) {
+    return 'Okutan: $name';
+  }
+
+  @override
+  String evtAtt2ByMarker(String name) {
+    return 'İşaretleyen: $name';
+  }
+
+  @override
+  String get evtAtt2ViewOnly =>
+      'Listeyi yalnız görüntüleyebilirsin; işaretleme yetkin yok.';
+
+  @override
+  String get evtAtt2NoMatch => 'Aramana uyan katılımcı yok.';
+
+  @override
+  String get evtAtt2ListEmpty => 'Henüz onaylı katılımcı yok.';
+
+  @override
+  String evtAtt2ToastAbsent(String name) {
+    return '$name gelmedi olarak işaretlendi';
+  }
+
+  @override
+  String evtAtt2ToastPresent(String name) {
+    return '$name geldi olarak işaretlendi';
+  }
+
+  @override
+  String evtAtt2ToastReset(String name) {
+    return '$name sıfırlandı';
+  }
+
+  @override
+  String get evtAtt2StaffNoQr =>
+      'Yoklamayı alanların kişisel QR kodu yoktur; katılımcıların QR kodunu okutursun.';
+
+  @override
+  String get evtAtt2ParticipantHint =>
+      'Yoklama alınırken görevliye bu kodu göster. Başka bir şey yapman gerekmez.';
+
+  @override
+  String get evtAtt2StatusArrived => 'Yoklaman alındı';
+
+  @override
+  String get evtMeetLabel => 'Buluşma noktası';
+
+  @override
+  String get evtMeetHint => 'Örn. Mühendislik Fakültesi önü, ana giriş';
+
+  @override
+  String get evtMeetHelp =>
+      'Katılımcıların toplanacağı yer (etkinlik yerinden ayrıdır).';
+
+  @override
+  String get evtMeetOpenMap => 'Haritada aç';
+
+  @override
+  String get evtMeetMapFail => 'Harita açılamadı.';
+
+  @override
+  String get evtMeetLat => 'Enlem (isteğe bağlı)';
+
+  @override
+  String get evtMeetLng => 'Boylam (isteğe bağlı)';
+
+  @override
+  String get evtMeetCoordInvalid =>
+      'Enlem -90 ile 90, boylam -180 ile 180 arasında olmalı ve ikisi birlikte girilmeli.';
+
+  @override
+  String get evtEditEndedNote =>
+      'Etkinlik sona erdi: yalnız açıklama düzenlenebilir.';
 }

@@ -112,6 +112,9 @@ class _EventFormPageState extends State<EventFormPage> {
   final _place = TextEditingController();
   final _placeFocus = FocusNode();
   final _cap = TextEditingController();
+  final _meet = TextEditingController(); // buluşma noktası (etkinlik yerinden ayrı)
+  final _meetLat = TextEditingController();
+  final _meetLng = TextEditingController();
   late DateTime _start;
   late DateTime _end;
   DateTime? _origStart; // düzenlemede: başlangıç değişmediyse geçmiş kuralı uygulanmaz
@@ -146,6 +149,9 @@ class _EventFormPageState extends State<EventFormPage> {
       _title.text = '${e['title'] ?? ''}';
       _desc.text = '${e['description'] ?? ''}';
       _place.text = '${e['location'] ?? ''}';
+      _meet.text = '${e['meetingPoint'] ?? ''}';
+      if (e['meetingLat'] != null) _meetLat.text = '${e['meetingLat']}';
+      if (e['meetingLng'] != null) _meetLng.text = '${e['meetingLng']}';
       final cap = (e['capacity'] as num?)?.toInt();
       if (cap != null) _cap.text = '$cap';
       _existingCover = fileUrl(e['coverUrl'] as String?);
@@ -174,6 +180,9 @@ class _EventFormPageState extends State<EventFormPage> {
     _place.dispose();
     _placeFocus.dispose();
     _cap.dispose();
+    _meet.dispose();
+    _meetLat.dispose();
+    _meetLng.dispose();
     super.dispose();
   }
 
@@ -395,6 +404,20 @@ class _EventFormPageState extends State<EventFormPage> {
     return (v == null || v < 1) ? context.l10n.eventFormCapInvalid : null;
   }
 
+  /// Koordinat: ikisi birlikte, enlem -90..90, boylam -180..180 (boşsa hata yok). Virgül ondalık ayracı kabul edilir.
+  String? get _meetErr {
+    final la = _meetLat.text.trim();
+    final lo = _meetLng.text.trim();
+    if (la.isEmpty && lo.isEmpty) return null;
+    final a = double.tryParse(la.replaceAll(',', '.'));
+    final b = double.tryParse(lo.replaceAll(',', '.'));
+    if (a == null || b == null || a < -90 || a > 90 || b < -180 || b > 180) return context.l10n.evtMeetCoordInvalid;
+    return null;
+  }
+
+  /// Bitmiş etkinlikte yalnız açıklama düzenlenir (sunucu kuralı).
+  bool get _endedEdit => _editing && !(DateTime.tryParse('${widget.event?['endsAt']}')?.toLocal().isAfter(_now()) ?? true);
+
   /// Ekranda görünen doğrulama hataları: açıklama/tarih her zaman (canlı), diğerleri kaydet denendikten sonra.
   List<String> get _visibleErrors {
     final out = <String>[];
@@ -407,6 +430,7 @@ class _EventFormPageState extends State<EventFormPage> {
     add(_descErr);
     add(_dateError);
     if (_submitted) add(_capErr);
+    add(_meetErr);
     return out;
   }
 
@@ -432,13 +456,20 @@ class _EventFormPageState extends State<EventFormPage> {
       var id = _id;
       var coverOk = true;
       String? status;
-      if (_editing) {
+      final meetText = _meet.text.trim();
+      final lat = meetText.isEmpty ? null : double.tryParse(_meetLat.text.trim().replaceAll(',', '.'));
+      final lng = meetText.isEmpty ? null : double.tryParse(_meetLng.text.trim().replaceAll(',', '.'));
+      if (_editing && _endedEdit) {
+        await api.patch('/events/$id', {'description': _desc.text.trim()});
+      } else if (_editing) {
         await api.patch('/events/$id', {
           'title': title,
           'description': _desc.text.trim(),
           'startsAt': _start.toUtc().toIso8601String(),
           'endsAt': _end.toUtc().toIso8601String(),
           'location': _place.text.trim(),
+          'meetingPoint': meetText, // boş = siler (koordinat da silinir)
+          if (lat != null && lng != null) ...{'meetingLat': lat, 'meetingLng': lng},
           'capacity': cap ?? 0,
           'joinPolicy': _policy,
         });
@@ -449,6 +480,8 @@ class _EventFormPageState extends State<EventFormPage> {
           'startsAt': _start.toUtc().toIso8601String(),
           'endsAt': _end.toUtc().toIso8601String(),
           if (_place.text.trim().isNotEmpty) 'location': _place.text.trim(),
+          if (meetText.isNotEmpty) 'meetingPoint': meetText,
+          if (lat != null && lng != null) ...{'meetingLat': lat, 'meetingLng': lng},
           if (cap != null) 'capacity': cap,
           'communityId': _clubId,
           'joinPolicy': _policy,
@@ -1007,6 +1040,10 @@ class _EventFormPageState extends State<EventFormPage> {
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 32),
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              if (_endedEdit) ...[
+                const SizedBox(height: 8),
+                Text(l.evtEditEndedNote, key: const ValueKey('evc-ended-note'), style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.4)),
+              ],
               if (_error != null) ...[const SizedBox(height: 8), _serverBanner()],
               if (_submitted && errors.isNotEmpty) ...[const SizedBox(height: 8), _errorSummary(errors.length)],
               _clubSection(),
@@ -1068,6 +1105,64 @@ class _EventFormPageState extends State<EventFormPage> {
                   decoration: _bare(l.eventFormPlaceHint),
                 ),
               ),
+              _label(l.evtMeetLabel),
+              _box(
+                child: TextField(
+                  key: const ValueKey('evc-meet'),
+                  controller: _meet,
+                  maxLines: 1,
+                  maxLength: 200,
+                  enabled: !_busy,
+                  textCapitalization: TextCapitalization.sentences,
+                  style: tx.bodyLarge!.copyWith(color: t.ink),
+                  onChanged: (_) => setState(() {}),
+                  decoration: _bare(l.evtMeetHint),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(l.evtMeetHelp, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.4)),
+              ),
+              if (_meet.text.trim().isNotEmpty) ...[
+                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                      _label(l.evtMeetLat),
+                      _box(
+                        error: _meetErr != null,
+                        child: TextField(
+                          key: const ValueKey('evc-meet-lat'),
+                          controller: _meetLat,
+                          enabled: !_busy,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                          style: tx.bodyLarge!.copyWith(color: t.ink),
+                          onChanged: (_) => setState(() {}),
+                          decoration: _bare('38.8847'),
+                        ),
+                      ),
+                    ]),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                      _label(l.evtMeetLng),
+                      _box(
+                        error: _meetErr != null,
+                        child: TextField(
+                          key: const ValueKey('evc-meet-lng'),
+                          controller: _meetLng,
+                          enabled: !_busy,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                          style: tx.bodyLarge!.copyWith(color: t.ink),
+                          onChanged: (_) => setState(() {}),
+                          decoration: _bare('40.4986'),
+                        ),
+                      ),
+                    ]),
+                  ),
+                ]),
+                if (_meetErr != null) _fieldError(_meetErr!, key: const ValueKey('evc-meet-err')),
+              ],
               _label(l.eventFormCapacityLabel),
               _box(
                 error: capErr != null,

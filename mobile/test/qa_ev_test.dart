@@ -8,6 +8,7 @@ import 'package:bu_kampus/features/clubs/clubs_tab.dart';
 import 'package:bu_kampus/features/events/checkin_input.dart';
 import 'package:bu_kampus/features/events/etkinlik2_qr_page.dart';
 import 'package:bu_kampus/features/events/etkinlik2_requests_page.dart';
+import 'package:bu_kampus/features/events/etkinlik3_my_qr_page.dart';
 import 'package:bu_kampus/features/events/event_detail_page.dart';
 import 'package:bu_kampus/features/events/events_page.dart';
 import 'package:bu_kampus/features/platform/qr_scan_page.dart';
@@ -162,7 +163,7 @@ void main() {
         'validForSeconds': 30,
         if (manual != null) 'manualCode': manual,
       })
-      ..on('/events/5/attendance', <Object>[]);
+      ..on('/events/5/attendance/roster', <Object>[]);
 
     testWidgets('elle kod olarak sunucunun 6 karakterli manualCode değeri gösterilir ve kopyalanır', (tester) async {
       String? clip;
@@ -196,67 +197,57 @@ void main() {
     });
   });
 
-  group('EventDetailPage yoklama', () {
-    testWidgets('kısa elle kod: büyük harfe çevrilip bu etkinliğe gönderilir (K7M4QX)', (tester) async {
-      final b = _detail(_ev(rsvp: 'GOING'));
-      useScreen(tester, kPhoneMedium);
-      await tester.pumpWidget(buildApp(EventDetailPage(session: makeSession(b), eventId: 5), size: kPhoneMedium));
-      await settle(tester, const Duration(milliseconds: 800));
-      await tester.tap(find.byKey(const ValueKey('detail-enter-code')));
-      await tester.pump(const Duration(milliseconds: 400));
-      await tester.enterText(find.byKey(const ValueKey('detail-code-field')), 'k7m 4qx');
-      await tester.testTextInput.receiveAction(TextInputAction.done);
-      await tester.pump(const Duration(milliseconds: 500));
-      expect(b.bodies['POST /events/5/check-in'], {'code': 'K7M4QX'});
-      expect(find.text('Bu bir yoklama kodu değil.'), findsNothing);
-      await _gone(tester);
-    });
+  group('EventDetailPage yoklama (katılımcı yalnız QR kodum)', () {
+    FakeBackend det(Map<String, dynamic> ev, {bool open = true}) => _detail(ev, open: open)
+      ..on('/events/5/my-ticket', {'code': '5.1.abc', 'qrPayload': 'bingol-ticket:5.1.1.abc', 'validForSeconds': 300});
 
-    testWidgets('başka etkinliğin uzun kodu istemcide elenir; 5 karakterlik girdi kod değildir', (tester) async {
-      final b = _detail(_ev(rsvp: 'GOING'));
+    testWidgets('katılımcı: yalnız "QR kodum"; tarama, kod girişi ve elle kod yok', (tester) async {
+      final b = det(_ev(rsvp: 'GOING'));
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(EventDetailPage(session: makeSession(b), eventId: 5), size: kPhoneMedium));
       await settle(tester, const Duration(milliseconds: 800));
-      await tester.tap(find.byKey(const ValueKey('detail-enter-code')));
-      await tester.pump(const Duration(milliseconds: 400));
-      await tester.enterText(find.byKey(const ValueKey('detail-code-field')), '9.123.abc');
-      await tester.testTextInput.receiveAction(TextInputAction.done);
-      await tester.pump(const Duration(milliseconds: 400));
-      expect(find.text('Bu kod başka bir etkinliğe ait.'), findsOneWidget);
-      await tester.enterText(find.byKey(const ValueKey('detail-code-field')), 'K7M4Q');
-      await tester.testTextInput.receiveAction(TextInputAction.done);
-      await tester.pump(const Duration(milliseconds: 400));
-      expect(find.text('Bu bir yoklama kodu değil.'), findsOneWidget);
+      expect(find.byKey(const ValueKey('detail-my-qr')), findsOneWidget);
+      expect(find.byKey(const ValueKey('detail-scan')), findsNothing);
+      expect(find.byKey(const ValueKey('detail-enter-code')), findsNothing);
+      expect(find.byKey(const ValueKey('detail-code-field')), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('detail-my-qr')));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.byType(Etkinlik3MyQrPage), findsOneWidget);
       expect(b.requests.where((r) => r.contains('check-in')), isEmpty);
       await _gone(tester);
     });
 
-    testWidgets('onaylı (APPROVAL) etkinlikte katılımı onaylanan kişi de QR/kodla yoklama verebilir', (tester) async {
-      final b = _detail(_ev(rsvp: 'GOING', policy: 'APPROVAL'));
+    testWidgets('onaylı (APPROVAL) etkinlikte katılımı onaylanan kişi de yalnız QR kodum görür', (tester) async {
+      final b = det(_ev(rsvp: 'GOING', policy: 'APPROVAL'));
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(EventDetailPage(session: makeSession(b), eventId: 5), size: kPhoneMedium));
       await settle(tester, const Duration(milliseconds: 800));
-      expect(find.byKey(const ValueKey('detail-scan')), findsOneWidget);
-      expect(find.byKey(const ValueKey('detail-enter-code')), findsOneWidget);
+      expect(find.byKey(const ValueKey('detail-my-qr')), findsOneWidget);
+      expect(find.byKey(const ValueKey('detail-enter-code')), findsNothing);
       // "Katılımdan ayrıl" yalnız gövdede (çubukta tekrarlanmaz)
       expect(find.byKey(const ValueKey('detail-leave')), findsNothing);
       expect(find.byKey(const ValueKey('detail-leave-approval')), findsOneWidget);
-      await tester.tap(find.byKey(const ValueKey('detail-enter-code')));
-      await tester.pump(const Duration(milliseconds: 400));
-      await tester.enterText(find.byKey(const ValueKey('detail-code-field')), 'K7M4QX');
-      await tester.testTextInput.receiveAction(TextInputAction.done);
-      await tester.pump(const Duration(milliseconds: 500));
-      expect(b.bodies['POST /events/5/check-in'], {'code': 'K7M4QX'});
       await _gone(tester);
     });
 
-    testWidgets('onaylı etkinlik, yoklama henüz kapalı: alt çubuk yok (yalnız bekleme notu)', (tester) async {
-      final b = _detail(_ev(rsvp: 'GOING', policy: 'APPROVAL'), open: false);
+    testWidgets('yoklama kapalı: QR kodum görünmez', (tester) async {
+      final b = det(_ev(rsvp: 'GOING', policy: 'APPROVAL'), open: false);
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(EventDetailPage(session: makeSession(b), eventId: 5), size: kPhoneMedium));
       await settle(tester, const Duration(milliseconds: 800));
+      expect(find.byKey(const ValueKey('detail-my-qr')), findsNothing);
       expect(find.byKey(const ValueKey('detail-scan')), findsNothing);
-      expect(find.byKey(const ValueKey('detail-enter-code')), findsNothing);
+      await _gone(tester);
+    });
+
+    testWidgets('sahip (katılımcı kaydı olsa da): QR kodum yok, yoklama aracı var', (tester) async {
+      final b = det(_ev(rsvp: 'GOING', manage: true));
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(EventDetailPage(session: makeSession(b), eventId: 5), size: kPhoneMedium));
+      await settle(tester, const Duration(milliseconds: 800));
+      expect(find.byKey(const ValueKey('detail-my-qr')), findsNothing);
+      expect(find.byKey(const ValueKey('detail-checked-in')), findsNothing);
+      expect(find.byKey(const ValueKey('detail-open-attendance')), findsOneWidget);
       await _gone(tester);
     });
 
@@ -275,58 +266,16 @@ void main() {
     });
   });
 
-  group('EventsPage genel yoklama (Yoklama düğmesi)', () {
-    FakeBackend be() => FakeBackend()
-      ..on('/events/calendar*', {'items': <Object>[], 'truncated': false})
-      ..on('/me/events*', {
-        'items': [
-          {'id': 5, 'title': 'Bahar Şenliği', 'startsAt': _iso(DateTime.now().subtract(const Duration(minutes: 5))), 'myRsvp': 'GOING'},
-          // yoklama penceresi dışında (iki gün sonra) ve katılmadığı etkinlik: aday olmaz
-          {'id': 6, 'title': 'Gelecek', 'startsAt': _iso(DateTime.now().add(const Duration(days: 2))), 'myRsvp': 'GOING'},
-          {'id': 8, 'title': 'İlgi', 'startsAt': _iso(DateTime.now()), 'myRsvp': 'INTERESTED'},
-        ],
-        'nextCursor': null,
-      })
-      ..on('/events/5/check-in', {'present': true});
-
-    Future<void> openScan(WidgetTester tester, FakeBackend b) async {
+  group('EventsPage', () {
+    testWidgets('üstte "Yoklama" (QR/kod girişi) düğmesi yok: katılımcı yoklamayı kendisi vermez', (tester) async {
+      final b = FakeBackend()
+        ..on('/events/calendar*', {'items': <Object>[], 'truncated': false})
+        ..on('/me/events*', {'items': <Object>[], 'nextCursor': null});
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(EventsPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester, const Duration(milliseconds: 600));
-      await tester.tap(find.text('Yoklama'));
-      await settle(tester, const Duration(milliseconds: 500));
-      expect(find.byType(QrScanPage), findsOneWidget);
-    }
-
-    testWidgets('kısa kod yalnız yoklaması açık "Katılıyorum" etkinliğine gönderilir', (tester) async {
-      final b = be();
-      await openScan(tester, b);
-      await tester.enterText(find.byType(TextField).last, 'k7m4qx');
-      await tester.tap(find.text('Yoklamayı gönder').last);
-      await settle(tester, const Duration(milliseconds: 500));
-      expect(b.bodies['POST /events/5/check-in'], {'code': 'K7M4QX'});
-      expect(b.requests.where((r) => r.contains('/events/6/') || r.contains('/events/8/')), isEmpty);
-      await _gone(tester);
-    });
-
-    testWidgets('aday etkinlik yoksa kısa kod için yönlendirme metni (istek atılmaz)', (tester) async {
-      final b = be()..on('/me/events*', {'items': <Object>[], 'nextCursor': null});
-      await openScan(tester, b);
-      await tester.enterText(find.byType(TextField).last, 'K7M4QX');
-      await tester.tap(find.text('Yoklamayı gönder').last);
-      await settle(tester, const Duration(milliseconds: 500));
-      expect(find.textContaining('Kodu elle gir'), findsWidgets);
-      expect(b.requests.where((r) => r.contains('check-in')), isEmpty);
-      await _gone(tester);
-    });
-
-    testWidgets('uzun QR jetonu hâlâ koddaki etkinlik kimliğine gider', (tester) async {
-      final b = be()..on('/events/9/check-in', {'present': true});
-      await openScan(tester, b);
-      await tester.enterText(find.byType(TextField).last, 'bingol-checkin:9.123.abc');
-      await tester.tap(find.text('Yoklamayı gönder').last);
-      await settle(tester, const Duration(milliseconds: 500));
-      expect(b.bodies['POST /events/9/check-in'], {'code': '9.123.abc'});
+      expect(find.byKey(const ValueKey('events-checkin')), findsNothing);
+      expect(find.byKey(const ValueKey('events-create')), findsOneWidget);
       await _gone(tester);
     });
   });

@@ -46,7 +46,7 @@ FakeBackend _be(Map<String, dynamic> ev, {bool open = false, bool present = fals
   ..on('/events/5', ev)
   ..on('/events/5/my-attendance', {'present': present, 'checkInOpen': open})
   ..on('/events/5/admission', {'eventId': 5, 'mode': ev['joinPolicy'], 'questions': ['Neden katılmak istiyorsun?']})
-  ..on('/events/5/attendance', [
+  ..on('/events/5/attendance/roster', [
     for (var i = 0; i < 4; i++) {'userId': 100 + i, 'displayName': 'K $i', 'present': i < 1},
   ]);
 
@@ -139,27 +139,14 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
     });
 
-    testWidgets('acik: elle kod: baska etkinlik hatasi alanin altinda; dogru kod basari karti', (tester) async {
+    testWidgets('acik: katilimci yalniz QR kodum gorur; elle kod/okutma yok', (tester) async {
       final b = _be(_ev(rsvp: 'GOING'), open: true);
-      b.on('/events/5/check-in', {'present': true, 'checkInOpen': true});
       await _show(tester, b);
-      expect(find.byKey(const ValueKey('detail-scan')), findsOneWidget);
-      await tester.tap(find.byKey(const ValueKey('detail-enter-code')));
-      await tester.pump(const Duration(milliseconds: 400));
-      await tester.enterText(find.byKey(const ValueKey('detail-code-field')), '9.123.abc');
-      await tester.testTextInput.receiveAction(TextInputAction.done);
-      await tester.pump(const Duration(milliseconds: 400));
-      expect(find.text('Bu kod başka bir etkinliğe ait.'), findsOneWidget);
+      expect(find.byKey(const ValueKey('detail-my-qr')), findsOneWidget);
+      expect(find.byKey(const ValueKey('detail-scan')), findsNothing);
+      expect(find.byKey(const ValueKey('detail-enter-code')), findsNothing);
+      expect(find.byKey(const ValueKey('detail-code-field')), findsNothing);
       expect(b.requests.where((r) => r.contains('check-in')), isEmpty);
-      await tester.enterText(find.byKey(const ValueKey('detail-code-field')), 'abc');
-      await tester.testTextInput.receiveAction(TextInputAction.done);
-      await tester.pump(const Duration(milliseconds: 400));
-      expect(find.text('Bu bir yoklama kodu değil.'), findsOneWidget);
-      await tester.enterText(find.byKey(const ValueKey('detail-code-field')), '5.123.abc');
-      await tester.testTextInput.receiveAction(TextInputAction.done);
-      await tester.pump(const Duration(milliseconds: 500));
-      expect(b.bodies['POST /events/5/check-in'], {'code': '5.123.abc'});
-      expect(find.byKey(const ValueKey('detail-checked-in')), findsOneWidget);
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump(const Duration(seconds: 1));
     });

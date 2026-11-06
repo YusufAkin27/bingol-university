@@ -52,11 +52,17 @@ FakeBackend _be(Map<String, dynamic> ev) => FakeBackend()
       for (var i = 0; i < 5; i++) {'displayName': 'Kişi $i'},
     ],
   })
-  ..on('/events/5/attendance', [
-    {'userId': 11, 'displayName': 'Ayşe Yılmaz', 'department': 'Bilgisayar Mühendisliği', 'present': true, 'method': 'QR', 'markedAt': _iso(DateTime.now())},
-    {'userId': 12, 'displayName': 'Can Demir', 'department': 'İşletme', 'present': false},
-    {'userId': 2, 'displayName': 'Mehmet Kaya', 'present': true, 'method': 'MANUAL'},
-  ])
+  ..on('/events/5/attendance/roster', {
+    'rows': [
+      {'userId': 11, 'displayName': 'Ayşe Yılmaz', 'department': 'Bilgisayar Mühendisliği', 'rsvpStatus': 'GOING', 'present': true, 'status': 'PRESENT', 'method': 'QR', 'markedByName': 'Mehmet Kaya', 'markedAt': _iso(DateTime.now())},
+      {'userId': 12, 'displayName': 'Can Demir', 'department': 'İşletme', 'rsvpStatus': 'GOING', 'present': false, 'status': 'NONE'},
+      {'userId': 2, 'displayName': 'Mehmet Kaya', 'rsvpStatus': 'GOING', 'present': true, 'status': 'PRESENT', 'method': 'MANUAL', 'markedByName': 'Mehmet Kaya'},
+    ],
+    'present': 2,
+    'absent': 0,
+    'pending': 1,
+    'total': 3,
+  })
   ..on('/events/5/checkin-code', {
     'code': '5.123.abcdef',
     'qrPayload': 'bingol-checkin:5.123.abcdef',
@@ -209,7 +215,7 @@ void main() {
     await _reveal(tester, find.text('Katılım istekleri'));
     expect(find.text('Katılım istekleri'), findsOneWidget);
     expect(find.text('3 bekleyen istek'), findsWidgets);
-    expect(find.text('Yoklama kodu'), findsOneWidget);
+    expect(find.text('Yoklama aracı'), findsOneWidget);
     expect(find.text('Etkinlik ayarları'), findsOneWidget);
     _noErr(tester);
     await unmount(tester);
@@ -218,7 +224,7 @@ void main() {
   testWidgets('yonetici: herkese acik etkinlikte istek satiri yok', (tester) async {
     final be = _be(_ev(manage: true, capacity: 14));
     await _pump(tester, EventDetailPage(session: makeSession(be), eventId: 5), size: kPhoneMedium);
-    await _reveal(tester, find.text('Yoklama kodu'));
+    await _reveal(tester, find.text('Yoklama aracı'));
     expect(find.text('Katılım istekleri'), findsNothing);
     _noErr(tester);
     await unmount(tester);
@@ -311,25 +317,29 @@ void main() {
     _noErr(tester);
   });
 
-  testWidgets('yoklama listesi: filtre ve elle yoklama anahtari PUT yapar, hatada geri alinir', (tester) async {
+  testWidgets('yoklama araci: sayac, suzge, durum secimi PUT {status} yapar, hatada geri alinir', (tester) async {
     final be = _be(_ev(manage: true));
     await _pump(tester, Etkinlik2AttendancePage(session: makeSession(be), event: _ev(manage: true)));
-    expect(find.text('2 geldi · 1 gelmedi'), findsOneWidget);
+    expect(find.text('2 geldi · 0 gelmedi · 1 bekliyor'), findsOneWidget);
     expect(find.text('Can Demir'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('et2-filter-absent')));
+    await tester.tap(find.descendant(of: find.byKey(const ValueKey('att-filters')), matching: find.text('Bekliyor')));
     await tester.pump();
     expect(find.text('Ayşe Yılmaz'), findsNothing);
     expect(find.text('Can Demir'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('et2-mark-12')));
-    await settle(tester, const Duration(milliseconds: 300));
-    expect(be.bodies['PUT /events/5/attendance/12'], {'present': true});
-    expect(find.text('3 geldi · 0 gelmedi'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('att-row-12')));
+    await settle(tester, const Duration(milliseconds: 400));
+    await tester.tap(find.byKey(const ValueKey('att-opt-present')));
+    await settle(tester, const Duration(milliseconds: 400));
+    expect(be.bodies['PUT /events/5/attendance/12'], {'status': 'PRESENT'});
+    expect(find.text('3 geldi · 0 gelmedi · 0 bekliyor'), findsOneWidget);
     be.fail('/events/5/attendance/11', status: 500);
-    await tester.tap(find.text('Hepsi'));
+    await tester.tap(find.descendant(of: find.byKey(const ValueKey('att-filters')), matching: find.text('Hepsi')));
     await tester.pump();
-    await tester.tap(find.byKey(const ValueKey('et2-mark-11')));
-    await settle(tester, const Duration(milliseconds: 300));
-    expect(find.text('3 geldi · 0 gelmedi'), findsOneWidget); // geri alındı: Ayşe hâlâ geldi
+    await tester.tap(find.byKey(const ValueKey('att-row-11')));
+    await settle(tester, const Duration(milliseconds: 400));
+    await tester.tap(find.byKey(const ValueKey('att-opt-absent')));
+    await settle(tester, const Duration(milliseconds: 400));
+    expect(find.text('3 geldi · 0 gelmedi · 0 bekliyor'), findsOneWidget); // geri alındı: Ayşe hâlâ geldi
     _noErr(tester);
     await unmount(tester);
   });

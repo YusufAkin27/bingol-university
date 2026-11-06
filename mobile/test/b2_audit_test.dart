@@ -233,7 +233,7 @@ void main() {
       'location': 'Salon',
     };
     FakeBackend be() => FakeBackend()
-      ..on('/events/5/attendance', <Object>[])
+      ..on('/events/5/attendance/roster', <Object>[])
       ..on('/events/5/checkin-code', {
         'code': 'AAA.1',
         'qrPayload': 'bingol-checkin:AAA.1',
