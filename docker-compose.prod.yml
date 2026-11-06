@@ -190,6 +190,7 @@ services:
       MANAGEMENT_PORT:
       OPENAPI_DOCS_ENABLED:
       AUTH_VERIFY_REQUIRES_PASSWORD:
+      AUTH_SINGLE_MOBILE_SESSION:
       LEGAL_ENFORCE_REACCEPT:
       MAX_DEVICES_PER_USER:
       # FINAL-ALL (hepsi tanimsiz = bugunku/eski istemci uyumlu davranis; tanimlanirsa iletilir): makbuz/yaziyor kapatma

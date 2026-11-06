@@ -33,12 +33,21 @@ public class DeviceService {
     }
 
     public void register(Long userId, String token, String platform, String appVersion, String locale, boolean richNotifications) {
+        register(userId, token, platform, appVersion, locale, richNotifications, null);
+    }
+
+    /**
+     * `sessionId`: kaydi yapan oturumun kimligi (access JWT `sid`); null ise mevcut deger korunur (eski istemci/JWT
+     * sid'siz). Cok oturum: kullanici basina birden cok cihaz kaydi vardir, push hepsine gider.
+     */
+    public void register(Long userId, String token, String platform, String appVersion, String locale,
+                         boolean richNotifications, String sessionId) {
         try {
-            upsert(userId, token, platform, appVersion, locale, richNotifications);
+            upsert(userId, token, platform, appVersion, locale, richNotifications, sessionId);
         } catch (DataIntegrityViolationException e) {
             // Es zamanli iki kayit: token benzersizligi. Digeri kazandi; yeniden okuyup sahipligi biz guncelleriz.
             try {
-                upsert(userId, token, platform, appVersion, locale, richNotifications);
+                upsert(userId, token, platform, appVersion, locale, richNotifications, sessionId);
             } catch (DataIntegrityViolationException again) {
                 return;
             }
@@ -49,10 +58,17 @@ public class DeviceService {
         }
     }
 
-    private void upsert(Long userId, String token, String platform, String appVersion, String locale, boolean richNotifications) {
+    private void upsert(Long userId, String token, String platform, String appVersion, String locale,
+                        boolean richNotifications, String sessionId) {
         Device d = devices.findByFcmToken(token).orElseGet(Device::new);
         Instant now = Instant.now();
         d.setFcmToken(token);
+        if (!java.util.Objects.equals(d.getUserId(), userId)) {
+            d.setSessionId(null); // token baska hesaptan tasindi: eski oturum bagi gecersiz
+        }
+        if (sessionId != null) {
+            d.setSessionId(sessionId);
+        }
         d.setUserId(userId);
         d.setPlatform(platform.toUpperCase(Locale.ROOT));
         d.setAppVersion(appVersion);

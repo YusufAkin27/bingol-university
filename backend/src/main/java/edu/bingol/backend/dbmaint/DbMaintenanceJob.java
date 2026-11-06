@@ -57,6 +57,16 @@ public class DbMaintenanceJob {
     /** Guvenilen 2FA cihazinin bosta kalma siniri (gun); TwoFactorService ile ayni ayar. */
     @Value("${app.twofactor.device-ttl-days:60}")
     private int twoFactorDeviceDays = 60;
+    /**
+     * Oturum kaydi ("Cihazlarim", user_session) son kullanimdan sonra saklama (gun): mutlak oturum omru
+     * (`app.auth.session-max-days`, 90) + pay. Iptal edilmis kayitlar da son kullanimlarina gore ayni sure sonra silinir.
+     */
+    @Value("${app.dbmaint.session-days:100}")
+    private int sessionDays = 100;
+
+    void setSessionDays(int days) {
+        this.sessionDays = days;
+    }
 
     public DbMaintenanceJob(ChunkedDeleter deleter, NamedParameterJdbcTemplate jdbc, AnalyticsRollup rollup,
                             SchedulerLock lock, Clock clock,
@@ -166,6 +176,7 @@ public class DbMaintenanceJob {
         out.put("club_audit", safe("club_audit", () -> longAudit("club_audit", now)));
         out.put("follow_request", safe("follow_request", () -> followRequests(now)));
         out.put("two_factor_device", safe("two_factor_device", () -> twoFactorDevices(now)));
+        out.put("user_session", safe("user_session", () -> userSessions(now)));
         out.put("crash_event", safe("crash_event", () -> crashEvents(now)));
         out.put("crash_group", safe("crash_group", () -> crashGroups(now)));
         log.info("dbmaint tamam: {}", out);
@@ -214,6 +225,13 @@ public class DbMaintenanceJob {
         return twoFactorDeviceDays <= 0 ? 0 : deleter.delete("two_factor_device",
                 "DELETE FROM two_factor_device WHERE id IN (SELECT id FROM two_factor_device WHERE last_used_at < :cutoff ORDER BY id LIMIT :lim)",
                 Map.of("cutoff", cutoff(now, twoFactorDeviceDays)));
+    }
+
+    /** Cok oturum kayitlari: son kullanimi `sessionDays` gunden eski (acik ya da iptal) satirlar parcali silinir. */
+    private int userSessions(Instant now) {
+        return sessionDays <= 0 ? 0 : deleter.delete("user_session",
+                "DELETE FROM user_session WHERE sid IN (SELECT sid FROM user_session WHERE last_used_at < :cutoff ORDER BY sid LIMIT :lim)",
+                Map.of("cutoff", cutoff(now, sessionDays)));
     }
 
     /** Gunluk acilis sayaci: raporlar en cok 366 gun sorgular; 400 gunden eskisi gereksiz. */

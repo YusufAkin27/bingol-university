@@ -41,6 +41,8 @@ public class StompAuthInterceptor implements ChannelInterceptor {
     static final String TOKEN_EXP_ATTR = "tokenExp";
     static final String USER_ID_ATTR = "wsUserId";
     static final String CLIENT_ATTR = "wsClient";
+    /** Access token'daki oturum kimligi (sid); tek cihazdan cikista yalniz o oturumun baglantisi kapanir. */
+    static final String SID_ATTR = "wsSid";
     /** El sikisma aninda yazilan {@link ClientContext} (IP + X-Device-Id ozeti). */
     public static final String CONTEXT_ATTR = "wsClientContext";
     static final long EXP_GRACE_SECONDS = 60;
@@ -164,6 +166,10 @@ public class StompAuthInterceptor implements ChannelInterceptor {
                 ops.get(JwtAuthFilter.MOBILE_REVOKED_KEY_PREFIX + id.userId()))) {
             throw new Rejected("SESSION_REPLACED");
         }
+        if (id.sid() != null && ops != null
+                && ops.get(JwtAuthFilter.SESSION_REVOKED_KEY_PREFIX + id.sid()) != null) {
+            throw new Rejected("SESSION_REPLACED"); // "Cihazlarim"dan kapatilan oturum
+        }
         // jwt.parse imzayi dogruladi; bitis zamanini yuk kisminden okuruz (JwtService'e dokunmadan).
         long exp = expOf(h.substring(7).trim());
         if (Instant.now().getEpochSecond() > exp) {
@@ -176,6 +182,9 @@ public class StompAuthInterceptor implements ChannelInterceptor {
             acc.getSessionAttributes().put(TOKEN_EXP_ATTR, exp);
             acc.getSessionAttributes().put(USER_ID_ATTR, id.userId());
             acc.getSessionAttributes().put(CLIENT_ATTR, id.client());
+            if (id.sid() != null) {
+                acc.getSessionAttributes().put(SID_ATTR, id.sid());
+            }
         }
     }
 

@@ -271,7 +271,7 @@ Tasarım: `bildirim-ekranlari/` (kart dili: kaynak etiketi, rozet/çip, avatar/k
 | `badgeText` | alıcının dilinde kısa rozet/çip metni: `Yarın`, `Saat Revizesi`, `İptal`, `Son 24 saat` (en/ar karşılıkları sunucuda çevrilir) | etkinlik yarın/revize/iptal, anket kapanıyor |
 | `important` | `1` = "ÖNEMLİ" duyuru. ŞU AN ÜRETİLMİYOR (kaynak verisinde önem alanı yok); istemci varsa gösterir | - |
 | `severity` | `critical` yalnız güvenlik için AYRILMIŞTIR (`NEW_DEVICE`, `PASSWORD_CHANGED`); bu iki olay ŞU AN ÜRETİLMİYOR (bkz. bölüm 6), dolayısıyla şu an hiçbir push `severity` taşımaz. İstemci geldiğinde kırmızı üst şerit çizer, iOS `time-sensitive` olur | güvenlik (ayrılmış) |
-| `securityKind` | Şu an üretilenler: `TWOFA_ENABLED`, `TWOFA_DISABLED`, `TWOFA_LOCKED` (kalıcı `data`'da da bulunur). Ayrılmış: `NEW_DEVICE`, `PASSWORD_CHANGED`. İstemci aksiyonu buna göre seçer | 2FA |
+| `securityKind` | Şu an üretilenler: `TWOFA_ENABLED`, `TWOFA_DISABLED`, `TWOFA_LOCKED` (kalıcı `data`'da da bulunur) ve `NEW_DEVICE` (çoklu oturum: yeni cihaz girişi; `target=SECURITY`, `value=devices`, `sessionId`; `severity` taşımaz; bkz. `docs/changes/auth.md` "Çoklu oturum + Cihazlarım"). Ayrılmış: `PASSWORD_CHANGED`. İstemci aksiyonu buna göre seçer | 2FA, yeni cihaz |
 | `eventChange` | `TIME` (başlangıç saati değişti), `PLACE`, `CANCELLED`; `style` bunu okur (`EVENT_CANCELLED`) | etkinlik güncelleme/iptal |
 | `moderation` | `1` = kullanıcıya dönük moderasyon bildirimi (`style=MODERATION`) | moderasyon |
 | `broadcast` | `1` = genel yayın zengin yükü (haber, herkese açık anket): `recipientId` YOKTUR; Android oturumu açık herhangi bir hesapta çizer (içerik herkese açık ve aynı) | haber/anket yayını |

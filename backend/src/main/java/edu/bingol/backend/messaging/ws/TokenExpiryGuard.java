@@ -1,6 +1,7 @@
 package edu.bingol.backend.messaging.ws;
 
 import edu.bingol.backend.accessban.AccessBlockedEvent;
+import edu.bingol.backend.auth.token.SessionRevokedEvent;
 import edu.bingol.backend.auth.token.SessionsRevokedEvent;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -95,6 +96,36 @@ public class TokenExpiryGuard {
     @EventListener
     public void onSessionsRevoked(SessionsRevokedEvent e) {
         closeUser(e.userId(), e.client());
+    }
+
+    /**
+     * Tek oturum ("Cihazlarim"dan cikis): yalniz o sid'li WS baglantilarina `session-replaced` gider ve kapanir;
+     * kullanicinin diger cihazlari etkilenmez.
+     */
+    @EventListener
+    public void onSessionRevoked(SessionRevokedEvent e) {
+        closeSid(e.userId(), e.sid());
+    }
+
+    int closeSid(Long userId, String sid) {
+        List<WebSocketSession> targets = new ArrayList<>();
+        for (WebSocketSession s : sessions.values()) {
+            Map<String, Object> a = s.getAttributes();
+            if (userId != null && userId.equals(a.get(StompAuthInterceptor.USER_ID_ATTR))
+                    && sid != null && sid.equals(a.get(StompAuthInterceptor.SID_ATTR))) {
+                sessions.remove(s.getId());
+                targets.add(s);
+            }
+        }
+        for (WebSocketSession s : targets) {
+            notifyReplaced(userId, s, "session-replaced");
+        }
+        if (closeDelayMs > 0 && !targets.isEmpty()) {
+            closer.schedule(() -> targets.forEach(s -> closeQuietly(s, REVOKED)), closeDelayMs, TimeUnit.MILLISECONDS);
+        } else {
+            targets.forEach(s -> closeQuietly(s, REVOKED));
+        }
+        return targets.size();
     }
 
     /**

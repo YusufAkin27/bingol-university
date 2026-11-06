@@ -42,9 +42,13 @@ public class RefreshTokenService {
     static final Duration NEXT_TTL = Duration.ofMinutes(5);
 
     /** Tuketilen refresh token'in sahibi, istemci turu ve oturumun ilk giris ani (ms; 0 = eski token, bilinmiyor). */
-    public record Session(Long userId, String client, long authTimeMs) {
+    public record Session(Long userId, String client, long authTimeMs, String sid) {
+        public Session(Long userId, String client, long authTimeMs) {
+            this(userId, client, authTimeMs, null);
+        }
+
         public Session(Long userId, String client) {
-            this(userId, client, 0L);
+            this(userId, client, 0L, null);
         }
     }
 
@@ -52,13 +56,17 @@ public class RefreshTokenService {
      * Yeniden kullanilan (calinti suphesi) token'in ait oldugu OTURUM AILESI: ayni giriste (authTimeMs) rotasyonla
      * uretilmis zincir. authTimeMs &lt;= 0 ise aile bilinmiyor (eski kayit).
      */
-    public record Reuse(long userId, String client, long authTimeMs) {
+    public record Reuse(long userId, String client, long authTimeMs, String sid) {
+        public Reuse(long userId, String client, long authTimeMs) {
+            this(userId, client, authTimeMs, null);
+        }
+
         public boolean familyKnown() {
             return authTimeMs > 0;
         }
     }
 
-    private record UsedMark(long owner, long usedAt, String client, long authTimeMs) {}
+    private record UsedMark(long owner, long usedAt, String client, long authTimeMs, String sid) {}
 
     private final StringRedisTemplate redis;
     private final Duration ttl;
@@ -98,6 +106,14 @@ public class RefreshTokenService {
 
     /** `authTimeMs` &lt;= 0 ise simdi (yeni giris); rotasyonda onceki oturumun degeri korunur. */
     public String issue(Long userId, String client, long authTimeMs) {
+        return issue(userId, client, authTimeMs, null);
+    }
+
+    /**
+     * `sid`: oturum kaydinin kimligi (cok oturum / "Cihazlarim"); rotasyonda korunur. null = kimliksiz (eski zincir):
+     * deger eski bicimde (`uid:client:authTime`) yazilir.
+     */
+    public String issue(Long userId, String client, long authTimeMs, String sid) {
         long now = System.currentTimeMillis();
         long auth = authTimeMs > 0 ? authTimeMs : now;
         byte[] b = new byte[32];
@@ -107,7 +123,8 @@ public class RefreshTokenService {
         // Token omru mutlak oturum omrunu asamaz (kayan oturum sinirsiz uzamasin).
         long leftMs = auth + sessionMax.toMillis() - now;
         Duration life = leftMs >= ttl.toMillis() ? ttl : Duration.ofMillis(Math.max(leftMs, 1000));
-        redis.opsForValue().set(TOKEN_PREFIX + hash, userId + ":" + normalizeClient(client) + ":" + auth, life);
+        redis.opsForValue().set(TOKEN_PREFIX + hash,
+                userId + ":" + normalizeClient(client) + ":" + auth + (sid == null || sid.isBlank() ? "" : ":" + sid), life);
         redis.opsForSet().add(userKey(userId), hash);
         redis.expire(userKey(userId), ttl);
         return token;
@@ -130,17 +147,19 @@ public class RefreshTokenService {
         if (v == null) {
             return null;
         }
-        String[] p = v.split(":", 3);
+        String[] p = v.split(":", 4);
         Long userId = Long.valueOf(p[0]);
         redis.opsForSet().remove(userKey(userId), hash);
         String client = p.length < 2 ? WEB : normalizeClient(p[1]);
         long authTime = p.length < 3 ? 0L : parseLong(p[2]);
+        String sid = p.length < 4 || p[3].isBlank() ? null : p[3];
         if (markUsed) {
-            // Deger: sahip:tuketimAni:istemci:girisAni (aile kimligi = girisAni; yeniden kullanimda yalniz o aile kapanir)
+            // Deger: sahip:tuketimAni:istemci:girisAni[:sid] (aile kimligi = girisAni; yeniden kullanimda yalniz o aile kapanir)
             redis.opsForValue().set(USED_PREFIX + hash,
-                    userId + ":" + System.currentTimeMillis() + ":" + client + ":" + authTime, reuseWindow);
+                    userId + ":" + System.currentTimeMillis() + ":" + client + ":" + authTime
+                            + (sid == null ? "" : ":" + sid), reuseWindow);
         }
-        return new Session(userId, client, authTime);
+        return new Session(userId, client, authTime, sid);
     }
 
     /**
@@ -160,7 +179,7 @@ public class RefreshTokenService {
         if (m == null || System.currentTimeMillis() - m.usedAt() < reuseGrace.toMillis()) {
             return Optional.empty();
         }
-        return Optional.of(new Reuse(m.owner(), m.client(), m.authTimeMs()));
+        return Optional.of(new Reuse(m.owner(), m.client(), m.authTimeMs(), m.sid()));
     }
 
     /**
@@ -182,13 +201,13 @@ public class RefreshTokenService {
         if (v == null) {
             return null;
         }
-        String[] f = v.split(":", 4);
+        String[] f = v.split(":", 5);
         long owner = parseLong(f[0]);
         if (f.length < 2 || owner <= 0) {
             return null;
         }
         return new UsedMark(owner, parseLong(f[1]), f.length < 3 ? WEB : normalizeClient(f[2]),
-                f.length < 4 ? 0L : parseLong(f[3]));
+                f.length < 4 ? 0L : parseLong(f[3]), f.length < 5 || f[4].isBlank() ? null : f[4]);
     }
 
     /**
@@ -212,7 +231,7 @@ public class RefreshTokenService {
                 redis.opsForSet().remove(userKey(userId), h); // suresi dolmus
                 continue;
             }
-            String[] parts = v.split(":", 3);
+            String[] parts = v.split(":", 4);
             String c = parts.length < 2 ? WEB : normalizeClient(parts[1]);
             long auth = parts.length < 3 ? 0L : parseLong(parts[2]);
             if (auth == authTimeMs && c.equals(want)) {
@@ -334,9 +353,42 @@ public class RefreshTokenService {
         return id > 0 ? id : null;
     }
 
-    /** Cikis: token tuketilir ama "kullanildi" isareti birakilmaz (cikis yapilmis token calinma sayilmaz). */
-    public void revoke(String token) {
-        consume(token, false);
+    /**
+     * Cikis: token tuketilir ama "kullanildi" isareti birakilmaz (cikis yapilmis token calinma sayilmaz). Tuketilen
+     * oturumu doner (gecersiz token icin null): cagiran oturum kaydini kapatir.
+     */
+    public Session revoke(String token) {
+        return consume(token, false);
+    }
+
+    /**
+     * Tek bir oturumu (sid) kapatir: o oturumun canli refresh token'i silinir ve mezar tasi birakilir; kullanicinin
+     * diger cihazlari etkilenmez. Silinen token sayisini doner.
+     */
+    public int revokeSid(Long userId, String sid) {
+        if (sid == null || sid.isBlank()) {
+            return 0;
+        }
+        Set<String> hashes = redis.opsForSet().members(userKey(userId));
+        int n = 0;
+        if (hashes == null) {
+            return 0;
+        }
+        for (String h : hashes) {
+            String v = redis.opsForValue().get(TOKEN_PREFIX + h);
+            if (v == null) {
+                redis.opsForSet().remove(userKey(userId), h); // suresi dolmus
+                continue;
+            }
+            String[] parts = v.split(":", 4);
+            if (parts.length >= 4 && sid.equals(parts[3])) {
+                redis.delete(TOKEN_PREFIX + h);
+                redis.opsForSet().remove(userKey(userId), h);
+                tombstone(h, userId);
+                n++;
+            }
+        }
+        return n;
     }
 
     /** Kullanicinin tum refresh token'larini siler (sifre degisimi, "tum cihazlardan cik"); silinen sayisini doner. */

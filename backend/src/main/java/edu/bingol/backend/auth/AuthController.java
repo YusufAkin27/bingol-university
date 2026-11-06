@@ -284,7 +284,7 @@ public class AuthController {
         Long userId = (Long) authentication.getPrincipal();
         limiter.check("chpw:user:" + userId, 5, Duration.ofHours(1));
         limiter.check("chpw:ip:" + clientIp.limitKey(http), limits.changePasswordIpMax(), Duration.ofHours(1));
-        return auth.changePassword(userId, r.currentPassword(), r.newPassword(), callerClient(http));
+        return auth.changePassword(userId, r.currentPassword(), r.newPassword(), callerClient(http), contexts.of(http));
     }
 
     /** Istegi yapan access token'in istemci turu (`cl`); yoksa web. */

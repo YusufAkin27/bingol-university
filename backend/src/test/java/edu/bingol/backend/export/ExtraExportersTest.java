@@ -148,6 +148,8 @@ class ExtraExportersTest {
             Map.entry("follow_request", "followRequests"),
             // 2FA (V1060): durum + guvenilen cihaz etiketleri (ham/ozet kimlik disa verilmez)
             Map.entry("two_factor_device", "twoFactor"),
+            // Cok oturum (V1460): acik oturum kayitlari (cihaz adi, maskeli IP; ham IP/cihaz kimligi yok)
+            Map.entry("user_session", "sessions"),
             // Kampus Forum (E): hepsi tek "forum" bolumunde (ForumDataExporter); anonim paylasimlar da kullanicinin kendi verisidir
             Map.entry("forum_topic", "forum"), Map.entry("forum_comment", "forum"),
             Map.entry("forum_topic_like", "forum"), Map.entry("forum_comment_like", "forum"),

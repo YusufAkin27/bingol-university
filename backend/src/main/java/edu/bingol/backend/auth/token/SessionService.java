@@ -57,6 +57,24 @@ public class SessionService {
     }
 
     /**
+     * Tek bir oturumu (sid) kapatir; kullanicinin diger cihazlari acik kalir. Sira: erisim isareti (`sessrev:<sid>`,
+     * o sid'li access token'lar aninda 401), refresh token silme + mezar tasi, olay (WebSocket kapanir, o oturumdan
+     * kaydolmus FCM cihazi silinir).
+     */
+    public void revokeSession(Long userId, String sid) {
+        redis.opsForValue().set(JwtAuthFilter.SESSION_REVOKED_KEY_PREFIX + sid, String.valueOf(clock.millis()),
+                jwt.accessTtl().plus(Duration.ofMinutes(1)));
+        refresh.revokeSid(userId, sid);
+        events.publishEvent(new SessionRevokedEvent(userId, sid));
+    }
+
+    /** Oturum (sid) tek basina iptal edildi mi? sid yoksa false. */
+    public boolean isSidRevoked(String sid) {
+        return sid != null && !sid.isBlank()
+                && Boolean.TRUE.equals(redis.hasKey(JwtAuthFilter.SESSION_REVOKED_KEY_PREFIX + sid));
+    }
+
+    /**
      * Oturum (authTimeMs'de acilmis) sonradan "tum cihazlardan cik"/sifre degisimi ya da (mobil icin) tek cihaz
      * kuraliyla iptal edildi mi? authTime bilinmiyorsa (eski token, 0) false: eski oturumlar kendi sureleriyle biter.
      */

@@ -23,10 +23,16 @@ public class JwtService {
 
     /** Gecerli bir token'dan okunan kimlik. */
     public record Identity(Long userId, Role role, Instant issuedAt, long issuedAtMillis, String client,
-                           String email, String adminProfile) {
+                           String email, String adminProfile, String sid) {
+        /** Eski 7 alanli kurucu (oturum kimligi talepsiz). */
+        public Identity(Long userId, Role role, Instant issuedAt, long issuedAtMillis, String client,
+                        String email, String adminProfile) {
+            this(userId, role, issuedAt, issuedAtMillis, client, email, adminProfile, null);
+        }
+
         /** Eski 5 alanli kurucu (yonetici profili/e-posta talepsiz). */
         public Identity(Long userId, Role role, Instant issuedAt, long issuedAtMillis, String client) {
-            this(userId, role, issuedAt, issuedAtMillis, client, null, null);
+            this(userId, role, issuedAt, issuedAtMillis, client, null, null, null);
         }
     }
 
@@ -37,6 +43,8 @@ public class JwtService {
     static final String CLIENT_CLAIM = "cl";
     /** Yonetici profili talebi (P16): yalniz role=ADMIN token'larinda; izinler sunucuda profilden cozulur. */
     static final String ADMIN_PROFILE_CLAIM = "ap";
+    /** Oturum kimligi talebi (cok oturum / "Cihazlarim"): user_session.sid; yoksa eski token. */
+    static final String SID_CLAIM = "sid";
     private static final String DEV_SECRET_PREFIX = "dev-only-secret";
 
     private final SecretKey key;
@@ -67,6 +75,11 @@ public class JwtService {
     }
 
     public String createAccessToken(User user, String client) {
+        return createAccessToken(user, client, null);
+    }
+
+    /** `sid` doluysa token oturum kimligini tasir (tek cihazdan cikis iptali ve "bu cihaz" ayrimi). */
+    public String createAccessToken(User user, String client, String sid) {
         Date now = new Date();
         var builder = Jwts.builder()
                 .subject(String.valueOf(user.getId()))
@@ -76,6 +89,9 @@ public class JwtService {
             // Profili bos yonetici (migrasyon oncesi) FULL sayilir
             var p = user.getAdminProfile();
             builder.claim(ADMIN_PROFILE_CLAIM, (p == null ? edu.bingol.backend.admin.rbac.AdminProfile.FULL : p).name());
+        }
+        if (sid != null && !sid.isBlank()) {
+            builder.claim(SID_CLAIM, sid);
         }
         return builder
                 .claim(CLIENT_CLAIM, "mobile".equalsIgnoreCase(client) ? "mobile" : "web")
@@ -97,7 +113,8 @@ public class JwtService {
             return new Identity(Long.valueOf(c.getSubject()), role == null ? Role.USER : Role.valueOf(role),
                     iat == null ? Instant.EPOCH : iat.toInstant(), iatMs,
                     "mobile".equals(c.get(CLIENT_CLAIM, String.class)) ? "mobile" : "web",
-                    c.get("email", String.class), c.get(ADMIN_PROFILE_CLAIM, String.class));
+                    c.get("email", String.class), c.get(ADMIN_PROFILE_CLAIM, String.class),
+                    c.get(SID_CLAIM, String.class));
         } catch (JwtException | IllegalArgumentException e) {
             return null;
         }
