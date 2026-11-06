@@ -56,13 +56,13 @@
 .label {
   margin: 0;
   font-size: var(--text-sm);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--text-muted);
 }
 .value {
   margin: 0;
   font-size: var(--text-xl);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   overflow-wrap: anywhere;
 }
 .line {
@@ -124,7 +124,7 @@
   border-radius: var(--radius-lg);
   color: var(--text);
   font: inherit;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   text-align: start;
   cursor: pointer;
 }
@@ -173,7 +173,7 @@
   padding-inline: var(--space-3) var(--space-1);
   border-block-end: 1px solid var(--border);
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .codeHead button {
   min-inline-size: 44px;
@@ -208,7 +208,7 @@
 }
 .faqQ {
   margin: 0;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .faqA {
   margin: var(--space-1) 0 0;

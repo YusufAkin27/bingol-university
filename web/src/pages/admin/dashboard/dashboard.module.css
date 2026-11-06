@@ -328,12 +328,12 @@
 .healthTitle {
   margin: 0;
   font-size: var(--text-sm);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--text-muted);
 }
 .healthSentence {
   margin: 0;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   overflow-wrap: anywhere;
 }
 .healthLink {
@@ -341,7 +341,7 @@
   align-items: center;
   min-block-size: 44px;
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .healthChips {
   list-style: none;

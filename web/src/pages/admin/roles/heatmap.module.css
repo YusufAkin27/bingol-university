@@ -16,7 +16,7 @@
   font-size: var(--text-sm);
 }
 .map thead th {
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   text-align: center;
   padding: var(--space-2) var(--space-1);
   white-space: nowrap;
@@ -28,7 +28,7 @@
 }
 .map tbody th,
 .map tfoot th {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   min-inline-size: 8rem;
 }
 .groupBtn {
@@ -63,7 +63,7 @@
   min-block-size: 2.75rem;
   border-radius: var(--radius-sm);
   font-variant-numeric: tabular-nums;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   /* kontrast: metin yüzeyin zıttı, arka plan hep açık/koyu yüzeyle karıştırılır */
   color: var(--text);
 }
@@ -86,7 +86,7 @@
 }
 .total {
   text-align: center;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
   padding-block-start: var(--space-2);
 }

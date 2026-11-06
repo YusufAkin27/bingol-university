@@ -235,7 +235,7 @@
   display: flex;
   align-items: center;
   min-block-size: 44px;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   cursor: pointer;
 }
 .topMembers[open] {

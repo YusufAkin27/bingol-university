@@ -17,7 +17,7 @@
 }
 .code {
   font-size: var(--text-sm);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   padding-inline: var(--space-1);
@@ -85,7 +85,7 @@
   border-radius: calc(var(--radius-md) - 4px);
   background: transparent;
   color: var(--text-muted);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   font-size: var(--text-sm);
   cursor: pointer;
 }

@@ -64,13 +64,13 @@
 .kbtn:hover { background: var(--surface-2); }
 .kbtn:focus-visible { outline: 2px solid var(--focus, var(--primary)); outline-offset: 1px; }
 .kfill { display: block; inline-size: 70%; min-block-size: 4px; border-radius: var(--radius-sm) var(--radius-sm) 0 0; background: var(--info); }
-.kbar_partial .kfill { background: repeating-linear-gradient(135deg, var(--info) 0 4px, transparent 4px 7px); outline: 1px solid var(--info); outline-offset: -1px; }
+.kbar_partial .kfill { background: repeating-linear-gradient(135deg, var(--text-muted) 0 4px, transparent 4px 7px); outline: 1px solid var(--info); outline-offset: -1px; }
 .kbar_none .kfill { block-size: 6px; background: transparent; border: 2px dashed var(--warning); border-radius: var(--radius-sm); }
 .kday { text-align: center; font-size: var(--text-xs); color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .klegend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); font-size: var(--text-sm); color: var(--text-muted); }
 .klegend li { display: inline-flex; align-items: center; gap: var(--space-1); }
 .ksw { display: inline-block; inline-size: 0.9rem; block-size: 0.9rem; border-radius: var(--radius-xs); background: var(--info); }
-.ksw.kbar_partial { background: repeating-linear-gradient(135deg, var(--info) 0 3px, transparent 3px 6px); outline: 1px solid var(--info); outline-offset: -1px; }
+.ksw.kbar_partial { background: repeating-linear-gradient(135deg, var(--text-muted) 0 3px, transparent 3px 6px); outline: 1px solid var(--info); outline-offset: -1px; }
 .ksw.kbar_none { background: transparent; border: 2px dashed var(--warning); }
 .dayDetails { scroll-margin-block-start: 5rem; }
 @media (max-width: 639px) {

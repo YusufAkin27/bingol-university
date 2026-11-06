@@ -105,14 +105,14 @@
   inset-inline: var(--space-3);
   inset-block-end: var(--space-3);
   height: 3px;
-  border-radius: 2px;
+  border-radius: var(--radius-pill);
   background: var(--border);
 }
 .progressBar {
   display: block;
   width: 38%;
   height: 100%;
-  border-radius: 2px;
+  border-radius: var(--radius-pill);
   background: var(--text);
 }
 @media (max-width: 420px) {

@@ -100,7 +100,7 @@
 .chartTitle {
   margin: 0;
   font-size: var(--text-base);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .chartHint {
   margin: 0;
@@ -190,7 +190,7 @@
   background: var(--surface);
   color: var(--text);
   font: inherit;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   cursor: pointer;
 }
 .viewBtn + .viewBtn {
@@ -282,7 +282,7 @@
   background: var(--surface);
   color: var(--text);
   font-size: var(--text-xs);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .postInfo {
   display: grid;
@@ -291,7 +291,7 @@
   min-inline-size: 0;
 }
 .postWho {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   font-size: var(--text-sm);
   overflow-wrap: anywhere;
 }

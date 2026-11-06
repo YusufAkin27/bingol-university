@@ -11,7 +11,7 @@
 .title {
   margin: 0;
   font-size: var(--text-base);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   overflow-wrap: anywhere;
 }
 .snippet {
@@ -57,7 +57,7 @@
 }
 .facts dd {
   margin: 0;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .touch button {
   min-block-size: 44px;

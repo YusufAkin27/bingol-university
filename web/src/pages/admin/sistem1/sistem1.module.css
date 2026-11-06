@@ -25,7 +25,7 @@
   min-inline-size: 3.25rem;
   color: var(--text-muted);
   font-size: var(--text-xs);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .lampBulb {
   display: grid;
@@ -62,7 +62,7 @@
   align-self: center;
   color: var(--text-muted);
   font-size: var(--text-sm);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .lights[data-compact] .lampBulb {
   inline-size: 1.75rem;
@@ -91,8 +91,8 @@
 .zoneSeg[data-zone='warn'] {
   background: repeating-linear-gradient(
     135deg,
-    color-mix(in srgb, var(--warning) 70%, var(--surface)) 0 4px,
-    color-mix(in srgb, var(--warning) 35%, var(--surface)) 4px 8px
+    color-mix(in srgb, var(--text-muted) 70%, var(--surface)) 0 4px,
+    color-mix(in srgb, var(--text-muted) 35%, var(--surface)) 4px 8px
   );
 }
 .zoneSeg[data-zone='crit'] {
@@ -143,7 +143,7 @@
 }
 .stackSeg[data-tone='warning'],
 .legendSwatch[data-tone='warning'] {
-  background: repeating-linear-gradient(135deg, var(--warning) 0 4px, color-mix(in srgb, var(--warning) 45%, var(--surface)) 4px 8px);
+  background: repeating-linear-gradient(135deg, var(--text-muted) 0 4px, color-mix(in srgb, var(--text-muted) 45%, var(--surface)) 4px 8px);
 }
 .stackSeg[data-tone='danger'],
 .legendSwatch[data-tone='danger'] {
@@ -212,12 +212,12 @@
 .tileTitle {
   margin: 0;
   font-size: var(--text-base);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .tileBig {
   margin: 0;
   font-size: var(--text-xl);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   overflow-wrap: anywhere;
 }
 .tileSentence {
@@ -231,7 +231,7 @@
   align-items: center;
   min-block-size: 2.75rem;
   color: var(--link);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .tileList {
   list-style: none;
@@ -263,7 +263,7 @@
 }
 .timeBar[data-verdict='attention'] {
   block-size: 70%;
-  background: repeating-linear-gradient(135deg, var(--warning) 0 4px, color-mix(in srgb, var(--warning) 45%, var(--surface)) 4px 8px);
+  background: repeating-linear-gradient(135deg, var(--text-muted) 0 4px, color-mix(in srgb, var(--text-muted) 45%, var(--surface)) 4px 8px);
 }
 .timeBar[data-verdict='urgent'] {
   block-size: 100%;
@@ -315,7 +315,7 @@
 .laneName {
   flex: 1;
   min-inline-size: 0;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   overflow-wrap: anywhere;
 }
 .laneWhen {
@@ -341,7 +341,7 @@
   gap: var(--space-2);
   min-block-size: 3rem;
   cursor: pointer;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   list-style: none;
 }
 .techSummary::-webkit-details-marker {
@@ -365,7 +365,7 @@
   display: flex;
   align-items: center;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   color: var(--text-muted);
 }
 
@@ -399,7 +399,7 @@
 .summaryTitle {
   margin: 0;
   font-size: var(--text-lg);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .summarySentence {
   margin: 0;
@@ -440,5 +440,5 @@
 .blockTitle {
   margin: 0;
   font-size: var(--text-base);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }

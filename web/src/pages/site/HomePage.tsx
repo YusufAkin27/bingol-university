@@ -9,6 +9,7 @@ import { useAppInfo, useStoreLinks } from '../../api/hooks';
 import { Icon, type IconName } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { paths } from '../../paths';
+import { pageUrl } from '../../seo/headModel';
 import { siteOrigin } from '../../seo/siteUrl';
 import { CtaBand } from './components/CtaBand';
 import { SHOWCASE } from './components/features';
@@ -31,14 +32,18 @@ const SOCIAL_ICONS: IconName[] = ['image', 'users', 'community', 'message'];
 const SAFE_ICONS: IconName[] = ['eyeOff', 'shield', 'check', 'download'];
 
 export default function HomePage() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const stores = useStoreLinks();
   const info = useAppInfo();
   const h1 = useHeadingFocus<HTMLHeadingElement>();
   const origin = siteOrigin();
   usePageMeta({
     route: 'home',
-    jsonLd: [websiteLd(info.data, origin), organizationLd(info.data, origin), mobileAppLd(info.data, stores, origin)],
+    jsonLd: [
+      organizationLd(info.data, origin),
+      websiteLd(origin, lang, pageUrl(origin, lang, '/')),
+      mobileAppLd(info.data, stores, origin, t('seo.d.home')),
+    ],
   });
 
   const safe: Point[] = ([1, 2, 3, 4] as const).map((n) => ({
