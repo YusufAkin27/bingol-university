@@ -1,0 +1,17 @@
+/* BU Kampus widgets - العربية (ar). مسودة ترجمة: تحتاج مراجعة متحدث أصلي قبل النشر (docs/IOS_RELEASE.md). */
+"signedout.title" = "تسجيل الدخول";
+"signedout.sub" = "افتح BÜ Kampüs";
+"widget.menu.name" = "قائمة طعام اليوم";
+"widget.menu.desc" = "يعرض قائمة طعام المطعم اليوم وسعراتها الحرارية.";
+"widget.timetable.name" = "جدول محاضراتي";
+"widget.timetable.desc" = "يعرض محاضرتك القادمة وجدول اليوم.";
+"widget.events.name" = "الفعاليات القادمة";
+"widget.events.desc" = "يعرض الفعاليات القادمة للأندية.";
+"widget.announcements.name" = "إعلانات الحرم الجامعي";
+"widget.announcements.desc" = "يعرض آخر إعلانات الجامعة.";
+"widget.poll.name" = "استطلاع اليوم";
+"widget.poll.desc" = "يعرض استطلاع اليوم ونتائجه.";
+"widget.quickaccess.name" = "وصول سريع";
+"widget.quickaccess.desc" = "انتقل إلى أقسامك المفضلة بلمسة واحدة.";
+"widget.social.name" = "الملخص الاجتماعي";
+"widget.social.desc" = "يعرض عدد الرسائل غير المقروءة والإشعارات والإعجابات (أرقام فقط).";

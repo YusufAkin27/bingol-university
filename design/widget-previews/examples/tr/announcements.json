@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "slug": "announcements",
+  "state": "ok",
+  "generatedAt": "2026-11-06T10:00:00+03:00",
+  "expiresAt": "2026-11-09T10:00:00+03:00",
+  "lang": "tr",
+  "rtl": false,
+  "deepLink": "bukampus://news",
+  "a11y": "Kampüs duyurusu: Kayıt yenileme tarihleri açıklandı; Kütüphane çalışma saatleri güncellendi",
+  "strings": {
+    "signedOutTitle": "Giriş yap",
+    "signedOutSub": "BÜ Kampüs'ü aç",
+    "titleSmall": "Duyurular",
+    "title": "Kampüs Duyuruları",
+    "last": "Son {n}",
+    "urgent": "Acil",
+    "emptyTitle": "Yeni duyuru yok",
+    "emptySub": "Yeni duyurular burada görünür"
+  },
+  "count": 2,
+  "lastLabel": "Son 2",
+  "items": [
+    {
+      "id": 5,
+      "title": "Kayıt yenileme tarihleri açıklandı",
+      "sourceName": "Öğrenci İşleri",
+      "publishedAt": "2026-11-05",
+      "dateLabel": "05 Kas",
+      "urgent": false,
+      "urgentLabel": null,
+      "metaText": "Öğrenci İşleri · 05 Kas",
+      "deepLink": "bukampus://news/5"
+    },
+    {
+      "id": 6,
+      "title": "Kütüphane çalışma saatleri güncellendi",
+      "sourceName": null,
+      "publishedAt": "2026-11-04",
+      "dateLabel": "04 Kas",
+      "urgent": false,
+      "urgentLabel": null,
+      "metaText": "04 Kas",
+      "deepLink": "bukampus://news/6"
+    }
+  ]
+}

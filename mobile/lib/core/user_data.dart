@@ -11,6 +11,7 @@ import '../features/forum/data/forum_draft_store.dart';
 import '../features/forum/data/forum_recent_searches.dart';
 import '../features/home/home_layout.dart';
 import '../features/search/recent_searches.dart';
+import '../features/widgets/widget_sync_service.dart';
 import 'api.dart';
 import 'cache/image_disk_cache.dart';
 import 'cache/message_cache.dart';
@@ -42,6 +43,7 @@ void registerUserDataCleaners(ApiClient api) {
     ..add(ChatBackgroundPrefs.clear) // sohbet arka planı tercihi (Desen/Hafif/Orta/Düz)
     ..add(RecentReactions.clear) // hesaba ozel son alti tepki
     ..add(_clearRemovedMapData) // kaldırılan harita özelliğinin eski sürümlerden kalan yerel verisi
+    ..add(WidgetSyncService.clearUserData) // ana ekran widget snapshot'ları + kısayol sırası (widget "Giriş yap" durumuna döner)
     ..add(HomeLayoutStore.clear) // Ana Sayfa düzeni (bölüm sırası/görünürlüğü + Hızlı Erişim kısayolları)
     ..add(OnboardingDraftStore.clear) // yarım kalan profil tamamlama taslağı + Apple'ın bir kez verdiği ad/soyad
     ..add(TrackTokenStore.clear) // herkese açık destek talebinin takip jetonu (e-postaya bağlı)

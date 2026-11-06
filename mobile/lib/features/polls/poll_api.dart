@@ -2,6 +2,8 @@ import '../../core/api.dart';
 import '../../core/session.dart';
 import '../posts/post_models.dart' show PostPage;
 import '../../l10n/app_localizations.dart';
+import '../widgets/widget_snapshots.dart' show WidgetSlug;
+import '../widgets/widget_sync_service.dart';
 import 'poll_models.dart';
 
 /// Anket uçları (docs/API_CONTRACTS_V2.md). Tek HTTP katmanı `session.api`; hatalar `ApiError`
@@ -33,11 +35,13 @@ class PollApi {
   /// Oy ver / oyu değiştir (idempotent). Dönen anket güncel durumla gelir.
   Future<Poll> vote(int id, PollSelection s) async {
     final r = await session.api.post('/polls/$id/vote', s.toBody());
+    WidgetSyncService.instance.request(const {WidgetSlug.poll}); // ana ekran anket widget'ı
     return r is Map<String, dynamic> && r['id'] != null ? Poll.fromJson(r) : await get(id);
   }
 
   Future<Poll> retract(int id) async {
     final r = await session.api.delete('/polls/$id/vote');
+    WidgetSyncService.instance.request(const {WidgetSlug.poll});
     return r is Map<String, dynamic> && r['id'] != null ? Poll.fromJson(r) : await get(id);
   }
 

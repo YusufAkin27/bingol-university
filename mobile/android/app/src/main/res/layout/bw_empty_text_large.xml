@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Uretilmis: mobile/tool/gen_android_widgets_layouts.py -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:id="@+id/bw_root"
+    android:background="@drawable/bw_bg"
+    android:padding="16dp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="16dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="14dp"
+            android:src="@drawable/bw_logo"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:alpha="0.9"
+            android:importantForAccessibility="no"
+            android:id="@+id/e_logo" />
+        <ImageView
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:src="@drawable/ic_w_calendar"
+            android:tint="@color/bu_widget_text2"
+            android:scaleType="fitCenter"
+            android:importantForAccessibility="no"
+            android:id="@+id/e_hicon"
+            android:visibility="gone" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:textSize="11dp"
+            android:lineHeight="14dp"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="@color/bu_widget_text2"
+            android:textAlignment="viewStart"
+            android:textDirection="locale"
+            android:id="@+id/e_hcap"
+            android:visibility="gone"
+            android:layout_weight="1" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_weight="1">
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginBottom="8dp"
+            android:src="@drawable/ic_w_calendar"
+            android:tint="@color/bu_widget_text3"
+            android:scaleType="fitCenter"
+            android:importantForAccessibility="no"
+            android:id="@+id/e_icon" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="15dp"
+            android:lineHeight="20dp"
+            android:includeFontPadding="false"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:textColor="@color/bu_widget_text2"
+            android:textAlignment="center"
+            android:textDirection="locale"
+            android:id="@+id/e_title"
+            android:letterSpacing="-0.01"
+            android:gravity="center_horizontal" />
+        <TextView
+            android:layout_width="220dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textSize="12dp"
+            android:lineHeight="16dp"
+            android:includeFontPadding="false"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:textColor="@color/bu_widget_text3"
+            android:textAlignment="center"
+            android:textDirection="locale"
+            android:id="@+id/e_sub"
+            android:gravity="center_horizontal" />
+    </LinearLayout>
+</LinearLayout>

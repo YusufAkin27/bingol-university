@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "updatedAt": "2026-11-06T10:00:00+03:00",
+  "lang": "en",
+  "rtl": false,
+  "theme": "system",
+  "signedIn": false,
+  "strings": {
+    "signedOutTitle": "Sign in",
+    "signedOutSub": "Open BU Campus",
+    "appName": "BU Campus"
+  }
+}

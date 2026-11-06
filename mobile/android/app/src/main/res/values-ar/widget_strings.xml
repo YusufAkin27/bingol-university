@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Uretilmis: mobile/tool/gen_android_widgets_meta.py. Widget secici etiketleri/aciklamalari; icerik metinleri snapshot ile gelir. -->
+<resources>
+    <string name="bw_label_menu">قائمة الطعام</string>
+    <string name="bw_desc_menu">قائمة طعام اليوم</string>
+    <string name="bw_label_timetable">جدول دروسي</string>
+    <string name="bw_desc_timetable">حصتك القادمة وجدول اليوم</string>
+    <string name="bw_label_events">الفعاليات القادمة</string>
+    <string name="bw_desc_events">فعاليات الأندية القادمة</string>
+    <string name="bw_label_announcements">إعلانات الحرم الجامعي</string>
+    <string name="bw_desc_announcements">آخر إعلانات الحرم الجامعي</string>
+    <string name="bw_label_poll">استطلاع اليوم</string>
+    <string name="bw_desc_poll">استطلاع اليوم ونتائجه</string>
+    <string name="bw_label_quickaccess">وصول سريع</string>
+    <string name="bw_desc_quickaccess">اختصارات للشاشات المتكررة</string>
+    <string name="bw_label_social">ملخص اجتماعي</string>
+    <string name="bw_desc_social">أعداد الرسائل والإشعارات والإعجابات</string>
+    <string name="bw_signed_out_title">تسجيل الدخول</string>
+    <string name="bw_signed_out_sub">افتح BÜ Kampüs</string>
+</resources>

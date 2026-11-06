@@ -1,0 +1,303 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bukampus.com.tr/schemas/widget-snapshots.schema.json",
+  "title": "BU Kampus ana ekran widget snapshot semalari (schema 1)",
+  "description": "Her snapshot: paylasimli depoda `bu_widget_<slug>` anahtarinda JSON metin. Ek alanlar serbesttir (ileriye uyum): widget bilmedigi alani yok sayar. Ayrintilar: design/widget-previews/DATA_CONTRACT.md",
+  "$defs": {
+    "iso": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\+03:00$" },
+    "day": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "hhmm": { "type": "string", "pattern": "^\\d{2}:\\d{2}$" },
+    "link": { "type": "string", "pattern": "^bukampus://[a-z]+(/[0-9]+)?$" },
+    "strMap": { "type": "object", "additionalProperties": { "type": "string" } },
+    "slug": { "enum": ["menu", "timetable", "events", "announcements", "poll", "quickaccess", "social"] },
+    "envelope": {
+      "type": "object",
+      "required": ["schema", "slug", "state", "generatedAt", "expiresAt", "lang", "rtl", "deepLink", "a11y", "strings"],
+      "properties": {
+        "schema": { "const": 1 },
+        "slug": { "$ref": "#/$defs/slug" },
+        "state": { "enum": ["ok", "empty", "signedOut"] },
+        "generatedAt": { "$ref": "#/$defs/iso" },
+        "expiresAt": { "type": ["string", "null"] },
+        "lang": { "enum": ["tr", "en", "ar"] },
+        "rtl": { "type": "boolean" },
+        "deepLink": { "$ref": "#/$defs/link" },
+        "a11y": { "type": "string" },
+        "strings": { "$ref": "#/$defs/strMap" }
+      }
+    },
+    "meta": {
+      "type": "object",
+      "required": ["schema", "updatedAt", "lang", "rtl", "theme", "signedIn", "strings"],
+      "properties": {
+        "schema": { "const": 1 },
+        "updatedAt": { "$ref": "#/$defs/iso" },
+        "lang": { "enum": ["tr", "en", "ar"] },
+        "rtl": { "type": "boolean" },
+        "theme": { "const": "system" },
+        "signedIn": { "type": "boolean" },
+        "strings": { "$ref": "#/$defs/strMap" }
+      }
+    },
+    "menuDish": {
+      "type": "object",
+      "required": ["name", "kcal", "kcalText"],
+      "properties": {
+        "name": { "type": "string" },
+        "kcal": { "type": ["integer", "null"] },
+        "kcalText": { "type": ["string", "null"] }
+      }
+    },
+    "menuDay": {
+      "type": "object",
+      "required": ["date", "dateLabel", "empty", "meals", "totalKcal", "totalText", "totalLine", "kcalComplete", "small"],
+      "properties": {
+        "date": { "$ref": "#/$defs/day" },
+        "dateLabel": { "type": "string" },
+        "empty": { "type": "boolean" },
+        "meals": {
+          "type": "array",
+          "maxItems": 2,
+          "items": {
+            "type": "object",
+            "required": ["id", "label", "items", "totalKcal", "totalText"],
+            "properties": {
+              "id": { "enum": ["lunch", "dinner"] },
+              "label": { "type": "string" },
+              "items": { "type": "array", "maxItems": 16, "items": { "$ref": "#/$defs/menuDish" } },
+              "totalKcal": { "type": ["integer", "null"] },
+              "totalText": { "type": ["string", "null"] }
+            }
+          }
+        },
+        "totalKcal": { "type": ["integer", "null"] },
+        "totalText": { "type": ["string", "null"] },
+        "totalLine": { "type": ["string", "null"] },
+        "kcalComplete": { "type": "boolean" },
+        "small": {
+          "type": ["object", "null"],
+          "properties": {
+            "caption": { "type": "string" },
+            "main": { "type": "string" },
+            "sub": { "type": ["string", "null"] },
+            "kcalLine": { "type": ["string", "null"] }
+          }
+        }
+      }
+    },
+    "menu": {
+      "allOf": [
+        { "$ref": "#/$defs/envelope" },
+        { "$ref": "#/$defs/menuDay" },
+        {
+          "type": "object",
+          "required": ["upcoming"],
+          "properties": { "upcoming": { "type": "array", "maxItems": 2, "items": { "$ref": "#/$defs/menuDay" } } }
+        }
+      ]
+    },
+    "lesson": {
+      "type": "object",
+      "required": ["start", "end", "startMin", "endMin", "title", "room"],
+      "properties": {
+        "start": { "$ref": "#/$defs/hhmm" },
+        "end": { "$ref": "#/$defs/hhmm" },
+        "startMin": { "type": "integer", "minimum": 0, "maximum": 1439 },
+        "endMin": { "type": "integer", "minimum": 0, "maximum": 1440 },
+        "title": { "type": "string" },
+        "room": { "type": ["string", "null"] }
+      }
+    },
+    "timetableDay": {
+      "type": "object",
+      "required": ["date", "dateLabel", "dayName", "count", "lessons"],
+      "properties": {
+        "date": { "$ref": "#/$defs/day" },
+        "dateLabel": { "type": "string" },
+        "dayName": { "type": "string" },
+        "count": { "type": "integer", "minimum": 0 },
+        "lessons": { "type": "array", "maxItems": 8, "items": { "$ref": "#/$defs/lesson" } }
+      }
+    },
+    "timetable": {
+      "allOf": [
+        { "$ref": "#/$defs/envelope" },
+        { "$ref": "#/$defs/timetableDay" },
+        {
+          "type": "object",
+          "required": ["next", "upcoming"],
+          "properties": {
+            "next": {
+              "type": ["object", "null"],
+              "required": ["date", "time", "dayName", "dayShort", "labelFull", "labelShort"],
+              "properties": {
+                "date": { "$ref": "#/$defs/day" },
+                "time": { "$ref": "#/$defs/hhmm" },
+                "dayName": { "type": "string" },
+                "dayShort": { "type": "string" },
+                "labelFull": { "type": "string" },
+                "labelShort": { "type": "string" }
+              }
+            },
+            "upcoming": { "type": "array", "maxItems": 6, "items": { "$ref": "#/$defs/timetableDay" } }
+          }
+        }
+      ]
+    },
+    "events": {
+      "allOf": [
+        { "$ref": "#/$defs/envelope" },
+        {
+          "type": "object",
+          "required": ["count", "countLabel", "events"],
+          "properties": {
+            "count": { "type": "integer", "minimum": 0, "maximum": 3 },
+            "countLabel": { "type": "string" },
+            "events": {
+              "type": "array",
+              "maxItems": 3,
+              "items": {
+                "type": "object",
+                "required": ["id", "title", "communityName", "startsAt", "day", "monthCaps", "timeLabel", "venue", "deepLink"],
+                "properties": {
+                  "id": { "type": "integer" },
+                  "title": { "type": "string" },
+                  "communityName": { "type": "string" },
+                  "startsAt": { "$ref": "#/$defs/iso" },
+                  "day": { "type": "string" },
+                  "monthCaps": { "type": "string" },
+                  "timeLabel": { "$ref": "#/$defs/hhmm" },
+                  "venue": { "type": ["string", "null"] },
+                  "deepLink": { "$ref": "#/$defs/link" }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "announcements": {
+      "allOf": [
+        { "$ref": "#/$defs/envelope" },
+        {
+          "type": "object",
+          "required": ["count", "lastLabel", "items"],
+          "properties": {
+            "count": { "type": "integer", "minimum": 0, "maximum": 4 },
+            "lastLabel": { "type": "string" },
+            "items": {
+              "type": "array",
+              "maxItems": 4,
+              "items": {
+                "type": "object",
+                "required": ["id", "title", "sourceName", "publishedAt", "dateLabel", "urgent", "urgentLabel", "metaText", "deepLink"],
+                "properties": {
+                  "id": { "type": "integer" },
+                  "title": { "type": "string" },
+                  "sourceName": { "type": ["string", "null"] },
+                  "publishedAt": { "$ref": "#/$defs/day" },
+                  "dateLabel": { "type": "string" },
+                  "urgent": { "type": "boolean" },
+                  "urgentLabel": { "type": ["string", "null"] },
+                  "metaText": { "type": "string" },
+                  "deepLink": { "$ref": "#/$defs/link" }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "poll": {
+      "allOf": [
+        { "$ref": "#/$defs/envelope" },
+        {
+          "type": "object",
+          "required": ["pollId", "question", "options"],
+          "properties": {
+            "pollId": { "type": ["integer", "null"] },
+            "question": { "type": ["string", "null"] },
+            "userVoted": { "type": "boolean" },
+            "resultsVisible": { "type": "boolean" },
+            "totalVotes": { "type": ["integer", "null"] },
+            "totalVotesLabel": { "type": ["string", "null"] },
+            "microLine": { "type": ["string", "null"] },
+            "secretLine": { "type": ["string", "null"] },
+            "leaderIndex": { "type": ["integer", "null"] },
+            "options": {
+              "type": "array",
+              "maxItems": 4,
+              "items": {
+                "type": "object",
+                "required": ["label", "percent", "percentText"],
+                "properties": {
+                  "label": { "type": "string" },
+                  "percent": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+                  "percentText": { "type": ["string", "null"] }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "quickaccess": {
+      "allOf": [
+        { "$ref": "#/$defs/envelope" },
+        {
+          "type": "object",
+          "required": ["smallIds", "items"],
+          "properties": {
+            "smallIds": { "type": "array", "maxItems": 4, "items": { "type": "string" } },
+            "items": {
+              "type": "array",
+              "maxItems": 8,
+              "items": {
+                "type": "object",
+                "required": ["id", "icon", "label", "a11yLabel", "deepLink"],
+                "properties": {
+                  "id": { "enum": ["menu", "timetable", "events", "clubs", "chat", "qr", "news", "search"] },
+                  "icon": { "type": "string" },
+                  "label": { "type": "string" },
+                  "a11yLabel": { "type": "string" },
+                  "deepLink": { "$ref": "#/$defs/link" }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "social": {
+      "allOf": [
+        { "$ref": "#/$defs/envelope" },
+        {
+          "type": "object",
+          "required": [
+            "unreadMessages", "newNotifications", "newLikesAndFollowers",
+            "unreadMessagesText", "newNotificationsText", "newLikesAndFollowersText", "allZero", "links"
+          ],
+          "properties": {
+            "unreadMessages": { "type": "integer", "minimum": 0 },
+            "newNotifications": { "type": "integer", "minimum": 0 },
+            "newLikesAndFollowers": { "type": "integer", "minimum": 0 },
+            "unreadMessagesText": { "type": "string" },
+            "newNotificationsText": { "type": "string" },
+            "newLikesAndFollowersText": { "type": "string" },
+            "allZero": { "type": "boolean" },
+            "links": {
+              "type": "object",
+              "required": ["messages", "notifications", "likes", "header"],
+              "properties": {
+                "messages": { "$ref": "#/$defs/link" },
+                "notifications": { "$ref": "#/$defs/link" },
+                "likes": { "$ref": "#/$defs/link" },
+                "header": { "$ref": "#/$defs/link" }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -45,6 +45,7 @@ import 'features/shell/app_shell.dart';
 import 'features/system/error_views.dart';
 import 'features/system/gate_views.dart';
 import 'features/system/splash_screen.dart';
+import 'features/widgets/widget_sync_service.dart';
 
 /// Yakalanmamış hatayı yerel günlüğe (disk + bellek) ve — oturum açıksa — anonim `app_error` analitik
 /// olayına yazar: yalnız hata türü, ekran adı ve sürüm; mesaj/yığın/kişisel veri yok ([ErrorLog]).
@@ -148,6 +149,12 @@ Future<void> _bootstrap() async {
   hooks.onSignedIn.add((_) => push.onSignedIn()); // restore sonrası oturum açıksa bir kez tetiklenir
   hooks.onSignedIn.add((_) => outbox.load()); // bekleyen mesajlar yüklenir ve gönderilir (oturum açıkken)
   hooks.onSignedOut.add((_) => push.onSignedOut());
+  // Ana ekran widget'ları: oturum açılınca snapshot'lar yazılır, çıkışta silinir (kullanıcı verisi temizleyicisi de siler);
+  // dil değişince metinler yeniden hazırlanır. Tüm adımlar sessizdir (WidgetSyncService hata sızdırmaz).
+  WidgetSyncService.instance.attach(session);
+  hooks.onSignedIn.add((_) => WidgetSyncService.instance.refreshAll(reason: 'signin'));
+  hooks.onSignedOut.add((_) => unawaited(WidgetSyncService.clearUserData()));
+  localeCtl.addListener(() => WidgetSyncService.instance.refreshAll(reason: 'lang'));
   // Sunucu profil dili (bildirim/e-posta dili) uygulama diliyle eşitlenir; yalnız DEĞİŞİNCE (her açılışta istek yok).
   hooks.onSignedIn.add((_) => LanguageSync.sync(session.api, session.userId, localeCtl.locale.languageCode));
   session.beforeSignOut.add(push.onSignedOut); // cihaz kaydı, token geçerliyken silinir

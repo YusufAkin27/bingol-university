@@ -20,6 +20,7 @@ import 'push_api.dart';
 import 'push_actions.dart';
 import '../nav.dart';
 import '../../widgets/bu.dart';
+import '../../features/widgets/widget_sync_service.dart';
 import 'push_banner.dart';
 import 'push_privacy.dart';
 import 'push_registrar.dart';
@@ -477,7 +478,13 @@ class PushService with WidgetsBindingObserver {
     await registrar.register(token);
   }
 
-  void _showBanner(RemoteMessage m) => handleForeground(
+  void _showBanner(RemoteMessage m) {
+    // Ana ekran widget'ları (sosyal sayılar vb.) yeni bildirimle tazelenir; sessizdir.
+    WidgetSyncService.instance.onPush(m.data);
+    _showBannerCard(m);
+  }
+
+  void _showBannerCard(RemoteMessage m) => handleForeground(
         title: m.notification?.title ?? m.data['title']?.toString() ?? '',
         body: m.notification?.body ?? m.data['body']?.toString() ?? '',
         data: m.data,

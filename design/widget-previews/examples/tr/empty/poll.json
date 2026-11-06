@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "slug": "poll",
+  "state": "empty",
+  "generatedAt": "2026-11-06T10:00:00+03:00",
+  "expiresAt": "2026-11-07T10:00:00+03:00",
+  "lang": "tr",
+  "rtl": false,
+  "deepLink": "bukampus://home",
+  "a11y": "Günün anketi: Bugün anket yok",
+  "strings": {
+    "signedOutTitle": "Giriş yap",
+    "signedOutSub": "BÜ Kampüs'ü aç",
+    "caption": "ANKET",
+    "captionFull": "GÜNÜN ANKETİ",
+    "vote": "Oy ver",
+    "voted": "Oy verildi",
+    "voteMicro": "{votes} · gizli",
+    "voteCount": "{n} oy",
+    "secretLine": "Oylar gizlidir · {votes}",
+    "detail": "Ayrıntı",
+    "emptyTitle": "Bugün anket yok",
+    "emptySmallSub": "Yenisi yayımlanınca",
+    "emptySub": "Yeni anket yayımlanınca burada görünür"
+  },
+  "pollId": null,
+  "question": null,
+  "options": []
+}

@@ -1,0 +1,17 @@
+/* BU Kampus widgets - English (en). Widget gallery names/descriptions + signed-out texts used when the app has never synced. */
+"signedout.title" = "Sign in";
+"signedout.sub" = "Open BÜ Kampüs";
+"widget.menu.name" = "Today's Menu";
+"widget.menu.desc" = "Shows today's cafeteria menu and calories.";
+"widget.timetable.name" = "My Timetable";
+"widget.timetable.desc" = "Shows your next class and today's schedule.";
+"widget.events.name" = "Upcoming Events";
+"widget.events.desc" = "Shows upcoming events from campus clubs.";
+"widget.announcements.name" = "Campus Announcements";
+"widget.announcements.desc" = "Shows the latest university announcements.";
+"widget.poll.name" = "Poll of the Day";
+"widget.poll.desc" = "Shows today's poll and its results.";
+"widget.quickaccess.name" = "Quick Access";
+"widget.quickaccess.desc" = "Jump to your favorite sections with one tap.";
+"widget.social.name" = "Social Summary";
+"widget.social.desc" = "Shows counts of unread messages, notifications and likes (numbers only).";

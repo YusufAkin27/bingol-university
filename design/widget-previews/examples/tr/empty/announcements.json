@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "slug": "announcements",
+  "state": "empty",
+  "generatedAt": "2026-11-06T10:00:00+03:00",
+  "expiresAt": "2026-11-09T10:00:00+03:00",
+  "lang": "tr",
+  "rtl": false,
+  "deepLink": "bukampus://news",
+  "a11y": "Kampüs duyurusu: Yeni duyuru yok",
+  "strings": {
+    "signedOutTitle": "Giriş yap",
+    "signedOutSub": "BÜ Kampüs'ü aç",
+    "titleSmall": "Duyurular",
+    "title": "Kampüs Duyuruları",
+    "last": "Son {n}",
+    "urgent": "Acil",
+    "emptyTitle": "Yeni duyuru yok",
+    "emptySub": "Yeni duyurular burada görünür"
+  },
+  "count": 0,
+  "lastLabel": "Son 0",
+  "items": []
+}

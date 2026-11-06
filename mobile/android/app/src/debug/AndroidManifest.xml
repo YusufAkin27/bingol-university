@@ -3,5 +3,6 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <application android:networkSecurityConfig="@xml/network_security_config">
         <activity android:name=".PushPreviewActivity" android:exported="true" android:theme="@android:style/Theme.Material.Light.NoActionBar"/>
+            <activity android:name=".widgets.WidgetHostActivity" android:exported="true" android:theme="@android:style/Theme.Material.Light.NoActionBar"/>
     </application>
 </manifest>

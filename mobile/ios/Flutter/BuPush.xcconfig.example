@@ -3,3 +3,5 @@
 // Dosya yokken imzalama push yetkisi istemez (ucretsiz Apple ID ile derleme bozulmaz).
 BU_PUSH_ENTITLEMENTS = Runner/Runner.entitlements
 BU_PUSH_ENTITLEMENTS[config=Release] = Runner/RunnerRelease.entitlements
+// Ana ekran widget uzantisi (BUWidgets): App Group yetkisi. Ucretsiz Apple ID App Groups desteklemez; dosya yokken uzanti yetkisiz derlenir (widget veri okuyamaz).
+BU_WIDGETS_ENTITLEMENTS = BUWidgets/BUWidgets.entitlements

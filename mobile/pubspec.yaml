@@ -48,6 +48,7 @@ dependencies:
   # (gtm-session-fetcher 3.3-6.0, app-check 11-13: Firebase 13 ile uyumlu). Bu yuzden ALT SINIR ZORUNLU: dusurmeyin.
   google_sign_in: 7.2.0
   google_sign_in_ios: ^6.4.0
+  home_widget: 0.10.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

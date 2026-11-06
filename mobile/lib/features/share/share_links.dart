@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 
 import '../../core/nav.dart';
 import '../../core/session.dart';
+import '../widgets/widget_link.dart';
+import '../widgets/widget_open.dart';
 import 'share_models.dart';
 import 'share_open.dart';
 
@@ -20,6 +22,11 @@ class ShareLinks {
 
   /// Açılmayı bekleyen hedef (tek öğe; yeni bağlantı eskisinin yerini alır).
   final ValueNotifier<ShareTarget?> pending = ValueNotifier<ShareTarget?>(null);
+
+  /// Ana ekran widget'ından gelen bağlantı (`bukampus://menu`...): paylaşım hedefiyle aynı kurallarla (oturum açılana
+  /// kadar bekler) ama ayrı kuyrukta, çünkü hedef türü farklıdır. Tek öğe; yenisi eskisinin yerini alır.
+  final ValueNotifier<WidgetLink?> pendingWidget = ValueNotifier<WidgetLink?>(null);
+  WidgetLink? _lastWidget;
 
   StreamSubscription<Uri>? _sub;
   ShareTarget? _lastTarget;
@@ -48,8 +55,17 @@ class ShareLinks {
   @visibleForTesting
   void ingest(Uri? uri, {DateTime? now}) {
     final target = parseShareLink(uri);
-    if (target == null) return;
     final t = now ?? DateTime.now();
+    if (target == null) {
+      final w = WidgetLink.parse(uri);
+      if (w == null) return;
+      if (w == _lastWidget && _lastAt != null && t.difference(_lastAt!) < dedupeWindow) return;
+      _lastWidget = w;
+      _lastAt = t;
+      pendingWidget.value = null;
+      pendingWidget.value = w;
+      return;
+    }
     if (target == _lastTarget && _lastAt != null && t.difference(_lastAt!) < dedupeWindow) return;
     _lastTarget = target;
     _lastAt = t;
@@ -65,10 +81,19 @@ class ShareLinks {
     return t;
   }
 
+  /// Bekleyen widget bağlantısını alır ve temizler.
+  WidgetLink? takeWidget() {
+    final t = pendingWidget.value;
+    pendingWidget.value = null;
+    return t;
+  }
+
   @visibleForTesting
   void reset() {
     pending.value = null;
+    pendingWidget.value = null;
     _lastTarget = null;
+    _lastWidget = null;
     _lastAt = null;
   }
 }
@@ -95,6 +120,7 @@ class _ShareLinkHostState extends State<ShareLinkHost> {
   void initState() {
     super.initState();
     _links.pending.addListener(_check);
+    _links.pendingWidget.addListener(_check);
     // Soğuk açılış: kabuk ilk karesini çizdikten sonra bekleyen hedefi aç.
     WidgetsBinding.instance.addPostFrameCallback((_) => _check());
   }
@@ -102,11 +128,12 @@ class _ShareLinkHostState extends State<ShareLinkHost> {
   @override
   void dispose() {
     _links.pending.removeListener(_check);
+    _links.pendingWidget.removeListener(_check);
     super.dispose();
   }
 
   void _check() {
-    if (!mounted || _links.pending.value == null) return;
+    if (!mounted || (_links.pending.value == null && _links.pendingWidget.value == null)) return;
     if (widget.session.state != SessionState.signedIn) return;
     final nav = rootNavigatorKey.currentState;
     if (nav == null || !nav.mounted) {
@@ -114,9 +141,11 @@ class _ShareLinkHostState extends State<ShareLinkHost> {
       WidgetsBinding.instance.addPostFrameCallback((_) => _check());
       return;
     }
+    // Hedef sayfa kapanana kadar beklenmez: ikinci bir bağlantı hemen açılabilir.
+    final wl = _links.takeWidget();
+    if (wl != null) unawaited(openWidgetLink(nav.context, widget.session, wl));
     final target = _links.take();
     if (target == null) return;
-    // Hedef sayfa kapanana kadar beklenmez: ikinci bir bağlantı hemen açılabilir.
     unawaited(openShared(nav.context, widget.session, target));
   }
 

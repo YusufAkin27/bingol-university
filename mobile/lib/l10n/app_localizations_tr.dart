@@ -13127,4 +13127,49 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get qa1TfDisableReauthBody =>
       'Hesabın şifresiz olduğu için Google veya Apple ile kimliğini doğrulayarak onayla. Güvenilen tüm cihazlar silinir.';
+
+  @override
+  String get widgetsRowTitle => 'Ana ekran widgetları';
+
+  @override
+  String get widgetsInfoTitle => 'Ana ekran widgetları';
+
+  @override
+  String get widgetsIntro =>
+      'Yemek, ders, etkinlik, duyuru, anket ve sosyal özet bilgilerini uygulamayı açmadan ana ekranından gör.';
+
+  @override
+  String get widgetsListTitle => 'Hangi widgetlar var';
+
+  @override
+  String get widgetsList =>
+      'Yemek menüsü, Ders programı, Yaklaşan etkinlikler, Kampüs duyuruları, Günün anketi, Hızlı erişim ve Sosyal özet.';
+
+  @override
+  String get widgetsIosTitle => 'iPhone';
+
+  @override
+  String get widgetsIosSteps =>
+      'Ana ekranda boş bir yere uzun bas, sol üstteki + düğmesine dokun, BÜ Kampüs uygulamasını seç ve istediğin widgetı ekle.';
+
+  @override
+  String get widgetsAndroidTitle => 'Android';
+
+  @override
+  String get widgetsAndroidSteps =>
+      'Ana ekranda boş bir yere uzun bas, Widgetlar seçeneğine dokun, BÜ Kampüs uygulamasını bul ve istediğin widgetı ana ekrana sürükle.';
+
+  @override
+  String get widgetsRefreshTitle => 'Yenilenme';
+
+  @override
+  String get widgetsRefresh =>
+      'Bilgiler uygulamayı açtığında, bir şey değiştiğinde ve düzenli aralıklarla yenilenir. Widgeta dokununca ilgili ekran açılır.';
+
+  @override
+  String get widgetsPrivacyTitle => 'Gizlilik';
+
+  @override
+  String get widgetsPrivacy =>
+      'Widgetlarda başka kullanıcıların adı, mesajı veya fotoğrafı görünmez; sosyal özet yalnızca sayıları gösterir. Çıkış yapınca widgetlardaki bilgiler silinir ve Giriş yap durumuna döner.';
 }

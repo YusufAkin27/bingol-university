@@ -1,0 +1,111 @@
+{
+  "schema": 1,
+  "slug": "menu",
+  "state": "ok",
+  "generatedAt": "2026-11-06T10:00:00+03:00",
+  "expiresAt": "2026-11-08T00:00:00+03:00",
+  "lang": "en",
+  "rtl": false,
+  "deepLink": "bukampus://menu",
+  "a11y": "Today's meal menu: Mercimek Çorbası, Tavuk Sote, Pilav, Salata",
+  "strings": {
+    "signedOutTitle": "Sign in",
+    "signedOutSub": "Open BU Campus",
+    "caption": "LUNCH",
+    "captionAny": "MEAL",
+    "captionFull": "MEAL MENU",
+    "emptyTitle": "No menu today",
+    "emptySmallSub": "The cafeteria may be closed",
+    "emptySub": "Appears here once the menu is published",
+    "totalLine": "Total {kcal} kcal",
+    "kcalToday": "{kcal} kcal today",
+    "dailyTotal": "Daily total",
+    "kcalUnit": "kcal",
+    "more": "+{n} more"
+  },
+  "date": "2026-11-06",
+  "dateLabel": "Friday, 6 November",
+  "empty": false,
+  "meals": [
+    {
+      "id": "lunch",
+      "label": "LUNCH",
+      "items": [
+        {
+          "name": "Mercimek Çorbası",
+          "kcal": 150,
+          "kcalText": "150 kcal"
+        },
+        {
+          "name": "Tavuk Sote",
+          "kcal": 420,
+          "kcalText": "420 kcal"
+        },
+        {
+          "name": "Pilav",
+          "kcal": 380,
+          "kcalText": "380 kcal"
+        },
+        {
+          "name": "Salata",
+          "kcal": 120,
+          "kcalText": "120 kcal"
+        }
+      ],
+      "totalKcal": 1070,
+      "totalText": "1,070 kcal"
+    }
+  ],
+  "totalKcal": 1070,
+  "totalText": "1,070 kcal",
+  "totalLine": "Total 1,070 kcal",
+  "kcalComplete": true,
+  "small": {
+    "caption": "LUNCH",
+    "main": "Mercimek Çorbası",
+    "sub": "Tavuk Sote · Pilav · Salata",
+    "kcalLine": "1,070 kcal today"
+  },
+  "upcoming": [
+    {
+      "date": "2026-11-07",
+      "dateLabel": "Saturday, 7 November",
+      "empty": false,
+      "meals": [
+        {
+          "id": "lunch",
+          "label": "LUNCH",
+          "items": [
+            {
+              "name": "Ezogelin Çorbası",
+              "kcal": 160,
+              "kcalText": "160 kcal"
+            },
+            {
+              "name": "Izgara Köfte",
+              "kcal": 450,
+              "kcalText": "450 kcal"
+            },
+            {
+              "name": "Bulgur Pilavı",
+              "kcal": 300,
+              "kcalText": "300 kcal"
+            }
+          ],
+          "totalKcal": 910,
+          "totalText": "910 kcal"
+        }
+      ],
+      "totalKcal": 910,
+      "totalText": "910 kcal",
+      "totalLine": "Total 910 kcal",
+      "kcalComplete": true,
+      "small": {
+        "caption": "LUNCH",
+        "main": "Ezogelin Çorbası",
+        "sub": "Izgara Köfte · Bulgur Pilavı",
+        "kcalLine": "910 kcal today"
+      }
+    }
+  ]
+}

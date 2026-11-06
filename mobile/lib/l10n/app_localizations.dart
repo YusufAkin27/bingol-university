@@ -23669,6 +23669,84 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Hesabın şifresiz olduğu için Google veya Apple ile kimliğini doğrulayarak onayla. Güvenilen tüm cihazlar silinir.'**
   String get qa1TfDisableReauthBody;
+
+  /// No description provided for @widgetsRowTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ana ekran widgetları'**
+  String get widgetsRowTitle;
+
+  /// No description provided for @widgetsInfoTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ana ekran widgetları'**
+  String get widgetsInfoTitle;
+
+  /// No description provided for @widgetsIntro.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yemek, ders, etkinlik, duyuru, anket ve sosyal özet bilgilerini uygulamayı açmadan ana ekranından gör.'**
+  String get widgetsIntro;
+
+  /// No description provided for @widgetsListTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hangi widgetlar var'**
+  String get widgetsListTitle;
+
+  /// No description provided for @widgetsList.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yemek menüsü, Ders programı, Yaklaşan etkinlikler, Kampüs duyuruları, Günün anketi, Hızlı erişim ve Sosyal özet.'**
+  String get widgetsList;
+
+  /// No description provided for @widgetsIosTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'iPhone'**
+  String get widgetsIosTitle;
+
+  /// No description provided for @widgetsIosSteps.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ana ekranda boş bir yere uzun bas, sol üstteki + düğmesine dokun, BÜ Kampüs uygulamasını seç ve istediğin widgetı ekle.'**
+  String get widgetsIosSteps;
+
+  /// No description provided for @widgetsAndroidTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Android'**
+  String get widgetsAndroidTitle;
+
+  /// No description provided for @widgetsAndroidSteps.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ana ekranda boş bir yere uzun bas, Widgetlar seçeneğine dokun, BÜ Kampüs uygulamasını bul ve istediğin widgetı ana ekrana sürükle.'**
+  String get widgetsAndroidSteps;
+
+  /// No description provided for @widgetsRefreshTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yenilenme'**
+  String get widgetsRefreshTitle;
+
+  /// No description provided for @widgetsRefresh.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bilgiler uygulamayı açtığında, bir şey değiştiğinde ve düzenli aralıklarla yenilenir. Widgeta dokununca ilgili ekran açılır.'**
+  String get widgetsRefresh;
+
+  /// No description provided for @widgetsPrivacyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gizlilik'**
+  String get widgetsPrivacyTitle;
+
+  /// No description provided for @widgetsPrivacy.
+  ///
+  /// In tr, this message translates to:
+  /// **'Widgetlarda başka kullanıcıların adı, mesajı veya fotoğrafı görünmez; sosyal özet yalnızca sayıları gösterir. Çıkış yapınca widgetlardaki bilgiler silinir ve Giriş yap durumuna döner.'**
+  String get widgetsPrivacy;
 }
 
 class _AppLocalizationsDelegate

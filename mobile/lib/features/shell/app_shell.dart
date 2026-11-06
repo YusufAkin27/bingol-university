@@ -19,6 +19,7 @@ import '../discover/discover_tab.dart';
 import '../home/home_tab.dart';
 import '../profile/profile_tab.dart';
 import '../posts/post_routes.dart' show openComposePost;
+import '../widgets/widget_sync_service.dart';
 import 'floating_nav.dart';
 
 export 'floating_nav.dart' show FloatingNav;
@@ -84,6 +85,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Ticker
     _snap.addListener(() => _drag.value = _snapFrom * (1 - AppMotion.standard.transform(_snap.value)));
     WidgetsBinding.instance.addPostFrameCallback((_) => _onTabRequest());
     _refreshBadges();
+    WidgetSyncService.instance.refreshAll(reason: 'shell');
     _loadAvatar();
     _poll = Timer.periodic(const Duration(minutes: 1), (_) => _refreshBadges());
   }
@@ -114,7 +116,10 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Ticker
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _refreshBadges();
+    if (state == AppLifecycleState.resumed) {
+      _refreshBadges();
+      WidgetSyncService.instance.refreshAll(reason: 'resume'); // ana ekran widget'ları (debounce'lu, sessiz)
+    }
   }
 
   // realtime kendi arka plan/ön plan geçişini yönetir (start sonrası observer).

@@ -4769,5 +4769,18 @@
   "qa1NoPasswordNote": "Your account was created with Google or Apple, so it has no password. You can set one with a code sent to your e-mail, then also sign in with e-mail and password.",
   "qa1PwSetButton": "Set a password",
   "qa1TfNeedPassword": "Turning off two-step verification needs a password. Your account has none: first set one on the Password screen with the code sent to your e-mail.",
-  "qa1TfDisableReauthBody": "Your account has no password, so confirm with Google or Apple. All trusted devices are removed."
+  "qa1TfDisableReauthBody": "Your account has no password, so confirm with Google or Apple. All trusted devices are removed.",
+  "widgetsRowTitle": "Home screen widgets",
+  "widgetsInfoTitle": "Home screen widgets",
+  "widgetsIntro": "See meals, classes, events, announcements, the poll and your social summary on the home screen without opening the app.",
+  "widgetsListTitle": "Available widgets",
+  "widgetsList": "Meal menu, Timetable, Upcoming events, Campus announcements, Today's poll, Quick access and Social summary.",
+  "widgetsIosTitle": "iPhone",
+  "widgetsIosSteps": "Touch and hold an empty spot on the home screen, tap the + button at the top left, choose BU Campus and add the widget you want.",
+  "widgetsAndroidTitle": "Android",
+  "widgetsAndroidSteps": "Touch and hold an empty spot on the home screen, tap Widgets, find BU Campus and drag the widget you want onto the home screen.",
+  "widgetsRefreshTitle": "Updates",
+  "widgetsRefresh": "Information refreshes when you open the app, when something changes and at regular intervals. Tapping a widget opens the related screen.",
+  "widgetsPrivacyTitle": "Privacy",
+  "widgetsPrivacy": "Widgets never show other users' names, messages or photos; the social summary shows counts only. When you sign out, widget data is deleted and widgets return to the Sign in state."
 }

@@ -1,5 +1,7 @@
 import '../../core/session.dart';
 import 'academic_models.dart';
+import '../widgets/widget_snapshots.dart' show WidgetSlug;
+import '../widgets/widget_sync_service.dart';
 
 /// Akademik uçlar (docs/API_CONTRACTS_V2.md, "Akademik"). Tek HTTP katmanı: `Session.api`.
 class AcademicApi {
@@ -15,13 +17,25 @@ class AcademicApi {
   Future<TimetableData> timetable({int? semesterId}) async =>
       TimetableData.fromJson(_map(await session.api.get('/timetable${semesterId == null ? '' : '?semesterId=$semesterId'}')));
 
-  Future<Course> createCourse(Map<String, dynamic> body) async =>
-      Course.fromJson(_map(await session.api.post('/timetable/courses', body)));
+  // Ders eklenince/değişince/silinince ana ekran ders widget'ı tazelenir (sessiz, debounce'lu).
+  void _widgetTimetable() => WidgetSyncService.instance.request(const {WidgetSlug.timetable});
 
-  Future<Course> updateCourse(int id, Map<String, dynamic> body) async =>
-      Course.fromJson(_map(await session.api.patch('/timetable/courses/$id', body)));
+  Future<Course> createCourse(Map<String, dynamic> body) async {
+    final c = Course.fromJson(_map(await session.api.post('/timetable/courses', body)));
+    _widgetTimetable();
+    return c;
+  }
 
-  Future<void> deleteCourse(int id) async => session.api.delete('/timetable/courses/$id');
+  Future<Course> updateCourse(int id, Map<String, dynamic> body) async {
+    final c = Course.fromJson(_map(await session.api.patch('/timetable/courses/$id', body)));
+    _widgetTimetable();
+    return c;
+  }
+
+  Future<void> deleteCourse(int id) async {
+    await session.api.delete('/timetable/courses/$id');
+    _widgetTimetable();
+  }
 
   // ---- dönemler
   Future<({List<Semester> items, Map<String, dynamic>? official})> semesters() async {
