@@ -158,6 +158,24 @@ class ForumModerationMvcTest {
     }
 
     @Test
+    void pinLimitIsFiveAndFreesUpAfterUnpin() throws Exception {
+        User owner = data.user("owner");
+        User mod = data.admin("mod", AdminProfile.MODERATOR);
+        for (int i = 0; i < 5; i++) {
+            long p = data.topic(owner.getId(), cat, "Sabit " + i, "Govde", false);
+            jdbc.update("UPDATE forum_topic SET pinned_at = CURRENT_TIMESTAMP WHERE id = ?", p);
+        }
+        long extra = data.topic(owner.getId(), cat, "Fazla", "Govde", false);
+        MockHttpServletResponse over = asAdmin(mod, AdminProfile.MODERATOR, moderate("topics", extra, "PIN", null));
+        assertThat(over.getStatus()).isEqualTo(409);
+        assertThat(json(over).get("code").asText()).isEqualTo("FORUM_PIN_LIMIT");
+        assertThat(json(over).get("message").asText()).contains("5");
+        long first = jdbc.queryForObject("SELECT MIN(id) FROM forum_topic WHERE pinned_at IS NOT NULL", Long.class);
+        assertThat(asAdmin(mod, AdminProfile.MODERATOR, moderate("topics", first, "UNPIN", null)).getStatus()).isEqualTo(200);
+        assertThat(asAdmin(mod, AdminProfile.MODERATOR, moderate("topics", extra, "PIN", null)).getStatus()).isEqualTo(200);
+    }
+
+    @Test
     void invalidTransitionsAreRejectedWith409() throws Exception {
         User owner = data.user("owner");
         User mod = data.admin("mod", AdminProfile.MODERATOR);

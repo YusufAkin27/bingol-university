@@ -12,7 +12,7 @@ class ForumTextTest {
     @Test
     void lineStripsTagsControlAndBidiCharactersAndCollapsesSpaces() {
         assertEquals("a b", ForumText.line("  a \t\n  b  "));
-        assertEquals("alert(1)", ForumText.line("<script>alert(1)</script>"));
+        assertEquals("", ForumText.line("<script>alert(1)</script>"), "QA5-10: script blogu icerigiyle silinir");
         assertEquals("x", ForumText.line("<img src=x onerror=alert(1)>x"));
         assertEquals("abc", ForumText.line("a​b‮c\u0000"));
         assertEquals("3 < 5 ve 7 > 2", ForumText.line("3 < 5 ve 7 > 2"), "etiket olmayan ifadeler korunur");
@@ -23,7 +23,7 @@ class ForumTextTest {
     @Test
     void blockKeepsParagraphsButLimitsBlankLines() {
         assertEquals("bir\n\niki", ForumText.block("bir\r\n\r\n\r\n\r\niki"));
-        assertEquals("bir\n iki", ForumText.block("  bir  \n iki  "), "satir sonu bosluklari kirpilir");
+        assertEquals("bir\niki", ForumText.block("  bir  \n iki  "), "satir basi/sonu bosluklari kirpilir (QA5-10)");
         assertEquals("", ForumText.block("  \n\n "));
         assertFalse(ForumText.block("<iframe src=javascript:alert(1)></iframe>govde").contains("<"));
     }

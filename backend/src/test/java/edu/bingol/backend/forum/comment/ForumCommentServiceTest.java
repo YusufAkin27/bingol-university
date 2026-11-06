@@ -145,7 +145,7 @@ class ForumCommentServiceTest {
         ForumTopic t = topic(owner);
 
         CommentView c = comment(a, t, "  merhaba   dunya \n\n\n\n ");
-        assertEquals("merhaba   dunya", c.body(), "bas/son bosluk ve fazla satir sonu temizlenir");
+        assertEquals("merhaba dunya", c.body(), "bas/son bosluk, fazla satir sonu ve cift bosluk temizlenir (QA5-10)");
         assertNull(c.parentCommentId());
         assertEquals(0, c.depth());
         assertTrue(c.mine());
@@ -157,7 +157,7 @@ class ForumCommentServiceTest {
         assertEquals("FORUM_NOT_OWNER", thrown(() -> service.edit(b.getId(), c.id(), "ele gecirdim")).code());
         assertEquals(403, thrown(() -> service.edit(b.getId(), c.id(), "x")).status().value());
         assertEquals("FORUM_NOT_OWNER", code(() -> service.delete(b.getId(), c.id())));
-        assertEquals("merhaba   dunya", service.get(a.getId(), c.id()).body());
+        assertEquals("merhaba dunya", service.get(a.getId(), c.id()).body());
 
         // sahip duzenler: editedAt dolar, ayni metin damga basmaz
         CommentView same = service.edit(a.getId(), c.id(), "merhaba   dunya");
@@ -186,7 +186,7 @@ class ForumCommentServiceTest {
         assertEquals("FORUM_COMMENT_TOO_LONG", code(() -> comment(a, t, "a".repeat(4001))));
         assertEquals(4000, comment(a, t, "a".repeat(4000)).body().length());
         // XSS / HTML: etiketler atilir, duz metin kalir
-        assertEquals("alert(1)merhaba", comment(a, t, "<script>alert(1)</script>merhaba").body());
+        assertEquals("merhaba", comment(a, t, "<script>alert(1)</script>merhaba").body(), "script blogu icerigiyle silinir (QA5-10)");
         assertEquals("a < b ve c > d", comment(a, t, "a < b ve c > d").body(), "duz metin bozulmaz");
         // yon-ters ve kontrol karakterleri
         assertEquals("abc", comment(a, t, "a‮b\u0000c").body());

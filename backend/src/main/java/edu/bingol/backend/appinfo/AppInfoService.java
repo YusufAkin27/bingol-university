@@ -93,6 +93,7 @@ public class AppInfoService {
     }
 
     public VersionCheck checkVersion(String platform, String version, Lang lang) {
+        version = stripBuildSuffix(version); // "2.2.0+22006" / "2.2.0-beta": yapi numarasi / on surum eki karsilastirmaya katilmaz
         if (platform == null || !PLATFORM.matcher(platform).matches() || version == null
                 || !VERSION.matcher(version).matches()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_VERSION", "Geçersiz sürüm numarası.");
@@ -333,13 +334,38 @@ public class AppInfoService {
         String[] x = a.split("\\.");
         String[] y = b.split("\\.");
         for (int i = 0; i < Math.max(x.length, y.length); i++) {
-            long xi = i < x.length ? Long.parseLong(x[i]) : 0;
-            long yi = i < y.length ? Long.parseLong(y[i]) : 0;
+            long xi = i < x.length ? part(x[i]) : 0;
+            long yi = i < y.length ? part(y[i]) : 0;
             if (xi != yi) {
                 return Long.compare(xi, yi);
             }
         }
         return 0;
+    }
+
+    /** Bozuk (sayisal olmayan / tasan) ayar parcasi 0 sayilir: surum ucu bir ayar hatasi yuzunden 500 vermesin. */
+    private static long part(String s) {
+        try {
+            return Long.parseLong(s.trim());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    /** "2.2.0+22006" -> "2.2.0"; "2.1.3-beta" -> "2.1.3". null degismeden doner. */
+    static String stripBuildSuffix(String v) {
+        if (v == null) {
+            return null;
+        }
+        int cut = -1;
+        for (int i = 0; i < v.length(); i++) {
+            char c = v.charAt(i);
+            if (c == '+' || c == '-') {
+                cut = i;
+                break;
+            }
+        }
+        return (cut < 0 ? v : v.substring(0, cut)).trim();
     }
 
     private static String localized(Map<String, String> s, String base, Lang lang) {

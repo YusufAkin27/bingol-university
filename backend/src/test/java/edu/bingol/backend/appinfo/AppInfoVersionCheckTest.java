@@ -38,6 +38,25 @@ class AppInfoVersionCheckTest {
     }
 
     @Test
+    void buildNumberAndPreReleaseSuffixIgnored() {
+        // QA5: istemci "2.2.0+22006" / "2.1.3-beta" gonderse 400 olup zorunlu guncelleme kapisi sessizce kapanmasin
+        when(repo.findAll()).thenReturn(List.of(s("min_version_android", "2.1.3"), s("latest_version_android", "2.2.0")));
+        assertFalse(service.checkVersion("android", "2.2.0+22006").updateRequired());
+        assertFalse(service.checkVersion("android", "2.2.0+22006").updateAvailable());
+        assertTrue(service.checkVersion("android", "2.1.2+99999").updateRequired());
+        assertFalse(service.checkVersion("android", "2.1.3-beta").updateRequired());
+        assertTrue(service.checkVersion("android", "2.1.3-beta").updateAvailable());
+    }
+
+    @Test
+    void corruptStoredSettingDoesNotThrow() {
+        // QA5: bozuk min/latest ayari (elle DB duzenlemesi) 500 degil; bozuk parca 0 sayilir
+        when(repo.findAll()).thenReturn(List.of(s("min_version_android", "x.y"), s("latest_version_android", "")));
+        VersionCheck v = service.checkVersion("android", "2.0.0");
+        assertFalse(v.updateRequired());
+    }
+
+    @Test
     void invalidPlatformOrVersionRejected() {
         assertEquals("INVALID_VERSION", assertThrows(ApiException.class, () -> service.checkVersion("web", "1.0")).code());
         assertEquals("INVALID_VERSION", assertThrows(ApiException.class, () -> service.checkVersion("ios", "x.y")).code());

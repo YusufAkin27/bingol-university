@@ -89,7 +89,7 @@ class ForumTopicServiceTest {
         ForumCategory c = cat();
         TopicView v = service.create(me.getId(), req("  Merhaba   <b>dunya</b>​ ", "Ilk satir\r\n\r\n\r\n\r\nIkinci <script>alert(1)</script>", c.getId(), false), null);
         assertEquals("Merhaba dunya", v.title(), "HTML etiketi, sifir genislik ve cift bosluk temizlenir");
-        assertEquals("Ilk satir\n\nIkinci alert(1)", v.body());
+        assertEquals("Ilk satir\n\nIkinci", v.body());
         assertTrue(v.mine() && v.canEdit() && v.canDelete());
         assertFalse(v.author().anonymous());
         assertEquals(me.getId(), v.author().userId());
