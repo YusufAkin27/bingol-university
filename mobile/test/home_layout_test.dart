@@ -213,7 +213,11 @@ void main() {
     }
 
     Future<void> openEditor(WidgetTester tester) async {
-      await tester.tap(find.byTooltip('Ana sayfayı düzenle'));
+      // Başlıktaki kalem kaldırıldı: düzenleme Hızlı Erişim > Diğer menüsünden açılır.
+      expect(find.byTooltip('Ana sayfayı düzenle'), findsNothing);
+      await tester.tap(find.text('Diğer'));
+      await settle(tester, const Duration(milliseconds: 500));
+      await tester.tap(find.text('Ana sayfayı düzenle'));
       await settle(tester, const Duration(milliseconds: 700));
     }
 

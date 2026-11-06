@@ -743,7 +743,7 @@ class _HomeTabState extends State<HomeTab> {
     ]));
   }
 
-  /// Üst çubuk: "İyi günler" + "Merhaba, Ad"; sağda ana sayfayı düzenle (kalem) ve bildirimler (zil, okunmamış noktası).
+  /// Üst çubuk: "İyi günler" + "Merhaba, Ad"; sağda yalnız bildirimler (zil, okunmamış noktası). Düzenleme: Hızlı Erişim > Daha fazla ya da bölüm başlığına uzun basma (kalem yanlışlıkla zil yerine basılıyordu).
   Widget _header(BuildContext context, {bool afterBanner = false}) {
     final l = context.l10n;
     final name = (_s.displayName ?? '').trim().split(RegExp(r'\s+')).first;
@@ -755,8 +755,6 @@ class _HomeTabState extends State<HomeTab> {
         hello:
             name.isEmpty ? _greeting(context) : '${_greeting(context)}, $name',
         actions: [
-          BuIconButton(
-              icon: BuIcons.pencil, tooltip: l.p60EditHome, onTap: _editLayout),
           ValueListenableBuilder<int>(
             valueListenable: _s.badges.notifications,
             builder: (_, n, __) => BuIconButton(
