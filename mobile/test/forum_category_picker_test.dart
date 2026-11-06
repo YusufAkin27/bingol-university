@@ -392,38 +392,74 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('24 kategori: Tümü + ilk 8 + "Tüm kategoriler"; seçiciden dışarıdaki kategori seçilir ve çipte görünür', (tester) async {
+    testWidgets('24 kategori: tek yatay satır, hepsi kaydırılarak seçilir, "Tüm kategoriler" yok, üst üste binme yok', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend();
       final f = _forumWith(b, _many());
       await tester.pumpWidget(home(b));
       await settle(tester);
-      expect(find.byKey(const ValueKey('forum-chip-all')), findsOneWidget);
-      expect(find.byKey(const ValueKey('forum-chip-1')), findsOneWidget);
-      expect(find.byKey(const ValueKey('forum-chip-17')), findsNothing); // 8'in dışında
-      expect(find.byKey(const ValueKey('forum-chip-more')), findsOneWidget);
-      await tester.tap(find.byKey(const ValueKey('forum-chip-more')));
+      expect(find.byKey(const ValueKey('forum-chip-more')), findsNothing);
+      expect(find.text('Tüm kategoriler'), findsNothing);
+      final row = find.byKey(const ValueKey('forum-category-chips'));
+      final rowBox = tester.getRect(row);
+      // ilk açılışta soldan başlar: Tümü satırın solunda
+      final all = tester.getRect(find.byKey(const ValueKey('forum-chip-all')));
+      expect(all.left, greaterThanOrEqualTo(rowBox.left));
+      expect(all.left, lessThan(rowBox.left + 40));
+      // görünen çipler birbirine binmez
+      final rects = <Rect>[];
+      for (final id in [1, 2, 3]) {
+        rects.add(tester.getRect(find.byKey(ValueKey('forum-chip-$id'))));
+      }
+      rects.insert(0, all);
+      for (var i = 0; i < rects.length - 1; i++) {
+        expect(rects[i].right, lessThanOrEqualTo(rects[i + 1].left));
+        expect(rects[i].top, rects[i + 1].top);
+        expect(rects[i].height, greaterThanOrEqualTo(30));
+      }
+      // sağa kaydırınca uçtaki kategori seçilir ve çip seçili olur
+      await tester.dragUntilVisible(find.byKey(const ValueKey('forum-chip-24')), row, const Offset(-200, 0));
+      await tester.tap(find.byKey(const ValueKey('forum-chip-24')));
       await settle(tester);
-      expect(find.byKey(const ValueKey('forum-cat-search')), findsOneWidget);
-      await _type(tester, 'muzik');
-      await tester.tap(find.byKey(const ValueKey('forumCategory17')));
-      await settle(tester);
-      expect(f.topicQueries.last, contains('categoryId=17'));
-      expect(find.byKey(const ValueKey('forum-chip-17')), findsOneWidget); // seçili kategori çipte görünür
-      // Tümü'ne dönüş seçicinin Tümü satırıyla da olur
-      await tester.tap(find.byKey(const ValueKey('forum-chip-more')));
-      await settle(tester);
-      expect(find.descendant(of: find.byKey(const ValueKey('forumCategory17')), matching: find.byIcon(BuIcons.check)), findsOneWidget);
-      await tester.drag(find.byKey(const ValueKey('forum-cat-list')), const Offset(0, 3000)); // başa dön
-      await settle(tester);
-      await tester.tap(find.byKey(const ValueKey('forum-cat-all')));
-      await settle(tester);
-      expect(f.topicQueries.last, isNot(contains('categoryId')));
+      expect(f.topicQueries.last, contains('categoryId=24'));
+      expect(tester.getRect(find.byKey(const ValueKey('forum-chip-24'))).right, lessThanOrEqualTo(rowBox.right + 1));
       expect(tester.takeException(), isNull);
       await unmount(tester);
     });
 
-    testWidgets('8 veya daha az kategori: "Tüm kategoriler" çipi çıkmaz', (tester) async {
+    testWidgets('Arapça RTL: satır sağdan başlar, çipler binmez, x1.3 koyu taşma yok', (tester) async {
+      useScreen(tester, kPhoneSmall);
+      final b = FakeBackend();
+      _forumWith(b, _many());
+      await tester.pumpWidget(_app(ForumHomePage(session: makeSession(b)),
+          locale: const Locale('ar'), textScale: 1.3, brightness: Brightness.dark));
+      await settle(tester);
+      final row = tester.getRect(find.byKey(const ValueKey('forum-category-chips')));
+      final all = tester.getRect(find.byKey(const ValueKey('forum-chip-all')));
+      final next = tester.getRect(find.byKey(const ValueKey('forum-chip-1')));
+      expect(all.right, greaterThan(row.right - 40));
+      expect(next.right, lessThanOrEqualTo(all.left));
+      expect(tester.takeException(), isNull);
+      await unmount(tester);
+    });
+
+    testWidgets('79 kategori kaydırılabilir; çip satırı ekranı kaplamaz, taşma yok', (tester) async {
+      useScreen(tester, kPhoneSmall);
+      final b = FakeBackend();
+      _forumWith(b, [for (var i = 1; i <= 79; i++) _c(i, 'Kategori $i', group: 'g${i % 5}', groupOrder: i % 5)]);
+      await tester.pumpWidget(home(b));
+      await settle(tester);
+      final row = find.byKey(const ValueKey('forum-category-chips'));
+      expect(tester.getRect(row).height, BuSize.touch);
+      final sc = tester.state<ScrollableState>(find.descendant(of: row, matching: find.byType(Scrollable)));
+      expect(sc.position.maxScrollExtent, greaterThan(1000));
+      expect(sc.position.pixels, 0);
+      expect(find.byKey(const ValueKey('forum-chip-more')), findsNothing);
+      expect(tester.takeException(), isNull);
+      await unmount(tester);
+    });
+
+    testWidgets('az kategori: "Tüm kategoriler" çipi yok', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend();
       fakeForum(b, count: 3);
@@ -441,7 +477,7 @@ void main() {
         await tester.pumpWidget(home(b, textScale: 1.3, brightness: Brightness.dark));
         await settle(tester);
         expect(find.byKey(const ValueKey('forum-search')), findsOneWidget);
-        expect(find.byKey(const ValueKey('forum-chip-more')), findsOneWidget);
+        expect(find.byKey(const ValueKey('forum-chip-more')), findsNothing);
         expect(tester.takeException(), isNull);
         await unmount(tester);
       });
@@ -449,7 +485,7 @@ void main() {
   });
 
   group('Arama sayfası süzgeci', () {
-    testWidgets('çok kategori: çip satırı + Tüm kategoriler; seçici seçimi aramaya categoryId olarak yansır', (tester) async {
+    testWidgets('çok kategori: tek çip satırı; çip seçimi aramaya categoryId olarak yansır', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend();
       _forumWith(b, _many());
@@ -459,11 +495,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       await settle(tester, const Duration(milliseconds: 400));
       expect(find.byKey(const ValueKey('forum-search-categories')), findsOneWidget);
-      expect(find.byKey(const ValueKey('forum-chip-more')), findsOneWidget);
-      await tester.tap(find.byKey(const ValueKey('forum-chip-more')));
-      await settle(tester);
-      await _type(tester, 'kutuphane');
-      await tester.tap(find.byKey(const ValueKey('forumCategory13')));
+      expect(find.byKey(const ValueKey('forum-chip-more')), findsNothing);
+      await tester.ensureVisible(find.byKey(const ValueKey('forum-chip-13')));
+      await tester.tap(find.byKey(const ValueKey('forum-chip-13')));
       await settle(tester, const Duration(milliseconds: 800));
       expect(find.byKey(const ValueKey('forum-chip-13')), findsOneWidget);
       expect(tester.takeException(), isNull);

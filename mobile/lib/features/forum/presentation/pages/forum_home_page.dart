@@ -10,7 +10,6 @@ import '../../../notifications/notifications_page.dart';
 import '../../data/forum_feed_controller.dart';
 import '../../forum_routes.dart';
 import '../widgets/category_chips.dart';
-import 'forum_category_picker_page.dart';
 import '../widgets/forum_state_views.dart';
 import '../widgets/topic_actions.dart';
 import '../widgets/topic_card.dart';
@@ -121,17 +120,6 @@ class _ForumHomePageState extends State<ForumHomePage> {
       case TopicMenuResult.none:
         break;
     }
-  }
-
-  /// "Tüm kategoriler": aramalı, gruplu seçici sayfası; seçim akışı o kategoriye (ya da "Tümü"ne) çevirir.
-  Future<void> _openCategoryPicker() async {
-    final r = await openForumCategoryPicker(context,
-        api: _api, categories: _cats, selectedId: _feed.categoryId);
-    if (!mounted || r == null) return;
-    final id = r.category?.id;
-    if (id == _feed.categoryId) return;
-    if (_scroll.hasClients) _scroll.jumpTo(0);
-    await _feed.setCategory(id);
   }
 
   Future<void> _pickSort() async {
@@ -271,7 +259,6 @@ class _ForumHomePageState extends State<ForumHomePage> {
           categories: _cats,
           selectedId: _feed.categoryId,
           loading: _catsLoading,
-          onOpenAll: _openCategoryPicker,
           onSelected: (id) {
             if (_scroll.hasClients) _scroll.jumpTo(0);
             _feed.setCategory(id);

@@ -13,7 +13,6 @@ import '../widgets/forum_page_bar.dart';
 import '../widgets/forum_paged_list.dart';
 import '../widgets/category_chips.dart';
 import '../widgets/forum_result_tiles.dart';
-import 'forum_category_picker_page.dart';
 
 /// Arama yazıldıktan sonra isteğin gitmesi için beklenen süre (her tuşta istek atılmaz).
 const Duration kForumSearchDebounce = Duration(milliseconds: 350);
@@ -90,12 +89,6 @@ class _ForumSearchPageState extends State<ForumSearchPage> {
     } catch (_) {
       // Kategori çipleri isteğe bağlıdır; yüklenemezse yalnız "Tümü" gibi süzgeçsiz arama sürer.
     }
-  }
-
-  Future<void> _openCategoryPicker() async {
-    final r = await openForumCategoryPicker(context, api: _api, categories: _categories, selectedId: _catId);
-    if (!mounted || r == null) return;
-    setState(() => _catId = r.category?.id);
   }
 
   void _onChanged(String v) {
@@ -179,7 +172,6 @@ class _ForumSearchPageState extends State<ForumSearchPage> {
               categories: _categories,
               selectedId: catId,
               onSelected: (id) => setState(() => _catId = id),
-              onOpenAll: _openCategoryPicker,
             ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),

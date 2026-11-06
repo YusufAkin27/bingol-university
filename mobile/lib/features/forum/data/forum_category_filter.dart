@@ -104,3 +104,6 @@ List<ForumCategory> forumChipCategories(List<ForumCategory> all, int? selectedId
   }
   return head;
 }
+
+/// Çip satırındaki TÜM kategoriler, seçicideki grup sırasıyla (grup sırası, bölüm içi sortOrder; grupsuzlar sonda).
+List<ForumCategory> forumChipsAll(List<ForumCategory> all) => [for (final sec in groupForumCategories(all)) ...sec.items];

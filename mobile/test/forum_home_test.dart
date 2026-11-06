@@ -125,6 +125,7 @@ void main() {
       await settle(tester);
       expect(find.byKey(const ValueKey('forum-chip-all')), findsOneWidget);
       expect(find.byKey(const ValueKey('forum-chip-2')), findsOneWidget);
+      await tester.ensureVisible(find.byKey(const ValueKey('forum-chip-2')));
       await tester.tap(find.byKey(const ValueKey('forum-chip-2')));
       await settle(tester);
       expect(f.topicQueries.last, contains('categoryId=2'));
@@ -143,6 +144,7 @@ void main() {
       fakeForum(b, count: 1); // yalnız Gündem dolu
       await tester.pumpWidget(_page(b));
       await settle(tester);
+      await tester.ensureVisible(find.byKey(const ValueKey('forum-chip-2')));
       await tester.tap(find.byKey(const ValueKey('forum-chip-2')));
       await settle(tester);
       expect(find.text('Bu kategoride konu yok'), findsOneWidget);
