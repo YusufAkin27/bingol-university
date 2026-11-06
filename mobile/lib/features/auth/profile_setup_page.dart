@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import '../../core/academic_catalog.dart';
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
+import '../../core/oauth/real_email_api.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import 'onboarding/onboarding_flow.dart';
 import 'profile_photo_setup_page.dart';
+import 'real_email_page.dart';
 import 'widgets/auth_academic.dart';
 import 'widgets/auth_motion.dart';
 import 'widgets/auth_ref.dart';
@@ -34,7 +36,10 @@ bool isProfileComplete(Map<dynamic, dynamic> p) {
 ///   dönerse, bkz. [Session.profileIncompleteSignal]) kabuk yerine 2 aşamalı [OnboardingFlow] gösterilir; `profileCompleted`
 ///   alanı bool ise sunucunun kararı geçerlidir, alan yoksa (eski sunucu) bölüm + sınıf kuralı uygulanır;
 /// - bölüm + sınıf az önce ilk kez tamamlandıysa ve fotoğraf yoksa, kabuktan önce İSTEĞE BAĞLI [ProfilePhotoSetupPage] gelir
-///   (atlanabilir; uygulama bu adımda kapatılırsa tekrar sorulmaz).
+///   (atlanabilir; uygulama bu adımda kapatılırsa tekrar sorulmaz);
+/// - Apple "E-postamı gizle" hesapları (`emailNeedsReal`): profil bittikten sonra kabuğun önüne "Gerçek e-posta adresiniz" adımı gelir
+///   ([RealEmailPage]). Yeni hesapta (`realEmailRequired`, sunucu kapısı; ya da herhangi bir uçta 403 `REAL_EMAIL_REQUIRED`, bkz.
+///   [Session.realEmailRequiredSignal]) zorunludur ve atlanamaz; mevcut hesapta yumuşak adımdır ("Şimdi değil", 3 gün sorulmaz).
 class ProfileCompletionGate extends StatefulWidget {
   const ProfileCompletionGate({
     super.key,
@@ -53,13 +58,14 @@ class ProfileCompletionGate extends StatefulWidget {
   State<ProfileCompletionGate> createState() => _ProfileCompletionGateState();
 }
 
-enum _GateState { checking, complete, incomplete, onboarding, photo, unknown }
+enum _GateState { checking, complete, incomplete, onboarding, photo, realEmail, unknown }
 
 class _ProfileCompletionGateState extends State<ProfileCompletionGate> with WidgetsBindingObserver {
   _GateState _state = _GateState.checking;
   Timer? _timeout;
   bool _loading = false;
   bool _hasAvatar = false; // son profil yanıtında fotoğraf var mı (varsa "fotoğraf ekle" adımı atlanır)
+  RealEmailStatus _realEmail = RealEmailStatus.none; // son profil yanıtındaki gerçek e-posta durumu
 
   @override
   void initState() {
@@ -67,6 +73,7 @@ class _ProfileCompletionGateState extends State<ProfileCompletionGate> with Widg
     WidgetsBinding.instance.addObserver(this);
     widget.session.api.connectivity.reconnects.addListener(_onReconnect);
     widget.session.profileIncompleteSignal.addListener(_onIncompleteSignal);
+    widget.session.realEmailRequiredSignal.addListener(_onRealEmailSignal);
     _timeout = Timer(widget.loadTimeout, () {
       if (mounted && _state == _GateState.checking) setState(() => _state = _GateState.unknown);
     });
@@ -79,11 +86,18 @@ class _ProfileCompletionGateState extends State<ProfileCompletionGate> with Widg
     WidgetsBinding.instance.removeObserver(this);
     widget.session.api.connectivity.reconnects.removeListener(_onReconnect);
     widget.session.profileIncompleteSignal.removeListener(_onIncompleteSignal);
+    widget.session.realEmailRequiredSignal.removeListener(_onRealEmailSignal);
     super.dispose();
   }
 
   void _onReconnect() {
-    if (mounted && _state != _GateState.complete && _state != _GateState.photo && _state != _GateState.onboarding) _check();
+    if (mounted &&
+        _state != _GateState.complete &&
+        _state != _GateState.photo &&
+        _state != _GateState.onboarding &&
+        _state != _GateState.realEmail) {
+      _check();
+    }
   }
 
   /// Sunucu bir uçta 403 PROFILE_INCOMPLETE döndü: kabuk kapanır, onboarding açılır (profil bitene dek başka yol yok).
@@ -92,12 +106,21 @@ class _ProfileCompletionGateState extends State<ProfileCompletionGate> with Widg
     _settle(_GateState.onboarding);
   }
 
+  /// Sunucu bir uçta 403 REAL_EMAIL_REQUIRED döndü: zorunlu "Gerçek e-posta adresiniz" adımı. Profil (onboarding) sürüyorsa
+  /// o bitince gösterilir (sunucu ikisini bağımsız denetler; sıra önemsiz).
+  void _onRealEmailSignal() {
+    _realEmail = const RealEmailStatus(needsReal: true, required: true);
+    if (!mounted || _state == _GateState.photo || _state == _GateState.onboarding || _state == _GateState.incomplete) return;
+    _settle(_GateState.realEmail);
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState s) {
     if (s == AppLifecycleState.resumed &&
         _state != _GateState.complete &&
         _state != _GateState.incomplete &&
         _state != _GateState.onboarding &&
+        _state != _GateState.realEmail &&
         _state != _GateState.photo) {
       _check();
     }
@@ -115,6 +138,7 @@ class _ProfileCompletionGateState extends State<ProfileCompletionGate> with Widg
         return;
       }
       widget.session.noteProfile(r); // açılışta e-posta doğrulama durumunu tazele
+      _realEmail = RealEmailStatus.fromJson(r);
       final av = r['avatarUrl'];
       _hasAvatar = av is String && av.trim().isNotEmpty;
       // Sunucu `profileCompleted` bildiriyorsa onun kararı geçerli; yoksa OAuth girişinin ipucu, o da yoksa eski kural.
@@ -123,9 +147,11 @@ class _ProfileCompletionGateState extends State<ProfileCompletionGate> with Widg
       if (decided == false) {
         _settle(_GateState.onboarding);
       } else if (decided == true) {
-        _settle(_GateState.complete);
+        await _settleComplete();
+      } else if (isProfileComplete(r)) {
+        await _settleComplete();
       } else {
-        _settle(isProfileComplete(r) ? _GateState.complete : _GateState.incomplete);
+        _settle(_GateState.incomplete);
       }
     } on ApiError catch (e) {
       if (!mounted || _state == _GateState.photo || _state == _GateState.onboarding) return;
@@ -144,23 +170,59 @@ class _ProfileCompletionGateState extends State<ProfileCompletionGate> with Widg
     setState(() => _state = s);
   }
 
+  /// Profil tamam: Apple gizli adresli hesapta "Gerçek e-posta" adımı (zorunluysa her zaman; yumuşaksa ertelenmediyse), yoksa kabuk.
+  Future<_GateState> _afterProfile() async {
+    if (!_realEmail.needsReal) return _GateState.complete;
+    if (_realEmail.required) return _GateState.realEmail;
+    return await RealEmailSoftSkip.isSnoozed(widget.session.userId) ? _GateState.complete : _GateState.realEmail;
+  }
+
+  Future<void> _settleComplete() async {
+    final next = await _afterProfile();
+    if (!mounted || _state == _GateState.photo || _state == _GateState.onboarding) return;
+    _settle(next);
+  }
+
   /// Bölüm + sınıf az önce ilk kez tamamlandı: fotoğrafı yoksa İSTEĞE BAĞLI "fotoğraf ekle" adımı, varsa doğrudan kabuk.
   /// Adım yalnız bu geçişte gösterilir (sonraki açılışlarda bölüm + sınıf dolu olduğundan kapı zaten açıktır).
   void _done() {
     if (!mounted) return;
     final hasAvatar = _hasAvatar || (widget.session.avatarUrl.value ?? '').isNotEmpty;
-    setState(() => _state = hasAvatar ? _GateState.complete : _GateState.photo);
+    if (hasAvatar) {
+      _toAfterProfile();
+    } else {
+      setState(() => _state = _GateState.photo);
+    }
+  }
+
+  void _toAfterProfile() {
+    _afterProfile().then((s) {
+      if (mounted) setState(() => _state = s);
+    });
   }
 
   /// Onboarding bitti (profil sunucuda tamamlandı): kabuğa geçilir; fotoğraf adımı onboarding içinde zaten vardı.
   void _onboardingDone() {
     if (!mounted) return;
     widget.session.profileCompletedHint = true;
-    setState(() => _state = _GateState.complete);
+    _toAfterProfile();
   }
 
   void _photoDone() {
-    if (mounted) setState(() => _state = _GateState.complete);
+    if (mounted) _toAfterProfile();
+  }
+
+  void _realEmailDone() {
+    if (!mounted) return;
+    _realEmail = RealEmailStatus.none;
+    setState(() => _state = _GateState.complete);
+  }
+
+  void _realEmailSkipped() {
+    if (!mounted) return;
+    RealEmailSoftSkip.snoozeNow(widget.session.userId);
+    _realEmail = RealEmailStatus.none;
+    setState(() => _state = _GateState.complete);
   }
 
   @override
@@ -175,6 +237,14 @@ class _ProfileCompletionGateState extends State<ProfileCompletionGate> with Widg
         return OnboardingFlow(key: const ValueKey('onboarding-gate'), session: widget.session, onDone: _onboardingDone);
       case _GateState.photo:
         return ProfilePhotoSetupPage(key: const ValueKey('profile-photo-gate'), session: widget.session, onDone: _photoDone);
+      case _GateState.realEmail:
+        return RealEmailPage(
+          key: const ValueKey('real-email-gate'),
+          session: widget.session,
+          mandatory: _realEmail.required,
+          onDone: _realEmailDone,
+          onSkip: _realEmailSkipped,
+        );
       case _GateState.complete:
       case _GateState.unknown:
         return widget.child;

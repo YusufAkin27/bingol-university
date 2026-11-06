@@ -39,6 +39,7 @@ class Session extends ChangeNotifier {
     api.onLegalReaccept = legal.onRequired;
     api.onEmailVerificationRequired = _onVerificationRequired;
     api.onProfileIncomplete = _onProfileIncomplete;
+    api.onRealEmailRequired = _onRealEmailRequired;
     realtime = ChatRealtime(this);
   }
 
@@ -89,6 +90,19 @@ class Session extends ChangeNotifier {
   void _onProfileIncomplete() {
     profileCompletedHint = false;
     profileIncompleteSignal.value++;
+  }
+
+  /// 403 `REAL_EMAIL_REQUIRED` sayacı: yeni Apple gizli-adresli hesap gerçek e-postasını doğrulamadan yazmayı denedi.
+  /// Profil kapısı ([ProfileCompletionGate]) dinler ve kabuk yerine zorunlu "Gerçek e-posta adresiniz" adımını gösterir.
+  final realEmailRequiredSignal = ValueNotifier<int>(0);
+
+  void _onRealEmailRequired() => realEmailRequiredSignal.value++;
+
+  /// Gerçek e-posta doğrulandı: hesabın tek e-postası artık [newEmail] (karşılama/profil ekranları tazelenir).
+  void realEmailVerified(String newEmail) {
+    email = newEmail;
+    emailUnverified.value = false;
+    notifyListeners();
   }
 
   /// Sunucuda kapalı (404 `OAUTH_DISABLED`) sağlayıcılar: bu uygulama oturumu boyunca düğmeler gizlenir.

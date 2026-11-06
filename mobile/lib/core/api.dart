@@ -181,6 +181,10 @@ class ApiClient {
   /// Oturum açık kalır; kapı kabuğun yerine "Profilini tamamla" akışını gösterir. Hata yine çağırana iletilir.
   void Function()? onProfileIncomplete;
 
+  /// 403 REAL_EMAIL_REQUIRED: yeni Apple gizli-adresli hesap gerçek e-postasını doğrulamadan yazma denedi. Oturum açık kalır;
+  /// kapı kabuğun yerine "Gerçek e-posta adresiniz" adımını gösterir. Hata yine çağırana iletilir.
+  void Function()? onRealEmailRequired;
+
   Future<Tokens>? _inflight;
 
   static const _timeout = Duration(seconds: 20);
@@ -554,6 +558,7 @@ class ApiClient {
       if (res.statusCode == 403 && code == 'LEGAL_REACCEPT_REQUIRED') onLegalReaccept?.call(json['requiresAcceptance']);
       if (res.statusCode == 403 && code == 'EMAIL_VERIFICATION_REQUIRED') onEmailVerificationRequired?.call();
       if (res.statusCode == 403 && code == 'PROFILE_INCOMPLETE') onProfileIncomplete?.call();
+      if (res.statusCode == 403 && code == 'REAL_EMAIL_REQUIRED') onRealEmailRequired?.call();
       throw ApiError(res.statusCode, code, msg is String ? msg : '', retryAfter: retryAfter, data: json.cast<String, dynamic>());
     }
     throw ApiError(res.statusCode, 'HTTP_${res.statusCode}', '', retryAfter: retryAfter);
