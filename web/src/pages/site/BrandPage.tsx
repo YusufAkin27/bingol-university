@@ -55,17 +55,17 @@ export const BRAND_LOGOS: LogoFile[] = [
 
 const GROUPS: Group[] = ['mark', 'square'];
 
-/** Marka siyah-beyazdır; eylem kırmızısı yalnız arayüz vurgusudur (logoda kullanılmaz). */
+/** Marka siyah-beyazdır; ikincil metin ve kenarlık için tek nötr gri. Vurgu rengi yoktur (kırmızı yalnız hata/tehlike). */
 export const BRAND_COLORS = [
   { id: 'ink', hex: '#09090B' },
   { id: 'paper', hex: '#FFFFFF' },
-  { id: 'action', hex: '#C62A20' },
+  { id: 'gray', hex: '#71717A' },
 ] as const;
 
 const RULES = [1, 2, 3, 4, 5] as const;
 
 /** Basın için uygulama ekranları (gerçek ekran çıktıları, kişisel veri içermez). */
-const PRESS_SHOTS: ShotId[] = ['home', 'events', 'chat'];
+const PRESS_SHOTS: ShotId[] = ['home', 'events', 'profile'];
 
 export function hexToRgb(hex: string): string {
   const n = parseInt(hex.slice(1), 16);
@@ -112,14 +112,14 @@ export default function BrandPage() {
       <section className={`${shared.section} ${shared.sectionTop}`}>
         <div className={`container ${styles.wrap}`}>
           <section aria-labelledby="brand-logos">
-            <h2 id="brand-logos" className={shared.h3}>
+            <h2 id="brand-logos" className={styles.h2}>
               {t('pg.brand.logos')}
             </h2>
-            <p className={shared.muted}>{t('pg.brand.logosText')}</p>
+            <p className={styles.lead}>{t('pg.brand.logosText')}</p>
             {GROUPS.map((g) => (
               <div key={g} className={styles.group}>
                 <h3 className={styles.groupTitle}>{t(`pg.brand.group.${g}` as TranslationKey)}</h3>
-                <p className={shared.muted}>{t(`pg.brand.group.${g}Text` as TranslationKey)}</p>
+                <p className={styles.lead}>{t(`pg.brand.group.${g}Text` as TranslationKey)}</p>
                 <ul className={styles.logos}>
                   {BRAND_LOGOS.filter((l) => l.group === g).map((l) => {
                     const name = t(l.name);
@@ -143,10 +143,10 @@ export default function BrandPage() {
 
           <section aria-labelledby="brand-space" className={styles.two}>
             <div className={styles.panel}>
-              <h2 id="brand-space" className={shared.h3}>
+              <h2 id="brand-space" className={styles.h2}>
                 {t('pg.brand.space.title')}
               </h2>
-              <p className={shared.muted}>{t('pg.brand.space.text')}</p>
+              <p className={styles.lead}>{t('pg.brand.space.text')}</p>
               <div className={styles.spaceBox} aria-hidden="true">
                 <div className={styles.spaceInner}>
                   <img src="/brand/mark-light.png" alt="" height={64} loading="lazy" decoding="async" />
@@ -158,8 +158,8 @@ export default function BrandPage() {
               </div>
             </div>
             <div className={styles.panel}>
-              <h2 className={shared.h3}>{t('pg.brand.min.title')}</h2>
-              <p className={shared.muted}>{t('pg.brand.min.text')}</p>
+              <h2 className={styles.h2}>{t('pg.brand.min.title')}</h2>
+              <p className={styles.lead}>{t('pg.brand.min.text')}</p>
               <ul className={styles.minRow}>
                 <li>
                   <img src="/brand/mark-light.png" alt="" width={22} height={16} loading="lazy" decoding="async" />
@@ -174,10 +174,10 @@ export default function BrandPage() {
           </section>
 
           <section aria-labelledby="brand-dont">
-            <h2 id="brand-dont" className={shared.h3}>
+            <h2 id="brand-dont" className={styles.h2}>
               {t('pg.brand.dont.title')}
             </h2>
-            <p className={shared.muted}>{t('pg.brand.dont.text')}</p>
+            <p className={styles.lead}>{t('pg.brand.dont.text')}</p>
             <ul className={styles.donts}>
               <li className={styles.dont}>
                 <div className={`${styles.preview} ${styles.light}`}>
@@ -212,10 +212,10 @@ export default function BrandPage() {
           </section>
 
           <section aria-labelledby="brand-colors">
-            <h2 id="brand-colors" className={shared.h3}>
+            <h2 id="brand-colors" className={styles.h2}>
               {t('pg.brand.colors')}
             </h2>
-            <p className={shared.muted}>{t('pg.brand.colorsText')}</p>
+            <p className={styles.lead}>{t('pg.brand.colorsText')}</p>
             <ul className={styles.colors}>
               {BRAND_COLORS.map((c) => (
                 <li key={c.id} className={styles.color}>
@@ -227,7 +227,7 @@ export default function BrandPage() {
                       <CopyButton value={c.hex} label={t('pg.brand.copyHex', { hex: c.hex })} />
                     </span>
                     <code className={`ltr ${styles.rgb}`}>RGB {hexToRgb(c.hex)}</code>
-                    <span className={shared.muted}>{t(`pg.brand.color.${c.id}Use` as TranslationKey)}</span>
+                    <span className={styles.lead}>{t(`pg.brand.color.${c.id}Use` as TranslationKey)}</span>
                     <span className={styles.contrast}>
                       {t(`pg.brand.color.${c.id}Contrast` as TranslationKey)}
                     </span>
@@ -238,10 +238,10 @@ export default function BrandPage() {
           </section>
 
           <section aria-labelledby="brand-type">
-            <h2 id="brand-type" className={shared.h3}>
+            <h2 id="brand-type" className={styles.h2}>
               {t('pg.brand.type.title')}
             </h2>
-            <p className={shared.muted}>{t('pg.brand.type.text')}</p>
+            <p className={styles.lead}>{t('pg.brand.type.text')}</p>
             <div className={styles.two}>
               <div className={styles.panel}>
                 <span className={styles.typeLabel}>{t('pg.brand.type.display')}</span>
@@ -255,7 +255,7 @@ export default function BrandPage() {
           </section>
 
           <section aria-labelledby="brand-rules">
-            <h2 id="brand-rules" className={shared.h3}>
+            <h2 id="brand-rules" className={styles.h2}>
               {t('pg.brand.rules')}
             </h2>
             <ul className={styles.rules}>
@@ -266,10 +266,10 @@ export default function BrandPage() {
           </section>
 
           <section aria-labelledby="brand-shots">
-            <h2 id="brand-shots" className={shared.h3}>
+            <h2 id="brand-shots" className={styles.h2}>
               {t('site.s2.brand.shotsTitle')}
             </h2>
-            <p className={shared.muted}>{t('site.s2.brand.shotsText')}</p>
+            <p className={styles.lead}>{t('site.s2.brand.shotsText')}</p>
             <ul className={styles.shots}>
               {PRESS_SHOTS.map((id, i) => (
                 <li key={id}>
@@ -282,10 +282,10 @@ export default function BrandPage() {
           </section>
 
           <section aria-labelledby="brand-press" className={styles.press}>
-            <h2 id="brand-press" className={shared.h3}>
+            <h2 id="brand-press" className={styles.h2}>
               {t('pg.brand.pressTitle')}
             </h2>
-            <p className={shared.muted}>{t('pg.brand.pressText')}</p>
+            <p className={styles.lead}>{t('pg.brand.pressText')}</p>
             <div className={styles.pressActions}>
               {email && (
                 <a className={styles.mail} href={`mailto:${email}`}>
