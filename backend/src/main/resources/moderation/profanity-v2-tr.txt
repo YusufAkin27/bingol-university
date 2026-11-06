@@ -1,0 +1,408 @@
+# Uygunsuz ifade filtresi - Turkce v2 listesi (elle yazilmis, uretici: scripts/profanity/gen-v2.js). ELLE DEGISTIRMEYIN.
+# Soz dizimi icin profanity-tr.txt basligina bakin; ek isaretler: +kok = kok + guvenli Turkce ek zinciri (sozcuk sonuna kadar).
+# Kisa/belirsiz kokler ASLA metin icinde aranmaz; "klasik", "mesela", "sistem" gibi sozcukler bu yuzden gecer.
+
+# --- Kufur/hakaret/cinsel (kok + ek zinciri, tam eslesme, tamlama) ---
++orospu
++orospuluk
++orospuçocuğu
++orospucocugu
++orospular
++orosbu
++orosbuçocuğu
++orospuyu
++amcık
++amcıklar
++amcığı
++amcuk
++amcıkağız
++amcıkağzı
++amcıkhoş
++yarrak
++yarak
++yarrağ
++yarrakları
++yarrakkafa
++yarrakkafalı
++yarrakyalayan
++taşak
++taşşak
++taşaklarım
++taşağım
++taşşaklar
++taşaklı
++sikik
++sikikler
++sikiktir
++sikler
++siklerim
++sikmeyeyim
++sikimsonik
++sikimtrak
++siktir
++siktirgit
++siktirin
++siktiriboktan
++siktirler
++siktiğim
++siktiğimin
++siktiğimden
++siktiğimi
++siktiğimle
++siktim
++siktin
++siktik
++siktiler
++sikerler
++sikmiş
++sikmişler
++sikilmiş
++sikeyim
++sikerim
++sikersin
++sikecem
++sikecek
++sikeceğim
++sikicem
++sikiyim
++sikişmek
++sikişti
++sikişen
++sikişir
++sikko
++götveren
++götverenler
++götlek
++götleri
++götlük
++götoş
++götoşlar
++götelek
++göttenci
++götünü
++götüne
++götünden
++götünde
++götüm
++götümü
++götümde
++götsüz
++pezevenk
++pezevenkler
++pezevenklik
++pezo
++kahpe
++kahbe
++kahpelik
++kahpeler
++kahpenin
++kaltak
++kaltaklar
++kaltaklık
++fahişe
++fahişeler
++fahişelik
++sürtük
++sürtükler
++sürtüklük
++şıllık
++şıllıklar
++kevaşe
++kevaşeler
++kerhane
++kerhaneler
++gavat
++gavatlar
++gavatlık
++ibne
++ibneler
++ibnelik
++ibnece
++ibneliği
++puşt
++puştlar
++puştluk
++puşttur
++yavşak
++yavşaklar
++yavşaklık
++yavşakça
++dangalak
++dangalaklar
++dangalaklık
++gerzek
++gerzekler
++gerzeklik
++salak
++salaklar
++salaklık
++salakça
++aptal
++aptallar
++aptallık
++aptalca
++andaval
++avanak
++avanaklar
++avanaklık
++mankafa
++mankafalar
++ahmak
++ahmaklar
++ahmaklık
++budala
++budalalar
++budalalık
++embesil
++embesiller
++beyinsiz
++beyinsizler
++şerefsiz
++şerefsizler
++şerefsizlik
++namussuz
++namussuzlar
++namussuzluk
++onursuz
++onursuzlar
++onursuzluk
++haysiyetsiz
++haysiyetsizler
++ahlaksız
++ahlaksızlar
++ahlaksızlık
++kodumun
++kodumunun
++kodugumun
++sıçmak
++sıçtı
++sıçtım
++sıçtığım
++sıçıyor
++sıçarım
++sıçayım
++sıçacak
++sıçmış
++sıçmışlar
++sıçtığımın
++sıçılası
++bokluk
++boktan
++boklu
++boklar
++boku
++bokum
++bokunu
++bokuna
++bokunda
++bokundan
++bokta
++mastürbasyoncu
+=amk
+=amq
+=amck
+=aq
+=ammk
+=amkk
+=sg
+=oç
+=yrrk
+=yrk
+=yrak
+=sktr
+=sktir
+=skm
+=skim
+=skerim
+=skeyim
+=skik
+=siktr
+=sikt
+=piçler
+=piçlik
+=piçliği
+=piçin
+=piçleri
+=pickurusu
+=piçkurusu
+=şerefsizin
+=şerefsizi
+=şerefsizim
+=dümbük
+=dümbüğü
+=oruspu
+=orspu
+=orospi
+=orsp
+=orosbi
+=oropsu
+=orosbu
+=gotveren
+=götveren
+=ibine
+=ibneyim
+sikindirik
+amına koyayım
+amına koyarım
+amına koydum
+amına koduğum
+amına koyim
+amına koyum
+amına koyacağım
+amına koduğumun
+amına kodumun
+amını sikeyim
+amını sikerim
+amına sokayım
+amcığını sikeyim
+ananı sikeyim
+ananı sikerim
+ananı avradını
+anasını sikeyim
+anasını sikerim
+anasını satayım
+anan avradın
+ananın amı
+ananın amına
+ananın ağzına
+bacını sikeyim
+bacını sikerim
+karını sikeyim
+karını sikerim
+ananı sikim
+orospu çocuğu
+orospu evladı
+orospu piçi
+orospunun evladı
+orospunun çocuğu
+fahişe evladı
+kahpe evladı
+kahpe doğurmuş
+kancık evladı
+it oğlu it
+it herif
+köpek oğlu
+köpoğlu
+köpoğlu köpek
+eşek herif
+eşek oğlu eşek
+dallama herif
+piç kurusu
+piç herif
+piçin evladı
+pezevenk evladı
+pezevenk herif
+gerizekalı herif
+geri zekalı
+geri zekâlı
+beyinsiz herif
+aklını sikeyim
+ağzına sıçayım
+ağzına sıçarım
+ağzına sıçtığım
+ağzına sıçmak
+ağzına sokayım
+boku yedin
+boku yemek
+bokunu çıkarırım
+bokunu çıkar
+bok herif
+bok kafalı
+sıçtığımın
+sik kafalı
+sik kafa
+sik kıllı
+sikik herif
+sikik kafalı
+sike sike
+sikine koyayım
+sikini yerim
+sikimi ye
+sikimi yalarsın
+götünü sikeyim
+götünü yalarım
+götüne koyayım
+götüne sokayım
+götüne girerim
+göt veren
+göt oğlanı
+göt kafalı
+götüm kadar
+taşaklarını sıkarım
+yarrağı yedin
+yarrağımı ye
+yarrağımın başı
+yarrak kafalı
+yarrak gibi
+amcık ağızlı
+amcık ağız
+amcık hoşafı
+amcık herif
+amık herif
+orospu karı
+orospu kadın
+kaltak karı
+sürtük karı
+şerefsiz herif
+namussuz herif
+namussuz karı
+ahlaksız herif
+alçak herif
+aşağılık herif
+aşağılık adam
+aşağılık yaratık
+siktir git
+siktir et
+siktir olup git
+siktir lan
+siktir ordan
+siktir oradan
+sik oradan
+geberesice
+gebersin kahpe
+bok ye
+bok ye lan
+bok ye orospu
+lan orospu
+lan pezevenk
+lan piç
+lan şerefsiz
+oç lan
+aq lan
+amk lan
+amk oçu
+amk çocuğu
+amk evladı
+amk piçi
+amk kafalı
+esrar satılır
+esrar satarım
+esrar satıyorum
+esrar arıyorum
+bonzai
+bonzai satılır
+bonzai satarım
+bonzay
+hap satılır
+hap satarım
+uyuşturucu hap satılır
+extacy satılır
+extasy satılır
+ekstazi satılır
+ekstazi hap
+mdma satılır
+kokain satılır
+kokain satarım
+eroin satılır
+eroin satarım
+skunk satılır
+marihuana satılır
+uyuşturucu satılır
+uyuşturucu satarım
+uyuşturucu temin
+uyuşturucu siparişi
+kapıya teslim esrar
+kapıya teslim kokain
+kapıya teslim uyuşturucu
+elden teslim esrar
+captagon satılır

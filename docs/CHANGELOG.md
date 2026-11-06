@@ -4,6 +4,10 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### Uygunsuz ifade filtresi v2 (2026-11-06, `deploy/profanity-20261106`)
+
+- TR/EN/AR için uzun yerleşik liste (`profanity-v2-*.txt`, üretici `scripts/profanity/gen-v2.js`), nefret söylemi (`HATE`), uyuşturucu satış argosu, Latin harfli Arapça; geniş masum/nötr kimlik izin listesi. Eşleşme motoru: 4-5 harfli kökler artık rastgele ek almaz, yeni `+`/`~` güvenli ek zinciri, izin listesi bilinen ek zinciriyle sınırlı. Migration yok. Sohbet mesajları muaf kalır. Ayrıntı: `docs/changes/ops.md` "Filtre v2".
+
 ### Çoklu oturum + Cihazlarım (2026-11-06, `deploy/multisession-20261106`)
 
 - **Tek cihaz kuralı kalktı:** mobil giriş artık önceki mobil oturumları kapatmaz ve FCM kayıtlarını silmez; eski davranış `app.auth.single-mobile-session=true` (`AUTH_SINGLE_MOBILE_SESSION`) ile geri gelir. Bildirimler kullanıcının tüm cihazlarına gider.

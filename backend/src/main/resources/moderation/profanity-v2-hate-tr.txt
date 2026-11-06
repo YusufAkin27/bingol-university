@@ -1,0 +1,649 @@
+# Nefret soylemi (HATE) - Turkce v2 (uretici: scripts/profanity/gen-v2.js). Yalniz asagilama/insanliktan cikarma/olum cagrisi kaliplari; notr kimlik sozcukleri ("kurt", "turk", "yahudi", "gay", "engelli"...) ENGELLENMEZ (izin listesi).
+
+# --- Grup kaliplari ---
+yahudi piçi
+yahudi köpeği
+yahudi bozuntusu
+yahudi artığı
+yahudi çöpü
+yahudi dölü
+yahudi sürüsü
+yahudi kanseri
+yahudi pisliği
+yahudiler defolsun
+yahudiler gebersin
+yahudiler geberin
+yahudiler yok olsun
+yahudiler ölsün
+yahudiler köpektir
+yahudiler pisliktir
+yahudiler hayvandır
+yahudiler insan değildir
+yahudiler soysuzdur
+yahudileri öldürün
+yahudileri gebertin
+yahudileri yakın
+yahudileri asın
+yahudileri kovun
+yahudileri sürün
+yahudiler gebertilmeli
+yahudiler öldürülmeli
+yahudiler yok edilmeli
+ölüm yahudiler
+kahrolsun yahudi
+kahrolsun yahudiler
+ermeni piçi
+ermeni köpeği
+ermeni bozuntusu
+ermeni artığı
+ermeni çöpü
+ermeni dölü
+ermeni sürüsü
+ermeni kanseri
+ermeni pisliği
+ermeniler defolsun
+ermeniler gebersin
+ermeniler geberin
+ermeniler yok olsun
+ermeniler ölsün
+ermeniler köpektir
+ermeniler pisliktir
+ermeniler hayvandır
+ermeniler insan değildir
+ermeniler soysuzdur
+ermenileri öldürün
+ermenileri gebertin
+ermenileri yakın
+ermenileri asın
+ermenileri kovun
+ermenileri sürün
+ermeniler gebertilmeli
+ermeniler öldürülmeli
+ermeniler yok edilmeli
+ölüm ermeniler
+kahrolsun ermeni
+kahrolsun ermeniler
+kürt piçi
+kürt köpeği
+kürt bozuntusu
+kürt artığı
+kürt çöpü
+kürt dölü
+kürt sürüsü
+kürt kanseri
+kürt pisliği
+kürtler defolsun
+kürtler gebersin
+kürtler geberin
+kürtler yok olsun
+kürtler ölsün
+kürtler köpektir
+kürtler pisliktir
+kürtler hayvandır
+kürtler insan değildir
+kürtler soysuzdur
+kürtleri öldürün
+kürtleri gebertin
+kürtleri yakın
+kürtleri asın
+kürtleri kovun
+kürtleri sürün
+kürtler gebertilmeli
+kürtler öldürülmeli
+kürtler yok edilmeli
+ölüm kürtler
+kahrolsun kürt
+kahrolsun kürtler
+arap piçi
+arap köpeği
+arap bozuntusu
+arap artığı
+arap çöpü
+arap dölü
+arap sürüsü
+arap kanseri
+arap pisliği
+araplar defolsun
+araplar gebersin
+araplar geberin
+araplar yok olsun
+araplar ölsün
+araplar köpektir
+araplar pisliktir
+araplar hayvandır
+araplar insan değildir
+araplar soysuzdur
+arapları öldürün
+arapları gebertin
+arapları yakın
+arapları asın
+arapları kovun
+arapları sürün
+araplar gebertilmeli
+araplar öldürülmeli
+araplar yok edilmeli
+ölüm araplar
+kahrolsun arap
+kahrolsun araplar
+rum piçi
+rum köpeği
+rum bozuntusu
+rum artığı
+rum çöpü
+rum dölü
+rum sürüsü
+rum kanseri
+rum pisliği
+rumlar defolsun
+rumlar gebersin
+rumlar geberin
+rumlar yok olsun
+rumlar ölsün
+rumlar köpektir
+rumlar pisliktir
+rumlar hayvandır
+rumlar insan değildir
+rumlar soysuzdur
+rumları öldürün
+rumları gebertin
+rumları yakın
+rumları asın
+rumları kovun
+rumları sürün
+rumlar gebertilmeli
+rumlar öldürülmeli
+rumlar yok edilmeli
+ölüm rumlar
+kahrolsun rum
+kahrolsun rumlar
+çingene piçi
+çingene köpeği
+çingene bozuntusu
+çingene artığı
+çingene çöpü
+çingene dölü
+çingene sürüsü
+çingene kanseri
+çingene pisliği
+çingeneler defolsun
+çingeneler gebersin
+çingeneler geberin
+çingeneler yok olsun
+çingeneler ölsün
+çingeneler köpektir
+çingeneler pisliktir
+çingeneler hayvandır
+çingeneler insan değildir
+çingeneler soysuzdur
+çingeneleri öldürün
+çingeneleri gebertin
+çingeneleri yakın
+çingeneleri asın
+çingeneleri kovun
+çingeneleri sürün
+çingeneler gebertilmeli
+çingeneler öldürülmeli
+çingeneler yok edilmeli
+ölüm çingeneler
+kahrolsun çingene
+kahrolsun çingeneler
+alevi piçi
+alevi köpeği
+alevi bozuntusu
+alevi artığı
+alevi çöpü
+alevi dölü
+alevi sürüsü
+alevi kanseri
+alevi pisliği
+aleviler defolsun
+aleviler gebersin
+aleviler geberin
+aleviler yok olsun
+aleviler ölsün
+aleviler köpektir
+aleviler pisliktir
+aleviler hayvandır
+aleviler insan değildir
+aleviler soysuzdur
+alevileri öldürün
+alevileri gebertin
+alevileri yakın
+alevileri asın
+alevileri kovun
+alevileri sürün
+aleviler gebertilmeli
+aleviler öldürülmeli
+aleviler yok edilmeli
+ölüm aleviler
+kahrolsun alevi
+kahrolsun aleviler
+sünni piçi
+sünni köpeği
+sünni bozuntusu
+sünni artığı
+sünni çöpü
+sünni dölü
+sünni sürüsü
+sünni kanseri
+sünni pisliği
+sünniler defolsun
+sünniler gebersin
+sünniler geberin
+sünniler yok olsun
+sünniler ölsün
+sünniler köpektir
+sünniler pisliktir
+sünniler hayvandır
+sünniler insan değildir
+sünniler soysuzdur
+sünnileri öldürün
+sünnileri gebertin
+sünnileri yakın
+sünnileri asın
+sünnileri kovun
+sünnileri sürün
+sünniler gebertilmeli
+sünniler öldürülmeli
+sünniler yok edilmeli
+ölüm sünniler
+kahrolsun sünni
+kahrolsun sünniler
+laz piçi
+laz köpeği
+laz bozuntusu
+laz artığı
+laz çöpü
+laz dölü
+laz sürüsü
+laz kanseri
+laz pisliği
+lazlar defolsun
+lazlar gebersin
+lazlar geberin
+lazlar yok olsun
+lazlar ölsün
+lazlar köpektir
+lazlar pisliktir
+lazlar hayvandır
+lazlar insan değildir
+lazlar soysuzdur
+lazları öldürün
+lazları gebertin
+lazları yakın
+lazları asın
+lazları kovun
+lazları sürün
+lazlar gebertilmeli
+lazlar öldürülmeli
+lazlar yok edilmeli
+ölüm lazlar
+kahrolsun laz
+kahrolsun lazlar
+suriyeli piçi
+suriyeli köpeği
+suriyeli bozuntusu
+suriyeli artığı
+suriyeli çöpü
+suriyeli dölü
+suriyeli sürüsü
+suriyeli kanseri
+suriyeli pisliği
+suriyeliler defolsun
+suriyeliler gebersin
+suriyeliler geberin
+suriyeliler yok olsun
+suriyeliler ölsün
+suriyeliler köpektir
+suriyeliler pisliktir
+suriyeliler hayvandır
+suriyeliler insan değildir
+suriyeliler soysuzdur
+suriyelileri öldürün
+suriyelileri gebertin
+suriyelileri yakın
+suriyelileri asın
+suriyelileri kovun
+suriyelileri sürün
+suriyeliler gebertilmeli
+suriyeliler öldürülmeli
+suriyeliler yok edilmeli
+ölüm suriyeliler
+kahrolsun suriyeli
+kahrolsun suriyeliler
+afgan piçi
+afgan köpeği
+afgan bozuntusu
+afgan artığı
+afgan çöpü
+afgan dölü
+afgan sürüsü
+afgan kanseri
+afgan pisliği
+afganlar defolsun
+afganlar gebersin
+afganlar geberin
+afganlar yok olsun
+afganlar ölsün
+afganlar köpektir
+afganlar pisliktir
+afganlar hayvandır
+afganlar insan değildir
+afganlar soysuzdur
+afganları öldürün
+afganları gebertin
+afganları yakın
+afganları asın
+afganları kovun
+afganları sürün
+afganlar gebertilmeli
+afganlar öldürülmeli
+afganlar yok edilmeli
+ölüm afganlar
+kahrolsun afgan
+kahrolsun afganlar
+zenci piçi
+zenci köpeği
+zenci bozuntusu
+zenci artığı
+zenci çöpü
+zenci dölü
+zenci sürüsü
+zenci kanseri
+zenci pisliği
+zenciler defolsun
+zenciler gebersin
+zenciler geberin
+zenciler yok olsun
+zenciler ölsün
+zenciler köpektir
+zenciler pisliktir
+zenciler hayvandır
+zenciler insan değildir
+zenciler soysuzdur
+zencileri öldürün
+zencileri gebertin
+zencileri yakın
+zencileri asın
+zencileri kovun
+zencileri sürün
+zenciler gebertilmeli
+zenciler öldürülmeli
+zenciler yok edilmeli
+ölüm zenciler
+kahrolsun zenci
+kahrolsun zenciler
+eşcinsel piçi
+eşcinsel köpeği
+eşcinsel bozuntusu
+eşcinsel artığı
+eşcinsel çöpü
+eşcinsel dölü
+eşcinsel sürüsü
+eşcinsel kanseri
+eşcinsel pisliği
+eşcinseller defolsun
+eşcinseller gebersin
+eşcinseller geberin
+eşcinseller yok olsun
+eşcinseller ölsün
+eşcinseller köpektir
+eşcinseller pisliktir
+eşcinseller hayvandır
+eşcinseller insan değildir
+eşcinseller soysuzdur
+eşcinselleri öldürün
+eşcinselleri gebertin
+eşcinselleri yakın
+eşcinselleri asın
+eşcinselleri kovun
+eşcinselleri sürün
+eşcinseller gebertilmeli
+eşcinseller öldürülmeli
+eşcinseller yok edilmeli
+ölüm eşcinseller
+kahrolsun eşcinsel
+kahrolsun eşcinseller
+türk piçi
+türk köpeği
+türk bozuntusu
+türk artığı
+türk çöpü
+türk dölü
+türk sürüsü
+türk kanseri
+türk pisliği
+türkler defolsun
+türkler gebersin
+türkler geberin
+türkler yok olsun
+türkler ölsün
+türkler köpektir
+türkler pisliktir
+türkler hayvandır
+türkler insan değildir
+türkler soysuzdur
+türkleri öldürün
+türkleri gebertin
+türkleri yakın
+türkleri asın
+türkleri kovun
+türkleri sürün
+türkler gebertilmeli
+türkler öldürülmeli
+türkler yok edilmeli
+ölüm türkler
+kahrolsun türk
+kahrolsun türkler
+müslüman piçi
+müslüman köpeği
+müslüman bozuntusu
+müslüman artığı
+müslüman çöpü
+müslüman dölü
+müslüman sürüsü
+müslüman kanseri
+müslüman pisliği
+müslümanlar defolsun
+müslümanlar gebersin
+müslümanlar geberin
+müslümanlar yok olsun
+müslümanlar ölsün
+müslümanlar köpektir
+müslümanlar pisliktir
+müslümanlar hayvandır
+müslümanlar insan değildir
+müslümanlar soysuzdur
+müslümanları öldürün
+müslümanları gebertin
+müslümanları yakın
+müslümanları asın
+müslümanları kovun
+müslümanları sürün
+müslümanlar gebertilmeli
+müslümanlar öldürülmeli
+müslümanlar yok edilmeli
+ölüm müslümanlar
+kahrolsun müslüman
+kahrolsun müslümanlar
+hristiyan piçi
+hristiyan köpeği
+hristiyan bozuntusu
+hristiyan artığı
+hristiyan çöpü
+hristiyan dölü
+hristiyan sürüsü
+hristiyan kanseri
+hristiyan pisliği
+hristiyanlar defolsun
+hristiyanlar gebersin
+hristiyanlar geberin
+hristiyanlar yok olsun
+hristiyanlar ölsün
+hristiyanlar köpektir
+hristiyanlar pisliktir
+hristiyanlar hayvandır
+hristiyanlar insan değildir
+hristiyanlar soysuzdur
+hristiyanları öldürün
+hristiyanları gebertin
+hristiyanları yakın
+hristiyanları asın
+hristiyanları kovun
+hristiyanları sürün
+hristiyanlar gebertilmeli
+hristiyanlar öldürülmeli
+hristiyanlar yok edilmeli
+ölüm hristiyanlar
+kahrolsun hristiyan
+kahrolsun hristiyanlar
+mülteci piçi
+mülteci köpeği
+mülteci bozuntusu
+mülteci artığı
+mülteci çöpü
+mülteci dölü
+mülteci sürüsü
+mülteci kanseri
+mülteci pisliği
+mülteciler defolsun
+mülteciler gebersin
+mülteciler geberin
+mülteciler yok olsun
+mülteciler ölsün
+mülteciler köpektir
+mülteciler pisliktir
+mülteciler hayvandır
+mülteciler insan değildir
+mülteciler soysuzdur
+mültecileri öldürün
+mültecileri gebertin
+mültecileri yakın
+mültecileri asın
+mültecileri kovun
+mültecileri sürün
+mülteciler gebertilmeli
+mülteciler öldürülmeli
+mülteciler yok edilmeli
+ölüm mülteciler
+kahrolsun mülteci
+kahrolsun mülteciler
+gay piçi
+gay köpeği
+gay bozuntusu
+gay artığı
+gay çöpü
+gay dölü
+gay sürüsü
+gay kanseri
+gay pisliği
+gayler defolsun
+gayler gebersin
+gayler geberin
+gayler yok olsun
+gayler ölsün
+gayler köpektir
+gayler pisliktir
+gayler hayvandır
+gayler insan değildir
+gayler soysuzdur
+gayleri öldürün
+gayleri gebertin
+gayleri yakın
+gayleri asın
+gayleri kovun
+gayleri sürün
+gayler gebertilmeli
+gayler öldürülmeli
+gayler yok edilmeli
+ölüm gayler
+kahrolsun gay
+kahrolsun gayler
+engelli piçi
+engelli köpeği
+engelli bozuntusu
+engelli artığı
+engelli çöpü
+engelli dölü
+engelli sürüsü
+engelli kanseri
+engelli pisliği
+engelliler defolsun
+engelliler gebersin
+engelliler geberin
+engelliler yok olsun
+engelliler ölsün
+engelliler köpektir
+engelliler pisliktir
+engelliler hayvandır
+engelliler insan değildir
+engelliler soysuzdur
+engellileri öldürün
+engellileri gebertin
+engellileri yakın
+engellileri asın
+engellileri kovun
+engellileri sürün
+engelliler gebertilmeli
+engelliler öldürülmeli
+engelliler yok edilmeli
+ölüm engelliler
+kahrolsun engelli
+kahrolsun engelliler
+ateist piçi
+ateist köpeği
+ateist bozuntusu
+ateist artığı
+ateist çöpü
+ateist dölü
+ateist sürüsü
+ateist kanseri
+ateist pisliği
+ateistler defolsun
+ateistler gebersin
+ateistler geberin
+ateistler yok olsun
+ateistler ölsün
+ateistler köpektir
+ateistler pisliktir
+ateistler hayvandır
+ateistler insan değildir
+ateistler soysuzdur
+ateistleri öldürün
+ateistleri gebertin
+ateistleri yakın
+ateistleri asın
+ateistleri kovun
+ateistleri sürün
+ateistler gebertilmeli
+ateistler öldürülmeli
+ateistler yok edilmeli
+ölüm ateistler
+kahrolsun ateist
+kahrolsun ateistler
+beyaz ırk üstündür
+ırkçılık güzeldir
+yabancılar defolsun
+göçmenler defolsun
+sığınmacılar defolsun
+suriyeliler geri gitsin
+araplar geri gitsin
+kürtler geri gitsin
+türkler geri gitsin
+özürlü piçi
+özürlü herif
+sakat herif
+mongol herif
+mongol çocuk
+ibne herif
+ibne çocuk
+dönme herif
+pezevenk gay
+gavur piçi
+gavur köpeği
+kafir köpeği
+kafir piçi
+zenci köpek
+zenci pislik
+çingene köpek
+çingene pislik

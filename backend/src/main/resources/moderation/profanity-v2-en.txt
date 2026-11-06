@@ -1,0 +1,315 @@
+# Uygunsuz ifade filtresi - Ingilizce v2 listesi (elle yazilmis, uretici: scripts/profanity/gen-v2.js). ELLE DEGISTIRMEYIN.
+# ~kok = kok + Ingilizce ek (s, es, ed, ing, er, y...) sozcuk sonuna kadar; =tam eslesme. Kisa kokler asla metin icinde aranmaz.
+
+# --- Profanity / sexual / abuse ---
+~fuck
+~fucker
+~fuckers
+~fucked
+~fucking
+~fuckface
+~fuckhead
+~fuckwit
+~fuckup
+~fuckboy
+~fuckwad
+~fuckbuddy
+~motherfucker
+~motherfucking
+~fucktard
+~fuckery
+~fuckable
+~fuckin
+~fukin
+~fuking
+~fuk
+~fuker
+~fucc
+~fucken
+~fvck
+~phuck
+~phuk
+~phucking
+~shit
+~shite
+~shitty
+~shithead
+~shitface
+~shitbag
+~shitter
+~shitshow
+~shitfaced
+~shithole
+~shitlist
+~shitstorm
+~horseshit
+~dipshit
+~batshit
+~bullshit
+~bullshitter
+~apeshit
+~chickenshit
+~dogshit
+~bitch
+~bitchy
+~bitching
+~bitchass
+~bitchboy
+~bitchslap
+~asshole
+~assholes
+~asshat
+~asswipe
+~assclown
+~assface
+~asshead
+~assmunch
+~dumbass
+~jackass
+~smartass
+~fatass
+~lameass
+~dipass
+~jackasses
+~arsehole
+~arseholes
+~arsewipe
+~cunt
+~cunts
+~cunty
+~cuntface
+~cuntish
+~dickhead
+~dickface
+~dickwad
+~dickweed
+~dickbag
+~dickish
+~cocksucker
+~cocksuckers
+~cocksucking
+~cockhead
+~cockface
+~cockslap
+~pussy
+~pussies
+~pussyfart
+~whore
+~whores
+~whorish
+~whorehouse
+~whoring
+~slut
+~sluts
+~slutty
+~slutbag
+~skank
+~skanks
+~skanky
+~wanker
+~wankers
+~wanking
+~wankstain
+~twat
+~twats
+~twatface
+~bastard
+~bastards
+~bollocks
+~bugger
+~buggered
+~douchebag
+~douchebags
+~douchey
+~jerkoff
+~jackoff
+~cumslut
+~cumdump
+~cumshot
+~cumshots
+~cumming
+~cumbucket
+~blowjob
+~blowjobs
+~handjob
+~handjobs
+~rimjob
+~rimjobs
+~footjob
+~titjob
+~dildo
+~dildos
+~buttplug
+~fleshlight
+~pornstar
+~pornhub
+~pornography
+~pornographic
+~pornos
+~nigger
+~niggers
+~niggerish
+~niggah
+~niggaz
+~nigga
+~niggas
+~faggot
+~faggots
+~faggy
+~faggotry
+~retard
+~retards
+~retarded
+~retardation
+~spastic
+~spastics
+~kike
+~kikes
+~gook
+~gooks
+~wetback
+~wetbacks
+~beaner
+~beaners
+~raghead
+~ragheads
+~towelhead
+~towelheads
+~sandnigger
+~tranny
+~trannies
+~shemale
+~shemales
+~dyke
+~dykes
+~paki
+~pakis
+~mongoloid
+~mongoloids
+~slanteye
+~slanteyes
+~darkie
+~darkies
+~jigaboo
+~jiggaboo
+~porchmonkey
+=ass
+=arse
+=tits
+=boobs
+=boobies
+=nudes
+=hentai
+=milf
+=horny
+=sexting
+=fck
+=fcuk
+=fuq
+=fack
+=fuc
+=fukk
+=fuk
+=stfu
+=gtfo
+=kys
+=mfer
+=mofo
+=mothafucka
+=mothafucker
+=motherfuker
+=wtfuck
+=nutsack
+=ballsack
+=gangbang
+=gangbangs
+=dickhead
+=dickheads
+=asswhole
+=cocksucker
+=cumguzzler
+=jizzed
+=jizzing
+=idiotic
+=idiotically
+=moronic
+=imbecilic
+=nipplefuck
+shut the hell up
+kiss my ass
+up yours
+bite me
+blow me
+screw you
+rot in hell
+burn in hell
+die in a fire
+dumb ass
+dumb cunt
+ugly cunt
+dirty slut
+sex tape
+sex video
+sex videos
+sex chat
+free porn
+porn video
+porn videos
+porn site
+adult video
+nude pics
+nude photos
+nude selfies
+send nudes
+naked pics
+naked girls
+horny girls
+hot sluts
+sex toy
+sex toys
+rape her
+rape you
+rape them
+i will rape
+i will kill you
+i will kill u
+i will murder you
+neck yourself
+hang yourself
+shoot yourself
+go die
+you should die
+you deserve to die
+hope you die
+hope you get cancer
+cancer ridden
+camel jockey
+sand monkey
+sand nigger
+dirty jew
+dirty arab
+dirty turk
+dirty kurd
+dirty muslim
+dirty mexican
+dirty gypsy
+dirty nigger
+dirty faggot
+filthy jew
+filthy arab
+filthy muslim
+filthy faggot
+filthy nigger
+white power
+white pride
+heil hitler
+sieg heil
+kill the jews
+kill the blacks
+kill the gays
+kill the muslims
+kill the arabs
+gas the jews
+burn the jews
+hang the niggers
+lynch the niggers

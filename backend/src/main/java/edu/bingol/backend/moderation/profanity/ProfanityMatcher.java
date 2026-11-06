@@ -12,7 +12,8 @@ import java.util.Set;
  * Degismez, derlenmis uygunsuz ifade esleyicisi (Spring'siz; birim testlenebilir).
  *
  * <p>Giris satirlari: {@code [isaretler]kelime}; isaretler {@code =} tam eslesme, {@code *} metin icinde gecme,
- * {@code !} sert (cift harf sikistirmasi yok); isaretsiz = kok + en fazla 7 harf ek. Bosluklu giris tamlamadir.
+ * {@code !} sert (cift harf sikistirmasi yok), {@code +} kok + GUVENLI Turkce/Ingilizce ek zinciri (sozcuk sonuna kadar;
+ * "Scunthorpe" sorunu olmadan cekim yakalar); isaretsiz = 6+ harfli kok + en fazla 7 harf ek (4-5 harfli kok: yalniz bilinen ek zinciri). Bosluklu giris tamlamadir.
  * Arapca girisler yalnizca tam kok eslesmesi yapar (on/son ek soyma ile). Izin satirlari (ALLOW) bir sozcugu
  * (ve en fazla 4 harf ekini) engellemeden muaf tutar.
  */
@@ -25,7 +26,7 @@ public final class ProfanityMatcher {
 
     private static final int MAX_CHARS = 50_000;
     private static final int MAX_SUFFIX = 7;
-    private static final int MAX_ALLOW_SUFFIX = 4;
+    private static final int MAX_CHAIN_LEN = 10;
     /** Izin satirinin gevsek (ı->i) bicimi icin en az uzunluk (T-023). */
     private static final int LOOSE_ALLOW_MIN = 7;
     private static final String[] AR_PREFIXES = {"وال", "فال", "بال", "كال", "لل", "ال", "و", "ف", "ب", "ل", "ك"};
@@ -39,10 +40,14 @@ public final class ProfanityMatcher {
     private final Map<String, String> prefix2 = new HashMap<>();
     private final List<String[]> sub1 = new ArrayList<>();
     private final List<String[]> sub2 = new ArrayList<>();
-    private final Map<String, String> phrases = new HashMap<>();  // " a b " -> ad
+    private final Map<String, String> chain1 = new HashMap<>();  // '+' kokleri: kok + ek zinciri
+    private final Map<String, String> chain2 = new HashMap<>();
+    private final Map<String, String> chainEn1 = new HashMap<>(); // '~' kokleri: kok + Ingilizce ek (s, es, ed, ing...)
+    private final Map<String, String> chainEn2 = new HashMap<>();
+    private final Map<String, List<String[]>> phrasesByFirst = new HashMap<>(); // ilk sozcuk -> [tum sozcukler..., ad]
     private final Map<String, String> arabic = new HashMap<>();   // kok (sondaki ه atilmis) -> ad
     private final Set<String> allow = new HashSet<>();       // tam eslesme (ı->i gevsek bicim dahil)
-    private final Set<String> allowPrefix = new HashSet<>(); // yazildigi gibi: en fazla 4 harf ek kabul
+    private final Set<String> allowRoots = new HashSet<>();  // izin kokleri: kok + guvenli ek zinciri de izinli
     private int blockCount;
 
     private ProfanityMatcher() {}
@@ -68,7 +73,7 @@ public final class ProfanityMatcher {
         String l = line.strip();
         if (l.isEmpty() || l.startsWith("#")) return null;
         int i = 0;
-        while (i < l.length() && "=*!".indexOf(l.charAt(i)) >= 0) i++;
+        while (i < l.length() && "=*!+~".indexOf(l.charAt(i)) >= 0) i++;
         String word = l.substring(i).strip();
         return word.isEmpty() ? null : new String[] {l.substring(0, i), word};
     }
@@ -100,9 +105,7 @@ public final class ProfanityMatcher {
         blockCount++;
         if (ProfanityText.hasArabic(f)) {
             if (f.indexOf(' ') >= 0) {
-                StringBuilder sb = new StringBuilder(" ");
-                for (String w : f.split(" ")) sb.append(ProfanityText.v2(w)).append(' ');
-                phrases.put(sb.toString(), name);
+                addPhrase(f, name);
             } else {
                 String r = ProfanityText.v2(f);
                 if (r.endsWith("ه") && r.length() > 2) r = r.substring(0, r.length() - 1);
@@ -111,14 +114,17 @@ public final class ProfanityMatcher {
             return;
         }
         if (f.indexOf(' ') >= 0) {
-            StringBuilder sb = new StringBuilder(" ");
-            for (String w : f.split(" ")) sb.append(ProfanityText.v2(w)).append(' ');
-            phrases.put(sb.toString(), name);
+            addPhrase(f, name);
             return;
         }
         boolean strictFlag = flags.indexOf('!') >= 0;
         boolean exact = flags.indexOf('=') >= 0;
         boolean sub = flags.indexOf('*') >= 0;
+        boolean chainTr = flags.indexOf('+') >= 0;
+        boolean chainEn = flags.indexOf('~') >= 0;
+        boolean chain = chainTr || chainEn;
+        Map<String, String> c1 = chainEn ? chainEn1 : chain1;
+        Map<String, String> c2 = chainEn ? chainEn2 : chain2;
         Set<String> forms = new LinkedHashSet<>();
         forms.add(f);
         forms.add(f.replace('ı', 'i')); // dogru yazim ("amcık") ve ASCII ("amcik") ikisi de yakalansin
@@ -126,7 +132,21 @@ public final class ProfanityMatcher {
             String r1 = ProfanityText.v1(fm);
             String r2 = ProfanityText.v2(fm);
             boolean strict = strictFlag || !fm.equals(r2); // cift harfli kokun tekil hali masum sozcuk olabilir (piss/pis, nigger/niger)
-            if (sub && fm.length() >= 5) {
+            if (chain && fm.length() >= 3) {
+                c1.put(r1, name);
+                if (!strict) c2.put(r2, name);
+                if (chainTr && fm.endsWith("k") && fm.length() >= 4) { // yumusama: amcik -> amciga
+                    String sf = fm.substring(0, fm.length() - 1) + "g";
+                    c1.put(ProfanityText.v1(sf), name);
+                    if (!strict) c2.put(ProfanityText.v2(sf), name);
+                }
+                exact1.put(r1, name);
+                whole1.put(r1, name);
+                if (!strict) {
+                    exact2.put(r2, name);
+                    whole2.put(r2, name);
+                }
+            } else if (sub && fm.length() >= 5) {
                 sub1.add(new String[] {r1, name});
                 whole1.put(r1, name);
                 if (!strict) {
@@ -140,11 +160,29 @@ public final class ProfanityMatcher {
                     exact2.put(r2, name);
                     whole2.put(r2, name);
                 }
+            } else if (fm.length() <= 5) {
+                // 4-5 harfli kok: rastgele 7 harf ek YOK (Scunthorpe: "shit"+"ennoji"); yalniz bilinen ek zinciri
+                exact1.put(r1, name);
+                chain1.put(r1, name);
+                chainEn1.put(r1, name);
+                if (!strict) {
+                    exact2.put(r2, name);
+                    chain2.put(r2, name);
+                    chainEn2.put(r2, name);
+                }
             } else {
                 prefix1.put(r1, name);
                 if (!strict) prefix2.put(r2, name);
             }
         }
+    }
+
+    private void addPhrase(String f, String name) {
+        String[] ws = f.split(" ");
+        String[] row = new String[ws.length + 1];
+        for (int i = 0; i < ws.length; i++) row[i] = ProfanityText.v2(ws[i]);
+        row[ws.length] = name;
+        phrasesByFirst.computeIfAbsent(row[0], k -> new ArrayList<>()).add(row);
     }
 
     private void addAllow(String line) {
@@ -159,7 +197,8 @@ public final class ProfanityMatcher {
         if (strict.length() >= LOOSE_ALLOW_MIN) {
             allow.add(ProfanityText.v1(f.replace('ı', 'i')));
         }
-        allowPrefix.add(strict);
+        allowRoots.add(strict);
+        if (strict.length() >= LOOSE_ALLOW_MIN) allowRoots.add(ProfanityText.v1(f.replace('ı', 'i')));
     }
 
     // ---- esleme ----
@@ -167,10 +206,21 @@ public final class ProfanityMatcher {
     private boolean allowed(String t1) {
         if (allow.isEmpty()) return false;
         if (allow.contains(t1)) return true;
-        for (int k = Math.max(3, t1.length() - MAX_ALLOW_SUFFIX); k < t1.length(); k++) {
-            if (allowPrefix.contains(t1.substring(0, k))) return true;
+        // izinli kok + yalnizca bilinen ek zinciri ("klasikler", "mesela" degil): rastgele ek yok
+        for (int k = Math.max(3, t1.length() - MAX_CHAIN_LEN); k < t1.length(); k++) {
+            if (allowRoots.contains(t1.substring(0, k)) && Suffixes.isChain(t1, k)) return true;
         }
         return false;
+    }
+
+    /** '+' kokleri: sozcuk = kok + ek zinciri (zincir sozcuk sonuna kadar). */
+    private String chainHit(Map<String, String> map, String t, int mode) {
+        if (map.isEmpty()) return null;
+        for (int k = Math.max(3, t.length() - MAX_CHAIN_LEN); k < t.length(); k++) {
+            String hit = map.get(t.substring(0, k));
+            if (hit != null && Suffixes.isChain(t, k, mode)) return hit;
+        }
+        return null;
     }
 
     private static String prefixHit(Map<String, String> map, String t) {
@@ -196,6 +246,10 @@ public final class ProfanityMatcher {
         boolean same = t1.equals(t2); // tekrar yoksa ikinci bicim ayni sonucu verir
         String h = exact1.get(t1);
         if (h == null && !same) h = exact2.get(t2);
+        if (h == null) h = chainHit(chain1, t1, 0);
+        if (h == null && !same) h = chainHit(chain2, t2, 0);
+        if (h == null) h = chainHit(chainEn1, t1, 1);
+        if (h == null && !same) h = chainHit(chainEn2, t2, 1);
         if (h == null) h = prefixHit(prefix1, t1);
         if (h == null && !same) h = prefixHit(prefix2, t2);
         if (h == null) {
@@ -350,12 +404,19 @@ public final class ProfanityMatcher {
             String h = prefixHitBeyond(prefix1, a + ProfanityText.v1(b), a.length());
             if (h != null) hits.add(h);
         }
-        if (!phrases.isEmpty()) {
-            StringBuilder sb = new StringBuilder(" ");
-            for (String t : tokens) sb.append(ProfanityText.v2(t)).append(' ');
-            String joined = sb.toString();
-            for (Map.Entry<String, String> e : phrases.entrySet()) {
-                if (joined.contains(e.getKey())) hits.add(e.getValue());
+        if (!phrasesByFirst.isEmpty() && !tokens.isEmpty()) {
+            String[] t2 = new String[tokens.size()];
+            for (int i = 0; i < t2.length; i++) t2[i] = ProfanityText.v2(tokens.get(i));
+            for (int i = 0; i < t2.length; i++) {
+                List<String[]> cands = phrasesByFirst.get(t2[i]);
+                if (cands == null) continue;
+                for (String[] row : cands) {
+                    int n = row.length - 1;
+                    if (i + n > t2.length) continue;
+                    boolean ok = true;
+                    for (int j = 1; j < n && ok; j++) ok = row[j].equals(t2[i + j]);
+                    if (ok) hits.add(row[n]);
+                }
             }
         }
         if (hits.isEmpty()) return Result.CLEAN;
