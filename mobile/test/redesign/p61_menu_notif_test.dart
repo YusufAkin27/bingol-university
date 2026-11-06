@@ -193,7 +193,7 @@ void main() {
       expect(find.byKey(const ValueKey('notif-unread-dot')), findsNWidgets(3));
       expect(find.text('Mehmet Kaya mesaj gönderdi'), findsNothing);
       expect(find.byIcon(BuIcons.megaphone), findsWidgets); // ikon karosu (bildirim tasarimi)
-      expect(find.byIcon(BuIcons.checkCheck), findsNothing);
+      expect(find.byKey(const ValueKey('msg-status-READ')), findsNothing);
       expect(find.byType(BuCard), findsNothing);
       expect(find.textContaining(' yeni'), findsNothing);
       expect(tester.takeException(), isNull);
