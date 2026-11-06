@@ -131,6 +131,18 @@ public final class EventDtos {
     public record CheckinCode(String code, String qrPayload, Instant expiresAt, int validForSeconds, String manualCode) {
     }
 
+    /** Katilimcinin kisisel giris QR'i. qrPayload istemcide QR olarak cizilir; organizator /scan'e gonderir. */
+    public record MyTicket(String code, String qrPayload, Instant expiresAt, int validForSeconds) {
+    }
+
+    /** Organizatorun okuttugu QR istegi. */
+    public record ScanRequest(@NotBlank @Size(max = 300) String code) {
+    }
+
+    /** status: MARKED (yeni isaretlendi) | ALREADY (zaten gelmisti). */
+    public record ScanResult(String status, Long userId, String displayName, Instant markedAt) {
+    }
+
     public record CheckinRequest(@NotBlank @Size(max = 200) String code) {
     }
 

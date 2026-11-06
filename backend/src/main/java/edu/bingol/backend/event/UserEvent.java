@@ -58,6 +58,10 @@ public class UserEvent {
     @Column(nullable = false)
     private boolean registrationClosed;
 
+    /** true: sahip yoklamayi acti; katilimci kisisel QR'ini gosterebilir, sahip/moderator okutabilir (V1490). */
+    @Column(nullable = false)
+    private boolean attendanceOpen;
+
     private Long communityId;
 
     @Column(nullable = false)

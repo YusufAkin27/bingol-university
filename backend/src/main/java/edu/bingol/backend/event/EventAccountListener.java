@@ -29,6 +29,13 @@ public class EventAccountListener {
         this.events = events;
     }
 
+    private EventModeratorService moderators;
+
+    @Autowired(required = false)
+    void setModerators(@Lazy EventModeratorService moderators) {
+        this.moderators = moderators;
+    }
+
     @Autowired(required = false)
     void setAdmission(@Lazy EventAdmissionHooks admission) {
         this.admission = admission;
@@ -41,6 +48,13 @@ public class EventAccountListener {
             events.cancelForDeletedOrganizer(ev.userId());
         } catch (RuntimeException e) {
             log.warn("Silinen organizatorun etkinlikleri iptal edilemedi (kullanici {}): {}", ev.userId(), e.toString());
+        }
+        try {
+            if (moderators != null) {
+                moderators.purgeUser(ev.userId());
+            }
+        } catch (RuntimeException e) {
+            log.warn("Silinen kullanicinin moderatorlukleri temizlenemedi (kullanici {}): {}", ev.userId(), e.toString());
         }
         try {
             if (admission != null) {

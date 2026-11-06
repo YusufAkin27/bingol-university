@@ -10,6 +10,8 @@ import edu.bingol.backend.event.dto.EventDtos.BulkEntry;
 import edu.bingol.backend.event.dto.EventDtos.BulkResult;
 import edu.bingol.backend.event.dto.EventDtos.CheckinCode;
 import edu.bingol.backend.event.dto.EventDtos.MyAttendance;
+import edu.bingol.backend.event.dto.EventDtos.MyTicket;
+import edu.bingol.backend.event.dto.EventDtos.ScanResult;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserStatus;
 import java.time.Duration;
@@ -110,6 +112,68 @@ public class AttendanceService {
         return toMine(e, rsvp, rec, now);
     }
 
+    // ---- katilimci bileti + organizator tarayicisi ----
+
+    /**
+     * Onayli (GOING) katilimciya kisisel QR. Etkinlik baslamadan da gosterilebilir (okutma yalniz yoklama penceresinde).
+     * Katilimci olmayan / bekleyen / reddedilen kullanici 403 NOT_RSVPED alir.
+     */
+    @Transactional(readOnly = true)
+    public MyTicket issueTicket(Actor a, Long eventId, Instant now) {
+        UserEvent e = events.loadVisible(a, eventId);
+        requireActive(e);
+        EventRsvp rsvp = rsvps.findByEventIdAndUserId(eventId, a.id()).orElse(null);
+        if (rsvp == null || rsvp.getStatus() != EventRsvp.Status.GOING) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "NOT_RSVPED", "Yoklama için etkinliğe \"Katılacağım\" demiş olmalısınız.");
+        }
+        requireAttendanceOpen(e);
+        String code = codes.generateTicket(eventId, a.id(), now);
+        return new MyTicket(code, CheckinCodeService.TICKET_PREFIX + code, codes.ticketExpiresAt(now),
+                CheckinCodeService.TICKET_VALID_SECONDS);
+    }
+
+    /** Organizator: katilimcinin QR'ini okutur ve yoklamayi isler. Idempotent (ALREADY). */
+    @Transactional
+    public ScanResult scan(Actor a, Long eventId, String payload, Instant now) {
+        UserEvent e = access(a, eventId, EventModerator.Perm.TAKE_ATTENDANCE);
+        requireActive(e);
+        requireAttendanceOpen(e);
+        requireWindow(e, now);
+        long uid = codes.verifyTicket(eventId, payload, now);
+        if (uid < 0) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CODE", "Yoklama kodu geçersiz veya süresi dolmuş.");
+        }
+        User u = communities.usersById(List.of(uid)).get(uid);
+        if (u == null || u.getStatus() != UserStatus.ACTIVE) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Kullanıcı bulunamadı.");
+        }
+        EventRsvp rsvp = rsvps.findByEventIdAndUserId(eventId, uid).orElse(null);
+        if (rsvp == null || rsvp.getStatus() != EventRsvp.Status.GOING) {
+            // Katilimdan sonra vazgecmis / iptal edilmis olabilir: eski QR ile giris yok.
+            throw new ApiException(HttpStatus.CONFLICT, "NOT_RSVPED_SCAN", "Bu kişi etkinliğe onaylı katılımcı değil.");
+        }
+        String name = u.getDisplayName() == null ? "Kullanıcı" : u.getDisplayName();
+        EventAttendance rec = attendance.findByEventIdAndUserId(eventId, uid).orElse(null);
+        if (rec != null && rec.isPresent()) {
+            return new ScanResult("ALREADY", uid, name, rec.getMarkedAt());
+        }
+        if (rec == null) {
+            rec = new EventAttendance();
+            rec.setEventId(eventId);
+            rec.setUserId(uid);
+        }
+        rec.setPresent(true);
+        rec.setMethod(Method.QR);
+        rec.setMarkedBy(a.id());
+        rec.setMarkedAt(now);
+        try {
+            attendance.saveAndFlush(rec);
+        } catch (DataIntegrityViolationException ex) {
+            throw new ApiException(HttpStatus.CONFLICT, "CHECKIN_CONFLICT", "Yoklama işleniyor, tekrar deneyin.");
+        }
+        return new ScanResult("MARKED", uid, name, now);
+    }
+
     @Transactional(readOnly = true)
     public MyAttendance mine(Actor a, Long eventId, Instant now) {
         UserEvent e = events.loadVisible(a, eventId);
@@ -122,7 +186,7 @@ public class AttendanceService {
     /** GOING kullanicilar + (varsa) listeye elle eklenen / QR ile gelen diger kullanicilar. */
     @Transactional(readOnly = true)
     public List<AttendanceRow> list(Actor a, Long eventId) {
-        events.requireManager(a, events.load(eventId));
+        access(a, eventId, EventModerator.Perm.VIEW_ATTENDEES, EventModerator.Perm.TAKE_ATTENDANCE);
         Map<Long, EventRsvp> going = new HashMap<>();
         rsvps.findByEventIdAndStatus(eventId, EventRsvp.Status.GOING).forEach(r -> going.put(r.getUserId(), r));
         Map<Long, EventAttendance> recs = new HashMap<>();
@@ -162,7 +226,7 @@ public class AttendanceService {
      */
     @Transactional
     public void mark(Actor a, Long eventId, Long userId, boolean present, Instant now) {
-        UserEvent e = events.requireManager(a, events.load(eventId));
+        UserEvent e = access(a, eventId, EventModerator.Perm.TAKE_ATTENDANCE);
         requireActive(e);
         requireManualOpen(e, now);
         markOne(e, a, userId, present, now);
@@ -174,7 +238,7 @@ public class AttendanceService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR",
                     "Toplu işaretleme 1-" + MAX_BULK + " kayıt içermelidir.");
         }
-        UserEvent e = events.requireManager(a, events.load(eventId));
+        UserEvent e = access(a, eventId, EventModerator.Perm.TAKE_ATTENDANCE);
         requireActive(e);
         requireManualOpen(e, now);
         for (BulkEntry en : entries) {
@@ -272,6 +336,37 @@ public class AttendanceService {
         if (now.isBefore(e.getStartsAt().minus(WINDOW_BEFORE))) {
             throw new ApiException(HttpStatus.CONFLICT, "CHECKIN_CLOSED", "Yoklama henüz açılmadı.");
         }
+    }
+
+    /** Sahip yoklamayi acmadiysa kisisel QR gosterilmez ve okutma reddedilir. */
+    private static void requireAttendanceOpen(UserEvent e) {
+        if (!e.isAttendanceOpen()) {
+            throw new ApiException(HttpStatus.CONFLICT, "ATTENDANCE_NOT_OPEN", "Etkinlik sahibi yoklamayı henüz açmadı.");
+        }
+    }
+
+    /** Sahip (ya da sistem yoneticisi) veya verilen yetkilerden birine sahip moderator; digerleri 403 EVENT_PERMISSION_DENIED. */
+    private UserEvent access(Actor a, Long eventId, EventModerator.Perm... perms) {
+        UserEvent e = events.load(eventId);
+        if (moderators != null && !events.canManage(a, e)) {
+            for (EventModerator.Perm p : perms) {
+                if (moderators.has(e, a.id(), p)) {
+                    events.loadVisible(a, eventId);
+                    return e;
+                }
+            }
+            if (moderators.isModerator(e, a.id())) {
+                throw new ApiException(HttpStatus.FORBIDDEN, "EVENT_PERMISSION_DENIED", "Bu işlem için yetkiniz yok.");
+            }
+        }
+        return events.requireManager(a, e);
+    }
+
+    private EventModeratorService moderators;
+
+    @Autowired
+    public void setModerators(@Lazy EventModeratorService moderators) {
+        this.moderators = moderators;
     }
 
     private static void requireActive(UserEvent e) {
