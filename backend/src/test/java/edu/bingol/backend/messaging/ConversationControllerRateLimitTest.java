@@ -70,4 +70,13 @@ class ConversationControllerRateLimitTest {
         verify(conversations, never()).leave(any(), any());
         verify(conversations, never()).detail(any(), eq(10L));
     }
+
+    @Test
+    void listIsRateLimitedBeforeTouchingTheDatabase() { // QA-CHAT-11
+        exhaustLimiter();
+
+        assertThrows(ApiException.class, () -> controller.list(null, 20, false));
+
+        verify(conversations, never()).list(any(), any(), anyInt(), org.mockito.ArgumentMatchers.anyBoolean());
+    }
 }

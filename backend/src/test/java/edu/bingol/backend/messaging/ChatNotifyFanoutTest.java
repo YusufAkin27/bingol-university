@@ -66,6 +66,26 @@ class ChatNotifyFanoutTest {
     }
 
     @Test
+    void mergedJobKeepsUnionOfRecipientsAndAllSenders() { // QA-CHAT-05
+        List<ChatNotifyFanout.Job> ran = new ArrayList<>();
+        ChatNotifyFanout fanout = new ChatNotifyFanout(ran::add);
+        ManualExecutor ex = new ManualExecutor(10);
+
+        // A (1) yazar: alicilar B (2), C (3); sonra B yazar: alicilar A (1), C (3)
+        fanout.submit(ex, new ChatNotifyFanout.Job(1L, 60002L, null, "a", Map.of(), List.of(2L, 3L), 1));
+        fanout.submit(ex, new ChatNotifyFanout.Job(2L, 60002L, null, "b", Map.of(), List.of(1L, 3L), 1));
+        ex.runAll();
+
+        assertEquals(1, ran.size());
+        ChatNotifyFanout.Job j = ran.get(0);
+        assertEquals(java.util.Set.of(1L, 2L, 3L), new java.util.HashSet<>(j.candidates()), "alicilar birlesimi");
+        assertEquals(3, j.candidates().size(), "tekrar yok");
+        assertEquals(java.util.Set.of(1L, 2L), j.senders(), "tum gonderenler");
+        assertEquals(2, j.count());
+        assertEquals("b", j.preview());
+    }
+
+    @Test
     void idlePoolKeepsEveryMessageAsItsOwnJob() {
         List<ChatNotifyFanout.Job> ran = new ArrayList<>();
         ChatNotifyFanout fanout = new ChatNotifyFanout(ran::add);

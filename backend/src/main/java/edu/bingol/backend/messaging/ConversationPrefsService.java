@@ -41,6 +41,20 @@ public class ConversationPrefsService {
         this.conversations = conversations;
     }
 
+    /** Okunmamis rozet onbellegi (setter enjeksiyonu; yoksa atlanir). */
+    private UnreadBadgeCache badgeCache;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setBadgeCache(UnreadBadgeCache badgeCache) {
+        this.badgeCache = badgeCache;
+    }
+
+    private void evictBadge(Long userId) {
+        if (badgeCache != null) {
+            badgeCache.evict(userId);
+        }
+    }
+
     /**
      * Sessiz konusma kurali: WebSocket teslimi ve okunmamis sayaci DEGISMEZ; push ve uygulama ici bildirim
      * olusturulmaz. Rozet toplami (`total`) sessizdekileri disarida birakir, `mutedTotal` ayri doner.
@@ -118,6 +132,7 @@ public class ConversationPrefsService {
         ConversationMember m = require(conversationId, userId);
         m.setMutedUntil(Instant.now().plus(always ? FOREVER : Duration.ofMinutes(durationMinutes)));
         members.updateMute(conversationId, userId, m.getMutedUntil());
+        evictBadge(userId);
         return view(userId, conversationId);
     }
 
@@ -125,6 +140,7 @@ public class ConversationPrefsService {
         ConversationMember m = require(conversationId, userId);
         m.setMutedUntil(null);
         members.updateMute(conversationId, userId, null);
+        evictBadge(userId);
         return view(userId, conversationId);
     }
 
@@ -137,6 +153,7 @@ public class ConversationPrefsService {
         m.setArchivedAt(Instant.now());
         m.setArchiveSticky(true);
         members.updateArchive(conversationId, userId, m.getArchivedAt(), true);
+        evictBadge(userId);
         return view(userId, conversationId);
     }
 
@@ -145,6 +162,7 @@ public class ConversationPrefsService {
         m.setArchivedAt(null);
         m.setArchiveSticky(false);
         members.updateArchive(conversationId, userId, null, false);
+        evictBadge(userId);
         return view(userId, conversationId);
     }
 

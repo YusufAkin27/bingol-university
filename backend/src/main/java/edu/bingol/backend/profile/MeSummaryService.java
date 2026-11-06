@@ -51,7 +51,7 @@ public class MeSummaryService {
 
     /** Rozet sayisi: sessize alinmamis konusmalarin toplami (sohbet sekmesiyle ayni tanim). */
     private long unreadMessages(Long userId) {
-        String key = "me:unread:" + userId;
+        String key = edu.bingol.backend.messaging.UnreadBadgeCache.KEY_PREFIX + userId; // okuma/sessize alma anahtari atar
         if (redis != null) {
             try {
                 String hit = redis.opsForValue().get(key);

@@ -66,6 +66,8 @@ public class ConversationController {
                                              @RequestParam(defaultValue = "20") int size,
                                              @RequestParam(defaultValue = "false") boolean archived) {
         Long uid = CurrentUser.id();
+        // QA-CHAT-11: liste DB'ye agir (toplu gorunum + iletildi isaretleme yazimi) ama sinirsizdi; mobil en cok 500 ms'de bir tazeler
+        limiter.check("conv:list:" + uid, 180, Duration.ofMinutes(1));
         CursorPage<ConversationView> page = conversations.list(uid, cursor, size, archived);
         if (receipts != null && page != null) {
             receipts.markListedDelivered(uid, page.items());

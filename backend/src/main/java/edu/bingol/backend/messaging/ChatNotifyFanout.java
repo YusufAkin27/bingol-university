@@ -29,16 +29,31 @@ final class ChatNotifyFanout {
 
     /** Bir sohbet icin dagitim isi: son mesajin bilgileri ve birlestirilen mesaj adedi. */
     record Job(Long senderId, Long conversationId, String groupTitle, String preview,
-               Map<String, String> data, List<Long> candidates, int count, String shareType) {
+               Map<String, String> data, List<Long> candidates, int count, String shareType, Set<Long> senders) {
+        /** Tek gonderenli is (paylasim turu opsiyonel). */
+        Job(Long senderId, Long conversationId, String groupTitle, String preview,
+            Map<String, String> data, List<Long> candidates, int count, String shareType) {
+            this(senderId, conversationId, groupTitle, preview, data, candidates, count, shareType,
+                    senderId == null ? Set.of() : Set.of(senderId));
+        }
+
         /** Paylasim olmayan mesaj (shareType yok). */
         Job(Long senderId, Long conversationId, String groupTitle, String preview,
             Map<String, String> data, List<Long> candidates, int count) {
             this(senderId, conversationId, groupTitle, preview, data, candidates, count, null);
         }
 
+        /**
+         * Birlestirme (QA-CHAT-05): metin/gonderen/ek bilgisi son mesajindir AMA alici kumesi iki isin BIRLESIMIdir
+         * (ilk gonderenin mesajini, sonraki gonderen olan kisi de alir) ve tum gonderenler {@link #senders} icinde kalir.
+         */
         Job merged(Job latest) {
+            java.util.LinkedHashSet<Long> all = new java.util.LinkedHashSet<>(candidates);
+            all.addAll(latest.candidates);
+            java.util.LinkedHashSet<Long> snd = new java.util.LinkedHashSet<>(senders);
+            snd.addAll(latest.senders);
             return new Job(latest.senderId, latest.conversationId, latest.groupTitle, latest.preview,
-                    latest.data, latest.candidates, count + latest.count, latest.shareType);
+                    latest.data, List.copyOf(all), count + latest.count, latest.shareType, Set.copyOf(snd));
         }
     }
 

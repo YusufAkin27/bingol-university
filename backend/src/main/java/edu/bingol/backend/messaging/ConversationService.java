@@ -429,7 +429,7 @@ public class ConversationService {
 
     @Transactional
     public ConversationView addMembers(Long me, Long id, List<Long> userIds) {
-        Conversation c = requireGroupAdmin(id, me);
+        Conversation c = requireUserGroupAdmin(id, me); // QA-CHAT-06: kulup/etkinlik odasina elle uye eklenmez (400 NOT_A_GROUP)
         convs.lockById(id); // uye sayisi siniri es zamanli eklemelerde asilmasin
         Set<Long> ids = new LinkedHashSet<>(userIds);
         ids.remove(me);
@@ -476,7 +476,7 @@ public class ConversationService {
             leave(me, id);
             return;
         }
-        requireGroupAdmin(id, me);
+        requireUserGroupAdmin(id, me); // QA-CHAT-06: odalarda uyelik kaynaga (kulup/RSVP) bagli
         ConversationMember target = members.findByConversationIdAndUserIdAndLeftAtIsNull(id, targetId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "MEMBER_NOT_FOUND", "Üye bulunamadı."));
         target.setLeftAt(Instant.now());

@@ -53,6 +53,14 @@ public class ReceiptService {
         this.policy = policy;
     }
 
+    /** Okunmamis rozet onbellegi (setter enjeksiyonu; yoksa atlanir). */
+    private UnreadBadgeCache badgeCache;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setBadgeCache(UnreadBadgeCache badgeCache) {
+        this.badgeCache = badgeCache;
+    }
+
     public ReceiptService(ConversationMemberRepository members, ConversationRepository convs, MessageRepository messages,
                           UserRepository users, BlockService blocks, ChatEventBus bus) {
         this.members = members;
@@ -200,6 +208,9 @@ public class ReceiptService {
 
     /** `MessageService.markRead` ilerleme sonrasi cagirir: `read` olayi (+ iletildi imleci de ilerlediyse `delivered`). */
     public void onRead(Long userId, Long conversationId, long oldRead, long oldDelivered, long newCursor) {
+        if (badgeCache != null) {
+            badgeCache.evict(userId); // okundu: me/summary rozet onbellegi eski sayiyi geri getirmesin (QA-CHAT-03)
+        }
         try {
             Conversation conv = convs.findById(conversationId).orElse(null);
             if (conv == null) {
