@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { Link } from '../../../components/LocalizedLink';
 import type { NewsSummary } from '../../../api/publicContent';
-import { Badge, Icon } from '../../../components/ui';
+import { Icon } from '../../../components/ui';
 import type { TranslationKey } from '../../../i18n';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { paths } from '../../../paths';
-import { kindTone, safeImageUrl, sourceHost } from './newsUtils';
+import { safeImageUrl, sourceHost } from './newsUtils';
 import styles from './NewsCard.module.css';
 
-/** Görsel varsa gösterir; yüklenemezse (CSP, 404, kaynak sitede kaldırılmış) gradyan + ikon yedeğine döner. */
+/** Görsel varsa gösterir; yüklenemezse (CSP, 404, kaynak sitede kaldırılmış) düz yüzey + ikon yedeğine döner. */
 export function NewsThumb({ src, alt, className }: { src: string | null; alt: string; className?: string }) {
   const safe = safeImageUrl(src);
   const [failed, setFailed] = useState(false);
@@ -26,7 +26,7 @@ export function NewsThumb({ src, alt, className }: { src: string | null; alt: st
         />
       ) : (
         <span className={styles.fallback} aria-hidden="true">
-          <Icon name="news" size={32} />
+          <Icon name="news" size={28} />
         </span>
       )}
     </div>
@@ -38,7 +38,7 @@ export function NewsMeta({ item }: { item: Pick<NewsSummary, 'type' | 'published
   const host = sourceHost(item.url);
   return (
     <div className={styles.meta}>
-      <Badge tone={kindTone(item.type)}>{t(`pg.news.type.${item.type}` as TranslationKey)}</Badge>
+      <span className={styles.kind}>{t(`pg.news.type.${item.type}` as TranslationKey)}</span>
       {item.publishedDate && <time dateTime={item.publishedDate}>{formatDate(item.publishedDate)}</time>}
       {host && (
         <span className={styles.host} dir="ltr">
@@ -69,7 +69,7 @@ export function NewsCard({ item, featured }: { item: NewsSummary; featured?: boo
           className={styles.read}
           aria-label={`${t('pg.news.read')}: ${item.title}`}
         >
-          {t('pg.news.read')} <Icon name="chevronRight" size={16} />
+          {t('pg.news.read')} <Icon name="chevronRight" size={16} className={styles.arrow} />
         </Link>
       </div>
     </article>

@@ -69,7 +69,7 @@ export default function NewsListPage() {
         lead={t('pg.news.lead')}
         crumbs={[{ label: title }]}
       />
-      <section className={`${shared.section} ${shared.sectionTop}`}>
+      <section className={shared.section}>
         <div className={`container ${styles.wrap}`}>
           <div className={styles.toolbar}>
             <div role="group" aria-label={t('pg.news.filter')} className={styles.filters}>

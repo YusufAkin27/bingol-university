@@ -1,37 +1,58 @@
+/* Zaman çizgisi: solda ince dikey çizgi + küçük halka; renk yok */
 .wrap {
   display: grid;
-  gap: var(--space-4);
-  max-width: 760px;
-  margin-inline: auto;
+  gap: var(--space-6);
+  grid-template-columns: minmax(0, 760px);
+  justify-content: start;
 }
 .entry {
+  position: relative;
   display: grid;
   gap: var(--space-3);
-  padding: var(--space-5);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
+  padding-inline-start: var(--space-6);
 }
-.entry h2 {
+.entry::before {
+  content: '';
+  position: absolute;
+  inset-block: 0.5rem calc(var(--space-6) * -1);
+  inset-inline-start: 5px;
+  inline-size: 1px;
+  background: var(--border);
+}
+.entry:last-of-type::before {
+  inset-block-end: 0;
+}
+.title {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  font-size: var(--text-h3);
+  line-height: 1.2;
 }
-.entry h2::before {
+.title::before {
   content: '';
-  flex: none;
-  width: 10px;
-  height: 10px;
+  position: absolute;
+  inset-inline-start: 0;
+  inline-size: 11px;
+  block-size: 11px;
+  border: 1px solid var(--text);
   border-radius: 50%;
-  background: var(--primary);
-  box-shadow: 0 0 0 4px var(--primary-soft);
+  background: var(--bg);
 }
 .entry ul {
   margin: 0;
-  padding-inline-start: 1.3em;
+  padding-inline-start: 1.2em;
   display: grid;
   gap: var(--space-2);
+  max-width: 62ch;
+  color: var(--text-muted);
+  line-height: 1.65;
 }
 .entry li::marker {
-  color: var(--primary);
+  color: var(--text-faint);
+}
+.note {
+  padding-inline-start: var(--space-6);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
 }

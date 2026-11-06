@@ -16,37 +16,79 @@
   padding: var(--space-5);
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
 }
 .card:hover,
 .card:focus-within {
   border-color: var(--border-strong);
 }
+.ico {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-block-end: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text);
+}
 .h {
   font-family: var(--font-sans);
   font-size: var(--text-lg);
+  font-weight: var(--fw-regular);
   line-height: 1.25;
 }
+.text {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+}
 .open {
-  font-weight: 700;
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
   min-height: 48px;
   margin-block-start: var(--space-1);
+  color: var(--text);
+  text-decoration: none;
+}
+.open:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.openIcon {
+  transition: transform var(--site-dur, 200ms) var(--ease);
+}
+.card:hover .openIcon {
+  transform: translateX(2px);
 }
 :global(:root[dir='rtl']) .openIcon {
   transform: scaleX(-1);
+}
+:global(:root[dir='rtl']) .card:hover .openIcon {
+  transform: scaleX(-1) translateX(2px);
 }
 .support {
   display: grid;
   gap: var(--space-3);
   justify-items: start;
   padding: var(--space-5);
-  background: var(--surface-2);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
 }
 .support p {
   color: var(--text-muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .openIcon {
+    transition: none;
+  }
+  .card:hover .openIcon {
+    transform: none;
+  }
+  :global(:root[dir='rtl']) .card:hover .openIcon {
+    transform: scaleX(-1);
+  }
 }

@@ -25,6 +25,7 @@ const m = {
   'pg.menu.itemCount': '{n} çeşit',
   'pg.menu.weekOf': '{from} – {to}',
   'pg.menu.noWeek': 'Bu hafta için menü yok',
+  'pg.menu.noImage': 'Bu menü için fotoğraf henüz eklenmedi',
 
   // --- iletişim formu ---
   'site.pubsup.title': 'Bize ulaşın',

@@ -20,11 +20,11 @@ export default function ChangelogPage() {
   return (
     <>
       <PageHero eyebrow={t('site.v3.eyebrow')} title={title} lead={t('pg.changelog.lead')} crumbs={[{ label: title }]} />
-      <section className={`${shared.section} ${shared.sectionTop}`}>
+      <section className={shared.section}>
         <div className={`container ${styles.wrap}`}>
           {CHANGELOG.map((e) => (
             <article key={e.id} className={styles.entry} aria-labelledby={`cl-${e.id}`}>
-              <h2 id={`cl-${e.id}`} className={shared.h3}>
+              <h2 id={`cl-${e.id}`} className={styles.title}>
                 <time dateTime={t(`pg.changelog.${e.id}.date` as TranslationKey)}>
                   {t(`pg.changelog.${e.id}.title` as TranslationKey)}
                 </time>
@@ -36,7 +36,7 @@ export default function ChangelogPage() {
               </ul>
             </article>
           ))}
-          <p className={shared.muted}>{t('pg.changelog.note')}</p>
+          <p className={styles.note}>{t('pg.changelog.note')}</p>
         </div>
       </section>
     </>

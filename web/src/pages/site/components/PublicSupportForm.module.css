@@ -26,16 +26,21 @@
 }
 .error {
   margin: 0;
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--danger-line, var(--danger));
+  border-radius: var(--radius-sm);
   background: var(--danger-soft);
   color: var(--danger);
-  font-weight: 600;
 }
 .privacy {
   margin: 0;
   font-size: var(--text-xs);
   color: var(--text-muted);
+}
+.privacy a {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .actions {
   display: flex;
@@ -46,20 +51,28 @@
 .primaryLink {
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
+  min-height: 48px;
   padding: 0 var(--space-5);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--primary);
   color: var(--primary-contrast);
-  font-weight: 700;
   text-decoration: none;
+  transition: background-color var(--site-dur, 200ms) var(--ease);
+}
+.primaryLink:hover {
+  background: var(--primary-hover);
 }
 .okIcon {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--text);
   border-radius: 50%;
-  background: var(--success-soft);
-  color: var(--success);
+  color: var(--text);
+}
+@media (prefers-reduced-motion: reduce) {
+  .primaryLink {
+    transition: none;
+  }
 }

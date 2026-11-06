@@ -24,6 +24,7 @@ const m = {
   'pg.menu.itemCount': '{n} أصناف',
   'pg.menu.weekOf': '{from} – {to}',
   'pg.menu.noWeek': 'لا توجد قائمة لهذا الأسبوع',
+  'pg.menu.noImage': 'لم تتم إضافة صورة لهذه القائمة بعد',
 
   // --- نموذج التواصل ---
   'site.pubsup.title': 'تواصل معنا',

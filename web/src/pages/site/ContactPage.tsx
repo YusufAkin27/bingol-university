@@ -29,7 +29,7 @@ export default function ContactPage() {
   return (
     <>
       <PageHero eyebrow={t('site.v3.eyebrow')} title={t('site.contact.title')} lead={t('site.contact.lead')} />
-      <section className={`${shared.section} ${shared.sectionTop}`}>
+      <section className={shared.section}>
         <div className={`container ${styles.grid}`}>
           <div className={styles.main}>
             <PublicSupportForm />

@@ -92,3 +92,17 @@ export function daysOfMonth(month: string): string[] {
   const n = new Date(y, m, 0).getDate();
   return Array.from({ length: n }, (_, i) => `${month}-${String(i + 1).padStart(2, '0')}`);
 }
+
+/** Menü fotoğrafı: yalnız aynı kaynaktan (/files/...) ya da bingol.edu.tr alt alanlarından https adresi; aksi halde null. */
+export function menuImageUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  if (/^\/files\/[^\s]+$/.test(url)) return url;
+  if (!/^https?:\/\//i.test(url)) return null;
+  try {
+    const u = new URL(url.replace(/^http:\/\//i, 'https://'));
+    const h = u.hostname.toLowerCase();
+    return h === 'bingol.edu.tr' || h.endsWith('.bingol.edu.tr') ? u.toString() : null;
+  } catch {
+    return null;
+  }
+}

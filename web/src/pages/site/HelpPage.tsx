@@ -27,17 +27,17 @@ export default function HelpPage() {
   return (
     <>
       <PageHero eyebrow={t('site.v3.eyebrow')} title={title} lead={t('pg.help.lead')} crumbs={[{ label: title }]} />
-      <section className={`${shared.section} ${shared.sectionTop}`}>
+      <section className={shared.section}>
         <div className="container">
           <ul className={styles.grid}>
             {HELP_CATEGORIES.map((c, i) => (
               <li key={c.id}>
                 <Reveal delay={(i % 3) * 70} className={styles.card}>
-                  <span className={shared.ico} aria-hidden="true">
+                  <span className={styles.ico} aria-hidden="true">
                     <Icon name={c.icon} size={22} />
                   </span>
                   <h2 className={styles.h}>{t(`pg.help.cat.${c.id}.title` as TranslationKey)}</h2>
-                  <p className={shared.muted}>{t(`pg.help.cat.${c.id}.text` as TranslationKey)}</p>
+                  <p className={styles.text}>{t(`pg.help.cat.${c.id}.text` as TranslationKey)}</p>
                   <Link to={c.to} className={styles.open}>
                     {t('pg.help.open')}
                     <Icon name="chevronRight" size={18} className={styles.openIcon} />

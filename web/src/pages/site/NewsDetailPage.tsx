@@ -123,7 +123,7 @@ export default function NewsDetailPage() {
         title={notFound ? t('pg.news.notFound') : title}
         crumbs={[{ label: list, to: paths.site.news }, { label: notFound ? t('pg.news.notFound') : title }]}
       />
-      <section className={`${shared.section} ${shared.sectionTop}`}>
+      <section className={shared.section}>
         <div className={`container ${styles.wrap}`}>
           {valid && q.isLoading && (
             <div role="status" aria-label={t('common.loading')} className={styles.skel}>

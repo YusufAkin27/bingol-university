@@ -51,7 +51,7 @@ export default function SupportTrackPage() {
   return (
     <>
       <PageHero eyebrow={t('site.v3.eyebrow')} title={t('site.track.title')} lead={t('site.track.lead')} />
-      <section className={`${shared.section} ${shared.sectionTop}`}>
+      <section className={shared.section}>
         <div className={`container ${styles.wrap}`}>
           {!token && <EmptyState icon="info" title={t('site.track.noToken')} />}
           {token && query.isLoading && (

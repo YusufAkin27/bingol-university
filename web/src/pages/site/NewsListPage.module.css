@@ -8,6 +8,8 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
+  padding-block-end: var(--space-4);
+  border-block-end: 1px solid var(--border);
 }
 .filters {
   display: flex;
@@ -18,29 +20,36 @@
   flex: 1 1 260px;
   max-inline-size: 380px;
 }
+/* Süzgeç: ince kenarlıklı düğme; seçili olan ters yüzey (metin rengi zemin olur) */
 .chip {
-  min-height: 48px;
+  min-height: 44px;
   padding: 0 var(--space-4);
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--border-strong);
-  background: var(--surface);
-  color: var(--text);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
   font: inherit;
-  font-weight: 600;
+  font-size: var(--text-sm);
+  font-weight: var(--fw-regular);
   cursor: pointer;
+  transition:
+    background-color var(--site-dur, 200ms) var(--ease),
+    border-color var(--site-dur, 200ms) var(--ease),
+    color var(--site-dur, 200ms) var(--ease);
 }
 .chip:focus-visible {
-  outline: 3px solid var(--focus);
+  outline: var(--focus-w) solid var(--focus);
   outline-offset: 2px;
 }
 .chip:hover {
-  background: var(--surface-2);
+  border-color: var(--border-strong);
+  color: var(--text);
 }
 .chipOn,
 .chipOn:hover {
-  background: var(--badge);
-  color: var(--badge-contrast);
-  border-color: var(--badge);
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
 }
 .results {
   /* iskelet -> veri geçişinde alttaki bölüm kaymasın (CLS) */
@@ -52,10 +61,16 @@
 }
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
   gap: var(--space-4);
 }
 .more {
   display: flex;
   justify-content: center;
+  padding-block-start: var(--space-3);
+}
+@media (prefers-reduced-motion: reduce) {
+  .chip {
+    transition: none;
+  }
 }
