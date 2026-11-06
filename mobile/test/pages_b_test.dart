@@ -637,13 +637,13 @@ void main() {
       await settle(tester, const Duration(milliseconds: 500));
       expect(be.bodies['PUT /messages/2/reaction'], {'emoji': '😂'});
       expect(find.byKey(card), findsNothing);
-      expect(find.text('😂 1'), findsOneWidget); // iyimser sayaç baloncukta
+      expect(find.text('😂'), findsOneWidget); // iyimser tepki baloncukta; tek kişide sayı yazılmaz
       await openMenu(tester, find.text('Selam'));
       expect(find.byKey(const ValueKey('react-😂-on')), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('react-😂-on')));
       await settle(tester, const Duration(milliseconds: 500));
       expect(be.requests, contains('DELETE /messages/2/reaction'));
-      expect(find.text('😂 1'), findsNothing);
+      expect(find.text('😂'), findsNothing);
       _noErrors(tester);
       await unmount(tester);
     });

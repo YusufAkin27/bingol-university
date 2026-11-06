@@ -623,25 +623,57 @@ class MessageBubble extends StatelessWidget {
   static TextSpan _span(
       String text, TextStyle style, String? highlight, Color hlBg, Color hlFg) {
     final q = highlight?.trim().toLowerCase() ?? '';
-    if (q.isEmpty || text.isEmpty) return TextSpan(text: text, style: style);
+    if (q.isEmpty || text.isEmpty) return _emojiSpan(text, style);
     final lower = text.toLowerCase();
     // toLowerCase uzunluğu değiştirirse (ör. İ) güvenli yola dön.
-    if (lower.length != text.length) return TextSpan(text: text, style: style);
+    if (lower.length != text.length) return _emojiSpan(text, style);
     final hl = style.copyWith(
         backgroundColor: hlBg, color: hlFg, fontWeight: FontWeight.w400);
-    final spans = <TextSpan>[];
+    final spans = <InlineSpan>[];
     var i = 0;
     while (i < text.length) {
       final j = lower.indexOf(q, i);
       if (j < 0) {
-        spans.add(TextSpan(text: text.substring(i)));
+        spans.addAll(_emojiRuns(text.substring(i), style));
         break;
       }
-      if (j > i) spans.add(TextSpan(text: text.substring(i, j)));
+      if (j > i) spans.addAll(_emojiRuns(text.substring(i, j), style));
       spans.add(TextSpan(text: text.substring(j, j + q.length), style: hl));
       i = j + q.length;
     }
     return TextSpan(style: style, children: spans);
+  }
+
+  /// Emoji katarları (renkli emoji glifleri düz yazıya göre küçük göründüğünden) %30 büyütülür.
+  static final RegExp _emojiRe = RegExp(
+      '(?:[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B50}\u{2B55}\u{231A}\u{231B}\u{23E9}-\u{23F3}\u{2705}\u{2728}\u{274C}\u{274E}\u{2753}-\u{2755}\u{2757}\u{2795}-\u{2797}\u{2B1B}\u{2B1C}]'
+      '[\u{FE0F}\u{1F3FB}-\u{1F3FF}]?(?:\u{200D}[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2640}\u{2642}][\u{FE0F}\u{1F3FB}-\u{1F3FF}]?)*)+',
+      unicode: true);
+
+  static const double emojiScale = 1.3;
+
+  static List<InlineSpan> _emojiRuns(String s, TextStyle style) {
+    if (s.isEmpty) return const [];
+    final ms = _emojiRe.allMatches(s).toList();
+    if (ms.isEmpty) return [TextSpan(text: s)];
+    final base = style.fontSize ?? 16;
+    final big = TextStyle(fontSize: base * emojiScale);
+    final out = <InlineSpan>[];
+    var i = 0;
+    for (final m in ms) {
+      if (m.start > i) out.add(TextSpan(text: s.substring(i, m.start)));
+      out.add(TextSpan(text: m.group(0), style: big));
+      i = m.end;
+    }
+    if (i < s.length) out.add(TextSpan(text: s.substring(i)));
+    return out;
+  }
+
+  static TextSpan _emojiSpan(String text, TextStyle style) {
+    if (text.isEmpty || !_emojiRe.hasMatch(text)) {
+      return TextSpan(text: text, style: style);
+    }
+    return TextSpan(style: style, children: _emojiRuns(text, style));
   }
 
   static List<Map<String, dynamic>> _attachments(Map<String, dynamic> m) =>
@@ -685,7 +717,16 @@ class _ReactionChip extends StatelessWidget {
             border: Border.all(color: mine ? t.selectedBorder : t.bd),
             borderRadius: BuRadius.bPill,
           ),
-          child: Text('${RecentReactions.display(emoji)} $count',
+          // Tek kişilik tepkide sayı yazılmaz; 2 ve üstünde emojinin yanında sayı görünür.
+          // Emoji %30 büyük çizilir (renkli glif yazıya göre küçük kalıyordu).
+          child: Text.rich(
+              TextSpan(children: [
+                TextSpan(
+                    text: RecentReactions.display(emoji),
+                    style: TextStyle(
+                        fontSize: (tx.labelMedium!.fontSize ?? 12) * 1.3)),
+                if (count > 1) TextSpan(text: ' $count'),
+              ]),
               textAlign: TextAlign.center,
               style: tx.labelMedium!.copyWith(
                   color: mine ? t.onSoft : t.ink,
