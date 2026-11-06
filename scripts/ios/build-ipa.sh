@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # App Store / TestFlight IPA uretimi (macOS CI). DOGRULANAMADI: Windows'ta calistirilamaz; ilk macOS kosusunda izleyin.
 # Akis: flutter build ios --config-only (obfuscate + dart-define) -> xcodebuild archive -> xcodebuild -exportArchive.
+# Uzantilar: NotificationService, NotificationContent, BUWidgets (tr.com.bukampus.app.widgets; yeni App ID + App Group gerekir).
 # Imzalama: App Store Connect API anahtari ile "cloud signing" (-allowProvisioningUpdates + -authenticationKey*):
 # dagitim sertifikasi ve profil Apple tarafinda otomatik yonetilir; depoda/CI'da .p12 veya profil GEREKMEZ.
 # Gerekenler (ortam; sirlar yazdirilmaz):
@@ -88,6 +89,22 @@ if ! printf '%s' "$ENT" | grep -q "aps-environment"; then
   exit 1
 fi
 echo "Arsivde aps-environment var"
+
+# Dogrulama: ana ekran widget uzantisi (BUWidgets) arsive girdi mi ve uygulama + uzanti ayni App Group'u tasiyor mu?
+# (BU_WIDGETS_ENTITLEMENTS BuPush.xcconfig ile gelir; yoksa uzanti yetkisiz derlenir ve widget veri okuyamaz.)
+APP_GROUP="group.tr.com.bukampus.app"
+WIDGET="$APP/PlugIns/BUWidgets.appex"
+if [ ! -d "$WIDGET" ]; then
+  echo "HATA: arsivde BUWidgets.appex yok (Runner hedefi 'Embed App Extensions' fazi)" >&2
+  exit 1
+fi
+for TARGET in "$APP" "$WIDGET"; do
+  if ! codesign -d --entitlements :- "$TARGET" 2>/dev/null | grep -q "$APP_GROUP"; then
+    echo "HATA: $(basename "$TARGET") imzasinda App Group ($APP_GROUP) yok (App ID'de App Groups yetenegi + profil: docs/IOS_RELEASE.md 'Widget uzantisi')" >&2
+    exit 1
+  fi
+done
+echo "Arsivde BUWidgets.appex + App Group var"
 
 sed "s/__TEAM_ID__/$IOS_TEAM_ID/" "$MOBILE/ios/ExportOptions.plist" > "$OUT_DIR/ExportOptions.plist"
 xcodebuild -exportArchive \

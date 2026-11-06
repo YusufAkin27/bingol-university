@@ -18,5 +18,19 @@
 	<false/>
 	<key>stripSwiftSymbols</key>
 	<true/>
+	<!-- signingStyle=automatic iken Xcode bu sozlugu YOK SAYAR (bulut imzalama, build-ipa.sh). Elle imza (Codemagic
+	     "xcode-project use-profiles" kendi export_options.plist'ini uretir) icin referans: paket kimligi -> Apple Developer'daki App Store profil ADI
+	     (Codemagic referans adlari farkli olabilir; widget profili Apple'da bu_app_store_widgets adiyla acilir). -->
+	<key>provisioningProfiles</key>
+	<dict>
+		<key>tr.com.bukampus.app</key>
+		<string>bu_app_store</string>
+		<key>tr.com.bukampus.app.NotificationService</key>
+		<string>bu_notif_service</string>
+		<key>tr.com.bukampus.app.NotificationContent</key>
+		<string>bu_notif_content</string>
+		<key>tr.com.bukampus.app.widgets</key>
+		<string>bu_app_store_widgets</string>
+	</dict>
 </dict>
 </plist>
