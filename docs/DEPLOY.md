@@ -48,7 +48,7 @@ bash scripts/deploy/rollback.sh                 # elle geri alma
 - **Ağ:** yalnız Caddy `80/443` yayınlar. `postgres`/`redis`/`backup` `internal` (internete çıkışı olmayan) ağdadır; backend FCM/SMTP için `edge` ağına da bağlıdır.
 - **Sertleştirme:** tüm konteynerlerde `no-new-privileges`, `cap_drop: ALL` (yalnız gerekenler eklenir), backend/redis/caddy/web `read_only` + `tmpfs`, backend root olmayan kullanıcı (uid 1001), kaynak limitleri, `restart: unless-stopped`, healthcheck'ler, `json-file` günlük döndürme (10 MB x 5).
 - **Doğrulayıcı yansıması:** compose `CRYPTO_MASTER_KEYS`, `CRYPTO_ACTIVE_KEY_ID`, `DB_PASSWORD`, `JWT_SECRET`, `ADMIN_PASSWORD`, `CORS_ORIGINS`, `PUBLIC_WEB_URL`, `BACKUP_AGE_RECIPIENT` için `:?` kullanır (eksikse `docker compose` bile başlamaz); `CRYPTO_REQUIRE_KEYS=true` sabittir; `ProdSettingsValidator` + `KeyProvider` eksik/güvensiz değeri uygulama açılışında reddeder (boş `CRYPTO_MASTER_KEYS` ile prod açılışı reddedilir: `KeyProviderTest`).
-- Gönderi videosu için Spring çok parçalı yükleme sınırı compose'ta `MULTIPART_MAX_FILE=45MB` (prod varsayılanı 5 MB videoyu keserdi).
+- Gönderi videosu için Spring çok parçalı yükleme sınırı compose'ta `MULTIPART_MAX_FILE=52MB` (prod varsayılanı 5 MB videoyu keserdi).
 
 
 ## 1. Mimari ve reverse proxy / TLS
