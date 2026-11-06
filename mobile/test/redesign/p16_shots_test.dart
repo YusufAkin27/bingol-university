@@ -259,8 +259,6 @@ void main() {
         await tester.pumpWidget(_app(s.page(be), v.$2, key, v.$3));
         await tester.runAsync(() async {
           final ctx = tester.element(find.byType(Scaffold).first);
-          await precacheImage(const AssetImage('assets/branding/default_avatar.png'), ctx);
-          await precacheImage(const AssetImage('assets/branding/default_group.png'), ctx);
         });
         if (s.pre != null) {
           await tester.pump(s.pre!);

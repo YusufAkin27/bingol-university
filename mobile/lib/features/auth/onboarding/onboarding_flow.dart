@@ -763,7 +763,10 @@ class _AvatarPicker extends StatelessWidget {
         child: SizedBox(
           width: size + 8,
           height: size + 8,
-          child: Stack(
+          child: Padding(
+            padding: const EdgeInsets.all(4),
+            child: Stack(
+            clipBehavior: Clip.none,
             alignment: Alignment.center,
             children: [
               ClipOval(
@@ -782,17 +785,9 @@ class _AvatarPicker extends StatelessWidget {
                   ]),
                 ),
               ),
-              PositionedDirectional(
-                end: 0,
-                bottom: 0,
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle, border: Border.all(color: t.bg, width: 2)),
-                  child: Icon(BuIcons.camera, size: 16, color: t.onPr),
-                ),
-              ),
+              const BuAvatarBadge(avatarSize: size),
             ],
+          ),
           ),
         ),
       ),

@@ -63,41 +63,37 @@ void main() {
     expect(n, 1);
   });
 
-  /// Ağaçtaki varlık görsellerinin adları ([Image.asset] `cacheWidth` ile `ResizeImage` sarar).
-  List<String> assetNames(WidgetTester tester) => [
-        for (final img in tester.widgetList<Image>(find.byType(Image)))
-          if (_assetOf(img.image) case final a?) a
-      ];
-
   testWidgets('BuAvatar url yoksa varsayılan görseli gösterir (baş harf yok, ağ görseli yok)', (tester) async {
     await tester.pumpWidget(host(const BuAvatar(name: 'Ayşe Yılmaz')));
     expect(find.text('AY'), findsNothing);
     expect(find.byType(Text), findsNothing);
     expect(find.byType(BuDefaultAvatar), findsOneWidget);
     expect(tester.widget<BuDefaultAvatar>(find.byType(BuDefaultAvatar)).group, isFalse);
-    expect(assetNames(tester), [BuDefaultAvatar.personAsset]);
+    expect(find.byKey(const ValueKey('default-avatar-paint')), findsOneWidget);
   });
 
   testWidgets('BuAvatar boş url de varsayılan görsel', (tester) async {
     await tester.pumpWidget(host(const BuAvatar(name: 'Ayşe', url: '')));
-    expect(assetNames(tester), [BuDefaultAvatar.personAsset]);
+    expect(find.byKey(const ValueKey('default-avatar-paint')), findsOneWidget);
+    expect(find.byType(Image), findsNothing);
   });
 
   testWidgets('BuAvatar group: varsayılan grup görseli', (tester) async {
     await tester.pumpWidget(host(const BuAvatar(name: 'Grup', group: true)));
     expect(tester.widget<BuDefaultAvatar>(find.byType(BuDefaultAvatar)).group, isTrue);
-    expect(assetNames(tester), [BuDefaultAvatar.groupAsset]);
+    expect(find.byKey(const ValueKey('default-avatar-paint')), findsOneWidget);
   });
 
   testWidgets('BuAvatar geçerli url: ağ görseli çizilir, varsayılan görsel yüklenirken altta durur', (tester) async {
     await tester.pumpWidget(host(const BuAvatar(name: 'Ayşe', url: 'https://example.com/a.jpg', size: 40)));
-    final nets = tester.widgetList<Image>(find.byType(Image)).where((i) => _assetOf(i.image) == null).toList();
+    final nets = tester.widgetList<Image>(find.byType(Image)).toList();
     expect(nets, hasLength(1));
     var p = nets.single.image;
     if (p is ResizeImage) p = p.imageProvider;
     expect(p, isA<DiskNetworkImage>().having((d) => d.url, 'url', 'https://example.com/a.jpg'));
     // Yüklenirken (ve hata verirse) altta varsayılan görsel var.
-    expect(assetNames(tester), [BuDefaultAvatar.personAsset]);
+    expect(find.byKey(const ValueKey('default-avatar-paint')), findsOneWidget);
+    expect(find.byType(Image), findsOneWidget);
   });
 
   testWidgets('BuAvatar fotoğraf yüklenemezse varsayılan görsel kalır', (tester) async {
@@ -105,7 +101,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
     expect(find.byType(BuDefaultAvatar), findsOneWidget);
     expect(find.byType(Text), findsNothing);
-    expect(assetNames(tester), contains(BuDefaultAvatar.personAsset));
+    expect(find.byKey(const ValueKey('default-avatar-paint')), findsOneWidget);
   });
 
   testWidgets('BuAvatar şekil: yuvarlak, yuvarlatılmış kare ve sabit köşe korunur', (tester) async {
@@ -118,24 +114,18 @@ void main() {
     expect(r(tester), 20);
   });
 
-  testWidgets('BuDefaultAvatar çözümleme boyutu size x dpr ile sınırlı, anlamsal düğüm yok, 24-96 dp taşmaz', (tester) async {
+  testWidgets('BuDefaultAvatar vektördür: boyuta eşit kutu, anlamsal düğüm yok, 24-96 dp taşmaz', (tester) async {
     final h = tester.ensureSemantics();
-    tester.view.devicePixelRatio = 2;
-    addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(host(Row(children: [
+    await tester.pumpWidget(host(Row(mainAxisSize: MainAxisSize.min, children: [
       for (final s in [24.0, 36.0, 44.0, 96.0]) BuDefaultAvatar(size: s),
     ])));
     expect(tester.takeException(), isNull);
     expect(find.bySemanticsLabel(RegExp('.')), findsNothing);
     final widths = [
-      for (final img in tester.widgetList<Image>(find.byType(Image))) (img.image as ResizeImage).width,
+      for (final e in tester.widgetList<CustomPaint>(find.byKey(const ValueKey('default-avatar-paint')))) (e.painter! as DefaultAvatarPainter).tiny,
     ];
-    expect(widths, [48, 72, 88, 192]);
+    expect(widths, [false, false, false, false]);
+    expect(tester.getSize(find.byKey(const ValueKey('default-avatar-paint')).last), const Size(96, 96));
     h.dispose();
   });
-}
-
-String? _assetOf(ImageProvider p) {
-  if (p is ResizeImage) p = p.imageProvider;
-  return p is AssetImage ? p.assetName : null;
 }

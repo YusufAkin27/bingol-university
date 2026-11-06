@@ -256,8 +256,6 @@ void main() {
         await tester.pumpWidget(_app(sc.page(b), v.$2, key, v.$3));
         await tester.runAsync(() async {
           final ctx = tester.element(find.byType(Scaffold).first);
-          await precacheImage(const AssetImage('assets/branding/default_avatar.png'), ctx);
-          await precacheImage(const AssetImage('assets/branding/default_group.png'), ctx);
         });
         await settle(tester, const Duration(milliseconds: 1200));
         if (sc.after != null) {
