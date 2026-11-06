@@ -10184,6 +10184,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p67ChatBgReset => 'العودة إلى الافتراضي';
 
   @override
+  String get p67ChatBgStyleCampus => 'الحرم';
+
+  @override
+  String get p67ChatBgStyleStudy => 'الدراسة';
+
+  @override
+  String get p67ChatBgStyleSocial => 'اجتماعي';
+
+  @override
+  String get p67ChatBgStyleScience => 'العلوم';
+
+  @override
+  String get p67ChatBgStyleGeometry => 'هندسي';
+
+  @override
+  String get p67ChatBgStyleLabel => 'النقش';
+
+  @override
   String p67PickerLimit(String max) {
     return 'يمكنك اختيار $max عناصر كحد أقصى.';
   }

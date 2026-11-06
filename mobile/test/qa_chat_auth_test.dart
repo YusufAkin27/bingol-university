@@ -14,7 +14,6 @@ import 'package:bu_kampus/features/chat/chat_detail_page.dart';
 import 'package:bu_kampus/features/notifications/notifications_page.dart';
 import 'package:bu_kampus/features/profile/account_security_page.dart';
 import 'package:bu_kampus/features/profile/avatar_upload.dart';
-import 'package:bu_kampus/features/profile/profil2_delete_account_page.dart';
 import 'package:bu_kampus/features/profile/settings_page.dart';
 import 'package:bu_kampus/features/support/support_feedback_page.dart';
 import 'package:flutter/foundation.dart';
@@ -173,26 +172,15 @@ void main() {
       await unmount(t);
     });
 
-    testWidgets('"Hesabımı sil" satırı doğrudan Ayarlar\'da; hesap silme sayfasını açar', (t) async {
+    testWidgets('Ayarlarda "Hesabımı sil" satırı yok (hesap silme Verilerim sayfasında kalır)', (t) async {
       await pumpSettings(t, FakeBackend());
-      final row = find.byKey(const ValueKey('settings-delete-account'));
-      await t.ensureVisible(row);
-      await t.tap(row);
-      await settle(t);
-      expect(find.byType(DeleteAccountPage), findsOneWidget);
+      expect(find.byKey(const ValueKey('settings-delete-account')), findsNothing);
       await unmount(t);
     });
 
-    testWidgets('"Tüm cihazlardan çık": 401 oturum zaten bitmiş sayılır (Hesap güvenliği ile aynı yol)', (t) async {
-      final b = FakeBackend()..fail('/auth/logout-all', status: 401, code: 'UNAUTHORIZED');
-      await pumpSettings(t, b);
-      final row = find.byKey(const ValueKey('settings-logout-all'));
-      await t.ensureVisible(row);
-      await t.tap(row);
-      await settle(t);
-      await t.tap(find.text('Çıkış yap').last);
-      await settle(t);
-      expect(b.count('POST /auth/logout-all'), 1);
+    testWidgets('Ayarlarda "Tüm cihazlardan çık" satırı yok (Hesap güvenliği > Cihazlarıma taşındı)', (t) async {
+      await pumpSettings(t, FakeBackend());
+      expect(find.byKey(const ValueKey('settings-logout-all')), findsNothing);
       await unmount(t);
     });
   });

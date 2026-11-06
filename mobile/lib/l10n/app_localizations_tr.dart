@@ -10251,6 +10251,24 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p67ChatBgReset => 'Varsayılana dön';
 
   @override
+  String get p67ChatBgStyleCampus => 'Kampüs';
+
+  @override
+  String get p67ChatBgStyleStudy => 'Ders';
+
+  @override
+  String get p67ChatBgStyleSocial => 'Sosyal';
+
+  @override
+  String get p67ChatBgStyleScience => 'Bilim';
+
+  @override
+  String get p67ChatBgStyleGeometry => 'Geometri';
+
+  @override
+  String get p67ChatBgStyleLabel => 'Desen';
+
+  @override
   String p67PickerLimit(String max) {
     return 'En fazla $max öğe seçebilirsiniz.';
   }

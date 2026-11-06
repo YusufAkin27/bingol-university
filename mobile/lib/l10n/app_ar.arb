@@ -3420,6 +3420,12 @@
   "p67ChatBgDensity": "الكثافة",
   "p67ChatBgApply": "تطبيق",
   "p67ChatBgReset": "العودة إلى الافتراضي",
+  "p67ChatBgStyleCampus": "الحرم",
+  "p67ChatBgStyleStudy": "الدراسة",
+  "p67ChatBgStyleSocial": "اجتماعي",
+  "p67ChatBgStyleScience": "العلوم",
+  "p67ChatBgStyleGeometry": "هندسي",
+  "p67ChatBgStyleLabel": "النقش",
   "p67PickerLimit": "يمكنك اختيار {max} عناصر كحد أقصى.",
   "@p67PickerLimit": {
     "placeholders": {

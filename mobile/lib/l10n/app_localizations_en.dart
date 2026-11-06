@@ -10287,6 +10287,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p67ChatBgReset => 'Reset to default';
 
   @override
+  String get p67ChatBgStyleCampus => 'Campus';
+
+  @override
+  String get p67ChatBgStyleStudy => 'Study';
+
+  @override
+  String get p67ChatBgStyleSocial => 'Social';
+
+  @override
+  String get p67ChatBgStyleScience => 'Science';
+
+  @override
+  String get p67ChatBgStyleGeometry => 'Geometry';
+
+  @override
+  String get p67ChatBgStyleLabel => 'Pattern';
+
+  @override
   String p67PickerLimit(String max) {
     return 'You can select up to $max items.';
   }

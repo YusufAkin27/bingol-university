@@ -9,50 +9,57 @@ import '../../widgets/bu.dart';
 
 /// Sohbet arka planı (konuşma ekranı duvar kağıdı; sohbet LİSTESİNE uygulanmaz).
 ///
-/// Tasarım: sıcak nötr zemin (tema `bg`) üstüne tek renkli, düşük opaklıklı kampüs/öğrenci temalı ince çizgi
-/// ikon deseni (kitap, kep, kahve, defter, takvim, nota, top, ampul, kalem, mesaj...). Kırmızı/mavi vurgu YOK;
-/// desen yalnız `ink` jetonunun düşük alfa tonudur (açık temada koyu tint, koyu temada açık tint).
+/// Her zaman desenlidir (düz zemin seçeneği YOKTUR). Beş desen sunulur ([ChatBgStyle]): Kampüs (kullanıcının verdiği
+/// doodle PNG'si), Ders, Sosyal, Bilim (aynı çizgi-ikon dilinde, farklı ikon havuzları) ve Geometri (küçük çizgi
+/// şekiller). Yoğunluk ([ChatBgDensity]) Hafif | Orta ayrı bir ayardır ve her desene uygulanır. Kırmızı/mavi vurgu YOK;
+/// yordamsal desenler yalnız `ink` jetonunun düşük alfa tonudur.
 ///
-/// Desen: 480 dp tile, rastgele sıkı yerleşimli ~50 üniversite çizgi ikonu havuzu; açık temada %7, koyu temada %6 opaklık (çok düşük kontrast).
+/// SABİT: desen mesaj alanının arkasında durur, kaydırmayla oynamaz; ayrıca katman ekran yüksekliğinde çizilip üstten
+/// hizalanır, bu yüzden klavye açılıp mesaj alanı küçülünce desen ölçek değiştirmez / zıplamaz (yalnız kırpılır).
 ///
-/// Performans: desen TEK SEFER küçük bir kare dokuya (480 × 480 dp) çizilir (`Picture.toImageSync`),
-/// (tema, stil, piksel oranı) anahtarıyla önbelleğe alınır ve `ImageShader` ile döşenir; kaydırırken
-/// yeniden hesap/çizim yok (ayrı `RepaintBoundary`), blur/BackdropFilter yok. Tema, stil ya da piksel
-/// oranı değişince yeniden üretilir.
+/// Performans: yordamsal desen TEK SEFER küçük bir kare dokuya (480 × 480 dp) çizilir (`Picture.toImageSync`),
+/// (desen, tema, yoğunluk, piksel oranı) anahtarıyla önbelleğe alınır ve `ImageShader` ile döşenir; kaydırırken
+/// yeniden hesap/çizim yok (ayrı `RepaintBoundary`), blur/BackdropFilter yok.
 enum ChatBgStyle {
-  pattern,
-  soft,
-  strong,
-  plain,
+  /// Kampüs doodle PNG'si (`wp_a_light.png` / `wp_a_dark.png`, 941x1672) — VARSAYILAN.
+  campus,
 
-  /// Ek varlık duvar kağıtları (ileride): `assets/chat_wallpapers/<ad>_light.png|<ad>_dark.png`.
-  wpB,
-  wpC;
+  /// Ders / sınav / kütüphane ikonları.
+  study,
 
-  /// Varlık dosyası adı; yordamsal stillerde (Hafif/Orta/Düz) null. VARSAYILAN "Desen" = Stitch v3 kampüs doodle
-  /// duvar kağıdı (`wp_a_light.png` / `wp_a_dark.png`, 1170x2532).
+  /// Kulüp, yemekhane, spor, müzik, sosyal yaşam ikonları.
+  social,
+
+  /// Laboratuvar, yazılım, teknoloji ikonları.
+  science,
+
+  /// Küçük çizgi şekillerden (daire, eşkenar dörtgen, artı, üçgen, nokta) kaymalı ızgara.
+  geometry;
+
+  /// Varlık dosyası adı; yordamsal desenlerde null.
   String? get assetName => switch (this) {
-        ChatBgStyle.pattern => 'wp_a',
-        ChatBgStyle.wpB => 'wp_b',
-        ChatBgStyle.wpC => 'wp_c',
+        ChatBgStyle.campus => 'wp_a',
         _ => null,
       };
 
   bool get isAsset => assetName != null;
 }
 
-/// Ayarlar sayfasında seçenek olarak sunulan varlık duvar kağıtları. Tasarım teslim edilip PNG'ler
-/// `assets/chat_wallpapers/` altına konunca ilgili stil bu listeye eklenir (altyapı hazır; liste boşken yalnız
-/// yordamsal seçenekler görünür).
-const List<ChatBgStyle> kChatWallpaperAssets = <ChatBgStyle>[];
+/// Desen yoğunluğu: Hafif (varsayılan) | Orta. Varlık desende bindirme örtüsünü, yordamsal desenlerde opaklığı değiştirir.
+enum ChatBgDensity { soft, strong }
 
 /// Varlık dosya yolu (tema başına ayrı görsel).
 String chatWallpaperAssetPath(ChatBgStyle s, {required bool dark}) =>
     'assets/chat_wallpapers/${s.assetName}_${dark ? 'dark' : 'light'}.png';
 
-/// Varlık duvar kağıdının üstüne bindirilen tema zemini örtüsü (0..1): yüksek = desen daha silik. Monochrome
-/// tasarımda desen yalnız belli belirsiz görünür (balonlar ve metin öne çıkar).
+/// Varlık duvar kağıdının üstüne bindirilen tema zemini örtüsü (0..1): yüksek = desen daha silik. Hafif yoğunlukta
+/// desen yalnız belli belirsiz görünür (balonlar ve metin öne çıkar).
 const double kChatWallpaperVeil = .78;
+
+/// Orta yoğunlukta örtü (desen daha belirgin).
+const double kChatWallpaperVeilStrong = .62;
+
+double chatWallpaperVeil(ChatBgDensity d) => d == ChatBgDensity.strong ? kChatWallpaperVeilStrong : kChatWallpaperVeil;
 
 /// Renk -> gri (Rec.709 parlaklık) matrisi: varlıktaki kırmızı/lacivert/krem tonları nötrleşir.
 const List<double> kChatWallpaperGray = <double>[
@@ -62,21 +69,24 @@ const List<double> kChatWallpaperGray = <double>[
   0, 0, 0, 1, 0,
 ];
 
-/// Seçili arka plan tercihi: cihazda, kullanıcıya özel (güvenli depoda tek anahtar; sunucu ucu yok). Varsayılan
-/// (Desen) kayıt tutmaz. Çıkışta [clear] silinir (bkz. `registerUserDataCleaners`).
+/// Seçili arka plan tercihi: cihazda, kullanıcıya özel (güvenli depoda iki anahtar; sunucu ucu yok). Varsayılan
+/// (Kampüs + Hafif) kayıt tutmaz. Çıkışta [clear] silinir (bkz. `registerUserDataCleaners`).
 class ChatBackgroundPrefs extends ChangeNotifier {
   ChatBackgroundPrefs._();
 
   static final ChatBackgroundPrefs instance = ChatBackgroundPrefs._();
   static const key = 'chat_background';
+  static const densityKey = 'chat_background_density';
   static const _storage = FlutterSecureStorage();
 
-  ChatBgStyle _style = ChatBgStyle.pattern;
+  ChatBgStyle _style = ChatBgStyle.campus;
+  ChatBgDensity _density = ChatBgDensity.soft;
   bool _loaded = false;
   Future<void>? _loading;
 
-  /// Seçili stil; tercih okunana dek [loaded] false'tur (o sürede yalnız düz zemin çizilir, desen sonradan solarak gelir).
+  /// Seçili desen; tercih okunana dek [loaded] false'tur (o kısa sürede desen çizilmez, okununca solarak gelir).
   ChatBgStyle get style => _style;
+  ChatBgDensity get density => _density;
   bool get loaded => _loaded;
 
   /// Tercihi bir kez okur (eşzamanlı çağrılar aynı işi paylaşır). Okunamazsa varsayılan kalır.
@@ -85,25 +95,36 @@ class ChatBackgroundPrefs extends ChangeNotifier {
   Future<void> _load() async {
     try {
       final raw = await _storage.read(key: key);
+      final rawDensity = await _storage.read(key: densityKey);
       final found = ChatBgStyle.values.where((s) => s.name == raw);
       if (found.isNotEmpty) _style = found.first;
+      // Eski sürüm değerleri: pattern/soft/plain -> Kampüs Hafif; strong -> Kampüs Orta ("düz" artık yok).
+      if (raw == 'strong') _density = ChatBgDensity.strong;
+      if (rawDensity == ChatBgDensity.strong.name) _density = ChatBgDensity.strong;
     } catch (_) {}
     _loaded = true;
     notifyListeners();
   }
 
-  /// Seçimi uygular ve kaydeder (varsayılan = anahtar silinir).
-  Future<void> set(ChatBgStyle s) async {
+  /// Seçimi uygular ve kaydeder (varsayılan = anahtarlar silinir).
+  Future<void> set(ChatBgStyle s, {ChatBgDensity? density}) async {
     _loaded = true;
-    if (_style != s) {
+    final d = density ?? _density;
+    if (_style != s || _density != d) {
       _style = s;
+      _density = d;
       notifyListeners();
     }
     try {
-      if (s == ChatBgStyle.pattern) {
+      if (s == ChatBgStyle.campus) {
         await _storage.delete(key: key);
       } else {
         await _storage.write(key: key, value: s.name);
+      }
+      if (d == ChatBgDensity.soft) {
+        await _storage.delete(key: densityKey);
+      } else {
+        await _storage.write(key: densityKey, value: d.name);
       }
     } catch (_) {}
   }
@@ -111,11 +132,13 @@ class ChatBackgroundPrefs extends ChangeNotifier {
   /// Çıkış / hesap silme / oturum değişimi: tercih silinir, bellekteki değer varsayılana döner.
   static Future<void> clear() async {
     final p = instance;
-    p._style = ChatBgStyle.pattern;
+    p._style = ChatBgStyle.campus;
+    p._density = ChatBgDensity.soft;
     p._loaded = true;
     p._loading = Future<void>.value();
     try {
       await _storage.delete(key: key);
+      await _storage.delete(key: densityKey);
     } catch (_) {}
     p.notifyListeners();
   }
@@ -124,7 +147,8 @@ class ChatBackgroundPrefs extends ChangeNotifier {
   @visibleForTesting
   static void debugReset() {
     final p = instance;
-    p._style = ChatBgStyle.pattern;
+    p._style = ChatBgStyle.campus;
+    p._density = ChatBgDensity.soft;
     p._loaded = false;
     p._loading = null;
   }
@@ -141,46 +165,64 @@ class _Glyph {
 
 /// Duvar kağıdı çizimi: konuşma gövdesinin arkasında sabit durur (kaydırmayla oynamaz).
 class ChatWallpaper extends StatefulWidget {
-  const ChatWallpaper({super.key, required this.child, this.style});
+  const ChatWallpaper({super.key, required this.child, this.style, this.density});
 
   /// Üstte durur (mesaj listesi / boş durum).
   final Widget child;
 
-  /// Verilirse tercih yerine bu stil çizilir (ayarlar önizlemesi).
+  /// Verilirse tercih yerine bu desen çizilir (ayarlar önizlemesi).
   final ChatBgStyle? style;
+
+  /// Verilirse tercih yerine bu yoğunluk kullanılır (ayarlar önizlemesi).
+  final ChatBgDensity? density;
 
   /// Dokunun kenar uzunluğu (dp).
   static const tileSize = 480.0;
 
-  /// Üniversite / kampüs yaşamı çizgi ikonları (ders, sınav, kütüphane, laboratuvar, kampüs, yemekhane, kulüp...).
-  /// Havuz geniştir; desen her seferinde karışık sırayla dizilir, aynı ikon dizisi tekrarlanmaz.
-  static const List<IconData> _pool = <IconData>[
+  /// İkon havuzları: aynı çizgi-ikon dili, farklı temalar.
+  static const List<IconData> _studyPool = <IconData>[
     BuIcons.bookOpen, BuIcons.graduationCap, BuIcons.pencil, BuIcons.pencilLine, BuIcons.notebookPen,
-    BuIcons.backpack, BuIcons.library, BuIcons.landmark, BuIcons.building2, BuIcons.atom,
-    BuIcons.flaskConical, BuIcons.laptop, BuIcons.cpu, BuIcons.squareTerminal, BuIcons.lightbulb,
-    BuIcons.calendar, BuIcons.calendarDays, BuIcons.calendarCheck, BuIcons.calendarClock, BuIcons.clock,
-    BuIcons.alarmClock, BuIcons.hourglass, BuIcons.clipboardList, BuIcons.clipboardCheck, BuIcons.listChecks,
-    BuIcons.fileText, BuIcons.idCard, BuIcons.bookmark, BuIcons.trophy, BuIcons.star,
-    BuIcons.megaphone, BuIcons.newspaper, BuIcons.users, BuIcons.user, BuIcons.coffee,
-    BuIcons.utensils, BuIcons.globe, BuIcons.compass, BuIcons.palette, BuIcons.music,
-    BuIcons.volleyball, BuIcons.dumbbell, BuIcons.flag, BuIcons.doorOpen, BuIcons.headset,
-    BuIcons.chartPie, BuIcons.layers, BuIcons.vote, BuIcons.messageSquareText, BuIcons.thumbsUp,
-    BuIcons.camera, BuIcons.wrench, BuIcons.qrCode, BuIcons.hash,
+    BuIcons.backpack, BuIcons.library, BuIcons.landmark, BuIcons.building2, BuIcons.lightbulb,
+    BuIcons.calendar, BuIcons.calendarDays, BuIcons.calendarCheck, BuIcons.clock, BuIcons.alarmClock,
+    BuIcons.hourglass, BuIcons.clipboardList, BuIcons.clipboardCheck, BuIcons.listChecks, BuIcons.fileText,
+    BuIcons.idCard, BuIcons.bookmark, BuIcons.trophy, BuIcons.star, BuIcons.doorOpen,
   ];
+
+  static const List<IconData> _socialPool = <IconData>[
+    BuIcons.coffee, BuIcons.utensils, BuIcons.music, BuIcons.volleyball, BuIcons.dumbbell,
+    BuIcons.flag, BuIcons.users, BuIcons.user, BuIcons.megaphone, BuIcons.newspaper,
+    BuIcons.messageSquareText, BuIcons.thumbsUp, BuIcons.camera, BuIcons.palette, BuIcons.globe,
+    BuIcons.compass, BuIcons.vote, BuIcons.headset, BuIcons.calendarClock, BuIcons.star,
+    BuIcons.trophy, BuIcons.hash, BuIcons.building2,
+  ];
+
+  static const List<IconData> _sciencePool = <IconData>[
+    BuIcons.atom, BuIcons.flaskConical, BuIcons.laptop, BuIcons.cpu, BuIcons.squareTerminal,
+    BuIcons.lightbulb, BuIcons.chartPie, BuIcons.layers, BuIcons.wrench, BuIcons.qrCode,
+    BuIcons.hash, BuIcons.globe, BuIcons.compass, BuIcons.camera, BuIcons.headset,
+    BuIcons.fileText, BuIcons.clock, BuIcons.hourglass, BuIcons.library, BuIcons.bookOpen,
+  ];
+
+  /// Kampüs PNG'si dışındaki ikon desenleri için havuz + sabit tohum.
+  static (List<IconData>, int) _poolOf(ChatBgStyle s) => switch (s) {
+        ChatBgStyle.social => (_socialPool, 20261106),
+        ChatBgStyle.science => (_sciencePool, 20261107),
+        _ => (_studyPool, 20261105),
+      };
 
   /// Ikonlar arası hedef boşluk (dp): "dip dibe" ama birbirine değmez.
   static const double _gap = 5;
 
-  /// Rastgele sıkı yerleşim: sabit tohumlu (desen her açılışta aynı, titremez) ama ızgarasız. [wrap] true ise
-  /// dokunun kenarları kesintisiz döşenecek biçimde sarmalanır (mesafe torus üzerinde ölçülür). Boyut ve eğim
-  /// rastgele; ikonlar karıştırılmış torbalardan çekilir (art arda aynı ikon gelmez).
-  static List<_Glyph> _layout(double width, double height, {required bool wrap, int seed = 20261105}) {
+  /// Rastgele sıkı yerleşim: sabit tohumlu (desen her açılışta aynı, titremez) ama ızgarasız. Dokunun kenarları
+  /// kesintisiz döşenecek biçimde sarmalanır (mesafe torus üzerinde ölçülür). Boyut ve eğim rastgele; ikonlar
+  /// karıştırılmış torbalardan çekilir (art arda aynı ikon gelmez).
+  static List<_Glyph> _layout(List<IconData> pool, double width, double height, {required int seed}) {
     final rnd = math.Random(seed);
     final bag = <IconData>[];
     IconData? last;
     IconData nextIcon() {
       if (bag.isEmpty) {
-        bag.addAll(_pool);
+        bag.addAll(pool);
         bag.shuffle(rnd);
         // Torba sınırında aynı ikon art arda gelmesin.
         if (last != null && bag.last == last) {
@@ -204,10 +246,8 @@ class ChatWallpaper extends StatefulWidget {
       for (var i = 0; i < placed.length && ok; i++) {
         var dx = (placed[i].x - x).abs();
         var dy = (placed[i].y - y).abs();
-        if (wrap) {
-          if (dx > width / 2) dx = width - dx;
-          if (dy > height / 2) dy = height - dy;
-        }
+        if (dx > width / 2) dx = width - dx;
+        if (dy > height / 2) dy = height - dy;
         final min = r + radii[i] + _gap;
         if (dx * dx + dy * dy < min * min) ok = false;
       }
@@ -222,8 +262,13 @@ class ChatWallpaper extends StatefulWidget {
     return placed;
   }
 
-  /// Sarmalanan döşeme dokusunun ikonları (yordamsal stiller: Hafif / Orta).
-  static final List<_Glyph> _glyphs = _layout(tileSize, tileSize, wrap: true);
+  /// Desen başına ikon yerleşimi (ilk kullanımda bir kez hesaplanır).
+  static final Map<ChatBgStyle, List<_Glyph>> _glyphsByStyle = {};
+
+  static List<_Glyph> _glyphsOf(ChatBgStyle s) => _glyphsByStyle.putIfAbsent(s, () {
+        final (pool, seed) = _poolOf(s);
+        return _layout(pool, tileSize, tileSize, seed: seed);
+      });
 
   static void _paintGlyph(Canvas c, _Glyph g, Color color, double ox, double oy) {
     final tp = TextPainter(
@@ -248,13 +293,71 @@ class ChatWallpaper extends StatefulWidget {
     tp.dispose();
   }
 
-  /// Desen opaklığı (ink jetonu üstüne): çok düşük kontrast, mesajlar net ayrışır.
-  static double alphaOf(ChatBgStyle s, bool dark) => switch (s) {
-        ChatBgStyle.pattern => dark ? .06 : .07,
-        ChatBgStyle.soft => dark ? .04 : .045,
-        ChatBgStyle.strong => dark ? .10 : .12,
-        _ => 0,
-      };
+  /// Geometri deseni: 40 dp hücreli, tek sıralar 20 dp kaymış ızgarada 5 küçük çizgi şekil (kenara değmez: dikişsiz).
+  static void _paintGeometry(Canvas c, Color color) {
+    const cell = 40.0;
+    final stroke = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final fill = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+    const rows = 12;
+    const cols = 12;
+    for (var j = 0; j < rows; j++) {
+      for (var i = 0; i < cols; i++) {
+        final cx = (j.isEven ? 10.0 : 30.0) + i * cell;
+        final cy = 20.0 + j * cell;
+        final kind = (i + 2 * j) % 5;
+        final turn = ((i * 7 + j * 3) % 4) * 15 * math.pi / 180;
+        c.save();
+        c.translate(cx, cy);
+        c.rotate(turn);
+        switch (kind) {
+          case 0:
+            c.drawCircle(Offset.zero, 6, stroke);
+          case 1:
+            c.drawPath(
+              Path()
+                ..moveTo(0, -8)
+                ..lineTo(8, 0)
+                ..lineTo(0, 8)
+                ..lineTo(-8, 0)
+                ..close(),
+              stroke,
+            );
+          case 2:
+            c.drawLine(const Offset(-7, 0), const Offset(7, 0), stroke);
+            c.drawLine(const Offset(0, -7), const Offset(0, 7), stroke);
+          case 3:
+            c.drawPath(
+              Path()
+                ..moveTo(0, -7)
+                ..lineTo(7, 6)
+                ..lineTo(-7, 6)
+                ..close(),
+              stroke,
+            );
+          default:
+            c.drawCircle(Offset.zero, 2.2, fill);
+        }
+        c.restore();
+      }
+    }
+  }
+
+  /// Yordamsal desenlerin opaklığı (ink jetonu üstüne): çok düşük kontrast, mesajlar net ayrışır. Kampüs (varlık)
+  /// deseninde yoğunluk örtüden gelir ([chatWallpaperVeil]); orada 0 döner.
+  static double alphaOf(ChatBgStyle s, ChatBgDensity d, bool dark) {
+    if (s.isAsset) return 0;
+    return switch (d) {
+      ChatBgDensity.soft => dark ? .06 : .07,
+      ChatBgDensity.strong => dark ? .10 : .12,
+    };
+  }
 
   static final Map<String, ui.Image> _cache = {};
 
@@ -271,15 +374,15 @@ class ChatWallpaper extends StatefulWidget {
   @visibleForTesting
   static int get debugCacheSize => _cache.length;
 
-  static String _keyOf(Color ink, double alpha, double dpr) => '${ink.toARGB32()}|$alpha|$dpr';
+  static String _keyOf(ChatBgStyle s, Color ink, double alpha, double dpr) => '${s.name}|${ink.toARGB32()}|$alpha|$dpr';
 
   /// Önbellekteki doku (varsa).
-  static ui.Image? cached(Color ink, double alpha, double dpr) => _cache[_keyOf(ink, alpha, dpr)];
+  static ui.Image? cached(ChatBgStyle s, Color ink, double alpha, double dpr) => _cache[_keyOf(s, ink, alpha, dpr)];
 
-  /// Dokuyu üretir (önbellekte yoksa) ve döndürür; üretilemezse null (düz zemin kalır).
-  static ui.Image? tile(Color ink, double alpha, double dpr) {
-    if (alpha <= 0) return null;
-    final key = _keyOf(ink, alpha, dpr);
+  /// Dokuyu üretir (önbellekte yoksa) ve döndürür; üretilemezse null (yalnız tema zemini kalır).
+  static ui.Image? tile(ChatBgStyle s, Color ink, double alpha, double dpr) {
+    if (alpha <= 0 || s.isAsset) return null;
+    final key = _keyOf(s, ink, alpha, dpr);
     final hit = _cache[key];
     if (hit != null) return hit;
     try {
@@ -289,16 +392,19 @@ class ChatWallpaper extends StatefulWidget {
       c.scale(dpr);
       final color = ink.withValues(alpha: alpha);
 
-      // --- İkonları çiz ---
-      // Kenara yakın ikonlar karşı kenarda da çizilir: dokular yan yana gelince dikiş görünmez.
-      for (final g in _glyphs) {
-        for (final ox in const [-tileSize, 0.0, tileSize]) {
-          for (final oy in const [-tileSize, 0.0, tileSize]) {
-            final cx = g.x + ox;
-            final cy = g.y + oy;
-            final reach = g.size;
-            if (cx < -reach || cx > tileSize + reach || cy < -reach || cy > tileSize + reach) continue;
-            _paintGlyph(c, g, color, ox, oy);
+      if (s == ChatBgStyle.geometry) {
+        _paintGeometry(c, color);
+      } else {
+        // Kenara yakın ikonlar karşı kenarda da çizilir: dokular yan yana gelince dikiş görünmez.
+        for (final g in _glyphsOf(s)) {
+          for (final ox in const [-tileSize, 0.0, tileSize]) {
+            for (final oy in const [-tileSize, 0.0, tileSize]) {
+              final cx = g.x + ox;
+              final cy = g.y + oy;
+              final reach = g.size;
+              if (cx < -reach || cx > tileSize + reach || cy < -reach || cy > tileSize + reach) continue;
+              _paintGlyph(c, g, color, ox, oy);
+            }
           }
         }
       }
@@ -307,8 +413,8 @@ class ChatWallpaper extends StatefulWidget {
       final img = pic.toImageSync(px, px);
       pic.dispose();
       debugTileBuilds++;
-      // Bellek sınırı: en çok 4 doku (tema/stil/yoğunluk değişimlerinde eskisi atılır).
-      while (_cache.length >= 4) {
+      // Bellek sınırı: en çok 6 doku (desen/tema/yoğunluk değişimlerinde eskisi atılır).
+      while (_cache.length >= 6) {
         _cache.remove(_cache.keys.first);
       }
       _cache[key] = img;
@@ -338,98 +444,100 @@ class _ChatWallpaperState extends State<ChatWallpaper> {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final dpr = math.min(MediaQuery.devicePixelRatioOf(context), 2.5);
     final reduced = BuMotion.reduced(context);
+    final screenH = MediaQuery.sizeOf(context).height;
     return ListenableBuilder(
       listenable: ChatBackgroundPrefs.instance,
       builder: (context, _) {
         final prefs = ChatBackgroundPrefs.instance;
-        // Tercih okunana dek yalnız düz zemin: deseni sonradan kaldırmak "zıplama" olurdu.
-        final style = widget.style ?? (prefs.loaded ? prefs.style : ChatBgStyle.plain);
-        final alpha = ChatWallpaper.alphaOf(style, dark);
-        if (style.isAsset) return _assetLayer(t, style, dark, reduced);
-        ui.Image? img;
-        var fresh = false;
-        if (alpha > 0) {
-          img = ChatWallpaper.cached(t.ink, alpha, dpr);
-          if (img == null) {
-            img = ChatWallpaper.tile(t.ink, alpha, dpr);
-            fresh = img != null;
-          }
+        // Tercih okunana dek (birkaç ms) yalnız tema zemini: yanlış deseni sonradan değiştirmek "zıplama" olurdu.
+        // Bu bir seçenek değildir; tercih okununca desen hemen gelir.
+        if (widget.style == null && !prefs.loaded) {
+          return Stack(fit: StackFit.expand, children: [Positioned.fill(child: ColoredBox(color: t.bg)), widget.child]);
         }
-        // Yeni üretilen doku 150 ms solarak gelir; önbellekteyse ya da "azalt" açıksa anında.
-        if (fresh && !_shown && !reduced && !_scheduled) {
-          _scheduled = true;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) setState(() => _shown = true);
-          });
-        }
-        final opacity = (img == null || (fresh && !_shown && !reduced)) ? 0.0 : 1.0;
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            Positioned.fill(child: ColoredBox(color: t.bg)),
-            if (img != null)
-              Positioned.fill(
-                child: RepaintBoundary(
-                  child: IgnorePointer(
-                    child: ExcludeSemantics(
-                      child: AnimatedOpacity(
-                        key: const ValueKey('chatWallpaper'),
-                        opacity: opacity,
-                        duration: reduced ? Duration.zero : const Duration(milliseconds: 150),
-                        child: CustomPaint(painter: _TilePainter(img, dpr), size: Size.infinite),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            widget.child,
-          ],
-        );
+        final style = widget.style ?? prefs.style;
+        final density = widget.density ?? prefs.density;
+        return LayoutBuilder(builder: (context, c) {
+          final w = c.hasBoundedWidth ? c.maxWidth : MediaQuery.sizeOf(context).width;
+          // SABİT: katman her zaman en az ekran yüksekliğinde ve üstten hizalı; klavye alanı daraltınca ölçek değişmez.
+          final h = math.max(c.hasBoundedHeight ? c.maxHeight : 0.0, screenH);
+          final Widget layer = style.isAsset
+              ? _assetLayer(t, style, density, dark, reduced, w)
+              : _tileLayer(t, style, density, dark, dpr, reduced);
+          return Stack(
+            fit: StackFit.expand,
+            clipBehavior: Clip.hardEdge,
+            children: [
+              Positioned.fill(child: ColoredBox(color: t.bg)),
+              Positioned(left: 0, top: 0, width: w, height: h, child: layer),
+              widget.child,
+            ],
+          );
+        });
       },
     );
   }
 
-  /// Varlık duvar kağıdı: tam yüzey, `BoxFit.cover`, ekran genişliği x dpr kadar çözülür; yüklenemezse düz zemin kalır.
-  Widget _assetLayer(BuTokens t, ChatBgStyle style, bool dark, bool reduced) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Positioned.fill(child: ColoredBox(color: t.bg)),
-        Positioned.fill(
-          child: RepaintBoundary(
+  /// Yordamsal desen (ikon / geometri): döşenmiş doku; yeni üretilen doku 150 ms solarak gelir.
+  Widget _tileLayer(BuTokens t, ChatBgStyle style, ChatBgDensity density, bool dark, double dpr, bool reduced) {
+    final alpha = ChatWallpaper.alphaOf(style, density, dark);
+    var img = ChatWallpaper.cached(style, t.ink, alpha, dpr);
+    var fresh = false;
+    if (img == null) {
+      img = ChatWallpaper.tile(style, t.ink, alpha, dpr);
+      fresh = img != null;
+    }
+    if (fresh && !_shown && !reduced && !_scheduled) {
+      _scheduled = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _shown = true);
+      });
+    }
+    if (img == null) return const SizedBox.shrink();
+    final opacity = (fresh && !_shown && !reduced) ? 0.0 : 1.0;
+    return RepaintBoundary(
+      child: IgnorePointer(
+        child: ExcludeSemantics(
+          child: AnimatedOpacity(
             key: const ValueKey('chatWallpaper'),
-            child: IgnorePointer(
-              child: ExcludeSemantics(
-                child: LayoutBuilder(builder: (context, c) {
-                  final dpr = MediaQuery.devicePixelRatioOf(context);
-                  final w = c.hasBoundedWidth ? c.maxWidth : MediaQuery.sizeOf(context).width;
-                  // PNG kullanıcının kendi dosyası (değişmez); monochrome için çizimde gri tonlanır (kırmızı/lacivert
-                  // vurgular nötrleşir) ve üstüne tema zemini bindirilir: desen çok düşük kontrastlı, mesajlar öne çıkar.
-                  return ColorFiltered(
-                    key: const ValueKey('chatWallpaperTone'),
-                    colorFilter: const ColorFilter.matrix(kChatWallpaperGray),
-                    child: Image.asset(
-                      chatWallpaperAssetPath(style, dark: dark),
-                      key: const ValueKey('chatWallpaperAsset'),
-                      fit: BoxFit.cover,
-                      alignment: Alignment.topCenter,
-                      cacheWidth: (w * dpr).round(),
-                      gaplessPlayback: true,
-                      color: t.bg.withValues(alpha: kChatWallpaperVeil),
-                      colorBlendMode: BlendMode.srcOver,
-                      errorBuilder: (c, e, st) => const SizedBox.shrink(),
-                      frameBuilder: (c, child, frame, sync) => sync
-                          ? child
-                          : AnimatedOpacity(opacity: frame == null ? 0 : 1, duration: reduced ? Duration.zero : const Duration(milliseconds: 150), child: child),
-                    ),
-                  );
-                }),
-              ),
+            opacity: opacity,
+            duration: reduced ? Duration.zero : const Duration(milliseconds: 150),
+            child: CustomPaint(painter: _TilePainter(img, dpr), size: Size.infinite),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Varlık duvar kağıdı (Kampüs): tam yüzey, `BoxFit.cover`, ekran genişliği x dpr kadar çözülür; yüklenemezse
+  /// tema zemini kalır.
+  Widget _assetLayer(BuTokens t, ChatBgStyle style, ChatBgDensity density, bool dark, bool reduced, double w) {
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    // PNG kullanıcının kendi dosyası (değişmez); monochrome için çizimde gri tonlanır (kırmızı/lacivert vurgular
+    // nötrleşir) ve üstüne tema zemini bindirilir: desen çok düşük kontrastlı, mesajlar öne çıkar.
+    return RepaintBoundary(
+      key: const ValueKey('chatWallpaper'),
+      child: IgnorePointer(
+        child: ExcludeSemantics(
+          child: ColorFiltered(
+            key: const ValueKey('chatWallpaperTone'),
+            colorFilter: const ColorFilter.matrix(kChatWallpaperGray),
+            child: Image.asset(
+              chatWallpaperAssetPath(style, dark: dark),
+              key: const ValueKey('chatWallpaperAsset'),
+              fit: BoxFit.cover,
+              alignment: Alignment.topCenter,
+              cacheWidth: (w * dpr).round(),
+              gaplessPlayback: true,
+              color: t.bg.withValues(alpha: chatWallpaperVeil(density)),
+              colorBlendMode: BlendMode.srcOver,
+              errorBuilder: (c, e, st) => const SizedBox.shrink(),
+              frameBuilder: (c, child, frame, sync) => sync
+                  ? child
+                  : AnimatedOpacity(opacity: frame == null ? 0 : 1, duration: reduced ? Duration.zero : const Duration(milliseconds: 150), child: child),
             ),
           ),
         ),
-        widget.child,
-      ],
+      ),
     );
   }
 }

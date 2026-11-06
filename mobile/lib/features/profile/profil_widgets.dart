@@ -467,7 +467,7 @@ class ProfilThemePicker extends StatelessWidget {
       (ThemeMode.dark, darkLabel, const ValueKey('theme-option-dark')),
     ];
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 18),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         for (var i = 0; i < options.length; i++) ...[
           if (i > 0) const SizedBox(width: 12),
@@ -497,20 +497,54 @@ class _ThemeOption extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
+  /// Seçeneğin kendi temasında küçük bir ekran örneği: üstte avatar + çizgi, ortada gelen/giden balon, altta giriş çubuğu.
+  /// Renkler [BuTokens.light]/[BuTokens.dark] örnek jetonlarıdır (arayüz rengi değil, "bu temada nasıl görünür").
+  static Widget _mini(BuTokens p) {
+    Widget bar(double w, Color c, {double h = 5}) => Container(width: w, height: h, decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(h)));
+    return ColoredBox(
+      color: p.bg,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 10, 10, 8),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(children: [
+            Container(width: 12, height: 12, decoration: BoxDecoration(color: p.sf2, shape: BoxShape.circle)),
+            const SizedBox(width: 6),
+            bar(26, p.ink.withValues(alpha: .55)),
+          ]),
+          const SizedBox(height: 8),
+          Align(alignment: AlignmentDirectional.centerStart, child: Container(width: 38, height: 12, decoration: BoxDecoration(color: p.sf2, borderRadius: BorderRadius.circular(6), border: Border.all(color: p.bd, width: .5)))),
+          const SizedBox(height: 4),
+          Align(alignment: AlignmentDirectional.centerEnd, child: Container(width: 30, height: 12, decoration: BoxDecoration(color: p.ink, borderRadius: BorderRadius.circular(6)))),
+          const Spacer(),
+          Container(height: 8, decoration: BoxDecoration(color: p.sf2, borderRadius: BorderRadius.circular(4))),
+        ]),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     const light = BuTokens.light;
     const dark = BuTokens.dark;
-    Widget half(BuTokens p) => ColoredBox(
-          color: p.bg,
-          child: Center(child: Text('Aa', style: tx.titleMedium!.copyWith(color: p.ink, fontWeight: BuType.emphasisWeight))),
-        );
     final preview = switch (mode) {
-      ThemeMode.light => half(light),
-      ThemeMode.dark => half(dark),
-      ThemeMode.system => Row(children: [Expanded(child: half(light)), Expanded(child: half(dark))]),
+      ThemeMode.light => _mini(light),
+      ThemeMode.dark => _mini(dark),
+      // Sistem: aynı ekranın sol yarısı açık, sağ yarısı koyu.
+      ThemeMode.system => LayoutBuilder(builder: (context, c) {
+          final w = c.maxWidth;
+          return Stack(children: [
+            Positioned.fill(child: _mini(dark)),
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: w / 2,
+              child: ClipRect(child: OverflowBox(alignment: Alignment.centerLeft, minWidth: w, maxWidth: w, child: _mini(light))),
+            ),
+          ]);
+        }),
     };
     return Semantics(
       button: true,
@@ -523,29 +557,37 @@ class _ThemeOption extends StatelessWidget {
         onTap: onTap,
         scale: .97,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 88),
+          constraints: const BoxConstraints(minHeight: 112),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             AnimatedContainer(
               duration: BuMotion.of(context, BuMotion.short),
               curve: BuMotion.standard,
-              height: 56,
+              height: 84,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: selected ? t.ink : t.bd, width: selected ? 1.5 : 1),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: selected ? t.ink : t.bd, width: selected ? 2 : 1),
               ),
               clipBehavior: Clip.antiAlias,
-              child: preview,
+              child: Stack(fit: StackFit.expand, children: [
+                preview,
+                if (selected)
+                  PositionedDirectional(
+                    top: 6,
+                    end: 6,
+                    child: Container(
+                      width: 18,
+                      height: 18,
+                      decoration: BoxDecoration(color: t.ink, shape: BoxShape.circle),
+                      child: Icon(BuIcons.check, size: 12, color: t.bg),
+                    ),
+                  ),
+              ]),
             ),
             const SizedBox(height: 8),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              if (selected) ...[Icon(BuIcons.check, size: 14, color: t.ink), const SizedBox(width: 4)],
-              Flexible(
-                child: Text(label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: tx.labelLarge!.copyWith(fontSize: 13, color: selected ? t.ink : t.mut)),
-              ),
-            ]),
+            Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: tx.labelLarge!.copyWith(fontSize: 13, color: selected ? t.ink : t.mut)),
           ]),
         ),
       ),

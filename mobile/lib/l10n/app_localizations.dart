@@ -18666,6 +18666,42 @@ abstract class AppLocalizations {
   /// **'Varsayılana dön'**
   String get p67ChatBgReset;
 
+  /// No description provided for @p67ChatBgStyleCampus.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kampüs'**
+  String get p67ChatBgStyleCampus;
+
+  /// No description provided for @p67ChatBgStyleStudy.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ders'**
+  String get p67ChatBgStyleStudy;
+
+  /// No description provided for @p67ChatBgStyleSocial.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sosyal'**
+  String get p67ChatBgStyleSocial;
+
+  /// No description provided for @p67ChatBgStyleScience.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bilim'**
+  String get p67ChatBgStyleScience;
+
+  /// No description provided for @p67ChatBgStyleGeometry.
+  ///
+  /// In tr, this message translates to:
+  /// **'Geometri'**
+  String get p67ChatBgStyleGeometry;
+
+  /// No description provided for @p67ChatBgStyleLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Desen'**
+  String get p67ChatBgStyleLabel;
+
   /// No description provided for @p67PickerLimit.
   ///
   /// In tr, this message translates to:

@@ -19,7 +19,6 @@ import 'account_security_page.dart';
 import 'blocked_users_page.dart';
 import 'notification_prefs_page.dart';
 import 'privacy_data_page.dart';
-import 'profil2_delete_account_page.dart';
 import 'profil_widgets.dart';
 
 const _langNames = {'tr': 'Türkçe', 'en': 'English', 'ar': 'العربية'};
@@ -73,28 +72,6 @@ class _SettingsPageState extends State<SettingsPage> {
     if (mounted) setState(() => _pushStatus = text);
   }
 
-  Future<void> _logoutAll() async {
-    final l = context.l10n;
-    final ok = await BuDialog.confirm(
-      context,
-      title: l.settingsLogoutAllTitle,
-      message: l.settingsLogoutAllBody,
-      confirmLabel: l.settingsLogoutAllConfirm,
-      cancelLabel: l.commonCancel,
-      destructive: true,
-      icon: BuIcons.logOut,
-    );
-    if (!ok) return;
-    try {
-      // Hesap güvenliği sayfasıyla aynı yol (401 = oturum zaten bitmiş sayılır).
-      await widget.session.logoutAll();
-    } catch (e) {
-      if (mounted) _toast(errorText(e));
-      return;
-    }
-    if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
-  }
-
   Future<void> _signOut() async {
     final l = context.l10n;
     final ok = await BuDialog.confirm(
@@ -110,8 +87,6 @@ class _SettingsPageState extends State<SettingsPage> {
     await widget.session.signOut();
     if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
   }
-
-  void _toast(String m, {BuToastKind kind = BuToastKind.info}) => BuToast.show(context, m, kind: kind);
 
   /// Dil seçici (Stitch v3 "Dil sheet"): Sistem / Türkçe / English / العربية; seçili satırda onay işareti.
   Future<void> _pickLang() async {
@@ -279,23 +254,6 @@ class _SettingsPageState extends State<SettingsPage> {
                       sub: l.settingsAnalyticsSub,
                       value: Analytics.instance.enabled,
                       onChanged: (v) => Analytics.instance.setEnabled(v),
-                    ),
-                    ProfilFlatRow(
-                    plainIcon: true,
-                      key: const ValueKey('settings-logout-all'),
-                      icon: BuIcons.logOut,
-                      label: l.settingsLogoutAll,
-                      danger: true,
-                      onTap: _logoutAll,
-                    ),
-                    // Uygulama içinde hesap silme (App Store 2.1 / 5.1.1(v)): ayarlardan doğrudan erişilir.
-                    ProfilFlatRow(
-                    plainIcon: true,
-                      key: const ValueKey('settings-delete-account'),
-                      icon: BuIcons.trash2,
-                      label: l.profilePrefsDeleteMyAccount,
-                      danger: true,
-                      onTap: () => _push(DeleteAccountPage(session: widget.session)),
                     ),
                     ProfilFlatRow(
                     plainIcon: true,

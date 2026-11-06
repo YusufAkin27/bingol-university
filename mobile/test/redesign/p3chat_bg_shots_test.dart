@@ -89,7 +89,7 @@ void main() {
   final out = Platform.environment['P3BG_OUT'];
   final skip = out == null ? 'P3BG_OUT tanimli degil' : null;
   final lang = Platform.environment['P3BG_LANG'] ?? 'tr';
-  final plain = Platform.environment['P3BG_PLAIN'] == '1';
+  final styleName = Platform.environment['P3BG_STYLE']; // campus(varsayilan)|study|social|science|geometry
   setUpAll(loadTestFonts);
 
   final boards = <(String, Widget Function(), double, Future<void> Function(WidgetTester)?)>[
@@ -121,13 +121,12 @@ void main() {
     for (final scale in [1.0, 1.3]) {
       for (final b in boards) {
         if (scale != 1.0 && b.$1 != 'konusma') continue;
-        if (plain && b.$1 == 'ayarlar') continue;
         final name = '${b.$1}_${dark ? 'koyu' : 'acik'}${scale == 1.0 ? '' : '_x1.3'}_$lang';
         testWidgets('p3bg $name', skip: skip != null, (tester) async {
           mockSecureStorage();
           ChatBackgroundPrefs.debugReset();
           ChatWallpaper.debugResetCache();
-          if (plain) await tester.runAsync(() => ChatBackgroundPrefs.instance.set(ChatBgStyle.plain));
+          if (styleName != null) await tester.runAsync(() => ChatBackgroundPrefs.instance.set(ChatBgStyle.values.byName(styleName)));
           tester.view.devicePixelRatio = _dpr;
           tester.view.physicalSize = Size(390 * _dpr, b.$3 * _dpr);
           tester.view.padding = const FakeViewPadding(top: 28 * _dpr, bottom: 16 * _dpr);

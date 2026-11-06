@@ -5,11 +5,10 @@ import '../../widgets/bu.dart';
 import 'chat_bubble_colors.dart';
 import 'chat_wallpaper.dart';
 
-/// Profil > Ayarlar > Sohbetler > "Sohbet arka planı" (Stitch v3 Kategori 6): başlık, mini konuşma önizlemesi,
-/// segment Desen | Düz, Desen'de segment Yoğunluk Hafif | Orta, "Uygula", "Varsayılana dön".
+/// Profil > Ayarlar > Sohbetler > "Sohbet arka planı": mini konuşma önizlemesi, desen seçici (Kampüs, Ders, Sosyal,
+/// Bilim, Geometri; düz zemin YOK), Yoğunluk Hafif | Orta, "Uygula", "Varsayılana dön".
 ///
-/// Eşleme: Desen + Hafif = varsayılan kampüs doodle duvar kağıdı ([ChatBgStyle.pattern]), Desen + Orta = daha belirgin
-/// desen ([ChatBgStyle.strong]), Düz = [ChatBgStyle.plain]. Seçim "Uygula" ile cihazda (kullanıcıya özel) saklanır.
+/// Seçim "Uygula" ile cihazda (kullanıcıya özel) saklanır; arka plan konuşmada sabittir (kaydırmayla oynamaz).
 class ChatBackgroundSettingsPage extends StatefulWidget {
   const ChatBackgroundSettingsPage({super.key});
 
@@ -18,30 +17,44 @@ class ChatBackgroundSettingsPage extends StatefulWidget {
 }
 
 class _ChatBackgroundSettingsPageState extends State<ChatBackgroundSettingsPage> {
-  late ChatBgStyle _draft = _normalize(ChatBackgroundPrefs.instance.style);
-
-  /// Eski "Hafif" yordamsal stil artık varsayılan desenle birleşik gösterilir.
-  static ChatBgStyle _normalize(ChatBgStyle s) => s == ChatBgStyle.soft ? ChatBgStyle.pattern : s;
+  ChatBgStyle _style = ChatBackgroundPrefs.instance.style;
+  ChatBgDensity _density = ChatBackgroundPrefs.instance.density;
 
   @override
   void initState() {
     super.initState();
     // Kayıtlı tercih sayfa açıldıktan sonra okunursa taslak onunla eşitlenir.
     ChatBackgroundPrefs.instance.ensureLoaded().then((_) {
-      if (mounted) setState(() => _draft = _normalize(ChatBackgroundPrefs.instance.style));
+      if (!mounted) return;
+      setState(() {
+        _style = ChatBackgroundPrefs.instance.style;
+        _density = ChatBackgroundPrefs.instance.density;
+      });
     });
   }
 
-  bool get _isPattern => _draft != ChatBgStyle.plain;
-
   Future<void> _apply() async {
-    await ChatBackgroundPrefs.instance.set(_draft);
+    await ChatBackgroundPrefs.instance.set(_style, density: _density);
     if (mounted) Navigator.maybePop(context);
   }
 
   Future<void> _reset() async {
-    setState(() => _draft = ChatBgStyle.pattern);
-    await ChatBackgroundPrefs.instance.set(ChatBgStyle.pattern);
+    setState(() {
+      _style = ChatBgStyle.campus;
+      _density = ChatBgDensity.soft;
+    });
+    await ChatBackgroundPrefs.instance.set(ChatBgStyle.campus, density: ChatBgDensity.soft);
+  }
+
+  String _label(ChatBgStyle s) {
+    final l = context.l10n;
+    return switch (s) {
+      ChatBgStyle.campus => l.p67ChatBgStyleCampus,
+      ChatBgStyle.study => l.p67ChatBgStyleStudy,
+      ChatBgStyle.social => l.p67ChatBgStyleSocial,
+      ChatBgStyle.science => l.p67ChatBgStyleScience,
+      ChatBgStyle.geometry => l.p67ChatBgStyleGeometry,
+    };
   }
 
   @override
@@ -67,7 +80,8 @@ class _ChatBackgroundSettingsPageState extends State<ChatBackgroundSettingsPage>
                       height: 150,
                       child: ChatWallpaper(
                         key: const ValueKey('chatBgPreview'),
-                        style: _draft,
+                        style: _style,
+                        density: _density,
                         child: Padding(
                           padding: const EdgeInsets.all(12),
                           child: Column(
@@ -85,28 +99,42 @@ class _ChatBackgroundSettingsPageState extends State<ChatBackgroundSettingsPage>
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                BuSegmented(
-                  key: const ValueKey('chatBgMode'),
-                  items: [l.p67ChatBgPattern, l.p67ChatBgPlain],
-                  index: _isPattern ? 0 : 1,
-                  onChanged: (i) => setState(() => _draft = i == 0 ? (_draft == ChatBgStyle.plain ? ChatBgStyle.pattern : _draft) : ChatBgStyle.plain),
+                const SizedBox(height: 20),
+                Text(l.p67ChatBgStyleLabel, style: tx.bodyMedium!.copyWith(color: t.mut)),
+                const SizedBox(height: 10),
+                SizedBox(
+                  key: const ValueKey('chatBgStyles'),
+                  height: 148,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: ChatBgStyle.values.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 12),
+                    itemBuilder: (context, i) {
+                      final s = ChatBgStyle.values[i];
+                      return _StyleSwatch(
+                        key: ValueKey('chatBgStyle-${s.name}'),
+                        style: s,
+                        density: _density,
+                        label: _label(s),
+                        selected: s == _style,
+                        onTap: () => setState(() => _style = s),
+                      );
+                    },
+                  ),
                 ),
-                if (_isPattern) ...[
-                  const SizedBox(height: 12),
-                  Row(children: [
-                    Text(l.p67ChatBgDensity, style: tx.bodyMedium!.copyWith(color: t.mut)),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: BuSegmented(
-                        key: const ValueKey('chatBgDensity'),
-                        items: [l.p67ChatBgSoft, l.p67ChatBgStrong],
-                        index: _draft == ChatBgStyle.strong ? 1 : 0,
-                        onChanged: (i) => setState(() => _draft = i == 1 ? ChatBgStyle.strong : ChatBgStyle.pattern),
-                      ),
+                const SizedBox(height: 16),
+                Row(children: [
+                  Text(l.p67ChatBgDensity, style: tx.bodyMedium!.copyWith(color: t.mut)),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: BuSegmented(
+                      key: const ValueKey('chatBgDensity'),
+                      items: [l.p67ChatBgSoft, l.p67ChatBgStrong],
+                      index: _density == ChatBgDensity.strong ? 1 : 0,
+                      onChanged: (i) => setState(() => _density = i == 1 ? ChatBgDensity.strong : ChatBgDensity.soft),
                     ),
-                  ]),
-                ],
+                  ),
+                ]),
                 const SizedBox(height: 24),
                 BuButton(key: const ValueKey('chatBgApply'), label: l.p67ChatBgApply, onPressed: _apply),
                 const SizedBox(height: 4),
@@ -122,6 +150,67 @@ class _ChatBackgroundSettingsPageState extends State<ChatBackgroundSettingsPage>
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Desen seçici karosu: küçük gerçek önizleme + ad; seçili olan 2 dp belirgin çerçeveli.
+class _StyleSwatch extends StatelessWidget {
+  const _StyleSwatch({
+    super.key,
+    required this.style,
+    required this.density,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final ChatBgStyle style;
+  final ChatBgDensity density;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SizedBox(
+          width: 96,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: DecoratedBox(
+                  position: DecorationPosition.foreground,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: selected ? t.ink : t.bd, width: selected ? 2 : 1),
+                    borderRadius: BuRadius.bMd,
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BuRadius.bMd,
+                    child: IgnorePointer(child: ChatWallpaper(style: style, density: ChatBgDensity.strong, child: const SizedBox.expand())),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(label,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: tx.labelMedium!.copyWith(color: selected ? t.ink : t.mut, fontWeight: BuType.emphasisWeight)),
+            ],
+          ),
+        ),
       ),
     );
   }

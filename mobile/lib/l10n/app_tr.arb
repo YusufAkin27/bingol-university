@@ -5486,6 +5486,12 @@
   "p67ChatBgDensity": "Yoğunluk",
   "p67ChatBgApply": "Uygula",
   "p67ChatBgReset": "Varsayılana dön",
+  "p67ChatBgStyleCampus": "Kampüs",
+  "p67ChatBgStyleStudy": "Ders",
+  "p67ChatBgStyleSocial": "Sosyal",
+  "p67ChatBgStyleScience": "Bilim",
+  "p67ChatBgStyleGeometry": "Geometri",
+  "p67ChatBgStyleLabel": "Desen",
   "p67PickerLimit": "En fazla {max} öğe seçebilirsiniz.",
   "@p67PickerLimit": {
     "placeholders": {

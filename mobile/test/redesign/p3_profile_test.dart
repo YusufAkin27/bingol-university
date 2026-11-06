@@ -192,9 +192,8 @@ void main() {
       expect(find.text('Sohbet arka planı'), findsOneWidget);
       final list = find.byType(Scrollable).first;
       await tester.scrollUntilVisible(find.byKey(const ValueKey('settings-sign-out')), 300, scrollable: list);
-      final dyLogoutAll = tester.getCenter(find.byKey(const ValueKey('settings-logout-all'))).dy;
-      final dySign = tester.getCenter(find.byKey(const ValueKey('settings-sign-out'))).dy;
-      expect(dySign, greaterThan(dyLogoutAll));
+      expect(find.byKey(const ValueKey('settings-logout-all')), findsNothing);
+      expect(find.byKey(const ValueKey('settings-delete-account')), findsNothing);
       expect(tester.takeException(), isNull);
       await unmount(tester);
     });

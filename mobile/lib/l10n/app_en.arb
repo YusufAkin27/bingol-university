@@ -3420,6 +3420,12 @@
   "p67ChatBgDensity": "Density",
   "p67ChatBgApply": "Apply",
   "p67ChatBgReset": "Reset to default",
+  "p67ChatBgStyleCampus": "Campus",
+  "p67ChatBgStyleStudy": "Study",
+  "p67ChatBgStyleSocial": "Social",
+  "p67ChatBgStyleScience": "Science",
+  "p67ChatBgStyleGeometry": "Geometry",
+  "p67ChatBgStyleLabel": "Pattern",
   "p67PickerLimit": "You can select up to {max} items.",
   "@p67PickerLimit": {
     "placeholders": {

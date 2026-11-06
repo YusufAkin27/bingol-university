@@ -39,10 +39,10 @@ void main() {
 
   Finder wall() => find.byKey(const ValueKey('chatWallpaper'));
 
-  Future<void> pumpWall(WidgetTester tester, {bool dark = false, bool reduced = false, double scale = 1.0, ChatBgStyle? style}) async {
+  Future<void> pumpWall(WidgetTester tester, {bool dark = false, bool reduced = false, double scale = 1.0, ChatBgStyle? style, ChatBgDensity? density}) async {
     useScreen(tester, kPhoneMedium);
     await tester.pumpWidget(p00App(
-      ChatWallpaper(style: style, child: const SizedBox.expand()),
+      ChatWallpaper(style: style, density: density, child: const SizedBox.expand()),
       dark: dark,
       disableAnimations: reduced,
       scale: scale,
@@ -53,7 +53,7 @@ void main() {
   group('çizim', () {
     for (final dark in [false, true]) {
       testWidgets('desen ${dark ? 'koyu' : 'açık'} temada çizilir ve doku TEK sefer üretilir', (tester) async {
-        await pumpWall(tester, dark: dark, style: ChatBgStyle.strong);
+        await pumpWall(tester, dark: dark, style: ChatBgStyle.study, density: ChatBgDensity.strong);
         await tester.pump(const Duration(milliseconds: 400));
         expect(wall(), findsOneWidget);
         expect(ChatWallpaper.debugTileBuilds, 1);
@@ -61,7 +61,7 @@ void main() {
         for (var i = 0; i < 5; i++) {
           await tester.pump(const Duration(milliseconds: 100));
         }
-        await pumpWall(tester, dark: dark, style: ChatBgStyle.strong);
+        await pumpWall(tester, dark: dark, style: ChatBgStyle.study, density: ChatBgDensity.strong);
         await tester.pump(const Duration(milliseconds: 400));
         expect(ChatWallpaper.debugTileBuilds, 1, reason: 'aynı tema/stil/yoğunluk önbellekten gelir');
         // Ayrı RepaintBoundary + blur yok.
@@ -72,34 +72,50 @@ void main() {
     }
 
     testWidgets('tema değişince yeniden üretilir (koyu -> açık)', (tester) async {
-      await pumpWall(tester, style: ChatBgStyle.strong);
+      await pumpWall(tester, style: ChatBgStyle.study, density: ChatBgDensity.strong);
       await tester.pump(const Duration(milliseconds: 400));
-      await pumpWall(tester, dark: true, style: ChatBgStyle.strong);
+      await pumpWall(tester, dark: true, style: ChatBgStyle.study, density: ChatBgDensity.strong);
       await tester.pump(const Duration(milliseconds: 400));
       expect(ChatWallpaper.debugTileBuilds, 2);
     });
 
-    testWidgets('Düz: desen çizilmez, doku üretilmez', (tester) async {
-      await pumpWall(tester, style: ChatBgStyle.plain);
-      await tester.pump(const Duration(milliseconds: 400));
-      expect(wall(), findsNothing);
-      expect(ChatWallpaper.debugTileBuilds, 0);
+    testWidgets('Düz seçenek yok: her desen çizilir (Kampüs asset, diğerleri yordamsal doku)', (tester) async {
+      expect(ChatBgStyle.values.map((e) => e.name), ['campus', 'study', 'social', 'science', 'geometry']);
+      for (final s in ChatBgStyle.values) {
+        ChatWallpaper.debugResetCache();
+        await pumpWall(tester, style: s);
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(wall(), findsOneWidget, reason: s.name);
+        expect(ChatWallpaper.debugTileBuilds, s.isAsset ? 0 : 1, reason: s.name);
+      }
     });
 
-    testWidgets('Hafif < Desen < Orta opaklık (açık ve koyu)', (tester) async {
-      for (final dark in [false, true]) {
-        final a = [ChatBgStyle.soft, ChatBgStyle.pattern, ChatBgStyle.strong].map((s) => ChatWallpaper.alphaOf(s, dark)).toList();
-        expect(a[0], lessThan(a[1]));
-        expect(a[1], lessThan(a[2]));
-        // Açık %6-8 civarı (varsayılan), koyu %5-7 civarı.
-        expect(a[1], inInclusiveRange(dark ? .05 : .06, dark ? .07 : .08));
+    testWidgets('her yordamsal desen ayrı doku üretir (önbellek anahtarı desen içerir)', (tester) async {
+      for (final s in [ChatBgStyle.study, ChatBgStyle.social, ChatBgStyle.science, ChatBgStyle.geometry]) {
+        await pumpWall(tester, style: s);
+        await tester.pump(const Duration(milliseconds: 400));
       }
+      expect(ChatWallpaper.debugTileBuilds, 4);
+      expect(ChatWallpaper.debugCacheSize, 4);
+    });
+
+    testWidgets('Hafif < Orta opaklık (açık ve koyu); Kampüs yoğunluğu örtüden gelir', (tester) async {
+      for (final dark in [false, true]) {
+        final soft = ChatWallpaper.alphaOf(ChatBgStyle.study, ChatBgDensity.soft, dark);
+        final strong = ChatWallpaper.alphaOf(ChatBgStyle.study, ChatBgDensity.strong, dark);
+        expect(soft, lessThan(strong));
+        // Açık %6-8 civarı (varsayılan), koyu %5-7 civarı.
+        expect(soft, inInclusiveRange(dark ? .05 : .06, dark ? .07 : .08));
+        expect(ChatWallpaper.alphaOf(ChatBgStyle.campus, ChatBgDensity.strong, dark), 0);
+      }
+      expect(chatWallpaperVeil(ChatBgDensity.strong), lessThan(chatWallpaperVeil(ChatBgDensity.soft)));
+      expect(chatWallpaperVeil(ChatBgDensity.strong), greaterThanOrEqualTo(.5));
     });
   });
 
   group('hareket', () {
     testWidgets('yeni doku 150 ms solarak gelir', (tester) async {
-      await pumpWall(tester, style: ChatBgStyle.strong);
+      await pumpWall(tester, style: ChatBgStyle.study, density: ChatBgDensity.strong);
       await tester.pump();
       // Hedef opaklık 1; animasyon 0 -> 1 arasında sürüyor (ara kare).
       final o = tester.widget<AnimatedOpacity>(wall());
@@ -112,7 +128,7 @@ void main() {
     });
 
     testWidgets('"animasyonları azalt": anında, süre sıfır', (tester) async {
-      await pumpWall(tester, reduced: true, style: ChatBgStyle.strong);
+      await pumpWall(tester, reduced: true, style: ChatBgStyle.study, density: ChatBgDensity.strong);
       await tester.pump();
       final o = tester.widget<AnimatedOpacity>(wall());
       expect(o.opacity, 1.0);
@@ -120,9 +136,9 @@ void main() {
     });
 
     testWidgets('önbellekteki doku ikinci açılışta solmadan, anında görünür', (tester) async {
-      await pumpWall(tester, style: ChatBgStyle.strong);
+      await pumpWall(tester, style: ChatBgStyle.study, density: ChatBgDensity.strong);
       await tester.pump(const Duration(milliseconds: 300));
-      await pumpWall(tester, style: ChatBgStyle.strong, dark: false);
+      await pumpWall(tester, style: ChatBgStyle.study, density: ChatBgDensity.strong, dark: false);
       await tester.pump();
       expect(tester.widget<AnimatedOpacity>(wall()).opacity, 1.0);
     });
@@ -131,18 +147,15 @@ void main() {
   group('varlık (asset) duvar kağıdı', () {
     testWidgets('varlık stili: Image.asset katmanı kurulur; dosya yoksa düz zeminle çökmeden devam eder', (tester) async {
       for (final dark in [false, true]) {
-        await pumpWall(tester, dark: dark, style: ChatBgStyle.pattern);
+        await pumpWall(tester, dark: dark, style: ChatBgStyle.campus);
         await tester.pump(const Duration(milliseconds: 300));
         expect(find.byKey(const ValueKey('chatWallpaperAsset')), findsOneWidget);
         expect(ChatWallpaper.debugTileBuilds, 0, reason: 'yordamsal doku üretilmez');
         expect(tester.takeException(), isNull);
       }
-      expect(chatWallpaperAssetPath(ChatBgStyle.pattern, dark: true), 'assets/chat_wallpapers/wp_a_dark.png');
-      expect(chatWallpaperAssetPath(ChatBgStyle.wpB, dark: true), 'assets/chat_wallpapers/wp_b_dark.png');
-      expect(chatWallpaperAssetPath(ChatBgStyle.wpC, dark: false), 'assets/chat_wallpapers/wp_c_light.png');
-      expect(ChatBgStyle.soft.isAsset, isFalse);
-      expect(ChatBgStyle.strong.isAsset, isFalse);
-      expect(ChatBgStyle.pattern.isAsset, isTrue);
+      expect(chatWallpaperAssetPath(ChatBgStyle.campus, dark: true), 'assets/chat_wallpapers/wp_a_dark.png');
+      expect(ChatBgStyle.geometry.isAsset, isFalse);
+      expect(ChatBgStyle.campus.isAsset, isTrue);
     });
   });
 
@@ -150,7 +163,7 @@ void main() {
     for (final dark in [false, true]) {
       testWidgets('wp_a_${dark ? 'dark' : 'light'}.png pakette var, <= 2 MB, 941x1672 çözülür', (tester) async {
         await tester.runAsync(() async {
-          final data = await rootBundle.load(chatWallpaperAssetPath(ChatBgStyle.pattern, dark: dark));
+          final data = await rootBundle.load(chatWallpaperAssetPath(ChatBgStyle.campus, dark: dark));
           expect(data.lengthInBytes, lessThanOrEqualTo(2 * 1024 * 1024));
           final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
           final frame = await codec.getNextFrame();
@@ -163,7 +176,7 @@ void main() {
 
     testWidgets('varsayılan stil Desen = asset duvar kağıdı: ağaçta, görünür (opaklık 1), kaydırmada sabit', (tester) async {
       await tester.runAsync(() => ChatBackgroundPrefs.instance.ensureLoaded());
-      await pumpWall(tester, style: ChatBgStyle.pattern);
+      await pumpWall(tester, style: ChatBgStyle.campus);
       for (var i = 0; i < 6; i++) {
         await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 120)));
         await tester.pump(const Duration(milliseconds: 100));
@@ -184,7 +197,7 @@ void main() {
         expect(_contrast(t.ink, t.sf), greaterThanOrEqualTo(4.5));
         expect(_contrast(t.onPr, t.prPressed), greaterThanOrEqualTo(4.5));
         // En yoğun desen noktasında bile (zemin + ink alfa) metin/ikincil metin okunur kalır.
-        final worst = _over(t.ink.withValues(alpha: ChatWallpaper.alphaOf(ChatBgStyle.strong, dark)), t.bg);
+        final worst = _over(t.ink.withValues(alpha: ChatWallpaper.alphaOf(ChatBgStyle.study, ChatBgDensity.strong, dark)), t.bg);
         expect(_contrast(t.ink, worst), greaterThanOrEqualTo(7));
         expect(_contrast(t.mut, worst), greaterThanOrEqualTo(3));
         // Tarih hapı (sf + çizgi) desenden bağımsız dolgulu.
@@ -197,23 +210,44 @@ void main() {
     testWidgets('seçim kaydedilir, yeniden açılışta okunur; varsayılan anahtar tutmaz; çıkışta silinir', (tester) async {
       const st = FlutterSecureStorage();
       await tester.runAsync(() async {
-        await ChatBackgroundPrefs.instance.set(ChatBgStyle.strong);
-        expect(await st.read(key: ChatBackgroundPrefs.key), 'strong');
+        await ChatBackgroundPrefs.instance.set(ChatBgStyle.geometry, density: ChatBgDensity.strong);
+        expect(await st.read(key: ChatBackgroundPrefs.key), 'geometry');
+        expect(await st.read(key: ChatBackgroundPrefs.densityKey), 'strong');
 
         ChatBackgroundPrefs.debugReset();
-        expect(ChatBackgroundPrefs.instance.style, ChatBgStyle.pattern);
+        expect(ChatBackgroundPrefs.instance.style, ChatBgStyle.campus);
         await ChatBackgroundPrefs.instance.ensureLoaded();
-        expect(ChatBackgroundPrefs.instance.style, ChatBgStyle.strong);
+        expect(ChatBackgroundPrefs.instance.style, ChatBgStyle.geometry);
+        expect(ChatBackgroundPrefs.instance.density, ChatBgDensity.strong);
         expect(ChatBackgroundPrefs.instance.loaded, isTrue);
 
-        await ChatBackgroundPrefs.instance.set(ChatBgStyle.pattern);
+        await ChatBackgroundPrefs.instance.set(ChatBgStyle.campus, density: ChatBgDensity.soft);
         expect(await st.read(key: ChatBackgroundPrefs.key), isNull, reason: 'varsayılan kayıt tutmaz');
+        expect(await st.read(key: ChatBackgroundPrefs.densityKey), isNull);
 
-        await ChatBackgroundPrefs.instance.set(ChatBgStyle.plain);
-        expect(await st.read(key: ChatBackgroundPrefs.key), 'plain');
+        await ChatBackgroundPrefs.instance.set(ChatBgStyle.social);
         await ChatBackgroundPrefs.clear();
         expect(await st.read(key: ChatBackgroundPrefs.key), isNull, reason: 'çıkışta temizlenir');
-        expect(ChatBackgroundPrefs.instance.style, ChatBgStyle.pattern);
+        expect(ChatBackgroundPrefs.instance.style, ChatBgStyle.campus);
+      });
+    });
+
+    testWidgets('eski kayıtlar: plain/soft/pattern -> Kampüs (düz YOK), strong -> Kampüs Orta', (tester) async {
+      const st = FlutterSecureStorage();
+      await tester.runAsync(() async {
+        for (final old in ['plain', 'soft', 'pattern']) {
+          await st.write(key: ChatBackgroundPrefs.key, value: old);
+          ChatBackgroundPrefs.debugReset();
+          await ChatBackgroundPrefs.instance.ensureLoaded();
+          expect(ChatBackgroundPrefs.instance.style, ChatBgStyle.campus, reason: old);
+          expect(ChatBackgroundPrefs.instance.density, ChatBgDensity.soft, reason: old);
+        }
+        await st.write(key: ChatBackgroundPrefs.key, value: 'strong');
+        ChatBackgroundPrefs.debugReset();
+        await ChatBackgroundPrefs.instance.ensureLoaded();
+        expect(ChatBackgroundPrefs.instance.style, ChatBgStyle.campus);
+        expect(ChatBackgroundPrefs.instance.density, ChatBgDensity.strong);
+        await ChatBackgroundPrefs.clear();
       });
     });
 
@@ -230,37 +264,39 @@ void main() {
 
   group('ayarlar sayfası', () {
     for (final scale in [1.0, 1.3]) {
-      testWidgets('320 dp x$scale taşma yok, 4 seçenek, dokununca uygulanır', (tester) async {
+      testWidgets('320 dp x$scale taşma yok, düz seçenek yok, 5 desen + yoğunluk, Uygula kaydeder', (tester) async {
         tester.view.devicePixelRatio = 1;
         tester.view.physicalSize = kPhoneSmall;
         addTearDown(tester.view.reset);
         await tester.pumpWidget(p00App(const ChatBackgroundSettingsPage(), scale: scale, scaffold: false));
         await tester.pump(const Duration(milliseconds: 400));
-        // Stitch düzeni: segment Desen | Düz, Yoğunluk Hafif | Orta (yalnız Desen'de), Uygula, Varsayılana dön.
-        expect(find.byKey(const ValueKey('chatBgMode')), findsOneWidget);
+        expect(find.text('Düz'), findsNothing, reason: 'düz zemin seçeneği kaldırıldı');
+        expect(find.byKey(const ValueKey('chatBgStyles')), findsOneWidget);
+        expect(find.byKey(const ValueKey('chatBgStyle-campus')), findsOneWidget);
         expect(find.byKey(const ValueKey('chatBgDensity')), findsOneWidget);
         expect(find.text('Yoğunluk'), findsOneWidget);
         expect(find.text('Uygula'), findsOneWidget);
         expect(find.text('Varsayılana dön'), findsOneWidget);
         expect(tester.getSize(find.byKey(const ValueKey('chatBgApply'))).height, greaterThanOrEqualTo(48));
-        // Düz seç: yoğunluk kalkar; Uygula'ya basmadan kayıt değişmez.
-        await tester.tap(find.text('Düz'));
+        // Önizleme her zaman desenli.
+        Finder previewWall() => find.descendant(of: find.byKey(const ValueKey('chatBgPreview')), matching: find.byKey(const ValueKey('chatWallpaper')));
+        expect(previewWall(), findsOneWidget);
+        // Geometri + Orta seç: önizleme yine desenli; Uygula'ya basmadan kayıt değişmez.
+        await tester.drag(find.byKey(const ValueKey('chatBgStyles')), const Offset(-600, 0));
         await tester.pump(const Duration(milliseconds: 400));
-        expect(find.byKey(const ValueKey('chatBgDensity')), findsNothing);
-        expect(ChatBackgroundPrefs.instance.style, ChatBgStyle.pattern);
-        expect(find.descendant(of: find.byKey(const ValueKey('chatBgPreview')), matching: find.byKey(const ValueKey('chatWallpaper'))), findsNothing);
-        // Desen + Orta: önizleme desenli, Uygula kaydeder.
-        await tester.tap(find.text('Desen'));
+        await tester.tap(find.byKey(const ValueKey('chatBgStyle-geometry')));
         await tester.pump(const Duration(milliseconds: 400));
         await tester.tap(find.text('Orta'));
         await tester.pump(const Duration(milliseconds: 400));
-        expect(find.descendant(of: find.byKey(const ValueKey('chatBgPreview')), matching: find.byKey(const ValueKey('chatWallpaper'))), findsOneWidget);
+        expect(ChatBackgroundPrefs.instance.style, ChatBgStyle.campus);
+        expect(previewWall(), findsOneWidget);
         await tester.runAsync(() async {
           await tester.tap(find.byKey(const ValueKey('chatBgApply')));
           await Future<void>.delayed(const Duration(milliseconds: 50));
         });
         await tester.pump(const Duration(milliseconds: 300));
-        expect(ChatBackgroundPrefs.instance.style, ChatBgStyle.strong);
+        expect(ChatBackgroundPrefs.instance.style, ChatBgStyle.geometry);
+        expect(ChatBackgroundPrefs.instance.density, ChatBgDensity.strong);
         expect(tester.takeException(), isNull);
         await tester.runAsync(() => ChatBackgroundPrefs.clear());
       });
@@ -268,7 +304,7 @@ void main() {
   });
 
   group('konuşma ekranı', () {
-    testWidgets('duvar kağıdı mesajların arkasında; balonlar ve tarih hapı durur; düz seçilince kalkar', (tester) async {
+    testWidgets('duvar kağıdı mesajların arkasında; balonlar ve tarih hapı durur; desen değişince yenilenir', (tester) async {
       useScreen(tester, kPhoneMedium);
       final msgs = [
         for (var i = 1; i <= 3; i++)
@@ -313,9 +349,9 @@ void main() {
       await tester.drag(find.byType(ListView).first, const Offset(0, 80));
       await tester.pump(const Duration(milliseconds: 200));
       expect(ChatWallpaper.debugTileBuilds, builds);
-      await tester.runAsync(() => ChatBackgroundPrefs.instance.set(ChatBgStyle.plain));
+      await tester.runAsync(() => ChatBackgroundPrefs.instance.set(ChatBgStyle.geometry));
       await tester.pump(const Duration(milliseconds: 300));
-      expect(wall(), findsNothing);
+      expect(wall(), findsOneWidget, reason: 'düz zemin yok: desen değişir ama kalkmaz');
       expect(find.text('Mesaj 1'), findsOneWidget);
       await tester.runAsync(() => ChatBackgroundPrefs.clear());
       expect(tester.takeException(), isNull);
