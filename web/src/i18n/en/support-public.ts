@@ -25,6 +25,7 @@ const m = {
   'pg.menu.itemCount': '{n} items',
   'pg.menu.weekOf': '{from} – {to}',
   'pg.menu.noWeek': 'No menu for this week',
+  'pg.menu.noImage': 'No photo has been added for this menu yet',
 
   // --- contact form ---
   'site.pubsup.title': 'Contact us',

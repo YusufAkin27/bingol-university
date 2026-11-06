@@ -31,10 +31,11 @@ describe('FaqPage', () => {
     renderWithProviders(<FaqPage />);
     const user = userEvent.setup();
     expect(await screen.findByRole('button', { name: /Şifremi unuttum/ })).toBeInTheDocument();
-    expect(screen.getByText('3 soru')).toBeInTheDocument();
+    // 3 sunucu sorusu + 6 statik "yeni özellikler" sorusu (ikisi de aynı aramadan geçer)
+    expect(screen.getByText('9 soru')).toBeInTheDocument();
 
     const search = screen.getByRole('searchbox', { name: 'Sorularda ara' });
-    await user.type(search, 'bildirim');
+    await user.type(search, 'bildirimleri nasıl kapatırım');
     expect(screen.getByText('1 soru')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Şifremi unuttum/ })).toBeNull();
 
