@@ -1061,14 +1061,17 @@ class _EventDetailPageState extends State<EventDetailPage> {
           const SizedBox(height: 12),
           Et2Progress(fraction: total == 0 ? 0 : present / total, height: 8),
           const SizedBox(height: 12),
-          SwitchListTile(
-            key: const ValueKey('detail-att-open-switch'),
-            contentPadding: EdgeInsets.zero,
-            title: Text(l.evtAttOpenTitle, style: tx.bodyLarge!.copyWith(color: t.ink)),
-            subtitle: Text(l.evtAttOpenSub, style: tx.bodySmall!.copyWith(color: t.mut)),
-            value: _attOpen,
-            onChanged: _attOpenBusy ? null : _toggleAttendanceOpen,
-          ),
+          // Anahtar etiketli (Et2Toggle): ekran okuyucuda adsız ikinci düğüm kalmaz.
+          Row(key: const ValueKey('detail-att-open-switch'), children: [
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(l.evtAttOpenTitle, style: tx.bodyLarge!.copyWith(color: t.ink)),
+                Text(l.evtAttOpenSub, style: tx.bodySmall!.copyWith(color: t.mut)),
+              ]),
+            ),
+            const SizedBox(width: 8),
+            Et2Toggle(value: _attOpen, label: l.evtAttOpenTitle, onChanged: _attOpenBusy ? null : _toggleAttendanceOpen),
+          ]),
           const SizedBox(height: 8),
           EtkinlikActionButton(
             key: const ValueKey('detail-scan-qr'),
