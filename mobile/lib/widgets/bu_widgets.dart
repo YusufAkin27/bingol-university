@@ -973,8 +973,8 @@ class BuLogo extends StatelessWidget {
   static const String darkAsset = 'assets/branding/logo_dark.png';
   static const String lightAsset = 'assets/branding/logo_light.png';
 
-  /// Varlıkların en-boy oranı (640x463): çözülmeden önce de yer ayrılır, yerleşim zıplamaz.
-  static const double aspect = 640 / 463;
+  /// Varlıkların en-boy oranı (640x424): çözülmeden önce de yer ayrılır, yerleşim zıplamaz.
+  static const double aspect = 640 / 424;
 
   /// Verilen parlaklığa uygun varlık yolu (koyu → beyaz glif).
   static String assetFor(Brightness b) => b == Brightness.dark ? darkAsset : lightAsset;

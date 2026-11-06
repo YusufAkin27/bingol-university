@@ -19,7 +19,10 @@ WHITE = (255, 255, 255)
 
 
 def src(name):
-    p = os.path.join(ROOT, name)
+    # normallestirilmis kaynak (brand/normalize_sources.py: koseler karo rengiyle dolu tam kare)
+    p = os.path.join(ROOT, 'brand', 'source', name)
+    if not os.path.exists(p):
+        p = os.path.join(ROOT, name)
     if not os.path.exists(p):
         # kök dosyalar silinmişse temizlenmiş 1024 kare sürümden yeniden üretilir
         p = os.path.join(BRAND, 'square-' + name.split('_')[0] + '.png')
