@@ -95,7 +95,7 @@ public class CheckinCodeService {
     /** Bilet penceresi (sn): katilimci ekraninda ~1 dk'da bir yenilenir. */
     static final long TICKET_STEP_SECONDS = 60;
     /** Bilet en cok guncel + iki onceki pencere boyunca gecerli (saat farki ve ag gecikmesi payi). */
-    static final int TICKET_VALID_SECONDS = (int) (TICKET_STEP_SECONDS * 3);
+    static final int TICKET_VALID_SECONDS = (int) (TICKET_STEP_SECONDS * 5);
     static final String TICKET_PREFIX = "bingol-ticket:";
 
     /** Onayli katilimciya ozel, imzali ve kisa omurlu QR yuku (onek yok; istemci onek ekler). */
@@ -137,7 +137,7 @@ public class CheckinCodeService {
     }
 
     public Instant ticketExpiresAt(Instant now) {
-        return Instant.ofEpochSecond((now.getEpochSecond() / TICKET_STEP_SECONDS + 3) * TICKET_STEP_SECONDS);
+        return Instant.ofEpochSecond((now.getEpochSecond() / TICKET_STEP_SECONDS + 5) * TICKET_STEP_SECONDS);
     }
 
     private String ticketMac(long eventId, long userId, long window) {

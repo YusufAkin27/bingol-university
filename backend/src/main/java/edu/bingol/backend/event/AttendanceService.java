@@ -126,7 +126,7 @@ public class AttendanceService {
         if (rsvp == null || rsvp.getStatus() != EventRsvp.Status.GOING) {
             throw new ApiException(HttpStatus.FORBIDDEN, "NOT_RSVPED", "Yoklama için etkinliğe \"Katılacağım\" demiş olmalısınız.");
         }
-        requireAttendanceOpen(e);
+        requireAttendanceOpen(e, now);
         String code = codes.generateTicket(eventId, a.id(), now);
         return new MyTicket(code, CheckinCodeService.TICKET_PREFIX + code, codes.ticketExpiresAt(now),
                 CheckinCodeService.TICKET_VALID_SECONDS);
@@ -137,7 +137,7 @@ public class AttendanceService {
     public ScanResult scan(Actor a, Long eventId, String payload, Instant now) {
         UserEvent e = access(a, eventId, EventModerator.Perm.TAKE_ATTENDANCE);
         requireActive(e);
-        requireAttendanceOpen(e);
+        requireAttendanceOpen(e, now);
         requireWindow(e, now);
         long uid = codes.verifyTicket(eventId, payload, now);
         if (uid < 0) {
@@ -339,8 +339,9 @@ public class AttendanceService {
     }
 
     /** Sahip yoklamayi acmadiysa kisisel QR gosterilmez ve okutma reddedilir. */
-    private static void requireAttendanceOpen(UserEvent e) {
-        if (!e.isAttendanceOpen()) {
+    /** Sahip anahtari acmissa ya da yoklama penceresindeyse (baslangic-30dk .. bitis+30dk) yoklama acik sayilir. */
+    private static void requireAttendanceOpen(UserEvent e, Instant now) {
+        if (!e.isAttendanceOpen() && !inWindow(e, now)) {
             throw new ApiException(HttpStatus.CONFLICT, "ATTENDANCE_NOT_OPEN", "Etkinlik sahibi yoklamayı henüz açmadı.");
         }
     }

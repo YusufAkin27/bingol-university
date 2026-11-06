@@ -107,8 +107,8 @@ class AttendanceTicketTest {
         Instant now = start.plusSeconds(120);
         String good = codes.generateTicket(5, 1, now);
         assertEquals(HttpStatus.FORBIDDEN, assertThrows(ApiException.class, () -> svc.scan(member, 5L, good, now)).status());
-        // suresi dolmus (3 pencere = 180 sn sonra)
-        assertEquals("INVALID_CODE", assertThrows(ApiException.class, () -> svc.scan(organizer, 5L, good, now.plusSeconds(200))).code());
+        // suresi dolmus (5 pencere = 300 sn; 400 sn sonra)
+        assertEquals("INVALID_CODE", assertThrows(ApiException.class, () -> svc.scan(organizer, 5L, good, now.plusSeconds(400))).code());
         // sahte imza / baska etkinlik / baska kullanici
         assertEquals("INVALID_CODE", assertThrows(ApiException.class, () -> svc.scan(organizer, 5L, good + "x", now)).code());
         String otherUser = good.replace("5.1.", "5.2.");
@@ -132,7 +132,7 @@ class AttendanceTicketTest {
     void closedAttendanceHidesTicketAndRejectsScan() {
         rsvp(EventRsvp.Status.GOING);
         event.setAttendanceOpen(false);
-        Instant now = start.plusSeconds(120);
+        Instant now = start.minus(Duration.ofHours(2));
         assertEquals("ATTENDANCE_NOT_OPEN", assertThrows(ApiException.class, () -> svc.issueTicket(member, 5L, now)).code());
         assertEquals("ATTENDANCE_NOT_OPEN", assertThrows(ApiException.class,
                 () -> svc.scan(organizer, 5L, codes.generateTicket(5, 1, now), now)).code());
