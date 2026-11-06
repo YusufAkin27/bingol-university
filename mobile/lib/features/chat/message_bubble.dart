@@ -774,8 +774,9 @@ class _Tick extends StatelessWidget {
       label: label,
       child: ExcludeSemantics(
         child: SizedBox(
-          // Tik simgesi önceki boyuta (16x14, simge 13) göre %35 büyük: 22x19, simge 17.5.
-          width: 22,
+          // Tik simgesi önceki boyuta (16x14, simge 13) göre %35 büyük: simge 17.5. Kutu simge genişliğinde:
+          // tüm durumlar balonun sağ kenarına aynı yaslanır (saat hemen solunda).
+          width: 17.5,
           height: 19,
           child: AnimatedSwitcher(
             duration: BuMotion.of(context, BuMotion.short),
@@ -786,12 +787,21 @@ class _Tick extends StatelessWidget {
                   scale: Tween<double>(begin: .7, end: 1).animate(anim),
                   child: c),
             ),
-            child: Icon(icon,
-                key: ValueKey<String>(status),
-                size: 17.5,
-                color: status == 'READ'
-                    ? readColor
-                    : (status == 'failed' ? failedColor : color)),
+            child: Transform.translate(
+              key: ValueKey<String>(status),
+              // Lucide'te tek tik (check) 24 birimlik ızgarada 4..20'yi, çift tik (check-check) 2..22'yi kaplar:
+              // tek tik 2/24 sağa kaydırılır ki sağ kenarları aynı hizada bitsin.
+              offset: Offset(
+                  icon == BuIcons.check
+                      ? (Directionality.of(context) == TextDirection.rtl ? -1 : 1) * 17.5 * 2 / 24
+                      : 0,
+                  0),
+              child: Icon(icon,
+                  size: 17.5,
+                  color: status == 'READ'
+                      ? readColor
+                      : (status == 'failed' ? failedColor : color)),
+            ),
           ),
         ),
       ),
