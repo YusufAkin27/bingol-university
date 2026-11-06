@@ -139,6 +139,7 @@ class ExtraExportersTest {
             Map.entry("report", "moderation"),
             Map.entry("event_application", "eventApplications"),
             Map.entry("event_certificate", "eventExtras"),
+            Map.entry("event_moderator", "eventModerator"),
             // W2-E/W2-F (T-063): sonradan eklenen silme kapsami; bolumu olanlar baglandi, digerleri EXEMPT'te gerekceli
             Map.entry("message_reaction", "messageReactions"),
             Map.entry("conversation_member", "conversationMemberships"),

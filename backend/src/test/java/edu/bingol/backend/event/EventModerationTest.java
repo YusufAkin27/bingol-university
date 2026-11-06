@@ -404,7 +404,7 @@ class EventModerationTest {
     }
 
     @Test
-    void createRulesClubRequiredStaffActiveGrantedMemberPendingPlainMemberForbidden() {
+    void createRulesClubRequiredOwnerActiveOthersForbidden() {
         User owner = user("Sahip");
         User mod = user("Mod");
         User granted = user("Yetkili uye");
@@ -426,8 +426,9 @@ class EventModerationTest {
 
         assertEquals("EVENT_CLUB_REQUIRED", fail(() -> service.create(new Actor(mod.getId(), false), createReq(null))).code());
         assertEquals(UserEvent.Status.ACTIVE, service.create(new Actor(owner.getId(), false), createReq(c.getId())).status());
-        assertEquals(UserEvent.Status.ACTIVE, service.create(new Actor(mod.getId(), false), createReq(c.getId())).status());
-        assertEquals(UserEvent.Status.PENDING_REVIEW, service.create(new Actor(granted.getId(), false), createReq(c.getId())).status());
+        // Etkinligi yalniz kulup sahibi acar (EVENT_CREATE_OWNER_ONLY): moderator ve MANAGE_EVENTS'li uye de 403
+        assertEquals("EVENT_CREATE_OWNER_ONLY", fail(() -> service.create(new Actor(mod.getId(), false), createReq(c.getId()))).code());
+        assertEquals("EVENT_CREATE_OWNER_ONLY", fail(() -> service.create(new Actor(granted.getId(), false), createReq(c.getId()))).code());
         assertEquals(403, fail(() -> service.create(new Actor(plain.getId(), false), createReq(c.getId()))).status().value());
         assertEquals(403, fail(() -> service.create(new Actor(user("Yabanci").getId(), false), createReq(c.getId()))).status().value());
     }

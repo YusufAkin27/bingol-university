@@ -145,12 +145,15 @@ class EventModeratorMatrixTest {
 
         modBits = bits(Perm.EDIT_INFO);
         assertDoesNotThrow(() -> svc.update(mod, 5L, title));
+        // T-041: sade uyenin metin degisikligi etkinligi onaya dusurur; sonraki adimlar icin ayni mock kaydi yeniden yayinda say
+        event.setStatus(UserEvent.Status.ACTIVE);
         assertEquals("EVENT_PERMISSION_DENIED", denied(() -> svc.update(mod, 5L, time)).code());
         assertEquals("EVENT_PERMISSION_DENIED", denied(() -> svc.update(mod, 5L, capacity)).code());
 
         modBits = bits(Perm.EDIT_SCHEDULE);
         assertEquals("EVENT_PERMISSION_DENIED", denied(() -> svc.update(mod, 5L, title)).code());
         assertDoesNotThrow(() -> svc.update(mod, 5L, time));
+        event.setStatus(UserEvent.Status.ACTIVE);
 
         modBits = bits(Perm.TAKE_ATTENDANCE); // hicbir duzenleme izni yok
         assertEquals("EVENT_PERMISSION_DENIED", denied(() -> svc.update(mod, 5L, title)).code());

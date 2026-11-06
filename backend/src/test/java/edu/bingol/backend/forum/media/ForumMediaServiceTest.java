@@ -60,8 +60,11 @@ class ForumMediaServiceTest {
         return media.upload(by.getId(), new MockMultipartFile("file", "a.png", "image/png", ForumTestSupport.png(64, 48)));
     }
 
+    private static final java.util.concurrent.atomic.AtomicInteger SEQ = new java.util.concurrent.atomic.AtomicInteger();
+
     private TopicView topicWith(User by, List<Long> ids) {
-        return topics.create(by.getId(), new CreateTopicRequest("Resimli " + java.util.UUID.randomUUID(), "govde", cat.getId(), false, ids, null), null);
+        // Sabit/ardisik baslik: rastgele UUID bazen kufur filtresine takiliyordu (kararsiz test)
+        return topics.create(by.getId(), new CreateTopicRequest("Resimli konu sayi " + SEQ.incrementAndGet(), "govde", cat.getId(), false, ids, null), null);
     }
 
     private static String code(Runnable r) {

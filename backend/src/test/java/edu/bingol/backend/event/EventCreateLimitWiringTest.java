@@ -49,6 +49,7 @@ class EventCreateLimitWiringTest {
         c.setId(10L);
         c.setStatus(Community.Status.ACTIVE);
         when(communities.load(10L)).thenReturn(c);
+        when(communities.roleOf(10L, 1L)).thenReturn(java.util.Optional.of(edu.bingol.backend.community.CommunityMember.Role.OWNER));
         EventAdmissionHooks hooks = mock(EventAdmissionHooks.class);
         svc.setAdmission(hooks);
         doThrow(new ApiException(HttpStatus.TOO_MANY_REQUESTS, "EVENT_LIMIT_DAILY", "x", "5")).when(hooks).beforeCreate(user);

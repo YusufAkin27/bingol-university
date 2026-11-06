@@ -90,6 +90,13 @@ class EventAdmissionServiceTest {
             }
             return inv.getArgument(1);
         });
+        when(events.requireManagerOrPerm(any(), any(), any(edu.bingol.backend.event.EventModerator.Perm[].class))).thenAnswer(inv -> {
+            Actor a = inv.getArgument(0);
+            if (!a.admin() && !a.id().equals(ORGANIZER)) {
+                throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "yetki yok");
+            }
+            return inv.getArgument(1);
+        });
         config = new EventAdmission(EVENT_ID);
         config.setMode(Mode.APPROVAL);
         when(configs.findById(EVENT_ID)).thenReturn(Optional.of(config));

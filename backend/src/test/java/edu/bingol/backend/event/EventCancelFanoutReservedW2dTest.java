@@ -140,7 +140,7 @@ class EventCancelFanoutReservedW2dTest {
         c.setId(10L);
         c.setStatus(Community.Status.ACTIVE);
         when(communities.load(10L)).thenReturn(c);
-        when(communities.roleOf(10L, 1L)).thenReturn(Optional.of(CommunityMember.Role.MODERATOR));
+        when(communities.roleOf(10L, 1L)).thenReturn(Optional.of(CommunityMember.Role.OWNER));
         when(events.save(any())).thenAnswer(i -> {
             UserEvent saved = i.getArgument(0);
             saved.setId(77L);
@@ -151,7 +151,7 @@ class EventCancelFanoutReservedW2dTest {
     }
 
     @Test
-    void impersonatingTitleGoesToReviewEvenForClubModerator() {
+    void impersonatingTitleGoesToReviewEvenForClubOwner() {
         staffInClub();
         Actor mod = new Actor(1L, false);
 
