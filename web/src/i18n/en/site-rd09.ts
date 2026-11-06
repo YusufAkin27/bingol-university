@@ -9,7 +9,6 @@ const m = {
   'site.rd09.legal.readTime': 'About {n} min read',
   'site.rd09.legal.prev': 'Previous document',
   'site.rd09.legal.next': 'Next document',
-  'site.rd09.legal.history': 'Version history',
   'site.rd09.legal.current': 'Current',
   'site.rd09.info.related': 'Related pages',
 } as const;

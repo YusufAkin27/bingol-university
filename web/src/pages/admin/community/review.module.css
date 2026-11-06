@@ -57,7 +57,7 @@
 .name {
   font-size: var(--text-lg);
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   overflow-wrap: anywhere;
 }
 .desc {
@@ -88,7 +88,7 @@
 }
 .metaStrong {
   color: var(--text);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .actions {
   display: flex;

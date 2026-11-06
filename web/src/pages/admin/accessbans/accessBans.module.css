@@ -112,7 +112,7 @@
   margin: 0;
   padding: var(--space-3);
   border-radius: var(--radius-md);
-  border-inline-start: 3px solid var(--warning, #b7791f);
+  border-inline-start: 3px solid var(--warning);
   background: var(--surface-2);
   font-size: var(--text-sm);
 }
@@ -144,7 +144,7 @@
 }
 .kindTitle {
   margin: 0;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .kindBar {
   display: flex;
@@ -197,7 +197,7 @@
   overflow-wrap: normal;
 }
 .userName {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   overflow-wrap: anywhere;
 }
 .note {

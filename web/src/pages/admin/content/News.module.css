@@ -56,7 +56,7 @@
   align-items: center;
 }
 .age {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .dim {
   color: var(--text-muted);

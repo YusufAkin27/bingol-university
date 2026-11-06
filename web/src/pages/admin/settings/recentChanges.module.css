@@ -12,7 +12,7 @@
   border-inline-start: 3px solid var(--border);
 }
 .what {
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .meta,
 .reason,
@@ -22,5 +22,5 @@
 }
 .failed {
   color: var(--danger);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }

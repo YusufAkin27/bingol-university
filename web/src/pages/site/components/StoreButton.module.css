@@ -1,4 +1,4 @@
-/* Mağaza rozeti: koyu (tema ile birlikte ters döner), minimal. Boyut --store-h ile ayarlanabilir. */
+/* Mağaza rozeti: monochrome (açık temada siyah, koyu temada beyaz), gölgesiz. Boyut --h ile ayarlanır. */
 .wrap {
   display: grid;
   gap: var(--space-2);
@@ -22,18 +22,17 @@
   text-align: start;
   cursor: pointer;
   transition:
-    transform 0.2s var(--ease),
-    opacity 0.2s var(--ease);
+    background-color var(--site-dur, 200ms) var(--ease),
+    border-color var(--site-dur, 200ms) var(--ease),
+    opacity var(--site-dur, 200ms) var(--ease);
 }
 a.btn:hover {
   color: var(--badge-contrast);
-  transform: translateY(-2px);
-}
-a.btn:active {
-  transform: none;
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
 }
 .lg {
-  --h: 58px;
+  --h: 56px;
   min-width: 184px;
 }
 /* Açık rozet: yüzey zemini + ince çerçeve */
@@ -44,20 +43,24 @@ a.btn:active {
 }
 a.outline:hover {
   color: var(--text);
+  background: var(--surface-2);
+  border-color: var(--border-strong);
 }
-/* Koyu bölüm üstünde beyaz rozet */
+/* Zıt zemin üstünde ters rozet */
 .inverse {
-  background: #fff;
-  border-color: #fff;
-  color: var(--ink);
+  background: var(--bg);
+  border-color: var(--bg);
+  color: var(--text);
 }
 a.inverse:hover {
-  color: var(--ink);
+  color: var(--text);
+  background: var(--surface-2);
+  border-color: var(--surface-2);
 }
 /* "Yakında": tıklanamaz, aynı biçim, soluk */
 .soon {
   cursor: default;
-  opacity: 0.74;
+  opacity: 0.72;
 }
 .pending {
   pointer-events: none;
@@ -65,30 +68,30 @@ a.inverse:hover {
 }
 .glyph {
   flex: none;
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
 }
 .lg .glyph {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
 }
 .label {
   display: grid;
   line-height: 1.15;
 }
 .top {
-  font-size: 0.6875rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  opacity: 0.85;
+  font-size: 0.8125rem;
+  font-weight: var(--fw-emphasis);
+  letter-spacing: 0.01em;
+  opacity: 0.8;
 }
 .main {
   font-size: 1.125rem;
-  font-weight: 700;
+  font-weight: var(--fw-emphasis);
   letter-spacing: -0.01em;
 }
 .lg .main {
-  font-size: 1.25rem;
+  font-size: 1.1875rem;
 }
 :global(:lang(ar)) .top {
   letter-spacing: 0;
@@ -97,9 +100,4 @@ a.inverse:hover {
   font-size: var(--text-xs);
   color: var(--text-muted);
   max-width: 34ch;
-}
-@media (prefers-reduced-motion: reduce) {
-  a.btn:hover {
-    transform: none;
-  }
 }

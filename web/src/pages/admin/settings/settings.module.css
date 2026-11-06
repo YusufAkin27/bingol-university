@@ -82,7 +82,7 @@
   gap: var(--space-2);
 }
 .facLabel {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   font-size: var(--text-sm);
 }
 .facAddRow {
@@ -118,7 +118,7 @@
   min-width: 1.6em;
   text-align: center;
   font-size: var(--text-xs);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
@@ -126,7 +126,7 @@
   flex: 1;
   min-width: 0;
   overflow-wrap: anywhere;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .facBtns {
   display: inline-flex;
@@ -145,7 +145,7 @@
 }
 .facOver {
   color: var(--danger);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 
 /* banner önizleme */
@@ -162,7 +162,7 @@
   color: var(--text-muted);
   padding: 0 var(--space-4);
   min-height: 34px;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   font-size: var(--text-xs);
   cursor: pointer;
 }
@@ -180,7 +180,7 @@
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
   background: var(--chrome-2);
-  color: #fff;
+  color: var(--on-chrome);
   font-size: var(--text-sm);
 }
 .bannerText {
@@ -190,7 +190,7 @@
 }
 .bannerLink {
   flex: none;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   text-decoration: underline;
   white-space: nowrap;
 }
@@ -213,7 +213,7 @@
 }
 .diffLabel {
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .diffSide {
   display: grid;
@@ -232,7 +232,7 @@
 }
 .diffTag {
   font-size: var(--text-xs);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   color: var(--text-muted);
 }
 .diffValue {

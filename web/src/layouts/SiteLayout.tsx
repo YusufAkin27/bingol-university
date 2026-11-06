@@ -187,7 +187,6 @@ export function SiteLayout() {
           <div className={styles.bottom}>
             <div className={styles.notes}>
               <p className={styles.indep}>{t('site.v3.footer.independent')}</p>
-              <p className={styles.sub}>{t('site.rd10.foot.domainNote')}</p>
             </div>
             <div className={styles.contact}>
               <h2 className="sr-only">{t('pg.foot.contactTitle')}</h2>

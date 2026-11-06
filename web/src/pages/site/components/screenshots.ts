@@ -1,41 +1,46 @@
-// Tanıtım sitesindeki telefon ekran görüntüleri (uygulamanın kendi ekran çıktıları, RENK-1 paleti, Türkçe).
-// Kaynak: C:\bu_qa\shots\tasarim\... (birebir çıktılar). Kişi adı içerenler (Ana Sayfa karşılaması, Keşfet gönderi sahipleri,
-// Sohbet başlığı) temizlenmiş, 600 px genişlikte WebP'ye çevrilmiştir (her biri <= 45 KB). Ayrıntı: ../README.md
+// Tanıtım sitesindeki telefon ekran görüntüleri: TEK YERDEN eşleme.
+//
+// Görseller `web/public/site/screens/<ad>-<tema>.webp` (+ aynı adla `.png` yedek) yoluna konur (derlemeye girmez, adres sabittir):
+//   <ad> = aşağıdaki `name`, <tema> = light | dark. Her ekran 1179x2556 (19.5:9), uygulamanın GERÇEK ekran çıktısıdır;
+//   sistem çubukları kırpılmıştır (PhoneMockup kendi iOS durum çubuğunu ve ana göstergeyi çizer). Yalnız uygulamanın kendi
+//   ekranları kullanılır: başka kullanıcıların içeriği/fotoğrafı/adı siteye KONMAZ (KVKK). Üretim: `web/scripts/make-screens.py`.
+// Sayfanın o anki temasına göre doğru dosya seçilir. Dosya yoksa PhoneMockup .png'yi, o da yoksa boş zemini çizer (çökmez).
 import type { TranslationKey } from '../../../i18n';
-import academic from '../../../assets/site/app-academic.webp';
-import chat from '../../../assets/site/app-chat.webp';
-import deleteAccount from '../../../assets/site/app-delete.webp';
-import clubs from '../../../assets/site/app-clubs.webp';
-import discover from '../../../assets/site/app-discover.webp';
-import events from '../../../assets/site/app-events.webp';
-import home from '../../../assets/site/app-home.webp';
-import menu from '../../../assets/site/app-menu.webp';
-import poll from '../../../assets/site/app-poll.webp';
-import qr from '../../../assets/site/app-qr.webp';
-import support from '../../../assets/site/app-support.webp';
 
-export type ShotId = 'home' | 'discover' | 'chat' | 'clubs' | 'events' | 'qr' | 'menu' | 'poll' | 'academic' | 'delete' | 'support';
+export type ShotId = 'home' | 'menu' | 'clubs' | 'events' | 'news' | 'profile' | 'settings' | 'support' | 'delete';
+
+export type ShotTheme = 'light' | 'dark';
+
+/** Ekran görüntülerinin ortak boyutu (iPhone 15 Pro, 1179x2556). <img width/height> olarak yazılır: yerleşim kayması (CLS) olmaz. */
+export const SHOT_WIDTH = 1179;
+export const SHOT_HEIGHT = 2556;
+/** Görsellerin klasörü (public/ altında). */
+export const SHOT_DIR = '/site/screens';
 
 export interface Shot {
-  src: string;
-  /** Görselin doğal boyutu: <img width/height> olarak yazılır, yerleşim kayması (CLS) olmaz. */
+  /** Dosya adı kökü: `<name>-light.webp` / `<name>-dark.webp` (+ `.png`). */
+  name: string;
   width: number;
   height: number;
-  /** Altı boş ekranlar kırpılmıştır: telefon "peek" (alttan solarak kaybolan) çizilir. */
-  peek: boolean;
   alt: TranslationKey;
 }
 
+const shot = (name: string, alt: TranslationKey): Shot => ({ name, width: SHOT_WIDTH, height: SHOT_HEIGHT, alt });
+
 export const SHOTS: Record<ShotId, Shot> = {
-  home: { src: home, width: 900, height: 1948, peek: false, alt: 'site.shot.home.alt' },
-  discover: { src: discover, width: 900, height: 1948, peek: false, alt: 'site.shot.discover.alt' },
-  chat: { src: chat, width: 900, height: 1948, peek: false, alt: 'site.shot.chat.alt' },
-  clubs: { src: clubs, width: 900, height: 1948, peek: false, alt: 'site.shot.clubs.alt' },
-  events: { src: events, width: 900, height: 1948, peek: false, alt: 'site.shot.events.alt' },
-  qr: { src: qr, width: 900, height: 1538, peek: true, alt: 'site.shot.qr.alt' },
-  menu: { src: menu, width: 900, height: 1948, peek: false, alt: 'site.shot.menu.alt' },
-  poll: { src: poll, width: 900, height: 1948, peek: false, alt: 'site.shot.poll.alt' },
-  support: { src: support, width: 900, height: 1948, peek: false, alt: 'site.shot.support.alt' },
-  academic: { src: academic, width: 900, height: 1462, peek: true, alt: 'site.shot.academic.alt' },
-  delete: { src: deleteAccount, width: 900, height: 1948, peek: false, alt: 'site.shot.delete.alt' },
+  home: shot('home', 'site.shot.home.alt'),
+  menu: shot('menu', 'site.shot.menu.alt'),
+  clubs: shot('clubs', 'site.shot.clubs.alt'),
+  events: shot('events', 'site.shot.events.alt'),
+  news: shot('news', 'site.shot.news.alt'),
+  profile: shot('profile', 'site.shot.profile.alt'),
+  settings: shot('settings', 'site.shot.settings.alt'),
+  // Destek / hesap silme ekranları için ayrı görsel yok: Ayarlar ekranı (destek ve gizlilik bağlantıları orada) kullanılır.
+  support: shot('settings', 'site.shot.settings.alt'),
+  delete: shot('settings', 'site.shot.settings.alt'),
 };
+
+/** Görselin adresi: tema başına bir dosya; `ext` webp (varsayılan) ya da png yedek. */
+export function shotSrc(s: Shot, theme: ShotTheme, ext: 'webp' | 'png' = 'webp'): string {
+  return `${SHOT_DIR}/${s.name}-${theme}.${ext}`;
+}

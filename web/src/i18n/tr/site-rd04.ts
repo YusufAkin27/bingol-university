@@ -8,7 +8,6 @@ const m = {
   'site.rd04.filterRemove': '{label} filtresini kaldır',
   'site.rd04.clearFilters': 'Filtreleri temizle',
   'site.rd04.shown': '{shown} / {total} içerik gösteriliyor',
-  'site.rd04.sourceLabel': 'Kaynak',
   'site.rd04.appTitle': 'Haberleri uygulamada takip edin',
   'site.rd04.appText':
     'Yeni haber ve duyurular için hangi bildirimleri alacağınızı uygulamadan siz seçersiniz.',

@@ -5,7 +5,6 @@ const m = {
   'site.rd05.totalAtLeast': 'على الأقل {n} سعرة',
   'site.rd05.totalLabel': 'إجمالي اليوم',
   'site.rd05.totalPartial': 'لم تُدخل سعرات بعض الأطباق بعد.',
-  'site.rd05.photoAlt': 'صورة قائمة اليوم',
   'site.rd05.maintSince': 'آخر تحديث ناجح: {date}',
   'site.rd05.nextMenu': 'عرض اليوم التالي الذي فيه قائمة',
 } as const;

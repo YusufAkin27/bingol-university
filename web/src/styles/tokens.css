@@ -8,7 +8,7 @@
   /* Marka */
   --ink: #171e33;
   --red-100: #fde7e4;
-  --red-600: #f73a2e; /* logo kirmizisi: buyuk yuzeyler, hero, dekor (brand/dist/colors.json) */
+  --red-600: #f73a2e; /* eski logo kirmizisi: yalniz buyuk yuzey/hero/dekor; logo artik siyah-beyaz (--logo-ink) */
   --red-700: #c62a20; /* eylem kirmizisi: dugme/baglanti, beyaz yazi 5,6:1 */
   --red-800: #8e1b13; /* yumusak zemin ustunde yazi, hero dugmesi yazisi */
   --chrome: #171e33; /* koyu kabuk: alt bilgi, yonetim yan menusu, ipucu */
@@ -17,6 +17,11 @@
   --hero-end: #c62a20;
   --hero-line: rgba(255, 255, 255, 0.8); /* hero uzerindeki cerceve: zemine karsi >= 3:1 */
   --hero-contrast: #ffffff;
+
+  /* Logo (siyah-beyaz marka): glif ve yazı rengi temaya göre; sabit tonlar zorunlu zemin içindir */
+  --logo-ink: #09090b;
+  --logo-ink-on-light: #09090b;
+  --logo-ink-on-dark: #ffffff;
 
   /* Anlamsal renkler (açık tema) */
   --bg: #faf6f3;
@@ -78,6 +83,39 @@
   --chart-grid: #dde4ef;
   --chart-axis: #53607a;
 
+  /* Yazı ağırlığı: bileşen CSS'inde ham sayı yok. Yönetim paneli monochrome kapsamında hepsi --fw-emphasis'e (400) bağlanır */
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-black: 800;
+  --fw-emphasis: 600;
+  --focus-w: 3px;
+  --selection-bg: var(--red-700);
+  --selection-fg: #ffffff;
+  --danger-contrast: #ffffff;
+  --on-chrome: #ffffff; /* --chrome zemini üzerindeki yazı (ipucu, toplu işlem çubuğu, kaydırma ipucu) */
+  --avatar-bg: var(--surface-3);
+  --avatar-fg: var(--text);
+  --switch-thumb: #ffffff;
+  --paper: #ffffff; /* e-posta önizlemesi gibi kağıt zemin: temadan bağımsız beyaz kalır */
+  /* Fotoğraf/medya üstü sabit karartma ve yazı (tema bağımsız; medya doğal renkte kalır) */
+  --scrim-media: rgb(0 0 0 / 0.85);
+  --scrim-media-soft: rgb(0 0 0 / 0.65);
+  --on-media: #ffffff;
+  --on-media-muted: #cfd6df;
+  /* Bildirim önizleme telefonu maketi: sabit siyah-beyaz */
+  --phone-frame: #18181b;
+  --phone-ring: #3f3f46;
+  --phone-notch: #000000;
+  --phone-screen: #0f0f11;
+  --phone-clock: #fafafa;
+  --phone-card: #fafafa;
+  --phone-card-ink: #09090b;
+  --phone-card-muted: #52525b;
+  --phone-chip: #09090b;
+  --phone-chip-ink: #fafafa;
+
   /* Aralıklar */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -106,7 +144,7 @@
     'Inter', 'Inter Fallback', system-ui, 'Segoe UI Variable Text', 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
     'Noto Sans', sans-serif;
   --font-display: var(--font-sans);
-  --weight-display: 800;
+  --weight-display: var(--fw-black);
   --font-mono: ui-monospace, 'Cascadia Mono', 'SF Mono', Consolas, 'Liberation Mono', monospace;
 
   --text-xs: 0.8125rem;
@@ -137,6 +175,7 @@
     --border: #2e3247;
     --border-strong: #6a7190;
     --text: #f4efeb;
+    --logo-ink: #ffffff;
     --text-muted: #a5a9ba;
     --text-faint: #8e93a6;
     --primary: #ff6a5f;
@@ -170,6 +209,7 @@
     --warning: #f0c35c;
     --warning-soft: #3a2c0b;
     --danger: #ff8a82;
+    --danger-contrast: #1c0b0a;
     --danger-soft: #3b1816;
     --info: #85bdf5;
     --info-soft: #12293f;
@@ -197,6 +237,7 @@
   --border: #2e3247;
   --border-strong: #6a7190;
   --text: #f4efeb;
+  --logo-ink: #ffffff;
   --text-muted: #a5a9ba;
   --text-faint: #8e93a6;
   --primary: #ff6a5f;
@@ -230,6 +271,7 @@
   --warning: #f0c35c;
   --warning-soft: #3a2c0b;
   --danger: #ff8a82;
+  --danger-contrast: #1c0b0a;
   --danger-soft: #3b1816;
   --info: #85bdf5;
   --info-soft: #12293f;
@@ -255,10 +297,401 @@
   --leading-body: 1.75;
 }
 
+
 /*
- * Yönetim paneli (AdminLayout <html data-area="admin"> koyar): bağlantı rengi marka/tehlike kırmızısı DEĞİL, bilgi mavisidir.
- * Kırmızı bağlantı hata/riskli eylemle karışıyordu. Seçici özgüllüğü koyu tema bloklarından (0,2,0) yüksektir (0,2,1) ve dosyanın sonundadır; shared.test.tsx bunu denetler.
+ * YÖNETİM PANELİ: Premium Monochrome (mobil BuTokens ile aynı dil). AdminScope <html data-area="admin"> koyar; bu bloklar
+ * yalnız o kapsamda eski (marka) belirteçleri nötr siyah-beyaz-gri ile ezer, herkese açık site (data-area yok) değişmez.
+ * Kurallar: marka/vurgu rengi YOK; kırmızı yalnız tehlike/hata (--danger*); başarı/uyarı/bilgi nötr gri + simge + etiket;
+ * gradient/neon/glow/cam efekti yok; kalın yazı yok (--fw-emphasis tek anahtar). Özgüllük (0,2,1) koyu tema bloklarından (0,2,0) yüksektir
+ * ve dosyanın sonundadır; shared.test.tsx ve adminMono.test.ts bunu denetler.
  */
 html:root[data-area='admin'] {
-  --link: var(--info);
+  color-scheme: light;
+  --bg: #ffffff;
+  --surface: #fafafa;
+  --surface-2: #f4f4f5;
+  --surface-3: #e4e4e7;
+  --border: #e4e4e7;
+  --border-strong: #71717a;
+  --text: #09090b;
+  --text-muted: #52525b;
+  --text-faint: #5f5f68;
+  --primary-hover: #27272a;
+  --primary-soft: #f4f4f5;
+  --accent-hover: #27272a;
+  --accent-soft: #f4f4f5;
+  --focus: #09090b;
+  --scrim: rgba(9, 9, 11, 0.5);
+  --danger: #b3261e;
+  --danger-soft: #fbeeed;
+  --danger-contrast: #ffffff;
+  --sb-text: #27272a;
+  --sb-muted: #52525b;
+  --sb-hover: rgba(9, 9, 11, 0.05);
+  --sb-active: rgba(9, 9, 11, 0.09);
+  --sb-line: #e4e4e7;
+  --sb-mark: rgba(9, 9, 11, 0.14);
+  --sb-scroll: rgba(9, 9, 11, 0.28);
+  --chart-1: #09090b;
+  --chart-2: #52525b;
+  --chart-3: #7a7a84;
+  --chart-4: #8e8e96;
+  --chart-5: #a8a8b0;
+  --chart-6: #c4c4ca;
+  --chart-grid: #e4e4e7;
+  --chart-axis: #52525b;
+  --shadow-2: 0 2px 8px rgba(9, 9, 11, 0.08);
+  --shadow-3: 0 8px 24px rgba(9, 9, 11, 0.14);
+  /* Tipografi: kalın yazı yok; hiyerarşi boyut + renk + boşlukla. Kullanıcı isterse yalnız bu satırı değiştirir. */
+  --fw-emphasis: 400;
+  --fw-regular: var(--fw-emphasis);
+  --fw-medium: var(--fw-emphasis);
+  --fw-semibold: var(--fw-emphasis);
+  --fw-bold: var(--fw-emphasis);
+  --fw-black: var(--fw-emphasis);
+  --weight-display: var(--fw-emphasis);
+  --focus-w: 2px;
+  /* Köşe yarıçapı 10-16, ince kenarlık, gölge neredeyse yok */
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  /* Marka kırmızısı ve kabuk lacivertleri yok: eski adlar nötr tonlara eşlenir */
+  --red-100: var(--surface-2);
+  --red-600: var(--text);
+  --red-700: var(--text);
+  --red-800: var(--text);
+  --ink: var(--text);
+  --hero: var(--text);
+  --hero-end: var(--text);
+  --hero-contrast: var(--bg);
+  --hero-line: var(--border-strong);
+  --logo-ink: var(--text);
+  --primary: var(--text);
+  --accent: var(--text);
+  --link: var(--text);
+  --on-soft: var(--text);
+  --selection-bg: var(--surface-3);
+  --selection-fg: var(--text);
+  --chrome: var(--text); /* ters yüzey: ipucu, toplu işlem çubuğu */
+  --chrome-2: var(--text);
+  --on-chrome: var(--bg);
+  --badge: var(--text);
+  --badge-contrast: var(--bg);
+  --primary-contrast: var(--bg);
+  --accent-contrast: var(--bg);
+  --switch-thumb: var(--bg);
+  --avatar-bg: var(--surface-3);
+  --avatar-fg: var(--text);
+  /* Durum: başarı/uyarı/bilgi renkli DEĞİL; nötr gri + simge + etiket (rozet ve StatusDot şekil/simge ile ayırır). Kırmızı yalnız tehlike. */
+  --success: var(--text);
+  --success-soft: var(--surface-2);
+  --warning: var(--text);
+  --warning-soft: var(--surface-2);
+  --info: var(--text-muted);
+  --info-soft: var(--surface-2);
+  --select-bg: var(--surface-3);
+  --select-border: var(--text);
+  --danger-line: color-mix(in srgb, var(--danger) 70%, var(--surface));
+  /* Yan menü (--sb-*): yüzey + ince kenarlık, etkin öğe zemin farkı + işaret çizgisi */
+  --sb-bg: var(--surface);
+  --sb-strong: var(--text);
+  --sb-field-bg: var(--bg);
+  --sb-field-line: var(--border-strong);
+  --sb-field-line-hover: var(--text);
+  /* Grafik: tek ton skalası (beyaz-gri); seri ayrımı ek olarak çizgi stili/desen/doğrudan etiket ile yapılır */
+}
+@media (prefers-color-scheme: dark) {
+  html:root[data-area='admin']:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #09090b;
+    --surface: #141416;
+    --surface-2: #1c1c1f;
+    --surface-3: #252528;
+    --border: #303034;
+    --border-strong: #74747c;
+    --text: #fafafa;
+    --text-muted: #a1a1aa;
+    --text-faint: #8e8e97;
+    --primary-hover: #e4e4e7;
+    --primary-soft: #1c1c1f;
+    --accent-hover: #e4e4e7;
+    --accent-soft: #1c1c1f;
+    --focus: #fafafa;
+    --scrim: rgba(0, 0, 0, 0.7);
+    --danger: #ff8a82;
+    --danger-soft: #2a1514;
+    --danger-contrast: #1c0b0a;
+    --sb-text: #d4d4d8;
+    --sb-muted: #a1a1aa;
+    --sb-hover: rgba(250, 250, 250, 0.07);
+    --sb-active: rgba(250, 250, 250, 0.12);
+    --sb-line: #303034;
+    --sb-mark: rgba(250, 250, 250, 0.2);
+    --sb-scroll: rgba(250, 250, 250, 0.28);
+    --chart-1: #fafafa;
+    --chart-2: #a1a1aa;
+    --chart-3: #7b7b84;
+    --chart-4: #62626a;
+    --chart-5: #4f4f55;
+    --chart-6: #3f3f44;
+    --chart-grid: #303034;
+    --chart-axis: #a1a1aa;
+    --shadow-2: 0 2px 8px rgba(0, 0, 0, 0.5);
+    --shadow-3: 0 8px 24px rgba(0, 0, 0, 0.6);
+  }
+}
+html:root[data-area='admin'][data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #09090b;
+  --surface: #141416;
+  --surface-2: #1c1c1f;
+  --surface-3: #252528;
+  --border: #303034;
+  --border-strong: #74747c;
+  --text: #fafafa;
+  --text-muted: #a1a1aa;
+  --text-faint: #8e8e97;
+  --primary-hover: #e4e4e7;
+  --primary-soft: #1c1c1f;
+  --accent-hover: #e4e4e7;
+  --accent-soft: #1c1c1f;
+  --focus: #fafafa;
+  --scrim: rgba(0, 0, 0, 0.7);
+  --danger: #ff8a82;
+  --danger-soft: #2a1514;
+  --danger-contrast: #1c0b0a;
+  --sb-text: #d4d4d8;
+  --sb-muted: #a1a1aa;
+  --sb-hover: rgba(250, 250, 250, 0.07);
+  --sb-active: rgba(250, 250, 250, 0.12);
+  --sb-line: #303034;
+  --sb-mark: rgba(250, 250, 250, 0.2);
+  --sb-scroll: rgba(250, 250, 250, 0.28);
+  --chart-1: #fafafa;
+  --chart-2: #a1a1aa;
+  --chart-3: #7b7b84;
+  --chart-4: #62626a;
+  --chart-5: #4f4f55;
+  --chart-6: #3f3f44;
+  --chart-grid: #303034;
+  --chart-axis: #a1a1aa;
+  --shadow-2: 0 2px 8px rgba(0, 0, 0, 0.5);
+  --shadow-3: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+
+/* site */
+/*
+ * HERKESE ACIK SITE: Premium Monochrome (yonetim paneli ile ayni dil, mobil BuTokens). Yonetim paneli data-area='admin' koyar;
+ * bu bloklar o kapsam DISINDAKI her sey icin eski marka belirteclerini notr siyah-beyaz-gri ile ezer. Kurallar: marka/vurgu rengi YOK
+ * (kirmizi yalniz --danger*), gradient/neon/glow/cam yok, kalin yazi yok (--fw-emphasis tek anahtar), kose 10-16, ince 1 px kenarlik.
+ * Ozgullukler: acik (0,2,1), koyu (0,3,1) -> eski koyu bloklari (0,2,0) ve yonetim blogunu (data-area ile disjoint) ezer.
+ */
+html:root:not([data-area='admin']) {
+  color-scheme: light;
+  --bg: #ffffff;
+  --surface: #fafafa;
+  --surface-2: #f4f4f5;
+  --surface-3: #e4e4e7;
+  --border: #e4e4e7;
+  --border-strong: #71717a;
+  --text: #09090b;
+  --text-muted: #52525b;
+  --text-faint: #5f5f68;
+  --primary: #09090b;
+  --primary-hover: #27272a;
+  --primary-contrast: #ffffff;
+  --primary-soft: #f4f4f5;
+  --on-soft: #09090b;
+  --accent: #09090b;
+  --accent-hover: #27272a;
+  --accent-contrast: #ffffff;
+  --accent-soft: #f4f4f5;
+  --badge: #09090b;
+  --badge-contrast: #ffffff;
+  --link: #09090b;
+  --focus: #09090b;
+  --scrim: rgba(9, 9, 11, 0.5);
+  --danger: #b3261e;
+  --danger-soft: #fbeeed;
+  --danger-contrast: #ffffff;
+  --success: #09090b;
+  --success-soft: #f4f4f5;
+  --warning: #09090b;
+  --warning-soft: #f4f4f5;
+  --info: #52525b;
+  --info-soft: #f4f4f5;
+  --select-bg: #e4e4e7;
+  --select-border: #09090b;
+  --red-100: #f4f4f5;
+  --red-600: #09090b;
+  --red-700: #09090b;
+  --red-800: #09090b;
+  --ink: #09090b;
+  --hero: #09090b;
+  --hero-end: #09090b;
+  --hero-contrast: #ffffff;
+  --hero-line: #71717a;
+  --chrome: #09090b;
+  --chrome-2: #18181b;
+  --on-chrome: #ffffff;
+  --logo-ink: #09090b;
+  --selection-bg: #e4e4e7;
+  --selection-fg: #09090b;
+  --switch-thumb: #ffffff;
+  --shadow-2: 0 2px 8px rgba(9, 9, 11, 0.08);
+  --shadow-3: 0 8px 24px rgba(9, 9, 11, 0.14);
+  /* Tipografi: kalin yazi yok; hiyerarsi boyut + renk + bosluk. Kullanici isterse yalniz --fw-emphasis degisir. */
+  --fw-emphasis: 400;
+  --fw-regular: var(--fw-emphasis);
+  --fw-medium: var(--fw-emphasis);
+  --fw-semibold: var(--fw-emphasis);
+  --fw-bold: var(--fw-emphasis);
+  --fw-black: var(--fw-emphasis);
+  --weight-display: var(--fw-emphasis);
+  --focus-w: 2px;
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  /* Site ritmi ve buyuk baslik olcekleri (iki temada ayni) */
+  --text-display: clamp(2.5rem, 1.15rem + 5.6vw, 5rem);
+  --text-h2: clamp(1.75rem, 1.15rem + 2.4vw, 2.875rem);
+  --text-h3: clamp(1.25rem, 1.05rem + 0.8vw, 1.625rem);
+  --site-section-y: clamp(3.5rem, 8vw, 7rem);
+  --site-dur: 200ms;
+  --site-measure: 38rem;
+  /* Telefon maketi: iPhone 15 Pro tarzi ince siyah cerceve; durum cubugu yazisi ekran temasina uyar */
+  --phone-bar-ink: #09090b;
+}
+@media (prefers-color-scheme: dark) {
+  html:root:not([data-area='admin']):not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #09090b;
+    --surface: #141416;
+    --surface-2: #1c1c1f;
+    --surface-3: #252528;
+    --border: #303034;
+    --border-strong: #74747c;
+    --text: #fafafa;
+    --text-muted: #a1a1aa;
+    --text-faint: #8e8e97;
+    --primary: #fafafa;
+    --primary-hover: #e4e4e7;
+    --primary-contrast: #09090b;
+    --primary-soft: #1c1c1f;
+    --on-soft: #fafafa;
+    --accent: #fafafa;
+    --accent-hover: #e4e4e7;
+    --accent-contrast: #09090b;
+    --accent-soft: #1c1c1f;
+    --badge: #fafafa;
+    --badge-contrast: #09090b;
+    --link: #fafafa;
+    --focus: #fafafa;
+    --scrim: rgba(0, 0, 0, 0.7);
+    --danger: #ff8a82;
+    --danger-soft: #2a1514;
+    --danger-contrast: #1c0b0a;
+    --success: #fafafa;
+    --success-soft: #1c1c1f;
+    --warning: #fafafa;
+    --warning-soft: #1c1c1f;
+    --info: #a1a1aa;
+    --info-soft: #1c1c1f;
+    --select-bg: #252528;
+    --select-border: #fafafa;
+    --red-100: #1c1c1f;
+    --red-600: #fafafa;
+    --red-700: #fafafa;
+    --red-800: #fafafa;
+    --ink: #fafafa;
+    --hero: #fafafa;
+    --hero-end: #fafafa;
+    --hero-contrast: #09090b;
+    --hero-line: #74747c;
+    --chrome: #fafafa;
+    --chrome-2: #e4e4e7;
+    --on-chrome: #09090b;
+    --logo-ink: #fafafa;
+    --selection-bg: #303034;
+    --selection-fg: #fafafa;
+    --switch-thumb: #09090b;
+    --shadow-2: 0 2px 8px rgba(0, 0, 0, 0.5);
+    --shadow-3: 0 8px 24px rgba(0, 0, 0, 0.6);
+    --phone-bar-ink: #fafafa;
+  }
+}
+html:root[data-theme='dark']:not([data-area='admin']) {
+  color-scheme: dark;
+  --bg: #09090b;
+  --surface: #141416;
+  --surface-2: #1c1c1f;
+  --surface-3: #252528;
+  --border: #303034;
+  --border-strong: #74747c;
+  --text: #fafafa;
+  --text-muted: #a1a1aa;
+  --text-faint: #8e8e97;
+  --primary: #fafafa;
+  --primary-hover: #e4e4e7;
+  --primary-contrast: #09090b;
+  --primary-soft: #1c1c1f;
+  --on-soft: #fafafa;
+  --accent: #fafafa;
+  --accent-hover: #e4e4e7;
+  --accent-contrast: #09090b;
+  --accent-soft: #1c1c1f;
+  --badge: #fafafa;
+  --badge-contrast: #09090b;
+  --link: #fafafa;
+  --focus: #fafafa;
+  --scrim: rgba(0, 0, 0, 0.7);
+  --danger: #ff8a82;
+  --danger-soft: #2a1514;
+  --danger-contrast: #1c0b0a;
+  --success: #fafafa;
+  --success-soft: #1c1c1f;
+  --warning: #fafafa;
+  --warning-soft: #1c1c1f;
+  --info: #a1a1aa;
+  --info-soft: #1c1c1f;
+  --select-bg: #252528;
+  --select-border: #fafafa;
+  --red-100: #1c1c1f;
+  --red-600: #fafafa;
+  --red-700: #fafafa;
+  --red-800: #fafafa;
+  --ink: #fafafa;
+  --hero: #fafafa;
+  --hero-end: #fafafa;
+  --hero-contrast: #09090b;
+  --hero-line: #74747c;
+  --chrome: #fafafa;
+  --chrome-2: #e4e4e7;
+  --on-chrome: #09090b;
+  --logo-ink: #fafafa;
+  --selection-bg: #303034;
+  --selection-fg: #fafafa;
+  --switch-thumb: #09090b;
+  --shadow-2: 0 2px 8px rgba(0, 0, 0, 0.5);
+  --shadow-3: 0 8px 24px rgba(0, 0, 0, 0.6);
+  --phone-bar-ink: #fafafa;
+}
+
+/* site: okuma (hukuki/bilgi sayfalari, marka kiti) */
+:root {
+  --read-measure: 68ch; /* uzun metin satir olcusu (60-75 karakter) */
+  --read-size: 1.0625rem; /* gövde 17 px */
+  --read-leading: 1.75;
+  --touch-min: 2.75rem; /* dokunma hedefi >= 44 px */
+  --rule: 1px solid var(--border); /* ince ayirici cizgi */
+  --label-track: 0.08em; /* kucuk buyuk-harf etiket aralığı (Arapçada 0) */
+}
+:root:lang(ar) {
+  --label-track: 0;
+}
+:root {
+  --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif; /* yalniz marka kitindeki baslik ornegi (BU logosu serif) */
 }

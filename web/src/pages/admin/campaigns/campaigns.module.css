@@ -8,7 +8,7 @@
   align-items: flex-start;
 }
 .cellTitle {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   overflow-wrap: anywhere;
 }
 .cellBody {
@@ -72,12 +72,12 @@
 }
 .contentLang {
   font-size: var(--text-xs);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--text-muted);
   margin-block-end: var(--space-1);
 }
 .contentTitle {
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   overflow-wrap: anywhere;
 }
 .contentBody {
@@ -135,7 +135,7 @@
   font-size: var(--text-sm);
 }
 .fieldLabel {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   font-size: var(--text-sm);
 }
 
@@ -152,7 +152,7 @@
   font-size: var(--text-base);
 }
 .counter strong {
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .bigNumber {
   font-family: var(--font-display);
@@ -192,7 +192,7 @@
 }
 .pickerFull {
   color: var(--danger);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .results {
   display: flex;
@@ -224,7 +224,7 @@
   background: var(--surface-2);
 }
 .resultName {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   flex: none;
   max-width: 45%;
   overflow: hidden;
@@ -270,7 +270,7 @@
   line-height: 1.25;
 }
 .chipName {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -293,7 +293,7 @@
 }
 .req {
   font-size: var(--text-xs);
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   color: var(--accent);
 }
 .langDot {
@@ -344,7 +344,7 @@
   color: var(--text-muted);
   padding: 0 var(--space-4);
   min-height: 40px;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   font-size: var(--text-xs);
   cursor: pointer;
 }
@@ -356,7 +356,7 @@
   color: var(--primary-contrast);
 }
 .sumLine {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .missing {
   margin: 0;
@@ -373,7 +373,7 @@
 }
 .sendLead {
   font-size: var(--text-lg);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .sendQuote {
   margin: 0;

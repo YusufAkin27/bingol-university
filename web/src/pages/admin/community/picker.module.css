@@ -5,7 +5,7 @@
   max-inline-size: 36rem;
 }
 .label {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   font-size: var(--text-sm);
 }
 .results {
@@ -47,7 +47,7 @@
 }
 .optTitle {
   grid-column: 1;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   overflow-wrap: anywhere;
 }
 .optMeta {
@@ -60,7 +60,7 @@
   grid-column: 2;
   grid-row: 1 / span 2;
   color: var(--primary);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   font-size: var(--text-sm);
 }
 .chip {

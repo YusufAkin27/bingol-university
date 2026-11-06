@@ -6,13 +6,13 @@ const m = {
   'site.shot.delete.alt':
     'BÜ Kampüs Delete account screen: a warning that the action cannot be undone, a “What happens” list, a confirmation checkbox and a “Continue” button.',
 
-  'site.trust.security.pt1': 'Membership is only possible with bingol.edu.tr email addresses and email verification.',
+  'site.trust.security.pt1': 'Membership requires a valid email address and email verification.',
   'site.trust.security.pt2':
     'Messages are stored encrypted on the server; administrator access needs a written reason and is written to an audit log.',
   'site.trust.security.pt3': 'The connection is encrypted with HTTPS; passwords and session keys are stored only as hashes.',
   'site.trust.security.pt4': 'Sign-in and write actions are rate limited; if you find a flaw you can report it responsibly.',
 
-  'site.trust.child.pt1': 'No anonymous use: an account is opened only with a verified bingol.edu.tr email.',
+  'site.trust.child.pt1': 'No anonymous use: an account is opened only with a verified email.',
   'site.trust.child.pt2': 'Users, messages, posts, clubs and events can be reported from the app; users can be blocked.',
   'site.trust.child.pt3':
     'A post is one photo and a short text; posts have no comments or video. Location data is removed from uploaded photos.',

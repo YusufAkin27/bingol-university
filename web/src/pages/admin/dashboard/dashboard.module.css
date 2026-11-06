@@ -15,7 +15,7 @@
 .sectionTitle {
   font-family: var(--font-sans);
   font-size: var(--text-sm);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--text-muted);
   margin-block-end: var(--space-3);
 }
@@ -73,7 +73,7 @@
   padding: var(--space-3) 0;
   color: var(--text);
   text-decoration: none;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .attnLink:hover .attnGo {
   color: var(--primary);
@@ -86,7 +86,7 @@
   border-radius: var(--radius-sm);
   background: var(--warning-soft);
   color: var(--warning);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
   flex: none;
 }
@@ -119,7 +119,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .sourceMeta {
   font-size: var(--text-xs);
@@ -160,7 +160,7 @@
 .legendValue {
   margin-inline-start: auto;
   font-variant-numeric: tabular-nums;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 
 /* son işlemler */
@@ -181,7 +181,7 @@
 .auditMethod {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   padding-top: 2px;
 }
 .auditPath {
@@ -198,7 +198,7 @@
   display: inline-block;
   margin-block-start: var(--space-3);
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .chartLoading {
   height: 200px;
@@ -255,13 +255,13 @@
   min-block-size: 44px;
   display: flex;
   align-items: center;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .more[open] > summary {
   margin-block-end: var(--space-3);
 }
 .legendPct {
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   font-size: var(--text-lg, 1.125rem);
 }
 .audit1 {
@@ -328,12 +328,12 @@
 .healthTitle {
   margin: 0;
   font-size: var(--text-sm);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--text-muted);
 }
 .healthSentence {
   margin: 0;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   overflow-wrap: anywhere;
 }
 .healthLink {
@@ -341,7 +341,7 @@
   align-items: center;
   min-block-size: 44px;
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .healthChips {
   list-style: none;

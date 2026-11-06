@@ -1,7 +1,6 @@
 // غلاف الموقع وشاشات الحالة (RD10): القائمة الجانبية للجوال، التذييل، تفضيلات التخزين، 404، الخطأ، التحميل.
 const m = {
   'site.rd10.nav.drawerTitle': 'التنقل',
-  'site.rd10.nav.settings': 'المظهر واللغة',
   'site.rd10.theme.label': 'المظهر',
   'site.rd10.theme.light': 'فاتح',
   'site.rd10.theme.dark': 'داكن',
@@ -11,7 +10,6 @@ const m = {
   'site.rd10.foot.sitemap': 'خريطة الموقع',
   'site.rd10.foot.cookiePrefs': 'تفضيلات ملفات تعريف الارتباط',
   'site.rd10.foot.contactLabel': 'بيانات التواصل',
-  'site.rd10.foot.domainNote': 'العضوية متاحة فقط بعناوين البريد الإلكتروني bingol.edu.tr.',
 
   'site.rd10.cookie.title': 'حول تخزين المتصفح',
   'site.rd10.cookie.prefs': 'التفضيلات',
@@ -44,7 +42,6 @@ const m = {
   'site.rd10.err.eyebrow.maintenance': 'صيانة مجدولة',
   'site.rd10.err.linksTitle': 'روابط مفيدة',
   'site.rd10.err.linksText': 'يمكنك في هذه الأثناء تصفح أقسام أخرى من الموقع.',
-  'site.rd10.err.refresh': 'تحديث',
 
   'site.rd10.loading.label': 'جارٍ تجهيز المحتوى',
 } as const;

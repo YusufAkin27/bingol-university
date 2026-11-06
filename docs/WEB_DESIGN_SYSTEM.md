@@ -14,7 +14,7 @@ Bu belge **mevcut** web tasarım sisteminin envanteridir ve yeni sayfa/bileşen 
 
 | Grup | Değişkenler |
 |---|---|
-| Marka | `--ink #171e33` (lacivert), `--red-600 #f73a2e` (logo), `--red-700 #c62a20` (eylem), `--red-800`, `--chrome` (koyu kabuk), `--hero`/`--hero-end` |
+| Marka | `--logo-ink` (logo yazısı/glifi: açık temada `#09090b`, koyu temada `#fff`), `--logo-ink-on-light #09090b` / `--logo-ink-on-dark #fff` (zorunlu zemin için sabit tonlar), `--ink #171e33` (lacivert metin), `--red-700 #c62a20` (eylem), `--red-600`/`--red-800`, `--chrome` (koyu kabuk), `--hero`/`--hero-end` |
 | Anlamsal (açık) | `--bg #faf6f3`, `--surface`, `--surface-2/3`, `--border`, `--border-strong`, `--text`, `--text-muted`, `--text-faint`, `--primary*`, `--accent*`, `--link`, `--focus #1f5fd1` |
 | Durum | `--success`, `--warning`, `--danger`, `--info` (+ `-soft`), `--select-bg/-border` (seçim nötr-mavi; kırmızı yalnız marka/tehlike) |
 | Boşluk | `--space-1…8` = 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4.5 rem |
@@ -25,6 +25,12 @@ Bu belge **mevcut** web tasarım sisteminin envanteridir ve yeni sayfa/bileşen 
 | Tema | Açık varsayılan; koyu: `@media (prefers-color-scheme: dark)` **ve** `:root[data-theme='dark']`. Her yeni token iki temada tanımlanır. |
 
 Kural: bileşen CSS'inde **ham renk/piksel yok**, yalnız token. Yeni değer gerekiyorsa önce `tokens.css`'e (açık+koyu) eklenir.
+
+### Marka / logo (siyah-beyaz, 2026-11-06)
+- Marka logosu artık **yalnız siyah ve beyazdır** (kırmızı BÜ karesi kaldırıldı). Kaynak: repo kökündeki `dark_logo.png` (siyah zemin, beyaz glif) ve `light_logo.png` (beyaz zemin, siyah glif). Kırmızı yalnız arayüz eylem vurgusudur (`--red-700`), logoda kullanılmaz.
+- Varlıklar `python -I -X utf8 web/scripts/build-brand.py` ile üretilir (Pillow; kök PNG yoksa `web/public/brand/square-*.png` kaynak alınır): şeffaf glif `src/assets/brand/mark-{light,dark}.png` (192 px, paketlenir) ve `public/brand/mark-*.png` (512) / `square-*.png` (1024, basın kiti); sekme ikonları `favicon-light.png` / `favicon-dark.png` (+ `favicon.ico`, açık tabanlı), `apple-touch-icon.png`, `icon-192/512.png`, `icon-maskable-512.png` (güvenli alan), `og.png` (koyu zemin, beyaz logo + metin).
+- Tek bileşen: `components/brand/Logo` (`variant` mark|horizontal|vertical, `tone` auto|light|dark). `auto` iki `<img>` basar ve `[data-theme]` / `prefers-color-scheme` ile birini gösterir: koyu temada beyaz, açık temada siyah glif. Yatay/dikey sürümde glifin yanındaki "Kampüs" yazısı HTML metnidir (`--logo-ink`). Koyu kabuk üzerinde (yönetim yan menüsü) `tone="dark"` verilir. Yeni logo yeri bu bileşenle yapılır; `<img src="/brand/...">` yalnız basın kiti sayfasındadır.
+- `index.html`: `<link rel="icon" media="(prefers-color-scheme: ...)">` ile sekme ikonu sistem temasına uyar; `theme-color` açık `#FFFFFF`, koyu `#09090B`; `site.webmanifest` `theme_color #09090B`, `background_color #FFFFFF`.
 
 ## 3. Bileşen envanteri
 
@@ -71,3 +77,35 @@ Teknik taraf sağlam: mobilde yatay taşma yok, 13 px altı yazı yok, içerik t
 5. **Alt bilgi**: "Yasal" sütunu 11 bağlantı ile çok uzun; iletişim bloğunda kişisel Gmail adresi, kişisel telefon ve Gaziantep adresi var: **kurumsal güven sorunu** (tasarım değil içerik; yönetim panelinde "Ayarlar" ile düzeltilir).
 6. **Reveal**: kaydırmadan alınan tam sayfa görüntüde üç bölüm boş çıkıyor. Kaydırınca içerik geliyor (hata değil) ama animasyon başarısız olursa içerik gizli kalmamalı (bkz. ilke 6).
 7. Bu taramada **incelenmeyenler**: koyu tema, Arapça (RTL), tablet genişliği ve iç sayfalar (Özellikler, Haberler, Yemek listesi, Yardım, Hakkımızda, İndir, hukuki metinler) ve yönetim paneli.
+
+## 7. Yönetim paneli: Premium Monochrome (2026-11-06)
+
+`/admin` (giriş/kayıt dahil) mobil uygulamanın "Premium Monochrome" diline getirildi: **marka/vurgu rengi yok, kırmızı yalnız tehlike/hata, kalın yazı yok**. `AdminScope` `<html data-area="admin">` koyar; `tokens.css` sonundaki üç blok (açık, sistem koyu, elle koyu; özgüllük `html:root[data-area='admin']` = 0,2,1) eski marka belirteçlerini nötr tonlarla ezer. Bileşen CSS'i değişmeden kalır: renkler belirteçten gelir, bu yüzden herkese açık site (`data-area` yok) bu bloklardan etkilenmez.
+
+**Belirteçler (yönetim kapsamı)**
+
+| Belirteç | Açık (Premium White) | Koyu (Premium Black) |
+|---|---|---|
+| `--bg` | `#ffffff` | `#09090b` |
+| `--surface` / `--surface-2` / `--surface-3` | `#fafafa` / `#f4f4f5` / `#e4e4e7` | `#141416` / `#1c1c1f` / `#252528` |
+| `--text` / `--text-muted` / `--text-faint` | `#09090b` / `#52525b` / `#5f5f68` | `#fafafa` / `#a1a1aa` / `#8e8e97` |
+| `--border` / `--border-strong` | `#e4e4e7` / `#71717a` (girdi çerçevesi >= 3:1) | `#303034` / `#74747c` |
+| `--primary`, `--accent`, `--link`, `--focus`, `--chrome` | `--text` (ters yüzey: düğme, bağlantı, odak halkası 2 px, ipucu) | aynı: `--text` |
+| `--primary-contrast`, `--on-chrome` | `--bg` | `--bg` |
+| `--danger` / `--danger-soft` | `#b3261e` / `#fbeeed` (tek renkli belirteç) | `#ff8a82` / `#2a1514` |
+| `--success`, `--warning`, `--info` | nötr (`--text` / `--text-muted`); anlam simge + kenarlık biçimi + etiketle verilir | aynı |
+| `--chart-1…6` | `#09090b #52525b #7a7a84 #8e8e96 #a8a8b0 #c4c4ca` | `#fafafa #a1a1aa #7b7b84 #62626a #4f4f55 #3f3f44` |
+| `--sb-*` (yan menü) | yüzey `--surface` + 1 px kenarlık; etkin öğe zemin farkı + 3 px işaret | aynı |
+| `--fw-emphasis` | **400** (tek anahtar); `--fw-regular/medium/semibold/bold/black` ve `--weight-display` buna bağlı | aynı |
+
+**Kurallar**
+- Ham renk yok: yeni renk önce `tokens.css`'e (açık + koyu). Kırmızı yalnız `--danger*` (silme, engelleme, doğrulama hatası). Kullanıcı fotoğrafı/medya doğal renkte kalır; e-posta önizleme zemini (`--paper`), medya karartması (`--scrim-media`) ve bildirim telefonu maketi (`--phone-*`) sabit siyah-beyazdır.
+- Kalın yazı yok: CSS'te `font-weight: var(--fw-semibold)` gibi **belirteç** yazılır (ham 500/600/700/800 yazılmaz); hiyerarşi boyut + renk + boşlukla kurulur. Kullanıcı kalın isterse tek satır: `--fw-emphasis: 600` (yönetim bloğu).
+- Durum (başarı/uyarı/bilgi/tehlike): `Badge` renk yerine simge (onay, üçgen, çarpı, i) ve kenarlık biçimiyle ayrışır (başarı dolu gri, uyarı kesikli, bilgi çizgili, tehlike kırmızı çerçeve); `StatusPill` dolu/halka nokta; `StatusDot` zaten simge taşır. Renk tek başına anlam taşımaz (renk körlüğü dostu).
+- Grafik: tek ton skalası; seri ayrımı ek olarak çizgi stili (`CHART_DASHES`: düz, kesik, noktalı...), yığılı/çok serili çubukta 1 px yüzey boşluğu, her zaman açıklama (legend) ve doğrudan etiket/tablo görünümüyle yapılır; tek seri tam kontrast `--chart-1`. 5. ve 6. ton yalnız dolgu ayrımıdır (< 3:1): 4'ten çok seri "Diğer"e katlanır.
+- Köşe 10-12-16 (`--radius-sm/md/lg`), ince 1 px kenarlık, gölge yalnız açılır katmanlarda (`--shadow-2/3` çok hafif), gradient/neon/cam yok (iskelet yüklemesi düz yüzey + nefes opaklığı). Animasyon 180-250 ms, `prefers-reduced-motion`'da kapalı.
+- Denetim: `web/src/adminMono.test.ts` (yönetim CSS/TSX'inde ham renk yok, `font-weight > 400` yok, yönetim blok belirteçleri nötr, gradient renksiz). Görsel doğrulama: `web/e2e/admin-mono-shots.spec.ts` (backendsiz, tüm sayfalar x açık/koyu x 1440/390/768; `INDEX.md`).
+
+## 8. Canlı hatta taşıma notu (deploy/web-20261106)
+
+Siyah-beyaz tasarım `deploy/release3-20261106` üzerine taşındı. Birleştirme kuralı: canlı hattın **içerik mantığı** (forum/push/rbac yönetici sayfaları, menü/haber/SSS/yasal sayfaların iş mantığı, JSON-LD, `InlineLinks`, `useActiveSection` içindekiler) korunur; yeni **belirteçler** (`tokens.css` yönetim + site blokları, `--fw-*`) ve ana sayfa/Özellikler/İndir/Hakkımızda/logo/telefon maketi tasarımı bunun üstüne uygulanır. Canlı hatta olup tasarım dalında olmayan yönetici CSS'leri (zaman çizelgesi, sistem, yedek vb.) aynı kurallara getirildi: `font-weight` yalnız `var(--fw-*)`, ham renk yok, gradient renksiz (`--text`/`--text-muted`). `adminMono.test.ts` bunları denetler.

@@ -9,7 +9,8 @@ const site = {
   'site.nav.main': 'Ana menü',
   'site.nav.openMenu': 'Menüyü aç',
   'site.nav.closeMenu': 'Menüyü kapat',
-  'site.footer.tagline': 'Duyurular, etkinlikler, yemek listesi ve kampüs topluluğu cebinizde.',
+  'site.footer.tagline':
+    'Öğrencilere özel kampüs sosyal ağı: akış, kulüpler, sohbet, etkinlikler ve yemek listesi cebinizde.',
   'site.footer.rights': '© {year} BÜ Kampüs. Tüm hakları saklıdır.',
   'site.store.googlePlay': 'Google Play',
   'site.store.appStore': 'App Store',
@@ -19,9 +20,11 @@ const site = {
   'site.store.soonNote': 'Mağaza bağlantısı henüz yayınlanmadı. Yayınlandığında bu düğme çalışır hâle gelecek.',
   'site.store.newTab': 'Yeni sekmede açılır',
 
-  'site.meta.home': 'BÜ Kampüs (bukampus): Bingöl Üniversitesi öğrencileri ve personeli için duyurular, haberler, yemek listesi, ders programı ve etkinlikler tek uygulamada.',
-  'site.meta.features': 'Haber ve duyurular, yemek listesi, mesajlaşma, topluluklar, QR yoklamalı etkinlikler, destek ve bildirimler: BÜ Kampüs uygulamasının özellikleri.',
-  'site.meta.about': 'BÜ Kampüs uygulamasının amacı, değerleri ve nasıl çalıştığı. Yalnızca bingol.edu.tr hesaplarıyla kullanılır.',
+  'site.meta.home':
+    'BÜ Kampüs: Bingöl Üniversitesi topluluğu için reklamsız, güvenli ve moderasyonlu kampüs sosyal ağı. Keşfet akışı, kulüpler, sohbet, etkinlikler, haberler ve yemek listesi tek uygulamada.',
+  'site.meta.features':
+    'Keşfet akışı, fotoğraf ve Reels, kulüpler, sohbet, Kampüs Forum, etkinlikler, QR yoklama, haberler ve yemek listesi: BÜ Kampüs uygulamasının özellikleri.',
+  'site.meta.about': 'BÜ Kampüs uygulamasının amacı, değerleri ve nasıl çalıştığı. Geçerli herhangi bir e-posta adresiyle kullanılır.',
   'site.meta.download': 'BÜ Kampüs uygulamasını Android ve iOS için indirin.',
   'site.meta.faq': 'BÜ Kampüs uygulaması hakkında sık sorulan sorular ve yanıtları.',
   'site.meta.contact': 'BÜ Kampüs uygulaması için iletişim bilgileri ve uygulama içi destek talebi.',
@@ -29,33 +32,26 @@ const site = {
   'site.meta.legal': 'Kullanım koşulları, gizlilik politikası, KVKK aydınlatma metni ve topluluk kuralları.',
   'site.maintenance.title': 'Bakım çalışması',
 
-  'site.home.heroTitle': 'Kampüs hayatı tek uygulamada',
+  'site.home.heroTitle': 'Öğrencilere özel kampüs sosyal ağı',
   'site.home.heroLead':
-    'Duyurular, haberler, etkinlikler, yemek listesi ve öğrenci toplulukları BÜ Kampüs uygulamasında.',
+    'Fotoğraf ve Reels paylaşın, kulüplere katılın, arkadaşlarınızla yazışın. Reklamsız, güvenli ve moderasyonlu; üniversite topluluğu için.',
   'site.home.ctaDownload': 'Uygulamayı indir',
   'site.home.ctaFeatures': 'Özellikleri keşfet',
-  'site.home.trust': 'Yalnızca bingol.edu.tr hesaplarıyla kullanılır.',
-  'site.home.highlightsTitle': 'Günün akışı tek ekranda',
-  'site.home.highlightsLead':
-    'Resmî sitelerde tek tek gezmek yerine uygulamayı açın: duyurular, yemek listesi ve etkinlikler hazır.',
+  'site.home.trust': 'Gmail, Outlook ve diğer e-posta adresleriyle kullanılır.',
   'site.home.allFeatures': 'Tüm özellikleri gör',
   'site.home.stepsTitle': 'Üç adımda başlayın',
   'site.home.step1.title': 'Uygulamayı indirin',
   'site.home.step1.text': 'Android veya iOS için mağazadan yükleyin.',
-  'site.home.step2.title': 'Üniversite adresinizle kaydolun',
-  'site.home.step2.text': 'Yalnızca bingol.edu.tr uzantılı e-posta adresleri kabul edilir.',
+  'site.home.step2.title': 'E-posta adresinizle kaydolun',
+  'site.home.step2.text': 'Gmail, Outlook, Hotmail, Yahoo ve diğer geçerli e-posta adresleri kabul edilir.',
   'site.home.step3.title': 'E-postanızı doğrulayın',
   'site.home.step3.text': 'Adresinize gelen kodu girin, hesabınız hazır.',
-  'site.home.privacyTitle': 'Verileriniz size ait',
-  'site.home.privacy1': 'Verileriniz satılmaz.',
-  'site.home.privacy2': 'Verilerinizi uygulamadan indirebilirsiniz.',
-  'site.home.privacy3': 'Hesabınızı sildiğinizde kişisel verileriniz anonimleştirilir.',
   'site.home.privacyLink': 'Gizlilik politikasını oku',
   'site.home.ctaTitle': 'Kampüsü cebinize alın',
-  'site.home.ctaText': 'Android ve iOS sürümleri için mağaza bağlantıları yayınlandığında burada görünür.',
 
   'site.features.title': 'Özellikler',
-  'site.features.lead': 'Kampüste her gün ihtiyaç duyduğunuz şeyler, aynı uygulamada ve üç dilde.',
+  'site.features.lead':
+    'Kampüsün sosyal akışından yemek listesine, kulüplerden sohbete: öğrenci hayatı tek uygulamada ve üç dilde.',
   'site.features.ctaTitle': 'Hepsini denemek için uygulamayı indirin',
   'site.feat.news.title': 'Haber, duyuru ve etkinlikler',
   'site.feat.news.text':
@@ -64,7 +60,7 @@ const site = {
   'site.feat.menu.text': 'Günün ve haftanın yemek listesine uygulamayı açar açmaz ulaşın.',
   'site.feat.chat.title': 'Mesajlaşma',
   'site.feat.chat.text':
-    'Üniversite hesaplarıyla birebir yazışın. Gerekirse kullanıcıyı engelleyebilir veya şikâyet edebilirsiniz.',
+    'Kampüs arkadaşlarınızla birebir ve grup sohbetleri. Gerekirse kullanıcıyı engelleyebilir veya şikâyet edebilirsiniz.',
   'site.feat.communities.title': 'Topluluklar',
   'site.feat.communities.text': 'Öğrenci topluluklarını keşfedin, katılın, gönderileri ve duyuruları izleyin.',
   'site.feat.events.title': 'Etkinlik ve QR yoklama',
@@ -83,15 +79,16 @@ const site = {
 
   'site.about.title': 'Hakkımızda',
   'site.about.lead':
-    'Bingöl Üniversitesi öğrenci ve personelinin resmî duyurulara, yemek listesine, etkinliklere ve kampüs iletişimine tek yerden ulaşması için geliştirilen bir uygulama.',
+    'Bingöl Üniversitesi topluluğu için geliştirilen, reklamsız ve moderasyonlu bir kampüs sosyal ağı; haberlere, yemek listesine ve etkinliklere de aynı yerden ulaşılır.',
   'site.about.purposeTitle': 'Amacımız',
   'site.about.purposeText':
-    'Üniversite bilgisi birçok sayfaya dağılmış durumda. Uygulama bunları bir araya getirir; böylece ne olduğunu öğrenmek için dolaşmanız gerekmez, kampüsle bağınız tek ekrandan kurulur.',
+    'Kampüs hayatı birçok yere dağılmış durumda: duyurular bir sitede, arkadaşlar başka bir uygulamada. BÜ Kampüs bunları öğrencilere özel tek, sakin ve güvenli bir yerde toplar.',
   'site.about.valuesTitle': 'Değerlerimiz',
   'site.about.value.privacy.title': 'Gizlilik',
   'site.about.value.privacy.text': 'Yalnızca hizmet için gereken veriyi işleriz; verilerinizi satmayız.',
   'site.about.value.security.title': 'Güvenlik',
-  'site.about.value.security.text': 'Yalnızca üniversite hesapları girebilir; oturumlar kısa ömürlü anahtarlarla yönetilir.',
+  'site.about.value.security.text':
+    'Hesap doğrulanmış e-posta ile açılır; içerik moderasyonu ve şikâyet yolu vardır; oturumlar kısa ömürlü anahtarlarla yönetilir.',
   'site.about.value.access.title': 'Erişilebilirlik',
   'site.about.value.access.text': 'Klavye ile gezinme, okunaklı kontrast ve ekran okuyucu desteği gözetilir.',
   'site.about.value.lang.title': 'Çok dillilik',
@@ -99,8 +96,8 @@ const site = {
   'site.about.howTitle': 'Nasıl çalışır?',
   'site.about.how1.title': 'Resmî kaynaklardan derleme',
   'site.about.how1.text': 'Haberler, duyurular ve yemek listesi üniversitenin resmî sitelerinden otomatik olarak derlenir.',
-  'site.about.how2.title': 'Yalnızca bingol.edu.tr hesapları',
-  'site.about.how2.text': 'Kayıt, üniversite e-posta adresiyle yapılır; başka alan adları kabul edilmez.',
+  'site.about.how2.title': 'Herhangi bir geçerli e-posta',
+  'site.about.how2.text': 'Kayıt, geçerli bir e-posta adresiyle yapılır; adresinize gelen kodu girerek doğrularsınız.',
   'site.about.how3.title': 'E-posta doğrulama',
   'site.about.how3.text': 'Adresinize gönderilen kodu girmeden hesap etkinleşmez.',
   'site.about.commitTitle': 'Veri ve gizlilik taahhütlerimiz',
@@ -119,11 +116,11 @@ const site = {
   'site.download.android': 'Android',
   'site.download.ios': 'iPhone ve iPad',
   'site.download.afterTitle': 'İndirdikten sonra',
-  'site.download.after1': 'bingol.edu.tr e-posta adresinizle kaydolun.',
+  'site.download.after1': 'E-posta adresinizle kaydolun.',
   'site.download.after2': 'Adresinize gelen doğrulama kodunu girin.',
   'site.download.after3': 'Profilinizi tamamlayın, ilgi alanlarınızı seçin.',
   'site.download.noteTitle': 'Hesap gerekliliği',
-  'site.download.note': 'Kayıt için üniversite e-posta adresi (bingol.edu.tr) gerekir. Başka alan adları kabul edilmez.',
+  'site.download.note': 'Kayıt için geçerli bir e-posta adresi gerekir (Gmail, Outlook, Hotmail, Yahoo ve diğerleri); adresinize gelen kodla doğrulanır.',
 
   'site.faq.title': 'Sık sorulan sorular',
   'site.faq.lead': 'Uygulamayla ilgili en çok sorulanlar. Yanıt yoksa bize yazın.',
@@ -151,8 +148,6 @@ const site = {
   'site.contact.inAppText':
     'Giriş yaptıysanız destek talebini doğrudan uygulamadan açın; yanıtı da uygulamada görürsünüz.',
   'site.contact.inApp1': 'Uygulamayı açın ve giriş yapın.',
-  'site.contact.inApp2': 'Destek bölümünden yeni talep oluşturun.',
-  'site.contact.inApp3': 'Konuyu yazıp gönderin; talebin durumunu aynı yerden izleyin.',
   'site.contact.emptyTitle': 'Genel iletişim bilgileri henüz yayınlanmadı',
   'site.contact.emptyText': 'Şimdilik uygulama içi destek talebiyle bize ulaşabilirsiniz.',
   'site.contact.dataTitle': 'Kişisel veri talebi',
@@ -163,6 +158,20 @@ const site = {
   'site.dataRequest.title': 'Veri talebi',
   'site.dataRequest.lead': 'Kişisel verilerinizle ilgili haklarınız ve bunları nasıl kullanabileceğiniz.',
   'site.dataRequest.rightsTitle': 'KVKK m.11 kapsamındaki haklarınız',
+  'site.dataRequest.selfTitle': 'Uygulamadan kendiniz yapın',
+  'site.dataRequest.applyTitle': 'Başvuru yolları',
+  'site.dataRequest.apply1': 'Uygulama içi destek talebi: Destek bölümünden “kişisel veri talebi” konusuyla yazın.',
+  'site.dataRequest.apply2': 'E-posta:',
+  'site.dataRequest.applyNote':
+    'Başvurunuzda hangi hakkı kullanmak istediğinizi ve hesabınızın e-posta adresini belirtin; kimliğinizi doğrulamak için ek bilgi isteyebiliriz. Kanun’a göre başvurular en geç 30 gün içinde sonuçlandırılır.',
+  'site.dataRequest.retentionTitle': 'Saklama süreleri (özet)',
+  'site.dataRequest.readKvkk': 'KVKK aydınlatma metnini oku',
+
+  'site.notFound.title': 'Sayfa bulunamadı',
+  'site.notFound.hint': 'Aradığınız sayfa taşınmış ya da hiç var olmamış olabilir.',
+  'site.notFound.home': 'Ana sayfaya dön',
+  'site.contact.inApp2': 'Destek bölümünden yeni talep oluşturun.',
+  'site.contact.inApp3': 'Konuyu yazıp gönderin; talebin durumunu aynı yerden izleyin.',
   'site.dataRequest.right1': 'Kişisel verilerinizin işlenip işlenmediğini öğrenme',
   'site.dataRequest.right2': 'İşlenmişse buna ilişkin bilgi talep etme',
   'site.dataRequest.right3': 'İşlenme amacını ve amacına uygun kullanılıp kullanılmadığını öğrenme',
@@ -172,28 +181,16 @@ const site = {
   'site.dataRequest.right7': 'Düzeltme ve silme işlemlerinin verilerin aktarıldığı üçüncü kişilere bildirilmesini isteme',
   'site.dataRequest.right8': 'Verilerin otomatik sistemlerle analiz edilmesi sonucu aleyhinize bir sonuç çıkmasına itiraz etme',
   'site.dataRequest.right9': 'Kanuna aykırı işleme nedeniyle zarara uğramanız hâlinde zararın giderilmesini talep etme',
-  'site.dataRequest.selfTitle': 'Uygulamadan kendiniz yapın',
   'site.dataRequest.self1.title': 'Verilerinizi indirin',
   'site.dataRequest.self1.text':
     'Uygulamada Profil > Verilerimi indir bölümünden hesabınıza ait verileri bir dosya olarak alın.',
   'site.dataRequest.self2.title': 'Hesabınızı silin',
   'site.dataRequest.self2.text':
     'Uygulamadaki hesap ayarlarından hesabınızı silebilirsiniz. Silme, kişisel verilerinizi anonimleştirir ve geri alınamaz.',
-  'site.dataRequest.applyTitle': 'Başvuru yolları',
-  'site.dataRequest.apply1': 'Uygulama içi destek talebi: Destek bölümünden “kişisel veri talebi” konusuyla yazın.',
-  'site.dataRequest.apply2': 'E-posta:',
-  'site.dataRequest.applyNote':
-    'Başvurunuzda hangi hakkı kullanmak istediğinizi ve bingol.edu.tr hesabınızı belirtin; kimliğinizi doğrulamak için ek bilgi isteyebiliriz. Kanun’a göre başvurular en geç 30 gün içinde sonuçlandırılır.',
-  'site.dataRequest.retentionTitle': 'Saklama süreleri (özet)',
   'site.dataRequest.ret1': 'Analitik olaylar: 180 gün sonra otomatik silinir.',
   'site.dataRequest.ret2': 'Hesap silindiğinde: kişisel verileriniz anonimleştirilir.',
   'site.dataRequest.ret3': 'Hesabınız açıkken: hesap ve kullanım verileriniz hizmeti sunmak için saklanır.',
   'site.dataRequest.ret4': 'Diğer veri türlerinin ayrıntıları için güncel aydınlatma metnine bakın veya bize yazın.',
-  'site.dataRequest.readKvkk': 'KVKK aydınlatma metnini oku',
-
-  'site.notFound.title': 'Sayfa bulunamadı',
-  'site.notFound.hint': 'Aradığınız sayfa taşınmış ya da hiç var olmamış olabilir.',
-  'site.notFound.home': 'Ana sayfaya dön',
 } as const;
 
 export default site;

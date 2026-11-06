@@ -2,7 +2,7 @@
 .mark {
   background: var(--warning-soft);
   color: inherit;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   border-radius: var(--radius-xs);
   padding-inline: 1px;
   text-decoration: underline;

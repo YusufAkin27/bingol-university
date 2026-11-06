@@ -84,7 +84,7 @@ describe('güven sayfaları (SITE3)', () => {
     renderAt('/delete-account');
     await screen.findByRole('heading', { level: 1, name: 'Hesap silme' });
     const shot = SHOTS.delete;
-    const img = await screen.findByRole('img', { name: /Hesabı sil ekranı/ });
+    const img = await screen.findByRole('img', { name: /Ayarlar ekranı/ });
     expect(img).toHaveAttribute('width', String(shot.width));
     expect(img).toHaveAttribute('height', String(shot.height));
     expect(img).toHaveAttribute('loading', 'lazy');

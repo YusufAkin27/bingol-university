@@ -1,6 +1,6 @@
 import { readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { screen, within } from '@testing-library/react';
+import { fireEvent, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { AuthProvider } from '../../auth/AuthProvider';
 import { dictionaries } from '../../i18n/all';
@@ -42,18 +42,24 @@ function renderAt(route: string, lang: 'tr' | 'en' | 'ar' = 'tr', stores?: { and
 }
 
 describe('telefon görselleri (SITE1)', () => {
-  const dir = join(process.cwd(), 'src/assets/site');
-  const files = readdirSync(dir).filter((f) => f.endsWith('.webp'));
+  const dir = join(process.cwd(), 'public/site/screens');
+  const names = [...new Set(Object.values(SHOTS).map((s) => s.name))];
 
-  it('her ekran görüntüsü ASCII adlı WebP, <= 90 KB ve en <= 900 px genişliktedir', () => {
-    expect(files.length).toBeGreaterThanOrEqual(8);
-    for (const f of files) {
-      expect(f, f).toMatch(/^[a-z0-9-]+\.webp$/);
-      expect((statSync(join(dir, f)) as unknown as { size: number }).size, f).toBeLessThanOrEqual(90 * 1024);
+  it('her ekranın açık + koyu WebP (ve PNG yedek) dosyası vardır: ASCII ad, WebP <= 140 KB, PNG yedek <= 300 KB', () => {
+    const files = readdirSync(dir);
+    for (const n of names) {
+      for (const theme of ['light', 'dark']) {
+        for (const ext of ['webp', 'png']) {
+          const f = `${n}-${theme}.${ext}`;
+          expect(files, f).toContain(f);
+          expect(f, f).toMatch(/^[a-z0-9-]+\.(webp|png)$/);
+          expect((statSync(join(dir, f)) as unknown as { size: number }).size, f).toBeLessThanOrEqual((ext === 'webp' ? 140 : 300) * 1024);
+        }
+      }
     }
     for (const [id, s] of Object.entries(SHOTS)) {
-      expect(s.width, id).toBeLessThanOrEqual(900);
-      expect(s.height, id).toBeGreaterThan(s.width);
+      expect(s.width, id).toBe(1179);
+      expect(s.height, id).toBe(2556);
     }
   });
 
@@ -69,7 +75,7 @@ describe('telefon görselleri (SITE1)', () => {
     }
   });
 
-  it('PhoneMockup: boyut öznitelikleri, çevrilmiş alt metin; öncelikli olan eager + fetchpriority, diğeri lazy', () => {
+  it('PhoneMockup: boyut öznitelikleri, çevrilmiş alt metin; öncelikli olan eager + fetchpriority, diğeri lazy; iOS çerçevesi', () => {
     const { container } = renderWithProviders(
       <>
         <PhoneMockup shot="home" priority />
@@ -78,29 +84,40 @@ describe('telefon görselleri (SITE1)', () => {
     );
     const imgs = container.querySelectorAll('img');
     expect(imgs).toHaveLength(2);
-    expect(imgs[0]).toHaveAttribute('width', '900');
-    expect(imgs[0]).toHaveAttribute('height', '1948');
+    expect(imgs[0]).toHaveAttribute('width', '1179');
+    expect(imgs[0]).toHaveAttribute('height', '2556');
+    expect(imgs[0].getAttribute('src')).toBe('/site/screens/home-light.webp');
     expect(imgs[0]).toHaveAttribute('loading', 'eager');
     expect(imgs[0]).toHaveAttribute('fetchpriority', 'high');
     expect(imgs[0].getAttribute('alt')).toMatch(/Ana Sayfa/);
     expect(imgs[1]).toHaveAttribute('loading', 'lazy');
     expect(imgs[1]).not.toHaveAttribute('fetchpriority');
     expect(container.querySelector('[class*="island"]')).toBeInTheDocument();
+    expect(container.querySelector('[class*="bar"]')?.textContent).toContain('9:41');
+    expect(container.querySelector('[class*="home"]')).toBeInTheDocument();
   });
 
-  it('PhoneMockup: crop ve altı boş ekranlar peek olur', () => {
+  it('PhoneMockup: dosya yoksa önce .png yedeği, sonra boş zemin; çökmez', () => {
+    const { container } = renderWithProviders(<PhoneMockup shot="home" />);
+    fireEvent.error(container.querySelector('img')!);
+    expect(container.querySelector('img')?.getAttribute('src')).toBe('/site/screens/home-light.png');
+    fireEvent.error(container.querySelector('img')!);
+    expect(container.querySelector('img')).toBeNull();
+    expect(screen.getByRole('img').getAttribute('aria-label')).toMatch(/Ana Sayfa/);
+  });
+
+  it('PhoneMockup: crop peek olur ve ana gösterge çizilmez; peek verilmeyen tam boydur', () => {
     const { container } = renderWithProviders(
       <>
         <PhoneMockup shot="home" crop={0.6} />
-        <PhoneMockup shot="qr" />
-        <PhoneMockup shot="chat" />
+        <PhoneMockup shot="menu" />
       </>,
     );
     const phones = container.querySelectorAll('[class*="phone"]');
     expect(phones[0].className).toMatch(/peek/);
     expect((phones[0] as HTMLElement).style.getPropertyValue('--crop-h')).not.toBe('');
-    expect(phones[1].className).toMatch(/peek/);
-    expect(phones[2].className).not.toMatch(/peek/);
+    expect(phones[0].querySelector('[class*="home"]')).toBeNull();
+    expect(phones[1].className).not.toMatch(/peek/);
   });
 });
 
@@ -129,13 +146,18 @@ describe('mağaza rozeti (SITE1)', () => {
 describe('vitrin sayfaları (SITE1)', () => {
   it('ana sayfa: tek h1, iki rozet ("Yakında"), bağımsızlık etiketi, 4 vitrin kartı, 3 adım', async () => {
     renderAt('/');
-    const h1 = await screen.findByRole('heading', { level: 1, name: 'Kampüs hayatı tek uygulamada' });
+    const h1 = await screen.findByRole('heading', { level: 1, name: 'Öğrencilere özel kampüs sosyal ağı' });
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
     const main = within(screen.getByRole('main'));
     expect(main.getByText('Bağımsız öğrenci uygulaması')).toBeInTheDocument();
     expect(main.getAllByRole('button', { name: /Yakında/ }).length).toBeGreaterThanOrEqual(2);
     expect(main.getAllByRole('img').length).toBeGreaterThanOrEqual(2);
     expect(main.getByRole('heading', { level: 3, name: 'Yemek listesi' })).toBeInTheDocument();
+    // sosyal medya vurgusu + öğrencilere özel güvenli alan; Keşfet ekranı (gerçek kullanıcı içeriği) maket olarak KULLANILMAZ
+    expect(main.getByRole('heading', { level: 2, name: 'Kampüsün sosyal tarafı' })).toBeInTheDocument();
+    expect(main.getByRole('heading', { level: 3, name: 'Kampüs Forum' })).toBeInTheDocument();
+    expect(main.getByRole('heading', { level: 2, name: 'Öğrencilere özel, güvenli bir alan' })).toBeInTheDocument();
+    expect(main.queryByRole('img', { name: /Keşfet/ })).toBeNull();
     expect(main.getAllByRole('listitem').length).toBeGreaterThanOrEqual(7);
     expect(h1).toBeInTheDocument();
   });
@@ -147,29 +169,26 @@ describe('vitrin sayfaları (SITE1)', () => {
     expect(link[0]).toHaveAttribute('href', expect.stringContaining('play.google.com'));
   });
 
-  it('özellikler: sekiz ekran satırı + yinelenmeyen ayrıntı kartları, her başlık bir kez', async () => {
+  it('özellikler: yedi ekran satırı + yinelenmeyen ayrıntı kartları, her başlık bir kez', async () => {
     renderAt('/features');
     await screen.findByRole('heading', { level: 1, name: 'Özellikler' });
     const main = within(screen.getByRole('main'));
-    expect(main.getAllByRole('article')).toHaveLength(SHOWCASE.length);
-    expect(SHOWCASE).toHaveLength(8);
+    expect(main.getAllByRole('article')).toHaveLength(SHOWCASE.length + 1);
+    expect(SHOWCASE).toHaveLength(7);
     expect(main.getAllByRole('heading', { level: 3 })).toHaveLength(MORE_FEATURE_IDS.length);
     expect(MORE_FEATURE_IDS.length + SHOWCASE.length).toBeGreaterThanOrEqual(14);
-    expect(FEATURES.length).toBe(14);
-    // telefonlar: her satırda en az bir görsel (events satırında iki)
-    expect(main.getAllByRole('img').length).toBeGreaterThanOrEqual(9);
+    expect(FEATURES.length).toBe(16);
+    // telefonlar: yedi ekran satırında birer görsel (sosyal akış satırı soyut çizimdir, img değil)
+    expect(main.getAllByRole('img').length).toBeGreaterThanOrEqual(7);
   });
 
   it('indir: iki platform, rozetler, bağımsızlık notu', async () => {
     renderAt('/download');
     await screen.findByRole('heading', { level: 1, name: 'Uygulamayı indir' });
     const main = within(screen.getByRole('main'));
-    const status = await main.findByRole('list', { name: 'Mağaza durumu' });
-    expect(within(status).getAllByRole('listitem')).toHaveLength(2);
-    expect(within(status).getByText('Android')).toBeInTheDocument();
-    expect(within(status).getByText('iPhone ve iPad')).toBeInTheDocument();
-    // bağlantılar yüklenirken rozetler pasif/gizlidir (pending, CLS); yüklenince "Yakında" düğmeleri oluşur
-    expect(await main.findAllByRole('button', { name: /Yakında/ })).toHaveLength(2);
+    expect(main.getByRole('heading', { level: 2, name: 'Android' })).toBeInTheDocument();
+    expect(main.getByRole('heading', { level: 2, name: 'iPhone ve iPad' })).toBeInTheDocument();
+    expect(main.getAllByRole('button', { name: /Yakında/ })).toHaveLength(2);
     expect(main.getByText(/resmî uygulaması değildir/)).toBeInTheDocument();
   });
 

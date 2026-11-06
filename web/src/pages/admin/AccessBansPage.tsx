@@ -17,8 +17,8 @@ const TAB_IDS = ['bans', 'bulk', 'anon'] as const;
 const KIND_COLOR: Record<string, string> = {
   IP: 'var(--chart-1)',
   CIDR: 'var(--chart-2)',
-  DEVICE: 'var(--chart-3)',
-  USER: 'var(--chart-4)',
+  DEVICE: 'var(--chart-4)',
+  USER: 'var(--chart-3)',
 };
 
 export default function AccessBansPage() {

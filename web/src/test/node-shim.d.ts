@@ -12,6 +12,8 @@ declare module 'node:fs' {
 declare module 'node:path' {
   export function join(...parts: string[]): string;
   export function dirname(path: string): string;
+  export function relative(from: string, to: string): string;
+  export const sep: string;
 }
 declare module 'node:os' {
   export function tmpdir(): string;

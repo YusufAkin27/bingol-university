@@ -24,7 +24,7 @@
   gap: var(--space-2);
   min-block-size: 44px;
   padding-inline: var(--space-3);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   cursor: pointer;
   list-style: none;
 }
@@ -38,7 +38,7 @@
   background: var(--primary-soft);
   color: var(--on-soft);
   font-size: var(--text-xs);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .foldBody {
   display: flex;

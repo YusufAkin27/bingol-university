@@ -50,7 +50,7 @@
   flex: 1 1 14rem;
 }
 .itemTitle {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .itemDesc {
   color: var(--text-muted);

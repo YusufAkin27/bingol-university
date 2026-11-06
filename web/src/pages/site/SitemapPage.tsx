@@ -19,7 +19,7 @@ export default function SitemapPage() {
       <section className={`${shared.section} ${shared.sectionTop}`}>
         <div className={`container ${styles.grid}`}>
           <section aria-labelledby="sm-home">
-            <h2 id="sm-home" className={shared.h3}>
+            <h2 id="sm-home" className={styles.title}>
               {t('pg.crumb.home')}
             </h2>
             <ul>
@@ -30,7 +30,7 @@ export default function SitemapPage() {
           </section>
           {SITE_GROUPS.map((g) => (
             <section key={g.title} aria-labelledby={`sm-${g.title}`}>
-              <h2 id={`sm-${g.title}`} className={shared.h3}>
+              <h2 id={`sm-${g.title}`} className={styles.title}>
                 {t(g.title)}
               </h2>
               <ul>

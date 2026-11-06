@@ -79,7 +79,7 @@
 .heroKicker {
   margin: 0;
   font-size: var(--text-xs);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--text-muted);
 }
 .heroTitle {
@@ -138,7 +138,7 @@
   border: 0;
   color: var(--link);
   font: inherit;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   text-decoration: underline;
   cursor: pointer;
 }
@@ -194,7 +194,7 @@
 }
 .groupTitle {
   font-size: var(--text-lg);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .groupSub {
   font-size: var(--text-sm);
@@ -245,21 +245,21 @@
 }
 .label {
   margin: 0;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .value {
   margin: 0;
   font-size: var(--text-xl);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   overflow-wrap: anywhere;
 }
 .valueSm {
   margin: 0;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .message {
   margin: 0;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   overflow-wrap: anywhere;
 }
 .badge {
@@ -267,7 +267,7 @@
   align-items: center;
   gap: var(--space-1);
   font-size: var(--text-xs);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .badge[data-status='OK'] {
   color: var(--success);
@@ -283,7 +283,7 @@
 }
 .link {
   color: var(--link);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   display: inline-flex;
   align-items: center;
   min-block-size: 2.75rem;
@@ -380,7 +380,7 @@
   flex: none;
   max-inline-size: 55%;
   text-align: end;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   overflow-wrap: anywhere;
 }
 
@@ -410,7 +410,7 @@
   border: 0;
   color: var(--link);
   font: inherit;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   text-decoration: underline;
   cursor: pointer;
 }

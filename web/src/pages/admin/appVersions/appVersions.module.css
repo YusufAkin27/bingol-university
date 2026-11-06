@@ -38,13 +38,13 @@
 }
 .statValue {
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
 .below {
   margin: 0 0 var(--space-3);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .belowWarn {
   color: var(--danger);
@@ -74,7 +74,7 @@
 }
 .impact {
   margin: 0;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .confirmExtra {
   display: flex;
@@ -104,7 +104,7 @@
 .langBtnOn {
   background: var(--primary);
   border-color: var(--primary);
-  color: var(--on-primary, #fff);
+  color: var(--primary-contrast);
 }
 .phone {
   display: flex;
@@ -115,9 +115,9 @@
   min-height: 360px;
   margin-inline: auto;
   padding: var(--space-6) var(--space-4);
-  border: 8px solid var(--text, #111);
+  border: 8px solid var(--text);
   border-radius: var(--radius-xl);
-  background: var(--bg, #fff);
+  background: var(--bg);
   text-align: center;
   justify-content: center;
 }
@@ -146,12 +146,12 @@
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-md);
   background: var(--primary);
-  color: var(--on-primary, #fff);
-  font-weight: 600;
+  color: var(--primary-contrast);
+  font-weight: var(--fw-semibold);
 }
 .phoneNoLink {
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .previewTarget {
   margin: var(--space-3) 0 0;

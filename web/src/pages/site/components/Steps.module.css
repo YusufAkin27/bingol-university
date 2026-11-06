@@ -1,150 +1,79 @@
-/*
- * Adım kartları: büyük numara (CSS sayacı, süs) + isteğe bağlı simge + başlık + metin.
- * Masaüstünde kartların arasında kırmızı bağlayıcı çizgi; mobilde dikey, sol kenarda çizgi.
- */
+/* Adımlar: soluk küçük rakam + başlık + metin, üstte ince çizgi. Rakam süs (CSS sayacı); anlam <ol> ve metinde. */
 .steps {
   list-style: none;
   margin: 0;
   padding: 0;
   counter-reset: step;
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-6);
   grid-template-columns: minmax(0, 1fr);
-}
-.steps {
-  container-type: inline-size;
 }
 .steps > li {
   counter-increment: step;
-  position: relative;
-  min-width: 0;
 }
 .step {
   position: relative;
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-2);
   align-content: start;
-  height: 100%;
-  padding: var(--space-5);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-}
-.top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  margin-block-end: var(--space-1);
-}
-.num {
-  display: inline-grid;
-  place-items: center;
-  flex: none;
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-pill);
-  background: var(--primary);
-  color: var(--primary-contrast);
-  font-size: var(--text-lg);
-  font-weight: 800;
-  letter-spacing: 0.02em;
-}
-.num::before {
-  content: counter(step, decimal-leading-zero);
-}
-.ico {
-  display: inline-grid;
-  place-items: center;
-  flex: none;
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-md);
-  background: var(--surface-2);
-  color: var(--text-muted);
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--border-strong);
 }
 .title {
+  display: grid;
+  gap: var(--space-5);
+  font-size: var(--text-h3);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+.title::before {
+  content: counter(step, decimal-leading-zero);
+  color: var(--text-faint);
+  font-size: var(--text-sm);
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+:global(:lang(ar)) .title {
+  letter-spacing: 0;
+}
+:global(:lang(ar)) .title::before {
+  direction: ltr;
+  justify-self: start;
+}
+.solo {
   font-size: var(--text-lg);
-  line-height: 1.25;
+  line-height: 1.4;
   letter-spacing: -0.01em;
 }
 .text {
   color: var(--text-muted);
-  font-size: var(--text-base);
-  max-width: 38ch;
-}
-.solo {
-  font-size: var(--text-lg);
-  font-weight: 600;
-  line-height: 1.4;
-}
-
-/* geniş alanda (ana sayfa) başlık büyür; dar sütunda (indir sayfası) taşmaz */
-@container (min-width: 880px) {
-  .title {
-    font-size: var(--text-xl);
-  }
+  max-width: 36ch;
 }
 @media (min-width: 760px) {
   .steps {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-5);
-  }
-  /* bağlayıcı çizgi: numara dairesinin hizasında, kartlar arası boşlukta */
-  .steps:not(.stack) > li:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    z-index: 1;
-    inset-block-start: calc(var(--space-5) + 24px);
-    inset-inline-start: calc(100% - 2px);
-    width: calc(var(--space-5) + 4px);
-    height: 2px;
-    background: var(--primary);
-    opacity: 0.55;
+    gap: var(--space-6);
   }
 }
 
-/* stack: yan yana sütun yok, kartsız; adımlar tek sütunda, aralarında ince çizgi (hesap silme gibi uzun cümleli yönergeler) */
+/* stack: tek sütun; adımlar arası ince çizgi (hesap silme gibi uzun cümleli yönergeler) */
 .steps.stack {
   grid-template-columns: minmax(0, 1fr);
   gap: 0;
 }
 .stack .step {
-  grid-template-columns: 32px minmax(0, 1fr);
-  align-items: start;
-  column-gap: var(--space-3);
-  row-gap: var(--space-1);
-  height: auto;
-  padding: var(--space-4) 0;
-  border: 0;
+  padding-block: var(--space-4);
   border-block-start: 1px solid var(--border);
-  border-radius: 0;
-  background: none;
-}
-.stack .top {
-  margin: 0;
-  justify-content: flex-start;
-}
-.stack .num {
-  width: 32px;
-  height: 32px;
-  font-size: var(--text-sm);
-  background: var(--primary-soft);
-  color: var(--on-soft);
-}
-.stack .title {
-  font-size: var(--text-base);
-  align-self: center;
-  min-height: 32px;
-  display: flex;
-  align-items: center;
-}
-.stack .text {
-  grid-column: 2;
 }
 .stack > li:last-child .step {
   border-block-end: 1px solid var(--border);
 }
+.stack .title {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: var(--space-4);
+}
 .stack .solo {
-  font-weight: 500;
+  font-size: var(--text-base);
+  line-height: 1.55;
 }

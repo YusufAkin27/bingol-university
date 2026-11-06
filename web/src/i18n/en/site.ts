@@ -8,7 +8,8 @@ const site = {
   'site.nav.main': 'Main menu',
   'site.nav.openMenu': 'Open menu',
   'site.nav.closeMenu': 'Close menu',
-  'site.footer.tagline': 'Announcements, events, the dining menu and your campus community, in your pocket.',
+  'site.footer.tagline':
+    'The campus social network built for students: feed, clubs, chat, events and the dining menu in your pocket.',
   'site.footer.rights': '© {year} BÜ Kampüs. All rights reserved.',
   'site.store.googlePlay': 'Google Play',
   'site.store.appStore': 'App Store',
@@ -19,9 +20,9 @@ const site = {
   'site.store.newTab': 'Opens in a new tab',
 
   'site.meta.home':
-    'Announcements, news, the dining menu, events and campus communication for Bingöl University students and staff, in one app.',
+    'BÜ Kampüs: an ad-free, safe and moderated campus social network for the Bingöl University community. Discover feed, clubs, chat, events, news and the dining menu in one app.',
   'site.meta.features':
-    'News and announcements, dining menu, messaging, communities, events with QR attendance, support and notifications: the features of the BÜ Kampüs app.',
+    'Discover feed, photos and Reels, clubs, chat, Campus Forum, events, QR attendance, news and the dining menu: the features of the BÜ Kampüs app.',
   'site.meta.about':
     'The purpose, values and workings of the BÜ Kampüs app. Available only with bingol.edu.tr accounts.',
   'site.meta.download': 'Download the BÜ Kampüs app for Android and iOS.',
@@ -32,15 +33,12 @@ const site = {
   'site.meta.legal': 'Terms of use, privacy policy, KVKK notice and community rules.',
   'site.maintenance.title': 'Maintenance',
 
-  'site.home.heroTitle': 'Campus life in one app',
+  'site.home.heroTitle': 'The campus social network built for students',
   'site.home.heroLead':
-    'Announcements, news, events, the dining menu and student communities in the BÜ Kampüs app.',
+    'Share photos and Reels, join clubs, chat with friends. Ad-free, safe and moderated, made for the university community.',
   'site.home.ctaDownload': 'Download the app',
   'site.home.ctaFeatures': 'Explore features',
   'site.home.trust': 'Available only with bingol.edu.tr accounts.',
-  'site.home.highlightsTitle': 'Your day at a glance',
-  'site.home.highlightsLead':
-    'Instead of visiting official sites one by one, open the app: announcements, the dining menu and events are already there.',
   'site.home.allFeatures': 'See all features',
   'site.home.stepsTitle': 'Get started in three steps',
   'site.home.step1.title': 'Download the app',
@@ -49,16 +47,12 @@ const site = {
   'site.home.step2.text': 'Only bingol.edu.tr email addresses are accepted.',
   'site.home.step3.title': 'Verify your email',
   'site.home.step3.text': 'Enter the code sent to your address and your account is ready.',
-  'site.home.privacyTitle': 'Your data stays yours',
-  'site.home.privacy1': 'Your data is never sold.',
-  'site.home.privacy2': 'You can download your data from the app.',
-  'site.home.privacy3': 'When you delete your account, your personal data is anonymised.',
   'site.home.privacyLink': 'Read the privacy policy',
   'site.home.ctaTitle': 'Take the campus with you',
-  'site.home.ctaText': 'Store links for the Android and iOS versions will appear here once they are published.',
 
   'site.features.title': 'Features',
-  'site.features.lead': 'What you need on campus every day, in one app and three languages.',
+  'site.features.lead':
+    'From the campus social feed to the dining menu, from clubs to chat: student life in one app and three languages.',
   'site.features.ctaTitle': 'Download the app to try them all',
   'site.feat.news.title': 'News, announcements and events',
   'site.feat.news.text':
@@ -67,7 +61,7 @@ const site = {
   'site.feat.menu.text': 'See today’s and this week’s menu the moment you open the app.',
   'site.feat.chat.title': 'Messaging',
   'site.feat.chat.text':
-    'Chat one-to-one with university accounts. You can block or report a user whenever you need to.',
+    'One-to-one and group chats with your campus friends. You can block or report a user whenever you need to.',
   'site.feat.communities.title': 'Communities',
   'site.feat.communities.text': 'Discover student communities, join them and follow their posts and announcements.',
   'site.feat.events.title': 'Events and QR attendance',
@@ -86,15 +80,16 @@ const site = {
 
   'site.about.title': 'About',
   'site.about.lead':
-    'An app built so that Bingöl University students and staff can reach official announcements, the dining menu, events and campus communication in one place.',
+    'An ad-free, moderated campus social network built for the Bingöl University community; news, the dining menu and events are in the same place.',
   'site.about.purposeTitle': 'Our purpose',
   'site.about.purposeText':
-    'University information is spread across many pages. The app brings it together, so you do not have to go looking to find out what is happening, and your link to campus is a single screen.',
+    'Campus life is scattered: announcements on one site, friends in another app. BÜ Kampüs brings them together in a single calm and safe place made for students.',
   'site.about.valuesTitle': 'Our values',
   'site.about.value.privacy.title': 'Privacy',
   'site.about.value.privacy.text': 'We process only the data the service needs, and we never sell it.',
   'site.about.value.security.title': 'Security',
-  'site.about.value.security.text': 'Only university accounts can sign in, and sessions use short-lived keys.',
+  'site.about.value.security.text':
+    'Accounts are opened with a verified email; content is moderated and reporting is built in; sessions use short-lived keys.',
   'site.about.value.access.title': 'Accessibility',
   'site.about.value.access.text': 'Keyboard navigation, readable contrast and screen reader support are part of the design.',
   'site.about.value.lang.title': 'Multilingual',
@@ -153,8 +148,6 @@ const site = {
   'site.contact.inAppTitle': 'Support request from the app',
   'site.contact.inAppText': 'If you are signed in, open a support request right in the app and read the reply there.',
   'site.contact.inApp1': 'Open the app and sign in.',
-  'site.contact.inApp2': 'Create a new request in the Support section.',
-  'site.contact.inApp3': 'Describe the issue and send it; follow its status in the same place.',
   'site.contact.emptyTitle': 'General contact details have not been published yet',
   'site.contact.emptyText': 'For now you can reach us with an in-app support request.',
   'site.contact.dataTitle': 'Personal data request',
@@ -165,6 +158,20 @@ const site = {
   'site.dataRequest.title': 'Data request',
   'site.dataRequest.lead': 'Your rights over your personal data and how to use them.',
   'site.dataRequest.rightsTitle': 'Your rights under KVKK article 11',
+  'site.dataRequest.selfTitle': 'Do it yourself in the app',
+  'site.dataRequest.applyTitle': 'How to apply',
+  'site.dataRequest.apply1': 'In-app support request: write from the Support section with the subject “personal data request”.',
+  'site.dataRequest.apply2': 'Email:',
+  'site.dataRequest.applyNote':
+    'State which right you wish to use and your bingol.edu.tr account; we may ask for extra information to verify your identity. Under the law, applications are concluded within 30 days at the latest.',
+  'site.dataRequest.retentionTitle': 'Retention periods (summary)',
+  'site.dataRequest.readKvkk': 'Read the KVKK notice',
+
+  'site.notFound.title': 'Page not found',
+  'site.notFound.hint': 'The page you are looking for may have moved or never existed.',
+  'site.notFound.home': 'Back to home',
+  'site.contact.inApp2': 'Create a new request in the Support section.',
+  'site.contact.inApp3': 'Describe the issue and send it; follow its status in the same place.',
   'site.dataRequest.right1': 'Learn whether your personal data is processed',
   'site.dataRequest.right2': 'Request information if it has been processed',
   'site.dataRequest.right3': 'Learn the purpose of processing and whether it is used accordingly',
@@ -174,28 +181,16 @@ const site = {
   'site.dataRequest.right7': 'Request that corrections and deletions be notified to third parties who received your data',
   'site.dataRequest.right8': 'Object to a result against you produced by analysing data with automated systems',
   'site.dataRequest.right9': 'Claim compensation if you suffer damage from unlawful processing',
-  'site.dataRequest.selfTitle': 'Do it yourself in the app',
   'site.dataRequest.self1.title': 'Download your data',
   'site.dataRequest.self1.text':
     'In the app, go to Profile > Download my data to get the data of your account as a file.',
   'site.dataRequest.self2.title': 'Delete your account',
   'site.dataRequest.self2.text':
     'You can delete your account from the account settings in the app. Deleting anonymises your personal data and cannot be undone.',
-  'site.dataRequest.applyTitle': 'How to apply',
-  'site.dataRequest.apply1': 'In-app support request: write from the Support section with the subject “personal data request”.',
-  'site.dataRequest.apply2': 'Email:',
-  'site.dataRequest.applyNote':
-    'State which right you wish to use and your bingol.edu.tr account; we may ask for extra information to verify your identity. Under the law, applications are concluded within 30 days at the latest.',
-  'site.dataRequest.retentionTitle': 'Retention periods (summary)',
   'site.dataRequest.ret1': 'Analytics events: deleted automatically after 180 days.',
   'site.dataRequest.ret2': 'When an account is deleted: your personal data is anonymised.',
   'site.dataRequest.ret3': 'While your account is open: account and usage data are kept to provide the service.',
   'site.dataRequest.ret4': 'For other kinds of data, see the current notice or write to us.',
-  'site.dataRequest.readKvkk': 'Read the KVKK notice',
-
-  'site.notFound.title': 'Page not found',
-  'site.notFound.hint': 'The page you are looking for may have moved or never existed.',
-  'site.notFound.home': 'Back to home',
 } as const;
 
 export default site;

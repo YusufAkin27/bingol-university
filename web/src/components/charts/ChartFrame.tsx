@@ -13,6 +13,9 @@ export const CHART_COLORS = [
   'var(--chart-6)',
 ];
 
+/** Seri ayrımı yalnız renk tonuyla yapılmaz (monochrome): çok serili çizgilerde sıradaki seriye çizgi stili atanır. */
+export const CHART_DASHES: Array<string | undefined> = [undefined, '7 4', '2 3', '9 3 2 3', '1 4', '12 4'];
+
 export const axisProps = {
   stroke: 'var(--chart-axis)',
   tick: { fill: 'var(--chart-axis)', fontSize: 12 },
@@ -29,7 +32,7 @@ export const tooltipStyle = {
     boxShadow: 'var(--shadow-2)',
     fontSize: 13,
   },
-  labelStyle: { color: 'var(--text-muted)', fontWeight: 600 },
+  labelStyle: { color: 'var(--text-muted)', fontWeight: 'var(--fw-semibold)' },
   itemStyle: { color: 'var(--text)' },
 } as const;
 

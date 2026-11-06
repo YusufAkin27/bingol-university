@@ -5,7 +5,7 @@
   gap: var(--space-2);
   border: 1px solid transparent;
   border-radius: var(--radius-md);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   line-height: 1.2;
   text-decoration: none;
   cursor: pointer;
@@ -75,23 +75,12 @@
    (1) başa uyarı simgesi (leftIcon verilmediyse) ve (2) koyu çerçeve ile ayrışır. */
 .danger {
   background: var(--danger);
-  color: #fff;
+  color: var(--danger-contrast);
   border-color: var(--danger-line);
-}
-:root[data-theme='dark'] .danger {
-  color: #1c0b0a;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) .danger {
-    color: #1c0b0a;
-  }
 }
 .danger:hover:not(:disabled) {
   filter: brightness(0.92);
-  color: #fff;
-}
-:root[data-theme='dark'] .danger:hover:not(:disabled) {
-  color: #1c0b0a;
+  color: var(--danger-contrast);
 }
 .danger::before {
   content: '';

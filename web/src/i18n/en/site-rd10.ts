@@ -1,7 +1,6 @@
 // Site shell and status screens (RD10): mobile drawer, footer, cookie preferences, 404, error, loading.
 const m = {
   'site.rd10.nav.drawerTitle': 'Navigation',
-  'site.rd10.nav.settings': 'Appearance and language',
   'site.rd10.theme.label': 'Theme',
   'site.rd10.theme.light': 'Light',
   'site.rd10.theme.dark': 'Dark',
@@ -11,7 +10,6 @@ const m = {
   'site.rd10.foot.sitemap': 'Sitemap',
   'site.rd10.foot.cookiePrefs': 'Cookie preferences',
   'site.rd10.foot.contactLabel': 'Contact details',
-  'site.rd10.foot.domainNote': 'Membership is only available with bingol.edu.tr email addresses.',
 
   'site.rd10.cookie.title': 'About browser storage',
   'site.rd10.cookie.prefs': 'Preferences',
@@ -44,7 +42,6 @@ const m = {
   'site.rd10.err.eyebrow.maintenance': 'Planned maintenance',
   'site.rd10.err.linksTitle': 'Helpful links',
   'site.rd10.err.linksText': 'In the meantime you can browse other parts of the site.',
-  'site.rd10.err.refresh': 'Refresh',
 
   'site.rd10.loading.label': 'Preparing content',
 } as const;

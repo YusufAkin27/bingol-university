@@ -111,7 +111,7 @@ export default function Trends({ registrations, activeUsers }: Props) {
         <LineAreaChart
           data={act}
           xKey="date"
-          series={[{ key: 'dau', label: t('admin.dashboard.trends.dauSeries'), color: 'var(--chart-3)' }]}
+          series={[{ key: 'dau', label: t('admin.dashboard.trends.dauSeries'), color: 'var(--chart-1)' }]}
           ariaLabel={t('admin.v2p.dash.trend.dau')}
           height={200}
           formatX={fmt}

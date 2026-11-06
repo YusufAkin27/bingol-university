@@ -1,54 +1,51 @@
 import { Link } from '../LocalizedLink';
-import { lockupAssets, markAsset } from '../../assets/brand';
+import { markAssets, type MarkAsset } from '../../assets/brand';
 import { useI18n } from '../../i18n/I18nProvider';
 import styles from './Logo.module.css';
 
+/** `mark`: yalnız BÜ glifi; `horizontal`: glif + yanında "Kampüs"; `vertical`: glif üstte, "Kampüs" altta */
 export type LogoVariant = 'mark' | 'horizontal' | 'vertical';
-/** Zemin tonu: `light` = açık zemin (lacivert yazı), `dark` = koyu zemin (beyaz yazı), `auto` = temaya göre */
+/** Zemin tonu: `light` = açık zemin (siyah glif), `dark` = koyu zemin (beyaz glif), `auto` = temaya göre */
 export type LogoTone = 'auto' | 'light' | 'dark';
 
 interface LogoProps {
   variant?: LogoVariant;
   tone?: LogoTone;
-  /** "BİNGÖL ÜNİVERSİTESİ" alt satırlı sürüm (yalnızca yatay/dikey) */
-  tagline?: boolean;
-  /** Görüntülenen yükseklik (px); genişlik oranından hesaplanır */
+  /** Görüntülenen yükseklik (px); glif genişliği orandan hesaplanır */
   height?: number;
   /** Verilirse logo bir bağlantıdır */
   to?: string;
   /** Süs amaçlı kullanım (yanında ad yazıyorsa): alt metin boş, ekran okuyuculardan gizli */
   decorative?: boolean;
-  /** İlk ekrandaki (sayfa üstü) logo: hemen yüklenir. Diğerleri tembel yüklenir (gizli ton hiç indirilmez). */
+  /** Sayfa üstü (LCP) logo: açık ton hemen yüklenir; öncelik yoksa tembel yüklenir. */
   priority?: boolean;
   className?: string;
 }
 
 const DEFAULT_HEIGHT: Record<LogoVariant, number> = { mark: 36, horizontal: 36, vertical: 96 };
 
-function Img({
-  src,
-  width,
-  height,
+function Glyph({
+  asset,
+  glyphH,
   alt,
-  className,
+  cls,
   lazy,
 }: {
-  src: string;
-  width: number;
-  height: number;
+  asset: MarkAsset;
+  glyphH: number;
   alt: string;
-  className?: string;
-  /** Sayfa altı / gizli (CSS ile display:none) tema varyantı: tarayıcı lazy görseli düzen kutusu yokken indirmez. */
+  cls: string;
+  /** Gizli (CSS ile display:none) tema varyantı: tarayıcı lazy görseli düzen kutusu yokken indirmez. */
   lazy?: boolean;
 }) {
   return (
     <img
-      src={src}
-      width={width}
-      height={height}
+      src={asset.src}
+      width={Math.round((glyphH * asset.width) / asset.height)}
+      height={glyphH}
       alt={alt}
       aria-hidden={alt === '' ? true : undefined}
-      className={className}
+      className={cls}
       draggable={false}
       decoding="async"
       loading={lazy ? 'lazy' : undefined}
@@ -57,13 +54,12 @@ function Img({
 }
 
 /**
- * Marka: işaret (kırmızı BÜ karesi), yatay ve dikey kilitler. Görsel dosyaları `src/assets/brand`
- * (brand/build.js üretir). `tone="auto"` iki görseli de basar ve CSS ile temaya göre birini gösterir.
+ * Marka: siyah-beyaz BÜ glifi (dark_logo / light_logo; görseller `src/assets/brand`, `web/scripts/build-brand.py` üretir).
+ * `tone="auto"` iki görseli de basar ve CSS ile temaya göre birini gösterir: koyu temada beyaz, açık temada siyah glif.
  */
 export function Logo({
   variant = 'horizontal',
   tone = 'auto',
-  tagline = false,
   height,
   to,
   decorative = false,
@@ -73,44 +69,45 @@ export function Logo({
   const { t } = useI18n();
   const h = height ?? DEFAULT_HEIGHT[variant];
   const alt = decorative ? '' : t('common.logoAlt');
+  const hasWord = variant !== 'mark';
+  // Yatay: glif yüksekliğin tamamı değil, yazı ile dengeli olsun; dikey: yükseklik glif + yazıyı kapsar
+  const glyphH = variant === 'vertical' ? Math.round(h * 0.62) : variant === 'horizontal' ? Math.round(h * 0.78) : h;
+  const wordPx = variant === 'vertical' ? Math.round(h * 0.2) : Math.round(h * 0.56);
   const cls = [styles.logo, className].filter(Boolean).join(' ');
 
-  let content: JSX.Element;
-  if (variant === 'mark') {
-    content = <Img src={markAsset.src} width={h} height={h} alt={alt} lazy={!priority} className={styles.img} />;
-  } else {
-    const key = (tn: 'light' | 'dark') => `${variant}${tagline ? '-tagline' : ''}-${tn}`;
-    const dims = (tn: 'light' | 'dark') => {
-      const a = lockupAssets[key(tn)];
-      return { a, w: Math.round((h * a.width) / a.height) };
-    };
-    if (tone === 'auto') {
-      const l = dims('light');
-      const d = dims('dark');
-      content = (
-        <>
-          <Img src={l.a.src} width={l.w} height={h} alt={alt} lazy={!priority} className={`${styles.img} ${styles.forLight}`} />
-          {/* İki tonun da alt metni var: görünmeyen (display:none) ton erişilebilirlik ağacında yer almaz; koyu temada yalnız
-              bu görünür ve bağlantısız kullanımda erişilebilir ad onda olmalı (önceden boştu: link-name/image-alt hatası) */}
-          <Img src={d.a.src} width={d.w} height={h} alt={alt} lazy className={`${styles.img} ${styles.forDark}`} />
-        </>
-      );
-    } else {
-      const x = dims(tone);
-      content = <Img src={x.a.src} width={x.w} height={h} alt={alt} lazy={!priority} className={styles.img} />;
-    }
-  }
+  const glyphs =
+    tone === 'auto' ? (
+      <>
+        <Glyph asset={markAssets.light} glyphH={glyphH} alt={alt} lazy={!priority} cls={`${styles.img} ${styles.forLight}`} />
+        <Glyph asset={markAssets.dark} glyphH={glyphH} alt={alt} lazy cls={`${styles.img} ${styles.forDark}`} />
+      </>
+    ) : (
+      <Glyph asset={markAssets[tone]} glyphH={glyphH} alt={alt} lazy={!priority} cls={styles.img} />
+    );
 
+  const content = (
+    <>
+      {glyphs}
+      {hasWord && (
+        <span className={styles.word} style={{ fontSize: wordPx }} aria-hidden="true">
+          Kampüs
+        </span>
+      )}
+    </>
+  );
+
+  const toneCls = tone === 'light' ? styles.onLight : tone === 'dark' ? styles.onDark : '';
+  const all = `${cls} ${toneCls}`.trim();
   if (to) {
     return (
       // tone="auto": koyu temada açık görsel gizlenir, görünen görselin alt'ı boştur; bağlantı adı buradan gelir
-      <Link to={to} className={cls} data-variant={variant} aria-label={decorative ? undefined : alt}>
+      <Link to={to} className={all} data-variant={variant} aria-label={decorative ? undefined : alt}>
         {content}
       </Link>
     );
   }
   return (
-    <span className={cls} data-variant={variant}>
+    <span className={all} data-variant={variant}>
       {content}
     </span>
   );

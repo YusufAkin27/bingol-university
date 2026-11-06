@@ -72,7 +72,7 @@
 .chipOn {
   border-color: var(--primary);
   background: color-mix(in srgb, var(--primary) 12%, var(--surface));
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .chipActive {
   border-style: dashed;
@@ -182,7 +182,7 @@
   min-inline-size: 0;
 }
 .tlAction {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   overflow-wrap: anywhere;
 }
 .tlMeta {
@@ -192,7 +192,7 @@
 }
 .tlStatus {
   color: var(--danger);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   font-size: var(--text-xs);
   white-space: nowrap;
 }
