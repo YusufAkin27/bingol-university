@@ -32,7 +32,7 @@
 }
 .statValue {
   font-size: var(--text-xl, 1.5rem);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .statLabel {
   color: var(--text-muted);
@@ -59,7 +59,7 @@
   min-inline-size: 7rem;
 }
 .errType {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   overflow-wrap: anywhere;
 }
 .muted {

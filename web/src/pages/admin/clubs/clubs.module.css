@@ -41,7 +41,7 @@
   min-inline-size: 0;
 }
 .nameMain {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   overflow-wrap: anywhere;
 }
 /* uzun e-posta/slug satırı kırılsın; yoksa tablo diğer sütunları harf harf daraltır */
@@ -117,7 +117,7 @@
   max-inline-size: 100%;
 }
 .personName {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   overflow-wrap: anywhere;
   flex: 1 1 8rem;
   min-inline-size: 0;

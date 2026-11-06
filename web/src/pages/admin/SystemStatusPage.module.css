@@ -48,12 +48,12 @@
 }
 .label {
   margin: 0;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .value {
   margin: 0;
   font-size: var(--text-xl);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   overflow-wrap: anywhere;
 }
 .badge {
@@ -61,7 +61,7 @@
   align-items: center;
   gap: var(--space-1);
   font-size: var(--text-xs);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .badge[data-status='OK'] {
   color: var(--success);

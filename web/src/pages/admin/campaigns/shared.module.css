@@ -15,7 +15,7 @@
   min-width: 0;
 }
 .calloutTitle {
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   margin-block-end: 2px;
 }
 .info {
@@ -106,7 +106,7 @@
   cursor: pointer;
 }
 .radioLabel {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   font-size: var(--text-sm);
   overflow-wrap: anywhere;
 }
@@ -123,9 +123,9 @@
 }
 .counter-warn {
   color: var(--warning);
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
 }
 .counter-over {
   color: var(--danger);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }

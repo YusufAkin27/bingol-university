@@ -2,7 +2,7 @@
 .list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
 .row { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); padding: var(--space-3) var(--space-4); display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: flex-start; }
 .info { flex: 1 1 14rem; min-inline-size: 0; display: grid; gap: var(--space-2); }
-.date { margin: 0; font-weight: 600; }
+.date { margin: 0; font-weight: var(--fw-semibold); }
 .items { margin: 0; padding-inline-start: 1.1rem; color: var(--text-muted); font-size: var(--text-sm); overflow-wrap: anywhere; }
 .media { display: grid; gap: var(--space-2); justify-items: start; inline-size: 9rem; }
 .thumb { inline-size: 9rem; block-size: 6rem; object-fit: cover; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface-muted, var(--border)); }
@@ -22,9 +22,9 @@
 .kcalInput[aria-invalid='true'] { border-color: var(--danger); }
 .unit { color: var(--text-muted); font-size: var(--text-sm); }
 .kcalFoot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
-.total { font-weight: 600; font-size: var(--text-sm); }
+.total { font-weight: var(--fw-semibold); font-size: var(--text-sm); }
 .bulk { margin-block: var(--space-3); padding: var(--space-3) var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); display: grid; gap: var(--space-2); }
-.bulk > summary { cursor: pointer; font-weight: 600; }
+.bulk > summary { cursor: pointer; font-weight: var(--fw-semibold); }
 .errors { margin: 0; padding-inline-start: 1.1rem; color: var(--danger); font-size: var(--text-sm); }
 
 /* Eksikler uyarısı */
@@ -33,18 +33,18 @@
 
 /* Telefonda kompakt günler: katlanır gün satırı (yakın günler açık), kalori çubuğu, eksik uyarısı */
 .dayDetails { inline-size: 100%; }
-.daySummary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); min-block-size: 44px; cursor: pointer; font-weight: 600; }
+.daySummary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); min-block-size: 44px; cursor: pointer; font-weight: var(--fw-semibold); }
 .dayTitle { overflow-wrap: anywhere; }
 .dayChips { display: flex; flex-wrap: wrap; gap: var(--space-1, 0.25rem); }
 .dayBody { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: flex-start; padding-block-start: var(--space-3); }
 .help { margin-block: var(--space-2); padding: var(--space-2) var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); font-size: var(--text-sm); color: var(--text-muted); }
-.help > summary { cursor: pointer; font-weight: 600; min-block-size: 44px; display: flex; align-items: center; color: var(--text); }
+.help > summary { cursor: pointer; font-weight: var(--fw-semibold); min-block-size: 44px; display: flex; align-items: center; color: var(--text); }
 .help ul { margin: 0 0 var(--space-2); padding-inline-start: 1.1rem; }
 .dish { flex-wrap: wrap; }
 .dishName { display: grid; gap: 2px; flex: 1 1 8rem; }
 .kcalBar { display: block; block-size: 6px; border-radius: var(--radius-pill); background: var(--surface-3); overflow: hidden; max-inline-size: 12rem; }
 .kcalBarFill { display: block; block-size: 100%; background: var(--info); border-radius: var(--radius-pill); }
-.missing { color: var(--warning); font-weight: 700; font-size: var(--text-xs); }
+.missing { color: var(--warning); font-weight: var(--fw-bold); font-size: var(--text-xs); }
 .missing::before { content: '! '; }
 .kcalInput { min-block-size: 44px; }
 @media (max-width: 639px) {

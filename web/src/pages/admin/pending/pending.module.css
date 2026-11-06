@@ -33,7 +33,7 @@
   min-width: 0;
 }
 .idMain {
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   overflow-wrap: anywhere;
 }
 .muted {

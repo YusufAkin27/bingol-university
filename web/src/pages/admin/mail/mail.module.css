@@ -139,14 +139,14 @@
   gap: 2px;
 }
 .previewSubject {
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   overflow-wrap: anywhere;
 }
 .previewFrame {
   inline-size: 100%;
   block-size: 520px;
   border: 0;
-  background: #fff;
+  background: var(--paper);
   display: block;
 }
 .previewMsg {
@@ -174,7 +174,7 @@
   border-color: var(--primary);
   background: var(--primary-soft);
   color: var(--on-soft);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .stepNum {
   inline-size: 20px;
@@ -209,7 +209,7 @@
 }
 .statValue {
   font-size: var(--text-xl);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 .dl {
   display: grid;
