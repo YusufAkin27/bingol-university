@@ -286,3 +286,8 @@ Geriye uyumlu (yalniz ekleme; tek davranis degisikligi: arsiv artik yeni mesajla
 - STOMP `setMessageSizeLimit` 16 KB → 64 KB (10000 emoji ≈ 40 KB UTF-8; aşımda bağlantı kapanırdı). REST gövde sınırı etkilenmez (`IdempotencyFilter` yalnız `/api/admin/**`).
 - Push/yanıt önizlemeleri zaten 100 karaktere kısalır (`PUSH_PREVIEW`, `PREVIEW_LENGTH`); API her zaman tam metni döndürür.
 - Mobil: sınır 10000, sayaç 7500'den; uzun mesaj balonunda 400 karakter + "Devamını gör" (her basışta +700), tamamı açılınca "Daha az göster". Kopyalama/yerel arama tam metne bakar.
+
+## Okundu zamani: `MessageView.readAt` ve `receipt.readAt` (2026-11-07)
+
+- `MessageView.readAt` (ISO-8601 UTC, ornek `2026-11-07T10:00:00Z`; alan yoksa/`null` ise okunmadi). YALNIZ istek sahibi mesajin gondereniyse ve `status=READ` ise dolar; aliciya/baskasina asla gonderilmez. Birebirde kaydedilir (`message.read_at`); grup/oda ve `status=null` durumlarinda gelmez. Mesaj listesi, gonderim/duzenleme yanitlari ve konusma listesindeki `lastMessage` ayni assembler'dan gecer. Gizlilik tercihi (okundu bilgisini kapat) sunucuda yoktur.
+- STOMP `receipt` olayi `readAt` tasir (yalniz `kind="read"`, olay ani UTC = `at`); `delivered` olayinda yok. Eski istemciler alani yok sayar.
