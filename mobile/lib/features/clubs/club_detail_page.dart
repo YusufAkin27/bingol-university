@@ -14,6 +14,7 @@ import '../events/event_form_page.dart';
 import '../events/event_parts.dart' show eventIsExpired;
 import '../polls/poll_routes.dart';
 import 'club_actions.dart';
+import '../saved/save_toggle.dart';
 import 'club_share.dart';
 import 'club_categories.dart';
 import 'club_detail_parts.dart';
@@ -131,6 +132,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
         _club = Map<String, dynamic>.from(r as Map);
         _error = null;
       });
+      _syncMute();
       // Sekmeler tembel yüklenir: yalnız açık olan çekilir, diğerleri açılınca yüklenecek.
       for (final p in [_posts, _events, _members]) {
         if (!identical(p, _cur)) {
@@ -477,6 +479,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
       isOwner: _isOwner,
       isMember: _isMember,
       pendingCount: _requests.items.length,
+      muted: _mute?.muted,
     );
     if (v == null || !mounted) return;
     switch (v) {
@@ -496,6 +499,24 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
         await _leave();
       case 'report':
         await _reportClub();
+      case 'mute':
+        await _mute?.toggle(context, () {
+          if (mounted) setState(() {});
+        });
+    }
+  }
+
+  /// Kulüp bildirimlerini sessize alma durumu; yalnız aktif üyelikte kurulur.
+  MuteController? _mute;
+
+  void _syncMute() {
+    if (_isMember && _mute == null) {
+      final m = _mute = MuteController(widget.session, 'communities', widget.communityId);
+      m.load(() {
+        if (mounted) setState(() {});
+      });
+    } else if (!_isMember) {
+      _mute = null;
     }
   }
 
@@ -625,6 +646,13 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
                 : const SizedBox.shrink(key: ValueKey('noName')),
           ),
           actions: [
+            SaveToggleButton(
+              key: const ValueKey('club-save'),
+              session: widget.session,
+              kind: 'community',
+              id: widget.communityId,
+              builder: (icon, tip, onTap) => ClubBarIcon(icon: icon, tooltip: tip, onTap: onTap, color: fg),
+            ),
             ClubBarIcon(
               key: const ValueKey('club-share'),
               icon: BuIcons.send,

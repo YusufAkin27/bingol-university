@@ -5,6 +5,7 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../chat/photo_autosave.dart';
 import '../follow/follow_sheets.dart';
+import '../saved/my_reports_page.dart';
 import 'blocked_users_page.dart';
 import 'profil2_my_data_page.dart';
 import 'profil2_widgets.dart';
@@ -310,6 +311,13 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
               label: l.profil2BlockedSection,
               value: _blockedCount,
               onTap: () => _push(BlockedUsersPage(session: widget.session), 'blocked_users'),
+            ),
+            ProfilFlatRow(
+              key: const ValueKey('privacy-my-reports'),
+              icon: BuIcons.flag,
+              label: l.reportsMineTitle,
+              sub: l.reportsMineSub,
+              onTap: () => _push(MyReportsListPage(session: widget.session), 'my_reports'),
             ),
             ProfilFlatRow(
               icon: BuIcons.download,
