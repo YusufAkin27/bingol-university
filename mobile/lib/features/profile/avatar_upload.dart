@@ -1,14 +1,13 @@
 import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart';
-import 'package:http/http.dart' as http;
 
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/platform/image_service.dart';
 import '../../core/session.dart';
-import '../../widgets/bu.dart';
 import '../media_crop/media_crop.dart';
+import 'avatar_crop_page.dart';
 
 /// Başarılı avatar yüklemesi: sunucunun döndürdüğü [url] (yanıtta yoksa null) ve yüklenen (düzenlenmiş, sıkıştırılmış)
 /// [bytes] (anında önizleme için).
@@ -19,18 +18,15 @@ class AvatarUploadResult {
   final Uint8List bytes;
 }
 
-/// Test kancaları (üretimde hepsi null): seç/kırp, mevcut fotoğrafı düzenle, indirme, yükleyici, görsel servisi.
+/// Test kancaları (üretimde hepsi null): seç, seç+kırp (kırpma ekranını atlar), yükleyici, görsel servisi.
 class AvatarHooks {
-  const AvatarHooks({this.cropPhoto, this.editPhoto, this.fetchBytes, this.uploader, this.images});
+  const AvatarHooks({this.pickPhoto, this.cropPhoto, this.uploader, this.images});
 
-  /// Kaynaktan seç + düzenle (kırpılmış bayt; null = vazgeçildi).
+  /// Kaynaktan ham fotoğraf baytı seçer (null = vazgeçildi); sonra gerçek kırpma ekranı açılır.
+  final CropPhotoPicker? pickPhoto;
+
+  /// Seç + kırp tek adımda (kırpma ekranı açılmaz; null = vazgeçildi).
   final CropPhotoPicker? cropPhoto;
-
-  /// Mevcut fotoğrafın baytlarını düzenleyiciden geçirir (null = vazgeçildi).
-  final Future<Uint8List?> Function(Uint8List bytes)? editPhoto;
-
-  /// Mevcut avatarın baytlarını indirir.
-  final Future<Uint8List> Function(String url)? fetchBytes;
   final MultipartUploader? uploader;
   final ImageService? images;
 }
@@ -56,22 +52,25 @@ Future<AvatarUploadResult?> uploadAvatarFrom(
   return _prepareAndUpload(session, bytes, images, uploader);
 }
 
-/// Mevcut avatarı indirir, düzenleyicide açar ve düzenlenmiş hâlini yükler (null = vazgeçildi).
-Future<AvatarUploadResult?> editExistingAvatar(
+/// Sade akış: [source]'tan seç (galeri: sistem fotoğraf seçicisi) -> [AvatarCropPage] (Onayla/İptal) -> küçült/doğrula ->
+/// `POST /users/me/avatar`. Vazgeçilirse null; hata istisna fırlatır (metin için [avatarUploadErrorText]).
+/// Yükleme başarısız olursa çağıran mevcut fotoğrafı hiç değiştirmemiştir (yalnız başarıdan sonra uygulanır).
+Future<AvatarUploadResult?> pickCropUploadAvatar(
   BuildContext context,
   Session session,
-  String url, {
+  ImageSource source, {
   AvatarHooks hooks = const AvatarHooks(),
 }) async {
-  final full = fileUrl(url);
-  if (full == null) return null;
-  // /api/ altındaki (korumalı) avatar adresleri Authorization ister; /files/** herkese açıktır.
-  final token = url.startsWith('/api/') ? session.api.tokens?.access : null;
-  final src = await (hooks.fetchBytes ?? (u) => _fetch(u, token))(full);
-  if (!context.mounted) return null;
-  final edited = hooks.editPhoto != null ? await hooks.editPhoto!(src) : (await openAvatarEditor(context, src))?.bytes;
-  if (edited == null) return null;
-  return _prepareAndUpload(session, edited, hooks.images, hooks.uploader);
+  Uint8List? bytes;
+  if (hooks.cropPhoto != null) {
+    bytes = await hooks.cropPhoto!(source);
+  } else {
+    final raw = hooks.pickPhoto != null ? await hooks.pickPhoto!(source) : await (await ImageService().pick(source))?.readAsBytes();
+    if (raw == null || !context.mounted) return null;
+    bytes = await AvatarCropPage.open(context, raw);
+  }
+  if (bytes == null) return null;
+  return _prepareAndUpload(session, bytes, hooks.images, hooks.uploader);
 }
 
 /// `DELETE /users/me/avatar` (varsayılan görsele döner) ve profil önbelleğini bayatlatır.
@@ -90,20 +89,6 @@ Future<AvatarUploadResult> _prepareAndUpload(Session session, Uint8List bytes, I
   session.api.invalidate('/users/me'); // çok parçalı yükleme api katmanından geçmez: profil yanıtı bayat sayılır
   final url = r is Map && r['avatarUrl'] is String ? r['avatarUrl'] as String : null;
   return AvatarUploadResult(url, prepared.bytes);
-}
-
-Future<Uint8List> _fetch(String url, [String? token]) async {
-  try {
-    final res = await http
-        .get(Uri.parse(url), headers: token == null ? null : {'Authorization': 'Bearer $token'})
-        .timeout(const Duration(seconds: 20));
-    if (res.statusCode != 200 || res.bodyBytes.isEmpty) throw ApiError(res.statusCode, 'HTTP_${res.statusCode}', '');
-    return res.bodyBytes;
-  } on ApiError {
-    rethrow;
-  } catch (_) {
-    throw ApiError(0, 'NETWORK', '');
-  }
 }
 
 /// [uploadAvatarFrom] hatasını kullanıcıya gösterilecek metne çevirir (boyut/tür/okunamadı/413/ağ).

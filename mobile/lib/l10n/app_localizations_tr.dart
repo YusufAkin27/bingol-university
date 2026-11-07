@@ -11031,9 +11031,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get avatarSheetTitle => 'Profil fotoğrafı';
 
   @override
-  String get avatarSheetEdit => 'Mevcut fotoğrafı düzenle';
-
-  @override
   String get avatarRemoveTitle => 'Profil fotoğrafınız kaldırılsın mı?';
 
   @override
@@ -11044,8 +11041,17 @@ class AppLocalizationsTr extends AppLocalizations {
   String get avatarRemoveConfirm => 'Kaldır';
 
   @override
-  String get avatarFetchFailed =>
-      'Mevcut fotoğraf açılamadı. Bağlantınızı kontrol edip tekrar deneyin.';
+  String get avatarCropTitle => 'Fotoğrafı konumlandır';
+
+  @override
+  String get avatarCropConfirm => 'Onayla';
+
+  @override
+  String get avatarCropCancel => 'İptal';
+
+  @override
+  String get avatarCropHint =>
+      'Yakınlaştırmak için iki parmakla sıkıştırın, konumlandırmak için sürükleyin. Profilde böyle görünür.';
 
   @override
   String get avatarUpdated => 'Profil fotoğrafınız güncellendi.';

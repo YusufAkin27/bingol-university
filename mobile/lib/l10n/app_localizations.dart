@@ -20058,12 +20058,6 @@ abstract class AppLocalizations {
   /// **'Profil fotoğrafı'**
   String get avatarSheetTitle;
 
-  /// No description provided for @avatarSheetEdit.
-  ///
-  /// In tr, this message translates to:
-  /// **'Mevcut fotoğrafı düzenle'**
-  String get avatarSheetEdit;
-
   /// No description provided for @avatarRemoveTitle.
   ///
   /// In tr, this message translates to:
@@ -20082,11 +20076,29 @@ abstract class AppLocalizations {
   /// **'Kaldır'**
   String get avatarRemoveConfirm;
 
-  /// No description provided for @avatarFetchFailed.
+  /// No description provided for @avatarCropTitle.
   ///
   /// In tr, this message translates to:
-  /// **'Mevcut fotoğraf açılamadı. Bağlantınızı kontrol edip tekrar deneyin.'**
-  String get avatarFetchFailed;
+  /// **'Fotoğrafı konumlandır'**
+  String get avatarCropTitle;
+
+  /// No description provided for @avatarCropConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'Onayla'**
+  String get avatarCropConfirm;
+
+  /// No description provided for @avatarCropCancel.
+  ///
+  /// In tr, this message translates to:
+  /// **'İptal'**
+  String get avatarCropCancel;
+
+  /// No description provided for @avatarCropHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yakınlaştırmak için iki parmakla sıkıştırın, konumlandırmak için sürükleyin. Profilde böyle görünür.'**
+  String get avatarCropHint;
 
   /// No description provided for @avatarUpdated.
   ///

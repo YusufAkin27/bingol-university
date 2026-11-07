@@ -11067,9 +11067,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get avatarSheetTitle => 'Profile photo';
 
   @override
-  String get avatarSheetEdit => 'Edit current photo';
-
-  @override
   String get avatarRemoveTitle => 'Remove your profile photo?';
 
   @override
@@ -11080,8 +11077,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get avatarRemoveConfirm => 'Remove';
 
   @override
-  String get avatarFetchFailed =>
-      'Could not open the current photo. Check your connection and try again.';
+  String get avatarCropTitle => 'Position photo';
+
+  @override
+  String get avatarCropConfirm => 'Confirm';
+
+  @override
+  String get avatarCropCancel => 'Cancel';
+
+  @override
+  String get avatarCropHint =>
+      'Pinch to zoom, drag to position. This is how it looks on your profile.';
 
   @override
   String get avatarUpdated => 'Your profile photo was updated.';
