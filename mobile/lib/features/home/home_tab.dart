@@ -524,12 +524,15 @@ class _HomeTabState extends State<HomeTab> {
       if (banner != null &&
           (banner['text'] ?? banner['message']) is String &&
           ((banner['text'] ?? banner['message']) as String).isNotEmpty)
-        InkWell(
-          onTap: () => _openUrl(
-              banner['url'] is String ? banner['url'] as String : null),
-          child: StaleBanner(
-              text: (banner['text'] ?? banner['message']) as String,
-              icon: BuIcons.megaphone),
+        Semantics(
+          button: true,
+          child: InkWell(
+            onTap: () => _openUrl(
+                banner['url'] is String ? banner['url'] as String : null),
+            child: StaleBanner(
+                text: (banner['text'] ?? banner['message']) as String,
+                icon: BuIcons.megaphone),
+          ),
         ),
       if (_newsStale)
         StaleBanner(text: l.homeSourceUnreachable, icon: BuIcons.triangleAlert),

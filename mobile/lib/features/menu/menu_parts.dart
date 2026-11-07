@@ -136,7 +136,10 @@ class _MenuDayStripState extends State<MenuDayStrip> {
                   decoration: BoxDecoration(color: sel ? t.pr : t.pr.withValues(alpha: 0), borderRadius: BorderRadius.circular(BuRadius.control)),
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   alignment: Alignment.center,
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  // Sabit yükseklikli şerit: çok büyük yazı ölçeğinde taşmasın diye 1.3 ile sınırlı.
+                  child: MediaQuery.withClampedTextScaling(
+                    maxScaleFactor: 1.3,
+                    child: Column(mainAxisSize: MainAxisSize.min, children: [
                     // Metin rengi de hapla birlikte yumuşakça değişir (150 ms).
                     AnimatedDefaultTextStyle(
                       duration: dur,
@@ -155,7 +158,8 @@ class _MenuDayStripState extends State<MenuDayStrip> {
                           fontFeatures: const [FontFeature.tabularFigures()]),
                       child: Text('${d.day}'),
                     ),
-                  ]),
+                    ]),
+                  ),
                 ),
               ),
             ),

@@ -144,7 +144,7 @@ class _FieldError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(top: 6, left: 4),
+        padding: const EdgeInsetsDirectional.only(top: 6, start: 4),
         child: Text(text, style: BuType.caption.copyWith(color: context.bu.danger)),
       );
 }

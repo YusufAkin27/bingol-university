@@ -308,7 +308,10 @@ class _ClubExpandableTextState extends State<ClubExpandableText> {
                   maxLines: _open ? null : widget.maxLines, overflow: _open ? TextOverflow.visible : TextOverflow.ellipsis, style: style),
             ),
             if (overflow)
-              InkWell(
+              Semantics(
+                button: true,
+                expanded: _open,
+                child: InkWell(
                 borderRadius: BuRadius.bXs,
                 onTap: () => setState(() => _open = !_open),
                 child: ConstrainedBox(
@@ -319,7 +322,7 @@ class _ClubExpandableTextState extends State<ClubExpandableText> {
                     child: Text(_open ? l.p11ReadLess : l.p11ReadMore, style: tx.bodyMedium!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
                   ),
                 ),
-              ),
+              )),
           ],
         );
       },

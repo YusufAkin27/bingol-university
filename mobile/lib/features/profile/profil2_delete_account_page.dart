@@ -74,7 +74,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Padding(
-                        padding: const EdgeInsets.only(top: 9, left: 4, right: 14),
+                        padding: const EdgeInsetsDirectional.only(top: 9, start: 4, end: 14),
                         child: Container(width: 6, height: 6, decoration: BoxDecoration(color: t.mut, shape: BoxShape.circle)),
                       ),
                       Expanded(child: Text(it, style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w400, color: t.ink, height: 1.35))),

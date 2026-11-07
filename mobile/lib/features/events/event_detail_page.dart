@@ -996,7 +996,10 @@ class _EventDetailPageState extends State<EventDetailPage> {
       child: Material(
         key: ValueKey(locked ? 'et2-chat-locked' : 'detail-chat'),
         color: t.bg,
-        child: InkWell(
+        child: Semantics(
+          button: true,
+          enabled: !(locked || _chatBusy),
+          child: InkWell(
           onTap: locked || _chatBusy ? null : _openChat,
           child: Container(
             constraints: const BoxConstraints(minHeight: 52),
@@ -1011,7 +1014,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mut),
             ]),
           ),
-        ),
+        )),
       ),
     );
   }
