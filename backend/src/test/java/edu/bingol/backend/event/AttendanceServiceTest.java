@@ -156,6 +156,19 @@ class AttendanceServiceTest {
     }
 
     @Test
+    void ownerOpenedAttendanceIgnoresThirtyMinuteWindowForCheckIn() {
+        going(1L);
+        Instant early = start.minus(Duration.ofHours(3));
+        Instant late = end.plus(Duration.ofHours(3));
+        // sahip yoklamayi acmadiysa pencere (30 dk) gecerli
+        assertEquals("CHECKIN_CLOSED", error(() -> svc.checkIn(user, 5L, codes.generate(5, early), early)).code());
+        // sahip acinca 30 dk kurali uygulanmaz: pencere disinda da yoklama alinir
+        event.setAttendanceOpen(true);
+        svc.checkIn(user, 5L, codes.generate(5, early), early);
+        svc.checkIn(user, 5L, codes.generate(5, late), late);
+    }
+
+    @Test
     void checkInRejectsExpiredWrongOrForgedCode() {
         going(1L);
         Instant issued = start.plusSeconds(10);

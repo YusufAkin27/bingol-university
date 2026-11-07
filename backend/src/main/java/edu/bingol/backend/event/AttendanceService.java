@@ -446,14 +446,21 @@ public class AttendanceService {
     private MyAttendance toMine(UserEvent e, EventRsvp rsvp, EventAttendance rec, Instant now) {
         return new MyAttendance(e.getId(), rsvp == null ? null : rsvp.getStatus(), rec == null ? null : rec.isPresent(),
                 rec == null ? null : rec.getMethod(), rec == null ? null : rec.getMarkedAt(),
-                e.getStatus() == UserEvent.Status.ACTIVE && inWindow(e, now));
+                e.getStatus() == UserEvent.Status.ACTIVE && (e.isAttendanceOpen() || inWindow(e, now)));
     }
 
     static boolean inWindow(UserEvent e, Instant now) {
         return !now.isBefore(e.getStartsAt().minus(WINDOW_BEFORE)) && !now.isAfter(e.getEndsAt().plus(WINDOW_AFTER));
     }
 
+    /**
+     * Yoklama kurali: sahip yoklamayi ACTIYSA 30 dk penceresi UYGULANMAZ (sahip her an acabilir/yoklama alinabilir);
+     * hic acmadiysa pencere (baslangic-30dk .. bitis+30dk) kendiliginden acar.
+     */
     private static void requireWindow(UserEvent e, Instant now) {
+        if (e.isAttendanceOpen()) {
+            return;
+        }
         if (!inWindow(e, now)) {
             throw new ApiException(HttpStatus.CONFLICT, "CHECKIN_CLOSED",
                     "Yoklama yalnızca etkinlik saatlerinde (başlangıçtan 30 dk önce - bitişten 30 dk sonra) açıktır.");
@@ -462,6 +469,9 @@ public class AttendanceService {
 
     /** Elle yoklama pencere acildiktan sonra serbesttir (organizator gec de duzeltebilsin). */
     private static void requireManualOpen(UserEvent e, Instant now) {
+        if (e.isAttendanceOpen()) {
+            return; // sahip acmis: pencere kurali yok
+        }
         if (now.isBefore(e.getStartsAt().minus(WINDOW_BEFORE))) {
             throw new ApiException(HttpStatus.CONFLICT, "CHECKIN_CLOSED", "Yoklama henüz açılmadı.");
         }
