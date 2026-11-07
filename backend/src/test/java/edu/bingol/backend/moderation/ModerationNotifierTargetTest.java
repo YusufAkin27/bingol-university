@@ -60,7 +60,7 @@ class ModerationNotifierTargetTest {
 
         notifier.restored(7L, ReportTargetType.MESSAGE, 901L);
 
-        assertTrue(sentData().isEmpty());
+        assertEquals(Map.of("moderation", "1"), sentData()); // hedef yok; yalniz MODERATION stil isareti
     }
 
     @Test

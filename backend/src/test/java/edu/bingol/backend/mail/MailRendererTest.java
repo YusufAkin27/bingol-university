@@ -15,7 +15,8 @@ class MailRendererTest {
         MailRenderer.Rendered r = renderer.render(MailTemplate.VERIFICATION_CODE, Lang.TR,
                 Map.of("code", "123456", "minutes", "10"));
 
-        assertThat(r.html()).contains("123456").contains("10 dakika").contains("#C62A20").contains("dir=\"ltr\"");
+        assertThat(r.html()).contains("123456").contains("10 dakika").contains("dir=\"ltr\"")
+                .doesNotContainIgnoringCase("#C62A20");
         assertThat(r.text()).contains("123456").contains("10 dakika");
         assertThat(r.subject()).contains("doğrulama");
     }

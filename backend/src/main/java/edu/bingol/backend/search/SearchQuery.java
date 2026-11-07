@@ -13,10 +13,15 @@ public final class SearchQuery {
 
     /** Bosluklari sadelestirir; cok kisaysa 400 firlatir, cok uzunsa keser. */
     public static String normalize(String raw) {
+        return normalize(raw, MIN_LEN);
+    }
+
+    /** Alt sinir cagirana gore: herkese acik haber aramasi 3 ister (2 karakter trigram indeksini kullanamaz). */
+    public static String normalize(String raw, int minLen) {
         String q = raw == null ? "" : raw.trim().replaceAll("\\s+", " ");
-        if (q.codePointCount(0, q.length()) < MIN_LEN) {
+        if (q.codePointCount(0, q.length()) < minLen) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR",
-                    "Arama en az " + MIN_LEN + " karakter olmalı.");
+                    "Arama en az " + minLen + " karakter olmalı.");
         }
         return q.length() <= MAX_LEN ? q : q.substring(0, MAX_LEN);
     }

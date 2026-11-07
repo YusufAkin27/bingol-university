@@ -39,6 +39,14 @@ public class SeriesService {
         this.members = members;
     }
 
+    /** Alim kurallari (setter + @Lazy: dongusel bagimlilik yok; null iken sinir uygulanmaz). */
+    private edu.bingol.backend.event.admission.EventAdmissionHooks admission;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setAdmission(@org.springframework.context.annotation.Lazy edu.bingol.backend.event.admission.EventAdmissionHooks admission) {
+        this.admission = admission;
+    }
+
     @Transactional
     public SeriesView create(Actor a, Long eventId, int count, Instant now) {
         if (count < 1 || count > MAX_EXTRA) {
@@ -57,6 +65,10 @@ public class SeriesService {
         }
         if (src.getEndsAt().atZone(ZONE).plusWeeks(count).toInstant().isAfter(LIMIT)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_DATES", "Tarih aralığı geçersiz.");
+        }
+        // FIX-P05 (A05#6, K14): seri, `count` yeni etkinlik acar; acik/gunluk sinirlar bu sayi kadar artisla denetlenir
+        if (admission != null) {
+            admission.beforeCreate(a, count);
         }
         List<EventSeriesMember> out = new ArrayList<>();
         out.add(new EventSeriesMember(eventId, eventId, 0));

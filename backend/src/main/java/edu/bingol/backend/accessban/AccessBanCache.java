@@ -37,6 +37,7 @@ public class AccessBanCache {
     private final boolean blockAnonymizers;
     private final RangeSet exempt;
     private volatile Snapshot snap;
+    private final java.util.concurrent.locks.ReentrantLock reloadLock = new java.util.concurrent.locks.ReentrantLock();
 
     public AccessBanCache(AccessBanRepository bans, AnonymizerRangeRepository anonymizers, Clock clock,
                           @Value("${app.security.ban-cache-ttl-seconds:20}") long ttlSeconds,
@@ -104,22 +105,41 @@ public class AccessBanCache {
     }
 
     /** Yerel degisiklikten sonra goruntuyu hemen yeniler. */
-    public synchronized void invalidate() {
-        reload();
+    public void invalidate() {
+        reloadLock.lock();
+        try {
+            reload();
+        } finally {
+            reloadLock.unlock();
+        }
     }
 
+    /**
+     * Yenileme tek ucustur (FIX-P02/A01#7): bir istek DB'den yuklerken digerleri ESKI goruntuyle devam eder; DB yavas ya
+     * da kapaliyken butun /api istekleri tek monitorde (her biri 5 sn baglanti zaman asimi) siraya girmez. Hic goruntu
+     * yokken (acilis) beklenir.
+     */
     private Snapshot current() {
         Snapshot s = snap;
         long now = clock.millis();
         if (s != null && now - s.loadedAt < ttlMillis && now < s.nextExpiry) {
             return s;
         }
-        synchronized (this) {
+        if (s != null) {
+            if (!reloadLock.tryLock()) {
+                return s;
+            }
+        } else {
+            reloadLock.lock();
+        }
+        try {
             s = snap;
             if (s != null && clock.millis() - s.loadedAt < ttlMillis && clock.millis() < s.nextExpiry) {
                 return s;
             }
             return reload();
+        } finally {
+            reloadLock.unlock();
         }
     }
 
@@ -164,11 +184,13 @@ public class AccessBanCache {
         } catch (RuntimeException e) {
             // Veritabani gecici erisilemezse eski goruntu surer; sonraki deneme TTL sonra
             log.warn("Engel onbellegi yuklenemedi, eski goruntu kullaniliyor: {}", e.toString());
+            // nextExpiry = simdi + TTL (eski, gecmisteki deger tasinmaz: her istek yeniden DB'ye giderdi)
             Snapshot old = snap;
+            long retryAt = clock.millis() + ttlMillis;
             snap = old == null
-                    ? new Snapshot(RangeSet.EMPTY, Map.of(), Map.of(), Map.of(), RangeSet.EMPTY, clock.millis(), Long.MAX_VALUE)
+                    ? new Snapshot(RangeSet.EMPTY, Map.of(), Map.of(), Map.of(), RangeSet.EMPTY, clock.millis(), retryAt)
                     : new Snapshot(old.ips, old.ipKinds, old.devices, old.users, old.anonymizers, clock.millis(),
-                            old.nextExpiry);
+                            retryAt);
         }
         return snap;
     }

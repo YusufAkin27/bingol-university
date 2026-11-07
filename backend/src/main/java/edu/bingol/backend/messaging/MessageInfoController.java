@@ -59,7 +59,7 @@ public class MessageInfoController {
         ConversationMember member = members.findByConversationIdAndUserIdAndLeftAtIsNull(cid, user)
                 .orElseThrow(MessageInfoController::notFound);
         Conversation conversation = conversations.findById(cid).orElseThrow(MessageInfoController::notFound);
-        if (!message.getSenderId().equals(user) || !member.isAccepted()
+        if (!message.getSenderId().equals(user) || message.isDeleted() || !member.isAccepted()
                 || conversation.getType() != Conversation.Type.DIRECT || id <= member.getClearedUpToMessageId()) {
             throw notFound();
         }
@@ -73,10 +73,13 @@ public class MessageInfoController {
         codec.openAll(List.of(message));
         MessageView view = assembler.assemble(user, List.of(message), Set.of(), null).get(0);
         String status = receipts.statuses(user, List.of(message), null, Map.of(cid, true)).getOrDefault(id, "SENT");
-        boolean suppressed = message.isSuppressed();
+        // Zaman damgasi yalniz durum onu destekliyorsa doner (golge engel / engel / askidaki alici: durum SENT kalir,
+        // kayitli bir zaman olsa bile gonderene sizmaz). Kayit yoksa null: istemci "kayit bulunmuyor" yazar.
+        boolean delivered = !message.isSuppressed() && ("DELIVERED".equals(status) || "READ".equals(status));
+        boolean read = !message.isSuppressed() && "READ".equals(status);
         return new MessageInfo(view, message.getCreatedAt().toString(),
-                suppressed || message.getDeliveredAt() == null ? null : message.getDeliveredAt().toString(),
-                suppressed || message.getReadAt() == null ? null : message.getReadAt().toString(), status,
+                delivered && message.getDeliveredAt() != null ? message.getDeliveredAt().toString() : null,
+                read && message.getReadAt() != null ? message.getReadAt().toString() : null, status,
                 CursorPage.of(rows, limit, Message::getId, m -> views.get(m.getId())));
     }
 

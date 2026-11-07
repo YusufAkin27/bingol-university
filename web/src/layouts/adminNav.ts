@@ -48,6 +48,7 @@ export const adminNav: AdminNavGroup[] = [
     labelKey: 'admin.nav.group.people',
     items: [
       { id: 'users', perm: 'users.read', to: paths.admin.users, labelKey: 'admin.nav.users', icon: 'users' },
+      { id: 'twoFactor', perm: 'users.read', to: paths.admin.twoFactor, labelKey: 'admin.twoFactor.nav', icon: 'key' },
       { id: 'pendingUsers', perm: 'users.pii', to: paths.admin.pendingUsers, labelKey: 'admin.nav.pendingUsers', icon: 'clock' },
       { id: 'suspensions', perm: 'moderation.read', to: paths.admin.suspensions, labelKey: 'admin.nav.suspensions', icon: 'lock' },
       { id: 'appeals', perm: 'moderation.read', to: paths.admin.appeals, labelKey: 'admin.nav.appeals', icon: 'scale' },
@@ -101,13 +102,28 @@ export const adminNav: AdminNavGroup[] = [
     ],
   },
   {
+    id: 'forum',
+    labelKey: 'admin.forum.nav.group',
+    items: [
+      { id: 'forumReports', perm: 'forum.read', to: paths.admin.forumReports, labelKey: 'admin.forum.nav.reports', icon: 'flag' },
+      { id: 'forumTopics', perm: 'forum.read', to: paths.admin.forumTopics, labelKey: 'admin.forum.nav.topics', icon: 'message' },
+      { id: 'forumActions', perm: 'forum.read', to: paths.admin.forumActions, labelKey: 'admin.forum.nav.actions', icon: 'clipboard' },
+      {
+        id: 'forumCategories',
+        // okuma forum.read (sunucu: GET /api/admin/forum/** forum.read); yazma düğmeleri sayfada forum.categories ister
+        perm: 'forum.read',
+        to: paths.admin.forumCategories,
+        labelKey: 'admin.forum.nav.categories',
+        icon: 'tag',
+      },
+    ],
+  },
+  {
     id: 'academic',
     labelKey: 'admin.nav.group.academic',
     items: [
       { id: 'acdCalendar', perm: 'content.read', to: paths.admin.acdCalendar, labelKey: 'admin.nav.acdCalendar', icon: 'graduation' },
-      { id: 'acdExams', perm: 'content.read', to: paths.admin.acdExams, labelKey: 'admin.nav.acdExams', icon: 'pencil' },
       { id: 'acdTimetable', perm: 'content.read', to: paths.admin.acdTimetable, labelKey: 'admin.nav.acdTimetable', icon: 'clock' },
-      { id: 'acdAnnouncements', perm: 'comms.read', to: paths.admin.acdAnnouncements, labelKey: 'admin.nav.acdAnnouncements', icon: 'megaphone' },
     ],
   },
   {
@@ -125,6 +141,7 @@ export const adminNav: AdminNavGroup[] = [
       { id: 'legal', perm: 'legal.read', to: paths.admin.legal, labelKey: 'admin.nav.legal', icon: 'file' },
       { id: 'faq', perm: 'content.read', to: paths.admin.faq, labelKey: 'admin.nav.faq', icon: 'help' },
       { id: 'news', perm: 'content.read', to: paths.admin.news, labelKey: 'admin.nav.news', icon: 'news' },
+      { id: 'unitNews', perm: 'content.read', to: paths.admin.unitNews, labelKey: 'admin.unitNews.nav', icon: 'graduation' },
       { id: 'menu', perm: 'content.read', to: paths.admin.menu, labelKey: 'admin.nav.menu', icon: 'cup' },
     ],
   },
@@ -149,6 +166,7 @@ export const adminNav: AdminNavGroup[] = [
       { id: 'ops', perm: 'system.read', to: paths.admin.ops, labelKey: 'admin.nav.ops', icon: 'panel' },
       { id: 'crashes', perm: 'system.read', to: paths.admin.crashes, labelKey: 'admin.cr1.nav', icon: 'bug' },
       { id: 'dataRetention', perm: 'data.retention.read', to: paths.admin.dataRetention, labelKey: 'admin.ds1.nav', icon: 'database' },
+      { id: 'backup', perm: 'system.read', to: paths.admin.backup, labelKey: 'admin.gd1.nav', icon: 'inbox' },
       { id: 'appVersions', perm: 'settings.read', to: paths.admin.appVersions, labelKey: 'admin.uv.nav', icon: 'download' },
       { id: 'settings', perm: 'settings.read', to: paths.admin.settings, labelKey: 'admin.nav.settings', icon: 'settings' },
       { id: 'roles', perm: 'dashboard.read', to: paths.admin.roles, labelKey: 'admin.p16.nav', icon: 'shield' },

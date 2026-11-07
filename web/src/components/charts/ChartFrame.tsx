@@ -1,4 +1,4 @@
-import { createContext, useContext, type ReactElement } from 'react';
+import { createContext, useContext, useEffect, useRef, type ReactElement } from 'react';
 import { ResponsiveContainer } from 'recharts';
 import { useI18n } from '../../i18n/I18nProvider';
 import styles from './charts.module.css';
@@ -51,6 +51,18 @@ interface Props {
 export function ChartFrame({ ariaLabel, height = 280, empty, emptyLabel, children }: Props) {
   const { t } = useI18n();
   const describedBy = useContext(ChartDescriptionContext);
+  const frameRef = useRef<HTMLDivElement>(null);
+  // Recharts dilim/çubuk şekillerine ad vermeden role="img" yazar (axe svg-img-alt). Çerçevenin kendisi adlı bir görsel olduğundan
+  // içindeki şekiller sunumsal sayılır; animasyonla yeniden çizilen şekiller için gözlemci kullanılır.
+  useEffect(() => {
+    const el = frameRef.current;
+    if (!el) return;
+    const fix = () => el.querySelectorAll('svg [role="img"]').forEach((n) => n.setAttribute('role', 'presentation'));
+    fix();
+    const mo = new MutationObserver(fix);
+    mo.observe(el, { subtree: true, childList: true });
+    return () => mo.disconnect();
+  }, [empty]);
   if (empty) {
     return (
       <div
@@ -66,7 +78,7 @@ export function ChartFrame({ ariaLabel, height = 280, empty, emptyLabel, childre
   }
   return (
     // RTL'de zaman ekseni sağdan sola akar (XAxis reversed) ve değer ekseni sağa geçer; bkz. useChartDir
-    <div className={styles.frame} style={{ height }} role="img" aria-label={ariaLabel} aria-describedby={describedBy}>
+    <div ref={frameRef} className={styles.frame} style={{ height }} role="img" aria-label={ariaLabel} aria-describedby={describedBy}>
       <ResponsiveContainer width="100%" height="100%">
         {children}
       </ResponsiveContainer>

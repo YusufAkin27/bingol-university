@@ -2,19 +2,6 @@
 
 Tum degisiklikler geriye uyumludur (yalniz ekleme / uyumlu duzeltme).
 
-## Sohbet tasarımı, emoji seçici ve birebir mesaj bilgisi (2026-11-04)
-
-- Mobil: sohbet bilgisindeki profil fotoğrafı dokununca bulanık arka planda büyür ve yakınlaştırılabilir. Kısa mesajların saati son satırın yanında görünür; duvar kâğıdı, başlık ve yazma alanı yenilendi.
-- Tepkiler: büyük emoji düğmeleri ve `+` seçici; tek emoji seçilebilir. Son altı başarılı tepki cihazda kullanıcıya özel saklanır ve çıkışta temizlenir. Varsayılan kalp kırmızıdır. Sunucu artık sabit altılı dışında da tek Unicode emoji grafemini kabul eder (en fazla 16 UTF-16 birimi).
-- Birebir sohbette kendi mesajını fiziksel olarak sağdan sola kaydırmak mesaj bilgisi sayfasını açar. `GET /api/messages/{id}/info?before=&size=20`: `message`, `sentAt`, nullable `deliveredAt`/`readAt`, `status`, imleçli `replies`. Yalnız mesajın göndereni ve kabul edilmiş aktif üye erişebilir; gruplar ve temizlenmiş mesajlar 404 döner. Yanıtlar mevcut mesaj görünürlüğü ve maskeleme kurallarını kullanır.
-- V1071, mesajlara ilk alıcı teslim/okuma onayının zamanını kaydeden nullable sütunlar ve yanıt listeleme indeksi ekler. Eski mesajlar için zaman uydurulmaz; durum biliniyor ama zaman kaydı yoksa mobil bunu açıkça gösterir.
-- Yeni mesaj bilgisi ve serbest emoji desteğinin canlıda çalışması backend güncellemesini ve V1071 migration'ını gerektirir. Bu çalışma sırasında üretim sunucusuna dağıtım yapılmadı. Push bildirimi metni değişmedi.
-
-## Tam emoji secici (mobil, 2026-11-05)
-
-- Tepki cubugundaki `+` artik tam emoji secici alt sayfasi acar: kategoriler (Yuzler, Insanlar, Hayvanlar ve doga, Yemek, Aktivite, Seyahat, Nesneler, Semboller, Bayraklar), Turkce/Ingilizce/Arapca arama, "Son kullanilan" (cihazda en cok 8; cubuk ilk 6'yi gosterir). Veri yerel (`chat/emoji_data.dart`, Unicode emoji 15.0 + CLDR tr/ar notlari, ten rengi yok, ~160 KB kaynak); yeni eklenti yok.
-- Sunucu tepkiyi reddederse (`REACTION_NOT_ALLOWED` ya da emoji gecersiz kodlari) mobil "Bu emoji su an desteklenmiyor" toast'i gosterir, tepki geri alinir ve son kullanilanlara yazilmaz; farkli emoji siniri kodlari (`REACTION_LIMIT*`) ayri metin alir.
-
 ## Degisenler
 
 | Uc / alan | Degisiklik |
@@ -51,7 +38,7 @@ Yeni hata kodu yoktur.
 ## Konusma tercihleri
 
 - Sessize al: `PUT /api/conversations/{id}/mute {"durationMinutes":1..525600}` ya da `{"forever":true}` (ikisi birden 400). `DELETE` ile kaldir. Yanit `ConversationView`.
-- Arsiv: `PUT /api/conversations/{id}/archive {"keepArchived":false}`, `DELETE` ile cikar; liste: `GET /api/conversations?archived=true`.
+- Arsiv: `PUT /api/conversations/{id}/archive`, `DELETE` ile cikar; liste: `GET /api/conversations?archived=true`. (20261105: bkz. "Arsiv cubugu" bolumu: arsiv artik her zaman kalicidir.)
 - `ConversationView`: `{id,type,title,peer,memberCount,admin,lastMessage,unreadCount,blocked,createdAt,muted,mutedUntil,archived,mutedForever}`.
 - Rozet: `GET /api/conversations/unread-count` -> `{"total":3,"mutedTotal":5,"conversations":[{"conversationId":10,"unread":3,"muted":false}]}`.
 
@@ -220,8 +207,71 @@ Mesaj isteği (T-026) ile ilişki: "alıcı göndereni takip ediyor" bağlamı y
 - **Sürüm kontrolü:** `GET /api/app/version` sürüm parçaları en çok 9 hane (`INVALID_VERSION` 400); 20+ haneli sürüm `Long.parseLong` taşmasıyla 500 veriyordu.
 - Duman: `scripts/smoke-qa-private.sh`.
 
-## CHAT-PREMIUM: mobil sohbet arayüzü (yalnız istemci; API değişmedi)
+## FIX-P03: sohbet yuku, makbuz kapsami, sayac tavani, duzenleme siniri (2026-11-01)
 
+Istemci etkisi (mobil kodu bu degisiklikle DEGISMEZ; asagidakiler sunucu davranisidir):
+
+- **Oda / buyuk grup makbuzu (K2) - FINAL-ALL: VARSAYILAN ESKI DAVRANIS.** Eski mobil surumler (2.0.5/2.0.6) oda ve buyuk gruplarda iletildi/okundu tiklerini gosterir; `status` hep `null` gelirse tikler "gonderildi"de takilir ve "yaziyor" kaybolur. Bu yuzden kapatma KABUL ARACI olarak kodda durur ama varsayilan kapali DEGIL: `app.chat.receipts-max-members` (varsayilan `0` = sinirsiz; N > 0 ise N uyeyi asan gruplarda makbuz/yaziyor kapali) ve `app.chat.receipts-rooms` (varsayilan `true`; `false` = kulup/etkinlik odalarinda kapali). Yuk onlemleri (makbuz hesabinda uye yuklememe, sorgu sayisi) varsayilanda da gecerlidir; yalniz olay yayini/status kapatilmaz. Eski surumler gerekli en dusuk surume yukseltildikten sonra ayarlar cevrilebilir (bkz. `docs/CLIENT_IMPACT_20261101.md`).
+- **Okunmamis sayaci tavani (K3):** konusma basina `unreadCount` / `unread-count` satiri sunucuda **en cok 100**'e kadar sayilir (`MessageRepository.UNREAD_COUNT_CAP`); 100 = "99+" demektir (istemci `n > 99` icin "99+" yazmaya zaten hazir). Rozet toplami eskisi gibi 100'de kesilir.
+- **`MESSAGE_EDIT_LIMIT` (409):** bir mesaj en cok **10** kez duzenlenebilir (`{0}` = 10); tr/en/ar `messaging*.properties`.
+- **Oda yavas modu:** kulup/etkinlik odasina toplam gonderim dakikada 600 (`msg:room:<cid>`; FINAL-ALL: 120'den yukseltildi, canli etkinlik odasinda mesru trafigi kesmesin); asilirsa 429 (kullanici basina 30/dk sinirina ek).
+- **Mesaj istegi kabulu:** bekleyen/reddeden alicinin yanit yazmasi istegi artik mesajla AYNI islemde kabul eder; hiz siniri/dogrulama hatasinda istek kabul edilmis kalmaz (eskiden 429 alsa bile kabul yazilirdi).
+- **Konusma listesi:** `memberCount` ayni; 20'den cok uyeli konusmalarin yalniz uye sayisi (tek GROUP BY) ve kendi uyelik satiri yuklenir. Alan sozlesmesi degismedi.
+
+Sunucu ici: `ReceiptPolicy` (karar + 60 sn onbellek), `OrderedBusListener` (Redis pub/sub olaylari konusma anahtarli seritlerde, sinirli `chat-bus-` havuzu, `app.messaging.bus-threads` varsayilan 4-8), mute/archive yalniz ilgili kolonu yazar (`updateMute`/`updateArchive`), `DeletedMessageRetention` parcali silme (`ChunkedDeleter`; saklama suresi ayni), `MediaReferenceSource.snapshot()` ile gece yetim taramasi kaynak basina 1 sorgu, sohbet eki dizin taramasi gunde 1, DEK onbellegi varsayilan 20000 (`app.crypto.dek-cache-max-entries`) + aktif surum onbellegi (60 sn). Migration: `V1090__chat1090_unread_cover_idx` (kapsayici kismi indeks), `V1092__chat1092_message_encryption_partial_idx`.
+
+## Tek gosterimlik (view-once) aciklamasi sizdirilmaz (2026-11-05)
+Tek gosterimlik medyanin aciklamasi (mesaj metni) yalniz medya acilinca istemcide gosterilir; sunucu onu baska yuzeylere SIZDIRMAZ:
+- **Push/bildirim:** `MessageService.previewOf` view-once ekli mesajda govdeyi kullanmaz; dil bagimsiz simge gider (`📷` foto, `🎬` video). Normal medya + aciklama ve duz metin onizlemesi degismedi (tercih kaldirildi, onizleme her zaman acik); aciklamasiz normal video artik `🎬`.
+- **Yanit alintisi:** `ReplyPreview` view-once hedefte `text` = `"📷 Fotoğraf"` / `"🎬 Video"` (aciklama yok) ve yeni geriye uyumlu alan `viewOnce: true` (normalde gonderilmez). Istemci kendi dilinde yazabilir.
+- **Sohbet listesi `lastMessage`:** view-once ekli son mesajda `text` bos (`""`); tur `attachments[].viewOnce/kind` ile bilinir (`MessageView.withViewOnceMask`). Sohbet icindeki mesajin kendisi (`MessageView.text`) degismedi: aciklama alicida acilinca gosterilir.
+- **Mesaj arama:** sunucu tarafi mesaj aramasi YOKTUR (govde sifreli saklanir), eslesme sizintisi yok.
+
+
+## Tepki: gecerli HERHANGI bir emoji (2026-11-05)
+- `PUT /api/messages/{id}/reaction {"emoji"}` artik 5 emojilik beyaz listeyle sinirli DEGIL: tek bir gecerli emoji grafem kumesi kabul edilir (`EmojiGrapheme`: basit emoji, ten rengi U+1F3FB-1F3FF, ZWJ dizileri, bayrak = bolgesel gosterge cifti, etiketli bayrak, keycap, FE0F). Harf/rakam/noktalama/bosluk/kontrol/URL ve birden fazla emoji ayni `400 REACTION_NOT_ALLOWED` ile reddedilir. Boyut: en cok 16 UTF-16 birimi / 10 kod noktasi (`message_reaction.emoji` VARCHAR(16) yeterli: migration YOK).
+- `app.chat.reactions` / `GET /api/messages/reactions` artik yalniz istemcinin "hizli tepki" onerisidir (dogrulama icin kullanilmaz).
+- Mesaj basina en cok 20 FARKLI emoji cesidi (`MessageActionService.MAX_DISTINCT_REACTIONS`); yeni cesit eklenirken doluysa `400 REACTION_LIMIT_REACHED` (tr/en/ar). Kullanicinin mevcut cesitlerden birine gecmesi/kendi tepkisini degistirmesi serbesttir; kullanici basina tek tepki kurali ve saklamada `U+FE0F` temizligi (`normalize`) degismedi.
+- Testler: `EmojiGraphemeTest`, `MessageActionServiceTest` (herhangi emoji, gecersiz girdi, cesit siniri).
+## Mesajla icerik paylasimi (SH-BE, 2026-11-05)
+Tam sozlesme: [docs/SHARING.md](../SHARING.md). Degisiklikler geriye uyumludur (yalniz ekleme).
+
+| Uc / alan | Degisiklik |
+|---|---|
+| `POST /api/conversations/{cid}/messages` ve WS `/app/chat.send` | Opsiyonel `share: {type: "POST\|REEL\|NEWS\|EVENT", id}`. Paylasan icerigi GOREBILIYOR olmali; aksi 422 `SHARE_TARGET_INVALID` (tr/en/ar, `messaging*.properties`). `text` paylasimda bos olabilir (kisa not); `attachmentIds`/`viewOnce` ile birlesmez (422). |
+| `MessageView.share` | Yeni opsiyonel alan (`ShareCard`: `type`, `id`, `available`, `title`, `subtitle`, `imageUrl`, `kind`, `url`). OKUMA ANINDA goruntuleyene gore hesaplanir; icerik silinmis/gizlenmis ya da alici goremiyorsa `available=false` ve baslik/gorsel hic gonderilmez. Silinen/gizlenen/engelli mesajda alan yok. WS'te her aliciya KENDI karti gider. |
+| Sohbet listesi `lastMessage` | Paylasimda `share` notr (yalniz `type`, `id`, `available`, `url`); notsuz paylasimda `text` istek dilinde `🔗 Gonderi paylasti` vb. |
+| Push/bildirim govdesi | Aliciya KAYITLI dilinde notr etiket (`share.preview.*`, `i18n/share*.properties`) + varsa gonderenin notu; baslik/gorsel yok. `ChatNotifyFanout.Job.shareType` yeni alan. |
+| Yanit alintisi | Notsuz paylasim mesajina yanit: `replyTo.text` = `"🔗"`. |
+| KVKK disa aktarma | `sentMessages[]` ogelerine `sharedContentType`, `sharedContentId`. |
+
+Sema: `V1280__message_share` (`message.share_type VARCHAR(8)`, `message.share_ref_id BIGINT`, ikisi de NULL'lanabilir; indeks/FK yok; icerik kopyasi tutulmaz). Sunucu ici: `edu.bingol.backend.share.ShareService` (gorunurluk kararinin TEK yeri: haber gizli degil; etkinlik ACTIVE + kulup ACTIVE ve herkese acik ya da uye; gonderi silinmemis/gizlenmemis + yazar ACTIVE + gizli hesap kapisi + engel), `MessageViewAssembler` sayfa basina toplu kart (setter enjeksiyonu), `MessageService.publishView` kart kimligine gore gruplu yayin.
+
+## Mesaj bilgisi: gercek iletildi / okundu zamani (MI-BE, 2026-11-05)
+Mobil "Mesaj bilgisi" ekrani `GET /api/messages/{id}/info` cagiriyordu; uc canli hatta yoktu ve `message.delivered_at/read_at` sutunlari da yoktu ("bir seyler ters gitti"). Gelistirme hattindan tasindi ve zaman kaydi duzeltildi:
+- **Uc:** `MessageInfoController` (`GET /api/messages/{id}/info?before=&size=`, dakikada 60). Yalniz BIREBIR sohbet, yalniz gondericinin KENDI mesaji, kabul edilmis uyelik; digerleri, herkes icin silinmis ve "sohbeti sil" ile temizlenmis mesaj `404 MESSAGE_NOT_FOUND`. Yanit: `{message, sentAt, deliveredAt, readAt, status, replies:{items,nextCursor}}`. Kayit yoksa `deliveredAt/readAt` `null` ve yanit `200` (hata degil); durum `SENT` (engel / golge engel / askidaki alici) ise zamanlar kayitli olsa bile `null` doner (sizinti yok). `deliveredAt` yalniz `status` DELIVERED/READ iken, `readAt` yalniz READ iken verilir.
+- **Yazma:** `ReceiptService.markDelivered` (REST `POST /conversations/{id}/delivered` + STOMP `/app/chat.delivered`) ve `onRead` (`POST .../read`) yalniz BIREBIR sohbette, imlec ilerleyince yeni aralikta (onceki imlec, yeni imlec] gercek `Instant.now()` ile `MessageRepository.recordDelivered/recordRead` yazar. `... IS NULL` kosulu: ILK zaman kalir, sonraki olay uzerine yazmaz. Okuma, iletilmemis aralikta iletildi zamanini da ayni ani ile yazar (okuma iletilmis sayilir). Golge engelli (`suppressed`) mesajlara hic yazilmaz. Grup/oda sohbetlerinde yazilmaz (mesaj bilgisi yalniz birebir).
+- **Eski mesajlar:** geri doldurma YOK. `conversation_member` yalniz imlec (mesaj kimligi) tutar, zaman tutmaz; gercek kaynak olmadigindan eski mesajlarin zamani NULL kalir (uydurma yok). `status` imlecten dogru gelmeye devam eder; mobil `status` READ/DELIVERED iken zaman `null` ise "kayit bulunmuyor" metnini bilincli gosterir.
+- **Migration:** `V1290__direct_message_info.sql` (`message.delivered_at`, `message.read_at` TIMESTAMPTZ, `IF NOT EXISTS`; `mi_msg_reply_idx` yanit sayfalama kismi indeksi).
+- Testler: `MessageInfoControllerTest`, `ReceiptServiceTest` (yazma kosullari), `MessageReceiptTimesTest` (gercek depo: ilk zaman kalir, aralik, golge engel).
+
+
+## Arsiv cubugu (20261105): arsiv kalici + sessiz
+
+Geriye uyumlu (yalniz ekleme; tek davranis degisikligi: arsiv artik yeni mesajla cikmaz).
+
+- **Arsivli sohbet yeni mesajla arsivden CIKMAZ** (WhatsApp "arsivi koru"). `PUT /conversations/{id}/archive` her zaman `archive_sticky=true` yazar; `keepArchived` govdesi kabul edilir ama etkisizdir. `ConversationMemberRepository.unarchiveOnMessage` kaldirildi. Daha once yapiskan olmadan arsivlenmis satirlar da artik arsivde kalir (veri gocu yok).
+- **Arsivli sohbete gelen mesaj sessizdir:** push ve uygulama ici bildirim uretilmez (`MessageService.deliver`: `muted || archivedAt != null`); mesaj kaydedilir, WebSocket ile iletilir, okunmamis sayaci artar.
+- **`GET /api/conversations/unread-count`** (`UnreadSummary`): arsivli sohbetler `total` ve `mutedTotal`a GIRMEZ (alt cubuk/uygulama simgesi rozeti saymaz); yeni alanlar `archivedChats` (arsivdeki, listede gorunen sohbet sayisi) ve `archivedUnreadChats` (okunmamisi olan arsivli sohbet sayisi; sohbet basina 1, bir sohbette 100 okunmamis olsa da 1). `conversations[]` ogesine `archived` eklendi. `/api/me/summary` rozeti (`unreadBadge`) de arsivlileri saymaz.
+- Testler: `ConversationPrefsServiceTest`, `MessageServiceTest`, `UnreadBadgeTest`.
+
+## Teslim tikleri: uc uca denetim ve istemci boslugu kapatma (2026-11-07)
+
+- Durum modeli (degismedi, migration yok): uye imleci `last_delivered_message_id`/`last_read_message_id` (yalniz ilerler) + birebirde `message.delivered_at/read_at` (ilk zaman kazanir). Gonderen tiki: SENT (kayit) -> DELIVERED (ALICI istemci `POST /conversations/{id}/delivered` / STOMP `/app/chat.delivered` / alicinin sohbet listesini cekmesi) -> READ. Okundu iletildiyi de ilerletir. FCM/push tek basina teslim kaniti DEGILDIR: sunucu push gonderince hicbir imlec yazilmaz.
+- Yetki: yalniz konusmanin aktif, kabul etmis UYESI kendi adina yazar (uye degil 404 `CONVERSATION_NOT_FOUND`); gonderen kendi mesajini ackleyemez (no-op); imlec geri gitmez, ayni deger tekrarinda olay yayinlanmaz (idempotent); dakikada 120 (`delivered:<uid>`). Grup: tum diger uygun uyeler esigi gecince DELIVERED/READ (degismedi).
+- Gonderen sohbet LISTESI artik `receipt` olayini dinler (once yalniz acik sohbet ekrani guncelliyordu; liste yenilenene dek son mesaj tek tikte kaliyordu). Acik sohbette son mesajim 2 dk icinde hala SENT ise REST ile hizli teyit (olay kacmis olabilir; Redis pub/sub kalici degil).
+- Alici istemci soket (yeniden) kurulunca: bilinen iletildi imleclerini yeniden yollar, okunmamisi varsa listeyi bir kez ceker (sunucu `markListedDelivered`); push'a dayanmaz. Soket yokken (arka plan/cevrimdisi) istemci iletildi YAZMAZ (muhafazakar).
+- Test: `DeliveryReceiptsEndToEndTest` (iki hesap, H2), mobil `dlv_delivery_ticks_test.dart`.
 - "+" menüsü artık küçük yüzen panel (Kamera, Fotoğraflar); Fotoğraflar sürüklenebilir galeri paneli (ilk %58, yukarı %96, aşağı kapanır; tutamak/başlık da sürükler). Ses ve dosya satırı **yoktur**: sunucu yalnız `IMAGE`/`VIDEO` ek türünü kabul eder (sesli mesaj ve belge eki için backend gerekir).
 - Uzun basma menüsüne "Mesaj bilgisi" (yalnız birebir, kendi mesajım); mesaj bilgisi sayfasına tepkiler ve "düzenlendi" notu. Gönderen kişi tepki listesi sunucuda yok (yalnız emoji + sayı).
 - Tek medya balonu oranı sunucudaki `width/height` ile korunur (3:4..4:3 arası); oynat düğmesi yarı saydam.

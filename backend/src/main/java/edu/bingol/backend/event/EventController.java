@@ -61,12 +61,29 @@ public class EventController {
         this.limiter = limiter;
     }
 
-    /** Yayindaysa 201, admin onayi bekliyorsa 202. */
+
+    private edu.bingol.backend.common.WriteMetrics metrics;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setMetrics(edu.bingol.backend.common.WriteMetrics metrics) {
+        this.metrics = metrics;
+    }
+
+    private edu.bingol.backend.common.IdempotentCreate idem;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setIdem(edu.bingol.backend.common.IdempotentCreate idem) {
+        this.idem = idem;
+    }
+
+    /** Yayindaysa 201, admin onayi bekliyorsa 202. Idempotency-Key ile tekrar ayni etkinligi doner. */
     @PostMapping("/events")
-    public ResponseEntity<EventView> create(@Valid @RequestBody CreateEventRequest r) {
+    public ResponseEntity<EventView> create(@Valid @RequestBody CreateEventRequest r,
+                                            @org.springframework.web.bind.annotation.RequestHeader(value = "Idempotency-Key", required = false) String idemKey) {
         Actor a = Actor.current();
-        limiter.check("event-create:user:" + a.id(), 10, Duration.ofHours(1));
-        EventView v = events.create(a, r);
+        EventView v = edu.bingol.backend.common.IdempotentCreate.exec(idem, a.id(), "event", idemKey,
+                () -> limiter.check("event-create:user:" + a.id(), 10, Duration.ofHours(1)),
+                () -> edu.bingol.backend.common.WriteMetrics.of(metrics, "event.create", () -> events.create(a, r)), EventView::id, id -> events.get(a, id));
         return ResponseEntity.status(v.status() == UserEvent.Status.ACTIVE ? HttpStatus.CREATED : HttpStatus.ACCEPTED).body(v);
     }
 
@@ -159,7 +176,7 @@ public class EventController {
         Actor a = Actor.current();
         limiter.check("event-rsvp:user:" + a.id(), 30, Duration.ofMinutes(1));
         limiter.check("event-rsvp-change:user:" + a.id() + ":event:" + id, 5, Duration.ofMinutes(1)); // ayni etkinlikte dakikada 5 degisiklik
-        return events.rsvp(a, id, r.status());
+        return edu.bingol.backend.common.WriteMetrics.of(metrics, "event.rsvp", () -> events.rsvp(a, id, r.status()));
     }
 
     @DeleteMapping("/events/{id}/rsvp")
@@ -233,6 +250,23 @@ public class EventController {
         return attendance.issueCode(a, id, Instant.now());
     }
 
+    /** Onayli katilimci: kisisel, imzali, kisa omurlu giris QR'i (istemci ~1 dk'da yeniler). */
+    @GetMapping("/events/{id}/my-ticket")
+    public edu.bingol.backend.event.dto.EventDtos.MyTicket myTicket(@PathVariable Long id) {
+        Actor a = Actor.current();
+        limiter.check("my-ticket:user:" + a.id(), 60, Duration.ofMinutes(1));
+        return attendance.issueTicket(a, id, Instant.now());
+    }
+
+    /** Organizator: katilimcinin QR'ini okutur, yoklamayi isler. */
+    @PostMapping("/events/{id}/scan")
+    public edu.bingol.backend.event.dto.EventDtos.ScanResult scan(@PathVariable Long id,
+            @Valid @RequestBody edu.bingol.backend.event.dto.EventDtos.ScanRequest r) {
+        Actor a = Actor.current();
+        limiter.check("event-scan:user:" + a.id(), 120, Duration.ofMinutes(1));
+        return attendance.scan(a, id, r.code(), Instant.now());
+    }
+
     @PostMapping("/events/{id}/check-in")
     public MyAttendance checkIn(@PathVariable Long id, @Valid @RequestBody CheckinRequest r) {
         Actor a = Actor.current();
@@ -255,18 +289,39 @@ public class EventController {
         return attendance.list(Actor.current(), id);
     }
 
+    /** Liste + sayaclar (geldi / gelmedi / bekliyor); cok okutucu icin istemci periyodik yeniler. */
+    @GetMapping("/events/{id}/attendance/summary")
+    public edu.bingol.backend.event.dto.EventDtos.AttendanceSummary attendanceSummary(@PathVariable Long id) {
+        Actor a = Actor.current();
+        limiter.check("attendance-summary:user:" + a.id(), 120, Duration.ofMinutes(1));
+        return attendance.summary(a, id);
+    }
+
+    @GetMapping("/events/{id}/attendance/roster")
+    public edu.bingol.backend.event.dto.EventDtos.AttendanceRoster attendanceRoster(@PathVariable Long id) {
+        Actor a = Actor.current();
+        limiter.check("attendance-roster:user:" + a.id(), 120, Duration.ofMinutes(1));
+        return attendance.roster(a, id);
+    }
+
     @PutMapping("/events/{id}/attendance/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void mark(@PathVariable Long id, @PathVariable Long userId, @Valid @RequestBody MarkRequest r) {
         Actor a = Actor.current();
         limiter.check("attendance-mark:user:" + a.id(), 120, Duration.ofMinutes(1));
-        attendance.mark(a, id, userId, r.present(), Instant.now());
+        if (r.status() == null && r.present() == null) {
+            throw new edu.bingol.backend.common.ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Durum gerekli.");
+        }
+        attendance.mark(a, id, userId, r.status() != null ? r.status() : (r.present() ? "PRESENT" : "ABSENT"), Instant.now());
     }
 
     @PostMapping("/events/{id}/attendance/bulk")
     public BulkResult bulk(@PathVariable Long id, @Valid @RequestBody BulkRequest r) {
         Actor a = Actor.current();
         limiter.check("attendance-bulk:user:" + a.id(), 20, Duration.ofMinutes(1));
+        if (r.status() != null) {
+            return attendance.bulkStatus(a, id, r.status(), r.userIds(), Boolean.TRUE.equals(r.rest()), Instant.now());
+        }
         return attendance.bulk(a, id, r.entries(), Instant.now());
     }
 

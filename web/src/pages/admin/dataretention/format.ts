@@ -11,6 +11,11 @@ export function formatBytes(n: number | null | undefined, locale = 'tr-TR'): str
     v /= 1024;
     i++;
   }
+  // 1023,96 KB gibi değerler yuvarlanınca "1.024 KB" olmasın: bir üst birime geç
+  if (i < units.length - 1 && Math.round(v * 10) / 10 >= 1024) {
+    v /= 1024;
+    i++;
+  }
   const f = new Intl.NumberFormat(locale, { maximumFractionDigits: i === 0 ? 0 : 1 }).format(v);
   return `${f} ${units[i]}`;
 }

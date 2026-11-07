@@ -47,4 +47,11 @@ public class Device {
     /** Uygulama her acilista kaydi yeniler; 60 gun gorulmeyen token'lar zamanlanmis isle silinir. */
     @Column(nullable = false)
     private Instant lastSeenAt = Instant.now();
+
+    /**
+     * Kaydin yapildigi oturum (access JWT `sid`; yoksa null). "Cihazlarim"dan o cihazdan cikista yalniz bu oturumun
+     * push kaydi silinir; diger cihazlarin kayitlari kalir.
+     */
+    @Column(length = 32)
+    private String sessionId;
 }

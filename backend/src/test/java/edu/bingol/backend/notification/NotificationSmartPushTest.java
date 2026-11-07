@@ -241,27 +241,10 @@ class NotificationSmartPushTest {
     }
 
     @Test
-    void previewRespectsAnExplicitlyDisabledPreferenceAndCanBeEnabled() {
+    void previewAlwaysGoesToTheRecipient() {
         when(i18n.msg("notif.message.new", Lang.TR)).thenReturn("Yeni mesaj");
 
-        NotificationPref p = NotificationPref.defaults(1L);
-        p.setMessagePreview(false);
-        when(prefs.findById(1L)).thenReturn(Optional.of(p));
-        svc.sendNewMessage(1L, "Ali", "gizli metin", true, CONV, true, null); // kullanici kapatmis
-        assertEquals("Yeni mesaj", fcm.messages().get(0).body());
-
-        p.setMessagePreview(true);
-        when(prefs.findById(1L)).thenReturn(Optional.of(p));
-        svc.sendNewMessage(1L, "Ali", "gizli metin", true, Map.of("conversationId", "6", "conversationType", "DIRECT"),
-                true, null);
-        assertEquals("gizli metin", fcm.messages().get(1).body());
-    }
-
-    @Test
-    void globalPreviewPathIgnoresTheOptInPreference() {
-        when(i18n.msg("notif.message.new", Lang.TR)).thenReturn("Yeni mesaj");
-
-        svc.sendNewMessage(1L, "Ali", "gizli metin", CONV, true, null); // eski sozlesme: arayan karar verir
+        svc.sendNewMessage(1L, "Ali", "gizli metin", CONV, true, null);
 
         assertEquals("gizli metin", fcm.messages().get(0).body());
     }

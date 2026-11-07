@@ -1,4 +1,4 @@
-// Akademik yönetim sayfalarının saf mantığı (test edilebilir): tarih dönüşümü, doğrulama, ay ızgarası.
+// Akademik takvim yönetim sayfasının saf mantığı (test edilebilir): tarih dönüşümü, doğrulama, ay ızgarası.
 import type { AcademicEvent } from '../../../api/academic';
 
 /** Sunucu yanıtı daima +03:00 ofsetlidir; form için "YYYY-MM-DDTHH:mm" (saat dilimsiz) alınır. */
@@ -17,10 +17,6 @@ export function emptyToNull(v: string): string | null {
 /** Tüm gün olayı: tarih alanları "T00:00" / "T23:59" ile gönderilir. */
 export function allDayRange(start: string, end: string): { startsAt: string; endsAt: string | null } {
   return { startsAt: `${start}T00:00`, endsAt: end ? `${end}T23:59` : null };
-}
-
-export function isHttps(url: string): boolean {
-  return /^https:\/\/\S+$/i.test(url.trim());
 }
 
 /** Bitiş başlangıçtan sonra olmalı (ikisi de aynı biçimde, sözlüksel karşılaştırma yeterli). */
@@ -95,80 +91,3 @@ export function totalPages(total: number, size: number): number {
   return Math.max(1, Math.ceil(total / size));
 }
 
-export type AnnouncementState = 'draft' | 'scheduled' | 'active' | 'expired';
-/** Yönetici listesindeki durum (sunucu süzgeciyle aynı kurallar). */
-export function announcementState(
-  a: { published: boolean; publishAt: string | null; expiresAt: string | null },
-  now: number = Date.now(),
-): AnnouncementState {
-  if (!a.published) return 'draft';
-  if (a.expiresAt && Date.parse(a.expiresAt) <= now) return 'expired';
-  if (a.publishAt && Date.parse(a.publishAt) > now) return 'scheduled';
-  return 'active';
-}
-
-/** Okunma yüzdesi (hedef kitle 0 ise null). */
-export function readPercent(read: number, audience: number | undefined): number | null {
-  if (!audience || audience <= 0) return null;
-  return Math.min(100, Math.round((read / audience) * 100));
-}
-
-export type ExamBucket = 'past' | 'week' | 'nextWeek' | 'later';
-
-/** Pazartesi 00:00 (yerel) tabanlı hafta başlangıcı. */
-function weekStart(d: Date): Date {
-  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
-  return x;
-}
-
-/** Sınavın zaman kovası: geçmiş / bu hafta / gelecek hafta / daha sonra (yerel takvim haftası, pazartesi başlangıçlı). */
-export function examBucket(startsAt: string, now: Date = new Date()): ExamBucket {
-  const at = new Date(startsAt);
-  if (Number.isNaN(at.getTime())) return 'later';
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  if (at < today) return 'past';
-  const thisWeek = weekStart(now).getTime();
-  const weekMs = 7 * 24 * 3600 * 1000;
-  const diff = weekStart(at).getTime() - thisWeek;
-  if (diff < weekMs) return 'week';
-  if (diff < 2 * weekMs) return 'nextWeek';
-  return 'later';
-}
-
-interface ConflictInput {
-  id: number;
-  startsAt: string;
-  endsAt: string | null;
-  grade: string | null;
-  department: string | null;
-  faculty: string | null;
-}
-
-/**
- * Aynı sınıf ve aynı bölümde (bölüm boşsa fakülte) zamanı çakışan sınavların kimlikleri.
- * Sınıf boşsa (herkese açık) karşılaştırılmaz; bitiş yoksa 1 saat varsayılır.
- */
-export function examConflicts(items: ConflictInput[]): Set<number> {
-  const out = new Set<number>();
-  const span = (x: ConflictInput): [number, number] => {
-    const a = new Date(x.startsAt).getTime();
-    const b = x.endsAt ? new Date(x.endsAt).getTime() : NaN;
-    return [a, Number.isNaN(b) || b <= a ? a + 3600_000 : b];
-  };
-  const key = (x: ConflictInput) => `${x.grade}|${(x.department ?? x.faculty ?? '').trim().toLocaleLowerCase('tr')}`;
-  for (let i = 0; i < items.length; i++) {
-    if (!items[i].grade) continue;
-    const [a1, b1] = span(items[i]);
-    if (Number.isNaN(a1)) continue;
-    for (let j = i + 1; j < items.length; j++) {
-      if (key(items[i]) !== key(items[j])) continue;
-      const [a2, b2] = span(items[j]);
-      if (a1 < b2 && a2 < b1) {
-        out.add(items[i].id);
-        out.add(items[j].id);
-      }
-    }
-  }
-  return out;
-}

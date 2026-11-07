@@ -9,4 +9,8 @@ public interface EventAttendanceRepository extends JpaRepository<EventAttendance
     Optional<EventAttendance> findByEventIdAndUserId(Long eventId, Long userId);
 
     List<EventAttendance> findByEventId(Long eventId);
+
+    long countByEventIdAndPresentTrue(Long eventId);
+
+    Optional<EventAttendance> findFirstByEventIdAndPresentTrueOrderByMarkedAtDesc(Long eventId);
 }

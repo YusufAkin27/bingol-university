@@ -54,7 +54,8 @@ public class EventAdminCsvService {
 
     /** Yoklama listesi. */
     public int attendance(Long eventId, Writer w) {
-        List<AdminAttendanceRow> rows = ops.attendance(eventId).rows();
+        var view = ops.attendance(eventId);
+        List<AdminAttendanceRow> rows = view.rows();
         write(w, Csv.BOM);
         write(w, Csv.row(List.of("userId", "name", "emailMasked", "department", "rsvp", "present", "method", "markedBy",
                 "markedAt", "certificate")));
@@ -67,6 +68,10 @@ public class EventAdminCsvService {
                     r.present() == null ? "" : r.present() ? "YES" : "NO", r.method(), r.markedBy(), r.markedAt(),
                     !r.hasCertificate() ? "" : r.certificateRevoked() ? "REVOKED" : "ISSUED")));
             n++;
+        }
+        if (view.truncated()) {
+            // FIX-P05 (A05#9): liste ust sinirda kesildiyse dosya bunu acikca belirtir (eskiden sessizce eksik uretiliyordu)
+            write(w, Csv.row(List.of("TRUNCATED", "Liste ilk " + n + " satirla sinirlidir; tum katilimcilar bu dosyada degildir")));
         }
         return n;
     }

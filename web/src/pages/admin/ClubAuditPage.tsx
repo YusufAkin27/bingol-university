@@ -17,9 +17,9 @@ import {
   Insight,
   LoadMore,
   PageHeader,
+  RankedBars,
   Select,
   Skeleton,
-  StatTile,
   type Tone,
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -27,9 +27,12 @@ import { usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
 import { adminErrorMessage } from './campaigns/shared';
 import { EntityPicker, PickedChip } from './community/EntityPicker';
-import { SummaryStrip } from './community/Summary';
+import { StackedBar, SummaryStrip, type StackPart } from './community/Summary';
+import { tp } from './community/tp';
+import { tally } from './community/tpLogic';
 import { parseId } from './moderation/modLogic';
 import styles from './moderation/moderation.module.css';
+import tpStyles from './community/tp.module.css';
 
 type Group = 'member' | 'permission' | 'transfer' | 'invite';
 const GROUPS: Group[] = ['member', 'permission', 'transfer', 'invite'];
@@ -53,6 +56,7 @@ function toneOf(action: string): Tone {
 export default function ClubAuditPage() {
   const i18n = useI18n();
   const { t, td, formatDateTime, formatDate, formatNumber } = i18n;
+  const x = tp(i18n);
   usePageTitle(t('admin.clubAudit.title'));
   const [params, setParams] = useSearchParams();
   const communityId = parseId(params.get('communityId') ?? '');
@@ -71,6 +75,22 @@ export default function ClubAuditPage() {
   });
   const all = useMemo(() => query.data?.pages.flatMap((p) => p.items) ?? [], [query.data]);
   const items = useMemo(() => (group ? all.filter((a) => groupOf(a.action) === group) : all), [all, group]);
+  // Grafik verileri: yalnız yüklenen kayıtlar sayılır (devamı varsa kullanıcıya söylenir)
+  const GROUP_TONE: Record<Group, StackPart['tone']> = { member: 'success', permission: 'info', transfer: 'warning', invite: 'neutral' };
+  const groupParts: StackPart[] = [
+    ...GROUPS.map((g) => ({
+      key: g,
+      label: t(`admin.v2.audit.group.${g}`),
+      value: all.filter((a) => groupOf(a.action) === g).length,
+      tone: GROUP_TONE[g],
+    })),
+    { key: 'other', label: x('admin.tp.audit.other'), value: all.filter((a) => groupOf(a.action) === null).length, tone: 'neutral' },
+  ];
+  const actors = tally(
+    all,
+    (a) => (a.actorId === null ? null : String(a.actorId)),
+    (_k, a) => a.actorName ?? t('admin.clubAudit.userId', { id: a.actorId ?? 0 }),
+  ).map((r) => ({ key: r.key, label: r.label, value: r.count }));
   const who = (name: string | null, id: number | null) => (id === null ? '—' : (name ?? t('admin.clubAudit.userId', { id })));
 
   /** Gün başlığı: Bugün / Dün / tarih. */
@@ -167,14 +187,27 @@ export default function ClubAuditPage() {
                     />
                   }
                 >
-                  {GROUPS.map((g) => (
-                    <StatTile
-                      key={g}
-                      label={t(`admin.v2.audit.group.${g}`)}
-                      value={all.filter((a) => groupOf(a.action) === g).length}
-                    />
-                  ))}
                 </SummaryStrip>
+                <section className={tpStyles.chartBox} aria-labelledby="audit-groups-title" data-search-anchor="audit-groups">
+                  <h2 id="audit-groups-title" className={tpStyles.chartTitle}>
+                    {x('admin.tp.audit.byGroupTitle')}
+                  </h2>
+                  <StackedBar ariaLabel={x('admin.tp.audit.byGroupAria')} parts={groupParts} />
+                  {query.hasNextPage && (
+                    <p className={styles.muted}>{x('admin.tp.audit.partial', { n: formatNumber(all.length) })}</p>
+                  )}
+                </section>
+                <section className={tpStyles.chartBox} aria-labelledby="audit-actors-title" data-search-anchor="audit-actors">
+                  <h2 id="audit-actors-title" className={tpStyles.chartTitle}>
+                    {x('admin.tp.audit.actorsTitle')}
+                  </h2>
+                  <RankedBars
+                    ariaLabel={x('admin.tp.audit.actorsAria')}
+                    items={actors}
+                    limit={5}
+                    formatValue={(n) => x('admin.tp.audit.opsCount', { n: formatNumber(n) })}
+                  />
+                </section>
                 <div data-search-anchor="audit-filter">
                   <FormField label={t('admin.v2.audit.filter')}>
                     <Select value={group} onChange={(e) => setGroup(e.target.value as Group | '')}>

@@ -28,6 +28,11 @@ public class ReportService {
     public static final String RESTRICT_KEY_PREFIX = "modrestrict:";
 
     private final ReportRepository reports;
+
+    /** "Sikayetlerim": raportorun kendi raporlari (size = istenen + 1). */
+    public java.util.List<Report> mine(Long reporterId, Long cursor, int fetch) {
+        return reports.mine(reporterId, cursor, org.springframework.data.domain.PageRequest.of(0, fetch));
+    }
     private final Map<ReportTargetType, ReportTargetHandler> handlers = new EnumMap<>(ReportTargetType.class);
     private final UserModerationService userModeration;
     private final ModerationNotifier notifier;
@@ -105,7 +110,12 @@ public class ReportService {
         report.setTargetId(r.targetId());
         report.setReason(r.reason());
         report.setNote(r.note() == null || r.note().isBlank() ? null : r.note().trim());
-        report = reports.save(report);
+        try {
+            report = reports.save(report);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            // FIX-P05 (A05#10): cift dokunus yarisi; uq_report_open benzersiz indeksi 500 degil 409 ALREADY_REPORTED verir
+            throw new ApiException(HttpStatus.CONFLICT, "ALREADY_REPORTED", "Bu içeriği zaten raporladınız.");
+        }
 
         applyPolicy(report, h, owner);
         return report;
@@ -210,7 +220,9 @@ public class ReportService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "REASON_CODE_INVALID", "Geçersiz karar nedeni kodu.");
         }
         String code = parseReason(reasonCode).orElse(null);
-        Report report = reports.findById(reportId)
+        // FIX-P05 (A05#10): satir kilidi; iki yonetici ayni anda cozerse ikincisi ilkinin commit'ini bekler ve 409 alir
+        // (eskiden strike iki kez yazilir, bildirimler iki kez giderdi).
+        Report report = reports.lockById(reportId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "REPORT_NOT_FOUND", "Rapor bulunamadı."));
         if (report.getStatus() == Report.Status.RESOLVED) {
             throw new ApiException(HttpStatus.CONFLICT, "ALREADY_RESOLVED", "Rapor zaten sonuçlandırılmış.");

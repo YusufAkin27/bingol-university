@@ -122,6 +122,29 @@ public class MediaService {
         return false;
     }
 
+    /**
+     * Toplu yetim taramasi icin denetleyici (FIX-P03, A02#10): toplu goruntu veren kaynaklar bir kez okunup bellekte
+     * kumeye alinir; vermeyenler dosya basina {@link MediaReferenceSource#isReferenced} ile sorulur.
+     */
+    java.util.function.Predicate<String> referenceChecker() {
+        java.util.Set<String> all = new java.util.HashSet<>();
+        java.util.List<MediaReferenceSource> perFile = new java.util.ArrayList<>();
+        for (MediaReferenceSource s : sources) {
+            java.util.Set<String> snap = null;
+            try {
+                snap = s.snapshot();
+            } catch (RuntimeException e) {
+                log.warn("Medya referans goruntusu alinamadi, dosya basina denetime dusuluyor: {}", e.toString());
+            }
+            if (snap == null) {
+                perFile.add(s);
+            } else {
+                all.addAll(snap);
+            }
+        }
+        return url -> all.contains(url) || perFile.stream().anyMatch(s -> s.isReferenced(url));
+    }
+
     Duration orphanMinAge() {
         return Duration.ofHours(props.orphanMinAgeHours());
     }

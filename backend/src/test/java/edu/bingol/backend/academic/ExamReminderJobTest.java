@@ -57,7 +57,7 @@ class ExamReminderJobTest {
         uid2 = user("exr-2@bingol.edu.tr");
         notifications = mock(NotificationService.class);
         job = new ExamReminderJob(jdbc, notifications, null, clock);
-        exams = new ExamService(jdbc, new AcademicAudience(jdbc), clock);
+        exams = new ExamService(jdbc, clock);
     }
 
     long user(String email) {

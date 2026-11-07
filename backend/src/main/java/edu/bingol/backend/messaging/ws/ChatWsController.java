@@ -47,7 +47,7 @@ public class ChatWsController {
         Long uid = userId(principal);
         try {
             messages.send(uid, p.conversationId(), p.text(), p.clientId(), p.replyToMessageId(), p.attachmentIds(),
-                    p.viewOnce());
+                    p.viewOnce(), p.share());
         } catch (ApiException e) {
             template.convertAndSendToUser(principal.getName(), "/queue/errors",
                     new ErrorFrame(e.code(), e.getMessage(), p.clientId()));

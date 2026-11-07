@@ -13,7 +13,6 @@ export const SITE_GROUPS: { title: TranslationKey; links: SiteLink[] }[] = [
     links: [
       { to: paths.site.about, label: 'site.nav.about' },
       { to: paths.site.contact, label: 'site.nav.contact' },
-      { to: paths.site.brand, label: 'pg.brand.title' },
     ],
   },
   {
@@ -50,6 +49,50 @@ export const SITE_GROUPS: { title: TranslationKey; links: SiteLink[] }[] = [
       { to: paths.site.accessibility, label: 'pg.accessibility.title' },
       { to: paths.site.security, label: 'pg.security.title' },
       { to: paths.site.sitemap, label: 'pg.sitemap.title' },
+    ],
+  },
+];
+
+/**
+ * Alt bilgi (4 sütun: Kurum / Ürün / Destek / Yasal). Site haritası ve bu liste aynı sayfaları gösterir ama alt bilgi
+ * kısadır: Yasal sütunu en önemli 5 belgeyi + "Tüm belgeler" (/legal) bağlantısını verir; kalanı o sayfada ve site haritasındadır.
+ */
+export const FOOTER_GROUPS: { title: TranslationKey; links: SiteLink[] }[] = [
+  {
+    title: 'pg.foot.org',
+    links: [
+      { to: paths.site.about, label: 'site.nav.about' },
+      { to: paths.site.contact, label: 'site.nav.contact' },
+      { to: paths.site.changelog, label: 'pg.changelog.title' },
+    ],
+  },
+  {
+    title: 'pg.foot.product',
+    links: [
+      { to: paths.site.features, label: 'site.nav.features' },
+      { to: paths.site.download, label: 'site.nav.download' },
+      { to: paths.site.news, label: 'pg.nav.news' },
+      { to: paths.site.menu, label: 'pg.nav.menu' },
+    ],
+  },
+  {
+    title: 'pg.foot.support',
+    links: [
+      { to: paths.site.help, label: 'pg.help.title' },
+      { to: paths.site.faq, label: 'site.nav.faq' },
+      { to: paths.site.dataRequest, label: 'site.dataRequest.title' },
+      { to: paths.site.deleteAccount, label: 'pg.delete.title' },
+    ],
+  },
+  {
+    title: 'pg.foot.legal',
+    links: [
+      { to: paths.site.terms, label: 'legal.title.TERMS' },
+      { to: paths.site.privacy, label: 'legal.title.PRIVACY' },
+      { to: paths.site.legal('KVKK'), label: 'legal.title.KVKK' },
+      { to: paths.site.cookies, label: 'pg.cookies.title' },
+      { to: paths.site.guidelines, label: 'pg.guidelines.title' },
+      { to: paths.site.legalIndex, label: 'site.rd10.foot.docs' },
     ],
   },
 ];

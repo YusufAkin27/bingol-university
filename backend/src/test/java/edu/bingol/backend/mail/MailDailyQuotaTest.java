@@ -71,6 +71,7 @@ class MailDailyQuotaTest {
     @Test
     void workerDefersWhenQuotaFullAndKeepsPending() throws Exception {
         MailOutboxRepository outbox = mock(MailOutboxRepository.class);
+        when(outbox.renewLease(any(), any(), any())).thenReturn(1);
         MailTransport transport = mock(MailTransport.class);
         MailProperties p = props(2, 0, 21);
         MailDailyQuota q = new MailDailyQuota(p);

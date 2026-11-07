@@ -108,6 +108,24 @@ groups:
           summary: "Basarili geri yukleme dogrulamasi 9 gunden eski (ya da hic yapilmadi)"
           description: "BACKUP_VERIFY_AGE_RECIPIENT ve deploy/backup-keys/verify.key yapilandirilmis mi? Haftalik dogrulama pazar 04:30."
 
+      # Uzak kopya (Google Drive vb., docs/BACKUP_GDRIVE.md; scripts/backup/remote-sync.sh backup_remote.prom yazar).
+      # Yukleme gunde 1 kez (03:35) + yeniden denemeler; 36 saat = bir gunluk yukleme kacirildi.
+      - alert: BackupRemoteStale
+        expr: backup_remote_configured == 1 and (time() - backup_remote_last_success_timestamp_seconds) > 36 * 3600
+        for: 30m
+        labels: {severity: critical}
+        annotations:
+          summary: "Uzak (Drive) yedek 36 saatten eski ya da hic yuklenmedi"
+          description: "remote-sync.sh basarisiz: admin panelde Yedekleme sayfasi / docker compose logs backup. invalid_grant ise rclone belirteci yenilenmeli (docs/BACKUP_GDRIVE.md)."
+
+      - alert: BackupRemoteLastFailed
+        expr: backup_remote_configured == 1 and backup_remote_last_status == 0
+        for: 12h
+        labels: {severity: warning}
+        annotations:
+          summary: "Son uzak yedek denemesi basarisiz (12 saattir)"
+          description: "backup_remote_last_status=0; admin panelde remote.lastError (kota, yetki, ag) ya da last-success.json'a bakin."
+
       - alert: CertExpiry
         expr: (probe_ssl_earliest_cert_expiry - time()) < 14 * 86400
         for: 1h

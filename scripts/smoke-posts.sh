@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Sade Kesfet gonderileri icin uctan uca duman testi (gercek PostgreSQL gerekir).
-# Sozlesme: gonderi = TAM 1 fotograf (zorunlu) + en cok 7 kelime/60 karakter tek satir metin (istege bagli).
+# Sozlesme: gonderi = TAM 1 fotograf (zorunlu) + istege bagli metin (7 kelime kurali kalkti: gizli ust sinir 2200 karakter/40 satir, 422 POST_TEXT_TOO_LONG).
 # Kaldirilan ozellikler (yorum, hikaye, etiket, kaydet, begenenler listesi) icin uc YOKTUR: 404 doner (V470 ile tablolar da dusuruldu).
 # Kullanim: BASE=http://localhost:8080 ./scripts/smoke-posts.sh
 # Onkosul: compose'ta MAIL_ENABLED=false (dogrulama kodu log'dan okunur); gerekirse once redis flushall.
@@ -67,14 +67,14 @@ echo "== gonderi: kurallar (tek foto + en cok 7 kelime)"
 check "girissiz akis 401" 401 "$(code $A/feed)"
 check "fotografsiz 400" 400 "$(code -X POST -H "$AA" -H "$H" $A/posts -d '{"text":"yalniz metin"}')"
 check "baskasinin medyasi 400" 400 "$(code -X POST -H "$AB" -H "$H" $A/posts -d "{\"mediaIds\":[$MID]}")"
-MV=$(curl -s -X POST -H "$AA" -F "file=@$TMPW/v.mp4;type=video/mp4" $A/posts/media | jid)
-if [ -n "$MV" ]; then
-  check "video gonderi 400" 400 "$(code -X POST -H "$AA" -H "$H" $A/posts -d "{\"mediaIds\":[$MV]}")"
-fi
+# Video gonderi artik serbest (2026-11-04, V1220): kapsamli video akislari scripts/smoke-kesfet-video.sh'de
 M2=$(upload "$AA")
 check "iki foto 400" 400 "$(code -X POST -H "$AA" -H "$H" $A/posts -d "{\"mediaIds\":[$MID,$M2]}")"
-check "8 kelime 422" 422 "$(code -X POST -H "$AA" -H "$H" $A/posts -d "{\"text\":\"bir iki uc dort bes alti yedi sekiz\",\"mediaIds\":[$MID]}")"
-check "cok satir 422" 422 "$(code -X POST -H "$AA" -H "$H" $A/posts -d "{\"text\":\"bir\\niki\",\"mediaIds\":[$MID]}")"
+LONG=$(head -c 2201 /dev/zero | tr '\0' 'a')
+M4=$(upload "$AA")
+check "8 kelime artik serbest (201)" 201 "$(code -X POST -H "$AA" -H "$H" $A/posts -d "{\"text\":\"bir iki uc dort bes alti yedi sekiz\",\"mediaIds\":[$M4]}")"
+M3=$(upload "$AA")
+check "2201 karakter 422" 422 "$(code -X POST -H "$AA" -H "$H" $A/posts -d "{\"text\":\"$LONG\",\"mediaIds\":[$M3]}")"
 R=$(curl -s -X POST -H "$AA" -H "$H" $A/posts -d "{\"text\":\"Merhaba kampus\",\"mediaIds\":[$MID]}")
 PID=$(echo "$R" | jid)
 [ -n "$PID" ] || { echo "  FAIL gonderi olusmadi: $R"; exit 1; }
@@ -116,7 +116,8 @@ echo "== duzenle / sil"
 check "baskasi duzenleyemez 403" 403 "$(code -X PATCH -H "$AB" -H "$H" $A/posts/$PID -d '{"text":"hack"}')"
 check "yazar duzenler" 200 "$(code -X PATCH -H "$AA" -H "$H" $A/posts/$PID -d '{"text":"Duzenlendi"}')"
 has "editedAt dolu" '"editedAt":"' "$(curl -s -H "$AB" $A/posts/$PID)"
-check "duzenle 8 kelime 422" 422 "$(code -X PATCH -H "$AA" -H "$H" $A/posts/$PID -d '{"text":"bir iki uc dort bes alti yedi sekiz"}')"
+check "duzenle 8 kelime serbest 200" 200 "$(code -X PATCH -H "$AA" -H "$H" $A/posts/$PID -d '{"text":"bir iki uc dort bes alti yedi sekiz"}')"
+check "duzenle 2201 karakter 422" 422 "$(code -X PATCH -H "$AA" -H "$H" $A/posts/$PID -d "{\"text\":\"$LONG\"}")"
 check "baskasi silemez 403" 403 "$(code -X DELETE -H "$AB" $A/posts/$PID)"
 check "yazar siler" 204 "$(code -X DELETE -H "$AA" $A/posts/$PID)"
 check "silinen 404" 404 "$(code -H "$AB" $A/posts/$PID)"
@@ -188,7 +189,7 @@ else
   check "gecersiz status 400" 400 "$(code -H "$AD" "$A/admin/posts?status=BOGUS")"
   check "admin metin duzenle" 200 "$(code -X PATCH -H "$AD" -H "$H" $A/admin/posts/$MPID -d '{"text":"duzenlendi"}')"
   has "duzenlenen metin" 'duzenlendi' "$(curl -s -H "$AD" $A/admin/posts/$MPID)"
-  check "admin metin cok uzun 422" 422 "$(code -X PATCH -H "$AD" -H "$H" $A/admin/posts/$MPID -d '{"text":"bir iki uc dort bes alti yedi sekiz"}')"
+  check "admin metin cok uzun 422" 422 "$(code -X PATCH -H "$AD" -H "$H" $A/admin/posts/$MPID -d "{\"text\":\"$LONG\"}")"
   check "admin olmayan duzenleyemez 403" 403 "$(code -X PATCH -H "$AB" -H "$H" $A/admin/posts/$MPID -d '{"text":"x"}')"
   # KVKK dis aktarim: gonderi bolumu
   has "export posts bolumu" '"posts"' "$(curl -s -H "$AA" $A/users/me/export)"

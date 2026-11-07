@@ -61,7 +61,7 @@ class LegalMigrationV620FileTest {
     @Test
     void beyanEdilenSureler_kodVarsayilaniyla_ayni() throws Exception {
         Path doc = Path.of("../docs/legal/retention_tr.md");
-        org.junit.jupiter.api.Assumptions.assumeTrue(Files.exists(doc), "docs/legal bu calisma dizininden gorunmuyor");
+        LegalDocsGuard.requireDocs(Files.exists(doc), "docs/legal bu calisma dizininden gorunmuyor");
         String props = Files.readString(PROPS, StandardCharsets.UTF_8);
         String retentionTr = Files.readString(doc, StandardCharsets.UTF_8);
         assertThat(default_(props, "app.notification.retention-days")).isEqualTo("30");

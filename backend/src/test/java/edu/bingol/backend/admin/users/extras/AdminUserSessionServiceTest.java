@@ -101,6 +101,40 @@ class AdminUserSessionServiceTest {
     }
 
     @Test
+    void sidBearingRefreshValuesStillListWithTheirCreationTime() {
+        when(values.get("rt:" + H1)).thenReturn("5:mobile:1761600000000:0123456789abcdef0123456789abcdef");
+
+        SessionList l = service.list(5L);
+
+        assertEquals("mobile", l.items().get(1).client());
+        assertEquals("2025-10-27T21:20:00Z", l.items().get(1).createdAt());
+    }
+
+    @Test
+    void revokingASidBearingSessionAlsoCutsItsAccessTokenAndClosesTheDeviceRecord() {
+        var sessionService = mock(edu.bingol.backend.auth.token.SessionService.class);
+        var userSessions = mock(edu.bingol.backend.auth.session.UserSessionService.class);
+        service.setSessions(sessionService, userSessions);
+        when(values.get("rt:" + H1)).thenReturn("5:mobile:1761600000000:0123456789abcdef0123456789abcdef");
+
+        service.revoke(5L, "aaaaaaaaaaaaaaaa");
+
+        verify(sessionService).revokeSession(5L, "0123456789abcdef0123456789abcdef");
+        verify(userSessions).markRevoked("0123456789abcdef0123456789abcdef");
+    }
+
+    @Test
+    void revokingALegacySidlessSessionKeepsTheOldBehaviour() {
+        var sessionService = mock(edu.bingol.backend.auth.token.SessionService.class);
+        service.setSessions(sessionService, null);
+
+        service.revoke(5L, "aaaaaaaaaaaaaaaa");
+
+        verify(sessionService, never()).revokeSession(any(), anyString());
+        verify(redis).delete("rt:" + H1);
+    }
+
+    @Test
     void unknownUserIs404() {
         ApiException e = assertThrows(ApiException.class, () -> service.list(99L));
         assertEquals("USER_NOT_FOUND", e.code());

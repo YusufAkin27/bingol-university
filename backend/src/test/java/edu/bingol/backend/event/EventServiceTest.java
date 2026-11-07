@@ -45,6 +45,12 @@ class EventServiceTest {
     private final Instant start = Instant.now().plus(Duration.ofDays(2));
     private final Instant end = start.plus(Duration.ofHours(2));
 
+    {
+        // FIX-P05: durum gecisi / silme kosullu UPDATE ile sahiplenilir; varsayilan = bu istek kazandi
+        when(rsvps.transition(any(), any(), any())).thenReturn(1);
+        when(rsvps.deleteClaim(any())).thenReturn(1);
+    }
+
     private CreateEventRequest req(Instant s, Instant e, Integer cap, Long communityId) {
         return new CreateEventRequest("Konferans", "aciklama", s, e, "Salon", cap, communityId, null);
     }
@@ -91,19 +97,16 @@ class EventServiceTest {
     }
 
     @Test
-    void plainMemberWithEventGrantCreatesPendingReviewEvent() {
+    void plainMemberAndModeratorCannotCreateEventOwnerOnly() {
         Community c = new Community();
         c.setId(10L);
         c.setStatus(Community.Status.ACTIVE);
         when(communities.load(10L)).thenReturn(c);
         when(communities.roleOf(10L, 1L)).thenReturn(Optional.of(CommunityMember.Role.MEMBER));
-        when(events.save(any())).thenAnswer(i -> i.getArgument(0));
-        when(communities.namesById(any())).thenReturn(Map.of());
-        when(communities.usersById(any())).thenReturn(Map.of());
-
-        EventView v = svc.create(user, req(start, end, null, 10L));
-
-        assertEquals(UserEvent.Status.PENDING_REVIEW, v.status());
+        assertEquals("EVENT_CREATE_OWNER_ONLY", error(() -> svc.create(user, req(start, end, null, 10L))).code());
+        when(communities.roleOf(10L, 1L)).thenReturn(Optional.of(CommunityMember.Role.MODERATOR));
+        assertEquals("EVENT_CREATE_OWNER_ONLY", error(() -> svc.create(user, req(start, end, null, 10L))).code());
+        verify(events, never()).save(any());
     }
 
     @Test
@@ -135,12 +138,12 @@ class EventServiceTest {
     }
 
     @Test
-    void moderatorCreatesActiveCommunityEvent() {
+    void ownerCreatesActiveCommunityEvent() {
         Community c = new Community();
         c.setId(10L);
         c.setStatus(Community.Status.ACTIVE);
         when(communities.load(10L)).thenReturn(c);
-        when(communities.roleOf(10L, 1L)).thenReturn(Optional.of(CommunityMember.Role.MODERATOR));
+        when(communities.roleOf(10L, 1L)).thenReturn(Optional.of(CommunityMember.Role.OWNER));
         when(events.save(any())).thenAnswer(i -> i.getArgument(0));
         when(communities.namesById(any())).thenReturn(Map.of());
         when(communities.usersById(any())).thenReturn(Map.of());
@@ -211,7 +214,7 @@ class EventServiceTest {
         svc.rsvp(user, 5L, EventRsvp.Status.INTERESTED);
 
         verify(events).decrementGoing(5L);
-        assertEquals(EventRsvp.Status.INTERESTED, existing.getStatus());
+        verify(rsvps).transition(any(), eq(EventRsvp.Status.GOING), eq(EventRsvp.Status.INTERESTED));
     }
 
     @Test
@@ -326,7 +329,7 @@ class EventServiceTest {
         c.setId(10L);
         c.setStatus(Community.Status.ACTIVE);
         when(communities.load(10L)).thenReturn(c);
-        when(communities.roleOf(10L, 1L)).thenReturn(Optional.of(CommunityMember.Role.ADMIN));
+        when(communities.roleOf(10L, 1L)).thenReturn(Optional.of(CommunityMember.Role.OWNER));
 
         svc.create(user, new CreateEventRequest("Hali saha", null, start, end, "Saha", 14, 10L, policy));
 

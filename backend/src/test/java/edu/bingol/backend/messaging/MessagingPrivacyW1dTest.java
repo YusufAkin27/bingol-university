@@ -473,9 +473,9 @@ class MessagingPrivacyW1dTest {
         service.setRoomLinks(links);
         RoomModeration moderation = mock(RoomModeration.class);
         service.setRoomModeration(moderation);
-        when(moderation.canModerate(6L, 1L)).thenReturn(true);
+        when(moderation.canModerate(link, 1L)).thenReturn(true); // FIX-P03: baglanti listeden gelir, ek sorgu yok
         ConversationView_assert(service.detail(1L, 6L), true);
-        when(moderation.canModerate(6L, 1L)).thenReturn(false);
+        when(moderation.canModerate(link, 1L)).thenReturn(false);
         ConversationView_assert(service.detail(1L, 6L), false);
 
         // birebir her zaman false

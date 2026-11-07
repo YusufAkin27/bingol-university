@@ -47,11 +47,46 @@ public class ProfileController {
         this.privacy = privacy;
     }
 
+    /** Gorunur gonderi/Reels sayilari (KS-BE2; yoksa alanlar eklenmez). */
+    private edu.bingol.backend.post.reel.ProfilePostCounts postCounts;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setPostCounts(edu.bingol.backend.post.reel.ProfilePostCounts postCounts) {
+        this.postCounts = postCounts;
+    }
+
+    /** Bagli giris saglayicilari (istege bagli: OAuth modulu yoksa alan eklenmez). */
+    private edu.bingol.backend.auth.oauth.OAuthService oauth;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setOauth(edu.bingol.backend.auth.oauth.OAuthService oauth) {
+        this.oauth = oauth;
+    }
+
     @GetMapping("/users/me")
     public ProfileView me() {
         Long uid = CurrentUser.id();
         ProfileView v = ProfileView.of(profiles.get(uid));
-        return privacy == null ? v : v.withAvatarHidden(privacy.get(uid).isAvatarHidden());
+        if (oauth != null) {
+            try {
+                v = v.withAuthProviders(oauth.providersOf(uid));
+            } catch (RuntimeException e) {
+                // bagli saglayici listesi profil yanitini asla bozmaz
+            }
+        }
+        var pop = profiles.popularityOf(uid);
+        if (pop != null) {
+            v = v.withPopularity(pop.score(), pop.followerCount(), pop.likesReceived(), pop.postCount());
+        }
+        v = privacy == null ? v : v.withAvatarHidden(privacy.get(uid).isAvatarHidden());
+        if (postCounts != null) {
+            try {
+                v = v.withReelCount(postCounts.counts(uid).reelCount());
+            } catch (RuntimeException e) {
+                // sayaclar profil yanitini asla bozmaz
+            }
+        }
+        return v;
     }
 
     @PatchMapping("/users/me")
@@ -82,6 +117,16 @@ public class ProfileController {
     public void deleteAccount(@Valid @RequestBody DeleteAccountRequest r) {
         Long uid = CurrentUser.id();
         limiter.check("delete-account:user:" + uid, 5, Duration.ofHours(1));
+        if (r.password() == null || r.password().isBlank()) {
+            // Parolasiz (yalniz OAuth) hesap: bagli saglayicinin TAZE token'i ile yeniden dogrulama
+            if (oauth == null) {
+                throw new edu.bingol.backend.common.ApiException(HttpStatus.FORBIDDEN, "WRONG_PASSWORD", "Şifre hatalı.");
+            }
+            oauth.reauthenticateById(uid, null, edu.bingol.backend.auth.oauth.OAuthProvider.parse(r.provider()),
+                    r.token(), r.nonce());
+            profiles.deleteAccountReauthenticated(uid);
+            return;
+        }
         profiles.deleteAccount(uid, r.password());
     }
 
@@ -119,7 +164,10 @@ public class ProfileController {
 
     /** Profil formunda otomatik tamamlama icin sistemde kullanilan bolum adlari. */
     @GetMapping("/departments")
-    public List<String> departments() {
-        return profiles.departments();
+    public org.springframework.http.ResponseEntity<List<String>> departments() {
+        // Herkese ayni cevap (faculties ile ayni onbellek kurali); sunucuda de 5 dk bellek onbellegi var (A07#8)
+        return org.springframework.http.ResponseEntity.ok()
+                .header("Cache-Control", FACULTIES_CACHE_CONTROL)
+                .body(profiles.departments());
     }
 }

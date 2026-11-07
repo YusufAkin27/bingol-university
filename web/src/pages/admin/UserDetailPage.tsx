@@ -1,5 +1,6 @@
 // SAYFA: Kullanıcı ayrıntısı (/admin/users/:id)
 // API: GET /api/admin/users/{id} (düz AdminUserDetail), PATCH .../role, DELETE .../{id}, POST .../suspend|unsuspend (api/users.ts).
+//      İki faktörlü doğrulama kartı: POST .../two-factor/disable (users/UserTwoFactor.tsx).
 // KVKK: yalnızca günlük açılış sayıları gösterilir; başka kullanım ayrıntısı yoktur.
 // PEOPLE: 20 kartlık tek sütun yerine; üstte durum/risk bandı + hızlı işlem çubuğu, altta 5 sade sekme
 // (Özet, Katılım, Destek ve raporlar, Cihazlar ve güvenlik, Yönetim). Sekme ?tab= ile URL'dedir (arama derin bağlantısı).
@@ -40,6 +41,9 @@ import { UserDevices } from './accessbans/UserDevices';
 import { UserActions } from './users/UserActions';
 import { UserDeepTabs } from './users/UserDeepTabs';
 import { UserExtras } from './users/UserExtras';
+import { UserTwoFactor } from './users/UserTwoFactor';
+import { UserRiskCard } from './users/UserRiskCard';
+import { UserTimeline } from './users/UserTimeline';
 import styles from './users/users.module.css';
 
 const TAB_IDS = ['overview', 'activity', 'support', 'security', 'manage'] as const;
@@ -53,6 +57,9 @@ const TAB_OF_ANCHOR: Record<string, TabId> = {
   'ud-prefs': 'overview',
   'ud-messages-link': 'overview',
   'ud-consents': 'overview',
+  'ud-risk': 'overview',
+  'ud-timeline': 'overview',
+  'ud-twofactor': 'security',
   'ud-communities': 'activity',
   'ud-events-created': 'activity',
   'ud-events-attending': 'activity',
@@ -251,6 +258,7 @@ export default function UserDetailPage() {
         <div className={styles.pageStack}>
           {tab === 'overview' && (
             <>
+              <UserRiskCard user={u} onGoto={(target) => setTab(target)} />
               <Card title={t('admin.users.detail.profile')}>
                 <dl className={styles.facts}>
                   <div>
@@ -344,6 +352,7 @@ export default function UserDetailPage() {
                   </ul>
                 )}
               </Card>
+              <UserTimeline user={u} />
             </>
           )}
 
@@ -364,6 +373,9 @@ export default function UserDetailPage() {
           {tab === 'security' && (
             <>
               <p className={styles.hint}>{t('admin.v2p.ud.securityHint')}</p>
+              <div data-search-anchor="ud-twofactor">
+                <UserTwoFactor user={u} isSelf={me?.id === u.id} />
+              </div>
               <Card title={t('admin.users.detail.devices')} data-search-anchor="ud-devices">
                 {u.deviceCount === 0 ? (
                   <p className={styles.hint}>{t('admin.users.detail.noDevices')}</p>

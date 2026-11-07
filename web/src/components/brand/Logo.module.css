@@ -18,6 +18,10 @@
 .onDark {
   color: var(--logo-ink-on-dark);
 }
+/* Bağlantı olan logo: dokunma hedefi en az 44px yükseklik */
+a.logo {
+  min-height: 44px;
+}
 .img {
   display: block;
   max-width: 100%;

@@ -69,7 +69,7 @@ public class LegalController {
 
     @GetMapping("/legal/{type}/versions")
     public List<LegalSummary> versions(@PathVariable String type) {
-        return legal.versions(type(type), lang()).stream().map(LegalSummary::of).toList();
+        return legal.versions(type(type), lang());
     }
 
     // --- giris gerekli ---

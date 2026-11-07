@@ -44,6 +44,13 @@ public class ApiExceptionHandler {
             return json(f.status().value()).body(withTrace(Map.of("code", f.code(), "field", f.field(),
                     "message", i18n.error(f.code(), f.getMessage(), locale(), f.args()))));
         }
+        if (e instanceof ExtraBody x) { // ek alanli hata: {code,message,<ek alanlar>}
+            Map<String, String> m = new java.util.LinkedHashMap<>();
+            m.put("code", e.code());
+            m.put("message", i18n.error(e.code(), e.getMessage(), locale(), e.args()));
+            m.putAll(x.extraBody());
+            return json(e.status().value()).body(withTrace(m));
+        }
         return body(e.status(), e.code(), i18n.error(e.code(), e.getMessage(), locale(), e.args()));
     }
 

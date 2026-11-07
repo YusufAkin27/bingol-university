@@ -1,7 +1,9 @@
 package edu.bingol.backend.unitnews;
 
+import edu.bingol.backend.common.cache.CacheInvalidationListener;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
@@ -12,7 +14,10 @@ import lombok.Setter;
 
 /** Bir alt site (fakulte/enstitu/MYO/YDYO); durum alanlarini yalniz {@link UnitNewsSyncService} yazar. */
 @Entity
+@EntityListeners(CacheInvalidationListener.class)
 @Table(name = "unit_source")
+// Yalniz degisen sutunlar yazilir: yonetici ayari (enabled/facultyKeys) ile senkron durumu birbirini bayat degerle ezmesin
+@org.hibernate.annotations.DynamicUpdate
 @Getter
 @Setter
 public class UnitSource {

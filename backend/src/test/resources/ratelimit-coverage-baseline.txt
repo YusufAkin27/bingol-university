@@ -1,8 +1,6 @@
 # RateLimitCoverageTest baseline (T-060). Yazma ucu govdesinde limiter yok; limit servis katmaninda uygulaniyor ya da sahibi baska is akisi.
 # Liste yalnizca KUCULUR: yeni uc eklerken controller'da limiter.check cagirin; kapsanan/kalkan uc listeden silinmeli.
 # Format: Sinif#metod (alfabetik).
-AcademicController#markRead
-AcademicController#readAll
 ConversationController#accept
 ConversationController#addMembers
 ConversationController#decline

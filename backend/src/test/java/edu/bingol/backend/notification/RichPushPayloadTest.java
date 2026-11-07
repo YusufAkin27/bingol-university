@@ -48,7 +48,8 @@ class RichPushPayloadTest {
         assertEquals("EXAM", RichPushPayload.style(Map.of("type", "ANNOUNCEMENT", "examId", "4")));
         assertEquals("POLL", RichPushPayload.style(Map.of("type", "ANNOUNCEMENT", "pollId", "4")));
         assertEquals("FOLLOW_REQUEST", RichPushPayload.style(Map.of("type", "FOLLOW_REQUEST")));
-        assertEquals("SECURITY", RichPushPayload.style(Map.of("type", "SYSTEM")));
+        assertEquals("SYSTEM", RichPushPayload.style(Map.of("type", "SYSTEM")));
+        assertEquals("SECURITY", RichPushPayload.style(Map.of("type", "SYSTEM", "securityKind", "TWOFA_ENABLED")));
         assertEquals("SUPPORT", RichPushPayload.style(Map.of("type", "SYSTEM", "ticketId", "3")));
     }
 

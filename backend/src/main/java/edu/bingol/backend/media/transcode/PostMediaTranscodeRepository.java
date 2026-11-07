@@ -38,7 +38,7 @@ public interface PostMediaTranscodeRepository extends JpaRepository<PostMedia, L
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("UPDATE PostMedia m SET m.storageKey = :key, m.wrappedDek = :dek, m.encrypted = TRUE, m.bytes = :bytes, "
             + "m.durationMs = :dur, m.width = :w, m.height = :h, m.sha256 = :sha, m.thumbKey = :thumb, "
-            + "m.transcodeStatus = 'DONE', m.transcodeAt = :now "
+            + "m.contentType = 'video/mp4', m.transcodeStatus = 'DONE', m.transcodeAt = :now "
             + "WHERE m.id = :id AND m.transcodeStatus = 'PROCESSING'")
     int complete(@Param("id") Long id, @Param("key") String storageKey, @Param("dek") String wrappedDek,
                  @Param("bytes") long bytes, @Param("dur") Integer durationMs, @Param("w") Integer width,

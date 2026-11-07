@@ -16,7 +16,8 @@ Veri sorumlusu: {{controller.name}}{{?controller.address}}, {{controller.address
 
 | Veri | Neden | Hukuki sebep | Saklama süresi |
 |---|---|---|---|
-| **Hesap:** e-posta (bingol.edu.tr), ad-soyad, şifre (yalnızca tek yönlü özet olarak), dil tercihi | Üyelik, kimlik doğrulama, hizmetin sunulması | Sözleşmenin ifası (KVKK m.5/2-c) | Hesap açık olduğu sürece; silinince anonimleştirilir |
+| **Hesap:** e-posta adresi (herhangi bir sağlayıcıdan), ad-soyad, şifre (yalnızca tek yönlü özet olarak), dil tercihi | Üyelik, kimlik doğrulama, hizmetin sunulması | Sözleşmenin ifası (KVKK m.5/2-c) | Hesap açık olduğu sürece; silinince anonimleştirilir |
+| **Google / Apple ile giriş (isteğe bağlı):** sağlayıcının adı, sağlayıcının hesabınız için verdiği kimlik numarası, sağlayıcının bildirdiği e-posta adresi (Apple'da gizli aktarım adresi olabilir) ve ad-soyad; Google/Apple parolanız bize ulaşmaz | Parolasız giriş ve hesabın sağlayıcı kimliğiyle eşleştirilmesi | Sözleşmenin ifası (KVKK m.5/2-c) | Hesap açık olduğu sürece; hesap silinince silinir |
 | **Profil:** fakülte, bölüm, sınıf, biyografi, profil fotoğrafı, gizlilik ayarlarınız | Profilinizin diğer kullanıcılara gösterilmesi (alan bazında gizlenebilir) | Sözleşmenin ifası; isteğe bağlı alanlarda açık rıza (m.5/1) | Hesap açık olduğu sürece |
 | **Bekleyen kayıt ve doğrulama kodu:** e-posta, kodun özeti | E-posta doğrulaması | Sözleşme öncesi işlem / sözleşmenin ifası | Bekleyen kayıt 1 saat; doğrulama kodu 10 dakika |
 | **Oturum:** yenileme anahtarının özeti, oturum durumu | Güvenli oturum yönetimi | Meşru menfaat (m.5/2-f) | Yenileme anahtarı en çok 30 gün; çıkışta/şifre değişiminde silinir |
@@ -67,7 +68,7 @@ Veri sorumlusu: {{controller.name}}{{?controller.address}}, {{controller.address
 | **Barındırma / sunucu sağlayıcısı** | Tüm hizmet verisi (şifreli mesajlar dahil) | Hizmetin barındırılması | {{hosting.location|Barındırma konumu yayın öncesi belirtilir}} |
 | **Yetkili kamu kurumları** (mahkeme, savcılık, kolluk, KVKK Kurulu vb.) | Talep kapsamındaki veri | Hukuki yükümlülük | Yurt içi |
 
-Reklam ağları, veri komisyoncuları veya sosyal medya takip araçlarıyla veri paylaşmayız. **Kullanıcı verilerini Bingöl Üniversitesi'ne veya birimlerine aktarmayız;** Hizmet üniversitenin sitelerinden yalnızca herkese açık haber, duyuru, etkinlik ve yemek listesi içeriğini okur ve kayıtta yalnızca e-posta adresinin alan adını (bingol.edu.tr) denetler. Yönetim paneli yöneticileri üniversite adına çalışmaz (bkz. 14). Bir not: e-postalarımız kayıtlı bingol.edu.tr adresinize gönderildiğinden, o posta kutusunu işleten kurum (üniversite) e-postayı kendi altyapısında teknik olarak işleyebilir; bu, bizim yaptığımız bir veri aktarımı değil, e-postanın doğasıdır.
+Reklam ağları, veri komisyoncuları veya sosyal medya takip araçlarıyla veri paylaşmayız. **Kullanıcı verilerini Bingöl Üniversitesi'ne veya birimlerine aktarmayız;** Hizmet üniversitenin sitelerinden yalnızca herkese açık haber, duyuru, etkinlik ve yemek listesi içeriğini okur. Yönetim paneli yöneticileri üniversite adına çalışmaz (bkz. 14). Bir not: e-postalarımız kayıtlı e-posta adresinize gönderildiğinden, o posta kutusunu işleten kuruluş (e-posta sağlayıcınız; bingol.edu.tr adresi kullanıyorsanız üniversite) e-postayı kendi altyapısında teknik olarak işleyebilir; bu, bizim yaptığımız bir veri aktarımı değil, e-postanın doğasıdır. Google veya Apple ile giriş yaparsanız kimlik doğrulaması cihazınız ile ilgili sağlayıcı arasında gerçekleşir; sunucumuz yalnızca sağlayıcının imzalı kimlik belirtecini doğrular, sizin adınıza sağlayıcıya veri göndermez. Sağlayıcıların kendi işlemeleri kendi gizlilik politikalarına tabidir.
 
 ## 5. İzinler ve isteğe bağlı özellikler
 
@@ -113,7 +114,7 @@ Web sitesinde **izleme/reklam çerezi kullanılmaz**. Yalnızca dil/tema tercihi
 
 ## 10. Çocukların verileri
 
-Hizmet 18 yaşından küçükler için tasarlanmamıştır; yalnızca üniversite öğrenci/personel e-postasıyla kayıt olunur. 18 yaşından küçük bir kullanıcının kaydı tespit edilirse yasal temsilcinin bilgisi ve onayı aranabilir; gerekirse hesap kapatılır ve veriler silinir/anonimleştirilir.
+Hizmet 18 yaşından küçükler için tasarlanmamıştır; kayıt herhangi bir geçerli e-posta adresiyle yapılabildiğinden kayıt sırasında yaş sorulmaz veya doğrulanmaz. 18 yaşından küçük bir kullanıcının kaydı tespit edilirse yasal temsilcinin bilgisi ve onayı aranabilir; gerekirse hesap kapatılır ve veriler silinir/anonimleştirilir.
 
 ## 11. Haklarınız
 
@@ -133,7 +134,7 @@ Bu politikayı güncelleyebiliriz. Önemli değişikliklerde sizden yeniden onay
 ## 14. Yönetici rolleri ve erişim yetkileri
 
 1. **Kimdir?** Yönetim paneline erişen hesaplar İşletici tarafından tanımlanır ve beş rolden birini taşır: *tam yönetici*, *moderatör*, *destek*, *editör*, *salt okunur*. Yöneticiler üniversite adına çalışmaz; bir yönetici rolü, kişisel verinin üniversiteye aktarılması anlamına gelmez.
-2. **Kişisel veriye erişim rolle sınırlıdır.** Maskesiz e-posta, IP ve cihaz ayrıntısını yalnızca tam yönetici ve moderatör görür; destek, editör ve salt okunur rollerinde bu alanlar maskelidir (ör. a•••@bingol.edu.tr). Destek rolü destek taleplerini ve geri bildirimleri, editör haber, duyuru ve iletişim içeriklerini yönetir; salt okunur rol yalnızca izleme yapar.
+2. **Kişisel veriye erişim rolle sınırlıdır.** Maskesiz e-posta, IP ve cihaz ayrıntısını yalnızca tam yönetici ve moderatör görür; destek, editör ve salt okunur rollerinde bu alanlar maskelidir (ör. a•••@gmail.com). Destek rolü destek taleplerini ve geri bildirimleri, editör haber, duyuru ve iletişim içeriklerini yönetir; salt okunur rol yalnızca izleme yapar.
 3. **Özel yazışmalar.** Mesajların ve sohbet medyasının içeriğine yalnızca tam yönetici ve moderatör erişebilir; yönetici olmayan hiç kimse erişemez. Bu erişim 3. bölümdeki koşullara bağlıdır: yalnızca şikâyet incelemesi, güvenlik/kötüye kullanım şüphesi veya yasal talep gibi gerekçelerle, yazılı gerekçeyle ve değiştirilemez erişim kaydıyla (730 gün). Yönetim paneli teknik olarak bir kullanıcının sohbetlerini listeleyebildiğinden, bu yetkinin amaç dışı kullanılmaması yalnızca bu kurallara ve kayda dayanır; amaç dışı görüntüleme yasaktır.
 4. **Müdahale yetkileri.** Yetkili yöneticiler bir mesajı gizleyebilir (geri alınabilir) veya kalıcı silebilir, sohbeti kapatabilir, üyeyi sohbetten çıkarabilir, gönderi ve diğer içerikleri gizleyebilir veya kaldırabilir, kulüp kapatabilir, hesabı askıya alabilir veya erişim engeli tanımlayabilir. Yazma işlemleri yönetici işlem kaydına yazılır (365 gün); kritik işlemlerde (mesaj/sohbet müdahalesi, rol değişikliği, hesap ve kulüp işlemleri) yazılı gerekçe zorunludur.
 5. **Rollerin yönetimi.** Yönetici rollerinin atanması ve değiştirilmesi de denetim kaydına yazılır.

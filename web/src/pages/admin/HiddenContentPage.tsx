@@ -1,14 +1,17 @@
 // SAYFA: Gizlenen içerik (/admin/moderation/hidden)  [P11]
 // API: GET /api/admin/moderation/hidden (birleşik liste; tür/gizleyen/tarih süzgeci), POST .../hidden/{type}/{id}/restore {reason}
 //      (api/modAdmin.ts). Geri alma yalnız geri alınabilir türlerde; ilgili ihlaller sayılmaz, sahibine bildirim gider.
-import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+// Mod1: süzgeçten bağımsız özet (son 100 gizleme: yaş dağılımı, kim gizledi, tür, silinmeye yakın gönderi) ve toplu geri alma.
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { modAdminApi, qk } from '../../api';
 import type { HiddenRow } from '../../api/modAdmin';
 import type { ReportTargetType } from '../../api/types';
 import {
   Badge,
+  BulkBar,
+  Button,
   EmptyState,
   ErrorState,
   FormField,
@@ -17,11 +20,12 @@ import {
   Insight,
   PageHeader,
   Pagination,
+  RankedBars,
   ResponsiveTable,
   Select,
   StatTile,
   StatusPill,
-  useKitFormat,
+  newIdempotencyKey,
   type Column,
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -33,6 +37,13 @@ import { MOD_TARGET_TYPES, restoreAvailability } from './moderation/p11Logic';
 import { FilterFold } from './moderation/v2';
 import v2 from './moderation/v2.module.css';
 import styles from './moderation/p11.module.css';
+import { BulkRunDialog, useBatchToast } from './yaptirimMod1/BulkRunDialog';
+import { useGt } from './yaptirimMod1/dict';
+import { MixBar } from './yaptirimMod1/MixBar';
+import { QueueAgePanel } from './yaptirimMod1/QueueAgePanel';
+import { ageMs, DAY_MS, oldestAgeMs } from './yaptirimMod1/queueLogic';
+import { waitText } from './yaptirimMod1/waitText';
+import q from './yaptirimMod1/yaptirim.module.css';
 
 interface Filters {
   targetType: ReportTargetType | '';
@@ -41,13 +52,23 @@ interface Filters {
   to: string;
 }
 const EMPTY: Filters = { targetType: '', hiddenBy: '', from: '', to: '' };
+const OVERVIEW_SIZE = 100;
+/** Yönetici gizlemesi 30 günü geçen gönderi gece işiyle silinir (docs/ADMIN_API.md); son 7 gün "yakında" sayılır. */
+const POST_KEEP_DAYS = 30;
+const SOON_DAYS = 7;
+const isPostType = (tt: string) => tt === 'POST' || tt === 'FEED_POST';
 
 export default function HiddenContentPage() {
   const i18n = useI18n();
   const { t, td, formatDateTime, formatNumber } = i18n;
+  const gt = useGt();
+  const qc = useQueryClient();
+  const batchToast = useBatchToast();
   usePageTitle(t('admin.p11.hidden.title'));
   const [filters, setFilters] = useState<Filters>(EMPTY);
   const [page, setPage] = useState(0);
+  const [selected, setSelected] = useState<ReadonlySet<string | number>>(new Set());
+  const [bulkOpen, setBulkOpen] = useState(false);
   const set = (patch: Partial<Filters>) => {
     setFilters((f) => ({ ...f, ...patch }));
     setPage(0);
@@ -59,7 +80,27 @@ export default function HiddenContentPage() {
     queryFn: () => modAdminApi.listHidden(params),
   });
   const data = query.data;
-  const kit = useKitFormat();
+  // Süzgeçten bağımsız özet: son 100 gizleme (sayfadaki 20 kayıttan değil)
+  const overview = useQuery({
+    queryKey: [...qk.moderation.all, 'hidden-overview'],
+    queryFn: () => modAdminApi.listHidden({ page: 0, size: OVERVIEW_SIZE }),
+    staleTime: 60_000,
+  });
+  const now = overview.dataUpdatedAt || Date.now();
+  const sample = overview.data?.items;
+  const sampleTruncated = (overview.data?.total ?? 0) > OVERVIEW_SIZE;
+  const hiddenDates = useMemo(() => (sample ?? []).map((r) => r.hiddenAt), [sample]);
+  const byAdmin = (sample ?? []).filter((r) => r.hiddenBy === 'ADMIN').length;
+  const byAuto = (sample?.length ?? 0) - byAdmin;
+  const soonN = (sample ?? []).filter((r) => {
+    const ms = r.hiddenBy === 'ADMIN' && isPostType(r.targetType) ? ageMs(r.hiddenAt, now) : null;
+    return ms !== null && ms >= (POST_KEEP_DAYS - SOON_DAYS) * DAY_MS;
+  }).length;
+  const typeBars = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const r of sample ?? []) m.set(r.targetType, (m.get(r.targetType) ?? 0) + 1);
+    return [...m.entries()].map(([k, v]) => ({ key: k, label: td('admin.reports.targetType.' + k, k), value: v }));
+  }, [sample, td]);
 
   const columns: Column<HiddenRow>[] = [
     {
@@ -148,9 +189,7 @@ export default function HiddenContentPage() {
   ];
 
   const rows = data?.items ?? [];
-  const byAdmin = rows.filter((r) => r.hiddenBy === 'ADMIN').length;
-  const byAuto = rows.length - byAdmin;
-  const oldest = rows.reduce<string | null>((o, r) => (r.hiddenAt && (!o || r.hiddenAt < o) ? r.hiddenAt : o), null);
+  const selectedRows = rows.filter((r) => selected.has(`${r.targetType}:${r.targetId}`) && restoreAvailability(r).ok);
   const activeCount = [filters.targetType !== '', filters.hiddenBy !== '', filters.from !== '', filters.to !== ''].filter(Boolean).length;
 
   return (
@@ -159,37 +198,85 @@ export default function HiddenContentPage() {
       <div className={v2.tiles} data-search-anchor="hidden-summary">
         <StatTile
           label={t('admin.v2m.hidden.tile')}
-          value={data ? data.total : undefined}
+          value={overview.data ? overview.data.total : data ? data.total : undefined}
           icon="eyeOff"
-          loading={query.isLoading}
-          error={query.isError}
-          onRetry={() => void query.refetch()}
+          loading={overview.isLoading && query.isLoading}
+          error={overview.isError && query.isError}
+          onRetry={() => void overview.refetch()}
           caption={t('admin.v2m.hidden.tileHint')}
         />
         <StatTile
-          label={t('admin.v2m.hidden.byAdmin')}
-          value={data ? byAdmin : undefined}
-          loading={query.isLoading}
-          error={query.isError}
-          caption={t('admin.v2m.hidden.byAdminHint')}
+          label={gt('admin.mod1.hid.tile.soon')}
+          value={sample ? soonN : undefined}
+          icon="clock"
+          loading={overview.isLoading}
+          error={overview.isError}
+          onRetry={() => void overview.refetch()}
+          caption={gt('admin.mod1.hid.tile.soonHint', { days: formatNumber(SOON_DAYS), keep: formatNumber(POST_KEEP_DAYS) })}
         />
         <StatTile
-          label={t('admin.v2m.hidden.byAuto')}
-          value={data ? byAuto : undefined}
-          loading={query.isLoading}
-          error={query.isError}
-          caption={t('admin.v2m.hidden.byAutoHint')}
+          label={gt('admin.mod1.hid.tile.oldest')}
+          value={sample ? (sample.length === 0 ? '–' : waitText(oldestAgeMs(hiddenDates, now), gt, formatNumber)) : undefined}
+          icon="eye"
+          loading={overview.isLoading}
+          error={overview.isError}
+          caption={
+            sampleTruncated
+              ? gt('admin.mod1.hid.sampleNote', { n: formatNumber(OVERVIEW_SIZE) })
+              : gt('admin.mod1.hid.tile.oldestHint')
+          }
         />
       </div>
-      {data && data.total > 0 && (
+      {sample && sample.length > 0 && (
         <Insight
           className={v2.sentence}
+          tone={soonN > 0 ? 'warn' : 'info'}
           parts={[
-            t('admin.v2m.hidden.sentence'),
-            ...(oldest ? [' ', { text: t('admin.v2m.hidden.oldest', { when: kit.relative(oldest) }) }] : []),
+            soonN > 0
+              ? gt('admin.mod1.hid.sentenceSoon', { n: formatNumber(soonN), keep: formatNumber(POST_KEEP_DAYS) })
+              : t('admin.v2m.hidden.sentence'),
           ]}
         />
       )}
+      <div className={q.twoCols}>
+        <QueueAgePanel
+          anchor="hidden-age"
+          variant="plain"
+          title={gt('admin.mod1.hid.age.title')}
+          noun={gt('admin.mod1.hid.noun')}
+          emptyText={gt('admin.mod1.hid.empty')}
+          dates={hiddenDates}
+          now={now}
+          truncated={sampleTruncated}
+          loading={overview.isLoading}
+          error={overview.isError}
+          onRetry={() => void overview.refetch()}
+        />
+        <section className={q.panel} data-search-anchor="hidden-mix" aria-label={gt('admin.mod1.hid.mix.title')}>
+          <h2 className={q.panelTitle}>{gt('admin.mod1.hid.mix.title')}</h2>
+          <p className={q.sub}>{gt('admin.mod1.hid.mix.hint')}</p>
+          {overview.isError ? (
+            <p className={q.muted}>{gt('admin.mod1.age.error')}</p>
+          ) : (
+            <>
+              <MixBar
+                ariaLabel={gt('admin.mod1.hid.mix.title')}
+                parts={[
+                  { key: 'ADMIN', label: t('admin.p11.hidden.by.ADMIN'), value: byAdmin },
+                  { key: 'AUTO', label: t('admin.p11.hidden.by.AUTO'), value: byAuto },
+                ]}
+              />
+              <RankedBars
+                items={typeBars}
+                limit={4}
+                loading={overview.isLoading}
+                ariaLabel={gt('admin.mod1.hid.types.title')}
+                emptyLabel={t('admin.p11.hidden.empty.title')}
+              />
+            </>
+          )}
+        </section>
+      </div>
       <FilterFold activeCount={activeCount} anchor="hidden-filters">
         <FormField label={t('admin.p11.hidden.filter.type')}>
           <Select value={filters.targetType} onChange={(e) => set({ targetType: e.target.value as ReportTargetType | '' })}>
@@ -231,6 +318,11 @@ export default function HiddenContentPage() {
             rows={data?.items}
             rowKey={(r) => `${r.targetType}:${r.targetId}`}
             loading={query.isLoading}
+            selectedKeys={selected}
+            onSelectionChange={setSelected}
+            selectLabel={(r) =>
+              gt('admin.mod1.select.row', { name: td('admin.reports.targetType.' + r.targetType, r.targetType) + ' #' + r.targetId })
+            }
             empty={
               <EmptyState
                 icon="eyeOff"
@@ -247,6 +339,32 @@ export default function HiddenContentPage() {
           )}
         </>
       )}
+      <div className={q.bulkSticky} data-search-anchor="hidden-bulk">
+        <BulkBar count={selectedRows.length} onClear={() => setSelected(new Set())}>
+          <Button size="sm" variant="secondary" onClick={() => setBulkOpen(true)}>
+            {gt('admin.mod1.hid.bulk.restore')}
+          </Button>
+        </BulkBar>
+      </div>
+      <BulkRunDialog
+        open={bulkOpen}
+        onClose={() => setBulkOpen(false)}
+        requireReason
+        title={gt('admin.mod1.hid.bulkTitle', { n: formatNumber(selectedRows.length) })}
+        message={gt('admin.mod1.hid.bulkBody', { n: formatNumber(selectedRows.length) })}
+        confirmLabel={gt('admin.mod1.hid.bulkBtn', { n: formatNumber(selectedRows.length) })}
+        items={selectedRows}
+        runOne={(r, reason) =>
+          modAdminApi.restoreHidden(r.targetType, r.targetId, { reason, idempotencyKey: newIdempotencyKey() })
+        }
+        onDone={(outcome) => {
+          batchToast(outcome);
+          setBulkOpen(false);
+          setSelected(new Set());
+          void qc.invalidateQueries({ queryKey: qk.moderation.all });
+          void qc.invalidateQueries({ queryKey: qk.reports.all });
+        }}
+      />
     </>
   );
 }

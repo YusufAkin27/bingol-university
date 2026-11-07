@@ -2,6 +2,7 @@ package edu.bingol.backend.unitnews;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -33,6 +34,9 @@ class UnitNewsSyncServiceTest {
         depts.deleteAll();
         sources.deleteAll();
         sync.setPauseMs(0);
+        sync.setSleeper(ms -> { });
+        sync.setNanoClock(System::nanoTime);
+        sync.setBudget(java.time.Duration.ofMinutes(45));
         UnitSource s = new UnitSource();
         s.setCode("mmf");
         s.setName("Mühendislik ve Mimarlık Fakültesi");
@@ -71,6 +75,148 @@ class UnitNewsSyncServiceTest {
         assertEquals("0 yeni duyuru", s.getLastMessage());
     }
 
+    // ------------------------------------------------------------------ guvenlik duzeltmeleri (HARDEN)
+
+    @Autowired org.springframework.jdbc.core.JdbcTemplate jdbc;
+
+    @Test
+    void aTransientDetailFailureDoesNotSaveAHollowRecordButIsRetriedNextRun() throws Exception {
+        org.mockito.Mockito.doThrow(new java.io.IOException("timeout")).when(scraper).fetchDetail(BASE + "/duyurular/a/");
+
+        assertEquals(1, sync.syncAll(), "yalniz detayi okunan bolum kaydi eklendi");
+        assertFalse(anns.findAll().stream().anyMatch(a -> a.getTitle().equals("Genel A")), "gecici hata: govdesiz kayit yok");
+
+        // sonraki gece detay okunabilir: kayit govdesiyle eklenir
+        org.mockito.Mockito.doReturn(new UnitSiteScraper.Detail("Gövde metni", List.of(), null)).when(scraper).fetchDetail(BASE + "/duyurular/a/");
+        assertEquals(1, sync.syncAll());
+        UnitAnnouncement a = anns.findAll().stream().filter(x -> x.getTitle().equals("Genel A")).findFirst().orElseThrow();
+        assertEquals("Gövde metni", a.getBody());
+    }
+
+    @Test
+    void aPermanentlyBrokenDetailIsSavedAsTitleAndLinkAfterThreeFailedRuns() throws Exception {
+        org.mockito.Mockito.doThrow(new java.io.IOException("404")).when(scraper).fetchDetail(BASE + "/duyurular/a/");
+
+        sync.syncAll();
+        sync.syncAll();
+        assertFalse(anns.findAll().stream().anyMatch(a -> a.getTitle().equals("Genel A")));
+        sync.syncAll(); // 3. basarisiz deneme
+
+        UnitAnnouncement a = anns.findAll().stream().filter(x -> x.getTitle().equals("Genel A")).findFirst().orElseThrow();
+        assertNull(a.getBody());
+        assertEquals(BASE + "/duyurular/a/", a.getUrl());
+    }
+
+    @Test
+    void syncStateIsWrittenWithAnUpdateSoAnAdminChangeDuringTheRunSurvives() throws Exception {
+        // senkron dakikalarca surerken yonetici kaynagi kapatir ve fakulte listesini degistirir (PUT /sources/mmf)
+        when(scraper.fetchList(BASE, "/duyurular/")).thenAnswer(inv -> {
+            jdbc.update("UPDATE unit_source SET enabled = FALSE, faculty_keys = 'yonetici degisikligi' WHERE code = 'mmf'");
+            return List.of(new UnitSiteScraper.ListEntry(BASE + "/duyurular/a/", "Genel A", LocalDate.now()));
+        });
+
+        sync.syncAll();
+
+        UnitSource s = sources.findById("mmf").orElseThrow();
+        assertFalse(s.isEnabled(), "senkron yoneticinin kapatmasini yeniden acmadi");
+        assertEquals("yonetici degisikligi", s.getFacultyKeys());
+        assertTrue(s.getLastMessage().endsWith("yeni duyuru"), s.getLastMessage());
+        assertTrue(s.getLastAttemptAt() != null && s.getLastSuccessAt() != null && s.getDepartmentsCheckedAt() != null);
+        assertFalse(s.isMaintenance());
+    }
+
+    @Test
+    void aSourceDisabledBeforeItsTurnIsSkipped() throws Exception {
+        UnitSource second = new UnitSource();
+        second.setCode("zzz");
+        second.setName("Ikinci");
+        second.setKind(UnitSource.Kind.FACULTY);
+        second.setBaseUrl("https://zzz.bingol.edu.tr");
+        sources.saveAndFlush(second);
+        when(scraper.fetchList(BASE, "/duyurular/")).thenAnswer(inv -> {
+            jdbc.update("UPDATE unit_source SET enabled = FALSE WHERE code = 'zzz'");
+            return List.of(new UnitSiteScraper.ListEntry(BASE + "/duyurular/a/", "Genel A", LocalDate.now()));
+        });
+
+        sync.syncAll();
+
+        org.mockito.Mockito.verify(scraper, org.mockito.Mockito.never()).fetchDepartments("https://zzz.bingol.edu.tr");
+        assertNull(sources.findById("zzz").orElseThrow().getLastAttemptAt());
+    }
+
+    @Test
+    void requestsToTheSourceSiteAreNeverBackToBack() throws Exception {
+        java.util.List<String> events = new java.util.ArrayList<>();
+        sync.setPauseMs(600);
+        sync.setSleeper(ms -> events.add("pause"));
+        when(scraper.fetchDepartments(BASE)).thenAnswer(inv -> {
+            events.add("req");
+            return List.of(new UnitSiteScraper.Dept("bilgisayar-muhendisligi", "Bilgisayar Mühendisliği"));
+        });
+        when(scraper.fetchFeedPath(eq(BASE), eq("bilgisayar-muhendisligi"))).thenAnswer(inv -> {
+            events.add("req");
+            return "/bolumler_/bilgisayar-muhendisligi/duyurular/";
+        });
+        when(scraper.fetchList(eq(BASE), any())).thenAnswer(inv -> {
+            events.add("req");
+            String feed = inv.getArgument(1);
+            return List.of(new UnitSiteScraper.ListEntry(BASE + feed + "n/", "Yeni " + feed, LocalDate.now()));
+        });
+        when(scraper.fetchDetail(any())).thenAnswer(inv -> {
+            events.add("req");
+            return new UnitSiteScraper.Detail("g", List.of(), null);
+        });
+
+        sync.syncAll();
+
+        assertTrue(events.stream().filter("req"::equals).count() >= 5, events.toString());
+        for (int i = 1; i < events.size(); i++) {
+            assertFalse(events.get(i).equals("req") && events.get(i - 1).equals("req"),
+                    "iki istek arasinda bekleme yok: " + events);
+        }
+        sync.setPauseMs(0);
+    }
+
+    @Test
+    void departmentsRemovedFromTheSiteAreDeletedButAShortListNeverWipesTheTable() throws Exception {
+        sync.syncAll();
+        assertEquals(1, depts.countBySourceCode("mmf"));
+        // site yenilenince iki bolum: biri eskisi, biri yeni; ilk yenileme zamani gelsin
+        jdbc.update("UPDATE unit_source SET departments_checked_at = NULL WHERE code = 'mmf'");
+        when(scraper.fetchDepartments(BASE)).thenReturn(List.of(
+                new UnitSiteScraper.Dept("bilgisayar-muhendisligi", "Bilgisayar Mühendisliği"),
+                new UnitSiteScraper.Dept("elektrik", "Elektrik Mühendisliği")));
+        sync.syncAll();
+        assertEquals(2, depts.countBySourceCode("mmf"));
+
+        // bolum kalkti: yalniz biri kaldi (2 -> 1: yarisindan fazla) => kalkan silinir
+        jdbc.update("UPDATE unit_source SET departments_checked_at = NULL WHERE code = 'mmf'");
+        when(scraper.fetchDepartments(BASE)).thenReturn(List.of(new UnitSiteScraper.Dept("elektrik", "Elektrik Mühendisliği")));
+        sync.syncAll();
+        assertEquals(List.of("elektrik"), depts.findBySourceCodeOrderByNameAsc("mmf").stream().map(UnitDepartment::getSlug).toList());
+
+        // ayristirma neredeyse bos dondu (1 -> 0 gecerli): hicbir sey silinmez
+        jdbc.update("UPDATE unit_source SET departments_checked_at = NULL WHERE code = 'mmf'");
+        when(scraper.fetchDepartments(BASE)).thenReturn(List.of(new UnitSiteScraper.Dept("x".repeat(200), "Cok Uzun Slug")));
+        sync.syncAll();
+        assertEquals(1, depts.countBySourceCode("mmf"), "gecerli bolum yokken tablo bosaltilmaz");
+    }
+
+    @Test
+    void anOverlongSlugOrFeedPathNeverPutsTheSourceIntoMaintenance() throws Exception {
+        when(scraper.fetchDepartments(BASE)).thenReturn(List.of(
+                new UnitSiteScraper.Dept("x".repeat(200), "Cok Uzun Slug Bolumu"),
+                new UnitSiteScraper.Dept("tarih", "Tarih Bölümü")));
+        when(scraper.fetchFeedPath(eq(BASE), eq("tarih"))).thenReturn("/bolumler_/" + "y".repeat(300) + "/duyurular/");
+
+        sync.syncAll();
+
+        assertFalse(sources.findById("mmf").orElseThrow().isMaintenance());
+        List<UnitDepartment> rows = depts.findBySourceCodeOrderByNameAsc("mmf");
+        assertEquals(List.of("tarih"), rows.stream().map(UnitDepartment::getSlug).toList());
+        assertNull(rows.get(0).getFeedPath(), "uzun akis yolu sutuna sigmaz: null");
+    }
+
     @Test
     void emptyGeneralFeedMarksMaintenanceAndKeepsOldData() throws Exception {
         sync.syncAll();
@@ -93,5 +239,30 @@ class UnitNewsSyncServiceTest {
         assertEquals(0, sync.syncAll());
         assertEquals(0, anns.count());
         assertEquals(-1, sync.sync("yok"));
+    }
+
+    @Test
+    void whenTheTimeBudgetRunsOutRemainingSourcesAreLeftForTheNextNightAndNoted() throws Exception {
+        UnitSource second = new UnitSource();
+        second.setCode("zzz");
+        second.setName("Ikinci");
+        second.setKind(UnitSource.Kind.FACULTY);
+        second.setBaseUrl("https://zzz.bingol.edu.tr");
+        sources.saveAndFlush(second);
+        // her bekleme "1 saat" ilerletir: ilk kaynagin ilk bolum yenilemesinde 45 dk butce asilir
+        java.util.concurrent.atomic.AtomicLong nanos = new java.util.concurrent.atomic.AtomicLong();
+        sync.setNanoClock(nanos::get);
+        sync.setPauseMs(600);
+        sync.setSleeper(ms -> nanos.addAndGet(3_600_000_000_000L));
+
+        int added = sync.syncAll();
+
+        org.mockito.Mockito.verify(scraper, org.mockito.Mockito.never()).fetchList(eq("https://zzz.bingol.edu.tr"), any());
+        org.mockito.Mockito.verify(scraper, org.mockito.Mockito.never()).fetchList(eq(BASE), eq("/bolumler_/bilgisayar-muhendisligi/duyurular/"));
+        assertTrue(added >= 1, "ilk kaynagin genel akisi yine de islendi");
+        UnitSource skipped = sources.findById("zzz").orElseThrow();
+        assertTrue(skipped.getLastMessage().contains("butcesi"), skipped.getLastMessage());
+        assertNull(skipped.getLastAttemptAt(), "atlanan kaynak yarin once denenir");
+        assertFalse(skipped.isMaintenance());
     }
 }

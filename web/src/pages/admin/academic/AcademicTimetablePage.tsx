@@ -21,7 +21,6 @@ import {
   ErrorState,
   FormField,
   Input,
-  Insight,
   Modal,
   PageHeader,
   Pagination,
@@ -35,7 +34,10 @@ import { useDebouncedValue, usePageTitle } from '../../../lib/hooks';
 import { adminErrorMessage } from '../campaigns/shared';
 import styles from './academic.module.css';
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 50; // ders saati listesi (pencere)
+const LIST_PAGE_SIZE = 20; // program listesi
+const PREVIEW_PAGE_SIZE = 10; // önizleme penceresindeki program listesi
+const pagesOf = (n: number, size: number) => Math.max(1, Math.ceil(n / size));
 const DAY_KEYS = [1, 2, 3, 4, 5, 6, 7] as const;
 const TEMPLATE_URL = '/ders-programi-sablonu.xlsx';
 
@@ -50,6 +52,8 @@ export default function AcademicTimetablePage() {
   const [term, setTerm] = useState('');
   const [qText, setQText] = useState('');
   const q = useDebouncedValue(qText, 250);
+  const [unit, setUnit] = useState('');
+  const [page, setPage] = useState(0);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<TimetableImportResult | null>(null);
   const [viewing, setViewing] = useState<TimetableProgram | null>(null);
@@ -120,10 +124,15 @@ export default function AcademicTimetablePage() {
   }
 
   const needle = q.trim().toLocaleLowerCase('tr');
-  const items = (programs.data?.items ?? []).filter(
-    (x) => !needle || `${x.unit} ${x.program}`.toLocaleLowerCase('tr').includes(needle),
+  const all = programs.data?.items ?? [];
+  const units = [...new Set(all.map((x) => x.unit))].sort((a, b) => a.localeCompare(b, 'tr'));
+  const items = all.filter(
+    (x) => (!unit || x.unit === unit) && (!needle || `${x.unit} ${x.program}`.toLocaleLowerCase('tr').includes(needle)),
   );
   const totalSessions = items.reduce((n, x) => n + x.sessions, 0);
+  const lastPage = pagesOf(items.length, LIST_PAGE_SIZE) - 1;
+  const safePage = Math.min(page, lastPage); // silme/süzgeç sonrası son sayfadan taşmasın
+  const pageItems = items.slice(safePage * LIST_PAGE_SIZE, (safePage + 1) * LIST_PAGE_SIZE);
 
   return (
     <>
@@ -152,7 +161,15 @@ export default function AcademicTimetablePage() {
       <div className={styles.stack}>
         <div className={styles.toolbar} data-search-anchor="tt-filters">
           <FormField label={t('admin.acd.tt.term')}>
-            <Select value={activeTerm} onChange={(e) => setTerm(e.target.value)} disabled={!programs.data?.terms.length}>
+            <Select
+              value={activeTerm}
+              onChange={(e) => {
+                setTerm(e.target.value);
+                setUnit('');
+                setPage(0);
+              }}
+              disabled={!programs.data?.terms.length}
+            >
               {(programs.data?.terms ?? []).map((x) => (
                 <option key={x.term} value={x.term}>
                   {x.term}
@@ -160,8 +177,33 @@ export default function AcademicTimetablePage() {
               ))}
             </Select>
           </FormField>
+          <FormField label={t('admin.acd.tt.unit')}>
+            <Select
+              value={unit}
+              onChange={(e) => {
+                setUnit(e.target.value);
+                setPage(0);
+              }}
+            >
+              <option value="">{t('admin.acd.tt.unitAll')}</option>
+              {units.map((u) => (
+                <option key={u} value={u}>
+                  {u}
+                </option>
+              ))}
+            </Select>
+          </FormField>
           <FormField label={t('admin.acd.search')}>
-            <Input value={qText} maxLength={80} dir="auto" placeholder={t('admin.acd.tt.search')} onChange={(e) => setQText(e.target.value)} />
+            <Input
+              value={qText}
+              maxLength={80}
+              dir="auto"
+              placeholder={t('admin.acd.tt.search')}
+              onChange={(e) => {
+                setQText(e.target.value);
+                setPage(0);
+              }}
+            />
           </FormField>
         </div>
 
@@ -173,12 +215,11 @@ export default function AcademicTimetablePage() {
           <EmptyState icon="list" title={t('admin.acd.tt.emptyTitle')} description={t('admin.acd.tt.emptyHint')} />
         ) : (
           <>
-            <Insight
-              tone="info"
-              parts={t('admin.acd.tt.insight', { programs: formatNumber(items.length), sessions: formatNumber(totalSessions) })}
-            />
+            <p className={styles.muted}>
+              {t('admin.acd.tt.insight', { programs: formatNumber(items.length), sessions: formatNumber(totalSessions) })}
+            </p>
             <ul className={styles.rowList} aria-label={t('admin.acd.rows')}>
-              {items.map((x) => (
+              {pageItems.map((x) => (
                 <li key={`${x.unit}|${x.program}`} className={styles.item}>
                   <div className={styles.itemHead}>
                     <StatusPill tone={x.published ? 'success' : 'neutral'}>
@@ -213,6 +254,16 @@ export default function AcademicTimetablePage() {
                 </li>
               ))}
             </ul>
+            {items.length === 0 ? (
+              <EmptyState icon="list" title={t('admin.acd.tt.noMatchTitle')} description={t('admin.acd.tt.noMatchHint')} />
+            ) : (
+              <Pagination
+                page={safePage}
+                totalPages={pagesOf(items.length, LIST_PAGE_SIZE)}
+                totalItems={items.length}
+                onPageChange={setPage}
+              />
+            )}
           </>
         )}
       </div>
@@ -256,6 +307,8 @@ function PreviewModal({
 }) {
   const { t, formatNumber } = useI18n();
   const blocked = preview.errors.length > 0;
+  const [listPage, setListPage] = useState(0);
+  const shown = preview.items.slice(listPage * PREVIEW_PAGE_SIZE, (listPage + 1) * PREVIEW_PAGE_SIZE);
   return (
     <Modal
       open
@@ -276,14 +329,13 @@ function PreviewModal({
       <p className={styles.muted} dir="auto">
         {fileName}
       </p>
-      <Insight
-        tone={blocked ? 'warn' : 'info'}
-        parts={t('admin.acd.tt.previewSummary', {
+      <p className={styles.muted}>
+        {t('admin.acd.tt.previewSummary', {
           rows: formatNumber(preview.rows),
           programs: formatNumber(preview.programs),
           term: preview.term ?? '—',
         })}
-      />
+      </p>
       {blocked && <p className={styles.warnText}>{t('admin.acd.tt.blocked')}</p>}
       {preview.errors.length > 0 && (
         <section>
@@ -312,7 +364,7 @@ function PreviewModal({
       <section>
         <h3 className={styles.groupHead}>{t('admin.acd.tt.programsInFile')}</h3>
         <ul className={styles.rowList}>
-          {preview.items.map((x) => (
+          {shown.map((x) => (
             <li key={`${x.unit}|${x.program}`} className={styles.item}>
               <h4 className={styles.itemTitle} dir="auto">
                 {x.program} {!x.catalogMatched && <Badge tone="warning">{t('admin.acd.tt.catalogNo')}</Badge>}
@@ -324,6 +376,12 @@ function PreviewModal({
             </li>
           ))}
         </ul>
+        <Pagination
+          page={listPage}
+          totalPages={pagesOf(preview.items.length, PREVIEW_PAGE_SIZE)}
+          totalItems={preview.items.length}
+          onPageChange={setListPage}
+        />
       </section>
     </Modal>
   );

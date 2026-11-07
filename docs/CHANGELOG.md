@@ -4,20 +4,95 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
-### Rehber eşleştirme kaldırıldı (2026-11-07)
+### Hukuki metinler: e-posta alan adı kısıtı kalktı (2026-11-06, `deploy/legal-20261106`)
 
-- **Karar:** telefon rehberi / telefon numarası / WhatsApp doğrulama kullanılmayacak. Rehber eşleştirme uçları, mobil sayfa, rehber izni ve paketi (`flutter_contacts`), ilgili ayarlar/çeviriler/testler/duman betiği kaldırıldı.
-- **Korunan:** ad/kullanıcı adı/bölüm ile kullanıcı arama, profil, takip, sohbet. DB sütunları düşürülmedi; veri temizleme planı [PHONE_DATA_CLEANUP.md](PHONE_DATA_CLEANUP.md). Ayrıntı: `docs/changes/profile.md`.
+- **V1470** Kullanım Koşulları, Gizlilik Politikası ve KVKK Aydınlatma için yeni sürüm (tr/en/ar, `require_reaccept=FALSE`: yeniden onay istenmez): "yalnız bingol.edu.tr" kısıtı kalktı (herhangi bir geçerli e-posta + e-posta doğrulama kodu), isteğe bağlı Google/Apple girişi veri kategorisi eklendi, "kurumsal e-posta" ve alan adı denetimi ifadeleri düzeltildi. Üretim: `scripts/build-legal-migration-v1470.js`; V820 kaynakları `docs/legal/archive/v820/`.
+- **V1471** SSS "Kimler kayıt olabilir?" (tr/en/ar) yalnız eski V3 varsayılanıyla birebir eşleşiyorsa güncellenir (yönetici düzenlemesi ezilmez).
+- `error.ACCOUNT_NOT_FOUND` üç dilde "okul numarası" yerine "e-posta adresi". Metinler taslaktır; hukuk incelemesi önerilir (`docs/LEGAL_NOTES.md` bölüm 14).
+### E-posta markası: siyah-beyaz + yeni logo (2026-11-06, `deploy/mail-20261106`)
 
-### Sohbet güvenliği bildirimi (CHATENC)
+- Tüm giden e-postalar (doğrulama/sıfırlama/2FA/destek kodu, hesap silindi, yeni cihaz, şifre değişti, 2FA bildirimi, duyuru, yönetici şablonları/kampanya, destek talebi alındı/yanıt/kod, sistem uyarısı) ve abonelikten çık sayfası tek siyah-beyaz çerçeveye (`MailLayout` + `layout.html`) taşındı: serif "BÜ" amblemi (CID gömülü, açık/koyu iki PNG), renkli bant/kırmızı vurgu yok, gradient/gölge yok, font-weight 400, 1 px kenarlık, 12 px köşe, siyah birincil düğme, kod kutusu, güvenlik notu, koyu mod (`prefers-color-scheme`), Outlook için tablo yerleşimi, Arapça RTL, düz metin alternatifi markalı. İçerik cümleleri değişmedi; yeni i18n anahtarları `mail.tpl.org`, `mail.tpl.footer.support`, `mail.tpl.action.track`.
+- Abonelikten çık sayfası artık stilli açılır (kendi dar CSP'si; genel `default-src 'none'` satır içi stili engelliyordu). Yönetici şablonlarındaki eski kırmızı marka renkleri render anında siyaha çevrilir.
+- Önizleme: `MailPreviewFilesTest` + `scripts/ops/render-mail-previews.mjs`. Ayrıntı: `docs/changes/mail.md` "Marka: siyah-beyaz + yeni logo (2026-11-06)".
+### Forum: 79 kategori + kategori araması (2026-11-06, `deploy/forumcat-20261106`)
 
-- **Mobil:** konuşmanın en üstünde (mesaj geçmişinin başında) kilit simgeli "Mesajların aktarım sırasında ve sunucuda şifrelenir. Daha fazla bilgi" bildirimi (birebir/grup/kulüp-etkinlik odası için ayrı alt metin, tr/en/ar); dokununca yeni "Sohbet güvenliği" sayfası (doğrulanmış korumalar + dürüst "Bilmen gerekenler" + Gizlilik Politikası / Topluluk Kuralları bağlantıları). Sohbet bilgisinde "Şifreleme ve güvenlik" satırı; boş sohbet listesi ve yeni sohbet ekranında tek satır alt bilgi.
-- **Doğruluk:** mesajlaşma uçtan uca şifreli değildir (sunucu tarafı AES-256-GCM + TLS/WSS, yönetici erişimi kayıtlı); metinler bunu açıkça söyler, "uçtan uca"/"kimse okuyamaz" iddiası yoktur ve testle denetlenir. Backend/web değişmedi. Bkz. MOBILE_UI.md bölüm 14.
+- **V1480**: forum kategorileri 8 -> 79 (8 grup: Genel, Akademik, Kampüs Yaşamı, Kariyer & Gelişim, Fakülte & Alanlar, Bingöl, Hobi & Eğlence, Yaşam; tr/en/ar), `forum_category_group` + `forum_category.group_key`. Eski kategorilerin kimlik/slug/sırası değişmedi.
+- `GET /api/forum/categories` yanıtı `groupKey/groupName/groupOrder` taşır; yeni `?q=` parametresi (Türkçe karakter duyarsız ad/slug/grup araması). Konu araması kategori adıyla da eşleşir. Ayrıntı: `docs/changes/forum-categories.md`. Duman: `scripts/smoke-forum-categories.sh`.
+### Gerçek e-posta (Apple gizli adres) doğrulaması (2026-11-06, `deploy/appleemail-20261106`)
+
+- **Sorun:** Apple "E-postamı gizle" ile açılan hesabın e-postası `xxxx@privaterelay.appleid.com` oluyordu (şifre sıfırlama/2FA/bildirim e-postaları ulaşmaz). **Çözüm:** röle adresli hesapta kullanıcıdan GERÇEK, aktif e-posta istenir, 6 haneli kodla doğrulanır ve hesabın TEK e-postası olur; röle adresine posta gönderilmez, eski röle adresi saklanmaz.
+- **Uçlar:** `POST /api/users/me/email/start` + `/verify` (kimlikli, hız sınırlı, kod yeni adrese bağlı; adres çakışması enumerasyon sızdırmadan yalnız doğru kodda `409 EMAIL_UNAVAILABLE`). `GET /api/users/me` ve OAuth giriş yanıtına `emailNeedsReal` + `realEmailRequired`.
+- **Kapı:** YENİ röle hesapta gerçek e-posta doğrulanana kadar yazma uçları `403 REAL_EMAIL_REQUIRED` (`RealEmailRequiredWriteFilter` + STOMP; bayrak `AUTH_REAL_EMAIL_GATE_ENABLED`, varsayılan açık). **Mevcut** röle hesaplar kilitlenmez: yalnız `email_relay=true` işaretlenir, uygulama yumuşak (atlanabilir) adım gösterir.
+- **Şema:** **V1472** (`app_user.email_relay`, `real_email_required`, `real_email_verified_at`; geriye dönük işaretleme). V1470 `deploy/legal-20261106` dalındadır: canlıya ÖNCE o inmelidir (`out-of-order=false`).
+- Yönetici hesapları bu uçtan adres değiştiremez ve kimse `ADMIN_EMAILS` adresine taşınamaz. E-posta kodu şablonu metni ("hesabınızı etkinleştirmek") genel "e-posta adresini doğrulamak" olarak güncellendi (tr/en/ar). Ayrıntı: `docs/changes/auth.md` "Gercek e-posta (role) dogrulamasi". Duman: `scripts/smoke-real-email.sh`.
+### Uygunsuz ifade filtresi v2 (2026-11-06, `deploy/profanity-20261106`)
+
+- TR/EN/AR için uzun yerleşik liste (`profanity-v2-*.txt`, üretici `scripts/profanity/gen-v2.js`), nefret söylemi (`HATE`), uyuşturucu satış argosu, Latin harfli Arapça; geniş masum/nötr kimlik izin listesi. Eşleşme motoru: 4-5 harfli kökler artık rastgele ek almaz, yeni `+`/`~` güvenli ek zinciri, izin listesi bilinen ek zinciriyle sınırlı. Migration yok. Sohbet mesajları muaf kalır. Ayrıntı: `docs/changes/ops.md` "Filtre v2".
+
+### Çoklu oturum + Cihazlarım (2026-11-06, `deploy/multisession-20261106`)
+
+- **Tek cihaz kuralı kalktı:** mobil giriş artık önceki mobil oturumları kapatmaz ve FCM kayıtlarını silmez; eski davranış `app.auth.single-mobile-session=true` (`AUTH_SINGLE_MOBILE_SESSION`) ile geri gelir. Bildirimler kullanıcının tüm cihazlarına gider.
+- **Cihazlarım:** her giriş bir oturum kimliği (`sid`, JWT `sid` talebi + refresh kaydı) ve `user_session` satırı alır (**V1460**: tablo + `device.session_id`). Yeni uçlar `GET /api/auth/sessions`, `DELETE /api/auth/sessions/{sid}` (tek cihazdan çıkış: o sid'in token'ları anında 401, o cihazın push kaydı silinir, WS kapanır); `logout-all` aynen. `POST /api/auth/logout` artık yalnız o cihazın access token'ını da hemen geçersiz kılar. Girişte `X-Device-Name` başlığı okunur (yoksa User-Agent/platform).
+- **Yeni cihaz girişi:** başka açık oturum varken bilinmeyen cihazdan giriş → tüm cihazlara uygulama içi bildirim + push (`SYSTEM`, tercihten bağımsız, `targetType=SECURITY`/`devices`) ve `SECURITY_NEW_LOGIN` e-postası.
+- Saklama 100 gün (`app.dbmaint.session-days`), hesap silme/KVKK dışa aktarım kapsamı eklendi. Ayrıntı: `docs/changes/auth.md` "Çoklu oturum + Cihazlarım". Duman: `scripts/smoke-multi-session.sh`; `smoke-single-session.sh` yalnız bayrak açıkken koşar (aksi halde ATLANDI).
+
+### Kaldırılanlar (2026-11-05, `deploy/nomap-20261105`)
+
+- **Kampüs haritası kaldırıldı:** `campus` paketi, `GET /api/campus/*`, `/api/admin/campus/**`, `campus.read|write` izinleri, `campus` önbellek ad alanı, `campus_place.photo_key` medya referansı, i18n `campus*`, yönetim paneli "Kampüs haritası" sayfası, `docs/CAMPUS_MAP.md`, `scripts/smoke-campus.sh`. **V1250** `campus_place` ve `campus_config` tablolarını düşürür (V1200/V1201 canlıda uygulanmış olduğundan dosyaları DEĞİŞMEZ).
+- **Akademik "bölüm duyuruları" kaldırıldı:** `DepartmentAnnouncementService`, `AnnouncementNotifier`, `/api/announcements*`, `/api/admin/announcements*`, `comms.announce` izni, bildirim alt türü `ACADEMIC_ANNOUNCEMENT` (+ `notif.academic.announcement` şablonu), toplu işlem/CSV `ANNOUNCEMENT` varlığı, panel sayfası. **V1251** `announcement_read`, `department_announcement` tablolarını düşürür ve eski bildirim/alt tür tercih satırlarını siler. (`notification_pref.academic_announcements` bayrağı sınav hatırlatması için kaldı. Haber türü "duyuru", `unitnews`, kulüp ve etkinlik duyuruları ayrı özelliklerdir, DEĞİŞMEDİ.)
+- **Resmi sınav programı kaldırıldı:** `GET /api/exams/official`, `/api/admin/academic/exams*`, toplu işlem/CSV `EXAM` varlığı, panel sayfası; **V1251** `exam_schedule` tablosunu düşürür. Kişisel sınavlar (`tt_exam`, Sınavlarım, sınav hatırlatması) ve resmi ders programı kalır.
+- **Mesaj önizleme tercihi kaldırıldı:** `messagePreview` (tercih API'si), `app.push.message-preview` / `message-preview-optin` ayarları, `PUSH_MESSAGE_PREVIEW`; push gövdesi her zaman mesaj metninin ilk 100 karakteridir, Android `chat` kanalı kilit ekranında `PUBLIC`. **V1252** `notification_pref.message_preview` sütununu düşürür.
+
+### UNION (2026-11-04): iki dağıtım hattının birleşimi (`deploy/union-20261104`)
+
+- `deploy/final-all-20261101` (Drive yedek, 2FA, birim haberleri, admin arama/panel yenileme, P01-P10 düzeltmeleri, V1040-V1141) + `deploy/final-20261104` (Keşfet V1220-V1230, kampüs V1200-V1201, resmî ders programı V1150-V1160, parola/kod süresi, davranış analizi V1240, site yeniden tasarımı). Migration numarası çakışması yok; A'nın V1040-V1141 dosyaları ve B'nin V1150+ dosyaları kaynaklarıyla bayt bayt aynıdır (Flyway checksum korunur). Yeni numara yok: en yüksek V1240.
+- Site sayfaları B'nin yeniden tasarımıdır; A'nın SEO/içerik işleri (JSON-LD `@id` grafiği, SSS +15 soru, iç bağlantılar, haber JSON-LD, menü fotoğrafı doğrulaması `safeMenuImageUrl`, StoreButton `pending`) üzerine yeniden uygulandı. WebSite/Organization/MobileApplication JSON-LD'ye "bukampus"/"BuKampüs" takma adları eklendi (Organization türü A'daki gibi; üniversite adı takma ad olarak yazılmaz).
+- Redis: `user: redis` (B, canlıda doğrulanmış); `DAC_READ_SEARCH` ekli kök yolu düştü. `REDIS_PASSWORD`/`--requirepass` (A) korunur.
+- `DbMaintenanceJob`: P09 "rollup başarısızsa ham olay silme atlanır" + `behavior_rollup_days` birlikte.
+- `docs/openapi.json` `OpenApiExportTest` ile yeniden üretildi.
+
+### Resmi ders programı kişisel programa tohumlanır (V1160)
+### Şifre kuralı gevşetildi + kayıtta ad isteğe bağlı
+
+- **Şifre:** yönetici olmayan hesaplarda (kayıt, şifre sıfırlama, şifre değiştirme) yalnız **en az 6 karakter** ister; bileşim, yaygın liste, dizi/tekrar ve kişisel veri denetimi kalktı. Kısa şifre `400 PASSWORD_TOO_SHORT` (tr/en/ar). Yönetici hesapları eski güçlü kuralda (12+ karakter, `PASSWORD_TOO_WEAK`) kalır; giriş, hesap kilidi ve hız sınırı değişmedi. `app.auth.password-min-length` varsayılanı 10 → 6.
+- **Kayıt:** ad kayıtta alınır; fakülte/bölüm/sınıf kayıttan sonra `PATCH /api/users/me` ile tek istekte girilir (kota yok). `displayName` sunucuda isteğe bağlı kabul edilir (boşsa geçici ad: e-posta kullanıcı adı ya da "Öğrenci"; geçici adın ilk değişimi 7 günlük bekleme kuralına sayılmaz). Yönetici kaydında ad zorunlu kalır. Bkz. `docs/changes/auth.md`.
+
+### Şifremi unuttum 404 + kod süresi/bekleme
+
+- **`forgot-password`:** kayıtlı olmayan hesap için e-posta gitmez, `404 ACCOUNT_NOT_FOUND` döner (bilinçli enumerasyon istisnası; IP başına dakikada 15 ek sınır). **Kodlar:** geçerlilik tam 10 dk; yeniden kod bekleme süresi 60 sn → **180 sn** (`resend-code`, `forgot-password`, tekrar `register`, destek formu): erken istek `429 RESEND_COOLDOWN` + `Retry-After`. Bkz. `docs/changes/auth.md`.
+
+### Kullanıcı davranış analizi (V1240, yönetim paneli)
+
+- **Sunucu (BK6):** mobil olay sözleşmesi genişledi (`props.sid` oturum kimliği, `session_start|session_end|screen_exit|action`, 22 izinli eylem türü; sözleşmeyi bozan olay tek tek elenir; `props` 5 -> 8 anahtar). Yeni `analytics.behavior` paketi: `GET /api/admin/analytics/behavior/{overview,screens,flows,actions}` (`analytics.read`) ve `/users`, `/users/{id}` (`users.pii`, her çağrı denetim kaydına yazılır): oturum/ekran süresi, çıkış ve bounce oranları, akışlar, eylem sayıları, kullanıcı oturum zaman çizelgesi. Aralık en çok 45 gün (`RANGE_TOO_LARGE`). Kalıcı günlük özetler `analytics_session_daily` / `analytics_screen_daily` (kullanıcı kimliği yok; gece dolum). Ayrıntı: `docs/ADMIN_API.md` "Kullanıcı davranış analizi", `docs/changes/ops.md`. Duman: `scripts/smoke-behavior.sh`.
 
 ### Resmî ders programı (Excel yükleme, V1070) + yeni hesap varsayılanı
 
-- **Ders programı:** yönetim panelinde `Akademik > Resmî ders programı` (`/admin/academic/timetable`): şablon Excel yüklenir, önce önizleme (program/oturum sayısı, hata ve uyarılar), onaylanınca birim+program bazında değiştirilerek yazılır. Tablolar `official_timetable_batch|entry`; kullanıcı ucu `GET /api/timetable/official`. Ayrıntı: `docs/ADMIN_API.md` "Resmi ders programı". Excel okuyucu bağımlılıksızdır (`XlsxReader`, StAX; XXE ve zip-bombası sınırları).
-- **Yeni hesap varsayılanı:** `app.profile.default-private-account` varsayılanı `true` → **`false`**: yeni kayıtlar herkese açık başlar (ayar `true` yapılırsa yine gizli açılır; mevcut hesaplara dokunulmaz).
+- **Tohumlama:** `GET /api/timetable`, kişisel dersi olmayan ve resmi programı tek birimden gelen öğrencinin programını resmi programdan otomatik doldurur; `tt_official_seed` işareti sayesinde dersler silinse de aynı dönem için tekrarlanmaz. Çoklu birimde mobil birim seçtirir.
+- **Yeni uçlar:** `GET /api/timetable/official/status`, `POST /api/timetable/official/apply` (`unit`, `replace`, `force`); yeni hata kodları `OFFICIAL_UNIT_REQUIRED` (422), `OFFICIAL_TIMETABLE_NOT_FOUND` (404). Ders eklemede kod/renk/not/derslik artık zorunlu değil. Ayrıntı: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md) "Resmi programdan kişisel program".
+
+### FINAL-ALL (2026-11-01): backend düzeltme paketleri P01-P10 + panel dalı tek dalda (`deploy/final-all-20261101`)
+
+- **Birleşen paketler (sırayla):** P10 altyapı/test hızı, P01 Redis dayanıklılığı + hız sınırı, P04 bildirim/e-posta, P02 kimlik/oturum + erişim engelleri, P03 sohbet/medya, P05 topluluk/etkinlik, P06 keşfet/gönderi, P07 içerik/destek/arama, P08 akademik/profil, P09 yönetim/çökme/dbmaint. Ayrıntı: `docs/changes/*.md` ("FIX-Pxx" bölümleri), istemci etkisi tablosu [CLIENT_IMPACT_20261101.md](CLIENT_IMPACT_20261101.md).
+- **Flyway (yalnız YENİ dosyalar, uygulanmış hiçbiri değişmedi):** V1090, V1092 (sohbet indeksleri), V1100-V1102 (mail kampanya bağı, push SENT indeksi, kampanya ilerleme), V1110-V1111 (etkinlik/topluluk indeksleri), V1120-V1123 (gönderi indeksleri), V1140 (`grade` geriye doldurma), V1141 (hesap silme indeksleri). V1091, V1112, V1130, V1150+ kullanılmadı.
+- **İkinci tur (P04 toplu API'sine bağlı kalemler):** üye/katılımcı/kitle bildirimleri istek thread'inden ve açık işlemden çıkarıldı (`FanoutNotifier`, `sendTemplatedBulk`): kulüp yazısı/duyurusu/silme, etkinlik güncelleme/iptal/duyuru, başvuru modu, anket, akademik duyuru, etkinlik hatırlatma. Kulüp satır kilidi artık bildirim boyunca tutulmaz.
+- **Geriye uyumluluk (eski mobil 2.0.5/2.0.6):** makbuz/yazıyor varsayılan eski davranış (ayarla kapatılır), oda gönderim sınırı 600/dk, etkinlik açma sınırları varsayılan kapalı, menü yakalama cron'u varsayılan kapalı. Refresh çift istek `409 REFRESH_IN_PROGRESS` ve "99+" sayaç eski istemcide güvenli (kanıt tabloda).
+- **Birleştirme düzeltmeleri:** P03 test derleme hatası, P09 panel önbelleği testleri, `AccountDataPurger` yeni sütun kararı, `NewsListPage` en az 3 karakter.
+- **Test:** backend 3388 test, 0 başarısız, 6 atlandı (Docker Maven 17, `-Djacoco.skip=true`, 8 dk 18 sn; panel dalı 3079 test); duman: izole PostgreSQL 16 yığınında 41 betik yeşil (Flyway 116 migration temiz uygulandı, son sürüm 1141); web lint/typecheck/vitest (1781 geçti, 3 atlandı)/build/bundle/seo/i18n/contract yeşil; yedek betik öz testleri 97 + 25 OK.
+- **Duman betiği düzeltmeleri:** `smoke-crash-reports` (taşma birleştirmesini bekler), `smoke-admin` (analitik önbelleği için 62 sn); ortam koşulları CLAUDE.md "Duman betikleri" bölümünde.
+- **OpenAPI:** `docs/openapi.json` yeniden üretildi (+`POST /api/admin/push/campaigns/{id}/resend`, `DELETE /api/devices/{idOrToken}`), web `schema.d.ts` yenilendi.
+
+### FINAL (2026-11-01): iki dağıtım hattının birleştirilmesi
+
+- `deploy/hardened-20261101` (SEO, site içeriği, Drive yedek, 2FA, birim haberleri, HARDEN) ile panel görsel yenilemesi + varsayılan gizli hesap (`app.profile.default-private-account`) + menü kalori/görsel tek dalda (`deploy/final-20261101`) birleştirildi. Flyway sırası V1040 (menü) → V1050 (birim haberleri) → V1060 (2FA); numara çakışması yok.
+- Yedekleme (`/admin/backup`), Birim haberleri (`/admin/content/unit-news`) ve İki faktörlü doğrulama (`/admin/two-factor`) sayfaları yeni görsel kite (Insight, StatTile, ResponsiveTable), menü gruplarına (Sistem / İçerik / Kullanıcılar), RBAC izinlerine ve Ctrl+K derin aramasına uyarlandı; kullanıcı listesinde 2FA süzgeci ve çipi.
+- `web/bundle-budget.json`: totalJs 770 → 800 KB, `site.*` 23 → 26 KB (gerekçe dosyada).
+
+### Entegrasyon (ENT-ALL): Drive yedek + birim duyuruları + iki faktörlü doğrulama
+
+- **Google Drive yedek (backend/ops):** `scripts/backup/remote-sync.sh` (günde 1 doğrulanmış yükleme, `.partial` -> damga adı, uzak GFS saklama), `prune-local-after-remote.sh` (yalnız Drive'da doğrulanmış yerel yedekleri azaltır, varsayılan kuru çalışma), `GET /api/admin/system/backup` (`BackupReport`, izin `system.read`), `docker-compose.prod.yml` `backup` servisi (`RCLONE_CONF_DIR` ile kalıcı, yazılabilir rclone dizini), [BACKUP_GDRIVE.md](BACKUP_GDRIVE.md). Saatlik yedek yerelde kalır; Drive kopyası en kötü ~24 saat geridir.
+- **Yönetim paneli:** `/admin/backup` (durum kartları + adım adım kurulum rehberi; rehber `docs/BACKUP_GDRIVE.md` ile hizalı), `/admin/content/unit-news` (kaynaklar, eşleme, bölümler, duyuru gizle/göster, sağlık özeti), `/admin/two-factor` (özet + tablo), kullanıcı listesinde 2FA sütunu/süzgeci, ayrıntıda gerekçeli kapatma, yönetici girişinde 202 kod adımı ve kalıcı `X-Device-Id`.
+- **Birim duyuruları (V1050, `unitnews`):** 23 alt siteden gece çekimi, bölüme göre `GET /api/news/unit`, yönetici uçları `/api/admin/unit-news/**`; sözleşme [UNIT_NEWS_API.md](UNIT_NEWS_API.md). İlk açılışta tablolar boşken ilk doldurma yaklaşık 15 dk sürer.
+- **İki faktörlü doğrulama (V1060, `auth.twofactor`, `admin.twofactor`):** e-posta kodu + güvenilen cihaz, `TWO_FACTOR_CODE` e-posta şablonu, yönetici özet/liste/gerekçeli kurtarma kapatması (RBAC `users.read`/`users.write`); sözleşme [TWO_FACTOR_API.md](TWO_FACTOR_API.md). CORS izinli başlıklara `X-Device-Id` eklendi.
 
 ### Menü: yemek adına bağlı kalori + içeriğe bağlı görsel (V1040)
 

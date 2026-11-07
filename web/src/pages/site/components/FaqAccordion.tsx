@@ -1,16 +1,33 @@
-import { useId, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
 import type { FaqEntry } from '../../../api/types';
+import { Link } from '../../../components/LocalizedLink';
 import { Icon, MarkdownText } from '../../../components/ui';
 import styles from './FaqAccordion.module.css';
+
+/** Soru; `anchor` verilirse öğe o kimlikle bağlanabilir (#faq-...) ve adres kancası eşleşince açılır. */
+export type FaqItem = FaqEntry & { anchor?: string };
+
+/** Yanıtlardaki site içi bağlantılar dil önekli ve sayfa yenilemesiz gezinir. */
+const InternalLink = ({ href, children }: { href: string; children: ReactNode }) => <Link to={href}>{children}</Link>;
 
 /**
  * Erişilebilir akordeon: düğme başlıklar (aria-expanded/aria-controls), Enter/Boşluk ile aç-kapa,
  * Yukarı/Aşağı/Home/End ile başlıklar arasında gezinme.
  */
-export function FaqAccordion({ items }: { items: FaqEntry[] }) {
+export function FaqAccordion({ items }: { items: FaqItem[] }) {
   const base = useId();
+  const { hash } = useLocation();
   const [open, setOpen] = useState<Set<number>>(new Set());
   const heads = useRef<(HTMLButtonElement | null)[]>([]);
+
+  // Adres kancası (#faq-calorie) bir soruya işaret ediyorsa o soru açılır ve görünüme kaydırılır
+  useEffect(() => {
+    const target = items.find((it) => it.anchor && hash === `#${it.anchor}`);
+    if (!target) return;
+    setOpen((prev) => (prev.has(target.id) ? prev : new Set(prev).add(target.id)));
+    document.getElementById(target.anchor as string)?.scrollIntoView?.({ block: 'start' });
+  }, [hash, items]);
 
   const toggle = (id: number) =>
     setOpen((prev) => {
@@ -40,7 +57,7 @@ export function FaqAccordion({ items }: { items: FaqEntry[] }) {
         const hid = `${base}-h-${it.id}`;
         const pid = `${base}-p-${it.id}`;
         return (
-          <div key={it.id} className={`${styles.item} ${isOpen ? styles.open : ''}`}>
+          <div key={it.id} id={it.anchor} className={`${styles.item} ${isOpen ? styles.open : ''}`}>
             <h3 className={styles.h}>
               <button
                 ref={(el) => {
@@ -59,7 +76,7 @@ export function FaqAccordion({ items }: { items: FaqEntry[] }) {
               </button>
             </h3>
             <div id={pid} role="region" aria-labelledby={hid} hidden={!isOpen} className={styles.panel}>
-              <MarkdownText text={it.answer} />
+              <MarkdownText text={it.answer} internalLink={InternalLink} />
             </div>
           </div>
         );

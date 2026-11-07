@@ -66,6 +66,15 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
     List<Conversation> page(@Param("uid") Long userId, @Param("cursor") Long cursor,
                             @Param("archived") boolean archived, Pageable pageable);
 
+    /** Arsivdeki (listede gorunen) konusma sayisi: `page(archived=true)` ile ayni kosullar. Arsiv cubugu icin. */
+    @Query("SELECT COUNT(c) FROM Conversation c, ConversationMember m WHERE m.conversationId = c.id AND m.userId = :uid "
+            + "AND m.leftAt IS NULL AND m.hiddenAt IS NULL AND c.lastMessageId IS NOT NULL "
+            + "AND m.requestState = edu.bingol.backend.messaging.ConversationMember.RequestState.ACCEPTED "
+            + "AND (CASE WHEN c.shadowed = true THEN GREATEST(COALESCE(c.lastVisibleMessageId, 0L), m.lastOwnSuppressedMessageId) "
+            + "ELSE c.lastMessageId END) > 0 "
+            + "AND m.archivedAt IS NOT NULL")
+    long countArchived(@Param("uid") Long userId);
+
     /** Bekleyen mesaj istekleri / grup davetleri (T-026), en yeni once; imlec = konusma kimligi (azalan). */
     @Query("SELECT c FROM Conversation c, ConversationMember m WHERE m.conversationId = c.id AND m.userId = :uid "
             + "AND m.leftAt IS NULL AND m.requestState = edu.bingol.backend.messaging.ConversationMember.RequestState.PENDING "

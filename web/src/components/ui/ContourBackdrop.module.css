@@ -1,0 +1,5 @@
+.art {
+  display: block;
+  background: url('../../assets/contour.svg') center / cover no-repeat;
+  pointer-events: none;
+}

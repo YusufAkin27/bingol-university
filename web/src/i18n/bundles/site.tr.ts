@@ -9,5 +9,15 @@ import supportPublic from '../tr/support-public';
 import seo from '../tr/seo';
 import childSafety from '../tr/child-safety';
 import siteTrust from '../tr/site-trust';
+import siteRd01 from '../tr/site-rd01';
+import siteRd02 from '../tr/site-rd02';
+import siteRd03 from '../tr/site-rd03';
+import siteRd04 from '../tr/site-rd04';
+import siteRd05 from '../tr/site-rd05';
+import siteRd06 from '../tr/site-rd06';
+import siteRd07 from '../tr/site-rd07';
+import siteRd08 from '../tr/site-rd08';
+import siteRd09 from '../tr/site-rd09';
+import siteRd10 from '../tr/site-rd10';
 
-export default { ...common, ...site, ...siteNew, ...siteV3, ...legal, ...pages, ...supportPublic, ...seo, ...childSafety, ...siteTrust };
+export default { ...common, ...site, ...siteNew, ...siteV3, ...legal, ...pages, ...supportPublic, ...seo, ...childSafety, ...siteTrust, ...siteRd10, ...siteRd01, ...siteRd02, ...siteRd03, ...siteRd04, ...siteRd05, ...siteRd06, ...siteRd07, ...siteRd08, ...siteRd09 };

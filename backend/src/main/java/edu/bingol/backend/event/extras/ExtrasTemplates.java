@@ -16,5 +16,13 @@ final class ExtrasTemplates {
     static final Template CO_ORGANIZER_ADDED = NotificationTemplates.register("notif.event.coOrganizerAdded",
             NotificationType.EVENT, NotificationSubtype.EVENT_UPDATE);
 
+    /** {0} etkinlik basligi. */
+    static final Template MODERATOR_ADDED = NotificationTemplates.register("notif.event.moderatorAdded",
+            NotificationType.EVENT, NotificationSubtype.EVENT_UPDATE);
+
+    /** {0} etkinlik basligi. */
+    static final Template MODERATOR_REMOVED = NotificationTemplates.register("notif.event.moderatorRemoved",
+            NotificationType.EVENT, NotificationSubtype.EVENT_UPDATE);
+
     private ExtrasTemplates() {}
 }

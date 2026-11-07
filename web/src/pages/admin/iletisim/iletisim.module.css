@@ -1,0 +1,106 @@
+/* İletişim grubu (destek + bildirimler) ortak yerleşimi: token + mantıksal özellikler (RTL). */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--space-3);
+  margin-block: var(--space-3);
+  align-items: stretch;
+}
+.tiles > * {
+  min-inline-size: 0;
+}
+/* Sayı kutuları yüklenirken ve yüklendikten sonra aynı yüksekliği korusun (CLS) */
+.tileBox {
+  min-block-size: 9.5rem;
+}
+.ringBox {
+  display: grid;
+  place-items: center;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  min-block-size: 9.5rem;
+}
+.sentence {
+  margin-block: var(--space-3);
+}
+.grid2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: var(--space-4);
+  align-items: start;
+  margin-block: var(--space-4);
+}
+.grid2 > * {
+  min-inline-size: 0;
+}
+.panelTitle {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-base);
+  font-weight: var(--fw-bold);
+}
+.panelNote {
+  margin: var(--space-2) 0 0;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+.chartBox {
+  min-block-size: 240px;
+}
+.clearLink {
+  min-block-size: 44px;
+  padding-inline: var(--space-3);
+  border: 0;
+  background: transparent;
+  color: var(--info);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.clearLink:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.audienceShare {
+  display: grid;
+  gap: var(--space-1);
+  max-inline-size: 28rem;
+}
+/* Kuyruk sağlığı kartı */
+.healthBox {
+  display: grid;
+  gap: var(--space-3);
+  margin-block: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  min-inline-size: 0;
+}
+.healthHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.healthTitle {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: var(--fw-bold);
+}
+.healthMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+.spaced {
+  margin-block: var(--space-4);
+}

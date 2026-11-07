@@ -92,7 +92,11 @@ public class SecurityConfig {
                 .addHeaderWriter(new DelegatingRequestMatcherHeaderWriter(
                         new NegatedRequestMatcher(new OrRequestMatcher(
                                 PathPatternRequestMatcher.withDefaults().matcher("/swagger-ui/**"),
-                                PathPatternRequestMatcher.withDefaults().matcher("/swagger-ui.html"))),
+                                PathPatternRequestMatcher.withDefaults().matcher("/swagger-ui.html"),
+                                // paylasim sayfasi kendi CSP basligini yazar (docs/SHARING.md)
+                                PathPatternRequestMatcher.withDefaults().matcher("/s/**"),
+                                // abonelikten cik sayfasi stil/logo icin kendi (dar) CSP basligini yazar (MailUnsubscribeController)
+                                PathPatternRequestMatcher.withDefaults().matcher("/api/public/mail/unsubscribe"))),
                         new StaticHeadersWriter("Content-Security-Policy",
                                 "default-src 'none'; frame-ancestors 'none'; base-uri 'none'"))))
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -107,7 +111,7 @@ public class SecurityConfig {
                         && "/actuator/prometheus".equals(request.getRequestURI())).permitAll()
                 .requestMatchers("/actuator/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/auth/me", "/api/auth/logout-all", "/api/auth/change-password","/api/legal/consents", "/api/legal/consents/**", "/api/legal/accept", "/api/legal/acceptance-status").authenticated()
+                .requestMatchers("/api/auth/me", "/api/auth/logout-all", "/api/auth/verification/**", "/api/auth/change-password", "/api/auth/2fa", "/api/auth/2fa/**", "/api/auth/sessions", "/api/auth/sessions/**", "/api/auth/oauth/link", "/api/auth/oauth/link/*", "/api/auth/oauth/identities", "/api/legal/consents", "/api/legal/consents/**", "/api/legal/accept", "/api/legal/acceptance-status").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/faq", "/api/legal", "/api/legal/*", "/api/legal/*/versions",
                         "/api/app/info", "/api/app/version", "/api/faculties", "/api/catalog/academic", "/api/catalog/departments").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
@@ -122,6 +126,8 @@ public class SecurityConfig {
                 // Birim (bolum) haberleri kisiseldir: giris gerekli (genel haber uclarindan once)
                 .requestMatchers("/api/news/unit", "/api/news/unit/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/news","/api/news/**", "/api/menu", "/api/menu/**", "/api/status").permitAll()
+                // Herkese acik paylasim sayfasi + OpenGraph gorseli (SharePageController; yalniz herkese acik icerik, IP hiz siniri)
+                .requestMatchers(HttpMethod.GET, "/s/*/*", "/s/*/*/img").permitAll()
                 .requestMatchers("/api/hello", "/actuator/health", "/files/**", "/error").permitAll()
                 // WebSocket el sikismasi acik; kimlik STOMP CONNECT'te (JWT) zorunlu (bkz. messaging.ws.StompAuthInterceptor)
                 .requestMatchers("/ws", "/ws/**").permitAll()

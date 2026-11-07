@@ -8,7 +8,6 @@ Bu betik Xcode'un yerine GECMEZ: yalnizca plist/pbxproj/varlik tutarliligini ve 
 reddettigi dosya duzeyi hatalari yakalar. Derleme/imza/yukleme macOS'ta dogrulanir (docs/IOS_RELEASE.md).
 """
 import glob
-import json
 import os
 import plistlib
 import re
@@ -53,14 +52,13 @@ REQUIRED_USAGE = [
     'NSMicrophoneUsageDescription',    # video cekimi (image_picker/camera, ses)
     'NSPhotoLibraryUsageDescription',  # photo_manager, image_picker (galeri)
     'NSPhotoLibraryAddUsageDescription',  # gal (galeriye kaydet)
-    'NSCalendarsFullAccessUsageDescription',  # BuCalendarBridge (iOS 17+, akademik takvimi cihaz takvimine yazma)
-    'NSCalendarsUsageDescription',     # ayni islev, iOS 15-16 (dagitim hedefi 15.0)
+    'NSContactsUsageDescription',      # flutter_contacts (rehber eslestirme)
 ]
 # Uygulamada KARSILIGI OLMAYAN izin anahtarlari: eklenirse App Review "kullanilmayan izin" sorar
 FORBIDDEN_USAGE = [
     'NSLocationWhenInUseUsageDescription', 'NSLocationAlwaysAndWhenInUseUsageDescription',
     'NSLocationAlwaysUsageDescription', 'NSUserTrackingUsageDescription', 'NSBluetoothAlwaysUsageDescription',
-    'NSRemindersUsageDescription', 'NSSpeechRecognitionUsageDescription',
+    'NSCalendarsUsageDescription', 'NSRemindersUsageDescription', 'NSSpeechRecognitionUsageDescription',
     'NSMotionUsageDescription', 'NSFaceIDUsageDescription', 'NSHealthShareUsageDescription',
 ]
 ALLOWED_REASONS = {
@@ -98,26 +96,6 @@ def check_info_plist():
         ok('UIBackgroundModes = remote-notification')
     else:
         bad('UIBackgroundModes yalniz remote-notification olmali (baska mod App Review gerekcesi ister)')
-    # Paylasim baglantisi (derin baglanti): Flutter'in kendi yonlendirmesi kapali, `bukampus` ozel semasi kayitli.
-    if info.get('FlutterDeepLinkingEnabled') is False:
-        ok('FlutterDeepLinkingEnabled=false (derin baglantiyi app_links isler)')
-    else:
-        bad('FlutterDeepLinkingEnabled=false olmali (aksi halde Flutter /s/... yolunu rota sanir)')
-    schemes = [s for t in info.get('CFBundleURLTypes', []) for s in t.get('CFBundleURLSchemes', [])]
-    if 'bukampus' in schemes:
-        ok('CFBundleURLTypes: bukampus:// ozel semasi kayitli')
-    else:
-        bad('CFBundleURLTypes: bukampus ozel semasi eksik (paylasim baglantisi yedegi)')
-    # Google ile giris (iOS): GIDClientID + ters istemci kimligi URL semasi birbiriyle tutarli olmali.
-    gid = info.get('GIDClientID', '')
-    if gid.endswith('.apps.googleusercontent.com'):
-        rev = 'com.googleusercontent.apps.' + gid[: -len('.apps.googleusercontent.com')]
-        if rev in schemes:
-            ok('Google girisi: GIDClientID + ters kimlik URL semasi tutarli')
-        else:
-            bad('Google girisi: GIDClientID var ama ters kimlik URL semasi (com.googleusercontent.apps.<no>) CFBundleURLTypes icinde yok')
-    else:
-        warn('Google girisi: Info.plist GIDClientID tanimsiz/gecersiz (iOS Google dugmesi calismaz)')
     if 'FirebaseAppDelegateProxyEnabled' in info:
         bad('FirebaseAppDelegateProxyEnabled tanimli: kaldirin (swizzling acik kalmali, bkz. docs/MOBILE_PUSH.md)')
     else:
@@ -177,35 +155,11 @@ def check_entitlements():
             ok(f'{name}: aps-environment={env}')
         else:
             bad(f'{name}: aps-environment={env} olmali')
-        # time-sensitive ve associated-domains yetkileri KASITLI olarak YOK: App ID'de (developer.apple.com) bu iki yetenek
-        # acilip profil yenilenmeden imza hatasi verir (Codemagic: "Provisioning profile ... doesn't include ...").
-        # Acilinca geri eklenir (bkz. docs/IOS_RELEASE.md). Yokken bildirim normal duzeyde teslim edilir (kod uyumlu).
-        for key in ('com.apple.developer.usernotifications.time-sensitive', 'com.apple.developer.associated-domains'):
-            if key in d:
-                bad(f'{name}: {key} App ID yetkisi acilmadan eklenmemeli (imza hatasi)')
-            else:
-                ok(f'{name}: {key} yok (App ID yetkisi acilana kadar kapali)')
     x = read(os.path.join(IOS, 'Flutter', 'BuPush.xcconfig.example'))
     if 'RunnerRelease.entitlements' in x and 'config=Release' in x:
         ok('BuPush.xcconfig.example: Release -> RunnerRelease.entitlements (production)')
     else:
         bad('BuPush.xcconfig.example Release icin RunnerRelease.entitlements baglamali')
-
-
-def check_push_categories():
-    """AppDelegate.registerPushCategories anahtarlari == NotificationContent Info.plist kategori listesi."""
-    app = read(os.path.join(RUNNER, 'AppDelegate.swift'))
-    body = app[app.index('let definitions'):app.index('setNotificationCategories')]
-    keys = set(re.findall(r'^\s*"([A-Z_]+)":', body, re.M)) | set(re.findall(r',\s*"([A-Z_]+)":', body))
-    plist = load_plist(os.path.join(IOS, 'NotificationContent', 'Info.plist'))
-    cats = plist['NSExtension']['NSExtensionAttributes']['UNNotificationExtensionCategory']
-    declared = {c[3:] for c in cats if c.startswith('BU_')}
-    if keys == declared and keys:
-        ok(f'Push kategorileri: AppDelegate ({len(keys)}) == NotificationContent Info.plist')
-    else:
-        bad(f'Push kategorileri uyusmuyor: yalniz AppDelegate {sorted(keys - declared)}, yalniz Info.plist {sorted(declared - keys)}')
-    for name in ('NotificationService/NotificationService.swift', 'NotificationContent/NotificationViewController.swift'):
-        (ok if os.path.isfile(os.path.join(IOS, name)) else bad)(f'{name} diskte')
 
 
 def check_privacy():
@@ -238,7 +192,6 @@ def check_pbxproj():
         ('PrivacyInfo.xcprivacy in Resources', 'PrivacyInfo.xcprivacy Resources fazinda'),
         ('InfoPlist.strings in Resources', 'InfoPlist.strings (tr/en/ar) Resources fazinda'),
         ('BuNativeBridge.swift in Sources', 'BuNativeBridge.swift Sources fazinda'),
-        ('BuCalendarAlarmBridge.swift in Sources', 'BuCalendarAlarmBridge.swift Sources fazinda'),
         ('Bundle GoogleService-Info.plist (optional)', 'GoogleService-Info.plist paketleme fazi'),
     ]
     for needle, label in checks:
@@ -250,20 +203,8 @@ def check_pbxproj():
     m = re.search(r'knownRegions = \(([^)]*)\)', s)
     regions = set(re.findall(r'\b(\w+)\b', m.group(1))) if m else set()
     (ok if {'tr', 'en', 'ar'} <= regions else bad)('knownRegions tr, en, ar iceriyor')
-    # Uzantilarin ayri bundle id'leri vardir; yalniz Runner plist'ini kullanan
-    # buildSettings bloklarini denetle (Debug, Release, Profile).
-    settings = re.findall(r'buildSettings\s*=\s*\{([^{}]*)\}', s, re.S)
-    runner_settings = [b for b in settings if re.search(
-        r'\bINFOPLIST_FILE\s*=\s*"?Runner/Info\.plist"?\s*;', b)]
-    (ok if len(runner_settings) == 3 else bad)(
-        f'Runner buildSettings yapilandirmalari ({len(runner_settings)}/3)')
-    ids = set()
-    for block in runner_settings:
-        match = re.search(r'PRODUCT_BUNDLE_IDENTIFIER\s*=\s*"?([A-Za-z0-9.\-]+)"?\s*;', block)
-        if match:
-            ids.add(match.group(1))
-        else:
-            bad('Runner buildSettings: PRODUCT_BUNDLE_IDENTIFIER eksik')
+    ids = set(re.findall(r'PRODUCT_BUNDLE_IDENTIFIER = ([A-Za-z0-9.\-]+);', s)) - {
+        i for i in re.findall(r'PRODUCT_BUNDLE_IDENTIFIER = ([A-Za-z0-9.\-]+);', s) if i.endswith('.RunnerTests')}
     if len(ids) == 1:
         ok('Bundle id (tek deger): ' + next(iter(ids)))
     else:
@@ -271,7 +212,7 @@ def check_pbxproj():
     if 'Debug.xcconfig' in s and 'Release.xcconfig' in s:
         ok('Debug/Release xcconfig baglantili')
     # dosya var mi
-    for name in ('BuNativeBridge.swift', 'BuCalendarAlarmBridge.swift', 'PrivacyInfo.xcprivacy', 'AppDelegate.swift', 'SceneDelegate.swift'):
+    for name in ('BuNativeBridge.swift', 'PrivacyInfo.xcprivacy', 'AppDelegate.swift', 'SceneDelegate.swift'):
         (ok if os.path.isfile(os.path.join(RUNNER, name)) else bad)(f'Runner/{name} diskte')
     return next(iter(ids)) if len(ids) == 1 else None
 
@@ -284,33 +225,23 @@ def png_size_alpha(path):
 
 
 def check_icons():
-    # Tek boyut (Xcode 14+) AppIcon: acik + koyu (iOS 18) + tinted 1024 px, hepsi alfasiz (App Store Connect reddeder).
     base = os.path.join(RUNNER, 'Assets.xcassets', 'AppIcon.appiconset')
-    contents = json.loads(read(os.path.join(base, 'Contents.json')))
-    files = [i.get('filename') for i in contents.get('images', [])]
-    if len(files) != 3:
-        bad(f'AppIcon Contents.json 3 gorsel (acik/koyu/tinted) icermeli: {files}')
-    for fn in files:
-        path = os.path.join(base, fn or '')
-        if not os.path.isfile(path):
-            bad(f'AppIcon dosyasi yok: {fn}')
-            continue
-        w, h, alpha = png_size_alpha(path)
-        if (w, h) != (1024, 1024):
-            bad(f'{fn} 1024x1024 olmali ({w}x{h})')
-        elif alpha:
-            bad(f'{fn} ALFA kanali iceriyor: App Store Connect reddeder')
-        else:
-            ok(f'{fn} 1024x1024, alfasiz')
-    vals = sorted(a['value'] for i in contents.get('images', []) for a in i.get('appearances', []))
-    (ok if vals == ['dark', 'tinted'] else bad)(f'AppIcon gorunumleri (dark, tinted): {vals}')
+    mk = os.path.join(base, 'Icon-App-1024x1024@1x.png')
+    w, h, alpha = png_size_alpha(mk)
+    if (w, h) != (1024, 1024):
+        bad(f'App Store simgesi 1024x1024 olmali ({w}x{h})')
+    elif alpha:
+        bad('App Store simgesi (1024) ALFA kanali iceriyor: App Store Connect reddeder')
+    else:
+        ok('AppIcon 1024x1024, alfasiz')
+    bad_alpha = [os.path.basename(p) for p in glob.glob(os.path.join(base, '*.png')) if png_size_alpha(p)[2]]
+    (ok if not bad_alpha else bad)('Diger AppIcon boyutlari alfasiz' if not bad_alpha else f'Alfali simgeler: {bad_alpha}')
     ls = os.path.join(RUNNER, 'Base.lproj', 'LaunchScreen.storyboard')
     t = read(ls)
-    cs = os.path.join(RUNNER, 'Assets.xcassets', 'LaunchBackground.colorset', 'Contents.json')
-    if 'name="LaunchBackground"' in t and os.path.isfile(cs):
-        ok('LaunchScreen: acik/koyu zemin (LaunchBackground renk kumesi) + acik/koyu logo (LaunchImage)')
+    if 'red="0.7765" green="0.1647" blue="0.1255"' in t:
+        ok('LaunchScreen: marka zemini #C62A20 (Android splash_bg ile ayni)')
     else:
-        warn('LaunchScreen LaunchBackground renk kumesine bagli degil')
+        warn('LaunchScreen zemin rengi #C62A20 degil')
 
 
 def check_google_plist(bundle):
@@ -327,343 +258,6 @@ def check_google_plist(bundle):
         (ok if k in d else bad)(f'GoogleService-Info.plist {k} ' + ('var' if k in d else 'EKSIK'))
 
 
-# ---------------------------------------------------------------------------------------------------------------------
-# Ana ekran widget uzantisi (BUWidgets): pbxproj yapisi, bundle id, App Group, kaynaklar, sozlesme ornekleri
-# ---------------------------------------------------------------------------------------------------------------------
-WIDGETS = os.path.join(IOS, 'BUWidgets')
-WIDGET_BUNDLE = 'tr.com.bukampus.app.widgets'
-APP_GROUP = 'group.tr.com.bukampus.app'
-WIDGET_KINDS = ['BUMenuWidget', 'BUTimetableWidget', 'BUEventsWidget', 'BUAnnouncementsWidget', 'BUPollWidget',
-                'BUQuickAccessWidget', 'BUSocialWidget']
-EXAMPLES = os.path.join(ROOT, 'design', 'widget-previews', 'examples')
-
-
-def parse_pbx(text):
-    """Eski bicim (OpenStep) plist ayristirici: /* */ yorumlari atilir, tekrar eden anahtar = hata."""
-    pos = [0]
-    n = len(text)
-    bare = re.compile(r'[A-Za-z0-9_$./\-\[\]*=+@<>:]+')
-
-    def skip():
-        while pos[0] < n:
-            c = text[pos[0]]
-            if c in ' \t\r\n':
-                pos[0] += 1
-            elif text.startswith('/*', pos[0]):
-                pos[0] = text.index('*/', pos[0]) + 2
-            elif text.startswith('//', pos[0]):
-                e = text.find('\n', pos[0])
-                pos[0] = n if e < 0 else e + 1
-            else:
-                break
-
-    def string():
-        if text[pos[0]] == '"':
-            pos[0] += 1
-            out = []
-            while text[pos[0]] != '"':
-                if text[pos[0]] == '\\':
-                    out.append(text[pos[0]:pos[0] + 2])
-                    pos[0] += 2
-                else:
-                    out.append(text[pos[0]])
-                    pos[0] += 1
-            pos[0] += 1
-            return ''.join(out)
-        m = bare.match(text, pos[0])
-        if not m:
-            raise ValueError('beklenmeyen karakter %r @%d' % (text[pos[0]], pos[0]))
-        pos[0] = m.end()
-        return m.group(0)
-
-    def value():
-        skip()
-        c = text[pos[0]]
-        if c == '{':
-            pos[0] += 1
-            d = {}
-            while True:
-                skip()
-                if text[pos[0]] == '}':
-                    pos[0] += 1
-                    return d
-                k = string()
-                skip()
-                if text[pos[0]] != '=':
-                    raise ValueError('= bekleniyordu @%d' % pos[0])
-                pos[0] += 1
-                v = value()
-                skip()
-                if text[pos[0]] != ';':
-                    raise ValueError('; bekleniyordu @%d' % pos[0])
-                pos[0] += 1
-                if k in d:
-                    raise ValueError('tekrar eden anahtar: ' + k)
-                d[k] = v
-        if c == '(':
-            pos[0] += 1
-            a = []
-            while True:
-                skip()
-                if text[pos[0]] == ')':
-                    pos[0] += 1
-                    return a
-                a.append(value())
-                skip()
-                if text[pos[0]] == ',':
-                    pos[0] += 1
-        return string()
-
-    skip()
-    root = value()
-    skip()
-    if pos[0] != n:
-        raise ValueError('fazladan icerik @%d' % pos[0])
-    return root
-
-
-def pbx_refs(v, out):
-    """Degerlerdeki 24 haneli onaltili kimlikleri toplar."""
-    if isinstance(v, dict):
-        for x in v.values():
-            pbx_refs(x, out)
-    elif isinstance(v, list):
-        for x in v:
-            pbx_refs(x, out)
-    elif isinstance(v, str) and re.fullmatch(r'[0-9A-F]{24}', v):
-        out.add(v)
-
-
-def check_widget_pbx():
-    path = os.path.join(IOS, 'Runner.xcodeproj', 'project.pbxproj')
-    try:
-        root = parse_pbx(read(path))
-    except Exception as e:  # noqa: BLE001
-        bad('pbxproj ayrisamadi: %s' % e)
-        return
-    ok('pbxproj eski-bicim plist olarak ayrisiyor (parantez/noktalivirgul dengeli, anahtarlar benzersiz)')
-    objs = root.get('objects', {})
-    refs = set()
-    for v in objs.values():
-        pbx_refs(v, refs)
-    pbx_refs({'r': root.get('rootObject')}, refs)
-    missing = sorted(r for r in refs if r not in objs)
-    if missing:
-        bad('pbxproj: tanimsiz referans %s' % missing[:5])
-    else:
-        ok('pbxproj: tum kimlik referanslari tanimli')
-    targets = {o.get('name'): (k, o) for k, o in objs.items() if o.get('isa') == 'PBXNativeTarget'}
-    if 'BUWidgets' not in targets:
-        bad('pbxproj: BUWidgets hedefi yok')
-        return
-    tid, t = targets['BUWidgets']
-    (ok if t.get('productType') == 'com.apple.product-type.app-extension' else bad)('BUWidgets hedefi app-extension')
-    proj = objs[root['rootObject']]
-    (ok if tid in proj.get('targets', []) else bad)('BUWidgets proje hedef listesinde')
-    cl = objs[t['buildConfigurationList']]
-    cfgs = {objs[c]['name']: objs[c]['buildSettings'] for c in cl['buildConfigurations']}
-    (ok if set(cfgs) == {'Debug', 'Release', 'Profile'} else bad)('BUWidgets Debug/Release/Profile yapilandirmalari')
-    runner_t = targets['Runner'][1]
-    rcl = objs[runner_t['buildConfigurationList']]
-    rset = {objs[c]['name']: objs[c]['buildSettings'] for c in rcl['buildConfigurations']}
-    for name, bs in cfgs.items():
-        if bs.get('PRODUCT_BUNDLE_IDENTIFIER') != WIDGET_BUNDLE:
-            bad('BUWidgets %s: bundle id %s olmali' % (name, WIDGET_BUNDLE))
-        if bs.get('INFOPLIST_FILE') != 'BUWidgets/Info.plist':
-            bad('BUWidgets %s: INFOPLIST_FILE' % name)
-        if bs.get('CODE_SIGN_ENTITLEMENTS', '').strip('"') != '$(BU_WIDGETS_ENTITLEMENTS)':
-            bad('BUWidgets %s: CODE_SIGN_ENTITLEMENTS $(BU_WIDGETS_ENTITLEMENTS) olmali' % name)
-        if bs.get('IPHONEOS_DEPLOYMENT_TARGET') != '15.0':
-            bad('BUWidgets %s: dagitim hedefi 15.0 olmali (Runner ile ayni)' % name)
-        if bs.get('MARKETING_VERSION', '').strip('"') != '$(FLUTTER_BUILD_NAME)' or bs.get('CURRENT_PROJECT_VERSION', '').strip('"') != '$(FLUTTER_BUILD_NUMBER)':
-            bad('BUWidgets %s: surum Runner ile ayni (FLUTTER_BUILD_NAME/NUMBER) olmali' % name)
-        if bs.get('SKIP_INSTALL') != 'YES' or bs.get('APPLICATION_EXTENSION_API_ONLY') != 'YES':
-            bad('BUWidgets %s: SKIP_INSTALL/APPLICATION_EXTENSION_API_ONLY YES olmali' % name)
-        if bs.get('SWIFT_VERSION') != '5.0':
-            bad('BUWidgets %s: SWIFT_VERSION 5.0' % name)
-        if rset.get(name, {}).get('IPHONEOS_DEPLOYMENT_TARGET', '15.0') != bs.get('IPHONEOS_DEPLOYMENT_TARGET'):
-            bad('BUWidgets %s: Runner dagitim hedefiyle farkli' % name)
-    ok('BUWidgets yapilandirmalari: bundle id %s, iOS 15.0, ortak surum, SKIP_INSTALL, uzanti-guvenli API' % WIDGET_BUNDLE)
-    phases = [objs[p] for p in t['buildPhases']]
-    kinds = [p['isa'] for p in phases]
-    (ok if kinds == ['PBXSourcesBuildPhase', 'PBXFrameworksBuildPhase', 'PBXResourcesBuildPhase'] else bad)('BUWidgets: Sources/Frameworks/Resources fazlari')
-    src_files = {objs[objs[b]['fileRef']]['path'] for b in phases[0]['files']}
-    disk = set()
-    for _dp, _dn, fn in os.walk(WIDGETS):
-        for f in fn:
-            if f.endswith('.swift'):
-                disk.add(f)
-    if src_files == disk:
-        ok('BUWidgets Sources == diskteki .swift dosyalari (%d)' % len(disk))
-    else:
-        bad('BUWidgets Sources farki: fazla=%s eksik=%s' % (sorted(src_files - disk), sorted(disk - src_files)))
-    (ok if 'BuWidgetTokens.swift' in src_files else bad)('Shared/BuWidgetTokens.swift BUWidgets Sources fazinda')
-    rsrc = [objs[p] for p in runner_t['buildPhases'] if objs[p]['isa'] == 'PBXSourcesBuildPhase'][0]
-    rfiles = {objs[objs[b]['fileRef']]['path'] for b in rsrc['files']}
-    (ok if 'BuWidgetTokens.swift' not in rfiles else bad)('BuWidgetTokens.swift Runner hedefine EKLENMEMIS (yalniz uzanti)')
-    res = [objs[b]['fileRef'] for b in phases[2]['files']]
-    names = {objs[r].get('path') or objs[r].get('name') for r in res}
-    (ok if {'Assets.xcassets', 'Localizable.strings'} <= names else bad)('BUWidgets Resources: Assets.xcassets + Localizable.strings')
-    embed = [o for o in objs.values() if o.get('isa') == 'PBXCopyFilesBuildPhase' and o.get('name') == 'Embed App Extensions']
-    prods = {objs[objs[b]['fileRef']]['path'] for e in embed for b in e['files']}
-    (ok if 'BUWidgets.appex' in prods else bad)('BUWidgets.appex "Embed App Extensions" fazinda (Runner)')
-    deps = [objs[d] for d in runner_t.get('dependencies', [])]
-    (ok if any(d.get('target') == tid for d in deps) else bad)("Runner hedefi BUWidgets'a bagimli")
-
-
-def check_widget_files():
-    for f in ('Info.plist', 'BUWidgets.entitlements', 'Shared/BuWidgetTokens.swift', 'BuIconData.swift', 'BuSampleData.swift',
-              'BUWidgetsBundle.swift', 'Assets.xcassets/BuLogo.imageset/Contents.json',
-              'Assets.xcassets/BuLogo.imageset/logo_light.png', 'Assets.xcassets/BuLogo.imageset/logo_dark.png'):
-        (ok if os.path.isfile(os.path.join(WIDGETS, f)) else bad)('BUWidgets/%s diskte' % f)
-    info = load_plist(os.path.join(WIDGETS, 'Info.plist'))
-    ext = info.get('NSExtension', {})
-    (ok if ext.get('NSExtensionPointIdentifier') == 'com.apple.widgetkit-extension' else bad)('BUWidgets Info.plist: NSExtensionPointIdentifier = com.apple.widgetkit-extension')
-    (ok if 'NSExtensionPrincipalClass' not in ext else bad)('BUWidgets Info.plist: PrincipalClass yok (@main WidgetBundle)')
-    (ok if info.get('CFBundlePackageType') == 'XPC!' else bad)('BUWidgets Info.plist: CFBundlePackageType XPC!')
-    (ok if sorted(info.get('CFBundleLocalizations', [])) == sorted(LANGS) else bad)('BUWidgets Info.plist: CFBundleLocalizations tr, en, ar')
-    for rel in ('BUWidgets/BUWidgets.entitlements', 'Runner/Runner.entitlements', 'Runner/RunnerRelease.entitlements'):
-        d = load_plist(os.path.join(IOS, rel))
-        (ok if d.get('com.apple.security.application-groups') == [APP_GROUP] else bad)('%s: App Group %s' % (rel, APP_GROUP))
-    d = load_plist(os.path.join(RUNNER, 'Runner.entitlements'))
-    (ok if d.get('com.apple.developer.applesignin') == ['Default'] else bad)('Runner.entitlements: applesignin korunmus')
-    x = read(os.path.join(IOS, 'Flutter', 'BuPush.xcconfig.example'))
-    (ok if 'BU_WIDGETS_ENTITLEMENTS = BUWidgets/BUWidgets.entitlements' in x else bad)('BuPush.xcconfig.example: BU_WIDGETS_ENTITLEMENTS')
-    all_swift = ''
-    for dp, _dn, fn in os.walk(WIDGETS):
-        for f in fn:
-            if f.endswith('.swift'):
-                src = read(os.path.join(dp, f))
-                if src.startswith('﻿'):
-                    bad('%s BOM iceriyor' % f)
-                if f != 'BuWidgetTokens.swift':
-                    all_swift += src
-    for k in WIDGET_KINDS:
-        (ok if ('"%s"' % k) in all_swift else bad)('kind %s tanimli' % k)
-    (ok if '@main' in all_swift and 'WidgetBundle' in all_swift else bad)('@main WidgetBundle var')
-    for w in re.findall(r'weight:\s*\.(\w+)', all_swift):
-        if w != 'regular':
-            bad('BUWidgets: kalin/ince yazi agirligi .%s (yalniz regular)' % w)
-    (ok if 'systemName' not in all_swift else bad)('BUWidgets: SF Symbols (systemName) kullanilmamis (Lucide)')
-    (ok if 'AppIntent' not in all_swift and 'Button(' not in all_swift else bad)('BUWidgets: interaktif widget/AppIntents yok')
-    (ok if not re.search(r'URLSession|URLRequest|Data\(contentsOf', all_swift) else bad)('BUWidgets: ag istegi yok')
-    keys = set(re.findall(r'"(widget\.[a-z]+\.(?:name|desc))"', all_swift)) | {'signedout.title', 'signedout.sub'}
-    for lang in LANGS:
-        p = os.path.join(WIDGETS, '%s.lproj' % lang, 'Localizable.strings')
-        if not os.path.isfile(p):
-            bad('BUWidgets %s.lproj/Localizable.strings yok' % lang)
-            continue
-        if read(p).startswith('﻿'):
-            bad('%s Localizable.strings BOM' % lang)
-        miss = sorted(keys - set(parse_strings(p)))
-        if miss:
-            bad('%s Localizable.strings eksik: %s' % (lang, miss))
-        else:
-            ok('BUWidgets %s Localizable.strings: %d anahtar tam' % (lang, len(keys)))
-
-
-# Swift modelleri -> ornek JSON'larin Codable ile ayrisabilirligi (tum alanlar opsiyonel; TIP uyusmazligi = ayristirma hatasi)
-SLUG_MODEL = {'menu': 'BuMenuSnap', 'timetable': 'BuTimetableSnap', 'events': 'BuEventsSnap',
-              'announcements': 'BuAnnouncementsSnap', 'poll': 'BuPollSnap', 'quickaccess': 'BuQuickSnap',
-              'social': 'BuSocialSnap'}
-
-
-def swift_models():
-    src = read(os.path.join(WIDGETS, 'BuWidgetModels.swift'))
-    models = {}
-    for m in re.finditer(r'struct (Bu\w+): (?:Decodable|BuSnapshot)\s*\{(.*?)\n\}', src, re.S):
-        fields = {}
-        for f in re.finditer(r'^    let (\w+): ([^\n]+)$', m.group(2), re.M):
-            fields[f.group(1)] = f.group(2).strip()
-        models[m.group(1)] = fields
-    return models
-
-
-def type_ok(v, t, models, path, errs):
-    opt = t.endswith('?')
-    base = t[:-1] if opt else t
-    if v is None:
-        if not opt:
-            errs.append('%s: null ama tip %s' % (path, t))
-        return
-    if base == 'String':
-        if not isinstance(v, str):
-            errs.append('%s: String bekleniyordu, %r' % (path, v))
-    elif base == 'Int':
-        if isinstance(v, bool) or not isinstance(v, int):
-            errs.append('%s: Int bekleniyordu, %r' % (path, v))
-    elif base == 'Bool':
-        if not isinstance(v, bool):
-            errs.append('%s: Bool bekleniyordu, %r' % (path, v))
-    elif base == '[String: String]':
-        if not isinstance(v, dict) or not all(isinstance(x, str) for x in v.values()):
-            errs.append('%s: [String:String] bekleniyordu' % path)
-    elif base.startswith('[') and base.endswith(']'):
-        if not isinstance(v, list):
-            errs.append('%s: dizi bekleniyordu' % path)
-            return
-        for i, x in enumerate(v):
-            type_ok(x, base[1:-1], models, '%s[%d]' % (path, i), errs)
-    elif base in models:
-        if not isinstance(v, dict):
-            errs.append('%s: nesne bekleniyordu' % path)
-            return
-        for k, ft in models[base].items():
-            if k in v:
-                type_ok(v[k], ft, models, '%s.%s' % (path, k), errs)
-    else:
-        errs.append('%s: bilinmeyen tip %s' % (path, t))
-
-
-def check_widget_samples():
-    models = swift_models()
-    needed = set(SLUG_MODEL.values()) | {'BuMeta'}
-    if not needed <= set(models):
-        bad('BuWidgetModels.swift modelleri ayrisamadi: eksik %s' % sorted(needed - set(models)))
-        return
-    total = 0
-    errs = []
-    for lang in LANGS:
-        files = [(os.path.join(EXAMPLES, lang, '%s.json' % s), SLUG_MODEL[s]) for s in SLUG_MODEL]
-        files += [(os.path.join(EXAMPLES, lang, 'meta.json'), 'BuMeta'),
-                  (os.path.join(EXAMPLES, lang, 'meta-signed-out.json'), 'BuMeta')]
-        if lang == 'tr':
-            for s in ('menu', 'events', 'announcements', 'poll'):
-                files.append((os.path.join(EXAMPLES, 'tr', 'empty', '%s.json' % s), SLUG_MODEL[s]))
-            files.append((os.path.join(EXAMPLES, 'tr', 'signed-out', 'menu.json'), SLUG_MODEL['menu']))
-        for fp, model in files:
-            if not os.path.isfile(fp):
-                continue
-            with open(fp, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            total += 1
-            type_ok(data, model, models, os.path.relpath(fp, EXAMPLES), errs)
-    for model in SLUG_MODEL.values():
-        for k in ('schema', 'state', 'expiresAt', 'lang', 'rtl', 'deepLink', 'a11y', 'strings'):
-            if k not in models[model]:
-                errs.append('%s: ortak zarf alani %s modelde yok' % (model, k))
-    if errs:
-        bad('ornek JSON ayristirma: %s' % errs[:5])
-    else:
-        ok("Swift modelleri %d ornek JSON'u (tr/en/ar + bos/oturumsuz) tip uyumsuzlugu olmadan ayristirir" % total)
-    sample = read(os.path.join(WIDGETS, 'BuSampleData.swift'))
-    for slug in list(SLUG_MODEL) + ['meta']:
-        with open(os.path.join(EXAMPLES, 'tr', '%s.json' % slug), 'r', encoding='utf-8') as f:
-            mini = json.dumps(json.load(f), ensure_ascii=False, separators=(',', ':'))
-        (ok if mini in sample else bad)('BuSampleData.%s == examples/tr/%s.json' % (slug, slug))
-
-
-def check_widget_ci():
-    cm = read(os.path.join(ROOT, 'codemagic.yaml'))
-    (ok if 'bu_widgets' in cm else bad)('codemagic.yaml: ios_signing icinde bu_widgets profili')
-    eo = read(os.path.join(IOS, 'ExportOptions.plist'))
-    (ok if WIDGET_BUNDLE in eo else bad)('ExportOptions.plist: %s' % WIDGET_BUNDLE)
-    bi = read(os.path.join(ROOT, 'scripts', 'ios', 'build-ipa.sh'))
-    (ok if 'BUWidgets' in bi and APP_GROUP in bi else bad)('build-ipa.sh: BUWidgets/App Group denetimi')
-    doc = read(os.path.join(ROOT, 'docs', 'IOS_RELEASE.md'))
-    (ok if 'Widget uzantısı için bugün yapılacaklar' in doc else bad)('docs/IOS_RELEASE.md: widget uzantisi bolumu')
-
-
 CANONICAL_BUNDLE = 'tr.com.bukampus.app'  # kullanici karari 2026-10-31 (Android applicationId ile ayni)
 
 
@@ -678,7 +272,7 @@ def check_bundle_consistency(bundle):
         if os.path.isfile(p) and old in read(p):
             bad(f'{rel}: eski bundle id ({old}) kalmis')
     for rel, needle in (('mobile/ios/fastlane/Appfile', 'app_identifier("%s")' % bundle),
-                        ('codemagic.yaml', 'BUNDLE_ID: "%s"' % bundle)):
+                        ('codemagic.yaml', 'bundle_identifier: %s' % bundle)):
         p = os.path.join(ROOT, rel)
         if os.path.isfile(p):
             (ok if needle in read(p) else bad)(f'{rel}: bundle id {bundle}' + ('' if needle in read(p) else ' ile UYUSMUYOR'))
@@ -702,45 +296,17 @@ def check_ci_files():
             bad(f'{rel}: YAML hatasi {e}')
 
 
-def check_live_activity():
-    """Canli Etkinlik (ActivityKit): dosyalar, NSSupportsLiveActivities, hedef uyeligi, sohbet/duyuru yasagi, kalin yazi yok."""
-    files = ('BUWidgets/Shared/BuLiveActivityAttributes.swift', 'BUWidgets/BuLiveActivityWidget.swift',
-             'Runner/BuLiveActivityBridge.swift')
-    for f in files:
-        (ok if os.path.isfile(os.path.join(IOS, f)) else bad)('Canli Etkinlik: %s diskte' % f)
-    info = load_plist(os.path.join(RUNNER, 'Info.plist'))
-    (ok if info.get('NSSupportsLiveActivities') is True else bad)('Runner Info.plist: NSSupportsLiveActivities = true')
-    pbx = read(os.path.join(IOS, 'Runner.xcodeproj', 'project.pbxproj'))
-    for name in ('BuLiveActivityAttributes.swift', 'BuLiveActivityWidget.swift', 'BuLiveActivityBridge.swift'):
-        (ok if ('path = %s;' % name) in pbx else bad)('pbxproj: %s dosya referansi' % name)
-    # Attributes iki hedefte (Runner + BUWidgets) derlenir: iki ayri PBXBuildFile.
-    n_attr = len(re.findall(r'PBXBuildFile; fileRef = B1D7000000000000000000A1\b', pbx))
-    (ok if n_attr == 2 else bad)('pbxproj: BuLiveActivityAttributes iki hedefte (Runner + BUWidgets), bulunan %d' % n_attr)
-    bundle = read(os.path.join(WIDGETS, 'BUWidgetsBundle.swift'))
-    (ok if 'BuLiveActivityWidget()' in bundle and '#available(iOS 16.1' in bundle else bad)('BUWidgetsBundle: Canli Etkinlik iOS 16.1 kosuluyla kayitli')
-    src = ''.join(read(os.path.join(IOS, f)) for f in files)
-    (ok if re.search(r'kind == "EVENT" \|\| kind == "EXAM"', src) else bad)('Canli Etkinlik: yalniz EVENT/EXAM turleri (sohbet/arkadaslik/duyuru yok)')
-    (ok if not re.search(r'weight:\s*\.(bold|semibold|heavy|black)|\.bold\(\)|fontWeight\(\.(bold|semibold)', src) else bad)('Canli Etkinlik: kalin yazi yok')
-    (ok if 'pushType: .token' in src else bad)('Canli Etkinlik: guncelleme jetonu (pushType .token) isteniyor')
-
-
 def main():
     print('== iOS dosya duzeyi kontrol ==')
     info = check_info_plist()
     check_strings(info)
     check_entitlements()
-    check_push_categories()
     check_privacy()
     bundle = check_pbxproj()
     check_icons()
     check_google_plist(bundle)
     check_bundle_consistency(bundle)
     check_ci_files()
-    check_widget_pbx()
-    check_widget_files()
-    check_widget_samples()
-    check_widget_ci()
-    check_live_activity()
     print(f'\nOzet: {len(errors)} hata, {len(warnings)} uyari')
     sys.exit(1 if errors else 0)
 

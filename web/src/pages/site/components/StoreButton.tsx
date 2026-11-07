@@ -18,6 +18,11 @@ interface Props {
   size?: 'md' | 'lg';
   /** "Henüz yayınlanmadı" açıklaması görünür olsun mu (varsayılan evet); kapalıyken yalnız ekran okuyucuya gider. */
   note?: boolean;
+  /**
+   * Bağlantı henüz yükleniyor: "Yakında" yazısı ve açıklaması çizilmez, düğme bağlantı varmış gibi ama pasif çizilir;
+   * veri gelince yükseklik değişmez (CLS).
+   */
+  pending?: boolean;
 }
 
 /**
@@ -28,12 +33,12 @@ interface Props {
  * NOT: Resmî rozet SVG'leri marka kuralları gereği kendi mağaza sayfalarından alınmalıdır; mağazalar yayınlanınca
  * `body` bölümü onlarla değiştirilebilir (props ve çağıran sayfalar aynı kalır).
  */
-export function StoreButton({ store, href, variant = 'solid', onDark, size = 'md', note = true }: Props) {
+export function StoreButton({ store, href, variant = 'solid', onDark, size = 'md', note = true, pending = false }: Props) {
   const { t } = useI18n();
   const noteId = useId();
   const android = store === 'android';
   const name = android ? t('site.store.googlePlay') : t('site.store.appStore');
-  const top = href ? (android ? t('site.store.getItOn') : t('site.store.downloadOn')) : t('site.store.soon');
+  const top = href || pending ? (android ? t('site.store.getItOn') : t('site.store.downloadOn')) : t('site.store.soon');
   const Glyph = android ? GooglePlayIcon : AppleIcon;
   const body = (
     <>
@@ -46,7 +51,16 @@ export function StoreButton({ store, href, variant = 'solid', onDark, size = 'md
   );
   const kind = onDark ? styles.inverse : variant === 'outline' ? styles.outline : '';
   const cls = [styles.btn, kind, size === 'lg' ? styles.lg : ''].filter(Boolean).join(' ');
-  const visibleNote = !href && note;
+  const visibleNote = !href && !pending && note;
+  if (!href && pending) {
+    return (
+      <span className={styles.wrap}>
+        <span className={`${cls} ${styles.pending}`} aria-hidden="true">
+          {body}
+        </span>
+      </span>
+    );
+  }
   return (
     <span className={styles.wrap}>
       {href ? (

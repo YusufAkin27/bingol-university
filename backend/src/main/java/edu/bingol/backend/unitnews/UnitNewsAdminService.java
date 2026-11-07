@@ -4,6 +4,7 @@ import edu.bingol.backend.academic.AudienceKey;
 import edu.bingol.backend.admin.AuditContext;
 import edu.bingol.backend.admin.UserFilter;
 import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.status.SyncExecutor;
 import edu.bingol.backend.unitnews.UnitNewsDtos.AdminItem;
 import edu.bingol.backend.unitnews.UnitNewsDtos.AdminPage;
 import edu.bingol.backend.unitnews.UnitNewsDtos.DepartmentView;
@@ -16,7 +17,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -35,6 +36,12 @@ public class UnitNewsAdminService {
     private final UnitDepartmentRepository depts;
     private final UnitNewsSyncService sync;
     private final NamedParameterJdbcTemplate jdbc;
+    private SyncExecutor syncExecutor;
+
+    @Autowired(required = false)
+    void setSyncExecutor(SyncExecutor syncExecutor) {
+        this.syncExecutor = syncExecutor;
+    }
 
     public UnitNewsAdminService(UnitSourceRepository sources, UnitDepartmentRepository depts, UnitNewsSyncService sync,
                                 NamedParameterJdbcTemplate jdbc) {
@@ -83,7 +90,7 @@ public class UnitNewsAdminService {
         if (sync.isRunning()) {
             return new SyncResult(0, false);
         }
-        CompletableFuture.runAsync(() -> {
+        SyncExecutor.dispatch(syncExecutor, () -> {
             if (code == null) {
                 sync.syncAll();
             } else {
@@ -152,14 +159,22 @@ public class UnitNewsAdminService {
                 keys, deptCount, annCount, s.getLastSuccessAt(), s.getLastAttemptAt(), s.getLastMessage(), s.isMaintenance());
     }
 
-    /** Girdi fakulte adlari {@link AudienceKey} ile normalize edilir, tekrarlar atilir, sutun sinirina sigdirilir. */
+    /**
+     * Girdi fakulte adlari {@link AudienceKey} ile normalize edilir, tekrarlar atilir, sutun sinirina sigdirilir. Bos
+     * satirlar yok sayilir; anahtara indirgenemeyen ya da virgul iceren ad sessizce atilmaz, 400 doner (A10).
+     */
     static List<String> keys(List<String> raw) {
         Set<String> out = new LinkedHashSet<>();
         for (String r : raw) {
-            String k = AudienceKey.of(r);
-            if (k != null && !k.contains(",")) {
-                out.add(k);
+            if (r == null || r.isBlank()) {
+                continue;
             }
+            String k = AudienceKey.of(r);
+            if (k == null || k.contains(",") || r.contains(",")) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "UNIT_FACULTY_KEY_INVALID",
+                        "Fakülte adı geçersiz: {0}", r.length() <= 60 ? r : r.substring(0, 60));
+            }
+            out.add(k);
         }
         List<String> list = new ArrayList<>(out);
         if (list.size() > MAX_KEYS || String.join(",", list).length() > KEYS_COLUMN) {

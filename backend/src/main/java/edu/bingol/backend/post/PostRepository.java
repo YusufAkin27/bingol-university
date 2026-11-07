@@ -10,6 +10,9 @@ import org.springframework.data.repository.query.Param;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
 
+    /** Idempotency-Key ile onceden olusturulmus gonderi (silinmis olsa da satir doner). */
+    java.util.Optional<Post> findFirstByAuthorIdAndIdempotencyKey(Long authorId, String idempotencyKey);
+
     /** Gorunur gonderi: silinmemis, gizlenmemis, yazar aktif ve bakan ile arada engel yok. */
     String VISIBLE = "p.deletedAt IS NULL AND p.hiddenAt IS NULL "
             + "AND EXISTS (SELECT 1 FROM User u WHERE u.id = p.authorId AND u.status = edu.bingol.backend.user.UserStatus.ACTIVE) "
@@ -21,14 +24,18 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             + "AND pp.privateAccount = TRUE) OR EXISTS (SELECT 1 FROM UserFollow uf WHERE uf.id.a = :viewer "
             + "AND uf.id.b = p.authorId)) ";
 
-    /** Sade Kesfet: yalniz gorunur FOTOGRAFI olan gonderiler akista listelenir (video-only/metin-only eskiler gizli; veri silinmez). */
-    String PHOTO = "AND EXISTS (SELECT 1 FROM PostMedia pm WHERE pm.postId = p.id AND pm.kind = 'IMAGE' AND pm.hiddenAt IS NULL) ";
-    String FEED_VISIBLE = VISIBLE + PHOTO;
+    /** Kesfet: gorunur bir medyasi (fotograf ya da video) olan gonderiler akista listelenir (medyasiz metin-only eskiler gizli; veri silinmez). */
+    String MEDIA = "AND EXISTS (SELECT 1 FROM PostMedia pm WHERE pm.postId = p.id AND pm.hiddenAt IS NULL) ";
+    String FEED_VISIBLE = VISIBLE + MEDIA;
 
     String LATEST_AFTER = "AND (p.createdAt < :at OR (p.createdAt = :at AND p.id < :cid)) ";
     String POPULAR_AFTER = "AND (p.score < :sc OR (p.score = :sc AND p.id < :cid)) ";
     String LATEST_ORDER = "ORDER BY p.createdAt DESC, p.id DESC";
     String POPULAR_ORDER = "ORDER BY p.score DESC, p.id DESC";
+
+    /** Kaydedilenler birlesik listesi: verilen kimliklerden bakana gorunur olanlar. */
+    @Query("SELECT p FROM Post p WHERE p.id IN :ids AND " + VISIBLE)
+    List<Post> visibleAmong(@Param("viewer") Long viewer, @Param("ids") java.util.Collection<Long> ids);
 
     // --- Akis: yeni ---
     @Query("SELECT p FROM Post p WHERE " + FEED_VISIBLE + LATEST_ORDER)

@@ -126,20 +126,10 @@ class DeviceAndPrefServiceTest {
         assertFalse(v.quietHours().enabled());
         assertEquals("22:00", v.quietHours().start());
         assertEquals(NotificationSubtype.values().length, v.subtypes().size());
-        assertTrue(v.subtypes().values().stream().allMatch(b -> b));
-    }
-
-    @Test
-    void messagePreviewDefaultsOnAndCanBeTurnedOff() {
-        stubSave();
-        assertTrue(prefSvc.get(1L).messagePreview());
-
-        PrefsView v = prefSvc.update(1L, new PrefsUpdate(null, null, null, null, null, null, null, null, null, false));
-        assertFalse(v.messagePreview());
-
-        // eski istemci (alan yok): degismez
-        PrefsView w = prefSvc.update(1L, new PrefsUpdate(null, null, null, null, null, null, null));
-        assertTrue(w.messagePreview()); // stubSave her seferinde varsayilan satir doner; null alan degeri degistirmez
+        // gunluk menu bildirimi de varsayilan ACIK (V1461): tum alt turler acik gelir
+        assertTrue(v.mealMenu());
+        assertTrue(v.subtypes().get("MEAL_MENU"));
+        assertTrue(v.subtypes().values().stream().allMatch(e -> e));
     }
 
     @Test
@@ -157,7 +147,7 @@ class DeviceAndPrefServiceTest {
 
         // alt tur anahtariyla da ayni sutun yazilir; alt tur satiri uretilmez
         PrefsView w = prefSvc.update(1L, new PrefsUpdate(null, null, null, null, null, null,
-                Map.of("academic_announcement", false), null, null));
+                Map.of("exam_reminder", false), null, null));
         assertFalse(w.academicAnnouncements());
         verify(subs, never()).save(any(NotificationSubtypePref.class));
     }

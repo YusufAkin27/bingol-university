@@ -15,7 +15,7 @@ const WIDTHS = [360, 768, 1280] as const;
 const ALL_PAGES = [
   '/', '/about', '/features', '/download', '/faq', '/contact', '/data-request', '/legal', '/privacy', '/terms',
   '/cookies', '/delete-account', '/accessibility', '/sitemap', '/security', '/community-guidelines', '/child-safety', '/help',
-  '/news', '/menu', '/support/track', '/brand', '/changelog', '/legal/KVKK', '/legal/RETENTION', '/news/1',
+  '/news', '/menu', '/support/track', '/changelog', '/legal/KVKK', '/legal/RETENTION', '/news/1',
 ];
 const inLang = (lang: Lang, route: string) => `/${lang}${route === '/' ? '' : route}`;
 const CORE_PAGES = ['/', '/features', '/download', '/faq', '/contact', '/menu'];

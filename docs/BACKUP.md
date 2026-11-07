@@ -14,7 +14,7 @@ Bu belge tek VPS için **yedekleme politikasını ve kararlarını** özetler. A
 | Rotasyon | **Yalnızca başarılı yedekten sonra**; başarısız yedek hiçbir şeyi silmez. Yalnızca `YYYYmmddTHHMMSS` adlı dizinlere dokunur |
 | Çakışma | `flock` ile aynı anda iki yedek çalışmaz |
 | Disk | Başlamadan bos alan < (DB + uploads boyutu) ise **yedek alınmaz**, mevcutlar korunur, hata + webhook; bos alan < 2x ise uyarı |
-| Uzak kopya | `BACKUP_REMOTE` (rclone: S3/SFTP/başka sunucu). Boşsa kapalı |
+| Uzak kopya | `BACKUP_REMOTE` (rclone: **Google Drive**/S3/SFTP). Boşsa kapalı. **Günde 1 tam yükleme** (03:35) + indirmeden doğrulama + uzak saklama 7 günlük/4 haftalık/6 aylık; Drive kurulumu ve kota hesabı: **[BACKUP_GDRIVE.md](BACKUP_GDRIVE.md)** |
 | Haftalık doğrulama | `verify-restore.sh --latest` (pazar 04:30): geçici PostgreSQL'e gerçek geri yükleme + satır sayısı karşılaştırması |
 
 ### UYARILAR (okuyun)
@@ -30,14 +30,14 @@ Bu belge tek VPS için **yedekleme politikasını ve kararlarını** özetler. A
 
 **Sır yedeği: `.env.prod` yedeğe KONMAZ.** Yedekte `JWT_SECRET`, `DB_PASSWORD`, `CRYPTO_MASTER_KEYS`, `MAIL_PASSWORD`, FCM anahtarı **yoktur**. Gerekçe: veritabanı + anahtar aynı arşivde olsaydı (özellikle uzak kopyada) yedeği ele geçiren her şeyi açardı; ayrıca mesajlar ve gönderi videoları `CRYPTO_MASTER_KEYS` ile şifrelidir. Sırlar ayrı yerde saklanır: şifre yöneticisi + çevrimdışı kasa ([KEY_MANAGEMENT.md](KEY_MANAGEMENT.md)). **`.env.prod` + `CRYPTO_MASTER_KEYS` kopyanız yoksa yedek geri yüklense bile şifreli mesajlar/videolar kalıcı olarak okunamaz.** Yapılandırma özeti olarak yedeğin `manifest.json` dosyası Flyway sürümü, tablo satır sayıları, dosya sayısı, boyut ve ana makine adını içerir (sır içermez). Kod/compose zaten git'tedir.
 
-**Uzak kopya: rclone (isteğe bağlı).** `BACKUP_REMOTE=s3crypt:bu-yedek` gibi; yapılandırma `deploy/rclone/rclone.conf` (gitignored, salt okunur bağlanır). Yükleme şifreli dosyalar üzerindendir (age zaten uygulanmış). Uzak yükleme başarısızsa iş **başarısız** sayılır (last-failure.json, webhook) ama yerel yedek ve rotasyon etkilenmez.
+**Uzak kopya: rclone (isteğe bağlı), önerilen hedef Google Drive** ([BACKUP_GDRIVE.md](BACKUP_GDRIVE.md)). `BACKUP_REMOTE=gdrive:BU-Kampus-Yedek` gibi; yapılandırma `deploy/rclone/rclone.conf` (gitignored, 0600; OAuth belirteci yenilendiği için dizin **yazılabilir** bağlanır). Yükleme şifreli dosyalar üzerindendir (age zaten uygulanmış; Drive yalnız şifreli veri görür). Saatlik yedekler uzağa gitmez: `remote-sync.sh` günde bir en yeni geçerli yedeği yükler, **indirmeden doğrular** (boyut + hash + `SHA256SUMS`) ve ancak ondan sonra uzak saklamayı uygular. Uzak hata yerel yedeği/rotasyonu **bozmaz** ve yerel yedeği başarısız saymaz: hata `last-success.json` içindeki `remote.lastError`, `backup_remote.prom` ve webhook ile görünür. `BACKUP_REMOTE_SCHEDULE=each` eski "her saat yükle" davranışıdır (önerilmez). Sunucuyu rahatlatmak için `scripts/backup/prune-local-after-remote.sh` (varsayılan kuru çalışma; yalnız uzakta doğrulanmış yerel yedekleri siler).
 
 ## Durum dosyaları (gözlemlenebilirlik)
 
 `BACKUP_STATUS_FILE` (compose'ta sabit: `/var/backups/metrics/last-success.json`; backend aynı host dizinini `/backup-status` altında salt okunur bağlar ve `BACKUP_STATUS_FILE=/backup-status/last-success.json` okur, böylece uygulama içi gösterge UNKNOWN kalmaz); başarısızlık dosyası aynı dizinde `last-failure.json`. İkisi de atomik yazılır. Başarıda `last-failure.json` silinir.
 
 ```json
-{"lastSuccessAt":"2026-10-28T10:52:20Z","time":"2026-10-28T10:52:20Z","file":"20261028T135217","sizeBytes":485280,"durationSec":3,"dbOk":true,"filesOk":true}
+{"lastSuccessAt":"2026-10-28T10:52:20Z","time":"2026-10-28T10:52:20Z","file":"20261028T135217","sizeBytes":485280,"durationSec":3,"dbOk":true,"filesOk":true,"local":{"count":3,"bytes":1500000,"oldestAt":"2026-10-28T08:05:00Z"},"remote":{"configured":true,"kind":"drive","name":"gdrive","lastSuccessAt":"2026-10-28T00:40:12Z","lastVerifiedAt":"2026-10-28T00:40:30Z","lastError":null,"bytes":7340032,"count":6},"schedule":{"cron":"5 * * * *","verifyCron":"30 4 * * 0","remoteCron":"35 3 * * *"},"retention":{"localDaily":3,"localWeekly":0,"localMonthly":0,"remoteDaily":7,"remoteWeekly":4,"remoteMonthly":6}}
 {"time":"2026-10-28T13:52:26+0300","error":"pg_dump basarisiz...","durationSec":3,"dbOk":false,"filesOk":false}
 ```
 

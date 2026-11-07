@@ -65,7 +65,21 @@ public class ConversationController {
     public CursorPage<ConversationView> list(@RequestParam(required = false) Long cursor,
                                              @RequestParam(defaultValue = "20") int size,
                                              @RequestParam(defaultValue = "false") boolean archived) {
-        return conversations.list(CurrentUser.id(), cursor, size, archived);
+        Long uid = CurrentUser.id();
+        // QA-CHAT-11: liste DB'ye agir (toplu gorunum + iletildi isaretleme yazimi) ama sinirsizdi; mobil en cok 500 ms'de bir tazeler
+        limiter.check("conv:list:" + uid, 180, Duration.ofMinutes(1));
+        CursorPage<ConversationView> page = conversations.list(uid, cursor, size, archived);
+        if (receipts != null && page != null) {
+            receipts.markListedDelivered(uid, page.items());
+        }
+        return page;
+    }
+
+    private ReceiptService receipts;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setReceipts(ReceiptService receipts) {
+        this.receipts = receipts;
     }
 
     /** T-026: bekleyen mesaj istekleri ve grup davetleri ("Istekler" sekmesi); bildirim/WS yok, buradan okunur. */

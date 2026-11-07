@@ -1,5 +1,6 @@
 package edu.bingol.backend.event.admission;
 
+import edu.bingol.backend.notification.BulkSent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -83,6 +84,13 @@ class EventAdmissionServiceTest {
         when(events.load(EVENT_ID)).thenReturn(event);
         when(events.loadVisible(any(), eq(EVENT_ID))).thenReturn(event);
         when(events.requireManager(any(), any())).thenAnswer(inv -> {
+            Actor a = inv.getArgument(0);
+            if (!a.admin() && !a.id().equals(ORGANIZER)) {
+                throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "yetki yok");
+            }
+            return inv.getArgument(1);
+        });
+        when(events.requireManagerOrPerm(any(), any(), any(edu.bingol.backend.event.EventModerator.Perm[].class))).thenAnswer(inv -> {
             Actor a = inv.getArgument(0);
             if (!a.admin() && !a.id().equals(ORGANIZER)) {
                 throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "yetki yok");
@@ -545,8 +553,7 @@ class EventAdmissionServiceTest {
         svc.onEventCancelled(event);
 
         verify(apps).closeAll(eq(EVENT_ID), anyCollection(), eq(Status.CANCELLED), any());
-        verify(notifications).sendTemplated(eq(1L), eq(NotificationType.EVENT), eq("notif.event.cancelled"), any(), anyString());
-        verify(notifications).sendTemplated(eq(2L), eq(NotificationType.EVENT), eq("notif.event.cancelled"), any(), anyString());
+        assertEquals(List.of(1L, 2L), BulkSent.to(notifications, "notif.event.cancelled"));
     }
 
     // ---- sinirlar ----
@@ -577,6 +584,22 @@ class EventAdmissionServiceTest {
         svc.beforeCreate(user);
     }
 
+    @Test
+    void seriesCountIsAddedToCurrentOpenAndDailyCounts() {
+        when(settings.maxOpenPerUser()).thenReturn(5);
+        when(settings.dailyCreateLimit()).thenReturn(5);
+        when(eventRows.countOpen(eq(1L), anyCollection(), any())).thenReturn(3L);
+        when(eventRows.countCreatedSince(eq(1L), any())).thenReturn(1L);
+
+        svc.beforeCreate(user, 2); // 3 + 2 = 5 acik, 1 + 2 = 3 gunluk: sinirda, serbest
+        assertEquals("EVENT_LIMIT_OPEN", error(() -> svc.beforeCreate(user, 3)).code()); // 3 + 3 = 6 > 5
+
+        when(eventRows.countOpen(eq(1L), anyCollection(), any())).thenReturn(0L);
+        when(eventRows.countCreatedSince(eq(1L), any())).thenReturn(3L);
+        assertEquals("EVENT_LIMIT_DAILY", error(() -> svc.beforeCreate(user, 3)).code()); // 3 + 3 = 6 > 5
+        svc.beforeCreate(user, 2);
+    }
+
     // ---- yapilandirma ----
 
     @Test
@@ -595,7 +618,8 @@ class EventAdmissionServiceTest {
         assertEquals(Mode.OPEN, v.mode());
         assertEquals(List.of(), v.questions());
         verify(apps).closeAll(eq(EVENT_ID), anyCollection(), eq(Status.CANCELLED), any());
-        verify(notifications).sendTemplated(eq(2L), eq(NotificationType.EVENT), eq("notif.admission.modeOpen"), any(), eq("Konferans"));
+        assertEquals(List.of(2L), BulkSent.to(notifications, "notif.admission.modeOpen"));
+        assertEquals(List.of("Konferans"), BulkSent.lastArgs(notifications, "notif.admission.modeOpen"));
     }
 
     @Test

@@ -88,6 +88,30 @@ class IdempotencyFilterTest {
     }
 
     @Test
+    void userTicketAndFeedbackCreateAreProtectedButOtherUserWritesAreNot() throws Exception {
+        // QA5-09: ayni anahtarla ikinci POST /api/support/tickets yeni talep acmaz, saklanan sonuc doner
+        AtomicInteger calls = new AtomicInteger();
+        MockHttpServletResponse a = run(req("POST", "/api/support/tickets", "ticket-key-0001"), calls, 201, "{\"id\":5}");
+        MockHttpServletResponse b = run(req("POST", "/api/support/tickets", "ticket-key-0001"), calls, 201, "{\"id\":6}");
+        assertEquals(1, calls.get());
+        assertEquals(201, b.getStatus());
+        assertEquals("true", b.getHeader(IdempotencyFilter.REPLAYED));
+        assertEquals(a.getContentAsString(), b.getContentAsString());
+        // geri bildirim
+        AtomicInteger fc = new AtomicInteger();
+        run(req("POST", "/api/feedback", "feedback-key-01"), fc, 201, "{\"id\":1}");
+        run(req("POST", "/api/feedback", "feedback-key-01"), fc, 201, "{\"id\":2}");
+        assertEquals(1, fc.get());
+        // baska kullanici yolu / yontemi kapsam disi: her istek islenir
+        AtomicInteger oc = new AtomicInteger();
+        run(req("POST", "/api/support/tickets/9/messages", "other-key-0001"), oc, 200, "{}");
+        run(req("POST", "/api/support/tickets/9/messages", "other-key-0001"), oc, 200, "{}");
+        assertEquals(2, oc.get());
+        run(req("GET", "/api/feedback", "other-key-0002"), oc, 200, "{}");
+        assertEquals(3, oc.get());
+    }
+
+    @Test
     void secondRequestWithSameKeyReplaysFirstResultWithoutRunningAgain() throws Exception {
         AtomicInteger calls = new AtomicInteger();
 

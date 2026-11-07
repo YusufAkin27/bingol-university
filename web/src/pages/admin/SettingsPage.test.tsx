@@ -283,4 +283,35 @@ describe('ayarlar sayfası', () => {
     await user.type(screen.getByLabelText('Bant metni (العربية)'), 'تم التمديد');
     expect(screen.getByTestId('banner-preview')).toHaveAttribute('dir', 'rtl');
   });
+
+  it('arama kutusu: yazım hatalı sorguda ilgili ayarı ve şu anki değerini gösterir, sonuca basınca sekmeyi açar', async () => {
+    setup();
+    const user = userEvent.setup();
+    await user.type(await screen.findByRole('searchbox', { name: 'Ayarlarda ara' }), 'bakm modu');
+    const res = await screen.findByTestId('settings-search-results');
+    const hit = await within(res).findByTestId('settings-hit-maintenance_mode');
+    expect(hit).toHaveTextContent('Kapalı'); // maintenance_mode=false
+    expect(hit).toHaveTextContent('Bakım modu');
+    await user.click(hit);
+    expect(await screen.findByRole('tab', { name: /Bakım modu/ })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.queryByTestId('settings-search-results')).toBeNull();
+  });
+
+  it('arama sonuç bulamazsa yönlendirici metin gösterir', async () => {
+    setup();
+    const user = userEvent.setup();
+    await user.type(await screen.findByRole('searchbox', { name: 'Ayarlarda ara' }), 'zzzzqqqq');
+    expect(await screen.findByText(/ile eşleşen ayar bulunamadı/)).toBeInTheDocument();
+  });
+
+  it('değişiklik çubuğu "önce → sonra" farkını listeler', async () => {
+    setup();
+    const user = userEvent.setup();
+    const field = await screen.findByLabelText('Uygulama adı');
+    await user.clear(field);
+    await user.type(field, 'Yeni ad');
+    await screen.findByTestId('pending-changes');
+    expect(screen.getByTestId('pending-old-app_name')).toHaveTextContent('Bingöl Üniversitesi');
+    expect(screen.getByTestId('pending-new-app_name')).toHaveTextContent('Yeni ad');
+  });
 });

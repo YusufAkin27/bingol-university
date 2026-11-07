@@ -1,9 +1,10 @@
 // SAYFA: Kullanıcılar (/admin/users)
 // API: GET /api/admin/users (filtre/sayfa/sıralama; api/users.ts `listUsers`), GET /api/admin/users/export.csv (`exportUsersCsv`),
 //      GET /api/faculties (fakülte filtresi; api/appInfo.ts `getFaculties`).
-// Filtre durumu URL'dedir (paylaşılabilir bağlantı): ?q=&status=&role=&faculty=&department=&classYear=&language=&verified=&sort=&page=
+// Filtre durumu URL'dedir (paylaşılabilir bağlantı): ?q=&status=&role=&faculty=&department=&classYear=&language=&verified=&twoFactor=&sort=&page=
+//      twoFactor=true|false: iki faktörlü doğrulama süzgeci (docs/TWO_FACTOR_API.md).
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { getOverview } from '../../api/analytics';
 import { bulkUsers, USER_BULK_MAX, type BulkUserAction, type BulkUserResult } from '../../api/adminUsers';
@@ -20,7 +21,6 @@ import {
   ErrorState,
   GuardedAction,
   Icon,
-  Insight,
   Modal,
   Pagination,
   PageHeader,
@@ -52,9 +52,17 @@ import {
   parseUserFilters,
   type UserFilters,
 } from './users/filters';
+import { gt } from './twofactor/dict';
+import { it } from './users/insan';
+import { UsersAttention } from './users/UsersAttention';
+import type { AttentionKind } from './users/insanData';
+import insan from './users/insan.module.css';
 import deep from './users/deep.module.css';
 import people from './people/people.module.css';
 import styles from './users/users.module.css';
+
+// Grafikler ayrı parçada (recharts); sayfa iskeleti hemen çizilir.
+const UsersInsights = lazy(() => import('./users/UsersInsights'));
 
 const DAY_MS = 86_400_000;
 const isRecent = (iso: string) => Date.now() - new Date(iso).getTime() < DAY_MS;
@@ -66,6 +74,8 @@ const MASKED_SEARCH_MIN = 3;
 export default function UsersPage() {
   const i18n = useI18n();
   const { t, td, formatNumber, formatDate, formatDateTime } = i18n;
+  const g2 = gt(i18n); // 2FA metinleri sayfaya özel sözlükte (twofactor/dict.ts)
+  const ti = it(i18n); // insan grubu ek metinleri (users/insan.ts)
   usePageTitle(t('admin.users.title'));
   const toast = useToast();
   const navigate = useNavigate();
@@ -135,12 +145,6 @@ export default function UsersPage() {
   const dash = <span className={styles.muted}>—</span>;
   const columns: Column<AdminUserRow>[] = [
     {
-      key: 'id',
-      header: t('admin.users.col.id'),
-      card: { hide: true },
-      render: (u) => <span className={styles.muted}>#{u.id}</span>,
-    },
-    {
       key: 'displayName',
       header: t('admin.users.col.name'),
       headerLabel: t('admin.users.col.name'),
@@ -158,33 +162,35 @@ export default function UsersPage() {
     },
     {
       key: 'faculty',
+      width: '13rem',
       header: t('admin.users.col.faculty'),
-      render: (u) =>
-        u.faculty || u.department ? (
+      render: (u) => {
+        // sınıf ve uygulama dili ayrı sütun yerine ikinci satırda: dar ekranda sütunlar ezilmesin
+        const extra = [
+          u.classYear ? t('admin.users.classYearOption', { n: formatNumber(u.classYear) }) : null,
+          u.language ? td(`admin.users.lang.${u.language}`, u.language) : null,
+        ]
+          .filter(Boolean)
+          .join(' · ');
+        return u.faculty || u.department || extra ? (
           <div className={styles.personText}>
-            <span>{u.faculty ?? u.department}</span>
+            <span>{u.faculty ?? u.department ?? dash}</span>
             {u.faculty && u.department && <span className={styles.personMail}>{u.department}</span>}
+            {extra && <span className={styles.personMail}>{extra}</span>}
           </div>
         ) : (
           dash
-        ),
-    },
-    {
-      key: 'classYear',
-      header: t('admin.users.col.classYear'),
-      render: (u) => (u.classYear ? formatNumber(u.classYear) : dash),
-    },
-    {
-      key: 'language',
-      header: t('admin.v2p.users.col.language'),
-      render: (u) => (u.language ? td(`admin.users.lang.${u.language}`, u.language) : dash),
+        );
+      },
     },
     {
       key: 'role',
       header: t('admin.users.col.role'),
       card: { priority: 3 },
       render: (u) => (
-        <Badge tone={u.role === 'ADMIN' ? 'primary' : 'neutral'}>{td(`admin.users.role.${u.role}`)}</Badge>
+        <span className={styles.nowrap}>
+          <Badge tone={u.role === 'ADMIN' ? 'primary' : 'neutral'}>{td(`admin.users.role.${u.role}`)}</Badge>
+        </span>
       ),
     },
     {
@@ -192,12 +198,31 @@ export default function UsersPage() {
       header: t('admin.users.col.status'),
       card: { priority: 2 },
       render: (u) => (
-        <div className={styles.badges}>
+        <div className={`${styles.badges} ${styles.nowrap}`}>
           <StatusPill tone={toneFor(u.status)}>{td(`admin.users.status.${u.status}`)}</StatusPill>
           {!u.emailVerified && u.status !== 'DELETED' && (
             <Badge tone="warning">{t('admin.users.verified.no')}</Badge>
           )}
         </div>
+      ),
+    },
+    {
+      key: 'twoFactor',
+      header: g2('admin.users.col.twoFactor'),
+      render: (u) => (
+        <span className={styles.nowrap}>
+          {u.twoFactorEnabled ? (
+            <Badge tone="success">
+              {u.twoFactorTrustedDeviceCount !== undefined
+                ? g2('admin.users.twoFactor.onDevices', { n: formatNumber(u.twoFactorTrustedDeviceCount) })
+                : g2('admin.users.twoFactor.on')}
+            </Badge>
+          ) : u.role === 'ADMIN' && u.status !== 'DELETED' ? (
+            <Badge tone="warning">{ti('admin.insan.adminNo2fa.badge')}</Badge>
+          ) : (
+            <Badge tone="neutral">{g2('admin.users.twoFactor.off')}</Badge>
+          )}
+        </span>
       ),
     },
     {
@@ -241,6 +266,29 @@ export default function UsersPage() {
     update({ ...EMPTY_FILTERS, sort: filters.sort });
   };
 
+  // "Dikkat gerektirenler": tek tıkla süzgeç; tekrar tıklayınca kalkar. Diğer süzgeçler sıfırlanır ki sayı ile liste uyuşsun.
+  const attnActive: AttentionKind | null =
+    filters.status === 'SUSPENDED'
+      ? 'suspended'
+      : filters.verified === 'false'
+        ? 'unverified'
+        : filters.role === 'ADMIN' && filters.twoFactor === 'false'
+          ? 'adminNo2fa'
+          : null;
+  const pickAttention = (kind: AttentionKind) => {
+    setSearchKey((k) => k + 1);
+    const base = { ...EMPTY_FILTERS, sort: filters.sort };
+    if (kind === attnActive) return update(base);
+    update({
+      ...base,
+      ...(kind === 'suspended'
+        ? { status: 'SUSPENDED' as const }
+        : kind === 'unverified'
+          ? { verified: 'false' as const }
+          : { role: 'ADMIN' as const, twoFactor: 'false' as const }),
+    });
+  };
+
   // Etkin süzgeçler çip olarak görünür (× ile tek tek kaldırılır): kapalı panelde bile ne süzüldüğü anlaşılır.
   const chips: { key: string; label: string; clear: () => void }[] = [];
   const addChip = (key: keyof UserFilters, label: string) =>
@@ -257,6 +305,13 @@ export default function UsersPage() {
     addChip(
       'verified',
       filters.verified === 'true' ? t('admin.users.filter.verified.true') : t('admin.users.filter.verified.false'),
+    );
+  if (filters.twoFactor)
+    addChip(
+      'twoFactor',
+      `${g2('admin.users.filter.twoFactor')}: ${
+        filters.twoFactor === 'true' ? g2('admin.users.filter.twoFactor.true') : g2('admin.users.filter.twoFactor.false')
+      }`,
     );
   if (filters.createdFrom) addChip('createdFrom', `${t('admin.p09.filter.createdFrom')}: ${filters.createdFrom}`);
   if (filters.createdTo) addChip('createdTo', `${t('admin.p09.filter.createdTo')}: ${filters.createdTo}`);
@@ -285,18 +340,6 @@ export default function UsersPage() {
 
       {canOverview && (overview.isLoading || o) && (
         <section className={people.summary} aria-label={t('admin.v2p.users.summary')} data-search-anchor="users-summary">
-          <Insight
-            tone={o && o.suspendedUsers > 0 ? 'warn' : 'info'}
-            parts={
-              o
-                ? t('admin.v2p.users.sentence', {
-                    total: formatNumber(o.totalUsers),
-                    suspended: formatNumber(o.suspendedUsers),
-                    unverified: formatNumber(Math.max(0, o.totalUsers - o.verifiedUsers)),
-                  })
-                : t('admin.v2p.loading')
-            }
-          />
           <div className={people.tiles}>
             <StatTile
               label={t('admin.v2p.users.tile.total')}
@@ -313,21 +356,30 @@ export default function UsersPage() {
               loading={overview.isLoading}
             />
             <StatTile
-              label={t('admin.v2p.users.tile.suspended')}
-              value={o?.suspendedUsers}
+              label={ti('admin.insan.tile.last30')}
+              value={o?.newUsers.last30d}
               unit={t('admin.v2p.unit.person')}
-              caption={t('admin.v2p.users.tile.suspendedHint')}
-              loading={overview.isLoading}
-            />
-            <StatTile
-              label={t('admin.v2p.users.tile.unverified')}
-              value={o ? Math.max(0, o.totalUsers - o.verifiedUsers) : undefined}
-              unit={t('admin.v2p.unit.person')}
-              caption={t('admin.v2p.users.tile.unverifiedHint')}
+              icon="plus"
+              caption={ti('admin.insan.tile.last30.caption')}
               loading={overview.isLoading}
             />
           </div>
         </section>
+      )}
+
+      {canOverview && (
+        <UsersAttention
+          suspended={o?.suspendedUsers}
+          unverified={o ? Math.max(0, o.totalUsers - o.verifiedUsers) : undefined}
+          loading={overview.isLoading}
+          active={attnActive}
+          onPick={pickAttention}
+        />
+      )}
+      {canOverview && (
+        <Suspense fallback={<div className={insan.chartsSkeleton} aria-hidden="true" />}>
+          <UsersInsights />
+        </Suspense>
       )}
 
       <div className={styles.topRow}>
@@ -466,6 +518,17 @@ export default function UsersPage() {
               <option value="">{t('admin.users.filter.verified')}: {t('common.all')}</option>
               <option value="true">{t('admin.users.filter.verified.true')}</option>
               <option value="false">{t('admin.users.filter.verified.false')}</option>
+            </Select>
+            <Select
+              aria-label={g2('admin.users.filter.twoFactor')}
+              value={filters.twoFactor}
+              onChange={(e) => update({ twoFactor: e.target.value as UserFilters['twoFactor'] })}
+            >
+              <option value="">
+                {g2('admin.users.filter.twoFactor')}: {t('common.all')}
+              </option>
+              <option value="true">{g2('admin.users.filter.twoFactor.true')}</option>
+              <option value="false">{g2('admin.users.filter.twoFactor.false')}</option>
             </Select>
           </div>
 

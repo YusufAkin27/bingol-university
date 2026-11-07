@@ -50,6 +50,9 @@ public final class AdminPermissionPolicy {
         one(null, "/api/admin/rbac(/.*)?", RBAC_MANAGE);
 
         // --- analitik ---
+        // Kullanici bazli davranis (kisi + ekran/eylem zaman cizelgesi) kisisel veridir: analytics.read yetmez, users.pii
+        // (FULL, MODERATOR) ister; cagrilar AuditRecorder'da denetlenir. Ozet/ekran/akis/eylem toplu veridir (analytics.read).
+        one(Set.of("GET"), "/api/admin/analytics/behavior/users(/" + ID + ")?", USERS_PII);
         one(null, "/api/admin/analytics(/.*)?", ANALYTICS_READ);
         one(Set.of("GET"), "/api/admin/notifications/stats", ANALYTICS_READ);
 
@@ -70,6 +73,10 @@ public final class AdminPermissionPolicy {
         one(Set.of("GET"), "/api/admin/users/" + ID + "/conversations(/.*)?", CHAT_READ);
         one(Set.of("GET"), "/api/admin/pending-registrations/export[.]csv", USERS_EXPORT);
         one(Set.of("GET"), "/api/admin/pending-registrations", USERS_PII);
+        // 2FA: ozet/liste okuma `users.read`; hesap kurtarma icin kapatma `users.2fa` (yalniz FULL ve SUPPORT; gerekce +
+        // denetim zorunlu; kendi hesabi ve FULL yonetici hedef servis katmaninda reddedilir)
+        one(Set.of("GET"), "/api/admin/two-factor/(summary|users)", USERS_READ);
+        one(Set.of("POST"), "/api/admin/users/" + ID + "/two-factor/disable", USERS_2FA);
         area("/api/admin/users(/.*)?", USERS_READ, USERS_WRITE);
         area("/api/admin/pending-registrations(/.*)?", USERS_PII, USERS_WRITE);
 
@@ -78,6 +85,11 @@ public final class AdminPermissionPolicy {
         one(Set.of("GET"), "/api/admin/reports/(?!export[.]csv$|reason-templates$)[^/]+", CHAT_READ);
         one(Set.of("POST"), "/api/admin/profanity/check", MODERATION_READ);
         area("/api/admin/(reports|appeals|moderation|profanity|access-bans)(/.*)?", MODERATION_READ, MODERATION_WRITE);
+
+        // --- kampus forum (D): kategori yazma forum.categories, moderasyon forum.moderate, okuma forum.read ---
+        one(Set.of("POST"), "/api/admin/forum/(topics|comments)/" + ID + "/moderate", FORUM_MODERATE);
+        one(Set.of("POST", "PATCH", "PUT", "DELETE"), "/api/admin/forum/categories(/.*)?", FORUM_CATEGORIES);
+        area("/api/admin/forum(/.*)?", FORUM_READ, FORUM_MODERATE);
 
         // --- sohbet ---
         one(Set.of("GET"), "/api/admin/(chat-media|chat-messages)(/.*)?", CHAT_READ);
@@ -88,19 +100,18 @@ public final class AdminPermissionPolicy {
         one(Set.of("POST"), "/api/admin/(sync|sync-menu|sources/sync)", SYSTEM_WRITE);
 
         // --- icerik: gizle/kaldir alt kumesi ---
-        one(Set.of("POST"), "/api/admin/(events|community-posts|posts)/" + ID + "/(hide|unhide)", CONTENT_HIDE);
+        one(Set.of("POST"), "/api/admin/(events|community-posts|posts|post-comments)/" + ID + "/(hide|unhide)", CONTENT_HIDE);
         one(Set.of("PATCH"), "/api/admin/news/" + ID, CONTENT_HIDE);
         one(Set.of("PATCH", "DELETE"), "/api/admin/(posts|community-posts)/" + ID, CONTENT_HIDE);
-
-        // --- duyuru (akademik duyuru): yalniz duyuru yetkisi ---
-        area("/api/admin/announcements(/.*)?", COMMS_READ, COMMS_ANNOUNCE);
+        // KS-BE2: Kesfet yorum moderasyonu (gizle/geri al/sil = gonderi kaldirma ile ayni izin; listeleme posts/{id}/comments alan kuralinda)
+        one(Set.of("DELETE"), "/api/admin/post-comments/" + ID, CONTENT_HIDE);
 
         // --- icerik: yemek kalorisi (EDITOR/FULL yazar, VIEWER okur; area kuralindan once bilincli) ---
         one(Set.of("PUT"), "/api/admin/menu/(calories|" + ID + "/calories)", CONTENT_WRITE);
 
         // --- icerik ---
         area("/api/admin/(news|menu|academic|faq|communities|communitiespage|community-categories|community-posts"
-                + "|events|polls|posts|sources|unit-news)(/.*)?", CONTENT_READ, CONTENT_WRITE);
+                + "|events|polls|posts|post-comments|sources|unit-news)(/.*)?", CONTENT_READ, CONTENT_WRITE);
 
         // --- destek ---
         area("/api/admin/(support|feedback)(/.*)?", SUPPORT_READ, SUPPORT_WRITE);
@@ -121,6 +132,8 @@ public final class AdminPermissionPolicy {
         area("/api/admin/data-retention(/.*)?", RETENTION_READ, RETENTION_PURGE);
 
         // --- sistem / altyapi ---
+        // yedek durumu (yerel/uzak kopya): yalniz okuma; yazma yolu yok (kurulum sunucuda, docs/BACKUP_GDRIVE.md)
+        one(Set.of("GET"), "/api/admin/system/backup", SYSTEM_READ);
         area("/api/admin/push/(fcm|outbox|devices)(/.*)?", SYSTEM_READ, SYSTEM_WRITE);
         area("/api/admin/mail/(outbox|suppressions|quota)(/.*)?", SYSTEM_READ, SYSTEM_WRITE);
         area("/api/admin/(ops|system|crypto|crashes)(/.*)?", SYSTEM_READ, SYSTEM_WRITE);

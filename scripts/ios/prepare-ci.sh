@@ -39,6 +39,6 @@ if [ "${KEEP_LOCAL_NETWORK_KEY:-0}" != "1" ] && command -v /usr/libexec/PlistBud
 fi
 
 # 4) Bundle id (plist eslesmesi 1. adimda dogrulandi)
-BUNDLE="$(python3 -I -X utf8 "$ROOT/scripts/ios/read-bundle-id.py")"
+BUNDLE="$(grep -o 'PRODUCT_BUNDLE_IDENTIFIER = [A-Za-z0-9.-]*;' "$IOS/Runner.xcodeproj/project.pbxproj" | grep -v RunnerTests | head -1 | sed 's/.*= \(.*\);/\1/')"
 echo "Xcode bundle id: $BUNDLE"
 echo "prepare-ci tamam"

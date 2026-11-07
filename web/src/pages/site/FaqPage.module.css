@@ -1,16 +1,20 @@
 .layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-7);
+  gap: var(--space-6);
   align-items: start;
 }
 .wrap {
   display: grid;
   gap: var(--space-6);
   min-width: 0;
-  max-width: 800px;
   width: 100%;
-  margin-inline: auto;
+}
+.side {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+  align-content: start;
 }
 /* Telefon yalnız geniş ekranda (yanda, kaydırınca yapışık); dar ekranda hiç yüklenmez */
 .phone {
@@ -18,22 +22,26 @@
 }
 @media (min-width: 1080px) {
   .layout {
-    grid-template-columns: minmax(0, 1fr) 260px;
-    gap: var(--space-8);
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: var(--space-7);
   }
-  .wrap {
-    margin-inline: 0;
-  }
-  .phone {
+  .side {
     position: sticky;
     top: calc(var(--header-h, 64px) + var(--space-5));
+  }
+  .phone {
     display: grid;
     justify-items: center;
+    padding-block-start: var(--space-3);
   }
 }
 .skeletons {
   display: grid;
   gap: var(--space-3);
+  align-content: start;
+  /* CLS: veri gelince altındaki "yeni özellikler" bölümü ilk ekranda kaymasın (ekran dışında kalır) */
+  min-height: 100vh;
+  min-height: 100svh;
 }
 .search {
   position: relative;
@@ -103,27 +111,97 @@
   font-size: var(--text-h3);
   line-height: 1.2;
 }
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.chip {
+  min-height: 44px;
+  padding-inline: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.chip:hover {
+  border-color: var(--border-strong);
+}
+.chip:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.chipOn,
+.chipOn:hover {
+  background: var(--badge);
+  border-color: var(--badge);
+  color: var(--badge-contrast);
+}
 .still {
   display: grid;
-  gap: var(--space-4);
-  justify-items: start;
+  gap: var(--space-3);
   padding: var(--space-5);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   background: var(--surface);
 }
-.still > div {
+.stillIcon {
   display: grid;
-  gap: var(--space-2);
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--primary-soft);
+  color: var(--primary);
 }
 .stillTitle {
   font-size: var(--text-lg);
+  line-height: 1.25;
 }
-@media (min-width: 640px) {
-  .still {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-  }
+.res {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+}
+.res ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.resTitle {
+  font-size: var(--text-base);
+  padding-inline: var(--space-2);
+}
+.resLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 44px;
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+.resLink:hover {
+  color: var(--primary);
+}
+.resLink:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+:global(:root[dir='rtl']) .resIcon {
+  transform: scaleX(-1);
 }
 @media (prefers-reduced-motion: reduce) {
   .input {

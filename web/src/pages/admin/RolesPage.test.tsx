@@ -102,6 +102,28 @@ describe('Roller ve izinler sayfası (P16)', () => {
     expect(meCard).toHaveTextContent('Tam yetkili (FULL)');
   });
 
+  it('ısı haritası: alan x profil hücreleri "verilen/toplam" yazar, en dar profili anlatır, satıra basınca ayrıntı tablosunu daraltır', async () => {
+    setup(meOf('FULL', ALL_PERMS));
+    renderWithProviders(<RolesPage />);
+    const map = await screen.findByTestId('roles-heatmap');
+    // users alanı: dashboard.read 5 profilde var; users.role yalnız FULL -> bu mini matriste "dashboard" ve "users" ve "chat" alanları
+    const usersRow = map.querySelector('tr[data-group="users"]') as HTMLElement;
+    const cells = Array.from(usersRow.querySelectorAll('td')).map((td) => td.getAttribute('data-level'));
+    expect(cells).toEqual(['4', '0', '0', '0', '0']); // FULL tamamı, diğerleri hiç
+    const chatRow = map.querySelector('tr[data-group="chat"]') as HTMLElement;
+    expect(Array.from(chatRow.querySelectorAll('td')).map((td) => td.textContent?.trim().slice(0, 3))).toEqual(['1/1', '1/1', '0/1', '0/1', '0/1']);
+    // renk tek başına değil: ekran okuyucu metni ve cümle
+    expect(map).toHaveTextContent(/En dar profil .* izinden yalnız 1 tanesi var/);
+    // alan seçilince ayrıntı tablosu yalnız o alanı gösterir
+    const detail = screen.getByTestId('roles-matrix');
+    expect(detail.querySelectorAll('tr[data-perm]').length).toBe(3);
+    await userEvent.click(within(usersRow).getByRole('button', { pressed: false }));
+    expect(detail.querySelectorAll('tr[data-perm]').length).toBe(1);
+    expect(detail.querySelector('tr[data-perm="users.role"]')).not.toBeNull();
+    await userEvent.click(screen.getByTestId('roles-focus-reset'));
+    expect(detail.querySelectorAll('tr[data-perm]').length).toBe(3);
+  });
+
   it('rbac.manage yoksa yönetici listesi istenmez ve açıklama gösterilir', async () => {
     const calls = setup(meOf('VIEWER', ['dashboard.read']));
     renderWithProviders(<RolesPage />);

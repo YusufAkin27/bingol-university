@@ -1,12 +1,15 @@
 import type { ReactNode } from 'react';
+import { Link } from '../../../components/LocalizedLink';
+import { Icon } from '../../../components/ui';
 import type { TranslationKey } from '../../../i18n';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { PageHero } from './PageHero';
 import { PointList, type Point } from './PointList';
-import { ReadingToc, usePrintDoc } from './ReadingToc';
 import { Reveal } from './Reveal';
 import { Steps } from './Steps';
+import { paths } from '../../../paths';
 import { infoRouteId } from '../../../seo/routeMeta';
+import { useActiveSection } from './useActiveSection';
 import { usePageMeta } from './usePageMeta';
 import styles from './InfoPage.module.css';
 
@@ -50,15 +53,40 @@ interface Props {
   highlights?: Point[];
   /** Geniş ekranda yapışkan "Bu sayfada" içindekiler; varsayılan: 5 ve üzeri bölümde açık. */
   toc?: boolean;
+  /** `anahtar: açıklama` biçimindeki madde listelerini, anahtarı kod yazısıyla ayrı gösteren bölüm kimlikleri (örn. çerez/depolama anahtarları). */
+  keyed?: string[];
+  /** Sayfa sonundaki "İlgili sayfalar" bağlantıları; varsayılan açık. */
+  related?: boolean;
+  /** Bölüm başlıklarında sıra numarası rozeti; varsayılan: 3 ve üzeri bölümde açık. */
+  numbered?: boolean;
 }
 
+const RELATED: { to: string; label: TranslationKey }[] = [
+  { to: '/legal', label: 'legal.allDocs' },
+  { to: paths.site.privacy, label: 'legal.title.PRIVACY' },
+  { to: paths.site.dataRequest, label: 'site.dataRequest.title' },
+  { to: paths.site.contact, label: 'site.nav.contact' },
+];
+
 /** Çeviri anahtarlarından üretilen, bölüm tabanlı bilgi sayfası (çerez, güvenlik, erişilebilirlik vb.). */
-export function InfoPage({ slug, sections, children, after, intro, figure, highlights, toc }: Props) {
+export function InfoPage({
+  slug,
+  sections,
+  children,
+  after,
+  intro,
+  figure,
+  highlights,
+  toc,
+  keyed,
+  related = true,
+  numbered,
+}: Props) {
   const { t } = useI18n();
   const title = t(k(`pg.${slug}.title`));
   usePageMeta({ route: infoRouteId(slug) });
   const showToc = toc ?? sections.length >= 5;
-  usePrintDoc();
+  const active = useActiveSection(showToc ? sections.map((s) => `${slug}-${s.id}`) : []);
   return (
     <>
       <PageHero title={title} lead={t(k(`pg.${slug}.lead`))} crumbs={[{ label: title }]} />
@@ -70,15 +98,26 @@ export function InfoPage({ slug, sections, children, after, intro, figure, highl
           <PointList items={highlights} />
         </section>
       )}
-      <div className={`container ${styles.layout} ${showToc ? styles.withToc : ''}`}>
+      <div
+        className={`container ${styles.layout} ${showToc ? styles.withToc : ''} ${(numbered ?? sections.length >= 3) ? styles.numbered : ''}`}
+      >
         {showToc && (
-          <ReadingToc
-            items={sections.map((s) => ({ id: `${slug}-${s.id}`, title: t(k(`pg.${slug}.${s.id}.h`)) }))}
-            navLabel={t('site.trust.toc')}
-            heading={t('site.trust.toc')}
-            buttonLabel={t('site.trust.toc')}
-            compactBelow={1039}
-          />
+          <nav className={styles.toc} aria-label={t('site.trust.toc')}>
+            <p className={styles.tocTitle}>{t('site.trust.toc')}</p>
+            <ol>
+              {sections.map((s) => (
+                <li key={s.id}>
+                  <a
+                    href={`#${slug}-${s.id}`}
+                    className={active === `${slug}-${s.id}` ? styles.tocActive : undefined}
+                    aria-current={active === `${slug}-${s.id}` ? 'location' : undefined}
+                  >
+                    {t(k(`pg.${slug}.${s.id}.h`))}
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </nav>
         )}
         <div className={styles.body}>
           {intro}
@@ -90,16 +129,29 @@ export function InfoPage({ slug, sections, children, after, intro, figure, highl
                   <p key={`p${i}`}>{t(k(`pg.${slug}.${s.id}.p${i + 1}`))}</p>
                 ))}
                 {!!s.l && (
-                  <ul>
-                    {Array.from({ length: s.l }, (_, i) => (
-                      <li key={i}>{t(k(`pg.${slug}.${s.id}.l${i + 1}`))}</li>
-                    ))}
+                  <ul className={keyed?.includes(s.id) ? styles.keyed : undefined}>
+                    {Array.from({ length: s.l }, (_, i) => {
+                      const text = t(k(`pg.${slug}.${s.id}.l${i + 1}`));
+                      const at = keyed?.includes(s.id) ? text.indexOf(': ') : -1;
+                      return at > 0 && /^[A-Za-z0-9_.-]+$/.test(text.slice(0, at)) ? (
+                        <li key={i}>
+                          <code className={styles.code}>{text.slice(0, at)}</code>
+                          <span>{text.slice(at + 2)}</span>
+                        </li>
+                      ) : (
+                        <li key={i} className={keyed?.includes(s.id) ? styles.keyedPlain : undefined}>
+                          {text}
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
                 {!!s.o && (
                   <Steps
                     stack
-                    items={Array.from({ length: s.o }, (_, i) => ({ title: t(k(`pg.${slug}.${s.id}.o${i + 1}`)) }))}
+                    items={Array.from({ length: s.o }, (_, i) => ({
+                      title: t(k(`pg.${slug}.${s.id}.o${i + 1}`)),
+                    }))}
                   />
                 )}
                 {Array.from({ length: s.pAfter ?? 0 }, (_, i) => (
@@ -129,6 +181,23 @@ export function InfoPage({ slug, sections, children, after, intro, figure, highl
             );
           })}
           {children}
+          {related && (
+            <nav className={styles.related} aria-labelledby={`${slug}-related`}>
+              <h2 id={`${slug}-related`} className={styles.relatedTitle}>
+                {t('site.rd09.info.related')}
+              </h2>
+              <ul>
+                {RELATED.map((r) => (
+                  <li key={r.to}>
+                    <Link to={r.to} className={styles.relatedLink}>
+                      <span>{t(r.label)}</span>
+                      <Icon name="chevronRight" size={18} className={styles.flip} />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )}
         </div>
       </div>
     </>

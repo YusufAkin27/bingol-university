@@ -337,3 +337,9 @@
   gap: var(--space-2);
   margin-block-start: var(--space-2);
 }
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-3);
+  margin-block-end: var(--space-4);
+}

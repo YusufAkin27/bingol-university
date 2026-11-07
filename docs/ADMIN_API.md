@@ -33,7 +33,7 @@ Tarihler ISO-8601 (`2026-10-23T12:00:00Z`), tarih-yalnız alanlar `yyyy-MM-dd`. 
 - `GET /api/admin/users?q=&status=&role=&faculty=&department=&classYear=&language=&verified=&page=&size=&sort=createdAt,desc`
   - `q`: ad veya e-posta (büyük/küçük harf duyarsız, LIKE kaçışlı); `sort`: `createdAt|lastSeenAt|displayName` + `,asc|desc`
   - → `{items:[AdminUserRow], page, totalPages, totalItems}`
-  - `AdminUserRow`: `{id, email, displayName, faculty, department, classYear, language, role, status, emailVerified, createdAt, lastSeenAt, avatarUrl}`
+  - `AdminUserRow`: `{id, email, displayName, faculty, department, classYear, language, role, status, emailVerified, createdAt, lastSeenAt, avatarUrl, twoFactorEnabled, verificationDeferred}` (`verificationDeferred`: kota asiminda ertelenmis dogrulama hesabi; QT-BE, bkz. `docs/changes/auth.md`)
 - `GET /api/admin/users/{id}` → `AdminUserDetail` = `AdminUserRow` + `{bio, suspendedReason, deletedAt, deviceCount, platforms:["ANDROID"], counts:{feedback, tickets, reportsAgainst, reportsFiled, conversations, communities, eventsCreated, bookmarks}, consents:[{type,version,acceptedAt}], recentActivity:[{day,opens}]}`
 - `PATCH /api/admin/users/{id}/role {role:"USER"|"ADMIN"}` → 204. Kendi rolünü düşüremez; son yönetici düşürülemez (409 `LAST_ADMIN`).
 - `DELETE /api/admin/users/{id}` → 204 (anonimleştirme, hesap silme ile aynı mantık; kendini silemez).
@@ -44,7 +44,7 @@ Tarihler ISO-8601 (`2026-10-23T12:00:00Z`), tarih-yalnız alanlar `yyyy-MM-dd`. 
 - `GET /api/faculties` (herkese açık) → `["Mühendislik Fakültesi", …]` — liste `app_setting` anahtarı `faculties` içinde `;` ile ayrılmış tutulur (yönetici `PUT /api/admin/settings/faculties`). Liste boş değilse profildeki fakülte listeden biri olmalıdır (`INVALID_FACULTY`).
 
 ### Kullanım takibi (mobil → backend)
-- `POST /api/analytics/events` (giriş gerekli, dakikada 30 istek) gövde `{events:[{name, screen?, props?, at?}]}` (≤50 olay; `name` `[a-z0-9_]{1,40}`; `props` en çok 5 anahtar, değerler ≤100 karakter, kişisel veri yok) → 204. Olaylar `analytics_event` tablosuna yazılır; **180 gün** sonra silinir (zamanlayıcı).
+- `POST /api/analytics/events` (giriş gerekli, dakikada 30 istek) gövde `{events:[{name, screen?, props?, at?}]}` (≤50 olay; `name` `[a-z0-9_]{1,40}`; `props` en çok **8** anahtar (anahtar `[A-Za-z0-9_]{1,40}`), değerler ≤100 karakter, kişisel veri yok) → 204. Olaylar `analytics_event` tablosuna yazılır; **45 gün** sonra silinir (zamanlayıcı; günlük özetler kalıcı). Davranış analizi olayları (`session_start|session_end|screen_exit|action`, `props.sid`) için bkz. "Kullanıcı davranış analizi" bölümü.
 - Her kimlikli istekte kullanıcı başına günde en çok bir kez `activity_daily(user_id, day, opens)` güncellenir ve `app_user.last_seen_at` en çok 5 dakikada bir yazılır (Redis ile kısıtlanır; istek yolunu yavaşlatmaz).
 - KVKK: yalnızca toplulaştırılmış analitik gösterilir; kullanıcı detayında yalnızca günlük açılış sayıları görünür. `GET /api/users/me/export` bu verileri de içerir.
 
@@ -381,20 +381,19 @@ Herkese açık okuma: `GET /api/communities/categories` (giriş gerekir) — ayr
 
 Şikâyet kuyruğu: `targetType` `FEED_POST` (kullanıcı `POST /api/reports` ile bildirir; `FEED_COMMENT` ve `STORY` türleri kaldırıldı, eski kayıtları V470 siler). `GET /api/admin/reports/{id}` bağlamında `context.content` = `{kind:"FEED_POST", id, text, ownerId, imageUrl, deleted, status:"VISIBLE"|"HIDDEN"|"DELETED", createdAt, postId, media:[{id,kind,url,thumbUrl}]}`; kuyruk önizlemesi (`preview`) ilk medya ya da metindir. Karar `HIDE` → gönderi gizlenir (geri alınabilir: otomatik gizleme eşiği, itiraz ve reddetmede `unhide`); kalıcı kaldırma için gönderi ekranındaki **Sil** kullanılır (açık şikâyetleri birlikte sonuçlandırır).
 
-## Akademik (`/api/admin/academic/*`, `/api/admin/announcements`)
+## Akademik (`/api/admin/academic/*`)
 
 Sözleşme: [API_CONTRACTS_V2.md](API_CONTRACTS_V2.md) "Akademik". Tüm uçlar yalnız ADMIN; yazma işlemleri denetim kaydına düşer.
 
 - **Akademik takvim:** `GET|POST /api/admin/academic/events`, `GET|PATCH|DELETE .../{id}`, `POST .../{id}/publish|unpublish`, `POST .../import` (`{text, publish}`; satır `TÜR;Başlık;başlangıç;bitiş?;bölüm?`, geçerli satırlar yazılır, hatalar satır numarasıyla döner).
-- **Resmi sınav programı:** `/api/admin/academic/exams` (aynı kalıp; `faculty|department|grade` boş = herkes).
-- **Resmi ders programı (V1070, Excel yükleme):** izin `content.read|write` (`/api/admin/academic/**` alanı). Sayfa `/admin/academic/timetable`, şablon `web/public/ders-programi-sablonu.xlsx`.
+- **Resmi ders programı (V1150, Excel yükleme):** izin `content.read|write` (`/api/admin/academic/**` alanı). Sayfa `/admin/academic/timetable`, şablon `web/public/ders-programi-sablonu.xlsx`.
   - `POST /api/admin/academic/timetable/import` (multipart: `file` .xlsx ≤ 1,8 MB, `dryRun` varsayılan **true**, `term` isteğe bağlı) → `{dryRun, term, rows, programs, inserted, replacedPrograms, items[ProgramSummary], errors[{row,message}], warnings[…]}`. `dryRun=true` yazmaz (önizleme). `dryRun=false` ve hata varsa 422 `TIMETABLE_IMPORT_INVALID`. Okunan sayfa **"Ders Programı"** (yoksa ilk sayfa); başlık satırı ilk 15 satırda aranır; sütunlar: Dönem, Birim, Bölüm / Program, Sınıf, Grup / Şube, Gün, Başlangıç, Bitiş, Ders Kodu, Ders Adı, Öğretim Elemanı, Derslik, Not, Kaynak, Katalog Fakülte, Katalog Bölüm (zorunlu: Birim, Bölüm/Program, Sınıf, Gün, Başlangıç, Bitiş, Ders Adı; Dönem satırda ya da `term` ile).
   - **Değiştirme semantiği:** dosyadaki her (dönem, birim, program) için eski satırlar silinip yenisi yazılır (aynı dosya tekrar yüklenince çift kayıt olmaz; dosyada olmayan programa dokunulmaz). Aynı satır tekrar ederse atlanır (uyarı).
   - Sınıf: `1..6`, `I..VI`, `Hazırlık|PREP`, `Yüksek Lisans|MASTER`, `Doktora|PHD`; gün: ad ya da 1-7; saat: `08:15`, `8.15` ya da Excel zaman kesri.
   - Katalog eşleşmesi: "Katalog Fakülte/Bölüm" geçerliyse o, değilse program adı `academic.json` bölüm adıyla (AudienceKey) birebir eşleşirse o; bulunamazsa uyarı + program adı olduğu gibi `department` olur (profildeki bölümle eşleşmeyebilir).
   - `GET .../timetable/programs?term=` (dönemler + program özeti), `GET .../timetable/entries?term&unit&program[&grade&page&size]`, `DELETE .../timetable/programs?term&unit&program`, `POST .../timetable/publish {term,unit,program,published}`.
   - Kullanıcı: `GET /api/timetable/official[?term&department&grade&unit]` → `{term, items[], units[], profileComplete}`; varsayılan profil bölümü + sınıfı, yalnız yayında olanlar. Aynı bölüm adı birden çok birimde olabilir (örn. Çocuk Gelişimi 3 MYO'da): `units` ile birim seçtirin.
-- **Duyurular:** `GET|POST /api/admin/announcements` (`status=all|draft|scheduled|active|expired`), `GET|PATCH|DELETE .../{id}`, `publish|unpublish`, `GET .../audience-count?department&faculty&grade`. `notify=true` görünür olunca hedef kitleye bir kez push gönderir; `pinned` sabitler; `attachmentUrl` yalnız https.
+- **Kaldırıldı (V1251):** "resmi sınav programı" (`/api/admin/academic/exams`, `GET /api/exams/official`) ve "bölüm duyuruları" (`/api/admin/announcements`, `/api/announcements*`) özellikleri silindi; kullanıcının kendi sınavları (`/api/timetable/exams`) ve resmi ders programı kalır. `comms.announce` izni de kalktı.
 - Gelecek: bölüm yetkilisi için `DEPT_ADMIN` rolü + `dept_admin_scope(user_id, department)` (bkz. `docs/changes/academic.md`). Şimdilik yalnız ADMIN.
 
 ## Anketler (`/api/admin/polls`) ve kalıcı push kuyruğu (`/api/admin/push/outbox`)
@@ -646,6 +645,24 @@ Yeni hata kodu: `EVENT_CLUB_REQUIRED` (400; `i18n/event*.properties` tr/en/ar). 
 
 Paket `observability`. Yazma (POST) uçları denetim kaydına düşer; hız sınırı: okuma 120/dk, yazma 30/10 dk.
 
+### `GET /api/admin/system/backup`
+
+Yedek durumu (yerel + uzak kopya); izin `system.read` (FULL, VIEWER). Yalnız durum dosyasından (`last-success.json`, yedek ajanı yazar) okur, ağa çıkmaz; dosya yoksa/bozuksa tüm alanlar `null`, `remote.configured=false`. Eski biçimli dosyada (uzak alanı yok) da aynıdır. Tarihler ISO-8601 UTC. **Uzak hedefin yolu/belirteci hiçbir alanda yoktur**; `remote.name` yalnız rclone uzak adıdır. Kurulum: `docs/BACKUP_GDRIVE.md`.
+
+```json
+{
+  "local":  {"count":3,"bytes":1500000,"oldestAt":"2026-11-01T08:05:00Z"},
+  "remote": {"configured":true,"kind":"drive","name":"gdrive","lastSuccessAt":"2026-11-01T00:40:12Z",
+             "lastVerifiedAt":"2026-11-01T00:40:30Z","lastError":null,"bytes":7340032,"count":6},
+  "lastSuccessAt":"2026-11-01T10:05:09Z",
+  "lastStatus":"OK",
+  "schedule":  {"cron":"5 * * * *","verifyCron":"30 4 * * 0","remoteCron":"35 3 * * *"},
+  "retention": {"localDaily":3,"localWeekly":0,"localMonthly":0,"remoteDaily":7,"remoteWeekly":4,"remoteMonthly":6}
+}
+```
+
+`remote.kind`: `drive` | `other`. `lastStatus`: `OK` | `FAILED` (son başarılı yedekten sonra yerel yedek denemesi başarısız oldu; `last-failure.json` var) | `null`. `remote.lastError` kısa, tek satır ve sırsızdır (ör. "Google yetkisi geçersiz veya süresi dolmuş (invalid_grant); rclone authorize ile belirteci yenileyin"). `schedule.remoteCron` uzak kopya kapalıysa `null`. `GET /overview` göstergesi `backup.age` değişmedi (yalnız `lastSuccessAt` yaşı).
+
 ### `GET /api/admin/system/overview`
 
 Tüm göstergeler tek yanıtta. Her gösterge `{status: OK|WARN|CRIT|UNKNOWN, value, threshold, message}`; `message` yalnız OK değilse dolu ve istek dilindedir (`Accept-Language` tr/en/ar). `UNKNOWN` = ölçülemiyor/henüz veri yok (uyarı tetiklemez). `overall` = bilinen göstergelerin en kötüsü.
@@ -667,12 +684,13 @@ Tüm göstergeler tek yanıtta. Her gösterge `{status: OK|WARN|CRIT|UNKNOWN, va
     "fcm":                   {"status":"UNKNOWN","value":null,"threshold":null,"message":"Push (FCM) kapalı veya yapılandırılmamış."},
     "disk.storage":          {"status":"OK","value":41.5,"threshold":{"warn":80,"crit":90},"message":null},
     "backup.age":            {"status":"UNKNOWN","value":null,"threshold":{"warn":3,"crit":6},"message":"Yedek durum dosyası yok veya okunamadı."},
+    "backup.remote":         {"status":"UNKNOWN","value":null,"threshold":{"warn":30,"crit":36},"message":"Uzak (Google Drive) yedek yapılandırılmamış."},
     "jobs.mail-queue":       {"status":"OK","value":3,"threshold":{"warn":120,"crit":360},"message":null}
   }
 }
 ```
 
-Birimler: `*Age`, `campaign.overdue`, `jobs.*` ve eşikleri **saniye**; `backup.age` ve eşikleri **saat**; `disk.storage` yüzde; `db`/`redis` ms. `*.oldestPendingAge` "zamanı gelmiş (`next_attempt_at` geçmiş) ama gönderilmemiş en eski kayıt"ın gecikmesidir (geri çekilme beklemesindeki ve hız sınırlı duyuru kayıtları sayılmaz; aksi halde bilerek bekleyenler yalancı CRIT üretirdi). `jobs.<anahtar>` değeri son **başarılı** çalışmadan bu yana geçen saniyedir; uygulama yeniden başlayınca bellek sıfırlanır, ilk çalışmaya kadar UNKNOWN.
+Birimler: `*Age`, `campaign.overdue`, `jobs.*` ve eşikleri **saniye**; `backup.age` ve `backup.remote` (uzak/Drive son başarı; HARDEN B8: > 30 sa WARN, > 36 sa CRIT, hiç başarı yokken hata kaydı CRIT, uzak kapalıysa UNKNOWN) ve eşikleri **saat**; `disk.storage` yüzde; `db`/`redis` ms. `*.oldestPendingAge` "zamanı gelmiş (`next_attempt_at` geçmiş) ama gönderilmemiş en eski kayıt"ın gecikmesidir (geri çekilme beklemesindeki ve hız sınırlı duyuru kayıtları sayılmaz; aksi halde bilerek bekleyenler yalancı CRIT üretirdi). `jobs.<anahtar>` değeri son **başarılı** çalışmadan bu yana geçen saniyedir; uygulama yeniden başlayınca bellek sıfırlanır, ilk çalışmaya kadar UNKNOWN.
 
 Zamanlayıcı anahtarları: `news-sync`, `menu-sync`, `mail-queue`, `push-queue`, `campaign-dispatch`, `mail-campaign`, `mail-purge`, `push-purge`, `device-cleanup`, `notification-retention`, `analytics-retention`.
 
@@ -890,12 +908,12 @@ Haber, akademik içerik, yemek menüsü ve bekleyen kayıtlar için toplu işlem
 | Uç | Gövde / not |
 |---|---|
 | `POST /api/admin/news/bulk` | `{action: HIDE\|UNHIDE, ids (<=200), reason}` |
-| `POST /api/admin/academic/bulk` | `{entity: CALENDAR\|EXAM\|ANNOUNCEMENT, action: PUBLISH\|UNPUBLISH\|DELETE, ids (<=200), reason}`; mevcut servis metotları kullanılır; bildirimi açık duyuru yayınlanırsa servisin kendi kuralıyla (bir kez) hedef kitleye bildirim gider |
+| `POST /api/admin/academic/bulk` | `{entity: CALENDAR, action: PUBLISH\|UNPUBLISH\|DELETE, ids (<=200), reason}`; mevcut servis metotları kullanılır (`EXAM` ve `ANNOUNCEMENT` varlıkları V1251 ile kaldırıldı) |
 | `POST /api/admin/menu/bulk-delete` | `{dates ("yyyy-MM-dd", <=62), reason}`; gün satırı silinir, fotoğraf `MediaService.release` ile temizlenir (başka kayıt kullanıyorsa dosya kalır); geçersiz tarih 400 `MENU_DATE_INVALID`. Kaynak site aylık senkronda silinen günü yeniden yazabilir |
 | `POST /api/admin/pending-registrations/bulk-cancel` | `{emails (e-posta ya da okul numarası, <=200), reason}`; Redis `reg:<e-posta>` TAM e-posta ile saklanır (hash değil), normalize edilir; yanıt ve denetim satırında kimlik MASKELİ (`226***@bingol.edu.tr`) |
 | `POST /api/admin/sources/sync` | `{source: NEWS\|MENU, reason}`; mevcut senkron servisini çağırır (kaynak siteye istek atar: scraper kuralı gereği normalde yalnız zamanlayıcı, bu elle tetikleme bir istisnadır). Kaynak başına saatte 3 (tüm yöneticiler ortak), aşılırsa 429 + `Retry-After`. Yanıt `{source, changed, detail}` |
 
-**CSV (GET; UTF-8 BOM, CRLF, formül kaçırma `'`; en çok 50.000 satır; dakikada 10):** `GET /api/admin/news/export.csv?q=&type=&hidden=` (liste süzgeçleriyle aynı; içerik metni yazılmaz), `GET /api/admin/academic/export.csv?entity=CALENDAR|EXAM|ANNOUNCEMENT&q=&kind=&published=&status=` (`entity` yoksa 400 `EXPORT_ENTITY_INVALID`; duyuru gövdesi yazılmaz), `GET /api/admin/menu/export.csv?from=&to=`, `GET /api/admin/pending-registrations/export.csv?q=` (e-posta ve ad maskeli; `@AuditRead`: okuma denetim kaydına yazılır).
+**CSV (GET; UTF-8 BOM, CRLF, formül kaçırma `'`; en çok 50.000 satır; dakikada 10):** `GET /api/admin/news/export.csv?q=&type=&hidden=` (liste süzgeçleriyle aynı; içerik metni yazılmaz), `GET /api/admin/academic/export.csv?entity=CALENDAR&q=&kind=&published=` (`entity` yoksa 400 `EXPORT_ENTITY_INVALID`), `GET /api/admin/menu/export.csv?from=&to=`, `GET /api/admin/pending-registrations/export.csv?q=` (e-posta ve ad maskeli; `@AuditRead`: okuma denetim kaydına yazılır).
 
 **`GET /api/admin/sources/status`:** `{news:{maintenance, lastSuccess, lastAttempt, message (en çok 200 karakter), itemsLast7d, total, hidden, byType}, menu:{maintenance, lastSuccess, lastAttempt, message, totalDays, upcomingDays, withImage}, syncPerHour}`. Yalnız mevcut `SyncStatus` ve tablo sayılarını toplulaştırır; kaynak siteye istek atmaz.
 
@@ -919,6 +937,7 @@ Haber, akademik içerik, yemek menüsü ve bekleyen kayıtlar için toplu işlem
 | users.read (e-posta maskeli: SUPPORT, VIEWER) | x | x | x |  | x |
 | users.pii, users.write | x | x |  |  |  |
 | users.role, users.delete, users.export, users.verify (W1-B T-011: kodsuz hesap doğrulama) | x |  |  |  |  |
+| users.2fa (HARDEN O3: 2FA hesap kurtarma kapatması; MODERATOR yapamaz) | x |  | x |  |  |
 | moderation.read | x | x |  |  | x |
 | moderation.write, chat.read, chat.write | x | x |  |  |  |
 | content.write | x |  |  | x |  |
@@ -926,7 +945,7 @@ Haber, akademik içerik, yemek menüsü ve bekleyen kayıtlar için toplu işlem
 | support.read | x |  | x |  | x |
 | support.write | x |  | x |  |  |
 | comms.read | x |  | x | x | x |
-| comms.write, comms.announce | x |  |  | x |  |
+| comms.write | x |  |  | x |  |
 | comms.single | x |  | x |  |  |
 | comms.send, legal.publish, settings.write, system.write, rbac.manage, admin.full | x |  |  |  |  |
 | settings.read, system.read, audit.read | x |  |  |  | x |
@@ -1007,3 +1026,44 @@ Yönetici "bu sürümün altındakiler güncellemeden kullanamasın" diyebilir; 
 **Web:** `/admin/app-versions` ("Uygulama güncelleme", Sistem grubu, `settings.read`): platform kartı (durum rozeti "Zorunlu güncelleme AÇIK / Yalnız öneri / Kapalı", yayındaki ve zorunlu en düşük sürüm, sürüm dağılımı tablosu, "bu sürümün altında: N cihaz"), "Yeni sürümü yayınla" sihirbazı (sürüm + kip + etki önizlemesi + uyarılar, sonra gerekçe; FORCE için "ZORLA" yazdırılır), "Güncelleme ekranını önizle" (telefon çerçevesi, TR/EN/AR). Mağaza bağlantısı, paket adı, Apple kimliği ve üç dilli metin alanları Ayarlar > Mağaza ve sürümler'dedir. Uyarılar: min > latest, mağaza bağlantısı/iOS kimliği yokken FORCE ("düğme çalışmaz"; iOS henüz mağazada değilse zorlama önerilmez), girilen sürümün hiçbir cihazda olmaması. Duman: `scripts/smoke-app-version.sh` (koşulamadı).
 
 Yeni hata kodları (tr/en/ar `ops*.properties`): `VERSION_BELOW_LATEST`, `VERSION_BELOW_MIN`.
+
+## Iki faktorlu dogrulama (2FA, V1060)
+
+Kullanici tarafi sozlesmesi: `docs/TWO_FACTOR_API.md`. Yonetici uclari RBAC ile korunur (`AdminPermissionPolicy`): okuma `users.read`, kapatma `users.2fa` (yalniz FULL ve SUPPORT; HARDEN turunda `users.write`'dan ayrildi, MODERATOR artik yapamaz).
+
+- **Kullanici DTO'lari:** `GET /api/admin/users` satirlarina `twoFactorEnabled: boolean`; `GET /api/admin/users/{id}` ayrintisina ek `twoFactorTrustedDeviceCount`, `twoFactorEnabledAt` (ISO). Suzgec: `GET /api/admin/users?twoFactor=true|false` (CSV disa aktarimda sutun YOK).
+- `GET /api/admin/two-factor/summary` -> `{enabledCount, totalActiveUsers, enabledPercent (tek ondalik), enabledLast7Days, trustedDeviceTotal}`.
+- `GET /api/admin/two-factor/users?page&size&q` -> `{content:[{userId, displayName, email, role, enabledAt, trustedDeviceCount, lastLoginAt}], totalElements, totalPages, number, size}`. `q` kurallari kullanici listesiyle ayni (`users.pii` olmayan profil yalniz gorunen adi arar, en az 3 karakter; e-posta maskeli, `PermissionAwareMasking`). `lastLoginAt` = guvenilen cihazlarin en yeni `last_used_at` degeri, yoksa `last_seen_at`. Sira: acilis tarihi (yeni once).
+- `POST /api/admin/users/{id}/two-factor/disable` `{"reason"}` -> **204**. Hesap kurtarma: 2FA kapanir, guvenilen cihazlar ve bekleyen kod silinir, kullanicinin TUM oturumlari kapanir, kullaniciya uygulama ici SYSTEM bildirimi VE e-posta (`SECURITY_TWO_FACTOR_NOTICE`) gider (kullanicinin dilinde). Kendi hesabi 403 `ADMIN_SELF_FORBIDDEN`; hedef FULL yonetici ise 403 `TWO_FACTOR_ADMIN_FORBIDDEN` (iki kisi onayi gerektirecegi icin panelden kapatilamaz); hedef FULL olmayan yonetici ise yalniz FULL kapatabilir. Gerekce ZORUNLU (en az 5 karakter, `AdminGuardPolicy.accountOps` + `@AdminReasonRequired`), yikici islem sayilir (saatlik siki hiz siniri), denetim kaydi: hedef `USER:<id>`, gerekce, ozet. Hatalar: 404 `USER_NOT_FOUND`, 409 `TWO_FACTOR_NOT_ENABLED`, 403 `ADMIN_TARGET_FORBIDDEN` (yonetici hesabina yalniz FULL), 403 `ADMIN_PERMISSION_DENIED` (`users.2fa` yok: MODERATOR/EDITOR/VIEWER), 400 `REASON_REQUIRED`.
+- Duman: `scripts/smoke-two-factor.sh`; testler `AdminTwoFactorMvcTest`.
+
+## Kullanıcı davranış analizi (`/api/admin/analytics/behavior/*`, V1240)
+
+Panel "Analitik > Davranış" sekmesinin API'si: kullanıcılar hangi ekranlarda ne kadar kalıyor, ne yapıyor, uygulamayı hemen kapatıyor mu. Tüm tarihler `Europe/Istanbul` gün sınırı; `from`/`to` = `yyyy-MM-dd`, varsayılan **son 7 gün**, en çok **45 gün** (ham olay saklama süresi). Geçersiz biçim/ters aralık 400 `INVALID_RANGE`, 45 günden uzun aralık 400 `RANGE_TOO_LARGE` (tr/en/ar). Sürelerin hepsi **milisaniye**; oranlar **0..1** `double` (`sharePct` dahil). Yönetici başına dakikada en çok 60 çağrı (429). Entity yok; `analytics.behavior` paketi (`BehaviorController` → `BehaviorService` → `BehaviorRepository`, SQL `BehaviorSql`, saf hesap `BehaviorMath`).
+
+### Mobil olay sözleşmesi (`POST /api/analytics/events`, gövde biçimi AYNI: `{events:[{name,screen?,props?,at?}]}`)
+- Her olayda `props.sid`: uygulama açılışında üretilen rastgele oturum kimliği `[a-z0-9]{8,32}` (kişisel veri sayılmaz; uzun rakam kuralından muaf).
+- `session_start` (ekran yok) / `session_end` (`props {durationMs, screens?, reason?:'background'|'exit'|'timeout'}`, `durationMs` zorunlu) / `screen_view` (mevcut) / `screen_exit` (`screen` zorunlu, `props {dwellMs}` zorunlu) / `action` (`props {kind, target?}`; `kind` beyaz liste: `like, unlike, follow, unfollow, share, bookmark, join_club, leave_club, rsvp, checkin, vote, rate_menu, search_submit, send_message, post_create, ticket_create, ticket_reply, profile_edit, notif_open, push_open, pull_refresh, tab_switch`; `target` `[a-z0-9_]{1,40}`).
+- `durationMs`/`dwellMs` tam sayı 0..86400000; `screens` 0..100000. Eski olaylar (`app_open`, `search`, sid'siz `screen_view`) aynen çalışır.
+- **Yanlış olay tek tek elenir**: sözleşmeyi bozan olay (sid deseni, süre aralığı, bilinmeyen `kind`, eksik zorunlu alan) sessizce atılır, sayaç artmaz, istek yine 204. Yapısal bozukluk (ad/ekran biçimi, 8'den fazla `props`, 50'den fazla olay, e-posta/uzun rakam dizisi) önceki gibi tüm isteği 400 `INVALID_EVENT` ile reddeder.
+
+### Tanımlar
+- **Oturum:** `sid` varsa (kullanıcı, `sid`); yoksa (eski sürüm) kullanıcı başına olaylar arası 30 dk boşlukla **türetilir**. Oturum süresi `session_end.durationMs`; yoksa türetilir (son olay − ilk olay, en az ekranda geçen süre toplamı) ve `reason` `derived` olur. Yalnız açılış olayı (`session_start|session_end|screen_view|app_open`) içeren gruplar oturum sayılır; `action` süreyi/oturum aralığını etkilemez. Aralığın kenarında kesilen oturum aralık içindeki parçasıyla sayılır. Eski sürümde (sid'siz) tek olaylı oturumun süresi 0 görünür (bounce/hemen kapatma şişer; yeni sürüm yayıldıkça düzelir).
+- **bounce:** ≤1 ekran görüntüleme VE süre < 10 sn. **Hemen kapatma (quickClose):** süre < 5 sn. Süre kovaları: `<5sn`, `5-30sn`, `30sn-2dk`, `2-10dk`, `10dk+`.
+- Ekran `exitRate` = oturumun SON ekranı olma sayısı / görüntüleme; `bounceRate` = bu ekranda BAŞLAYIP bounce olan oturum / bu ekranda başlayan oturum; `sharePct` = ekran görüntülemesi / toplam görüntüleme (0..1).
+
+### Uçlar (hepsi GET)
+| Uç | İzin | Yanıt |
+|---|---|---|
+| `/overview` | `analytics.read` | `{sessions, users, avgSessionMs, medianSessionMs, avgScreensPerSession, sessionsPerUser, bounceRate, quickCloseRate, byDay:[{day,sessions,avgSessionMs,bounceRate}] (boş günler 0), durationBuckets:[{label,sessions}] (5 kova, hepsi)}` |
+| `/screens?sort=views,users,avgDwellMs,exitRate,bounceRate&dir=asc,desc&page=0&size=20` | `analytics.read` | `{items:[{screen,views,users,avgDwellMs,medianDwellMs,p90DwellMs,exitRate,bounceRate,sharePct}], page, size, total}` (size en çok 100; geçersiz `sort` 400 `VALIDATION_ERROR`) |
+| `/flows` | `analytics.read` | `{topTransitions:[{from,to,count}] (20; ekran içi yineleme hariç), entryScreens:[{screen,sessions}] (10), exitScreens:[{screen,sessions}] (10), dropOff:[{screen,entered,left,leftRate}] (15; entered = görüntüleme, left = o ekrandan sonra oturumu bitiren)}` |
+| `/actions` | `analytics.read` | `{items:[{kind,count,users,perScreen:[{screen,count}] (ilk 5)}]}` (azalan sayı) |
+| `/users?sort=sessions,totalMs,avgSessionMs,bounceRate,quickCloseCount,lastSeenAt&dir=desc&page=0&size=20&q=` | **`users.pii`** (FULL, MODERATOR) | `{items:[{userId,displayName,email,department,grade,sessions,totalMs,avgSessionMs,bounceRate,quickCloseCount,lastSeenAt,topScreens:[{screen,ms}] (3)}], page, size, total}`; `q` ad/e-posta parçası (LIKE kaçırılır) |
+| `/users/{id}?days=7` (1..45) | **`users.pii`** | `{user:{userId,displayName,email,department,grade}, summary:{sessions,totalMs,avgSessionMs,bounceRate,quickCloseCount,lastSeenAt}, sessions:[{sid,startedAt,endedAt,durationMs,bounce,quickClose,reason:'background'/'exit'/'timeout'/'derived',steps:[{type:'screen'/'action',screen,kind,dwellMs,at}]}]}` — en yeni oturum önce, en çok 50 oturum, oturum başına en çok 100 adım; özet TÜM oturumlardan hesaplanır; yoksa 404 `USER_NOT_FOUND`. Türetilmiş oturumda `sid` `derived-<başlangıç epoch sn>` |
+
+- İzin kararı: kullanıcı bazlı uçlar kişisel veridir, `analytics.read` yetmez; `AdminPermissionPolicy` kuralı `GET /api/admin/analytics/behavior/users(/{id})?` → `users.pii` (yeni izin eklenmedi). VIEWER/SUPPORT/EDITOR bu iki ucu göremez (403 `ADMIN_PERMISSION_DENIED`), toplu dört ucu görür. `users.pii` olmayan profil zaten erişemediği için e-posta her zaman tam; yine de `PermissionAwareMasking` uygulanır.
+- **Denetim:** her `/users` ve `/users/{id}` çağrısı `admin_audit`'e yazılır (hedef kullanıcı kimliği `USER/<id>`, özet "kullanici davranis zaman cizelgesi: N gun"; gövde/yanıt saklanmaz) (`@AuditRead` + `users.pii` GET kuralı).
+- **Performans:** sorgular tek geçişli pencere fonksiyonlarıyla (`lag`/`sum() OVER`/`row_number`/`lead`, `percentile_cont`) ham `analytics_event` üzerinde yalnız oturum olayı adlarıyla çalışır; `statement_timeout` 8 sn (503 `DB_TIMEOUT`). Kullanıcı detayı `(user_id, created_at)` indeksini kullanır ve en çok 20 000 olay okur. Uzun aralıkta sunucu yüküne dikkat: gerekirse aralığı daraltın.
+- **Günlük özetler (V1240, kalıcı, kullanıcı kimliği YOK):** `analytics_session_daily(day, sessions, users, total_ms, bounces, quick_closes)` ve `analytics_screen_daily(day, screen, views, users, dwell_ms_sum, dwell_n, exits, entries, bounce_sessions)`; `DbMaintenanceJob` içinde `AnalyticsRollup.rollUpBehaviorDays` her gece (03:00, `SchedulerLock`, `JobMonitor` izler) dünü ve bir önceki günü yeniden hesaplar (idempotent upsert, gerekirse 45 güne kadar geriye doldurur). Oturum BAŞLADIĞI güne sayılır; `users` günlük tekildir (aralıkta toplanırsa gün-kullanıcı). **Bu sürümde API yalnız ham tablodan okur** (aralık zaten ≤45 gün); özet tabloları 45 günden eski dönem için saklanır, henüz bir uç tarafından okunmaz.
+- **KVKK:** özet tablolarda `user_id` yok. Ham olaylar 45 gün saklanır, hesap silinince `analytics_event` kullanıcı satırları silinir (`ActivityTracker.purgeUser`), `DataExporter` `analyticsEvents` bölümü (en çok 5000 olay) yeni olay türlerini zaten kapsar. Duman: `scripts/smoke-behavior.sh`.

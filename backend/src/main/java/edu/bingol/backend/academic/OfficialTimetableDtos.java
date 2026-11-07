@@ -29,4 +29,14 @@ public final class OfficialTimetableDtos {
 
     /** Kullanici yaniti: profilindeki bolum/sinif icin yayinda olan resmi program. */
     public record OfficialView(String term, List<EntryView> items, List<String> units, boolean profileComplete) {}
+
+    /**
+     * Resmi programin kisisel programa kopyalanma durumu. available: profilin bolum + sinifi icin yayinda program var;
+     * applied: bu donem icin tohum isareti var (otomatik ya da elle kopyalandi); units: eslesen birimler (birden cok
+     * ise istemci birim sectirir).
+     */
+    public record OfficialStatus(boolean available, boolean applied, String term, List<String> units) {}
+
+    /** unit: birden cok birim varken zorunlu; replace: mevcut kisisel dersleri silip yeniden kopyala; force: cakismayi yok say. */
+    public record ApplyRequest(String unit, Boolean replace, Boolean force) {}
 }

@@ -21,6 +21,7 @@ const m = {
   'pg.menu.kcal': '{n} سعرة',
   'pg.menu.totalKcal': 'المجموع {n} سعرة',
   'pg.menu.allergens': 'مسببات الحساسية: {list}',
+  'pg.menu.photoAlt': 'صورة قائمة الطعام ليوم {date}',
   'pg.menu.itemCount': '{n} أصناف',
   'pg.menu.weekOf': '{from} – {to}',
   'pg.menu.noWeek': 'لا توجد قائمة لهذا الأسبوع',

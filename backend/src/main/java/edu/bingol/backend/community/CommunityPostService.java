@@ -9,7 +9,10 @@ import edu.bingol.backend.community.permissions.ClubPermission;
 import edu.bingol.backend.community.dto.CommunityDtos.CreatePostRequest;
 import edu.bingol.backend.community.dto.CommunityDtos.PostView;
 import edu.bingol.backend.moderation.BlockService;
+import edu.bingol.backend.notification.FanoutNotifier;
 import edu.bingol.backend.notification.NotificationService;
+import edu.bingol.backend.notification.NotificationSubtype;
+import edu.bingol.backend.notification.NotificationTemplates;
 import edu.bingol.backend.notification.NotificationType;
 import edu.bingol.backend.user.User;
 import java.util.ArrayList;
@@ -73,21 +76,39 @@ public class CommunityPostService {
         posts.save(p);
 
         PostView view = views(List.of(p), a, communities.can(a, cid, ClubPermission.MANAGE_POSTS)).get(0);
-        Set<Long> hidden = blocks.hiddenFrom(a.id());
+        // FINAL-ALL (P05 ertelenen): uye bildirimi istek thread'inden ve acik islemden cikarildi; COMMIT sonrasi
+        // sinirli havuzda, parca basina sabit sorguyla (sendTemplatedBulk) gider. Geri alinan yazi bildirmez.
+        Long authorId = a.id();
+        String clubName = c.getName();
+        String preview = preview(p.getContent());
+        String authorName = view.authorName();
+        Long postId = p.getId();
+        FanoutNotifier.dispatch(fanout, "community-post:" + cid, () -> notifyMembers(cid, authorId, clubName, authorName,
+                preview, postId));
+        return view;
+    }
+
+    /** Alt tur COMMUNITY_POST (tercihle kapatilabilir) + kulup basina birlesme: okunmamis yazilar tek satir. */
+    static final NotificationTemplates.Template POST_TEMPLATE = NotificationTemplates.register("notif.community.post",
+            NotificationType.COMMUNITY, NotificationSubtype.COMMUNITY_POST);
+
+    private void notifyMembers(Long cid, Long authorId, String clubName, String authorName, String preview, Long postId) {
+        Set<Long> hidden = blocks.hiddenFrom(authorId);
+        Map<String, String> data = Map.of("communityId", cid.toString(), "postId", postId.toString());
         // T-051: tum aktif uyeler (imecli sayfalar); eskiden ilk 500'de kesiliyordu
         Paging.forEachChunk((after, n) -> members.userIdsByStatusAfter(cid, CommunityMember.Status.ACTIVE, after, PageRequest.of(0, n)),
                 ids -> {
-                    for (Long uid : ids) {
-                        if (uid.equals(a.id()) || hidden.contains(uid)) {
-                            continue;
-                        }
-                        // Alt tur COMMUNITY_POST (tercihle kapatilabilir) + kulup basina birlesme: okunmamis yazilar tek satir.
-                        notifications.send(uid, NotificationType.COMMUNITY, edu.bingol.backend.notification.NotificationSubtype.COMMUNITY_POST,
-                                "commpost:" + cid, c.getName(), view.authorName() + ": " + preview(p.getContent()),
-                                Map.of("communityId", cid.toString(), "postId", p.getId().toString()));
-                    }
+                    List<Long> to = ids.stream().filter(uid -> !uid.equals(authorId) && !hidden.contains(uid)).toList();
+                    notifications.sendTemplatedBulk(to, POST_TEMPLATE, data, "commpost:" + cid, clubName, authorName, preview);
                 });
-        return view;
+    }
+
+    /** Birim testleri icin yoktur (ayni is parcaciginda calisir); uretimde commit sonrasi havuz. */
+    private FanoutNotifier fanout;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setFanout(FanoutNotifier fanout) {
+        this.fanout = fanout;
     }
 
     /** Ilk sayfada (cursor yok) sabitli yazilar basa eklenir. */
@@ -169,6 +190,13 @@ public class CommunityPostService {
     static boolean validImageUrl(String url) {
         return url.startsWith(IMAGE_PREFIX) && url.substring(IMAGE_PREFIX.length()).matches("[A-Za-z0-9][A-Za-z0-9._-]*")
                 && !url.contains("..");
+    }
+
+    /** Idempotency-Key tekrar yaniti: ayni gonderinin gorunumu (silinmisse 404). */
+    @Transactional(readOnly = true)
+    public PostView replay(Actor a, Long cid, Long postId) {
+        CommunityPost p = find(cid, postId);
+        return views(List.of(p), a, communities.can(a, cid, ClubPermission.MANAGE_POSTS)).get(0);
     }
 
     private CommunityPost find(Long cid, Long postId) {

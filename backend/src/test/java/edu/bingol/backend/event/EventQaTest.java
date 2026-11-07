@@ -1,5 +1,6 @@
 package edu.bingol.backend.event;
 
+import edu.bingol.backend.notification.BulkSent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -132,7 +133,8 @@ class EventQaTest {
         ArgumentCaptor<Instant> to = ArgumentCaptor.forClass(Instant.class);
         verify(events).upcoming(any(), from.capture(), to.capture(), anyLong(), any(), anyLong(), any(), any(), any(),
                 any(), any());
-        assertEquals(EventService.MIN_DATE, from.getValue());
+        // Biten etkinlikler gizlenir: alt sinir MIN_DATE degil "simdi"dir (yetkisiz kullanici gecmise inemez).
+        assertTrue(!from.getValue().isBefore(Instant.now().minusSeconds(10)));
         assertEquals(EventService.FAR_FUTURE, to.getValue());
     }
 
@@ -160,15 +162,15 @@ class EventQaTest {
                 .thenReturn(List.of());
         when(official.inRange(any(), any(), any(), any())).thenReturn(List.of());
 
-        svc.calendar(stranger, YearMonth.of(2026, 11));
+        svc.calendar(stranger, YearMonth.of(2027, 3));
 
         ArgumentCaptor<Instant> from = ArgumentCaptor.forClass(Instant.class);
         ArgumentCaptor<Instant> to = ArgumentCaptor.forClass(Instant.class);
         verify(events).upcoming(any(), from.capture(), to.capture(), anyLong(), any(), anyLong(), any(), any(), any(),
                 any(), any());
-        // Turkiye UTC+3 sabit: 1 Kasim 00:00 yerel = 31 Ekim 21:00Z
-        assertEquals(Instant.parse("2026-10-31T21:00:00Z"), from.getValue());
-        assertEquals(Instant.parse("2026-11-30T21:00:00Z"), to.getValue());
+        // Turkiye UTC+3 sabit: 1 Mart 00:00 yerel = 28 Subat 21:00Z (gelecek ay: alt sinir "simdi"ye kirpilmaz)
+        assertEquals(Instant.parse("2027-02-28T21:00:00Z"), from.getValue());
+        assertEquals(Instant.parse("2027-03-31T21:00:00Z"), to.getValue());
     }
 
     @Test
@@ -227,6 +229,7 @@ class EventQaTest {
         r.setRemindedDay(true);
         r.setRemindedHour(true);
         when(rsvps.findByEventIdAndUserId(5L, 1L)).thenReturn(Optional.of(r));
+        when(rsvps.transition(any(), any(), any())).thenReturn(1);
         when(events.tryIncrementGoing(5L)).thenReturn(1);
 
         svc.rsvp(stranger, 5L, EventRsvp.Status.INTERESTED);
@@ -260,8 +263,8 @@ class EventQaTest {
 
         svc.delete(stranger, 5L);
 
-        verify(notifications, times(2)).sendTemplated(any(), any(), eq("notif.event.cancelled"), any(), any(String[].class));
-        verify(notifications, never()).sendTemplated(eq(1L), any(), any(), any(), any(String[].class));
+        // FINAL-ALL: toplu gonderim; duzenleyen (1) alici listesinde yok
+        assertEquals(List.of(50L, 51L), BulkSent.to(notifications, "notif.event.cancelled"));
     }
 
     @Test
@@ -289,9 +292,11 @@ class EventQaTest {
         event(UserEvent.Status.ACTIVE);
         when(rsvps.findByEventIdAndUserId(5L, 1L))
                 .thenReturn(Optional.of(new EventRsvp(5L, 1L, EventRsvp.Status.INTERESTED)));
+        when(rsvps.deleteClaim(any())).thenReturn(1);
 
         svc.cancelRsvp(stranger, 5L);
 
+        verify(rsvps).deleteClaim(any());
         verify(events, never()).decrementGoing(anyLong());
     }
 

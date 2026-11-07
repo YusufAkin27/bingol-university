@@ -13,7 +13,10 @@ import java.util.Set;
 import org.springframework.http.HttpStatus;
 
 /**
- * Parola politikasi (T-005, K-09 varsayilani): en az {@code minLength} karakter (yoneticiler icin daha uzun),
+ * Yonetici OLMAYAN hesaplar: yalniz en az {@code minLength} (varsayilan 6) karakter ({@link #requireForUser}); baska
+ * hicbir bilesim/guc sarti yoktur (yaygin liste, dizi, kisisel veri denetimi uygulanmaz). Hata: 400 PASSWORD_TOO_SHORT.
+ * <p>
+ * Yonetici hesaplari icin parola politikasi (T-005, K-09 varsayilani, {@link #require}): en az {@code minLength} karakter (12),
  * yaygin parola listesinde olmama ({@code auth/common-passwords.txt}; sonuna rakam/sembol eklenmis kok kelimeler
  * dahil), tek karakter tekrari / rakam dizisi olmama ve kisisel veri icermeme (e-posta kullanici adi, okul numarasi,
  * gorunen ad sozcukleri). Karakter sinifi zorunlulugu YOKTUR (NIST). Hata: 400 PASSWORD_TOO_WEAK.
@@ -21,7 +24,7 @@ import org.springframework.http.HttpStatus;
  */
 public final class PasswordPolicy {
 
-    public static final int DEFAULT_MIN = 10;
+    public static final int DEFAULT_MIN = 6;
     public static final int DEFAULT_ADMIN_MIN = 12;
     /** Kok kelime karsilastirmasi icin en kisa kok (kisa kelimeler yanlis pozitif uretir). */
     private static final int MIN_STEM = 4;
@@ -36,7 +39,15 @@ public final class PasswordPolicy {
         public static final Context NONE = new Context(null, null);
     }
 
-    /** Zayifsa 400 PASSWORD_TOO_WEAK; guclu ise sessizce doner. {@code minLength}: bu hesap icin gecerli en az uzunluk. */
+    /** Yonetici olmayan hesap: yalniz kod noktasi sayisi >= minLength; kisaysa 400 PASSWORD_TOO_SHORT. */
+    public static void requireForUser(String password, int minLength) {
+        if (password == null || password.codePointCount(0, password.length()) < minLength) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "PASSWORD_TOO_SHORT",
+                    "Şifre en az " + minLength + " karakter olmalı.", String.valueOf(minLength));
+        }
+    }
+
+    /** Yonetici hesaplari: zayifsa 400 PASSWORD_TOO_WEAK; guclu ise sessizce doner. {@code minLength}: bu hesap icin gecerli en az uzunluk. */
     public static void require(String password, int minLength, Context ctx) {
         if (!isStrong(password, minLength, ctx == null ? Context.NONE : ctx)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "PASSWORD_TOO_WEAK",

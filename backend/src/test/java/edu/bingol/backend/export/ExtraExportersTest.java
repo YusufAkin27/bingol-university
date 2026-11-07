@@ -48,6 +48,8 @@ class ExtraExportersTest {
         jdbc.execute("CREATE TABLE feedback_vote (feedback_id BIGINT, user_id BIGINT, created_at TIMESTAMP WITH TIME ZONE DEFAULT now())");
         jdbc.execute("CREATE TABLE conversation_member (id BIGINT AUTO_INCREMENT PRIMARY KEY, conversation_id BIGINT, user_id BIGINT, role VARCHAR(10), joined_at TIMESTAMP WITH TIME ZONE DEFAULT now(), left_at TIMESTAMP WITH TIME ZONE, muted_until TIMESTAMP WITH TIME ZONE, archived_at TIMESTAMP WITH TIME ZONE)");
 
+        jdbc.execute("CREATE TABLE chat_room_link (id BIGINT AUTO_INCREMENT PRIMARY KEY, kind VARCHAR(16), ref_id BIGINT, conversation_id BIGINT)");
+        jdbc.update("INSERT INTO chat_room_link (kind, ref_id, conversation_id) VALUES ('COMMUNITY',5,4)");
         jdbc.update("INSERT INTO bookmark (user_id, target_type, target_id) VALUES (1,'NEWS',10),(2,'NEWS',11)");
         jdbc.update("INSERT INTO community (id, name) VALUES (5,'Satranc')");
         jdbc.update("INSERT INTO community_member (community_id, user_id, role, status) VALUES (5,1,'MEMBER','ACTIVE'),(5,2,'OWNER','ACTIVE')");
@@ -78,9 +80,9 @@ class ExtraExportersTest {
                         exporters.communityPostsExporter(jdbc), exporters.eventRsvpsExporter(jdbc),
                         exporters.eventAttendanceExporter(jdbc), exporters.createdEventsExporter(jdbc),
                         exporters.mailCampaignsExporter(jdbc), exporters.feedbackVotesExporter(jdbc),
-                        exporters.conversationMembershipsExporter(jdbc))
+                        exporters.conversationMembershipsExporter(jdbc), exporters.chatRoomsExporter(jdbc))
                 .collect(Collectors.toMap(DataExporter::section, e -> e));
-        assertEquals(9, all.size());
+        assertEquals(10, all.size());
         for (DataExporter e : all.values()) {
             // kullanici 1 kendi tek satirini gorur; kullanici 99 hicbir sey gormez
             if (!e.section().equals("createdEvents")) {
@@ -117,11 +119,14 @@ class ExtraExportersTest {
 
     /** tablo -> disa aktarim bolumu (bolum adi kaynak kodda DataExporter.of("...") ile aranir). */
     private static final Map<String, String> TABLE_TO_SECTION = Map.ofEntries(
+            Map.entry("live_activity", "liveActivities"),
             Map.entry("device", "devices"),
+            Map.entry("post_mention", "postMentions"),
             Map.entry("user_device_log", "accessHistory"),
             Map.entry("mail_campaign_recipient", "mailCampaigns"),
             Map.entry("notification", "notifications"),
             Map.entry("notification_pref", "notificationSettings"),
+            Map.entry("notification_mute", "notificationMutes"),
             Map.entry("notification_subtype_pref", "notificationSettings"),
             Map.entry("bookmark", "bookmarks"),
             Map.entry("feedback_vote", "feedbackVotes"),
@@ -138,13 +143,27 @@ class ExtraExportersTest {
             Map.entry("report", "moderation"),
             Map.entry("event_application", "eventApplications"),
             Map.entry("event_certificate", "eventExtras"),
+            Map.entry("event_moderator", "eventModerator"),
             // W2-E/W2-F (T-063): sonradan eklenen silme kapsami; bolumu olanlar baglandi, digerleri EXEMPT'te gerekceli
             Map.entry("message_reaction", "messageReactions"),
             Map.entry("conversation_member", "conversationMemberships"),
             Map.entry("club_member_grant", "clubPermissions"),
             Map.entry("display_name_history", "displayNameHistory"),
             // FOLLOWREQ: gonderdigim bekleyen takip istekleri (gelenler baskalarinin verisi, dahil degil)
-            Map.entry("follow_request", "followRequests"));
+            Map.entry("follow_request", "followRequests"),
+            // 2FA (V1060): durum + guvenilen cihaz etiketleri (ham/ozet kimlik disa verilmez)
+            Map.entry("two_factor_device", "twoFactor"),
+            // OAuth (V1450): Google/Apple kimlik baglari (saglayici sub disari verilmez; saglayici, e-posta, zamanlar verilir)
+            Map.entry("auth_identity", "authIdentities"),
+            // Cok oturum (V1460): acik oturum kayitlari (cihaz adi, maskeli IP; ham IP/cihaz kimligi yok)
+            Map.entry("user_session", "sessions"),
+            // Kampus Forum (E): hepsi tek "forum" bolumunde (ForumDataExporter); anonim paylasimlar da kullanicinin kendi verisidir
+            Map.entry("forum_topic", "forum"), Map.entry("forum_comment", "forum"),
+            Map.entry("forum_topic_like", "forum"), Map.entry("forum_comment_like", "forum"),
+            Map.entry("forum_bookmark", "forum"), Map.entry("forum_topic_follow", "forum"),
+            Map.entry("forum_poll_vote", "forum"), Map.entry("forum_user_mute", "forum"),
+            Map.entry("forum_anon_alias", "forum"), Map.entry("forum_notification_pref", "forum"),
+            Map.entry("forum_media", "forum"));
 
     /** Bilincli muaf: gecici push kuyrugu ve gizli oy secmen kaydi (kimlik-oy baglantisi tutulmaz, disari verilemez). */
     private static final Set<String> EXEMPT = Set.of("push_outbox", "poll_ballot",
@@ -156,7 +175,11 @@ class ExtraExportersTest {
             "conversation_add_ban",     // grup yeniden ekleme yasagi: baska kullanicinin tercihini ifsa eder
             "event_co_organizer",       // ortak organizator atamasi: etkinlik sahibinin verisi (createdEvents'te)
             "mail_outbox",              // gecici e-posta kuyrugu (30 gun), adresle eslesen bekleyen kayitlar silinir
-            "account_delete_hold");     // 7 gunluk silme bekletmesi: surec durumu, kisisel icerik yok
+            "account_delete_hold",      // 7 gunluk silme bekletmesi: surec durumu, kisisel icerik yok
+            "forum_notify_seen",
+            "idempotency_record",       // Idempotency-Key defteri: istemci anahtari + kaynak kimligi, 7 gun, kisisel icerik yok
+            // Crash raporlari (V860) anonimdir: kullanici/e-posta/jeton/mesaj saklanmaz, kullaniciya baglanamaz
+            "crash_event", "crash_group");       // forum bildirim tekrar defteri: (tur, hedef, eden, alici) kimlikleri, kisisel icerik yok
 
     private static Set<String> purgedTables() {
         Pattern p = Pattern.compile("(?:DELETE FROM|UPDATE)\\s+([a-z_]+)");

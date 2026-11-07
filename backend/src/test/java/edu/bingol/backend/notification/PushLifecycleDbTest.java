@@ -93,15 +93,4 @@ class PushLifecycleDbTest {
         assertTrue(notifications.findTop500ByUserIdOrderByIdDesc(u.getId()).isEmpty(), "mesaj yalniz push: kutu satiri yok");
         assertEquals(0, notifications.countUnreadInbox(u.getId()));
     }
-
-    @Test
-    void messagePreviewPreferencePersistsAndDefaultsOn() {
-        User u = user(Instant.now());
-        NotificationPref p = NotificationPref.defaults(u.getId());
-        assertTrue(p.isMessagePreview());
-        p.setMessagePreview(false);
-        prefs.saveAndFlush(p);
-
-        assertFalse(prefs.findById(u.getId()).orElseThrow().isMessagePreview());
-    }
 }

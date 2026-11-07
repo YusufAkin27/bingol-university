@@ -145,6 +145,23 @@ class ConversationServiceTest {
     }
 
     @Test
+    void roomConversationRefusesManualAddAndRemoveEvenForAnAdminRole() { // QA-CHAT-06 savunma derinligi
+        Conversation room = conv(7L, Conversation.Type.GROUP);
+        when(convs.findById(7L)).thenReturn(Optional.of(room));
+        when(members.findByConversationIdAndUserIdAndLeftAtIsNull(7L, 1L))
+                .thenReturn(Optional.of(ConversationMember.of(7L, 1L, ConversationMember.Role.ADMIN)));
+        edu.bingol.backend.messaging.room.ChatRoomLinkRepository links =
+                mock(edu.bingol.backend.messaging.room.ChatRoomLinkRepository.class);
+        when(links.findByConversationIdIn(List.of(7L)))
+                .thenReturn(List.of(mock(edu.bingol.backend.messaging.room.ChatRoomLink.class)));
+        service.setRoomLinks(links);
+
+        assertEquals("NOT_A_GROUP", assertThrows(ApiException.class, () -> service.addMembers(1L, 7L, List.of(3L))).code());
+        assertEquals("NOT_A_GROUP", assertThrows(ApiException.class, () -> service.removeMember(1L, 7L, 3L)).code());
+        verify(members, never()).save(any());
+    }
+
+    @Test
     void leavingAdminPassesAdminToOldestRemainingMember() {
         when(convs.findById(5L)).thenReturn(Optional.of(conv(5L, Conversation.Type.GROUP)));
         ConversationMember admin = ConversationMember.of(5L, 1L, ConversationMember.Role.ADMIN);

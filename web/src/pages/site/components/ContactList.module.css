@@ -1,18 +1,18 @@
-/* Tek çerçeveli liste: satırlar ince çizgiyle ayrılır */
+/* İletişim satırları: tek panel, aralarda ince çizgi; boş alan hiç çizilmez. */
 .list {
   margin: 0;
   display: grid;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--surface);
   overflow: hidden;
 }
 .item {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   grid-template-areas:
-    'ico dt'
-    'ico dd';
+    'ico dt copy'
+    'ico dd dd';
   column-gap: var(--space-3);
   align-items: center;
   padding: var(--space-4);
@@ -27,12 +27,15 @@
   place-items: center;
   width: 44px;
   height: 44px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface-2);
-  color: var(--text);
+  border-radius: var(--radius-md);
+  background: var(--primary-soft);
+  color: var(--on-soft);
 }
-.item dt {
+/* simge dt içinde (axe: dl yalnız dt/dd içerir); dt kutu üretmez, çocukları ızgara öğesi olur */
+.term {
+  display: contents;
+}
+.label {
   grid-area: dt;
   font-size: var(--text-xs);
   color: var(--text-muted);
@@ -40,17 +43,14 @@
 .item dd {
   grid-area: dd;
   margin: 0;
-  color: var(--text);
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
-.item dd a {
-  color: var(--text);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-color: var(--border-strong);
-}
-.item dd a:hover {
-  text-decoration-color: var(--text);
+.copy {
+  grid-area: copy;
+  display: grid;
+  place-items: center;
+  margin-block: calc(var(--space-2) * -1) 0;
 }
 .social {
   display: flex;

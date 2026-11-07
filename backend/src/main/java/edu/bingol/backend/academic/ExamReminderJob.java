@@ -146,7 +146,12 @@ public class ExamReminderJob {
         String hhmm = ZonedDateTime.ofInstant(at, AcademicTime.ZONE).format(HHMM);
         String id = String.valueOf(r.id);
         String room = r.room == null ? "" : r.room.strip();
-        Map<String, String> data = Map.of("target", "EXAM", "value", id, "examId", id);
+        Map<String, String> data = new java.util.LinkedHashMap<>();
+        data.put("target", "EXAM");
+        data.put("value", id);
+        data.put("examId", id);
+        data.put("eventStartsAt", edu.bingol.backend.notification.PushDisplay.iso(at)); // kart: "Yarin 10:00 · salon"
+        edu.bingol.backend.notification.PushDisplay.put(data, "location", room, 80);
         // Ayni sinav + ayni saat icin tek bildirim (okunmamis tekrar birlesir); saat degisirse yeni anahtar.
         String collapse = "exam:" + id + ":" + at.getEpochSecond();
         if (room.isEmpty()) {

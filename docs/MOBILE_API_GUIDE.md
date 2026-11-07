@@ -36,22 +36,37 @@ POST /api/auth/register
 Content-Type: application/json
 Accept-Language: tr
 
-{"email":"ayse@bingol.edu.tr","password":"Sifre1234x","displayName":"Ayşe Yılmaz","acceptTerms":true,"language":"tr"}
+{"email":"ayse@bingol.edu.tr","password":"123456","displayName":"Ayşe Yılmaz","acceptTerms":true,"language":"tr"}
 ```
 `202 Accepted` → `{"message":"Doğrulama kodu e-posta adresinize gönderildi."}`
 
 **Okul numarasıyla kimlik:** tüm kimlik uçlarında (`register`, `verify-email`, `resend-code`, `login`, `forgot-password`, `verify-reset-code`, `reset-password`) `email` alanı **tam e-posta ya da yalnızca okul numarası** olabilir. Numara = e-posta kullanıcı adı: `226051015` ve `226051015@bingol.edu.tr` aynı hesaptır. Numara yalnız rakam, 6-12 hane (boşluk/tire/nokta temizlenir); aksi `400 VALIDATION_ERROR`. Sunucu her yerde tam e-postaya çevirir (`GET /auth/me` → `email` tam e-posta). Kayıt formunda önce tüm bilgiler (ad, e-posta/numara, şifre, fakülte/bölüm/sınıf, sözleşme) toplanır, doğrulama kodu **`register` çağrısının sonunda** gönderilir.
 
-> **Mobil istemci notu (2026-11-06):** mobil uygulama artık okul numarası kısayolunu kullanmaz: giriş, kayıt ve şifre sıfırlama alanları yalnız e-posta ister, istemci hiçbir alan adı (`@bingol.edu.tr`) eklemez ve rakam-only değer göndermez (biçim geçerli e-posta değilse "Geçerli bir e-posta adresi girin"). Sunucudaki numara kısayolu geriye dönük olarak çalışmaya devam eder.
-
 **Bekleyen kayıt:** kayıt verisi (şifre özeti, ad, dil) e-posta doğrulanana kadar yalnızca Redis'te (`reg:<email>`) tutulur; veritabanında hesap yoktur. Süre `app.auth.pending-registration-ttl` (varsayılan **72 saat**), yenilenmez; dolunca kayıt silinir, yeniden `register` gerekir. Hesap **`verify-email` başarılı olunca** oluşur ve sözleşme onayı o anda yazılır. **Doğrulanmamış giriş denemesi:** bekleyen kaydın şifresiyle `login` → `403 EMAIL_NOT_VERIFIED` (istemci "doğrulanmamış" sayfasını açıp kod girişi + `resend-code` sunar; girilen e-posta/numara ve şifre sayfada tutulabilir); şifre yanlışsa genel `401 INVALID_CREDENTIALS` (kaydın varlığı sızmaz). Doğrulanana kadar oturum açılamaz. Doğrulanmamış adresle tekrar `register` mevcut bekleyen veriyi ezmez; 60 sn içinde `429 RESEND_COOLDOWN`.
 
 **Mail kuyruğu:** `register`/`resend-code` e-postayı kuyruğa yazıp hemen döner; gönderim arka planda yapılır, yani **kod birkaç saniye (SMTP sorunlarında daha geç) sonra gelir**. Arayüzde "kod gönderildi" deyip geri sayımı hemen başlatın, ekranı kilitlemeyin. Kuyruğa yazılamazsa `503 MAIL_UNAVAILABLE`. Gönderim başarısızsa sunucu en çok 5 kez yeniden dener (1 dk, 5 dk, 30 dk, 2 sa, 12 sa); kullanıcı yine de "kodu yeniden gönder" ile yeni kod isteyebilir.
 
-- Herhangi bir geçerli e-posta adresi (Gmail, Outlook, Hotmail, Yahoo, okul...; alan adı kısıtı yok, 2026-11-05). Yalnız biçim denetlenir: geçersizse `400 VALIDATION_ERROR`; `@` içermeyen girdi `400 EMAIL_FULL_REQUIRED`; `+etiket` `400 EMAIL_ALIAS_NOT_ALLOWED`. Kod yine adrese gider, doğrulama şart. `acceptTerms` **true olmalı** (sözleşme kabulü sunucuda kaydedilir); `password` 8-72 karakter; `displayName` ≤ 80; `language` isteğe bağlı `tr|en|ar` (verilmezse `Accept-Language`).
+- Yalnızca `bingol.edu.tr` ve alt alanları; aksi `400 EMAIL_DOMAIN_NOT_ALLOWED`. `acceptTerms` **true olmalı** (sözleşme kabulü sunucuda kaydedilir); `password` **en az 6**, en çok 72 karakter (başka kural yok; kısa ise `400 PASSWORD_TOO_SHORT`; yönetici hesapları 12+ ve güçlü şifre ister, `400 PASSWORD_TOO_WEAK`); `displayName` **isteğe bağlı** (≤ 80; verilmezse sunucu geçici ad atar: e-posta kullanıcı adı ya da `"Öğrenci"`; yönetici kaydında zorunlu); `language` isteğe bağlı `tr|en|ar` (verilmezse `Accept-Language`).
+- **Kayıtta `faculty`/`department`/`grade` gönderilmez** (boş kalır); e-posta doğrulandıktan sonra tek seferlik zorunlu "profili tamamla" adımında girilir: `PATCH /api/users/me` gövde `{"faculty":"Mühendislik Fakültesi","department":"Bilgisayar Mühendisliği","grade":"3"}` (tek istek; bölüm/sınıfın ilk atanmasında kota yok; geçici adın ilk değişimi de 7 günlük `DISPLAY_NAME_COOLDOWN` kuralına sayılmaz). Profil tamamlanana kadar `GET /users/me` içinde `faculty`/`department`/`grade` `null`'dır. (`displayName` kayıtta verilmezse — eski istemci — geçici ad atanır; bkz. yukarı.)
 - E-postası zaten doğrulanmış hesap için `409 EMAIL_ALREADY_REGISTERED` (kullanıcıyı giriş ekranına yönlendirin).
 - IP başına saatte 10 kayıt (`429 RATE_LIMITED`); `resend-code` IP başına saatte 10, e-posta başına saatte 5.
 - **Akademik alanlar (isteğe bağlı):** `faculty`, `department`, `grade` (bkz. 1.8). Verilirse katalogla doğrulanır; geçersizse `400 ACADEMIC_INVALID`. Bekleyen kayıtla taşınır, `verify-email` ile hesaba yazılır.
+
+### 1.1a Kota aşımında ertelenmiş doğrulama (kısıtlı mod)
+Günlük doğrulama e-postası kotası (≈300/gün) dolduğunda `register` artık `503 MAIL_QUOTA_EXHAUSTED` ile geri çevirmez: kullanıcıyı **içeri alır ama e-postası doğrulanmamış ve yalnız okur** bırakır.
+```http
+POST /api/auth/register   {"email":"...","password":"...","acceptTerms":true,"language":"tr","client":"mobile"}
+→ 201 Created
+{"message":"Hesabınız oluşturuldu. ...","emailVerified":false,"verificationDeferred":true,
+ "accessToken":"...","refreshToken":"...","expiresInSeconds":900,"tokenType":"Bearer"}
+```
+- Normal akış (kota doluyken değil) **aynen** `202 {"message":...}` + e-posta kodu. İstemci HTTP koduna değil **`verificationDeferred === true`** alanına bakar: doğruysa jetonları saklar, kod ekranını AÇMAZ, kullanıcıyı doğrudan uygulamaya alır. `client` (`mobile|web`) alanı isteğe bağlıdır (jeton etiketi; `verify-email` ile aynı).
+- `GET /api/users/me` yanıtında her zaman `emailVerified` ve `verificationDeferred` (boolean) vardır. `emailVerified==false && verificationDeferred==true` ise **Profil sayfasında "E-postanızı doğrulayın"** kartı gösterilir.
+- `login`/`refresh` ertelenmiş hesapta da çalışır (`200` + `emailVerified:false, verificationDeferred:true` ek alanları; normal girişte bu alanlar yoktur). Diğer doğrulanmamış hesaplarda `403 EMAIL_NOT_VERIFIED` aynen sürer.
+- **Doğrulama (JWT'li):** `GET /api/auth/verification/status` → `{emailVerified, verificationDeferred, email}`; `POST /api/auth/verification/resend` → `202` (kod 6 hane/10 dk; `429 RESEND_COOLDOWN` 180 sn + `Retry-After`; kota hâlâ doluysa **`429 MAIL_QUOTA_EXCEEDED`** + `Retry-After` saniye: "Yarın tekrar deneyin" gösterin; `409 EMAIL_ALREADY_VERIFIED`); `POST /api/auth/verification/verify {"code":"482913"}` → `200 {"emailVerified":true,"verificationDeferred":false}` (`400 INVALID_CODE`, `429 TOO_MANY_ATTEMPTS`). Başarıdan sonra **yeni jeton gerekmez**; kısıtlar anında kalkar. Anonim `verify-email`/`resend-code` bu hesaplar için kullanılmaz.
+- Kota boşalınca sunucu da (saatlik iş) ertelenmiş hesaba günde en çok 1 kez kod e-postası gönderir; kod 10 dk geçerlidir, süresi dolduysa kullanıcı `resend` ister.
+- **Kısıtlı mod:** doğrulanana kadar tüm yazma uçları `403 EMAIL_VERIFICATION_REQUIRED` döner (gönderi/beğeni/takip, mesaj ve sohbet başlatma, kulüp/etkinlik oluşturma-katılma, başvuru, RSVP, anket oyu, medya yükleme). **İzinli yazmalar:** profil düzenleme (`PATCH /users/me`), avatar, doğrulama uçları, çıkış, cihaz/push kaydı, analitik, sözleşme onayı, hesap silme, destek talebi, şikâyet, bildirim tercihleri. Okuma uçları serbesttir. İstemci bu kodu alınca yazma düğmesi yerine "E-postanızı doğrulayın" göstermeli (profil kartına yönlendir).
+- Doğrulanmamış (kısıtlı) hesaplar aramada/önerilerde/Keşfet'te başkalarına **görünmez**; 14 gün içinde doğrulanmazsa hesap silinir (anonimleştirme).
 
 ### 1.2 Kod gönderme/doğrulama
 ```http
@@ -64,14 +79,14 @@ POST /api/auth/verify-email   {"email":"ayse@bingol.edu.tr","code":"482913","pas
 {"accessToken":"eyJhbGciOiJIUzI1NiJ9...","refreshToken":"cn219myvLJlkbdbg-_aBxsQygQN2L8_spDoX26JW3XE","expiresInSeconds":900,"tokenType":"Bearer"}
 ```
 - Kod 6 hane, **10 dk** geçerli, tek kullanımlık, **5 yanlış deneme** (sonra adres 10 dk kilitlenir: `429 TOO_MANY_ATTEMPTS`; `resend-code` veya yeni `register` kilidi açar). Yanlış/süresi dolmuş/bekleyen kayıt yok: aynı `400 INVALID_CODE` (ayırt edilmez). `verify-email` ek sınırı: e-posta başına 10 dk'da 10.
-- Yeniden gönderme için **60 sn bekleme** vardır (`429 RESEND_COOLDOWN`): arayüzde geri sayım gösterin.
+- Yeniden gönderme (`resend-code`, `forgot-password`, aynı adrese tekrar `register`) için **180 sn (3 dk) bekleme** vardır: erken istek `429 RESEND_COOLDOWN` + `Retry-After` (kalan saniye; mesajdaki `{0}` de kalan saniyedir), yeni kod üretilmez/gönderilmez. İlk gönderim beklemesizdir. Kod **tam 10 dakika** geçerlidir (kayıt, şifre sıfırlama ve herkese açık destek formu kodu); 5 yanlış deneme sınırı ve kilit aynen. `resend-code` bekleyen kaydı olmayan adreste kod göndermez ama aynı 180 sn beklemesini ve 429'u uygular (kayıt varlığı sızmaz). Herkese açık destek formunda aynı adrese 180 sn içinde ikinci talep `429 RATE_LIMITED` + `Retry-After` döner.
 - Geliştirme ortamında (`MAIL_ENABLED=false`) kod e-posta yerine backend log'una yazılır; `scripts/make-user.sh` bunu otomatikleştirir.
 
 ### 1.3 Giriş
 ```http
 POST /api/auth/login   {"email":"ayse@bingol.edu.tr","password":"Sifre1234x","client":"mobile"}   → 200 (TokenResponse)
 ```
-- **`client`** (opsiyonel, `mobile` | `web`, varsayılan `web`; geçersiz değer `400`): mobil uygulama **her zaman `"client":"mobile"`** göndermelidir (`verify-email` gövdesinde de aynı alan vardır: açılan hesabın token'ları mobil etiketlenir). **Tek cihaz kuralı**: `mobile` girişi, kullanıcının önceki **tüm mobil oturumlarını** sonlandırır (refresh token'lar silinir, eski access token'lar reddedilir, WebSocket kapatılır, FCM `device` kayıtları silinir) ve ardından yeni token'lar verilir; yeni token ile hemen istek atılabilir. `web`/`client` yok girişleri hiçbir oturumu sonlandırmaz (web paneli ile mobil aynı anda açık kalabilir). Aynı cihazdan yeniden giriş de eski oturumu kapatır. Eski cihaza (varsa) "yeni cihazdan giriş" güvenlik e-postası gider.
+- **`client`** (opsiyonel, `mobile` | `web`, varsayılan `web`; geçersiz değer `400`): mobil uygulama **her zaman `"client":"mobile"`** göndermelidir (`verify-email` gövdesinde de aynı alan vardır: açılan hesabın token'ları mobil etiketlenir). **Çoklu oturum (2026-11-06; eski "tek cihaz kuralı" kalktı)**: hiçbir giriş başka oturumu sonlandırmaz; aynı kullanıcı birden çok cihazdan (mobil/web) açık kalabilir ve push hepsine gider. Her giriş bir oturum kimliği (`sid`) alır (access JWT `sid` talebi). İstemci girişte/kayıtta `X-Device-Name` (örn. `Pixel 8`, `iPhone 15`) ve `X-Device-Id`/`X-Device-Platform`/`X-App-Version` başlıklarını göndermelidir. **Cihazlarım**: `GET /api/auth/sessions` açık oturumları döner (`[{id, client, platform, deviceName, appVersion, ipMasked, createdAt, lastUsedAt, current}]`, bu cihaz `current:true` ve başta); `DELETE /api/auth/sessions/{id}` o cihazdan çıkış yaptırır (204; o oturumun access token'ı anında `401 SESSION_REPLACED`, refresh `401 SESSION_REPLACED`, push kaydı silinir; olmayan/başkasının oturumu `404 SESSION_NOT_FOUND`); `POST /api/auth/logout-all` hepsini kapatır. Başka açık oturum varken bilinmeyen bir cihazdan giriş yapılırsa diğer cihazlara uygulama içi bildirim + push (`SYSTEM`, `targetType=SECURITY`, `targetId=devices`, `securityKind=NEW_DEVICE`) ve güvenlik e-postası gider; bildirime dokunulunca Cihazlarım açılmalıdır. (Eski davranış sunucuda `AUTH_SINGLE_MOBILE_SESSION=true` ile açılabilir.)
 - Yeni giriş sonrası push için `POST /api/devices` ile FCM token'ı **yeniden kaydedin** (girişte eski kayıtlar silinir).
 Hatalar: `401 INVALID_CREDENTIALS` (kullanıcı yok ve yanlış şifre **aynı yanıt**; ayırt etmeyin), `403 EMAIL_NOT_VERIFIED` (doğrulama ekranına yönlendirin), `403 ACCOUNT_SUSPENDED`. Sınır: IP başına 15 dk'da 30, e-posta başına 15 dk'da 10 deneme.
 
@@ -85,6 +100,8 @@ Hatalar: `401 INVALID_CREDENTIALS` (kullanıcı yok ve yanlış şifre **aynı y
 POST /api/auth/refresh   {"refreshToken":"cn219..."}   → 200 yeni TokenResponse (eski refresh token artık geçersiz)
 ```
 `401 INVALID_REFRESH_TOKEN`: refresh token geçersiz/kullanılmış/süresi dolmuş, hesap pasif → **oturumu bitir, giriş ekranına dön**.
+
+**`409 REFRESH_IN_PROGRESS` + `Retry-After: 1` (FIX-P02/K1):** aynı refresh token ile eşzamanlı ikinci istek geldiğinde (iki sekme, ön plan + arka plan) ve ilk istek yeni çifti henüz yazmadıysa sunucu önce ~300 ms bekler, hâlâ yoksa 401 yerine **409** döner. Bu bir hata değil "tekrar dene"dir: **oturumu kapatmayın**, `Retry-After` kadar (1 sn) sonra AYNI refresh token ile yeniden deneyin; ilk istek bitince aynı yeni çifti alırsınız. Yanıt kaybolduysa aynı eski token ile yeniden deneme **5 dakika** boyunca (eskiden 45 sn) aynı çifti verir. Çalıntı/yeniden kullanım şüphesinde (tolerans dışı eski token) artık yalnız **o oturum ailesi** (aynı girişin zinciri) kapanır; kullanıcının diğer cihazları açık kalır.
 
 **Refresh token tek kullanımlık olduğundan eşzamanlı iki yenileme isteğinden biri 401 alır ve kullanıcı yanlışlıkla oturumdan atılır.** Bu yüzden uygulamada refresh'i tek bir yerden, tek uçuşta yapın (HTTP istemcisi, WebSocket ve arka plan işleri aynı kilidi paylaşır):
 
@@ -130,12 +147,12 @@ Ek öneriler: access token'ın bitişine ~60 sn kala proaktif yenileyin (özelli
 
 ### 1.7 Şifre sıfırlama (3 adım)
 ```http
-POST /api/auth/forgot-password   {"email":"ayse@bingol.edu.tr"}                              → 202 (hesap olsun olmasın aynı yanıt; kod e-postayla, asenkron)
+POST /api/auth/forgot-password   {"email":"ayse@bingol.edu.tr"}                              → 202 (kayıtlı hesap: kod e-postayla, asenkron) | 404 ACCOUNT_NOT_FOUND (kayıtlı/doğrulanmış/aktif hesap yok; e-posta GİTMEZ) | 429 RESEND_COOLDOWN (180 sn içinde ikinci istek, Retry-After)
 POST /api/auth/verify-reset-code {"email":"...","code":"482913"}                              → 200 {"resetToken":"..."}
 POST /api/auth/reset-password    {"email":"...","resetToken":"...","newPassword":"Yeni1234x"} → 200 {"message":"..."}
 ```
 - Kod 6 hane, 10 dk, tek kullanımlık; deneme/kilit kuralı kayıt koduyla aynıdır (`TOO_MANY_ATTEMPTS`, `INVALID_CODE`). `resetToken` tek kullanımlık, kısa ömürlü bir anahtardır: yalnızca bellekte tutun, saklamayın.
-- `newPassword` 8-72 karakter. Başarılı sıfırlamada kullanıcının **tüm oturumları kapanır** (refresh token'lar silinir, eski access token'lar reddedilir): kullanıcıyı giriş ekranına yönlendirin.
+- `newPassword` en az 6, en çok 72 karakter (kısa ise `400 PASSWORD_TOO_SHORT`; yönetici hesapları 12+ ve güçlü, `PASSWORD_TOO_WEAK`). Başarılı sıfırlamada kullanıcının **tüm oturumları kapanır** (refresh token'lar silinir, eski access token'lar reddedilir): kullanıcıyı giriş ekranına yönlendirin.
 - Sınırlar: `forgot-password` IP başına saatte 10 ve e-posta başına saatte 5; `verify-reset-code` ve `reset-password` IP başına 10 dk'da 20 (`429 RATE_LIMITED`).
 
 ### 1.7a Şifre değiştirme (oturum açıkken)
@@ -146,7 +163,7 @@ POST /api/auth/change-password   (Bearer)
 ```
 - Yanıt `login` ile aynı biçimdedir ve **204 değildir**: başarıda kullanıcının tüm oturumları (diğer cihazlar dahil, çağıran cihazın eski token çifti de) kapanır; sunucu çağıran cihaza aynı istemci türünde (`cl`) **yeni token çifti** verir. İstemci eski access/refresh token'ı bu çiftle **hemen değiştirmelidir**; aksi halde sonraki istek `401 SESSION_REPLACED` alır. Eski token'la uçuşta olan istekler 401 alabilir: yeni çiftle bir kez yeniden deneyin.
 - Çağıran cihazın açık WebSocket bağlantısı iptal olayıyla (`session-replaced`) kapanır: bu olayda çıkış yapmayın, yeni access token'la yeniden bağlanın (diğer cihazlar giriş ekranına döner).
-- `newPassword` 8-72 karakter (kayıt/sıfırlama ile aynı; `400 VALIDATION_ERROR`). Hatalar: `403 WRONG_PASSWORD` (mevcut şifre yanlış), `422 PASSWORD_UNCHANGED` (yeni şifre mevcutla aynı), `429 RATE_LIMITED` (kullanıcı başına saatte 5, IP başına saatte 10). Başarıda kullanıcıya (kayıtlı dilinde) "şifreniz değiştirildi" güvenlik e-postası gider.
+- `newPassword` en az 6, en çok 72 karakter (kayıt/sıfırlama ile aynı; kısa ise `400 PASSWORD_TOO_SHORT`). Hatalar: `403 WRONG_PASSWORD` (mevcut şifre yanlış), `422 PASSWORD_UNCHANGED` (yeni şifre mevcutla aynı), `429 RATE_LIMITED` (kullanıcı başına saatte 5, IP başına saatte 10). Başarıda kullanıcıya (kayıtlı dilinde) "şifreniz değiştirildi" güvenlik e-postası gider.
 
 ### 1.8 Akademik katalog (fakülte, bölüm, sınıf)
 Kimlik gerektirmez (kayıt ekranında kullanılır). IP başına dakikada 120 istek.
@@ -177,6 +194,52 @@ Yönetici bir cihazı, IP'yi ya da hesabı engelleyebilir. Engelin cihaz ayağı
 WebSocket: el sıkışma isteğine aynı başlıklar eklenebilir; STOMP `CONNECT` çerçevesine `device-id`, `device-platform`, `app-version` başlıkları konur (engelli cihaz `ERROR` çerçevesi `ACCESS_BLOCKED` alır).
 
 **`403 ACCESS_BLOCKED`** (`{"code":"ACCESS_BLOCKED","message":"…"}`): bu cihaza/ağa/hesaba erişim kapatılmıştır; sebep verilmez. Her uçta gelebilir (anonim uçlar dahil). İstemci: yenilemeyi **denemez**, oturumu yerelde siler (token + önbellek), tam ekran "erişim kapatıldı" ekranı gösterir (yazı `message`ten), WebSocket'i yeniden bağlamaz. Açık WebSocket'teyken sunucu `/user/queue/message-events` ile `{type:"access-blocked"}` gönderir ve bağlantıyı `ACCESS_BLOCKED` kapanış gerekçesiyle kapatır (`session-replaced` ile karıştırmayın; ondaki gibi yeniden giriş önerilmez). Başlıkları eklemeyen eski istemcilerde yalnızca IP ve hesap engeli çalışır.
+
+### 1.10 Google / Apple ile giriş ve profil tamamlama (onboarding)
+
+> **Özellik bayrağı:** sunucuda `AUTH_OAUTH_ENABLED` (varsayılan **kapalı**). Kapalıyken tüm `/api/auth/oauth/**` uçları `404 {"code":"OAUTH_DISABLED"}` döner: istemci bu kodu alırsa Google/Apple düğmelerini gizler (ya da "şu an kullanılamıyor" gösterir). Sunucu yapılandırması [OAUTH_SETUP.md](OAUTH_SETUP.md); ayrıntılı kurallar `docs/changes/auth.md`.
+
+**Okul e-postası zorunluluğu yoktur**; e-posta + şifre kaydı/girişi aynen sürer. Google/Apple ile giriş **kayıt ve giriş için aynı uçtur** (sunucu sağlayıcı kimliğinden yeni/mevcut kararını verir).
+
+**Akış**
+1. İstemci sağlayıcıdan token alır: Google **ID token** (`google_sign_in`, `serverClientId` = Web istemci kimliği), Apple **identityToken** + kendi ürettiği **ham `nonce`** (Apple'a `sha256(ham)` **hex** olarak verilir; sunucuya `nonce` alanında HAM değer gider).
+2. `POST /api/auth/oauth/google` `{"idToken","deviceName?","client?"}` ya da `POST /api/auth/oauth/apple` `{"identityToken","nonce","firstName?","lastName?","deviceName?","client?"}`. Apple adı yalnız **ilk** yetkilendirmede gelir: istemci o anda `firstName/lastName` gönderirse sunucu yeni hesapta saklar (sonraki girişlerde göndermeyin/boş gönderin). `client` verilmezse `mobile` sayılır (tek cihaz kuralı: başka cihazdaki mobil oturum düşer).
+3. **200** `{accessToken, refreshToken, expiresInSeconds, tokenType, profileCompleted, isNewUser}` (jeton alanları normal girişle aynı; saklama/yenileme 1.4-1.5). Hesabın **2FA'sı açıksa 202** + normal 2FA challenge (`POST /api/auth/login/2fa` ile tamamlanır; o yanıtta `profileCompleted` yoktur, `GET /api/users/me` okuyun).
+4. `profileCompleted=true` -> ana sayfa. `false` -> **profil tamamlama ekranı**; sunucu bunu zorlar: `profileCompleted=false` iken GET'ler (okuma) çalışır ama tüm **yazma/etkileşim uçları `403 PROFILE_INCOMPLETE`** döner (STOMP `SEND` dahil). İstemci bu kodu da onboarding ekranına yönlendirme işareti olarak ele almalıdır.
+5. Onboarding ekranı: `GET /api/catalog/academic` (fakülte/bölüm/sınıf listesi, 1.8) + `GET /api/users/username-available?u=` (musaitlik, dakikada 30; yalnız oturumlu) + isteğe bağlı fotoğraf `POST /api/users/me/avatar` (onboarding sırasında serbest) -> `PUT /api/users/me/onboarding`.
+6. Çıkış/hesap silme/cihaz kaydı (`/api/devices`) onboarding bitmeden de çalışır.
+
+**`PUT /api/users/me/onboarding`**
+```json
+{"firstName":"Ayşe","lastName":"Yılmaz","username":"ayse.yilmaz","universityName":null,
+ "facultyId":"muhendislik","departmentId":"bilgisayar-muhendisligi","classYear":"Y2",
+ "bio":"isteğe bağlı kısa metin","acceptTerms":true}
+```
+- `universityName` boş = Bingöl Üniversitesi (fakülte/bölüm katalogla doğrulanır, geçersiz = `422 ACADEMIC_INVALID`); başka üniversitede fakülte/bölüm serbest metin (`facultyName`/`departmentName`). Fakülte: `facultyId` **ya da** `facultyName`; bölüm: `departmentId` **ya da** `departmentName`. `classYear`: `PREP | Y1..Y6 | POSTGRAD | MASTER | PHD | OTHER`; `OTHER` dışında fakülte+bölüm zorunlu (`422 PROFILE_FIELD_REQUIRED {field}`).
+- `username`: 3-24 karakter, `[a-z0-9._]`, harfle başlar, ardışık nokta/alt çizgi yok, büyük/küçük harf duyarsız (küçük harfe çevrilip saklanır). Hatalar: `422 USERNAME_INVALID`, `422 USERNAME_RESERVED`, `422 CONTENT_PROFANITY {field:"username"}`, **`409 USERNAME_TAKEN {field:"username"}`** (eşzamanlı çift alım dahil; kullanıcıya başka ad seçtirin, profil tamamlanmamış kalır).
+- **`acceptTerms:true` gönderin** (kayıt sözleşmelerinin kabulü; onay kaydı sunucuda yazılır). Göndermezseniz ve `GET /api/legal/acceptance-status` bekleyen onay gösteriyorsa `400 TERMS_REQUIRED`. Onay ekranı olarak mevcut sözleşme akışını (`/api/legal`) kullanın.
+- Yanıt `200 {"profileCompleted":true,"user":{ProfileView}}`. **Idempotent:** tamamlanmış hesapta tekrar çağrı mevcut veriyi ezmez, aynı sonucu döner (ağ kopmasında güvenle yeniden deneyin). Alanlar **kullanıcı beyanıdır**: arayüzde "doğrulanmış öğrenci" gibi gösterilmez.
+- Tamamlandıktan sonra düzenleme: `PATCH /api/users/me` (ad, fakülte, bölüm, sınıf, biyografi), kullanıcı adı `PUT /api/users/me/username` `{"username"}` (30 günde bir değişim; **eski kullanıcılara kullanıcı adı boştur**, isteğe bağlı atanabilir).
+
+**`GET /api/users/me`** yanıtına eklendi: `profileCompleted` (bool; eski kullanıcılar `true`), `username` (varsa), `firstName`, `lastName`, `universityName`, `authProviders` (`["GOOGLE","APPLE"]`; yalnız bu uçta). **Soğuk açılışta** `profileCompleted=false` ise doğrudan onboarding ekranı açın.
+
+**Hata kodları (giriş)**
+| Kod | HTTP | İstemci davranışı |
+|---|---|---|
+| `OAUTH_DISABLED` | 404 | sağlayıcı düğmelerini gizle |
+| `OAUTH_TOKEN_INVALID` | 400 | imza/aud/iss/süre/nonce hatası: "Giriş doğrulanamadı", yeniden dene |
+| `OAUTH_EMAIL_UNVERIFIED` | 403 | Google hesabının e-postası doğrulanmamış |
+| `OAUTH_EMAIL_MISSING` | 400 | Apple e-posta vermedi ve hesap yok: kullanıcıya "e-posta paylaşımına izin verin/başka yöntem" |
+| **`OAUTH_LINK_REQUIRED`** | 409 | gövde `{code,message,provider,emailMasked}`: **otomatik birleştirme yok**. "`emailMasked` ile kayıtlı hesap var; önce e-posta ve şifrenizle girin, sonra bağlayın" ekranı. |
+| `ACCOUNT_SUSPENDED`, `ACCESS_BLOCKED`, `429` | | normal giriş gibi |
+
+**Hesap bağlama (güvenlik ekranı)**: `GET /api/auth/oauth/identities` -> `[{provider,email,emailPrivate,linkedAt}]`; `POST /api/auth/oauth/link` `{"provider":"GOOGLE"|"APPLE","token","nonce?","password"}` (oturum açık; **mevcut şifre yeniden doğrulanır**; parolasız hesapta `password` yerine bağlı sağlayıcının taze token'ı: `reauthProvider/reauthToken/reauthNonce`) -> `200 {"linked":true}`, hatalar `403 WRONG_PASSWORD`, `403 OAUTH_REAUTH_REQUIRED`, `409 OAUTH_IDENTITY_TAKEN` (bu hesap başka kullanıcıya bağlı), `409 OAUTH_PROVIDER_ALREADY_LINKED`; `DELETE /api/auth/oauth/link/{google|apple}` -> `200 {"linked":false}`, `409 OAUTH_LAST_LOGIN_METHOD` (parolası olmayan hesapta tek giriş yöntemi; önce `forgot-password` ile şifre belirletin).
+
+**Gerçek e-posta (Apple gizli adres, 2026-11-06, V1472)**: Apple "E-postamı gizle" derse hesap e-postası `xxxx@privaterelay.appleid.com` olur; bu adrese posta ulaşmaz. `GET /api/users/me` ve OAuth giriş yanıtı `emailNeedsReal` (hesap e-postası gizli adres: uygulama "Gerçek e-posta adresiniz" adımını gösterir) ve `realEmailRequired` (yeni gizli-adresli hesapta ZORUNLU kapı; mevcut hesaplarda `false` = atlanabilir yumuşak adım) alanlarını taşır. `realEmailRequired=true` iken okuma uçları ve şu yazmalar serbesttir: `/api/users/me/email/**`, onboarding, profil (PATCH), avatar, hesap silme, `/api/auth/**`, sözleşme, cihaz/push, destek; diğer tüm yazmalar `403 REAL_EMAIL_REQUIRED` (STOMP gönderimi de). Akış: `POST /api/users/me/email/start` `{"email"}` -> `200 {"sent":true,"emailMasked","expiresInSeconds":600,"resendInSeconds":180}` (kod YENİ adrese gider; hata kodları: `400 EMAIL_RELAY_NOT_ALLOWED` (gizli adres girildi), `400 EMAIL_ALIAS_NOT_ALLOWED` (+etiket), `400 VALIDATION_ERROR` (biçim), `400 EMAIL_UNCHANGED`, `403 EMAIL_CHANGE_NOT_ALLOWED` (yönetici hesabı), `429 RESEND_COOLDOWN` (+`Retry-After`), `429`, `503 MAIL_QUOTA_EXHAUSTED`) -> `POST /api/users/me/email/verify` `{"code":"123456"}` -> `200 {"email","emailVerified":true,"emailNeedsReal":false,"realEmailRequired":false}` (hatalar: `400 INVALID_CODE`, `429 TOO_MANY_ATTEMPTS`, `409 EMAIL_UNAVAILABLE`: adres başka hesapta kayıtlı; kod yine de gönderilir, çakışma yalnız doğru kodda bildirilir). Başarıdan sonra hesap e-postası artık gerçek adrestir (`users/me.email`), oturum açık kalır. Aynı uçlar gizli adresli OLMAYAN hesapta "e-posta değiştir" olarak da çalışır ama yeniden doğrulama ister (`password` ya da `reauth*`); mobil bu sürümde yalnız gizli adresli hesap için sunar.
+
+**Parolasız hesap**: OAuth ile açılan hesabın parolası yoktur; e-posta+şifre girişi `401 INVALID_CREDENTIALS` döner. Sonradan parola için mevcut şifre sıfırlama (1.7) kullanılır.
+
+**Hesap silme (`DELETE /api/users/me`)**: parolalı hesap `{"password"}` (eskisi gibi); **parolasız hesap** `{"provider":"GOOGLE"|"APPLE","token","nonce?"}` ile bağlı sağlayıcıdan alınmış TAZE token gönderir (yeniden doğrulama). Not: Apple token iptali (revoke) bu sürümde yoktur (yapılandırma bekliyor); Apple tarafındaki erişim Ayarlar > Apple Kimliği'nden kaldırılabilir.
 
 ## 2. Dil (Accept-Language) ve çok dillilik
 - Her istekte `Accept-Language` gönderin (uygulama dili). Sunucu `error.<KOD>` anahtarını bu dilde çevirir; çeviri yoksa Türkçe varsayılan metin döner.
@@ -259,7 +322,7 @@ Bağlanır bağlanmaz şu beş kuyruğa abone olun (başka hedefe abonelik redde
 ### 4.2 İstemci → sunucu komutları (`SEND`)
 | Hedef | Gövde | Not |
 |---|---|---|
-| `/app/chat.send` | `{"conversationId":1,"text":"merhaba","clientId":"<UUIDv4>","replyToMessageId":40,"attachmentIds":[9]}` | metin ≤ 10000 karakter (kod noktası); `replyToMessageId` ve `attachmentIds` (en çok 10) isteğe bağlıdır; ek varsa metin boş olabilir |
+| `/app/chat.send` | `{"conversationId":1,"text":"merhaba","clientId":"<UUIDv4>","replyToMessageId":40,"attachmentIds":[9]}` | metin ≤ 2000 karakter; `replyToMessageId` ve `attachmentIds` (en çok 10) isteğe bağlıdır; ek varsa metin boş olabilir |
 | `/app/chat.delivered` | `{"conversationId":1,"lastMessageId":42}` | iletildi ack'i (bkz. 4.10); imleç yalnız ilerler, kendi mesajların yok sayılır; dakikada 120'den fazlası sessizce atılır |
 | `/app/chat.read` | `{"conversationId":1,"lastMessageId":42}` | imleç yalnız ilerler; son mesajı aşan değer `INVALID_MESSAGE_ID`; boş konuşmada no-op; konuşma başına 10 sn'de 20'den sık istek **sessizce** atılır, bu yüzden yalnızca görünen son mesajı gönderin |
 | `/app/chat.typing` | `{"conversationId":1}` | 2 sn'de 1, fazlası sessizce atılır |
@@ -273,7 +336,7 @@ content-type:application/json
 <<< MESSAGE            (destination:/user/queue/messages; ack olarak kendi mesajınız, sunucu id'siyle)
 {"id":43,"conversationId":1,"senderId":7,"clientId":"7b0c1f3e-...","text":"merhaba","removed":false,"createdAt":"..."}
 <<< MESSAGE            (destination:/user/queue/errors; ör. mesaj çok uzun)
-{"code":"MESSAGE_TOO_LONG","message":"Mesaj en fazla 10000 karakter olabilir.","clientId":"7b0c1f3e-..."}
+{"code":"MESSAGE_TOO_LONG","message":"Mesaj en fazla 2000 karakter olabilir.","clientId":"7b0c1f3e-..."}
 ```
 **WS hata `message` metni çevrilmez** (Türkçe varsayılandır): kullanıcıya göstereceğiniz metni **`code`'dan kendi çevirilerinizle** üretin (bölüm 10'daki tr/en/ar tablodan alabilirsiniz). Sık kodlar: `EMPTY_MESSAGE`, `MESSAGE_TOO_LONG`, `CONVERSATION_NOT_FOUND`, `BLOCKED`, `RATE_LIMITED` (kullanıcı başına dakikada 30 mesaj), `BAD_REQUEST` (bozuk yük).
 
@@ -318,8 +381,8 @@ Mesaj gönderme/okuma/WebSocket mevcut `/api/conversations/{id}/**` ve `/app/cha
 ### 4.7 Konuşma tercihleri, okunmamış sayacı, mesaj eylemleri
 `ConversationView`: `{id,type,title,peer,memberCount,admin,lastMessage,unreadCount,blocked,createdAt,muted,mutedUntil,mutedForever,archived,communityId,eventId}`.
 - **Sessize al:** `PUT /api/conversations/{id}/mute` gövde `{"durationMinutes":1..525600}` **veya** `{"forever":true}` (ikisi birden `400`); `DELETE` ile kaldırılır; yanıt `ConversationView`. Süresiz sessizde `mutedUntil` ~100 yıl sonradır: "süresiz" göstermek için **`mutedForever`**'a bakın.
-- **Arşiv:** `PUT /api/conversations/{id}/archive {"keepArchived":false}`, `DELETE` ile çıkarılır; liste `GET /api/conversations?archived=true`.
-- **Rozet:** `GET /api/conversations/unread-count` → `{"total":3,"mutedTotal":5,"conversations":[{"conversationId":10,"unread":3,"muted":false}]}`; satırlardaki `unreadCount` ile aynı tanım (kendi/silinmiş/engelli gönderici mesajları sayılmaz). `total` sessiz olmayanlar, `mutedTotal` sessizdekiler.
+- **Arşiv:** `PUT /api/conversations/{id}/archive`, `DELETE` ile çıkarılır; liste `GET /api/conversations?archived=true`. Arşivli sohbet yeni mesajla arşivden ÇIKMAZ ve push/uygulama içi bildirim üretmez (`keepArchived` gönderilebilir ama etkisizdir; her arşiv kalıcıdır); okunmamış sayacı artar. Arşiv çubuğu için `GET /api/conversations/unread-count` -> `archivedChats` (arşivdeki sohbet sayısı) ve `archivedUnreadChats` (okunmamışı olan arşivli sohbet sayısı; sohbet başına 1); arşivli sohbetler `total`/`mutedTotal`a girmez, `conversations[].archived` işaretlidir.
+- **Rozet:** `GET /api/conversations/unread-count` → `{"total":3,"mutedTotal":5,"conversations":[{"conversationId":10,"unread":3,"muted":false}]}`; satırlardaki `unreadCount` ile aynı tanım (kendi/silinmiş/engelli gönderici mesajları sayılmaz). `total` sessiz olmayanlar, `mutedTotal` sessizdekiler. **FIX-P03:** sunucu konuşma başına en çok 100'e kadar sayar (100 = "99+"). Okundu/iletildi tikleri ve "yazıyor" varsayılan olarak her konuşmada çalışır (oda ve büyük gruplar dahil); sunucu ayarı `app.chat.receipts-max-members` / `app.chat.receipts-rooms` ile kapatılırsa `MessageView.status` `null` gelir ve `receipt`/`typing` olayları yayınlanmaz (istemci `null` için tik göstermemeli); bir mesaj en çok 10 kez düzenlenebilir (`409 MESSAGE_EDIT_LIMIT`); oda başına dakikada 600 mesaj sınırı (`429`).
 - **Mesaj eylemleri:** gönderim `POST /api/conversations/{id}/messages {"text","clientId","replyToMessageId?","attachmentIds?"}`; düzenleme `PATCH /api/messages/{id} {"text"}` (yalnız gönderen; **süre sınırı yok**); herkes için silme `DELETE /api/messages/{id}` (kulüp yöneticisi/moderatörü ve etkinlik organizatörü başkasınınkini de silebilir, diğerleri `403 MESSAGE_DELETE_FORBIDDEN`); tepki `PUT/DELETE /api/messages/{id}/reaction {"emoji"}`, izinli liste `GET /api/messages/reactions`.
 - Ek sınırlar: `GET /api/conversations/{id}` dakikada 120; `PATCH`, üye ekle/çıkar ve `leave` kullanıcı başına ortak dakikada 30.
 
@@ -340,6 +403,7 @@ Yalnız kullanıcı gruplarında (`type=GROUP`; `CLUB`/`EVENT` odaları ve bireb
 ### 4.10 İletildi / okundu makbuzları (tik mantığı)
 - **Ack:** mesaj istemciye ulaşınca (WebSocket ya da push ile gelen, uygulama açılınca çekilen mesajlar dahil) `STOMP /app/chat.delivered {conversationId,lastMessageId}` ya da `POST /api/conversations/{id}/delivered {lastMessageId}` (`204`; dakikada 120, aşılırsa REST `429`, WS sessiz). İmleç yalnız ilerler; yalnız üye (`404 CONVERSATION_NOT_FOUND`); kendi mesajların ve konuşmanın son mesajını aşan değer sessizce sınırlanır/yok sayılır. Sunucu, alıcının WebSocket'i açık olsa bile kendiliğinden "iletildi" saymaz; ack istemciden gelir. `read` (okundu) iletildiyi de ilerletir.
 - **`MessageView.status`** yalnız **kendi mesajlarında** dolu (başkasınınkinde `null`; silinen/gizlenen mesajda `null`): `SENT` (sunucu aldı, kimse iletilmedi) → `DELIVERED` → `READ`. Birebirde karşı taraf, grupta **tüm** diğer aktif üyeler (ayrılan, engel ilişkisi olan, askıdaki ve mesajdan sonra katılan üyeler hesaba girmez) eşiği geçince ilerler. `ConversationView.lastMessage.status` de aynıdır.
+- **Mesaj bilgisi (yalnız birebir, yalnız KENDİ mesajın):** `GET /api/messages/{id}/info?before=<nextCursor>&size=20` (dakikada 60) → `{"message":MessageView,"sentAt":"ISO-UTC","deliveredAt":"ISO-UTC"|null,"readAt":"ISO-UTC"|null,"status":"SENT"|"DELIVERED"|"READ","replies":{"items":[MessageView],"nextCursor":Long|null}}`. `deliveredAt`/`readAt` alıcının iletildi/okundu ack'inin GERÇEK anıdır (ilk kez yazılır, sonraki olaylar üzerine yazmaz). `null` = kayıt yok: yeni mesajda henüz iletilmemiş/okunmamış, ya da bu özellikten ÖNCE ack'lenmiş eski mesaj (zaman bilinmez, sunucu uydurmaz; `status` yine doğru gelir) — istemci "kayıt bulunmuyor" yazar, bu bir hata DEĞİLDİR (`200`). Engel/gölge engel/askıdaki alıcıda `status` `SENT` kalır ve zamanlar `null` döner. Gönderen olmayan, grup/oda, herkes için silinmiş, "sohbeti sil" ile temizlenmiş mesaj ve üye olmayan: `404 MESSAGE_NOT_FOUND`.
 - **Gerçek zamanlı:** mesaj sahibine `/user/queue/message-events`: `{type:"receipt",conversationId,kind:"delivered"|"read",upToMessageId,userId,at,status}`. Birebirde `upToMessageId` karşı tarafın yeni imlecidir; kendi mesajlarından `id <= upToMessageId` olanları `status`e (`DELIVERED`/`READ`) yükseltin. Grupta toplulaştırma sunucudadır: olay yalnız durum ilerlediğinde ve sahibine düşer; `upToMessageId` o sahibin durumu `status`e ulaşan en yüksek mesajıdır. Engel ilişkisi olan tarafa makbuz gitmez. Olaylar kalıcı değildir; yeniden bağlanınca `GET .../messages?after=` ile gelen `status` değerleri esastır.
 
 ### 4.11 Gölge engel (engelleme)
@@ -382,7 +446,7 @@ Yalnız kullanıcı gruplarında (`type=GROUP`; `CLUB`/`EVENT` odaları ve bireb
 | WebSocket el sıkışma | IP başına dakikada 600 |
 
 ## 6. Push bildirimleri (FCM) yük formatı
-Cihaz kaydı: giriş yaptıktan sonra FCM token ile `POST /api/devices {"fcmToken":"...","platform":"ios","appVersion":"1.4.0","locale":"tr"}` → `204` (saatte 120; `DELETE` ayrı sayaç, saatte 60). **Her girişten sonra yeniden kaydedin** (mobil girişte eski cihaz kayıtları silinir); kayıt yoksa o kullanıcıya push hiç gitmez. `platform`: `ios|android|web` (büyük/küçük harf fark etmez, sunucu büyük harfe çevirir; geçersiz `400`); `appVersion` (≤ 32) ve `locale` (≤ 16) isteğe bağlıdır. Upsert: aynı token başka kullanıcıdaysa devredilir; her çağrı `lastSeenAt`'i yeniler, bu yüzden **her açılışta** ve token yenilenince (`onTokenRefresh`) çağırın. Kullanıcı başına en çok 10 cihaz (fazlası en eskiden silinir); 60 gün görülmeyen token sunucuca temizlenir. `GET /api/devices` yanıtında `appVersion`, `locale`, `lastSeenAt` de vardır. Çıkışta `DELETE /api/devices/{token}` (Bearer geçerliyken). Geçersiz token FCM'den `UNREGISTERED` dönünce sunucu tarafından silinir.
+Cihaz kaydı: giriş yaptıktan sonra FCM token ile `POST /api/devices {"fcmToken":"...","platform":"ios","appVersion":"1.4.0","locale":"tr"}` → `204` (saatte 120; `DELETE` ayrı sayaç, saatte 60). **Her girişten sonra yeniden kaydedin** (mobil girişte eski cihaz kayıtları silinir); kayıt yoksa o kullanıcıya push hiç gitmez. `platform`: `ios|android|web` (büyük/küçük harf fark etmez, sunucu büyük harfe çevirir; geçersiz `400`); `appVersion` (≤ 32) ve `locale` (≤ 16) isteğe bağlıdır. Upsert: aynı token başka kullanıcıdaysa devredilir; her çağrı `lastSeenAt`'i yeniler, bu yüzden **her açılışta** ve token yenilenince (`onTokenRefresh`) çağırın. Kullanıcı başına en çok 10 cihaz (fazlası en eskiden silinir); 60 gün görülmeyen token sunucuca temizlenir. `GET /api/devices` yanıtında `appVersion`, `locale`, `lastSeenAt` de vardır. Çıkışta `DELETE /api/devices/{id}` (Bearer geçerliyken; `id` = `GET /api/devices` yanıtındaki cihaz kimliği; eski `DELETE /api/devices/{token}` hâlâ çalışır ama token erişim günlüklerine düşer, yeni istemci kimlik kullanmalı). Geçersiz token FCM'den `UNREGISTERED` dönünce sunucu tarafından silinir.
 
 Android 13+ için `POST_NOTIFICATIONS` izni isteyin; yerel kanallar: `chat` (MESSAGE), `event` (EVENT), `announcement` (NEWS, ANNOUNCEMENT, COMMUNITY, SYSTEM). iOS için APNs anahtarı Firebase'e yüklenmelidir (bkz. [PUSH_SETUP.md](PUSH_SETUP.md), [MOBILE_PUSH.md](MOBILE_PUSH.md)).
 
@@ -414,17 +478,7 @@ Aşağıdaki tablolar ek ayrıntıdır. FCM mesajı hem `notification` (başlık
 ```json
 {"type":"ANNOUNCEMENT","target":"NEWS","value":"41","campaignId":"12"}
 ```
-**Yerel zengin push (Android/iOS):** Android istemcisi `POST /api/devices` gövdesinde `richNotifications:true` alanını ancak `bu_kampus/push_actions.supportsRichNotifications` yerel köprüsü hazırsa gönderir. Eski cihazlara standart FCM alert bloğu gönderilmeye devam eder; yalnız sürüm numarasıyla veri-yüklü push etkinleştirilmez. V1061 migration bu yeteneği `device.rich_notifications` alanında saklar. Yeni Android alıcısı kompakt / genişletilmiş özel içerik, avatar/görsel, mesaj sayacı ve gerçek uygulama eylemleri gösterir. Android 12+ sistem dekorasyonu korunur.
-
-Mesaj eylemleri: `reply` yazma alanını açar; iOS metin giriş eylemi ayrıca idempotent REST yanıtı gönderir. `mark_read` sadece bildirilen mesaj kimliğine kadar okundu yapar; `mute_hour` 60 dakika sessize alır. Takip kabul/red/takip et mevcut yetkili API uçlarını kullanır. Takvim ve harita eylemleri etkinliğin güncel sunucu verisini okur. Android dokunuşları kurulum anahtarıyla HMAC doğrulamasından geçer; yerel hatırlatmaların yönlendirme beyaz listesi bu mutasyon yoluna alınmaz. Alıcı kimliği başka hesapla eşleşirse eylem uygulanmaz. Çıkışta görüntülenen push ve uygulama içi kartlar temizlenir.
-
-iOS Runner artık `NotificationService` (imzalı görsel ekleri) ve `NotificationContent` (genişletilmiş özel görünüm) hedeflerini içerir. Bundle kimlikleri `tr.com.bukampus.app.NotificationService` ve `tr.com.bukampus.app.NotificationContent`; dağıtımda bu hedefler için de uygun Apple imzalama/profil ayarları gerekir. Kaynak ve proje grafiği Windows'ta doğrulanabilir; tam iOS derlemesi macOS/Xcode'da doğrulanmalıdır.
-
-Görsellerdeki Wallet bileti, 2FA açma, yeni oturumu onaylama/reddetme, iade ve harici Moodle/ÖBS işlemleri bu bildirim renderer'ı tarafından uydurulmaz. Bu servisler yoksa gerçek mevcut detay/hesap güvenliği ekranları açılır. Temsili ekranlardaki isim/tarih/fotoğraflar üretim uygulamasına sabit veri olarak eklenmez. `PushPreviewActivity` yalnız debug APK'sında yer alır ve test bildirimleri sunucuda mutasyon yapmaz.
-
-**Bildirim kategorileri:** Push verisinde ve liste satırında `category` alanı bulunur: `EVENT`, `ANNOUNCEMENT`, `ACADEMIC`, `POLL`, `SOCIAL`, `SYSTEM` (sohbet push’unda `MESSAGE`). `GET /api/notifications?category=EVENT&unread=true` kategori ve okunmamış filtresini sayfalamadan önce uygular. `cursor` ile sonraki istekte filtreleri koruyun; `unreadCount` filtrelerden bağımsız toplam kutu sayısıdır. Bu alan yalnız sunum içindir, eylem yetkisi vermez. Sohbet mesajları kutuya dahil edilmez.
-
-Uygulama içi bildirim listesi: `GET /api/notifications` → `{"items":[{"id":5,"type":"EVENT","title":"...","body":"...","data":"{\"eventId\":\"2\"}","read":false,"createdAt":"..."}],"nextCursor":4,"unreadCount":4}`. Dikkat: listedeki **`data` bir JSON dizesidir** (nesne değil): `jsonDecode(item.data)` yapın; anahtarlar push `data`'sıyla aynıdır. Okundu: `POST /api/notifications/read {"ids":[5,4]}` veya `{"all":true}` (204). Tercihler: `GET/PUT /api/notifications/preferences` (`news, announcements, events, messages, communities`, `polls`, `academicAnnouncements`, `messagePreview` (varsayılan false: true ise mesaj metninin ilk 100 karakteri push gövdesinde/kilit ekranında görünür); `SYSTEM` her zaman gider).
+Uygulama içi bildirim listesi: `GET /api/notifications` → `{"items":[{"id":5,"type":"EVENT","title":"...","body":"...","data":"{\"eventId\":\"2\"}","read":false,"createdAt":"..."}],"nextCursor":4,"unreadCount":4}`. Dikkat: listedeki **`data` bir JSON dizesidir** (nesne değil): `jsonDecode(item.data)` yapın; anahtarlar push `data`'sıyla aynıdır. Okundu: `POST /api/notifications/read {"ids":[5,4]}` (en çok 200 kimlik; fazlası 400) veya `{"all":true}` (204). Tercihler: `GET/PUT /api/notifications/preferences` (`news, announcements, events, messages, communities`, `polls`, `academicAnnouncements` (artık yalnız sınav hatırlatmasını yönetir); `messagePreview` alanı KALDIRILDI: mesaj metninin ilk 100 karakteri push gövdesinde/kilit ekranında HER ZAMAN gider); `SYSTEM` her zaman gider).
 
 Not: Firebase servis hesabı (`FCM_CREDENTIALS_JSON`/`FILE`) girilmedikçe sunucu push göndermez; yalnızca uygulama içi liste dolar. Sessiz saatler ve tercihler push'a da uygulanır. Gönderim arka planda yapılır, geçici hatada 3 kez yeniden denenir; süreç yeniden başlarsa kuyruktaki push kaybolabilir, bildirim kutusu kalıcıdır.
 
@@ -437,12 +491,13 @@ Yükleme uçları `multipart/form-data`, **alan adı `file`** (topluluk/etkinlik
 | `POST /api/communities/{id}/cover` | `file` | jpg, png, webp | **3 MB** | saatte 10 |
 | `POST /api/communities/{id}/posts/upload` | `file` | jpg, png, webp | **3 MB** | saatte 20 |
 | `PUT /api/events/{id}/cover` (eski ad `POST` de çalışır) | `file` | jpg, png, webp | **3 MB** | saatte 10 |
+| `POST /api/posts/media` (Keşfet gönderisi) | `file` (+ video için `poster`) | fotoğraf: jpg, png, webp; **video: mp4, mov (quicktime), m4v, webm (≤ 60 sn)** | fotoğraf 3 MB; **video 50 MB** | saatte 30 |
 
 - Doğrulama **`Content-Type`** üzerinden yapılır: parçanın `Content-Type`'ı mutlaka `image/jpeg|image/png|image/webp` olmalı (Dio `MultipartFile.fromFile(path, contentType: MediaType('image','jpeg'))`). Dosya adını sunucu üretir (UUID); istemcinin adı kullanılmaz.
 - Hatalar: `400 INVALID_FILE` (tür/boş), `413 FILE_TOO_LARGE` (ayrıca Spring genel üst sınırı 5 MB; istek 6 MB'ı aşarsa da `FILE_TOO_LARGE`), `503 STORAGE_UNAVAILABLE`. Yüklemeden önce istemcide küçültüp sıkıştırın.
 - Yanıt göreli URL döndürür (`/files/avatars/<uuid>.jpg` biçiminde, avatar için profil nesnesinde `avatarUrl`). Görseli `https://<alan-adı>` + yol ile **kimliksiz** `GET` ile indirebilirsiniz (herkese açık, `Cache-Control: max-age=30 gün, immutable`; URL değişmez, önbellekleyin).
 - Gönderi görseli akışı: önce `.../posts/upload` ile yükleyip dönen URL'yi `POST /api/communities/{id}/posts {text, imageUrl}` içinde gönderin.
-- Sohbet görselleri ayrı bir akıştır (kimlikli okuma, `attachmentIds`): bkz. 4.8. Mesaj metni düz metindir (≤ 10000 karakter; HTML/Markdown yorumlanmaz, `Text` ile çizin).
+- Sohbet görselleri ayrı bir akıştır (kimlikli okuma, `attachmentIds`): bkz. 4.8. Mesaj metni düz metindir (≤ 2000 karakter; HTML/Markdown yorumlanmaz, `Text` ile çizin).
 
 ## 8. Sürüm kontrolü ve bakım akışı
 Uygulama açılışında (ve öne her gelişte, en çok birkaç dakikada bir) kimliksiz iki çağrı yapın:
@@ -508,6 +563,7 @@ Genel durum kodları: `400` doğrulama/iş kuralı, `401` kimlik, `403` yetki/as
 | `COMMUNITY_NOT_FOUND` | 404 | Topluluk bulunamadı. | Community not found. | المجتمع غير موجود. |
 | `CONVERSATION_NOT_FOUND` | 404 | Konuşma bulunamadı. | Conversation not found. | المحادثة غير موجودة. |
 | `EMAIL_ALREADY_REGISTERED` | 409 | Bu e-posta ile zaten kayıt olunmuş. | This email is already registered. | هذا البريد الإلكتروني مسجّل مسبقًا. |
+| `EMAIL_DOMAIN_NOT_ALLOWED` | 400 | Yalnızca bingol.edu.tr uzantılı e-posta ile kayıt olunabilir. | Only email addresses ending in bingol.edu.tr can register. | يمكن التسجيل فقط بعناوين البريد الإلكتروني المنتهية بـ bingol.edu.tr. |
 | `EMAIL_NOT_VERIFIED` | 403 | Giriş için önce e-posta adresinizi doğrulayın. | Please verify your email address before signing in. | يرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول. |
 | `EMPTY_MESSAGE` | 400 | Mesaj boş olamaz. | The message cannot be empty. | لا يمكن أن تكون الرسالة فارغة. |
 | `EVENT_ENDED` | 409 | Etkinlik sona erdi. | The event has ended. | انتهت الفعالية. |
@@ -559,7 +615,8 @@ Genel durum kodları: `400` doğrulama/iş kuralı, `401` kimlik, `403` yetki/as
 | `REPORT_NOT_FOUND` | 404 | Rapor bulunamadı. | Report not found. | البلاغ غير موجود. |
 | `REQUEST_NOT_FOUND` | 404 | Bekleyen istek bulunamadı. | Pending request not found. | لم يتم العثور على طلب معلّق. |
 | `REQUEST_PENDING` | 409 | Katılma isteğiniz zaten bekliyor. | Your join request is already pending. | طلب الانضمام الخاص بك قيد الانتظار بالفعل. |
-| `RESEND_COOLDOWN` | 429 | Yeni kod için lütfen 1 dakika bekleyin. | Please wait 1 minute before requesting a new code. | يرجى الانتظار دقيقة واحدة قبل طلب رمز جديد. |
+| `RESEND_COOLDOWN` | 429 | Yeni kod için {0} saniye sonra tekrar deneyin. | Please try again in {0} seconds to request a new code. | يرجى المحاولة بعد {0} ثانية لطلب رمز جديد. |
+| `ACCOUNT_NOT_FOUND` | 404 | Bu okul numarasına ait kayıtlı hesap bulunamadı. | No registered account was found for this school number. | لم يتم العثور على حساب مسجل لهذا الرقم الجامعي. |
 | `RSVP_CONFLICT` | 409 | İsteğiniz zaten işleniyor, tekrar deneyin. | Your request is already being processed, please try again. | طلبك قيد المعالجة بالفعل، يرجى المحاولة مرة أخرى. |
 | `SETTING_NOT_FOUND` | 404 | Ayar bulunamadı. | Setting not found. | الإعداد غير موجود. |
 | `SLUG_CONFLICT` | 409 | Topluluk adı çakıştı, tekrar deneyin. | The community name conflicted, please try again. | تعارض اسم المجتمع، يرجى المحاولة مرة أخرى. |
@@ -581,6 +638,7 @@ Genel durum kodları: `400` doğrulama/iş kuralı, `401` kimlik, `403` yetki/as
 | `VALIDATION_ERROR` | 400 | Geçersiz istek. | Invalid request. | طلب غير صالح. |
 | `VERSION_OUTDATED` | 409 | Bu belgenin yeni bir sürümü yayımlandı. Güncel sürümü onaylayın. | A newer version of this document has been published. Please accept the current version. | تم نشر إصدار أحدث من هذا المستند. يرجى قبول الإصدار الحالي. |
 | `WRONG_PASSWORD` | 403 | Şifre hatalı. | Incorrect password. | كلمة المرور غير صحيحة. |
+| `PASSWORD_TOO_SHORT` | 400 | Şifre en az {0} karakter olmalı. | The password must be at least {0} characters. | يجب أن تتكون كلمة المرور من {0} أحرف على الأقل. |
 | `PASSWORD_UNCHANGED` | 422 | Yeni şifre mevcut şifreyle aynı olamaz. | The new password must differ from the current password. | يجب أن تختلف كلمة المرور الجديدة عن الحالية. |
 
 <!-- ERRORS:END -->
@@ -598,34 +656,12 @@ Tam liste ve şemalar için `docs/openapi.json` (gruplar: `1-public`, `2-authent
 | Arama / favori | `GET /api/search`, `/api/bookmarks*` |
 | Destek | `/api/feedback`, `/api/suggestions`, `/api/support/tickets*`, `/api/faq` |
 | Moderasyon | `POST /api/reports`, `POST /api/messages/{id}/report`, engelleme uçları |
-| Analitik | `POST /api/analytics/events` (≤ 50 olay; oturum/ekran süresi/eylem olayları, kişisel veri göndermeyin, `@` içeren değer reddedilir; sözleşme: bölüm 11.2) |
+| Analitik | `POST /api/analytics/events` (≤ 50 olay; `app_open`, `screen_view`, `search`; kişisel veri göndermeyin, `@` içeren değer reddedilir) |
 | KVKK | `GET /api/users/me/export`, `DELETE /api/users/me` (bölüm 9) |
-
-### 11.2 Kullanım analizi (davranış) olay sözleşmesi
-Gövde değişmez: `POST /api/analytics/events` `{events:[{name, screen?, props?, at}]}` (istek başına en çok 50 olay, oturumlu). Uygulama tarafı `lib/core/analytics.dart` (`Analytics`, `AnalyticsNavigatorObserver`). Olaylarda kişisel veri yoktur: e-posta/ad/numara/mesaj metni/arama sorgusu metni/serbest metin gönderilmez; `props` yalnız sayı ve kısa küçük harf enum içerir; `@` içeren herhangi bir değer olayı istemcide düşürür (`Analytics.isSafe`). Kullanıcı kimliği olay gövdesinde yoktur, sunucu `user_id`'yi Bearer jetonundan bağlar.
-
-**Her olayın `props.sid` alanı** vardır (açık oturum varken): oturum açılışında üretilen rastgele 16 karakterlik kimlik (`[a-z0-9]{16}`, kişisel veri değildir). Olay adları `[a-z0-9_]{1,40}`:
-
-| Olay | `screen` | `props` | Ne zaman |
-|---|---|---|---|
-| `session_start` | yok | `sid` | Oturum açıkken uygulama ilk ön plana gelince (giriş sonrası / soğuk açılış), arka plandan **30 dk'dan uzun** süre sonra dönüşte ve 30 dk hareketsizlikten sonraki ilk etkinlikte. Sürecin ilk oturumunda eski `app_open` de gönderilir. |
-| `screen_view` | rota adı | `sid` | Ekran açılınca (sayfa rotası push/pop/replace, sekme geçişi). Oturum yeni başlarsa açık ekran için de gönderilir (giriş ekranı). |
-| `screen_exit` | rota adı | `sid`, `dwellMs` | Ekran kapanınca/değişince/uygulama arka plana atılınca. `dwellMs` ekranın **ön planda** geçen süresidir (arka plan sayılmaz; 0..86400000). Kısa ayrılıkla dönüşte aynı ekran için ikinci bir `screen_exit` gelebilir (süreler toplanır). |
-| `session_end` | yok | `sid`, `durationMs`, `screens`, `reason` | `reason`: `background` (arka plana atılınca; olaylar **hemen** gönderilir), `timeout` (30 dk hareketsizlik; olay zamanı son etkinlik anıdır), `exit` (`detached`). `durationMs` oturumun **kümülatif ön plan** süresidir (arka plan hariç), `screens` bu oturumdaki `screen_view` sayısı. Aynı `sid` 30 dk içinde dönüşte sürerse sonraki `session_end` daha büyük `durationMs` ile gelir (son olan geçerlidir). |
-| `action` | olduğu ekran | `sid`, `kind`, `target?` | Kullanıcı eylemi, aşağıdaki listeden. |
-| `app_open`, `search`, `app_error` | | | Eski olaylar aynen çalışır (`app_open` her ön plana dönüşte; `app_error` çökme günlüğünden). `sid` açık oturum varsa eklenir. |
-
-**Ekran adları** (rota adı): sayfa rotalarının (`PageRoute`) `RouteSettings.name` değeridir, küçük harf + alt çizgi (`chat_detail`, `event_detail`, `club_detail`, `news_detail`, `notifications`, `edit_profile`...); adsız rota `other`. Alt gezinme sekmeleri de ekran sayılır: `tab_home`, `tab_discover`, `tab_chat`, `tab_clubs`, `tab_profile` (kökte açık sayfa yokken geçerli ekran sekmedir; sekme geçişi ayrıca `action tab_switch` üretir). **Diyaloglar, alt sayfalar ve menüler ekran sayılmaz** (altındaki ekranın süresi sürer). Sınıf adı kullanılmaz (`--obfuscate` ile anlamsızlaşır): yeni bir `MaterialPageRoute` eklerken `settings: const RouteSettings(name: '<snake_ad>')` verin.
-
-**`action.kind` beyaz listesi** (sunucuyla aynı): `like`, `unlike` (gönderi beğeni), `follow`, `unfollow`, `share` (`target: copy_link`), `bookmark` (`target: add|remove`; haber kaydet), `join_club`, `leave_club`, `rsvp` (`target: going|maybe|not_going|apply|cancel`; ham durum küçük harfle), `checkin` (`target: qr`), `vote` (anket), `rate_menu` (günlük menü puanı / MENU anketi oyu), `search_submit` (klavyeden gönder ya da son aramadan seç, `target: recent`; sorgu METNİ gönderilmez), `send_message` (`target: media` görselli; mesaj metni gönderilmez), `post_create`, `ticket_create`, `ticket_reply`, `profile_edit`, `notif_open` (uygulama içi bildirim açma), `push_open` (`target: push|reminder`), `pull_refresh` (çekip yenileme), `tab_switch` (`target: home|discover|chat|clubs|profile`; olduğu ekran önceki sekmedir). `target` en çok 24 karakter `[a-z0-9_]`; uymayan `target` istemcide düşer. İstemci listede olmayan `kind`'i hiç göndermez.
-
-**Oturum kuralları:** `at` = UTC ISO-8601. Ön plan/arka plan `AppGate`'ten (`WidgetsBindingObserver`) gelir; ekrana dokunuş etkinlik sayılır (30 dk sayacı). Oturum açık değilken hiçbir olay biriktirilmez/gönderilmez; çıkışta kuyruk ve açık oturum silinir. Kuyruk en çok 200 olay; 20 olayda ya da 20 sn'de gönderilir (arka plana atılırken kuyruk boşalana dek); gönderim hatası sessizce atılır (yeniden deneme yok). Eski sürümler `sid` göndermez; sunucu 30 dk boşlukla oturum türetir.
-
-**Kullanıcı ayarı:** Ayarlar > Gizlilik > **Kullanım analizi** anahtarı (varsayılan AÇIK; cihazda güvenli depoda `analytics_enabled`). Kapalıyken hiçbir olay üretilmez, kapatma anında bekleyen kuyruk ve açık oturum silinir, `flush` istek atmaz. Çökme raporu anahtarından (`crash_reports_enabled`) bağımsızdır.
 
 ### 11.1 Yeni ve değişen uçlar (özet)
 - **`GET /api/me/summary`** (Bearer, dakikada 120) → `{"communities":3,"events":1,"bookmarks":12,"unreadNotifications":4,"unreadMessages":7}`. Ana sayfa/sekme rozetleri için tek istek.
-- **Haber:** `GET /api/news?type=` büyük/küçük harf toleranslıdır; geçersiz tür `400 NEWS_TYPE_INVALID`; `size` 1-50. `NewsSummary`/`NewsDetail`'de yeni **`eventDate`** (`yyyy-MM-dd` veya `null`; yalnız ETKINLIK). Sıralama yayın tarihi azalan, tarihsizler sonda. `GET /api/menu?month=yyyy-MM` geçersiz ay `400 MENU_MONTH_INVALID`. `GET /api/status` her kaynakta **`maintenanceMessage`** (istek dilinde; bakım yoksa `null`) taşır; `message` teknik ayrıntıdır, kullanıcıya `maintenanceMessage` gösterin.
+- **Haber:** `GET /api/news?type=` büyük/küçük harf toleranslıdır; geçersiz tür `400 NEWS_TYPE_INVALID`; `size` 1-50. `NewsSummary`/`NewsDetail`'de yeni **`eventDate`** (`yyyy-MM-dd` veya `null`; yalnız ETKINLIK). Sıralama yayın tarihi azalan, tarihsizler sonda. `GET /api/menu?month=yyyy-MM` geçersiz ay `400 MENU_MONTH_INVALID`. `GET /api/status` her kaynakta **`maintenanceMessage`** (istek dilinde; bakım yoksa `null`) taşır; `message` teknik ayrıntıdır, kullanıcıya `maintenanceMessage` gösterin. **Arama (P07):** `GET /api/news?q=` en az **3** karakter (2 karakter `400`), IP başına dakikada 30 istek (`429` + `Retry-After`); `page` en çok 200. `GET /api/menu/today` önbelleği 60 sn.
 - **Yemek kalorisi (V870):** `GET /api/menu?month=` ve `GET /api/menu/today` günlük nesnesine üç alan eklendi: `dishes: [{ "name": "MERCİMEK ÇORBASI", "kcal": 180 }, ...]` (`items` ile **aynı sıra ve uzunluk**; `kcal` yönetici girmediyse `null`), `totalKcal` (kalorisi bilinen yemeklerin toplamı; hiçbirinin kalorisi yoksa `null`) ve `kcalComplete` (bütün yemeklerin kalorisi girilmişse `true`). `items` (yalnız ad dizisi) ve `imageUrl` aynen durur; eski istemci yeni alanları yok sayar. Arayüz: `kcal != null` ise yemek kartında "180 kcal" gösterin, `null` ise kalori satırını gizleyin (0 yazmayın); günlük toplamı `kcalComplete=false` iken "en az {totalKcal} kcal" diye gösterin, `totalKcal == null` iken hiç göstermeyin. Kalori yöneticiye aittir, kaynak site yeniden çekilse de kaybolmaz; ETag/304 gövdeden üretildiği için kalori değişince önbellek kendiliğinden yenilenir.
 - **Takvim:** `GET /api/events/calendar?month=YYYY-MM` → `CalendarItem[]`. USER öğelerinde yeni `myRsvp`, `goingCount`, `interestedCount`, `capacity` (`null` = sınırsız), `status`, `communityName`; OFFICIAL öğelerde bunlar `null`. Önceki aydan süren etkinlikler ay içinde görünür (`date` ay içinde kalır, `startsAt` gerçek başlangıç). Sonuç sınırlıdır (USER 300, resmi 200); sınır aşılırsa **`X-Truncated: true`** başlığı gelir (kullanıcıya "tümü gösterilmiyor" notu verin). OFFICIAL öğe tarihi haberin `eventDate` değeri varsa o, yoksa yayın tarihidir.
 - **Katılımcı önizleme:** `GET /api/events/{id}/attendees/preview` (Bearer, dakikada 120) → `{"goingCount":42,"interestedCount":7,"avatars":[{"userId","displayName","avatarUrl"}]}`; en çok 8 avatar, yalnız gizlilik ayarı izin verenler. Tam liste (`/attendees`) organizatöre kısıtlıdır.
@@ -633,6 +669,7 @@ Gövde değişmez: `POST /api/analytics/events` `{events:[{name, screen?, props?
 - **Engeller:** `GET /api/users/me/blocks?cursor=&limit=` düz dizi + `X-Next-Cursor` (bölüm 3).
 - Cihaz kaydı ve push `data` değişiklikleri bölüm 6'da, `logout-all` ile şifre sıfırlama bölüm 1'dedir.
 - **Hesap silme** artık cihazları, bildirimleri, favorileri, kulüp başvuru yanıtlarını ve topluluk üyeliklerini de temizler; yerel veriyi silmek istemcinin işidir.
+- **Google/Apple girişi + profil tamamlama (bölüm 1.10, bayrak `AUTH_OAUTH_ENABLED`, varsayılan kapalı):** `POST /api/auth/oauth/google|apple`, `POST /api/auth/oauth/link`, `DELETE /api/auth/oauth/link/{provider}`, `GET /api/auth/oauth/identities`, `GET /api/users/username-available?u=`, `PUT /api/users/me/onboarding`, `PUT /api/users/me/username`; `GET /api/users/me` yanıtına `profileCompleted`, `username`, `firstName`, `lastName`, `universityName`, `authProviders[]`; tamamlanmamış profilde tüm yazma uçları `403 PROFILE_INCOMPLETE`; `DELETE /api/users/me` gövdesinde `password` artık zorunlu değil (parolasız hesap: `provider`+`token`). Yeni kodlar: `OAUTH_*`, `PROFILE_INCOMPLETE`, `USERNAME_*`, `PROFILE_FIELD_REQUIRED`, `TERMS_REQUIRED`.
 
 `/api/admin/**` yönetim panelidir (web); mobil istemci kullanmaz.
 
@@ -683,18 +720,37 @@ Katılımcı önizlemesi için `GET /api/events/{id}/attendees/preview` çağrı
 - **RSVP** `PUT /api/events/{id}/rsvp {"status":"GOING"|"INTERESTED"}` ("Katılıyorum" = `GOING`); katılımcı listesine (`GET .../attendees`, organizatör) girer ve "Etkinliklerim"de görünür. Geri çekme `DELETE .../rsvp`. Sınır: kullanıcı başına dakikada 30 (genel) ve **aynı etkinlikte dakikada 5 değişiklik** (PUT+DELETE toplam); aşımda `429` + `Retry-After`.
 - **Etkinliklerim** `GET /api/me/events?mode=&cursor=&size=` (takma ad: `GET /api/events/me`), imleçli (`cursor` = son kaydın `id`'si): `mode=upcoming` yaklaşan/süren, RSVP'lim (GOING+INTERESTED) + oluşturduklarım; `going` yaklaşan, yalnız GOING; `past` bitmiş, RSVP'lim + oluşturduklarım, yeniden eskiye; `created` oluşturduklarım (iptaller hariç, `id` azalan; bekleyen onaylılar dahil). Eski adlar: `attending` (varsayılan; yaklaşan RSVP'liler) ve `organizing` (= `created`). Bilinmeyen mod `attending` gibi davranır.
 
-## Rehber eşleştirme (KALDIRILDI)
+## Rehber eşleştirme
 
-Rehber eşleştirme özelliği (`POST /api/users/contacts/match`, `GET|PUT /api/users/contacts/discoverable`) ve ona bağlı hata kodları
-(`CONTACTS_TOO_MANY`, `CONTACTS_DISCOVERABLE_REQUIRED`) kaldırılmıştır; uygulama rehbere erişmez, telefon numarası istemez.
-Kişi bulmak için ad/kullanıcı adı/bölüm ile kullanıcı arama (`GET /api/users/search`) kullanılır. Ayrıntı: `docs/changes/profile.md`.
+Kullanıcı rehberindeki e-posta adreslerinden uygulamadaki (bingol.edu.tr) kişileri bulur. Ham e-posta sunucuya gönderilmez.
+
+`POST /api/users/contacts/match` (kimlik doğrulamalı)
+
+```json
+{"hashes":["<sha256 hex, küçük harf>", "..."]}
+```
+
+- Her hash: e-posta adresinin kırpılıp küçük harfe çevrilmiş halinin SHA-256'sı (UTF-8), 64 karakterli hex.
+- En çok 500 hash; fazlası `400 CONTACTS_TOO_MANY`. Yinelenen veya biçimi bozuk değerler sessizce yok sayılır.
+- Yanıt: `{"matches":[{"hash":"…","userId":12,"displayName":"…","avatarUrl":"/files/avatars/…"|null,"faculty":null,"department":null}]}`
+  (eşleşmeyen hash yanıtta yer almaz).
+- Yalnızca aktif, doğrulanmış, bingol.edu.tr (alt alanlar dahil) hesaplar; kendi hesabın ve engel ilişkisi (iki yönlü) olanlar gelmez.
+  Avatar, fakülte ve bölüm karşı tarafın gizlilik ayarına göre `null` olabilir.
+- Rate limit: kullanıcı başına saatte 6, IP başına saatte 30 istek; aşımda `429` + `Retry-After`.
+- Sunucu hash'leri ve sonuçları saklamaz/loglamaz. İstemci de rehberi yalnızca eşleştirme sırasında bellekte tutmalıdır;
+  rehber izni kullanıcıdan açıkça istenmelidir.
+
 
 ## Gönderiler (Keşfet akışı)
 Tek sözleşme: [POSTS_DESIGN.md](POSTS_DESIGN.md); değişiklik notu: `docs/changes/post.md`. Tüm uçlar Bearer ister.
 
-> **SADE KEŞFET (2026-10-28) — bu bölümün ve aşağıdaki "Yorum ve yanıt" / "Gönderi sosyal özellikleri" bölümlerinin eski satırlarıyla çelişirse bu kutu geçerlidir.**
-> - Gönderi: **tam 1 fotoğraf zorunlu**, metin isteğe bağlı: tek satır, **en çok 7 kelime ve 60 karakter**. Önce `POST /api/posts/media` (yalnız görsel; video `400 POST_VIDEO_NOT_ALLOWED`), sonra `POST /api/posts` `{"text":"güzel bir gün","mediaIds":[12]}` → 201 `PostView`.
-> - Hatalar: `400 POST_PHOTO_REQUIRED` (mediaIds boş), `400 POST_SINGLE_PHOTO_ONLY` (2+), `400 POST_VIDEO_NOT_ALLOWED`, `400 POST_MEDIA_INVALID`, `422 POST_TEXT_TOO_LONG` (7 kelime/60 karakter aşıldı; PATCH'te de), `422 POST_TEXT_INVALID` (satır sonu), `422 CONTENT_PROFANITY`. Eski `POST_TOO_LONG` (2000) ve `POST_EMPTY` (oluşturmada) artık dönmez.
+> **GÜNCELLEME (2026-11-04): video geri geldi, Keşfet tek sıralama oldu; bu kutudaki "yalnız fotoğraf / video `POST_VIDEO_NOT_ALLOWED`" ve `scope=latest|popular` ifadeleri geçersizdir. Geçerli sözleşme: sayfa sonundaki "Keşfet v2" bölümü.**
+>
+> **SADE KEŞFET (2026-10-28) — bu bölümün ve aşağıdaki "Yorum ve yanıt" / "Gönderi sosyal özellikleri" bölümlerinin eski satırlarıyla çelişirse bu kutu geçerlidir (video/kapsam kısımları hariç, bkz. yukarı).**
+> - Gönderi: **tam 1 fotoğraf zorunlu**, metin isteğe bağlı (çok satırlı olabilir; **kullanıcıya gösterilmeyen** üst sınır 2200 karakter/40 satır), isteğe bağlı `mentionUserIds` (en çok 10, yalnız takip ettikleriniz; bkz. "Gönderi etiketleme"). Önce `POST /api/posts/media` (yalnız görsel; video `400 POST_VIDEO_NOT_ALLOWED`), sonra `POST /api/posts` `{"text":"güzel bir gün","mediaIds":[12]}` → 201 `PostView`.
+> - Hatalar: `400 POST_PHOTO_REQUIRED` (mediaIds boş), `400 POST_SINGLE_PHOTO_ONLY` (2+), `400 POST_VIDEO_NOT_ALLOWED`, `400 POST_MEDIA_INVALID`, `422 POST_TEXT_TOO_LONG` (gizli üst sınır aşıldı: 2200 karakter/40 satır; PATCH'te de; mesaj sayı içermez), `422 POST_MENTION_INVALID` (etiketlenen kişi takip edilmiyor/pasif/engelli/kendisi/10'dan çok), `422 CONTENT_PROFANITY`. Eski `POST_TOO_LONG` (2000) ve `POST_EMPTY` (oluşturmada) artık dönmez.
+> - **Gönderi etiketleme (2026-11-05, V1310; aşağıdaki eski `@[Ad](uid:)` / `mention-suggest` / `MENTION_TOO_MANY` anlatımının ve "etiketler kaldırıldı" notunun YERİNE geçer):** `POST /api/posts` ve `PATCH /api/posts/{id}` gövdesinde isteğe bağlı `mentionUserIds: [int]` (en çok 10, tekrarsız; **yalnız takip ettiğiniz** kişiler: kabul edilmiş takip). Geçersiz her kimlik (takip edilmiyor, pasif, engel var, kendisi, 10'dan çok farklı kişi) → `422 POST_MENTION_INVALID`, tüm istek reddedilir. PATCH'te alan **yoksa etiketler değişmez**, **varsa (boş dizi dahil) liste yeniden yazılır**; yalnız yeni eklenenlere bildirim gider. Metne istemci düz `@Ad Soyad` yazar ve sunucu metne dokunmaz; `PostView.mentions = [{ "userId": 12, "displayName": "Ayşe Yılmaz" }]` (yoksa `[]`; pasif/engelli kişi bakana göre listeden çıkar) ile eşleştirip çizin. Etiket önerisi için ayrı uç yok: `GET /api/users/{id}/following` (+ arama). Etiketlenene `POST_MENTION` bildirimi: başlık "Yeni etiket", gövde "{ad} seni bir gönderide etiketledi" (alıcı dilinde), `targetType: POST`, `targetId` = gönderi, `data.userId` = etiketleyen, push `style=SOCIAL`, `senderName`, `senderAvatarUrl` (gizlilik süzgeciyle), `imageUrl` (küçük resim, yalnız push). Aynı (gönderi, kişi) için tek bildirim; kendi kendine ve alıcının göremediği gizli hesap gönderisinde bildirim yok.
+> - **Gönderi videosu sınırı (mobil kırpma ekranı için):** ≤ 60 sn (500 ms tolerans; `400 VIDEO_TOO_LONG`), ≤ 50 MB (`413 VIDEO_TOO_LARGE`), MP4/MOV/M4V/WebM, çözünürlük sınırı yok (sunucu 720p/H.264'e dönüştürür), saatte 30 yükleme.
 > - **Kaldırıldı → `410 FEATURE_REMOVED`** (`{"code","message"}`): yorumlar (`/api/posts/{id}/comments`, `/api/comments/**`), hikâyeler (`/api/stories/**`, `/api/users/{id}/stories`), etiketler (`/api/hashtags/**`), `GET /api/users/mention-suggest`, kaydet (`/api/posts/{id}/save`, `/api/posts/saved`), `GET /api/posts/{id}/likes`. İstemci 410'u yeniden denememeli; ilgili arayüzü kaldırıp (gerekirse "uygulamayı güncelleyin" göstererek) çağrıyı bırakmalıdır.
 > - **Kalan:** beğeni (`PUT|DELETE /api/posts/{id}/like`), takip ve akış kapsamları, gönderi sil/düzenle(metin), rapor.
 > - `PostView` geriye uyumlu: `commentCount=0`, `savedByMe=false`, `mentions=[]`, `hashtags=[]`, `media` ≤ 1 (yalnız ilk görsel). Eski video-only/fotoğrafsız gönderiler listelerde yoktur.
@@ -706,7 +762,7 @@ Tek sözleşme: [POSTS_DESIGN.md](POSTS_DESIGN.md); değişiklik notu: `docs/cha
 | `GET /api/posts/{id}` | `PostView`; silinmiş/gizli/engelli/yazarı pasif → `404 POST_NOT_FOUND`. |
 | `PATCH /api/posts/{id}` `{text}` | Yalnız yazar (`403 POST_FORBIDDEN`); `editedAt` dolar, medya değişmez. |
 | `DELETE /api/posts/{id}` | 204; yazar veya ADMIN (yumuşak silme). |
-| `GET /api/feed?scope=latest\|popular&cursor=&size=` | `{items:[PostView], nextCursor:string\|null}`; size 1-20 (varsayılan 10). `latest` yeniden eskiye, `popular` son 7 gün puanına göre. |
+| `GET /api/feed?cursor=&size=` | **Tek puanlı akış** (`scope` yok/`top`/`popular`/`latest` aynı akış; `following`/`department` ayrı). Bkz. "Keşfet v2". |
 | `GET /api/users/{id}/posts`, `GET /api/posts/mine` | Aynı sayfa biçimi (`cursor`, `size`); engel ilişkisinde boş liste. |
 
 - **İmleç opaktır**: `nextCursor` değerini aynen `cursor` olarak geri verin; `scope` değiştirilince imleç atılır. Bozuk imleç `400 POST_CURSOR_INVALID`. `popular`'da puan saatlik güncellendiği için nadiren aynı gönderi sayfalar arasında tekrar edebilir (istemci `id` ile tekilleştirsin).
@@ -755,13 +811,13 @@ HTTP 422
 - Güncellemelerde (PATCH/PUT) yalnızca **değişen** alanlar denetlenir.
 - **Sohbet mesajları (birebir/grup/kulüp/etkinlik odası: gövde ve görsel açıklaması) filtrelenmez.** Sorunlu mesaj için mevcut mesaj şikâyeti kullanılır (sebep `INAPPROPRIATE` / `HARASSMENT`).
 
-## Akademik: ders programı, sınavlar, akademik takvim
+## Akademik: ders programı, sınavlar, akademik takvim, bölüm duyuruları
 
 Tam sözleşme (JSON örnekleri, hata kodları, saat biçimleri): [API_CONTRACTS_V2.md](API_CONTRACTS_V2.md) "Akademik". Özet:
 
 - **Ders programı (kişisel):** `GET /api/timetable`, `POST|PATCH|DELETE /api/timetable/courses[/{id}]` (bir ders + çok oturum; çakışma `409 COURSE_CONFLICT`, `force=true` ile geçilir), `POST /api/timetable/import` (en çok 60 oturum), `GET /api/timetable/today|week|reminders`, `GET /api/timetable/export.ics` (VTIMEZONE Europe/Istanbul, haftalık RRULE), dönemler `/api/timetable/semesters` (+ `from-official`).
-- **Resmi ders programı:** `GET /api/timetable/official[?term&department&grade&unit]` → `{term, items[{id,term,unit,faculty,department,program,grade,group,day(1=Pzt..7),start,end,code,name,instructor,room,note,sourceUrl,published}], units[], profileComplete}`; varsayılan profildeki bölüm + sınıf, yalnız yayındakiler. `units` birden çoksa (aynı bölüm adı birkaç MYO'da) kullanıcıya birim seçtirin.
-- **Sınavlar:** yalnız kişisel `/api/timetable/exams[/upcoming]` (okulun resmi sınav programı yoktur; `GET /api/exams/official` kaldırıldı).
+- **Resmi programdan kişisel program (V1160):** profildeki bölüm + sınıfa göre yayındaki resmi program kişisel programa (`tt_course` + `tt_session`) kopyalanır. `GET /api/timetable` kişisel dersi hiç olmayan, bu dönem için tohum işareti bulunmayan ve resmi programı TEK birimden gelen kullanıcıya bunu otomatik yapar (işaret `tt_official_seed(user_id, term)`; kullanıcı hepsini silse bile aynı dönem için yeniden tohumlanmaz; birden çok birim eşleşirse yapılmaz; sınıf profilde yoksa eşleşme boş). Güncel dönem = yayındaki resmi programın en yenisi. `GET /api/timetable/official/status` → `{available, applied, term|null, units[]}`; `POST /api/timetable/official/apply` gövde `{unit?, replace?, force?}` → `TimetableView`: birden çok birim varken `unit` zorunlu (`422 OFFICIAL_UNIT_REQUIRED`), geçersiz birim ya da eşleşen program yoksa `404 OFFICIAL_TIMETABLE_NOT_FOUND`; `replace=true` görünen kişisel dersleri siler ve yeniden kopyalar (onay istemcide); `replace` yoksa mevcut derslerle çakışma `409 COURSE_CONFLICT`, `force=true` ile geçilir. Kopyalama: aynı dersin (kod varsa kod+ad+hoca, yoksa ad+hoca) gün/saatleri TEK derse oturum olarak toplanır; renk otomatik; ders kodu, derslik ve not kopyalanmaz; grup/şube (I./II. öğretim) ayrımı yapılmaz, aynı gün-saat tek oturuma iner. En çok 40 ders. Ders eklerken/düzenlerken `code`, `color`, `note`, `room` zorunlu değildir (gönderilirse kabul edilir); zorunlu: ders adı + en az bir oturum.
+- **Sınavlar:** kişisel `/api/timetable/exams[/upcoming]`. (Resmi sınav programı `GET /api/exams/official` ve bölüm duyuruları `/api/announcements*` V1251 ile KALDIRILDI.)
 - **Akademik takvim:** `GET /api/academic/calendar?month=YYYY-MM|from&to`, `GET /api/academic/calendar/next`.
 - Ders/sınav hatırlatmaları **mobil yerel bildirimle** yapılır; sunucu yalnız `reminders` listesini verir. Saat dilimi Europe/Istanbul, `dayOfWeek` ISO 1..7.
 
@@ -772,7 +828,7 @@ Tam sözleşme: [API_CONTRACTS_V2.md](API_CONTRACTS_V2.md) "Gönderi sosyal". Ö
 - **Kaydet:** `PUT/DELETE /api/posts/{id}/save` (idempotent, `{saved}`), `GET /api/posts/saved?cursor&size` (PostView sayfası). `PostView.savedByMe` yalnız kendi görünümünüzde dolu; kaydeden sayısı yoktur.
 - **@Etiket:** metne istemci `@[Ad Soyad](uid:123)` yazar (seçici ile; `GET /api/users/mention-suggest?q=&postId=&size=8`). Sunucu en çok 10 kişiyi doğrular (11+ → 400 `MENTION_TOO_MANY`; engelli/pasif kullanıcı sessizce düşer). `PostView.mentions` ve `CommentView.mentions` = `[{id, displayName}]`; `text` biçimi aynen korunur, istemci `@[..](uid:..)` kalıbını "@Ad" olarak çizer. Etiketlenene `POST_MENTION` bildirimi (`targetType: POST`, `data.commentId` yorum için).
 - **#Etiket:** metindeki `#etiket` (2–40 harf/rakam/_) sunucuda çıkarılır; `PostView.hashtags` (Türkçe küçük harfli). `GET /api/hashtags/trending?size=10` (48 saat, saatlik önbellek), `GET /api/hashtags/suggest?q=`, `GET /api/hashtags/{tag}/posts?cursor&size` (`{tag}` aksanlı/aksansız olabilir).
-- **Takip:** `POST/DELETE /api/users/{id}/follow` (`{following, followerCount}`), `GET /api/users/{id}/followers|following?cursor&size`, `GET /api/users/me/follow-suggestions?size=`. Profil (`GET /api/users/{id}`) `followerCount`, `followingCount`, `followedByMe` ve `followsMe` (o kullanıcı beni takip ediyor mu) taşır; "karşılıklı" istemcide `followedByMe && followsMe` ile türetilir. Takipçi/takip edilen liste öğeleri `{id, displayName, avatarUrl, department, followedByMe, followsMe}` döner (sayfa başına tek sorgu; kendi satırında ikisi de `false`). Engelli ilişkide mevcut gizleme kuralları aynen sürer; eski sunucuda `followsMe` alanı yoktur (yoksa `false` sayın). `USER_FOLLOW` bildirimi (`targetType: USER`, `targetId` = takipçi); alt tür tercihi `USER_FOLLOW` (ve `POST_MENTION`) mevcut bildirim tercihleri ucundan (`subtypes`) kapatılabilir.
+- **Takip:** `POST/DELETE /api/users/{id}/follow` (`{following, followerCount}`), `GET /api/users/{id}/followers|following?cursor&size`, `GET /api/users/me/follow-suggestions?page=&size=` (`page` 0 tabanlı, `size` varsayılan 10 / en çok 50; gövde düz dizi, devam bilgisi `X-Has-More: true|false` başlığı; en çok 200 öneri, taşan sayfa boş dizi; ayrıntı `docs/changes/post.md`). Profil (`GET /api/users/{id}`) `followerCount`, `followingCount`, `followedByMe` ve `followsMe` (o kullanıcı beni takip ediyor mu) taşır; "karşılıklı" istemcide `followedByMe && followsMe` ile türetilir. Takipçi/takip edilen liste öğeleri `{id, displayName, avatarUrl, department, followedByMe, followsMe}` döner (sayfa başına tek sorgu; kendi satırında ikisi de `false`). Engelli ilişkide mevcut gizleme kuralları aynen sürer; eski sunucuda `followsMe` alanı yoktur (yoksa `false` sayın). `USER_FOLLOW` bildirimi (`targetType: USER`, `targetId` = takipçi); alt tür tercihi `USER_FOLLOW` (ve `POST_MENTION`) mevcut bildirim tercihleri ucundan (`subtypes`) kapatılabilir.
 - **Akış:** `GET /api/feed?scope=latest|popular|following|department`. `department` ve profilde bölüm yoksa `items:[]` + `hint:"NO_DEPARTMENT"`. Bilinmeyen kapsam → 400 `FEED_SCOPE_INVALID`.
 - **Hikâyeler (24 saat):** medya `POST /api/posts/media` ile yüklenir, `POST /api/stories {mediaId?, text?, caption?, background?}` ile bağlanır (video ≤30 sn → `STORY_VIDEO_TOO_LONG`). `GET /api/stories/tray` (kendim ilk, görülmemiş önce), `GET /api/users/{id}/stories`, `POST /api/stories/{id}/view` (204, idempotent), `GET /api/stories/{id}/viewers` (yalnız sahip), `DELETE /api/stories/{id}`. Süre dolunca 404/boş. Medya aynı `GET /api/posts/media/{id}` ucundan akar. Yanıt/tepki yoktur.
 - Hata kodları (tr/en/ar): `MENTION_TOO_MANY`, `FOLLOW_SELF`, `FEED_SCOPE_INVALID`, `HASHTAG_INVALID`, `STORY_NOT_FOUND`, `STORY_FORBIDDEN`, `STORY_EMPTY`, `STORY_TOO_LONG`, `STORY_VIDEO_TOO_LONG`, `STORY_BACKGROUND_INVALID`.
@@ -796,13 +852,13 @@ Tam sözleşme (alanlar, hata kodları, hız sınırları): `docs/API_CONTRACTS_
 
 Ayrıntı ve örnekler: [changes/event.md](changes/event.md) "Herkes etkinlik açar". Özet: `POST /api/events` herkese açık (`communityId` isteğe bağlı), gövdeye `joinPolicy` (`OPEN` varsayılan | `APPROVAL`); `EventView` yeni alanları `joinPolicy`, `organizer{id,displayName,avatarUrl}`, `pendingCount` (yalnız yöneten), `myRsvp` = `GOING|INTERESTED|PENDING|REJECTED|null`. `APPROVAL` etkinlikte `PUT /rsvp {status:GOING}` istek açar ve `myRsvp:"PENDING"` döner; geri çekme `DELETE /rsvp`. Sorulu etkinlikte 400 `ANSWERS_REQUIRED` → `POST /events/{id}/applications {note,answers}`. Organizatör: `GET /events/{id}/requests?status=PENDING`, `POST /events/{id}/requests/{userId}/approve|reject` (doluysa 409 `EVENT_FULL`). Sohbet (`GET /events/{id}/chat`) yalnız `GOING` katılımcı + organizatörlere açıktır.
 
-## Keşfet puanlı akış (`scope=top`)
+## Keşfet puanlı akış (`scope=top`) (Keşfet v2'de tek akış oldu; aşağıdaki "Keşfet v2" geçerli)
 
 `GET /api/feed?scope=top&size=12&cursor=...` → `{items, nextCursor, hint}`. `size` varsayılan 12, üst sınır 30. `nextCursor` opaktır, olduğu gibi geri gönderilir; `null` = son sayfa. `hint:"RANK_REFRESHED"` gelirse (puanlar yeniden hesaplandı) nadiren aynı gönderi tekrar gelebilir: istemci `id`'ye göre tekilleştirir. Puan dönmez. `latest`/`popular` aynen çalışır. Ayrıntı: [POSTS_DESIGN.md](POSTS_DESIGN.md) "Keşfet puanlama".
 
 ### 6.x Akıllı bildirim: sohbetteyken bastırma, yığılma önleme (V440 aralığı kullanılmadı; migration yok)
 
-**Karar tablosu (yeni sohbet mesajı, alıcı başına):** gönderen kendisi, sessize alınmış (`muted`/`mutedForever`), yapışkan arşivde (`archiveSticky`), engel ilişkisi olan, askıdaki/silinmiş hesap -> bildirim YOK. **(P1 ile GÜNCELLENDİ, bkz. `docs/changes/push.md` "P1")** Alıcı o sohbeti görüntülüyor (`viewing:<uid>`, TTL 45 sn) VE canlı WS bağlantısı var -> hiçbir şey. Diğer tüm durumlarda (çevrimiçi, ön plan, arka plan, kapalı) push GİDER; ön plandaki istemci kendisi bastırır/tekilleştirir (`messageId`). Pencere (`message-window-seconds`) varsayılan 0; mesajlara ayrı dakikalık sınır `max-messages-per-minute` (60), diğer türler `max-per-minute` (10, SYSTEM hariç). Sohbet sonuna kadar okununca kutudaki `conv:<id>` satırı okunur. Redis erişilemezse hepsi "açık" (push gider).
+**Karar tablosu (yeni sohbet mesajı, alıcı başına):** gönderen kendisi, sessize alınmış (`muted`/`mutedForever`), arşivde (`archivedAt` dolu; her arşiv kalıcıdır), engel ilişkisi olan, askıdaki/silinmiş hesap -> bildirim YOK. **(P1 ile GÜNCELLENDİ, bkz. `docs/changes/push.md` "P1")** Alıcı o sohbeti görüntülüyor (`viewing:<uid>`, TTL 45 sn) VE canlı WS bağlantısı var -> hiçbir şey. Diğer tüm durumlarda (çevrimiçi, ön plan, arka plan, kapalı) push GİDER; ön plandaki istemci kendisi bastırır/tekilleştirir (`messageId`). Pencere (`message-window-seconds`) varsayılan 0; mesajlara ayrı dakikalık sınır `max-messages-per-minute` (60), diğer türler `max-per-minute` (10, SYSTEM hariç). Sohbet sonuna kadar okununca kutudaki `conv:<id>` satırı okunur. Redis erişilemezse hepsi "açık" (push gider).
 
 **Uçlar (JWT, hız sınırlı):**
 - `PUT /api/conversations/{id}/viewing` -> 204. Sohbet açıkken 30 sn'de bir. Üye değilse 404. Ön planı da ima eder.
@@ -815,7 +871,7 @@ Ayrıntı ve örnekler: [changes/event.md](changes/event.md) "Herkes etkinlik a�
 
 **Birleştirme ve tekrar:** beğeni: gönderi başına 10 dk'lık pencere, ilk beğeni push'lanır, devamı yalnız kutuda ("X ve N kişi"); takip: aynı kişi için ömür boyu tek bildirim (bırak-al spam yok); kulüp gönderisi: `commpost:<id>` anahtarıyla okunmamışlar tek satır, alt tür `COMMUNITY_POST` (artık tercihle kapatılabilir). Kutu görünümü (`GET /api/notifications`) yeni alan: `groupKey`; `count` zaten vardı.
 
-**Sessiz saat ve tercihler:** ana bayrak + alt tür her `NotificationService.send*` yolunda uygulanır; sessiz saatte kutu yazılır, push gitmez. `SYSTEM` (hesap güvenliği, moderasyon, destek yanıtı) sessiz saati ve ana bayrakları AŞAR ve askıdaki hesaba da gider; diğer türler askıdaki/silinmiş hesaba gitmez (`RecipientGuard`). Toplu yollar (`broadcast`, `sendBulk`, kampanya) sessiz saati SQL'de uygular. Önizleme kararı: push gövdesi varsayılan "Yeni mesaj" + gönderen (grupta "Grup - Gönderen") adıdır; kutu tablosuna metin ASLA yazılmaz; mesaj metni önizlemesi (100 karakter) yalnız kullanıcı `messagePreview=true` yaptıysa (ya da global `app.push.message-preview=true` iken) push gövdesine girer (şifreli saklamayı bozmamak ve metnin Google/Apple sunucularından geçmesine rıza için varsayılan kapalı).
+**Sessiz saat ve tercihler:** ana bayrak + alt tür her `NotificationService.send*` yolunda uygulanır; sessiz saatte kutu yazılır, push gitmez. `SYSTEM` (hesap güvenliği, moderasyon, destek yanıtı) sessiz saati ve ana bayrakları AŞAR ve askıdaki hesaba da gider; diğer türler askıdaki/silinmiş hesaba gitmez (`RecipientGuard`). Toplu yollar (`broadcast`, `sendBulk`, kampanya) sessiz saati SQL'de uygular. Önizleme kararı (V1252): push gövdesi HER ZAMAN mesaj metninin ilk 100 karakteridir (yalnız görsel mesajda simge; birleşen mesajlarda "N yeni mesaj"), başlık gönderen (grupta "Grup - Gönderen") adıdır; kutu tablosuna metin ASLA yazılmaz. Tercih (`messagePreview`) ve `app.push.message-preview*` ayarları kaldırıldı. Android `chat` kanalı bildirimi kilit ekranında `PUBLIC` görünürlükle gider. Tek gösterimlik (view-once) medyada açıklama push'a, yanıt alıntısına ve sohbet listesi son mesajına GİRMEZ: push gövdesi `📷`/`🎬`, `replyTo.text` `"📷 Fotoğraf"`/`"🎬 Video"` + `replyTo.viewOnce:true`, `lastMessage.text` boş (bkz. `docs/changes/messaging.md`).
 
 **FCM doğrulama (yönetici):** `GET /api/admin/push/fcm/status` (ağ çağrısı yok: `enabled`, `projectId`), `POST /api/admin/push/fcm/validate` (Firebase `validateOnly` konu mesajı; hiçbir cihaza gitmez; `validated`, `error` yalnız kod; dakikada 5). Açılışta etkinse log: `FCM etkin: Firebase proje kimligi=<id>`; sağlık `fcm` detayında `projectId`. Anahtar hiçbir yerde yazılmaz.
 
@@ -845,7 +901,7 @@ Hepsi **geriye uyumlu eklemedir** (alan silme/yeniden adlandırma yok; migration
 - **Etkinlik kartları:** `GET /api/me/events` (EventView) için bekleyen istek sayısı **`pendingCount`** adıyla zaten vardı (yalnız etkinliği yönetene; diğerlerinde `null`). `GET /api/events/calendar` USER ögelerine de `pendingCount` eklendi (yalnız yönetene, yoksa alan yok). `EventView.cancelReason` (yalnız yönetene; yönetici iptali/gizlemesi gerekçesi) ve `EventView.rejectReason` (yalnız yönetene; inceleme red nedeni); alanlar yoksa gönderilmez. Düzenleyenin kendi iptalinde gerekçe alanı saklanmadığından `cancelReason` gelmez.
 - **Profil:** `GET /api/users/me` yanıtına `avatarHidden` (`true` = profil fotoğrafı moderasyonla gizlendi).
 - **Etkinlik sohbet erişimi:** `GET /api/events/{id}` (yalnız detay) yanıtında `chatAccess`: `LOCKED` (etkinlik yayında değil, sohbet süresi bitti, oda kapalı ya da kurulmamış ve yönetici değilsiniz), `OPEN` (odaya girebilirsiniz: katılımcı, düzenleyen, kulüp yetkilisi), `MEMBERS` (etkinliğe katılınca açılır). Liste uçlarında alan yok.
-- **Bildirim tercihleri:** `GET|PUT /api/notifications/preferences` yanıt/istek gövdesinde boolean `polls` ("Anketler"); varsayılan `true`, `PUT`ta verilmeyen (null) alan değişmez. Gönderim koşulu **ana tür bayrağı VE kendi bayrağı**dır: genel anket `announcements` + `polls`, kulüp anketi `communities` + `polls` ister (ana bayrak kapalıyken satır arayüzde pasif gösterilmelidir). `subtypes` haritasında `POLL` anahtarı da görünür ve aynı bayrağı yansıtır. Bölüm duyurusu (`academicAnnouncements`, `ACADEMIC_ANNOUNCEMENT`) ve `messagePreview` tercihleri kaldırıldı: istemci bu anahtarları çizmez/göndermez.
+- **Bildirim tercihleri (V880):** `GET|PUT /api/notifications/preferences` yanıt/istek gövdesine iki boolean: `polls` ("Anketler") ve `academicAnnouncements` ("Akademik duyurular"); varsayılan `true`, `PUT`ta verilmeyen (null) alan değişmez (eski istemciler etkilenmez). Gönderim koşulu **ana tür bayrağı VE kendi bayrağı**dır: genel anket `announcements` + `polls`, kulüp anketi `communities` + `polls`, sınav hatırlatması `announcements` + `academicAnnouncements` ister (bölüm duyurusu özelliği V1251 ile kaldırıldı) (yani ana bayrak kapalıyken kendi bayrağı açık olsa da bildirim gitmez; arayüzde bu satırlar ana bayrak kapalıyken pasif gösterilmelidir). Varsayılan `true` olduğundan mevcut kullanıcıların davranışı değişmez. `subtypes` haritasında da `POLL` ve `EXAM_REMINDER` anahtarları görünür (`ACADEMIC_ANNOUNCEMENT` alt türü kaldırıldı) ve aynı bayrağı yansıtır (alt tur anahtarıyla yazmak da aynı sütunu günceller).
 - **Profil `blockedByMe`:** `GET /api/users/{id}` yanıtında (yalnız başkasının profilinde) `blockedByMe: true|false` = istek sahibi bu kullanıcıyı engellemiş mi. Karşı tarafın beni engellemesi sızdırılmaz (o durumda da `false`, profil gölge engel kuralıyla boş gelir). Kendi profilimde alan yoktur. Çok sayıda engel olsa da doğrudur (`/users/me/blocks` sayfalamasına bağlı değil).
 
 
@@ -888,3 +944,63 @@ Gizli hesapta "yeni takipçi" (`USER_FOLLOW`) bildirimi gitmez (istek anında `F
 **Mesaj isteği ile ilişki:** ilk DM'de "alıcı göndereni takip ediyor" bağlamı yalnız KABUL EDİLMİŞ takibe dayanır; bekleyen istek bağlam sayılmaz.
 
 Hata kodu (3 dilde çeviri var): 422 `FOLLOW_REQUEST_LIMIT`. Ayrıntı: `docs/changes/post.md` ve `docs/changes/profile.md` (FOLLOWREQ).
+
+## Keşfet v2 (KS-BE, 2026-11-04): tek sıralama, puanlama, video, Reels, tekrar göstermeme
+**Bu bölüm yukarıdaki "SADE KEŞFET" kutusu, `GET /api/feed?scope=latest|popular` satırı ve "Keşfet puanlı akış" bölümüyle çelişirse GEÇERLİDİR.** Ayrıntılı gerekçe, formüller ve
+şema: `docs/changes/post.md` "KS-BE (V1220)". Tüm uçlar Bearer ister.
+
+| Uç | Gövde / yanıt |
+|---|---|
+| `POST /api/posts/media` (multipart `file`, video için `poster` isteğe bağlı) | 201 `{id, kind:"IMAGE"\|"VIDEO", url, thumbUrl, width, height, durationMs, bytes}`. Video: MP4/MOV/M4V/WebM, **≤ 60 sn, ≤ 50 MB**; hatalar `400 VIDEO_INVALID`, `400 VIDEO_TOO_LONG`, `413 VIDEO_TOO_LARGE`, `422 MEDIA_BLOCKED`, `429 POST_MEDIA_PENDING_LIMIT`. Saatte 30 yükleme. |
+| `POST /api/posts` `{text?, mediaIds:[id]}` | 201 `PostView`. Tam 1 medya (foto **veya** video); `400 POST_PHOTO_REQUIRED` (boş), `400 POST_SINGLE_PHOTO_ONLY` (2+), `400 POST_MEDIA_INVALID`; metin gizli üst sınır 2200 karakter/40 satır, `mentionUserIds` ≤ 10. Saatte 20. |
+| `GET /api/feed?scope=foryou\|popular\|latest\|following&cursor=&size=` | `{items:[PostView], nextCursor, hint, exhausted}`. **Filtre eşlemesi:** Senin İçin = `foryou` (varsayılan, kişiselleştirilmiş), Popüler = `popular` (eski `top` aynı), En Yeni = `latest`, Takip Ettiklerim = `following`; `size` varsayılan 12 (üst sınır 30). `exhausted` yalnız `foryou`/`popular`. |
+| `GET /api/feed/reels?cursor=&size=&replay=` | Yalnız video; **öneri algoritması** (kural tabanlı puan, oturumda tekrar yok, izlenmemişler öncelikli); `size` varsayılan 8, üst sınır 20. Aday kalmayınca `items:[]`/son sayfa + **`exhausted:true`**; **`replay=true`** = "Tekrar izle" (imleçsiz ilk çağrı). |
+| `POST /api/posts/{id}/not-interested` / `DELETE` | 204 / 204. "İlgilenmiyorum" (Reels + Senin İçin önerilerinden kalkar, 45 gün); DELETE geri alır. |
+| `POST /api/feed/seen` `{ids:[…≤100]}` | 204. Ekranda **gerçekten görünen** gönderi/reel kimlikleri (dakikada 60); video kimlikleri Reels izleme geçmişine **gösterim** olarak yazılır (Reels sayfa dönüşü gösterim yazmaz). |
+| `POST /api/posts/{id}/view` `{watchedMs, durationMs}` | 204. Video izlenme olayı (dakikada 240): gönderi sayacı + kullanıcı izleme geçmişi (süre, tamamlanma, hızlı geçme: < 1,5 sn ya da < %15); bkz. aşağıdaki kurallar. |
+| `GET /api/posts/media/{id}` / `?thumb=true` | Fotoğraf; video (**Range 206/416**) ve poster. Bearer başlığı gerekir (video oynatıcıya `httpHeaders` verin). |
+| `GET /api/users/me`, `GET /api/users/{id}` | Yeni alanlar: `popularityScore` (0..100), `likesReceived`, `postCount`, (`ProfileView`'da ayrıca `followerCount`). |
+| `GET /api/admin/posts?type=PHOTO\|VIDEO` | Satırda `type`, `viewCount`, `avgCompletionPct`. |
+
+`PostView` yeni alanlar (eskiler aynen): `type:"PHOTO"|"VIDEO"`, `video:{id,url,posterUrl,durationMs,width,height}` (yalnız VIDEO), `viewCount` (yalnız VIDEO),
+`popularityScore` (gönderi, 0..100), `author.followerCount`, `author.popularityScore` (kullanıcı, 0..100). `media[0]` aynı medyadır. Örnek:
+```json
+{"id":91,"author":{"id":7,"displayName":"Ayşe Y.","avatarUrl":null,"department":"Bilgisayar Müh.","followerCount":42,"popularityScore":63},
+ "text":"kampüste akşam","media":[{"id":12,"kind":"VIDEO","url":"/api/posts/media/12","thumbUrl":"/api/posts/media/12?thumb=true","width":720,"height":1280,"durationMs":18400}],
+ "likeCount":5,"likedByMe":false,"mine":false,"canEdit":false,"canDelete":false,"createdAt":"2026-11-04T10:00:00Z","editedAt":null,
+ "type":"VIDEO","video":{"id":12,"url":"/api/posts/media/12","posterUrl":"/api/posts/media/12?thumb=true","durationMs":18400,"width":720,"height":1280},"viewCount":130,"popularityScore":71}
+```
+- **Puanlar gerçek sayılardır** (beğeni, takipçi, izlenme, tamamlanma, gönderi sayısı); uydurma rozet/ödül yok. İstemci puan HESAPLAMAZ, `popularityScore`'u çubuk/rozet olarak çizer
+  (0 = boş). Kullanıcı puanı en çok ~1 saat gecikmelidir; gizli (kilitli) hesapta ve engel gölge profilinde alanlar gelmez (null/yok: çizme).
+- **Tekrar göstermeme (Keşfet `foryou`/`popular`):** sunucu döndürdüğü her sayfayı **kendisi görülmüş sayar** (Redis, 48 sa, ≤ 2000); `cursor`'suz çağrı (yenileme) görülmüşleri hariç tutar. **Reels** ise kendi 45 günlük izleme geçmişini kullanır (aşağıda).
+  İstemci ek olarak ekranda ≥ ~1 sn görünen kartları `POST /api/feed/seen` ile toplu (örn. sayfa değişiminde/duraklamada, ≤ 100) bildirmelidir. Hepsi görüldüyse sunucu en eski
+  görülmüşlerden tekrar eder ve **`exhausted:true`** döner (boş liste yok): istemci isterse "hepsini gördün" ipucu gösterir. Tekrar sayfaları da `nextCursor` ile gezilir.
+  `nextCursor` opaktır; yenilemede imleci atın.
+- **İzlenme olayı:** video kartı/Reels'ten çıkarken ya da bitince **bir kez** `POST /api/posts/{id}/view {watchedMs, durationMs}`. Sunucu aynı kullanıcı+gönderiyi 6 saatte bir sayar, kendi videosunu,
+  fotoğrafı ve < 1 sn'yi saymaz; yanıt hep 204 (sayıldı mı bildirilmez). Döngüde `watchedMs` toplamı süreyi aşabilir (kenetlenir).
+- **Reels akışı (mobil sözleşmesi):** ilk çağrı imleçsiz (`GET /api/feed/reels?size=8`), sonra `nextCursor`; ekranda ≥ ~1 sn görünen video için `POST /api/feed/seen`, videodan çıkınca/bitince **bir kez** `POST /api/posts/{id}/view`. `exhausted:true` gelince "Şimdilik tüm videoları gördün" bilgi alanı + **Tekrar izle** (`GET /api/feed/reels?replay=true`) + alternatif (Keşfet gönderileri / takip önerileri); pull-to-refresh imleçsiz çağrıdır (yeni oturum, kontrollü yeniden sıralama, yeni videolar katılır). Üç nokta menüsünde "İlgilenmiyorum" → `POST /api/posts/{id}/not-interested`. Ağırlıklar: `docs/changes/post.md` bölüm 6.
+- **Eski sürüm riski:** ≤ 2.0.6 istemciler video gönderiyi görsel gibi yükleyemez; yeni istemci `type`'a bakmalıdır. Bilinmeyen `type` değeri gelirse kartı yoksayın.
+## Keşfet: yorumlar, yanıtlar, kaydetme, kullanıcı arama, Reels arama, profil sayaçları (KS-BE2, V1230)
+
+Tam sözleşme (alanlar, hata kodları, birleşme notları): [changes/post.md](changes/post.md) "KS-BE2 (V1230)". Bu bölüm, "SADE KEŞFET" kutusundaki **"yorumlar kaldırıldı / 410"** ve "kaydet kaldırıldı" satırlarını geçersiz kılar (etiket, bahsetme, hikâye kaldırılmış kalır). Tüm uçlar Bearer ister.
+
+| Uç | Açıklama |
+|---|---|
+| `GET /api/posts/{id}/comments?sort=top\|new&cursor=&size=` | Ust düzey yorumlar → `{items:[CommentView], nextCursor, total}`; `total` = gönderideki yorum + yanıt sayısı. `sort` varsayılan `top` (beğeni, sonra yeni); `size` 20 (en çok 50). |
+| `POST /api/posts/{id}/comments` `{text, parentId?}` | 201 `CommentView`. Metin 1-300 karakter; `parentId` = yanıtlanan yorum (yanıta yanıt ust yoruma yassılanır, `replyTo` ile asıl muhatap döner). |
+| `GET /api/post-comments/{cid}/replies?cursor=&size=` | Yanıtlar eskiden yeniye (`size` 10, en çok 50). |
+| `GET /api/post-comments/{cid}` · `DELETE /api/post-comments/{cid}` | Tek yorum · sil (204; yorum yazarı, gönderi sahibi ya da yetkili yönetici). |
+| `PUT\|DELETE /api/post-comments/{cid}/like` | `{liked, likeCount}`; idempotent. |
+| `PUT\|DELETE /api/posts/{id}/save` · `GET /api/posts/saved?cursor=&size=` | `{saved, saveCount}` · kaydedilenler (`FeedPage`, yeni kaydedilen önce; görünmez olanlar sessizce elenir). |
+| `GET /api/users/search?q=&size=&cursor=` | **Aynı yol/biçim**; artık Türkçe harf + büyük/küçük harf duyarsız, kısmi eşleşme, satırlarda `followedByMe`/`followsMe`/`followerCount`/`followingCount`. Kullanıcı adı (@) yoktur; yalnız görünen ad aranır. |
+| `GET /api/search?q=&type=REELS` | Video gönderiler (açıklama aranır); `SearchHit.durationMs` + `likeCount`, `targetId` = gönderi id. `type` verilmezse gruplu özette `REELS` grubu da gelir. |
+| `GET /api/users/{id}/reels?cursor=&size=` | Kullanıcının Reels'leri (`FeedPage`, yeni önce; gizli hesapta `locked:true`). |
+
+- `PostView` yeni alanlar: `commentCount` (görünür yorum + yanıt), `savedByMe`. Profil yanıtlarında (`GET /api/users/me`, `GET /api/users/{id}`) `postCount` (görünür gönderi; Reels dahil) ve `reelCount` — gizli/kilitli hesapta başkasına gelmez, engel gölge profilinde 0.
+- `CommentView`: `{id, postId, parentId, author{id,displayName,avatarUrl,department}, text, likeCount, likedByMe, replyCount, createdAt, mine, byPostAuthor, canDelete, replyTo?{commentId,authorId,displayName}}`.
+- Şikâyet: `POST /api/reports` `{targetType:"COMMENT", targetId, reason}`. Bildirim: `POST_COMMENT` / `COMMENT_REPLY` (push `data.target=POST`, `postId`, `commentId`).
+- Hata kodları (tr/en/ar): `COMMENT_NOT_FOUND` 404, `COMMENT_EMPTY` 400, `COMMENT_TOO_LONG` 422, `COMMENT_FORBIDDEN` 403; küfür `422 CONTENT_PROFANITY` (`field:"text"`).
+- Hız sınırları: yorum yazma dakikada 20 / saatte 200, kaydet/beğeni dakikada 120, okuma dakikada 240.
+
+## İçerik paylaşımı (SH-BE, 2026-11-05)
+Gönderi / Reels / haber-duyuru / etkinlik: mesajla paylaşım (`POST /api/conversations/{cid}/messages` gövdesinde `share:{type,id}`, yanıtta `MessageView.share` kartı, hata `422 SHARE_TARGET_INVALID`), herkese açık bağlantı `https://bukampus.com.tr/s/{p|r|n|e}/{id}` (OpenGraph önizleme sayfası; uygulama yoksa mağaza) ve uygulamada açma (`bukampus://s/{t}/{id}` + evrensel bağlantı). Tam sözleşme ve JSON örnekleri: [SHARING.md](SHARING.md).

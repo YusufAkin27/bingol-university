@@ -5,7 +5,7 @@ import { useAppInfo } from '../api/hooks';
 import { RequirePerm, usePermissions } from '../auth/permissions';
 import { Logo } from '../components/brand/Logo';
 import { ThemeToggle } from '../components/ThemeToggle';
-import { Icon, IconButton, Spinner } from '../components/ui';
+import { Icon, IconButton } from '../components/ui';
 import { useFocusTrap } from '../components/ui/Overlay';
 import { useI18n } from '../i18n/I18nProvider';
 import { readStorage, writeStorage } from '../lib/storage';
@@ -13,14 +13,22 @@ import { paths } from '../paths';
 import { useSearchAnchorFocus } from '../search/anchor';
 import type * as MenuSearch from '../search/menu';
 import type { MenuMatch } from '../search/menu';
-import { adminNav, locateNav, navMatches } from './adminNav';
+import { adminNav, allAdminNavItems, locateNav, navMatches } from './adminNav';
 import { StorageBanner } from '../pages/admin/dataretention/StorageBanner';
+import { PageSkeleton } from './PageSkeleton';
+import { recordPageVisit, toggleFavoritePage, usePageMemory } from './pageMemory';
+import { RouteBoundary } from './RouteBoundary';
 import { DismissibleBand, MaintenanceBand } from './ShellBands';
+import { useShellShortcuts } from './useShellShortcuts';
 import { UserMenu } from './UserMenu';
 import styles from './AdminLayout.module.css';
+import extras from './ShellExtras.module.css';
 
-// Arama penceresi ve menü süzgeci motoru yalnız kullanılınca yüklenir (ana yönetim paketi küçük kalır)
+// Arama penceresi, yardım penceresi ve menü süzgeci motoru yalnız kullanılınca yüklenir (ana yönetim paketi küçük kalır)
 const QuickNav = lazy(() => import('./QuickNav'));
+/** Rota önyükleme tablosu (50+ dinamik içe aktarma) ayrı parçadır: ilk hover'da yüklenir, yönetim kabuğunu şişirmez. */
+const prefetchPage = (id: string) => void import('./prefetch').then((m) => m.prefetchPage(id));
+const ShortcutsHelp = lazy(() => import('./ShortcutsHelp'));
 type MenuSearchModule = typeof MenuSearch;
 type MenuHits = MenuMatch['hits'];
 
@@ -88,6 +96,8 @@ export function AdminLayout() {
   const [collapsed, setCollapsed] = useState(() => readStorage('local', COLLAPSE_KEY) === '1');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const memory = usePageMemory();
   const [filter, setFilter] = useState('');
   const [groupState, setGroupState] = useState<Record<string, boolean>>(readGroups);
   const info = useAppInfo();
@@ -117,17 +127,6 @@ export function AdminLayout() {
   // Çekmece/üstte açılan menü: odak menüde döner, Esc kapatır, kapanınca odak düğmeye döner
   useFocusTrap(asideRef, overlay, () => setDrawerOpen(false));
 
-  useEffect(() => {
-    const onKey = (e: globalThis.KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        setSearchOpen(true);
-      }
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, []);
-
   function toggleCollapsed() {
     setCollapsed((c) => {
       writeStorage('local', COLLAPSE_KEY, c ? '0' : '1');
@@ -136,6 +135,27 @@ export function AdminLayout() {
   }
 
   const here = useMemo(() => locateNav(location.pathname), [location.pathname]);
+  const hereId = here?.item.id;
+
+  // Son ziyaret edilen sayfalar (Ctrl+K boş ekranında listelenir)
+  useEffect(() => {
+    if (hereId) recordPageVisit(hereId);
+  }, [hereId]);
+
+  const goPending = useShellShortcuts({
+    onSearch: () => setSearchOpen(true),
+    onHelp: () => setHelpOpen(true),
+    onToggleSidebar: () => (tier === 'wide' ? toggleCollapsed() : setDrawerOpen((o) => !o)),
+    onToggleFavorite: () => hereId && toggleFavoritePage(hereId),
+    onGo: (page) => {
+      const item = allAdminNavItems.find((i) => i.id === page);
+      if (item && perms.can(item.perm)) navigate(item.to);
+    },
+  });
+  const isFav = hereId ? memory.fav.includes(hereId) : false;
+  const favItems = memory.fav
+    .map((id) => allAdminNavItems.find((i) => i.id === id))
+    .filter((i): i is (typeof allAdminNavItems)[number] => !!i && perms.can(i.perm));
   const filtering = !rail && filter.trim() !== '';
 
   // Yan menü süzgeci üst çubuk aramasıyla AYNI motoru kullanır (sayfa adı + sayfa içi ayar/alan/eylem girdileri).
@@ -267,6 +287,7 @@ export function AdminLayout() {
                 autoComplete="off"
                 spellCheck={false}
                 data-navitem
+                data-search-anchor="shell-menu-filter"
                 onChange={(e) => setFilter(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Escape' && filter) {
@@ -300,6 +321,34 @@ export function AdminLayout() {
               <p className={styles.filterEmpty}>{t('admin.nav.filter.empty')}</p>
             )}
             <ul className={styles.groups}>
+              {!filtering && favItems.length > 0 && (
+                <li className={styles.group} data-testid="nav-favorites">
+                  {rail ? (
+                    <div className={styles.divider} aria-hidden="true" />
+                  ) : (
+                    <p className={styles.groupBtn}>{t('admin.fav.group')}</p>
+                  )}
+                  <ul className={styles.items}>
+                    {favItems.map((i) => (
+                      <li key={i.id}>
+                        <NavLink
+                          to={i.to}
+                          end={i.end}
+                          title={rail ? t(i.labelKey) : undefined}
+                          aria-label={rail ? t(i.labelKey) : undefined}
+                          data-navitem
+                          onMouseEnter={() => prefetchPage(i.id)}
+                          onFocus={() => prefetchPage(i.id)}
+                          className={({ isActive }) => `${styles.item} ${isActive ? styles.active : ''}`}
+                        >
+                          <Icon name={i.icon} size={20} />
+                          <span className={styles.itemLabel}>{t(i.labelKey)}</span>
+                        </NavLink>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              )}
               {visibleGroups.map((g) => {
                 const open = isOpen(g.id);
                 const listId = `admin-nav-${g.id}`;
@@ -331,6 +380,9 @@ export function AdminLayout() {
                             title={rail ? i.label : undefined}
                             aria-label={rail ? i.label : undefined}
                             data-navitem
+                            onMouseEnter={() => prefetchPage(i.id)}
+                            onFocus={() => prefetchPage(i.id)}
+                            onTouchStart={() => prefetchPage(i.id)}
                             className={({ isActive }) => `${styles.item} ${isActive ? styles.active : ''}`}
                           >
                             <Icon name={i.icon} size={20} />
@@ -372,6 +424,7 @@ export function AdminLayout() {
               aria-label={toggleLabel}
               title={toggleLabel}
               aria-expanded={tier === 'wide' ? !collapsed : false}
+              data-search-anchor="shell-sidebar"
             >
               <Icon name="panel" size={20} />
               <span className={styles.itemLabel}>{toggleLabel}</span>
@@ -410,11 +463,32 @@ export function AdminLayout() {
               className={styles.searchBtn}
               onClick={() => setSearchOpen(true)}
               aria-haspopup="dialog"
+              data-search-anchor="shell-search"
             >
               <Icon name="search" size={18} />
               <span className={styles.searchText}>{t('admin.search.title')}</span>
               <kbd className="ltr">Ctrl K</kbd>
             </button>
+            {hereId && (
+              <IconButton
+                label={isFav ? t('admin.fav.remove') : t('admin.fav.add')}
+                aria-pressed={isFav}
+                className={isFav ? extras.starOn : undefined}
+                data-search-anchor="shell-favorite"
+                onClick={() => toggleFavoritePage(hereId)}
+              >
+                <Icon name="star" size={20} />
+              </IconButton>
+            )}
+            <IconButton
+              label={t('admin.kbd.open')}
+              aria-haspopup="dialog"
+              className={styles.helpBtn}
+              data-search-anchor="shell-help"
+              onClick={() => setHelpOpen(true)}
+            >
+              <Icon name="help" size={20} />
+            </IconButton>
             <ThemeToggle />
             <UserMenu />
           </div>
@@ -430,22 +504,28 @@ export function AdminLayout() {
         )}
 
         <main id="admin-main" className={styles.main} tabIndex={-1}>
-          <Suspense
-            fallback={
-              <div className={styles.loading}>
-                <Spinner size="lg" />
-              </div>
-            }
-          >
-            <NavRouteGuard>
-              <Outlet />
-            </NavRouteGuard>
-          </Suspense>
+          <RouteBoundary resetKey={location.pathname}>
+            <Suspense fallback={<PageSkeleton />}>
+              <NavRouteGuard>
+                <Outlet />
+              </NavRouteGuard>
+            </Suspense>
+          </RouteBoundary>
         </main>
       </div>
+      {goPending && (
+        <div className={extras.goHint} role="status">
+          {t('admin.kbd.pending')}
+        </div>
+      )}
       {searchOpen && (
         <Suspense fallback={null}>
           <QuickNav open onClose={() => setSearchOpen(false)} />
+        </Suspense>
+      )}
+      {helpOpen && (
+        <Suspense fallback={null}>
+          <ShortcutsHelp open onClose={() => setHelpOpen(false)} />
         </Suspense>
       )}
     </div>

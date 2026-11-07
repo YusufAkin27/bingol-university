@@ -1,19 +1,21 @@
-/* Simgeli kısa madde ızgarası: ince kenarlıklı yüzey, çizgi halkalı simge; vurgu yok. */
 .list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-4);
   grid-template-columns: minmax(0, 1fr);
+}
+.list > li {
+  min-width: 0;
 }
 .item {
   display: flex;
   align-items: flex-start;
   gap: var(--space-4);
   height: 100%;
-  padding: var(--space-4);
-  border: var(--rule);
+  padding: var(--space-5);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface);
 }
@@ -21,33 +23,34 @@
   flex: none;
   display: grid;
   place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: var(--text);
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--primary-soft);
+  color: var(--primary);
 }
 .text {
-  min-width: 0;
-  padding-block-start: var(--space-2);
+  padding-block-start: var(--space-1);
   color: var(--text);
-  line-height: 1.5;
-  overflow-wrap: anywhere;
+  line-height: 1.55;
 }
 @media (min-width: 700px) {
   .list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-@media print {
-  .item {
-    break-inside: avoid;
-    background: none;
-    border-color: #000;
-  }
-  .ico {
-    border-color: #000;
-    color: #000;
+
+/* dikey kart: simge üstte, metin altta */
+.four .item {
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.four .text {
+  font-weight: 500;
+  padding-block-start: 0;
+}
+@media (min-width: 1040px) {
+  .four {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }

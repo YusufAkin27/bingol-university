@@ -49,6 +49,12 @@ public class EventModerationService {
     private final EventApplicationRepository applications;
     private final CommunityService communities;
     private final NotificationService notifications;
+    private EventPushHints hints;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setHints(EventPushHints hints) {
+        this.hints = hints;
+    }
 
     public EventModerationService(UserEventRepository events, EventModerationLogRepository log,
                                   EventService eventService, EventAttendanceRepository attendance,
@@ -226,7 +232,7 @@ public class EventModerationService {
         events.saveAndFlush(e);
         record(e.getId(), adminId, action, from, UserEvent.Status.CANCELLED, clean);
         notifications.sendTemplated(e.getCreatedBy(), NotificationType.EVENT, "notif.event.cancelledByAdmin",
-                Map.of("eventId", id.toString()), e.getTitle(), clean);
+                hints == null ? Map.of("eventId", id.toString()) : hints.cancelled(e), e.getTitle(), clean);
         return detail(id);
     }
 

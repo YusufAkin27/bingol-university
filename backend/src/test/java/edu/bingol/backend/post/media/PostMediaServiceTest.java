@@ -28,6 +28,7 @@ import edu.bingol.backend.media.BlobCipher;
 import edu.bingol.backend.media.ImageProcessor;
 import edu.bingol.backend.media.NoopBlobCipher;
 import edu.bingol.backend.media.PrivateMediaStore;
+import edu.bingol.backend.media.WebmFixtures;
 import edu.bingol.backend.messaging.media.Mp4Fixtures;
 import edu.bingol.backend.moderation.BlockService;
 import edu.bingol.backend.moderation.ContentBlocklist;
@@ -166,14 +167,21 @@ class PostMediaServiceTest {
         when(repo.ofPostsDeletedBefore(any(Instant.class), any())).thenAnswer(inv -> db.values().stream()
                 .filter(m -> m.getPostId() != null && posts.containsKey(m.getPostId())
                         && posts.get(m.getPostId()).getDeletedAt() != null
-                        && posts.get(m.getPostId()).getDeletedAt().isBefore(inv.getArgument(0))).toList());
+                        && posts.get(m.getPostId()).getDeletedAt().isBefore(inv.getArgument(0)))
+                .limit(inv.getArguments().length > 1 && inv.getArgument(1) != null ? inv.<org.springframework.data.domain.Pageable>getArgument(1).getPageSize() : Integer.MAX_VALUE).toList());
         org.mockito.Mockito.doAnswer(inv -> {
             db.remove(inv.<PostMedia>getArgument(0).getId());
             return null;
         }).when(repo).delete(any(PostMedia.class));
         when(repo.postState(anyLong())).thenAnswer(inv -> Optional.ofNullable(posts.get(inv.<Long>getArgument(0))));
 
-        when(blocks.hiddenFrom(any())).thenAnswer(inv -> OTHER.equals(inv.getArgument(0)) ? blockedForOther : Set.of());
+        when(blocks.isBlocked(any(), any())).thenAnswer(inv -> OTHER.equals(inv.getArgument(0))
+                && blockedForOther.contains(inv.<Long>getArgument(1)));
+        when(repo.keysAfter(anyLong(), any())).thenAnswer(inv -> db.values().stream()
+                .filter(m -> m.getId() > inv.<Long>getArgument(0))
+                .sorted(java.util.Comparator.comparing(PostMedia::getId))
+                .limit(inv.getArguments().length > 1 && inv.getArgument(1) != null ? inv.<org.springframework.data.domain.Pageable>getArgument(1).getPageSize() : Integer.MAX_VALUE)
+                .map(m -> new Object[] {m.getId(), m.getStorageKey()}).toList());
         when(blocklist.isBlocked(anyString())).thenReturn(false);
         post(POST, ME, null, null);
     }
@@ -183,7 +191,15 @@ class PostMediaServiceTest {
     }
 
     void post(Long id, Long author, Instant deletedAt, Instant hiddenAt) {
+        post(id, author, deletedAt, hiddenAt, edu.bingol.backend.user.UserStatus.ACTIVE);
+    }
+
+    void post(Long id, Long author, Instant deletedAt, Instant hiddenAt, edu.bingol.backend.user.UserStatus status) {
         posts.put(id, new PostMediaRepository.PostState() {
+            public edu.bingol.backend.user.UserStatus getAuthorStatus() {
+                return status;
+            }
+
             public Long getAuthorId() {
                 return author;
             }
@@ -381,16 +397,66 @@ class PostMediaServiceTest {
         service.setVideoLimits(1000, 60);
         assertApi(HttpStatus.PAYLOAD_TOO_LARGE, "VIDEO_TOO_LARGE",
                 () -> service.upload(ME, videoFile(Mp4Fixtures.mp4(5.0, 320, 240, 5000)), null));
-        service.setVideoLimits(40L << 20, 60);
+        service.setVideoLimits(50L << 20, 60);
         byte[] junk = new byte[64];
         assertApi(HttpStatus.BAD_REQUEST, "VIDEO_INVALID", () -> service.upload(ME, videoFile(junk), null));
         byte[] ftypOnly = Arrays.copyOf(Mp4Fixtures.mp4(5.0, 320, 240, 10), 24); // moov kesik
         assertApi(HttpStatus.BAD_REQUEST, "VIDEO_INVALID", () -> service.upload(ME, videoFile(ftypOnly), null));
         assertApi(HttpStatus.BAD_REQUEST, "VIDEO_INVALID", () -> service.upload(ME,
-                new MockMultipartFile("file", "v.mp4", "video/quicktime", Mp4Fixtures.mp4(5.0, 320, 240, 10)), null));
+                new MockMultipartFile("file", "v.mp4", "application/pdf", Mp4Fixtures.mp4(5.0, 320, 240, 10)), null));
         assertApi(HttpStatus.BAD_REQUEST, "VIDEO_INVALID", () -> service.upload(ME,
                 new MockMultipartFile("file", "v.mp4", "video/mp4", new byte[0]), null));
         assertEquals(1, db.size());
+    }
+
+    @Test
+    void videoContainersMovAndWebmAreAcceptedByContentNotByName() throws Exception {
+        // MOV (iPhone): ana marka "qt  " -> video/quicktime olarak saklanir ve sunulur
+        byte[] mov = Mp4Fixtures.mp4(8.0, 1080, 1920, 200);
+        System.arraycopy("qt  ".getBytes(java.nio.charset.StandardCharsets.US_ASCII), 0, mov, 8, 4);
+        PostMediaService.Uploaded u = service.upload(ME,
+                new MockMultipartFile("file", "IMG_0001.MOV", "video/quicktime", mov), null);
+        assertEquals("VIDEO", u.kind());
+        assertEquals(8000, u.durationMs());
+        assertEquals("video/quicktime", db.get(u.id()).getContentType());
+        // octet-stream + bilinen uzanti de kabul (bazi istemciler tur gondermez)
+        service.upload(ME, new MockMultipartFile("file", "clip.mp4", "application/octet-stream",
+                Mp4Fixtures.mp4(3.0, 320, 240, 50)), null);
+        // WebM: yalniz gercek EBML + DocType webm + sure; video/webm olarak saklanir
+        PostMediaService.Uploaded w = service.upload(ME,
+                new MockMultipartFile("file", "clip.webm", "video/webm", WebmFixtures.webm(9.0, 640, 360, 300)), null);
+        assertEquals("VIDEO", w.kind());
+        assertEquals(9000, w.durationMs());
+        assertEquals("video/webm", db.get(w.id()).getContentType());
+        assertApi(HttpStatus.BAD_REQUEST, "VIDEO_TOO_LONG", () -> service.upload(ME,
+                new MockMultipartFile("file", "long.webm", "video/webm", WebmFixtures.webm(61.0, 640, 360, 50)), null));
+        // sure okunamayan WebM (canli kayit) ve doctype'i webm olmayan reddedilir
+        assertApi(HttpStatus.BAD_REQUEST, "VIDEO_INVALID", () -> service.upload(ME,
+                new MockMultipartFile("file", "live.webm", "video/webm", WebmFixtures.webm(5, 64, 64, 10, false, "webm")), null));
+        // Content-Type video diyor ama icerik gercek kap degil: ret (ad/Content-Type'a guvenilmez)
+        assertApi(HttpStatus.BAD_REQUEST, "VIDEO_INVALID", () -> service.upload(ME,
+                new MockMultipartFile("file", "fake.mp4", "video/mp4", "<html>not a video</html>................".getBytes()), null));
+        // HEIC goruntusu de ftyp tasir: video degil
+        byte[] heic = Mp4Fixtures.mp4(5.0, 320, 240, 10);
+        System.arraycopy("heic".getBytes(java.nio.charset.StandardCharsets.US_ASCII), 0, heic, 8, 4);
+        assertApi(HttpStatus.BAD_REQUEST, "VIDEO_INVALID", () -> service.upload(ME,
+                new MockMultipartFile("file", "photo.mp4", "video/mp4", heic), null));
+        // 50 MB varsayilan sinir: 60,3 sn tolerans icinde gecer, 61 sn gecmez (yukarida)
+        service.upload(ME, videoFile(Mp4Fixtures.mp4(60.3, 320, 240, 20)), null);
+    }
+
+    @Test
+    void requireMediaReturnsKindAndEnforcesOwnership() throws Exception {
+        PostMediaService.Uploaded img = uploadImage(ME);
+        PostMediaService.Uploaded vid = service.upload(ME, videoFile(Mp4Fixtures.mp4(5.0, 320, 240, 100)), null);
+        assertEquals("IMAGE", service.requireMedia(ME, List.of(img.id())));
+        assertEquals("VIDEO", service.requireMedia(ME, List.of(vid.id())));
+        assertApi(HttpStatus.BAD_REQUEST, "POST_MEDIA_INVALID", () -> service.requireMedia(ME + 1, List.of(vid.id())));
+        assertApi(HttpStatus.UNPROCESSABLE_ENTITY, "POST_MEDIA_MIX", () -> service.requireMedia(ME, List.of(img.id(), vid.id())));
+        assertApi(HttpStatus.BAD_REQUEST, "POST_MEDIA_INVALID", () -> service.requireMedia(ME, List.of(img.id(), img.id())));
+        assertApi(HttpStatus.BAD_REQUEST, "POST_MEDIA_INVALID", () -> service.requireMedia(ME, List.of(999999L)));
+        // requireImage eski sozlesme: video reddedilir
+        assertApi(HttpStatus.BAD_REQUEST, "POST_VIDEO_NOT_ALLOWED", () -> service.requireImage(ME, List.of(vid.id())));
     }
 
     @Test
@@ -573,6 +639,23 @@ class PostMediaServiceTest {
     }
 
     @Test
+    void requireMediaAcceptsUpToTenPhotosInOrderAndRejectsEleven() throws Exception {
+        List<Long> ids = new ArrayList<>();
+        for (int i = 0; i < 11; i++) {
+            ids.add(uploadImage(ME).id());
+        }
+        assertEquals("IMAGE", service.requireMedia(ME, ids.subList(0, 10)));
+        assertApi(HttpStatus.UNPROCESSABLE_ENTITY, "POST_MEDIA_LIMIT", () -> service.requireMedia(ME, ids));
+        PostMediaService.Uploaded foreign = uploadImage(OTHER);
+        List<Long> withForeign = new ArrayList<>(ids.subList(0, 2));
+        withForeign.add(foreign.id());
+        assertApi(HttpStatus.BAD_REQUEST, "POST_MEDIA_INVALID", () -> service.requireMedia(ME, withForeign));
+        PostMediaService.Uploaded v1 = uploadVideo(ME, false);
+        PostMediaService.Uploaded v2 = uploadVideo(ME, false);
+        assertApi(HttpStatus.UNPROCESSABLE_ENTITY, "POST_MEDIA_MIX", () -> service.requireMedia(ME, List.of(v1.id(), v2.id())));
+    }
+
+    @Test
     void attachAllowsTenVideos() throws Exception {
         List<Long> ids = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
@@ -615,6 +698,46 @@ class PostMediaServiceTest {
         assertEquals(4, fileCount()); // fresh + bound (ana + onizleme)
     }
 
+    /** A06#1: dosya basina existsByStorageKey sorgusu yok; referans kumesi sayfali (sabit sayida) sorguyla alinir. */
+    @Test
+    void sweepUnattachedDoesNotQueryPerFile() throws Exception {
+        List<PostMediaService.Uploaded> ups = new ArrayList<>();
+        for (int i = 0; i < 6; i++) {
+            ups.add(uploadImage(ME));
+        }
+        service.attach(POST, ME, ups.stream().map(PostMediaService.Uploaded::id).toList());
+        for (PostMediaService.Uploaded u : ups) { // hepsi eski ama satirli (bagli)
+            db.get(u.id()).setCreatedAt(Instant.now().minus(Duration.ofHours(30)));
+            Path f = dir.resolve("_private").resolve("post").resolve(db.get(u.id()).getStorageKey());
+            Files.setLastModifiedTime(f, java.nio.file.attribute.FileTime.from(Instant.now().minus(Duration.ofHours(48))));
+        }
+        long before = fileCount();
+        service.sweepUnattached(Duration.ofHours(24));
+        org.mockito.Mockito.verify(repo, org.mockito.Mockito.never()).existsByStorageKey(anyString());
+        org.mockito.Mockito.verify(repo, org.mockito.Mockito.atMost(2)).keysAfter(anyLong(), any());
+        assertEquals(before, fileCount(), "satirli dosyalar silinmemeli");
+    }
+
+    /** A06#7: askida/pasif yazarin fotografi ID ile erisilemez (akis VISIBLE kuraliyla tutarli). */
+    @Test
+    void mediaOfNonActiveAuthorIsNotAccessible() throws Exception {
+        PostMediaService.Uploaded u = uploadImage(ME);
+        service.attach(POST, ME, List.of(u.id()));
+        assertTrue(service.accessible(OTHER, u.id()).isPresent());
+        post(POST, ME, null, null, edu.bingol.backend.user.UserStatus.SUSPENDED);
+        assertTrue(service.accessible(OTHER, u.id()).isEmpty());
+    }
+
+    /** A06#6: engel denetimi tum engel kumesini yuklemeden tek EXISTS ile (isBlocked) yapilir. */
+    @Test
+    void accessCheckUsesPairwiseBlockLookup() throws Exception {
+        PostMediaService.Uploaded u = uploadImage(ME);
+        service.attach(POST, ME, List.of(u.id()));
+        service.accessible(OTHER, u.id());
+        org.mockito.Mockito.verify(blocks, org.mockito.Mockito.never()).hiddenFrom(any());
+        org.mockito.Mockito.verify(blocks).isBlocked(OTHER, ME);
+    }
+
     @Test
     void sweepUnattachedAlsoRemovesRowlessOldFiles() throws Exception {
         PostMediaService.Uploaded u = uploadImage(ME);
@@ -639,6 +762,20 @@ class PostMediaServiceTest {
         assertEquals(1, service.sweepDeleted());
         assertFalse(db.containsKey(u.id()));
         assertFalse(Files.exists(dir.resolve("_private").resolve("post").resolve(key)));
+    }
+
+    /** A06#12: tek parti (500) yerine parti parti dongu; birikim ayni listeyi tekrar doldurmaz. */
+    @Test
+    void sweepDeletedLoopsOverBatches() throws Exception {
+        List<Long> ids = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            ids.add(uploadImage(ME).id());
+        }
+        service.attach(POST, ME, ids);
+        post(POST, ME, Instant.now().minus(Duration.ofDays(31)), null);
+        service.setSweepBatch(2);
+        assertEquals(5, service.sweepDeleted());
+        assertTrue(ids.stream().noneMatch(db::containsKey));
     }
 
     @Test

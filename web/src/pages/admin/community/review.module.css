@@ -165,3 +165,7 @@
   overflow-x: auto;
   max-width: 100%;
 }
+
+.insightWrap {
+  margin-block: var(--space-3);
+}

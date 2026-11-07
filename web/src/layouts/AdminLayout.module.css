@@ -564,6 +564,13 @@ button.groupBtn:hover {
   .crumbs ol {
     white-space: normal;
   }
+  /* klavye kısayol yardımı dokunmatik telefonda anlamsız; başlığa yer açar (390 px'te başlık harf harf kırılıyordu) */
+  .helpBtn {
+    display: none;
+  }
+  .crumbs {
+    min-inline-size: 5.5rem;
+  }
   .crumbs li[data-last] {
     display: -webkit-box;
     -webkit-box-orient: vertical;
@@ -571,7 +578,7 @@ button.groupBtn:hover {
     line-clamp: 2;
     overflow: hidden;
     line-height: 1.25;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
     font-size: var(--text-sm);
   }
   .topbar {

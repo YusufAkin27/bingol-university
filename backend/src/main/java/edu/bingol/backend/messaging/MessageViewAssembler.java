@@ -15,6 +15,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import edu.bingol.backend.messaging.media.AttachmentView;
 import edu.bingol.backend.messaging.media.MessageAttachmentService;
+import edu.bingol.backend.share.ShareCard;
+import edu.bingol.backend.share.ShareRef;
+import edu.bingol.backend.share.ShareService;
+import edu.bingol.backend.share.ShareType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,6 +40,20 @@ public class MessageViewAssembler {
 
     /** Makbuz durumu (setter enjeksiyonu; yoksa durum null). */
     private ReceiptService receipts;
+
+    /** Icerik paylasim kartlari (setter enjeksiyonu; yoksa kart gonderilmez). */
+    private ShareService shares;
+
+    @Autowired(required = false)
+    void setShares(ShareService shares) {
+        this.shares = shares;
+    }
+
+    /** Mesajin paylasim referansi; paylasim yoksa ya da tur taninmiyorsa null. */
+    static ShareRef shareOf(Message m) {
+        ShareType t = ShareType.parse(m.getShareType());
+        return t == null || m.getShareRefId() == null ? null : new ShareRef(t, m.getShareRefId());
+    }
 
     @Autowired(required = false)
     void setReceipts(ReceiptService receipts) {
@@ -82,7 +100,19 @@ public class MessageViewAssembler {
         codec.openAll(new ArrayList<>(parents.values()));
 
         Map<Long, List<AttachmentView>> att = attachments == null ? Map.of() : attachments.viewsFor(viewerId, ids);
+        // Yanit hedefi tek gosterimlik ise aciklamasi alintiya girmez (yalniz ek meta verisi okunur)
+        Map<Long, List<AttachmentView>> parentAtt = attachments == null || parents.isEmpty() ? Map.of()
+                : attachments.viewsFor(viewerId, parents.keySet());
         Map<Long, String> status = receipts == null ? Map.of() : receipts.statuses(viewerId, opened, null, null);
+        // Icerik paylasimi: kartlar sayfa basina toplu, GORUNTULEYENE gore (gizli hesap/engel/silinme -> available=false)
+        Map<ShareRef, ShareCard> cards = Map.of();
+        if (shares != null) {
+            List<ShareRef> refs = opened.stream().filter(m -> !m.isDeleted() && !m.isHidden())
+                    .map(MessageViewAssembler::shareOf).filter(java.util.Objects::nonNull).toList();
+            if (!refs.isEmpty()) {
+                cards = shares.cards(viewerId, refs);
+            }
+        }
         List<MessageView> out = new ArrayList<>(opened.size());
         for (Message m : opened) {
             boolean blocked = blockedSenders.contains(m.getSenderId()) && !m.getSenderId().equals(viewerId);
@@ -90,19 +120,20 @@ public class MessageViewAssembler {
             ReplyPreview preview = null;
             if (m.getReplyToMessageId() != null && !m.isDeleted()) {
                 preview = preview(parents.get(m.getReplyToMessageId()), m.getConversationId(), viewerId, blockedSenders, since,
-                        m.getReplyToMessageId());
+                        m.getReplyToMessageId(), parentAtt.get(m.getReplyToMessageId()));
             }
             // silinen mesajin ek meta verisi de kapali (T24)
             out.add(v.withExtras(blocked ? null : preview, blocked || m.isDeleted() ? List.of()
                     : counts.getOrDefault(m.getId(), List.of()), mine.get(m.getId()))
                     .withAttachments(blocked || m.isDeleted() ? null : att.get(m.getId()))
+                    .withShare(blocked || m.isDeleted() || shareOf(m) == null ? null : cards.get(shareOf(m)))
                     .withStatus(status.get(m.getId())));
         }
         return out;
     }
 
     private static ReplyPreview preview(Message p, Long conversationId, Long viewerId, Set<Long> blockedSenders,
-                                        Instant since, Long requestedId) {
+                                        Instant since, Long requestedId, List<AttachmentView> parentAttachments) {
         // Baska konusmanin ya da katilma oncesi mesaj: icerik sizdirilmaz
         if (p == null || !p.getConversationId().equals(conversationId)
                 || (since != null && p.getCreatedAt().isBefore(since))) {
@@ -117,7 +148,14 @@ public class MessageViewAssembler {
             return new ReplyPreview(p.getId(), p.getSenderId(), MessagingDtos.BLOCKED_TEXT, false,
                     MessagingDtos.PLACEHOLDER_BLOCKED);
         }
+        if (MessagingDtos.hasViewOnce(parentAttachments)) {
+            return new ReplyPreview(p.getId(), p.getSenderId(), MessagingDtos.viewOnceText(parentAttachments), false, null,
+                    Boolean.TRUE);
+        }
         String body = p.getBody();
+        if (body != null && body.isBlank() && p.getShareType() != null) {
+            body = "🔗"; // yalniz paylasim (aciklamasiz): dil bagimsiz simge
+        }
         return body == null
                 ? new ReplyPreview(p.getId(), p.getSenderId(), MessagingDtos.UNREADABLE_TEXT, false,
                         MessagingDtos.PLACEHOLDER_UNREADABLE)

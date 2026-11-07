@@ -38,7 +38,7 @@ Süre uzatma tek seferlik değildir; 30 günü aşamayacak durumda kullanıcıya
 > Talebinizin … kısmı, {gerekçe: KVKK m.7/m.28 veya yasal saklama yükümlülüğü, başkalarının hak ve özgürlükleri, hukuki uyuşmazlık delili} nedeniyle karşılanamamıştır. Cevabı öğrendiğiniz tarihten itibaren 30, her halde başvuru tarihinden itibaren 60 gün içinde Kişisel Verileri Koruma Kurulu'na şikâyet hakkınız saklıdır.
 
 **D. Kimlik doğrulama talebi**
-> Başvurunuzun sahibi olduğunuzu doğrulamak için hesabınıza kayıtlı bingol.edu.tr adresinizden bu iletiye yanıt verin veya {ek bilgi} iletin. Doğrulama yapılamazsa başvurunuz işleme alınamayacaktır.
+> Başvurunuzun sahibi olduğunuzu doğrulamak için hesabınıza kayıtlı e-posta adresinizden bu iletiye yanıt verin veya {ek bilgi} iletin. Doğrulama yapılamazsa başvurunuz işleme alınamayacaktır.
 
 **E. Süre uzatma/ara bilgi**
 > Başvurunuz işleme alınmış olup {gerekçe} nedeniyle sonuçlandırma için ek süreye ihtiyaç duyulmaktadır. En geç {tarih} tarihine kadar (başvuru tarihinden itibaren 30 günü aşmayacak şekilde) cevap verilecektir.

@@ -33,7 +33,6 @@ const HelpPage = lazy(() => import('./pages/site/HelpPage'));
 const NewsListPage = lazy(() => import('./pages/site/NewsListPage'));
 const NewsDetailPage = lazy(() => import('./pages/site/NewsDetailPage'));
 const MenuPage = lazy(() => import('./pages/site/MenuPage'));
-const BrandPage = lazy(() => import('./pages/site/BrandPage'));
 const ChangelogPage = lazy(() => import('./pages/site/ChangelogPage'));
 
 // --- yönetim paneli: ayrı parça (routes.admin.tsx); site ziyaretçisi hiçbirini indirmez ---
@@ -78,7 +77,6 @@ export function AppRoutes() {
             <Route path="news" element={<NewsListPage />} />
             <Route path="news/:id" element={<NewsDetailPage />} />
             <Route path="menu" element={<MenuPage />} />
-            <Route path="brand" element={<BrandPage />} />
             <Route path="changelog" element={<ChangelogPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>

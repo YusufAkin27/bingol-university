@@ -28,7 +28,9 @@ import edu.bingol.backend.event.dto.EventDtos.RsvpResult;
 import edu.bingol.backend.event.dto.EventDtos.UpdateEventRequest;
 import edu.bingol.backend.news.ContentType;
 import edu.bingol.backend.news.NewsItem;
+import edu.bingol.backend.notification.FanoutNotifier;
 import edu.bingol.backend.notification.NotificationService;
+import edu.bingol.backend.notification.NotificationTemplates;
 import edu.bingol.backend.notification.NotificationType;
 import edu.bingol.backend.user.User;
 import java.time.Instant;
@@ -90,6 +92,8 @@ public class EventService {
     /** Kisa DB islemi (T-068: gorsel isleme islem disinda); yoksa dogrudan calisir (elle kurulan testler). */
     private ShortTx tx = ShortTx.direct();
 
+    /** FIX-P05: commit sonrasi yan etkiler (oda senkronu) icin REQUIRES_NEW sablonu; yoksa dogrudan calisir. */
+    private org.springframework.transaction.support.TransactionTemplate isolatedTx;
     /** iOS Canli Etkinlik: iptal edilen etkinligin etkin canli etkinlikleri bitirilir; testlerde yoksa atlanir. */
     private edu.bingol.backend.notification.live.LiveActivityService liveActivities;
 
@@ -101,6 +105,11 @@ public class EventService {
     @Autowired(required = false)
     void setTxManager(org.springframework.transaction.PlatformTransactionManager tm) {
         this.tx = ShortTx.of(tm);
+        if (tm != null) {
+            this.isolatedTx = new org.springframework.transaction.support.TransactionTemplate(tm);
+            this.isolatedTx.setPropagationBehavior(
+                    org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        }
     }
 
     public EventService(UserEventRepository events, EventRsvpRepository rsvps, OfficialEventRepository official,
@@ -196,6 +205,30 @@ public class EventService {
         this.chat = chat;
     }
 
+    /** Etkinlik moderatorleri (setter + @Lazy; null iken moderator kavrami yok). */
+    private EventModeratorService moderators;
+
+    @Autowired
+    public void setModerators(@Lazy EventModeratorService moderators) {
+        this.moderators = moderators;
+    }
+
+    /**
+     * Sahip (ya da sistem yoneticisi) VEYA verilen yetkilerden birine sahip moderator. Yetkisiz moderator 403
+     * EVENT_PERMISSION_DENIED; moderator olmayan icin requireManager kurali.
+     */
+    public UserEvent requireManagerOrPerm(Actor a, UserEvent e, EventModerator.Perm... perms) {
+        if (!canManage(a, e) && moderators != null) {
+            for (EventModerator.Perm p : perms) {
+                if (moderators.has(e, a.id(), p)) {
+                    ensureVisible(a, e);
+                    return e;
+                }
+            }
+        }
+        return requireManager(a, e);
+    }
+
     // ---- olusturma / guncelleme / silme ----
 
     /**
@@ -222,6 +255,8 @@ public class EventService {
         ContentGuard.clean(guard, Entity.EVENT, "title", a.id(), r.title());
         ContentGuard.clean(guard, Entity.EVENT, "description", a.id(), r.description());
         ContentGuard.clean(guard, Entity.EVENT, "location", a.id(), r.location());
+        validateMeeting(r.meetingPoint());
+        ContentGuard.clean(guard, Entity.EVENT, "meetingPoint", a.id(), r.meetingPoint());
         // T-052: kurum/yonetici taklidi gibi gorunen baslik onaysiz yayina girmez
         boolean reservedTitle = !a.systemAdmin(PermissionMatrix.CONTENT_WRITE)
                 && edu.bingol.backend.profile.naming.DisplayNamePolicy.looksReserved(r.title());
@@ -232,7 +267,16 @@ public class EventService {
         }
         // MANAGE_EVENTS yoksa 403. Yonetici/yetkili (MODERATOR+, sistem ADMIN'i) dogrudan yayinda; ozel yetki verilmis
         // sade uye (ornek: EVENT_MANAGER sablonu) yonetici onayina gider.
-        communities.require(a, c.getId(), ClubPermission.MANAGE_EVENTS);
+        // Etkinligi yalniz KULUP SAHIBI (OWNER) acar; yonetici/MANAGE_EVENTS'li uye acamaz (sistem ADMIN'i panelden her zaman).
+        // Mevcut etkinlikler ve onlarin yonetimi bundan etkilenmez.
+        if (!a.systemAdmin(PermissionMatrix.CONTENT_WRITE)
+                && communities.roleOf(c.getId(), a.id()).orElse(null) != CommunityMember.Role.OWNER) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "EVENT_CREATE_OWNER_ONLY", "Etkinliği yalnızca kulüp sahibi oluşturabilir.");
+        }
+        // FIX-P05 (A05#6, K14): acik etkinlik / gunluk acma sinirlari (eskiden hic cagrilmiyordu); sistem ADMIN'i muaf
+        if (admission != null) {
+            admission.beforeCreate(a);
+        }
         e.setCommunityId(c.getId());
         e.setStatus(isStaff(a, c.getId()) && !reservedTitle ? UserEvent.Status.ACTIVE : UserEvent.Status.PENDING_REVIEW);
         e.setTitle(r.title().trim());
@@ -240,6 +284,7 @@ public class EventService {
         e.setStartsAt(r.startsAt());
         e.setEndsAt(r.endsAt());
         e.setLocation(Texts.blankToNull(r.location()));
+        applyMeeting(e, r.meetingPoint(), r.meetingLat(), r.meetingLng());
         e.setCapacity(r.capacity());
         e.setCreatedBy(a.id());
         events.save(e);
@@ -262,14 +307,38 @@ public class EventService {
     @Transactional
     public EventView update(Actor a, Long id, UpdateEventRequest r) {
         UserEvent e = load(id);
-        requireManager(a, e);
+        if (canManage(a, e) || moderators == null) {
+            requireManager(a, e);
+        } else {
+            // Moderator: yalniz izinli alanlar. Kapasite ve katilim turu sahip-ozeldir.
+            boolean info = moderators.has(e, a.id(), EventModerator.Perm.EDIT_INFO);
+            boolean sched = moderators.has(e, a.id(), EventModerator.Perm.EDIT_SCHEDULE);
+            if (!info && !sched) {
+                requireManager(a, e);
+            }
+            ensureVisible(a, e);
+            boolean wantsInfo = r.title() != null || r.description() != null || r.location() != null
+                    || r.meetingPoint() != null || r.meetingLat() != null || r.meetingLng() != null;
+            boolean wantsSched = r.startsAt() != null || r.endsAt() != null;
+            if ((wantsInfo && !info) || (wantsSched && !sched) || r.capacity() != null || r.joinPolicy() != null) {
+                throw new ApiException(HttpStatus.FORBIDDEN, "EVENT_PERMISSION_DENIED", "Bu işlem için yetkiniz yok.");
+            }
+        }
         if (e.getStatus() != UserEvent.Status.ACTIVE && e.getStatus() != UserEvent.Status.PENDING_REVIEW) {
             throw new ApiException(HttpStatus.CONFLICT, "EVENT_NOT_EDITABLE", "Bu etkinlik düzenlenemez.");
         }
         Instant now = Instant.now();
         if (e.getEndsAt().isBefore(now)) {
-            throw new ApiException(HttpStatus.CONFLICT, "EVENT_ENDED", "Sona ermiş etkinlik düzenlenemez.");
+            // Bitmis etkinlikte yalniz aciklama/not duzenlenebilir; baska alan 409 EVENT_ENDED.
+            boolean onlyNote = r.title() == null && r.location() == null && r.startsAt() == null && r.endsAt() == null
+                    && r.capacity() == null && r.joinPolicy() == null && r.meetingPoint() == null
+                    && r.meetingLat() == null && r.meetingLng() == null && r.description() != null;
+            if (!onlyNote) {
+                throw new ApiException(HttpStatus.CONFLICT, "EVENT_ENDED", "Sona ermiş etkinlik düzenlenemez.");
+            }
         }
+        validateMeeting(r.meetingPoint());
+        ContentGuard.changed(guard, Entity.EVENT, "meetingPoint", a.id(), e.getMeetingPoint(), r.meetingPoint());
         ContentGuard.changed(guard, Entity.EVENT, "title", a.id(), e.getTitle(), r.title());
         ContentGuard.changed(guard, Entity.EVENT, "description", a.id(), e.getDescription(), r.description());
         ContentGuard.changed(guard, Entity.EVENT, "location", a.id(), e.getLocation(), r.location());
@@ -299,11 +368,12 @@ public class EventService {
                 e.setCapacity(r.capacity());
             }
         }
+        boolean meetingChanged = meetingWouldChange(e, r);
         boolean scheduleChanged = startChanged || !end.equals(e.getEndsAt())
-                || (r.location() != null && !r.location().trim().equals(e.getLocation()));
+                || (r.location() != null && !r.location().trim().equals(e.getLocation())) || meetingChanged;
         // T-041: onayli (ACTIVE) kulup etkinliginin metnini sade uye (staff degil) degistirirse yeniden onaya duser
         boolean textChanged = changed(r.title(), e.getTitle()) != null || changed(r.description(), e.getDescription()) != null
-                || changed(r.location(), e.getLocation()) != null;
+                || changed(r.location(), e.getLocation()) != null || changed(r.meetingPoint(), e.getMeetingPoint()) != null;
         // T-052: baslik rezerve ifadeye cevrilirse (yonetici haric) staff da olsa yeniden onaya duser
         boolean reservedNow = !a.systemAdmin(PermissionMatrix.CONTENT_WRITE) && changed(r.title(), e.getTitle()) != null
                 && edu.bingol.backend.profile.naming.DisplayNamePolicy.looksReserved(r.title());
@@ -319,6 +389,17 @@ public class EventService {
         if (r.location() != null) {
             e.setLocation(Texts.blankToNull(r.location()));
         }
+        if (r.meetingPoint() != null || r.meetingLat() != null || r.meetingLng() != null) {
+            // Metin gonderildiyse bulusma grubu (metin + koordinat) istekteki haliyle degisir (bos koordinat = silinir);
+            // yalniz koordinat gonderildiyse mevcut metne eklenir.
+            if (r.meetingPoint() != null) {
+                applyMeeting(e, r.meetingPoint(), r.meetingLat(), r.meetingLng());
+            } else {
+                applyMeeting(e, e.getMeetingPoint(), r.meetingLat() != null ? r.meetingLat() : e.getMeetingLat(),
+                        r.meetingLng() != null ? r.meetingLng() : e.getMeetingLng());
+            }
+        }
+        Instant oldStart = e.getStartsAt();
         e.setStartsAt(start);
         e.setEndsAt(end);
         e.setUpdatedAt(now);
@@ -333,13 +414,49 @@ public class EventService {
             // Yeni saat icin hatirlatmalar yeniden gonderilebilsin.
             rsvps.resetReminders(e.getId());
         }
-        if (scheduleChanged && e.getStatus() == UserEvent.Status.ACTIVE) {
-            notifyGoing(e, "notif.event.updated");
+        // Spam onleme: saat degismedikce (yer/bulusma noktasi) ayni etkinlik icin 10 dk'da tek "bilgi degisti" bildirimi.
+        boolean throttled = !startChanged && e.getUpdateNotifiedAt() != null
+                && e.getUpdateNotifiedAt().isAfter(now.minus(UPDATE_NOTIFY_THROTTLE));
+        if (scheduleChanged && e.getStatus() == UserEvent.Status.ACTIVE && !throttled) {
+            e.setUpdateNotifiedAt(now);
+            events.save(e);
+            notifyGoing(e, "notif.event.updated", hints == null ? null : hints.updated(e, oldStart));
         }
         if (admission != null && r.capacity() != null) {
             admission.afterCapacityChanged(e);
         }
         return views(List.of(e), a, true).get(0);
+    }
+
+    static final java.time.Duration UPDATE_NOTIFY_THROTTLE = java.time.Duration.ofMinutes(10);
+
+    void validateMeeting(String meetingPoint) {
+        if (meetingPoint != null && meetingPoint.trim().length() > 200) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Buluşma noktası en fazla 200 karakter olabilir.");
+        }
+        Texts.requireNoInvisible(meetingPoint);
+    }
+
+    /** Bulusma noktasi bos ise koordinat da silinir; koordinat ancak metinle birlikte tutulur. */
+    private static void applyMeeting(UserEvent e, String point, Double lat, Double lng) {
+        String p = Texts.blankToNull(point);
+        e.setMeetingPoint(p == null ? null : p.trim());
+        boolean ok = p != null && lat != null && lng != null;
+        e.setMeetingLat(ok ? lat : null);
+        e.setMeetingLng(ok ? lng : null);
+    }
+
+    private static boolean meetingWouldChange(UserEvent e, UpdateEventRequest r) {
+        if (r.meetingPoint() == null && r.meetingLat() == null && r.meetingLng() == null) {
+            return false;
+        }
+        if (r.meetingPoint() != null) {
+            return !r.meetingPoint().trim().equals(e.getMeetingPoint() == null ? "" : e.getMeetingPoint())
+                    || !java.util.Objects.equals(r.meetingLat(), e.getMeetingLat())
+                    || !java.util.Objects.equals(r.meetingLng(), e.getMeetingLng());
+        }
+        return (r.meetingLat() != null && !r.meetingLat().equals(e.getMeetingLat()))
+                || (r.meetingLng() != null && !r.meetingLng().equals(e.getMeetingLng()));
     }
 
     /** Silme = iptal (yumusak); katilimcilara haber verilir. */
@@ -435,7 +552,7 @@ public class EventService {
         events.saveAndFlush(e);
         media.release(oldCover);
         if (wasActive && e.getEndsAt().isAfter(Instant.now())) {
-            notifyGoing(e, "notif.event.cancelled");
+            notifyGoing(e, "notif.event.cancelled", hints == null ? null : hints.cancelled(e));
         }
         if (admission != null) {
             admission.onEventCancelled(e);
@@ -510,7 +627,14 @@ public class EventService {
     @Transactional(readOnly = true)
     public CursorPage<EventView> list(Actor a, Instant from, Instant to, Long communityId, Long cursor, int size) {
         int s = CursorPage.clampSize(size);
-        Instant f = from == null ? Instant.now() : from.isBefore(MIN_DATE) ? MIN_DATE : from;
+        Instant now = Instant.now();
+        Instant f = from == null ? now : from.isBefore(MIN_DATE) ? MIN_DATE : from;
+        // Biten etkinlikler normal kullaniciya listelenmez: alt sinir "simdi"nin altina inemez. Gecmis, yalniz
+        // belirli bir kulubun yoneticisi/sistem yoneticisi icin acik kalir (kulup etkinlik yonetimi).
+        boolean pastAllowed = communityId != null && communityId > 0 && isStaff(a, communityId);
+        if (!pastAllowed && f.isBefore(now)) {
+            f = now;
+        }
         Instant t = to == null || to.isAfter(FAR_FUTURE) ? FAR_FUTURE : to;
         List<UserEvent> rows = query(a, f, t,
                 communityId == null ? 0L : communityId, cursor, s + 1);
@@ -579,8 +703,11 @@ public class EventService {
         }
         Instant from = month.atDay(1).atStartOfDay(ZONE).toInstant();
         Instant to = month.plusMonths(1).atDay(1).atStartOfDay(ZONE).toInstant();
+        // Takvim yalniz yaklasan + suren kullanici etkinliklerini gosterir (biten/iptal haric, filtre sorguda).
+        Instant nowAt = Instant.now();
+        Instant userFrom = from.isBefore(nowAt) ? nowAt : from;
         // Sinira carpildigini anlamak icin bir fazla satir istenir.
-        List<UserEvent> userRows = query(a, from, to, 0L, null, CALENDAR_USER_LIMIT + 1);
+        List<UserEvent> userRows = query(a, userFrom, to, 0L, null, CALENDAR_USER_LIMIT + 1);
         List<NewsItem> news = official.inRange(ContentType.ETKINLIK, month.atDay(1), month.atEndOfMonth(),
                 PageRequest.of(0, CALENDAR_OFFICIAL_LIMIT + 1));
         boolean truncated = userRows.size() > CALENDAR_USER_LIMIT || news.size() > CALENDAR_OFFICIAL_LIMIT;
@@ -675,15 +802,18 @@ public class EventService {
         }
         if (existing.isPresent()) {
             EventRsvp r = existing.get();
-            if (r.getStatus() != status) {
+            EventRsvp.Status old = r.getStatus();
+            if (old != status) {
+                // FIX-P05 (A05#2): gecis kosullu UPDATE ile sahiplenilir; es zamanli ikinci istek 0 alir ve sayaca
+                // dokunmaz (eskiden ikisi de decrement/increment yapip going_count'u kaydiriyordu).
+                if (rsvps.transition(r.getId(), old, status) == 0) {
+                    return new RsvpResult(status, events.goingCount(id), e.getCapacity());
+                }
                 if (status == EventRsvp.Status.GOING) {
-                    reserveSeat(id);
-                } else {
+                    reserveSeat(id); // dolu ise 409 firlar ve islem (gecis dahil) geri alinir
+                } else if (old == EventRsvp.Status.GOING) {
                     events.decrementGoing(id);
                 }
-                EventRsvp.Status old = r.getStatus();
-                r.setStatus(status);
-                rsvps.save(r);
                 chatSync(id, a.id(), old, status);
             }
         } else {
@@ -711,24 +841,40 @@ public class EventService {
             return;
         }
         rsvps.findByEventIdAndUserId(id, a.id()).ifPresent(r -> {
+            // FIX-P05: silmeyi sahiplenen ilk istek sayaci azaltir (cift dokunusta ikinci istek 0 alir)
+            if (rsvps.deleteClaim(r.getId()) == 0) {
+                return;
+            }
             if (r.getStatus() == EventRsvp.Status.GOING) {
                 events.decrementGoing(id);
             }
-            rsvps.delete(r);
             chatSync(id, a.id(), r.getStatus(), null);
         });
         leaveRoom(a, e);
     }
 
-    /** GOING girisi/cikisi sohbet odasina yansir (hook yoksa no-op). */
+    /**
+     * GOING girisi/cikisi sohbet odasina yansir (hook yoksa no-op). FIX-P05 (A05#4): commit SONRASI ve ayri islemde;
+     * eskiden RSVP'nin etkinlik satir kilidi tutulurken oda kilidi/sorgulari calisiyor, oda hatasi da RSVP'yi
+     * rollback-only yapabiliyordu (leaveRoom/closeRoom ile ayni desen).
+     */
     private void chatSync(Long eventId, Long userId, EventRsvp.Status from, EventRsvp.Status to) {
         if (chat == null) {
             return;
         }
         if (to == EventRsvp.Status.GOING) {
-            chat.onGoing(eventId, userId);
+            afterCommit(() -> inNewTx(() -> chat.onGoing(eventId, userId)));
         } else if (from == EventRsvp.Status.GOING) { // yalnizca GOING odada kalir (INTERESTED'a dusen de cikar)
-            chat.onLeft(eventId, userId);
+            afterCommit(() -> inNewTx(() -> chat.onLeft(eventId, userId)));
+        }
+    }
+
+    /** Yeni (bagimsiz) islemde calistirir; islem yoneticisi yoksa (birim testleri) dogrudan. */
+    private void inNewTx(Runnable work) {
+        if (isolatedTx == null) {
+            work.run();
+        } else {
+            isolatedTx.executeWithoutResult(s -> work.run());
         }
     }
 
@@ -741,7 +887,7 @@ public class EventService {
     /** Katilimci listesi (organizatore). status verilmezse GOING. */
     @Transactional(readOnly = true)
     public CursorPage<AttendeeView> attendees(Actor a, Long id, EventRsvp.Status status, Long cursor, int size) {
-        requireManager(a, load(id));
+        requireManagerOrPerm(a, load(id), EventModerator.Perm.VIEW_ATTENDEES, EventModerator.Perm.MANAGE_REQUESTS);
         int s = CursorPage.clampSize(size);
         List<EventRsvp> rows = rsvps.page(id, status == null ? EventRsvp.Status.GOING : status,
                 Paging.ascStart(cursor), PageRequest.of(0, s + 1));
@@ -830,6 +976,9 @@ public class EventService {
         if (!canManage(a, e)) {
             // Gorunmeyen (onay bekleyen/gizli topluluk) etkinligin varligi sizmasin: once 404, gorunenlerde 403.
             ensureVisible(a, e);
+            if (moderators != null && moderators.isModerator(e, a.id())) {
+                throw new ApiException(HttpStatus.FORBIDDEN, "EVENT_PERMISSION_DENIED", "Bu işlem için yetkiniz yok.");
+            }
             throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "Bu işlem için etkinlik organizatörü olmalısınız.");
         }
         if (a.viaUserApi() && !isOrganizer(a.id(), e)) { // yetki yalniz sistem yoneticisi mudahalesinden geliyor
@@ -952,17 +1101,46 @@ public class EventService {
                 PageRequest.of(0, limit));
     }
 
-    private void notifyGoing(UserEvent e, String key) {
-        // T-051: tum GOING katilimcilar (imecli sayfalar); eskiden ilk 500'de sessizce kesiliyordu
-        Paging.forEachChunk((after, n) -> rsvps.userIdsAfter(e.getId(), EventRsvp.Status.GOING, after, PageRequest.of(0, n)),
-                ids -> {
-                    for (Long uid : ids) {
-                        if (!uid.equals(e.getCreatedBy())) {
-                            notifications.sendTemplated(uid, NotificationType.EVENT, key,
-                                    Map.of("eventId", e.getId().toString()), e.getTitle());
-                        }
-                    }
-                });
+    /**
+     * FINAL-ALL (P05 ertelenen): GOING katilimcilara bildirim istek thread'inden ve acik islemden (etkinlik satir
+     * kilidi dahil) cikarildi; COMMIT sonrasi havuzda, parca basina sabit sorguyla ({@code sendTemplatedBulk}) gider.
+     */
+    private void notifyGoing(UserEvent e, String key, Map<String, String> hint) {
+        // Bitmis ya da yayinda olmayan etkinlik icin "guncellendi" gibi bildirimler gitmez; yalniz iptal bildirimi
+        // (durum CANCELLED) bu kapidan muaftir.
+        if (!"notif.event.cancelled".equals(key) && !EventLiveness.isLive(e, Instant.now())) {
+            return;
+        }
+        Long eventId = e.getId();
+        Long organizerId = e.getCreatedBy();
+        String title = e.getTitle();
+        FanoutNotifier.dispatch(fanout, "event-going:" + eventId, () -> {
+            NotificationTemplates.Template tpl = NotificationTemplates.of(key, NotificationType.EVENT);
+            Map<String, String> data = hint != null ? hint : Map.of("eventId", eventId.toString());
+            // T-051: tum GOING katilimcilar (imecli sayfalar); eskiden ilk 500'de sessizce kesiliyordu
+            boolean truncated = Paging.forEachChunk((after, n) -> rsvps.userIdsAfter(eventId, EventRsvp.Status.GOING, after, PageRequest.of(0, n)),
+                    ids -> notifications.sendTemplatedBulk(ids.stream().filter(uid -> !uid.equals(organizerId)).toList(), tpl,
+                            data, null, title));
+            if (truncated) { // FIX-P05 (A05#3): guvenlik tavanina carpildi; sessiz kesme degil, loglanir
+                log.warn("Etkinlik {} bildirimi alici tavaninda kesildi ({})", eventId, key);
+            }
+        });
+    }
+
+    /** Kart alanlari (kulup adi, saat, yer, rozet); yoksa yalniz eventId gider. */
+    private EventPushHints hints;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setHints(EventPushHints hints) {
+        this.hints = hints;
+    }
+
+    /** Birim testleri icin yoktur (ayni is parcaciginda calisir); uretimde commit sonrasi havuz. */
+    private FanoutNotifier fanout;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setFanout(FanoutNotifier fanout) {
+        this.fanout = fanout;
     }
 
     private List<EventView> views(List<UserEvent> list, Actor a, boolean detail) {
@@ -999,7 +1177,8 @@ public class EventService {
                     e.getCommunityId() == null || clubs.get(e.getCommunityId()) == null ? null
                             : clubs.get(e.getCommunityId()).getLogoUrl(),
                     cancelReasonFor(e, manageable.contains(e.getId()), mine.get(e.getId())),
-                    manageable.contains(e.getId()) && e.getStatus() == UserEvent.Status.REJECTED ? e.getReviewNote() : null));
+                    manageable.contains(e.getId()) && e.getStatus() == UserEvent.Status.REJECTED ? e.getReviewNote() : null,
+                    null, e.getMeetingPoint(), e.getMeetingLat(), e.getMeetingLng()));
         }
         return out;
     }

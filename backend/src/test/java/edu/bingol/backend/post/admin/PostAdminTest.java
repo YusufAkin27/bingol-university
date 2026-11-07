@@ -156,9 +156,9 @@ class PostAdminTest {
         assertEquals(before + 1, notifCount(a.getId()), "yazara duzenleme bildirimi");
 
         assertNull(admin.editText(id, "   ").text(), "bos metin temizlenir (fotograf kalir)");
-        assertEquals("POST_TEXT_INVALID", assertThrows(ApiException.class, () -> admin.editText(id, "iki\nsatir")).code());
+        assertEquals("iki\nsatir", admin.editText(id, "iki\nsatir").text(), "cok satir serbest");
         assertEquals("POST_TEXT_TOO_LONG", assertThrows(ApiException.class,
-                () -> admin.editText(id, "bir iki uc dort bes alti yedi sekiz")).code());
+                () -> admin.editText(id, "a".repeat(2201))).code());
         assertEquals("POST_NOT_FOUND", assertThrows(ApiException.class, () -> admin.editText(-1, "x")).code());
         long textOnly = post(a, "fotografsiz");
         assertEquals("POST_EMPTY", assertThrows(ApiException.class, () -> admin.editText(textOnly, " ")).code());
@@ -254,7 +254,8 @@ class PostAdminTest {
         Map<?, ?> p = (Map<?, ?>) export("posts", a.getId());
         assertEquals(1, p.get("count"));
         assertFalse(p.toString().contains("baskasi"));
-        assertTrue(exporters.stream().noneMatch(e -> e.section().equals("postComments")));
+        // KS-BE2: yorumlar geri geldi (V1230); disa aktarim yalniz kendi yorumlarini kapsar
+        assertEquals(0, ((Map<?, ?>) export("postComments", a.getId())).get("count"));
         assertEquals(1, ((Map<?, ?>) export("postLikes", a.getId())).get("count"));
     }
 

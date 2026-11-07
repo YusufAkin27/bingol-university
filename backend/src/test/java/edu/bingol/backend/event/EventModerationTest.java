@@ -1,5 +1,6 @@
 package edu.bingol.backend.event;
 
+import edu.bingol.backend.notification.BulkSent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -181,10 +182,9 @@ class EventModerationTest {
         assertEquals("Sahte etkinlik", d.moderationReason());
         assertEquals("CANCEL", d.history().get(0).action());
         assertEquals(List.of(), d.allowedActions());
-        verify(notifications).sendTemplated(eq(going.getId()), eq(NotificationType.EVENT), eq("notif.event.cancelled"),
-                anyMap(), eq(e.getTitle()));
-        verify(notifications).sendTemplated(eq(applicant.getId()), eq(NotificationType.EVENT), eq("notif.event.cancelled"),
-                anyMap(), eq(e.getTitle()));
+        // FINAL-ALL: katilimci ve basvuru sahibi icin toplu gonderim (ayni sablon, ayri cagri)
+        org.junit.jupiter.api.Assertions.assertTrue(BulkSent.to(notifications, "notif.event.cancelled").contains(going.getId()));
+        org.junit.jupiter.api.Assertions.assertTrue(BulkSent.to(notifications, "notif.event.cancelled").contains(applicant.getId()));
         verify(notifications).sendTemplated(eq(owner.getId()), eq(NotificationType.EVENT), eq("notif.event.cancelledByAdmin"),
                 anyMap(), eq(e.getTitle()), eq("Sahte etkinlik"));
         verify(rooms).closeRoomIsolated(RoomKind.EVENT, e.getId());
@@ -201,8 +201,7 @@ class EventModerationTest {
         UserEvent hidden = event(token(), owner, UserEvent.Status.HIDDEN);
         rsvps.saveAndFlush(new EventRsvp(hidden.getId(), going.getId(), EventRsvp.Status.GOING));
         moderation.cancel(5L, hidden.getId(), "Kural ihlali");
-        verify(notifications).sendTemplated(eq(going.getId()), eq(NotificationType.EVENT), eq("notif.event.cancelled"),
-                anyMap(), eq(hidden.getTitle()));
+        assertEquals(List.of(going.getId()), BulkSent.to(notifications, "notif.event.cancelled"));
         assertEquals(HIDDEN_TO_CANCELLED, logs.recent(hidden.getId(), org.springframework.data.domain.PageRequest.of(0, 5))
                 .get(0).getFromStatus() + ">" + logs.recent(hidden.getId(), org.springframework.data.domain.PageRequest.of(0, 5))
                 .get(0).getToStatus());
@@ -405,7 +404,7 @@ class EventModerationTest {
     }
 
     @Test
-    void createRulesClubRequiredStaffActiveGrantedMemberPendingPlainMemberForbidden() {
+    void createRulesClubRequiredOwnerActiveOthersForbidden() {
         User owner = user("Sahip");
         User mod = user("Mod");
         User granted = user("Yetkili uye");
@@ -427,8 +426,9 @@ class EventModerationTest {
 
         assertEquals("EVENT_CLUB_REQUIRED", fail(() -> service.create(new Actor(mod.getId(), false), createReq(null))).code());
         assertEquals(UserEvent.Status.ACTIVE, service.create(new Actor(owner.getId(), false), createReq(c.getId())).status());
-        assertEquals(UserEvent.Status.ACTIVE, service.create(new Actor(mod.getId(), false), createReq(c.getId())).status());
-        assertEquals(UserEvent.Status.PENDING_REVIEW, service.create(new Actor(granted.getId(), false), createReq(c.getId())).status());
+        // Etkinligi yalniz kulup sahibi acar (EVENT_CREATE_OWNER_ONLY): moderator ve MANAGE_EVENTS'li uye de 403
+        assertEquals("EVENT_CREATE_OWNER_ONLY", fail(() -> service.create(new Actor(mod.getId(), false), createReq(c.getId()))).code());
+        assertEquals("EVENT_CREATE_OWNER_ONLY", fail(() -> service.create(new Actor(granted.getId(), false), createReq(c.getId()))).code());
         assertEquals(403, fail(() -> service.create(new Actor(plain.getId(), false), createReq(c.getId()))).status().value());
         assertEquals(403, fail(() -> service.create(new Actor(user("Yabanci").getId(), false), createReq(c.getId()))).status().value());
     }
@@ -450,14 +450,13 @@ class EventModerationTest {
         assertEquals("EDIT", d.history().get(0).action());
         assertEquals("Yazim duzeltme", d.history().get(0).reason());
         // yer degisti: katilimciya "guncellendi"
-        verify(notifications).sendTemplated(eq(going.getId()), eq(NotificationType.EVENT), eq("notif.event.updated"),
-                anyMap(), eq("Yeni baslik"));
+        assertEquals(List.of(going.getId()), BulkSent.to(notifications, "notif.event.updated"));
 
         AdminEventDetail del = moderation.delete(9L, e.getId(), "Kural ihlali");
         assertEquals(UserEvent.Status.CANCELLED, del.event().status());
         assertEquals("DELETE", del.history().get(0).action());
-        verify(notifications).sendTemplated(eq(going.getId()), eq(NotificationType.EVENT), eq("notif.event.cancelled"),
-                anyMap(), eq("Yeni baslik"));
+        assertEquals(List.of(going.getId()), BulkSent.to(notifications, "notif.event.cancelled"));
+        assertEquals(List.of("Yeni baslik"), BulkSent.lastArgs(notifications, "notif.event.cancelled"));
         verify(rooms).closeRoomIsolated(RoomKind.EVENT, e.getId());
         assertEquals("EVENT_INVALID_TRANSITION", fail(() -> moderation.delete(9L, e.getId(), "x")).code());
         assertEquals("EVENT_NOT_EDITABLE", fail(() -> moderation.edit(9L, e.getId(), req, null)).code());

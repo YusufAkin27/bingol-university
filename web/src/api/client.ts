@@ -1,5 +1,6 @@
 import { paths } from '../paths';
 import { getCurrentLang } from '../i18n/lang';
+import { getDeviceId } from '../lib/deviceId';
 import { clearTokens, getAccessToken, getRefreshToken, setTokens } from '../auth/tokens';
 import type { ApiErrorBody, TokenResponse } from './types';
 
@@ -72,6 +73,7 @@ async function send(path: string, opts: RequestOptions, token: string | null): P
     ...opts.headers,
     Accept: 'application/json',
     'Accept-Language': getCurrentLang(),
+    'X-Device-Id': getDeviceId(),
   };
   const isForm = typeof FormData !== 'undefined' && opts.body instanceof FormData;
   // FormData'da Content-Type'ı tarayıcı sınır (boundary) ile kendisi koyar.

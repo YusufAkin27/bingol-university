@@ -109,9 +109,3 @@ Yeni hata kodu eklenmedi.
 
 - Yeni kulüp adı rezerve ifade (bkz. `docs/changes/event.md` W2-D) taşıyorsa kulüp `app.community.auto-approve=true` olsa bile **PENDING_REVIEW** olur (sohbet odası onayda kurulur); yayındaki kulübün adı rezerve ifadeye çevrilemez (`400 RESERVED_DISPLAY_NAME`); kulüp adı/açıklama/kategoride görünmez karakter `400 INVALID_DISPLAY_NAME`.
 - Kulüp silinince tüm aktif üyelere (500 sınırı kalktı) ve kulüp yazısında tüm aktif üyelere bildirim gider (`CommunityMemberRepository.userIdsByStatusAfter`, kimlik imeçli).
-
-## Mobil: Kulüp ve Etkinlik Merkezi (2026-11-07, yalniz istemci; backend degisikligi YOK)
-
-- Kulüplerim (`MyClubsPage`): ozet (kulup / yaklasan etkinlik / bekleyen basvuru / yonettigim), "Yonetim Paneli" (`ClubManagePage`), yaklasan etkinliklerim bolumu. Veri: `GET /me/communities`, `GET /me/events?mode=upcoming`.
-- Yonetim paneli araclari YALNIZ `GET /communities/{id}/permissions/me` iznine gore cizilir (`EDIT_INFO`, `MANAGE_MEMBERS`, `MANAGE_EVENTS`, `MANAGE_POSTS`, `MANAGE_ROLES`); izin ucu hata verirse hicbir arac gosterilmez. Sunucu her islemde yetkiyi yine dogrular.
-- Etkinliklerim alt sekmeleri: Yaklasan (`attending`), Katilacaklarim (`going`), Gecmis (`past`), Basvurularim (`attending` + istemci suzgeci `REQUESTED|PENDING`).

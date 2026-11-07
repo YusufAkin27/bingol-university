@@ -1,5 +1,6 @@
 package edu.bingol.backend.messaging;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +23,15 @@ public interface ConversationMemberRepository extends JpaRepository<Conversation
 
     long countByConversationIdAndLeftAtIsNull(Long conversationId);
 
+    /** Konusma basina aktif uye sayisi: [conversationId, adet] (liste/makbuz kararinda uyeleri yuklemeden). */
+    @Query("SELECT m.conversationId, COUNT(m) FROM ConversationMember m "
+            + "WHERE m.conversationId IN :cids AND m.leftAt IS NULL GROUP BY m.conversationId")
+    List<Object[]> activeCounts(@Param("cids") Collection<Long> conversationIds);
+
+    /** Kullanicinin verilen konusmalardaki kendi (ayrilmamis) uyelik satirlari. */
+    @Query("SELECT m FROM ConversationMember m WHERE m.userId = :uid AND m.conversationId IN :cids AND m.leftAt IS NULL")
+    List<ConversationMember> findMine(@Param("uid") Long userId, @Param("cids") Collection<Long> conversationIds);
+
     /** Imleci yalnizca ileri tasir; degisen satir sayisini doner (0 = zaten bu noktada ya da ilerideydi). */
     @Transactional
     @Modifying
@@ -39,13 +49,6 @@ public interface ConversationMemberRepository extends JpaRepository<Conversation
 
     List<ConversationMember> findByUserIdAndLeftAtIsNull(Long userId);
 
-    /** Yeni mesaj gelince "yapiskan" olmayan arsivleri kaldirir (herkes icin). */
-    @Transactional
-    @Modifying
-    @Query("UPDATE ConversationMember m SET m.archivedAt = NULL "
-            + "WHERE m.conversationId = :cid AND m.archivedAt IS NOT NULL AND m.archiveSticky = false")
-    int unarchiveOnMessage(@Param("cid") Long conversationId);
-
     /** Yeni mesaj gelince "sohbeti silen" uyelerin listesinde konusma yeniden belirir (yalniz yeni mesajlarla). */
     @Transactional
     @Modifying
@@ -59,6 +62,23 @@ public interface ConversationMemberRepository extends JpaRepository<Conversation
     @Query("UPDATE ConversationMember m SET m.lastOwnSuppressedMessageId = :mid "
             + "WHERE m.conversationId = :cid AND m.userId = :uid AND m.lastOwnSuppressedMessageId < :mid")
     int advanceOwnSuppressed(@Param("cid") Long conversationId, @Param("uid") Long userId, @Param("mid") Long messageId);
+
+    /**
+     * Sessize alma tercihini YALNIZ ilgili kolona yazar (FIX-P03, A09#8): tam satir `save` okunmus bayat imlecleri
+     * (okundu/iletildi) eszamanli ilerlemenin uzerine geri yazabiliyordu.
+     */
+    @Transactional
+    @Modifying
+    @Query("UPDATE ConversationMember m SET m.mutedUntil = :until WHERE m.conversationId = :cid AND m.userId = :uid")
+    int updateMute(@Param("cid") Long conversationId, @Param("uid") Long userId, @Param("until") Instant until);
+
+    /** Arsiv tercihini yalniz ilgili kolonlara yazar (bkz. {@link #updateMute}). */
+    @Transactional
+    @Modifying
+    @Query("UPDATE ConversationMember m SET m.archivedAt = :at, m.archiveSticky = :sticky "
+            + "WHERE m.conversationId = :cid AND m.userId = :uid")
+    int updateArchive(@Param("cid") Long conversationId, @Param("uid") Long userId, @Param("at") Instant at,
+                      @Param("sticky") boolean sticky);
 
     /** Tek uyenin "sohbeti sil" gizlemesini kaldirir (bastirilmis mesaj atan gonderen). */
     @Transactional

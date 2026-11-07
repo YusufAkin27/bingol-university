@@ -2,11 +2,7 @@ package edu.bingol.backend.admin.bulk;
 
 import edu.bingol.backend.academic.AcademicCalendarService;
 import edu.bingol.backend.academic.AcademicDtos.AdminAcademicEventView;
-import edu.bingol.backend.academic.AcademicDtos.AdminAnnouncementView;
-import edu.bingol.backend.academic.AcademicDtos.AdminExamScheduleView;
 import edu.bingol.backend.academic.AcademicDtos.Page;
-import edu.bingol.backend.academic.DepartmentAnnouncementService;
-import edu.bingol.backend.academic.ExamService;
 import edu.bingol.backend.admin.Csv;
 import edu.bingol.backend.admin.UserFilter;
 import edu.bingol.backend.admin.bulk.BulkDtos.AcademicEntity;
@@ -41,18 +37,13 @@ public class BulkCsvService {
     private final NamedParameterJdbcTemplate jdbc;
     private final MenuRepository menu;
     private final AcademicCalendarService calendar;
-    private final ExamService exams;
-    private final DepartmentAnnouncementService announcements;
     private final PendingRegistrationStore pending;
 
     public BulkCsvService(NamedParameterJdbcTemplate jdbc, MenuRepository menu, AcademicCalendarService calendar,
-                          ExamService exams, DepartmentAnnouncementService announcements,
                           PendingRegistrationStore pending) {
         this.jdbc = jdbc;
         this.menu = menu;
         this.calendar = calendar;
-        this.exams = exams;
-        this.announcements = announcements;
         this.pending = pending;
     }
 
@@ -143,8 +134,8 @@ public class BulkCsvService {
 
     // ---- akademik ----
 
-    /** kind yalniz CALENDAR; status yalniz ANNOUNCEMENT (all|draft|scheduled|active|expired); published CALENDAR. */
-    public int academic(AcademicEntity entity, String q, String kind, Boolean published, String status, Writer w) {
+    /** kind ve published yalniz CALENDAR. */
+    public int academic(AcademicEntity entity, String q, String kind, Boolean published, Writer w) {
         bom(w);
         int n = 0;
         switch (entity) {
@@ -161,50 +152,6 @@ public class BulkCsvService {
                         }
                         line(w, java.util.Arrays.asList(v.id(), v.kind(), v.title(), v.startsAt(), v.endsAt(), v.allDay(),
                                 v.scopeDepartment(), v.note(), v.published()));
-                        n++;
-                    }
-                    if ((long) (page + 1) * ACD_PAGE >= r.total()) {
-                        break;
-                    }
-                }
-            }
-            case EXAM -> {
-                line(w, List.of("id", "title", "type", "term", "courseCode", "faculty", "department", "grade", "startsAt",
-                        "endsAt", "room", "note", "published"));
-                for (int page = 0; n < BulkDtos.MAX_EXPORT_ROWS; page++) {
-                    Page<AdminExamScheduleView> r = exams.adminList(page, ACD_PAGE, q);
-                    if (r.items().isEmpty()) {
-                        break;
-                    }
-                    for (AdminExamScheduleView v : r.items()) {
-                        if (n >= BulkDtos.MAX_EXPORT_ROWS) {
-                            break;
-                        }
-                        line(w, java.util.Arrays.asList(v.id(), v.title(), v.type(), v.term(), v.courseCode(), v.faculty(),
-                                v.department(), v.grade(), v.startsAt(), v.endsAt(), v.room(), v.note(), v.published()));
-                        n++;
-                    }
-                    if ((long) (page + 1) * ACD_PAGE >= r.total()) {
-                        break;
-                    }
-                }
-            }
-            case ANNOUNCEMENT -> {
-                // Duyuru metni (body) yazilmaz: yalniz kunye ve durum
-                line(w, List.of("id", "title", "department", "faculty", "grade", "pinned", "publishAt", "expiresAt",
-                        "published", "notify", "notifiedAt", "readCount", "createdAt"));
-                for (int page = 0; n < BulkDtos.MAX_EXPORT_ROWS; page++) {
-                    Page<AdminAnnouncementView> r = announcements.adminList(page, ACD_PAGE, status, q);
-                    if (r.items().isEmpty()) {
-                        break;
-                    }
-                    for (AdminAnnouncementView v : r.items()) {
-                        if (n >= BulkDtos.MAX_EXPORT_ROWS) {
-                            break;
-                        }
-                        line(w, java.util.Arrays.asList(v.id(), v.title(), v.department(), v.faculty(), v.grade(),
-                                v.pinned(), v.publishAt(), v.expiresAt(), v.published(), v.notifyUsers(), v.notifiedAt(),
-                                v.readCount(), v.createdAt()));
                         n++;
                     }
                     if ((long) (page + 1) * ACD_PAGE >= r.total()) {

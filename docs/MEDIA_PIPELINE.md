@@ -20,8 +20,8 @@ Her tür (`avatar`, `cover`, `post`, `chat`) için ayrı:
 | Anahtar | Anlam | Varsayılan (avatar / cover / post / chat) |
 |---|---|---|
 | `app.media.<tür>.max-upload-bytes` | ham yükleme üst sınırı → 413 `FILE_TOO_LARGE` | 2 MB / 3 MB / 3 MB / 5 MB |
-| `app.media.<tür>.max-dimension` | uzun kenar px | 512 / 1600 / 1600 / 1600 |
-| `app.media.<tür>.max-stored-bytes` | sıkıştırma SONRASI üst sınır | 150 KB / 400 KB / 400 KB / 500 KB |
+| `app.media.<tür>.max-dimension` | uzun kenar px | 512 / 1600 / 1600 / 2560 (sohbet: 2026-11-05'te 1600'den yükseltildi) |
+| `app.media.<tür>.max-stored-bytes` | sıkıştırma SONRASI üst sınır | 150 KB / 400 KB / 400 KB / 1,5 MB (sohbet; kalite 88, ham yükleme sınırı 10 MB) |
 | `app.media.<tür>.jpeg-quality` | başlangıç kalitesi (1-100) | 85 |
 
 Genel: `app.media.thumb-dimension` (320), `max-pixels` (25000000), `concurrency` (4), `grace-seconds` (10), `orphan-min-age-hours` (24), `private-dir` (boşsa `<storage.dir>/_private`), `signing-secret` (boşsa JWT sırrından türetilir), `extra-reference-columns`, `sweep-folders`, `sweep-enabled`. Ortam değişkenleri: `MEDIA_AVATAR_MAX_STORED_BYTES`, `MEDIA_COVER_MAX_DIMENSION`, `MEDIA_CHAT_JPEG_QUALITY`... (bkz. `application.properties`).

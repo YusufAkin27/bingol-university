@@ -37,13 +37,22 @@ public class TicketController {
         this.limiter = limiter;
     }
 
-    /** Kullanici basina gunde 5 yeni talep. */
+    private edu.bingol.backend.common.IdempotentCreate idem;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setIdem(edu.bingol.backend.common.IdempotentCreate idem) {
+        this.idem = idem;
+    }
+
+    /** Kullanici basina gunde 5 yeni talep. Idempotency-Key ile tekrar ayni talebi doner. */
     @PostMapping("/support/tickets")
     @ResponseStatus(HttpStatus.CREATED)
-    public TicketDetail create(@Valid @RequestBody CreateTicketRequest r) {
+    public TicketDetail create(@Valid @RequestBody CreateTicketRequest r,
+                               @org.springframework.web.bind.annotation.RequestHeader(value = "Idempotency-Key", required = false) String idemKey) {
         Long uid = CurrentUser.id();
-        limiter.check("ticket:create:" + uid, 5, Duration.ofDays(1));
-        return tickets.create(uid, r);
+        return edu.bingol.backend.common.IdempotentCreate.exec(idem, uid, "ticket", idemKey,
+                () -> limiter.check("ticket:create:" + uid, 5, Duration.ofDays(1)),
+                () -> tickets.create(uid, r), d -> d.ticket().id(), id -> tickets.detail(uid, id));
     }
 
     @GetMapping("/support/tickets")

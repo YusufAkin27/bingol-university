@@ -29,6 +29,7 @@ class MailQueueWorkerTest {
     @BeforeEach
     void setUp() {
         outbox = mock(MailOutboxRepository.class);
+        when(outbox.renewLease(any(), any(), any())).thenReturn(1); // kira korumasi: kayit hala bizde
         transport = mock(MailTransport.class);
         metrics = new SimpleMeterRegistry();
         worker = workerWith(true);

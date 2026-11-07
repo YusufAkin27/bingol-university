@@ -61,20 +61,75 @@ class PostServiceTest {
     }
 
     @Test
-    void createRequiresExactlyOnePhoto() {
+    void createRequiresAtLeastOneMediaAndValidatesOwnership() {
         User a = newUser();
         assertEquals("POST_PHOTO_REQUIRED", fails(() -> service.create(a.getId(), new CreatePostRequest("merhaba", null))).code());
         assertEquals("POST_PHOTO_REQUIRED", fails(() -> service.create(a.getId(), new CreatePostRequest(null, List.of()))).code());
         Long i1 = uploaded(a, "IMAGE");
-        Long i2 = uploaded(a, "IMAGE");
-        assertEquals("POST_SINGLE_PHOTO_ONLY", fails(() -> service.create(a.getId(), new CreatePostRequest("x", List.of(i1, i2)))).code());
-        assertEquals("POST_SINGLE_PHOTO_ONLY", fails(() -> service.create(a.getId(), new CreatePostRequest("x", List.of(i1, i1)))).code());
+        assertEquals("POST_MEDIA_INVALID", fails(() -> service.create(a.getId(), new CreatePostRequest("x", List.of(i1, i1)))).code(),
+                "ayni medya iki kez");
         Long vid = uploaded(a, "VIDEO");
-        assertEquals("POST_VIDEO_NOT_ALLOWED", fails(() -> service.create(a.getId(), new CreatePostRequest("x", List.of(vid)))).code());
+        Long vid2 = uploaded(a, "VIDEO");
+        assertEquals("POST_MEDIA_MIX", fails(() -> service.create(a.getId(), new CreatePostRequest("x", List.of(vid, vid2)))).code(),
+                "video tek basina");
+        assertEquals("POST_MEDIA_MIX", fails(() -> service.create(a.getId(), new CreatePostRequest("x", List.of(i1, vid)))).code(),
+                "fotograf + video birlikte olmaz");
         User b = newUser();
         Long foreign = uploaded(b, "IMAGE");
         assertEquals("POST_MEDIA_INVALID", fails(() -> service.create(a.getId(), new CreatePostRequest(null, List.of(foreign)))).code());
+        assertEquals("POST_MEDIA_INVALID", fails(() -> service.create(a.getId(), new CreatePostRequest(null, List.of(i1, foreign)))).code(),
+                "baskasinin medyasi kismen de olsa reddedilir; hicbiri baglanmaz");
         assertEquals("POST_MEDIA_INVALID", fails(() -> service.create(a.getId(), new CreatePostRequest(null, List.of(987654321L)))).code());
+    }
+
+    @Test
+    void createWithSeveralPhotosKeepsOrderAndMediaCount() {
+        User a = newUser();
+        Long m1 = uploaded(a, "IMAGE");
+        Long m2 = uploaded(a, "IMAGE");
+        Long m3 = uploaded(a, "IMAGE");
+        PostView v = service.create(a.getId(), new CreatePostRequest("üç kare", List.of(m3, m1, m2)));
+        assertEquals("PHOTO", v.type());
+        assertEquals(List.of(m3, m1, m2), v.media().stream().map(PostDtos.MediaView::id).toList());
+        assertEquals(List.of(0, 1, 2), v.media().stream().map(PostDtos.MediaView::position).toList());
+        assertEquals(3, posts.findById(v.id()).orElseThrow().getMediaCount());
+        // liste/akis yolu da ayni sirayi verir
+        PostView got = service.get(a.getId(), v.id());
+        assertEquals(3, got.media().size());
+        assertEquals(m3, got.media().get(0).id());
+    }
+
+    @Test
+    void createRejectsMoreThanTenPhotos() {
+        User a = newUser();
+        List<Long> ids = new java.util.ArrayList<>();
+        for (int i = 0; i < 11; i++) {
+            ids.add(uploaded(a, "IMAGE"));
+        }
+        assertEquals("POST_MEDIA_LIMIT", fails(() -> service.create(a.getId(), new CreatePostRequest("x", ids))).code());
+        PostView ok = service.create(a.getId(), new CreatePostRequest("x", ids.subList(0, 10)));
+        assertEquals(10, ok.media().size());
+    }
+
+    @Test
+    void createVideoPostIsTypedVideoAndCarriesVideoView() {
+        User a = newUser();
+        Long vid = uploaded(a, "VIDEO");
+        PostView v = service.create(a.getId(), new CreatePostRequest("kısa klip", List.of(vid)));
+        assertEquals("VIDEO", v.type());
+        assertEquals("VIDEO", v.media().get(0).kind());
+        org.junit.jupiter.api.Assertions.assertNotNull(v.video());
+        assertEquals("/api/posts/media/" + vid, v.video().url());
+        assertEquals(0, v.viewCount());
+        assertEquals("VIDEO", posts.findById(v.id()).orElseThrow().getKind());
+        PostView photo = service.create(a.getId(), new CreatePostRequest(null, List.of(uploaded(a, "IMAGE"))));
+        assertEquals("PHOTO", photo.type());
+        assertNull(photo.video());
+        assertNull(photo.viewCount());
+        // video de ayni (gizli) metin kuralina tabidir
+        Long vid2 = uploaded(a, "VIDEO");
+        assertEquals("POST_TEXT_TOO_LONG", fails(() -> service.create(a.getId(),
+                new CreatePostRequest("a".repeat(2201), List.of(vid2)))).code());
     }
 
     @Test
@@ -92,27 +147,40 @@ class PostServiceTest {
     }
 
     @Test
-    void textRuleSevenWordsSixtyCharsSingleLine() {
+    void textRuleHiddenLimitMultilineAllowedNoWordLimit() {
         PostService.checkText(null);
-        PostService.checkText("bir iki üç dört beş altı yedi");
-        PostService.checkText("a".repeat(60));
-        assertEquals("POST_TEXT_TOO_LONG", fails(() -> PostService.checkText("bir iki üç dört beş altı yedi sekiz")).code());
-        assertEquals("POST_TEXT_TOO_LONG", fails(() -> PostService.checkText("a".repeat(61))).code());
-        assertEquals("POST_TEXT_TOO_LONG", fails(() -> PostService.checkText("1\u00A02\u20093 4 5 6 7 8")).code());
-        assertEquals("POST_TEXT_INVALID", fails(() -> PostService.checkText("iki\nsatir")).code());
-        assertEquals("POST_TEXT_INVALID", fails(() -> PostService.checkText("iki\u2028satir")).code());
+        // 7 kelime / 60 karakter kurali kalkti
+        PostService.checkText("bir iki üç dört beş altı yedi sekiz dokuz on");
+        PostService.checkText("a".repeat(61));
+        PostService.checkText("iki\nsatir");
+        PostService.checkText("a".repeat(2200));
+        PostService.checkText("x\n".repeat(39) + "x"); // tam 40 satir
+        assertEquals("POST_TEXT_TOO_LONG", fails(() -> PostService.checkText("a".repeat(2201))).code());
+        assertEquals("POST_TEXT_TOO_LONG", fails(() -> PostService.checkText("x\n".repeat(40) + "x")).code());
+        // kod noktasi sayilir (emoji 1 karakter)
+        PostService.checkText("😀".repeat(2200));
+        assertEquals("POST_TEXT_TOO_LONG", fails(() -> PostService.checkText("😀".repeat(2201))).code());
         User a = newUser();
         Long img = uploaded(a, "IMAGE");
         assertEquals("POST_TEXT_TOO_LONG", fails(() -> service.create(a.getId(),
-                new CreatePostRequest("bir iki üç dört beş altı yedi sekiz", List.of(img)))).code());
+                new CreatePostRequest("a".repeat(2201), List.of(img)))).code());
         PostView ok = post(a, "tamam");
-        assertEquals("POST_TEXT_TOO_LONG", fails(() -> service.update(a.getId(), ok.id(), "bir iki üç dört beş altı yedi sekiz")).code());
-        assertEquals("POST_TEXT_INVALID", fails(() -> service.update(a.getId(), ok.id(), "a\nb")).code());
+        assertEquals("POST_TEXT_TOO_LONG", fails(() -> service.update(a.getId(), ok.id(), "a".repeat(2201))).code());
+        assertEquals("a\nb", service.update(a.getId(), ok.id(), "a\nb").text(), "cok satir serbest");
         assertNull(service.update(a.getId(), ok.id(), " ").text(), "fotografli gonderide metin silinebilir");
     }
 
     @Test
-    void feedHidesPostsWithoutImageAndShowsOnlyFirstImage() {
+    void longMultilineTextIsCleanedAndStoredAsIs() {
+        User a = newUser();
+        String raw = "  ​Merhaba herkese, bu gonderi artik yedi kelimeden uzun olabilir!\r\nIkinci satir\rUcuncu\tsatir\u0007  ";
+        PostView v = service.create(a.getId(), new CreatePostRequest(raw, List.of(uploaded(a, "IMAGE"))));
+        assertEquals("Merhaba herkese, bu gonderi artik yedi kelimeden uzun olabilir!\nIkinci satir\nUcuncu satir", v.text());
+        assertTrue(v.mentions().isEmpty());
+    }
+
+    @Test
+    void feedHidesPostsWithoutMediaAndShowsOnlyFirstMedia() {
         User a = newUser();
         User v = newUser();
         PostView photo = post(a, "foto");
@@ -140,15 +208,17 @@ class PostServiceTest {
         List<PostView> items = service.byAuthor(v.getId(), a.getId(), null, 20).items();
         List<Long> ids = items.stream().map(PostView::id).toList();
         assertTrue(ids.contains(photo.id()) && ids.contains(multi.getId()));
-        assertFalse(ids.contains(videoOnly.getId()), "video-only akistan gizli");
-        assertFalse(ids.contains(textOnly.getId()), "fotografsiz eski gonderi akistan gizli");
-        Long hiddenId = videoOnly.getId();
+        assertTrue(ids.contains(videoOnly.getId()), "video gonderisi akista gorunur (video geri geldi)");
+        assertFalse(ids.contains(textOnly.getId()), "medyasiz eski gonderi akistan gizli");
+        Long hiddenId = textOnly.getId();
         assertTrue(service.feed(v.getId(), "latest", null, 20).items().stream().noneMatch(i -> i.id().equals(hiddenId)));
         assertTrue(service.feed(v.getId(), "popular", null, 20).items().stream().noneMatch(i -> i.id().equals(hiddenId)));
         Long multiId = multi.getId();
         PostView m = items.stream().filter(i -> i.id().equals(multiId)).findFirst().orElseThrow();
-        assertEquals(List.of(im1.getId()), m.media().stream().map(x -> x.id()).toList());
+        assertEquals(1, m.media().size(), "eski karisik veri: ilk medya video ise yalniz o gosterilir");
+        assertEquals("VIDEO", m.media().get(0).kind(), "ilk medya (position 0) videodur");
         assertTrue(posts.findById(hiddenId).isPresent() && mediaRepo.findById(onlyVid.getId()).isPresent(), "veri silinmedi");
+        assertNotNull(im1.getId());
     }
 
     @Test
@@ -247,22 +317,20 @@ class PostServiceTest {
         PostView high = post(a, "yuksek");
         counters.incrementLikes(high.id(), 10);
         scoreJob.recompute();
-        List<Long> ids = service.feed(v.getId(), "popular", null, 20).items().stream().map(PostView::id).toList();
+        // eski (7 günlük) puan sorgusu hâlâ iş tarafından beslenir; HTTP "popular" kapsamı artık rank_score akışıdır
+        Instant since = Instant.now().minus(PostService.POPULAR_WINDOW);
+        List<Long> ids = posts.popularFirst(v.getId(), since, org.springframework.data.domain.PageRequest.of(0, 50))
+                .stream().map(Post::getId).toList();
         assertTrue(ids.indexOf(high.id()) >= 0 && ids.indexOf(high.id()) < ids.indexOf(low.id()));
-        // popüler imleç ikinci sayfaya geçer
-        FeedPage p1 = service.feed(v.getId(), "popular", null, 1);
-        assertNotNull(p1.nextCursor());
-        FeedPage p2 = service.feed(v.getId(), "popular", p1.nextCursor(), 1);
-        assertFalse(p2.items().isEmpty());
-        assertFalse(p2.items().get(0).id().equals(p1.items().get(0).id()));
-        // 7 günden eski gönderi popülerde yok ve puanı sıfırlanır
+        // 7 günden eski gönderi eski popüler sorguda yok ve puanı sıfırlanır
         Post old = posts.findById(low.id()).orElseThrow();
         old.setCreatedAt(Instant.now().minus(10, ChronoUnit.DAYS));
         old.setScore(5);
         posts.saveAndFlush(old);
         scoreJob.recompute();
         assertEquals(0.0, posts.findById(low.id()).orElseThrow().getScore());
-        assertTrue(service.feed(v.getId(), "popular", null, 20).items().stream().noneMatch(i -> i.id().equals(low.id())));
+        assertTrue(posts.popularFirst(v.getId(), since, org.springframework.data.domain.PageRequest.of(0, 50))
+                .stream().noneMatch(i -> i.getId().equals(low.id())));
     }
 
     @Test

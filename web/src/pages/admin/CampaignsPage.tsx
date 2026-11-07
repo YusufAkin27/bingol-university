@@ -13,7 +13,6 @@ import {
   ErrorState,
   EmptyState,
   Icon,
-  Insight,
   LoadMore,
   PageHeader,
   ProgressBar,
@@ -27,6 +26,7 @@ import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
 import { CampaignDrawer } from './campaigns/CampaignDrawer';
+import { CampaignsOverview } from './iletisim/CampaignsOverview';
 import { useAdminNames, useAudienceSummary } from './campaigns/format';
 import { CAMPAIGN_STATUSES, isLive } from './campaigns/lib';
 import { adminErrorMessage } from './campaigns/shared';
@@ -60,7 +60,11 @@ export default function CampaignsPage() {
       header: t('common.status'),
       width: '150px',
       card: { priority: 2 },
-      render: (c) => <StatusPill tone={toneFor(c.status)}>{t(`admin.campaigns.status.${c.status}`)}</StatusPill>,
+      render: (c) => (
+        <span className={styles.nowrap}>
+          <StatusPill tone={toneFor(c.status)}>{t(`admin.campaigns.status.${c.status}`)}</StatusPill>
+        </span>
+      ),
     },
     {
       key: 'content',
@@ -75,7 +79,12 @@ export default function CampaignsPage() {
         </div>
       ),
     },
-    { key: 'audience', header: t('admin.campaigns.col.audience'), card: { priority: 3 }, render: (c) => audienceSummary(c.audience) },
+    {
+      key: 'audience',
+      header: t('admin.campaigns.col.audience'),
+      card: { priority: 3 },
+      render: (c) => audienceSummary(c.audience),
+    },
     {
       key: 'recipients',
       header: t('admin.campaigns.col.recipients'),
@@ -88,7 +97,10 @@ export default function CampaignsPage() {
           <span className={styles.cellContent}>
             <span>
               {c.audienceSize != null
-                ? t('admin.v2n.camp.reached', { n: formatNumber(c.recipientCount), total: formatNumber(c.audienceSize) })
+                ? t('admin.v2n.camp.reached', {
+                    n: formatNumber(c.recipientCount),
+                    total: formatNumber(c.audienceSize),
+                  })
                 : formatNumber(c.recipientCount)}
             </span>
             {!!c.audienceSize && (
@@ -101,7 +113,9 @@ export default function CampaignsPage() {
               />
             )}
             {!!c.skippedCount && (
-              <span className={styles.cellBody}>{t('admin.campaigns.skipped', { n: formatNumber(c.skippedCount) })}</span>
+              <span className={styles.cellBody}>
+                {t('admin.campaigns.skipped', { n: formatNumber(c.skippedCount) })}
+              </span>
             )}
           </span>
         ),
@@ -129,7 +143,11 @@ export default function CampaignsPage() {
         title={t('admin.campaigns.title')}
         description={t('admin.v2n.camp.intro')}
         actions={
-          <ButtonLink to={paths.admin.campaignNew} leftIcon={<Icon name="plus" size={18} />} data-search-anchor="new-campaign">
+          <ButtonLink
+            to={paths.admin.campaignNew}
+            leftIcon={<Icon name="plus" size={18} />}
+            data-search-anchor="new-campaign"
+          >
             {t('admin.campaigns.new')}
           </ButtonLink>
         }
@@ -145,17 +163,10 @@ export default function CampaignsPage() {
           onChange={(id) => setParams(id === 'ALL' ? {} : { status: id }, { replace: true })}
         />
       </div>
-      {!query.isLoading && !query.isError && items.length > 0 && (
-        <Insight
-          tone={items.some((c) => c.status === 'FAILED') ? 'warn' : 'info'}
-          parts={t('admin.v2n.camp.summary', {
-            n: formatNumber(items.length),
-            sending: formatNumber(items.filter((c) => c.status === 'SENDING').length),
-            scheduled: formatNumber(items.filter((c) => c.status === 'SCHEDULED').length),
-            failed: formatNumber(items.filter((c) => c.status === 'FAILED').length),
-          })}
-        />
-      )}
+      <CampaignsOverview
+        status={status}
+        onStatus={(s) => setParams(s ? { status: s } : {}, { replace: true })}
+      />
       {live && (
         <p className={styles.liveNote} role="status">
           <span className={styles.liveDot} aria-hidden="true" />
@@ -163,7 +174,12 @@ export default function CampaignsPage() {
         </p>
       )}
       {query.isError ? (
-        <ErrorState subject={t('admin.v2n.camp.subject')} error={query.error} description={adminErrorMessage(i18n, query.error)} onRetry={() => void query.refetch()} />
+        <ErrorState
+          subject={t('admin.v2n.camp.subject')}
+          error={query.error}
+          description={adminErrorMessage(i18n, query.error)}
+          onRetry={() => void query.refetch()}
+        />
       ) : (
         <>
           <Table
@@ -190,11 +206,7 @@ export default function CampaignsPage() {
           />
         </>
       )}
-      <CampaignDrawer
-        id={openId}
-        seed={items.find((c) => c.id === openId)}
-        onClose={() => setOpenId(null)}
-      />
+      <CampaignDrawer id={openId} seed={items.find((c) => c.id === openId)} onClose={() => setOpenId(null)} />
     </div>
   );
 }

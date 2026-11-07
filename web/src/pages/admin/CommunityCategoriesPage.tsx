@@ -24,12 +24,14 @@ import {
   ErrorState,
   FormField,
   Input,
+  Insight,
   PageHeader,
   Skeleton,
   useToast,
 } from '../../components/ui';
 import { useSearchReveal } from '../../search/anchor';
 import { FillBar } from './community/Summary';
+import { tp } from './community/tp';
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { adminErrorMessage } from './campaigns/shared';
@@ -51,6 +53,7 @@ const EMPTY: FormState = { key: '', nameTr: '', nameEn: '', nameAr: '', icon: ''
 export default function CommunityCategoriesPage() {
   const i18n = useI18n();
   const { t, formatNumber } = i18n;
+  const x = tp(i18n);
   usePageTitle(t('admin.ccat.title'));
   const toast = useToast();
   const qc = useQueryClient();
@@ -148,6 +151,8 @@ export default function CommunityCategoriesPage() {
   const keyInvalid = editing === 'new' && form.key.trim() !== '' && !KEY_RE.test(form.key.trim());
   const full = !!list.data && list.data.activeCount >= list.data.maxActive;
   const maxUsage = Math.max(1, ...items.map((c) => c.usageCount));
+  const unused = items.filter((c) => c.usageCount === 0).length;
+  const topUsed = items.reduce<CommunityCategory | null>((best, c) => (c.usageCount > (best?.usageCount ?? 0) ? c : best), null);
 
   return (
     <>
@@ -177,6 +182,21 @@ export default function CommunityCategoriesPage() {
               label={t('admin.v2.cat.limitBar', {
                 free: formatNumber(Math.max(0, list.data.maxActive - list.data.activeCount)),
               })}
+            />
+          </div>
+        )}
+
+        {list.data && items.length > 0 && (
+          <div data-search-anchor="cat-insight">
+            <Insight
+              tone={unused > 0 ? 'warn' : 'info'}
+              parts={
+                x('admin.tp.cat.insight', {
+                  active: formatNumber(list.data.activeCount),
+                  inactive: formatNumber(items.filter((c) => !c.active).length),
+                  unused: formatNumber(unused),
+                }) + (topUsed ? ' ' + x('admin.tp.cat.top', { name: topUsed.nameTr, n: formatNumber(topUsed.usageCount) }) : '')
+              }
             />
           </div>
         )}

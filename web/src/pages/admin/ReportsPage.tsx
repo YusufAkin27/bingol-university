@@ -29,7 +29,6 @@ import {
   Insight,
   LoadMore,
   PageHeader,
-  RankedBars,
   Select,
   Skeleton,
   StatTile,
@@ -61,15 +60,13 @@ import { csvName } from './moderation/p11Logic';
 import { ReportContextCard } from './chat/ReportContext';
 import { TARGET_TYPES, cleanReasonCode, toggleSelected } from './moderation/modLogic';
 import modStyles from './moderation/moderation.module.css';
+import { priorityLevel } from './mod2/reportCharts';
+import { ReportQueueCharts } from './mod2/ReportQueueCharts';
+import './mod2/dict';
 import { BulkBar } from './reports/BulkBar';
 import { ReasonFields } from './reports/ReasonFields';
 import v2 from './moderation/v2.module.css';
 import styles from './reports/Reports.module.css';
-
-/** Öncelik puanı (açık raporlayan x10, gizliyse +100) yerine düz seviye: Acil / Yüksek / Normal. */
-function priorityLevel(p: number): 'URGENT' | 'HIGH' | 'NORMAL' {
-  return p >= 100 ? 'URGENT' : p >= 30 ? 'HIGH' : 'NORMAL';
-}
 
 function isTypingTarget(t: EventTarget | null): boolean {
   const el = t as HTMLElement | null;
@@ -267,9 +264,7 @@ export default function ReportsPage() {
 
   const urgentCount = items.filter((r) => priorityLevel(r.priority ?? 0) === 'URGENT').length;
   const oldestAt = items.reduce<string | null>((o, r) => (!o || r.createdAt < o ? r.createdAt : o), null);
-  const typeBars = [...items.reduce((m, r) => m.set(r.targetType, (m.get(r.targetType) ?? 0) + 1), new Map<string, number>())].map(
-    ([k, v]) => ({ key: k, label: t(`admin.reports.targetType.${k}` as never), value: v }),
-  );
+  const typeLabel = useCallback((k: string) => t(`admin.reports.targetType.${k}` as never), [t]);
   const queueMore = query.hasNextPage ? '+' : '';
 
   return (
@@ -315,9 +310,7 @@ export default function ReportsPage() {
               urgentCount > 0 ? t('admin.v2m.reports.sentenceUrgent', { n: String(urgentCount) }) : t('admin.v2m.reports.sentenceCalm'),
             ]}
           />
-          {typeBars.length > 1 && (
-            <RankedBars className={v2.clip} items={typeBars} limit={5} ariaLabel={t('admin.v2m.reports.byType')} />
-          )}
+          <ReportQueueCharts items={items} hasMore={!!query.hasNextPage} typeLabel={typeLabel} />
         </section>
       )}
       <div data-search-anchor="reports-tabs">

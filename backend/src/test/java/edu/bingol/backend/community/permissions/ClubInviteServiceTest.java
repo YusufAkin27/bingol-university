@@ -143,11 +143,22 @@ class ClubInviteServiceTest {
 
         assertEquals("ACTIVE", r.status());
         ArgumentCaptor<CommunityMember> m = ArgumentCaptor.forClass(CommunityMember.class);
-        verify(t.members).save(m.capture());
+        verify(t.members).saveAndFlush(m.capture());
         assertEquals(7L, m.getValue().getUserId());
         assertEquals(Role.MEMBER, m.getValue().getRole());
         assertTrue(m.getValue().isActive());
         verify(audit).record(eq(10L), eq(7L), eq(7L), eq(ClubAuditService.INVITE_USED), anyString());
+    }
+
+    @Test
+    void concurrentSecondJoinBecomesConflictNotServerError() {
+        // FIX-P05 (A05#8): ayni kullanicinin es zamanli ikinci katilimi benzersizlik yarisi -> 409 ALREADY_MEMBER
+        invite("ABCDEFGHJK");
+        when(invites.consume(eq(3L), any())).thenReturn(1);
+        when(t.members.saveAndFlush(any())).thenThrow(new org.springframework.dao.DataIntegrityViolationException("uq"));
+
+        assertEquals("ALREADY_MEMBER", code(() -> svc.join(joiner, "ABCDEFGHJK")));
+        verify(audit, never()).record(anyLong(), anyLong(), anyLong(), anyString(), anyString());
     }
 
     @Test

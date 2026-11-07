@@ -16,13 +16,11 @@ import {
   GuardedAction,
   Icon,
   Input,
-  Insight,
   LoadMore,
   PageHeader,
   RankedBars,
   Select,
   Skeleton,
-  StatTile,
   StatusPill,
   Switch,
   Textarea,
@@ -33,6 +31,8 @@ import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
 import { adminError } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
+import { FeedbackOverview } from './iletisim/FeedbackOverview';
+import il2 from './iletisim/iletisim.module.css';
 import { CsvButton } from './moderation/CsvButton';
 import { csvName, parseAssignee } from './moderation/p11Logic';
 import p11 from './moderation/p11.module.css';
@@ -157,7 +157,12 @@ function FeedbackDrawer({ item, onClose }: { item: AdminFeedbackView; onClose: (
           <h4>{t('admin.p12.fb.danger')}</h4>
           <div className={p11.inlineRow}>
             <FormField label={t('admin.p12.fb.mergeTarget')} hint={t('admin.p12.fb.mergeHint')}>
-              <Input inputMode="numeric" className="ltr" value={mergeTarget} onChange={(e) => setMergeTarget(e.target.value)} />
+              <Input
+                inputMode="numeric"
+                className="ltr"
+                value={mergeTarget}
+                onChange={(e) => setMergeTarget(e.target.value)}
+              />
             </FormField>
             <GuardedAction
               permission="support.write"
@@ -197,7 +202,9 @@ function FeedbackDrawer({ item, onClose }: { item: AdminFeedbackView; onClose: (
               errorMessage={(e) => adminError(i18n, e)}
               invalidateKeys={[qk.feedback.all]}
               onSuccess={onClose}
-              onConfirm={({ reason, idempotencyKey }) => supportAdminApi.deleteFeedback(item.id, { reason, idempotencyKey })}
+              onConfirm={({ reason, idempotencyKey }) =>
+                supportAdminApi.deleteFeedback(item.id, { reason, idempotencyKey })
+              }
             >
               {t('admin.p12.fb.delete.button')}
             </GuardedAction>
@@ -230,13 +237,15 @@ export default function FeedbackPage() {
   });
   const items = useMemo(() => query.data?.pages.flatMap((p) => p.items) ?? [], [query.data]);
   const editing = items.find((i) => i.id === editingId) ?? null;
-  const byStatus = (st: FeedbackStatus) => items.filter((i) => i.status === st).length;
   const topVoted = [...items]
     .filter((i) => i.voteCount > 0)
     .sort((a, b) => b.voteCount - a.voteCount)
     .slice(0, 3)
-    .map((i) => ({ key: String(i.id), label: i.subject.length > 26 ? i.subject.slice(0, 25) + '…' : i.subject, value: i.voteCount }));
-  const waitingNew = items.filter((i) => i.status === 'NEW').length;
+    .map((i) => ({
+      key: String(i.id),
+      label: i.subject.length > 26 ? i.subject.slice(0, 25) + '…' : i.subject,
+      value: i.voteCount,
+    }));
 
   useEffect(() => {
     if (editingId !== null && !editing && !query.isFetching) setEditingId(null);
@@ -255,35 +264,23 @@ export default function FeedbackPage() {
           </span>
         }
       />
-      {query.isSuccess && items.length > 0 && (
-        <section data-search-anchor="fb-summary" aria-label={t('admin.v2m.fb.summary')}>
-          <div className={v2.tiles}>
-            {FEEDBACK_STATUSES.map((st) => (
-              <StatTile
-                key={st}
-                label={t(`admin.feedback.status.${st}`)}
-                value={byStatus(st)}
-                caption={st === 'NEW' ? t(query.hasNextPage ? 'admin.v2m.fb.newHintMore' : 'admin.v2m.fb.newHint') : undefined}
-              />
-            ))}
-          </div>
-          <Insight
-            className={v2.sentence}
-            tone={waitingNew > 0 ? 'warn' : 'good'}
-            parts={[t(waitingNew > 0 ? 'admin.v2m.fb.sentenceNew' : 'admin.v2m.fb.sentenceNone', { n: String(waitingNew) })]}
+      <FeedbackOverview status={status} onStatus={setStatus} />
+      {topVoted.length > 0 && (
+        <div className={`${v2.clip} ${il2.spaced}`} data-search-anchor="fb-top-voted">
+          <h2 className={v2.hint}>{t('admin.v2m.fb.top')}</h2>
+          <RankedBars
+            items={topVoted}
+            limit={3}
+            ariaLabel={t('admin.v2m.fb.top')}
+            formatValue={(n) => t('admin.v2m.fb.supporters', { n: formatNumber(n) })}
           />
-          {topVoted.length > 0 && (
-            <div className={v2.clip}>
-              <h2 className={v2.hint}>{t('admin.v2m.fb.top')}</h2>
-              <RankedBars items={topVoted} limit={3} ariaLabel={t('admin.v2m.fb.top')} formatValue={(n) => t('admin.v2m.fb.supporters', { n: formatNumber(n) })} />
-            </div>
-          )}
-        </section>
+        </div>
       )}
       <DataToolbar
         filters={
           <div className={styles.filterRow}>
-            <Select className={styles.filter}
+            <Select
+              className={styles.filter}
               data-search-anchor="fb-status"
               aria-label={t('admin.feedback.filter.status')}
               value={status}
@@ -296,7 +293,8 @@ export default function FeedbackPage() {
                 </option>
               ))}
             </Select>
-            <Select className={styles.filter}
+            <Select
+              className={styles.filter}
               data-search-anchor="fb-category"
               aria-label={t('admin.feedback.filter.category')}
               value={category}
@@ -334,7 +332,10 @@ export default function FeedbackPage() {
           <ul className={styles.fbList} data-search-anchor="fb-list">
             {items.map((f) => (
               <li key={f.id} className={styles.fb}>
-                <div className={styles.votes} aria-label={`${t('admin.feedback.votesLabel')}: ${f.voteCount}`}>
+                <div
+                  className={styles.votes}
+                  aria-label={`${t('admin.feedback.votesLabel')}: ${f.voteCount}`}
+                >
                   <span className={styles.votesNum}>{formatNumber(f.voteCount)}</span>
                   <span className={styles.votesLbl}>{t('admin.v2m.fb.votesLabel')}</span>
                 </div>
@@ -364,7 +365,12 @@ export default function FeedbackPage() {
                   </div>
                 </div>
                 <div className={styles.fbAct}>
-                  <Button variant="secondary" size="sm" className={v2.minTouch} onClick={() => setEditingId(f.id)}>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className={v2.minTouch}
+                    onClick={() => setEditingId(f.id)}
+                  >
                     {t('admin.feedback.edit')}
                   </Button>
                 </div>

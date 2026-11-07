@@ -53,7 +53,7 @@ GİZLİLİK VE VERİLERİNİZ
 
 • Hesabınızı uygulamanın içinden istediğiniz zaman silebilirsiniz; silme, hesabın anonimleştirilmesidir.
 • Verilerinizi indirebilirsiniz (KVKK kapsamında "verilerimi indir").
-• Konum bilgisi toplanmaz. Rehberiniz ve telefon numaralarınız istenmez ve kullanılmaz.
+• Konum bilgisi toplanmaz. Rehberiniz yalnızca siz izin verirseniz ve yalnızca e-posta özetleri (hash) ile arkadaş bulmak için kullanılır; adlar, numaralar ve ham e-posta adresleri sunucuya gönderilmez.
 • Reklam ve izleme yoktur, verileriniz üçüncü taraflara satılmaz veya reklam amacıyla paylaşılmaz.
 • Gizlilik politikası ve hesap silme bilgisi: https://bukampus.com.tr/tr/privacy ve https://bukampus.com.tr/tr/delete-account
 

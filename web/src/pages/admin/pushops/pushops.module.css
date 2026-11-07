@@ -1,4 +1,7 @@
 /* Push altyapısı sayfası (P14): yalnızca tasarım token'ları ve mantıksal özellikler. */
+.nowrap {
+  white-space: nowrap;
+}
 .stack {
   display: grid;
   gap: var(--space-4);
@@ -16,6 +19,7 @@
   align-items: start;
 }
 .filters {
+  inline-size: 100%;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
   gap: var(--space-3) var(--space-4);

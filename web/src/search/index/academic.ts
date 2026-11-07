@@ -1,7 +1,7 @@
 import type { SearchEntry } from '../types';
 
 /**
- * Arama girdileri: Akademik grup (acdCalendar, acdExams, acdAnnouncements).
+ * Arama girdileri: Akademik grup (acdCalendar, acdTimetable).
  * Menü sayfalarının kendisi (`page`) otomatik üretilir; burada tekrar yazmayın.
  */
 export const entries: SearchEntry[] = [
@@ -55,9 +55,9 @@ export const entries: SearchEntry[] = [
     id: 'acdCalendar.view',
     kind: 'section',
     page: 'acdCalendar',
-    title: 'Takvim / Liste görünümü',
+    title: 'Çizelge / Takvim / Liste görünümü',
     anchor: 'cal-view',
-    keywords: ['ay görünümü', 'ajanda', 'liste'],
+    keywords: ['ay görünümü', 'ajanda', 'liste', 'çizelge görünümü'],
     description: 'Olayları ay takvimi ya da liste olarak gösterir.',
   },
   {
@@ -97,6 +97,33 @@ export const entries: SearchEntry[] = [
     description: 'Liste görünümünde birden çok olayı seçip aynı anda işlem yapar.',
   },
 
+  {
+    id: 'acdCalendar.timeline',
+    kind: 'section',
+    page: 'acdCalendar',
+    title: 'Dönem çizelgesi',
+    anchor: 'cal-timeline',
+    keywords: ['gantt', 'zaman çizelgesi', 'zaman çizgisi', 'dönem planı', 'bugün çizgisi', 'yıllık plan', 'takvim çubukları'],
+    description: 'Dönemin tüm olaylarını türüne göre zaman çubukları olarak gösterir; bugün çizgisi nerede olduğunuzu söyler.',
+  },
+  {
+    id: 'acdCalendar.upcoming',
+    kind: 'section',
+    page: 'acdCalendar',
+    title: 'Yaklaşan olaylar',
+    anchor: 'cal-upcoming',
+    keywords: ['sıradaki tarih', 'önümüzdeki günler', 'geri sayım', 'kaç gün kaldı', 'ne zaman', 'şu an sürüyor'],
+    description: 'Bugün sürenleri ve sıradaki olayları kaç gün kaldığıyla listeler.',
+  },
+  {
+    id: 'acdCalendar.timelineNav',
+    kind: 'action',
+    page: 'acdCalendar',
+    title: 'Çizelgede 3 ay ileri / geri git',
+    anchor: 'cal-timeline-nav',
+    keywords: ['sonraki dönem', 'önceki dönem', 'bugüne git', 'ay kaydır'],
+    description: 'Çizelgenin gösterdiği 6 aylık aralığı kaydırır.',
+  },
   // ---- Resmî ders programı ----
   {
     id: 'acdTimetable.upload',
@@ -115,90 +142,5 @@ export const entries: SearchEntry[] = [
     anchor: 'tt-filters',
     keywords: ['dönem', 'güz', 'bahar', 'program ara', 'birim'],
     description: 'Yüklü ders programlarını döneme, birime veya programa göre daraltır.',
-  },
-
-  // ---- Sınavlar ----
-  {
-    id: 'acdExams.add',
-    kind: 'action',
-    page: 'acdExams',
-    title: 'Sınav ekle',
-    anchor: 'ex-add',
-    keywords: ['yeni sınav', 'vize ekle', 'final ekle'],
-    description: 'Sınav programına yeni bir sınav ekler.',
-  },
-  {
-    id: 'acdExams.filters',
-    kind: 'field',
-    page: 'acdExams',
-    title: 'Sınav süzgeçleri (tür, sınıf, bölüm)',
-    anchor: 'ex-filters',
-    keywords: ['vize', 'final', 'bütünleme', 'sınıf', 'bölüm'],
-    description: 'Sınavları türüne, sınıfına ya da bölümüne göre daraltır.',
-  },
-  {
-    id: 'acdExams.status',
-    kind: 'field',
-    page: 'acdExams',
-    title: 'Sınav yayın durumu',
-    anchor: 'ex-status',
-    keywords: ['taslak', 'yayında'],
-    description: 'Yayında olan ve taslak sınavları ayırır.',
-  },
-  {
-    id: 'acdExams.q',
-    kind: 'field',
-    page: 'acdExams',
-    title: 'Sınav ara',
-    anchor: 'ex-q',
-    keywords: ['ders kodu', 'ders adı', 'salon'],
-    description: 'Sınavı ders kodundan ya da adından bulur.',
-  },
-  {
-    id: 'acdExams.csv',
-    kind: 'action',
-    page: 'acdExams',
-    title: 'Sınav programını CSV indir',
-    anchor: 'ex-csv',
-    keywords: ['excel', 'dışa aktar'],
-    description: 'Sınav programını tablo dosyası olarak indirir.',
-  },
-
-  // ---- Bölüm duyuruları ----
-  {
-    id: 'acdAnnouncements.add',
-    kind: 'action',
-    page: 'acdAnnouncements',
-    title: 'Duyuru ekle',
-    anchor: 'an-add',
-    keywords: ['yeni duyuru', 'bölüm duyurusu', 'bildirim gönder'],
-    description: 'Seçtiğiniz fakülte, bölüm ya da sınıfa duyuru hazırlar.',
-  },
-  {
-    id: 'acdAnnouncements.status',
-    kind: 'field',
-    page: 'acdAnnouncements',
-    title: 'Duyuru durumu süzgeci',
-    anchor: 'an-status',
-    keywords: ['taslak', 'planlı', 'yayında', 'süresi doldu'],
-    description: 'Duyuruları yayında, planlı, taslak ya da süresi dolmuş olarak ayırır.',
-  },
-  {
-    id: 'acdAnnouncements.csv',
-    kind: 'action',
-    page: 'acdAnnouncements',
-    title: 'Duyuruları CSV indir',
-    anchor: 'an-csv',
-    keywords: ['excel', 'dışa aktar'],
-    description: 'Duyuru listesini tablo dosyası olarak indirir.',
-  },
-  {
-    id: 'acdAnnouncements.bulk',
-    kind: 'action',
-    page: 'acdAnnouncements',
-    title: 'Seçili duyuruları toplu yayınla / sil',
-    anchor: 'an-bulk',
-    keywords: ['çoklu seç', 'toplu işlem', 'sabitle', 'okunma'],
-    description: 'Duyuruların altındaki düğmelerle düzenleyin, sabitleyin, yayından kaldırın; yanındaki çubuk kaç kişinin okuduğunu gösterir.',
   },
 ];

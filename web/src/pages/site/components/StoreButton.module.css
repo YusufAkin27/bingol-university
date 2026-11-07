@@ -62,6 +62,10 @@ a.inverse:hover {
   cursor: default;
   opacity: 0.72;
 }
+.pending {
+  pointer-events: none;
+  cursor: progress;
+}
 .glyph {
   flex: none;
   width: 24px;

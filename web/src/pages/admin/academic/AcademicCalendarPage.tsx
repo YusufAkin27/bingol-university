@@ -49,6 +49,8 @@ import { AcademicBulkBar } from '../bulk/BulkBars';
 import { BulkCsvButton, RowPick, SelectPage, useIdSelection } from '../bulk/BulkParts';
 import { adminErrorMessage } from '../campaigns/shared';
 import styles from './academic.module.css';
+import { CalendarTimeline } from './CalendarTimeline';
+import { gt } from '../icerik/dict';
 import {
   allDayRange,
   emptyToNull,
@@ -75,13 +77,15 @@ export default function AcademicCalendarPage() {
   const toast = useToast();
   const qc = useQueryClient();
 
-  const [view, setView] = useUrlTab(['month', 'list'] as const, 'month', 'view');
+  const gtx = gt(i18n);
+  const [view, setView] = useUrlTab(['timeline', 'month', 'list'] as const, 'timeline', 'view');
   const narrow = useIsNarrow();
   const kit = useKitFormat();
   // Arama: liste araç çubuğu ve ay gezinmesi ilgili görünümü açar
   useSearchReveal((anchor) => {
     if (anchor === 'cal-q' || anchor === 'cal-bulk' || anchor === 'cal-publish') setView('list');
     if (anchor === 'cal-nav') setView('month');
+    if (anchor === 'cal-timeline' || anchor === 'cal-upcoming' || anchor === 'cal-timeline-nav') setView('timeline');
   });
   const [kind, setKind] = useState('');
   const [status, setStatus] = useState('');
@@ -105,7 +109,7 @@ export default function AcademicCalendarPage() {
   });
   const monthQuery = useQuery({
     queryKey: acdKeys.events({ month: true, kind, published }),
-    enabled: view === 'month',
+    enabled: view === 'month' || view === 'timeline',
     queryFn: async () => {
       const all: AcademicEvent[] = [];
       let total = 0;
@@ -287,8 +291,9 @@ export default function AcademicCalendarPage() {
           <Tabs
             label={t('admin.acd.cal.view')}
             value={view}
-            onChange={(id) => setView(id as 'list' | 'month')}
+            onChange={(id) => setView(id as 'list' | 'month' | 'timeline')}
             tabs={[
+              { id: 'timeline', label: gtx('admin.icerik.tl.tab') },
               { id: 'month', label: t('admin.v2.cal.viewCalendar') },
               { id: 'list', label: t('admin.acd.cal.viewList') },
             ]}
@@ -363,6 +368,23 @@ export default function AcademicCalendarPage() {
             description={adminErrorMessage(i18n, monthQuery.error)}
             onRetry={() => void monthQuery.refetch()}
           />
+        ) : view === 'timeline' ? (
+          <Card>
+            <div className={styles.stack}>
+              {monthQuery.data && monthQuery.data.total > monthQuery.data.items.length && (
+                <p className={styles.muted} role="status">
+                  {t('admin.acd.cal.truncated', { n: monthQuery.data.items.length })}
+                </p>
+              )}
+              <CalendarTimeline
+                events={monthQuery.data?.items ?? []}
+                loading={monthQuery.isLoading}
+                todayKey={todayKey}
+                kindLabel={kindLabel}
+                onOpen={setEditing}
+              />
+            </div>
+          </Card>
         ) : (
           <Card>
             <div className={styles.stack}>

@@ -31,6 +31,16 @@ public class SessionService {
         this.events = events;
     }
 
+    /**
+     * Sifre degisimi/sifirlamada access-token iptal isaretini yalniz YAZAR (refresh'lere dokunmaz). Cagiran bunu
+     * veritabani kaydindan ONCE cagirir (FIX-P02/A01#12): kayit yazildiktan sonra Redis kesilirse parola degismis ama
+     * calinmis oturumlar acik kalmis olurdu. Sonrasinda {@link #revokeAll} isareti yeniler.
+     */
+    public void markPasswordChanged(Long userId) {
+        redis.opsForValue().set(JwtAuthFilter.PASSWORD_CHANGED_KEY_PREFIX + userId,
+                String.valueOf(clock.millis()), jwt.accessTtl().plus(Duration.ofMinutes(1)));
+    }
+
     public void revokeAll(Long userId) {
         // Isaret ONCE yazilir: refresh ile yaris halinde (token tuketildi, revokeAll uyeleri okudu, yeni token
         // eklendi) yeni token'in oturum zamani isaretten eski kalir ve AuthService.refresh bunu reddeder.
@@ -44,6 +54,24 @@ public class SessionService {
     /** Cikis yapan cihazin push kaydi silinsin diye olay yayinlar (notification modulu dinler). */
     public void deviceLoggedOut(Long userId, String fcmToken) {
         events.publishEvent(new DeviceLoggedOutEvent(userId, fcmToken));
+    }
+
+    /**
+     * Tek bir oturumu (sid) kapatir; kullanicinin diger cihazlari acik kalir. Sira: erisim isareti (`sessrev:<sid>`,
+     * o sid'li access token'lar aninda 401), refresh token silme + mezar tasi, olay (WebSocket kapanir, o oturumdan
+     * kaydolmus FCM cihazi silinir).
+     */
+    public void revokeSession(Long userId, String sid) {
+        redis.opsForValue().set(JwtAuthFilter.SESSION_REVOKED_KEY_PREFIX + sid, String.valueOf(clock.millis()),
+                jwt.accessTtl().plus(Duration.ofMinutes(1)));
+        refresh.revokeSid(userId, sid);
+        events.publishEvent(new SessionRevokedEvent(userId, sid));
+    }
+
+    /** Oturum (sid) tek basina iptal edildi mi? sid yoksa false. */
+    public boolean isSidRevoked(String sid) {
+        return sid != null && !sid.isBlank()
+                && Boolean.TRUE.equals(redis.hasKey(JwtAuthFilter.SESSION_REVOKED_KEY_PREFIX + sid));
     }
 
     /**
@@ -75,11 +103,7 @@ public class SessionService {
                     String.valueOf(clock.millis()), jwt.accessTtl().plus(Duration.ofMinutes(1)));
             // Isaret `iatms <= isaret` token'lari reddeder: 1 ms bekleyerek hemen ardindan uretilecek yeni token'in
             // iatms degerinin isaretten kesin buyuk olmasini garanti ederiz (yeni oturum kendi iptaline takilmaz).
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            MilliTick.awaitNext();
         }
         events.publishEvent(new SessionsRevokedEvent(userId, c, newLogin, n > 0));
     }

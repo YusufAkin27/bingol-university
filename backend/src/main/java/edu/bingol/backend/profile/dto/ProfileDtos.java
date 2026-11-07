@@ -17,18 +17,60 @@ public final class ProfileDtos {
     public record ProfileView(Long id, String email, String displayName, String faculty, String department,
                               Short classYear, String bio, String avatarUrl, boolean showEmail, Role role,
                               String language, String createdAt, String grade,
-                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Boolean avatarHidden) {
-        /** avatarHidden yok (null): yalnizca GET /users/me doldurur. */
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Boolean avatarHidden,
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Integer popularityScore,
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Integer followerCount,
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Long likesReceived,
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Integer postCount,
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Long reelCount,
+                              boolean emailVerified, boolean verificationDeferred,
+                              boolean profileCompleted,
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String username,
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String firstName,
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String lastName,
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String universityName,
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) List<String> authProviders,
+                              boolean emailNeedsReal, boolean realEmailRequired) {
+        /** avatarHidden ve populerlik alanlari yok (null): yalnizca GET /users/me doldurur. */
         public static ProfileView of(User u) {
             return new ProfileView(u.getId(), u.getEmail(), u.getDisplayName(), u.getFaculty(), u.getDepartment(),
                     u.getClassYear(), u.getBio(), u.getAvatarUrl(), u.isShowEmail(), u.getRole(), u.getLanguage(),
-                    u.getCreatedAt().toString(), u.getGrade(), null);
+                    u.getCreatedAt().toString(), u.getGrade(), null, null, null, null, null, null,
+                    u.isEmailVerified(), u.isVerificationDeferred() && !u.isEmailVerified(),
+                    u.isProfileCompleted(), u.getUsername(), u.getFirstName(), u.getLastName(), u.getUniversityName(), null,
+                    u.isEmailRelay(), u.isEmailRelay() && u.isRealEmailRequired());
+        }
+
+        /** Bagli giris saglayicilari (GOOGLE, APPLE; yalniz GET /users/me doldurur; parola ile giris her zaman vardir). */
+        public ProfileView withAuthProviders(List<String> providers) {
+            return new ProfileView(id, email, displayName, faculty, department, classYear, bio, avatarUrl, showEmail,
+                    role, language, createdAt, grade, avatarHidden, popularityScore, followerCount, likesReceived,
+                    postCount, reelCount, emailVerified, verificationDeferred, profileCompleted, username, firstName,
+                    lastName, universityName, providers, emailNeedsReal, realEmailRequired);
         }
 
         /** Profil fotografi moderasyonla gizlendi mi (mobil bilgi karti). */
         public ProfileView withAvatarHidden(boolean hidden) {
             return new ProfileView(id, email, displayName, faculty, department, classYear, bio, avatarUrl, showEmail,
-                    role, language, createdAt, grade, hidden);
+                    role, language, createdAt, grade, hidden, popularityScore, followerCount, likesReceived, postCount, reelCount,
+                    emailVerified, verificationDeferred, profileCompleted, username, firstName, lastName, universityName,
+                    authProviders, emailNeedsReal, realEmailRequired);
+        }
+
+        /** Populerlik puani (0..100) ve bilesenleri: takipci, alinan toplam begeni, gonderi sayisi (gercek sayilar). */
+        public ProfileView withPopularity(int score, int followers, long likes, int posts) {
+            return new ProfileView(id, email, displayName, faculty, department, classYear, bio, avatarUrl, showEmail,
+                    role, language, createdAt, grade, avatarHidden, score, followers, likes, posts, reelCount,
+                    emailVerified, verificationDeferred, profileCompleted, username, firstName, lastName, universityName,
+                    authProviders, emailNeedsReal, realEmailRequired);
+        }
+
+        /** Reels (video gonderi) sayisi (KS-BE2; yalniz GET /users/me doldurur). */
+        public ProfileView withReelCount(long reels) {
+            return new ProfileView(id, email, displayName, faculty, department, classYear, bio, avatarUrl, showEmail,
+                    role, language, createdAt, grade, avatarHidden, popularityScore, followerCount, likesReceived,
+                    postCount, reels, emailVerified, verificationDeferred, profileCompleted, username, firstName,
+                    lastName, universityName, authProviders, emailNeedsReal, realEmailRequired);
         }
     }
 
@@ -39,7 +81,42 @@ public final class ProfileDtos {
                                 @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Boolean blockedByMe,
                                 @com.fasterxml.jackson.annotation.JsonProperty("isPrivate") @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Boolean isPrivate,
                                 @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String followState,
-                                @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Boolean locked) {
+                                @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Boolean locked,
+                                @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Integer popularityScore,
+                                @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Long likesReceived,
+                                @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Integer postCount,
+                                @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Long reelCount) {
+        /** 16 alanli kurucu (populerlik yok): yalniz GET /users/{id} doldurur (withPopularity). */
+        public PublicProfile(Long id, String displayName, String faculty, String department, Short classYear,
+                             String bio, String avatarUrl, String email, Long followerCount, Long followingCount,
+                             Boolean followedByMe, Boolean followsMe, Boolean blockedByMe, Boolean isPrivate,
+                             String followState, Boolean locked) {
+            this(id, displayName, faculty, department, classYear, bio, avatarUrl, email, followerCount,
+                    followingCount, followedByMe, followsMe, blockedByMe, isPrivate, followState, locked, null, null,
+                    null, null);
+        }
+
+        /** Populerlik puani (0..100), alinan toplam begeni ve gonderi sayisi; takipci sayisi followerCount'tadir. */
+        public PublicProfile withPopularity(int score, long likes, int posts) {
+            return new PublicProfile(id, displayName, faculty, department, classYear, bio, avatarUrl, email,
+                    followerCount, followingCount, followedByMe, followsMe, blockedByMe, isPrivate, followState, locked,
+                    score, likes, posts, reelCount);
+        }
+
+        /** Yalniz gonderi sayisi (kilitli gizli hesap: puan ve alinan begeni toplami eklenmez). */
+        public PublicProfile withPostCount(int posts) {
+            return new PublicProfile(id, displayName, faculty, department, classYear, bio, avatarUrl, email,
+                    followerCount, followingCount, followedByMe, followsMe, blockedByMe, isPrivate, followState, locked,
+                    popularityScore, likesReceived, posts, reelCount);
+        }
+
+        /** Reels (video gonderi) sayisi (KS-BE2; gizli/kilitli hesapta cagrilmaz = alan yok). */
+        public PublicProfile withReelCount(long reels) {
+            return new PublicProfile(id, displayName, faculty, department, classYear, bio, avatarUrl, email,
+                    followerCount, followingCount, followedByMe, followsMe, blockedByMe, isPrivate, followState, locked,
+                    popularityScore, likesReceived, postCount, reels);
+        }
+
         /**
          * 13 alanli kurucu (gizli hesap alanlari yok): isPrivate/followState/locked yalniz profil ve arama ucunda
          * doldurulur (withRelation); digerlerinde JSON'a yazilmaz.
@@ -53,12 +130,12 @@ public final class ProfileDtos {
 
         /**
          * Gizli hesap iliskisi: isPrivate, followState (NONE | REQUESTED | FOLLOWING | SELF), locked (gizli ve bakan
-         * sahibi/kabul edilmis takipcisi degil). locked iken takipci/takip sayaclari gizlenir (null).
+         * sahibi/kabul edilmis takipcisi degil). takipci/takip sayaclari locked iken de korunur (gizli hesapta sayilar herkese acik; listeler/icerik kapali).
          */
         public PublicProfile withRelation(boolean isPrivate, String followState, boolean locked) {
             return new PublicProfile(id, displayName, faculty, department, classYear, bio, avatarUrl, email,
-                    locked ? null : followerCount, locked ? null : followingCount, followedByMe, followsMe,
-                    blockedByMe, isPrivate, followState, locked);
+                    followerCount, followingCount, followedByMe, followsMe,
+                    blockedByMe, isPrivate, followState, locked, popularityScore, likesReceived, postCount, reelCount);
         }
 
         /** 12 alanli kurucu (blockedByMe yok): yalniz GET /users/{id} doldurur. */
@@ -72,7 +149,8 @@ public final class ProfileDtos {
         /** Istek sahibi bu kullaniciyi engellemis mi (yalniz baskasinin profilinde, oturumlu istekte). */
         public PublicProfile withBlockedByMe(boolean blocked) {
             return new PublicProfile(id, displayName, faculty, department, classYear, bio, avatarUrl, email,
-                    followerCount, followingCount, followedByMe, followsMe, blocked, isPrivate, followState, locked);
+                    followerCount, followingCount, followedByMe, followsMe, blocked, isPrivate, followState, locked,
+                    popularityScore, likesReceived, postCount, reelCount);
         }
 
         /** Takip alanlari olmadan (yalniz profil ucu doldurur; digerlerinde null). */
@@ -91,7 +169,8 @@ public final class ProfileDtos {
 
         public PublicProfile withFollow(long followers, long following, boolean followedByMe, boolean followsMe) {
             return new PublicProfile(id, displayName, faculty, department, classYear, bio, avatarUrl, email, followers,
-                    following, followedByMe, followsMe, blockedByMe, isPrivate, followState, locked);
+                    following, followedByMe, followsMe, blockedByMe, isPrivate, followState, locked, popularityScore,
+                    likesReceived, postCount, reelCount);
         }
 
         public PublicProfile withFollow(long followers, long following, boolean followedByMe) {
@@ -118,12 +197,23 @@ public final class ProfileDtos {
                                        Boolean showEmail,
                                        @Pattern(regexp = "tr|en|ar") String language) {}
 
-    public record DeleteAccountRequest(@NotBlank String password) {}
+    /**
+     * Hesap silme yeniden dogrulamasi: parolasi olan hesapta `password` zorunlu. Parolasiz (yalniz OAuth) hesapta
+     * `provider` + `token` (+ Apple icin `nonce`) ile bagli saglayicinin TAZE token'i gerekir.
+     */
+    public record DeleteAccountRequest(@Size(max = 72) String password,
+                                       @Pattern(regexp = "(?i)google|apple") String provider,
+                                       @Size(max = 8192) String token, @Size(max = 256) String nonce) {}
 
     /** nextCursor null ise baska sayfa yok; devam icin `?cursor=<nextCursor>`. */
     public record UserSearchResult(List<PublicProfile> items, Long nextCursor) {}
 
     /** Ana sayfa rozetleri ve profil istatistikleri icin tek istekte sayimlar. */
     public record MeSummary(long communities, long events, long bookmarks, long unreadNotifications,
-                            long unreadMessages) {}
+                            long unreadMessages, long unreadSocial, long unreadInformation) {
+        /** Eski 5 alanli kurucu (merkez ayrimi yok). */
+        public MeSummary(long communities, long events, long bookmarks, long unreadNotifications, long unreadMessages) {
+            this(communities, events, bookmarks, unreadNotifications, unreadMessages, 0, unreadNotifications);
+        }
+    }
 }

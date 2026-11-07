@@ -1,0 +1,72 @@
+const m = {
+  // تسجيل الدخول: خطوة الرمز
+  'admin.login.2fa.title': 'رمز الدخول',
+  'admin.login.2fa.subtitle': 'تم إرسال رمز التحقق إلى:',
+  'admin.login.2fa.code': 'رمز الدخول',
+  'admin.login.2fa.codeRequired': 'أدخل الرمز المكوّن من 6 أرقام.',
+  'admin.login.2fa.remaining': 'مدة صلاحية الرمز: {time}',
+  'admin.login.2fa.expired': 'انتهت صلاحية الرمز. اطلب رمزًا جديدًا أو عد إلى تسجيل الدخول.',
+  'admin.login.2fa.trust': 'الوثوق بهذا المتصفح (عدم طلب الرمز في المرة القادمة)',
+  'admin.login.2fa.submit': 'تحقّق وسجّل الدخول',
+  'admin.login.2fa.submitting': 'جارٍ التحقق…',
+  'admin.login.2fa.resend': 'إعادة إرسال الرمز',
+  'admin.login.2fa.resent': 'تم إرسال رمز جديد إلى بريدك الإلكتروني.',
+  'admin.login.2fa.back': 'العودة إلى تسجيل الدخول',
+  'common.error.TWO_FACTOR_CODE_INVALID': 'الرمز غير صحيح. تحقّق منه وحاول مرة أخرى.',
+  'common.error.TWO_FACTOR_CHALLENGE_EXPIRED': 'انتهت صلاحية الرمز. اطلب رمزًا جديدًا أو سجّل الدخول مجددًا.',
+  'common.error.TWO_FACTOR_NOT_ENABLED': 'التحقق بخطوتين غير مفعّل في هذا الحساب.',
+  'common.error.TWO_FACTOR_ALREADY_ENABLED': 'التحقق بخطوتين مفعّل بالفعل.',
+
+  // القائمة والصفحة
+  'admin.nav.twoFactor': 'التحقق بخطوتين',
+  'admin.twoFactor.title': 'التحقق بخطوتين',
+  'admin.twoFactor.intro':
+    'المستخدمون الذين يفعّلون التحقق بخطوتين يُدخلون رمزًا من 6 أرقام يصلهم بالبريد الإلكتروني عند تسجيل الدخول من جهاز غير معروف.',
+  'admin.twoFactor.sum.enabled': 'مستخدمون فعّلوا الميزة',
+  'admin.twoFactor.sum.percent': 'نسبة المستخدمين النشطين',
+  'admin.twoFactor.sum.percentHint': 'من أصل {n} مستخدمًا نشطًا',
+  'admin.twoFactor.sum.last7': 'فعّلوها خلال آخر 7 أيام',
+  'admin.twoFactor.sum.devices': 'الأجهزة الموثوقة (الإجمالي)',
+  'admin.twoFactor.searchPlaceholder': 'ابحث بالاسم أو البريد الإلكتروني',
+  'admin.twoFactor.count': '{n} مستخدمًا',
+  'admin.twoFactor.col.name': 'الاسم',
+  'admin.twoFactor.col.email': 'البريد الإلكتروني',
+  'admin.twoFactor.col.role': 'الدور',
+  'admin.twoFactor.col.enabledAt': 'تاريخ التفعيل',
+  'admin.twoFactor.col.devices': 'الأجهزة الموثوقة',
+  'admin.twoFactor.col.lastLogin': 'آخر دخول',
+  'admin.twoFactor.col.detail': 'التفاصيل',
+  'admin.twoFactor.openUser': 'فتح تفاصيل {name}',
+  'admin.twoFactor.never': 'أبدًا',
+  'admin.twoFactor.empty.title': 'لم يُعثر على مستخدمين',
+  'admin.twoFactor.empty.hint': 'لم يفعّل أي مستخدم التحقق بخطوتين، أو لا توجد نتائج مطابقة لبحثك.',
+
+  // قائمة المستخدمين
+  'admin.users.col.twoFactor': '2FA',
+  'admin.users.twoFactor.on': 'مفعّل',
+  'admin.users.twoFactor.onDevices': 'مفعّل · {n} أجهزة',
+  'admin.users.twoFactor.off': 'غير مفعّل',
+  'admin.users.filter.twoFactor': 'التحقق بخطوتين',
+  'admin.users.filter.twoFactor.true': 'مفعّل',
+  'admin.users.filter.twoFactor.false': 'غير مفعّل',
+
+  // تفاصيل المستخدم
+  'admin.users.tf.title': 'التحقق بخطوتين',
+  'admin.users.tf.status': 'الحالة',
+  'admin.users.tf.enabledAt': 'تاريخ التفعيل',
+  'admin.users.tf.devices': 'الأجهزة الموثوقة',
+  'admin.users.tf.offNote': 'لم يفعّل المستخدم التحقق بخطوتين.',
+  'admin.users.tf.disable': 'إيقاف التحقق بخطوتين',
+  'admin.users.tf.disable.title': 'إيقاف التحقق بخطوتين',
+  'admin.users.tf.disable.explain':
+    'هذا إجراء لاسترداد الحساب عندما لا يستطيع المستخدم الوصول إلى بريده الإلكتروني. تُحذف جميع الأجهزة الموثوقة، وتُغلق جميع جلسات المستخدم، ويصل المستخدم إشعار وبريد إلكتروني، ويُسجَّل الإجراء في سجل التدقيق. يستطيع ذلك مشرفو FULL وSUPPORT فقط؛ ولا يمكنك إيقاف حسابك الخاص أو حساب مشرف FULL من اللوحة.',
+  'admin.users.tf.selfNote':
+    'لا يمكنك إيقاف التحقق بخطوتين لحسابك من اللوحة؛ أوقفه من إعدادات حسابك باستخدام كلمة المرور.',
+  'admin.users.tf.disable.confirm': 'هل تريد إيقاف التحقق بخطوتين للمستخدم {name}؟',
+  'admin.users.tf.disable.reason': 'السبب',
+  'admin.users.tf.disable.reasonHint':
+    'يُسجَّل في سجل التدقيق (مثال: لا يستطيع المستخدم الوصول إلى بريده الجامعي).',
+  'admin.users.tf.disable.reasonRequired': 'اكتب السبب.',
+  'admin.users.tf.disable.done': 'تم إيقاف التحقق بخطوتين.',
+} as const;
+export default m;

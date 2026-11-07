@@ -48,7 +48,7 @@ bash scripts/deploy/rollback.sh                 # elle geri alma
 - **Ağ:** yalnız Caddy `80/443` yayınlar. `postgres`/`redis`/`backup` `internal` (internete çıkışı olmayan) ağdadır; backend FCM/SMTP için `edge` ağına da bağlıdır.
 - **Sertleştirme:** tüm konteynerlerde `no-new-privileges`, `cap_drop: ALL` (yalnız gerekenler eklenir), backend/redis/caddy/web `read_only` + `tmpfs`, backend root olmayan kullanıcı (uid 1001), kaynak limitleri, `restart: unless-stopped`, healthcheck'ler, `json-file` günlük döndürme (10 MB x 5).
 - **Doğrulayıcı yansıması:** compose `CRYPTO_MASTER_KEYS`, `CRYPTO_ACTIVE_KEY_ID`, `DB_PASSWORD`, `JWT_SECRET`, `ADMIN_PASSWORD`, `CORS_ORIGINS`, `PUBLIC_WEB_URL`, `BACKUP_AGE_RECIPIENT` için `:?` kullanır (eksikse `docker compose` bile başlamaz); `CRYPTO_REQUIRE_KEYS=true` sabittir; `ProdSettingsValidator` + `KeyProvider` eksik/güvensiz değeri uygulama açılışında reddeder (boş `CRYPTO_MASTER_KEYS` ile prod açılışı reddedilir: `KeyProviderTest`).
-- Gönderi videosu için Spring çok parçalı yükleme sınırı compose'ta `MULTIPART_MAX_FILE=52MB` (prod varsayılanı 5 MB videoyu keserdi).
+- Gönderi videosu için Spring çok parçalı yükleme sınırı compose'ta `MULTIPART_MAX_FILE=45MB` (prod varsayılanı 5 MB videoyu keserdi).
 
 
 ## 1. Mimari ve reverse proxy / TLS
@@ -96,6 +96,7 @@ curl -f localhost:8080/actuator/health
 | `ADMIN_PASSWORD` | evet | `/api/admin/**` Basic auth şifresi |
 | `ADMIN_EMAILS` | önerilir (**en az 2 adres**) | Virgüllü; bu adresler ADMIN (FULL) rolü alır. Tek adresle iki kişi onayı gerektiren işlemler (FULL ata/düşür) kilitlenir; panelden ikinci FULL yaratılamaz. Validator 2'den azsa uyarır |
 | `CORS_ORIGINS` | evet | Virgüllü https kökenleri (panel/web adresi) |
+| `AUTH_OAUTH_ENABLED`, `GOOGLE_CLIENT_IDS`, `APPLE_CLIENT_IDS` | hayır (varsayılan **kapalı**) | Google/Apple ile giriş. `AUTH_OAUTH_ENABLED=true` iken `GOOGLE_CLIENT_IDS` (virgüllü Web/Android/iOS istemci kimlikleri) ve/veya `APPLE_CLIENT_IDS` (virgüllü: bundle id `tr.com.bukampus.app` + varsa Services ID) **en az biri dolu olmalı**, ikisi de boşsa `ProdSettingsValidator` açılışı reddeder (yalnız biri doluysa diğer sağlayıcı için uyarı). Kapalıyken OAuth uçları `404 OAUTH_DISABLED`. Dış kurulum: [OAUTH_SETUP.md](OAUTH_SETUP.md). Çıkış (egress): `www.googleapis.com:443`, `appleid.apple.com:443` (JWKS). İsteğe bağlı: `AUTH_OAUTH_REQUIRE_TERMS` (true), `AUTH_PASSWORD_SIGNUPS_NEED_ONBOARDING` (false), `AUTH_PROFILE_GATE_ENABLED` (true), `AUTH_REAL_EMAIL_GATE_ENABLED` (true; Apple gizli adresli yeni hesap gerçek e-postasını doğrulayana kadar yazamaz, **V1472**: V1470 `deploy/legal-20261106` ÖNCE canlıya inmeli), `USERNAME_COOLDOWN_DAYS` (30); migration **V1450** (additive; mevcut tüm kullanıcılar `profile_completed_at = created_at` ile tamamlanmış sayılır) |
 | `CRYPTO_MASTER_KEYS`, `CRYPTO_ACTIVE_KEY_ID` | evet | Mesaj şifreleme ana anahtarları (`id:base64(32 bayt)`); kaybı = mesaj kaybı, yedekleyin |
 | `MAIL_ENABLED`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM` | **prod'da `MAIL_ENABLED=true` ZORUNLU** | Doğrulama/şifre sıfırlama kodu e-postası; `MAIL_ENABLED=false` prod'da `APP_MAIL_ALLOW_LOG_ONLY=true` olmadan uygulamayı BAŞLATMAZ (yerelde kod log'a yazılır). **Üretim kararı: Brevo ücretsiz SMTP, gönderen alan adı `bukampus.online` (site `bukampus.com.tr`), gönderici `noreply@bukampus.online`, destek adresi `ysufakin23@gmail.com` (hazır değerler ve DNS adımları: MAIL_DELIVERABILITY.md bölüm 9; günlük kota için `MAIL_DAILY_LIMIT=300`).** Spam'e düşmemek için ek ayarlar (`MAIL_REPLY_TO`, `MAIL_REQUIRE_TLS`, `MAIL_MAX_PER_MINUTE`, SPF/DKIM/DMARC): [MAIL_DELIVERABILITY.md](MAIL_DELIVERABILITY.md) |
 | `FCM_CREDENTIALS_JSON` | hayır (push için) | Firebase servis hesabı anahtarı, ham JSON ya da base64, tek satır (prod için önerilen yol); boşsa push kapalı |
@@ -112,8 +113,13 @@ curl -f localhost:8080/actuator/health
 | `INITIAL_FILL` | hayır | Boş tablolarda ilk haber/menü doldurma |
 | `DB_POOL_MAX`, `DB_POOL_MIN_IDLE` | hayır | Hikari havuzu (varsayılan 30 / 5) |
 | `MULTIPART_MAX_FILE`, `MULTIPART_MAX_REQUEST` | hayır | Yükleme sınırları (5MB / 6MB) |
-| `BACKEND_MEM_LIMIT`, `BACKEND_CPUS`, `POSTGRES_MEM_LIMIT`, `REDIS_MEM_LIMIT` | hayır | Konteyner kaynak limitleri (1g / 2 / 1g / 256m) |
-| `JAVA_TOOL_OPTIONS` | hayır | Ek JVM bayrakları (imaj varsayılanı: `-XX:MaxRAMPercentage=75`) |
+| `BACKEND_MEM_LIMIT`, `BACKEND_CPUS`, `POSTGRES_MEM_LIMIT`, `REDIS_MEM_LIMIT`, `REDIS_CPUS`, `BACKEND_TMP_SIZE` | hayır | Konteyner kaynak limitleri ve backend `/tmp` tmpfs boyutu (varsayılanlar: 2g / 2 / 2g / 320m / 0.5 / 2g). Öneri tablosu: aşağıda "Bellek/JVM önerileri" |
+| `MAX_RAM_PERCENTAGE` | hayır | JVM yığın oranı (imaj varsayılanı 75; entrypoint `-XX:MaxRAMPercentage=${MAX_RAM_PERCENTAGE:-75}` verir). `JAVA_TOOL_OPTIONS` ile DEĞİŞTİRİLEMEZ: komut satırı bayrağı onu ezer; `JAVA_OPTS` içine yazılan `-XX:MaxRAMPercentage` ise kazanır |
+| `JAVA_TOOL_OPTIONS` | hayır | Ek JVM bayrakları |
+| `REDIS_PASSWORD`, `REQUIRE_REDIS_PASSWORD` | hayır (kapalı) | Redis `--requirepass` + backend bağlantısı; `REQUIRE_REDIS_PASSWORD=true` iken boş parola açılışı reddeder. Bölüm 5 "Redis parolası" |
+| `DELETION_LEDGER_FILE`, `DELETION_LEDGER_CRON` | hayır (kapalı) | KVKK silme defteri dosyası (önerilen `/data/ledger/deletion-ledger.tsv`, compose `ledger` hacmi, yedek dışı) ve yeniden uygulama cron'u |
+| `SCHEDULING_POOL_SIZE`, `SCHEDULING_SINGLE_INSTANCE` | hayır | `sched-*` havuzu (8) ve tek örnek bayrağı (varsayılan `false`; bölüm 6) |
+| `METRICS_HTTP_PERCENTILES_HISTOGRAM`, `METRICS_HTTP_SLO` | hayır | `http.server.requests` kova modeli (varsayılan histogram açık, SLO boş); bkz. `docs/PERFORMANCE.md` "Metrik kardinalitesi" |
 | `BACKEND_PORT`, `WEB_PORT`, `ADMIN_PATH` | hayır | Portlar ve gizli yönetim yolu (güvenlik önlemi DEĞİL, yalnız gürültüyü azaltır: yol istemci paketinde açıktır; `/api/admin/**` yine ADMIN yetkisiyle korunur. Ayarlıysa `/admin` rotası kayıtlı değildir) |
 | `DEVICE_HMAC_KEY` | önerilir | Cihaz kimliği (`X-Device-Id`) HMAC-SHA256 anahtarı (>= 32 karakter, `openssl rand -base64 36`). Boşsa `JWT_SECRET`'ten türetilir; anahtar değişirse mevcut cihaz engelleri eşleşmez, bu yüzden ayrı ve kalıcı tutun (verilip 32 karakterden kısaysa prod açılışı reddedilir; boşsa uyarı yok, yine de ayrı anahtar önerilir) |
 | `BAN_ALLOWLIST` | önerilir | Asla IP ile engellenmeyecek ek ağlar (virgüllü IP/CIDR; yönetici ofis çıkış adresleri). Loopback ve özel ağlar zaten muaftır |
@@ -142,6 +148,18 @@ docker compose exec -T postgres pg_restore -U bingol -d bingol --clean --if-exis
 
 Compose `--appendonly yes` ile AOF açar (`redisdata` volume'u) ve `maxmemory 200mb` + **`volatile-lru`** kullanır: bellek dolunca yalnız TTL'li anahtarlar (refresh token, hız sınırı sayacı, doğrulama kodu, presence) atılır; TTL'siz kalıcı işaretler (`suspended:<id>`) asla atılmaz. Eski `noeviction` bellek dolunca yazmaları (giriş/kayıt) reddederdi. Takas: baskı altında oturumlar/sayaçlar erken düşebilir (kullanıcı yeniden giriş yapar); `redis-cli info stats | grep evicted_keys` sürekli artıyorsa `REDIS_MEM_LIMIT`/`maxmemory` yükseltin. Redis'e yeni TTL'siz anahtar eklerken bu politikayı düşünün. Redis'te yalnızca geçici/yeniden üretilebilir veri vardır (doğrulama kodları, refresh token hash'leri, rate limit, presence, askı işaretleri). Kayıp sonucu: kullanıcılar yeniden giriş yapar, bekleyen kodlar düşer; **veri kaybı olmaz**. Yine de `redisdata` volume'unu koruyun (oturumların kesilmemesi için). Redis çökerse auth ve mesajlaşma çalışmaz; haber/menü okuma çalışır.
 
+### Redis parolası (varsayılan KAPALI; etkinleştirme deploy-zamanı kararı)
+
+Compose artık `REDIS_PASSWORD` tanımlıysa `redis-server --requirepass` ile parolalı başlar ve backend aynı değerle bağlanır (`spring.data.redis.password`); healthcheck `REDISCLI_AUTH` kullanır. **Tanımsız = bugünkü davranış (parolasız, yalnız `internal` ağ).** Açmak için:
+
+1. `.env.prod`'a `REDIS_PASSWORD=$(openssl rand -base64 36)` (>= 16 karakter, yer tutucu değil) ekleyin; ardından isterseniz `REQUIRE_REDIS_PASSWORD=true` (bundan sonra boş/zayıf parola backend açılışını reddeder).
+2. Redis ve backend **birlikte** yeniden başlatılır (`docker compose up -d redis backend`): parola komut satırında olduğundan Redis yeniden yaratılır. AOF korunur (oturumlar kalır); kısa bir kesinti (saniyeler) olur, bu yüzden bakım penceresinde yapın.
+3. Doğrulama: `docker compose exec redis sh -c 'redis-cli ping'` -> `NOAUTH`; `.. -e REDISCLI_AUTH=$REDIS_PASSWORD .. ping` -> `PONG`; `/actuator/health` UP. Parola `docker inspect` çıktısında komut satırında görünür (internal ağdaki tek-ana-makine kurulumda kabul edilmiş taviz).
+
+### KVKK silme defteri (varsayılan KAPALI)
+
+`DELETION_LEDGER_FILE=/data/ledger/deletion-ledger.tsv` verilirse silinen hesap kimlikleri **yedek dışı** `ledger` hacmine yazılır (backup servisine bağlanmaz) ve yedekten dönüşte `DeletionLedgerReapplier` (açılış + 03:50) yeniden anonimleştirir. Dosyayı ayrıca (uzak kopya) saklayın; hacim `docker volume rm` ile kaybolursa defter de gider. Ayrıntı: `docs/BACKUP_RESTORE.md` bölüm 5 adım 7.
+
 ## 6. Ölçekleme ve zamanlayıcılar
 
 Backend durumsuzdur (JWT, Redis) ve yatay ölçeklenebilir; ancak **`@Scheduled` görevleri her örnekte çalışır**. Çoklu örnekte çift çalışma riski olan görevler: haber/menü senkronu (kaynak siteye çift istek), push kampanya dağıtıcı (zaten `FOR UPDATE SKIP LOCKED`, güvenli), etkinlik hatırlatmaları (çift bildirim), bildirim/mesaj/olay saklama temizlikleri (idempotent, zararsız), medya yetim süpürücüsü, sohbet odası bakımı.
@@ -156,11 +174,30 @@ void nightly() {
 ```
 
 - `ttl`, görevin en uzun süresinden büyük olmalı; kilit TTL ile kendiliğinden düşer.
-- Redis erişilemezse görev **atlanır** (fail-closed) ve sonraki tetikte denenir.
+- Redis erişilemezse görev **atlanır** (fail-closed) ve sonraki tetikte denenir. Tek örnek kurulumda `SCHEDULING_SINGLE_INSTANCE=true` (`app.scheduling.single-instance`) verilirse, `SchedulerLock.tryRunOrLocal` kullanan görevler (uyarı servisleri vb.) Redis yokken de yerelde koşar; varsayılan `false`. Çoklu örnekte bu bayrak AÇILMAZ.
+- `@Scheduled` işleme tek yerden açılır: `SchedulingEnabledConfig` (`app.scheduling.enabled`, ayarsız = açık). **Yalnız test profilinde `false`**; üretimde ENV ile kapatmayın (tüm zamanlayıcılar durur).
+- Kilitli (`tryRun`) işler ve kilitsiz kalanlar listesi için `CLAUDE.md` bölüm 1 `config` satırı ve bölüm 8'e bakın.
 - Kilit adı görev başına benzersiz olmalı (`schedlock:<ad>` anahtarı).
 - Daha zengin ihtiyaç (en az bekleme süresi, kilit denetimi) doğarsa ShedLock (JDBC provider) önerilir; bu, `pom.xml`'e bağımlılık ve yeni Flyway tablosu gerektirir.
 
 Tek örnek (varsayılan compose ve tek VPS kurulumu) çalıştırıyorsanız ek işlem gerekmez: `@Scheduled` görevleri tek süreçte çalışır, çift çalışma riski yoktur, `SchedulerLock` sarmalamasına gerek yoktur (yalnız ileride ikinci backend örneği eklenirse gerekir). Ayrıca: dosya yüklemeleri yerel diskte olduğundan çoklu örnek için paylaşılan volume (NFS) veya nesne depolama gerekir; WebSocket presence/pub-sub Redis üzerindendir ve örnekler arası çalışır.
+
+### Bellek/JVM önerileri (K25: UYGULANMADI, ölçüm sonrası karar)
+
+Backend konteyneri bugün: `mem_limit 2g`, JVM `MaxRAMPercentage=75` (yığın ~1,5 GB), `/tmp` tmpfs 2g (tmpfs sayfaları konteyner belleğine SAYILIR), `MEDIA_TRANSCODE_WORKERS=2` (iki eşzamanlı ffmpeg, yığın dışı). Sohbet videosu kodu yolu AKTİF (yalnız gönderi videosu kapalı), bu yüzden ffmpeg/tmpfs kaldırılamaz. Yığın dışı (metaspace + ~200 Tomcat iş parçacığı + Netty/Lettuce direct buffer + ffmpeg RSS ~200-400 MB x işçi + tmpfs içeriği) ~500 MB'a sığmayabilir; çekirdek OOM-killer'ı JVM'i SIGKILL ile öldürebilir (`ExitOnOutOfMemoryError` cgroup öldürmesini yakalamaz). Aşağıdaki değerler **öneridir**; canlı `docker stats`/`docker inspect --format '{{.State.OOMKilled}}'` ölçümü olmadan değiştirmeyin.
+
+| Ayar | Bugün | Öneri (ölçüm sonrası) | Nasıl |
+|---|---|---|---|
+| Yığın oranı | 75 | 55-60 | `.env.prod`: `MAX_RAM_PERCENTAGE=55` |
+| `/tmp` tmpfs | 2g | 512m (video sınırı 40 MB, 2 işçi x girdi+çıktı yeter) | `BACKEND_TMP_SIZE=512m` |
+| ffmpeg işçisi | 2 | 1 | `MEDIA_TRANSCODE_WORKERS=1` |
+| Backend belleği | 2g | 2,5-3g (host elveriyorsa) | `BACKEND_MEM_LIMIT=3g` |
+| Redis CPU | 0,5 | 1 (AOF rewrite/BGSAVE fork duraklaması 500 ms komut zaman aşımını aşmasın) | `REDIS_CPUS=1` |
+| Redis komut zaman aşımı / kesici | 500 ms / 5000 ms | 1500 ms / 2000 ms | `REDIS_TIMEOUT=1500ms`, `REDIS_BREAKER_MS=2000` (devre kesici mantığı P01 ile güncellenmiş olmalı) |
+| Sağlık başlangıç süresi | 360 s | 600 s (soğuk açılış 262-465 s, tavan 510 s) | `BACKEND_START_PERIOD=600s` (+ `HEALTH_WAIT_BACKEND`) |
+| Tek örnek zamanlayıcı | false | true | `SCHEDULING_SINGLE_INSTANCE=true` |
+
+Makine toplamı: limitlerin toplamı backend 2g + postgres 2g + redis 320m + backup 1g + caddy 256m + web 128m = ~5,7 GB, CPU ~6,5; **4 GB'lık VPS'te aşırı taahhüt** vardır (saatlik yedek `pg_dump` + `age` PostgreSQL ile birlikte koşunca host OOM-killer rastgele konteyner seçebilir). 4 GB makinede: backend 1,5g / postgres 1,5g / backup 512m (`BACKEND_MEM_LIMIT`, `POSTGRES_MEM_LIMIT`; yedek limiti compose'ta sabit 1g, değiştirmek için düzenleyin) ve yedek saatini yoğun saat dışına alın; ya da 8 GB VPS kullanın.
 
 ## 7. İzleme ve uyarı
 
@@ -196,6 +233,20 @@ docker compose up -d backend web     # Flyway migration'ları açılışta otoma
   ```
   Yükleme biçimi: satır başına `IP-veya-CIDR [etiket]`, `#` yorum; en çok 5000 satır/istek (daha uzun listeyi parçalayın: `split -l 4000 tor-exit.txt part_`). VPN/veri merkezi aralıkları aynı biçimde `source` etiketiyle yüklenir; yenilemek için `DELETE /api/admin/access-bans/anonymizers?source=tor-exit` sonra yeniden yükleyin. `BLOCK_ANONYMIZERS=true` olmadan liste uygulanmaz.
 - **Zamanlayıcı:** `AccessBanRetentionJob` (gece 04:30) cihaz/deneme günlüğünü 90 gün sonra siler; `SchedulerLock` ile çok örnekte tek çalışır. Vuruş sayaçları bellekte toplanıp 5 sn'de bir yazılır (çok örnekte her örnek kendi sayacını ekler).
+
+## 8.2 Paylaşım bağlantıları: /s/* yönlendirmesi ve uygulama bağlantısı doğrulama (SH)
+
+Sözleşme: [SHARING.md](SHARING.md). `https://bukampus.com.tr/s/{p|r|n|e}/{id}` bağlantıları backend'in önizleme sayfasına gider.
+
+1. **Proxy:** `deploy/Caddyfile` `@backend` listesinde `/s/*` vardır (Caddy yeniden yüklenir/yeniden başlar; `deploy/Caddyfile.bukampus` bunu içe aktarır). Caddy'siz kurulumda `web/nginx.conf` `location ^~ /s/` aynı işi yapar. Web router'ında `/s` rotası yoktur (çakışma yok). İlk doğrulama: `curl -sI https://bukampus.com.tr/s/p/1` → `200`, `content-type: text/html`, `x-robots-tag: noindex, nofollow`.
+2. **Uygulamayı doğrudan açma (Universal/App Links):** iki değer KULLANICIDAN gelir, uydurulmaz:
+   - `APPLE_TEAM_ID` — Apple Developer > Membership > Team ID (10 karakter).
+   - `PLAY_APP_SIGNING_SHA256` — Play Console > Uygulama bütünlüğü > **Play Uygulama İmzalama** sertifikasının SHA-256 parmak izi (yükleme anahtarının değil; virgülle birden çok).
+   `.env.prod`'a yazın ya da `scripts/deploy.sh` için `.deploy.env`'e `DEPLOY_APPLE_TEAM_ID` / `DEPLOY_PLAY_APP_SIGNING_SHA256` verin (yalnız `.env.prod`'da boş/yoksa yazılır, elle değer ezilmez). Değerler **web imajı derlenirken** (`web/Dockerfile` build arg; `docker-compose*.yml`) `web/scripts/gen-app-links.mjs` ile `/.well-known/apple-app-site-association` (+ kökte aynısı) ve `/.well-known/assetlinks.json` olarak üretilir; **değişince web imajı yeniden derlenmelidir** (`--no-build` kullanmayın). Değer yoksa dosya üretilmez, `deploy.sh` UYARI basar, bağlantılar yine mağazaya/web sayfasına düşer.
+3. **Doğrulama:** `curl -sI https://bukampus.com.tr/.well-known/apple-app-site-association` → `200`, `application/json`, yönlendirme yok; `curl -s https://bukampus.com.tr/.well-known/assetlinks.json`; Google: `https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://bukampus.com.tr&relation=delegate_permission/common.handle_all_urls`; Apple: `https://app-site-association.cdn-apple.com/a/v1/bukampus.com.tr` (CDN önbelleği birkaç saat gecikebilir).
+4. **Uygulama tarafı** (mobil sürümle birlikte): iOS Associated Domains `applinks:bukampus.com.tr`; Android `autoVerify` + `/s/` yol filtresi.
+5. **Migration sırası:** `V1280__message_share` (message tablosuna iki NULL'lanabilir sütun; tabloyu yeniden yazmaz/taramaz). `prod`'da `out-of-order=false`: aynı dağıtımda önceki sürümlü (ör. V1270) migration'lar ile birlikte sırayla uygulanır; V1280 canlıya V1270'ten ÖNCE tek başına çıkmamalıdır.
+6. **Hız sınırı / önbellek:** sayfa IP başına dakikada 300 (`app.share.page-per-minute`), `Cache-Control: public, max-age=300`. Sosyal medya tarayıcıları (WhatsApp, Facebook) az sayıda IP'den çok istek atabilir: 429 görülürse eşiği yükseltin.
 
 ## 9. KVKK saklama süreleri
 
@@ -252,7 +303,7 @@ ENV_FILE=.env.staging PROJECT=bu-staging COMPOSE_FILES="-f docker-compose.prod.y
 
 ## 13. Tek VPS: adım adım (Ubuntu 22.04/24.04 LTS)
 
-Önerilen en az: 2 vCPU, 4 GB RAM (JVM + PostgreSQL + ffmpeg), SSD; yüklemeler ve 3 yedek için veri boyutunun en az 4 katı disk.
+Önerilen en az: 2 vCPU, 4 GB RAM (JVM + PostgreSQL + ffmpeg; **dikkat:** varsayılan konteyner limitlerinin toplamı ~5,7 GB / 6,5 CPU'dur, 4 GB'ta limitleri bölüm 6 "Bellek/JVM önerileri" tablosuna göre düşürün ya da 8 GB seçin), SSD; yüklemeler ve 3 yedek için veri boyutunun en az 4 katı disk.
 
 1. **DNS:** `DOMAIN` için A (ve varsa AAAA) kaydı VPS IP'sine. Yayılmadan ilk dağıtım yapmayın (Let's Encrypt hız sınırı).
 2. **SSH anahtarı (yerelde):** `ssh-keygen -t ed25519`; `ssh-copy-id root@<ip>`. Anahtarla girişin çalıştığını **ayrı bir oturumda** doğrulayın.
@@ -262,7 +313,7 @@ ENV_FILE=.env.staging PROJECT=bu-staging COMPOSE_FILES="-f docker-compose.prod.y
 6. **FCM (push):** Firebase servis hesabı JSON'u tek satır (`base64 -w0 firebase.json`) `FCM_CREDENTIALS_JSON`'a. Ayrıntı: [PUSH_SETUP.md](PUSH_SETUP.md). Boşsa yalnız uygulama içi bildirim çalışır.
 7. **E-posta alan adı (Brevo, `bukampus.online`):** adım adım kurulum MAIL_DELIVERABILITY.md bölüm 9; SPF/DKIM/DMARC kayıtları ve `List-Unsubscribe`: [MAIL_DELIVERABILITY.md](MAIL_DELIVERABILITY.md), [changes/mail.md](changes/mail.md). Gerçek SMTP olmadan doğrulama kodu e-postası gitmez.
 8. **İlk dağıtım:** `bash scripts/deploy/update.sh --first` (derler, başlatır, sağlık kontrolü). Doğrulama: `curl -I https://<DOMAIN>/` (200, geçerli sertifika), `https://<DOMAIN>/api/status`, `https://<DOMAIN>/actuator/health` **404** olmalı.
-9. **İlk yönetici:** `ADMIN_EMAILS`'teki adresle (artık herkes her e-postayla kayıt olabilir; bu adres yalnız yönetici rolünü belirler) web'de `<yönetim yolu>/register` sayfasından ya da `/api/auth/register` ile kayıt + e-posta kodu doğrulaması; giriş yapınca rol ADMIN olur (adım adım: [DEPLOY_SCRIPT.md](DEPLOY_SCRIPT.md)). Yönetim paneli `https://<DOMAIN>/admin` (ya da `ADMIN_PATH`). Basic auth yedek yolu: `admin:$ADMIN_PASSWORD`.
+9. **İlk yönetici:** `ADMIN_EMAILS`'teki adresle (alan adı kısıtından muaftır; `bingol.edu.tr` zorunlu değil) web'de `<yönetim yolu>/register` sayfasından ya da `/api/auth/register` ile kayıt + e-posta kodu doğrulaması; giriş yapınca rol ADMIN olur (adım adım: [DEPLOY_SCRIPT.md](DEPLOY_SCRIPT.md)). Yönetim paneli `https://<DOMAIN>/admin` (ya da `ADMIN_PATH`). Basic auth yedek yolu: `admin:$ADMIN_PASSWORD`.
 10. **Yedek ön kontrolü:** `docker compose -p bu -f docker-compose.prod.yml --env-file .env.prod exec backup /opt/backup/backup.sh --dry-run`, sonra bir elle yedek ve `verify-restore.sh --latest` (BACKUP.md).
 11. **Güncelleme:** `bash scripts/deploy/update.sh [--ref vX.Y.Z]` (önce yedek, çek, derle, başlat, sağlık; başarısızsa otomatik geri alma). **Geri alma:** `bash scripts/deploy/rollback.sh`; şema değişikliği olan sürümde yedekten geri yükleme gerekir (bölüm 8).
 12. **Proxy doğrulaması (Caddy, `deploy/Caddyfile`):** `/files/**` ve `/api/**` backend'e gider, gövde sınırı `CADDY_MAX_BODY` (55 MB; Spring 45 MB), WebSocket `/ws` otomatik yükseltilir ve tamponlanmaz (okuma 180 sn), `X-Forwarded-For` Caddy tarafından `{client_ip}` olarak yazılır (istemci başlığı ezilir) ve backend yalnız `TRUSTED_PROXIES` ağından gelene güvenir (CLAUDE.md rate limit notu karşılandı). Yüklemeler `uploads` volume'unda (`STORAGE_DIR=/data/uploads`) kalır ve saatlik yedeğe dahildir.

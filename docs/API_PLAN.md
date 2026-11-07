@@ -1,6 +1,6 @@
 # API ve Özellik Planı (öneri — onay bekliyor)
 
-Kural: geçerli bir e-posta adresiyle kayıt olmuş ve e-postasını kodla doğrulamış kullanıcılar (alan adı kısıtı yok, 2026-11-05; eskiden yalnız `@bingol.edu.tr`).
+Kural: yalnızca `@bingol.edu.tr` (alt alan dahil) e-postası olan, doğrulanmış kullanıcılar. Dışarıdan kullanıcı yok.
 Aşağıdaki her modül bağımsızdır; beğenilenler seçilip sırayla yazılır. ✅ = mevcut, 🆕 = yeni.
 
 ## Genel kurallar (tüm yeni uçlar)

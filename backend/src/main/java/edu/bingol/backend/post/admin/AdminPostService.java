@@ -50,7 +50,8 @@ public class AdminPostService {
 
     public record PostRow(long id, Author author, String text, List<MediaItem> media, int likeCount, int mediaCount,
                           boolean hidden, boolean deleted, String hiddenReason, String createdAt, String editedAt,
-                          String hiddenAt, String deletedAt, Long deletedBy, int openReportCount) {}
+                          String hiddenAt, String deletedAt, Long deletedBy, int openReportCount,
+                          String type, int viewCount, int avgCompletionPct) {}
 
     public record ReportItem(long id, String reason, String note, String status, String createdAt) {}
 
@@ -88,6 +89,13 @@ public class AdminPostService {
     @Transactional(readOnly = true)
     public PostPage list(Long cursor, int size, String q, Boolean hidden, Boolean deleted, Boolean hasMedia,
                          String from, String to, String status, Long authorId, Integer minReports) {
+        return list(cursor, size, q, hidden, deleted, hasMedia, from, to, status, authorId, minReports, null);
+    }
+
+    /** type = PHOTO | VIDEO (bos = hepsi). */
+    @Transactional(readOnly = true)
+    public PostPage list(Long cursor, int size, String q, Boolean hidden, Boolean deleted, Boolean hasMedia,
+                         String from, String to, String status, Long authorId, Integer minReports, String type) {
         int n = clamp(size);
         StringBuilder sql = new StringBuilder(POST_SELECT).append(" WHERE 1 = 1");
         MapSqlParameterSource p = new MapSqlParameterSource();
@@ -105,6 +113,14 @@ public class AdminPostService {
         if (authorId != null) {
             sql.append(" AND p.author_id = :author");
             p.addValue("author", authorId);
+        }
+        if (type != null && !type.isBlank()) {
+            String t = type.trim().toUpperCase(java.util.Locale.ROOT);
+            if (!t.equals("PHOTO") && !t.equals("VIDEO")) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Geçersiz tür süzgeci.");
+            }
+            sql.append(" AND p.kind = :kind");
+            p.addValue("kind", t);
         }
         if (minReports != null && minReports > 0) {
             sql.append(" AND (").append(OPEN_REPORTS).append(") >= :minReports");
@@ -241,7 +257,7 @@ public class AdminPostService {
 
     private static final String POST_SELECT = "SELECT p.id, p.author_id, u.display_name, u.email, u.avatar_url, p.body, "
             + "p.like_count, p.media_count, p.created_at, p.edited_at, p.deleted_at, p.deleted_by, "
-            + "p.hidden_at, p.hidden_reason, (" + OPEN_REPORTS + ") AS open_reports "
+            + "p.hidden_at, p.hidden_reason, p.kind, p.view_count, p.completion_pct_sum, (" + OPEN_REPORTS + ") AS open_reports "
             + "FROM post p JOIN app_user u ON u.id = p.author_id";
 
     private PostRow postRow(java.sql.ResultSet rs) throws java.sql.SQLException {
@@ -252,7 +268,13 @@ public class AdminPostService {
                 rs.getInt("media_count"), rs.getTimestamp("hidden_at") != null,
                 rs.getTimestamp("deleted_at") != null, rs.getString("hidden_reason"), ts(rs.getTimestamp("created_at")),
                 ts(rs.getTimestamp("edited_at")), ts(rs.getTimestamp("hidden_at")), ts(rs.getTimestamp("deleted_at")),
-                (Long) rs.getObject("deleted_by"), rs.getInt("open_reports"));
+                (Long) rs.getObject("deleted_by"), rs.getInt("open_reports"), rs.getString("kind"),
+                rs.getInt("view_count"), avgPct(rs.getInt("view_count"), rs.getLong("completion_pct_sum")));
+    }
+
+    /** Ortalama izleme tamamlanma yuzdesi (izlenme yoksa 0). */
+    private static int avgPct(int views, long sum) {
+        return views <= 0 ? 0 : (int) Math.min(100, Math.round((double) sum / views));
     }
 
     private PostRow one(long postId) {
@@ -289,7 +311,8 @@ public class AdminPostService {
         for (PostRow r : rows) {
             out.add(new PostRow(r.id(), r.author(), r.text(), byPost.getOrDefault(r.id(), List.of()), r.likeCount(),
                     r.mediaCount(), r.hidden(), r.deleted(), r.hiddenReason(), r.createdAt(), r.editedAt(),
-                    r.hiddenAt(), r.deletedAt(), r.deletedBy(), r.openReportCount()));
+                    r.hiddenAt(), r.deletedAt(), r.deletedBy(), r.openReportCount(), r.type(), r.viewCount(),
+                    r.avgCompletionPct()));
         }
         return out;
     }

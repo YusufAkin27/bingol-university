@@ -29,6 +29,30 @@ public final class Mp4Info {
         return d != null && d.length >= 16 && d[4] == 'f' && d[5] == 't' && d[6] == 'y' && d[7] == 'p';
     }
 
+    /** ftyp ana markası (4 karakter; bayt 8..11), yoksa null. */
+    public static String majorBrand(byte[] d) {
+        if (!hasFtyp(d) || d.length < 12) {
+            return null;
+        }
+        return new String(d, 8, 4, StandardCharsets.ISO_8859_1);
+    }
+
+    /**
+     * ftyp bir VIDEO kabına mı ait: HEIC/HEIF/AVIF görüntü ve M4A ses markaları ftyp taşır ama video değildir.
+     * (mp41/mp42/isom/iso2/avc1/qt/M4V/dash... kabul; görüntü/ses markaları ret.)
+     */
+    public static boolean isVideoBrand(byte[] d) {
+        String b = majorBrand(d);
+        if (b == null) {
+            return false;
+        }
+        return switch (b) {
+            case "heic", "heix", "heim", "heis", "hevc", "hevx", "mif1", "msf1", "avif", "avis", "crx ", "M4A ", "M4B ",
+                 "M4P ", "jp2 ", "jpx " -> false;
+            default -> true;
+        };
+    }
+
     public static Info parse(byte[] d) throws Invalid {
         if (!hasFtyp(d)) {
             throw new Invalid("ftyp yok");

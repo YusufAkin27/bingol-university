@@ -65,7 +65,7 @@ class MessageServiceTest {
     private final MessageReactionRepository reactions = mock(MessageReactionRepository.class);
     private final MessageViewAssembler assembler = new MessageViewAssembler(messages, reactions, codec);
     private final MessageService service = new MessageService(convs, members, messages, users, blocks, limiter, bus,
-            presence, notifications, reports, mock(PlatformTransactionManager.class), codec, assembler, false);
+            presence, notifications, reports, mock(PlatformTransactionManager.class), codec, assembler);
 
     private Conversation direct;
 
@@ -150,7 +150,6 @@ class MessageServiceTest {
         verify(convs, never()).touchLastVisible(anyLong(), anyLong());
         verify(members).advanceOwnSuppressed(CONV, ME, 100L);
         verify(members, never()).unhideOnMessage(anyLong());
-        verify(members, never()).unarchiveOnMessage(anyLong());
     }
 
     @Test
@@ -273,13 +272,13 @@ class MessageServiceTest {
         assertEquals(List.of(ME, PEER), to.getValue());
         Batch b = sentBatch();
         assertEquals("Ali", b.title());
-        assertNull(b.preview()); // onizleme kapali: metin yok
+        assertEquals("<b>selam</b> & hos", b.preview()); // onizleme her zaman: metin push govdesine gider
         assertTrue(b.of(PEER).push());
         assertEquals(1, b.count());
     }
 
     @Test
-    void sendSealsBodyBeforePersistAndNeverPassesPlaintextToNotificationWhenPreviewOff() {
+    void sendSealsBodyBeforePersistAndPassesPlaintextOnlyAsPushPreview() {
         when(presence.onlineAmong(any())).thenReturn(Set.of());
 
         service.send(ME, CONV, "cok gizli metin", "c1");
@@ -289,16 +288,14 @@ class MessageServiceTest {
         assertEquals(CONV, draft.getValue().getConversationId());
         assertEquals(ME, draft.getValue().getSenderId());
         assertEquals("c1", draft.getValue().getClientId());
-        assertNull(sentBatch().preview());
+        assertEquals("cok gizli metin", sentBatch().preview());
     }
 
     @Test
-    void previewEnabledSendsTruncatedPreviewOnlyAsPushBody() {
-        MessageService withPreview = new MessageService(convs, members, messages, users, blocks, limiter, bus,
-                presence, notifications, reports, mock(PlatformTransactionManager.class), codec, assembler, true);
+    void previewIsTruncatedAndOnlyAsPushBody() {
         when(presence.onlineAmong(any())).thenReturn(Set.of());
 
-        withPreview.send(ME, CONV, "a".repeat(150), "c9");
+        service.send(ME, CONV, "a".repeat(150), "c9");
 
 assertEquals(101, sentBatch().preview().length()); // 100 karakter + "..."
     }
@@ -448,19 +445,6 @@ Map<String, String> extra = sentBatch().of(PEER).pushExtra();
     }
 
     @Test
-    void optInPreviewModePassesPreviewWithOptInFlag() {
-        service.setPreviewOptIn(true);
-        when(presence.onlineAmong(any())).thenReturn(Set.of());
-
-        service.send(ME, CONV, "gizli metin", "c1");
-
-        Batch b = sentBatch();
-        assertEquals("gizli metin", b.preview());
-        assertTrue(b.optIn());
-        assertTrue(b.of(PEER).push());
-    }
-
-    @Test
     void readingToTheEndMarksTheConversationNotificationRead() {
         when(members.advanceRead(CONV, ME, 50L)).thenReturn(1);
 
@@ -477,10 +461,9 @@ Map<String, String> extra = sentBatch().of(PEER).pushExtra();
     }
 
     @Test
-    void stickyArchivedRecipientGetsNoNotification() {
+    void archivedRecipientGetsNoNotification() {
         ConversationMember archived = ConversationMember.of(CONV, PEER, ConversationMember.Role.MEMBER);
-        archived.setArchivedAt(java.time.Instant.now());
-        archived.setArchiveSticky(true);
+        archived.setArchivedAt(java.time.Instant.now()); // eski yapiskan olmayan arsivler de sessizdir
         when(members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(CONV)).thenReturn(List.of(
                 ConversationMember.of(CONV, ME, ConversationMember.Role.MEMBER), archived));
         when(presence.onlineAmong(any())).thenReturn(Set.of());
@@ -723,13 +706,6 @@ assertEquals("DIRECT", sentBatch().data().get("conversationType"));
     }
 
     @Test
-    void newMessageUnarchivesNonStickyArchives() {
-        service.send(ME, CONV, "selam", "c1");
-
-        verify(members).unarchiveOnMessage(CONV);
-    }
-
-    @Test
     void backloggedSendsToTheSameConversationShareOneNotificationBatchWithSummedCount() {
         ChatNotifyFanoutTest.ManualExecutor pool = new ChatNotifyFanoutTest.ManualExecutor(10);
         service.setFanout(pool); // havuz mesgul: gorevler henuz calismadi
@@ -740,7 +716,7 @@ assertEquals("DIRECT", sentBatch().data().get("conversationType"));
         service.send(ME, CONV, "uc", "c3");
 
         assertEquals(1, pool.queue.size(), "ayni sohbet icin tek dagitim gorevi");
-        verify(notifications, never()).sendNewMessageBatch(any(), anyString(), any(), anyBoolean(), any(), anyInt());
+        verify(notifications, never()).sendNewMessageBatch(any(), anyString(), any(), any(), anyInt());
         pool.runAll();
         Batch b = sentBatch(); // tam bir cagri
         assertEquals(3, b.count(), "bildirim sayaci mesaj adedi kadar artar");
@@ -748,7 +724,7 @@ assertEquals("DIRECT", sentBatch().data().get("conversationType"));
     }
 
     /** Toplu bildirim cagrisinin yakalanmis hali (MessageService artik alici basina degil TEK cagri yapar). */
-    private record Batch(List<NotificationService.MessageTarget> targets, String title, String preview, boolean optIn,
+    private record Batch(List<NotificationService.MessageTarget> targets, String title, String preview,
                          Map<String, String> data, int count) {
         NotificationService.MessageTarget of(Long id) {
             return targets.stream().filter(t -> t.userId().equals(id)).findFirst()
@@ -761,12 +737,11 @@ assertEquals("DIRECT", sentBatch().data().get("conversationType"));
         ArgumentCaptor<List<NotificationService.MessageTarget>> targets = ArgumentCaptor.forClass(List.class);
         ArgumentCaptor<String> title = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> preview = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<Boolean> optIn = ArgumentCaptor.forClass(Boolean.class);
         ArgumentCaptor<Map<String, String>> data = ArgumentCaptor.forClass(Map.class);
         ArgumentCaptor<Integer> count = ArgumentCaptor.forClass(Integer.class);
         verify(notifications).sendNewMessageBatch(targets.capture(), title.capture(), preview.capture(),
-                optIn.capture(), data.capture(), count.capture());
-        return new Batch(targets.getValue(), title.getValue(), preview.getValue(), optIn.getValue(), data.getValue(),
+                data.capture(), count.capture());
+        return new Batch(targets.getValue(), title.getValue(), preview.getValue(), data.getValue(),
                 count.getValue());
     }
 

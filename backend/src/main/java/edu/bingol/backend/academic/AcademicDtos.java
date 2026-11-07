@@ -1,6 +1,5 @@
 package edu.bingol.backend.academic;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /** Akademik modul istek/yanit kayitlari. Sozlesme: docs/API_CONTRACTS_V2.md "Akademik". */
@@ -60,21 +59,6 @@ public final class AcademicDtos {
 
     public record ExamsView(List<ExamView> items) {}
 
-    public record OfficialExamView(Long id, String title, String type, String term, String courseCode, String faculty,
-                                   String department, String grade, String startsAt, String endsAt, String room,
-                                   String note) {}
-
-    public record OfficialExamsView(List<OfficialExamView> items, boolean profileComplete) {}
-
-    /** Yonetici: resmi sinav programi. */
-    public record ExamScheduleRequest(String title, String type, String term, String courseCode, String faculty,
-                                      String department, String grade, String startsAt, String endsAt, String room,
-                                      String note, Boolean published) {}
-
-    public record AdminExamScheduleView(Long id, String title, String type, String term, String courseCode,
-                                        String faculty, String department, String grade, String startsAt,
-                                        String endsAt, String room, String note, boolean published) {}
-
     // ---- akademik takvim ----
     public record AcademicEventView(Long id, String kind, String title, String startsAt, String endsAt, boolean allDay,
                                     String scopeDepartment, String note) {}
@@ -92,24 +76,6 @@ public final class AcademicDtos {
     public record ImportError(int line, String message) {}
 
     public record EventImportResult(int created, List<ImportError> errors) {}
-
-    // ---- duyurular ----
-    public record AnnouncementView(Long id, String title, String body, boolean bodyTruncated, String department,
-                                   String faculty, String grade, boolean pinned, String publishAt, String expiresAt,
-                                   String attachmentUrl, boolean read, String createdAt) {}
-
-    public record AnnouncementPage(List<AnnouncementView> items, String nextCursor) {}
-
-    public record AnnouncementRequest(String title, String body, String department, String faculty, String grade,
-                                      Boolean pinned, String publishAt, String expiresAt, String attachmentUrl,
-                                      Boolean published, @JsonProperty("notify") Boolean notifyUsers) {}
-
-    public record AdminAnnouncementView(Long id, String title, String body, String department, String faculty,
-                                        String grade, boolean pinned, String publishAt, String expiresAt,
-                                        String attachmentUrl, boolean published, @JsonProperty("notify") boolean notifyUsers, String notifiedAt,
-                                        Long createdBy, long readCount, String createdAt) {}
-
-    public record CountView(long count) {}
 
     public record Page<T>(List<T> items, int page, int size, long total) {}
 }

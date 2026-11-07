@@ -2,11 +2,10 @@
 # Windows'ta CALISTIRILAMADI: ilk kosuyu izleyin (docs/IOS_RELEASE.md bolum 9). Sir yok; yalniz isimler.
 # Codemagic kurulumu: (1) Teams > Integrations > Developer Portal: App Store Connect API anahtari ekleyin
 #   (ad: bu_kampus_asc  <- asagidaki integrations.app_store_connect ile ayni olmali); (2) Environment variables
-#   grubu "bu_ios" olusturun: IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64 (Secure), API_BASE (https://bukampus.com.tr),
-#   GOOGLE_SIGNIN / APPLE_SIGNIN (true: Google / Apple dugmesini acar; sunucuda GOOGLE_CLIENT_IDS / APPLE_CLIENT_IDS hazir olunca; varsayilan TRUE; kapatmak icin false verin);
+#   grubu "bu_ios" olusturun: IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64 (Secure), API_BASE (https://bukampus.com.tr);
 #   APP_STORE_APPLE_ID (App Store Connect > Uygulama > Genel Bilgi > Apple ID, sayi) ekleyin: yapi numarasi
 #   TestFlight'taki son numara + 1 olur (yoksa pubspec +N ile Codemagic kosu sayaci toplanir).
-#   (3) Code signing identities: sertifika bu_dist + 4 profil (bu_app_store, bu_notif_service, bu_notif_content, bu_widgets) elle yuklenir (bkz. ios_signing).
+#   (3) Code signing identities'e gerek yok: ios_signing App Store Connect API anahtariyla profili/sertifikayi otomatik uretir.
 workflows:
   ios-release:
     name: BU Kampus iOS (TestFlight)
@@ -23,18 +22,9 @@ workflows:
       cocoapods: default
       vars:
         BUNDLE_ID: "tr.com.bukampus.app"   # KULLANICI KARARI (2026-10-31), Android applicationId ile ayni
-      # ELLE imza: uygulama + 2 bildirim uzantisi (NotificationService, NotificationContent) + widget uzantisi (BUWidgets,
-      # tr.com.bukampus.app.widgets; App ID + App Group yetenegi gerekir, docs/IOS_RELEASE.md) = 4 App Store profili.
-      # Codemagic > Settings > Code signing identities: sertifika referans adi bu_dist; iOS provisioning profiles sekmesine
-      # 4 profil yuklenir (referans adlari asagidaki gibi). Profiller Apple Developer > Profiles > App Store Connect, sertifika bu_dist.
       ios_signing:
-        certificates:
-          - bu_dist
-        provisioning_profiles:
-          - bu_app_store
-          - bu_notif_service
-          - bu_notif_content
-          - bu_widgets
+        distribution_type: app_store
+        bundle_identifier: tr.com.bukampus.app
     triggering:
       events: []   # yalniz elle (Codemagic arayuzu veya API)
     scripts:
@@ -64,20 +54,12 @@ workflows:
         script: xcode-project use-profiles
       - name: IPA
         script: |
-          # Google ile giris: dugme yalniz GOOGLE_SIGNIN=true iken gorunur (sunucuda GOOGLE_CLIENT_IDS hazir olunca bu_ios
-          # grubunda GOOGLE_SIGNIN=true yapin). Istemci kimlikleri varsayilan olarak kodda (lib/core/oauth_config.dart) ve
-          # Info.plist'te (GIDClientID + ters kimlik URL semasi) gomuludur; GOOGLE_SERVER_CLIENT_ID / GOOGLE_IOS_CLIENT_ID
-          # tanimlanirsa dart-define ile gecersiz kilinir (iOS kimligini degistirirseniz Info.plist de degismeli).
-          OAUTH_DEFINES="--dart-define=GOOGLE_SIGNIN=${GOOGLE_SIGNIN:-true} --dart-define=APPLE_SIGNIN=${APPLE_SIGNIN:-true}"
-          if [ -n "${GOOGLE_SERVER_CLIENT_ID:-}" ]; then OAUTH_DEFINES="$OAUTH_DEFINES --dart-define=GOOGLE_SERVER_CLIENT_ID=$GOOGLE_SERVER_CLIENT_ID"; fi
-          if [ -n "${GOOGLE_IOS_CLIENT_ID:-}" ]; then OAUTH_DEFINES="$OAUTH_DEFINES --dart-define=GOOGLE_IOS_CLIENT_ID=$GOOGLE_IOS_CLIENT_ID"; fi
           flutter build ipa --release \
             --obfuscate --split-debug-info=$CM_BUILD_DIR/symbols \
             --build-name="$BUILD_NAME" --build-number="$BUILD_NUMBER" \
             --export-options-plist=/Users/builder/export_options.plist \
             --dart-define=API_BASE="${API_BASE:-https://bukampus.com.tr}" \
-            --dart-define=APP_VERSION="$BUILD_NAME" \
-            $OAUTH_DEFINES
+            --dart-define=APP_VERSION="$BUILD_NAME"
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log

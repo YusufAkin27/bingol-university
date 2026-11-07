@@ -35,7 +35,7 @@ Hepsi için hazır cevaplar: [data_safety.md](data_safety.md), [content_rating.m
 | Haber uygulaması beyanı | Uygulama haber/duyuruyu üniversite sitesinden **derleyip gösterir**; "haber uygulaması" olarak beyan etmeniz gerekirse bağımsız, resmî olmayan olduğunu ve kaynak göstermeyi belirtin |
 | COVID-19 / sağlık | Hayır (ilgili değil) |
 | Finansal özellikler, sağlık uygulaması, devlet uygulaması | Hayır. **Devlet uygulaması değil** (resmî olmayan kişisel proje) |
-| Hassas izinler | `READ_MEDIA_IMAGES/VIDEO` (galeri seçici): gerekçe metinleri [data_safety.md](data_safety.md) bölüm 4. `READ_CONTACTS` KALDIRILDI (rehber eşleştirme özelliği yok) |
+| Hassas izinler | `READ_CONTACTS` (rehber eşleştirme, yalnız özet/hash), `READ_MEDIA_IMAGES/VIDEO` (galeri seçici): gerekçe metinleri [data_safety.md](data_safety.md) bölüm 4 |
 | Reklam kimliği (AD_ID) | Kullanılmaz: "hayır" |
 
 ## 4. Mağaza girişi

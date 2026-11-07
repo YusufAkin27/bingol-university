@@ -1,6 +1,9 @@
 .wrap {
   position: relative;
   display: inline-flex;
+  /* sığmayan tek satır etiket (nowrap) kabı taşırmasın; içerik üç nokta ile kırpılır */
+  max-inline-size: 100%;
+  min-inline-size: 0;
 }
 .tip {
   position: absolute;

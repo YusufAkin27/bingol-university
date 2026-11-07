@@ -4,6 +4,7 @@ import edu.bingol.backend.mail.MailSuppressionService;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -30,12 +31,22 @@ public class MailSuppressionGateImpl implements MailSuppressionGate {
         if (userIds.isEmpty()) {
             return out;
         }
+        // E-postalar tek sorguyla okunur, ozetler bellekte hesaplanir, bastirma listesi TEK sorguyla taranir
+        Map<Long, String> hashes = new LinkedHashMap<>();
         jdbc.query("SELECT id, email FROM app_user WHERE id IN (:ids)", new MapSqlParameterSource("ids", userIds), rs -> {
             String email = rs.getString("email");
-            if (email != null && suppression.isSuppressed(email)) {
-                out.put(rs.getLong("id"), MailCampaignRecipient.SUPPRESSED);
+            if (email != null) {
+                hashes.put(rs.getLong("id"), MailSuppressionService.hash(email));
             }
         });
+        Set<String> blocked = suppression.suppressedAmong(hashes.values());
+        if (!blocked.isEmpty()) {
+            hashes.forEach((id, h) -> {
+                if (blocked.contains(h)) {
+                    out.put(id, MailCampaignRecipient.SUPPRESSED);
+                }
+            });
+        }
         return out;
     }
 }

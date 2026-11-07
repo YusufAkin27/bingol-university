@@ -138,7 +138,7 @@ describe('Veri saklama sayfası', () => {
   it('yetkisiz profilde (VIEWER) işlem düğmeleri yok', async () => {
     setup({ perms: VIEWER_PERMS });
     renderWithProviders(<DataRetentionPage />);
-    expect(await screen.findByText('Analitik ham olaylar')).toBeInTheDocument();
+    expect((await screen.findAllByText('Analitik ham olaylar')).length).toBeGreaterThanOrEqual(1); // tablo + büyüme sıralaması
     await waitFor(() => expect(screen.getByTestId('readonly-note')).toBeInTheDocument());
     expect(screen.queryByRole('button', { name: /Dışa aktar: / })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Temizle: / })).not.toBeInTheDocument();

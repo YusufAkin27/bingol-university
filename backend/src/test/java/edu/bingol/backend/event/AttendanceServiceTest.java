@@ -89,6 +89,9 @@ class AttendanceServiceTest {
         assertEquals("CHECKIN_CLOSED", error(() -> svc.issueCode(organizer, 5L, end.plus(Duration.ofMinutes(31)))).code());
         svc.issueCode(organizer, 5L, start.minus(Duration.ofMinutes(29)));
         svc.issueCode(organizer, 5L, end.plus(Duration.ofMinutes(29)));
+        // sahip anahtari acikken pencere disinda da kod uretilir
+        event.setAttendanceOpen(true);
+        svc.issueCode(organizer, 5L, start.minus(Duration.ofHours(5)));
     }
 
     // ---- QR ile yoklama ----
@@ -150,6 +153,19 @@ class AttendanceServiceTest {
 
         assertEquals("CHECKIN_CLOSED", error(() -> svc.checkIn(user, 5L, codes.generate(5, early), early)).code());
         assertEquals("CHECKIN_CLOSED", error(() -> svc.checkIn(user, 5L, codes.generate(5, late), late)).code());
+    }
+
+    @Test
+    void ownerOpenedAttendanceIgnoresThirtyMinuteWindowForCheckIn() {
+        going(1L);
+        Instant early = start.minus(Duration.ofHours(3));
+        Instant late = end.plus(Duration.ofHours(3));
+        // sahip yoklamayi acmadiysa pencere (30 dk) gecerli
+        assertEquals("CHECKIN_CLOSED", error(() -> svc.checkIn(user, 5L, codes.generate(5, early), early)).code());
+        // sahip acinca 30 dk kurali uygulanmaz: pencere disinda da yoklama alinir
+        event.setAttendanceOpen(true);
+        svc.checkIn(user, 5L, codes.generate(5, early), early);
+        svc.checkIn(user, 5L, codes.generate(5, late), late);
     }
 
     @Test

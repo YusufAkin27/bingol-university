@@ -17,6 +17,7 @@ Kaynak gerçekler: [../legal/privacy_tr.md](../legal/privacy_tr.md) bölüm 2-6,
 |---|---|---|---|---|---|
 | Contact Info > **Email Address** | Evet | Evet | Hayır | App Functionality | bingol.edu.tr; doğrulama, giriş, bildirim e-postası |
 | Contact Info > **Name** | Evet | Evet | Hayır | App Functionality | görünen ad |
+| Contacts > **Contacts** | Evet (isteğe bağlı) | Evet | Hayır | App Functionality | yalnız e-posta SHA-256 özetleri, istek anında eşleştirme, **saklanmaz**. Apple "gerçek zamanlı işleme" muafiyeti uygulanabilir ama ihtiyatla beyan edilir |
 | User Content > **Photos or Videos** | Evet | Evet | Hayır | App Functionality | profil, gönderi, sohbet görseli/videosu |
 | User Content > **Audio Data** | Evet | Evet | Hayır | App Functionality | yalnız video kaydının ses kanalı |
 | User Content > **Emails or Text Messages** | Evet | Evet | Hayır | App Functionality | sohbet metinleri (sunucuda zarf şifreli) |

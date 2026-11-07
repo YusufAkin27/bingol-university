@@ -184,8 +184,6 @@ const COMM: Pg[] = [
   { name: 'event-apps', route: '/admin/events/applications?eventId=2&name=Bahar%20%C5%9Eenli%C4%9Fi', group: 'COMM' },
   { name: 'acd-calendar', route: '/admin/academic/calendar', group: 'COMM' },
   { name: 'acd-calendar-list', route: '/admin/academic/calendar?view=list', group: 'COMM' },
-  { name: 'acd-exams', route: '/admin/academic/exams', group: 'COMM' },
-  { name: 'acd-announcements', route: '/admin/academic/announcements', group: 'COMM' },
   { name: 'legal', route: '/admin/content/legal', group: 'COMM' },
   { name: 'faq', route: '/admin/content/faq', group: 'COMM' },
   { name: 'menu', route: '/admin/content/menu', group: 'COMM' },

@@ -99,21 +99,22 @@ class AdminPortalRegisterTest {
     }
 
     @Test
-    void generalRegistrationStillRejectsAnUnlistedGmail() {
-        ApiException e = assertThrows(ApiException.class,
-                () -> auth.register("kisi@gmail.com", PW, "Ali", Lang.TR, null, null, null, false));
+    void generalRegistrationAcceptsAnUnlistedGmailWithTheCode() {
+        when(users.findByEmail("kisi@gmail.com")).thenReturn(Optional.empty());
 
-        assertEquals("EMAIL_DOMAIN_NOT_ALLOWED", e.code());
-        verifyNoInteractions(users, verification, pending);
+        auth.register("kisi@gmail.com", PW, "Ali", Lang.TR, null, null, null, false);
+
+        verify(verification).issue("kisi@gmail.com", Lang.TR);
+        verify(pending).save(org.mockito.ArgumentMatchers.eq("kisi@gmail.com"), any(Pending.class));
     }
 
     @Test
-    void generalRegistrationStillRejectsAnUnlistedGmailWhenTheFlagIsAbsent() {
-        ApiException e = assertThrows(ApiException.class,
-                () -> auth.register("kisi@gmail.com", PW, "Ali", Lang.TR));
+    void generalRegistrationAcceptsAnUnlistedGmailWhenTheFlagIsAbsent() {
+        when(users.findByEmail("kisi@gmail.com")).thenReturn(Optional.empty());
 
-        assertEquals("EMAIL_DOMAIN_NOT_ALLOWED", e.code());
-        verifyNoInteractions(users, verification, pending);
+        auth.register("kisi@gmail.com", PW, "Ali", Lang.TR);
+
+        verify(verification).issue("kisi@gmail.com", Lang.TR);
     }
 
     @Test
@@ -140,14 +141,12 @@ class AdminPortalRegisterTest {
         when(i18n.current("msg.register.sent")).thenReturn("Kod gonderildi");
         when(users.findByEmail(ADMIN_GMAIL)).thenReturn(Optional.empty());
 
-        MessageResponse authorized = controller.register(req(ADMIN_GMAIL, PW, true), from("203.0.113.9"));
-        MessageResponse unauthorized = controller.register(req(STUDENT, PW, true), from("203.0.113.9"));
+        var authorized = controller.register(req(ADMIN_GMAIL, PW, true), from("203.0.113.9"));
+        var unauthorized = controller.register(req(STUDENT, PW, true), from("203.0.113.9"));
 
         assertEquals(authorized, unauthorized);
-        assertEquals("Kod gonderildi", unauthorized.message());
-        assertEquals(HttpStatus.ACCEPTED, AuthController.class
-                .getMethod("register", RegisterRequest.class, HttpServletRequest.class)
-                .getAnnotation(ResponseStatus.class).value());
+        assertEquals("Kod gonderildi", unauthorized.getBody().message());
+        assertEquals(HttpStatus.ACCEPTED, unauthorized.getStatusCode());
         // Hiz siniri ve kota sayaclari iki durumda da ayni sekilde tuketilir (controller akisi bayraktan bagimsiz).
         verify(limiter, times(2)).check(startsWith("register:ip:"), anyInt(), any(Duration.class));
         verify(limiter, times(2)).check(startsWith("register:email:"), anyInt(), any(Duration.class));

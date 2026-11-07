@@ -17,8 +17,8 @@
 
 | Kategori | Örnekler |
 |---|---|
-| Kimlik | Ad-soyad |
-| İletişim | Kurumsal e-posta adresi (bingol.edu.tr), destek taleplerinde iletişim e-postası |
+| Kimlik | Ad-soyad; Google veya Apple ile girişi (isteğe bağlı) kullanırsanız sağlayıcının adı ve sağlayıcının hesabınız için verdiği kimlik numarası |
+| İletişim | E-posta adresi (herhangi bir sağlayıcıdan; Google/Apple ile girişte sağlayıcının bildirdiği adres, Apple'da gizli aktarım adresi olabilir), destek taleplerinde iletişim e-postası |
 | Eğitim/mesleki bilgi | Fakülte, bölüm, sınıf, öğrenci/personel rolü |
 | Görsel | Profil fotoğrafı; gönderi fotoğrafı (gönderi başına tek fotoğraf); sohbet fotoğrafları ve videoları (fotoğrafların EXIF üst verisi temizlenir; sohbet videoları sunucuda yeniden kodlanmaz ve içlerindeki üst veri temizlenmez, şifreli saklanır) |
 | Kullanıcı içeriği | Mesajlar, topluluk gönderileri ve Keşfet gönderileri (tek fotoğraf ve en çok 7 kelimelik metin), anket oyları, etkinlik başvuru yanıtları, geri bildirim, destek ve itiraz metinleri, biyografi |
@@ -64,7 +64,7 @@
 | Bildirim sağlayıcısı: Google LLC (Firebase Cloud Messaging) ve iOS için Apple Inc. (APNs) | Cihaz bildirim anahtarı, bildirim başlığı/kısa metni, hedef bilgisi, platform | Anlık bildirim iletimi | **Yurt dışı** |
 | Yetkili kamu kurum ve kuruluşları (mahkeme, savcılık, kolluk, Kurul vb.) | Talep kapsamındaki veri | Hukuki yükümlülük | Yurt içi |
 
-**Üniversiteye aktarım yoktur.** Kişisel verileriniz Bingöl Üniversitesi'ne veya birimlerine aktarılmaz: Hizmet üniversitenin sitelerinden yalnızca herkese açık haber, duyuru, etkinlik ve yemek listesi içeriğini okur ve kayıtta yalnızca e-posta adresinin alan adını (bingol.edu.tr) denetler. Yönetim paneli yöneticileri üniversite adına çalışmaz (bkz. bölüm 8). Not: gönderdiğimiz e-postalar kayıtlı bingol.edu.tr adresinize ulaştığından, o posta kutusunu işleten kurum e-postayı kendi altyapısında teknik olarak işleyebilir; bu, veri sorumlusunun yaptığı bir aktarım değil, e-postanın doğasıdır.
+**Üniversiteye aktarım yoktur.** Kişisel verileriniz Bingöl Üniversitesi'ne veya birimlerine aktarılmaz: Hizmet üniversitenin sitelerinden yalnızca herkese açık haber, duyuru, etkinlik ve yemek listesi içeriğini okur. Yönetim paneli yöneticileri üniversite adına çalışmaz (bkz. bölüm 8). Not: gönderdiğimiz e-postalar kayıtlı e-posta adresinize ulaştığından, o posta kutusunu işleten kuruluş (e-posta sağlayıcınız; bingol.edu.tr adresi kullanıyorsanız üniversite) e-postayı kendi altyapısında teknik olarak işleyebilir; bu, veri sorumlusunun yaptığı bir aktarım değil, e-postanın doğasıdır. Google veya Apple ile giriş yaparsanız kimlik doğrulaması cihazınız ile ilgili sağlayıcı arasında gerçekleşir; sunucumuz yalnızca sağlayıcının imzalı kimlik belirtecini doğrular, sizin adınıza sağlayıcıya veri göndermez. Sağlayıcıların kendi işlemeleri kendi aydınlatma ve gizlilik metinlerine tabidir.
 
 **Yurt dışına aktarım (m.9).** Anlık bildirim için cihaz bildirim anahtarınız ve bildirim içeriği Firebase/APNs üzerinden yurt dışına aktarılır. Bu aktarım; Kanun'un 9. maddesi ve ilgili Kurul düzenlemeleri çerçevesinde, **bildirim iznine dayanan açık rızanıza** ve/veya yeterlilik/uygun güvence mekanizmalarına (standart sözleşme vb.) dayanır. Bildirim iznini vermemeniz halinde anlık bildirim almazsınız ancak uygulama içi bildirim kutusu ve diğer hizmetler çalışmaya devam eder. Rızanızı cihaz ayarlarından veya uygulamadaki İzinler/Bildirim ayarlarından istediğiniz zaman geri alabilirsiniz. E-posta gönderim hizmeti sağlayıcısının (Brevo) sunucuları da yurt dışında bulunabilir; doğrulama, şifre sıfırlama ve duyuru e-postalarının iletimi için e-posta adresiniz ve e-posta içeriği bu sağlayıcıya aktarılabilir ve bu aktarım da yukarıdaki m.9 çerçevesindeki mekanizmalara dayanır.
 
@@ -105,7 +105,7 @@ Uygulama içi kısa yollar: Profil düzenleme ve gizlilik ayarları (düzeltme/y
 1. **Uygulama içi:** Destek bölümünden "Kişisel veri başvurusu" konusuyla talep oluşturun (oturum açmış kullanıcının kimliği hesap üzerinden doğrulanır).
 2. **Yazılı:** Islak imzalı dilekçe ile{{?controller.address}} {{controller.address}} adresine{{/controller.address}} elden veya noter vasıtasıyla.
 {{?controller.kep}}3. **KEP:** {{controller.kep}} adresine güvenli elektronik imzalı başvuru.{{/controller.kep}}
-{{?controller.email}}4. **E-posta:** {{controller.email}} adresine, kayıtlı kurumsal e-posta adresinizden.{{/controller.email}}
+{{?controller.email}}4. **E-posta:** {{controller.email}} adresine, kayıtlı e-posta adresinizden.{{/controller.email}}
 
 Başvurunuzda; ad-soyad, kimlik doğrulamaya yarayan bilgi (hesap e-postası), tebligat adresi, talep konusu belirtilmelidir. Kimliğinizi doğrulamak için ek bilgi isteyebiliriz. Başvurular talebin niteliğine göre **en geç 30 gün** içinde ücretsiz sonuçlandırılır; işlemin ayrıca bir maliyet gerektirmesi halinde Kurul'un belirlediği tarifedeki ücret alınabilir.
 

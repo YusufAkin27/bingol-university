@@ -1,18 +1,22 @@
 // SAYFA: Yemek listesi (/menu) — günlük, haftalık ve aylık görünüm
-// API: GET /api/menu?month=yyyy-MM (herkese açık, [{date, items[]}]); GET /api/status (MENU bakımda notu).
+// API: GET /api/menu?month=yyyy-MM (herkese açık, [{date, items[], imageUrl, dishes[{name,kcal}], totalKcal, kcalComplete}]);
+// GET /api/status (MENU bakımda notu).
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getMenuMonth, getSourceStatus } from '../../api/publicContent';
-import { EmptyState, ErrorState, Icon, IconButton, Skeleton } from '../../components/ui';
+import { ButtonLink, EmptyState, ErrorState, Icon, IconButton, Skeleton } from '../../components/ui';
 import type { TranslationKey } from '../../i18n';
 import { useI18n } from '../../i18n/I18nProvider';
 import { isoDate } from '../../lib/date';
 import { errorMessage } from '../../lib/errors';
-import { AppCallout } from './components/AppCallout';
+import { paths } from '../../paths';
+import { InlineLinks } from './components/InlineLinks';
+import { MenuAppBand } from './components/MenuAppBand';
+import { safeMenuImageUrl } from './components/newsUtils';
 import { PageHero } from './components/PageHero';
 import { usePageMeta } from './components/usePageMeta';
 import shared from './components/site.module.css';
-import { daysOfMonth, menuImageUrl, parseDay, weekDates, type ParsedDay } from './menuLogic';
+import { daysOfMonth, parseMenuDay, weekDates, type ParsedDay } from './menuLogic';
 import styles from './MenuPage.module.css';
 
 type View = 'day' | 'week' | 'month';
@@ -31,27 +35,8 @@ function shiftDay(iso: string, delta: number): string {
   return isoDate(new Date(y, m - 1, d + delta));
 }
 
-/** Günün menü fotoğrafı; yoksa ya da yüklenemezse sakin bir boş durum (düzen kaymaz). */
-function MenuPhoto({ src, alt }: { src: string | null; alt: string }) {
-  const { t } = useI18n();
-  const [failed, setFailed] = useState(false);
-  const url = menuImageUrl(src);
-  return (
-    <figure className={styles.photo} data-empty={url && !failed ? undefined : 'true'}>
-      {url && !failed ? (
-        <img src={url} alt={alt} loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
-      ) : (
-        <figcaption className={styles.photoEmpty}>
-          <Icon name="image" size={28} />
-          <span>{t('pg.menu.noImage')}</span>
-        </figcaption>
-      )}
-    </figure>
-  );
-}
-
-/** Bir günün menüsü: öğün bölümleri, kalori ve alerjen bilgisi (varsa). */
-function DayMenu({ day, compact = false }: { day: ParsedDay; compact?: boolean }) {
+/** Hafta/ay ızgarasındaki kompakt gün menüsü: öğün bölümleri, kalori ve alerjen bilgisi (varsa). */
+function DayMenu({ day }: { day: ParsedDay }) {
   const { t } = useI18n();
   return (
     <div className={styles.meals}>
@@ -60,7 +45,7 @@ function DayMenu({ day, compact = false }: { day: ParsedDay; compact?: boolean }
           {(day.sections.length > 1 || s.key !== 'menu') && (
             <h3 className={styles.mealH}>{t(`pg.menu.section.${s.key}` as TranslationKey)}</h3>
           )}
-          <ul className={compact ? styles.dishesCompact : styles.dishes}>
+          <ul className={styles.dishesCompact}>
             {s.dishes.map((d, i) => (
               <li key={`${i}-${d.text}`}>
                 <span>{d.text}</span>
@@ -71,11 +56,136 @@ function DayMenu({ day, compact = false }: { day: ParsedDay; compact?: boolean }
         </section>
       ))}
       {(day.totalKcal !== null || day.allergens.length > 0) && (
-        <div className={styles.facts}>
-          {day.totalKcal !== null && <p className={styles.total}>{t('pg.menu.totalKcal', { n: day.totalKcal })}</p>}
-          {day.allergens.length > 0 && <p className={styles.allergens}>{t('pg.menu.allergens', { list: day.allergens.join(', ') })}</p>}
+        <p className={styles.facts}>
+          {day.totalKcal !== null && (
+            <strong>
+              {day.kcalComplete
+                ? t('pg.menu.totalKcal', { n: day.totalKcal })
+                : t('site.rd05.totalAtLeast', { n: day.totalKcal })}
+            </strong>
+          )}
+          {day.allergens.length > 0 && <span>{t('pg.menu.allergens', { list: day.allergens.join(', ') })}</span>}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** Günün menüsü (günlük görünüm): isteğe bağlı fotoğraf, numaralı yemekler, yemek başına kalori ve günün toplamı. */
+function DayCard({ date, day, isToday }: { date: string; day: ParsedDay; isToday: boolean }) {
+  const { t, formatDate } = useI18n();
+  const [imgOk, setImgOk] = useState(true);
+  // yalnız izinli adresler (/files/menu/..., *.bingol.edu.tr) görsel olarak yüklenir
+  const photoSrc = safeMenuImageUrl(day.imageUrl);
+  // başka güne geçince (başka adres) önceki hata sıfırlanır
+  useEffect(() => setImgOk(true), [photoSrc]);
+  let n = 0;
+  return (
+    <article className={`${styles.card} ${isToday ? styles.cardToday : ''}`}>
+      <header className={styles.cardHead}>
+        <div>
+          <p className={styles.cardEyebrow}>
+            {isToday ? t('pg.menu.todayTitle') : formatDate(date, { weekday: 'long' })}
+          </p>
+          <h2 className={styles.cardTitle}>
+            <time dateTime={date}>{formatDate(date, { day: 'numeric', month: 'long', year: 'numeric' })}</time>
+          </h2>
+        </div>
+        <span className={styles.count}>{t('pg.menu.itemCount', { n: day.dishCount })}</span>
+      </header>
+      {photoSrc && imgOk && (
+        <div className={styles.photo}>
+          <img
+            src={photoSrc}
+            width={1536}
+            height={1024}
+            alt={t('pg.menu.photoAlt', { date: formatDate(date, { day: 'numeric', month: 'long', year: 'numeric' }) })}
+            // sayfanın ana içeriği: tembel yükleme yok, tarayıcıya öncelik ver (LCP); React 18 fetchPriority'yi tanımaz
+            {...({ fetchpriority: 'high' } as Record<string, string>)}
+            decoding="async"
+            referrerPolicy="no-referrer"
+            onError={() => setImgOk(false)}
+          />
         </div>
       )}
+      <div className={styles.cardBody}>
+        {day.sections.map((s) => (
+          <section key={s.key} className={styles.meal} aria-label={t(`pg.menu.section.${s.key}` as TranslationKey)}>
+            {(day.sections.length > 1 || s.key !== 'menu') && (
+              <h3 className={styles.mealH}>{t(`pg.menu.section.${s.key}` as TranslationKey)}</h3>
+            )}
+            <ol className={styles.dishList}>
+              {s.dishes.map((d) => {
+                n += 1;
+                return (
+                  <li key={n} className={styles.dish}>
+                    <span className={styles.dishNo} aria-hidden="true">
+                      {n}
+                    </span>
+                    <span className={styles.dishName}>{d.text}</span>
+                    {d.kcal !== null && <span className={styles.dishKcal}>{t('pg.menu.kcal', { n: d.kcal })}</span>}
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+        ))}
+        {(day.totalKcal !== null || day.allergens.length > 0) && (
+          <div className={styles.sum}>
+            {day.totalKcal !== null && (
+              <div className={styles.total}>
+                <span className={styles.totalLabel}>{t('site.rd05.totalLabel')}</span>
+                <strong className={styles.totalNum}>
+                  {day.kcalComplete
+                    ? t('pg.menu.kcal', { n: day.totalKcal })
+                    : t('site.rd05.totalAtLeast', { n: day.totalKcal })}
+                </strong>
+                {!day.kcalComplete && <span className={styles.totalNote}>{t('site.rd05.totalPartial')}</span>}
+              </div>
+            )}
+            {day.allergens.length > 0 && (
+              <p className={styles.allergens}>{t('pg.menu.allergens', { list: day.allergens.join(', ') })}</p>
+            )}
+          </div>
+        )}
+      </div>
+    </article>
+  );
+}
+
+/** Seçili günün menüsü yok: açıklama + (varsa) menü olan sonraki güne ve bugüne geçiş. */
+function NoDay({
+  nextDate,
+  onPick,
+  canToday,
+  onToday,
+}: {
+  nextDate: string | null;
+  onPick: (d: string) => void;
+  canToday: boolean;
+  onToday: () => void;
+}) {
+  const { t, formatDate } = useI18n();
+  return (
+    <div className={styles.noDay}>
+      <span className={styles.noDayIcon} aria-hidden="true">
+        <Icon name="calendar" size={30} />
+      </span>
+      <h2 className={styles.noDayTitle}>{t('pg.menu.noDay')}</h2>
+      <p className={styles.noDayText}>{t('pg.menu.noDayHint')}</p>
+      <div className={styles.noDayActions}>
+        {nextDate && (
+          <button type="button" className={styles.pri} onClick={() => onPick(nextDate)}>
+            {t('site.rd05.nextMenu')}{' '}
+            <bdi>({formatDate(nextDate, { weekday: 'short', day: 'numeric', month: 'short' })})</bdi>
+          </button>
+        )}
+        {canToday && (
+          <button type="button" className={styles.sec} onClick={onToday}>
+            {t('pg.menu.today')}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -108,17 +218,14 @@ export default function MenuPage() {
     const map = new Map<string, ParsedDay>();
     for (const r of results)
       for (const d of r.data ?? []) {
-        const p = parseDay(d.items);
+        const p = parseMenuDay(d);
         if (p.dishCount > 0) map.set(d.date, p);
       }
     return map;
   }, [results]);
-  const byImage = useMemo(() => {
-    const map = new Map<string, string | null>();
-    for (const r of results) for (const d of r.data ?? []) map.set(d.date, d.imageUrl ?? null);
-    return map;
-  }, [results]);
   const monthHasMenu = useMemo(() => daysOfMonth(month).some((d) => byDate.has(d)), [byDate, month]);
+  // Seçili günden sonraki, menüsü olan ilk gün (yüklü aylar içinde)
+  const nextDate = useMemo(() => [...byDate.keys()].filter((d) => d > date).sort()[0] ?? null, [byDate, date]);
 
   // Seçili günü şeritte görünür tut
   const stripRef = useRef<HTMLDivElement>(null);
@@ -149,15 +256,31 @@ export default function MenuPage() {
         : formatDate(`${month}-01`, { month: 'long', year: 'numeric' });
   const unit = view === 'day' ? 'Day' : view === 'week' ? 'Week' : 'Month';
   const current = byDate.get(date);
+  const menuStatus = status.data?.MENU;
 
   return (
     <>
       <PageHero eyebrow={t('site.v3.eyebrow')} title={title} lead={t('pg.menu.lead')} crumbs={[{ label: title }]} />
-      <section className={shared.section}>
+      <section className={`${shared.section} ${shared.sectionTop}`}>
         <div className={`container ${styles.wrap}`}>
-          {status.data?.MENU?.maintenance && (
+          {menuStatus?.maintenance && (
             <p className={styles.maint} role="status">
-              <Icon name="alert" size={18} /> <span>{t('pg.menu.maintenance')}</span>
+              <Icon name="alert" size={20} />
+              <span>
+                {t('pg.menu.maintenance')}
+                {menuStatus.lastSuccessAt && (
+                  <small className={styles.maintSince}>
+                    {t('site.rd05.maintSince', {
+                      date: formatDate(menuStatus.lastSuccessAt, {
+                        day: 'numeric',
+                        month: 'long',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      }),
+                    })}
+                  </small>
+                )}
+              </span>
             </p>
           )}
 
@@ -184,9 +307,9 @@ export default function MenuPage() {
               >
                 <Icon name={prevIcon} size={18} />
               </IconButton>
-              <span className={styles.label} aria-live="polite">
+              <strong className={styles.label} aria-live="polite">
                 <bdi>{label}</bdi>
-              </span>
+              </strong>
               <IconButton
                 label={t(`pg.menu.next${unit}` as TranslationKey)}
                 variant="secondary"
@@ -206,7 +329,9 @@ export default function MenuPage() {
               <div ref={stripRef} className={styles.strip} role="group" aria-label={t('pg.menu.dayStrip')}>
                 {daysOfMonth(month).map((d) => {
                   const isSel = d === date;
-                  const has = byDate.has(d);
+                  const parsed = byDate.get(d);
+                  const has = parsed !== undefined;
+                  const kcal = parsed?.totalKcal ?? null;
                   return (
                     <button
                       key={d}
@@ -220,6 +345,9 @@ export default function MenuPage() {
                     >
                       <span className={styles.chipDow}>{formatDate(d, { weekday: 'short' })}</span>
                       <span className={styles.chipNum}>{Number(d.slice(8))}</span>
+                      <span className={styles.chipKcal} aria-hidden={kcal === null || undefined}>
+                        {kcal !== null ? (parsed?.kcalComplete ? t('pg.menu.kcal', { n: kcal }) : `≥ ${kcal}`) : ''}
+                      </span>
                       {/* erişilebilir ad görünen metinle başlar (WCAG 2.5.3): aria-label yerine gizli ay adı eklenir */}
                       <span className="sr-only">{`, ${formatDate(d, { month: 'long' })}`}</span>
                     </button>
@@ -247,28 +375,27 @@ export default function MenuPage() {
             <EmptyState icon="calendar" title={t('pg.menu.noMonth')} description={t('pg.menu.noMonthHint')} />
           )}
 
-          {!loading && !failed && ready && view === 'day' &&
-            (current ? (
-              <article className={`${styles.card} ${date === today ? styles.cardToday : ''}`}>
-                <header className={styles.cardHead}>
-                  <div>
-                    <p className={styles.cardEyebrow}>
-                      {date === today ? t('pg.menu.todayTitle') : formatDate(date, { weekday: 'long' })}
-                    </p>
-                    <h2 className={styles.cardTitle}>
-                      <time dateTime={date}>{formatDate(date, { day: 'numeric', month: 'long', year: 'numeric' })}</time>
-                    </h2>
-                  </div>
-                  <span className={styles.count}>{t('pg.menu.itemCount', { n: current.dishCount })}</span>
-                </header>
-                <div className={styles.cardBody}>
-                  <DayMenu day={current} />
-                  <MenuPhoto src={byImage.get(date) ?? null} alt={formatDate(date, { day: 'numeric', month: 'long' })} />
-                </div>
-              </article>
-            ) : (
-              <EmptyState icon="calendar" title={t('pg.menu.noDay')} description={t('pg.menu.noDayHint')} />
-            ))}
+          {!loading && !failed && ready && view === 'day' && (
+            <div className={styles.dayLayout}>
+              {current ? (
+                <DayCard date={date} day={current} isToday={date === today} />
+              ) : (
+                <NoDay nextDate={nextDate} onPick={setDate} canToday={date !== today} onToday={() => setDate(today)} />
+              )}
+              <aside className={styles.rate} aria-labelledby="menu-rate-h">
+                <span className={styles.rateIcon} aria-hidden="true">
+                  <Icon name="star" size={22} />
+                </span>
+                <h2 id="menu-rate-h" className={styles.rateTitle}>
+                  {t('site.rd05.rateTitle')}
+                </h2>
+                <p className={styles.rateText}>{t('site.rd05.rateText')}</p>
+                <ButtonLink to={paths.site.download} variant="accent" leftIcon={<Icon name="download" size={18} />}>
+                  {t('site.home.ctaDownload')}
+                </ButtonLink>
+              </aside>
+            </div>
+          )}
 
           {!loading && !failed && ready && view === 'week' &&
             (week.some((d) => byDate.has(d)) ? (
@@ -281,7 +408,7 @@ export default function MenuPage() {
                         <time dateTime={d}>{formatDate(d, { weekday: 'long', day: 'numeric', month: 'long' })}</time>
                         {d === today && <span className={styles.todayPill}>{t('pg.menu.todayBadge')}</span>}
                       </h2>
-                      <DayMenu day={byDate.get(d) as ParsedDay} compact />
+                      <DayMenu day={byDate.get(d) as ParsedDay} />
                     </li>
                   ))}
               </ul>
@@ -299,14 +426,24 @@ export default function MenuPage() {
                       <time dateTime={d}>{formatDate(d, { weekday: 'short', day: 'numeric', month: 'short' })}</time>
                       {d === today && <span className={styles.todayPill}>{t('pg.menu.todayBadge')}</span>}
                     </h2>
-                    <DayMenu day={byDate.get(d) as ParsedDay} compact />
+                    <DayMenu day={byDate.get(d) as ParsedDay} />
                   </li>
                 ))}
             </ul>
           )}
         </div>
       </section>
-      <AppCallout shot="menu" title={t('site.s2.menu.appTitle')} text={t('site.s2.menu.appText')} crop={0.85} />
+      <InlineLinks
+        label={t('pg.menu.about.title')}
+        title={t('pg.menu.about.title')}
+        links={[
+          { to: `${paths.site.faq}#faq-calorie`, label: t('pg.menu.about.faq') },
+          { to: paths.site.news, label: t('pg.menu.about.news') },
+        ]}
+      >
+        {t('pg.menu.about.text')}
+      </InlineLinks>
+      <MenuAppBand />
     </>
   );
 }

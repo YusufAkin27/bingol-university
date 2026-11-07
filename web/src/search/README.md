@@ -85,11 +85,15 @@ Yönetici teknik terimi bilmez; **neyi yapmak istediğini** yazar. Her girdi iç
 - **Ekranda görünen metni tekrar etmeyin** (başlık zaten aranır); farklı söyleyişleri yazın.
 - **Çok genel sözcük koymayın** ("sayfa", "ayar", "yönetim", "liste"): her şeyle eşleşip gürültü yapar.
 - **Yazım hatası/aksan yazmayın**: motor büyük-küçük harf, `İ/ı`, `ç ğ ö ş ü` ve küçük yazım hatalarını (4+ harfte 1, 8+ harfte 2 harf) zaten tolere eder. "bakim" yazan "bakım"ı bulur; ayrıca eklemeye gerek yok.
+- **Ek ve çekim yazmayın**: sorgudaki ekler soyulur ("mesajlarından" → "mesaj"); başlıkta/anahtar kelimede kök yeter.
+- **Yaygın eş anlamlıları (mesaj = sohbet = yazışma = dm, kullanıcı = üye = öğrenci, şikayet = ihbar = rapor...) yazmayın**: `synonyms.ts` panel genelinde genişletir ("mesaj" yazan sohbet sayfasını da görür). Yalnız sayfaya ÖZGÜ söyleyişleri girdiye yazın.
 - Birden çok kelimelik kalıp yazabilirsiniz ("zorunlu güncelleme"); sorgu kelimeleri sıradan bağımsız VE ile eşleşir, tam kalıp eşleşmesi en üste çıkar.
 - **Açıklama (`description`)**: tek cümle, "ne işe yarar / ne olur" (çocuk anlasın). Teknik terim yok. Sonuçta ikinci satır olarak görünür ve düşük ağırlıkla aranır.
 - **Başlık**: ekrandaki etiketle birebir. Aynı ada sahip iki girdi varsa `section` ile ayırt edin.
 
-Sıralama: başlık > anahtar kelime > açıklama > kırıntı; tam başlık/anahtar kelime eşleşmesi en üstte; aynı puanda sayfa > bölüm > ayar > alan/eylem.
+Sıralama: başlık > anahtar kelime > açıklama > kırıntı; tam başlık/anahtar kelime eşleşmesi en üstte; tür çarpanı sayfa (1,25) > bölüm > ayar > eylem > alan (0,85).
+Genişletme çarpanları: özgün sözcük 1 · gövde (ek soyulmuş) 0,85 · eş anlamlı 0,8 · ilgili kavram ("mesaj" → kampanya, duyuru) 0,5.
+Başlıkta görünmeyen eşleşmede sonuç satırı "Eşleşen: <anahtar kelime>" gösterir (`Hit.via`).
 
 ## 5. Test ve doğrulama
 
@@ -98,6 +102,9 @@ Sıralama: başlık > anahtar kelime > açıklama > kırıntı; tam başlık/ana
   (`data-search-anchor="x"`, `SearchAnchor id="x"`, şablonlu önek ya da `SettingRow` gibi anahtar tabanlı); (c) derin girdisi olmayan
   sayfalar **raporlanır**: `BEKLENEN_EKSIKLER` listesinden kendi sayfanızı **silin** (liste sıfırlanana dek şablon).
 - Yeni sayfa menüye eklenirken `pageInfo.ts`'e satır yazılmadıysa `build.test.ts` düşer.
+- `realIndex.test.ts`: gerçek dizinde "mesaj" / yazım hatalı / eş anlamlı sorgular, Türkçe karakter eşdeğerliği, soğuk sorgu < 100 ms.
+- `headings.test.ts`: sayfa dosyalarındaki h1-h3, kart, sekme ve eylem metinlerini tarar, dizinde karşılığı olmayanları dosya bazında konsola raporlar;
+  kapsama oranı eşiğin (ratchet, şu an 0,70) altına inerse düşer. Sayfanıza yeni başlık/sekme/düğme eklediyseniz dizine de girdi ekleyin.
 - Elle deneme: panelde Ctrl+K → sorgu → Enter; sayfa açılmalı, öğe ortaya kaydırılıp ~2 sn vurgulanmalı; yan menü süzgecine aynı sorguyu yazınca sayfa + altında kısa yol görünmeli.
 
 ## 6. Dosya haritası
@@ -109,7 +116,9 @@ Sıralama: başlık > anahtar kelime > açıklama > kırıntı; tam başlık/ana
 | `registry.ts` | Grup dosyalarını birleştirir |
 | `pageInfo.ts` | Menü sayfalarının açıklama + anahtar kelimeleri |
 | `build.ts` | Menü sayfaları + girdiler → yol/izin/kırıntı çözümü |
-| `engine.ts`, `fold.ts` | Motor: Türkçe katlama, önek/alt dizgi/yazım hatası, puan, gruplama, vurgulama, öneri |
+| `engine.ts`, `fold.ts` | Motor: Türkçe katlama, ek soyma, önek/alt dizgi/yazım hatası, puan, gruplama, vurgulama, öneri |
+| `synonyms.ts` | Eş anlamlı grupları ve tek yönlü ilgili kavramlar (panel geneli; sayfaya özgü söyleyiş girdide kalır) |
+| `index/shell.ts` | Üst çubuk/yan menü araçları (ara, yardım, yıldız, menüyü daralt); anchor'lar `layouts/AdminLayout.tsx` içinde |
 | `useAdminSearch.ts` | React kancası (RBAC filtresi, dizin önbelleği); QuickNav ve menü süzgeci ortak kullanır |
 | `anchor.tsx`, `search.module.css` | `SearchAnchor`, `useSearchAnchorFocus`, `useSearchReveal`, vurgu stili |
 | `useUrlTab.ts` | Sekme durumunu `?tab=` ile URL'de tutar; `tab-<değer>` anchor'ı sekmeyi açar |

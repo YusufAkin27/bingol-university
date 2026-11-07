@@ -18,9 +18,8 @@ $plistPath = Join-Path $ios 'Runner\GoogleService-Info.plist'
 $plist = Raw $plistPath
 
 # 1) Proje bundle id
-$runnerSettings = [regex]::Matches($pbx, 'buildSettings\s*=\s*\{([^{}]*)\}', 'Singleline') | Where-Object { $_.Groups[1].Value -match '\bINFOPLIST_FILE\s*=\s*"?Runner/Info\.plist"?\s*;' }
-$bundles = $runnerSettings | ForEach-Object { [regex]::Match($_.Groups[1].Value, 'PRODUCT_BUNDLE_IDENTIFIER\s*=\s*"?([A-Za-z0-9.\-]+)"?\s*;').Groups[1].Value } | Select-Object -Unique
-if (@($runnerSettings).Count -ne 3 -or @($bundles).Count -ne 1) { Bad 'Runner Debug/Release/Profile bundle id yapilandirmasi tutarsiz' }
+$m = [regex]::Match($pbx, 'PRODUCT_BUNDLE_IDENTIFIER = ([A-Za-z0-9\.\-]+);(?![\s\S]{0,0})')
+$bundles = [regex]::Matches($pbx, 'PRODUCT_BUNDLE_IDENTIFIER = ([A-Za-z0-9\.\-]+);') | ForEach-Object { $_.Groups[1].Value } | Where-Object { $_ -notlike '*.RunnerTests' } | Select-Object -Unique
 $bundle = $bundles | Select-Object -First 1
 if ($bundle) { Ok "Xcode bundle id: $bundle" } else { Bad 'PRODUCT_BUNDLE_IDENTIFIER okunamadi' }
 

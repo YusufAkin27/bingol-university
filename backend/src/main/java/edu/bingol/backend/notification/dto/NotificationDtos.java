@@ -39,10 +39,42 @@ public final class NotificationDtos {
 
     /** subtype ve count (gruplanmis bildirimdeki adet) eklendi; mevcut alanlar aynen korunur. */
     public record NotificationView(Long id, NotificationType type, String title, String body, String data,
-                                   boolean read, String createdAt, String subtype, int count, String groupKey) {
+                                   boolean read, String createdAt, String subtype, int count, String groupKey,
+                                   String actorAvatarUrl, String sourceName,
+                                   @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String eventState) {
+        /** Eski 12 alanli kurucu (etkinlik durumu yok). */
+        public NotificationView(Long id, NotificationType type, String title, String body, String data,
+                                boolean read, String createdAt, String subtype, int count, String groupKey,
+                                String actorAvatarUrl, String sourceName) {
+            this(id, type, title, body, data, read, createdAt, subtype, count, groupKey, actorAvatarUrl, sourceName, null);
+        }
+
+        /** Eski 10 alanli kurucu (aktor avatari / kaynak adi yok). */
+        public NotificationView(Long id, NotificationType type, String title, String body, String data,
+                                boolean read, String createdAt, String subtype, int count, String groupKey) {
+            this(id, type, title, body, data, read, createdAt, subtype, count, groupKey, null, null);
+        }
+
+        /** Istek anindaki projeksiyon (gizlilik suzgeciyle); kalici `data`ya yazilmaz. */
+        public NotificationView withProjection(String actorAvatarUrl, String sourceName) {
+            return new NotificationView(id, type, title, body, data, read, createdAt, subtype, count, groupKey,
+                    actorAvatarUrl, sourceName, eventState);
+        }
+
+        /** Etkinlik bildirimi icin guncel durum: LIVE | ENDED | CANCELLED | UNAVAILABLE (istek anindaki projeksiyon). */
+        public NotificationView withEventState(String state) {
+            return new NotificationView(id, type, title, body, data, read, createdAt, subtype, count, groupKey,
+                    actorAvatarUrl, sourceName, state);
+        }
+
         public String getCategory() {
             return edu.bingol.backend.notification.NotificationPresentation.category(type, subtype,
                     edu.bingol.backend.notification.NotificationPresentation.data(data));
+        }
+
+        /** Merkez kapsami: SOCIAL (Hareketler/kalp) | INFORMATION (Bildirimler/zil); sunucu tek kaynaktir. */
+        public String getScope() {
+            return edu.bingol.backend.notification.NotificationPresentation.scope(getCategory());
         }
 
         public static NotificationView of(Notification n) {
@@ -55,10 +87,24 @@ public final class NotificationDtos {
 
     public record UnreadCount(long unreadCount) {}
 
+    /**
+     * Iki bagimsiz merkez sayaci (sunucuda hesaplanir): social = Hareketler okunmamis (kalp), information = Bildirimler
+     * okunmamis (zil). pendingFollowRequests / pendingMembershipRequests kalp noktasina eklenir (islem bekleyen istekler).
+     * unreadCount = eski toplam (geriye uyum).
+     */
+    public record UnreadCounts(long social, long information, long unreadCount, long pendingFollowRequests,
+                               long pendingMembershipRequests) {}
+
     public record DeletedCount(int deleted) {}
 
     /** ids veya all=true'dan biri verilmeli. */
-    public record MarkReadRequest(List<Long> ids, Boolean all) {}
+    public record MarkReadRequest(@jakarta.validation.constraints.Size(max = 200) List<Long> ids, Boolean all,
+                                  @jakarta.validation.constraints.Size(max = 16) String scope) {
+        /** Eski 2 alanli kurucu: all=true tum kutuyu (iki merkez) okundu yapar. */
+        public MarkReadRequest(List<Long> ids, Boolean all) {
+            this(ids, all, null);
+        }
+    }
 
     /** Sessiz saatler; start/end "HH:mm" (kullanicinin saat diliminde), start == end gecersiz. */
     public record QuietHoursView(boolean enabled, @Pattern(regexp = "([01]\\d|2[0-3]):[0-5]\\d") String start,
@@ -80,7 +126,15 @@ public final class NotificationDtos {
     /** Yanit: 5 ana bayrak (eski istemciler yalniz bunlari okur) + sessiz saatler + alt tur bayraklari. */
     public record PrefsView(boolean news, boolean announcements, boolean events, boolean messages,
                             boolean communities, QuietHoursView quietHours, Map<String, Boolean> subtypes,
-                            boolean polls, boolean academicAnnouncements, boolean messagePreview) {
+                            boolean polls, boolean academicAnnouncements, boolean mealMenu) {
+        /** Eski 9 alanli kurucu (mealMenu kapali). */
+        public PrefsView(boolean news, boolean announcements, boolean events, boolean messages,
+                         boolean communities, QuietHoursView quietHours, Map<String, Boolean> subtypes,
+                         boolean polls, boolean academicAnnouncements) {
+            this(news, announcements, events, messages, communities, quietHours, subtypes, polls, academicAnnouncements,
+                    false);
+        }
+
         public static PrefsView of(NotificationPref p) {
             return of(p, Map.of());
         }
@@ -92,26 +146,26 @@ public final class NotificationDtos {
                 all.put(s.name(), s.flagBacked() ? s.flag(p) : overrides.getOrDefault(s.name(), true));
             }
             return new PrefsView(p.isNews(), p.isAnnouncements(), p.isEvents(), p.isMessages(), p.isCommunities(),
-                    QuietHoursView.of(p), all, p.isPolls(), p.isAcademicAnnouncements(), p.isMessagePreview());
+                    QuietHoursView.of(p), all, p.isPolls(), p.isAcademicAnnouncements(), p.isMealMenu());
         }
     }
 
     /** Kismi guncelleme: null alan degismez (eski 5 bayrakli istemciler geriye uyumlu). */
     public record PrefsUpdate(Boolean news, Boolean announcements, Boolean events, Boolean messages,
                               Boolean communities, @Valid QuietHoursView quietHours, Map<String, Boolean> subtypes,
-                              Boolean polls, Boolean academicAnnouncements, Boolean messagePreview) {
-        /** Eski 7 alanli kurucu (polls / academicAnnouncements / messagePreview degismez). */
-        public PrefsUpdate(Boolean news, Boolean announcements, Boolean events, Boolean messages,
-                           Boolean communities, QuietHoursView quietHours, Map<String, Boolean> subtypes) {
-            this(news, announcements, events, messages, communities, quietHours, subtypes, null, null, null);
-        }
-
-        /** Eski 9 alanli kurucu (messagePreview degismez). */
+                              Boolean polls, Boolean academicAnnouncements, Boolean mealMenu) {
+        /** Eski 9 alanli kurucu (mealMenu degismez). */
         public PrefsUpdate(Boolean news, Boolean announcements, Boolean events, Boolean messages,
                            Boolean communities, QuietHoursView quietHours, Map<String, Boolean> subtypes,
                            Boolean polls, Boolean academicAnnouncements) {
-            this(news, announcements, events, messages, communities, quietHours, subtypes, polls,
-                    academicAnnouncements, null);
+            this(news, announcements, events, messages, communities, quietHours, subtypes, polls, academicAnnouncements,
+                    null);
+        }
+
+        /** Eski 7 alanli kurucu (polls / academicAnnouncements / mealMenu degismez). */
+        public PrefsUpdate(Boolean news, Boolean announcements, Boolean events, Boolean messages,
+                           Boolean communities, QuietHoursView quietHours, Map<String, Boolean> subtypes) {
+            this(news, announcements, events, messages, communities, quietHours, subtypes, null, null, null);
         }
     }
 }

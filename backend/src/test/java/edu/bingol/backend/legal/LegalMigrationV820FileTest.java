@@ -15,7 +15,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -79,8 +78,9 @@ class LegalMigrationV820FileTest {
     /** SQL, docs/legal kaynaklariyla birebir ayni (betik calistirildi; elle duzenleme yok). */
     @Test
     void sqlIcerigi_markdownKaynaklariylaBirebirAyni() throws Exception {
-        Assumptions.assumeTrue(Files.isDirectory(DOCS), "docs/legal bu calisma dizininden gorunmuyor");
-        String sql = Files.readString(SQL, StandardCharsets.UTF_8);
+        LegalDocsGuard.requireDocs(Files.isDirectory(DOCS), "docs/legal bu calisma dizininden gorunmuyor");
+        // Windows'ta core.autocrlf=true ile alinan arsiv/calisma agaci SQL'i CRLF olabilir; icerik karsilastirmasi satir sonundan bagimsiz
+        String sql = Files.readString(SQL, StandardCharsets.UTF_8).replace("\r\n", "\n").replace("\r", "\n");
         for (String[] t : TYPES) {
             for (String lang : LANGS) {
                 String raw = read(t[0], lang);
@@ -98,7 +98,7 @@ class LegalMigrationV820FileTest {
     /** tr ile en/ar BIRE BIR: ayni bolum sayisi/numarasi ve her bolumde ayni madde, tablo satiri, alinti, baglanti ve yer tutucu sayisi. */
     @Test
     void tr_en_ar_bolum_bolum_esit() throws Exception {
-        Assumptions.assumeTrue(Files.isDirectory(DOCS), "docs/legal bu calisma dizininden gorunmuyor");
+        LegalDocsGuard.requireDocs(Files.isDirectory(DOCS), "docs/legal bu calisma dizininden gorunmuyor");
         for (String[] t : TYPES) {
             List<String> tr = shape(read(t[0], "tr"));
             for (String lang : new String[] {"en", "ar"}) {
@@ -114,7 +114,7 @@ class LegalMigrationV820FileTest {
     /** Yer tutucu anahtarlari (alternatif metin haric) dilden bagimsiz ayni olmali: boylece kimlik satirlari her dilde birlikte cikar. */
     @Test
     void yerTutucuAnahtarlari_ucDilde_ayni() throws Exception {
-        Assumptions.assumeTrue(Files.isDirectory(DOCS), "docs/legal bu calisma dizininden gorunmuyor");
+        LegalDocsGuard.requireDocs(Files.isDirectory(DOCS), "docs/legal bu calisma dizininden gorunmuyor");
         for (String[] t : TYPES) {
             List<String> tr = placeholders(read(t[0], "tr"));
             for (String lang : new String[] {"en", "ar"}) {
@@ -128,7 +128,7 @@ class LegalMigrationV820FileTest {
     /** Kaldirilmis ozellikler ve yanlis alici satiri hicbir dilde kalmamali. */
     @Test
     void kaldirilmisOzelliklerVeUniversiteAlicisi_metinlerde_yok() throws Exception {
-        Assumptions.assumeTrue(Files.isDirectory(DOCS), "docs/legal bu calisma dizininden gorunmuyor");
+        LegalDocsGuard.requireDocs(Files.isDirectory(DOCS), "docs/legal bu calisma dizininden gorunmuyor");
         for (String[] t : TYPES) {
             String tr = read(t[0], "tr");
             String en = read(t[0], "en");
@@ -150,7 +150,7 @@ class LegalMigrationV820FileTest {
     /** Metindeki somut sayilar koddaki gercek varsayilanlarla ayni (yanlis vaat taramasi). */
     @Test
     void beyanEdilenSayilar_kodVarsayilaniyla_ayni() throws Exception {
-        Assumptions.assumeTrue(Files.isDirectory(DOCS), "docs/legal bu calisma dizininden gorunmuyor");
+        LegalDocsGuard.requireDocs(Files.isDirectory(DOCS), "docs/legal bu calisma dizininden gorunmuyor");
         String props = Files.readString(PROPS, StandardCharsets.UTF_8);
         // --- koddaki gercek degerler ---
         assertThat(prop(props, "app.notification.retention-days")).isEqualTo("30");
@@ -170,11 +170,15 @@ class LegalMigrationV820FileTest {
         assertThat(prop(props, "app.chat.media.max-attachments-per-message")).isEqualTo("10");
         assertThat(prop(props, "app.chat.media.video-max-seconds")).isEqualTo("60");
         assertThat(prop(props, "app.chat.media.video-max-bytes")).isEqualTo("41943040"); // 40 MB
-        assertThat(prop(props, "app.media.chat.max-dimension")).isEqualTo("1600");
+        // Sohbet gorseli uzun kenari 1600 -> 2560'a cikarildi (kalite artisi, 07a15f4a). Yayindaki metin "en cok 1600 piksel"
+        // der (asagidaki terms beyani): yeni hukuki surumde 2560'a guncellenmeli (hukuki surum islemi, bekliyor).
+        assertThat(prop(props, "app.media.chat.max-dimension")).isEqualTo("2560");
         assertThat(prop(props, "app.post.media.deleted-retention-days")).isEqualTo("30");
         assertThat(prop(props, "app.post.media.unattached-hours")).isEqualTo("24");
         assertThat(props).contains("jwt.access-ttl-minutes=15").contains("jwt.refresh-ttl-days=30");
-        assertThat(PostDtos.MAX_WORDS).isEqualTo(7);
+        // V1310 oncesi: gonderi metni "en cok 7 kelime" idi (yayindaki V820 metni bunu soyler). Sinir kalkti (gizli ust sinir
+        // 2200 karakter / 40 satir); hukuki metin yeni surumde guncellenmelidir (hukuki surum islemi, bekliyor).
+        assertThat(PostDtos.POST_TEXT_MAX_CHARS).isEqualTo(2200);
         // T-015 (W1-B): mesaj cozme gerekcesi 10 -> 20 karaktere cikarildi (sikilastirma); yayindaki metnin "en az 10 karakter"
         // beyani sohbet mudahalesi icin dogru kalir, cozme icin alt sinir olarak gecerlidir (metin yeni surumde guncellenmeli).
         assertThat(AdminDecryptService.MIN_REASON).isEqualTo(20);
@@ -227,7 +231,10 @@ class LegalMigrationV820FileTest {
     // ---------------------------------------------------------------- yardimcilar
 
     private static String read(String prefix, String lang) throws Exception {
-        return Files.readString(DOCS.resolve(prefix + "_" + lang + ".md"), StandardCharsets.UTF_8)
+        // terms/privacy/kvkk metinleri V1470'te degisti: V820 kaynaklari docs/legal/archive/v820 altinda dondurulmustur
+        Path archived = DOCS.resolve("archive/v820").resolve(prefix + "_" + lang + ".md");
+        Path file = Files.exists(archived) ? archived : DOCS.resolve(prefix + "_" + lang + ".md");
+        return Files.readString(file, StandardCharsets.UTF_8)
                 .replace("\r\n", "\n").replace("\r", "\n");
     }
 

@@ -33,15 +33,14 @@ class RichChatPayloadTest {
         assertNull(RichChatPayload.mediaUrl("", "/files/a.jpg"));
         assertNull(RichChatPayload.mediaUrl("https://bukampus.com.tr", "https://user@bukampus.com.tr/a.jpg"));
     }
-    @Test void previewOffStripsPhotoWithoutMutatingSource() {
+    @Test void pushDataMergesPushOnlyExtrasWithoutMutatingSources() {
         Map<String,String> base = Map.of("conversationId", "1", "imageAttachmentId", "8");
         Map<String,String> extra = Map.of("senderAvatarUrl", "/files/a.jpg", "imageUrl", "/signed/thumb");
-        var result = NotificationService.messagePushData(base, extra, false);
-        assertFalse(result.containsKey("imageUrl"));
-        assertFalse(result.containsKey("imageAttachmentId"));
+        var result = NotificationService.messagePushData(base, extra);
+        assertEquals("/signed/thumb", result.get("imageUrl"));
         assertEquals("/files/a.jpg", result.get("senderAvatarUrl"));
-        assertTrue(extra.containsKey("imageUrl"));
-        assertTrue(NotificationService.messagePushData(base, extra, true).containsKey("imageUrl"));
+        assertEquals("1", result.get("conversationId"));
+        assertFalse(base.containsKey("imageUrl"));
     }
     @Test void viewOnceAndRemovedAttachmentsNeverEnterPushPreview() {
         var once = new edu.bingol.backend.messaging.media.AttachmentView(1L, "IMAGE", 20, 20, 100L, "image/jpeg", false, "/full", "/thumb", true, false);

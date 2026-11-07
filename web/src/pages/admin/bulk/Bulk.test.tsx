@@ -305,9 +305,10 @@ describe('Kaynak durumu sayfası', () => {
     setup(() => jsonResponse(200, {}));
     renderWithProviders(<SourcesPage />);
     expect(await screen.findByText('Haber, duyuru ve etkinlik')).toBeInTheDocument();
-    expect(screen.getByText('Bakımda')).toBeInTheDocument();
+    // PANEL-icerik: kaynak sağlığı ızgarası eklendi; "Bakımda" hem durum rozetinde hem sağlık kartında görünür
+    expect(screen.getAllByText('Bakımda').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('Kaynak site yapısı değişti')).toBeInTheDocument();
-    expect(screen.getByText('Yemek listesi')).toBeInTheDocument();
+    expect(screen.getAllByText('Yemek listesi').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/zamanlayıcı istek atar/, { selector: 'p' })).toBeInTheDocument();
     expect(screen.getByText(/saatte en çok 3 kez/, { selector: 'p' })).toBeInTheDocument();
   });

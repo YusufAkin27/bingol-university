@@ -82,6 +82,8 @@ public class CommunityCategoryService {
     /** Degisince degisen basit surum: en yeni guncelleme + toplam satir. */
     @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
     public String version() {
+        // Kategori tablosu yoneticiyle sinirli (aktif <= app.community.max-categories) ve sonuc SHORT katmanda onbellekli:
+        // findAll burada yuk degil (B10 notu).
         return cache.get("categories", "v", CacheTier.SHORT, VERSION, () -> {
             long max = repo.findAll().stream().mapToLong(c -> c.getUpdatedAt().toEpochMilli()).max().orElse(0L);
             return max + "-" + repo.count();
@@ -112,8 +114,7 @@ public class CommunityCategoryService {
         if (v.equals(current)) {
             return v;
         }
-        CommunityCategory c = repo.findByKey(v).orElseGet(() -> repo.findAll().stream()
-                .filter(x -> x.getKey().equalsIgnoreCase(v)).findFirst().orElse(null));
+        CommunityCategory c = repo.findByKey(v).orElseGet(() -> repo.findFirstByKeyIgnoreCase(v).orElse(null));
         if (c == null || !c.isActive()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "COMMUNITY_CATEGORY_INVALID",
                     "Geçersiz veya pasif kulüp kategorisi.");

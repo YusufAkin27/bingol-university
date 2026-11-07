@@ -19,8 +19,8 @@ In accordance with Article 10 of the Personal Data Protection Law No. 6698 (the 
 
 | Category | Examples |
 |---|---|
-| Identity | Name and surname |
-| Contact | Institutional e-mail address (bingol.edu.tr), contact e-mail in support requests |
+| Identity | Name and surname; if you choose to sign in with Google or Apple (optional), the name of the provider and the identifier the provider assigns to your account |
+| Contact | E-mail address (from any provider; with Google/Apple sign-in, the address reported by the provider, which may be a private relay address with Apple), contact e-mail in support requests |
 | Education/professional information | Faculty, department, year, student/staff role |
 | Visual | Profile photo; post photo (a single photo per post); chat photos and videos (the EXIF metadata of photos is removed; chat videos are not re-encoded on the server and the metadata inside them is not removed, they are stored encrypted) |
 | User content | Messages, community posts and Discover posts (a single photo and text of at most 7 words), poll votes, event application answers, feedback, support and appeal texts, biography |
@@ -66,7 +66,7 @@ In accordance with Article 10 of the Personal Data Protection Law No. 6698 (the 
 | Notification provider: Google LLC (Firebase Cloud Messaging) and Apple Inc. (APNs) for iOS | Device notification token, notification title/short text, target information, platform | Delivering push notifications | **Abroad** |
 | Competent public bodies and institutions (court, public prosecutor, law enforcement, the Board, etc.) | Data within the scope of the request | Legal obligation | Domestic |
 
-**There is no transfer to the university.** Your personal data is not transferred to Bingöl University or its units: the Service only reads publicly available news, announcements, events and menu content from the university's sites and, at registration, only checks the domain name of the e-mail address (bingol.edu.tr). Management panel administrators do not act on behalf of the university (see section 8). Note: because the e-mails we send reach your registered bingol.edu.tr address, the institution that operates that mailbox may technically process the e-mail on its own infrastructure; this is not a transfer made by the data controller but the nature of e-mail.
+**There is no transfer to the university.** Your personal data is not transferred to Bingöl University or its units: the Service only reads publicly available news, announcements, events and menu content from the university's sites. Management panel administrators do not act on behalf of the university (see section 8). Note: because the e-mails we send reach your registered e-mail address, the organisation that operates that mailbox (your e-mail provider; the university if you use a bingol.edu.tr address) may technically process the e-mail on its own infrastructure; this is not a transfer made by the data controller but the nature of e-mail. If you sign in with Google or Apple, authentication takes place between your device and that provider; our server only verifies the provider's signed identity token and sends no data to the provider on your behalf. The providers' own processing is subject to their own notices and privacy policies.
 
 **Transfer abroad (Art. 9).** For push notifications, your device notification token and the notification content are transferred abroad through Firebase/APNs. Within the framework of Article 9 of the Law and the relevant Board regulations, this transfer relies on **your explicit consent based on the notification permission** and/or adequacy/appropriate-safeguard mechanisms (standard contract, etc.). If you do not grant the notification permission you will not receive push notifications, but the in-app notification inbox and other services continue to work. You can withdraw your consent at any time from the device settings or the Permissions/Notification settings in the app. The servers of the e-mail delivery service provider (Brevo) may also be abroad; your e-mail address and the e-mail content may be transferred to this provider to deliver verification, password reset and announcement e-mails, and this transfer also relies on the mechanisms under Article 9 above.
 
@@ -107,7 +107,7 @@ In-app shortcuts: Profile editing and privacy settings (correction/control of pu
 1. **In-app:** Create a request titled "Personal data request" in the Support section (the identity of a signed-in user is verified through the account).
 2. **Written:** By a wet-signed petition{{?controller.address}} to {{controller.address}}{{/controller.address}}, by hand or through a notary.
 {{?controller.kep}}3. **KEP:** An application with a secure electronic signature to {{controller.kep}}.{{/controller.kep}}
-{{?controller.email}}4. **E-mail:** To {{controller.email}}, from your registered institutional e-mail address.{{/controller.email}}
+{{?controller.email}}4. **E-mail:** To {{controller.email}}, from your registered e-mail address.{{/controller.email}}
 
 Your application must state your name and surname, information that verifies your identity (account e-mail), your notification address and the subject of your request. We may ask for additional information to verify your identity. Applications are concluded free of charge, depending on the nature of the request, **within 30 days at the latest**; if the process requires an additional cost, the fee in the tariff determined by the Board may be charged.
 

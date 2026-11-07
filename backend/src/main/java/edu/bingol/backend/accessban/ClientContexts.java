@@ -22,6 +22,8 @@ public class ClientContexts {
     public static final String DEVICE_HEADER = "X-Device-Id";
     public static final String PLATFORM_HEADER = "X-Device-Platform";
     public static final String VERSION_HEADER = "X-App-Version";
+    /** Cihazlarim icin gorunen cihaz adi (istege bagli); yoksa User-Agent'tan turetilir. */
+    public static final String NAME_HEADER = "X-Device-Name";
 
     private static final Pattern RAW_DEVICE = Pattern.compile("[A-Za-z0-9._:\\-]{8,128}");
     private static final Pattern VERSION = Pattern.compile("[A-Za-z0-9._+\\-]{1,32}");
@@ -45,6 +47,8 @@ public class ClientContexts {
         }
         ClientContext c = build(clientIp.of(req), req.getHeader(DEVICE_HEADER), req.getHeader(PLATFORM_HEADER),
                 req.getHeader(VERSION_HEADER));
+        c = new ClientContext(c.ip(), c.deviceHash(), c.platform(), c.appVersion(),
+                DeviceNames.resolve(req.getHeader(NAME_HEADER), req.getHeader("User-Agent"), c.platform()));
         req.setAttribute(ClientContext.REQUEST_ATTR, c);
         return c;
     }

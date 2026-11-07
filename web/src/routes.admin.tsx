@@ -14,6 +14,7 @@ const LoginPage = lazy(() => import('./pages/admin/LoginPage'));
 const AdminRegisterPage = lazy(() => import('./pages/admin/AdminRegisterPage'));
 const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'));
 const UsersPage = lazy(() => import('./pages/admin/UsersPage'));
+const TwoFactorPage = lazy(() => import('./pages/admin/TwoFactorPage'));
 const UserDetailPage = lazy(() => import('./pages/admin/UserDetailPage'));
 const UserMessagesPage = lazy(() => import('./pages/admin/UserMessagesPage'));
 const LegacyMessageRedirect = lazy(() => import('./pages/admin/chat/LegacyMessageRedirect'));
@@ -29,6 +30,7 @@ const FeedbackPage = lazy(() => import('./pages/admin/FeedbackPage'));
 const LegalAdminPage = lazy(() => import('./pages/admin/LegalAdminPage'));
 const FaqAdminPage = lazy(() => import('./pages/admin/FaqAdminPage'));
 const NewsAdminPage = lazy(() => import('./pages/admin/NewsAdminPage'));
+const UnitNewsAdminPage = lazy(() => import('./pages/admin/UnitNewsAdminPage'));
 const ClubsManagePage = lazy(() => import('./pages/admin/ClubsManagePage'));
 const ContentReviewPage = lazy(() => import('./pages/admin/ContentReviewPage'));
 const EventsAdminPage = lazy(() => import('./pages/admin/EventsAdminPage'));
@@ -44,15 +46,14 @@ const AccessBansPage = lazy(() => import('./pages/admin/AccessBansPage'));
 const ProfanityPage = lazy(() => import('./pages/admin/ProfanityPage'));
 const CommunityCategoriesPage = lazy(() => import('./pages/admin/CommunityCategoriesPage'));
 const AcademicCalendarPage = lazy(() => import('./pages/admin/academic/AcademicCalendarPage'));
-const AcademicExamsPage = lazy(() => import('./pages/admin/academic/AcademicExamsPage'));
 const AcademicTimetablePage = lazy(() => import('./pages/admin/academic/AcademicTimetablePage'));
-const AcademicAnnouncementsPage = lazy(() => import('./pages/admin/academic/AcademicAnnouncementsPage'));
 const PendingUsersPage = lazy(() => import('./pages/admin/PendingUsersPage'));
 const CryptoPage = lazy(() => import('./pages/admin/CryptoPage'));
 const OpsPage = lazy(() => import('./pages/admin/OpsPage'));
 const CrashesPage = lazy(() => import('./pages/admin/CrashesPage'));
 const AppVersionsPage = lazy(() => import('./pages/admin/AppVersionsPage'));
 const DataRetentionPage = lazy(() => import('./pages/admin/DataRetentionPage'));
+const BackupPage = lazy(() => import('./pages/admin/BackupPage'));
 const SystemStatusPage = lazy(() => import('./pages/admin/SystemStatusPage'));
 const SourcesPage = lazy(() => import('./pages/admin/SourcesPage'));
 const MailTemplatesPage = lazy(() => import('./pages/admin/MailTemplatesPage'));
@@ -66,6 +67,10 @@ const SettingsPage = lazy(() => import('./pages/admin/SettingsPage'));
 const AuditPage = lazy(() => import('./pages/admin/AuditPage'));
 const MessageAccessPage = lazy(() => import('./pages/admin/MessageAccessPage'));
 const RolesPage = lazy(() => import('./pages/admin/RolesPage'));
+const ForumReportsPage = lazy(() => import('./pages/admin/forum/ForumReportsPage'));
+const ForumTopicsPage = lazy(() => import('./pages/admin/forum/ForumTopicsPage'));
+const ForumActionsPage = lazy(() => import('./pages/admin/forum/ForumActionsPage'));
+const ForumCategoriesPage = lazy(() => import('./pages/admin/forum/ForumCategoriesPage'));
 const AdminNotFoundPage = lazy(() => import('./pages/admin/AdminNotFoundPage'));
 
 export default function AdminRoutes() {
@@ -83,6 +88,7 @@ export default function AdminRoutes() {
         >
           <Route index element={<DashboardPage />} />
           <Route path="users" element={<UsersPage />} />
+          <Route path="two-factor" element={<TwoFactorPage />} />
           <Route path="users/:id" element={<UserDetailPage />} />
           <Route path="users/:id/messages" element={<RequirePerm perm="chat.read"><UserMessagesPage /></RequirePerm>} />
           <Route path="users/:id/message" element={<LegacyMessageRedirect />} />
@@ -98,6 +104,7 @@ export default function AdminRoutes() {
           <Route path="content/legal" element={<LegalAdminPage />} />
           <Route path="content/faq" element={<FaqAdminPage />} />
           <Route path="content/news" element={<NewsAdminPage />} />
+          <Route path="content/unit-news" element={<UnitNewsAdminPage />} />
           <Route path="communities" element={<ClubsManagePage />} />
           <Route path="content-review" element={<ContentReviewPage />} />
           <Route path="events" element={<EventsAdminPage />} />
@@ -113,15 +120,14 @@ export default function AdminRoutes() {
           <Route path="profanity" element={<ProfanityPage />} />
           <Route path="community-categories" element={<CommunityCategoriesPage />} />
           <Route path="academic/calendar" element={<AcademicCalendarPage />} />
-          <Route path="academic/exams" element={<AcademicExamsPage />} />
           <Route path="academic/timetable" element={<AcademicTimetablePage />} />
-          <Route path="academic/announcements" element={<AcademicAnnouncementsPage />} />
           <Route path="pending-users" element={<PendingUsersPage />} />
           <Route path="crypto" element={<CryptoPage />} />
           <Route path="ops" element={<OpsPage />} />
           <Route path="crashes" element={<CrashesPage />} />
           <Route path="app-versions" element={<AppVersionsPage />} />
           <Route path="data-retention" element={<DataRetentionPage />} />
+          <Route path="backup" element={<BackupPage />} />
           <Route path="system" element={<SystemStatusPage />} />
           <Route path="sources" element={<SourcesPage />} />
           <Route path="mail/templates" element={<MailTemplatesPage />} />
@@ -133,6 +139,10 @@ export default function AdminRoutes() {
           <Route path="push/ops" element={<PushOpsPage />} />
           <Route path="events/applications" element={<EventApplicationsPage />} />
           <Route path="communities/audit" element={<ClubAuditPage />} />
+          <Route path="forum/reports" element={<ForumReportsPage />} />
+          <Route path="forum/topics" element={<ForumTopicsPage />} />
+          <Route path="forum/actions" element={<ForumActionsPage />} />
+          <Route path="forum/categories" element={<ForumCategoriesPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="audit" element={<AuditPage />} />
           <Route path="audit/message-access" element={<MessageAccessPage />} />

@@ -143,6 +143,6 @@ class I18nMessagesIntegrityTest {
         MailRenderer.Rendered r = new MailRenderer().render(MailTemplate.VERIFICATION_CODE, Lang.AR,
                 Map.of("code", "123456", "minutes", "10"));
         assertThat(r.html()).contains("<html lang=\"ar\" dir=\"rtl\">").contains("<body class=\"bg\" dir=\"rtl\"");
-        assertThat(r.html()).contains("class=\"txt\" dir=\"rtl\"").contains("dir=\"ltr\"");
+        assertThat(r.html()).contains("class=\"px content body-txt\" dir=\"rtl\"").contains("dir=\"ltr\"");
     }
 }

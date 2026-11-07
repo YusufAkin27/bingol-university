@@ -11,6 +11,8 @@ import edu.bingol.backend.auth.dto.MessageResponse;
 import edu.bingol.backend.auth.dto.LogoutRequest;
 import edu.bingol.backend.auth.dto.RefreshRequest;
 import edu.bingol.backend.auth.dto.RegisterRequest;
+import edu.bingol.backend.auth.dto.RegisterResponse;
+import edu.bingol.backend.auth.dto.VerificationDtos;
 import edu.bingol.backend.auth.dto.ResetPasswordRequest;
 import edu.bingol.backend.auth.dto.ResetTokenResponse;
 import edu.bingol.backend.auth.dto.TokenResponse;
@@ -27,7 +29,9 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.time.Duration;
+import edu.bingol.backend.auth.twofactor.TwoFactorRequiredException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -95,18 +99,57 @@ public class AuthController {
         }
     }
 
+    /**
+     * 202 {message}: kod gonderildi, bekleyen kayit (normal). 201 {message, emailVerified:false,
+     * verificationDeferred:true, jeton cifti}: gunluk kod kotasi dolu, hesap ERTELENMIS dogrulamayla acildi
+     * (yalniz okur; bkz. docs/changes/auth.md QT-BE).
+     */
     @PostMapping("/register")
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    public MessageResponse register(@Valid @RequestBody RegisterRequest r, HttpServletRequest http) {
+    public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest r, HttpServletRequest http) {
         codeRequestLimits("register", http);
         // E-posta basina sinir: kod yenileme/posta bombalama ve bekleyen kaydi tekrar tekrar ezme engellenir.
         String ed = LoginThrottle.digest(AuthService.normalizeEmail(r.email()));
         limiter.check("register:email:" + ed, 5, Duration.ofHours(1));
         codeMailCap(ed);
         Lang lang = r.language() != null ? Lang.of(r.language()) : Lang.of(LocaleContextHolder.getLocale());
-        auth.register(r.email(), r.password(), r.displayName(), lang, r.faculty(), r.department(), r.grade(),
-                Boolean.TRUE.equals(r.adminPortal()));
-        return new MessageResponse(i18n.current("msg.register.sent"));
+        TokenResponse deferred = auth.registerOrDefer(r.email(), r.password(), r.displayName(), lang, r.faculty(),
+                r.department(), r.grade(), Boolean.TRUE.equals(r.adminPortal()), r.client(), contexts.of(http));
+        if (deferred != null) {
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(RegisterResponse.deferred(i18n.current("msg.register.deferred"), deferred));
+        }
+        return ResponseEntity.accepted().body(RegisterResponse.sent(i18n.current("msg.register.sent")));
+    }
+
+    // ------------------------------------------------ kota asiminda ertelenmis dogrulamayi tamamlama (JWT'li)
+
+    @GetMapping("/verification/status")
+    public VerificationDtos.StatusResponse verificationStatus(Authentication authentication) {
+        Long uid = (Long) authentication.getPrincipal();
+        limiter.check("vstatus:user:" + uid, 30, Duration.ofMinutes(1));
+        return auth.verificationStatus(uid);
+    }
+
+    /** 202: kod e-postaya kuyruklandi. 429 RESEND_COOLDOWN | MAIL_QUOTA_EXCEEDED (+Retry-After); 409 EMAIL_ALREADY_VERIFIED. */
+    @PostMapping("/verification/resend")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public MessageResponse resendVerification(Authentication authentication, HttpServletRequest http) {
+        Long uid = (Long) authentication.getPrincipal();
+        limiter.check("vresend:user:" + uid, 5, Duration.ofHours(1));
+        limiter.check("vresend:userday:" + uid, 10, Duration.ofDays(1));
+        limiter.check("vresend:ip:" + clientIp.limitKey(http), limits.codeIpMax(), Duration.ofHours(1));
+        auth.resendOwnVerification(uid);
+        return new MessageResponse(i18n.current("msg.verification.sent"));
+    }
+
+    @PostMapping("/verification/verify")
+    public VerificationDtos.VerifiedResponse verifyOwnEmail(@Valid @RequestBody VerificationDtos.VerifyCodeRequest r,
+                                                            Authentication authentication, HttpServletRequest http) {
+        Long uid = (Long) authentication.getPrincipal();
+        String ip = clientIp.limitKey(http);
+        limiter.check("vverify:user:" + uid, 10, Duration.ofMinutes(10));
+        limiter.check("vverify:ip:" + ip, limits.verifyIpMax(), Duration.ofMinutes(10));
+        return auth.verifyOwnEmail(uid, r.code(), ip);
     }
 
     @PostMapping("/resend-code")
@@ -124,6 +167,8 @@ public class AuthController {
     @ResponseStatus(HttpStatus.ACCEPTED)
     public MessageResponse forgotPassword(@Valid @RequestBody EmailRequest r, HttpServletRequest http) {
         codeRequestLimits("forgot", http);
+        // Hesap yoksa 404 verildiginden numara taramasini zorlastirmak icin IP basina dakikada 15 (kayitsiz adres de sayilir)
+        limiter.check("forgot:ipmin:" + clientIp.limitKey(http), 15, Duration.ofMinutes(1));
         String ed = LoginThrottle.digest(AuthService.normalizeEmail(r.email()));
         limiter.check("forgot:email:" + ed, 5, Duration.ofHours(1));
         codeMailCap(ed);
@@ -158,8 +203,12 @@ public class AuthController {
         return auth.verifyEmail(r.email(), r.code(), r.client(), contexts.of(http), r.password());
     }
 
+    /**
+     * 200 {@link TokenResponse}; 2FA acik ve cihaz tanimiyorsa 202 + challenge ({@code twoFactorRequired}, token YOK,
+     * kod e-postaya gitti). Sifre bu noktada dogrulanmistir: kaba kuvvet sayaci sifirlanir.
+     */
     @PostMapping("/login")
-    public TokenResponse login(@Valid @RequestBody LoginRequest r, HttpServletRequest http) {
+    public ResponseEntity<Object> login(@Valid @RequestBody LoginRequest r, HttpServletRequest http) {
         String email = AuthService.normalizeEmail(r.email());
         String ip = clientIp.limitKey(http);
         // IP: yalniz toplu/NAT tavani (genis). Kaba kuvvet korumasi asagida e-posta ve cihaz bazli.
@@ -170,6 +219,10 @@ public class AuthController {
         TokenResponse res;
         try {
             res = auth.login(email, r.password(), r.client(), contexts.of(http));
+        } catch (TwoFactorRequiredException e) {
+            // Sifre dogru: kaba kuvvet sayaci sifirlanir (kod denemeleri kendi sinirlariyla korunur)
+            loginThrottle.recordSuccess(email, ip, dev);
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(e.challenge());
         } catch (ApiException e) {
             if ("INVALID_CREDENTIALS".equals(e.code())) {
                 loginThrottle.recordFailure(email, ip, dev);
@@ -177,7 +230,7 @@ public class AuthController {
             throw e;
         }
         loginThrottle.recordSuccess(email, ip, dev);
-        return res;
+        return ResponseEntity.ok(res);
     }
 
     @PostMapping("/refresh")
@@ -191,7 +244,18 @@ public class AuthController {
         } else {
             limiter.check("refresh:bad:" + ip, limits.refreshInvalidIpMax(), Duration.ofMinutes(15));
         }
-        return auth.refresh(r.refreshToken(), contexts.of(http));
+        try {
+            return auth.refresh(r.refreshToken(), contexts.of(http));
+        } catch (RefreshInProgressException e) {
+            // 409 + Retry-After: ortak hata isleyici govdeyi (istek dilinde) uretir, baslik burada eklenir
+            org.springframework.web.context.request.RequestAttributes attrs =
+                    org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+            if (attrs instanceof org.springframework.web.context.request.ServletRequestAttributes sra
+                    && sra.getResponse() != null) {
+                sra.getResponse().setHeader(org.springframework.http.HttpHeaders.RETRY_AFTER, "1");
+            }
+            throw e;
+        }
     }
 
     @PostMapping("/logout")
@@ -220,7 +284,7 @@ public class AuthController {
         Long userId = (Long) authentication.getPrincipal();
         limiter.check("chpw:user:" + userId, 5, Duration.ofHours(1));
         limiter.check("chpw:ip:" + clientIp.limitKey(http), limits.changePasswordIpMax(), Duration.ofHours(1));
-        return auth.changePassword(userId, r.currentPassword(), r.newPassword(), callerClient(http));
+        return auth.changePassword(userId, r.currentPassword(), r.newPassword(), callerClient(http), contexts.of(http));
     }
 
     /** Istegi yapan access token'in istemci turu (`cl`); yoksa web. */

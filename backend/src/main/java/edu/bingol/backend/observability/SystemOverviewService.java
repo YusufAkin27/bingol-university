@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -46,7 +45,11 @@ public class SystemOverviewService {
             new JobSpec("push-purge", "PushOutboxWorker.purgeOld", JobKind.NIGHTLY),
             new JobSpec("device-cleanup", "DeviceCleanupJob.scheduled", JobKind.NIGHTLY),
             new JobSpec("notification-retention", "NotificationRetentionJob.scheduled", JobKind.NIGHTLY),
-            new JobSpec("analytics-retention", "EventRetention.purge", JobKind.NIGHTLY),
+            // FIX-P09 (A08#3): gece saklama/temizlik (bildirim, mail, denetim, cokme, analitik toplulastirma + ham olay) eskiden
+            // izlenmiyordu; Redis kilidi alinamazsa DbMaintenanceJob.nightly artik hata firlatir ve burada WARN/CRIT gorunur.
+            // EventRetention (yinelenen analitik silme) kaldirildi; analitik saklama dbmaint'e aittir.
+            new JobSpec("dbmaint-nightly", "DbMaintenanceJob.nightly", JobKind.NIGHTLY),
+            new JobSpec("dbmaint-code-scrub", "DbMaintenanceJob.hourlyMailCodeScrub", JobKind.NIGHTLY),
             new JobSpec("storage-alert", "StorageAlertJob.scheduled", JobKind.SLOW));
 
     /** Tum gosterge anahtarlari (metrik kaydi icin sabit liste). */
@@ -55,7 +58,8 @@ public class SystemOverviewService {
                 "mail.dead", "mail.pending", "mail.oldestPendingAge", "mail.dailyQuota",
                 "push.dead", "push.pending", "push.oldestPendingAge",
                 "campaign.overdue", "campaign.counts",
-                "websocket.sessions", "db", "redis", "fcm", "disk.storage", "storage", "backup.age"));
+                "websocket.sessions", "db", "redis", "fcm", "disk.storage", "storage", "backup.age", "backup.remote",
+                "audit.write"));
         for (JobSpec j : JOB_SPECS) {
             keys.add("jobs." + j.key());
         }
@@ -73,7 +77,9 @@ public class SystemOverviewService {
     private record Cached(long at, Overview overview) {
     }
 
-    private static final long CACHE_MS = 15_000;
+    /** Panel onbellek omru (ms); testte 0 (durum dosyasi/ayar degisince hemen yansisin). */
+    @org.springframework.beans.factory.annotation.Value("${app.observability.overview-cache-ms:15000}")
+    private long cacheMs = 15_000;
 
     private final ObservabilityProperties props;
     private final QueueQueries queues;
@@ -87,7 +93,7 @@ public class SystemOverviewService {
     private final I18n i18n;
     private final ObjectProvider<edu.bingol.backend.mail.MailDailyQuota> mailQuota;
     private final StorageUsageService storageUsage;
-    private final AtomicReference<Cached> cache = new AtomicReference<>();
+    private final java.util.Map<Lang, Cached> cache = new java.util.concurrent.ConcurrentHashMap<>();
 
     public SystemOverviewService(ObservabilityProperties props, QueueQueries queues, JdbcTemplate jdbc,
                                  StringRedisTemplate redis, ObjectProvider<SimpUserRegistry> users,
@@ -111,11 +117,21 @@ public class SystemOverviewService {
 
     /** Metrik/uyari icin kisa omurlu onbellek (Turkce mesajlarla). */
     public Overview cached() {
+        return cached(Lang.DEFAULT.locale());
+    }
+
+    /**
+     * Panel istegi icin 15 sn onbellek (dil basina; yalniz tr/en/ar anahtarlari). FIX-P09 (A08#6): uc eskiden her
+     * cagrida {@link #evaluate} ile mail/push/kampanya tablolarinda {@code GROUP BY status}, DB/Redis/disk sorgularini
+     * yeniden calistiriyordu; sayfa yenilemeleri ve iki sekme bu yuku katliyordu.
+     */
+    public Overview cached(Locale locale) {
+        Lang lang = Lang.of(locale);
         long now = System.currentTimeMillis();
-        Cached c = cache.get();
-        if (c == null || now - c.at() > CACHE_MS) {
-            c = new Cached(now, evaluate(Lang.DEFAULT.locale()));
-            cache.set(c);
+        Cached c = cache.get(lang);
+        if (c == null || now - c.at() >= cacheMs) {
+            c = new Cached(now, evaluate(lang.locale()));
+            cache.put(lang, c);
         }
         return c.overview();
     }
@@ -133,6 +149,8 @@ public class SystemOverviewService {
         out.put("disk.storage", disk(locale));
         out.put("storage", storage(locale));
         out.put("backup.age", backup(now, locale));
+        out.put("backup.remote", backupRemote(now, locale));
+        out.put("audit.write", auditWrite(now, locale));
         for (JobSpec j : JOB_SPECS) {
             out.put("jobs." + j.key(), job(j, now, locale));
         }
@@ -317,6 +335,66 @@ public class SystemOverviewService {
         IndicatorStatus st = backupStatus(hours, props);
         return new Indicator(st, rounded, th,
                 st == IndicatorStatus.OK ? null : msg(l, "obs.msg.BACKUP_OLD", String.valueOf(rounded)));
+    }
+
+    /** Denetim yazma hatasi bu sureden yeniden degilse gosterge OK'a doner (ms). */
+    static final long AUDIT_FAIL_WINDOW_MS = 3_600_000L;
+
+    /**
+     * Yonetici denetim kaydi yazimi fail-open (islem zaten yapilmistir); hata yalniz log'lanirdi. FIX-P09 (A08#11):
+     * son saatte yazma hatasi varsa WARN (yuk altinda yazma islemlerinin denetimsiz kaldiginin gostergesi).
+     */
+    private Indicator auditWrite(Instant now, Locale l) {
+        long failed = edu.bingol.backend.admin.AuditRecorder.failedWrites();
+        long last = edu.bingol.backend.admin.AuditRecorder.lastFailedAtMs();
+        IndicatorStatus st = auditWriteStatus(failed, last, now.toEpochMilli());
+        if (st == IndicatorStatus.OK) {
+            return new Indicator(IndicatorStatus.OK, null, null, null);
+        }
+        long minutes = Math.max(0, (now.toEpochMilli() - last) / 60_000L);
+        return new Indicator(st, Math.max(0, (now.toEpochMilli() - last) / 1000L), null,
+                msg(l, "obs.msg.AUDIT_WRITE_FAILED", failed, minutes));
+    }
+
+    static IndicatorStatus auditWriteStatus(long failed, long lastFailedAtMs, long nowMs) {
+        return failed > 0 && nowMs - lastFailedAtMs < AUDIT_FAIL_WINDOW_MS ? IndicatorStatus.WARN : IndicatorStatus.OK;
+    }
+
+    /** Uzak (Drive) kopya gunde 1 yuklenir (+ 09/15/21 yeniden deneme): 30 saat WARN, 36 saat CRIT (Prometheus BackupRemoteStale ile uyumlu). */
+    static final int REMOTE_BACKUP_WARN_HOURS = 30;
+    static final int REMOTE_BACKUP_CRIT_HOURS = 36;
+
+    /**
+     * Uzak yedegin tazeligi (B8): webhook/Prometheus yoksa bile panelde gorunur ve CRIT'e gecince {@code SystemAlertService}
+     * yoneticilere uygulama ici bildirim yollar. Uzak kopya yapilandirilmamissa UNKNOWN (uyari uretmez).
+     */
+    private Indicator backupRemote(Instant now, Locale l) {
+        Map<String, Object> th = Map.of("warn", REMOTE_BACKUP_WARN_HOURS, "crit", REMOTE_BACKUP_CRIT_HOURS);
+        BackupReport.Remote r;
+        try {
+            r = backup.report().remote();
+        } catch (RuntimeException e) {
+            return Indicator.unknown(msg(l, "obs.msg.BACKUP_UNKNOWN"));
+        }
+        if (r == null || !r.configured()) {
+            return new Indicator(IndicatorStatus.UNKNOWN, null, th, msg(l, "obs.msg.BACKUP_REMOTE_OFF"));
+        }
+        return backupRemoteIndicator(r, now, th, l);
+    }
+
+    Indicator backupRemoteIndicator(BackupReport.Remote r, Instant now, Map<String, Object> th, Locale l) {
+        if (r.lastSuccessAt() == null) {
+            // hic basarili yukleme yok: hata kaydi varsa CRIT (ilk kurulum hatasi yillarca sessiz kalmasin), yoksa henuz calismadi
+            return r.lastError() != null
+                    ? new Indicator(IndicatorStatus.CRIT, null, th, msg(l, "obs.msg.BACKUP_REMOTE_NEVER", r.lastError()))
+                    : new Indicator(IndicatorStatus.UNKNOWN, null, th, msg(l, "obs.msg.BACKUP_REMOTE_NEVER", "-"));
+        }
+        double hours = Math.max(0, Duration.between(r.lastSuccessAt(), now).toSeconds()) / 3600.0;
+        double rounded = Math.round(hours * 10) / 10.0;
+        IndicatorStatus st = hours > REMOTE_BACKUP_CRIT_HOURS ? IndicatorStatus.CRIT
+                : hours > REMOTE_BACKUP_WARN_HOURS ? IndicatorStatus.WARN : IndicatorStatus.OK;
+        return new Indicator(st, rounded, th,
+                st == IndicatorStatus.OK ? null : msg(l, "obs.msg.BACKUP_REMOTE_OLD", String.valueOf(rounded)));
     }
 
     /** Saatlik yedek: > warn saat WARN, > crit saat CRIT. */

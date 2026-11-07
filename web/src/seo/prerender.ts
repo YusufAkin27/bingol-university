@@ -10,7 +10,8 @@ import { LANGS, dirOf, type Lang } from '../i18n/lang';
 import { buildNewFaq } from '../pages/site/components/newFaq';
 import { breadcrumbLd, faqLd, mobileAppLd, organizationLd, websiteLd } from '../pages/site/components/jsonLd';
 import { buildHeadModel, normalizeOrigin, pageUrl, type HeadModel } from './headModel';
-import { ROUTE_META, resolveMeta, type RouteMeta } from './routeMeta';
+import { buildRobots, buildSitemap, contentHash, type LastmodResolver } from './crawl';
+import { ROUTE_META, brandTitle, localizedLangs, resolveMeta, type RouteMeta } from './routeMeta';
 
 export const SEO_START = '<!--seo:start-->';
 export const SEO_END = '<!--seo:end-->';
@@ -47,9 +48,16 @@ export function routeJsonLd(meta: RouteMeta, lang: Lang, origin: string): unknow
   const resolved = resolveMeta(meta, lang);
   const blocks: unknown[] = [];
   const stores = { android: null, ios: null };
-  if (meta.id === 'home') blocks.push(websiteLd(undefined, origin), organizationLd(undefined, origin), mobileAppLd(undefined, stores, origin));
+  const appDesc = t('seo.d.home');
+  if (meta.id === 'home') {
+    blocks.push(
+      organizationLd(undefined, origin),
+      websiteLd(origin, lang, pageUrl(origin, lang, '/')),
+      mobileAppLd(undefined, stores, origin, appDesc),
+    );
+  }
   if (meta.id === 'about' || meta.id === 'contact') blocks.push(organizationLd(undefined, origin));
-  if (meta.id === 'download') blocks.push(mobileAppLd(undefined, stores, origin));
+  if (meta.id === 'download') blocks.push(mobileAppLd(undefined, stores, origin, appDesc));
   if (meta.faq) {
     blocks.push(faqLd(buildNewFaq((k: TranslationKey) => t(k))));
   }
@@ -180,6 +188,7 @@ export function applyTemplate(
     title: resolved.fullTitle,
     description: resolved.description,
     appName: resolved.appName,
+    langs: localizedLangs(meta),
   });
   const lines = [serializeHead(model, routeJsonLd(meta, lang, origin)), ...(hints ? renderHints(hints, meta, lang) : [])];
   const head = `${SEO_START}\n    ${lines.join('\n    ')}\n    ${SEO_END}`;
@@ -205,7 +214,7 @@ export function render404(template: string): string {
   if (start < 0 || end < start) throw new Error(`Şablonda ${SEO_START} ... ${SEO_END} işaretleri yok`);
   if (!ROOT_DIV.test(template)) throw new Error(`Şablonda <div id="root"> yok`);
   const t = tr('tr');
-  const title = `${t('site.notFound.title')} · ${t('common.appName')}`;
+  const title = brandTitle(t('site.notFound.title'), t('common.appName'));
   const head = [
     `<title>${esc(title)}</title>`,
     `<meta name="robots" content="noindex, nofollow" data-pre="1" />`,
@@ -227,24 +236,8 @@ export function pageFile(lang: Lang, path: string): string {
   return `${lang}${path === '/' ? '' : path}/index.html`;
 }
 
-export function buildSitemap(origin: string, lastmod: string): string {
-  const urls = LANGS.flatMap((l) => ROUTE_META.map((r) => ({ lang: l.code, r })));
-  const entries = urls.map(({ lang, r }) => {
-    const alt = [
-      ...LANGS.map(
-        (l) => `    <xhtml:link rel="alternate" hreflang="${l.code}" href="${esc(pageUrl(origin, l.code, r.path))}" />`,
-      ),
-      `    <xhtml:link rel="alternate" hreflang="x-default" href="${esc(pageUrl(origin, 'tr', r.path))}" />`,
-    ].join('\n');
-    return `  <url>\n    <loc>${esc(pageUrl(origin, lang, r.path))}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>${r.changefreq}</changefreq>\n    <priority>${r.priority.toFixed(1)}</priority>\n${alt}\n  </url>`;
-  });
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${entries.join('\n')}\n</urlset>\n`;
-}
-
-/** `/admin` yolu yalnız varsayılan adıyla yazılır: gizli yönetim yolu (VITE_ADMIN_PATH) robots.txt'te ASLA açıklanmaz. */
-export function buildRobots(origin: string): string {
-  return `User-agent: *\nDisallow: /api/\nDisallow: /files/\nDisallow: /admin\nAllow: /\n\nSitemap: ${origin}/sitemap.xml\n`;
-}
+// robots.txt ve sitemap.xml üretimi crawl.ts'te (tek kaynak); burada yalnız geriye dönük yeniden dışa aktarım
+export { buildRobots, buildSitemap } from './crawl';
 
 /** public/.well-known/security.txt şablonundaki `{{ORIGIN}}` yer tutucusunu doldurur. */
 export function renderSecurityTxt(template: string, origin: string): string {
@@ -255,6 +248,25 @@ export interface PrerenderResult {
   /** dist'e göre göreli yol → içerik (kök `index.html` dahil). */
   files: Map<string, string>;
   pageCount: number;
+  /** `<rotaKimliği>:<dil>` → sayfa içeriği imzası (başlık, açıklama, JSON-LD, noscript metni); lastmod değişim algısı için. */
+  signatures: Map<string, string>;
+}
+
+/**
+ * Bir sayfanın İÇERİK imzası: şablondaki derleme çıktıları (varlık özetleri, modulepreload) hariç; yalnız başlık/açıklama/
+ * JSON-LD/noscript metni. İmza değişmediyse sayfanın lastmod değeri değişmez (scripts/prerender.mjs, seo-lastmod.json).
+ */
+export function routeSignature(meta: RouteMeta, lang: Lang, origin: string): string {
+  const resolved = resolveMeta(meta, lang);
+  const model = buildHeadModel({
+    lang,
+    origin,
+    path: meta.path,
+    title: resolved.fullTitle,
+    description: resolved.description,
+    appName: resolved.appName,
+  });
+  return contentHash(JSON.stringify([model, routeJsonLd(meta, lang, origin), renderNoscript(meta, lang)]));
 }
 
 export function prerender(opts: {
@@ -262,6 +274,8 @@ export function prerender(opts: {
   origin?: string;
   buildDate: string;
   hints?: AssetHints;
+  /** Sayfa başına sitemap lastmod (yoksa buildDate). */
+  lastmod?: LastmodResolver;
 }): PrerenderResult {
   const origin = normalizeOrigin(opts.origin);
   const files = new Map<string, string>();
@@ -274,7 +288,11 @@ export function prerender(opts: {
   const home = ROUTE_META.find((r) => r.home)!;
   files.set('index.html', applyTemplate(opts.template, home, 'tr', origin, opts.hints));
   files.set('404.html', render404(opts.template));
-  files.set('sitemap.xml', buildSitemap(origin, opts.buildDate));
+  files.set('sitemap.xml', buildSitemap(origin, opts.lastmod ?? opts.buildDate));
   files.set('robots.txt', buildRobots(origin));
-  return { files, pageCount: LANGS.length * ROUTE_META.length };
+  const signatures = new Map<string, string>();
+  for (const l of LANGS) {
+    for (const meta of ROUTE_META) signatures.set(`${meta.id}:${l.code}`, routeSignature(meta, l.code, origin));
+  }
+  return { files, pageCount: LANGS.length * ROUTE_META.length, signatures };
 }

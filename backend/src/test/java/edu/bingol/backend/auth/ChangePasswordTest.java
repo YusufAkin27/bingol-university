@@ -178,15 +178,34 @@ class ChangePasswordTest {
     void weakNewPasswordFailsValidation() {
         var v = Validation.buildDefaultValidatorFactory().getValidator();
 
-        // En az uzunluk/guc artik PasswordPolicy'de (serviste, PASSWORD_TOO_WEAK); DTO yalniz ust siniri (72) denetler
+        // En az uzunluk (6) serviste, PASSWORD_TOO_SHORT; DTO yalniz ust siniri (72) denetler
         assertTrue(v.validate(new ChangePasswordRequest("Eski12345", "kisa")).isEmpty());
         ApiException weak = assertThrows(ApiException.class, () -> auth.changePassword(7L, "Eski12345", "kisa", "mobile"));
-        assertEquals("PASSWORD_TOO_WEAK", weak.code());
+        assertEquals("PASSWORD_TOO_SHORT", weak.code());
         assertEquals(400, weak.status().value());
         verify(users, never()).save(any());
         assertFalse(v.validate(new ChangePasswordRequest("Eski12345", "x".repeat(73))).isEmpty());
         assertFalse(v.validate(new ChangePasswordRequest("", "Yeni-Sifre-912")).isEmpty());
         assertTrue(v.validate(new ChangePasswordRequest("Eski12345", "Yeni-Sifre-912")).isEmpty());
+    }
+
+    @Test
+    void normalUserMayPickAnySixCharacterPassword() {
+        TokenResponse r = auth.changePassword(7L, "Eski12345", "123456", "mobile");
+
+        assertEquals("rt-new", r.refreshToken());
+    }
+
+    @Test
+    void administratorAccountKeepsTheStrictPolicyOnChange() {
+        user.setRole(Role.ADMIN);
+
+        ApiException weak = assertThrows(ApiException.class, () -> auth.changePassword(7L, "Eski12345", "123456", "mobile"));
+        ApiException shortish = assertThrows(ApiException.class, () -> auth.changePassword(7L, "Eski12345", "Kx7-mQ2vLp9", "mobile"));
+
+        assertEquals("PASSWORD_TOO_WEAK", weak.code());
+        assertEquals("12", shortish.args()[0]);
+        verify(users, never()).save(any());
     }
 
     @Test

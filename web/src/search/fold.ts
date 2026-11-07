@@ -110,6 +110,40 @@ export function editDistance(a: string, b: string, max: number): number {
   return r <= max ? r : max + 1;
 }
 
+/** Türkçe ekler (sadeleşmiş biçim). Yalnız SORGU sözcüğünden gövde türetmek içindir. */
+const SUFFIXES = [
+  'larimiz', 'lerimiz', 'lardan', 'lerden', 'larin', 'lerin', 'larda', 'lerde', 'larla', 'lerle', 'lari', 'leri',
+  'lara', 'lere', 'lar', 'ler', 'nin', 'nun', 'dan', 'den', 'tan', 'ten', 'da', 'de', 'ta', 'te', 'in', 'un',
+  'la', 'le', 'ya', 'ye', 'si', 'su', 'yi', 'yu', 'i', 'u', 'a', 'e',
+].sort((a, b) => b.length - a.length);
+
+/**
+ * Sorgu sözcüğünün olası gövdeleri ("mesajlarından" → mesajlarin, mesajlar, mesaj). Kendisi dahil değildir.
+ * En fazla 3 ek soyulur; 3 harften kısa gövdeler ve tek harfli ekten sonra 4 harften kısa gövdeler atılır.
+ * Gövdeler yalnız eşleşmeyi genişletir; yanlış bir gövde sonuç kirletmez (VE kuralı + yalnız önek/yazım hatası).
+ */
+export function stems(token: string): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>([token]);
+  let frontier = [token];
+  for (let depth = 0; depth < 3 && frontier.length > 0; depth++) {
+    const next: string[] = [];
+    for (const w of frontier) {
+      for (const suf of SUFFIXES) {
+        if (!w.endsWith(suf)) continue;
+        const stem = w.slice(0, w.length - suf.length);
+        if (stem.length < (suf.length === 1 ? 4 : 3) || seen.has(stem)) continue;
+        seen.add(stem);
+        out.push(stem);
+        next.push(stem);
+      }
+    }
+    frontier = next;
+  }
+  // uzun gövde (özgün sözcüğe en yakın) önce; en çok 6
+  return out.sort((a, b) => b.length - a.length).slice(0, 6);
+}
+
 /** Sözcük uzunluğuna göre yazım hatası payı: ≤3 harf 0, 4-7 harf 1, 8+ harf 2. */
 export function tolerance(len: number): number {
   if (len <= 3) return 0;

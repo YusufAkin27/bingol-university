@@ -468,25 +468,50 @@ public class OfficialTimetableService {
         if (t == null || dept == null || dept.isBlank()) {
             return new OfficialView(t, List.of(), List.of(), dept != null && !dept.isBlank());
         }
+        List<EntryView> items = query(t, dept, gr, unit);
+        Set<String> units = new TreeSet<>();
+        items.forEach(x -> units.add(x.unit()));
+        return new OfficialView(t, items, List.copyOf(units), true);
+    }
+
+    /** Yayindaki satirlar: bolum adi AudienceKey ile eslenir; grade/unit bos degilse suzer. */
+    private List<EntryView> query(String term, String dept, String grade, String unit) {
         StringBuilder sql = new StringBuilder(ENTRY_SELECT + "WHERE published = TRUE AND term = ? AND "
                 + AudienceKey.sql("department") + " = ? ");
-        List<Object> args = new ArrayList<>(List.of(t, AudienceKey.of(dept)));
-        if (gr != null && !gr.isBlank()) {
+        List<Object> args = new ArrayList<>(List.of(term, AudienceKey.of(dept)));
+        if (grade != null && !grade.isBlank()) {
             sql.append("AND grade = ? ");
-            args.add(gr);
+            args.add(grade);
         }
         if (unit != null && !unit.isBlank()) {
             sql.append("AND unit = ? ");
             args.add(unit.strip());
         }
         sql.append("ORDER BY unit, grade, day_of_week, start_time, id LIMIT ").append(USER_LIMIT);
-        List<EntryView> items = jdbc.query(sql.toString(), ENTRY, args.toArray());
-        Set<String> units = new TreeSet<>();
-        items.forEach(x -> units.add(x.unit()));
-        return new OfficialView(t, items, List.copyOf(units), true);
+        return jdbc.query(sql.toString(), ENTRY, args.toArray());
     }
 
-    private String currentTerm() {
+    /**
+     * Kisisel programa tohumlama icin profilin (bolum + sinif) resmi programi. Sinif profilde yoksa BOS doner:
+     * tum siniflari kopyalamak ogrenciye yanlis program verir. Donem: yayindaki en yeni donem.
+     */
+    OfficialMatch matchFor(Long uid) {
+        String t = currentTerm();
+        AcademicAudience.Who me = audience.of(uid);
+        if (t == null || !me.complete() || me.grade() == null || me.grade().isBlank()) {
+            return new OfficialMatch(t, List.of());
+        }
+        return new OfficialMatch(t, query(t, me.department(), me.grade().strip().toUpperCase(Locale.ROOT), null));
+    }
+
+    /** Profile uyan resmi satirlar (tum birimlerden). */
+    record OfficialMatch(String term, List<EntryView> items) {
+        List<String> units() {
+            return items.stream().map(EntryView::unit).distinct().sorted().toList();
+        }
+    }
+
+    String currentTerm() {
         List<String> r = jdbc.query("SELECT term FROM official_timetable_entry WHERE published = TRUE ORDER BY id DESC LIMIT 1",
                 (rs, i) -> rs.getString(1));
         return r.isEmpty() ? null : r.get(0);

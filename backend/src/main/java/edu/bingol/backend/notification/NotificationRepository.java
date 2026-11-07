@@ -31,12 +31,13 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
             SELECT n FROM Notification n WHERE n.userId = :uid AND (:cursor IS NULL OR n.id < :cursor)
               AND n.type IN :types AND n.type <> edu.bingol.backend.notification.NotificationType.MESSAGE
               AND (:unreadOnly = FALSE OR n.readAt IS NULL)
-              AND :category = CASE
+              AND (CASE
                 WHEN n.subtype = 'POLL' OR n.data LIKE '%"pollId"%' OR (replace(n.data, ' ', '') LIKE '%"target":"POLL%' OR replace(n.data, ' ', '') LIKE '%"targetType":"POLL%') THEN 'POLL'
                 WHEN n.subtype IN ('EXAM_REMINDER', 'ACADEMIC_ANNOUNCEMENT')
                   OR n.data LIKE '%"examId"%' OR (replace(n.data, ' ', '') LIKE '%"target":"ACADEMIC%' OR replace(n.data, ' ', '') LIKE '%"targetType":"ACADEMIC%')
                   OR (replace(n.data, ' ', '') LIKE '%"target":"EXAM"%' OR replace(n.data, ' ', '') LIKE '%"targetType":"EXAM"%') OR (replace(n.data, ' ', '') LIKE '%"target":"TIMETABLE"%' OR replace(n.data, ' ', '') LIKE '%"targetType":"TIMETABLE"%')
                   OR (replace(n.data, ' ', '') LIKE '%"target":"ANNOUNCEMENT_DEPT"%' OR replace(n.data, ' ', '') LIKE '%"targetType":"ANNOUNCEMENT_DEPT"%') THEN 'ACADEMIC'
+                WHEN n.type = edu.bingol.backend.notification.NotificationType.COMMUNITY AND n.subtype = 'COMMUNITY_JOIN' THEN 'SOCIAL'
                 WHEN n.type = edu.bingol.backend.notification.NotificationType.EVENT THEN 'EVENT'
                 WHEN n.type IN (edu.bingol.backend.notification.NotificationType.POST_LIKE,
                   edu.bingol.backend.notification.NotificationType.POST_COMMENT,
@@ -44,14 +45,62 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
                   edu.bingol.backend.notification.NotificationType.POST_MENTION,
                   edu.bingol.backend.notification.NotificationType.USER_FOLLOW,
                   edu.bingol.backend.notification.NotificationType.FOLLOW_REQUEST,
-                  edu.bingol.backend.notification.NotificationType.FOLLOW_ACCEPTED) THEN 'SOCIAL'
+                  edu.bingol.backend.notification.NotificationType.FOLLOW_ACCEPTED,
+                  edu.bingol.backend.notification.NotificationType.FORUM) THEN 'SOCIAL'
                 WHEN n.type = edu.bingol.backend.notification.NotificationType.SYSTEM THEN 'SYSTEM'
-                ELSE 'ANNOUNCEMENT' END
+                ELSE 'ANNOUNCEMENT' END) IN :categories
               ORDER BY n.id DESC""")
     List<Notification> pageCategory(@Param("uid") Long userId, @Param("cursor") Long cursor,
                                     @Param("types") Collection<NotificationType> types,
-                                    @Param("unreadOnly") boolean unreadOnly, @Param("category") String category,
+                                    @Param("unreadOnly") boolean unreadOnly, @Param("categories") Collection<String> categories,
                                     Pageable pageable);
+
+    /**
+     * SOCIAL kapsam kosulu (Hareketler/kalp) TEK yerde: sosyal turler + kulup uyelik basvurusu alt turu. Bunun disindaki
+     * (MESSAGE haric) her sey INFORMATION (zil). NotificationPresentation.category ile birebir tutulur (test denetler).
+     */
+    String SOCIAL_COND = "(n.type IN (edu.bingol.backend.notification.NotificationType.POST_LIKE, "
+            + "edu.bingol.backend.notification.NotificationType.POST_COMMENT, "
+            + "edu.bingol.backend.notification.NotificationType.COMMENT_REPLY, "
+            + "edu.bingol.backend.notification.NotificationType.POST_MENTION, "
+            + "edu.bingol.backend.notification.NotificationType.USER_FOLLOW, "
+            + "edu.bingol.backend.notification.NotificationType.FOLLOW_REQUEST, "
+            + "edu.bingol.backend.notification.NotificationType.FOLLOW_ACCEPTED, "
+            + "edu.bingol.backend.notification.NotificationType.FORUM) "
+            + "OR (n.type = edu.bingol.backend.notification.NotificationType.COMMUNITY AND n.subtype = 'COMMUNITY_JOIN'))";
+
+    /** Kapsama gore liste: social=true Hareketler (kalp), false Bildirimler (zil: sosyal/sohbet icermez). */
+    @Query("SELECT n FROM Notification n WHERE n.userId = :uid AND (:cursor IS NULL OR n.id < :cursor) "
+            + "AND n.type IN :types AND n.type <> edu.bingol.backend.notification.NotificationType.MESSAGE "
+            + "AND (:unreadOnly = FALSE OR n.readAt IS NULL) "
+            + "AND ((:social = TRUE AND " + SOCIAL_COND + ") OR (:social = FALSE AND NOT " + SOCIAL_COND + ")) "
+            + "AND (:kind = 'ALL' OR :kind = CASE "
+            + "WHEN n.type = edu.bingol.backend.notification.NotificationType.POST_LIKE "
+            + "OR n.subtype IN ('FORUM_TOPIC_LIKE','FORUM_COMMENT_LIKE') THEN 'LIKES' "
+            + "WHEN n.type IN (edu.bingol.backend.notification.NotificationType.POST_COMMENT, "
+            + "edu.bingol.backend.notification.NotificationType.COMMENT_REPLY) "
+            + "OR n.subtype IN ('FORUM_TOPIC_COMMENT','FORUM_COMMENT_REPLY','FORUM_FOLLOWED_TOPIC_COMMENT') THEN 'COMMENTS' "
+            + "WHEN n.type IN (edu.bingol.backend.notification.NotificationType.USER_FOLLOW, "
+            + "edu.bingol.backend.notification.NotificationType.FOLLOW_REQUEST, "
+            + "edu.bingol.backend.notification.NotificationType.FOLLOW_ACCEPTED) OR n.subtype = 'COMMUNITY_JOIN' THEN 'FOLLOWS' "
+            + "ELSE 'OTHER' END) "
+            + "ORDER BY n.id DESC")
+    List<Notification> pageScope(@Param("uid") Long userId, @Param("cursor") Long cursor,
+                                 @Param("types") Collection<NotificationType> types,
+                                 @Param("unreadOnly") boolean unreadOnly, @Param("social") boolean social,
+                                 @Param("kind") String kind, Pageable pageable);
+
+    @Query("SELECT COUNT(n) FROM Notification n WHERE n.userId = :uid AND n.readAt IS NULL "
+            + "AND n.type <> edu.bingol.backend.notification.NotificationType.MESSAGE "
+            + "AND ((:social = TRUE AND " + SOCIAL_COND + ") OR (:social = FALSE AND NOT " + SOCIAL_COND + "))")
+    long countUnreadScope(@Param("uid") Long userId, @Param("social") boolean social);
+
+    @Transactional
+    @Modifying
+    @Query("UPDATE Notification n SET n.readAt = :now WHERE n.userId = :uid AND n.readAt IS NULL "
+            + "AND n.type <> edu.bingol.backend.notification.NotificationType.MESSAGE "
+            + "AND ((:social = TRUE AND " + SOCIAL_COND + ") OR (:social = FALSE AND NOT " + SOCIAL_COND + "))")
+    int markAllReadScopeAt(@Param("uid") Long userId, @Param("social") boolean social, @Param("now") Instant now);
 
     long countByUserIdAndReadAtIsNull(Long userId);
 
@@ -110,6 +159,13 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
             + "AND n.type = :type AND n.collapseKey = :key")
     int markReadByTypeAndCollapseKey(@Param("uid") Long userId, @Param("type") NotificationType type,
                                      @Param("key") String collapseKey, @Param("now") Instant now);
+
+    /** Tur + birlesme anahtari ile eslesen TUM satirlari (okunmus/okunmamis) siler: geri cekilen takip istegi. */
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM Notification n WHERE n.userId = :uid AND n.type = :type AND n.collapseKey = :key")
+    int deleteByTypeAndCollapseKey(@Param("uid") Long userId, @Param("type") NotificationType type,
+                                   @Param("key") String collapseKey);
 
     /**
      * Tur + anahtar oneki (LIKE; {@code pattern} onceden kacirilmis, kacis karakteri {@code \}) ile eslesen okunmamis

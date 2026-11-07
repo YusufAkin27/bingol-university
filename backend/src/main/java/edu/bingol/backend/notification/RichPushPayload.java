@@ -12,6 +12,7 @@ public final class RichPushPayload {
         return "1".equals(message.data().get("richNotification")) || RichChatPayload.isRich(message);
     }
 
+    /** Sunucunun belirledigi gorunum turu (sozlesme: docs/changes/push.md); istemciden gelen `style` yok sayilir. */
     public static String style(Map<String, String> data) {
         String type = data.getOrDefault("type", "SYSTEM");
         String subtype = data.getOrDefault("subtype", "");
@@ -19,21 +20,31 @@ public final class RichPushPayload {
             if (data.containsKey("imageUrl")) return "CHAT_MEDIA";
             return "GROUP".equals(data.get("conversationType")) ? "CHAT_GROUP" : "CHAT_DIRECT";
         }
-        if ("EVENT".equals(type)) return switch (subtype) {
-            case "EVENT_REMINDER" -> "EVENT_REMINDER";
-            case "EVENT_ADMISSION" -> "EVENT_ADMISSION";
-            default -> "EVENT_UPDATE";
-        };
+        if (data.containsKey("newsId")) return "ANNOUNCEMENT"; // kaynak sitenin haber/duyuru/etkinligi: etkinlik kaydi degil
+        if ("EVENT".equals(type)) {
+            if ("CANCELLED".equals(data.get("eventChange"))) return "EVENT_CANCELLED";
+            return switch (subtype) {
+                case "EVENT_REMINDER" -> "EVENT_REMINDER";
+                case "EVENT_ADMISSION" -> "EVENT_ADMISSION";
+                default -> "EVENT_UPDATE";
+            };
+        }
         if (data.containsKey("pollId") || "POLL".equals(subtype)) return "POLL";
         if ("EXAM_REMINDER".equals(subtype) || data.containsKey("examId")) return "EXAM";
         if ("ACADEMIC_ANNOUNCEMENT".equals(subtype)) return "ACADEMIC";
+        if ("MEAL_MENU".equals(subtype)) return "MEAL";
         if ("FOLLOW_REQUEST".equals(type)) return "FOLLOW_REQUEST";
         if ("FOLLOW_ACCEPTED".equals(type)) return "FOLLOW_ACCEPTED";
         if ("USER_FOLLOW".equals(type)) return "FOLLOW";
-        if (type.startsWith("POST_") || "COMMENT_REPLY".equals(type)) return "SOCIAL";
+        if ("POST_LIKE".equals(type)) return "LIKE";
+        if (type.startsWith("POST_") || "COMMENT_REPLY".equals(type) || "FORUM".equals(type)) return "SOCIAL";
         if (data.containsKey("ticketId") || data.containsKey("feedbackId")) return "SUPPORT";
         if ("MEAL".equals(data.get("target")) || "MEAL".equals(data.get("targetType"))) return "MEAL";
-        return "SYSTEM".equals(type) ? "SECURITY" : "ANNOUNCEMENT";
+        if ("SYSTEM".equals(type)) {
+            if (data.containsKey("securityKind")) return "SECURITY";
+            return "1".equals(data.get("moderation")) ? "MODERATION" : "SYSTEM";
+        }
+        return "ANNOUNCEMENT";
     }
 
     public static PushMessage normalizeMedia(PushMessage message, String base) {
@@ -48,6 +59,19 @@ public final class RichPushPayload {
 
     public static PushMessage enrich(PushMessage message, String base, String locale) {
         return enrich(message, base, locale, null);
+    }
+
+    /**
+     * Genel yayin (haber, herkese acik anket): alici bazli yuk yok. `recipientId` yerine `broadcast=1` konur; Android
+     * oturum acik herhangi bir hesapta cizer (icerik tum kullanicilara ayni ve herkese aciktir).
+     */
+    public static PushMessage enrichBroadcast(PushMessage message, String base, String locale) {
+        var seed = new LinkedHashMap<>(message.data());
+        seed.put("broadcast", "1");
+        PushMessage tagged = new PushMessage(message.title(), message.body(), Map.copyOf(seed), message.collapseKey(),
+                message.threadId(), message.channelId(), message.category(), message.badge(), message.highPriority(),
+                message.ttlSeconds());
+        return enrich(tagged, base, locale, null);
     }
 
     public static PushMessage enrich(PushMessage message, String base, String locale, Long recipientId) {

@@ -16,7 +16,6 @@ import { DELETE_SECTIONS } from './DeleteAccountPage';
 import { GUIDELINES_SECTIONS } from './CommunityGuidelinesPage';
 import { SECURITY_SECTIONS } from './SecurityPage';
 import { CHILD_SAFETY_EMAIL, CHILD_SAFETY_SECTIONS } from './ChildSafetyPage';
-import { BRAND_COLORS, BRAND_LOGOS, hexToRgb } from './BrandPage';
 import { CHANGELOG } from './ChangelogPage';
 import { HELP_CATEGORIES } from './HelpPage';
 import { parseKind } from './NewsListPage';
@@ -131,7 +130,6 @@ describe('çeviri tamlığı', () => {
       'pg.childsafety.mail',
       'pg.childsafety.rules',
       'pg.childsafety.terms',
-      ...BRAND_LOGOS.map((l) => l.name as string),
       ...CHANGELOG.flatMap((e) => [
         `pg.changelog.${e.id}.title`,
         `pg.changelog.${e.id}.date`,
@@ -174,7 +172,6 @@ describe('rota eşleşmesi ve sayfalar', () => {
     ['/help', 'Yardım merkezi'],
     ['/sitemap', 'Site haritası'],
     ['/changelog', 'Sürüm notları'],
-    ['/brand', 'Basın ve marka kiti'],
   ];
   it.each(cases)('%s tek bir h1 ile açılır', async (route, name) => {
     renderAt(route);
@@ -273,7 +270,7 @@ describe('çocuk güvenliği standartları (/child-safety)', () => {
     const mail = screen.getAllByRole('link').find((a) => a.getAttribute('href') === `mailto:${CHILD_SAFETY_EMAIL}`);
     expect(mail).toBeTruthy();
     expect(screen.getByRole('main').textContent).toContain(CHILD_SAFETY_EMAIL);
-    await waitFor(() => expect(document.title).toContain(h1));
+    await waitFor(() => expect(document.title.toLowerCase()).toContain(h1.toLowerCase()));
     expect(document.documentElement.dir).toBe(lang === 'ar' ? 'rtl' : 'ltr');
     expect(document.documentElement.lang).toBe(lang);
   });
@@ -337,53 +334,17 @@ describe('erişilebilirlik temel kontrolleri', () => {
     expect(hrefs.some((h) => h.startsWith('/admin'))).toBe(false);
   });
 
-  it('hamburger düğmesi menüyü açar ve aria-expanded günceller', async () => {
+  it('hamburger düğmesi çekmeceyi açar (aria-expanded); dil grubu, tema anahtarı var; Escape kapatır', async () => {
     renderAt('/help');
     const btn = await screen.findByRole('button', { name: 'Menüyü aç' });
     expect(btn).toHaveAttribute('aria-expanded', 'false');
     fireEvent.click(btn);
-    expect(screen.getByRole('button', { name: 'Menüyü kapat' })).toHaveAttribute('aria-expanded', 'true');
-  });
-
-  it('marka kitindeki her görselin alternatif metni vardır', async () => {
-    renderAt('/brand');
-    await screen.findByRole('heading', { level: 1, name: 'Basın ve marka kiti' });
-    const imgs = screen.getAllByRole('img');
-    expect(imgs.length).toBeGreaterThanOrEqual(BRAND_LOGOS.length);
-    for (const img of imgs) expect(img.getAttribute('alt')?.trim()).toBeTruthy();
-  });
-});
-
-describe('marka kiti', () => {
-  it('her logo için çalışan indirme bağlantıları (download özniteliği, PNG ve varsa SVG) sunar', async () => {
-    renderAt('/brand');
-    await screen.findByRole('heading', { level: 1, name: 'Basın ve marka kiti' });
-    const dl = screen.getAllByRole('link').filter((a) => a.hasAttribute('download'));
-    expect(dl.length).toBe(BRAND_LOGOS.length + BRAND_LOGOS.filter((l) => l.svgBytes).length);
-    for (const a of dl) {
-      expect(a.getAttribute('href')).toMatch(/^\/brand\/[a-z-]+\.(png|svg)$/);
-      expect(a.getAttribute('download')).toMatch(/^bu-kampus-/);
-    }
-  });
-  it(
-    'renk kartları hex, RGB ve kopyalama düğmesi içerir; koruma alanı ve yapılmayacaklar bölümleri vardır',
-    { timeout: 20000 },
-    async () => {
-      renderAt('/brand');
-      await screen.findByRole('heading', { level: 1, name: 'Basın ve marka kiti' });
-      for (const c of BRAND_COLORS) {
-        expect(screen.getByText(c.hex)).toBeInTheDocument();
-        expect(screen.getByLabelText(c.hex + ' kodunu kopyala')).toBeInTheDocument();
-      }
-      expect(screen.getByText('Koruma alanı', { selector: 'h2' })).toBeInTheDocument();
-      expect(screen.getByText('Yapmayın', { selector: 'h2' })).toBeInTheDocument();
-      expect(
-        await within(screen.getByRole('main')).findByRole('link', { name: 'info@bingol.edu.tr' }),
-      ).toHaveAttribute('href', 'mailto:info@bingol.edu.tr');
-    },
-  );
-  it('hexToRgb dönüştürür', () => {
-    expect(hexToRgb('#F73A2E')).toBe('247, 58, 46');
+    const dialog = await screen.findByRole('dialog', { name: 'Gezinme' });
+    expect(within(dialog).getByRole('button', { name: 'Menüyü kapat' })).toBeInTheDocument();
+    expect(within(dialog).getByRole('group', { name: 'Dil' })).toBeInTheDocument();
+    expect(within(dialog).getByRole('switch', { name: 'Koyu temayı kullan' })).toBeInTheDocument();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.queryByRole('dialog', { name: 'Gezinme' })).toBeNull();
   });
 });
 

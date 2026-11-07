@@ -17,7 +17,12 @@ public class PushQueueHealthIndicator implements HealthIndicator {
     static final long STALE_SECONDS = 15 * 60;
     private static final Status WARN = new Status("WARN");
 
+    /** Sayimlar 30 sn onbelleklenir: compose healthcheck her 15 sn'de cagirir. */
+    private static final long CACHE_MS = 30_000;
+
     private final PushOutboxService outbox;
+    private volatile long cachedAt;
+    private volatile Health cached;
     private final org.springframework.beans.factory.ObjectProvider<PushOutboxWorker> worker;
 
     public PushQueueHealthIndicator(PushOutboxService outbox,
@@ -28,6 +33,18 @@ public class PushQueueHealthIndicator implements HealthIndicator {
 
     @Override
     public Health health() {
+        long now = System.currentTimeMillis();
+        Health c = cached;
+        if (c != null && now - cachedAt < CACHE_MS) {
+            return c;
+        }
+        Health h = compute();
+        cached = h;
+        cachedAt = now;
+        return h;
+    }
+
+    private Health compute() {
         PushOutboxService.Stats s = outbox.stats();
         boolean stale = s.oldestPendingAgeSeconds() != null && s.oldestPendingAgeSeconds() > STALE_SECONDS && s.enabled();
         Health.Builder b = (s.dead() > 0 || stale) ? Health.status(WARN) : Health.up();

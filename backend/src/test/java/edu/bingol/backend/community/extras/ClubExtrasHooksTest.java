@@ -119,6 +119,49 @@ class ClubExtrasHooksTest {
     }
 
     @Test
+    void roomSyncRunsOnlyAfterTheMembershipTransactionCommits() {
+        // FIX-P05 (A05#8): oda DB hatasi uyelik islemini rollback-only yapmasin diye senkron commit SONRASINA ertelenir
+        when(rooms.find(RoomKind.COMMUNITY, 10L)).thenReturn(Optional.of(new RoomInfo(5L, RoomKind.COMMUNITY, 10L, false)));
+        org.springframework.transaction.support.TransactionSynchronizationManager.initSynchronization();
+        try {
+            hooks.onMemberActivated(10L, 7L);
+            hooks.onMemberGone(10L, 8L);
+            hooks.onRenamed(club(Community.Status.ACTIVE));
+
+            verify(rooms, never()).addMember(any(), anyLong(), anyLong());
+            verify(rooms, never()).removeMember(any(), anyLong(), anyLong());
+            verify(rooms, never()).renameRoom(any(), anyLong(), anyString());
+            verify(answers).deleteMember(10L, 8L); // KVKK: basvuru yanitlari uyelik islemiyle birlikte silinir
+
+            for (var s : org.springframework.transaction.support.TransactionSynchronizationManager.getSynchronizations()) {
+                s.afterCommit();
+            }
+            verify(rooms).addMember(RoomKind.COMMUNITY, 10L, 7L);
+            verify(rooms).removeMember(RoomKind.COMMUNITY, 10L, 8L);
+            verify(rooms).renameRoom(RoomKind.COMMUNITY, 10L, "Kulup");
+        } finally {
+            org.springframework.transaction.support.TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
+    void roomSyncFailureAfterCommitIsSwallowed() {
+        when(rooms.find(RoomKind.COMMUNITY, 10L)).thenReturn(Optional.of(new RoomInfo(5L, RoomKind.COMMUNITY, 10L, false)));
+        doThrow(new IllegalStateException("db")).when(rooms).addMember(any(), anyLong(), anyLong());
+        org.springframework.transaction.support.TransactionSynchronizationManager.initSynchronization();
+        try {
+            hooks.onMemberActivated(10L, 7L);
+            assertDoesNotThrow(() -> {
+                for (var s : org.springframework.transaction.support.TransactionSynchronizationManager.getSynchronizations()) {
+                    s.afterCommit();
+                }
+            });
+        } finally {
+            org.springframework.transaction.support.TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
     void renameUpdatesRoomTitle() {
         hooks.onRenamed(club(Community.Status.ACTIVE));
 

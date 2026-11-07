@@ -7,7 +7,7 @@ describe('Logo', () => {
     const { container } = renderWithProviders(<Logo variant="mark" height={40} />);
     const imgs = container.querySelectorAll('img');
     expect(imgs).toHaveLength(2); // auto: açık + koyu glif
-    expect(screen.getAllByAltText('BÜ Kampüs logosu')).toHaveLength(1);
+    expect(screen.getAllByAltText('BÜ Kampüs logosu')).toHaveLength(2); // iki tonun da alt metni var (koyu temada bağlantı adı boş kalmaz)
     expect(imgs[0]).toHaveAttribute('height', '40');
     expect(Number(imgs[0].getAttribute('width')) / 40).toBeGreaterThan(1.2); // geniş BÜ glifi
     expect(container.textContent).toBe('');
@@ -31,7 +31,7 @@ describe('Logo', () => {
 
   it('dil değişince alt metin çevrilir (ar)', () => {
     renderWithProviders(<Logo variant="mark" />, { lang: 'ar' });
-    expect(screen.getByAltText('شعار BÜ Kampüs')).toBeInTheDocument();
+    expect(screen.getAllByAltText('شعار BÜ Kampüs').length).toBeGreaterThan(0);
   });
 
   it('decorative: boş alt', () => {

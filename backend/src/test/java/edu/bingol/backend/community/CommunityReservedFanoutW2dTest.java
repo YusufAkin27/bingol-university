@@ -1,5 +1,6 @@
 package edu.bingol.backend.community;
 
+import edu.bingol.backend.notification.BulkSent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -111,8 +112,9 @@ class CommunityReservedFanoutW2dTest {
 
         svc.delete(user, 10L);
 
-        verify(notifications, times(700)).sendTemplated(anyLong(), eq(NotificationType.COMMUNITY),
-                eq("notif.community.deleted"), anyMap(), eq("Buyuk Kulup"));
+        // FINAL-ALL: 700 uye iki parcada (500 + 200) toplu gider, hepsi kapsanir
+        assertEquals(700, BulkSent.to(notifications, "notif.community.deleted").size());
+        assertEquals(2, BulkSent.calls(notifications, "notif.community.deleted"));
     }
 
     @Test

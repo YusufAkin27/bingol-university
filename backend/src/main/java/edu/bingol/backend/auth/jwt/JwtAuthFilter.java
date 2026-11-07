@@ -32,6 +32,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     /** Deger: mobil oturumlarin iptal aninin epoch ms'i (tek cihaz kurali); yalniz cl=mobile token'lara uygulanir. */
     public static final String MOBILE_REVOKED_KEY_PREFIX = "pwchgm:";
 
+    /**
+     * Tek bir oturumun (sid) iptal isareti: "Cihazlarim"dan o cihazdan cikis. Deger iptal anidir; TTL access token
+     * omru + 1 dk (sonrasinda token zaten sona erer, refresh de silinmistir). Yalniz o sid'li token'lara uygulanir.
+     */
+    public static final String SESSION_REVOKED_KEY_PREFIX = "sessrev:";
+
+    /** Istek niteligi: access token'daki oturum kimligi (sid; yoksa null). */
+    public static final String SESSION_ID_ATTR = "auth.sid";
+
     /** Token imzali ve suresi icinde ama oturumu iptal edilmis: giris noktasi 401 SESSION_REPLACED yazar. */
     public static final String SESSION_REPLACED_ATTR = "auth.sessionReplaced";
 
@@ -76,6 +85,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 if (v == Verdict.OK) {
                     req.setAttribute(ADMIN_PROFILE_ATTR, id.adminProfile());
                     req.setAttribute(TOKEN_EMAIL_ATTR, id.email());
+                    req.setAttribute(SESSION_ID_ATTR, id.sid());
                     SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
                             id.userId(), null, List.of(new SimpleGrantedAuthority("ROLE_" + id.role().name()))));
                 } else if (v == Verdict.REPLACED) {
@@ -108,9 +118,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     /** Tek Redis turunda askiya, rol degisimi ve oturum iptali (genel + mobil) kontrolu. */
     private Verdict check(JwtService.Identity id) {
-        List<String> v = redis.opsForValue()
-                .multiGet(List.of(SUSPENDED_KEY_PREFIX + id.userId(), ROLE_CHANGED_KEY_PREFIX + id.userId(),
-                        PASSWORD_CHANGED_KEY_PREFIX + id.userId(), MOBILE_REVOKED_KEY_PREFIX + id.userId()));
+        // Oturum kimlikli (sid) token'larda 5. anahtar: tek cihazdan cikis isareti (`sessrev:<sid>`); sid'siz
+        // (eski) token'larda liste eskisi gibi 4 anahtar.
+        boolean hasSid = id.sid() != null && !id.sid().isBlank();
+        List<String> keys = hasSid
+                ? List.of(SUSPENDED_KEY_PREFIX + id.userId(), ROLE_CHANGED_KEY_PREFIX + id.userId(),
+                        PASSWORD_CHANGED_KEY_PREFIX + id.userId(), MOBILE_REVOKED_KEY_PREFIX + id.userId(),
+                        SESSION_REVOKED_KEY_PREFIX + id.sid())
+                : List.of(SUSPENDED_KEY_PREFIX + id.userId(), ROLE_CHANGED_KEY_PREFIX + id.userId(),
+                        PASSWORD_CHANGED_KEY_PREFIX + id.userId(), MOBILE_REVOKED_KEY_PREFIX + id.userId());
+        List<String> v = redis.opsForValue().multiGet(keys);
         if (v == null) {
             return Verdict.OK;
         }
@@ -118,7 +135,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return Verdict.DENIED;
         }
         if (tokenRevoked(id.issuedAtMillis(), at(v, 2))
-                || ("mobile".equals(id.client()) && tokenRevoked(id.issuedAtMillis(), at(v, 3)))) {
+                || ("mobile".equals(id.client()) && tokenRevoked(id.issuedAtMillis(), at(v, 3)))
+                || (hasSid && at(v, 4) != null)) {
             return Verdict.REPLACED;
         }
         return tokenPredatesRoleChangeMs(id.issuedAtMillis(), at(v, 1)) ? Verdict.DENIED : Verdict.OK;

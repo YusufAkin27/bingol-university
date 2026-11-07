@@ -178,18 +178,18 @@ class WriteEndpointRateLimitTest {
         NotificationController nc = new NotificationController(inbox, mock(NotificationPrefService.class),
                 mock(DeviceService.class), limiter);
         BookmarkService bookmarks = mock(BookmarkService.class);
-        BookmarkController bc = new BookmarkController(bookmarks, limiter);
+        BookmarkController bc = new BookmarkController(bookmarks, mock(edu.bingol.backend.bookmark.BookmarkFeedService.class), limiter);
 
         nc.list(null, 20, null, false);
         verify(limiter).check(eq("notif-list:1"), eq(120), any(Duration.class));
-        bc.list(null, 20);
+        bc.list(null, null, 20);
         bc.ids();
         verify(limiter, org.mockito.Mockito.times(2)).check("bookmark:read:1", 120, Duration.ofMinutes(1));
 
         org.mockito.Mockito.clearInvocations(inbox, bookmarks);
         exhausted();
         assertThrows(RateLimitedException.class, () -> nc.list(null, 20, null, false));
-        assertThrows(RateLimitedException.class, () -> bc.list(null, 20));
+        assertThrows(RateLimitedException.class, () -> bc.list(null, null, 20));
         assertThrows(RateLimitedException.class, () -> bc.ids());
         verifyNoInteractions(inbox, bookmarks);
     }

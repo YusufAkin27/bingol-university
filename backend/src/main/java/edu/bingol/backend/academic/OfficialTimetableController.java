@@ -2,8 +2,11 @@ package edu.bingol.backend.academic;
 
 import edu.bingol.backend.academic.AcademicDtos.Page;
 import edu.bingol.backend.academic.OfficialTimetableDtos.AdminProgramsView;
+import edu.bingol.backend.academic.AcademicDtos.TimetableView;
+import edu.bingol.backend.academic.OfficialTimetableDtos.ApplyRequest;
 import edu.bingol.backend.academic.OfficialTimetableDtos.EntryView;
 import edu.bingol.backend.academic.OfficialTimetableDtos.ImportResult;
+import edu.bingol.backend.academic.OfficialTimetableDtos.OfficialStatus;
 import edu.bingol.backend.academic.OfficialTimetableDtos.OfficialView;
 import edu.bingol.backend.academic.OfficialTimetableDtos.PublishRequest;
 import edu.bingol.backend.common.ApiException;
@@ -32,10 +35,12 @@ public class OfficialTimetableController {
     private static final long MAX_FILE_BYTES = 1_800_000; // /api/admin/** govde sinirinin (2 MB) altinda
 
     private final OfficialTimetableService service;
+    private final OfficialTimetableSeeder seeder;
     private final RateLimiter limiter;
 
-    public OfficialTimetableController(OfficialTimetableService service, RateLimiter limiter) {
+    public OfficialTimetableController(OfficialTimetableService service, OfficialTimetableSeeder seeder, RateLimiter limiter) {
         this.service = service;
+        this.seeder = seeder;
         this.limiter = limiter;
     }
 
@@ -60,6 +65,20 @@ public class OfficialTimetableController {
     public OfficialView official(@RequestParam(required = false) String term, @RequestParam(required = false) String department,
                                  @RequestParam(required = false) String grade, @RequestParam(required = false) String unit) {
         return service.forUser(read(), term, department, grade, unit);
+    }
+
+    /** Profilin resmi programi var mi, kisisel programa kopyalandi mi, hangi birimler eslesti. */
+    @GetMapping("/timetable/official/status")
+    public OfficialStatus officialStatus() {
+        return seeder.status(read());
+    }
+
+    /** Resmi programi kisisel programa kopyalar (replace=true: mevcut dersleri silip yeniden; onay istemcide). */
+    @PostMapping("/timetable/official/apply")
+    public TimetableView officialApply(@RequestBody(required = false) ApplyRequest req) {
+        Long uid = CurrentUser.id();
+        limiter.check("acd:official-apply:" + uid, 10, Duration.ofHours(1));
+        return seeder.apply(uid, req);
     }
 
     // ---- yonetici ----

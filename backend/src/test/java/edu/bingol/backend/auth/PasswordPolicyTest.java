@@ -9,7 +9,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-/** T-005: parola politikasi (K-09 varsayilani: 10 karakter + yaygin liste + kisisel veri; yonetici 12). */
+/**
+ * Parola politikasi: yonetici hesaplari {@link PasswordPolicy#require} (guclu: uzunluk + yaygin liste + kisisel veri,
+ * T-005); yonetici olmayan hesaplar {@link PasswordPolicy#requireForUser} (yalniz en az 6 karakter).
+ */
 class PasswordPolicyTest {
 
     private static final PasswordPolicy.Context CTX =
@@ -68,5 +71,39 @@ class PasswordPolicyTest {
         // yaygin liste kaynak dosyasi sinif yolunda ve bos degil: ornekler reddedilir
         assertThrows(ApiException.class, () -> PasswordPolicy.require("trabzonspor1967", 10, null));
         assertThrows(ApiException.class, () -> PasswordPolicy.require("ataturk1881", 10, null));
+    }
+
+    // --- Yonetici olmayan hesap: yalniz en az 6 karakter ---
+
+    @ParameterizedTest
+    @ValueSource(strings = {"123456", "aaaaaa", "password", "qwerty", "abcdef", "226051015", "caglar", "Ab1!x9", "şifreş", "      "})
+    void userPasswordsOfSixOrMoreCharactersAreAccepted(String pw) {
+        assertDoesNotThrow(() -> PasswordPolicy.requireForUser(pw, PasswordPolicy.DEFAULT_MIN));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "a", "12345", "abcde", "şğüıö"})
+    void userPasswordsShorterThanSixAreRejectedWithTooShort(String pw) {
+        ApiException e = assertThrows(ApiException.class, () -> PasswordPolicy.requireForUser(pw, 6));
+        assertEquals("PASSWORD_TOO_SHORT", e.code());
+        assertEquals(400, e.status().value());
+        assertEquals("6", e.args()[0]);
+    }
+
+    @Test
+    void userRuleCountsCodePointsNotUtf16Units() {
+        // 3 emoji = 6 UTF-16 birimi ama 3 kod noktasi: kisa; 6 emoji gecerli
+        String three = new String(Character.toChars(0x1F600)).repeat(3);
+        assertThrows(ApiException.class, () -> PasswordPolicy.requireForUser(three, 6));
+        assertDoesNotThrow(() -> PasswordPolicy.requireForUser(three + three, 6));
+        assertThrows(ApiException.class, () -> PasswordPolicy.requireForUser(null, 6));
+    }
+
+    @Test
+    void adminRuleStaysStrict() {
+        assertThrows(ApiException.class, () -> PasswordPolicy.require("123456", 12, CTX));
+        assertThrows(ApiException.class, () -> PasswordPolicy.require("aaaaaaaaaaaa", 12, CTX));
+        assertThrows(ApiException.class, () -> PasswordPolicy.require("x226051015xxxx", 12, CTX));
+        assertDoesNotThrow(() -> PasswordPolicy.require("Kx7-mQ2vLp9z", 12, CTX));
     }
 }

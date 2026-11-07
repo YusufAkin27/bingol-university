@@ -24,7 +24,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
 /**
- * Yonetici yazma uclari icin `Idempotency-Key` destegi (POST/PUT/PATCH/DELETE /api/admin/**; Spring Security'den SONRA).
+ * Yonetici yazma uclari (POST/PUT/PATCH/DELETE /api/admin/**) ve kullanici destek talebi / geri bildirim olusturma
+ * (POST /api/support/tickets, POST /api/feedback) icin `Idempotency-Key` destegi (Spring Security'den SONRA).
  * Baslik yoksa ya da bicimsizse istek aynen islenir. Varsa Redis `idem:<yonetici>:<anahtar>` (SET NX, varsayilan 60 sn):
  * <ul>
  *   <li>ilk istek islenir; 2xx sonucu (durum + en cok {@value #MAX_BODY} bayt govde) saklanir, 2xx disi sonuc ANAHTARI
@@ -61,8 +62,17 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         String m = req.getMethod();
         boolean write = "POST".equals(m) || "PUT".equals(m) || "PATCH".equals(m) || "DELETE".equals(m);
         // Veri saklama disa aktarmasi buyuk bir akistir: yanit onbellegi (bellek) kullanilmaz
-        return !write || !req.getRequestURI().startsWith("/api/admin/") || req.getHeader(HEADER) == null
+        return !write || !covered(m, req.getRequestURI()) || req.getHeader(HEADER) == null
                 || req.getRequestURI().equals("/api/admin/data-retention/exports");
+    }
+
+    /**
+     * Korunan yollar: yonetici yazma uclari + kullanicinin destek talebi / geri bildirim OLUSTURMA (POST). Yaniti
+     * kaybolan gonderimin tekrari cift talep uretmesin (QA5-09); anahtar kullanici kimligine baglidir.
+     */
+    static boolean covered(String method, String uri) {
+        return uri.startsWith("/api/admin/")
+                || ("POST".equals(method) && (uri.equals("/api/support/tickets") || uri.equals("/api/feedback")));
     }
 
     @Override

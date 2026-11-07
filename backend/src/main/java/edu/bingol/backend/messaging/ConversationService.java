@@ -46,6 +46,9 @@ public class ConversationService {
     /** T-025: grup uye ekleme cagrisi gunluk tavani. */
     static final int ADD_MEMBER_CALLS_PER_DAY = 30;
 
+    /** Konusma listesinde uyelerinin TUMU yuklenen en buyuk konusma (ustundekiler icin yalniz sayi + kendi satirim). */
+    static final int FULL_MEMBER_LOAD_MAX = 20;
+
     /** `created` false ise birebir konusma zaten vardi. */
     public record Opened(ConversationView conversation, boolean created) {}
 
@@ -63,8 +66,29 @@ public class ConversationService {
         this.attachments = attachments;
     }
 
+    /** Son mesaj paylasim ise notr onizleme (tur + kullanilabilirlik); setter enjeksiyonu, yoksa kart gonderilmez. */
+    private edu.bingol.backend.share.ShareService shares;
+    private edu.bingol.backend.i18n.I18n i18n;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setShares(edu.bingol.backend.share.ShareService shares, edu.bingol.backend.i18n.I18n i18n) {
+        this.shares = shares;
+        this.i18n = i18n;
+    }
+
     /** Kulup/etkinlik odasi baglantilari: gorunumde tur (CLUB/EVENT) ve kaynak kimligi buradan turetilir. */
     private edu.bingol.backend.messaging.room.ChatRoomLinkRepository roomLinks;
+
+    /** Oda avatari: etkinlik kapagi / kulup logosu (konusmanin kendi avatari yoksa). */
+    private edu.bingol.backend.event.UserEventRepository roomEvents;
+    private edu.bingol.backend.community.CommunityRepository roomCommunities;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setRoomSources(edu.bingol.backend.event.UserEventRepository roomEvents,
+                        edu.bingol.backend.community.CommunityRepository roomCommunities) {
+        this.roomEvents = roomEvents;
+        this.roomCommunities = roomCommunities;
+    }
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     void setRoomLinks(edu.bingol.backend.messaging.room.ChatRoomLinkRepository roomLinks) {
@@ -405,7 +429,7 @@ public class ConversationService {
 
     @Transactional
     public ConversationView addMembers(Long me, Long id, List<Long> userIds) {
-        Conversation c = requireGroupAdmin(id, me);
+        Conversation c = requireUserGroupAdmin(id, me); // QA-CHAT-06: kulup/etkinlik odasina elle uye eklenmez (400 NOT_A_GROUP)
         convs.lockById(id); // uye sayisi siniri es zamanli eklemelerde asilmasin
         Set<Long> ids = new LinkedHashSet<>(userIds);
         ids.remove(me);
@@ -452,7 +476,7 @@ public class ConversationService {
             leave(me, id);
             return;
         }
-        requireGroupAdmin(id, me);
+        requireUserGroupAdmin(id, me); // QA-CHAT-06: odalarda uyelik kaynaga (kulup/RSVP) bagli
         ConversationMember target = members.findByConversationIdAndUserIdAndLeftAtIsNull(id, targetId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "MEMBER_NOT_FOUND", "Üye bulunamadı."));
         target.setLeftAt(Instant.now());
@@ -652,8 +676,22 @@ public class ConversationService {
             return List.of();
         }
         List<Long> ids = page.stream().map(Conversation::getId).toList();
-        Map<Long, List<ConversationMember>> membersBy = members.findByConversationIdInAndLeftAtIsNull(ids).stream()
-                .collect(Collectors.groupingBy(ConversationMember::getConversationId));
+        // FIX-P03 (A02#3): buyuk gruplarda/odalarda (>20 uye) tum uyeleri yuklemeyiz: yalniz uye sayisi (tek GROUP BY)
+        // ve KENDI satirim gerekir. 500 uyeli 50 oda = 25.000 satir/istek idi.
+        Map<Long, Integer> counts = new HashMap<>();
+        for (Object[] row : members.activeCounts(ids)) {
+            counts.put((Long) row[0], ((Number) row[1]).intValue());
+        }
+        List<Long> smallIds = ids.stream().filter(id -> counts.getOrDefault(id, 0) <= FULL_MEMBER_LOAD_MAX).toList();
+        List<Long> bigIds = ids.stream().filter(id -> counts.getOrDefault(id, 0) > FULL_MEMBER_LOAD_MAX).toList();
+        Map<Long, List<ConversationMember>> fullBy = smallIds.isEmpty() ? new HashMap<>()
+                : new HashMap<>(members.findByConversationIdInAndLeftAtIsNull(smallIds).stream()
+                        .collect(Collectors.groupingBy(ConversationMember::getConversationId)));
+        Map<Long, List<ConversationMember>> membersBy = new HashMap<>(fullBy);
+        if (!bigIds.isEmpty()) {
+            members.findMine(me, bigIds).forEach(m -> membersBy.computeIfAbsent(m.getConversationId(),
+                    k -> new java.util.ArrayList<>()).add(m));
+        }
         List<Long> peerIds = page.stream().filter(c -> c.getType() == Conversation.Type.DIRECT)
                 .map(c -> peerOf(membersBy.getOrDefault(c.getId(), List.of()), me)).filter(java.util.Objects::nonNull).toList();
         Map<Long, User> peers = users.findAllById(peerIds).stream().collect(Collectors.toMap(User::getId, Function.identity()));
@@ -684,8 +722,19 @@ public class ConversationService {
         codec.openAll(new java.util.ArrayList<>(lastMessages.values())); // son mesaj onizlemesi: sifre cozulur
         Map<Long, List<AttachmentView>> lastAtt = attachments == null ? Map.of() : attachments.viewsFor(me, lastMessages.keySet());
         Set<Long> related = blocks.hiddenFrom(me);
+        // Son mesaj paylasim ise: goruntuleyene gore kullanilabilirlik (kart sonra notrlestirilir)
+        Map<edu.bingol.backend.share.ShareRef, edu.bingol.backend.share.ShareCard> lastCards = Map.of();
+        if (shares != null) {
+            List<edu.bingol.backend.share.ShareRef> shareRefs = lastMessages.values().stream()
+                    .filter(m -> !m.isDeleted() && !m.isHidden()).map(MessageViewAssembler::shareOf)
+                    .filter(java.util.Objects::nonNull).toList();
+            if (!shareRefs.isEmpty()) {
+                lastCards = shares.cards(me, shareRefs);
+            }
+        }
+        final Map<edu.bingol.backend.share.ShareRef, edu.bingol.backend.share.ShareCard> lastShareCards = lastCards;
         // Son mesajim ise makbuz durumu: uyeler zaten yuklu, ek sorgu yalniz askidaki kullanici denetimi
-        Map<Long, String> lastStatus = receipts == null ? Map.of() : receipts.statuses(me, lastMessages.values(), membersBy,
+        Map<Long, String> lastStatus = receipts == null ? Map.of() : receipts.statuses(me, lastMessages.values(), fullBy,
                 page.stream().collect(Collectors.toMap(Conversation::getId, c -> c.getType() == Conversation.Type.DIRECT)));
         // Grup/kulup/etkinlik onizlemesi icin son mesaji gonderenlerin adlari: tek toplu yukleme
         Set<Long> directIds = page.stream().filter(c -> c.getType() == Conversation.Type.DIRECT).map(Conversation::getId)
@@ -711,6 +760,34 @@ public class ConversationService {
                 : roomLinks.findByConversationIdIn(ids).stream().collect(Collectors.toMap(
                         edu.bingol.backend.messaging.room.ChatRoomLink::getConversationId, Function.identity(), (x, y) -> x));
 
+        // Oda avatari: etkinlik odasinda yoneticinin yukledigi kapak, kulup odasinda logo (tek toplu okuma)
+        Map<Long, String> eventCovers = new HashMap<>();
+        Map<Long, String> clubLogos = new HashMap<>();
+        try {
+            Set<Long> evIds = roomOf.values().stream()
+                    .filter(l -> l.getKind() == edu.bingol.backend.messaging.room.RoomKind.EVENT)
+                    .map(edu.bingol.backend.messaging.room.ChatRoomLink::getRefId).collect(Collectors.toSet());
+            Set<Long> clIds = roomOf.values().stream()
+                    .filter(l -> l.getKind() == edu.bingol.backend.messaging.room.RoomKind.COMMUNITY)
+                    .map(edu.bingol.backend.messaging.room.ChatRoomLink::getRefId).collect(Collectors.toSet());
+            if (roomEvents != null && !evIds.isEmpty()) {
+                roomEvents.findAllById(evIds).forEach(e -> {
+                    if (e.getCoverUrl() != null) {
+                        eventCovers.put(e.getId(), e.getCoverUrl());
+                    }
+                });
+            }
+            if (roomCommunities != null && !clIds.isEmpty()) {
+                roomCommunities.findAllById(clIds).forEach(k -> {
+                    if (k.getLogoUrl() != null) {
+                        clubLogos.put(k.getId(), k.getLogoUrl());
+                    }
+                });
+            }
+        } catch (RuntimeException ignored) {
+            // avatar yalniz sus; liste gorunumu bozulmaz
+        }
+
         return page.stream().map(c -> {
             List<ConversationMember> ms = membersBy.getOrDefault(c.getId(), List.of());
             boolean direct = c.getType() == Conversation.Type.DIRECT;
@@ -733,7 +810,14 @@ public class ConversationService {
                     : MessageView.of(last, !direct && related.contains(last.getSenderId()) && !last.getSenderId().equals(me))
                     .withAttachments(lastAtt.get(last.getId())).withStatus(lastStatus.get(last.getId()))
                     .withSenderName(direct || related.contains(last.getSenderId()) && !last.getSenderId().equals(me) ? null
-                            : senderNames.get(last.getSenderId()));
+                            : senderNames.get(last.getSenderId()))
+                    .withViewOnceMask();
+            if (lastView != null && MessageViewAssembler.shareOf(last) != null && !lastShareCards.isEmpty()) {
+                // Notr onizleme: kart yalniz tur + kullanilabilirlik; aciklama bossa yerel dilde "Gonderi paylasti"
+                lastView = lastView.withShare(lastShareCards.get(MessageViewAssembler.shareOf(last)))
+                        .withNeutralShare(i18n == null ? null
+                                : i18n.current("share.preview." + MessageViewAssembler.shareOf(last).type().name()));
+            }
             boolean admin = ms.stream().anyMatch(m -> m.getUserId().equals(me) && m.isAdmin());
             ConversationMember mine = ms.stream().filter(m -> m.getUserId().equals(me)).findFirst().orElse(null);
             boolean muted = mine != null && mine.isMuted();
@@ -745,12 +829,16 @@ public class ConversationService {
             boolean iBlockedPeer = direct && peerId != null && related.contains(peerId) && blocks.hasBlocked(me, peerId);
             // C1: oda moderatoru/organizatoru ya da grup yoneticisi baskasinin mesajini silebilir; birebirde yok
             boolean canModerate = !direct && (room != null
-                    ? roomModeration != null && roomModeration.canModerate(c.getId(), me) : admin);
-            return new ConversationView(c.getId(), type, c.getTitle(), peer, ms.size(), admin, lastView,
+                    ? roomModeration != null && roomModeration.canModerate(room, me) : admin);
+            return new ConversationView(c.getId(), type, c.getTitle(), peer, counts.getOrDefault(c.getId(), ms.size()),
+                    admin, lastView,
                     unread.getOrDefault(c.getId(), 0L), iBlockedPeer,
                     c.getCreatedAt().toString(), muted, muted ? mine.getMutedUntil().toString() : null,
                     mine != null && mine.getArchivedAt() != null, mine != null && mine.isMutedForever(),
-                    club ? room.getRefId() : null, event ? room.getRefId() : null, c.getAvatarUrl(), canModerate,
+                    club ? room.getRefId() : null, event ? room.getRefId() : null,
+                    c.getAvatarUrl() != null ? c.getAvatarUrl()
+                            : event ? eventCovers.get(room.getRefId()) : club ? clubLogos.get(room.getRefId()) : null,
+                    canModerate,
                     mine != null && !mine.isAccepted() ? mine.getRequestState().name() : null);
         }).toList();
     }

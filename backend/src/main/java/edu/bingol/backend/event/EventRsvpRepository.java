@@ -68,11 +68,37 @@ public interface EventRsvpRepository extends JpaRepository<EventRsvp, Long> {
     @Query("UPDATE EventRsvp r SET r.remindedDay = TRUE WHERE r.id = :id AND r.remindedDay = FALSE")
     int claimDay(@Param("id") Long id);
 
+    /** FIX-P05: gonderim basarisiz olursa gun izi geri alinir (hatirlatma kalici kaybolmasin). */
+    @Transactional
+    @Modifying
+    @Query("UPDATE EventRsvp r SET r.remindedDay = FALSE WHERE r.id = :id")
+    int unclaimDay(@Param("id") Long id);
+
+    /** FIX-P05: gonderim basarisiz olursa saat izi geri alinir (gun izi oldugu gibi kalir). */
+    @Transactional
+    @Modifying
+    @Query("UPDATE EventRsvp r SET r.remindedHour = FALSE WHERE r.id = :id")
+    int unclaimHour(@Param("id") Long id);
+
     /** Saat hatirlatmasi gonderildiyse gun hatirlatmasi da artik anlamsizdir; ikisi birden isaretlenir. */
     @Transactional
     @Modifying
     @Query("UPDATE EventRsvp r SET r.remindedHour = TRUE, r.remindedDay = TRUE WHERE r.id = :id AND r.remindedHour = FALSE")
     int claimHour(@Param("id") Long id);
+
+    /**
+     * FIX-P05 (A05#2): durum gecisini "sahiplen". Yalnizca satir hala {@code from} durumundaysa gunceller (1 doner);
+     * es zamanli ikinci istek 0 alir ve going_count sayacina DOKUNMAMALIDIR (cift azaltma / cift artirma = hayalet koltuk).
+     * Satir kilidi sayesinde ikinci istek ilkinin commit'ini bekler ve kosulu yeniden degerlendirir.
+     */
+    @Modifying(flushAutomatically = true)
+    @Query("UPDATE EventRsvp r SET r.status = :to WHERE r.id = :id AND r.status = :from")
+    int transition(@Param("id") Long id, @Param("from") EventRsvp.Status from, @Param("to") EventRsvp.Status to);
+
+    /** FIX-P05: RSVP'yi "sahiplenerek" siler; yalniz silen ilk istek 1 alir (sayac cift azaltilmaz). */
+    @Modifying(flushAutomatically = true)
+    @Query("DELETE FROM EventRsvp r WHERE r.id = :id")
+    int deleteClaim(@Param("id") Long id);
 
     /** Etkinlik saati degisince hatirlatma isaretlerini sifirlar (yeni saat icin tekrar hatirlatilir). */
     @Transactional

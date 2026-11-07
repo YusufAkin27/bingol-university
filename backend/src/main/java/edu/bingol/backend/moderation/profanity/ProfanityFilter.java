@@ -95,7 +95,7 @@ public class ProfanityFilter {
     static String wordOf(String line) {
         String l = line.strip();
         int i = 0;
-        while (i < l.length() && "=*!".indexOf(l.charAt(i)) >= 0) {
+        while (i < l.length() && "=*!+".indexOf(l.charAt(i)) >= 0) {
             i++;
         }
         return l.substring(i).strip();
@@ -189,11 +189,16 @@ public class ProfanityFilter {
         if (d == null) {
             Map<ProfanityCategory, List<String>> extra = new EnumMap<>(ProfanityCategory.class);
             extra.put(ProfanityCategory.PROFANITY, read("profanity-ku.txt"));
-            extra.put(ProfanityCategory.HATE, concat(read("profanity-hate-tr.txt"), read("profanity-hate-en.txt")));
+            extra.put(ProfanityCategory.HATE, concat(concat(read("profanity-hate-tr.txt"), read("profanity-hate-en.txt")),
+                    concat(concat(read("profanity-v2-hate-tr.txt"), read("profanity-v2-hate-en.txt")),
+                            read("profanity-v2-hate-ar.txt"))));
             extra.put(ProfanityCategory.TERROR, concat(read("profanity-terror-tr.txt"), read("profanity-terror-en.txt")));
             extra.put(ProfanityCategory.SELF_HARM, concat(read("profanity-selfharm-tr.txt"), read("profanity-selfharm-en.txt")));
-            d = new Defaults(read("profanity-tr.txt"), read("profanity-en.txt"), read("profanity-ar.txt"),
-                    read("profanity-allow-tr.txt"), extra);
+            d = new Defaults(
+                    concat(concat(read("profanity-tr.txt"), read("profanity-v2-tr.txt")), read("profanity-v2-drug-tr.txt")),
+                    concat(read("profanity-en.txt"), read("profanity-v2-en.txt")),
+                    concat(read("profanity-ar.txt"), read("profanity-v2-ar.txt")),
+                    concat(read("profanity-allow-tr.txt"), read("profanity-allow-v2.txt")), extra);
             defaults = d;
         }
         return d;

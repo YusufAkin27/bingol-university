@@ -1,0 +1,209 @@
+/* SİSTEM2: denetim kaydı özet grafikleri, hızlı süzgeç çipleri, zaman çizelgesi */
+.charts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-block-end: var(--space-4);
+}
+.chartsHold {
+  /* CLS: grafikler tembel yüklenirken alan kaybolmasın */
+  min-block-size: 22rem;
+  margin-block-end: var(--space-4);
+}
+.chartWide {
+  grid-column: 1 / -1;
+}
+.rankPanel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-1);
+  padding: var(--space-4);
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+  min-inline-size: 0;
+}
+.rankTitle {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+.rankInsight {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+@media (max-width: 800px) {
+  .charts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.quick {
+  display: grid;
+  gap: var(--space-2);
+  margin-block-end: var(--space-3);
+}
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-block-size: 2.75rem;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+.chip:hover {
+  background: var(--surface-2);
+}
+.chipOn {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  font-weight: var(--fw-bold);
+}
+.chipActive {
+  border-style: dashed;
+}
+.chipName {
+  color: var(--text-muted);
+}
+
+.viewToggle {
+  display: inline-flex;
+  gap: var(--space-2);
+  margin-block-end: var(--space-3);
+}
+.timeline {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+.tlDay {
+  display: grid;
+  gap: var(--space-2);
+}
+.tlDayTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-md);
+  text-transform: capitalize;
+}
+.tlCount {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  text-transform: none;
+}
+.tlList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  display: grid;
+  gap: var(--space-1);
+}
+/* dikey çizgi noktaların ortasından geçer */
+.tlList::before {
+  content: '';
+  position: absolute;
+  inset-block: 0.75rem;
+  inset-inline-start: 0.8125rem;
+  inline-size: 2px;
+  background: var(--border);
+}
+.tlItem {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: start;
+}
+.tlDot {
+  position: relative;
+  z-index: 1;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  margin-block-start: 0.5rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+}
+.tlItem[data-tone='denied'] .tlDot,
+.tlItem[data-tone='bad'] .tlDot {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.tlBtn {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: center;
+  min-block-size: 2.75rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.tlBtn:hover {
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+.tlTime {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.tlMain {
+  display: grid;
+  gap: 2px;
+  min-inline-size: 0;
+}
+.tlAction {
+  font-weight: var(--fw-semibold);
+  overflow-wrap: anywhere;
+}
+.tlMeta {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  overflow-wrap: anywhere;
+}
+.tlStatus {
+  color: var(--danger);
+  font-weight: var(--fw-bold);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+@media (max-width: 520px) {
+  .tlBtn {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .tlTime {
+    grid-column: 1 / -1;
+  }
+  .timeline {
+    padding: var(--space-3);
+  }
+}

@@ -53,6 +53,79 @@ class AnalyticsReportServiceTest {
         assertEquals(b.total(), b.items().stream().mapToLong(BreakdownItem::count).sum());
     }
 
+    /** Mutable saat: onbellek suresi ve gun degisimini sinamak icin. */
+    private static final class MutableClock extends java.time.Clock {
+        java.time.Instant now;
+
+        MutableClock(String iso) {
+            this.now = java.time.Instant.parse(iso);
+        }
+
+        @Override
+        public java.time.ZoneId getZone() {
+            return java.time.ZoneOffset.UTC;
+        }
+
+        @Override
+        public java.time.Clock withZone(java.time.ZoneId zone) {
+            MutableClock self = this;
+            return new java.time.Clock() {
+                @Override
+                public java.time.ZoneId getZone() {
+                    return zone;
+                }
+
+                @Override
+                public java.time.Clock withZone(java.time.ZoneId z) {
+                    return self.withZone(z);
+                }
+
+                @Override
+                public java.time.Instant instant() {
+                    return self.now;
+                }
+            };
+        }
+
+        @Override
+        public java.time.Instant instant() {
+            return now;
+        }
+    }
+
+    /** FIX-P09 (A08#6): tum-tablo sayimli genel bakis 60 sn onbellekli; gun degisince ya da sure dolunca yenilenir. */
+    @Test
+    void overviewIsCachedForSixtySecondsAndRefreshedAfterwards() {
+        AnalyticsReportRepository repo = org.mockito.Mockito.mock(AnalyticsReportRepository.class);
+        ReportDtos.Overview o1 = org.mockito.Mockito.mock(ReportDtos.Overview.class);
+        ReportDtos.Overview o2 = org.mockito.Mockito.mock(ReportDtos.Overview.class);
+        org.mockito.Mockito.when(repo.overview(org.mockito.ArgumentMatchers.any())).thenReturn(o1, o2);
+        MutableClock clock = new MutableClock("2026-11-01T10:00:00Z");
+        AnalyticsReportService s = new AnalyticsReportService(repo, clock, null, null, null);
+
+        org.junit.jupiter.api.Assertions.assertSame(o1, s.overview());
+        clock.now = clock.now.plusSeconds(30);
+        org.junit.jupiter.api.Assertions.assertSame(o1, s.overview());
+        org.mockito.Mockito.verify(repo, org.mockito.Mockito.times(1)).overview(org.mockito.ArgumentMatchers.any());
+
+        clock.now = clock.now.plusSeconds(31);
+        org.junit.jupiter.api.Assertions.assertSame(o2, s.overview());
+        org.mockito.Mockito.verify(repo, org.mockito.Mockito.times(2)).overview(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void overviewCacheDoesNotCrossDayBoundary() {
+        AnalyticsReportRepository repo = org.mockito.Mockito.mock(AnalyticsReportRepository.class);
+        org.mockito.Mockito.when(repo.overview(org.mockito.ArgumentMatchers.any()))
+                .thenReturn(org.mockito.Mockito.mock(ReportDtos.Overview.class));
+        MutableClock clock = new MutableClock("2026-11-01T20:59:50Z"); // Istanbul 23:59:50
+        AnalyticsReportService s = new AnalyticsReportService(repo, clock, null, null, null);
+        s.overview();
+        clock.now = clock.now.plusSeconds(15); // Istanbul 00:00:05, yeni gun, 60 sn dolmadi
+        s.overview();
+        org.mockito.Mockito.verify(repo, org.mockito.Mockito.times(2)).overview(org.mockito.ArgumentMatchers.any());
+    }
+
     @Test
     void emptyDataGivesZeroTotalAndNoDivisionByZero() {
         Breakdown b = build(List.of());

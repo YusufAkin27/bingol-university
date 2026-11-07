@@ -68,6 +68,9 @@ services:
       context: ./web
       args:
         VITE_ADMIN_PATH: ${ADMIN_PATH:-}
+        # Uygulama baglantisi dogrulama dosyalari (.well-known/*): bos ise uretilmez (web/scripts/gen-app-links.mjs, docs/SHARING.md)
+        APPLE_TEAM_ID: ${APPLE_TEAM_ID:-}
+        PLAY_APP_SIGNING_SHA256: ${PLAY_APP_SIGNING_SHA256:-}
     image: ${WEB_IMAGE:-bu-web:local}
     restart: unless-stopped
     ports: !reset []                   # kok compose ile birlestirilse bile 8090 yayinlanmaz
@@ -94,7 +97,7 @@ services:
     <<: *hardening
     read_only: true
     tmpfs:
-      - /tmp:size=2g,mode=1777        # ffmpeg geçici dosyaları (app.media.transcode.temp-dir)
+      - /tmp:size=${BACKEND_TMP_SIZE:-2g},mode=1777        # ffmpeg geçici dosyaları (app.media.transcode.temp-dir)
     stop_grace_period: 40s
     mem_limit: ${BACKEND_MEM_LIMIT:-2g}
     cpus: ${BACKEND_CPUS:-2}
@@ -159,8 +162,8 @@ services:
       # ayni host dizini ${BACKUP_METRICS_DIR}); bicim {"lastSuccessAt":"...Z"}. Yol/biçim uyusmazsa gosterge hep UNKNOWN olur (M25).
       BACKUP_STATUS_FILE: /backup-status/last-success.json
       # Gönderi videosu 40 MB: prod varsayılanı (5 MB) yeterli olmaz
-      MULTIPART_MAX_FILE: ${MULTIPART_MAX_FILE:-45MB}
-      MULTIPART_MAX_REQUEST: ${MULTIPART_MAX_REQUEST:-50MB}
+      MULTIPART_MAX_FILE: ${MULTIPART_MAX_FILE:-52MB}
+      MULTIPART_MAX_REQUEST: ${MULTIPART_MAX_REQUEST:-54MB}
       # Medya dönüştürme (ffmpeg) ve CDN (docs/MEDIA_PIPELINE.md, docs/DEPLOY.md bölüm 10)
       MEDIA_TRANSCODE_ENABLED: ${MEDIA_TRANSCODE_ENABLED:-true}
       MEDIA_TRANSCODE_WORKERS: ${MEDIA_TRANSCODE_WORKERS:-2}
@@ -187,8 +190,26 @@ services:
       MANAGEMENT_PORT:
       OPENAPI_DOCS_ENABLED:
       AUTH_VERIFY_REQUIRES_PASSWORD:
+      AUTH_SINGLE_MOBILE_SESSION:
       LEGAL_ENFORCE_REACCEPT:
+      # Google/Apple ile giris (docs/OAUTH_SETUP.md): tanimsiz = KAPALI (OAuth uclari 404 OAUTH_DISABLED)
+      AUTH_OAUTH_ENABLED:
+      GOOGLE_CLIENT_IDS:
+      APPLE_CLIENT_IDS:
+      AUTH_OAUTH_REQUIRE_TERMS:
+      AUTH_PASSWORD_SIGNUPS_NEED_ONBOARDING:
+      AUTH_PROFILE_GATE_ENABLED:
+      # Gercek e-posta kapisi (Apple gizli adresli yeni hesap): tanimsiz = ACIK; acil kapatma icin false
+      AUTH_REAL_EMAIL_GATE_ENABLED:
       MAX_DEVICES_PER_USER:
+      # FINAL-ALL (hepsi tanimsiz = bugunku/eski istemci uyumlu davranis; tanimlanirsa iletilir): makbuz/yaziyor kapatma
+      # (eski mobil surumler elendikten sonra), menu gunluk yakalama cron'u (CLAUDE.md scraping kurali: sahibin karari),
+      # varsayilan gizli hesap, yikici yonetici islem siniri
+      APP_CHAT_RECEIPTS_MAX_MEMBERS:
+      APP_CHAT_RECEIPTS_ROOMS:
+      MENU_CATCHUP_CRON:
+      APP_PROFILE_DEFAULT_PRIVATE_ACCOUNT:
+      APP_ADMIN_DESTRUCTIVE_PER_HOUR:
       # Erisim engelleri (accessban)
       BAN_CACHE_TTL_SECONDS:
       BAN_LOG_RETENTION_DAYS:
@@ -250,7 +271,6 @@ services:
       MAIL_RESET_CODE_SHARE:
       # Push (FCM_CREDENTIALS_FILE: konteyner ICINDEKI yol; prod'da FCM_CREDENTIALS_JSON onerilir) ve kalici kuyruk
       FCM_CREDENTIALS_FILE:
-      PUSH_MESSAGE_PREVIEW:
       PUSH_OUTBOX_ENABLED:
       PUSH_OUTBOX_POLL_MS:
       PUSH_OUTBOX_BATCH:
@@ -347,8 +367,40 @@ services:
       CRYPTO_NULL_PLAINTEXT:
       # Yedek hedefi: yedek servisiyle AYNI deger; ProdSettingsValidator bos ise uyarir (sir degil, rclone uzak adi)
       BACKUP_REMOTE:
+      # Redis parolasi (A10#15): REDIS_PASSWORD tanimliysa redis servisi `--requirepass` ile baslar ve backend ayni degerle baglanir.
+      # Tanimsiz = parolasiz (bugunku davranis). REQUIRE_REDIS_PASSWORD=true: ProdSettingsValidator bos parolayi HATA sayar.
+      # Etkinlestirme deploy-zamani kararidir (Redis yeniden baslar, tum oturumlar korunur ama kisa kesinti): docs/DEPLOY.md "Redis parolasi".
+      REDIS_PASSWORD:
+      REQUIRE_REDIS_PASSWORD:
+      # KVKK silme defteri (A10#15): DELETION_LEDGER_FILE=/data/ledger/deletion-ledger.tsv verilirse silinen hesap kimlikleri YEDEK DISI
+      # `ledger` hacmine yazilir ve yedekten donuste DeletionLedgerReapplier yeniden anonimlestirir. Tanimsiz = kapali (bugunku davranis).
+      DELETION_LEDGER_FILE:
+      DELETION_LEDGER_CRON:
+      # Zamanlayici: havuz boyutu; tek ornek kurulumda Redis yokken SchedulerLock'lu islerin yerelde kosmasi (P01 tryRunOrLocal, varsayilan false)
+      SCHEDULING_POOL_SIZE:
+      SCHEDULING_SINGLE_INSTANCE:
+      # Yonetici DB rol ayrimi (ProdSettingsValidator REQUIRE_DB_ROLE_SPLIT) ve diger ek ayarlar (compose-env-check.sh karsiligi)
+      DB_OWNER_USER:
+      DB_OWNER_PASSWORD:
+      REQUIRE_DB_ROLE_SPLIT:
+      CAMPAIGN_REDIS_LOCK:
+      CONTACTS_DAILY_CANDIDATE_CAP:
+      SUPPORT_FORM_TOKEN_REQUIRED:
+      SUPPORT_FORM_TOKEN_SECRET:
+      SUPPORT_TRACK_CLOSED_GRACE_DAYS:
+      SUPPORT_TRACK_TOKEN_DAYS:
+      # Metrik: http.server.requests icin yuzdelik-histogram yerine az sayida SLO kovasi (METRICS_HTTP_PERCENTILES_HISTOGRAM=false +
+      # METRICS_HTTP_SLO=50ms,100ms,250ms,500ms,1s,3s,10s); varsayilan degismez (true, kovasiz). docs/PERFORMANCE.md
+      METRICS_HTTP_PERCENTILES_HISTOGRAM:
+      METRICS_HTTP_SLO:
+      # JVM yigin orani (K25 onerisi icin; varsayilan 75 = Dockerfile) — bkz. docs/DEPLOY.md "Bellek/JVM onerileri"
+      MAX_RAM_PERCENTAGE:
+      # Soguk acilis olcumu (A10#12): STARTUP_PROFILE=true ise en yavas acilis adimlari "startup-profile" log satirlariyla yazilir (varsayilan kapali)
+      STARTUP_PROFILE:
     volumes:
       - uploads:/data/uploads
+      # KVKK silme defteri hacmi: YEDEK servisine BAGLANMAZ (yedekten donuste defter eski haline donmesin); ayri kopyalanmali
+      - ledger:/data/ledger
       # Yedek durumu (docs/OBSERVABILITY.md): backup servisinin yazdigi backup.prom, GET /api/admin/ops/backup-status icin RO
       - ${BACKUP_METRICS_DIR:-./monitoring/textfile}:/backup-status:ro
     logging: *logging
@@ -453,20 +505,25 @@ services:
     # volatile-lru: bellek dolunca YALNIZ TTL'li anahtarlar (refresh token, hiz siniri sayaci, dogrulama kodu, presence...) atilir;
     # TTL'siz kalici isaretler (suspended:<id>) asla atilmaz. noeviction dolunca yazmalari (giris/kayit) reddederdi.
     # AOF (appendonly) korunur: yeniden baslatmada oturumlar kaybolmaz. Gerekce ve izleme: docs/DEPLOY.md "Redis".
-    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "200mb", "--maxmemory-policy", "volatile-lru"]
+    # Parola: REDIS_PASSWORD tanimliysa `--requirepass` ile parolali baslar; tanimsiz/bos ise `--requirepass ""` = parolasiz
+    # (bugunku davranis; redis-server ilk arguman KALMALI: imajin giris betigi yalniz o zaman redis kullanicisina duser).
+    # Backend ayni REDIS_PASSWORD ile baglanir (yukarida). Bkz. docs/DEPLOY.md "Redis parolasi".
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "200mb", "--maxmemory-policy", "volatile-lru", "--requirepass", "${REDIS_PASSWORD:-}"]
+    environment:
+      REDIS_PASSWORD:
     mem_limit: ${REDIS_MEM_LIMIT:-320m}
-    cpus: 0.5
+    cpus: ${REDIS_CPUS:-0.5}
     networks: [internal]
     volumes:
       - redisdata:/data
     logging: *logging
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "if [ -n \"$$REDIS_PASSWORD\" ]; then export REDISCLI_AUTH=\"$$REDIS_PASSWORD\"; fi; redis-cli ping | grep -q PONG"]
       interval: 10s
       timeout: 3s
       retries: 10
 
-  # Zamanlanmış yedek (SAATLİK; yerelde en yeni 7 + haftalık 4 + aylık 3, uzak kopya BACKUP_REMOTE) + haftalık otomatik geri yükleme doğrulaması. docs/BACKUP_RESTORE.md
+  # Zamanlanmış yedek (SAATLİK; yerelde en yeni 7 + haftalık 4 + aylık 3; uzak kopya BACKUP_REMOTE = GÜNDE 1 tam yükleme, docs/BACKUP_GDRIVE.md) + haftalık otomatik geri yükleme doğrulaması. docs/BACKUP_RESTORE.md
   backup:
     build: ./scripts/backup
     restart: unless-stopped
@@ -504,6 +561,22 @@ services:
       BACKUP_CRON: ${BACKUP_CRON:-5 * * * *}
       BACKUP_VERIFY_CRON: ${BACKUP_VERIFY_CRON:-30 4 * * 0}
       BACKUP_VERIFY_AGE_RECIPIENT: ${BACKUP_VERIFY_AGE_RECIPIENT:-}
+      # Uzak kopya (Google Drive vb.; docs/BACKUP_GDRIVE.md): gunde BIR tam yukleme (03:35) + dogrulama + uzak GFS saklama.
+      # BACKUP_REMOTE_SCHEDULE=each eski "her saat yukle" davranisidir (Drive kotasini hizla doldurur; onerilmez).
+      BACKUP_REMOTE_SCHEDULE: ${BACKUP_REMOTE_SCHEDULE:-daily}
+      BACKUP_REMOTE_CRON: ${BACKUP_REMOTE_CRON:-35 3 * * *}
+      BACKUP_REMOTE_RETRY_CRON: ${BACKUP_REMOTE_RETRY_CRON:-35 9,15,21 * * *}
+      BACKUP_REMOTE_KEEP_DAILY: ${BACKUP_REMOTE_KEEP_DAILY:-7}
+      BACKUP_REMOTE_KEEP_WEEKLY: ${BACKUP_REMOTE_KEEP_WEEKLY:-4}
+      BACKUP_REMOTE_KEEP_MONTHLY: ${BACKUP_REMOTE_KEEP_MONTHLY:-6}
+      BACKUP_REMOTE_MAX_DELETE: ${BACKUP_REMOTE_MAX_DELETE:-20}
+      BACKUP_REMOTE_BWLIMIT: ${BACKUP_REMOTE_BWLIMIT:-}
+      BACKUP_REMOTE_VERIFY: ${BACKUP_REMOTE_VERIFY:-hash}
+      BACKUP_REMOTE_VERIFY_DOWNLOAD: ${BACKUP_REMOTE_VERIFY_DOWNLOAD:-0}
+      BACKUP_RCLONE_DRIVE_CHUNK: ${BACKUP_RCLONE_DRIVE_CHUNK:-64M}
+      BACKUP_RCLONE_TIMEOUT: ${BACKUP_RCLONE_TIMEOUT:-5m}
+      # Bos = yerel saklama yalniz BACKUP_KEEP_* ile. Sayi N: uzakta DOGRULANMIS kopyasi olan eski yerel yedekler, katman basina en yeni N disinda silinir.
+      BACKUP_LOCAL_KEEP_WHEN_REMOTE_OK: ${BACKUP_LOCAL_KEEP_WHEN_REMOTE_OK:-}
       # Kaynak: host'taki 0600 anahtar (baska sahip olabilir); entrypoint postgres icin /run/age-key/age.key kopyasini uretir
       BACKUP_AGE_IDENTITY_SRC: /run/backup/verify.key
       BACKUP_AGE_IDENTITY_FILE: /run/age-key/age.key
@@ -514,8 +587,15 @@ services:
       - backups:/var/backups
       # node-exporter textfile dizini (monitoring/docker-compose.monitoring.yml ile ayni yol); backup.prom buraya yazilir
       - ${BACKUP_METRICS_DIR:-./monitoring/textfile}:/var/backups/metrics
-      - ./deploy/rclone:/config/rclone:ro
-      - ./deploy/backup-keys:/run/backup:ro   # verify.key (yalniz DOGRULAMA ozel anahtari; bkz. docs/BACKUP_RESTORE.md)
+      # YAZILABILIR (:ro DEGIL): Google Drive OAuth erisim belirteci ~1 saatte biter; rclone yenisini rclone.conf'a geri yazar.
+      # Salt okunur olursa her calismada "Failed to save new token" hatasi olur. entrypoint dizini postgres'e verir, dosyayi 0600 yapar.
+      # Her surum YENI dizine acilir (releases/<sha>): ./deploy/rclone yeni surumde bos olur. Kalici konum icin .env.prod'a
+      # RCLONE_CONF_DIR=/opt/bukampus-data/rclone yazin (docs/BACKUP_GDRIVE.md bolum 5); varsayilan yalniz yerel kullanim icindir.
+      - ${RCLONE_CONF_DIR:-./deploy/rclone}:/config/rclone
+      # verify.key (yalniz DOGRULAMA ozel anahtari; bkz. docs/BACKUP_RESTORE.md). deploy.sh arsivi '*.key' dosyalarini ASLA tasimaz
+      # ve her surum yeni dizine acilir: ./deploy/backup-keys yeni surumde bos olur. Kalici konum: .env.prod'da
+      # BACKUP_KEYS_DIR=/opt/bukampus-data/backup-keys (deploy.sh dizini olusturur ve anahtari yoksa ekler).
+      - ${BACKUP_KEYS_DIR:-./deploy/backup-keys}:/run/backup:ro
     logging: *logging
     healthcheck:
       test: ["CMD-SHELL", "test -f /var/backups/metrics/backup.prom && wget -q -O /dev/null http://127.0.0.1:9199/backup.prom"]
@@ -533,6 +613,7 @@ volumes:
   pgdata:
   redisdata:
   uploads:
+  ledger:
   backups:
   caddy_data:
   caddy_config:

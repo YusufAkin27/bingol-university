@@ -175,7 +175,7 @@ class StrikeAppealBlocklistTest {
         a.setTargetType(ReportTargetType.USER_AVATAR);
         a.setTargetId(5L);
         a.setMessage("x");
-        when(appealRepo.findById(8L)).thenReturn(Optional.of(a));
+        when(appealRepo.lockById(8L)).thenReturn(Optional.of(a)); // FIX-P05: karar satiri kilitli okunur
 
         appeals.decide(8L, 99L, true, "hata olmus");
 
@@ -194,7 +194,7 @@ class StrikeAppealBlocklistTest {
         a.setTargetType(ReportTargetType.USER_AVATAR);
         a.setTargetId(5L);
         a.setMessage("x");
-        when(appealRepo.findById(8L)).thenReturn(Optional.of(a));
+        when(appealRepo.lockById(8L)).thenReturn(Optional.of(a)); // FIX-P05: karar satiri kilitli okunur
 
         appeals.decide(8L, 99L, false, null);
 

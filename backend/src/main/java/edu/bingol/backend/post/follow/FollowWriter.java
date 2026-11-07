@@ -1,6 +1,5 @@
 package edu.bingol.backend.post.follow;
 
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -8,6 +7,10 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Gerçek takip kaydının ve sayaçlarının TEK yazıcı noktası (FollowService ve FollowRequestService ortak kullanır):
  * kayıt + user_follow_stats sayaçları aynı işlemde, atomik SQL ile.
+ *
+ * <p>A06#4: (a) sayaç satırı {@code INSERT ... ON CONFLICT DO NOTHING} ile açılır (PostgreSQL'de yutulan benzersizlik
+ * ihlali işlemi "aborted" yapıp takibi geri alıyordu); (b) karşılıklı takip kilitlenmesin diye iki sayaç satırı
+ * HER ZAMAN küçük kimlikten büyüğe doğru açılır/güncellenir (kilit sırası sabit).
  */
 @Component
 class FollowWriter {
@@ -25,10 +28,9 @@ class FollowWriter {
                 + "WHERE NOT EXISTS (SELECT 1 FROM user_follow WHERE follower_id = ? AND followee_id = ?)",
                 follower, followee, follower, followee);
         if (n > 0) {
-            ensureStats(follower);
-            ensureStats(followee);
-            jdbc.update("UPDATE user_follow_stats SET following_count = following_count + 1 WHERE user_id = ?", follower);
-            jdbc.update("UPDATE user_follow_stats SET follower_count = follower_count + 1 WHERE user_id = ?", followee);
+            ensureStats(Math.min(follower, followee));
+            ensureStats(Math.max(follower, followee));
+            bump(follower, followee, 1);
         }
         return n > 0;
     }
@@ -38,20 +40,42 @@ class FollowWriter {
     boolean remove(Long follower, Long followee) {
         int n = jdbc.update("DELETE FROM user_follow WHERE follower_id = ? AND followee_id = ?", follower, followee);
         if (n > 0) {
-            jdbc.update("UPDATE user_follow_stats SET following_count = CASE WHEN following_count > 0 "
-                    + "THEN following_count - 1 ELSE 0 END WHERE user_id = ?", follower);
-            jdbc.update("UPDATE user_follow_stats SET follower_count = CASE WHEN follower_count > 0 "
-                    + "THEN follower_count - 1 ELSE 0 END WHERE user_id = ?", followee);
+            bump(follower, followee, -1);
         }
         return n > 0;
     }
 
-    private void ensureStats(Long uid) {
-        try {
-            jdbc.update("INSERT INTO user_follow_stats (user_id, follower_count, following_count) SELECT ?, 0, 0 "
-                    + "WHERE NOT EXISTS (SELECT 1 FROM user_follow_stats WHERE user_id = ?)", uid, uid);
-        } catch (DuplicateKeyException ignored) {
-            // eş zamanlı ilk takip: satır başka işlemce açıldı
+    /** Sayaç güncellemesi: satırlar artan kullanıcı kimliği sırasıyla kilitlenir. */
+    private void bump(Long follower, Long followee, int delta) {
+        if (follower < followee) {
+            updateFollowing(follower, delta);
+            updateFollowers(followee, delta);
+        } else {
+            updateFollowers(followee, delta);
+            updateFollowing(follower, delta);
         }
+    }
+
+    private void updateFollowing(Long uid, int delta) {
+        if (delta > 0) {
+            jdbc.update("UPDATE user_follow_stats SET following_count = following_count + 1 WHERE user_id = ?", uid);
+        } else {
+            jdbc.update("UPDATE user_follow_stats SET following_count = CASE WHEN following_count > 0 "
+                    + "THEN following_count - 1 ELSE 0 END WHERE user_id = ?", uid);
+        }
+    }
+
+    private void updateFollowers(Long uid, int delta) {
+        if (delta > 0) {
+            jdbc.update("UPDATE user_follow_stats SET follower_count = follower_count + 1 WHERE user_id = ?", uid);
+        } else {
+            jdbc.update("UPDATE user_follow_stats SET follower_count = CASE WHEN follower_count > 0 "
+                    + "THEN follower_count - 1 ELSE 0 END WHERE user_id = ?", uid);
+        }
+    }
+
+    private void ensureStats(Long uid) {
+        jdbc.update("INSERT INTO user_follow_stats (user_id, follower_count, following_count) VALUES (?, 0, 0) "
+                + "ON CONFLICT DO NOTHING", uid);
     }
 }

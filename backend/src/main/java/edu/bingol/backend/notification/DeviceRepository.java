@@ -24,6 +24,11 @@ public interface DeviceRepository extends JpaRepository<Device, Long> {
     @Modifying
     void deleteByFcmTokenAndUserId(String fcmToken, Long userId);
 
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM Device d WHERE d.id = :id AND d.userId = :userId")
+    int deleteByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
+
     /**
      * Eski token temizligi. Kullanici uygulamayi hala kullaniyorsa (`app_user.last_seen_at` taze) cihaz kaydi KORUNUR:
      * istemci kaydi yenilemeyi unutsa bile aktif kullanici sessizce push'suz kalmasin (gecersiz token FCM'de zaten
@@ -48,6 +53,12 @@ public interface DeviceRepository extends JpaRepository<Device, Long> {
     @Transactional
     @Modifying
     void deleteByFcmTokenIn(Collection<String> tokens);
+
+    /** Tek oturum kapatilinca (Cihazlarim / cikis): yalniz o oturumdan kaydolmus cihaz kaydi silinir. */
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
+    @Modifying
+    @Query("DELETE FROM Device d WHERE d.userId = :userId AND d.sessionId = :sid")
+    int deleteBySessionId(@Param("userId") Long userId, @Param("sid") String sid);
 
     /**
      * Verilen turu kapatmamis, aktif ve sessiz saatte olmayan kullanicilarin cihaz token'lari (toplu bildirim icin).

@@ -392,12 +392,37 @@ class MessageActionServiceTest {
     }
 
     @Test
-    void textInsteadOfEmojiIs400() {
-        ApiException e = fail(() -> service.react(ME, MSG, "hello"));
+    void nonEmojiReactionIs400() {
+        for (String bad : new String[] {"a", "12", "", "http://x", "😀😀", "x".repeat(40)}) {
+            ApiException e = fail(() -> service.react(ME, MSG, bad));
 
-        assertEquals("REACTION_NOT_ALLOWED", e.code());
-        assertEquals(HttpStatus.BAD_REQUEST, e.status());
+            assertEquals("REACTION_NOT_ALLOWED", e.code());
+            assertEquals(HttpStatus.BAD_REQUEST, e.status());
+        }
         verify(reactions, never()).upsert(anyLong(), anyLong(), anyString(), any());
+    }
+
+    @Test
+    void anyValidEmojiIsAcceptedEvenOutsideQuickList() {
+        for (String ok : new String[] {"💩", "🔥", "👍🏽", "👨‍👩‍👧‍👦", "🇹🇷"}) {
+            service.react(ME, MSG, ok);
+            verify(reactions).upsert(eq(MSG), eq(ME), eq(MessageActionService.normalize(ok)), any());
+        }
+    }
+
+    @Test
+    void distinctReactionKindsAreCappedButOwnChangeIsAllowed() {
+        List<Object[]> rows = new java.util.ArrayList<>();
+        for (int i = 0; i < MessageActionService.MAX_DISTINCT_REACTIONS; i++) {
+            rows.add(new Object[] {MSG, new String(Character.toChars(0x1F600 + i)), 1L});
+        }
+        when(reactions.counts(List.of(MSG))).thenReturn(rows);
+
+        assertEquals("REACTION_LIMIT_REACHED", fail(() -> service.react(ME, MSG, "🔥")).code());
+        verify(reactions, never()).upsert(anyLong(), anyLong(), anyString(), any());
+
+        service.react(ME, MSG, new String(Character.toChars(0x1F600))); // mevcut cesit: serbest
+        verify(reactions).upsert(eq(MSG), eq(ME), eq(new String(Character.toChars(0x1F600))), any());
     }
 
     @Test
@@ -410,7 +435,7 @@ class MessageActionServiceTest {
     @Test
     void allowedListIsConfigurable() {
         service = new MessageActionService(messages, reactions, convs, members, users, blocks, bus, codec, assembler, jdbc,
-                15, 0, "💩, x");
+                15, 0, "💩, 🔥");
 
         service.react(ME, MSG, "💩");
 

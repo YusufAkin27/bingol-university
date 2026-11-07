@@ -111,7 +111,7 @@ check "olay gonder" 204 "$(code -X POST -H "$H" -H "$A1" $A/analytics/events -d 
 check "bos liste" 204 "$(code -X POST -H "$H" -H "$A1" $A/analytics/events -d '{"events":[]}')"
 R=$(curl -s -X POST -H "$H" -H 'Accept-Language: en' -H "$A1" $A/analytics/events -d '{"events":[{"name":"Bad-Name"}]}')
 has "gecersiz olay adi" '"code":"INVALID_EVENT"' "$R"
-check "6 props 400" 400 "$(code -X POST -H "$H" -H "$A1" $A/analytics/events -d '{"events":[{"name":"x","props":{"a":"1","b":"2","c":"3","d":"4","e":"5","f":"6"}}]}')"
+check "9 props 400" 400 "$(code -X POST -H "$H" -H "$A1" $A/analytics/events -d '{"events":[{"name":"x","props":{"a":"1","b":"2","c":"3","d":"4","e":"5","f":"6","g":"7","h":"8","i":"9"}}]}')"
 check "uzun deger 400" 400 "$(code -X POST -H "$H" -H "$A1" $A/analytics/events -d "{\"events\":[{\"name\":\"x\",\"props\":{\"a\":\"$(printf 'q%.0s' $(seq 1 101))\"}}]}")"
 check "e-posta degeri 400" 400 "$(code -X POST -H "$H" -H "$A1" $A/analytics/events -d '{"events":[{"name":"x","props":{"who":"a@b.com"}}]}')"
 EV51=$(printf '{"name":"e"},%.0s' $(seq 1 51)); EV51="[${EV51%,}]"
@@ -123,6 +123,9 @@ check "cihaz kaydi (platform dagilimi)" 204 "$(code -X POST -H "$H" -H "$A1" $A/
 sleep 3   # arka plan aktiflik yazimi
 
 echo "== analitik: bilinen verilerle sayilar"
+# FIX-P09: /admin/analytics/overview 60 sn onbellekli (AnalyticsReportService.OVERVIEW_CACHE_MS); baslangic okumasi ile
+# ayni pencerede kalinmasin diye onbellek suresi beklenir.
+sleep 62
 OV1=$(curl -s -H "$AAD" $A/admin/analytics/overview)
 check "toplam kullanici +4" $((TOTAL0 + 4)) "$(echo "$OV1" | num totalUsers)"
 check "bugun yeni +4" $((NEW0 + 4)) "$(echo "$OV1" | num today)"

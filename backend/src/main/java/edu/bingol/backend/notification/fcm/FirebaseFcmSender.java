@@ -171,6 +171,16 @@ public class FirebaseFcmSender implements FcmSender {
                 .build();
     }
 
+    /**
+     * Sohbet mesaji: HER mesaj kendi bildirimidir. Eskiden collapseKey (`conv:<id>`) Android `tag` ve `apns-collapse-id`
+     * olarak gidiyor, ayni sohbetin her yeni mesaji oncekini tepsiden SILIYORDU (standart FCM karti ve iOS). Gruplama iOS'ta
+     * `thread-id`, zengin Android'de istemcinin `data.tag` ile MessagingStyle birikimi ile yapilir; sistem duzeyinde
+     * birlesme YOK. Diger turlerde (takip, begeni...) bilincli birlesme korunur.
+     */
+    static boolean perMessage(PushMessage m) {
+        return "chat".equals(m.channelId()) || (m.data() != null && "MESSAGE".equals(m.data().get("type")));
+    }
+
     static AndroidConfig android(PushMessage m) {
         AndroidNotification.Builder n = AndroidNotification.builder().setSound("default");
         if (m.channelId() != null) {
@@ -181,18 +191,30 @@ public class FirebaseFcmSender implements FcmSender {
         // etiket YOKTUR: sistem her bildirime ayri satir verir; tur/thread adi etiket yapilirsa farkli duyurular
         // birbirini siler (A13-01). threadId yalniz iOS gruplamasi icindir. FCM `collapse_key` KASITLI gonderilmez:
         // cevrimdisi cihazda >4 farkli anahtar tanimsiz davranis uretir ve mesaj dusurebilir.
-        if (m.collapseKey() != null) {
+        if (m.collapseKey() != null && !perMessage(m)) {
             n.setTag(m.collapseKey());
+        }
+        if ("chat".equals(m.channelId())) {
+            // Mesaj metni onizlemesi her zaman gider: kilit ekraninda da tam gorunsun (varsayilan PRIVATE gizlerdi)
+            n.setVisibility(AndroidNotification.Visibility.PUBLIC);
         }
         if (m.badge() != null && m.badge() >= 0) {
             n.setNotificationCount(m.badge()); // baslatici rozeti (destekleyen Android'lerde)
+        }
+        // Standart (zengin olmayan) kartta buyuk resim: haber/menu/gonderi gorseli (sohbet gorseli kendi yolunda)
+        String image = m.data() == null ? null : edu.bingol.backend.notification.RichChatPayload.mediaUrl(null, m.data().get("imageUrl"));
+        if (image != null && !"MESSAGE".equals(m.data().get("type"))) {
+            n.setImage(image);
         }
         if (m.highPriority()) {
             n.setPriority(AndroidNotification.Priority.HIGH); // kanal onceligi olmayan eski surumlerde baslik ustu bildirim
             n.setDefaultVibrateTimings(true);
         }
         AndroidConfig.Builder b = AndroidConfig.builder()
-                .setPriority(m.highPriority() ? AndroidConfig.Priority.HIGH : AndroidConfig.Priority.NORMAL);
+                // Zengin (veri-only) mesaj HER ZAMAN yuksek oncelik: uygulama kapaliyken/Doze'da onMessageReceived'in
+                // calisip yerel karti cizebilmesi icin (normal oncelikli veri mesaji ertelenir)
+                .setPriority(m.highPriority() || edu.bingol.backend.notification.RichPushPayload.isRich(m)
+                        ? AndroidConfig.Priority.HIGH : AndroidConfig.Priority.NORMAL);
         if (!edu.bingol.backend.notification.RichPushPayload.isRich(m)) b.setNotification(n.build());
         if (m.ttlSeconds() != null && m.ttlSeconds() >= 0) {
             b.setTtl(m.ttlSeconds() * 1000L);
@@ -211,7 +233,10 @@ public class FirebaseFcmSender implements FcmSender {
         if (m.category() != null) {
             aps.setCategory(m.category());
         }
-        if (!m.highPriority() && "social".equals(m.channelId())) {
+        java.util.Map<String, String> d = m.data() == null ? java.util.Map.of() : m.data();
+        if ("critical".equals(d.get("severity")) || "EXAM".equals(d.get("style"))) {
+            aps.putCustomData("interruption-level", "time-sensitive"); // guvenlik/sinav: odak modunu asabilir (yetki gerekir)
+        } else if (!m.highPriority() && "social".equals(m.channelId())) {
             aps.putCustomData("interruption-level", "passive"); // begeni/takip: ekrani uyandirmaz
         }
         ApnsConfig.Builder b = ApnsConfig.builder()
@@ -222,7 +247,7 @@ public class FirebaseFcmSender implements FcmSender {
             // APNs son gecerlilik: mutlak UNIX zamani (sn); 0 = bir kez dene, saklama
             b.putHeader("apns-expiration", String.valueOf(java.time.Instant.now().getEpochSecond() + m.ttlSeconds()));
         }
-        if (m.collapseKey() != null && m.collapseKey().length() <= MAX_APNS_COLLAPSE_ID) {
+        if (m.collapseKey() != null && !perMessage(m) && m.collapseKey().length() <= MAX_APNS_COLLAPSE_ID) {
             b.putHeader("apns-collapse-id", m.collapseKey());
         }
         return b.build();

@@ -35,13 +35,9 @@ export default {
 
   // akademik
   'admin.p15.acd.noun.CALENDAR': 'takvim kaydı',
-  'admin.p15.acd.noun.EXAM': 'sınav programı kaydı',
-  'admin.p15.acd.noun.ANNOUNCEMENT': 'bölüm duyurusu',
   'admin.p15.acd.publish': 'Seçilenleri yayınla',
   'admin.p15.acd.publish.title': '{n} kayıt yayınlansın mı?',
   'admin.p15.acd.publish.consequence': 'Seçilen kayıtlar öğrencilere görünür olur. Zaten yayında olanlar atlanır.',
-  'admin.p15.acd.publish.consequenceAnn':
-    'Seçilen duyurular öğrencilere görünür olur. Bildirimi açık ve henüz bildirilmemiş duyurular için hedef kitleye bildirim gönderilir (bir kez). Zaten yayında olanlar atlanır.',
   'admin.p15.acd.unpublish': 'Seçilenleri yayından kaldır',
   'admin.p15.acd.unpublish.title': '{n} kayıt yayından kaldırılsın mı?',
   'admin.p15.acd.unpublish.consequence':

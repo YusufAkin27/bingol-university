@@ -28,6 +28,8 @@ public final class PermissionMatrix {
     public static final String USERS_EXPORT = "users.export";
     /** T-011: e-posta kodu olmadan hesap dogrulama (bekleyen kayit / verify-email); yalniz FULL. */
     public static final String USERS_VERIFY = "users.verify";
+    /** Hesap kurtarma: kullanicinin iki faktorlu dogrulamasini kapatma; yalniz FULL ve SUPPORT (MODERATOR degil). */
+    public static final String USERS_2FA = "users.2fa";
     public static final String MODERATION_READ = "moderation.read";
     public static final String MODERATION_WRITE = "moderation.write";
     public static final String CHAT_READ = "chat.read";
@@ -42,7 +44,6 @@ public final class PermissionMatrix {
     public static final String COMMS_WRITE = "comms.write";
     public static final String COMMS_SEND = "comms.send";
     public static final String COMMS_SINGLE = "comms.single";
-    public static final String COMMS_ANNOUNCE = "comms.announce";
     public static final String LEGAL_READ = "legal.read";
     public static final String LEGAL_PUBLISH = "legal.publish";
     public static final String SETTINGS_READ = "settings.read";
@@ -57,6 +58,12 @@ public final class PermissionMatrix {
     public static final String RETENTION_EXPORT = "data.retention.export";
     /** Onayli kalici silme. */
     public static final String RETENTION_PURGE = "data.retention.purge";
+    /** Kampus Forum (D): yonetici forum listeleri (sikayet kuyrugu, konular, islem kayitlari, kategoriler) okuma. */
+    public static final String FORUM_READ = "forum.read";
+    /** Forum icerik moderasyonu: sabitle/kilitle/kaldir/geri al (kullanici API'sindeki moderate uclari da bunu ister). */
+    public static final String FORUM_MODERATE = "forum.moderate";
+    /** Forum kategori yonetimi (ekle/duzenle/sirala/arsivle). */
+    public static final String FORUM_CATEGORIES = "forum.categories";
     /** Haritada eslenmemis /api/admin yollari icin guvenli varsayilan: yalniz FULL. */
     public static final String FULL_ONLY = "admin.full";
 
@@ -82,6 +89,7 @@ public final class PermissionMatrix {
         grant(USERS_DELETE, F);
         grant(USERS_EXPORT, F);
         grant(USERS_VERIFY, F);
+        grant(USERS_2FA, F, S);
         grant(MODERATION_READ, F, M, V);
         grant(MODERATION_WRITE, F, M);
         grant(CHAT_READ, F, M);
@@ -95,7 +103,6 @@ public final class PermissionMatrix {
         grant(COMMS_WRITE, F, E);
         grant(COMMS_SEND, F);
         grant(COMMS_SINGLE, F, S);
-        grant(COMMS_ANNOUNCE, F, E);
         grant(LEGAL_READ, F, M, S, E, V);
         grant(LEGAL_PUBLISH, F);
         grant(SETTINGS_READ, F, V);
@@ -107,6 +114,9 @@ public final class PermissionMatrix {
         grant(RETENTION_READ, F, V);
         grant(RETENTION_EXPORT, F);
         grant(RETENTION_PURGE, F);
+        grant(FORUM_READ, F, M, E, V);
+        grant(FORUM_MODERATE, F, M);
+        grant(FORUM_CATEGORIES, F, E);
         grant(FULL_ONLY, F);
     }
 

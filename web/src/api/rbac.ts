@@ -18,6 +18,7 @@ export type Permission =
   | 'users.role'
   | 'users.delete'
   | 'users.verify'
+  | 'users.2fa'
   | 'users.export'
   | 'moderation.read'
   | 'moderation.write'
@@ -32,7 +33,6 @@ export type Permission =
   | 'comms.write'
   | 'comms.send'
   | 'comms.single'
-  | 'comms.announce'
   | 'legal.read'
   | 'legal.publish'
   | 'settings.read'
@@ -44,6 +44,9 @@ export type Permission =
   | 'data.retention.read'
   | 'data.retention.export'
   | 'data.retention.purge'
+  | 'forum.read'
+  | 'forum.moderate'
+  | 'forum.categories'
   | 'admin.full';
 
 export interface RbacMe {

@@ -26,7 +26,7 @@ public final class PushPayload {
             new String[] {"eventId", "EVENT"}, new String[] {"communityId", "COMMUNITY"},
             new String[] {"newsId", "NEWS"}, new String[] {"ticketId", "TICKET"},
             new String[] {"feedbackId", "FEEDBACK"});
-    private static final List<String> CONTRACT = List.of("type", "subtype", "target", "value", "targetType", "targetId", "count", "category");
+    private static final List<String> CONTRACT = List.of("type", "subtype", "target", "value", "targetType", "targetId", "count", "category", "style");
 
     private PushPayload() {}
 
@@ -36,7 +36,7 @@ public final class PushPayload {
         if (data != null) {
             data.forEach((k, v) -> {
                 // FCM ayrilmis anahtarlari reddeder; null deger de olmaz.
-                if (k != null && v != null && !java.util.Set.of("richNotification", "richChat", "notificationAction", "replyText", "actionId", "notificationTag").contains(k) && !k.startsWith("google") && !k.startsWith("gcm") && !k.equals("from")) {
+                if (k != null && v != null && !java.util.Set.of("richNotification", "richChat", "notificationAction", "replyText", "actionId", "notificationTag", "style").contains(k) && !k.startsWith("google") && !k.startsWith("gcm") && !k.equals("from")) {
                     out.put(k, v);
                 }
             });
@@ -63,6 +63,7 @@ public final class PushPayload {
             out.put("count", String.valueOf(groupCount));
         }
         out.put("category", NotificationPresentation.category(type, subtype == null ? null : subtype.name(), out));
+        out.put("style", RichPushPayload.style(out)); // sunucu belirler; tum platformlar okur (BU_<style> APNs kategorisi)
         return fit(out);
     }
 
@@ -76,8 +77,13 @@ public final class PushPayload {
 
     /** Sinira sigana dek sozlesme disi anahtarlari (en buyukten) atar; sozlesme anahtarlari korunur. */
     static Map<String, String> fit(Map<String, String> m) {
+        return fit(m, MAX_BYTES);
+    }
+
+    /** {@link #fit(Map)} ile ayni; `limit` bayt butcesi (iOS'ta alert metni ayni 4 KB'i paylasir). */
+    static Map<String, String> fit(Map<String, String> m, int limit) {
         Map<String, String> out = new LinkedHashMap<>(m);
-        while (sizeOf(out) > MAX_BYTES) {
+        while (sizeOf(out) > limit) {
             String biggest = null;
             int size = -1;
             for (Map.Entry<String, String> e : out.entrySet()) {

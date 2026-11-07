@@ -113,14 +113,24 @@ public class PostLikeService implements PostLikeLookup {
         return c != null && c > 0;
     }
 
+    /**
+     * Beğeniyi geri alır. Gönderi artık görünür olmasa bile (yazar engellendi/gizli hesaba döndü/gönderi gizlendi)
+     * kullanıcının KENDİ beğeni satırı silinebilir: aksi hâlde beğeni kalıcı takılır ve sayaç düşmezdi (QA-P-04).
+     * Satır yoksa ve gönderi görünmüyorsa 404 (varlık sızdırılmaz).
+     */
     public LikeState unlike(Long userId, Long postId) {
-        authorOrThrow(postId, userId);
-        tx.executeWithoutResult(st -> {
+        boolean visible = likes.visibleAuthor(postId, userId).isPresent();
+        Boolean removed = tx.execute(st -> {
             if (likes.deleteLike(postId, userId) > 0) {
                 counters.incrementLikes(postId, -1);
+                return true;
             }
+            return false;
         });
-        return new LikeState(false, counters.likeCount(postId));
+        if (!visible && !Boolean.TRUE.equals(removed)) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "POST_NOT_FOUND", "Gönderi bulunamadı.");
+        }
+        return new LikeState(false, visible ? counters.likeCount(postId) : 0);
     }
 
     /** Beğenenler, yeniden eskiye; engel ilişkisindekiler gizli, avatar gizlilik kuralına tabi. */

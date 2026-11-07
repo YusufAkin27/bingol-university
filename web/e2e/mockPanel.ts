@@ -16,6 +16,7 @@ const GRANTS: Record<string, Profile[]> = {
   'users.delete': ['FULL'],
   'users.export': ['FULL'],
   'users.verify': ['FULL'],
+  'users.2fa': ['FULL', 'SUPPORT'],
   'moderation.read': ['FULL', 'MODERATOR', 'VIEWER'],
   'moderation.write': ['FULL', 'MODERATOR'],
   'chat.read': ['FULL', 'MODERATOR'],
@@ -29,7 +30,6 @@ const GRANTS: Record<string, Profile[]> = {
   'comms.write': ['FULL', 'EDITOR'],
   'comms.send': ['FULL'],
   'comms.single': ['FULL', 'SUPPORT'],
-  'comms.announce': ['FULL', 'EDITOR'],
   'legal.read': ['FULL', 'MODERATOR', 'SUPPORT', 'EDITOR', 'VIEWER'],
   'legal.publish': ['FULL'],
   'settings.read': ['FULL', 'VIEWER'],
@@ -61,7 +61,7 @@ const page0 = <T>(items: T[]) => ({
   totalItems: items.length,
 });
 
-const LONG_PATH = '/api/admin/academic/exams/999999999/publish-with-a-very-long-segment-name/and/more/segments/to/force/overflow';
+const LONG_PATH = '/api/admin/academic/events/999999999/publish-with-a-very-long-segment-name/and/more/segments/to/force/overflow';
 const LONG_ERR = 'java.net.SocketTimeoutException: Read timed out while talking to smtp.example.invalid:587 after 30000 ms';
 
 /** Her profil icin /api taklidi. Taklit edilmeyen /api istekleri 404; istekler `calls` listesine yazilir. */

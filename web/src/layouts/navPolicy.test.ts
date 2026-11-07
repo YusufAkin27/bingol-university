@@ -13,6 +13,7 @@ const NAV_ENDPOINT: Record<string, string> = {
   dashboard: '/api/admin/stats',
   analytics: '/api/admin/analytics/overview',
   users: '/api/admin/users',
+  twoFactor: '/api/admin/two-factor/summary',
   pendingUsers: '/api/admin/pending-registrations',
   suspensions: '/api/admin/moderation/suspend-recommendations',
   appeals: '/api/admin/moderation/appeals',
@@ -26,6 +27,10 @@ const NAV_ENDPOINT: Record<string, string> = {
   hiddenContent: '/api/admin/moderation/hidden',
   reasonTemplates: '/api/admin/moderation/reason-templates',
   profanity: '/api/admin/profanity',
+  forumReports: '/api/admin/forum/reports',
+  forumTopics: '/api/admin/forum/topics',
+  forumActions: '/api/admin/forum/actions',
+  forumCategories: '/api/admin/forum/categories',
   communities: '/api/admin/communities',
   communityCategories: '/api/admin/community-categories',
   clubAudit: '/api/admin/communities/1/club-audit',
@@ -33,14 +38,13 @@ const NAV_ENDPOINT: Record<string, string> = {
   events: '/api/admin/events',
   eventApplications: '/api/admin/events/applications',
   acdCalendar: '/api/admin/academic/events',
-  acdExams: '/api/admin/academic/exams',
   acdTimetable: '/api/admin/academic/timetable/programs',
-  acdAnnouncements: '/api/admin/announcements',
   tickets: '/api/admin/support/tickets',
   feedback: '/api/admin/feedback',
   legal: '/api/admin/legal/acceptance-stats',
   faq: '/api/admin/faq',
   news: '/api/admin/news',
+  unitNews: '/api/admin/unit-news/sources',
   menu: '/api/admin/menu',
   campaigns: '/api/admin/push/campaigns',
   mailTemplates: '/api/admin/mail/templates',
@@ -53,6 +57,7 @@ const NAV_ENDPOINT: Record<string, string> = {
   ops: '/api/admin/ops/health',
   crashes: '/api/admin/crashes',
   dataRetention: '/api/admin/data-retention/tables',
+  backup: '/api/admin/system/backup',
   appVersions: '/api/admin/app-versions',
   settings: '/api/admin/settings',
   roles: '/api/admin/rbac/matrix',
@@ -93,7 +98,7 @@ describe.skipIf(!haveBackend)('izin ayrıştırıcı örnekleri (kaynak okuma do
     expect(requiredPerm(rules, 'GET', '/api/admin/reports/12')).toBe('chat.read');
     expect(requiredPerm(rules, 'GET', '/api/admin/reports')).toBe('moderation.read');
     expect(requiredPerm(rules, 'POST', '/api/admin/users/5/verify-email')).toBe('users.verify');
-    expect(requiredPerm(rules, 'GET', '/api/admin/announcements')).toBe('comms.read');
+    expect(requiredPerm(rules, 'GET', '/api/admin/push/campaigns')).toBe('comms.read');
     expect(requiredPerm(rules, 'GET', '/api/admin/zzz-yok')).toBe('admin.full');
     expect(profilePerms.VIEWER).toContain('audit.read');
     expect(profilePerms.SUPPORT).not.toContain('audit.read');

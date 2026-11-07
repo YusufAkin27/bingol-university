@@ -2,25 +2,37 @@
 // API: GET /api/admin/chat-media/stats, /api/admin/chat-media, /api/admin/chat-messages (api/adminChat.ts). Her sayfa denetim kaydına yazılır.
 // Sohbet içeriği SEBEP ister (ReasonGate; `X-Admin-Reason`). İstatistikler sebepsizdir.
 // Silinmiş mesajlar, gölge engelli (iletilmemiş) mesajlar ve tek gönderimlik medya da listelenir; hiçbir şey gizlenmez.
+// Güvenli/hızlı gezinme: küçük resimler varsayılan bulanık (tercih saklanır), J/K ile mesaj gezinmesi, sekme adreste (?tab=).
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { adminChatApi, qk } from '../../api';
 import { EmptyState, Insight, PageHeader, StatTile, Tabs } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
+import { useUrlTab } from '../../search/useUrlTab';
 import { chatReasonKey } from './chat/chatReason';
 import { ReasonGate } from './chat/ReasonGate';
 import { EMPTY_FILTERS, FeedFilters, MediaTab, MessagesTab, type FeedFilterState } from './chat/FeedParts';
 import { parseId } from './chat/chatLogic';
+import { useRowKeyNav, useSafeView } from './mod2/chatNav';
+import { ChatMediaCharts, ChatSafeBar } from './mod2/ChatParts';
+import './mod2/dict';
+import mod2 from './mod2/mod2.module.css';
 import { FilterFold, formatBytesLocal } from './moderation/v2';
 import v2 from './moderation/v2.module.css';
 import styles from './chat/chat.module.css';
 
+const TABS = ['media', 'messages'] as const;
+type FeedTab = (typeof TABS)[number];
+
 export default function ChatFeedPage() {
   const { t, formatNumber } = useI18n();
   usePageTitle(t('admin.chatFeed.title'));
-  const [tab, setTab] = useState<'media' | 'messages'>('media');
+  const [tab, setTab] = useUrlTab<FeedTab>(TABS, 'media');
   const [filters, setFilters] = useState<FeedFilterState>(EMPTY_FILTERS);
+  const [safe, setSafe] = useSafeView();
+  const scope = useRef<HTMLDivElement>(null);
+  useRowKeyNav(scope, '[data-testid="feed-row"]');
   const stats = useQuery({ queryKey: qk.adminChat.mediaStats(), queryFn: adminChatApi.chatMediaStats, staleTime: 60_000 });
   const s = stats.data;
   // W1-B (T-015): sunucu süzgeçsiz akışı 400 FEED_FILTER_REQUIRED ile reddeder; süzgeç seçilmeden istek atılmaz.
@@ -61,27 +73,6 @@ export default function ChatFeedPage() {
           onRetry={() => void stats.refetch()}
         />
         <StatTile
-          label={t('admin.v2m.chat.viewOnce')}
-          value={s?.viewOnceCount}
-          loading={stats.isLoading}
-          error={stats.isError}
-          caption={t('admin.v2m.chat.viewOnceHint')}
-        />
-        <StatTile
-          label={t('admin.v2m.chat.deleted')}
-          value={s?.deletedMessageMediaCount}
-          loading={stats.isLoading}
-          error={stats.isError}
-          caption={t('admin.v2m.chat.deletedHint')}
-        />
-        <StatTile
-          label={t('admin.v2m.chat.purged')}
-          value={s?.purgedCount}
-          loading={stats.isLoading}
-          error={stats.isError}
-          caption={t('admin.v2m.chat.purgedHint')}
-        />
-        <StatTile
           label={t('admin.chatFeed.stats.size')}
           value={s ? formatBytesLocal(s.totalBytes, formatNumber) : undefined}
           loading={stats.isLoading}
@@ -90,16 +81,19 @@ export default function ChatFeedPage() {
         />
       </div>
       {s && total > 0 && (
-        <Insight
-          className={v2.sentence}
-          parts={[
-            t('admin.v2m.chat.sentenceTotal', { n: formatNumber(total) }),
-            ' ',
-            { text: t('admin.v2m.chat.sentenceSplit', { img: formatNumber(imgPct), vid: formatNumber(100 - imgPct) }) },
-            ' ',
-            t('admin.v2m.chat.sentenceNew', { n: formatNumber(s.last24h.imageCount + s.last24h.videoCount) }),
-          ]}
-        />
+        <>
+          <Insight
+            className={v2.sentence}
+            parts={[
+              t('admin.v2m.chat.sentenceTotal', { n: formatNumber(total) }),
+              ' ',
+              { text: t('admin.v2m.chat.sentenceSplit', { img: formatNumber(imgPct), vid: formatNumber(100 - imgPct) }) },
+              ' ',
+              t('admin.v2m.chat.sentenceNew', { n: formatNumber(s.last24h.imageCount + s.last24h.videoCount) }),
+            ]}
+          />
+          <ChatMediaCharts stats={s} />
+        </>
       )}
       <ReasonGate storeKey={chatReasonKey.feed()}>
         {(reason) => (
@@ -107,27 +101,30 @@ export default function ChatFeedPage() {
             <Tabs
               label={t('admin.chatFeed.tabs')}
               value={tab}
-              onChange={(id) => setTab(id as 'media' | 'messages')}
+              onChange={(id) => setTab(id as FeedTab)}
               tabs={[
                 { id: 'media', label: t('admin.chatFeed.tab.media') },
                 { id: 'messages', label: t('admin.chatFeed.tab.messages') },
               ]}
             />
+            <ChatSafeBar safe={safe} onChange={setSafe} />
             <FilterFold activeCount={activeCount} anchor="chatfeed-filters" defaultOpen={!hasFilter}>
               <FeedFilters tab={tab} value={filters} onChange={setFilters} />
             </FilterFold>
-            {!hasFilter ? (
-              <EmptyState
-                compact
-                icon="search"
-                title={t('admin.wp02.chatFeed.filterRequired.title')}
-                description={t('admin.v2m.chat.filterRequiredText')}
-              />
-            ) : tab === 'media' ? (
-              <MediaTab filters={filters} reason={reason} />
-            ) : (
-              <MessagesTab filters={filters} reason={reason} />
-            )}
+            <div ref={scope} className={`${safe ? mod2.safe : ''} ${mod2.navScope}`}>
+              {!hasFilter ? (
+                <EmptyState
+                  compact
+                  icon="search"
+                  title={t('admin.wp02.chatFeed.filterRequired.title')}
+                  description={t('admin.v2m.chat.filterRequiredText')}
+                />
+              ) : tab === 'media' ? (
+                <MediaTab filters={filters} reason={reason} />
+              ) : (
+                <MessagesTab filters={filters} reason={reason} />
+              )}
+            </div>
           </>
         )}
       </ReasonGate>

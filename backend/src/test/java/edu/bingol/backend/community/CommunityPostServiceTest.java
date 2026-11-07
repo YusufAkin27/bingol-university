@@ -1,5 +1,6 @@
 package edu.bingol.backend.community;
 
+import edu.bingol.backend.notification.BulkSent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -95,9 +96,34 @@ class CommunityPostServiceTest {
 
         svc.create(user, 10L, new CreatePostRequest("selam", "/files/posts/a.png"));
 
-        verify(notifications).send(eq(2L), eq(NotificationType.COMMUNITY), any(), any(), any(), any(), any());
-        verify(notifications, never()).send(eq(1L), any(), any(), any(), any(), any(), any());
-        verify(notifications, never()).send(eq(3L), any(), any(), any(), any(), any(), any());
+        // FINAL-ALL: toplu gonderim; yazar (1) ve engel iliskisi (3) haric
+        assertEquals(List.of(2L), BulkSent.to(notifications, "notif.community.post"));
+    }
+
+    @Test
+    void memberNotificationsLeaveTheRequestAndRunOnlyAfterCommit() {
+        // FINAL-ALL (P05 ertelenen): istek sirasinda NotificationService'e HIC cagri yok; is commit sonrasi calisir.
+        active();
+        when(communities.roleOf(10L, 1L)).thenReturn(Optional.of(Role.MEMBER));
+        when(communities.can(any(), eq(10L), eq(ClubPermission.MANAGE_POSTS))).thenReturn(false);
+        when(communities.usersById(any())).thenReturn(Map.of());
+        when(posts.save(any())).thenAnswer(i -> {
+            CommunityPost p = i.getArgument(0);
+            p.setId(7L);
+            return p;
+        });
+        when(blocks.hiddenFrom(1L)).thenReturn(Set.of());
+        when(members.userIdsByStatusAfter(eq(10L), any(), eq(0L), any())).thenReturn(List.of(1L, 2L, 3L));
+        edu.bingol.backend.notification.CapturingFanout fanout = new edu.bingol.backend.notification.CapturingFanout();
+        svc.setFanout(fanout);
+
+        svc.create(user, 10L, new CreatePostRequest("selam", null));
+
+        org.mockito.Mockito.verifyNoInteractions(notifications);
+        org.mockito.Mockito.verify(members, never()).userIdsByStatusAfter(eq(10L), any(), eq(0L), any());
+        assertEquals(1, fanout.tasks.size());
+        fanout.runAll();
+        assertEquals(List.of(2L, 3L), BulkSent.to(notifications, "notif.community.post"));
     }
 
     @Test

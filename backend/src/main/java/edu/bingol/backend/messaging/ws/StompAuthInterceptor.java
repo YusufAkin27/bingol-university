@@ -41,11 +41,14 @@ public class StompAuthInterceptor implements ChannelInterceptor {
     static final String TOKEN_EXP_ATTR = "tokenExp";
     static final String USER_ID_ATTR = "wsUserId";
     static final String CLIENT_ATTR = "wsClient";
+    /** Access token'daki oturum kimligi (sid); tek cihazdan cikista yalniz o oturumun baglantisi kapanir. */
+    static final String SID_ATTR = "wsSid";
     /** El sikisma aninda yazilan {@link ClientContext} (IP + X-Device-Id ozeti). */
     public static final String CONTEXT_ATTR = "wsClientContext";
     static final long EXP_GRACE_SECONDS = 60;
     static final Set<String> SUBSCRIBABLE = Set.of("/user/queue/messages", "/user/queue/read-receipts",
-            "/user/queue/typing", "/user/queue/errors", "/user/queue/message-events");
+            "/user/queue/typing", "/user/queue/errors", "/user/queue/message-events",
+            "/user/queue/attendance-events");
 
     private static final Pattern EXP = Pattern.compile("\"exp\"\\s*:\\s*(\\d+)");
 
@@ -92,6 +95,22 @@ public class StompAuthInterceptor implements ChannelInterceptor {
         this.redis = redis;
     }
 
+    /** Profil tamamlama kapisi (opsiyonel baglanti): tamamlanmamis profil STOMP uzerinden de gonderemez. */
+    private edu.bingol.backend.auth.ProfileCompletionGate profileGate;
+
+    @Autowired(required = false)
+    void setProfileGate(edu.bingol.backend.auth.ProfileCompletionGate profileGate) {
+        this.profileGate = profileGate;
+    }
+
+    /** Gercek e-posta kapisi (opsiyonel baglanti): role adresli yeni hesap gercek adres dogrulanana kadar gonderemez. */
+    private edu.bingol.backend.auth.realemail.RealEmailGate realEmailGate;
+
+    @Autowired(required = false)
+    void setRealEmailGate(edu.bingol.backend.auth.realemail.RealEmailGate realEmailGate) {
+        this.realEmailGate = realEmailGate;
+    }
+
     /** Erisim engeli (opsiyonel baglanti: testlerde kurulmaz). */
     @Autowired(required = false)
     void setAccessControls(AccessGuard guard, ClientContexts contexts) {
@@ -131,6 +150,12 @@ public class StompAuthInterceptor implements ChannelInterceptor {
                 if (Boolean.TRUE.equals(redis.hasKey(JwtAuthFilter.SUSPENDED_KEY_PREFIX + uid))) {
                     throw new Rejected("SUSPENDED");
                 }
+                if (profileGate != null && profileGate.isIncomplete(uid)) {
+                    throw new Rejected("PROFILE_INCOMPLETE");
+                }
+                if (realEmailGate != null && realEmailGate.isRequired(uid)) {
+                    throw new Rejected("REAL_EMAIL_REQUIRED");
+                }
             }
             case SUBSCRIBE -> {
                 requireUser(acc);
@@ -164,6 +189,10 @@ public class StompAuthInterceptor implements ChannelInterceptor {
                 ops.get(JwtAuthFilter.MOBILE_REVOKED_KEY_PREFIX + id.userId()))) {
             throw new Rejected("SESSION_REPLACED");
         }
+        if (id.sid() != null && ops != null
+                && ops.get(JwtAuthFilter.SESSION_REVOKED_KEY_PREFIX + id.sid()) != null) {
+            throw new Rejected("SESSION_REPLACED"); // "Cihazlarim"dan kapatilan oturum
+        }
         // jwt.parse imzayi dogruladi; bitis zamanini yuk kisminden okuruz (JwtService'e dokunmadan).
         long exp = expOf(h.substring(7).trim());
         if (Instant.now().getEpochSecond() > exp) {
@@ -176,6 +205,9 @@ public class StompAuthInterceptor implements ChannelInterceptor {
             acc.getSessionAttributes().put(TOKEN_EXP_ATTR, exp);
             acc.getSessionAttributes().put(USER_ID_ATTR, id.userId());
             acc.getSessionAttributes().put(CLIENT_ATTR, id.client());
+            if (id.sid() != null) {
+                acc.getSessionAttributes().put(SID_ATTR, id.sid());
+            }
         }
     }
 

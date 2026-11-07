@@ -59,6 +59,8 @@ public class MessageExporters {
                 e.put("editedAt", m.getEditedAt() == null ? null : m.getEditedAt().toString());
                 e.put("replyToMessageId", m.getReplyToMessageId());
                 e.put("text", m.isHidden() ? null : m.getBody());
+                e.put("sharedContentType", m.getShareType());
+                e.put("sharedContentId", m.getShareRefId());
                 return e;
             }).toList();
             return Map.of("count", out.size(), "truncated", out.size() >= MAX_EXPORT, "messages", out);

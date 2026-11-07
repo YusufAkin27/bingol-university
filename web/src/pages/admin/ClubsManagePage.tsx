@@ -51,7 +51,7 @@ export default function ClubsManagePage() {
           onChange={(id) => setTab(id as MainTab)}
         />
       </div>
-      {tab === 'all' ? <ClubList onOpen={open} /> : <CommunitiesAdminPage embedded />}
+      {tab === 'all' ? <ClubList onOpen={open} onOpenQueue={() => setTab('queue')} /> : <CommunitiesAdminPage embedded />}
       {openId !== null && <ClubDrawer id={openId} onClose={() => open(null)} />}
     </div>
   );

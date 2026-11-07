@@ -28,6 +28,7 @@ import { useI18n } from '../../i18n/I18nProvider';
 import { useDebouncedValue, usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
 import { AudiencePreviewPanel } from './campaigns/AudiencePreviewPanel';
+import { AudienceShare } from './iletisim/AudienceShare';
 import { ContentEditor } from './campaigns/ContentEditor';
 import { PhonePreview } from './campaigns/PhonePreview';
 import { SendDialog } from './campaigns/SendDialog';
@@ -340,6 +341,7 @@ export default function CampaignComposePage() {
                   </span>
                 )}
               </div>
+              {!aud.error && <AudienceShare count={count} />}
               {countQ.isError && (
                 <Callout tone="danger" role="alert">
                   {adminErrorMessage(i18n, countQ.error)}

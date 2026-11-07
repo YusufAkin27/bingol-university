@@ -27,6 +27,7 @@ import { paths } from '../../paths';
 import { adminErrorMessage } from './campaigns/shared';
 import { EntityPicker, PickedChip } from './community/EntityPicker';
 import { StackedBar, SummaryGrid, SummaryStrip } from './community/Summary';
+import { tp } from './community/tp';
 import { parseId } from './moderation/modLogic';
 import styles from './moderation/moderation.module.css';
 
@@ -53,6 +54,7 @@ function sentence(t: ReturnType<typeof useI18n>['t'], nf: (n: number) => string,
 export default function EventApplicationsPage() {
   const i18n = useI18n();
   const { t, formatNumber, formatDate } = i18n;
+  const x = tp(i18n);
   usePageTitle(t('admin.admission.title'));
   const [params, setParams] = useSearchParams();
   const eventId = parseId(params.get('eventId') ?? '');
@@ -160,10 +162,11 @@ export default function EventApplicationsPage() {
               <SummaryGrid label={t('admin.v2.apps.counts')}>
                 <StatTile label={t('admin.admission.going')} value={s.goingCount} caption={t('admin.v2.apps.cap.going')} />
                 <StatTile label={t('admin.admission.pending')} value={s.pending} caption={t('admin.v2.apps.cap.pending')} />
-                <StatTile label={t('admin.admission.accepted')} value={s.accepted} caption={t('admin.v2.apps.cap.accepted')} />
-                <StatTile label={t('admin.admission.waitlisted')} value={s.waitlisted} caption={t('admin.v2.apps.cap.waitlisted')} />
-                <StatTile label={t('admin.admission.rejected')} value={s.rejected} caption={t('admin.v2.apps.cap.rejected')} />
-                <StatTile label={t('admin.admission.cancelled')} value={s.cancelled} caption={t('admin.v2.apps.cap.cancelled')} />
+                <StatTile
+                  label={x('admin.tp.apps.page.seatsLeft')}
+                  value={s.capacity === null ? x('admin.tp.apps.page.seatsUnlimited') : Math.max(0, s.capacity - s.goingCount)}
+                  caption={x('admin.tp.apps.page.seatsLeftCap')}
+                />
               </SummaryGrid>
             </Card>
           )

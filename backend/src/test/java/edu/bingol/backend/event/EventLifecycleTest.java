@@ -1,5 +1,6 @@
 package edu.bingol.backend.event;
 
+import edu.bingol.backend.notification.BulkSent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -117,13 +118,15 @@ class EventLifecycleTest {
         EventRsvp going = new EventRsvp(5L, 1L, EventRsvp.Status.GOING);
         when(rsvps.findByEventIdAndUserId(5L, 1L)).thenReturn(Optional.of(going));
         when(events.goingCount(5L)).thenReturn(1);
+        when(rsvps.deleteClaim(any())).thenReturn(1); // FIX-P05: silmeyi bu istek sahiplendi
 
         // ayni durumu yinelemek hata vermez
         assertEquals(EventRsvp.Status.GOING, svc.rsvp(stranger, 5L, EventRsvp.Status.GOING).myRsvp());
 
         // geri cekilme (RSVP silme) kapali kayitta da calisir
         svc.cancelRsvp(stranger, 5L);
-        verify(rsvps).delete(going);
+        verify(rsvps).deleteClaim(going.getId());
+        verify(events).decrementGoing(5L);
     }
 
     @Test
@@ -147,8 +150,7 @@ class EventLifecycleTest {
 
         assertEquals(1, n);
         assertEquals(UserEvent.Status.CANCELLED, e.getStatus());
-        verify(notifications).sendTemplated(eq(1L), any(), eq("notif.event.cancelled"), any(), anyString());
-        verify(notifications).sendTemplated(eq(2L), any(), eq("notif.event.cancelled"), any(), anyString());
+        assertEquals(List.of(1L, 2L), BulkSent.to(notifications, "notif.event.cancelled"));
     }
 
     @Test

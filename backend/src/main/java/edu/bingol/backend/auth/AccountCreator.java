@@ -30,9 +30,17 @@ public class AccountCreator {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private ProfilePrivacyRepository privacy;
 
-    /** Yeni hesaplar varsayilan HERKESE ACIK acilir; kullanici ayarlardan gizli yapabilir. Ayar true yapilirsa yeni hesaplar gizli acilir. */
-    @org.springframework.beans.factory.annotation.Value("${app.profile.default-private-account:false}")
+    /** Yeni hesaplar gizli acilir; kullanici ayarlardan herkese acik yapar (acik yapma: PrivacyService). */
+    @org.springframework.beans.factory.annotation.Value("${app.profile.default-private-account:true}")
     private boolean defaultPrivateAccount;
+
+    /** OAuth ayarlari (istege bagli): parola ile kaydolanlar da profil tamamlama kapisindan gecsin mi. */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private edu.bingol.backend.auth.oauth.OAuthProperties oauthProps;
+
+    /** Yeni role (Apple gizli e-posta) hesabini gercek e-posta dogrulanana kadar kapida tut (kolay kapatma: bayrak). */
+    @org.springframework.beans.factory.annotation.Value("${app.auth.real-email-gate.enabled:true}")
+    private boolean realEmailGateEnabled = true;
 
     public AccountCreator(UserRepository users, LegalService legal, AdminProperties admin) {
         this.users = users;
@@ -52,6 +60,20 @@ public class AccountCreator {
      */
     @Transactional
     public User create(String email, Pending p, boolean promoteAdmin) {
+        return save(email, p, promoteAdmin, false);
+    }
+
+    /**
+     * Kota asiminda ERTELENMIS dogrulama (QT-BE): e-posta KODLA kanitlanmadan acilan hesap. emailVerified=false,
+     * verificationDeferred=true; ADMIN_EMAILS terfisi YOK (kimlik taklidiyle yonetici olunamaz). Sozlesme onayi,
+     * gizlilik varsayilani ve ihlal defteri devri normal hesapla ayni.
+     */
+    @Transactional
+    public User createDeferred(String email, Pending p) {
+        return save(email, p, false, true);
+    }
+
+    private User save(String email, Pending p, boolean promoteAdmin, boolean deferred) {
         User user = users.findByEmail(email).orElseGet(User::new);
         user.setEmail(email);
         user.setPasswordHash(p.passwordHash());
@@ -60,14 +82,60 @@ public class AccountCreator {
         user.setFaculty(p.faculty());
         user.setDepartment(p.department());
         user.setGrade(p.grade());
-        user.setEmailVerified(true);
+        user.setEmailVerified(!deferred);
+        user.setVerificationDeferred(deferred);
+        if (deferred) {
+            user.setVerificationMailedAt(null);
+        }
         if (promoteAdmin && user.getRole() != Role.ADMIN && admin.isAdminEmail(email)) {
             user.setRole(Role.ADMIN);
             user.setAdminProfile(edu.bingol.backend.admin.rbac.AdminProfile.FULL); // ADMIN_EMAILS hesabi her zaman FULL
         }
         boolean fresh = user.getId() == null;
+        if (fresh && oauthProps != null && oauthProps.passwordSignupsNeedOnboarding()) {
+            user.setProfileCompletedAt(null); // yeni parola kaydi da onboarding'den gecsin (varsayilan: gecmez)
+        }
         user = users.saveAndFlush(user);
         legal.recordSignupConsent(user.getId());
+        defaultsForNewAccount(user, fresh, email);
+        return user;
+    }
+
+    /**
+     * Google/Apple ile ilk giriste hesap acar (e-posta SAGLAYICIDA dogrulanmis; parola yok; profil tamamlanmamis).
+     * Sozlesme onayi BURADA yazilmaz: onboarding'de ({@code acceptTerms}) kaydedilir. ADMIN_EMAILS terfisi yok.
+     * Gizlilik varsayilani ve ihlal defteri devri parola kaydiyla ayni.
+     */
+    @Transactional
+    public User createFromOAuth(String email, String displayName, String firstName, String lastName, String language) {
+        return createFromOAuth(email, displayName, firstName, lastName, language, false);
+    }
+
+    /**
+     * `relay=true`: e-posta Apple "E-postami gizle" role adresi. Hesap acilir ama {@code emailRelay} + (bayrak aciksa)
+     * {@code realEmailRequired} isaretlenir: gercek e-posta kodla dogrulanana kadar yazma uclari kapali (REAL_EMAIL_REQUIRED).
+     */
+    @Transactional
+    public User createFromOAuth(String email, String displayName, String firstName, String lastName, String language,
+                                boolean relay) {
+        User user = new User();
+        user.setEmailRelay(relay);
+        user.setRealEmailRequired(relay && realEmailGateEnabled);
+        user.setEmail(email);
+        user.setPasswordHash(User.NO_PASSWORD_PREFIX + java.util.UUID.randomUUID());
+        user.setDisplayName(displayName);
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setLanguage(language);
+        user.setEmailVerified(true);
+        user.setVerificationDeferred(false);
+        user.setProfileCompletedAt(null);
+        user = users.saveAndFlush(user);
+        defaultsForNewAccount(user, true, email);
+        return user;
+    }
+
+    private void defaultsForNewAccount(User user, boolean fresh, String email) {
         if (fresh && defaultPrivateAccount && privacy != null && !privacy.existsById(user.getId())) {
             ProfilePrivacy settings = ProfilePrivacy.defaults(user.getId());
             settings.setPrivateAccount(true);
@@ -77,6 +145,5 @@ public class AccountCreator {
         if (fresh && ledger != null) {
             ledger.inheritOnRegister(user.getId(), email);
         }
-        return user;
     }
 }

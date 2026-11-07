@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeSet;
+import java.util.Set;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -34,6 +34,12 @@ public class PendingRegistrationStore {
     public record EntryPage(List<Entry> items, String nextCursor) {}
 
     private static final String PREFIX = "reg:";
+    private static final String TMP_PREFIX = "regtmp:";
+    /** Liste dizini (ZSET, skor 0 -> sozluk sirasi), bitis dizini (ZSET, skor = bitis sn) ve kurulum isareti. */
+    static final String IDX = "regidx";
+    static final String IDX_EXP = "regidxexp";
+    static final String IDX_READY = "regidx:ready";
+    private static final int BATCH = 200;
 
     private final StringRedisTemplate redis;
     private final Duration ttl;
@@ -54,11 +60,44 @@ public class PendingRegistrationStore {
         if (p.grade() != null) {
             m.put("gr", p.grade());
         }
-        m.put("ca", String.valueOf(System.currentTimeMillis() / 1000));
+        long nowSec = System.currentTimeMillis() / 1000;
+        m.put("ca", String.valueOf(nowSec));
         m.put("rc", "0");
-        redis.opsForHash().putAll(key(email), m);
+        // Yeni kayit ESKISINI BIRLESTIRMEZ (FIX-P02/A01#8): HSET eski `fa/de/gr` alanlarini birakirdi (baskasinin
+        // onceden actigi kaydin fakulte/bolumu e-posta sahibinin hesabina gecerdi). Gecici anahtara yaz, RENAME ile
+        // ATOMIK degistir: okuyan hicbir an bos ya da yarim kayit gormez, TTL de birlikte tasinir.
+        String tmp = TMP_PREFIX + email;
+        redis.delete(tmp);
+        redis.opsForHash().putAll(tmp, m);
         // Sure yalnizca burada verilir; yeniden gonderim/giris TTL'i uzatmaz.
-        redis.expire(key(email), ttl);
+        redis.expire(tmp, ttl);
+        redis.rename(tmp, key(email));
+        indexAdd(email, nowSec + ttl.toSeconds());
+    }
+
+    /** Listeleme dizini: e-posta (sozluk sirasi icin skor 0) + bitis zamani (suresi dolan girdileri temizlemek icin). */
+    private void indexAdd(String email, long expiresAtSec) {
+        try {
+            redis.opsForZSet().add(IDX, email, 0);
+            redis.opsForZSet().add(IDX_EXP, email, expiresAtSec);
+            // Suresi dolmus (Redis anahtari TTL ile gitmis) girdileri kucuk parcalarla ayikla
+            Set<String> stale = redis.opsForZSet().rangeByScore(IDX_EXP, 0, System.currentTimeMillis() / 1000, 0, 50);
+            if (stale != null && !stale.isEmpty()) {
+                redis.opsForZSet().remove(IDX, stale.toArray());
+                redis.opsForZSet().remove(IDX_EXP, stale.toArray());
+            }
+        } catch (RuntimeException e) {
+            // Dizin en-iyi-caba: kayit yazildi; liste bu e-postayi gormeyebilir ama dogrulama/giris etkilenmez
+        }
+    }
+
+    private void indexRemove(String email) {
+        try {
+            redis.opsForZSet().remove(IDX, email);
+            redis.opsForZSet().remove(IDX_EXP, email);
+        } catch (RuntimeException e) {
+            // en-iyi-caba; suresi dolunca ayiklanir
+        }
     }
 
     /** Yeni kod gonderildiginde sayaci artirir (kayit yoksa bir sey yapmaz; TTL'e dokunmaz). */
@@ -76,28 +115,64 @@ public class PendingRegistrationStore {
     /** `q` doluysa e-posta (okul numarasi dahil) ya da ad icinde gecenler (buyuk/kucuk harf duyarsiz). */
     public EntryPage list(String cursor, int size, String q) {
         String needle = q == null || q.isBlank() ? null : q.trim().toLowerCase(java.util.Locale.ROOT);
-        TreeSet<String> emails = new TreeSet<>();
-        ScanOptions opts = ScanOptions.scanOptions().match(PREFIX + "*").count(500).build();
-        try (Cursor<String> c = redis.scan(opts)) {
-            while (c.hasNext()) {
-                emails.add(c.next().substring(PREFIX.length()));
-            }
-        }
+        ensureIndex();
         List<Entry> items = new ArrayList<>();
         String last = null;
         boolean more = false;
-        for (String e : (cursor == null || cursor.isBlank()) ? emails : emails.tailSet(cursor, false)) {
-            if (items.size() == size) {
-                more = true;
+        String after = cursor == null || cursor.isBlank() ? null : cursor;
+        outer:
+        while (true) {
+            // Dizinden sozluk sirasiyla parca parca oku (Redis'in tum anahtar uzayi taranmaz)
+            org.springframework.data.domain.Range<String> range = after == null
+                    ? org.springframework.data.domain.Range.unbounded()
+                    : org.springframework.data.domain.Range.rightUnbounded(
+                            org.springframework.data.domain.Range.Bound.exclusive(after));
+            Set<String> batch = redis.opsForZSet().rangeByLex(IDX, range,
+                    org.springframework.data.redis.connection.Limit.limit().count(BATCH));
+            if (batch == null || batch.isEmpty()) {
                 break;
             }
-            Entry entry = entry(e);
-            if (entry != null && (needle == null || matches(entry, needle))) {
+            for (String e : batch) {
+                after = e;
+                Entry entry = entry(e);
+                if (entry == null) {
+                    indexRemove(e); // Redis anahtari TTL ile gitmis
+                    continue;
+                }
+                if (needle != null && !matches(entry, needle)) {
+                    continue;
+                }
+                if (items.size() == size) {
+                    more = true;
+                    break outer;
+                }
                 items.add(entry);
                 last = e;
             }
+            if (batch.size() < BATCH) {
+                break;
+            }
         }
         return new EntryPage(items, more ? last : null);
+    }
+
+    /**
+     * Dizin yoksa (bu surumden onceki bekleyen kayitlar) BIR KEZ mevcut `reg:*` anahtarlarindan kurulur; isaret
+     * anahtari konur ve bir daha SCAN yapilmaz.
+     */
+    private void ensureIndex() {
+        if (Boolean.TRUE.equals(redis.hasKey(IDX_READY))) {
+            return;
+        }
+        ScanOptions opts = ScanOptions.scanOptions().match(PREFIX + "*").count(500).build();
+        try (Cursor<String> c = redis.scan(opts)) {
+            while (c.hasNext()) {
+                String email = c.next().substring(PREFIX.length());
+                Long ttlSec = redis.getExpire(key(email));
+                indexAdd(email, System.currentTimeMillis() / 1000 + (ttlSec == null || ttlSec < 0 ? ttl.toSeconds() : ttlSec));
+            }
+        }
+        redis.opsForValue().set(IDX_READY, "1");
     }
 
     private static boolean matches(Entry e, String needle) {
@@ -126,7 +201,9 @@ public class PendingRegistrationStore {
 
     /** Kaydi siler; vardiysa true. */
     public boolean remove(String email) {
-        return Boolean.TRUE.equals(redis.delete(key(email)));
+        boolean had = Boolean.TRUE.equals(redis.delete(key(email)));
+        indexRemove(email);
+        return had;
     }
 
     /** Kaydi okur (silmez); yoksa null. */
@@ -141,6 +218,7 @@ public class PendingRegistrationStore {
 
     public void delete(String email) {
         redis.delete(key(email));
+        indexRemove(email);
     }
 
     private static String key(String email) {

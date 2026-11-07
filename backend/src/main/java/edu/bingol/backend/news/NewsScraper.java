@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -124,7 +125,51 @@ public class NewsScraper {
         }
     }
 
+    /** Yonlendirme sayisi ve istek basina toplam sure ust siniri. */
+    static final int MAX_REDIRECTS = 3;
+    private static final long TOTAL_BUDGET_MS = 40_000;
+    private static final int MAX_BODY_BYTES = 2 * 1024 * 1024;
+    private static final String HOST = "www.bingol.edu.tr";
+
+    /**
+     * Yonlendirmeleri ELLE izler (P07-B13): Jsoup varsayilani herhangi bir host'a 20 yonlendirme izler ve oradan gelen
+     * metin herkese sunulan `content` olabilirdi. Yalniz ayni host'ta (https, varsayilan port) en cok
+     * {@value #MAX_REDIRECTS} yonlendirme; toplam sure ve govde boyutu sinirli.
+     */
     private static Document connect(String url) throws IOException {
-        return Jsoup.connect(url).userAgent(UA).timeout(20_000).get();
+        long deadline = System.nanoTime() + TOTAL_BUDGET_MS * 1_000_000L;
+        String current = url;
+        for (int hop = 0; hop <= MAX_REDIRECTS; hop++) {
+            long left = (deadline - System.nanoTime()) / 1_000_000L;
+            if (left <= 0) {
+                throw new IOException("toplam sure butcesi asildi: " + url);
+            }
+            Connection.Response res = Jsoup.connect(current).userAgent(UA).timeout((int) Math.min(20_000, left))
+                    .maxBodySize(MAX_BODY_BYTES).followRedirects(false).execute();
+            int code = res.statusCode();
+            if (code >= 300 && code < 400 && res.hasHeader("Location")) {
+                current = nextHop(current, res.header("Location"));
+                continue;
+            }
+            return res.parse();
+        }
+        throw new IOException("cok fazla yonlendirme: " + url);
+    }
+
+    /** Yonlendirme hedefi: ayni ana site, https (http -> https cevrilir), varsayilan port; aksi halde IOException. */
+    static String nextHop(String current, String location) throws IOException {
+        try {
+            URI target = URI.create(current).resolve(location.trim());
+            String scheme = target.getScheme() == null ? "" : target.getScheme().toLowerCase(java.util.Locale.ROOT);
+            boolean okPort = target.getPort() == -1 || target.getPort() == 443 || target.getPort() == 80;
+            if (!("https".equals(scheme) || "http".equals(scheme)) || !HOST.equalsIgnoreCase(target.getHost()) || !okPort
+                    || target.getUserInfo() != null) {
+                throw new IOException("yonlendirme ana site disina: " + target.getHost());
+            }
+            String path = target.getRawPath() == null || target.getRawPath().isEmpty() ? "/" : target.getRawPath();
+            return "https://" + HOST + path + (target.getRawQuery() == null ? "" : "?" + target.getRawQuery());
+        } catch (IllegalArgumentException e) {
+            throw new IOException("gecersiz yonlendirme: " + e.getMessage());
+        }
     }
 }

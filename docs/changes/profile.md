@@ -63,15 +63,6 @@ istemci kanonik Turkce degeri katalog aramasiyla cevirir. Sunucu metinlerinde bo
 alicinin kayitli dilinde yazilir (`MailCampaignSupport`, `CatalogService.facultyName/departmentName`).
 Cevirilerin Arapca kismi anadil incelemesi ister; dogrulanacak adlar `docs/design/L10N_ENUM_ENVANTERI.md` bolum D.
 
-## Rehber eşleştirme KALDIRILDI (2026-11-07, kullanıcı kararı)
-
-- Kaldırılanlar: `POST /api/users/contacts/match`, `GET|PUT /api/users/contacts/discoverable`, `ContactMatchController/Service/Quota/Dtos`,
-  `UserRepository.findContactMatches`, `ProfilePrivacy.contactsDiscoverable` alanı, `app.contacts.daily-candidate-cap` (`CONTACTS_DAILY_CANDIDATE_CAP`),
-  `error.CONTACTS_TOO_MANY` / `error.CONTACTS_DISCOVERABLE_REQUIRED` (3 dil), `scripts/smoke-contacts-match.sh`, OpenAPI yolları.
-- Mobil: `flutter_contacts` paketi, `ContactsMatchPage`, rehber izni (Android `READ_CONTACTS`, iOS `NSContactsUsageDescription`, gizlilik manifestindeki Contacts türü) ve ilgili l10n anahtarları kaldırıldı.
-- DB: `profile_privacy.contacts_discoverable` (V995) ve `app_user.email_sha256` (V240; e-posta bastırma eşlemesi için KALIR) düşürülmedi; sütun artık yazılmaz/okunmaz. Kalan veri için temizleme PLANI: [../PHONE_DATA_CLEANUP.md](../PHONE_DATA_CLEANUP.md).
-- Aşağıdaki "Rehber eşleştirme (V240)" ve "W2-F" rehber bölümleri tarihsel kayıttır.
-
 ## Rehber eslestirme (V240)
 `POST /api/users/contacts/match` `{"hashes":[sha256 hex...]}` (en cok 500, asim 400 `CONTACTS_TOO_MANY`; yinelenen/bozuk hash yok sayilir).
 Hash = rehberdeki e-postanin kirpilmis, kucuk harfe cevrilmis halinin SHA-256 hex'i. Yanit `{matches:[{hash,userId,displayName,avatarUrl,faculty,department}]}`.
@@ -130,3 +121,12 @@ silinmis (anonimlestirilmis) hesapta NULL. `ProfileView`/KVKK dis aktarimi bu su
 - **`PublicProfile`:** `isPrivate`, `followState` (`NONE|REQUESTED|FOLLOWING|SELF`), `locked` (NON_NULL: yalnız `GET /api/users/{id}` ve `GET /api/users/search` satırlarında dolu). `locked=true` iken `followerCount/followingCount` null.
 - **Gizlilik dışa aktarımı:** `profilePrivacy` bölümü `privateAccount` içerir.
 - Ayrıntı ve uçlar: `docs/MOBILE_API_GUIDE.md` "Gizli hesap ve takip isteği (FOLLOWREQ)"; kod notları `docs/changes/post.md`.
+
+## FIX-P08: hesap silme kapsamı, departments önbelleği
+- **Hesap silme (KVKK):** `AccountDataPurger.purge(userId, oldEmail)` artık eski adresle eşleşen **herkese açık destek taleplerini** de temizler (`EMAIL_SCRUBS`, K5c): talep konusu `[silindi]`, `contact_email`/`contact_name`/kod özeti boş, kullanıcı mesajları `[silindi]`, `support_track_token` satırları silinir; personel yanıtları kalır. E-posta/adres tutan her sütunun kararı `AccountDataPurger.EMAIL_KEYED`'dedir; `AccountDataPurgerCoverageTest` migration'ları `email`/`to_address` için de tarar (yeni sütun = karar zorunlu). Anonim mesajlar ve silinen gönderi fotoğrafları süresiz kalır (K5 kararı, yeni süre eklenmedi); mail kuyruğu 30 gün politikası değişmedi.
+- `ProfileService.deleteAccount`: parola doğrulaması ve ön kontroller işlem dışında, yalnız anonimleştirme kısa işlemde; silinen hesabın parola alanı bcrypt değil **kullanılamaz özet** (`!deleted:<uuid>`); commit sonrası "askıya alma işareti" ve "oturum iptali" adımları ayrı ayrı bir kez yeniden denenir. `DeletionLedgerReapplier` 500'lük `findAllById` parçalarıyla çalışır.
+- **`GET /api/departments` (istemci etkisi yok):** sunucuda 5 dk bellek önbelleği + `Cache-Control: public, max-age=300, stale-while-revalidate=600` (fakültelerle aynı). Yeni bir bölüm adı listede en geç ~5-10 dk sonra görünür.
+- `UserRepository` kullanılmayan `audienceAll/Department/ClassYear/Ids` sorguları kaldırıldı.
+- `GET /api/users/search` minimum 2 karakter **değişmedi** (istemci sözleşmesi); 2 karakterde tam tarama riski ölçüm gerektirir.
+- Dışa aktarım: `feedback` ve `supportTickets` bölümleri en yeni 5000 kayıtla sınırlı (diğer bölümlerle aynı `MAX_ROWS`).
+- Migration: `V1140` (grade geriye doldurma), `V1141` (hesap silme indeksleri); ayrıntı `docs/changes/academic.md`.

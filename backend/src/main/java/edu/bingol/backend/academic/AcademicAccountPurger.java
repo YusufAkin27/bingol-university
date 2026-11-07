@@ -4,7 +4,7 @@ import java.util.List;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-/** Hesap silmede (KVKK) kisisel ders programi, sinav, donem ve duyuru okundu kayitlarini siler. AccountDataPurger cagirir. */
+/** Hesap silmede (KVKK) kisisel ders programi, sinav, donem kayitlarini siler. AccountDataPurger cagirir. */
 @Component
 public class AcademicAccountPurger {
 
@@ -13,7 +13,7 @@ public class AcademicAccountPurger {
             "DELETE FROM tt_session WHERE course_id IN (SELECT id FROM tt_course WHERE user_id = ?)",
             "DELETE FROM tt_course WHERE user_id = ?",
             "DELETE FROM tt_semester WHERE user_id = ?",
-            "DELETE FROM announcement_read WHERE user_id = ?");
+            "DELETE FROM tt_official_seed WHERE user_id = ?");
 
     private final JdbcTemplate jdbc;
 

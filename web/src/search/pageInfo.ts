@@ -23,57 +23,61 @@ export const pageInfo: Record<string, PageInfo> = {
     d: 'Üyeleri bul, incele, rolünü değiştir ya da hesabı kapat.',
     k: ['üyeler', 'öğrenci', 'kişi', 'hesap', 'kullanıcı ara', 'rol', 'yönetici yap', 'hesabı sil', 'e-posta ara', 'öğrenci numarası'],
   },
+  twoFactor: {
+    d: 'İki faktörlü doğrulamayı kimler açmış, kaç güvenilen cihaz var.',
+    k: ['iki faktörlü', '2fa', 'doğrulama', 'güvenilen cihaz', 'ek koruma', 'giriş kodu', 'iki adımlı doğrulama'],
+  },
   pendingUsers: {
     d: 'E-postasını henüz doğrulamamış kayıtlar.',
     k: ['doğrulama bekleyen', 'onaylanmamış', 'kayıt olmuş ama girmemiş', 'bekleyen kayıt', 'kod gelmedi', 'doğrulama kodu'],
   },
   suspensions: {
     d: 'Sistemin askıya alınmasını önerdiği hesaplar.',
-    k: ['hesap dondur', 'askıya al', 'ban önerisi', 'uzaklaştır', 'şüpheli hesap'],
+    k: ['hesap dondur', 'askıya al', 'ban önerisi', 'uzaklaştır', 'şüpheli hesap', 'kuyruk', 'bekleyen hesap', 'toplu askı', 'kısayol'],
   },
   appeals: {
     d: 'Kısıtlanan kullanıcıların kararı yeniden istemesi.',
-    k: ['itiraz', 'şikayet karar', 'kararı geri al', 'yeniden inceleme', 'af'],
+    k: ['itiraz', 'şikayet karar', 'kararı geri al', 'yeniden inceleme', 'af', 'kuyruk', 'bekleyen itiraz', 'toplu karar', 'kısayol', 'itiraz yaşı'],
   },
   accessBans: {
     d: 'IP, cihaz ya da ağ bazlı erişim yasakları.',
-    k: ['ip engelle', 'yasakla', 'ban', 'vpn', 'cihaz engeli', 'erişimi kapat', 'kara liste', 'engellenen ip'],
+    k: ['ip engelle', 'yasakla', 'ban', 'vpn', 'cihaz engeli', 'erişimi kapat', 'kara liste', 'engellenen ip', 'engel temizliği', 'süresi dolan engel', 'toplu kaldır'],
   },
   reports: {
     d: 'Kullanıcıların bildirdiği uygunsuz içerikler.',
-    k: ['şikayetler', 'bildirimler', 'ihbar', 'uygunsuz içerik', 'raporlanan', 'moderasyon kuyruğu'],
+    k: ['şikayetler', 'bildirimler', 'ihbar', 'uygunsuz içerik', 'raporlanan', 'moderasyon kuyruğu', 'rapor kuyruğu', 'bekleyen şikayet'],
   },
   chatFeed: {
     d: 'Sohbetlerdeki görseller ve (yetkiliyse) mesajlar.',
-    k: ['mesajlar', 'sohbet', 'dm', 'özel mesaj', 'görseller', 'foto', 'konuşma', 'mesajlaşma'],
+    k: ['mesajlar', 'sohbet', 'dm', 'özel mesaj', 'görseller', 'foto', 'konuşma', 'mesajlaşma', 'yazışma', 'yazışmalar', 'mesaj akışı'],
   },
   posts: {
     d: 'Keşfet akışındaki fotoğraflı paylaşımları denetle.',
-    k: ['paylaşım', 'keşfet', 'fotoğraf', 'resim', 'post', 'akış', 'gizle', 'sil', 'beğeni'],
+    k: ['paylaşım', 'keşfet', 'fotoğraf', 'resim', 'post', 'akış', 'gizle', 'sil', 'beğeni', 'galeri', 'ızgara'],
   },
   polls: {
     d: 'Anket aç, kapat ve sonuçlara bak.',
-    k: ['anket', 'oylama', 'oy', 'seçim', 'yemek puanı', 'puanlama', 'sonuçlar'],
+    k: ['anket', 'oylama', 'oy', 'seçim', 'yemek puanı', 'puanlama', 'sonuçlar', 'grafik', 'oy dağılımı'],
   },
   blocklist: {
     d: 'Bu görsellerin yüklenmesi engellenir.',
-    k: ['yasaklı resim', 'engelli görsel', 'görsel kara liste', 'hash', 'zararlı resim', 'uygunsuz foto'],
+    k: ['yasaklı resim', 'engelli görsel', 'görsel kara liste', 'hash', 'zararlı resim', 'uygunsuz foto', 'toplu kaldır', 'hash ara'],
   },
   strikes: {
     d: 'Kullanıcılara verilen uyarı ve ihlal puanları.',
-    k: ['uyarı', 'ceza', 'ihlal puanı', 'sicil', 'strike', 'kural ihlali'],
+    k: ['uyarı', 'ceza', 'ihlal puanı', 'sicil', 'strike', 'kural ihlali', 'toplu af', 'askı eşiği', 'ihlal grafiği'],
   },
   hiddenContent: {
     d: 'Yöneticilerin gizlediği içerikler; geri açılabilir.',
-    k: ['gizlenen', 'kaldırılan içerik', 'gizlenmiş paylaşım', 'geri aç', 'görünmez'],
+    k: ['gizlenen', 'kaldırılan içerik', 'gizlenmiş paylaşım', 'geri aç', 'görünmez', 'toplu geri al', 'silinmeye yakın', 'gizleme yaşı'],
   },
   reasonTemplates: {
     d: 'Karar verirken seçilen hazır gerekçe metinleri.',
-    k: ['hazır metin', 'gerekçe', 'şablon', 'ret sebebi', 'sebep listesi', 'karar sebebi'],
+    k: ['hazır metin', 'gerekçe', 'şablon', 'ret sebebi', 'sebep listesi', 'karar sebebi', 'dil kapsamı', 'çeviri eksik'],
   },
   profanity: {
     d: 'Küfür ve uygunsuz sözcük listesi; yazılınca engellenir.',
-    k: ['küfür', 'argo', 'yasaklı kelime', 'kelime filtresi', 'hakaret', 'sansür', 'kötü söz', 'kara liste kelime'],
+    k: ['küfür', 'argo', 'yasaklı kelime', 'kelime filtresi', 'hakaret', 'sansür', 'kötü söz', 'kara liste kelime', 'toplu sil', 'kategori', 'kısayol'],
   },
   communities: {
     d: 'Kulüpleri onayla, düzenle, kapat ya da yönetici ata.',
@@ -103,17 +107,9 @@ export const pageInfo: Record<string, PageInfo> = {
     d: 'Dönem başlangıç, tatil ve sınav haftası tarihleri.',
     k: ['takvim', 'tatil', 'dönem', 'ders kaydı', 'bayram', 'final haftası', 'güz', 'bahar'],
   },
-  acdExams: {
-    d: 'Vize, final ve bütünleme sınav tarihleri.',
-    k: ['sınav', 'vize', 'final', 'bütünleme', 'sınav tarihi', 'sınav günü', 'exam'],
-  },
   acdTimetable: {
     d: 'Bölüm ve sınıf bazlı ders programını Excel ile yükle.',
     k: ['ders programı', 'haftalık program', 'excel yükle', 'ders saati', 'program yükle', 'timetable', 'güz programı'],
-  },
-  acdAnnouncements: {
-    d: 'Fakülte ve bölümlere özel duyuru gönder.',
-    k: ['duyuru', 'bölüm duyurusu', 'fakülte duyurusu', 'toplu duyuru', 'öğrencilere haber ver'],
   },
   tickets: {
     d: 'Kullanıcıların yazdığı yardım istekleri ve yanıtlar.',
@@ -134,6 +130,10 @@ export const pageInfo: Record<string, PageInfo> = {
   news: {
     d: 'Üniversite sitesinden gelen haber ve duyurular.',
     k: ['haber', 'duyuru', 'haberi gizle', 'üniversite haberleri', 'etkinlik haberi', 'manşet'],
+  },
+  unitNews: {
+    d: 'Fakülte, enstitü ve MYO sitelerinden gelen bölüm duyuruları ve kaynakları.',
+    k: ['birim haberleri', 'bölüm duyuruları', 'fakülte', 'duyuru', 'alt siteler', 'meslek yüksekokulu', 'enstitü', 'fakülte duyurusu', 'duyuru gizle'],
   },
   menu: {
     d: 'Günlük yemek listesi ve yemeklerin kalorisi.',
@@ -179,6 +179,10 @@ export const pageInfo: Record<string, PageInfo> = {
     d: 'Mobil uygulamanın çökme kayıtları, sürüme göre.',
     k: ['hata', 'crash', 'çöktü', 'uygulama kapanıyor', 'hata raporu', 'exception', 'sürüm hatası'],
   },
+  backup: {
+    d: 'Veritabanı yedekleri ve Google Drive kopyası: durum ve kurulum rehberi.',
+    k: ['yedekleme', 'drive', 'yedek', 'geri yükleme', 'rclone', 'google drive', 'yedek al', 'felaket kurtarma'],
+  },
   dataRetention: {
     d: 'Şişen kayıt tablolarını yedekleyip temizle.',
     k: ['veri silme', 'temizlik', 'disk doldu', 'log temizle', 'arşivle', 'dışa aktar', 'saklama süresi', 'depolama', 'kayıt temizliği'],
@@ -206,5 +210,21 @@ export const pageInfo: Record<string, PageInfo> = {
   crypto: {
     d: 'Mesajların şifrelenme durumu ve anahtar bilgisi.',
     k: ['şifreleme', 'anahtar', 'şifre döndür', 'encrypt', 'mesaj şifresi', 'güvenlik', 'master key'],
+  },
+  forumReports: {
+    d: 'Forumdaki konulara ve yorumlara gelen şikâyetler: incele, kaldır, yoksay.',
+    k: ['forum', 'şikâyet', 'tartışma', 'yorum şikâyeti', 'konu şikâyeti', 'anonim', 'moderasyon', 'kampüs forum'],
+  },
+  forumTopics: {
+    d: 'Forum konularını bul; sabitle, yorumlara kapat, kaldır ya da geri al.',
+    k: ['forum', 'konu', 'tartışma', 'sabitle', 'kilitle', 'konu ara', 'kampüs forum', 'başlık'],
+  },
+  forumActions: {
+    d: 'Forumda moderatörlerin yaptığı işlemlerin gerekçeli kaydı.',
+    k: ['forum', 'işlem kaydı', 'moderasyon kaydı', 'log', 'kim kaldırdı', 'denetim', 'gerekçe'],
+  },
+  forumCategories: {
+    d: 'Forum kategorilerini ekle, düzenle, sırala ya da arşivle.',
+    k: ['forum', 'kategori', 'gündem', 'yemekhane', 'sırala', 'arşivle', 'kampüs forum'],
   },
 };

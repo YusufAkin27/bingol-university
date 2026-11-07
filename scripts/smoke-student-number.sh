@@ -41,9 +41,11 @@ echo "== gecersiz kimlik"
 R=$(post /auth/login "{\"email\":\"12345\",\"password\":\"Zk7-Qmv-Lpx92w\"}")
 check short-number 400 "$(status "$R")"
 
-echo "== resend-code (genel 202)"
+echo "== resend-code: kayittan hemen sonra 180 sn bekleme (429 RESEND_COOLDOWN + Retry-After)"
 R=$(post /auth/resend-code "{\"email\":\"$NUM\"}")
-check resend 202 "$(status "$R")"
+check resend-cooldown 429 "$(status "$R")"
+echo "$(body "$R")" | grep -q RESEND_COOLDOWN && echo "  ok   kod RESEND_COOLDOWN" || { echo "  FAIL kod RESEND_COOLDOWN"; FAIL=1; }
+# 180 sn beklemeden tekrar kod istemek gerekirse: docker compose exec -T redis redis-cli del "vc:cd:$MAIL"
 
 echo "== dogrulama (kod log'dan)"
 sleep 2

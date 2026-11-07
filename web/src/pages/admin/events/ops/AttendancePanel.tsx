@@ -9,6 +9,7 @@ import {
 import { Badge, GuardedAction, Input, Select } from '../../../../components/ui';
 import { useI18n } from '../../../../i18n/I18nProvider';
 import { eventErrorMessage } from '../errors';
+import { AttendanceSummaryView } from './OpsSummaries';
 import { CsvButton, PanelState, opsInvalidate, opsKey } from './opsParts';
 import styles from './ops.module.css';
 
@@ -21,7 +22,7 @@ function stateOf(r: AdminAttendanceRow): Exclude<Filter, ''> {
 /** Yoklama: liste + özet + elle düzeltme (sebep zorunlu; sertifika etkisi onay metninde yazar). */
 export function AttendancePanel({ eventId }: { eventId: number }) {
   const i18n = useI18n();
-  const { t, formatDateTime, formatNumber } = i18n;
+  const { t, formatDateTime } = i18n;
   const [filter, setFilter] = useState<Filter>('');
   const [needle, setNeedle] = useState('');
   const q = useQuery({ queryKey: opsKey(eventId, 'attendance'), queryFn: () => getEventAttendance(eventId) });
@@ -100,16 +101,7 @@ export function AttendancePanel({ eventId }: { eventId: number }) {
           filename={`event-${eventId}-attendance.csv`}
         />
       </div>
-      {sm && (
-        <dl className={styles.chips} data-testid="att-summary">
-          {(['going', 'present', 'absent', 'unmarked', 'walkIns'] as const).map((k) => (
-            <div key={k} className={styles.chip}>
-              <dt>{t(`admin.p07.att.sum.${k}`)}</dt>
-              <dd>{formatNumber(sm[k])}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
+      {sm && <AttendanceSummaryView sm={sm} />}
       {data?.truncated && <p className={styles.muted}>{t('admin.p07.att.truncated')}</p>}
       <PanelState
         loading={q.isLoading}

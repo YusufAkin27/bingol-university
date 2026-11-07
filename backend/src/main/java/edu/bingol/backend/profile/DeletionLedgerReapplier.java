@@ -4,6 +4,10 @@ import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
 import edu.bingol.backend.user.UserStatus;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -48,24 +52,40 @@ public class DeletionLedgerReapplier {
             return 0;
         }
         int n = 0;
-        for (DeletionLedger.Entry e : ledger.read().values()) {
+        // FIX-P08 (A01#15/A07#13): kimlik basina findById yerine 500'luk parcalarla findAllById (N sorgu -> N/500)
+        List<DeletionLedger.Entry> all = new ArrayList<>(ledger.read().values());
+        for (int i = 0; i < all.size(); i += CHUNK) {
+            List<DeletionLedger.Entry> chunk = all.subList(i, Math.min(i + CHUNK, all.size()));
+            Map<Long, User> found = new HashMap<>();
             try {
-                User u = users.findById(e.userId()).orElse(null);
-                if (u == null || u.getStatus() == UserStatus.DELETED || u.getDeletedAt() != null) {
-                    continue;
+                for (User u : users.findAllById(chunk.stream().map(DeletionLedger.Entry::userId).toList())) {
+                    found.put(u.getId(), u);
                 }
-                Instant created = u.getCreatedAt();
-                if (e.createdEpochSec() > 0 && (created == null || created.getEpochSecond() != e.createdEpochSec())) {
-                    log.warn("Silme defteri kaydi hesapla uyusmuyor, atlandi (kullanici {})", e.userId());
-                    continue;
-                }
-                profiles.anonymizeAccount(e.userId());
-                n++;
-                log.warn("Silme defterinden yeniden anonimlestirildi (kullanici {})", e.userId());
             } catch (RuntimeException ex) {
-                log.warn("Silme defteri uygulanamadi (kullanici {}): {}", e.userId(), ex.toString());
+                log.warn("Silme defteri parcasi okunamadi: {}", ex.toString());
+                continue;
+            }
+            for (DeletionLedger.Entry e : chunk) {
+                try {
+                    User u = found.get(e.userId());
+                    if (u == null || u.getStatus() == UserStatus.DELETED || u.getDeletedAt() != null) {
+                        continue;
+                    }
+                    Instant created = u.getCreatedAt();
+                    if (e.createdEpochSec() > 0 && (created == null || created.getEpochSecond() != e.createdEpochSec())) {
+                        log.warn("Silme defteri kaydi hesapla uyusmuyor, atlandi (kullanici {})", e.userId());
+                        continue;
+                    }
+                    profiles.anonymizeAccount(e.userId());
+                    n++;
+                    log.warn("Silme defterinden yeniden anonimlestirildi (kullanici {})", e.userId());
+                } catch (RuntimeException ex) {
+                    log.warn("Silme defteri uygulanamadi (kullanici {}): {}", e.userId(), ex.toString());
+                }
             }
         }
         return n;
     }
+
+    private static final int CHUNK = 500;
 }

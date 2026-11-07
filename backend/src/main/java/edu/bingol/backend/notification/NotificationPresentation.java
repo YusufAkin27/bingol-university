@@ -28,12 +28,28 @@ public final class NotificationPresentation {
                 || data.containsKey("examId") || target.startsWith("ACADEMIC") || "EXAM".equals(target)
                 || "TIMETABLE".equals(target) || "ANNOUNCEMENT_DEPT".equals(target)) return "ACADEMIC";
         if (type == null) return "SYSTEM";
+        // Kulup uyelik basvurusu/sonucu (COMMUNITY_JOIN) sosyal etkilesimdir: Hareketler (kalp) merkezine aittir.
+        if (type == NotificationType.COMMUNITY && "COMMUNITY_JOIN".equals(subtype)) return "SOCIAL";
         return switch (type) {
             case MESSAGE -> "MESSAGE";
             case EVENT -> "EVENT";
-            case POST_LIKE, POST_COMMENT, COMMENT_REPLY, POST_MENTION, USER_FOLLOW, FOLLOW_REQUEST, FOLLOW_ACCEPTED -> "SOCIAL";
+            case POST_LIKE, POST_COMMENT, COMMENT_REPLY, POST_MENTION, USER_FOLLOW, FOLLOW_REQUEST, FOLLOW_ACCEPTED, FORUM -> "SOCIAL";
             case SYSTEM -> "SYSTEM";
             case NEWS, ANNOUNCEMENT, COMMUNITY -> "ANNOUNCEMENT";
         };
+    }
+
+    /**
+     * Bildirim merkezi kapsami: TEK kaynak. SOCIAL (kalp / Hareketler) | CHAT (Sohbet sistemi, kutuda yok) |
+     * INFORMATION (zil / Bildirimler). Bir bildirim yalniz tek kapsama aittir.
+     */
+    public static String scope(String category) {
+        if ("SOCIAL".equals(category)) return "SOCIAL";
+        if ("MESSAGE".equals(category)) return "CHAT";
+        return "INFORMATION";
+    }
+
+    public static String scope(NotificationType type, String subtype, Map<String, String> data) {
+        return scope(category(type, subtype, data));
     }
 }

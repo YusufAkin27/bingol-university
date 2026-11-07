@@ -158,3 +158,10 @@
   text-align: center;
   color: var(--text-muted);
 }
+
+/* SİSTEM2: sürüm dağılımı çubukları */
+.chartBlock {
+  display: grid;
+  gap: var(--space-3);
+  margin-block: var(--space-3) var(--space-4);
+}

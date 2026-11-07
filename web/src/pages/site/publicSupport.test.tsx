@@ -13,7 +13,7 @@ import { resetCookieChoice } from '../../lib/cookieConsent';
 import { AppRoutes } from '../../routes';
 import { jsonResponse, mockFetch } from '../../test/fetchMock';
 import { renderWithProviders } from '../../test/utils';
-import { daysOfMonth, parseDay, weekDates } from './menuLogic';
+import { daysOfMonth, parseDay, parseMenuDay, weekDates } from './menuLogic';
 
 const info = {
   appName: 'BÜ Kampüs',
@@ -78,6 +78,68 @@ describe('yemek sayfası', () => {
     expect(screen.queryByText(/sks\.bingol\.edu\.tr/)).toBeNull();
     for (const lang of ['tr', 'en', 'ar'] as const)
       expect(Object.keys(dictionaries[lang])).not.toContain('pg.menu.source');
+  });
+
+  it('API kalorisi ve toplamı satır içi kaloriden önceliklidir; eksik kalori "en az" sayılır', () => {
+    const d = parseMenuDay({
+      items: ['Çorba', 'Pilav'],
+      imageUrl: '/files/x.webp',
+      dishes: [
+        { name: 'Çorba', kcal: 145 },
+        { name: 'Pilav', kcal: null },
+      ],
+      totalKcal: 145,
+      kcalComplete: false,
+    });
+    expect(d.sections[0].dishes).toEqual([
+      { text: 'Çorba', kcal: 145 },
+      { text: 'Pilav', kcal: null },
+    ]);
+    expect(d.totalKcal).toBe(145);
+    expect(d.kcalComplete).toBe(false);
+    expect(d.imageUrl).toBe('/files/x.webp');
+  });
+
+  it('günlük kart: yemek başına kalori, günün toplamı ve "uygulamada puanla" kartı', async () => {
+    mockFetch((url) => {
+      if (url.includes('/status')) return jsonResponse(200, {});
+      if (url.includes('/menu'))
+        return jsonResponse(200, [
+          {
+            date: isoDate(new Date()),
+            items: ['Mercimek çorbası', 'Pilav'],
+            imageUrl: null,
+            dishes: [
+              { name: 'Mercimek çorbası', kcal: 145 },
+              { name: 'Pilav', kcal: 220 },
+            ],
+            totalKcal: 365,
+            kcalComplete: true,
+          },
+        ]);
+      return jsonResponse(200, info);
+    });
+    renderAt('/menu');
+    expect(await screen.findByText('Mercimek çorbası')).toBeInTheDocument();
+    expect(screen.getByText('145 kcal')).toBeInTheDocument();
+    expect(screen.getByText('Günün toplamı')).toBeInTheDocument();
+    expect(screen.getAllByText('365 kcal').length).toBeGreaterThan(0);
+    expect(screen.getByRole('heading', { level: 2, name: 'Günün menüsünü uygulamada puanlayın' })).toBeInTheDocument();
+  });
+
+  it('seçili günün menüsü yoksa menü olan sonraki güne geçiş düğmesi sunar', async () => {
+    const t = new Date();
+    const next = new Date(t.getFullYear(), t.getMonth(), t.getDate() + 1);
+    if (next.getMonth() !== t.getMonth()) return; // ayın son günü: sonraki ay yüklü değil, senaryo geçerli değil
+    mockFetch((url) => {
+      if (url.includes('/status')) return jsonResponse(200, {});
+      if (url.includes('/menu')) return jsonResponse(200, [{ date: isoDate(next), items: ['Pilav'] }]);
+      return jsonResponse(200, info);
+    });
+    renderAt('/menu');
+    expect(await screen.findByText('Bu tarih için menü yok')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Menü olan sonraki günü göster/ }));
+    expect(await screen.findByText('Pilav')).toBeInTheDocument();
   });
 
   it('boş ay için boş durumu gösterir', async () => {

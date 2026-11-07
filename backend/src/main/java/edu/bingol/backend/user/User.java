@@ -11,6 +11,7 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Table(name = "app_user")
@@ -31,7 +32,63 @@ public class User {
     @Column(nullable = false, length = 80)
     private String displayName;
 
+    /** Ad / soyad (profil tamamlama; kullanici beyani). Eski hesaplarda null: gorunen ad tek alandi. */
+    @Column(length = 60)
+    private String firstName;
+
+    @Column(length = 60)
+    private String lastName;
+
+    /**
+     * Benzersiz kullanici adi: 3-24 karakter, yalniz kucuk harf/rakam/nokta/alt cizgi (buyuk-kucuk harf duyarsizligi
+     * KUCUK HARFE normallestirilerek saglanir; benzersiz indeks bu sutundadir). Eski hesaplarda null (sonradan atanir).
+     */
+    @Column(length = 24, unique = true)
+    private String username;
+
+    /** Kullanici adinin son atanma/degisim ani (degisim bekleme suresi icin). */
+    private Instant usernameSetAt;
+
+    /** Kullanici beyani universite adi (null = Bingol Universitesi varsayilani). Dogrulanmis ogrenci anlamina GELMEZ. */
+    @Column(length = 120)
+    private String universityName;
+
+    /**
+     * Profil tamamlanma ani. null = tamamlanmadi: yazma uclari 403 PROFILE_INCOMPLETE (ProfileIncompleteWriteFilter).
+     * DB varsayilani now(): ham INSERT yazan betikler/eski yollar kilitlenmesin; yalniz OAuth ile acilan hesap bilincli
+     * null yazar. Migration mevcut tum kullanicilar icin created_at atar.
+     */
+    @ColumnDefault("CURRENT_TIMESTAMP")
+    private Instant profileCompletedAt = Instant.now(); // yeni User() varsayilan TAMAM; OAuth yolu bilincli null yazar
+
     private boolean emailVerified;
+
+    /**
+     * Hesap e-postasi Apple "E-postami gizle" role adresi mi (RelayEmails; V1472). true = bildirim/sifre sifirlama
+     * postasi guvenilir ulasmaz; kullanicidan gercek adres istenir (POST /api/users/me/email/start).
+     */
+    @ColumnDefault("false")
+    private boolean emailRelay;
+
+    /**
+     * Gercek e-posta KAPISI (V1472): yalniz YENI role hesaplarda true; gercek adres dogrulanana kadar yazma uclari
+     * 403 REAL_EMAIL_REQUIRED. Mevcut canli role hesaplar false kalir (yumusak adim; kilitlenmezler).
+     */
+    @ColumnDefault("false")
+    private boolean realEmailRequired;
+
+    /** Gercek adresin kodla dogrulandigi an (role hesaplar icin); null = hic role olmadi / henuz dogrulanmadi. */
+    private Instant realEmailVerifiedAt;
+
+    /**
+     * Kota asiminda ertelenmis dogrulama (QT-BE): hesap kod gonderilemedigi icin dogrulanmamis acildi; yalniz okur.
+     * email_verified=true olunca anlamsizdir (dogrulama anlik false yapar).
+     */
+    @ColumnDefault("false")
+    private boolean verificationDeferred;
+
+    /** DeferredVerificationJob'un bu hesaba son kod postasi kuyruga aldigi an (kota gunu basina en cok 1). */
+    private Instant verificationMailedAt;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 16)
@@ -74,6 +131,13 @@ public class User {
     @Column(length = 300)
     private String suspendedReason;
 
+    /** E-posta kodlu iki faktorlu dogrulama acik mi (kullanici kendisi acar; bkz. auth.twofactor). */
+    // DB varsayilani: ham INSERT yazan betikler/testler alani vermeyince NOT NULL ihlali olmasin (V1060'ta da DEFAULT FALSE)
+    @ColumnDefault("false")
+    private boolean twoFactorEnabled;
+
+    private Instant twoFactorEnabledAt;
+
     private Instant deletedAt;
 
     /** Son gorulme (en cok 5 dakikada bir guncellenir; bkz. analytics.ActivityTracker). */
@@ -82,7 +146,7 @@ public class User {
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
 
-    /** E-postanin SHA-256'si (e-posta bastirma eslemesi icin; rehber eslestirme kaldirildi); kayitta/guncellemede otomatik, silinmis hesapta null. */
+    /** Rehber eslestirme icin e-postanin SHA-256'si; kayitta/guncellemede otomatik, silinmis hesapta null. */
     @Column(length = 64)
     @com.fasterxml.jackson.annotation.JsonIgnore
     private String emailSha256;
@@ -96,5 +160,21 @@ public class User {
 
     public boolean isActive() {
         return status == UserStatus.ACTIVE;
+    }
+
+    /** OAuth ile acilan hesabin parola alani: bcrypt bicimine uymaz, matches() daima false doner (parola girisi kapali). */
+    public static final String NO_PASSWORD_PREFIX = "!oauth:";
+
+    /** Kullanilabilir bir parola ozeti var mi: "!" ile baslayan isaretler (OAuth "!oauth:", silinmis "!deleted:") parola DEGILDIR. */
+    public static boolean hasUsablePassword(String hash) {
+        return hash != null && !hash.isEmpty() && !hash.startsWith("!");
+    }
+
+    public boolean hasPassword() {
+        return hasUsablePassword(passwordHash);
+    }
+
+    public boolean isProfileCompleted() {
+        return profileCompletedAt != null;
     }
 }

@@ -7,6 +7,7 @@ import edu.bingol.backend.post.follow.FollowService.Suggestion;
 import edu.bingol.backend.post.follow.FollowService.UserPage;
 import java.time.Duration;
 import java.util.List;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -57,9 +58,12 @@ public class FollowController {
     }
 
     @GetMapping("/me/follow-suggestions")
-    public List<Suggestion> suggestions(@RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<List<Suggestion>> suggestions(@RequestParam(defaultValue = "0") int page,
+                                                        @RequestParam(defaultValue = "10") int size) {
         Long uid = read();
-        return service.suggestions(uid, size);
+        // Govde duz dizi kalir (eski istemciler); devam bilgisi X-Has-More basliginda. Kullaniciya ozel veri.
+        FollowService.SuggestionPage p = service.suggestionsPage(uid, page, size);
+        return ResponseEntity.ok().header("X-Has-More", String.valueOf(p.hasMore())).body(p.items());
     }
 
     private Long read() {

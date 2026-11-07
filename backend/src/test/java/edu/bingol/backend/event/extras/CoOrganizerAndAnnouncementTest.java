@@ -161,20 +161,44 @@ class CoOrganizerAndAnnouncementTest {
     private final AnnouncementService ann = new AnnouncementService(events, rsvps, log, communities, blocks, notifications);
 
     @Test
+    void announcementNotificationsLeaveTheRequestAndRunOnlyAfterCommit() {
+        // FINAL-ALL (P05/P08 ertelenen): istek yalniz alici kimliklerini toplar (sayi yanitta); gonderim havuzda.
+        UserEvent e = event();
+        when(events.load(10L)).thenReturn(e);
+        when(events.requireManagerOrPerm(OWNER, e, edu.bingol.backend.event.EventModerator.Perm.SEND_ANNOUNCEMENT)).thenReturn(e);
+        when(log.countByEventIdAndCreatedAtGreaterThanEqual(anyLong(), any())).thenReturn(0L);
+        when(rsvps.userIdsAfter(eq(10L), eq(EventRsvp.Status.GOING), eq(0L), any(Pageable.class))).thenReturn(List.of(2L, 3L));
+        when(communities.usersById(any())).thenReturn(Map.of(2L, user(2, UserStatus.ACTIVE), 3L, user(3, UserStatus.ACTIVE)));
+        when(blocks.hiddenFrom(1L)).thenReturn(java.util.Set.of());
+        edu.bingol.backend.notification.CapturingFanout fanout = new edu.bingol.backend.notification.CapturingFanout();
+        ann.setFanout(fanout);
+
+        var r = ann.send(OWNER, 10L, "Baslik", "Mesaj", Instant.now());
+
+        assertEquals(2, r.recipients());
+        verify(notifications, org.mockito.Mockito.never()).sendTemplatedBulk(any(), any(), any(), any(), any(String[].class));
+        assertEquals(1, fanout.tasks.size());
+        fanout.runAll();
+        verify(notifications, times(1)).sendTemplatedBulk(eq(List.of(2L, 3L)), eq(ExtrasTemplates.ANNOUNCEMENT), any(), any(),
+                eq("Etkinlik"), eq("Baslik"), eq("Mesaj"));
+    }
+
+    @Test
     void announcementGoesOnlyToActiveNonBlockedGoingUsersExceptSender() {
         UserEvent e = event();
         when(events.load(10L)).thenReturn(e);
-        when(events.requireManager(OWNER, e)).thenReturn(e);
+        when(events.requireManagerOrPerm(OWNER, e, edu.bingol.backend.event.EventModerator.Perm.SEND_ANNOUNCEMENT)).thenReturn(e);
         when(log.countByEventIdAndCreatedAtGreaterThanEqual(anyLong(), any())).thenReturn(1L);
         when(rsvps.userIdsAfter(eq(10L), eq(EventRsvp.Status.GOING), eq(0L), any(Pageable.class))).thenReturn(List.of(1L, 2L, 3L, 4L, 5L));
         when(communities.usersById(any())).thenReturn(Map.of(
                 1L, user(1, UserStatus.ACTIVE), 2L, user(2, UserStatus.ACTIVE), 3L, user(3, UserStatus.SUSPENDED),
                 4L, user(4, UserStatus.ACTIVE)));
-        when(blocks.isBlocked(1L, 4L)).thenReturn(true);
+        when(blocks.hiddenFrom(1L)).thenReturn(java.util.Set.of(4L));
         var r = ann.send(OWNER, 10L, " Baslik ", " Mesaj ", Instant.now());
         assertEquals(1, r.recipients());
         assertEquals(1, r.remainingToday());
-        verify(notifications, times(1)).sendTemplate(eq(2L), eq(ExtrasTemplates.ANNOUNCEMENT), any(), any(),
+        // FINAL-ALL: toplu gonderim (tek alici: 2)
+        verify(notifications, times(1)).sendTemplatedBulk(eq(List.of(2L)), eq(ExtrasTemplates.ANNOUNCEMENT), any(), any(),
                 eq("Etkinlik"), eq("Baslik"), eq("Mesaj"));
     }
 
@@ -182,7 +206,7 @@ class CoOrganizerAndAnnouncementTest {
     void fourthAnnouncementOfTheDayRejected() {
         UserEvent e = event();
         when(events.load(10L)).thenReturn(e);
-        when(events.requireManager(OWNER, e)).thenReturn(e);
+        when(events.requireManagerOrPerm(OWNER, e, edu.bingol.backend.event.EventModerator.Perm.SEND_ANNOUNCEMENT)).thenReturn(e);
         when(log.countByEventIdAndCreatedAtGreaterThanEqual(anyLong(), any())).thenReturn(3L);
         code(assertThrows(ApiException.class, () -> ann.send(OWNER, 10L, "a", "b", Instant.now())),
                 HttpStatus.TOO_MANY_REQUESTS, "ANNOUNCEMENT_LIMIT");
@@ -194,9 +218,9 @@ class CoOrganizerAndAnnouncementTest {
         UserEvent e = event();
         e.setStatus(UserEvent.Status.CANCELLED);
         when(events.load(10L)).thenReturn(e);
-        when(events.requireManager(OTHER, e)).thenThrow(new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "x"));
+        when(events.requireManagerOrPerm(OTHER, e, edu.bingol.backend.event.EventModerator.Perm.SEND_ANNOUNCEMENT)).thenThrow(new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "x"));
         code(assertThrows(ApiException.class, () -> ann.send(OTHER, 10L, "a", "b", Instant.now())), HttpStatus.FORBIDDEN, "FORBIDDEN");
-        when(events.requireManager(OWNER, e)).thenReturn(e);
+        when(events.requireManagerOrPerm(OWNER, e, edu.bingol.backend.event.EventModerator.Perm.SEND_ANNOUNCEMENT)).thenReturn(e);
         code(assertThrows(ApiException.class, () -> ann.send(OWNER, 10L, "a", "b", Instant.now())), HttpStatus.CONFLICT, "EVENT_NOT_OPEN");
     }
 }

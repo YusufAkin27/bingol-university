@@ -2,6 +2,7 @@
 import { levelOf, type SystemIndicator, type SystemLevel } from '../../../api/system';
 import { Icon } from '../../../components/ui';
 import type { I18n } from '../../../i18n/I18nProvider';
+import { TrafficLight } from '../sistem1/Visuals';
 import { LEVEL_ICON } from './IndicatorViews';
 import { LEVEL_ORDER, nameOf, valueText } from './indicators';
 import styles from './systemstatus.module.css';
@@ -28,8 +29,24 @@ export function problemsOf(i18n: I18n, entries: [string, SystemIndicator][]): Pr
 function jumpTo(id: string) {
   const el = document.getElementById(`ind-${id}`);
   if (!el) return;
+  // Gösterge katlanmış bir bölümün içindeyse önce bölümleri aç (yoksa kaydırma boşa gider)
+  for (let p = el.parentElement; p; p = p.parentElement) {
+    if (p instanceof HTMLDetailsElement && !p.open) p.open = true;
+  }
   el.scrollIntoView({ block: 'center', behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   el.focus({ preventScroll: true });
+}
+
+/** Tüm göstergelerin sayım cümlesi (teknik bölümde gösterilir). */
+export function countsText(i18n: I18n, entries: [string, SystemIndicator][]): string {
+  const count = (lv: SystemLevel) => entries.filter(([, v]) => levelOf(v.status) === lv).length;
+  return i18n.t('admin.v2n.sys.hero.counts', {
+    total: String(entries.length),
+    ok: String(count('OK')),
+    warn: String(count('WARN')),
+    crit: String(count('CRIT')),
+    unknown: String(count('UNKNOWN')),
+  });
 }
 
 export function StatusHero({
@@ -49,7 +66,6 @@ export function StatusHero({
     overall === 'OK'
       ? { n: String(total) }
       : { n: String(overall === 'UNKNOWN' ? count('UNKNOWN') : bad) };
-  const unknown = count('UNKNOWN');
   return (
     <section
       className={styles.hero}
@@ -58,9 +74,9 @@ export function StatusHero({
       aria-labelledby="sys-hero-title"
       data-testid="sys-hero"
     >
-      <span className={styles.heroIcon} aria-hidden="true">
-        <Icon name={LEVEL_ICON[overall]} size={34} strokeWidth={2.4} />
-      </span>
+      <div className={styles.heroLight}>
+        <TrafficLight i18n={i18n} level={overall} />
+      </div>
       <div className={styles.heroBody}>
         <p className={styles.heroKicker}>{i18n.t('admin.v2n.sys.hero.question')}</p>
         <h2 id="sys-hero-title" className={styles.heroTitle}>
@@ -85,15 +101,6 @@ export function StatusHero({
             ))}
           </ul>
         )}
-        <p className={styles.heroCounts}>
-          {i18n.t('admin.v2n.sys.hero.counts', {
-            total: String(total),
-            ok: String(count('OK')),
-            warn: String(count('WARN')),
-            crit: String(count('CRIT')),
-            unknown: String(unknown),
-          })}
-        </p>
       </div>
     </section>
   );

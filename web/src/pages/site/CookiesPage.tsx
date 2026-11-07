@@ -23,6 +23,7 @@ export default function CookiesPage() {
     <InfoPage
       slug="cookies"
       path={paths.site.cookies}
+      keyed={['s2']}
       sections={COOKIES_SECTIONS}
       highlights={trustPoints(t, 'cookies', ['check', 'eyeOff', 'settings'])}
       after={{

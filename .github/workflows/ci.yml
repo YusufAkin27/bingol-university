@@ -120,6 +120,9 @@ jobs:
       - name: Paket boyutu butcesi (uyari)
         run: npm run check:bundle
         continue-on-error: true
+      # Teknik SEO kapisi (docs/SEO_TECHNICAL.md): canonical/hreflang/sitemap/robots/404/JSON-LD; hata ve uyari isi kirar
+      - name: Teknik SEO denetimi (strict)
+        run: npm run check:seo:strict
       - name: Web dist
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:

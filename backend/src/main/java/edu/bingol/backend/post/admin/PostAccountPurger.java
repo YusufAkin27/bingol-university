@@ -36,11 +36,54 @@ public class PostAccountPurger {
         this.social = social;
     }
 
+    /** Yorum/kaydet temizligi (post.comment; yoksa atlanir). */
+    private edu.bingol.backend.post.comment.CommentAccountPurger comments;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setComments(edu.bingol.backend.post.comment.CommentAccountPurger comments) {
+        this.comments = comments;
+    }
+
+
+    /** Gorulmus kumesi (Redis feedseen) ve populerlik satiri (KVKK: hesap silinince kalmaz). */
+    private edu.bingol.backend.post.feed.FeedSeenService seen;
+    private edu.bingol.backend.post.popularity.UserPopularityService popularity;
+    private edu.bingol.backend.post.reels.ReelsService reelsService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setReelsService(edu.bingol.backend.post.reels.ReelsService reelsService) {
+        this.reelsService = reelsService;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setSeen(edu.bingol.backend.post.feed.FeedSeenService seen) {
+        this.seen = seen;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setPopularity(edu.bingol.backend.post.popularity.UserPopularityService popularity) {
+        this.popularity = popularity;
+    }
+
     public void purge(Long userId) {
+        if (seen != null) {
+            seen.forget(userId);
+        }
+        if (popularity != null) {
+            popularity.purge(userId);
+        }
+        if (reelsService != null) {
+            reelsService.purge(userId); // izleme gecmisi (post_watch)
+        }
+        if (comments != null) {
+            comments.purge(userId);
+        }
         List<Long> postIds = jdbc.queryForList("SELECT id FROM post WHERE author_id = ? AND deleted_at IS NULL", Long.class, userId);
         // Olay icin medya kimlikleri, medya temizligi calismadan ONCE okunur
         List<PostDeletedEvent> evts = postIds.stream().map(id -> new PostDeletedEvent(id,
                 jdbc.queryForList("SELECT id FROM post_media WHERE post_id = ?", Long.class, id))).toList();
+        // V1310: yazarin gonderilerindeki etiketler (baskalarinin kimligi) gonderi yumusak silinmeden once duser
+        jdbc.update("DELETE FROM post_mention WHERE post_id IN (SELECT id FROM post WHERE author_id = ?)", userId);
         media.purgeUser(userId);
         likes.purgeUser(userId);
         jdbc.update("UPDATE post SET deleted_at = CURRENT_TIMESTAMP, deleted_by = ? WHERE author_id = ? AND deleted_at IS NULL",

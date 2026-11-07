@@ -43,15 +43,29 @@ public final class RichChatPayload {
                 m.channelId(), m.category(), m.badge(), m.highPriority(), m.ttlSeconds());
     }
 
+    /**
+     * Mutlak https adres; yalniz `PUBLIC_WEB_URL` ana makinesi ya da `bingol.edu.tr` alt alanlari kabul edilir
+     * (haber gorselleri kaynak sitededir). Kullanici bilgisi/parca/dis ana makine: null.
+     */
     public static String mediaUrl(String base, String raw) {
-        if (base == null || base.isBlank() || raw == null || raw.isBlank()) return null;
+        if (raw == null || raw.isBlank()) return null;
         try {
-            URI origin = URI.create(base);
-            URI url = origin.resolve(raw);
-            return "https".equalsIgnoreCase(origin.getScheme()) && "https".equalsIgnoreCase(url.getScheme())
-                    && origin.getHost() != null && origin.getHost().equalsIgnoreCase(url.getHost())
-                    && origin.getPort() == url.getPort() && url.getUserInfo() == null && url.getFragment() == null
-                    ? url.toASCIIString() : null;
+            URI url = URI.create(raw.trim());
+            if (url.getScheme() == null) { // goreli yol: yalniz kendi kokumuze cozulur ("//ana.makine" olmaz)
+                if (url.getRawAuthority() != null || base == null || base.isBlank()) return null;
+                url = URI.create(base).resolve(url);
+            }
+            if (url == null || !"https".equalsIgnoreCase(url.getScheme()) || url.getHost() == null
+                    || url.getUserInfo() != null || url.getFragment() != null) return null;
+            String host = url.getHost().toLowerCase(java.util.Locale.ROOT);
+            boolean campus = host.equals("bingol.edu.tr") || host.endsWith(".bingol.edu.tr");
+            boolean own = false;
+            if (base != null && !base.isBlank()) {
+                URI origin = URI.create(base);
+                own = "https".equalsIgnoreCase(origin.getScheme()) && origin.getHost() != null
+                        && origin.getHost().equalsIgnoreCase(url.getHost()) && origin.getPort() == url.getPort();
+            }
+            return own || (campus && url.getPort() == -1) ? url.toASCIIString() : null;
         } catch (IllegalArgumentException e) { return null; }
     }
 }

@@ -1,0 +1,413 @@
+# Uygunsuz ifade filtresi - Arapca v2 listesi (elle yazilmis, uretici: scripts/profanity/gen-v2.js). ELLE DEGISTIRMEYIN.
+# Arapca girisler tam kok eslesmesi yapar; harekeler, tatweel, alef/ya/ta marbuta varyantlari ve on/son ekler otomatik soyulur.
+# Latin harfli Arapca (arabizi) yazimlar ayni dosyadadir. Rakam iceren arabizi ("a7a") leet ile cakistigi icin eklenmez.
+
+# --- Arapca ve arabizi ---
+كسمك
+كسمين
+كسها
+كسهم
+كسي
+كسك
+كسو
+كسخت
+كسختك
+كسامك
+كسيخت
+كسمكم
+زبي
+زبك
+زبه
+ايري
+ايرك
+ايره
+ايرها
+طيزي
+طيزك
+طيزها
+طيزه
+نيك
+نيكة
+نيكها
+نيكك
+نيكني
+نيكنا
+ناك
+ناكك
+ناكها
+ينيك
+ينيكك
+ينيكها
+انيك
+انيكك
+منيوك
+منيوكة
+منيوكه
+منيوكين
+منيك
+منيكة
+منيكه
+منايك
+متناك
+متناكة
+متناكه
+متناكين
+شرموط
+شرموطة
+شرموطه
+شراميط
+شرموطات
+شرموطين
+شرمط
+عاهر
+عاهرة
+عاهره
+عواهر
+عهر
+قحبة
+قحبه
+قحاب
+قحبات
+لواط
+لوطي
+لوطية
+لوطيين
+لياط
+سحاق
+سحاقية
+سحاقيات
+خنيث
+مخنث
+مخنثين
+مخنثة
+مأبون
+ديوث
+ديوثة
+دياثة
+ديوثين
+معرص
+معرصة
+معرصين
+عرص
+عرصة
+عراص
+خرا
+خره
+خراء
+بعبص
+بعبصة
+فاجرة
+فاجرات
+وسخة
+ينعل
+ينعلك
+تمص
+تمصني
+تمصيني
+امص
+امصني
+ينيكو
+نياك
+نياكة
+بزاز
+بزازك
+بزازها
+عاهرات
+ابن الكلب
+ابن الزنا
+ابن الحرام
+ابن الوسخة
+ابن الوسخه
+ابن الخرا
+ابن الكلبة
+ابن الكلبه
+ابن الزانية
+ابن الزانيه
+ابن اللبوة
+ولد الحرام
+ولد الكلب
+ولد الزنا
+بنت الكلب
+بنت الحرام
+بنت الزنا
+يا ابن الكلب
+يا ابن الحرام
+يا ابن الشرموطة
+يا ابن القحبة
+يا كلب
+يا كلبة
+يا حمار
+يا حمارة
+يا خنزير
+يا خنزيرة
+يا حيوان
+يا حقير
+يا حقيرة
+يا وسخ
+يا وسخة
+يا نذل
+يا نذلة
+يا قذر
+يا قذرة
+يا غبي
+يا غبية
+يا أحمق
+يا احمق
+يا حثالة
+يا زبالة
+يا قواد
+يلعن ابوك
+يلعن أبوك
+يلعن امك
+يلعن أمك
+يلعن دينك
+يلعن شرفك
+يلعن عرضك
+يلعن ربك
+يلعن الله
+يلعن النبي
+يلعن اجدادك
+يلعن روحك
+ينعل ابوك
+ينعل أبوك
+ينعل امك
+ينعل أمك
+ينعل دينك
+ينعل ابو
+روح انيك
+روح تنيك
+يا ابن ستين كلب
+ابن ستين كلب
+ابن سبعين كلب
+بنت ستين كلب
+خد في طيزك
+خذ في طيزك
+تعال انيكك
+تعالي انيكك
+اريد ان انيكك
+بدي نيكك
+بدي انيكك
+افلام جنسية
+أفلام جنسية
+افلام اباحية
+أفلام إباحية
+قصص جنسية
+قصص محارم
+بنات ليل
+بنات للمتعة
+بنات الهوى
+ارقام بنات
+أرقام بنات
+ارقام شراميط
+ارقام عاهرات
+دعارة اون لاين
+sharmouta
+sharmoota
+sharmota
+sharmuta
+charmouta
+charmoota
+charmota
+sharmouti
+sharamit
+sharameet
+sharmoot
+sharmouty
+kahba
+kahbe
+kahbeh
+kahbi
+qahba
+qahbeh
+manyouk
+manyook
+manyoka
+manyouka
+manyuk
+manyuka
+manyoki
+metnak
+metnaka
+mitnak
+mitnaka
+mitnaki
+khawal
+khawalat
+ibn el sharmouta
+ibn el sharmoota
+ibn el sharmota
+ibn el kalb
+ibn el kahba
+ibn el kahbeh
+ibn el metnaka
+ibn el metnak
+ibn el haram
+ibn el zina
+ibn el wasikha
+ibn al kalb
+ibn al sharmouta
+ibn al kahba
+ibn al haram
+ibn al zina
+ibn kalb
+ibn sharmouta
+ibn kahba
+ibn haram
+bint el kalb
+bint el sharmouta
+bint el kahba
+bint el haram
+bint al kalb
+bint al sharmouta
+bint al kahba
+bint kalb
+bint sharmouta
+bint kahba
+walad el kalb
+walad el haram
+walad el kahba
+walad el sharmouta
+walad al kalb
+walad al haram
+walad al kahba
+walad al sharmouta
+ya kalb
+ya ibn el kalb
+ya ibn el sharmouta
+ya ibn el kahba
+ya ibn el haram
+ya ibn al kalb
+ya ibn al sharmouta
+ya ibn al kahba
+ya sharmouta
+ya sharmoota
+ya kahba
+ya manyouk
+ya metnak
+ya metnaka
+ya khawal
+kos omak
+kos ummak
+kos omk
+kos emak
+kos ommak
+kus omak
+kus ummak
+kus omk
+kus emak
+kus ommak
+kuss omak
+kuss ummak
+koss omak
+koss ummak
+kosomak
+kosommak
+kosomk
+kusomak
+kusommak
+kusomk
+kos okhtak
+kos ukhtak
+kos okhtik
+kus okhtak
+kus ukhtak
+kos ekhtak
+kos ekhtek
+kosokhtak
+kosukhtak
+kos deenak
+kos dinak
+kos deenek
+kus deenak
+kus dinak
+kos rabbak
+kos rabak
+kos allah
+kus allah
+kos el deen
+kos el din
+kus el deen
+kos el islam
+ayre fik
+ayre feek
+ayre bik
+ayre beek
+nik omak
+nik ommak
+nik okhtak
+nik ukhtak
+nik ekhtak
+nik ummak
+neek omak
+neek ommak
+neek okhtak
+neek ummak
+zebi
+zobry
+zobri
+zobbi
+zebbi
+zebbak
+zebik
+zubri
+zubbi
+tiz omak
+tiz ommak
+tiz okhtak
+teez omak
+teez ommak
+teez okhtak
+teezak
+teezek
+tizak
+tizek
+sharmout
+sharmoutteh
+charmoutah
+mkhannath
+mokhannath
+mokhanath
+makhannath
+dayouth
+dayyouth
+dayuth
+dayyuth
+moarras
+mo arras
+sahaq
+sahhaq
+sahaqiya
+sahhaqiya
+oss omak
+oss ommak
+oss okhtak
+oss ukhtak
+حشيش للبيع
+حشيش متوفر
+حشيش متاح
+حشيش للتوصيل
+كبتاجون للبيع
+كبتاجون متوفر
+كبتاجون
+كوكايين للبيع
+كوكايين متوفر
+هيروين للبيع
+هيروين متوفر
+حبوب مخدرة للبيع
+حبوب مخدرة متوفرة
+حبوب مهلوسة للبيع
+مخدرات للبيع
+مخدرات متوفرة
+مخدرات للتوصيل
+مخدرات توصيل
+بيع مخدرات
+بيع حشيش
+بيع كبتاجون
+بيع كوكايين
+ترامادول للبيع
+ترامادول متوفر
+ماريجوانا للبيع
+ماريجوانا متوفرة
+بودرة للبيع
+كريستال ميث للبيع
+كريستال ميث متوفر

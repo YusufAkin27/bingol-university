@@ -1,7 +1,7 @@
 // "Bize ulaşın" formu (T27). Akış: form -> e-postaya kod -> kod doğrulama -> talep numarası + durum bağlantısı.
 // API: POST /api/public/support/tickets, POST /api/public/support/tickets/verify (api/publicSupport.ts).
 import { useMutation } from '@tanstack/react-query';
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link } from '../../../components/LocalizedLink';
 import {
   DEFAULT_MIN_FILL_SECONDS,
@@ -34,6 +34,8 @@ interface HeldToken {
   issuedAt: number;
   minFillSeconds: number;
 }
+
+const STEPS: Step[] = ['form', 'code', 'done'];
 
 export const trackPath = (token: string) => `/support/track?token=${encodeURIComponent(token)}`;
 
@@ -148,8 +150,34 @@ export function PublicSupportForm() {
     return t(key, { max: k === 'name' ? NAME_MAX : MESSAGE_MAX, min: MESSAGE_MIN });
   };
 
+  const frame = (node: ReactNode) => (
+    <div className={styles.frame}>
+      <ol className={styles.steps} aria-label={t('site.rd06.pubsup.stepsLabel')}>
+        {STEPS.map((k, i) => {
+          const state = k === step ? 'now' : i < STEPS.indexOf(step) ? 'past' : 'next';
+          return (
+            <li
+              key={k}
+              className={`${styles.stepItem} ${styles[state]}`}
+              aria-current={state === 'now' ? 'step' : undefined}
+            >
+              <span className={styles.stepNum} aria-hidden="true">
+                {state === 'past' ? <Icon name="check" size={16} /> : i + 1}
+              </span>
+              <span className={styles.stepText}>
+                <span className={styles.stepKicker}>{t('site.rd06.pubsup.step', { n: i + 1 })}</span>
+                <span className={styles.stepName}>{t(`site.rd06.pubsup.step${i + 1}` as TranslationKey)}</span>
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+      {node}
+    </div>
+  );
+
   if (step === 'done' && result) {
-    return (
+    return frame(
       <div className={styles.card} role="status">
         <span className={styles.okIcon}>
           <Icon name="check" size={24} />
@@ -164,18 +192,18 @@ export function PublicSupportForm() {
             {t('site.pubsup.doneNew')}
           </Button>
         </div>
-      </div>
+      </div>,
     );
   }
 
   if (step === 'code') {
-    return (
+    return frame(
       <form className={styles.card} onSubmit={onVerify} noValidate>
         <h2 className={shared.h3}>{t('site.pubsup.codeTitle')}</h2>
         <p className={shared.muted}>{t('site.pubsup.codeLead', { email: email.trim(), min: minutes })}</p>
         <FormField label={t('site.pubsup.codeLabel')} required error={codeError ?? (verify.error ? errorMessage(i18n, verify.error) : null)}>
           <Input
-            className="ltr"
+            className={`ltr ${styles.code}`}
             inputMode="numeric"
             autoComplete="one-time-code"
             maxLength={6}
@@ -191,16 +219,19 @@ export function PublicSupportForm() {
             {t('site.pubsup.codeBack')}
           </Button>
         </div>
-      </form>
+      </form>,
     );
   }
 
-  return (
+  return frame(
     <form className={styles.card} onSubmit={onSubmit} noValidate aria-labelledby="pubsup-title">
-      <h2 id="pubsup-title" className={shared.h3}>
-        {t('site.pubsup.title')}
-      </h2>
-      <p className={shared.muted}>{t('site.pubsup.lead')}</p>
+      <header className={styles.head}>
+        <h2 id="pubsup-title" className={styles.title}>
+          {t('site.pubsup.title')}
+        </h2>
+        <p className={shared.muted}>{t('site.pubsup.lead')}</p>
+        <p className={styles.req}>{t('site.rd06.pubsup.required')}</p>
+      </header>
       <div className={styles.row}>
         <FormField label={t('site.pubsup.name')} required error={errText('name')}>
           <Input value={name} maxLength={NAME_MAX + 20} autoComplete="name" onChange={(e) => setName(e.target.value)} />
@@ -252,13 +283,15 @@ export function PublicSupportForm() {
           {errorMessage(i18n, send.error)}
         </p>
       )}
-      <Button type="submit" loading={send.isPending}>
-        {t('site.pubsup.submit')}
-      </Button>
-      <p className={styles.privacy}>
-        {t('site.pubsup.privacy')}{' '}
-        <Link to={paths.site.dataRequest}>{t('site.pubsup.privacyLink')}</Link>
-      </p>
-    </form>
+      <div className={styles.footer}>
+        <p className={styles.privacy}>
+          {t('site.pubsup.privacy')}{' '}
+          <Link to={paths.site.dataRequest}>{t('site.pubsup.privacyLink')}</Link>
+        </p>
+        <Button type="submit" size="lg" loading={send.isPending}>
+          {t('site.pubsup.submit')}
+        </Button>
+      </div>
+    </form>,
   );
 }

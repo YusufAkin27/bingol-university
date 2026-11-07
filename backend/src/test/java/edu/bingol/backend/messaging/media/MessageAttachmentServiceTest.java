@@ -15,6 +15,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import edu.bingol.backend.common.ApiException;
@@ -557,6 +558,21 @@ class MessageAttachmentServiceTest {
         when(repo.deleteIfUnclaimed(a.getId())).thenReturn(0); // yaris: arada mesaja baglandi
         assertEquals(0, service.cleanup(Duration.ofHours(24)));
         assertNotNull(store.read("chat", a.getStorageKey()));
+    }
+
+    /** FIX-P03 (A09#10): dizin taramasi saatlik degil gunde bir; ikinci saatlik tur dosya basina sorgu atmaz. */
+    @Test
+    void fileSystemSweepRunsOncePerDayNotEveryHour() throws Exception {
+        MessageAttachment old = sent(ME, ME, Instant.now().minus(Duration.ofDays(3)));
+        java.nio.file.Files.setLastModifiedTime(
+                dir.resolve("_private").resolve("chat").resolve(old.getStorageKey()),
+                java.nio.file.attribute.FileTime.from(Instant.now().minus(Duration.ofDays(3))));
+        when(repo.stale(any(), any())).thenReturn(List.of());
+
+        service.cleanup(Duration.ofHours(24)); // ilk tur: tarar
+        service.cleanup(Duration.ofHours(24)); // bir saat sonrasi: taramaz
+
+        verify(repo, org.mockito.Mockito.times(1)).existsByStorageKey(old.getStorageKey());
     }
 
     @Test

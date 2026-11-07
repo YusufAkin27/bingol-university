@@ -10,7 +10,7 @@
   line-height: 1.5;
   /* kısa rozet tek satırda kalır; kapsayıcıdan uzun metin (hata kodu, uzun ad) taşmaz, satıra sarılır */
   max-width: 100%;
-  /* break-word: tablo hücresinde en küçük genişlik en uzun sözcük olur (anywhere tek harfe kadar sıkıştırıyordu); taşan uzun metin yine satıra sarılır */
+  /* anywhere değil break-word: en küçük içerik genişliği tam sözcük kalır, tablo sütunu rozeti harf harf sıkıştırmaz */
   overflow-wrap: break-word;
   text-align: start;
 }
@@ -44,81 +44,4 @@
 .info {
   background: var(--info-soft);
   color: var(--info);
-}
-
-/*
- * Yönetim paneli (monochrome): renk anlam taşımaz. Ton; simge + kenarlık biçimi (düz / kesikli / çift) ve etiket ile ayrışır.
- * Yalnız danger kırmızıdır. Simgeler maske olarak çizilir (currentColor), süs amaçlıdır (içerik metni değişmez).
- */
-:global(html[data-area='admin']) .badge,
-:global(html[data-area='admin']) .pill {
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  padding: 2px 10px;
-}
-:global(html[data-area='admin']) .badge.success,
-:global(html[data-area='admin']) .badge.warning,
-:global(html[data-area='admin']) .badge.danger,
-:global(html[data-area='admin']) .badge.info {
-  gap: 4px;
-}
-:global(html[data-area='admin']) .badge.success::before,
-:global(html[data-area='admin']) .badge.warning::before,
-:global(html[data-area='admin']) .badge.danger::before,
-:global(html[data-area='admin']) .badge.info::before {
-  content: '';
-  flex: none;
-  inline-size: 12px;
-  block-size: 12px;
-  background: currentColor;
-  -webkit-mask: var(--badge-icon) center / contain no-repeat;
-  mask: var(--badge-icon) center / contain no-repeat;
-}
-:global(html[data-area='admin']) .badge.success {
-  --badge-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7'/%3E%3C/svg%3E");
-}
-:global(html[data-area='admin']) .badge.warning {
-  --badge-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3l10 18H2z'/%3E%3Cpath d='M12 10v5M12 18h.01'/%3E%3C/svg%3E");
-}
-:global(html[data-area='admin']) .badge.danger {
-  --badge-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E");
-}
-:global(html[data-area='admin']) .badge.info {
-  --badge-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 11v6M12 7.5h.01'/%3E%3C/svg%3E");
-}
-:global(html[data-area='admin']) .neutral {
-  background: var(--surface-2);
-  border-color: var(--border);
-  color: var(--text-muted);
-}
-:global(html[data-area='admin']) .primary,
-:global(html[data-area='admin']) .info {
-  background: transparent;
-  border-color: var(--border-strong);
-  color: var(--text);
-}
-:global(html[data-area='admin']) .success {
-  background: var(--surface-3);
-  border-color: var(--surface-3);
-  color: var(--text);
-}
-:global(html[data-area='admin']) .warning {
-  background: transparent;
-  border: 1px dashed var(--text);
-  color: var(--text);
-}
-:global(html[data-area='admin']) .danger {
-  background: var(--danger-soft);
-  border-color: var(--danger-line);
-  color: var(--danger);
-}
-/* durum noktası: dolu (başarı), halka (uyarı/bilgi), soluk (nötr); renk yok */
-:global(html[data-area='admin']) .pill.warning .dot,
-:global(html[data-area='admin']) .pill.info .dot,
-:global(html[data-area='admin']) .pill.primary .dot {
-  background: transparent;
-  box-shadow: inset 0 0 0 2px currentColor;
-}
-:global(html[data-area='admin']) .pill.neutral .dot {
-  opacity: 0.55;
 }

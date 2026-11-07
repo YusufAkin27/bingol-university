@@ -50,46 +50,53 @@ public class ModerationNotifier {
 
     /** Esik asildi: icerik gecici gizlendi, itiraz edilebilir. */
     public void autoHidden(Long ownerId, ReportTargetType type, Long targetId) {
-        notifications.sendTemplated(ownerId, NotificationType.SYSTEM, "notif.mod.autohidden", data(type, targetId));
+        notifications.sendTemplated(ownerId, NotificationType.SYSTEM, "notif.mod.autohidden", mod(data(type, targetId)));
     }
 
     /** Yonetici karari: icerik kaldirildi. detail = yonetici mesaji veya neden sablonu metni. */
     public void removed(Long ownerId, ReportTargetType type, Long targetId, String detail) {
-        notifications.sendTemplated(ownerId, NotificationType.SYSTEM, "notif.mod.removed", data(type, targetId),
+        notifications.sendTemplated(ownerId, NotificationType.SYSTEM, "notif.mod.removed", mod(data(type, targetId)),
                 detail == null ? "-" : detail);
     }
 
     /** Yonetici karari: uyari. Mevcut WARN metinleri korunur; detay verilirse govdeye yazilir. */
     public void warned(Long ownerId, String detail) {
         notifications.sendLocalized(ownerId, NotificationType.SYSTEM, "notif.report.warn.title",
-                detail == null || detail.isBlank() ? "notif.report.warn.body" : null, detail, null);
+                detail == null || detail.isBlank() ? "notif.report.warn.body" : null, detail, mod(null));
     }
 
     /** Icerik yeniden gorunur (rapor reddedildi veya itiraz kabul). */
     public void restored(Long ownerId, ReportTargetType type, Long targetId) {
-        notifications.sendTemplated(ownerId, NotificationType.SYSTEM, "notif.mod.restored", data(type, targetId));
+        notifications.sendTemplated(ownerId, NotificationType.SYSTEM, "notif.mod.restored", mod(data(type, targetId)));
     }
 
     /** Yonetici ihlali affetti (P11): ihlal sayilmaz. */
     public void strikeForgiven(Long userId) {
-        notifications.sendTemplated(userId, NotificationType.SYSTEM, "notif.mod.strike.forgiven", null);
+        notifications.sendTemplated(userId, NotificationType.SYSTEM, "notif.mod.strike.forgiven", mod(null));
     }
 
     /** Raporlayana sonuc bilgisi. */
     public void reporterOutcome(Long reporterId, boolean actioned) {
         notifications.sendTemplated(reporterId, NotificationType.SYSTEM,
-                actioned ? "notif.mod.reporter.actioned" : "notif.mod.reporter.dismissed", null);
+                actioned ? "notif.mod.reporter.actioned" : "notif.mod.reporter.dismissed", mod(null));
     }
 
     public void reporterRestricted(Long reporterId, int days) {
-        notifications.sendTemplated(reporterId, NotificationType.SYSTEM, "notif.mod.reporter.restricted", null,
+        notifications.sendTemplated(reporterId, NotificationType.SYSTEM, "notif.mod.reporter.restricted", mod(null),
                 String.valueOf(days));
     }
 
     public void appealDecided(Long userId, boolean accepted, String note) {
         notifications.sendTemplated(userId, NotificationType.SYSTEM,
-                accepted ? "notif.mod.appeal.accepted" : "notif.mod.appeal.rejected", null,
+                accepted ? "notif.mod.appeal.accepted" : "notif.mod.appeal.rejected", mod(null),
                 note == null || note.isBlank() ? "-" : note);
+    }
+
+    /** Push `style` = MODERATION isareti (kullaniciya donuk moderasyon bildirimleri; yonetici uyarilari SYSTEM kalir). */
+    private static Map<String, String> mod(Map<String, String> data) {
+        Map<String, String> d = new java.util.LinkedHashMap<>(data == null ? Map.of() : data);
+        d.put("moderation", "1");
+        return d;
     }
 
     /** Yoneticilere: yeni itiraz. */

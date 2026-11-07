@@ -38,6 +38,19 @@ class LoginThrottleTest {
             Long v = counters.get(i.<String>getArgument(0));
             return v == null ? null : String.valueOf(v);
         });
+        when(ops.multiGet(org.mockito.ArgumentMatchers.anyCollection())).thenAnswer(i -> {
+            java.util.Collection<String> keys = i.getArgument(0);
+            java.util.List<String> out = new java.util.ArrayList<>();
+            for (String k : keys) {
+                if (trusted.contains(k)) {
+                    out.add("1");
+                } else {
+                    Long v = counters.get(k);
+                    out.add(v == null ? null : String.valueOf(v));
+                }
+            }
+            return out;
+        });
         when(ops.increment(anyString())).thenAnswer(i -> counters.merge(i.<String>getArgument(0), 1L, Long::sum));
         when(redis.getExpire(anyString())).thenReturn(600L);
         when(redis.delete(anyString())).thenAnswer(i -> counters.remove(i.<String>getArgument(0)) != null);
@@ -194,5 +207,15 @@ class LoginThrottleTest {
         }
 
         assertThrows(RateLimitedException.class, () -> throttle.check("temiz@bingol.edu.tr", "6.6.6.6", null));
+    }
+
+    /** FIX-P02/A01#13: kontrol tek MGET turudur (eskiden ~7 ardisik GET/HASKEY turu). */
+    @Test
+    void checkReadsEveryCounterInASingleMultiGetRoundTrip() {
+        throttle.check(EMAIL, "198.51.100.7", "dev-1");
+
+        verify(ops, org.mockito.Mockito.times(1)).multiGet(org.mockito.ArgumentMatchers.anyCollection());
+        verify(ops, org.mockito.Mockito.never()).get(anyString());
+        verify(redis, org.mockito.Mockito.never()).hasKey(anyString());
     }
 }

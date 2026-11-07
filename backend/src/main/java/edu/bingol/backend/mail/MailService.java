@@ -83,8 +83,21 @@ public class MailService {
         }
     }
 
+    /** Kota sifirlanmasina kalan saniye (kota korumasi kapaliysa 3600). */
+    public long secondsUntilQuotaReset() {
+        return quota == null || !props.enabled() ? 3600 : quota.secondsUntilReset();
+    }
+
     /** Genel giris: sablonu degiskenleriyle kuyruga yazar. Gonderim arka planda yapilir. */
     public void enqueue(String to, MailTemplate template, Lang lang, Map<String, String> vars) {
+        enqueue(to, template, lang, vars, null);
+    }
+
+    /**
+     * Kampanya postasi: kuyruk satirina kampanya kimligi yazilir; kampanya iptal edilince henuz gonderilmemis
+     * satirlar SKIPPED olur (campaignId null = islemsel / kampanyasiz).
+     */
+    public void enqueue(String to, MailTemplate template, Lang lang, Map<String, String> vars, Long campaignId) {
         if (!MailAddresses.isPlausible(to)) {
             log.warn("Gecersiz alici adresi, e-posta kuyruga alinmadi: {}", MailAddresses.mask(to));
             throw mailUnavailable();
@@ -96,6 +109,7 @@ public class MailService {
             m.setLang(lang.code());
             m.setVarsJson(toJson(vars));
             m.setPriority(MailCategory.of(template).priority());
+            m.setCampaignId(campaignId);
             m.setCreatedAt(Instant.now());
             m.setNextAttemptAt(m.getCreatedAt());
             outbox.save(m);
@@ -120,6 +134,15 @@ public class MailService {
         }
         enqueue(to, MailTemplate.PASSWORD_RESET_CODE, lang, vars("code", code, "minutes", String.valueOf(minutes)));
         recordPublicCode();
+    }
+
+    /**
+     * Iki faktorlu giris/etkinlestirme kodu. Hesap sahibine, sifre dogrulandiktan sonra gider (kimliksiz kod akisi
+     * degildir): kimliksiz kod butcesi ve alici basina gunluk "sessiz atlama" UYGULANMAZ; hiz siniri cagiranda
+     * (TwoFactorService) kullanici basinadir.
+     */
+    public void sendTwoFactorCode(String to, String code, int minutes, Lang lang) {
+        enqueue(to, MailTemplate.TWO_FACTOR_CODE, lang, vars("code", code, "minutes", String.valueOf(minutes)));
     }
 
     /**
@@ -150,6 +173,23 @@ public class MailService {
 
     public void sendPasswordChanged(String to, String time, Lang lang) {
         enqueue(to, MailTemplate.SECURITY_PASSWORD_CHANGED, lang, vars("time", time));
+    }
+
+    /** 2FA guvenlik bildirimi: `message` alicinin dilinde hazir metindir (bkz. TwoFactorNotifier). */
+    public void sendTwoFactorNotice(String to, String message, Lang lang) {
+        enqueue(to, MailTemplate.SECURITY_TWO_FACTOR_NOTICE, lang, vars("message", message));
+    }
+
+    /**
+     * Hesap sahibine giden kod postasi icin (2FA girisi/etkinlestirme): yalniz saglayici gunluk kotasi TAMAMEN
+     * dolduysa 503 MAIL_QUOTA_EXHAUSTED. Kimliksiz kod butcesi/IP sayaci uygulanmaz (sifresi dogrulanmis kullanici);
+     * kota doluyken kod kuyrukta takilip kullaniciyi kilitli birakmasin diye istek baslarken reddedilir.
+     */
+    public void requireAccountCodeQuota() {
+        if (quota != null && props.enabled() && quota.exhausted()) {
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "MAIL_QUOTA_EXHAUSTED",
+                    "Şu anda doğrulama kodu gönderemiyoruz, lütfen daha sonra tekrar deneyin.");
+        }
     }
 
     public void sendAnnouncement(String to, String heading, String message, Lang lang) {
@@ -198,10 +238,40 @@ public class MailService {
         return ok;
     }
 
+    /**
+     * Herkese acik (hesapsiz) destek dogrulama kodunu KUYRUGA yazar; SMTP cagiran iplikte konusulmaz (yavas SMTP'de
+     * Tomcat is parcaciklari tukenmesin). {@link #sendPublicCode} ile ayni korumalar: saglayici kotasi ya da kimliksiz
+     * kod butcesi (SUPPORT) doluysa 503 MAIL_QUOTA_EXHAUSTED, alici basina gunluk sinir asildiysa 429; kod postasi 10
+     * dk sonra bayatlar ve gonderilmez ({@code CODE_MAIL_MAX_AGE}). Kuyruga yazilamazsa 503 MAIL_UNAVAILABLE.
+     * Gonderim sonucu cagirana donmez (hata kuyrukta yeniden denenir).
+     */
+    public void enqueuePublicCode(String to, String code, int minutes, Lang lang) {
+        if (quota != null && props.enabled()) {
+            if (quota.exhausted() || quota.publicExhausted(MailDailyQuota.CodeKind.SUPPORT)) {
+                throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "MAIL_QUOTA_EXHAUSTED",
+                        "Şu anda doğrulama kodu gönderemiyoruz, lütfen daha sonra tekrar deneyin.");
+            }
+            if (!quota.allowRecipientCode(to)) {
+                throw new edu.bingol.backend.common.RateLimitedException(3600);
+            }
+        }
+        enqueue(to, MailTemplate.SUPPORT_CODE, lang, vars("code", code, "minutes", String.valueOf(minutes)));
+        recordPublicCode();
+    }
+
     /** Kuyruktaki e-postalarin duruma gore sayilari. */
     public QueueStats queueStats() {
         return new QueueStats(outbox.countByStatus(MailStatus.PENDING), outbox.countByStatus(MailStatus.FAILED),
                 outbox.countByStatus(MailStatus.SENT), outbox.countByStatus(MailStatus.DEAD));
+    }
+
+    /** Saglik gostergesi icin dar sayim (SENT sayilmaz: buyuk tabloda pahali ve gostergede gereksiz). */
+    public record HealthStats(long pending, long failed, long dead) {
+    }
+
+    public HealthStats healthStats() {
+        return new HealthStats(outbox.countByStatus(MailStatus.PENDING), outbox.countByStatus(MailStatus.FAILED),
+                outbox.countByStatus(MailStatus.DEAD));
     }
 
     private String toJson(Map<String, String> vars) {

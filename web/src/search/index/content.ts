@@ -16,6 +16,47 @@ const LEGAL: { type: string; title: string; keywords: string[] }[] = [
   { type: 'RETENTION', title: 'Veri saklama ve imha', keywords: ['saklama süresi', 'silme politikası'] },
 ];
 
+/** Birim haberleri: fakülte, enstitü ve MYO alt sitelerinden çekilen duyurular. */
+const unitNews: SearchEntry[] = [
+  {
+    id: 'unitNews.health',
+    kind: 'section',
+    page: 'unitNews',
+    title: 'Kaynak sağlığı',
+    anchor: 'unitnews-health',
+    keywords: ['çalışıyor mu', 'bakımda kaynak', 'hiç çekilmemiş', 'son çekim', 'duyuru gelmiyor'],
+    description: 'Alt sitelerden duyuru çekimi sağlıklı mı, kaç kaynak bakımda.',
+  },
+  {
+    id: 'unitNews.sources',
+    kind: 'section',
+    page: 'unitNews',
+    title: 'Kaynaklar',
+    anchor: 'unitnews-sources',
+    keywords: ['alt siteler', 'fakülte siteleri', 'kaynak aç kapat', 'bölüm eşleme', 'hangi fakülte', 'meslek yüksekokulu', 'enstitü'],
+    description: 'Her fakülte, enstitü ve MYO sitesini aç/kapat, bölümlerle eşle.',
+  },
+  {
+    id: 'unitNews.syncAll',
+    kind: 'action',
+    page: 'unitNews',
+    title: 'Hepsini şimdi çek',
+    anchor: 'unitnews-sync-all',
+    perm: 'content.write',
+    keywords: ['elle çek', 'yenile', 'duyuruları güncelle', 'senkronize et', 'hemen çek'],
+    description: 'Gece çekimini beklemeden tüm açık kaynaklardan duyuruları getirir.',
+  },
+  {
+    id: 'unitNews.list',
+    kind: 'section',
+    page: 'unitNews',
+    title: 'Birim duyuruları',
+    anchor: 'unitnews-list',
+    keywords: ['bölüm duyuruları', 'duyuru gizle', 'duyuru göster', 'fakülte duyurusu', 'uygunsuz duyuru', 'duyuru ara'],
+    description: 'Çekilen duyuruları ara; öğrencilere görünmesini istemediğini gizle.',
+  },
+];
+
 export const entries: SearchEntry[] = [
   // ---- Sözleşmeler ----
   ...LEGAL.map(
@@ -215,4 +256,50 @@ export const entries: SearchEntry[] = [
     keywords: ['yemek fotoğrafı', 'fotoğraf sınırı', '5 mb', 'jpeg', 'png', 'webp', 'kalori kaydı'],
     description: 'Fotoğraf boyutu, türü ve kalorinin yemek adına bağlı kaydedildiği kısa anlatım.',
   },
+  {
+    id: 'menu.kcalChart',
+    kind: 'section',
+    page: 'menu',
+    title: 'Günlük toplam kalori grafiği',
+    anchor: 'menu-kcal-chart',
+    keywords: ['kalori çubukları', 'kcal grafiği', 'ortalama kalori', 'günlük kalori', 'kalori kapsama', 'hangi gün eksik'],
+    description: 'Ayın her günü için toplam kaloriyi çubukla gösterir; eksik girilen günler çizgilidir, çubuğa tıklayınca o gün açılır.',
+  },
+  {
+    id: 'menu.gaps',
+    kind: 'section',
+    page: 'menu',
+    title: 'Eksik kalori ve fotoğraf uyarısı',
+    anchor: 'menu-gaps',
+    keywords: ['kalorisiz yemek', 'fotoğrafsız gün', 'eksikler', 'girilmemiş kalori', 'yeni yemek'],
+    description: 'Kalorisi girilmemiş yemekleri ve fotoğrafı olmayan günleri listeler.',
+  },
+  {
+    id: 'sources.grid',
+    kind: 'section',
+    page: 'sources',
+    title: 'Tüm kaynaklar bir bakışta',
+    anchor: 'sources-grid',
+    keywords: ['kaynak sağlığı', 'durum ızgarası', 'fakülte siteleri çalışıyor mu', 'bakımda kaynak', 'hangi kaynak bozuk', 'birim siteleri', '23 kaynak'],
+    description: 'Haber, yemek ve birim sitelerinin hangisi çalışıyor, hangisi bakımda ya da eski, renkli karolarla gösterir.',
+  },
+  {
+    id: 'news.dist',
+    kind: 'section',
+    page: 'news',
+    title: 'Kayıt dağılımı (haber / duyuru / etkinlik)',
+    anchor: 'news-dist',
+    keywords: ['kaç haber var', 'kaç duyuru var', 'dağılım', 'son 7 gün', 'yeni kayıt', 'gizlenen sayısı'],
+    description: 'Kayıtların haber, duyuru ve etkinlik olarak dağılımını tek çubukta gösterir.',
+  },
+  {
+    id: 'unitNews.distribution',
+    kind: 'section',
+    page: 'unitNews',
+    title: 'Hangi birimden kaç duyuru?',
+    anchor: 'unitnews-distribution',
+    keywords: ['birim dağılımı', 'en çok duyuru', 'fakülte duyuru sayısı', 'duyuru grafiği'],
+    description: 'Birim sitelerinden çekilen duyuruların hangi birimde yoğunlaştığını çubuklarla gösterir.',
+  },
+  ...unitNews,
 ];

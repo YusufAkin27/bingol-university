@@ -1,0 +1,14 @@
+/* PANEL-topluluk: grafik kutuları. Yalnız mevcut tasarım token'ları; mantıksal özellikler (RTL uyumlu). */
+.chartBox {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  min-inline-size: 0;
+}
+.chartTitle {
+  margin: 0;
+  font-size: var(--text-base);
+}

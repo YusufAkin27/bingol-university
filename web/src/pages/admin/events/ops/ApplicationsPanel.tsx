@@ -11,6 +11,7 @@ import {
 import { Badge, GuardedAction, LoadMore, Select, type Tone } from '../../../../components/ui';
 import { useI18n } from '../../../../i18n/I18nProvider';
 import { eventErrorMessage } from '../errors';
+import { ApplicationsSummary } from './OpsSummaries';
 import { CsvButton, PanelState, opsInvalidate, opsKey } from './opsParts';
 import styles from './ops.module.css';
 
@@ -26,7 +27,7 @@ const TONE: Record<ApplicationStatus, Tone> = {
 /** Başvurular: durum süzgeci, kapasite özeti, zorla kabul/ret (sebep zorunlu; kapasite sunucuda aşılamaz). */
 export function ApplicationsPanel({ eventId, eventStatus }: { eventId: number; eventStatus: string }) {
   const i18n = useI18n();
-  const { t, formatDateTime, formatNumber } = i18n;
+  const { t, formatDateTime } = i18n;
   const [status, setStatus] = useState<ApplicationStatus | ''>('');
   const q = useInfiniteQuery({
     queryKey: opsKey(eventId, 'applications', status),
@@ -121,26 +122,7 @@ export function ApplicationsPanel({ eventId, eventStatus }: { eventId: number; e
 
       {s && (
         <>
-          <dl className={styles.chips} data-testid="app-summary">
-            <div className={styles.chip}>
-              <dt>{t('admin.p07.app.capacity')}</dt>
-              <dd>{s.capacity == null ? t('admin.p07.unlimited') : formatNumber(s.capacity)}</dd>
-            </div>
-            <div className={styles.chip}>
-              <dt>{t('admin.p07.app.going')}</dt>
-              <dd>{formatNumber(s.goingCount)}</dd>
-            </div>
-            <div className={styles.chip}>
-              <dt>{t('admin.p07.app.seatsLeft')}</dt>
-              <dd>{s.seatsLeft == null ? t('admin.p07.unlimited') : formatNumber(s.seatsLeft)}</dd>
-            </div>
-            {STATUSES.map((st) => (
-              <div key={st} className={styles.chip}>
-                <dt>{t(`admin.p07.app.status.${st}`)}</dt>
-                <dd>{formatNumber(s[st.toLowerCase() as 'pending'])}</dd>
-              </div>
-            ))}
-          </dl>
+          <ApplicationsSummary s={s} />
           {s.mode === 'OPEN' && <p className={styles.muted}>{t('admin.p07.app.openMode')}</p>}
           {!live && <p className={styles.muted}>{t('admin.p07.app.notLive')}</p>}
           {live && full && <p className={styles.muted}>{t('admin.p07.app.full')}</p>}

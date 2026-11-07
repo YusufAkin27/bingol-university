@@ -31,6 +31,7 @@ import {
   LoadMore,
   Modal,
   PageHeader,
+  RankedBars,
   SearchInput,
   Select,
   Skeleton,
@@ -45,6 +46,8 @@ import { usePageTitle } from '../../lib/hooks';
 import { SearchAnchor } from '../../search/anchor';
 import { FillBar, SummaryStrip } from './community/Summary';
 import { RejectDialog } from './community/ReviewParts';
+import { tp } from './community/tp';
+import { ALMOST_FULL_PCT, occupancyRows, toOccupancyItems } from './community/tpLogic';
 import styles from './community/review.module.css';
 import { EventDetailDrawer } from './events/EventDetailDrawer';
 import { CsvButton } from './events/ops/opsParts';
@@ -78,6 +81,7 @@ function quickRange(kind: 'week' | 'month'): { from: string; to: string } {
 export default function EventsAdminPage() {
   const i18n = useI18n();
   const { t, locale, formatDateTime, formatNumber } = i18n;
+  const x = tp(i18n);
   const toast = useToast();
   const qc = useQueryClient();
   usePageTitle(t('admin.events.title'));
@@ -192,9 +196,9 @@ export default function EventsAdminPage() {
   const pending = status === 'PENDING_REVIEW';
   const now = new Date();
   const waiting = items.reduce((sum, e) => sum + (e.pendingCount ?? 0), 0);
-  const almostFull = items.filter(
-    (e) => e.capacity !== null && e.capacity > 0 && e.goingCount / e.capacity >= 0.85,
-  ).length;
+  const occupancy = occupancyRows(items);
+  const crowded = occupancy.filter((r) => r.pct >= ALMOST_FULL_PCT);
+  const almostFull = crowded.length;
 
   function actionsFor(ev: EventView) {
     return (
@@ -345,6 +349,37 @@ export default function EventsAdminPage() {
             caption={t('admin.v2.ev.sum.almostCap')}
           />
         </SummaryStrip>
+      )}
+
+      {!query.isError && !query.isLoading && crowded.length > 0 && (
+        <section className={evStyles.occupancy} aria-labelledby="ev-occupancy-title" data-search-anchor="ev-occupancy">
+          <h2 id="ev-occupancy-title" className={evStyles.occTitle}>
+            {x('admin.tp.ev.occTitle')}
+          </h2>
+          <Insight
+            tone="warn"
+            parts={x('admin.tp.ev.occInsight', {
+              n: formatNumber(crowded.length),
+              title: crowded[0]?.title ?? '',
+              pct: formatNumber(crowded[0]?.pct ?? 0),
+            })}
+          />
+          <RankedBars
+            ariaLabel={x('admin.tp.ev.occAria')}
+            items={toOccupancyItems(crowded, (r) =>
+              r.going > r.capacity
+                ? x('admin.tp.ev.occHintOver', {
+                    going: formatNumber(r.going),
+                    cap: formatNumber(r.capacity),
+                    over: formatNumber(r.going - r.capacity),
+                  })
+                : x('admin.tp.ev.occHint', { going: formatNumber(r.going), cap: formatNumber(r.capacity) }),
+            )}
+            formatValue={(n) => `%${formatNumber(n)}`}
+            limit={5}
+          />
+          {query.hasNextPage && <p className={evStyles.occNote}>{x('admin.tp.ev.moreLoaded', { n: formatNumber(items.length) })}</p>}
+        </section>
       )}
 
       {query.isError ? (

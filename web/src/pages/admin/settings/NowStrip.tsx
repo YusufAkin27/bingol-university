@@ -1,4 +1,5 @@
 // Ayarlar: "Şu an" şeridi (bakım, duyuru bandı, zorunlu güncelleme, etkinlik onayı) ve kaydedilmemiş değişiklik çubuğu.
+import type { ReactNode } from 'react';
 import { Button, StatusDot, type StatusTone } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
 import type { SettingGroup } from './lib';
@@ -87,7 +88,16 @@ export function NowStrip({
 }
 
 /** Kaydedilmemiş değişiklik varken altta yapışan çubuk: sayı + hepsini geri al. */
-export function DirtyBar({ count, onRevertAll }: { count: number; onRevertAll: () => void }) {
+export function DirtyBar({
+  count,
+  onRevertAll,
+  children,
+}: {
+  count: number;
+  onRevertAll: () => void;
+  /** Değişikliklerin "önce → sonra" listesi (PendingChanges) */
+  children?: ReactNode;
+}) {
   const { t } = useI18n();
   if (count === 0) return null;
   return (
@@ -96,6 +106,7 @@ export function DirtyBar({ count, onRevertAll }: { count: number; onRevertAll: (
       <Button size="sm" variant="secondary" onClick={onRevertAll}>
         {t('admin.v2n.set.revertAll')}
       </Button>
+      {children}
     </div>
   );
 }

@@ -1,0 +1,217 @@
+/* Yedekleme (Google Drive): durum kartları + kurulum rehberi. Yalnızca token'lar ve mantıksal özellikler (RTL uyumlu). */
+.page {
+  display: grid;
+  gap: var(--space-5);
+  padding-block-start: var(--space-4);
+  min-width: 0;
+}
+.section {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+.muted {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ---- Durum kartları ---- */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: var(--space-3);
+}
+.card {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+  min-width: 0;
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-inline-start-width: 4px;
+  border-radius: var(--radius-lg);
+}
+.card[data-tone='success'] {
+  border-inline-start-color: var(--success);
+}
+.card[data-tone='warning'] {
+  border-inline-start-color: var(--warning);
+}
+.card[data-tone='danger'] {
+  border-inline-start-color: var(--danger);
+}
+.card[data-tone='info'] {
+  border-inline-start-color: var(--info);
+}
+.card[data-tone='neutral'] {
+  border-inline-start-color: var(--border-strong, var(--border));
+}
+.label {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: var(--fw-bold);
+  color: var(--text-muted);
+}
+.value {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: var(--fw-bold);
+  overflow-wrap: anywhere;
+}
+.line {
+  margin: 0;
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  overflow-wrap: anywhere;
+}
+.err {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--danger);
+  overflow-wrap: anywhere;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+/* ---- Rehber ---- */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.steps {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.step {
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.stepHead {
+  margin: 0;
+  font-size: var(--text-base);
+}
+.stepBtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  inline-size: 100%;
+  min-block-size: 48px;
+  padding: var(--space-2) var(--space-4);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-lg);
+  color: var(--text);
+  font: inherit;
+  font-weight: var(--fw-bold);
+  text-align: start;
+  cursor: pointer;
+}
+.stepBtn:hover {
+  background: var(--surface-2);
+}
+.stepBtn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.chev {
+  flex: none;
+  transition: transform 0.15s var(--ease);
+}
+.stepBtn[aria-expanded='true'] .chev {
+  transform: rotate(180deg);
+}
+.stepBody {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: 0 var(--space-4) var(--space-4);
+}
+.stepBody[hidden] {
+  display: none;
+}
+.text {
+  margin: 0;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.code {
+  margin: 0;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.codeHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-inline: var(--space-3) var(--space-1);
+  border-block-end: 1px solid var(--border);
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+}
+.codeHead button {
+  min-inline-size: 44px;
+  min-block-size: 44px;
+}
+.codeCap {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.pre {
+  margin: 0;
+  padding: var(--space-3);
+  overflow-x: auto;
+  max-inline-size: 100%;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  white-space: pre;
+  direction: ltr;
+  text-align: start;
+  color: var(--text);
+}
+.pre:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+.faq {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+}
+.faqQ {
+  margin: 0;
+  font-weight: var(--fw-bold);
+}
+.faqA {
+  margin: var(--space-1) 0 0;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}

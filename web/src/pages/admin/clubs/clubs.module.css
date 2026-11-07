@@ -44,6 +44,10 @@
   font-weight: var(--fw-semibold);
   overflow-wrap: anywhere;
 }
+/* uzun e-posta/slug satırı kırılsın; yoksa tablo diğer sütunları harf harf daraltır */
+.nameCell > .muted {
+  overflow-wrap: anywhere;
+}
 .badges {
   display: flex;
   flex-wrap: wrap;
@@ -220,6 +224,22 @@
   display: grid;
   gap: var(--space-2);
   margin-block-end: var(--space-3);
+}
+.topMembers {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  padding-inline: var(--space-3);
+}
+.topMembers > summary {
+  display: flex;
+  align-items: center;
+  min-block-size: 44px;
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+}
+.topMembers[open] {
+  padding-block-end: var(--space-3);
 }
 .thumb {
   display: block;

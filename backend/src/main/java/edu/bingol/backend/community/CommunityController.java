@@ -62,13 +62,21 @@ public class CommunityController {
      * Kulup olusturur: auto-approve acikken (varsayilan) hemen yayinda, 201 + status ACTIVE; kapaliyken onay
      * bekler, 202 + status PENDING_REVIEW. Olusturan OWNER olur.
      */
+    private edu.bingol.backend.common.IdempotentCreate idem;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setIdem(edu.bingol.backend.common.IdempotentCreate idem) {
+        this.idem = idem;
+    }
+
     @PostMapping("/communities")
-    public ResponseEntity<CommunityView> create(@Valid @RequestBody CreateCommunityRequest r) {
+    public ResponseEntity<CommunityView> create(@Valid @RequestBody CreateCommunityRequest r,
+                                                @org.springframework.web.bind.annotation.RequestHeader(value = "Idempotency-Key", required = false) String idemKey) {
         Actor a = Actor.current();
-        limiter.check("community-create:user:" + a.id(), 5, Duration.ofHours(1));
-        Community c = communities.create(a, r);
-        CommunityView v = communities.get(a, c.getId());
-        return ResponseEntity.status(c.getStatus() == Community.Status.ACTIVE ? HttpStatus.CREATED : HttpStatus.ACCEPTED).body(v);
+        CommunityView v = edu.bingol.backend.common.IdempotentCreate.exec(idem, a.id(), "community", idemKey,
+                () -> limiter.check("community-create:user:" + a.id(), 5, Duration.ofHours(1)),
+                () -> communities.get(a, communities.create(a, r).getId()), CommunityView::id, id -> communities.get(a, id));
+        return ResponseEntity.status(v.status() == Community.Status.ACTIVE ? HttpStatus.CREATED : HttpStatus.ACCEPTED).body(v);
     }
 
     /** Yalniz sahip (veya ADMIN): kulubu siler (yumusak); sohbet odasi kapanir, bagli gelecek etkinlikler iptal olur. */
@@ -194,10 +202,12 @@ public class CommunityController {
 
     @PostMapping("/communities/{id}/posts")
     @ResponseStatus(HttpStatus.CREATED)
-    public PostView post(@PathVariable Long id, @Valid @RequestBody CreatePostRequest r) {
+    public PostView post(@PathVariable Long id, @Valid @RequestBody CreatePostRequest r,
+                         @org.springframework.web.bind.annotation.RequestHeader(value = "Idempotency-Key", required = false) String idemKey) {
         Actor a = Actor.current();
-        limiter.check("community-post:user:" + a.id(), 10, Duration.ofMinutes(1));
-        return posts.create(a, id, r);
+        return edu.bingol.backend.common.IdempotentCreate.exec(idem, a.id(), "community-post:" + id, idemKey,
+                () -> limiter.check("community-post:user:" + a.id(), 10, Duration.ofMinutes(1)),
+                () -> posts.create(a, id, r), PostView::id, pid -> posts.replay(a, id, pid));
     }
 
     /** Yazi gorseli yukler; donen url yazi olustururken imageUrl olarak gonderilir. */

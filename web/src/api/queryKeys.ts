@@ -1,3 +1,4 @@
+import type { UnitAnnouncementParams } from './adminUnitNews';
 import type {
   AuditParams,
   BreakdownDimension,
@@ -41,6 +42,10 @@ export const qk = {
     list: (p: UserListParams) => ['users', 'list', p] as const,
     detail: (id: number) => ['users', 'detail', id] as const,
     stats: () => ['users', 'stats'] as const,
+    // 'users' önekinde: kullanıcı işlemleri (qk.users.all) 2FA görünümlerini de tazeler
+    twoFactorSummary: () => ['users', 'two-factor', 'summary'] as const,
+    twoFactorList: (p: { page: number; size: number; q: string }) =>
+      ['users', 'two-factor', 'list', p] as const,
   },
   analytics: {
     all: ['analytics'] as const,
@@ -53,6 +58,8 @@ export const qk = {
     support: () => ['analytics', 'support'] as const,
     push: () => ['analytics', 'push'] as const,
     content: (r: DateRange) => ['analytics', 'content', r] as const,
+    // Davranış analizi (analytics/behavior/*): her uç kendi parametreleriyle önbelleklenir
+    behavior: (kind: string, p: object = {}) => ['analytics', 'behavior', kind, p] as const,
   },
   reports: {
     all: ['reports'] as const,
@@ -124,5 +131,11 @@ export const qk = {
   },
   events: { all: ['events'] as const, list: (status: EventStatus) => ['events', 'list', status] as const },
   news: { all: ['news'] as const, list: (p: NewsListParams) => ['news', 'list', p] as const },
+  unitNews: {
+    all: ['unitNews'] as const,
+    sources: () => ['unitNews', 'sources'] as const,
+    departments: (code: string) => ['unitNews', 'departments', code] as const,
+    announcements: (p: UnitAnnouncementParams) => ['unitNews', 'announcements', p] as const,
+  },
   audit: { all: ['audit'] as const, list: (p: AuditParams) => ['audit', 'list', p] as const },
 };

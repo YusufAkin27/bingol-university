@@ -10,7 +10,16 @@ services:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile.base:ro
       - ./deploy/Caddyfile.bukampus:/etc/caddy/Caddyfile:ro
 
+  # SEO gece yenileme katmani: web/scripts/refresh-prerender.mjs menu/haber sayfalarini bu volume a yazar, web SALT OKUNUR okur
+  # (web konteyneri read_only). Volume bos/yoksa site derleme ciktisini sunar. Calistirma: docs/SEO_TECHNICAL.md bolum 6.
+  web:
+    volumes:
+      - webdyn:/var/lib/bu-dyn:ro
+
   backup:
     volumes:
       # Kalici OAuth config: rclone yenilenen tokeni bu dizine yazar (uid 70, dizin 0700).
       - /opt/bukampus-data/rclone:/config/rclone
+
+volumes:
+  webdyn: {}

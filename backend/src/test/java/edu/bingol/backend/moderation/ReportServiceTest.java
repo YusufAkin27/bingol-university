@@ -114,6 +114,31 @@ class ReportServiceTest {
     }
 
     @Test
+    void concurrentDuplicateReportBecomesConflictNotServerError() {
+        // FIX-P05 (A05#10): kontrol-sonra-yaz yarisi; uq_report_open ihlali 409 ALREADY_REPORTED olur
+        when(reports.save(any(Report.class))).thenThrow(new org.springframework.dao.DataIntegrityViolationException("uq_report_open"));
+
+        ApiException e = assertThrows(ApiException.class, () -> service.create(1L, req()));
+
+        assertEquals("ALREADY_REPORTED", e.code());
+        assertEquals(org.springframework.http.HttpStatus.CONFLICT, e.status());
+    }
+
+    @Test
+    void resolveReadsTheReportUnderRowLockSoTwoAdminsCannotDoubleResolve() {
+        Report r = openReport(1L, 2L);
+        r.setStatus(Report.Status.RESOLVED); // ilk yonetici zaten kapatti; ikincisi kilit sonrasi bunu gorur
+        when(reports.lockById(1L)).thenReturn(Optional.of(r));
+
+        ApiException e = assertThrows(ApiException.class,
+                () -> service.resolve(1L, 99L, Report.Resolution.HIDE, null, null));
+
+        assertEquals("ALREADY_RESOLVED", e.code());
+        verify(reports, never()).findById(anyLong());
+        verify(strikes, never()).record(anyLong(), any(), any());
+    }
+
+    @Test
     void restrictedReporterIsRejected() {
         when(redis.hasKey(ReportService.RESTRICT_KEY_PREFIX + "1")).thenReturn(true);
 
@@ -152,7 +177,7 @@ class ReportServiceTest {
     @Test
     void dismissRestoresAutoHiddenContentWithoutStrike() {
         Report r = openReport(1L, 2L);
-        when(reports.findById(1L)).thenReturn(Optional.of(r));
+        when(reports.lockById(1L)).thenReturn(Optional.of(r)); // FIX-P05: karar satiri kilitli okunur
         when(reports.findByTargetTypeAndTargetIdAndStatus(TYPE, TARGET, Report.Status.OPEN)).thenReturn(List.of(r));
         ModerationTargetState st = new ModerationTargetState();
         st.setHiddenBy(ModerationTargetState.HiddenBy.AUTO);
@@ -172,7 +197,7 @@ class ReportServiceTest {
     void hideRecordsStrikeMarksAdminHiddenAndNotifiesBothSides() {
         Report r = openReport(1L, 2L);
         Report r2 = openReport(2L, 3L);
-        when(reports.findById(1L)).thenReturn(Optional.of(r));
+        when(reports.lockById(1L)).thenReturn(Optional.of(r)); // FIX-P05: karar satiri kilitli okunur
         when(reports.findByTargetTypeAndTargetIdAndStatus(TYPE, TARGET, Report.Status.OPEN)).thenReturn(List.of(r, r2));
         when(notifier.reasonText(OWNER, "SPAM")).thenReturn("Spam");
 

@@ -96,6 +96,19 @@ public class ExtraExporters {
                         + "WHERE user_id = ? ORDER BY id DESC LIMIT " + MAX_ROWS, uid));
     }
 
+    /**
+     * Kulup/etkinlik sohbet odalari: kullanicinin uye oldugu odanin kaynagi (tur + kulup/etkinlik kimligi). Bu odalardaki
+     * kullanicinin kendi mesajlari {@code sentMessages} bolumundedir (conversationId ile eslenir).
+     */
+    @Bean
+    DataExporter chatRoomsExporter(JdbcTemplate jdbc) {
+        return DataExporter.of("chatRooms", uid -> rows(jdbc,
+                "SELECT l.kind AS \"kind\", l.ref_id AS \"refId\", l.conversation_id AS \"conversationId\", "
+                        + "CAST(m.joined_at AS varchar(40)) AS \"joinedAt\", CAST(m.left_at AS varchar(40)) AS \"leftAt\" "
+                        + "FROM conversation_member m JOIN chat_room_link l ON l.conversation_id = m.conversation_id "
+                        + "WHERE m.user_id = ? ORDER BY l.id DESC LIMIT " + MAX_ROWS, uid));
+    }
+
     private static List<Map<String, Object>> rows(JdbcTemplate jdbc, String sql, Long uid) {
         // Sutun adlari kucuk harfe duserse (H2) anahtarlar tutarsiz olmasin: LinkedHashMap ile sirayi koru
         return jdbc.queryForList(sql, uid).stream().map(m -> (Map<String, Object>) new LinkedHashMap<>(m)).toList();

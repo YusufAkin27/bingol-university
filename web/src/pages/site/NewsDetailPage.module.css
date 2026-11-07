@@ -1,62 +1,111 @@
-.wrap {
-  display: grid;
-  gap: var(--space-6);
-  grid-template-columns: minmax(0, 820px);
-  justify-content: start;
-  min-block-size: 28rem;
-  align-content: start;
+/* Üst bölüm: ekmek kırıntısı + başlık kartı */
+.top {
+  background: radial-gradient(70% 120% at 85% -20%, var(--primary-soft), transparent 70%);
 }
-.back {
+:global(:root[dir='rtl']) .top {
+  background: radial-gradient(70% 120% at 15% -20%, var(--primary-soft), transparent 70%);
+}
+.topInner {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+  padding-block: clamp(1.75rem, 4vw, 3rem) var(--space-5);
+}
+.titleCard {
+  display: grid;
+  gap: var(--space-4);
+  width: 100%;
+  padding: clamp(var(--space-4), 3vw, var(--space-6));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.h1 {
+  margin: 0;
+  max-width: 34ch;
+  font-size: clamp(1.65rem, 1.15rem + 2vw, 2.5rem);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+  outline: none;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.srcBtn {
   display: inline-flex;
   align-items: center;
-  min-height: 48px;
-  color: var(--text);
-  text-decoration: underline;
-  text-underline-offset: 4px;
-  text-decoration-color: var(--border-strong);
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--primary);
+  color: var(--primary-contrast);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-decoration: none;
 }
-.back:hover {
-  text-decoration-color: var(--text);
+.srcBtn:hover {
+  background: var(--primary-hover);
+  color: var(--primary-contrast);
+}
+:global(:root[dir='rtl']) .srcBtn svg {
+  transform: scaleX(-1);
+}
+
+/* İçerik: makale + yan kart */
+.content {
+  padding-block-start: var(--space-4);
+}
+.layout {
+  display: grid;
+  gap: var(--space-6);
+  align-items: start;
+  min-block-size: 24rem;
+}
+.main {
+  display: grid;
+  gap: var(--space-5);
+  min-width: 0;
+}
+@media (min-width: 980px) {
+  .withAside {
+    grid-template-columns: minmax(0, 1fr) 340px;
+  }
 }
 .article {
   display: grid;
   gap: var(--space-5);
-}
-.head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding-block-end: var(--space-4);
-  border-block-end: 1px solid var(--border);
-}
-.actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
+  padding: clamp(var(--space-4), 3vw, var(--space-6));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
 }
 .hero {
   border-radius: var(--radius-md);
-  border: 1px solid var(--border);
+  aspect-ratio: 16 / 9;
   max-height: 460px;
+  width: 100%;
 }
-/* Uzun metin: ~66 karakter ölçü, 18 px, 1.75 satır aralığı; ilk paragraf özet gibi biraz büyük */
 .prose {
   display: grid;
   gap: var(--space-4);
-  max-width: 66ch;
+  max-width: 68ch;
   font-size: 1.125rem;
   line-height: 1.75;
-  color: var(--text);
 }
 .prose p {
   margin: 0;
   overflow-wrap: anywhere;
 }
+/* Girişteki ilk paragraf özet gibi öne çıkar */
 .prose p:first-child:not(:only-child) {
-  font-size: 1.3125rem;
-  line-height: 1.6;
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
 }
 .originalRow {
   display: flex;
@@ -70,11 +119,9 @@
 .orig {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-1);
   min-height: 44px;
-  color: var(--text);
-  text-decoration: underline;
-  text-underline-offset: 4px;
+  font-weight: 700;
 }
 .srcHost {
   font-size: var(--text-xs);
@@ -85,6 +132,53 @@
   display: grid;
   gap: var(--space-3);
 }
+
+/* Yan kart */
+.aside {
+  display: grid;
+}
+@media (min-width: 980px) {
+  .aside {
+    position: sticky;
+    inset-block-start: calc(var(--header-h) + var(--space-4));
+  }
+}
+.appCard {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(165deg, var(--chrome-2), var(--chrome));
+  color: #fff;
+}
+.appIcon {
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: var(--radius-md);
+  background: var(--red-700);
+  color: #fff;
+}
+.appTitle {
+  margin: 0;
+  color: #fff;
+  font-size: var(--text-xl);
+  line-height: 1.2;
+}
+.appText {
+  margin: 0;
+  color: rgb(255 255 255 / 0.82);
+  font-size: var(--text-sm);
+}
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+}
+
+/* Önceki / sonraki */
 .pager {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -97,13 +191,13 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background: var(--surface);
-  color: var(--text);
+  color: inherit;
   text-decoration: none;
   min-width: 0;
-  transition: border-color var(--site-dur, 200ms) var(--ease);
 }
 .pagerLink:hover {
   border-color: var(--border-strong);
+  background: var(--surface-2);
 }
 .pagerEnd {
   text-align: end;
@@ -111,8 +205,10 @@
 .pagerLabel {
   font-size: var(--text-xs);
   color: var(--text-muted);
+  font-weight: 600;
 }
 .pagerTitle {
+  font-weight: 700;
   overflow-wrap: anywhere;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -125,19 +221,42 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* İlgili içerikler */
+.below {
+  display: grid;
+  gap: var(--space-5);
+  padding-block-start: var(--space-7);
+}
 .related {
   display: grid;
   gap: var(--space-4);
-  padding-block-start: var(--space-5);
-  border-block-start: 1px solid var(--border);
+}
+.relHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}
+.all {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 44px;
+  font-weight: 700;
+}
+:global(:root[dir='rtl']) .all svg {
+  transform: scaleX(-1);
 }
 .relGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
-  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: var(--space-5);
 }
-@media (prefers-reduced-motion: reduce) {
-  .pagerLink {
-    transition: none;
-  }
+.back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  font-weight: 700;
 }

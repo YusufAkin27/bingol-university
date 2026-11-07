@@ -45,6 +45,21 @@ public class ReceiptService {
     private final UserRepository users;
     private final BlockService blocks;
     private final ChatEventBus bus;
+    /** K2: oda / buyuk grupta makbuz tutulmaz (setter enjeksiyonu: yapici imzasi degismesin; yoksa her yerde tutulur). */
+    private ReceiptPolicy policy;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setPolicy(ReceiptPolicy policy) {
+        this.policy = policy;
+    }
+
+    /** Okunmamis rozet onbellegi (setter enjeksiyonu; yoksa atlanir). */
+    private UnreadBadgeCache badgeCache;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setBadgeCache(UnreadBadgeCache badgeCache) {
+        this.badgeCache = badgeCache;
+    }
 
     public ReceiptService(ConversationMemberRepository members, ConversationRepository convs, MessageRepository messages,
                           UserRepository users, BlockService blocks, ChatEventBus bus) {
@@ -87,10 +102,26 @@ public class ReceiptService {
             return Map.of();
         }
         Set<Long> cids = mine.stream().map(Message::getConversationId).collect(Collectors.toSet());
-        Map<Long, List<ConversationMember>> by = membersBy;
-        if (by == null) {
-            by = members.findByConversationIdInAndLeftAtIsNull(cids).stream()
-                    .collect(Collectors.groupingBy(ConversationMember::getConversationId));
+        Map<Long, List<ConversationMember>> by = new HashMap<>(membersBy == null ? Map.of() : membersBy);
+        if (policy != null) {
+            // K2: oda ve buyuk gruplarda durum hesaplanmaz (uyeleri/kullanicilari yuklemek bile yok)
+            Map<Long, Integer> known = new HashMap<>();
+            by.forEach((cid, ms) -> known.put(cid, ms.size()));
+            Set<Long> keep = policy.trackable(cids, known);
+            cids = new HashSet<>(cids);
+            cids.retainAll(keep);
+            by.keySet().retainAll(keep);
+            Set<Long> keepCids = cids;
+            mine = mine.stream().filter(m -> keepCids.contains(m.getConversationId())).toList();
+            if (mine.isEmpty()) {
+                return Map.of();
+            }
+        }
+        Set<Long> missing = new HashSet<>(cids);
+        missing.removeAll(by.keySet());
+        if (!missing.isEmpty()) {
+            by.putAll(members.findByConversationIdInAndLeftAtIsNull(missing).stream()
+                    .collect(Collectors.groupingBy(ConversationMember::getConversationId)));
         }
         Set<Long> excluded = new HashSet<>(blocks.hiddenFrom(viewerId));
         Set<Long> candidateIds = new HashSet<>();
@@ -145,9 +176,13 @@ public class ReceiptService {
         Long target = messages.maxIdFromOthers(conversationId, upTo, userId);
         long before = me.getLastDeliveredMessageId();
         if (target == null || target <= before) {
+            // Yinelenen / geriye giden / kendi mesajina ack: imlec degismez, olay yayinlanmaz (idempotent)
+            log.debug("delivered no-op conv={} user={} requested={} cursor={} target={}", conversationId, userId,
+                    lastMessageId, before, target);
             return;
         }
         if (members.advanceDelivered(conversationId, userId, target) > 0) {
+            log.debug("delivered advanced conv={} user={} {}->{}", conversationId, userId, before, target);
             if (conv.getType() == Conversation.Type.DIRECT) {
                 messages.recordDelivered(conversationId, userId, before, target, Instant.now());
             }
@@ -155,8 +190,31 @@ public class ReceiptService {
         }
     }
 
+    /**
+     * Cihaz konusma listesini cekti: okunmamis son mesaj artik cihazda demektir. Sohbet ekrani hic acilmasa da (uygulama
+     * baska ekranda / arka planda) gonderenin tiki "iletildi"ye (cift tik) ilerler. En iyi caba: hata listeyi bozmaz.
+     */
+    public void markListedDelivered(Long userId, java.util.List<edu.bingol.backend.messaging.dto.MessagingDtos.ConversationView> items) {
+        if (items == null) {
+            return;
+        }
+        for (var c : items) {
+            if (c.unreadCount() <= 0 || c.lastMessage() == null || c.lastMessage().id() == null) {
+                continue;
+            }
+            try {
+                markDelivered(userId, c.id(), c.lastMessage().id());
+            } catch (RuntimeException e) {
+                // uye degil / gecersiz imlec vb.: liste cevabini etkilemez
+            }
+        }
+    }
+
     /** `MessageService.markRead` ilerleme sonrasi cagirir: `read` olayi (+ iletildi imleci de ilerlediyse `delivered`). */
     public void onRead(Long userId, Long conversationId, long oldRead, long oldDelivered, long newCursor) {
+        if (badgeCache != null) {
+            badgeCache.evict(userId); // okundu: me/summary rozet onbellegi eski sayiyi geri getirmesin (QA-CHAT-03)
+        }
         try {
             Conversation conv = convs.findById(conversationId).orElse(null);
             if (conv == null) {
@@ -180,6 +238,9 @@ public class ReceiptService {
 
     /** (from, to] araligi icin mesaj sahiplerine olay. Engel iliskisi olanlara gitmez. */
     private void publish(Conversation conv, Long actor, String kind, long from, long to) {
+        if (conv.getType() != Conversation.Type.DIRECT && policy != null && !policy.tracked(conv)) {
+            return; // K2: oda / buyuk grup: uyeleri yuklemeden cik (yalniz uyenin kendi imleci ilerler)
+        }
         List<ConversationMember> active = members
                 .findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(conv.getId()).stream()
                 .filter(ConversationMember::isAccepted).toList(); // T-026: bekleyen uyelere makbuz gitmez

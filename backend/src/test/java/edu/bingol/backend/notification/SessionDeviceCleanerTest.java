@@ -14,10 +14,21 @@ class SessionDeviceCleanerTest {
     private final SessionDeviceCleaner cleaner = new SessionDeviceCleaner(devices);
 
     @Test
-    void mobileNewLoginDeletesAllDeviceRecords() {
+    void mobileNewLoginDeletesAllDeviceRecordsOnlyWhenSingleSessionRuleIsOn() {
         cleaner.onSessionsRevoked(new SessionsRevokedEvent(7L, "mobile", true, true));
+        verify(devices, never()).deleteAllByUser(7L); // coklu oturum (varsayilan): diger cihazlarin push kaydi kalir
 
+        cleaner.setSingleMobileSession(true);
+        cleaner.onSessionsRevoked(new SessionsRevokedEvent(7L, "mobile", true, true));
         verify(devices).deleteAllByUser(7L);
+    }
+
+    @Test
+    void sessionRevokedDeletesOnlyThatSessionsDevice() {
+        cleaner.onSessionRevoked(new edu.bingol.backend.auth.token.SessionRevokedEvent(7L, "abc"));
+
+        verify(devices).deleteBySessionId(7L, "abc");
+        verify(devices, never()).deleteAllByUser(anyLong());
     }
 
     @Test

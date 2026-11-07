@@ -41,6 +41,17 @@ public class UserEvent {
     @Column(length = 200)
     private String location;
 
+    /** Katilimcilarin toplanacagi nokta (etkinlik yeri `location`'dan ayri) + opsiyonel harita koordinati (V1491). */
+    @Column(length = 200)
+    private String meetingPoint;
+
+    private Double meetingLat;
+
+    private Double meetingLng;
+
+    /** Son "etkinlik bilgisi degisti" bildirimi (10 dk kisma). */
+    private Instant updateNotifiedAt;
+
     @Column(length = 300)
     private String coverUrl;
 
@@ -57,6 +68,10 @@ public class UserEvent {
     /** true: yeni RSVP/basvuru kabul edilmez; etkinlik gorunur kalir, mevcut RSVP'ler etkilenmez. */
     @Column(nullable = false)
     private boolean registrationClosed;
+
+    /** true: sahip yoklamayi acti; katilimci kisisel QR'ini gosterebilir, sahip/moderator okutabilir (V1490). */
+    @Column(nullable = false)
+    private boolean attendanceOpen;
 
     private Long communityId;
 

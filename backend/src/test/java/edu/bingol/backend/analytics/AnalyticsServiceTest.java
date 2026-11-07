@@ -85,9 +85,15 @@ class AnalyticsServiceTest {
         assertEquals("{\"k0\":\"v0\",\"k1\":\"v1\",\"k2\":\"v2\",\"k3\":\"v3\",\"k4\":\"v4\"}",
                 ok(new EventIn("e", null, five, null)).get(0).propsJson());
 
-        Map<String, Object> six = new LinkedHashMap<>(five);
-        six.put("k5", "v");
-        rejected(new EventIn("e", null, six, null));
+        // Davranis sozlesmesi: en cok 8 anahtar
+        Map<String, Object> eight = new LinkedHashMap<>(five);
+        eight.put("k5", "v");
+        eight.put("k6", "v");
+        eight.put("k7", "v");
+        assertEquals(1, ok(new EventIn("e", null, eight, null)).size());
+        Map<String, Object> nine = new LinkedHashMap<>(eight);
+        nine.put("k8", "v");
+        rejected(new EventIn("e", null, nine, null));
     }
 
     @Test

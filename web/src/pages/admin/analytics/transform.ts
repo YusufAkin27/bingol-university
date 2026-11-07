@@ -1,6 +1,7 @@
 import type { FunnelStep } from '../../../api/types';
+import { shiftDate } from '../dashboard/transform';
 
-export const TABS = ['overview', 'growth', 'engagement', 'retention', 'demographics'] as const;
+export const TABS = ['overview', 'growth', 'engagement', 'retention', 'demographics', 'behavior'] as const;
 export type TabId = (typeof TABS)[number];
 
 export function parseTab(v: string | null | undefined): TabId {
@@ -112,6 +113,86 @@ export function isCohortMature(weekStart: string, days: number, today: Date = ne
 export function humanizeMinutes(min: number): { unit: 'minutes' | 'hours'; value: number } {
   if (min >= 120) return { unit: 'hours', value: Math.round((min / 60) * 10) / 10 };
   return { unit: 'minutes', value: Math.round(min) };
+}
+
+/** Backend'in tek istekte kabul ettiği en uzun aralık (docs/ADMIN_API.md "Analitik"). */
+export const MAX_RANGE_DAYS = 366;
+
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** İki gün arası (uçlar dahil) gün sayısı; geçersiz tarihte 0. */
+export function rangeDays(r: { from?: string; to?: string }): number {
+  if (!r.from || !r.to || !DATE_RE.test(r.from) || !DATE_RE.test(r.to)) return 0;
+  const [fy, fm, fd] = r.from.split('-').map(Number);
+  const [ty, tm, td] = r.to.split('-').map(Number);
+  const diff = Math.round((Date.UTC(ty, tm - 1, td) - Date.UTC(fy, fm - 1, fd)) / 86_400_000);
+  return diff + 1;
+}
+
+export interface ClampedRange {
+  from: string;
+  to: string;
+  /** Aralık ters girilmişti (başlangıç > bitiş) ve yer değiştirildi. */
+  swapped: boolean;
+  /** Aralık `MAX_RANGE_DAYS`'ten uzundu ve başlangıç ileri alındı. */
+  clipped: boolean;
+}
+
+/** URL'den gelen aralığı güvenli hâle getirir: ters aralık çevrilir, 366 günden uzunsa başlangıç ileri alınır. */
+export function clampRange(from: string, to: string): ClampedRange {
+  let f = from;
+  let t = to;
+  let swapped = false;
+  if (f > t) {
+    [f, t] = [t, f];
+    swapped = true;
+  }
+  let clipped = false;
+  if (rangeDays({ from: f, to: t }) > MAX_RANGE_DAYS) {
+    f = shiftDate(t, -(MAX_RANGE_DAYS - 1));
+    clipped = true;
+  }
+  return { from: f, to: t, swapped, clipped };
+}
+
+/** Aynı uzunlukta, hemen önceki dönem ([from-n, from-1]). Geçersiz aralıkta null. */
+export function previousRange(r: { from?: string; to?: string }): { from: string; to: string } | null {
+  const n = rangeDays(r);
+  if (n <= 0 || !r.from) return null;
+  return { from: shiftDate(r.from, -n), to: shiftDate(r.from, -1) };
+}
+
+/**
+ * Önceki dönem değerlerini gün sırasına göre (1. gün ile 1. gün) `prev` alanı olarak ekler.
+ * Önceki dönem yoksa `prev` undefined kalır (grafik tek seriyle çizilir).
+ */
+export function mergePrevious<T extends { date: string }>(
+  current: T[],
+  previous: T[] | undefined,
+  pick: (p: T) => number,
+): (T & { prev: number | undefined })[] {
+  return current.map((p, i) => ({ ...p, prev: previous && previous[i] ? pick(previous[i]) : undefined }));
+}
+
+export interface SeriesStats {
+  total: number;
+  avg: number;
+  peakIndex: number;
+  peak: number;
+}
+
+/** Toplam, günlük ortalama ve en yoğun gün (boş seride peakIndex -1). */
+export function seriesStats(values: number[]): SeriesStats {
+  const total = values.reduce((s, v) => s + v, 0);
+  let peakIndex = -1;
+  let peak = 0;
+  values.forEach((v, i) => {
+    if (peakIndex === -1 || v > peak) {
+      peakIndex = i;
+      peak = v;
+    }
+  });
+  return { total, avg: values.length ? Math.round(total / values.length) : 0, peakIndex, peak };
 }
 
 /** Uzun etiketleri keser (tam metin tabloda durur). */

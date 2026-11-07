@@ -103,6 +103,34 @@ class RetentionPurgeServiceTest {
         assertThat(row.get("ERROR")).isNull();
     }
 
+    /**
+     * FIX-P09 (A08#8): orta aralikli temizlikte "ORDER BY id LIMIT" her parcada tablonun basindan taramasin: silme, aralikta
+     * bulunan en kucuk/en buyuk anahtarla sinirlanir (keyset); yalniz bu sinirlar disindaki satirlar dokunulmaz kalir.
+     */
+    @Test
+    void deleteIsBoundedByTheRangeKeyBoundsAndKeepsOutsideRows() {
+        ins("2025-06-01", 120); // aralik oncesi (kucuk id'ler)
+        ins("2026-01-10", 250); // aralik
+        ins("2026-05-01", 30);  // aralik sonrasi
+        seedLog();
+        org.mockito.ArgumentCaptor<String> sql = org.mockito.ArgumentCaptor.forClass(String.class);
+        @SuppressWarnings("unchecked")
+        org.mockito.ArgumentCaptor<Map<String, ?>> params =
+                (org.mockito.ArgumentCaptor<Map<String, ?>>) (org.mockito.ArgumentCaptor<?>) org.mockito.ArgumentCaptor.forClass(Map.class);
+        ChunkedDeleter real = new ChunkedDeleter(new NamedParameterJdbcTemplate(plain), new SimpleMeterRegistry(), 100, 0, 50);
+        ChunkedDeleter spy = org.mockito.Mockito.spy(real);
+        RetentionPurgeService s = new RetentionPurgeService(new NamedParameterJdbcTemplate(plain), logs, spy, lock, 6);
+
+        s.run(1L, hits, range());
+
+        org.mockito.Mockito.verify(spy).deleteAll(any(), sql.capture(), params.capture(), any(), any());
+        assertThat(sql.getValue()).contains("id >= :minKey").contains("id <= :maxKey");
+        assertThat(((Number) params.getValue().get("minKey")).longValue()).isEqualTo(121L);
+        assertThat(((Number) params.getValue().get("maxKey")).longValue()).isEqualTo(370L);
+        assertThat(plain.queryForObject("SELECT count(*) FROM profanity_hit_log", Long.class)).isEqualTo(150L);
+        assertThat(plain.queryForObject("SELECT deleted_rows FROM data_purge_log WHERE id = 1", Long.class)).isEqualTo(250L);
+    }
+
     @Test
     void failsWhenSchedulerLockCannotBeTaken() {
         ins("2026-01-10", 10);

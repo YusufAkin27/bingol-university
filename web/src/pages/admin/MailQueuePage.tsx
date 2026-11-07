@@ -180,7 +180,7 @@ export default function MailQueuePage() {
   return (
     <>
       <PageHeader title={t('admin.p13.queue.title')} description={t('admin.p13.queue.desc')} />
-      <MailQuotaCard />
+      <MailQuotaCard onPickStatus={(st) => set({ status: st === filters.status ? '' : st })} selectedStatus={filters.status} />
 
       <div role="search" aria-label={t('admin.p13.filters')}>
         <div className={`${styles.searchField} ${styles.searchRow}`} data-search-anchor="filter-search">

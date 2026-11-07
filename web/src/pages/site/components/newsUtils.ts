@@ -20,6 +20,16 @@ export function safeImageUrl(url: string | null | undefined): string | null {
   }
 }
 
+/**
+ * Menü fotoğrafı: sunucunun kendi yüklemesi (`/files/...`, aynı kaynak, CSP `img-src 'self'`) ya da bingol.edu.tr görseli.
+ * `//host` ve `/files/../` biçimleri reddedilir.
+ */
+export function safeMenuImageUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  if (url.startsWith('/files/') && !url.includes('..')) return url;
+  return safeImageUrl(url);
+}
+
 /** Kaynak etiketi: bağlantının alan adı ("www." olmadan); yoksa null. */
 export function sourceHost(url: string | null | undefined): string | null {
   const u = safeSourceUrl(url);
@@ -33,4 +43,14 @@ export function sourceHost(url: string | null | undefined): string | null {
 
 export function kindTone(kind: NewsKind): Tone {
   return kind === 'DUYURU' ? 'warning' : kind === 'ETKINLIK' ? 'info' : 'primary';
+}
+
+/** Meta açıklaması: boşlukları sadeleştirir, sözcük sınırında en çok `max` karaktere keser (uzunsa "…" ekler); boşsa `fallback`. */
+export function metaDescription(text: string | null | undefined, fallback: string, max = 155): string {
+  const flat = (text ?? '').replace(/\s+/g, ' ').trim();
+  if (flat.length < 40) return fallback;
+  if (flat.length <= max) return flat;
+  const cut = flat.slice(0, max - 1);
+  const at = cut.lastIndexOf(' ');
+  return `${(at > max * 0.6 ? cut.slice(0, at) : cut).replace(/[\s,;:.\-–]+$/, '')}…`;
 }

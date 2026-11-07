@@ -42,12 +42,15 @@ public class AdminUserController {
     private final AdminUserService service;
     private final ProfileService profiles;
     private final AdminAccountVerificationService accountOps;
+    private final edu.bingol.backend.common.RateLimiter limiter;
 
     public AdminUserController(AdminUserService service, ProfileService profiles,
-                               AdminAccountVerificationService accountOps) {
+                               AdminAccountVerificationService accountOps,
+                               edu.bingol.backend.common.RateLimiter limiter) {
         this.service = service;
         this.profiles = profiles;
         this.accountOps = accountOps;
+        this.limiter = limiter;
     }
 
     /** Giris yapmis yonetici (JWT gerekir; Basic auth'ta kullanici kaydi yoktur => 401). */
@@ -70,11 +73,12 @@ public class AdminUserController {
                                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate createdTo,
                                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate seenFrom,
                                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate seenTo,
+                                           @RequestParam(required = false) Boolean twoFactor,
                                            @RequestParam(defaultValue = "0") int page,
                                            @RequestParam(defaultValue = "20") int size,
                                            @RequestParam(required = false) String sort) {
         return service.list(new UserFilter(q, status, role, faculty, department, classYear, language, verified,
-                createdFrom, createdTo, seenFrom, seenTo), sort, page, size);
+                createdFrom, createdTo, seenFrom, seenTo, twoFactor), sort, page, size);
     }
 
     /** Ayni filtreler; UTF-8 BOM'lu, formul-enjeksiyonuna karsi kacirilmis, en cok 50.000 satir, akis halinde. */
@@ -91,10 +95,13 @@ public class AdminUserController {
                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate createdTo,
                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate seenFrom,
                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate seenTo,
+                          @RequestParam(required = false) Boolean twoFactor,
                           @RequestParam(required = false) String sort,
                           HttpServletResponse res) throws IOException {
+        // FIX-P09 (A08#9): tam e-postali disa aktarma pahali ve hassas; yonetici basina dakikada 10 (audit CSV ile ortak anahtar)
+        limiter.check("admcsv:" + AuditController.actor(), AuditController.CSV_PER_MINUTE, java.time.Duration.ofMinutes(1));
         UserFilter f = new UserFilter(q, status, role, faculty, department, classYear, language, verified,
-                createdFrom, createdTo, seenFrom, seenTo);
+                createdFrom, createdTo, seenFrom, seenTo, twoFactor);
         f.where(); // ters tarih araligi da yanit yazilmadan once 400 versin
         AuditContext.target("USER", null).summary("kullanici CSV disa aktarma (suzgecli)");
         UserFilter.orderBy(sort); // gecersiz sort, yanit yazilmadan once 400 versin

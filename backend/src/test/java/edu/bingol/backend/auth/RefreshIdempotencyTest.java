@@ -85,20 +85,84 @@ class RefreshIdempotencyTest {
     }
 
     @Test
-    void stolenOldTokenReusedAfterTheGraceWindowStillRevokesEverySession() {
+    void stolenOldTokenReusedAfterTheGraceWindowClosesOnlyThatSessionFamily() throws Exception {
         String old = refresh.issue(7L, "mobile");
+        Thread.sleep(3); // baska girisin authTime'i farkli olsun
+        String otherDevice = refresh.issue(7L, "web"); // kullanicinin ayri bir girisi (baska aile)
         TokenResponse first = auth.refresh(old);
-        auth.refresh(first.refreshToken()); // zincir ilerledi: replay artik gecerli degil
+        TokenResponse second = auth.refresh(first.refreshToken()); // zincir ilerledi: replay artik gecerli degil
 
         // tuketim 60 sn once olmus gibi (tolerans 10 sn); rotasyon kaydi da suresi dolmus
         String hash = Hashing.sha256(old);
-        fake.values.put("rtused:" + hash, "7:" + (System.currentTimeMillis() - 60_000));
+        String[] f = fake.values.get("rtused:" + hash).split(":");
+        assertEquals(4, f.length, "rtused degeri sahip:an:istemci:girisAni olmali");
+        fake.values.put("rtused:" + hash, f[0] + ":" + (System.currentTimeMillis() - 60_000) + ":" + f[2] + ":" + f[3]);
         fake.values.remove("rtnext:" + hash);
 
         ApiException e = assertThrows(ApiException.class, () -> auth.refresh(old));
 
         assertEquals("INVALID_REFRESH_TOKEN", e.code());
-        verify(sessions).revokeAll(7L);
+        verify(sessions, never()).revokeAll(any()); // K1: tum cihazlar DEGIL
+        assertNull(refresh.peekUserId(second.refreshToken()), "calinti suphesi olan ailenin canli token'i kapanir");
+        assertEquals(7L, refresh.peekUserId(otherDevice), "kullanicinin diger girisi acik kalir");
+    }
+
+    @Test
+    void concurrentSecondRequestGetsRetryableConflictInsteadOfSessionEnd() {
+        String old = refresh.issue(7L, "mobile");
+        // ilk istek token'i tuketti ama yeni cifti henuz yazmadi (araya giren es zamanli istek)
+        refresh.consumeSession(old);
+
+        ApiException e = assertThrows(ApiException.class, () -> auth.refresh(old));
+
+        assertEquals("REFRESH_IN_PROGRESS", e.code());
+        assertEquals(409, e.status().value());
+        verify(sessions, never()).revokeAll(any());
+    }
+
+    @Test
+    void concurrentSecondRequestReceivesTheSamePairWhenTheFirstFinishesDuringTheShortWait() throws Exception {
+        String old = refresh.issue(7L, "mobile");
+        refresh.consumeSession(old);
+        TokenResponse winner = new TokenResponse("acc-w", refresh.issue(7L, "mobile"), 900, "Bearer");
+        Thread t = new Thread(() -> {
+            try {
+                Thread.sleep(10); // bekleme penceresinin (150 ms) cok altinda: yuklu makinede de kararli
+            } catch (InterruptedException ignored) {
+                // yoksay
+            }
+            refresh.rememberRotation(old, winner.accessToken() + "\n" + winner.refreshToken() + "\n900\nBearer");
+        });
+        t.start();
+
+        TokenResponse got = null;
+        RuntimeException err = null;
+        try {
+            got = auth.refresh(old);
+        } catch (RuntimeException e) {
+            err = e;
+        }
+        t.join();
+
+        assertNotNull(fake.values.get("rtnext:" + Hashing.sha256(old)), "ilk istek rotasyon kaydini yazdi");
+        assertNotNull(fake.values.get("rt:" + Hashing.sha256(winner.refreshToken())), "yeni refresh token canli");
+        assertNull(err, String.valueOf(err));
+        assertEquals(winner, got);
+    }
+
+    @Test
+    void lostResponseRetryAfterTheOldFortyFiveSecondsStillGetsThePairAndKeepsAllSessions() {
+        String old = refresh.issue(7L, "mobile");
+        TokenResponse first = auth.refresh(old);
+        // istemci 4 dakika sonra (eski 45 sn penceresinin ucuncu kati) ayni eski token'la yeniden dener
+        String hash = Hashing.sha256(old);
+        String[] f = fake.values.get("rtused:" + hash).split(":");
+        fake.values.put("rtused:" + hash, f[0] + ":" + (System.currentTimeMillis() - 240_000) + ":" + f[2] + ":" + f[3]);
+
+        TokenResponse retry = auth.refresh(old);
+
+        assertEquals(first, retry);
+        verify(sessions, never()).revokeAll(any());
     }
 
     @Test
@@ -119,5 +183,5 @@ class RefreshIdempotencyTest {
         assertNull(refresh.replayRotation(old, p -> false));
     }
 
-    private static final Duration RefreshTokenService_NEXT_TTL = Duration.ofSeconds(45);
+    private static final Duration RefreshTokenService_NEXT_TTL = Duration.ofMinutes(5);
 }

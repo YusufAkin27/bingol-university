@@ -11,6 +11,7 @@ import edu.bingol.backend.community.Texts;
 import edu.bingol.backend.event.EventRsvp;
 import edu.bingol.backend.event.EventRsvpRepository;
 import edu.bingol.backend.event.EventService;
+import edu.bingol.backend.event.EventPushHints;
 import edu.bingol.backend.event.UserEvent;
 import edu.bingol.backend.event.UserEventRepository;
 import edu.bingol.backend.event.admission.AdmissionDtos.Action;
@@ -26,7 +27,9 @@ import edu.bingol.backend.event.admission.EventAdmission.Mode;
 import edu.bingol.backend.event.chat.EventChatHooks;
 import edu.bingol.backend.event.admission.EventApplication.Status;
 import edu.bingol.backend.moderation.BlockService;
+import edu.bingol.backend.notification.FanoutNotifier;
 import edu.bingol.backend.notification.NotificationService;
+import edu.bingol.backend.notification.NotificationTemplates;
 import edu.bingol.backend.notification.NotificationType;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserStatus;
@@ -150,9 +153,9 @@ public class EventAdmissionService implements EventAdmissionHooks {
             List<Status> open = List.of(Status.PENDING, Status.WAITLISTED);
             List<Long> users = apps.userIdsByStatus(eventId, open);
             apps.closeAll(eventId, open, Status.CANCELLED, Instant.now());
-            for (Long uid : users) {
-                notifications.sendTemplated(uid, NotificationType.EVENT, "notif.admission.modeOpen", data(eventId, null),
-                        e.getTitle());
+            // FINAL-ALL (P05 ertelenen): bekleyen/siradaki basvuru sahiplerine toplu bildirim commit sonrasi havuzda.
+            if (edu.bingol.backend.event.EventLiveness.isLive(e, Instant.now())) {
+                notifyAll(users, "notif.admission.modeOpen", eventId, e.getTitle());
             }
         }
     }
@@ -217,8 +220,10 @@ public class EventAdmissionService implements EventAdmissionHooks {
         apps.saveAndFlush(app);
 
         User u = communities.usersById(List.of(a.id())).get(a.id());
-        notifications.sendTemplated(e.getCreatedBy(), NotificationType.EVENT, "notif.admission.received",
+        if (edu.bingol.backend.event.EventLiveness.isLive(e, Instant.now())) {
+            notifications.sendTemplated(e.getCreatedBy(), NotificationType.EVENT, "notif.admission.received",
                 data(eventId, app.getId()), e.getTitle(), u == null ? "-" : u.getDisplayName());
+        }
         return view(app, e.getTitle());
     }
 
@@ -269,7 +274,7 @@ public class EventAdmissionService implements EventAdmissionHooks {
 
     @Transactional(readOnly = true)
     public CursorPage<ApplicantView> list(Actor a, Long eventId, Status status, Long cursor, int size) {
-        events.requireManager(a, events.load(eventId));
+        events.requireManagerOrPerm(a, events.load(eventId), edu.bingol.backend.event.EventModerator.Perm.MANAGE_REQUESTS);
         int s = CursorPage.clampSize(size);
         PageRequest page = PageRequest.of(0, s + 1);
         List<EventApplication> rows = status == null
@@ -296,7 +301,7 @@ public class EventAdmissionService implements EventAdmissionHooks {
 
     @Transactional(readOnly = true)
     public AdmissionSummary summary(Actor a, Long eventId) {
-        UserEvent e = events.requireManager(a, events.load(eventId));
+        UserEvent e = events.requireManagerOrPerm(a, events.load(eventId), edu.bingol.backend.event.EventModerator.Perm.MANAGE_REQUESTS);
         Mode mode = configs.findById(eventId).map(EventAdmission::getMode).orElse(Mode.OPEN);
         return new AdmissionSummary(eventId, mode, e.getCapacity(), eventRepo.goingCount(eventId),
                 apps.countByEventIdAndStatus(eventId, Status.PENDING), apps.countByEventIdAndStatus(eventId, Status.ACCEPTED),
@@ -307,7 +312,7 @@ public class EventAdmissionService implements EventAdmissionHooks {
     /** Toplu karar: her kimlik bagimsiz sonuclanir (hatali olan digerlerini engellemez). */
     @Transactional
     public DecisionResult decide(Actor a, Long eventId, List<Long> ids, Action action, String reason) {
-        UserEvent e = events.requireManager(a, events.load(eventId));
+        UserEvent e = events.requireManagerOrPerm(a, events.load(eventId), edu.bingol.backend.event.EventModerator.Perm.MANAGE_REQUESTS);
         requireOpenForAdmission(e);
         eventRows.lock(eventId);
         String note = Texts.blankToNull(reason);
@@ -330,7 +335,7 @@ public class EventAdmissionService implements EventAdmissionHooks {
     /** Tek karar; gecersiz gecis hata olarak doner. */
     @Transactional
     public DecisionItem decideOne(Actor a, Long eventId, Long appId, Action action, String reason) {
-        UserEvent e = events.requireManager(a, events.load(eventId));
+        UserEvent e = events.requireManagerOrPerm(a, events.load(eventId), edu.bingol.backend.event.EventModerator.Perm.MANAGE_REQUESTS);
         requireOpenForAdmission(e);
         eventRows.lock(eventId);
         EventApplication app = apps.findByIdAndEventId(appId, eventId).orElseThrow(EventAdmissionService::appNotFound);
@@ -343,7 +348,7 @@ public class EventAdmissionService implements EventAdmissionHooks {
      */
     @Transactional
     public DecisionItem approveRequest(Actor a, Long eventId, Long userId) {
-        UserEvent e = events.requireManager(a, events.load(eventId));
+        UserEvent e = events.requireManagerOrPerm(a, events.load(eventId), edu.bingol.backend.event.EventModerator.Perm.MANAGE_REQUESTS);
         requireOpenForAdmission(e);
         eventRows.lock(eventId);
         EventApplication app = apps.findByEventIdAndUserId(eventId, userId).orElseThrow(EventAdmissionService::appNotFound);
@@ -359,7 +364,7 @@ public class EventAdmissionService implements EventAdmissionHooks {
     /** Istegi kullanici kimligiyle reddeder (kabul edilmis katilimci da cikarilir). */
     @Transactional
     public DecisionItem rejectRequest(Actor a, Long eventId, Long userId, String reason) {
-        UserEvent e = events.requireManager(a, events.load(eventId));
+        UserEvent e = events.requireManagerOrPerm(a, events.load(eventId), edu.bingol.backend.event.EventModerator.Perm.MANAGE_REQUESTS);
         requireOpenForAdmission(e);
         eventRows.lock(eventId);
         EventApplication app = apps.findByEventIdAndUserId(eventId, userId).orElseThrow(EventAdmissionService::appNotFound);
@@ -383,7 +388,9 @@ public class EventAdmissionService implements EventAdmissionHooks {
             throw new ApiException(HttpStatus.NOT_FOUND, "PARTICIPANT_NOT_FOUND", "Katılımcı bulunamadı.");
         }
         releaseSeat(e, userId);
-        notifications.sendTemplated(userId, NotificationType.EVENT, "notif.admission.removed", data(eventId, null), e.getTitle());
+        if (edu.bingol.backend.event.EventLiveness.isLive(e, Instant.now())) {
+            notifications.sendTemplated(userId, NotificationType.EVENT, "notif.admission.removed", data(eventId, null), e.getTitle());
+        }
         promoteWaitlist(e);
     }
 
@@ -395,19 +402,20 @@ public class EventAdmissionService implements EventAdmissionHooks {
     }
 
     @Override
-    public void beforeCreate(Actor a) {
+    public void beforeCreate(Actor a, int count) {
         if (a.systemAdmin(edu.bingol.backend.admin.rbac.PermissionMatrix.CONTENT_WRITE)) {
             return;
         }
+        int n = Math.max(1, count);
         int max = settings.maxOpenPerUser();
-        if (max > 0 && eventRows.countOpen(a.id(), OPEN_STATUSES, Instant.now()) >= max) {
+        if (max > 0 && eventRows.countOpen(a.id(), OPEN_STATUSES, Instant.now()) + n > max) {
             throw new ApiException(HttpStatus.CONFLICT, "EVENT_LIMIT_OPEN",
                     "Aynı anda en fazla " + max + " açık etkinliğiniz olabilir.", String.valueOf(max));
         }
         int daily = settings.dailyCreateLimit();
         if (daily > 0) {
             Instant since = LocalDate.now(ZONE).atStartOfDay(ZONE).toInstant();
-            if (eventRows.countCreatedSince(a.id(), since) >= daily) {
+            if (eventRows.countCreatedSince(a.id(), since) + n > daily) {
                 throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "EVENT_LIMIT_DAILY",
                         "Günlük etkinlik açma sınırına (" + daily + ") ulaştınız.", String.valueOf(daily));
             }
@@ -542,6 +550,41 @@ public class EventAdmissionService implements EventAdmissionHooks {
         }
     }
 
+    /**
+     * Basvuru sahiplerine ayni metni toplu gonderir (parca basina sabit sorgu). Istek thread'inden ve acik islemden
+     * cikarilir: COMMIT sonrasi sinirli havuzda calisir (geri alinan islem bildirmez).
+     */
+    private void notifyAll(List<Long> users, String key, Long eventId, String title) {
+        notifyAll(users, key, eventId, title, null);
+    }
+
+    private void notifyAll(List<Long> users, String key, Long eventId, String title, Map<String, String> hint) {
+        if (users.isEmpty()) {
+            return;
+        }
+        List<Long> to = List.copyOf(users);
+        Map<String, String> payload = hint != null ? hint : data(eventId, null);
+        FanoutNotifier.dispatch(fanout, "admission:" + key + ":" + eventId, () ->
+                notifications.sendTemplatedBulk(to, NotificationTemplates.of(key, NotificationType.EVENT),
+                        payload, null, title));
+    }
+
+    /** Kart alanlari (kulup adi, saat, yer, rozet); yoksa yalniz kimlikler gider. */
+    private EventPushHints hints;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setHints(EventPushHints hints) {
+        this.hints = hints;
+    }
+
+    /** Birim testleri icin yoktur (ayni is parcaciginda calisir); uretimde commit sonrasi havuz. */
+    private FanoutNotifier fanout;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setFanout(FanoutNotifier fanout) {
+        this.fanout = fanout;
+    }
+
     @Override
     @Transactional
     public void onEventCancelled(UserEvent e) {
@@ -551,9 +594,10 @@ public class EventAdmissionService implements EventAdmissionHooks {
             return;
         }
         apps.closeAll(e.getId(), open, Status.CANCELLED, Instant.now());
-        for (Long uid : users) {
-            notifications.sendTemplated(uid, NotificationType.EVENT, "notif.event.cancelled", data(e.getId(), null), e.getTitle());
+        if (e.getEndsAt() != null && !e.getEndsAt().isAfter(Instant.now())) {
+            return; // bitmis etkinligin iptali kimseye bildirilmez (veri kalir)
         }
+        notifyAll(users, "notif.event.cancelled", e.getId(), e.getTitle(), hints == null ? null : hints.cancelled(e));
     }
 
     @Override
@@ -613,7 +657,7 @@ public class EventAdmissionService implements EventAdmissionHooks {
                     notifyApp(e, app, "notif.admission.removed");
                 } else if (reason == null) {
                     notifyApp(e, app, "notif.admission.rejected");
-                } else {
+                } else if (edu.bingol.backend.event.EventLiveness.isLive(e, Instant.now())) {
                     notifications.sendTemplated(app.getUserId(), NotificationType.EVENT, "notif.admission.rejectedNote",
                             data(e.getId(), app.getId()), e.getTitle(), reason);
                 }
@@ -738,7 +782,15 @@ public class EventAdmissionService implements EventAdmissionHooks {
     }
 
     private void notifyApp(UserEvent e, EventApplication app, String key) {
-        notifications.sendTemplated(app.getUserId(), NotificationType.EVENT, key, data(e.getId(), app.getId()), e.getTitle());
+        if (!edu.bingol.backend.event.EventLiveness.isLive(e, Instant.now())) {
+            return; // bitmis/iptal etkinlik icin basvuru sonucu bildirimi gonderilmez
+        }
+        Map<String, String> d = data(e.getId(), app.getId());
+        if (hints != null) {
+            d = new java.util.LinkedHashMap<>(hints.of(e));
+            d.put("applicationId", app.getId().toString());
+        }
+        notifications.sendTemplated(app.getUserId(), NotificationType.EVENT, key, d, e.getTitle());
     }
 
     private static Map<String, String> data(Long eventId, Long appId) {

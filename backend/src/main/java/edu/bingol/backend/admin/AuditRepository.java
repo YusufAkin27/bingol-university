@@ -133,13 +133,32 @@ public class AuditRepository {
                 + " ORDER BY id DESC LIMIT :lim OFFSET :off", p, (rs, i) -> row(rs));
     }
 
-    /** CSV icin akis: en yeni once, en cok `limit` satir; satirlar bellekte biriktirilmez. */
+    /** CSV akisinda sorgu basina satir (anahtar imleci: tek sorgu belleginde en cok bu kadar satir). */
+    static final int STREAM_PAGE = 1000;
+
+    /**
+     * CSV icin akis: en yeni once, en cok `limit` satir. FIX-P09 (A08#9): eskiden tek sorgu + RowCallbackHandler idi;
+     * PostgreSQL JDBC {@code fetchSize=0}/otomatik commit ile TUM sonucu once heap'e alirdi (50.000 satirda onlarca MB,
+     * eszamanli isteklerde yuzlerce MB). Simdi {@code id < :last ORDER BY id DESC LIMIT 1000} anahtar imlecli sayfalar:
+     * bellek sayfa boyutuyla sinirli, her sorgu kisa ve 8 sn statement_timeout icinde.
+     */
     public void stream(Filter f, int limit, Consumer<AuditRow> sink) {
         MapSqlParameterSource p = new MapSqlParameterSource();
         String w = where(f, p);
-        p.addValue("lim", limit);
-        jdbc.query("SELECT " + COLS + " FROM admin_audit WHERE " + w + " ORDER BY id DESC LIMIT :lim", p,
-                (org.springframework.jdbc.core.RowCallbackHandler) rs -> sink.accept(row(rs)));
+        long last = Long.MAX_VALUE;
+        int remaining = limit;
+        while (remaining > 0) {
+            int page = Math.min(STREAM_PAGE, remaining);
+            p.addValue("lim", page).addValue("last", last);
+            List<AuditRow> rows = jdbc.query("SELECT " + COLS + " FROM admin_audit WHERE " + w
+                    + " AND id < :last ORDER BY id DESC LIMIT :lim", p, (rs, i) -> row(rs));
+            rows.forEach(sink);
+            remaining -= rows.size();
+            if (rows.size() < page) {
+                return;
+            }
+            last = rows.get(rows.size() - 1).id();
+        }
     }
 
     private static AuditRow row(ResultSet rs) throws SQLException {

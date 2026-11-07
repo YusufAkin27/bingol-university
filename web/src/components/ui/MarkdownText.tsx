@@ -9,7 +9,10 @@ import styles from './MarkdownText.module.css';
 const SAFE_URL = /^(https?:\/\/|mailto:|\/(?!\/)|#)/i;
 const INLINE = /\*\*([^*]+)\*\*|\[([^\]]+)\]\(([^)\s]+)\)|\*([^*\s][^*]*)\*/g;
 
-function inline(text: string): ReactNode[] {
+/** Site içi ("/" ile başlayan) bağlantıları çizen isteğe bağlı bileşen: SPA gezintisi ve dil öneki için. */
+export type InternalLink = (props: { href: string; children: ReactNode }) => ReactNode;
+
+function inline(text: string, Internal?: InternalLink): ReactNode[] {
   const out: ReactNode[] = [];
   let last = 0;
   let i = 0;
@@ -19,7 +22,13 @@ function inline(text: string): ReactNode[] {
     if (m[1] !== undefined) out.push(<strong key={i++}>{m[1]}</strong>);
     else if (m[2] !== undefined) {
       const url = m[3];
-      if (SAFE_URL.test(url)) {
+      if (Internal && url.startsWith('/') && !url.startsWith('//')) {
+        out.push(
+          <Internal key={i++} href={url}>
+            {m[2]}
+          </Internal>,
+        );
+      } else if (SAFE_URL.test(url)) {
         const external = /^https?:/i.test(url);
         out.push(
           <a key={i++} href={url} {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
@@ -113,21 +122,30 @@ export function parseBlocks(src: string): Block[] {
   return blocks;
 }
 
-export function MarkdownText({ text, className }: { text: string; className?: string }) {
+export function MarkdownText({
+  text,
+  className,
+  internalLink,
+}: {
+  text: string;
+  className?: string;
+  internalLink?: InternalLink;
+}) {
   const blocks = parseBlocks(text);
+  const inl = (s: string) => inline(s, internalLink);
   return (
     <div className={`${styles.md} ${className ?? ''}`}>
       {blocks.map((b, i) => {
         switch (b.kind) {
           case 'h': {
             const H = `h${b.level}` as 'h3' | 'h4' | 'h5';
-            return <H key={i}>{inline(b.text)}</H>;
+            return <H key={i}>{inl(b.text)}</H>;
           }
           case 'ul':
             return (
               <ul key={i}>
                 {b.items.map((it, j) => (
-                  <li key={j}>{inline(it)}</li>
+                  <li key={j}>{inl(it)}</li>
                 ))}
               </ul>
             );
@@ -135,7 +153,7 @@ export function MarkdownText({ text, className }: { text: string; className?: st
             return (
               <ol key={i}>
                 {b.items.map((it, j) => (
-                  <li key={j}>{inline(it)}</li>
+                  <li key={j}>{inl(it)}</li>
                 ))}
               </ol>
             );
@@ -143,7 +161,7 @@ export function MarkdownText({ text, className }: { text: string; className?: st
             return (
               <blockquote key={i}>
                 {b.lines.map((l, j) => (
-                  <p key={j}>{inline(l)}</p>
+                  <p key={j}>{inl(l)}</p>
                 ))}
               </blockquote>
             );
@@ -154,7 +172,7 @@ export function MarkdownText({ text, className }: { text: string; className?: st
                   <thead>
                     <tr>
                       {b.head.map((h, j) => (
-                        <th key={j}>{inline(h)}</th>
+                        <th key={j}>{inl(h)}</th>
                       ))}
                     </tr>
                   </thead>
@@ -162,7 +180,7 @@ export function MarkdownText({ text, className }: { text: string; className?: st
                     {b.rows.map((r, j) => (
                       <tr key={j}>
                         {r.map((c, k) => (
-                          <td key={k}>{inline(c)}</td>
+                          <td key={k}>{inl(c)}</td>
                         ))}
                       </tr>
                     ))}
@@ -176,7 +194,7 @@ export function MarkdownText({ text, className }: { text: string; className?: st
                 {b.lines.map((l, j) => (
                   <Fragment key={j}>
                     {j > 0 && <br />}
-                    {inline(l)}
+                    {inl(l)}
                   </Fragment>
                 ))}
               </p>

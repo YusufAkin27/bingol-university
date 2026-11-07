@@ -38,6 +38,8 @@ public class AccountDataPurger {
             "DELETE FROM push_outbox WHERE user_id = ?",
             // Anketler: secmen kaydi silinir (katilim sayaci poll.voter_count korunur); oylar asagida anonimlestirilir
             "DELETE FROM poll_ballot WHERE user_id = ?",
+            // Idempotency-Key defteri (V1610): yalniz anahtar + kaynak kimligi
+            "DELETE FROM idempotency_record WHERE user_id = ?",
             // KVKK: cihaz/IP gecmisi (erisim engeli modulu) hesap silinince kendi kayitlari silinir
             "DELETE FROM user_device_log WHERE user_id = ?",
             // Mail kampanyasi alici kayitlari (kisisel veri: kullanici kimligi ile gonderim durumu)
@@ -45,11 +47,16 @@ public class AccountDataPurger {
             "DELETE FROM notification WHERE user_id = ?",
             "DELETE FROM notification_pref WHERE user_id = ?",
             "DELETE FROM notification_subtype_pref WHERE user_id = ?",
+            // Kulup/etkinlik bildirim sessize alma (V1630)
+            "DELETE FROM notification_mute WHERE user_id = ?",
             "DELETE FROM bookmark WHERE user_id = ?",
             "DELETE FROM feedback_vote WHERE user_id = ?",
             "DELETE FROM event_feedback WHERE user_id = ?",
             "DELETE FROM user_block WHERE blocker_id = ?",
             "DELETE FROM user_block WHERE blocked_id = ?",
+            // Kampus Forum (D): sessize alma satirlari iki yonde de silinir (tek yonlu iliski, kisisel tercih)
+            "DELETE FROM forum_user_mute WHERE user_id = ?",
+            "DELETE FROM forum_user_mute WHERE muted_user_id = ?",
             "DELETE FROM club_join_answer WHERE user_id = ?",
             // Sahiplik devri yapilmadan sahip satiri silinmez; BANNED kaydi moderasyon izi olarak kalir.
             // Devir/kapatma sonrasi kalan OWNER satirini CommunityAccountListener ve gece isi (DbMaintenanceJob) kapatir.
@@ -65,12 +72,26 @@ public class AccountDataPurger {
             "DELETE FROM conversation_add_ban WHERE user_id = ?",
             "DELETE FROM conversation_add_ban WHERE adder_id = ?",
             "DELETE FROM event_co_organizer WHERE user_id = ?",
+            "DELETE FROM event_moderator WHERE user_id = ?",
             // W2-E tablolari: gorunen ad gecmisi (eski/yeni ad = kisisel veri) ve acik raporlu hesap silme bekletmesi
             "DELETE FROM display_name_history WHERE user_id = ?",
             "DELETE FROM account_delete_hold WHERE user_id = ?",
+            // V1310: baskalarinin gonderilerinde BENIM etiketlendigim satirlar (yazarin gonderilerindeki etiketler
+            // PostAccountPurger'da silinir)
+            "DELETE FROM post_mention WHERE user_id = ?",
             // FOLLOWREQ: bekleyen takip istekleri (gonderdigim ve aldigim; iki sutun da kisi kimligi)
             "DELETE FROM follow_request WHERE requester_id = ?",
-            "DELETE FROM follow_request WHERE target_id = ?");
+            "DELETE FROM follow_request WHERE target_id = ?",
+            // 2FA: guvenilen cihaz ozetleri (kisisel veri: cihaza bagli HMAC ozeti + platform/surum etiketi)
+            "DELETE FROM two_factor_device WHERE user_id = ?",
+            // Google/Apple kimlik baglari (saglayici sub + e-posta = kisisel veri); Apple token iptali (revoke) bu surumde yok
+            "DELETE FROM auth_identity WHERE user_id = ?",
+            // Cok oturum ("Cihazlarim"): cihaz adi + maskeli IP + cihaz ozeti (kisisel veri); FK de CASCADE
+            "DELETE FROM user_session WHERE user_id = ?",
+            // Kampus Forum (E): bildirim tercihi ve bildirim tekrar defteri (eden / alici kimlikleri)
+            "DELETE FROM forum_notification_pref WHERE user_id = ?",
+            "DELETE FROM forum_notify_seen WHERE actor_id = ?",
+            "DELETE FROM forum_notify_seen WHERE recipient_user_id = ?");
 
     /** Serbest metinler temizlenir, satir (ve kimlik baglantisi) kalir; kullanici satiri anonimlestirildi. */
     public static final List<String> SCRUBS = List.of(
@@ -96,16 +117,31 @@ public class AccountDataPurger {
             Map.entry("tt_course.user_id", "AcademicAccountPurger"),
             Map.entry("tt_exam.user_id", "AcademicAccountPurger"),
             Map.entry("tt_semester.user_id", "AcademicAccountPurger"),
-            Map.entry("announcement_read.user_id", "AcademicAccountPurger"),
+            Map.entry("tt_official_seed.user_id", "AcademicAccountPurger"),
             Map.entry("post.author_id", "PostAccountPurger (yumusak silme + medya)"),
             Map.entry("post_like.user_id", "PostAccountPurger"),
             Map.entry("post_media.owner_id", "PostAccountPurger"),
+            Map.entry("post_comment.author_id", "PostAccountPurger -> CommentAccountPurger (yorum metni temizlenir, yumusak silinir)"),
+            Map.entry("post_comment_like.user_id", "PostAccountPurger -> CommentAccountPurger"),
+            Map.entry("post_save.user_id", "PostAccountPurger -> CommentAccountPurger"),
+            Map.entry("post_watch.user_id", "PostAccountPurger (Reels izleme gecmisi, ReelsService.purge)"),
+            Map.entry("user_popularity.user_id", "PostAccountPurger (populerlik puani satiri silinir; Redis feedseen anahtari da)"),
+            Map.entry("forum_comment.user_id", "ForumCommentAccountPurger (yorum govdesi [silindi], mezar tasi; sayaclar duzelir)"),
+            Map.entry("forum_comment_like.user_id", "ForumCommentAccountPurger (begeniler silinir, yorum sayaci duser)"),
             Map.entry("user_follow.follower_id", "SocialAccountPurger"),
             Map.entry("user_follow.followee_id", "SocialAccountPurger"),
             Map.entry("user_follow_stats.user_id", "SocialAccountPurger"),
             Map.entry("profile_privacy.user_id", "AvatarCleanups (gizlilik satiri silinir)"),
             Map.entry("conversation_member.user_id", "LEAVE_ROOMS (satir kalir, left_at dolar; sohbet gecmisi digerlerinin verisi)"),
-            Map.entry("community.owner_id", "CommunityAccountListener (sahiplik devri ya da kulup kapatma)"));
+            Map.entry("community.owner_id", "CommunityAccountListener (sahiplik devri ya da kulup kapatma)"),
+            // Kampus Forum, A alani (konu/medya/begeni/kayit/takip/takma ad): ForumTopicAccountPurger
+            Map.entry("forum_topic.user_id", "ForumTopicAccountPurger (yumusak silme + baslik/govde temizligi)"),
+            Map.entry("forum_media.owner_id", "ForumTopicAccountPurger (gorsel + bayt silinir)"),
+            Map.entry("forum_topic_like.user_id", "ForumTopicAccountPurger (+ sayac duser)"),
+            Map.entry("forum_bookmark.user_id", "ForumTopicAccountPurger"),
+            Map.entry("forum_topic_follow.user_id", "ForumTopicAccountPurger"),
+            Map.entry("forum_anon_alias.user_id", "ForumTopicAccountPurger"),
+            Map.entry("forum_poll_vote.user_id", "ForumPollAccountPurger (UserAccountDeletedEvent, ayni islemde: oy satiri silinir, secenek sayaci dusurulur)"));
 
     /**
      * Bilerek SILINMEYEN/ANONIMLESTIRILMEYEN kullanici baglantili sutunlar ("tablo.sutun" -> gerekce ve sure).
@@ -114,6 +150,7 @@ public class AccountDataPurger {
      */
     public static final Map<String, String> RETAINED = Map.ofEntries(
             Map.entry("legal_acceptance.user_id", "Hukuki kanit: sozlesme onayi (ispat), suresiz"),
+            Map.entry("forum_moderation_action.actor_id", "Forum moderasyon islem kaydi (yonetici izi, admin_audit gibi); kullanici satiri anonimlestirildigi icin kisiye bagli degil"),
             Map.entry("moderation_strike.user_id", "Moderasyon izi; yeniden kayitla ihlal gecmisinin sifirlanmamasi"),
             Map.entry("suspend_recommendation.user_id", "Moderasyon izi (yonetici karar kaydi)"),
             Map.entry("event_attendance.user_id", "Anonim katilim istatistigi (anonimlesmis hesaba bagli)"),
@@ -124,6 +161,7 @@ public class AccountDataPurger {
             Map.entry("conversation.created_by", "Sohbeti olusturan; sohbet baskalarinin verisi"),
             Map.entry("conversation_member.added_by", "Grup uyelik gecmisi (baskalarinin baglami)"),
             Map.entry("event_announcement.sender_id", "Etkinlik duyurusu; alicilarin baglami"),
+            Map.entry("official_timetable_batch.created_by", "Yonetici yukleme izi (resmi ders programi); ogrenci verisi degil"),
             Map.entry("club_audit.target_user_id", "Kulup denetim izi (730 gun, DbMaintenanceJob); kimlik anonim"),
             Map.entry("message_access_audit.target_user_id", "Yonetici mesaj erisim denetimi: ekleme-yalniz tetikleyici, 730 gun"),
             Map.entry("club_ownership_transfer.from_user_id", "Kulup sahiplik devri izi"),
@@ -143,12 +181,12 @@ public class AccountDataPurger {
             Map.entry("event_application.decided_by", "Organizator karar izi"),
             Map.entry("event_attendance.marked_by", "Yoklamayi isaretleyen organizator izi"),
             Map.entry("event_co_organizer.added_by", "Ortak organizator ekleme izi"),
+            Map.entry("event_moderator.added_by", "Etkinlik moderatoru ekleyen sahip izi"),
             Map.entry("access_ban.created_by", "Erisim engeli yonetici izi"),
             Map.entry("blocked_content_hash.created_by", "Engelli icerik ozeti yonetici izi"),
             Map.entry("club_invite.created_by", "Kulup davet izi"),
             Map.entry("club_member_grant.updated_by", "Yetki degisiklik izi"),
             Map.entry("community_post.hidden_by", "Moderasyon izi"),
-            Map.entry("department_announcement.created_by", "Duyuru yoneticisi izi"),
             Map.entry("mail_campaign.created_by", "Kampanya yoneticisi izi"),
             Map.entry("mail_suppression.created_by", "Posta bastirma yonetici izi"),
             Map.entry("mail_template_custom.created_by", "Sablon yoneticisi izi"),
@@ -159,6 +197,7 @@ public class AccountDataPurger {
             Map.entry("moderation_target_state.hidden_by", "Moderasyon izi"),
             Map.entry("profanity_term.created_by", "Uygunsuz ifade listesi yonetici izi"),
             Map.entry("push_campaign.created_by", "Push kampanya yonetici izi"),
+            Map.entry("push_campaign.last_user_id", "Kampanya ilerleme isareti (son islenen alici kimligi, kisisel veri degil; kampanya kaydiyla yasar)"),
             Map.entry("admin_profile_change.proposed_by", "Yonetici yetki degisikligi oneren yonetici izi"),
             Map.entry("conversation.closed_by", "Sohbeti kapatan yonetici/moderator izi"),
             Map.entry("crash_group.status_by", "Cokme grubu durumunu degistiren yonetici izi (anonim cokme verisi)"),
@@ -166,9 +205,41 @@ public class AccountDataPurger {
             Map.entry("message.admin_hidden_by", "Moderasyon izi (yonetici gizledi); mesaj saklama suresiyle temizlenir"),
             Map.entry("message.deleted_by", "Silen kisi izi; silinmis mesaj govdesi saklama suresiyle (90 gun) kalici silinir"),
             Map.entry("moderation_strike.forgiven_by", "Ihlal affeden yonetici izi"),
+            Map.entry("post_comment.deleted_by", "Yumusak silme izi (yazar/gonderi sahibi/yonetici; hesap silmede yazar=silen yazar); yorum metni silinirken temizlenir"),
             Map.entry("post.deleted_by", "Yumusak silme izi (PostAccountPurger hesap silmede yazar=silen yazar); dosyalar saklama suresiyle silinir"),
             Map.entry("support_ticket_note.author_id", "Personelin ic notu yazari (yonetici izi, kullanici degil)"),
             Map.entry("user_event.moderated_by", "Etkinlik moderasyonunu yapan yonetici izi"));
+
+    /**
+     * Kimligi E-POSTA ile tutan kayitlar (FIX-P08, A07#6 / K5c): hesapsiz acilan herkese acik destek talebi
+     * {@code contact_email} ile baglidir, {@code user_id} yoktur; hesap silinince eski adresle eslesen talebin konusu,
+     * kullanici mesajlari ve takip jetonlari temizlenir. SIRA onemlidir: ticket satiri (adres) EN SON silinir, ondan
+     * once adresle bulunan alt kayitlar islenir. Personel yanitlari kalir (kisisel veri icermez, destek kaydi).
+     * Parametre: kucuk harfli eski adres.
+     */
+    static final List<String> EMAIL_SCRUBS = List.of(
+            "UPDATE support_message SET text = '[silindi]' WHERE from_staff = FALSE AND ticket_id IN "
+                    + "(SELECT id FROM support_ticket WHERE public_ticket = TRUE AND LOWER(contact_email) = ?)",
+            "DELETE FROM support_track_token WHERE ticket_id IN "
+                    + "(SELECT id FROM support_ticket WHERE public_ticket = TRUE AND LOWER(contact_email) = ?)",
+            "UPDATE support_ticket SET subject = '[silindi]', contact_email = NULL, contact_name = NULL, code_hash = NULL, "
+                    + "code_expires_at = NULL WHERE public_ticket = TRUE AND LOWER(contact_email) = ?");
+
+    /**
+     * E-posta/adres tutan sutunlarin hesap silme karari ("tablo.sutun" -> ne yapilir). {@code AccountDataPurgerCoverageTest}
+     * migration'lari tarar: yeni bir {@code *email*}/{@code to_address} sutunu burada yoksa test KIRMIZI olur.
+     */
+    public static final Map<String, String> EMAIL_KEYED = Map.ofEntries(
+            Map.entry("auth_identity.email", "DELETES: auth_identity satiri hesap silinince silinir (saglayici kimligi + e-posta)"),
+            Map.entry("auth_identity.email_is_private", "DELETES: ayni satir (Apple gizli e-posta bayragi, adres degil); hesap silinince silinir"),
+            Map.entry("support_ticket.contact_email", "EMAIL_SCRUBS: adresle eslesen herkese acik talep temizlenir"),
+            Map.entry("mail_outbox.to_address", "MAIL_BY_ADDRESS: kuyruktaki bekleyen kayitlar adresle silinir; 30 gun saklama politikasi"),
+            Map.entry("mail_suppression.email_hash", "Posta bastirma listesi (bounce/sikayet): geri donuk gonderimi onlemek icin ozet kalir"),
+            Map.entry("mail_suppression.email_masked", "Posta bastirma listesi: maskeli adres (yonetici gorunumu), ozetle birlikte kalir"),
+            Map.entry("violation_ledger.email_digest", "Ihlal defteri (T-058): yalniz tek yonlu ozet; yeniden kayitla ihlal gecmisi sifirlanmasin"),
+            Map.entry("admin_audit.admin_email", "Yonetici islem izi (eylemi yapan yonetici), 365 gun"),
+            Map.entry("data_export_receipt.admin_email", "Veri saklama makbuzu: silinemez (DS1), yonetici izi"),
+            Map.entry("data_purge_log.admin_email", "Veri silme defteri: silinemez (DS1), yonetici izi"));
 
     static final String LEAVE_ROOMS =
             "UPDATE conversation_member SET left_at = CURRENT_TIMESTAMP WHERE user_id = ? AND left_at IS NULL";
@@ -181,6 +252,9 @@ public class AccountDataPurger {
 
     /** Kesfet gonderi/yorum/begeni/medya temizligi (post paketi); testlerde yoksa atlanir. */
     private PostAccountPurger postPurger;
+
+    /** Forum yorumlari temizligi (forum.comment); testlerde yoksa atlanir. */
+    private edu.bingol.backend.forum.comment.ForumCommentAccountPurger forumCommentPurger;
 
     /** Akademik (ders programi/sinav/duyuru okundu) temizligi; testlerde yoksa atlanir. */
     private edu.bingol.backend.academic.AcademicAccountPurger academicPurger;
@@ -198,8 +272,21 @@ public class AccountDataPurger {
     }
 
     @Autowired(required = false)
+    void setForumCommentPurger(edu.bingol.backend.forum.comment.ForumCommentAccountPurger forumCommentPurger) {
+        this.forumCommentPurger = forumCommentPurger;
+    }
+
+    @Autowired(required = false)
     void setAcademicPurger(edu.bingol.backend.academic.AcademicAccountPurger academicPurger) {
         this.academicPurger = academicPurger;
+    }
+
+    /** Kampus Forum konu verisi (A alani); testlerde yoksa atlanir. */
+    private edu.bingol.backend.forum.topic.ForumTopicAccountPurger forumTopicPurger;
+
+    @Autowired(required = false)
+    void setForumTopicPurger(edu.bingol.backend.forum.topic.ForumTopicAccountPurger forumTopicPurger) {
+        this.forumTopicPurger = forumTopicPurger;
     }
 
     @Autowired(required = false)
@@ -219,14 +306,22 @@ public class AccountDataPurger {
         if (academicPurger != null) {
             academicPurger.purge(userId);
         }
+        if (forumTopicPurger != null) {
+            forumTopicPurger.purge(userId);
+        }
         if (postPurger != null) {
             postPurger.purge(userId);
+        }
+        if (forumCommentPurger != null) {
+            forumCommentPurger.purge(userId);
         }
         DELETES.forEach(sql -> jdbc.update(sql, userId));
         SCRUBS.forEach(sql -> jdbc.update(sql, userId));
         jdbc.update(LEAVE_ROOMS, userId);
         if (oldEmail != null && !oldEmail.isBlank()) {
-            jdbc.update(MAIL_BY_ADDRESS, oldEmail.trim().toLowerCase(Locale.ROOT));
+            String addr = oldEmail.trim().toLowerCase(Locale.ROOT);
+            jdbc.update(MAIL_BY_ADDRESS, addr);
+            EMAIL_SCRUBS.forEach(sql -> jdbc.update(sql, addr));
         }
         if (ledger != null) {
             // COMMIT sonrasi: islem geri alinirsa canli hesap deftere dusmesin (geri yukleme sonrasi yanlis silme)

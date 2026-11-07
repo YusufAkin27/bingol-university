@@ -1,6 +1,17 @@
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useId, useState, type ReactNode } from 'react';
-import { Button, Card, Icon, Skeleton, Table, useIsNarrow, type Column } from '../../../components/ui';
+import {
+  Button,
+  Card,
+  Icon,
+  Insight,
+  Skeleton,
+  Table,
+  useIsNarrow,
+  type Column,
+  type InsightPart,
+  type InsightTone,
+} from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
 import styles from './analytics.module.css';
 import { cohortStyle, COHORT_LEVEL_MIX, isCohortMature } from './transform';
@@ -45,14 +56,17 @@ interface ChartCardProps<T> {
   rows: T[];
   rowKey: (row: T) => string | number;
   children: ReactNode;
+  /** Grafiğin üstünde tek cümlelik yorum ("Günde ortalama 120 kişi girdi; ..."). */
+  insight?: { parts: InsightPart[] | string; tone?: InsightTone } | null;
 }
 
-export function ChartCard<T>({ title, actions, columns, rows, rowKey, children }: ChartCardProps<T>) {
+export function ChartCard<T>({ title, actions, columns, rows, rowKey, children, insight }: ChartCardProps<T>) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const regionId = useId();
   return (
     <Card title={title} actions={actions}>
+      {insight && <Insight parts={insight.parts} tone={insight.tone} className={styles.chartInsight} />}
       {children}
       {rows.length > 0 && (
         <>

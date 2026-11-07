@@ -2,6 +2,7 @@ package edu.bingol.backend.auth.token;
 
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.Hashing;
+import edu.bingol.backend.common.RateLimitedException;
 import edu.bingol.backend.i18n.Lang;
 import edu.bingol.backend.mail.MailService;
 
@@ -33,7 +34,8 @@ public class VerificationService {
 
     static final Duration CODE_TTL = Duration.ofMinutes(10);
     static final Duration LOCK_TTL = Duration.ofMinutes(10);
-    private static final Duration RESEND_COOLDOWN = Duration.ofSeconds(60);
+    /** Ayni adrese yeni kod ancak bundan sonra istenebilir (resend-code, forgot-password, kayit tekrari). */
+    static final Duration RESEND_COOLDOWN = Duration.ofSeconds(180);
     static final int MAX_ATTEMPTS = 5;
     /** Bir kod icin tum istemcilerden toplam deneme siniri (istemci basina sinirin ustunde, DoS'a kapali). */
     static final int GLOBAL_ATTEMPTS = 20;
@@ -43,6 +45,10 @@ public class VerificationService {
 
     private static final String VERIFY = "vc";
     private static final String RESET = "pr";
+    /** Iki faktorlu giris/etkinlestirme kodu: anahtar `tf:<kullanici kimligi>` (bkz. issueTwoFactor). */
+    private static final String TWO_FACTOR = "tf";
+    /** Gercek e-posta (role adresi degisimi) kodu: anahtar `ce:<kullanici>:<yeni e-posta>`; kod YENI adrese gider. */
+    private static final String EMAIL_CHANGE = "ce";
 
     private final StringRedisTemplate redis;
     private final MailService mail;
@@ -64,9 +70,42 @@ public class VerificationService {
         mail.requireCodeQuota();
     }
 
-    /** Yeni kayit dogrulama kodu uretip gonderir. Ayni adrese 60 sn icinde tekrar gonderimi reddeder. */
+    /** Hesap sahibine giden kod (2FA) icin: yalniz saglayici kotasi tamamen dolduysa 503 MAIL_QUOTA_EXHAUSTED. */
+    public void requireAccountMailQuota() {
+        mail.requireAccountCodeQuota();
+    }
+
+    /**
+     * Giris yapmis (ertelenmis) hesabin kendi dogrulama kodu istegi icin: kota korumasi (kayit turu) uygulanir; doluysa
+     * 503 yerine 429 MAIL_QUOTA_EXCEEDED + Retry-After (kota sifirlanmasina kalan saniye; "yarin tekrar").
+     */
+    public void requireVerificationQuota() {
+        try {
+            mail.requireCodeQuota(edu.bingol.backend.mail.MailDailyQuota.CodeKind.REGISTRATION);
+        } catch (ApiException e) {
+            if ("MAIL_QUOTA_EXHAUSTED".equals(e.code())) {
+                throw new RateLimitedException("MAIL_QUOTA_EXCEEDED",
+                        "Günlük doğrulama e-postası sınırı doldu, yarın tekrar deneyin.", mail.secondsUntilQuotaReset());
+            }
+            throw e;
+        }
+    }
+
+    /** Yeni kayit dogrulama kodu uretip gonderir. Ayni adrese 180 sn icinde tekrar gonderimi reddeder (429 RESEND_COOLDOWN + Retry-After). */
     public void issue(String email, Lang lang) {
         issue(VERIFY, email, lang);
+    }
+
+    /**
+     * Bekleyen kaydi OLMAYAN adres icin resend-code: kod gonderilmez ama ayni 180 sn beklemesi uygulanir (ikinci istek
+     * 429); boylece "bekleyen kayit var mi" cevap farkindan anlasilmaz. Ayri anahtar: sonraki gercek kayit etkilenmez.
+     */
+    public void touchResendCooldown(String email) {
+        String key = VERIFY + ":rcd:" + email;
+        Boolean first = redis.opsForValue().setIfAbsent(key, "1", RESEND_COOLDOWN);
+        if (!Boolean.TRUE.equals(first)) {
+            throw resendCooldown(key);
+        }
     }
 
     /** Sifre sifirlama kodu uretip gonderir (ayri anahtar alani, ayni kurallar). */
@@ -137,11 +176,61 @@ public class VerificationService {
         return Boolean.TRUE.equals(redis.delete(key));
     }
 
+    /**
+     * Iki faktorlu giris/etkinlestirme kodu ("tf" anahtar alani). {@code subject} e-posta degildir: giris icin
+     * {@code <kullanici>:<challenge ozeti>}, etkinlestirme icin {@code <kullanici>:enable} (her biri ayri kod ve
+     * sayac); kod {@code to} adresine gider. Kimliksiz akislardaki 60 sn bekleme YOKTUR (sifre
+     * dogrulanmis kullaniciya gider; yeniden gonderme siniri cagiranda, challenge basinadir); geri kalan her kural
+     * (hash, 10 dk, 5 deneme, istemci kapsami, saatlik toplam) ayni kodu paylasir.
+     */
+    public void issueTwoFactor(String subject, String to, Lang lang) {
+        issue(TWO_FACTOR, subject, to, lang, false);
+    }
+
+    /** Iki faktorlu kod dogruysa true (ve kod tuketilir); kilit/limit asilirsa 429. `scope`: istemci anahtari. */
+    public boolean verifyTwoFactor(String subject, String code, String scope) {
+        return verify(TWO_FACTOR, subject, code, scope);
+    }
+
+    /** Bekleyen iki faktorlu kodu, sayaclarini ve kilidini siler (2FA kapatilirken / challenge iptalinde). */
+    public void clearTwoFactor(String subject) {
+        redis.delete(List.of(TWO_FACTOR + ":" + subject, TWO_FACTOR + ":att:" + subject,
+                TWO_FACTOR + ":lock:" + subject, TWO_FACTOR + ":gatt:" + subject));
+        clearScoped(TWO_FACTOR, subject);
+    }
+
+    /**
+     * Gercek e-posta kodu ("ce" anahtar alani): `subject` = `<kullanici>:<yeni e-posta>`, kod `to` (yeni adres) adresine
+     * gider. Kimlikli akis; 180 sn yeniden gonderim beklemesi, hash'li kod, 10 dk, 5 deneme ve saatlik toplam sinir ayni.
+     * Kod yeni adrese baglidir: baska adres icin uretilmis kod bu adresi dogrulayamaz.
+     */
+    public void issueEmailChange(String subject, String to, Lang lang) {
+        issue(EMAIL_CHANGE, subject, to, lang, true);
+    }
+
+    /** Gercek e-posta kodu dogruysa true (ve tuketilir); kilit/limit asilirsa 429. `scope`: istemci anahtari. */
+    public boolean verifyEmailChange(String subject, String code, String scope) {
+        return verify(EMAIL_CHANGE, subject, code, scope);
+    }
+
+    /** Bekleyen gercek e-posta kodunu, sayaclarini ve kilidini siler (adres degisince / dogrulama bitince). */
+    public void clearEmailChange(String subject) {
+        redis.delete(List.of(EMAIL_CHANGE + ":" + subject, EMAIL_CHANGE + ":att:" + subject,
+                EMAIL_CHANGE + ":lock:" + subject, EMAIL_CHANGE + ":gatt:" + subject, EMAIL_CHANGE + ":cd:" + subject));
+        clearScoped(EMAIL_CHANGE, subject);
+    }
+
     private void issue(String ns, String email, Lang lang) {
-        Boolean first = redis.opsForValue().setIfAbsent(ns + ":cd:" + email, "1", RESEND_COOLDOWN);
-        if (!Boolean.TRUE.equals(first)) {
-            throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "RESEND_COOLDOWN",
-                    "Yeni kod için lütfen 1 dakika bekleyin.");
+        issue(ns, email, email, lang, true);
+    }
+
+    /** `email` hem anahtar hem varsayilan alici; iki faktorlu kodda anahtar kullanici kimligi, alici `to`. */
+    private void issue(String ns, String email, String to, Lang lang, boolean cooldown) {
+        if (cooldown) {
+            Boolean first = redis.opsForValue().setIfAbsent(ns + ":cd:" + email, "1", RESEND_COOLDOWN);
+            if (!Boolean.TRUE.equals(first)) {
+                throw resendCooldown(ns + ":cd:" + email);
+            }
         }
         String code = String.format("%06d", random.nextInt(1_000_000));
         redis.opsForValue().set(ns + ":" + email, hash(email, code), CODE_TTL);
@@ -156,9 +245,11 @@ public class VerificationService {
         }
         try {
             if (RESET.equals(ns)) {
-                mail.sendPasswordResetCode(email, code, (int) CODE_TTL.toMinutes(), lang);
+                mail.sendPasswordResetCode(to, code, (int) CODE_TTL.toMinutes(), lang);
+            } else if (TWO_FACTOR.equals(ns)) {
+                mail.sendTwoFactorCode(to, code, (int) CODE_TTL.toMinutes(), lang);
             } else {
-                mail.sendVerificationCode(email, code, (int) CODE_TTL.toMinutes(), lang);
+                mail.sendVerificationCode(to, code, (int) CODE_TTL.toMinutes(), lang);
             }
         } catch (RuntimeException e) {
             // Gonderilemediyse bekleme suresi kullaniciyi cezalandirmasin.
@@ -166,6 +257,13 @@ public class VerificationService {
             redis.delete(ns + ":" + email);
             throw e;
         }
+    }
+
+    /** 429 RESEND_COOLDOWN; Retry-After ve {0} = kalan saniye. */
+    private RateLimitedException resendCooldown(String key) {
+        Long left = redis.getExpire(key, java.util.concurrent.TimeUnit.SECONDS);
+        long secs = left == null || left <= 0 ? RESEND_COOLDOWN.toSeconds() : left;
+        return new RateLimitedException("RESEND_COOLDOWN", "Yeni kod için lütfen bekleyin.", secs, String.valueOf(secs));
     }
 
     private void clearScoped(String ns, String email) {

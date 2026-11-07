@@ -5,8 +5,10 @@ import edu.bingol.backend.common.RateLimiter;
 import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.util.Map;
+import java.util.concurrent.Executor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +20,7 @@ import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -101,12 +104,30 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     /** Diger sunuculardan gelen sohbet olaylarini dinler (her sunucu kendi kullanicilarina iletir). */
     @Bean
     RedisMessageListenerContainer chatEventListenerContainer(RedisConnectionFactory cf, ChatEventBus bus,
+            @Qualifier("chatBusExecutor") Executor busExecutor,
             @org.springframework.beans.factory.annotation.Value("${app.messaging.redis-listener:true}") boolean autoStart) {
         RedisMessageListenerContainer c = new RedisMessageListenerContainer();
         c.setAutoStartup(autoStart); // testlerde Redis olmadan baglam acilabilsin diye kapatilabilir
         c.setConnectionFactory(cf);
-        c.addMessageListener(bus, new ChannelTopic(ChatEventBus.CHANNEL));
+        // FIX-P03 (A02#4): olay basina yeni thread yok; ayni konusmanin olaylari sirayla, farkli konusmalar paralel
+        c.addMessageListener(new OrderedBusListener(bus, busExecutor, 50_000), new ChannelTopic(ChatEventBus.CHANNEL));
         return c;
+    }
+
+    /** Redis olaylarinin yerel teslimi icin sinirli havuz (varsayilan 4-8 parcacik; `app.messaging.bus-threads`). */
+    @Bean(name = "chatBusExecutor", destroyMethod = "shutdown")
+    ThreadPoolTaskExecutor chatBusExecutor(
+            @org.springframework.beans.factory.annotation.Value("${app.messaging.bus-threads:0}") int threads) {
+        int n = threads > 0 ? threads : Math.max(4, Math.min(8, Runtime.getRuntime().availableProcessors()));
+        ThreadPoolTaskExecutor ex = new ThreadPoolTaskExecutor();
+        ex.setCorePoolSize(n);
+        ex.setMaxPoolSize(n);
+        ex.setQueueCapacity(Integer.MAX_VALUE); // seritler zaten OrderedBusListener.maxPending ile sinirli
+        ex.setAllowCoreThreadTimeOut(true);
+        ex.setKeepAliveSeconds(60);
+        ex.setThreadNamePrefix("chat-bus-");
+        ex.initialize();
+        return ex;
     }
 
     /**

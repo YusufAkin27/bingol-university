@@ -344,9 +344,24 @@ public class TimetableService {
 
     private void checkConflict(Long uid, Long semId, Long excludeCourse, String name, List<Parsed> sessions, List<Entry> extra) {
         List<Entry> existing = new ArrayList<>();
+        // timetable(): guncel donemin programi "donem = guncel OR donem YOK" derslerini BIRLIKTE gosterir; cakisma da
+        // ayni kumede aranir (A07#15). Guncel olmayan donemin programinda donemsiz dersler gorunmez.
+        SemesterView cur = currentSemester(uid);
+        Long curId = cur == null ? null : cur.id();
+        String semCond;
+        Object[] args;
+        if (semId == null) {
+            semCond = curId == null ? "c.semester_id IS NULL" : "(c.semester_id IS NULL OR c.semester_id = ?)";
+            args = curId == null ? new Object[] {uid} : new Object[] {uid, curId};
+        } else if (semId.equals(curId)) {
+            semCond = "(c.semester_id = ? OR c.semester_id IS NULL)";
+            args = new Object[] {uid, semId};
+        } else {
+            semCond = "c.semester_id = ?";
+            args = new Object[] {uid, semId};
+        }
         String where = "SELECT c.id, c.name, s.day_of_week, s.start_time, s.end_time FROM tt_course c JOIN tt_session s ON s.course_id = c.id "
-                + "WHERE c.user_id = ? AND " + (semId == null ? "c.semester_id IS NULL" : "c.semester_id = ?");
-        Object[] args = semId == null ? new Object[] {uid} : new Object[] {uid, semId};
+                + "WHERE c.user_id = ? AND " + semCond;
         jdbc.query(where, rs -> {
             long cid = rs.getLong("id");
             if (excludeCourse == null || cid != excludeCourse) {

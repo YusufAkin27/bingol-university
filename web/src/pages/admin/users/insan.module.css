@@ -1,0 +1,290 @@
+/* İNSAN: kullanıcı grubu ek bileşenleri. Yalnız token renkleri, yalnız mantıksal özellikler (RTL), dokunma hedefi >= 44 px. */
+.section {
+  display: grid;
+  gap: var(--space-3);
+  margin-block-end: var(--space-4);
+}
+.h2 {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: var(--fw-bold);
+  color: var(--text);
+}
+
+/* Dikkat gerektirenler */
+.attnGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--space-3);
+}
+.attn {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  min-block-size: 44px;
+  padding: var(--space-3) var(--space-4);
+  text-align: start;
+  font: inherit;
+  color: var(--text);
+  cursor: pointer;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-inline-start-width: 4px;
+  border-radius: var(--radius-md);
+}
+.attn[data-tone='danger'] {
+  border-inline-start-color: var(--danger);
+  background: var(--danger-soft);
+}
+.attn[data-tone='warning'] {
+  border-inline-start-color: var(--warning);
+  background: var(--warning-soft);
+}
+.attn:hover {
+  border-color: var(--border-strong);
+}
+.attn[aria-pressed='true'] {
+  outline: 2px solid var(--select-border);
+  outline-offset: 1px;
+}
+.attn:focus-visible {
+  outline: 2px solid var(--focus, var(--primary));
+  outline-offset: 2px;
+}
+.attnNum {
+  grid-row: span 2;
+  font-size: var(--text-2xl);
+  font-weight: var(--fw-black);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.attnLabel {
+  font-weight: var(--fw-bold);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+.attnHint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+.attnTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xs);
+  font-weight: var(--fw-bold);
+}
+
+/* Grafik şeridi: sabit yükseklik iskeleti (CLS) */
+.charts {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: var(--space-3);
+  margin-block-end: var(--space-4);
+}
+.chartsWide {
+  grid-column: 1 / -1;
+}
+.charts > * {
+  min-width: 0;
+}
+@media (max-width: 900px) {
+  .charts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.chartsSkeleton {
+  min-block-size: 320px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.cardBody {
+  display: grid;
+  gap: var(--space-3);
+}
+.note {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+/* Ayrıntı: risk özeti */
+.riskHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.riskList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.riskItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+.riskItem[data-tone='danger'] {
+  background: var(--danger-soft);
+  border-color: var(--danger-line);
+}
+.riskItem[data-tone='warning'] {
+  background: var(--warning-soft);
+  border-color: var(--warning);
+}
+.riskItem[data-tone='info'] {
+  background: var(--info-soft);
+}
+.riskItemText {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+.linkBtn {
+  min-block-size: 44px;
+  padding-inline: var(--space-2);
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Ayrıntı: zaman çizelgesi */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+.tlItem {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  gap: var(--space-3);
+  padding-block-end: var(--space-3);
+}
+.tlItem:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  inset-block: 2rem 0;
+  inset-inline-start: calc(1rem - 1px);
+  inline-size: 2px;
+  background: var(--border);
+}
+.tlDot {
+  display: grid;
+  place-items: center;
+  inline-size: 2rem;
+  block-size: 2rem;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-muted);
+}
+.tlDot[data-tone='success'] {
+  border-color: var(--success);
+  color: var(--success);
+}
+.tlDot[data-tone='warning'] {
+  border-color: var(--warning);
+  color: var(--warning);
+}
+.tlDot[data-tone='danger'] {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.tlDot[data-tone='info'] {
+  border-color: var(--info);
+  color: var(--info);
+}
+.tlBody {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding-block-start: 2px;
+}
+.tlTitle {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+  overflow-wrap: anywhere;
+}
+.tlWhen {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Bekleyen: kalan süre dağılımı */
+.stack {
+  display: flex;
+  block-size: 14px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--surface-3);
+}
+.stackSeg {
+  min-inline-size: 4px;
+}
+.stackSeg[data-tone='danger'] {
+  background: var(--danger);
+}
+.stackSeg[data-tone='warning'] {
+  background: var(--warning);
+}
+.stackSeg[data-tone='info'] {
+  background: var(--info);
+}
+.stackSeg[data-tone='success'] {
+  background: var(--success);
+}
+.legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+}
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* 2FA: halka + eğilim */
+.tfTop {
+  display: grid;
+  grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: stretch;
+}
+.tfTop > * {
+  min-width: 0;
+}
+@media (max-width: 800px) {
+  .tfTop {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.ringCard {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  text-align: center;
+}

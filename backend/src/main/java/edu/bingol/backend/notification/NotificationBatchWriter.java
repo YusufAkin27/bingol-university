@@ -108,6 +108,41 @@ public class NotificationBatchWriter {
         return out;
     }
 
+    private static final String INSERT_ALL = """
+            INSERT INTO notification (user_id, type, title, body, data, subtype, collapse_key, group_count, created_at)
+            SELECT t.uid, CAST(? AS varchar), CAST(? AS varchar), CAST(? AS varchar), CAST(? AS varchar),
+                   CAST(? AS varchar), NULL, 1, CAST(? AS timestamptz)
+            FROM unnest(CAST(? AS bigint[])) AS t(uid)
+            RETURNING user_id, id, group_count
+            """;
+
+    /**
+     * Birlesme anahtari OLMAYAN bildirim icin her kullaniciya yeni satiri TEK ifadede ekler (IDENTITY anahtarli
+     * `saveAll` satir satir INSERT yapardi). Sonuc {@link #upsertUnread} ile ayni bicimdedir (sayac hep 1).
+     */
+    public Map<Long, Row> insertAll(Collection<Long> userIds, NotificationType type, String subtype, String title,
+                                    String body, String data, Instant now) {
+        if (userIds.isEmpty()) {
+            return Map.of();
+        }
+        Long[] ids = userIds.toArray(Long[]::new);
+        Map<Long, Row> out = new HashMap<>(ids.length * 2);
+        jdbc.query(con -> {
+            PreparedStatement ps = con.prepareStatement(INSERT_ALL);
+            ps.setString(1, type.name());
+            ps.setString(2, title);
+            setNullable(ps, 3, body);
+            setNullable(ps, 4, data);
+            setNullable(ps, 5, subtype);
+            ps.setTimestamp(6, Timestamp.from(now));
+            ps.setArray(7, con.createArrayOf("bigint", ids));
+            return ps;
+        }, rs -> {
+            out.put(rs.getLong(1), new Row(rs.getLong(2), rs.getInt(3)));
+        });
+        return out;
+    }
+
     private static void setNullable(PreparedStatement ps, int idx, String v) throws java.sql.SQLException {
         if (v == null) {
             ps.setNull(idx, Types.VARCHAR);

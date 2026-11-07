@@ -125,7 +125,8 @@ class CacheEndToEndTest {
         });
         MockHttpServletResponse r1 = fetch("/api/menu/today", null);
         assertEquals(200, r1.getStatus());
-        assertEquals("public, max-age=300, stale-while-revalidate=600", r1.getHeader("Cache-Control"));
+        // P07-B14: gun donumunde dunun menusu kalmasin diye bugunun menusu 60 sn
+        assertEquals("public, max-age=60, stale-while-revalidate=120", r1.getHeader("Cache-Control"));
         day.setItems("B-yemek-" + UUID.randomUUID());
         menu.save(day);
         assertTrue(body(fetch("/api/menu/today", null)).contains("B-yemek-"), "menu yazmasi hemen yansimali");

@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 public class ContentGuard {
 
     /** Hangi varlik turu (istatistik icin). */
-    public enum Entity { CLUB, EVENT, POST, ANNOUNCEMENT, QUESTION, PROFILE, SUGGESTION, GROUP_TITLE, OTHER }
+    public enum Entity { CLUB, EVENT, POST, ANNOUNCEMENT, QUESTION, PROFILE, SUGGESTION, GROUP_TITLE, COMMENT, OTHER }
 
     private final ProfanityFilter filter;
     private final ProfanityProperties props;

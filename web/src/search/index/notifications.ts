@@ -1,5 +1,6 @@
 import { paths } from '../../paths';
 import type { SearchEntry } from '../types';
+import { entries as iletisim } from './iletisim';
 import { notifications } from './notifsysPages';
 
 /**
@@ -9,6 +10,7 @@ import { notifications } from './notifsysPages';
  */
 export const entries: SearchEntry[] = [
   ...notifications,
+  ...iletisim,
   // Menüde olmayan alt sayfa: `path` ile açıkça verilir
   {
     id: 'campaigns.new',

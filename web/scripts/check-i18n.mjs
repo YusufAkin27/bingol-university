@@ -18,7 +18,16 @@ export function parseEntries(src) {
 
 const ph = (s) => (s.match(/\{\w+\}/g) ?? []).sort().join(',');
 // Yönetim paneli yalnız Türkçedir: bu ad alanları en/ar eşitliğinden muaftır (index.ts en/ar'a tr metnini katar).
-const TR_ONLY = new Set(['admin-guard.ts', 'admin-shell.ts', 'admin-p05.ts', 'admin-p03.ts', 'admin-wp02.ts', 'admin-p06.ts', 'admin-p07.ts', 'admin-p08.ts', 'admin-p09.ts', 'admin-p11.ts', 'admin-p13.ts', 'admin-p14.ts', 'admin-p15.ts', 'admin-p16.ts', 'admin-cr1.ts', 'admin-ds1.ts', 'admin-reg.ts', 'admin-uv1.ts', 'admin-kit.ts', 'admin-v2-community.ts', 'admin-v2-people.ts', 'admin-v2-moderation.ts', 'admin-v2-notifsys.ts']);
+const TR_ONLY = new Set(['admin-guard.ts', 'admin-shell.ts', 'admin-p05.ts', 'admin-p03.ts', 'admin-wp02.ts', 'admin-p06.ts', 'admin-p07.ts', 'admin-p08.ts', 'admin-p09.ts', 'admin-p11.ts', 'admin-p13.ts', 'admin-p14.ts', 'admin-p15.ts', 'admin-p16.ts', 'admin-cr1.ts', 'admin-ds1.ts', 'admin-reg.ts', 'admin-uv1.ts', 'admin-kit.ts', 'admin-v2-community.ts', 'admin-v2-people.ts', 'admin-v2-moderation.ts', 'admin-v2-notifsys.ts', 'admin-bh.ts', 'admin-gd1.ts', 'admin-unitnews.ts', 'admin-twofactor.ts']);
+TR_ONLY.add('admin-arama.ts'); // PANEL-arama: kısayollar, yardım, sayfa hatası (yalnız Türkçe)
+TR_ONLY.add('admin-genel.ts'); // PANEL-genel-bakis
+TR_ONLY.add('admin-mod1.ts'); // PANEL-yaptirim
+TR_ONLY.add('admin-mod2.ts'); // PANEL-icerik-denetimi
+TR_ONLY.add('admin-icerik.ts'); // PANEL-akademik-icerik
+TR_ONLY.add('admin-insan.ts'); // PANEL-insanlar
+TR_ONLY.add('admin-topluluk.ts'); // PANEL-topluluk
+TR_ONLY.add('admin-sys2.ts'); // PANEL-sistem-saglik
+TR_ONLY.add('admin-forum.ts'); // Kampus Forum yonetimi (yalniz Turkce)
 const problems = [];
 
 for (const f of readdirSync(join(root, 'tr')).filter((x) => x.endsWith('.ts') && !TR_ONLY.has(x))) {

@@ -1,6 +1,7 @@
 package edu.bingol.backend.dbmaint;
 
 import edu.bingol.backend.config.SchedulerLock;
+import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -30,6 +31,9 @@ public class DbMaintenanceJob {
 
     private static final Logger log = LoggerFactory.getLogger(DbMaintenanceJob.class);
 
+    /** Bildirim ust siniri adayi: son bu kadar gunde bildirim alan kullanicilar. */
+    static final int CAP_RECENT_DAYS = 3;
+
     /** Bekleyen takip istegi saklama suresi (gun). */
     static final int FOLLOW_REQUEST_DAYS = 90;
 
@@ -50,6 +54,19 @@ public class DbMaintenanceJob {
     private final int activityDays;
     private final int crashDays;
     private final int logDays;
+    /** Guvenilen 2FA cihazinin bosta kalma siniri (gun); TwoFactorService ile ayni ayar. */
+    @Value("${app.twofactor.device-ttl-days:60}")
+    private int twoFactorDeviceDays = 60;
+    /**
+     * Oturum kaydi ("Cihazlarim", user_session) son kullanimdan sonra saklama (gun): mutlak oturum omru
+     * (`app.auth.session-max-days`, 90) + pay. Iptal edilmis kayitlar da son kullanimlarina gore ayni sure sonra silinir.
+     */
+    @Value("${app.dbmaint.session-days:100}")
+    private int sessionDays = 100;
+
+    void setSessionDays(int days) {
+        this.sessionDays = days;
+    }
 
     public DbMaintenanceJob(ChunkedDeleter deleter, NamedParameterJdbcTemplate jdbc, AnalyticsRollup rollup,
                             SchedulerLock lock, Clock clock,
@@ -84,29 +101,65 @@ public class DbMaintenanceJob {
         this.logDays = logDays;
     }
 
+    /**
+     * Gece kilidi alinamazsa nightly() hata firlatir (true). Cok ornekli calismada kilidi baska ornek tuttugunda
+     * yalanci hata uretmesin diye kapatilabilir; tek ornekte (mevcut kurulum) acik kalmali.
+     */
+    @Value("${app.dbmaint.fail-on-lock-miss:true}")
+    private boolean failOnLockMiss = true;
+
+    /** Son runAll'da patlayan gorev adlari (nightly bunu is hatasi olarak gosterir; bakim "basarili" gorunmesin). */
+    private final java.util.List<String> failedTasks = new java.util.concurrent.CopyOnWriteArrayList<>();
+
+    void setTwoFactorDeviceDays(int days) {
+        this.twoFactorDeviceDays = days;
+    }
+
+    void setFailOnLockMiss(boolean failOnLockMiss) {
+        this.failOnLockMiss = failOnLockMiss;
+    }
+
     @Scheduled(cron = "${app.dbmaint.cron:0 0 3 * * *}", zone = "Europe/Istanbul")
     public void nightly() {
         if (!enabled) {
             return;
         }
         long failedBefore = deleter.failedChunks();
-        lock.tryRun("dbmaint-nightly", Duration.ofMinutes(60), () -> {
+        boolean ran = lock.tryRun("dbmaint-nightly", Duration.ofMinutes(60), () -> {
             runAll();
             // T-071: parca hatasi eskiden yutulurdu; artik is "basarisiz" sayilir (JobMonitor son hata + bu_scheduler_errors)
             long failed = deleter.failedChunks() - failedBefore;
             if (failed > 0) {
                 throw new IllegalStateException("dbmaint: " + failed + " silme parcasi basarisiz (ayrinti log'da)");
             }
+            if (!failedTasks.isEmpty()) {
+                throw new IllegalStateException("dbmaint: gorev(ler) basarisiz: " + failedTasks + " (ayrinti log'da)");
+            }
         });
+        if (!ran && failOnLockMiss) {
+            // FIX-P09 (A08#3): kilit alinamadi (Redis kesintisi ya da baska ornek) -> gece saklama HIC calismadi; eskiden
+            // sessizce "basarili" sayiliyordu. Artik hata: JobMonitor son hata + bu_scheduler_errors + gosterge uyarisi.
+            throw new IllegalStateException("dbmaint: gece bakimi kilit alinamadigi icin calismadi (Redis erisilemez ya da kilit baska ornekte)");
+        }
     }
 
     /** Tum gorevleri sirayla calistirir; gorev adi -> silinen satir. Hata cagirana sizmaz. */
     public Map<String, Integer> runAll() {
         Instant now = clock.instant();
+        failedTasks.clear();
         Map<String, Integer> out = new LinkedHashMap<>();
-        // once toplulastir, sonra ham olayi sil (toplulastirilmamis gun silinmesin)
-        out.put("analytics_rollup_days", safe("analytics_rollup", rollup::rollUpMissingDays));
-        out.put("analytics_event", safe("analytics_event", () -> rawEvents(now)));
+        // once toplulastir, sonra ham olayi sil (toplulastirilmamis gun silinmesin). FIX-P09 (A08#5): toplulastirma
+        // hatasi yutulup ham olay yine silinirse kalici gunluk ozet geri donusu olmadan kaybolurdu; artik rollup
+        // basarisizsa ham olay silme ATLANIR (ham olay bir sonraki gece yeniden denenene kadar kalir).
+        boolean[] rollupOk = {true};
+        out.put("analytics_rollup_days", safe("analytics_rollup", rollup::rollUpMissingDays, () -> rollupOk[0] = false));
+        out.put("behavior_rollup_days", safe("behavior_rollup", rollup::rollUpBehaviorDays));
+        if (rollupOk[0]) {
+            out.put("analytics_event", safe("analytics_event", () -> rawEvents(now)));
+        } else {
+            log.warn("dbmaint: analitik toplulastirma basarisiz, ham olay silme atlandi (veri kaybi onlemi)");
+            out.put("analytics_event", 0);
+        }
         out.put("activity_daily", safe("activity_daily", () -> activityDaily()));
         out.put("notification_read", safe("notification_read", () -> notifRead(now)));
         out.put("notification_unread", safe("notification_unread", () -> notifUnread(now)));
@@ -122,6 +175,8 @@ public class DbMaintenanceJob {
         out.put("message_access_audit", safe("message_access_audit", () -> longAudit("message_access_audit", now)));
         out.put("club_audit", safe("club_audit", () -> longAudit("club_audit", now)));
         out.put("follow_request", safe("follow_request", () -> followRequests(now)));
+        out.put("two_factor_device", safe("two_factor_device", () -> twoFactorDevices(now)));
+        out.put("user_session", safe("user_session", () -> userSessions(now)));
         out.put("crash_event", safe("crash_event", () -> crashEvents(now)));
         out.put("crash_group", safe("crash_group", () -> crashGroups(now)));
         log.info("dbmaint tamam: {}", out);
@@ -129,10 +184,18 @@ public class DbMaintenanceJob {
     }
 
     private int safe(String name, Supplier<Integer> task) {
+        return safe(name, task, null);
+    }
+
+    private int safe(String name, Supplier<Integer> task, Runnable onFailure) {
         try {
             return task.get();
         } catch (RuntimeException e) {
             log.warn("dbmaint gorevi basarisiz ({}): {}", name, e.toString());
+            failedTasks.add(name);
+            if (onFailure != null) {
+                onFailure.run();
+            }
             return 0;
         }
     }
@@ -152,6 +215,23 @@ public class DbMaintenanceJob {
         return deleter.delete("follow_request",
                 "DELETE FROM follow_request WHERE id IN (SELECT id FROM follow_request WHERE created_at < :cutoff LIMIT :lim)",
                 Map.of("cutoff", cutoff(now, FOLLOW_REQUEST_DAYS)));
+    }
+
+    /**
+     * 2FA guvenilen cihazlar: {@code app.twofactor.device-ttl-days} (60) gun kullanilmayan kayit silinir (kaybolan/satilan
+     * telefon sonsuza dek kodsuz girmesin; TwoFactorService.touchIfTrusted ayni siniri giriste de uygular).
+     */
+    private int twoFactorDevices(Instant now) {
+        return twoFactorDeviceDays <= 0 ? 0 : deleter.delete("two_factor_device",
+                "DELETE FROM two_factor_device WHERE id IN (SELECT id FROM two_factor_device WHERE last_used_at < :cutoff ORDER BY id LIMIT :lim)",
+                Map.of("cutoff", cutoff(now, twoFactorDeviceDays)));
+    }
+
+    /** Cok oturum kayitlari: son kullanimi `sessionDays` gunden eski (acik ya da iptal) satirlar parcali silinir. */
+    private int userSessions(Instant now) {
+        return sessionDays <= 0 ? 0 : deleter.delete("user_session",
+                "DELETE FROM user_session WHERE sid IN (SELECT sid FROM user_session WHERE last_used_at < :cutoff ORDER BY sid LIMIT :lim)",
+                Map.of("cutoff", cutoff(now, sessionDays)));
     }
 
     /** Gunluk acilis sayaci: raporlar en cok 366 gun sorgular; 400 gunden eskisi gereksiz. */
@@ -180,13 +260,21 @@ public class DbMaintenanceJob {
                 Map.of());
     }
 
-    /** Kullanici basina en yeni N bildirim kalir. Yalniz siniri asan kullanicilar taranir (idx_notification_user). */
+    /**
+     * Kullanici basina en yeni N bildirim kalir. FIX-P09 (A08#5/A09#7): aday sorgusu eskiden tum tabloda
+     * {@code GROUP BY user_id} idi ve 8 sn {@code statement_timeout}'ta sessizce patliyordu (kullanici basina ust sinir
+     * hic uygulanmiyordu). Simdi yalniz SON {@value #CAP_RECENT_DAYS} GUNDE bildirim alan kullanicilar (siniri ancak
+     * onlar yeni asabilir) icin kullanici basina indeksli sayim yapilir ve sorgu 120 sn sinirli kisa islemdedir.
+     */
     private int notifCap() {
         if (notifCap <= 0) {
             return 0;
         }
-        List<Long> users = jdbc.getJdbcTemplate().queryForList(
-                "SELECT user_id FROM notification GROUP BY user_id HAVING count(*) > ? LIMIT 5000", Long.class, notifCap);
+        Timestamp since = Timestamp.from(clock.instant().minus(Duration.ofDays(CAP_RECENT_DAYS)));
+        List<Long> users = LongSql.run(jdbc, LongSql.DEFAULT_TIMEOUT_MS, j -> j.getJdbcTemplate().queryForList(
+                "SELECT r.user_id FROM (SELECT DISTINCT user_id FROM notification WHERE created_at >= ?) r "
+                        + "WHERE (SELECT count(*) FROM notification n WHERE n.user_id = r.user_id) > ? LIMIT 5000",
+                Long.class, since, notifCap));
         int total = 0;
         for (Long uid : users) {
             total += deleter.deleteHeavy("notification_cap",
@@ -211,12 +299,12 @@ public class DbMaintenanceJob {
 
     /**
      * T-063 (A8-25): dogrulama/sifre sifirlama KODU gonderildikten (ya da olunce) sonra kuyrukta tutulmaz. Kod 10 dk
-     * gecerlidir; 1 saatten eski SENT/DEAD kod postalarinin degiskenleri '{}' yapilir (satir ve istatistik kalir).
+     * gecerlidir; 1 saatten eski SENT/DEAD/SKIPPED kod postalarinin degiskenleri '{}' yapilir (satir ve istatistik kalir).
      */
     private int mailCodeScrub(Instant now) {
         return deleter.delete("mail_code_scrub",
-                "UPDATE mail_outbox SET vars_json = '{}' WHERE id IN (SELECT id FROM mail_outbox WHERE status IN ('SENT', 'DEAD') "
-                        + "AND template IN ('VERIFICATION_CODE', 'PASSWORD_RESET_CODE') AND vars_json <> '{}' "
+                "UPDATE mail_outbox SET vars_json = '{}' WHERE id IN (SELECT id FROM mail_outbox WHERE status IN ('SENT', 'DEAD', 'SKIPPED') "
+                        + "AND template IN ('VERIFICATION_CODE', 'PASSWORD_RESET_CODE', 'TWO_FACTOR_CODE') AND vars_json <> '{}' "
                         + "AND created_at < :cutoff LIMIT :lim)",
                 Map.of("cutoff", now.minus(Duration.ofHours(1)).atOffset(ZoneOffset.UTC)));
     }

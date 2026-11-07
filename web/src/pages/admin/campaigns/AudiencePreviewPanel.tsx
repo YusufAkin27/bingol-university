@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { previewAudience } from '../../../api/campaigns';
 import type { CampaignAudience, NotificationType } from '../../../api/types';
+import { StackedShare } from '../../../components/kit/StackedShareIletisim';
 import { Button, Icon, Spinner } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { adminErrorMessage, Callout } from './shared';
@@ -47,19 +48,27 @@ export function AudiencePreviewPanel({
       )}
       {d && (
         <div className={styles.previewBox} data-testid="preview-result">
-          <div className={styles.previewStats}>
-            <div className={styles.previewStat}>
-              <strong>{formatNumber(d.count)}</strong>
-              <span className={styles.muted}>{t('admin.campaigns.preview.count')}</span>
-            </div>
-            <div className={styles.previewStat}>
-              <strong>{formatNumber(d.willReceive)}</strong>
-              <span className={styles.muted}>{t('admin.campaigns.preview.willReceive')}</span>
-            </div>
-            <div className={styles.previewStat}>
-              <strong>{formatNumber(d.optedOut)}</strong>
-              <span className={styles.muted}>{t('admin.campaigns.preview.optedOut')}</span>
-            </div>
+          <div data-search-anchor="compose-preview-split">
+            <StackedShare
+              ariaLabel={t('admin.campaigns.preview.count')}
+              segments={[
+                {
+                  key: 'receive',
+                  label: t('admin.campaigns.preview.willReceive'),
+                  value: d.willReceive,
+                  tone: 'success',
+                },
+                {
+                  key: 'optout',
+                  label: t('admin.campaigns.preview.optedOut'),
+                  value: d.optedOut,
+                  tone: 'neutral',
+                },
+              ]}
+            />
+            <p className={styles.muted}>
+              {t('admin.campaigns.preview.count')}: <strong>{formatNumber(d.count)}</strong>
+            </p>
           </div>
           {Object.keys(d.byLanguage).length > 0 && (
             <p className={styles.muted}>
@@ -71,7 +80,9 @@ export function AudiencePreviewPanel({
           )}
           {d.sample.length > 0 && (
             <div>
-              <p className={styles.fieldLabel}>{t('admin.campaigns.preview.sample', { n: formatNumber(d.sample.length) })}</p>
+              <p className={styles.fieldLabel}>
+                {t('admin.campaigns.preview.sample', { n: formatNumber(d.sample.length) })}
+              </p>
               <ul className={styles.previewList}>
                 {d.sample.map((p) => (
                   <li key={p.id}>
@@ -83,7 +94,10 @@ export function AudiencePreviewPanel({
             </div>
           )}
           {d.notFound.length > 0 && (
-            <Callout tone="warning" title={t('admin.campaigns.preview.notFound', { n: formatNumber(d.notFound.length) })}>
+            <Callout
+              tone="warning"
+              title={t('admin.campaigns.preview.notFound', { n: formatNumber(d.notFound.length) })}
+            >
               <span className="ltr">{d.notFound.join(', ')}</span>
             </Callout>
           )}

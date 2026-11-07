@@ -1,0 +1,317 @@
+{
+  "version": 1,
+  "pages": {
+    "about:ar": {
+      "hash": "1qxsplr1jos",
+      "lastmod": "2026-11-06"
+    },
+    "about:en": {
+      "hash": "p8zichs6k6",
+      "lastmod": "2026-11-06"
+    },
+    "about:tr": {
+      "hash": "2bf9t51d09c",
+      "lastmod": "2026-11-06"
+    },
+    "accessibility:ar": {
+      "hash": "2d2678qs30f",
+      "lastmod": "2026-11-06"
+    },
+    "accessibility:en": {
+      "hash": "1uncxzddvzn",
+      "lastmod": "2026-11-06"
+    },
+    "accessibility:tr": {
+      "hash": "1tco8d5sdcy",
+      "lastmod": "2026-11-06"
+    },
+    "changelog:ar": {
+      "hash": "1vx87hmvms6",
+      "lastmod": "2026-11-06"
+    },
+    "changelog:en": {
+      "hash": "m7rfiiwxkp",
+      "lastmod": "2026-11-06"
+    },
+    "changelog:tr": {
+      "hash": "tb2j7ez2ik",
+      "lastmod": "2026-11-06"
+    },
+    "childSafety:ar": {
+      "hash": "1jr65lq3s6c",
+      "lastmod": "2026-11-06"
+    },
+    "childSafety:en": {
+      "hash": "1m0ja9kyv84",
+      "lastmod": "2026-11-06"
+    },
+    "childSafety:tr": {
+      "hash": "86ujasd1kd",
+      "lastmod": "2026-11-06"
+    },
+    "contact:ar": {
+      "hash": "151c0kz8zwe",
+      "lastmod": "2026-11-06"
+    },
+    "contact:en": {
+      "hash": "hw9sq12vzl",
+      "lastmod": "2026-11-06"
+    },
+    "contact:tr": {
+      "hash": "1oy79fzvrs7",
+      "lastmod": "2026-11-06"
+    },
+    "cookies:ar": {
+      "hash": "ki4500lou0",
+      "lastmod": "2026-11-06"
+    },
+    "cookies:en": {
+      "hash": "1pmgx1ynvkd",
+      "lastmod": "2026-11-06"
+    },
+    "cookies:tr": {
+      "hash": "1591sin7ijn",
+      "lastmod": "2026-11-06"
+    },
+    "dataRequest:ar": {
+      "hash": "3nb5uzrpfm",
+      "lastmod": "2026-11-06"
+    },
+    "dataRequest:en": {
+      "hash": "2fao3irl0bv",
+      "lastmod": "2026-11-06"
+    },
+    "dataRequest:tr": {
+      "hash": "1ukn0e72csm",
+      "lastmod": "2026-11-06"
+    },
+    "deleteAccount:ar": {
+      "hash": "iri3grenni",
+      "lastmod": "2026-11-06"
+    },
+    "deleteAccount:en": {
+      "hash": "2g8zy9ba4hx",
+      "lastmod": "2026-11-06"
+    },
+    "deleteAccount:tr": {
+      "hash": "cpk63h78jd",
+      "lastmod": "2026-11-06"
+    },
+    "download:ar": {
+      "hash": "1yw87p4hpr4",
+      "lastmod": "2026-11-06"
+    },
+    "download:en": {
+      "hash": "1kiekc83s1a",
+      "lastmod": "2026-11-06"
+    },
+    "download:tr": {
+      "hash": "1wadfgq02e9",
+      "lastmod": "2026-11-06"
+    },
+    "faq:ar": {
+      "hash": "2dga4jgoguc",
+      "lastmod": "2026-11-06"
+    },
+    "faq:en": {
+      "hash": "2em6kkefh00",
+      "lastmod": "2026-11-06"
+    },
+    "faq:tr": {
+      "hash": "18y14my489s",
+      "lastmod": "2026-11-06"
+    },
+    "features:ar": {
+      "hash": "78lgp0ul0u",
+      "lastmod": "2026-11-06"
+    },
+    "features:en": {
+      "hash": "4tblq52a27",
+      "lastmod": "2026-11-06"
+    },
+    "features:tr": {
+      "hash": "1ugmcwj8ukf",
+      "lastmod": "2026-11-06"
+    },
+    "guidelines:ar": {
+      "hash": "v28zza0fzp",
+      "lastmod": "2026-11-06"
+    },
+    "guidelines:en": {
+      "hash": "2cdo96f2tqk",
+      "lastmod": "2026-11-06"
+    },
+    "guidelines:tr": {
+      "hash": "23r8a59t5te",
+      "lastmod": "2026-11-06"
+    },
+    "help:ar": {
+      "hash": "2a08rgb1w5a",
+      "lastmod": "2026-11-06"
+    },
+    "help:en": {
+      "hash": "2fasy4hm0j3",
+      "lastmod": "2026-11-06"
+    },
+    "help:tr": {
+      "hash": "1ld3km3asi3",
+      "lastmod": "2026-11-06"
+    },
+    "home:ar": {
+      "hash": "jclc1qg7n0",
+      "lastmod": "2026-11-06"
+    },
+    "home:en": {
+      "hash": "hdp3x4pjxz",
+      "lastmod": "2026-11-06"
+    },
+    "home:tr": {
+      "hash": "1m123fk823g",
+      "lastmod": "2026-11-06"
+    },
+    "legal:ar": {
+      "hash": "1u9jnsjncvo",
+      "lastmod": "2026-11-06"
+    },
+    "legal:en": {
+      "hash": "dwhdusal3h",
+      "lastmod": "2026-11-06"
+    },
+    "legal:tr": {
+      "hash": "10wxb4ftptz",
+      "lastmod": "2026-11-06"
+    },
+    "legalCommunityRules:ar": {
+      "hash": "1w6ib1d88pu",
+      "lastmod": "2026-11-06"
+    },
+    "legalCommunityRules:en": {
+      "hash": "1ibrgalupab",
+      "lastmod": "2026-11-06"
+    },
+    "legalCommunityRules:tr": {
+      "hash": "1ottra8s4sc",
+      "lastmod": "2026-11-06"
+    },
+    "legalContentRemoval:ar": {
+      "hash": "wijo0l1vjy",
+      "lastmod": "2026-11-06"
+    },
+    "legalContentRemoval:en": {
+      "hash": "14t8zk8zyvp",
+      "lastmod": "2026-11-06"
+    },
+    "legalContentRemoval:tr": {
+      "hash": "evnrbgjvkx",
+      "lastmod": "2026-11-06"
+    },
+    "legalExplicitConsent:ar": {
+      "hash": "12rfpmhth5u",
+      "lastmod": "2026-11-06"
+    },
+    "legalExplicitConsent:en": {
+      "hash": "eq31thsgcv",
+      "lastmod": "2026-11-06"
+    },
+    "legalExplicitConsent:tr": {
+      "hash": "r0ognkig7c",
+      "lastmod": "2026-11-06"
+    },
+    "legalKvkk:ar": {
+      "hash": "8yhvw225kw",
+      "lastmod": "2026-11-06"
+    },
+    "legalKvkk:en": {
+      "hash": "6xxyly2nib",
+      "lastmod": "2026-11-06"
+    },
+    "legalKvkk:tr": {
+      "hash": "1tgslg6fhfp",
+      "lastmod": "2026-11-06"
+    },
+    "legalRetention:ar": {
+      "hash": "1vkxy0atip9",
+      "lastmod": "2026-11-06"
+    },
+    "legalRetention:en": {
+      "hash": "2a3o46vg29s",
+      "lastmod": "2026-11-06"
+    },
+    "legalRetention:tr": {
+      "hash": "13luxfk6iu4",
+      "lastmod": "2026-11-06"
+    },
+    "menu:ar": {
+      "hash": "1x9irnppfjo",
+      "lastmod": "2026-11-06"
+    },
+    "menu:en": {
+      "hash": "2bfwnexypco",
+      "lastmod": "2026-11-06"
+    },
+    "menu:tr": {
+      "hash": "1ce9fwfvfno",
+      "lastmod": "2026-11-06"
+    },
+    "news:ar": {
+      "hash": "5d8i0pvtbd",
+      "lastmod": "2026-11-06"
+    },
+    "news:en": {
+      "hash": "121fehuh9o0",
+      "lastmod": "2026-11-06"
+    },
+    "news:tr": {
+      "hash": "1k5utccastx",
+      "lastmod": "2026-11-06"
+    },
+    "privacy:ar": {
+      "hash": "xy2lvbqkt9",
+      "lastmod": "2026-11-06"
+    },
+    "privacy:en": {
+      "hash": "18g62ew3fli",
+      "lastmod": "2026-11-06"
+    },
+    "privacy:tr": {
+      "hash": "koytgmuuf0",
+      "lastmod": "2026-11-06"
+    },
+    "security:ar": {
+      "hash": "11i1qth1iz2",
+      "lastmod": "2026-11-06"
+    },
+    "security:en": {
+      "hash": "1lzbrrjg0ae",
+      "lastmod": "2026-11-06"
+    },
+    "security:tr": {
+      "hash": "5bms7igbxr",
+      "lastmod": "2026-11-06"
+    },
+    "sitemap:ar": {
+      "hash": "12gxyvzwlkf",
+      "lastmod": "2026-11-06"
+    },
+    "sitemap:en": {
+      "hash": "1ghh9awe80o",
+      "lastmod": "2026-11-06"
+    },
+    "sitemap:tr": {
+      "hash": "12zt0rjqq5h",
+      "lastmod": "2026-11-06"
+    },
+    "terms:ar": {
+      "hash": "66nxl58hau",
+      "lastmod": "2026-11-06"
+    },
+    "terms:en": {
+      "hash": "28t74un0h6f",
+      "lastmod": "2026-11-06"
+    },
+    "terms:tr": {
+      "hash": "23qs8qrhk4b",
+      "lastmod": "2026-11-06"
+    }
+  }
+}

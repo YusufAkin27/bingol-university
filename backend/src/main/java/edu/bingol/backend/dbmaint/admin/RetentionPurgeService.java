@@ -102,10 +102,18 @@ public class RetentionPurgeService {
     private void doPurge(long id, Spec spec, RetentionService.Range range) {
         try {
             Map<String, Object> p = new HashMap<>(range.params());
-            bounds(id, spec, p);
+            long[] keys = bounds(id, spec, p);
+            // FIX-P09 (A08#8): aralikta bulunan en kucuk/en buyuk anahtarla sinirla (keyset): orta araliklarda planlayici
+            // "ORDER BY id LIMIT" icin id indeksini her parcada tablonun basindan gezmesin. Sinir okunamazsa eski sorgu.
+            String keyBound = "";
+            if (keys != null) {
+                p.put("minKey", keys[0]);
+                p.put("maxKey", keys[1]);
+                keyBound = " AND " + spec.keyColumn() + " >= :minKey AND " + spec.keyColumn() + " <= :maxKey";
+            }
             String sql = "DELETE FROM " + spec.name() + " WHERE " + spec.keyColumn() + " IN (SELECT "
-                    + spec.keyColumn() + " FROM " + spec.name() + " WHERE " + spec.rangeWhere() + " ORDER BY "
-                    + spec.keyColumn() + " LIMIT :lim)";
+                    + spec.keyColumn() + " FROM " + spec.name() + " WHERE " + spec.rangeWhere() + keyBound
+                    + " ORDER BY " + spec.keyColumn() + " LIMIT :lim)";
             ChunkedDeleter.Result r = deleter.deleteAll("retention_" + spec.name(), sql, p,
                     total -> heartbeat(id, total), () -> Thread.currentThread().isInterrupted());
             try {
@@ -121,24 +129,40 @@ public class RetentionPurgeService {
         }
     }
 
-    /** Aralikta en eski/en yeni kayit zamani (en iyi gayret; okunamazsa bos). */
-    private void bounds(long id, Spec spec, Map<String, Object> p) {
+    /**
+     * Aralikta en eski/en yeni kayit zamani (kayda yazilir) ve anahtar sinirlari. En iyi gayret: okunamazsa (zaman asimi
+     * vb.) {@code null} doner ve temizlik sinirsiz sorguyla surer.
+     *
+     * @return {en kucuk anahtar, en buyuk anahtar} ya da null
+     */
+    private long[] bounds(long id, Spec spec, Map<String, Object> p) {
         try {
-            String base = "SELECT " + spec.timeColumn() + " FROM " + spec.name() + " WHERE " + spec.rangeWhere()
-                    + " ORDER BY " + spec.keyColumn();
-            OffsetDateTime oldest = first(base + " ASC LIMIT 1", p);
-            OffsetDateTime newest = first(base + " DESC LIMIT 1", p);
+            String base = "SELECT " + spec.timeColumn() + ", " + spec.keyColumn() + " FROM " + spec.name() + " WHERE "
+                    + spec.rangeWhere() + " ORDER BY " + spec.keyColumn();
+            Edge oldest = first(base + " ASC LIMIT 1", p);
+            Edge newest = first(base + " DESC LIMIT 1", p);
             jdbc.update("UPDATE data_purge_log SET oldest_at = :o, newest_at = :n WHERE id = :id",
                     new MapSqlParameterSource("id", id)
-                            .addValue("o", oldest, Types.TIMESTAMP_WITH_TIMEZONE)
-                            .addValue("n", newest, Types.TIMESTAMP_WITH_TIMEZONE));
+                            .addValue("o", oldest == null ? null : oldest.at(), Types.TIMESTAMP_WITH_TIMEZONE)
+                            .addValue("n", newest == null ? null : newest.at(), Types.TIMESTAMP_WITH_TIMEZONE));
+            if (oldest == null || newest == null || oldest.key() == null || newest.key() == null) {
+                return null;
+            }
+            return new long[] {oldest.key(), newest.key()};
         } catch (RuntimeException e) {
             log.debug("Silinen aralik siniri okunamadi: {}", e.toString());
+            return null;
         }
     }
 
-    private OffsetDateTime first(String sql, Map<String, Object> p) {
-        List<OffsetDateTime> r = jdbc.query(sql, p, (rs, i) -> rs.getObject(1, OffsetDateTime.class));
+    private record Edge(OffsetDateTime at, Long key) {
+    }
+
+    private Edge first(String sql, Map<String, Object> p) {
+        List<Edge> r = jdbc.query(sql, p, (rs, i) -> {
+            long k = rs.getLong(2);
+            return new Edge(rs.getObject(1, OffsetDateTime.class), rs.wasNull() ? null : k);
+        });
         return r.isEmpty() ? null : r.get(0);
     }
 

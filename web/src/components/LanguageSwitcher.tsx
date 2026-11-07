@@ -6,32 +6,39 @@ import { Icon } from './ui/Icon';
 import styles from './LanguageSwitcher.module.css';
 
 /**
- * Dil seçici: yerel `<select>` (klavye ve ekran okuyucu uyumlu). Dil önekli sayfada URL'deki dil değişir
- * (/tr/privacy → /en/privacy; `bu.lang` LangScope tarafından güncellenir); önekli olmayan yerde doğrudan dil durumu yazılır.
+ * Dil değiştirme eylemi: dil önekli sayfada URL'deki dil değişir (/tr/privacy → /en/privacy; `bu.lang` LangScope
+ * tarafından güncellenir); önekli olmayan yerde doğrudan dil durumu yazılır.
  */
-export function LanguageSwitcher({ compact }: { compact?: boolean }) {
-  const { lang, setLang, t } = useI18n();
+export function useChangeLang() {
+  const { setLang } = useI18n();
   const location = useLocation();
   const navigate = useNavigate();
-  const change = (next: Lang) => {
+  return (next: Lang) => {
     if (splitLangPath(location.pathname).lang) {
       navigate(switchLangPath(`${location.pathname}${location.search}${location.hash}`, next));
     } else {
       setLang(next);
     }
   };
+}
+
+/**
+ * Dil seçici: yerel `<select>` (klavye ve ekran okuyucu uyumlu), kenarlıklı hap görünümünde küre + kısa kod + ok.
+ */
+export function LanguageSwitcher({ compact }: { compact?: boolean }) {
+  const { lang, t } = useI18n();
+  const change = useChangeLang();
   return (
     <label className={`${styles.wrap} ${compact ? styles.wrapCompact : ''}`}>
       <span className="sr-only">{t('common.language')}</span>
       <Icon name="globe" size={18} />
-      {/* dar ekranda dil adı yerine kısa kod görünür; yerel <select> görünmez ama dokunulabilir kalır */}
-      {compact && (
-        <span className={styles.code} aria-hidden="true">
-          {lang}
-        </span>
-      )}
+      {/* görünen kısa dil kodu; yerel <select> kaplamanın üstüne saydam biner, dokunulabilir kalır */}
+      <span className={styles.code} aria-hidden="true">
+        {lang}
+      </span>
+      <Icon name="chevronDown" size={16} className={styles.chev} />
       <select
-        className={`${styles.select} ${compact ? styles.compact : ''}`}
+        className={styles.select}
         value={lang}
         onChange={(e) => change(e.target.value as Lang)}
       >
@@ -42,5 +49,28 @@ export function LanguageSwitcher({ compact }: { compact?: boolean }) {
         ))}
       </select>
     </label>
+  );
+}
+
+/** Mobil çekmece için üç düğmeli dil seçici (TR / EN / AR). */
+export function LanguageSegmented() {
+  const { lang, t } = useI18n();
+  const change = useChangeLang();
+  return (
+    <div role="group" aria-label={t('common.language')} className={styles.seg}>
+      {LANGS.map((l) => (
+        <button
+          key={l.code}
+          type="button"
+          lang={l.code}
+          className={`${styles.segBtn} ${l.code === lang ? styles.segOn : ''}`}
+          aria-pressed={l.code === lang}
+          aria-label={l.label}
+          onClick={() => change(l.code)}
+        >
+          {l.code.toUpperCase()}
+        </button>
+      ))}
+    </div>
   );
 }

@@ -55,16 +55,34 @@ public class LoginThrottle {
 
     /** `deviceHash` yoksa null. */
     public void check(String email, String clientKey, String deviceHash) {
-        requireBelow(ipFailKey(clientKey), limits.loginIpFailMax());
+        // Tum sayaclar + "tanidik istemci" isareti TEK MGET turunda okunur (FIX-P02/A01#13: eskiden ~7 ardisik tur).
+        // Degerlendirme sirasi eskisiyle ayni; ilk asilan sinir 429 verir.
+        java.util.List<String> keys = new java.util.ArrayList<>(6);
+        java.util.List<Integer> maxes = new java.util.ArrayList<>(6);
+        keys.add(ipFailKey(clientKey));
+        maxes.add(limits.loginIpFailMax());
         if (deviceHash != null) {
-            requireBelow(deviceFailKey(deviceHash), limits.loginDeviceFailMax());
-            requireBelow(devicePairKey(email, deviceHash), limits.loginPairFailMax());
-            requireBelow(pairKey(email, clientKey), limits.loginEmailIpFailMax());
+            keys.add(deviceFailKey(deviceHash));
+            maxes.add(limits.loginDeviceFailMax());
+            keys.add(devicePairKey(email, deviceHash));
+            maxes.add(limits.loginPairFailMax());
+            keys.add(pairKey(email, clientKey));
+            maxes.add(limits.loginEmailIpFailMax());
         } else {
-            requireBelow(pairKey(email, clientKey), limits.loginPairFailMax());
+            keys.add(pairKey(email, clientKey));
+            maxes.add(limits.loginPairFailMax());
         }
-        if (!trusted(email, clientKey, deviceHash)) {
-            requireBelow(emailKey(email), limits.loginEmailFailMax());
+        int counters = keys.size();
+        keys.add(trustKey(email, clientKey, deviceHash));
+        keys.add(emailKey(email));
+        java.util.List<String> values = redis.opsForValue().multiGet(keys);
+        for (int i = 0; i < counters; i++) {
+            requireBelow(keys.get(i), values == null ? null : values.get(i), maxes.get(i));
+        }
+        boolean trusted = values != null && values.get(counters) != null;
+        if (!trusted) {
+            requireBelow(keys.get(counters + 1), values == null ? null : values.get(counters + 1),
+                    limits.loginEmailFailMax());
         }
     }
 
@@ -109,8 +127,7 @@ public class LoginThrottle {
         return "lgf:ok:" + digest(email) + ":" + (deviceHash != null ? "d:" + deviceHash : "i:" + clientKey);
     }
 
-    private void requireBelow(String key, int max) {
-        String v = redis.opsForValue().get(key);
+    private void requireBelow(String key, String v, int max) {
         long n;
         try {
             n = v == null ? 0 : Long.parseLong(v);

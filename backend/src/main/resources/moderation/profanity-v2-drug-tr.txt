@@ -1,0 +1,34 @@
+# Uyusturucu satis argosu (Turkce v2): yalnizca satis/arz kaliplari; salt bilgi amacli sozcukler engellenmez.
+
+# --- Satis kaliplari ---
+esrar satılır
+esrar satarım
+esrar satıyorum
+esrar arıyorum
+bonzai
+bonzai satılır
+bonzai satarım
+bonzay
+hap satılır
+hap satarım
+uyuşturucu hap satılır
+extacy satılır
+extasy satılır
+ekstazi satılır
+ekstazi hap
+mdma satılır
+kokain satılır
+kokain satarım
+eroin satılır
+eroin satarım
+skunk satılır
+marihuana satılır
+uyuşturucu satılır
+uyuşturucu satarım
+uyuşturucu temin
+uyuşturucu siparişi
+kapıya teslim esrar
+kapıya teslim kokain
+kapıya teslim uyuşturucu
+elden teslim esrar
+captagon satılır

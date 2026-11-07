@@ -250,6 +250,14 @@ public class MailCampaignAdminService {
             jdbc.update("UPDATE mail_campaign_recipient SET status = 'CANCELLED', updated_at = :now "
                     + "WHERE campaign_id = :id AND status = 'PENDING'", new MapSqlParameterSource("now", ts(Instant.now()))
                     .addValue("id", id));
+            // Kuyruga alinmis ama henuz gonderilmemis postalar da durur (A04#2): once alici satirlari, sonra kuyruk
+            jdbc.update("UPDATE mail_campaign_recipient r SET status = 'CANCELLED', updated_at = :now "
+                    + "WHERE r.campaign_id = :id AND r.status = 'QUEUED' AND EXISTS (SELECT 1 FROM mail_outbox o "
+                    + "JOIN app_user u ON u.email = o.to_address WHERE o.campaign_id = :id AND u.id = r.user_id "
+                    + "AND o.status IN ('PENDING', 'FAILED'))", new MapSqlParameterSource("now", ts(Instant.now()))
+                    .addValue("id", id));
+            jdbc.update("UPDATE mail_outbox SET status = 'SKIPPED', vars_json = '{}', last_error = 'kampanya iptal edildi' "
+                    + "WHERE campaign_id = :id AND status IN ('PENDING', 'FAILED')", Map.of("id", id));
             return true;
         });
         if (!Boolean.TRUE.equals(ok) && find(id).getStatus() != MailCampaign.Status.CANCELLED) {
@@ -353,7 +361,7 @@ public class MailCampaignAdminService {
     }
 
     private static Counters zero() {
-        return new Counters(0, 0, 0, 0, 0, 0, Map.of(), emptyLangs(), 0, 0);
+        return new Counters(0, 0, 0, 0, 0, 0, Map.of(), emptyLangs(), 0, 0, 0, 0, 0);
     }
 
     private static String str(Instant i) {
@@ -396,12 +404,24 @@ public class MailCampaignAdminService {
                         }
                     }
                 });
+        Map<Long, int[]> outboxSums = new HashMap<>(); // sent, dead, skipped (kuyruk durumundan turetilir)
+        jdbc.query("SELECT campaign_id, status, COUNT(*) AS n FROM mail_outbox WHERE campaign_id IN (:ids) "
+                + "GROUP BY campaign_id, status", new MapSqlParameterSource("ids", ids), rs -> {
+                    int[] o = outboxSums.computeIfAbsent(rs.getLong("campaign_id"), k -> new int[3]);
+                    switch (rs.getString("status")) {
+                        case "SENT" -> o[0] += rs.getInt("n");
+                        case "DEAD" -> o[1] += rs.getInt("n");
+                        case "SKIPPED" -> o[2] += rs.getInt("n");
+                        default -> { }
+                    }
+                });
         for (Long id : ids) {
             int[] a = sums.getOrDefault(id, new int[6]);
+            int[] o = outboxSums.getOrDefault(id, new int[3]);
             int target = a[0] + a[1] + a[2] + a[3] + a[4];
             int done = a[1] + a[2] + a[3] + a[4];
             out.put(id, new Counters(target, a[0], a[1], a[2], a[3], a[4], reasons.getOrDefault(id, Map.of()),
-                    langs.getOrDefault(id, emptyLangs()), a[5], target == 0 ? 0 : done * 100 / target));
+                    langs.getOrDefault(id, emptyLangs()), a[5], target == 0 ? 0 : done * 100 / target, o[0], o[1], o[2]));
         }
         return out;
     }

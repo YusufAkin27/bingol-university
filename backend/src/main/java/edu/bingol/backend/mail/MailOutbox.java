@@ -60,6 +60,9 @@ public class MailOutbox {
     @Column(nullable = false)
     private int priority;
 
+    /** Kampanya kaydi (yalniz kampanya postalari; iptalde kuyruktakiler SKIPPED olur); V1100. */
+    private Long campaignId;
+
     /** Bilerek gonderilmedi (bastirma listesi / kalici adres hatasi): SKIPPED, degiskenler temizlenir. */
     public void markSkipped(String reason) {
         status = MailStatus.SKIPPED;

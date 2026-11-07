@@ -1,8 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { adminPollsApi, qk } from '../../../api';
 import type { PollDetail } from '../../../api/adminPolls';
-import { Badge, Button, Drawer, EmptyState, ErrorState, GuardedAction, Skeleton, StatCard, useToast } from '../../../components/ui';
+import { Badge, Button, Drawer, EmptyState, ErrorState, GuardedAction, ProgressRing, Skeleton, StatCard, useToast } from '../../../components/ui';
 import { useI18n, type I18n } from '../../../i18n/I18nProvider';
+import '../mod2/dict';
+import { PollResultsViz } from '../mod2/PollViz';
 import { adminErrorMessage } from '../campaigns/shared';
 import { downloadBlob } from '../users/filters';
 import { canCancel, canClose, canEdit, clampPercent, stateTone } from './pollsLogic';
@@ -61,7 +63,6 @@ export function PollDetailDrawer({
     onError: (e) => toast.error(adminErrorMessage(i18n, e)),
   });
   const refresh = () => void qc.invalidateQueries({ queryKey: ['adminPolls'] });
-  const pctNum = (v: number | null | undefined) => (v == null ? '—' : `${formatNumber(Math.round(v * 10) / 10)}%`);
 
   return (
     <Drawer
@@ -140,12 +141,19 @@ export function PollDetailDrawer({
           <div className={styles.grid2} data-testid="poll-results">
             <StatCard title={t('admin.p03.res.votes')} value={formatNumber(p.turnout?.voted ?? p.totalVotes ?? 0)} />
             <StatCard title={t('admin.p03.res.eligible')} value={p.turnout?.eligible == null ? '—' : formatNumber(p.turnout.eligible)} />
-            <StatCard title={t('admin.p03.res.participation')} value={pctNum(p.turnout?.percent)} />
+            <ProgressRing
+              value={p.turnout?.percent ?? null}
+              size={88}
+              thickness={9}
+              tone="info"
+              label={t('admin.p03.res.participation')}
+            />
             {p.type === 'RATING' && (
               <StatCard title={t('admin.p03.res.average')} value={p.average == null ? '—' : formatNumber(p.average)} />
             )}
           </div>
           <p className={styles.muted}>{t(p.anonymous ? 'admin.p03.res.anonymousNote' : 'admin.p03.res.noIdentityNote')}</p>
+          <PollResultsViz poll={p} />
           <OptionBars poll={p} i18n={i18n} />
 
           <div className={styles.actions}>

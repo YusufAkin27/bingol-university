@@ -17,6 +17,8 @@ interface LogoProps {
   to?: string;
   /** Süs amaçlı kullanım (yanında ad yazıyorsa): alt metin boş, ekran okuyuculardan gizli */
   decorative?: boolean;
+  /** Sayfa üstü (LCP) logo: açık ton hemen yüklenir; öncelik yoksa tembel yüklenir. */
+  priority?: boolean;
   className?: string;
 }
 
@@ -36,10 +38,13 @@ function Glyph({
   /** Gizli (CSS ile display:none) tema varyantı: tarayıcı lazy görseli düzen kutusu yokken indirmez. */
   lazy?: boolean;
 }) {
+  const w = Math.round((glyphH * asset.width) / asset.height);
   return (
     <img
       src={asset.src}
-      width={Math.round((glyphH * asset.width) / asset.height)}
+      srcSet={asset.srcSet}
+      sizes={`${w}px`}
+      width={w}
       height={glyphH}
       alt={alt}
       aria-hidden={alt === '' ? true : undefined}
@@ -61,6 +66,7 @@ export function Logo({
   height,
   to,
   decorative = false,
+  priority = false,
   className,
 }: LogoProps) {
   const { t } = useI18n();
@@ -75,11 +81,11 @@ export function Logo({
   const glyphs =
     tone === 'auto' ? (
       <>
-        <Glyph asset={markAssets.light} glyphH={glyphH} alt={alt} lazy cls={`${styles.img} ${styles.forLight}`} />
-        <Glyph asset={markAssets.dark} glyphH={glyphH} alt="" lazy cls={`${styles.img} ${styles.forDark}`} />
+        <Glyph asset={markAssets.light} glyphH={glyphH} alt={alt} lazy={!priority} cls={`${styles.img} ${styles.forLight}`} />
+        <Glyph asset={markAssets.dark} glyphH={glyphH} alt={alt} lazy cls={`${styles.img} ${styles.forDark}`} />
       </>
     ) : (
-      <Glyph asset={markAssets[tone]} glyphH={glyphH} alt={alt} cls={styles.img} />
+      <Glyph asset={markAssets[tone]} glyphH={glyphH} alt={alt} lazy={!priority} cls={styles.img} />
     );
 
   const content = (

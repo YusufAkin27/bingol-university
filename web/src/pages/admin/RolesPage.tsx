@@ -23,10 +23,12 @@ import {
 import { usePermissions } from '../../auth/permissions';
 import {
   Badge,
+  Button,
   Card,
   EmptyState,
   ErrorState,
   GuardedAction,
+  Insight,
   PageHeader,
   ProgressBar,
   Select,
@@ -38,8 +40,11 @@ import {
   type Tone,
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
+import { useGt } from './sys2Dict';
 import { adminError } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
+import { groupOf } from './roles/permGroups';
+import { RoleHeatmap } from './roles/RoleHeatmap';
 import styles from './roles.module.css';
 
 const STATUS_TONE: Record<ChangeStatus, Tone> = {
@@ -51,12 +56,15 @@ const STATUS_TONE: Record<ChangeStatus, Tone> = {
 
 export default function RolesPage() {
   const i18n = useI18n();
+  const gt = useGt();
   const { t, formatDateTime } = i18n;
   usePageTitle(t('admin.p16.roles.title'));
   const perms = usePermissions();
   const canManage = perms.can('rbac.manage');
   const profileName = (p: AdminProfile) => t(`admin.p16.profile.${p}`);
   const narrow = useIsNarrow();
+  // Isı haritasında seçilen alan: ayrıntılı tablo yalnız o alanın izinlerini gösterir
+  const [focusGroup, setFocusGroup] = useState<string | null>(null);
 
   const matrix = useQuery({ queryKey: rbacKeys.matrix, queryFn: getRbacMatrix, staleTime: Infinity });
   // Yönetici listesi ve değişiklikler yalnız rbac.manage sahibine sorulur (diğerleri 403 alırdı)
@@ -98,9 +106,36 @@ export default function RolesPage() {
     </Card>
   );
 
-  // --- Matris ---
+  // --- Isı haritası: alan x profil özeti ---
+  const heatmapCard = (
+    <Card title={gt('admin.sys2.roles.heatmapTitle')} padded={false} data-testid="roles-heatmap-card" data-search-anchor="roles-heatmap">
+      {matrix.isError ? (
+        <ErrorState subject={t('admin.v2n.roles.matrixSubject')} error={matrix.error} description={err(matrix.error)} onRetry={() => void matrix.refetch()} />
+      ) : !matrix.data ? (
+        <Skeleton height="14rem" width="100%" />
+      ) : (
+        <RoleHeatmap matrix={matrix.data} focusGroup={focusGroup} onFocusGroup={setFocusGroup} />
+      )}
+    </Card>
+  );
+
+  // --- Matris (ayrıntı) ---
+  const visibleEntries = matrix.data
+    ? matrix.data.entries.filter((e) => !focusGroup || groupOf(e.permission) === focusGroup)
+    : [];
   const matrixCard = (
-    <Card title={t('admin.p16.matrix.title')} padded={false} data-search-anchor="roles-matrix">
+    <Card
+      title={t('admin.p16.matrix.title')}
+      padded={false}
+      data-search-anchor="roles-matrix"
+      actions={
+        focusGroup ? (
+          <Button size="sm" variant="secondary" onClick={() => setFocusGroup(null)} data-testid="roles-focus-reset">
+            {gt('admin.sys2.roles.showAll', { area: i18n.td(`admin.sys2.roles.group.${focusGroup}`, focusGroup) })}
+          </Button>
+        ) : undefined
+      }
+    >
       {matrix.isError ? (
         <ErrorState subject={t('admin.v2n.roles.matrixSubject')} error={matrix.error} description={err(matrix.error)} onRetry={() => void matrix.refetch()} />
       ) : !matrix.data ? (
@@ -144,7 +179,7 @@ export default function RolesPage() {
               </tr>
             </thead>
             <tbody>
-              {matrix.data.entries.map((e) => (
+              {visibleEntries.map((e) => (
                 <tr key={e.permission} data-perm={e.permission}>
                   <th scope="row">
                     <code>{e.permission}</code>
@@ -213,6 +248,18 @@ export default function RolesPage() {
       ) : admins.isError ? (
         <ErrorState subject={t('admin.v2n.roles.adminsSubject')} error={admins.error} description={err(admins.error)} onRetry={() => void admins.refetch()} />
       ) : (
+        <>
+        {admins.data && admins.data.length > 0 && (
+          <div className={styles.pad}>
+            <Insight
+              tone={admins.data.filter((a) => a.profile === 'FULL').length > 3 ? 'warn' : 'info'}
+              parts={gt('admin.sys2.roles.adminsInsight', {
+                n: i18n.formatNumber(admins.data.length),
+                full: i18n.formatNumber(admins.data.filter((a) => a.profile === 'FULL').length),
+              })}
+            />
+          </div>
+        )}
         <Table
           columns={adminColumns}
           rows={admins.data}
@@ -222,6 +269,7 @@ export default function RolesPage() {
           empty={<EmptyState title={t('admin.p16.admins.empty')} compact />}
           caption={t('admin.p16.admins.title')}
         />
+        </>
       )}
     </Card>
   );
@@ -294,6 +342,7 @@ export default function RolesPage() {
         {meCard}
         {canManage && adminsCard}
         {canManage && changesCard}
+        {!matrix.isError && heatmapCard}
         {matrixCard}
         {!canManage && adminsCard}
       </div>

@@ -8,6 +8,9 @@ import org.springframework.data.repository.query.Param;
 
 public interface CommunityCategoryRepository extends JpaRepository<CommunityCategory, Long> {
 
+    /** Buyuk/kucuk harf farkini yok sayan tek satir arama (eskiden findAll ile suzuluyordu). */
+    Optional<CommunityCategory> findFirstByKeyIgnoreCase(String key);
+
     Optional<CommunityCategory> findByKey(String key);
 
     boolean existsByKey(String key);

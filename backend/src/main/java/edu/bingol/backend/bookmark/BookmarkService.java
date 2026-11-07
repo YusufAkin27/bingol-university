@@ -3,7 +3,7 @@ package edu.bingol.backend.bookmark;
 import edu.bingol.backend.bookmark.dto.BookmarkView;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
-import edu.bingol.backend.news.NewsItem;
+import edu.bingol.backend.news.NewsRow;
 import edu.bingol.backend.news.NewsRepository;
 import edu.bingol.backend.news.dto.NewsSummary;
 import java.util.List;
@@ -56,11 +56,11 @@ public class BookmarkService {
         int s = CursorPage.clampSize(size);
         List<Bookmark> rows = repo.page(uid, BookmarkTarget.NEWS, cursor == null ? Long.MAX_VALUE : cursor, PageRequest.of(0, s + 1));
         CursorPage<Bookmark> page = CursorPage.of(rows, s, Bookmark::getId, Function.identity());
-        Map<Long, NewsItem> items = news.findAllById(page.items().stream().map(Bookmark::getTargetId).toList())
-                .stream().collect(Collectors.toMap(NewsItem::getId, Function.identity()));
+        Map<Long, NewsRow> items = news.findByIdInAndHiddenFalse(page.items().stream().map(Bookmark::getTargetId).toList())
+                .stream().collect(Collectors.toMap(NewsRow::getId, Function.identity()));
         // Kaynagi silinmis veya yonetici tarafindan gizlenmis haber listeden dusulur
         List<BookmarkView> views = page.items().stream()
-                .filter(b -> items.containsKey(b.getTargetId()) && !items.get(b.getTargetId()).isHidden())
+                .filter(b -> items.containsKey(b.getTargetId()))
                 .map(b -> new BookmarkView(b.getTargetType(), b.getTargetId(), b.getCreatedAt(),
                         NewsSummary.of(items.get(b.getTargetId()))))
                 .toList();

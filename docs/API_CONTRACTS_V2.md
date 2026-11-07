@@ -79,7 +79,6 @@ Tek oturumluk kısa biçim: `sessions` yerine kök alanlar `dayOfWeek`, `startTi
 - `GET /api/timetable/exams?from=&to=` (tarih, opsiyonel) → `{ "items": [ExamView…] }` zamana göre.
 - `GET /api/timetable/exams/upcoming?days=30` (1..365) → `{ "items": […] }` yalnız bitmemiş sınavlar.
 - `PATCH /api/timetable/exams/{id}` (200 ExamView), `DELETE` → 204.
-- **Resmi sınav programı:** `GET /api/exams/official` → kullanıcının profilindeki fakülte/bölüm/sınıfa uyanlar (alan boşsa herkese): `{ "items": [ { "id","title","type","term":"2026-2027 Güz","courseCode":"BIL201","department":"Bilgisayar Mühendisliği"|null,"faculty":…|null,"grade":"2"|null,"startsAt","endsAt","room","note" } ], "profileComplete": true }`. Profilde bölüm yoksa `profileComplete=false` ve yalnız herkese açık satırlar döner. `?scope=all` tümünü getirir.
 
 ### C) Akademik takvim (resmi)
 
@@ -89,38 +88,19 @@ Tek oturumluk kısa biçim: `sessions` yerine kök alanlar `dayOfWeek`, `startTi
 
 Yönetici (`/api/admin/academic/events`): `GET ?page=0&size=20&kind=&q=&published=` → `{ items, page, size, total }`; `POST` (201 `{kind,title≤150,startsAt,endsAt?,allDay,scopeDepartment?,note≤500,published}`), `GET /{id}`, `PATCH /{id}`, `DELETE /{id}` (204), `POST /{id}/publish`, `POST /{id}/unpublish`, `POST /import` `{ "text": "...", "publish": false }` — satır biçimi `KIND;Başlık;başlangıç;bitiş?;bölüm?` (tarih `YYYY-MM-DD` ⇒ tüm gün, ya da `YYYY-MM-DDTHH:mm`; boş satır ve `#` yorum atlanır; en çok 200 satır). Yanıt `{ "created": 12, "errors": [ { "line": 4, "message": "…" } ] }` (geçerli satırlar yazılır).
 
-Resmi sınav programı yönetimi (`/api/admin/academic/exams`): aynı kalıp (liste/POST/GET/PATCH/DELETE + `publish|unpublish`); alanlar `{ title, type, term, courseCode?, faculty?, department?, grade?, startsAt, endsAt?, room?, note?, published }`.
+### D) Bölüm duyuruları ve resmi sınav programı: KALDIRILDI
 
-### D) Bölüm duyuruları
-
-`AnnouncementView`:
-```json
-{ "id": 9, "title": "Staj başvuruları", "body": "…", "department": "Bilgisayar Mühendisliği", "faculty": null, "grade": null,
-  "pinned": true, "publishAt": "2026-10-20T09:00:00+03:00", "expiresAt": null, "attachmentUrl": "https://…", "read": false, "createdAt": "…" }
-```
-Liste öğelerinde `body` en çok 200 karaktere kısaltılır (`bodyTruncated: true`); `GET /{id}` tam metni verir.
-- `GET /api/announcements?scope=mine|all&cursor=&size=20` (size 1..50, varsayılan 20; `scope` varsayılan `mine`). `mine`: `department`/`faculty`/`grade` alanı boş **veya** kullanıcının değeriyle eşleşen (büyük-küçük harf duyarsız) duyurular. `all`: görünür tüm duyurular. Görünür = `published` ∧ `publishAt ≤ şimdi` ∧ (`expiresAt` boş ∨ `> şimdi`). Sıra: sabitlenmiş önce, sonra `publishAt` azalan, `id` azalan. Yanıt `{ "items": [...], "nextCursor": "1.1730000000.0.9" (biçim pin.saniye.nano.id; istemci ayrıştırmaz) | null }` — **imleç opak string**, sonraki istek `?cursor=<nextCursor>`; geçersiz imleç 422 `ANNOUNCEMENT_CURSOR_INVALID`.
-- `GET /api/announcements/{id}` — görünür değilse 404; açınca **okundu** işaretlenir.
-- `POST /api/announcements/{id}/read` → 204 (idempotent); `POST /api/announcements/read-all` → 204 (kullanıcının `mine` görünür duyurularının hepsi).
-- `GET /api/announcements/unread-count` → `{ "count": 3 }` (yalnız `mine` kapsamı).
-
-Yönetici (`/api/admin/announcements`):
-- `GET ?page=0&size=20&status=all|draft|scheduled|active|expired&q=` → `{ items:[AdminAnnouncementView], page, size, total }` (`AnnouncementView` + `published`, `notify`, `notifiedAt`, `createdBy`, `readCount`).
-- `POST` → 201: `{ title≤150, body≤4000, department?, faculty?, grade?, pinned, publishAt? (boşsa şimdi), expiresAt? (>publishAt), attachmentUrl? (yalnız https, ≤500), published (varsayılan true), notify (varsayılan false) }`. `grade`: `PREP|1..6|MASTER|PHD`.
-- `GET /{id}`, `PATCH /{id}` (kısmi; sabitleme `pinned`), `DELETE /{id}` (204), `POST /{id}/publish`, `POST /{id}/unpublish`.
-- `GET /audience-count?department=&faculty=&grade=` → `{ "count": 412 }` (aktif, silinmemiş kullanıcılar; boş alan = kısıtsız).
-- `notify=true`: duyuru **görünür olduğunda** (hemen ya da `publishAt` geldiğinde; en geç 1 dk) hedef kitleye bir kez `ANNOUNCEMENT` türünde bildirim (uygulama içi + push; `data: { targetType: "ANNOUNCEMENT", targetId: "<id>" }`) gider; `notifiedAt` dolar, tekrar gönderilmez. Kullanıcının duyuru bildirim tercihi kapalıysa atlanır.
-- Gelecek (bölüm yöneticisi): `app_user.role`'e `DEPT_ADMIN` ve `dept_admin_scope(user_id, department)` eklenir; admin uçları `DEPT_ADMIN` için yalnız kendi bölümünü hedefleyen duyurulara açılır. Şimdilik yalnız ADMIN.
+`/api/announcements*`, `/api/admin/announcements*`, `GET /api/exams/official` ve `/api/admin/academic/exams*` uçları V1251 ile silindi (tablolar `department_announcement`, `announcement_read`, `exam_schedule` düştü). Kişisel sınavlar (`/api/timetable/exams`) ve resmi ders programı kalır.
 
 ### Hata kodları
 | Kod | HTTP | Anlam |
 |---|---|---|
-| `COURSE_NOT_FOUND` / `EXAM_NOT_FOUND` / `SEMESTER_NOT_FOUND` / `ANNOUNCEMENT_NOT_FOUND` / `ACADEMIC_EVENT_NOT_FOUND` / `EXAM_SCHEDULE_NOT_FOUND` | 404 | Kayıt yok ya da size ait değil |
+| `COURSE_NOT_FOUND` / `EXAM_NOT_FOUND` / `SEMESTER_NOT_FOUND` / `ACADEMIC_EVENT_NOT_FOUND` | 404 | Kayıt yok ya da size ait değil |
 | `COURSE_CONFLICT` | 409 | Zaman çakışması (`force=true` ile geçilir) |
 | `COURSE_INVALID` / `COURSE_FIELD_TOO_LONG` / `COURSE_INVALID_TIME` / `COURSE_INVALID_DAY` / `COURSE_COLOR_INVALID` / `COURSE_SESSIONS_REQUIRED` | 422 | Alan doğrulama |
 | `COURSE_LIMIT` / `SESSION_LIMIT` / `SEMESTER_LIMIT` | 422 | Üst sınır |
 | `IMPORT_TOO_LARGE` | 422 | >60 oturum |
-| `SEMESTER_INVALID` / `EXAM_INVALID` / `ANNOUNCEMENT_INVALID` / `ACADEMIC_EVENT_INVALID` / `ANNOUNCEMENT_URL_INVALID` / `DATE_INVALID` / `CALENDAR_RANGE_INVALID` / `ANNOUNCEMENT_CURSOR_INVALID` | 422 | Doğrulama |
+| `SEMESTER_INVALID` / `EXAM_INVALID` / `ACADEMIC_EVENT_INVALID` / `DATE_INVALID` / `CALENDAR_RANGE_INVALID` | 422 | Doğrulama |
 | `NO_OFFICIAL_SEMESTER` | 404 | Resmi dönem tanımlı değil |
 | `CONTENT_PROFANITY` | 422 | Küfür filtresi (`field`) |
 

@@ -1,6 +1,7 @@
 package edu.bingol.backend.notification.outbox;
 
 import edu.bingol.backend.common.Hashing;
+import edu.bingol.backend.notification.BroadcastWriter;
 import edu.bingol.backend.notification.Device;
 import edu.bingol.backend.notification.DeviceRepository;
 import edu.bingol.backend.notification.fcm.FcmSender;
@@ -99,6 +100,53 @@ public class PushOutboxService {
         return enqueueDevices(found, message, dedupeKey);
     }
 
+    /** Genel yayin icin anahtar-kumeli toplu yazim (PostgreSQL); yoksa null. */
+    private edu.bingol.backend.notification.BroadcastWriter broadcastWriter;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setBroadcastWriter(edu.bingol.backend.notification.BroadcastWriter broadcastWriter) {
+        this.broadcastWriter = broadcastWriter;
+    }
+
+    /** Aralik tabanli toplu yazim kullanilabilir mi (PostgreSQL + yazici var). */
+    public boolean rangeEnqueueSupported() {
+        return broadcastWriter != null && broadcastWriter.supported();
+    }
+
+    /**
+     * Genel yayin: kullanici kimligi araligindaki (after, hi] tercihe uyan, sessiz saatte olmayan kullanicilarin TUM
+     * cihazlari icin TEK `INSERT .. SELECT` ile kuyruk satiri yazar (cihaz basina entity/INSERT yok, token bellege
+     * alinmaz). Yuk bir kez serilestirilir; bos aralik 0 doner.
+     * @return yazilan kayit sayisi
+     */
+    public int enqueueBroadcastRange(PushMessage message, String prefColumn, String lang, long after, long hi) {
+        return enqueueBroadcastRange(message, prefColumn, lang, after, hi, BroadcastWriter.DEVICES_ALL);
+    }
+
+    /** @param devices {@link BroadcastWriter#DEVICES_ALL}, {@code DEVICES_STANDARD} (zengin cizici olmayanlar) ya da {@code DEVICES_RICH} */
+    public int enqueueBroadcastRange(PushMessage message, String prefColumn, String lang, long after, long hi,
+                                     int devices) {
+        if (!rangeEnqueueSupported()) {
+            return 0;
+        }
+        String payload;
+        try {
+            payload = json.writeValueAsString(message);
+        } catch (RuntimeException e) {
+            log.warn("Push yuku serilestirilemedi: {}", e.getClass().getSimpleName());
+            return 0;
+        }
+        String msgType = message.category() == null ? null
+                : message.category().substring(0, Math.min(message.category().length(), 24));
+        int n = broadcastWriter.enqueuePush(payload, (short) (message.highPriority() ? 1 : 0), msgType, prefColumn, lang,
+                after, hi, devices);
+        if (n > 0) {
+            metrics.counter("push.outbox.enqueued").increment(n);
+            events.publishEvent(new PushQueued(n));
+        }
+        return n;
+    }
+
     /** Kullanicinin tum cihazlarina. */
     @Transactional
     public int enqueueForUser(Long userId, PushMessage message, String dedupeKey) {
@@ -122,8 +170,16 @@ public class PushOutboxService {
         short priority = (short) (message.highPriority() ? 1 : 0);
         Instant now = Instant.now();
         List<PushOutbox> rows = new ArrayList<>(targets.size());
+        // Tekillestirme: cihaz basina existsActive yerine parca basina TEK sorgu (N+1 yok)
+        java.util.Set<Long> alreadyQueued = new java.util.HashSet<>();
+        if (key != null) {
+            List<Long> ids = targets.stream().map(Device::getId).toList();
+            for (int i = 0; i < ids.size(); i += CHUNK) {
+                alreadyQueued.addAll(repo.activeDeviceIds(key, ids.subList(i, Math.min(i + CHUNK, ids.size()))));
+            }
+        }
         for (Device d : targets) {
-            if (key != null && repo.existsActive(key, d.getId())) {
+            if (key != null && alreadyQueued.contains(d.getId())) {
                 continue;
             }
             PushOutbox o = new PushOutbox();

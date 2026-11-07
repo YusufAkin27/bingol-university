@@ -15,6 +15,12 @@ ENV VITE_PUBLIC_URL=$PUBLIC_WEB_URL
 ARG VITE_ADMIN_PATH=
 ENV VITE_ADMIN_PATH=$VITE_ADMIN_PATH
 RUN npm run build
+# Uygulama baglantisi dogrulama dosyalari (.well-known/apple-app-site-association, assetlinks.json; paylasim baglantisi /s/*).
+# Degerler (docker compose build.args <- .env.prod APPLE_TEAM_ID, PLAY_APP_SIGNING_SHA256) bos/gecersizse dosya URETILMEZ
+# (nginx yalin 404 verir), derleme basarisiz OLMAZ. Ayrinti: docs/SHARING.md. Bu katman `npm run build`den SONRA: degerler degisince yalniz o yeniden calisir.
+ARG APPLE_TEAM_ID=
+ARG PLAY_APP_SIGNING_SHA256=
+RUN APPLE_TEAM_ID="$APPLE_TEAM_ID" PLAY_APP_SIGNING_SHA256="$PLAY_APP_SIGNING_SHA256" node scripts/gen-app-links.mjs
 
 # Aşama 2: statik sunum + ters vekil
 FROM nginx:1.27.5-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
@@ -22,5 +28,8 @@ RUN rm -f /etc/nginx/conf.d/default.conf && mkdir -p /etc/nginx/snippets
 COPY nginx-security.conf /etc/nginx/snippets/security.conf
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html
+# Yonetim konumu parcasi derlemede uretilir (VITE_ADMIN_PATH'e gore, scripts/prerender.mjs); html kokunden tasinir.
+# Dosya yoksa tasima basarisiz olur ve imaj derlenmez (nginx.conf bu parcayi include eder: fail-closed).
+RUN mv /usr/share/nginx/html/_nginx-generated.conf /etc/nginx/snippets/generated-locations.conf
 EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=3s --retries=3 CMD wget -q -O /dev/null http://127.0.0.1/ || exit 1

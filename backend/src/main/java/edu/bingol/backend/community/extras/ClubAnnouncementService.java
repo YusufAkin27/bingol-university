@@ -15,7 +15,9 @@ import edu.bingol.backend.community.permissions.ClubAuditService;
 import edu.bingol.backend.community.permissions.ClubPermission;
 import edu.bingol.backend.community.permissions.ClubPermissions;
 import edu.bingol.backend.moderation.BlockService;
+import edu.bingol.backend.notification.FanoutNotifier;
 import edu.bingol.backend.notification.NotificationService;
+import edu.bingol.backend.notification.NotificationTemplates;
 import edu.bingol.backend.notification.NotificationType;
 import edu.bingol.backend.user.User;
 import java.time.Duration;
@@ -94,7 +96,13 @@ public class ClubAnnouncementService {
 
         Map<Long, User> authors = communities.usersById(List.of(a.id()));
         User author = authors.get(a.id());
-        notifyMembers(c, p, a.id());
+        // FINAL-ALL (P05 ertelenen): kulup satir kilidi ve baglanti bildirim boyunca tutulmaz; COMMIT sonrasi havuzda gider.
+        Long cidF = c.getId();
+        String clubName = c.getName();
+        String content = p.getContent();
+        Long postId = p.getId();
+        Long authorId = a.id();
+        FanoutNotifier.dispatch(fanout, "club-announcement:" + cid, () -> notifyMembers(cidF, clubName, content, postId, authorId));
         return new AnnouncementView(p.getId(), cid, a.id(), author == null ? "Kullanıcı" : author.getDisplayName(),
                 p.getContent(), p.getCreatedAt());
     }
@@ -117,24 +125,30 @@ public class ClubAnnouncementService {
         });
     }
 
-    /** Servis sozlesmesi: bildirim hatasi duyuruyu bozmaz (NotificationService zaten exception sizdirmaz). */
-    private void notifyMembers(Community c, CommunityPost p, Long authorId) {
+    static final NotificationTemplates.Template TEMPLATE = NotificationTemplates.of("notif.community.announcement",
+            NotificationType.COMMUNITY);
+
+    /** Birim testleri icin yoktur (ayni is parcaciginda calisir); uretimde commit sonrasi havuz. */
+    private FanoutNotifier fanout;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setFanout(FanoutNotifier fanout) {
+        this.fanout = fanout;
+    }
+
+    /** Servis sozlesmesi: bildirim hatasi duyuruyu bozmaz (dagitim isi istisna sizdirmaz). Parca basina sabit sorgu. */
+    private void notifyMembers(Long cid, String clubName, String content, Long postId, Long authorId) {
         Set<Long> hidden = blocks.hiddenFrom(authorId);
-        String preview = preview(p.getContent());
-        Map<String, String> data = Map.of("communityId", c.getId().toString(), "postId", p.getId().toString(),
+        String preview = preview(content);
+        Map<String, String> data = Map.of("communityId", cid.toString(), "postId", postId.toString(),
                 "kind", "announcement");
         long after = 0;
         int sent = 0;
         while (sent < NOTIFY_MAX) {
-            List<Long> page = memberQuery.activeUserIdsAfter(c.getId(), after, PageRequest.of(0, PAGE));
-            for (Long uid : page) {
-                if (uid.equals(authorId) || hidden.contains(uid)) {
-                    continue;
-                }
-                notifications.sendTemplated(uid, NotificationType.COMMUNITY, "notif.community.announcement", data,
-                        c.getName(), preview);
-                sent++;
-            }
+            List<Long> page = memberQuery.activeUserIdsAfter(cid, after, PageRequest.of(0, PAGE));
+            List<Long> to = page.stream().filter(uid -> !uid.equals(authorId) && !hidden.contains(uid)).toList();
+            notifications.sendTemplatedBulk(to, TEMPLATE, data, null, clubName, preview);
+            sent += to.size();
             if (page.size() < PAGE) {
                 return;
             }

@@ -19,10 +19,21 @@ public interface PostMediaRepository extends JpaRepository<PostMedia, Long> {
         Instant getDeletedAt();
 
         Instant getHiddenAt();
+
+        /** Yazarin hesap durumu (ACTIVE degilse gonderi akistan dusmustur; medyasi da kapali olmali). */
+        edu.bingol.backend.user.UserStatus getAuthorStatus();
     }
 
-    @Query("SELECT p.authorId AS authorId, p.deletedAt AS deletedAt, p.hiddenAt AS hiddenAt FROM Post p WHERE p.id = :id")
+    @Query("SELECT p.authorId AS authorId, p.deletedAt AS deletedAt, p.hiddenAt AS hiddenAt, u.status AS authorStatus "
+            + "FROM Post p LEFT JOIN User u ON u.id = p.authorId WHERE p.id = :id")
     Optional<PostState> postState(@Param("id") Long postId);
+
+    /**
+     * Supurucu icin saklama anahtarlari: kimlik imleciyle sayfali [id, storageKey]. Dosya basina sorgu yerine kume
+     * bir kez bellege alinir (post_media'da storage_key indeksi ayrica V1120 ile vardir).
+     */
+    @Query("SELECT m.id, m.storageKey FROM PostMedia m WHERE m.id > :after ORDER BY m.id")
+    List<Object[]> keysAfter(@Param("after") long after, Pageable page);
 
     List<PostMedia> findByPostIdIn(Collection<Long> postIds);
 

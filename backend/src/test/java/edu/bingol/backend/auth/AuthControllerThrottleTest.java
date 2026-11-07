@@ -134,7 +134,7 @@ class AuthControllerThrottleTest {
         verify(limiter).check("register:email:" + digest, 5, Duration.ofHours(1));
         verify(limiter).check("codemail:day:" + digest, 20, Duration.ofHours(24));
         verify(limiter).check(startsWith("register:ip:"), anyInt(), any(Duration.class));
-        verify(auth).register(eq(EMAIL), eq("Sifre1234"), eq("Ali"), any(), any(), any(), any(), eq(true));
+        verify(auth).registerOrDefer(eq(EMAIL), eq("Sifre1234"), eq("Ali"), any(), any(), any(), any(), eq(true), any(), any());
     }
 
     @Test
@@ -142,7 +142,7 @@ class AuthControllerThrottleTest {
         controller.register(new RegisterRequest(EMAIL, "Sifre1234", "Ali", true, null, null, null, null, null),
                 from("203.0.113.9"));
 
-        verify(auth).register(eq(EMAIL), eq("Sifre1234"), eq("Ali"), any(), any(), any(), any(), eq(false));
+        verify(auth).registerOrDefer(eq(EMAIL), eq("Sifre1234"), eq("Ali"), any(), any(), any(), any(), eq(false), any(), any());
     }
 
     @Test
@@ -153,7 +153,7 @@ class AuthControllerThrottleTest {
         assertThrows(RateLimitedException.class, () -> controller.register(
                 new RegisterRequest(EMAIL, "Sifre1234", "Ali", true, null, null, null, null, null), from("203.0.113.9")));
 
-        verify(auth, never()).register(anyString(), anyString(), anyString(), any(), any(), any(), any(), anyBoolean());
+        verify(auth, never()).registerOrDefer(anyString(), anyString(), anyString(), any(), any(), any(), any(), anyBoolean(), any(), any());
     }
 
     @Test
@@ -166,6 +166,7 @@ class AuthControllerThrottleTest {
         verify(limiter, org.mockito.Mockito.times(2)).check("codemail:day:" + digest, 20, Duration.ofHours(24));
         verify(limiter).check("resend:email:" + digest, 5, Duration.ofHours(1));
         verify(limiter).check("forgot:email:" + digest, 5, Duration.ofHours(1));
+        verify(limiter).check("forgot:ipmin:203.0.113.9", 15, Duration.ofMinutes(1));
     }
 
     @Test
@@ -197,6 +198,26 @@ class AuthControllerThrottleTest {
         verify(limiter).check("refresh:ip:203.0.113.9", 30000, Duration.ofMinutes(15));
         verify(limiter).check("refresh:user:42", 60, Duration.ofMinutes(15));
         verify(limiter, never()).check(startsWith("refresh:bad:"), anyInt(), any(Duration.class));
+    }
+
+    /** FIX-P02/K1: es zamanli refresh 409 doner ve istemciye Retry-After: 1 verir. */
+    @Test
+    void refreshInProgressAddsRetryAfterHeaderToTheConflict() {
+        when(refreshTokens.peekUserId("tok")).thenReturn(42L);
+        when(auth.refresh(eq("tok"), any())).thenThrow(new RefreshInProgressException());
+        org.springframework.mock.web.MockHttpServletRequest req = from("203.0.113.9");
+        org.springframework.mock.web.MockHttpServletResponse res = new org.springframework.mock.web.MockHttpServletResponse();
+        org.springframework.web.context.request.RequestContextHolder.setRequestAttributes(
+                new org.springframework.web.context.request.ServletRequestAttributes(req, res));
+        try {
+            ApiException e = assertThrows(ApiException.class, () -> controller.refresh(new RefreshRequest("tok"), req));
+
+            assertEquals("REFRESH_IN_PROGRESS", e.code());
+            assertEquals(409, e.status().value());
+            assertEquals("1", res.getHeader("Retry-After"));
+        } finally {
+            org.springframework.web.context.request.RequestContextHolder.resetRequestAttributes();
+        }
     }
 
     @Test

@@ -14,6 +14,7 @@ import edu.bingol.backend.event.EventService;
 import edu.bingol.backend.event.UserEvent;
 import edu.bingol.backend.event.extras.ExtrasDtos.AnnouncementResult;
 import edu.bingol.backend.moderation.BlockService;
+import edu.bingol.backend.notification.FanoutNotifier;
 import edu.bingol.backend.notification.NotificationService;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserStatus;
@@ -53,8 +54,16 @@ public class AnnouncementService {
         this.notifications = notifications;
     }
 
+    /** Birim testleri icin yoktur (ayni is parcaciginda calisir); uretimde commit sonrasi havuz. */
+    private FanoutNotifier fanout;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setFanout(FanoutNotifier fanout) {
+        this.fanout = fanout;
+    }
+
     public AnnouncementResult send(Actor a, Long eventId, String title, String message, Instant now) {
-        UserEvent e = events.requireManager(a, events.load(eventId));
+        UserEvent e = events.requireManagerOrPerm(a, events.load(eventId), edu.bingol.backend.event.EventModerator.Perm.SEND_ANNOUNCEMENT);
         if (e.getStatus() != UserEvent.Status.ACTIVE) {
             throw new ApiException(HttpStatus.CONFLICT, "EVENT_NOT_OPEN", "Etkinlik henüz yayında değil.");
         }
@@ -84,22 +93,28 @@ public class AnnouncementService {
         rec.setSenderId(a.id());
         rec.setCreatedAt(now);
         log.save(rec);
-        // T-051: tum GOING katilimcilar (imecli sayfalar); eskiden ilk 1000'de sessizce kesiliyordu
-        int[] sent = {0};
+        // T-051: tum GOING katilimcilar (imecli sayfalar); eskiden ilk 1000'de sessizce kesiliyordu.
+        // FINAL-ALL (P05/P08 ertelenen): istek yalniz alici KIMLIKLERINI toplar (sayi yanitta doner; engel iliskisi tek
+        // sorguda); bildirimler katilimci sayisindan bagimsiz olarak commit sonrasi havuzda toplu gonderilir.
+        java.util.Set<Long> hidden = blocks.hiddenFrom(a.id());
+        List<Long> recipients = new java.util.ArrayList<>();
         boolean truncated = Paging.forEachChunk(
                 (after, n) -> rsvps.userIdsAfter(eventId, EventRsvp.Status.GOING, after, PageRequest.of(0, n)),
                 ids -> {
                     Map<Long, User> users = communities.usersById(ids);
                     for (Long uid : ids) {
                         User u = users.get(uid);
-                        if (uid.equals(a.id()) || u == null || u.getStatus() != UserStatus.ACTIVE || blocks.isBlocked(a.id(), uid)) {
+                        if (uid.equals(a.id()) || u == null || u.getStatus() != UserStatus.ACTIVE || hidden.contains(uid)) {
                             continue;
                         }
-                        notifications.sendTemplate(uid, ExtrasTemplates.ANNOUNCEMENT, Map.of("eventId", eventId.toString()),
-                                null, e.getTitle(), t, m);
-                        sent[0]++;
+                        recipients.add(uid);
                     }
                 });
+        int[] sent = {recipients.size()};
+        String eventTitle = e.getTitle();
+        FanoutNotifier.dispatch(fanout, "event-announcement:" + eventId, () ->
+                notifications.sendTemplatedBulk(recipients, ExtrasTemplates.ANNOUNCEMENT,
+                        Map.of("eventId", eventId.toString()), null, eventTitle, t, m));
         rec.setRecipients(sent[0]);
         log.save(rec);
         return new AnnouncementResult(sent[0], (int) (DAILY_LIMIT - used - 1), truncated);

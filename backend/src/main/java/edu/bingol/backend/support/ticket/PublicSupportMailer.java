@@ -6,10 +6,9 @@ import edu.bingol.backend.i18n.I18n;
 import edu.bingol.backend.i18n.Lang;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.mail.MailDailyQuota;
+import edu.bingol.backend.mail.MailLayout;
 import edu.bingol.backend.mail.MailService;
-import java.util.regex.Pattern;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.HtmlUtils;
 
 /**
  * Herkese acik talep e-postalari (tr/en/ar). Metin alicinin talep dilinde uretilir; kullanici ve yonetici metni
@@ -17,8 +16,6 @@ import org.springframework.web.util.HtmlUtils;
  */
 @Component
 public class PublicSupportMailer {
-
-    private static final Pattern URL = Pattern.compile("https?://[A-Za-z0-9._~:/?#\\[\\]@!$&()*+,;=%-]+");
 
     private final MailService mail;
     private final I18n i18n;
@@ -51,7 +48,8 @@ public class PublicSupportMailer {
         String body = i18n.msg("mail.support.code.body", lang, code, String.valueOf(minutes));
         try {
             String replyTo = settings.findById("support_email").map(s -> s.getValue().trim()).orElse("");
-            return mail.sendPublicCode(t.getContactEmail(), subject, body, html(body, lang), replyTo);
+            return mail.sendPublicCode(t.getContactEmail(), subject, plainWithTail(body, lang),
+                    html(subject, body, lang, null, code), replyTo);
         } catch (ApiException e) {
             throw e;
         } catch (RuntimeException e) {
@@ -63,14 +61,14 @@ public class PublicSupportMailer {
         Lang lang = Lang.of(t.getLang());
         String body = i18n.msg("mail.support.received.body", lang, safeName(t), String.valueOf(t.getId()),
                 trackUrl(token), clip(firstMessage, 500));
-        return send(t, lang, subject(t, lang), body);
+        return send(t, lang, subject(t, lang), body, true);
     }
 
     public boolean sendReply(SupportTicket t, String reply, String firstMessage, String token) {
         Lang lang = Lang.of(t.getLang());
         String body = i18n.msg("mail.support.reply.body", lang, safeName(t), reply, String.valueOf(t.getId()),
                 clip(firstMessage, 300), trackUrl(token));
-        return send(t, lang, subject(t, lang), body);
+        return send(t, lang, subject(t, lang), body, true);
     }
 
     String trackUrl(String token) {
@@ -82,28 +80,33 @@ public class PublicSupportMailer {
         return i18n.msg("mail.support.subject", lang, String.valueOf(t.getId()));
     }
 
-    private boolean send(SupportTicket t, Lang lang, String subject, String plain) {
+    private boolean send(SupportTicket t, Lang lang, String subject, String plain, boolean action) {
         try {
             String replyTo = settings.findById("support_email").map(s -> s.getValue().trim()).orElse("");
-            return mail.sendRich(t.getContactEmail(), subject, plain, html(plain, lang), replyTo);
+            String label = action ? MailLayout.text("mail.tpl.action.track", lang) : null;
+            return mail.sendRich(t.getContactEmail(), subject, plainWithTail(plain, lang),
+                    html(subject, plain, lang, label, null), replyTo);
         } catch (RuntimeException e) {
             return false;
         }
     }
 
-    /** Duz metni kacislayip satir sonlarini ve baglantilari HTML'e cevirir. */
-    static String html(String plain, Lang lang) {
-        String escaped = HtmlUtils.htmlEscape(plain, "UTF-8");
-        String linked = URL.matcher(escaped).replaceAll(m -> {
-            String u = m.group().replace("&amp;", "&");
-            // Kacislanmis metinde & zaten &amp;; href icin tekrar kacisla
-            String href = HtmlUtils.htmlEscape(u, "UTF-8");
-            return java.util.regex.Matcher.quoteReplacement("<a href=\"" + href + "\">" + href + "</a>");
-        });
-        String dir = lang == Lang.AR ? "rtl" : "ltr";
-        return "<div dir=\"" + dir + "\" style=\"font-family:Arial,sans-serif;font-size:15px;line-height:1.5;color:#222\">"
-                + linked.replace("\r\n", "\n").replace("\n", "<br>") + "</div>";
+    /**
+     * Duz metni marka cercevesine koyar (siyah-beyaz yerlesim): bos satirla ayrilan bloklar paragraf, tek basina
+     * baglanti satiri `actionLabel` varsa birincil dugme, `code` varsa kod kutusu. Metin KACISLI girer (ham HTML
+     * enjeksiyonu yok); baslik konudan ("BÜ Kampüs – " oneki atilarak) turetilir.
+     */
+    public static String html(String subject, String plain, Lang lang, String actionLabel, String code) {
+        String title = subject == null ? "" : subject.replaceFirst("^BÜ Kampüs\\s*[–-]\\s*", "");
+        return MailLayout.page(lang, title, MailLayout.fromPlain(plain, actionLabel, code), MailLayout.Footer.SUPPORT);
     }
+
+    /** Duz metin alternatifine marka adi ve alt bilgi eklenir. */
+    public static String plainWithTail(String plain, Lang lang) {
+        return MailLayout.brand(lang) + "\n\n" + plain.strip() + "\n\n"
+                + MailLayout.plainTail(lang, MailLayout.Footer.SUPPORT);
+    }
+
 
     /**
      * Ad yalnız harf/rakam/boşluk/nokta/kesme/tire ile sınırlanır; '@', '/', ':' gibi URL ve adres karakterleri

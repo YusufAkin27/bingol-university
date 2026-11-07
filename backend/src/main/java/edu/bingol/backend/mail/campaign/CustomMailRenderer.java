@@ -2,18 +2,14 @@ package edu.bingol.backend.mail.campaign;
 
 import edu.bingol.backend.i18n.Lang;
 import edu.bingol.backend.mail.CustomMailContent;
+import edu.bingol.backend.mail.MailLayout;
 import edu.bingol.backend.mail.MailRenderer;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.function.UnaryOperator;
-import org.springframework.context.support.ResourceBundleMessageSource;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.HtmlUtils;
 
@@ -39,16 +35,10 @@ public class CustomMailRenderer implements CustomMailContent {
     private static final int CACHE_MAX = 200;
 
     private final MailCustomTemplateVersionRepository versions;
-    private final ResourceBundleMessageSource messages = new ResourceBundleMessageSource();
-    private final String layout;
     private final Map<String, MailCustomTemplateVersion> cache = new ConcurrentHashMap<>();
 
     public CustomMailRenderer(MailCustomTemplateVersionRepository versions) {
         this.versions = versions;
-        messages.setBasename("i18n/mail");
-        messages.setDefaultEncoding("UTF-8");
-        messages.setFallbackToSystemLocale(false);
-        layout = readLayout();
     }
 
     @Override
@@ -89,22 +79,14 @@ public class CustomMailRenderer implements CustomMailContent {
         String subject = singleLine((subjectPrefix == null ? "" : subjectPrefix) + fill(c.subject(), values, raw));
 
         // Abonelikten cik baglantisi kuyruk iscisi tarafindan her duyuru e-postasina otomatik eklenir (UnsubscribeFooter)
-        StringBuilder body = new StringBuilder(fill(c.html(), values, CustomMailRenderer::escape));
-        StringBuilder plain = new StringBuilder(fill(c.text() == null ? "" : c.text(), values, raw));
-        String brand = text("mail.tpl.brand", lang);
-        String footer = text("mail.tpl.footer", lang);
-        plain.append("\n\n--\n").append(brand).append('\n').append(footer).append('\n');
+        // Eski kirmizi marka renkleri (yonetici sablonlarinda kalmis olabilir) siyaha cevrilir: marka siyah-beyaz.
+        String body = MailLayout.neutralizeBrandRed(fill(c.html(), values, CustomMailRenderer::escape));
+        StringBuilder plain = new StringBuilder(MailLayout.brand(lang)).append("\n\n");
+        plain.append(fill(c.text() == null ? "" : c.text(), values, raw));
+        plain.append("\n\n").append(MailLayout.plainTail(lang, MailLayout.Footer.AUTOMATED));
 
-        Map<String, String> page = new LinkedHashMap<>();
-        page.put("lang", lang.code());
-        page.put("dir", lang == Lang.AR ? "rtl" : "ltr");
-        page.put("title", subject);
-        page.put("brand", brand);
-        page.put("brandHtml", edu.bingol.backend.mail.MailBrand.headerHtml(brand));
-        page.put("footer", footer);
-        page.put("bodyHtml", body.toString());
-        page.put("codeHtml", "");
-        return new MailRenderer.Rendered(subject, fillLayout(page), plain.toString());
+        String page = MailLayout.page(lang, subject, body, MailLayout.Footer.AUTOMATED);
+        return new MailRenderer.Rendered(subject, page, plain.toString());
     }
 
     private MailCustomTemplateVersion load(long tplId, int ver) {
@@ -120,18 +102,6 @@ public class CustomMailRenderer implements CustomMailContent {
         }
         cache.put(key, v); // surumler degismez: onbellek gecersizlesmez
         return v;
-    }
-
-    private String fillLayout(Map<String, String> page) {
-        Matcher m = Pattern.compile("\\{\\{\\{(\\w+)}}}|\\{\\{(\\w+)}}").matcher(layout);
-        StringBuilder out = new StringBuilder();
-        while (m.find()) {
-            boolean rawPart = m.group(1) != null;
-            String value = page.getOrDefault(rawPart ? m.group(1) : m.group(2), "");
-            m.appendReplacement(out, Matcher.quoteReplacement(rawPart ? value : escape(value)));
-        }
-        m.appendTail(out);
-        return out.toString();
     }
 
     static String fill(String template, Map<String, String> values, UnaryOperator<String> escaper) {
@@ -154,17 +124,5 @@ public class CustomMailRenderer implements CustomMailContent {
 
     static String singleLine(String s) {
         return s.replaceAll("[\\r\\n]+", " ").trim();
-    }
-
-    private String text(String key, Lang lang) {
-        return messages.getMessage(key, null, key, lang.locale());
-    }
-
-    private static String readLayout() {
-        try (var in = new ClassPathResource("mail-templates/layout.html").getInputStream()) {
-            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UncheckedIOException("mail-templates/layout.html okunamadi", e);
-        }
     }
 }

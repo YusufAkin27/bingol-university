@@ -63,19 +63,35 @@ public class PollController {
         return service.get(read(), id);
     }
 
+    private edu.bingol.backend.common.WriteMetrics metrics;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setMetrics(edu.bingol.backend.common.WriteMetrics metrics) {
+        this.metrics = metrics;
+    }
+
+    private edu.bingol.backend.common.IdempotentCreate idem;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setIdem(edu.bingol.backend.common.IdempotentCreate idem) {
+        this.idem = idem;
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public PollView create(@RequestBody CreateRequest req) {
+    public PollView create(@RequestBody CreateRequest req,
+                           @org.springframework.web.bind.annotation.RequestHeader(value = "Idempotency-Key", required = false) String idemKey) {
         Actor a = Actor.current();
-        limiter.check("poll:create:" + a.id(), 10, Duration.ofHours(1));
-        return service.create(a, req);
+        return edu.bingol.backend.common.IdempotentCreate.exec(idem, a.id(), "poll", idemKey,
+                () -> limiter.check("poll:create:" + a.id(), 10, Duration.ofHours(1)),
+                () -> service.create(a, req), PollView::id, id -> service.get(a, id));
     }
 
     @PostMapping("/{id}/vote")
     public PollView vote(@PathVariable Long id, @RequestBody VoteRequest req) {
         Actor a = Actor.current();
         limiter.check("poll:vote:" + a.id(), 60, Duration.ofMinutes(1));
-        return voteService.vote(a, id, req);
+        return edu.bingol.backend.common.WriteMetrics.of(metrics, "poll.vote", () -> voteService.vote(a, id, req));
     }
 
     @DeleteMapping("/{id}/vote")

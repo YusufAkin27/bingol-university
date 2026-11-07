@@ -141,6 +141,23 @@ services:
       # `VAR:` (degersiz) = .env'de TANIMLIYSA iletilir, degilse hic iletilmez (uygulamanin varsayilani gecerli; bos dize gecmez).
       # Smoke betikleri LEGAL_ENFORCE_REACCEPT=false ister. Tam liste: docker-compose.prod.yml backend.environment (T-144).
       LEGAL_ENFORCE_REACCEPT:
+      # Google/Apple ile giris (docs/OAUTH_SETUP.md): tanimsiz = KAPALI (OAuth uclari 404 OAUTH_DISABLED)
+      AUTH_OAUTH_ENABLED:
+      GOOGLE_CLIENT_IDS:
+      APPLE_CLIENT_IDS:
+      AUTH_OAUTH_REQUIRE_TERMS:
+      AUTH_PASSWORD_SIGNUPS_NEED_ONBOARDING:
+      AUTH_PROFILE_GATE_ENABLED:
+      # Gercek e-posta kapisi (Apple gizli adresli yeni hesap): tanimsiz = ACIK; acil kapatma icin false
+      AUTH_REAL_EMAIL_GATE_ENABLED:
+      # Cok oturum varsayilan; smoke-single-session.sh eski tek mobil oturum kurali icin AUTH_SINGLE_MOBILE_SESSION=true ister
+      AUTH_SINGLE_MOBILE_SESSION:
+      # FINAL-ALL: tanimsiz = varsayilan; duman/yerel ayarlari (bkz. CLAUDE.md "Duman betikleri")
+      APP_CHAT_RECEIPTS_MAX_MEMBERS:
+      APP_CHAT_RECEIPTS_ROOMS:
+      MENU_CATCHUP_CRON:
+      APP_PROFILE_DEFAULT_PRIVATE_ACCOUNT:
+      APP_ADMIN_DESTRUCTIVE_PER_HOUR:
       ADMIN_BASIC_ENABLED:
       DEVICE_HMAC_KEY:
       BAN_ALLOWLIST:
@@ -168,6 +185,9 @@ services:
       context: ./web
       args:
         VITE_ADMIN_PATH: ${ADMIN_PATH:-}
+        # Uygulama baglantisi dogrulama dosyalari (.well-known/*): bos ise uretilmez (web/scripts/gen-app-links.mjs, docs/SHARING.md)
+        APPLE_TEAM_ID: ${APPLE_TEAM_ID:-}
+        PLAY_APP_SIGNING_SHA256: ${PLAY_APP_SIGNING_SHA256:-}
         PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:-}
     restart: unless-stopped
     depends_on:

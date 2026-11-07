@@ -47,8 +47,14 @@ public class FollowRequestService {
     public static final int PER_TARGET_PER_DAY = 3;
     /** Otomatik kabulde işlem başına istek sayısı (tek işlem büyümesin). */
     static final int AUTO_ACCEPT_CHUNK = 200;
-    /** İstek anında (eşzamanlı) işlenecek en çok parça; kalanını {@link FollowRequestJob} tamamlar. */
+    /** Arka plan bakımında (FollowRequestJob) hedef başına bir turda işlenecek en çok parça. */
     static final int AUTO_ACCEPT_INLINE_CHUNKS = 5;
+    /**
+     * Gizli → açık geçişte İSTEK İPLİĞİNDE (PUT /privacy) işlenecek en çok parça (A06#9): 1000 isteği tek istek
+     * iş parçacığında kabul etmek (~6-8 bin sorgu, takipçi sayacı satırında uzun kilit) yerine ilk 200 hemen,
+     * kalanı {@link FollowRequestJob} (varsayılan 5 dk) tamamlar.
+     */
+    static final int ON_PUBLIC_INLINE_CHUNKS = 1;
 
     /** Gelen istek satırı (yalnız istek sahibinin gizlilik ayarlarına uygun görünen alanları). */
     public record RequestItem(Long userId, String displayName, String avatarUrl, String department, String requestedAt) {}
@@ -84,6 +90,22 @@ public class FollowRequestService {
         this.tx.setPropagationBehavior(org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
 
+    /** Bildirim yürütücüsü (A06#10; setter: kurucu imzası değişmesin; yoksa bildirim aynı iş parçacığında gider). */
+    private edu.bingol.backend.post.notify.NotifyDispatcher dispatcher;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setDispatcher(edu.bingol.backend.post.notify.NotifyDispatcher dispatcher) {
+        this.dispatcher = dispatcher;
+    }
+
+    private void notifyLater(Runnable r) {
+        if (dispatcher != null) {
+            dispatcher.run(r);
+        } else {
+            r.run();
+        }
+    }
+
     // ---------------------------------------------------------------- istek sahibi tarafı
 
     public boolean exists(Long requester, Long target) {
@@ -117,12 +139,12 @@ public class FollowRequestService {
             return; // eş zamanlı çift istek: diğeri yazdı
         }
         if (n > 0) {
-            AfterCommit.run(() -> {
+            AfterCommit.run(() -> notifyLater(() -> {
                 PostNotifier pn = notifier.getIfAvailable();
                 if (pn != null) {
                     pn.onFollowRequest(me, target);
                 }
-            });
+            }));
         }
     }
 
@@ -130,7 +152,8 @@ public class FollowRequestService {
     @Transactional
     public boolean withdraw(Long me, Long target) {
         boolean removed = jdbc.update("DELETE FROM follow_request WHERE requester_id = ? AND target_id = ?", me, target) > 0;
-        markRequestNotificationRead(target, me);
+        // Geri cekilen istek artik yok: hedefin bildirim kutusundan da SILINIR (kabul/red okundu isaretler).
+        deleteRequestNotification(target, me);
         return removed;
     }
 
@@ -181,12 +204,12 @@ public class FollowRequestService {
         boolean followed = acceptOne(requesterId, me);
         markRequestNotificationRead(me, requesterId);
         if (followed) {
-            AfterCommit.run(() -> {
+            AfterCommit.run(() -> notifyLater(() -> {
                 PostNotifier pn = notifier.getIfAvailable();
                 if (pn != null) {
                     pn.onFollowAccepted(me, requesterId);
                 }
-            });
+            }));
         }
         return count(me);
     }
@@ -250,7 +273,7 @@ public class FollowRequestService {
     /** Gizli → açık geçişte çağrılır (PrivacyService): ilk parçalar hemen, kalanı {@link FollowRequestJob}. */
     public void onBecamePublic(Long target) {
         try {
-            int n = acceptAllPending(target, AUTO_ACCEPT_INLINE_CHUNKS);
+            int n = acceptAllPending(target, ON_PUBLIC_INLINE_CHUNKS);
             if (n > 0) {
                 log.info("Gizli->acik gecis: {} bekleyen istek otomatik kabul edildi (kullanici {})", n, target);
             }
@@ -302,6 +325,16 @@ public class FollowRequestService {
                     REQUEST_KEY_PREFIX + requesterId, Instant.now());
         } catch (RuntimeException e) {
             log.warn("Takip istegi bildirimi okundu isaretlenemedi (kullanici {}): {}", target, e.toString());
+        }
+    }
+
+    /** Geri çekilen isteğin hedefin kutusundaki FOLLOW_REQUEST bildirimini siler (en iyi çaba). */
+    private void deleteRequestNotification(Long target, Long requesterId) {
+        try {
+            notifications.deleteByTypeAndCollapseKey(target, NotificationType.FOLLOW_REQUEST,
+                    REQUEST_KEY_PREFIX + requesterId);
+        } catch (RuntimeException e) {
+            log.warn("Takip istegi bildirimi silinemedi (kullanici {}): {}", target, e.toString());
         }
     }
 

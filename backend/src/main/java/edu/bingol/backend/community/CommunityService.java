@@ -20,7 +20,9 @@ import edu.bingol.backend.community.permissions.ClubAuditService;
 import edu.bingol.backend.community.permissions.ClubPermission;
 import edu.bingol.backend.community.permissions.ClubPermissions;
 import edu.bingol.backend.moderation.BlockService;
+import edu.bingol.backend.notification.FanoutNotifier;
 import edu.bingol.backend.notification.NotificationService;
+import edu.bingol.backend.notification.NotificationTemplates;
 import edu.bingol.backend.notification.NotificationType;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
@@ -255,15 +257,25 @@ public class CommunityService {
         media.release(logo);
         audit.record(id, a.id(), null, ClubAuditService.COMMUNITY_DELETED, auditDetail);
         // Uyelere haber: tum aktif uyeler (T-051: imecli sayfalar, 500'de kesme yok); silen kisi haric.
-        Paging.forEachChunk((after, n) -> members.userIdsByStatusAfter(id, CommunityMember.Status.ACTIVE, after, PageRequest.of(0, n)),
-                ids -> {
-                    for (Long uid : ids) {
-                        if (!uid.equals(a.id())) {
-                            notifications.sendTemplated(uid, NotificationType.COMMUNITY, notifKey, data(id), c.getName());
-                        }
-                    }
-                });
+        // FINAL-ALL (P05 ertelenen): istek thread'inden ve acik islemden cikarildi; COMMIT sonrasi havuzda, parca basina
+        // sabit sorguyla gider. Uye listesi silmeden SONRA okunur ama uyelikler silinmedigi icin ayni kume gelir.
+        Long actorId = a.id();
+        String clubName = c.getName();
+        FanoutNotifier.dispatch(fanout, "community-delete:" + id, () -> {
+            NotificationTemplates.Template tpl = NotificationTemplates.of(notifKey, NotificationType.COMMUNITY);
+            Paging.forEachChunk((after, n) -> members.userIdsByStatusAfter(id, CommunityMember.Status.ACTIVE, after, PageRequest.of(0, n)),
+                    ids -> notifications.sendTemplatedBulk(ids.stream().filter(uid -> !uid.equals(actorId)).toList(), tpl,
+                            data(id), null, clubName));
+        });
         hooks.onCommunityDeleted(c);
+    }
+
+    /** Birim testleri icin yoktur (ayni is parcaciginda calisir); uretimde commit sonrasi havuz. */
+    private FanoutNotifier fanout;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setFanout(FanoutNotifier fanout) {
+        this.fanout = fanout;
     }
 
     /** Ad'dan benzersiz slug: cakisirsa -2, -3 ... eklenir; cok cakisirsa rastgele ek. */
@@ -466,7 +478,7 @@ public class CommunityService {
         if (!open) {
             String who = displayName(a.id());
             for (Long mod : permissions.holders(id, ClubPermission.MANAGE_MEMBERS)) {
-                notifications.sendTemplated(mod, NotificationType.COMMUNITY, "notif.community.joinRequest", data(id), who, c.getName());
+                notifications.sendTemplated(mod, NotificationType.COMMUNITY, "notif.community.joinRequest", data(id, a.id()), who, c.getName());
             }
         } else {
             hooks.onMemberActivated(id, a.id());
@@ -730,6 +742,11 @@ public class CommunityService {
 
     private String displayName(Long userId) {
         return users.findById(userId).map(User::getDisplayName).orElse("Bir kullanıcı");
+    }
+
+    /** Katilma istegi bildirimi: basvuran kimligi (userId) Onayla/Reddet ve profil/avatar icin tasinir (yetki sunucuda). */
+    static Map<String, String> data(Long communityId, Long applicantId) {
+        return Map.of("communityId", communityId.toString(), "userId", applicantId.toString());
     }
 
     static Map<String, String> data(Long communityId) {

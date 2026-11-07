@@ -4,6 +4,8 @@ import edu.bingol.backend.admin.AdminDtos.AuditRow;
 import edu.bingol.backend.admin.AdminDtos.MessageAccessRow;
 import edu.bingol.backend.admin.AdminDtos.PageResponse;
 import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.common.CurrentUser;
+import edu.bingol.backend.common.RateLimiter;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -11,6 +13,7 @@ import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -32,16 +35,29 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuditController {
 
     static final int CSV_MAX_ROWS = 50_000;
+    /** Yonetici basina dakikada en cok CSV disa aktarma (audit + users ortak anahtar: admcsv:&lt;yonetici&gt;). */
+    static final int CSV_PER_MINUTE = 10;
     private static final ZoneId ISTANBUL = ZoneId.of("Europe/Istanbul");
     static final List<String> CSV_HEADER = List.of("id", "at", "adminId", "adminEmail", "method", "path", "status",
             "targetType", "targetId", "reason", "summary", "requestId", "ip");
 
     private final AuditRepository repo;
     private final MessageAccessAuditReader messageAccess;
+    private final RateLimiter limiter;
 
-    public AuditController(AuditRepository repo, MessageAccessAuditReader messageAccess) {
+    public AuditController(AuditRepository repo, MessageAccessAuditReader messageAccess, RateLimiter limiter) {
         this.repo = repo;
         this.messageAccess = messageAccess;
+        this.limiter = limiter;
+    }
+
+    /** Yonetici anahtari (hiz siniri): JWT kimligi ya da Basic auth icin ortak "basic". */
+    static String actor() {
+        try {
+            return String.valueOf(CurrentUser.id());
+        } catch (RuntimeException e) {
+            return "basic";
+        }
     }
 
     /**
@@ -76,6 +92,8 @@ public class AuditController {
                           @RequestParam(required = false) String targetId,
                           @RequestParam(required = false) String status,
                           HttpServletResponse res) throws IOException {
+        // FIX-P09 (A08#9): CSV tum satirlari tarar; eszamanli istekler yigilmasin (BulkCsvService ile ayni 10/dk)
+        limiter.check("admcsv:" + actor(), CSV_PER_MINUTE, Duration.ofMinutes(1));
         AuditRepository.Filter f = filter(adminId, method, q, from, to, targetType, targetId, status);
         res.setStatus(HttpStatus.OK.value());
         res.setContentType("text/csv; charset=UTF-8");

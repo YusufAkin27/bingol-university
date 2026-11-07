@@ -67,4 +67,25 @@ class MessageInfoControllerTest {
         assertEquals("2026-11-04T10:00:03Z", result.readAt());
         assertEquals(1, result.replies().items().size()); assertEquals(20L, result.replies().nextCursor());
     }
+    @Test void deliveredButUnreadReturnsOnlyDeliveredTime() {
+        message.setDeliveredAt(Instant.parse("2026-11-04T10:00:01Z"));
+        when(receipts.statuses(anyLong(), anyCollection(), isNull(), anyMap())).thenReturn(Map.of(10L, "DELIVERED"));
+        var result = controller.details(1L, 10L, null, 20);
+        assertEquals("2026-11-04T10:00:01Z", result.deliveredAt());
+        assertNull(result.readAt());
+        assertEquals("DELIVERED", result.status());
+    }
+    @Test void sentOnlyMessageReturnsNullTimesNot404() {
+        when(receipts.statuses(anyLong(), anyCollection(), isNull(), anyMap())).thenReturn(Map.of());
+        message.setDeliveredAt(Instant.parse("2026-11-04T10:00:01Z")); // engelli/askidaki alici: sizmaz
+        var result = controller.details(1L, 10L, null, 20);
+        assertEquals("SENT", result.status());
+        assertNull(result.deliveredAt()); assertNull(result.readAt());
+        assertTrue(result.replies().items().isEmpty()); assertNull(result.replies().nextCursor());
+    }
+    @Test void deletedMessageAndUnknownMessageAre404() {
+        message.setDeletedAt(Instant.parse("2026-11-04T11:00:00Z"));
+        assertEquals(404, assertThrows(ApiException.class, () -> controller.details(1L, 10L, null, 20)).status().value());
+        assertEquals(404, assertThrows(ApiException.class, () -> controller.details(1L, 99L, null, 20)).status().value());
+    }
 }

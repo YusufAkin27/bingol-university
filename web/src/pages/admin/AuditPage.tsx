@@ -5,7 +5,7 @@
 // Süzgeç durumu URL'dedir (paylaşılabilir): ?adminId=&method=&status=&q=&from=&to=&targetType=&targetId=&page=
 // Satıra tıklayınca ayrıntı çekmecesi açılır; hedef sütunu ilgili yönetim sayfasına bağlanır.
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { exportAuditCsv, listAudit, type AuditRowV2 } from '../../api/audit';
 import {
@@ -20,17 +20,22 @@ import {
   PageHeader,
   Pagination,
   ResponsiveTable,
+  Skeleton,
   StatusPill,
   useGuardedMutation,
   useIsNarrow,
   type Column,
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
+import { useGt } from './sys2Dict';
 import { errorMessage } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
 import { AuditDrawer } from './audit/AuditDrawer';
 import { AuditFilterBar } from './audit/AuditFilterBar';
+import { AuditQuickChips } from './audit/AuditQuickChips';
+import { AuditTimeline } from './audit/AuditTimeline';
+import { AUDIT_SAMPLE_SIZE } from './audit/auditStats';
 import {
   AUDIT_CSV_MAX_ROWS,
   AUDIT_PAGE_SIZE,
@@ -44,11 +49,16 @@ import {
   type AuditFilters,
 } from './audit/auditLogic';
 import styles from './audit/audit.module.css';
+import styles2 from './audit/audit2.module.css';
 import { isDenied, statusTone } from './audit/status';
 import { downloadBlob } from './users/filters';
 
+/** Grafikler (recharts) ayrı parçada: sayfa ana paketine sızmaz, yalnız özet açıkken indirilir. */
+const AuditCharts = lazy(() => import('./audit/AuditCharts'));
+
 export default function AuditPage() {
   const i18n = useI18n();
+  const gt = useGt();
   const { t, td, formatDateTime, formatNumber } = i18n;
   usePageTitle(t('admin.audit.title'));
   const [sp, setSp] = useSearchParams();
@@ -58,6 +68,8 @@ export default function AuditPage() {
   const [csvOpen, setCsvOpen] = useState(false);
   const narrow = useIsNarrow();
   const [panelOpen, setPanelOpen] = useState<boolean | null>(null);
+  const [chartsOpen, setChartsOpen] = useState<boolean | null>(null);
+  const [view, setView] = useState<'table' | 'timeline'>('table');
 
   // Aynı anda biten iki gecikmeli alan (metin + hedef kimliği) birbirini ezmesin: en güncel süzgeç ref'te tutulur.
   const latest = useRef(f);
@@ -72,6 +84,17 @@ export default function AuditPage() {
   const list = useQuery({
     queryKey: ['audit', 'list', query],
     queryFn: () => listAudit(query),
+    placeholderData: keepPreviousData,
+  });
+
+  // Özet grafikleri: aynı süzgeçlerle en yeni işlemlerin örneği (sayfalamadan bağımsız; sayfa değişince yeniden istenmez)
+  const showCharts = chartsOpen ?? !narrow;
+  const sampleQuery = { page: 0, size: AUDIT_SAMPLE_SIZE, ...filtersToQuery(f) };
+  const sample = useQuery({
+    queryKey: ['audit', 'sample', sampleQuery],
+    queryFn: () => listAudit(sampleQuery),
+    enabled: showCharts,
+    staleTime: 30_000,
     placeholderData: keepPreviousData,
   });
 
@@ -246,6 +269,27 @@ export default function AuditPage() {
       )}
       <details
         className={styles.filterPanel}
+        open={showCharts}
+        onToggle={(e) => setChartsOpen((e.currentTarget as HTMLDetailsElement).open)}
+        data-search-anchor="audit-summary"
+      >
+        <summary>{gt('admin.sys2.audit.summary')}</summary>
+        {showCharts && !(list.isError && !list.data) && (
+          <div className={styles2.chartsHold}>
+            <Suspense fallback={<Skeleton width="100%" height="20rem" />}>
+              <AuditCharts
+                rows={sample.data?.items}
+                loading={sample.isLoading}
+                error={sample.isError && !sample.data}
+                onRetry={() => void sample.refetch()}
+              />
+            </Suspense>
+          </div>
+        )}
+      </details>
+      <AuditQuickChips value={f} onChange={update} />
+      <details
+        className={styles.filterPanel}
         open={panelOpen ?? !narrow}
         onToggle={(e) => setPanelOpen((e.currentTarget as HTMLDetailsElement).open)}
         data-search-anchor="filters"
@@ -269,7 +313,19 @@ export default function AuditPage() {
           onRetry={() => void list.refetch()}
         />
       ) : (
+        <>
+        <div className={styles2.viewToggle} role="group" aria-label={gt('admin.sys2.audit.view.label')} data-search-anchor="view-toggle">
+          <Button size="sm" variant={view === 'table' ? 'primary' : 'secondary'} aria-pressed={view === 'table'} onClick={() => setView('table')}>
+            {gt('admin.sys2.audit.view.table')}
+          </Button>
+          <Button size="sm" variant={view === 'timeline' ? 'primary' : 'secondary'} aria-pressed={view === 'timeline'} onClick={() => setView('timeline')}>
+            {gt('admin.sys2.audit.view.timeline')}
+          </Button>
+        </div>
         <div className={styles.card}>
+          {view === 'timeline' && data && shown.length > 0 ? (
+            <AuditTimeline rows={shown} onOpen={(r) => setOpenRow(r)} />
+          ) : (
           <ResponsiveTable
             caption={t('admin.audit.title')}
             columns={columns}
@@ -286,6 +342,7 @@ export default function AuditPage() {
               />
             }
           />
+          )}
           {data && data.totalPages > 1 && (
             <div className={styles.pager}>
               <Pagination
@@ -302,6 +359,7 @@ export default function AuditPage() {
             </div>
           )}
         </div>
+        </>
       )}
 
       <AuditDrawer row={openRow} onClose={() => setOpenRow(null)} />

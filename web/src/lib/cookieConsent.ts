@@ -40,3 +40,37 @@ export function useCookieChoice() {
   const reset = useCallback(resetCookieChoice, []);
   return { acknowledged, acknowledge, reset };
 }
+
+/**
+ * Dil ve tema tercihinin kalıcı saklanması (isteğe bağlı). Varsayılan açık; kapatılırsa `bu.lang` ve `bu.theme`
+ * yazılmaz/silinir ve her ziyarette varsayılanlara dönülür. Zorunlu kayıt (`bu.cookies`) bundan etkilenmez.
+ */
+export const PREFS_KEY = 'bu.cookies.prefs';
+
+export function isPrefStorageAllowed(): boolean {
+  return readStorage('local', PREFS_KEY) !== 'off';
+}
+
+export function setPrefStorageAllowed(allowed: boolean): void {
+  if (allowed) {
+    removeStorage('local', PREFS_KEY);
+  } else {
+    writeStorage('local', PREFS_KEY, 'off');
+    removeStorage('local', 'bu.lang');
+    removeStorage('local', 'bu.theme');
+  }
+  emit();
+}
+
+/** Tercih saklama anahtarının canlı değeri (modal açıkken). */
+export function usePrefStorage() {
+  const allowed = useSyncExternalStore(
+    (cb) => {
+      listeners.add(cb);
+      return () => listeners.delete(cb);
+    },
+    isPrefStorageAllowed,
+    () => true,
+  );
+  return { allowed, setAllowed: setPrefStorageAllowed };
+}

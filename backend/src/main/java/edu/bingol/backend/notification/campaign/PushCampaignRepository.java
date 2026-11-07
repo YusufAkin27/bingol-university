@@ -27,6 +27,27 @@ public interface PushCampaignRepository extends JpaRepository<PushCampaign, Long
             """, nativeQuery = true)
     Optional<Long> claimNext();
 
+    /**
+     * Uzun suredir ilerlemeyen SENDING kampanyalari FAILED yapar (sunucu gonderim sirasinda yeniden basladi/coktu).
+     * Cift bildirim olmasin diye otomatik SCHEDULED'e DONMEZ; yonetici "yeniden gonder" ile devam ettirir.
+     */
+    @Transactional
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = """
+            UPDATE push_campaign SET status = 'FAILED', finished_at = now(), error = :err
+            WHERE status = 'SENDING' AND COALESCE(last_progress_at, started_at) < :cutoff
+            """, nativeQuery = true)
+    int failStale(@Param("cutoff") java.time.Instant cutoff, @Param("err") String error);
+
+    /** Yalnizca FAILED ise yeniden SCHEDULED yapar (ilerleme isareti korunur: gidenlere tekrar gitmez). */
+    @Transactional
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = """
+            UPDATE push_campaign SET status = 'SCHEDULED', scheduled_at = now(), finished_at = NULL, error = NULL
+            WHERE id = :id AND status = 'FAILED'
+            """, nativeQuery = true)
+    int resendIfFailed(@Param("id") Long id);
+
     /** Yalnizca hala SCHEDULED/PAUSED ise iptal eder (yaris durumunda 0 doner). */
     @Transactional
     @org.springframework.data.jpa.repository.Modifying
