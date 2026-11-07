@@ -108,13 +108,17 @@ public class PostCommentController {
     @PutMapping("/comments/{cid}/like")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void likeNoContent(@PathVariable Long cid) {
-        like(cid);
+        Long uid = CurrentUser.id();
+        limiter.check("comment:like:" + uid, 120, Duration.ofMinutes(1)); // eski uc ile ayni sayac
+        service.like(uid, cid);
     }
 
     @DeleteMapping("/comments/{cid}/like")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void unlikeNoContent(@PathVariable Long cid) {
-        unlike(cid);
+        Long uid = CurrentUser.id();
+        limiter.check("comment:like:" + uid, 120, Duration.ofMinutes(1));
+        service.unlike(uid, cid);
     }
 
     private void read(Long uid) {
