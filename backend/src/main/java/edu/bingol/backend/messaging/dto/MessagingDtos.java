@@ -165,7 +165,18 @@ public final class MessagingDtos {
                               String status,
                               @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String senderName,
                               @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String placeholderKind,
-                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) ShareCard share) {
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) ShareCard share,
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String readAt) {
+        /** readAt oncesi 19 bilesenli kurucu. */
+        public MessageView(Long id, Long conversationId, Long senderId, String clientId, String text,
+                           boolean removed, String createdAt, Long replyToMessageId, ReplyPreview replyTo,
+                           boolean edited, String editedAt, boolean deleted, List<ReactionCount> reactions,
+                           String myReaction, List<AttachmentView> attachments, String status, String senderName,
+                           String placeholderKind, ShareCard share) {
+            this(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId, replyTo, edited,
+                    editedAt, deleted, reactions, myReaction, attachments, status, senderName, placeholderKind, share, null);
+        }
+
         /** Paylasim karti olmayan (eski) 18 bilesenli kurucu. */
         public MessageView(Long id, Long conversationId, Long senderId, String clientId, String text,
                            boolean removed, String createdAt, Long replyToMessageId, ReplyPreview replyTo,
