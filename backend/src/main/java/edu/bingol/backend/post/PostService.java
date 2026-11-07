@@ -161,14 +161,9 @@ public class PostService {
     public PostView create(Long uid, CreatePostRequest req, String rawKey) {
         String idemKey = cleanKey(rawKey);
         String text = normalize(req.text());
-        List<Long> mediaIds = req.mediaIds() == null ? List.of() : req.mediaIds().stream().distinct().toList();
-        int requested = req.mediaIds() == null ? 0 : req.mediaIds().size();
+        List<Long> mediaIds = req.mediaIds() == null ? List.of() : req.mediaIds();
         if (mediaIds.isEmpty()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "POST_PHOTO_REQUIRED", "Gönderi için bir fotoğraf gerekli.");
-        }
-        if (mediaIds.size() > 1 || requested > 1) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "POST_SINGLE_PHOTO_ONLY",
-                    "Gönderiye yalnızca tek bir fotoğraf eklenebilir.");
         }
         checkText(text);
         guard.assertClean(ContentGuard.Entity.POST, "text", uid, text);

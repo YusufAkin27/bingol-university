@@ -135,14 +135,9 @@ public class PostViewAssembler {
     private Map<Long, List<MediaView>> mediaFor(Collection<Long> postIds, Long viewerId) {
         Map<Long, List<MediaView>> all = new HashMap<>();
         mediaLookups.orderedStream().forEach(l -> all.putAll(l.viewsFor(postIds, viewerId)));
-        // Gonderi = 1 medya (fotograf ya da video): eski coklu medyali gonderilerde yalniz ilk medya gosterilir (veri silinmez)
-        Map<Long, List<MediaView>> first = new HashMap<>();
-        all.forEach((id, list) -> {
-            if (!list.isEmpty()) {
-                first.put(id, List.of(list.get(0)));
-            }
-        });
-        return first;
+        // Gonderi = 1..10 sirali fotograf ya da 1 video; liste position sirasindadir (media[0] = ilk medya)
+        all.values().removeIf(List::isEmpty);
+        return all;
     }
 
     private Set<Long> likedFor(Long viewerId, Collection<Long> postIds) {

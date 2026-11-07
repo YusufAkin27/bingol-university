@@ -61,24 +61,54 @@ class PostServiceTest {
     }
 
     @Test
-    void createRequiresExactlyOnePhoto() {
+    void createRequiresAtLeastOneMediaAndValidatesOwnership() {
         User a = newUser();
         assertEquals("POST_PHOTO_REQUIRED", fails(() -> service.create(a.getId(), new CreatePostRequest("merhaba", null))).code());
         assertEquals("POST_PHOTO_REQUIRED", fails(() -> service.create(a.getId(), new CreatePostRequest(null, List.of()))).code());
         Long i1 = uploaded(a, "IMAGE");
-        Long i2 = uploaded(a, "IMAGE");
-        assertEquals("POST_SINGLE_PHOTO_ONLY", fails(() -> service.create(a.getId(), new CreatePostRequest("x", List.of(i1, i2)))).code());
-        assertEquals("POST_SINGLE_PHOTO_ONLY", fails(() -> service.create(a.getId(), new CreatePostRequest("x", List.of(i1, i1)))).code());
+        assertEquals("POST_MEDIA_INVALID", fails(() -> service.create(a.getId(), new CreatePostRequest("x", List.of(i1, i1)))).code(),
+                "ayni medya iki kez");
         Long vid = uploaded(a, "VIDEO");
         Long vid2 = uploaded(a, "VIDEO");
-        assertEquals("POST_SINGLE_PHOTO_ONLY", fails(() -> service.create(a.getId(), new CreatePostRequest("x", List.of(vid, vid2)))).code(),
-                "1 video + 1 video de tek medya sinirini asar");
-        assertEquals("POST_SINGLE_PHOTO_ONLY", fails(() -> service.create(a.getId(), new CreatePostRequest("x", List.of(i1, vid)))).code(),
+        assertEquals("POST_MEDIA_MIX", fails(() -> service.create(a.getId(), new CreatePostRequest("x", List.of(vid, vid2)))).code(),
+                "video tek basina");
+        assertEquals("POST_MEDIA_MIX", fails(() -> service.create(a.getId(), new CreatePostRequest("x", List.of(i1, vid)))).code(),
                 "fotograf + video birlikte olmaz");
         User b = newUser();
         Long foreign = uploaded(b, "IMAGE");
         assertEquals("POST_MEDIA_INVALID", fails(() -> service.create(a.getId(), new CreatePostRequest(null, List.of(foreign)))).code());
+        assertEquals("POST_MEDIA_INVALID", fails(() -> service.create(a.getId(), new CreatePostRequest(null, List.of(i1, foreign)))).code(),
+                "baskasinin medyasi kismen de olsa reddedilir; hicbiri baglanmaz");
         assertEquals("POST_MEDIA_INVALID", fails(() -> service.create(a.getId(), new CreatePostRequest(null, List.of(987654321L)))).code());
+    }
+
+    @Test
+    void createWithSeveralPhotosKeepsOrderAndMediaCount() {
+        User a = newUser();
+        Long m1 = uploaded(a, "IMAGE");
+        Long m2 = uploaded(a, "IMAGE");
+        Long m3 = uploaded(a, "IMAGE");
+        PostView v = service.create(a.getId(), new CreatePostRequest("üç kare", List.of(m3, m1, m2)));
+        assertEquals("PHOTO", v.type());
+        assertEquals(List.of(m3, m1, m2), v.media().stream().map(PostDtos.MediaView::id).toList());
+        assertEquals(List.of(0, 1, 2), v.media().stream().map(PostDtos.MediaView::position).toList());
+        assertEquals(3, posts.findById(v.id()).orElseThrow().getMediaCount());
+        // liste/akis yolu da ayni sirayi verir
+        PostView got = service.get(a.getId(), v.id());
+        assertEquals(3, got.media().size());
+        assertEquals(m3, got.media().get(0).id());
+    }
+
+    @Test
+    void createRejectsMoreThanTenPhotos() {
+        User a = newUser();
+        List<Long> ids = new java.util.ArrayList<>();
+        for (int i = 0; i < 11; i++) {
+            ids.add(uploaded(a, "IMAGE"));
+        }
+        assertEquals("POST_MEDIA_LIMIT", fails(() -> service.create(a.getId(), new CreatePostRequest("x", ids))).code());
+        PostView ok = service.create(a.getId(), new CreatePostRequest("x", ids.subList(0, 10)));
+        assertEquals(10, ok.media().size());
     }
 
     @Test

@@ -52,6 +52,18 @@ class PostIdempotencyTest {
     }
 
     @Test
+    void sameKeyReplaysMultiPhotoPostWithAllMediaInOrder() {
+        User a = user();
+        String key = "key-" + UUID.randomUUID();
+        Long m1 = media(a);
+        Long m2 = media(a);
+        PostView first = service.create(a.getId(), new CreatePostRequest("iki kare", List.of(m2, m1)), key);
+        PostView replay = service.replayByKey(a.getId(), key);
+        assertEquals(first.id(), replay.id());
+        assertEquals(List.of(m2, m1), replay.media().stream().map(PostDtos.MediaView::id).toList());
+    }
+
+    @Test
     void unknownKeyOrNoKeyReplaysNothingAndKeysAreScopedPerUser() {
         User a = user();
         User b = user();

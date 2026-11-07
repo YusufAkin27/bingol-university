@@ -20,7 +20,12 @@ public final class PostDtos {
 
     /** Medya gorunumu (B uretir). url: /api/posts/media/{id}, thumbUrl: ...?thumb=true. */
     public record MediaView(Long id, String kind, String url, String thumbUrl, Integer width, Integer height,
-                            Integer durationMs) {}
+                            Integer durationMs, int position) {
+        public MediaView(Long id, String kind, String url, String thumbUrl, Integer width, Integer height,
+                         Integer durationMs) {
+            this(id, kind, url, thumbUrl, width, height, durationMs, 0);
+        }
+    }
 
     /**
      * Yazar: takipci sayisi ve populerlik puani (0..100) gercek sayilardan turetilir; gizli hesapta bile gonderi
@@ -40,7 +45,7 @@ public final class PostDtos {
     public record VideoView(Long id, String url, String posterUrl, Integer durationMs, Integer width, Integer height) {}
 
     /**
-     * Gonderi gorunumu: 1 fotograf VEYA 1 video + kisa metin + begeni. type = PHOTO | VIDEO; video yalniz VIDEO'da
+     * Gonderi gorunumu: 1..10 fotograf (sirali, carousel) VEYA 1 video + kisa metin + begeni. type = PHOTO | VIDEO; video yalniz VIDEO'da
      * dolar (media listesinde de ayni medya vardir). popularityScore 0..100 (yastan bagimsiz etkilesim puani),
      * viewCount yalniz videoda. commentCount/savedByMe KS-BE2 (V1230: yorum + kaydet geri geldi). mentions: etiketlenen
      * kisiler (V1310; bakana gore suzulmus, yoksa bos liste).
@@ -56,7 +61,7 @@ public final class PostDtos {
      * mentionUserIds: etiketlenecek kisiler (istege bagli; en cok 10, tekrarsiz; yalniz takip edilenler). Sayi ve
      * kurallar serviste dogrulanir (422 POST_MENTION_INVALID); DTO siniri yalniz asiri yuku keser.
      */
-    public record CreatePostRequest(@Size(max = RAW_TEXT_LIMIT) String text, @Size(max = 10) List<Long> mediaIds,
+    public record CreatePostRequest(@Size(max = RAW_TEXT_LIMIT) String text, @Size(max = 50) List<Long> mediaIds,
                                     @Size(max = 50) List<Long> mentionUserIds) {
         public CreatePostRequest(String text, List<Long> mediaIds) {
             this(text, mediaIds, null);

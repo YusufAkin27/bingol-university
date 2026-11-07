@@ -452,7 +452,8 @@ class PostMediaServiceTest {
         assertEquals("IMAGE", service.requireMedia(ME, List.of(img.id())));
         assertEquals("VIDEO", service.requireMedia(ME, List.of(vid.id())));
         assertApi(HttpStatus.BAD_REQUEST, "POST_MEDIA_INVALID", () -> service.requireMedia(ME + 1, List.of(vid.id())));
-        assertApi(HttpStatus.BAD_REQUEST, "POST_MEDIA_INVALID", () -> service.requireMedia(ME, List.of(img.id(), vid.id())));
+        assertApi(HttpStatus.UNPROCESSABLE_ENTITY, "POST_MEDIA_MIX", () -> service.requireMedia(ME, List.of(img.id(), vid.id())));
+        assertApi(HttpStatus.BAD_REQUEST, "POST_MEDIA_INVALID", () -> service.requireMedia(ME, List.of(img.id(), img.id())));
         assertApi(HttpStatus.BAD_REQUEST, "POST_MEDIA_INVALID", () -> service.requireMedia(ME, List.of(999999L)));
         // requireImage eski sozlesme: video reddedilir
         assertApi(HttpStatus.BAD_REQUEST, "POST_VIDEO_NOT_ALLOWED", () -> service.requireImage(ME, List.of(vid.id())));
@@ -635,6 +636,23 @@ class PostMediaServiceTest {
         assertApi(HttpStatus.BAD_REQUEST, "POST_MEDIA_INVALID", () -> service.attach(POST, ME, ids));
         service.attach(POST, ME, ids.subList(0, 10));
         assertEquals(10, service.mediaIdsOf(POST).size());
+    }
+
+    @Test
+    void requireMediaAcceptsUpToTenPhotosInOrderAndRejectsEleven() throws Exception {
+        List<Long> ids = new ArrayList<>();
+        for (int i = 0; i < 11; i++) {
+            ids.add(uploadImage(ME).id());
+        }
+        assertEquals("IMAGE", service.requireMedia(ME, ids.subList(0, 10)));
+        assertApi(HttpStatus.UNPROCESSABLE_ENTITY, "POST_MEDIA_LIMIT", () -> service.requireMedia(ME, ids));
+        PostMediaService.Uploaded foreign = uploadImage(OTHER);
+        List<Long> withForeign = new ArrayList<>(ids.subList(0, 2));
+        withForeign.add(foreign.id());
+        assertApi(HttpStatus.BAD_REQUEST, "POST_MEDIA_INVALID", () -> service.requireMedia(ME, withForeign));
+        PostMediaService.Uploaded v1 = uploadVideo(ME, false);
+        PostMediaService.Uploaded v2 = uploadVideo(ME, false);
+        assertApi(HttpStatus.UNPROCESSABLE_ENTITY, "POST_MEDIA_MIX", () -> service.requireMedia(ME, List.of(v1.id(), v2.id())));
     }
 
     @Test

@@ -348,7 +348,7 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
     static MediaView view(PostMedia m) {
         String base = "/api/posts/media/" + m.getId();
         return new MediaView(m.getId(), m.getKind(), base, m.getThumbKey() == null ? null : base + "?thumb=true",
-                m.getWidth(), m.getHeight(), m.isVideo() ? m.getDurationMs() : null);
+                m.getWidth(), m.getHeight(), m.isVideo() ? m.getDurationMs() : null, m.getPosition());
     }
 
     // ------------------------------------------------------------------ baglama / gorunum (SPI)
@@ -371,14 +371,26 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
     @Override
     @Transactional(readOnly = true)
     public String requireMedia(long ownerId, List<Long> mediaIds) {
-        if (mediaIds == null || mediaIds.size() != 1 || mediaIds.get(0) == null) {
+        if (mediaIds == null || mediaIds.isEmpty() || mediaIds.stream().anyMatch(java.util.Objects::isNull)
+                || new HashSet<>(mediaIds).size() != mediaIds.size()) {
             throw invalid();
         }
-        PostMedia m = repo.findById(mediaIds.get(0)).orElse(null);
-        if (m == null || !m.getOwnerId().equals(ownerId) || m.getPostId() != null || m.isHidden()) {
+        if (mediaIds.size() > maxPerPost) {
+            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "POST_MEDIA_LIMIT",
+                    "Bir gönderiye en çok " + maxPerPost + " fotoğraf eklenebilir.", String.valueOf(maxPerPost));
+        }
+        List<PostMedia> rows = repo.findAllById(mediaIds); // tek sorgu
+        if (rows.size() != mediaIds.size() || !rows.stream().allMatch(
+                m -> m.getOwnerId().equals(ownerId) && m.getPostId() == null && !m.isHidden())) {
             throw invalid();
         }
-        return m.getKind();
+        long videos = rows.stream().filter(PostMedia::isVideo).count();
+        if (videos > 0 && rows.size() > 1) {
+            // video tek basina: video + fotograf ya da birden fazla video karistirilamaz
+            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "POST_MEDIA_MIX",
+                    "Video gönderisi tek başına olmalı; fotoğrafla karıştırılamaz.");
+        }
+        return rows.get(0).getKind();
     }
 
     public static ApiException videoNotAllowed() {
