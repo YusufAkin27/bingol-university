@@ -18150,6 +18150,30 @@ abstract class AppLocalizations {
   /// **'Katılımcılara bildirim gönderilir.'**
   String get p15CancelledBody;
 
+  /// No description provided for @eventEndedNotice.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu etkinlik sona erdi.'**
+  String get eventEndedNotice;
+
+  /// No description provided for @eventEndedBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılım ve başvurular kapandı.'**
+  String get eventEndedBody;
+
+  /// No description provided for @notifEventEnded.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sona erdi'**
+  String get notifEventEnded;
+
+  /// No description provided for @notifEventCancelled.
+  ///
+  /// In tr, this message translates to:
+  /// **'İptal edildi'**
+  String get notifEventCancelled;
+
   /// No description provided for @p15WontHappen.
   ///
   /// In tr, this message translates to:

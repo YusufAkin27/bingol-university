@@ -9973,6 +9973,18 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p15CancelledBody => 'Katılımcılara bildirim gönderilir.';
 
   @override
+  String get eventEndedNotice => 'Bu etkinlik sona erdi.';
+
+  @override
+  String get eventEndedBody => 'Katılım ve başvurular kapandı.';
+
+  @override
+  String get notifEventEnded => 'Sona erdi';
+
+  @override
+  String get notifEventCancelled => 'İptal edildi';
+
+  @override
   String get p15WontHappen => 'Gerçekleşmeyecek';
 
   @override

@@ -11,6 +11,7 @@ import '../../widgets/report_sheet.dart';
 import '../chat/chat_detail_page.dart';
 import '../events/event_detail_page.dart';
 import '../events/event_form_page.dart';
+import '../events/event_parts.dart' show eventIsExpired;
 import '../polls/poll_routes.dart';
 import 'club_actions.dart';
 import 'club_categories.dart';
@@ -187,7 +188,9 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
       if (!mounted) return;
       setState(() {
         if (reset) p.items.clear();
-        p.items.addAll((r['items'] as List? ?? []).map((e) => Map<String, dynamic>.from(e as Map)));
+        p.items.addAll((r['items'] as List? ?? []).map((e) => Map<String, dynamic>.from(e as Map)).where(
+            // Etkinlik sekmesi yalnız yaklaşan + devam eden (bayat önbellekte biten/iptal gelirse atla).
+            (e) => !path.startsWith('/events') || !eventIsExpired(e)));
         p.next = (r['nextCursor'] as num?)?.toInt();
         p.loaded = true;
         p.loading = false;

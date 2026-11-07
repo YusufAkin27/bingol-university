@@ -10009,6 +10009,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p15CancelledBody => 'Attendees are notified.';
 
   @override
+  String get eventEndedNotice => 'This event has ended.';
+
+  @override
+  String get eventEndedBody => 'Joining and applications are closed.';
+
+  @override
+  String get notifEventEnded => 'Ended';
+
+  @override
+  String get notifEventCancelled => 'Cancelled';
+
+  @override
   String get p15WontHappen => 'Won\'t take place';
 
   @override

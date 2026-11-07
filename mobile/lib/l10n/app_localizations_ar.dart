@@ -9912,6 +9912,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p15CancelledBody => 'يتم إشعار المشاركين.';
 
   @override
+  String get eventEndedNotice => 'انتهت هذه الفعالية.';
+
+  @override
+  String get eventEndedBody => 'تم إغلاق الانضمام والطلبات.';
+
+  @override
+  String get notifEventEnded => 'انتهت';
+
+  @override
+  String get notifEventCancelled => 'أُلغيت';
+
+  @override
   String get p15WontHappen => 'لن تقام';
 
   @override

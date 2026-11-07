@@ -71,6 +71,30 @@ bool eventIsCancelled(Map<String, dynamic> e) => e['status'] == 'CANCELLED';
 bool eventIsPendingReview(Map<String, dynamic> e) => e['status'] == 'PENDING_REVIEW';
 bool eventIsRejected(Map<String, dynamic> e) => e['status'] == 'REJECTED';
 
+/// Etkinlik bitti mi: yayında (ACTIVE) ve `endsAt` anı geçti. Karşılaştırma mutlak (UTC) anlarla yapılır, yerel saate
+/// çevrilmez; böylece saat dilimi farkı geçmiş etkinliği gelecekte göstermez. Bitiş bilinmiyorsa false (sunucu kuralı:
+/// `endsAt` zorunlu, bu yalnız savunma). Asıl filtre sunucuda; bu, önbellekten gelen bayat listeler içindir.
+bool eventHasEnded(Map<String, dynamic> e, {DateTime? now}) {
+  if (e['status'] != null && e['status'] != 'ACTIVE') return false; // iptal/inceleme ayrı durumlardır
+  final end = DateTime.tryParse('${e['endsAt'] ?? ''}');
+  if (end == null) return false;
+  return !end.isAfter(now ?? DateTime.now());
+}
+
+/// Normal kullanıcıya gösterilmeyecek etkinlik: iptal edilmiş ya da bitmiş.
+bool eventIsExpired(Map<String, dynamic> e, {DateTime? now}) => eventIsCancelled(e) || eventHasEnded(e, now: now);
+
+/// Bildirim kutusu satırı için etkinlik durumu: sunucunun `eventState` alanı (LIVE|ENDED|CANCELLED|UNAVAILABLE);
+/// alan yoksa (eski sunucu / önbellek) yük içindeki `eventEndsAt` ile ENDED çıkarılır. Etkinlik bildirimi değilse null.
+String? eventNotifState(Map<String, dynamic> n, Map<String, dynamic> data, {DateTime? now}) {
+  if (n['type'] != 'EVENT') return null;
+  final s = n['eventState'];
+  if (s is String && s.isNotEmpty) return s;
+  final end = DateTime.tryParse('${data['eventEndsAt'] ?? ''}');
+  if (end != null && !end.isAfter(now ?? DateTime.now())) return 'ENDED';
+  return null;
+}
+
 /// Admin reddinde varsa neden (alan adı sunucuya göre değişebilir).
 String? eventRejectReason(Map<String, dynamic> e) {
   for (final k in const ['rejectReason', 'rejectionReason', 'reviewNote']) {
