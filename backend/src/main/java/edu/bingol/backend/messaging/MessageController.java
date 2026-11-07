@@ -54,15 +54,16 @@ public class MessageController {
         this.limiter = limiter;
     }
 
-    /** Imlec: `before=<en eski gorulen id>` (yeni->eski) ya da `after=<son bilinen id>` (eski->yeni, yeniden baglanma). */
+    /** Imlec: `before=<en eski gorulen id>` (yeni->eski) ya da `after=<son bilinen id>` (eski->yeni, yeniden baglanma) ya da `around=<id>` (hedef mesajin cevresi). */
     @GetMapping("/conversations/{id}/messages")
     public CursorPage<MessageView> history(@PathVariable Long id, @RequestParam(required = false) Long before,
                                            @RequestParam(required = false) Long after,
+                                           @RequestParam(required = false) Long around,
                                            @RequestParam(defaultValue = "30") int size) {
         Long uid = CurrentUser.id();
         // Istemci tarafi arama bu ucu sayfalayarak tarar (sunucuda arama yok): toplu cozmeyi sinirlar
         limiter.check("msg:history:" + uid, HISTORY_PER_MINUTE, Duration.ofMinutes(1));
-        return messages.history(uid, id, before, after, size);
+        return messages.history(uid, id, before, after, around, size);
     }
 
     /** WebSocket yokken yedek gonderim; `clientId` ile idempotent (tekrarda 200 + mevcut mesaj, yenide 201). */

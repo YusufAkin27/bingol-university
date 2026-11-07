@@ -211,6 +211,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
 
   bool _loading = true;
   bool _loadingMore = false;
+  bool _olderFailed = false; // eski sayfa hatası: mevcut mesajlar kalır, üstte yeniden dene
   bool _polling = false;
   bool _changed = false;
 
@@ -674,7 +675,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
 
   void _onScroll() {
     if (!_scroll.hasClients) return;
-    if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 300) {
+    if (!_olderFailed &&
+        _scroll.position.pixels > _scroll.position.maxScrollExtent - 250) {
       _loadOlder();
     }
     final away = _scroll.position.pixels > 200;
@@ -685,7 +687,10 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   Future<void> _loadOlder() async {
     final before = _beforeCursor;
     if (before == null || _loadingMore || _loading) return;
-    setState(() => _loadingMore = true);
+    setState(() {
+      _loadingMore = true;
+      _olderFailed = false;
+    });
     try {
       final page =
           await _api.get('/conversations/$_cid/messages?size=30&before=$before')
@@ -696,7 +701,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         _beforeCursor = (page['nextCursor'] as num?)?.toInt();
       });
     } catch (_) {
-      // Sessizce geç; kullanıcı tekrar kaydırınca yeniden denenir.
+      // Mevcut mesajlar kalır; otomatik döngüyü önlemek için üstte "Tekrar dene" satırı gösterilir.
+      if (mounted) setState(() => _olderFailed = true);
     } finally {
       if (mounted) setState(() => _loadingMore = false);
     }
@@ -1806,7 +1812,12 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   Future<void> _jumpTo(int id) async {
     var ctx = _rowKeys[id]?.currentContext;
     if (ctx == null) {
-      final idx = _msgs.indexWhere((e) => (e['id'] as num?)?.toInt() == id);
+      var idx = _msgs.indexWhere((e) => (e['id'] as num?)?.toInt() == id);
+      if (idx < 0) {
+        // Bellekte yok: yalnız hedefin çevresindeki pencere yüklenir (tüm geçmiş indirilmez).
+        await _loadAround(id);
+        idx = _msgs.indexWhere((e) => (e['id'] as num?)?.toInt() == id);
+      }
       if (idx < 0 || !_scroll.hasClients) return;
       final target = (idx * 76.0).clamp(0.0, _scroll.position.maxScrollExtent);
       await _scroll.animateTo(target,
@@ -1825,6 +1836,33 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     _hi.value = id;
     _hiOff?.cancel();
     _hiOff = Timer(const Duration(milliseconds: 1400), () => _hi.value = null);
+  }
+
+  /// `around=<id>` penceresi: liste yalnız bu pencereyle değiştirilir (arada delik kalmaz, `before` imleci pencerenin
+  /// en eskisinden sürer); daha yeni mesajlar `after` ile sonradan tamamlanır. Kullanıcı kayıtları (outbox) korunur.
+  Future<void> _loadAround(int id) async {
+    try {
+      final page = await _api.get('/conversations/$_cid/messages?size=30&around=$id')
+          as Map<String, dynamic>;
+      if (!mounted) return;
+      final items = _items(page);
+      if (items.isEmpty) return;
+      setState(() {
+        _msgs
+          ..clear()
+          ..addAll(items);
+        _restoreOutboxBubbles();
+        _msgs.sort((a, b) => _key(b).compareTo(_key(a)));
+        _beforeCursor = (page['nextCursor'] as num?)?.toInt();
+        _olderFailed = false;
+      });
+      await WidgetsBinding.instance.endOfFrame;
+      unawaited(_fetchAfter().then((_) {
+        if (mounted) setState(() {});
+      }).catchError((_) {}));
+    } catch (_) {
+      // Hedef yüklenemedi: sessizce geç.
+    }
   }
 
   Future<void> _saveEdit(Map<String, dynamic> target, String text) async {
@@ -3150,6 +3188,11 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                                   height: 20,
                                   child: CircularProgressIndicator(
                                       strokeWidth: 2)))),
+                    if (_olderFailed && !_loadingMore)
+                      TextButton(
+                          key: const ValueKey('chatOlderRetry'),
+                          onPressed: _loadOlder,
+                          child: Text(context.l10n.commonRetryShort)),
                     if (_beforeCursor == null)
                       _encNotice()
                     else if (!_loadingMore)

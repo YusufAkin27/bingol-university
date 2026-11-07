@@ -505,8 +505,23 @@ public class MessageService {
      * Gruplarda engel iliskisi olan gondericilerin mesajlari gizlenmis metinle doner.
      */
     public CursorPage<MessageView> history(Long userId, Long conversationId, Long before, Long after, int size) {
-        if (before != null && after != null) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "before ve after birlikte verilemez.");
+        return history(userId, conversationId, before, after, null, size);
+    }
+
+    /** Sayfa ust siniri: sohbet gecmisi tek istekte en fazla bu kadar mesaj doner. */
+    static final int HISTORY_MAX_PAGE = 30;
+
+    /**
+     * `around` verilirse (arama/yanit alintisi/son okunana gitme) hedef mesajin cevresindeki pencere doner
+     * (yeni->eski; hedef dahil, ~yarisi daha yeni): nextCursor daha eski mesaj varsa en eski id'dir. Daha yeni
+     * kisim icin istemci `after=<penceredeki en yeni id>` kullanir. Tum gecmis indirilmez.
+     */
+    public CursorPage<MessageView> history(Long userId, Long conversationId, Long before, Long after, Long around,
+                                           int size) {
+        int given = (before != null ? 1 : 0) + (after != null ? 1 : 0) + (around != null ? 1 : 0);
+        if (given > 1) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR",
+                    "before, after ve around birlikte verilemez.");
         }
         ConversationMember me = requireMember(conversationId, userId);
         Conversation conv = convs.findById(conversationId).orElseThrow(MessageService::notFound);
@@ -514,14 +529,31 @@ public class MessageService {
         // Gruba sonradan katilan, katilmadan onceki mesajlari gormez.
         Instant since = group ? me.getJoinedAt() : Instant.EPOCH;
         Set<Long> related = group ? blocks.hiddenFrom(userId) : Set.of();
-        int s = CursorPage.clampSize(size);
+        int s = Math.min(CursorPage.clampSize(size), HISTORY_MAX_PAGE);
         long cleared = me.getClearedUpToMessageId(); // "sohbeti sil": bu id ve oncesi gorunmez
-        List<Message> rows = cleared > 0 || conv.isShadowed()
-                ? (after != null ? messages.afterCleared(conversationId, since, cleared, userId, after, PageRequest.of(0, s + 1))
-                        : messages.beforeCleared(conversationId, since, cleared, userId, before, PageRequest.of(0, s + 1)))
-                : after != null
-                ? messages.after(conversationId, since, after, PageRequest.of(0, s + 1))
-                : messages.before(conversationId, since, before, PageRequest.of(0, s + 1));
+        boolean filtered = cleared > 0 || conv.isShadowed();
+        List<Message> rows;
+        if (around != null) {
+            int newer = s / 2;
+            // Hedef ve eskileri (id <= around), sonra daha yeniler; birlesik liste yeni->eski.
+            List<Message> older = filtered
+                    ? messages.beforeCleared(conversationId, since, cleared, userId, around + 1, PageRequest.of(0, s - newer + 1))
+                    : messages.before(conversationId, since, around + 1, PageRequest.of(0, s - newer + 1));
+            List<Message> newerRows = filtered
+                    ? messages.afterCleared(conversationId, since, cleared, userId, around, PageRequest.of(0, newer))
+                    : messages.after(conversationId, since, around, PageRequest.of(0, newer));
+            rows = new java.util.ArrayList<>(newerRows.size() + older.size());
+            for (int i = newerRows.size() - 1; i >= 0; i--) rows.add(newerRows.get(i));
+            rows.addAll(older);
+            s = newerRows.size() + Math.min(older.size(), s - newer);
+        } else {
+            rows = filtered
+                    ? (after != null ? messages.afterCleared(conversationId, since, cleared, userId, after, PageRequest.of(0, s + 1))
+                            : messages.beforeCleared(conversationId, since, cleared, userId, before, PageRequest.of(0, s + 1)))
+                    : after != null
+                    ? messages.after(conversationId, since, after, PageRequest.of(0, s + 1))
+                    : messages.before(conversationId, since, before, PageRequest.of(0, s + 1));
+        }
         List<Message> page = rows.size() > s ? rows.subList(0, s) : rows;
         codec.openAll(page); // yalniz donecek sayfa cozulur
         Map<Long, MessageView> views = new java.util.HashMap<>();
