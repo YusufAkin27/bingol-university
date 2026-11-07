@@ -25025,6 +25025,132 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bu yorum herkes için kaldırılır. Bu işlem geri alınamaz.'**
   String get pcmDeleteOthersBody;
+
+  /// No description provided for @accTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesaplar'**
+  String get accTitle;
+
+  /// No description provided for @accSwitch.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap değiştir'**
+  String get accSwitch;
+
+  /// No description provided for @accAdd.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap ekle'**
+  String get accAdd;
+
+  /// No description provided for @accActive.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkin hesap'**
+  String get accActive;
+
+  /// No description provided for @accExpired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oturum süresi doldu'**
+  String get accExpired;
+
+  /// No description provided for @accOptions.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap seçenekleri'**
+  String get accOptions;
+
+  /// No description provided for @accRemove.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu cihazdan kaldır'**
+  String get accRemove;
+
+  /// No description provided for @accRemoveTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap kaldırılsın mı?'**
+  String get accRemoveTitle;
+
+  /// No description provided for @accRemoveBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} hesabının oturumu bu cihazda kapatılır. Hesap silinmez; istediğin zaman tekrar giriş yapabilirsin.'**
+  String accRemoveBody(String name);
+
+  /// No description provided for @accRemoveConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaldır'**
+  String get accRemoveConfirm;
+
+  /// No description provided for @accLimit.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu cihaza en fazla 5 hesap eklenebilir.'**
+  String get accLimit;
+
+  /// No description provided for @accPushNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirimler yalnızca etkin hesaba gelir.'**
+  String get accPushNote;
+
+  /// No description provided for @accSwitchedTo.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} hesabına geçildi'**
+  String accSwitchedTo(String name);
+
+  /// No description provided for @accExpiredSwitched.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} oturumu sona erdi, başka hesaba geçildi.'**
+  String accExpiredSwitched(String name);
+
+  /// No description provided for @accExpiredSwitchedAnon.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oturum sona erdi, başka hesaba geçildi.'**
+  String get accExpiredSwitchedAnon;
+
+  /// No description provided for @accSignOutAll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm hesaplardan çık'**
+  String get accSignOutAll;
+
+  /// No description provided for @accSignOutAllBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu cihazdaki {count} hesabın hepsinden çıkış yapılır.'**
+  String accSignOutAllBody(String count);
+
+  /// No description provided for @accAddSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başka bir hesapla giriş yap ya da yeni hesap oluştur. Mevcut hesabın açık kalır.'**
+  String get accAddSub;
+
+  /// No description provided for @accReloginHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oturum süresi doldu. Yeniden giriş yap: {mail}'**
+  String accReloginHint(String mail);
+
+  /// No description provided for @accBusy.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap şu an değiştirilemiyor. Biraz sonra tekrar dene.'**
+  String get accBusy;
+
+  /// No description provided for @accAccountNoName.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap'**
+  String get accAccountNoName;
 }
 
 class _AppLocalizationsDelegate

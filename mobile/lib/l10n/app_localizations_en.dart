@@ -13963,4 +13963,80 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get pcmDeleteOthersBody =>
       'This comment will be removed for everyone. This can\'t be undone.';
+
+  @override
+  String get accTitle => 'Accounts';
+
+  @override
+  String get accSwitch => 'Switch account';
+
+  @override
+  String get accAdd => 'Add account';
+
+  @override
+  String get accActive => 'Current account';
+
+  @override
+  String get accExpired => 'Session expired';
+
+  @override
+  String get accOptions => 'Account options';
+
+  @override
+  String get accRemove => 'Remove from this device';
+
+  @override
+  String get accRemoveTitle => 'Remove this account?';
+
+  @override
+  String accRemoveBody(String name) {
+    return 'You will be signed out of $name on this device. The account is not deleted; you can sign in again any time.';
+  }
+
+  @override
+  String get accRemoveConfirm => 'Remove';
+
+  @override
+  String get accLimit => 'You can add up to 5 accounts on this device.';
+
+  @override
+  String get accPushNote =>
+      'Notifications are delivered to the current account only.';
+
+  @override
+  String accSwitchedTo(String name) {
+    return 'Switched to $name';
+  }
+
+  @override
+  String accExpiredSwitched(String name) {
+    return 'The session for $name ended. Switched to another account.';
+  }
+
+  @override
+  String get accExpiredSwitchedAnon =>
+      'Your session ended. Switched to another account.';
+
+  @override
+  String get accSignOutAll => 'Log out of all accounts';
+
+  @override
+  String accSignOutAllBody(String count) {
+    return 'You will be logged out of all $count accounts on this device.';
+  }
+
+  @override
+  String get accAddSub =>
+      'Log in with another account or create a new one. Your current account stays signed in.';
+
+  @override
+  String accReloginHint(String mail) {
+    return 'Session expired. Log in again: $mail';
+  }
+
+  @override
+  String get accBusy => 'Cannot switch accounts right now. Try again shortly.';
+
+  @override
+  String get accAccountNoName => 'Account';
 }

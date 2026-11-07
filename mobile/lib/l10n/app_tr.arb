@@ -7456,5 +7456,61 @@
   "postSettingsCommentsOnDone": "Yorumlar açıldı",
   "postSettingsFailed": "Ayar değiştirilemedi. Tekrar dene.",
   "pcmDeleteOthersTitle": "Yorum silinsin mi?",
-  "pcmDeleteOthersBody": "Bu yorum herkes için kaldırılır. Bu işlem geri alınamaz."
+  "pcmDeleteOthersBody": "Bu yorum herkes için kaldırılır. Bu işlem geri alınamaz.",
+  "accTitle": "Hesaplar",
+  "accSwitch": "Hesap değiştir",
+  "accAdd": "Hesap ekle",
+  "accActive": "Etkin hesap",
+  "accExpired": "Oturum süresi doldu",
+  "accOptions": "Hesap seçenekleri",
+  "accRemove": "Bu cihazdan kaldır",
+  "accRemoveTitle": "Hesap kaldırılsın mı?",
+  "accRemoveBody": "{name} hesabının oturumu bu cihazda kapatılır. Hesap silinmez; istediğin zaman tekrar giriş yapabilirsin.",
+  "@accRemoveBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "accRemoveConfirm": "Kaldır",
+  "accLimit": "Bu cihaza en fazla 5 hesap eklenebilir.",
+  "accPushNote": "Bildirimler yalnızca etkin hesaba gelir.",
+  "accSwitchedTo": "{name} hesabına geçildi",
+  "@accSwitchedTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "accExpiredSwitched": "{name} oturumu sona erdi, başka hesaba geçildi.",
+  "@accExpiredSwitched": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "accExpiredSwitchedAnon": "Oturum sona erdi, başka hesaba geçildi.",
+  "accSignOutAll": "Tüm hesaplardan çık",
+  "accSignOutAllBody": "Bu cihazdaki {count} hesabın hepsinden çıkış yapılır.",
+  "@accSignOutAllBody": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "accAddSub": "Başka bir hesapla giriş yap ya da yeni hesap oluştur. Mevcut hesabın açık kalır.",
+  "accReloginHint": "Oturum süresi doldu. Yeniden giriş yap: {mail}",
+  "@accReloginHint": {
+    "placeholders": {
+      "mail": {
+        "type": "String"
+      }
+    }
+  },
+  "accBusy": "Hesap şu an değiştirilemiyor. Biraz sonra tekrar dene.",
+  "accAccountNoName": "Hesap"
 }

@@ -13856,4 +13856,78 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get pcmDeleteOthersBody =>
       'سيُزال هذا التعليق للجميع. لا يمكن التراجع عن ذلك.';
+
+  @override
+  String get accTitle => 'الحسابات';
+
+  @override
+  String get accSwitch => 'تبديل الحساب';
+
+  @override
+  String get accAdd => 'إضافة حساب';
+
+  @override
+  String get accActive => 'الحساب الحالي';
+
+  @override
+  String get accExpired => 'انتهت الجلسة';
+
+  @override
+  String get accOptions => 'خيارات الحساب';
+
+  @override
+  String get accRemove => 'إزالة من هذا الجهاز';
+
+  @override
+  String get accRemoveTitle => 'هل تريد إزالة هذا الحساب؟';
+
+  @override
+  String accRemoveBody(String name) {
+    return 'سيتم تسجيل خروج $name من هذا الجهاز. لن يتم حذف الحساب ويمكنك تسجيل الدخول مرة أخرى في أي وقت.';
+  }
+
+  @override
+  String get accRemoveConfirm => 'إزالة';
+
+  @override
+  String get accLimit => 'يمكن إضافة 5 حسابات كحد أقصى على هذا الجهاز.';
+
+  @override
+  String get accPushNote => 'تصل الإشعارات إلى الحساب الحالي فقط.';
+
+  @override
+  String accSwitchedTo(String name) {
+    return 'تم التبديل إلى $name';
+  }
+
+  @override
+  String accExpiredSwitched(String name) {
+    return 'انتهت جلسة $name. تم التبديل إلى حساب آخر.';
+  }
+
+  @override
+  String get accExpiredSwitchedAnon => 'انتهت الجلسة. تم التبديل إلى حساب آخر.';
+
+  @override
+  String get accSignOutAll => 'تسجيل الخروج من جميع الحسابات';
+
+  @override
+  String accSignOutAllBody(String count) {
+    return 'سيتم تسجيل الخروج من جميع الحسابات ($count) على هذا الجهاز.';
+  }
+
+  @override
+  String get accAddSub =>
+      'سجّل الدخول بحساب آخر أو أنشئ حسابًا جديدًا. يبقى حسابك الحالي مفتوحًا.';
+
+  @override
+  String accReloginHint(String mail) {
+    return 'انتهت الجلسة. سجّل الدخول مجددًا: $mail';
+  }
+
+  @override
+  String get accBusy => 'لا يمكن تبديل الحساب الآن. حاول مرة أخرى بعد قليل.';
+
+  @override
+  String get accAccountNoName => 'حساب';
 }

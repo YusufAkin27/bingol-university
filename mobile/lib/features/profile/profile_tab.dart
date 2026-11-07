@@ -1,4 +1,5 @@
 import '../../core/analytics.dart';
+import '../accounts/account_sheet.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
@@ -68,6 +69,7 @@ class _ProfileTabState extends State<ProfileTab> {
       final p = await widget.session.api.get('/users/me') as Map<String, dynamic>;
       if (!mounted || gen != _gen) return;
       widget.session.noteProfile(p); // e-posta doğrulanmamışsa üstte doğrulama kartı
+      widget.session.noteMyProfile(p); // hesap değiştirme listesindeki satır (ad, kullanıcı adı, avatar)
       final av = p['avatarUrl'];
       widget.session.avatarUrl.value = av is String && av.isNotEmpty ? av : null; // alt gezinme Profil sekmesi avatarı
       setState(() {
@@ -256,7 +258,17 @@ class _ProfileTabState extends State<ProfileTab> {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsetsDirectional.fromSTEB(20, top + 12, 20, kNavInset + 24),
         children: [
-          BuStaggerItem(index: 0, child: _TitleRow(onMenu: _openMenu, badge: _followReq > 0)),
+          BuStaggerItem(
+            index: 0,
+            child: _TitleRow(
+              onMenu: _openMenu,
+              badge: _followReq > 0,
+              title: (p['username'] is String && (p['username'] as String).isNotEmpty)
+                  ? '@${p['username']}'
+                  : (p['displayName'] as String?),
+              onSwitch: () => showAccountSheet(context, widget.session),
+            ),
+          ),
           const SizedBox(height: 16),
           VerifyEmailCard(session: widget.session),
           BuStaggerItem(
@@ -307,17 +319,50 @@ class _ProfileTabState extends State<ProfileTab> {
 /// Üst satır (başlık metni görünmez, yalnız anlamsal etiket) + sağ üstte üç çizgi menü düğmesi (tüm liste satırları [ProfileMenuPage]'de).
 /// Düzenleme düğmesi yok: alanlar kimlik kartında yerinde düzenlenir. [badge]: bekleyen takip isteği noktası.
 class _TitleRow extends StatelessWidget {
-  const _TitleRow({required this.onMenu, this.badge = false});
+  const _TitleRow({required this.onMenu, this.badge = false, this.title, this.onSwitch});
 
   final VoidCallback onMenu;
   final bool badge;
+
+  /// Kullanıcı adı (yoksa görünen ad); yanındaki ▾ ile hesap değiştirme sayfası açılır.
+  final String? title;
+  final VoidCallback? onSwitch;
 
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
     return Row(children: [
       Expanded(
-        child: Semantics(header: true, label: l.p18ProfileTitle, child: const SizedBox(height: 48)),
+        child: (title == null || title!.isEmpty || onSwitch == null)
+            ? Semantics(header: true, label: l.p18ProfileTitle, child: const SizedBox(height: 48))
+            : Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Semantics(
+                  container: true,
+                  button: true,
+                  header: true,
+                  label: '$title, ${l.accSwitch}',
+                  excludeSemantics: true,
+                  child: InkWell(
+                    key: const ValueKey('profile-account-switch'),
+                    onTap: onSwitch,
+                    borderRadius: BorderRadius.circular(BuRadius.md),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 48),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        Flexible(
+                          child: Text(title!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.titleLarge!.copyWith(color: context.bu.ink, fontWeight: BuType.emphasisWeight)),
+                        ),
+                        const SizedBox(width: 6),
+                        Icon(BuIcons.chevronDown, size: 20, color: context.bu.ink),
+                      ]),
+                    ),
+                  ),
+                ),
+              ),
       ),
       const SizedBox(width: 12),
       BuIconButton(key: const ValueKey('profile-menu-button'), icon: BuIcons.menu, tooltip: l.profileMenuTitle, badge: badge, onTap: onMenu),
