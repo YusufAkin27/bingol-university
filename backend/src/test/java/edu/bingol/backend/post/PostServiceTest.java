@@ -215,7 +215,7 @@ class PostServiceTest {
         assertTrue(service.feed(v.getId(), "popular", null, 20).items().stream().noneMatch(i -> i.id().equals(hiddenId)));
         Long multiId = multi.getId();
         PostView m = items.stream().filter(i -> i.id().equals(multiId)).findFirst().orElseThrow();
-        assertEquals(1, m.media().size(), "yalniz ilk medya gosterilir");
+        assertEquals(1, m.media().size(), "eski karisik veri: ilk medya video ise yalniz o gosterilir");
         assertEquals("VIDEO", m.media().get(0).kind(), "ilk medya (position 0) videodur");
         assertTrue(posts.findById(hiddenId).isPresent() && mediaRepo.findById(onlyVid.getId()).isPresent(), "veri silinmedi");
         assertNotNull(im1.getId());
