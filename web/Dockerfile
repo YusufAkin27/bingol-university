@@ -23,7 +23,7 @@ ARG PLAY_APP_SIGNING_SHA256=
 RUN APPLE_TEAM_ID="$APPLE_TEAM_ID" PLAY_APP_SIGNING_SHA256="$PLAY_APP_SIGNING_SHA256" node scripts/gen-app-links.mjs
 
 # Aşama 2: statik sunum + ters vekil
-FROM nginx:1.27.5-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
+FROM nginx:1.31.7-alpine@sha256:892bb2152464f0c5d8972593a5f5afaf8054552580b699d95f8ff4af08c2d33d
 RUN rm -f /etc/nginx/conf.d/default.conf && mkdir -p /etc/nginx/snippets
 COPY nginx-security.conf /etc/nginx/snippets/security.conf
 COPY nginx.conf /etc/nginx/conf.d/default.conf
