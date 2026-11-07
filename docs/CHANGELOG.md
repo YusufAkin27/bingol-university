@@ -4,6 +4,11 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### Rehber eşleştirme kaldırıldı (2026-11-07)
+
+- **Karar:** telefon rehberi / telefon numarası / WhatsApp doğrulama kullanılmayacak. Rehber eşleştirme uçları, mobil sayfa, rehber izni ve paketi (`flutter_contacts`), ilgili ayarlar/çeviriler/testler/duman betiği kaldırıldı.
+- **Korunan:** ad/kullanıcı adı/bölüm ile kullanıcı arama, profil, takip, sohbet. DB sütunları düşürülmedi; veri temizleme planı [PHONE_DATA_CLEANUP.md](PHONE_DATA_CLEANUP.md). Ayrıntı: `docs/changes/profile.md`.
+
 ### Sohbet güvenliği bildirimi (CHATENC)
 
 - **Mobil:** konuşmanın en üstünde (mesaj geçmişinin başında) kilit simgeli "Mesajların aktarım sırasında ve sunucuda şifrelenir. Daha fazla bilgi" bildirimi (birebir/grup/kulüp-etkinlik odası için ayrı alt metin, tr/en/ar); dokununca yeni "Sohbet güvenliği" sayfası (doğrulanmış korumalar + dürüst "Bilmen gerekenler" + Gizlilik Politikası / Topluluk Kuralları bağlantıları). Sohbet bilgisinde "Şifreleme ve güvenlik" satırı; boş sohbet listesi ve yeni sohbet ekranında tek satır alt bilgi.

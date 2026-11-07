@@ -44,7 +44,7 @@ Sütunlar: tür (E ekran, T sekme, K kabuk/kapı, D durum, Z görüntüleyici), 
 | 11 | `OfflineBanner + StaleLabel` | `core/connectivity/offline_banner.dart` (78) | D | Uygulama kökü sarmalayıcısı (bekleyen mesaj kuyruğu); `StaleLabel` önbellekten gelen veriyle | İnce şerit: bekleyen çevrimdışı mesaj sayısı; 'Son güncelleme' etiketi | bekleyen kuyruk / bayat veri | offline_banner | `cevrimdisi*` | 1 |
 | 12 | `PushBanner (_BannerHost)` | `core/push/push_banner.dart` (155) | D | Ön plandaki uygulamada gelen push; 4 sn | Üstten inen ince kart, aynı sohbetten gelenler tek kartta birleşir | — | push_foreground | `push*` | 1 |
 | 13 | `PostLoginGate` | `features/auth/permissions_page.dart` (414) | K | İlk girişten sonra, cihaz bayrağı yoksa kabuğun yerine | Bayrak okuma (Keychain/Keystore) + izin sayfası ya da çocuk | — | permissions | `perm*` | 1 |
-| 14 | `PermissionsPage` | `features/auth/permissions_page.dart` (414) | E | PostLoginGate; her kart ayrı atlanabilir | Bildirim, rehber, kamera/galeri izin kartları, 3 parçalı ilerleme | izin verildi / reddedildi / ayara git | permissions, sistem_design, visual_a | `perm*, sistemui*` | 1 |
+| 14 | `PermissionsPage` | `features/auth/permissions_page.dart` (414) | E | PostLoginGate; her kart ayrı atlanabilir | Bildirim, kamera/galeri izin kartları, 2 parçalı ilerleme | izin verildi / reddedildi / ayara git | permissions, sistem_design, visual_a | `perm*, sistemui*` | 1 |
 | 15 | `LegalReacceptGate` | `features/legal/legal_reaccept_page.dart` (288) | K | Kabuğun üstünde; `GET /legal/acceptance-status` | Bekleyen belge varsa tam ekran onay; ağ hatasında açılmaz | enforced (atlanamaz) / atlanabilir | legal_reaccept | `legal*` | 1 |
 | 16 | `LegalReacceptPage` | `features/legal/legal_reaccept_page.dart` (288) | E | LegalReacceptGate; `POST /legal/accept` | Belge listesi (tam metne açılır), tek onay kutusu, Kabul et / Daha sonra / Kabul etmiyorum | yükleniyor / hata / enforced | legal_reaccept | `legal*` | 1 |
 | 17 | `LegalListPage` | `features/profile/legal_pages.dart` (226) | E | Ayarlar > Sözleşmeler; `GET /legal` | Sözleşme türleri listesi | yükleniyor / hata / boş | pages_c, robustness | `legal*` | 1 |
@@ -100,8 +100,7 @@ Sütunlar: tür (E ekran, T sekme, K kabuk/kapı, D durum, Z görüntüleyici), 
 
 | No | Ekran (sınıf) | Dosya (satır) | T | Nasıl açılır / uçlar | Ana içerik | Durumlar | Test | l10n | Pk |
 |---|---|---|---|---|---|---|---|---|---|
-| 45 | `NewChatPage` | `features/chat/new_chat_page.dart` (499) | E | Sohbet sekmesi +; `GET /users/search`, `POST /conversations` | Kişi ara, birebir seç / çoklu seç = grup, 'Yeni grup' kartı, rehber girişi | yükleniyor / boş / hata | pages_b, sohbety_design, visual_b | `chat*, sohbety*` | 6 |
-| 46 | `ContactsMatchPage` | `features/chat/contacts_match_page.dart` (378) | E | Yeni sohbet / Ayarlar `ContactsEntryRow`; rehber e-posta özeti (SHA-256) eşleştirme, `POST /conversations` | Rehberden bulunan BÜ kişileri, Mesaj düğmesi, gizlilik notu | faz: yükleniyor / izin gerek / hazır / hata | contacts_match, sohbety_design | `chat*` | 6 |
+| 45 | `NewChatPage` | `features/chat/new_chat_page.dart` (499) | E | Sohbet sekmesi +; `GET /users/search`, `POST /conversations` | Kişi ara, birebir seç / çoklu seç = grup, 'Yeni grup' kartı | yükleniyor / boş / hata | pages_b, sohbety_design, visual_b | `chat*, sohbety*` | 6 |
 | 47 | `ChatDetailPage` | `features/chat/chat_detail_page.dart` (2478) | E | Liste / push (`GET /conversations/{id}`) / profil / kulüp / etkinlik sohbeti; STOMP + `GET /conversations/{id}/messages` | Mesaj geçmişi (imleçli), iyimser gönderim, yanıt/düzenle/sil/tepki, görsel/video, arama, kapalı sohbet bandı, çevrimdışı kuyruk | yükleniyor / boş / hata / çevrimdışı / kapalı (`CONVERSATION_CLOSED`) / bağlantı yok (4 sn yoklama) | chat_extras, chat_status_video, chat_offline, chatd_bubbles, media_picker, pages_b, user_profile, b4, push_notify, store_shots, visual_b, back_navigation | `chat*, chatd*` | 7 |
 | 48 | `ChatMediaViewer` | `features/chat/chat_media_viewer.dart` (422) | Z | Mesaj görseli / ortam ızgarası; yatay gezinme, yakınlaştırma, galeriye kaydet | Siyah zemin, sayfa göstergesi, video poster sayfası | yükleniyor / hata | chat_status_video, media_grid | `chat*, sohbetmedya*` | 8 |
 | 49 | `ChatVideoPlayerPage` | `features/chat/chat_video_player.dart` (292) | Z | Galeri video sayfası / mesaj videosu; yetkili HTTP Range | Otomatik oynat, dokununca durdur, ilerleme çubuğu | yükleniyor / oynatılamadı + yeniden dene | yok | `chat*` | 8 |
@@ -173,7 +172,7 @@ Sütunlar: tür (E ekran, T sekme, K kabuk/kapı, D durum, Z görüntüleyici), 
 | 92 | `FollowListPage` | `features/follow/follow_list_page.dart` (292) | E | Profil takipçi/takip sayıları; `GET /users/{id}/followers|following` | İki sekme, kullanıcı satırı + Takip | yükleniyor / boş / hata | profilyard | `followers*, following*, follow*` | 18 |
 | 93 | `FollowSuggestionsPage` | `features/follow/follow_suggestions.dart` (116) | E | ProfileTab; `GET /users/me/follow-suggestions` | Önerilen kişiler | yükleniyor / boş / hata | yok | `follow*` | 18 |
 | 94 | `EditProfilePage` | `features/profile/edit_profile_page.dart` (530) | E | Profil sekmesi / UserProfile (kendi); `PATCH /users/me`, `DELETE /users/me/avatar` | Avatar, ad, bio, akademik alanlar, vazgeç onayı | yükleniyor / hata | pages_c, profil1, academic, visual_c | `profile*, profil1*` | 19 |
-| 95 | `SettingsPage` | `features/profile/settings_page.dart` (340) | E | Profil sekmesi; `PATCH /users/me`, `POST /auth/logout-all` | Dil seçici (alt sayfa), bildirim satırı, hata raporu anahtarı, rehber eşleştirme girişi, tüm cihazlardan çıkış | yükleniyor / hata | pages_c, crash_reporter, back_navigation, l10n, visual_c | `settings*, push*` | 19 |
+| 95 | `SettingsPage` | `features/profile/settings_page.dart` (340) | E | Profil sekmesi; `PATCH /users/me`, `POST /auth/logout-all` | Dil seçici (alt sayfa), bildirim satırı, hata raporu anahtarı, tüm cihazlardan çıkış | yükleniyor / hata | pages_c, crash_reporter, back_navigation, l10n, visual_c | `settings*, push*` | 19 |
 | 96 | `AccountSecurityPage` | `features/profile/account_security_page.dart` (252) | E | Ayarlar; `POST /auth/change-password`, logout-all | E-posta, şifre güncelle, tüm cihazlardan çıkış | hata | profil2 | `profil*` | 19 |
 | 97 | `PrivacyDataPage` | `features/profile/privacy_data_page.dart` (324) | E | Ayarlar > Gizlilik; `GET/PATCH /users/me/privacy` | Alan bazlı görünürlük, e-posta anahtarı, engellenenler | yükleniyor / hata | profil2, academic, visual_c | `profil*` | 19 |
 | 98 | `MyDataPage` | `features/profile/profil2_my_data_page.dart` (148) | E | Gizlilik > Verilerim; `GET /users/me/export` (günde 3) | KVKK veri indirme, aydınlatma, silme girişi | hata / sınır | profil2 | `profil2*` | 19 |
@@ -254,7 +253,7 @@ Ek notlar: (a) `showSohbetySheet` (sohbet ortak alt sayfa çerçevesi), `showPro
 
 **Kök karar ağacı** (`main.dart` -> `BingolApp.home`): `accessBlocked` ise `AccessBlockedScreen`; yoksa `SessionState`: `loading` -> `SplashScreen`; `signedOut` -> `_SignedOutRoot` (ilk açılışta `WelcomePage`, sonra `LoginPage`); `signedIn` -> `PostLoginGate` (izin sayfası, cihaz başına bir kez) -> `LegalReacceptGate` (bekleyen sözleşme varsa tam ekran) -> `AppShell` (5 sekme, `IndexedStack`). Tüm bu ağacın üstünde `MaterialApp.builder`: `AppGate` (sürüm/bakım/duyuru/çevrimdışı) + `OfflineBanner`. Ön planda push şeridi `PushBannerCenter` (`push_banner.dart`).
 
-**Sekmeden sayfaya akışlar:** Ana Sayfa -> Haber listesi (Haber/Duyuru/Etkinlik) / Yemek / Etkinlik detayı / Anketler / Bildirimler / Arama; Keşfet -> Arama, Gönderi oluştur, Gönderi detayı, Kullanıcı profili; Sohbet -> Sohbet detayı, Yeni sohbet (+ rehber), Sohbet bilgisi; Kulüpler -> Kulüp detayı (-> üyeler, istekler, anket, etkinlik, sohbet), Kulüp kur; Profil -> Düzenle, Ayarlar (-> Hesap/Gizlilik/Verilerim/Hesabı sil/Bildirim tercihleri/Hatırlatmalar/Sözleşmeler), Kulüplerim, Etkinliklerim, Favoriler, Akademik (-> Ders programı/Sınavlar/Takvim/Duyurular), Destek (-> Talep/Geri bildirim/Öneriler), Takipçi listeleri.
+**Sekmeden sayfaya akışlar:** Ana Sayfa -> Haber listesi (Haber/Duyuru/Etkinlik) / Yemek / Etkinlik detayı / Anketler / Bildirimler / Arama; Keşfet -> Arama, Gönderi oluştur, Gönderi detayı, Kullanıcı profili; Sohbet -> Sohbet detayı, Yeni sohbet, Sohbet bilgisi; Kulüpler -> Kulüp detayı (-> üyeler, istekler, anket, etkinlik, sohbet), Kulüp kur; Profil -> Düzenle, Ayarlar (-> Hesap/Gizlilik/Verilerim/Hesabı sil/Bildirim tercihleri/Hatırlatmalar/Sözleşmeler), Kulüplerim, Etkinliklerim, Favoriler, Akademik (-> Ders programı/Sınavlar/Takvim/Duyurular), Destek (-> Talep/Geri bildirim/Öneriler), Takipçi listeleri.
 
 **Push hedefleri** (`core/push/push_targets.dart` + `push_router.dart`, DAVRANIŞ KATMANI, değişmez):
 
@@ -291,7 +290,7 @@ Dağıtım ilkesi: ekran/akış bütünlüğü korunur; her UI dosyası **tam bi
 | 3 | Ana Sayfa, Yemek listesi, Bildirimler | 32, 37, 38 | 6 | 2.018 | M | Dalga 2 | 0 |
 | 4 | Keşfet sekmesi ve gönderiler (oluştur, detay, kart, eylemler) | 33, 39, 40 | 9 | 2.235 | M | Dalga 2 | 5 |
 | 5 | Haber (liste/detay/favoriler) ve Arama | 41, 42, 43, 44 | 6 | 2.283 | M | Dalga 1 | 0 |
-| 6 | Sohbet listesi, yeni sohbet, rehberden bul | 34, 45, 46 | 5 | 2.135 | M | Dalga 2 | 2 |
+| 6 | Sohbet listesi, yeni sohbet | 34, 45 | 4 | 1.757 | M | Dalga 2 | 2 |
 | 7 | Sohbet detayı (konuşma ekranı + mesaj eylem katmanı) | 47 | 2 | 2.826 | XL | Dalga 2 | 5 |
 | 8 | Mesaj balonu ve medya görüntüleyiciler (görsel/video/tek gösterimlik) | 48, 49, 50, 51 | 8 | 2.503 | L | Dalga 1 | 0 |
 | 9 | Sohbet bilgisi, üyeler, iletme, gruba üye ekleme | 52, 53, 54 | 6 | 2.025 | M | Dalga 2 | 6 |
@@ -369,12 +368,12 @@ Dağıtım ilkesi: ekran/akış bütünlüğü korunur; her UI dosyası **tam bi
 - **İş yükü / dalga:** M / Dalga 1
 - **P0'dan beklenen:** BuImage, BuSkeleton (liste), BuSegmented/sekme, BuStateView (bakım/bayat), BuListRow
 
-#### Paket 6: Sohbet listesi, yeni sohbet, rehberden bul
+#### Paket 6: Sohbet listesi, yeni sohbet
 
-- **Ekranlar:** 34 ChatTab, 45 NewChatPage, 46 ContactsMatchPage
+- **Ekranlar:** 34 ChatTab, 45 NewChatPage
 - **Alt sayfa / diyalog:** A11, A12
-- **Dosyalar (5, 2.135 satır):** `features/chat/chat_tab.dart`(947), `features/chat/chatlist_widgets.dart`(213), `features/chat/contacts_match_page.dart`(378), `features/chat/conversation_actions.dart`(98), `features/chat/new_chat_page.dart`(499)
-- **Test dosyaları:** `chatlist_design_test`, `contacts_match_test`, sohbety_design_test (ortak 6/9/10)
+- **Dosyalar (4, 1.757 satır):** `features/chat/chat_tab.dart`(947), `features/chat/chatlist_widgets.dart`(213), `features/chat/conversation_actions.dart`(98), `features/chat/new_chat_page.dart`(499)
+- **Test dosyaları:** `chatlist_design_test`, sohbety_design_test (ortak 6/9/10)
 - **Bağımlılık:** P0 + P10 (`sohbety_widgets`) + P8 (`message_bubble`) arayüzü. Tüketir: chat_detail/message_actions (P7), ensure_permission (P1), user_profile (P20).
 - **İş yükü / dalga:** M / Dalga 2
 - **P0'dan beklenen:** BuListRow (konuşma), BuSkeleton (liste), BuSheet, BuConfirmDialog, BuSearchField
@@ -541,7 +540,6 @@ Aşağıdaki 44 dosya (7.328 satır) hiçbir pakete verilmedi; yeniden tasarım 
 - `core/`: academic_catalog.dart(205), analytics.dart(92), api.dart(460), app_hooks.dart(39), badges.dart(19), closed_conversations.dart(86), device_identity.dart(78), error_log.dart(158), identifier.dart(44), locale_controller.dart(72), nav.dart(9), pending_verification.dart(79), session.dart(419)
 - `core/cache/`: cache_policy.dart(56), disk_cache.dart(240)
 - `core/connectivity/`: connectivity_service.dart(61)
-- `core/contacts/`: contacts_service.dart(135)
 - `core/crash/`: crash_reporter.dart(262)
 - `core/notify/`: local_reminders.dart(206)
 - `core/outbox/`: outbox.dart(392)

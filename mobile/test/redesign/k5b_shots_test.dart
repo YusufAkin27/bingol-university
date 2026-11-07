@@ -5,11 +5,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
-import 'package:bu_kampus/core/contacts/contacts_service.dart';
-import 'package:bu_kampus/core/permissions/permission_service.dart';
 import 'package:bu_kampus/features/chat/chat_media_viewer.dart';
 import 'package:bu_kampus/features/chat/chat_video_player.dart';
-import 'package:bu_kampus/features/chat/contacts_match_page.dart';
 import 'package:bu_kampus/features/chat/new_chat_page.dart';
 import 'package:bu_kampus/features/chat/view_once_viewer.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
@@ -26,7 +23,7 @@ import 'package:video_player_platform_interface/video_player_platform_interface.
 import '../support/fake_app.dart';
 import '../support/store_shots_images.dart';
 
-/// K5 ikinci tur ekran goruntuleri: yeni sohbet / grup / rehberden kisi bul (referans 23) ve
+/// K5 ikinci tur ekran goruntuleri: yeni sohbet / grup / yeni sohbet (referans 23) ve
 /// sohbet goruntuleyicileri (referans 26).
 ///
 /// Varsayilan `flutter test` ile CALISMAZ (STORE_SHOTS_OUT yoksa atlanir). Uretim (Git Bash, ASCII yoldan):
@@ -162,7 +159,7 @@ Future<void> _loadFonts(bool arabic) async {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
-// Yeni sohbet / grup / rehber
+// Yeni sohbet / grup
 
 Map<String, dynamic> _u(int id, String name, String dept, {int avatar = 0}) => {
       'id': id,
@@ -189,36 +186,6 @@ Future<void> _type(WidgetTester t, String q) async {
   await t.enterText(find.byType(TextField).last, q);
   await t.pump(const Duration(milliseconds: 350));
   await settle(t, const Duration(milliseconds: 400));
-}
-
-class _FakeContacts implements ContactsProvider {
-  _FakeContacts(this.emails);
-  final List<String> emails;
-  @override
-  Future<List<String>> readEmails() async => emails;
-}
-
-Map<String, dynamic> _match(String email, int id, String name, String dept, int avatar) =>
-    {'hash': emailHash(email), 'userId': id, 'displayName': name, 'avatarUrl': '/files/p$avatar.jpg', 'faculty': 'Mühendislik Fakültesi', 'department': dept};
-
-Widget _contactsReady({bool none = false, bool truncated = false}) {
-  final people = [
-    ('ahmet.yilmaz@bingol.edu.tr', 'Ahmet Yılmaz', 'Bilgisayar Mühendisliği · 4. sınıf'),
-    ('merve.sahin@bingol.edu.tr', 'Merve Şahin', 'Hemşirelik · 2. sınıf'),
-    ('burak.aydin@bingol.edu.tr', 'Burak Aydın', 'İktisadi ve İdari Bilimler · 3. sınıf'),
-    ('sena.koc@bingol.edu.tr', 'Sena Koç', 'Moleküler Biyoloji ve Genetik · 1. sınıf'),
-    ('murat.arslan@bingol.edu.tr', 'Murat Arslan', 'İnşaat Mühendisliği · 4. sınıf'),
-  ];
-  ContactsMatcher.resetLimiter();
-  final be = FakeBackend()
-    ..on('/users/contacts/match', {
-      'matches': none ? <Object>[] : [for (var i = 0; i < people.length; i++) _match(people[i].$1, 20 + i, people[i].$2, people[i].$3, i + 1)],
-    });
-  return ContactsMatchPage(
-    session: makeSession(be),
-    provider: _FakeContacts(none ? ['x@bingol.edu.tr'] : [for (final p in people) p.$1, if (truncated) for (var i = 0; i < (contactsHourlyLimit + 1) * contactsChunkSize; i++) 'u$i@ogr.bingol.edu.tr']),
-    permissions: FakePermissionService(initial: {AppPermission.contacts: PermState.granted}),
-  );
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -276,12 +243,6 @@ final _boards = <_Board>[
     await t.tap(find.text(_l.chatMiscCreateGroup));
     await settle(t, const Duration(milliseconds: 400));
   }),
-  _Board('N04_rehber_izin', () => ContactsMatchPage(session: makeSession(FakeBackend()), permissions: FakePermissionService()), after: (t) async {
-    await t.tap(find.text(_l.permNotNow));
-  }),
-  _Board('N05_rehber_hazir', () => _contactsReady(truncated: true), height: 960),
-  _Board('N06_rehber_bos', () => _contactsReady(none: true)),
-  _Board('N06b_rehber_yukleniyor', () => ContactsMatchPage(session: makeSession(FakeBackend(delay: const Duration(seconds: 3))), permissions: FakePermissionService(initial: {AppPermission.contacts: PermState.granted}), provider: _FakeContacts(['a@bingol.edu.tr'])), settleMs: 300),
   _Board('V01_gorsel', () => _viewer()),
   _Board('V02_gorsel_kaydedildi', () => _viewer(), after: (t) async {
     await t.tap(find.byIcon(BuIcons.download));

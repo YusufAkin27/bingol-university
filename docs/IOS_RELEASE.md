@@ -136,7 +136,6 @@ Bu belge, **Apple Developer hesabı açıldığında** uygulamanın TestFlight v
 | Mikrofon | `NSMicrophoneUsageDescription` | video kaydının ses kanalı (`camera`, `image_picker`) |
 | Fotoğraf okuma | `NSPhotoLibraryUsageDescription` | `photo_manager` (sohbet galerisi ve Paylaş (+) galeri seçici; iOS 14+ sınırlı erişim + `presentLimited`), `image_picker` (izin reddinde sistem seçicisi yedeği) |
 | Fotoğraf ekleme | `NSPhotoLibraryAddUsageDescription` | `gal` (görseli galeriye kaydet) |
-| Rehber | `NSContactsUsageDescription` | `flutter_contacts` (e-posta SHA-256 özetiyle eşleştirme; isteğe bağlı) |
 | Takvim | `NSCalendarsFullAccessUsageDescription` (iOS 17+) + `NSCalendarsUsageDescription` (iOS 15-16) | `BuCalendarAlarmBridge.swift` (EventKit): akademik takvimi cihaz takvimine yazma; yalnız kullanıcı "Cihaz takvimine ekle" deyince istenir. Tam erişim gerekir (kimlikle güncelle/sil); `NSCalendarsWriteOnlyAccessUsageDescription` kullanılmaz |
 | Bildirim | (anahtar yok) | `firebase_messaging`; izin istemi `PermissionOnboarding` |
 | Yerel ağ | `NSLocalNetworkUsageDescription` | **yalnız geliştirme**; yayın derlemesinde CI siler (`prepare-ci.sh`); anahtar yokken izin penceresi zaten tetiklenmez |
@@ -145,7 +144,7 @@ Metinler Türkçe (varsayılan), İngilizce ve Arapça (`ios/Runner/{tr,en,ar}.l
 
 ### 4.2 Şifreleme beyanı (`ITSAppUsesNonExemptEncryption = false`)
 
-İstemcide **özel/standart dışı şifreleme yoktur**: ağ trafiği HTTPS/WSS (TLS), jetonlar Keychain'de (`flutter_secure_storage`), rehber eşleştirmede SHA-256 özeti (`package:crypto`, **hash**, şifreleme değil), mesaj zarf şifrelemesi **sunucudadır** ([ENCRYPTION.md](ENCRYPTION.md)) ve istemciden çalıştırılmaz. Yalnızca kimlik doğrulama/TLS/özet için standart algoritmalar kullanan uygulamalar ABD EAR kapsamında muaf sayılır; bu nedenle `false` doğrudur ve her yüklemede "ihracat uyumluluğu" sorusunu önler. Dikkat: Dart çalışma zamanı TLS'i kendi içinde taşır; bu da hâlâ "standart TLS" olarak muaf kategoridedir. Fransa için ayrı beyan gerekmez (muaf). Emin olunmayan durumda Connect'te sorulursa cevap: "Uses encryption: Yes → exempt: standard encryption/TLS only". Bu bir hukuki görüş değildir.
+İstemcide **özel/standart dışı şifreleme yoktur**: ağ trafiği HTTPS/WSS (TLS), jetonlar Keychain'de (`flutter_secure_storage`), SHA-256 özeti (`package:crypto`, **hash**, şifreleme değil), mesaj zarf şifrelemesi **sunucudadır** ([ENCRYPTION.md](ENCRYPTION.md)) ve istemciden çalıştırılmaz. Yalnızca kimlik doğrulama/TLS/özet için standart algoritmalar kullanan uygulamalar ABD EAR kapsamında muaf sayılır; bu nedenle `false` doğrudur ve her yüklemede "ihracat uyumluluğu" sorusunu önler. Dikkat: Dart çalışma zamanı TLS'i kendi içinde taşır; bu da hâlâ "standart TLS" olarak muaf kategoridedir. Fransa için ayrı beyan gerekmez (muaf). Emin olunmayan durumda Connect'te sorulursa cevap: "Uses encryption: Yes → exempt: standard encryption/TLS only". Bu bir hukuki görüş değildir.
 
 ### 4.3 Push (APNs)
 
@@ -185,7 +184,7 @@ Bildirimin iOS'ta nasıl görüneceği (şerit, yığınlama, `passive`, ön pla
 | Geri kaydırma (swipe-back) | `bu_page_transitions.dart` iOS için `CupertinoPageTransitionsBuilder` kullanır; kenardan geri hareketi çalışır. Ekran içi `PopScope`/`BackButton` davranışı `test/back_navigation_test.dart` ile Android için sınanır; iOS'ta elle sınayın |
 | Güncelleme kapısı | `openStore` yalnız `https` bağlantı açar; iOS için `store_url_ios` ayarı gerekir (bölüm 3, adım 15) |
 | Cihaz platformu | `X-Device-Platform: ios` ve push kaydı `platform=IOS` gider (`device_identity.dart`, `push_service.dart`) |
-| Native varlıklar | `image_picker_ios`, `camera_avfoundation`, `mobile_scanner`, `photo_manager`, `gal`, `flutter_contacts`, `firebase_*`, `flutter_secure_storage_darwin`, `url_launcher_ios`, `video_player_avfoundation`, `permission_handler_apple`: **hepsi SwiftPM destekli** (`Package.swift` mevcut, pub önbelleğinde doğrulandı); Podfile/CocoaPods yok. `path_provider_foundation` saf FFI (native assets: `objective_c` paketi macOS'ta clang ile derlenir) |
+| Native varlıklar | `image_picker_ios`, `camera_avfoundation`, `mobile_scanner`, `photo_manager`, `gal`, `firebase_*`, `flutter_secure_storage_darwin`, `url_launcher_ios`, `video_player_avfoundation`, `permission_handler_apple`: **hepsi SwiftPM destekli** (`Package.swift` mevcut, pub önbelleğinde doğrulandı); Podfile/CocoaPods yok. `path_provider_foundation` saf FFI (native assets: `objective_c` paketi macOS'ta clang ile derlenir) |
 
 ## 7. App Review uyumu
 

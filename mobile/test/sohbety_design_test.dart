@@ -1,7 +1,6 @@
 import 'package:bu_kampus/core/permissions/permission_service.dart';
 import 'package:bu_kampus/features/chat/media_camera_page.dart';
 import 'package:bu_kampus/features/chat/chat_info_page.dart';
-import 'package:bu_kampus/features/chat/contacts_match_page.dart';
 import 'package:bu_kampus/features/chat/forward_sheet.dart';
 import 'package:bu_kampus/features/chat/new_chat_page.dart';
 import 'package:bu_kampus/features/chat/sohbety_widgets.dart';
@@ -184,7 +183,6 @@ void main() {
           await settle(tester);
           expect(find.text('Yeni grup'), findsOneWidget);
           expect(find.text('En fazla 50 kişi'), findsOneWidget);
-          expect(find.text('Rehberden kişi bul'), findsOneWidget);
           await tester.tap(find.text('Yeni grup'));
           await tester.pump();
           await tester.enterText(find.byType(TextField).last, 'al');
@@ -237,28 +235,6 @@ void main() {
       await settle(tester, const Duration(milliseconds: 400));
       await unmount(tester);
     });
-  });
-
-  group('ContactsMatchPage yeni tasarım', () {
-    for (final b in Brightness.values) {
-      for (final rtl in [false, true]) {
-        testWidgets('izin yok durumu taşma yok ${b.name} rtl=$rtl 320', (tester) async {
-          useScreen(tester, kPhoneSmall);
-          final perms = FakePermissionService();
-          await tester.pumpWidget(buildApp(
-              _wrap(ContactsMatchPage(session: makeSession(FakeBackend()), permissions: perms), rtl: rtl),
-              brightness: b,
-              size: kPhoneSmall));
-          await settle(tester, const Duration(milliseconds: 600));
-          await tester.tap(find.text('Şimdi değil'));
-          await settle(tester, const Duration(milliseconds: 600));
-          expect(find.text('Rehber izni gerekli'), findsOneWidget);
-          expect(find.text('İzin ver'), findsOneWidget);
-          expect(tester.takeException(), isNull);
-          await unmount(tester);
-        });
-      }
-    }
   });
 
   group('ForwardSheet yeni tasarım', () {

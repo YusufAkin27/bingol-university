@@ -28,7 +28,6 @@ Kaynak gerçekler: [docs/legal/privacy_tr.md](../legal/privacy_tr.md) bölüm 4 
 | Fotoğraflar ve videolar > **Fotoğraflar** | Evet | Hayır | Uygulama işlevselliği | Profil, gönderi, sohbet görselleri (EXIF/GPS temizlenir, yeniden kodlanır) |
 | Fotoğraflar ve videolar > **Videolar** | Evet | Hayır | Uygulama işlevselliği | Sohbet videosu (gönderi videosu özelliği kaldırıldı). Sohbet videosunda dosya içi üst veri temizlenmiyor: bkz. [LEGAL_NOTES.md](../LEGAL_NOTES.md) madde 12 |
 | Ses dosyaları > **Ses/ses kayıtları** | Evet | Hayır | Uygulama işlevselliği | Yalnız video kaydının ses kanalı (ayrı sesli mesaj özelliği yok). Video ile birlikte beyan etmek güvenli taraftır |
-| Kişiler > **Kişiler** | Evet (geçici) | Hayır | Uygulama işlevselliği (tanıdıkları bul) | Rehber e-postalarının **SHA-256 özeti**; saklanmaz, yalnız istek sırasında bellekte. Play'in "geçici işleme (ephemeral)" istisnası uygulanabilir ama ihtiyatlı yol "toplanıyor, paylaşılmıyor, isteğe bağlı" beyanıdır. Kullanıcı açık izin vermeden okunmaz (READ_CONTACTS) |
 | Uygulama etkinliği > **Uygulama etkileşimleri** | Evet | Evet (kapatılamaz) | Analitik; Uygulama işlevselliği | Ekran/olay adı, zaman; **toplulaştırılmış**, ham olaylar 45 gün |
 | Uygulama etkinliği > Diğer kullanıcı tarafından oluşturulan içerik | Evet | Hayır | Uygulama işlevselliği | Gönderi metni, kulüp/etkinlik başvuru yanıtları, anket oyu (gizli: kimlik hiçbir uçta gösterilmez), destek/geri bildirim metni |
 | Uygulama bilgileri ve performans > **Çökme günlükleri** / **Tanılama** | Evet | Evet (kapatılamaz) | Analitik | Anonim `app_error` olayı: tür, kaynak, sürüm, ekran; mesaj/yığın/kişisel veri yok |
@@ -46,7 +45,6 @@ Play formu "isteğe bağlı mı" sorarsa: kullanıcı özelliği hiç kullanmada
 
 | Konu | Cevap / hazırlık | Risk |
 |---|---|---|
-| **Hassas izin beyanı: READ_CONTACTS** | Gerekçe: "rehberdeki kişilerden uygulamayı kullananları bulma; yalnız e-posta özeti (hash) gider, saklanmaz; kullanıcı izin vermezse özellik gizlenir." Tanıtım videosu istenebilir | Play bu izin için genelde form/video ister; reddedilirse özelliği kaldırıp izni silmek yayın yolunu açar |
 | **READ_MEDIA_IMAGES / READ_MEDIA_VIDEO** | Play "Foto/video izinleri" politikası: çekirdek işlev değilse **sistem fotoğraf seçici (Photo Picker)** kullanılmalı | **Doğrulanmadı:** sohbet galerisi `photo_manager` ile bu izinleri kullanıyor; Play beyan formu isteyebilir ya da kabul etmeyebilir. Plan B: seçiciyi Photo Picker'a taşımak (`image_picker`) ve izinleri kaldırmak |
 | **Hedef kitle** | **Yalnızca 18+** işaretleyin (çocuklara yönelik değil) | Kullanım Koşulları madde 4 18 yaş altına "yasal temsilci izniyle" izin veriyor: [LEGAL_NOTES.md](../LEGAL_NOTES.md) madde 10 avukat sorusu |
 | **Çocuk güvenliği standartları (CSAE)** | Herkese açık URL: `https://bukampus.com.tr/tr/child-safety` (`/en/`, `/ar/`); irtibat: `ysufakin23@gmail.com` | Sayfa otomatik CSAM taraması olmadığını açıkça söyler; formda aksini beyan etmeyin. Avukat maddesi: [LEGAL_NOTES.md](../LEGAL_NOTES.md) bölüm 11 |

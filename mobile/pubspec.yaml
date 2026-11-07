@@ -29,7 +29,6 @@ dependencies:
   video_compress:
     path: packages/video_compress_android
   permission_handler: ^13.0.2
-  flutter_contacts: ^2.6.0
   crypto: ^3.0.8
   path_provider: ^2.1.5
   photo_manager: ^3.9.0

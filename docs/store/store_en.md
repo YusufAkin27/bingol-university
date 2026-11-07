@@ -42,7 +42,7 @@ PRIVACY AND YOUR DATA
 
 • You can delete your account from inside the app at any time; deletion anonymizes the account.
 • You can download your data (data export).
-• Location is not collected. Contacts are used only if you allow it, and only e-mail hashes are used to find friends; your raw address book is never sent to the server.
+• Location is not collected. Your address book and phone numbers are not requested or used.
 • There are no ads, and your data is not sold or shared with third parties for advertising.
 • Privacy policy and account deletion: https://bukampus.com.tr/en/privacy and https://bukampus.com.tr/en/delete-account
 

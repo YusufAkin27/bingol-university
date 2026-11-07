@@ -242,7 +242,7 @@ Saklama süresi değişiklikleri (W2-F):
 | `blocked_attempt_log` | 90 gün (`AccessBanRetentionJob`) | değişmedi | `app.security.ban-log-retention-days` |
 | `mail_outbox` kod değişkenleri | SENT 7 / DEAD 30 gün düz | **1 saat** | `DbMaintenanceJob.mailCodeScrub` |
 
-`app_user.email_sha256` (tuzsuz SHA-256, rehber eşleştirme için; hesap silmede NULL): kalıcı kimlik özeti olarak aydınlatma metnine eklenmelidir (hukuk; `docs/legal/internal/01` bölüm 7). Rehber eşleştirme artık `profile_privacy.contacts_discoverable` (varsayılan KAPALI, V995) ile karşılıklıdır ve hesap başına günde 2000 aday ile sınırlıdır (`app.contacts.daily-candidate-cap`).
+`app_user.email_sha256` (tuzsuz SHA-256, e-posta bastırma listesi eşlemesi için; hesap silmede NULL; rehber eşleştirme özelliği KALDIRILDI): kalıcı kimlik özeti olarak aydınlatma metnine eklenmelidir (hukuk; `docs/legal/internal/01` bölüm 7). `profile_privacy.contacts_discoverable` (V995) sütunu artık kullanılmaz, düşürülmedi; temizlik planı: [PHONE_DATA_CLEANUP.md](PHONE_DATA_CLEANUP.md).
 
 **Silme defteri (A8-17):** `app.privacy.deletion-ledger-file` (`DELETION_LEDGER_FILE`) doluysa silinen hesap kimlikleri (`<id>\t<an>\t<hesap-oluşturma-saniyesi>`; e-posta/ad YOK) commit sonrası bu dosyaya eklenir. Dosya veritabanı/uploads yedeğinin DIŞINDA ayrı bir hacimde olmalıdır. Yedekten geri yüklemeden sonra `DeletionLedgerReapplier` (açılışta + her gece 03:50) defterdeki hesapları, hâlâ DELETED değilse ve oluşturma saniyesi eşleşiyorsa yeniden anonimleştirir (aynı kimliği sonradan alan başka hesap korunur). Bkz. `docs/BACKUP_RESTORE.md` bölüm 5 adım 7.
 

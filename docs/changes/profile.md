@@ -63,6 +63,15 @@ istemci kanonik Turkce degeri katalog aramasiyla cevirir. Sunucu metinlerinde bo
 alicinin kayitli dilinde yazilir (`MailCampaignSupport`, `CatalogService.facultyName/departmentName`).
 Cevirilerin Arapca kismi anadil incelemesi ister; dogrulanacak adlar `docs/design/L10N_ENUM_ENVANTERI.md` bolum D.
 
+## Rehber eşleştirme KALDIRILDI (2026-11-07, kullanıcı kararı)
+
+- Kaldırılanlar: `POST /api/users/contacts/match`, `GET|PUT /api/users/contacts/discoverable`, `ContactMatchController/Service/Quota/Dtos`,
+  `UserRepository.findContactMatches`, `ProfilePrivacy.contactsDiscoverable` alanı, `app.contacts.daily-candidate-cap` (`CONTACTS_DAILY_CANDIDATE_CAP`),
+  `error.CONTACTS_TOO_MANY` / `error.CONTACTS_DISCOVERABLE_REQUIRED` (3 dil), `scripts/smoke-contacts-match.sh`, OpenAPI yolları.
+- Mobil: `flutter_contacts` paketi, `ContactsMatchPage`, rehber izni (Android `READ_CONTACTS`, iOS `NSContactsUsageDescription`, gizlilik manifestindeki Contacts türü) ve ilgili l10n anahtarları kaldırıldı.
+- DB: `profile_privacy.contacts_discoverable` (V995) ve `app_user.email_sha256` (V240; e-posta bastırma eşlemesi için KALIR) düşürülmedi; sütun artık yazılmaz/okunmaz. Kalan veri için temizleme PLANI: [../PHONE_DATA_CLEANUP.md](../PHONE_DATA_CLEANUP.md).
+- Aşağıdaki "Rehber eşleştirme (V240)" ve "W2-F" rehber bölümleri tarihsel kayıttır.
+
 ## Rehber eslestirme (V240)
 `POST /api/users/contacts/match` `{"hashes":[sha256 hex...]}` (en cok 500, asim 400 `CONTACTS_TOO_MANY`; yinelenen/bozuk hash yok sayilir).
 Hash = rehberdeki e-postanin kirpilmis, kucuk harfe cevrilmis halinin SHA-256 hex'i. Yanit `{matches:[{hash,userId,displayName,avatarUrl,faculty,department}]}`.

@@ -234,3 +234,8 @@ Kullanıcı kararı: kayıt artık `@bingol.edu.tr` ya da başka bir üniversite
 - `docs/legal/internal/*` (ilgili kişi başvuru prosedürü, VERBİS rehberi) "bingol.edu.tr adresinizden" ifadeleri: kurumsal adres varsayımı kalktı.
 
 Risk notu (avukata): alan adı kısıtı kalkınca "üniversite topluluğu" güvencesi (doğrulanmış mensubiyet) yoktur; kimlik doğrulaması yalnız e-posta sahipliği kanıtıdır. Kulüp/etkinlik/duyuru hedefleme "öğrenci" varsayımları ürün tarafında ayrıca düşünülmelidir.
+
+## 14. Rehber eşleştirme kaldırıldı: metinlerden ifadeler çıkarılmalı (2026-11-07)
+
+Rehber eşleştirme özelliği ürün kararıyla kaldırıldı (bkz. `docs/changes/profile.md`, `docs/PHONE_DATA_CLEANUP.md`). Yayındaki sözleşme/KVKK/gizlilik metinleri (V290/V370/V480/V620/V820, ayrıca web/mobil i18n) hâlâ "rehber eşleştirme", "rehber izni" ve "e-posta SHA-256 özeti" ifadelerini içerir.
+**Sonraki sözleşme sürümünde bu ifadeler çıkarılmalıdır** (uygulanmış migration'lara dokunulmaz; yeni sürüm betiği `scripts/build-legal-migration-v620.js` örüntüsüyle). `app_user.email_sha256` e-posta bastırma listesi için kalır; aydınlatmada yalnız bu amaçla anılmalıdır.

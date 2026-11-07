@@ -75,17 +75,17 @@ void main() {
   group('PermissionsPage', () {
     testWidgets('verildi / reddedildi / kalici ret durumlari', (tester) async {
       final svc = _fake()
-        ..willAnswer(AppPermission.contacts, PermState.permanentlyDenied);
+        ..willAnswer(AppPermission.camera, PermState.permanentlyDenied);
       final granted = <AppPermission>[];
       await _pumpPage(tester, PermissionsPage(service: svc, onFinished: () {}, onGranted: granted.add));
-      expect(find.text('İzin ver'), findsNWidgets(3));
+      expect(find.text('İzin ver'), findsNWidgets(2));
 
       await tester.tap(find.text('İzin ver').at(0)); // bildirim -> verildi
       await settle(tester, const Duration(milliseconds: 400));
       expect(find.text('Verildi'), findsOneWidget);
       expect(granted, [AppPermission.notifications]);
 
-      await tester.tap(find.text('İzin ver').at(0)); // rehber -> kalici ret
+      await tester.tap(find.text('İzin ver').at(0)); // kamera -> kalici ret
       await settle(tester, const Duration(milliseconds: 400));
       expect(find.text('Ayarlardan aç'), findsOneWidget);
       expect(find.text('Reddedildi'), findsOneWidget);
@@ -102,11 +102,10 @@ void main() {
     testWidgets('onceden verilmis izinler Verildi gorunur; hepsi tamsa Basla', (tester) async {
       final svc = _fake(initial: {
         AppPermission.notifications: PermState.granted,
-        AppPermission.contacts: PermState.granted,
         AppPermission.camera: PermState.granted,
       });
       await _pumpPage(tester, PermissionsPage(service: svc, onFinished: () {}));
-      expect(find.text('Verildi'), findsNWidgets(3));
+      expect(find.text('Verildi'), findsNWidgets(2));
       expect(find.textContaining('Adım'), findsNothing, reason: 'Stitch v3: adım göstergesi yok');
       expect(find.text('Başla'), findsOneWidget);
       expect(find.text('Şimdi değil'), findsNothing);

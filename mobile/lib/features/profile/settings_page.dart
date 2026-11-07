@@ -13,7 +13,6 @@ import '../../core/theme_controller.dart';
 import '../../widgets/bu.dart';
 import '../auth/help/about_page.dart';
 import '../chat/chat_background_settings_page.dart';
-import '../chat/contacts_match_page.dart';
 import '../support/support_page.dart';
 import 'account_security_page.dart';
 import 'blocked_users_page.dart';
@@ -179,12 +178,6 @@ class _SettingsPageState extends State<SettingsPage> {
                     icon: BuIcons.image,
                     label: l.p67ChatBgTitle,
                     onTap: () => _push(const ChatBackgroundSettingsPage(), 'chat_background_settings'),
-                  ),
-                  ProfilFlatRow(
-                    plainIcon: true,
-                    icon: BuIcons.users,
-                    label: l.settingsFindContacts,
-                    onTap: () => _push(ContactsMatchPage(session: widget.session), 'contacts_match'),
                   ),
                 ]),
                 ProfilFlatSection(l.settingsSectionNotifications),

@@ -74,9 +74,9 @@ class _PostLoginGateState extends State<PostLoginGate> {
   }
 }
 
-const _firstRun = [AppPermission.notifications, AppPermission.contacts, AppPermission.camera];
+const _firstRun = [AppPermission.notifications, AppPermission.camera];
 
-/// Tam ekran "Birkaç izin" sayfası (06/1-2): bildirim, rehber, kamera/galeri; 3 parçalı adım ilerlemesi.
+/// Tam ekran "Birkaç izin" sayfası (06/1-2): bildirim, kamera/galeri; 2 parçalı adım ilerlemesi.
 /// Her kart tek tek atlanabilir ("Şimdi değil"); "Başla"/"Devam" sayfayı kapatır.
 class PermissionsPage extends StatefulWidget {
   const PermissionsPage({super.key, required this.onFinished, this.onGranted, this.service});
@@ -227,7 +227,6 @@ class _PermRow extends StatelessWidget {
     final info = permissionInfo(permission, context);
     return switch (permission) {
       AppPermission.notifications => (info.title, l.sistemuiPermNotifText),
-      AppPermission.contacts => (info.title, l.sistemuiPermContactsText),
       AppPermission.camera => (l.sistemuiPermCameraTitle, l.sistemuiPermCameraText),
       _ => (info.title, info.rationale),
     };

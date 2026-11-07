@@ -53,7 +53,6 @@ REQUIRED_USAGE = [
     'NSMicrophoneUsageDescription',    # video cekimi (image_picker/camera, ses)
     'NSPhotoLibraryUsageDescription',  # photo_manager, image_picker (galeri)
     'NSPhotoLibraryAddUsageDescription',  # gal (galeriye kaydet)
-    'NSContactsUsageDescription',      # flutter_contacts (rehber eslestirme)
     'NSCalendarsFullAccessUsageDescription',  # BuCalendarBridge (iOS 17+, akademik takvimi cihaz takvimine yazma)
     'NSCalendarsUsageDescription',     # ayni islev, iOS 15-16 (dagitim hedefi 15.0)
 ]

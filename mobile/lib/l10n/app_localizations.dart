@@ -508,12 +508,6 @@ abstract class AppLocalizations {
   /// **'E-postamı diğerlerine göster'**
   String get settingsShowEmail;
 
-  /// No description provided for @settingsFindContacts.
-  ///
-  /// In tr, this message translates to:
-  /// **'Rehberden kişi bul'**
-  String get settingsFindContacts;
-
   /// No description provided for @settingsPrivacyData.
   ///
   /// In tr, this message translates to:
@@ -3966,114 +3960,6 @@ abstract class AppLocalizations {
   /// **'düzenlendi'**
   String get chatMiscEdited;
 
-  /// No description provided for @chatMiscContactsFind.
-  ///
-  /// In tr, this message translates to:
-  /// **'Rehberden kişi bul'**
-  String get chatMiscContactsFind;
-
-  /// No description provided for @chatMiscContactsRationale.
-  ///
-  /// In tr, this message translates to:
-  /// **'Rehberinizdeki Bingöl Üniversitesi kişilerini bulabilmemiz için rehbere erişmemiz gerekir. Rehberiniz sunucuya gönderilmez; yalnızca e-posta özetleri eşleştirilir.'**
-  String get chatMiscContactsRationale;
-
-  /// No description provided for @chatMiscContactsSubtitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Bingöl Üniversitesi kişileri'**
-  String get chatMiscContactsSubtitle;
-
-  /// No description provided for @chatMiscContactsPermTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Rehber izni gerekli'**
-  String get chatMiscContactsPermTitle;
-
-  /// No description provided for @chatMiscContactsPermText.
-  ///
-  /// In tr, this message translates to:
-  /// **'Rehberinizdeki kampüs kişilerini bulabilmemiz için rehbere erişim izni vermeniz gerekir.'**
-  String get chatMiscContactsPermText;
-
-  /// No description provided for @chatMiscContactsPermAction.
-  ///
-  /// In tr, this message translates to:
-  /// **'İzin ver'**
-  String get chatMiscContactsPermAction;
-
-  /// No description provided for @chatMiscContactsNoneTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Eşleşen kişi yok'**
-  String get chatMiscContactsNoneTitle;
-
-  /// No description provided for @chatMiscContactsNoneText.
-  ///
-  /// In tr, this message translates to:
-  /// **'Rehberindeki kişilerden uygulamayı kullanan kimse bulunamadı. Arkadaşların katıldıkça burada görünür.'**
-  String get chatMiscContactsNoneText;
-
-  /// No description provided for @chatMiscContactsSearchHint.
-  ///
-  /// In tr, this message translates to:
-  /// **'Kişilerde ara'**
-  String get chatMiscContactsSearchHint;
-
-  /// No description provided for @chatMiscContactsTruncated.
-  ///
-  /// In tr, this message translates to:
-  /// **'Saatlik istek sınırına ulaşıldı; kalan kişiler daha sonra eşleştirilecek.'**
-  String get chatMiscContactsTruncated;
-
-  /// No description provided for @qa4ContactsConsentTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Rehberden bulunabilirim'**
-  String get qa4ContactsConsentTitle;
-
-  /// No description provided for @qa4ContactsConsentText.
-  ///
-  /// In tr, this message translates to:
-  /// **'Rehberindeki kişileri bulmak için önce bu ayarı açman gerekir. Eşleşme karşılıklıdır: yalnız bu ayarı açmış kişileri bulursun, onlar da seni yalnız bu ayar açıkken bulabilir. İstediğin zaman kapatabilirsin.'**
-  String get qa4ContactsConsentText;
-
-  /// No description provided for @qa4ContactsConsentAction.
-  ///
-  /// In tr, this message translates to:
-  /// **'Aç ve devam et'**
-  String get qa4ContactsConsentAction;
-
-  /// No description provided for @qa4ContactsConsentOff.
-  ///
-  /// In tr, this message translates to:
-  /// **'Rehberden bulunabilirliği kapat'**
-  String get qa4ContactsConsentOff;
-
-  /// No description provided for @chatMiscContactsNoSearchMatch.
-  ///
-  /// In tr, this message translates to:
-  /// **'Aramanla eşleşen kişi yok.'**
-  String get chatMiscContactsNoSearchMatch;
-
-  /// No description provided for @chatMiscContactsCount.
-  ///
-  /// In tr, this message translates to:
-  /// **'{n} KİŞİ'**
-  String chatMiscContactsCount(String n);
-
-  /// No description provided for @chatMiscMessage.
-  ///
-  /// In tr, this message translates to:
-  /// **'Mesaj'**
-  String get chatMiscMessage;
-
-  /// No description provided for @chatMiscContactsPrivacy.
-  ///
-  /// In tr, this message translates to:
-  /// **'Rehberin sunucuya gönderilmez; yalnızca e-posta özetleri eşleştirilir.'**
-  String get chatMiscContactsPrivacy;
-
   /// No description provided for @chatMiscGroupMax.
   ///
   /// In tr, this message translates to:
@@ -6191,18 +6077,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Mesaj, etkinlik ve duyurulardan anında haberdar olmak için bildirim göndermemize izin verin.'**
   String get permNotificationsText;
-
-  /// No description provided for @permContactsTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Rehber'**
-  String get permContactsTitle;
-
-  /// No description provided for @permContactsText.
-  ///
-  /// In tr, this message translates to:
-  /// **'Rehberinizdeki Bingöl Üniversitesi kişilerini bulup sohbet başlatabilmeniz için gerekir. Rehberiniz sunucuya gönderilmez.'**
-  String get permContactsText;
 
   /// No description provided for @permCameraTitle.
   ///
@@ -13626,12 +13500,6 @@ abstract class AppLocalizations {
   /// **'Mesaj, etkinlik ve duyurulardan anında haberdar olmak için.'**
   String get sistemuiPermNotifText;
 
-  /// No description provided for @sistemuiPermContactsText.
-  ///
-  /// In tr, this message translates to:
-  /// **'Rehberinizdeki üniversite kişilerini bulup sohbet başlatmanız için. Rehberiniz sunucuya gönderilmez.'**
-  String get sistemuiPermContactsText;
-
   /// No description provided for @sistemuiPermCameraTitle.
   ///
   /// In tr, this message translates to:
@@ -17490,12 +17358,6 @@ abstract class AppLocalizations {
   /// **'En az 2 kişi'**
   String get p23MinTwo;
 
-  /// No description provided for @p23PrivacyShort.
-  ///
-  /// In tr, this message translates to:
-  /// **'Rehberiniz sunucuya gönderilmez.'**
-  String get p23PrivacyShort;
-
   /// No description provided for @p26OnceCaption.
   ///
   /// In tr, this message translates to:
@@ -18251,12 +18113,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Örn. Mühendislik Proje Ekibi...'**
   String get p23GroupNameHint;
-
-  /// No description provided for @p23NoneText.
-  ///
-  /// In tr, this message translates to:
-  /// **'Rehberindeki kişilerden uygulamayı kullanan kimse bulunamadı.'**
-  String get p23NoneText;
 
   /// No description provided for @p09GradeYear.
   ///

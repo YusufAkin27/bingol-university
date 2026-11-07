@@ -82,7 +82,6 @@
     }
   },
   "settingsShowEmail": "E-postamı diğerlerine göster",
-  "settingsFindContacts": "Rehberden kişi bul",
   "settingsPrivacyData": "Gizlilik ve veriler",
   "settingsSupport": "Destek ve SSS",
   "settingsLogoutAll": "Tüm cihazlardan çıkış yap",
@@ -1153,31 +1152,6 @@
     }
   },
   "chatMiscEdited": "düzenlendi",
-  "chatMiscContactsFind": "Rehberden kişi bul",
-  "chatMiscContactsRationale": "Rehberinizdeki Bingöl Üniversitesi kişilerini bulabilmemiz için rehbere erişmemiz gerekir. Rehberiniz sunucuya gönderilmez; yalnızca e-posta özetleri eşleştirilir.",
-  "chatMiscContactsSubtitle": "Bingöl Üniversitesi kişileri",
-  "chatMiscContactsPermTitle": "Rehber izni gerekli",
-  "chatMiscContactsPermText": "Rehberinizdeki kampüs kişilerini bulabilmemiz için rehbere erişim izni vermeniz gerekir.",
-  "chatMiscContactsPermAction": "İzin ver",
-  "chatMiscContactsNoneTitle": "Eşleşen kişi yok",
-  "chatMiscContactsNoneText": "Rehberindeki kişilerden uygulamayı kullanan kimse bulunamadı. Arkadaşların katıldıkça burada görünür.",
-  "chatMiscContactsSearchHint": "Kişilerde ara",
-  "chatMiscContactsTruncated": "Saatlik istek sınırına ulaşıldı; kalan kişiler daha sonra eşleştirilecek.",
-  "qa4ContactsConsentTitle": "Rehberden bulunabilirim",
-  "qa4ContactsConsentText": "Rehberindeki kişileri bulmak için önce bu ayarı açman gerekir. Eşleşme karşılıklıdır: yalnız bu ayarı açmış kişileri bulursun, onlar da seni yalnız bu ayar açıkken bulabilir. İstediğin zaman kapatabilirsin.",
-  "qa4ContactsConsentAction": "Aç ve devam et",
-  "qa4ContactsConsentOff": "Rehberden bulunabilirliği kapat",
-  "chatMiscContactsNoSearchMatch": "Aramanla eşleşen kişi yok.",
-  "chatMiscContactsCount": "{n} KİŞİ",
-  "@chatMiscContactsCount": {
-    "placeholders": {
-      "n": {
-        "type": "String"
-      }
-    }
-  },
-  "chatMiscMessage": "Mesaj",
-  "chatMiscContactsPrivacy": "Rehberin sunucuya gönderilmez; yalnızca e-posta özetleri eşleştirilir.",
   "chatMiscGroupMax": "Gruba en çok 50 kişi eklenebilir.",
   "chatMiscGroupNameRequired": "Grup adı girin.",
   "chatMiscUserSearchHint": "Ad veya e-posta ile ara",
@@ -1722,8 +1696,6 @@
   "reportSend": "Gönder",
   "permNotificationsTitle": "Bildirimler",
   "permNotificationsText": "Mesaj, etkinlik ve duyurulardan anında haberdar olmak için bildirim göndermemize izin verin.",
-  "permContactsTitle": "Rehber",
-  "permContactsText": "Rehberinizdeki Bingöl Üniversitesi kişilerini bulup sohbet başlatabilmeniz için gerekir. Rehberiniz sunucuya gönderilmez.",
   "permCameraTitle": "Kamera",
   "permCameraText": "QR kod okutmak ve fotoğraf çekmek için kameraya erişmemiz gerekir.",
   "permMicrophoneTitle": "Mikrofon",
@@ -2153,7 +2125,7 @@
   "menuPhotoLabel": "Günün menüsü fotoğrafı",
   "notifTitle": "Bildirimler",
   "notifMarkAll": "Tümünü okundu yap",
-  "notifEmpty": "Henüz bildiriminiz yok.",
+  "notifEmpty": "Henüz bildiriminiz yok.",
   "activityTitle": "Etkileşimler",
   "activityEmpty": "Henüz etkileşim yok. Takip istekleri, yeni takipçiler ve beğeniler burada görünür.",
   "notifTargetOpenFailed": "Bu bildirimin hedefi açılamadı.",
@@ -3897,7 +3869,6 @@
     }
   },
   "sistemuiPermNotifText": "Mesaj, etkinlik ve duyurulardan anında haberdar olmak için.",
-  "sistemuiPermContactsText": "Rehberinizdeki üniversite kişilerini bulup sohbet başlatmanız için. Rehberiniz sunucuya gönderilmez.",
   "sistemuiPermCameraTitle": "Kamera ve galeri",
   "sistemuiPermCameraText": "QR kod okutmak, fotoğraf çekmek ve paylaşmak için.",
   "sistemuiOfflineTitle": "Bağlantı yok",
@@ -5140,7 +5111,6 @@
   "p23AddPeople": "Kişi ekle",
   "p23Selected": "Seçilen katılımcılar",
   "p23MinTwo": "En az 2 kişi",
-  "p23PrivacyShort": "Rehberiniz sunucuya gönderilmez.",
   "p26OnceCaption": "Bu fotoğrafı yalnızca bir kez görebilirsin.",
   "p09BlockNamed": "{name} Engelle",
   "@p09BlockNamed": {
@@ -5378,7 +5348,6 @@
   "p13SuppFaqHeading": "Sık sorulan sorular",
   "p13SuppToday": "Bugün",
   "p23GroupNameHint": "Örn. Mühendislik Proje Ekibi...",
-  "p23NoneText": "Rehberindeki kişilerden uygulamayı kullanan kimse bulunamadı.",
   "p09GradeYear": "{n}. Sınıf",
   "@p09GradeYear": {
     "placeholders": {

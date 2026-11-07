@@ -137,7 +137,7 @@ final _scenes = <_Scene>[
   _Scene(
     '13_izin_durumlar',
     () => PermissionsPage(
-      service: _fakePerm({AppPermission.notifications: PermState.granted, AppPermission.contacts: PermState.permanentlyDenied}),
+      service: _fakePerm({AppPermission.notifications: PermState.granted, AppPermission.camera: PermState.permanentlyDenied}),
       onFinished: () {},
     ),
   ),
