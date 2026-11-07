@@ -7253,5 +7253,26 @@
     }
   },
   "postComposeErrMediaLimit": "Bir gönderiye en çok 10 fotoğraf eklenebilir.",
-  "postComposeErrMediaMix": "Video gönderisi tek başına olmalı; fotoğrafla karıştırılamaz."
+  "postComposeErrMediaMix": "Video gönderisi tek başına olmalı; fotoğrafla karıştırılamaz.",
+  "evCalRow": "Takvime ekle ve hatırlat",
+  "evCalRowDone": "Takvimde · hatırlatıcı açık",
+  "evCalSheetTitle": "Takvime ekle",
+  "evCalBody": "Etkinlik cihaz takviminize eklenir; hatırlatıcıyı takvim uygulamanız gönderir. Yalnız BÜ Kampüs etkinlikleri eklenir ve silinir.",
+  "evCalPromptBody": "Katılımınız alındı. Etkinliği takviminize ekleyip hatırlatalım mı? Önerilen: 1 saat önce.",
+  "evCalRemind": "Hatırlatma",
+  "evCalLead15": "15 dakika önce",
+  "evCalLead60": "1 saat önce",
+  "evCalLead1440": "1 gün önce",
+  "evCalAdd": "Takvime ekle",
+  "evCalUpdate": "Güncelle",
+  "evCalRemove": "Takvimden kaldır",
+  "evCalLater": "Şimdi değil",
+  "evCalNever": "Bir daha sorma",
+  "evCalAdded": "Etkinlik takvime eklendi",
+  "evCalUpdated": "Takvim kaydı güncellendi",
+  "evCalRemoved": "Takvimden kaldırıldı",
+  "evCalFailed": "Takvime yazılamadı.",
+  "evCalPast": "Başlamış etkinlik takvime eklenmez.",
+  "clubShareMsg": "{name} kulübüne BÜ Kampüs uygulamasında göz at: {link}",
+  "@clubShareMsg": {"placeholders": {"name": {"type": "String"}, "link": {"type": "String"}}}
 }

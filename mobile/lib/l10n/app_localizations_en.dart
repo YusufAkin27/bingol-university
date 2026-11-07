@@ -13440,4 +13440,68 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get postComposeErrMediaMix =>
       'A video post must stand alone; it cannot be mixed with photos.';
+
+  @override
+  String get evCalRow => 'Add to calendar and remind me';
+
+  @override
+  String get evCalRowDone => 'In calendar · reminder on';
+
+  @override
+  String get evCalSheetTitle => 'Add to calendar';
+
+  @override
+  String get evCalBody =>
+      'The event is added to your device calendar and your calendar app sends the reminder. Only BÜ Kampüs events are added or removed.';
+
+  @override
+  String get evCalPromptBody =>
+      'You are in. Add the event to your calendar and remind you? Suggested: 1 hour before.';
+
+  @override
+  String get evCalRemind => 'Reminder';
+
+  @override
+  String get evCalLead15 => '15 minutes before';
+
+  @override
+  String get evCalLead60 => '1 hour before';
+
+  @override
+  String get evCalLead1440 => '1 day before';
+
+  @override
+  String get evCalAdd => 'Add to calendar';
+
+  @override
+  String get evCalUpdate => 'Update';
+
+  @override
+  String get evCalRemove => 'Remove from calendar';
+
+  @override
+  String get evCalLater => 'Not now';
+
+  @override
+  String get evCalNever => 'Do not ask again';
+
+  @override
+  String get evCalAdded => 'Event added to calendar';
+
+  @override
+  String get evCalUpdated => 'Calendar entry updated';
+
+  @override
+  String get evCalRemoved => 'Removed from calendar';
+
+  @override
+  String get evCalFailed => 'Could not write to the calendar.';
+
+  @override
+  String get evCalPast => 'A started event cannot be added.';
+
+  @override
+  String clubShareMsg(String name, String link) {
+    return 'Check out $name on BÜ Kampüs: $link';
+  }
 }

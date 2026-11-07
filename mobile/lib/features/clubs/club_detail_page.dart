@@ -14,6 +14,7 @@ import '../events/event_form_page.dart';
 import '../events/event_parts.dart' show eventIsExpired;
 import '../polls/poll_routes.dart';
 import 'club_actions.dart';
+import 'club_share.dart';
 import 'club_categories.dart';
 import 'club_detail_parts.dart';
 import 'club_detail_sheets.dart';
@@ -624,6 +625,13 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
                 : const SizedBox.shrink(key: ValueKey('noName')),
           ),
           actions: [
+            ClubBarIcon(
+              key: const ValueKey('club-share'),
+              icon: BuIcons.send,
+              tooltip: l10n.shareTitle,
+              onTap: () => shareClub(context, communityId: widget.communityId, name: name),
+              color: fg,
+            ),
             Padding(
               padding: const EdgeInsetsDirectional.only(end: 12),
               child: Builder(

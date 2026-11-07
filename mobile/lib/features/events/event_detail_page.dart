@@ -28,6 +28,8 @@ import 'event_form_page.dart';
 import 'event_parts.dart';
 import 'events_page.dart';
 import 'live_track_button.dart';
+import 'event_calendar.dart';
+import 'event_calendar_sheet.dart';
 import '../share/share_button.dart' show ShareIconButton, shareContentForEvent;
 import '../share/share_sheet.dart' show showShareSheet;
 
@@ -42,7 +44,10 @@ String _fmtDate(BuildContext context, String pattern, DateTime d) {
 
 /// Etkinlik detayı: bilgi, RSVP, yoklama, organizatör araçları ve etkinlik sohbeti.
 class EventDetailPage extends StatefulWidget {
-  const EventDetailPage({super.key, required this.session, required this.eventId, this.autoScan = false});
+  const EventDetailPage({super.key, required this.session, required this.eventId, this.autoScan = false, this.calendar});
+
+  /// Testlerde sahte takvim servisi; varsayılan [EventCalendarService.instance].
+  final EventCalendarService? calendar;
 
   final Session session;
   final int eventId;
@@ -68,6 +73,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
   bool _rsvpBusy = false;
   bool _chatBusy = false;
   bool _autoScanned = false;
+  bool _calLinked = false; // etkinlik cihaz takviminde mi
 
   String get _path => '/events/${widget.eventId}';
 
@@ -95,6 +101,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
         unawaited(LocalReminders.instance.cancel(ReminderChannel.event, widget.eventId));
       }
       _loadExtras();
+      unawaited(_refreshCal());
     } catch (e) {
       if (!mounted) return;
       // Admin gizlediyse (404) etkinlik herkes için yok: "Etkinlik bulunamadı" ekranına düşer.
@@ -118,6 +125,40 @@ class _EventDetailPageState extends State<EventDetailPage> {
     if (ok == true && mounted) _load(refresh: true);
   }
   String? get _rsvp => _ev?['myRsvp'] as String?;
+
+  EventCalendarService get _cal => widget.calendar ?? EventCalendarService.instance;
+
+  Future<void> _refreshCal() async {
+    final linked = await _cal.linkOf(widget.eventId) != null;
+    if (mounted && linked != _calLinked) setState(() => _calLinked = linked);
+  }
+
+  /// "Takvime ekle + hatırlat" alt sayfası; [prompt] katılım sonrası öneridir.
+  Future<void> _openCalendar({bool prompt = false}) async {
+    final ev = _ev;
+    final starts = DateTime.tryParse('${ev?['startsAt']}')?.toLocal();
+    if (ev == null || starts == null) return;
+    final r = await showEventCalendarSheet(
+      context,
+      eventId: widget.eventId,
+      title: '${ev['title'] ?? ''}',
+      startsAt: starts,
+      endsAt: DateTime.tryParse('${ev['endsAt']}')?.toLocal(),
+      location: '${ev['location'] ?? ''}',
+      prompt: prompt,
+      service: _cal,
+    );
+    if (r != null && mounted) setState(() => _calLinked = r);
+  }
+
+  /// Katılım sonrası öneri: yalnız gelecekteki etkinlikte, tercih "sorma" değilse ve henüz eklenmemişse.
+  Future<void> _suggestCalendar() async {
+    final starts = DateTime.tryParse('${_ev?['startsAt']}');
+    if (starts == null || !starts.isAfter(DateTime.now()) || _calLinked) return;
+    final st = await _cal.state();
+    if (st.dontAsk || !mounted) return;
+    await _openCalendar(prompt: true);
+  }
 
   /// İkincil veriler: hata verirse sayfa bozulmaz.
   Future<void> _loadExtras() async {
@@ -188,6 +229,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
         showJoinedToast(context, _openMine);
       }
       await _load(refresh: true);
+      if (status == 'GOING' && !(r is Map && r['myRsvp'] == 'PENDING') && mounted) await _suggestCalendar();
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -263,7 +305,13 @@ class _EventDetailPageState extends State<EventDetailPage> {
     try {
       await widget.session.api.delete('$_path/rsvp');
       Analytics.instance.action('rsvp', target: 'cancel');
-      if (mounted) setState(() => _rsvpBusy = false);
+      await _cal.remove(widget.eventId); // katılım bitti: takvim kaydı ve hatırlatıcı da gider
+      if (mounted) {
+        setState(() {
+          _rsvpBusy = false;
+          _calLinked = false;
+        });
+      }
       if (withdraw) _toast(l.etkinlik2WithdrawnToast);
       await _load(refresh: true);
     } catch (e) {
@@ -783,6 +831,33 @@ class _EventDetailPageState extends State<EventDetailPage> {
     );
   }
 
+  /// "Takvime ekle ve hatırlat" satırı (katılımdan bağımsız); takvimdeyse durumunu gösterir.
+  Widget _calendarRow() {
+    final t = context.bu;
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    return Semantics(
+      button: true,
+      label: _calLinked ? l.evCalRowDone : l.evCalRow,
+      excludeSemantics: true,
+      onTap: _openCalendar,
+      child: InkWell(
+        key: const ValueKey('detail-calendar'),
+        onTap: _openCalendar,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 52),
+          decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
+          child: Row(children: [
+            Icon(_calLinked ? BuIcons.calendarCheck : BuIcons.calendarPlus, size: 20, color: t.ink),
+            const SizedBox(width: 12),
+            Expanded(child: Text(_calLinked ? l.evCalRowDone : l.evCalRow, style: tx.bodyLarge!.copyWith(fontWeight: FontWeight.w400, color: t.ink))),
+            Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mut),
+          ]),
+        ),
+      ),
+    );
+  }
+
   Widget _kv(String label, String value, {bool strike = false, Key? key}) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
@@ -906,6 +981,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
           if (starts != null) _kv(l.p51EvLblDate, _fmtDate(context, 'd MMMM EEEE', starts), strike: cancelled),
           if (starts != null) _kv(l.p51EvLblTime, ends == null ? _hm(starts) : '${_hm(starts)} – ${_hm(ends)}', strike: cancelled),
           if (location != null && location.isNotEmpty) _kv(l.p51EvLblPlace, location),
+          if (starts != null && !cancelled && !ended && !pendingReview && !rejected) _calendarRow(),
           if (meeting != null && meeting.trim().isNotEmpty && !cancelled) _meetingBlock(meeting.trim()),
           if (!cancelled) _kv(l.p51EvLblAttendees, peopleText, key: const ValueKey('detail-attendees')),
           if (!cancelled && _approval) _kv(l.clubMgmtJoinLabel, l.etkinlik2PolicyApprovalTag),

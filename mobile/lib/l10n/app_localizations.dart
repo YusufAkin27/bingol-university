@@ -24149,6 +24149,126 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Video gönderisi tek başına olmalı; fotoğrafla karıştırılamaz.'**
   String get postComposeErrMediaMix;
+
+  /// No description provided for @evCalRow.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takvime ekle ve hatırlat'**
+  String get evCalRow;
+
+  /// No description provided for @evCalRowDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takvimde · hatırlatıcı açık'**
+  String get evCalRowDone;
+
+  /// No description provided for @evCalSheetTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takvime ekle'**
+  String get evCalSheetTitle;
+
+  /// No description provided for @evCalBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlik cihaz takviminize eklenir; hatırlatıcıyı takvim uygulamanız gönderir. Yalnız BÜ Kampüs etkinlikleri eklenir ve silinir.'**
+  String get evCalBody;
+
+  /// No description provided for @evCalPromptBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılımınız alındı. Etkinliği takviminize ekleyip hatırlatalım mı? Önerilen: 1 saat önce.'**
+  String get evCalPromptBody;
+
+  /// No description provided for @evCalRemind.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hatırlatma'**
+  String get evCalRemind;
+
+  /// No description provided for @evCalLead15.
+  ///
+  /// In tr, this message translates to:
+  /// **'15 dakika önce'**
+  String get evCalLead15;
+
+  /// No description provided for @evCalLead60.
+  ///
+  /// In tr, this message translates to:
+  /// **'1 saat önce'**
+  String get evCalLead60;
+
+  /// No description provided for @evCalLead1440.
+  ///
+  /// In tr, this message translates to:
+  /// **'1 gün önce'**
+  String get evCalLead1440;
+
+  /// No description provided for @evCalAdd.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takvime ekle'**
+  String get evCalAdd;
+
+  /// No description provided for @evCalUpdate.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güncelle'**
+  String get evCalUpdate;
+
+  /// No description provided for @evCalRemove.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takvimden kaldır'**
+  String get evCalRemove;
+
+  /// No description provided for @evCalLater.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şimdi değil'**
+  String get evCalLater;
+
+  /// No description provided for @evCalNever.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir daha sorma'**
+  String get evCalNever;
+
+  /// No description provided for @evCalAdded.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlik takvime eklendi'**
+  String get evCalAdded;
+
+  /// No description provided for @evCalUpdated.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takvim kaydı güncellendi'**
+  String get evCalUpdated;
+
+  /// No description provided for @evCalRemoved.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takvimden kaldırıldı'**
+  String get evCalRemoved;
+
+  /// No description provided for @evCalFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takvime yazılamadı.'**
+  String get evCalFailed;
+
+  /// No description provided for @evCalPast.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başlamış etkinlik takvime eklenmez.'**
+  String get evCalPast;
+
+  /// No description provided for @clubShareMsg.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} kulübüne BÜ Kampüs uygulamasında göz at: {link}'**
+  String clubShareMsg(String name, String link);
 }
 
 class _AppLocalizationsDelegate
