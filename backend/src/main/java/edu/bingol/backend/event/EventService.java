@@ -94,6 +94,13 @@ public class EventService {
 
     /** FIX-P05: commit sonrasi yan etkiler (oda senkronu) icin REQUIRES_NEW sablonu; yoksa dogrudan calisir. */
     private org.springframework.transaction.support.TransactionTemplate isolatedTx;
+    /** iOS Canli Etkinlik: iptal edilen etkinligin etkin canli etkinlikleri bitirilir; testlerde yoksa atlanir. */
+    private edu.bingol.backend.notification.live.LiveActivityService liveActivities;
+
+    @Autowired(required = false)
+    void setLiveActivities(edu.bingol.backend.notification.live.LiveActivityService liveActivities) {
+        this.liveActivities = liveActivities;
+    }
 
     @Autowired(required = false)
     void setTxManager(org.springframework.transaction.PlatformTransactionManager tm) {
@@ -553,6 +560,9 @@ public class EventService {
         closeRoom(e);
         if (chat != null) {
             chat.onCancelled(e.getId());
+        }
+        if (liveActivities != null) {
+            liveActivities.endForRef(edu.bingol.backend.notification.live.LiveActivity.Kind.EVENT, e.getId(), Instant.now());
         }
     }
 
