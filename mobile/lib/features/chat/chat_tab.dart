@@ -156,6 +156,7 @@ class _ChatTabState extends State<ChatTab> {
         _loading = false;
       });
       _persistList();
+      _rt.ackDeliveredFromList(page.$1); // çevrimdışıyken gelenler: gönderenin tiki çift gri olsun
       _refreshBadge();
       _loadMsgReq();
       _fillForFilter();

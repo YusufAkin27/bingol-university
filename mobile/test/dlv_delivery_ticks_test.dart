@@ -171,6 +171,36 @@ void main() {
       expect(be.requests.where((r) => r.contains('delivered')), isEmpty);
     });
 
+    testWidgets('cevrimdisiyken gelenler: liste yuklenince okunmamis, baskasindan son mesaj icin iletildi gider (REST yedegi)',
+        (tester) async {
+      final be = FakeBackend()
+        ..on('/conversations/2/delivered', {})
+        ..on('/conversations/3/delivered', {});
+      final rt = ChatRealtime(makeSession(be)); // soket yok -> REST
+      Map<String, dynamic> row(int cid, int lastId, int sender, int unread, {String? req}) => {
+            'id': cid,
+            'unreadCount': unread,
+            if (req != null) 'requestState': req,
+            'lastMessage': {'id': lastId, 'senderId': sender, 'conversationId': cid},
+          };
+      final n = rt.ackDeliveredFromList([
+        row(2, 40, 11, 3), // baskasindan, okunmamis -> ack
+        row(3, 50, 1, 0), // kendi mesajim -> yok
+        row(4, 60, 11, 0), // okunmus -> yok
+        row(5, 70, 11, 1, req: 'PENDING'), // bekleyen istek -> yok
+        {'id': 6, 'unreadCount': 2}, // son mesaj yok -> yok
+      ]);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(n, 1);
+      expect(be.requests.where((r) => r.startsWith('POST') && r.contains('delivered')).toList(),
+          ['POST /conversations/2/delivered']);
+      expect((be.bodies['POST /conversations/2/delivered'] as Map)['lastMessageId'], 40);
+      // Ayni liste tekrar gelince ayni imlec TEKRARLANMAZ.
+      expect(rt.ackDeliveredFromList([row(2, 40, 11, 3)]), 0);
+      // Yeni mesaj varsa ilerler.
+      expect(rt.ackDeliveredFromList([row(2, 41, 11, 4)]), 1);
+    });
+
     testWidgets('baglanti kopup gelince bilinen iletildi imleci REST ile yeniden yollanir', (tester) async {
       final be = _be([_msg(5, 11, 'karsi')]);
       final s = makeSession(be);
