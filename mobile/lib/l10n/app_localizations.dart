@@ -7941,13 +7941,55 @@ abstract class AppLocalizations {
   /// No description provided for @activityTitle.
   ///
   /// In tr, this message translates to:
-  /// **'Etkileşimler'**
+  /// **'Hareketler'**
   String get activityTitle;
+
+  /// No description provided for @activityFilterLikes.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğeniler'**
+  String get activityFilterLikes;
+
+  /// No description provided for @activityFilterComments.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumlar'**
+  String get activityFilterComments;
+
+  /// No description provided for @activityFilterFollows.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takip ve İstekler'**
+  String get activityFilterFollows;
+
+  /// No description provided for @notifFilterEvents.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlikler'**
+  String get notifFilterEvents;
+
+  /// No description provided for @notifFilterAnnouncements.
+  ///
+  /// In tr, this message translates to:
+  /// **'Duyurular'**
+  String get notifFilterAnnouncements;
+
+  /// No description provided for @notifFilterSystem.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sistem'**
+  String get notifFilterSystem;
+
+  /// No description provided for @activityRequestStale.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu başvuru artık beklemiyor; daha önce sonuçlanmış olabilir.'**
+  String get activityRequestStale;
 
   /// No description provided for @activityEmpty.
   ///
   /// In tr, this message translates to:
-  /// **'Henüz etkileşim yok. Takip istekleri, yeni takipçiler ve beğeniler burada görünür.'**
+  /// **'Henüz hareket yok. Beğeniler, yorumlar, yeni takipçiler ve istekler burada görünür.'**
   String get activityEmpty;
 
   /// No description provided for @notifTargetOpenFailed.

@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../notification_counts.dart';
 import '../session.dart';
 import 'push_router.dart';
 import 'push_targets.dart';
@@ -92,11 +93,18 @@ class PushActions {
           if (user != null) {
             final decision = action == 'follow_accept' ? 'accept' : 'decline';
             await session.api.post('/users/me/follow-requests/$user/$decision');
-            final unread = await session.api.get('/notifications/unread-count').catchError((Object _) => null);
-            if (unread is Map && unread['unreadCount'] is num) {
-              session.badges.notifications.value =
-                  (unread['unreadCount'] as num).toInt();
-            }
+            await refreshNotificationCounts(session);
+          } else {
+            await open(data);
+          }
+        case 'member_approve':
+        case 'member_reject':
+          // Yetki sunucuda doğrulanır (MANAGE_MEMBERS); yetkisiz/eskimiş işlem hata olarak döner.
+          final club = _id(data['communityId']);
+          if (user != null && club != null) {
+            final decision = action == 'member_approve' ? 'approve' : 'reject';
+            await session.api.post('/communities/$club/requests/$user/$decision');
+            await refreshNotificationCounts(session);
           } else {
             await open(data);
           }

@@ -27,6 +27,7 @@ import '../closed_conversations.dart';
 import '../nav.dart';
 import '../session.dart';
 import 'push_targets.dart';
+import 'notification_presentation.dart';
 
 /// Push / yerel hatırlatma `data` yüküne göre sayfa açar (MOBILE_API_GUIDE bölüm 6).
 /// Eşleme saf fonksiyonda ([resolvePushTarget]); burada yalnız gezinme vardır.
@@ -162,8 +163,11 @@ class PushRouter {
       // Açılamayan hedef: bildirim listesine düş.
     }
     if (listFallback && nav.mounted) {
-      nav.push(
-          MaterialPageRoute<void>(settings: const RouteSettings(name: 'notifications'), builder: (_) => NotificationsPage(session: s)));
+      // Doğru merkez: sosyal bildirim Hareketler'e (kalp), diğerleri Bildirimler'e (zil).
+      final social = notificationCategory(payload) == NotificationCategory.social;
+      nav.push(MaterialPageRoute<void>(
+          settings: RouteSettings(name: social ? 'activity' : 'notifications'),
+          builder: (_) => NotificationsPage(session: s, socialOnly: social)));
     }
     return false;
   }

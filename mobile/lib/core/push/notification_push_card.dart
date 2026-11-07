@@ -55,6 +55,10 @@ String pushCardStyle(Map<String, dynamic> data) {
     return data['conversationType'] == 'GROUP' ? 'CHAT_GROUP' : 'CHAT_DIRECT';
   }
   if (type == 'FOLLOW_REQUEST') return 'FOLLOW_REQUEST';
+  // Kulüp üyelik BAŞVURUSU (yöneticiye): başvuran kimliği taşır; sonuç bildirimleri (onay/ret) taşımaz.
+  if (type == 'COMMUNITY' && subtype == 'COMMUNITY_JOIN' && data['userId'] != null && data['communityId'] != null) {
+    return 'CLUB_JOIN_REQUEST';
+  }
   if (type == 'FOLLOW_ACCEPTED') return 'FOLLOW_ACCEPTED';
   if (type == 'USER_FOLLOW') return 'FOLLOW';
   if (type == 'POST_MENTION') return 'MENTION';
@@ -87,6 +91,7 @@ List<String> pushCardActions(Map<String, dynamic> data, {int count = 1}) =>
       'CHAT_GROUP' => ['reply', 'mute_hour'],
       'CHAT_MEDIA' => ['open', 'reply'],
       'FOLLOW_REQUEST' => ['follow_accept', 'follow_decline'],
+      'CLUB_JOIN_REQUEST' => ['member_approve', 'member_reject'],
       'FOLLOW' => ['follow'],
       'EVENT_REMINDER' => ['calendar', 'map'],
       'EVENT_UPDATE' => ['ack', 'open'],
@@ -108,6 +113,8 @@ String pushActionLabel(BuildContext context, String action, String style, {bool 
     'mute_hour' => label('1 Saat Sessize Al', 'Mute for 1 hour', 'كتم لساعة'),
     'follow_accept' => label('Onayla', 'Accept', 'قبول'),
     'follow_decline' => label('Reddet', 'Decline', 'رفض'),
+    'member_approve' => label('Onayla', 'Approve', 'موافقة'),
+    'member_reject' => label('Reddet', 'Reject', 'رفض'),
     'follow' => label('Takip et', 'Follow', 'متابعة'),
     'calendar' => label('Takvime Ekle', 'Add to calendar', 'إضافة للتقويم'),
     'map' => label('Haritada Gör', 'Show on map', 'عرض الخريطة'),
@@ -139,6 +146,8 @@ IconData pushActionIcon(String action, String style) => switch (action) {
       'mute_hour' => BuIcons.bellOff,
       'follow_accept' => BuIcons.check,
       'follow_decline' => BuIcons.x,
+      'member_approve' => BuIcons.check,
+      'member_reject' => BuIcons.x,
       'follow' => BuIcons.userPlus,
       'calendar' => BuIcons.calendarCheck,
       'map' => BuIcons.mapPin,
@@ -156,7 +165,7 @@ IconData pushActionIcon(String action, String style) => switch (action) {
 
 PushButtonKind pushActionKind(String action, String style) {
   if (action == 'follow') return PushButtonKind.accent;
-  if (action == 'follow_accept') return PushButtonKind.primary;
+  if (action == 'follow_accept' || action == 'member_approve') return PushButtonKind.primary;
   if (action == 'open' && (style == 'POLL' || style == 'EVENT_ADMISSION' || style == 'SUPPORT')) {
     return PushButtonKind.primary;
   }
@@ -176,7 +185,7 @@ PushAvatarRole? pushAvatarRole(Map<String, dynamic> data) {
         'LIKE' => PushAvatarRole.like,
         'MENTION' => PushAvatarRole.mention,
         'FOLLOW' => PushAvatarRole.follow,
-        'FOLLOW_REQUEST' => PushAvatarRole.request,
+        'FOLLOW_REQUEST' || 'CLUB_JOIN_REQUEST' => PushAvatarRole.request,
         'FOLLOW_ACCEPTED' => PushAvatarRole.accepted,
         _ => null,
       },

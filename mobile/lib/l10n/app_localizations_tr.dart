@@ -4237,11 +4237,33 @@ class AppLocalizationsTr extends AppLocalizations {
   String get notifEmpty => 'Henüz bildiriminiz yok.';
 
   @override
-  String get activityTitle => 'Etkileşimler';
+  String get activityTitle => 'Hareketler';
+
+  @override
+  String get activityFilterLikes => 'Beğeniler';
+
+  @override
+  String get activityFilterComments => 'Yorumlar';
+
+  @override
+  String get activityFilterFollows => 'Takip ve İstekler';
+
+  @override
+  String get notifFilterEvents => 'Etkinlikler';
+
+  @override
+  String get notifFilterAnnouncements => 'Duyurular';
+
+  @override
+  String get notifFilterSystem => 'Sistem';
+
+  @override
+  String get activityRequestStale =>
+      'Bu başvuru artık beklemiyor; daha önce sonuçlanmış olabilir.';
 
   @override
   String get activityEmpty =>
-      'Henüz etkileşim yok. Takip istekleri, yeni takipçiler ve beğeniler burada görünür.';
+      'Henüz hareket yok. Beğeniler, yorumlar, yeni takipçiler ve istekler burada görünür.';
 
   @override
   String get notifTargetOpenFailed => 'Bu bildirimin hedefi açılamadı.';

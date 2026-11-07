@@ -21,6 +21,8 @@ NotificationCategory notificationCategory(Map<String, dynamic> data) {
   }
   final type = '${data['type'] ?? ''}'.toUpperCase();
   final subtype = '${data['subtype'] ?? ''}'.toUpperCase();
+  // Kulüp üyelik başvurusu/sonucu sosyal etkileşimdir (Hareketler); sunucu `category` göndermezse de böyle sayılır.
+  if (type == 'COMMUNITY' && subtype == 'COMMUNITY_JOIN') return NotificationCategory.social;
   final target = resolvePushTarget(data).dest;
   if (target == PushDest.poll || subtype == 'POLL') {
     return NotificationCategory.poll;

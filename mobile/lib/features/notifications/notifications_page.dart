@@ -1,9 +1,12 @@
 import '../../core/analytics.dart';
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
+import '../../core/api.dart' show ApiError;
+import '../../core/notification_counts.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../../core/push/notification_push_card.dart';
@@ -20,15 +23,33 @@ import '../news/news_tile.dart' show newsLocalDate, newsMonthName;
 import '../events/event_parts.dart' show eventNotifState;
 import 'notif_row.dart';
 
-/// Uygulama içi bildirim listesi (design/P-Notifications).
+/// Zil merkezi süzgeçleri (Bildirimler): Tümü / Okunmamış / Etkinlikler / Duyurular / Sistem.
+enum NotifBellFilter { all, unread, events, announcements, system }
+
+/// Kalp merkezi süzgeçleri (Hareketler): Tümü / Beğeniler / Yorumlar / Takip ve İstekler.
+enum NotifHeartFilter { all, likes, comments, follows }
+
+/// Uygulama içi bildirim merkezleri (design/P-Notifications). İKİ AYRI merkez: zil = Bildirimler (`scope=INFORMATION`:
+/// etkinlik, duyuru, akademik, anket, sistem), kalp = Hareketler (`socialOnly`, `scope=SOCIAL`: beğeni, yorum, takip,
+/// istek, kulüp üyelik başvurusu). Bir bildirim yalnız birinde görünür; kapsamı SUNUCU belirler.
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage(
       {super.key, required this.session, this.socialOnly = false});
 
   final Session session;
 
-  /// Ana sayfadaki kalp: yalnız sosyal etkileşimler (takip isteği, yeni takipçi, beğeni); kategori çipleri gizlenir.
+  /// Ana sayfadaki kalp: yalnız sosyal etkileşimler (Hareketler); zil ise sosyal ve sohbet bildirimini HİÇ göstermez.
   final bool socialOnly;
+
+  /// Satır bu merkeze ait mi (sunucu `scope`; eski sunucuda kategori çıkarımı). Testler ve çağıranlar için.
+  static bool belongsToCenter(Map<String, dynamic> n, {required bool social}) =>
+      _NotificationsPageState.belongsToCenter(n, social: social);
+
+  /// Zil süzgecinin sunucu `category` değeri.
+  static String? bellCategoryParam(NotifBellFilter f) => _NotificationsPageState.bellCategoryParam(f);
+
+  /// Kalp süzgecinin sunucu `kind` değeri.
+  static String? heartKindParam(NotifHeartFilter f) => _NotificationsPageState.heartKindParam(f);
 
   @override
   State<NotificationsPage> createState() => _NotificationsPageState();
@@ -41,7 +62,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
   bool _loading = true;
   bool _more = false;
   bool _unreadOnly = false;
-  NotificationCategory? _category;
+  NotifBellFilter _bell = NotifBellFilter.all;
+  NotifHeartFilter _heart = NotifHeartFilter.all;
   int _generation = 0;
   final _acting = <Object?>{};
   Object? _error;
@@ -54,7 +76,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
   @override
   void initState() {
     super.initState();
-    if (widget.socialOnly) _category = NotificationCategory.social;
     _scroll.addListener(() {
       if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 300) {
         _loadMore();
@@ -85,8 +106,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
         _more = false;
         _loading = false;
       });
-      final u = (r['unreadCount'] as num?)?.toInt();
-      if (u != null) _s.badges.notifications.value = u;
+      // İki merkezin sayaçları sunucuda bağımsız hesaplanır; sayfa toplamı (`unreadCount`) bu merkeze ait DEĞİLDİR.
+      unawaited(refreshNotificationCounts(_s));
     } catch (e) {
       if (!mounted || generation != _generation) return;
       setState(() {
@@ -117,17 +138,51 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   /// Sohbet mesajları Bildirimler'e düşmez (sohbet kendi sekmesindedir; push yine gider ve sohbeti açar). Sunucu
   /// artık `MESSAGE` döndürmez; eski sürüm/önbellekten gelen satır istemcide de gizlenir.
-  static List<Map<String, dynamic>> _inbox(Object? items) => [
+  List<Map<String, dynamic>> _inbox(Object? items) => [
         for (final e in (items as List?) ?? const [])
           if (e is Map<String, dynamic> &&
-              '${e['type'] ?? ''}'.toUpperCase() != 'MESSAGE')
+              '${e['type'] ?? ''}'.toUpperCase() != 'MESSAGE' &&
+              belongsToCenter(e, social: widget.socialOnly))
             e,
       ];
+
+  /// Satır bu merkeze ait mi? Sunucu `scope` (SOCIAL | INFORMATION) verir; eski sunucuda kategori çıkarımına düşülür.
+  /// Böylece sunucu sürümü ne olursa olsun zilde sosyal, kalpte bilgilendirme bildirimi görünmez.
+  @visibleForTesting
+  static bool belongsToCenter(Map<String, dynamic> n, {required bool social}) {
+    final scope = n['scope'];
+    final isSocial = scope is String
+        ? scope.toUpperCase() == 'SOCIAL'
+        : notificationCategory({
+              ..._decodeData(n),
+              'type': n['type'],
+              if (n['subtype'] != null) 'subtype': n['subtype'],
+              if (n['category'] != null) 'category': n['category'],
+            }) ==
+            NotificationCategory.social;
+    return isSocial == social;
+  }
+
+  static Map<String, dynamic> _decodeData(Map<String, dynamic> n) {
+    final d = n['data'];
+    try {
+      if (d is String && d.isNotEmpty) {
+        final m = jsonDecode(d);
+        if (m is Map) return m.cast<String, dynamic>();
+      } else if (d is Map) {
+        return d.cast<String, dynamic>();
+      }
+    } catch (_) {}
+    return {};
+  }
 
   String _listPath({int? cursor}) {
     final query = <String, String>{
       if (cursor != null) 'cursor': cursor.toString(),
-      if (_category != null) 'category': _category!.name.toUpperCase(),
+      // Kapsam sunucuda uygulanır (sayfalama bozulmaz); istemci ayrıca savunma amaçlı süzer.
+      'scope': widget.socialOnly ? 'SOCIAL' : 'INFORMATION',
+      if (!widget.socialOnly && bellCategoryParam(_bell) != null) 'category': bellCategoryParam(_bell)!,
+      if (widget.socialOnly && heartKindParam(_heart) != null) 'kind': heartKindParam(_heart)!,
       if (_unreadOnly) 'unread': 'true',
     };
     return Uri(
@@ -136,28 +191,63 @@ class _NotificationsPageState extends State<NotificationsPage> {
         .toString();
   }
 
+  /// Zil süzgecinin sunucu `category` değeri (Duyurular = duyuru + akademik + anket + kulüp duyurusu).
+  @visibleForTesting
+  static String? bellCategoryParam(NotifBellFilter f) => switch (f) {
+        NotifBellFilter.events => 'EVENT',
+        NotifBellFilter.announcements => 'ANNOUNCEMENT,ACADEMIC,POLL',
+        NotifBellFilter.system => 'SYSTEM',
+        _ => null,
+      };
+
+  /// Kalp süzgecinin sunucu `kind` değeri.
+  @visibleForTesting
+  static String? heartKindParam(NotifHeartFilter f) => switch (f) {
+        NotifHeartFilter.likes => 'LIKES',
+        NotifHeartFilter.comments => 'COMMENTS',
+        NotifHeartFilter.follows => 'FOLLOWS',
+        _ => null,
+      };
+
+  void _reset() {
+    _items.clear();
+    _cursor = null;
+    _more = false;
+    _error = null;
+  }
+
   void _selectUnread(bool unread) {
     if (_unreadOnly == unread) return;
     setState(() {
       _unreadOnly = unread;
-      _items.clear();
-      _cursor = null;
-      _more = false;
-      _error = null;
+      _reset();
     });
     _load();
   }
 
-  void _selectCategory(NotificationCategory? category) {
-    if (_category == category) return;
+  void _selectBell(NotifBellFilter f) {
+    if (_bell == f) return;
     setState(() {
-      _category = category;
-      _items.clear();
-      _cursor = null;
-      _more = false;
-      _error = null;
+      _bell = f;
+      _reset();
     });
     _load();
+  }
+
+  void _selectHeart(NotifHeartFilter f) {
+    if (_heart == f) return;
+    setState(() {
+      _heart = f;
+      _reset();
+    });
+    _load();
+  }
+
+  ValueNotifier<int> get _centerBadge => widget.socialOnly ? _s.badges.social : _s.badges.notifications;
+
+  void _decBadge() {
+    final cur = _centerBadge.value;
+    _centerBadge.value = cur > 0 ? cur - 1 : 0;
   }
 
   Map<String, dynamic> _presentationData(Map<String, dynamic> n) => {
@@ -176,27 +266,16 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   Future<void> _markAll() async {
     try {
-      final unreadIds = [
-        for (final n in _items)
-          if (n['read'] != true) n['id']
-      ];
-      // Kalp ekranında yalnız görünen sosyal bildirimler okundu olur; zil sayacı kalanı gösterir.
-      if (widget.socialOnly) {
-        if (unreadIds.isNotEmpty) {
-          await _s.api.post('/notifications/read', {'ids': unreadIds});
-        }
-      } else {
-        await _s.api.post('/notifications/read', {'all': true});
-      }
+      // "Tümünü okundu yap" YALNIZ bu merkezin kategorisini okundu yapar (sunucuda scope ile); diğer merkez etkilenmez.
+      await _s.api.post('/notifications/read', {'all': true, 'scope': widget.socialOnly ? 'SOCIAL' : 'INFORMATION'});
       if (!mounted) return;
       setState(() {
         for (final n in _items) {
           n['read'] = true;
         }
       });
-      final cur = _s.badges.notifications.value;
-      _s.badges.notifications.value =
-          widget.socialOnly ? (cur - unreadIds.length).clamp(0, cur) : 0;
+      _centerBadge.value = 0;
+      unawaited(refreshNotificationCounts(_s));
     } catch (e) {
       if (mounted) _snack(errorText(e));
     }
@@ -205,8 +284,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   Future<void> _markOne(Map<String, dynamic> n) async {
     if (n['read'] == true) return;
     setState(() => n['read'] = true);
-    final cur = _s.badges.notifications.value;
-    _s.badges.notifications.value = cur > 0 ? cur - 1 : 0;
+    _decBadge();
     try {
       await _s.api.post('/notifications/read', {
         'ids': [n['id']],
@@ -216,18 +294,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     }
   }
 
-  Map<String, dynamic> _data(Map<String, dynamic> n) {
-    final d = n['data'];
-    try {
-      if (d is String && d.isNotEmpty) {
-        final m = jsonDecode(d);
-        if (m is Map) return m.cast<String, dynamic>();
-      } else if (d is Map) {
-        return d.cast<String, dynamic>();
-      }
-    } catch (_) {}
-    return {};
-  }
+  Map<String, dynamic> _data(Map<String, dynamic> n) => _decodeData(n);
 
   Future<void> _open(Map<String, dynamic> n) async {
     Analytics.instance.action('notif_open');
@@ -357,10 +424,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   Future<void> _delete(Map<String, dynamic> n) async {
     final wasUnread = n['read'] != true;
     setState(() => _items.remove(n));
-    if (wasUnread) {
-      final cur = _s.badges.notifications.value;
-      _s.badges.notifications.value = cur > 0 ? cur - 1 : 0;
-    }
+    if (wasUnread) _decBadge();
     try {
       await _s.api.delete('/notifications/${n['id']}');
     } catch (e) {
@@ -384,6 +448,35 @@ class _NotificationsPageState extends State<NotificationsPage> {
       setState(() => n['actionResolved'] = true);
       await _markOne(n);
       if (mounted) setState(() => _reqRefresh++);
+    } catch (e) {
+      if (mounted) _snack(errorText(e));
+    } finally {
+      _acting.remove(n['id']);
+      if (mounted) setState(() {});
+    }
+  }
+
+  /// Kulüp üyelik başvurusu Onayla/Reddet: GERÇEK backend işlemi (yetki sunucuda: MANAGE_MEMBERS). Başvuru artık
+  /// beklemiyorsa (404) ya da yetki yoksa (403) dürüst mesaj gösterilir ve düğmeler kapanır.
+  Future<void> _decideMember(Map<String, dynamic> n, int communityId, int userId, bool approve) async {
+    if (!_acting.add(n['id'])) return;
+    setState(() {});
+    try {
+      await _s.api.post('/communities/$communityId/requests/$userId/${approve ? 'approve' : 'reject'}');
+      if (!mounted) return;
+      setState(() => n['actionResolved'] = true);
+      await _markOne(n);
+      unawaited(refreshNotificationCounts(_s));
+    } on ApiError catch (e) {
+      if (!mounted) return;
+      if (e.status == 404 || e.status == 403 || e.status == 409) {
+        setState(() => n['actionResolved'] = true);
+        _snack(e.status == 404 ? context.l10n.activityRequestStale : errorText(e));
+        await _markOne(n);
+        unawaited(refreshNotificationCounts(_s));
+      } else {
+        _snack(errorText(e));
+      }
     } catch (e) {
       if (mounted) _snack(errorText(e));
     } finally {
@@ -420,54 +513,57 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
 
   void _resetFilters() {
-    final base = widget.socialOnly ? NotificationCategory.social : null;
-    if (_category == base && !_unreadOnly) return;
+    if (_bell == NotifBellFilter.all && _heart == NotifHeartFilter.all && !_unreadOnly) return;
     setState(() {
-      _category = base;
+      _bell = NotifBellFilter.all;
+      _heart = NotifHeartFilter.all;
       _unreadOnly = false;
-      _items.clear();
-      _cursor = null;
-      _more = false;
-      _error = null;
+      _reset();
     });
     _load();
   }
 
-  Widget _categories() => SizedBox(
-        height: 56,
-        child: ListView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          children: [
-            Padding(
-                padding: const EdgeInsetsDirectional.only(end: 8),
-                child: _NotifFilterChip(
-                    key: const ValueKey('notif-seg-all'),
-                    label: context.l10n.bildirimFilterAll,
-                    selected: (widget.socialOnly
-                            ? _category == NotificationCategory.social
-                            : _category == null) &&
-                        !_unreadOnly,
-                    onTap: _resetFilters)),
-            Padding(
-                padding: const EdgeInsetsDirectional.only(end: 8),
-                child: _NotifFilterChip(
-                    key: const ValueKey('notif-seg-unread'),
-                    label: context.l10n.bildirimFilterUnread,
-                    selected: _unreadOnly,
-                    onTap: () => _selectUnread(!_unreadOnly))),
-            if (!widget.socialOnly)
-              for (final category in NotificationCategory.values)
-              Padding(
-                  padding: const EdgeInsetsDirectional.only(end: 8),
-                  child: _NotifFilterChip(
-                      key: ValueKey('notif-category-${category.name}'),
-                      label: notificationCategoryLabel(context, category),
-                      selected: _category == category,
-                      onTap: () => _selectCategory(category))),
+  Widget _chip(String key, String label, bool selected, VoidCallback onTap) => Padding(
+      padding: const EdgeInsetsDirectional.only(end: 8),
+      child: _NotifFilterChip(key: ValueKey(key), label: label, selected: selected, onTap: onTap));
+
+  /// Zil: Tümü, Okunmamış, Etkinlikler, Duyurular, Sistem. Kalp: Tümü, Beğeniler, Yorumlar, Takip ve İstekler.
+  Widget _categories() {
+    final l = context.l10n;
+    final social = widget.socialOnly;
+    return SizedBox(
+      height: 56,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        children: [
+          _chip(
+              'notif-seg-all',
+              l.bildirimFilterAll,
+              social
+                  ? _heart == NotifHeartFilter.all
+                  : (_bell == NotifBellFilter.all && !_unreadOnly),
+              _resetFilters),
+          if (social) ...[
+            _chip('activity-filter-likes', l.activityFilterLikes, _heart == NotifHeartFilter.likes,
+                () => _selectHeart(NotifHeartFilter.likes)),
+            _chip('activity-filter-comments', l.activityFilterComments, _heart == NotifHeartFilter.comments,
+                () => _selectHeart(NotifHeartFilter.comments)),
+            _chip('activity-filter-follows', l.activityFilterFollows, _heart == NotifHeartFilter.follows,
+                () => _selectHeart(NotifHeartFilter.follows)),
+          ] else ...[
+            _chip('notif-seg-unread', l.bildirimFilterUnread, _unreadOnly, () => _selectUnread(!_unreadOnly)),
+            _chip('notif-category-event', l.notifFilterEvents, _bell == NotifBellFilter.events,
+                () => _selectBell(NotifBellFilter.events)),
+            _chip('notif-category-announcement', l.notifFilterAnnouncements, _bell == NotifBellFilter.announcements,
+                () => _selectBell(NotifBellFilter.announcements)),
+            _chip('notif-category-system', l.notifFilterSystem, _bell == NotifBellFilter.system,
+                () => _selectBell(NotifBellFilter.system)),
           ],
-        ),
-      );
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -476,9 +572,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     // "N Yeni" rozeti solda, "Tümünü okundu yap" sağda (tasarım 08); dar ekran / büyük yazıda metin 2 satıra iner.
     final bigText = MediaQuery.textScalerOf(context).scale(10) > 11.5 ||
         MediaQuery.sizeOf(context).width < 380;
-    final newCount = _s.badges.notifications.value > 0
-        ? _s.badges.notifications.value
-        : _unread;
+    final newCount = _centerBadge.value > 0 ? _centerBadge.value : _unread;
     final pill = newCount > 0
         ? Row(children: [
             Container(
@@ -675,7 +769,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
             padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 0),
             child: pill,
           ),
-        FollowRequestsEntry(session: _s, refresh: _reqRefresh),
+        // "Takip istekleri (n)" yalnız Hareketler'de (kalp); zilde yok.
+        if (widget.socialOnly) FollowRequestsEntry(session: _s, refresh: _reqRefresh),
         _categories(),
         Expanded(child: body),
       ]),
@@ -690,7 +785,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     final category = notificationCategory(data);
     final style = pushCardStyle(data);
     final person =
-        style.startsWith('FOLLOW') || style == 'SOCIAL' || style == 'LIKE' || style == 'MENTION';
+        style.startsWith('FOLLOW') || style == 'CLUB_JOIN_REQUEST' || style == 'SOCIAL' || style == 'LIKE' || style == 'MENTION';
     final avatarUrl = pushImageUrl(
         (n['actorAvatarUrl'] ?? data['senderAvatarUrl']) as String?);
     final title = (n['title'] as String?) ?? '';
@@ -712,6 +807,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
                       type == 'FOLLOW_REQUEST' &&
                           requester != null &&
                           requester > 0,
+                    'member_approve' || 'member_reject' =>
+                      requester != null &&
+                          requester > 0 &&
+                          int.tryParse('${data['communityId'] ?? ''}') != null,
                     'follow' => requester != null && requester > 0,
                     'calendar' || 'map' =>
                       destination == PushDest.event &&
@@ -776,6 +875,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   : switch (a) {
                       'follow_accept' => () => _decide(n, requester!, true),
                       'follow_decline' => () => _decide(n, requester!, false),
+                      'member_approve' => () => _decideMember(
+                          n, int.parse('${data['communityId']}'), requester!, true),
+                      'member_reject' => () => _decideMember(
+                          n, int.parse('${data['communityId']}'), requester!, false),
                       _ => () => _run(n, a),
                     },
             ),
