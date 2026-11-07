@@ -117,6 +117,7 @@ class ExtraExportersTest {
 
     /** tablo -> disa aktarim bolumu (bolum adi kaynak kodda DataExporter.of("...") ile aranir). */
     private static final Map<String, String> TABLE_TO_SECTION = Map.ofEntries(
+            Map.entry("live_activity", "liveActivities"),
             Map.entry("device", "devices"),
             Map.entry("post_mention", "postMentions"),
             Map.entry("user_device_log", "accessHistory"),
