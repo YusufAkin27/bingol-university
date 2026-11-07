@@ -158,7 +158,7 @@ class UserReelsTest {
     }
 
     @Test
-    void lockedPrivateProfileHidesCounts() {
+    void lockedPrivateProfileShowsPostCountOnly() {
         User author = user("gizli");
         User viewer = user("izleyen");
         photo(author);
@@ -166,8 +166,10 @@ class UserReelsTest {
 
         PublicProfile pp = profiles.publicProfile(viewer.getId(), author.getId());
         assertEquals(Boolean.TRUE, pp.locked());
-        assertNull(pp.postCount());
-        assertNull(pp.reelCount());
+        assertEquals(1, pp.postCount(), "gonderi SAYISI gizli hesapta herkese acik");
+        assertNull(pp.reelCount(), "reels sayisi kapali");
+        assertNull(pp.popularityScore());
+        assertNull(pp.likesReceived());
         // sahibi kendi sayaclarini gorur
         assertEquals(1, profiles.publicProfile(author.getId(), author.getId()).postCount());
     }

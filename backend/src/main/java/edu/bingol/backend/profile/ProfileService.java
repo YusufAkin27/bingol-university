@@ -145,8 +145,19 @@ public class ProfileService {
     }
 
     private PublicProfile withPopularity(PublicProfile p, Long targetId) {
-        if (popularity == null || Boolean.TRUE.equals(p.locked())) {
-            return p; // kilitli (gizli) hesapta sayaclar gibi populerlik de gizli
+        if (Boolean.TRUE.equals(p.locked())) {
+            // Kilitli (gizli) hesapta yalniz GONDERI SAYISI acik; puan/begeni toplami gizli kalir
+            if (postCounts == null) {
+                return p;
+            }
+            try {
+                return p.withPostCount((int) Math.min(Integer.MAX_VALUE, postCounts.counts(targetId).postCount()));
+            } catch (RuntimeException e) {
+                return p;
+            }
+        }
+        if (popularity == null) {
+            return p;
         }
         try {
             edu.bingol.backend.post.popularity.UserPopularityService.Snapshot s = popularity.of(targetId);

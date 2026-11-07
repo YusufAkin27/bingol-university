@@ -162,7 +162,7 @@ public class FollowService {
         if (gate != null && requests != null && gate.isPrivate(target)
                 && !follows.existsById(new edu.bingol.backend.post.social.PairId(me, target))) {
             requests.request(me, target);
-            return new FollowResult(false, 0, PrivateAccountGate.REQUESTED);
+            return new FollowResult(false, followerCount(target), PrivateAccountGate.REQUESTED);
         }
         if (writer.create(me, target)) {
             if (requests != null) {
@@ -188,9 +188,8 @@ public class FollowService {
         if (requests != null) {
             requests.withdraw(me, target);
         }
-        // Gizli hesapta artik takipci degil: sayac sizdirilmaz
-        long count = gate != null && gate.isPrivate(target) && !me.equals(target) ? 0 : followerCount(target);
-        return new FollowResult(false, count);
+        // Sayaclar gizli hesapta da herkese aciktir (yalniz listeler ve icerik kapali)
+        return new FollowResult(false, followerCount(target));
     }
 
     // ---------------------------------------------------------------- sayaclar

@@ -103,6 +103,13 @@ public final class ProfileDtos {
                     score, likes, posts, reelCount);
         }
 
+        /** Yalniz gonderi sayisi (kilitli gizli hesap: puan ve alinan begeni toplami eklenmez). */
+        public PublicProfile withPostCount(int posts) {
+            return new PublicProfile(id, displayName, faculty, department, classYear, bio, avatarUrl, email,
+                    followerCount, followingCount, followedByMe, followsMe, blockedByMe, isPrivate, followState, locked,
+                    popularityScore, likesReceived, posts, reelCount);
+        }
+
         /** Reels (video gonderi) sayisi (KS-BE2; gizli/kilitli hesapta cagrilmaz = alan yok). */
         public PublicProfile withReelCount(long reels) {
             return new PublicProfile(id, displayName, faculty, department, classYear, bio, avatarUrl, email,
@@ -123,11 +130,11 @@ public final class ProfileDtos {
 
         /**
          * Gizli hesap iliskisi: isPrivate, followState (NONE | REQUESTED | FOLLOWING | SELF), locked (gizli ve bakan
-         * sahibi/kabul edilmis takipcisi degil). locked iken takipci/takip sayaclari gizlenir (null).
+         * sahibi/kabul edilmis takipcisi degil). takipci/takip sayaclari locked iken de korunur (gizli hesapta sayilar herkese acik; listeler/icerik kapali).
          */
         public PublicProfile withRelation(boolean isPrivate, String followState, boolean locked) {
             return new PublicProfile(id, displayName, faculty, department, classYear, bio, avatarUrl, email,
-                    locked ? null : followerCount, locked ? null : followingCount, followedByMe, followsMe,
+                    followerCount, followingCount, followedByMe, followsMe,
                     blockedByMe, isPrivate, followState, locked, popularityScore, likesReceived, postCount, reelCount);
         }
 

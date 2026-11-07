@@ -163,7 +163,7 @@ class FollowRequestFlowTest {
         FollowService.FollowResult r = follow.follow(a.getId(), t.getId());
         assertFalse(r.following());
         assertEquals("REQUESTED", r.followState());
-        assertEquals(0, r.followerCount(), "gizli hesapta sayac sizdirilmaz");
+        assertEquals(0, r.followerCount(), "istek takipci sayilmaz (henuz kabul yok)");
         assertEquals(0, followRows(a.getId(), t.getId()), "gercek takip YOK");
         assertEquals(1, requestRows(a.getId(), t.getId()));
 
@@ -411,14 +411,20 @@ class FollowRequestFlowTest {
         follow.follow(requester.getId(), t.getId());
         follow.follow(follower.getId(), t.getId());
         requests.accept(t.getId(), follower.getId());
+        photoPost(t, "gizli gonderi");
 
         PublicProfile asStranger = profiles.publicProfile(stranger.getId(), t.getId());
         assertEquals(Boolean.TRUE, asStranger.isPrivate());
         assertEquals(Boolean.TRUE, asStranger.locked());
         assertEquals("NONE", asStranger.followState());
         assertEquals(t.getDisplayName(), asStranger.displayName(), "profil kabugu gorunur");
-        assertNull(asStranger.followerCount(), "kilitliyken sayaclar gizli");
-        assertNull(asStranger.followingCount());
+        // Gizli hesapta SAYILAR herkese acik (takipci, takip edilen, gonderi); liste/icerik/puan kapali
+        assertEquals(1L, asStranger.followerCount(), "kilitliyken takipci sayisi gorunur");
+        assertEquals(0L, asStranger.followingCount(), "kilitliyken takip edilen sayisi gorunur");
+        assertEquals(1, asStranger.postCount(), "kilitliyken gonderi sayisi gorunur");
+        assertNull(asStranger.popularityScore(), "puan gizli");
+        assertNull(asStranger.likesReceived(), "alinan begeni toplami gizli");
+        assertNull(asStranger.reelCount());
 
         PublicProfile asRequester = profiles.publicProfile(requester.getId(), t.getId());
         assertEquals("REQUESTED", asRequester.followState());
