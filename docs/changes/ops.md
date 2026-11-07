@@ -308,3 +308,27 @@ Kaynak: backend incelemesi A10 (`#2,#3,#6,#11,#12,#14,#15,#17,#18`). **Migration
 - **Geriye uyumluluk icin geri alinanlar:** `ReceiptPolicy` varsayilan eski davranis (`app.chat.receipts-max-members=0`, `app.chat.receipts-rooms=true`); oda gonderim siniri 120 -> 600/dk; etkinlik acma sinirlari varsayilan 0 (`AdmissionSettings`); menu "yakalama" cron'u varsayilan kapali (`menu.catchup.cron=-`, CLAUDE.md scraping kurali).
 - **Web:** `NewsListPage` `MIN_QUERY` 2 -> 3 (sunucu K19), ipucu metinleri tr/en/ar.
 - **Canlıya alırken:** (1) V1090 `message` tablosunda normal `CREATE INDEX` (yazmaları kilitler); büyük tabloda önce elle `CREATE INDEX CONCURRENTLY chat1090_unread_cover ...` kurup Flyway'e bırakın (aynı ad, bkz. migration yorumu). V1092 yalnız `body` kolonu varsa kurulur. V1140 `app_user` üzerinde tek `UPDATE` (önce `SELECT count(*) FROM app_user WHERE grade IS NULL AND class_year BETWEEN 0 AND 6` ile sayın). V1120-V1123 gönderi/medya indeksleri (tablolar küçük-orta, kısa). Canlıdaki en büyük sürüm V1040: sırayla V1050, V1060, V1090... uygulanır, `out-of-order` gerekmez. (2) Yeni ortam değişkeni ZORUNLU değil; isteğe bağlı: `MENU_CATCHUP_CRON`, `APP_CHAT_RECEIPTS_MAX_MEMBERS`/`APP_CHAT_RECEIPTS_ROOMS` (eski sürümler elendikten sonra), `SCHEDULING_SINGLE_INSTANCE`, `REDIS_PASSWORD`. (3) Geri alma: dal birleşimi geri alınabilir ama V1090+ migration'lar şemada kalır (yalnız indeks/sütun eklemeleri ve `grade` doldurma; eski kod bunlarla uyumlu). `push_campaign.last_user_id/last_progress_at` ve `mail_outbox.campaign_id` eski kodda kullanılmaz.
+
+## Yazma akisi olcumleri ve kalici Idempotency-Key (B3/B4/B9/B10, 2026-11-07)
+
+**Olcumler (Micrometer, `WriteMetrics`)**: tek zamanlayici `bu.write` (etiketler `op`, `outcome`=`ok|error`); islem sayisi
+zamanlayicinin `count`'udur (Prometheus: `bu_write_seconds_count/_sum/_max`). `op` degerleri: `post.create`,
+`forum.topic.create`, `event.create`, `event.rsvp`, `poll.vote`. Olcum yazma akisini bozmaz; kayit defteri yoksa is aynen
+calisir. Yeni kritik yazma = denetleyicide `WriteMetrics.of(metrics, "<alan>.<islem>", () -> ...)` ve bu listeye satir.
+
+**Kalici Idempotency-Key (V1610 `idempotency_record`)**: `POST /api/events`, `POST /api/communities`,
+`POST /api/communities/{id}/posts`, `POST /api/polls`, `POST /api/support/tickets` (kimlikli). Baslik `Idempotency-Key`
+(8-64 karakter, harf/rakam/`-`/`_`; bicimsiz 400 `IDEMPOTENCY_KEY_INVALID`). Ayni (kullanici, kapsam, anahtar) ikinci kez
+gelirse kayit tekrar OLUSMAZ, ilk kaydin guncel gorunumu doner ve hiz sinirina sayilmaz. Defter satiri kaynakla AYNI islemde
+yazilir (es zamanli cift gonderim benzersiz ihlaliyle geri alinir, kazanan doner). Baslik yoksa eski davranis. Saklama 7 gun
+(`IdempotentCreate.cleanup`, 03:40). Gonderi (`POST /api/posts`) ve forum konusu kendi `idempotency_key` sutununu kullanmaya
+devam eder. Admin uclari ve `POST /api/support/tickets` icin ayrica kisa omurlu (60 sn) Redis `IdempotencyFilter` korumasi surer.
+
+**KVKK (B3)**: kulup/etkinlik sohbet odalarindaki kendi mesajlar zaten `sentMessages` icinde (odalar GROUP konusmasi);
+yeni `chatRooms` bolumu odanin kaynagini (kulup/etkinlik kimligi) ekler. Forum susturma/engelleme `forum` bolumunde, "ilgilenmiyorum"
+`reelWatchHistory.notInterested` icinde zaten vardi. Crash raporlari (V860) kullaniciya baglanmadigi icin muaf (gerekce:
+`ExtraExportersTest.EXEMPT`). `idempotency_record` hesap silmede temizlenir, disa aktarimda muaf (yalniz kimlik).
+
+**Yuk notlari (B10)**: `CommunityCategoryService.version()` (`findAll`) kisa katmanda onbellekli ve tablo yoneticiyle sinirli; buyuk/kucuk
+harf aramasi `findFirstByKeyIgnoreCase` ile tek satir. Herkese acik GET'ler (`/api/app/info`, `/api/app/version`, `/api/status`,
+`/api/faq`, `/api/catalog/*`) sunucu onbellegi arkasindadir; kampus NAT'inda yanlis engel olmasin diye IP basina ek limit konmadi.
