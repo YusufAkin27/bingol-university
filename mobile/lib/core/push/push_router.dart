@@ -225,7 +225,7 @@ class PushRouter {
         return true;
       case PushDest.post:
         // Push/derin bağlantı: gönderi ilk sırada, altında akış sürer (alınamazsa yalnız o gönderi).
-        await openPostDetail(ctx, s, id!, stream: const PostStreamSeed.fresh());
+        await openPostDetail(ctx, s, id!, stream: const PostStreamSeed.fresh(), openCommentId: t.commentId);
         return true;
       case PushDest.poll:
         showModalBottomSheet<void>(

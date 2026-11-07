@@ -254,7 +254,7 @@ class Post {
   /// Yalnız video gönderide: izlenme sayısı (yoksa null).
   final int? viewCount;
 
-  /// Yorum sayısı: yalnız sunucu yorum özelliğini sunuyorsa gelir (yoksa null: yorum düğmesi gizlenir).
+  /// Yorum sayısı (sunucuda `commentCount`; alan yoksa null, arayüz 0 sayar).
   final int? commentCount;
 
   /// Kaydetme durumu: yalnız sunucu kaydetmeyi sunuyorsa gelir (yoksa null: kaydet düğmesi gizlenir).

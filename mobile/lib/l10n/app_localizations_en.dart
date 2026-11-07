@@ -13814,4 +13814,96 @@ class AppLocalizationsEn extends AppLocalizations {
   String chatStatusSeenAt(String when) {
     return 'Seen · $when';
   }
+
+  @override
+  String get pcmWriteHint => 'Add a comment…';
+
+  @override
+  String get pcmEmptyTitle => 'Be the first to comment';
+
+  @override
+  String get pcmEmptyBody => 'Share your thoughts and start the conversation.';
+
+  @override
+  String pcmReplyingTo(String name) {
+    return 'Replying to $name';
+  }
+
+  @override
+  String get pcmHideReplies => 'Hide replies';
+
+  @override
+  String get pcmSendFailed => 'Couldn\'t send';
+
+  @override
+  String get pcmRetry => 'Try again';
+
+  @override
+  String get pcmSending => 'Sending…';
+
+  @override
+  String get pcmDeleted => 'This comment was deleted';
+
+  @override
+  String get pcmMenuDelete => 'Delete';
+
+  @override
+  String get pcmMenuReport => 'Report';
+
+  @override
+  String get pcmMenuCopy => 'Copy text';
+
+  @override
+  String get pcmCopied => 'Copied';
+
+  @override
+  String get pcmMoreActions => 'Comment options';
+
+  @override
+  String get pcmLikeA11y => 'Like comment';
+
+  @override
+  String get pcmUnlikeA11y => 'Unlike comment';
+
+  @override
+  String pcmLikeCountA11y(String count) {
+    return '$count likes';
+  }
+
+  @override
+  String pcmCommentCountA11y(String count) {
+    return '$count comments';
+  }
+
+  @override
+  String pcmViewAll(String count) {
+    return 'View all $count comments';
+  }
+
+  @override
+  String get pcmViewAllPlain => 'View comments';
+
+  @override
+  String get pcmErrTooLong => 'A comment can be at most 500 characters.';
+
+  @override
+  String get pcmErrPostGone => 'This post is no longer available.';
+
+  @override
+  String get pcmErrParent => 'The comment you replied to no longer exists.';
+
+  @override
+  String get pcmErrRate =>
+      'You\'re commenting too fast. Try again in a moment.';
+
+  @override
+  String get pcmMoreReplies => 'More replies';
+
+  @override
+  String get pcmSortLabel => 'Sort';
+
+  @override
+  String pcmCharsLeft(String n) {
+    return '$n characters left';
+  }
 }

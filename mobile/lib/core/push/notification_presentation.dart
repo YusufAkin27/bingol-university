@@ -38,6 +38,7 @@ NotificationCategory notificationCategory(Map<String, dynamic> data) {
   if (isForumPush(data)) return NotificationCategory.social;
   if (type.startsWith('POST_') ||
       type == 'COMMENT_REPLY' ||
+      type == 'COMMENT_LIKE' ||
       type == 'USER_FOLLOW' ||
       type.startsWith('FOLLOW') ||
       target == PushDest.user ||
@@ -70,7 +71,8 @@ IconData notificationIcon(Map<String, dynamic> data) {
   if (dest == PushDest.ticket || dest == PushDest.feedback) {
     return BuIcons.headset;
   }
-  if (type == 'POST_LIKE') return BuIcons.heart;
+  if (type == 'POST_LIKE' || type == 'COMMENT_LIKE') return BuIcons.heart;
+  if (type == 'POST_COMMENT' || type == 'COMMENT_REPLY') return BuIcons.messageCircle;
   if (type == 'POST_MENTION') return BuIcons.atSign;
   if (type == 'FOLLOW_REQUEST' || type == 'USER_FOLLOW') {
     return BuIcons.userPlus;

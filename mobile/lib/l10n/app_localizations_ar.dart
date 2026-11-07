@@ -13708,4 +13708,95 @@ class AppLocalizationsAr extends AppLocalizations {
   String chatStatusSeenAt(String when) {
     return 'تمت المشاهدة · $when';
   }
+
+  @override
+  String get pcmWriteHint => 'أضف تعليقًا…';
+
+  @override
+  String get pcmEmptyTitle => 'كن أول من يعلّق';
+
+  @override
+  String get pcmEmptyBody => 'شارك رأيك وابدأ النقاش.';
+
+  @override
+  String pcmReplyingTo(String name) {
+    return 'الرد على $name';
+  }
+
+  @override
+  String get pcmHideReplies => 'إخفاء الردود';
+
+  @override
+  String get pcmSendFailed => 'تعذّر الإرسال';
+
+  @override
+  String get pcmRetry => 'أعد المحاولة';
+
+  @override
+  String get pcmSending => 'جارٍ الإرسال…';
+
+  @override
+  String get pcmDeleted => 'تم حذف هذا التعليق';
+
+  @override
+  String get pcmMenuDelete => 'حذف';
+
+  @override
+  String get pcmMenuReport => 'إبلاغ';
+
+  @override
+  String get pcmMenuCopy => 'نسخ النص';
+
+  @override
+  String get pcmCopied => 'تم النسخ';
+
+  @override
+  String get pcmMoreActions => 'خيارات التعليق';
+
+  @override
+  String get pcmLikeA11y => 'الإعجاب بالتعليق';
+
+  @override
+  String get pcmUnlikeA11y => 'إلغاء الإعجاب بالتعليق';
+
+  @override
+  String pcmLikeCountA11y(String count) {
+    return '$count إعجاب';
+  }
+
+  @override
+  String pcmCommentCountA11y(String count) {
+    return '$count تعليق';
+  }
+
+  @override
+  String pcmViewAll(String count) {
+    return 'عرض كل التعليقات ($count)';
+  }
+
+  @override
+  String get pcmViewAllPlain => 'عرض التعليقات';
+
+  @override
+  String get pcmErrTooLong => 'الحد الأقصى للتعليق 500 حرف.';
+
+  @override
+  String get pcmErrPostGone => 'هذا المنشور لم يعد متاحًا.';
+
+  @override
+  String get pcmErrParent => 'التعليق الذي رددت عليه لم يعد موجودًا.';
+
+  @override
+  String get pcmErrRate => 'تعلّق بسرعة كبيرة. حاول بعد قليل.';
+
+  @override
+  String get pcmMoreReplies => 'المزيد من الردود';
+
+  @override
+  String get pcmSortLabel => 'ترتيب';
+
+  @override
+  String pcmCharsLeft(String n) {
+    return 'تبقّى $n حرفًا';
+  }
 }

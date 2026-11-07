@@ -138,6 +138,7 @@ PushDest? _destOf(String t) {
       return PushDest.news;
     case 'COMMENT':
     case 'COMMENT_REPLY':
+    case 'COMMENT_LIKE':
     case 'FEED_POST':
     case 'FEED_COMMENT':
       return PushDest.post;
@@ -252,6 +253,8 @@ PushTarget resolvePushTarget(Map<String, dynamic>? data) {
       case PushDest.followRequests:
         return PushTarget(dest); // kimlik yok: istekler ekranı
       case PushDest.post:
+        // Yorum hedefi (COMMENT*) gönderi kimliği (postId) taşımıyorsa `value` yorum kimliğidir: gönderi açılamaz.
+        if (target.contains('COMMENT')) break;
         if (value != null)
           return PushTarget(dest, id: value, commentId: commentId);
       default:

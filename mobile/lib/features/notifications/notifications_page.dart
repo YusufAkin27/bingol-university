@@ -386,6 +386,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       case 'POST_MENTION':
       case 'POST_COMMENT':
       case 'COMMENT_REPLY':
+      case 'COMMENT_LIKE':
         return l.bildirimTypePost;
       case 'USER_FOLLOW':
       case 'FOLLOW':

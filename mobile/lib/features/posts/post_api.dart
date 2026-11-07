@@ -7,7 +7,8 @@ import 'post_models.dart';
 /// Gönderi uçları (1..10 fotoğraf ya da 1 video + kısa metin + beğeni). Tek HTTP katmanı `session.api`; GET'ler her istekte
 /// sunucuya doğrulatılır (ETag/If-None-Match). Hatalar `ApiError` olarak fırlar.
 /// Fotoğraf yükleme (`POST /posts/media`) `post_media_uploader.dart` içindedir.
-/// Kaldırılan uçlar (yorum, kaydetme, etiket, hikâye) sunucuda 410 `FEATURE_REMOVED` döner; çağrılmaz.
+/// Yorum uçları `comments/comments_api.dart` içindedir (2026-11-07 kullanıcı kararıyla yorum geri geldi).
+/// Kaldırılan uçlar (kaydetme, etiket, hikâye) sunucuda 410 `FEATURE_REMOVED` döner; çağrılmaz.
 Map<String, dynamic>? _m(Object? v) => v is Map ? Map<String, dynamic>.from(v) : null;
 
 class PostApi {

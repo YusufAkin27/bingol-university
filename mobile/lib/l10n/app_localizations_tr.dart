@@ -13760,4 +13760,96 @@ class AppLocalizationsTr extends AppLocalizations {
   String chatStatusSeenAt(String when) {
     return 'Görüldü · $when';
   }
+
+  @override
+  String get pcmWriteHint => 'Yorum ekle…';
+
+  @override
+  String get pcmEmptyTitle => 'İlk yorumu sen yaz';
+
+  @override
+  String get pcmEmptyBody => 'Düşüncelerini paylaş, sohbeti başlat.';
+
+  @override
+  String pcmReplyingTo(String name) {
+    return '$name kişisine yanıt veriliyor';
+  }
+
+  @override
+  String get pcmHideReplies => 'Yanıtları gizle';
+
+  @override
+  String get pcmSendFailed => 'Gönderilemedi';
+
+  @override
+  String get pcmRetry => 'Yeniden dene';
+
+  @override
+  String get pcmSending => 'Gönderiliyor…';
+
+  @override
+  String get pcmDeleted => 'Bu yorum silindi';
+
+  @override
+  String get pcmMenuDelete => 'Sil';
+
+  @override
+  String get pcmMenuReport => 'Şikayet et';
+
+  @override
+  String get pcmMenuCopy => 'Metni kopyala';
+
+  @override
+  String get pcmCopied => 'Kopyalandı';
+
+  @override
+  String get pcmMoreActions => 'Yorum seçenekleri';
+
+  @override
+  String get pcmLikeA11y => 'Yorumu beğen';
+
+  @override
+  String get pcmUnlikeA11y => 'Beğenmekten vazgeç';
+
+  @override
+  String pcmLikeCountA11y(String count) {
+    return '$count beğeni';
+  }
+
+  @override
+  String pcmCommentCountA11y(String count) {
+    return '$count yorum';
+  }
+
+  @override
+  String pcmViewAll(String count) {
+    return '$count yorumun tümünü gör';
+  }
+
+  @override
+  String get pcmViewAllPlain => 'Yorumları gör';
+
+  @override
+  String get pcmErrTooLong => 'Yorum en çok 500 karakter olabilir.';
+
+  @override
+  String get pcmErrPostGone => 'Bu gönderi artık yok.';
+
+  @override
+  String get pcmErrParent => 'Yanıtladığın yorum artık yok.';
+
+  @override
+  String get pcmErrRate =>
+      'Çok hızlı yorum yapıyorsun. Biraz sonra tekrar dene.';
+
+  @override
+  String get pcmMoreReplies => 'Daha fazla yanıt';
+
+  @override
+  String get pcmSortLabel => 'Sırala';
+
+  @override
+  String pcmCharsLeft(String n) {
+    return '$n karakter kaldı';
+  }
 }

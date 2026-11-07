@@ -5,6 +5,7 @@ import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../../widgets/pinch_zoomable.dart';
+import 'comments/comment_button.dart';
 import 'like_button.dart';
 import 'post_actions.dart';
 import 'post_carousel.dart';
@@ -422,6 +423,11 @@ class _PostCardState extends State<PostCard> {
             padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.page, 3, BuSpace.page, 0),
             child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
               LikeButton(session: widget.session, post: p, controller: _like, compact: true, size: 22, detail: true, onChanged: widget.onChanged),
+              CommentButton(
+                  session: widget.session,
+                  postId: p.id,
+                  count: p.commentCount ?? 0,
+                  onCountChanged: (n) => widget.onChanged(p.copyWith(commentCount: n))),
               if (text.isNotEmpty) ...[
                 Text('·', style: tt.bodyLarge?.copyWith(color: t.mut, fontSize: 15)),
                 BuGap.w8,
@@ -575,6 +581,11 @@ class _PostCardState extends State<PostCard> {
                     post: p,
                     controller: _like,
                     onChanged: widget.onChanged),
+                CommentButton(
+                    session: widget.session,
+                    postId: p.id,
+                    count: p.commentCount ?? 0,
+                    onCountChanged: (n) => widget.onChanged(p.copyWith(commentCount: n))),
                 const Spacer(),
                 PostShareButton(session: widget.session, post: p),
               ]),
