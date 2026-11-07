@@ -116,7 +116,7 @@ class AttendanceTicketTest {
         // etkinlik penceresi disi: sahip yoklamayi ACMADIYSA 30 dk penceresi gecerli (acmissa uygulanmaz)
         event.setAttendanceOpen(false);
         String early = codes.generateTicket(5, 1, start.minus(Duration.ofHours(3)));
-        assertEquals("CHECKIN_CLOSED", assertThrows(ApiException.class,
+        assertEquals("ATTENDANCE_NOT_OPEN", assertThrows(ApiException.class,
                 () -> svc.scan(organizer, 5L, early, start.minus(Duration.ofHours(3)))).code());
         verify(attendance, never()).saveAndFlush(any());
     }
