@@ -476,9 +476,12 @@ class HomeEmptyHome extends StatelessWidget {
 /// Bugün kampüste (Stitch v5): tek beyaz yüzey, satır başına tek tonlu (`soft`) ikon karosu + büyük harfli küçük
 /// etiket + değer + ok. Satırların tamamı dokunulabilir.
 class HomeTodayCard extends StatelessWidget {
-  const HomeTodayCard({super.key, required this.rows});
+  const HomeTodayCard({super.key, required this.rows, this.mealImageUrl});
   final List<({String label, String value, VoidCallback onTap, bool muted})>
       rows;
+
+  /// Günün menü fotoğrafı varsa öğle yemeği satırının sağında küçük görsel olarak çizilir (yoksa/bozuksa hiçbir şey).
+  final String? mealImageUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -540,6 +543,20 @@ class HomeTodayCard extends StatelessWidget {
                                   height: 1.3,
                                   color: row.muted ? t.mut : t.ink)),
                         ])),
+                    if (meal && (mealImageUrl ?? '').isNotEmpty)
+                      MenuPhotoGate(
+                        url: mealImageUrl,
+                        builder: (c, photo) => photo == null
+                            ? const SizedBox.shrink()
+                            : Padding(
+                                padding: const EdgeInsetsDirectional.only(start: 10),
+                                child: ClipRRect(
+                                  key: const ValueKey('home-meal-thumb'),
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: SizedBox(width: 56, height: 56, child: photo),
+                                ),
+                              ),
+                      ),
                     const SizedBox(width: 8),
                     Icon(
                         Directionality.of(context) == TextDirection.rtl

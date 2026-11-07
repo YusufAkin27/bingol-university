@@ -592,7 +592,9 @@ class _HomeTabState extends State<HomeTab> {
                     accent: true,
                     onAction: () => _push(AcademicHubPage(session: _s), 'academic_hub'),
                     onLongPress: _editLayout),
-                HomeTodayCard(rows: todayRows),
+                HomeTodayCard(
+                    rows: todayRows,
+                    mealImageUrl: _today == null ? null : MenuDay.fromJson(_today!).imageUrl),
               ]),
         )),
       ),
