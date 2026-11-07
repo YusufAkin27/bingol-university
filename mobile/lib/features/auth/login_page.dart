@@ -19,9 +19,12 @@ import 'widgets/login_underline_field.dart';
 
 /// Calm, compact login with branded header and clearly bounded form controls.
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key, required this.session});
+  const LoginPage({super.key, required this.session, this.initialEmail});
 
   final Session session;
+
+  /// Oturumu dolan hesabı yeniden eklerken önceden doldurulan e-posta.
+  final String? initialEmail;
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -42,6 +45,8 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
+    final pre = widget.initialEmail;
+    if (pre != null) _email.text = pre;
     _loadPending();
   }
 

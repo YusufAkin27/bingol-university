@@ -142,13 +142,15 @@ class PostMention {
 }
 
 class LikeResult {
-  const LikeResult({required this.liked, required this.likeCount});
+  const LikeResult({required this.liked, this.likeCount});
 
   factory LikeResult.fromJson(Map<String, dynamic>? j) =>
-      LikeResult(liked: j?['liked'] == true, likeCount: _int(j?['likeCount']));
+      LikeResult(liked: j?['liked'] == true, likeCount: _intOrNull(j?['likeCount']));
 
   final bool liked;
-  final int likeCount;
+
+  /// Beğeni sayısı gizliyse (başkasının gönderisi) sunucu null döner: sayı gösterilmez/güncellenmez.
+  final int? likeCount;
 }
 
 /// Video gönderinin oynatma bilgisi (`video {url, posterUrl, durationMs, width, height}`).
@@ -200,6 +202,8 @@ class Post {
     this.commentCount,
     this.savedByMe,
     this.mentions = const [],
+    this.hideLikeCount = false,
+    this.commentsDisabled = false,
   });
 
   factory Post.fromJson(Map<String, dynamic>? j) {
@@ -233,6 +237,8 @@ class Post {
       commentCount: _intOrNull(j?['commentCount']),
       savedByMe: j?['savedByMe'] is bool ? j!['savedByMe'] as bool : null,
       mentions: _mentions(j?['mentions']),
+      hideLikeCount: j?['hideLikeCount'] == true,
+      commentsDisabled: j?['commentsDisabled'] == true,
     );
   }
 
@@ -262,6 +268,15 @@ class Post {
 
   /// Etiketlenen kişiler (alan yoksa/boşsa `[]`).
   final List<PostMention> mentions;
+
+  /// Gönderi sahibi beğeni sayısını başkalarından gizledi (sunucu `likeCount`u yalnız sahibine yollar).
+  final bool hideLikeCount;
+
+  /// Gönderi sahibi yorumları kapattı (yazma/beğeni/yanıt 403 `COMMENTS_DISABLED`; mevcut yorumlar okunur).
+  final bool commentsDisabled;
+
+  /// Beğeni sayısı bu izleyiciye gösterilmez: gizli ve gönderi benim değil. [meId] oturumdaki kullanıcı kimliği.
+  bool likeCountHiddenFor(int? meId) => hideLikeCount && !(mine || (meId != null && author.id == meId));
 
   bool get hasText => (text ?? '').trim().isNotEmpty;
 
@@ -301,6 +316,8 @@ class Post {
     int? commentCount,
     bool? savedByMe,
     List<PostMention>? mentions,
+    bool? hideLikeCount,
+    bool? commentsDisabled,
   }) =>
       Post(
         id: id,
@@ -319,6 +336,8 @@ class Post {
         commentCount: commentCount ?? this.commentCount,
         savedByMe: savedByMe ?? this.savedByMe,
         mentions: mentions ?? this.mentions,
+        hideLikeCount: hideLikeCount ?? this.hideLikeCount,
+        commentsDisabled: commentsDisabled ?? this.commentsDisabled,
       );
 }
 

@@ -14,6 +14,7 @@ import '../../widgets/bu.dart';
 import '../auth/help/about_page.dart';
 import '../chat/chat_background_settings_page.dart';
 import '../support/support_page.dart';
+import '../accounts/account_sheet.dart';
 import 'account_security_page.dart';
 import 'blocked_users_page.dart';
 import 'notification_prefs_page.dart';
@@ -87,6 +88,23 @@ class _SettingsPageState extends State<SettingsPage> {
     );
     if (!ok) return;
     await widget.session.signOut();
+    if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
+  }
+
+  /// Cihazdaki tüm hesaplardan çıkış (yalnız birden çok hesap varken görünür).
+  Future<void> _signOutAll() async {
+    final l = context.l10n;
+    final ok = await BuDialog.confirm(
+      context,
+      title: l.accSignOutAll,
+      message: l.accSignOutAllBody('${widget.session.accounts.accounts.length}'),
+      confirmLabel: l.profileSignOut,
+      cancelLabel: l.profileCancel,
+      destructive: true,
+      icon: BuIcons.logOut,
+    );
+    if (!ok) return;
+    await widget.session.signOutAll();
     if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
   }
 
@@ -254,12 +272,33 @@ class _SettingsPageState extends State<SettingsPage> {
                       onChanged: (v) => Analytics.instance.setEnabled(v),
                     ),
                     ProfilFlatRow(
+                      plainIcon: true,
+                      key: const ValueKey('settings-switch-account'),
+                      icon: BuIcons.userPlus,
+                      label: l.accSwitch,
+                      onTap: () => showAccountSheet(context, widget.session),
+                      chevron: false,
+                    ),
+                    ProfilFlatRow(
                     plainIcon: true,
                       key: const ValueKey('settings-sign-out'),
                       icon: BuIcons.logOut,
                       label: l.profileSignOut,
                       onTap: _signOut,
                       chevron: false,
+                    ),
+                    ListenableBuilder(
+                      listenable: widget.session.accounts,
+                      builder: (context, _) => widget.session.accounts.accounts.length > 1
+                          ? ProfilFlatRow(
+                              plainIcon: true,
+                              key: const ValueKey('settings-sign-out-all'),
+                              icon: BuIcons.logOut,
+                              label: l.accSignOutAll,
+                              onTap: _signOutAll,
+                              chevron: false,
+                            )
+                          : const SizedBox.shrink(),
                     ),
                   ]),
                 ),

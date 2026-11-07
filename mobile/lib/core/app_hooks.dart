@@ -12,6 +12,7 @@ class AppLifecycleHooks {
   final List<SessionHook> onSignedOut = [];
 
   SessionState? _last;
+  int _lastEpoch = 0;
   Session? _attached;
 
   /// Session dinleyicisi bağlar; yalnızca durum değişince kancaları çağırır.
@@ -25,9 +26,17 @@ class AppLifecycleHooks {
 
   void _check(Session s) {
     final st = s.state;
-    if (st == _last || st == SessionState.loading) return;
+    if (st == SessionState.loading) return;
+    final switched = st == SessionState.signedIn && _last == SessionState.signedIn && s.accountEpoch != _lastEpoch;
+    if (st == _last && !switched) return;
     _last = st;
-    final list = st == SessionState.signedIn ? onSignedIn : onSignedOut;
+    _lastEpoch = s.accountEpoch;
+    // Hesap geçişi (oturum açık kalır): önce eski hesabın çıkış kancaları, sonra yeni hesabın giriş kancaları.
+    if (switched) _run(onSignedOut, s);
+    _run(st == SessionState.signedIn ? onSignedIn : onSignedOut, s);
+  }
+
+  void _run(List<SessionHook> list, Session s) {
     for (final h in List.of(list)) {
       try {
         h(s);

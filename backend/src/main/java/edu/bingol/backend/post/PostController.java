@@ -7,6 +7,7 @@ import edu.bingol.backend.community.Actor;
 import edu.bingol.backend.community.SystemAdminAudit;
 import edu.bingol.backend.post.PostDtos.CreatePostRequest;
 import edu.bingol.backend.post.PostDtos.FeedPage;
+import edu.bingol.backend.post.PostDtos.PostSettingsRequest;
 import edu.bingol.backend.post.PostDtos.PostView;
 import edu.bingol.backend.post.PostDtos.UpdatePostRequest;
 import edu.bingol.backend.post.PostDtos.ViewRequest;
@@ -141,6 +142,14 @@ public class PostController {
         Long uid = CurrentUser.id();
         limiter.check("post:write:" + uid, 30, Duration.ofMinutes(1));
         return service.update(uid, id, req.text(), req.mentionUserIds());
+    }
+
+    /** Sahibin gonderi ayarlari: begeni sayisini gizle / yorumlari kapat. */
+    @PatchMapping("/posts/{id}/settings")
+    public PostView settings(@PathVariable Long id, @Valid @RequestBody PostSettingsRequest req) {
+        Long uid = CurrentUser.id();
+        limiter.check("post:write:" + uid, 30, Duration.ofMinutes(1));
+        return service.updateSettings(uid, id, req.hideLikeCount(), req.commentsDisabled());
     }
 
     @DeleteMapping("/posts/{id}")

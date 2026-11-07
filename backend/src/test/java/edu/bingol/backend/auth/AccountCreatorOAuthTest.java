@@ -38,7 +38,7 @@ class AccountCreatorOAuthTest {
     @BeforeEach
     void wire() {
         ReflectionTestUtils.setField(creator, "privacy", privacy);
-        ReflectionTestUtils.setField(creator, "defaultPrivateAccount", true);
+        ReflectionTestUtils.setField(creator, "defaultPrivateAccount", false);
         when(users.saveAndFlush(any(User.class))).thenAnswer(i -> {
             User u = i.getArgument(0);
             if (u.getId() == null) {
@@ -49,7 +49,7 @@ class AccountCreatorOAuthTest {
     }
 
     @Test
-    void oauthAccountIsVerifiedPasswordlessIncompleteAndPrivate() {
+    void oauthAccountIsVerifiedPasswordlessIncompleteAndPublic() {
         User u = creator.createFromOAuth("kisi@gmail.com", "Ayşe Yılmaz", "Ayşe", "Yılmaz", "en");
 
         assertTrue(u.isEmailVerified());
@@ -62,8 +62,7 @@ class AccountCreatorOAuthTest {
         assertEquals(Role.USER, u.getRole());
         verify(legal, never()).recordSignupConsent(any()); // sozlesme onayi onboarding'de
         ArgumentCaptor<ProfilePrivacy> p = ArgumentCaptor.forClass(ProfilePrivacy.class);
-        verify(privacy).save(p.capture());
-        assertTrue(p.getValue().isPrivateAccount());
+        verify(privacy, never()).save(any()); // varsayilan herkese acik: gizlilik satiri yazilmaz
     }
 
     @Test

@@ -108,11 +108,13 @@ public class PostViewAssembler {
             Integer viewCount = video ? p.getViewCount() : null;
             Integer score = rankProps == null ? null : PostRank.displayScore(rankProps, p.getLikeCount(),
                     followers == null ? 0 : followers, video ? p.getViewCount() : 0, video ? p.avgCompletion() : 0);
+            // begeni sayisi gizliyse yalniz sahibi (ve yonetici) gorur; siralama/puan ic hesapta gercek sayiyla calisir
+            Integer shownLikes = p.isHideLikeCount() && !mine && !admin ? null : p.getLikeCount();
             out.add(new PostView(p.getId(), author, p.getBody(), mv,
-                    p.getLikeCount(), liked.contains(p.getId()), mine, mine, mine || admin,
+                    shownLikes, liked.contains(p.getId()), mine, mine, mine || admin,
                     p.getCreatedAt(), p.getEditedAt(), video ? Post.KIND_VIDEO : Post.KIND_PHOTO, vv, viewCount,
                     score, p.getCommentCount(), saved.contains(p.getId()),
-                    mentions.getOrDefault(p.getId(), List.of())));
+                    mentions.getOrDefault(p.getId(), List.of()), p.isHideLikeCount(), p.isCommentsDisabled()));
         }
         return out;
     }

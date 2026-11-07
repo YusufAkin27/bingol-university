@@ -22,9 +22,16 @@ import 'widgets/oauth_buttons.dart';
 /// boyunca gizlenir; sahte çalışma yoktur. Çift dokunma tek istek üretir (bir yöntem sürerken diğerleri de pasiftir),
 /// kullanıcı iptali sessizdir, hatalar ekran içi bantta gösterilir.
 class AuthLandingPage extends StatefulWidget {
-  const AuthLandingPage({super.key, required this.session, this.services});
+  const AuthLandingPage({super.key, required this.session, this.services, this.addAccount = false, this.prefillEmail, this.reloginHint});
 
   final Session session;
+
+  /// "Hesap ekle" kipi: mevcut hesap açık kalır, geri düğmesi iptal eder, başarılı girişte yeni hesap etkin olur.
+  final bool addAccount;
+
+  /// Oturumu dolmuş hesap için yeniden giriş: bilinen tam e-posta (yoksa null) ve maskeli ipucu.
+  final String? prefillEmail;
+  final String? reloginHint;
 
   /// Test için: sağlayıcı SDK uygulamaları (null: [OAuthServices.current]).
   final OAuthServices? services;
@@ -87,7 +94,9 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
 
   void _openEmail() => Navigator.push(
         context,
-        MaterialPageRoute(settings: const RouteSettings(name: 'login'), builder: (_) => LoginPage(session: widget.session)),
+        MaterialPageRoute(
+            settings: const RouteSettings(name: 'login'),
+            builder: (_) => LoginPage(session: widget.session, initialEmail: widget.prefillEmail)),
       );
 
   void _openRegister() => Navigator.push(
@@ -134,6 +143,15 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
                                   const SizedBox(height: 12),
                                   Row(
                                     children: [
+                                      if (widget.addAccount) ...[
+                                        BuIconButton(
+                                          key: const ValueKey('add-account-back'),
+                                          icon: BuIcons.chevronLeft,
+                                          tooltip: l.commonBack,
+                                          onTap: () => Navigator.maybePop(context),
+                                        ),
+                                        const SizedBox(width: 12),
+                                      ],
                                       const RefBrandMark(size: 44),
                                       const SizedBox(width: 12),
                                       Expanded(
@@ -157,7 +175,11 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
                                               style: tx.displayMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400, height: 1.08, letterSpacing: -1.2)),
                                         ),
                                         const SizedBox(height: 14),
-                                        Text(l.oaSub, style: tx.bodyLarge!.copyWith(color: t.mut, height: 1.5)),
+                                        Text(widget.addAccount ? l.accAddSub : l.oaSub, style: tx.bodyLarge!.copyWith(color: t.mut, height: 1.5)),
+                                        if (widget.reloginHint != null) ...[
+                                          const SizedBox(height: 16),
+                                          RefBanner(l.accReloginHint(widget.reloginHint!), key: const ValueKey('relogin-hint'), tone: RefTone.warn),
+                                        ],
                                       ],
                                     ),
                                   ),

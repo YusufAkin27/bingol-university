@@ -1018,3 +1018,10 @@ Yukarıdaki "yorumlar kaldırıldı / 410", "Yorum ve yanıt (iç içe)" (derinl
 | Şikâyet | `POST /api/reports` `{targetType:"COMMENT", targetId, reason}`. |
 
 `CommentView`: `{id, postId, parentId, author{userId,id,displayName,avatarUrl,department,username}, body, text(=body), createdAt, likeCount, likedByMe, replyCount, mine, canDelete, byPostAuthor, deleted}`. Yanıtı olan silinmiş üst yorum tombstone gelir: `deleted:true`, `author`/`body` `null`. `PostView.commentCount` canlı yorum sayısıdır (akış ve reels dahil). Bildirim türleri: `POST_COMMENT`, `COMMENT_REPLY`, `COMMENT_LIKE` (push `data`: `targetType:"POST"`, `targetId:<postId>`, `commentId`).
+
+## Gönderi ayarları (BE6, 2026-11-07, V1670)
+
+- `POST /api/posts` isteğe bağlı `hideLikeCount`, `commentsDisabled` (bool, varsayılan false). Sonradan: `PATCH /api/posts/{id}/settings` `{"hideLikeCount"?:bool,"commentsDisabled"?:bool}` (yalnız sahibi; yanıt güncel `PostView`).
+- `PostView` yeni alanlar `hideLikeCount`, `commentsDisabled`. **`likeCount` `hideLikeCount=true` iken sahibi dışında `null`** (sayı çizmeyin; `likedByMe` kendi durumu olarak gelir). Aynı kural `PUT|DELETE /like` yanıtında, beğenenler listesinde (boş + `total:0`) ve aramada geçerli.
+- Yorumlar kapalıyken yeni yorum/yanıt/yorum beğenisi `403 COMMENTS_DISABLED` ("Bu gönderide yorumlar kapalı."); mevcut yorumlar okunur, sahibi silebilir (`CommentView.canDelete`).
+- Yeni hesaplar artık **herkese açık** başlar (`privateAccount=false`); mevcut hesaplar değişmedi.

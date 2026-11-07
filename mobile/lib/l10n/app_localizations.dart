@@ -24917,6 +24917,240 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{n} karakter kaldı'**
   String pcmCharsLeft(String n);
+
+  /// No description provided for @postSettingsAdvanced.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gelişmiş ayarlar'**
+  String get postSettingsAdvanced;
+
+  /// No description provided for @postSettingsHideLikes.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğeni sayısını gizle'**
+  String get postSettingsHideLikes;
+
+  /// No description provided for @postSettingsHideLikesDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başkaları bu gönderinin beğeni sayısını göremez. Sen görmeye devam edersin.'**
+  String get postSettingsHideLikesDesc;
+
+  /// No description provided for @postSettingsCommentsOff.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorum yapmayı kapat'**
+  String get postSettingsCommentsOff;
+
+  /// No description provided for @postSettingsCommentsOffDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kimse bu gönderiye yorum yapamaz. Mevcut yorumlar görünür kalır.'**
+  String get postSettingsCommentsOffDesc;
+
+  /// No description provided for @postHideLikesHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğeni sayısı başkalarına gizli'**
+  String get postHideLikesHint;
+
+  /// No description provided for @pcmCommentsDisabled.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu gönderide yorumlar kapalı'**
+  String get pcmCommentsDisabled;
+
+  /// No description provided for @postMenuHideLikes.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğeni sayısını gizle'**
+  String get postMenuHideLikes;
+
+  /// No description provided for @postMenuShowLikes.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğeni sayısını göster'**
+  String get postMenuShowLikes;
+
+  /// No description provided for @postMenuCommentsOff.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumları kapat'**
+  String get postMenuCommentsOff;
+
+  /// No description provided for @postMenuCommentsOn.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumları aç'**
+  String get postMenuCommentsOn;
+
+  /// No description provided for @postSettingsLikesHiddenDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğeni sayısı gizlendi'**
+  String get postSettingsLikesHiddenDone;
+
+  /// No description provided for @postSettingsLikesShownDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğeni sayısı gösteriliyor'**
+  String get postSettingsLikesShownDone;
+
+  /// No description provided for @postSettingsCommentsOffDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumlar kapatıldı'**
+  String get postSettingsCommentsOffDone;
+
+  /// No description provided for @postSettingsCommentsOnDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumlar açıldı'**
+  String get postSettingsCommentsOnDone;
+
+  /// No description provided for @postSettingsFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ayar değiştirilemedi. Tekrar dene.'**
+  String get postSettingsFailed;
+
+  /// No description provided for @pcmDeleteOthersTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorum silinsin mi?'**
+  String get pcmDeleteOthersTitle;
+
+  /// No description provided for @pcmDeleteOthersBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yorum herkes için kaldırılır. Bu işlem geri alınamaz.'**
+  String get pcmDeleteOthersBody;
+
+  /// No description provided for @accTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesaplar'**
+  String get accTitle;
+
+  /// No description provided for @accSwitch.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap değiştir'**
+  String get accSwitch;
+
+  /// No description provided for @accAdd.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap ekle'**
+  String get accAdd;
+
+  /// No description provided for @accActive.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkin hesap'**
+  String get accActive;
+
+  /// No description provided for @accExpired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oturum süresi doldu'**
+  String get accExpired;
+
+  /// No description provided for @accOptions.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap seçenekleri'**
+  String get accOptions;
+
+  /// No description provided for @accRemove.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu cihazdan kaldır'**
+  String get accRemove;
+
+  /// No description provided for @accRemoveTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap kaldırılsın mı?'**
+  String get accRemoveTitle;
+
+  /// No description provided for @accRemoveBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} hesabının oturumu bu cihazda kapatılır. Hesap silinmez; istediğin zaman tekrar giriş yapabilirsin.'**
+  String accRemoveBody(String name);
+
+  /// No description provided for @accRemoveConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaldır'**
+  String get accRemoveConfirm;
+
+  /// No description provided for @accLimit.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu cihaza en fazla 5 hesap eklenebilir.'**
+  String get accLimit;
+
+  /// No description provided for @accPushNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirimler yalnızca etkin hesaba gelir.'**
+  String get accPushNote;
+
+  /// No description provided for @accSwitchedTo.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} hesabına geçildi'**
+  String accSwitchedTo(String name);
+
+  /// No description provided for @accExpiredSwitched.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} oturumu sona erdi, başka hesaba geçildi.'**
+  String accExpiredSwitched(String name);
+
+  /// No description provided for @accExpiredSwitchedAnon.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oturum sona erdi, başka hesaba geçildi.'**
+  String get accExpiredSwitchedAnon;
+
+  /// No description provided for @accSignOutAll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm hesaplardan çık'**
+  String get accSignOutAll;
+
+  /// No description provided for @accSignOutAllBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu cihazdaki {count} hesabın hepsinden çıkış yapılır.'**
+  String accSignOutAllBody(String count);
+
+  /// No description provided for @accAddSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başka bir hesapla giriş yap ya da yeni hesap oluştur. Mevcut hesabın açık kalır.'**
+  String get accAddSub;
+
+  /// No description provided for @accReloginHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oturum süresi doldu. Yeniden giriş yap: {mail}'**
+  String accReloginHint(String mail);
+
+  /// No description provided for @accBusy.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap şu an değiştirilemiyor. Biraz sonra tekrar dene.'**
+  String get accBusy;
+
+  /// No description provided for @accAccountNoName.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap'**
+  String get accAccountNoName;
 }
 
 class _AppLocalizationsDelegate

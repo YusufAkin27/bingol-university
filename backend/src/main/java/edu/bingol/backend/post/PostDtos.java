@@ -48,25 +48,35 @@ public final class PostDtos {
      * Gonderi gorunumu: 1..10 fotograf (sirali, carousel) VEYA 1 video + kisa metin + begeni. type = PHOTO | VIDEO; video yalniz VIDEO'da
      * dolar (media listesinde de ayni medya vardir). popularityScore 0..100 (yastan bagimsiz etkilesim puani),
      * viewCount yalniz videoda. commentCount/savedByMe KS-BE2 (V1230: yorum + kaydet geri geldi). mentions: etiketlenen
-     * kisiler (V1310; bakana gore suzulmus, yoksa bos liste).
+     * kisiler (V1310; bakana gore suzulmus, yoksa bos liste). hideLikeCount/commentsDisabled (V1670): likeCount
+     * hideLikeCount=true iken yalniz sahibine doner, baskasina null; likedByMe her zaman kendi durumudur.
      */
-    public record PostView(Long id, AuthorView author, String text, List<MediaView> media, int likeCount,
+    public record PostView(Long id, AuthorView author, String text, List<MediaView> media, Integer likeCount,
                            boolean likedByMe, boolean mine, boolean canEdit, boolean canDelete,
                            Instant createdAt, Instant editedAt, String type,
                            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) VideoView video,
                            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Integer viewCount,
-                           Integer popularityScore, int commentCount, boolean savedByMe, List<MentionView> mentions) {}
+                           Integer popularityScore, int commentCount, boolean savedByMe, List<MentionView> mentions,
+                           boolean hideLikeCount, boolean commentsDisabled) {}
 
     /**
      * mentionUserIds: etiketlenecek kisiler (istege bagli; en cok 10, tekrarsiz; yalniz takip edilenler). Sayi ve
      * kurallar serviste dogrulanir (422 POST_MENTION_INVALID); DTO siniri yalniz asiri yuku keser.
      */
     public record CreatePostRequest(@Size(max = RAW_TEXT_LIMIT) String text, @Size(max = 50) List<Long> mediaIds,
-                                    @Size(max = 50) List<Long> mentionUserIds) {
+                                    @Size(max = 50) List<Long> mentionUserIds, Boolean hideLikeCount,
+                                    Boolean commentsDisabled) {
+        public CreatePostRequest(String text, List<Long> mediaIds, List<Long> mentionUserIds) {
+            this(text, mediaIds, mentionUserIds, null, null);
+        }
+
         public CreatePostRequest(String text, List<Long> mediaIds) {
-            this(text, mediaIds, null);
+            this(text, mediaIds, null, null, null);
         }
     }
+
+    /** PATCH /api/posts/{id}/settings: alan yok (null) = o ayar degismez. */
+    public record PostSettingsRequest(Boolean hideLikeCount, Boolean commentsDisabled) {}
 
     /** mentionUserIds yok (null) = etiketler degismez; var (bos dahil) = liste yeniden yazilir. */
     public record UpdatePostRequest(@Size(max = RAW_TEXT_LIMIT) String text, @Size(max = 50) List<Long> mentionUserIds) {

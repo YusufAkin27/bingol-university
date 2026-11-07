@@ -114,6 +114,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
           postId: widget.postId,
           commentCount: p?.commentCount ?? 0,
           focusCommentId: widget.openCommentId,
+          commentsDisabled: p?.commentsDisabled ?? false,
           onCountChanged: (n) {
             final h = _head;
             if (h != null) _onPostChanged(h.copyWith(commentCount: n));
@@ -286,6 +287,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
               session: widget.session,
               postId: p.id,
               count: p.commentCount ?? 0,
+              commentsDisabled: p.commentsDisabled,
               onCountChanged: (n) => _onPostChanged(p.copyWith(commentCount: n)),
             ),
           ]);

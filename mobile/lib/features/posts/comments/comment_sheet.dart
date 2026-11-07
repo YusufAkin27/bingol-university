@@ -28,6 +28,8 @@ String commentErrorText(Object e, AppLocalizations l) {
         return l.pcmErrPostGone;
       case 'COMMENT_PARENT_INVALID':
         return l.pcmErrParent;
+      case 'COMMENTS_DISABLED':
+        return l.pcmCommentsDisabled;
     }
     if (e.status == 429) return l.pcmErrRate;
   }
@@ -45,6 +47,7 @@ Future<void> showCommentSheet(
   CommentsApi? api,
   ValueChanged<int>? onCountChanged,
   int? focusCommentId,
+  bool commentsDisabled = false,
 }) =>
     showModalBottomSheet<void>(
       context: context,
@@ -60,6 +63,7 @@ Future<void> showCommentSheet(
         api: api ?? HttpCommentsApi(session),
         onCountChanged: onCountChanged,
         focusCommentId: focusCommentId,
+        commentsDisabled: commentsDisabled,
       ),
     );
 
@@ -72,8 +76,11 @@ class CommentSheet extends StatefulWidget {
     this.commentCount = 0,
     this.onCountChanged,
     this.focusCommentId,
+    this.commentsDisabled = false,
   });
 
+  /// Gönderi sahibi yorumları kapattı: yazma çubuğu yerine bilgi satırı, yanıt/beğeni pasif; okuma ve (sahibi için) silme sürer.
+  final bool commentsDisabled;
   final Session session;
   final int postId;
   final int commentCount;
@@ -98,6 +105,7 @@ class _CommentSheetState extends State<CommentSheet> {
   Timer? _noticeTimer;
   Timer? _hlTimer;
   int? _scrolledTo;
+  late bool _disabled = widget.commentsDisabled;
 
   @override
   void initState() {
@@ -175,6 +183,8 @@ class _CommentSheetState extends State<CommentSheet> {
 
   void _onError(Object e) {
     if (!mounted) return;
+    // Sunucu yorumların kapalı olduğunu söylediyse (sahip arada kapattı) arayüz de kapanır.
+    if (e is ApiError && e.code == 'COMMENTS_DISABLED' && !_disabled) setState(() => _disabled = true);
     _showNotice(commentErrorText(e, context.l10n), error: true);
   }
 
@@ -245,10 +255,48 @@ class _CommentSheetState extends State<CommentSheet> {
         await Clipboard.setData(ClipboardData(text: c.body ?? ''));
         if (mounted) _showNotice(l.pcmCopied);
       case 'delete':
+        // Başkasının yorumunu (gönderi sahibi olarak) silmeden önce onay sorulur; kendi yorumun anında silinir.
+        if (!c.mine && !c.isLocal && c.sendState != CommentSendState.failed) {
+          final ok = await _confirmDelete();
+          if (ok != true || !mounted) return;
+        }
         await _c.delete(c);
       case 'report':
         await ReportSheet.show(context, widget.session, targetType: 'COMMENT', targetId: c.id);
     }
+  }
+
+  Future<bool?> _confirmDelete() {
+    final l = context.l10n;
+    return showDialog<bool>(
+      context: context,
+      useRootNavigator: true,
+      builder: (c) {
+        final t = c.bu;
+        final tt = Theme.of(c).textTheme;
+        return AlertDialog(
+          key: const ValueKey('commentDeleteDialog'),
+          backgroundColor: t.sf3,
+          surfaceTintColor: Colors.transparent,
+          title: Text(l.pcmDeleteOthersTitle, style: tt.titleLarge?.copyWith(color: t.ink, fontWeight: BuType.emphasisWeight)),
+          content: Text(l.pcmDeleteOthersBody, style: tt.bodyMedium?.copyWith(color: t.mut)),
+          actions: [
+            TextButton(
+              key: const ValueKey('commentDeleteCancel'),
+              onPressed: () => Navigator.pop(c, false),
+              style: TextButton.styleFrom(minimumSize: const Size(BuSize.touch, BuSize.touch), foregroundColor: t.mut),
+              child: Text(l.postComposeCancel),
+            ),
+            TextButton(
+              key: const ValueKey('commentDeleteConfirm'),
+              onPressed: () => Navigator.pop(c, true),
+              style: TextButton.styleFrom(minimumSize: const Size(BuSize.touch, BuSize.touch), foregroundColor: t.danger),
+              child: Text(l.pcmMenuDelete),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -293,18 +341,46 @@ class _CommentSheetState extends State<CommentSheet> {
                 alignment: Alignment.bottomCenter,
                 child: _notice == null ? const SizedBox(width: double.infinity) : _noticeBar(t),
               ),
-              CommentComposer(
-                session: widget.session,
-                controller: _input,
-                focusNode: _focus,
-                sending: _c.sending,
-                replyingToName: _c.replyTo?.author?.handle,
-                onCancelReply: _cancelReply,
-                onSend: _send,
-              ),
+              if (_disabled)
+                _disabledBar(t)
+              else
+                CommentComposer(
+                  session: widget.session,
+                  controller: _input,
+                  focusNode: _focus,
+                  sending: _c.sending,
+                  replyingToName: _c.replyTo?.author?.handle,
+                  onCancelReply: _cancelReply,
+                  onSend: _send,
+                ),
             ]),
           );
         },
+      ),
+    );
+  }
+
+  /// Yorumlar kapalı: yazma çubuğunun yerine sade bilgi satırı.
+  Widget _disabledBar(BuTokens t) {
+    final tt = Theme.of(context).textTheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(color: t.sf3, border: Border(top: BorderSide(color: t.bd, width: .5))),
+      child: SafeArea(
+        top: false,
+        child: Semantics(
+          container: true,
+          child: Container(
+            key: const ValueKey('commentsDisabledBar'),
+            width: double.infinity,
+            constraints: const BoxConstraints(minHeight: 56),
+            padding: const EdgeInsets.symmetric(horizontal: BuSpace.page, vertical: 12),
+            child: Row(children: [
+              ExcludeSemantics(child: Icon(BuIcons.lock, size: 18, color: t.mut)),
+              const SizedBox(width: 10),
+              Expanded(child: Text(context.l10n.pcmCommentsDisabled, style: tt.bodyMedium?.copyWith(color: t.mut))),
+            ]),
+          ),
+        ),
       ),
     );
   }
@@ -509,7 +585,8 @@ class _CommentSheetState extends State<CommentSheet> {
         comment: c,
         compact: compact,
         highlighted: hl,
-        onLike: () => _c.toggleLike(c),
+        replyEnabled: !_disabled,
+        onLike: () => _disabled ? _showNotice(context.l10n.pcmCommentsDisabled, error: true) : _c.toggleLike(c),
         onReply: () => _reply(c),
         onMenu: () => _menu(c),
         onRetry: () => _c.retry(c),

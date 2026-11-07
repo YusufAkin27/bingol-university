@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../l10n/app_localizations.dart';
+import 'accounts/account_store.dart';
 import 'analytics.dart';
 import 'api.dart';
 import 'badges.dart';
@@ -22,6 +23,9 @@ import 'secure_store.dart';
 
 enum SessionState { loading, signedOut, signedIn }
 
+/// [Session.switchAccount] sonucu.
+enum SwitchResult { switched, same, needsLogin, busy }
+
 /// Oturumun neden zorla kapandığı.
 enum SignOutReason { expired, replaced, blocked }
 
@@ -30,9 +34,10 @@ const kClientMobile = 'mobile';
 
 /// Oturum durumu + kimlik uçları. Token'lar Keychain/Keystore'da tutulur.
 class Session extends ChangeNotifier {
-  Session(this.api) {
+  Session(this.api, {AccountStore? accounts}) : accounts = accounts ?? AccountStore() {
     api.onTokensChanged = _persist;
-    api.onSessionExpired = () => signOut(remote: false);
+    api.onSessionExpired = () => forceSignOut(force: true);
+    avatarUrl.addListener(_onAvatarChanged);
     api.onSessionReplaced = () => forceSignOut(reason: SignOutReason.replaced);
     api.onAccessBlocked = _onAccessBlocked;
     legal = LegalReacceptController(api);
@@ -44,6 +49,24 @@ class Session extends ChangeNotifier {
   }
 
   final ApiClient api;
+
+  /// Cihazdaki hesaplar (en çok [AccountStore.maxAccounts]); belirteçler güvenli depoda hesap başına ayrı durur.
+  final AccountStore accounts;
+
+  /// Her hesap geçişinde/girişinde artar: kabuk alt ağacı bu değerle anahtarlanır (önceki hesabın durumu kalmaz).
+  int accountEpoch = 0;
+  bool _switching = false;
+  int? _previousId;
+
+  /// Hesap geçişi sürüyor (süresi dolma işleyicisi bu sırada sessizdir).
+  bool get switching => _switching;
+
+  /// Etkin hesap yerine başka hesaba otomatik geçildiğinde (oturum süresi doldu) süresi dolan hesabın adı; kabuk bir kez gösterir.
+  final accountNotice = ValueNotifier<String?>(null);
+
+  /// Yalnız bu süreçte, bellekte: oturum süresi dolan hesabın tam e-postası (giriş ekranını önceden doldurmak için).
+  final Map<int, String> _knownEmails = {};
+  String? knownEmailOf(int id) => _knownEmails[id];
 
   /// Sözleşme yeniden onayı (acceptance-status + 403 LEGAL_REACCEPT_REQUIRED): kabuk bu durumu dinler.
   late final LegalReacceptController legal;
@@ -170,12 +193,22 @@ class Session extends ChangeNotifier {
   /// splash `/auth/me` yanıtını beklemez.
   Future<void> restore() async {
     try {
+      await accounts.load();
       final r = await Future.wait([
         _storage.read(key: 'access'),
         _storage.read(key: 'refresh'),
         _storage.read(key: _signedOutKey),
       ]);
-      final a = r[0], rf = r[1];
+      var a = r[0], rf = r[1];
+      if (a == null || rf == null) {
+        // Etkin belirteç anahtarı yoksa (örn. hesap geçişi yarıda kaldı) etkin hesabın kayıtlı belirteçleri kullanılır.
+        final aid = accounts.activeId;
+        final st = aid == null ? null : accounts.tokensOf(aid);
+        if (st != null && r[2] != '1') {
+          a = st.access;
+          rf = st.refresh;
+        }
+      }
       if (r[2] == '1') {
         // Önceki çıkışta silme başarısız olmuştu: belirteçleri bir kez daha silmeyi dene, oturumsuz başla.
         _signedOutMarker = true;
@@ -186,6 +219,12 @@ class Session extends ChangeNotifier {
       if (a != null && rf != null) {
         api.tokens = Tokens(a, rf);
         userId ??= jwtSubjectId(a); // çevrimdışı açılışta /auth/me gelmese de sohbet kendi mesajlarını doğru çizer
+        final uid = userId;
+        if (uid != null && accounts.has(uid)) {
+          displayName ??= accounts.byId(uid)?.displayName;
+          unawaited(accounts.updateTokens(uid, Tokens(a, rf)));
+          unawaited(accounts.setActive(uid));
+        }
         _set(SessionState.signedIn);
         unawaited(_loadMe());
         return;
@@ -214,7 +253,7 @@ class Session extends ChangeNotifier {
       }
       if (e.isAuthRejected) {
         // Yalnız kesin yetki reddi (401, geçersiz/kullanılmış refresh, askı) oturumu bitirir.
-        await signOut(remote: false);
+        await forceSignOut(force: true);
         return;
       }
       // Ağ yok, 5xx, 429, 408 ya da beklenmeyen yanıt: oturum (token'lar) KORUNUR, çevrimdışı modda
@@ -236,7 +275,42 @@ class Session extends ChangeNotifier {
       email = em is String ? em : null;
       final hp = me['hasPassword'];
       hasPassword = hp is bool ? hp : null;
+      final uid = userId;
+      if (uid != null && em is String) _knownEmails[uid] = em;
+      unawaited(_syncAccount());
     }
+  }
+
+  /// Etkin hesabı hesap listesine yazar/günceller (eski sürümden gelen tek oturum da burada listeye alınır).
+  Future<void> _syncAccount() async {
+    final t = api.tokens, id = userId;
+    if (_switching || t == null || id == null) return;
+    try {
+      if (!accounts.has(id)) {
+        await accounts.upsert(id, t, displayName: displayName, email: email);
+      } else {
+        await accounts.updateProfile(id, displayName: displayName, email: email);
+      }
+      await accounts.setActive(id);
+    } on AccountLimitException {
+      // Liste dolu: bu hesap yalnız etkin oturum olarak çalışır.
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba.
+    }
+  }
+
+  /// `GET /users/me` yanıtından hesap satırının kullanıcı adı/avatar bilgisini tazeler (profil sekmesi çağırır).
+  void noteMyProfile(Map<dynamic, dynamic> p) {
+    final id = userId;
+    if (id == null || _switching || !accounts.has(id)) return;
+    String? s(Object? v) => v is String && v.trim().isNotEmpty ? v.trim() : null;
+    unawaited(accounts.updateProfile(id, displayName: s(p['displayName']), username: s(p['username']), avatarUrl: s(p['avatarUrl'])));
+  }
+
+  void _onAvatarChanged() {
+    final id = userId, v = avatarUrl.value;
+    if (id == null || v == null || _switching) return;
+    unawaited(accounts.updateProfile(id, avatarUrl: v));
   }
 
   Future<void> _retryMe() async {
@@ -252,7 +326,7 @@ class Session extends ChangeNotifier {
           return;
         } on ApiError catch (e) {
           if (e.isAuthRejected) {
-            await signOut(remote: false);
+            await forceSignOut(force: true);
             return;
           }
           if (e.code == 'SESSION_REPLACED' || e.code == 'SESSION_CHANGED') return;
@@ -494,14 +568,35 @@ class Session extends ChangeNotifier {
   /// Bilgi bandını kapatır.
   void dismissReplacedNotice() => replacedNotice.value = false;
 
+  /// Etkin hesaba ait yerel alanlar sıfırlanır (hesap değişiminde bir sonraki hesaba sızmasın).
+  void _resetFields() {
+    badges.reset();
+    legal.reset();
+    userId = null;
+    displayName = null;
+    email = null;
+    hasPassword = null;
+    avatarUrl.value = null;
+    emailUnverified.value = false;
+    profileCompletedHint = null;
+  }
+
   /// Sunucu oturumu zaten bitirdi (örn. başka cihazda giriş): sunucuya hiçbir istek atmadan yerel oturumu
-  /// kapatır, rotaları temizleyip giriş ekranına döner. Eşzamanlı çağrılarda tek sefer çalışır;
-  /// oturum yoksa (çıkış yapılmış) yok sayılır.
-  Future<void> forceSignOut({SignOutReason reason = SignOutReason.expired}) async {
-    if (_forcing || state == SessionState.signedOut) return;
+  /// kapatır. Etkin hesap listede "oturum süresi doldu" olarak kalır; geçilebilecek başka hesap varsa ona geçilir
+  /// (önce geçişten önceki hesap), yoksa giriş ekranına dönülür. Eşzamanlı çağrılarda tek sefer çalışır;
+  /// oturum yoksa (çıkış yapılmış) yok sayılır. [force]: durum signedOut iken de (giriş sırasında `/auth/me` reddi) çalışır.
+  Future<void> forceSignOut({SignOutReason reason = SignOutReason.expired, bool force = false}) async {
+    if (_forcing || _switching) return;
+    if (!force && state == SessionState.signedOut) return;
     if (state == SessionState.loading && api.tokens == null) return;
     _forcing = true;
     try {
+      final id = userId ?? jwtSubjectId(api.tokens?.access ?? '');
+      final dead = id == null ? null : accounts.byId(id);
+      if (id != null && reason != SignOutReason.blocked) {
+        final em = email;
+        if (em != null) _knownEmails[id] = em;
+      }
       // Eşzamanlı kısım: sonraki istekler token taşımasın, gerçek zamanlı yeniden bağlanmasın.
       api.tokens = null;
       try {
@@ -510,27 +605,42 @@ class Session extends ChangeNotifier {
         // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
       }
       Analytics.instance.discard();
+      if (id != null) {
+        if (reason == SignOutReason.blocked) {
+          await accounts.setActive(null); // cihaz engeli: hesap listede kalır, açılışta otomatik açılmaz
+        } else {
+          await accounts.markExpired(id);
+        }
+      }
+      final next = reason == SignOutReason.blocked ? null : accounts.nextSwitchable(except: id, prefer: _previousId);
+      if (next != null) {
+        _switching = true;
+        _set(SessionState.loading);
+        await api.setTokens(null);
+        _resetFields();
+        await _enter(next.userId, accounts.tokensOf(next.userId)!);
+        _switching = false;
+        accountNotice.value = dead?.displayName ?? dead?.username ?? '';
+        rootNavigatorKey.currentState?.popUntil((r) => r.isFirst);
+        return;
+      }
       if (reason == SignOutReason.replaced) replacedNotice.value = true;
       await api.setTokens(null);
-      badges.reset();
-      legal.reset();
-      userId = null;
-      displayName = null;
-      email = null;
-      hasPassword = null;
-      avatarUrl.value = null;
-      emailUnverified.value = false;
-      profileCompletedHint = null;
+      _resetFields();
       _set(SessionState.signedOut); // push yerel temizliği kancadan (token yok: sunucu çağrısı atlanır)
       rootNavigatorKey.currentState?.popUntil((r) => r.isFirst);
     } finally {
       _forcing = false;
+      _switching = false;
     }
   }
 
-  Future<void> signOut({bool remote = true}) async {
-    if (_forcing) return;
+  /// Yalnız ETKİN hesabı çıkarır: sunucuda o hesabın oturumu kapanır, yerel verisi temizlenir, listeden silinir.
+  /// Cihazda geçilebilecek başka hesap varsa ona geçilir ([switchToOther]); yoksa giriş ekranına dönülür.
+  Future<void> signOut({bool remote = true, bool switchToOther = true}) async {
+    if (_forcing || _switching) return;
     final refresh = api.tokens?.refresh;
+    final id = userId ?? jwtSubjectId(api.tokens?.access ?? '');
     final fcm = pushToken?.call(); // kancalar jetonu sıfırlamadan önce okunur
     // Önce yerel kancalar (push token silme); token geçerliyken, kısa zaman aşımıyla.
     if (remote) {
@@ -554,27 +664,176 @@ class Session extends ChangeNotifier {
         // Çıkış yerelde her durumda tamamlanır.
       }
     }
+    if (id != null) {
+      _knownEmails.remove(id);
+      await accounts.remove(id);
+    }
+    final next = switchToOther ? accounts.nextSwitchable(except: id) : null;
+    if (next != null) {
+      _switching = true;
+      try {
+        _set(SessionState.loading);
+        await api.setTokens(null);
+        _resetFields();
+        await _enter(next.userId, accounts.tokensOf(next.userId)!);
+      } finally {
+        _switching = false;
+      }
+      rootNavigatorKey.currentState?.popUntil((r) => r.isFirst);
+      return;
+    }
+    await accounts.setActive(null);
     await api.setTokens(null);
-    badges.reset();
-    legal.reset();
-    userId = null;
-    displayName = null;
-    email = null;
-    hasPassword = null;
-    avatarUrl.value = null;
-    emailUnverified.value = false;
-    profileCompletedHint = null;
+    _resetFields();
     _set(SessionState.signedOut);
     // Süresi dolan oturum (401, geçersiz refresh) ekranlardan biri açıkken kapanabilir: üstte kalan sayfalar
     // (Ayarlar, Şifre...) giriş ekranını örtmesin. Çağıranların kendi popUntil'i zararsızdır.
     rootNavigatorKey.currentState?.popUntil((r) => r.isFirst);
   }
 
+  /// "Tüm hesaplardan çık": cihazdaki her hesabın oturumu sunucuda kapatılır (en iyi çaba), liste temizlenir.
+  Future<void> signOutAll() async {
+    if (_forcing || _switching) return;
+    final activeId = userId ?? jwtSubjectId(api.tokens?.access ?? '');
+    for (final a in accounts.accounts.toList()) {
+      if (a.userId == activeId) continue;
+      await _remoteLogout(a.userId);
+      await accounts.remove(a.userId);
+    }
+    _knownEmails.clear();
+    await signOut(switchToOther: false);
+    await accounts.clear();
+  }
+
+  /// Etkin olmayan hesabın sunucu oturumunu kapatır (yalnız yenileme belirteci; ağ hatası yutulur).
+  Future<void> _remoteLogout(int id) async {
+    final t = accounts.tokensOf(id);
+    if (t == null) return;
+    try {
+      await api.post('/auth/logout', {'refreshToken': t.refresh}, false).timeout(const Duration(seconds: 6));
+    } catch (_) {
+      // Yerelde her durumda kaldırılır.
+    }
+  }
+
+  /// "Bu cihazdan kaldır": etkin hesapsa normal çıkış, değilse yalnız o hesabın oturumu kapatılıp listeden silinir.
+  Future<void> removeAccount(int id) async {
+    if (id == userId) return signOut();
+    await _remoteLogout(id);
+    _knownEmails.remove(id);
+    await accounts.remove(id);
+  }
+
+  /// Etkin hesabı yerelde bırakır (sunucuda ÇIKIŞ yapılmaz): push cihaz kaydı eski hesaptan silinir, gerçek zamanlı
+  /// bağlantı kapanır, önbellek/yerel kullanıcı verisi temizlenir. Belirteçler hesap deposunda kalır.
+  Future<void> _leaveActive() async {
+    for (final h in List.of(beforeSignOut)) {
+      try {
+        await h().timeout(const Duration(seconds: 5));
+      } catch (_) {
+        // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+      }
+    }
+    try {
+      realtime?.stop();
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba.
+    }
+    Analytics.instance.discard();
+    _set(SessionState.loading); // kabuk kaldırılır; yeni hesap temiz bir kabukla açılır
+    api.tokens = null; // uçuştaki istekler SESSION_CHANGED alır, yenileme bırakılır
+    await api.setTokens(null); // ETag/disk önbelleği, giden kutusu ve tüm kullanıcı verisi temizleyicileri
+    _resetFields();
+  }
+
+  /// Hesaba girer: belirteçler yazılır, kabuk yeniden kurulur (kancalar: push kaydı yeni hesaba, widget, dil).
+  Future<void> _enter(int id, Tokens t) async {
+    await api.setTokens(t);
+    userId = id;
+    displayName = accounts.byId(id)?.displayName;
+    email = _knownEmails[id];
+    replacedNotice.value = false;
+    await accounts.setActive(id);
+    accountEpoch++;
+    _set(SessionState.signedIn);
+    unawaited(_loadMe());
+  }
+
+  /// Kayıtlı başka hesaba geçer. Sunucuda çıkış YAPILMAZ. [SwitchResult.needsLogin]: oturumu dolmuş hesap.
+  Future<SwitchResult> switchAccount(int id) async {
+    if (_switching || _forcing) return SwitchResult.busy;
+    if (id == userId) return SwitchResult.same;
+    final a = accounts.byId(id);
+    final t = accounts.tokensOf(id);
+    if (a == null || a.expired || t == null) return SwitchResult.needsLogin;
+    if (api.tokens == null) return SwitchResult.busy;
+    _switching = true;
+    try {
+      await _storeActive(); // etkin oturum listede yoksa önce yazılır (kaybolmasın)
+      _previousId = userId;
+      await _leaveActive();
+      await _enter(id, accounts.tokensOf(id) ?? t);
+    } finally {
+      _switching = false;
+    }
+    rootNavigatorKey.currentState?.popUntil((r) => r.isFirst);
+    return SwitchResult.switched;
+  }
+
+  Future<void> _storeActive() async {
+    final t = api.tokens, id = userId;
+    if (t == null || id == null || accounts.has(id)) return;
+    try {
+      await accounts.upsert(id, t, displayName: displayName, email: email);
+    } catch (_) {
+      // Liste dolu / depo hatası: geçiş yine yapılır.
+    }
+  }
+
   Future<void> _accept(dynamic res) async {
     replacedNotice.value = false;
     // Ertelenmiş hesap girişinde yanıt `emailVerified:false, verificationDeferred:true` taşır (normal girişte alan yok).
     noteProfile(res);
-    await api.setTokens(Tokens.fromJson(res));
+    final t = Tokens.fromJson(res);
+    final newId = jwtSubjectId(t.access);
+    final curTokens = api.tokens;
+    final curId = userId ?? (curTokens == null ? null : jwtSubjectId(curTokens.access));
+    final name = res is Map && res['displayName'] is String ? res['displayName'] as String : null;
+    if (newId != null && !accounts.has(newId) && accounts.isFull) {
+      // Cihaz sınırı: açılan sunucu oturumu yetim kalmasın.
+      try {
+        await api.post('/auth/logout', {'refreshToken': t.refresh}, false);
+      } catch (_) {
+        // en iyi çaba
+      }
+      throw ApiError(0, 'ACCOUNT_LIMIT', '');
+    }
+    if (curTokens != null && curId != null && newId != null && curId != newId) {
+      // "Hesap ekle": mevcut hesap çıkış yapılmadan bırakılır, yeni hesaba geçilir.
+      if (_switching || _forcing) return;
+      _switching = true;
+      try {
+        await _storeActive();
+        _previousId = curId;
+        await _leaveActive();
+        await accounts.upsert(newId, t, displayName: name);
+        await _enter(newId, t);
+      } finally {
+        _switching = false;
+      }
+      rootNavigatorKey.currentState?.popUntil((r) => r.isFirst);
+      return;
+    }
+    await api.setTokens(t);
+    if (newId != null) {
+      userId = newId;
+      try {
+        await accounts.upsert(newId, t, displayName: name ?? displayName);
+        await accounts.setActive(newId);
+      } on AccountLimitException {
+        // yukarıda elenir
+      }
+    }
     await _loadMe();
     // Giriş ekranından itilmiş rotalar (e-posta girişi, kayıt, kod adımları) kapanır: kök ana sayfaya/kapıya geçer.
     rootNavigatorKey.currentState?.popUntil((r) => r.isFirst);
@@ -586,6 +845,11 @@ class Session extends ChangeNotifier {
   /// Belirteç yazma/silme işlemleri TEK sıraya dizilir: çıkıştaki silme, kendinden önce başlamış bir yenileme
   /// yazmasının ardından çalışır (sıra bozulup çıkış yapılmış oturumun diske geri yazılması olmaz).
   Future<void> _persist(Tokens? t) {
+    if (t != null) {
+      // Yenilenen belirteç çifti hesap deposuna da yansır (hesap geçişinde güncel çift kullanılır).
+      final id = jwtSubjectId(t.access);
+      if (id != null && accounts.has(id)) unawaited(accounts.updateTokens(id, t));
+    }
     final prev = _persistChain;
     late Future<void> f;
     // Boştaysa yazma hemen başlar; doluysa öncekinin ardına eklenir.
@@ -702,6 +966,8 @@ String? knownErrorText(ApiError e, AppLocalizations l) {
   // Kodsuz 413 (proxy/nginx); kodlu 413'ler (VIDEO_TOO_LARGE, FILE_TOO_LARGE...) kendi sunucu metnini korur.
   if (e.status == 413 && e.code.startsWith('HTTP_')) return l.errPayloadTooLarge;
   switch (e.code) {
+    case 'ACCOUNT_LIMIT':
+      return l.accLimit;
     case 'EMAIL_ALIAS_NOT_ALLOWED':
       return l.errEmailAliasNotAllowed;
     case 'PASSWORD_TOO_LONG':

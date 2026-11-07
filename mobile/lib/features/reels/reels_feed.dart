@@ -577,6 +577,7 @@ class _ReelPageState extends State<_ReelPage> {
                 session: widget.session,
                 postId: p.id,
                 commentCount: p.commentCount ?? 0,
+                commentsDisabled: p.commentsDisabled,
                 api: widget.comments,
                 onCountChanged: (n) => widget.onChanged(p.copyWith(commentCount: n))),
           ),

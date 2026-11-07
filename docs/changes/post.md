@@ -426,3 +426,19 @@ Kullanıcı kararı: "7 kelime zorunluluğu kalksın, istediği uzunlukta payla�
 - **Bildirim (SOCIAL, `communities` bayrağı + alt tür tercihi):** `POST_COMMENT` (gönderi sahibine), `COMMENT_REPLY` (üst yorum sahibine; gönderi sahibi farklıysa ona da `POST_COMMENT`), **yeni `COMMENT_LIKE`** (yorum sahibine, `NotificationType/Subtype.COMMENT_LIKE`, Hareketler "LIKES" sekmesi, `notif.comment.like.*`). Toplama anahtarı `pclk:<yorum>:<beğenen>`: aynı kişi geri alıp tekrar beğense ikinci bildirim yok; kendi içeriğine bildirim yok; engel ilişkisinde yok. Yük: `target:"POST"`, `value`/`targetId`=postId, `targetType:"POST"`, `postId`, `commentId`. Sessize alma (`notification_mute`) alıcı tercihi `NotificationService` içinde uygulanır.
 - **Moderasyon/KVKK (değişmedi):** rapor `targetType:"COMMENT"` (`CommentReportHandler`), yönetici `/api/admin/posts` yorum uçları, `postComments`/`postCommentLikes` dışa aktarımı, hesap silmede `CommentAccountPurger` (yorumlar silinir/tombstone, beğeniler silinir).
 - **Hatalar:** yeni `COMMENT_PARENT_INVALID` (tr/en/ar `comment*.properties`). Test: `PostCommentServiceTest` (tombstone, parent doğrulama, `body` takma adı, beğeni bildirimi), `IdempotencyFilterTest.postCommentCreateIsCovered`.
+
+## Gönderi ayarları: beğeniyi gizle + yorumları kapat (2026-11-07, V1670)
+
+**Karar (kullanıcı, WhatsApp 2026-11-07):** gönderi sahibi istediği yorumu silebilsin, beğeni sayısını gizleyebilsin, yorumu kapatabilsin. `post.hide_like_count` ve `post.comments_disabled` (BOOLEAN NOT NULL DEFAULT FALSE; mevcut gönderiler değişmez; reels aynı tabloda).
+
+- **Oluşturma:** `POST /api/posts` gövdesine isteğe bağlı `hideLikeCount`, `commentsDisabled` (yok = false; eski gövde aynen çalışır; `Idempotency-Key` kalıbı değişmedi).
+- **Sonradan değiştirme:** `PATCH /api/posts/{id}/settings` `{"hideLikeCount"?:bool,"commentsDisabled"?:bool}` (eksik alan değişmez) -> güncel `PostView`. Yalnız sahibi (başkası `403 POST_FORBIDDEN`, görünmeyen gönderi 404). Hız sınırı `post:write` 30/dk.
+- **`PostView`:** yeni alanlar `hideLikeCount`, `commentsDisabled` (akış, detay, reels, profil, kaydedilenler: hepsi `PostViewAssembler`). **`likeCount` artık `Integer`: `hideLikeCount=true` iken yalnız sahibine (ve yöneticiye) döner, başkalarına `null`** (istemci sayı çizmez). `likedByMe` her zaman bakanın kendi durumu. Sıralama/Keşfet puanı iç hesapta gerçek sayıyı kullanır.
+- **Sızıntı kapıları:** `PUT|DELETE /api/posts/{id}/like` yanıtında `likeCount` gizli gönderide sahibi dışına `null`; `GET /api/posts/{id}/likes` sahibi dışına boş liste + `total:0`; gönderi/reels arama sonuçlarında `likeCount` (SearchHit) sahibi dışına `null`.
+- **Yorum kapalıyken:** `POST /api/posts/{id}/comments` (yorum ve yanıt, sahibi dahil) ve `PUT /api/post-comments/{cid}/like` -> `403 COMMENTS_DISABLED` (tr/en/ar `comment*.properties`; "Bu gönderide yorumlar kapalı."). Mevcut yorumlar `GET` ile okunur, `commentCount` aynı kalır, geri alma (`DELETE .../like`) serbest. Gönderi sahibi her yorumu silebilir (`DELETE /api/comments/{id}`, `CommentView.canDelete=true`); bu silme sessizdir (yazara bildirim gitmez).
+- **Yönetici:** `/api/admin/posts` satırlarına (`PostRow`) `hideLikeCount`, `commentsDisabled` eklendi; yönetici gerçek `likeCount` görür, ayarları değiştirmez.
+- Test: `PostSettingsTest`.
+
+## Yeni hesap varsayılanı: herkese açık (2026-11-07)
+
+`app.profile.default-private-account` varsayılanı `true` -> **`false`** (`AccountCreator`; e-posta kaydı ve Google/Apple OAuth aynı yolu kullanır). `profile_privacy.private_account` DB varsayılanı zaten FALSE'tur (V1020): migration yok, **mevcut kullanıcılara dokunulmadı** (UPDATE yok). Kullanıcı sonradan gizliye alır (`/api/users/me/privacy`). Ortamda `APP_PROFILE_DEFAULT_PRIVATE_ACCOUNT=true` açıkça verilmişse eski davranış sürer (canlıda kaldırın). Test: `AccountCreatorPrivateByDefaultTest`, `AccountCreatorOAuthTest`.

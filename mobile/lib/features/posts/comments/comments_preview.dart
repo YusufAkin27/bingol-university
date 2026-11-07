@@ -20,7 +20,11 @@ class CommentsPreview extends StatefulWidget {
     required this.count,
     this.onCountChanged,
     this.api,
+    this.commentsDisabled = false,
   });
+
+  /// Yorumlar kapalı: "Yorum ekle…" satırı pasif bilgi satırına döner (mevcut yorumlar okunur).
+  final bool commentsDisabled;
 
   final Session session;
   final int postId;
@@ -80,6 +84,7 @@ class _CommentsPreviewState extends State<CommentsPreview> {
         commentCount: widget.count,
         api: widget.api,
         focusCommentId: focus,
+        commentsDisabled: widget.commentsDisabled,
         onCountChanged: widget.onCountChanged,
       );
 
@@ -125,6 +130,21 @@ class _CommentsPreviewState extends State<CommentsPreview> {
                 ),
               ),
             ),
+        if (widget.commentsDisabled)
+          Semantics(
+            container: true,
+            child: Container(
+              key: const ValueKey('commentsDisabledRow'),
+              constraints: const BoxConstraints(minHeight: 56),
+              padding: const EdgeInsets.symmetric(horizontal: BuSpace.page, vertical: 8),
+              child: Row(children: [
+                ExcludeSemantics(child: Icon(BuIcons.lock, size: 18, color: t.mut)),
+                const SizedBox(width: 10),
+                Expanded(child: Text(l.pcmCommentsDisabled, style: tt.bodyMedium?.copyWith(color: t.mut))),
+              ]),
+            ),
+          )
+        else
         InkWell(
           key: const ValueKey('commentsAddRow'),
           onTap: _open,

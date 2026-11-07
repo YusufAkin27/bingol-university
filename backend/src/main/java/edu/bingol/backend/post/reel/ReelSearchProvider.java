@@ -22,7 +22,7 @@ public class ReelSearchProvider implements SearchProvider {
     static final int SNIPPET_LEN = 160;
 
     static final String SQL = "SELECT p.id, p.body, u.display_name, CAST(p.created_at AS varchar) AS created, p.like_count, "
-            + "vm.id AS media_id, vm.duration_ms, vm.thumb_key "
+            + "p.hide_like_count, p.author_id, vm.id AS media_id, vm.duration_ms, vm.thumb_key "
             + "FROM post p JOIN app_user u ON u.id = p.author_id "
             + "JOIN LATERAL (SELECT m.id, m.duration_ms, m.thumb_key FROM post_media m WHERE m.post_id = p.id "
             + "AND m.kind = 'VIDEO' AND m.hidden_at IS NULL ORDER BY m.position, m.id LIMIT 1) vm ON TRUE "
@@ -63,8 +63,13 @@ public class ReelSearchProvider implements SearchProvider {
             String poster = rs.getString("thumb_key") == null ? null : "/api/posts/media/" + mediaId + "?thumb=true";
             return new SearchHit(SearchType.REELS, rs.getLong("id"), rs.getString("display_name"),
                     snippet(rs.getString("body")), poster, rs.getString("created"), null, null, null,
-                    (long) rs.getInt("like_count"), null, null, durNull ? null : dur);
+                    likes(rs.getInt("like_count"), rs.getBoolean("hide_like_count"), rs.getLong("author_id"), viewer), null, null, durNull ? null : dur);
         }, q, SearchQuery.likePattern(q), viewer, viewer, viewer, viewer, q, Math.max(1, limit), Math.max(0, offset));
+    }
+
+    /** Begeni sayisi gizli gonderide (V1670) sayi sahibi disina verilmez. */
+    public static Long likes(int count, boolean hidden, long authorId, Long viewer) {
+        return hidden && (viewer == null || viewer != authorId) ? null : Long.valueOf(count);
     }
 
     static String snippet(String body) {

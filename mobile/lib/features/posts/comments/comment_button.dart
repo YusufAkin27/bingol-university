@@ -17,7 +17,11 @@ class CommentButton extends StatefulWidget {
     this.onCountChanged,
     this.size = 22,
     this.api,
+    this.commentsDisabled = false,
   });
+
+  /// Gönderi sahibi yorumları kapattı: sayaç kalır, alt sayfa yazma çubuğu yerine bilgi satırı gösterir.
+  final bool commentsDisabled;
 
   final Session session;
   final int postId;
@@ -47,6 +51,7 @@ class _CommentButtonState extends State<CommentButton> {
         postId: widget.postId,
         commentCount: _count,
         api: widget.api,
+        commentsDisabled: widget.commentsDisabled,
         onCountChanged: (n) {
           if (mounted) setState(() => _count = n);
           widget.onCountChanged?.call(n);

@@ -16,7 +16,7 @@ class FreshInstallGuard {
   FreshInstallGuard._();
 
   static const _marker = '.bu_installed';
-  static const sessionKeys = ['access', 'refresh', 'outbox_v1', 'outbox_v1_corrupt'];
+  static const sessionKeys = ['access', 'refresh', 'outbox_v1', 'outbox_v1_corrupt', 'acct_index', 'acct_tokens']; // son ikisi: çoklu hesap listesi
 
   /// Silme yapıldıysa true. Parametreler testler içindir.
   static Future<bool> run({

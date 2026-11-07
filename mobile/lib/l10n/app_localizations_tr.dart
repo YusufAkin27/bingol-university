@@ -13852,4 +13852,137 @@ class AppLocalizationsTr extends AppLocalizations {
   String pcmCharsLeft(String n) {
     return '$n karakter kaldı';
   }
+
+  @override
+  String get postSettingsAdvanced => 'Gelişmiş ayarlar';
+
+  @override
+  String get postSettingsHideLikes => 'Beğeni sayısını gizle';
+
+  @override
+  String get postSettingsHideLikesDesc =>
+      'Başkaları bu gönderinin beğeni sayısını göremez. Sen görmeye devam edersin.';
+
+  @override
+  String get postSettingsCommentsOff => 'Yorum yapmayı kapat';
+
+  @override
+  String get postSettingsCommentsOffDesc =>
+      'Kimse bu gönderiye yorum yapamaz. Mevcut yorumlar görünür kalır.';
+
+  @override
+  String get postHideLikesHint => 'Beğeni sayısı başkalarına gizli';
+
+  @override
+  String get pcmCommentsDisabled => 'Bu gönderide yorumlar kapalı';
+
+  @override
+  String get postMenuHideLikes => 'Beğeni sayısını gizle';
+
+  @override
+  String get postMenuShowLikes => 'Beğeni sayısını göster';
+
+  @override
+  String get postMenuCommentsOff => 'Yorumları kapat';
+
+  @override
+  String get postMenuCommentsOn => 'Yorumları aç';
+
+  @override
+  String get postSettingsLikesHiddenDone => 'Beğeni sayısı gizlendi';
+
+  @override
+  String get postSettingsLikesShownDone => 'Beğeni sayısı gösteriliyor';
+
+  @override
+  String get postSettingsCommentsOffDone => 'Yorumlar kapatıldı';
+
+  @override
+  String get postSettingsCommentsOnDone => 'Yorumlar açıldı';
+
+  @override
+  String get postSettingsFailed => 'Ayar değiştirilemedi. Tekrar dene.';
+
+  @override
+  String get pcmDeleteOthersTitle => 'Yorum silinsin mi?';
+
+  @override
+  String get pcmDeleteOthersBody =>
+      'Bu yorum herkes için kaldırılır. Bu işlem geri alınamaz.';
+
+  @override
+  String get accTitle => 'Hesaplar';
+
+  @override
+  String get accSwitch => 'Hesap değiştir';
+
+  @override
+  String get accAdd => 'Hesap ekle';
+
+  @override
+  String get accActive => 'Etkin hesap';
+
+  @override
+  String get accExpired => 'Oturum süresi doldu';
+
+  @override
+  String get accOptions => 'Hesap seçenekleri';
+
+  @override
+  String get accRemove => 'Bu cihazdan kaldır';
+
+  @override
+  String get accRemoveTitle => 'Hesap kaldırılsın mı?';
+
+  @override
+  String accRemoveBody(String name) {
+    return '$name hesabının oturumu bu cihazda kapatılır. Hesap silinmez; istediğin zaman tekrar giriş yapabilirsin.';
+  }
+
+  @override
+  String get accRemoveConfirm => 'Kaldır';
+
+  @override
+  String get accLimit => 'Bu cihaza en fazla 5 hesap eklenebilir.';
+
+  @override
+  String get accPushNote => 'Bildirimler yalnızca etkin hesaba gelir.';
+
+  @override
+  String accSwitchedTo(String name) {
+    return '$name hesabına geçildi';
+  }
+
+  @override
+  String accExpiredSwitched(String name) {
+    return '$name oturumu sona erdi, başka hesaba geçildi.';
+  }
+
+  @override
+  String get accExpiredSwitchedAnon =>
+      'Oturum sona erdi, başka hesaba geçildi.';
+
+  @override
+  String get accSignOutAll => 'Tüm hesaplardan çık';
+
+  @override
+  String accSignOutAllBody(String count) {
+    return 'Bu cihazdaki $count hesabın hepsinden çıkış yapılır.';
+  }
+
+  @override
+  String get accAddSub =>
+      'Başka bir hesapla giriş yap ya da yeni hesap oluştur. Mevcut hesabın açık kalır.';
+
+  @override
+  String accReloginHint(String mail) {
+    return 'Oturum süresi doldu. Yeniden giriş yap: $mail';
+  }
+
+  @override
+  String get accBusy =>
+      'Hesap şu an değiştirilemiyor. Biraz sonra tekrar dene.';
+
+  @override
+  String get accAccountNoName => 'Hesap';
 }
