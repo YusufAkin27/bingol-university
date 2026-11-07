@@ -13114,4 +13114,29 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chatLongShowLess => 'عرض أقل';
+
+  @override
+  String get liveTrackStart => 'تتبع مباشر';
+
+  @override
+  String get liveTrackStop => 'إيقاف التتبع المباشر';
+
+  @override
+  String get liveTrackStarted => 'بدأ التتبع المباشر';
+
+  @override
+  String get liveTrackFailed => 'تعذر بدء التتبع المباشر';
+
+  @override
+  String get liveTrackDisabled =>
+      'الأنشطة المباشرة متوقفة. يمكنك تفعيلها من الإعدادات.';
+
+  @override
+  String get liveLabelStartsIn => 'يبدأ خلال';
+
+  @override
+  String get liveLabelEndsIn => 'ينتهي خلال';
+
+  @override
+  String get liveChannelName => 'التحديثات المباشرة';
 }

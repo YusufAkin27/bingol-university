@@ -1357,7 +1357,7 @@
   "menuPhotoLabel": "صورة قائمة طعام اليوم",
   "notifTitle": "الإشعارات",
   "notifMarkAll": "تحديد الكل كمقروء",
-  "notifEmpty": "لا توجد إشعارات بعد.",
+  "notifEmpty": "لا توجد إشعارات بعد.",
   "activityTitle": "النشاط",
   "activityEmpty": "لا يوجد نشاط بعد. تظهر هنا طلبات المتابعة والمتابعون الجدد والإعجابات.",
   "notifTargetOpenFailed": "تعذّر فتح هذا الإشعار.",
@@ -4786,5 +4786,13 @@
   "widgetsPrivacyTitle": "الخصوصية",
   "widgetsPrivacy": "لا تعرض الودجات أسماء المستخدمين الآخرين أو رسائلهم أو صورهم؛ يعرض الملخص الاجتماعي الأعداد فقط. عند تسجيل الخروج تُحذف بيانات الودجات وتعود إلى حالة تسجيل الدخول.",
   "chatLongShowMore": "عرض المزيد",
-  "chatLongShowLess": "عرض أقل"
+  "chatLongShowLess": "عرض أقل",
+  "liveTrackStart": "تتبع مباشر",
+  "liveTrackStop": "إيقاف التتبع المباشر",
+  "liveTrackStarted": "بدأ التتبع المباشر",
+  "liveTrackFailed": "تعذر بدء التتبع المباشر",
+  "liveTrackDisabled": "الأنشطة المباشرة متوقفة. يمكنك تفعيلها من الإعدادات.",
+  "liveLabelStartsIn": "يبدأ خلال",
+  "liveLabelEndsIn": "ينتهي خلال",
+  "liveChannelName": "التحديثات المباشرة"
 }

@@ -13185,4 +13185,29 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get chatLongShowLess => 'Daha az göster';
+
+  @override
+  String get liveTrackStart => 'Canlı takip et';
+
+  @override
+  String get liveTrackStop => 'Canlı takibi bitir';
+
+  @override
+  String get liveTrackStarted => 'Canlı takip başladı';
+
+  @override
+  String get liveTrackFailed => 'Canlı takip başlatılamadı';
+
+  @override
+  String get liveTrackDisabled =>
+      'Canlı Etkinlikler kapalı. Ayarlardan açabilirsiniz.';
+
+  @override
+  String get liveLabelStartsIn => 'Başlamasına';
+
+  @override
+  String get liveLabelEndsIn => 'Bitmesine';
+
+  @override
+  String get liveChannelName => 'Canlı güncellemeler';
 }

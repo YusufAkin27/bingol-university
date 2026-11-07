@@ -90,6 +90,14 @@ public class EventService {
     /** Kisa DB islemi (T-068: gorsel isleme islem disinda); yoksa dogrudan calisir (elle kurulan testler). */
     private ShortTx tx = ShortTx.direct();
 
+    /** iOS Canli Etkinlik: iptal edilen etkinligin etkin canli etkinlikleri bitirilir; testlerde yoksa atlanir. */
+    private edu.bingol.backend.notification.live.LiveActivityService liveActivities;
+
+    @Autowired(required = false)
+    void setLiveActivities(edu.bingol.backend.notification.live.LiveActivityService liveActivities) {
+        this.liveActivities = liveActivities;
+    }
+
     @Autowired(required = false)
     void setTxManager(org.springframework.transaction.PlatformTransactionManager tm) {
         this.tx = ShortTx.of(tm);
@@ -435,6 +443,9 @@ public class EventService {
         closeRoom(e);
         if (chat != null) {
             chat.onCancelled(e.getId());
+        }
+        if (liveActivities != null) {
+            liveActivities.endForRef(edu.bingol.backend.notification.live.LiveActivity.Kind.EVENT, e.getId(), Instant.now());
         }
     }
 

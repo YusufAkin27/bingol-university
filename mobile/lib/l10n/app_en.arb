@@ -1357,7 +1357,7 @@
   "menuPhotoLabel": "Photo of the day menu",
   "notifTitle": "Notifications",
   "notifMarkAll": "Mark all as read",
-  "notifEmpty": "No notifications yet.",
+  "notifEmpty": "No notifications yet.",
   "activityTitle": "Activity",
   "activityEmpty": "No activity yet. Follow requests, new followers and likes show up here.",
   "notifTargetOpenFailed": "This notification could not be opened.",
@@ -4786,5 +4786,13 @@
   "widgetsPrivacyTitle": "Privacy",
   "widgetsPrivacy": "Widgets never show other users' names, messages or photos; the social summary shows counts only. When you sign out, widget data is deleted and widgets return to the Sign in state.",
   "chatLongShowMore": "Read more",
-  "chatLongShowLess": "Show less"
+  "chatLongShowLess": "Show less",
+  "liveTrackStart": "Track live",
+  "liveTrackStop": "Stop live tracking",
+  "liveTrackStarted": "Live tracking started",
+  "liveTrackFailed": "Could not start live tracking",
+  "liveTrackDisabled": "Live Activities are turned off. You can enable them in Settings.",
+  "liveLabelStartsIn": "Starts in",
+  "liveLabelEndsIn": "Ends in",
+  "liveChannelName": "Live updates"
 }

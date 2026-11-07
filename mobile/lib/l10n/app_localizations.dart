@@ -23771,6 +23771,54 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Daha az göster'**
   String get chatLongShowLess;
+
+  /// No description provided for @liveTrackStart.
+  ///
+  /// In tr, this message translates to:
+  /// **'Canlı takip et'**
+  String get liveTrackStart;
+
+  /// No description provided for @liveTrackStop.
+  ///
+  /// In tr, this message translates to:
+  /// **'Canlı takibi bitir'**
+  String get liveTrackStop;
+
+  /// No description provided for @liveTrackStarted.
+  ///
+  /// In tr, this message translates to:
+  /// **'Canlı takip başladı'**
+  String get liveTrackStarted;
+
+  /// No description provided for @liveTrackFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Canlı takip başlatılamadı'**
+  String get liveTrackFailed;
+
+  /// No description provided for @liveTrackDisabled.
+  ///
+  /// In tr, this message translates to:
+  /// **'Canlı Etkinlikler kapalı. Ayarlardan açabilirsiniz.'**
+  String get liveTrackDisabled;
+
+  /// No description provided for @liveLabelStartsIn.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başlamasına'**
+  String get liveLabelStartsIn;
+
+  /// No description provided for @liveLabelEndsIn.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bitmesine'**
+  String get liveLabelEndsIn;
+
+  /// No description provided for @liveChannelName.
+  ///
+  /// In tr, this message translates to:
+  /// **'Canlı güncellemeler'**
+  String get liveChannelName;
 }
 
 class _AppLocalizationsDelegate

@@ -2153,7 +2153,7 @@
   "menuPhotoLabel": "Günün menüsü fotoğrafı",
   "notifTitle": "Bildirimler",
   "notifMarkAll": "Tümünü okundu yap",
-  "notifEmpty": "Henüz bildiriminiz yok.",
+  "notifEmpty": "Henüz bildiriminiz yok.",
   "activityTitle": "Etkileşimler",
   "activityEmpty": "Henüz etkileşim yok. Takip istekleri, yeni takipçiler ve beğeniler burada görünür.",
   "notifTargetOpenFailed": "Bu bildirimin hedefi açılamadı.",
@@ -7139,5 +7139,13 @@
   "widgetsPrivacyTitle": "Gizlilik",
   "widgetsPrivacy": "Widgetlarda başka kullanıcıların adı, mesajı veya fotoğrafı görünmez; sosyal özet yalnızca sayıları gösterir. Çıkış yapınca widgetlardaki bilgiler silinir ve Giriş yap durumuna döner.",
   "chatLongShowMore": "Devamını gör",
-  "chatLongShowLess": "Daha az göster"
+  "chatLongShowLess": "Daha az göster",
+  "liveTrackStart": "Canlı takip et",
+  "liveTrackStop": "Canlı takibi bitir",
+  "liveTrackStarted": "Canlı takip başladı",
+  "liveTrackFailed": "Canlı takip başlatılamadı",
+  "liveTrackDisabled": "Canlı Etkinlikler kapalı. Ayarlardan açabilirsiniz.",
+  "liveLabelStartsIn": "Başlamasına",
+  "liveLabelEndsIn": "Bitmesine",
+  "liveChannelName": "Canlı güncellemeler"
 }

@@ -13235,4 +13235,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatLongShowLess => 'Show less';
+
+  @override
+  String get liveTrackStart => 'Track live';
+
+  @override
+  String get liveTrackStop => 'Stop live tracking';
+
+  @override
+  String get liveTrackStarted => 'Live tracking started';
+
+  @override
+  String get liveTrackFailed => 'Could not start live tracking';
+
+  @override
+  String get liveTrackDisabled =>
+      'Live Activities are turned off. You can enable them in Settings.';
+
+  @override
+  String get liveLabelStartsIn => 'Starts in';
+
+  @override
+  String get liveLabelEndsIn => 'Ends in';
+
+  @override
+  String get liveChannelName => 'Live updates';
 }

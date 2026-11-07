@@ -112,6 +112,13 @@ Cihazda doğrulanacak: yukarıdaki tablonun her satırı (özellikle yığınlam
 - Kilit ekranı: gövde her zaman gösterilir; kanal kilit ekranı görünürlüğü kullanıcının genel ayarına bırakılmıştır.
 - Uygulama içi bildirim kutusu ve ön plan şeridi (`push_banner.dart`) değişmedi.
 
+## Canlı takip: iOS Canlı Etkinlik ve Android Canlı Güncellemeler
+
+Etkinlik ayrıntısındaki "Canlı takip et" düğmesi (yalnız katılan kullanıcı, yalnız destek varsa görünür) geri sayımı sistem yüzeyine taşır. Dart: `lib/core/live/live_activity_service.dart`, UI: `lib/features/events/live_track_button.dart`.
+- **iOS:** ActivityKit (bkz. `docs/IOS_RELEASE.md` 9B). Güncelleme jetonu `PUT /live-activities/{id}` ile sunucuya kaydolur; sunucu doğrulamazsa (başkasının etkinliği, bitmiş) cihazdaki etkinlik geri alınır. APNs `.p8` olmadan sunucu push'u kapalıdır, geri sayım yerel akar.
+- **Android:** `BuLiveUpdates.kt` (kanal `bu_kampus/live_updates`). Android 16 (API 36): `Notification.ProgressStyle` + `setRequestPromotedOngoing(true)` + kısa kritik metin (sistem uygun görmezse standart bildirim kalır; `POST_PROMOTED_NOTIFICATIONS` manifestte). Daha eski: standart ilerleme çubuğu + geri sayım kronometresi. Foreground service YOK; geri sayımı sistem kronometresi sürer, ilerleme çubuğu bildirim kurulurken hesaplanır (uygulama kapalıyken çubuk güncellenmez, süre akmaya devam eder). Kanal `live_updates` (düşük önem, sessiz). Bildirim bitişten 1 dk sonra kendiliğinden kalkar; çıkışta tümü temizlenir.
+- **Durum: kodlandı, gerçek cihaz testi gerekli** (iOS 16.2+; Android 16 ve eski sürüm).
+
 ## iOS bildirim kartı (2.1.4, NB-IOS; macOS'ta DENENMEDİ)
 - **Kategori:** sunucu `aps.category = BU_<style>` gönderir (`docs/changes/push.md` "Bildirim tasarımı yük sözleşmesi"). `NotificationService` yedek olarak kategori `BU_` ile başlamıyorsa yükteki `style`'dan düzeltir. Kayıtlı kategoriler (`AppDelegate.registerPushCategories`) == `NotificationContent/Info.plist` listesi (21; `check-ios-static.py` eşitliği denetler). Kayıtsız kategori = sistem kartı, aksiyonsuz.
 - **Kart (`NotificationViewController`):** "BU Kampüs · kaynak (`sourceName` ya da stil etiketi)", göreli zaman, avatar (`senderAvatarUrl` eki) ya da kategori karosu, sohbette sayı rozeti / sosyalde kalp-kişi-kilit-onay rozeti, `badgeText` çipi, `important` -> "ÖNEMLİ", `severity=critical` -> kırmızı üst şerit, `eventStartsAt`+`location` çipi (Bugün/Yarın HH:mm, Europe/Istanbul), `oldStartsAt`/`newStartsAt` (yeni saat kalın, eski saat üstü çizili), `totalKcal` çipi, küçük resim sağda (sohbet fotoğrafı altta geniş). Yalnız yükte olan alan çizilir.

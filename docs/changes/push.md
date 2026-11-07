@@ -252,3 +252,19 @@ Dagitimdan sonra: yonetici panelinde dead-letter push kayitlarini "yeniden dene"
 - **Yönlendirme:** oturum yokken dokunulan bildirim (FCM dokunuşu, native "aç" eylemi) `PushRouter`da saklanır (30 dk) ve oturum açılınca (`PushService.onSignedIn` → `flushPending`) açılır; FCM dokunuş aboneliği çıkışta kapanmaz. `messageId`/`nid`/`notificationId` taşıyan yük 8 sn içinde ikinci kez işlenmez (LRU 50). `recipientId` oturumdakinden farklıysa yük yok sayılır. Gezgin hazır değilken (soğuk açılış) 3 kare yeniden denenir.
 - **Cihaz kaydı:** `onTokenRefresh` yeni jetonu kaydeder ve eski jetonun kaydını siler (çift bildirim olmasın); bildirim izni sistem ayarından geri alınırsa kayıt sunucudan silinir, izin verilince yeniden kaydedilir; çıkışta `DELETE /devices/{token}` (+ `deleteToken`) zaten çağrılır.
 - **Testler:** `test/notif2_prefs_test.dart`, `notif2_lifecycle_test.dart`, `notif2_signout_test.dart`, `test/support/fake_notif_prefs.dart`.
+
+## Canlı Etkinlik / Canlı Güncellemeler (iOS ActivityKit + Android 16), V1590
+
+**Kapsam (kesin):** yalnız kullanıcının kendi başlattığı gerçek süreçler: katıldığı etkinliğin (RSVP `GOING`, etkinlik `ACTIVE`) ya da kendi girdiği sınavın (`tt_exam`) geri sayımı. Sohbet, arkadaşlık, duyuru ASLA. Başka kullanıcının etkinliği/sınavı için kayıt açılmaz (404 `LIVE_ACTIVITY_REF_INVALID`).
+
+- **Uçlar (`notification.live`, JWT gerekli, hız sınırlı):**
+  - `GET /api/live-activities/status` -> `{apnsConfigured, maxActive}` (istemci durumu dürüst gösterir).
+  - `PUT /api/live-activities/{activityId}` gövde `{kind: EVENT|EXAM, refId, pushToken?}` -> 204. İdempotent (aynı `activityId` jeton günceller, sınıra takılmaz). Kullanıcı başına en çok 5 etkin kayıt, aşımda 422 `LIVE_ACTIVITY_LIMIT`.
+  - `DELETE /api/live-activities/{activityId}` -> 204 (olmayan kayıt sessizce başarı).
+- **Veri:** `live_activity` tablosu (V1590); jeton bildirim yüküne konmaz, log'a yazılmaz; en çok 12 sa (ya da etkinlik/sınav bitişi + 1 sa) yaşar; saatlik temizlik. KVKK: hesap silmede `AccountDataPurger.DELETES`, dışa aktarımda `liveActivities` bölümü (jeton verilmez, yalnız `hasToken`).
+- **APNs (`ApnsLiveActivitySender`):** `apns-push-type: liveactivity`, topic `<bundle>.push-type.liveactivity`, HTTP/2 + ES256 JWT (.p8). Ortam: `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_BUNDLE_ID`, `APNS_KEY_BASE64` ya da `APNS_KEY_FILE`, `APNS_PRODUCTION` (`app.apns.*`). **Yapılandırma yoksa tamamen devre dışı** (hiçbir ağ çağrısı yok). Tek sunucu tetikleyicisi: etkinlik iptal edilince (`EventService.cancelInternal`) o etkinliğin etkin canlı etkinlikleri APNs `end` ile bitirilir; sınav için sunucu tetikleyicisi yok. Push-to-start desteklenmez (yalnız uygulamadan, kullanıcı dokunuşuyla başlar).
+- **Hata kodları (3 dil):** `LIVE_ACTIVITY_REF_INVALID`, `LIVE_ACTIVITY_LIMIT` (`i18n/push*.properties`).
+- **Test:** `LiveActivityServiceTest` (yetki, bitmiş/iptal reddi, idempotans, sınır, bitirme, APNs yapılandırmasızken devre dışı).
+
+### Bildirimden eylemler: denetim özeti (2026-11-07)
+Zaten çalışan ve testli (`push_actions.dart`, `test/push_actions_test.dart`): hızlı yanıt (iOS `UNTextInputNotificationAction`, Android `RemoteInput` + `ReplyDispatcher` + başlıksız Dart motoru, `clientId` idempotans), okundu işaretle, 1 saat sessize al, takip isteği kabul/reddet (`FollowRequestController`: idempotent, `FollowRequestFlowTest`), takip et, takvime ekle/harita/QR yoklama, güvenlik eylemleri. **Eklenmedi (backend'de güvenli karşılığı yok):** kulüp üyelik daveti Kabul/Reddet (kulüp davetleri yalnız kodludur, `ClubInviteService`), etkinlik daveti Katıl (kullanıcıya yönelik davet kaydı yok; "Detay" zaten açılır), forum/gönderi yorumundan satır içi "Yanıtla" (Keşfet yorumları kaldırıldı; satır içi yanıt ucu yok, "Gönderiye Git" derin bağlantı olarak çalışır).

@@ -15,5 +15,9 @@ struct BUWidgetsBundle: WidgetBundle {
         BUPollWidget()
         BUQuickAccessWidget()
         BUSocialWidget()
+        // Canli Etkinlik (kilit ekrani + Dynamic Island), yalniz iOS 16.1+.
+        if #available(iOS 16.1, *) {
+            BuLiveActivityWidget()
+        }
     }
 }

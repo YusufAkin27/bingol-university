@@ -247,6 +247,14 @@ Bildirimin iOS'ta nasıl görüneceği (şerit, yığınlama, `passive`, ön pla
 4. Sonucu kim/nasıl bildirir: testi yapan kişi her adım için ekran görüntüsü/ekran kaydı + cihaz modeli + iOS sürümü + PASS/FAIL ile bir tablo (ID, cihaz, iOS, adım, sonuç) hazırlar ve yöneticiye iletir; FAIL (çökme, kayma, siyah çıkmama) varsa bayrak KAPALI kalır ve çökme günlüğü eklenir. Hiçbir sonuç PASS yazılmadan "iOS'ta ekran görüntüsü engellendi" denmez.
 5. Bu ortamda (Windows) Swift yalnız `swiftc -parse` ile söz dizimi doğrulandı; macOS/Xcode'da derlenmedi, iPhone'da denenmedi.
 
+## 9B. Canlı Etkinlikler (Live Activities) - macOS'ta DENENMEDİ
+
+- **Ne:** etkinlik/sınav geri sayımı kilit ekranı + Dynamic Island (compact/expanded/minimal). Yalnız kullanıcının kendi başlattığı süreçler (etkinlik ayrıntısında "Canlı takip et"); sohbet/arkadaşlık/duyuru asla. Kod: `mobile/ios/BUWidgets/BuLiveActivityWidget.swift` (UI, mevcut `BUWidgets` uzantısı içinde, iOS 16.1 kapısıyla `BUWidgetsBundle`'a kayıtlı), `BUWidgets/Shared/BuLiveActivityAttributes.swift` (Runner + BUWidgets ikisinde derlenir), `Runner/BuLiveActivityBridge.swift` (kanal `bu_kampus/live_activity`, iOS 16.2+; daha eskide `isSupported=false`).
+- **Yeni hedef/profil GEREKMEZ:** Live Activity aynı `BUWidgets` uzantısındadır (`tr.com.bukampus.app.widgets`), mevcut profil yeter. `Runner/Info.plist`: `NSSupportsLiveActivities=true`. `scripts/ios/check-ios-static.py` `check_live_activity` dosya/pbxproj/kapsam denetimi yapar.
+- **Bilinen risk:** Swift bu ortamda derlenemedi. İlk Codemagic derlemesinde olası düzeltmeler: ActivityKit zayıf bağlama (deployment target 15.0, tüm kullanım `@available`), `Activity.request(attributes:content:pushType:)` imzası, `DynamicIsland` kapatmaları.
+- **Push ile güncelleme (APNs `.p8` gerekir):** `.p8` anahtarı henüz yok. `APNS_*` ortamları girilmeden Canlı Etkinlik push'u KAPALI ve `GET /api/live-activities/status` `apnsConfigured:false` döner. Geri sayım yine cihazda doğru akar (sistem zamanlayıcısı). `.p8` Apple Developer > Keys (APNs) ile oluşturulur; topic `tr.com.bukampus.app.push-type.liveactivity` (bkz. `docs/PUSH_SETUP.md` bölüm 7).
+- **Gerçek cihaz testi şart:** Simülatör Canlı Etkinlik push jetonu üretmez. Kontrol listesi: etkinliğe katıl > "Canlı takip et" > kilit ekranı kartı ve Dynamic Island görünür > ayarlardan Canlı Etkinlikler kapalıyken uyarı çıkar > etkinlik iptalinde (APNs açıkken) kart kalkar > çıkış yapınca kart kalkar.
+
 ## 10. Doğrulama komutları
 
 ```bash
