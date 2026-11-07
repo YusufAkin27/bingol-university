@@ -7367,7 +7367,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profilyardRoleMember => 'عضو';
 
   @override
-  String get profilyardClubsEmptyTitle => 'ليس لديك أي نادٍ بعد';
+  String get profilyardClubsEmptyTitle => 'لم تنضم إلى أي نادٍ بعد.';
 
   @override
   String get profilyardClubsEmptyBody =>
@@ -7403,7 +7403,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get profilyardEventsEmptyTitle => 'ليس لديك أي فعالية بعد';
+  String get profilyardEventsEmptyTitle => 'لا توجد فعاليات ستحضرها بعد.';
 
   @override
   String get profilyardEventsEmptyBody =>
@@ -13172,4 +13172,70 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get liveChannelName => 'التحديثات المباشرة';
+
+  @override
+  String get hubSumClubs => 'الأندية';
+
+  @override
+  String get hubSumEvents => 'فعاليات قادمة';
+
+  @override
+  String get hubSumPending => 'طلبات معلّقة';
+
+  @override
+  String get hubSumManaged => 'أديرها';
+
+  @override
+  String get hubPanel => 'لوحة الإدارة';
+
+  @override
+  String get hubViewEvents => 'عرض الفعاليات';
+
+  @override
+  String get hubUpcomingHead => 'فعالياتي القادمة';
+
+  @override
+  String get hubManageTitle => 'إدارة النادي';
+
+  @override
+  String get hubStatMembers => 'إجمالي الأعضاء';
+
+  @override
+  String get hubActEvents => 'إدارة الفعاليات';
+
+  @override
+  String get hubActEventsSub => 'تعديل وإدارة الحضور والتسجيل';
+
+  @override
+  String get hubActAnnounce => 'إنشاء إعلان';
+
+  @override
+  String get hubActPosts => 'إدارة منشورات النادي';
+
+  @override
+  String get hubActRoles => 'إدارة صلاحيات المشرفين';
+
+  @override
+  String get hubSwitchClub => 'تبديل النادي';
+
+  @override
+  String get hubNoAccess => 'ليست لديك صلاحية إدارة في هذا النادي.';
+
+  @override
+  String get hubSubPlanned => 'سأحضرها';
+
+  @override
+  String get hubSubRequests => 'طلباتي';
+
+  @override
+  String get hubNoRequests => 'لا توجد طلبات معلّقة.';
+
+  @override
+  String get hubNoPast => 'لا توجد فعاليات سابقة.';
+
+  @override
+  String get profileClubHub => 'أنديتي وفعالياتي';
+
+  @override
+  String get hubOpenManage => 'إدارة ناديي';
 }

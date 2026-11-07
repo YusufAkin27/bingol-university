@@ -7398,7 +7398,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profilyardRoleMember => 'Üye';
 
   @override
-  String get profilyardClubsEmptyTitle => 'Henüz bir kulübün yok';
+  String get profilyardClubsEmptyTitle => 'Henüz bir kulübe katılmadın.';
 
   @override
   String get profilyardClubsEmptyBody =>
@@ -7434,7 +7434,8 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get profilyardEventsEmptyTitle => 'Henüz etkinliğin yok';
+  String get profilyardEventsEmptyTitle =>
+      'Henüz katılacağın bir etkinlik yok.';
 
   @override
   String get profilyardEventsEmptyBody =>
@@ -13243,4 +13244,70 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get liveChannelName => 'Canlı güncellemeler';
+
+  @override
+  String get hubSumClubs => 'Kulüp';
+
+  @override
+  String get hubSumEvents => 'Yaklaşan etkinlik';
+
+  @override
+  String get hubSumPending => 'Bekleyen başvuru';
+
+  @override
+  String get hubSumManaged => 'Yönettiğim';
+
+  @override
+  String get hubPanel => 'Yönetim Paneli';
+
+  @override
+  String get hubViewEvents => 'Etkinliklerini gör';
+
+  @override
+  String get hubUpcomingHead => 'Yaklaşan etkinliklerim';
+
+  @override
+  String get hubManageTitle => 'Kulüp yönetimi';
+
+  @override
+  String get hubStatMembers => 'Toplam üye';
+
+  @override
+  String get hubActEvents => 'Etkinlikleri yönet';
+
+  @override
+  String get hubActEventsSub => 'Düzenle, katılımcıları ve yoklamayı yönet';
+
+  @override
+  String get hubActAnnounce => 'Duyuru oluştur';
+
+  @override
+  String get hubActPosts => 'Kulüp gönderilerini yönet';
+
+  @override
+  String get hubActRoles => 'Yönetici yetkilerini yönet';
+
+  @override
+  String get hubSwitchClub => 'Kulüp değiştir';
+
+  @override
+  String get hubNoAccess => 'Bu kulüpte yönetim yetkin yok.';
+
+  @override
+  String get hubSubPlanned => 'Katılacaklarım';
+
+  @override
+  String get hubSubRequests => 'Başvurularım';
+
+  @override
+  String get hubNoRequests => 'Bekleyen başvurun yok.';
+
+  @override
+  String get hubNoPast => 'Geçmiş etkinliğin yok.';
+
+  @override
+  String get profileClubHub => 'Kulüp ve Etkinliklerim';
+
+  @override
+  String get hubOpenManage => 'Kulübümü yönet';
 }

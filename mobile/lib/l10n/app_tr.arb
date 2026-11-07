@@ -3913,7 +3913,7 @@
   "profilyardRoleAdmin": "Yönetici",
   "profilyardRoleModerator": "Moderatör",
   "profilyardRoleMember": "Üye",
-  "profilyardClubsEmptyTitle": "Henüz bir kulübün yok",
+  "profilyardClubsEmptyTitle": "Henüz bir kulübe katılmadın.",
   "profilyardClubsEmptyBody": "Kulüpleri keşfedip katılabilir ya da kendi kulübünü kurabilirsin.",
   "profilyardClubsDiscover": "Kulüpleri keşfet",
   "profilyardEventsAttended": "Katıldıklarım",
@@ -3931,7 +3931,7 @@
       }
     }
   },
-  "profilyardEventsEmptyTitle": "Henüz etkinliğin yok",
+  "profilyardEventsEmptyTitle": "Henüz katılacağın bir etkinlik yok.",
   "profilyardEventsEmptyBody": "Etkinliklere göz at ya da kendi etkinliğini oluştur.",
   "profilyardFollowersTab": "Takipçiler {count}",
   "@profilyardFollowersTab": {
@@ -7177,5 +7177,27 @@
   "liveTrackDisabled": "Canlı Etkinlikler kapalı. Ayarlardan açabilirsiniz.",
   "liveLabelStartsIn": "Başlamasına",
   "liveLabelEndsIn": "Bitmesine",
-  "liveChannelName": "Canlı güncellemeler"
+  "liveChannelName": "Canlı güncellemeler",
+  "hubSumClubs": "Kulüp",
+  "hubSumEvents": "Yaklaşan etkinlik",
+  "hubSumPending": "Bekleyen başvuru",
+  "hubSumManaged": "Yönettiğim",
+  "hubPanel": "Yönetim Paneli",
+  "hubViewEvents": "Etkinliklerini gör",
+  "hubUpcomingHead": "Yaklaşan etkinliklerim",
+  "hubManageTitle": "Kulüp yönetimi",
+  "hubStatMembers": "Toplam üye",
+  "hubActEvents": "Etkinlikleri yönet",
+  "hubActEventsSub": "Düzenle, katılımcıları ve yoklamayı yönet",
+  "hubActAnnounce": "Duyuru oluştur",
+  "hubActPosts": "Kulüp gönderilerini yönet",
+  "hubActRoles": "Yönetici yetkilerini yönet",
+  "hubSwitchClub": "Kulüp değiştir",
+  "hubNoAccess": "Bu kulüpte yönetim yetkin yok.",
+  "hubSubPlanned": "Katılacaklarım",
+  "hubSubRequests": "Başvurularım",
+  "hubNoRequests": "Bekleyen başvurun yok.",
+  "hubNoPast": "Geçmiş etkinliğin yok.",
+  "profileClubHub": "Kulüp ve Etkinliklerim",
+  "hubOpenManage": "Kulübümü yönet"
 }

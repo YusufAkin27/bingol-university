@@ -9,15 +9,25 @@ import '../clubs/club_actions.dart';
 import '../clubs/club_detail_page.dart';
 import '../clubs/club_form_page.dart';
 import '../clubs/club_members_page.dart';
+import '../clubs/club_logo.dart';
+import '../clubs/club_manage_page.dart';
 import '../clubs/club_ref_widgets.dart';
 import '../clubs/club_requests_page.dart';
 import '../clubs/clubs_tab.dart';
+import '../events/etkinlik_parts.dart' show EtkinlikDateBlock, EtkinlikBlockTone;
+import '../events/event_detail_page.dart';
+import '../events/event_parts.dart' show eventMonthShortOf, eventIsExpired;
+import '../events/events_page.dart';
+import 'my_events_page.dart';
 
 /// Kulüplerim (GET /me/communities): kurduklarım / üye olduklarım / bekleyen başvurular (referans 30-01..03).
 class MyClubsPage extends StatefulWidget {
-  const MyClubsPage({super.key, required this.session});
+  const MyClubsPage({super.key, required this.session, this.focusPending = false});
 
   final Session session;
+
+  /// Bildirim / kısayol: açılışta "Bekleyen başvurular" bölümüne kaydırır.
+  final bool focusPending;
 
   @override
   State<MyClubsPage> createState() => _MyClubsPageState();
@@ -28,6 +38,13 @@ class _MyClubsPageState extends State<MyClubsPage> {
   bool _loading = true;
   Object? _error;
   int _gen = 0;
+  final _pendingKey = GlobalKey();
+  bool _focused = false;
+
+  // Yaklaşan etkinliklerim (özet sayacı + kısa liste); ek bilgidir, hata ekranı açmaz.
+  List<Map<String, dynamic>> _events = [];
+  bool _eventsMore = false;
+  bool _eventsLoaded = false;
 
   @override
   void initState() {
@@ -35,9 +52,72 @@ class _MyClubsPageState extends State<MyClubsPage> {
     _load();
   }
 
+  Future<void> _loadEvents() async {
+    try {
+      final r = await widget.session.api.get('/me/events?mode=upcoming&size=20') as Map;
+      final list = [
+        for (final e in (r['items'] as List? ?? []))
+          if (e is Map && !eventIsExpired(Map<String, dynamic>.from(e))) Map<String, dynamic>.from(e),
+      ];
+      if (!mounted) return;
+      setState(() {
+        _events = list;
+        _eventsMore = r['nextCursor'] != null;
+        _eventsLoaded = true;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _eventsLoaded = true);
+    }
+  }
+
+  List<ManagedClub> get _managed => [
+        for (final c in _items)
+          if (c['myStatus'] != 'PENDING' && isClubManagerRole(c['myRole']?.toString())) (id: _id(c), name: (c['name'] ?? '').toString()),
+      ];
+
+  Future<void> _panel(Map<String, dynamic> c) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        settings: const RouteSettings(name: 'club_manage'),
+        builder: (_) => ClubManagePage(session: widget.session, communityId: _id(c), managed: _managed),
+      ),
+    );
+    if (mounted) _load(silent: true);
+  }
+
+  Future<void> _clubEvents(Map<String, dynamic> c) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+          settings: const RouteSettings(name: 'club_detail'),
+          builder: (_) => ClubDetailPage(session: widget.session, communityId: _id(c), initialTab: 'events')),
+    );
+    if (mounted) _load(silent: true);
+  }
+
+  Future<void> _openEvent(Map<String, dynamic> e) async {
+    final id = (e['id'] as num?)?.toInt();
+    if (id == null) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(settings: const RouteSettings(name: 'event_detail'), builder: (_) => EventDetailPage(session: widget.session, eventId: id)),
+    );
+    if (mounted) _loadEvents();
+  }
+
+  void _allEvents() {
+    Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: 'my_events'), builder: (_) => MyEventsPage(session: widget.session)));
+  }
+
+  void _discoverEvents() {
+    Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: 'events'), builder: (_) => EventsPage(session: widget.session)));
+  }
+
   /// Tüm sayfaları (en çok 10) çeker: bölümlere ayırmak için liste bütün olmalı.
   Future<void> _load({bool silent = false}) async {
     final gen = ++_gen;
+    _loadEvents();
     if (!silent) {
       setState(() {
         _loading = true;
@@ -62,6 +142,13 @@ class _MyClubsPageState extends State<MyClubsPage> {
         _loading = false;
         _error = null;
       });
+      if (widget.focusPending && !_focused) {
+        _focused = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final ctx = _pendingKey.currentContext;
+          if (ctx != null) Scrollable.ensureVisible(ctx, duration: const Duration(milliseconds: 250));
+        });
+      }
     } catch (e) {
       if (mounted && gen == _gen) {
         setState(() {
@@ -182,7 +269,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
               padding: const EdgeInsets.only(bottom: 8),
               child: Row(
                 children: [
-                  _ClubLogo(club: c, size: 48),
+                  ClubLogoBox(club: c, size: 48),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Text((c['name'] ?? '').toString(),
@@ -195,11 +282,13 @@ class _MyClubsPageState extends State<MyClubsPage> {
             ),
             Divider(height: 16, color: t.bd),
             if (manager) ...[
+              ClubSheetRow(icon: BuIcons.shieldCheck, title: l.hubPanel, onTap: () => pick('panel')),
               ClubSheetRow(icon: BuIcons.pencil, title: l.profilePrefsManageEdit, onTap: () => pick('edit')),
               ClubSheetRow(icon: BuIcons.userPlus, title: l.profilePrefsManageRequests, onTap: () => pick('requests')),
               ClubSheetRow(icon: BuIcons.users, title: l.profilePrefsManageMembers, onTap: () => pick('members')),
             ],
             ClubSheetRow(icon: BuIcons.squareArrowOutUpRight, title: l.profilePrefsOpen, onTap: () => pick('open')),
+            ClubSheetRow(icon: BuIcons.calendar, title: l.hubViewEvents, onTap: () => pick('events')),
             Divider(height: 16, color: t.bd),
             ClubSheetRow(icon: BuIcons.logOut, title: l.profilePrefsLeaveClub, danger: true, onTap: () => pick('leave')),
             const SizedBox(height: 8),
@@ -209,6 +298,10 @@ class _MyClubsPageState extends State<MyClubsPage> {
     );
     if (v == null || !mounted) return;
     switch (v) {
+      case 'panel':
+        await _panel(c);
+      case 'events':
+        await _clubEvents(c);
       case 'edit':
         await _edit(c);
       case 'requests':
@@ -275,6 +368,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 28),
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
+            _summary(owned.length + member.length, pending.length),
             if (owned.isNotEmpty) ...[
               _SectionHead(title: l.profilePrefsClubsOwned, count: l.p12CountClubs('${owned.length}')),
               for (final c in owned) Padding(padding: const EdgeInsets.only(bottom: 12), child: _ownedCard(c)),
@@ -294,8 +388,9 @@ class _MyClubsPageState extends State<MyClubsPage> {
                 ),
               ),
             ],
+            if (_eventsLoaded) _eventsSection(),
             if (pending.isNotEmpty) ...[
-              _SectionHead(title: l.profilePrefsClubsPending, count: l.p12CountRequests('${pending.length}')),
+              _SectionHead(key: _pendingKey, title: l.profilePrefsClubsPending, count: l.p12CountRequests('${pending.length}')),
               for (final c in pending) Padding(padding: const EdgeInsets.only(bottom: 12), child: _pendingCard(c)),
             ],
           ],
@@ -333,9 +428,12 @@ class _MyClubsPageState extends State<MyClubsPage> {
       style: BuCardStyle.outlined,
       onTap: () => _open(c),
       padding: const EdgeInsets.all(16),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _ClubLogo(club: c, size: 56),
+      Row(
+        children: [
+          ClubLogoBox(club: c, size: 56),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -368,6 +466,118 @@ class _MyClubsPageState extends State<MyClubsPage> {
           BuButton(label: l.profilePrefsManage, icon: BuIcons.slidersHorizontal, compact: true, onPressed: () => _options(c)),
         ],
       ),
+          const SizedBox(height: 12),
+          BuButton(
+              key: ValueKey('panel-${_id(c)}'),
+              label: l.hubPanel,
+              icon: BuIcons.shieldCheck,
+              kind: BuButtonKind.soft,
+              onPressed: () => _panel(c)),
+        ],
+      ),
+    );
+  }
+
+  /// Üst özet: kulüp sayısı, yaklaşan etkinlik, bekleyen başvuru ve (varsa) yönettiğim kulüp sayısı.
+  Widget _summary(int clubs, int pending) {
+    final l = context.l10n;
+    final managed = _managed.length;
+    final ev = _eventsLoaded ? '${_events.length}${_eventsMore ? '+' : ''}' : '–';
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: BuCard(
+        key: const ValueKey('hub-summary'),
+        style: BuCardStyle.outlined,
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+        child: Row(children: [
+          _SumTile(value: '$clubs', label: l.hubSumClubs),
+          _SumTile(value: ev, label: l.hubSumEvents),
+          _SumTile(value: '$pending', label: l.hubSumPending),
+          if (managed > 0) _SumTile(value: '$managed', label: l.hubSumManaged),
+        ]),
+      ),
+    );
+  }
+
+  /// Yaklaşan etkinliklerim: en çok 3 satır + tümü; boşsa yönlendirici boş durum.
+  Widget _eventsSection() {
+    final t = context.bu;
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    final shown = _events.take(3).toList();
+    return Column(
+      key: const ValueKey('hub-events'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _SectionHead(title: l.hubUpcomingHead, count: _events.isEmpty ? '' : '${_events.length}${_eventsMore ? '+' : ''}'),
+        if (shown.isEmpty)
+          BuCard(
+            style: BuCardStyle.outlined,
+            padding: const EdgeInsets.all(16),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Text(l.profilyardEventsEmptyTitle, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut)),
+              const SizedBox(height: 12),
+              BuButton(label: l.eventListDiscover, icon: BuIcons.compass, kind: BuButtonKind.soft, onPressed: _discoverEvents),
+            ]),
+          )
+        else ...[
+          BuCard(
+            style: BuCardStyle.outlined,
+            padding: EdgeInsets.zero,
+            child: Column(children: [
+              for (var i = 0; i < shown.length; i++) ...[
+                if (i > 0) Divider(height: 1, indent: 78, endIndent: 16, color: t.bd),
+                _eventRow(shown[i]),
+              ],
+            ]),
+          ),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: TextButton(
+              key: const ValueKey('hub-all-events'),
+              onPressed: _allEvents,
+              style: TextButton.styleFrom(minimumSize: const Size(44, 44), foregroundColor: t.ink),
+              child: Text(l.homeViewAll),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _eventRow(Map<String, dynamic> e) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final start = DateTime.tryParse('${e['startsAt'] ?? ''}')?.toLocal();
+    final org = (e['communityName'] as String?)?.trim();
+    return InkWell(
+      onTap: () => _openEvent(e),
+      borderRadius: BorderRadius.circular(BuRadius.lg),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 64),
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 10, 12, 10),
+          child: Row(children: [
+            if (start != null)
+              EtkinlikDateBlock(month: eventMonthShortOf(context, start.month), day: '${start.day}', tone: EtkinlikBlockTone.blue, size: 48)
+            else
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(14)),
+                child: Icon(BuIcons.calendar, size: 22, color: t.mut),
+              ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('${e['title'] ?? ''}', maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
+                if (org != null && org.isNotEmpty) Text(org, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
+              ]),
+            ),
+            ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mut)),
+          ]),
+        ),
+      ),
     );
   }
 
@@ -389,7 +599,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
         padding: const EdgeInsetsDirectional.fromSTEB(16, 14, 12, 14),
         child: Row(
           children: [
-            _ClubLogo(club: c, size: 48),
+            ClubLogoBox(club: c, size: 48),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -410,6 +620,14 @@ class _MyClubsPageState extends State<MyClubsPage> {
                 ],
               ),
             ),
+            if (mod)
+              IconButton(
+                key: ValueKey('panel-${_id(c)}'),
+                tooltip: l.hubPanel,
+                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                icon: Icon(BuIcons.shieldCheck, size: 20, color: t.ink),
+                onPressed: () => _panel(c),
+              ),
             ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mut)),
           ],
         ),
@@ -433,7 +651,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
             padding: const EdgeInsetsDirectional.only(end: 8),
             child: Row(
               children: [
-                _ClubLogo(club: c, size: 48),
+                ClubLogoBox(club: c, size: 48),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
@@ -526,7 +744,7 @@ class _Pill extends StatelessWidget {
 
 /// Bölüm başlığı: solda büyük harfli ad, sağda sayaç.
 class _SectionHead extends StatelessWidget {
-  const _SectionHead({required this.title, required this.count});
+  const _SectionHead({super.key, required this.title, required this.count});
 
   final String title;
   final String count;
@@ -553,36 +771,26 @@ class _SectionHead extends StatelessWidget {
   }
 }
 
-/// Kulüp logosu: yüklenmişse görsel, yoksa kategori tonlu baş harfler; yuvarlatılmış kare.
-class _ClubLogo extends StatelessWidget {
-  const _ClubLogo({required this.club, required this.size});
+/// Özet satırı hücresi: büyük sayı + küçük etiket.
+class _SumTile extends StatelessWidget {
+  const _SumTile({required this.value, required this.label});
 
-  final Map<String, dynamic> club;
-  final double size;
+  final String value;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final name = (club['name'] ?? '').toString();
-    final url = (club['logoUrl'] ?? club['coverUrl'])?.toString();
-    // Kategori/kimlik başına renk yok: tek nötr ton.
-    final tint = BuTint(t.sf2, t.ink);
-    if (fileUrl(url) != null) {
-      return ClipRRect(borderRadius: BorderRadius.circular(size * .3), child: BuImage(url, width: size, height: size));
-    }
-    return ExcludeSemantics(
-      child: Container(
-        width: size,
-        height: size,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(color: tint.bg, borderRadius: BorderRadius.circular(size * .3)),
-        child: Padding(
-          padding: const EdgeInsets.all(4),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(initialsOf(name), style: Theme.of(context).textTheme.titleMedium!.copyWith(color: tint.fg, fontWeight: FontWeight.w400)),
-          ),
-        ),
+    final tx = Theme.of(context).textTheme;
+    return Expanded(
+      child: Semantics(
+        label: '$label: $value',
+        excludeSemantics: true,
+        child: Column(children: [
+          Text(value, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
+          const SizedBox(height: 2),
+          Text(label, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.labelSmall!.copyWith(color: t.mut)),
+        ]),
       ),
     );
   }

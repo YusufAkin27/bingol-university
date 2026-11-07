@@ -134,7 +134,7 @@ void main() {
   testWidgets('Kuluplerim bos: kulupleri kesfet dugmesi', (tester) async {
     final b = FakeBackend()..on('/me/communities*', {'items': [], 'nextCursor': null});
     await _pump(tester, MyClubsPage(session: makeSession(b)));
-    expect(find.text('Henüz bir kulübün yok'), findsOneWidget);
+    expect(find.text('Henüz bir kulübe katılmadın.'), findsOneWidget);
     expect(find.text('Kulüpleri keşfet'), findsOneWidget);
   });
 
