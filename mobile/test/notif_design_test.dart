@@ -62,7 +62,7 @@ void main() {
         'nextCursor': null,
         'items': [
           {'id': 1, 'type': 'MESSAGE', 'title': 'Mehmet Kaya mesaj gönderdi', 'read': false, 'createdAt': DateTime.now().toIso8601String()},
-          {'id': 2, 'type': 'FOLLOW_REQUEST', 'title': 'Yeni takip isteği', 'read': false, 'createdAt': DateTime.now().toIso8601String()},
+          {'id': 2, 'type': 'ANNOUNCEMENT', 'title': 'Yeni takip isteği', 'read': false, 'createdAt': DateTime.now().toIso8601String()},
           {'id': 3, 'type': 'EVENT', 'title': 'Kariyer günleri', 'read': true, 'createdAt': DateTime.now().toIso8601String()},
         ],
       });

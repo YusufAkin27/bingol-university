@@ -55,7 +55,7 @@ void main() {
           ],
           'unreadCount': 1,
         });
-      await tester.pumpWidget(buildApp(NotificationsPage(session: makeSession(be))));
+      await tester.pumpWidget(buildApp(NotificationsPage(session: makeSession(be), socialOnly: true)));
       await settle(tester);
       expect(find.text('Ali Veli'), findsOneWidget);
       expect(find.text('Seni bir gönderide etiketledi'), findsOneWidget);

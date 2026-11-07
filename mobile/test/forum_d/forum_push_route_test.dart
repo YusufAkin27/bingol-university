@@ -113,7 +113,7 @@ void main() {
       final r = await PushRouter.open({'type': 'FORUM_COMMENT_LIKE', 'targetType': 'FORUM_COMMENT', 'targetId': '999'});
       await settle(tester, const Duration(milliseconds: 600));
       expect(r, isFalse);
-      expect(log.count('notifications'), 1);
+      expect(log.count('activity'), 1);
       expectNoException(tester);
     });
 
@@ -151,7 +151,7 @@ void main() {
           },
         ],
       });
-      await mount(tester, NotificationsPage(session: makeSession(b)));
+      await mount(tester, NotificationsPage(session: makeSession(b), socialOnly: true));
       await settle(tester, const Duration(seconds: 1));
       expectNoException(tester);
       expect(find.text('Anonim #7 konuna yorum yaptı'), findsOneWidget);
@@ -196,7 +196,7 @@ void main() {
         darkTheme: BuTheme.dark(),
         themeMode: ThemeMode.dark,
         builder: (c, w) => MediaQuery(data: MediaQuery.of(c).copyWith(textScaler: const TextScaler.linear(1.3)), child: w!),
-        home: NotificationsPage(session: makeSession(b)),
+        home: NotificationsPage(session: makeSession(b), socialOnly: true),
       ));
       await settle(tester, const Duration(seconds: 1));
       expectNoException(tester);
