@@ -2,13 +2,13 @@ import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-/// Arama geçmişi (son 8 terim). Kullanıcıya özeldir (kişi adı olabilir): çıkışta [clear] ile silinir
+/// Arama geçmişi (son 10 terim). Kullanıcıya özeldir (kişi adı olabilir): çıkışta [clear] ile silinir
 /// (bkz. `registerUserDataCleaners`).
 class RecentSearches {
   const RecentSearches._();
 
   static const key = 'recent_searches';
-  static const max = 8;
+  static const max = 10;
   static const _storage = FlutterSecureStorage();
 
   static Future<List<String>> load() async {

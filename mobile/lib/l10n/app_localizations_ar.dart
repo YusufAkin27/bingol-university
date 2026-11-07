@@ -13410,4 +13410,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get menuRemPermNeeded => 'يلزم إذن الإشعارات للتذكير.';
+
+  @override
+  String get searchForum => 'المنتدى';
+
+  @override
+  String get icerikGroupForum => 'المنتدى';
+
+  @override
+  String get searchSuggestionsLabel => 'اقتراحات البحث';
+
+  @override
+  String searchForumLikes(String n) {
+    return '$n إعجاب';
+  }
 }

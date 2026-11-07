@@ -13532,4 +13532,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get menuRemPermNeeded =>
       'Notification permission is needed for the reminder.';
+
+  @override
+  String get searchForum => 'Forum';
+
+  @override
+  String get icerikGroupForum => 'FORUM';
+
+  @override
+  String get searchSuggestionsLabel => 'Search suggestions';
+
+  @override
+  String searchForumLikes(String n) {
+    return '$n likes';
+  }
 }

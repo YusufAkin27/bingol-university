@@ -24317,6 +24317,30 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Hatırlatıcı için bildirim izni gerekli.'**
   String get menuRemPermNeeded;
+
+  /// No description provided for @searchForum.
+  ///
+  /// In tr, this message translates to:
+  /// **'Forum'**
+  String get searchForum;
+
+  /// No description provided for @icerikGroupForum.
+  ///
+  /// In tr, this message translates to:
+  /// **'FORUM'**
+  String get icerikGroupForum;
+
+  /// No description provided for @searchSuggestionsLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arama önerileri'**
+  String get searchSuggestionsLabel;
+
+  /// No description provided for @searchForumLikes.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} beğeni'**
+  String searchForumLikes(String n);
 }
 
 class _AppLocalizationsDelegate

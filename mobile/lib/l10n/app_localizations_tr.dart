@@ -13483,4 +13483,18 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get menuRemPermNeeded => 'Hatırlatıcı için bildirim izni gerekli.';
+
+  @override
+  String get searchForum => 'Forum';
+
+  @override
+  String get icerikGroupForum => 'FORUM';
+
+  @override
+  String get searchSuggestionsLabel => 'Arama önerileri';
+
+  @override
+  String searchForumLikes(String n) {
+    return '$n beğeni';
+  }
 }

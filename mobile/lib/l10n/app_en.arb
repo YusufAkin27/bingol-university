@@ -4908,5 +4908,10 @@
   "menuRemTime": "Reminder time",
   "menuRemNotifTitle": "Menu for today",
   "menuRemNotifBody": "Take a look at the dining hall menu.",
-  "menuRemPermNeeded": "Notification permission is needed for the reminder."
+  "menuRemPermNeeded": "Notification permission is needed for the reminder.",
+  "searchForum": "Forum",
+  "icerikGroupForum": "FORUM",
+  "searchSuggestionsLabel": "Search suggestions",
+  "searchForumLikes": "{n} likes",
+  "@searchForumLikes": {"placeholders": {"n": {"type": "String"}}}
 }

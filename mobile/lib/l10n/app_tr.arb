@@ -7298,5 +7298,10 @@
   "menuRemTime": "Hatırlatma saati",
   "menuRemNotifTitle": "Bugünün menüsü",
   "menuRemNotifBody": "Yemekhane menüsüne göz at.",
-  "menuRemPermNeeded": "Hatırlatıcı için bildirim izni gerekli."
+  "menuRemPermNeeded": "Hatırlatıcı için bildirim izni gerekli.",
+  "searchForum": "Forum",
+  "icerikGroupForum": "FORUM",
+  "searchSuggestionsLabel": "Arama önerileri",
+  "searchForumLikes": "{n} beğeni",
+  "@searchForumLikes": {"placeholders": {"n": {"type": "String"}}}
 }

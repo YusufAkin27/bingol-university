@@ -4908,5 +4908,10 @@
   "menuRemTime": "وقت التذكير",
   "menuRemNotifTitle": "قائمة اليوم",
   "menuRemNotifBody": "ألقِ نظرة على قائمة المطعم.",
-  "menuRemPermNeeded": "يلزم إذن الإشعارات للتذكير."
+  "menuRemPermNeeded": "يلزم إذن الإشعارات للتذكير.",
+  "searchForum": "المنتدى",
+  "icerikGroupForum": "المنتدى",
+  "searchSuggestionsLabel": "اقتراحات البحث",
+  "searchForumLikes": "{n} إعجاب",
+  "@searchForumLikes": {"placeholders": {"n": {"type": "String"}}}
 }

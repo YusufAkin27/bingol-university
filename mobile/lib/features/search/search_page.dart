@@ -11,6 +11,7 @@ import '../../widgets/bu.dart';
 import '../clubs/club_detail_page.dart';
 import '../events/event_detail_page.dart';
 import '../follow/follow_widgets.dart' show FollowRowButton;
+import '../forum/forum_routes.dart' show openTopicDetail;
 import '../news/icerik_parts.dart';
 import '../news/news_detail_page.dart';
 import '../news/news_tile.dart' show newsLocalDate, newsMonthName;
@@ -67,10 +68,10 @@ class _Hit {
   final bool isPrivate; // kişi: gizli hesap
 }
 
-enum _Tab { all, news, club, event, post, person }
+enum _Tab { all, news, club, event, post, person, forum }
 
 /// Sekme çiplerinin görünüm sırası (Ic1: Tümü, Haber, Etkinlik, Kulüp, Kişi; Gönderi sona eklendi).
-const _tabOrder = [_Tab.all, _Tab.news, _Tab.event, _Tab.club, _Tab.person, _Tab.post];
+const _tabOrder = [_Tab.all, _Tab.news, _Tab.event, _Tab.club, _Tab.person, _Tab.forum, _Tab.post];
 
 String _tabLabel(AppLocalizations l, _Tab tab) => switch (tab) {
       _Tab.all => l.searchAll,
@@ -79,6 +80,7 @@ String _tabLabel(AppLocalizations l, _Tab tab) => switch (tab) {
       _Tab.event => l.newsTypeEvent,
       _Tab.post => l.searchPost,
       _Tab.person => l.searchPerson,
+      _Tab.forum => l.searchForum,
     };
 
 _Tab _tabOf(String type) {
@@ -94,6 +96,8 @@ _Tab _tabOf(String type) {
     case 'POSTS':
     case 'POST':
       return _Tab.post;
+    case 'FORUM_TOPIC':
+      return _Tab.forum;
     default:
       return _Tab.person;
   }
@@ -115,9 +119,19 @@ IconData _iconOf(String type) {
       return BuIcons.calendar;
     case _Tab.post:
       return BuIcons.image;
+    case _Tab.forum:
+      return BuIcons.messageSquare;
     default:
       return BuIcons.user;
   }
+}
+
+/// Yazarken onerilen terim (`/search/suggest`).
+class _Suggestion {
+  const _Suggestion(this.type, this.id, this.text);
+  final String type;
+  final int? id;
+  final String text;
 }
 
 /// Sekme başına sayfalama durumu (Tümü hariç).
@@ -139,6 +153,7 @@ const _tabTypes = <_Tab, List<String>>{
   _Tab.club: ['COMMUNITY'],
   _Tab.event: ['EVENT', 'EVENT_OFFICIAL'],
   _Tab.post: ['POSTS'],
+  _Tab.forum: ['FORUM_TOPIC'],
 };
 
 _Hit _hitFromSearch(Map h) => _Hit(
@@ -174,7 +189,9 @@ _Hit _hitFromUser(Map u, AppLocalizations l, BuildContext context) {
 }
 
 class _SearchPageState extends State<SearchPage> {
-  static const _pageSize = 20;
+  // Sunucu sayfa siniri (limit<=19): nextCursor dogru gelsin diye 19.
+  static const _pageSize = 19;
+  static const _suggestDelay = Duration(milliseconds: 280);
 
   final _ctrl = TextEditingController();
   final _scroll = ScrollController();
@@ -188,6 +205,7 @@ class _SearchPageState extends State<SearchPage> {
   bool _loading = false;
   Object? _error;
   String _query = '';
+  List<_Suggestion> _sugg = []; // yazarken oneriler (sunucu gecmis tutmaz)
 
   @override
   void initState() {
@@ -215,7 +233,7 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> _saveRecent(String q) async {
-    final list = [q, ..._recent.where((e) => e.toLowerCase() != q.toLowerCase())].take(8).toList();
+    final list = [q, ..._recent.where((e) => e.toLowerCase() != q.toLowerCase())].take(RecentSearches.max).toList();
     if (mounted) setState(() => _recent = list);
     await RecentSearches.save(list);
   }
@@ -234,13 +252,52 @@ class _SearchPageState extends State<SearchPage> {
         _query = '';
         _hits = [];
         _tabs.clear();
+        _sugg = [];
         _loading = false;
         _error = null;
       });
       return;
     }
     setState(() => _loading = true);
-    _debounce = Timer(const Duration(milliseconds: 350), () => _run(q));
+    _debounce = Timer(_suggestDelay, () => _suggestThenRun(q));
+  }
+
+  /// Onerileri ceker; varsa listeler ve kullanici secene/gonderene kadar bekler, yoksa/hata varsa dogrudan arar.
+  /// Eski (iptal edilen) istegin sonucu `_seq` ile yok sayilir.
+  Future<void> _suggestThenRun(String q) async {
+    final seq = ++_seq;
+    var list = <_Suggestion>[];
+    try {
+      final r = await widget.session.api.get('/search/suggest?q=${Uri.encodeQueryComponent(q)}');
+      for (final e in (r is Map ? r['suggestions'] : null) as List? ?? []) {
+        if (e is Map && '${e['text'] ?? ''}'.trim().isNotEmpty) {
+          list.add(_Suggestion('${e['type'] ?? ''}', (e['id'] as num?)?.toInt(), '${e['text']}'.trim()));
+        }
+      }
+    } catch (_) {
+      list = [];
+    }
+    if (!mounted || seq != _seq) return;
+    if (list.isEmpty) {
+      _run(q);
+      return;
+    }
+    setState(() {
+      _sugg = list.take(8).toList();
+      _query = '';
+      _hits = [];
+      _tabs.clear();
+      _error = null;
+      _loading = false;
+    });
+  }
+
+  void _useSuggestion(_Suggestion s) {
+    _ctrl.text = s.text;
+    _ctrl.selection = TextSelection.collapsed(offset: s.text.length);
+    _debounce?.cancel();
+    Analytics.instance.action('search_submit', target: 'suggest');
+    _run(s.text);
   }
 
   void _submit(String v) {
@@ -278,6 +335,7 @@ class _SearchPageState extends State<SearchPage> {
     final seq = ++_seq;
     final l = context.l10n;
     setState(() {
+      _sugg = [];
       // Sorgu hemen kaydedilir: hata olursa "Yeniden dene" aynı sorguyu tekrarlayabilsin.
       _query = q;
       _loading = true;
@@ -309,6 +367,7 @@ class _SearchPageState extends State<SearchPage> {
         final items = (g is Map ? g['items'] : null) as List? ?? [];
         for (final h in items) {
           if (h is! Map || h['targetId'] == null) continue;
+          if ('${h['type']}' == 'USER') continue; // kisiler /users/search'ten (takip durumu ile) gelir
           hits.add(_hitFromSearch(h));
         }
       }
@@ -438,6 +497,9 @@ class _SearchPageState extends State<SearchPage> {
       case 'POST':
         openPostDetail(context, s, h.id);
         return;
+      case 'FORUM_TOPIC':
+        openTopicDetail(context, s, h.id);
+        return;
       default:
         openUserProfile(context, s, userId: h.id, name: h.title, avatarUrl: h.imageUrl);
         return;
@@ -489,11 +551,38 @@ class _SearchPageState extends State<SearchPage> {
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
       children: [
+        if (_sugg.isNotEmpty)
+          Semantics(
+            container: true,
+            label: l.searchSuggestionsLabel,
+            child: Column(children: [
+              for (final s in _sugg)
+                DecoratedBox(
+                  decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
+                  child: InkWell(
+                    key: ValueKey('search-suggest-${s.type}-${s.id}'),
+                    onTap: () => _useSuggestion(s),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 56),
+                      child: Row(children: [
+                        const SizedBox(width: 4),
+                        ExcludeSemantics(child: Icon(_iconOf(s.type), size: 18, color: t.mut)),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(s.text, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyLarge!.copyWith(fontSize: 15, color: t.ink)),
+                        ),
+                      ]),
+                    ),
+                  ),
+                ),
+            ]),
+          )
+        else
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 2),
           child: Text(l.searchPrompt, style: tx.bodyMedium!.copyWith(fontSize: 13, height: 1.5, color: t.mut)),
         ),
-        if (_recent.isNotEmpty) ...[
+        if (_recent.isNotEmpty && _sugg.isEmpty) ...[
           const SizedBox(height: 12),
           Row(children: [
             Expanded(
@@ -581,12 +670,13 @@ class _SearchPageState extends State<SearchPage> {
             _Tab.club => l.icerikGroupClub,
             _Tab.event => l.icerikGroupEvent,
             _Tab.post => l.icerikGroupPost,
+            _Tab.forum => l.icerikGroupForum,
             _ => l.icerikGroupPerson,
           },
       };
 
   /// Tümü sekmesi grup sırası: haber, duyuru, etkinlik, kulüp, kişi, gönderi.
-  static const _groupOrder = ['NEWS', 'ANNOUNCEMENT', 'EVENT', 'COMMUNITY', 'USER', 'POSTS'];
+  static const _groupOrder = ['NEWS', 'ANNOUNCEMENT', 'EVENT', 'COMMUNITY', 'USER', 'FORUM_TOPIC', 'POSTS'];
 
   String _groupKey(String type) => switch (type) {
         'EVENT_OFFICIAL' => 'EVENT',
@@ -907,6 +997,12 @@ class _SearchPageState extends State<SearchPage> {
         leading = IcerikThumb(url: h.imageUrl, size: 56, radius: BuRadius.xs, fallbackIcon: BuIcons.image);
         trailing = _chevron(t);
         titleLines = 1;
+      case _Tab.forum:
+        // Yazar bilgisi sunucudan gelmez ve gosterilmez: baslik + ozet + kategori + begeni.
+        leading = ExcludeSemantics(child: Icon(BuIcons.messageSquare, size: 24, color: t.mut));
+        sub = snip;
+        trailing = _chevron(t);
+        titleLines = 2;
       case _Tab.person:
       case _Tab.all:
         // Kişi avatarına uzun basma = büyük önizleme (diğer avatarlarla tutarlı); fotoğraf yoksa hiçbir şey açılmaz.
@@ -939,7 +1035,24 @@ class _SearchPageState extends State<SearchPage> {
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
               Text.rich(_highlight(headline, base, t), maxLines: titleLines, overflow: TextOverflow.ellipsis),
-              if (isPost && h.likes != null)
+              if (tab == _Tab.forum) ...[
+                if (sub.isNotEmpty)
+                  Padding(padding: const EdgeInsets.only(top: 4), child: Text(sub, maxLines: 2, overflow: TextOverflow.ellipsis, style: mut)),
+                if ((h.category ?? '').isNotEmpty || h.likes != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Row(children: [
+                      if ((h.category ?? '').isNotEmpty)
+                        Flexible(child: Text(h.category!, maxLines: 1, overflow: TextOverflow.ellipsis, style: mut)),
+                      if (h.likes != null) ...[
+                        const SizedBox(width: 12),
+                        Icon(BuIcons.heart, size: 16, color: t.mut),
+                        const SizedBox(width: 4),
+                        Text('${h.likes}', style: mut.copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
+                      ],
+                    ]),
+                  ),
+              ] else if (isPost && h.likes != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Row(children: [
