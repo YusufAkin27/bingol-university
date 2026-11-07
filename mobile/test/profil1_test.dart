@@ -106,9 +106,15 @@ void main() {
         expect(find.text('07:00'), findsOneWidget);
         await tester.tap(find.byType(BuIconButton).first);
         await settle(tester);
+        await tester.ensureVisible(find.text('Ayrıntılı tercihler'));
+        await tester.pump(const Duration(milliseconds: 300));
         await tester.tap(find.text('Ayrıntılı tercihler'));
         await settle(tester);
-        await tester.drag(find.byType(ListView).first, const Offset(0, -300));
+        // Günlük menü hatırlatıcısı satırları eklendi: hedef satıra kadar kaydır.
+        for (var i = 0; i < 8 && find.text('Kulüp gönderileri').evaluate().isEmpty; i++) {
+          await tester.drag(find.byType(ListView).first, const Offset(0, -500));
+          await tester.pump(const Duration(milliseconds: 300));
+        }
         await settle(tester, const Duration(milliseconds: 600));
         expect(find.text('Kulüp gönderileri'), findsOneWidget);
         expect(tester.takeException(), isNull);
