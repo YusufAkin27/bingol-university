@@ -192,6 +192,13 @@ public class CommunityPostService {
                 && !url.contains("..");
     }
 
+    /** Idempotency-Key tekrar yaniti: ayni gonderinin gorunumu (silinmisse 404). */
+    @Transactional(readOnly = true)
+    public PostView replay(Actor a, Long cid, Long postId) {
+        CommunityPost p = find(cid, postId);
+        return views(List.of(p), a, communities.can(a, cid, ClubPermission.MANAGE_POSTS)).get(0);
+    }
+
     private CommunityPost find(Long cid, Long postId) {
         return posts.findByIdAndCommunityIdAndDeletedFalse(postId, cid)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "POST_NOT_FOUND", "Gönderi bulunamadı."));

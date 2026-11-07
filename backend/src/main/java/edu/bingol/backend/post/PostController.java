@@ -53,6 +53,13 @@ public class PostController {
         this.reels = reels;
     }
 
+    private edu.bingol.backend.common.WriteMetrics metrics;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setMetrics(edu.bingol.backend.common.WriteMetrics metrics) {
+        this.metrics = metrics;
+    }
+
     @PostMapping("/posts")
     @ResponseStatus(HttpStatus.CREATED)
     public PostView create(@Valid @RequestBody CreatePostRequest req,
@@ -65,7 +72,7 @@ public class PostController {
         }
         limiter.check("post:create:" + uid, 20, Duration.ofHours(1));
         try {
-            return service.create(uid, req, idemKey);
+            return edu.bingol.backend.common.WriteMetrics.of(metrics, "post.create", () -> service.create(uid, req, idemKey));
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
             // es zamanli cift gonderim: kazanan satir
             PostView winner = service.replayByKey(uid, idemKey);

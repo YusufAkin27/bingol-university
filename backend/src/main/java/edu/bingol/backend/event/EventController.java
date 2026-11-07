@@ -61,12 +61,29 @@ public class EventController {
         this.limiter = limiter;
     }
 
-    /** Yayindaysa 201, admin onayi bekliyorsa 202. */
+
+    private edu.bingol.backend.common.WriteMetrics metrics;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setMetrics(edu.bingol.backend.common.WriteMetrics metrics) {
+        this.metrics = metrics;
+    }
+
+    private edu.bingol.backend.common.IdempotentCreate idem;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setIdem(edu.bingol.backend.common.IdempotentCreate idem) {
+        this.idem = idem;
+    }
+
+    /** Yayindaysa 201, admin onayi bekliyorsa 202. Idempotency-Key ile tekrar ayni etkinligi doner. */
     @PostMapping("/events")
-    public ResponseEntity<EventView> create(@Valid @RequestBody CreateEventRequest r) {
+    public ResponseEntity<EventView> create(@Valid @RequestBody CreateEventRequest r,
+                                            @org.springframework.web.bind.annotation.RequestHeader(value = "Idempotency-Key", required = false) String idemKey) {
         Actor a = Actor.current();
-        limiter.check("event-create:user:" + a.id(), 10, Duration.ofHours(1));
-        EventView v = events.create(a, r);
+        EventView v = edu.bingol.backend.common.IdempotentCreate.exec(idem, a.id(), "event", idemKey,
+                () -> limiter.check("event-create:user:" + a.id(), 10, Duration.ofHours(1)),
+                () -> edu.bingol.backend.common.WriteMetrics.of(metrics, "event.create", () -> events.create(a, r)), EventView::id, id -> events.get(a, id));
         return ResponseEntity.status(v.status() == UserEvent.Status.ACTIVE ? HttpStatus.CREATED : HttpStatus.ACCEPTED).body(v);
     }
 
@@ -159,7 +176,7 @@ public class EventController {
         Actor a = Actor.current();
         limiter.check("event-rsvp:user:" + a.id(), 30, Duration.ofMinutes(1));
         limiter.check("event-rsvp-change:user:" + a.id() + ":event:" + id, 5, Duration.ofMinutes(1)); // ayni etkinlikte dakikada 5 degisiklik
-        return events.rsvp(a, id, r.status());
+        return edu.bingol.backend.common.WriteMetrics.of(metrics, "event.rsvp", () -> events.rsvp(a, id, r.status()));
     }
 
     @DeleteMapping("/events/{id}/rsvp")

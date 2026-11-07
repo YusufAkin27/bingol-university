@@ -55,6 +55,13 @@ public class ForumTopicController {
         return feed.feed(uid, ForumFeedService.parseSort(sort), categoryId, cursor, size);
     }
 
+    private edu.bingol.backend.common.WriteMetrics metrics;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setMetrics(edu.bingol.backend.common.WriteMetrics metrics) {
+        this.metrics = metrics;
+    }
+
     /** Kullanici basina saatte 5 konu; ayni Idempotency-Key ile tekrar ayni konuyu doner. */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -62,7 +69,7 @@ public class ForumTopicController {
                             @RequestHeader(value = "Idempotency-Key", required = false) String idemKey) {
         Long uid = CurrentUser.id();
         limiter.check("forum:topic:create:" + uid, 5, Duration.ofHours(1));
-        return service.create(uid, req, idemKey);
+        return edu.bingol.backend.common.WriteMetrics.of(metrics, "forum.topic.create", () -> service.create(uid, req, idemKey));
     }
 
     @GetMapping("/{id}")
