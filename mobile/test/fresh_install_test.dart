@@ -19,7 +19,7 @@ void main() {
     final first = await FreshInstallGuard.run(isIOS: true, supportDir: () async => tmp, deleteKey: (k) async => deleted.add(k));
     expect(first, isTrue);
     // Oturum jetonları + kullanıcıya ait bekleyen mesaj kuyruğu (ve bozuk yedeği) silinir; cihaz kimliği kalır.
-    expect(deleted, ['access', 'refresh', 'outbox_v1', 'outbox_v1_corrupt']);
+    expect(deleted, ['access', 'refresh', 'outbox_v1', 'outbox_v1_corrupt', 'acct_index', 'acct_tokens']);
     expect(deleted.contains('outbox_v1'), isTrue);
     expect(deleted.contains('device_id'), isFalse);
 
@@ -60,6 +60,6 @@ void main() {
       },
     );
     expect(r, isTrue);
-    expect(deleted, ['refresh', 'outbox_v1', 'outbox_v1_corrupt']);
+    expect(deleted, ['refresh', 'outbox_v1', 'outbox_v1_corrupt', 'acct_index', 'acct_tokens']);
   });
 }

@@ -14,7 +14,7 @@ import '../../core/notification_counts.dart';
 import '../../core/theme.dart';
 import '../../core/theme_controller.dart';
 import '../../core/theme/bu_motion.dart';
-import '../../widgets/bu_overlays.dart' show BuToast;
+import '../../widgets/bu_overlays.dart' show BuToast, BuToastKind;
 import '../chat/chat_tab.dart';
 import '../clubs/clubs_tab.dart';
 import '../discover/discover_tab.dart';
@@ -73,10 +73,15 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Ticker
 
   Session get s => widget.session;
 
+  /// Bu kabuğun ait olduğu hesap nesli: hesap değişince yeni kabuk gerçek zamanlı bağlantıyı devralır, eski kabuk kapatmaz.
+  late final int _epoch = widget.session.accountEpoch;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    s.accountNotice.addListener(_onAccountNotice);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _onAccountNotice());
     Analytics.instance.setTab('tab_${AppTab.analyticsKeys[_tab]}'); // açılış sekmesi ekran süresi için
     s.realtime?.start();
     _msgSub = s.realtime?.messages.listen(_onRealtimeMessage);
@@ -100,12 +105,21 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Ticker
     _poll?.cancel();
     _msgBadgeTimer?.cancel();
     _msgSub?.cancel();
-    s.realtime?.stop();
+    s.accountNotice.removeListener(_onAccountNotice);
+    if (s.accountEpoch == _epoch) s.realtime?.stop();
     _discoverType.dispose();
     _anim.dispose();
     _snap.dispose();
     _drag.dispose();
     super.dispose();
+  }
+
+  /// Etkin hesabın oturumu sunucuca iptal edilip başka hesaba otomatik geçildiğinde bir kez bilgi verir.
+  void _onAccountNotice() {
+    final v = s.accountNotice.value;
+    if (v == null || !mounted) return;
+    s.accountNotice.value = null;
+    BuToast.show(context, v.isEmpty ? context.l10n.accExpiredSwitchedAnon : context.l10n.accExpiredSwitched(v), kind: BuToastKind.info);
   }
 
   /// Push yönlendirmesinden gelen "sekmeye geç" isteği (ör. sohbetten çıkarıldı -> Sohbet listesi).

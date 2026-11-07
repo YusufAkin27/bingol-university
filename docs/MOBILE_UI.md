@@ -214,3 +214,10 @@ Gönderi fotoğrafı/videosunda iki parmağı birbirinden uzaklaştırınca gör
 - **Uygulandığı yerler:** `PostCard` (gönderi detayı/akışı: fotoğraf + video; liste kartı fotoğrafı) ve Reels (`reels_feed.dart`, tam ekran video, dikey `PageView` ile birlikte). Keşfet masonry küçük resimleri uygulanmadı (dokunuş detaya gider).
 - **Bilinen sınır:** tek parmak sürükleme eşiği (~18 dp) geçildikten SONRA inen ikinci parmak aynı anda hem kaydırmayı hem yakınlaştırmayı sürdürebilir (Flutter'da bir tanıyıcı kazanılmış sürüklemeyi geri alamaz); iki parmak birlikte inince kilit tam çalışır. Gerçek cihazda ince ayar gerekebilir.
 - **Test:** `flutter test test/pinch_zoom_test.dart` (iki parmak: ölçek/pan/yay dönüşü, 4x sınırı, tek parmak kaydırma yakınlaştırmaz, çift dokunuş beğeni, tek dokunuş yalnız `onTap`, geç inen ikinci parmak, hareket azaltma, video anlık görüntü yolu, carousel çakışması, `PostCard` detayı 390 açık + 320 koyu x1.3).
+
+## Çoklu hesap (cihazda en çok 5)
+
+- `lib/core/accounts/account_store.dart` (`AccountStore`): hesap dizini (`acct_index`: kimlik, ad, kullanıcı adı, avatar, MASKELİ e-posta) ve belirteçler (`acct_tokens`) güvenli depoda; ham e-posta/parola saklanmaz, belirteç hiçbir `toString`/loga girmez. `FreshInstallGuard.sessionKeys` iki anahtarı da siler.
+- `Session.switchAccount` sunucuda çıkış YAPMAZ: `beforeSignOut` kancaları (push cihaz kaydı ESKİ hesaptan silinir) -> gerçek zamanlı kapat -> `api.setTokens(null)` (ETag/disk önbelleği, giden kutusu, tüm `registerUserDataCleaners`) -> yeni belirteç -> `accountEpoch++` (kabuk `ValueKey` ile yeniden kurulur; `AppLifecycleHooks` eski hesap için signedOut, yeni için signedIn kancalarını oynatır: push kaydı yeni hesaba, widget snapshot, dil eşitleme).
+- `signOut` yalnız etkin hesabı çıkarır (başka hesap varsa ona geçer); `signOutAll` Ayarlar'da. 401/geçersiz refresh: hesap "Oturum süresi doldu" olur (`forceSignOut`), geçilebilir hesap varsa ona geçilir. Yalnız etkin hesaba push gider.
+- Arayüz: profil başlığı `@kullanıcıadı ▾` ve Ayarlar > Hesap değiştir -> `features/accounts/account_sheet.dart`; "Hesap ekle" `AuthLandingPage(addAccount: true)`.

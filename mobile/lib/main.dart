@@ -262,6 +262,8 @@ class BingolApp extends StatelessWidget {
                   // İlk girişte (cihaz başına bir kez) izin sayfası; sonra kabuk.
                   // Önce zorunlu profil tamamlama (ad soyad + bölüm + sınıf eksikse atlanamaz), sonra izinler ve kabuk.
                   SessionState.signedIn => ProfileCompletionGate(
+                      // Hesap değişiminde tüm alt ağaç (kapılar, kabuk, sekmeler) yeniden kurulur: önceki hesabın ekran durumu kalmaz.
+                      key: ValueKey('acct-${session.accountEpoch}'),
                       session: session,
                       child: PostLoginGate(
                         onNotificationsGranted: push == null ? null : () => push!.onSignedIn(),

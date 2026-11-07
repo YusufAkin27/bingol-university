@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:bu_kampus/core/accounts/account_store.dart';
 import 'package:bu_kampus/core/api.dart';
 import 'package:bu_kampus/core/pending_verification.dart';
 import 'package:bu_kampus/core/session.dart';
@@ -259,7 +260,7 @@ void mockSecureStorage() {
 /// Sahte backend'e bağlı oturum. `signedIn` ise kimlik alanları doldurulur (token yok: WebSocket açılmaz).
 Session makeSession(FakeBackend b, {bool signedIn = true}) {
   mockSecureStorage();
-  final s = Session(ApiClient(client: b.client, retryDelay: Duration.zero))
+  final s = Session(ApiClient(client: b.client, retryDelay: Duration.zero), accounts: AccountStore(kv: MemoryAccountKv()))
     ..pending = PendingVerificationStore.memory();
   if (signedIn) {
     s.state = SessionState.signedIn;
