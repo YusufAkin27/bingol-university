@@ -47,8 +47,8 @@ class NewsCursorTest {
     @Test
     void firstPageUsesSentinelAndReturnsNextCursor() {
         LocalDate d = LocalDate.of(2026, 5, 1);
-        when(repo.cursorDated(any(), any(), anyLong(), any(Pageable.class)))
-                .thenReturn(new ArrayList<>(List.of(row(9, d), row(8, d), row(7, d))));
+        List<NewsRow> rows = new ArrayList<>(List.of(row(9, d), row(8, d), row(7, d)));
+        when(repo.cursorDated(any(), any(), anyLong(), any(Pageable.class))).thenReturn(rows);
 
         CursorPage<NewsSummary> p = service.listCursor(null, null, 0, 2);
 
@@ -60,7 +60,8 @@ class NewsCursorTest {
     @Test
     void dateCursorDecodesToDateAndId() {
         LocalDate d = LocalDate.of(2026, 5, 1);
-        when(repo.cursorDated(any(), any(), anyLong(), any(Pageable.class))).thenReturn(List.of(row(7, d)));
+        List<NewsRow> rows = List.of(row(7, d));
+        when(repo.cursorDated(any(), any(), anyLong(), any(Pageable.class))).thenReturn(rows);
 
         CursorPage<NewsSummary> p = service.listCursor(ContentType.HABER, null, NewsService.encodeCursor(d, 8), 5);
 
