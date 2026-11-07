@@ -234,12 +234,12 @@ void main() {
     final heart = tester.getRect(find.descendant(of: card, matching: find.byKey(const ValueKey('like-heart'))));
     row('Kalp satırı merkezi (foto altından)', 25, heart.center.dy - photo.bottom, tol: 3);
     final div = tester.getRect(find.byKey(const ValueKey('postStreamDivider')).first);
-    row('Ayırıcı (foto altından)', 65, div.top - photo.bottom); // dikey akış düzeni (Keşfet v2) 61 yerine 65
+    row('Ayırıcı (foto altından)', 165, div.top - photo.bottom); // 65 + 100: yorum önizlemesi (2 yorum + 'tümünü gör' + yazma satırı) eklendi (2026-11-07)
     row('Ayırıcı kalınlığı', 1, div.height, tol: .1);
     row('Ayırıcı sol', 20, div.left);
     final next = tester.getRect(find.descendant(of: find.byKey(ValueKey('stream-post-${items[0].id}')), matching: find.byType(BuAvatar)).first);
     row('Ayırıcı -> sonraki avatar üstü', 32.5, next.top - div.bottom);
-    row('Gönderi aralığı (avatar üstü -> avatar üstü)', 591.5, next.top - avatar.top, tol: 3);
+    row('Gönderi aralığı (avatar üstü -> avatar üstü)', 691.5, next.top - avatar.top, tol: 3);
 
     // KE-MB: üst çubuk SABİT (başlık + geri düğmesi kaydırınca da yerinde).
     tester.state<ScrollableState>(find.descendant(of: find.byKey(const ValueKey('postStream')), matching: find.byType(Scrollable)).first).position.jumpTo(500);

@@ -254,7 +254,7 @@ PushTarget resolvePushTarget(Map<String, dynamic>? data) {
         return PushTarget(dest); // kimlik yok: istekler ekranı
       case PushDest.post:
         // Yorum hedefi (COMMENT*) gönderi kimliği (postId) taşımıyorsa `value` yorum kimliğidir: gönderi açılamaz.
-        if (target.contains('COMMENT')) break;
+        if (target.contains('COMMENT') && target != 'POST_COMMENT') break; // POST_COMMENT: targetId zaten gönderi kimliği (eski sözleşme)
         if (value != null)
           return PushTarget(dest, id: value, commentId: commentId);
       default:
