@@ -134,10 +134,18 @@ class _ClubMembersPageState extends State<ClubMembersPage> {
     }
   }
 
+  /// Rol sırası: Yönetici (sahip + yönetici), Moderatör, Üye (yüklü kayıtlar içinde kararlı sıralama; yönetim kadrosu üstte toplanır).
+  static int _rank(Object? role) => switch (role) { 'OWNER' => 0, 'ADMIN' => 1, 'MODERATOR' => 2, _ => 3 };
+
   List<Map<String, dynamic>> get _visible {
-    if (_query.isEmpty) return _items;
     final q = _query.toLowerCase();
-    return _items.where((m) => (m['displayName'] ?? '').toString().toLowerCase().contains(q)).toList();
+    final base = _query.isEmpty ? _items : _items.where((m) => (m['displayName'] ?? '').toString().toLowerCase().contains(q));
+    final indexed = base.toList().asMap().entries.toList()
+      ..sort((a, b) {
+        final c = _rank(a.value['role']).compareTo(_rank(b.value['role']));
+        return c != 0 ? c : a.key.compareTo(b.key);
+      });
+    return [for (final e in indexed) e.value];
   }
 
   /// Üye işlemleri alt sayfası (referans 27-02): üstte üye özeti + kapat, altında rol değiştir (yalnız sahip), çıkar, yasakla.
@@ -152,7 +160,7 @@ class _ClubMembersPageState extends State<ClubMembersPage> {
         final t = c.bu;
         final tx = Theme.of(c).textTheme;
         void pick(String v) => Navigator.of(c).pop(v);
-        final badge = clubRoleBadge(c, role);
+        final badge = clubRoleBadge(c, role, showMember: true);
         return Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,

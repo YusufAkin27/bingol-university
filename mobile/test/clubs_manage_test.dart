@@ -412,7 +412,7 @@ void main() {
       final b = be();
       await _pump(tester, ClubMembersPage(session: makeSession(b), communityId: 7, myRole: 'OWNER'));
       expect(find.byTooltip('Üye işlemleri'), findsNWidgets(2)); // sahip satırında menü yok
-      await tester.tap(find.byTooltip('Üye işlemleri').first);
+      await tester.tap(find.byTooltip('Üye işlemleri').last);
       await settle(tester, const Duration(milliseconds: 400));
       await tester.tap(find.text('Kulüpten çıkar'));
       await settle(tester, const Duration(milliseconds: 400));
@@ -426,7 +426,7 @@ void main() {
     testWidgets('yasakla ban=true, rol degistir PUT', (tester) async {
       final b = be();
       await _pump(tester, ClubMembersPage(session: makeSession(b), communityId: 7, myRole: 'OWNER'));
-      await tester.tap(find.byTooltip('Üye işlemleri').first);
+      await tester.tap(find.byTooltip('Üye işlemleri').last);
       await settle(tester, const Duration(milliseconds: 400));
       await tester.tap(find.text('Moderatör yap'));
       await settle(tester, const Duration(milliseconds: 400));
@@ -438,6 +438,28 @@ void main() {
       await tester.tap(find.text('Yasakla').last);
       await settle(tester, const Duration(milliseconds: 400));
       expect(b.requests, contains('DELETE /communities/7/members/2?ban=true'));
+      await unmount(tester);
+    });
+
+    testWidgets('roller ayirt edilir: Yonetici > Moderator > Uye rozetleri ve sirasi', (tester) async {
+      final b = FakeBackend()
+        ..on('/communities/7/members*', {
+          'items': [
+            {'userId': 5, 'displayName': 'Zeynep Uye', 'role': 'MEMBER'},
+            {'userId': 4, 'displayName': 'Can Moderator', 'role': 'MODERATOR'},
+            {'userId': 3, 'displayName': 'Deniz Yonetici', 'role': 'ADMIN'},
+            {'userId': 1, 'displayName': 'Ayse Baskan', 'role': 'OWNER'},
+          ],
+          'nextCursor': null,
+        });
+      await _pump(tester, ClubMembersPage(session: makeSession(b), communityId: 7, myRole: 'OWNER'));
+      expect(find.text('Yönetici'), findsNWidgets(2)); // sahip + yönetici aynı etiket
+      expect(find.text('Moderatör'), findsOneWidget);
+      expect(find.text('Üye'), findsOneWidget);
+      double y(String n) => tester.getTopLeft(find.text(n)).dy;
+      expect(y('Ayse Baskan'), lessThan(y('Deniz Yonetici')));
+      expect(y('Deniz Yonetici'), lessThan(y('Can Moderator')));
+      expect(y('Can Moderator'), lessThan(y('Zeynep Uye')));
       await unmount(tester);
     });
 

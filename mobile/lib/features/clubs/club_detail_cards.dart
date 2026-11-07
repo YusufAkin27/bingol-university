@@ -13,12 +13,14 @@ import '../../core/academic_catalog.dart';
 
 /// Sahip/yönetici/moderatör rozeti (üye satırlarında); sade üye için null.
 /// Yönetici = ters renk (`pr`/`onPr`) dolgulu, moderatör = nötr yüzey + kalkan (renk yok; ayrım dolgu ve simgeyle).
-Widget? clubRoleBadge(BuildContext context, String? role) {
+Widget? clubRoleBadge(BuildContext context, String? role, {bool showMember = false}) {
   final l = context.l10n;
   final t = context.bu;
+  // Üç kademe, üç ayrı görünüm: Yönetici (ters dolgu + kalkan onay; sahip ve yönetici) > Moderatör (nötr + kalkan) > Üye (soluk, yalnız üye listesinde).
   return switch (role) {
-    'OWNER' || 'ADMIN' => KulupRoleBadge(l.clubRoleOwner, bg: t.pr, fg: t.onPr),
+    'OWNER' || 'ADMIN' => KulupRoleBadge(l.clubRoleOwner, icon: BuIcons.shieldCheck, bg: t.pr, fg: t.onPr),
     'MODERATOR' => KulupRoleBadge(l.clubRoleModerator, icon: BuIcons.shield, bg: t.sf2, fg: t.ink),
+    'MEMBER' when showMember => KulupRoleBadge(l.profilyardRoleMember, bg: t.sf, fg: t.mut),
     _ => null,
   };
 }
@@ -167,7 +169,7 @@ class ClubMemberTile extends StatelessWidget {
     final tx = Theme.of(context).textTheme;
     final m = member;
     final role = m['role']?.toString();
-    final badge = clubRoleBadge(context, role);
+    final badge = clubRoleBadge(context, role, showMember: true);
     final sub = clubMemberSubtitle(context, m);
     return BuCard(
       padding: EdgeInsetsDirectional.fromSTEB(14, 14, trailing == null ? 14 : 6, 14),
