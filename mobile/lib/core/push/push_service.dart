@@ -15,6 +15,7 @@ import '../closed_conversations.dart';
 import '../session.dart';
 import '../../l10n/app_localizations.dart';
 import 'active_conversation.dart';
+import 'conversation_cleaner.dart';
 import 'icon_badge.dart';
 import 'push_api.dart';
 import 'push_actions.dart';
@@ -112,7 +113,11 @@ class PushService with WidgetsBindingObserver {
         _api = PushApi(session.api) {
     this.registrar = registrar ?? PushRegistrar(send: _send);
     session.pushToken = () => _token ?? this.registrar.token;
+    _cleaner = ConversationNotificationCleaner(active: this.active);
   }
+
+  /// Sohbet okununca yalnız o sohbetin bildirimleri tepsiden kalkar (diğerleri kalır).
+  late final ConversationNotificationCleaner _cleaner;
 
   final Session session;
   final ActiveConversation active;
@@ -183,6 +188,10 @@ class PushService with WidgetsBindingObserver {
     try {
       if (await _actions.perform(data)) {
         await PushActions.channel.invokeMethod<void>('dismiss', {'tag': data['notificationTag']});
+        // iOS'ta bildirim kimliği rastgeledir: okundu/yanıt sonrası o sohbetin tüm bildirimlerini thread-id ile temizle.
+        final action = '${data['notificationAction'] ?? ''}';
+        final conv = int.tryParse('${data['conversationId'] ?? ''}');
+        if (conv != null && (action == 'mark_read' || action == 'reply')) await _cleaner.dismissConversation(conv);
       }
     } catch (error) {
       final context = rootNavigatorKey.currentContext;

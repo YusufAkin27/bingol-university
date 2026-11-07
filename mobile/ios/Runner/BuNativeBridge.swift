@@ -45,6 +45,14 @@ final class BuNativeBridge: NSObject, FlutterPlugin, UNUserNotificationCenterDel
       bridge.pushChannel.invokeMethod("onTap", arguments: payload)
     } else { remotePending = payload }
   }
+  /// `threadIdentifier` eslesen teslim edilmis bildirimleri kaldirir (baska thread'lere dokunmaz).
+  static func removeDelivered(thread: String) {
+    let center = UNUserNotificationCenter.current()
+    center.getDeliveredNotifications { delivered in
+      let ids = delivered.filter { $0.request.content.threadIdentifier == thread }.map { $0.request.identifier }
+      if !ids.isEmpty { center.removeDeliveredNotifications(withIdentifiers: ids) }
+    }
+  }
   private var dartReady = false
   private var pending: (payload: [String: String], at: Date)?
 
@@ -71,6 +79,14 @@ final class BuNativeBridge: NSObject, FlutterPlugin, UNUserNotificationCenterDel
       case "dismiss":
         if let args = call.arguments as? [String: Any], let tag = args["tag"] as? String {
           UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [tag])
+        }
+        result(nil)
+      case "dismissConversation":
+        // Sohbet okundu: YALNIZ o sohbetin teslim edilmis bildirimleri (aps.thread-id = "conv:<id>") silinir; diger
+        // sohbetler korunur. Uzaktan bildirim kimligi rastgele oldugu icin threadIdentifier ile suzulur.
+        if let args = call.arguments as? [String: Any] {
+          let raw = (args["conversationId"] as? NSNumber)?.stringValue ?? (args["conversationId"] as? String)
+          if let id = raw, !id.isEmpty { BuNativeBridge.removeDelivered(thread: "conv:" + id) }
         }
         result(nil)
       default: result(FlutterMethodNotImplemented)
