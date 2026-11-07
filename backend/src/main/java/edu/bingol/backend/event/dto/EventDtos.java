@@ -175,6 +175,10 @@ public final class EventDtos {
     public record ScanResult(String status, Long userId, String displayName, Instant markedAt) {
     }
 
+    /** Canli yoklama sayaci: yoklamada n / toplam onayli, son okutan (yoksa null). */
+    public record AttendanceSummary(long present, long total, String lastName, Instant lastAt) {
+    }
+
     public record CheckinRequest(@NotBlank @Size(max = 200) String code) {
     }
 

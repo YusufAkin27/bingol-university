@@ -47,7 +47,8 @@ public class StompAuthInterceptor implements ChannelInterceptor {
     public static final String CONTEXT_ATTR = "wsClientContext";
     static final long EXP_GRACE_SECONDS = 60;
     static final Set<String> SUBSCRIBABLE = Set.of("/user/queue/messages", "/user/queue/read-receipts",
-            "/user/queue/typing", "/user/queue/errors", "/user/queue/message-events");
+            "/user/queue/typing", "/user/queue/errors", "/user/queue/message-events",
+            "/user/queue/attendance-events");
 
     private static final Pattern EXP = Pattern.compile("\"exp\"\\s*:\\s*(\\d+)");
 

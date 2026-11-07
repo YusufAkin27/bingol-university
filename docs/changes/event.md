@@ -225,3 +225,8 @@ Ek (B1): `CalendarItem.pendingCount` (yalnız `manageableIds` içindeki etkinlik
 **Platform siniri (belgelenmis varsayim):** zaten GOSTERILMIS bir sistem (push) bildirimi sunucudan UZAKTAN silinemez; FCM/APNs bunu desteklemez. Bu yuzden TTL ile gec ulasma engellenir; gosterilmis bildirime dokunulursa uygulama dürüst "etkinlik sona erdi/iptal edildi" durumunu acar. Planli YEREL hatirlatmalar mobilde, etkinlik iptal/bitis durumu ogrenildiginde iptal edilir.
 
 **Veri:** hicbir etkinlik silinmedi; yeni migration yok.
+## Yoklama okutma gercek zamanli geri bildirim (2026-11-07)
+
+- Yeni STOMP kuyrugu `/user/queue/attendance-events` (`AttendanceLiveEvents`, `ChatEventBus` + Redis pub/sub; yalniz ilgili kisilere, commit SONRASI, hata yoklamayi bozmaz). Yeni okutmada: `SCAN` -> etkinlik sahibi + `TAKE/VIEW_ATTENDANCE` yetkili moderatorler `{key,eventId,userId,displayName,at,present,total}` (engel iliskisi olan ciftte ad/kimlik null, sayac gider); `MARKED` -> yalniz okutulan katilimci. `key` (`eventId:userId:markedAtMs`) ayni okutma icin sabit (istemci cift olayi eler); 'zaten okutulmus' olay uretmez.
+- Yedek: `GET /api/events/{id}/attendance/summary` -> `{present,total,lastName,lastAt}` (VIEW/TAKE yetkisi, 120/dk); katilimci icin mevcut `GET /my-attendance`.
+- Hata kodu eklenmedi (i18n degisikligi yok). Pub/sub kalici degildir; kacirilan olay yoklama ile telafi edilir.
