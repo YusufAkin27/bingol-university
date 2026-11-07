@@ -447,6 +447,7 @@ class _ClubsTabState extends State<ClubsTab> {
               ],
             ),
           ),
+          const BuStaleStrip(),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 6),
             child: BuSearchField(

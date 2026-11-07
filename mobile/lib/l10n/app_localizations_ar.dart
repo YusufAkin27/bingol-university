@@ -13320,4 +13320,30 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get postComposeErrMediaMix =>
       'يجب أن يكون منشور الفيديو بمفرده؛ لا يمكن خلطه بالصور.';
+
+  @override
+  String offlineStripWithTime(String zaman) {
+    return 'غير متصل · آخر تحديث $zaman';
+  }
+
+  @override
+  String get offlineStripNoTime => 'غير متصل · عرض البيانات المحفوظة';
+
+  @override
+  String get menuRemTitle => 'تذكير القائمة اليومية';
+
+  @override
+  String get menuRemSub => 'يذكّرك بقائمة اليوم في الوقت الذي تختاره كل يوم';
+
+  @override
+  String get menuRemTime => 'وقت التذكير';
+
+  @override
+  String get menuRemNotifTitle => 'قائمة اليوم';
+
+  @override
+  String get menuRemNotifBody => 'ألقِ نظرة على قائمة المطعم.';
+
+  @override
+  String get menuRemPermNeeded => 'يلزم إذن الإشعارات للتذكير.';
 }

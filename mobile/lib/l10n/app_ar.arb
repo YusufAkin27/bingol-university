@@ -4870,5 +4870,13 @@
   "composeReorderHint": "اضغط مطولًا واسحب لإعادة الترتيب",
   "composeUploadingN": "جارٍ الرفع {n}/{total}",
   "postComposeErrMediaLimit": "يمكن إضافة 10 صور كحد أقصى إلى المنشور.",
-  "postComposeErrMediaMix": "يجب أن يكون منشور الفيديو بمفرده؛ لا يمكن خلطه بالصور."
+  "postComposeErrMediaMix": "يجب أن يكون منشور الفيديو بمفرده؛ لا يمكن خلطه بالصور.",
+  "offlineStripWithTime": "غير متصل · آخر تحديث {zaman}",
+  "offlineStripNoTime": "غير متصل · عرض البيانات المحفوظة",
+  "menuRemTitle": "تذكير القائمة اليومية",
+  "menuRemSub": "يذكّرك بقائمة اليوم في الوقت الذي تختاره كل يوم",
+  "menuRemTime": "وقت التذكير",
+  "menuRemNotifTitle": "قائمة اليوم",
+  "menuRemNotifBody": "ألقِ نظرة على قائمة المطعم.",
+  "menuRemPermNeeded": "يلزم إذن الإشعارات للتذكير."
 }

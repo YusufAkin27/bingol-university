@@ -764,6 +764,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
           title: widget.socialOnly ? l.activityTitle : l.notifTitle,
           onBack: () => Navigator.pop(context),
         ),
+        const BuStaleStrip(),
         if (pill != null)
           Padding(
             padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 0),

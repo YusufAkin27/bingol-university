@@ -7253,5 +7253,20 @@
     }
   },
   "postComposeErrMediaLimit": "Bir gönderiye en çok 10 fotoğraf eklenebilir.",
-  "postComposeErrMediaMix": "Video gönderisi tek başına olmalı; fotoğrafla karıştırılamaz."
+  "postComposeErrMediaMix": "Video gönderisi tek başına olmalı; fotoğrafla karıştırılamaz.",
+  "offlineStripWithTime": "Çevrimdışı · son güncelleme {zaman}",
+  "@offlineStripWithTime": {
+    "placeholders": {
+      "zaman": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineStripNoTime": "Çevrimdışı · kayıtlı veriler gösteriliyor",
+  "menuRemTitle": "Günlük menü hatırlatıcısı",
+  "menuRemSub": "Her gün seçtiğin saatte bugünün menüsünü hatırlatır",
+  "menuRemTime": "Hatırlatma saati",
+  "menuRemNotifTitle": "Bugünün menüsü",
+  "menuRemNotifBody": "Yemekhane menüsüne göz at.",
+  "menuRemPermNeeded": "Hatırlatıcı için bildirim izni gerekli."
 }

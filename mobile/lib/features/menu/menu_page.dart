@@ -157,6 +157,7 @@ class _MenuPageState extends State<MenuPage> {
       body: Column(
         children: [
           BuHeader(title: context.l10n.menuTitle, onBack: () => Navigator.pop(context)),
+          const BuStaleStrip(),
           if (_maintenance && !_loading && _menus.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(_hPad, 12, _hPad, 0),
