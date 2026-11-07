@@ -250,11 +250,11 @@ class MessageServiceTest {
     }
 
     @Test
-    void messageOver2000CharsIsRejected() {
-        ApiException e = assertThrows(ApiException.class, () -> service.send(ME, CONV, "a".repeat(2001), "c1"));
+    void messageOver10000CharsIsRejected() {
+        ApiException e = assertThrows(ApiException.class, () -> service.send(ME, CONV, "a".repeat(10001), "c1"));
         assertEquals("MESSAGE_TOO_LONG", e.code());
 
-        assertTrue(service.send(ME, CONV, "a".repeat(2000), "c2").created());
+        assertTrue(service.send(ME, CONV, "a".repeat(10000), "c2").created());
     }
 
     @Test
@@ -531,8 +531,8 @@ assertEquals("DIRECT", sentBatch().data().get("conversationType"));
     @Test
     void lengthLimitCountsCodePointsNotUtf16Units() {
         String emoji = new String(Character.toChars(0x1F600));
-        assertTrue(service.send(ME, CONV, emoji.repeat(2000), "e1").created()); // 4000 UTF-16 birimi, 2000 karakter
-        ApiException e = assertThrows(ApiException.class, () -> service.send(ME, CONV, emoji.repeat(2001), "e2"));
+        assertTrue(service.send(ME, CONV, emoji.repeat(10000), "e1").created()); // 20000 UTF-16 birimi, 10000 karakter
+        ApiException e = assertThrows(ApiException.class, () -> service.send(ME, CONV, emoji.repeat(10001), "e2"));
         assertEquals("MESSAGE_TOO_LONG", e.code());
     }
 
@@ -743,5 +743,71 @@ assertEquals("DIRECT", sentBatch().data().get("conversationType"));
                 data.capture(), count.capture());
         return new Batch(targets.getValue(), title.getValue(), preview.getValue(), data.getValue(),
                 count.getValue());
+    }
+
+    // --- Sayfalama: keyset (id), ust sinir 30, around penceresi ---
+
+    private void stubTimeline(int total) {
+        java.util.List<Message> all = new java.util.ArrayList<>();
+        for (long i = 1; i <= total; i++) {
+            Message m = new Message();
+            m.setId(i);
+            m.setConversationId(CONV);
+            m.setSenderId(PEER);
+            m.setClientId("t" + i);
+            m.setBody("m" + i);
+            all.add(m);
+        }
+        when(messages.before(eq(CONV), any(), any(), any())).thenAnswer(inv -> {
+            Long before = inv.getArgument(2);
+            org.springframework.data.domain.Pageable pg = inv.getArgument(3);
+            return all.stream().filter(m -> before == null || m.getId() < before)
+                    .sorted((a, b) -> Long.compare(b.getId(), a.getId())).limit(pg.getPageSize()).toList();
+        });
+        when(messages.after(eq(CONV), any(), anyLong(), any())).thenAnswer(inv -> {
+            Long after = inv.getArgument(2);
+            org.springframework.data.domain.Pageable pg = inv.getArgument(3);
+            return all.stream().filter(m -> m.getId() > after)
+                    .sorted((a, b) -> Long.compare(a.getId(), b.getId())).limit(pg.getPageSize()).toList();
+        });
+    }
+
+    @Test
+    void pagesNeverExceed30AndCursorWalkHasNoDuplicatesForVariousSizes() {
+        for (int total : new int[] {10, 100, 1000, 10000}) {
+            stubTimeline(total);
+            java.util.Set<Long> seen = new java.util.HashSet<>();
+            Long cursor = null;
+            int pages = 0;
+            long prev = Long.MAX_VALUE;
+            do {
+                var page = service.history(ME, CONV, cursor, null, 500); // istemci ne isterse istesin ust sinir 30
+                assertTrue(page.items().size() <= 30);
+                for (MessageView v : page.items()) {
+                    assertTrue(v.id() < prev, "yeni->eski sirali olmali");
+                    prev = v.id();
+                    assertTrue(seen.add(v.id()), "tekrar yok");
+                }
+                cursor = page.nextCursor();
+                pages++;
+            } while (cursor != null && pages < 2000);
+            assertEquals(total, seen.size());
+            assertEquals((total + 29) / 30, pages);
+        }
+    }
+
+    @Test
+    void aroundReturnsWindowContainingTargetAndRejectsCombinedCursors() {
+        stubTimeline(1000);
+        var page = service.history(ME, CONV, null, null, 500L, 30);
+        assertTrue(page.items().size() <= 30);
+        assertEquals(515L, page.items().get(0).id()); // 15 yeni
+        assertTrue(page.items().stream().anyMatch(v -> v.id() == 500L));
+        assertEquals(486L, page.items().get(page.items().size() - 1).id());
+        assertEquals(486L, page.nextCursor()); // daha eskiler var
+        assertEquals("VALIDATION_ERROR",
+                assertThrows(ApiException.class, () -> service.history(ME, CONV, 5L, null, 3L, 30)).code());
+        assertEquals(HttpStatus.NOT_FOUND,
+                assertThrows(ApiException.class, () -> service.history(99L, CONV, null, null, 3L, 30)).status());
     }
 }

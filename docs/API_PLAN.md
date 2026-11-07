@@ -91,7 +91,7 @@ REST
 | POST | `/api/users/{id}/block` · DELETE | Engelle / kaldır |
 | POST | `/api/messages/{id}/report` | Raporla |
 
-WebSocket (STOMP, `/ws`, CONNECT'te JWT): gönder `/app/chat.send` · al `/user/queue/messages`, `/user/queue/read-receipts`, `/user/queue/typing`. Limit: kullanıcı başına dakikada 30 mesaj, mesaj ≤2000 karakter.
+WebSocket (STOMP, `/ws`, CONNECT'te JWT): gönder `/app/chat.send` · al `/user/queue/messages`, `/user/queue/read-receipts`, `/user/queue/typing`. Limit: kullanıcı başına dakikada 30 mesaj, mesaj ≤10000 karakter (kod noktası).
 
 ## 6. Favoriler ve arama 🆕 (hızlı kazanım)
 | Metod | Yol | Açıklama |

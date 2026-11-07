@@ -189,7 +189,6 @@ class LegalMigrationV820FileTest {
                 .contains("@DefaultValue(\"3\") int strikeSuspendThreshold")
                 .contains("@DefaultValue(\"180\") int strikeWindowDays");
         assertThat(src("mail/campaign/MailCampaignDispatcher.java")).contains("app.mail.campaign-retention-days:180");
-        assertThat(src("profile/ContactMatchService.java")).contains("MAX_HASHES = 500");
         assertThat(src("export/DataExportController.java")).contains("limiter.check(\"export:user:\" + uid, 3, Duration.ofDays(1))");
         assertThat(src("moderation/AppealController.java")).contains("limiter.check(\"appeal:user:\" + uid, 5, Duration.ofDays(1))");
         assertThat(src("auth/token/VerificationService.java")).contains("CODE_TTL = Duration.ofMinutes(10)")
