@@ -1,12 +1,15 @@
 package edu.bingol.backend.news;
 
 import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.common.cache.CacheService;
 import edu.bingol.backend.common.cache.CacheTier;
 import edu.bingol.backend.news.dto.NewsDetail;
 import edu.bingol.backend.news.dto.NewsPage;
 import edu.bingol.backend.news.dto.NewsSummary;
 import edu.bingol.backend.search.SearchQuery;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -75,6 +78,53 @@ public class NewsService {
             return cache.get("news", key, CacheTier.DAILY, PAGE, () -> load(type, q, p, s));
         }
         return load(type, q, p, s);
+    }
+
+    private static final TypeReference<CursorPage<NewsSummary>> CURSOR_PAGE = new TypeReference<>() { };
+    private static final int ID_BITS = 40;
+    private static final long ID_MASK = (1L << ID_BITS) - 1;
+
+    /** Imec = (tarih gunu+1 | id): tarihsiz = 0; buyuk imec daha yeni demektir, siralama (tarih azalan, tarihsiz sonda, id azalan) ile birebir. */
+    static long encodeCursor(LocalDate date, long id) {
+        long day = date == null ? 0 : Math.max(date.toEpochDay(), 0) + 1;
+        return (day << ID_BITS) | (id & ID_MASK);
+    }
+
+    /**
+     * Imecli liste (B2). cursor <= 0 ilk sayfa. q yoksa imec yukaridaki bilesik anahtardir (sabit maliyet, OFFSET yok);
+     * q varsa sonuc ts_rank/tarih sirali metin aramasidir ve imec bir SONRAKI SAYFA NUMARASIDIR (ayni size ile devam edin).
+     * Yalniz ilk sayfa (q yok) onbellege girer; baska imeclerde anahtar uzayi sinirsiz olurdu.
+     */
+    @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+    public CursorPage<NewsSummary> listCursor(ContentType type, String q, long cursor, int size) {
+        int s = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
+        long c = Math.max(cursor, 0);
+        if (q != null && !q.isBlank()) {
+            int p = (int) Math.min(c, MAX_PAGE);
+            NewsPage page = load(type, q, p, s);
+            Long next = p + 1 < page.totalPages() && p < MAX_PAGE ? (long) (p + 1) : null;
+            return new CursorPage<>(page.items(), next);
+        }
+        if (c == 0) {
+            String key = "cl:" + (type == null ? "all" : type.name()) + ":" + s;
+            return cache.get("news", key, CacheTier.DAILY, CURSOR_PAGE, () -> loadCursor(type, 0, s));
+        }
+        return loadCursor(type, c, s);
+    }
+
+    private CursorPage<NewsSummary> loadCursor(ContentType type, long c, int s) {
+        List<ContentType> types = type == null ? List.of(ContentType.values()) : List.of(type);
+        Pageable pageable = PageRequest.of(0, s + 1);
+        List<NewsRow> rows;
+        if (c <= 0) {
+            rows = repo.cursorDated(types, LocalDate.of(9999, 12, 31), 0L, pageable);
+        } else {
+            long day = c >>> ID_BITS;
+            long id = c & ID_MASK;
+            rows = day == 0 ? repo.cursorUndated(types, id, pageable)
+                    : repo.cursorDated(types, LocalDate.ofEpochDay(day - 1), id, pageable);
+        }
+        return CursorPage.of(rows, s, r -> encodeCursor(r.getPublishedDate(), r.getId()), NewsSummary::of);
     }
 
     private NewsPage load(ContentType type, String q, int p, int s) {
