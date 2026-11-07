@@ -17,6 +17,7 @@ import '../follow/follow_requests_api.dart';
 import '../follow/follow_requests_entry.dart';
 import '../academic/academic_models.dart' show istanbulWall;
 import '../news/news_tile.dart' show newsLocalDate, newsMonthName;
+import '../events/event_parts.dart' show eventNotifState;
 import 'notif_row.dart';
 
 /// Uygulama içi bildirim listesi (design/P-Notifications).
@@ -697,6 +698,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
         int.tryParse((data['userId'] ?? data['requesterId'] ?? '').toString());
     final destination = resolvePushTarget(data).dest;
     final canAct = un && n['actionResolved'] != true;
+    // Etkinlik bildirimi: bitmiş/iptal etkinlikte takvim/harita eylemi yok, satır dürüstçe işaretlenir.
+    final evState = eventNotifState(n, data);
     // Satır içi aksiyonlar: kartla AYNI tablo; sohbet/dokunuşla açılan genel aksiyonlar satır dokunuşuyla zaten var.
     const rowOnly = {'open', 'open_all', 'reply', 'mark_read', 'mute_hour', 'ack'};
     final inline = !canAct
@@ -710,7 +713,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
                           requester != null &&
                           requester > 0,
                     'follow' => requester != null && requester > 0,
-                    'calendar' || 'map' => destination == PushDest.event,
+                    'calendar' || 'map' =>
+                      destination == PushDest.event &&
+                          (evState == null || evState == 'LIVE'),
                     _ => true,
                   })
                 a,
@@ -751,7 +756,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
             : null,
         source:
             data['sourceName'] is String ? data['sourceName'] as String : null,
-        badge: data['badgeText'] is String ? data['badgeText'] as String : null,
+        badge: evState == 'ENDED'
+            ? l.notifEventEnded
+            : (evState == 'CANCELLED' && data['badgeText'] is! String)
+                ? l.notifEventCancelled
+                : (data['badgeText'] is String ? data['badgeText'] as String : null),
         badgeTone: pushBadgeTone(data),
         chips: pushInfoChips(l, data, style),
         critical: data['severity'] == 'critical',

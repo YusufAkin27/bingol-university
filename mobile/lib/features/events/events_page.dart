@@ -398,6 +398,8 @@ class _EventsPageState extends State<EventsPage> {
     return [
       for (final e in all)
         if (e['_day'] != null &&
+            // Bitmiş/iptal kullanıcı etkinliği normal kullanıcıya gösterilmez (sunucu da döndürmez; bayat önbellek için).
+            !(e['source'] == 'USER' && eventIsExpired(e)) &&
             (_isPastMonth || !(e['_endDay'] as DateTime).isBefore(_today)))
           e,
     ];

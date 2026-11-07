@@ -12,6 +12,7 @@ import '../academic/academic_api.dart';
 import '../academic/academic_hub_page.dart';
 import '../academic/academic_models.dart';
 import '../events/event_detail_page.dart';
+import '../events/event_parts.dart' show eventIsExpired;
 import '../events/events_page.dart';
 import '../menu/menu_models.dart';
 import '../menu/menu_page.dart';
@@ -214,7 +215,8 @@ class _HomeTabState extends State<HomeTab> {
   /// `GET /events/featured`: yaklaşan etkinlikler içinde en çok katılımcılı olan. 204/boş gövde -> null (boş durum).
   Future<void> _loadFeatured(int gen) async {
     final r = await _s.api.get('/events/featured', force: _force);
-    final best = r is Map ? Map<String, dynamic>.from(r) : null;
+    var best = r is Map ? Map<String, dynamic>.from(r) : null;
+    if (best != null && eventIsExpired(best)) best = null; // önbellekteki bayat öne çıkan bitmiş olabilir
     _apply(gen, () {
       _event = best;
       _eventFailed = false;

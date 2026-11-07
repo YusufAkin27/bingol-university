@@ -6,6 +6,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
+import '../../core/notify/local_reminders.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../../widgets/common.dart';
@@ -88,6 +89,10 @@ class _EventDetailPageState extends State<EventDetailPage> {
         _error = null;
         _loading = false;
       });
+      if (eventIsExpired(_ev!)) {
+        // Bitmiş/iptal etkinliğin planlı yerel hatırlatması (varsa) kalmasın; yoksa no-op, hata sızdırmaz.
+        unawaited(LocalReminders.instance.cancel(ReminderChannel.event, widget.eventId));
+      }
       _loadExtras();
     } catch (e) {
       if (!mounted) return;
@@ -553,6 +558,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
   /// Eylem çubuğu; durum (katıldı / ilgileniyor / hiçbiri) değişince solarak yer değiştirir.
   Widget? _barOrNull() {
     if (_loading || _ev == null || eventIsCancelled(_ev!) || eventIsPendingReview(_ev!) || eventIsRejected(_ev!)) return null;
+    if (eventHasEnded(_ev!) && _rsvp != 'GOING') return null; // bitmiş etkinliğe yeni katılım/başvuru yok
     final bar = _actionBar();
     if (bar == null) return null;
     return BuFadeThrough(
@@ -811,6 +817,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     final full = cap != null && going >= cap && rsvp != 'GOING';
     final closed = eventIsClosed(ev);
     final cancelled = eventIsCancelled(ev);
+    final ended = eventHasEnded(ev);
     final pendingReview = eventIsPendingReview(ev);
     final rejected = eventIsRejected(ev);
     final member = rsvp == 'GOING' || _manage;
@@ -908,6 +915,20 @@ class _EventDetailPageState extends State<EventDetailPage> {
               Text(l.p15CancelledNotice, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: t.danger)),
               const SizedBox(height: 2),
               Text(l.p15CancelledBody, style: tx.bodyMedium!.copyWith(color: t.danger.withValues(alpha: .9))),
+            ]),
+          ),
+          top: 12,
+        ),
+      if (ended && !cancelled)
+        _pad(
+          Container(
+            key: const ValueKey('detail-ended'),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(l.eventEndedNotice, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
+              const SizedBox(height: 2),
+              Text(l.eventEndedBody, style: tx.bodyMedium!.copyWith(color: t.mut)),
             ]),
           ),
           top: 12,
