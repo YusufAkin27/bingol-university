@@ -3,6 +3,7 @@ import 'package:bu_kampus/core/push/notification_push_card.dart';
 import 'package:bu_kampus/core/push/notification_presentation.dart';
 import 'package:bu_kampus/features/notifications/notifications_page.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
+import 'package:bu_kampus/widgets/bu.dart' show BuHeader;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'redesign/p00_support.dart';
@@ -155,8 +156,11 @@ void main() {
       expect(find.text('Final takvimi yayınlandı'), findsOneWidget);
       expect(find.text('Melisa gönderini beğendi.'), findsNothing);
       expect(find.text('Ahmet seni takip etmeye başladı.'), findsNothing);
-      expect(find.text('Bildirimler'), findsWidgets);
+      expect(tester.widget<BuHeader>(find.byType(BuHeader)).title, 'Bildirimler'); // başlık yalnız anlamsal etiket
+      // Çip şeridi yatay kayar: görünmeyenler için şeridi kaydırarak ara.
+      final strip = find.byWidgetPredicate((w) => w is Scrollable && w.axisDirection == AxisDirection.right);
       for (final t in ['Tümü', 'Okunmamış', 'Etkinlikler', 'Duyurular', 'Sistem']) {
+        await tester.scrollUntilVisible(find.text(t), 60, scrollable: strip.first);
         expect(find.text(t), findsOneWidget, reason: t);
       }
       expect(find.text('Beğeniler'), findsNothing);
@@ -205,7 +209,7 @@ void main() {
       final f = FakeBackend()..fail('/notifications', status: 500);
       await tester.pumpWidget(buildApp(NotificationsPage(session: makeSession(f)), size: kPhoneMedium));
       await settle(tester, const Duration(seconds: 2));
-      expect(find.text('Tekrar dene'), findsWidgets);
+      expect(find.text('Yeniden dene'), findsWidgets);
       await unmount(tester);
     });
   });
@@ -231,12 +235,14 @@ void main() {
       final b = heart();
       await tester.pumpWidget(buildApp(NotificationsPage(session: makeSession(b), socialOnly: true), size: kPhoneMedium));
       await settle(tester, const Duration(seconds: 1));
-      expect(find.text('Hareketler'), findsWidgets);
+      expect(tester.widget<BuHeader>(find.byType(BuHeader)).title, 'Hareketler');
       expect(find.text('Melisa gönderini beğendi.'), findsOneWidget);
       expect(find.text('Ahmet seni takip etmeye başladı.'), findsOneWidget);
       expect(find.text('Yazılım Kulübü için yeni üyelik başvurusu var.'), findsOneWidget);
       expect(find.text('Etkinlik hatırlatması'), findsNothing);
+      final strip = find.byWidgetPredicate((w) => w is Scrollable && w.axisDirection == AxisDirection.right);
       for (final t in ['Tümü', 'Beğeniler', 'Yorumlar', 'Takip ve İstekler']) {
+        await tester.scrollUntilVisible(find.text(t), 60, scrollable: strip.first);
         expect(find.text(t), findsOneWidget, reason: t);
       }
       expect(find.text('Okunmamış'), findsNothing);

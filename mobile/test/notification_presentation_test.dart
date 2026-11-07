@@ -30,14 +30,14 @@ void main() {
     useScreen(tester, kPhoneMedium);
     final be = FakeBackend()
       ..on('/notifications', {'items': [], 'unreadCount': 3})
-      ..on('/notifications?category=EVENT', {
+      ..on('/notifications?scope=INFORMATION&category=EVENT', {
         'items': [
           {'id': 10, 'type': 'EVENT', 'title': 'Workshop', 'read': false}
         ],
         'nextCursor': 10,
         'unreadCount': 3,
       })
-      ..on('/notifications?cursor=10&category=EVENT', {
+      ..on('/notifications?cursor=10&scope=INFORMATION&category=EVENT', {
         'items': [
           {'id': 9, 'type': 'EVENT', 'title': 'Conference', 'read': true}
         ],
@@ -51,9 +51,9 @@ void main() {
     expect(find.text('Workshop'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('notif-load-more')));
     await settle(tester);
-    expect(be.requests, contains('GET /notifications?category=EVENT'));
+    expect(be.requests, contains('GET /notifications?scope=INFORMATION&category=EVENT'));
     expect(
-        be.requests, contains('GET /notifications?cursor=10&category=EVENT'));
+        be.requests, contains('GET /notifications?cursor=10&scope=INFORMATION&category=EVENT'));
     expect(find.text('Conference'), findsOneWidget);
     await unmount(tester);
   });
@@ -75,8 +75,8 @@ void main() {
         ],
         'unreadCount': 1,
       });
-    await tester
-        .pumpWidget(buildApp(NotificationsPage(session: makeSession(be))));
+    await tester.pumpWidget(
+        buildApp(NotificationsPage(session: makeSession(be), socialOnly: true)));
     await settle(tester);
     await tester.tap(find.widgetWithText(PushActionButton, 'Onayla'));
     await settle(tester);

@@ -209,23 +209,31 @@ void main() {
           'createdAt': now.subtract(const Duration(minutes: 50)).toIso8601String(),
         },
       ]);
+      // Zil (Bildirimler): yalnız bilgilendirme; takip isteği burada GÖRÜNMEZ. Okunmamış etkinlik hatırlatması:
+      // Takvime Ekle + Haritada Gör; okunmuş satırda aksiyon yok.
       await tester.pumpWidget(buildApp(NotificationsPage(session: makeSession(be))));
       await settle(tester);
       expect(find.byKey(const ValueKey('notif-new-badge')), findsOneWidget);
-      expect(find.text('2 Yeni'), findsOneWidget);
-      expect(find.text('2 okunmamış'), findsOneWidget);
-      expect(find.text('12 dk önce'), findsOneWidget);
+      expect(find.text('1 Yeni'), findsOneWidget);
+      expect(find.text('1 okunmamış'), findsOneWidget);
+      expect(find.text('Can Öztürk'), findsNothing);
       expect(find.text('Yazılım Kulübü'), findsOneWidget);
       expect(find.text('Yarın'), findsOneWidget);
-      // Avatar + köşe rozeti (kilit) takip isteğinde.
-      expect(find.byType(PushAvatar), findsOneWidget);
-      // Okunmamış takip isteği: Onayla + Reddet; okunmamış etkinlik hatırlatması: Takvime Ekle + Haritada Gör;
-      // okunmuş satırda hiçbiri.
-      expect(find.widgetWithText(PushActionButton, 'Onayla'), findsOneWidget);
-      expect(find.widgetWithText(PushActionButton, 'Reddet'), findsOneWidget);
       expect(find.widgetWithText(PushActionButton, 'Takvime Ekle'), findsOneWidget);
       expect(find.widgetWithText(PushActionButton, 'Haritada Gör'), findsOneWidget);
-      expect(find.byType(PushActionButton), findsNWidgets(4));
+      expect(find.byType(PushActionButton), findsNWidgets(2));
+      await unmount(tester);
+
+      // Kalp (Hareketler): yalnız takip isteği; avatar + Onayla/Reddet; etkinlik satırları görünmez.
+      await tester.pumpWidget(buildApp(NotificationsPage(session: makeSession(be), socialOnly: true)));
+      await settle(tester);
+      expect(find.text('1 Yeni'), findsOneWidget);
+      expect(find.text('12 dk önce'), findsOneWidget);
+      expect(find.text('Etkinlik yarın başlıyor'), findsNothing);
+      expect(find.byType(PushAvatar), findsOneWidget);
+      expect(find.widgetWithText(PushActionButton, 'Onayla'), findsOneWidget);
+      expect(find.widgetWithText(PushActionButton, 'Reddet'), findsOneWidget);
+      expect(find.byType(PushActionButton), findsNWidgets(2));
       await tester.tap(find.widgetWithText(PushActionButton, 'Reddet'));
       await settle(tester);
       expect(be.requests, contains('POST /users/me/follow-requests/8/decline'));
