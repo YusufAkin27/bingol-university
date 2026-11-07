@@ -130,6 +130,19 @@ class _MenuPageState extends State<MenuPage> {
     if (monthChanged && !_byMonth.containsKey(_monthParam(_month))) _load();
   }
 
+  /// Yatay kaydırma: komşu güne geç (LTR: sola kaydır = sonraki gün; RTL'de ters). Şerit sınırında durur.
+  void _swipeDay(DragEndDetails d) {
+    final v = d.primaryVelocity ?? 0;
+    if (v.abs() < 350) return;
+    final rtl = Directionality.of(context) == TextDirection.rtl;
+    final next = rtl ? v > 0 : v < 0;
+    final idx = _days.indexWhere((x) => x.year == _selected.year && x.month == _selected.month && x.day == _selected.day);
+    final to = idx + (next ? 1 : -1);
+    if (idx < 0 || to < 0 || to >= _days.length) return;
+    buHaptic(BuHaptic.selection);
+    _select(_days[to]);
+  }
+
   bool _isToday(DateTime d) {
     final n = menuToday();
     return d.year == n.year && d.month == n.month && d.day == n.day;
@@ -159,7 +172,15 @@ class _MenuPageState extends State<MenuPage> {
                   padding: const EdgeInsets.only(top: 20),
                   child: MenuDayStrip(days: _days, selected: _selected, onSelect: _select),
                 ),
-                Expanded(child: _body(t)),
+                // Gövdede sağa/sola kaydırmak gün değiştirir (dikey kaydırma ve çekip yenileme aynen çalışır).
+                Expanded(
+                  child: GestureDetector(
+                    key: const ValueKey('menu-swipe'),
+                    behavior: HitTestBehavior.translucent,
+                    onHorizontalDragEnd: _swipeDay,
+                    child: _body(t),
+                  ),
+                ),
               ]),
             ),
           ),
