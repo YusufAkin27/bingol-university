@@ -219,10 +219,44 @@ class ChatRealtime with WidgetsBindingObserver {
       final total = r is Map ? (r['total'] as num?)?.toInt() ?? 0 : 0;
       if (kDebugMode) debugPrint('[delivered] sweep unread=$total');
       if (total <= 0) return;
-      await session.api.get('/conversations?size=20', force: true);
+      // Sunucu liste çekiminde "iletildi" YAZMAZ (GET yan etkisiz): istemci kendi isteğiyle ack gönderir.
+      final res = await session.api.get('/conversations?size=20', force: true);
+      final items = res is Map ? res['items'] : res;
+      if (items is List) ackDeliveredFromList(items);
     } catch (_) {
-      // En iyi çaba: sohbet listesi açılınca sunucu zaten işaretler.
+      // En iyi çaba: sohbet listesi açılınca [ackDeliveredFromList] yine denenir.
     }
+  }
+
+  /// Sohbet listesi sunucudan taze geldi: son mesajı BAŞKASINDAN olan ve okunmamışı bulunan her konuşma için cihaza
+  /// ulaştığı bildirilir (çevrimdışıyken gelen mesajlar; uygulama kapalı/arka plandayken WS yoktu). WS bağlı değilse
+  /// REST yedeği kullanılır. İmleç yalnız ilerler ve sunucuda idempotenttir; aynı mesaj için tekrar yollanmaz.
+  /// Dönüş: gönderilen ack sayısı.
+  int ackDeliveredFromList(List<dynamic> items) {
+    final uid = session.userId;
+    if (uid == null) return 0;
+    var sent = 0;
+    for (final it in items) {
+      if (sent >= 20) break;
+      if (it is! Map) continue;
+      final lm = it['lastMessage'];
+      if (lm is! Map) continue;
+      if (it['requestState'] != null) continue; // bekleyen istek: sunucu zaten yoksayar
+      final cid = _i(it['id']);
+      final id = _i(lm['id']);
+      if (cid <= 0 || id <= 0 || _i(lm['senderId']) == uid) continue;
+      if (_i(it['unreadCount']) <= 0) continue; // okunmuşsa zaten iletilmiştir
+      if (id <= (_deliveredSent[cid] ?? 0)) continue;
+      _deliveredSent[cid] = id;
+      sent++;
+      if (!sendDelivered(cid, id)) {
+        unawaited(session.api
+            .post('/conversations/$cid/delivered', {'lastMessageId': id}).then((_) {}, onError: (Object _) {
+          if (_deliveredSent[cid] == id) _deliveredSent.remove(cid); // sonraki yenilemede yeniden denenir
+        }));
+      }
+    }
+    return sent;
   }
 
   /// WS ile gönderilen metin mesajı sunucuda oluştu (ack ya da başka cihazdan yayın): Outbox'taki `clientId`
