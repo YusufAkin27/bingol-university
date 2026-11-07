@@ -58,13 +58,13 @@ Future<bool> uploadEventCover({
       BuToast.show(ctx, text,
           kind: BuToastKind.error, duration: const Duration(seconds: 8), actionLabel: l10n.eventFormRetry, onAction: retry);
     } else {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-          duration: const Duration(seconds: 8),
-          content: Text(text),
-          action: SnackBarAction(label: l10n.eventFormRetry, onPressed: retry),
-        ));
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(SnackBar(
+        duration: const Duration(seconds: 8),
+        persist: false,
+        content: BuToastGuard(duration: const Duration(seconds: 8), messenger: messenger, child: Text(text)),
+        action: SnackBarAction(label: l10n.eventFormRetry, onPressed: retry),
+      ));
     }
     return false;
   }

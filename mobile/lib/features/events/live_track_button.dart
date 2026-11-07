@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../widgets/bu_overlays.dart' show BuToast;
+
 import '../../core/icons/bu_icons.dart';
 import '../../core/live/live_activity_service.dart';
 import '../../core/locale_controller.dart';
@@ -77,7 +79,7 @@ class _LiveTrackButtonState extends State<LiveTrackButton> {
     }
     if (!mounted) return;
     setState(() => _busy = false);
-    if (message != null) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    if (message != null) BuToast.show(context, message);
   }
 
   @override

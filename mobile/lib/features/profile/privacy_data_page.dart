@@ -78,10 +78,14 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
       behavior: SnackBarBehavior.floating,
       backgroundColor: t.ink,
       duration: const Duration(seconds: 6),
+      persist: false,
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       shape: const RoundedRectangleBorder(borderRadius: BuRadius.bMd),
       padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 6, 10),
-      content: Row(children: [
+      content: BuToastGuard(
+        duration: const Duration(seconds: 6),
+        messenger: m,
+        child: Row(children: [
         Container(
           width: 36,
           height: 36,
@@ -109,7 +113,8 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
           onPressed: m.hideCurrentSnackBar,
           icon: Icon(BuIcons.x, size: 18, color: t.bg.withValues(alpha: .8)),
         ),
-      ]),
+        ]),
+      ),
     ));
   }
 

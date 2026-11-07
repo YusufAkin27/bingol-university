@@ -363,9 +363,7 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   void _toast(String m) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(m)));
+    BuToast.show(context, m);
   }
 
   /// Ana Sayfa düzenleme sayfası (başlıktaki kalem, bölüm başlığında uzun basma, boş durumdaki "Bölüm ekle").

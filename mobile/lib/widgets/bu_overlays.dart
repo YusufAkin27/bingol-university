@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../core/locale_controller.dart';
@@ -343,8 +345,50 @@ class BuDialog extends StatelessWidget {
 
 enum BuToastKind { info, success, error, warning }
 
+/// SnackBar içeriğini sarar: [duration] dolunca şeridi KAPATIR. Flutter eylem düğmeli SnackBar'ı kalıcı sayar ya da
+/// erişilebilirlik kipinde süreyi yok sayabilir; bu koruma her durumda kapanmayı garanti eder. Zamanlayıcı widget
+/// yaşam döngüsüne bağlıdır (şerit/ağaç kalkınca iptal olur, bekleyen zamanlayıcı kalmaz).
+class BuToastGuard extends StatefulWidget {
+  const BuToastGuard({super.key, required this.duration, required this.messenger, required this.child});
+
+  final Duration duration;
+  final ScaffoldMessengerState messenger;
+  final Widget child;
+
+  @override
+  State<BuToastGuard> createState() => _BuToastGuardState();
+}
+
+class _BuToastGuardState extends State<BuToastGuard> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer(widget.duration, () {
+      if (mounted) widget.messenger.hideCurrentSnackBar();
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
+
 /// Alt bildirim (SnackBar) yardımcısı: simge + metin + isteğe bağlı eylem; eskisini kapatır, ekran okuyucuya duyurur.
+///
+/// Geçici mesajlar varsayılan 2 sn görünür ve yumuşak solarak kapanır; hiçbir koşulda ekranda takılı kalmaz:
+/// Flutter 3.29+ eylem düğmeli SnackBar'ı varsayılan olarak KALICI yapar (`persist`), bu yüzden `persist: false` zorlanır
+/// ve ayrıca bir zamanlayıcı yedeği ([autoClose]) vardır (erişilebilirlik kipi vb. süreyi yok saysa bile kapanır).
 abstract final class BuToast {
+  /// Geçici başarı/bilgi/basit hata mesajı süresi.
+  static const Duration defaultDuration = Duration(seconds: 2);
+
   static void show(
     BuildContext context,
     String message, {
@@ -352,7 +396,7 @@ abstract final class BuToast {
     String? actionLabel,
     VoidCallback? onAction,
     Color? actionColor,
-    Duration duration = const Duration(seconds: 3),
+    Duration duration = defaultDuration,
   }) {
     final messenger = ScaffoldMessenger.maybeOf(context);
     if (messenger == null) return;
@@ -364,20 +408,24 @@ abstract final class BuToast {
       BuToastKind.error => (BuIcons.circleAlert, inv.danger),
       BuToastKind.warning => (BuIcons.triangleAlert, inv.warn),
     };
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
         snackBarAnimationStyle: BuMotionStyles.toast(context),
         SnackBar(
           duration: duration,
-          content: Semantics(
-            liveRegion: true,
-            child: Row(
-              children: [
-                ExcludeSemantics(child: Icon(icon, size: 20, color: color)),
-                const SizedBox(width: 12),
-                Expanded(child: Text(message)),
-              ],
+          persist: false,
+          content: BuToastGuard(
+            duration: duration,
+            messenger: messenger,
+            child: Semantics(
+              liveRegion: true,
+              child: Row(
+                children: [
+                  ExcludeSemantics(child: Icon(icon, size: 20, color: color)),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(message)),
+                ],
+              ),
             ),
           ),
           action: actionLabel == null ? null : SnackBarAction(label: actionLabel, textColor: actionColor, onPressed: onAction ?? () {}),

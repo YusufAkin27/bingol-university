@@ -242,9 +242,7 @@ class _ClubsTabState extends State<ClubsTab> {
   }
 
   void _toast(String msg) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(msg)));
+    BuToast.show(context, msg);
   }
 
   Future<void> _join(Map<String, dynamic> c) async {

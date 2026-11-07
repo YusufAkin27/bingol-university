@@ -213,7 +213,7 @@ void main() {
           find.byKey(const ValueKey('reactionEmojiInput')), query);
       await settle(tester);
       await tester.tap(find.byKey(ValueKey('emoji_$emoji')));
-      await settle(tester, const Duration(seconds: 3));
+      await settle(tester, const Duration(milliseconds: 1200)); // toast 2 sn görünür
       return be;
     }
 

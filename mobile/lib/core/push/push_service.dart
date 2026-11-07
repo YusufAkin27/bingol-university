@@ -20,6 +20,7 @@ import 'icon_badge.dart';
 import 'push_api.dart';
 import 'push_actions.dart';
 import '../nav.dart';
+import '../../widgets/bu_overlays.dart' show BuToastGuard;
 import '../../widgets/bu.dart';
 import '../../features/widgets/widget_sync_service.dart';
 import 'push_banner.dart';
@@ -87,18 +88,22 @@ bool showPushBanner(
   if (ctx == null || (title.isEmpty && body.isEmpty)) return false;
   final messenger = ScaffoldMessenger.maybeOf(ctx);
   if (messenger == null) return false;
-  messenger
-    ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(
+  messenger.hideCurrentSnackBar();
+  messenger.showSnackBar(SnackBar(
       behavior: SnackBarBehavior.floating,
       duration: const Duration(seconds: 5),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (title.isNotEmpty) Text(title, style: const TextStyle(fontWeight: FontWeight.w400)),
-          if (body.isNotEmpty) Text(body, maxLines: 2, overflow: TextOverflow.ellipsis),
-        ],
+      persist: false, // eylem düğmeli SnackBar varsayılan KALICI olur; şerit 5 sn sonra kapanmalı
+      content: BuToastGuard(
+        duration: const Duration(seconds: 5),
+        messenger: messenger,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (title.isNotEmpty) Text(title, style: const TextStyle(fontWeight: FontWeight.w400)),
+            if (body.isNotEmpty) Text(body, maxLines: 2, overflow: TextOverflow.ellipsis),
+          ],
+        ),
       ),
       action: SnackBarAction(label: actionLabel ?? ctx.l10n.coreOpen, onPressed: onOpen),
     ));

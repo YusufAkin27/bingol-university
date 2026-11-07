@@ -685,7 +685,12 @@ class _ComposePostPageState extends State<ComposePostPage> {
       final post = await _api.create(
           text: _text.text, mediaId: media.id, mentionUserIds: _mentionIds(), idempotencyKey: _idemKey);
       if (!mounted) return;
-      messenger?.showSnackBar(SnackBar(content: Text(context.l10n.postComposeShared), duration: const Duration(seconds: 2)));
+      if (messenger != null) {
+        messenger.showSnackBar(SnackBar(
+            content: BuToastGuard(duration: BuToast.defaultDuration, messenger: messenger, child: Text(context.l10n.postComposeShared)),
+            duration: BuToast.defaultDuration,
+            persist: false));
+      }
       Navigator.pop(context, post);
     } catch (e) {
       if (!mounted) return;
