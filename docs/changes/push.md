@@ -368,3 +368,8 @@ alanini tasimaya devam eder (kulup uyelik basvurusu artik `SOCIAL`).
   iki listeye kopyalanmaz (kapsam satirdan turetilir, kopya yok).
 - Bilinen sinir: bitmis/iptal etkinlik bildirimleri okunmamis sayacindan SUNUCUDA dusurulmez (liste `eventState` ile
   "Sona erdi/Iptal edildi" gosterir; sayac okunana/silinene kadar kalir).
+
+## Kulup/etkinlik sessize alma, Sikayetlerim, kisi+forum arama (be3, V1630)
+- `notification_mute` (V1630): `PUT|GET /api/communities/{id}/notification-mute`, `/api/events/{id}/notification-mute` (govde `{muted}`), `GET /api/me/notification-mutes`. Sessize alinan kaynak (bildirim verisinde `communityId`/`eventId`) kaynakli bildirimler kutuya ve push'a gitmez. KRITIK olanlar susmaz: SYSTEM, etkinlik iptali (`eventChange=CANCELLED`), EVENT_ADMISSION, COMMUNITY_JOIN, COMMUNITY_ROLE. Kulup icin ACTIVE uyelik sart; kaldirma her zaman serbest; kullanici basina 500 sinir.
+- `GET /api/reports/mine?cursor=&limit=`: yalniz kendi raporlarim; `{id,targetType,reason,status(OPEN|RESOLVED),createdAt,resolvedAt}`; hedef kimligi/karar/not yok.
+- Genel arama: `SearchType` USER ve FORUM_TOPIC eklendi; `GET /api/search/suggest?q=` en fazla 8 onek onerisi (arama gecmisi sunucuda tutulmaz).
