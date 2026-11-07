@@ -278,7 +278,7 @@ Tümü `/api/chat/**` altında; `SecurityConfig`'de ek kural gerekmez (`anyReque
 - Yönetici uçları mevcut Basic auth + `ROLE_ADMIN` altında; yönetici rapor görürken ilgili mesaj bağlamı (±N mesaj) görür ve her erişim denetim kaydı (log) olarak tutulur.
 
 ### 5.2 Boyut limitleri
-- `body`: 1–2000 karakter (Bean Validation `@Size(max=2000)`, `@NotBlank`), UTF-8 bayt sınırı ~8 KB. STOMP çerçeve sınırı 16 KB (`messageSizeLimit`), HTTP gövde sınırı küçük tutulur (`server.tomcat.max-http-form-post-size` yerine istek DTO doğrulaması + `spring.servlet.multipart` kapalı).
+- `body`: 1–10000 karakter (kod noktası; serviste doğrulanır, V1560), UTF-8 en çok ~40 KB. STOMP çerçeve sınırı 64 KB (`messageSizeLimit`), HTTP gövde sınırı küçük tutulur (`server.tomcat.max-http-form-post-size` yerine istek DTO doğrulaması + `spring.servlet.multipart` kapalı).
 - Ek (dosya/görsel) ilk sürümde **yok**; eklenirse ayrı bir nesne depolama + yükleme + virüs/MIME tarama tasarımı gerekir.
 - Kullanıcı başına açık WebSocket bağlantısı üst sınırı (örn. 3 cihaz); fazlası en eski bağlantıyı düşürür. IP başına bağlantı hızı: mevcut `RateLimiter` ile `ws-connect:ip:{ip}` 30/dk.
 - Konuşma sayısı limitleri: günlük yeni birebir konuşma başlatma sayısı (örn. 20/gün) – toplu taciz/spam için.

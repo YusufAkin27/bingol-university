@@ -251,11 +251,11 @@ class MessageServiceTest {
     }
 
     @Test
-    void messageOver2000CharsIsRejected() {
-        ApiException e = assertThrows(ApiException.class, () -> service.send(ME, CONV, "a".repeat(2001), "c1"));
+    void messageOver10000CharsIsRejected() {
+        ApiException e = assertThrows(ApiException.class, () -> service.send(ME, CONV, "a".repeat(10001), "c1"));
         assertEquals("MESSAGE_TOO_LONG", e.code());
 
-        assertTrue(service.send(ME, CONV, "a".repeat(2000), "c2").created());
+        assertTrue(service.send(ME, CONV, "a".repeat(10000), "c2").created());
     }
 
     @Test
@@ -548,8 +548,8 @@ assertEquals("DIRECT", sentBatch().data().get("conversationType"));
     @Test
     void lengthLimitCountsCodePointsNotUtf16Units() {
         String emoji = new String(Character.toChars(0x1F600));
-        assertTrue(service.send(ME, CONV, emoji.repeat(2000), "e1").created()); // 4000 UTF-16 birimi, 2000 karakter
-        ApiException e = assertThrows(ApiException.class, () -> service.send(ME, CONV, emoji.repeat(2001), "e2"));
+        assertTrue(service.send(ME, CONV, emoji.repeat(10000), "e1").created()); // 20000 UTF-16 birimi, 10000 karakter
+        ApiException e = assertThrows(ApiException.class, () -> service.send(ME, CONV, emoji.repeat(10001), "e2"));
         assertEquals("MESSAGE_TOO_LONG", e.code());
     }
 

@@ -143,9 +143,9 @@ void main() {
     expect(ob.contains('c104'), isTrue);
   });
 
-  test('2000 karakterden uzun metin alinmaz', () {
+  test('10000 karakterden uzun metin alinmaz', () {
     final ob = make();
-    expect(ob.enqueue(conversationId: 1, clientId: 'a', text: 'x' * 2001), isFalse);
+    expect(ob.enqueue(conversationId: 1, clientId: 'a', text: 'x' * 10001), isFalse);
   });
 
   test('7 gunden eski ogeler yuklemede atilir', () async {

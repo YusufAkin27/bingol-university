@@ -7137,5 +7137,7 @@
   "widgetsRefreshTitle": "Yenilenme",
   "widgetsRefresh": "Bilgiler uygulamayı açtığında, bir şey değiştiğinde ve düzenli aralıklarla yenilenir. Widgeta dokununca ilgili ekran açılır.",
   "widgetsPrivacyTitle": "Gizlilik",
-  "widgetsPrivacy": "Widgetlarda başka kullanıcıların adı, mesajı veya fotoğrafı görünmez; sosyal özet yalnızca sayıları gösterir. Çıkış yapınca widgetlardaki bilgiler silinir ve Giriş yap durumuna döner."
+  "widgetsPrivacy": "Widgetlarda başka kullanıcıların adı, mesajı veya fotoğrafı görünmez; sosyal özet yalnızca sayıları gösterir. Çıkış yapınca widgetlardaki bilgiler silinir ve Giriş yap durumuna döner.",
+  "chatLongShowMore": "Devamını gör",
+  "chatLongShowLess": "Daha az göster"
 }

@@ -259,7 +259,7 @@ Bağlanır bağlanmaz şu beş kuyruğa abone olun (başka hedefe abonelik redde
 ### 4.2 İstemci → sunucu komutları (`SEND`)
 | Hedef | Gövde | Not |
 |---|---|---|
-| `/app/chat.send` | `{"conversationId":1,"text":"merhaba","clientId":"<UUIDv4>","replyToMessageId":40,"attachmentIds":[9]}` | metin ≤ 2000 karakter; `replyToMessageId` ve `attachmentIds` (en çok 10) isteğe bağlıdır; ek varsa metin boş olabilir |
+| `/app/chat.send` | `{"conversationId":1,"text":"merhaba","clientId":"<UUIDv4>","replyToMessageId":40,"attachmentIds":[9]}` | metin ≤ 10000 karakter (kod noktası); `replyToMessageId` ve `attachmentIds` (en çok 10) isteğe bağlıdır; ek varsa metin boş olabilir |
 | `/app/chat.delivered` | `{"conversationId":1,"lastMessageId":42}` | iletildi ack'i (bkz. 4.10); imleç yalnız ilerler, kendi mesajların yok sayılır; dakikada 120'den fazlası sessizce atılır |
 | `/app/chat.read` | `{"conversationId":1,"lastMessageId":42}` | imleç yalnız ilerler; son mesajı aşan değer `INVALID_MESSAGE_ID`; boş konuşmada no-op; konuşma başına 10 sn'de 20'den sık istek **sessizce** atılır, bu yüzden yalnızca görünen son mesajı gönderin |
 | `/app/chat.typing` | `{"conversationId":1}` | 2 sn'de 1, fazlası sessizce atılır |
@@ -273,7 +273,7 @@ content-type:application/json
 <<< MESSAGE            (destination:/user/queue/messages; ack olarak kendi mesajınız, sunucu id'siyle)
 {"id":43,"conversationId":1,"senderId":7,"clientId":"7b0c1f3e-...","text":"merhaba","removed":false,"createdAt":"..."}
 <<< MESSAGE            (destination:/user/queue/errors; ör. mesaj çok uzun)
-{"code":"MESSAGE_TOO_LONG","message":"Mesaj en fazla 2000 karakter olabilir.","clientId":"7b0c1f3e-..."}
+{"code":"MESSAGE_TOO_LONG","message":"Mesaj en fazla 10000 karakter olabilir.","clientId":"7b0c1f3e-..."}
 ```
 **WS hata `message` metni çevrilmez** (Türkçe varsayılandır): kullanıcıya göstereceğiniz metni **`code`'dan kendi çevirilerinizle** üretin (bölüm 10'daki tr/en/ar tablodan alabilirsiniz). Sık kodlar: `EMPTY_MESSAGE`, `MESSAGE_TOO_LONG`, `CONVERSATION_NOT_FOUND`, `BLOCKED`, `RATE_LIMITED` (kullanıcı başına dakikada 30 mesaj), `BAD_REQUEST` (bozuk yük).
 
@@ -442,7 +442,7 @@ Yükleme uçları `multipart/form-data`, **alan adı `file`** (topluluk/etkinlik
 - Hatalar: `400 INVALID_FILE` (tür/boş), `413 FILE_TOO_LARGE` (ayrıca Spring genel üst sınırı 5 MB; istek 6 MB'ı aşarsa da `FILE_TOO_LARGE`), `503 STORAGE_UNAVAILABLE`. Yüklemeden önce istemcide küçültüp sıkıştırın.
 - Yanıt göreli URL döndürür (`/files/avatars/<uuid>.jpg` biçiminde, avatar için profil nesnesinde `avatarUrl`). Görseli `https://<alan-adı>` + yol ile **kimliksiz** `GET` ile indirebilirsiniz (herkese açık, `Cache-Control: max-age=30 gün, immutable`; URL değişmez, önbellekleyin).
 - Gönderi görseli akışı: önce `.../posts/upload` ile yükleyip dönen URL'yi `POST /api/communities/{id}/posts {text, imageUrl}` içinde gönderin.
-- Sohbet görselleri ayrı bir akıştır (kimlikli okuma, `attachmentIds`): bkz. 4.8. Mesaj metni düz metindir (≤ 2000 karakter; HTML/Markdown yorumlanmaz, `Text` ile çizin).
+- Sohbet görselleri ayrı bir akıştır (kimlikli okuma, `attachmentIds`): bkz. 4.8. Mesaj metni düz metindir (≤ 10000 karakter; HTML/Markdown yorumlanmaz, `Text` ile çizin).
 
 ## 8. Sürüm kontrolü ve bakım akışı
 Uygulama açılışında (ve öne her gelişte, en çok birkaç dakikada bir) kimliksiz iki çağrı yapın:

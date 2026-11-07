@@ -13229,4 +13229,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get widgetsPrivacy =>
       'Widgets never show other users\' names, messages or photos; the social summary shows counts only. When you sign out, widget data is deleted and widgets return to the Sign in state.';
+
+  @override
+  String get chatLongShowMore => 'Read more';
+
+  @override
+  String get chatLongShowLess => 'Show less';
 }

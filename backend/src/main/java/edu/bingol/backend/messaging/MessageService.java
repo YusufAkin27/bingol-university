@@ -45,7 +45,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 @Service
 public class MessageService {
 
-    public static final int MAX_LENGTH = 2000;
+    public static final int MAX_LENGTH = 10000;
     public static final int RATE_PER_MINUTE = 30;
     /** DB sorgularindan ONCE uygulanan kaba kullanici siniri (tekrarli clientId dahil tum gonderim denemeleri). */
     static final int COARSE_SEND_PER_MINUTE = 120;
@@ -145,7 +145,7 @@ public class MessageService {
         if (body.isEmpty() && !allowEmpty) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "EMPTY_MESSAGE", "Mesaj boş olamaz.");
         }
-        // Sinir kod noktasi sayar (DB VARCHAR(2000) de oyle): emoji 2 UTF-16 birimi olsa da 1 karakterdir.
+        // Sinir kod noktasi sayar (DB VARCHAR(10000) de oyle): emoji 2 UTF-16 birimi olsa da 1 karakterdir.
         if (body.codePointCount(0, body.length()) > MAX_LENGTH) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "MESSAGE_TOO_LONG",
                     "Mesaj en fazla " + MAX_LENGTH + " karakter olabilir.", String.valueOf(MAX_LENGTH));
