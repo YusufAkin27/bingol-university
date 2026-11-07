@@ -115,6 +115,8 @@ class PostApi {
       int? mediaId,
       List<int>? mediaIds,
       List<int> mentionUserIds = const [],
+      bool hideLikeCount = false,
+      bool commentsDisabled = false,
       String? idempotencyKey}) async {
     final ids = mediaIds ?? [if (mediaId != null) mediaId];
     assert(ids.isNotEmpty, 'en az bir medya gerekir');
@@ -124,6 +126,8 @@ class PostApi {
           if (text != null && text.trim().isNotEmpty) 'text': text.trim(),
           'mediaIds': ids,
           if (mentionUserIds.isNotEmpty) 'mentionUserIds': mentionUserIds,
+          if (hideLikeCount) 'hideLikeCount': true,
+          if (commentsDisabled) 'commentsDisabled': true,
         },
         true,
         {'Idempotency-Key': idempotencyKey ?? newIdempotencyKey()});
@@ -133,6 +137,13 @@ class PostApi {
 
   Future<Post> update(int id, String text, {List<int>? mentionUserIds}) async => Post.fromJson(_m(await session.api
       .patch('/posts/$id', {'text': text, if (mentionUserIds != null) 'mentionUserIds': mentionUserIds})));
+
+  /// Gönderi ayarları (`PATCH /posts/{id}/settings`, yalnız sahibi): verilen alanlar değişir; güncel gönderiyi döndürür.
+  Future<Post> updateSettings(int id, {bool? hideLikeCount, bool? commentsDisabled}) async =>
+      Post.fromJson(_m(await session.api.patch('/posts/$id/settings', {
+        if (hideLikeCount != null) 'hideLikeCount': hideLikeCount,
+        if (commentsDisabled != null) 'commentsDisabled': commentsDisabled,
+      })));
 
   Future<void> delete(int id) => session.api.delete('/posts/$id');
 

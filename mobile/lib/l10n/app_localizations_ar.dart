@@ -13799,4 +13799,61 @@ class AppLocalizationsAr extends AppLocalizations {
   String pcmCharsLeft(String n) {
     return 'تبقّى $n حرفًا';
   }
+
+  @override
+  String get postSettingsAdvanced => 'إعدادات متقدمة';
+
+  @override
+  String get postSettingsHideLikes => 'إخفاء عدد الإعجابات';
+
+  @override
+  String get postSettingsHideLikesDesc =>
+      'لن يرى الآخرون عدد الإعجابات على هذا المنشور، وستظل تراه أنت.';
+
+  @override
+  String get postSettingsCommentsOff => 'إيقاف التعليقات';
+
+  @override
+  String get postSettingsCommentsOffDesc =>
+      'لا يمكن لأحد التعليق على هذا المنشور. تبقى التعليقات الحالية ظاهرة.';
+
+  @override
+  String get postHideLikesHint => 'عدد الإعجابات مخفي عن الآخرين';
+
+  @override
+  String get pcmCommentsDisabled => 'التعليقات متوقفة على هذا المنشور';
+
+  @override
+  String get postMenuHideLikes => 'إخفاء عدد الإعجابات';
+
+  @override
+  String get postMenuShowLikes => 'إظهار عدد الإعجابات';
+
+  @override
+  String get postMenuCommentsOff => 'إيقاف التعليقات';
+
+  @override
+  String get postMenuCommentsOn => 'تفعيل التعليقات';
+
+  @override
+  String get postSettingsLikesHiddenDone => 'تم إخفاء عدد الإعجابات';
+
+  @override
+  String get postSettingsLikesShownDone => 'تم إظهار عدد الإعجابات';
+
+  @override
+  String get postSettingsCommentsOffDone => 'تم إيقاف التعليقات';
+
+  @override
+  String get postSettingsCommentsOnDone => 'تم تفعيل التعليقات';
+
+  @override
+  String get postSettingsFailed => 'تعذّر تغيير الإعداد. حاول مرة أخرى.';
+
+  @override
+  String get pcmDeleteOthersTitle => 'حذف هذا التعليق؟';
+
+  @override
+  String get pcmDeleteOthersBody =>
+      'سيُزال هذا التعليق للجميع. لا يمكن التراجع عن ذلك.';
 }

@@ -13906,4 +13906,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String pcmCharsLeft(String n) {
     return '$n characters left';
   }
+
+  @override
+  String get postSettingsAdvanced => 'Advanced settings';
+
+  @override
+  String get postSettingsHideLikes => 'Hide like count';
+
+  @override
+  String get postSettingsHideLikesDesc =>
+      'Others can\'t see this post\'s like count. You still can.';
+
+  @override
+  String get postSettingsCommentsOff => 'Turn off commenting';
+
+  @override
+  String get postSettingsCommentsOffDesc =>
+      'No one can comment on this post. Existing comments stay visible.';
+
+  @override
+  String get postHideLikesHint => 'Like count is hidden from others';
+
+  @override
+  String get pcmCommentsDisabled => 'Comments are turned off for this post';
+
+  @override
+  String get postMenuHideLikes => 'Hide like count';
+
+  @override
+  String get postMenuShowLikes => 'Show like count';
+
+  @override
+  String get postMenuCommentsOff => 'Turn off comments';
+
+  @override
+  String get postMenuCommentsOn => 'Turn on comments';
+
+  @override
+  String get postSettingsLikesHiddenDone => 'Like count hidden';
+
+  @override
+  String get postSettingsLikesShownDone => 'Like count shown';
+
+  @override
+  String get postSettingsCommentsOffDone => 'Comments turned off';
+
+  @override
+  String get postSettingsCommentsOnDone => 'Comments turned on';
+
+  @override
+  String get postSettingsFailed => 'Couldn\'t change the setting. Try again.';
+
+  @override
+  String get pcmDeleteOthersTitle => 'Delete this comment?';
+
+  @override
+  String get pcmDeleteOthersBody =>
+      'This comment will be removed for everyone. This can\'t be undone.';
 }

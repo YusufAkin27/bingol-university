@@ -178,6 +178,11 @@ class _ComposePostPageState extends State<ComposePostPage> {
   PostMedia? _uploaded; // aynı fotoğraf için yeniden yüklemeyi önler (metin hatasından sonra tekrar dene)
   bool _publishing = false;
 
+  // Gelişmiş ayarlar (varsayılan kapalı): beğeni sayısını başkalarından gizle, yorumları kapat.
+  bool _advOpen = false;
+  bool _hideLikes = false;
+  bool _commentsOff = false;
+
   /// Ek fotoğraflar (ilk fotoğraf `_photo`dadır): toplam en çok [kPostMaxPhotos].
   final _extras = <_Shot>[];
   int _upDone = 0; // yükleme ilerlemesi (çoklu fotoğraf): biten / toplam
@@ -806,7 +811,12 @@ class _ComposePostPageState extends State<ComposePostPage> {
         ids = [for (final s in shots) s.uploaded!.id];
       }
       final post = await _api.create(
-          text: _text.text, mediaIds: ids, mentionUserIds: _mentionIds(), idempotencyKey: _idemKey);
+          text: _text.text,
+          mediaIds: ids,
+          mentionUserIds: _mentionIds(),
+          hideLikeCount: _hideLikes,
+          commentsDisabled: _commentsOff,
+          idempotencyKey: _idemKey);
       if (!mounted) return;
       if (messenger != null) {
         messenger.showSnackBar(SnackBar(
@@ -879,6 +889,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
                     const SizedBox(height: 16),
                     _textField(t),
                     _tagSection(t),
+                    _advancedSection(t),
                     // Uyarı/hata satırları açılırken yükseklik yumuşakça büyür, satır solarak belirir.
                     AnimatedSize(
                       duration: BuMotion.of(context, BuMotion.short),
@@ -1205,6 +1216,96 @@ class _ComposePostPageState extends State<ComposePostPage> {
                 child: SizedBox(width: 40, height: 40, child: Icon(icon, size: 18, color: t.onMedia)),
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// "Gelişmiş ayarlar": açılır bölüm, iki anahtar (varsayılan kapalı). Paylaşım isteğine `hideLikeCount` / `commentsDisabled` gider.
+  Widget _advancedSection(BuTokens t) {
+    final l = context.l10n;
+    final tt = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Semantics(
+          button: true,
+          enabled: !_publishing,
+          expanded: _advOpen,
+          label: l.postSettingsAdvanced,
+          child: Material(
+            key: const ValueKey('composeAdvancedToggle'),
+            color: t.sf,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(BuRadius.md), side: BorderSide(color: t.bdStrong)),
+            child: InkWell(
+              customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(BuRadius.md)),
+              onTap: _publishing ? null : () => setState(() => _advOpen = !_advOpen),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 52),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(children: [
+                    ExcludeSemantics(child: Icon(BuIcons.slidersHorizontal, size: 20, color: t.ink)),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text(l.postSettingsAdvanced, style: tt.bodyLarge?.copyWith(color: t.ink, fontSize: 15))),
+                    ExcludeSemantics(child: Icon(_advOpen ? BuIcons.chevronUp : BuIcons.chevronDown, size: 20, color: t.mut)),
+                  ]),
+                ),
+              ),
+            ),
+          ),
+        ),
+        AnimatedSize(
+          duration: BuMotion.of(context, BuMotion.short),
+          curve: BuMotion.standard,
+          alignment: Alignment.topCenter,
+          child: !_advOpen
+              ? const SizedBox(width: double.infinity)
+              : Column(key: const ValueKey('composeAdvancedBody'), crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  _switchRow(t, tt,
+                      key: const ValueKey('composeHideLikes'),
+                      title: l.postSettingsHideLikes,
+                      subtitle: l.postSettingsHideLikesDesc,
+                      value: _hideLikes,
+                      onChanged: (v) => setState(() => _hideLikes = v)),
+                  Divider(height: 1, color: t.bd),
+                  _switchRow(t, tt,
+                      key: const ValueKey('composeCommentsOff'),
+                      title: l.postSettingsCommentsOff,
+                      subtitle: l.postSettingsCommentsOffDesc,
+                      value: _commentsOff,
+                      onChanged: (v) => setState(() => _commentsOff = v)),
+                ]),
+        ),
+      ]),
+    );
+  }
+
+  Widget _switchRow(BuTokens t, TextTheme tt,
+      {required Key key,
+      required String title,
+      required String subtitle,
+      required bool value,
+      required ValueChanged<bool> onChanged}) {
+    return MergeSemantics(
+      child: InkWell(
+        onTap: _publishing ? null : () => onChanged(!value),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 64),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(children: [
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(title, style: tt.bodyLarge?.copyWith(color: t.ink, fontSize: 15)),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: tt.bodySmall?.copyWith(color: t.mut)),
+                ]),
+              ),
+              const SizedBox(width: 12),
+              Switch(key: key, value: value, onChanged: _publishing ? null : onChanged),
+            ]),
           ),
         ),
       ),

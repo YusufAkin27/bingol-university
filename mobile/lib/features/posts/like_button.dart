@@ -89,6 +89,23 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
   int _prevCount = 0;
 
   Post get _post => widget.post;
+
+  /// Sayı bu izleyiciden gizli (başkasının gönderisi, sahibi gizledi): kalp çalışır, sayı çizilmez.
+  bool get _hidden => _post.likeCountHiddenFor(widget.session.userId);
+
+  /// Benim gönderim ve sayıyı başkalarından gizledim: sayının yanında küçük ipucu simgesi.
+  bool get _hintMine => _post.hideLikeCount && !_hidden;
+
+  Widget _hint(BuTokens t) => Padding(
+        padding: const EdgeInsetsDirectional.only(start: 4),
+        child: Semantics(
+          label: context.l10n.postHideLikesHint,
+          child: Tooltip(
+            message: context.l10n.postHideLikesHint,
+            child: Icon(BuIcons.eyeOff, key: const ValueKey('like-hidden-hint'), size: 14, color: t.mut),
+          ),
+        ),
+      );
   bool get _pending => _timer != null || _inflight;
 
   @override
@@ -166,8 +183,10 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
       final r = want ? await api.put('/posts/${_post.id}/like') : await api.delete('/posts/${_post.id}/like');
       Analytics.instance.action(want ? 'like' : 'unlike');
       final res = LikeResult.fromJson(r is Map ? Map<String, dynamic>.from(r) : null);
+      // Gizli sayıda sunucu `likeCount` yollamaz (null): yerel sayı beğeni durumundaki değişime göre ayarlanır.
+      final prevLiked = _confirmedLiked;
       _confirmedLiked = res.liked;
-      _confirmedCount = res.likeCount;
+      _confirmedCount = res.likeCount ?? math.max(0, _confirmedCount + (res.liked == prevLiked ? 0 : (res.liked ? 1 : -1)));
       _inflight = false;
       if (!mounted) {
         // Uçuştayken ekrandan çıkıldı ve kullanıcı bu arada yön değiştirmişti: son niyet kaybolmasın.
@@ -182,7 +201,7 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
         // Kullanıcı bu arada değiştirmediyse sunucu sayısını esas al.
         setState(() {
           _liked = res.liked;
-          _changeCount(res.likeCount);
+          _changeCount(_confirmedCount);
         });
         widget.onChanged?.call(_post.copyWith(likedByMe: _liked, likeCount: _count));
       } else if (_timer == null && _liked != _confirmedLiked) {
@@ -227,7 +246,7 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
     final heart = Semantics(
       button: true,
       label: _liked ? context.l10n.postViewUnlike : context.l10n.postViewLike,
-      value: widget.a11yCount?.call(_count),
+      value: _hidden ? null : widget.a11yCount?.call(_count),
       child: InkResponse(
         key: const ValueKey('like-heart'),
         onTap: _toggle,
@@ -284,7 +303,7 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
 
     return Row(mainAxisSize: MainAxisSize.min, children: [
       heart,
-      if (_count > 0 || _countAnim.value < 1)
+      if (!_hidden && (_count > 0 || _countAnim.value < 1))
         // Sayaç kalp kutusunun boş payına doğru kayar (kalp 44 dp dokunma kutusunun başında durur): boşluk kapanır;
         // sayaç da dokunma alanıdır (hit test dönüşümü izler).
         Transform.translate(
@@ -297,11 +316,19 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
               constraints: const BoxConstraints(minHeight: box, minWidth: 28),
               child: Padding(
                 padding: const EdgeInsetsDirectional.only(end: 8),
-                child: Align(alignment: AlignmentDirectional.centerStart, widthFactor: 1, child: count),
+                child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    widthFactor: 1,
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [count, if (_hintMine) _hint(t)])),
               ),
             ),
           ),
           ),
+        )
+      else if (_hintMine)
+        Transform.translate(
+          offset: Offset(Directionality.of(context) == TextDirection.rtl ? 12 : -12, 0),
+          child: Padding(padding: const EdgeInsetsDirectional.only(end: 8), child: _hint(t)),
         ),
     ]);
   }
@@ -328,7 +355,7 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
       return Semantics(
         button: true,
         label: _liked ? context.l10n.postViewUnlike : context.l10n.postViewLike,
-        value: widget.a11yCount?.call(_count),
+        value: _hidden ? null : widget.a11yCount?.call(_count),
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: _toggle,
@@ -344,10 +371,11 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
                   padding: const EdgeInsetsDirectional.symmetric(horizontal: 8, vertical: 5),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     icon,
-                    if (_count > 0 || _countAnim.value < 1) ...[
+                    if (!_hidden && (_count > 0 || _countAnim.value < 1)) ...[
                       const SizedBox(width: 4),
                       ExcludeSemantics(child: count),
                     ],
+                    if (_hintMine) _hint(t),
                   ]),
                 ),
               ),
@@ -359,7 +387,7 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
     return Semantics(
       button: true,
       label: _liked ? context.l10n.postViewUnlike : context.l10n.postViewLike,
-      value: widget.a11yCount?.call(_count),
+      value: _hidden ? null : widget.a11yCount?.call(_count),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: _toggle,
@@ -369,10 +397,11 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
             padding: const EdgeInsetsDirectional.symmetric(horizontal: 6),
             child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
               icon,
-              if (_count > 0 || _countAnim.value < 1) ...[
+              if (!_hidden && (_count > 0 || _countAnim.value < 1)) ...[
                 const SizedBox(width: 4),
                 ExcludeSemantics(child: count),
               ],
+              if (_hintMine) _hint(t),
             ]),
           ),
         ),

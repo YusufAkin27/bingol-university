@@ -39,6 +39,13 @@ Future<void> showPostActions(
     // Reels/Senin İçin önerisinden çıkar ("İlgilenmiyorum"): yalnız başkasının gönderisinde.
     if (notInterested && !mine) PostMenuAction('notInterested', l.kesNotInterested, BuIcons.eyeOff),
     if (post.canEdit) PostMenuAction('edit', l.postComposeEdit, BuIcons.squarePen),
+    // Gönderi sahibi: beğeni sayısını gizle/göster ve yorumları kapat/aç (PATCH /posts/{id}/settings).
+    if (mine) ...[
+      PostMenuAction(
+          'toggleLikes', post.hideLikeCount ? l.postMenuShowLikes : l.postMenuHideLikes, post.hideLikeCount ? BuIcons.eye : BuIcons.eyeOff),
+      PostMenuAction('toggleComments', post.commentsDisabled ? l.postMenuCommentsOn : l.postMenuCommentsOff,
+          post.commentsDisabled ? BuIcons.messageCircle : BuIcons.lock),
+    ],
     if (post.canDelete) PostMenuAction('delete', l.postComposeDelete, BuIcons.trash2, danger: true),
     if (!mine) ...[
       PostMenuAction('profile', l.postComposeViewProfile, BuIcons.user),
@@ -85,6 +92,10 @@ Future<void> showPostActions(
         builder: (_) => _EditDialog(session: session, post: post),
       );
       if (edited != null) onEdited?.call(edited);
+    case 'toggleLikes':
+      await _changeSettings(context, session, post, onEdited, hideLikeCount: !post.hideLikeCount);
+    case 'toggleComments':
+      await _changeSettings(context, session, post, onEdited, commentsDisabled: !post.commentsDisabled);
     case 'delete':
       await _confirmDelete(context, session, post, onDeleted);
     case 'report':
@@ -95,6 +106,29 @@ Future<void> showPostActions(
           userId: post.author.id, name: post.author.displayName, avatarUrl: post.author.avatarUrl);
     case 'block':
       await _confirmBlock(context, session, post, onDeleted);
+  }
+}
+
+/// Gönderi ayarı değişimi: İYİMSER (kart hemen güncellenir), hata olursa eski duruma döner + hata toast'ı.
+Future<void> _changeSettings(BuildContext context, Session session, Post post, ValueChanged<Post>? onEdited,
+    {bool? hideLikeCount, bool? commentsDisabled}) async {
+  final l = context.l10n;
+  onEdited?.call(post.copyWith(hideLikeCount: hideLikeCount, commentsDisabled: commentsDisabled));
+  try {
+    final r = await PostApi(session).updateSettings(post.id, hideLikeCount: hideLikeCount, commentsDisabled: commentsDisabled);
+    // Sunucu yanıtı esas: yalnız ayar alanları alınır (sayaç/beğeni yerel durumu korunur).
+    onEdited?.call(post.copyWith(hideLikeCount: r.hideLikeCount, commentsDisabled: r.commentsDisabled));
+    if (context.mounted) {
+      BuToast.show(
+          context,
+          hideLikeCount != null
+              ? (r.hideLikeCount ? l.postSettingsLikesHiddenDone : l.postSettingsLikesShownDone)
+              : (r.commentsDisabled ? l.postSettingsCommentsOffDone : l.postSettingsCommentsOnDone),
+          kind: BuToastKind.success);
+    }
+  } catch (e) {
+    onEdited?.call(post);
+    if (context.mounted) BuToast.show(context, l.postSettingsFailed, kind: BuToastKind.error);
   }
 }
 
@@ -365,8 +399,6 @@ class PostMenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mine = post.mine || post.author.id == session.userId;
-    if (mine && !post.canEdit && !post.canDelete) return const SizedBox(width: 10);
     final t = context.bu;
     // Görünen daire 40 dp; dokunma hedefi 48x48 (erişilebilirlik): daire arkada, düğme üstte tam boyda.
     return SizedBox.square(

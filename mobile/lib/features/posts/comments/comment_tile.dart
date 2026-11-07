@@ -25,7 +25,11 @@ class CommentTile extends StatelessWidget {
     this.compact = false,
     this.highlighted = false,
     this.readOnly = false,
+    this.replyEnabled = true,
   });
+
+  /// Yorumlar kapalıyken "Yanıtla" gizlenir (beğeni dokunuşu üst katmanda bilgi verir; menü/silme sürer).
+  final bool replyEnabled;
 
   final Session session;
   final PostComment comment;
@@ -143,6 +147,7 @@ class CommentTile extends StatelessWidget {
       );
     }
     return Row(children: [
+      if (replyEnabled)
       InkWell(
         key: ValueKey('commentReply-${comment.id}'),
         onTap: onReply,

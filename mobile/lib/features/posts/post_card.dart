@@ -427,6 +427,7 @@ class _PostCardState extends State<PostCard> {
                   session: widget.session,
                   postId: p.id,
                   count: p.commentCount ?? 0,
+                  commentsDisabled: p.commentsDisabled,
                   onCountChanged: (n) => widget.onChanged(p.copyWith(commentCount: n))),
               if (text.isNotEmpty) ...[
                 Text('·', style: tt.bodyLarge?.copyWith(color: t.mut, fontSize: 15)),
@@ -466,7 +467,8 @@ class _PostCardState extends State<PostCard> {
     final dept = context.departmentName(p.author.department);
     final time = postRelativeTime(context, p.createdAt);
     final mine = p.mine || p.author.id == widget.session.userId;
-    final hasMenu = !(mine && !p.canEdit && !p.canDelete);
+    // Gönderi sahibi her zaman menü görür (beğeni sayısı / yorum ayarları).
+    const hasMenu = true;
     final detail = widget.detail;
     if (detail) return _buildDetail(context, mine: mine, hasMenu: hasMenu);
     // Detay: fotoğraf ekran genişliğinde (kenarsız), metin satırları 20 kenar boşluklu (sayfa kenarı).
@@ -585,6 +587,7 @@ class _PostCardState extends State<PostCard> {
                     session: widget.session,
                     postId: p.id,
                     count: p.commentCount ?? 0,
+                    commentsDisabled: p.commentsDisabled,
                     onCountChanged: (n) => widget.onChanged(p.copyWith(commentCount: n))),
                 const Spacer(),
                 PostShareButton(session: widget.session, post: p),

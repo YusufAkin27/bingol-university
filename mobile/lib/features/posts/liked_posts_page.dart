@@ -199,7 +199,7 @@ class _Tile extends StatelessWidget {
     final cover = post.isVideo ? (post.video?.posterUrl ?? post.photo?.thumbUrl) : (post.photo?.thumbUrl ?? post.photo?.url);
     return Semantics(
       button: true,
-      label: [if (post.hasText) post.text!, '${post.likeCount}'].join(', '),
+      label: [if (post.hasText) post.text!, if (!post.likeCountHiddenFor(session.userId)) '${post.likeCount}'].join(', '),
       excludeSemantics: true,
       child: BuPressable(
         scale: .97,

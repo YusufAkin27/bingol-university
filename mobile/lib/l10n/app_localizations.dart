@@ -24917,6 +24917,114 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{n} karakter kaldı'**
   String pcmCharsLeft(String n);
+
+  /// No description provided for @postSettingsAdvanced.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gelişmiş ayarlar'**
+  String get postSettingsAdvanced;
+
+  /// No description provided for @postSettingsHideLikes.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğeni sayısını gizle'**
+  String get postSettingsHideLikes;
+
+  /// No description provided for @postSettingsHideLikesDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başkaları bu gönderinin beğeni sayısını göremez. Sen görmeye devam edersin.'**
+  String get postSettingsHideLikesDesc;
+
+  /// No description provided for @postSettingsCommentsOff.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorum yapmayı kapat'**
+  String get postSettingsCommentsOff;
+
+  /// No description provided for @postSettingsCommentsOffDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kimse bu gönderiye yorum yapamaz. Mevcut yorumlar görünür kalır.'**
+  String get postSettingsCommentsOffDesc;
+
+  /// No description provided for @postHideLikesHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğeni sayısı başkalarına gizli'**
+  String get postHideLikesHint;
+
+  /// No description provided for @pcmCommentsDisabled.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu gönderide yorumlar kapalı'**
+  String get pcmCommentsDisabled;
+
+  /// No description provided for @postMenuHideLikes.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğeni sayısını gizle'**
+  String get postMenuHideLikes;
+
+  /// No description provided for @postMenuShowLikes.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğeni sayısını göster'**
+  String get postMenuShowLikes;
+
+  /// No description provided for @postMenuCommentsOff.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumları kapat'**
+  String get postMenuCommentsOff;
+
+  /// No description provided for @postMenuCommentsOn.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumları aç'**
+  String get postMenuCommentsOn;
+
+  /// No description provided for @postSettingsLikesHiddenDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğeni sayısı gizlendi'**
+  String get postSettingsLikesHiddenDone;
+
+  /// No description provided for @postSettingsLikesShownDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğeni sayısı gösteriliyor'**
+  String get postSettingsLikesShownDone;
+
+  /// No description provided for @postSettingsCommentsOffDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumlar kapatıldı'**
+  String get postSettingsCommentsOffDone;
+
+  /// No description provided for @postSettingsCommentsOnDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumlar açıldı'**
+  String get postSettingsCommentsOnDone;
+
+  /// No description provided for @postSettingsFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ayar değiştirilemedi. Tekrar dene.'**
+  String get postSettingsFailed;
+
+  /// No description provided for @pcmDeleteOthersTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorum silinsin mi?'**
+  String get pcmDeleteOthersTitle;
+
+  /// No description provided for @pcmDeleteOthersBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yorum herkes için kaldırılır. Bu işlem geri alınamaz.'**
+  String get pcmDeleteOthersBody;
 }
 
 class _AppLocalizationsDelegate

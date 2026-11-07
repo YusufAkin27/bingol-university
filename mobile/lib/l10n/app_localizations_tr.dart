@@ -13852,4 +13852,61 @@ class AppLocalizationsTr extends AppLocalizations {
   String pcmCharsLeft(String n) {
     return '$n karakter kaldı';
   }
+
+  @override
+  String get postSettingsAdvanced => 'Gelişmiş ayarlar';
+
+  @override
+  String get postSettingsHideLikes => 'Beğeni sayısını gizle';
+
+  @override
+  String get postSettingsHideLikesDesc =>
+      'Başkaları bu gönderinin beğeni sayısını göremez. Sen görmeye devam edersin.';
+
+  @override
+  String get postSettingsCommentsOff => 'Yorum yapmayı kapat';
+
+  @override
+  String get postSettingsCommentsOffDesc =>
+      'Kimse bu gönderiye yorum yapamaz. Mevcut yorumlar görünür kalır.';
+
+  @override
+  String get postHideLikesHint => 'Beğeni sayısı başkalarına gizli';
+
+  @override
+  String get pcmCommentsDisabled => 'Bu gönderide yorumlar kapalı';
+
+  @override
+  String get postMenuHideLikes => 'Beğeni sayısını gizle';
+
+  @override
+  String get postMenuShowLikes => 'Beğeni sayısını göster';
+
+  @override
+  String get postMenuCommentsOff => 'Yorumları kapat';
+
+  @override
+  String get postMenuCommentsOn => 'Yorumları aç';
+
+  @override
+  String get postSettingsLikesHiddenDone => 'Beğeni sayısı gizlendi';
+
+  @override
+  String get postSettingsLikesShownDone => 'Beğeni sayısı gösteriliyor';
+
+  @override
+  String get postSettingsCommentsOffDone => 'Yorumlar kapatıldı';
+
+  @override
+  String get postSettingsCommentsOnDone => 'Yorumlar açıldı';
+
+  @override
+  String get postSettingsFailed => 'Ayar değiştirilemedi. Tekrar dene.';
+
+  @override
+  String get pcmDeleteOthersTitle => 'Yorum silinsin mi?';
+
+  @override
+  String get pcmDeleteOthersBody =>
+      'Bu yorum herkes için kaldırılır. Bu işlem geri alınamaz.';
 }
