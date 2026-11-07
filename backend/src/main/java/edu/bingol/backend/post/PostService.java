@@ -179,6 +179,8 @@ public class PostService {
         p.setBody(text);
         p.setIdempotencyKey(idemKey);
         p.setKind("VIDEO".equals(kind) ? Post.KIND_VIDEO : Post.KIND_PHOTO);
+        p.setHideLikeCount(Boolean.TRUE.equals(req.hideLikeCount()));
+        p.setCommentsDisabled(Boolean.TRUE.equals(req.commentsDisabled()));
         if (rank != null) {
             p.setRankScore(rank.initialScore(p)); // soguk baslangic: yeni gonderi hemen gorunur
         }
@@ -206,6 +208,22 @@ public class PostService {
     @Transactional(readOnly = true)
     public PostView get(Long viewer, Long id) {
         return assembler.assemble(viewer, requireVisible(id, viewer));
+    }
+
+    /** Sahibin gonderi ayarlari (begeni sayisini gizle / yorumlari kapat); alan null = degismez. Yalniz sahibi. */
+    @Transactional
+    public PostView updateSettings(Long uid, Long id, Boolean hideLikeCount, Boolean commentsDisabled) {
+        Post p = requireVisible(id, uid);
+        if (!p.getAuthorId().equals(uid)) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "POST_FORBIDDEN", "Bu işlem için yetkiniz yok.");
+        }
+        if (hideLikeCount != null) {
+            p.setHideLikeCount(hideLikeCount);
+        }
+        if (commentsDisabled != null) {
+            p.setCommentsDisabled(commentsDisabled);
+        }
+        return assembler.assemble(uid, posts.saveAndFlush(p));
     }
 
     @Transactional

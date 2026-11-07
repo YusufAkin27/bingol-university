@@ -76,6 +76,14 @@ public class Post {
     @Column(nullable = false)
     private long completionPctSum;
 
+    /** Sahip begeni sayisini baskalarindan gizledi (V1670); sayi yalniz sahibine/yoneticiye doner. */
+    @Column(nullable = false)
+    private boolean hideLikeCount;
+
+    /** Sahip yorumlari kapatti (V1670): yeni yorum/yanit/yorum begenisi 403 COMMENTS_DISABLED. */
+    @Column(nullable = false)
+    private boolean commentsDisabled;
+
     public static final String KIND_PHOTO = "PHOTO";
     public static final String KIND_VIDEO = "VIDEO";
 

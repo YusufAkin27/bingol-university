@@ -92,7 +92,7 @@ public class PostLikeService implements PostLikeLookup {
                 log.warn("Begeni bildirimi atlandi (gonderi {}): {}", postId, e.toString());
             }
         }
-        return new LikeState(true, counters.likeCount(postId));
+        return new LikeState(true, hiddenFrom(postId, userId, authorId) ? null : counters.likeCount(postId));
     }
 
     /** Atomik: satır gerçekten eklendiyse sayaç artar. (saveAndFlush = merge: çift sayardı.) */
@@ -119,7 +119,8 @@ public class PostLikeService implements PostLikeLookup {
      * Satır yoksa ve gönderi görünmüyorsa 404 (varlık sızdırılmaz).
      */
     public LikeState unlike(Long userId, Long postId) {
-        boolean visible = likes.visibleAuthor(postId, userId).isPresent();
+        Long visibleAuthor = likes.visibleAuthor(postId, userId).orElse(null);
+        boolean visible = visibleAuthor != null;
         Boolean removed = tx.execute(st -> {
             if (likes.deleteLike(postId, userId) > 0) {
                 counters.incrementLikes(postId, -1);
@@ -130,12 +131,18 @@ public class PostLikeService implements PostLikeLookup {
         if (!visible && !Boolean.TRUE.equals(removed)) {
             throw new ApiException(HttpStatus.NOT_FOUND, "POST_NOT_FOUND", "Gönderi bulunamadı.");
         }
+        if (visible && hiddenFrom(postId, userId, visibleAuthor)) {
+            return new LikeState(false, null);
+        }
         return new LikeState(false, visible ? counters.likeCount(postId) : 0);
     }
 
     /** Beğenenler, yeniden eskiye; engel ilişkisindekiler gizli, avatar gizlilik kuralına tabi. */
     public LikersPage listLikers(Long postId, Long viewerId, String cursor, int size) {
-        authorOrThrow(postId, viewerId);
+        Long author = authorOrThrow(postId, viewerId);
+        if (hiddenFrom(postId, viewerId, author)) {
+            return new LikersPage(List.of(), null, 0); // begeni sayisi gizli: beğenenler listesi de sahibi disinda kapali
+        }
         int n = Math.min(Math.max(size, 1), MAX_SIZE);
         Set<Long> hidden = blocks.hiddenFrom(viewerId);
         Collection<Long> hid = hidden.isEmpty() ? NO_HIDDEN : hidden;
@@ -181,6 +188,15 @@ public class PostLikeService implements PostLikeLookup {
             return jdbc.update("DELETE FROM post_like WHERE user_id = ?", userId);
         });
         return n == null ? 0 : n;
+    }
+
+    /** Gonderi sahibi begeni sayisini gizlediyse (V1670) sahibi disindaki bakana sayi/liste verilmez. */
+    private boolean hiddenFrom(Long postId, Long viewerId, Long authorId) {
+        if (authorId != null && authorId.equals(viewerId)) {
+            return false;
+        }
+        Boolean hide = jdbc.queryForObject("SELECT hide_like_count FROM post WHERE id = ?", Boolean.class, postId);
+        return Boolean.TRUE.equals(hide);
     }
 
     private Long authorOrThrow(Long postId, Long viewerId) {

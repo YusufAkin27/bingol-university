@@ -51,7 +51,8 @@ public class AdminPostService {
     public record PostRow(long id, Author author, String text, List<MediaItem> media, int likeCount, int mediaCount,
                           boolean hidden, boolean deleted, String hiddenReason, String createdAt, String editedAt,
                           String hiddenAt, String deletedAt, Long deletedBy, int openReportCount,
-                          String type, int viewCount, int avgCompletionPct) {}
+                          String type, int viewCount, int avgCompletionPct,
+                          boolean hideLikeCount, boolean commentsDisabled) {}
 
     public record ReportItem(long id, String reason, String note, String status, String createdAt) {}
 
@@ -257,7 +258,7 @@ public class AdminPostService {
 
     private static final String POST_SELECT = "SELECT p.id, p.author_id, u.display_name, u.email, u.avatar_url, p.body, "
             + "p.like_count, p.media_count, p.created_at, p.edited_at, p.deleted_at, p.deleted_by, "
-            + "p.hidden_at, p.hidden_reason, p.kind, p.view_count, p.completion_pct_sum, (" + OPEN_REPORTS + ") AS open_reports "
+            + "p.hidden_at, p.hidden_reason, p.kind, p.view_count, p.completion_pct_sum, p.hide_like_count, p.comments_disabled, (" + OPEN_REPORTS + ") AS open_reports "
             + "FROM post p JOIN app_user u ON u.id = p.author_id";
 
     private PostRow postRow(java.sql.ResultSet rs) throws java.sql.SQLException {
@@ -269,7 +270,8 @@ public class AdminPostService {
                 rs.getTimestamp("deleted_at") != null, rs.getString("hidden_reason"), ts(rs.getTimestamp("created_at")),
                 ts(rs.getTimestamp("edited_at")), ts(rs.getTimestamp("hidden_at")), ts(rs.getTimestamp("deleted_at")),
                 (Long) rs.getObject("deleted_by"), rs.getInt("open_reports"), rs.getString("kind"),
-                rs.getInt("view_count"), avgPct(rs.getInt("view_count"), rs.getLong("completion_pct_sum")));
+                rs.getInt("view_count"), avgPct(rs.getInt("view_count"), rs.getLong("completion_pct_sum")),
+                rs.getBoolean("hide_like_count"), rs.getBoolean("comments_disabled"));
     }
 
     /** Ortalama izleme tamamlanma yuzdesi (izlenme yoksa 0). */
@@ -312,7 +314,7 @@ public class AdminPostService {
             out.add(new PostRow(r.id(), r.author(), r.text(), byPost.getOrDefault(r.id(), List.of()), r.likeCount(),
                     r.mediaCount(), r.hidden(), r.deleted(), r.hiddenReason(), r.createdAt(), r.editedAt(),
                     r.hiddenAt(), r.deletedAt(), r.deletedBy(), r.openReportCount(), r.type(), r.viewCount(),
-                    r.avgCompletionPct()));
+                    r.avgCompletionPct(), r.hideLikeCount(), r.commentsDisabled()));
         }
         return out;
     }

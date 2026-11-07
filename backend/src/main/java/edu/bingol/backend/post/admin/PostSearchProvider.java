@@ -27,7 +27,7 @@ public class PostSearchProvider implements SearchProvider {
             + "AND u.status = 'ACTIVE' "
             + "AND EXISTS (SELECT 1 FROM post_media pm WHERE pm.post_id = p.id AND pm.hidden_at IS NULL) ";
 
-    static final String SQL = "SELECT p.id, p.body, u.display_name, CAST(p.created_at AS varchar) AS created, p.like_count, "
+    static final String SQL = "SELECT p.id, p.body, u.display_name, CAST(p.created_at AS varchar) AS created, p.like_count, p.hide_like_count, p.author_id, "
             + "(SELECT m.id FROM post_media m WHERE m.post_id = p.id AND m.hidden_at IS NULL ORDER BY m.position, m.id LIMIT 1) AS media_id "
             + "FROM post p JOIN app_user u ON u.id = p.author_id "
             + "WHERE " + VISIBLE_SQL + "AND p.body IS NOT NULL "
@@ -64,7 +64,8 @@ public class PostSearchProvider implements SearchProvider {
             Long mediaId = (Long) rs.getObject("media_id");
             return new SearchHit(SearchType.POSTS, rs.getLong("id"), rs.getString("display_name"),
                     snippet(rs.getString("body")), mediaId == null ? null : "/api/posts/media/" + mediaId + "?thumb=true",
-                    rs.getString("created"), null, null, null, (long) rs.getInt("like_count"));
+                    rs.getString("created"), null, null, null, edu.bingol.backend.post.reel.ReelSearchProvider.likes(rs.getInt("like_count"),
+                    rs.getBoolean("hide_like_count"), rs.getLong("author_id"), viewer));
         }, q, SearchQuery.likePattern(q), viewer, viewer, viewer, viewer, q, Math.max(1, limit), Math.max(0, offset));
     }
 

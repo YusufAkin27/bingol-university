@@ -7,8 +7,8 @@ public final class PostLikeDtos {
 
     private PostLikeDtos() {}
 
-    /** PUT/DELETE /api/posts/{id}/like yaniti. */
-    public record LikeState(boolean liked, int likeCount) {}
+    /** PUT/DELETE /api/posts/{id}/like yaniti. likeCount: begeni sayisi gizli gonderide (V1670) sahibi disinda null. */
+    public record LikeState(boolean liked, Integer likeCount) {}
 
     public record Liker(Long id, String displayName, String avatarUrl, Instant likedAt) {}
 

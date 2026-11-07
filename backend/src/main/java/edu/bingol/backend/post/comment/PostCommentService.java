@@ -92,6 +92,7 @@ public class PostCommentService {
     @Transactional
     public CommentView create(Long uid, Long postId, CreateCommentRequest req) {
         Post post = visiblePost(postId, uid);
+        requireCommentsOpen(post);
         String text = normalize(req.text());
         checkText(text);
         guard.assertClean(ContentGuard.Entity.COMMENT, "text", uid, text);
@@ -219,6 +220,7 @@ public class PostCommentService {
     /** Idempotent begeni; yorum gorunur degilse 404. */
     public LikeState like(Long userId, Long commentId) {
         PostComment target = visibleComment(commentId, userId);
+        postRepo.findById(target.getPostId()).ifPresent(PostCommentService::requireCommentsOpen);
         boolean[] added = {false};
         for (int attempt = 0; attempt < 3; attempt++) {
             try {
@@ -410,6 +412,13 @@ public class PostCommentService {
     private static ApiException parentInvalid() {
         return new ApiException(HttpStatus.BAD_REQUEST, "COMMENT_PARENT_INVALID",
                 "Yanıtlanacak yorum geçersiz.");
+    }
+
+    /** Yorumlar kapali gonderide yeni yorum/yanit/yorum begenisi 403 (mevcut yorumlar okunur, sahip silebilir). */
+    private static void requireCommentsOpen(Post post) {
+        if (post.isCommentsDisabled()) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "COMMENTS_DISABLED", "Bu gönderide yorumlar kapalı.");
+        }
     }
 
     private static ApiException notFound() {
