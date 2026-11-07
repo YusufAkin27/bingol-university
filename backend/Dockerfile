@@ -1,7 +1,7 @@
 # T-148 (A8-11): taban imajlar OZETLE (sha256) sabitlidir: ayni Dockerfile her derlemede ayni tabani alir, kayan etiket
 # sessizce degismez. Etiket okunabilirlik icindir; Dependabot (docker) etiket + ozeti birlikte yukseltir.
 # --- derleme (bagimlilik katmani onbellege alinir) ---
-FROM maven:3-eclipse-temurin-17@sha256:b67db904974d04b9e6eba5b073ae227569ee1cae0d1f26be8993525291ef76dc AS build
+FROM maven:3-eclipse-temurin-27@sha256:a6cd0d45e565ec76bf1969702bcbdb800d3461c8338012728e891b8681374575 AS build
 WORKDIR /build
 COPY pom.xml .
 RUN mvn -q -B dependency:go-offline
