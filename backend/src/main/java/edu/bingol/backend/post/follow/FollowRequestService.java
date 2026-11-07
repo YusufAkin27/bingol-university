@@ -152,7 +152,8 @@ public class FollowRequestService {
     @Transactional
     public boolean withdraw(Long me, Long target) {
         boolean removed = jdbc.update("DELETE FROM follow_request WHERE requester_id = ? AND target_id = ?", me, target) > 0;
-        markRequestNotificationRead(target, me);
+        // Geri cekilen istek artik yok: hedefin bildirim kutusundan da SILINIR (kabul/red okundu isaretler).
+        deleteRequestNotification(target, me);
         return removed;
     }
 
@@ -324,6 +325,16 @@ public class FollowRequestService {
                     REQUEST_KEY_PREFIX + requesterId, Instant.now());
         } catch (RuntimeException e) {
             log.warn("Takip istegi bildirimi okundu isaretlenemedi (kullanici {}): {}", target, e.toString());
+        }
+    }
+
+    /** Geri çekilen isteğin hedefin kutusundaki FOLLOW_REQUEST bildirimini siler (en iyi çaba). */
+    private void deleteRequestNotification(Long target, Long requesterId) {
+        try {
+            notifications.deleteByTypeAndCollapseKey(target, NotificationType.FOLLOW_REQUEST,
+                    REQUEST_KEY_PREFIX + requesterId);
+        } catch (RuntimeException e) {
+            log.warn("Takip istegi bildirimi silinemedi (kullanici {}): {}", target, e.toString());
         }
     }
 

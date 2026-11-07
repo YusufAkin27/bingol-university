@@ -112,6 +112,13 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     int markReadByTypeAndCollapseKey(@Param("uid") Long userId, @Param("type") NotificationType type,
                                      @Param("key") String collapseKey, @Param("now") Instant now);
 
+    /** Tur + birlesme anahtari ile eslesen TUM satirlari (okunmus/okunmamis) siler: geri cekilen takip istegi. */
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM Notification n WHERE n.userId = :uid AND n.type = :type AND n.collapseKey = :key")
+    int deleteByTypeAndCollapseKey(@Param("uid") Long userId, @Param("type") NotificationType type,
+                                   @Param("key") String collapseKey);
+
     /**
      * Tur + anahtar oneki (LIKE; {@code pattern} onceden kacirilmis, kacis karakteri {@code \}) ile eslesen okunmamis
      * satirlari okundu yapar. Gizli->acik toplu otomatik kabulde TEK sorgu.

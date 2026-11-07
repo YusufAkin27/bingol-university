@@ -104,7 +104,7 @@ class FollowRequestNotificationReadTest {
     }
 
     @Test
-    void withdrawAndUnfollowMarkTheTargetsNotificationRead() {
+    void withdrawAndUnfollowDeleteTheTargetsNotification() {
         User t = privateUser();
         User a = user();
         User b = user();
@@ -112,12 +112,14 @@ class FollowRequestNotificationReadTest {
         follow.follow(b.getId(), t.getId());
 
         follow.unfollow(a.getId(), t.getId()); // DELETE /users/{id}/follow = istegi geri cek
+        // geri cekilen istegin bildirimi hedefin kutusundan SILINIR; digeri kalir
         assertEquals(1, unread(t.getId()));
+        assertEquals(1, total(t.getId()));
         assertEquals(1, inbox.unreadCount(t.getId()));
 
         requests.withdraw(b.getId(), t.getId());
         assertEquals(0, unread(t.getId()));
-        assertEquals(2, total(t.getId()));
+        assertEquals(0, total(t.getId()));
         assertEquals(0, inbox.unreadCount(t.getId()));
     }
 
