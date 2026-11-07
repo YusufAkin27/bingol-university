@@ -466,6 +466,15 @@ class MessageBubble extends StatelessWidget {
                       .copyWith(color: t.ink, fontWeight: FontWeight.w400)),
             ),
           );
+    // Saat+tik balonun SAĞ ALT kenarında durur: balon yanıt alıntısı ya da gönderen adı yüzünden metinden genişse
+    // metin bloğu da balon genişliğine yayılır (aksi halde saat metnin hemen yanında, balonun ortasında kalırdı).
+    final stretchText = !mediaStyle &&
+        showText &&
+        hasMeta &&
+        !hasMedia &&
+        shareInfo == null &&
+        onceBlock == null &&
+        (nameWidget != null || (reply != null && !deleted));
     final core = Container(
       constraints: BoxConstraints(maxWidth: maxW),
       clipBehavior: mediaStyle ? Clip.antiAlias : Clip.none,
@@ -488,8 +497,11 @@ class MessageBubble extends StatelessWidget {
           bottomEnd: r,
         ),
       ),
-      child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: _fitWidth(
+        stretchText,
+        Column(
+          crossAxisAlignment:
+              stretchText ? CrossAxisAlignment.stretch : CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             if (nameWidget != null && !mediaStyle) nameWidget,
@@ -543,17 +555,21 @@ class MessageBubble extends StatelessWidget {
                     mediaStyle ? 10 : 0,
                     mediaStyle ? 4 : 0),
                 // Medya varken açıklama görselin genişliğini aşmasın: görsel balona kenardan kenara otursun.
+                // Açıklama görselin/kartın genişliğine OTURUR (min=max): saat+tik görselin sağ altında hizalanır.
                 child: (hasMedia || shareInfo != null)
                     ? ConstrainedBox(
-                        constraints: BoxConstraints(
-                            maxWidth: (shareInfo != null
-                                    ? shareW + 8
-                                    : _mediaWidth(maxW)) -
-                                20),
+                        constraints: () {
+                          final cw = (shareInfo != null
+                                  ? shareW + 8
+                                  : _mediaWidth(maxW)) -
+                              20;
+                          return BoxConstraints(minWidth: cw, maxWidth: cw);
+                        }(),
                         child: textWithMeta())
                     : textWithMeta(),
               ),
           ]),
+      ),
     );
 
     final body = (mediaStyle && nameWidget != null)
@@ -635,6 +651,10 @@ class MessageBubble extends StatelessWidget {
   }
 
   /// Yanıt alıntısı: başta renkli ince çizgi (kendi mesajım / başkasınınki), tonal zemin.
+  /// [on] ise çocuğu en geniş iç boyuta göre yayar ([IntrinsicWidth]); yoksa olduğu gibi bırakır.
+  static Widget _fitWidth(bool on, Widget child) =>
+      on ? IntrinsicWidth(child: child) : child;
+
   Widget _quote(
       BuildContext context, BuTokens t, Map<String, dynamic> reply, Color fg) {
     final tx = Theme.of(context).textTheme;
