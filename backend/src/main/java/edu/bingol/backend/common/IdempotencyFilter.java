@@ -67,12 +67,13 @@ public class IdempotencyFilter extends OncePerRequestFilter {
     }
 
     /**
-     * Korunan yollar: yonetici yazma uclari + kullanicinin destek talebi / geri bildirim OLUSTURMA (POST). Yaniti
+     * Korunan yollar: yonetici yazma uclari + kullanicinin destek talebi / geri bildirim / gonderi yorumu OLUSTURMA (POST). Yaniti
      * kaybolan gonderimin tekrari cift talep uretmesin (QA5-09); anahtar kullanici kimligine baglidir.
      */
     static boolean covered(String method, String uri) {
         return uri.startsWith("/api/admin/")
-                || ("POST".equals(method) && (uri.equals("/api/support/tickets") || uri.equals("/api/feedback")));
+                || ("POST".equals(method) && (uri.equals("/api/support/tickets") || uri.equals("/api/feedback")
+                || uri.matches("/api/posts/\\d+/comments")));
     }
 
     @Override

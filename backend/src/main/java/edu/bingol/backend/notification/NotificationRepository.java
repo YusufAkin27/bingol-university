@@ -42,6 +42,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
                 WHEN n.type IN (edu.bingol.backend.notification.NotificationType.POST_LIKE,
                   edu.bingol.backend.notification.NotificationType.POST_COMMENT,
                   edu.bingol.backend.notification.NotificationType.COMMENT_REPLY,
+                  edu.bingol.backend.notification.NotificationType.COMMENT_LIKE,
                   edu.bingol.backend.notification.NotificationType.POST_MENTION,
                   edu.bingol.backend.notification.NotificationType.USER_FOLLOW,
                   edu.bingol.backend.notification.NotificationType.FOLLOW_REQUEST,
@@ -62,6 +63,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     String SOCIAL_COND = "(n.type IN (edu.bingol.backend.notification.NotificationType.POST_LIKE, "
             + "edu.bingol.backend.notification.NotificationType.POST_COMMENT, "
             + "edu.bingol.backend.notification.NotificationType.COMMENT_REPLY, "
+            + "edu.bingol.backend.notification.NotificationType.COMMENT_LIKE, "
             + "edu.bingol.backend.notification.NotificationType.POST_MENTION, "
             + "edu.bingol.backend.notification.NotificationType.USER_FOLLOW, "
             + "edu.bingol.backend.notification.NotificationType.FOLLOW_REQUEST, "
@@ -75,7 +77,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
             + "AND (:unreadOnly = FALSE OR n.readAt IS NULL) "
             + "AND ((:social = TRUE AND " + SOCIAL_COND + ") OR (:social = FALSE AND NOT " + SOCIAL_COND + ")) "
             + "AND (:kind = 'ALL' OR :kind = CASE "
-            + "WHEN n.type = edu.bingol.backend.notification.NotificationType.POST_LIKE "
+            + "WHEN n.type IN (edu.bingol.backend.notification.NotificationType.POST_LIKE, edu.bingol.backend.notification.NotificationType.COMMENT_LIKE) "
             + "OR n.subtype IN ('FORUM_TOPIC_LIKE','FORUM_COMMENT_LIKE') THEN 'LIKES' "
             + "WHEN n.type IN (edu.bingol.backend.notification.NotificationType.POST_COMMENT, "
             + "edu.bingol.backend.notification.NotificationType.COMMENT_REPLY) "

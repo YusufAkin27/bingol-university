@@ -16,7 +16,7 @@ public class CommentCounters {
     /** Gonderideki gorunur yorum + yanit sayisi: silinmemis, gizlenmemis ve (yanitsa) ust yorumu da gorunur olanlar. */
     static final String VISIBLE_COUNT = "(SELECT COUNT(*) FROM post_comment c WHERE c.post_id = p.id AND c.deleted_at IS NULL "
             + "AND c.hidden_at IS NULL AND (c.parent_id IS NULL OR EXISTS (SELECT 1 FROM post_comment pc WHERE pc.id = c.parent_id "
-            + "AND pc.deleted_at IS NULL AND pc.hidden_at IS NULL)))";
+            + "AND pc.hidden_at IS NULL)))";
 
     static final String VISIBLE_REPLIES = "(SELECT COUNT(*) FROM post_comment r WHERE r.parent_id = c.id "
             + "AND r.deleted_at IS NULL AND r.hidden_at IS NULL)";

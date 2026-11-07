@@ -95,14 +95,17 @@ public class PostCommentService {
         String text = normalize(req.text());
         checkText(text);
         guard.assertClean(ContentGuard.Entity.COMMENT, "text", uid, text);
-        PostComment target = null;
         PostComment root = null;
         if (req.parentId() != null) {
-            target = visibleComment(req.parentId(), uid);
-            if (!target.getPostId().equals(postId)) {
-                throw notFound();
+            // parentId yalniz ayni gonderideki gorunur UST DUZEY yorum olabilir (yanita yanit yok)
+            try {
+                root = visibleComment(req.parentId(), uid);
+            } catch (ApiException e) {
+                throw parentInvalid();
             }
-            root = target.isReply() ? visibleComment(target.getParentId(), uid) : target;
+            if (!root.getPostId().equals(postId) || root.isReply()) {
+                throw parentInvalid();
+            }
         }
         PostComment c = new PostComment();
         c.setPostId(postId);
@@ -110,7 +113,7 @@ public class PostCommentService {
         c.setBody(text);
         if (root != null) {
             c.setParentId(root.getId());
-            c.setReplyToId(target.getId());
+            c.setReplyToId(root.getId());
         }
         c = comments.saveAndFlush(c);
         counters.addToPost(postId, 1);
@@ -118,12 +121,11 @@ public class PostCommentService {
             counters.addReplies(root.getId(), 1);
         }
         final PostComment saved = c;
-        final PostComment repliedTo = target;
         // Bildirim COMMIT sonrasi degil ayni islemde en iyi cabayla gider; hata islemi bozmaz (notifier yutar)
-        if (repliedTo == null) {
+        if (root == null) {
             notifier.onComment(uid, postId, post.getAuthorId(), saved.getId());
         } else {
-            notifier.onReply(uid, postId, post.getAuthorId(), saved.getId(), repliedTo.getAuthorId());
+            notifier.onReply(uid, postId, post.getAuthorId(), saved.getId(), root.getAuthorId());
         }
         return assemble(uid, post, List.of(saved)).get(0);
     }
@@ -142,21 +144,15 @@ public class PostCommentService {
             throw new ApiException(HttpStatus.FORBIDDEN, "COMMENT_FORBIDDEN", "Bu işlem için yetkiniz yok.");
         }
         boolean wasVisible = c.getHiddenAt() == null;
-        int removed = wasVisible ? 1 : 0;
-        if (!c.isReply()) {
-            // Gorunur yanitlar da gider; sayaci dusurmek icin once sayilir
-            Integer visibleReplies = jdbc.queryForObject("SELECT COUNT(*) FROM post_comment WHERE parent_id = ? "
-                    + "AND deleted_at IS NULL AND hidden_at IS NULL", Integer.class, commentId);
-            removed = wasVisible && visibleReplies != null ? removed + visibleReplies : 0;
-            jdbc.update("UPDATE post_comment SET deleted_at = CURRENT_TIMESTAMP, deleted_by = ?, body = '' "
-                    + "WHERE parent_id = ? AND deleted_at IS NULL", actorId, commentId);
-        } else if (wasVisible) {
+        // Ust duzey yorum silinince yanitlari KALIR: yanit varsa listede tombstone (deleted:true) olarak durur,
+        // yoksa listeden kalkar (TOP_LEVEL replyCount > 0 kosulu). Gonderi sayaci yalniz bu yorumu dusurur.
+        if (c.isReply() && wasVisible) {
             counters.addReplies(c.getParentId(), -1);
         }
         jdbc.update("UPDATE post_comment SET deleted_at = CURRENT_TIMESTAMP, deleted_by = ?, body = '' "
                 + "WHERE id = ? AND deleted_at IS NULL", actorId, commentId);
-        if (removed > 0) {
-            counters.addToPost(c.getPostId(), -removed);
+        if (wasVisible) {
+            counters.addToPost(c.getPostId(), -1);
         }
     }
 
@@ -191,7 +187,11 @@ public class PostCommentService {
     /** Bir yorumun yanitlari (eskiden yeniye). */
     @Transactional(readOnly = true)
     public CommentPage replies(Long viewer, Long commentId, String cursor, int size) {
-        PostComment parent = visibleComment(commentId, viewer);
+        PostComment parent = comments.findById(commentId).filter(x -> x.getDeletedAt() != null && x.getReplyCount() > 0
+                && x.getHiddenAt() == null && !x.isReply()).orElse(null); // tombstone: yanitlari hala okunur
+        if (parent == null) {
+            parent = visibleComment(commentId, viewer);
+        }
         if (parent.isReply()) {
             throw notFound(); // yanitlarin yaniti yoktur (yassilanir)
         }
@@ -218,10 +218,11 @@ public class PostCommentService {
 
     /** Idempotent begeni; yorum gorunur degilse 404. */
     public LikeState like(Long userId, Long commentId) {
-        visibleComment(commentId, userId);
+        PostComment target = visibleComment(commentId, userId);
+        boolean[] added = {false};
         for (int attempt = 0; attempt < 3; attempt++) {
             try {
-                tx.executeWithoutResult(st -> insertLike(userId, commentId));
+                tx.executeWithoutResult(st -> added[0] = insertLike(userId, commentId));
                 break;
             } catch (DataIntegrityViolationException | ConcurrencyFailureException e) {
                 if (likeExists(userId, commentId)) {
@@ -231,6 +232,9 @@ public class PostCommentService {
                     throw e;
                 }
             }
+        }
+        if (added[0]) {
+            notifier.onLike(userId, target.getPostId(), commentId, target.getAuthorId());
         }
         return new LikeState(true, counters.likeCount(commentId));
     }
@@ -245,13 +249,14 @@ public class PostCommentService {
         return new LikeState(false, counters.likeCount(commentId));
     }
 
-    private void insertLike(Long userId, Long commentId) {
+    private boolean insertLike(Long userId, Long commentId) {
         int n = jdbc.update("INSERT INTO post_comment_like (comment_id, user_id, created_at) SELECT ?, ?, CURRENT_TIMESTAMP "
                 + "WHERE NOT EXISTS (SELECT 1 FROM post_comment_like WHERE comment_id = ? AND user_id = ?)",
                 commentId, userId, commentId, userId);
         if (n > 0) {
             counters.addLikes(commentId, 1);
         }
+        return n > 0;
     }
 
     private boolean likeExists(Long userId, Long commentId) {
@@ -284,7 +289,8 @@ public class PostCommentService {
             }
         }
         if (c.isReply()) {
-            comments.findById(c.getParentId()).filter(PostComment::isVisible).orElseThrow(PostCommentService::notFound);
+            // ust yorum silinmis olabilir (tombstone); gizliyse yanit da gorunmez
+            comments.findById(c.getParentId()).filter(x -> x.getHiddenAt() == null).orElseThrow(PostCommentService::notFound);
         }
         return c;
     }
@@ -295,39 +301,35 @@ public class PostCommentService {
             return List.of();
         }
         List<Long> ids = rows.stream().map(PostComment::getId).toList();
-        Set<Long> replyToIds = new HashSet<>();
-        for (PostComment c : rows) {
-            if (c.getReplyToId() != null && !c.getReplyToId().equals(c.getParentId())) {
-                replyToIds.add(c.getReplyToId());
-            }
-        }
-        Map<Long, Long> replyToAuthor = new HashMap<>();
-        if (!replyToIds.isEmpty()) {
-            comments.findAllById(replyToIds).forEach(r -> replyToAuthor.put(r.getId(), r.getAuthorId()));
-        }
-        Set<Long> authorIds = rows.stream().map(PostComment::getAuthorId).collect(Collectors.toCollection(HashSet::new));
-        authorIds.addAll(replyToAuthor.values());
+        // Silinmis (tombstone) satirlarin yazari yuklenmez/gosterilmez
+        Set<Long> authorIds = rows.stream().filter(PostComment::isVisible).map(PostComment::getAuthorId)
+                .collect(Collectors.toCollection(HashSet::new));
         List<User> authors = users.findAllById(authorIds);
         Map<Long, PublicProfile> byId = profiles.mapAll(viewer, authors).stream()
                 .collect(Collectors.toMap(PublicProfile::id, Function.identity(), (a, b) -> a));
+        Map<Long, String> usernames = new HashMap<>();
+        for (User u : authors) {
+            usernames.put(u.getId(), u.getUsername());
+        }
         Set<Long> liked = new HashSet<>(comments.likedAmong(viewer, ids));
         boolean admin = CurrentUser.hasAdminPermission(PermissionMatrix.CONTENT_HIDE);
         boolean postOwner = post.getAuthorId().equals(viewer);
         List<CommentView> out = new ArrayList<>(rows.size());
         for (PostComment c : rows) {
-            PublicProfile a = byId.get(c.getAuthorId());
-            CommentAuthor author = a == null ? new CommentAuthor(c.getAuthorId(), "", null, null)
-                    : new CommentAuthor(a.id(), a.displayName(), a.avatarUrl(), a.department());
-            ReplyTo replyTo = null;
-            Long rtAuthor = replyToAuthor.get(c.getReplyToId());
-            if (rtAuthor != null) {
-                PublicProfile rp = byId.get(rtAuthor);
-                replyTo = new ReplyTo(c.getReplyToId(), rtAuthor, rp == null ? "" : rp.displayName());
+            if (!c.isVisible()) {
+                // tombstone: govde/yazar yok, etkilesim yok
+                out.add(new CommentView(c.getId(), c.getPostId(), c.getParentId(), null, null, 0, false,
+                        c.getReplyCount(), c.getCreatedAt(), false, false, false, null, null, true));
+                continue;
             }
+            PublicProfile a = byId.get(c.getAuthorId());
+            CommentAuthor author = a == null ? new CommentAuthor(c.getAuthorId(), "", null, null, c.getAuthorId(), null)
+                    : new CommentAuthor(a.id(), a.displayName(), a.avatarUrl(), a.department(), a.id(),
+                            usernames.get(a.id()));
             boolean mine = c.getAuthorId().equals(viewer);
             out.add(new CommentView(c.getId(), c.getPostId(), c.getParentId(), author, c.getBody(), c.getLikeCount(),
                     liked.contains(c.getId()), c.getReplyCount(), c.getCreatedAt(), mine,
-                    c.getAuthorId().equals(post.getAuthorId()), mine || postOwner || admin, replyTo));
+                    c.getAuthorId().equals(post.getAuthorId()), mine || postOwner || admin, null, c.getBody(), false));
         }
         return out;
     }
@@ -403,6 +405,11 @@ public class PostCommentService {
         } catch (NumberFormatException e) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "POST_CURSOR_INVALID", "Geçersiz sayfa imleci.");
         }
+    }
+
+    private static ApiException parentInvalid() {
+        return new ApiException(HttpStatus.BAD_REQUEST, "COMMENT_PARENT_INVALID",
+                "Yanıtlanacak yorum geçersiz.");
     }
 
     private static ApiException notFound() {

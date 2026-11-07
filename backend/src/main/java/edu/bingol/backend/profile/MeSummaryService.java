@@ -29,7 +29,7 @@ public class MeSummaryService {
      * basvurusu); geri kalan MESSAGE disindaki her sey Bildirimler (zil). Test ikisinin uyumunu denetler.
      */
     static final String SOCIAL_COUNT_SQL = "SELECT COUNT(*) FROM notification WHERE user_id = ? AND read_at IS NULL "
-            + "AND (type IN ('POST_LIKE','POST_COMMENT','COMMENT_REPLY','POST_MENTION','USER_FOLLOW',"
+            + "AND (type IN ('POST_LIKE','POST_COMMENT','COMMENT_REPLY','COMMENT_LIKE','POST_MENTION','USER_FOLLOW',"
             + "'FOLLOW_REQUEST','FOLLOW_ACCEPTED','FORUM') OR (type = 'COMMUNITY' AND subtype = 'COMMUNITY_JOIN'))";
 
     private final JdbcTemplate jdbc;

@@ -113,22 +113,16 @@ class PostCommentServiceTest {
     }
 
     @Test
-    void replyToReplyIsFlattenedToTopLevelParent() {
+    void replyToReplyIsRejected() {
         User author = user("yazar");
         User a = user("ali");
         User b = user("veli");
         Post p = post(author);
         CommentView c1 = comment(a, p, "ilk");
         CommentView r1 = reply(b, p, c1, "yanit");
-        CommentView r2 = reply(a, p, r1, "yanita yanit");
-
-        assertEquals(c1.id(), r2.parentId(), "ikinci seviye yoktur: ust yoruma yassilanir");
-        assertNotNull(r2.replyTo());
-        assertEquals(r1.id(), r2.replyTo().commentId());
-        assertEquals(b.getId(), r2.replyTo().authorId());
-        assertEquals("veli", r2.replyTo().displayName());
-        assertEquals(2, replyCount(c1));
-        assertEquals(3, postCount(p));
+        assertEquals("COMMENT_PARENT_INVALID", code(() -> reply(a, p, r1, "yanita yanit")), "yanita yanit yok");
+        assertEquals(2, postCount(p));
+        assertEquals(1, replyCount(c1));
     }
 
     @Test
@@ -138,8 +132,8 @@ class PostCommentServiceTest {
         Post p = post(author);
         assertEquals("COMMENT_EMPTY", code(() -> comment(a, p, "   \n ")));
         assertEquals("COMMENT_EMPTY", code(() -> comment(a, p, null)));
-        assertEquals("COMMENT_TOO_LONG", code(() -> comment(a, p, "x".repeat(301))));
-        assertEquals(300, comment(a, p, "ç".repeat(300)).text().length());
+        assertEquals("COMMENT_TOO_LONG", code(() -> comment(a, p, "x".repeat(501))));
+        assertEquals(500, comment(a, p, "ç".repeat(500)).text().length());
         assertEquals(1, postCount(p));
     }
 
@@ -171,9 +165,9 @@ class PostCommentServiceTest {
         CommentView c = comment(a, p, "ilk");
 
         // baska gonderiye ait yoruma yanit
-        assertEquals("COMMENT_NOT_FOUND", code(() -> service.create(a.getId(), other.getId(), new CreateCommentRequest("x", c.id()))));
+        assertEquals("COMMENT_PARENT_INVALID", code(() -> service.create(a.getId(), other.getId(), new CreateCommentRequest("x", c.id()))));
         // yok yorum
-        assertEquals("COMMENT_NOT_FOUND", code(() -> service.create(a.getId(), p.getId(), new CreateCommentRequest("x", 999_999L))));
+        assertEquals("COMMENT_PARENT_INVALID", code(() -> service.create(a.getId(), p.getId(), new CreateCommentRequest("x", 999_999L))));
         // gizlenen gonderi
         p.setHiddenAt(java.time.Instant.now());
         posts.save(p);
@@ -315,7 +309,7 @@ class PostCommentServiceTest {
     }
 
     @Test
-    void deletingTopLevelRemovesItsRepliesAndAdjustsCounters() {
+    void deletingTopLevelWithRepliesLeavesTombstone() {
         User author = user("yazar");
         User a = user("ali");
         User b = user("veli");
@@ -323,19 +317,74 @@ class PostCommentServiceTest {
         CommentView c1 = comment(a, p, "ust");
         CommentView keep = comment(a, p, "kalan");
         CommentView r1 = reply(b, p, c1, "y1");
-        reply(b, p, c1, "y2");
+        CommentView r2 = reply(b, p, c1, "y2");
         assertEquals(4, postCount(p));
 
-        // tek yanit silme: sayaclar duser
         service.delete(b.getId(), r1.id(), false);
         assertEquals(3, postCount(p));
         assertEquals(1, replyCount(c1));
 
-        // ust yorum silme: kalan yanit da gider
+        // yanitli ust yorum silinince tombstone kalir, yanit kalir
         service.delete(a.getId(), c1.id(), false);
+        assertEquals(2, postCount(p));
+        CommentPage page = service.list(b.getId(), p.getId(), "new", null, 10);
+        assertEquals(List.of(keep.id(), c1.id()), page.items().stream().map(CommentView::id).toList());
+        CommentView tomb = page.items().get(1);
+        assertTrue(tomb.deleted());
+        assertNull(tomb.author());
+        assertNull(tomb.body());
+        assertNull(tomb.text());
+        assertFalse(tomb.mine());
+        assertFalse(tomb.canDelete());
+        assertEquals(1, tomb.replyCount());
+        assertEquals(List.of(r2.id()), service.replies(b.getId(), c1.id(), null, 10).items().stream().map(CommentView::id).toList());
+        assertFalse(service.replies(b.getId(), c1.id(), null, 10).items().get(0).deleted());
+        assertEquals("COMMENT_PARENT_INVALID", code(() -> reply(b, p, c1, "silinene yanit")));
+        // yanit begenilebilir
+        assertEquals(1, service.like(a.getId(), r2.id()).likeCount());
+
+        // son yanit da silinince tombstone listeden kalkar
+        service.delete(b.getId(), r2.id(), false);
         assertEquals(1, postCount(p));
         assertEquals(List.of(keep.id()), service.list(b.getId(), p.getId(), "new", null, 10).items().stream().map(CommentView::id).toList());
-        assertEquals("COMMENT_NOT_FOUND", code(() -> service.replies(b.getId(), c1.id(), null, 10)));
+    }
+
+    @Test
+    void viewCarriesContractFieldsAndJsonAliasBody() throws Exception {
+        User author = user("yazar");
+        User a = user("ali");
+        a.setUsername("ali" + System.nanoTime() % 100000);
+        users.save(a);
+        Post p = post(author);
+        CreateCommentRequest req = new com.fasterxml.jackson.databind.ObjectMapper()
+                .readValue("{\"body\":\"merhaba\",\"parentId\":null}", CreateCommentRequest.class);
+        CommentView c = service.create(a.getId(), p.getId(), req);
+        assertEquals("merhaba", c.body());
+        assertEquals("merhaba", c.text());
+        assertFalse(c.deleted());
+        assertEquals(a.getId(), c.author().userId());
+        assertEquals(a.getUsername(), c.author().username());
+        assertEquals(1, posts.findById(p.getId()).orElseThrow().getCommentCount());
+    }
+
+    @Test
+    void likeNotifiesOnceAndNeverSelf() {
+        User author = user("yazar");
+        User a = user("ali");
+        User b = user("veli");
+        Post p = post(author);
+        CommentView c = comment(a, p, "begen");
+        String sql = "SELECT COUNT(*) FROM notification WHERE user_id = ? AND type = 'COMMENT_LIKE'";
+        service.like(a.getId(), c.id()); // kendi yorumu
+        assertEquals(0, jdbc.queryForObject(sql, Integer.class, a.getId()));
+        service.like(b.getId(), c.id());
+        service.like(b.getId(), c.id()); // cift PUT
+        assertEquals(1, jdbc.queryForObject(sql, Integer.class, a.getId()));
+        service.unlike(b.getId(), c.id());
+        service.like(b.getId(), c.id()); // geri alip tekrar: yeni bildirim yok
+        assertEquals(1, jdbc.queryForObject(sql, Integer.class, a.getId()));
+        service.like(author.getId(), c.id());
+        assertEquals(2, jdbc.queryForObject(sql, Integer.class, a.getId()));
     }
 
     // ---------------------------------------------------------------- moderasyon (rapor + yonetici)
