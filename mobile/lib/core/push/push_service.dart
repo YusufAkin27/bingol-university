@@ -28,7 +28,7 @@ import 'push_privacy.dart';
 import 'push_registrar.dart';
 import 'push_router.dart';
 
-const _appVersion = String.fromEnvironment('APP_VERSION', defaultValue: '2.3.0');
+const _appVersion = String.fromEnvironment('APP_VERSION', defaultValue: '2.3.1');
 
 /// Arka plan / kapalı durum işleyicisi: top-level + entry-point olmalı (ayrı isolate'ta çalışır) ve
 /// `main()` içinde ([PushService.prepare]) oturumdan bağımsız kaydedilir.
