@@ -36,8 +36,13 @@ class HomeSurface extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(color: t.bd)),
       clipBehavior: Clip.antiAlias,
-      child: InkWell(
-          onTap: onTap, child: Padding(padding: padding, child: child)),
+      child: onTap == null
+          ? Padding(padding: padding, child: child)
+          : Semantics(
+              button: true,
+              child: InkWell(
+                  onTap: onTap, child: Padding(padding: padding, child: child)),
+            ),
     );
   }
 }
@@ -916,7 +921,9 @@ class HomeAnnouncementList extends StatelessWidget {
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         for (var i = 0; i < items.length; i++) ...[
           if (i > 0) const HomeHairline(),
-          InkWell(
+          Semantics(
+            button: true,
+            child: InkWell(
             onTap: items[i].onTap,
             child: ConstrainedBox(
               constraints: const BoxConstraints(minHeight: BuSize.touch),
@@ -943,7 +950,7 @@ class HomeAnnouncementList extends StatelessWidget {
                     ]),
               ),
             ),
-          ),
+          )),
         ],
       ]),
     );

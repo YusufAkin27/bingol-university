@@ -210,9 +210,9 @@ class _Tile extends StatelessWidget {
             ColoredBox(color: t.sf2),
             if (cover != null) BuImage(cover, headers: postAuthHeaders(session), maxDecodeWidth: 400),
             if (post.isVideo)
-              Positioned(
+              PositionedDirectional(
                 top: 8,
-                right: 8,
+                end: 8,
                 child: Icon(BuIcons.playFilled, key: const ValueKey('liked-reel-badge'), size: 18, color: t.onMedia),
               ),
             if (post.isMulti)

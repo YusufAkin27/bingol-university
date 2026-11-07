@@ -257,7 +257,7 @@ class _LoginPageState extends State<LoginPage> {
                                               fontWeight: FontWeight.w400,
                                               letterSpacing: -.5)),
                                       const SizedBox(height: 3),
-                                      Text('Bingöl Üniversitesi',
+                                      Text(l.oaUniversityName,
                                           style: tx.bodySmall!
                                               .copyWith(color: t.mut)),
                                     ],
