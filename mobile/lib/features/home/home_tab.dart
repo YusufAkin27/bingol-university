@@ -24,6 +24,7 @@ import '../news/news_tile.dart'
     show newsLocalDate, newsMonthName, newsTypeLabel, newsWeekdayName;
 import '../notifications/notifications_page.dart';
 import '../polls/poll_routes.dart';
+import '../profile/my_clubs_page.dart';
 import '../profile/saved_news_page.dart';
 import '../search/search_page.dart';
 import '../shell/app_shell.dart' show AppTab;
@@ -898,6 +899,12 @@ class _HomeTabState extends State<HomeTab> {
         label: l.navClubs,
         icon: BuIcons.users,
         onTap: () => widget.onOpenTab(AppTab.clubs)
+      ),
+      // Kişisel merkez: üye olduğum / yönettiğim kulüpler, etkinliklerim, başvurularım.
+      (
+        label: l.profileMyClubs,
+        icon: BuIcons.userCheck,
+        onTap: () => _push(MyClubsPage(session: _s), 'my_clubs')
       ),
     ]);
   }

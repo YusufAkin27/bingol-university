@@ -115,6 +115,12 @@ class _ProfileMenuPageState extends State<ProfileMenuPage> {
                     onTap: () => _go(LikedPostsPage(session: s), 'liked_posts'),
                   ),
                   ProfilRow(
+                    key: const ValueKey('menu-club-hub'),
+                    icon: BuIcons.clipboardList,
+                    label: l.profileClubHub,
+                    onTap: () => _go(MyClubsPage(session: s), 'my_clubs'),
+                  ),
+                  ProfilRow(
                     key: const ValueKey('menu-my-clubs'),
                     icon: BuIcons.users,
                     label: l.profileMyClubs,

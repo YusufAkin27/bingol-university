@@ -7221,7 +7221,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profilyardRoleMember => 'Member';
 
   @override
-  String get profilyardClubsEmptyTitle => 'You have no clubs yet';
+  String get profilyardClubsEmptyTitle => 'You have not joined a club yet.';
 
   @override
   String get profilyardClubsEmptyBody => 'Discover and join clubs, or start your own.';
@@ -7256,7 +7256,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get profilyardEventsEmptyTitle => 'You have no events yet';
+  String get profilyardEventsEmptyTitle => 'You have no events to attend yet.';
 
   @override
   String get profilyardEventsEmptyBody => 'Browse events or create your own.';
@@ -12776,4 +12776,70 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get liveChannelName => 'Live updates';
+
+  @override
+  String get hubSumClubs => 'Clubs';
+
+  @override
+  String get hubSumEvents => 'Upcoming events';
+
+  @override
+  String get hubSumPending => 'Pending requests';
+
+  @override
+  String get hubSumManaged => 'Managed';
+
+  @override
+  String get hubPanel => 'Management panel';
+
+  @override
+  String get hubViewEvents => 'View events';
+
+  @override
+  String get hubUpcomingHead => 'My upcoming events';
+
+  @override
+  String get hubManageTitle => 'Club management';
+
+  @override
+  String get hubStatMembers => 'Total members';
+
+  @override
+  String get hubActEvents => 'Manage events';
+
+  @override
+  String get hubActEventsSub => 'Edit, manage attendees and check-in';
+
+  @override
+  String get hubActAnnounce => 'Post an announcement';
+
+  @override
+  String get hubActPosts => 'Manage club posts';
+
+  @override
+  String get hubActRoles => 'Manage admin permissions';
+
+  @override
+  String get hubSwitchClub => 'Switch club';
+
+  @override
+  String get hubNoAccess => 'You have no management access in this club.';
+
+  @override
+  String get hubSubPlanned => 'Going';
+
+  @override
+  String get hubSubRequests => 'My requests';
+
+  @override
+  String get hubNoRequests => 'You have no pending requests.';
+
+  @override
+  String get hubNoPast => 'You have no past events.';
+
+  @override
+  String get profileClubHub => 'Clubs and events';
+
+  @override
+  String get hubOpenManage => 'Manage my club';
 }

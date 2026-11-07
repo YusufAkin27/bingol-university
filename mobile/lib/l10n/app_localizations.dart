@@ -13665,7 +13665,7 @@ abstract class AppLocalizations {
   /// No description provided for @profilyardClubsEmptyTitle.
   ///
   /// In tr, this message translates to:
-  /// **'Henüz bir kulübün yok'**
+  /// **'Henüz bir kulübe katılmadın.'**
   String get profilyardClubsEmptyTitle;
 
   /// No description provided for @profilyardClubsEmptyBody.
@@ -13731,7 +13731,7 @@ abstract class AppLocalizations {
   /// No description provided for @profilyardEventsEmptyTitle.
   ///
   /// In tr, this message translates to:
-  /// **'Henüz etkinliğin yok'**
+  /// **'Henüz katılacağın bir etkinlik yok.'**
   String get profilyardEventsEmptyTitle;
 
   /// No description provided for @profilyardEventsEmptyBody.
@@ -23873,6 +23873,138 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Canlı güncellemeler'**
   String get liveChannelName;
+
+  /// No description provided for @hubSumClubs.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp'**
+  String get hubSumClubs;
+
+  /// No description provided for @hubSumEvents.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yaklaşan etkinlik'**
+  String get hubSumEvents;
+
+  /// No description provided for @hubSumPending.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bekleyen başvuru'**
+  String get hubSumPending;
+
+  /// No description provided for @hubSumManaged.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yönettiğim'**
+  String get hubSumManaged;
+
+  /// No description provided for @hubPanel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yönetim Paneli'**
+  String get hubPanel;
+
+  /// No description provided for @hubViewEvents.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinliklerini gör'**
+  String get hubViewEvents;
+
+  /// No description provided for @hubUpcomingHead.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yaklaşan etkinliklerim'**
+  String get hubUpcomingHead;
+
+  /// No description provided for @hubManageTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp yönetimi'**
+  String get hubManageTitle;
+
+  /// No description provided for @hubStatMembers.
+  ///
+  /// In tr, this message translates to:
+  /// **'Toplam üye'**
+  String get hubStatMembers;
+
+  /// No description provided for @hubActEvents.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlikleri yönet'**
+  String get hubActEvents;
+
+  /// No description provided for @hubActEventsSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Düzenle, katılımcıları ve yoklamayı yönet'**
+  String get hubActEventsSub;
+
+  /// No description provided for @hubActAnnounce.
+  ///
+  /// In tr, this message translates to:
+  /// **'Duyuru oluştur'**
+  String get hubActAnnounce;
+
+  /// No description provided for @hubActPosts.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp gönderilerini yönet'**
+  String get hubActPosts;
+
+  /// No description provided for @hubActRoles.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yönetici yetkilerini yönet'**
+  String get hubActRoles;
+
+  /// No description provided for @hubSwitchClub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp değiştir'**
+  String get hubSwitchClub;
+
+  /// No description provided for @hubNoAccess.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu kulüpte yönetim yetkin yok.'**
+  String get hubNoAccess;
+
+  /// No description provided for @hubSubPlanned.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılacaklarım'**
+  String get hubSubPlanned;
+
+  /// No description provided for @hubSubRequests.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başvurularım'**
+  String get hubSubRequests;
+
+  /// No description provided for @hubNoRequests.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bekleyen başvurun yok.'**
+  String get hubNoRequests;
+
+  /// No description provided for @hubNoPast.
+  ///
+  /// In tr, this message translates to:
+  /// **'Geçmiş etkinliğin yok.'**
+  String get hubNoPast;
+
+  /// No description provided for @profileClubHub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp ve Etkinliklerim'**
+  String get profileClubHub;
+
+  /// No description provided for @hubOpenManage.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulübümü yönet'**
+  String get hubOpenManage;
 }
 
 class _AppLocalizationsDelegate

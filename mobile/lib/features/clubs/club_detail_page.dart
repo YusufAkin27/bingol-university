@@ -26,10 +26,13 @@ import 'clubs_widgets.dart' show ClubOutlineButton;
 
 /// Kulüp detayı: kapak, üyelik, sohbet, gönderiler / etkinlikler / üyeler / anketler.
 class ClubDetailPage extends StatefulWidget {
-  const ClubDetailPage({super.key, required this.session, required this.communityId, this.imageService});
+  const ClubDetailPage({super.key, required this.session, required this.communityId, this.imageService, this.initialTab});
 
   final Session session;
   final int communityId;
+
+  /// Açılışta seçili sekme: 'posts' | 'events' | 'members' (yönetim merkezinden kısayol); null = Hakkında.
+  final String? initialTab;
 
   /// Testlerde galeri seçicisini taklit etmek için.
   @visibleForTesting
@@ -92,6 +95,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   void initState() {
     super.initState();
     _scroll.addListener(_onScroll);
+    _tab = switch (widget.initialTab) { 'posts' => _tabPosts, 'events' => _tabEvents, 'members' => _tabMembers, _ => _tabAbout };
     _load();
   }
 

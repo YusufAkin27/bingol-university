@@ -85,7 +85,7 @@ final kPageCases = <PageCase>[
     ])),
     empty: (b) => b.on('/me/communities', _page([])),
     marker: 'Yazılım Kulübü',
-    emptyMarker: 'Henüz bir kulübün yok',
+    emptyMarker: 'Henüz bir kulübe katılmadın.',
     failKeys: ['/me/communities'],
     checkLoading: false, // iskelet (K7)
   ),
@@ -104,7 +104,7 @@ final kPageCases = <PageCase>[
     ])),
     empty: (b) => b.on('/me/events', _page([])),
     marker: 'Yaklaşan Etkinlik',
-    emptyMarker: 'Henüz etkinliğin yok',
+    emptyMarker: 'Henüz katılacağın bir etkinlik yok.',
     failKeys: ['/me/events'],
     checkLoading: false, // iskelet kartlar gosterilir
   ),

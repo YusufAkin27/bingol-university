@@ -13,9 +13,15 @@ import '../events/events_page.dart';
 /// Etkinliklerim: Katıldıklarım (yaklaşan + geçmiş) / Oluşturduklarım (GET /me/events?mode=...).
 /// Katılımdan ayrılma etkinlik ayrıntı sayfasındadır.
 class MyEventsPage extends StatefulWidget {
-  const MyEventsPage({super.key, required this.session});
+  const MyEventsPage({super.key, required this.session, this.initialTab = 0, this.initialSub = 0});
 
   final Session session;
+
+  /// Kısayol / bildirim: 0 Katıldıklarım, 1 Oluşturduklarım.
+  final int initialTab;
+
+  /// Katıldıklarım alt sekmesi: 0 Yaklaşan, 1 Katılacaklarım, 2 Geçmiş, 3 Başvurularım.
+  final int initialSub;
 
   @override
   State<MyEventsPage> createState() => _MyEventsPageState();
@@ -33,12 +39,13 @@ class _Feed {
 }
 
 class _MyEventsPageState extends State<MyEventsPage> {
-  int _tab = 0;
-  int _sub = 0; // Katıldıklarım: 0 Yaklaşan, 1 Geçmiş
+  late int _tab = widget.initialTab.clamp(0, 1);
+  late int _sub = widget.initialSub.clamp(0, 3); // Katıldıklarım: 0 Yaklaşan, 1 Katılacaklarım, 2 Geçmiş, 3 Başvurularım
   final _scroll = ScrollController();
-  final Map<String, _Feed> _feeds = {'up': _Feed(), 'past': _Feed(), 'created': _Feed()};
+  final Map<String, _Feed> _feeds = {for (final k in const ['up', 'going', 'past', 'req', 'created']) k: _Feed()};
 
-  List<String> get _keys => _tab == 0 ? const ['up', 'past'] : const ['created'];
+  /// Görünen akış tembel yüklenir (alt sekme değişince ilk kez çekilir).
+  List<String> get _keys => [_activeKey];
 
   @override
   void initState() {
@@ -65,7 +72,8 @@ class _MyEventsPageState extends State<MyEventsPage> {
     final mode = switch (key) {
       'created' => 'organizing',
       'past' => 'past',
-      _ => 'attending',
+      'going' => 'going',
+      _ => 'attending', // up + req (başvurular istemcide süzülür)
     };
     return '/me/events?mode=$mode&size=20${cursor == null ? '' : '&cursor=$cursor'}';
   }
@@ -86,8 +94,10 @@ class _MyEventsPageState extends State<MyEventsPage> {
       for (final e in list)
         if (e is Map) e.cast<String, dynamic>()
     ];
+    bool requested(Map<String, dynamic> e) => e['myRsvp'] == 'REQUESTED' || e['myRsvp'] == 'PENDING';
     return switch (key) {
-      'up' => all.where((e) => !_isPast(e)).toList(),
+      'up' || 'going' => all.where((e) => !_isPast(e)).toList(),
+      'req' => all.where((e) => !_isPast(e) && requested(e)).toList(),
       'past' => all.where(_isPast).toList(),
       _ => all,
     };
@@ -125,7 +135,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
   }
 
   /// Ekranda görünen akış: Katıldıklarım > Yaklaşan / Geçmiş, ya da Oluşturduklarım.
-  String get _activeKey => _tab == 0 ? (_sub == 1 ? 'past' : 'up') : 'created';
+  String get _activeKey => _tab == 0 ? const ['up', 'going', 'past', 'req'][_sub] : 'created';
 
   /// Yalnız GÖRÜNEN akışın sonraki sayfası (önceki sürüm ilk imleci olan akışı yüklüyordu: Geçmiş sekmesi
   /// açıkken görünmeyen Yaklaşan akışı büyüyor, Geçmiş hiç sayfalanmıyordu).
@@ -185,6 +195,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
     if (i == _sub) return;
     setState(() => _sub = i);
     if (_scroll.hasClients) _scroll.jumpTo(0);
+    if (!_feeds[_activeKey]!.loaded) _load(_activeKey);
     _fillIfShort();
   }
 
@@ -263,17 +274,25 @@ class _MyEventsPageState extends State<MyEventsPage> {
               if (_tab == 0)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: EtkinlikSubChips(
-                    labels: [l.profilyardEventsUpcoming, l.profilyardEventsPast],
-                    selected: _sub,
-                    onSelected: _setSub,
+                  child: SingleChildScrollView(
+                    key: const ValueKey('my-events-subtabs'),
+                    scrollDirection: Axis.horizontal,
+                    child: EtkinlikSubChips(
+                      labels: [l.profilyardEventsUpcoming, l.hubSubPlanned, l.profilyardEventsPast, l.hubSubRequests],
+                      selected: _sub,
+                      onSelected: _setSub,
+                    ),
                   ),
                 ),
               if (f.items.isEmpty)
                 _tab == 0
                     ? EtkinlikEmptyCard(
                         icon: BuIcons.calendarX,
-                        title: l.profilyardEventsEmptyTitle,
+                        title: switch (_sub) {
+                          2 => l.hubNoPast,
+                          3 => l.hubNoRequests,
+                          _ => l.profilyardEventsEmptyTitle,
+                        },
                         body: l.profilyardEventsEmptyBody,
                         action: BuButton(label: l.eventListDiscover, icon: BuIcons.compass, onPressed: _discover),
                       )
