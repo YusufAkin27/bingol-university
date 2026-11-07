@@ -94,7 +94,7 @@ void main() {
 
     final be2 = _be()..on('/users/2/presence', {'online': false, 'lastSeenAt': '2020-01-05T10:00:00Z'});
     await _open(tester, be2);
-    expect(find.textContaining('Son görülme'), findsOneWidget);
+    expect(find.textContaining('Son görülme'), findsNothing, reason: 'son görülme hiçbir kullanıcı için gösterilmez');
     await unmount(tester);
 
     final be3 = _be()..fail('/users/2/presence', status: 404, code: 'NOT_FOUND');

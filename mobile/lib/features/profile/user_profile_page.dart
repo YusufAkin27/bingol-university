@@ -259,25 +259,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
-  static String _two(int n) => n.toString().padLeft(2, '0');
-
   String? _presenceText() {
     final p = _presence;
     if (p == null) return null;
     final l10n = context.l10n;
     if (p['online'] == true) return l10n.profileOnline;
-    final d = DateTime.tryParse((p['lastSeenAt'] as String?) ?? '')?.toLocal();
-    if (d == null) return null;
-    final now = DateTime.now();
-    final hm = '${_two(d.hour)}:${_two(d.minute)}';
-    if (d.year == now.year && d.month == now.month && d.day == now.day) {
-      return l10n.profileLastSeenToday(hm);
-    }
-    final y = now.subtract(const Duration(days: 1));
-    if (d.year == y.year && d.month == y.month && d.day == y.day) {
-      return l10n.profileLastSeenYesterday(hm);
-    }
-    return l10n.profileLastSeenDate('${_two(d.day)}.${_two(d.month)}.${d.year}', hm);
+    // "Son görülme" gösterilmez (kullanıcı kararı 2026-11-07); yalnız "Çevrimiçi".
+    return null;
   }
 
   /// "⋯" menüsü: alt sayfa (engelle / engeli kaldır, şikâyet).

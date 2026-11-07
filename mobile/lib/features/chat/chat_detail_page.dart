@@ -2031,9 +2031,6 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     return s != null && s == _myId;
   }
 
-  static String _two(int n) => n.toString().padLeft(2, '0');
-  static String _hm(DateTime d) => '${_two(d.hour)}:${_two(d.minute)}';
-
   DateTime? _time(Map<String, dynamic> m) =>
       DateTime.tryParse((m['createdAt'] as String?) ?? '')?.toLocal();
 
@@ -2086,13 +2083,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       final p = _presence;
       if (p == null) return null;
       if (p['online'] == true) return l.chatDetailOnline;
-      final seen =
-          DateTime.tryParse((p['lastSeenAt'] as String?) ?? '')?.toLocal();
-      if (seen == null) return null;
-      final diff = _dayDiff(seen);
-      if (diff == 0) return l.chatDetailLastSeenToday(_hm(seen));
-      if (diff == 1) return l.chatDetailLastSeenYesterday(_hm(seen));
-      return l.chatDetailLastSeenOn(_dateLabel(seen));
+      // "Son görülme" hiçbir kullanıcı için gösterilmez (kullanıcı kararı 2026-11-07); yalnız "Çevrimiçi".
+      return null;
     }
     final n = (_conv['memberCount'] as num?)?.toInt() ?? _members.length;
     final isRoom = _type == 'CLUB' || _type == 'EVENT';
