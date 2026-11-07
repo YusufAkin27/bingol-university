@@ -60,3 +60,28 @@ Sunucu davranisi:
   `sync_status.message` 500 karaktere kirpilir; ana site yonlendirmeleri elle izlenir (yalniz `www.bingol.edu.tr`, https, en cok 3).
 - `CacheService.invalidate`: ayni islemde ayni ad alani commit sonrasi TEK kez gecersiz kilinir (toplu kalori yazimi).
 - Yonetici destek/geri bildirim CSV'si id azalan 1000'luk sayfalarla akar (50 bin entity bellekte tutulmaz).
+
+## 2026-11-07: imecli haber listesi + birlesik Kaydedilenler
+
+### GET /api/news imecli surum (geriye uyumlu)
+- `cursor` YOKSA: eski davranis aynen (`NewsPage {items,page,totalPages,totalItems}`, `page`/`size`).
+- `cursor` VARSA (`0` = ilk sayfa): `CursorPage {items:[NewsSummary], nextCursor}`; `nextCursor=null` son sayfa. `page` yok sayilir.
+  Ornek: `GET /api/news?type=HABER&cursor=0&size=20` -> `{"items":[...],"nextCursor":18433290412345}`, sonraki istek `cursor=18433290412345`.
+- `q` YOKSA imec opaktir (tarih + id bilesik anahtari, OFFSET yok); siralama `publishedDate DESC NULLS LAST, id DESC` ile birebir.
+  `q` VARSA imec bir SONRAKI SAYFA NUMARASIDIR (ayni `size` ile devam edin; en cok sayfa 200). Arama IP basina 30/dk siniri aynen.
+- Yalniz `cursor=0` ilk sayfa sunucu onbellegine girer (`news` ad alani); diger imecler onbelleklenmez.
+- `size` 1..50. Imeci istemci yorumlamamali (yalnizca bir onceki yanittaki `nextCursor`).
+- Birim haberleri `GET /api/news/unit`: OFFSET kullanmaz (yalniz `limit`, kullanicinin bolumune gore tek akis), bu yuzden imecli surum eklenmedi.
+
+### Birlesik Kaydedilenler GET /api/bookmarks
+- `type` YOKSA eski davranis (yalniz haber, `BookmarkView`, `cursor` = kayit id'si).
+- `type` VARSA birlesik liste `CursorPage<BookmarkItem>`: `ALL|NEWS|EVENT|COMMUNITY|POLL|ACADEMIC|POST|FORUM_TOPIC|FORUM_COMMENT`
+  (bos = ALL; gecersiz -> 400 `BOOKMARK_TYPE_INVALID`). Yeni kaydedilen once; `cursor` = onceki `nextCursor` (opak, kaydedilme
+  zamani mikrosaniyesi). Gorunmez hale gelen hedefler (silinmis, iptal, gizli, engelli) listeden dusurulur: sayfa `size`'dan kisa
+  olabilir, `nextCursor` doluysa devam edin.
+- Ogeler: `{type,targetId,savedAt,title,subtitle,imageUrl,link,news}`; `link` uygulama ici yol (`/events/{id}`, `/communities/{id}`,
+  `/polls/{id}`, `/academic/events/{id}`, `/forum/topics/{id}`, `/forum/comments/{id}`, `/posts/{id}`, `/news/{id}`), `news` yalniz NEWS'te.
+- Kaydetme: `PUT|DELETE /api/bookmarks/{news|event|community|poll|academic}/{id}` (204, idempotent, 404 gorunmez hedef, 409 `BOOKMARK_LIMIT`
+  toplam 1000), `GET /api/bookmarks/{tur}/ids`. Gonderi ve forum kayitlari kendi uclarinda kalir (`/api/posts/{id}/save`, forum); veri tasinmadi.
+- Sema degismedi (`bookmark.target_type` VARCHAR(16), CHECK yok); KVKK: `bookmarks` disa aktarimi ve hesap silme tum turleri kapsar.
+- `docs/openapi.json` yeniden uretilmeli (`OpenApiExportTest`, `-Dopenapi.out=...`): bu dalda uretilmedi.

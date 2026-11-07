@@ -45,7 +45,7 @@ class NewsSearchRateLimitTest {
     void searchIsRateLimitedPerIp() {
         when(repo.searchPage(any(), anyString(), anyString(), any(Pageable.class)))
                 .thenReturn(new PageImpl<NewsSearchRow>(List.of(), PageRequest.of(0, 20), 0));
-        controller.list(null, "yemek", 0, 20, req("203.0.113.9"));
+        controller.list(null, "yemek", 0, 20, null, req("203.0.113.9"));
         ArgumentCaptor<String> key = ArgumentCaptor.forClass(String.class);
         verify(limiter).check(key.capture(), eq(30), eq(Duration.ofMinutes(1)));
         assertEquals("newsq:ip:203.0.113.9", key.getValue());
@@ -54,7 +54,7 @@ class NewsSearchRateLimitTest {
     @Test
     void rateLimitRejectionPreventsQuery() {
         doThrow(new RateLimitedException(30)).when(limiter).check(anyString(), anyInt(), any());
-        assertThrows(RateLimitedException.class, () -> controller.list(null, "yemek", 0, 20, req("203.0.113.9")));
+        assertThrows(RateLimitedException.class, () -> controller.list(null, "yemek", 0, 20, null, req("203.0.113.9")));
         verify(repo, never()).searchPage(any(), anyString(), anyString(), any(Pageable.class));
     }
 
@@ -62,7 +62,7 @@ class NewsSearchRateLimitTest {
     void plainListingDoesNotConsumeSearchBudget() {
         when(repo.findByHiddenFalse(any(Pageable.class)))
                 .thenReturn(new PageImpl<NewsRow>(List.of(), PageRequest.of(0, 20), 0));
-        NewsPage p = controller.list(null, null, 0, 20, req("203.0.113.9"));
+        NewsPage p = (NewsPage) controller.list(null, null, 0, 20, null, req("203.0.113.9"));
         assertEquals(0, p.totalItems());
         verify(limiter, never()).check(anyString(), anyInt(), any());
     }

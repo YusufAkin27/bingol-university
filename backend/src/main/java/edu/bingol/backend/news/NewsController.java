@@ -31,16 +31,21 @@ public class NewsController {
         this.clientIp = clientIp;
     }
 
-    /** GET /api/news?type=HABER|DUYURU|ETKINLIK&q=metin&page=0&size=20 (type buyuk/kucuk harf fark etmez, bos ise hepsi; gecersiz type -> 400 NEWS_TYPE_INVALID; q opsiyonel, en az 3 karakter ve IP basina 30/dk; page en cok 200) */
+    /** GET /api/news?type=HABER|DUYURU|ETKINLIK&q=metin&page=0&size=20 (type buyuk/kucuk harf fark etmez, bos ise hepsi; gecersiz type -> 400 NEWS_TYPE_INVALID; q opsiyonel, en az 3 karakter ve IP basina 30/dk; page en cok 200; cursor verilirse yanit CursorPage{items,nextCursor}, 0 = ilk sayfa) */
     @GetMapping("/news")
-    public NewsPage list(@RequestParam(required = false) String type,
-                         @RequestParam(required = false) String q,
-                         @RequestParam(defaultValue = "0") int page,
-                         @RequestParam(defaultValue = "20") int size,
-                         HttpServletRequest req) {
+    public Object list(@RequestParam(required = false) String type,
+                       @RequestParam(required = false) String q,
+                       @RequestParam(defaultValue = "0") int page,
+                       @RequestParam(defaultValue = "20") int size,
+                       @RequestParam(required = false) Long cursor,
+                       HttpServletRequest req) {
         // Kimliksiz uc: metin aramasi onbelleklenmez (kullanici girdisi), bu yuzden IP basina sinirlanir
         if (q != null && !q.isBlank()) {
             limiter.check("newsq:ip:" + clientIp.limitKey(req), 30, Duration.ofMinutes(1));
+        }
+        // cursor VERILIRSE imecli sozlesme (CursorPage; 0 = ilk sayfa), verilmezse eski NewsPage (docs/changes/news.md)
+        if (cursor != null) {
+            return news.listCursor(NewsService.parseType(type), q, cursor, size);
         }
         return news.list(NewsService.parseType(type), q, page, size);
     }

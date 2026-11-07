@@ -33,6 +33,10 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     String LATEST_ORDER = "ORDER BY p.createdAt DESC, p.id DESC";
     String POPULAR_ORDER = "ORDER BY p.score DESC, p.id DESC";
 
+    /** Kaydedilenler birlesik listesi: verilen kimliklerden bakana gorunur olanlar. */
+    @Query("SELECT p FROM Post p WHERE p.id IN :ids AND " + VISIBLE)
+    List<Post> visibleAmong(@Param("viewer") Long viewer, @Param("ids") java.util.Collection<Long> ids);
+
     // --- Akis: yeni ---
     @Query("SELECT p FROM Post p WHERE " + FEED_VISIBLE + LATEST_ORDER)
     List<Post> latestFirst(@Param("viewer") Long viewer, Pageable page);

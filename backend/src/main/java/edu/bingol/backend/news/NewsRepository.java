@@ -1,6 +1,7 @@
 package edu.bingol.backend.news;
 
 import java.util.Collection;
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,6 +31,23 @@ public interface NewsRepository extends JpaRepository<NewsItem, Long> {
     Page<NewsRow> findByHiddenFalse(Pageable pageable);
 
     Page<NewsRow> findByTypeAndHiddenFalse(ContentType type, Pageable pageable);
+
+    /**
+     * Imecli liste (B2): siralama {@code publishedDate DESC NULLS LAST, id DESC}. Tarihli imec: (d, id) ONCESI satirlar + tarihsizler.
+     * Ilk sayfa icin d = 9999-12-31, id = 0 gonderilir. Gizli kayit donmez; content okunmaz (dar projeksiyon).
+     */
+    @Query("SELECT n.id AS id, n.type AS type, n.title AS title, n.summary AS summary, n.imageUrl AS imageUrl, "
+            + "n.publishedDate AS publishedDate, n.url AS url, n.eventDate AS eventDate FROM NewsItem n "
+            + "WHERE n.hidden = FALSE AND n.type IN :types AND (n.publishedDate < :d OR (n.publishedDate = :d AND n.id < :id) "
+            + "OR n.publishedDate IS NULL) ORDER BY n.publishedDate DESC NULLS LAST, n.id DESC")
+    List<NewsRow> cursorDated(@Param("types") Collection<ContentType> types, @Param("d") LocalDate d,
+                              @Param("id") Long id, Pageable pageable);
+
+    /** Imec tarihsiz bolgeye ulastiginda: yalniz tarihsiz satirlar, id azalan. */
+    @Query("SELECT n.id AS id, n.type AS type, n.title AS title, n.summary AS summary, n.imageUrl AS imageUrl, "
+            + "n.publishedDate AS publishedDate, n.url AS url, n.eventDate AS eventDate FROM NewsItem n "
+            + "WHERE n.hidden = FALSE AND n.type IN :types AND n.publishedDate IS NULL AND n.id < :id ORDER BY n.id DESC")
+    List<NewsRow> cursorUndated(@Param("types") Collection<ContentType> types, @Param("id") Long id, Pageable pageable);
 
     /** Favoriler icin: gizlenmemis kayitlar, ayni dar projeksiyon. */
     List<NewsRow> findByIdInAndHiddenFalse(Collection<Long> ids);
