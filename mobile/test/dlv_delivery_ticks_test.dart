@@ -62,32 +62,34 @@ void main() {
   });
   setUp(() => MessageCache.instance = MessageCache.memoryOnly());
 
-  group('Gonderen: tik durumu', () {
-    testWidgets('SENT -> olay gelince ANINDA cift gri tik -> okundu -> mavi cift; geri dusmez', (tester) async {
+  group('Gonderen: son mesaj durum yazisi', () {
+    Finder line(String t) => find.descendant(of: find.byKey(const ValueKey('msg-status-line')), matching: find.text(t));
+
+    testWidgets('SENT -> iletildi hala Gonderildi -> okundu Goruldu; geri dusmez', (tester) async {
       final be = _be([_msg(5, 1, 'merhaba', status: 'SENT')]);
       final s = makeSession(be);
       final rt = ChatRealtime(s);
       await _pump(tester, ChatDetailPage(session: s, connectRealtime: false, realtime: rt, conversation: _conv));
-      expect(_tick('Gönderildi'), findsOneWidget);
+      expect(line('Gönderildi'), findsOneWidget);
 
       rt.debugEmitMessageEvent(_receipt('delivered', 5, 'DELIVERED'));
       await settle(tester, const Duration(milliseconds: 400));
-      expect(_tick('İletildi'), findsOneWidget);
-      expect(_tick('Gönderildi'), findsNothing);
+      expect(line('Gönderildi'), findsOneWidget); // iletildi de Gonderildi sayilir
+      expect(find.text('İletildi'), findsNothing);
 
       rt.debugEmitMessageEvent(_receipt('read', 5, 'READ'));
       await settle(tester, const Duration(milliseconds: 400));
-      expect(_tick('Okundu'), findsOneWidget);
+      expect(line('Görüldü'), findsOneWidget);
+      expect(line('Gönderildi'), findsNothing);
 
-      // gecikmis / yinelenen "iletildi" olayi okundu durumunu ezmez
+      // gecikmis / yinelenen "iletildi" olayi goruldu durumunu ezmez
       rt.debugEmitMessageEvent(_receipt('delivered', 5, 'DELIVERED'));
       await settle(tester, const Duration(milliseconds: 400));
-      expect(_tick('Okundu'), findsOneWidget);
-      expect(_tick('İletildi'), findsNothing);
+      expect(line('Görüldü'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('baska konusmanin olayi ve olay kimliginden YENI mesaj etkilenmez (karismaz)', (tester) async {
+    testWidgets('baska konusmanin olayi etkilemez; yalniz EN SON mesajda yazi var', (tester) async {
       final be = _be([_msg(5, 1, 'eski', status: 'DELIVERED'), _msg(9, 1, 'yeni', status: 'SENT')]);
       final s = makeSession(be);
       final rt = ChatRealtime(s);
@@ -95,15 +97,15 @@ void main() {
       rt.debugEmitMessageEvent(_receipt('read', 9, 'READ', cid: 2)); // baska sohbet
       rt.debugEmitMessageEvent(_receipt('delivered', 5, 'DELIVERED')); // yalniz <=5
       await settle(tester, const Duration(milliseconds: 400));
-      expect(_tick('Gönderildi'), findsOneWidget); // 9 hala tek tik
-      expect(_tick('İletildi'), findsOneWidget);
-      expect(_tick('Okundu'), findsNothing);
+      expect(find.byKey(const ValueKey('msg-status-line')), findsOneWidget);
+      expect(line('Gönderildi'), findsOneWidget);
+      expect(line('Görüldü'), findsNothing);
     });
 
     testWidgets('kapat-ac: sunucudaki durum acilista dogru gorunur', (tester) async {
-      final be = _be([_msg(5, 1, 'merhaba', status: 'DELIVERED')]);
+      final be = _be([_msg(5, 1, 'merhaba', status: 'READ')]);
       await _pump(tester, ChatDetailPage(session: makeSession(be), connectRealtime: false, conversation: _conv));
-      expect(_tick('İletildi'), findsOneWidget);
+      expect(line('Görüldü'), findsOneWidget);
     });
 
     testWidgets('sohbet LISTESI: son mesajin tiki receipt olayiyla aninda tek -> cift tik olur', (tester) async {

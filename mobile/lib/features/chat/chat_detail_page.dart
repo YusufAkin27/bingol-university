@@ -199,6 +199,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
 
   /// Karşı tarafın okuduğu son mesaj id'si ve "yazıyor" göstergesi (yalnız ilgili widget'ları yeniler).
   final _peerRead = ValueNotifier<int>(0);
+
+  /// `around` penceresi açıkken konuşmanın gerçek en güncel mesajı bellekte olmayabilir (durum yazısı gizlenir).
+  bool _newerGap = false;
   final _typingNow = ValueNotifier<bool>(false);
   Timer? _typingOff;
 
@@ -756,15 +759,17 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   }
 
   /// Son bilinen id'den sonrasını sayfa sayfa çeker (boşluk kapatma).
-  Future<({int added, bool changed})> _fetchAfter() async {
+  Future<({int added, bool changed, bool complete})> _fetchAfter() async {
     final newest = _newestServerId;
     if (newest == null) {
       final page = await _api.get('/conversations/$_cid/messages?size=30')
           as Map<String, dynamic>;
-      return _mergeCount(_items(page));
+      final r = _mergeCount(_items(page));
+      return (added: r.added, changed: r.changed, complete: true);
     }
     var added = 0;
     var changed = false;
+    var complete = false;
     var cursor = newest;
     for (var i = 0; i < 5; i++) {
       final page =
@@ -774,10 +779,13 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       added += r.added;
       changed = r.changed || changed;
       final next = (page['nextCursor'] as num?)?.toInt();
-      if (next == null) break;
+      if (next == null) {
+        complete = true;
+        break;
+      }
       cursor = next;
     }
-    return (added: added, changed: changed);
+    return (added: added, changed: changed, complete: complete);
   }
 
   // ---------- Gerçek zamanlı ----------
@@ -1860,10 +1868,12 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         _msgs.sort((a, b) => _key(b).compareTo(_key(a)));
         _beforeCursor = (page['nextCursor'] as num?)?.toInt();
         _olderFailed = false;
+        // Pencere en güncel mesajı içermeyebilir: tamamlanana dek durum yazısı gösterilmez.
+        _newerGap = true;
       });
       await WidgetsBinding.instance.endOfFrame;
-      unawaited(_fetchAfter().then((_) {
-        if (mounted) setState(() {});
+      unawaited(_fetchAfter().then((r) {
+        if (mounted) setState(() => _newerGap = !r.complete);
       }).catchError((_) {}));
     } catch (_) {
       // Hedef yüklenemedi: sessizce geç.
@@ -3284,8 +3294,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   /// Satır: gelen mesajlarda solda 28 px avatar sütunu (yalnız serinin son mesajında avatar görünür,
   /// baloncuğun altına hizalı); giden mesajlarda yalnız baloncuk.
   Widget _rowFor(BuTokens t, Map<String, dynamic> m, int i, int peerRead) {
-    final bubble =
-        _bubble(m, peerRead, first: _firstOfRun(i), last: _lastOfRun(i));
+    final bubble = _bubble(m, peerRead,
+        first: _firstOfRun(i), last: _lastOfRun(i), latest: i == 0);
     final mine = _isMine(m) || m['_state'] != null;
     // Birebir sohbette gelen mesajların yanında avatar YOK (Stitch v3 referansı); grup/kulüp/etkinlikte gönderen avatarı.
     if (mine || _direct) return bubble;
@@ -3320,12 +3330,31 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   }
 
   Widget _bubble(Map<String, dynamic> m, int peerRead,
-      {bool first = true, bool last = true, bool preview = false}) {
+      {bool first = true,
+      bool last = true,
+      bool preview = false,
+      bool latest = false}) {
     if (!preview) ChatDetailPage.debugBubbleBuilds++;
     final mine = _isMine(m) || m['_state'] != null;
     final id = (m['id'] as num?)?.toInt();
     final reply = m['replyTo'] is Map ? m['replyTo'] as Map : null;
     final replyId = (reply?['id'] as num?)?.toInt();
+    // Instagram Direct düzeni: durum yalnız konuşmanın en güncel mesajında ve o benimse.
+    String? statusLine;
+    if (latest &&
+        !preview &&
+        !_newerGap &&
+        mine &&
+        m['deleted'] != true &&
+        m['removed'] != true &&
+        m['type'] != 'SYSTEM') {
+      final st = m['_state'] as String?;
+      if (st == 'pending') {
+        statusLine = 'sending';
+      } else if (st == null && id != null) {
+        statusLine = (id <= peerRead || m['status'] == 'READ') ? 'seen' : 'sent';
+      }
+    }
     Widget make(bool hl) => MessageBubble(
           message: m,
           mine: mine,
@@ -3341,7 +3370,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               : _nameOf((reply['senderId'] as num?)?.toInt()),
           replyMine:
               reply != null && (reply['senderId'] as num?)?.toInt() == _myId,
-          seen: mine && id != null && id <= peerRead,
+          statusLine: statusLine,
           authHeaders: _authHeaders,
           tail: last,
           preview: preview,

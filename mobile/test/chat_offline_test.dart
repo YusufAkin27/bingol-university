@@ -75,14 +75,14 @@ void main() {
     expect(find.text('selam kuyruk'), findsOneWidget);
     expect(ob.pendingCount, 1);
     expectNoQueueNotices();
-    expect(find.byIcon(BuIcons.clock), findsOneWidget); // balonda normal gonderiliyor gostergesi
+    expect(find.text('Gönderiliyor…'), findsOneWidget);
     expect(find.text('Gönderilemedi'), findsNothing);
     expect(find.textContaining('Yeniden'), findsNothing);
 
     deliver = true;
     await ob.retry(ob.items.single.clientId);
     await settle(tester, const Duration(milliseconds: 600));
-    expect(find.byIcon(BuIcons.clock), findsNothing); // teslim: gosterge kalkti, tik oldu
+    expect(find.text('Gönderiliyor…'), findsNothing); // teslim: gosterge kalkti, tik oldu
     expectNoQueueNotices();
     expect(find.text('selam kuyruk'), findsOneWidget); // çift balon yok
     expect(ob.items, isEmpty);
@@ -108,13 +108,13 @@ void main() {
     await settle(tester, const Duration(milliseconds: 600));
     await _type(tester, 'hatali');
     expectNoQueueNotices();
-    expect(find.byIcon(BuIcons.clock), findsOneWidget);
+    expect(find.text('Gönderiliyor…'), findsOneWidget);
 
     mode = 'bad';
     await ob.retry(ob.items.single.clientId);
     await settle(tester, const Duration(milliseconds: 600));
     expect(ob.failedCount, 1);
-    expect(find.byIcon(BuIcons.clock), findsNothing);
+    expect(find.text('Gönderiliyor…'), findsNothing);
     expect(find.textContaining('Yeniden'), findsOneWidget); // YALNIZ kalici hatada Gonderilemedi + Yeniden dene
 
     mode = 'ok';
@@ -137,7 +137,7 @@ void main() {
     await settle(tester, const Duration(milliseconds: 600));
     expect(find.text('eski bekleyen'), findsOneWidget);
     expectNoQueueNotices();
-    expect(find.byIcon(BuIcons.clock), findsOneWidget);
+    expect(find.text('Gönderiliyor…'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
     ob.dispose();
   });

@@ -3900,6 +3900,24 @@ abstract class AppLocalizations {
   /// **'Okundu'**
   String get chatMiscStatusRead;
 
+  /// No description provided for @chatStatusSending.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderiliyor…'**
+  String get chatStatusSending;
+
+  /// No description provided for @chatStatusSent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderildi'**
+  String get chatStatusSent;
+
+  /// No description provided for @chatStatusSeen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görüldü'**
+  String get chatStatusSeen;
+
   /// No description provided for @chatMiscImageUnavailable.
   ///
   /// In tr, this message translates to:

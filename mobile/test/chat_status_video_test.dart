@@ -209,10 +209,14 @@ ChatDetailPage _detail(
 
 Finder _bubbleOf(String text) => find.ancestor(of: find.text(text), matching: find.byType(MessageBubble)).first;
 
-Color? _tickColor(WidgetTester tester, Finder bubble, String status) {
-  final f = find.descendant(of: bubble, matching: find.byKey(ValueKey('msg-status-$status')));
-  expect(f, findsOneWidget, reason: 'durum $status');
-  return ((tester.widget<CustomPaint>(f)).painter as MessageTickPainter).color;
+Finder _line(String t) => find.descendant(of: find.byKey(const ValueKey('msg-status-line')), matching: find.text(t));
+
+/// Hicbir balonda tik/durum ikonu olmamali.
+void _noTicks() {
+  for (final st in ['SENT', 'DELIVERED', 'READ', 'pending', 'failed']) {
+    expect(find.byKey(ValueKey('msg-status-$st')), findsNothing, reason: st);
+  }
+  expect(find.byType(MessageStatusIcon), findsNothing);
 }
 
 Widget _harness(Map<String, dynamic> m, {bool mine = true, bool rtl = false, Brightness b = Brightness.light, Size size = kPhoneSmall, bool seen = false}) {
@@ -221,7 +225,7 @@ Widget _harness(Map<String, dynamic> m, {bool mine = true, bool rtl = false, Bri
     mine: mine,
     senderName: null,
     replyName: null,
-    seen: seen,
+    statusLine: seen ? 'seen' : null,
     authHeaders: const {},
     onMenu: () {},
     onRetry: () {},
@@ -261,7 +265,7 @@ void main() {
 
   group('Tikler', () {
     for (final b in Brightness.values) {
-      testWidgets('SENT tek tik gri, DELIVERED cift tik gri, READ MAVI cift tik (${b.name})', (tester) async {
+      testWidgets('tik yok; yalniz en son mesajin altinda durum yazisi (${b.name})', (tester) async {
         final tk = b == Brightness.dark ? BuTokens.dark : BuTokens.light;
         final be = _backend([
           _msg(4, 1, 'okundu mesaj', extra: {'status': 'READ'}),
@@ -270,11 +274,12 @@ void main() {
           _msg(1, 11, 'karsi mesaj'),
         ]);
         await _pump(tester, _detail(makeSession(be)), b: b);
-        expect(_tickColor(tester, _bubbleOf('gonderildi mesaj'), 'SENT'), tk.onPr.withValues(alpha: .75));
-        expect(_tickColor(tester, _bubbleOf('iletildi mesaj'), 'DELIVERED'), tk.onPr.withValues(alpha: .75));
-        // Okundu = mavi: açık temada koyu balonda gök mavisi, koyu temadaki açık balonda koyu mavi.
-        expect(_tickColor(tester, _bubbleOf('okundu mesaj'), 'READ'), b == Brightness.dark ? tk.readDeep : tk.readSky);
-        // Karşı tarafın mesajında tik yok.
+        // Hicbir balonda tik yok; yalniz en son (okundu) mesajin altinda tek 'Görüldü' yazisi.
+        _noTicks();
+        expect(find.byKey(const ValueKey('msg-status-line')), findsOneWidget);
+        expect(_line('Görüldü'), findsOneWidget);
+        expect(find.descendant(of: _bubbleOf('okundu mesaj'), matching: find.byKey(const ValueKey('msg-status-line'))), findsOneWidget);
+        expect(find.descendant(of: _bubbleOf('gonderildi mesaj'), matching: find.byKey(const ValueKey('msg-status-line'))), findsNothing);
         expect(find.descendant(of: _bubbleOf('karsi mesaj'), matching: find.byType(Icon)), findsNothing);
         // Giden baloncuk zemini birincil ton (t.pr); gelen gri yüzey (t.sf2).
         bool hasBg(Finder bubble, Color c) => find
@@ -286,8 +291,6 @@ void main() {
             .isNotEmpty;
         expect(hasBg(_bubbleOf('okundu mesaj'), tk.prPressed), isTrue);
         expect(hasBg(_bubbleOf('karsi mesaj'), tk.sf2), isTrue);
-        // Yazılı durum metni yok.
-        expect(find.textContaining('görüldü', findRichText: true), findsNothing);
         expect(find.textContaining('Okundu', findRichText: true), findsNothing);
         expect(find.textContaining('Gönderiliyor', findRichText: true), findsNothing);
         _ok(tester);
@@ -295,7 +298,7 @@ void main() {
       });
     }
 
-    testWidgets('gonderilirken saat ikonu, sunucu cevabindan sonra tek tik', (tester) async {
+    testWidgets('gonderilirken Gonderiliyor…, sunucu cevabindan sonra Gonderildi', (tester) async {
       final be = _backend([_msg(1, 11, 'Merhaba')])
         ..on('/conversations/1/messages', _msg(9, 1, 'Selam', extra: {'status': 'SENT'}));
       await _pump(tester, _detail(makeSession(be)));
@@ -304,11 +307,13 @@ void main() {
       await tester.pump();
       await tester.tap(find.bySemanticsLabel('Gönder'));
       await tester.pump(const Duration(milliseconds: 100));
-      expect(find.byIcon(BuIcons.clock), findsOneWidget);
+      expect(find.byIcon(BuIcons.clock), findsNothing);
+      expect(_line('Gönderiliyor…'), findsOneWidget);
       _echoClientId(be, _msg(9, 1, 'Selam', extra: {'status': 'SENT'}));
       await settle(tester, const Duration(seconds: 2));
-      expect(find.byIcon(BuIcons.clock), findsNothing);
-      expect(find.byKey(const ValueKey('msg-status-SENT')), findsOneWidget);
+      expect(_line('Gönderiliyor…'), findsNothing);
+      expect(_line('Gönderildi'), findsOneWidget);
+      _noTicks();
       _ok(tester);
       await unmount(tester);
     });
@@ -321,27 +326,27 @@ void main() {
       ]));
       final rt = ChatRealtime(s);
       await _pump(tester, _detail(s, rt: rt));
-      expect(find.byKey(const ValueKey('msg-status-SENT')), findsNWidgets(2));
+      expect(find.byKey(const ValueKey('msg-status-line')), findsOneWidget);
+      expect(_line('Gönderildi'), findsOneWidget);
       Map<String, dynamic> ev(String kind, int upTo) =>
           {'type': 'receipt', 'conversationId': 1, 'kind': kind, 'upToMessageId': upTo};
 
       rt.debugEmitMessageEvent(ev('delivered', 4));
       await settle(tester, const Duration(milliseconds: 400));
-      expect(_tickColor(tester, _bubbleOf('dort'), 'DELIVERED'), BuTokens.light.onPr.withValues(alpha: .75));
-      expect(find.descendant(of: _bubbleOf('bes'), matching: find.byKey(const ValueKey('msg-status-SENT'))), findsOneWidget);
+      expect(_line('Gönderildi'), findsOneWidget); // 4 < 5: son mesaj hala Gonderildi
 
       rt.debugEmitMessageEvent(ev('read', 5));
       await settle(tester, const Duration(milliseconds: 400));
-      expect(_tickColor(tester, _bubbleOf('dort'), 'READ'), BuTokens.light.readSky);
-      expect(_tickColor(tester, _bubbleOf('bes'), 'READ'), BuTokens.light.readSky);
+      expect(_line('Görüldü'), findsOneWidget);
+      expect(find.byKey(const ValueKey('msg-status-line')), findsOneWidget); // oncekilerde tek tek gosterilmez
 
       // Geri gitmez: eski/aşağı durum ve başka sohbet yok sayılır.
       rt.debugEmitMessageEvent(ev('delivered', 5));
       rt.debugEmitMessageEvent({...ev('read', 5), 'conversationId': 2, 'status': 'SENT'});
       rt.debugEmitMessageEvent({...ev('delivered', 5), 'status': 'SENT'});
       await settle(tester, const Duration(milliseconds: 400));
-      expect(_tickColor(tester, _bubbleOf('bes'), 'READ'), BuTokens.light.readSky);
-      expect(find.byKey(const ValueKey('msg-status-SENT')), findsNothing);
+      expect(_line('Görüldü'), findsOneWidget);
+      expect(_line('Gönderildi'), findsNothing);
       _ok(tester);
       await unmount(tester);
     });
@@ -358,7 +363,7 @@ void main() {
       await settle(tester, const Duration(milliseconds: 300));
       // 20 sn'lik yoklama aynı eski (SENT) sayfayı döndürür.
       await settle(tester, const Duration(seconds: 22));
-      expect(_tickColor(tester, _bubbleOf('bes'), 'READ'), BuTokens.light.readSky);
+      expect(_line('Görüldü'), findsOneWidget);
       await unmount(tester);
     });
 
@@ -455,20 +460,16 @@ void main() {
       await tester.pumpWidget(_harness(p, size: kPhoneMedium));
       await tester.pump();
       _expectNoOverlap(tester, reason: 'pending');
-      expect(find.byIcon(BuIcons.clock), findsOneWidget);
+      expect(find.byIcon(BuIcons.clock), findsNothing);
       _ok(tester);
     });
 
-    testWidgets('durum degisince ikon gecis animasyonu biter, tek ikon kalir', (tester) async {
+    testWidgets('balonda ikon gecis animasyonu yok (AnimatedSwitcher kalmadi)', (tester) async {
       useScreen(tester, kPhoneSmall);
       await tester.pumpWidget(_harness(mine('Selam', status: 'SENT')));
       await tester.pump();
-      expect(find.byType(AnimatedSwitcher), findsOneWidget);
-      await tester.pumpWidget(_harness(mine('Selam', status: 'READ')));
-      await tester.pump(const Duration(milliseconds: 50));
-      await tester.pump(const Duration(milliseconds: 400));
-      expect(find.byKey(const ValueKey('msg-status-READ')), findsOneWidget);
-      expect(find.byKey(const ValueKey('msg-status-SENT')), findsNothing);
+      expect(find.byType(AnimatedSwitcher), findsNothing);
+      _noTicks();
     });
   });
 
@@ -619,7 +620,8 @@ void main() {
       // Yerel baloncuk: poster + dairesel ilerleme + süre hapı (yükleme sürerken).
       expect(find.byKey(const ValueKey('uploadProgress')), findsOneWidget);
       expect(find.text('0:20'), findsOneWidget);
-      expect(find.byIcon(BuIcons.clock), findsOneWidget);
+      expect(find.byIcon(BuIcons.clock), findsNothing);
+      expect(_line('Gönderiliyor…'), findsOneWidget);
       await tester.pump(const Duration(milliseconds: 600));
       _echoClientId(be, _msg(9, 1, '', extra: {'status': 'SENT', 'attachments': [_videoAtt(id: 88, durationMs: 20000)]}));
       await settle(tester, const Duration(seconds: 2));
@@ -634,7 +636,8 @@ void main() {
       expect(find.byType(PlayBadge), findsOneWidget);
       expect(find.text('0:20'), findsOneWidget);
       expect(find.byKey(const ValueKey('uploadProgress')), findsNothing);
-      expect(find.byKey(const ValueKey('msg-status-SENT')), findsOneWidget);
+      expect(_line('Gönderildi'), findsOneWidget);
+      _noTicks();
       _ok(tester);
       await unmount(tester);
     });
@@ -755,14 +758,12 @@ void main() {
       expect(find.byType(PlayBadge), findsOneWidget);
       expect(find.byIcon(BuIcons.playFilled), findsOneWidget);
       expect(find.text('0:42'), findsOneWidget);
-      // Saat/tik görselin sağ altında: okundu tiki MAVİ (gök mavisi).
-      expect(_tickColor(tester, find.byType(MessageBubble), 'READ'), BuTokens.light.readSky);
+      // Tik yok; 'Görüldü' yazısı görselin ALTINDA.
+      _noTicks();
       final pill = tester.getRect(find.byType(PlayBadge));
-      final tickRect = tester.getRect(find.byKey(const ValueKey('msg-status-READ')));
-      final dur = tester.getRect(find.text('0:42'));
-      expect(dur.left, lessThan(tickRect.left)); // süre solda, tik sağda
-      expect(dur.overlaps(tickRect), isFalse);
-      expect(pill.overlaps(tickRect), isFalse);
+      final line = tester.getRect(find.byKey(const ValueKey('msg-status-line')));
+      expect(line.top, greaterThanOrEqualTo(pill.bottom));
+      expect(_line('Görüldü'), findsOneWidget);
       _ok(tester);
       await unmount(tester);
     });

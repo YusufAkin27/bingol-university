@@ -213,7 +213,7 @@ void main() {
               mine: mine,
               senderName: null,
               replyName: null,
-              seen: seen,
+              statusLine: seen ? 'seen' : null,
               authHeaders: const {},
               onMenu: () {},
               onRetry: () {},

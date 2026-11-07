@@ -1128,6 +1128,9 @@
   "chatMiscStatusSent": "Gönderildi",
   "chatMiscStatusDelivered": "İletildi",
   "chatMiscStatusRead": "Okundu",
+  "chatStatusSending": "Gönderiliyor…",
+  "chatStatusSent": "Gönderildi",
+  "chatStatusSeen": "Görüldü",
   "chatMiscImageUnavailable": "Görsel kullanılamıyor",
   "chatMiscVideoWithDuration": "Video, {duration}",
   "@chatMiscVideoWithDuration": {

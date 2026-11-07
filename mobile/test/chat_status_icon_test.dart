@@ -48,13 +48,13 @@ Map<String, dynamic> _m(String text, {String status = 'READ', Map<String, dynami
       ...?extra,
     };
 
-Widget _bubble(Map<String, dynamic> m, {double width = 390, double scale = 1, bool rtl = false, Brightness b = Brightness.light}) {
+Widget _bubble(Map<String, dynamic> m, {double width = 390, double scale = 1, bool rtl = false, Brightness b = Brightness.light, String? statusLine}) {
   Widget w = MessageBubble(
     message: m,
     mine: true,
+    statusLine: statusLine,
     senderName: null,
     replyName: null,
-    seen: false,
     authHeaders: const {},
     onMenu: () {},
     onRetry: () {},
@@ -213,19 +213,11 @@ void main() {
               useScreen(tester, Size(width, 800));
               await tester.pumpWidget(_bubble({...e.value, 'status': st}, width: width, scale: scale));
               await tester.pump(const Duration(milliseconds: 500));
-              final tickF = find.byKey(ValueKey('msg-status-$st'));
-              expect(tickF, findsOneWidget);
-              final icon = tester.getRect(find.byType(MessageStatusIcon));
-              final tick = tester.getRect(tickF);
-              expect(tick, icon, reason: 'iki tik parcasi ayni CustomPaint kutusunda');
-              // Tik yalnizca bir tane (ayri widget'ta ikinci isaret yok).
-              expect(find.byType(MessageStatusIcon), findsOneWidget);
-              final bubble = tester.getRect(find.byType(MessageBubble));
-              expect(bubble.left <= tick.left && tick.right <= bubble.right, isTrue, reason: 'tik balon icinde');
-              // Saat metni: tikin hemen solunda, kucuk sabit bosluk (4) ve ayni satirda.
-              final time = tester.getRect(find.textContaining(RegExp(r'\d\d:\d\d'), findRichText: true).last);
-              expect(tick.left - time.right, closeTo(4, 1.0), reason: 'saat-tik boslugu');
-              expect((tick.center.dy - time.center.dy).abs(), lessThan(tick.height / 2 + 4));
+              // Balonda HICBIR durum ikonu/tik yok; yalniz saat kalir.
+              expect(find.byType(MessageStatusIcon), findsNothing);
+              expect(find.byKey(ValueKey('msg-status-$st')), findsNothing);
+              expect(find.byKey(const ValueKey('msg-status-line')), findsNothing);
+              expect(find.textContaining(RegExp(r'\d\d:\d\d'), findRichText: true), findsWidgets);
               expect(tester.takeException(), isNull);
             });
           }
@@ -234,17 +226,20 @@ void main() {
     }
 
     for (final rtl in [false, true]) {
-      testWidgets('RTL=$rtl: tik sag/sol bitis kenarinda, saat tikin yaninda', (tester) async {
+      testWidgets('RTL=$rtl: durum yazisi balonun altinda, bitis kenarina hizali', (tester) async {
         useScreen(tester, const Size(390, 800));
-        await tester.pumpWidget(_bubble(_m('Merhaba'), rtl: rtl));
+        await tester.pumpWidget(_bubble(_m('Merhaba'), rtl: rtl, statusLine: 'seen'));
         await tester.pump(const Duration(milliseconds: 500));
-        final tick = tester.getRect(find.byType(MessageStatusIcon));
-        final time = tester.getRect(find.textContaining(RegExp(r'\d\d:\d\d'), findRichText: true).last);
+        final line = tester.getRect(find.byKey(const ValueKey('msg-status-line')));
+        final text = tester.getRect(find.text('Görüldü').first);
+        expect(text.top, greaterThanOrEqualTo(tester.getRect(find.text('Merhaba')).bottom));
+        final screen = tester.getRect(find.byType(Scaffold));
         if (rtl) {
-          expect(tick.right, lessThanOrEqualTo(time.left + 5));
+          expect(line.left, lessThan(screen.center.dx));
         } else {
-          expect(tick.left, greaterThanOrEqualTo(time.right));
+          expect(line.right, greaterThan(screen.center.dx));
         }
+        expect(tester.takeException(), isNull);
       });
     }
   });

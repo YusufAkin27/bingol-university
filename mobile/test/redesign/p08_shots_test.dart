@@ -215,7 +215,7 @@ Widget _bubble(
         senderName: sender,
         replyName: replyName,
         replyMine: replyMine,
-        seen: seen,
+        statusLine: seen ? 'seen' : null,
         tail: tail,
         highlight: highlight,
         authHeaders: const {},
