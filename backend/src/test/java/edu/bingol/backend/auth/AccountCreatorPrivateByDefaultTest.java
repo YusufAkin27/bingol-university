@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.test.util.ReflectionTestUtils;
 
-/** Yeni hesap varsayilan GIZLI acilir (profile_privacy.private_account); ayar kapatilabilir, mevcut hesaba dokunulmaz. */
+/** Yeni hesap varsayilan HERKESE ACIK acilir (2026-11-07); ayar acilirsa gizli (profile_privacy.private_account), mevcut hesaba dokunulmaz. */
 class AccountCreatorPrivateByDefaultTest {
 
     private static final String EMAIL = "ali@bingol.edu.tr";
@@ -35,7 +35,7 @@ class AccountCreatorPrivateByDefaultTest {
     @BeforeEach
     void wire() {
         ReflectionTestUtils.setField(creator, "privacy", privacy);
-        ReflectionTestUtils.setField(creator, "defaultPrivateAccount", true);
+        ReflectionTestUtils.setField(creator, "defaultPrivateAccount", false);
         when(users.saveAndFlush(any(User.class))).thenAnswer(i -> {
             User u = i.getArgument(0);
             if (u.getId() == null) {
@@ -46,7 +46,8 @@ class AccountCreatorPrivateByDefaultTest {
     }
 
     @Test
-    void newAccountStartsPrivate() {
+    void newAccountStartsPrivateWhenSettingOn() {
+        ReflectionTestUtils.setField(creator, "defaultPrivateAccount", true);
         when(users.findByEmail(EMAIL)).thenReturn(Optional.empty());
 
         creator.create(EMAIL, new Pending("h", "Ali", "tr"));
@@ -58,8 +59,7 @@ class AccountCreatorPrivateByDefaultTest {
     }
 
     @Test
-    void settingOffKeepsAccountPublic() {
-        ReflectionTestUtils.setField(creator, "defaultPrivateAccount", false);
+    void newAccountIsPublicByDefault() {
         when(users.findByEmail(EMAIL)).thenReturn(Optional.empty());
 
         creator.create(EMAIL, new Pending("h", "Ali", "tr"));
