@@ -76,7 +76,6 @@ void main() {
               mine: true,
               senderName: null,
               replyName: null,
-              seen: false,
               authHeaders: const {'Authorization': 'Bearer abc'},
               onMenu: () {},
               onRetry: () {},

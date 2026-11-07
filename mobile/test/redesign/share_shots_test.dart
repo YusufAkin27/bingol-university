@@ -141,7 +141,7 @@ Widget _chatCards(BuildContext context) {
                 mine: m.$1,
                 senderName: null,
                 replyName: null,
-                seen: true,
+                statusLine: 'seen',
                 authHeaders: const {},
                 onMenu: () {},
                 onRetry: () {},

@@ -85,7 +85,6 @@ class _MessageInfoPageState extends State<MessageInfoPage> {
         mine: mine,
         senderName: null,
         replyName: _replyName(message),
-        seen: message['status'] == 'READ',
         authHeaders: widget.session.api.tokens?.access == null
             ? const {}
             : {'Authorization': 'Bearer ${widget.session.api.tokens!.access}'},

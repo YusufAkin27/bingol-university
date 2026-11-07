@@ -2087,6 +2087,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatMiscStatusRead => 'Read';
 
   @override
+  String get chatStatusSending => 'Sending…';
+
+  @override
+  String get chatStatusSent => 'Sent';
+
+  @override
+  String get chatStatusSeen => 'Seen';
+
+  @override
   String get chatMiscImageUnavailable => 'Image unavailable';
 
   @override

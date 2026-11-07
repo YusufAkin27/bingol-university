@@ -300,7 +300,7 @@ void main() {
               mine: mine,
               senderName: null,
               replyName: null,
-              seen: seen,
+              statusLine: seen ? 'seen' : null,
               authHeaders: const {},
               onMenu: () {},
               onRetry: () {},
@@ -364,18 +364,14 @@ void main() {
       noErr(tester);
     });
 
-    testWidgets('durum ikonu: tek tik -> cift tik gecisinde ara karede ikisi birlikte, sonunda yalniz cift tik', (tester) async {
+    testWidgets('durum ikonu YOK: balonda hicbir tik cizilmez (SENT/DELIVERED)', (tester) async {
       useScreen(tester, const Size(390, 844));
       await tester.pumpWidget(bubble(msg(9, 'Durum', age: const Duration(hours: 1), status: 'SENT')));
       await tester.pump(const Duration(milliseconds: 400));
-      expect(find.byKey(const ValueKey('msg-status-SENT')), findsOneWidget);
-      await tester.pumpWidget(bubble(msg(9, 'Durum', age: const Duration(hours: 1), status: 'DELIVERED')));
-      await tester.pump(const Duration(milliseconds: 60));
-      expect(find.byKey(const ValueKey('msg-status-SENT')), findsOneWidget);
-      expect(find.byKey(const ValueKey('msg-status-DELIVERED')), findsOneWidget);
-      await tester.pump(const Duration(milliseconds: 400));
       expect(find.byKey(const ValueKey('msg-status-SENT')), findsNothing);
-      expect(find.byKey(const ValueKey('msg-status-DELIVERED')), findsOneWidget);
+      await tester.pumpWidget(bubble(msg(9, 'Durum', age: const Duration(hours: 1), status: 'DELIVERED')));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byKey(const ValueKey('msg-status-DELIVERED')), findsNothing);
       noErr(tester);
     });
   });

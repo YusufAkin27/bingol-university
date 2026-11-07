@@ -112,7 +112,6 @@ void main() {
       mine: true,
       senderName: null,
       replyName: null,
-      seen: false,
       authHeaders: const {},
       onMenu: () {},
       onRetry: () {},

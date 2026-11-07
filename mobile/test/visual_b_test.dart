@@ -471,7 +471,7 @@ void main() {
     final s = makeSession(be);
     await pumpVisual(tester, _chatPage(s), size: kPhoneMedium);
     expect(find.bySemanticsLabel(RegExp('Fotoğraf')), findsWidgets);
-    for (final l in ['Okundu', 'İletildi', 'Gönderildi']) {
+    for (final l in ['Görüldü']) {
       expect(find.bySemanticsLabel(RegExp(l)), findsWidgets, reason: l);
     }
     expect(find.bySemanticsLabel(RegExp('Tek gösterimlik fotoğraf')), findsWidgets);

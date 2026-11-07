@@ -88,7 +88,6 @@ void main() {
             mine: false,
             senderName: null,
             replyName: null,
-            seen: false,
             authHeaders: const {},
             onMenu: () {},
             onRetry: () {},

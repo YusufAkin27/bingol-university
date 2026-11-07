@@ -20,7 +20,6 @@ Widget _bubble(Map<String, dynamic> extra, {String text = 'V', bool mine = true,
         mine: mine,
         senderName: senderName,
         replyName: 'Melisa Çiçek',
-        seen: false,
         authHeaders: const {},
         onMenu: () {},
         onRetry: () {},
@@ -40,8 +39,9 @@ void main() {
         }),
         size: kPhoneMedium));
     await tester.pump(const Duration(milliseconds: 50));
-    final tick = find.byKey(const ValueKey('msg-status-DELIVERED'));
+    final tick = find.textContaining(RegExp(r'\d\d:\d\d'), findRichText: true);
     expect(tick, findsOneWidget);
+    expect(find.byKey(const ValueKey('msg-status-DELIVERED')), findsNothing);
     final quote = find.byType(IntrinsicHeight).first;
     final tickRect = tester.getRect(tick);
     final quoteRect = tester.getRect(quote);
@@ -55,9 +55,9 @@ void main() {
     useScreen(tester, const Size(390, 800));
     await tester.pumpWidget(buildApp(_bubble(const {}), size: kPhoneMedium));
     await tester.pump(const Duration(milliseconds: 50));
-    final tick = tester.getRect(find.byKey(const ValueKey('msg-status-DELIVERED')));
+    final tick = tester.getRect(find.textContaining(RegExp(r'\d\d:\d\d'), findRichText: true));
     final v = tester.getRect(find.text('V'));
-    expect(tick.left, greaterThan(v.right), reason: 'tik metnin sağında');
+    expect(tick.left, greaterThan(v.right), reason: 'saat metnin sağında');
     expect((tick.center.dy - v.center.dy).abs(), lessThan(12), reason: 'aynı satır');
     expect(tester.takeException(), isNull);
   });

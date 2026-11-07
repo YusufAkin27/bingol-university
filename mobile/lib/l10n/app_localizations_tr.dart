@@ -2077,6 +2077,15 @@ class AppLocalizationsTr extends AppLocalizations {
   String get chatMiscStatusRead => 'Okundu';
 
   @override
+  String get chatStatusSending => 'Gönderiliyor…';
+
+  @override
+  String get chatStatusSent => 'Gönderildi';
+
+  @override
+  String get chatStatusSeen => 'Görüldü';
+
+  @override
   String get chatMiscImageUnavailable => 'Görsel kullanılamıyor';
 
   @override

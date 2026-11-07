@@ -2072,6 +2072,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatMiscStatusRead => 'تمت القراءة';
 
   @override
+  String get chatStatusSending => 'جارٍ الإرسال…';
+
+  @override
+  String get chatStatusSent => 'تم الإرسال';
+
+  @override
+  String get chatStatusSeen => 'تمت المشاهدة';
+
+  @override
   String get chatMiscImageUnavailable => 'الصورة غير متاحة';
 
   @override

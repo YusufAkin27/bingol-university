@@ -16,7 +16,6 @@ import 'chat_video_cover.dart';
 import 'chat_media_parts.dart';
 import 'chatd_parts.dart';
 import 'message_placeholder.dart';
-import 'message_status_icon.dart';
 import 'emoji_presentation.dart';
 import 'long_message.dart';
 import 'recent_reactions.dart';
@@ -41,7 +40,7 @@ class MessageBubble extends StatelessWidget {
     required this.mine,
     required this.senderName,
     required this.replyName,
-    required this.seen,
+    this.statusLine,
     required this.authHeaders,
     required this.onMenu,
     required this.onRetry,
@@ -88,7 +87,8 @@ class MessageBubble extends StatelessWidget {
   final String? replyName;
 
   /// Giden mesaj karşı tarafça okundu mu.
-  final bool seen;
+  /// Yalnız konuşmanın en güncel mesajı benimse: 'sending' | 'sent' | 'seen' (balonun altında yazı); aksi halde null.
+  final String? statusLine;
   final Map<String, String> authHeaders;
   final VoidCallback onMenu;
   final VoidCallback onRetry;
@@ -220,36 +220,15 @@ class MessageBubble extends StatelessWidget {
       if (m['edited'] == true && !deleted) context.l10n.chatMiscEdited,
       if (d != null) '${_two(d.hour)}:${_two(d.minute)}',
     ].join(' · ');
-    // Tik durumu: pending (saat) | SENT (tek tik) | DELIVERED (çift tik, gri) | READ (mavi çift tik).
-    final String? tick = (!mine || ghost)
-        ? null
-        : state == 'pending'
-            ? 'pending'
-            : state == 'failed'
-                ? 'failed'
-                : m['id'] == null
-                    ? null
-                    : (seen || m['status'] == 'READ')
-                        ? 'READ'
-                        : (m['status'] == 'DELIVERED' ? 'DELIVERED' : 'SENT');
-    final hasMeta = metaText.isNotEmpty || tick != null;
+    final hasMeta = metaText.isNotEmpty;
     final mediaStyle = hasMedia || onceLocked || shareInfo != null;
 
-    Widget metaRow(Color color, {Color? readColor}) =>
+    Widget metaRow(Color color) =>
         Row(mainAxisSize: MainAxisSize.min, children: [
           if (metaText.isNotEmpty)
             Text(metaText,
                 style: tx.labelSmall!
                     .copyWith(color: color, fontWeight: BuType.emphasisWeight)),
-          if (tick != null) ...[
-            const SizedBox(width: 4),
-            MessageStatusIcon(
-                status: tick,
-                color: color,
-                // Okundu = MAVİ çift tik (anlamsal): açık balonda koyu mavi, koyu balonda gök mavisi (kontrast testli).
-                readColor: readColor ?? (solidMine ? bc.readOnOutgoing : bc.readOnIncoming),
-                failedColor: t.danger),
-          ],
         ]);
 
     final textStyle = tx.bodyLarge!.copyWith(
@@ -358,7 +337,7 @@ class MessageBubble extends StatelessWidget {
         PositionedDirectional(
           end: 8,
           bottom: 8,
-          child: ChatdPill(child: metaRow(t.onMedia, readColor: t.readSky)),
+          child: ChatdPill(child: metaRow(t.onMedia)),
         ),
       ]);
     }
@@ -394,7 +373,7 @@ class MessageBubble extends StatelessWidget {
                 end: 8,
                 bottom: 8,
                 child:
-                    ChatdPill(child: metaRow(t.onMedia, readColor: t.readSky)))
+                    ChatdPill(child: metaRow(t.onMedia)))
             : null,
       );
     } else if (atts.length > 1) {
@@ -440,8 +419,7 @@ class MessageBubble extends StatelessWidget {
             : metaRow(
                 onceLocked
                     ? t.mut
-                    : (solidMine ? t.onSoft.withValues(alpha: .8) : metaColor),
-                readColor: onceLocked ? bc.readOnIncoming : (solidMine ? t.info : null)),
+                    : (solidMine ? t.onSoft.withValues(alpha: .8) : metaColor)),
       );
     }
 
@@ -617,6 +595,8 @@ class MessageBubble extends StatelessWidget {
                 ]),
               ),
             ),
+          if (statusLine != null && state != 'failed')
+            _StatusLine(key: const ValueKey('msg-status-line'), status: statusLine!),
           if (state == 'failed')
             GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -1587,4 +1567,36 @@ class _RingPainter extends CustomPainter {
   @override
   bool shouldRepaint(_RingPainter old) =>
       old.color != color || old.dashed != dashed;
+}
+
+
+/// En güncel giden mesajın altındaki küçük durum yazısı (Instagram Direct düzeni).
+class _StatusLine extends StatelessWidget {
+  const _StatusLine({super.key, required this.status});
+  final String status;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final text = switch (status) {
+      'sending' => l.chatStatusSending,
+      'seen' => l.chatStatusSeen,
+      _ => l.chatStatusSent,
+    };
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(top: 3, end: 4),
+      child: Semantics(
+        liveRegion: true,
+        label: text,
+        child: ExcludeSemantics(
+          child: Text(text,
+              textAlign: TextAlign.end,
+              style: Theme.of(context)
+                  .textTheme
+                  .labelSmall!
+                  .copyWith(color: context.bu.mut, fontWeight: BuType.emphasisWeight)),
+        ),
+      ),
+    );
+  }
 }
