@@ -10961,9 +10961,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get avatarSheetTitle => 'صورة الملف الشخصي';
 
   @override
-  String get avatarSheetEdit => 'تعديل الصورة الحالية';
-
-  @override
   String get avatarRemoveTitle => 'هل تريد إزالة صورة ملفك الشخصي؟';
 
   @override
@@ -10974,8 +10971,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get avatarRemoveConfirm => 'إزالة';
 
   @override
-  String get avatarFetchFailed =>
-      'تعذّر فتح الصورة الحالية. تحقق من اتصالك وحاول مرة أخرى.';
+  String get avatarCropTitle => 'ضبط الصورة';
+
+  @override
+  String get avatarCropConfirm => 'تأكيد';
+
+  @override
+  String get avatarCropCancel => 'إلغاء';
+
+  @override
+  String get avatarCropHint =>
+      'قرّب بإصبعين واسحب لضبط الموضع. هكذا تظهر في ملفك الشخصي.';
 
   @override
   String get avatarUpdated => 'تم تحديث صورة ملفك الشخصي.';

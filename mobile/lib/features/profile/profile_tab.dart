@@ -10,7 +10,6 @@ import '../follow/follow_requests_api.dart';
 import '../follow/follow_summary.dart';
 import '../posts/post_api.dart';
 import '../posts/user_posts_page.dart';
-import '../media_crop/media_crop.dart' show PhotoSource, showPhotoSourceSheet;
 import 'avatar_upload.dart';
 import 'profile_content_tabs.dart';
 import 'profile_inline_edit.dart';
@@ -53,6 +52,7 @@ class _ProfileTabState extends State<ProfileTab> {
 
   /// Avatar değişimi (yükle/kaldır) sürerken true: çift dokunuş engellenir, avatar üstünde ilerleme halkası görünür.
   bool _avatarBusy = false;
+  final _avatarKey = GlobalKey();
 
   @override
   void initState() {
@@ -113,7 +113,7 @@ class _ProfileTabState extends State<ProfileTab> {
       ProfileMenuPage(session: widget.session, themeController: widget.themeController, localeController: widget.localeController), 'profile_menu');
 
   // -------------------------------------------------------------------------------------------------------------
-  // Hızlı profil fotoğrafı: avatara dokun -> alt sayfa (çek / seç / düzenle / kaldır)
+  // Hızlı profil fotoğrafı: kamera rozeti -> doğrudan galeri; uzun basma -> küçük menü (çek / kaldır)
 
   void _applyAvatar(String? url) {
     final p = _profile;
@@ -123,37 +123,63 @@ class _ProfileTabState extends State<ProfileTab> {
     setState(() => _profile = {...p, 'avatarUrl': url});
   }
 
-  Future<void> _avatarTap() async {
+  /// Kamera rozeti / avatara dokunma: ara menü yok, doğrudan sistem fotoğraf seçicisi -> kırpma ekranı -> yükleme.
+  Future<void> _pickAvatar(ImageSource source) async {
     final p = _profile;
     if (p == null || _avatarBusy) return;
     final l = context.l10n;
-    final cur = p['avatarUrl'] as String?;
-    final has = cur != null && cur.isNotEmpty;
-    final choice = await showPhotoSourceSheet(context, title: l.avatarSheetTitle, cameraFirst: true, removable: has, editable: has);
-    if (choice == null || !mounted || _avatarBusy) return;
-    final hooks = widget.avatarHooks;
-    switch (choice) {
-      case PhotoSource.camera:
-      case PhotoSource.gallery:
-        await _avatarJob(() async {
-          final r = await uploadAvatarFrom(context, widget.session, choice == PhotoSource.camera ? ImageSource.camera : ImageSource.gallery,
-              previewName: (p['displayName'] as String?) ?? '', cropPhoto: hooks.cropPhoto, images: hooks.images, uploader: hooks.uploader);
-          return r == null ? null : () => r.url != null ? _applyAvatar(r.url) : _load();
-        }, okMessage: l.avatarUpdated);
-      case PhotoSource.edit:
-        await _avatarJob(() async {
-          final r = await editExistingAvatar(context, widget.session, cur!, hooks: hooks);
-          return r == null ? null : () => r.url != null ? _applyAvatar(r.url) : _load();
-        }, okMessage: l.avatarUpdated);
-      case PhotoSource.remove:
-        final ok = await BuConfirmSheet.show(context,
-            title: l.avatarRemoveTitle, message: l.avatarRemoveBody, confirmLabel: l.avatarRemoveConfirm, destructive: true);
-        if (!ok || !mounted) return;
-        await _avatarJob(() async {
-          await removeAvatar(widget.session);
-          return () => _applyAvatar(null);
-        }, okMessage: l.avatarRemoved);
-    }
+    await _avatarJob(() async {
+      final r = await pickCropUploadAvatar(context, widget.session, source, hooks: widget.avatarHooks);
+      // Yalnız başarıdan sonra uygulanır: yükleme hatasında mevcut fotoğraf aynen kalır.
+      return r == null ? null : () => r.url != null ? _applyAvatar(r.url) : _load();
+    }, okMessage: l.avatarUpdated);
+  }
+
+  Future<void> _removeAvatar() async {
+    final l = context.l10n;
+    await _avatarJob(() async {
+      await removeAvatar(widget.session);
+      return () => _applyAvatar(null);
+    }, okMessage: l.avatarRemoved);
+  }
+
+  /// Uzun basma: küçük menü; yalnız "Fotoğraf çek" ve (fotoğraf varsa) "Fotoğrafı kaldır".
+  Future<void> _avatarMenu() async {
+    final p = _profile;
+    if (p == null || _avatarBusy) return;
+    final l = context.l10n;
+    final t = context.bu;
+    final has = (p['avatarUrl'] as String?)?.isNotEmpty ?? false;
+    final box = _avatarKey.currentContext?.findRenderObject() as RenderBox?;
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
+    if (box == null || overlay == null) return;
+    final pos = RelativeRect.fromRect(
+        Rect.fromPoints(box.localToGlobal(Offset(0, box.size.height), ancestor: overlay), box.localToGlobal(box.size.bottomRight(Offset.zero), ancestor: overlay)),
+        Offset.zero & overlay.size);
+    PopupMenuItem<int> item(Key k, int v, IconData icon, String label, {bool danger = false}) => PopupMenuItem<int>(
+          key: k,
+          value: v,
+          height: 48,
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Icon(icon, size: 20, color: danger ? t.danger : t.ink),
+            const SizedBox(width: 12),
+            Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: danger ? t.danger : t.ink, fontWeight: BuType.emphasisWeight)),
+          ]),
+        );
+    final v = await showMenu<int>(
+      context: context,
+      position: pos,
+      color: t.sf,
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(BuRadius.md), side: BorderSide(color: t.bd)),
+      items: [
+        item(const ValueKey('avatarMenuCamera'), 1, BuIcons.camera, l.p04SrcCamera),
+        if (has) item(const ValueKey('avatarMenuRemove'), 2, BuIcons.trash2, l.p04SrcRemove, danger: true),
+      ],
+    );
+    if (!mounted) return;
+    if (v == 1) await _pickAvatar(ImageSource.camera);
+    if (v == 2) await _removeAvatar();
   }
 
   /// [job] başarıyla bir "uygula" işlevi döndürürse uygulanır (null = kullanıcı vazgeçti); hata toast ile gösterilir.
@@ -236,7 +262,8 @@ class _ProfileTabState extends State<ProfileTab> {
               profile: p,
               onPatch: _patchProfile,
               avatar: _TappableAvatar(
-                  name: p['displayName'] as String?, url: p['avatarUrl'] as String?, busy: _avatarBusy, onTap: _avatarTap),
+                  key: _avatarKey, name: p['displayName'] as String?, url: p['avatarUrl'] as String?, busy: _avatarBusy,
+                  onTap: () => _pickAvatar(ImageSource.gallery), onLongPress: _avatarMenu),
             ),
           ),
           const SizedBox(height: 16),
@@ -297,12 +324,13 @@ class _TitleRow extends StatelessWidget {
 /// Dokunulabilir 88 dp avatar: dokununca fotoğraf alt sayfası; sağ altta ince (gölgesiz) kamera rozeti; yüklenirken ince ilerleme
 /// halkası; fotoğraf değişince yumuşak çapraz geçiş.
 class _TappableAvatar extends StatelessWidget {
-  const _TappableAvatar({required this.name, required this.url, required this.busy, required this.onTap});
+  const _TappableAvatar({super.key, required this.name, required this.url, required this.busy, required this.onTap, required this.onLongPress});
 
   final String? name;
   final String? url;
   final bool busy;
   final VoidCallback onTap;
+  final VoidCallback onLongPress;
 
   static const _size = 88.0;
 
@@ -317,9 +345,11 @@ class _TappableAvatar extends StatelessWidget {
       label: l.profileChangePhotoSemantic,
       excludeSemantics: true,
       onTap: busy ? null : onTap,
+      onLongPress: busy ? null : onLongPress,
       child: BuPressable(
         key: const ValueKey('profile-avatar'),
         onTap: busy ? null : onTap,
+        onLongPress: busy ? null : onLongPress,
         haptic: BuHaptic.selection,
         child: SizedBox(
           width: _size,
@@ -337,11 +367,11 @@ class _TappableAvatar extends StatelessWidget {
                   child: ColoredBox(
                     key: const ValueKey('profile-avatar-busy'),
                     color: t.scrim.withValues(alpha: .45),
-                    child: Center(child: SizedBox(width: 30, height: 30, child: CircularProgressIndicator(strokeWidth: 2.5, color: t.onMedia))),
+                    child: Center(child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: t.onMedia))),
                   ),
                 ),
               ),
-            const BuAvatarBadge(avatarSize: _size),
+            BuAvatarBadge(avatarSize: _size, onTap: busy ? null : onTap, tooltip: l.profileChangePhotoSemantic),
           ]),
         ),
       ),

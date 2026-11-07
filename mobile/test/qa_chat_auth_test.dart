@@ -1,6 +1,4 @@
-import 'dart:typed_data';
 
-import 'package:bu_kampus/core/api.dart';
 import 'package:bu_kampus/core/nav.dart';
 import 'package:bu_kampus/core/permissions/permission_service.dart';
 import 'package:bu_kampus/core/push/push_router.dart';
@@ -13,14 +11,11 @@ import 'package:bu_kampus/features/auth/verify_code_page.dart';
 import 'package:bu_kampus/features/chat/chat_detail_page.dart';
 import 'package:bu_kampus/features/notifications/notifications_page.dart';
 import 'package:bu_kampus/features/profile/password_page.dart';
-import 'package:bu_kampus/features/profile/avatar_upload.dart';
 import 'package:bu_kampus/features/profile/settings_page.dart';
 import 'package:bu_kampus/features/support/support_feedback_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/testing.dart';
 
 import 'support/fake_app.dart';
 
@@ -236,38 +231,6 @@ void main() {
       await settle(t, const Duration(milliseconds: 1200));
       expect(find.byType(VerifyCodePage), findsOneWidget);
       await unmount(t);
-    });
-  });
-
-  group('avatar indirme', () {
-    Future<Map<String, String>> fetchHeaders(WidgetTester t, String url, {Tokens? tokens}) async {
-      late BuildContext ctx;
-      await t.pumpWidget(buildApp(Builder(builder: (c) {
-        ctx = c;
-        return const SizedBox();
-      })));
-      final s = makeSession(FakeBackend());
-      s.api.tokens = tokens;
-      Map<String, String> seen = {};
-      final client = MockClient((req) async {
-        seen = req.headers;
-        return http.Response.bytes(Uint8List.fromList([1, 2, 3]), 200);
-      });
-      await t.runAsync(() => http.runWithClient(
-            () => editExistingAvatar(ctx, s, url, hooks: AvatarHooks(editPhoto: (_) async => null)),
-            () => client,
-          ));
-      return seen;
-    }
-
-    testWidgets('/api/ altındaki korumalı avatar Authorization ile indirilir', (t) async {
-      final h = await fetchHeaders(t, '/api/users/5/avatar', tokens: Tokens('acc-1', 'ref-1'));
-      expect(h['Authorization'], 'Bearer acc-1');
-    });
-
-    testWidgets('/files/ herkese açık adrese jeton gönderilmez', (t) async {
-      final h = await fetchHeaders(t, '/files/avatars/a.jpg', tokens: Tokens('acc-1', 'ref-1'));
-      expect(h.containsKey('Authorization'), isFalse);
     });
   });
 

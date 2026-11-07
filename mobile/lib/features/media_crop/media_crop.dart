@@ -71,16 +71,15 @@ Future<Uint8List?> pickAndCrop(
 }
 
 /// [showPhotoSourceSheet] sonucu.
-enum PhotoSource { gallery, camera, remove, edit }
+enum PhotoSource { gallery, camera, remove }
 
 /// "Fotoğraf" kaynak alt sayfası (referans 09/6): Galeriden seç / Fotoğraf çek / (isteğe bağlı) Fotoğrafı kaldır, sağ üstte
 /// kapat düğmesi. [error] verilirse altta kırmızı uyarı kartı (başlık [errorTitle], örn. "Dosya boyutu yüksek" + 2 MB metni).
 /// İptalde null.
 ///
-/// Profil fotoğrafı sayfası için: [title] başlığı değiştirir, [cameraFirst] kamerayı üste alır, [editable] "Mevcut fotoğrafı
-/// düzenle" satırını ([PhotoSource.edit]) ekler.
+/// Profil fotoğrafı sayfası için: [title] başlığı değiştirir, [cameraFirst] kamerayı üste alır.
 Future<PhotoSource?> showPhotoSourceSheet(BuildContext context,
-    {bool removable = false, String? error, String? errorTitle, bool simple = false, String? title, bool cameraFirst = false, bool editable = false}) {
+    {bool removable = false, String? error, String? errorTitle, bool simple = false, String? title, bool cameraFirst = false}) {
   final l = context.l10n;
   if (simple) return _showSimpleSourceSheet(context);
   return BuSheet.show<PhotoSource>(
@@ -134,10 +133,6 @@ Future<PhotoSource?> showPhotoSourceSheet(BuildContext context,
           row(const ValueKey('photoSrcGallery'), BuIcons.images, l.p04SrcGallery, PhotoSource.gallery),
           Divider(height: 1, color: t.bd),
           row(const ValueKey('photoSrcCamera'), BuIcons.camera, l.p04SrcCamera, PhotoSource.camera),
-        ],
-        if (editable) ...[
-          Divider(height: 1, color: t.bd),
-          row(const ValueKey('photoSrcEdit'), BuIcons.pencil, l.avatarSheetEdit, PhotoSource.edit),
         ],
         if (removable) ...[
           Divider(height: 1, color: t.bd),
