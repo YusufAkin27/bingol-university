@@ -19764,6 +19764,12 @@ abstract class AppLocalizations {
   /// **'Tümünü gör'**
   String get homeViewAll;
 
+  /// No description provided for @homeJoinedEvents.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katıldığım etkinlikler'**
+  String get homeJoinedEvents;
+
   /// No description provided for @regTitle.
   ///
   /// In tr, this message translates to:

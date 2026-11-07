@@ -24,6 +24,7 @@ import '../news/news_tile.dart'
     show newsLocalDate, newsMonthName, newsTypeLabel, newsWeekdayName;
 import '../notifications/notifications_page.dart';
 import '../polls/poll_routes.dart';
+import '../profile/my_events_page.dart';
 import '../profile/my_clubs_page.dart';
 import '../profile/saved_news_page.dart';
 import '../search/search_page.dart';
@@ -808,6 +809,14 @@ class _HomeTabState extends State<HomeTab> {
           onAction: () => _push(EventsPage(session: _s), 'events'),
           onLongPress: _editLayout),
       _eventBody(context),
+      const SizedBox(height: 10),
+      // Katıldığım etkinliklere tek dokunuşla erişim (Etkinliklerim > Katılacaklarım).
+      HomeLinkRow(
+        key: const ValueKey('home-joined-events'),
+        icon: BuIcons.calendarCheck,
+        label: l.homeJoinedEvents,
+        onTap: () => _push(MyEventsPage(session: _s, initialSub: 1), 'my_events'),
+      ),
     ]));
   }
 

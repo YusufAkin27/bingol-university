@@ -1047,6 +1047,33 @@ class HomeEmptyCard extends StatelessWidget {
   }
 }
 
+/// Ana sayfada tek dokunuşluk bağlantı satırı: simge + ad + ok ("Katıldığım etkinlikler").
+class HomeLinkRow extends StatelessWidget {
+  const HomeLinkRow({super.key, required this.icon, required this.label, required this.onTap});
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return HomeSurface(
+      onTap: onTap,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: BuSize.touch),
+        child: Row(children: [
+          ExcludeSemantics(child: Icon(icon, size: 18, color: t.ink)),
+          const SizedBox(width: 12),
+          Expanded(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.body.copyWith(color: t.ink))),
+          Icon(Directionality.of(context) == TextDirection.rtl ? BuIcons.chevronLeft : BuIcons.chevronRight, size: 18, color: t.mut),
+        ]),
+      ),
+    );
+  }
+}
+
 /// Haber/duyuru alanı durum satırı: boşsa tek cümle; hata varsa hata cümlesi + "Yeniden dene".
 class HomeNewsStateCard extends StatelessWidget {
   const HomeNewsStateCard(

@@ -10914,6 +10914,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeViewAll => 'View all';
 
   @override
+  String get homeJoinedEvents => 'Events I joined';
+
+  @override
   String get regTitle => 'Create your account';
 
   @override

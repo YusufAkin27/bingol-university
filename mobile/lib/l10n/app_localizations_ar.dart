@@ -10808,6 +10808,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeViewAll => 'عرض الكل';
 
   @override
+  String get homeJoinedEvents => 'الفعاليات التي انضممت إليها';
+
+  @override
   String get regTitle => 'أنشئ حسابك';
 
   @override

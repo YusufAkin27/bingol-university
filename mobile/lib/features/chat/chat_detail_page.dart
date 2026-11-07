@@ -2539,7 +2539,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   Widget build(BuildContext context) {
     final t = context.bu;
     return PopScope(
-      canPop: false,
+      // Arama/ek menüsü açıkken önce onlar kapanır; aksi halde sayfa doğrudan kapanabilir. canPop:true iken iOS'un
+      // kenardan geri kaydırma jesti (soldan sağa) çalışır ve sohbet listesine döner; liste kapanışta kendini yeniler.
+      canPop: !_searching && !_attachOpen,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         if (_attachOpen) {

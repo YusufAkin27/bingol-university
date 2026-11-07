@@ -10878,6 +10878,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get homeViewAll => 'Tümünü gör';
 
   @override
+  String get homeJoinedEvents => 'Katıldığım etkinlikler';
+
+  @override
   String get regTitle => 'Hesap oluşturun';
 
   @override
