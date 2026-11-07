@@ -79,6 +79,10 @@ iOS push için ücretli Apple Developer hesabı gerekir. Adım adım kurulum (pl
 - Android kanalları: `chat`, `event`, `announcement`, `poll`, `social`; sohbet bastırma için istemci `PUT/DELETE /api/conversations/{id}/viewing` ve `PUT /api/devices/{fcmToken}/state` çağırır. Ayrıntı: `docs/changes/push.md`.
 - Ayarlar: `app.push.message-window-seconds` (0), `app.push.max-per-minute` (10), `app.push.max-messages-per-minute` (60), `app.push.message-skip-foreground` (false), `app.push.message-preview` (false; global), `app.push.message-preview-optin` (true; kullanıcı tercihi `messagePreview`). Ayrıntı: `docs/changes/push.md` "P1".
 
+## 5B. APNs anahtarı: Canlı Etkinlik push'u (isteğe bağlı)
+
+FCM, Canlı Etkinlik jetonlarına gönderemez; sunucu bu push'u APNs'e doğrudan (token tabanlı kimlik, `.p8`) yollar. Girilmezse özellik kapalıdır ve uygulama bunu dürüstçe gösterir (`GET /api/live-activities/status`). Ortam: `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_BUNDLE_ID` (`tr.com.bukampus.app`), `APNS_KEY_BASE64` (`.p8` içeriğinin base64'ü) ya da `APNS_KEY_FILE`, `APNS_PRODUCTION` (`true` TestFlight/App Store, `false` sandbox). Bkz. `docs/changes/push.md`.
+
 ## 6. `google-services.json` API anahtarını kısıtlama (Google Cloud Console)
 
 `mobile/android/app/google-services.json` repoda **izlenir** (Firebase proje kimliği `bu-kamp`, paket `tr.com.bukampus.app`; MOB2'den sonra, bkz. ANDROID_RELEASE.md 8.4). İçindeki `current_key` (Android API anahtarı) bir **sır değildir** ama uygulama paketine gömülüdür ve apk'dan çıkarılabilir; kısıtlanmazsa başkası bu anahtarla projenizin kotasını/faturasını kullanabilir. Yayından **önce** kısıtlayın (SİZ, Google Cloud hesabıyla; **doğrulanmadı**: Console arayüzü zamanla değişir, aşağıdaki adlar yazıldığı andaki yapıya göredir).

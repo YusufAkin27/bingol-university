@@ -109,6 +109,8 @@ final class BuNativeBridge: NSObject, FlutterPlugin, UNUserNotificationCenterDel
     // Cihaz takvimine yazma (EventKit) ve alarm yedeği (yerel bildirim): BuCalendarAlarmBridge.swift.
     BuCalendarBridge.register(messenger: messenger)
     BuAlarmBridge.register(messenger: messenger)
+    // Canli Etkinlik (ActivityKit): BuLiveActivityBridge.swift.
+    BuLiveActivityBridge.register(messenger: messenger)
     registrar.addApplicationDelegate(instance)
   }
 

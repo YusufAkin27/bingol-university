@@ -702,6 +702,28 @@ def check_ci_files():
             bad(f'{rel}: YAML hatasi {e}')
 
 
+def check_live_activity():
+    """Canli Etkinlik (ActivityKit): dosyalar, NSSupportsLiveActivities, hedef uyeligi, sohbet/duyuru yasagi, kalin yazi yok."""
+    files = ('BUWidgets/Shared/BuLiveActivityAttributes.swift', 'BUWidgets/BuLiveActivityWidget.swift',
+             'Runner/BuLiveActivityBridge.swift')
+    for f in files:
+        (ok if os.path.isfile(os.path.join(IOS, f)) else bad)('Canli Etkinlik: %s diskte' % f)
+    info = load_plist(os.path.join(RUNNER, 'Info.plist'))
+    (ok if info.get('NSSupportsLiveActivities') is True else bad)('Runner Info.plist: NSSupportsLiveActivities = true')
+    pbx = read(os.path.join(IOS, 'Runner.xcodeproj', 'project.pbxproj'))
+    for name in ('BuLiveActivityAttributes.swift', 'BuLiveActivityWidget.swift', 'BuLiveActivityBridge.swift'):
+        (ok if ('path = %s;' % name) in pbx else bad)('pbxproj: %s dosya referansi' % name)
+    # Attributes iki hedefte (Runner + BUWidgets) derlenir: iki ayri PBXBuildFile.
+    n_attr = len(re.findall(r'PBXBuildFile; fileRef = B1D7000000000000000000A1\b', pbx))
+    (ok if n_attr == 2 else bad)('pbxproj: BuLiveActivityAttributes iki hedefte (Runner + BUWidgets), bulunan %d' % n_attr)
+    bundle = read(os.path.join(WIDGETS, 'BUWidgetsBundle.swift'))
+    (ok if 'BuLiveActivityWidget()' in bundle and '#available(iOS 16.1' in bundle else bad)('BUWidgetsBundle: Canli Etkinlik iOS 16.1 kosuluyla kayitli')
+    src = ''.join(read(os.path.join(IOS, f)) for f in files)
+    (ok if re.search(r'kind == "EVENT" \|\| kind == "EXAM"', src) else bad)('Canli Etkinlik: yalniz EVENT/EXAM turleri (sohbet/arkadaslik/duyuru yok)')
+    (ok if not re.search(r'weight:\s*\.(bold|semibold|heavy|black)|\.bold\(\)|fontWeight\(\.(bold|semibold)', src) else bad)('Canli Etkinlik: kalin yazi yok')
+    (ok if 'pushType: .token' in src else bad)('Canli Etkinlik: guncelleme jetonu (pushType .token) isteniyor')
+
+
 def main():
     print('== iOS dosya duzeyi kontrol ==')
     info = check_info_plist()
@@ -718,6 +740,7 @@ def main():
     check_widget_files()
     check_widget_samples()
     check_widget_ci()
+    check_live_activity()
     print(f'\nOzet: {len(errors)} hata, {len(warnings)} uyari')
     sys.exit(1 if errors else 0)
 

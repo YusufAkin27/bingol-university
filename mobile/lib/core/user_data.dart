@@ -18,6 +18,7 @@ import 'cache/message_cache.dart';
 import 'cache/video_cover_cache.dart';
 import 'cache/video_prefetch.dart';
 import 'language_sync.dart';
+import 'live/live_activity_service.dart';
 
 /// Çıkış / hesap değişimi / hesap silme / oturum iptalinde silinmesi gereken kullanıcıya özel yerel depoların
 /// TEK kayıt noktası ([ApiClient.setTokens] bu kancaları çalıştırır). Kural: kullanıcıya özel veri tutan her yeni
@@ -45,6 +46,7 @@ void registerUserDataCleaners(ApiClient api) {
     ..add(_clearRemovedMapData) // kaldırılan harita özelliğinin eski sürümlerden kalan yerel verisi
     ..add(WidgetSyncService.clearUserData) // ana ekran widget snapshot'ları + kısayol sırası (widget "Giriş yap" durumuna döner)
     ..add(HomeLayoutStore.clear) // Ana Sayfa düzeni (bölüm sırası/görünürlüğü + Hızlı Erişim kısayolları)
+    ..add(LiveActivityService.clearUserData) // iOS Canlı Etkinlik / Android canlı güncelleme (kullanıcının kendi geri sayımları)
     ..add(OnboardingDraftStore.clear) // yarım kalan profil tamamlama taslağı + Apple'ın bir kez verdiği ad/soyad
     ..add(TrackTokenStore.clear) // herkese açık destek talebinin takip jetonu (e-postaya bağlı)
     ..add(_clearLegalLater); // "sözleşme onayını sonra yap" işareti (kullanıcı kimliği içerir)

@@ -13135,4 +13135,112 @@ class AppLocalizationsTr extends AppLocalizations {
   String evtLiveScanCount(String name) {
     return '$name okuttu';
   }
+
+  @override
+  String get settingsFindContacts => 'Rehberden kişi bul';
+
+  @override
+  String get chatMiscContactsFind => 'Rehberden kişi bul';
+
+  @override
+  String get chatMiscContactsRationale =>
+      'Rehberinizdeki Bingöl Üniversitesi kişilerini bulabilmemiz için rehbere erişmemiz gerekir. Rehberiniz sunucuya gönderilmez; yalnızca e-posta özetleri eşleştirilir.';
+
+  @override
+  String get chatMiscContactsSubtitle => 'Bingöl Üniversitesi kişileri';
+
+  @override
+  String get chatMiscContactsPermTitle => 'Rehber izni gerekli';
+
+  @override
+  String get chatMiscContactsPermText =>
+      'Rehberinizdeki kampüs kişilerini bulabilmemiz için rehbere erişim izni vermeniz gerekir.';
+
+  @override
+  String get chatMiscContactsPermAction => 'İzin ver';
+
+  @override
+  String get chatMiscContactsNoneTitle => 'Eşleşen kişi yok';
+
+  @override
+  String get chatMiscContactsNoneText =>
+      'Rehberindeki kişilerden uygulamayı kullanan kimse bulunamadı. Arkadaşların katıldıkça burada görünür.';
+
+  @override
+  String get chatMiscContactsSearchHint => 'Kişilerde ara';
+
+  @override
+  String get chatMiscContactsTruncated =>
+      'Saatlik istek sınırına ulaşıldı; kalan kişiler daha sonra eşleştirilecek.';
+
+  @override
+  String get qa4ContactsConsentTitle => 'Rehberden bulunabilirim';
+
+  @override
+  String get qa4ContactsConsentText =>
+      'Rehberindeki kişileri bulmak için önce bu ayarı açman gerekir. Eşleşme karşılıklıdır: yalnız bu ayarı açmış kişileri bulursun, onlar da seni yalnız bu ayar açıkken bulabilir. İstediğin zaman kapatabilirsin.';
+
+  @override
+  String get qa4ContactsConsentAction => 'Aç ve devam et';
+
+  @override
+  String get qa4ContactsConsentOff => 'Rehberden bulunabilirliği kapat';
+
+  @override
+  String get chatMiscContactsNoSearchMatch => 'Aramanla eşleşen kişi yok.';
+
+  @override
+  String chatMiscContactsCount(String n) {
+    return '$n KİŞİ';
+  }
+
+  @override
+  String get chatMiscMessage => 'Mesaj';
+
+  @override
+  String get chatMiscContactsPrivacy =>
+      'Rehberin sunucuya gönderilmez; yalnızca e-posta özetleri eşleştirilir.';
+
+  @override
+  String get permContactsTitle => 'Rehber';
+
+  @override
+  String get permContactsText =>
+      'Rehberinizdeki Bingöl Üniversitesi kişilerini bulup sohbet başlatabilmeniz için gerekir. Rehberiniz sunucuya gönderilmez.';
+
+  @override
+  String get sistemuiPermContactsText =>
+      'Rehberinizdeki üniversite kişilerini bulup sohbet başlatmanız için. Rehberiniz sunucuya gönderilmez.';
+
+  @override
+  String get p23PrivacyShort => 'Rehberiniz sunucuya gönderilmez.';
+
+  @override
+  String get p23NoneText =>
+      'Rehberindeki kişilerden uygulamayı kullanan kimse bulunamadı.';
+
+  @override
+  String get liveTrackStart => 'Canlı takip et';
+
+  @override
+  String get liveTrackStop => 'Canlı takibi bitir';
+
+  @override
+  String get liveTrackStarted => 'Canlı takip başladı';
+
+  @override
+  String get liveTrackFailed => 'Canlı takip başlatılamadı';
+
+  @override
+  String get liveTrackDisabled =>
+      'Canlı Etkinlikler kapalı. Ayarlardan açabilirsiniz.';
+
+  @override
+  String get liveLabelStartsIn => 'Başlamasına';
+
+  @override
+  String get liveLabelEndsIn => 'Bitmesine';
+
+  @override
+  String get liveChannelName => 'Canlı güncellemeler';
 }

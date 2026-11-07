@@ -27,6 +27,7 @@ import 'event_cover.dart';
 import 'event_form_page.dart';
 import 'event_parts.dart';
 import 'events_page.dart';
+import 'live_track_button.dart';
 import '../share/share_button.dart' show ShareIconButton, shareContentForEvent;
 import '../share/share_sheet.dart' show showShareSheet;
 
@@ -954,6 +955,19 @@ class _EventDetailPageState extends State<EventDetailPage> {
       if (_isMod && !cancelled) _pad(_moderatorBlock(), top: 12),
       if (_approval && !_manage && !cancelled && !pendingReview && !rejected && rsvp != 'GOING' && rsvp != 'REJECTED') _pad(_requestCard(), top: 12),
       if (!cancelled) _pad(_chatRow(member: member), top: 4),
+      // Canlı takip (iOS Canlı Etkinlik / Android canlı güncelleme): yalnız katılan kullanıcıya, destek yoksa görünmez.
+      if (rsvp == 'GOING' && !cancelled && !rejected)
+        _pad(
+          LiveTrackButton(
+              key: ValueKey('live-track-${widget.eventId}'),
+              session: widget.session,
+              eventId: widget.eventId,
+              title: '${ev['title'] ?? ''}',
+              startsAt: starts,
+              endsAt: ends,
+              location: location ?? ''),
+          top: 12,
+        ),
       if (desc != null && desc.trim().isNotEmpty) _pad(Text(desc, style: tx.titleMedium!.copyWith(height: 1.6, color: t.ink, fontWeight: FontWeight.w400)), top: 24),
       if (_approval && rsvp == 'GOING' && !cancelled)
         _pad(Et2GreyButton(key: const ValueKey('detail-leave-approval'), label: l.eventFormLeaveTitle, icon: BuIcons.calendarX, onPressed: _rsvpBusy ? null : _leave), top: 16),

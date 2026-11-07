@@ -7138,5 +7138,44 @@
         "type": "String"
       }
     }
-  }
+  },
+  "settingsFindContacts": "Rehberden kişi bul",
+  "chatMiscContactsFind": "Rehberden kişi bul",
+  "chatMiscContactsRationale": "Rehberinizdeki Bingöl Üniversitesi kişilerini bulabilmemiz için rehbere erişmemiz gerekir. Rehberiniz sunucuya gönderilmez; yalnızca e-posta özetleri eşleştirilir.",
+  "chatMiscContactsSubtitle": "Bingöl Üniversitesi kişileri",
+  "chatMiscContactsPermTitle": "Rehber izni gerekli",
+  "chatMiscContactsPermText": "Rehberinizdeki kampüs kişilerini bulabilmemiz için rehbere erişim izni vermeniz gerekir.",
+  "chatMiscContactsPermAction": "İzin ver",
+  "chatMiscContactsNoneTitle": "Eşleşen kişi yok",
+  "chatMiscContactsNoneText": "Rehberindeki kişilerden uygulamayı kullanan kimse bulunamadı. Arkadaşların katıldıkça burada görünür.",
+  "chatMiscContactsSearchHint": "Kişilerde ara",
+  "chatMiscContactsTruncated": "Saatlik istek sınırına ulaşıldı; kalan kişiler daha sonra eşleştirilecek.",
+  "qa4ContactsConsentTitle": "Rehberden bulunabilirim",
+  "qa4ContactsConsentText": "Rehberindeki kişileri bulmak için önce bu ayarı açman gerekir. Eşleşme karşılıklıdır: yalnız bu ayarı açmış kişileri bulursun, onlar da seni yalnız bu ayar açıkken bulabilir. İstediğin zaman kapatabilirsin.",
+  "qa4ContactsConsentAction": "Aç ve devam et",
+  "qa4ContactsConsentOff": "Rehberden bulunabilirliği kapat",
+  "chatMiscContactsNoSearchMatch": "Aramanla eşleşen kişi yok.",
+  "chatMiscContactsCount": "{n} KİŞİ",
+  "@chatMiscContactsCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "chatMiscMessage": "Mesaj",
+  "chatMiscContactsPrivacy": "Rehberin sunucuya gönderilmez; yalnızca e-posta özetleri eşleştirilir.",
+  "permContactsTitle": "Rehber",
+  "permContactsText": "Rehberinizdeki Bingöl Üniversitesi kişilerini bulup sohbet başlatabilmeniz için gerekir. Rehberiniz sunucuya gönderilmez.",
+  "sistemuiPermContactsText": "Rehberinizdeki üniversite kişilerini bulup sohbet başlatmanız için. Rehberiniz sunucuya gönderilmez.",
+  "p23PrivacyShort": "Rehberiniz sunucuya gönderilmez.",
+  "p23NoneText": "Rehberindeki kişilerden uygulamayı kullanan kimse bulunamadı.",
+  "liveTrackStart": "Canlı takip et",
+  "liveTrackStop": "Canlı takibi bitir",
+  "liveTrackStarted": "Canlı takip başladı",
+  "liveTrackFailed": "Canlı takip başlatılamadı",
+  "liveTrackDisabled": "Canlı Etkinlikler kapalı. Ayarlardan açabilirsiniz.",
+  "liveLabelStartsIn": "Başlamasına",
+  "liveLabelEndsIn": "Bitmesine",
+  "liveChannelName": "Canlı güncellemeler"
 }

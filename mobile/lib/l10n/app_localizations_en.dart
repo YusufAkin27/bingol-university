@@ -13186,4 +13186,111 @@ class AppLocalizationsEn extends AppLocalizations {
   String evtLiveScanCount(String name) {
     return '$name was scanned';
   }
+
+  @override
+  String get settingsFindContacts => 'Find people from contacts';
+
+  @override
+  String get chatMiscContactsFind => 'Find people from contacts';
+
+  @override
+  String get chatMiscContactsRationale =>
+      'We need access to your contacts to find people from Bingöl University. Your contacts are never sent to the server; only hashed email addresses are matched.';
+
+  @override
+  String get chatMiscContactsSubtitle => 'People from Bingöl University';
+
+  @override
+  String get chatMiscContactsPermTitle => 'Contacts permission required';
+
+  @override
+  String get chatMiscContactsPermText =>
+      'Allow access to your contacts so we can find campus people among them.';
+
+  @override
+  String get chatMiscContactsPermAction => 'Allow';
+
+  @override
+  String get chatMiscContactsNoneTitle => 'No matching people';
+
+  @override
+  String get chatMiscContactsNoneText =>
+      'None of your contacts use the app yet. Your friends will appear here as they join.';
+
+  @override
+  String get chatMiscContactsSearchHint => 'Search contacts';
+
+  @override
+  String get chatMiscContactsTruncated =>
+      'Hourly request limit reached; the remaining contacts will be matched later.';
+
+  @override
+  String get qa4ContactsConsentTitle => 'Findable from contacts';
+
+  @override
+  String get qa4ContactsConsentText =>
+      'Turn this setting on before finding people from your contacts. Matching is mutual: you only find people who also turned it on, and they can only find you while it is on. You can turn it off any time.';
+
+  @override
+  String get qa4ContactsConsentAction => 'Turn on and continue';
+
+  @override
+  String get qa4ContactsConsentOff => 'Turn off findability from contacts';
+
+  @override
+  String get chatMiscContactsNoSearchMatch => 'No one matches your search.';
+
+  @override
+  String chatMiscContactsCount(String n) {
+    return 'PEOPLE · $n';
+  }
+
+  @override
+  String get chatMiscMessage => 'Message';
+
+  @override
+  String get chatMiscContactsPrivacy =>
+      'Your contacts are never sent to the server; only hashed email addresses are matched.';
+
+  @override
+  String get permContactsTitle => 'Contacts';
+
+  @override
+  String get permContactsText =>
+      'Needed to find Bingöl University people in your contacts and start chats. Your contacts are not sent to the server.';
+
+  @override
+  String get sistemuiPermContactsText =>
+      'To find university contacts in your address book and start chats. Your contacts are never sent to the server.';
+
+  @override
+  String get p23PrivacyShort => 'Your contacts are not sent to the server.';
+
+  @override
+  String get p23NoneText => 'None of your contacts use the app.';
+
+  @override
+  String get liveTrackStart => 'Track live';
+
+  @override
+  String get liveTrackStop => 'Stop live tracking';
+
+  @override
+  String get liveTrackStarted => 'Live tracking started';
+
+  @override
+  String get liveTrackFailed => 'Could not start live tracking';
+
+  @override
+  String get liveTrackDisabled =>
+      'Live Activities are turned off. You can enable them in Settings.';
+
+  @override
+  String get liveLabelStartsIn => 'Starts in';
+
+  @override
+  String get liveLabelEndsIn => 'Ends in';
+
+  @override
+  String get liveChannelName => 'Live updates';
 }

@@ -13064,4 +13064,112 @@ class AppLocalizationsAr extends AppLocalizations {
   String evtLiveScanCount(String name) {
     return 'تم مسح $name';
   }
+
+  @override
+  String get settingsFindContacts => 'ابحث عن أشخاص من جهات الاتصال';
+
+  @override
+  String get chatMiscContactsFind => 'ابحث عن أشخاص من جهات الاتصال';
+
+  @override
+  String get chatMiscContactsRationale =>
+      'نحتاج إلى الوصول إلى جهات الاتصال للعثور على أشخاص الجامعة بينها. لا يتم إرسال جهات الاتصال إلى الخادم، بل تتم مطابقة ملخصات البريد الإلكتروني فقط.';
+
+  @override
+  String get chatMiscContactsSubtitle => 'أشخاص من الجامعة';
+
+  @override
+  String get chatMiscContactsPermTitle => 'إذن جهات الاتصال مطلوب';
+
+  @override
+  String get chatMiscContactsPermText =>
+      'يجب منح إذن الوصول إلى جهات الاتصال حتى نتمكن من العثور على أشخاص الحرم الجامعي بينها.';
+
+  @override
+  String get chatMiscContactsPermAction => 'السماح';
+
+  @override
+  String get chatMiscContactsNoneTitle => 'لا يوجد أشخاص مطابقون';
+
+  @override
+  String get chatMiscContactsNoneText =>
+      'لم نجد أيًّا من جهات اتصالك يستخدم التطبيق. سيظهر أصدقاؤك هنا عند انضمامهم.';
+
+  @override
+  String get chatMiscContactsSearchHint => 'ابحث في الأشخاص';
+
+  @override
+  String get chatMiscContactsTruncated =>
+      'تم بلوغ حد الطلبات في الساعة؛ ستتم مطابقة بقية الأشخاص لاحقًا.';
+
+  @override
+  String get qa4ContactsConsentTitle => 'يمكن العثور عليّ عبر جهات الاتصال';
+
+  @override
+  String get qa4ContactsConsentText =>
+      'فعّل هذا الخيار أولاً للعثور على الأشخاص من جهات اتصالك. المطابقة متبادلة: لا تجد إلا من فعّلوا الخيار أيضًا، ولا يجدك غيرك إلا عند تفعيله. يمكنك إيقافه في أي وقت.';
+
+  @override
+  String get qa4ContactsConsentAction => 'تفعيل ومتابعة';
+
+  @override
+  String get qa4ContactsConsentOff =>
+      'إيقاف إمكانية العثور عليّ عبر جهات الاتصال';
+
+  @override
+  String get chatMiscContactsNoSearchMatch => 'لا يوجد أشخاص مطابقون لبحثك.';
+
+  @override
+  String chatMiscContactsCount(String n) {
+    return '$n شخص';
+  }
+
+  @override
+  String get chatMiscMessage => 'رسالة';
+
+  @override
+  String get chatMiscContactsPrivacy =>
+      'لا يتم إرسال جهات الاتصال إلى الخادم، بل تتم مطابقة ملخصات البريد الإلكتروني فقط.';
+
+  @override
+  String get permContactsTitle => 'جهات الاتصال';
+
+  @override
+  String get permContactsText =>
+      'مطلوب للعثور على أشخاص الجامعة في جهات اتصالك وبدء المحادثات. لا يتم إرسال جهات اتصالك إلى الخادم.';
+
+  @override
+  String get sistemuiPermContactsText =>
+      'للعثور على جهات اتصال الجامعة في دفتر العناوين وبدء المحادثات. لا يتم إرسال جهات اتصالك إلى الخادم.';
+
+  @override
+  String get p23PrivacyShort => 'لا تُرسل جهات اتصالك إلى الخادم.';
+
+  @override
+  String get p23NoneText => 'لم يُعثر على أحد من جهات اتصالك يستخدم التطبيق.';
+
+  @override
+  String get liveTrackStart => 'تتبع مباشر';
+
+  @override
+  String get liveTrackStop => 'إيقاف التتبع المباشر';
+
+  @override
+  String get liveTrackStarted => 'بدأ التتبع المباشر';
+
+  @override
+  String get liveTrackFailed => 'تعذر بدء التتبع المباشر';
+
+  @override
+  String get liveTrackDisabled =>
+      'الأنشطة المباشرة متوقفة. يمكنك تفعيلها من الإعدادات.';
+
+  @override
+  String get liveLabelStartsIn => 'يبدأ خلال';
+
+  @override
+  String get liveLabelEndsIn => 'ينتهي خلال';
+
+  @override
+  String get liveChannelName => 'التحديثات المباشرة';
 }

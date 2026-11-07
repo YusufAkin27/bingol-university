@@ -88,6 +88,8 @@ class MainActivity : FlutterActivity() {
         // Cihaz takvimine yazma ve Saat uygulamasina alarm (lib/core/platform/device_calendar.dart, device_alarm.dart).
         BuCalendar.register(messenger, this)
         BuAlarm.register(messenger, this)
+        // Android 16 Canli Guncellemeler / eski surumde standart ilerleme bildirimi (lib/core/live).
+        BuLiveUpdates.register(messenger, this)
         // Video kirpma (yeniden kodlamadan, MediaExtractor + MediaMuxer): lib/core/platform/video_trim.dart.
         BuVideoTrim.register(messenger, this)
         // Bildirim ayarlari: kanal ayar sayfasi, uygulama bildirim ayari, onizleme gizleme (lib/core/platform/notif_settings.dart).
