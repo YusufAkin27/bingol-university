@@ -113,9 +113,10 @@ class AttendanceTicketTest {
         assertEquals("INVALID_CODE", assertThrows(ApiException.class, () -> svc.scan(organizer, 5L, good + "x", now)).code());
         String otherUser = good.replace("5.1.", "5.2.");
         assertEquals("INVALID_CODE", assertThrows(ApiException.class, () -> svc.scan(organizer, 5L, otherUser, now)).code());
-        // etkinlik penceresi disi
+        // etkinlik penceresi disi: sahip yoklamayi ACMADIYSA kapali (sahip actiysa pencere uygulanmaz)
+        event.setAttendanceOpen(false);
         String early = codes.generateTicket(5, 1, start.minus(Duration.ofHours(3)));
-        assertEquals("CHECKIN_CLOSED", assertThrows(ApiException.class,
+        assertEquals("ATTENDANCE_NOT_OPEN", assertThrows(ApiException.class,
                 () -> svc.scan(organizer, 5L, early, start.minus(Duration.ofHours(3)))).code());
         verify(attendance, never()).saveAndFlush(any());
     }
