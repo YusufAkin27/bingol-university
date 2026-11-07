@@ -272,9 +272,13 @@ class AttendanceQaTest {
         UserEvent e = new UserEvent();
         e.setId(5L);
         e.setTitle("Konferans");
+        e.setStatus(UserEvent.Status.ACTIVE);
+        e.setEndsAt(Instant.parse("2030-01-01T00:00:00Z")); // hatirlatma: etkinlik guncel (aktif, bitmemis)
         UserEvent e2 = new UserEvent();
         e2.setId(6L);
         e2.setTitle("Panel");
+        e2.setStatus(UserEvent.Status.ACTIVE);
+        e2.setEndsAt(Instant.parse("2030-01-01T00:00:00Z")); // hatirlatma: etkinlik guncel (aktif, bitmemis)
         EventRsvp a = new EventRsvp(5L, 11L, EventRsvp.Status.GOING);
         a.setId(1L);
         EventRsvp b = new EventRsvp(6L, 12L, EventRsvp.Status.GOING);
@@ -308,6 +312,8 @@ class AttendanceQaTest {
         e.setId(5L);
         e.setTitle("Konferans");
         e.setLocation("Salon A");
+        e.setStatus(UserEvent.Status.ACTIVE);
+        e.setEndsAt(Instant.parse("2030-01-01T00:00:00Z")); // hatirlatma: etkinlik guncel (aktif, bitmemis)
         EventRsvp a = new EventRsvp(5L, 11L, EventRsvp.Status.GOING);
         a.setId(1L);
         when(repo.hourCandidates(any(), any(), any(), any(), any())).thenReturn(List.<Object[]>of(new Object[] {a, e}));
