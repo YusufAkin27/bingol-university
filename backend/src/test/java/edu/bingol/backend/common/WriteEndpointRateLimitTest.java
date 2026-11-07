@@ -144,7 +144,7 @@ class WriteEndpointRateLimitTest {
 
         c.follow(5L);
         verify(limiter).check("follow:1", 60, Duration.ofMinutes(1));
-        verify(limiter).check("follow-day:1", 500, Duration.ofDays(1));
+        verify(limiter).check("follow-hour:1", 100, Duration.ofHours(1));
 
         org.mockito.Mockito.clearInvocations(service);
         exhausted();

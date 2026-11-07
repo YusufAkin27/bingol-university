@@ -32,7 +32,7 @@ public class FollowController {
     public FollowResult follow(@PathVariable Long id) {
         Long uid = CurrentUser.id();
         limiter.check("follow:" + uid, 60, Duration.ofMinutes(1));
-        limiter.check("follow-day:" + uid, 500, Duration.ofDays(1)); // toplu takip/bildirim istismari (T-060)
+        limiter.check("follow-hour:" + uid, 100, Duration.ofHours(1)); // toplu takip/bildirim istismari (T-060); kullanici karari 2026-11-07: saatte 100, asilinca en gec 1 saat sonra yenilenir (eski 500/gun ~12 saat kilitliyordu)
         return service.follow(uid, id);
     }
 
