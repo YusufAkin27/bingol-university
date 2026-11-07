@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import '../saved/muted_items_page.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/push/push_health.dart';
@@ -651,6 +652,20 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
           ),
         ));
     }
+    // Sessize alınan kulüp / etkinlikler (özet + liste sayfası).
+    children
+      ..add(const SizedBox(height: 24))
+      ..add(KeyedSubtree(
+        key: const ValueKey('prefs-muted'),
+        child: _card(
+          child: _PrefRow(
+            title: l.mutedRowTitle,
+            sub: l.mutedRowSub,
+            trailing: _chevron(),
+            onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(settings: const RouteSettings(name: 'muted_items'), builder: (_) => MutedItemsPage(session: widget.session))),
+          ),
+        ),
+      ));
     // Sistem ve güvenlik: ses/titreşim/kategori cihaz ayarlarındadır; güvenlik bildirimleri tercihlerden bağımsızdır.
     children
       ..add(_section(l.notif2SystemSection))

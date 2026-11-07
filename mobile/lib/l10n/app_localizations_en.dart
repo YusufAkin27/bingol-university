@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -668,7 +669,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown) {
+    String type,
+    String title,
+    String date,
+    String countdown,
+  ) {
     return '$type: $title. $date. $countdown. Tap to edit.';
   }
 
@@ -987,7 +992,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end) {
+    String name,
+    String day,
+    String start,
+    String end,
+  ) {
     return '$name, $day from $start to $end';
   }
 
@@ -13532,4 +13541,212 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get menuRemPermNeeded =>
       'Notification permission is needed for the reminder.';
+
+  @override
+  String get searchForum => 'Forum';
+
+  @override
+  String get icerikGroupForum => 'FORUM';
+
+  @override
+  String get searchSuggestionsLabel => 'Search suggestions';
+
+  @override
+  String searchForumLikes(String n) {
+    return '$n likes';
+  }
+
+  @override
+  String get svTitle => 'Saved';
+
+  @override
+  String get svFilterAll => 'All';
+
+  @override
+  String get svFilterNews => 'News';
+
+  @override
+  String get svFilterEvents => 'Events';
+
+  @override
+  String get svFilterClubs => 'Clubs';
+
+  @override
+  String get svFilterPolls => 'Polls';
+
+  @override
+  String get svFilterPosts => 'Posts';
+
+  @override
+  String get svFilterForum => 'Forum';
+
+  @override
+  String get svEmptyTitle => 'Nothing saved yet';
+
+  @override
+  String get svEmptyBody =>
+      'Use the bookmark icon on news, events, clubs, polls, posts and forum topics to save them.';
+
+  @override
+  String get svEmptyFilterTitle => 'Nothing saved of this type';
+
+  @override
+  String get svEmptyFilterBody =>
+      'Pick another type or save something of this type.';
+
+  @override
+  String get svErrorTitle => 'Could not load saved items';
+
+  @override
+  String get svRemoved => 'Removed from saved';
+
+  @override
+  String get svRemoveAction => 'Remove from saved';
+
+  @override
+  String get svOpenFailed => 'This content can no longer be opened';
+
+  @override
+  String get svSave => 'Save';
+
+  @override
+  String get svUnsave => 'Remove from saved';
+
+  @override
+  String get svSavedToast => 'Saved';
+
+  @override
+  String get svTypeNews => 'News';
+
+  @override
+  String get svTypeEvent => 'Event';
+
+  @override
+  String get svTypeCommunity => 'Club';
+
+  @override
+  String get svTypePoll => 'Poll';
+
+  @override
+  String get svTypeAcademic => 'Academic';
+
+  @override
+  String get svTypePost => 'Post';
+
+  @override
+  String get svTypeTopic => 'Forum topic';
+
+  @override
+  String get svTypeComment => 'Forum comment';
+
+  @override
+  String get svMenuRow => 'Saved';
+
+  @override
+  String get muteAction => 'Mute notifications';
+
+  @override
+  String get muteActionOff => 'Unmute notifications';
+
+  @override
+  String get muteOnToast => 'Notifications muted';
+
+  @override
+  String get muteOffToast => 'Notifications turned on';
+
+  @override
+  String get muteCriticalNote =>
+      'Important notifications such as cancellations, approvals, role and attendance changes still arrive even when muted.';
+
+  @override
+  String get mutedRowTitle => 'Muted';
+
+  @override
+  String get mutedRowSub => 'Clubs and events you muted';
+
+  @override
+  String get mutedClubs => 'Clubs';
+
+  @override
+  String get mutedEvents => 'Events';
+
+  @override
+  String get mutedEmptyTitle => 'You have not muted anything';
+
+  @override
+  String get mutedEmptyBody =>
+      'Use the menu on a club or event page to mute its notifications.';
+
+  @override
+  String get mutedErrorTitle => 'Could not load the list';
+
+  @override
+  String get mutedUnmute => 'Unmute';
+
+  @override
+  String mutedClubFallback(String id) {
+    return 'Club $id';
+  }
+
+  @override
+  String mutedEventFallback(String id) {
+    return 'Event $id';
+  }
+
+  @override
+  String get reportsMineTitle => 'My reports';
+
+  @override
+  String get reportsMineSub => 'Status of the reports you sent';
+
+  @override
+  String get reportsMineNote => 'For privacy only the general status is shown.';
+
+  @override
+  String get reportsStatusOpen => 'Open';
+
+  @override
+  String get reportsStatusResolved => 'Resolved';
+
+  @override
+  String get reportsEmptyTitle => 'You have not reported anything';
+
+  @override
+  String get reportsEmptyBody =>
+      'When you report content, its general status appears here.';
+
+  @override
+  String get reportsErrorTitle => 'Could not load reports';
+
+  @override
+  String reportsResolvedOn(String date) {
+    return 'Resolved: $date';
+  }
+
+  @override
+  String get reportsTypeUser => 'User';
+
+  @override
+  String get reportsTypeMessage => 'Message';
+
+  @override
+  String get reportsTypePost => 'Post';
+
+  @override
+  String get reportsTypeCommunity => 'Club';
+
+  @override
+  String get reportsTypeEvent => 'Event';
+
+  @override
+  String get reportsTypeTopic => 'Forum topic';
+
+  @override
+  String get reportsTypeComment => 'Forum comment';
+
+  @override
+  String get reportsTypeOther => 'Content';
+
+  @override
+  String get reportsReasonPersonalInfo => 'Sharing personal information';
 }

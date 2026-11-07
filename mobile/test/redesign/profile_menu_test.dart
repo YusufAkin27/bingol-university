@@ -11,6 +11,7 @@ import 'package:bu_kampus/features/profile/profile_menu_page.dart';
 import 'package:bu_kampus/features/profile/profile_tab.dart';
 import 'package:bu_kampus/features/profile/profil_widgets.dart' show ProfilRow;
 import 'package:bu_kampus/features/profile/saved_news_page.dart';
+import 'package:bu_kampus/features/saved/saved_items_page.dart';
 import 'package:bu_kampus/features/profile/settings_page.dart';
 import 'package:bu_kampus/features/support/support_page.dart';
 import 'package:flutter/material.dart';
@@ -134,6 +135,7 @@ void main() {
     final targets = <String, (String, Type)>{
       'menu-my-posts': ('Gönderilerim', UserPostsPage),
       'menu-saved': ('Kayıtlı haberler', SavedNewsPage),
+      'menu-saved-all': ('Kaydedilenler', SavedItemsPage),
       'menu-my-clubs': ('Kulüplerim', MyClubsPage),
       'menu-my-events': ('Etkinliklerim', MyEventsPage),
       'menu-academic': ('Akademik', AcademicHubPage),
@@ -148,6 +150,11 @@ void main() {
         await tester.pumpWidget(buildApp(_tab(_backend()), size: kPhoneMedium));
         await settle(tester, const Duration(seconds: 1));
         await _openMenu(tester);
+        // Menüye "Kaydedilenler" satırı eklendi: ekran dışına taşan alt satırlar önce kaydırılır.
+        if (tester.getCenter(find.byKey(ValueKey(e.key))).dy > 780) {
+          await tester.drag(find.descendant(of: find.byType(ProfileMenuPage), matching: find.byType(ListView)), const Offset(0, -300));
+          await tester.pump();
+        }
         await tester.tap(find.byKey(ValueKey(e.key)));
         await settle(tester, const Duration(seconds: 1));
         expect(find.byType(e.value.$2), findsOneWidget);
