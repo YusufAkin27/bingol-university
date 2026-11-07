@@ -130,7 +130,8 @@ List<Map<String, dynamic>> _calendar() {
       'source': 'USER',
       'title': _longTitle,
       'startsAt': _iso(s),
-      'endsAt': _iso(s.add(const Duration(hours: 1))),
+      // Gün sonuna kadar sürer: test saatten bağımsız olsun (biten etkinlik liste/takvimden gizlenir).
+      'endsAt': _iso(DateTime(now.year, now.month, now.day, 23, 59)),
       'location': 'Büyük Salon $_longWord',
       'communityName': 'Robotik Topluluğu',
       'goingCount': 4,
