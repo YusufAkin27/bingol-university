@@ -5,10 +5,7 @@ import 'package:bu_kampus/features/chat/chat_background_settings_page.dart';
 import 'package:bu_kampus/features/chat/chat_detail_page.dart';
 import 'package:bu_kampus/features/chat/chat_tab.dart';
 import 'package:bu_kampus/features/chat/chat_wallpaper.dart';
-import 'package:bu_kampus/features/chat/contacts_match_page.dart';
 import 'package:bu_kampus/features/chat/new_chat_page.dart';
-import 'package:bu_kampus/core/contacts/contacts_service.dart';
-import 'package:bu_kampus/core/permissions/permission_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -90,7 +87,6 @@ void main() {
   setUp(() {
     MessageCache.instance = MessageCache.memoryOnly();
     ChatBackgroundPrefs.debugReset();
-    ContactsMatcher.resetLimiter();
   });
 
   // ---------------------------------------------------------------- hata/durum matrisi
@@ -352,77 +348,17 @@ void main() {
     });
   });
 
-  // ---------------------------------------------------------------- yeni sohbet / rehber
-  group('Yeni sohbet ve rehber durumlari', () {
-    testWidgets('yeni sohbet: arama kutusu + Yeni grup + rehber girisi gorunur, hata yok', (tester) async {
+  // ---------------------------------------------------------------- yeni sohbet
+  group('Yeni sohbet durumlari', () {
+    testWidgets('yeni sohbet: arama kutusu + Yeni grup gorunur, hata yok', (tester) async {
       final be = FakeBackend()..on('/users/search*', {'items': <Object>[], 'nextCursor': null});
       await _pump(tester, NewChatPage(session: makeSession(be)));
       expect(find.text('Yeni grup'), findsOneWidget);
-      expect(find.text('Rehberden kişi bul'), findsWidgets);
+      expect(find.text('Rehberden kişi bul'), findsNothing);
       _clean(tester);
       await unmount(tester);
     });
 
-    testWidgets('rehber: riza karti -> Ac ve devam et -> eslesme -> Mesaj -> sohbet baslar (tam akis)', (tester) async {
-      final be = FakeBackend()
-        ..on('/users/contacts/discoverable', {'enabled': false})
-        ..on('/users/contacts/match', {
-          'matches': [
-            {'hash': emailHash('veli@bingol.edu.tr'), 'userId': 7, 'displayName': 'Veli Demir', 'faculty': 'Mühendislik Fakültesi'}
-          ]
-        })
-        ..on('/conversations', {'id': 5, 'type': 'DIRECT', 'title': 'Veli Demir', 'peer': {'id': 7, 'displayName': 'Veli Demir'}})
-        ..on('/conversations/5/messages*', {'items': <Object>[], 'nextCursor': null})
-        ..on('/conversations/5', {'conversation': {'id': 5}, 'members': <Object>[]});
-      final s = makeSession(be);
-      final page = ContactsMatchPage(
-          session: s,
-          provider: _Contacts(['veli@bingol.edu.tr']),
-          permissions: FakePermissionService(initial: {AppPermission.contacts: PermState.granted}));
-      await _pump(tester, page);
-      expect(find.text('Aç ve devam et'), findsOneWidget);
-      be.on('/users/contacts/discoverable', {'enabled': true});
-      await tester.tap(find.text('Aç ve devam et'));
-      await settle(tester, const Duration(seconds: 1));
-      expect(find.text('Veli Demir'), findsOneWidget);
-      await tester.tap(find.text('Mesaj'));
-      await settle(tester, const Duration(seconds: 1));
-      expect(be.bodies['POST /conversations'], {'userId': 7});
-      expect(find.byType(ChatDetailPage), findsOneWidget);
-      await unmount(tester);
-    });
-
-    for (final f in failures.entries) {
-      testWidgets('rehber: discoverable ${f.key} -> hata + Yeniden dene', (tester) async {
-        final be = FakeBackend();
-        f.value(be, '/users/contacts/discoverable');
-        await _pump(
-            tester,
-            ContactsMatchPage(
-                session: makeSession(be),
-                provider: _Contacts(['a@b.com']),
-                permissions: FakePermissionService(initial: {AppPermission.contacts: PermState.granted})),
-            ms: 1500);
-        expect(find.text('Yeniden dene'), findsOneWidget, reason: f.key);
-        _clean(tester);
-        await unmount(tester);
-      });
-    }
-
-    testWidgets('rehber izni reddedildi (kalici): izin karti, rehber okunmaz', (tester) async {
-      final be = FakeBackend()..on('/users/contacts/discoverable', {'enabled': true});
-      final provider = _Contacts(['a@b.com']);
-      await _pump(
-          tester,
-          ContactsMatchPage(
-              session: makeSession(be),
-              provider: provider,
-              permissions: FakePermissionService(initial: {AppPermission.contacts: PermState.permanentlyDenied})),
-          ms: 900);
-      expect(provider.reads, 0);
-      _clean(tester);
-      await unmount(tester);
-    });
   });
 
   // ---------------------------------------------------------------- arka plan ayarlari
@@ -509,16 +445,6 @@ void main() {
           scaffold: false,
           settleMs: 800);
     });
-    testWidgets('ContactsMatchPage (riza karti)', (tester) async {
-      await p00Matrix(
-          tester,
-          () => ContactsMatchPage(
-              session: makeSession(FakeBackend()..on('/users/contacts/discoverable', {'enabled': false})),
-              provider: _Contacts(['a@b.com']),
-              permissions: FakePermissionService(initial: {AppPermission.contacts: PermState.granted})),
-          scaffold: false,
-          settleMs: 800);
-    });
     testWidgets('ChatBackgroundSettingsPage', (tester) async {
       await p00Matrix(tester, () => const ChatBackgroundSettingsPage(), scaffold: false, settleMs: 600);
     });
@@ -530,14 +456,3 @@ void main() {
   });
 }
 
-class _Contacts implements ContactsProvider {
-  _Contacts(this.emails);
-  final List<String> emails;
-  int reads = 0;
-
-  @override
-  Future<List<String>> readEmails() async {
-    reads++;
-    return emails;
-  }
-}

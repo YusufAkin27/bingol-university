@@ -67,7 +67,6 @@ flutter build apk --release --target-platform android-arm64 `
 |---|---|
 | `INTERNET` | API, WebSocket, görseller |
 | `POST_NOTIFICATIONS` | Push bildirimi (Android 13+) |
-| `READ_CONTACTS` | Rehber eşleştirme (yalnız e-posta özetleri/hash sunucuya gider) |
 | `CAMERA` | QR yoklama, fotoğraf/video çekimi |
 | `RECORD_AUDIO` | Video/ses kaydı |
 | `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO` | Sohbet galeri seçici ve Paylaş (+) galeri seçici (Android 13+) |
@@ -86,7 +85,7 @@ Toplanan/paylaşılan veriler (hepsi aktarımda şifreli, HTTPS; hesap silme uyg
 - Kişisel bilgiler: ad-soyad, e-posta (bingol.edu.tr), okul numarası, bölüm; profil fotoğrafı.
 - Mesajlar: sohbet mesajları ve gönderilen fotoğraf/video (sunucuda zarf şifreleme ile saklanır).
 - Fotoğraf ve videolar: kullanıcının seçtiği/çektiği içerikler (gönderi, sohbet, profil).
-- Kişiler: rehberden yalnızca e-posta özetleri (hash) eşleştirme için gönderilir, saklanmaz; ham rehber sunucuya gitmez.
+- Kişiler/rehber: uygulama rehbere erişmez (`READ_CONTACTS` yok; rehber eşleştirme özelliği kaldırıldı).
 - Uygulama etkinliği/analitik: toplulaştırılmış kullanım olayları (180 gün), çökme türü (içerik/kişisel veri yok).
 - Cihaz veya diğer kimlikler (**"Device or other IDs" işaretlenir**): (1) **FCM bildirim belirteci** (+ platform, uygulama sürümü, dil); (2) **uygulama-özel rastgele cihaz tanımlayıcısı**: mobil, ilk açılışta ürettiği rastgele UUID'yi (Keychain/Keystore'da durur; IMEI/ANDROID_ID/reklam kimliği OKUNMAZ) her istekte `X-Device-Id` başlığı ve STOMP `device-id` ile gönderir. Amaç yalnızca güvenlik: kötüye kullanım önleme ve yasaklı kullanıcıların cihaz engelini dolanmasını engelleme (`accessban`). Sunucu ham değeri saklamaz; HMAC-SHA256 özetini (`ClientContexts`) `user_device_log` tablosunda **90 gün** tutar. Reklam/izleme/analitik amacıyla kullanılmaz, üçüncü taraflarla paylaşılmaz. Data Safety: Veri türü "Device or other IDs" = toplanır, paylaşılmaz, amaç "Fraud prevention, security, and compliance" (+ bildirimler için "App functionality"); zorunlu (kullanıcı kapatamaz). Apple App Privacy'de de "Device ID" = "Not linked to tracking", amaç "App functionality / security" olarak beyan edilir ve gizlilik politikasında anılır (bkz. `docs/legal/privacy_tr.md` bölüm 6).
 - Konum: **toplanmaz** (izin kaldırıldı).
@@ -98,7 +97,7 @@ Mağaza gereksinimleri: hedef API 36 (karşılanıyor); 64-bit (arm64-v8a, AAB x
 
 - `google-services.json` git'te değildir; derleme makinesinde `mobile/android/app/google-services.json` bulunmalı, aksi halde push kapalı derlenir (uyarı basılır).
 - Firebase, video_compress, photo_manager eklentileri Kotlin Gradle Plugin uyguluyor; Flutter ileride "built-in Kotlin" zorunlu kılacak (derleme uyarısı).
-- Gerçek cihaz/R8 testi: üretim APK'sı kurulduktan sonra giriş, sohbet (STOMP), QR tarama, video seçip sıkıştırma, rehber eşleştirme, push alma elle denenmelidir (R8 yansıma çökmeleri ancak çalışırken görülür).
+- Gerçek cihaz/R8 testi: üretim APK'sı kurulduktan sonra giriş, sohbet (STOMP), QR tarama, video seçip sıkıştırma, push alma elle denenmelidir (R8 yansıma çökmeleri ancak çalışırken görülür).
 - Flutter test paketinde (visual_a erişilebilirlik) önceden var olan dokunma hedefi (44dp) hataları vardır; bu belgedeki değişikliklerle ilgili değildir.
 
 ## 8. Upload keystore, Play App Signing ve kapalı test (MOB1)
@@ -138,7 +137,7 @@ Doğrulananlar:
 - Canlı uçlar (salt-okur, `Accept-Language`, `X-Device-Id` ile): `GET /api/status`, `/api/app/version?platform=android&version=1.0.0`, `/api/app/info`, `/api/menu/today` = 200; `wss://bukampus.com.tr/ws` WebSocket yükseltmesi 101 döndü.
 - `flutter analyze`: sorun yok; `flutter test`: 3300 test geçti (hata yok).
 
-**Doğrulanmadı:** APK'nın gerçek bir telefonda/emülatörde çalıştırılması (giriş, sohbet, QR, video sıkıştırma, rehber, R8 yansıma çökmeleri), gerçek push alımı, AAB'nin Play'e yüklenmesi.
+**Doğrulanmadı:** APK'nın gerçek bir telefonda/emülatörde çalıştırılması (giriş, sohbet, QR, video sıkıştırma, R8 yansıma çökmeleri), gerçek push alımı, AAB'nin Play'e yüklenmesi.
 
 Derleme notları: `--split-debug-info` yolu ASCII olmalıdır (aksi halde "Unable to write file ... app.android-arm.symbols"); `key.properties` yolunda Türkçe karakter UTF-8 okunur (build.gradle.kts). `mobile/android/build/` yerel Gradle çıktısıdır, commit'lenmez.
 

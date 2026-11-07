@@ -82,7 +82,7 @@ public class User {
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
 
-    /** Rehber eslestirme icin e-postanin SHA-256'si; kayitta/guncellemede otomatik, silinmis hesapta null. */
+    /** E-postanin SHA-256'si (e-posta bastirma eslemesi icin; rehber eslestirme kaldirildi); kayitta/guncellemede otomatik, silinmis hesapta null. */
     @Column(length = 64)
     @com.fasterxml.jackson.annotation.JsonIgnore
     private String emailSha256;

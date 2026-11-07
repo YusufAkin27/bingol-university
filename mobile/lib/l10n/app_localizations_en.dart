@@ -221,9 +221,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsShowEmail => 'Show my email to others';
 
   @override
-  String get settingsFindContacts => 'Find people from contacts';
-
-  @override
   String get settingsPrivacyData => 'Privacy and data';
 
   @override
@@ -2124,68 +2121,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatMiscEdited => 'edited';
 
   @override
-  String get chatMiscContactsFind => 'Find people from contacts';
-
-  @override
-  String get chatMiscContactsRationale =>
-      'We need access to your contacts to find people from Bingöl University. Your contacts are never sent to the server; only hashed email addresses are matched.';
-
-  @override
-  String get chatMiscContactsSubtitle => 'People from Bingöl University';
-
-  @override
-  String get chatMiscContactsPermTitle => 'Contacts permission required';
-
-  @override
-  String get chatMiscContactsPermText =>
-      'Allow access to your contacts so we can find campus people among them.';
-
-  @override
-  String get chatMiscContactsPermAction => 'Allow';
-
-  @override
-  String get chatMiscContactsNoneTitle => 'No matching people';
-
-  @override
-  String get chatMiscContactsNoneText =>
-      'None of your contacts use the app yet. Your friends will appear here as they join.';
-
-  @override
-  String get chatMiscContactsSearchHint => 'Search contacts';
-
-  @override
-  String get chatMiscContactsTruncated =>
-      'Hourly request limit reached; the remaining contacts will be matched later.';
-
-  @override
-  String get qa4ContactsConsentTitle => 'Findable from contacts';
-
-  @override
-  String get qa4ContactsConsentText =>
-      'Turn this setting on before finding people from your contacts. Matching is mutual: you only find people who also turned it on, and they can only find you while it is on. You can turn it off any time.';
-
-  @override
-  String get qa4ContactsConsentAction => 'Turn on and continue';
-
-  @override
-  String get qa4ContactsConsentOff => 'Turn off findability from contacts';
-
-  @override
-  String get chatMiscContactsNoSearchMatch => 'No one matches your search.';
-
-  @override
-  String chatMiscContactsCount(String n) {
-    return 'PEOPLE · $n';
-  }
-
-  @override
-  String get chatMiscMessage => 'Message';
-
-  @override
-  String get chatMiscContactsPrivacy =>
-      'Your contacts are never sent to the server; only hashed email addresses are matched.';
-
-  @override
   String get chatMiscGroupMax => 'A group can have at most 50 people.';
 
   @override
@@ -3330,13 +3265,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get permNotificationsText =>
       'Get instant alerts about messages, events and announcements.';
-
-  @override
-  String get permContactsTitle => 'Contacts';
-
-  @override
-  String get permContactsText =>
-      'Needed to find Bingöl University people in your contacts and start chats. Your contacts are not sent to the server.';
 
   @override
   String get permCameraTitle => 'Camera';
@@ -7408,10 +7336,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'To get instant updates about messages, events and announcements.';
 
   @override
-  String get sistemuiPermContactsText =>
-      'To find university contacts in your address book and start chats. Your contacts are never sent to the server.';
-
-  @override
   String get sistemuiPermCameraTitle => 'Camera and gallery';
 
   @override
@@ -9635,9 +9559,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p23MinTwo => 'At least 2 people';
 
   @override
-  String get p23PrivacyShort => 'Your contacts are not sent to the server.';
-
-  @override
   String get p26OnceCaption => 'You can view this photo only once.';
 
   @override
@@ -10065,9 +9986,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p23GroupNameHint => 'E.g. Engineering Project Team...';
-
-  @override
-  String get p23NoneText => 'None of your contacts use the app.';
 
   @override
   String p09GradeYear(String n) {

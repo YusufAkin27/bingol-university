@@ -683,26 +683,11 @@ Katılımcı önizlemesi için `GET /api/events/{id}/attendees/preview` çağrı
 - **RSVP** `PUT /api/events/{id}/rsvp {"status":"GOING"|"INTERESTED"}` ("Katılıyorum" = `GOING`); katılımcı listesine (`GET .../attendees`, organizatör) girer ve "Etkinliklerim"de görünür. Geri çekme `DELETE .../rsvp`. Sınır: kullanıcı başına dakikada 30 (genel) ve **aynı etkinlikte dakikada 5 değişiklik** (PUT+DELETE toplam); aşımda `429` + `Retry-After`.
 - **Etkinliklerim** `GET /api/me/events?mode=&cursor=&size=` (takma ad: `GET /api/events/me`), imleçli (`cursor` = son kaydın `id`'si): `mode=upcoming` yaklaşan/süren, RSVP'lim (GOING+INTERESTED) + oluşturduklarım; `going` yaklaşan, yalnız GOING; `past` bitmiş, RSVP'lim + oluşturduklarım, yeniden eskiye; `created` oluşturduklarım (iptaller hariç, `id` azalan; bekleyen onaylılar dahil). Eski adlar: `attending` (varsayılan; yaklaşan RSVP'liler) ve `organizing` (= `created`). Bilinmeyen mod `attending` gibi davranır.
 
-## Rehber eşleştirme
+## Rehber eşleştirme (KALDIRILDI)
 
-Kullanıcı rehberindeki e-posta adreslerinden uygulamadaki (bingol.edu.tr) kişileri bulur. Ham e-posta sunucuya gönderilmez.
-
-`POST /api/users/contacts/match` (kimlik doğrulamalı)
-
-```json
-{"hashes":["<sha256 hex, küçük harf>", "..."]}
-```
-
-- Her hash: e-posta adresinin kırpılıp küçük harfe çevrilmiş halinin SHA-256'sı (UTF-8), 64 karakterli hex.
-- En çok 500 hash; fazlası `400 CONTACTS_TOO_MANY`. Yinelenen veya biçimi bozuk değerler sessizce yok sayılır.
-- Yanıt: `{"matches":[{"hash":"…","userId":12,"displayName":"…","avatarUrl":"/files/avatars/…"|null,"faculty":null,"department":null}]}`
-  (eşleşmeyen hash yanıtta yer almaz).
-- Yalnızca aktif, doğrulanmış, bingol.edu.tr (alt alanlar dahil) hesaplar; kendi hesabın ve engel ilişkisi (iki yönlü) olanlar gelmez.
-  Avatar, fakülte ve bölüm karşı tarafın gizlilik ayarına göre `null` olabilir.
-- Rate limit: kullanıcı başına saatte 6, IP başına saatte 30 istek; aşımda `429` + `Retry-After`.
-- Sunucu hash'leri ve sonuçları saklamaz/loglamaz. İstemci de rehberi yalnızca eşleştirme sırasında bellekte tutmalıdır;
-  rehber izni kullanıcıdan açıkça istenmelidir.
-
+Rehber eşleştirme özelliği (`POST /api/users/contacts/match`, `GET|PUT /api/users/contacts/discoverable`) ve ona bağlı hata kodları
+(`CONTACTS_TOO_MANY`, `CONTACTS_DISCOVERABLE_REQUIRED`) kaldırılmıştır; uygulama rehbere erişmez, telefon numarası istemez.
+Kişi bulmak için ad/kullanıcı adı/bölüm ile kullanıcı arama (`GET /api/users/search`) kullanılır. Ayrıntı: `docs/changes/profile.md`.
 
 ## Gönderiler (Keşfet akışı)
 Tek sözleşme: [POSTS_DESIGN.md](POSTS_DESIGN.md); değişiklik notu: `docs/changes/post.md`. Tüm uçlar Bearer ister.

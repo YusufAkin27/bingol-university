@@ -222,9 +222,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsShowEmail => 'إظهار بريدي الإلكتروني للآخرين';
 
   @override
-  String get settingsFindContacts => 'ابحث عن أشخاص من جهات الاتصال';
-
-  @override
   String get settingsPrivacyData => 'الخصوصية والبيانات';
 
   @override
@@ -2109,69 +2106,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatMiscEdited => 'تم التعديل';
 
   @override
-  String get chatMiscContactsFind => 'ابحث عن أشخاص من جهات الاتصال';
-
-  @override
-  String get chatMiscContactsRationale =>
-      'نحتاج إلى الوصول إلى جهات الاتصال للعثور على أشخاص الجامعة بينها. لا يتم إرسال جهات الاتصال إلى الخادم، بل تتم مطابقة ملخصات البريد الإلكتروني فقط.';
-
-  @override
-  String get chatMiscContactsSubtitle => 'أشخاص من الجامعة';
-
-  @override
-  String get chatMiscContactsPermTitle => 'إذن جهات الاتصال مطلوب';
-
-  @override
-  String get chatMiscContactsPermText =>
-      'يجب منح إذن الوصول إلى جهات الاتصال حتى نتمكن من العثور على أشخاص الحرم الجامعي بينها.';
-
-  @override
-  String get chatMiscContactsPermAction => 'السماح';
-
-  @override
-  String get chatMiscContactsNoneTitle => 'لا يوجد أشخاص مطابقون';
-
-  @override
-  String get chatMiscContactsNoneText =>
-      'لم نجد أيًّا من جهات اتصالك يستخدم التطبيق. سيظهر أصدقاؤك هنا عند انضمامهم.';
-
-  @override
-  String get chatMiscContactsSearchHint => 'ابحث في الأشخاص';
-
-  @override
-  String get chatMiscContactsTruncated =>
-      'تم بلوغ حد الطلبات في الساعة؛ ستتم مطابقة بقية الأشخاص لاحقًا.';
-
-  @override
-  String get qa4ContactsConsentTitle => 'يمكن العثور عليّ عبر جهات الاتصال';
-
-  @override
-  String get qa4ContactsConsentText =>
-      'فعّل هذا الخيار أولاً للعثور على الأشخاص من جهات اتصالك. المطابقة متبادلة: لا تجد إلا من فعّلوا الخيار أيضًا، ولا يجدك غيرك إلا عند تفعيله. يمكنك إيقافه في أي وقت.';
-
-  @override
-  String get qa4ContactsConsentAction => 'تفعيل ومتابعة';
-
-  @override
-  String get qa4ContactsConsentOff =>
-      'إيقاف إمكانية العثور عليّ عبر جهات الاتصال';
-
-  @override
-  String get chatMiscContactsNoSearchMatch => 'لا يوجد أشخاص مطابقون لبحثك.';
-
-  @override
-  String chatMiscContactsCount(String n) {
-    return '$n شخص';
-  }
-
-  @override
-  String get chatMiscMessage => 'رسالة';
-
-  @override
-  String get chatMiscContactsPrivacy =>
-      'لا يتم إرسال جهات الاتصال إلى الخادم، بل تتم مطابقة ملخصات البريد الإلكتروني فقط.';
-
-  @override
   String get chatMiscGroupMax => 'يمكن إضافة 50 شخصًا كحد أقصى إلى المجموعة.';
 
   @override
@@ -3306,13 +3240,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get permNotificationsText =>
       'اسمح لنا بإرسال الإشعارات لتعرف فورًا بالرسائل والفعاليات والإعلانات.';
-
-  @override
-  String get permContactsTitle => 'جهات الاتصال';
-
-  @override
-  String get permContactsText =>
-      'مطلوب للعثور على أشخاص الجامعة في جهات اتصالك وبدء المحادثات. لا يتم إرسال جهات اتصالك إلى الخادم.';
 
   @override
   String get permCameraTitle => 'الكاميرا';
@@ -7352,10 +7279,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'لتصلك إشعارات فورية عن الرسائل والفعاليات والإعلانات.';
 
   @override
-  String get sistemuiPermContactsText =>
-      'للعثور على جهات اتصال الجامعة في دفتر العناوين وبدء المحادثات. لا يتم إرسال جهات اتصالك إلى الخادم.';
-
-  @override
   String get sistemuiPermCameraTitle => 'الكاميرا والمعرض';
 
   @override
@@ -9545,9 +9468,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p23MinTwo => 'شخصان على الأقل';
 
   @override
-  String get p23PrivacyShort => 'لا تُرسل جهات اتصالك إلى الخادم.';
-
-  @override
   String get p26OnceCaption => 'يمكنك مشاهدة هذه الصورة مرة واحدة فقط.';
 
   @override
@@ -9969,9 +9889,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p23GroupNameHint => 'مثال: فريق مشروع الهندسة...';
-
-  @override
-  String get p23NoneText => 'لم يُعثر على أحد من جهات اتصالك يستخدم التطبيق.';
 
   @override
   String p09GradeYear(String n) {

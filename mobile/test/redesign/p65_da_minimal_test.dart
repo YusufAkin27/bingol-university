@@ -83,7 +83,7 @@ void main() {
       await perms(tester, {});
       final buttons = tester.widgetList<BuButton>(find.byType(BuButton)).toList();
       expect(buttons.where((b) => b.kind == BuButtonKind.primary).length, 1, reason: 'yalnız alttaki Başla');
-      expect(buttons.where((b) => b.kind == BuButtonKind.outline).length, 3);
+      expect(buttons.where((b) => b.kind == BuButtonKind.outline).length, 2);
       expect(find.textContaining('Adım'), findsNothing);
       expect(find.text('Şimdi değil'), findsOneWidget, reason: 'yalnız ilk durumda');
       expect(find.text('Atla'), findsNothing);
@@ -91,7 +91,7 @@ void main() {
     });
 
     testWidgets('verildi: sağ üstte onay + Verildi; reddedildi: iki metin düğmesi; "Şimdi değil" kalkar', (tester) async {
-      await perms(tester, {AppPermission.notifications: PermState.granted, AppPermission.contacts: PermState.permanentlyDenied});
+      await perms(tester, {AppPermission.notifications: PermState.granted, AppPermission.camera: PermState.permanentlyDenied});
       expect(find.text('Verildi'), findsOneWidget);
       expect(find.text('Reddedildi'), findsOneWidget);
       expect(find.text('Tekrar dene'), findsOneWidget);
@@ -183,7 +183,7 @@ void main() {
     final pages = <String, Widget Function(Session s)>{
       'izinler': (s) => PermissionsPage(service: FakePermissionService(initial: const {}), onFinished: () {}),
       'izinler durumlu': (s) => PermissionsPage(
-            service: FakePermissionService(initial: const {AppPermission.notifications: PermState.granted, AppPermission.contacts: PermState.permanentlyDenied}),
+            service: FakePermissionService(initial: const {AppPermission.notifications: PermState.granted, AppPermission.camera: PermState.permanentlyDenied}),
             onFinished: () {},
           ),
       'yeniden onay zorunlu': (s) => LegalReacceptPage(session: s, state: reaccept(true)),

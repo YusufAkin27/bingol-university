@@ -10,7 +10,6 @@ import 'chat_detail_page.dart';
 import 'chat_new_parts.dart';
 import 'chat_security_page.dart';
 import 'chatlist_widgets.dart';
-import 'contacts_match_page.dart';
 import '../../core/academic_catalog.dart';
 
 /// Yeni sohbet: kişi ara, bir kişi seç (birebir) ya da "Yeni grup" ile birden çok kişi seç (grup). Referans 23.
@@ -256,7 +255,6 @@ class _NewChatPageState extends State<NewChatPage> {
                       _createError = null;
                     }),
                   ),
-                  ContactsEntryRow(session: widget.session),
                   const SizedBox(height: 16),
                 ],
                 ..._resultWidgets(t),

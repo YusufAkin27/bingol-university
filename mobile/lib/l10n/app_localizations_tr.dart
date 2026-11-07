@@ -221,9 +221,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get settingsShowEmail => 'E-postamı diğerlerine göster';
 
   @override
-  String get settingsFindContacts => 'Rehberden kişi bul';
-
-  @override
   String get settingsPrivacyData => 'Gizlilik ve veriler';
 
   @override
@@ -2114,68 +2111,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get chatMiscEdited => 'düzenlendi';
 
   @override
-  String get chatMiscContactsFind => 'Rehberden kişi bul';
-
-  @override
-  String get chatMiscContactsRationale =>
-      'Rehberinizdeki Bingöl Üniversitesi kişilerini bulabilmemiz için rehbere erişmemiz gerekir. Rehberiniz sunucuya gönderilmez; yalnızca e-posta özetleri eşleştirilir.';
-
-  @override
-  String get chatMiscContactsSubtitle => 'Bingöl Üniversitesi kişileri';
-
-  @override
-  String get chatMiscContactsPermTitle => 'Rehber izni gerekli';
-
-  @override
-  String get chatMiscContactsPermText =>
-      'Rehberinizdeki kampüs kişilerini bulabilmemiz için rehbere erişim izni vermeniz gerekir.';
-
-  @override
-  String get chatMiscContactsPermAction => 'İzin ver';
-
-  @override
-  String get chatMiscContactsNoneTitle => 'Eşleşen kişi yok';
-
-  @override
-  String get chatMiscContactsNoneText =>
-      'Rehberindeki kişilerden uygulamayı kullanan kimse bulunamadı. Arkadaşların katıldıkça burada görünür.';
-
-  @override
-  String get chatMiscContactsSearchHint => 'Kişilerde ara';
-
-  @override
-  String get chatMiscContactsTruncated =>
-      'Saatlik istek sınırına ulaşıldı; kalan kişiler daha sonra eşleştirilecek.';
-
-  @override
-  String get qa4ContactsConsentTitle => 'Rehberden bulunabilirim';
-
-  @override
-  String get qa4ContactsConsentText =>
-      'Rehberindeki kişileri bulmak için önce bu ayarı açman gerekir. Eşleşme karşılıklıdır: yalnız bu ayarı açmış kişileri bulursun, onlar da seni yalnız bu ayar açıkken bulabilir. İstediğin zaman kapatabilirsin.';
-
-  @override
-  String get qa4ContactsConsentAction => 'Aç ve devam et';
-
-  @override
-  String get qa4ContactsConsentOff => 'Rehberden bulunabilirliği kapat';
-
-  @override
-  String get chatMiscContactsNoSearchMatch => 'Aramanla eşleşen kişi yok.';
-
-  @override
-  String chatMiscContactsCount(String n) {
-    return '$n KİŞİ';
-  }
-
-  @override
-  String get chatMiscMessage => 'Mesaj';
-
-  @override
-  String get chatMiscContactsPrivacy =>
-      'Rehberin sunucuya gönderilmez; yalnızca e-posta özetleri eşleştirilir.';
-
-  @override
   String get chatMiscGroupMax => 'Gruba en çok 50 kişi eklenebilir.';
 
   @override
@@ -3314,13 +3249,6 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get permNotificationsText =>
       'Mesaj, etkinlik ve duyurulardan anında haberdar olmak için bildirim göndermemize izin verin.';
-
-  @override
-  String get permContactsTitle => 'Rehber';
-
-  @override
-  String get permContactsText =>
-      'Rehberinizdeki Bingöl Üniversitesi kişilerini bulup sohbet başlatabilmeniz için gerekir. Rehberiniz sunucuya gönderilmez.';
 
   @override
   String get permCameraTitle => 'Kamera';
@@ -7378,10 +7306,6 @@ class AppLocalizationsTr extends AppLocalizations {
       'Mesaj, etkinlik ve duyurulardan anında haberdar olmak için.';
 
   @override
-  String get sistemuiPermContactsText =>
-      'Rehberinizdeki üniversite kişilerini bulup sohbet başlatmanız için. Rehberiniz sunucuya gönderilmez.';
-
-  @override
   String get sistemuiPermCameraTitle => 'Kamera ve galeri';
 
   @override
@@ -9596,9 +9520,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p23MinTwo => 'En az 2 kişi';
 
   @override
-  String get p23PrivacyShort => 'Rehberiniz sunucuya gönderilmez.';
-
-  @override
   String get p26OnceCaption => 'Bu fotoğrafı yalnızca bir kez görebilirsin.';
 
   @override
@@ -10029,10 +9950,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p23GroupNameHint => 'Örn. Mühendislik Proje Ekibi...';
-
-  @override
-  String get p23NoneText =>
-      'Rehberindeki kişilerden uygulamayı kullanan kimse bulunamadı.';
 
   @override
   String p09GradeYear(String n) {

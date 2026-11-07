@@ -21,7 +21,6 @@ PermissionInfo permissionInfo(AppPermission p, [BuildContext? context]) {
   return switch (p) {
     AppPermission.notifications =>
       PermissionInfo(l.permNotificationsTitle, BuIcons.bell, l.permNotificationsText),
-    AppPermission.contacts => PermissionInfo(l.permContactsTitle, BuIcons.contact, l.permContactsText),
     AppPermission.camera => PermissionInfo(l.permCameraTitle, BuIcons.camera, l.permCameraText),
     AppPermission.microphone => PermissionInfo(l.permMicrophoneTitle, BuIcons.mic, l.permMicrophoneText),
     AppPermission.photos => PermissionInfo(l.permPhotosTitle, BuIcons.image, l.permPhotosText),

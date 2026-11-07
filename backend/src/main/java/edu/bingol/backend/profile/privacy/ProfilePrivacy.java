@@ -48,12 +48,6 @@ public class ProfilePrivacy {
     private Audience presenceAudience = Audience.SHARED_CONTEXT;
 
     /**
-     * "Rehberden bulunabilirim" (T-061, V995): acik onay, varsayilan KAPALI. Kapaliyken rehber eslestirmede ne
-     * bulunur ne de rehber eslestirme kullanilabilir (karsilikli). Ucu: ContactMatchController.
-     */
-    private boolean contactsDiscoverable;
-
-    /**
      * Gizli hesap (V1020): gonderiler/listeler yalniz kabul edilmis takipcilere; takip ISTEGI ile takip edilir.
      * Varsayilan KAPALI (herkese acik). Gecis kurallari: post.follow.FollowRequestService.
      */

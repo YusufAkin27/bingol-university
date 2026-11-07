@@ -36,11 +36,10 @@
 -dontwarn javax.annotation.**
 -dontwarn com.google.errorprone.annotations.**
 
-# permission_handler, gal, photo_manager, flutter_contacts, image_picker, url_launcher
+# permission_handler, gal, photo_manager, image_picker, url_launcher
 -keep class com.baseflow.permissionhandler.** { *; }
 -keep class studio.midoridesign.gal.** { *; }
 -keep class com.fluttercandies.photo_manager.** { *; }
--keep class co.quis.flutter_contacts.** { *; }
 -keep class io.flutter.plugins.imagepicker.** { *; }
 -keep class io.flutter.plugins.urllauncher.** { *; }
 
