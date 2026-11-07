@@ -421,7 +421,9 @@ object RichPushNotifications {
         last?.let { builder.setWhen(it.atMs).setShowWhen(true) }
         val avatarPx = dp(context, 48)
         val lastAvatar = last?.let { chatAvatars.get(it.senderKey) }
-        if (!group && lastAvatar != null) builder.setLargeIcon(PushArt.circle(lastAvatar, avatarPx))
+        if (!group) builder.setLargeIcon(
+            if (lastAvatar != null) PushArt.circle(lastAvatar, avatarPx)
+            else PushArt.initials(context, last?.senderName.orEmpty().ifEmpty { conversationTitle }, avatarPx))
         if (picture != null && state.messages.size == 1 && last != null) {
             // Ilk/tek mesaj fotograf ya da video kapagi: genis onizleme (BigPicture). Sonraki mesajlar MessagingStyle'a doner.
             builder.setContentTitle(conversationTitle.ifEmpty { last.senderName }).setContentText(last.text)
@@ -434,7 +436,11 @@ object RichPushNotifications {
             for (m in state.messages) {
                 val person: Person? = if (m.self) null else {
                     val pb = Person.Builder().setName(m.senderName.ifEmpty { conversationTitle }).setKey(m.senderKey)
-                    chatAvatars.get(m.senderKey)?.let { pb.setIcon(IconCompat.createWithBitmap(PushArt.circle(it, avatarPx))) }
+                    // Fotograf yoksa (ya da gizlilik nedeniyle gonderilmediyse) varsayilan bas harf avatari
+                    val photo = chatAvatars.get(m.senderKey)
+                    pb.setIcon(IconCompat.createWithBitmap(
+                        if (photo != null) PushArt.circle(photo, avatarPx)
+                        else PushArt.initials(context, m.senderName.ifEmpty { conversationTitle }, avatarPx)))
                     pb.build()
                 }
                 style.addMessage(NotificationCompat.MessagingStyle.Message(m.text, m.atMs, person))

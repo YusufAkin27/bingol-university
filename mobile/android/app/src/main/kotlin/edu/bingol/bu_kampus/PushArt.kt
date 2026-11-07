@@ -64,6 +64,33 @@ object PushArt {
         return out
     }
 
+    /**
+     * Varsayilan avatar: profil fotografi yoksa (ya da gizlilik nedeniyle gonderilmediyse) adin bas harfli yuvarlak
+     * (gri ton, kirmizi marka rengi yok). Ad bossa "?" yerine nokta degil, bos harf cizilmez.
+     */
+    fun initials(c: Context, name: String, px: Int): Bitmap {
+        val out = Bitmap.createBitmap(px, px, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(out)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = c.getColor(R.color.push_gray_bg) }
+        canvas.drawCircle(px / 2f, px / 2f, px / 2f, paint)
+        val letter = initialOf(name)
+        if (letter.isNotEmpty()) {
+            val text = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = c.getColor(R.color.push_gray_fg); textSize = px * 0.46f
+                textAlign = Paint.Align.CENTER; typeface = Typeface.DEFAULT
+            }
+            val y = px / 2f - (text.descent() + text.ascent()) / 2f
+            canvas.drawText(letter, px / 2f, y, text)
+        }
+        return out
+    }
+
+    /** Adin ilk harfi (buyuk, Turkce kurallariyla); harf yoksa bos. Saf mantik: PushArtLogicTest. */
+    fun initialOf(name: String): String {
+        val first = name.trim().firstOrNull { it.isLetterOrDigit() } ?: return ""
+        return first.toString().uppercase(java.util.Locale("tr"))
+    }
+
     /** Kare/dikdortgen kaynagi merkezden kirpip [px] kare daire yapar. */
     fun circle(src: Bitmap, px: Int): Bitmap {
         val out = Bitmap.createBitmap(px, px, Bitmap.Config.ARGB_8888)
