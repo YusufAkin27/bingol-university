@@ -2232,6 +2232,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get shareUnavailable => 'Bu içerik artık görüntülenemiyor';
 
   @override
+  String get shareUnavailablePost =>
+      'Bu gönderi görüntülenemiyor. Gizli bir hesaba ait olabilir.';
+
+  @override
   String get shareChatPostShared => 'Gönderi paylaştı';
 
   @override

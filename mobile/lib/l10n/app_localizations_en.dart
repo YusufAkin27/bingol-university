@@ -2244,6 +2244,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shareUnavailable => 'This content is no longer available';
 
   @override
+  String get shareUnavailablePost =>
+      'This post is unavailable. It may belong to a private account.';
+
+  @override
   String get shareChatPostShared => 'Shared a post';
 
   @override

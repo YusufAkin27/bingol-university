@@ -1224,6 +1224,7 @@
   "shareKindAnnouncement": "Duyuru",
   "shareKindEvent": "Etkinlik",
   "shareUnavailable": "Bu içerik artık görüntülenemiyor",
+  "shareUnavailablePost": "Bu gönderi görüntülenemiyor. Gizli bir hesaba ait olabilir.",
   "shareChatPostShared": "Gönderi paylaştı",
   "shareChatReelShared": "Reels paylaştı",
   "shareChatNewsShared": "Haber paylaştı",

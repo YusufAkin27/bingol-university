@@ -88,6 +88,12 @@ class ShareCard extends StatelessWidget {
 
   static const double _radius = 14;
 
+  /// Gönderi/Reels için sunucu nedeni söylemez (silinmiş, gizli hesap, engel ayırt edilmez); metin yalnız ihtimali anar.
+  String _unavailableText(BuildContext context) {
+    final l = context.l10n;
+    return info.type == ShareType.post || info.type == ShareType.reel ? l.shareUnavailablePost : l.shareUnavailable;
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
@@ -178,7 +184,7 @@ class ShareCard extends StatelessWidget {
               ]),
               const SizedBox(height: 4),
               if (!ready)
-                Text(context.l10n.shareUnavailable,
+                Text(_unavailableText(context),
                     key: const ValueKey('share-card-unavailable'),
                     style: tx.bodyMedium!.copyWith(color: fg, fontWeight: FontWeight.w400, height: 1.3))
               else if (title.isNotEmpty)
@@ -205,7 +211,7 @@ class ShareCard extends StatelessWidget {
       scale: .985,
       onTap: onTap,
       enabled: onTap != null,
-      semanticLabel: ready ? '$label, ${authorOnly ? source : (title.isNotEmpty ? title : source)}' : '$label, ${context.l10n.shareUnavailable}',
+      semanticLabel: ready ? '$label, ${authorOnly ? source : (title.isNotEmpty ? title : source)}' : '$label, ${_unavailableText(context)}',
       child: card,
     );
     return SizedBox(

@@ -297,9 +297,9 @@ void main() {
       return b;
     }
 
-    testWidgets('locked: kilit bloğu, sayılar –, listeler tıklanmaz, gönderi isteği yok', (tester) async {
+    testWidgets('locked + ESKİ sunucu (sayılar null): kilit bloğu, sayılar –, listeler tıklanmaz, gönderi isteği yok', (tester) async {
       useScreen(tester, kPhoneMedium);
-      // Sunucu kilitli profilde sayaçları null yollar.
+      // Eski sunucu kilitli profilde sayaçları null yollar; yeni sunucu sayıları açar (aşağıdaki test).
       final b = profileBe({'isPrivate': true, 'locked': true, 'followState': 'NONE', 'followerCount': null, 'followingCount': null});
       await tester.pumpWidget(buildApp(UserProfilePage(session: makeSession(b), userId: 2), size: kPhoneMedium));
       await settle(tester, const Duration(milliseconds: 900));
@@ -320,6 +320,24 @@ void main() {
       await unmount(tester);
     });
 
+    testWidgets('locked + sayılar açık: takipçi/takip/gönderi sayısı görünür, ızgara kapalı, liste dürüstçe gizli', (tester) async {
+      useScreen(tester, kPhoneMedium);
+      final b = profileBe({'isPrivate': true, 'locked': true, 'followState': 'NONE', 'postCount': 5});
+      b.on('/users/2/followers*', {'items': <Object>[], 'nextCursor': null, 'locked': true});
+      await tester.pumpWidget(buildApp(UserProfilePage(session: makeSession(b), userId: 2), size: kPhoneMedium));
+      await settle(tester, const Duration(milliseconds: 900));
+      expect(find.text('12'), findsOneWidget);
+      expect(find.text('7'), findsOneWidget);
+      expect(find.text('5'), findsOneWidget);
+      expect(find.text('–'), findsNothing);
+      expect(find.byKey(const ValueKey('locked-profile-block')), findsOneWidget);
+      expect(b.requests.any((r) => r.contains('/posts')), isFalse, reason: 'gönderi içeriği istenmez');
+      await tester.tap(find.byKey(const ValueKey('followerCount')));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.byKey(const ValueKey('follow-list-locked')), findsOneWidget);
+      await unmount(tester);
+    });
+
     testWidgets('istek gönder: İstek gönderildi + kilit metni onay bekler; geri çekince tekrar Takip et', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = profileBe({'isPrivate': true, 'locked': true, 'followState': 'NONE'});
@@ -331,8 +349,10 @@ void main() {
       expect(find.text('İstek gönderildi'), findsOneWidget);
       expect(find.text('İsteğin onaylanınca gönderileri görebilirsin.'), findsOneWidget);
       expect(find.text('Bu hesap gizli'), findsOneWidget);
-      // sayılar gizli kalır (istek takip değildir)
-      expect(find.text('–'), findsNWidgets(3));
+      // sayılar gizli hesapta da görünür (12 takipçi, 7 takip); gönderi sayısı sunucu vermedi -> –
+      expect(find.text('12'), findsOneWidget);
+      expect(find.text('7'), findsOneWidget);
+      expect(find.text('–'), findsOneWidget);
       await tester.tap(find.byKey(_btn));
       await settle(tester, const Duration(milliseconds: 500));
       await tester.tap(find.text('İsteği geri çek'));

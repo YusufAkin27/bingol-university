@@ -2227,6 +2227,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get shareUnavailable => 'لم يعد هذا المحتوى متاحًا';
 
   @override
+  String get shareUnavailablePost =>
+      'هذا المنشور غير متاح. قد يعود إلى حساب خاص.';
+
+  @override
   String get shareChatPostShared => 'شارك منشورًا';
 
   @override

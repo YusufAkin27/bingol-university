@@ -7,6 +7,7 @@ import 'package:bu_kampus/core/nav.dart';
 import 'package:bu_kampus/core/outbox/outbox.dart';
 import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/core/theme.dart';
+import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:bu_kampus/features/chat/chat_tab.dart';
 import 'package:bu_kampus/features/chat/message_bubble.dart';
 import 'package:bu_kampus/features/share/share_api.dart';
@@ -648,13 +649,48 @@ void main() {
       ShareInfo? opened;
       await pumpBubble(tester, bubble(msg({'type': 'POST', 'id': 7, 'title': 'Silinmiş', 'available': false}), onOpen: (i) => opened = i));
       expect(find.byKey(const ValueKey('share-card-unavailable')), findsOneWidget);
-      expect(find.text('Bu içerik artık görüntülenemiyor'), findsOneWidget);
+      expect(find.text('Bu gönderi görüntülenemiyor. Gizli bir hesaba ait olabilir.'), findsOneWidget);
       expect(find.text('Silinmiş'), findsNothing);
       await tester.tap(find.byKey(const ValueKey('share-card-unavailable')), warnIfMissed: false);
       await tester.pump();
       expect(opened, isNull);
       await unmount(tester);
     });
+
+    testWidgets('gizli hesap gönderisi (available:false): içerik/ad/görsel sızmaz; tr metin', (tester) async {
+      await pumpBubble(
+          tester,
+          bubble(msg({'type': 'POST', 'id': 9, 'available': false, 'url': 'https://bukampus.com.tr/s/p/9'})));
+      expect(find.byKey(const ValueKey('share-card-unavailable')), findsOneWidget);
+      expect(find.byKey(const ValueKey('share-card-source')), findsNothing);
+      expect(find.byKey(const ValueKey('share-card-title')), findsNothing);
+      await unmount(tester);
+    });
+
+    for (final c in [(const Locale('en'), 'This post is unavailable. It may belong to a private account.'), (const Locale('ar'), 'هذا المنشور غير متاح. قد يعود إلى حساب خاص.')]) {
+      testWidgets('gönderi kullanılamıyor metni ${c.$1.languageCode}', (tester) async {
+        useScreen(tester, kPhoneMedium);
+        await tester.pumpWidget(MaterialApp(
+          locale: c.$1,
+          theme: BuTheme.light(),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Center(
+              child: ShareCard(
+                info: const ShareInfo(type: ShareType.post, id: 9, available: false),
+                mine: false,
+                width: 260,
+              ),
+            ),
+          ),
+        ));
+        await settle(tester, const Duration(milliseconds: 300));
+        expect(find.text(c.$2), findsOneWidget);
+        noErr(tester);
+        await unmount(tester);
+      });
+    }
 
     testWidgets('sunucu sözleşmesindeki örnek yük (PHOTO + göreli /api görsel + url) çizilir', (tester) async {
       await pumpBubble(

@@ -4182,6 +4182,12 @@ abstract class AppLocalizations {
   /// **'Bu içerik artık görüntülenemiyor'**
   String get shareUnavailable;
 
+  /// No description provided for @shareUnavailablePost.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu gönderi görüntülenemiyor. Gizli bir hesaba ait olabilir.'**
+  String get shareUnavailablePost;
+
   /// No description provided for @shareChatPostShared.
   ///
   /// In tr, this message translates to:

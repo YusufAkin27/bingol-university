@@ -680,6 +680,7 @@
   "shareKindAnnouncement": "Announcement",
   "shareKindEvent": "Event",
   "shareUnavailable": "This content is no longer available",
+  "shareUnavailablePost": "This post is unavailable. It may belong to a private account.",
   "shareChatPostShared": "Shared a post",
   "shareChatReelShared": "Shared a reel",
   "shareChatNewsShared": "Shared a news story",
