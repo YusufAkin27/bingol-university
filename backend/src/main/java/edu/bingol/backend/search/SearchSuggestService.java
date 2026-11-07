@@ -74,7 +74,7 @@ public class SearchSuggestService {
 
     List<Suggestion> news(String like) {
         return jdbc.query("SELECT n.id, n.type, n.title FROM news_item n WHERE n.hidden = FALSE AND n.title ILIKE :p "
-                        + "ESCAPE '\' ORDER BY n.published_date DESC NULLS LAST, n.id DESC LIMIT " + NEWS_MAX,
+                        + "ESCAPE '\\' ORDER BY n.published_date DESC NULLS LAST, n.id DESC LIMIT " + NEWS_MAX,
                 Map.of("p", like),
                 (rs, i) -> new Suggestion(newsType(rs.getString("type")), rs.getLong("id"), rs.getString("title")));
     }
@@ -89,7 +89,7 @@ public class SearchSuggestService {
 
     List<Suggestion> communities(String like) {
         return jdbc.query("SELECT c.id, c.name FROM community c WHERE c.status = 'ACTIVE' AND c.visibility = 'PUBLIC' "
-                        + "AND c.name ILIKE :p ESCAPE '\' ORDER BY c.name, c.id LIMIT " + COMMUNITY_MAX,
+                        + "AND c.name ILIKE :p ESCAPE '\\' ORDER BY c.name, c.id LIMIT " + COMMUNITY_MAX,
                 Map.of("p", like),
                 (rs, i) -> new Suggestion(SearchType.COMMUNITY.name(), rs.getLong("id"), rs.getString("name")));
     }
@@ -101,7 +101,7 @@ public class SearchSuggestService {
 
     /** Onek deseni (kacisli): "q%". */
     static String prefixPattern(String q) {
-        String esc = q.replace("\\", "\\\\").replace("%", "\%").replace("_", "\_");
+        String esc = q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
         return esc + "%";
     }
 
