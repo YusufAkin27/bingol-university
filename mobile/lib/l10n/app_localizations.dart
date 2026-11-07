@@ -64,7 +64,7 @@ import 'app_localizations_tr.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -87,17 +87,17 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('ar'),
     Locale('en'),
-    Locale('tr')
+    Locale('tr'),
   ];
 
   /// No description provided for @chatReactionPickerTitle.
@@ -1341,7 +1341,11 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{type}: {title}. {date}. {countdown}. Düzenlemek için dokun.'**
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown);
+    String type,
+    String title,
+    String date,
+    String countdown,
+  );
 
   /// No description provided for @acadFormErrTitle.
   ///
@@ -1906,7 +1910,11 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{name}, {day} {start} ile {end} arası'**
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end);
+    String name,
+    String day,
+    String start,
+    String end,
+  );
 
   /// No description provided for @acadTimeCourseSemantic.
   ///
@@ -24341,6 +24349,372 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{n} beğeni'**
   String searchForumLikes(String n);
+
+  /// No description provided for @svTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydedilenler'**
+  String get svTitle;
+
+  /// No description provided for @svFilterAll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tümü'**
+  String get svFilterAll;
+
+  /// No description provided for @svFilterNews.
+  ///
+  /// In tr, this message translates to:
+  /// **'Haberler'**
+  String get svFilterNews;
+
+  /// No description provided for @svFilterEvents.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlikler'**
+  String get svFilterEvents;
+
+  /// No description provided for @svFilterClubs.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüpler'**
+  String get svFilterClubs;
+
+  /// No description provided for @svFilterPolls.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anketler'**
+  String get svFilterPolls;
+
+  /// No description provided for @svFilterPosts.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderiler'**
+  String get svFilterPosts;
+
+  /// No description provided for @svFilterForum.
+  ///
+  /// In tr, this message translates to:
+  /// **'Forum'**
+  String get svFilterForum;
+
+  /// No description provided for @svEmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz kaydettiğin bir şey yok'**
+  String get svEmptyTitle;
+
+  /// No description provided for @svEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Haber, etkinlik, kulüp, anket, gönderi ve forum konularındaki yer imi simgesiyle kaydedebilirsin.'**
+  String get svEmptyBody;
+
+  /// No description provided for @svEmptyFilterTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu türde kayıt yok'**
+  String get svEmptyFilterTitle;
+
+  /// No description provided for @svEmptyFilterBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başka bir tür seç ya da bu türden bir içeriği kaydet.'**
+  String get svEmptyFilterBody;
+
+  /// No description provided for @svErrorTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydedilenler yüklenemedi'**
+  String get svErrorTitle;
+
+  /// No description provided for @svRemoved.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kayıttan çıkarıldı'**
+  String get svRemoved;
+
+  /// No description provided for @svRemoveAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydı kaldır'**
+  String get svRemoveAction;
+
+  /// No description provided for @svOpenFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu içerik artık açılamıyor'**
+  String get svOpenFailed;
+
+  /// No description provided for @svSave.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydet'**
+  String get svSave;
+
+  /// No description provided for @svUnsave.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydı kaldır'**
+  String get svUnsave;
+
+  /// No description provided for @svSavedToast.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydedildi'**
+  String get svSavedToast;
+
+  /// No description provided for @svTypeNews.
+  ///
+  /// In tr, this message translates to:
+  /// **'Haber'**
+  String get svTypeNews;
+
+  /// No description provided for @svTypeEvent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlik'**
+  String get svTypeEvent;
+
+  /// No description provided for @svTypeCommunity.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp'**
+  String get svTypeCommunity;
+
+  /// No description provided for @svTypePoll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anket'**
+  String get svTypePoll;
+
+  /// No description provided for @svTypeAcademic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Akademik'**
+  String get svTypeAcademic;
+
+  /// No description provided for @svTypePost.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderi'**
+  String get svTypePost;
+
+  /// No description provided for @svTypeTopic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Forum konusu'**
+  String get svTypeTopic;
+
+  /// No description provided for @svTypeComment.
+  ///
+  /// In tr, this message translates to:
+  /// **'Forum yorumu'**
+  String get svTypeComment;
+
+  /// No description provided for @svMenuRow.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydedilenler'**
+  String get svMenuRow;
+
+  /// No description provided for @muteAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirimleri sessize al'**
+  String get muteAction;
+
+  /// No description provided for @muteActionOff.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirimleri aç'**
+  String get muteActionOff;
+
+  /// No description provided for @muteOnToast.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirimler sessize alındı'**
+  String get muteOnToast;
+
+  /// No description provided for @muteOffToast.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirimler açıldı'**
+  String get muteOffToast;
+
+  /// No description provided for @muteCriticalNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'İptal, kabul, rol ve katılım gibi önemli bildirimler sessize alsan da gelir.'**
+  String get muteCriticalNote;
+
+  /// No description provided for @mutedRowTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sessize alınanlar'**
+  String get mutedRowTitle;
+
+  /// No description provided for @mutedRowSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sessize aldığın kulüpler ve etkinlikler'**
+  String get mutedRowSub;
+
+  /// No description provided for @mutedClubs.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüpler'**
+  String get mutedClubs;
+
+  /// No description provided for @mutedEvents.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlikler'**
+  String get mutedEvents;
+
+  /// No description provided for @mutedEmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sessize aldığın bir şey yok'**
+  String get mutedEmptyTitle;
+
+  /// No description provided for @mutedEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp ya da etkinlik sayfasındaki menüden bildirimleri sessize alabilirsin.'**
+  String get mutedEmptyBody;
+
+  /// No description provided for @mutedErrorTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Liste yüklenemedi'**
+  String get mutedErrorTitle;
+
+  /// No description provided for @mutedUnmute.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aç'**
+  String get mutedUnmute;
+
+  /// No description provided for @mutedClubFallback.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp {id}'**
+  String mutedClubFallback(String id);
+
+  /// No description provided for @mutedEventFallback.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlik {id}'**
+  String mutedEventFallback(String id);
+
+  /// No description provided for @reportsMineTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şikayetlerim'**
+  String get reportsMineTitle;
+
+  /// No description provided for @reportsMineSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderdiğin şikayetlerin durumu'**
+  String get reportsMineSub;
+
+  /// No description provided for @reportsMineNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gizlilik için yalnızca genel durum gösterilir.'**
+  String get reportsMineNote;
+
+  /// No description provided for @reportsStatusOpen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Açık'**
+  String get reportsStatusOpen;
+
+  /// No description provided for @reportsStatusResolved.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sonuçlandı'**
+  String get reportsStatusResolved;
+
+  /// No description provided for @reportsEmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz şikayet etmedin'**
+  String get reportsEmptyTitle;
+
+  /// No description provided for @reportsEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir içeriği şikayet ettiğinde burada genel durumunu görürsün.'**
+  String get reportsEmptyBody;
+
+  /// No description provided for @reportsErrorTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şikayetler yüklenemedi'**
+  String get reportsErrorTitle;
+
+  /// No description provided for @reportsResolvedOn.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sonuçlanma: {date}'**
+  String reportsResolvedOn(String date);
+
+  /// No description provided for @reportsTypeUser.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanıcı'**
+  String get reportsTypeUser;
+
+  /// No description provided for @reportsTypeMessage.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesaj'**
+  String get reportsTypeMessage;
+
+  /// No description provided for @reportsTypePost.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderi'**
+  String get reportsTypePost;
+
+  /// No description provided for @reportsTypeCommunity.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp'**
+  String get reportsTypeCommunity;
+
+  /// No description provided for @reportsTypeEvent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlik'**
+  String get reportsTypeEvent;
+
+  /// No description provided for @reportsTypeTopic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Forum konusu'**
+  String get reportsTypeTopic;
+
+  /// No description provided for @reportsTypeComment.
+  ///
+  /// In tr, this message translates to:
+  /// **'Forum yorumu'**
+  String get reportsTypeComment;
+
+  /// No description provided for @reportsTypeOther.
+  ///
+  /// In tr, this message translates to:
+  /// **'İçerik'**
+  String get reportsTypeOther;
+
+  /// No description provided for @reportsReasonPersonalInfo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kişisel bilgi paylaşımı'**
+  String get reportsReasonPersonalInfo;
 }
 
 class _AppLocalizationsDelegate
@@ -24372,8 +24746,9 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-      'an issue with the localizations generation tool. Please file an issue '
-      'on GitHub with a reproducible sample app and the gen-l10n configuration '
-      'that was used.');
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
 }

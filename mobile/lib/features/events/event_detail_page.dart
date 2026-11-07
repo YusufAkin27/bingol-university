@@ -32,6 +32,7 @@ import 'event_calendar.dart';
 import 'event_calendar_sheet.dart';
 import '../share/share_button.dart' show ShareIconButton, shareContentForEvent;
 import '../share/share_sheet.dart' show showShareSheet;
+import '../saved/save_toggle.dart';
 
 /// Dile göre intl biçimi; yerel ayar verisi yoksa varsayılana düşer.
 String _fmtDate(BuildContext context, String pattern, DateTime d) {
@@ -81,6 +82,28 @@ class _EventDetailPageState extends State<EventDetailPage> {
   void initState() {
     super.initState();
     _load();
+    _mute.load(_rebuild);
+  }
+
+  void _rebuild() {
+    if (mounted) setState(() {});
+  }
+
+  /// Bu etkinliğin bildirimlerini sessize alma durumu (menü anahtarı).
+  late final MuteController _mute = MuteController(widget.session, 'events', widget.eventId);
+
+  PopupMenuItem<String> _muteItem() {
+    final t = context.bu;
+    final l = context.l10n;
+    final on = _mute.muted == true;
+    return PopupMenuItem(
+        key: const ValueKey('event-mute'),
+        value: 'mute',
+        child: Row(children: [
+          Icon(on ? BuIcons.bell : BuIcons.bellOff, size: 18, color: t.ink),
+          const SizedBox(width: 12),
+          Flexible(child: Text(on ? l.muteActionOff : l.muteAction)),
+        ]));
   }
 
   List<Map<String, dynamic>> _list(dynamic v) =>
@@ -534,7 +557,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
               backgroundColor: t.bg,
               scrolledUnderElevation: 0,
               title: Semantics(header: true, label: l.eventFormEventTitle, child: const SizedBox.shrink()),
-              actions: [_shareAction(), _menu(), const SizedBox(width: 4)],
+              actions: [_saveAction(), _shareAction(), _menu(), const SizedBox(width: 4)],
             ),
             SliverToBoxAdapter(
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: _content(context)),
@@ -547,6 +570,35 @@ class _EventDetailPageState extends State<EventDetailPage> {
       backgroundColor: t.bg,
       body: body,
       bottomNavigationBar: _barOrNull(),
+    );
+  }
+
+  /// Paylaş düğmesinin yanında kaydet (yer imi): yalnız yayındaki etkinliklerde.
+  Widget _saveAction() {
+    final ev = _ev;
+    if (ev == null || eventIsCancelled(ev) || eventIsPendingReview(ev) || eventIsRejected(ev)) return const SizedBox.shrink();
+    final t = context.bu;
+    return SaveToggleButton(
+      key: const ValueKey('event-save'),
+      session: widget.session,
+      kind: 'event',
+      id: widget.eventId,
+      builder: (icon, tip, onTap) => Semantics(
+        button: true,
+        label: tip,
+        excludeSemantics: true,
+        child: Tooltip(
+          message: tip,
+          child: BuPressable(
+            onTap: onTap,
+            haptic: BuHaptic.light,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: BuSize.touch, minHeight: BuSize.touch),
+              child: Center(child: Icon(icon, size: 22, color: t.ink)),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -571,7 +623,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
       return PopupMenuButton<String>(
         tooltip: l.eventFormManage,
         icon: Icon(BuIcons.ellipsisVertical, color: t.ink),
-        onSelected: _manageAction,
+        onSelected: (v) => v == 'mute' ? _mute.toggle(context, _rebuild) : _manageAction(v),
         itemBuilder: (_) => [
           PopupMenuItem(
               value: 'edit',
@@ -586,6 +638,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 const SizedBox(width: 12),
                 Text(closed ? l.eventFormReopenRegs : l.eventFormCloseRegs),
               ])),
+          _muteItem(),
           const PopupMenuDivider(),
           PopupMenuItem(
               value: 'cancel',
@@ -601,8 +654,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
     return PopupMenuButton<String>(
       tooltip: l.eventFormReport,
       icon: Icon(BuIcons.ellipsisVertical, color: t.ink),
-      onSelected: (_) => _report(),
+      onSelected: (v) => v == 'mute' ? _mute.toggle(context, _rebuild) : _report(),
       itemBuilder: (_) => [
+        _muteItem(),
         PopupMenuItem(
             value: 'report',
             child: Row(children: [Icon(BuIcons.flag, size: 18, color: t.danger), const SizedBox(width: 12), Text(l.eventFormReportEvent)])),

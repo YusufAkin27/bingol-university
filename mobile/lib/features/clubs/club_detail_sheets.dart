@@ -15,9 +15,12 @@ Future<String?> showClubMenu(
   required bool isOwner,
   required bool isMember,
   required int pendingCount,
+  bool? muted,
 }) {
   final l = anchor.l10n;
   return showClubDropdown(anchor, [
+    // Bildirimleri sessize alma: yalnız aktif üyede (sunucu üye olmayana 404 verir).
+    if (isMember && !isManager) ClubMenuEntry('mute', muted == true ? BuIcons.bell : BuIcons.bellOff, muted == true ? l.muteActionOff : l.muteAction),
     if (isManager) ...[
       ClubMenuEntry('edit', BuIcons.pencilLine, l.clubEdit),
       ClubMenuEntry('requests', BuIcons.userPlus, l.clubRequests, count: pendingCount),
@@ -25,6 +28,7 @@ Future<String?> showClubMenu(
       ClubMenuEntry('event', BuIcons.calendarPlus, l.eventListCreate),
       ClubMenuEntry('cover', BuIcons.imagePlus, l.clubChangeCover),
     ],
+    if (isMember && isManager) ClubMenuEntry('mute', muted == true ? BuIcons.bell : BuIcons.bellOff, muted == true ? l.muteActionOff : l.muteAction, dividerBefore: true),
     if (isOwner) ClubMenuEntry('delete', BuIcons.trash2, l.clubDeleteClub, danger: true, dividerBefore: true),
     if (!isOwner) ClubMenuEntry('report', BuIcons.flag, l.clubReportClub, danger: true, dividerBefore: isManager),
     if (isMember) ClubMenuEntry('leave', BuIcons.logOut, l.clubLeave, danger: true),

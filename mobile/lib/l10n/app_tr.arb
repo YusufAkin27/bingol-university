@@ -7303,5 +7303,93 @@
   "icerikGroupForum": "FORUM",
   "searchSuggestionsLabel": "Arama önerileri",
   "searchForumLikes": "{n} beğeni",
-  "@searchForumLikes": {"placeholders": {"n": {"type": "String"}}}
+  "@searchForumLikes": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "svTitle": "Kaydedilenler",
+  "svFilterAll": "Tümü",
+  "svFilterNews": "Haberler",
+  "svFilterEvents": "Etkinlikler",
+  "svFilterClubs": "Kulüpler",
+  "svFilterPolls": "Anketler",
+  "svFilterPosts": "Gönderiler",
+  "svFilterForum": "Forum",
+  "svEmptyTitle": "Henüz kaydettiğin bir şey yok",
+  "svEmptyBody": "Haber, etkinlik, kulüp, anket, gönderi ve forum konularındaki yer imi simgesiyle kaydedebilirsin.",
+  "svEmptyFilterTitle": "Bu türde kayıt yok",
+  "svEmptyFilterBody": "Başka bir tür seç ya da bu türden bir içeriği kaydet.",
+  "svErrorTitle": "Kaydedilenler yüklenemedi",
+  "svRemoved": "Kayıttan çıkarıldı",
+  "svRemoveAction": "Kaydı kaldır",
+  "svOpenFailed": "Bu içerik artık açılamıyor",
+  "svSave": "Kaydet",
+  "svUnsave": "Kaydı kaldır",
+  "svSavedToast": "Kaydedildi",
+  "svTypeNews": "Haber",
+  "svTypeEvent": "Etkinlik",
+  "svTypeCommunity": "Kulüp",
+  "svTypePoll": "Anket",
+  "svTypeAcademic": "Akademik",
+  "svTypePost": "Gönderi",
+  "svTypeTopic": "Forum konusu",
+  "svTypeComment": "Forum yorumu",
+  "svMenuRow": "Kaydedilenler",
+  "muteAction": "Bildirimleri sessize al",
+  "muteActionOff": "Bildirimleri aç",
+  "muteOnToast": "Bildirimler sessize alındı",
+  "muteOffToast": "Bildirimler açıldı",
+  "muteCriticalNote": "İptal, kabul, rol ve katılım gibi önemli bildirimler sessize alsan da gelir.",
+  "mutedRowTitle": "Sessize alınanlar",
+  "mutedRowSub": "Sessize aldığın kulüpler ve etkinlikler",
+  "mutedClubs": "Kulüpler",
+  "mutedEvents": "Etkinlikler",
+  "mutedEmptyTitle": "Sessize aldığın bir şey yok",
+  "mutedEmptyBody": "Kulüp ya da etkinlik sayfasındaki menüden bildirimleri sessize alabilirsin.",
+  "mutedErrorTitle": "Liste yüklenemedi",
+  "mutedUnmute": "Aç",
+  "mutedClubFallback": "Kulüp {id}",
+  "@mutedClubFallback": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "mutedEventFallback": "Etkinlik {id}",
+  "@mutedEventFallback": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "reportsMineTitle": "Şikayetlerim",
+  "reportsMineSub": "Gönderdiğin şikayetlerin durumu",
+  "reportsMineNote": "Gizlilik için yalnızca genel durum gösterilir.",
+  "reportsStatusOpen": "Açık",
+  "reportsStatusResolved": "Sonuçlandı",
+  "reportsEmptyTitle": "Henüz şikayet etmedin",
+  "reportsEmptyBody": "Bir içeriği şikayet ettiğinde burada genel durumunu görürsün.",
+  "reportsErrorTitle": "Şikayetler yüklenemedi",
+  "reportsResolvedOn": "Sonuçlanma: {date}",
+  "@reportsResolvedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "reportsTypeUser": "Kullanıcı",
+  "reportsTypeMessage": "Mesaj",
+  "reportsTypePost": "Gönderi",
+  "reportsTypeCommunity": "Kulüp",
+  "reportsTypeEvent": "Etkinlik",
+  "reportsTypeTopic": "Forum konusu",
+  "reportsTypeComment": "Forum yorumu",
+  "reportsTypeOther": "İçerik",
+  "reportsReasonPersonalInfo": "Kişisel bilgi paylaşımı"
 }
