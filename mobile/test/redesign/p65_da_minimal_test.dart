@@ -83,7 +83,7 @@ void main() {
       await perms(tester, {});
       final buttons = tester.widgetList<BuButton>(find.byType(BuButton)).toList();
       expect(buttons.where((b) => b.kind == BuButtonKind.primary).length, 1, reason: 'yalnız alttaki Başla');
-      expect(buttons.where((b) => b.kind == BuButtonKind.outline).length, 3);
+      expect(buttons.where((b) => b.kind == BuButtonKind.outline).length, 2);
       expect(find.textContaining('Adım'), findsNothing);
       expect(find.text('Şimdi değil'), findsOneWidget, reason: 'yalnız ilk durumda');
       expect(find.text('Atla'), findsNothing);
