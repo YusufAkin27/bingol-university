@@ -64,7 +64,7 @@ import 'app_localizations_tr.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -87,17 +87,17 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-        delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('ar'),
     Locale('en'),
-    Locale('tr'),
+    Locale('tr')
   ];
 
   /// No description provided for @chatReactionPickerTitle.
@@ -1341,11 +1341,7 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{type}: {title}. {date}. {countdown}. Düzenlemek için dokun.'**
   String acadExamsSemanticCd(
-    String type,
-    String title,
-    String date,
-    String countdown,
-  );
+      String type, String title, String date, String countdown);
 
   /// No description provided for @acadFormErrTitle.
   ///
@@ -1910,11 +1906,7 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{name}, {day} {start} ile {end} arası'**
   String acadTimeSlotSemantic(
-    String name,
-    String day,
-    String start,
-    String end,
-  );
+      String name, String day, String start, String end);
 
   /// No description provided for @acadTimeCourseSemantic.
   ///
@@ -24715,6 +24707,54 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Kişisel bilgi paylaşımı'**
   String get reportsReasonPersonalInfo;
+
+  /// No description provided for @chatSeenAgoNow.
+  ///
+  /// In tr, this message translates to:
+  /// **'az önce'**
+  String get chatSeenAgoNow;
+
+  /// No description provided for @chatSeenAgoMinutes.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n, plural, other{{n} dakika önce}}'**
+  String chatSeenAgoMinutes(int n);
+
+  /// No description provided for @chatSeenAgoHours.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n, plural, other{{n} saat önce}}'**
+  String chatSeenAgoHours(int n);
+
+  /// No description provided for @chatSeenAgoDays.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n, plural, other{{n} gün önce}}'**
+  String chatSeenAgoDays(int n);
+
+  /// No description provided for @chatSeenAgoWeeks.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n, plural, other{{n} hafta önce}}'**
+  String chatSeenAgoWeeks(int n);
+
+  /// No description provided for @chatSeenAgoMonths.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n, plural, other{{n} ay önce}}'**
+  String chatSeenAgoMonths(int n);
+
+  /// No description provided for @chatSeenAgoYears.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n, plural, other{{n} yıl önce}}'**
+  String chatSeenAgoYears(int n);
+
+  /// No description provided for @chatStatusSeenAt.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görüldü · {when}'**
+  String chatStatusSeenAt(String when);
 }
 
 class _AppLocalizationsDelegate
@@ -24746,9 +24786,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-    'an issue with the localizations generation tool. Please file an issue '
-    'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.',
-  );
+      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+      'an issue with the localizations generation tool. Please file an issue '
+      'on GitHub with a reproducible sample app and the gen-l10n configuration '
+      'that was used.');
 }

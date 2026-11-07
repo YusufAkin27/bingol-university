@@ -7391,5 +7391,20 @@
   "reportsTypeTopic": "Forum konusu",
   "reportsTypeComment": "Forum yorumu",
   "reportsTypeOther": "İçerik",
-  "reportsReasonPersonalInfo": "Kişisel bilgi paylaşımı"
+  "reportsReasonPersonalInfo": "Kişisel bilgi paylaşımı",
+  "chatSeenAgoNow": "az önce",
+  "chatSeenAgoMinutes": "{n, plural, other{{n} dakika önce}}",
+  "@chatSeenAgoMinutes": {"placeholders": {"n": {"type": "int"}}},
+  "chatSeenAgoHours": "{n, plural, other{{n} saat önce}}",
+  "@chatSeenAgoHours": {"placeholders": {"n": {"type": "int"}}},
+  "chatSeenAgoDays": "{n, plural, other{{n} gün önce}}",
+  "@chatSeenAgoDays": {"placeholders": {"n": {"type": "int"}}},
+  "chatSeenAgoWeeks": "{n, plural, other{{n} hafta önce}}",
+  "@chatSeenAgoWeeks": {"placeholders": {"n": {"type": "int"}}},
+  "chatSeenAgoMonths": "{n, plural, other{{n} ay önce}}",
+  "@chatSeenAgoMonths": {"placeholders": {"n": {"type": "int"}}},
+  "chatSeenAgoYears": "{n, plural, other{{n} yıl önce}}",
+  "@chatSeenAgoYears": {"placeholders": {"n": {"type": "int"}}},
+  "chatStatusSeenAt": "Görüldü · {when}",
+  "@chatStatusSeenAt": {"placeholders": {"when": {"type": "String"}}}
 }

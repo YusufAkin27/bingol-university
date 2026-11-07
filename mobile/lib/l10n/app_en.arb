@@ -4980,5 +4980,13 @@
   "reportsTypeTopic": "Forum topic",
   "reportsTypeComment": "Forum comment",
   "reportsTypeOther": "Content",
-  "reportsReasonPersonalInfo": "Sharing personal information"
+  "reportsReasonPersonalInfo": "Sharing personal information",
+  "chatSeenAgoNow": "just now",
+  "chatSeenAgoMinutes": "{n, plural, =1{1 minute ago} other{{n} minutes ago}}",
+  "chatSeenAgoHours": "{n, plural, =1{1 hour ago} other{{n} hours ago}}",
+  "chatSeenAgoDays": "{n, plural, =1{1 day ago} other{{n} days ago}}",
+  "chatSeenAgoWeeks": "{n, plural, =1{1 week ago} other{{n} weeks ago}}",
+  "chatSeenAgoMonths": "{n, plural, =1{1 month ago} other{{n} months ago}}",
+  "chatSeenAgoYears": "{n, plural, =1{1 year ago} other{{n} years ago}}",
+  "chatStatusSeenAt": "Seen · {when}"
 }

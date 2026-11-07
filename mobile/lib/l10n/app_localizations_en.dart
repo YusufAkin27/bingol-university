@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -669,11 +668,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-    String type,
-    String title,
-    String date,
-    String countdown,
-  ) {
+      String type, String title, String date, String countdown) {
     return '$type: $title. $date. $countdown. Tap to edit.';
   }
 
@@ -992,11 +987,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-    String name,
-    String day,
-    String start,
-    String end,
-  ) {
+      String name, String day, String start, String end) {
     return '$name, $day from $start to $end';
   }
 
@@ -13749,4 +13740,78 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportsReasonPersonalInfo => 'Sharing personal information';
+
+  @override
+  String get chatSeenAgoNow => 'just now';
+
+  @override
+  String chatSeenAgoMinutes(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n minutes ago',
+      one: '1 minute ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatSeenAgoHours(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n hours ago',
+      one: '1 hour ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatSeenAgoDays(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n days ago',
+      one: '1 day ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatSeenAgoWeeks(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n weeks ago',
+      one: '1 week ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatSeenAgoMonths(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n months ago',
+      one: '1 month ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatSeenAgoYears(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n years ago',
+      one: '1 year ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatStatusSeenAt(String when) {
+    return 'Seen · $when';
+  }
 }

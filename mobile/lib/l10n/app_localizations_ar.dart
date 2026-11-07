@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -670,11 +669,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-    String type,
-    String title,
-    String date,
-    String countdown,
-  ) {
+      String type, String title, String date, String countdown) {
     return '$type: $title. $date. $countdown. المس للتعديل.';
   }
 
@@ -992,11 +987,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-    String name,
-    String day,
-    String start,
-    String end,
-  ) {
+      String name, String day, String start, String end) {
     return '$name، $day من $start إلى $end';
   }
 
@@ -13625,4 +13616,96 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reportsReasonPersonalInfo => 'نشر معلومات شخصية';
+
+  @override
+  String get chatSeenAgoNow => 'قبل لحظات';
+
+  @override
+  String chatSeenAgoMinutes(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'منذ $n دقيقة',
+      many: 'منذ $n دقيقة',
+      few: 'منذ $n دقائق',
+      two: 'منذ دقيقتين',
+      one: 'منذ دقيقة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatSeenAgoHours(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'منذ $n ساعة',
+      many: 'منذ $n ساعة',
+      few: 'منذ $n ساعات',
+      two: 'منذ ساعتين',
+      one: 'منذ ساعة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatSeenAgoDays(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'منذ $n يومًا',
+      many: 'منذ $n يومًا',
+      few: 'منذ $n أيام',
+      two: 'منذ يومين',
+      one: 'منذ يوم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatSeenAgoWeeks(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'منذ $n أسبوعًا',
+      many: 'منذ $n أسبوعًا',
+      few: 'منذ $n أسابيع',
+      two: 'منذ أسبوعين',
+      one: 'منذ أسبوع واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatSeenAgoMonths(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'منذ $n شهرًا',
+      many: 'منذ $n شهرًا',
+      few: 'منذ $n أشهر',
+      two: 'منذ شهرين',
+      one: 'منذ شهر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatSeenAgoYears(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'منذ $n سنة',
+      many: 'منذ $n سنة',
+      few: 'منذ $n سنوات',
+      two: 'منذ سنتين',
+      one: 'منذ سنة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatStatusSeenAt(String when) {
+    return 'تمت المشاهدة · $when';
+  }
 }
