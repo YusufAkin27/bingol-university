@@ -13,6 +13,7 @@ enum WidgetDest {
   events('events'),
   event('events'),
   clubs('clubs'),
+  club('clubs'),
   chat('chat'),
   qr('qr'),
   news('news'),
@@ -38,7 +39,7 @@ class WidgetLink {
 
   final WidgetDest dest;
 
-  /// Yalnız [WidgetDest.event], [WidgetDest.newsItem], [WidgetDest.poll] için.
+  /// Yalnız [WidgetDest.event], [WidgetDest.club], [WidgetDest.newsItem], [WidgetDest.poll] için.
   final int? id;
 
   static const home = WidgetLink(WidgetDest.home);
@@ -54,6 +55,7 @@ class WidgetLink {
   static const discover = WidgetLink(WidgetDest.discover);
 
   static WidgetLink event(int id) => WidgetLink(WidgetDest.event, id);
+  static WidgetLink club(int id) => WidgetLink(WidgetDest.club, id);
   static WidgetLink newsItem(int id) => WidgetLink(WidgetDest.newsItem, id);
 
   /// Anket kimliği yoksa Ana Sayfa (sözleşme: anket yoksa `bukampus://home`).
@@ -99,7 +101,7 @@ class WidgetLink {
         case 'events':
           return id == null ? events : event(id);
         case 'clubs':
-          return seg.length == 1 ? clubs : null;
+          return id == null ? clubs : club(id);
         case 'chat':
           return seg.length == 1 ? chat : null;
         case 'qr':

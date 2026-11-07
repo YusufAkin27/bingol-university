@@ -5,6 +5,7 @@ import '../../core/nav.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../academic/timetable_page.dart';
+import '../clubs/club_detail_page.dart';
 import '../events/events_page.dart';
 import '../menu/menu_page.dart';
 import '../news/news_list_page.dart';
@@ -51,6 +52,8 @@ Future<void> openWidgetLink(BuildContext context, Session session, WidgetLink li
         push(NotificationsPage(session: session), 'notifications');
       case WidgetDest.event:
         await openShared(context, session, ShareTarget(ShareType.event, link.id!));
+      case WidgetDest.club:
+        push(ClubDetailPage(session: session, communityId: link.id!), 'club_detail');
       case WidgetDest.newsItem:
         await openShared(context, session, ShareTarget(ShareType.news, link.id!));
       case WidgetDest.poll:

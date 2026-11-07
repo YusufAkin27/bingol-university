@@ -13392,4 +13392,68 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get postComposeErrMediaMix =>
       'Video gönderisi tek başına olmalı; fotoğrafla karıştırılamaz.';
+
+  @override
+  String get evCalRow => 'Takvime ekle ve hatırlat';
+
+  @override
+  String get evCalRowDone => 'Takvimde · hatırlatıcı açık';
+
+  @override
+  String get evCalSheetTitle => 'Takvime ekle';
+
+  @override
+  String get evCalBody =>
+      'Etkinlik cihaz takviminize eklenir; hatırlatıcıyı takvim uygulamanız gönderir. Yalnız BÜ Kampüs etkinlikleri eklenir ve silinir.';
+
+  @override
+  String get evCalPromptBody =>
+      'Katılımınız alındı. Etkinliği takviminize ekleyip hatırlatalım mı? Önerilen: 1 saat önce.';
+
+  @override
+  String get evCalRemind => 'Hatırlatma';
+
+  @override
+  String get evCalLead15 => '15 dakika önce';
+
+  @override
+  String get evCalLead60 => '1 saat önce';
+
+  @override
+  String get evCalLead1440 => '1 gün önce';
+
+  @override
+  String get evCalAdd => 'Takvime ekle';
+
+  @override
+  String get evCalUpdate => 'Güncelle';
+
+  @override
+  String get evCalRemove => 'Takvimden kaldır';
+
+  @override
+  String get evCalLater => 'Şimdi değil';
+
+  @override
+  String get evCalNever => 'Bir daha sorma';
+
+  @override
+  String get evCalAdded => 'Etkinlik takvime eklendi';
+
+  @override
+  String get evCalUpdated => 'Takvim kaydı güncellendi';
+
+  @override
+  String get evCalRemoved => 'Takvimden kaldırıldı';
+
+  @override
+  String get evCalFailed => 'Takvime yazılamadı.';
+
+  @override
+  String get evCalPast => 'Başlamış etkinlik takvime eklenmez.';
+
+  @override
+  String clubShareMsg(String name, String link) {
+    return '$name kulübüne BÜ Kampüs uygulamasında göz at: $link';
+  }
 }

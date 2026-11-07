@@ -13320,4 +13320,68 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get postComposeErrMediaMix =>
       'يجب أن يكون منشور الفيديو بمفرده؛ لا يمكن خلطه بالصور.';
+
+  @override
+  String get evCalRow => 'أضف إلى التقويم وذكّرني';
+
+  @override
+  String get evCalRowDone => 'في التقويم · التذكير مفعّل';
+
+  @override
+  String get evCalSheetTitle => 'أضف إلى التقويم';
+
+  @override
+  String get evCalBody =>
+      'تُضاف الفعالية إلى تقويم جهازك ويرسل تطبيق التقويم التذكير. تُضاف أو تُحذف فعاليات BÜ Kampüs فقط.';
+
+  @override
+  String get evCalPromptBody =>
+      'تم تسجيل مشاركتك. هل نضيف الفعالية إلى تقويمك ونذكّرك؟ المقترح: قبل ساعة.';
+
+  @override
+  String get evCalRemind => 'التذكير';
+
+  @override
+  String get evCalLead15 => 'قبل 15 دقيقة';
+
+  @override
+  String get evCalLead60 => 'قبل ساعة';
+
+  @override
+  String get evCalLead1440 => 'قبل يوم';
+
+  @override
+  String get evCalAdd => 'أضف إلى التقويم';
+
+  @override
+  String get evCalUpdate => 'تحديث';
+
+  @override
+  String get evCalRemove => 'إزالة من التقويم';
+
+  @override
+  String get evCalLater => 'ليس الآن';
+
+  @override
+  String get evCalNever => 'لا تسأل مرة أخرى';
+
+  @override
+  String get evCalAdded => 'أُضيفت الفعالية إلى التقويم';
+
+  @override
+  String get evCalUpdated => 'تم تحديث إدخال التقويم';
+
+  @override
+  String get evCalRemoved => 'تمت الإزالة من التقويم';
+
+  @override
+  String get evCalFailed => 'تعذّرت الكتابة في التقويم.';
+
+  @override
+  String get evCalPast => 'لا يمكن إضافة فعالية بدأت.';
+
+  @override
+  String clubShareMsg(String name, String link) {
+    return 'تعرّف على نادي $name في BÜ Kampüs: $link';
+  }
 }
