@@ -253,11 +253,10 @@ class _PostDetailPageState extends State<PostDetailPage> {
         },
       );
     }
+    // canPop true: iOS'ta soldan sağa kenar kaydırmayla Keşfet'e/listeye dönülebilsin (false iken Cupertino jesti kapanır).
+    // Kaydırmayla kapanınca sonuç null döner; akıştaki değişimler zaten onChanged/onDeleted ile bildirildi, listeler null'da yenilenir.
     return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _close();
-      },
+      canPop: true,
       child: Scaffold(
         backgroundColor: t.bg,
         body: Column(children: [
