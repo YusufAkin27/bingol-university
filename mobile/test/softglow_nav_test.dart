@@ -424,9 +424,11 @@ void main() {
       final t = dark ? BuTokens.dark : BuTokens.light;
       test('${dark ? "koyu" : "acik"}: belirtilen onaltilik degerler', () {
         expect(t.navAccent, const Color(0xFFF73A2E));
-        expect(t.navBorder, dark ? const Color(0x47F73A2E) : const Color(0xFFE8E8EC));
-        expect(t.navIconIdle, dark ? const Color(0xFFE0E0E5) : const Color(0xFF555761));
-        expect(t.navBase, dark ? const Color(0xFF141418) : const Color(0xFFFFFFFF));
+        // Alt cubuk iki temada da beyaz (kullanici karari 2026-11-07): kirmizi parlama yok, hafif gri golge.
+        expect(t.navBorder, const Color(0x14000000));
+        expect(t.navTextIdle, const Color(0xFF71717A));
+        expect(t.navIconIdle, const Color(0xFF52525B));
+        expect(t.navBase, const Color(0xFFFFFFFF));
         if (dark) expect(t.navAccentHi, const Color(0xFFFF544A));
       });
       test('${dark ? "koyu" : "acik"}: cam ustunde pasif simge >= 3, pasif yazi >= 4.5, aktif >= 3', () {

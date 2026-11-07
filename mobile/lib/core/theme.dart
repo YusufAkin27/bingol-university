@@ -93,14 +93,14 @@ class BuTokens extends ThemeExtension<BuTokens> {
     this.qrInk = const Color(0xFF000000),
     this.qrPaper = const Color(0xFFFFFFFF),
     this.shadow = const Color(0xFF09090B),
-    this.navBase = const Color(0xFF141418),
-    this.navGlass = const Color(0xCC202026),
+    this.navBase = const Color(0xFFFFFFFF),
+    this.navGlass = const Color(0xFAFFFFFF),
     this.navAccent = const Color(0xFFF73A2E),
     this.navAccentHi = const Color(0xFFFF544A),
-    this.navIconIdle = const Color(0xFFE0E0E5),
-    this.navTextIdle = const Color(0xFFB7B7C0),
-    this.navBorder = const Color(0x47F73A2E),
-    this.navGlow = const Color(0x29F73A2E),
+    this.navIconIdle = const Color(0xFF52525B),
+    this.navTextIdle = const Color(0xFF71717A),
+    this.navBorder = const Color(0x14000000),
+    this.navGlow = const Color(0x1F000000),
     this.tints = _tintsLight,
   });
 
@@ -268,11 +268,11 @@ class BuTokens extends ThemeExtension<BuTokens> {
     onWarnSoft: Color(0xFF7A4F10),
     shadow: Color(0xFF09090B),
     navBase: Color(0xFFFFFFFF),
-    navGlass: Color(0xE6FAFAFC),
-    navIconIdle: Color(0xFF555761),
-    navTextIdle: Color(0xFF24242A),
-    navBorder: Color(0xFFE8E8EC),
-    navGlow: Color(0x14F73A2E),
+    navGlass: Color(0xFAFFFFFF),
+    navIconIdle: Color(0xFF52525B),
+    navTextIdle: Color(0xFF71717A),
+    navBorder: Color(0x14000000),
+    navGlow: Color(0x1F000000),
   );
 
   /// PREMIUM BLACK (koyu, varsayılan): zemin #09090B, kartlar #141416, ikincil #1C1C1F, yükseltilmiş #252528;
