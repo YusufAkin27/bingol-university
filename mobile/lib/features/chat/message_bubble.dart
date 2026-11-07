@@ -1,3 +1,4 @@
+import 'dart:async' show Timer;
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show ValueListenable;
@@ -7,6 +8,7 @@ import 'package:flutter/services.dart';
 
 import '../../core/cache/image_disk_cache.dart';
 import '../../core/locale_controller.dart';
+import '../../core/relative_time.dart';
 import '../../widgets/bu.dart';
 import 'bubble_entry.dart';
 import 'bubble_text_meta.dart';
@@ -41,6 +43,7 @@ class MessageBubble extends StatelessWidget {
     required this.senderName,
     required this.replyName,
     this.statusLine,
+    this.seenAt,
     required this.authHeaders,
     required this.onMenu,
     required this.onRetry,
@@ -89,6 +92,9 @@ class MessageBubble extends StatelessWidget {
   /// Giden mesaj karşı tarafça okundu mu.
   /// Yalnız konuşmanın en güncel mesajı benimse: 'sending' | 'sent' | 'seen' (balonun altında yazı); aksi halde null.
   final String? statusLine;
+
+  /// Karşı tarafın görme anı (yaklaşık, istemci); yoksa yalın "Görüldü".
+  final DateTime? seenAt;
   final Map<String, String> authHeaders;
   final VoidCallback onMenu;
   final VoidCallback onRetry;
@@ -596,7 +602,7 @@ class MessageBubble extends StatelessWidget {
               ),
             ),
           if (statusLine != null && state != 'failed')
-            _StatusLine(key: const ValueKey('msg-status-line'), status: statusLine!),
+            _StatusLine(key: const ValueKey('msg-status-line'), status: statusLine!, seenAt: seenAt),
           if (state == 'failed')
             GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -1571,16 +1577,56 @@ class _RingPainter extends CustomPainter {
 
 
 /// En güncel giden mesajın altındaki küçük durum yazısı (Instagram Direct düzeni).
-class _StatusLine extends StatelessWidget {
-  const _StatusLine({super.key, required this.status});
+/// "Görüldü · 25 dakika önce": süre dakikada bir tazelenir (yalnız bu küçük widget, yalnız zamanlıyken).
+class _StatusLine extends StatefulWidget {
+  const _StatusLine({super.key, required this.status, this.seenAt});
   final String status;
+  final DateTime? seenAt;
+
+  @override
+  State<_StatusLine> createState() => _StatusLineState();
+}
+
+class _StatusLineState extends State<_StatusLine> {
+  Timer? _tick;
+
+  @override
+  void initState() {
+    super.initState();
+    _sync();
+  }
+
+  @override
+  void didUpdateWidget(_StatusLine old) {
+    super.didUpdateWidget(old);
+    _sync();
+  }
+
+  void _sync() {
+    final need = widget.status == 'seen' && widget.seenAt != null;
+    if (need && _tick == null) {
+      _tick = Timer.periodic(const Duration(minutes: 1), (_) {
+        if (mounted) setState(() {});
+      });
+    } else if (!need) {
+      _tick?.cancel();
+      _tick = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    _tick?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final text = switch (status) {
+    final at = widget.seenAt;
+    final text = switch (widget.status) {
       'sending' => l.chatStatusSending,
-      'seen' => l.chatStatusSeen,
+      'seen' => at == null ? l.chatStatusSeen : l.chatStatusSeenAt(relativeAgo(l, at)),
       _ => l.chatStatusSent,
     };
     return Padding(

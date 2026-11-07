@@ -15,7 +15,8 @@ public interface PostCommentRepository extends JpaRepository<PostComment, Long> 
             + "AND NOT EXISTS (SELECT 1 FROM UserBlock b WHERE (b.blockerId = :viewer AND b.blockedId = c.authorId) "
             + "OR (b.blockerId = c.authorId AND b.blockedId = :viewer)) ";
 
-    String TOP_LEVEL = "SELECT c FROM PostComment c WHERE c.postId = :pid AND c.parentId IS NULL AND " + VISIBLE;
+    String TOP_LEVEL = "SELECT c FROM PostComment c WHERE c.postId = :pid AND c.parentId IS NULL AND c.hiddenAt IS NULL "
+            + "AND ((c.deletedAt IS NOT NULL AND c.replyCount > 0) OR (" + VISIBLE + ")) ";
 
     // --- ust duzey: yeni ---
     @Query(TOP_LEVEL + "ORDER BY c.id DESC")

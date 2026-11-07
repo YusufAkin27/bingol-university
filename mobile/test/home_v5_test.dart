@@ -46,7 +46,7 @@ void main() {
     await settle(tester, const Duration(seconds: 2));
     final bar = find.byType(HomeFeaturedShortcuts);
     expect(bar, findsOneWidget);
-    for (final l in ['Ders', 'Programı', 'Yemek', 'Menüsü', 'Kütüphane', 'Kulüpler']) {
+    for (final l in ['Ders', 'Programı', 'Yemek', 'Menüsü', 'Kulüpler']) {
       expect(find.descendant(of: bar, matching: find.text(l)), findsOneWidget, reason: l);
     }
     await tester.tap(find.descendant(of: bar, matching: find.text('Kulüpler')));

@@ -232,4 +232,10 @@ class IdempotencyFilterTest {
         assertEquals(200, second.getStatus());
         assertEquals("", second.getContentAsString());
     }
+
+    @Test
+    void postCommentCreateIsCovered() {
+        assertTrue(IdempotencyFilter.covered("POST", "/api/posts/12/comments"));
+        org.junit.jupiter.api.Assertions.assertFalse(IdempotencyFilter.covered("POST", "/api/posts/12/comments/3"));
+    }
 }

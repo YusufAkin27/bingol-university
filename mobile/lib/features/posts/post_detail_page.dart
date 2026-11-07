@@ -11,6 +11,8 @@ import 'feed_seen.dart';
 import 'post_api.dart';
 import 'post_card.dart';
 import 'block_bus.dart';
+import 'comments/comment_sheet.dart';
+import 'comments/comments_preview.dart';
 import 'post_models.dart';
 import 'post_pager.dart';
 import 'post_stream.dart';
@@ -32,6 +34,7 @@ class PostDetailPage extends StatefulWidget {
     this.onDeleted,
     this.heroTag,
     this.stream,
+    this.openCommentId,
   });
 
   /// Listeden gelen fotoğraf Hero etiketi (yoksa uçuş yok). Yalnız açılan (ilk) gönderiye uygulanır.
@@ -45,6 +48,9 @@ class PostDetailPage extends StatefulWidget {
 
   /// Akışın yukarı/aşağı kısımları (null: tek gönderi).
   final PostStreamSeed? stream;
+
+  /// Bildirim derin bağlantısı: gönderi açılınca yorum alt sayfası bu yorumda açılır.
+  final int? openCommentId;
 
   @override
   State<PostDetailPage> createState() => _PostDetailPageState();
@@ -64,6 +70,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
   final List<Post> _after = [];
   Object? _postError;
 
+  bool _commentsOpened = false;
   bool _loadingMore = false;
   Object? _moreError;
 
@@ -84,6 +91,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
     BlockBus.instance.addListener(_onBlocked);
     _loadPost();
     _warm();
+    if (widget.openCommentId != null && first != null) _openComments();
   }
 
   @override
@@ -92,6 +100,25 @@ class _PostDetailPageState extends State<PostDetailPage> {
     _seen.dispose();
     _scroll.dispose();
     super.dispose();
+  }
+
+  /// Derin bağlantı: yorum alt sayfasını ilgili yorumda (bir kez) açar.
+  void _openComments() {
+    if (_commentsOpened) return;
+    _commentsOpened = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final p = _head;
+      showCommentSheet(context,
+          session: widget.session,
+          postId: widget.postId,
+          commentCount: p?.commentCount ?? 0,
+          focusCommentId: widget.openCommentId,
+          onCountChanged: (n) {
+            final h = _head;
+            if (h != null) _onPostChanged(h.copyWith(commentCount: n));
+          });
+    });
   }
 
   void _warm() => _prefetch.onItems(_after, from: 0);
@@ -116,6 +143,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
       });
       widget.onChanged?.call(p);
       _afterLoad();
+      if (widget.openCommentId != null) _openComments();
     } catch (e) {
       if (!mounted) return;
       // Eldeki gönderi varsa sessizce onu göster; 404/yok ise sayfa hata verir.
@@ -241,7 +269,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
         footer: _footer(),
         itemBuilder: (_, p) {
           _seen.mark(p.id);
-          return PostCard(
+          final card = PostCard(
             key: ValueKey('stream-post-${p.id}'),
             session: widget.session,
             post: p,
@@ -250,6 +278,17 @@ class _PostDetailPageState extends State<PostDetailPage> {
             onChanged: _onPostChanged,
             onDeleted: _onPostDeleted,
           );
+          // Açılan gönderinin altında yorum önizlemesi (akıştaki diğer gönderilerde yalnız yorum düğmesi var).
+          if (p.id != widget.postId) return card;
+          return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            card,
+            CommentsPreview(
+              session: widget.session,
+              postId: p.id,
+              count: p.commentCount ?? 0,
+              onCountChanged: (n) => _onPostChanged(p.copyWith(commentCount: n)),
+            ),
+          ]);
         },
       );
     }

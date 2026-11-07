@@ -25,7 +25,8 @@ import '../posts/social_models.dart';
 import '../follow/follow_button.dart';
 import '../profile/user_profile_page.dart' show openUserProfile;
 import '../posts/block_bus.dart';
-import 'reels_comments.dart';
+import '../posts/comments/comment_sheet.dart';
+import '../posts/comments/comments_api.dart';
 
 /// Reels: dikey, tam ekran video akışı (`GET /feed/reels`). Yalnız video gönderiler; öneri sırası sunucudadır (izlenmemiş
 /// öncelikli, aynı oturumda tekrar yok). Her sayfa ekranı doldurur; YALNIZ göründüğü sayfa oynar (diğerlerinin
@@ -57,7 +58,7 @@ class ReelsFeed extends StatefulWidget {
   final PostApi? api;
 
   /// Yorum erişimi (testlerde sahte); null: gerçek uçlar.
-  final CommentsRepository? comments;
+  final CommentsApi? comments;
 
   /// Üstte (durum çubuğu + başlık + filtreler) boş bırakılacak alan.
   final double topInset;
@@ -384,7 +385,7 @@ class _ReelPage extends StatefulWidget {
   final void Function(int authorId, FollowState state) onFollowState;
   final double topInset;
   final PostApi api;
-  final CommentsRepository? comments;
+  final CommentsApi? comments;
   final ValueChanged<Post> onChanged;
   final VoidCallback onRemoved;
 
@@ -567,18 +568,18 @@ class _ReelPageState extends State<_ReelPage> {
             a11yCount: (n) => l.p04LikeCount('$n'),
             onChanged: widget.onChanged,
           ),
-          if (p.commentCount != null)
-            _RailButton(
-              key: ValueKey('reel-comments-${p.id}'),
-              icon: BuIcons.messageCircle,
-              label: '${p.commentCount}',
-              tooltip: l.kesActionComments,
-              onTap: () => showReelsComments(context,
-                  session: widget.session,
-                  post: p,
-                  repository: widget.comments,
-                  onCountChanged: (n) => widget.onChanged(p.copyWith(commentCount: n))),
-            ),
+          _RailButton(
+            key: ValueKey('reel-comments-${p.id}'),
+            icon: BuIcons.messageCircle,
+            label: '${p.commentCount ?? 0}',
+            tooltip: l.kesActionComments,
+            onTap: () => showCommentSheet(context,
+                session: widget.session,
+                postId: p.id,
+                commentCount: p.commentCount ?? 0,
+                api: widget.comments,
+                onCountChanged: (n) => widget.onChanged(p.copyWith(commentCount: n))),
+          ),
           if (p.savedByMe != null)
             _RailButton(
               key: ValueKey('reel-save-${p.id}'),

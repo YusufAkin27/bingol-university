@@ -2,7 +2,6 @@ import 'package:bu_kampus/core/platform/video_service.dart';
 import 'package:bu_kampus/features/discover/discover_tab.dart';
 import 'package:bu_kampus/features/posts/compose_post_page.dart';
 import 'package:bu_kampus/features/posts/post_gallery_picker_page.dart';
-import 'package:bu_kampus/features/reels/reels_comments.dart';
 import 'package:bu_kampus/features/reels/reels_feed.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,6 +10,7 @@ import 'package:video_player_platform_interface/video_player_platform_interface.
 
 import 'kesfet_ks_test.dart' show FakeVideoPlatformKs, videoPost;
 import 'support/fake_app.dart';
+import 'support/fake_comments.dart';
 import 'support/fake_media.dart';
 
 /// KS-MB 2. tur: 5 kapsül filtre (konum koruma), Reels tükendi/Tekrar izle/İlgilenmiyorum/yorum paneli, Paylaş menüsü,
@@ -35,40 +35,6 @@ class _Frames implements VideoCompressor {
 
   @override
   Future<void> cancel() async {}
-}
-
-class _FakeComments implements CommentsRepository {
-  final added = <String>[];
-  final liked = <int>[];
-
-  @override
-  Future<ReelCommentPage> list(int postId, {String? cursor, String sort = 'top'}) async => ReelCommentPage([
-        ReelComment.fromJson({
-          'id': 1,
-          'author': {'id': 5, 'displayName': 'Deniz Aksoy'},
-          'text': 'Harika video',
-          'createdAt': '2026-11-04T08:00:00Z',
-          'likeCount': 2,
-          'replyCount': 1,
-        })
-      ], null);
-
-  @override
-  Future<ReelCommentPage> replies(int commentId, {String? cursor}) async => ReelCommentPage([
-        ReelComment.fromJson({'id': 2, 'parentId': 1, 'author': {'id': 6, 'displayName': 'Ece Yılmaz'}, 'text': 'Katılıyorum'})
-      ], null);
-
-  @override
-  Future<ReelComment> add(int postId, String text, {int? parentId}) async {
-    added.add('$parentId:$text');
-    return ReelComment.fromJson({'id': 99, 'author': {'id': 1, 'displayName': 'Ayşe Yılmaz'}, 'text': text, 'mine': true});
-  }
-
-  @override
-  Future<void> delete(int commentId) async {}
-
-  @override
-  Future<void> setLiked(int commentId, bool l) async => liked.add(commentId);
 }
 
 void noErr(WidgetTester tester) {
@@ -185,17 +151,19 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('eylem cubugu: yorum/kaydet yalniz sunucu sunuyorsa gorunur; yorum paneli (liste, yanit, yazma)', (tester) async {
+    testWidgets('eylem cubugu: yorum her reelde (commentCount yoksa 0), kaydet yalniz sunucu sunuyorsa; yorum paneli', (tester) async {
       useScreen(tester, const Size(390, 844));
       await plat(tester);
       final b = FakeBackend();
       final plain = videoPost(id: 7);
       final rich = videoPost(id: 8)..addAll({'commentCount': 1, 'savedByMe': false});
       b.on('/feed/reels*', {'items': [plain, rich], 'nextCursor': null});
-      final repo = _FakeComments();
-      await tester.pumpWidget(buildApp(ReelsFeed(session: makeSession(b), active: true, comments: repo)));
+      final f = CommentsFake(b);
+      f.roots.add(commentView(1, postId: 8, body: 'Harika video', likes: 2, replies: 1));
+      f.replies[1] = [commentView(2, postId: 8, parentId: 1, body: 'Katiliyorum', name: 'Ece Yilmaz', username: 'ece')];
+      await tester.pumpWidget(buildApp(ReelsFeed(session: makeSession(b), active: true)));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(find.byKey(const ValueKey('reel-comments-7')), findsNothing);
+      expect(find.byKey(const ValueKey('reel-comments-7')), findsOneWidget);
       expect(find.byKey(const ValueKey('reel-save-7')), findsNothing);
       expect(find.byKey(const ValueKey('reel-menu-7')), findsOneWidget);
       await tester.fling(find.byKey(const ValueKey('reelsPager')), const Offset(0, -500), 1500);
@@ -207,19 +175,19 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('reel-comments-8')));
       await settle(tester, const Duration(milliseconds: 700));
       expect(find.text('Harika video'), findsOneWidget);
-      expect(find.textContaining('Deniz Aksoy', findRichText: true), findsOneWidget);
+      expect(b.requests.any((r) => r.startsWith('GET /posts/8/comments')), isTrue);
       await tester.tap(find.byKey(const ValueKey('commentReplies-1')));
       await settle(tester, const Duration(milliseconds: 400));
-      expect(find.text('Katılıyorum'), findsOneWidget);
-      await tester.enterText(find.byKey(const ValueKey('commentInput')), 'Güzel');
+      expect(find.text('Katiliyorum'), findsOneWidget);
+      await tester.enterText(find.byKey(const ValueKey('commentInput')), 'Guzel');
       await tester.pump();
       await tester.tap(find.byKey(const ValueKey('commentSend')));
       await settle(tester, const Duration(milliseconds: 400));
-      expect(repo.added, ['null:Güzel']);
-      expect(find.text('Güzel'), findsOneWidget);
+      expect(f.bodies.single['body'], 'Guzel');
+      expect(find.text('Guzel'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('commentLike-1')));
       await settle(tester, const Duration(milliseconds: 200));
-      expect(repo.liked, [1]);
+      expect(f.likes, ['PUT 1']);
       noErr(tester);
       await unmount(tester);
     });

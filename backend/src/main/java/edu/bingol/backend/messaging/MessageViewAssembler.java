@@ -127,9 +127,19 @@ public class MessageViewAssembler {
                     : counts.getOrDefault(m.getId(), List.of()), mine.get(m.getId()))
                     .withAttachments(blocked || m.isDeleted() ? null : att.get(m.getId()))
                     .withShare(blocked || m.isDeleted() || shareOf(m) == null ? null : cards.get(shareOf(m)))
-                    .withStatus(status.get(m.getId())));
+                    .withStatus(status.get(m.getId()))
+                    .withReadAt(readAtOf(viewerId, m, status.get(m.getId()))));
         }
         return out;
+    }
+
+    /**
+     * Okuma zamani: yalniz mesajin GONDERENI icin ve durum READ iken (gizlilik: alici/baskasi gormez). Makbuz
+     * yalniz birebirde kaydedilir (recordRead); golge engel/engel/buyuk grup durumu READ vermez -> null.
+     */
+    static String readAtOf(Long viewerId, Message m, String status) {
+        return viewerId != null && viewerId.equals(m.getSenderId()) && ReceiptService.READ.equals(status)
+                && m.getReadAt() != null && !m.isDeleted() && !m.isHidden() ? m.getReadAt().toString() : null;
     }
 
     private static ReplyPreview preview(Message p, Long conversationId, Long viewerId, Set<Long> blockedSenders,

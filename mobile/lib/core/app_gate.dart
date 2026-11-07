@@ -11,7 +11,7 @@ import 'api.dart';
 import 'device_identity.dart';
 import 'icons/bu_icons.dart';
 
-const appVersion = String.fromEnvironment('APP_VERSION', defaultValue: '2.3.4');
+const appVersion = String.fromEnvironment('APP_VERSION', defaultValue: '2.3.6');
 
 /// Sayısal sürümleri karşılaştırır (1.2.3); eksik parça 0 sayılır. a<b -> -1.
 int compareVersions(String a, String b) {

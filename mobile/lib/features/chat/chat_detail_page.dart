@@ -200,6 +200,11 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   /// Karşı tarafın okuduğu son mesaj id'si ve "yazıyor" göstergesi (yalnız ilgili widget'ları yeniler).
   final _peerRead = ValueNotifier<int>(0);
 
+  /// Okundu bilgisinin YAKLAŞIK zamanı: sunucu mesaj görünümünde readAt vermez, bu yüzden
+  /// canlı `receipt` olayının istemciye ulaştığı an saklanır (oturum içi, bellekte).
+  /// Sayfaya yeniden girince/ilk yüklemede bilinmez; durum yazısı zamansız "Görüldü" kalır.
+  static final Map<int, ({int upTo, DateTime at})> _seenAtByConv = {};
+
   /// `around` penceresi açıkken konuşmanın gerçek en güncel mesajı bellekte olmayabilir (durum yazısı gizlenir).
   bool _newerGap = false;
   final _typingNow = ValueNotifier<bool>(false);
@@ -803,6 +808,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         if (r.conversationId == _cid && r.userId != _myId) {
           _advanceStatus(r.lastMessageId, 'READ');
           if (r.lastMessageId > _peerRead.value) {
+            _seenAtByConv[_cid] = (upTo: r.lastMessageId, at: DateTime.now());
             _peerRead.value = r.lastMessageId;
           }
         }
@@ -3345,6 +3351,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     final replyId = (reply?['id'] as num?)?.toInt();
     // Instagram Direct düzeni: durum yalnız konuşmanın en güncel mesajında ve o benimse.
     String? statusLine;
+    DateTime? seenAt;
     if (latest &&
         !preview &&
         !_newerGap &&
@@ -3357,6 +3364,16 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         statusLine = 'sending';
       } else if (st == null && id != null) {
         statusLine = (id <= peerRead || m['status'] == 'READ') ? 'seen' : 'sent';
+        final rec = _seenAtByConv[_cid];
+        if (statusLine == 'seen') {
+          // Sunucu okunma zamanını (MessageView.readAt, yalnız gönderene) verirse o kesindir; yoksa canlı olay anı (yaklaşık).
+          final srv = DateTime.tryParse('${m['readAt'] ?? ''}');
+          if (srv != null) {
+            seenAt = srv.toUtc();
+          } else if (rec != null && id <= rec.upTo) {
+            seenAt = rec.at;
+          }
+        }
       }
     }
     Widget make(bool hl) => MessageBubble(
@@ -3375,6 +3392,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           replyMine:
               reply != null && (reply['senderId'] as num?)?.toInt() == _myId,
           statusLine: statusLine,
+          seenAt: seenAt,
           authHeaders: _authHeaders,
           tail: last,
           preview: preview,

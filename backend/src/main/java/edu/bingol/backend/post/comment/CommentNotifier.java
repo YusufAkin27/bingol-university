@@ -8,6 +8,7 @@ import edu.bingol.backend.notification.NotificationSubtype;
 import edu.bingol.backend.notification.NotificationType;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
+import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -29,8 +30,11 @@ public class CommentNotifier {
     private final I18n i18n;
     private final UserRepository users;
     private final BlockService blocks;
+    private final JdbcTemplate jdbc;
 
-    public CommentNotifier(NotificationService notifications, I18n i18n, UserRepository users, BlockService blocks) {
+    public CommentNotifier(NotificationService notifications, I18n i18n, UserRepository users, BlockService blocks,
+                           JdbcTemplate jdbc) {
+        this.jdbc = jdbc;
         this.notifications = notifications;
         this.i18n = i18n;
         this.users = users;
@@ -72,6 +76,30 @@ public class CommentNotifier {
         }
     }
 
+    /**
+     * Yorum begenisi: yorum sahibine. Kendi yorumu ve engel iliskisinde yok; ayni kisi ayni yorumu tekrar begenince
+     * (geri alip yeniden) ikinci bildirim gitmez: toplama anahtari yorum+kisi, kutuda satiri varsa (okunmus da olsa) atlanir.
+     */
+    public void onLike(Long actorId, Long postId, Long commentId, Long commentAuthorId) {
+        try {
+            if (!shouldNotify(actorId, commentAuthorId)) {
+                return;
+            }
+            String key = "pclk:" + commentId + ":" + actorId;
+            Integer seen = jdbc.queryForObject("SELECT COUNT(*) FROM notification WHERE user_id = ? AND collapse_key = ?",
+                    Integer.class, commentAuthorId, key);
+            if (seen != null && seen > 0) {
+                return;
+            }
+            Lang lang = i18n.langOf(commentAuthorId);
+            notifications.send(commentAuthorId, NotificationType.COMMENT_LIKE, NotificationSubtype.COMMENT_LIKE, key,
+                    i18n.msg("notif.comment.like.title", lang), i18n.msg("notif.comment.like.body", lang, actorName(actorId)),
+                    data(postId, commentId));
+        } catch (RuntimeException e) {
+            log.warn("Yorum begeni bildirimi gonderilemedi (yorum {}): {}", commentId, e.toString());
+        }
+    }
+
     private boolean shouldNotify(Long actorId, Long recipientId) {
         return recipientId != null && actorId != null && !Objects.equals(actorId, recipientId)
                 && !blocks.isBlocked(actorId, recipientId);
@@ -85,6 +113,8 @@ public class CommentNotifier {
         Map<String, String> d = new LinkedHashMap<>();
         d.put("target", "POST");
         d.put("value", String.valueOf(postId));
+        d.put("targetType", "POST");
+        d.put("targetId", String.valueOf(postId));
         d.put("postId", String.valueOf(postId));
         d.put("commentId", String.valueOf(commentId));
         return d;

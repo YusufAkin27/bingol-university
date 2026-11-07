@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -670,11 +669,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-    String type,
-    String title,
-    String date,
-    String countdown,
-  ) {
+      String type, String title, String date, String countdown) {
     return '$type: $title. $date. $countdown. المس للتعديل.';
   }
 
@@ -992,11 +987,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-    String name,
-    String day,
-    String start,
-    String end,
-  ) {
+      String name, String day, String start, String end) {
     return '$name، $day من $start إلى $end';
   }
 
@@ -13625,4 +13616,187 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reportsReasonPersonalInfo => 'نشر معلومات شخصية';
+
+  @override
+  String get chatSeenAgoNow => 'قبل لحظات';
+
+  @override
+  String chatSeenAgoMinutes(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'منذ $n دقيقة',
+      many: 'منذ $n دقيقة',
+      few: 'منذ $n دقائق',
+      two: 'منذ دقيقتين',
+      one: 'منذ دقيقة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatSeenAgoHours(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'منذ $n ساعة',
+      many: 'منذ $n ساعة',
+      few: 'منذ $n ساعات',
+      two: 'منذ ساعتين',
+      one: 'منذ ساعة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatSeenAgoDays(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'منذ $n يومًا',
+      many: 'منذ $n يومًا',
+      few: 'منذ $n أيام',
+      two: 'منذ يومين',
+      one: 'منذ يوم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatSeenAgoWeeks(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'منذ $n أسبوعًا',
+      many: 'منذ $n أسبوعًا',
+      few: 'منذ $n أسابيع',
+      two: 'منذ أسبوعين',
+      one: 'منذ أسبوع واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatSeenAgoMonths(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'منذ $n شهرًا',
+      many: 'منذ $n شهرًا',
+      few: 'منذ $n أشهر',
+      two: 'منذ شهرين',
+      one: 'منذ شهر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatSeenAgoYears(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'منذ $n سنة',
+      many: 'منذ $n سنة',
+      few: 'منذ $n سنوات',
+      two: 'منذ سنتين',
+      one: 'منذ سنة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatStatusSeenAt(String when) {
+    return 'تمت المشاهدة · $when';
+  }
+
+  @override
+  String get pcmWriteHint => 'أضف تعليقًا…';
+
+  @override
+  String get pcmEmptyTitle => 'كن أول من يعلّق';
+
+  @override
+  String get pcmEmptyBody => 'شارك رأيك وابدأ النقاش.';
+
+  @override
+  String pcmReplyingTo(String name) {
+    return 'الرد على $name';
+  }
+
+  @override
+  String get pcmHideReplies => 'إخفاء الردود';
+
+  @override
+  String get pcmSendFailed => 'تعذّر الإرسال';
+
+  @override
+  String get pcmRetry => 'أعد المحاولة';
+
+  @override
+  String get pcmSending => 'جارٍ الإرسال…';
+
+  @override
+  String get pcmDeleted => 'تم حذف هذا التعليق';
+
+  @override
+  String get pcmMenuDelete => 'حذف';
+
+  @override
+  String get pcmMenuReport => 'إبلاغ';
+
+  @override
+  String get pcmMenuCopy => 'نسخ النص';
+
+  @override
+  String get pcmCopied => 'تم النسخ';
+
+  @override
+  String get pcmMoreActions => 'خيارات التعليق';
+
+  @override
+  String get pcmLikeA11y => 'الإعجاب بالتعليق';
+
+  @override
+  String get pcmUnlikeA11y => 'إلغاء الإعجاب بالتعليق';
+
+  @override
+  String pcmLikeCountA11y(String count) {
+    return '$count إعجاب';
+  }
+
+  @override
+  String pcmCommentCountA11y(String count) {
+    return '$count تعليق';
+  }
+
+  @override
+  String pcmViewAll(String count) {
+    return 'عرض كل التعليقات ($count)';
+  }
+
+  @override
+  String get pcmViewAllPlain => 'عرض التعليقات';
+
+  @override
+  String get pcmErrTooLong => 'الحد الأقصى للتعليق 500 حرف.';
+
+  @override
+  String get pcmErrPostGone => 'هذا المنشور لم يعد متاحًا.';
+
+  @override
+  String get pcmErrParent => 'التعليق الذي رددت عليه لم يعد موجودًا.';
+
+  @override
+  String get pcmErrRate => 'تعلّق بسرعة كبيرة. حاول بعد قليل.';
+
+  @override
+  String get pcmMoreReplies => 'المزيد من الردود';
+
+  @override
+  String get pcmSortLabel => 'ترتيب';
+
+  @override
+  String pcmCharsLeft(String n) {
+    return 'تبقّى $n حرفًا';
+  }
 }

@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -669,11 +668,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-    String type,
-    String title,
-    String date,
-    String countdown,
-  ) {
+      String type, String title, String date, String countdown) {
     return '$type: $title. $date. $countdown. Düzenlemek için dokun.';
   }
 
@@ -991,11 +986,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-    String name,
-    String day,
-    String start,
-    String end,
-  ) {
+      String name, String day, String start, String end) {
     return '$name, $day $start ile $end arası';
   }
 
@@ -13701,4 +13692,164 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get reportsReasonPersonalInfo => 'Kişisel bilgi paylaşımı';
+
+  @override
+  String get chatSeenAgoNow => 'az önce';
+
+  @override
+  String chatSeenAgoMinutes(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n dakika önce',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatSeenAgoHours(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n saat önce',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatSeenAgoDays(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n gün önce',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatSeenAgoWeeks(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n hafta önce',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatSeenAgoMonths(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n ay önce',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatSeenAgoYears(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n yıl önce',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatStatusSeenAt(String when) {
+    return 'Görüldü · $when';
+  }
+
+  @override
+  String get pcmWriteHint => 'Yorum ekle…';
+
+  @override
+  String get pcmEmptyTitle => 'İlk yorumu sen yaz';
+
+  @override
+  String get pcmEmptyBody => 'Düşüncelerini paylaş, sohbeti başlat.';
+
+  @override
+  String pcmReplyingTo(String name) {
+    return '$name kişisine yanıt veriliyor';
+  }
+
+  @override
+  String get pcmHideReplies => 'Yanıtları gizle';
+
+  @override
+  String get pcmSendFailed => 'Gönderilemedi';
+
+  @override
+  String get pcmRetry => 'Yeniden dene';
+
+  @override
+  String get pcmSending => 'Gönderiliyor…';
+
+  @override
+  String get pcmDeleted => 'Bu yorum silindi';
+
+  @override
+  String get pcmMenuDelete => 'Sil';
+
+  @override
+  String get pcmMenuReport => 'Şikayet et';
+
+  @override
+  String get pcmMenuCopy => 'Metni kopyala';
+
+  @override
+  String get pcmCopied => 'Kopyalandı';
+
+  @override
+  String get pcmMoreActions => 'Yorum seçenekleri';
+
+  @override
+  String get pcmLikeA11y => 'Yorumu beğen';
+
+  @override
+  String get pcmUnlikeA11y => 'Beğenmekten vazgeç';
+
+  @override
+  String pcmLikeCountA11y(String count) {
+    return '$count beğeni';
+  }
+
+  @override
+  String pcmCommentCountA11y(String count) {
+    return '$count yorum';
+  }
+
+  @override
+  String pcmViewAll(String count) {
+    return '$count yorumun tümünü gör';
+  }
+
+  @override
+  String get pcmViewAllPlain => 'Yorumları gör';
+
+  @override
+  String get pcmErrTooLong => 'Yorum en çok 500 karakter olabilir.';
+
+  @override
+  String get pcmErrPostGone => 'Bu gönderi artık yok.';
+
+  @override
+  String get pcmErrParent => 'Yanıtladığın yorum artık yok.';
+
+  @override
+  String get pcmErrRate =>
+      'Çok hızlı yorum yapıyorsun. Biraz sonra tekrar dene.';
+
+  @override
+  String get pcmMoreReplies => 'Daha fazla yanıt';
+
+  @override
+  String get pcmSortLabel => 'Sırala';
+
+  @override
+  String pcmCharsLeft(String n) {
+    return '$n karakter kaldı';
+  }
 }

@@ -62,14 +62,14 @@ public class PostCommentController {
         return service.create(uid, id, req);
     }
 
-    @GetMapping("/post-comments/{cid}")
+    @GetMapping({"/post-comments/{cid}", "/comments/{cid}"})
     public CommentView get(@PathVariable Long cid) {
         Long uid = CurrentUser.id();
         read(uid);
         return service.get(uid, cid);
     }
 
-    @GetMapping("/post-comments/{cid}/replies")
+    @GetMapping({"/post-comments/{cid}/replies", "/comments/{cid}/replies"})
     public CommentPage replies(@PathVariable Long cid, @RequestParam(required = false) String cursor,
                                @RequestParam(defaultValue = "10") int size) {
         Long uid = CurrentUser.id();
@@ -77,7 +77,7 @@ public class PostCommentController {
         return service.replies(uid, cid, cursor, size);
     }
 
-    @DeleteMapping("/post-comments/{cid}")
+    @DeleteMapping({"/post-comments/{cid}", "/comments/{cid}"})
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long cid) {
         Long uid = CurrentUser.id();
@@ -102,6 +102,19 @@ public class PostCommentController {
         Long uid = CurrentUser.id();
         limiter.check("comment:like:" + uid, 120, Duration.ofMinutes(1));
         return service.unlike(uid, cid);
+    }
+
+    /** Sozlesme yolu: 204, idempotent (eski /post-comments/{cid}/like LikeState govdesi doner). */
+    @PutMapping("/comments/{cid}/like")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void likeNoContent(@PathVariable Long cid) {
+        like(cid);
+    }
+
+    @DeleteMapping("/comments/{cid}/like")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void unlikeNoContent(@PathVariable Long cid) {
+        unlike(cid);
     }
 
     private void read(Long uid) {

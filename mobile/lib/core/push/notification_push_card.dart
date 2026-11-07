@@ -62,7 +62,7 @@ String pushCardStyle(Map<String, dynamic> data) {
   if (type == 'FOLLOW_ACCEPTED') return 'FOLLOW_ACCEPTED';
   if (type == 'USER_FOLLOW') return 'FOLLOW';
   if (type == 'POST_MENTION') return 'MENTION';
-  if (type.startsWith('POST_') || type == 'COMMENT_REPLY') return 'SOCIAL';
+  if (type.startsWith('POST_') || type == 'COMMENT_REPLY' || type == 'COMMENT_LIKE') return 'SOCIAL';
   if (data['pollId'] != null || subtype == 'POLL') return 'POLL';
   if (data['examId'] != null || subtype == 'EXAM_REMINDER') return 'EXAM';
   if (data['ticketId'] != null || data['feedbackId'] != null) return 'SUPPORT';

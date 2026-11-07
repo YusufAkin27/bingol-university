@@ -899,7 +899,7 @@ class _HomeTabState extends State<HomeTab> {
     return trUpper(name).characters.take(3).toString();
   }
 
-  /// Stitch v5 üst blok: Ders Programı, Yemek Menüsü, Kütüphane, Kulüpler (hepsi aynı tek tonlu karo).
+  /// Stitch v5 üst blok: Ders Programı, Yemek Menüsü, Kulüpler, Kulüplerim (hepsi aynı tek tonlu karo; Kütüphane kısayolu kullanıcı isteğiyle kaldırıldı, "Daha fazla" menüsünde duruyor).
   Widget _featuredShortcuts(BuildContext context) {
     final l = context.l10n;
     return HomeFeaturedShortcuts(items: [
@@ -913,11 +913,7 @@ class _HomeTabState extends State<HomeTab> {
         icon: BuIcons.utensils,
         onTap: () => _push(MenuPage(session: _s), 'menu')
       ),
-      (
-        label: l.homeLibrary,
-        icon: BuIcons.library,
-        onTap: () => _openUrl('https://kutuphane.bingol.edu.tr/')
-      ),
+
       (
         label: l.navClubs,
         icon: BuIcons.users,

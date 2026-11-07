@@ -165,7 +165,18 @@ public final class MessagingDtos {
                               String status,
                               @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String senderName,
                               @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String placeholderKind,
-                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) ShareCard share) {
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) ShareCard share,
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String readAt) {
+        /** readAt oncesi 19 bilesenli kurucu. */
+        public MessageView(Long id, Long conversationId, Long senderId, String clientId, String text,
+                           boolean removed, String createdAt, Long replyToMessageId, ReplyPreview replyTo,
+                           boolean edited, String editedAt, boolean deleted, List<ReactionCount> reactions,
+                           String myReaction, List<AttachmentView> attachments, String status, String senderName,
+                           String placeholderKind, ShareCard share) {
+            this(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId, replyTo, edited,
+                    editedAt, deleted, reactions, myReaction, attachments, status, senderName, placeholderKind, share, null);
+        }
+
         /** Paylasim karti olmayan (eski) 18 bilesenli kurucu. */
         public MessageView(Long id, Long conversationId, Long senderId, String clientId, String text,
                            boolean removed, String createdAt, Long replyToMessageId, ReplyPreview replyTo,
@@ -216,19 +227,29 @@ public final class MessagingDtos {
         /** Makbuz durumu (SENT | DELIVERED | READ); yalniz istek sahibinin kendi mesajlarinda dolu. */
         public MessageView withStatus(String s) {
             return new MessageView(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId,
-                    replyTo, edited, editedAt, deleted, reactions, myReaction, attachments, s, senderName, placeholderKind, share);
+                    replyTo, edited, editedAt, deleted, reactions, myReaction, attachments, s, senderName, placeholderKind, share, readAt);
+        }
+
+        /**
+         * Karsi tarafin okuma zamani (ISO-8601 UTC). Yalniz istek sahibinin KENDI mesajinda ve mesaj okunduysa
+         * (assembler status=READ ile birlikte doldurur); alici/baska kullaniciya ASLA verilmez.
+         */
+        public MessageView withReadAt(String at) {
+            return new MessageView(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId,
+                    replyTo, edited, editedAt, deleted, reactions, myReaction, attachments, status, senderName,
+                    placeholderKind, share, at);
         }
 
         public MessageView withSenderName(String name) {
             return new MessageView(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId,
-                    replyTo, edited, editedAt, deleted, reactions, myReaction, attachments, status, name, placeholderKind, share);
+                    replyTo, edited, editedAt, deleted, reactions, myReaction, attachments, status, name, placeholderKind, share, readAt);
         }
 
         /** T8: gorsel ekleri ekler (gizlenen/silinen/engelli mesajda ek gosterilmez). */
         public MessageView withAttachments(List<AttachmentView> list) {
             return removed || list == null ? this : new MessageView(id, conversationId, senderId, clientId, text,
                     removed, createdAt, replyToMessageId, replyTo, edited, editedAt, deleted, reactions, myReaction,
-                    List.copyOf(list), status, senderName, placeholderKind, share);
+                    List.copyOf(list), status, senderName, placeholderKind, share, readAt);
         }
 
         public static MessageView of(Message m) {
@@ -252,7 +273,7 @@ public final class MessagingDtos {
 
         public MessageView withExtras(ReplyPreview reply, List<ReactionCount> counts, String mine) {
             return new MessageView(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId,
-                    reply, edited, editedAt, deleted, counts, mine, attachments, status, senderName, placeholderKind, share);
+                    reply, edited, editedAt, deleted, counts, mine, attachments, status, senderName, placeholderKind, share, readAt);
         }
 
         /**
@@ -262,7 +283,7 @@ public final class MessagingDtos {
         public MessageView withShare(ShareCard card) {
             return removed || card == null ? this : new MessageView(id, conversationId, senderId, clientId, text,
                     removed, createdAt, replyToMessageId, replyTo, edited, editedAt, deleted, reactions, myReaction,
-                    attachments, status, senderName, placeholderKind, card);
+                    attachments, status, senderName, placeholderKind, card, readAt);
         }
 
         /** Sohbet listesi son mesaji: kart notr (yalniz tur + kullanilabilirlik); bos aciklama yerine notr etiket. */
@@ -273,7 +294,7 @@ public final class MessagingDtos {
             String t = (text == null || text.isBlank()) && neutralLabel != null ? neutralLabel : text;
             return new MessageView(id, conversationId, senderId, clientId, t, removed, createdAt, replyToMessageId,
                     replyTo, edited, editedAt, deleted, reactions, myReaction, attachments, status, senderName,
-                    placeholderKind, share.neutral());
+                    placeholderKind, share.neutral(), readAt);
         }
 
         /**
@@ -286,7 +307,7 @@ public final class MessagingDtos {
             }
             return new MessageView(id, conversationId, senderId, clientId, "", removed, createdAt, replyToMessageId,
                     replyTo, edited, editedAt, deleted, reactions, myReaction, attachments, status, senderName,
-                    placeholderKind, share);
+                    placeholderKind, share, readAt);
         }
 
         public MessageView withoutReplyPreview() {
@@ -300,7 +321,13 @@ public final class MessagingDtos {
      * Grupta toplulastirma sunucuda yapilir: yalniz tum diger aktif uyeler esigi gectiginde dusulur.
      */
     public record ReceiptEvent(String type, Long conversationId, String kind, Long upToMessageId, Long userId,
-                               String at, String status) {}
+                               String at, String status,
+                               @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String readAt) {
+        public ReceiptEvent(String type, Long conversationId, String kind, Long upToMessageId, Long userId, String at,
+                            String status) {
+            this(type, conversationId, kind, upToMessageId, userId, at, status, "read".equals(kind) ? at : null);
+        }
+    }
 
     /** Tepki sonucu / olayi: toplam sayaclar ve (yalniz istek sahibi icin) kendi tepkisi. */
     public record ReactionSummary(Long messageId, List<ReactionCount> reactions, String myReaction) {}

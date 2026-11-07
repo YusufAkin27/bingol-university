@@ -802,7 +802,7 @@ public class NotificationService {
             case ANNOUNCEMENT -> p.isAnnouncements();
             case EVENT -> p.isEvents();
             case MESSAGE -> p.isMessages();
-            case COMMUNITY, POST_LIKE, POST_COMMENT, COMMENT_REPLY, POST_MENTION, USER_FOLLOW, FOLLOW_REQUEST,
+            case COMMUNITY, POST_LIKE, POST_COMMENT, COMMENT_REPLY, COMMENT_LIKE, POST_MENTION, USER_FOLLOW, FOLLOW_REQUEST,
                  FOLLOW_ACCEPTED, FORUM -> p.isCommunities();
             case SYSTEM -> true;
         };

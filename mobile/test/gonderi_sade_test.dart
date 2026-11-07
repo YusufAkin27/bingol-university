@@ -203,7 +203,7 @@ void main() {
       expect(page.items[2].photo!.id, 30);
     });
 
-    testWidgets('detay: foto + yazar + metin + begeni; yorum ve kaydet yok, yorum ucu cagrilmaz', (tester) async {
+    testWidgets('detay: foto + yazar + metin + begeni + yorum dugmesi/onizleme; kaydet yok', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
       final p = samplePost(id: 91, text: 'Kisa bir not', media: [samplePostMedia(id: 910)], likeCount: 4);
@@ -215,9 +215,11 @@ void main() {
       expect(find.text('Ayşe Yılmaz'), findsOneWidget);
       expect(find.text('Kisa bir not'), findsOneWidget);
       expect(find.byKey(const ValueKey('like-heart')), findsOneWidget);
-      expect(find.byType(TextField), findsNothing); // yorum yazma alani yok
+      expect(find.byKey(const ValueKey('post-comments-91')), findsOneWidget); // yorum dugmesi (2026-11-07 karari)
+      expect(find.byKey(const ValueKey('commentsAddRow')), findsOneWidget);
+      expect(find.byType(TextField), findsNothing); // yazma alani yalniz alt sayfada
       expect(find.byIcon(BuIcons.bookmarkFilled), findsNothing);
-      expect(b.requests.any((r) => r.contains('/comments')), isFalse);
+      expect(b.requests.any((r) => r.contains('/posts/91/comments')), isTrue); // onizleme
       noErr(tester);
     });
 

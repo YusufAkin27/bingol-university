@@ -11,7 +11,7 @@ public enum NotificationSubtype {
     COMMUNITY_POST(NotificationType.COMMUNITY), COMMUNITY_ROLE(NotificationType.COMMUNITY),
     COMMUNITY_JOIN(NotificationType.COMMUNITY),
     POST_LIKE(NotificationType.POST_LIKE), POST_COMMENT(NotificationType.POST_COMMENT),
-    COMMENT_REPLY(NotificationType.COMMENT_REPLY),
+    COMMENT_REPLY(NotificationType.COMMENT_REPLY), COMMENT_LIKE(NotificationType.COMMENT_LIKE),
     POST_MENTION(NotificationType.POST_MENTION), USER_FOLLOW(NotificationType.USER_FOLLOW),
     FOLLOW_REQUEST(NotificationType.FOLLOW_REQUEST), FOLLOW_ACCEPTED(NotificationType.FOLLOW_ACCEPTED),
     // Kampus Forum (FORUM_MODERATION alt tur DEGIL: SYSTEM alt tur alamaz; veride forumKind=FORUM_MODERATION)
