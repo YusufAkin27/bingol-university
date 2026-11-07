@@ -1,3 +1,4 @@
+import 'package:flutter/rendering.dart' show RenderParagraph;
 import 'package:bu_kampus/features/chat/chat_detail_page.dart';
 import 'package:bu_kampus/features/chat/message_bubble.dart';
 import 'package:flutter/material.dart';
@@ -77,6 +78,17 @@ Future<void> _pumpBubble(WidgetTester tester, String text, {bool mine = false, B
   await tester.pump(const Duration(milliseconds: 50));
 }
 
+/// "Daha az göster" bağlantısının ekrandaki merkezi (RenderParagraph son karakter kutularından); önce görünür kaydırılır.
+Future<Offset> _linkCenter(WidgetTester tester) async {
+  final rp = tester.renderObject<RenderParagraph>(
+      find.descendant(of: find.byKey(const ValueKey('longMsgLess')), matching: find.byType(RichText)).first);
+  final len = rp.text.toPlainText().length;
+  final boxes = rp.getBoxesForSelection(TextSelection(baseOffset: len - 4, extentOffset: len));
+  rp.showOnScreen(rect: boxes.last.toRect(), duration: Duration.zero);
+  await tester.pump();
+  return rp.localToGlobal(boxes.last.toRect().center);
+}
+
 void main() {
   setUpAll(loadTestFonts);
 
@@ -90,7 +102,7 @@ void main() {
     });
   }
 
-  for (final n in [800, 2000, 5000, 10000]) {
+  for (final n in [401, 800, 1100, 1101, 2000, 5000, 10000]) {
     testWidgets('$n karakter: 400 + Devamını gör; basışlar +700; tamamı açılınca Daha az göster', (tester) async {
       final text = _words(n);
       await _pumpBubble(tester, text);
@@ -116,9 +128,14 @@ void main() {
       expect(presses, ((n - 400) / 700).ceil());
       expect(shown(), contains('Daha az göster'));
       expect(shown().replaceAll('  Daha az göster', ''), text);
-      // Daralt.
+      // Tamamı açıkken metne dokunmak KISALTMAZ (yanlışlıkla başa dönmesin).
       await tester.ensureVisible(find.byKey(const ValueKey('longMsgLess')));
       await tester.tapAt(tester.getTopLeft(find.byKey(const ValueKey('longMsgLess'))) + const Offset(12, 12));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(shown(), contains('Daha az göster'), reason: 'metne dokunmak mesajı kısaltmamalı');
+      expect(shown().replaceAll('  Daha az göster', ''), text);
+      // Daralt: yalnız "Daha az göster" bağlantısına dokunulunca.
+      await tester.tapAt(await _linkCenter(tester));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
       expect(shown(), contains('Devamını gör'));

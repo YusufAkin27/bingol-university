@@ -3156,6 +3156,37 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     return id != null ? 'm$id' : 'q${m['_seq']}';
   }
 
+  /// "Devamını gör" genişleme durumu: HER İKİ kimlikle (clientId ve sunucu id) saklanır/okunur. Mesaj yerelden sunucu
+  /// sürümüne ya da yeniden yüklenmiş sürüme geçip satır kimliği değişse bile durum kaybolmaz (mesaj başa dönmez).
+  static List<String> _expandKeys(Map<String, dynamic> m) {
+    final c = m['clientId'];
+    final id = (m['id'] as num?)?.toInt();
+    return [
+      if (c is String && c.isNotEmpty) 'c$c',
+      if (id != null) 'm$id',
+    ];
+  }
+
+  int? _expandOf(Map<String, dynamic> m) {
+    for (final k in _expandKeys(m)) {
+      final v = _expandLimit[k];
+      if (v != null) return v;
+    }
+    return null;
+  }
+
+  void _setExpand(Map<String, dynamic> m, int? lim) {
+    final keys = _expandKeys(m);
+    if (keys.isEmpty) keys.add(_rowId(m));
+    for (final k in keys) {
+      if (lim == null) {
+        _expandLimit.remove(k);
+      } else {
+        _expandLimit[k] = lim;
+      }
+    }
+  }
+
   Widget _list(BuTokens t, int peerRead) {
     // findChildIndexCallback için kimlik -> konum (yapı başına bir kez).
     final indexOf = <String, int>{
@@ -3349,15 +3380,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           onOpenShare: (info) =>
               openShared(context, widget.session, info.target, info: info),
           highlight: (_searching && _query.isNotEmpty) ? _query : null,
-          expandLimit: _expandLimit[_rowId(m)],
-          onExpandLimit: (lim) => setState(() {
-            final k = _rowId(m);
-            if (lim == null) {
-              _expandLimit.remove(k);
-            } else {
-              _expandLimit[k] = lim;
-            }
-          }),
+          expandLimit: _expandOf(m),
+          onExpandLimit: (lim) => setState(() => _setExpand(m, lim)),
           onReact: (e) => _react(m, e),
         );
     if (preview || id == null) return make(false);

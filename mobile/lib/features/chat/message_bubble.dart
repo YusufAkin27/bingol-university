@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show RenderParagraph;
 import 'package:flutter/services.dart';
 
 import '../../core/cache/image_disk_cache.dart';
@@ -269,6 +270,8 @@ class MessageBubble extends StatelessWidget {
             : (lm.canCollapse ? context.l10n.chatLongShowLess : null);
     var textSpan = _span(
         lm?.shown ?? text, textStyle, highlight, t.warnSoft, t.onWarnSoft);
+    // "Daha az göster" yalnız bağlantı kısmına dokunulunca çalışır: bağlantıdan önceki düz metnin uzunluğu.
+    final linkFrom = textSpan.toPlainText().length;
     if (linkLabel != null) {
       textSpan = TextSpan(children: [
         textSpan,
@@ -282,20 +285,38 @@ class MessageBubble extends StatelessWidget {
       ]);
     }
     Widget textWithMeta() {
-      Widget tw =
-          Text.rich(textSpan, textWidthBasis: TextWidthBasis.longestLine);
+      BuildContext? paragraphCtx;
+      Widget tw = Builder(builder: (c) {
+        paragraphCtx = c;
+        return Text.rich(textSpan, textWidthBasis: TextWidthBasis.longestLine);
+      });
       if (linkLabel != null && !preview && onExpandLimit != null) {
         final more = lm!.truncated;
+        // Tamamı açıkken metnin geri kalanına dokunmak mesajı KISALTMAZ (yanlışlıkla başa dönmesin);
+        // yalnız "Daha az göster" bağlantısı kısaltır. "Devamını gör" için tüm metin dokunma hedefidir.
+        bool onLink(Offset global) {
+          final ro = paragraphCtx?.findRenderObject();
+          if (ro is! RenderParagraph || !ro.attached) return false;
+          final pos = ro.getPositionForOffset(ro.globalToLocal(global));
+          return pos.offset >= linkFrom;
+        }
+
         tw = Semantics(
           button: true,
           onTapHint: linkLabel,
+          onTap: () => onExpandLimit!(more ? nextLongMsgLimit(expandLimit) : null),
           child: GestureDetector(
             key: more
                 ? const ValueKey('longMsgMore')
                 : const ValueKey('longMsgLess'),
             behavior: HitTestBehavior.opaque,
-            onTap: () =>
-                onExpandLimit!(more ? nextLongMsgLimit(expandLimit) : null),
+            onTapUp: (d) {
+              if (more) {
+                onExpandLimit!(nextLongMsgLimit(expandLimit));
+              } else if (onLink(d.globalPosition)) {
+                onExpandLimit!(null);
+              }
+            },
             child: tw,
           ),
         );

@@ -32,7 +32,7 @@ void main() {
     });
   }
 
-  for (final n in [800, 2000, 5000, 10000]) {
+  for (final n in [401, 800, 1100, 1101, 2000, 5000, 10000]) {
     test('$n karakter: ilk görünüm 400 (kelime sınırında) + devamı var', () {
       final text = _words(n);
       final v = longMsgView(text);
