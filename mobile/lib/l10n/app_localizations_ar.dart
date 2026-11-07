@@ -13282,4 +13282,42 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get shareUnavailablePost =>
       'هذا المنشور غير متاح. قد يعود إلى حساب خاص.';
+
+  @override
+  String postPhotoOfTotal(String n, String total) {
+    return 'صورة $n/$total';
+  }
+
+  @override
+  String get postMultiBadgeLabel => 'منشور متعدد الصور';
+
+  @override
+  String composePhotoCount(String n, String max) {
+    return '$n/$max صور';
+  }
+
+  @override
+  String get composeAddPhotos => 'إضافة صور';
+
+  @override
+  String get composeAddPhotosShort => 'إضافة';
+
+  @override
+  String get composeRemovePhoto => 'إزالة الصورة';
+
+  @override
+  String get composeReorderHint => 'اضغط مطولًا واسحب لإعادة الترتيب';
+
+  @override
+  String composeUploadingN(String n, String total) {
+    return 'جارٍ الرفع $n/$total';
+  }
+
+  @override
+  String get postComposeErrMediaLimit =>
+      'يمكن إضافة 10 صور كحد أقصى إلى المنشور.';
+
+  @override
+  String get postComposeErrMediaMix =>
+      'يجب أن يكون منشور الفيديو بمفرده؛ لا يمكن خلطه بالصور.';
 }

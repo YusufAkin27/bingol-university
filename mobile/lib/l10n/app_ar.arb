@@ -4860,5 +4860,15 @@
   "hubNoPast": "لا توجد فعاليات سابقة.",
   "profileClubHub": "أنديتي وفعالياتي",
   "hubOpenManage": "إدارة ناديي",
-  "shareUnavailablePost": "هذا المنشور غير متاح. قد يعود إلى حساب خاص."
+  "shareUnavailablePost": "هذا المنشور غير متاح. قد يعود إلى حساب خاص.",
+  "postPhotoOfTotal": "صورة {n}/{total}",
+  "postMultiBadgeLabel": "منشور متعدد الصور",
+  "composePhotoCount": "{n}/{max} صور",
+  "composeAddPhotos": "إضافة صور",
+  "composeAddPhotosShort": "إضافة",
+  "composeRemovePhoto": "إزالة الصورة",
+  "composeReorderHint": "اضغط مطولًا واسحب لإعادة الترتيب",
+  "composeUploadingN": "جارٍ الرفع {n}/{total}",
+  "postComposeErrMediaLimit": "يمكن إضافة 10 صور كحد أقصى إلى المنشور.",
+  "postComposeErrMediaMix": "يجب أن يكون منشور الفيديو بمفرده؛ لا يمكن خلطه بالصور."
 }

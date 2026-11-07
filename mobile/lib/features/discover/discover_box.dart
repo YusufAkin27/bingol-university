@@ -6,6 +6,7 @@ import '../../widgets/bu.dart';
 import '../posts/avatar_preview.dart';
 import '../posts/like_button.dart';
 import '../posts/post_card.dart';
+import '../posts/post_carousel.dart' show PostMultiBadge;
 import '../posts/post_models.dart';
 import '../posts/post_video.dart';
 import '../profile/user_profile_page.dart' show openUserProfile;
@@ -107,7 +108,9 @@ class DiscoverPostBox extends StatelessWidget {
         // Video gönderi: yalnız sağ üstte sade süre hapı (oynat simgeli; otomatik oynatma yok, gönderi akışında oynar).
         if (p.isVideo)
           PositionedDirectional(
-              top: 8, end: 8, child: IgnorePointer(child: dur > 0 ? DurationChip(durationMs: dur) : const PostPlayBadge(size: 28))),
+              top: 8, end: 8, child: IgnorePointer(child: dur > 0 ? DurationChip(durationMs: dur) : const PostPlayBadge(size: 28)))
+        else if (p.isMulti)
+          const PositionedDirectional(top: 8, end: 8, child: IgnorePointer(child: PostMultiBadge())),
         PositionedDirectional(
           start: 9,
           end: 8,

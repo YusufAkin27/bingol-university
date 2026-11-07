@@ -5,6 +5,7 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import 'post_api.dart';
 import 'post_card.dart';
+import 'post_carousel.dart' show PostMultiBadge;
 import 'post_routes.dart';
 import 'post_models.dart';
 
@@ -183,7 +184,7 @@ class _GridTile extends StatelessWidget {
     final m = post.photo;
     return Semantics(
       button: true,
-      label: [if ((post.text ?? '').isNotEmpty) post.text!, '${post.likeCount}'].join(', '),
+      label: [if (post.isMulti) context.l10n.postMultiBadgeLabel, if ((post.text ?? '').isNotEmpty) post.text!, '${post.likeCount}'].join(', '),
       excludeSemantics: true,
       child: BuPressable(
         scale: .97,
@@ -202,6 +203,8 @@ class _GridTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(color: t.ink, height: 1.3)),
               ),
+            if (post.isMulti)
+              const PositionedDirectional(top: 8, end: 8, child: IgnorePointer(child: PostMultiBadge())),
             Positioned(
               left: 0,
               right: 0,

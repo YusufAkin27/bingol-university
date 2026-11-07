@@ -7,6 +7,7 @@ import '../../widgets/bu.dart';
 import '../../widgets/pinch_zoomable.dart';
 import 'like_button.dart';
 import 'post_actions.dart';
+import 'post_carousel.dart';
 import 'post_models.dart';
 import 'post_rich_text.dart';
 import 'avatar_preview.dart';
@@ -31,10 +32,18 @@ class PostPhoto extends StatelessWidget {
     this.thumbOnly = false,
     this.heroTag,
     this.zoomLayer = false,
+    this.media,
+    this.semanticLabel,
   });
 
   final Session session;
   final Post post;
+
+  /// Çoklu fotoğraf gönderisinde gösterilecek fotoğraf (null = gönderinin ilk fotoğrafı).
+  final PostMedia? media;
+
+  /// Ekran okuyucu etiketi (null = "Fotoğraf"); carousel "Fotoğraf 2/5" verir.
+  final String? semanticLabel;
   final double radius;
   final double aspectRatio;
   final bool progressive;
@@ -60,8 +69,11 @@ class PostPhoto extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final m = post.photo;
+    final m = media ?? post.photo;
     if (m == null) return const SizedBox.shrink();
+    // Anahtar son eki: ilk fotoğraf eski anahtarı korur; sonraki fotoğraflar medya kimliğiyle ayrışır.
+    final kid = (media != null && media!.id != post.photo?.id) ? '${post.id}-${media!.id}' : '${post.id}';
+    final label = semanticLabel ?? context.l10n.postComposePhoto;
     final dpr = MediaQuery.devicePixelRatioOf(context);
     final headers = postAuthHeaders(session);
     final thumb = progressive ? m.thumbUrl : null;
@@ -77,12 +89,12 @@ class PostPhoto extends StatelessWidget {
             final src = m.thumbUrl ?? m.url;
             return Semantics(
               image: true,
-              label: context.l10n.postComposePhoto,
+              label: label,
               child: ColoredBox(
                 color: t.sf2,
                 child: Image(
                   image: persistentNetworkImage(src, headers: headers, cacheWidth: px),
-                  key: ValueKey(m.thumbUrl != null ? 'post-thumb-${post.id}' : 'post-photo-${post.id}'),
+                  key: ValueKey(m.thumbUrl != null ? 'post-thumb-$kid' : 'post-photo-$kid'),
                   fit: BoxFit.cover,
                   width: double.infinity,
                   height: double.infinity,
@@ -97,14 +109,14 @@ class PostPhoto extends StatelessWidget {
           }
           return Semantics(
             image: true,
-            label: context.l10n.postComposePhoto,
+            label: label,
             child: ColoredBox(
               color: t.sf2,
               child: Stack(fit: StackFit.expand, children: [
                 if (thumb != null)
                   Image(
                     image: persistentNetworkImage(thumb, headers: headers, cacheWidth: px < _thumbPx ? px : _thumbPx),
-                    key: ValueKey('${zoomLayer ? 'zoom-' : ''}post-thumb-${post.id}'),
+                    key: ValueKey('${zoomLayer ? 'zoom-' : ''}post-thumb-$kid'),
                     fit: BoxFit.cover,
                     gaplessPlayback: true,
                     excludeFromSemantics: true,
@@ -117,7 +129,7 @@ class PostPhoto extends StatelessWidget {
                 // Disk destekli: Keşfet fotoğrafları ikinci açılışta ağdan değil diskten gelir (çıkışta silinir).
                 Image(
                   image: persistentNetworkImage(m.url, headers: headers, cacheWidth: px),
-                  key: ValueKey('${zoomLayer ? 'zoom-' : ''}post-photo-${post.id}'),
+                  key: ValueKey('${zoomLayer ? 'zoom-' : ''}post-photo-$kid'),
                   fit: BoxFit.cover,
                   gaplessPlayback: true,
                   frameBuilder: (context, child, frame, sync) => sync
@@ -135,7 +147,7 @@ class PostPhoto extends StatelessWidget {
                 if (zoomLayer)
                   Image(
                     image: persistentNetworkImage(m.url, headers: headers, cacheWidth: _zoomPx),
-                    key: ValueKey('zoom-hires-${post.id}'),
+                    key: ValueKey('zoom-hires-$kid'),
                     fit: BoxFit.cover,
                     gaplessPlayback: true,
                     excludeFromSemantics: true,
@@ -250,13 +262,39 @@ class _PostCardState extends State<PostCard> {
 
   Post get p => widget.post;
 
+  @override
+  void dispose() {
+    _page.dispose();
+    super.dispose();
+  }
+
   Object? get _heroTag => widget.heroTag ?? (!widget.detail && widget.onOpen == null ? 'post-card-${p.id}' : null);
 
   /// Fotoğraf: iki parmakla kök katmanda yakınlaşır (kopya: yüksek çözünürlüklü, aynı önbellek, Hero yok).
   Widget _pinchPhoto({required Widget child, required double radius}) => PinchZoomable(
-        overlayBuilder: (_) => PostPhoto(session: widget.session, post: p, radius: radius, progressive: true, zoomLayer: true),
+        overlayBuilder: (_) {
+          final photos = p.photos;
+          // Çoklu gönderide yakınlaşan kopya, o an görünen fotoğraftır.
+          final cur = p.isMulti ? photos[_page.value.clamp(0, photos.length - 1)] : null;
+          return PostPhoto(session: widget.session, post: p, media: cur, radius: radius, progressive: true, zoomLayer: true);
+        },
         child: child,
       );
+
+  /// Çoklu fotoğraf carousel'inde geçerli sayfa (yakınlaştırma kopyası için).
+  final _page = ValueNotifier<int>(0);
+
+  /// Gönderi fotoğrafı: çoklu ise yana kaydırılabilir carousel, değilse tek fotoğraf (eski görünüm aynen).
+  Widget _photoView({required double radius, required bool progressive}) => p.isMulti
+      ? PostPhotoCarousel(
+          session: widget.session,
+          post: p,
+          radius: radius,
+          progressive: progressive,
+          heroTag: _heroTag,
+          pageNotifier: _page,
+        )
+      : PostPhoto(session: widget.session, post: p, radius: radius, progressive: progressive, heroTag: _heroTag);
 
   void _open() {
     if (widget.detail) return;
@@ -376,13 +414,7 @@ class _PostCardState extends State<PostCard> {
                 radius: 16,
                 child: _pinchPhoto(
                   radius: 16,
-                  child: PostPhoto(
-                    session: widget.session,
-                    post: p,
-                    radius: 16,
-                    progressive: true,
-                    heroTag: _heroTag,
-                  ),
+                  child: _photoView(radius: 16, progressive: true),
                 ),
               ),
             ),
@@ -511,14 +543,8 @@ class _PostCardState extends State<PostCard> {
                 child: _pinchPhoto(
                   radius: detail ? 0 : BuRadius.md,
                   child: Stack(alignment: Alignment.center, children: [
-                    PostPhoto(
-                      session: widget.session,
-                      post: p,
-                      radius: detail ? 0 : BuRadius.md,
-                      // Detayda küçük resim de kullanılır: Hero uçuşunda ve ilk açılışta boş kare görünmez.
-                      progressive: detail,
-                      heroTag: _heroTag,
-                    ),
+                    // Detayda küçük resim de kullanılır: Hero uçuşunda ve ilk açılışta boş kare görünmez.
+                    _photoView(radius: detail ? 0 : BuRadius.md, progressive: detail),
                     if (p.isVideo) const IgnorePointer(child: PostPlayBadge()),
                   ]),
                 ),

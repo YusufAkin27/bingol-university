@@ -7213,5 +7213,45 @@
   "hubNoPast": "Geçmiş etkinliğin yok.",
   "profileClubHub": "Kulüp ve Etkinliklerim",
   "hubOpenManage": "Kulübümü yönet",
-  "shareUnavailablePost": "Bu gönderi görüntülenemiyor. Gizli bir hesaba ait olabilir."
+  "shareUnavailablePost": "Bu gönderi görüntülenemiyor. Gizli bir hesaba ait olabilir.",
+  "postPhotoOfTotal": "Fotoğraf {n}/{total}",
+  "@postPhotoOfTotal": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "postMultiBadgeLabel": "Çok fotoğraflı gönderi",
+  "composePhotoCount": "{n}/{max} fotoğraf",
+  "@composePhotoCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "composeAddPhotos": "Fotoğraf ekle",
+  "composeAddPhotosShort": "Ekle",
+  "composeRemovePhoto": "Fotoğrafı kaldır",
+  "composeReorderHint": "Sıralamak için basılı tutup sürükle",
+  "composeUploadingN": "Yükleniyor {n}/{total}",
+  "@composeUploadingN": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "postComposeErrMediaLimit": "Bir gönderiye en çok 10 fotoğraf eklenebilir.",
+  "postComposeErrMediaMix": "Video gönderisi tek başına olmalı; fotoğrafla karıştırılamaz."
 }

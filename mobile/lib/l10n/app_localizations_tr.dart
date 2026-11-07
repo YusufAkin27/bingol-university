@@ -13354,4 +13354,42 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get shareUnavailablePost =>
       'Bu gönderi görüntülenemiyor. Gizli bir hesaba ait olabilir.';
+
+  @override
+  String postPhotoOfTotal(String n, String total) {
+    return 'Fotoğraf $n/$total';
+  }
+
+  @override
+  String get postMultiBadgeLabel => 'Çok fotoğraflı gönderi';
+
+  @override
+  String composePhotoCount(String n, String max) {
+    return '$n/$max fotoğraf';
+  }
+
+  @override
+  String get composeAddPhotos => 'Fotoğraf ekle';
+
+  @override
+  String get composeAddPhotosShort => 'Ekle';
+
+  @override
+  String get composeRemovePhoto => 'Fotoğrafı kaldır';
+
+  @override
+  String get composeReorderHint => 'Sıralamak için basılı tutup sürükle';
+
+  @override
+  String composeUploadingN(String n, String total) {
+    return 'Yükleniyor $n/$total';
+  }
+
+  @override
+  String get postComposeErrMediaLimit =>
+      'Bir gönderiye en çok 10 fotoğraf eklenebilir.';
+
+  @override
+  String get postComposeErrMediaMix =>
+      'Video gönderisi tek başına olmalı; fotoğrafla karıştırılamaz.';
 }

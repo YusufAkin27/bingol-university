@@ -24089,6 +24089,66 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bu gönderi görüntülenemiyor. Gizli bir hesaba ait olabilir.'**
   String get shareUnavailablePost;
+
+  /// No description provided for @postPhotoOfTotal.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraf {n}/{total}'**
+  String postPhotoOfTotal(String n, String total);
+
+  /// No description provided for @postMultiBadgeLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çok fotoğraflı gönderi'**
+  String get postMultiBadgeLabel;
+
+  /// No description provided for @composePhotoCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n}/{max} fotoğraf'**
+  String composePhotoCount(String n, String max);
+
+  /// No description provided for @composeAddPhotos.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraf ekle'**
+  String get composeAddPhotos;
+
+  /// No description provided for @composeAddPhotosShort.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ekle'**
+  String get composeAddPhotosShort;
+
+  /// No description provided for @composeRemovePhoto.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğrafı kaldır'**
+  String get composeRemovePhoto;
+
+  /// No description provided for @composeReorderHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıralamak için basılı tutup sürükle'**
+  String get composeReorderHint;
+
+  /// No description provided for @composeUploadingN.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yükleniyor {n}/{total}'**
+  String composeUploadingN(String n, String total);
+
+  /// No description provided for @postComposeErrMediaLimit.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir gönderiye en çok 10 fotoğraf eklenebilir.'**
+  String get postComposeErrMediaLimit;
+
+  /// No description provided for @postComposeErrMediaMix.
+  ///
+  /// In tr, this message translates to:
+  /// **'Video gönderisi tek başına olmalı; fotoğrafla karıştırılamaz.'**
+  String get postComposeErrMediaMix;
 }
 
 class _AppLocalizationsDelegate

@@ -13403,4 +13403,41 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get shareUnavailablePost =>
       'This post is unavailable. It may belong to a private account.';
+
+  @override
+  String postPhotoOfTotal(String n, String total) {
+    return 'Photo $n/$total';
+  }
+
+  @override
+  String get postMultiBadgeLabel => 'Multi-photo post';
+
+  @override
+  String composePhotoCount(String n, String max) {
+    return '$n/$max photos';
+  }
+
+  @override
+  String get composeAddPhotos => 'Add photos';
+
+  @override
+  String get composeAddPhotosShort => 'Add';
+
+  @override
+  String get composeRemovePhoto => 'Remove photo';
+
+  @override
+  String get composeReorderHint => 'Press and drag to reorder';
+
+  @override
+  String composeUploadingN(String n, String total) {
+    return 'Uploading $n/$total';
+  }
+
+  @override
+  String get postComposeErrMediaLimit => 'A post can have at most 10 photos.';
+
+  @override
+  String get postComposeErrMediaMix =>
+      'A video post must stand alone; it cannot be mixed with photos.';
 }

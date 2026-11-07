@@ -84,6 +84,7 @@ class PostMedia {
     this.width,
     this.height,
     this.durationMs,
+    this.position = 0,
   });
 
   factory PostMedia.fromJson(Map<String, dynamic>? j) {
@@ -96,11 +97,15 @@ class PostMedia {
       width: _intOrNull(j?['width']),
       height: _intOrNull(j?['height']),
       durationMs: _intOrNull(j?['durationMs']),
+      position: _int(j?['position']),
     );
   }
 
   final int id;
   final PostMediaKind kind;
+
+  /// Gönderi içindeki sıra (0 tabanlı; eski sunucuda yoksa 0).
+  final int position;
 
   /// Mutlak adres (yetkili: Bearer gerekir).
   final String url;
@@ -276,6 +281,12 @@ class Post {
     }
     return null;
   }
+
+  /// Gönderinin tüm fotoğrafları, sunucu sırasıyla (video gönderisinde boş). Eski/tek fotoğraflı gönderide 1 öğe.
+  List<PostMedia> get photos => video != null ? const [] : [for (final m in media) if (!m.isVideo) m];
+
+  /// Birden fazla fotoğraflı gönderi (yana kaydırılabilir carousel).
+  bool get isMulti => photos.length > 1;
 
   /// Ne fotoğrafı ne videosu olan (yalnız bilinmeyen medya taşıyan) kayıtlar akışta gösterilmez.
   bool get hiddenInFeed => media.isNotEmpty && video == null && photo == null;
