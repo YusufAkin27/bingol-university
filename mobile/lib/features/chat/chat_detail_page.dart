@@ -317,6 +317,10 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Yazma alanı odak alınca (klavye açılırken) + menüsü kapanır.
+    _focus.addListener(() {
+      if (_focus.hasFocus) _closeAttach();
+    });
     if (_conv['id'] is num)
       ActiveConversation.instance
           .enter(_cid); // bu sohbet açık: ön plan bildirimi/şeridi bastırılır
@@ -1433,21 +1437,24 @@ class _ChatDetailPageState extends State<ChatDetailPage>
 
   /// Ek düğmesi: doğrudan tüm galeriyi açar; seçim önizlemeden geçip gönderilir. Çevrimdışıyken de seçilebilir:
   /// fotoğraf/video yerel kuyruğa alınır ve bağlantı gelince kendiliğinden gider.
-  Future<void> _openAttach() async {
-    if (_attachOpen) return;
-    final library = widget.mediaLibrary ?? PhotoManagerLibrary();
-    final box = _plusKey.currentContext?.findRenderObject() as RenderBox?;
-    final anchor = box != null && box.hasSize
-        ? box.localToGlobal(Offset.zero) & box.size
-        : Rect.fromLTWH(8, MediaQuery.sizeOf(context).height - 120, 48, 48);
-    setState(() => _attachOpen = true);
-    ChatAttachResult? choice;
-    try {
-      choice = await showChatAttachMenu(context, anchor: anchor);
-    } finally {
-      if (mounted) setState(() => _attachOpen = false);
+  /// Menü sayfanın İÇİNDE çizilir (route değil) ve "+" düğmesine [LayerLink] ile bağlıdır: klavye kapanırken çubuk
+  /// aşağı inse bile menü düğmeyi canlı izler; eski koordinat saklanmaz. Klavye açıksa önce odak bırakılır.
+  void _toggleAttach() {
+    if (_attachOpen) {
+      _closeAttach();
+      return;
     }
-    if (choice == null || !mounted) return;
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() => _attachOpen = true);
+  }
+
+  void _closeAttach() {
+    if (_attachOpen && mounted) setState(() => _attachOpen = false);
+  }
+
+  Future<void> _pickAttach(ChatAttachResult choice) async {
+    _closeAttach();
+    final library = widget.mediaLibrary ?? PhotoManagerLibrary();
     MediaSendPlan? plan;
     switch (choice) {
       case ChatAttachGallery():
@@ -2500,6 +2507,10 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
+        if (_attachOpen) {
+          _closeAttach();
+          return;
+        }
         if (_searching) {
           _stopSearch();
           return;
@@ -2509,10 +2520,26 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       child: Scaffold(
         backgroundColor: t.bg,
         resizeToAvoidBottomInset: true,
-        body: Column(children: [
+        // Menü (takipçi) "+" düğmesinden (lider) SONRA boyanmalı: bu yüzden Column'un üstündeki dış Stack'te durur.
+        body: Stack(fit: StackFit.expand, children: [
+          Positioned.fill(child: Column(children: [
           _searching ? _searchBar(t) : _topBar(t),
           // Duvar kağıdı yalnız mesaj alanının arkasında (üst çubuk/yazma alanı düz kalır).
-          Expanded(child: ChatWallpaper(child: _body(t))),
+          Expanded(
+            child: Stack(clipBehavior: Clip.none, children: [
+              Positioned.fill(child: ChatWallpaper(child: _body(t))),
+              // Mesaj alanına dokunmak menüyü kapatır; yazma çubuğu bu örtünün DIŞINDA kalır.
+              if (_attachOpen)
+                Positioned.fill(
+                  child: GestureDetector(
+                    key: const ValueKey('attachBarrier'),
+                    behavior: HitTestBehavior.opaque,
+                    excludeFromSemantics: true,
+                    onTap: _closeAttach,
+                  ),
+                ),
+            ]),
+          ),
           _noticeStack(),
           _closed
               ? _closedBar(t)
@@ -2521,7 +2548,39 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                   : (_direct && _blocked)
                       ? _blockedBar(t)
                       : _composer(t),
+          ])),
+          if (_attachOpen) _attachFollower(),
         ]),
+      ),
+    );
+  }
+
+  /// "+" menüsü: düğmenin üst kenarının 8 dp üstünde, başlangıç kenarı hizalı (RTL'de ayna).
+  Widget _attachFollower() {
+    final rtl = Directionality.of(context) == TextDirection.rtl;
+    return CompositedTransformFollower(
+      link: _plusLink,
+      showWhenUnlinked: false,
+      targetAnchor: rtl ? Alignment.topRight : Alignment.topLeft,
+      followerAnchor: rtl ? Alignment.bottomRight : Alignment.bottomLeft,
+      offset: const Offset(0, -8),
+      child: Align(
+        alignment: rtl ? Alignment.bottomRight : Alignment.bottomLeft,
+        widthFactor: 1,
+        heightFactor: 1,
+        child: TweenAnimationBuilder<double>(
+          tween: Tween<double>(begin: 0, end: 1),
+          duration: BuMotion.of(context, BuMotion.short),
+          curve: Curves.easeOutCubic,
+          builder: (c, v, child) => Opacity(
+            opacity: v,
+            child: Transform.scale(
+                scale: .92 + .08 * v,
+                alignment: rtl ? Alignment.bottomRight : Alignment.bottomLeft,
+                child: child),
+          ),
+          child: ChatAttachCard(onPick: _pickAttach),
+        ),
       ),
     );
   }
@@ -3329,10 +3388,13 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   /// Tek "+" düğmesi (Ekle): 44 dp yumuşak nötr daire, 48 dp dokunma alanı; menü açıkken 45 derece dönüp "x" olur
   /// (yalnız transform; "animasyonları azalt"ta anında). Kamera ve galeri bu menüdedir.
   final _plusKey = GlobalKey();
+  final _plusLink = LayerLink();
 
   Widget _plusButton(BuTokens t) {
     final label = context.l10n.chatDetailAdd;
-    return Semantics(
+    return CompositedTransformTarget(
+      link: _plusLink,
+      child: Semantics(
       key: _plusKey,
       button: true,
       label: label,
@@ -3341,7 +3403,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         message: label,
         child: BuPressable(
           key: const ValueKey('attachButton'),
-          onTap: _openAttach,
+          onTap: _toggleAttach,
           scale: .92,
           haptic: BuHaptic.selection,
           child: SizedBox(
@@ -3362,6 +3424,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
             ),
           ),
         ),
+      ),
       ),
     );
   }
@@ -3510,6 +3573,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                     key: const ValueKey('composerField'),
                     controller: _input,
                     focusNode: _focus,
+                    onTap: _closeAttach,
                     autofocus: widget.focusComposer,
                     minLines: 1,
                     maxLines: 5,

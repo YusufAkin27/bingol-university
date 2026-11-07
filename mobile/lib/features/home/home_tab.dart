@@ -100,11 +100,25 @@ class _HomeTabState extends State<HomeTab> {
 
   Session get _s => widget.session;
 
+  /// Kalp ikonundaki nokta: okunmamış sosyal etkileşim ya da bekleyen takip isteği var.
+  bool _socialDot = false;
+
+  /// Sosyal etkileşim noktasını hafifçe yükler (1 kayıt); hata olursa nokta değişmez.
+  Future<void> _loadSocialDot() async {
+    try {
+      final r = await _s.api
+          .get('/notifications?category=SOCIAL&unread=true&size=1');
+      final has = r is Map && ((r['items'] as List?)?.isNotEmpty ?? false);
+      if (mounted && has != _socialDot) setState(() => _socialDot = has);
+    } catch (_) {}
+  }
+
   @override
   void initState() {
     super.initState();
     _layout.addListener(_onLayout);
     _boot();
+    unawaited(_loadSocialDot());
   }
 
   @override
@@ -755,6 +769,19 @@ class _HomeTabState extends State<HomeTab> {
         hello:
             name.isEmpty ? _greeting(context) : '${_greeting(context)}, $name',
         actions: [
+          BuIconButton(
+            key: const ValueKey('home-activity-heart'),
+            icon: BuIcons.heart,
+            badge: _socialDot,
+            tooltip: l.activityTitle,
+            onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                    settings: const RouteSettings(name: 'activity'),
+                    builder: (_) =>
+                        NotificationsPage(session: _s, socialOnly: true))).then(
+                (_) => _loadSocialDot()),
+          ),
           ValueListenableBuilder<int>(
             valueListenable: _s.badges.notifications,
             builder: (_, n, __) => BuIconButton(

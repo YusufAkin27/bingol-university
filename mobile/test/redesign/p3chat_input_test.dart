@@ -96,12 +96,71 @@ void main() {
       expect(turns(), 0);
       await tester.tap(find.byKey(const ValueKey('attachButton')));
       await tester.pump(const Duration(milliseconds: 400));
-      expect(find.byType(ChatAttachMenu), findsOneWidget);
+      expect(find.byType(ChatAttachCard), findsOneWidget);
       expect(turns(), .125);
-      await tester.tapAt(const Offset(10, 20)); // sheet dışı: kapanır
+      await tester.tapAt(const Offset(200, 300)); // mesaj alanı: kapanır
       await tester.pump(const Duration(milliseconds: 500));
-      expect(find.byType(ChatAttachMenu), findsNothing);
+      expect(find.byType(ChatAttachCard), findsNothing);
       expect(turns(), 0);
+    });
+  });
+
+  group('klavye + "+" menüsü', () {
+    Future<void> setKeyboard(WidgetTester tester, double logical) async {
+      tester.view.viewInsets =
+          FakeViewPadding(bottom: logical * tester.view.devicePixelRatio);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+
+    testWidgets('klavye açıkken "+": odak düşer, klavye kapanınca çubuk alta iner, menü düğmenin hemen üstünde kalır', (tester) async {
+      addTearDown(tester.view.resetViewInsets);
+      await _pump(tester, _page());
+      final plus = find.byKey(const ValueKey('attachButton'));
+      final restingBottom = tester.getRect(plus).bottom;
+      await tester.tap(find.byKey(const ValueKey('composerField')));
+      await setKeyboard(tester, 300);
+      expect(tester.getRect(plus).bottom, lessThan(restingBottom - 200), reason: 'klavye açıkken çubuk klavyenin üstünde');
+      await tester.tap(plus);
+      await tester.pump();
+      expect(FocusManager.instance.primaryFocus?.context?.findAncestorWidgetOfExactType<EditableText>(), isNull, reason: 'odak bırakıldı');
+      await setKeyboard(tester, 0); // klavye kapandı
+      await settle(tester, const Duration(milliseconds: 400));
+      expect(tester.getRect(plus).bottom, restingBottom, reason: 'çubuk havada kalmadı');
+      final card = tester.getRect(find.byKey(const ValueKey('attachCamera')));
+      expect(card.bottom, lessThanOrEqualTo(tester.getRect(plus).top), reason: 'menü eski klavye koordinatında değil');
+      expect(tester.getRect(plus).top - tester.getRect(find.byType(ChatAttachCard)).bottom, closeTo(8, 1.5));
+      expect(card.top, greaterThanOrEqualTo(0));
+    });
+
+    testWidgets('menü açıkken yazma alanına dokunmak menüyü kapatır; X ve mesaj alanı da kapatır; çubuk yerinde kalır', (tester) async {
+      await _pump(tester, _page());
+      final plus = find.byKey(const ValueKey('attachButton'));
+      final rest = tester.getRect(plus);
+      Future<void> open() async {
+        await tester.tap(plus);
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(find.byType(ChatAttachCard), findsOneWidget);
+      }
+      await open();
+      await tester.tap(find.byKey(const ValueKey('composerField')));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(ChatAttachCard), findsNothing);
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pump();
+      for (var i = 0; i < 10; i++) {
+        await open();
+        await tester.tap(plus); // X
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(find.byType(ChatAttachCard), findsNothing);
+        expect(tester.getRect(plus), rest, reason: 'tur $i: çubuk kımıldamadı');
+      }
+      await open();
+      await tester.tap(find.byKey(const ValueKey('attachBarrier')), warnIfMissed: false);
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(ChatAttachCard), findsNothing);
+      expect(tester.getRect(plus), rest);
+      expect(tester.takeException(), isNull);
     });
   });
 
@@ -150,7 +209,7 @@ void main() {
           await _pump(tester, _page(), dark: dark, rtl: rtl, scale: 1.3, size: kPhoneSmall);
           await tester.tap(find.byKey(const ValueKey('attachButton')));
           await settle(tester, const Duration(milliseconds: 700));
-          expect(find.byType(ChatAttachMenu), findsOneWidget);
+          expect(find.byType(ChatAttachCard), findsOneWidget);
           expect(tester.takeException(), isNull);
         });
       }

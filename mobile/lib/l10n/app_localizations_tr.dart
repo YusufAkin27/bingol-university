@@ -4309,6 +4309,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get notifEmpty => 'Henüz bildiriminiz yok.';
 
   @override
+  String get activityTitle => 'Etkileşimler';
+
+  @override
+  String get activityEmpty =>
+      'Henüz etkileşim yok. Takip istekleri, yeni takipçiler ve beğeniler burada görünür.';
+
+  @override
   String get notifTargetOpenFailed => 'Bu bildirimin hedefi açılamadı.';
 
   @override

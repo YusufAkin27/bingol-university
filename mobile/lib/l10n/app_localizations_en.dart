@@ -4327,6 +4327,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifEmpty => 'No notifications yet.';
 
   @override
+  String get activityTitle => 'Activity';
+
+  @override
+  String get activityEmpty =>
+      'No activity yet. Follow requests, new followers and likes show up here.';
+
+  @override
   String get notifTargetOpenFailed => 'This notification could not be opened.';
 
   @override

@@ -4290,6 +4290,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notifEmpty => 'لا توجد إشعارات بعد.';
 
   @override
+  String get activityTitle => 'النشاط';
+
+  @override
+  String get activityEmpty =>
+      'لا يوجد نشاط بعد. تظهر هنا طلبات المتابعة والمتابعون الجدد والإعجابات.';
+
+  @override
   String get notifTargetOpenFailed => 'تعذّر فتح هذا الإشعار.';
 
   @override

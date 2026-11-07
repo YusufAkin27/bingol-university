@@ -21,9 +21,13 @@ import 'notif_row.dart';
 
 /// Uygulama içi bildirim listesi (design/P-Notifications).
 class NotificationsPage extends StatefulWidget {
-  const NotificationsPage({super.key, required this.session});
+  const NotificationsPage(
+      {super.key, required this.session, this.socialOnly = false});
 
   final Session session;
+
+  /// Ana sayfadaki kalp: yalnız sosyal etkileşimler (takip isteği, yeni takipçi, beğeni); kategori çipleri gizlenir.
+  final bool socialOnly;
 
   @override
   State<NotificationsPage> createState() => _NotificationsPageState();
@@ -49,6 +53,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   @override
   void initState() {
     super.initState();
+    if (widget.socialOnly) _category = NotificationCategory.social;
     _scroll.addListener(() {
       if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 300) {
         _loadMore();
@@ -170,14 +175,27 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   Future<void> _markAll() async {
     try {
-      await _s.api.post('/notifications/read', {'all': true});
+      final unreadIds = [
+        for (final n in _items)
+          if (n['read'] != true) n['id']
+      ];
+      // Kalp ekranında yalnız görünen sosyal bildirimler okundu olur; zil sayacı kalanı gösterir.
+      if (widget.socialOnly) {
+        if (unreadIds.isNotEmpty) {
+          await _s.api.post('/notifications/read', {'ids': unreadIds});
+        }
+      } else {
+        await _s.api.post('/notifications/read', {'all': true});
+      }
       if (!mounted) return;
       setState(() {
         for (final n in _items) {
           n['read'] = true;
         }
       });
-      _s.badges.notifications.value = 0;
+      final cur = _s.badges.notifications.value;
+      _s.badges.notifications.value =
+          widget.socialOnly ? (cur - unreadIds.length).clamp(0, cur) : 0;
     } catch (e) {
       if (mounted) _snack(errorText(e));
     }
@@ -401,9 +419,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
 
   void _resetFilters() {
-    if (_category == null && !_unreadOnly) return;
+    final base = widget.socialOnly ? NotificationCategory.social : null;
+    if (_category == base && !_unreadOnly) return;
     setState(() {
-      _category = null;
+      _category = base;
       _unreadOnly = false;
       _items.clear();
       _cursor = null;
@@ -424,7 +443,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 child: _NotifFilterChip(
                     key: const ValueKey('notif-seg-all'),
                     label: context.l10n.bildirimFilterAll,
-                    selected: _category == null && !_unreadOnly,
+                    selected: (widget.socialOnly
+                            ? _category == NotificationCategory.social
+                            : _category == null) &&
+                        !_unreadOnly,
                     onTap: _resetFilters)),
             Padding(
                 padding: const EdgeInsetsDirectional.only(end: 8),
@@ -433,7 +455,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
                     label: context.l10n.bildirimFilterUnread,
                     selected: _unreadOnly,
                     onTap: () => _selectUnread(!_unreadOnly))),
-            for (final category in NotificationCategory.values)
+            if (!widget.socialOnly)
+              for (final category in NotificationCategory.values)
               Padding(
                   padding: const EdgeInsetsDirectional.only(end: 8),
                   child: _NotifFilterChip(
@@ -521,7 +544,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   child: Semantics(
                     liveRegion: true,
                     child: Text(
-                        unreadEmpty ? l.bildirimEmptyUnread : l.notifEmpty,
+                        unreadEmpty
+                            ? l.bildirimEmptyUnread
+                            : (widget.socialOnly
+                                ? l.activityEmpty
+                                : l.notifEmpty),
                         textAlign: TextAlign.center,
                         style: BuType.caption
                             .copyWith(fontSize: 16, height: 1.5, color: t.mut)),
@@ -639,7 +666,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       backgroundColor: t.bg,
       body: Column(children: [
         BuHeader(
-          title: l.notifTitle,
+          title: widget.socialOnly ? l.activityTitle : l.notifTitle,
           onBack: () => Navigator.pop(context),
         ),
         if (pill != null)

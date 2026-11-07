@@ -59,8 +59,6 @@ class ChatAttachMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
-    final l = context.l10n;
     final mq = MediaQuery.of(context);
     final rtl = Directionality.of(context) == TextDirection.rtl;
     final left = rtl ? null : anchor.left.clamp(8.0, mq.size.width - width - 8);
@@ -71,38 +69,55 @@ class ChatAttachMenu extends StatelessWidget {
         right: right,
         bottom: mq.size.height - anchor.top + 8,
         width: width,
-        child: Semantics(
-          scopesRoute: true,
-          explicitChildNodes: true,
-          child: DecoratedBox(
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), boxShadow: BuElevation.of(context, 2)),
-            child: Material(
-              color: t.sf,
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: t.bdSubtle)),
-              clipBehavior: Clip.antiAlias,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  _Row(
-                    key: const ValueKey('attachCamera'),
-                    icon: BuIcons.camera,
-                    label: l.chatMiscCamera,
-                    onTap: () => Navigator.pop(context, const ChatAttachCamera()),
-                  ),
-                  _Row(
-                    key: const ValueKey('attachGallery'),
-                    icon: BuIcons.images,
-                    label: l.permPhotosTitle,
-                    onTap: () => Navigator.pop(context, const ChatAttachGallery()),
-                  ),
-                ]),
-              ),
+        child: ChatAttachCard(onPick: (r) => Navigator.pop(context, r)),
+      ),
+    ]);
+  }
+}
+
+/// "+" menüsünün kartı (Kamera, Fotoğraflar). Konumlandırmayı çağıran yapar: sohbet sayfası kartı "+" düğmesine
+/// `CompositedTransformFollower` ile bağlar, böylece klavye açılıp kapanırken bile düğmenin hemen üstünde kalır.
+class ChatAttachCard extends StatelessWidget {
+  const ChatAttachCard({super.key, required this.onPick});
+
+  final ValueChanged<ChatAttachResult> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final l = context.l10n;
+    return SizedBox(
+      width: ChatAttachMenu.width,
+      child: Semantics(
+        explicitChildNodes: true,
+        child: DecoratedBox(
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), boxShadow: BuElevation.of(context, 2)),
+          child: Material(
+            color: t.sf,
+            elevation: 0,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: t.bdSubtle)),
+            clipBehavior: Clip.antiAlias,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                _Row(
+                  key: const ValueKey('attachCamera'),
+                  icon: BuIcons.camera,
+                  label: l.chatMiscCamera,
+                  onTap: () => onPick(const ChatAttachCamera()),
+                ),
+                _Row(
+                  key: const ValueKey('attachGallery'),
+                  icon: BuIcons.images,
+                  label: l.permPhotosTitle,
+                  onTap: () => onPick(const ChatAttachGallery()),
+                ),
+              ]),
             ),
           ),
         ),
       ),
-    ]);
+    );
   }
 }
 

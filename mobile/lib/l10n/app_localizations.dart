@@ -8064,6 +8064,18 @@ abstract class AppLocalizations {
   /// **'Henüz bildiriminiz yok.'**
   String get notifEmpty;
 
+  /// No description provided for @activityTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkileşimler'**
+  String get activityTitle;
+
+  /// No description provided for @activityEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz etkileşim yok. Takip istekleri, yeni takipçiler ve beğeniler burada görünür.'**
+  String get activityEmpty;
+
   /// No description provided for @notifTargetOpenFailed.
   ///
   /// In tr, this message translates to:
