@@ -441,7 +441,7 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('roller ayirt edilir: Yonetici > Moderator > Uye rozetleri ve sirasi', (tester) async {
+    testWidgets('roller ayirt edilir: Baskan > Yonetici > Moderator > Uye rozetleri ve sirasi', (tester) async {
       final b = FakeBackend()
         ..on('/communities/7/members*', {
           'items': [
@@ -453,7 +453,8 @@ void main() {
           'nextCursor': null,
         });
       await _pump(tester, ClubMembersPage(session: makeSession(b), communityId: 7, myRole: 'OWNER'));
-      expect(find.text('Yönetici'), findsNWidgets(2)); // sahip + yönetici aynı etiket
+      expect(find.text('Başkan'), findsOneWidget);
+      expect(find.text('Yönetici'), findsOneWidget);
       expect(find.text('Moderatör'), findsOneWidget);
       expect(find.text('Üye'), findsOneWidget);
       double y(String n) => tester.getTopLeft(find.text(n)).dy;

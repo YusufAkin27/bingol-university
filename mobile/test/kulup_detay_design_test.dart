@@ -172,7 +172,7 @@ void main() {
     testWidgets('uyeler: alt baslik + rol etiketleri + menu', (tester) async {
       await _pump(tester, ClubMembersPage(session: makeSession(mb()), communityId: 7, myRole: 'OWNER', clubName: 'Fotoğraf Kulübü', memberCount: 128));
       expect(find.text('Fotoğraf Kulübü · 128 üye'), findsOneWidget);
-      expect(find.text('Yönetici'), findsOneWidget);
+      expect(find.text('Başkan'), findsOneWidget);
       expect(find.text('Moderatör'), findsOneWidget);
       await tester.tap(find.byTooltip('Üye işlemleri').first);
       await settle(tester, const Duration(milliseconds: 400));

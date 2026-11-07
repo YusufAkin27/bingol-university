@@ -134,7 +134,7 @@ class _ClubMembersPageState extends State<ClubMembersPage> {
     }
   }
 
-  /// Rol sırası: Yönetici (sahip + yönetici), Moderatör, Üye (yüklü kayıtlar içinde kararlı sıralama; yönetim kadrosu üstte toplanır).
+  /// Rol sırası: Başkan, Yönetici, Moderatör, Üye (yüklü kayıtlar içinde kararlı sıralama; yönetim kadrosu üstte toplanır).
   static int _rank(Object? role) => switch (role) { 'OWNER' => 0, 'ADMIN' => 1, 'MODERATOR' => 2, _ => 3 };
 
   List<Map<String, dynamic>> get _visible {

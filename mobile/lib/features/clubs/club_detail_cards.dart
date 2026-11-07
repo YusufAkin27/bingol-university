@@ -16,9 +16,10 @@ import '../../core/academic_catalog.dart';
 Widget? clubRoleBadge(BuildContext context, String? role, {bool showMember = false}) {
   final l = context.l10n;
   final t = context.bu;
-  // Üç kademe, üç ayrı görünüm: Yönetici (ters dolgu + kalkan onay; sahip ve yönetici) > Moderatör (nötr + kalkan) > Üye (soluk, yalnız üye listesinde).
+  // Dört kademe, dört ayrı etiket: Başkan (ters dolgu) > Yönetici (açık gri + kalkan onay) > Moderatör (nötr + kalkan) > Üye (soluk, yalnız üye listesinde).
   return switch (role) {
-    'OWNER' || 'ADMIN' => KulupRoleBadge(l.clubRoleOwner, icon: BuIcons.shieldCheck, bg: t.pr, fg: t.onPr),
+    'OWNER' => KulupRoleBadge(l.profilyardRoleOwner, icon: BuIcons.shieldCheck, bg: t.pr, fg: t.onPr),
+    'ADMIN' => KulupRoleBadge(l.profilyardRoleAdmin, icon: BuIcons.shieldCheck, bg: t.sf3, fg: t.ink),
     'MODERATOR' => KulupRoleBadge(l.clubRoleModerator, icon: BuIcons.shield, bg: t.sf2, fg: t.ink),
     'MEMBER' when showMember => KulupRoleBadge(l.profilyardRoleMember, bg: t.sf, fg: t.mut),
     _ => null,
