@@ -244,7 +244,18 @@ class _PasswordPageState extends State<PasswordPage> {
                       action: TextInputAction.next,
                       hints: const [AutofillHints.password],
                     ),
-                    const SizedBox(height: 16),
+                    // Şifreyi biliyorsa doğrudan güncelleyebilir; unuttuysa buradan e-posta koduyla ilerler.
+                    Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: TextButton(
+                        key: const ValueKey('pw-forgot-link'),
+                        onPressed: (_sending || _busy || email.isEmpty) ? null : _sendCode,
+                        style: TextButton.styleFrom(
+                            minimumSize: const Size(48, 44), foregroundColor: t.ink, padding: const EdgeInsets.symmetric(horizontal: 4)),
+                        child: Text(l.pwpForgotTitle, style: tx.bodyMedium!.copyWith(color: t.ink, decoration: TextDecoration.underline)),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
                     _PwField(
                       key: const ValueKey('pw-new'),
                       enabled: !_busy,
