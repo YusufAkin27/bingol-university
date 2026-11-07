@@ -1004,3 +1004,17 @@ Tam sözleşme (alanlar, hata kodları, birleşme notları): [changes/post.md](c
 
 ## İçerik paylaşımı (SH-BE, 2026-11-05)
 Gönderi / Reels / haber-duyuru / etkinlik: mesajla paylaşım (`POST /api/conversations/{cid}/messages` gövdesinde `share:{type,id}`, yanıtta `MessageView.share` kartı, hata `422 SHARE_TARGET_INVALID`), herkese açık bağlantı `https://bukampus.com.tr/s/{p|r|n|e}/{id}` (OpenGraph önizleme sayfası; uygulama yoksa mağaza) ve uygulamada açma (`bukampus://s/{t}/{id}` + evrensel bağlantı). Tam sözleşme ve JSON örnekleri: [SHARING.md](SHARING.md).
+
+### Gönderi / reel yorumları (2026-11-07, GEÇERLİ sözleşme)
+Yukarıdaki "yorumlar kaldırıldı / 410", "Yorum ve yanıt (iç içe)" (derinlik 0..3, PATCH) anlatımları bu bölümle **geçersizdir** (kullanıcı kararı: gönderi ve reels altında yorum, yanıt, beğeni var). Ayrıntı: `docs/changes/post.md` "Yorum sözleşmesi (2026-11-07)".
+
+| Uç | Açıklama |
+|---|---|
+| `GET /api/posts/{postId}/comments?sort=top\|new&cursor=&size=20` | `{items:[CommentView], nextCursor:string\|null, total}`; yalnız ÜST DÜZEY yorumlar. `top` = beğeni sonra yenilik, `new` = yeni önce. size en çok 50. |
+| `GET /api/comments/{commentId}/replies?cursor=&size=` | Aynı biçim, eskiden yeniye (size varsayılan 10, en çok 50). |
+| `POST /api/posts/{postId}/comments` `{"body":"...","parentId":null\|id}` + `Idempotency-Key` | 201 `CommentView`. 1..500 karakter (`422 COMMENT_TOO_LONG`), `422 CONTENT_PROFANITY`, görünmeyen gönderi `404 COMMENT_NOT_FOUND`, `parentId` üst düzey olmalı ve aynı gönderide (`400 COMMENT_PARENT_INVALID`). Dakikada 20. |
+| `DELETE /api/comments/{id}` | 204; yorum sahibi veya gönderi sahibi. |
+| `PUT\|DELETE /api/comments/{id}/like` | 204, idempotent. |
+| Şikâyet | `POST /api/reports` `{targetType:"COMMENT", targetId, reason}`. |
+
+`CommentView`: `{id, postId, parentId, author{userId,id,displayName,avatarUrl,department,username}, body, text(=body), createdAt, likeCount, likedByMe, replyCount, mine, canDelete, byPostAuthor, deleted}`. Yanıtı olan silinmiş üst yorum tombstone gelir: `deleted:true`, `author`/`body` `null`. `PostView.commentCount` canlı yorum sayısıdır (akış ve reels dahil). Bildirim türleri: `POST_COMMENT`, `COMMENT_REPLY`, `COMMENT_LIKE` (push `data`: `targetType:"POST"`, `targetId:<postId>`, `commentId`).

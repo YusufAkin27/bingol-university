@@ -255,7 +255,7 @@ class PostCommentServiceTest {
         assertEquals(List.of(ca.id()), seenByA);
         assertEquals("COMMENT_NOT_FOUND", code(() -> service.like(b.getId(), ca.id())));
         assertEquals("COMMENT_NOT_FOUND", code(() -> service.get(b.getId(), ca.id())));
-        assertEquals("COMMENT_NOT_FOUND", code(() -> service.create(b.getId(), p.getId(), new CreateCommentRequest("x", ca.id()))));
+        assertEquals("COMMENT_PARENT_INVALID", code(() -> service.create(b.getId(), p.getId(), new CreateCommentRequest("x", ca.id()))));
     }
 
     // ---------------------------------------------------------------- begeni
