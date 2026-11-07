@@ -69,6 +69,18 @@ public class NotificationService {
                 RecipientGuard.ALLOW_ALL);
     }
 
+    /** Kulup/etkinlik sessize alma (B5); yoksa (birim testler) filtre uygulanmaz. */
+    private NotificationMuteService muteService;
+
+    @Autowired(required = false)
+    void setMuteService(NotificationMuteService muteService) {
+        this.muteService = muteService;
+    }
+
+    private boolean muted(Long userId, NotificationType type, NotificationSubtype sub, Map<String, String> data) {
+        return muteService != null && muteService.isMuted(userId, type, sub, data);
+    }
+
     /** Toplu yaz-ya-da-guncelle (PostgreSQL); yoksa ya da desteklenmiyorsa (H2 testleri) alici basina eski yol. */
     private NotificationBatchWriter batchWriter;
 
@@ -306,7 +318,7 @@ public class NotificationService {
                     && (subtype != null && subtype.flagBacked()
                             ? pref == null || subtype.flag(pref)
                             : subtypeEnabled(userId, type, subtype));
-            if (!allowed) {
+            if (!allowed || muted(userId, type, subtype, data)) {
                 return;
             }
             String key = collapseKey == null ? null : truncate(collapseKey, 120);
@@ -525,8 +537,10 @@ public class NotificationService {
                 ? new java.util.HashSet<>(notifications.subtypeDisabledAmong(receivable.keySet(), sub.name())) // 1 sorgu
                 : java.util.Set.of();
         Map<TemplGroup, List<Long>> groups = new java.util.LinkedHashMap<>();
+        java.util.Set<Long> muteOff = muteService == null ? java.util.Set.of()
+                : muteService.mutedAmong(receivable.keySet(), type, sub, data); // sessize alinanlar (en fazla 2 sorgu)
         for (Long id : chunk) {
-            if (!receivable.containsKey(id)) {
+            if (!receivable.containsKey(id) || muteOff.contains(id)) {
                 continue;
             }
             NotificationPref pref = prefMap.get(id);
@@ -743,6 +757,12 @@ public class NotificationService {
             chunks++;
             try {
                 List<Long> allowed = prefs.allowing(chunk, prefColumn);
+                if (muteService != null && !allowed.isEmpty()) {
+                    java.util.Set<Long> off = muteService.mutedAmong(allowed, type, null, data);
+                    if (!off.isEmpty()) {
+                        allowed = allowed.stream().filter(id -> !off.contains(id)).toList();
+                    }
+                }
                 if (allowed.isEmpty()) {
                     continue;
                 }

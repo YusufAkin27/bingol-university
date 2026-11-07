@@ -126,6 +126,7 @@ class ExtraExportersTest {
             Map.entry("mail_campaign_recipient", "mailCampaigns"),
             Map.entry("notification", "notifications"),
             Map.entry("notification_pref", "notificationSettings"),
+            Map.entry("notification_mute", "notificationMutes"),
             Map.entry("notification_subtype_pref", "notificationSettings"),
             Map.entry("bookmark", "bookmarks"),
             Map.entry("feedback_vote", "feedbackVotes"),

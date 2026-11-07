@@ -28,6 +28,15 @@ class NotificationExporters {
         });
     }
 
+    /** Sessize aldigim kulup/etkinlikler (B5, V1630). */
+    @Bean
+    DataExporter notificationMutesExporter(NotificationMuteRepository mutes) {
+        return DataExporter.of("notificationMutes", uid -> mutes.findTop500ByUserIdOrderByCreatedAtDesc(uid).stream()
+                .map(m -> Map.<String, Object>of("targetType", m.getTargetType(), "targetId", m.getTargetId(),
+                        "createdAt", m.getCreatedAt().toString()))
+                .toList());
+    }
+
     @Bean
     DataExporter notificationDevicesExporter(DeviceService devices) {
         return DataExporter.of("devices", devices::list);

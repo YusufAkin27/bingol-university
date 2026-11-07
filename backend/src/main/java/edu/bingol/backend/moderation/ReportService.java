@@ -28,6 +28,11 @@ public class ReportService {
     public static final String RESTRICT_KEY_PREFIX = "modrestrict:";
 
     private final ReportRepository reports;
+
+    /** "Sikayetlerim": raportorun kendi raporlari (size = istenen + 1). */
+    public java.util.List<Report> mine(Long reporterId, Long cursor, int fetch) {
+        return reports.mine(reporterId, cursor, org.springframework.data.domain.PageRequest.of(0, fetch));
+    }
     private final Map<ReportTargetType, ReportTargetHandler> handlers = new EnumMap<>(ReportTargetType.class);
     private final UserModerationService userModeration;
     private final ModerationNotifier notifier;

@@ -47,6 +47,8 @@ public class AccountDataPurger {
             "DELETE FROM notification WHERE user_id = ?",
             "DELETE FROM notification_pref WHERE user_id = ?",
             "DELETE FROM notification_subtype_pref WHERE user_id = ?",
+            // Kulup/etkinlik bildirim sessize alma (V1630)
+            "DELETE FROM notification_mute WHERE user_id = ?",
             "DELETE FROM bookmark WHERE user_id = ?",
             "DELETE FROM feedback_vote WHERE user_id = ?",
             "DELETE FROM event_feedback WHERE user_id = ?",
