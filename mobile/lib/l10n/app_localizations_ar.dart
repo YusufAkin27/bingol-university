@@ -13410,4 +13410,196 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get menuRemPermNeeded => 'يلزم إذن الإشعارات للتذكير.';
+
+  @override
+  String get svTitle => 'المحفوظات';
+
+  @override
+  String get svFilterAll => 'الكل';
+
+  @override
+  String get svFilterNews => 'الأخبار';
+
+  @override
+  String get svFilterEvents => 'الفعاليات';
+
+  @override
+  String get svFilterClubs => 'النوادي';
+
+  @override
+  String get svFilterPolls => 'الاستطلاعات';
+
+  @override
+  String get svFilterPosts => 'المنشورات';
+
+  @override
+  String get svFilterForum => 'المنتدى';
+
+  @override
+  String get svEmptyTitle => 'لا شيء محفوظ بعد';
+
+  @override
+  String get svEmptyBody =>
+      'استخدم أيقونة الإشارة المرجعية في الأخبار والفعاليات والنوادي والاستطلاعات والمنشورات ومواضيع المنتدى لحفظها.';
+
+  @override
+  String get svEmptyFilterTitle => 'لا يوجد محفوظ من هذا النوع';
+
+  @override
+  String get svEmptyFilterBody => 'اختر نوعا آخر أو احفظ عنصرا من هذا النوع.';
+
+  @override
+  String get svErrorTitle => 'تعذر تحميل المحفوظات';
+
+  @override
+  String get svRemoved => 'تمت الإزالة من المحفوظات';
+
+  @override
+  String get svRemoveAction => 'إزالة من المحفوظات';
+
+  @override
+  String get svOpenFailed => 'لم يعد بالإمكان فتح هذا المحتوى';
+
+  @override
+  String get svSave => 'حفظ';
+
+  @override
+  String get svUnsave => 'إزالة من المحفوظات';
+
+  @override
+  String get svSavedToast => 'تم الحفظ';
+
+  @override
+  String get svTypeNews => 'خبر';
+
+  @override
+  String get svTypeEvent => 'فعالية';
+
+  @override
+  String get svTypeCommunity => 'نادٍ';
+
+  @override
+  String get svTypePoll => 'استطلاع';
+
+  @override
+  String get svTypeAcademic => 'أكاديمي';
+
+  @override
+  String get svTypePost => 'منشور';
+
+  @override
+  String get svTypeTopic => 'موضوع منتدى';
+
+  @override
+  String get svTypeComment => 'تعليق منتدى';
+
+  @override
+  String get svMenuRow => 'المحفوظات';
+
+  @override
+  String get muteAction => 'كتم الإشعارات';
+
+  @override
+  String get muteActionOff => 'إلغاء كتم الإشعارات';
+
+  @override
+  String get muteOnToast => 'تم كتم الإشعارات';
+
+  @override
+  String get muteOffToast => 'تم تشغيل الإشعارات';
+
+  @override
+  String get muteCriticalNote =>
+      'تصلك الإشعارات المهمة مثل الإلغاء والقبول وتغيير الدور والحضور حتى مع الكتم.';
+
+  @override
+  String get mutedRowTitle => 'المكتومة';
+
+  @override
+  String get mutedRowSub => 'النوادي والفعاليات التي كتمتها';
+
+  @override
+  String get mutedClubs => 'النوادي';
+
+  @override
+  String get mutedEvents => 'الفعاليات';
+
+  @override
+  String get mutedEmptyTitle => 'لم تكتم أي شيء';
+
+  @override
+  String get mutedEmptyBody =>
+      'يمكنك كتم الإشعارات من القائمة في صفحة النادي أو الفعالية.';
+
+  @override
+  String get mutedErrorTitle => 'تعذر تحميل القائمة';
+
+  @override
+  String get mutedUnmute => 'إلغاء الكتم';
+
+  @override
+  String mutedClubFallback(String id) {
+    return 'نادٍ $id';
+  }
+
+  @override
+  String mutedEventFallback(String id) {
+    return 'فعالية $id';
+  }
+
+  @override
+  String get reportsMineTitle => 'بلاغاتي';
+
+  @override
+  String get reportsMineSub => 'حالة البلاغات التي أرسلتها';
+
+  @override
+  String get reportsMineNote => 'حفاظا على الخصوصية تظهر الحالة العامة فقط.';
+
+  @override
+  String get reportsStatusOpen => 'مفتوح';
+
+  @override
+  String get reportsStatusResolved => 'تمت المعالجة';
+
+  @override
+  String get reportsEmptyTitle => 'لم تبلغ عن أي شيء بعد';
+
+  @override
+  String get reportsEmptyBody => 'عند الإبلاغ عن محتوى ستظهر حالته العامة هنا.';
+
+  @override
+  String get reportsErrorTitle => 'تعذر تحميل البلاغات';
+
+  @override
+  String reportsResolvedOn(String date) {
+    return 'تمت المعالجة: $date';
+  }
+
+  @override
+  String get reportsTypeUser => 'مستخدم';
+
+  @override
+  String get reportsTypeMessage => 'رسالة';
+
+  @override
+  String get reportsTypePost => 'منشور';
+
+  @override
+  String get reportsTypeCommunity => 'نادٍ';
+
+  @override
+  String get reportsTypeEvent => 'فعالية';
+
+  @override
+  String get reportsTypeTopic => 'موضوع منتدى';
+
+  @override
+  String get reportsTypeComment => 'تعليق منتدى';
+
+  @override
+  String get reportsTypeOther => 'محتوى';
+
+  @override
+  String get reportsReasonPersonalInfo => 'نشر معلومات شخصية';
 }

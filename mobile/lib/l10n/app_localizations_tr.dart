@@ -13483,4 +13483,199 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get menuRemPermNeeded => 'Hatırlatıcı için bildirim izni gerekli.';
+
+  @override
+  String get svTitle => 'Kaydedilenler';
+
+  @override
+  String get svFilterAll => 'Tümü';
+
+  @override
+  String get svFilterNews => 'Haberler';
+
+  @override
+  String get svFilterEvents => 'Etkinlikler';
+
+  @override
+  String get svFilterClubs => 'Kulüpler';
+
+  @override
+  String get svFilterPolls => 'Anketler';
+
+  @override
+  String get svFilterPosts => 'Gönderiler';
+
+  @override
+  String get svFilterForum => 'Forum';
+
+  @override
+  String get svEmptyTitle => 'Henüz kaydettiğin bir şey yok';
+
+  @override
+  String get svEmptyBody =>
+      'Haber, etkinlik, kulüp, anket, gönderi ve forum konularındaki yer imi simgesiyle kaydedebilirsin.';
+
+  @override
+  String get svEmptyFilterTitle => 'Bu türde kayıt yok';
+
+  @override
+  String get svEmptyFilterBody =>
+      'Başka bir tür seç ya da bu türden bir içeriği kaydet.';
+
+  @override
+  String get svErrorTitle => 'Kaydedilenler yüklenemedi';
+
+  @override
+  String get svRemoved => 'Kayıttan çıkarıldı';
+
+  @override
+  String get svRemoveAction => 'Kaydı kaldır';
+
+  @override
+  String get svOpenFailed => 'Bu içerik artık açılamıyor';
+
+  @override
+  String get svSave => 'Kaydet';
+
+  @override
+  String get svUnsave => 'Kaydı kaldır';
+
+  @override
+  String get svSavedToast => 'Kaydedildi';
+
+  @override
+  String get svTypeNews => 'Haber';
+
+  @override
+  String get svTypeEvent => 'Etkinlik';
+
+  @override
+  String get svTypeCommunity => 'Kulüp';
+
+  @override
+  String get svTypePoll => 'Anket';
+
+  @override
+  String get svTypeAcademic => 'Akademik';
+
+  @override
+  String get svTypePost => 'Gönderi';
+
+  @override
+  String get svTypeTopic => 'Forum konusu';
+
+  @override
+  String get svTypeComment => 'Forum yorumu';
+
+  @override
+  String get svMenuRow => 'Kaydedilenler';
+
+  @override
+  String get muteAction => 'Bildirimleri sessize al';
+
+  @override
+  String get muteActionOff => 'Bildirimleri aç';
+
+  @override
+  String get muteOnToast => 'Bildirimler sessize alındı';
+
+  @override
+  String get muteOffToast => 'Bildirimler açıldı';
+
+  @override
+  String get muteCriticalNote =>
+      'İptal, kabul, rol ve katılım gibi önemli bildirimler sessize alsan da gelir.';
+
+  @override
+  String get mutedRowTitle => 'Sessize alınanlar';
+
+  @override
+  String get mutedRowSub => 'Sessize aldığın kulüpler ve etkinlikler';
+
+  @override
+  String get mutedClubs => 'Kulüpler';
+
+  @override
+  String get mutedEvents => 'Etkinlikler';
+
+  @override
+  String get mutedEmptyTitle => 'Sessize aldığın bir şey yok';
+
+  @override
+  String get mutedEmptyBody =>
+      'Kulüp ya da etkinlik sayfasındaki menüden bildirimleri sessize alabilirsin.';
+
+  @override
+  String get mutedErrorTitle => 'Liste yüklenemedi';
+
+  @override
+  String get mutedUnmute => 'Aç';
+
+  @override
+  String mutedClubFallback(String id) {
+    return 'Kulüp $id';
+  }
+
+  @override
+  String mutedEventFallback(String id) {
+    return 'Etkinlik $id';
+  }
+
+  @override
+  String get reportsMineTitle => 'Şikayetlerim';
+
+  @override
+  String get reportsMineSub => 'Gönderdiğin şikayetlerin durumu';
+
+  @override
+  String get reportsMineNote =>
+      'Gizlilik için yalnızca genel durum gösterilir.';
+
+  @override
+  String get reportsStatusOpen => 'Açık';
+
+  @override
+  String get reportsStatusResolved => 'Sonuçlandı';
+
+  @override
+  String get reportsEmptyTitle => 'Henüz şikayet etmedin';
+
+  @override
+  String get reportsEmptyBody =>
+      'Bir içeriği şikayet ettiğinde burada genel durumunu görürsün.';
+
+  @override
+  String get reportsErrorTitle => 'Şikayetler yüklenemedi';
+
+  @override
+  String reportsResolvedOn(String date) {
+    return 'Sonuçlanma: $date';
+  }
+
+  @override
+  String get reportsTypeUser => 'Kullanıcı';
+
+  @override
+  String get reportsTypeMessage => 'Mesaj';
+
+  @override
+  String get reportsTypePost => 'Gönderi';
+
+  @override
+  String get reportsTypeCommunity => 'Kulüp';
+
+  @override
+  String get reportsTypeEvent => 'Etkinlik';
+
+  @override
+  String get reportsTypeTopic => 'Forum konusu';
+
+  @override
+  String get reportsTypeComment => 'Forum yorumu';
+
+  @override
+  String get reportsTypeOther => 'İçerik';
+
+  @override
+  String get reportsReasonPersonalInfo => 'Kişisel bilgi paylaşımı';
 }
