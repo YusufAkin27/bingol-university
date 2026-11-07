@@ -4,7 +4,7 @@ import '../../core/analytics.dart';
 import '../../core/session.dart';
 import 'post_models.dart';
 
-/// Gönderi uçları (tek fotoğraf + kısa metin + beğeni). Tek HTTP katmanı `session.api`; GET'ler her istekte
+/// Gönderi uçları (1..10 fotoğraf ya da 1 video + kısa metin + beğeni). Tek HTTP katmanı `session.api`; GET'ler her istekte
 /// sunucuya doğrulatılır (ETag/If-None-Match). Hatalar `ApiError` olarak fırlar.
 /// Fotoğraf yükleme (`POST /posts/media`) `post_media_uploader.dart` içindedir.
 /// Kaldırılan uçlar (yorum, kaydetme, etiket, hikâye) sunucuda 410 `FEATURE_REMOVED` döner; çağrılmaz.
@@ -104,13 +104,20 @@ class PostApi {
     return 'p${List.generate(24, (_) => r.nextInt(16).toRadixString(16)).join()}';
   }
 
+  /// [mediaIds] verilirse (1..10 fotoğraf, sıralı) [mediaId] yok sayılır; tek `mediaId` eski çağıranlar içindir.
   Future<Post> create(
-      {String? text, required int mediaId, List<int> mentionUserIds = const [], String? idempotencyKey}) async {
+      {String? text,
+      int? mediaId,
+      List<int>? mediaIds,
+      List<int> mentionUserIds = const [],
+      String? idempotencyKey}) async {
+    final ids = mediaIds ?? [if (mediaId != null) mediaId];
+    assert(ids.isNotEmpty, 'en az bir medya gerekir');
     final r = await session.api.post(
         '/posts',
         {
           if (text != null && text.trim().isNotEmpty) 'text': text.trim(),
-          'mediaIds': [mediaId],
+          'mediaIds': ids,
           if (mentionUserIds.isNotEmpty) 'mentionUserIds': mentionUserIds,
         },
         true,

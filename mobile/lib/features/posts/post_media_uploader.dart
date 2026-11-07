@@ -49,6 +49,10 @@ String postErrorText(Object e, [AppLocalizations? l]) {
         return t.postComposeErrBlocked;
       case 'POST_MEDIA_INVALID':
         return t.postComposeErrMediaInvalid;
+      case 'POST_MEDIA_LIMIT':
+        return t.postComposeErrMediaLimit;
+      case 'POST_MEDIA_MIX':
+        return t.postComposeErrMediaMix;
       case 'CONTENT_PROFANITY':
         return t.postComposeErrProfanity;
       case 'POST_TEXT_TOO_LONG':

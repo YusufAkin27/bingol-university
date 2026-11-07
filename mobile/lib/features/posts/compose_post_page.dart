@@ -3,6 +3,7 @@ import 'dart:io' show File;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart' show ImagePicker, ImageSource;
 import 'package:video_player/video_player.dart';
 import 'package:image/image.dart' as img;
 
@@ -33,6 +34,33 @@ typedef PostPhotoPicker = Future<Uint8List?> Function(ImageSource source);
 
 /// Seçilen fotoğrafı 4:5 kırptırır (vazgeçilirse null); testlerde sahtesi verilir.
 typedef PostPhotoCropper = Future<CropOutcome?> Function(BuildContext context, Uint8List bytes, CropSpec spec);
+
+/// Galeriden en çok [limit] fotoğraf seçtirir (çoklu seçim; iptalde boş liste); testlerde sahtesi verilir.
+typedef PostPhotosPicker = Future<List<Uint8List>> Function(int limit);
+
+/// Bir gönderideki en çok fotoğraf sayısı (sunucu sınırıyla aynı: 422 `POST_MEDIA_LIMIT`).
+const int kPostMaxPhotos = 10;
+
+Future<List<Uint8List>> _defaultMultiPicker(int limit) async {
+  if (limit <= 0) return const [];
+  if (limit == 1) {
+    final one = await ImageService().pick(ImageSource.gallery);
+    return one == null ? const [] : [await one.readAsBytes()];
+  }
+  final files = await ImagePicker().pickMultiImage(
+      limit: limit, maxWidth: ImageService.maxEdge, maxHeight: ImageService.maxEdge, imageQuality: ImageService.quality, requestFullMetadata: false);
+  return [for (final f in files.take(limit)) await f.readAsBytes()];
+}
+
+/// Gönderideki fotoğraf (sıralı liste öğesi); yüklenince [uploaded] doldurulur (yeniden denemede tekrar yüklenmez).
+class _Shot {
+  _Shot(this.bytes, this.aspect, {this.uploaded, this.orig});
+
+  final Uint8List bytes;
+  final double aspect;
+  final Uint8List? orig;
+  PostMedia? uploaded;
+}
 
 Future<Uint8List?> _defaultPicker(ImageSource source) async {
   final f = await ImageService().pick(source);
@@ -67,6 +95,7 @@ class ComposePostPage extends StatefulWidget {
     super.key,
     required this.session,
     this.pickPhoto,
+    this.pickPhotos,
     this.cropPhoto,
     this.uploader,
     this.api,
@@ -101,6 +130,7 @@ class ComposePostPage extends StatefulWidget {
 
   /// Testler için: seçici/kırpıcı/yükleyici/API enjeksiyonu.
   final PostPhotoPicker? pickPhoto;
+  final PostPhotosPicker? pickPhotos;
   final PostPhotoCropper? cropPhoto;
   final PostMediaUploader? uploader;
   final PostApi? api;
@@ -147,6 +177,11 @@ class _ComposePostPageState extends State<ComposePostPage> {
   final String _idemKey = PostApi.newIdempotencyKey(); // bu paylaşma niyeti için tek anahtar (yeniden denemede aynı)
   PostMedia? _uploaded; // aynı fotoğraf için yeniden yüklemeyi önler (metin hatasından sonra tekrar dene)
   bool _publishing = false;
+
+  /// Ek fotoğraflar (ilk fotoğraf `_photo`dadır): toplam en çok [kPostMaxPhotos].
+  final _extras = <_Shot>[];
+  int _upDone = 0; // yükleme ilerlemesi (çoklu fotoğraf): biten / toplam
+  int _upTotal = 0;
   _Err _err = _Err.none;
   String _errText = '';
   int _wait = 0; // hız sınırı geri sayımı (sn)
@@ -337,6 +372,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
           _photo = null;
           _original = null;
           _uploaded = null;
+          _extras.clear();
           _err = _Err.none;
         });
         await _openTrim(mandatory: true);
@@ -437,9 +473,10 @@ class _ComposePostPageState extends State<ComposePostPage> {
         _uploadedVideo = null;
         _frames = const [];
         _coverIndex = 0;
-        _photo = null; // gönderi = 1 fotoğraf YA DA 1 video
+        _photo = null; // gönderi = 1..10 fotoğraf YA DA 1 video
         _original = null;
         _uploaded = null;
+        _extras.clear();
         _preparing = false;
         _trimming = false;
         _prepCancel = null;
@@ -563,6 +600,74 @@ class _ComposePostPageState extends State<ComposePostPage> {
     }
   }
 
+  // ---- Çoklu fotoğraf --------------------------------------------------------------------------------------------------
+
+  int get _photoCount => (_photo != null ? 1 : 0) + _extras.length;
+
+  List<_Shot> _shots() => [
+        if (_photo != null) _Shot(_photo!, _photoAspect, uploaded: _uploaded, orig: _original),
+        ..._extras,
+      ];
+
+  /// Sıralı listeyi ilk fotoğraf + ekler olarak geri yazar (boşsa hepsi temizlenir).
+  void _applyShots(List<_Shot> l) {
+    if (l.isEmpty) {
+      _photo = null;
+      _original = null;
+      _uploaded = null;
+      _extras.clear();
+      return;
+    }
+    final f = l.first;
+    _photo = f.bytes;
+    _original = f.orig ?? f.bytes;
+    _photoAspect = f.aspect;
+    _uploaded = f.uploaded;
+    _extras
+      ..clear()
+      ..addAll(l.skip(1));
+  }
+
+  /// "Fotoğraf ekle": galeriden çoklu seçim, kalan hakkı aşmaz. Ek fotoğraflar 4:5 kutuya ortadan kırpılarak gösterilir.
+  Future<void> _addPhotos() async {
+    if (_publishing || _photo == null) return;
+    final room = kPostMaxPhotos - _photoCount;
+    if (room <= 0) return;
+    FocusScope.of(context).unfocus();
+    try {
+      final picked = await (widget.pickPhotos ?? _defaultMultiPicker)(room);
+      if (!mounted || picked.isEmpty) return;
+      setState(() {
+        for (final b in picked.take(room)) {
+          _extras.add(_Shot(b, _aspectOf(b)));
+        }
+        _err = _Err.none;
+      });
+    } catch (e) {
+      if (mounted) setState(() => _setError(e));
+    }
+  }
+
+  void _removeShot(int i) {
+    if (_publishing) return;
+    final l = _shots();
+    if (i < 0 || i >= l.length) return;
+    setState(() {
+      l.removeAt(i);
+      _applyShots(l);
+    });
+  }
+
+  void _reorderShot(int from, int to) {
+    if (_publishing) return;
+    final l = _shots();
+    if (from == to || from < 0 || from >= l.length) return;
+    setState(() {
+      l.insert(to, l.removeAt(from));
+      _applyShots(l);
+    });
+  }
+
   Future<void> _recrop() async {
     final orig = _original;
     if (orig == null || _publishing) return;
@@ -679,11 +784,29 @@ class _ComposePostPageState extends State<ComposePostPage> {
     });
     final messenger = ScaffoldMessenger.maybeOf(context);
     try {
-      final PostMedia media = video != null
-          ? (_uploadedVideo ??= await _uploadVideo(video))
-          : (_uploaded ??= await _uploader.upload(bytes!));
+      final List<int> ids;
+      if (video != null) {
+        ids = [(_uploadedVideo ??= await _uploadVideo(video)).id];
+      } else {
+        // Sıralı yükleme; yüklenenler saklanır, hata sonrası "Paylaş" yalnız eksikleri yeniden dener.
+        final shots = _shots();
+        setState(() {
+          _upDone = shots.where((s) => s.uploaded != null).length;
+          _upTotal = shots.length;
+        });
+        for (var i = 0; i < shots.length; i++) {
+          final s = shots[i];
+          if (s.uploaded == null) {
+            final up = await _uploader.upload(s.bytes);
+            s.uploaded = up;
+            if (i == 0) _uploaded = up;
+          }
+          if (mounted) setState(() => _upDone = i + 1);
+        }
+        ids = [for (final s in shots) s.uploaded!.id];
+      }
       final post = await _api.create(
-          text: _text.text, mediaId: media.id, mentionUserIds: _mentionIds(), idempotencyKey: _idemKey);
+          text: _text.text, mediaIds: ids, mentionUserIds: _mentionIds(), idempotencyKey: _idemKey);
       if (!mounted) return;
       if (messenger != null) {
         messenger.showSnackBar(SnackBar(
@@ -697,6 +820,9 @@ class _ComposePostPageState extends State<ComposePostPage> {
       if (e is ApiError && e.code == 'POST_MEDIA_INVALID') {
         _uploaded = null;
         _uploadedVideo = null;
+        for (final s in _extras) {
+          s.uploaded = null;
+        }
       }
       setState(() {
         _publishing = false;
@@ -747,6 +873,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
                       child: KeyedSubtree(
                           key: ValueKey('${_photo != null}-${_video != null}-$_preparing-${_longPending != null}'), child: _photoArea(t)),
                     ),
+                    if (_photo != null && _video == null) _photoStrip(t),
                     const SizedBox(height: 16),
                     if (_video != null && _frames.length >= 2 && !_publishing) _coverStrip(t),
                     const SizedBox(height: 16),
@@ -1160,6 +1287,124 @@ class _ComposePostPageState extends State<ComposePostPage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// Önizleme altı küçük şerit: sayaç, basılı tutup sürükleyerek sıralama, silme ve "ekle".
+  Widget _photoStrip(BuTokens t) {
+    final l = context.l10n;
+    final tt = Theme.of(context).textTheme;
+    final shots = _shots();
+    final n = shots.length;
+    final full = n >= kPostMaxPhotos;
+    return Padding(
+      key: const ValueKey('composePhotoStrip'),
+      padding: const EdgeInsets.only(top: 12),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Expanded(
+            child: Text(
+              _publishing && _upTotal > 1
+                  ? l.composeUploadingN(_upDone.toString(), _upTotal.toString())
+                  : l.composePhotoCount(n.toString(), kPostMaxPhotos.toString()),
+              key: const ValueKey('composePhotoCount'),
+              style: tt.bodySmall?.copyWith(color: t.mut),
+            ),
+          ),
+          if (n > 1 && !_publishing) Flexible(child: Text(l.composeReorderHint, maxLines: 1, overflow: TextOverflow.ellipsis, style: tt.bodySmall?.copyWith(color: t.mut, fontSize: 12))),
+        ]),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 76,
+          child: Row(children: [
+            if (n > 1)
+              Expanded(
+                child: ReorderableListView.builder(
+                  key: const ValueKey('composeReorder'),
+                  scrollDirection: Axis.horizontal,
+                  buildDefaultDragHandles: false,
+                  itemCount: n,
+                  onReorderItem: _reorderShot,
+                  proxyDecorator: (child, _, __) => Material(type: MaterialType.transparency, child: child),
+                  itemBuilder: (_, i) => ReorderableDelayedDragStartListener(
+                    key: ObjectKey(shots[i]),
+                    index: i,
+                    enabled: !_publishing,
+                    child: _shotTile(t, shots[i], i),
+                  ),
+                ),
+              )
+            else
+              _shotTile(t, shots.first, 0),
+            if (!full && !_publishing)
+              Semantics(
+                button: true,
+                label: l.composeAddPhotos,
+                child: InkWell(
+                  key: const ValueKey('composeAddPhotos'),
+                  borderRadius: BorderRadius.circular(BuRadius.sm),
+                  onTap: _addPhotos,
+                  child: Container(
+                    width: 64,
+                    height: 76,
+                    decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.sm), border: Border.all(color: t.bd)),
+                    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      Icon(BuIcons.imagePlus, size: 22, color: t.ink),
+                      const SizedBox(height: 4),
+                      Text(l.composeAddPhotosShort, maxLines: 1, overflow: TextOverflow.ellipsis, style: tt.labelSmall?.copyWith(color: t.mut)),
+                    ]),
+                  ),
+                ),
+              ),
+          ]),
+        ),
+      ]),
+    );
+  }
+
+  Widget _shotTile(BuTokens t, _Shot s, int i) {
+    final l = context.l10n;
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(end: 8),
+      child: SizedBox(
+        width: 64,
+        height: 76,
+        child: Stack(fit: StackFit.expand, children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(BuRadius.sm),
+            child: Image.memory(s.bytes,
+                fit: BoxFit.cover,
+                gaplessPlayback: true,
+                cacheWidth: 192,
+                excludeFromSemantics: true,
+                errorBuilder: (_, __, ___) => ColoredBox(color: t.sf2, child: Icon(BuIcons.image, color: t.mut))),
+          ),
+          if (_photoCount > 1 && !_publishing)
+            PositionedDirectional(
+              top: 0,
+              end: 0,
+              child: Semantics(
+                button: true,
+                label: l.composeRemovePhoto,
+                child: GestureDetector(
+                  key: ValueKey('composeRemove-$i'),
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _removeShot(i),
+                  child: SizedBox(
+                    width: 32,
+                    height: 32,
+                    child: Center(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(color: t.scrim.withValues(alpha: .6), shape: BoxShape.circle),
+                        child: Padding(padding: const EdgeInsets.all(3), child: Icon(BuIcons.x, size: 14, color: t.onMedia)),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ]),
       ),
     );
   }

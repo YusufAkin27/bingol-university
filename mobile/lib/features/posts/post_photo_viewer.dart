@@ -10,7 +10,7 @@ import 'post_video.dart';
 /// Gönderi fotoğrafını tam ekran açar: iki parmakla yakınlaştırma, çift dokunuşla yakınlaştır/uzaklaştır,
 /// yakınlaştırılmamışken aşağı/yukarı sürükleyerek kapatma (arka plan sürükledikçe açılır). [heroTag] listeden
 /// gelen etiketse fotoğraf detaydan buraya paylaşılan öğe olarak uçar.
-Future<void> openPostPhotoViewer(BuildContext context, Session session, Post post, {Object? heroTag}) {
+Future<void> openPostPhotoViewer(BuildContext context, Session session, Post post, {Object? heroTag, int initialIndex = 0}) {
   if (post.isVideo) return openPostVideoViewer(context, session, post);
   if (post.photo == null) return Future<void>.value();
   return Navigator.of(context).push<void>(PageRouteBuilder<void>(settings: const RouteSettings(name: 'post_photo'), 
@@ -18,7 +18,7 @@ Future<void> openPostPhotoViewer(BuildContext context, Session session, Post pos
     barrierDismissible: false,
     transitionDuration: BuMotion.medium,
     reverseTransitionDuration: BuMotion.short,
-    pageBuilder: (_, __, ___) => PostPhotoViewer(session: session, post: post, heroTag: heroTag),
+    pageBuilder: (_, __, ___) => PostPhotoViewer(session: session, post: post, heroTag: heroTag, initialIndex: initialIndex),
     transitionsBuilder: (context, animation, _, child) {
       if (BuMotion.reduced(context)) return child;
       return FadeTransition(
@@ -30,11 +30,14 @@ Future<void> openPostPhotoViewer(BuildContext context, Session session, Post pos
 }
 
 class PostPhotoViewer extends StatefulWidget {
-  const PostPhotoViewer({super.key, required this.session, required this.post, this.heroTag});
+  const PostPhotoViewer({super.key, required this.session, required this.post, this.heroTag, this.initialIndex = 0});
 
   final Session session;
   final Post post;
   final Object? heroTag;
+
+  /// Çoklu fotoğraf gönderisinde ilk gösterilen fotoğraf (0 tabanlı).
+  final int initialIndex;
 
   @override
   State<PostPhotoViewer> createState() => _PostPhotoViewerState();
@@ -46,6 +49,8 @@ class _PostPhotoViewerState extends State<PostPhotoViewer> with TickerProviderSt
   static const _dismissVelocity = 800.0;
 
   final _tc = TransformationController();
+  late final PageController _pc = PageController(initialPage: widget.initialIndex.clamp(0, (widget.post.photos.length - 1).clamp(0, 99)));
+  late final ValueNotifier<int> _cur = ValueNotifier<int>(_pc.initialPage);
   final _dy = ValueNotifier<double>(0);
   late final AnimationController _zoomAnim = AnimationController(vsync: this, duration: BuMotion.medium);
   late final AnimationController _backAnim = AnimationController(vsync: this, duration: BuMotion.short);
@@ -73,6 +78,8 @@ class _PostPhotoViewerState extends State<PostPhotoViewer> with TickerProviderSt
   void dispose() {
     _zoomAnim.dispose();
     _backAnim.dispose();
+    _pc.dispose();
+    _cur.dispose();
     _tc.dispose();
     _dy.dispose();
     super.dispose();
@@ -124,6 +131,30 @@ class _PostPhotoViewerState extends State<PostPhotoViewer> with TickerProviderSt
     _backAnim.forward(from: 0);
   }
 
+  Widget _zoomable(int i, Object? tag) {
+    final photos = widget.post.photos;
+    final multi = photos.length > 1;
+    return InteractiveViewer(
+      transformationController: _tc,
+      minScale: 1,
+      maxScale: 4,
+      onInteractionUpdate: _onUpdate,
+      onInteractionEnd: _onEnd,
+      child: Center(
+        child: PostPhoto(
+          session: widget.session,
+          post: widget.post,
+          media: multi ? photos[i] : null,
+          semanticLabel: multi ? context.l10n.postPhotoOfTotal((i + 1).toString(), photos.length.toString()) : null,
+          radius: 0,
+          progressive: true,
+          // Yakınlaştırılmışsa geri uçuş yok (kare yer değiştirmiş olur): etiket değişir, eşleşmez.
+          heroTag: (tag == null || i != widget.initialIndex) ? null : (_zoomed ? '$tag-zoomed' : tag),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
@@ -150,26 +181,41 @@ class _PostPhotoViewerState extends State<PostPhotoViewer> with TickerProviderSt
             onDoubleTap: _toggleZoom,
             child: ValueListenableBuilder<double>(
               valueListenable: _dy,
-              child: InteractiveViewer(
-                transformationController: _tc,
-                minScale: 1,
-                maxScale: 4,
-                onInteractionUpdate: _onUpdate,
-                onInteractionEnd: _onEnd,
-                child: Center(
-                  child: PostPhoto(
-                    session: widget.session,
-                    post: widget.post,
-                    radius: 0,
-                    progressive: true,
-                    // Yakınlaştırılmışsa geri uçuş yok (kare yer değiştirmiş olur): etiket değişir, eşleşmez.
-                    heroTag: tag == null ? null : (_zoomed ? '$tag-zoomed' : tag),
-                  ),
-                ),
-              ),
+              child: widget.post.isMulti
+                  ? PageView.builder(
+                      key: const ValueKey('postViewerPager'),
+                      controller: _pc,
+                      itemCount: widget.post.photos.length,
+                      // Yakınlaştırılmışken sayfa kaydırma kapalı (sürükleme fotoğrafı gezdirir).
+                      physics: _zoomed ? const NeverScrollableScrollPhysics() : const PageScrollPhysics(),
+                      onPageChanged: (i) {
+                        _cur.value = i;
+                        _tc.value = Matrix4.identity();
+                      },
+                      itemBuilder: (_, i) => _zoomable(i, tag),
+                    )
+                  : _zoomable(0, tag),
               builder: (_, dy, child) => Transform.translate(offset: Offset(0, dy), child: child),
             ),
           ),
+          if (widget.post.isMulti)
+            PositionedDirectional(
+              top: MediaQuery.paddingOf(context).top + BuSpace.sm + 12,
+              end: BuSpace.lg,
+              child: IgnorePointer(
+                child: ExcludeSemantics(
+                  child: ValueListenableBuilder<int>(
+                    valueListenable: _cur,
+                    builder: (_, i, __) => Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: Text('${i + 1}/${widget.post.photos.length}',
+                          key: const ValueKey('postViewerCounter'),
+                          style: Theme.of(context).textTheme.labelLarge?.copyWith(color: t.onMedia, fontWeight: FontWeight.w400)),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           PositionedDirectional(
             top: MediaQuery.paddingOf(context).top + BuSpace.sm,
             start: BuSpace.sm,

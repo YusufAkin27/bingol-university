@@ -5,6 +5,7 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import 'post_api.dart';
 import 'post_card.dart';
+import 'post_carousel.dart' show PostMultiBadge;
 import 'post_models.dart';
 import 'post_routes.dart';
 
@@ -214,6 +215,8 @@ class _Tile extends StatelessWidget {
                 right: 8,
                 child: Icon(BuIcons.playFilled, key: const ValueKey('liked-reel-badge'), size: 18, color: t.onMedia),
               ),
+            if (post.isMulti)
+              const PositionedDirectional(top: 8, end: 8, child: IgnorePointer(child: PostMultiBadge())),
             Positioned(
               left: 0,
               right: 0,

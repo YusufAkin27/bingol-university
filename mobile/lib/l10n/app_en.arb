@@ -4857,5 +4857,15 @@
   "hubNoPast": "You have no past events.",
   "profileClubHub": "Clubs and events",
   "hubOpenManage": "Manage my club",
-  "shareUnavailablePost": "This post is unavailable. It may belong to a private account."
+  "shareUnavailablePost": "This post is unavailable. It may belong to a private account.",
+  "postPhotoOfTotal": "Photo {n}/{total}",
+  "postMultiBadgeLabel": "Multi-photo post",
+  "composePhotoCount": "{n}/{max} photos",
+  "composeAddPhotos": "Add photos",
+  "composeAddPhotosShort": "Add",
+  "composeRemovePhoto": "Remove photo",
+  "composeReorderHint": "Press and drag to reorder",
+  "composeUploadingN": "Uploading {n}/{total}",
+  "postComposeErrMediaLimit": "A post can have at most 10 photos.",
+  "postComposeErrMediaMix": "A video post must stand alone; it cannot be mixed with photos."
 }
