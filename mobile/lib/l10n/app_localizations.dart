@@ -24269,6 +24269,54 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{name} kulübüne BÜ Kampüs uygulamasında göz at: {link}'**
   String clubShareMsg(String name, String link);
+
+  /// No description provided for @offlineStripWithTime.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çevrimdışı · son güncelleme {zaman}'**
+  String offlineStripWithTime(String zaman);
+
+  /// No description provided for @offlineStripNoTime.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çevrimdışı · kayıtlı veriler gösteriliyor'**
+  String get offlineStripNoTime;
+
+  /// No description provided for @menuRemTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Günlük menü hatırlatıcısı'**
+  String get menuRemTitle;
+
+  /// No description provided for @menuRemSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Her gün seçtiğin saatte bugünün menüsünü hatırlatır'**
+  String get menuRemSub;
+
+  /// No description provided for @menuRemTime.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hatırlatma saati'**
+  String get menuRemTime;
+
+  /// No description provided for @menuRemNotifTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bugünün menüsü'**
+  String get menuRemNotifTitle;
+
+  /// No description provided for @menuRemNotifBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yemekhane menüsüne göz at.'**
+  String get menuRemNotifBody;
+
+  /// No description provided for @menuRemPermNeeded.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hatırlatıcı için bildirim izni gerekli.'**
+  String get menuRemPermNeeded;
 }
 
 class _AppLocalizationsDelegate

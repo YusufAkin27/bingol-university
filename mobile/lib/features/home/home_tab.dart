@@ -17,6 +17,7 @@ import '../events/event_parts.dart' show eventIsExpired;
 import '../events/events_page.dart';
 import '../menu/menu_models.dart';
 import '../menu/menu_page.dart';
+import '../menu/menu_reminder.dart';
 import '../menu/menu_parts.dart' show menuDishTitle;
 import '../menu/menu_topup.dart' show menuTopUpUri;
 import '../news/news_detail_page.dart';
@@ -114,6 +115,10 @@ class _HomeTabState extends State<HomeTab> {
     _layout.addListener(_onLayout);
     _boot();
     unawaited(_loadSocialDot());
+    // Menüyü sessizce önbelleğe al + günlük menü hatırlatıcısını (açıksa) yeniden kur.
+    unawaited(prefetchMenu(widget.session.api));
+    MenuReminderService.instance.registerProvider();
+    unawaited(MenuReminderService.instance.sync());
   }
 
   @override
@@ -404,7 +409,9 @@ class _HomeTabState extends State<HomeTab> {
               ),
       );
     }
-    return ColoredBox(color: t.bg, child: body);
+    return ColoredBox(
+        color: t.bg,
+        child: Column(children: [const BuStaleStrip(), Expanded(child: body)]));
   }
 
   // --- "Bugün" ve dersler için akademik veri ---

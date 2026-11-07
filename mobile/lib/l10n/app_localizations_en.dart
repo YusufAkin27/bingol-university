@@ -13504,4 +13504,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String clubShareMsg(String name, String link) {
     return 'Check out $name on BÜ Kampüs: $link';
   }
+
+  @override
+  String offlineStripWithTime(String zaman) {
+    return 'Offline · last updated $zaman';
+  }
+
+  @override
+  String get offlineStripNoTime => 'Offline · showing saved data';
+
+  @override
+  String get menuRemTitle => 'Daily menu reminder';
+
+  @override
+  String get menuRemSub =>
+      'Reminds you of the menu at the time you choose each day';
+
+  @override
+  String get menuRemTime => 'Reminder time';
+
+  @override
+  String get menuRemNotifTitle => 'Menu for today';
+
+  @override
+  String get menuRemNotifBody => 'Take a look at the dining hall menu.';
+
+  @override
+  String get menuRemPermNeeded =>
+      'Notification permission is needed for the reminder.';
 }

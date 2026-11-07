@@ -2,6 +2,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../features/academic/alarm_service.dart';
 import '../features/academic/reminders.dart';
+import '../features/menu/menu_reminder.dart';
 import '../features/auth/data/onboarding_api.dart' show OnboardingDraftStore;
 import '../features/auth/help/public_support_api.dart' show TrackTokenStore;
 import '../features/chat/chat_wallpaper.dart';
@@ -40,6 +41,7 @@ void registerUserDataCleaners(ApiClient api) {
     ..add(ForumDraftStore.clearAll) // yarım kalan forum konu taslakları (başlık/metin/görsel adresi)
     ..add(() => PhotoAutoSave.instance.reset()) // galeriye otomatik kayıt ayarı + kaydedilen ek kimlikleri
     ..add(ReminderService.clearUserData) // ders hatırlatıcı ayarı + kurulu yerel hatırlatmalar
+    ..add(() => MenuReminderService.instance.clearUserData()) // günlük menü hatırlatıcısı tercihi + bildirimleri
     ..add(AlarmService.clearUserData) // ertelenmiş sınav alarmları + hatırlatmaları + iOS alarm bildirimleri
     ..add(LanguageSync.clear) // son eşitlenen profil dili
     ..add(ChatBackgroundPrefs.clear) // sohbet arka planı tercihi (Desen/Hafif/Orta/Düz)

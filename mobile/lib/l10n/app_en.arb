@@ -4891,5 +4891,22 @@
   "evCalFailed": "Could not write to the calendar.",
   "evCalPast": "A started event cannot be added.",
   "clubShareMsg": "Check out {name} on BÜ Kampüs: {link}",
-  "@clubShareMsg": {"placeholders": {"name": {"type": "String"}, "link": {"type": "String"}}}
+  "@clubShareMsg": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineStripWithTime": "Offline · last updated {zaman}",
+  "offlineStripNoTime": "Offline · showing saved data",
+  "menuRemTitle": "Daily menu reminder",
+  "menuRemSub": "Reminds you of the menu at the time you choose each day",
+  "menuRemTime": "Reminder time",
+  "menuRemNotifTitle": "Menu for today",
+  "menuRemNotifBody": "Take a look at the dining hall menu.",
+  "menuRemPermNeeded": "Notification permission is needed for the reminder."
 }

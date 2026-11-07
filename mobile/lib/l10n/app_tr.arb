@@ -7274,5 +7274,29 @@
   "evCalFailed": "Takvime yazılamadı.",
   "evCalPast": "Başlamış etkinlik takvime eklenmez.",
   "clubShareMsg": "{name} kulübüne BÜ Kampüs uygulamasında göz at: {link}",
-  "@clubShareMsg": {"placeholders": {"name": {"type": "String"}, "link": {"type": "String"}}}
+  "@clubShareMsg": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineStripWithTime": "Çevrimdışı · son güncelleme {zaman}",
+  "@offlineStripWithTime": {
+    "placeholders": {
+      "zaman": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineStripNoTime": "Çevrimdışı · kayıtlı veriler gösteriliyor",
+  "menuRemTitle": "Günlük menü hatırlatıcısı",
+  "menuRemSub": "Her gün seçtiğin saatte bugünün menüsünü hatırlatır",
+  "menuRemTime": "Hatırlatma saati",
+  "menuRemNotifTitle": "Bugünün menüsü",
+  "menuRemNotifBody": "Yemekhane menüsüne göz at.",
+  "menuRemPermNeeded": "Hatırlatıcı için bildirim izni gerekli."
 }

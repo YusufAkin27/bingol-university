@@ -6,7 +6,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
-import '../../core/permissions/permission_service.dart';
 import '../../core/push/push_health.dart';
 import '../../core/push/push_privacy.dart';
 import '../../core/push/push_service.dart';
@@ -17,6 +16,8 @@ import '../academic/academic_widgets.dart';
 import '../academic/reminder_settings_page.dart';
 import '../academic/reminders.dart';
 import '../forum/forum_routes.dart' show openForumPrefs;
+import '../menu/menu_reminder.dart';
+import '../../core/permissions/ensure_permission.dart';
 import '../notifications/push_help_page.dart';
 
 /// Tasarımdaki aç/kapat anahtarı (46x28, beyaz topuz).
@@ -350,6 +351,7 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
   late final _PrefsStore _store = _PrefsStore(widget.session)..addListener(_onChange);
   String _pushStatus = '...';
   ReminderSettings? _rem;
+  MenuReminderSettings? _menuRem;
 
   void _onChange() {
     if (!mounted) return;
@@ -367,6 +369,9 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
     WidgetsBinding.instance.addObserver(this);
     _store.load();
     _refreshPushStatus();
+    MenuReminderService.instance.store.load().then((v) {
+      if (mounted) setState(() => _menuRem = v);
+    }).catchError((_) {});
     ReminderService.store.load().then((v) {
       if (mounted) setState(() => _rem = v);
     }).catchError((_) {});
@@ -675,8 +680,62 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
           onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(settings: const RouteSettings(name: 'reminder_settings'), builder: (_) => ReminderSettingsPage(session: widget.session))),
           trailing: _PrefSwitch(value: remOn, onChanged: rem == null ? null : _setReminders),
         ),
-      ));
+      ))
+      ..add(const SizedBox(height: 12))
+      ..add(_menuReminderCard());
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children);
+  }
+
+  /// Günlük menü hatırlatıcısı: anahtar (varsayılan kapalı) + saat satırı (açıkken).
+  Widget _menuReminderCard() {
+    final l = context.l10n;
+    final m = _menuRem;
+    final on = m?.enabled ?? false;
+    final time = _fmtTime(TimeOfDay(hour: (m?.minutes ?? MenuReminderSettings.defaultMinutes) ~/ 60, minute: (m?.minutes ?? MenuReminderSettings.defaultMinutes) % 60));
+    return KeyedSubtree(
+      key: const ValueKey('prefs-menu-reminder'),
+      child: _card(
+        child: Column(children: [
+          _PrefRow(
+            title: l.menuRemTitle,
+            sub: l.menuRemSub,
+            onTap: m == null ? null : () => unawaited(_setMenuReminder(!on)),
+            trailing: _PrefSwitch(value: on, onChanged: m == null ? null : (v) => unawaited(_setMenuReminder(v))),
+          ),
+          if (on) ...[
+            const _PrefDivider(),
+            _PrefRow(
+              title: l.menuRemTime,
+              trailing: Text(time, key: const ValueKey('menu-reminder-time'), style: BuType.caption.copyWith(fontSize: 15, color: context.bu.ink)),
+              onTap: () => unawaited(_pickMenuReminderTime()),
+            ),
+          ],
+        ]),
+      ),
+    );
+  }
+
+  Future<void> _setMenuReminder(bool v) async {
+    final cur = _menuRem;
+    if (cur == null) return;
+    final next = cur.copyWith(enabled: v);
+    setState(() => _menuRem = next);
+    final ok = await MenuReminderService.instance.apply(next, requestPermission: () => ensurePermission(context, AppPermission.notifications));
+    if (!mounted) return;
+    if (!ok && v) {
+      setState(() => _menuRem = next.copyWith(enabled: false));
+      BuToast.show(context, context.l10n.menuRemPermNeeded, kind: BuToastKind.error);
+    }
+  }
+
+  Future<void> _pickMenuReminderTime() async {
+    final cur = _menuRem;
+    if (cur == null) return;
+    final m = await pickAcadTime(context, cur.minutes, help: context.l10n.menuRemTime);
+    if (m == null || !mounted) return;
+    final next = cur.copyWith(minutes: m);
+    setState(() => _menuRem = next);
+    await MenuReminderService.instance.apply(next);
   }
 
   /// Ders + sınav hatırlatmalarını birlikte açar/kapatır (ayrıntı: Akademik > Hatırlatmalar sayfası).

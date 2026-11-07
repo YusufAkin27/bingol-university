@@ -13456,4 +13456,31 @@ class AppLocalizationsTr extends AppLocalizations {
   String clubShareMsg(String name, String link) {
     return '$name kulübüne BÜ Kampüs uygulamasında göz at: $link';
   }
+
+  @override
+  String offlineStripWithTime(String zaman) {
+    return 'Çevrimdışı · son güncelleme $zaman';
+  }
+
+  @override
+  String get offlineStripNoTime => 'Çevrimdışı · kayıtlı veriler gösteriliyor';
+
+  @override
+  String get menuRemTitle => 'Günlük menü hatırlatıcısı';
+
+  @override
+  String get menuRemSub =>
+      'Her gün seçtiğin saatte bugünün menüsünü hatırlatır';
+
+  @override
+  String get menuRemTime => 'Hatırlatma saati';
+
+  @override
+  String get menuRemNotifTitle => 'Bugünün menüsü';
+
+  @override
+  String get menuRemNotifBody => 'Yemekhane menüsüne göz at.';
+
+  @override
+  String get menuRemPermNeeded => 'Hatırlatıcı için bildirim izni gerekli.';
 }
