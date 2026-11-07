@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/session.dart';
+import '../../core/notification_counts.dart';
 import '../../core/theme.dart';
 import '../../core/theme_controller.dart';
 import '../../core/theme/bu_motion.dart';
@@ -147,7 +148,9 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Ticker
   Future<void> _refreshBadges() async {
     try {
       final m = await s.api.get('/me/summary') as Map<String, dynamic>;
-      s.badges.notifications.value = (m['unreadNotifications'] as num?)?.toInt() ?? 0;
+      if (!applyNotificationCounts(s, m)) {
+        s.badges.notifications.value = (m['unreadNotifications'] as num?)?.toInt() ?? 0;
+      }
       s.badges.chat.value = (m['unreadMessages'] as num?)?.toInt() ?? 0;
     } catch (_) {}
   }

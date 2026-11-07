@@ -23,7 +23,7 @@ IconData pushStyleIcon(String style) => switch (style) {
       'MEAL' => BuIcons.utensils,
       'SYSTEM' => BuIcons.info,
       'MENTION' => BuIcons.atSign,
-      'FOLLOW' || 'FOLLOW_REQUEST' || 'FOLLOW_ACCEPTED' || 'SOCIAL' || 'LIKE' => BuIcons.users,
+      'FOLLOW' || 'FOLLOW_REQUEST' || 'FOLLOW_ACCEPTED' || 'CLUB_JOIN_REQUEST' || 'SOCIAL' || 'LIKE' => BuIcons.users,
       'CHAT_GROUP' => BuIcons.users,
       'CHAT_DIRECT' || 'CHAT_MEDIA' => BuIcons.messageCircle,
       _ => BuIcons.megaphone,
@@ -35,7 +35,7 @@ BuTint pushStyleTint(BuTokens t, String style) => t.tints[switch (style) {
       'EVENT_REMINDER' || 'EVENT_ADMISSION' || 'EVENT_UPDATE' || 'EVENT' => BuTintId.blue,
       'POLL' => BuTintId.aqua,
       'MEAL' => BuTintId.amber,
-      'SUPPORT' || 'SYSTEM' || 'MODERATION' || 'FORUM' || 'LIKE' || 'MENTION' || 'SOCIAL' || 'FOLLOW' || 'FOLLOW_REQUEST' || 'FOLLOW_ACCEPTED' => BuTintId.slate,
+      'SUPPORT' || 'SYSTEM' || 'MODERATION' || 'FORUM' || 'LIKE' || 'MENTION' || 'SOCIAL' || 'FOLLOW' || 'FOLLOW_REQUEST' || 'FOLLOW_ACCEPTED' || 'CLUB_JOIN_REQUEST' => BuTintId.slate,
       _ => BuTintId.brand,
     }];
 

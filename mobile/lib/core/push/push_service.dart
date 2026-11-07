@@ -13,6 +13,7 @@ import '../locale_controller.dart';
 import '../notify/local_reminders.dart';
 import '../closed_conversations.dart';
 import '../session.dart';
+import 'notification_presentation.dart';
 import '../../l10n/app_localizations.dart';
 import 'active_conversation.dart';
 import 'conversation_cleaner.dart';
@@ -520,6 +521,8 @@ class PushService with WidgetsBindingObserver {
     final type = '${data['type'] ?? ''}'.toUpperCase();
     if (type == 'MESSAGE' || data['conversationId'] != null) {
       session.badges.conversationsDirty.value++; // sohbet listesi/okunmamış sayacı yenilenir
+    } else if (notificationCategory(data) == NotificationCategory.social) {
+      session.badges.social.value++; // kalp (Hareketler); zil rozeti artmaz
     } else {
       session.badges.notifications.value++;
     }

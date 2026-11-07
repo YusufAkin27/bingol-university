@@ -4258,8 +4258,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activityTitle => 'Activity';
 
   @override
+  String get activityFilterLikes => 'Likes';
+
+  @override
+  String get activityFilterComments => 'Comments';
+
+  @override
+  String get activityFilterFollows => 'Follows & requests';
+
+  @override
+  String get notifFilterEvents => 'Events';
+
+  @override
+  String get notifFilterAnnouncements => 'Announcements';
+
+  @override
+  String get notifFilterSystem => 'System';
+
+  @override
+  String get activityRequestStale =>
+      'This request is no longer pending; it may already have been handled.';
+
+  @override
   String get activityEmpty =>
-      'No activity yet. Follow requests, new followers and likes show up here.';
+      'No activity yet. Likes, comments, new followers and requests show up here.';
 
   @override
   String get notifTargetOpenFailed => 'This notification could not be opened.';

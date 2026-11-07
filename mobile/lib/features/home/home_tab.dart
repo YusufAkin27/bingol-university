@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/locale_controller.dart';
+import '../../core/notification_counts.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../../widgets/common.dart';
@@ -103,18 +104,9 @@ class _HomeTabState extends State<HomeTab> {
 
   Session get _s => widget.session;
 
-  /// Kalp ikonundaki nokta: okunmamış sosyal etkileşim ya da bekleyen takip isteği var.
-  bool _socialDot = false;
-
-  /// Sosyal etkileşim noktasını hafifçe yükler (1 kayıt); hata olursa nokta değişmez.
-  Future<void> _loadSocialDot() async {
-    try {
-      final r = await _s.api
-          .get('/notifications?category=SOCIAL&unread=true&size=1');
-      final has = r is Map && ((r['items'] as List?)?.isNotEmpty ?? false);
-      if (mounted && has != _socialDot) setState(() => _socialDot = has);
-    } catch (_) {}
-  }
+  /// Kalp (Hareketler) ve zil sayaçlarını sunucudan eşitler: iki merkez bağımsızdır (kalp = yalnız sosyal okunmamış
+  /// + bekleyen takip/üyelik isteği; zil = yalnız bilgilendirme). Hata olursa sayaçlar değişmez.
+  Future<void> _loadSocialDot() => refreshNotificationCounts(_s);
 
   @override
   void initState() {
@@ -191,8 +183,11 @@ class _HomeTabState extends State<HomeTab> {
         final r = await api.get('/me/summary');
         if (r is! Map<String, dynamic>) return;
         // Çan ve alt gezinme rozetlerini tek kaynaktan eşitle.
-        _s.badges.notifications.value =
-            (r['unreadNotifications'] as num?)?.toInt() ?? 0;
+        // Zil yalnız bilgilendirme sayısı (unreadInformation); eski sunucuda alan yoksa toplam alana düşülür.
+        if (!applyNotificationCounts(_s, r)) {
+          _s.badges.notifications.value =
+              (r['unreadNotifications'] as num?)?.toInt() ?? 0;
+        }
         _s.badges.chat.value = (r['unreadMessages'] as num?)?.toInt() ?? 0;
       }),
       if (wantEvent)
@@ -773,18 +768,21 @@ class _HomeTabState extends State<HomeTab> {
         hello:
             name.isEmpty ? _greeting(context) : '${_greeting(context)}, $name',
         actions: [
-          BuIconButton(
-            key: const ValueKey('home-activity-heart'),
-            icon: BuIcons.heart,
-            badge: _socialDot,
-            tooltip: l.activityTitle,
-            onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute<void>(
-                    settings: const RouteSettings(name: 'activity'),
-                    builder: (_) =>
-                        NotificationsPage(session: _s, socialOnly: true))).then(
-                (_) => _loadSocialDot()),
+          ListenableBuilder(
+            listenable: Listenable.merge([_s.badges.social, _s.badges.socialPending]),
+            builder: (_, __) => BuIconButton(
+              key: const ValueKey('home-activity-heart'),
+              icon: BuIcons.heart,
+              badge: _s.badges.social.value > 0 || _s.badges.socialPending.value > 0,
+              tooltip: l.activityTitle,
+              onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                      settings: const RouteSettings(name: 'activity'),
+                      builder: (_) =>
+                          NotificationsPage(session: _s, socialOnly: true))).then(
+                  (_) => _loadSocialDot()),
+            ),
           ),
           ValueListenableBuilder<int>(
             valueListenable: _s.badges.notifications,

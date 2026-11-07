@@ -4220,8 +4220,30 @@ class AppLocalizationsAr extends AppLocalizations {
   String get activityTitle => 'النشاط';
 
   @override
+  String get activityFilterLikes => 'الإعجابات';
+
+  @override
+  String get activityFilterComments => 'التعليقات';
+
+  @override
+  String get activityFilterFollows => 'المتابعة والطلبات';
+
+  @override
+  String get notifFilterEvents => 'الفعاليات';
+
+  @override
+  String get notifFilterAnnouncements => 'الإعلانات';
+
+  @override
+  String get notifFilterSystem => 'النظام';
+
+  @override
+  String get activityRequestStale =>
+      'لم يعد هذا الطلب معلقاً؛ ربما تمت معالجته مسبقاً.';
+
+  @override
   String get activityEmpty =>
-      'لا يوجد نشاط بعد. تظهر هنا طلبات المتابعة والمتابعون الجدد والإعجابات.';
+      'لا يوجد نشاط بعد. تظهر هنا الإعجابات والتعليقات والمتابعون الجدد والطلبات.';
 
   @override
   String get notifTargetOpenFailed => 'تعذّر فتح هذا الإشعار.';

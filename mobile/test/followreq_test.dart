@@ -532,7 +532,7 @@ void main() {
           'nextCursor': null,
           'total': 1,
         });
-      await tester.pumpWidget(buildApp(NotificationsPage(session: makeSession(b)), size: kPhoneMedium));
+      await tester.pumpWidget(buildApp(NotificationsPage(session: makeSession(b), socialOnly: true), size: kPhoneMedium));
       await settle(tester, const Duration(seconds: 1));
       expect(find.text('Takip istekleri (3)'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('follow-requests-entry')));
@@ -542,7 +542,7 @@ void main() {
       await unmount(tester);
 
       final z = FakeBackend()..on('/users/me/follow-requests/count', {'count': 0});
-      await tester.pumpWidget(buildApp(NotificationsPage(session: makeSession(z)), size: kPhoneMedium));
+      await tester.pumpWidget(buildApp(NotificationsPage(session: makeSession(z), socialOnly: true), size: kPhoneMedium));
       await settle(tester, const Duration(seconds: 1));
       expect(find.byKey(const ValueKey('follow-requests-entry')), findsNothing);
       await unmount(tester);
@@ -575,7 +575,7 @@ void main() {
           'nextCursor': null,
           'unreadCount': 1,
         });
-      await tester.pumpWidget(buildApp(NotificationsPage(session: makeSession(b)), size: kPhoneMedium));
+      await tester.pumpWidget(buildApp(NotificationsPage(session: makeSession(b), socialOnly: true), size: kPhoneMedium));
       await settle(tester, const Duration(seconds: 1));
       // Tür etiketi satırda çizilmez (tasarım 08); ekran okuyucu etiketinde kalır.
       expect(find.text('İstek kabul edildi'), findsOneWidget);
