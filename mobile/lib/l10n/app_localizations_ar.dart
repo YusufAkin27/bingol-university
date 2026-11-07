@@ -13108,4 +13108,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get widgetsPrivacy =>
       'لا تعرض الودجات أسماء المستخدمين الآخرين أو رسائلهم أو صورهم؛ يعرض الملخص الاجتماعي الأعداد فقط. عند تسجيل الخروج تُحذف بيانات الودجات وتعود إلى حالة تسجيل الدخول.';
+
+  @override
+  String get chatLongShowMore => 'عرض المزيد';
+
+  @override
+  String get chatLongShowLess => 'عرض أقل';
 }

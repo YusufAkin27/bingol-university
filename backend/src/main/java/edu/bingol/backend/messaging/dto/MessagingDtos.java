@@ -32,7 +32,7 @@ public final class MessagingDtos {
     public record AddMembersRequest(@NotEmpty @Size(max = 49) List<Long> userIds) {}
 
     /**
-     * `text` duz metindir; bos/yalniz-bosluk ve 2000 karakter siniri serviste kontrol edilir. T8: `attachmentIds`
+     * `text` duz metindir; bos/yalniz-bosluk ve 10000 karakter siniri serviste kontrol edilir. T8: `attachmentIds`
      * (en fazla 4) doluysa `text` bos olabilir (yalniz gorsel).
      */
     public record SendMessageRequest(String text, @NotBlank @Size(max = 64) String clientId, Long replyToMessageId,

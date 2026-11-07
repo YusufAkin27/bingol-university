@@ -473,16 +473,16 @@ void main() {
     ob.dispose();
   });
 
-  test('S1.18 emoji: sinir KOD NOKTASIdir; 1500 emojili metin (3000 UTF-16) cevrimdisi kuyruga alinir, 2001 alinmaz', () async {
+  test('S1.18 emoji: sinir KOD NOKTASIdir; 1500 emojili metin (3000 UTF-16) cevrimdisi kuyruga alinir, 10001 alinmaz', () async {
     final store = MemoryOutboxStore();
     final ob = make(store: store);
     final emoji1500 = '😀' * 1500;
     expect(emoji1500.length, 3000);
     expect(ob.enqueue(conversationId: 1, clientId: 'em1', text: emoji1500), isTrue);
-    expect(ob.enqueue(conversationId: 1, clientId: 'em2', text: '😀' * 2000), isTrue);
-    expect(ob.enqueue(conversationId: 1, clientId: 'em3', text: '😀' * 2001), isFalse);
+    expect(ob.enqueue(conversationId: 1, clientId: 'em2', text: '😀' * 10000), isTrue);
+    expect(ob.enqueue(conversationId: 1, clientId: 'em3', text: '😀' * 10001), isFalse);
     expect(await ob.enqueueMedia(conversationId: 1, clientId: 'em4', text: '😀' * 1500, sources: [photo()]), isTrue);
-    expect(await ob.enqueueMedia(conversationId: 1, clientId: 'em5', text: '😀' * 2001, sources: [photo()]), isFalse);
+    expect(await ob.enqueueMedia(conversationId: 1, clientId: 'em5', text: '😀' * 10001, sources: [photo()]), isFalse);
     await io();
     final ob2 = make(store: store);
     await ob2.load();

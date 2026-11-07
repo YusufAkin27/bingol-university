@@ -23759,6 +23759,18 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Widgetlarda başka kullanıcıların adı, mesajı veya fotoğrafı görünmez; sosyal özet yalnızca sayıları gösterir. Çıkış yapınca widgetlardaki bilgiler silinir ve Giriş yap durumuna döner.'**
   String get widgetsPrivacy;
+
+  /// No description provided for @chatLongShowMore.
+  ///
+  /// In tr, this message translates to:
+  /// **'Devamını gör'**
+  String get chatLongShowMore;
+
+  /// No description provided for @chatLongShowLess.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daha az göster'**
+  String get chatLongShowLess;
 }
 
 class _AppLocalizationsDelegate

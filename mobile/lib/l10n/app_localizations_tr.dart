@@ -13179,4 +13179,10 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get widgetsPrivacy =>
       'Widgetlarda başka kullanıcıların adı, mesajı veya fotoğrafı görünmez; sosyal özet yalnızca sayıları gösterir. Çıkış yapınca widgetlardaki bilgiler silinir ve Giriş yap durumuna döner.';
+
+  @override
+  String get chatLongShowMore => 'Devamını gör';
+
+  @override
+  String get chatLongShowLess => 'Daha az göster';
 }

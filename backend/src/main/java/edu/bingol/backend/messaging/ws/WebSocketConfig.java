@@ -92,7 +92,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
         registration.addDecoratorFactory(expiryGuard::decorate)
-                .setMessageSizeLimit(16 * 1024)
+                .setMessageSizeLimit(64 * 1024)
                 .setSendBufferSizeLimit(512 * 1024)
                 .setSendTimeLimit(10_000)
                 .setTimeToFirstMessage(10_000); // CONNECT gondermeyen baglanti kapatilir

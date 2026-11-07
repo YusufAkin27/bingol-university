@@ -380,45 +380,45 @@ void main() {
     // 😀 = 1 kod noktası, 2 UTF-16 birimi: mobil eskiden UTF-16 sayıyordu.
     final emoji = String.fromCharCode(0x1F600);
 
-    testWidgets('1500 emoji (UTF-16 3000, kod noktasi 1500) gonderilir; sayac kod noktasi sayar', (tester) async {
-      final text = List.filled(1500, emoji).join();
-      expect(text.length, 3000);
-      expect(text.runes.length, 1500);
+    testWidgets('8000 emoji (UTF-16 16000, kod noktasi 8000) gonderilir; sayac kod noktasi sayar', (tester) async {
+      final text = List.filled(8000, emoji).join();
+      expect(text.length, 16000);
+      expect(text.runes.length, 8000);
       final be = _backend([])..on('/conversations/1/messages', _msg(7, 1, text));
       final s = makeSession(be);
       await _pump(tester, _detail(s));
       await tester.enterText(find.byType(TextField).last, text);
       await tester.pump();
-      expect(find.text('1500/2000'), findsOneWidget);
+      expect(find.text('8000/10000'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('sendButton')));
       await settle(tester, const Duration(milliseconds: 300));
       expect(be.count('POST /conversations/1/messages'), 1, reason: 'sessizce yutulmadı');
-      expect(((be.bodies['POST /conversations/1/messages'] as Map)['text'] as String).runes.length, 1500);
+      expect(((be.bodies['POST /conversations/1/messages'] as Map)['text'] as String).runes.length, 8000);
       await unmount(tester);
     });
 
-    testWidgets('2000 kod noktasi gider, 2001 gonderilmez ve sayac kirmizi uyari verir', (tester) async {
+    testWidgets('10000 kod noktasi gider, 10001 gonderilmez ve sayac kirmizi uyari verir', (tester) async {
       final be = _backend([])..on('/conversations/1/messages', _msg(7, 1, 'x'));
       final s = makeSession(be);
       await _pump(tester, _detail(s));
 
-      await tester.enterText(find.byType(TextField).last, List.filled(2001, emoji).join());
+      await tester.enterText(find.byType(TextField).last, List.filled(10001, emoji).join());
       await tester.pump();
-      expect(find.text('2001/2000'), findsOneWidget);
+      expect(find.text('10001/10000'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('sendButton')));
       await settle(tester, const Duration(milliseconds: 300));
       expect(be.count('POST /conversations/1/messages'), 0);
 
-      await tester.enterText(find.byType(TextField).last, List.filled(2000, emoji).join());
+      await tester.enterText(find.byType(TextField).last, List.filled(10000, emoji).join());
       await tester.pump();
-      expect(find.text('2000/2000'), findsOneWidget);
+      expect(find.text('10000/10000'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('sendButton')));
       await settle(tester, const Duration(milliseconds: 300));
       expect(be.count('POST /conversations/1/messages'), 1);
       await unmount(tester);
     });
 
-    testWidgets('duzenleme yolunda da sinir: 2001 kod noktasi PATCH edilmez', (tester) async {
+    testWidgets('duzenleme yolunda da sinir: 10001 kod noktasi PATCH edilmez', (tester) async {
       final be = _backend([_msg(3, 1, 'Eski metin')])..on('/messages/3', _msg(3, 1, 'x'));
       final s = makeSession(be);
       await _pump(tester, _detail(s));
@@ -426,7 +426,7 @@ void main() {
       await settle(tester, const Duration(milliseconds: 400));
       await tester.tap(find.text('Düzenle'));
       await settle(tester, const Duration(milliseconds: 400));
-      await tester.enterText(find.byType(TextField).last, List.filled(2001, emoji).join());
+      await tester.enterText(find.byType(TextField).last, List.filled(10001, emoji).join());
       await tester.pump();
       await tester.tap(find.byKey(const ValueKey('sendButton')));
       await settle(tester, const Duration(milliseconds: 300));

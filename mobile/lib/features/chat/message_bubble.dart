@@ -17,6 +17,7 @@ import 'chatd_parts.dart';
 import 'message_placeholder.dart';
 import 'message_status_icon.dart';
 import 'emoji_presentation.dart';
+import 'long_message.dart';
 import 'recent_reactions.dart';
 import '../share/share_card.dart';
 import '../share/share_models.dart';
@@ -58,7 +59,16 @@ class MessageBubble extends StatelessWidget {
     this.onSenderTap,
     this.highlighted = false,
     this.onOpenShare,
+    this.expandLimit,
+    this.onExpandLimit,
   });
+
+  /// Uzun mesajın görünür grafem sınırı (null: taban 400). Durum sayfada mesaj kimliğine bağlı tutulur
+  /// (liste yeniden kurulunca yanlış mesaja taşınmaz); bkz. long_message.dart.
+  final int? expandLimit;
+
+  /// "Devamını gör" (yeni sınır) / "Daha az göster" (null) dokunuşu.
+  final void Function(int? limit)? onExpandLimit;
 
   /// Paylaşım kartına (gönderi/Reels/haber/etkinlik) dokunma: ilgili sayfayı açar (null: kart etkileşimsiz).
   final void Function(ShareInfo info)? onOpenShare;
@@ -247,13 +257,60 @@ class MessageBubble extends StatelessWidget {
     );
 
     // Saat+tik, metnin son satırında yer varsa aynı satırda, yoksa altında durur (bkz. BubbleTextMeta).
-    final textSpan =
-        _span(text, textStyle, highlight, t.warnSoft, t.onWarnSoft);
+    // Uzun mesaj: ilk 400 grafem + "Devamını gör"; her basışta +700; tamamı açılınca "Daha az göster".
+    final lm = (ghost || text.length <= kLongMsgBase)
+        ? null
+        : longMsgView(text,
+            limit: expandLimit, keepVisible: _matchEnd(text, highlight));
+    final linkLabel = lm == null
+        ? null
+        : lm.truncated
+            ? context.l10n.chatLongShowMore
+            : (lm.canCollapse ? context.l10n.chatLongShowLess : null);
+    var textSpan = _span(
+        lm?.shown ?? text, textStyle, highlight, t.warnSoft, t.onWarnSoft);
+    if (linkLabel != null) {
+      textSpan = TextSpan(children: [
+        textSpan,
+        TextSpan(text: lm!.truncated ? '… ' : '  ', style: textStyle),
+        TextSpan(
+            text: linkLabel,
+            style: textStyle.copyWith(
+                color: fg.withValues(alpha: .72),
+                decoration: TextDecoration.underline,
+                decorationColor: fg.withValues(alpha: .72))),
+      ]);
+    }
     Widget textWithMeta() {
-      final tw =
+      Widget tw =
           Text.rich(textSpan, textWidthBasis: TextWidthBasis.longestLine);
-      final inner =
+      if (linkLabel != null && !preview && onExpandLimit != null) {
+        final more = lm!.truncated;
+        tw = Semantics(
+          button: true,
+          onTapHint: linkLabel,
+          child: GestureDetector(
+            key: more
+                ? const ValueKey('longMsgMore')
+                : const ValueKey('longMsgLess'),
+            behavior: HitTestBehavior.opaque,
+            onTap: () =>
+                onExpandLimit!(more ? nextLongMsgLimit(expandLimit) : null),
+            child: tw,
+          ),
+        );
+      }
+      Widget inner =
           hasMeta ? BubbleTextMeta(text: tw, meta: metaRow(metaColor)) : tw;
+      if (lm != null) {
+        final calm = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+        inner = AnimatedSize(
+          duration: calm ? Duration.zero : const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          alignment: AlignmentDirectional.topStart,
+          child: inner,
+        );
+      }
       if (!ghost) return inner;
       // Silinen/kaldırılan: solda küçük simge (metin düz kalır, böylece metin aramaları bozulmaz).
       return Row(
@@ -606,7 +663,7 @@ class MessageBubble extends StatelessWidget {
                                 color: mine ? fg : t.mut,
                                 fontWeight: FontWeight.w400)),
                         Text(quoted,
-                            maxLines: 2,
+                            maxLines: 3,
                             overflow: TextOverflow.ellipsis,
                             style: tx.bodySmall!
                                 .copyWith(color: fg.withValues(alpha: .88))),
@@ -619,6 +676,16 @@ class MessageBubble extends StatelessWidget {
     return onReplyTap == null
         ? box
         : GestureDetector(onTap: onReplyTap, child: box);
+  }
+
+  /// İlk arama eşleşmesinin bitiş ofseti (UTF-16); yok/uygun değilse null. Kesilmiş metinde eşleşme gizli kalmasın diye.
+  static int? _matchEnd(String text, String? highlight) {
+    final q = highlight?.trim().toLowerCase() ?? '';
+    if (q.isEmpty) return null;
+    final lower = text.toLowerCase();
+    if (lower.length != text.length) return null;
+    final i = lower.indexOf(q);
+    return i < 0 ? null : i + q.length;
   }
 
   /// Metin aralığı: [highlight] eşleşmeleri (büyük/küçük harf duyarsız) uyarı tonuyla vurgulanır.

@@ -187,7 +187,7 @@ class MessageActionServiceTest {
     @Test
     void editRejectsEmptyAndTooLong() {
         assertEquals("EMPTY_MESSAGE", fail(() -> service.edit(ME, MSG, "   ")).code());
-        assertEquals("MESSAGE_TOO_LONG", fail(() -> service.edit(ME, MSG, "a".repeat(2001))).code());
+        assertEquals("MESSAGE_TOO_LONG", fail(() -> service.edit(ME, MSG, "a".repeat(10001))).code());
     }
 
     @Test

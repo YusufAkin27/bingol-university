@@ -277,7 +277,7 @@ class Outbox extends ChangeNotifier {
     this.dropAfter = const Duration(days: 7),
     this.maxServerFails = 5,
     this.serverFailWindow = const Duration(minutes: 30),
-    this.maxTextLength = 2000,
+    this.maxTextLength = 10000,
     this.maxMediaBytes = 200 * 1024 * 1024,
     Future<Directory> Function()? mediaDirProvider,
     DateTime Function()? now,

@@ -87,7 +87,7 @@ class RenderBubbleTextMeta extends RenderBox
     final bottom = boxes.map((b) => b.bottom).reduce(math.max);
     final last = boxes.where((b) => b.bottom >= bottom - 0.5);
     if (_textDirection == TextDirection.rtl) {
-      return p.size.width - last.map((b) => b.left).reduce(math.min);
+      return _text.size.width - last.map((b) => b.left).reduce(math.min);
     }
     return last.map((b) => b.right).reduce(math.max);
   }

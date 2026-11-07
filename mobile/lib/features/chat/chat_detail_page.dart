@@ -49,6 +49,7 @@ import 'media_pick.dart';
 import 'media_picker_page.dart';
 import 'media_preview_page.dart';
 import 'message_bubble.dart';
+import 'long_message.dart';
 import 'emoji_presentation.dart';
 import 'photo_autosave.dart';
 import '../share/share_card.dart' show sharePreviewText;
@@ -142,7 +143,11 @@ class ChatDetailPage extends StatefulWidget {
 
 class _ChatDetailPageState extends State<ChatDetailPage>
     with WidgetsBindingObserver {
-  static const _maxLen = 2000;
+  static const _maxLen = kChatMaxLen;
+
+  /// Uzun mesajlarda açılmış görünür grafem sınırı, mesaj kimliğine (_rowId) bağlı: liste yeniden kurulsa,
+  /// mesaj eklense/kaysa durum başka mesaja taşınmaz. Sayfa ömrü boyunca tutulur (ekranda olmayan balon için bellek önemsiz).
+  final Map<String, int> _expandLimit = <String, int>{};
   static const _pollInterval = Duration(seconds: 4);
 
   late Map<String, dynamic> _conv =
@@ -1137,7 +1142,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
 
   /// Mesaj uzunluğu tek ölçüyle sayılır: Unicode kod noktası (`runes.length`); sunucu da kod noktası sayar. UTF-16
   /// `length` emojiyi 2 sayar, `characters.length` ise birleşik işaretleri 1 sayar: ikisi de sunucuyla uyuşmaz.
-  static int _len(String s) => s.runes.length;
+  static int _len(String s) => chatMsgLen(s);
 
   /// Sınır aşıldıysa uyarı gösterir ve true döner.
   bool _overLimit(String text) {
@@ -3301,6 +3306,15 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           onOpenShare: (info) =>
               openShared(context, widget.session, info.target, info: info),
           highlight: (_searching && _query.isNotEmpty) ? _query : null,
+          expandLimit: _expandLimit[_rowId(m)],
+          onExpandLimit: (lim) => setState(() {
+            final k = _rowId(m);
+            if (lim == null) {
+              _expandLimit.remove(k);
+            } else {
+              _expandLimit[k] = lim;
+            }
+          }),
           onReact: (e) => _react(m, e),
         );
     if (preview || id == null) return make(false);
@@ -3537,7 +3551,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           color: t.bg, border: Border(top: BorderSide(color: t.bdSubtle))),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         if (banner != null) _replyBar(t, banner),
-        if (len >= 1500)
+        if (len >= kChatCounterFrom)
           Padding(
             padding:
                 const EdgeInsetsDirectional.only(top: 4, start: 16, end: 16),
@@ -3625,7 +3639,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                             width: 48,
                             height: 48,
                             child: Center(
-                              // Sınır aşıldıysa (2000+) düğme görünür ama soluk ve devre dışı; sayaç kırmızı uyarır.
+                              // Sınır aşıldıysa (10000+) düğme görünür ama soluk ve devre dışı; sayaç kırmızı uyarır.
                               child: Container(
                                 width: 44,
                                 height: 44,
