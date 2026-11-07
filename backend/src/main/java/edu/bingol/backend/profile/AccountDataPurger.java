@@ -38,6 +38,8 @@ public class AccountDataPurger {
             "DELETE FROM push_outbox WHERE user_id = ?",
             // Anketler: secmen kaydi silinir (katilim sayaci poll.voter_count korunur); oylar asagida anonimlestirilir
             "DELETE FROM poll_ballot WHERE user_id = ?",
+            // Idempotency-Key defteri (V1610): yalniz anahtar + kaynak kimligi
+            "DELETE FROM idempotency_record WHERE user_id = ?",
             // KVKK: cihaz/IP gecmisi (erisim engeli modulu) hesap silinince kendi kayitlari silinir
             "DELETE FROM user_device_log WHERE user_id = ?",
             // Mail kampanyasi alici kayitlari (kisisel veri: kullanici kimligi ile gonderim durumu)

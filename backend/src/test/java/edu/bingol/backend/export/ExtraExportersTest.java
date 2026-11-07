@@ -48,6 +48,8 @@ class ExtraExportersTest {
         jdbc.execute("CREATE TABLE feedback_vote (feedback_id BIGINT, user_id BIGINT, created_at TIMESTAMP WITH TIME ZONE DEFAULT now())");
         jdbc.execute("CREATE TABLE conversation_member (id BIGINT AUTO_INCREMENT PRIMARY KEY, conversation_id BIGINT, user_id BIGINT, role VARCHAR(10), joined_at TIMESTAMP WITH TIME ZONE DEFAULT now(), left_at TIMESTAMP WITH TIME ZONE, muted_until TIMESTAMP WITH TIME ZONE, archived_at TIMESTAMP WITH TIME ZONE)");
 
+        jdbc.execute("CREATE TABLE chat_room_link (id BIGINT AUTO_INCREMENT PRIMARY KEY, kind VARCHAR(16), ref_id BIGINT, conversation_id BIGINT)");
+        jdbc.update("INSERT INTO chat_room_link (kind, ref_id, conversation_id) VALUES ('COMMUNITY',5,4)");
         jdbc.update("INSERT INTO bookmark (user_id, target_type, target_id) VALUES (1,'NEWS',10),(2,'NEWS',11)");
         jdbc.update("INSERT INTO community (id, name) VALUES (5,'Satranc')");
         jdbc.update("INSERT INTO community_member (community_id, user_id, role, status) VALUES (5,1,'MEMBER','ACTIVE'),(5,2,'OWNER','ACTIVE')");
@@ -78,9 +80,9 @@ class ExtraExportersTest {
                         exporters.communityPostsExporter(jdbc), exporters.eventRsvpsExporter(jdbc),
                         exporters.eventAttendanceExporter(jdbc), exporters.createdEventsExporter(jdbc),
                         exporters.mailCampaignsExporter(jdbc), exporters.feedbackVotesExporter(jdbc),
-                        exporters.conversationMembershipsExporter(jdbc))
+                        exporters.conversationMembershipsExporter(jdbc), exporters.chatRoomsExporter(jdbc))
                 .collect(Collectors.toMap(DataExporter::section, e -> e));
-        assertEquals(9, all.size());
+        assertEquals(10, all.size());
         for (DataExporter e : all.values()) {
             // kullanici 1 kendi tek satirini gorur; kullanici 99 hicbir sey gormez
             if (!e.section().equals("createdEvents")) {
@@ -173,7 +175,10 @@ class ExtraExportersTest {
             "event_co_organizer",       // ortak organizator atamasi: etkinlik sahibinin verisi (createdEvents'te)
             "mail_outbox",              // gecici e-posta kuyrugu (30 gun), adresle eslesen bekleyen kayitlar silinir
             "account_delete_hold",      // 7 gunluk silme bekletmesi: surec durumu, kisisel icerik yok
-            "forum_notify_seen");       // forum bildirim tekrar defteri: (tur, hedef, eden, alici) kimlikleri, kisisel icerik yok
+            "forum_notify_seen",
+            "idempotency_record",       // Idempotency-Key defteri: istemci anahtari + kaynak kimligi, 7 gun, kisisel icerik yok
+            // Crash raporlari (V860) anonimdir: kullanici/e-posta/jeton/mesaj saklanmaz, kullaniciya baglanamaz
+            "crash_event", "crash_group");       // forum bildirim tekrar defteri: (tur, hedef, eden, alici) kimlikleri, kisisel icerik yok
 
     private static Set<String> purgedTables() {
         Pattern p = Pattern.compile("(?:DELETE FROM|UPDATE)\\s+([a-z_]+)");
