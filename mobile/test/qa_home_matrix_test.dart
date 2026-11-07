@@ -215,7 +215,7 @@ void main() {
       expect(find.text('Bildirim 1'), findsOneWidget);
       await tester.tap(find.text('Tümünü okundu yap'));
       await settle(tester);
-      expect(b.bodies['POST /notifications/read'], {'all': true});
+      expect(b.bodies['POST /notifications/read'], {'all': true, 'scope': 'INFORMATION'});
       expect(find.text('Bildirim 1'), findsNothing);
       expect(find.text('Bildirim 2'), findsNothing);
       await unmount(tester);

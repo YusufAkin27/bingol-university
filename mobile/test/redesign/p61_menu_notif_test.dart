@@ -189,8 +189,8 @@ void main() {
       await _show(tester, NotificationsPage(session: makeSession(b)));
       // Tür etiketi satırda çizilmez (bildirim tasarımı 2.1.4); ekran okuyucu etiketinde kalır (aşağıdaki test).
       expect(find.text('Kariyer günleri yarın başlıyor'), findsOneWidget);
-      // Ağaçta kalır, okunanlar ölçeksiz. Eski MESSAGE satırı (id 4) istemcide gizlenir: 3 satır.
-      expect(find.byKey(const ValueKey('notif-unread-dot')), findsNWidgets(3));
+      // Ağaçta kalır, okunanlar ölçeksiz. Eski MESSAGE satırı (id 4) istemcide gizlenir: zilde 2 satır; POST_LIKE kalbe aittir.
+      expect(find.byKey(const ValueKey('notif-unread-dot')), findsNWidgets(2));
       expect(find.text('Mehmet Kaya mesaj gönderdi'), findsNothing);
       expect(find.byIcon(BuIcons.megaphone), findsWidgets); // ikon karosu (bildirim tasarimi)
       expect(find.byKey(const ValueKey('msg-status-READ')), findsNothing);
@@ -236,7 +236,10 @@ void main() {
     });
 
     testWidgets('Okunmamis cipinde hepsi okunduysa ayri cumle', (tester) async {
-      final b2 = FakeBackend()..on('/notifications', _notifs());
+      // Zilde kalan okunmuş bir satır olmalı (kalp satırları zile girmez).
+      final data = _notifs();
+      (data['items'] as List).add({'id': 5, 'type': 'ANNOUNCEMENT', 'title': 'Eski duyuru', 'read': true, 'createdAt': '2020-01-01T10:00:00'});
+      final b2 = FakeBackend()..on('/notifications', data);
       await _show(tester, NotificationsPage(session: makeSession(b2)));
       await tester.tap(find.byKey(const ValueKey('notif-seg-unread')));
       await settle(tester);
