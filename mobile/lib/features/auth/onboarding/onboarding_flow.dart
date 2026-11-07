@@ -356,7 +356,9 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         try {
           final r = await uploadAvatarBytes(widget.session, photo, images: widget.images, uploader: widget.uploader);
           if (r.url != null) widget.session.avatarUrl.value = r.url;
-        } catch (_) {}
+        } catch (_) {
+          // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+        }
       }
       authHaptic(AuthHaptic.success);
       unawaited(OnboardingDraftStore.clear());

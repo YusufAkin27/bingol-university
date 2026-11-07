@@ -62,7 +62,9 @@ class _ProfileMenuPageState extends State<ProfileMenuPage> {
     try {
       final n = await FollowRequestsApi(widget.session).count();
       if (mounted && n != null && n != _followReq) setState(() => _followReq = n);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   Future<void> _go(Widget page, [String? screen]) async {

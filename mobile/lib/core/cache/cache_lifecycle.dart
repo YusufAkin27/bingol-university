@@ -35,7 +35,9 @@ class CacheLifecycleFlusher with WidgetsBindingObserver {
     for (final f in flushers) {
       try {
         await f();
-      } catch (_) {}
+      } catch (_) {
+        // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+      }
     }
   }
 }

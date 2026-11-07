@@ -60,7 +60,9 @@ class FileAutoSaveStore implements AutoSaveStore {
     try {
       final f = await _f();
       if (await f.exists()) await f.delete();
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   @override
@@ -71,7 +73,9 @@ class FileAutoSaveStore implements AutoSaveStore {
         final raw = jsonDecode(await f.readAsString());
         if (raw is Map) return Map<String, dynamic>.from(raw);
       }
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     return {};
   }
 
@@ -79,7 +83,9 @@ class FileAutoSaveStore implements AutoSaveStore {
   Future<void> save(Map<String, dynamic> data) async {
     try {
       await (await _f()).writeAsString(jsonEncode(data));
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 }
 

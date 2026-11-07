@@ -513,7 +513,9 @@ class ApiClient {
         onSessionReplaced?.call();
         return true;
       }
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     return false;
   }
 

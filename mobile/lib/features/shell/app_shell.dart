@@ -7,6 +7,7 @@ import '../../core/haptics.dart';
 import '../../core/nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../core/swallow.dart';
 
 import '../../core/session.dart';
 import '../../core/notification_counts.dart';
@@ -141,7 +142,9 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Ticker
       final r = await s.api.get('/conversations/unread-count', force: true);
       final n = r is Map ? r['total'] : null;
       if (n is num && mounted) s.badges.chat.value = n.toInt();
-    } catch (_) {}
+    } catch (e) {
+      swallow('shell.chat_unread', e);
+    }
   }
 
   /// Tek istek: okunmamış bildirim + mesaj sayıları (GET /me/summary).
@@ -152,7 +155,9 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Ticker
         s.badges.notifications.value = (m['unreadNotifications'] as num?)?.toInt() ?? 0;
       }
       s.badges.chat.value = (m['unreadMessages'] as num?)?.toInt() ?? 0;
-    } catch (_) {}
+    } catch (e) {
+      swallow('shell.badges', e);
+    }
   }
 
   /// Alt gezinmedeki Profil sekmesi avatarı için kendi fotoğraf adresi (sessiz; hata varsayılan görseli korur).
@@ -162,7 +167,9 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Ticker
       if (m is! Map) return;
       final av = m['avatarUrl'];
       s.avatarUrl.value = av is String && av.isNotEmpty ? av : null;
-    } catch (_) {}
+    } catch (e) {
+      swallow('shell.avatar', e);
+    }
   }
 
   void _go(int i, {String? newsType}) {

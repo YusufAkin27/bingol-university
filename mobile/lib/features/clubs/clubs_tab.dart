@@ -175,7 +175,9 @@ class _ClubsTabState extends State<ClubsTab> {
       final res = await widget.session.api.get('/me/communities?size=50');
       if (!mounted) return;
       setState(() => _mine = _parse(res));
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   Future<void> _reload({bool silent = false}) async {

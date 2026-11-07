@@ -93,7 +93,9 @@ class SecureCalendarSyncStore implements CalendarSyncStore {
   Future<void> save(CalendarSyncState s) async {
     try {
       await const FlutterSecureStorage().write(key: _key, value: jsonEncode(s.toJson()));
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 }
 

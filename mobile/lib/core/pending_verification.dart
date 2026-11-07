@@ -46,7 +46,9 @@ class PendingVerificationStore {
   Future<void> save(String identifier) async {
     try {
       await _write(jsonEncode({'id': normalizeIdentifier(identifier), 'at': _now().millisecondsSinceEpoch}));
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   Future<void> clear() async {
@@ -56,7 +58,9 @@ class PendingVerificationStore {
       } else {
         await _storage.delete(key: key);
       }
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   /// Süresi dolmuşsa siler ve null döner.

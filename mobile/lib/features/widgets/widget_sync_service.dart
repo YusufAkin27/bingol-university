@@ -6,6 +6,7 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
+import '../../core/swallow.dart';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 
@@ -110,14 +111,16 @@ class WidgetSyncService {
           if (snap == null) continue; // ağ/okuma hatası: önceki snapshot kalır
           await store.put(slug.key, jsonEncode(snap));
           written.add(slug);
-        } catch (_) {
+        } catch (e) {
+          swallow('widget.sync_one', e);
           // Tek widget'ın hatası diğerlerini etkilemez.
         }
       }
       await store.put(kWidgetMetaKey, jsonEncode(b.meta(signedIn: true)));
       if (written.isNotEmpty) await store.reload(written);
       await _scheduleMidnight(now);
-    } catch (_) {
+    } catch (e) {
+      swallow('widget.sync', e);
       // Eşitleme uygulamayı asla bozmaz.
     } finally {
       _running = false;
@@ -134,7 +137,9 @@ class WidgetSyncService {
       // Ertesi gün 00:05 İstanbul.
       final at = DateTime.utc(w.year, w.month, w.day + 1, 0, 5).subtract(const Duration(hours: 3));
       await store.scheduleMidnight(at, const [WidgetSlug.menu, WidgetSlug.timetable, WidgetSlug.events]);
-    } catch (_) {}
+    } catch (e) {
+      swallow('widget.midnight', e);
+    }
   }
 
   /// Çıkış / hesap değişimi / hesap silme: TÜM snapshot'lar silinir, meta `signedIn=false` yazılır ve widget'lar
@@ -150,7 +155,9 @@ class WidgetSyncService {
       await store.put(kWidgetMetaKey, jsonEncode(b.meta(signedIn: false)));
       await store.reload(WidgetSlug.values);
       await QuickAccessPrefs.clear();
-    } catch (_) {}
+    } catch (e) {
+      swallow('widget.clear', e);
+    }
   }
 
   /// `registerUserDataCleaners` kancası: oturum bağlı olmasa da (token silinince) depoyu temizler.
@@ -210,7 +217,9 @@ class WidgetSyncService {
             out[DateTime.utc(d.year, d.month, d.day)] = MenuDay.fromJson(e);
           }
         }
-      } catch (_) {}
+      } catch (e) {
+        swallow('widget.read_menu', e);
+      }
     }
     return ok ? out : null;
   }
@@ -236,7 +245,8 @@ class WidgetSyncService {
         ));
       }
       return out;
-    } catch (_) {
+    } catch (e) {
+      swallow('widget.read_events', e);
       return null;
     }
   }
@@ -256,7 +266,8 @@ class WidgetSyncService {
         out.add(WidgetNewsInput(id: id, title: title, publishedDay: DateTime.utc(d.year, d.month, d.day)));
       }
       return out;
-    } catch (_) {
+    } catch (e) {
+      swallow('widget.read_news', e);
       return null;
     }
   }
@@ -281,7 +292,9 @@ class WidgetSyncService {
           multi: p.type == PollType.multi,
         );
       }
-    } catch (_) {}
+    } catch (e) {
+      swallow('widget.read_poll', e);
+    }
     return null;
   }
 
@@ -291,7 +304,8 @@ class WidgetSyncService {
       final res = await session.api.get('/notifications?unread=true&category=SOCIAL&size=50');
       final items = res is Map && res['items'] is List ? res['items'] as List : const [];
       return items.length;
-    } catch (_) {
+    } catch (e) {
+      swallow('widget.read_likes', e);
       return null;
     }
   }

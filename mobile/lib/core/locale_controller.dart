@@ -43,7 +43,9 @@ class LocaleController extends ChangeNotifier {
     try {
       final v = await _storage.read(key: _key);
       if (v != null && (v == 'system' || kSupportedLangs.contains(v))) pref = v;
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     _apply();
   }
 
@@ -52,7 +54,9 @@ class LocaleController extends ChangeNotifier {
     _apply();
     try {
       await _storage.write(key: _key, value: p);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   /// Cihaz dili değişti (sistem seçiliyse etkili olur).

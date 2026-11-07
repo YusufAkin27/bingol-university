@@ -305,7 +305,9 @@ class _HomeTabState extends State<HomeTab> {
       final stale = (st['NEWS'] as Map?)?['maintenance'] == true ||
           (st['MENU'] as Map?)?['maintenance'] == true;
       _apply(gen, () => _newsStale = stale);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   /// Çekip yenileme sürerken taze önbellek süresi yok sayılır (ETag/304 ile ağdan doğrulanır).
@@ -355,7 +357,9 @@ class _HomeTabState extends State<HomeTab> {
     var ok = false;
     try {
       ok = await launchUrl(u, mode: LaunchMode.externalApplication);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     if (!ok && mounted) BuToast.show(context, context.l10n.newsLinkOpenFailed, kind: BuToastKind.error);
   }
 

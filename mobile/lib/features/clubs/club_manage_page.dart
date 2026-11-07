@@ -97,12 +97,16 @@ class _ClubManagePageState extends State<ClubManagePage> {
         final r = await api.get('$_base/requests?size=20') as Map;
         pending = (r['items'] as List? ?? []).length;
         more = r['nextCursor'] != null;
-      } catch (_) {}
+      } catch (_) {
+        // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+      }
     }
     try {
       final r = await api.get('/events?communityId=$_id&size=20') as Map;
       events = (r['items'] as List? ?? []).whereType<Map>().where((e) => !eventIsExpired(Map<String, dynamic>.from(e))).length;
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     if (!mounted || gen != _gen) return;
     setState(() {
       _pending = pending;

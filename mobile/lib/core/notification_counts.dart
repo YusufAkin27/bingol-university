@@ -14,7 +14,9 @@ Future<void> refreshNotificationCounts(Session s) async {
   try {
     final m = await s.api.get('/me/summary', force: true);
     if (m is Map) applyNotificationCounts(s, m);
-  } catch (_) {}
+  } catch (_) {
+    // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+  }
 }
 
 /// Sunucu yanıtını sayaçlara yazar; tanınan alan yoksa false.

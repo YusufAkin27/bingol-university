@@ -268,7 +268,9 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
   Future<void> _manageLimited() async {
     try {
       await widget.library.manageLimited();
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     if (mounted) await _reload();
   }
 

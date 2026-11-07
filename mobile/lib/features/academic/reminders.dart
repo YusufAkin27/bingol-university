@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
+import '../../core/swallow.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/notify/local_reminders.dart';
@@ -238,7 +239,8 @@ class SecureReminderStore implements ReminderStore {
       final raw = await const FlutterSecureStorage().read(key: _key);
       if (raw == null) return const ReminderSettings();
       return ReminderSettings.fromJson((jsonDecode(raw) as Map).cast<String, dynamic>());
-    } catch (_) {
+    } catch (e) {
+      swallow('reminder.load', e);
       return const ReminderSettings();
     }
   }
@@ -247,14 +249,18 @@ class SecureReminderStore implements ReminderStore {
   Future<void> save(ReminderSettings s) async {
     try {
       await const FlutterSecureStorage().write(key: _key, value: jsonEncode(s.toJson()));
-    } catch (_) {}
+    } catch (e) {
+      swallow('reminder.save', e);
+    }
   }
 
   /// Çıkış: ayar kaydı silinir (kullanıcıya özel).
   Future<void> clear() async {
     try {
       await const FlutterSecureStorage().delete(key: _key);
-    } catch (_) {}
+    } catch (e) {
+      swallow('reminder.clear', e);
+    }
   }
 }
 
@@ -283,7 +289,9 @@ class ReminderService {
   static Future<void> clearUserData() async {
     try {
       await platform.replaceAll(const []);
-    } catch (_) {}
+    } catch (e) {
+      swallow('reminder.replaceall', e);
+    }
     try {
       final s = store;
       if (s is SecureReminderStore) {
@@ -293,7 +301,9 @@ class ReminderService {
       } else {
         await s.save(const ReminderSettings());
       }
-    } catch (_) {}
+    } catch (e) {
+      swallow('reminder.clearstore', e);
+    }
   }
 
   /// Sunucudaki güncel ders/sınav verisinden plan üretir (ağ hatasında exception fırlatır).

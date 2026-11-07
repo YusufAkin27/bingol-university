@@ -152,7 +152,9 @@ class _UnitNewsDetailPageState extends State<UnitNewsDetailPage> {
     var ok = false;
     try {
       ok = await launchUrl(u, mode: LaunchMode.externalApplication);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     if (!ok && mounted) BuToast.show(context, context.l10n.newsLinkOpenFailed, kind: BuToastKind.error);
   }
 

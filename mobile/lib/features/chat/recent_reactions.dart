@@ -36,7 +36,9 @@ abstract final class RecentReactions {
           ...(jsonDecode(raw) as List).whereType<String>().where(isEmoji).map(display)
         }.take(storedMax).toList();
       }
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     return const [];
   }
 

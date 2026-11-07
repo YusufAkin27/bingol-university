@@ -28,7 +28,9 @@ class _LegalListPageState extends State<LegalListPage> {
     });
     try {
       await _future;
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   @override

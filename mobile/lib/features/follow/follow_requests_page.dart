@@ -87,7 +87,9 @@ class _FollowRequestsPageState extends State<FollowRequestsPage> {
     try {
       final n = await _api.count();
       if (mounted && n != null) setState(() => _total = n);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   Future<void> _loadMore() async {

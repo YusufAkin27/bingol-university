@@ -217,13 +217,17 @@ class HomeLayoutStore {
       } else {
         await _storage.write(key: key, value: jsonEncode(layout.toJson(uid ?? 0)));
       }
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   static Future<void> clear() async {
     try {
       await _storage.delete(key: key);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 }
 

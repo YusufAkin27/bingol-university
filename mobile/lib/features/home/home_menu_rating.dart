@@ -34,7 +34,9 @@ class _HomeMenuRatingState extends State<HomeMenuRating> {
     try {
       final p = await _api.menuToday();
       if (mounted) setState(() => _poll = p);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   Future<void> _rate(int v) async {

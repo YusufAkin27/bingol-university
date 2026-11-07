@@ -131,7 +131,9 @@ class PlatformVideoCompressor implements VideoCompressor {
     } finally {
       try {
         await c?.dispose();
-      } catch (_) {}
+      } catch (_) {
+        // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+      }
     }
   }
 
@@ -203,7 +205,9 @@ class PlatformVideoCompressor implements VideoCompressor {
     if (!_supported) return;
     try {
       await vc.VideoCompress.cancelCompression();
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 }
 
@@ -272,7 +276,9 @@ class VideoService {
     if (origSize <= 0) {
       try {
         origSize = await File(picked.path).length();
-      } catch (_) {}
+      } catch (_) {
+        // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+      }
     }
     if (orig != null && orig.durationMs > limitMs + 500) throw VideoException('TOO_LONG');
     check();
@@ -385,7 +391,9 @@ class VideoUploader {
     if (text.isNotEmpty) {
       try {
         json = jsonDecode(text);
-      } catch (_) {}
+      } catch (_) {
+        // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+      }
     }
     if (res.statusCode >= 200 && res.statusCode < 300) return json;
     if (json is Map && json['code'] is String) {

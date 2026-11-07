@@ -256,7 +256,9 @@ class Session extends ChangeNotifier {
             return;
           }
           if (e.code == 'SESSION_REPLACED' || e.code == 'SESSION_CHANGED') return;
-        } catch (_) {}
+        } catch (_) {
+          // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+        }
       }
     } finally {
       _meRetrying = false;
@@ -271,7 +273,9 @@ class Session extends ChangeNotifier {
       final dn = me['displayName'];
       displayName = dn is String ? dn : displayName;
       notifyListeners();
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   /// Giriş. Normal akışta oturum açılır ve null döner. Hesapta iki faktörlü doğrulama açık ve cihaz tanınmıyorsa
@@ -502,7 +506,9 @@ class Session extends ChangeNotifier {
       api.tokens = null;
       try {
         realtime?.stop();
-      } catch (_) {}
+      } catch (_) {
+        // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+      }
       Analytics.instance.discard();
       if (reason == SignOutReason.replaced) replacedNotice.value = true;
       await api.setTokens(null);
@@ -531,12 +537,16 @@ class Session extends ChangeNotifier {
       for (final h in List.of(beforeSignOut)) {
         try {
           await h().timeout(const Duration(seconds: 5));
-        } catch (_) {}
+        } catch (_) {
+          // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+        }
       }
     }
     try {
       realtime?.stop();
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     if (remote && refresh != null) {
       try {
         await api.post('/auth/logout', {'refreshToken': refresh, if (fcm != null && fcm.isNotEmpty) 'fcmToken': fcm}, false);
@@ -596,7 +606,9 @@ class Session extends ChangeNotifier {
           if (_signedOutMarker) {
             try {
               await _storage.delete(key: _signedOutKey);
-            } catch (_) {}
+            } catch (_) {
+              // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+            }
             _signedOutMarker = false;
           }
           return;
@@ -607,7 +619,9 @@ class Session extends ChangeNotifier {
       try {
         await _storage.write(key: _signedOutKey, value: '1');
         _signedOutMarker = true;
-      } catch (_) {}
+      } catch (_) {
+        // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+      }
       return;
     }
     try {

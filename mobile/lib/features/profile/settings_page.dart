@@ -68,7 +68,9 @@ class _SettingsPageState extends State<SettingsPage> {
           _ => 'notGranted',
         };
       }
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     if (mounted) setState(() => _pushStatus = text);
   }
 
@@ -107,7 +109,9 @@ class _SettingsPageState extends State<SettingsPage> {
     // Sunucu profil dili (bildirim/e-posta) uygulama diliyle eşitlenir; hata sessizdir.
     try {
       await widget.session.api.patch('/users/me', {'language': lc.locale.languageCode});
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   void _push(Widget page, [String? screen]) => Navigator.push(context, MaterialPageRoute(settings: RouteSettings(name: screen), builder: (_) => page));

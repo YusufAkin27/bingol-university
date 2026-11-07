@@ -89,7 +89,9 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
     try {
       final r = await widget.session.api.get('/bookmarks/news/ids') as Map<String, dynamic>;
       if (mounted) setState(() => _saved = (r['ids'] as List).contains(_id));
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   Future<void> _toggle() async {

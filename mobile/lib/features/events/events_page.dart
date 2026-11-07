@@ -319,7 +319,9 @@ class _EventsPageState extends State<EventsPage> {
       final items = (r is Map ? r['items'] : null) as List? ?? const [];
       final ok = items.whereType<Map>().any((c) => eventClubPublishMode(Map<String, dynamic>.from(c)) != null);
       if (mounted) setState(() => _canCreate = ok);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   /// Katıldıktan sonra "Etkinliklerim" kısayolu.

@@ -482,7 +482,9 @@ class ChatRealtime with WidgetsBindingObserver {
     try {
       final v = jsonDecode(f.body);
       if (v is Map<String, dynamic>) on(v);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   static int _i(Object? v) => (v as num?)?.toInt() ?? 0;

@@ -107,7 +107,9 @@ class _LegalReacceptPageState extends State<LegalReacceptPage> {
         if (d is Map && d['type'] is String && d['title'] is String) m[d['type'] as String] = d['title'] as String;
       }
       setState(() => _titles = m);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   String _label(LegalItem i) {

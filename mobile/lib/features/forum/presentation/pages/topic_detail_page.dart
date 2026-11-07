@@ -198,7 +198,9 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
     try {
       final t = await _api.topic(widget.topicId, force: true);
       if (mounted) setState(() => _topic = t);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   Future<void> _refreshAll() => _load(refresh: true);

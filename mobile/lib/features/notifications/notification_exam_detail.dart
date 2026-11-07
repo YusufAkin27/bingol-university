@@ -31,7 +31,9 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
     try {
       final s = await ReminderService.store.load();
       if (mounted) setState(() => _alarm = s.examDayBefore);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   Future<void> _toggleAlarm() async {
@@ -43,7 +45,9 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
       await ReminderService.store.save(next);
       if (mounted) setState(() => _alarm = !on);
       await ReminderService.sync(AcademicApi(widget.session), settings: next);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   Future<Exam?> _load() async {

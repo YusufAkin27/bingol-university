@@ -201,7 +201,9 @@ Future<String> _readPushStatus(PushService? push) async {
         _ => 'notGranted',
       };
     }
-  } catch (_) {}
+  } catch (_) {
+    // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+  }
   return 'notConfigured';
 }
 
@@ -527,7 +529,9 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
     final open = widget.openSystemSettings ?? SystemPushHealthSource(widget.push).openNotificationSettings;
     try {
       await open();
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   @override

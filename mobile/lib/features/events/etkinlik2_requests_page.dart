@@ -68,7 +68,9 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
         final noRes = await api.get('/events/$_id/requests?status=REJECTED&size=50');
         no = _items(noRes);
         noNext = noRes is Map ? (noRes['nextCursor'] as num?)?.toInt() : null;
-      } catch (_) {}
+      } catch (_) {
+        // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+      }
       await _refreshCounts();
       if (!mounted) return;
       setState(() {
@@ -109,7 +111,9 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
           _cap = (r['capacity'] as num?)?.toInt();
         });
       }
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   /// Görünen sekmenin sonraki sayfası (Bekleyen / Onaylanan / Reddedilen; her biri kendi imlecine sahip).

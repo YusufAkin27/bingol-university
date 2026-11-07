@@ -50,7 +50,9 @@ class _OtpCodeBoxesState extends State<OtpCodeBoxes> {
     String? text;
     try {
       text = (await Clipboard.getData(Clipboard.kTextPlain))?.text;
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     final digits = (text ?? '').replaceAll(RegExp(r'\D'), '');
     if (digits.isEmpty) return;
     final code = digits.length > 6 ? digits.substring(0, 6) : digits;

@@ -93,7 +93,9 @@ class _ProfileTabState extends State<ProfileTab> {
     try {
       final pr = await PostApi(widget.session).minePosts(size: 1);
       if (mounted) setState(() => _posts = '${pr.total ?? pr.items.length}');
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   /// Bekleyen takip isteği sayısı; alınamazsa rozet gizli kalır.
@@ -101,7 +103,9 @@ class _ProfileTabState extends State<ProfileTab> {
     try {
       final n = await FollowRequestsApi(widget.session).count();
       if (mounted && n != null && n != _followReq) setState(() => _followReq = n);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   Future<void> _go(Widget page, [String? screen]) async {

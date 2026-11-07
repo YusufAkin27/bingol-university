@@ -1,6 +1,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'api.dart';
+import 'swallow.dart';
 
 /// Profil dilini (bildirim/e-posta dili) sunucuyla eşitler; ama her açılışta DEĞİL, yalnız değişince:
 /// son başarıyla gönderilen "kullanıcı|dil" cihazda tutulur, aynıysa istek atılmaz. Kullanıcıya özeldir
@@ -16,7 +17,9 @@ class LanguageSync {
     final want = '${userId ?? 0}|$lang';
     try {
       if (await storage.read(key: key) == want) return false;
-    } catch (_) {}
+    } catch (e) {
+      swallow('language_sync.1', e);
+    }
     try {
       await api.patch('/users/me', {'language': lang});
     } catch (_) {
@@ -24,13 +27,17 @@ class LanguageSync {
     }
     try {
       await storage.write(key: key, value: want);
-    } catch (_) {}
+    } catch (e) {
+      swallow('language_sync.2', e);
+    }
     return true;
   }
 
   static Future<void> clear() async {
     try {
       await const FlutterSecureStorage().delete(key: key);
-    } catch (_) {}
+    } catch (e) {
+      swallow('language_sync.3', e);
+    }
   }
 }

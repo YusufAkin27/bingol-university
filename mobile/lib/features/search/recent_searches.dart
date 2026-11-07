@@ -24,12 +24,16 @@ class RecentSearches {
   static Future<void> save(List<String> list) async {
     try {
       await _storage.write(key: key, value: jsonEncode(list.take(max).toList()));
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   static Future<void> clear() async {
     try {
       await _storage.delete(key: key);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 }

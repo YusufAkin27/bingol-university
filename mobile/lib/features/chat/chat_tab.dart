@@ -225,7 +225,9 @@ class _ChatTabState extends State<ChatTab> {
     try {
       final n = await MessageRequestsApi(widget.session).count();
       if (mounted && n != null && n != _msgReq) setState(() => _msgReq = n);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   Future<void> _openMsgRequests() async {

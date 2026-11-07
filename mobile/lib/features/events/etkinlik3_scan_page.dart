@@ -85,7 +85,9 @@ class _Etkinlik3ScanPageState extends State<Etkinlik3ScanPage> {
         _total = p + a + n;
         _present = p;
       });
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   /// Gerçek zamanlı: başka görevlinin (ya da bu cihazın) okutması; sunucu sayacı esastır (idempotent).

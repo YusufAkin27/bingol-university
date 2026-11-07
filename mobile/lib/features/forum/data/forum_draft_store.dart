@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../../core/swallow.dart';
 
 import '../../../core/secure_store.dart';
 import 'forum_compose_rules.dart';
@@ -104,7 +105,8 @@ class ForumDraftStore {
       if (raw == null || raw.isEmpty) return null;
       final d = ForumDraft.fromJson(jsonDecode(raw));
       return d == null || d.isEmpty ? null : d;
-    } catch (_) {
+    } catch (e) {
+      swallow('draft.load', e);
       return null;
     }
   }
@@ -117,13 +119,17 @@ class ForumDraftStore {
         return;
       }
       await _s.write(key: keyFor(userId), value: jsonEncode(draft.toJson()));
-    } catch (_) {}
+    } catch (e) {
+      swallow('draft.save', e);
+    }
   }
 
   Future<void> clear(int? userId) async {
     try {
       await _s.delete(key: keyFor(userId));
-    } catch (_) {}
+    } catch (e) {
+      swallow('draft.clear', e);
+    }
   }
 
   /// Çıkış / hesap değişimi / hesap silme: TÜM kullanıcıların taslakları silinir (taslak başlık, metin ve
@@ -135,7 +141,9 @@ class ForumDraftStore {
       for (final k in all.keys) {
         if (k.startsWith(_prefix)) await s.delete(key: k);
       }
-    } catch (_) {}
+    } catch (e) {
+      swallow('draft.clearall', e);
+    }
   }
 
   static const _prefix = 'forum_draft_v1_';

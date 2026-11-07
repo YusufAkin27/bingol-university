@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show SystemUiOverlayStyle;
 
+import '../../core/cache/image_disk_cache.dart';
 import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
 import 'chat_media.dart';
@@ -367,7 +368,7 @@ class _ChatZoomImageState extends State<ChatZoomImage> with SingleTickerProvider
     final thumb = widget.thumbUrl;
     return Stack(alignment: Alignment.center, fit: StackFit.expand, children: [
       if (thumb != null && thumb != widget.url)
-        Image.network(chatMediaUrl(thumb), headers: widget.headers, fit: BoxFit.contain, cacheWidth: 600, gaplessPlayback: true, errorBuilder: (c, e, s) => const SizedBox.shrink()),
+        Image(image: persistentNetworkImage(chatMediaUrl(thumb), headers: widget.headers, cacheWidth: 600), fit: BoxFit.contain, gaplessPlayback: true, errorBuilder: (c, e, s) => const SizedBox.shrink()),
       Center(child: ChatdRing(value: (p == null || total == null) ? null : p.cumulativeBytesLoaded / total, icon: BuIcons.image, semantics: context.l10n.chatdPhotoLoading)),
     ]);
   }
@@ -380,12 +381,10 @@ class _ChatZoomImageState extends State<ChatZoomImage> with SingleTickerProvider
     // Yakınlaştırma payı için ekranın ~2 katı genişlikte çözülür (tam çözünürlük belleğe açılmaz).
     final cacheW = (screenW * dpr * 2).ceil().clamp(512, 2400);
     // Görsel, kenar boşluklu yuvarlatılmış kart olarak durur (referans 26).
-    final image = Image.network(
-            chatMediaUrl(widget.url),
+    final image = Image(
+            image: persistentNetworkImage(chatMediaUrl(widget.url), headers: widget.headers, cacheWidth: cacheW),
             key: ValueKey(_attempt),
-            headers: widget.headers,
             fit: BoxFit.contain,
-            cacheWidth: cacheW,
             filterQuality: FilterQuality.medium,
             gaplessPlayback: true,
             frameBuilder: (c, child, frame, sync) => sync

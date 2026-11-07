@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io' show Platform;
+import '../swallow.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -101,7 +102,9 @@ class LiveActivityService {
         _active.remove(id);
         try {
           await _api.delete('/live-activities/$id');
-        } catch (_) {}
+        } catch (e) {
+          swallow('live_activity_service.1', e);
+        }
       }
       return null;
     });
@@ -114,7 +117,9 @@ class LiveActivityService {
     try {
       if (_isIos) return await _ios.invokeMethod<bool>('isSupported') ?? false;
       if (_isAndroid) return await _android.invokeMethod<bool>('isSupported') ?? false;
-    } catch (_) {}
+    } catch (e) {
+      swallow('live_activity_service.2', e);
+    }
     return false;
   }
 
@@ -137,7 +142,9 @@ class LiveActivityService {
       if (_isAndroid) {
         return await _android.invokeMethod<bool>('isActive', {'kind': kind.wire, 'refId': refId}) ?? false;
       }
-    } catch (_) {}
+    } catch (e) {
+      swallow('live_activity_service.3', e);
+    }
     return false;
   }
 
@@ -226,12 +233,16 @@ class LiveActivityService {
           _active.remove(id);
           try {
             await _api.delete('/live-activities/$id');
-          } catch (_) {}
+          } catch (e) {
+            swallow('live_activity_service.4', e);
+          }
         }
       } else if (_isAndroid) {
         await _android.invokeMethod<bool>('end', {'kind': kind.wire, 'refId': refId});
       }
-    } catch (_) {}
+    } catch (e) {
+      swallow('live_activity_service.5', e);
+    }
   }
 
   /// Çıkış / hesap değişimi: kullanıcının canlı etkinlikleri başka hesaba görünmesin ([registerUserDataCleaners]).
@@ -245,7 +256,9 @@ class LiveActivityService {
       } else if (_isAndroid) {
         await _android.invokeMethod<bool>('endAll');
       }
-    } catch (_) {}
+    } catch (e) {
+      swallow('live_activity_service.6', e);
+    }
     _instance?._active.clear();
   }
 }

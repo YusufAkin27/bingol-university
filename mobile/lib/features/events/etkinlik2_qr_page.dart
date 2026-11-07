@@ -93,14 +93,18 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
         _total = r.length;
         _present = r.whereType<Map>().where((e) => e['present'] == true).length;
       });
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   Future<void> _loadOpen() async {
     try {
       final r = await widget.session.api.get('/events/$_id/my-permissions');
       if (mounted && r is Map) setState(() => _attOpen = r['attendanceOpen'] == true);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   Future<void> _openAttendance() async {

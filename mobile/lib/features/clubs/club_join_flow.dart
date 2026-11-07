@@ -24,7 +24,9 @@ Future<String?> joinClubFlow(
       if (r is List) {
         questions = r.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
       }
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   List<Map<String, dynamic>>? answers;

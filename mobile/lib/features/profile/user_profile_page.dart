@@ -89,7 +89,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
     try {
       final st = await SocialApi(widget.session).followStats(widget.userId);
       if (mounted) setState(() => _stats = st);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   /// Gizli hesap mı (profil yanıtı `isPrivate`; takip yanıtlarından da gelir).
@@ -166,7 +168,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
         if (cursor == null) break;
       }
       if (mounted && found != _blocked) setState(() => _blocked = found);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   Map<String, String>? get _headers {

@@ -165,7 +165,9 @@ class _ClubFormPageState extends State<ClubFormPage> {
           _questions.add(TextEditingController(text: q));
         }
       });
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   void _snack(String m) => BuToast.show(context, m, kind: BuToastKind.error);

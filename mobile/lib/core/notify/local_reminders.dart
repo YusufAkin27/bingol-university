@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import '../swallow.dart';
 
 /// ORTAK YEREL HATIRLATMA SERVİSİ (ders/sınav vb.). Sunucu bu bildirimleri göndermez.
 ///
@@ -171,20 +172,26 @@ class LocalReminders {
   Future<void> cancel(String group, int id) async {
     try {
       await backend.cancel(group, id);
-    } catch (_) {}
+    } catch (e) {
+      swallow('local_reminders.1', e);
+    }
   }
 
   Future<void> cancelGroup(String group) async {
     try {
       await backend.cancelGroup(group);
-    } catch (_) {}
+    } catch (e) {
+      swallow('local_reminders.2', e);
+    }
   }
 
   /// Çıkışta çağır: kullanıcıya özel hatırlatmaların hepsi silinir.
   Future<void> cancelAll() async {
     try {
       await backend.cancelAll();
-    } catch (_) {}
+    } catch (e) {
+      swallow('local_reminders.3', e);
+    }
   }
 
   /// Bir grubun kaynağını kaydet; [rescheduleAll] bunu çağırır.

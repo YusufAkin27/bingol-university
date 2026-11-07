@@ -61,13 +61,17 @@ class TrackTokenStore {
   static Future<void> save(String token) async {
     try {
       await kDeviceSecureStorage.write(key: _key, value: token);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   static Future<void> clear() async {
     try {
       await kDeviceSecureStorage.delete(key: _key);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 }
 

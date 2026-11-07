@@ -192,7 +192,9 @@ class OnboardingDraftStore {
   static Future<void> save(OnboardingDraft d) async {
     try {
       await _storage.write(key: _key, value: jsonEncode(d.toJson()));
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   /// Apple'ın yalnız bir kez verdiği ad/soyadı, onboarding açılana kadar saklar (mevcut taslağı bozmadan).
@@ -215,6 +217,8 @@ class OnboardingDraftStore {
   static Future<void> clear() async {
     try {
       await _storage.delete(key: _key);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 }

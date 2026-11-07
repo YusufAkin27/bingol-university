@@ -24,7 +24,9 @@ class PermissionOnboarding {
   static Future<void> markDone() async {
     try {
       await _storage.write(key: _key, value: '1');
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 }
 

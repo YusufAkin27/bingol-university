@@ -83,7 +83,9 @@ class _NewsListPageState extends State<NewsListPage> {
           _lastSuccess = last;
         });
       }
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   Future<void> _loadSavedIds() async {
@@ -95,7 +97,9 @@ class _NewsListPageState extends State<NewsListPage> {
           ..clear()
           ..addAll(ids));
       }
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   void _selectTab(int i) {

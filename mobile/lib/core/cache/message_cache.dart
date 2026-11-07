@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import '../swallow.dart';
 
 import 'package:path_provider/path_provider.dart';
 
@@ -158,7 +159,9 @@ class MessageCache {
     } catch (_) {
       try {
         await f.delete();
-      } catch (_) {}
+      } catch (e) {
+        swallow('message_cache.1', e);
+      }
       return null;
     }
   }
@@ -361,7 +364,9 @@ class MessageCache {
       if (count <= maxConversations && total <= maxTotalBytes) break;
       try {
         await f.$1.delete();
-      } catch (_) {}
+      } catch (e) {
+        swallow('message_cache.2', e);
+      }
       final name = f.$1.uri.pathSegments.last;
       final id = int.tryParse(name.substring(1, name.length - 5));
       if (id != null) _mem.remove(id);
@@ -384,7 +389,9 @@ class MessageCache {
         await for (final e in _dir!.list()) {
           if (e is File) await e.delete();
         }
-      } catch (_) {}
+      } catch (e) {
+        swallow('message_cache.3', e);
+      }
     }, null);
   }
 

@@ -124,7 +124,9 @@ class DiskCache {
         if (name == 'index.json' || known.contains(name)) continue;
         await e.delete();
       }
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     await _evict();
   }
 
@@ -200,7 +202,9 @@ class DiskCache {
           await for (final e in dir.list()) {
             if (e is File) await e.delete();
           }
-        } catch (_) {}
+        } catch (_) {
+          // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+        }
       }, null);
 
   /// Dizini hemen diske yazar (test/uygulama arka plana giderken).
@@ -215,7 +219,9 @@ class DiskCache {
     _total -= m.size;
     try {
       await _file(m.file).delete();
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     _scheduleSave();
   }
 

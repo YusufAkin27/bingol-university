@@ -19,6 +19,7 @@ import 'cache/video_cover_cache.dart';
 import 'cache/video_prefetch.dart';
 import 'language_sync.dart';
 import 'live/live_activity_service.dart';
+import 'swallow.dart';
 
 /// Çıkış / hesap değişimi / hesap silme / oturum iptalinde silinmesi gereken kullanıcıya özel yerel depoların
 /// TEK kayıt noktası ([ApiClient.setTokens] bu kancaları çalıştırır). Kural: kullanıcıya özel veri tutan her yeni
@@ -60,12 +61,16 @@ Future<void> _clearRemovedMapData() async {
     for (final k in const ['campus_favorites', 'campus_recent_searches', 'campus_loc_prompt_dismissed']) {
       await s.delete(key: k);
     }
-  } catch (_) {}
+  } catch (e) {
+    swallow('user_data.1', e);
+  }
 }
 
 /// `LegalReacceptController` `legal_later` anahtarı (`<kullanıcı>|<imza>`); çıkışta kalmasın.
 Future<void> _clearLegalLater() async {
   try {
     await const FlutterSecureStorage().delete(key: 'legal_later');
-  } catch (_) {}
+  } catch (e) {
+    swallow('user_data.2', e);
+  }
 }

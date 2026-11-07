@@ -53,7 +53,9 @@ class _PushHelpPageState extends State<PushHelpPage> with WidgetsBindingObserver
     setState(() => _busy = true);
     try {
       await widget.source.reregister();
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     await _load();
     if (mounted) setState(() => _busy = false);
   }

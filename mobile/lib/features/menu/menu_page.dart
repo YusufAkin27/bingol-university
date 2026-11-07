@@ -95,7 +95,9 @@ class _MenuPageState extends State<MenuPage> {
       try {
         final st = await api.get('/status', force: silent);
         maintenance = (st is Map && st['MENU'] is Map && st['MENU']['maintenance'] == true);
-      } catch (_) {}
+      } catch (_) {
+        // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+      }
       final map = <int, MenuDay>{};
       if (res is List) {
         for (final e in res) {

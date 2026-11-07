@@ -107,7 +107,9 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
     try {
       await c.setFocusMode(FocusMode.auto);
       await c.setExposureMode(ExposureMode.auto);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     await _applyFlash(c);
     if (!mounted) return;
     setState(() => _ready = true);
@@ -126,7 +128,9 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
     };
     try {
       await c.setFlashMode(mode);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   /// Flaş: kapalı -> otomatik -> açık -> kapalı (tek dokunuş).
@@ -149,7 +153,9 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
     try {
       await c.setFocusPoint(p);
       await c.setExposurePoint(p);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   void _zoomUpdate(ScaleUpdateDetails d) {
@@ -169,7 +175,9 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
     if (_cam == prev) return;
     try {
       await _start();
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   Future<void> _photo() async {

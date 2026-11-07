@@ -340,13 +340,17 @@ class StompClient {
     if (send && isConnected) {
       try {
         _write(StompFrame('DISCONNECT'));
-      } catch (_) {}
+      } catch (_) {
+        // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+      }
     }
     _wsSub?.cancel();
     try {
       final ch = _ch;
       if (ch != null) _closeSink(ch);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     _wsSub = null;
     _ch = null;
   }
@@ -359,7 +363,9 @@ class StompClient {
   void _raw(String s) {
     try {
       _ch?.sink.add(s);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   /// Kapanmış denetleyiciye olay eklemek (dispose sonrası geç gelen hata) StateError fırlatır; sessizce atlanır.
@@ -371,7 +377,9 @@ class StompClient {
   void _closeSink(WebSocketChannel ch) {
     try {
       unawaited(ch.sink.close().catchError((Object _) {}));
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   void _setState(StompState s) {
@@ -388,7 +396,9 @@ class StompClient {
       final json = jsonDecode(utf8.decode(base64Url.decode(base64Url.normalize(parts[1])))) as Map;
       final exp = json['exp'];
       if (exp is num) return DateTime.fromMillisecondsSinceEpoch(exp.toInt() * 1000);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     return null;
   }
 }

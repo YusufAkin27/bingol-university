@@ -207,7 +207,9 @@ class _MyClubsPageState extends State<MyClubsPage> {
     try {
       final r = await widget.session.api.get('/communities/${_id(c)}');
       if (r is Map) club = Map<String, dynamic>.from(r);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     if (!mounted) return;
     final res = await Navigator.push<Map<String, dynamic>>(
       context,

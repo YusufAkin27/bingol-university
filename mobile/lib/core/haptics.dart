@@ -26,6 +26,8 @@ abstract final class BuHaptics {
     if (!_active) return;
     try {
       call().catchError((Object _) {});
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 }

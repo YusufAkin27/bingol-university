@@ -3,6 +3,7 @@
 library;
 
 import 'dart:io' show Platform;
+import '../../core/swallow.dart';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -37,7 +38,9 @@ class HomeWidgetStore implements WidgetStore {
     try {
       if (Platform.isIOS) await HomeWidget.setAppGroupId(kWidgetAppGroup);
       _ready = true;
-    } catch (_) {}
+    } catch (e) {
+      swallow('widget.init', e);
+    }
     return _ready;
   }
 
@@ -46,7 +49,9 @@ class HomeWidgetStore implements WidgetStore {
     if (!await _init()) return;
     try {
       await HomeWidget.saveWidgetData<String>(key, value);
-    } catch (_) {}
+    } catch (e) {
+      swallow('widget.put', e);
+    }
   }
 
   @override
@@ -54,7 +59,9 @@ class HomeWidgetStore implements WidgetStore {
     if (!await _init()) return;
     try {
       await HomeWidget.saveWidgetData<String>(key, null);
-    } catch (_) {}
+    } catch (e) {
+      swallow('widget.remove', e);
+    }
   }
 
   @override
@@ -62,7 +69,8 @@ class HomeWidgetStore implements WidgetStore {
     if (!await _init()) return null;
     try {
       return await HomeWidget.getWidgetData<String>(key);
-    } catch (_) {
+    } catch (e) {
+      swallow('widget.get', e);
       return null;
     }
   }
@@ -124,7 +132,8 @@ class QuickAccessPrefs {
       final v = await _storage.read(key: key);
       if (v == null || v.isEmpty) return const [];
       return v.split(',').where((e) => e.isNotEmpty).toList();
-    } catch (_) {
+    } catch (e) {
+      swallow('qa.load', e);
       return const [];
     }
   }
@@ -132,12 +141,16 @@ class QuickAccessPrefs {
   static Future<void> save(List<String> ids) async {
     try {
       await _storage.write(key: key, value: ids.join(','));
-    } catch (_) {}
+    } catch (e) {
+      swallow('qa.save', e);
+    }
   }
 
   static Future<void> clear() async {
     try {
       await _storage.delete(key: key);
-    } catch (_) {}
+    } catch (e) {
+      swallow('qa.clear', e);
+    }
   }
 }

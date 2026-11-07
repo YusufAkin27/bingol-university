@@ -36,7 +36,9 @@ class FreshInstallGuard {
       for (final k in sessionKeys) {
         try {
           await del(k);
-        } catch (_) {}
+        } catch (_) {
+          // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+        }
       }
       return true;
     } catch (e) {

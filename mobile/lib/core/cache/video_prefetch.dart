@@ -108,7 +108,9 @@ class VideoPrefetcher {
           if (e is File && e.path.endsWith('.part')) {
             try {
               await e.delete();
-            } catch (_) {}
+            } catch (_) {
+              // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+            }
           }
         }
       }();
@@ -124,7 +126,9 @@ class VideoPrefetcher {
       if (!await f.exists() || await f.length() == 0) return null;
       try {
         await f.setLastModified(_now());
-      } catch (_) {}
+      } catch (_) {
+        // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+      }
       return f;
     } catch (_) {
       return null;
@@ -275,11 +279,15 @@ class VideoPrefetcher {
     } finally {
       try {
         await sink?.close();
-      } catch (_) {}
+      } catch (_) {
+        // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+      }
       if (result == null) {
         try {
           if (await part.exists()) await part.delete();
-        } catch (_) {}
+        } catch (_) {
+          // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+        }
       }
       final ws = _waiters.remove(key);
       if (ws != null) {
@@ -311,10 +319,14 @@ class VideoPrefetcher {
         if (_protected.contains(key)) continue;
         try {
           await f.$1.delete();
-        } catch (_) {}
+        } catch (_) {
+          // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+        }
         total -= f.$3;
       }
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   /// Toplam önyükleme dosyası boyutu (test/gözlem).
@@ -345,7 +357,9 @@ class VideoPrefetcher {
     _failedUntil.clear();
     try {
       await Future.wait(List<Future<void>>.of(_runs));
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     for (final ws in _waiters.values) {
       for (final c in ws) {
         if (!c.isCompleted) c.complete(null);
@@ -358,10 +372,14 @@ class VideoPrefetcher {
         if (e is File) {
           try {
             await e.delete();
-          } catch (_) {}
+          } catch (_) {
+            // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+          }
         }
       }
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   /// Testler: süren indirmelerin bitmesini bekler.

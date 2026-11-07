@@ -65,6 +65,8 @@ class PlatformVideoTrimService implements VideoTrimService {
   Future<void> discard(String path) async {
     try {
       await File(path).delete();
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 }

@@ -121,7 +121,9 @@ class ImageDiskCache {
       if (total <= target) break;
       try {
         await f.$1.delete();
-      } catch (_) {}
+      } catch (_) {
+        // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+      }
       total -= f.$3;
     }
   }
@@ -258,7 +260,9 @@ class DiskNetworkImage extends ImageProvider<DiskNetworkImage> {
     if (res.contentLength > maxDownloadBytes) {
       try {
         req.abort();
-      } catch (_) {}
+      } catch (_) {
+        // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+      }
       throw NetworkImageLoadException(statusCode: HttpStatus.requestEntityTooLarge, uri: resolved);
     }
     final bytes = await consolidateHttpClientResponseBytes(res);

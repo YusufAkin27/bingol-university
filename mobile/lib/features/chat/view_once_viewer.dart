@@ -206,7 +206,9 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
           ratio = frame.image.width / (frame.image.height == 0 ? 1 : frame.image.height);
           frame.image.dispose();
           codec.dispose();
-        } catch (_) {}
+        } catch (_) {
+          // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+        }
         if (!mounted) return;
         if (_block != _OnceBlock.none) {
           setState(() => _loading = false);

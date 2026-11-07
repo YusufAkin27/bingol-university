@@ -262,7 +262,9 @@ class _PostGalleryPickerPageState extends State<PostGalleryPickerPage> with Widg
   Future<void> _manageLimited() async {
     try {
       await _lib.manageLimited();
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     if (mounted) await _reload();
   }
 

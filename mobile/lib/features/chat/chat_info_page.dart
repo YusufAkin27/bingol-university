@@ -156,7 +156,9 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
       final d = await _api.get('/users/$_peerId');
       if (!mounted || d is! Map) return;
       setState(() => _profile = Map<String, dynamic>.from(d));
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   /// Sunucudan üyeleri çeker ve yerel listeyi günceller; hata atar.
@@ -193,7 +195,9 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     _conv.addAll(patch);
     try {
       widget.conversation.addAll(patch);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   void _toast(String text, {BuToastKind kind = BuToastKind.info}) {

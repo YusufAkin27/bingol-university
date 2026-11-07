@@ -71,7 +71,9 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
       if (mounted && r is Map) {
         _questions = (r['questions'] as List? ?? const []).map((e) => '$e').toList();
       }
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     try {
       final r = await api.get('/events/$_id/chat-room');
       if (mounted && r is Map) {
@@ -81,7 +83,9 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
           _chatKnown = true;
         });
       }
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   void _toast(String m) {

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import '../swallow.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
@@ -426,7 +427,9 @@ class Outbox extends ChangeNotifier {
         if (s is CorruptBackupStore) {
           try {
             await (s as CorruptBackupStore).writeCorrupt(raw);
-          } catch (_) {}
+          } catch (e) {
+            swallow('outbox.1', e);
+          }
         }
       }
       for (final e in records) {
@@ -485,7 +488,9 @@ class Outbox extends ChangeNotifier {
         if (depth == 0 && start >= 0) {
           try {
             out.add(jsonDecode(raw.substring(start, i + 1)));
-          } catch (_) {}
+          } catch (e) {
+            swallow('outbox.2', e);
+          }
           start = -1;
         }
       }
@@ -540,7 +545,9 @@ class Outbox extends ChangeNotifier {
             if (await f.exists()) await f.delete();
           }
         }
-      } catch (_) {}
+      } catch (e) {
+        swallow('outbox.3', e);
+      }
     }());
   }
 
@@ -556,7 +563,9 @@ class Outbox extends ChangeNotifier {
         if (e is! File) continue;
         if (!known.contains(e.uri.pathSegments.last)) await e.delete();
       }
-    } catch (_) {}
+    } catch (e) {
+      swallow('outbox.4', e);
+    }
   }
 
   /// Kuyruktaki ek dosyalarının toplam boyutu.
@@ -673,7 +682,9 @@ class Outbox extends ChangeNotifier {
     if (_readFailed) return; // okunamayan eski kuyruğun üstüne yazma
     try {
       await _store.write(_items.isEmpty ? null : jsonEncode([for (final e in _items) e.toJson()]));
-    } catch (_) {}
+    } catch (e) {
+      swallow('outbox.5', e);
+    }
   }
 
   /// ApiClient'ın ağ hatasında çağırdığı kanca: yalnız metin mesajı POST'u kuyruğa alınır.
@@ -762,7 +773,9 @@ class Outbox extends ChangeNotifier {
     if (s is CorruptBackupStore) {
       try {
         await (s as CorruptBackupStore).clearCorrupt();
-      } catch (_) {}
+      } catch (e) {
+        swallow('outbox.6', e);
+      }
     }
     notifyListeners();
     unawaited(_sweepOrphanFiles());

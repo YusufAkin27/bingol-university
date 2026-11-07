@@ -75,7 +75,9 @@ Future<void> saveChatVideoToGallery(
   } finally {
     try {
       await f.delete();
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 }
 

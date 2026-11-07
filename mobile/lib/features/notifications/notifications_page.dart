@@ -172,7 +172,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
       } else if (d is Map) {
         return d.cast<String, dynamic>();
       }
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     return {};
   }
 
@@ -738,12 +740,14 @@ class _NotificationsPageState extends State<NotificationsPage> {
       body = RefreshIndicator(
         onRefresh: Analytics.pullRefresh(() => _load(silent: true)),
         child: BuStaggerScope(
-          child: ListView(
+          // Uzun, sayfalanan liste: satırlar yalnız görünürken yerleşir/çizilir.
+          child: ListView.builder(
             controller: _scroll,
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.fromLTRB(
                 0, 0, 0, MediaQuery.of(context).padding.bottom),
-            children: children,
+            itemCount: children.length,
+            itemBuilder: (context, i) => children[i],
           ),
         ),
       );

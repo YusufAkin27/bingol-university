@@ -118,7 +118,9 @@ class Analytics extends ChangeNotifier {
     }
     try {
       await _storage.write(key: settingKey, value: v ? '1' : '0');
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   /// Oturum sonlanınca bekleyen olayları gönderilmeden atar ve açık oturumu bırakır (ekran adı korunur).

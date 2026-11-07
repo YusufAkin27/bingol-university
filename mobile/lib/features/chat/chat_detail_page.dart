@@ -1094,7 +1094,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           direct:
               _direct); // yalnız birebir sohbet fotoğrafları galeriye kaydedilir
       if (res.contains(AutoSaveResult.denied)) await _autoSaveDenied();
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   /// Galeri izni yok: tek seferlik bilgi + Ayarlar'a yönlendirme (ayar sessizce kapatılmaz).
@@ -1608,7 +1610,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     String? path;
     try {
       path = await p.videoPath?.call();
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     if (path == null) {
       _notice(l.chatDetailVideoUnreadable, SohbetyNoticeKind.error);
       return null;

@@ -174,7 +174,9 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
     try {
       await _controller.toggleTorch();
       if (mounted) setState(() => _torch = !_torch);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   @override

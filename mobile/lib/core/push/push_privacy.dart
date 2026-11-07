@@ -28,7 +28,9 @@ class PushPrivacy {
   static Future<void> apply(bool hide) async {
     try {
       await sink(hide);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   /// Oturum açılınca sunucudaki değeri yerel koda taşır (yeni cihaz/yeniden kurulum/hesap değişimi).
@@ -38,6 +40,8 @@ class PushPrivacy {
       final p = await session.api.get('/notifications/preferences');
       final v = p is Map ? p['hideMessagePreview'] : null;
       if (v is bool) await apply(v);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 }

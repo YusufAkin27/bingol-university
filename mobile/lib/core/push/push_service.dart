@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io' show Platform;
+import '../swallow.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -40,7 +41,9 @@ const _appVersion = String.fromEnvironment('APP_VERSION', defaultValue: '2.3.3')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
     await Firebase.initializeApp();
-  } catch (_) {}
+  } catch (e) {
+    swallow('push_service.1', e);
+  }
 }
 
 /// FCM jetonunu alır. iOS'ta APNs belirteci (anahtar/izin/imza hazırsa) birkaç saniye içinde gelir; gelmeden
@@ -59,7 +62,9 @@ Future<String?> fetchPushToken({
     for (var i = 0; i < attempts; i++) {
       try {
         if (await apns() != null) break;
-      } catch (_) {}
+      } catch (e) {
+        swallow('push_service.2', e);
+      }
       await Future<void>.delayed(delay);
     }
   }
@@ -70,7 +75,9 @@ Future<String?> fetchPushToken({
     try {
       final t = await fcm();
       if (t != null && t.isNotEmpty) return t;
-    } catch (_) {}
+    } catch (e) {
+      swallow('push_service.3', e);
+    }
     if (i < tries - 1) await Future<void>.delayed(delay);
   }
   return null;
@@ -246,7 +253,9 @@ class PushService with WidgetsBindingObserver {
     try {
       final p = await LocalReminders.instance.backend.takeLaunchPayload();
       if (p != null && p.isNotEmpty) _open(Map<String, dynamic>.from(p), localReminder: true);
-    } catch (_) {}
+    } catch (e) {
+      swallow('push_service.4', e);
+    }
   }
 
   Future<void> onSignedIn() async {
@@ -256,7 +265,9 @@ class PushService with WidgetsBindingObserver {
     try {
       WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(PushRouter.flushPending()));
       WidgetsBinding.instance.scheduleFrame();
-    } catch (_) {}
+    } catch (e) {
+      swallow('push_service.5', e);
+    }
     unawaited(PushPrivacy.syncFromServer(session)); // "mesaj içeriğini gizle" yerel koda taşınır (Android kilit ekranı)
     unawaited(_attachReminderTaps());
     unawaited(_attachNativePush());
@@ -298,7 +309,9 @@ class PushService with WidgetsBindingObserver {
     try {
       final initial = await fm.getInitialMessage();
       if (initial != null) _open(initial.data);
-    } catch (_) {}
+    } catch (e) {
+      swallow('push_service.6', e);
+    }
   }
 
   /// FCM jetonunu alıp kaydeder; yenilenme dinleyicisi jetondan ÖNCE bağlanır (iOS'ta jeton APNs belirteci
@@ -411,7 +424,9 @@ class PushService with WidgetsBindingObserver {
       });
     } on MissingPluginException {
       // platform kodu yok
-    } catch (_) {}
+    } catch (e) {
+      swallow('push_service.7', e);
+    }
   }
 
   Future<void> onSignedOut() async {
@@ -449,7 +464,9 @@ class PushService with WidgetsBindingObserver {
       try {
         // Çıkışta belirteç oturum kapanmadan silinmeli; token yoksa sessizce geçer.
         await _api.unregister(t);
-      } catch (_) {}
+      } catch (e) {
+        swallow('push_service.8', e);
+      }
     }
     // Jeton her durumda geçersiz kılınır (kayıt başarısız/eksik olsa bile sunucudaki eski kayıt FCM
     // UNREGISTERED ile temizlenir; bu cihaz çıkış yapmış kullanıcının bildirimini almaz).
@@ -457,7 +474,9 @@ class PushService with WidgetsBindingObserver {
       try {
         // ignore: deprecated_member_use
         await FirebaseMessaging.instance.deleteToken();
-      } catch (_) {}
+      } catch (e) {
+        swallow('push_service.9', e);
+      }
     }
   }
 

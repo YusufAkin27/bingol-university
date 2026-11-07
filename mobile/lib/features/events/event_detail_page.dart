@@ -126,7 +126,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
       try {
         final r = await api.get('$_path/attendance/roster');
         if (mounted) setState(() => _attendance = _list(r is Map ? r['rows'] : r));
-      } catch (_) {}
+      } catch (_) {
+        // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+      }
     }
     try {
       final r = await api.get('$_path/my-permissions');
@@ -136,7 +138,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
           _perms = r['owner'] == true ? const [] : [for (final p in (r['permissions'] as List? ?? const [])) '$p'];
         });
       }
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     if (_rsvp == 'GOING') {
       try {
         final r = await api.get('$_path/my-attendance');
@@ -146,7 +150,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
           _autoScanned = true;
           unawaited(_openMyQr()); // katılımcı yalnız QR'ını gösterir
         }
-      } catch (_) {}
+      } catch (_) {
+        // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+      }
     } else if (mounted) {
       setState(() => _myAtt = null);
     }

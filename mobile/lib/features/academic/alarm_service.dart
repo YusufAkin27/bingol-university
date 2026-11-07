@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../core/swallow.dart';
 
 import '../../core/notify/local_reminders.dart';
 import '../../core/platform/device_alarm.dart';
@@ -83,7 +84,8 @@ class SecureAlarmStateStore implements AlarmStateStore {
       final raw = await const FlutterSecureStorage().read(key: _key);
       if (raw == null) return const AlarmState();
       return AlarmState.fromJson((jsonDecode(raw) as Map).cast<String, dynamic>());
-    } catch (_) {
+    } catch (e) {
+      swallow('alarm.load', e);
       return const AlarmState();
     }
   }
@@ -92,14 +94,18 @@ class SecureAlarmStateStore implements AlarmStateStore {
   Future<void> save(AlarmState s) async {
     try {
       await const FlutterSecureStorage().write(key: _key, value: jsonEncode(s.toJson()));
-    } catch (_) {}
+    } catch (e) {
+      swallow('alarm.save', e);
+    }
   }
 
   @override
   Future<void> clear() async {
     try {
       await const FlutterSecureStorage().delete(key: _key);
-    } catch (_) {}
+    } catch (e) {
+      swallow('alarm.clear', e);
+    }
   }
 }
 
@@ -175,7 +181,9 @@ class AlarmService {
       await instance._store.clear();
       await instance.reminders.cancelGroup(_nudgeGroup);
       await instance.alarms.cancelFallback();
-    } catch (_) {}
+    } catch (e) {
+      swallow('alarm.clearall', e);
+    }
   }
 
   // ------------------------------------------------------------------ sınav

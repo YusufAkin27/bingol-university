@@ -105,7 +105,9 @@ class GoogleSignInServiceImpl implements GoogleSignInService {
       // Bir sonraki dokunuşta hesap seçici yeniden açılsın (SDK oturumu uygulama oturumu değildir).
       try {
         await GoogleSignIn.instance.signOut();
-      } catch (_) {}
+      } catch (_) {
+        // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+      }
       if (token == null || token.isEmpty) throw const OAuthFailure('NO_ID_TOKEN');
       return GoogleCredential(idToken: token, displayName: account.displayName);
     } on GoogleSignInException catch (e) {

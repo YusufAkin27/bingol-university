@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
+import '../../core/cache/image_disk_cache.dart';
 import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
 import 'chat_info_parts.dart';
@@ -180,11 +181,9 @@ class ChatInfoThumb extends StatelessWidget {
                 // Videoda kapak: sunucu posteri, yoksa videodan üretilen kare, o da yoksa koyu yer tutucu.
                 ChatVideoCover(videoUrl: item.url, posterUrl: item.thumbUrl, headers: headers, decodeWidth: 360)
               else
-                Image.network(
-                  chatMediaUrl(item.thumbUrl ?? item.url),
-                  headers: headers,
+                Image(
+                  image: persistentNetworkImage(chatMediaUrl(item.thumbUrl ?? item.url), headers: headers, cacheWidth: 360),
                   fit: BoxFit.cover,
-                  cacheWidth: 360,
                   gaplessPlayback: true,
                   errorBuilder: (c, e, s) => Center(child: Icon(BuIcons.imageOff, color: t.mut)),
                 ),

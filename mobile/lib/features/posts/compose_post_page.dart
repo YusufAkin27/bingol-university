@@ -1578,7 +1578,9 @@ class _LocalVideoPreviewState extends State<_LocalVideoPreview> {
       _c = null;
       try {
         await c?.dispose();
-      } catch (_) {}
+      } catch (_) {
+        // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+      }
     }
   }
 

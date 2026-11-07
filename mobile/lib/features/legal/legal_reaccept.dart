@@ -127,7 +127,9 @@ class LegalReacceptController extends ChangeNotifier {
     if (c == null || c.enforced) return;
     try {
       await _storage.write(key: _laterKey, value: '${_userId ?? 0}|${c.signature}');
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     _set(null);
   }
 
@@ -148,7 +150,9 @@ class LegalReacceptController extends ChangeNotifier {
   Future<void> _clearDeferred() async {
     try {
       await _storage.delete(key: _laterKey);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   void _set(LegalReaccept? v) {

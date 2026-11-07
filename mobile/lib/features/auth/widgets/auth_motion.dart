@@ -15,7 +15,9 @@ void authHaptic(AuthHaptic kind) {
       AuthHaptic.error => HapticFeedback.mediumImpact(),
     };
     f.catchError((Object _) {});
-  } catch (_) {}
+  } catch (_) {
+    // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+  }
 }
 
 /// Hata sarsıntısı: [trigger] artınca 380 ms'lik sönümlü yatay titreşim oynar.

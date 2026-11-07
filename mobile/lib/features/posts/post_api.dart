@@ -80,7 +80,9 @@ class PostApi {
       final end = i + kFeedSeenBatch > all.length ? all.length : i + kFeedSeenBatch;
       try {
         await session.api.post('/feed/seen', {'ids': all.sublist(i, end)});
-      } catch (_) {}
+      } catch (_) {
+        // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+      }
     }
   }
 
@@ -89,7 +91,9 @@ class PostApi {
     if (watchedMs <= 0) return;
     try {
       await session.api.post('/posts/$id/view', {'watchedMs': watchedMs, 'durationMs': durationMs});
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   Future<Post> get(int id) async => Post.fromJson(_m(await session.api.get('/posts/$id')));

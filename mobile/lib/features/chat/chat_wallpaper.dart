@@ -68,7 +68,9 @@ class ChatBackgroundPrefs extends ChangeNotifier {
       // Eski sürüm değerleri: campus/pattern/soft/plain -> Ders Hafif; strong -> Ders Orta ("düz" ve "Kampüs" artık yok).
       if (raw == 'strong') _density = ChatBgDensity.strong;
       if (rawDensity == ChatBgDensity.strong.name) _density = ChatBgDensity.strong;
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     _loaded = true;
     notifyListeners();
   }
@@ -93,7 +95,9 @@ class ChatBackgroundPrefs extends ChangeNotifier {
       } else {
         await _storage.write(key: densityKey, value: d.name);
       }
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   /// Çıkış / hesap silme / oturum değişimi: tercih silinir, bellekteki değer varsayılana döner.
@@ -106,7 +110,9 @@ class ChatBackgroundPrefs extends ChangeNotifier {
     try {
       await _storage.delete(key: key);
       await _storage.delete(key: densityKey);
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
     p.notifyListeners();
   }
 

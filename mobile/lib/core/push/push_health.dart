@@ -114,7 +114,9 @@ class SystemPushHealthSource implements PushHealthSource {
     if (!kIsWeb && Platform.isAndroid) {
       try {
         return await _ch.invokeMethod<bool>('openNotificationSettings') ?? false;
-      } catch (_) {}
+      } catch (_) {
+        // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+      }
     }
     return PermissionService.instance.openSettings();
   }

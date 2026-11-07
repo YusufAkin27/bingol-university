@@ -70,7 +70,9 @@ abstract final class PostVideoVolumeKeys {
       final sub = VolumeController.instance.addListener(onVolume);
       sub.onError((Object _) {});
       _sub = sub;
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   static void release() {
@@ -81,7 +83,9 @@ abstract final class PostVideoVolumeKeys {
     try {
       sub?.cancel();
       VolumeController.instance.removeListener();
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 
   /// Ses seviyesi bildirimi: ilk değer yalnız başlangıç seviyesidir; sonraki artış sesi açar.

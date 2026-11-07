@@ -35,6 +35,8 @@ class ThemeController extends ChangeNotifier {
         ThemeMode.dark => 'dark',
         ThemeMode.system => 'system',
       });
-    } catch (_) {}
+    } catch (_) {
+      // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
   }
 }
