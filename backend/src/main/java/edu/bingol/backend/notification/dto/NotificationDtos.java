@@ -40,7 +40,15 @@ public final class NotificationDtos {
     /** subtype ve count (gruplanmis bildirimdeki adet) eklendi; mevcut alanlar aynen korunur. */
     public record NotificationView(Long id, NotificationType type, String title, String body, String data,
                                    boolean read, String createdAt, String subtype, int count, String groupKey,
-                                   String actorAvatarUrl, String sourceName) {
+                                   String actorAvatarUrl, String sourceName,
+                                   @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String eventState) {
+        /** Eski 12 alanli kurucu (etkinlik durumu yok). */
+        public NotificationView(Long id, NotificationType type, String title, String body, String data,
+                                boolean read, String createdAt, String subtype, int count, String groupKey,
+                                String actorAvatarUrl, String sourceName) {
+            this(id, type, title, body, data, read, createdAt, subtype, count, groupKey, actorAvatarUrl, sourceName, null);
+        }
+
         /** Eski 10 alanli kurucu (aktor avatari / kaynak adi yok). */
         public NotificationView(Long id, NotificationType type, String title, String body, String data,
                                 boolean read, String createdAt, String subtype, int count, String groupKey) {
@@ -50,7 +58,13 @@ public final class NotificationDtos {
         /** Istek anindaki projeksiyon (gizlilik suzgeciyle); kalici `data`ya yazilmaz. */
         public NotificationView withProjection(String actorAvatarUrl, String sourceName) {
             return new NotificationView(id, type, title, body, data, read, createdAt, subtype, count, groupKey,
-                    actorAvatarUrl, sourceName);
+                    actorAvatarUrl, sourceName, eventState);
+        }
+
+        /** Etkinlik bildirimi icin guncel durum: LIVE | ENDED | CANCELLED | UNAVAILABLE (istek anindaki projeksiyon). */
+        public NotificationView withEventState(String state) {
+            return new NotificationView(id, type, title, body, data, read, createdAt, subtype, count, groupKey,
+                    actorAvatarUrl, sourceName, state);
         }
 
         public String getCategory() {

@@ -71,6 +71,42 @@ class EventCalendarTest {
     }
 
     @Test
+    void calendarForPastMonthNeverAsksForEndedEvents() {
+        when(official.inRange(any(), any(), any(), any())).thenReturn(List.of());
+        upcoming(List.of());
+
+        svc.calendar(me, YearMonth.of(2026, 1));
+
+        ArgumentCaptor<Instant> from = ArgumentCaptor.forClass(Instant.class);
+        verify(events).upcoming(any(), from.capture(), any(), anyLong(), any(), anyLong(), any(), any(), any(), any(), any());
+        // alt sinir ayin basi degil "simdi": biten etkinlikler sorguya girmez
+        assertTrue(!from.getValue().isBefore(Instant.now().minusSeconds(5)));
+    }
+
+    @Test
+    void listWithPastFromIsClampedToNowForNormalUser() {
+        upcoming(List.of());
+
+        svc.list(me, Instant.parse("2020-01-01T00:00:00Z"), null, null, null, 20);
+
+        ArgumentCaptor<Instant> from = ArgumentCaptor.forClass(Instant.class);
+        verify(events).upcoming(any(), from.capture(), any(), anyLong(), any(), anyLong(), any(), any(), any(), any(), any());
+        assertTrue(!from.getValue().isBefore(Instant.now().minusSeconds(5)));
+    }
+
+    @Test
+    void clubStaffMayListPastEventsOfTheirClub() {
+        upcoming(List.of());
+        when(communities.roleOf(4L, 1L)).thenReturn(java.util.Optional.of(CommunityMember.Role.OWNER));
+
+        svc.list(me, Instant.parse("2020-01-01T00:00:00Z"), null, 4L, null, 20);
+
+        ArgumentCaptor<Instant> from = ArgumentCaptor.forClass(Instant.class);
+        verify(events).upcoming(any(), from.capture(), any(), eq(4L), any(), anyLong(), any(), any(), any(), any(), any());
+        assertEquals(Instant.parse("2020-01-01T00:00:00Z"), from.getValue());
+    }
+
+    @Test
     void multiDayEventFromPreviousMonthIsClampedToFirstDay() {
         // 28 Ekim 12:00 -> 3 Kasim; Kasim takviminde 1 Kasim gorunur
         upcoming(List.of(event(7L, Instant.parse("2026-10-28T09:00:00Z"), Instant.parse("2026-11-03T09:00:00Z"), null)));

@@ -32,6 +32,14 @@ public class EventReminderService {
         this.notifications = notifications;
     }
 
+    private UserEventRepository fresh;
+
+    /** Gonderimden hemen once etkinligin guncel durumunu veritabanindan okumak icin (testlerde yoksa satirdaki varlik). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setFresh(UserEventRepository fresh) {
+        this.fresh = fresh;
+    }
+
     private EventPushHints hints;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -58,12 +66,12 @@ public class EventReminderService {
         // Once saat hatirlatmalari (gun hatirlatmasi da kapanir), sonra gun hatirlatmalari.
         List<Object[]> hour = rsvps.hourCandidates(EventRsvp.Status.GOING, UserEvent.Status.ACTIVE, now,
                 now.plus(Duration.ofHours(1)), PageRequest.of(0, BATCH));
-        sent += remind(hour, "notif.event.reminderHour", rsvps::claimHour, rsvps::unclaimHour);
+        sent += remind(now, hour, "notif.event.reminderHour", rsvps::claimHour, rsvps::unclaimHour);
         // FIX-P05 (A05#7, K16): "yarin" metni icin pencere daraltildi (eskiden 1-24 sa: 3 saat sonraki etkinlige de
         // "yarin" gidiyordu). Pencereye girmeyen (kisa surede RSVP verilen) etkinlik zaten saat hatirlatmasi alir.
         List<Object[]> day = rsvps.dayCandidates(EventRsvp.Status.GOING, UserEvent.Status.ACTIVE,
                 now.plus(DAY_WINDOW_FROM), now.plus(DAY_WINDOW_TO), PageRequest.of(0, BATCH));
-        sent += remind(day, "notif.event.reminderDay", rsvps::claimDay, rsvps::unclaimDay);
+        sent += remind(now, day, "notif.event.reminderDay", rsvps::claimDay, rsvps::unclaimDay);
         return sent;
     }
 
@@ -72,7 +80,7 @@ public class EventReminderService {
     static final Duration DAY_WINDOW_TO = Duration.ofHours(26);
 
     /** Adaylari sahiplenir, etkinlik basina toplu gonderir; tek etkinligin hatasi digerlerini engellemez. */
-    private int remind(List<Object[]> rows, String key, java.util.function.ToIntFunction<Long> claim,
+    private int remind(Instant now, List<Object[]> rows, String key, java.util.function.ToIntFunction<Long> claim,
                        java.util.function.Consumer<Long> unclaim) {
         Map<Long, List<Long>> claimedByEvent = new java.util.LinkedHashMap<>(); // etkinlik -> sahiplenilen rsvp kimlikleri
         Map<Long, List<Long>> usersByEvent = new java.util.LinkedHashMap<>();
@@ -89,6 +97,12 @@ public class EventReminderService {
         int sent = 0;
         for (Map.Entry<Long, List<Long>> en : usersByEvent.entrySet()) {
             UserEvent e = events.get(en.getKey());
+            // Gonderimden HEMEN ONCE: iptal edilmis / bitmis etkinlige hatirlatma gitmez (sahiplenme geri alinmaz: tekrar denenmez).
+            UserEvent current = fresh == null ? e : fresh.findById(e.getId()).orElse(null);
+            if (!EventLiveness.isLive(current, now)) {
+                log.info("Hatirlatma atlandi (etkinlik {} iptal/bitmis)", e.getId());
+                continue;
+            }
             String where = e.getLocation() == null ? "" : " (" + e.getLocation() + ")";
             try {
                 Map<String, String> hint = hints == null ? Map.of("eventId", e.getId().toString())
