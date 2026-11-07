@@ -423,13 +423,13 @@ void main() {
     for (final dark in [false, true]) {
       final t = dark ? BuTokens.dark : BuTokens.light;
       test('${dark ? "koyu" : "acik"}: belirtilen onaltilik degerler', () {
-        expect(t.navAccent, const Color(0xFFF73A2E));
+        expect(t.navAccent, const Color(0xFF09090B)); // kirmizi YOK (kullanici karari 2026-11-07, WhatsApp)
         // Alt cubuk iki temada da beyaz (kullanici karari 2026-11-07): kirmizi parlama yok, hafif gri golge.
         expect(t.navBorder, const Color(0x14000000));
         expect(t.navTextIdle, const Color(0xFF71717A));
         expect(t.navIconIdle, const Color(0xFF52525B));
         expect(t.navBase, const Color(0xFFFFFFFF));
-        if (dark) expect(t.navAccentHi, const Color(0xFFFF544A));
+        expect(t.navAccentHi, const Color(0xFF09090B));
       });
       test('${dark ? "koyu" : "acik"}: cam ustunde pasif simge >= 3, pasif yazi >= 4.5, aktif >= 3', () {
         final glass = Color.alphaBlend(t.navGlass, dark ? const Color(0xFF000000) : const Color(0xFFFFFFFF));

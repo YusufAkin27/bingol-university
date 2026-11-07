@@ -209,21 +209,28 @@ class _GlassSurface extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = tokens;
     final r = BorderRadius.circular(BukampusBottomNavigationBar.radius);
+    // Zemin rengi ve parlama AYRI katman: BoxDecoration'da gradient varken color çizilmez (shader rengi ezer);
+    // tek katmanda cam çubuk beyaz değil şeffaf koyu görünüyordu.
     final surface = DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: r,
         color: opaque ? t.navBase : t.navGlass,
-        gradient: opaque
-            ? null
-            : LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                stops: const [0, .5],
-                colors: [t.onMedia.withValues(alpha: t.navBase.computeLuminance() < .5 ? .05 : .5), t.onMedia.withValues(alpha: 0)],
-              ),
         border: Border.all(color: t.navBorder, width: BukampusBottomNavigationBar.borderWidth),
       ),
-      child: const SizedBox.expand(),
+      child: opaque
+          ? const SizedBox.expand()
+          : DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: r,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  stops: const [0, .5],
+                  colors: [t.onMedia.withValues(alpha: t.navBase.computeLuminance() < .5 ? .05 : .5), t.onMedia.withValues(alpha: 0)],
+                ),
+              ),
+              child: const SizedBox.expand(),
+            ),
     );
     return Stack(
       clipBehavior: Clip.none,
