@@ -23,7 +23,7 @@ class FirebaseFcmPayloadTest {
     }
 
     @Test
-    void androidNeverSendsFcmCollapseKeyButKeepsTagTtlAndHighPriority() throws Exception {
+    void androidChatNeverSendsFcmCollapseKeyNorTagButKeepsTtlAndHighPriority() throws Exception {
         AndroidConfig c = FirebaseFcmSender.android(chat());
 
         assertThat(field(c, "collapseKey")).isNull(); // >4 anahtar cevrimdisi cihazda mesaj dusurur
@@ -31,7 +31,8 @@ class FirebaseFcmPayloadTest {
         // SDK enum adini kucuk harfe cevirir; tr yerelinde "hIgh" -> yerelden bagimsiz karsilastir
         assertThat(String.valueOf(field(c, "priority")).toUpperCase(java.util.Locale.ROOT)).contains("HIGH");
         Object n = field(c, "notification");
-        assertThat(field(n, "tag")).isEqualTo("conv:5");
+        // Her mesaj ayri bildirim: ayni etiket oncekini tepsiden silerdi (kok neden: "pes pese mesajda onceki kayboluyor")
+        assertThat(field(n, "tag")).isNull();
         assertThat(field(n, "channelId")).isEqualTo("chat");
         assertThat(field(n, "notificationCount")).isEqualTo(3);
     }
@@ -58,7 +59,7 @@ class FirebaseFcmPayloadTest {
 
     @Test
     void androidKeepsTagOnlyForIntendedMergeKeys() throws Exception {
-        for (String key : new String[] {"conv:5", "follow:7", "postlike:9", "commpost:3"}) {
+        for (String key : new String[] {"follow:7", "postlike:9", "commpost:3"}) {
             PushMessage m = new PushMessage("T", "B", Map.of(), key, "thread", "social", "POST_LIKE", null, false, 86_400);
             assertThat(field(field(FirebaseFcmSender.android(m), "notification"), "tag")).isEqualTo(key);
         }
@@ -66,12 +67,14 @@ class FirebaseFcmPayloadTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    void apnsCarriesPriorityExpirationCollapseIdAndThread() throws Exception {
+    void apnsChatCarriesPriorityExpirationAndThreadButNoCollapseId() throws Exception {
         ApnsConfig a = FirebaseFcmSender.apns(chat());
 
         Map<String, String> h = (Map<String, String>) field(a, "headers");
         assertThat(h).containsEntry("apns-push-type", "alert").containsEntry("apns-priority", "10")
-                .containsEntry("apns-collapse-id", "conv:5").containsKey("apns-expiration");
+                .doesNotContainKey("apns-collapse-id").containsKey("apns-expiration");
+        Map<String, Object> aps = (Map<String, Object>) ((Map<String, Object>) field(a, "payload")).get("aps");
+        assertThat(aps.get("thread-id")).isEqualTo("conv:5");
         assertThat(Long.parseLong(h.get("apns-expiration"))).isGreaterThan(System.currentTimeMillis() / 1000);
     }
 
@@ -88,5 +91,23 @@ class FirebaseFcmPayloadTest {
         Map<String, Object> aps = (Map<String, Object>) payload.get("aps");
         assertThat(aps.get("interruption-level")).isEqualTo("passive");
         assertThat(aps.get("thread-id")).isEqualTo("post-1");
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void apnsKeepsCollapseIdForIntendedMergeKeysOnly() throws Exception {
+        PushMessage m = new PushMessage("T", "B", Map.of(), "follow:7", "user", "social", "USER_FOLLOW", null, false, 86_400);
+        Map<String, String> h = (Map<String, String>) field(FirebaseFcmSender.apns(m), "headers");
+        assertThat(h).containsEntry("apns-collapse-id", "follow:7");
+    }
+
+    @Test
+    void richChatDataOnlyKeepsConversationTagInDataForClientAccumulation() throws Exception {
+        // Zengin Android yukunde `data.tag` (conv:<id>) istemcide MessagingStyle birikimi icindir; FCM duzeyinde etiket yok
+        PushMessage m = new PushMessage("Ali", "Selam", Map.of("type", "MESSAGE", "richChat", "1", "tag", "conv:5",
+                "messageId", "77"), "conv:5", "conv:5", "chat", "BU_CHAT_DIRECT", 1, true, 604_800);
+        AndroidConfig c = FirebaseFcmSender.android(m);
+        assertThat(field(c, "notification")).isNull();
+        assertThat(FirebaseFcmSender.perMessage(m)).isTrue();
     }
 }

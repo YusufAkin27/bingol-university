@@ -425,6 +425,10 @@ public class MessageService {
         String preview = previewOf(m, view);
         Map<String, String> data = new java.util.HashMap<>(Map.of("conversationId", String.valueOf(conv.getId()),
                 "messageId", String.valueOf(m.getId()), "conversationType", conv.getType().name()));
+        String mediaKind = mediaKindOf(m, view);
+        if (mediaKind != null) {
+            data.put("mediaKind", mediaKind); // aciklamasiz medya: onizleme alicinin dilinde ("Fotograf gonderdi")
+        }
         Long imageId = edu.bingol.backend.notification.RichChatPayload.previewAttachmentId(view.attachments());
         if (imageId != null) data.put("imageAttachmentId", imageId.toString());
         Long convId = conv.getId();
@@ -488,6 +492,25 @@ public class MessageService {
         String label = i18n == null ? "🔗" : i18n.msg("share.preview." + shareType, lang);
         String n = note == null ? "" : note.strip();
         return n.isEmpty() ? label : label + ": " + (n.length() > PUSH_PREVIEW ? n.substring(0, PUSH_PREVIEW) + "…" : n);
+    }
+
+    /** Aciklamasiz (metinsiz), tek gosterimlik OLMAYAN, paylasim olmayan medya mesaji: PHOTO | VIDEO; degilse null. */
+    static String mediaKindOf(Message m, MessageView view) {
+        List<AttachmentView> att = view == null ? null : view.attachments();
+        if (att == null || att.isEmpty() || MessagingDtos.hasViewOnce(att) || m.getShareType() != null) {
+            return null;
+        }
+        String body = m.getBody();
+        if (body != null && !body.isEmpty()) {
+            return null;
+        }
+        return att.stream().allMatch(a -> "VIDEO".equals(a.kind())) ? "VIDEO" : "PHOTO";
+    }
+
+    /** Medya onizleme metni (alici dilinde): "Fotograf gonderdi" / "Video gonderdi". */
+    String mediaPreview(String kind, Lang lang) {
+        String fallback = "VIDEO".equals(kind) ? "🎬" : "📷";
+        return i18n == null ? fallback : i18n.msg("chat.preview." + kind, lang);
     }
 
     private static String viewOnceIcon(List<AttachmentView> att) {
@@ -575,16 +598,17 @@ public class MessageService {
                     batch.add(new NotificationService.MessageTarget(id, push, extra));
                 }
             }
-            if (!batch.isEmpty() && shareType == null) {
+            String mediaKind = shareType == null ? data.get("mediaKind") : null;
+            if (!batch.isEmpty() && shareType == null && mediaKind == null) {
                 notifications.sendNewMessageBatch(batch, title, preview, data, count);
             } else if (!batch.isEmpty()) {
-                // Paylasim: onizleme ALICININ dilinde notr etiket (+ varsa gonderenin notu); dil basina bir toplu cagri
+                // Paylasim / aciklamasiz medya: onizleme ALICININ dilinde notr etiket (+ varsa gonderenin notu); dil basina bir toplu cagri
                 Map<Lang, List<NotificationService.MessageTarget>> byLang = new java.util.EnumMap<>(Lang.class);
                 for (NotificationService.MessageTarget t : batch) {
                     byLang.computeIfAbsent(Lang.of(langOf.get(t.userId())), l -> new java.util.ArrayList<>()).add(t);
                 }
                 byLang.forEach((lang, group) -> notifications.sendNewMessageBatch(group, title,
-                        sharePreview(shareType, preview, lang), data, count));
+                        shareType != null ? sharePreview(shareType, preview, lang) : mediaPreview(mediaKind, lang), data, count));
             }
         } catch (RuntimeException e) {
             log.warn("Mesaj bildirimi gonderilemedi: {}", e.toString());

@@ -171,6 +171,16 @@ public class FirebaseFcmSender implements FcmSender {
                 .build();
     }
 
+    /**
+     * Sohbet mesaji: HER mesaj kendi bildirimidir. Eskiden collapseKey (`conv:<id>`) Android `tag` ve `apns-collapse-id`
+     * olarak gidiyor, ayni sohbetin her yeni mesaji oncekini tepsiden SILIYORDU (standart FCM karti ve iOS). Gruplama iOS'ta
+     * `thread-id`, zengin Android'de istemcinin `data.tag` ile MessagingStyle birikimi ile yapilir; sistem duzeyinde
+     * birlesme YOK. Diger turlerde (takip, begeni...) bilincli birlesme korunur.
+     */
+    static boolean perMessage(PushMessage m) {
+        return "chat".equals(m.channelId()) || (m.data() != null && "MESSAGE".equals(m.data().get("type")));
+    }
+
     static AndroidConfig android(PushMessage m) {
         AndroidNotification.Builder n = AndroidNotification.builder().setSound("default");
         if (m.channelId() != null) {
@@ -181,7 +191,7 @@ public class FirebaseFcmSender implements FcmSender {
         // etiket YOKTUR: sistem her bildirime ayri satir verir; tur/thread adi etiket yapilirsa farkli duyurular
         // birbirini siler (A13-01). threadId yalniz iOS gruplamasi icindir. FCM `collapse_key` KASITLI gonderilmez:
         // cevrimdisi cihazda >4 farkli anahtar tanimsiz davranis uretir ve mesaj dusurebilir.
-        if (m.collapseKey() != null) {
+        if (m.collapseKey() != null && !perMessage(m)) {
             n.setTag(m.collapseKey());
         }
         if ("chat".equals(m.channelId())) {
@@ -237,7 +247,7 @@ public class FirebaseFcmSender implements FcmSender {
             // APNs son gecerlilik: mutlak UNIX zamani (sn); 0 = bir kez dene, saklama
             b.putHeader("apns-expiration", String.valueOf(java.time.Instant.now().getEpochSecond() + m.ttlSeconds()));
         }
-        if (m.collapseKey() != null && m.collapseKey().length() <= MAX_APNS_COLLAPSE_ID) {
+        if (m.collapseKey() != null && !perMessage(m) && m.collapseKey().length() <= MAX_APNS_COLLAPSE_ID) {
             b.putHeader("apns-collapse-id", m.collapseKey());
         }
         return b.build();
