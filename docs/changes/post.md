@@ -405,3 +405,10 @@ Kullanıcı kararı: "7 kelime zorunluluğu kalksın, istediği uzunlukta payla�
 
 - `GET /api/users/{id}` ve arama satırı: gizli (kilitli) hesapta `followerCount`, `followingCount` ve `postCount` (görünür gönderi sayısı) artık bakan takipçi olmasa da gelir; takip isteği/bırakma yanıtlarındaki `followerCount` da gerçek sayıdır. Listeler (`/followers`, `/following` -> `locked:true`), gönderi içeriği/ızgarası, medya dosyaları, `popularityScore`, `likesReceived` ve `reelCount` kilitliyken KAPALI kalır. Engel/askı kuralları aynı (engelli çift: sabit 0).
 - Sohbet paylaşım kartı, gönderi detayı ve gönderi medyası zaten `PrivateAccountGate` ile bakana göre doğrulanır (kart `available:false`, detay/medya 404); değişmedi.
+
+## Cok fotografli gonderi (2026-11-07)
+
+- Bir gonderi 1..10 SIRALI fotograf VEYA tek video tasir. `POST /api/posts` govdesi `mediaIds: [..]` (sira = gosterim sirasi; tek elemanli liste eski davranisla aynidir). Asim: 422 `POST_MEDIA_LIMIT`; video + baska medya ya da birden cok video: 422 `POST_MEDIA_MIX`; tekrarli/yabanci/baglanmis/gizli medya: 400 `POST_MEDIA_INVALID` (hicbiri baglanmaz). `POST_SINGLE_PHOTO_ONLY` artik uretilmez (cevirisi birakildi).
+- `PostView.media[]` tum fotograflari `position` sirasiyla doner (`{id,kind,url,thumbUrl,width,height,durationMs,position}`); `media[0]` eski istemcilerin gordugu ilk fotografla aynidir, yeni alan eski istemciyi bozmaz. Eski karisik veri (video + fotograf): ilk medya video ise yalniz o, degilse yalniz fotograflar gosterilir.
+- Sema degisikligi YOK: `post_media (post_id, position)` ve `post.media_count` zaten coklu medyayi tasiyordu. Liste/akis yanitinda medya tek sorguyla (`findByPostIdIn`) toplu yuklenir; `requireMedia` tek `findAllById`. Silme/gizleme/admin/DataExporter/hesap silme zaten `post_id`/`owner_id` uzerinden tum satirlari kapsar. Medya erisimi (`PostMediaService.accessible`) her medya icin gizli hesap kuralini ayri uygular.
+- Idempotency-Key ayni gonderiyi (tum medyasiyla) doner.
