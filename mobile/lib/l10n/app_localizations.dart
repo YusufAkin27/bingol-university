@@ -24011,6 +24011,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Kulübümü yönet'**
   String get hubOpenManage;
+
+  /// No description provided for @shareUnavailablePost.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu gönderi görüntülenemiyor. Gizli bir hesaba ait olabilir.'**
+  String get shareUnavailablePost;
 }
 
 class _AppLocalizationsDelegate

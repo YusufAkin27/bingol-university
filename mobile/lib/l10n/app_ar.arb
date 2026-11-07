@@ -3737,7 +3737,7 @@
   "homeMenuPhotoPending": "بانتظار صورة جديدة",
   "homeSearchFilters": "فلاتر البحث",
   "homeMore": "المزيد",
-  "homeViewAll": "عرض الكل",
+  "homeViewAll": "عرض الكل",
   "homeJoinedEvents": "الفعاليات التي انضممت إليها",
   "regTitle": "أنشئ حسابك",
   "regSubtitle": "أدخل اسمك وعنوان بريدك الإلكتروني وكلمة مرور. سيُرسل رمز التحقق إلى بريدك الإلكتروني.",
@@ -4847,5 +4847,6 @@
   "hubNoRequests": "لا توجد طلبات معلّقة.",
   "hubNoPast": "لا توجد فعاليات سابقة.",
   "profileClubHub": "أنديتي وفعالياتي",
-  "hubOpenManage": "إدارة ناديي"
+  "hubOpenManage": "إدارة ناديي",
+  "shareUnavailablePost": "هذا المنشور غير متاح. قد يعود إلى حساب خاص."
 }

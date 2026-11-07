@@ -406,7 +406,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
     final email = _s('email');
     final s = _stats;
     final locked = _isLocked;
-    final stat = _blocked ? '—' : (locked ? '–' : null);
+    // Gizli hesapta SAYILAR herkese açıktır (liste ve gönderiler kapalı). Eski sunucu sayıyı null döndürürse '–'.
+    final stat = _blocked ? '—' : null;
+    final hasCounts = _p?['followerCount'] != null;
+    final lockedNoCount = locked && !hasCounts;
     final avatarHidden = _self && _p?['avatarHidden'] == true;
     return ListView(
       padding: EdgeInsets.fromLTRB(20, 8, 20, MediaQuery.of(context).padding.bottom + 32),
@@ -477,11 +480,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
             Divider(height: 1, thickness: 1, color: t.bd),
             IntrinsicHeight(
               child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                Expanded(child: _stat(t, stat ?? (_profileCount('postCount') != null ? '${_profileCount('postCount')}' : _postCount) ?? '0', l.icerikStatPosts)),
+                Expanded(child: _stat(t, stat ?? (_profileCount('postCount') != null ? '${_profileCount('postCount')}' : _postCount) ?? (locked ? '–' : '0'), l.icerikStatPosts)),
                 VerticalDivider(width: 1, thickness: 1, color: t.bd),
-                Expanded(child: _stat(t, stat ?? (s == null ? '0' : '${s.followers}'), l.icerikStatFollowers, followers: _blocked || locked ? null : true)),
+                Expanded(child: _stat(t, stat ?? (lockedNoCount ? '–' : (s == null ? '0' : '${s.followers}')), l.icerikStatFollowers, followers: _blocked || lockedNoCount ? null : true)),
                 VerticalDivider(width: 1, thickness: 1, color: t.bd),
-                Expanded(child: _stat(t, stat ?? (s == null ? '0' : '${s.following}'), l.icerikStatFollowing, followers: _blocked || locked ? null : false)),
+                Expanded(child: _stat(t, stat ?? (lockedNoCount ? '–' : (s == null ? '0' : '${s.following}')), l.icerikStatFollowing, followers: _blocked || lockedNoCount ? null : false)),
               ]),
             ),
             Divider(height: 1, thickness: 1, color: t.bd),

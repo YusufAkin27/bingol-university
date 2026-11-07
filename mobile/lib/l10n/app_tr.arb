@@ -5841,7 +5841,7 @@
   "homeMenuPhotoPending": "Yeni görsel bekliyor",
   "homeSearchFilters": "Arama filtreleri",
   "homeMore": "Diğer",
-  "homeViewAll": "Tümünü gör",
+  "homeViewAll": "Tümünü gör",
   "homeJoinedEvents": "Katıldığım etkinlikler",
   "regTitle": "Hesap oluşturun",
   "regSubtitle": "Adınızı, e-posta adresinizi ve şifrenizi girin. Doğrulama kodunuz e-posta adresinize gönderilir.",
@@ -7200,5 +7200,6 @@
   "hubNoRequests": "Bekleyen başvurun yok.",
   "hubNoPast": "Geçmiş etkinliğin yok.",
   "profileClubHub": "Kulüp ve Etkinliklerim",
-  "hubOpenManage": "Kulübümü yönet"
+  "hubOpenManage": "Kulübümü yönet",
+  "shareUnavailablePost": "Bu gönderi görüntülenemiyor. Gizli bir hesaba ait olabilir."
 }

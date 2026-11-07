@@ -13313,4 +13313,8 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get hubOpenManage => 'Kulübümü yönet';
+
+  @override
+  String get shareUnavailablePost =>
+      'Bu gönderi görüntülenemiyor. Gizli bir hesaba ait olabilir.';
 }

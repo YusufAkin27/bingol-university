@@ -13362,4 +13362,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hubOpenManage => 'Manage my club';
+
+  @override
+  String get shareUnavailablePost =>
+      'This post is unavailable. It may belong to a private account.';
 }

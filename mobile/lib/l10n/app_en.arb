@@ -3737,7 +3737,7 @@
   "homeMenuPhotoPending": "Waiting for a new photo",
   "homeSearchFilters": "Search filters",
   "homeMore": "More",
-  "homeViewAll": "View all",
+  "homeViewAll": "View all",
   "homeJoinedEvents": "Events I joined",
   "regTitle": "Create your account",
   "regSubtitle": "Enter your name, email address and a password. Your verification code will be sent to your email address.",
@@ -4847,5 +4847,6 @@
   "hubNoRequests": "You have no pending requests.",
   "hubNoPast": "You have no past events.",
   "profileClubHub": "Clubs and events",
-  "hubOpenManage": "Manage my club"
+  "hubOpenManage": "Manage my club",
+  "shareUnavailablePost": "This post is unavailable. It may belong to a private account."
 }

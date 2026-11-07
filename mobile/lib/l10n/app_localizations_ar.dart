@@ -13241,4 +13241,8 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get hubOpenManage => 'إدارة ناديي';
+
+  @override
+  String get shareUnavailablePost =>
+      'هذا المنشور غير متاح. قد يعود إلى حساب خاص.';
 }
