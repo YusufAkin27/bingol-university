@@ -3365,7 +3365,15 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       } else if (st == null && id != null) {
         statusLine = (id <= peerRead || m['status'] == 'READ') ? 'seen' : 'sent';
         final rec = _seenAtByConv[_cid];
-        if (statusLine == 'seen' && rec != null && id <= rec.upTo) seenAt = rec.at;
+        if (statusLine == 'seen') {
+          // Sunucu okunma zamanını (MessageView.readAt, yalnız gönderene) verirse o kesindir; yoksa canlı olay anı (yaklaşık).
+          final srv = DateTime.tryParse('${m['readAt'] ?? ''}');
+          if (srv != null) {
+            seenAt = srv.toUtc();
+          } else if (rec != null && id <= rec.upTo) {
+            seenAt = rec.at;
+          }
+        }
       }
     }
     Widget make(bool hl) => MessageBubble(
