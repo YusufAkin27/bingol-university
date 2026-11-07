@@ -72,6 +72,11 @@ public final class NotificationDtos {
                     edu.bingol.backend.notification.NotificationPresentation.data(data));
         }
 
+        /** Merkez kapsami: SOCIAL (Hareketler/kalp) | INFORMATION (Bildirimler/zil); sunucu tek kaynaktir. */
+        public String getScope() {
+            return edu.bingol.backend.notification.NotificationPresentation.scope(getCategory());
+        }
+
         public static NotificationView of(Notification n) {
             return new NotificationView(n.getId(), n.getType(), n.getTitle(), n.getBody(), n.getData(),
                     n.getReadAt() != null, n.getCreatedAt().toString(), n.getSubtype(), n.getGroupCount(), n.getCollapseKey());
@@ -82,10 +87,24 @@ public final class NotificationDtos {
 
     public record UnreadCount(long unreadCount) {}
 
+    /**
+     * Iki bagimsiz merkez sayaci (sunucuda hesaplanir): social = Hareketler okunmamis (kalp), information = Bildirimler
+     * okunmamis (zil). pendingFollowRequests / pendingMembershipRequests kalp noktasina eklenir (islem bekleyen istekler).
+     * unreadCount = eski toplam (geriye uyum).
+     */
+    public record UnreadCounts(long social, long information, long unreadCount, long pendingFollowRequests,
+                               long pendingMembershipRequests) {}
+
     public record DeletedCount(int deleted) {}
 
     /** ids veya all=true'dan biri verilmeli. */
-    public record MarkReadRequest(@jakarta.validation.constraints.Size(max = 200) List<Long> ids, Boolean all) {}
+    public record MarkReadRequest(@jakarta.validation.constraints.Size(max = 200) List<Long> ids, Boolean all,
+                                  @jakarta.validation.constraints.Size(max = 16) String scope) {
+        /** Eski 2 alanli kurucu: all=true tum kutuyu (iki merkez) okundu yapar. */
+        public MarkReadRequest(List<Long> ids, Boolean all) {
+            this(ids, all, null);
+        }
+    }
 
     /** Sessiz saatler; start/end "HH:mm" (kullanicinin saat diliminde), start == end gecersiz. */
     public record QuietHoursView(boolean enabled, @Pattern(regexp = "([01]\\d|2[0-3]):[0-5]\\d") String start,

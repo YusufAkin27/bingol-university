@@ -4,6 +4,7 @@ import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.notification.dto.NotificationDtos.NotificationPage;
 import edu.bingol.backend.notification.dto.NotificationDtos.NotificationView;
+import edu.bingol.backend.notification.dto.NotificationDtos.UnreadCounts;
 import java.util.Arrays;
 import java.util.List;
 import org.springframework.data.domain.PageRequest;
@@ -33,20 +34,88 @@ public class NotificationInboxService {
     }
 
     public NotificationPage list(Long userId, Long cursor, int size, String type, boolean unreadOnly, String category) {
-        String selected = category == null || category.isBlank() ? null : category.trim().toUpperCase(java.util.Locale.ROOT);
-        if (selected != null && !List.of("EVENT", "ANNOUNCEMENT", "ACADEMIC", "POLL", "SOCIAL", "SYSTEM").contains(selected)) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Geçersiz bildirim kategorisi.");
+        return list(userId, cursor, size, type, unreadOnly, category, null, null);
+    }
+
+    public NotificationPage list(Long userId, Long cursor, int size, String type, boolean unreadOnly, String category,
+                                 String scope) {
+        return list(userId, cursor, size, type, unreadOnly, category, scope, null);
+    }
+
+    /**
+     * scope: SOCIAL (Hareketler/kalp) | INFORMATION (Bildirimler/zil, sosyal ve sohbet icermez) | bos = eski davranis
+     * (tum kutu). Dondurulen unreadCount eski toplamdir; merkez sayaclari {@link #unreadCounts}.
+     */
+    public NotificationPage list(Long userId, Long cursor, int size, String type, boolean unreadOnly, String category,
+                                 String scope, String kind) {
+        Boolean social = parseScope(scope);
+        // category: tek deger ya da virgullu liste (ornek "ANNOUNCEMENT,ACADEMIC,POLL" = Duyurular cipi)
+        List<String> selected = parseCategories(category);
+        String kindUp = kind == null || kind.isBlank() ? null : kind.trim().toUpperCase(java.util.Locale.ROOT);
+        if (kindUp != null && !List.of("LIKES", "COMMENTS", "FOLLOWS").contains(kindUp)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Geçersiz bildirim alt süzgeci.");
         }
         int s = CursorPage.clampSize(size);
         if (isMessageType(type)) {
             // Sohbet mesaji kutuda yok (yalniz push): gecerli tur ama bos liste
             return new NotificationPage(List.of(), null, notifications.countUnreadInbox(userId));
         }
-        List<Notification> rows = selected == null
-                ? notifications.pageFiltered(userId, cursor, types(type), unreadOnly, PageRequest.of(0, s + 1))
-                : notifications.pageCategory(userId, cursor, types(type), unreadOnly, selected, PageRequest.of(0, s + 1));
+        List<Notification> rows;
+        if (social != null) {
+            // Kapsam sorgusu (tek kaynak); kategori verilmisse kapsamla celisiyorsa bos liste.
+            rows = selected == null
+                    ? notifications.pageScope(userId, cursor, types(type), unreadOnly, social, kindUp == null ? "ALL" : kindUp, PageRequest.of(0, s + 1))
+                    : scopedCategory(userId, cursor, type, unreadOnly, selected, social, s);
+        } else {
+            rows = selected == null
+                    ? notifications.pageFiltered(userId, cursor, types(type), unreadOnly, PageRequest.of(0, s + 1))
+                    : notifications.pageCategory(userId, cursor, types(type), unreadOnly, selected, PageRequest.of(0, s + 1));
+        }
         CursorPage<NotificationView> page = CursorPage.of(rows, s, Notification::getId, NotificationView::of);
         return new NotificationPage(project(userId, page.items()), page.nextCursor(), notifications.countUnreadInbox(userId));
+    }
+
+    private List<Notification> scopedCategory(Long userId, Long cursor, String type, boolean unreadOnly,
+                                              List<String> categories, boolean social, int s) {
+        // SOCIAL kategorisi yalniz SOCIAL kapsaminda, diger kategoriler yalniz INFORMATION kapsaminda anlamlidir.
+        List<String> ok = categories.stream().filter(c -> "SOCIAL".equals(c) == social).toList();
+        if (ok.isEmpty()) {
+            return List.of();
+        }
+        return notifications.pageCategory(userId, cursor, types(type), unreadOnly, ok, PageRequest.of(0, s + 1));
+    }
+
+    private static final List<String> CATEGORIES = List.of("EVENT", "ANNOUNCEMENT", "ACADEMIC", "POLL", "SOCIAL", "SYSTEM");
+
+    /** Bos -> null (suzgec yok); gecersiz deger 400. */
+    static List<String> parseCategories(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        List<String> out = new java.util.ArrayList<>();
+        for (String part : raw.split(",")) {
+            String c = part.trim().toUpperCase(java.util.Locale.ROOT);
+            if (c.isEmpty()) {
+                continue;
+            }
+            if (!CATEGORIES.contains(c)) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Geçersiz bildirim kategorisi.");
+            }
+            out.add(c);
+        }
+        return out.isEmpty() ? null : out;
+    }
+
+    /** SOCIAL -> true, INFORMATION -> false, bos -> null; baska deger 400. */
+    static Boolean parseScope(String scope) {
+        if (scope == null || scope.isBlank()) {
+            return null;
+        }
+        return switch (scope.trim().toUpperCase(java.util.Locale.ROOT)) {
+            case "SOCIAL" -> Boolean.TRUE;
+            case "INFORMATION" -> Boolean.FALSE;
+            default -> throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Geçersiz bildirim kapsamı.");
+        };
     }
 
     // --- istek anı projeksiyonu: aktor avatari (gizlilik suzgeci) + kaynak adi (kulup); kalici data'ya yazilmaz ---
@@ -56,6 +125,15 @@ public class NotificationInboxService {
     private edu.bingol.backend.moderation.BlockService blocks;
     private edu.bingol.backend.community.CommunityRepository communities;
     private edu.bingol.backend.event.UserEventRepository events;
+    private edu.bingol.backend.post.follow.FollowRequestService followRequests;
+    private edu.bingol.backend.community.PendingMembershipCounter membershipCounter;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setPending(edu.bingol.backend.post.follow.FollowRequestService followRequests,
+                    edu.bingol.backend.community.PendingMembershipCounter membershipCounter) {
+        this.followRequests = followRequests;
+        this.membershipCounter = membershipCounter;
+    }
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     void setProjection(edu.bingol.backend.user.UserRepository users,
@@ -73,6 +151,17 @@ public class NotificationInboxService {
     private static final java.util.Set<NotificationType> ACTOR_TYPES = java.util.Set.of(NotificationType.POST_LIKE,
             NotificationType.POST_MENTION, NotificationType.USER_FOLLOW, NotificationType.FOLLOW_REQUEST, NotificationType.FOLLOW_ACCEPTED);
 
+    /** Avatari gosterilen aktorlu bildirim: sosyal turler + kulup katilma istegi (basvuran). */
+    private static boolean hasActor(NotificationView v) {
+        return ACTOR_TYPES.contains(v.type())
+                || (v.type() == NotificationType.COMMUNITY && "COMMUNITY_JOIN".equals(v.subtype()));
+    }
+
+    private static String actorKey(NotificationView v, java.util.Map<String, String> d) {
+        String k = v.type() == NotificationType.POST_LIKE ? d.get("actorId") : d.get("userId");
+        return k != null ? k : d.get("actorId");
+    }
+
     /** Hata satiri bozmaz: projeksiyon basarisizsa alanlar bos kalir. */
     private List<NotificationView> project(Long viewerId, List<NotificationView> items) {
         if (items.isEmpty() || users == null) {
@@ -86,8 +175,8 @@ public class NotificationInboxService {
             for (NotificationView v : items) {
                 java.util.Map<String, String> d = NotificationPresentation.data(v.data());
                 parsed.put(v.id(), d);
-                if (ACTOR_TYPES.contains(v.type())) {
-                    Long actor = longOf(v.type() == NotificationType.POST_LIKE ? d.get("actorId") : d.get("userId"));
+                if (hasActor(v)) {
+                    Long actor = longOf(actorKey(v, d));
                     if (actor != null) actorIds.add(actor);
                 }
                 Long c = longOf(d.get("communityId"));
@@ -129,8 +218,8 @@ public class NotificationInboxService {
             for (NotificationView v : items) {
                 java.util.Map<String, String> d = parsed.get(v.id());
                 String avatar = null;
-                if (ACTOR_TYPES.contains(v.type())) {
-                    Long actor = longOf(v.type() == NotificationType.POST_LIKE ? d.get("actorId") : d.get("userId"));
+                if (hasActor(v)) {
+                    Long actor = longOf(actorKey(v, d));
                     avatar = actor == null ? null : avatars.get(actor);
                 }
                 Long c = longOf(d.get("communityId"));
@@ -165,9 +254,41 @@ public class NotificationInboxService {
         return notifications.countUnreadInbox(userId);
     }
 
+    /**
+     * Iki merkezin sayaclari (sunucuda, bagimsiz). Bekleyen takip/uyelik istekleri islem gerektirdigi icin ayri alanlarda
+     * doner; mobil kalp noktasi = social + bekleyen istekler. Alt sorgu hatasi sayaci bozmaz (0).
+     */
+    public UnreadCounts unreadCounts(Long userId) {
+        long social = notifications.countUnreadScope(userId, true);
+        long info = notifications.countUnreadScope(userId, false);
+        long fr = 0;
+        long mr = 0;
+        try {
+            if (followRequests != null) fr = followRequests.count(userId);
+        } catch (RuntimeException ignored) {
+            // sayac hafif kalir
+        }
+        try {
+            if (membershipCounter != null) mr = membershipCounter.countFor(userId);
+        } catch (RuntimeException ignored) {
+            // sayac hafif kalir
+        }
+        return new UnreadCounts(social, info, social + info, fr, mr);
+    }
+
     public void markRead(Long userId, List<Long> ids, boolean all) {
+        markRead(userId, ids, all, null);
+    }
+
+    /** all=true + scope: yalniz o merkezin bildirimleri okundu olur; scope bos = tum kutu (eski davranis). */
+    public void markRead(Long userId, List<Long> ids, boolean all, String scope) {
         if (all) {
-            notifications.markAllRead(userId);
+            Boolean social = parseScope(scope);
+            if (social == null) {
+                notifications.markAllRead(userId);
+            } else {
+                notifications.markAllReadScopeAt(userId, social, java.time.Instant.now());
+            }
         } else if (ids != null && !ids.isEmpty()) {
             notifications.markRead(userId, ids);
         } else {

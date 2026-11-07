@@ -10,6 +10,7 @@ import edu.bingol.backend.notification.dto.NotificationDtos.NotificationPage;
 import edu.bingol.backend.notification.dto.NotificationDtos.PrefsUpdate;
 import edu.bingol.backend.notification.dto.NotificationDtos.PrefsView;
 import edu.bingol.backend.notification.dto.NotificationDtos.UnreadCount;
+import edu.bingol.backend.notification.dto.NotificationDtos.UnreadCounts;
 import jakarta.validation.Valid;
 import java.time.Duration;
 import java.util.List;
@@ -84,15 +85,17 @@ public class NotificationController {
                                  @RequestParam(defaultValue = "20") int size,
                                  @RequestParam(required = false) String type,
                                  @RequestParam(defaultValue = "false") boolean unread,
-                                 @RequestParam(required = false) String category) {
+                                 @RequestParam(required = false) String category,
+                                 @RequestParam(required = false) String scope,
+                                 @RequestParam(required = false) String kind) {
         Long uid = CurrentUser.id();
         limiter.check("notif-list:" + uid, 120, MINUTE); // T-060
-        return inbox.list(uid, cursor, size, type, unread, category);
+        return inbox.list(uid, cursor, size, type, unread, category, scope, kind);
     }
 
     /** Backward-compatible Java entry point used by internal callers. */
     public NotificationPage list(Long cursor, int size, String type, boolean unread) {
-        return list(cursor, size, type, unread, null);
+        return list(cursor, size, type, unread, null, null, null);
     }
 
     /** Hafif sayac (rozet icin sik cagrilabilir). */
@@ -103,12 +106,20 @@ public class NotificationController {
         return new UnreadCount(inbox.unreadCount(uid));
     }
 
+    /** Iki merkezin bagimsiz sayaclari: {social, information, unreadCount, pendingFollowRequests, pendingMembershipRequests}. */
+    @GetMapping("/notifications/unread-counts")
+    public UnreadCounts unreadCounts() {
+        Long uid = CurrentUser.id();
+        limiter.check("notif-count:" + uid, 120, MINUTE);
+        return inbox.unreadCounts(uid);
+    }
+
     @PostMapping("/notifications/read")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void markRead(@RequestBody MarkReadRequest r) {
         Long uid = CurrentUser.id();
         limiter.check("notif-write:" + uid, 120, MINUTE);
-        inbox.markRead(uid, r.ids(), Boolean.TRUE.equals(r.all()));
+        inbox.markRead(uid, r.ids(), Boolean.TRUE.equals(r.all()), r.scope());
     }
 
     @PostMapping("/notifications/{id}/read")

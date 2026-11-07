@@ -334,3 +334,37 @@ Aciklamasiz medya mesaji onizlemesi alicinin dilinde: `chat.preview.PHOTO|VIDEO`
 
 ### Bildirimden eylemler: denetim özeti (2026-11-07)
 Zaten çalışan ve testli (`push_actions.dart`, `test/push_actions_test.dart`): hızlı yanıt (iOS `UNTextInputNotificationAction`, Android `RemoteInput` + `ReplyDispatcher` + başlıksız Dart motoru, `clientId` idempotans), okundu işaretle, 1 saat sessize al, takip isteği kabul/reddet (`FollowRequestController`: idempotent, `FollowRequestFlowTest`), takip et, takvime ekle/harita/QR yoklama, güvenlik eylemleri. **Eklenmedi (backend'de güvenli karşılığı yok):** kulüp üyelik daveti Kabul/Reddet (kulüp davetleri yalnız kodludur, `ClubInviteService`), etkinlik daveti Katıl (kullanıcıya yönelik davet kaydı yok; "Detay" zaten açılır), forum/gönderi yorumundan satır içi "Yanıtla" (Keşfet yorumları kaldırıldı; satır içi yanıt ucu yok, "Gönderiye Git" derin bağlantı olarak çalışır).
+
+## Iki ayri bildirim merkezi: Hareketler (kalp) ve Bildirimler (zil) (2026-11-07)
+
+Bir bildirim YALNIZCA tek kapsama aittir; kapsam tek yerde (sunucu) belirlenir, istemci buna uyar.
+
+| Kapsam | Merkez | Icerik |
+|---|---|---|
+| `SOCIAL` | Kalp / **Hareketler** | `POST_LIKE`, `POST_COMMENT`, `COMMENT_REPLY`, `POST_MENTION`, `USER_FOLLOW`, `FOLLOW_REQUEST`, `FOLLOW_ACCEPTED`, `FORUM` (konu/yorum begeni ve yanitlari), kulup uyelik basvurusu ve sonucu (`COMMUNITY` + alt tur `COMMUNITY_JOIN`) |
+| `INFORMATION` | Zil / **Bildirimler** | etkinlik, duyuru, haber, akademik (sinav/ders programi), anket, kulup duyurusu/rolu, sistem/hesap guvenligi |
+| `CHAT` | Sohbet sistemi | `MESSAGE`: kutuda YOK (yalniz push), okunmamis sayaci Sohbet sekmesinde |
+
+Tek kaynak: `NotificationPresentation.category/scope` (Java), SQL karsiligi `NotificationRepository.SOCIAL_COND`
+ve `MeSummaryService.SOCIAL_COUNT_SQL`; `NotificationScopeSplitTest` uc tanimin uyustugunu denetler. Push yuku `category`
+alanini tasimaya devam eder (kulup uyelik basvurusu artik `SOCIAL`).
+
+- `GET /api/notifications?scope=SOCIAL|INFORMATION` (yeni, opsiyonel): kapsama gore liste (sayfalama sunucuda; zil
+  sosyal/sohbet icermez). `scope` yoksa eski davranis (tum kutu, MESSAGE haric). Gecersiz deger 400 `VALIDATION_ERROR`.
+- `category` artik virgullu liste kabul eder (`ANNOUNCEMENT,ACADEMIC,POLL` = Duyurular cipi). Kapsamla celisen kategori bos liste.
+- `kind=LIKES|COMMENTS|FOLLOWS` (yalniz `scope=SOCIAL`): Hareketler alt suzgecleri (Begeniler, Yorumlar, Takip ve Istekler).
+- Her `NotificationView`: yeni `scope` alani (`getScope`), mevcut `category` aynen.
+- `GET /api/notifications/unread-counts` (yeni): `{social, information, unreadCount, pendingFollowRequests, pendingMembershipRequests}`.
+  `social`/`information` bagimsiz sunucu sayaclari (zil rozeti = `information`; kalp = `social` + bekleyen istekler).
+  `unreadCount` eski toplamdir; `GET /notifications/unread-count` ve sayfadaki `unreadCount` degismedi.
+  `pendingMembershipRequests` yalniz `MANAGE_MEMBERS` yetkili oldugu kuluplerdeki bekleyen basvurulari sayar.
+- `GET /api/me/summary`: yeni `unreadSocial`, `unreadInformation`; `unreadNotifications` eski toplam olarak kalir.
+- `POST /api/notifications/read`: `{"all":true,"scope":"SOCIAL|INFORMATION"}` yalniz o merkezi okundu yapar; `scope` yoksa
+  eski davranis (tum kutu). `ids` ile tek tek okundu degismedi.
+- Kulup katilma istegi bildirimi (`notif.community.joinRequest`) artik basvuran kimligini `data.userId` ile tasir
+  (avatar projeksiyonu + Onayla/Reddet icin). Onay/ret mevcut uclar: `POST /api/communities/{id}/requests/{userId}/approve|reject`
+  (yetki sunucuda, `MANAGE_MEMBERS`; bekleyen yoksa 404 `REQUEST_NOT_FOUND`). Takip istegi: `POST /api/users/me/follow-requests/{id}/accept|decline`.
+- Cift kayit: ayni olay ayni kullanici icin tek satir (mevcut `collapseKey` + V940 kismi benzersiz indeks yazma yolu); bir olay
+  iki listeye kopyalanmaz (kapsam satirdan turetilir, kopya yok).
+- Bilinen sinir: bitmis/iptal etkinlik bildirimleri okunmamis sayacindan SUNUCUDA dusurulmez (liste `eventState` ile
+  "Sona erdi/Iptal edildi" gosterir; sayac okunana/silinene kadar kalir).

@@ -64,4 +64,8 @@ public interface CommunityMemberRepository extends JpaRepository<CommunityMember
 
     /** Verilen topluluklardaki benim uyelik kayitlarim. */
     List<CommunityMember> findByUserIdAndCommunityIdIn(Long userId, Collection<Long> communityIds);
+
+    /** Kullanicinin aktif uyesi oldugu topluluk id'leri (yetkili oldugu bekleyen istek rozeti icin; ust sinir Pageable). */
+    @Query("SELECT m.communityId FROM CommunityMember m WHERE m.userId = :uid AND m.status = edu.bingol.backend.community.CommunityMember.Status.ACTIVE")
+    List<Long> activeCommunityIds(@Param("uid") Long userId, Pageable page);
 }

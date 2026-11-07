@@ -210,5 +210,10 @@ public final class ProfileDtos {
 
     /** Ana sayfa rozetleri ve profil istatistikleri icin tek istekte sayimlar. */
     public record MeSummary(long communities, long events, long bookmarks, long unreadNotifications,
-                            long unreadMessages) {}
+                            long unreadMessages, long unreadSocial, long unreadInformation) {
+        /** Eski 5 alanli kurucu (merkez ayrimi yok). */
+        public MeSummary(long communities, long events, long bookmarks, long unreadNotifications, long unreadMessages) {
+            this(communities, events, bookmarks, unreadNotifications, unreadMessages, 0, unreadNotifications);
+        }
+    }
 }

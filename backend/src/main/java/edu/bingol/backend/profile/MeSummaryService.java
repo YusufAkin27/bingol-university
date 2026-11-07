@@ -24,6 +24,14 @@ public class MeSummaryService {
               (SELECT COUNT(*) FROM notification WHERE user_id = ? AND read_at IS NULL AND type <> 'MESSAGE')
             """;
 
+    /**
+     * Hareketler (kalp) kapsami: NotificationRepository.SOCIAL_COND ile ayni tanim (sosyal turler + kulup uyelik
+     * basvurusu); geri kalan MESSAGE disindaki her sey Bildirimler (zil). Test ikisinin uyumunu denetler.
+     */
+    static final String SOCIAL_COUNT_SQL = "SELECT COUNT(*) FROM notification WHERE user_id = ? AND read_at IS NULL "
+            + "AND (type IN ('POST_LIKE','POST_COMMENT','COMMENT_REPLY','POST_MENTION','USER_FOLLOW',"
+            + "'FOLLOW_REQUEST','FOLLOW_ACCEPTED','FORUM') OR (type = 'COMMUNITY' AND subtype = 'COMMUNITY_JOIN'))";
+
     private final JdbcTemplate jdbc;
     private final ConversationPrefsService conversationPrefs;
 
@@ -46,7 +54,10 @@ public class MeSummaryService {
         long[] c = jdbc.queryForObject(COUNTS_SQL,
                 (rs, i) -> new long[] {rs.getLong(1), rs.getLong(2), rs.getLong(3), rs.getLong(4)},
                 userId, userId, userId, userId);
-        return new MeSummary(c[0], c[1], c[2], c[3], unreadMessages(userId));
+        Long social = jdbc.queryForObject(SOCIAL_COUNT_SQL, Long.class, userId);
+        long soc = social == null ? 0 : social;
+        // unreadNotifications = toplam (eski istemci); unreadSocial (kalp) ve unreadInformation (zil) bagimsiz
+        return new MeSummary(c[0], c[1], c[2], c[3], unreadMessages(userId), soc, Math.max(0, c[3] - soc));
     }
 
     /** Rozet sayisi: sessize alinmamis konusmalarin toplami (sohbet sekmesiyle ayni tanim). */

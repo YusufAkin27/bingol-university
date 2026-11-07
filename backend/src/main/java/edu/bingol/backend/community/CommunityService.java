@@ -478,7 +478,7 @@ public class CommunityService {
         if (!open) {
             String who = displayName(a.id());
             for (Long mod : permissions.holders(id, ClubPermission.MANAGE_MEMBERS)) {
-                notifications.sendTemplated(mod, NotificationType.COMMUNITY, "notif.community.joinRequest", data(id), who, c.getName());
+                notifications.sendTemplated(mod, NotificationType.COMMUNITY, "notif.community.joinRequest", data(id, a.id()), who, c.getName());
             }
         } else {
             hooks.onMemberActivated(id, a.id());
@@ -742,6 +742,11 @@ public class CommunityService {
 
     private String displayName(Long userId) {
         return users.findById(userId).map(User::getDisplayName).orElse("Bir kullanıcı");
+    }
+
+    /** Katilma istegi bildirimi: basvuran kimligi (userId) Onayla/Reddet ve profil/avatar icin tasinir (yetki sunucuda). */
+    static Map<String, String> data(Long communityId, Long applicantId) {
+        return Map.of("communityId", communityId.toString(), "userId", applicantId.toString());
     }
 
     static Map<String, String> data(Long communityId) {
