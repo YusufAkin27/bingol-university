@@ -64,6 +64,33 @@ class ReceiptEvent {
   String get effectiveStatus => status ?? (kind == 'read' ? 'READ' : 'DELIVERED');
 }
 
+/// `/user/queue/attendance-events`: etkinlik yoklamasında QR okutuldu.
+/// `scan`: yetkiliye (sahip/moderatör) sayaç + okutan; `marked`: okutulan katılımcının kendisine.
+/// [key] aynı okutma için sabittir (çift teslim elenir). Engelli çiftte [displayName] null olabilir.
+class AttendanceLiveEvent {
+  AttendanceLiveEvent({
+    required this.type,
+    required this.key,
+    required this.eventId,
+    this.userId,
+    this.displayName,
+    this.at,
+    this.present = 0,
+    this.total = 0,
+  });
+  final String type;
+  final String key;
+  final int eventId;
+  final int? userId;
+  final String? displayName;
+  final DateTime? at;
+  final int present;
+  final int total;
+
+  bool get isScan => type == 'SCAN';
+  bool get isMarked => type == 'MARKED';
+}
+
 class Presence {
   Presence(this.online, this.lastSeenAt);
   final bool online;
@@ -120,6 +147,8 @@ class ChatRealtime with WidgetsBindingObserver {
   final _connected = StreamController<bool>.broadcast();
   final _resync = StreamController<void>.broadcast();
   final _fatal = StreamController<StompFatal>.broadcast();
+  final _attendance = StreamController<AttendanceLiveEvent>.broadcast();
+  final _seenAttendance = <String>[];
 
   bool _started = false;
   final _awaitingAck = <String>{};
@@ -138,6 +167,8 @@ class ChatRealtime with WidgetsBindingObserver {
   /// `conversation-removed`: bu kullanıcı konuşmadan çıkarıldı/ayrıldı/konuşma kapandı (konuşma kimliği).
   /// Açık sohbet ekranı kendini kapatmalı; liste ayrıca [resync] ile yenilenir.
   Stream<int> get removedConversations => _removed.stream;
+  /// Yoklama okutma olayları (aynı `key` ikinci kez yayılmaz).
+  Stream<AttendanceLiveEvent> get attendanceEvents => _attendance.stream;
   Stream<bool> get connected => _connected.stream;
   bool get isConnected => _client.isConnected;
 
@@ -160,6 +191,7 @@ class ChatRealtime with WidgetsBindingObserver {
             _typing.add(TypingEvent(_i(m['conversationId']), _i(m['userId'])));
           })))
       ..add(_client.subscribe('/user/queue/message-events', (f) => _json(f, _onMessageEvent)))
+      ..add(_client.subscribe('/user/queue/attendance-events', (f) => _json(f, _onAttendance)))
       ..add(_client.subscribe('/user/queue/errors', (f) => _json(f, (m) {
             final cid = m['clientId'] as String?;
             if (cid != null) _awaitingAck.remove(cid);
@@ -274,6 +306,30 @@ class ChatRealtime with WidgetsBindingObserver {
     unawaited(ob.remove(cid));
   }
 
+  void _onAttendance(Map<String, dynamic> m) {
+    final key = '${m['key'] ?? ''}';
+    final eid = _i(m['eventId']);
+    if (key.isEmpty || eid <= 0) return;
+    if (_seenAttendance.contains(key)) return; // çift teslim
+    _seenAttendance.add(key);
+    if (_seenAttendance.length > 200) _seenAttendance.removeAt(0);
+    final uid = _i(m['userId']);
+    _attendance.add(AttendanceLiveEvent(
+      type: '${m['type'] ?? ''}',
+      key: key,
+      eventId: eid,
+      userId: uid > 0 ? uid : null,
+      displayName: m['displayName'] as String?,
+      at: DateTime.tryParse('${m['at'] ?? ''}'),
+      present: _i(m['present']),
+      total: _i(m['total']),
+    ));
+  }
+
+  /// Yalnız testler: bir yoklama olayını bağlantısız taklit eder.
+  @visibleForTesting
+  void debugEmitAttendance(Map<String, dynamic> m) => _onAttendance(m);
+
   void _onMessageEvent(Map<String, dynamic> m) {
     // Başka cihazda giriş: oturumu kapat (stop() yeniden bağlanmayı da durdurur).
     if (m['type'] == 'session-replaced') {
@@ -327,6 +383,7 @@ class ChatRealtime with WidgetsBindingObserver {
     _deliveredSent.clear();
     _lastTypingSent.clear();
     _awaitingAck.clear();
+    _seenAttendance.clear();
     if (!_started) return;
     _started = false;
     WidgetsBinding.instance.removeObserver(this);

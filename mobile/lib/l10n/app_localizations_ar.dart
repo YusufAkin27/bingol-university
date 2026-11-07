@@ -13043,4 +13043,25 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chatLongShowLess => 'عرض أقل';
+
+  @override
+  String get evtLiveCheckedInTitle => 'تم المسح';
+
+  @override
+  String get evtLiveCheckedInBody => 'تم تسجيل حضورك.';
+
+  @override
+  String evtLiveCheckedInAt(String time) {
+    return 'الساعة $time';
+  }
+
+  @override
+  String evtLiveLastScanned(String name) {
+    return 'آخر من تم مسحه: $name';
+  }
+
+  @override
+  String evtLiveScanCount(String name) {
+    return 'تم مسح $name';
+  }
 }

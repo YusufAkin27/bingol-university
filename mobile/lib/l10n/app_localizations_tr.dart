@@ -13114,4 +13114,25 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get chatLongShowLess => 'Daha az göster';
+
+  @override
+  String get evtLiveCheckedInTitle => 'Okutuldu';
+
+  @override
+  String get evtLiveCheckedInBody => 'Yoklaman alındı.';
+
+  @override
+  String evtLiveCheckedInAt(String time) {
+    return 'Saat $time';
+  }
+
+  @override
+  String evtLiveLastScanned(String name) {
+    return 'Son okutan: $name';
+  }
+
+  @override
+  String evtLiveScanCount(String name) {
+    return '$name okuttu';
+  }
 }

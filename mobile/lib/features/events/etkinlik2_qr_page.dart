@@ -11,6 +11,7 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import 'etkinlik2_attendance_page.dart';
 import '../clubs/clubs_widgets.dart' show ClubOutlineButton, ClubPageHeader;
+import 'attendance_live.dart';
 import 'checkin_input.dart';
 import 'etkinlik2_widgets.dart';
 import 'qr_painter.dart';
@@ -42,6 +43,8 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
   DateTime? _expires;
   bool? _attOpen; // sahip yoklamayı açtı mı (my-permissions); null = bilinmiyor
   bool _attBusy = false;
+  String? _lastName; // son okutan (gerçek zamanlı)
+  AttendanceLiveBinding? _live;
 
   /// Kalan saniye: yalnız sayaç parçaları dinler (sayfanın tamamı her saniye yeniden kurulmaz).
   final _left = ValueNotifier<int>(0);
@@ -54,6 +57,19 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
     _loadCode();
     _loadCounts();
     _loadOpen();
+    _live = AttendanceLiveBinding(
+      session: widget.session,
+      eventId: _id,
+      onEvent: (e) {
+        if (!mounted || !e.isScan) return;
+        setState(() {
+          _present = e.present;
+          if (e.total > 0) _total = e.total;
+          if (e.displayName != null) _lastName = e.displayName;
+        });
+      },
+      onPoll: _loadCounts,
+    )..start();
     _tick = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted && _expires != null) _left.value = _secsLeft;
     });
@@ -63,6 +79,7 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
   void dispose() {
     _refresh?.cancel();
     _tick?.cancel();
+    _live?.dispose();
     _left.dispose();
     super.dispose();
   }
@@ -386,6 +403,13 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
       ]),
       const SizedBox(height: 8),
       Et2Progress(fraction: _total == 0 ? 0 : _present / _total, height: 4),
+      if (_lastName != null) ...[
+        const SizedBox(height: 8),
+        Semantics(
+          liveRegion: true,
+          child: Text(l.evtLiveLastScanned(_lastName!), key: const ValueKey('et2-live-last'), style: tx.bodyMedium!.copyWith(color: t.mut)),
+        ),
+      ],
       const SizedBox(height: 20),
       KeyedSubtree(
         key: const ValueKey('et2-open-list'),

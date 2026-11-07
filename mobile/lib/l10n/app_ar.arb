@@ -4766,5 +4766,31 @@
   "widgetsPrivacyTitle": "الخصوصية",
   "widgetsPrivacy": "لا تعرض الودجات أسماء المستخدمين الآخرين أو رسائلهم أو صورهم؛ يعرض الملخص الاجتماعي الأعداد فقط. عند تسجيل الخروج تُحذف بيانات الودجات وتعود إلى حالة تسجيل الدخول.",
   "chatLongShowMore": "عرض المزيد",
-  "chatLongShowLess": "عرض أقل"
+  "chatLongShowLess": "عرض أقل",
+  "evtLiveCheckedInTitle": "تم المسح",
+  "evtLiveCheckedInBody": "تم تسجيل حضورك.",
+  "evtLiveCheckedInAt": "الساعة {time}",
+  "@evtLiveCheckedInAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "evtLiveLastScanned": "آخر من تم مسحه: {name}",
+  "@evtLiveLastScanned": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "evtLiveScanCount": "تم مسح {name}",
+  "@evtLiveScanCount": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }
