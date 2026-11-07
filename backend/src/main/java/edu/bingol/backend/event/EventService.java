@@ -617,7 +617,14 @@ public class EventService {
     @Transactional(readOnly = true)
     public CursorPage<EventView> list(Actor a, Instant from, Instant to, Long communityId, Long cursor, int size) {
         int s = CursorPage.clampSize(size);
-        Instant f = from == null ? Instant.now() : from.isBefore(MIN_DATE) ? MIN_DATE : from;
+        Instant now = Instant.now();
+        Instant f = from == null ? now : from.isBefore(MIN_DATE) ? MIN_DATE : from;
+        // Biten etkinlikler normal kullaniciya listelenmez: alt sinir "simdi"nin altina inemez. Gecmis, yalniz
+        // belirli bir kulubun yoneticisi/sistem yoneticisi icin acik kalir (kulup etkinlik yonetimi).
+        boolean pastAllowed = communityId != null && communityId > 0 && isStaff(a, communityId);
+        if (!pastAllowed && f.isBefore(now)) {
+            f = now;
+        }
         Instant t = to == null || to.isAfter(FAR_FUTURE) ? FAR_FUTURE : to;
         List<UserEvent> rows = query(a, f, t,
                 communityId == null ? 0L : communityId, cursor, s + 1);
@@ -686,8 +693,11 @@ public class EventService {
         }
         Instant from = month.atDay(1).atStartOfDay(ZONE).toInstant();
         Instant to = month.plusMonths(1).atDay(1).atStartOfDay(ZONE).toInstant();
+        // Takvim yalniz yaklasan + suren kullanici etkinliklerini gosterir (biten/iptal haric, filtre sorguda).
+        Instant nowAt = Instant.now();
+        Instant userFrom = from.isBefore(nowAt) ? nowAt : from;
         // Sinira carpildigini anlamak icin bir fazla satir istenir.
-        List<UserEvent> userRows = query(a, from, to, 0L, null, CALENDAR_USER_LIMIT + 1);
+        List<UserEvent> userRows = query(a, userFrom, to, 0L, null, CALENDAR_USER_LIMIT + 1);
         List<NewsItem> news = official.inRange(ContentType.ETKINLIK, month.atDay(1), month.atEndOfMonth(),
                 PageRequest.of(0, CALENDAR_OFFICIAL_LIMIT + 1));
         boolean truncated = userRows.size() > CALENDAR_USER_LIMIT || news.size() > CALENDAR_OFFICIAL_LIMIT;
@@ -1086,6 +1096,11 @@ public class EventService {
      * kilidi dahil) cikarildi; COMMIT sonrasi havuzda, parca basina sabit sorguyla ({@code sendTemplatedBulk}) gider.
      */
     private void notifyGoing(UserEvent e, String key, Map<String, String> hint) {
+        // Bitmis ya da yayinda olmayan etkinlik icin "guncellendi" gibi bildirimler gitmez; yalniz iptal bildirimi
+        // (durum CANCELLED) bu kapidan muaftir.
+        if (!"notif.event.cancelled".equals(key) && !EventLiveness.isLive(e, Instant.now())) {
+            return;
+        }
         Long eventId = e.getId();
         Long organizerId = e.getCreatedBy();
         String title = e.getTitle();

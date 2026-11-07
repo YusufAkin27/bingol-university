@@ -154,7 +154,9 @@ public class EventAdmissionService implements EventAdmissionHooks {
             List<Long> users = apps.userIdsByStatus(eventId, open);
             apps.closeAll(eventId, open, Status.CANCELLED, Instant.now());
             // FINAL-ALL (P05 ertelenen): bekleyen/siradaki basvuru sahiplerine toplu bildirim commit sonrasi havuzda.
-            notifyAll(users, "notif.admission.modeOpen", eventId, e.getTitle());
+            if (edu.bingol.backend.event.EventLiveness.isLive(e, Instant.now())) {
+                notifyAll(users, "notif.admission.modeOpen", eventId, e.getTitle());
+            }
         }
     }
 
@@ -218,8 +220,10 @@ public class EventAdmissionService implements EventAdmissionHooks {
         apps.saveAndFlush(app);
 
         User u = communities.usersById(List.of(a.id())).get(a.id());
-        notifications.sendTemplated(e.getCreatedBy(), NotificationType.EVENT, "notif.admission.received",
+        if (edu.bingol.backend.event.EventLiveness.isLive(e, Instant.now())) {
+            notifications.sendTemplated(e.getCreatedBy(), NotificationType.EVENT, "notif.admission.received",
                 data(eventId, app.getId()), e.getTitle(), u == null ? "-" : u.getDisplayName());
+        }
         return view(app, e.getTitle());
     }
 
@@ -384,7 +388,9 @@ public class EventAdmissionService implements EventAdmissionHooks {
             throw new ApiException(HttpStatus.NOT_FOUND, "PARTICIPANT_NOT_FOUND", "Katılımcı bulunamadı.");
         }
         releaseSeat(e, userId);
-        notifications.sendTemplated(userId, NotificationType.EVENT, "notif.admission.removed", data(eventId, null), e.getTitle());
+        if (edu.bingol.backend.event.EventLiveness.isLive(e, Instant.now())) {
+            notifications.sendTemplated(userId, NotificationType.EVENT, "notif.admission.removed", data(eventId, null), e.getTitle());
+        }
         promoteWaitlist(e);
     }
 
@@ -588,6 +594,9 @@ public class EventAdmissionService implements EventAdmissionHooks {
             return;
         }
         apps.closeAll(e.getId(), open, Status.CANCELLED, Instant.now());
+        if (e.getEndsAt() != null && !e.getEndsAt().isAfter(Instant.now())) {
+            return; // bitmis etkinligin iptali kimseye bildirilmez (veri kalir)
+        }
         notifyAll(users, "notif.event.cancelled", e.getId(), e.getTitle(), hints == null ? null : hints.cancelled(e));
     }
 
@@ -648,7 +657,7 @@ public class EventAdmissionService implements EventAdmissionHooks {
                     notifyApp(e, app, "notif.admission.removed");
                 } else if (reason == null) {
                     notifyApp(e, app, "notif.admission.rejected");
-                } else {
+                } else if (edu.bingol.backend.event.EventLiveness.isLive(e, Instant.now())) {
                     notifications.sendTemplated(app.getUserId(), NotificationType.EVENT, "notif.admission.rejectedNote",
                             data(e.getId(), app.getId()), e.getTitle(), reason);
                 }
@@ -773,6 +782,9 @@ public class EventAdmissionService implements EventAdmissionHooks {
     }
 
     private void notifyApp(UserEvent e, EventApplication app, String key) {
+        if (!edu.bingol.backend.event.EventLiveness.isLive(e, Instant.now())) {
+            return; // bitmis/iptal etkinlik icin basvuru sonucu bildirimi gonderilmez
+        }
         Map<String, String> d = data(e.getId(), app.getId());
         if (hints != null) {
             d = new java.util.LinkedHashMap<>(hints.of(e));

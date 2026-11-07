@@ -47,7 +47,7 @@ final class PushMessages {
         }
         data = PushPayload.fit(data, ALERT_BUDGET - utf8(title) - utf8(body));
         return new PushMessage(title, body, data, collapseKey, thread, channel, "BU_" + RichPushPayload.style(payload), badge, urgent,
-                ttlSeconds(type, subtype));
+                ttlSeconds(type, subtype, payload, java.time.Instant.now()));
     }
 
     /** APNs 4096 bayttan aps iskeleti (ses, kategori, thread, rozet, mutable-content...) payi dusulmus butce. */
@@ -66,6 +66,26 @@ final class PushMessages {
      * (etkinlik hatirlatmasi 6 sa, begeni/takip 1 gun); sohbet ve sistem 7 gun (telefon kapaliyken gelen mesajlar
      * acilinca ulassin); digerleri 3 gun.
      */
+    /**
+     * Etkinlik bildirimi (payload `eventEndsAt` tasiyorsa): bitisten sonra ulasmasi anlamsiz oldugundan TTL, etkinligin
+     * bitisine kalan sureyle (en az 60 sn) sinirlanir; platform sinirini asan varsayilan TTL bundan buyuk olamaz.
+     * Push sunucuda 4 haftadan uzun tutulmaz; cihaz kapaliyken gec gelen bildirim bitmis etkinligi gostermez.
+     */
+    static int ttlSeconds(NotificationType type, NotificationSubtype subtype, Map<String, String> payload,
+                          java.time.Instant now) {
+        int base = ttlSeconds(type, subtype);
+        String ends = payload == null ? null : payload.get("eventEndsAt");
+        if (type != NotificationType.EVENT || ends == null) {
+            return base;
+        }
+        try {
+            long left = java.time.Duration.between(now, java.time.Instant.parse(ends)).getSeconds();
+            return (int) Math.max(60L, Math.min(base, left));
+        } catch (java.time.format.DateTimeParseException e) {
+            return base;
+        }
+    }
+
     static int ttlSeconds(NotificationType type, NotificationSubtype subtype) {
         if (subtype == NotificationSubtype.EVENT_REMINDER) {
             return 6 * 3600;

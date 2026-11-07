@@ -29,6 +29,9 @@ class EventReminderServiceTest {
         UserEvent e = new UserEvent();
         e.setId(5L);
         e.setTitle("Konferans");
+        e.setStatus(UserEvent.Status.ACTIVE);
+        e.setStartsAt(now.plusSeconds(1800));
+        e.setEndsAt(now.plusSeconds(7200));
         return new Object[] {r, e};
     }
 
@@ -41,6 +44,35 @@ class EventReminderServiceTest {
         assertEquals(1, svc.run(now));
 
         assertEquals(List.of(11L), BulkSent.to(notifications, "notif.event.reminderHour"));
+    }
+
+    @Test
+    void endedEventGetsNoReminder() {
+        Object[] r = row(1L, 11L);
+        ((UserEvent) r[1]).setEndsAt(now.minusSeconds(60));
+        when(rsvps.hourCandidates(any(), any(), any(), any(), any())).thenReturn(List.<Object[]>of(r));
+        when(rsvps.dayCandidates(any(), any(), any(), any(), any())).thenReturn(List.of());
+        when(rsvps.claimHour(1L)).thenReturn(1);
+
+        assertEquals(0, svc.run(now));
+
+        assertEquals(List.of(), BulkSent.to(notifications, "notif.event.reminderHour"));
+    }
+
+    @Test
+    void eventCancelledJustBeforeSendingGetsNoReminder() {
+        UserEventRepository fresh = mock(UserEventRepository.class);
+        svc.setFresh(fresh);
+        UserEvent cancelled = (UserEvent) row(1L, 11L)[1];
+        cancelled.setStatus(UserEvent.Status.CANCELLED);
+        when(fresh.findById(5L)).thenReturn(java.util.Optional.of(cancelled));
+        when(rsvps.hourCandidates(any(), any(), any(), any(), any())).thenReturn(List.<Object[]>of(row(1L, 11L)));
+        when(rsvps.dayCandidates(any(), any(), any(), any(), any())).thenReturn(List.of());
+        when(rsvps.claimHour(1L)).thenReturn(1);
+
+        assertEquals(0, svc.run(now));
+
+        assertEquals(List.of(), BulkSent.to(notifications, "notif.event.reminderHour"));
     }
 
     @Test

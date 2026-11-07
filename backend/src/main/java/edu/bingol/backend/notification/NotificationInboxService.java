@@ -110,8 +110,11 @@ public class NotificationInboxService {
                 });
             }
             java.util.Map<Long, Long> eventCommunity = new java.util.HashMap<>();
+            java.util.Map<Long, String> eventStates = new java.util.HashMap<>();
+            java.time.Instant nowAt = java.time.Instant.now();
             if (!eventIds.isEmpty() && events != null) {
                 events.findAllById(eventIds).forEach(e -> {
+                    eventStates.put(e.getId(), edu.bingol.backend.event.EventLiveness.state(e, nowAt));
                     if (e.getCommunityId() != null) {
                         eventCommunity.put(e.getId(), e.getCommunityId());
                         communityIds.add(e.getCommunityId());
@@ -136,7 +139,12 @@ public class NotificationInboxService {
                     c = e == null ? null : eventCommunity.get(e);
                 }
                 String source = c == null ? null : names.get(c);
-                out.add(avatar == null && source == null ? v : v.withProjection(avatar, source));
+                NotificationView pv = avatar == null && source == null ? v : v.withProjection(avatar, source);
+                Long evId = v.type() == NotificationType.EVENT ? longOf(d.get("eventId")) : null;
+                if (evId != null) {
+                    pv = pv.withEventState(eventStates.getOrDefault(evId, "UNAVAILABLE"));
+                }
+                out.add(pv);
             }
             return out;
         } catch (RuntimeException e) {
