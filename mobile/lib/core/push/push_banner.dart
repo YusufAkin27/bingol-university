@@ -59,7 +59,8 @@ IconData bannerIcon(Map<String, dynamic> data) {
       return BuIcons.megaphone;
     case PushDest.post:
       return switch ('${data['type'] ?? ''}'.toUpperCase()) {
-        'POST_LIKE' => BuIcons.heart,
+        'POST_LIKE' || 'COMMENT_LIKE' => BuIcons.heart,
+        'POST_COMMENT' || 'COMMENT_REPLY' => BuIcons.messageCircle,
         'POST_MENTION' => BuIcons.atSign,
         _ => BuIcons.image,
       };

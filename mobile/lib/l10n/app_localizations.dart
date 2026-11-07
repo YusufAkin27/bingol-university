@@ -24755,6 +24755,168 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Görüldü · {when}'**
   String chatStatusSeenAt(String when);
+
+  /// No description provided for @pcmWriteHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorum ekle…'**
+  String get pcmWriteHint;
+
+  /// No description provided for @pcmEmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'İlk yorumu sen yaz'**
+  String get pcmEmptyTitle;
+
+  /// No description provided for @pcmEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Düşüncelerini paylaş, sohbeti başlat.'**
+  String get pcmEmptyBody;
+
+  /// No description provided for @pcmReplyingTo.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} kişisine yanıt veriliyor'**
+  String pcmReplyingTo(String name);
+
+  /// No description provided for @pcmHideReplies.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanıtları gizle'**
+  String get pcmHideReplies;
+
+  /// No description provided for @pcmSendFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderilemedi'**
+  String get pcmSendFailed;
+
+  /// No description provided for @pcmRetry.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeniden dene'**
+  String get pcmRetry;
+
+  /// No description provided for @pcmSending.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderiliyor…'**
+  String get pcmSending;
+
+  /// No description provided for @pcmDeleted.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yorum silindi'**
+  String get pcmDeleted;
+
+  /// No description provided for @pcmMenuDelete.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sil'**
+  String get pcmMenuDelete;
+
+  /// No description provided for @pcmMenuReport.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şikayet et'**
+  String get pcmMenuReport;
+
+  /// No description provided for @pcmMenuCopy.
+  ///
+  /// In tr, this message translates to:
+  /// **'Metni kopyala'**
+  String get pcmMenuCopy;
+
+  /// No description provided for @pcmCopied.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kopyalandı'**
+  String get pcmCopied;
+
+  /// No description provided for @pcmMoreActions.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorum seçenekleri'**
+  String get pcmMoreActions;
+
+  /// No description provided for @pcmLikeA11y.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumu beğen'**
+  String get pcmLikeA11y;
+
+  /// No description provided for @pcmUnlikeA11y.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğenmekten vazgeç'**
+  String get pcmUnlikeA11y;
+
+  /// No description provided for @pcmLikeCountA11y.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} beğeni'**
+  String pcmLikeCountA11y(String count);
+
+  /// No description provided for @pcmCommentCountA11y.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} yorum'**
+  String pcmCommentCountA11y(String count);
+
+  /// No description provided for @pcmViewAll.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} yorumun tümünü gör'**
+  String pcmViewAll(String count);
+
+  /// No description provided for @pcmViewAllPlain.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumları gör'**
+  String get pcmViewAllPlain;
+
+  /// No description provided for @pcmErrTooLong.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorum en çok 500 karakter olabilir.'**
+  String get pcmErrTooLong;
+
+  /// No description provided for @pcmErrPostGone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu gönderi artık yok.'**
+  String get pcmErrPostGone;
+
+  /// No description provided for @pcmErrParent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanıtladığın yorum artık yok.'**
+  String get pcmErrParent;
+
+  /// No description provided for @pcmErrRate.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çok hızlı yorum yapıyorsun. Biraz sonra tekrar dene.'**
+  String get pcmErrRate;
+
+  /// No description provided for @pcmMoreReplies.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daha fazla yanıt'**
+  String get pcmMoreReplies;
+
+  /// No description provided for @pcmSortLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sırala'**
+  String get pcmSortLabel;
+
+  /// No description provided for @pcmCharsLeft.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} karakter kaldı'**
+  String pcmCharsLeft(String n);
 }
 
 class _AppLocalizationsDelegate

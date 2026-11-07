@@ -22,6 +22,7 @@ Future<Post?> openPostDetail(
   Post? initial,
   Object? heroTag,
   PostStreamSeed? stream,
+  int? openCommentId,
   ValueChanged<Post>? onChanged,
   ValueChanged<int>? onDeleted,
 }) =>
@@ -32,6 +33,7 @@ Future<Post?> openPostDetail(
               initial: initial,
               heroTag: heroTag,
               stream: stream,
+              openCommentId: openCommentId,
               onChanged: onChanged,
               onDeleted: onDeleted,
             )));
