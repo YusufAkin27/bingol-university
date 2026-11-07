@@ -6,6 +6,7 @@ import edu.bingol.backend.community.CommunityService;
 import edu.bingol.backend.event.EventAttendance.Method;
 import edu.bingol.backend.event.admission.EventAdmissionHooks;
 import edu.bingol.backend.event.dto.EventDtos.AttendanceRoster;
+import edu.bingol.backend.event.dto.EventDtos.AttendanceSummary;
 import edu.bingol.backend.event.dto.EventDtos.AttendanceRow;
 import edu.bingol.backend.event.dto.EventDtos.BulkEntry;
 import edu.bingol.backend.event.dto.EventDtos.BulkResult;
@@ -56,6 +57,20 @@ public class AttendanceService {
         this.attendance = attendance;
         this.codes = codes;
         this.communities = communities;
+    }
+
+    /** Gercek zamanli okutma olaylari (null iken yayin yok: birim testler). */
+    private AttendanceLiveEvents live;
+
+    @Autowired
+    public void setLive(@Lazy AttendanceLiveEvents live) {
+        this.live = live;
+    }
+
+    private void publishScanned(UserEvent e, Long userId, String name, Instant at) {
+        if (live != null) {
+            live.scanned(e, userId, name, at);
+        }
     }
 
     /** T9: APPROVAL modunda elle yoklama yalnizca kabul edilmis katilimciya (null iken eski davranis). */
@@ -113,6 +128,7 @@ public class AttendanceService {
             // Es zamanli cift okutma: islem geri alinir; istemci tekrar denediginde idempotent yanit alir.
             throw new ApiException(HttpStatus.CONFLICT, "CHECKIN_CONFLICT", "Yoklama işleniyor, tekrar deneyin.");
         }
+        publishScanned(e, a.id(), displayNameOf(a.id()), now);
         return toMine(e, rsvp, rec, now);
     }
 
@@ -210,7 +226,34 @@ public class AttendanceService {
         } catch (DataIntegrityViolationException ex) {
             throw new ApiException(HttpStatus.CONFLICT, "CHECKIN_CONFLICT", "Yoklama işleniyor, tekrar deneyin.");
         }
+        publishScanned(e, uid, name, now);
         return new ScanResult("MARKED", uid, name, now);
+    }
+
+    private String displayNameOf(Long uid) {
+        User u = communities.usersById(List.of(uid)).get(uid);
+        return u == null || u.getDisplayName() == null ? "Kullanıcı" : u.getDisplayName();
+    }
+
+    /**
+     * Organizator/yetkili canli sayaci: yoklamada n / toplam onayli + son okutan. Gercek zamanli olay kacirilirse
+     * istemcinin yedek yoklamasi (poll). Engel iliskisi olan son okutanin adi gizlenir.
+     */
+    @Transactional(readOnly = true)
+    public AttendanceSummary summary(Actor a, Long eventId) {
+        access(a, eventId, EventModerator.Perm.VIEW_ATTENDEES, EventModerator.Perm.TAKE_ATTENDANCE);
+        long present = attendance.countByEventIdAndPresentTrue(eventId);
+        long total = rsvps.countByEventIdAndStatus(eventId, EventRsvp.Status.GOING);
+        EventAttendance last = attendance.findFirstByEventIdAndPresentTrueOrderByMarkedAtDesc(eventId).orElse(null);
+        String lastName = null;
+        Instant lastAt = null;
+        if (last != null) {
+            lastAt = last.getMarkedAt();
+            if (!communities.blockedFor(a).contains(last.getUserId())) {
+                lastName = displayNameOf(last.getUserId());
+            }
+        }
+        return new AttendanceSummary(present, total, lastName, lastAt);
     }
 
     @Transactional(readOnly = true)

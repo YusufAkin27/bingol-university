@@ -273,6 +273,13 @@ public class EventController {
     }
 
     /** Liste + sayaclar (geldi / gelmedi / bekliyor); cok okutucu icin istemci periyodik yeniler. */
+    @GetMapping("/events/{id}/attendance/summary")
+    public edu.bingol.backend.event.dto.EventDtos.AttendanceSummary attendanceSummary(@PathVariable Long id) {
+        Actor a = Actor.current();
+        limiter.check("attendance-summary:user:" + a.id(), 120, Duration.ofMinutes(1));
+        return attendance.summary(a, id);
+    }
+
     @GetMapping("/events/{id}/attendance/roster")
     public edu.bingol.backend.event.dto.EventDtos.AttendanceRoster attendanceRoster(@PathVariable Long id) {
         Actor a = Actor.current();
