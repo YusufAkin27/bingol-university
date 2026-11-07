@@ -7,6 +7,8 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../clubs/clubs_widgets.dart' show ClubOutlineButton, ClubPageHeader;
 import '../platform/qr_scan_page.dart' show ScanThrottle;
+import '../../core/realtime/chat_realtime.dart' show AttendanceLiveEvent;
+import 'attendance_live.dart';
 import 'etkinlik2_attendance_page.dart';
 import 'etkinlik2_widgets.dart';
 
@@ -41,6 +43,8 @@ class _Etkinlik3ScanPageState extends State<Etkinlik3ScanPage> {
   bool _isError = false;
   int _present = 0;
   int _total = 0;
+  String? _lastName; // son okutan katılımcı (bu cihaz ya da başka görevli)
+  AttendanceLiveBinding? _live;
 
   int get _id => (widget.event['id'] as num).toInt();
 
@@ -49,11 +53,13 @@ class _Etkinlik3ScanPageState extends State<Etkinlik3ScanPage> {
     super.initState();
     if (widget.scannerBuilder == null) _controller = MobileScannerController(formats: const [BarcodeFormat.qrCode]);
     _loadCounts();
+    _live = AttendanceLiveBinding(session: widget.session, eventId: _id, onEvent: _onLive, onPoll: _pollSummary)..start();
     WidgetsBinding.instance.addPostFrameCallback((_) => _ensureCamera());
   }
 
   @override
   void dispose() {
+    _live?.dispose();
     _controller?.dispose();
     super.dispose();
   }
@@ -82,6 +88,29 @@ class _Etkinlik3ScanPageState extends State<Etkinlik3ScanPage> {
     } catch (_) {}
   }
 
+  /// Gerçek zamanlı: başka görevlinin (ya da bu cihazın) okutması; sunucu sayacı esastır (idempotent).
+  void _onLive(AttendanceLiveEvent e) {
+    if (!mounted || !e.isScan) return;
+    setState(() {
+      _present = e.present;
+      if (e.total > 0) _total = e.total;
+      if (e.displayName != null) _lastName = e.displayName;
+    });
+  }
+
+  /// Yedek yoklama (olay kaçarsa): hafif özet ucu.
+  Future<void> _pollSummary() async {
+    final r = await widget.session.api.get('/events/$_id/attendance/summary', force: true);
+    if (!mounted || r is! Map || r['present'] == null) return;
+    setState(() {
+      _present = (r['present'] as num).toInt();
+      final t = (r['total'] as num?)?.toInt() ?? 0;
+      if (t > 0) _total = t;
+      final n = r['lastName'];
+      if (n is String && n.isNotEmpty) _lastName = n;
+    });
+  }
+
   Future<void> _onCode(String code) async {
     final c = code.trim();
     if (c.isEmpty || _busy) return;
@@ -100,6 +129,7 @@ class _Etkinlik3ScanPageState extends State<Etkinlik3ScanPage> {
         _isError = false;
         _message = already ? l.evtQrScanAlready(name) : l.evtQrScanMarked(name);
         if (!already) _present = _total == 0 ? _present + 1 : (_present + 1).clamp(0, _total);
+        if (name.isNotEmpty) _lastName = name;
       });
       // Kaydı geçici sayacı sunucuyla eşitle (yürüyen girişler de sayılsın).
       _loadCounts();
@@ -176,7 +206,17 @@ class _Etkinlik3ScanPageState extends State<Etkinlik3ScanPage> {
                     ),
             ),
             const SizedBox(height: 20),
-            Text(l.etkinlik2PresentOf('$_present', '$_total'), key: const ValueKey('et3-present-count'), style: tx.bodyMedium!.copyWith(color: t.ink)),
+            Semantics(
+              liveRegion: true,
+              child: Text(l.etkinlik2PresentOf('$_present', '$_total'), key: const ValueKey('et3-present-count'), style: tx.bodyMedium!.copyWith(color: t.ink)),
+            ),
+            if (_lastName != null) ...[
+              const SizedBox(height: 4),
+              Semantics(
+                liveRegion: true,
+                child: Text(l.evtLiveLastScanned(_lastName!), key: const ValueKey('et3-live-last'), style: tx.bodyMedium!.copyWith(color: t.mut)),
+              ),
+            ],
             const SizedBox(height: 8),
             Et2Progress(fraction: pct, height: 4),
             const SizedBox(height: 20),

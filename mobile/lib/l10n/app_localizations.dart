@@ -23627,6 +23627,36 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Daha az göster'**
   String get chatLongShowLess;
+
+  /// No description provided for @evtLiveCheckedInTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Okutuldu'**
+  String get evtLiveCheckedInTitle;
+
+  /// No description provided for @evtLiveCheckedInBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklaman alındı.'**
+  String get evtLiveCheckedInBody;
+
+  /// No description provided for @evtLiveCheckedInAt.
+  ///
+  /// In tr, this message translates to:
+  /// **'Saat {time}'**
+  String evtLiveCheckedInAt(String time);
+
+  /// No description provided for @evtLiveLastScanned.
+  ///
+  /// In tr, this message translates to:
+  /// **'Son okutan: {name}'**
+  String evtLiveLastScanned(String name);
+
+  /// No description provided for @evtLiveScanCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} okuttu'**
+  String evtLiveScanCount(String name);
 }
 
 class _AppLocalizationsDelegate

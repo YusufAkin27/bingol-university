@@ -7108,5 +7108,31 @@
   "widgetsPrivacyTitle": "Gizlilik",
   "widgetsPrivacy": "Widgetlarda başka kullanıcıların adı, mesajı veya fotoğrafı görünmez; sosyal özet yalnızca sayıları gösterir. Çıkış yapınca widgetlardaki bilgiler silinir ve Giriş yap durumuna döner.",
   "chatLongShowMore": "Devamını gör",
-  "chatLongShowLess": "Daha az göster"
+  "chatLongShowLess": "Daha az göster",
+  "evtLiveCheckedInTitle": "Okutuldu",
+  "evtLiveCheckedInBody": "Yoklaman alındı.",
+  "evtLiveCheckedInAt": "Saat {time}",
+  "@evtLiveCheckedInAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "evtLiveLastScanned": "Son okutan: {name}",
+  "@evtLiveLastScanned": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "evtLiveScanCount": "{name} okuttu",
+  "@evtLiveScanCount": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

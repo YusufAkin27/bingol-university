@@ -4762,5 +4762,31 @@
   "widgetsPrivacyTitle": "Privacy",
   "widgetsPrivacy": "Widgets never show other users' names, messages or photos; the social summary shows counts only. When you sign out, widget data is deleted and widgets return to the Sign in state.",
   "chatLongShowMore": "Read more",
-  "chatLongShowLess": "Show less"
+  "chatLongShowLess": "Show less",
+  "evtLiveCheckedInTitle": "Scanned",
+  "evtLiveCheckedInBody": "Your attendance is recorded.",
+  "evtLiveCheckedInAt": "At {time}",
+  "@evtLiveCheckedInAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "evtLiveLastScanned": "Last scanned: {name}",
+  "@evtLiveLastScanned": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "evtLiveScanCount": "{name} was scanned",
+  "@evtLiveScanCount": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -7,6 +7,7 @@ import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../clubs/clubs_widgets.dart' show ClubPageHeader;
+import 'attendance_live.dart';
 import 'qr_painter.dart';
 
 /// Katılımcının kişisel giriş QR'ı: sunucu imzalı, kısa ömürlü; süre dolmadan kendiliğinden yenilenir.
@@ -31,6 +32,10 @@ class _Etkinlik3MyQrPageState extends State<Etkinlik3MyQrPage> with WidgetsBindi
   int _fails = 0;
   Timer? _refresh;
 
+  /// Görevli QR'ı okuttu: yoklama alındı (gerçek zamanlı olay ya da poll yedeği). Null = henüz okutulmadı.
+  DateTime? _checkedAt;
+  AttendanceLiveBinding? _live;
+
   int get _id => (widget.event['id'] as num).toInt();
 
   @override
@@ -38,23 +43,53 @@ class _Etkinlik3MyQrPageState extends State<Etkinlik3MyQrPage> with WidgetsBindi
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _load();
+    _live = AttendanceLiveBinding(
+      session: widget.session,
+      eventId: _id,
+      onEvent: (e) {
+        if (e.isMarked) _markDone(e.at);
+      },
+      onPoll: _pollMine,
+    )..start();
+    _pollMine();
+  }
+
+  /// Yedek eşitleme: olay kaçsa da `my-attendance` doğruyu söyler (idempotent).
+  Future<void> _pollMine() async {
+    if (_checkedAt != null) return;
+    final r = await widget.session.api.get('/events/$_id/my-attendance', force: true);
+    if (r is Map && r['present'] == true) _markDone(DateTime.tryParse('${r['markedAt'] ?? ''}'));
+  }
+
+  void _markDone(DateTime? at) {
+    if (!mounted || _checkedAt != null) return; // çift olay: yalnız ilk
+    _refresh?.cancel();
+    buHaptic(BuHaptic.medium);
+    setState(() {
+      _checkedAt = (at ?? DateTime.now()).toLocal();
+      _error = null;
+    });
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // Arka plandan dönünce bileti hemen yenile (zamanlayıcı uykudayken bayatlamış olabilir).
-    if (state == AppLifecycleState.resumed) _load();
+    if (state == AppLifecycleState.resumed && _checkedAt == null) {
+      _load();
+      _pollMine();
+    }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _refresh?.cancel();
+    _live?.dispose();
     super.dispose();
   }
 
   Future<void> _load() async {
-    if (_busy) return;
+    if (_busy || _checkedAt != null) return;
     setState(() => _busy = true);
     try {
       final r = await widget.session.api.get('/events/$_id/my-ticket');
@@ -68,7 +103,7 @@ class _Etkinlik3MyQrPageState extends State<Etkinlik3MyQrPage> with WidgetsBindi
       _fails = 0;
       _refresh?.cancel();
       _refresh = Timer(const Duration(seconds: 60), () {
-        if (mounted) _load();
+        if (mounted && _checkedAt == null) _load();
       });
     } catch (e) {
       if (e is ApiError && e.status == 403 && e.code == 'TICKET_NOT_FOR_STAFF') {
@@ -98,6 +133,44 @@ class _Etkinlik3MyQrPageState extends State<Etkinlik3MyQrPage> with WidgetsBindi
     }
   }
 
+  /// Okutuldu durumu: QR yerine belirgin onay (Semantics liveRegion ile ekran okuyucuya duyurulur).
+  Widget _done(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    final at = _checkedAt!;
+    final time = MaterialLocalizations.of(context).formatTimeOfDay(TimeOfDay.fromDateTime(at), alwaysUse24HourFormat: true);
+    return Semantics(
+      container: true,
+      liveRegion: true,
+      label: '${l.evtLiveCheckedInTitle}. ${l.evtLiveCheckedInBody}',
+      child: ExcludeSemantics(
+        child: AnimatedContainer(
+          key: const ValueKey('et3-my-qr-done'),
+          duration: liveMotion(context),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+          decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Container(
+              width: 72,
+              height: 72,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(color: t.ink, shape: BoxShape.circle),
+              child: Icon(BuIcons.check, size: 40, color: t.bg),
+            ),
+            const SizedBox(height: 16),
+            Text(l.evtLiveCheckedInTitle, textAlign: TextAlign.center, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
+            const SizedBox(height: 6),
+            Text(l.evtLiveCheckedInBody, textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(color: t.ink)),
+            const SizedBox(height: 4),
+            Text(l.evtLiveCheckedInAt(time), textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut)),
+          ]),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
@@ -111,6 +184,9 @@ class _Etkinlik3MyQrPageState extends State<Etkinlik3MyQrPage> with WidgetsBindi
           child: ListView(padding: const EdgeInsets.fromLTRB(20, 11, 20, 32), children: [
             Text('${widget.event['title'] ?? ''}', maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(color: t.mut)),
             const SizedBox(height: 20),
+            if (_checkedAt != null)
+              _done(context)
+            else
             Center(
               child: Container(
                 key: const ValueKey('et3-my-qr'),
@@ -124,7 +200,9 @@ class _Etkinlik3MyQrPageState extends State<Etkinlik3MyQrPage> with WidgetsBindi
               ),
             ),
             const SizedBox(height: 20),
-            if (_error != null) ...[
+            if (_checkedAt != null)
+              const SizedBox.shrink()
+            else if (_error != null) ...[
               Text(_error!, key: const ValueKey('et3-my-qr-error'), textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(color: t.ink)),
               if (!_staff) ...[
                 const SizedBox(height: 12),

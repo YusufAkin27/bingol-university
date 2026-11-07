@@ -13153,4 +13153,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatLongShowLess => 'Show less';
+
+  @override
+  String get evtLiveCheckedInTitle => 'Scanned';
+
+  @override
+  String get evtLiveCheckedInBody => 'Your attendance is recorded.';
+
+  @override
+  String evtLiveCheckedInAt(String time) {
+    return 'At $time';
+  }
+
+  @override
+  String evtLiveLastScanned(String name) {
+    return 'Last scanned: $name';
+  }
+
+  @override
+  String evtLiveScanCount(String name) {
+    return '$name was scanned';
+  }
 }
