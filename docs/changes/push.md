@@ -305,3 +305,9 @@ Gönderide etiketlenene: `type=POST_MENTION`, alt tür `POST_MENTION` (gelen kut
 ## Günlük menü bildirimi varsayılan AÇIK (2026-11-06)
 
 `notification_pref.meal_menu` varsayılanı açık oldu (V1461: sütun varsayılanı TRUE + mevcut satırlar TRUE yapıldı; `NotificationPref.mealMenu=true`). `MealMenuNotifier` artık tercih satırı hiç olmayan aktif kullanıcıları da kapsar (yalnız `meal_menu=FALSE` olanlar atlanır). Kullanıcı Ayarlar > Bildirimler'den kapatabilir. **Dağıtım sırası:** oauth dalı (V1450) ve çoklu oturum dalı (V1460, `deploy/multisession-20261106`) bu migration'dan ÖNCE canlıya gitmeli (`out-of-order=false`).
+
+## Sohbet bildirimi: pes pese mesaj artik birbirini silmiyor (2026-11-07)
+
+Kok neden: `PushMessages.of` mesajin `collapseKey`ini (`conv:<id>`) hem Android bildirim `tag`ine hem `apns-collapse-id`ye yaziyordu; ayni sohbetin her yeni mesaji (standart FCM karti ve tum iOS) oncekini tepsiden degistiriyordu. Duzeltme (`FirebaseFcmSender.perMessage`): sohbet (`chat` kanali / `type=MESSAGE`) icin FCM duzeyinde `tag` ve `apns-collapse-id` GONDERILMEZ; her mesaj kendi `messageId`siyle ayri bildirimdir. Gruplama: iOS `aps.thread-id=conv:<id>` (farkli sohbet ayri baslik), zengin Android `data.tag=conv:<id>` ile istemci MessagingStyle birikimi (mesaj kimligiyle tekil). Takip/begeni/gonderi gibi turlerde bilincli birlesme (`follow:`, `postlike:`...) aynen surer. FCM `collapse_key` hala gonderilmez.
+
+Aciklamasiz medya mesaji onizlemesi alicinin dilinde: `chat.preview.PHOTO|VIDEO` ("Fotograf gonderdi", "Sent a photo", "أرسل صورة"); push yukunde `mediaKind`. Tek gosterimlik medya hala dil bagimsiz simge (aciklama sizmaz). Testler: `FirebaseFcmPayloadTest`, `MessageNoInboxPushTest`, `MediaPreviewKindTest`.

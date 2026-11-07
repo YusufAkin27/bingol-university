@@ -115,4 +115,36 @@ class MessageNoInboxPushTest {
         assertTrue(fcm.messages().isEmpty());
         verify(notifications, never()).save(any(Notification.class));
     }
+
+    @Test
+    void consecutiveMessagesOfOneConversationEachGetTheirOwnPushWithUniqueMessageId() {
+        // Pencere kapali (varsayilan 0): ayni sohbette pes pese mesajlar birbirini ezmez
+        NotificationService open = new NotificationService(notifications, prefs, subtypePrefs, devices,
+                new PushDispatcher(fcm, devices, Runnable::run, (task, ms) -> { }), i18n,
+                new PushGate(store, 0, 100), guard);
+        open.sendNewMessage(1L, "Ali", "bir", Map.of("conversationId", "5", "messageId", "9", "conversationType", "DIRECT"));
+        open.sendNewMessage(1L, "Ali", "iki", Map.of("conversationId", "5", "messageId", "10", "conversationType", "DIRECT"));
+
+        assertEquals(2, fcm.messages().size());
+        PushMessage a = fcm.messages().get(0);
+        PushMessage b = fcm.messages().get(1);
+        assertEquals("9", a.data().get("messageId"));
+        assertEquals("10", b.data().get("messageId"));
+        // iOS gruplamasi thread-id ile; ayni konusma ayni baslik altinda, baska konusma ayri
+        assertEquals("conv:5", a.threadId());
+        assertEquals("conv:5", b.threadId());
+        // sistem duzeyinde birlesme yok (apns-collapse-id / Android tag gonderilmez): bkz. FirebaseFcmPayloadTest
+        assertEquals("chat", a.channelId());
+    }
+
+    @Test
+    void differentConversationsGetDifferentThreads() {
+        NotificationService open = new NotificationService(notifications, prefs, subtypePrefs, devices,
+                new PushDispatcher(fcm, devices, Runnable::run, (task, ms) -> { }), i18n,
+                new PushGate(store, 0, 100), guard);
+        open.sendNewMessage(1L, "Ali", "x", Map.of("conversationId", "5", "messageId", "1", "conversationType", "DIRECT"));
+        open.sendNewMessage(1L, "Veli", "y", Map.of("conversationId", "6", "messageId", "2", "conversationType", "DIRECT"));
+        assertEquals("conv:5", fcm.messages().get(0).threadId());
+        assertEquals("conv:6", fcm.messages().get(1).threadId());
+    }
 }
