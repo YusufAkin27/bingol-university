@@ -33,21 +33,41 @@ public class ChatMediaMaintenance {
             this.unclaimedHours = Math.max(1, unclaimedHours);
         }
 
+        /** Coklu ornek kilidi; yoksa (testler) eski davranis: kilitsiz. */
+        private edu.bingol.backend.config.SchedulerLock lock;
+
+        @org.springframework.beans.factory.annotation.Autowired(required = false)
+        void setLock(edu.bingol.backend.config.SchedulerLock lock) {
+            this.lock = lock;
+        }
+
+        private void locked(String name, int minutes, Runnable job) {
+            if (lock == null) {
+                job.run();
+            } else {
+                lock.tryRunOrLocal(name, Duration.ofMinutes(minutes), job);
+            }
+        }
+
         @Scheduled(cron = "${app.chat.media.cleanup-cron:0 15 * * * *}", zone = "Europe/Istanbul")
         public void scheduled() {
-            int n = run();
-            if (n > 0) {
-                log.info("Sohbet gorseli temizligi: {} baglanmamis yukleme silindi", n);
-            }
+            locked("chat-media-cleanup", 30, () -> {
+                int n = run();
+                if (n > 0) {
+                    log.info("Sohbet gorseli temizligi: {} baglanmamis yukleme silindi", n);
+                }
+            });
         }
 
         /** Suresi (24 sa) dolan tek gosterimlik eklerin baytlari silinir; goruntuleme kayitlari kalir. */
         @Scheduled(cron = "${app.chat.media.view-once-cron:0 30 * * * *}", zone = "Europe/Istanbul")
         public void purgeViewOnce() {
-            int n = service.purgeExpiredViewOnce();
-            if (n > 0) {
-                log.info("Tek gosterimlik gorsel temizligi: {} ek icerigi silindi", n);
-            }
+            locked("chat-media-view-once", 30, () -> {
+                int n = service.purgeExpiredViewOnce();
+                if (n > 0) {
+                    log.info("Tek gosterimlik gorsel temizligi: {} ek icerigi silindi", n);
+                }
+            });
         }
 
         int run() {
