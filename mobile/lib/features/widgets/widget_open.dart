@@ -4,6 +4,8 @@ import '../../core/locale_controller.dart';
 import '../../core/nav.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../academic/academic_calendar_page.dart';
+import '../academic/exams_page.dart';
 import '../academic/timetable_page.dart';
 import '../clubs/club_detail_page.dart';
 import '../events/events_page.dart';
@@ -39,6 +41,10 @@ Future<void> openWidgetLink(BuildContext context, Session session, WidgetLink li
         push(MenuPage(session: session), 'menu');
       case WidgetDest.timetable:
         push(TimetablePage(session: session), 'timetable');
+      case WidgetDest.exams:
+        push(ExamsPage(session: session), 'exams');
+      case WidgetDest.academic:
+        push(AcademicCalendarPage(session: session), 'academic_calendar');
       case WidgetDest.events:
         push(EventsPage(session: session), 'events');
       case WidgetDest.qr:

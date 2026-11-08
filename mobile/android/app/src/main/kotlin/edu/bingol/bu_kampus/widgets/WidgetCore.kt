@@ -19,6 +19,8 @@ enum class WidgetSlug(val slug: String, val key: String) {
     POLL("poll", WidgetTokens.KEY_POLL),
     QUICKACCESS("quickaccess", WidgetTokens.KEY_QUICK_ACCESS),
     SOCIAL("social", WidgetTokens.KEY_SOCIAL),
+    EXAMS("exams", WidgetTokens.KEY_EXAMS),
+    ACADEMIC("academic", WidgetTokens.KEY_ACADEMIC),
 }
 
 enum class SizeClass { SMALL, MEDIUM, LARGE }

@@ -5057,5 +5057,21 @@
   "accReloginHint": "Session expired. Log in again: {mail}",
   "accBusy": "Cannot switch accounts right now. Try again shortly.",
   "accAccountNoName": "Account",
-  "postPeekOpen": "Open post"
+  "postPeekOpen": "Open post",
+  "clubAudienceLabel": "Suggest to departments",
+  "clubAudienceHint": "None selected (optional)",
+  "clubAudienceSheetTitle": "Who should see this club suggested?",
+  "clubAudienceSheetHint": "Only affects suggestions; the club stays visible to everyone.",
+  "clubAudienceSearchHint": "Search faculty or department",
+  "clubAudienceNoMatch": "No matching faculty or department",
+  "clubAudienceRetry": "Try again",
+  "clubAudienceClear": "Clear",
+  "clubAudienceExpand": "Show departments",
+  "clubAudienceCollapse": "Hide departments",
+  "clubAudienceDeptCount": "{count} departments",
+  "clubAudienceSelected": "{count} targets selected",
+  "clubAudienceDone": "Done ({count})",
+  "clubRecommendedTitle": "Clubs for your department",
+  "clubRecommendedAll": "All clubs",
+  "eventRecommendedTitle": "Events for your department"
 }

@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "slug": "exams",
+  "state": "ok",
+  "generatedAt": "2026-11-06T10:00:00+03:00",
+  "expiresAt": "2026-11-09T10:00:00+03:00",
+  "lang": "en",
+  "rtl": false,
+  "deepLink": "bukampus://exams",
+  "a11y": "Upcoming exam: Algoritma ve Programlama Midterm · 12 Nov 10:30 · B-204; Veri Yapıları Quiz · 16 Nov 14:00; Veritabanı Sistemleri Assignment · 20 Nov 23:59",
+  "strings": {
+    "signedOutTitle": "Sign in",
+    "signedOutSub": "Open BU Campus",
+    "titleSmall": "My Exams",
+    "title": "Upcoming Exams",
+    "last": "Next {n}",
+    "emptyTitle": "No upcoming exams",
+    "emptySub": "Exams you add appear here"
+  },
+  "count": 3,
+  "lastLabel": "Next 3",
+  "items": [
+    {
+      "id": 1,
+      "title": "Algoritma ve Programlama",
+      "sourceName": null,
+      "publishedAt": "2026-11-12",
+      "startsAt": "2026-11-12T10:30:00+03:00",
+      "dateLabel": "12 Nov",
+      "urgent": false,
+      "urgentLabel": null,
+      "metaText": "Midterm · 12 Nov 10:30 · B-204",
+      "deepLink": "bukampus://exams"
+    },
+    {
+      "id": 2,
+      "title": "Veri Yapıları",
+      "sourceName": null,
+      "publishedAt": "2026-11-16",
+      "startsAt": "2026-11-16T14:00:00+03:00",
+      "dateLabel": "16 Nov",
+      "urgent": false,
+      "urgentLabel": null,
+      "metaText": "Quiz · 16 Nov 14:00",
+      "deepLink": "bukampus://exams"
+    },
+    {
+      "id": 3,
+      "title": "Veritabanı Sistemleri",
+      "sourceName": null,
+      "publishedAt": "2026-11-20",
+      "startsAt": "2026-11-20T23:59:00+03:00",
+      "dateLabel": "20 Nov",
+      "urgent": false,
+      "urgentLabel": null,
+      "metaText": "Assignment · 20 Nov 23:59",
+      "deepLink": "bukampus://exams"
+    }
+  ]
+}

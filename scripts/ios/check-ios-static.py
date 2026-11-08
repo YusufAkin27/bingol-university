@@ -334,7 +334,7 @@ WIDGETS = os.path.join(IOS, 'BUWidgets')
 WIDGET_BUNDLE = 'tr.com.bukampus.app.widgets'
 APP_GROUP = 'group.tr.com.bukampus.app'
 WIDGET_KINDS = ['BUMenuWidget', 'BUTimetableWidget', 'BUEventsWidget', 'BUAnnouncementsWidget', 'BUPollWidget',
-                'BUQuickAccessWidget', 'BUSocialWidget']
+                'BUQuickAccessWidget', 'BUSocialWidget', 'BUExamsWidget', 'BUAcademicWidget']
 EXAMPLES = os.path.join(ROOT, 'design', 'widget-previews', 'examples')
 
 
@@ -565,7 +565,7 @@ def check_widget_files():
 # Swift modelleri -> ornek JSON'larin Codable ile ayrisabilirligi (tum alanlar opsiyonel; TIP uyusmazligi = ayristirma hatasi)
 SLUG_MODEL = {'menu': 'BuMenuSnap', 'timetable': 'BuTimetableSnap', 'events': 'BuEventsSnap',
               'announcements': 'BuAnnouncementsSnap', 'poll': 'BuPollSnap', 'quickaccess': 'BuQuickSnap',
-              'social': 'BuSocialSnap'}
+              'social': 'BuSocialSnap', 'exams': 'BuAnnouncementsSnap', 'academic': 'BuAnnouncementsSnap'}
 
 
 def swift_models():

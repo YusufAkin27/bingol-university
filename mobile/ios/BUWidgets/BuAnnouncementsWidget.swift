@@ -33,6 +33,8 @@ private struct BuMetaLine: View {
 
 struct BuAnnouncementsView: View {
     let entry: BuEntry<BuAnnouncementsSnap>
+    /// Sinavlar ve akademik takvim ayni cizimi paylasir; yalniz bos durum/baslik simgesi degisir.
+    var icon: String = "megaphone"
     @Environment(\.widgetFamily) private var family
 
     private var link: URL? {
@@ -75,19 +77,19 @@ struct BuAnnouncementsView: View {
         case .systemSmall:
             VStack(alignment: .leading, spacing: 0) {
                 smallHeader(snap.str("titleSmall"), t)
-                BuEmptyCentered(theme: t, lang: lang, icon: "megaphone", iconSize: BuWidgetTokens.iconEmptySmall,
+                BuEmptyCentered(theme: t, lang: lang, icon: icon, iconSize: BuWidgetTokens.iconEmptySmall,
                                 title: snap.str("emptyTitle"))
             }
         case .systemMedium:
             VStack(alignment: .leading, spacing: 0) {
                 BuLogoTitleHeader(theme: t, lang: lang, title: snap.str("title"))
-                BuEmptyCentered(theme: t, lang: lang, icon: "megaphone", iconSize: BuWidgetTokens.iconEmptyMedium,
+                BuEmptyCentered(theme: t, lang: lang, icon: icon, iconSize: BuWidgetTokens.iconEmptyMedium,
                                 title: snap.str("emptyTitle"), sub: snap.str("emptySub"))
             }
         default:
             VStack(alignment: .leading, spacing: 0) {
                 BuLogoTitleHeader(theme: t, lang: lang, title: snap.str("title"))
-                BuEmptyCentered(theme: t, lang: lang, icon: "megaphone", iconSize: BuWidgetTokens.iconEmptyLarge,
+                BuEmptyCentered(theme: t, lang: lang, icon: icon, iconSize: BuWidgetTokens.iconEmptyLarge,
                                 title: snap.str("emptyTitle"), titleRole: BuWidgetTokens.question,
                                 sub: snap.str("emptySub"), subRole: BuWidgetTokens.small, subLines: 2)
             }
@@ -96,7 +98,7 @@ struct BuAnnouncementsView: View {
 
     private func smallHeader(_ caption: String, _ t: BuTheme) -> some View {
         return HStack(spacing: BuWidgetTokens.s6) {
-            BuIcon(name: "megaphone", size: BuWidgetTokens.iconHeaderEvents, color: t.text2)
+            BuIcon(name: icon, size: BuWidgetTokens.iconHeaderEvents, color: t.text2)
             BuLabel(text: caption, role: BuWidgetTokens.micro, color: t.text2, lang: entry.ctx.lang)
             Spacer(minLength: 0)
         }
@@ -196,6 +198,44 @@ struct BuAnnouncementsView: View {
             }
             .frame(maxHeight: .infinity)
         }
+    }
+}
+
+/// Yaklasan Sinavlar (kind BUExamsWidget): duyuru cizimi, anahtar bu_widget_exams. Dokununca bukampus://exams.
+struct BUExamsWidget: Widget {
+    let kind: String = "BUExamsWidget"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(
+            kind: kind,
+            provider: BuProvider<BuAnnouncementsSnap>(key: BuWidgetTokens.keyExams,
+                                                      sampleJSON: BuSampleData.exams,
+                                                      extraDates: BuTimeline.noExtra)
+        ) { entry in
+            BuAnnouncementsView(entry: entry, icon: "calendar")
+        }
+        .configurationDisplayName("widget.exams.name")
+        .description("widget.exams.desc")
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
+    }
+}
+
+/// Akademik Takvim (kind BUAcademicWidget): duyuru cizimi, anahtar bu_widget_academic. Dokununca bukampus://academic.
+struct BUAcademicWidget: Widget {
+    let kind: String = "BUAcademicWidget"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(
+            kind: kind,
+            provider: BuProvider<BuAnnouncementsSnap>(key: BuWidgetTokens.keyAcademic,
+                                                      sampleJSON: BuSampleData.academic,
+                                                      extraDates: BuTimeline.noExtra)
+        ) { entry in
+            BuAnnouncementsView(entry: entry, icon: "calendar")
+        }
+        .configurationDisplayName("widget.academic.name")
+        .description("widget.academic.desc")
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }
 

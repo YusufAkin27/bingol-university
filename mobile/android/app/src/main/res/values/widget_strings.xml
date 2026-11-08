@@ -15,6 +15,10 @@
     <string name="bw_desc_quickaccess">Sık kullanılan ekranlara kısayollar</string>
     <string name="bw_label_social">Sosyal Özet</string>
     <string name="bw_desc_social">Mesaj, bildirim ve beğeni sayıları</string>
+    <string name="bw_label_exams">Yaklaşan Sınavlar</string>
+    <string name="bw_desc_exams">Yaklaşan sınavların ve tarihleri</string>
+    <string name="bw_label_academic">Akademik Takvim</string>
+    <string name="bw_desc_academic">Yaklaşan önemli akademik tarihler</string>
     <string name="bw_signed_out_title">Giriş yap</string>
     <string name="bw_signed_out_sub">BÜ Kampüs\'ü aç</string>
 </resources>

@@ -9,7 +9,7 @@
     "hhmm": { "type": "string", "pattern": "^\\d{2}:\\d{2}$" },
     "link": { "type": "string", "pattern": "^bukampus://[a-z]+(/[0-9]+)?$" },
     "strMap": { "type": "object", "additionalProperties": { "type": "string" } },
-    "slug": { "enum": ["menu", "timetable", "events", "announcements", "poll", "quickaccess", "social"] },
+    "slug": { "enum": ["menu", "timetable", "events", "announcements", "poll", "quickaccess", "social", "exams", "academic"] },
     "envelope": {
       "type": "object",
       "required": ["schema", "slug", "state", "generatedAt", "expiresAt", "lang", "rtl", "deepLink", "a11y", "strings"],
@@ -208,6 +208,8 @@
         }
       ]
     },
+    "exams": { "allOf": [{ "$ref": "#/$defs/announcements" }] },
+    "academic": { "allOf": [{ "$ref": "#/$defs/announcements" }] },
     "poll": {
       "allOf": [
         { "$ref": "#/$defs/envelope" },

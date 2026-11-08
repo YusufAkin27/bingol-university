@@ -109,3 +109,13 @@ Yeni hata kodu eklenmedi.
 
 - Yeni kulüp adı rezerve ifade (bkz. `docs/changes/event.md` W2-D) taşıyorsa kulüp `app.community.auto-approve=true` olsa bile **PENDING_REVIEW** olur (sohbet odası onayda kurulur); yayındaki kulübün adı rezerve ifadeye çevrilemez (`400 RESERVED_DISPLAY_NAME`); kulüp adı/açıklama/kategoride görünmez karakter `400 INVALID_DISPLAY_NAME`.
 - Kulüp silinince tüm aktif üyelere (500 sınırı kalktı) ve kulüp yazısında tüm aktif üyelere bildirim gider (`CommunityMemberRepository.userIdsByStatusAfter`, kimlik imeçli).
+
+## Kulup / etkinlik onerisi hedef kitlesi (V1750)
+
+Kulup kurulurken (isteğe bağlı) "hangi fakülte/bölümlere önerilsin" seçilir. **Yalnız öneri sıralaması**: kulübün görünürlüğünü, katılımını ya da sertifika kurallarını etkilemez.
+
+- Tablo `community_audience(community_id, kind FACULTY|DEPARTMENT, value)`; `value` katalogdaki kanonik (Türkçe) ad (`app_user.faculty/department` ile aynı biçim). En çok 12 fakülte + 12 bölüm. Katalog dışı ad `400 ACADEMIC_INVALID` (mevcut çeviri).
+- `POST /api/communities` ve `PATCH /api/communities/{id}` gövdesine `targetFaculties: string[]`, `targetDepartments: string[]` (ikisi de isteğe bağlı; PATCH'te alan yok = dokunma, `[]` = temizle). `CommunityView` aynı iki alanı döndürür (kulüp detay/liste).
+- `GET /api/communities/recommended?size=10` (en çok 30): kullanıcının profil bölümü/fakültesine uyan ACTIVE + PUBLIC kulüpler, zaten üye/başvurmuş olunanlar hariç. Puan: bölüm eşleşmesi 2, fakülte 1; eşitlikte yeni kulüp önce. Profil boşsa ya da eşleşme yoksa `[]`.
+- `GET /api/events/recommended?size=10`: aynı kulüplerin yaklaşan ACTIVE etkinlikleri (en yakın başlangıç önce). Boş olabilir.
+- Mobil: kulüp formunda "Önerilecek bölümler" alanı; Kulüpler sekmesinde "Bölümüne uygun kulüpler" şeridi, Etkinlikler > Keşfet'te "Bölümüne uygun etkinlikler" (boşsa hiçbir şey çizilmez).

@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "slug": "academic",
+  "state": "ok",
+  "generatedAt": "2026-11-06T10:00:00+03:00",
+  "expiresAt": "2026-11-09T10:00:00+03:00",
+  "lang": "ar",
+  "rtl": true,
+  "deepLink": "bukampus://academic",
+  "a11y": "التقويم الأكاديمي: Ara sınav haftası 9 – 15 نوفمبر; Atatürk'ü Anma Günü 10 نوفمبر; Ders ekleme-bırakma 23 – 27 نوفمبر",
+  "strings": {
+    "signedOutTitle": "تسجيل الدخول",
+    "signedOutSub": "افتح BÜ Kampüs",
+    "titleSmall": "التقويم الأكاديمي",
+    "title": "التقويم الأكاديمي",
+    "last": "التالي {n}",
+    "emptyTitle": "لا مواعيد أكاديمية قادمة",
+    "emptySub": "ستظهر المواعيد الأكاديمية المهمة هنا"
+  },
+  "count": 3,
+  "lastLabel": "التالي 3",
+  "items": [
+    {
+      "id": 11,
+      "title": "Ara sınav haftası",
+      "sourceName": null,
+      "publishedAt": "2026-11-09",
+      "startsAt": "2026-11-09T00:00:00+03:00",
+      "dateLabel": "9 – 15 نوفمبر",
+      "urgent": false,
+      "urgentLabel": null,
+      "metaText": "نصفي · 9 – 15 نوفمبر",
+      "deepLink": "bukampus://academic"
+    },
+    {
+      "id": 12,
+      "title": "Atatürk'ü Anma Günü",
+      "sourceName": null,
+      "publishedAt": "2026-11-10",
+      "startsAt": "2026-11-10T00:00:00+03:00",
+      "dateLabel": "10 نوفمبر",
+      "urgent": false,
+      "urgentLabel": null,
+      "metaText": "عطلة رسمية · 10 نوفمبر",
+      "deepLink": "bukampus://academic"
+    },
+    {
+      "id": 13,
+      "title": "Ders ekleme-bırakma",
+      "sourceName": null,
+      "publishedAt": "2026-11-23",
+      "startsAt": "2026-11-23T00:00:00+03:00",
+      "dateLabel": "23 – 27 نوفمبر",
+      "urgent": false,
+      "urgentLabel": null,
+      "metaText": "تسجيل المقررات · 23 – 27 نوفمبر",
+      "deepLink": "bukampus://academic"
+    }
+  ]
+}

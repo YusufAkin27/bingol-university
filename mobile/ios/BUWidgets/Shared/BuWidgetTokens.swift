@@ -149,6 +149,8 @@ enum BuWidgetTokens {
     static let keyPoll = "bu_widget_poll"
     static let keyQuickAccess = "bu_widget_quickaccess"
     static let keySocial = "bu_widget_social"
+    static let keyExams = "bu_widget_exams"
+    static let keyAcademic = "bu_widget_academic"
     static let urlScheme = "bukampus"
 }
 

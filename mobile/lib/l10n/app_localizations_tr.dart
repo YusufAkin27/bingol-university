@@ -13993,4 +13993,59 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get postPeekOpen => 'Gönderiyi aç';
+
+  @override
+  String get clubAudienceLabel => 'Önerilecek bölümler';
+
+  @override
+  String get clubAudienceHint => 'Seçilmedi (isteğe bağlı)';
+
+  @override
+  String get clubAudienceSheetTitle => 'Kulüp kime önerilsin?';
+
+  @override
+  String get clubAudienceSheetHint =>
+      'Yalnızca öneri sıralamasını etkiler; kulüp herkese görünür kalır.';
+
+  @override
+  String get clubAudienceSearchHint => 'Fakülte veya bölüm ara';
+
+  @override
+  String get clubAudienceNoMatch => 'Eşleşen fakülte veya bölüm yok';
+
+  @override
+  String get clubAudienceRetry => 'Tekrar dene';
+
+  @override
+  String get clubAudienceClear => 'Temizle';
+
+  @override
+  String get clubAudienceExpand => 'Bölümleri göster';
+
+  @override
+  String get clubAudienceCollapse => 'Bölümleri gizle';
+
+  @override
+  String clubAudienceDeptCount(int count) {
+    return '$count bölüm';
+  }
+
+  @override
+  String clubAudienceSelected(int count) {
+    return '$count hedef seçildi';
+  }
+
+  @override
+  String clubAudienceDone(int count) {
+    return 'Tamam ($count)';
+  }
+
+  @override
+  String get clubRecommendedTitle => 'Bölümüne uygun kulüpler';
+
+  @override
+  String get clubRecommendedAll => 'Tüm kulüpler';
+
+  @override
+  String get eventRecommendedTitle => 'Bölümüne uygun etkinlikler';
 }

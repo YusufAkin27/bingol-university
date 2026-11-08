@@ -74,6 +74,8 @@ class WidgetSyncService {
     if (t.contains('NEWS') || t.contains('ANNOUNCEMENT')) s.add(WidgetSlug.announcements);
     if (t.contains('POLL')) s.add(WidgetSlug.poll);
     if (t.contains('MEAL') || t.contains('MENU')) s.add(WidgetSlug.menu);
+    if (t.contains('EXAM')) s.add(WidgetSlug.exams);
+    if (t.contains('ACADEMIC') || t.contains('CALENDAR')) s.add(WidgetSlug.academic);
     if (t.contains('CLASS') || t.contains('TIMETABLE') || t.contains('COURSE')) s.add(WidgetSlug.timetable);
     request(s);
   }
@@ -186,6 +188,12 @@ class WidgetSyncService {
         return b.poll(await _readPoll(session));
       case WidgetSlug.quickaccess:
         return b.quickAccess(order: await QuickAccessPrefs.load());
+      case WidgetSlug.exams:
+        final x = await _readExams(session);
+        return x == null ? null : b.exams(x);
+      case WidgetSlug.academic:
+        final a = await _readAcademic(session, b.today);
+        return a == null ? null : b.academic(a);
       case WidgetSlug.social:
         final likes = await _readSocialLikes(session);
         return b.social(
@@ -247,6 +255,34 @@ class WidgetSyncService {
       return out;
     } catch (e) {
       swallow('widget.read_events', e);
+      return null;
+    }
+  }
+
+  /// Kullanıcının kendi yaklaşan sınavları (başkasının verisi okunmaz).
+  Future<List<WidgetExamInput>?> _readExams(Session session) async {
+    try {
+      final list = await AcademicApi(session).upcomingExams(days: 60);
+      return [
+        for (final e in list)
+          WidgetExamInput(id: e.id, title: e.title, courseName: e.courseName, type: e.type, startsAt: e.startsAt, room: e.room),
+      ];
+    } catch (e) {
+      swallow('widget.read_exams', e);
+      return null;
+    }
+  }
+
+  /// Herkese açık akademik takvim: bugünden 60 gün.
+  Future<List<WidgetAcademicInput>?> _readAcademic(Session session, DateTime today) async {
+    try {
+      final list = await AcademicApi(session).calendarRange(today, today.add(const Duration(days: 60)));
+      return [
+        for (final e in list)
+          WidgetAcademicInput(id: e.id, kind: e.kind, title: e.title, startsAt: e.startsAt, endsAt: e.endsAt),
+      ];
+    } catch (e) {
+      swallow('widget.read_academic', e);
       return null;
     }
   }
