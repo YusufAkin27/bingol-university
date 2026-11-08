@@ -90,7 +90,19 @@ public class NewsSyncService {
     /** Varsayilan: her gece 00:00 (Istanbul). Ayar: news.sync.cron */
     @Scheduled(cron = "${news.sync.cron:0 0 0 * * *}", zone = "Europe/Istanbul")
     public void scheduledSync() {
-        sync();
+        if (lock == null) {
+            sync();
+        } else {
+            lock.tryRunOrLocal("news-sync", java.time.Duration.ofMinutes(60), this::sync); // iki ornek cift scrape/bildirim yapmasin
+        }
+    }
+
+    /** Coklu ornek kilidi; yoksa (testler) eski davranis. */
+    private edu.bingol.backend.config.SchedulerLock lock;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setLock(edu.bingol.backend.config.SchedulerLock lock) {
+        this.lock = lock;
     }
 
     /** Yeni kayitlari ceker; tur basina eklenen sayiyi doner. Hicbir zaman exception firlatmaz. */
