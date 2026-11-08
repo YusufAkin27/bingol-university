@@ -135,3 +135,39 @@ class _PostRichTextState extends State<PostRichText> {
     );
   }
 }
+
+/// Gönderi altında etiketlenen kişiler: her ad dokununca kişinin profilini açar (açıklama kısalsa/kesilse de erişilir).
+class PostMentionsLine extends StatelessWidget {
+  const PostMentionsLine({super.key, required this.session, required this.mentions});
+
+  final Session session;
+  final List<PostMention> mentions;
+
+  @override
+  Widget build(BuildContext context) {
+    if (mentions.isEmpty) return const SizedBox.shrink();
+    final t = context.bu;
+    final tt = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Wrap(
+        spacing: 12,
+        children: [
+          for (final m in mentions)
+            InkWell(
+              key: ValueKey('post-mention-${m.userId}'),
+              onTap: () => openUserProfile(context, session, userId: m.userId, name: m.displayName),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 32),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(Icons.alternate_email_rounded, size: 14, color: t.mut),
+                  const SizedBox(width: 2),
+                  Text(m.displayName, style: tt.bodySmall?.copyWith(color: t.ink, fontSize: 13)),
+                ]),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}

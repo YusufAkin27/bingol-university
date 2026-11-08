@@ -49,6 +49,7 @@ FollowingFetcher _fetcher(List<SocialUser> all, {int page = 20, List<String?>? l
     };
 
 void main() {
+  mentionTapTests();
   setUpAll(loadTestFonts);
 
   group('model ve metin parcalama', () {
@@ -406,3 +407,33 @@ void main() {
   });
 }
 
+
+void mentionTapTests() {
+  testWidgets('akis: ust GestureDetector varken etikete dokunmak profili acar, ust onTap calismaz', (tester) async {
+    final s = makeSession(FakeBackend());
+    PostMention? tapped;
+    var parent = 0;
+    await tester.pumpWidget(buildApp(Scaffold(
+      body: Align(
+        alignment: Alignment.topLeft,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => parent++,
+          child: PostRichText(
+            session: s,
+            text: 'Selam @Ali Veli',
+            mentions: const [PostMention(userId: 3, displayName: 'Ali Veli')],
+            style: const TextStyle(fontSize: 15),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            onMention: (m) => tapped = m,
+          ),
+        ),
+      ),
+    )));
+    final r = tester.getRect(find.byType(PostRichText));
+    await tester.tapAt(Offset(r.right - 6, r.center.dy));
+    expect(tapped?.userId, 3);
+    expect(parent, 0);
+  });
+}
