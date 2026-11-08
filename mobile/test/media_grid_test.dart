@@ -116,4 +116,34 @@ void main() {
     await tester.pump();
     expect(find.textContaining('4 / 5'), findsOneWidget);
   });
+
+  testWidgets('ChatMediaViewer alt şerit: küçük resimler görünür, dokununca o medyaya geçer, kaydırınca şerit izler',
+      (tester) async {
+    useScreen(tester, kPhoneMedium);
+    final items = [
+      for (var i = 0; i < 6; i++) ChatMediaItem(url: '/files/m$i.jpg', thumbUrl: '/files/t$i.jpg')
+    ];
+    await tester.pumpWidget(buildApp(
+        ChatMediaViewer(items: items, headers: const {}, initialIndex: 1), size: kPhoneMedium));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('viewerStrip')), findsOneWidget);
+    expect(find.byKey(const ValueKey('viewerThumb1')), findsOneWidget);
+    expect(find.textContaining('2 / 6'), findsOneWidget);
+    // Küçük resme dokun: o medyaya geçer
+    await tester.tap(find.byKey(const ValueKey('viewerThumb3')));
+    await tester.pumpAndSettle(const Duration(milliseconds: 100));
+    expect(find.textContaining('4 / 6'), findsOneWidget);
+    // Sayfayı sola kaydır: sonraki medya
+    await tester.drag(find.byType(PageView), const Offset(-400, 0));
+    await tester.pumpAndSettle(const Duration(milliseconds: 100));
+    expect(find.textContaining('5 / 6'), findsOneWidget);
+  });
+
+  testWidgets('ChatMediaViewer tek medyada alt şerit çıkmaz', (tester) async {
+    useScreen(tester, kPhoneMedium);
+    await tester.pumpWidget(buildApp(
+        ChatMediaViewer(items: [ChatMediaItem(url: '/files/m.jpg')], headers: const {}), size: kPhoneMedium));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('viewerStrip')), findsNothing);
+  });
 }

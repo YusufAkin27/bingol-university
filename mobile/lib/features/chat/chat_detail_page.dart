@@ -1720,6 +1720,20 @@ class _ChatDetailPageState extends State<ChatDetailPage>
 
   /// Çok öğeli mesajın tüm medyası; dokunulan öğeden başlayan galeri.
   void _openMessageGallery(List<Map<String, dynamic>> atts, int index) {
+    // Sohbette yüklü TÜM medya (eskiden yeniye) tek galeride: sağa/sola kaydırarak ve alt şeritten gezilir.
+    final tapped = (index >= 0 && index < atts.length) ? atts[index] : null;
+    final all = _conversationMedia(tapped);
+    if (all != null) {
+      Navigator.push(
+          context,
+          MaterialPageRoute<void>(settings: const RouteSettings(name: 'chat_media_viewer'),
+              builder: (_) => ChatMediaViewer(
+                  items: all.items,
+                  headers: _authHeaders,
+                  initialIndex: all.start,
+                  videoControllerFactory: widget.videoControllerFactory)));
+      return;
+    }
     final items = <ChatMediaItem>[];
     var start = 0;
     for (var i = 0; i < atts.length; i++) {
@@ -1737,6 +1751,35 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                 headers: _authHeaders,
                 initialIndex: start,
                 videoControllerFactory: widget.videoControllerFactory)));
+  }
+
+  /// Yüklü mesajlardaki tüm görüntülenebilir medya (eskiden yeniye) ve dokunulanın sırası; dokunulan bulunamazsa null.
+  ({List<ChatMediaItem> items, int start})? _conversationMedia(Map? tapped) {
+    if (tapped == null) return null;
+    final tid = (tapped['id'] as num?)?.toInt();
+    final turl = tapped['url'] ?? tapped['thumbUrl'];
+    final items = <ChatMediaItem>[];
+    var start = -1;
+    for (final m in _msgs.reversed) {
+      final list = m['attachments'];
+      if (list is! List) continue;
+      final at = DateTime.tryParse('${m['createdAt'] ?? ''}');
+      final who = _nameOf((m['senderId'] as num?)?.toInt());
+      for (final a in list) {
+        if (a is! Map) continue;
+        final it = ChatMediaItem.tryFromAttachment(a, sender: who, at: at);
+        if (it == null) continue;
+        final aid = (a['id'] as num?)?.toInt();
+        if (start < 0 &&
+            ((tid != null && aid == tid) ||
+                (tid == null && turl != null && (a['url'] ?? a['thumbUrl']) == turl))) {
+          start = items.length;
+        }
+        items.add(it);
+      }
+    }
+    if (start < 0 || items.isEmpty) return null;
+    return (items: items, start: start);
   }
 
   void _openImage(Map<String, dynamic> a) {
