@@ -125,14 +125,19 @@ void main() {
       final rt = ChatRealtime(s);
       s.realtime = rt;
       await _pump(tester, ChatTab(session: s, connectRealtime: false));
-      // Tik ikonu tek birlesik bilesen (MessageStatusIcon): durum anahtari `msg-status-<DURUM>`.
-      bool hasStatus(String st) => find.byKey(ValueKey<String>('msg-status-$st')).evaluate().isNotEmpty;
-      expect(hasStatus('SENT'), isTrue);
-      expect(hasStatus('DELIVERED'), isFalse);
+      // Listede tik yerine metin: "Gönderildi · 1 sa önce" -> okundu olunca "Görüldü ...".
+      Finder status(String prefix) => find.byWidgetPredicate(
+          (w) => w is Text && w.key == const ValueKey('chatListStatus') && (w.data ?? '').startsWith(prefix));
+      expect(status('Gönderildi'), findsOneWidget);
+      expect(status('Görüldü'), findsNothing);
 
       rt.debugEmitMessageEvent(_receipt('delivered', 5, 'DELIVERED'));
       await settle(tester, const Duration(milliseconds: 400));
-      expect(hasStatus('DELIVERED'), isTrue);
+      expect(status('Gönderildi'), findsOneWidget); // iletildi hâlâ "Gönderildi"
+
+      rt.debugEmitMessageEvent(_receipt('read', 5, 'READ'));
+      await settle(tester, const Duration(milliseconds: 400));
+      expect(status('Görüldü'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });

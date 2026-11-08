@@ -4988,6 +4988,8 @@
   "chatSeenAgoWeeks": "{n, plural, =1{منذ أسبوع واحد} =2{منذ أسبوعين} few{منذ {n} أسابيع} many{منذ {n} أسبوعًا} other{منذ {n} أسبوعًا}}",
   "chatSeenAgoMonths": "{n, plural, =1{منذ شهر واحد} =2{منذ شهرين} few{منذ {n} أشهر} many{منذ {n} شهرًا} other{منذ {n} شهرًا}}",
   "chatSeenAgoYears": "{n, plural, =1{منذ سنة واحدة} =2{منذ سنتين} few{منذ {n} سنوات} many{منذ {n} سنة} other{منذ {n} سنة}}",
+  "chatStatusSentAt": "تم الإرسال · {when}",
+  "@chatStatusSentAt": {"placeholders": {"when": {"type": "String"}}},
   "chatStatusSeenAt": "تمت المشاهدة · {when}",
   "pcmWriteHint": "أضف تعليقًا…",
   "pcmEmptyTitle": "كن أول من يعلّق",

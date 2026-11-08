@@ -13811,6 +13811,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String chatStatusSentAt(String when) {
+    return 'Sent · $when';
+  }
+
+  @override
   String chatStatusSeenAt(String when) {
     return 'Seen · $when';
   }

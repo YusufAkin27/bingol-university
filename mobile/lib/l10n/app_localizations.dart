@@ -24750,6 +24750,12 @@ abstract class AppLocalizations {
   /// **'{n, plural, other{{n} yıl önce}}'**
   String chatSeenAgoYears(int n);
 
+  /// No description provided for @chatStatusSentAt.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderildi · {when}'**
+  String chatStatusSentAt(String when);
+
   /// No description provided for @chatStatusSeenAt.
   ///
   /// In tr, this message translates to:

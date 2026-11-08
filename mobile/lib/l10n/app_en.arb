@@ -4988,6 +4988,8 @@
   "chatSeenAgoWeeks": "{n, plural, =1{1 week ago} other{{n} weeks ago}}",
   "chatSeenAgoMonths": "{n, plural, =1{1 month ago} other{{n} months ago}}",
   "chatSeenAgoYears": "{n, plural, =1{1 year ago} other{{n} years ago}}",
+  "chatStatusSentAt": "Sent · {when}",
+  "@chatStatusSentAt": {"placeholders": {"when": {"type": "String"}}},
   "chatStatusSeenAt": "Seen · {when}",
   "pcmWriteHint": "Add a comment…",
   "pcmEmptyTitle": "Be the first to comment",
