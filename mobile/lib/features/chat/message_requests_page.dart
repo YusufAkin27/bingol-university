@@ -189,6 +189,19 @@ class _MessageRequestsPageState extends State<MessageRequestsPage> {
       });
       // Kabul edilen sohbet ana listeye düşer: sohbet sekmesi yeniden yüklensin.
       widget.session.badges.conversationsDirty.value++;
+      if (accept) {
+        // WhatsApp gibi: kabul edince sohbet açılır (boş "istek yok" sayfasında kalınmaz). Dönünce başka istek
+        // kalmadıysa istek sayfası da kapanır ve sohbet listesine dönülür.
+        await Navigator.push<void>(
+          context,
+          MaterialPageRoute<void>(
+              settings: const RouteSettings(name: 'chat_detail'),
+              builder: (_) => ChatDetailPage(session: widget.session, conversation: c)),
+        );
+        if (!mounted) return;
+        widget.session.badges.conversationsDirty.value++;
+        if (_items.isEmpty) Navigator.of(context).maybePop();
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() => _leaving.remove(id));
