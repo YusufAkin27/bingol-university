@@ -1,3 +1,4 @@
+import '../../../../widgets/bu_swipe_back.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -28,7 +29,8 @@ import '../widgets/topic_detail_share.dart';
 import 'comment_thread_page.dart';
 
 /// Anket parçası üreticisi (yalnız test/özelleştirme; varsayılan MB-C `PollView`).
-typedef TopicPollBuilder = Widget Function(BuildContext context, ForumApi api, TopicView topic, ValueChanged<ForumPoll> onChanged);
+typedef TopicPollBuilder = Widget Function(BuildContext context, ForumApi api,
+    TopicView topic, ValueChanged<ForumPoll> onChanged);
 
 /// Konu detayı: yazar, kategori, tarih, başlık, TAM açıklama, görseller, anket, beğeni / yorum / kaydet / takip /
 /// paylaş; altında Reddit tarzı iç içe yorumlar ve klavyeye uyumlu sabit yazma çubuğu.
@@ -64,13 +66,16 @@ class TopicDetailPage extends StatefulWidget {
   State<TopicDetailPage> createState() => _TopicDetailPageState();
 }
 
-class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteractions<TopicDetailPage> {
+class _TopicDetailPageState extends State<TopicDetailPage>
+    with CommentInteractions<TopicDetailPage> {
   late final ForumApi _api = widget.api ?? ForumApi(widget.session);
-  late final CommentsController _cc = CommentsController(api: _api, topicId: widget.topicId, onCountDelta: _countDelta);
+  late final CommentsController _cc = CommentsController(
+      api: _api, topicId: widget.topicId, onCountDelta: _countDelta);
   final ScrollController _scroll = ScrollController();
   final GlobalKey _commentsKey = GlobalKey();
   final GlobalKey _focusKey = GlobalKey();
-  final GlobalKey<CommentComposerState> _composerKey = GlobalKey<CommentComposerState>();
+  final GlobalKey<CommentComposerState> _composerKey =
+      GlobalKey<CommentComposerState>();
 
   TopicView? _topic;
   bool _loading = true;
@@ -109,7 +114,9 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _cc.collapseDuration = BuMotion.reduced(context) ? Duration.zero : const Duration(milliseconds: 200);
+    _cc.collapseDuration = BuMotion.reduced(context)
+        ? Duration.zero
+        : const Duration(milliseconds: 200);
   }
 
   @override
@@ -139,7 +146,8 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
   void _countDelta(int d) {
     final t = _topic;
     if (t == null) return;
-    setState(() => _topic = t.copyWith(commentCount: (t.commentCount + d).clamp(0, 1 << 30)));
+    setState(() => _topic =
+        t.copyWith(commentCount: (t.commentCount + d).clamp(0, 1 << 30)));
   }
 
   // ---- Yükleme -------------------------------------------------------------------------------------------
@@ -164,7 +172,8 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
       if (t.removed) return;
       await _cc.load(silent: refresh);
       if (!mounted) return;
-      if (!refresh && widget.commentId != null) await _focusComment(widget.commentId!);
+      if (!refresh && widget.commentId != null)
+        await _focusComment(widget.commentId!);
     } on ApiError catch (e) {
       if (!mounted) return;
       setState(() {
@@ -225,12 +234,15 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
     // Önce yorumlar bölümüne in (liste tembel kurulur), sonra hedefe.
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final head = _commentsKey.currentContext;
-      if (head != null) await Scrollable.ensureVisible(head, duration: Duration.zero);
+      if (head != null)
+        await Scrollable.ensureVisible(head, duration: Duration.zero);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final ctx = _focusKey.currentContext;
         if (ctx != null && mounted) {
           Scrollable.ensureVisible(ctx,
-              alignment: .25, duration: BuMotion.of(context, const Duration(milliseconds: 320)), curve: Curves.easeOutCubic);
+              alignment: .25,
+              duration: BuMotion.of(context, const Duration(milliseconds: 320)),
+              curve: Curves.easeOutCubic);
         }
       });
     });
@@ -258,7 +270,9 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
   void _toComments() {
     final ctx = _commentsKey.currentContext;
     if (ctx != null) {
-      Scrollable.ensureVisible(ctx, duration: BuMotion.of(context, const Duration(milliseconds: 300)), curve: Curves.easeOutCubic);
+      Scrollable.ensureVisible(ctx,
+          duration: BuMotion.of(context, const Duration(milliseconds: 300)),
+          curve: Curves.easeOutCubic);
     }
   }
 
@@ -272,7 +286,9 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
       _likeConfirmedCount = t.likeCount;
     }
     final want = !t.likedByMe;
-    setState(() => _topic = t.copyWith(likedByMe: want, likeCount: (t.likeCount + (want ? 1 : -1)).clamp(0, 1 << 30)));
+    setState(() => _topic = t.copyWith(
+        likedByMe: want,
+        likeCount: (t.likeCount + (want ? 1 : -1)).clamp(0, 1 << 30)));
     if (_likeBusy) return;
     _likeBusy = true;
     try {
@@ -282,13 +298,16 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
         _likeConfirmed = r.liked;
         _likeConfirmedCount = r.likeCount;
         if (_topic!.likedByMe == target) {
-          if (mounted) setState(() => _topic = _topic!.copyWith(likedByMe: r.liked, likeCount: r.likeCount));
+          if (mounted)
+            setState(() => _topic =
+                _topic!.copyWith(likedByMe: r.liked, likeCount: r.likeCount));
           break;
         }
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _topic = _topic!.copyWith(likedByMe: _likeConfirmed, likeCount: _likeConfirmedCount));
+        setState(() => _topic = _topic!.copyWith(
+            likedByMe: _likeConfirmed, likeCount: _likeConfirmedCount));
         _topicError(e);
       }
     } finally {
@@ -305,7 +324,9 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
       final saved = await _api.bookmarkTopic(widget.topicId, !prev);
       if (!mounted) return;
       setState(() => _topic = _topic!.copyWith(savedByMe: saved));
-      toast(saved ? context.l10n.forumDetailSaved : context.l10n.forumDetailUnsaved);
+      toast(saved
+          ? context.l10n.forumDetailSaved
+          : context.l10n.forumDetailUnsaved);
     } catch (e) {
       if (!mounted) return;
       setState(() => _topic = _topic!.copyWith(savedByMe: prev));
@@ -322,7 +343,9 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
       final f = await _api.followTopic(widget.topicId, !prev);
       if (!mounted) return;
       setState(() => _topic = _topic!.copyWith(followedByMe: f));
-      toast(f ? context.l10n.forumDetailFollowing : context.l10n.forumDetailUnfollowed);
+      toast(f
+          ? context.l10n.forumDetailFollowing
+          : context.l10n.forumDetailUnfollowed);
     } catch (e) {
       if (!mounted) return;
       setState(() => _topic = _topic!.copyWith(followedByMe: prev));
@@ -340,7 +363,8 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
 
   Future<void> _shareTopic() async {
     final ok = await shareForumLink(forumTopicLink(widget.topicId));
-    if (!ok && mounted) toast(context.l10n.shareExternalFailed, kind: BuToastKind.error);
+    if (!ok && mounted)
+      toast(context.l10n.shareExternalFailed, kind: BuToastKind.error);
   }
 
   Future<void> _openMenu() async {
@@ -352,27 +376,36 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
     switch (action) {
       case TopicMenuAction.edit:
         final updated = await openEditTopic(context, widget.session, t);
-        if (updated != null && mounted) setState(() => _topic = updated.copyWith(commentCount: _topic?.commentCount));
+        if (updated != null && mounted)
+          setState(() =>
+              _topic = updated.copyWith(commentCount: _topic?.commentCount));
       case TopicMenuAction.delete:
         await _confirmDeleteTopic();
       case TopicMenuAction.notifications:
         try {
-          final en = await _api.setTopicNotifications(widget.topicId, !t.notificationsEnabled);
+          final en = await _api.setTopicNotifications(
+              widget.topicId, !t.notificationsEnabled);
           if (!mounted) return;
           setState(() => _topic = _topic!.copyWith(notificationsEnabled: en));
-          toast(en ? l.forumDetailNotificationsOnDone : l.forumDetailNotificationsOffDone);
+          toast(en
+              ? l.forumDetailNotificationsOnDone
+              : l.forumDetailNotificationsOffDone);
         } catch (e) {
           if (mounted) _topicError(e);
         }
       case TopicMenuAction.share:
         await _shareTopic();
       case TopicMenuAction.pin:
-        await _moderate(t.pinned ? 'UNPIN' : 'PIN', t.pinned ? l.forumDetailUnpinnedDone : l.forumDetailPinnedDone);
+        await _moderate(t.pinned ? 'UNPIN' : 'PIN',
+            t.pinned ? l.forumDetailUnpinnedDone : l.forumDetailPinnedDone);
       case TopicMenuAction.lock:
-        await _moderate(t.locked ? 'UNLOCK' : 'LOCK', t.locked ? l.forumDetailUnlockedDone : l.forumDetailLockedDone);
+        await _moderate(t.locked ? 'UNLOCK' : 'LOCK',
+            t.locked ? l.forumDetailUnlockedDone : l.forumDetailLockedDone);
       case TopicMenuAction.report:
         await openReportSheet(context, widget.session,
-            targetType: kForumReportTopic, targetId: t.id, anonymousAuthor: t.author.anonymous);
+            targetType: kForumReportTopic,
+            targetId: t.id,
+            anonymousAuthor: t.author.anonymous);
       case TopicMenuAction.block:
         await _confirmBlockAuthor();
     }
@@ -433,10 +466,12 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
   void _openAuthorProfile() {
     final a = _summary?.author;
     if (a?.userId == null) return;
-    openUserProfile(context, widget.session, userId: a!.userId!, name: a.displayName, avatarUrl: a.avatarUrl);
+    openUserProfile(context, widget.session,
+        userId: a!.userId!, name: a.displayName, avatarUrl: a.avatarUrl);
   }
 
-  void _back() => Navigator.of(context).pop<TopicSummary?>(_topic ?? widget.initial);
+  void _back() =>
+      Navigator.of(context).pop<TopicSummary?>(_topic ?? widget.initial);
 
   // ---- Görünüm ------------------------------------------------------------------------------------------
 
@@ -456,7 +491,8 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
         message: removed ? l.forumDetailRemovedBody : l.forumDetailNotFoundBody,
       );
     } else if (_error != null && topic == null) {
-      body = BuErrorState(key: const ValueKey('topicError'), error: _error, onRetry: _load);
+      body = BuErrorState(
+          key: const ValueKey('topicError'), error: _error, onRetry: _load);
     } else if (_loading && topic == null && widget.initial == null) {
       body = const _DetailSkeleton();
     } else {
@@ -464,36 +500,44 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
     }
 
     final showComposer = !_gone && topic != null && !topic.removed;
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _back();
-      },
-      child: Scaffold(
-        backgroundColor: t.bg,
-        // Yazma çubuğu bottomNavigationBar'dır: bildirimler (SnackBar) çubuğun ÜSTÜNDE çıkar, gönder düğmesini
-        // örtmez. Klavye payını çubuğa kendimiz veririz (gövde Scaffold'un alt çubuk yüksekliğiyle küçülür).
-        resizeToAvoidBottomInset: false,
-        bottomNavigationBar: showComposer
-            ? Padding(
-                padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-                child: CommentComposer(
-                  key: _composerKey,
-                  locked: topic.locked,
-                  replyName: replyTo == null ? null : commentAuthorName(context, replyTo!),
-                  editing: editing != null,
-                  editText: editing?.body,
-                  onCancelTarget: cancelTarget,
-                  onSend: (b, a, k) => sendComment(b, a, k),
-                  onSave: saveEdit,
-                  onError: composerError,
-                ),
-              )
-            : null,
-        body: Column(children: [
-          TopicDetailBar(onBack: _back, onMore: topic != null && !_gone ? _openMenu : null),
-          Expanded(child: body),
-        ]),
+    return BuSwipeBack(
+      onBack: _back,
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) _back();
+        },
+        child: Scaffold(
+          backgroundColor: t.bg,
+          // Yazma çubuğu bottomNavigationBar'dır: bildirimler (SnackBar) çubuğun ÜSTÜNDE çıkar, gönder düğmesini
+          // örtmez. Klavye payını çubuğa kendimiz veririz (gövde Scaffold'un alt çubuk yüksekliğiyle küçülür).
+          resizeToAvoidBottomInset: false,
+          bottomNavigationBar: showComposer
+              ? Padding(
+                  padding: EdgeInsets.only(
+                      bottom: MediaQuery.viewInsetsOf(context).bottom),
+                  child: CommentComposer(
+                    key: _composerKey,
+                    locked: topic.locked,
+                    replyName: replyTo == null
+                        ? null
+                        : commentAuthorName(context, replyTo!),
+                    editing: editing != null,
+                    editText: editing?.body,
+                    onCancelTarget: cancelTarget,
+                    onSend: (b, a, k) => sendComment(b, a, k),
+                    onSave: saveEdit,
+                    onError: composerError,
+                  ),
+                )
+              : null,
+          body: Column(children: [
+            TopicDetailBar(
+                onBack: _back,
+                onMore: topic != null && !_gone ? _openMenu : null),
+            Expanded(child: body),
+          ]),
+        ),
       ),
     );
   }
@@ -511,7 +555,11 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           SliverToBoxAdapter(
-            child: TopicHeaderBlock(summary: s, full: topic, session: widget.session, onOpenProfile: _openAuthorProfile),
+            child: TopicHeaderBlock(
+                summary: s,
+                full: topic,
+                session: widget.session,
+                onOpenProfile: _openAuthorProfile),
           ),
           if (topic?.poll != null)
             SliverToBoxAdapter(
@@ -544,11 +592,17 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
   Widget _poll(BuildContext context, TopicView topic) {
     void changed(ForumPoll p) {
       final cur = _topic;
-      if (mounted && cur != null) setState(() => _topic = cur.copyWith(poll: p));
+      if (mounted && cur != null)
+        setState(() => _topic = cur.copyWith(poll: p));
     }
 
     return widget.pollBuilder?.call(context, _api, topic, changed) ??
-        PollView(key: ValueKey('poll-${topic.poll!.id}'), poll: topic.poll!, api: _api, topicId: topic.id, onChanged: changed);
+        PollView(
+            key: ValueKey('poll-${topic.poll!.id}'),
+            poll: topic.poll!,
+            api: _api,
+            topicId: topic.id,
+            onChanged: changed);
   }
 
   List<Widget> _commentSlivers(BuildContext context, TopicView topic) {
@@ -558,14 +612,16 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
           listenable: _cc,
           builder: (context, _) => KeyedSubtree(
             key: _commentsKey,
-            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              CommentsHeader(
-                count: topic.commentCount,
-                sort: _cc.sort,
-                onSort: (s) => _cc.setSort(s),
-              ),
-              CommentsStateBox(controller: _cc, slow: _slow),
-            ]),
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  CommentsHeader(
+                    count: topic.commentCount,
+                    sort: _cc.sort,
+                    onSort: (s) => _cc.setSort(s),
+                  ),
+                  CommentsStateBox(controller: _cc, slow: _slow),
+                ]),
           ),
         ),
       ),
@@ -576,7 +632,8 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
           final index = {for (var i = 0; i < rows.length; i++) rows[i].key: i};
           return SliverList.builder(
             itemCount: rows.length,
-            findChildIndexCallback: (k) => k is ValueKey<String> ? index[k.value] : null,
+            findChildIndexCallback: (k) =>
+                k is ValueKey<String> ? index[k.value] : null,
             itemBuilder: (context, i) {
               final row = rows[i];
               Widget tile = CommentRowTile(
@@ -587,7 +644,8 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
                 canReply: canComment,
                 onOpenChain: (n) => _openChain(n),
               );
-              if (row.kind == CommentRowKind.comment && row.node.id == _scrollToId) {
+              if (row.kind == CommentRowKind.comment &&
+                  row.node.id == _scrollToId) {
                 tile = KeyedSubtree(key: _focusKey, child: tile);
               }
               return KeyedSubtree(key: ValueKey<String>(row.key), child: tile);
@@ -595,7 +653,10 @@ class _TopicDetailPageState extends State<TopicDetailPage> with CommentInteracti
           );
         },
       ),
-      SliverToBoxAdapter(child: ListenableBuilder(listenable: _cc, builder: (_, __) => CommentsFooter(controller: _cc))),
+      SliverToBoxAdapter(
+          child: ListenableBuilder(
+              listenable: _cc,
+              builder: (_, __) => CommentsFooter(controller: _cc))),
     ];
   }
 }
@@ -612,16 +673,19 @@ class _DetailSkeleton extends StatelessWidget {
         child: const Padding(
           key: ValueKey('topicLoading'),
           padding: EdgeInsets.all(16),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
               BuSkeleton.circle(40),
               SizedBox(width: 12),
               Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  BuSkeleton.line(width: 140),
-                  SizedBox(height: 8),
-                  BuSkeleton.line(width: 90),
-                ]),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      BuSkeleton.line(width: 140),
+                      SizedBox(height: 8),
+                      BuSkeleton.line(width: 90),
+                    ]),
               ),
             ]),
             SizedBox(height: 20),
