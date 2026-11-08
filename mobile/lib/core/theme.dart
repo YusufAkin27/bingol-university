@@ -94,7 +94,7 @@ class BuTokens extends ThemeExtension<BuTokens> {
     this.qrPaper = const Color(0xFFFFFFFF),
     this.shadow = const Color(0xFF09090B),
     this.navBase = const Color(0xFFFFFFFF),
-    this.navGlass = const Color(0x8CFFFFFF),
+    this.navGlass = const Color(0x33FFFFFF),
     this.navAccent = const Color(0xFF09090B),
     this.navAccentHi = const Color(0xFF09090B),
     this.navIconIdle = const Color(0xFF18181B),
@@ -268,7 +268,7 @@ class BuTokens extends ThemeExtension<BuTokens> {
     onWarnSoft: Color(0xFF7A4F10),
     shadow: Color(0xFF09090B),
     navBase: Color(0xFFFFFFFF),
-    navGlass: Color(0x8CFFFFFF),
+    navGlass: Color(0x33FFFFFF),
     navIconIdle: Color(0xFF18181B),
     navTextIdle: Color(0xFF18181B),
     navBorder: Color(0x14000000),
@@ -313,6 +313,7 @@ class BuTokens extends ThemeExtension<BuTokens> {
     warnSoft: Color(0xFF3A2B0E),
     onWarnSoft: Color(0xFFFFD98F),
     shadow: Color(0xFF000000),
+    navGlass: Color(0x8CFFFFFF), // koyu temada %20 cam, koyu simgeyi okunmaz yapar: okunurluk icin %55 kalir
     tints: _tintsDark,
   );
 
