@@ -1,3 +1,4 @@
+import 'emoji_presentation.dart';
 import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 
@@ -351,7 +352,7 @@ class _RequestTile extends StatelessWidget {
           if (preview.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 2),
-              child: Text(preview, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(fontSize: 14, color: t.mut)),
+              child: Text.rich(emojiAwareSpan(preview, tx.bodyMedium!.copyWith(fontSize: 14, color: t.mut)), maxLines: 2, overflow: TextOverflow.ellipsis),
             ),
         ]),
       ),

@@ -1,3 +1,4 @@
+import 'emoji_presentation.dart';
 import '../../core/analytics.dart';
 import 'dart:async';
 
@@ -1125,7 +1126,7 @@ class _ConversationRow extends StatelessWidget {
                                   child: Text.rich(
                                     TextSpan(children: [
                                       if (prefix != null) TextSpan(text: '$prefix: ', style: tx.bodyMedium!.copyWith(color: t.ink, fontWeight: BuType.emphasisWeight)),
-                                      TextSpan(text: preview),
+                                      emojiAwareSpan(preview, tx.bodyMedium!),
                                     ]),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
