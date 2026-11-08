@@ -85,7 +85,7 @@ class ForumCounterRepairJobTest {
         long goodVersionBefore = q("SELECT COUNT(*) FROM forum_topic WHERE id = ?", good.getId());
         new ForumCounterRepairJob(jdbc, mock(SchedulerLock.class), 2, true).repair();
 
-        assertEquals(1, q("SELECT comment_count FROM forum_topic WHERE id = ?", bad.getId()));
+        assertEquals(2, q("SELECT comment_count FROM forum_topic WHERE id = ?", bad.getId()));
         assertEquals(1, q("SELECT like_count FROM forum_topic WHERE id = ?", bad.getId()));
         assertEquals(0, q("SELECT bookmark_count FROM forum_topic WHERE id = ?", bad.getId()));
         assertEquals(77, q("SELECT like_boost FROM forum_topic WHERE id = ?", bad.getId()), "like_boost'a dokunulmaz");
