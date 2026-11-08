@@ -346,12 +346,17 @@ void main() {
       expect(find.byKey(const ValueKey('post-menu-button')), findsNothing);
       await tester.longPress(box(1000));
       await settle(tester, const Duration(milliseconds: 700));
+      // Uzun basma artık ön izleme kartını açar; işlem menüsü kartın ⋯ düğmesindedir.
+      await tester.tap(find.byKey(const ValueKey('peekMenu')));
+      await settle(tester, const Duration(milliseconds: 700));
       expect(find.byKey(const ValueKey('post-act-edit')), findsOneWidget);
       expect(find.byKey(const ValueKey('post-act-delete')), findsOneWidget);
       expect(find.byKey(const ValueKey('post-act-report')), findsNothing);
       await tester.tapAt(const Offset(20, 100)); // sheet disina dokun: kapat
       await settle(tester, const Duration(milliseconds: 500));
       await tester.longPress(box(999));
+      await settle(tester, const Duration(milliseconds: 700));
+      await tester.tap(find.byKey(const ValueKey('peekMenu')));
       await settle(tester, const Duration(milliseconds: 700));
       expect(find.byKey(const ValueKey('post-act-profile')), findsOneWidget);
       expect(find.byKey(const ValueKey('post-act-report')), findsOneWidget);

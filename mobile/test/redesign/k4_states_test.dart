@@ -104,6 +104,9 @@ void main() {
       expect(find.byKey(const ValueKey('post-menu-button')), findsNothing);
       await tester.longPress(find.descendant(of: first, matching: find.byKey(const ValueKey('post-thumb-1000'))));
       await settle(tester, const Duration(milliseconds: 900));
+      // Uzun basma ön izleme kartını açar; menü kartın ⋯ düğmesinde.
+      await tester.tap(find.byKey(const ValueKey('peekMenu')));
+      await settle(tester, const Duration(milliseconds: 900));
       expect(find.byKey(const ValueKey('post-act-edit')), findsOneWidget);
       expect(find.byKey(const ValueKey('post-act-delete')), findsOneWidget);
       // Menü dışında (sol kenar) bir noktaya dokunarak kapat; merkez noktası menü kartına denk gelebilir.
@@ -115,7 +118,10 @@ void main() {
       await tester.pump();
       await tester.longPress(find.descendant(of: second, matching: find.byKey(const ValueKey('post-thumb-999'))));
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.tap(find.byKey(const ValueKey('peekMenu')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
       expect(find.byKey(const ValueKey('post-act-profile')), findsOneWidget);
       expect(find.byKey(const ValueKey('post-act-report')), findsOneWidget);
       expect(find.byKey(const ValueKey('post-act-block')), findsOneWidget);

@@ -339,12 +339,12 @@ void main() {
           'nextCursor': null,
         });
       await _pump(tester, build(makeSession(be)), size: kPhoneMedium);
-      expect(find.byKey(const ValueKey('msg-status-SENT')), findsOneWidget);
-      expect(find.byKey(const ValueKey('msg-status-DELIVERED')), findsOneWidget);
-      expect(find.byKey(const ValueKey('msg-status-READ')), findsOneWidget);
-      final read = tester.widget<CustomPaint>(find.byKey(const ValueKey('msg-status-READ')));
-      // Okundu tiki de nötr (P2/P3: marka vurgusu yalnız okunmamış rozetinde): iki çift tik aynı sakin renk.
-      expect((read.painter as MessageTickPainter).color, equals((tester.widget<CustomPaint>(find.byKey(const ValueKey('msg-status-DELIVERED'))).painter as MessageTickPainter).color));
+      // Liste satırında tik yok; durum yazıyla gösterilir ("Gönderildi · süre" / "Görüldü"): SENT + DELIVERED = 2 Gönderildi, READ = 1 Görüldü.
+      expect(find.byKey(const ValueKey('msg-status-SENT')), findsNothing);
+      expect(find.byKey(const ValueKey('msg-status-DELIVERED')), findsNothing);
+      expect(find.byKey(const ValueKey('msg-status-READ')), findsNothing);
+      expect(find.textContaining('Gönderildi'), findsNWidgets(2));
+      expect(find.textContaining('Görüldü'), findsOneWidget);
       // Tüm sohbet avatarları 52 dp; fotoğrafsızlar varsayılan görselli, fotoğraflılar tam daire BuAvatar.
       final avatars = tester.widgetList<ChatlistAvatar>(find.byType(ChatlistAvatar));
       expect(avatars, isNotEmpty);
