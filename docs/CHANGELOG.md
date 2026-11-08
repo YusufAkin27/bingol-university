@@ -4,6 +4,18 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### Mobil 2.4.7-2.5.1 ve veritabanı denetimi (2026-11-08)
+
+- **Alt çubuk (2.4.7+23023):** açık temada %20 cam opaklığı, koyu temada okunurluk için %55.
+- **iOS bildirim görünümü (2.4.8+23024):** kırmızı marka rengi kalktı, logo nötr BÜ; kırmızı yalnız tehlike/önemli/kalp.
+- **Sohbet medya görüntüleyici (2.4.9+23025):** sohbetteki tüm medya tek galeride, sağa/sola kaydırma, altta küçük resim şeridi.
+- **Sohbet listesi (2.5.0+23026):** tik yerine "Gönderildi/Görüldü · 1 sa önce" yazısı.
+- **Mesaj isteği (2.5.1+23027):** istek kabul edilince sohbet açılır; boş "istek yok" sayfasında kalınmaz.
+- **Idempotency-Key:** rastgelelik `Random.secure` ile güçlendirildi + benzersizlik testi.
+- **Keşfet tanıdık sıralaması (backend):** `FamiliarityService` yalnız sıralamayı etkiler (karşılıklı takip, birebir sohbet, ortak kulüp, tanıdığın tanıdığı, aynı bölüm/fakülte); aday havuzu değişmez. Ayarlar `app.post.familiarity.*` (`enabled=false` acil kapatma).
+- **Android bildirim (henüz yayınlanmadı):** okunmamış sayı rozeti ve başlık nötr; kırmızı yalnız kalp (`push_heart`).
+- **Veritabanı denetimi (`audit/db-health`, canlıya alınmadı):** `docs/DATABASE_HEALTH_REPORT.md`, 5 işe `SchedulerLock` (bkz. `docs/changes/ops.md`), dev Redis `maxmemory`.
+
 ### Hukuki metinler: e-posta alan adı kısıtı kalktı (2026-11-06, `deploy/legal-20261106`)
 
 - **V1470** Kullanım Koşulları, Gizlilik Politikası ve KVKK Aydınlatma için yeni sürüm (tr/en/ar, `require_reaccept=FALSE`: yeniden onay istenmez): "yalnız bingol.edu.tr" kısıtı kalktı (herhangi bir geçerli e-posta + e-posta doğrulama kodu), isteğe bağlı Google/Apple girişi veri kategorisi eklendi, "kurumsal e-posta" ve alan adı denetimi ifadeleri düzeltildi. Üretim: `scripts/build-legal-migration-v1470.js`; V820 kaynakları `docs/legal/archive/v820/`.

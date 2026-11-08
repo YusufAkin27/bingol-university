@@ -332,3 +332,10 @@ yeni `chatRooms` bolumu odanin kaynagini (kulup/etkinlik kimligi) ekler. Forum s
 **Yuk notlari (B10)**: `CommunityCategoryService.version()` (`findAll`) kisa katmanda onbellekli ve tablo yoneticiyle sinirli; buyuk/kucuk
 harf aramasi `findFirstByKeyIgnoreCase` ile tek satir. Herkese acik GET'ler (`/api/app/info`, `/api/app/version`, `/api/status`,
 `/api/faq`, `/api/catalog/*`) sunucu onbellegi arkasindadir; kampus NAT'inda yanlis engel olmasin diye IP basina ek limit konmadi.
+
+## SchedulerLock kapsamı genişledi (veritabanı denetimi, 2026-11-08, `audit/db-health`)
+
+- Çok örnekli çalışmada çift işlemesin diye 5 iş daha `SchedulerLock.tryRunOrLocal` ile sarıldı: `media-orphan-sweep` (60 dk kira), `device-cleanup` (30 dk), `notification-retention` (30 dk), `menu-sync` ve `menu-catchup` (30 dk; kaynak siteye çift istek atmasın), `news-sync` (60 dk; çift scrape/bildirim olmasın).
+- **İsteğe bağlı setter kalıbı:** kilit yapıcıya değil, `@Autowired(required = false) void setLock(SchedulerLock)` ile verilir; kilit yoksa (H2 testleri, elle kurulan örnek) iş eski davranışla doğrudan çalışır. Zamanlayıcı yolu `lock == null ? run() : lock.tryRunOrLocal(ad, kira, run)`; elle tetikleme/testler kilitsiz yolu kullanır. Yeni `@Scheduled` iş eklerken aynı kalıbı izleyin.
+- Hâlâ kilitsiz kalanlar `docs/DATABASE_HEALTH_REPORT.md` madde 6'dadır.
+

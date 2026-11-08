@@ -152,6 +152,8 @@ Yapı: `lib/core/` (tek HTTP katmanı `api.dart` + ETag/304 LRU önbelleği, `se
 - Küçük, odaklı commit'ler; açık mesaj. `main`'e itmeden önce **derleme + testler + ilgili duman betikleri geçmeli**.
 - Repo **private**; `git add` öncesi `git status` ile `.env`/sır/`node_modules`/`.claude/worktrees` olmadığını kontrol edin.
 - Paralel ajan çalışması: her ajan kendi git worktree'sinde, ayrı Flyway aralığı ve ayrı Docker portu/proje adıyla (`COMPOSE_PROJECT_NAME`, `BACKEND_PORT`) çalışır; birleştirmede migration indeks adı ve bean adı çakışmalarına bakın.
+- **`main` birleşimi (öğrenilen ders, 2026-11-08):** `main`, backend ağacı (`deploy/release4-20261106`) ile mobil ağacının (`feature/mobil-uygulama`) birleşimi olarak kurulur. iOS CI (Codemagic) için `mobile/` DIŞINDA şu yollar da feature dalıyla **birebir eşit** olmalıdır: `scripts/ios/**`, `codemagic.yaml`, `docs/IOS_RELEASE.md`, `design/widget-previews/**`. Aksi halde "Dosya düzeyi iOS kontrolü" adımı düşer (2026-11-08'de 4 iOS derlemesi bu yüzden başarısız oldu). Birleşimden sonra bu yolları `git diff --stat feature/mobil-uygulama main -- scripts/ios codemagic.yaml docs/IOS_RELEASE.md design/widget-previews` ile karşılaştırın.
+- **Play Console:** her yeni sürüm gönderimi bekleyen incelemeyi baştan başlatır; art arda sürüm göndermeyin, bekleyen inceleme bitmeden yenisini yollamayın.
 
 ## 7. Yapma listesi
 - Kaynak siteyi istek sırasında/mobilden/sık çekme; scraper hatasında 500'e düşme.

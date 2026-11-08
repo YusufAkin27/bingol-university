@@ -265,3 +265,19 @@ Saklama süresi değişiklikleri (W2-F):
 | `moderation_strike.inherited` | yeniden kayitta defterden devralinan strike | strike satiri gibi (yasal saklama / ihlal gecmisi) |
 | `profanity_term.category`, `profanity_hit_log.category` | kategori (PROFANITY/HATE/TERROR/SELF_HARM) | `profanity_hit_log` 90 gun |
 | `app_user.verification_deferred`, `app_user.verification_mailed_at` (V1260) | kota asiminda ertelenmis e-posta dogrulama bayragi ve son kod postasi zamani (kisisel veri degil; satirin kendisi hesap verisidir) | dogrulanmayan ertelenmis hesap `app.auth.deferred-verification.retention-days` (14) gun sonra `DeferredVerificationJob.purgeExpired` ile hesap silme (anonimlestirme) yolundan gecer; indeks `qd_app_user_deferred_idx` (kismi) |
+
+
+## 18. Denetim 2026-11-08
+
+Kod okumasına dayalı veritabanı sağlık denetimi: [DATABASE_HEALTH_REPORT.md](DATABASE_HEALTH_REPORT.md) (salt okunur bütünlük sorguları: [db-integrity-checks.sql](db-integrity-checks.sql)). Düşük riskli düzeltmeler uygulandı (5 zamanlayıcıya `SchedulerLock`, dev Redis `maxmemory`); canlıya alınmadı. **Karar bekleyen maddeler (7):**
+
+1. Forum anonimliği: `block-author` uçları anonim yazarı da gerçek kimlikle engelliyor (madde 1).
+2. Yedek tek katmanlı kalabilir: `BACKUP_REMOTE` zorunluluğu, yerelde haftalık/aylık saklama, RPO'nun iki katmanlı yazılması (madde 2).
+3. Bildirim kategori sorgusu (`pageCategory`, `LIKE '%..%'`) indeks kullanamıyor; kategori sütunu önerisi (madde 3).
+4. Gizli oy mimarisi: oy `user_id` ile saklanıyor; gerçek anonimlik için `ballot`/`vote` ayrımı (şema değişikliği, madde 10).
+5. Herkese açık `/files/**` önbellek ve silme politikası: gizlenen gönderi görseli 30 gün erişilebilir (madde 11).
+6. `pg_trgm` GIN indeksi ile arama (`LIKE '%x%'`; migration gerekir, madde 8).
+7. Redis: yedek yok ve prod'da parola isteğe bağlı (madde 14-15).
+
+Üretime geçiş öncesi adımlar ve ölçüm planı raporun 7. bölümündedir.
+
