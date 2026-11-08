@@ -1,3 +1,4 @@
+import '../features/chat/emoji_presentation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -110,7 +111,7 @@ class _LinkifiedTextState extends State<LinkifiedText> {
     for (final seg in splitLinks(widget.text)) {
       final uri = seg.uri;
       if (uri == null) {
-        spans.add(TextSpan(text: seg.text));
+        spans.add(emojiAwareSpan(seg.text, widget.style));
         continue;
       }
       final rec = TapGestureRecognizer()..onTap = () => _open(uri);

@@ -1,4 +1,5 @@
 
+import '../../../chat/emoji_presentation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/cache/image_disk_cache.dart';
@@ -261,17 +262,19 @@ class TopicCard extends StatelessWidget {
                       Wrap(spacing: 12, runSpacing: 4, children: badges),
                     ],
                     BuGap.h8,
-                    Text(topic.title,
+                    Text.rich(
+                        emojiAwareSpan(topic.title,
+                            (tt.titleLarge ?? const TextStyle()).copyWith(color: t.ink, fontWeight: BuType.emphasisWeight, height: 1.3)),
                         key: ValueKey('forum-title-${topic.id}'),
                         maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                        style: tt.titleLarge?.copyWith(color: t.ink, fontWeight: BuType.emphasisWeight, height: 1.3)),
+                        overflow: TextOverflow.ellipsis),
                     if (topic.bodyPreview.trim().isNotEmpty) ...[
                       BuGap.h6,
-                      Text(topic.bodyPreview.trim(),
+                      Text.rich(
+                          emojiAwareSpan(topic.bodyPreview.trim(),
+                              (tt.bodyMedium ?? const TextStyle()).copyWith(color: t.mut, height: 1.5)),
                           maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: tt.bodyMedium?.copyWith(color: t.mut, height: 1.5)),
+                          overflow: TextOverflow.ellipsis),
                     ],
                     if (topic.thumbnail != null) ...[
                       BuGap.h12,
