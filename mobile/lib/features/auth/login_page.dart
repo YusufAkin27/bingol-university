@@ -289,12 +289,11 @@ class _LoginPageState extends State<LoginPage> {
                   SizedBox(height: keyboard ? 24 : 32),
                   // E-posta (her sağlayıcı); yazılan aynen gider, istemci alan adı eklemez.
                   LoginIdentifierField(
-                      controller: _email, enabled: !_busy, boxed: true),
-                  const SizedBox(height: 22),
+                      controller: _email, enabled: !_busy),
+                  const SizedBox(height: 28),
                   LoginPasswordField(
                     controller: _password,
                     enabled: !_busy,
-                    boxed: true,
                     validator: (v) => (v == null || v.isEmpty)
                         ? l.loginPasswordRequired
                         : null,
