@@ -5062,5 +5062,14 @@
   "homeTodayPeekHint": "open preview",
   "homeTodayPeekTime": "Time",
   "homeTodayPeekRoom": "Place",
-  "homeTodayPeekInstructor": "Instructor"
+  "homeTodayPeekInstructor": "Instructor",
+  "deptChatTag": "Department",
+  "deptChatJoinRow": "Join the department group: {name}",
+  "@deptChatJoinRow": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

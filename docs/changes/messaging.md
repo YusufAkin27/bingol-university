@@ -236,3 +236,16 @@ Mesaj isteği (T-026) ile ilişki: "alıcı göndereni takip ediyor" bağlamı y
 - STOMP `setMessageSizeLimit` 16 KB → 64 KB (10000 emoji ≈ 40 KB UTF-8; aşımda bağlantı kapanırdı). REST gövde sınırı etkilenmez (`IdempotencyFilter` yalnız `/api/admin/**`).
 - Push/yanıt önizlemeleri zaten 100 karaktere kısalır (`PUSH_PREVIEW`, `PREVIEW_LENGTH`); API her zaman tam metni döndürür.
 - Mobil: sınır 10000, sayaç 7500'den; uzun mesaj balonunda 400 karakter + "Devamını gör" (her basışta +700), tamamı açılınca "Daha az göster". Kopyalama/yerel arama tam metne bakar.
+
+## Okundu zamani: `MessageView.readAt` ve `receipt.readAt` (2026-11-07)
+
+- `MessageView.readAt` (ISO-8601 UTC, ornek `2026-11-07T10:00:00Z`; alan yoksa/`null` ise okunmadi). YALNIZ istek sahibi mesajin gondereniyse ve `status=READ` ise dolar; aliciya/baskasina asla gonderilmez. Birebirde kaydedilir (`message.read_at`); grup/oda ve `status=null` durumlarinda gelmez. Mesaj listesi, gonderim/duzenleme yanitlari ve konusma listesindeki `lastMessage` ayni assembler'dan gecer. Gizlilik tercihi (okundu bilgisini kapat) sunucuda yoktur.
+- STOMP `receipt` olayi `readAt` tasir (yalniz `kind="read"`, olay ani UTC = `at`); `delivered` olayinda yok. Eski istemciler alani yok sayar.
+
+## Bolum sohbet gruplari (DEPARTMENT, V1710)
+
+- Her bolum icin tek oda: `department_chat_room` (`dept_key` = `UnitKeys.deptKey(profil bolumu)`, yazim varyantlari tek odaya duser) + `chat_room_link` `kind=DEPARTMENT` (`ref_id` = `department_chat_room.id`). `RoomKind.DEPARTMENT`; `ConversationView.type` = `DEPARTMENT`. Oda ilk katilimda tembel kurulur; kurucu = ilk aktif sistem yoneticisi (ADMIN).
+- Katilim ISTEGE BAGLI: `GET /api/department-chat` -> `{available, departmentName, closed, joined, memberCount, conversationId}` (`available=false` = profilde bolum yok; `conversationId` yalniz uyeyken), `POST /api/department-chat/join` (bolum yoksa 409 `DEPARTMENT_REQUIRED`, kapaliysa 409 `CHAT_ROOM_CLOSED`), `DELETE /api/department-chat/membership`. Hiz siniri: okuma 120/dk, katil/ayril 20/10 dk. Kisi profil bolumunu degistirse de uyelik kendisi ayrilana kadar surer.
+- Grup yoneticisi = sistem yoneticisi: `DepartmentRoomModerators` (ADMIN + FULL/MODERATOR profili, bos profil = FULL) baskasinin mesajini silebilir (`canModerate`). Yonetici ucu: `GET /api/admin/department-chats`, `PUT /api/admin/department-chats/{id}/closed` (RBAC: `chat.read` / `chat.write`).
+- Uyeler birbirini mevcut sikayet akisiyle bildirir (`USER`, `MESSAGE`, `CONVERSATION` hedefleri; yeni hedef turu yok). Dikkat: `CONVERSATION` sikayetinde `hide` odayi kapatir, yalniz yonetici karariyla.
+- Mobil: sohbet sekmesinde `DepartmentChatEntry` ("Bolum grubuna katil") yalniz bolum var + uye degil + oda acikken gorunur; ayrilma sohbet bilgisinden `DELETE /department-chat/membership`.

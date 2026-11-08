@@ -7520,5 +7520,14 @@
   "homeTodayPeekHint": "Ön izlemeyi aç",
   "homeTodayPeekTime": "Saat",
   "homeTodayPeekRoom": "Yer",
-  "homeTodayPeekInstructor": "Öğretim elemanı"
+  "homeTodayPeekInstructor": "Öğretim elemanı",
+  "deptChatTag": "Bölüm",
+  "deptChatJoinRow": "Bölüm grubuna katıl: {name}",
+  "@deptChatJoinRow": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

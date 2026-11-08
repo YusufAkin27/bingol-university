@@ -5062,5 +5062,14 @@
   "homeTodayPeekHint": "فتح المعاينة",
   "homeTodayPeekTime": "الوقت",
   "homeTodayPeekRoom": "المكان",
-  "homeTodayPeekInstructor": "المحاضر"
+  "homeTodayPeekInstructor": "المحاضر",
+  "deptChatTag": "القسم",
+  "deptChatJoinRow": "انضم إلى مجموعة القسم: {name}",
+  "@deptChatJoinRow": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }
