@@ -51,7 +51,7 @@ public class ForumTopic {
     private int likeCount;
 
     /** Gorunen begeni eki (V1700): arayuze likeCount + likeBoost gider; siralama gercek sayiyla calisir. */
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
     private int likeBoost;
 
     @Column(nullable = false)

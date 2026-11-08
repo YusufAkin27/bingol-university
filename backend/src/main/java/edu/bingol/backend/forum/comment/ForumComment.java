@@ -59,7 +59,7 @@ public class ForumComment {
     private int likeCount;
 
     /** Gorunen begeni eki (V1700); arayuze like_count + like_boost gider. */
-    @Column(name = "like_boost", nullable = false)
+    @Column(name = "like_boost", nullable = false, columnDefinition = "INT DEFAULT 0")
     private int likeBoost;
 
     @Column(name = "reply_count", nullable = false)
