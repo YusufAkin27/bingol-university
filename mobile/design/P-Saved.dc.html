@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Kaydedilenler</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.s{position:relative;width:390px;height:844px;box-sizing:border-box;background:var(--bg);color:var(--ink);font-family:'Plus Jakarta Sans',system-ui,sans-serif;overflow:hidden}
+.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.hd{padding:60px 20px 0;display:flex;align-items:center;gap:12px}
+.hd h1{margin:0;flex-grow:1;font-size:28px;font-weight:800;letter-spacing:-.4px}
+.ib{width:44px;height:44px;border-radius:50%;background:var(--sf);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:20px;padding:12px;display:flex;gap:12px}
+.th{width:76px;height:76px;border-radius:14px;background:var(--sf2);flex-shrink:0}
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--ink);color:var(--bg)}
+.badge.red{background:var(--soft);color:var(--onsoft)}
+.tt{margin-top:6px;font-size:14px;font-weight:700;line-height:1.35}
+.dt{margin-top:4px;font-size:12px;color:var(--mut)}
+</style>
+</helmet>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+  <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4Z"/></symbol>
+</svg>
+<div class="s" style="--bg:#FAF6F3;--sf:#FFFFFF;--sf2:#F3ECE7;--ink:#171E33;--mut:#5F6577;--bd:#E8DFD8;--pr:#C62A20;--onpr:#FFFFFF;--soft:#FDE7E4;--onsoft:#8E1B13">
+  <div class="hd"><div class="ib"><svg class="i"><use href="#i-back"/></svg></div><h1>Kaydedilenler</h1><span style="font-size:13px;font-weight:700;color:var(--mut)">7 haber</span></div>
+  <div style="margin:18px 20px 0;display:flex;flex-direction:column;gap:10px">
+    <div class="card"><div class="th"></div><div style="flex-grow:1;min-width:0"><span class="badge red">Duyuru</span><div class="tt">Güz dönemi ara sınav programı yayımlandı</div><div class="dt">25 Ekim 2026</div></div><svg class="i" style="color:var(--pr);fill:var(--pr)"><use href="#i-bookmark"/></svg></div>
+    <div class="card"><div class="th"></div><div style="flex-grow:1;min-width:0"><span class="badge">Haber</span><div class="tt">Kütüphane çalışma saatleri güncellendi</div><div class="dt">24 Ekim 2026</div></div><svg class="i" style="color:var(--pr);fill:var(--pr)"><use href="#i-bookmark"/></svg></div>
+    <div class="card"><div class="th"></div><div style="flex-grow:1;min-width:0"><span class="badge">Haber</span><div class="tt">Üniversitemiz yeni akademik yıla hazır</div><div class="dt">22 Ekim 2026</div></div><svg class="i" style="color:var(--pr);fill:var(--pr)"><use href="#i-bookmark"/></svg></div>
+    <div class="card"><div class="th"></div><div style="flex-grow:1;min-width:0"><span class="badge red">Etkinlik</span><div class="tt">Kariyer Günleri için kayıtlar başladı</div><div class="dt">20 Ekim 2026</div></div><svg class="i" style="color:var(--pr);fill:var(--pr)"><use href="#i-bookmark"/></svg></div>
+    <div class="card"><div class="th"></div><div style="flex-grow:1;min-width:0"><span class="badge red">Duyuru</span><div class="tt">Yemekhane yeni dönem kart yükleme duyurusu</div><div class="dt">18 Ekim 2026</div></div><svg class="i" style="color:var(--pr);fill:var(--pr)"><use href="#i-bookmark"/></svg></div>
+    <div class="card"><div class="th"></div><div style="flex-grow:1;min-width:0"><span class="badge">Haber</span><div class="tt">Spor salonu yeni saatlerle hizmette</div><div class="dt">15 Ekim 2026</div></div><svg class="i" style="color:var(--pr);fill:var(--pr)"><use href="#i-bookmark"/></svg></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

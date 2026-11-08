@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Ayarlar Koyu</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.s{position:relative;width:390px;height:844px;box-sizing:border-box;background:var(--bg);color:var(--ink);font-family:'Plus Jakarta Sans',system-ui,sans-serif;overflow:hidden}
+.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.hd{padding:60px 20px 0;display:flex;align-items:center;gap:12px}
+.hd h1{margin:0;flex-grow:1;font-size:28px;font-weight:800;letter-spacing:-.4px}
+.ib{width:44px;height:44px;border-radius:50%;background:var(--sf);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center}
+.lb{margin:20px 24px 8px;font-size:12px;font-weight:800;letter-spacing:.5px;color:var(--mut)}
+.card{margin:0 20px;background:var(--sf);border:1px solid var(--bd);border-radius:22px;overflow:hidden}
+.mi{display:flex;align-items:center;gap:14px;padding:0 16px;height:52px;font-size:15px;font-weight:600;border-top:1px solid var(--bd)}
+.mi:first-child{border-top:0}
+.mi .i{color:var(--pr)}
+.mi .v{margin-left:auto;font-size:13px;font-weight:600;color:var(--mut);display:flex;align-items:center;gap:4px}
+.mi .v .i{width:16px;height:16px;color:var(--mut)}
+.tg{margin-left:auto;width:46px;height:28px;border-radius:14px;background:var(--sf2);position:relative;flex-shrink:0}
+.tg::after{content:"";position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.tg.on{background:var(--pr)}
+.tg.on::after{left:21px;background:#1A0907}
+.seg{margin:0 20px;height:46px;box-sizing:border-box;padding:4px;border-radius:23px;background:var(--sf2);display:flex}
+.seg div{flex:1;display:flex;align-items:center;justify-content:center;border-radius:19px;font-size:14px;font-weight:700;color:var(--mut)}
+.seg .on{background:var(--sf);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.mi.dg,.mi.dg .i{color:#FF8A82}
+</style>
+</helmet>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol>
+  <symbol id="i-block" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></symbol>
+</svg>
+<div class="s" style="--bg:#14161F;--sf:#1D2030;--sf2:#2C3045;--ink:#F4EFEB;--mut:#A5A9BA;--bd:#2E3247;--pr:#FF6A5F;--onpr:#1A0907">
+  <div class="hd"><div class="ib"><svg class="i"><use href="#i-back"/></svg></div><h1>Ayarlar</h1></div>
+
+  <div class="lb">GÖRÜNÜM</div>
+  <div class="seg"><div>Sistem</div><div>Açık</div><div class="on">Koyu</div></div>
+  <div class="card" style="margin-top:10px"><div class="mi"><svg class="i"><use href="#i-globe"/></svg>Bildirim ve e-posta dili<span class="v">Türkçe<svg class="i"><use href="#i-chev"/></svg></span></div></div>
+
+  <div class="lb">BİLDİRİMLER</div>
+  <div class="card">
+    <div class="mi">Haberler<span class="tg on"></span></div>
+    <div class="mi">Duyurular<span class="tg on"></span></div>
+    <div class="mi">Etkinlikler<span class="tg on"></span></div>
+    <div class="mi">Topluluklar<span class="tg"></span></div>
+    <div class="mi">Mesajlar<span class="tg on"></span></div>
+  </div>
+
+  <div class="lb">GİZLİLİK VE HESAP</div>
+  <div class="card">
+    <div class="mi">E-postamı diğerlerine göster<span class="tg"></span></div>
+    <div class="mi"><svg class="i"><use href="#i-block"/></svg>Engellenen kullanıcılar<span class="v"><svg class="i"><use href="#i-chev"/></svg></span></div>
+    <div class="mi"><svg class="i"><use href="#i-doc"/></svg>Sözleşmeler ve gizlilik<span class="v"><svg class="i"><use href="#i-chev"/></svg></span></div>
+    <div class="mi"><svg class="i"><use href="#i-down"/></svg>Verilerimi indir<span class="v"><svg class="i"><use href="#i-chev"/></svg></span></div>
+    <div class="mi"><svg class="i"><use href="#i-help"/></svg>Destek ve SSS<span class="v"><svg class="i"><use href="#i-chev"/></svg></span></div>
+    <div class="mi dg"><svg class="i"><use href="#i-trash"/></svg>Hesabımı sil</div>
+  </div>
+  <div style="margin:18px 0 0;text-align:center;font-size:12px;color:var(--mut)">BÜ Kampüs · Sürüm 1.0.0</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
