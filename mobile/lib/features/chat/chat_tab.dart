@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 
 import '../../core/cache/message_cache.dart';
 import '../../core/locale_controller.dart';
+import '../../core/relative_time.dart';
 import '../../core/realtime/chat_realtime.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -21,7 +22,6 @@ import 'conversation_actions.dart';
 import 'message_bubble.dart' show OnceBadge;
 import 'message_requests_page.dart';
 import 'message_placeholder.dart';
-import 'message_status_icon.dart';
 import 'new_chat_page.dart';
 import '../share/share_card.dart' show sharePreviewText;
 import '../share/share_models.dart' show isShareLinkText;
@@ -1031,6 +1031,17 @@ class _ConversationRow extends StatelessWidget {
       'SENT' || 'DELIVERED' || 'READ' => status, // okundu: gri çift tik; marka vurgusu yalnız okunmamış rozetinde
       _ => null,
     };
+    // Tik yerine metin: "Gönderildi · 1 sa önce" / "Görüldü · 5 dk önce" (görülme anı yoksa yalnız "Görüldü").
+    String? statusText;
+    if (tick != null) {
+      if (tick == 'READ') {
+        final readAt = DateTime.tryParse('${lastMsg is Map ? (lastMsg['readAt'] ?? '') : ''}');
+        statusText = readAt == null ? l.chatStatusSeen : l.chatStatusSeenAt(relativeAgo(l, readAt));
+      } else {
+        final sentAt = DateTime.tryParse('${when ?? ''}');
+        statusText = sentAt == null ? l.chatStatusSent : l.chatStatusSentAt(relativeAgo(l, sentAt));
+      }
+    }
     final bodyColor = hot ? t.ink : t.mut;
 
     // Basılınca hafifçe küçülür (bitişik satırlar arasında boşluk açılmasın diye çok hafif: .99).
@@ -1108,10 +1119,6 @@ class _ConversationRow extends StatelessWidget {
                           Row(children: [
                             Expanded(
                               child: Row(children: [
-                                if (tick != null) ...[
-                                  MessageStatusIcon(status: tick, size: 16, color: t.mut, readColor: t.mut, failedColor: t.danger),
-                                  const SizedBox(width: 6),
-                                ],
                                 if (removedMsg) ...[
                                   Icon(BuIcons.ban, size: 15, color: t.mut),
                                   const SizedBox(width: 6),
@@ -1136,6 +1143,14 @@ class _ConversationRow extends StatelessWidget {
                                         fontStyle: removedMsg ? FontStyle.italic : FontStyle.normal),
                                   ),
                                 ),
+                                if (statusText != null) ...[
+                                  const SizedBox(width: 6),
+                                  Text(statusText,
+                                      key: const ValueKey('chatListStatus'),
+                                      maxLines: 1,
+                                      softWrap: false,
+                                      style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
+                                ],
                               ]),
                             ),
                             if (unread > 0) ...[

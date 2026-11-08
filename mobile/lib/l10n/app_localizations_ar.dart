@@ -13705,6 +13705,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String chatStatusSentAt(String when) {
+    return 'تم الإرسال · $when';
+  }
+
+  @override
   String chatStatusSeenAt(String when) {
     return 'تمت المشاهدة · $when';
   }

@@ -7405,6 +7405,8 @@
   "@chatSeenAgoMonths": {"placeholders": {"n": {"type": "int"}}},
   "chatSeenAgoYears": "{n, plural, other{{n} yıl önce}}",
   "@chatSeenAgoYears": {"placeholders": {"n": {"type": "int"}}},
+  "chatStatusSentAt": "Gönderildi · {when}",
+  "@chatStatusSentAt": {"placeholders": {"when": {"type": "String"}}},
   "chatStatusSeenAt": "Görüldü · {when}",
   "@chatStatusSeenAt": {"placeholders": {"when": {"type": "String"}}},
   "pcmWriteHint": "Yorum ekle…",
