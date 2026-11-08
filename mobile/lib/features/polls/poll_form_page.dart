@@ -1,3 +1,4 @@
+import '../chat/emoji_presentation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
@@ -27,9 +28,9 @@ class _PollFormPageState extends State<PollFormPage> {
   static const _maxTitle = 150;
 
   late final PollApi _api = PollApi(widget.session);
-  final _title = TextEditingController();
-  final _desc = TextEditingController();
-  final List<TextEditingController> _opts = [TextEditingController(), TextEditingController()];
+  final _title = EmojiTextEditingController(scale: kEmojiTitleScale);
+  final _desc = EmojiTextEditingController();
+  final List<TextEditingController> _opts = [EmojiTextEditingController(), TextEditingController()];
   final _errKey = GlobalKey();
   final _addKey = GlobalKey();
   PollType _type = PollType.single;
@@ -135,7 +136,7 @@ class _PollFormPageState extends State<PollFormPage> {
   int _daysLeft() => (_closesAt!.difference(DateTime.now()).inHours / 24).round();
 
   void _addOption() {
-    final c = TextEditingController();
+    final c = EmojiTextEditingController();
     setState(() {
       _opts.add(c);
       _justAdded = c;

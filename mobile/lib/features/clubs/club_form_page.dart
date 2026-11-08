@@ -1,3 +1,4 @@
+import '../chat/emoji_presentation.dart';
 import 'dart:ui' show PathMetric;
 
 import 'package:flutter/material.dart';
@@ -73,8 +74,8 @@ class _ClubFormPageState extends State<ClubFormPage> {
   static const _descMax = 1000;
 
   late final _name =
-      TextEditingController(text: (widget.club?['name'] ?? '').toString());
-  late final _desc = TextEditingController(
+      EmojiTextEditingController(scale: kEmojiTitleScale, text: (widget.club?['name'] ?? '').toString());
+  late final _desc = EmojiTextEditingController(
       text: (widget.club?['description'] ?? '').toString());
 
   /// Seçili kategori anahtarı (null = seçilmedi). Düzenlemede kulübün mevcut anahtarıyla başlar.
@@ -162,7 +163,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
       setState(() {
         _origQuestions = qs;
         for (final q in qs.take(_maxQuestions)) {
-          _questions.add(TextEditingController(text: q));
+          _questions.add(EmojiTextEditingController(text: q));
         }
       });
     } catch (_) {
@@ -680,7 +681,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
           style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 0)),
           onPressed: () => setState(() {
             if (_policy != 'APPROVAL' && _visibility != 'PRIVATE') _policy = 'APPROVAL';
-            _questions.add(TextEditingController());
+            _questions.add(EmojiTextEditingController());
           }),
           child: Text('+ ${context.l10n.p51AddJoinQuestion}', style: tx.titleSmall!.copyWith(color: t.prText, fontWeight: FontWeight.w400)),
         ),

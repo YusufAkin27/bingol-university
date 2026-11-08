@@ -77,7 +77,7 @@ class _CreateTopicPageState extends State<CreateTopicPage> {
   late final ForumImageUploader _upload = widget.uploader ?? ((b) => _api.uploadImage(b));
   late final ForumPhotoPicker _pick = widget.pickPhoto ?? _defaultPick;
 
-  final _title = TextEditingController();
+  final _title = EmojiTextEditingController(scale: kEmojiTitleScale);
   final _body = EmojiTextEditingController();
   final _titleFocus = FocusNode();
   final _bodyFocus = FocusNode();

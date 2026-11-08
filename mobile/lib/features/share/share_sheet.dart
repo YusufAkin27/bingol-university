@@ -1,3 +1,4 @@
+import '../chat/emoji_presentation.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -56,7 +57,7 @@ class _ShareSheetState extends State<ShareSheet> {
   final _directByUser = <int, ShareRecipient>{};
   final _selected = <String, ShareRecipient>{}; // eklenme sırası korunur
   final _q = TextEditingController();
-  final _note = TextEditingController();
+  final _note = EmojiTextEditingController();
   Timer? _debounce;
   int _seq = 0;
   bool _loading = true;

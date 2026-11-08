@@ -1,3 +1,4 @@
+import '../chat/emoji_presentation.dart';
 import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 
@@ -60,7 +61,7 @@ class _JoinQuestionsSheet extends StatefulWidget {
 
 class _JoinQuestionsSheetState extends State<_JoinQuestionsSheet> {
   late final List<TextEditingController> _ctrls =
-      List.generate(widget.questions.length, (_) => TextEditingController());
+      List.generate(widget.questions.length, (_) => EmojiTextEditingController());
   bool _showErrors = false;
   static const _max = 500;
 

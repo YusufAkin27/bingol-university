@@ -1,3 +1,4 @@
+import 'emoji_presentation.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -26,7 +27,7 @@ class _NewChatPageState extends State<NewChatPage> {
   static const _maxMembers = 49; // sunucu: kendiniz hariç en çok 49 üye
 
   final _search = TextEditingController();
-  final _title = TextEditingController();
+  final _title = EmojiTextEditingController(scale: kEmojiTitleScale);
   Timer? _debounce;
   int _seq = 0;
 

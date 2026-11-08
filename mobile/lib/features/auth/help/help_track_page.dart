@@ -1,3 +1,4 @@
+import '../../chat/emoji_presentation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/api.dart';
@@ -21,7 +22,7 @@ class HelpTrackPage extends StatefulWidget {
 }
 
 class _HelpTrackPageState extends State<HelpTrackPage> {
-  final _text = TextEditingController();
+  final _text = EmojiTextEditingController();
   late final PublicSupportApi _api = PublicSupportApi(widget.session.api);
   Map<String, dynamic>? _detail;
   bool _loading = true;

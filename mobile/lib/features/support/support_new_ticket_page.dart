@@ -1,3 +1,4 @@
+import '../chat/emoji_presentation.dart';
 import '../../core/analytics.dart';
 import '../../core/idempotency_key.dart';
 import 'package:flutter/material.dart';
@@ -24,8 +25,8 @@ class _NewTicketPageState extends State<NewTicketPage> {
   static const _subjectMax = 120;
   static const _messageMax = 2000;
 
-  final _subject = TextEditingController();
-  final _message = TextEditingController();
+  final _subject = EmojiTextEditingController();
+  final _message = EmojiTextEditingController();
   String _category = 'ACCOUNT';
   bool _busy = false;
   String? _idemKey; // bu gönderme niyetinin Idempotency-Key'i (ağ hatasında yeniden denemede aynı)

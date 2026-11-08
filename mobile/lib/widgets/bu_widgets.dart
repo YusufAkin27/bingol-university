@@ -1,3 +1,4 @@
+import '../features/chat/emoji_presentation.dart';
 import 'package:flutter/material.dart';
 import '../core/api.dart';
 import '../core/cache/image_disk_cache.dart';
@@ -741,7 +742,7 @@ class _BuSearchFieldState extends State<BuSearchField> {
   final _focus = FocusNode();
   TextEditingController? _own;
 
-  TextEditingController get _c => widget.controller ?? (_own ??= TextEditingController());
+  TextEditingController get _c => widget.controller ?? (_own ??= EmojiTextEditingController());
 
   @override
   void initState() {

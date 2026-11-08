@@ -1,3 +1,4 @@
+import '../../../chat/emoji_presentation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/api.dart';
@@ -77,7 +78,7 @@ class _ReportBody extends StatefulWidget {
 
 class _ReportBodyState extends State<_ReportBody> {
   String? _reason; // ön seçim yok: yanlış neden gönderilmesin
-  final _note = TextEditingController();
+  final _note = EmojiTextEditingController();
   bool _busy = false;
   bool _block = false;
   String? _error;

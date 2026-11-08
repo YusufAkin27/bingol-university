@@ -1,3 +1,4 @@
+import '../../../chat/emoji_presentation.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -29,8 +30,8 @@ class EditTopicPage extends StatefulWidget {
 
 class _EditTopicPageState extends State<EditTopicPage> {
   late final ForumApi _api = widget.api ?? ForumApi(widget.session);
-  late final _title = TextEditingController(text: widget.topic.title);
-  late final _body = TextEditingController(text: widget.topic.body);
+  late final _title = EmojiTextEditingController(scale: kEmojiTitleScale, text: widget.topic.title);
+  late final _body = EmojiTextEditingController(text: widget.topic.body);
   final _bodyFocus = FocusNode();
 
   List<ForumCategory> _cats = const [];

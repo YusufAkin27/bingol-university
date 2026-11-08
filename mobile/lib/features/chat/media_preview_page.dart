@@ -1,3 +1,4 @@
+import 'emoji_presentation.dart';
 import 'dart:async';
 import 'dart:typed_data';
 
@@ -26,7 +27,7 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
   late final List<MediaPick> _picks = List.of(widget.picks);
   final _once = <String>{};
   final _page = PageController();
-  final _caption = TextEditingController();
+  final _caption = EmojiTextEditingController();
   final _full = <String, Future<Uint8List?>>{};
   int _index = 0;
 

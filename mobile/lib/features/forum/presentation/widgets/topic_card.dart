@@ -264,7 +264,7 @@ class TopicCard extends StatelessWidget {
                     BuGap.h8,
                     Text.rich(
                         emojiAwareSpan(topic.title,
-                            (tt.titleLarge ?? const TextStyle()).copyWith(color: t.ink, fontWeight: BuType.emphasisWeight, height: 1.3)),
+                            (tt.titleLarge ?? const TextStyle()).copyWith(color: t.ink, fontWeight: BuType.emphasisWeight, height: 1.3), scale: kEmojiTitleScale),
                         key: ValueKey('forum-title-${topic.id}'),
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis),

@@ -1,3 +1,4 @@
+import '../../chat/emoji_presentation.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -67,7 +68,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
   final _first = TextEditingController();
   final _last = TextEditingController();
   final _username = TextEditingController();
-  final _bio = TextEditingController();
+  final _bio = EmojiTextEditingController();
 
   int _step = 0;
   bool _tried1 = false;

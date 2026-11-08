@@ -68,7 +68,7 @@ class TopicHeaderBlock extends StatelessWidget {
         const SizedBox(height: 12),
         Semantics(
           header: true,
-          child: Text.rich(emojiAwareSpan(s.title, tx.headlineSmall!.copyWith(color: t.ink, height: 1.3)), key: const ValueKey('topicTitle')),
+          child: Text.rich(emojiAwareSpan(s.title, tx.headlineSmall!.copyWith(color: t.ink, height: 1.3), scale: kEmojiTitleScale), key: const ValueKey('topicTitle')),
         ),
         const SizedBox(height: 12),
         if (full != null)

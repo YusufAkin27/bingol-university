@@ -1,3 +1,4 @@
+import '../chat/emoji_presentation.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -50,8 +51,8 @@ class _InlineProfileHeroState extends State<InlineProfileHero> {
 
   late final AcademicCatalog _catalog = AcademicCatalog.of(widget.session);
   // Her alanın kendi denetleyicisi/odağı var: geçiş solarken eski kutu yenisiyle aynı odağı paylaşmaz.
-  final _nameCtrl = TextEditingController();
-  final _bioCtrl = TextEditingController();
+  final _nameCtrl = EmojiTextEditingController();
+  final _bioCtrl = EmojiTextEditingController();
   final _nameFocus = FocusNode();
   final _bioFocus = FocusNode();
 

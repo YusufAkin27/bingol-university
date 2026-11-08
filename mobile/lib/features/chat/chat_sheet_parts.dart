@@ -1,3 +1,4 @@
+import 'emoji_presentation.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
@@ -272,7 +273,7 @@ class _RenameDialog extends StatefulWidget {
 }
 
 class _RenameDialogState extends State<_RenameDialog> {
-  late final _ctl = TextEditingController(text: widget.initial);
+  late final _ctl = EmojiTextEditingController(text: widget.initial);
 
   @override
   void dispose() {

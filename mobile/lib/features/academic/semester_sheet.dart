@@ -1,3 +1,4 @@
+import '../chat/emoji_presentation.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 
@@ -294,7 +295,7 @@ class _NewSemesterDialog extends StatefulWidget {
 }
 
 class _NewSemesterDialogState extends State<_NewSemesterDialog> {
-  final _name = TextEditingController();
+  final _name = EmojiTextEditingController();
   DateTime? _start, _end;
   List<String> _errors = const [];
 

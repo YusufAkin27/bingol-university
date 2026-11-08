@@ -27,7 +27,11 @@ final RegExp _emojiRun = RegExp(
     unicode: true);
 
 /// Metni, emoji katarları renkli emoji yazı tipiyle ve [scale] kat büyük çizilecek biçimde TextSpan'e böler.
-TextSpan emojiAwareSpan(String text, TextStyle style, {double scale = 1.3}) {
+/// Emoji, düz yazıya göre sohbet balonlarıyla aynı oranda (1.7) büyük; başlıklarda sohbetten %20 fazla (2.04).
+const double kEmojiScale = 1.7;
+const double kEmojiTitleScale = 2.04;
+
+TextSpan emojiAwareSpan(String text, TextStyle style, {double scale = kEmojiScale}) {
   final s = withEmojiPresentation(text);
   final ms = _emojiRun.allMatches(s).toList();
   if (ms.isEmpty) return TextSpan(text: s, style: style);
@@ -45,7 +49,9 @@ TextSpan emojiAwareSpan(String text, TextStyle style, {double scale = 1.3}) {
 
 /// Yazarken emojileri renkli yazı tipiyle ve %30 büyük çizen denetleyici (metin değerine dokunmaz).
 class EmojiTextEditingController extends TextEditingController {
-  EmojiTextEditingController({super.text});
+  EmojiTextEditingController({super.text, this.scale = kEmojiScale});
+
+  final double scale;
 
   @override
   TextSpan buildTextSpan({required BuildContext context, TextStyle? style, required bool withComposing}) {
@@ -57,7 +63,7 @@ class EmojiTextEditingController extends TextEditingController {
     final s = text;
     final ms = _emojiRun.allMatches(s).toList();
     if (ms.isEmpty) return TextSpan(text: s, style: base);
-    final big = kEmojiFontStyle.copyWith(fontSize: (base.fontSize ?? 14) * 1.3);
+    final big = kEmojiFontStyle.copyWith(fontSize: (base.fontSize ?? 14) * scale);
     final out = <InlineSpan>[];
     var i = 0;
     for (final m in ms) {

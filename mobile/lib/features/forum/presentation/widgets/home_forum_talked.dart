@@ -149,7 +149,7 @@ class _Row extends StatelessWidget {
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                   Text.rich(
                       emojiAwareSpan(topic.title,
-                          (tt.bodyLarge ?? const TextStyle()).copyWith(color: t.ink, fontWeight: FontWeight.w400, height: 1.3)),
+                          (tt.bodyLarge ?? const TextStyle()).copyWith(color: t.ink, fontWeight: FontWeight.w400, height: 1.3), scale: kEmojiTitleScale),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis),
                   BuGap.h4,

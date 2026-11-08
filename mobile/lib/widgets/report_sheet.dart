@@ -1,3 +1,4 @@
+import '../features/chat/emoji_presentation.dart';
 import 'package:flutter/material.dart';
 
 import '../core/locale_controller.dart';
@@ -142,7 +143,7 @@ class _SheetBody extends StatefulWidget {
 
 class _SheetBodyState extends State<_SheetBody> {
   String? _reason; // onsecim yok: yanlis neden gonderilmesin
-  final _details = TextEditingController();
+  final _details = EmojiTextEditingController();
   bool _busy = false;
   String? _error;
 
