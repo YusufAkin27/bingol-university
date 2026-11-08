@@ -53,13 +53,36 @@ class EmojiTextEditingController extends TextEditingController {
 
   final double scale;
 
+  /// IME metni değiştirince yazı biçimi varsayılan emojilere (kalp vb.) renkli sunum seçicisi eklenir; imleç kaydırılır.
+  @override
+  set value(TextEditingValue v) {
+    final fixed = withEmojiPresentation(v.text);
+    if (fixed.length == v.text.length) {
+      super.value = v;
+      return;
+    }
+    int shift(int off) {
+      if (off < 0) return off;
+      var add = 0;
+      for (final m in _textDefault.allMatches(v.text)) {
+        if (m.end <= off) add++;
+      }
+      return off + add;
+    }
+    super.value = TextEditingValue(
+      text: fixed,
+      selection: TextSelection(
+        baseOffset: shift(v.selection.baseOffset),
+        extentOffset: shift(v.selection.extentOffset),
+        affinity: v.selection.affinity,
+        isDirectional: v.selection.isDirectional,
+      ),
+    );
+  }
+
   @override
   TextSpan buildTextSpan({required BuildContext context, TextStyle? style, required bool withComposing}) {
     final base = style ?? const TextStyle();
-    if (value.composing.isValid && withComposing) {
-      return super.buildTextSpan(context: context, style: style, withComposing: withComposing);
-    }
-    // FE0F eklemek metin uzunluğunu değiştirir; imleç kaymasın diye yalnız çizimde değil, burada da eklemeden böleriz.
     final s = text;
     final ms = _emojiRun.allMatches(s).toList();
     if (ms.isEmpty) return TextSpan(text: s, style: base);

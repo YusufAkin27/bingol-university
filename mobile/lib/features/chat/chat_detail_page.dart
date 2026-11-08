@@ -159,7 +159,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   final _avatars = <int, String?>{};
   List<Map<String, dynamic>> _members = [];
 
-  final _input = TextEditingController();
+  final _input = EmojiTextEditingController();
   final _scroll = ScrollController();
   final _focus = FocusNode();
 

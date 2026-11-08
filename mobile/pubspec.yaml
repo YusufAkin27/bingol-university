@@ -1,7 +1,7 @@
 name: bu_kampus
 description: BÜ Kampüs - Bingöl Üniversitesi mobil uygulaması
 publish_to: 'none'
-version: 2.3.9+23011
+version: 2.3.10+23012
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
