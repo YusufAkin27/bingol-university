@@ -97,13 +97,13 @@ void main() {
       }
     }
 
-    testWidgets('simge 24 dp, Paylas ici + 30 dp; ayni simge ailesi', (tester) async {
+    testWidgets('simge 28.8 dp (24 x 1,2), Paylas ici + 30 dp; ayni simge ailesi', (tester) async {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(_app(nav()));
       await tester.pump(settle);
       for (final i in [0, 1, 2, 4]) {
         final icon = tester.widget<Icon>(find.descendant(of: find.byKey(ValueKey('nav-$i')), matching: find.byType(Icon)));
-        expect(icon.size, 24);
+        expect(icon.size, 28.8);
         expect(icon.icon!.fontFamily, 'BuIcons');
       }
       final plusIcon = tester.widget<Icon>(find.descendant(of: find.byKey(const ValueKey('nav-publish')), matching: find.byType(Icon)));
@@ -405,17 +405,16 @@ void main() {
       h.dispose();
     });
 
-    testWidgets('etiketler gorunur: 11 sp ve uzeri, kalin degil, tek satir', (tester) async {
+    testWidgets('etiket metni cizilmez (kullanici karari 2026-11-08); erisilebilirlik etiketi kalir', (tester) async {
       useScreen(tester, kPhoneMedium);
+      final handle = tester.ensureSemantics();
       await tester.pumpWidget(_app(nav()));
       await tester.pump(settle);
       for (final l in ['Ana Sayfa', 'Keşfet', 'Sohbet', 'Profil']) {
-        final w = tester.widget<Text>(find.text(l));
-        final style = DefaultTextStyle.of(tester.element(find.text(l))).style;
-        expect(style.fontSize, greaterThanOrEqualTo(11), reason: l);
-        expect(style.fontWeight, FontWeight.w400, reason: l);
-        expect(w.maxLines, 1);
+        expect(find.text(l), findsNothing, reason: l);
+        expect(find.bySemanticsLabel(RegExp(l)), findsWidgets, reason: l);
       }
+      handle.dispose();
     });
   });
 

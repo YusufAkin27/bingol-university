@@ -69,7 +69,7 @@ class BukampusBottomNavigationBar extends StatelessWidget {
 
   static const double radius = 34;
   static const double borderWidth = .8;
-  static const double iconSize = 24;
+  static const double iconSize = 28.8; // 24 x 1,2 (kullanıcı kararı 2026-11-08)
   static const double _hPad = 8;
 
   /// Beş sekme (Kulüpler yalnız Paylaş düğmesi yokken çubukta görünür). `tab` = `AppTab` dizini.
@@ -387,8 +387,6 @@ class _NavTab extends StatelessWidget {
     final t = tokens;
     final dur = AppMotion.of(context, const Duration(milliseconds: 200));
     final iconColor = selected ? t.navAccent : t.navIconIdle;
-    final textColor = selected ? t.navAccent : t.navTextIdle;
-    final style = TextStyle(fontSize: 11, height: 1.2, fontWeight: FontWeight.w400, letterSpacing: 0, color: textColor);
 
     final avatarBuilder = item.tab == 4 ? profileAvatar : null;
     Widget icon = AnimatedScale(
@@ -441,13 +439,8 @@ class _NavTab extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           icon,
-          const SizedBox(height: 3),
-          AnimatedDefaultTextStyle(
-            style: style,
-            duration: dur,
-            child: Text(label, maxLines: 1, softWrap: false, overflow: TextOverflow.fade, textAlign: TextAlign.center),
-          ),
-          const SizedBox(height: 3),
+          // Etiket çizilmez (kullanıcı kararı 2026-11-08): ekran okuyucu etiketi [semantic] ile korunur.
+          const SizedBox(height: 5),
           AnimatedContainer(
             key: selected ? const ValueKey('nav-underline') : null,
             duration: dur,
