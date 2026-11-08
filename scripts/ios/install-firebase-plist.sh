@@ -44,7 +44,7 @@ case "$MODE" in
 esac
 [ -f "$SRC" ] || { echo "HATA: dosya yok: $SRC" >&2; exit 1; }
 
-BUNDLE="$(grep -o 'PRODUCT_BUNDLE_IDENTIFIER = [A-Za-z0-9.-]*;' "$PBX" | grep -v RunnerTests | head -1 | sed 's/.*= \(.*\);/\1/')"
+BUNDLE="$("$PY" -I -X utf8 "$ROOT/scripts/ios/read-bundle-id.py")"
 [ -n "$BUNDLE" ] || { echo "HATA: pbxproj'ta bundle id okunamadi" >&2; exit 1; }
 
 SRC="$SRC" BUNDLE="$BUNDLE" ANDROID_JSON="$ANDROID_JSON" "$PY" -I -X utf8 - <<'PYEOF'

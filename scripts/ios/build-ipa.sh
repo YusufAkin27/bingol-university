@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # App Store / TestFlight IPA uretimi (macOS CI). DOGRULANAMADI: Windows'ta calistirilamaz; ilk macOS kosusunda izleyin.
 # Akis: flutter build ios --config-only (obfuscate + dart-define) -> xcodebuild archive -> xcodebuild -exportArchive.
+# Uzantilar: NotificationService, NotificationContent, BUWidgets (tr.com.bukampus.app.widgets; yeni App ID + App Group gerekir).
 # Imzalama: App Store Connect API anahtari ile "cloud signing" (-allowProvisioningUpdates + -authenticationKey*):
 # dagitim sertifikasi ve profil Apple tarafinda otomatik yonetilir; depoda/CI'da .p12 veya profil GEREKMEZ.
 # Gerekenler (ortam; sirlar yazdirilmaz):
@@ -9,6 +10,7 @@
 #   IOS_API_ISSUER_ID        Issuer ID (UUID)
 #   IOS_API_KEY_P8_BASE64    AuthKey_<KEYID>.p8 dosyasinin base64'u
 # Istege bagli:
+#   GOOGLE_SIGNIN (true: Google dugmesi), GOOGLE_SERVER_CLIENT_ID, GOOGLE_IOS_CLIENT_ID (varsayilanlar kodda),
 #   IOS_BUILD_NUMBER (CFBundleVersion; varsayilan pubspec +N), API_BASE (varsayilan https://bukampus.com.tr), APP_VERSION (varsayilan pubspec surum adi),
 #   OUT_DIR (varsayilan mobile/build/ios-release, gitignored), SKIP_FLUTTER_TEST yok (testler ayri is akisinda kosar)
 # Cikti: $OUT_DIR/ipa/*.ipa, $OUT_DIR/symbols (--split-debug-info; SAKLAYIN: cokme izleri icin), $OUT_DIR/Runner.xcarchive
@@ -59,11 +61,17 @@ mkdir -p "$OUT_DIR" "$OUT_DIR/symbols" "$OUT_DIR/ipa"
 cd "$MOBILE"
 flutter pub get
 
+# Google ile giris dugmesi yalniz GOOGLE_SIGNIN=true iken gorunur (varsayilan false; sunucuda GOOGLE_CLIENT_IDS hazir olunca).
+# Istemci kimlikleri kodda/Info.plist'te gomulu; GOOGLE_SERVER_CLIENT_ID / GOOGLE_IOS_CLIENT_ID verilirse dart-define ile gecersiz kilinir.
+OAUTH_DEFINES="--dart-define=GOOGLE_SIGNIN=${GOOGLE_SIGNIN:-true} --dart-define=APPLE_SIGNIN=${APPLE_SIGNIN:-true}"
+if [ -n "${GOOGLE_SERVER_CLIENT_ID:-}" ]; then OAUTH_DEFINES="$OAUTH_DEFINES --dart-define=GOOGLE_SERVER_CLIENT_ID=$GOOGLE_SERVER_CLIENT_ID"; fi
+if [ -n "${GOOGLE_IOS_CLIENT_ID:-}" ]; then OAUTH_DEFINES="$OAUTH_DEFINES --dart-define=GOOGLE_IOS_CLIENT_ID=$GOOGLE_IOS_CLIENT_ID"; fi
+
 # Flutter yapilandirmasi (Generated.xcconfig, eklenti Swift paketi) - derleme xcodebuild'e birakilir
 flutter build ios --config-only --release --no-codesign \
   --obfuscate --split-debug-info="$OUT_DIR/symbols" \
   --build-name="$BUILD_NAME" --build-number="$BUILD_NUMBER" \
-  --dart-define=API_BASE="$API_BASE" --dart-define=APP_VERSION="$APP_VERSION"
+  --dart-define=API_BASE="$API_BASE" --dart-define=APP_VERSION="$APP_VERSION"   $OAUTH_DEFINES
 
 cd "$MOBILE/ios"
 xcodebuild archive \
@@ -81,6 +89,22 @@ if ! printf '%s' "$ENT" | grep -q "aps-environment"; then
   exit 1
 fi
 echo "Arsivde aps-environment var"
+
+# Dogrulama: ana ekran widget uzantisi (BUWidgets) arsive girdi mi ve uygulama + uzanti ayni App Group'u tasiyor mu?
+# (BU_WIDGETS_ENTITLEMENTS BuPush.xcconfig ile gelir; yoksa uzanti yetkisiz derlenir ve widget veri okuyamaz.)
+APP_GROUP="group.tr.com.bukampus.app"
+WIDGET="$APP/PlugIns/BUWidgets.appex"
+if [ ! -d "$WIDGET" ]; then
+  echo "HATA: arsivde BUWidgets.appex yok (Runner hedefi 'Embed App Extensions' fazi)" >&2
+  exit 1
+fi
+for TARGET in "$APP" "$WIDGET"; do
+  if ! codesign -d --entitlements :- "$TARGET" 2>/dev/null | grep -q "$APP_GROUP"; then
+    echo "HATA: $(basename "$TARGET") imzasinda App Group ($APP_GROUP) yok (App ID'de App Groups yetenegi + profil: docs/IOS_RELEASE.md 'Widget uzantisi')" >&2
+    exit 1
+  fi
+done
+echo "Arsivde BUWidgets.appex + App Group var"
 
 sed "s/__TEAM_ID__/$IOS_TEAM_ID/" "$MOBILE/ios/ExportOptions.plist" > "$OUT_DIR/ExportOptions.plist"
 xcodebuild -exportArchive \
