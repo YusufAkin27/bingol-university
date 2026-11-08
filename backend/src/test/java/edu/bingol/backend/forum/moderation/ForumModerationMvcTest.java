@@ -617,7 +617,8 @@ class ForumModerationMvcTest {
         assertThat(json(r).size()).isEqualTo(1);
         assertThat(json(r).get("blocked").asBoolean()).isTrue();
         assertThat(body).doesNotContain("anonimyazar").doesNotContain("\"userId\"");
-        assertThat(blocks.hasBlocked(me.getId(), author.getId())).isTrue();
+        // anonim: global engel YAZILMAZ (engel listesi yazari ifsa ederdi)
+        assertThat(blocks.hasBlocked(me.getId(), author.getId())).isFalse();
         // idempotent
         assertThat(asUser(me, post("/api/forum/topics/" + t + "/block-author")).getStatus()).isEqualTo(200);
     }
@@ -655,7 +656,7 @@ class ForumModerationMvcTest {
         MockHttpServletResponse r = asUser(me, post("/api/forum/comments/" + c + "/block-author"));
         assertThat(r.getStatus()).isEqualTo(200);
         assertThat(json(r).size()).isEqualTo(1);
-        assertThat(blocks.hasBlocked(me.getId(), commenter.getId())).isTrue();
+        assertThat(blocks.hasBlocked(me.getId(), commenter.getId())).isFalse();
         assertThat(asUser(me, post("/api/forum/comments/" + mine + "/block-author")).getStatus()).isEqualTo(400);
 
         data.softDeleteComment(c);
@@ -665,5 +666,33 @@ class ForumModerationMvcTest {
         long c2 = data.comment(t, commenter.getId(), "Baska yorum", false);
         data.setTopicStatus(t, "REMOVED");
         assertThat(asUser(me2, post("/api/forum/comments/" + c2 + "/block-author")).getStatus()).isEqualTo(404);
+    }
+
+    @Test
+    void anonymousBlockAuthorDoesNotLeakAuthorViaBlocksListOrAuthorBlockState() throws Exception {
+        User a = data.user("anonA");
+        User b = data.user("anonB");
+        long t = data.topic(a.getId(), cat, "Anonim konu", "x", true);
+
+        MockHttpServletResponse plain = asUser(b, post("/api/forum/topics/" + t + "/block-author"));
+        // A, B'yi engellemis olsa da yanit ayni olmali (oracle yok)
+        blocks.block(a.getId(), b.getId());
+        MockHttpServletResponse afterAblocked = asUser(b, post("/api/forum/topics/" + t + "/block-author"));
+        assertThat(afterAblocked.getStatus()).isEqualTo(plain.getStatus()).isEqualTo(200);
+        assertThat(afterAblocked.getContentAsString(StandardCharsets.UTF_8))
+                .isEqualTo(plain.getContentAsString(StandardCharsets.UTF_8));
+
+        MockHttpServletResponse list = asUser(b, get("/api/users/me/blocks"));
+        assertThat(list.getContentAsString(StandardCharsets.UTF_8)).doesNotContain("anonA");
+        assertThat(blocks.hasBlocked(b.getId(), a.getId())).isFalse();
+    }
+
+    @Test
+    void nonAnonymousBlockAuthorKeepsGlobalBlock() throws Exception {
+        User a = data.user("acikA");
+        User b = data.user("acikB");
+        long t = data.topic(a.getId(), cat, "Acik konu", "x", false);
+        assertThat(asUser(b, post("/api/forum/topics/" + t + "/block-author")).getStatus()).isEqualTo(200);
+        assertThat(blocks.hasBlocked(b.getId(), a.getId())).isTrue();
     }
 }

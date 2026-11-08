@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * "Yazari engelle" (konu/yorum uzerinden). Yazar ANONIM olsa da engellenir: sunucu icerikten yazari cozer ve mevcut
- * {@link BlockService} engelini ekler; yanit YALNIZ {@code {blocked:true}} doner, kimlik/hesap bilgisi sizmaz.
- * Gorunmeyen icerik (silinmis/kaldirilmis, yazar aktif degil, yazar bizi engellemis) olmayanla ayni 404 verir.
+ * "Yazari engelle" (konu/yorum uzerinden). ANONIM olmayan icerikte sunucu yazari cozer ve global
+ * {@link BlockService} engelini ekler. ANONIM icerikte global engel YAZILMAZ (GET /api/users/me/blocks yazari ifsa
+ * ederdi; yazarin bizi engellemis olmasi da 404 ile oracle olurdu): istek idempotent no-op olarak ayni genel
+ * {@code {blocked:true}} yanitini doner (anonim yazar sessize alma da listede gorunecegi icin kullanilmaz).
+ * Gorunmeyen icerik (silinmis/kaldirilmis) olmayanla ayni 404 verir.
  */
 @RestController
 @RequestMapping("/api/forum")
@@ -38,7 +40,7 @@ public class ForumBlockAuthorController {
         Long me = CurrentUser.id();
         limiter.check("fblockauthor:" + me, 60, Duration.ofHours(1));
         TopicRow t = content.topic(id).filter(TopicRow::active).orElseThrow(ForumBlockAuthorController::notFound);
-        return blockVisibleAuthor(me, t.userId());
+        return blockVisibleAuthor(me, t.userId(), t.anonymous());
     }
 
     @PostMapping("/comments/{id}/block-author")
@@ -48,12 +50,15 @@ public class ForumBlockAuthorController {
         CommentRow c = content.comment(id).filter(CommentRow::active).orElseThrow(ForumBlockAuthorController::notFound);
         // yorum, aktif bir konunun altinda olmali (kaldirilmis konunun yorumu da gorunmez)
         content.topic(c.topicId()).filter(TopicRow::active).orElseThrow(ForumBlockAuthorController::notFound);
-        return blockVisibleAuthor(me, c.userId());
+        return blockVisibleAuthor(me, c.userId(), c.anonymous());
     }
 
-    private Map<String, Boolean> blockVisibleAuthor(Long me, Long author) {
+    private Map<String, Boolean> blockVisibleAuthor(Long me, Long author, boolean anonymous) {
         if (me.equals(author)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "FORUM_CANNOT_BLOCK_SELF", "Kendinizi engelleyemezsiniz.");
+        }
+        if (anonymous) {
+            return Map.of("blocked", true); // kimlik/engel durumu hicbir sekilde yansimaz
         }
         // yazar hesabi pasifse ya da bizi engellemisse icerigi zaten goremeyiz: olmayanla ayni 404
         if (!content.userActive(author) || blocks.hasBlocked(author, me)) {
