@@ -44,6 +44,7 @@ public class EventChatMaintenance {
                     SELECT l.ref_id FROM chat_room_link l JOIN user_event e ON e.id = l.ref_id
                     WHERE l.kind = 'EVENT' AND l.closed = FALSE
                       AND (e.status IN ('CANCELLED', 'HIDDEN', 'REJECTED') OR e.ends_at < ?)
+                    LIMIT 200
                     """, Long.class, cutoff);
             for (Long id : toClose) {
                 rooms.closeRoom(RoomKind.EVENT, id);

@@ -29,12 +29,12 @@ public interface ChatRoomLinkRepository extends JpaRepository<ChatRoomLink, Long
     int insertIfAbsent(@Param("kind") String kind, @Param("ref") Long refId, @Param("conv") Long conversationId,
                        @Param("at") Instant at);
 
-    /** Aktif olmayan (askida/silinmis) kullanicilari tum odalardan cikarir; etkilenen satir sayisini doner. */
+    /** Aktif olmayan (askida/silinmis) kullanicilari tum odalardan cikarir; etkilenen satir sayisini doner (tur basina en cok 200, kalani sonraki turda). */
     @Transactional
     @Modifying
-    @Query("UPDATE ConversationMember m SET m.leftAt = :now WHERE m.leftAt IS NULL "
-            + "AND m.conversationId IN (SELECT l.conversationId FROM ChatRoomLink l) "
-            + "AND m.userId IN (SELECT u.id FROM User u WHERE u.status <> edu.bingol.backend.user.UserStatus.ACTIVE)")
+    @Query(value = "UPDATE conversation_member SET left_at = :now WHERE id IN (SELECT m.id FROM conversation_member m "
+            + "WHERE m.left_at IS NULL AND m.conversation_id IN (SELECT l.conversation_id FROM chat_room_link l) "
+            + "AND m.user_id IN (SELECT u.id FROM app_user u WHERE u.status <> 'ACTIVE') LIMIT 200)", nativeQuery = true)
     int purgeInactiveUsers(@Param("now") Instant now);
 
     /** Odadaki tum aktif uyeleri cikarir (oda kapatma). */
