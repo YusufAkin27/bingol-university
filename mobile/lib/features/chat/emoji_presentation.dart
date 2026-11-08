@@ -27,9 +27,9 @@ final RegExp _emojiRun = RegExp(
     unicode: true);
 
 /// Metni, emoji katarları renkli emoji yazı tipiyle ve [scale] kat büyük çizilecek biçimde TextSpan'e böler.
-/// Emoji, düz yazıya göre sohbet balonlarıyla aynı oranda (1.7) büyük; başlıklarda sohbetten %20 fazla (2.04).
-const double kEmojiScale = 1.7;
-const double kEmojiTitleScale = 2.04;
+/// Emoji, düz yazıya göre sohbet balonlarıyla aynı oranda (1.36) büyük; başlıklarda sohbetten %20 fazla (1.632).
+const double kEmojiScale = 1.36; // önceki 1.7 değerinden %20 küçük (kullanıcı kararı 2026-11-08)
+const double kEmojiTitleScale = 1.632; // sohbetten %20 büyük
 
 TextSpan emojiAwareSpan(String text, TextStyle style, {double scale = kEmojiScale}) {
   final s = withEmojiPresentation(text);

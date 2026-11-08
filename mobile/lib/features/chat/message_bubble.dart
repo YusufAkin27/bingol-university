@@ -746,8 +746,8 @@ class MessageBubble extends StatelessWidget {
       '[\u{FE0F}\u{1F3FB}-\u{1F3FF}]?(?:\u{200D}[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2640}\u{2642}][\u{FE0F}\u{1F3FB}-\u{1F3FF}]?)*)+',
       unicode: true);
 
-  /// Emoji, düz yazıya göre 1.7 kat (iki kez %30) büyük çizilir.
-  static const double emojiScale = 1.7;
+  /// Emoji, düz yazıya göre 1.7 kat (ortak oran: kEmojiScale) büyük çizilir.
+  static const double emojiScale = kEmojiScale;
 
   static List<InlineSpan> _emojiRuns(String s, TextStyle style) {
     if (s.isEmpty) return const [];
@@ -822,7 +822,7 @@ class _ReactionChip extends StatelessWidget {
                 TextSpan(
                     text: RecentReactions.display(emoji),
                     style: kEmojiFontStyle.copyWith(
-                        fontSize: (tx.labelMedium!.fontSize ?? 12) * 1.7)),
+                        fontSize: (tx.labelMedium!.fontSize ?? 12) * kEmojiScale)),
                 if (count > 1) TextSpan(text: ' $count'),
               ]),
               textAlign: TextAlign.center,
