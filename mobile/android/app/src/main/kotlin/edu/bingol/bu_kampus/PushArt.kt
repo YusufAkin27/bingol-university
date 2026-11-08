@@ -140,7 +140,8 @@ object PushArt {
         canvas.drawCircle(cx, cy, r + size * 0.04f, ring)
         val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = when {
-                glyph == null || glyph == Glyph.HEART -> c.getColor(R.color.push_brand)
+                glyph == Glyph.HEART -> c.getColor(R.color.push_heart)
+                glyph == null -> c.getColor(R.color.push_brand)
                 glyph == Glyph.CHECK -> c.getColor(R.color.push_green_fg)
                 else -> c.getColor(R.color.push_navy)
             }
