@@ -35,6 +35,10 @@ public class Post {
     @Column(nullable = false)
     private int likeCount;
 
+    /** Gorunen begeni eki (V1680): arayuze like_count + like_boost gider; siralama/onarim gercek sayiyla calisir. */
+    @Column(nullable = false)
+    private int likeBoost;
+
     @Column(nullable = false)
     private short mediaCount;
 

@@ -21,7 +21,7 @@ public class ReelSearchProvider implements SearchProvider {
 
     static final int SNIPPET_LEN = 160;
 
-    static final String SQL = "SELECT p.id, p.body, u.display_name, CAST(p.created_at AS varchar) AS created, p.like_count, "
+    static final String SQL = "SELECT p.id, p.body, u.display_name, CAST(p.created_at AS varchar) AS created, (p.like_count + p.like_boost) AS like_count, "
             + "p.hide_like_count, p.author_id, vm.id AS media_id, vm.duration_ms, vm.thumb_key "
             + "FROM post p JOIN app_user u ON u.id = p.author_id "
             + "JOIN LATERAL (SELECT m.id, m.duration_ms, m.thumb_key FROM post_media m WHERE m.post_id = p.id "
