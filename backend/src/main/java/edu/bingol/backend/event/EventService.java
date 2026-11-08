@@ -518,6 +518,21 @@ public class EventService {
         return Paging.map(rows, s, UserEvent::getId, items -> views(items, a, false));
     }
 
+    /**
+     * Kullanicinin bolumune/fakultesine hedeflenmis kuluplerin yaklasan etkinlikleri (yalniz oneri; en yakin once).
+     * Hedefli kulup ya da yaklasan etkinlik yoksa bos liste.
+     */
+    @Transactional(readOnly = true)
+    public List<EventView> recommended(Actor a, int size) {
+        List<Long> clubs = communities.recommendedClubIds(a);
+        if (clubs.isEmpty()) {
+            return List.of();
+        }
+        List<UserEvent> rows = events.upcomingOfClubs(UserEvent.Status.ACTIVE, Instant.now(), clubs,
+                PageRequest.of(0, Math.max(1, Math.min(size, 30))));
+        return rows.isEmpty() ? List.of() : views(rows, a, false);
+    }
+
     @Transactional(readOnly = true)
     public EventView get(Actor a, Long id) {
         return views(List.of(loadReadable(a, id)), a, true).get(0);

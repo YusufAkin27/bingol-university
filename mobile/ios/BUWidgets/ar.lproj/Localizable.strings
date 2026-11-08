@@ -15,3 +15,7 @@
 "widget.quickaccess.desc" = "انتقل إلى أقسامك المفضلة بلمسة واحدة.";
 "widget.social.name" = "الملخص الاجتماعي";
 "widget.social.desc" = "يعرض عدد الرسائل غير المقروءة والإشعارات والإعجابات (أرقام فقط).";
+"widget.exams.name" = "الامتحانات القادمة";
+"widget.exams.desc" = "يعرض امتحاناتك القادمة وتواريخها.";
+"widget.academic.name" = "التقويم الأكاديمي";
+"widget.academic.desc" = "يعرض المواعيد الأكاديمية المهمة القادمة.";

@@ -116,7 +116,8 @@ internal object WidgetRenderer {
                 WidgetSlug.MENU -> MenuModels.build(snap, c.nowMs)?.let { menu(c, it) }
                 WidgetSlug.TIMETABLE -> TimetableModels.build(snap, c.nowMs)?.let { timetable(c, it) }
                 WidgetSlug.EVENTS -> EventsModels.build(snap, c.nowMs)?.let { events(c, it) }
-                WidgetSlug.ANNOUNCEMENTS -> AnnModels.build(snap)?.let { announcements(c, it) }
+                // Sinavlar ve akademik takvim duyuru ile AYNI satir bicimini tasir (items[title, metaText, deepLink]).
+                WidgetSlug.ANNOUNCEMENTS, WidgetSlug.EXAMS, WidgetSlug.ACADEMIC -> AnnModels.build(snap)?.let { announcements(c, it) }
                 WidgetSlug.POLL -> PollModels.build(snap)?.let { poll(c, it) }
                 WidgetSlug.QUICKACCESS -> QuickModels.build(snap)?.let { quick(c, it) }
                 WidgetSlug.SOCIAL -> SocialModels.build(snap)?.let { social(c, it) }
@@ -147,7 +148,7 @@ internal object WidgetRenderer {
     private fun empty(c: Env, slug: WidgetSlug, snap: JSONObject, st: Strs, link: String?): RemoteViews {
         val small = c.sz == SizeClass.SMALL
         val sizeName = when (c.sz) { SizeClass.SMALL -> "small"; SizeClass.MEDIUM -> "medium"; SizeClass.LARGE -> "large" }
-        val isText = slug == WidgetSlug.EVENTS || slug == WidgetSlug.ANNOUNCEMENTS
+        val isText = slug == WidgetSlug.EVENTS || slug == WidgetSlug.ANNOUNCEMENTS || slug == WidgetSlug.EXAMS || slug == WidgetSlug.ACADEMIC
         val layout = if (isText) when (c.sz) {
             SizeClass.SMALL -> R.layout.bw_empty_text_small
             SizeClass.MEDIUM -> R.layout.bw_empty_text_medium
@@ -183,11 +184,11 @@ internal object WidgetRenderer {
                 r.show(R.id.e_icon, true)
                 sub = if (small) null else st.opt("emptySub")
             }
-            WidgetSlug.EVENTS, WidgetSlug.ANNOUNCEMENTS -> {
-                val ann = slug == WidgetSlug.ANNOUNCEMENTS
-                r.icon(R.id.e_icon, if (ann) "megaphone" else "calendar")
+            WidgetSlug.EVENTS, WidgetSlug.ANNOUNCEMENTS, WidgetSlug.EXAMS, WidgetSlug.ACADEMIC -> {
+                val ann = slug != WidgetSlug.EVENTS
+                r.icon(R.id.e_icon, if (slug == WidgetSlug.ANNOUNCEMENTS) "megaphone" else "calendar")
                 if (small) {
-                    r.icon(R.id.e_hicon, if (ann) "megaphone" else "calendar")
+                    r.icon(R.id.e_hicon, if (slug == WidgetSlug.ANNOUNCEMENTS) "megaphone" else "calendar")
                     r.show(R.id.e_hicon, true)
                     r.txt(R.id.e_hcap, if (ann) st["titleSmall"] else st["captionEmpty"])
                     r.show(R.id.e_logo, false)

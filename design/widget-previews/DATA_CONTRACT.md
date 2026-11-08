@@ -29,6 +29,8 @@ App Group Apple Developer'da tanımlanmalı ve **hem Runner hem BUWidgets hedefi
 | `bu_widget_poll` | Günün anketi |
 | `bu_widget_quickaccess` | Hızlı erişim |
 | `bu_widget_social` | Sosyal bildirim özeti (yalnız sayılar) |
+| `bu_widget_exams` | Yaklaşan sınavlarım (yalnız kullanıcının kendi kayıtları) |
+| `bu_widget_academic` | Yaklaşan akademik takvim tarihleri (herkese açık) |
 
 Anahtar yok / değer boş / JSON bozuk / `schema` > 1 → widget **oturumsuz düzenini** çizer (bölüm 7); asla çökmez, asla örnek veri uydurmaz.
 
@@ -54,7 +56,7 @@ Anahtar yok / değer boş / JSON bozuk / `schema` > 1 → widget **oturumsuz dü
 | Alan | Tip | Anlam |
 |---|---|---|
 | `schema` | int | 1 |
-| `slug` | string | `menu`, `timetable`, `events`, `announcements`, `poll`, `quickaccess`, `social` |
+| `slug` | string | `menu`, `timetable`, `events`, `announcements`, `poll`, `quickaccess`, `social`, `exams`, `academic` |
 | `state` | `ok` \| `empty` \| `signedOut` | `empty` = o widget'ın boş durumu (README'deki ikon + metin) |
 | `generatedAt` | ISO | üretim anı |
 | `expiresAt` | ISO \| null | bu andan sonra snapshot **boş durum** sayılır (bölüm 7). `null` = süresiz |
@@ -136,6 +138,18 @@ Kimlik/oy veren hiçbir yerde YOKTUR (gizli oy). `strings`: `caption`, `captionF
 `unreadMessages`, `newNotifications`, `newLikesAndFollowers` (int ≥ 0) ve hazır metinleri `…Text` (`99+`). `allZero` → boş durum (`state: empty`, kırmızı yok). `links`: `messages` → `bukampus://chat`, `notifications` → `bukampus://notifications`, `likes` → `bukampus://discover`, `header` → `bukampus://home`. Small'da tüm widget `deepLink` (mesaj>0 ise chat, değilse sıfır olmayan ilk hedef). Kişi adı, mesaj metni, fotoğraf, avatar HİÇBİR alanda yoktur ve eklenmez.
 `strings`: `captionSmall`, `captionFull`, `captionEmpty`, `unreadSmall`, `labelMessages`, `labelNotifications`, `labelLikes`, `heading`, `privacyNote`, `rowMessages`, `rowNotifications`, `rowLikes`, `subMessages`, `subNotifications`, `subLikes`, `emptyTitle`, `emptySub`. `expiresAt` null (sayaçlar bir sonraki eşitlemeye kadar kalır; bayat sayı kabul edilmiş bir ödünleşimdir).
 
+### 5.8 `exams` — dokununca `bukampus://exams`
+
+Duyuru (`announcements`) ile AYNI satır biçimi: `count`, `lastLabel` (`Sonraki 3`), `items[]` ≤ 4 `{id,title,sourceName(null),publishedAt,startsAt,dateLabel,urgent(false),urgentLabel(null),metaText,deepLink}`. `title` ders adı (yoksa sınav başlığı); `metaText` hazır: `Vize · 12 Kas 10:30 · B-204` (tür · tarih saat · varsa salon). Sıra: başlangıç artan; `startsAt < şimdi - 1 saat` olanlar üretimde elenir. **Göreli gün ("6 gün kaldı") YAZILMAZ** (gece yarısı sonrası yanlışlaşır); tarih mutlaktır. Kırmızı kullanılmaz. Veri YALNIZ kullanıcının kendi sınavlarıdır (`GET /timetable/exams/upcoming`).
+`strings`: `titleSmall` (Sınavlarım), `title` (Yaklaşan Sınavlar), `last`, `emptyTitle`, `emptySub`. Bayatlık: `expiresAt` = min(ilk sınavın başlangıcı + 1 sa, üretim + 72 sa).
+
+### 5.9 `academic` — dokununca `bukampus://academic`
+
+`exams` ile aynı biçim. `items[]` ≤ 4: akademik takvim kayıtları (dönem başı, ders kaydı, sınav haftası, tatil...), `metaText`: `Vize · 9 – 15 Kas` (tür · tarih ya da aralık; tek gün `10 Kas`; aylar arası `29 Kas – 3 Ara`). Biten kayıtlar elenir, sürenler listede kalır. Veri herkese açık takvimdir (`GET /academic/calendar?from&to`, 60 gün).
+`strings`: `titleSmall`, `title` (Akademik Takvim), `last`, `emptyTitle`, `emptySub`. Bayatlık: `expiresAt` = min(ilk kaydın bitiş günü sonu, üretim + 72 sa).
+
+Native çizim: iki widget de duyuru çizim koduyla çalışır (iOS `BuAnnouncementsView`, Android `announcements()`); farkı yalnız anahtar, başlık ve boş durum simgesidir.
+
 ## 6. Hangi boyut hangi alanı kullanır
 
 | Slug | small / 2x2 | medium / 4x2 | large / 4x4 |
@@ -147,6 +161,8 @@ Kimlik/oy veren hiçbir yerde YOKTUR (gizli oy). `strings`: `caption`, `captionF
 | poll | `question`, `userVoted` | `question`, `options[0..2]`, `microLine` | `question`, `options`, `secretLine` |
 | quickaccess | `smallIds` → `items` | `items[0..7]` | `items[0..7]`, `strings.heading/sub` |
 | social | `unreadMessages` + alt satır | 3 sütun | 3 satır, `privacyNote` |
+| exams | `items[0]` | `items[0..2]` | `items[0..3]`, `lastLabel` |
+| academic | `items[0]` | `items[0..2]` | `items[0..3]`, `lastLabel` |
 
 ## 7. Bayatlık, boş durum, oturumsuz, yenileme
 
@@ -184,6 +200,8 @@ Widget yerel saatle seçim yapar (gün eşleşmesi, `startMin`, `startsAt`); gü
 | `bukampus://search` | Arama |
 | `bukampus://notifications` | Bildirimler |
 | `bukampus://discover` | Keşfet sekmesi |
+| `bukampus://exams` | Sınavlarım (akademik merkez) |
+| `bukampus://academic` | Akademik Takvim |
 | `bukampus://poll/{id}` | anket detayı (alt sayfa); kimliksiz `bukampus://poll` = home |
 
 Native uygulama: iOS `Link(destination:)` / `.widgetURL(URL(string:)!)` (satır başına `Link`); Android Glance `actionStartActivity(Intent(ACTION_VIEW, Uri.parse(link)).setPackage(packageName))`. Tanınmayan/bozuk adres uygulamada yok sayılır (hiçbir şey açılmaz). Push yönlendirici (`targetType`/`targetId`) ayrı yoldur ve değişmedi.
@@ -205,6 +223,8 @@ Native uygulama: iOS `Link(destination:)` / `.widgetURL(URL(string:)!)` (satır 
 | poll | `BUPollWidget` | `PollWidgetReceiver` |
 | quickaccess | `BUQuickAccessWidget` | `QuickAccessWidgetReceiver` |
 | social | `BUSocialWidget` | `SocialWidgetReceiver` |
+| exams | `BUExamsWidget` | `ExamsWidgetReceiver` |
+| academic | `BUAcademicWidget` | `AcademicWidgetReceiver` |
 
 Uygulama bu adlarla `HomeWidget.updateWidget(iOSName: kind, qualifiedAndroidName: ...)` çağırır (`WidgetSlug.iosKind/androidReceiver`); farklı ad verirseniz `widget_snapshots.dart` `WidgetSlug` ve bu tabloyu birlikte güncelleyin. Eklenmemiş widget için çağrı sessizce yok sayılır.
 iOS hedef: `mobile/ios/BUWidgets/` (token dosyası `Shared/BuWidgetTokens.swift` hazır); Android: `mobile/android/app/src/main/kotlin/edu/bingol/bu_kampus/widgets/` (token dosyası + `res/values(-night)/widget_colors.xml` hazır).

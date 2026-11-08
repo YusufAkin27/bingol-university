@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "slug": "academic",
+  "state": "ok",
+  "generatedAt": "2026-11-06T10:00:00+03:00",
+  "expiresAt": "2026-11-09T10:00:00+03:00",
+  "lang": "en",
+  "rtl": false,
+  "deepLink": "bukampus://academic",
+  "a11y": "Academic calendar: Ara sınav haftası 9 – 15 Nov; Atatürk'ü Anma Günü 10 Nov; Ders ekleme-bırakma 23 – 27 Nov",
+  "strings": {
+    "signedOutTitle": "Sign in",
+    "signedOutSub": "Open BU Campus",
+    "titleSmall": "Academic Calendar",
+    "title": "Academic Calendar",
+    "last": "Next {n}",
+    "emptyTitle": "No upcoming academic dates",
+    "emptySub": "Key academic dates appear here"
+  },
+  "count": 3,
+  "lastLabel": "Next 3",
+  "items": [
+    {
+      "id": 11,
+      "title": "Ara sınav haftası",
+      "sourceName": null,
+      "publishedAt": "2026-11-09",
+      "startsAt": "2026-11-09T00:00:00+03:00",
+      "dateLabel": "9 – 15 Nov",
+      "urgent": false,
+      "urgentLabel": null,
+      "metaText": "Midterms · 9 – 15 Nov",
+      "deepLink": "bukampus://academic"
+    },
+    {
+      "id": 12,
+      "title": "Atatürk'ü Anma Günü",
+      "sourceName": null,
+      "publishedAt": "2026-11-10",
+      "startsAt": "2026-11-10T00:00:00+03:00",
+      "dateLabel": "10 Nov",
+      "urgent": false,
+      "urgentLabel": null,
+      "metaText": "Public holiday · 10 Nov",
+      "deepLink": "bukampus://academic"
+    },
+    {
+      "id": 13,
+      "title": "Ders ekleme-bırakma",
+      "sourceName": null,
+      "publishedAt": "2026-11-23",
+      "startsAt": "2026-11-23T00:00:00+03:00",
+      "dateLabel": "23 – 27 Nov",
+      "urgent": false,
+      "urgentLabel": null,
+      "metaText": "Registration · 23 – 27 Nov",
+      "deepLink": "bukampus://academic"
+    }
+  ]
+}

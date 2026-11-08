@@ -144,6 +144,8 @@ object WidgetTokens {
     const val KEY_POLL = "bu_widget_poll"
     const val KEY_QUICK_ACCESS = "bu_widget_quickaccess"
     const val KEY_SOCIAL = "bu_widget_social"
+    const val KEY_EXAMS = "bu_widget_exams"
+    const val KEY_ACADEMIC = "bu_widget_academic"
     const val URL_SCHEME = "bukampus"
 
     /** Renk paleti: ARGB (0xAARRGGBB). Degerler BuTokens karsiliklari DESIGN_SYSTEM.md'de. */

@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "slug": "exams",
+  "state": "empty",
+  "generatedAt": "2026-11-06T10:00:00+03:00",
+  "expiresAt": "2026-11-09T10:00:00+03:00",
+  "lang": "tr",
+  "rtl": false,
+  "deepLink": "bukampus://exams",
+  "a11y": "Yaklaşan sınav: Yaklaşan sınav yok",
+  "strings": {
+    "signedOutTitle": "Giriş yap",
+    "signedOutSub": "BÜ Kampüs'ü aç",
+    "titleSmall": "Sınavlarım",
+    "title": "Yaklaşan Sınavlar",
+    "last": "Sonraki {n}",
+    "emptyTitle": "Yaklaşan sınav yok",
+    "emptySub": "Eklediğin sınavlar burada görünür"
+  },
+  "count": 0,
+  "lastLabel": "Sonraki 0",
+  "items": []
+}

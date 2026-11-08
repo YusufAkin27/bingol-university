@@ -24,6 +24,12 @@ class QuickAccessWidget4x4Receiver : BuWidgetReceiver(WidgetSlug.QUICKACCESS, Si
 class SocialWidgetReceiver : BuWidgetReceiver(WidgetSlug.SOCIAL, SizeClass.SMALL)
 class SocialWidget4x2Receiver : BuWidgetReceiver(WidgetSlug.SOCIAL, SizeClass.MEDIUM)
 class SocialWidget4x4Receiver : BuWidgetReceiver(WidgetSlug.SOCIAL, SizeClass.LARGE)
+class ExamsWidgetReceiver : BuWidgetReceiver(WidgetSlug.EXAMS, SizeClass.SMALL)
+class ExamsWidget4x2Receiver : BuWidgetReceiver(WidgetSlug.EXAMS, SizeClass.MEDIUM)
+class ExamsWidget4x4Receiver : BuWidgetReceiver(WidgetSlug.EXAMS, SizeClass.LARGE)
+class AcademicWidgetReceiver : BuWidgetReceiver(WidgetSlug.ACADEMIC, SizeClass.SMALL)
+class AcademicWidget4x2Receiver : BuWidgetReceiver(WidgetSlug.ACADEMIC, SizeClass.MEDIUM)
+class AcademicWidget4x4Receiver : BuWidgetReceiver(WidgetSlug.ACADEMIC, SizeClass.LARGE)
 
 /** Slug -> tum saglayici siniflari (guncelleme hepsine gider). */
 object WidgetProviders {
@@ -35,5 +41,7 @@ object WidgetProviders {
         WidgetSlug.POLL to listOf(PollWidgetReceiver::class.java, PollWidget4x2Receiver::class.java, PollWidget4x4Receiver::class.java),
         WidgetSlug.QUICKACCESS to listOf(QuickAccessWidgetReceiver::class.java, QuickAccessWidget4x2Receiver::class.java, QuickAccessWidget4x4Receiver::class.java),
         WidgetSlug.SOCIAL to listOf(SocialWidgetReceiver::class.java, SocialWidget4x2Receiver::class.java, SocialWidget4x4Receiver::class.java),
+        WidgetSlug.EXAMS to listOf(ExamsWidgetReceiver::class.java, ExamsWidget4x2Receiver::class.java, ExamsWidget4x4Receiver::class.java),
+        WidgetSlug.ACADEMIC to listOf(AcademicWidgetReceiver::class.java, AcademicWidget4x2Receiver::class.java, AcademicWidget4x4Receiver::class.java),
     )
 }

@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "slug": "exams",
+  "state": "ok",
+  "generatedAt": "2026-11-06T10:00:00+03:00",
+  "expiresAt": "2026-11-09T10:00:00+03:00",
+  "lang": "tr",
+  "rtl": false,
+  "deepLink": "bukampus://exams",
+  "a11y": "Yaklaşan sınav: Algoritma ve Programlama Vize · 12 Kas 10:30 · B-204; Veri Yapıları Quiz · 16 Kas 14:00; Veritabanı Sistemleri Ödev · 20 Kas 23:59",
+  "strings": {
+    "signedOutTitle": "Giriş yap",
+    "signedOutSub": "BÜ Kampüs'ü aç",
+    "titleSmall": "Sınavlarım",
+    "title": "Yaklaşan Sınavlar",
+    "last": "Sonraki {n}",
+    "emptyTitle": "Yaklaşan sınav yok",
+    "emptySub": "Eklediğin sınavlar burada görünür"
+  },
+  "count": 3,
+  "lastLabel": "Sonraki 3",
+  "items": [
+    {
+      "id": 1,
+      "title": "Algoritma ve Programlama",
+      "sourceName": null,
+      "publishedAt": "2026-11-12",
+      "startsAt": "2026-11-12T10:30:00+03:00",
+      "dateLabel": "12 Kas",
+      "urgent": false,
+      "urgentLabel": null,
+      "metaText": "Vize · 12 Kas 10:30 · B-204",
+      "deepLink": "bukampus://exams"
+    },
+    {
+      "id": 2,
+      "title": "Veri Yapıları",
+      "sourceName": null,
+      "publishedAt": "2026-11-16",
+      "startsAt": "2026-11-16T14:00:00+03:00",
+      "dateLabel": "16 Kas",
+      "urgent": false,
+      "urgentLabel": null,
+      "metaText": "Quiz · 16 Kas 14:00",
+      "deepLink": "bukampus://exams"
+    },
+    {
+      "id": 3,
+      "title": "Veritabanı Sistemleri",
+      "sourceName": null,
+      "publishedAt": "2026-11-20",
+      "startsAt": "2026-11-20T23:59:00+03:00",
+      "dateLabel": "20 Kas",
+      "urgent": false,
+      "urgentLabel": null,
+      "metaText": "Ödev · 20 Kas 23:59",
+      "deepLink": "bukampus://exams"
+    }
+  ]
+}

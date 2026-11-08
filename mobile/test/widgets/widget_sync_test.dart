@@ -85,6 +85,17 @@ FakeBackend backend() {
       {'id': 43, 'title': 'Menü', 'type': 'RATING', 'scope': 'MENU', 'options': []},
     ],
   });
+  // Sinavlar (kullanicinin kendisi) ve akademik takvim.
+  b.on('/timetable/exams/upcoming*', {
+    'items': [
+      {'id': 7, 'courseName': 'Algoritma', 'title': 'Vize', 'type': 'VIZE', 'startsAt': '2026-11-12T07:30:00Z', 'room': 'B-204'},
+    ],
+  });
+  b.on('/academic/calendar*', {
+    'items': [
+      {'id': 21, 'kind': 'DERS_KAYIT', 'title': 'Ders ekleme', 'startsAt': '2026-11-08T21:00:00Z', 'endsAt': '2026-11-10T21:00:00Z', 'allDay': true},
+    ],
+  });
   // Kisi adi iceren bildirimler: yalniz adet okunur.
   b.on('/notifications*', {
     'items': [
@@ -117,7 +128,7 @@ void main() {
 
   Map<String, dynamic> read(String key) => jsonDecode(store.data[key]!) as Map<String, dynamic>;
 
-  test('oturum acikken 7 snapshot + meta yazilir, widgetlar yenilenir', () async {
+  test('oturum acikken 9 snapshot + meta yazilir, widgetlar yenilenir', () async {
     await WidgetSyncService.instance.syncNow();
     for (final slug in WidgetSlug.values) {
       expect(store.data.containsKey('bu_widget_${slug.slug}'), isTrue, reason: slug.slug);
@@ -127,7 +138,7 @@ void main() {
     expect(meta['lang'], 'tr');
     expect(meta['schema'], 1);
     expect(store.reloads, isNotEmpty);
-    expect(store.reloads.last.length, 7);
+    expect(store.reloads.last.length, 9);
 
     final menu = read('bu_widget_menu');
     expect(menu['state'], 'ok');
@@ -139,6 +150,8 @@ void main() {
     expect(ev['count'], 1); // yalniz ACTIVE + kulupsuz olmayan
     expect(ev['events'][0]['venue'], 'Amfi 2');
     expect(read('bu_widget_announcements')['items'][0]['dateLabel'], '05 Kas');
+    expect(read('bu_widget_exams')['items'][0]['metaText'], 'Vize · 12 Kas 10:30 · B-204');
+    expect(read('bu_widget_academic')['items'][0]['metaText'], 'Ders kaydı · 9 – 11 Kas');
     final poll = read('bu_widget_poll');
     expect(poll['pollId'], 42);
     expect(poll['options'][0]['percent'], 60);
@@ -188,14 +201,14 @@ void main() {
 
   test('oturum yoksa tum snapshotlar silinir, meta signedIn=false + Giris yap metni', () async {
     await WidgetSyncService.instance.syncNow();
-    expect(store.data.keys.where((k) => k != 'bu_widget_meta').length, 7);
+    expect(store.data.keys.where((k) => k != 'bu_widget_meta').length, 9);
     s.state = SessionState.signedOut;
     await WidgetSyncService.instance.syncNow();
     expect(store.data.keys.toSet(), {'bu_widget_meta'});
     final meta = read('bu_widget_meta');
     expect(meta['signedIn'], false);
     expect(meta['strings']['signedOutTitle'], 'Giriş yap');
-    expect(store.reloads.last.length, 7);
+    expect(store.reloads.last.length, 9);
   });
 
   test('oturum henuz yukleniyorsa (loading) hicbir sey silinmez ya da yazilmaz', () async {

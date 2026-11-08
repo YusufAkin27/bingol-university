@@ -23,7 +23,9 @@ enum WidgetSlug {
   announcements('announcements', 'BUAnnouncementsWidget', 'AnnouncementsWidgetReceiver'),
   poll('poll', 'BUPollWidget', 'PollWidgetReceiver'),
   quickaccess('quickaccess', 'BUQuickAccessWidget', 'QuickAccessWidgetReceiver'),
-  social('social', 'BUSocialWidget', 'SocialWidgetReceiver');
+  social('social', 'BUSocialWidget', 'SocialWidgetReceiver'),
+  exams('exams', 'BUExamsWidget', 'ExamsWidgetReceiver'),
+  academic('academic', 'BUAcademicWidget', 'AcademicWidgetReceiver');
 
   const WidgetSlug(this.slug, this.iosKind, this.androidReceiver);
 
@@ -62,6 +64,29 @@ class WidgetNewsInput {
   final DateTime publishedDay;
   final String? sourceName;
   final bool urgent;
+}
+
+/// Kullanıcının KENDİ sınavı (başkasının verisi girmez).
+class WidgetExamInput {
+  const WidgetExamInput({required this.id, required this.title, this.courseName, this.type = 'DIGER', required this.startsAt, this.room});
+
+  final int id;
+  final String title;
+  final String? courseName;
+  final String type; // VIZE | FINAL | BUT | QUIZ | ODEV | DIGER
+  final DateTime startsAt;
+  final String? room;
+}
+
+/// Herkese açık akademik takvim kaydı (dönem başı, ders kaydı, sınav haftası, tatil...).
+class WidgetAcademicInput {
+  const WidgetAcademicInput({required this.id, required this.kind, required this.title, required this.startsAt, this.endsAt});
+
+  final int id;
+  final String kind;
+  final String title;
+  final DateTime startsAt;
+  final DateTime? endsAt;
 }
 
 class WidgetPollOptionInput {
@@ -151,7 +176,9 @@ class WidgetSnapshotBuilder {
         'signedOutTitle': s['signedOutTitle'],
         'signedOutSub': s['signedOutSub'],
         for (final k in s.keys)
-          if (k.startsWith('$prefix.') && k != '$prefix.a11y') k.substring(prefix.length + 1): s[k],
+          // `type.*` / `kind.*` yalnız üretimde etiket seçmek içindir (metaText hazır gelir), widget'a taşınmaz.
+          if (k.startsWith('$prefix.') && k != '$prefix.a11y' && !k.startsWith('$prefix.type.') && !k.startsWith('$prefix.kind.'))
+            k.substring(prefix.length + 1): s[k],
       };
 
   Map<String, Object?> _env(WidgetSlug slug, String state,
@@ -177,6 +204,8 @@ class WidgetSnapshotBuilder {
     WidgetSlug.poll: 'p',
     WidgetSlug.quickaccess: 'q',
     WidgetSlug.social: 's',
+    WidgetSlug.exams: 'x',
+    WidgetSlug.academic: 'c',
   };
 
   /// Gün sonu (ertesi gün 00:00 İstanbul) gerçek anlık.
@@ -418,6 +447,105 @@ class WidgetSnapshotBuilder {
           expiresAt: now.add(const Duration(hours: 72))),
       'count': items.length,
       'lastLabel': s.fill('a.last', {'n': '${items.length}'}),
+      'items': items,
+    };
+  }
+
+  // ------------------------------------------------------------ sınavlar / akademik takvim
+  // İkisi de duyuru snapshot'ıyla AYNI satır biçimini taşır (items[title, metaText, deepLink]); native tarafta tek
+  // çizim kodu kullanılır. Göreli gün ("6 gün kaldı") YAZILMAZ: snapshot günü geçince yanlışlaşırdı; tarih mutlaktır.
+
+  String _shortDate(DateTime d) => '${d.day} ${s.monthShort(d.month)}';
+
+  Map<String, Object?> exams(List<WidgetExamInput> input) {
+    final cutoff = now.subtract(const Duration(hours: 1));
+    final list = input.where((e) => !e.startsAt.isBefore(cutoff)).toList()..sort((a, b) => a.startsAt.compareTo(b.startsAt));
+    final items = [
+      for (final e in list.take(4))
+        () {
+          final w = istanbulWall(e.startsAt);
+          final day = DateTime.utc(w.year, w.month, w.day);
+          final course = (e.courseName?.trim().isEmpty ?? true) ? e.title : e.courseName!;
+          final type = s['x.type.${const {'VIZE', 'FINAL', 'BUT', 'QUIZ', 'ODEV'}.contains(e.type) ? e.type : 'DIGER'}'];
+          final room = e.room?.trim() ?? '';
+          final dl = _shortDate(day);
+          return {
+            'id': e.id,
+            'title': _clip(course, 80),
+            'sourceName': null,
+            'publishedAt': _isoDay(day),
+            'startsAt': widgetIso(e.startsAt),
+            'dateLabel': dl,
+            'urgent': false,
+            'urgentLabel': null,
+            'metaText': [type, '$dl ${two(w.hour)}:${two(w.minute)}', if (room.isNotEmpty) _clip(room, 12)].join(' · '),
+            'deepLink': WidgetLink.exams.uri,
+          };
+        }(),
+    ];
+    final summary = items.isEmpty ? s['x.emptyTitle'] : items.take(3).map((e) => '${e['title']} ${e['metaText']}').join('; ');
+    final firstEnd = list.isEmpty ? null : list.first.startsAt.add(const Duration(hours: 1));
+    final cap = now.add(const Duration(hours: 72));
+    return {
+      ..._env(WidgetSlug.exams, items.isEmpty ? 'empty' : 'ok',
+          deepLink: WidgetLink.exams.uri,
+          a11y: s.fill('x.a11y', {'summary': summary}),
+          prefix: 'x',
+          expiresAt: firstEnd != null && firstEnd.isBefore(cap) ? firstEnd : cap),
+      'count': items.length,
+      'lastLabel': s.fill('x.last', {'n': '${items.length}'}),
+      'items': items,
+    };
+  }
+
+  Map<String, Object?> academic(List<WidgetAcademicInput> input) {
+    DateTime dayOf(DateTime t) {
+      final w = istanbulWall(t);
+      return DateTime.utc(w.year, w.month, w.day);
+    }
+
+    DateTime endOf(WidgetAcademicInput e) {
+      final d = e.endsAt == null ? dayOf(e.startsAt) : dayOf(e.endsAt!);
+      return d.isBefore(dayOf(e.startsAt)) ? dayOf(e.startsAt) : d;
+    }
+
+    final list = input.where((e) => !endOf(e).isBefore(today)).toList()..sort((a, b) => a.startsAt.compareTo(b.startsAt));
+    String range(DateTime a, DateTime b) {
+      if (a == b) return _shortDate(a);
+      if (a.month == b.month) return '${a.day} – ${b.day} ${s.monthShort(b.month)}';
+      return '${_shortDate(a)} – ${_shortDate(b)}';
+    }
+
+    final items = [
+      for (final e in list.take(4))
+        () {
+          final a = dayOf(e.startsAt), z = endOf(e);
+          final kind = s['c.kind.${const {'DONEM_BASLANGIC', 'DERS_KAYIT', 'VIZE', 'FINAL', 'BUT', 'TATIL', 'RESMI_TATIL'}.contains(e.kind) ? e.kind : 'DIGER'}'];
+          return {
+            'id': e.id,
+            'title': _clip(e.title, 80),
+            'sourceName': null,
+            'publishedAt': _isoDay(a),
+            'startsAt': widgetIso(e.startsAt),
+            'dateLabel': range(a, z),
+            'urgent': false,
+            'urgentLabel': null,
+            'metaText': '$kind · ${range(a, z)}',
+            'deepLink': WidgetLink.academic.uri,
+          };
+        }(),
+    ];
+    final summary = items.isEmpty ? s['c.emptyTitle'] : items.take(3).map((e) => '${e['title']} ${e['dateLabel']}').join('; ');
+    final firstEnd = list.isEmpty ? null : _endOfDay(endOf(list.first));
+    final cap = now.add(const Duration(hours: 72));
+    return {
+      ..._env(WidgetSlug.academic, items.isEmpty ? 'empty' : 'ok',
+          deepLink: WidgetLink.academic.uri,
+          a11y: s.fill('c.a11y', {'summary': summary}),
+          prefix: 'c',
+          expiresAt: firstEnd != null && firstEnd.isBefore(cap) ? firstEnd : cap),
+      'count': items.length,
+      'lastLabel': s.fill('c.last', {'n': '${items.length}'}),
       'items': items,
     };
   }

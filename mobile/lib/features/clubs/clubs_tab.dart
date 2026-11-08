@@ -95,6 +95,9 @@ class _ClubsTabState extends State<ClubsTab> {
   List<ClubCategory> _categories = const [];
   List<Map<String, dynamic>> _mine = [];
 
+  /// "Bölümüne uygun kulüpler" (GET /communities/recommended): yalnız öneri, boşsa şerit hiç çizilmez.
+  List<Map<String, dynamic>> _rec = const [];
+
   List<Map<String, dynamic>> _items = [];
   String? _cursor;
   bool _loading = true;
@@ -116,6 +119,7 @@ class _ClubsTabState extends State<ClubsTab> {
     _reload();
     _loadCategories();
     _loadMine();
+    _loadRec();
   }
 
   @override
@@ -169,6 +173,16 @@ class _ClubsTabState extends State<ClubsTab> {
     });
   }
 
+  Future<void> _loadRec() async {
+    try {
+      final res = await widget.session.api.get('/communities/recommended?size=3');
+      if (!mounted) return;
+      setState(() => _rec = _parse(res));
+    } catch (_) {
+      // En iyi çaba: öneri gelmezse şerit çizilmez.
+    }
+  }
+
   /// "Kulüplerim" şeridi (GET /me/communities); hata şeridi gizler.
   Future<void> _loadMine() async {
     try {
@@ -210,6 +224,7 @@ class _ClubsTabState extends State<ClubsTab> {
   Future<void> _refresh() async {
     _loadCategories();
     _loadMine();
+    _loadRec();
     if (_query.isNotEmpty) _loadRemote();
     await _reload(silent: true);
   }
@@ -618,9 +633,13 @@ class _ClubsTabState extends State<ClubsTab> {
         ),
       );
     }
-    final list = _discover;
+    final all = _discover;
+    // Öneri şeridi açıkken önerilenler ana listede tekrarlanmaz.
+    final showRec = all.isNotEmpty && _rec.isNotEmpty && _typed.isEmpty && _category == null;
+    final recIds = showRec ? <Object?>{for (final r in _rec) _id(r)} : const <Object?>{};
+    final list = showRec ? [for (final c in all) if (!recIds.contains(_id(c))) c] : all;
     // Ağ hatası olsa da elde kulüp varsa liste gösterilir (çevrimdışı/önbellek); aksi halde boş durum.
-    final emptyState = list.isEmpty
+    final emptyState = all.isEmpty
         ? (_typed.isNotEmpty || _category != null
             ? ClubsStateText(text: l.clubMgmtNotFound, actionLabel: _typed.isNotEmpty ? null : l.clubMgmtAll, onAction: _typed.isNotEmpty ? null : () => _setCategory(null))
             : ClubsStateText(text: l.p51ClubsEmpty, actionLabel: l.clubMgmtCreateTitle, onAction: _create))
@@ -634,11 +653,18 @@ class _ClubsTabState extends State<ClubsTab> {
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.only(bottom: kNavInset),
           maxAnimated: 10,
-          itemCount: 1 + (emptyState != null ? 1 : list.length + (_more ? 1 : 0)),
+          itemCount: 1 + (showRec ? 1 : 0) + (emptyState != null ? 1 : list.length + (_more ? 1 : 0)),
           itemBuilder: (_, k) {
-            if (k == 0) return _filters(list.length);
+            if (k == 0) return _filters(all.length);
+            if (showRec && k == 1) {
+              return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                ClubsSectionTitle(l.clubRecommendedTitle, top: 8),
+                for (final c in _rec) row(c),
+                ClubsSectionTitle(l.clubRecommendedAll, top: 8),
+              ]);
+            }
             if (emptyState != null) return SizedBox(height: (c.maxHeight - kNavInset - 110).clamp(200.0, double.infinity), child: emptyState);
-            final i = k - 1;
+            final i = k - 1 - (showRec ? 1 : 0);
             if (i >= list.length) {
               return const Padding(
                 padding: EdgeInsets.all(12),
