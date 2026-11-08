@@ -1,10 +1,15 @@
+import 'dart:math' show Random;
+
 import 'api.dart' show ApiError;
+
+final Random _keyRandom = Random.secure();
 
 /// Çift gönderimi engelleyen anahtar (`Idempotency-Key`): bir "gönderme niyeti" için BİR kez üretilir, yeniden
 /// denemelerde aynen kullanılır; sunucu aynı anahtarla gelen ikinci isteği yeni kayıt açmadan aynı sonuçla yanıtlar.
 String newIdempotencyKey([String prefix = 'k']) {
   final t = DateTime.now().microsecondsSinceEpoch.toRadixString(36);
-  final r = (Object().hashCode ^ t.hashCode).toRadixString(36);
+  // Güvenli rastgele 2x32 bit: aynı mikrosaniyede iki niyet/cihaz çakışırsa sunucu ikinci kaydı yutmasın.
+  final r = _keyRandom.nextInt(1 << 32).toRadixString(36) + _keyRandom.nextInt(1 << 32).toRadixString(36);
   return '$prefix$t-$r';
 }
 
