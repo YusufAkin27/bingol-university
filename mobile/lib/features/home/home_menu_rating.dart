@@ -27,7 +27,20 @@ class _HomeMenuRatingState extends State<HomeMenuRating> {
   @override
   void initState() {
     super.initState();
+    PollApi.latest.addListener(_onShared);
     _load();
+  }
+
+  @override
+  void dispose() {
+    PollApi.latest.removeListener(_onShared);
+    super.dispose();
+  }
+
+  // Menü sayfasında verilen puan ana sayfada da görünsün.
+  void _onShared() {
+    final s = PollApi.latest.value;
+    if (mounted && s != null && s.id == _poll?.id) setState(() => _poll = s);
   }
 
   Future<void> _load() async {
