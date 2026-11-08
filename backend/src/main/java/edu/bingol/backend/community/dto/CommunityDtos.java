@@ -22,7 +22,13 @@ public final class CommunityDtos {
             @Size(max = 1000) String description,
             @Size(max = 40) String category,
             JoinPolicy joinPolicy,
-            Visibility visibility) {
+            Visibility visibility,
+            @Size(max = 12) List<@Size(max = 120) String> targetFaculties,
+            @Size(max = 12) List<@Size(max = 120) String> targetDepartments) {
+        public CreateCommunityRequest(String name, String description, String category, JoinPolicy joinPolicy,
+                                      Visibility visibility) {
+            this(name, description, category, joinPolicy, visibility, null, null);
+        }
     }
 
     /** Alanlarin hepsi opsiyonel; verilenler guncellenir. */
@@ -31,7 +37,13 @@ public final class CommunityDtos {
             @Size(max = 1000) String description,
             @Size(max = 40) String category,
             JoinPolicy joinPolicy,
-            Visibility visibility) {
+            Visibility visibility,
+            @Size(max = 12) List<@Size(max = 120) String> targetFaculties,
+            @Size(max = 12) List<@Size(max = 120) String> targetDepartments) {
+        public UpdateCommunityRequest(String name, String description, String category, JoinPolicy joinPolicy,
+                                      Visibility visibility) {
+            this(name, description, category, joinPolicy, visibility, null, null);
+        }
     }
 
     /**
@@ -42,7 +54,16 @@ public final class CommunityDtos {
                                 String coverUrl, JoinPolicy joinPolicy, Visibility visibility, Status status,
                                 Long ownerId, long memberCount, String myStatus, Role myRole, Instant createdAt,
                                 String logoUrl,
-                                @JsonInclude(JsonInclude.Include.NON_NULL) Instant requestedAt) {
+                                @JsonInclude(JsonInclude.Include.NON_NULL) Instant requestedAt,
+                                @JsonInclude(JsonInclude.Include.NON_NULL) List<String> targetFaculties,
+                                @JsonInclude(JsonInclude.Include.NON_NULL) List<String> targetDepartments) {
+        public CommunityView(Long id, String name, String slug, String description, String category,
+                             String coverUrl, JoinPolicy joinPolicy, Visibility visibility, Status status,
+                             Long ownerId, long memberCount, String myStatus, Role myRole, Instant createdAt,
+                             String logoUrl, Instant requestedAt) {
+            this(id, name, slug, description, category, coverUrl, joinPolicy, visibility, status, ownerId,
+                    memberCount, myStatus, myRole, createdAt, logoUrl, requestedAt, null, null);
+        }
     }
 
     /** Kesfette gorunen (ACTIVE + PUBLIC) kulup sayisiyla kategori. */

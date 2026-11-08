@@ -166,6 +166,13 @@ public class CommunityService {
 
     // ---- olusturma / okuma ----
 
+    private CommunityAudienceService audience;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setAudience(CommunityAudienceService audience) {
+        this.audience = audience;
+    }
+
     @Transactional
     public Community create(Actor a, CreateCommunityRequest r) {
         if (r.name().trim().length() < 3) {
@@ -206,6 +213,9 @@ public class CommunityService {
             throw new ApiException(HttpStatus.CONFLICT, "SLUG_CONFLICT", "Topluluk adı çakıştı, tekrar deneyin.");
         }
         members.save(new CommunityMember(c.getId(), a.id(), Role.OWNER, CommunityMember.Status.ACTIVE));
+        if (audience != null) {
+            audience.replace(c.getId(), r.targetFaculties(), r.targetDepartments());
+        }
         if (active) {
             hooks.onCommunityActivated(c); // sohbet odasi kurulur, sahip odaya girer
         }
@@ -304,6 +314,62 @@ public class CommunityService {
         return Paging.map(rows, s, Community::getId, items -> views(items, a));
     }
 
+    /**
+     * Kullanicinin fakulte/bolumune uygun kulupler (yalniz oneri siralamasi): ACTIVE + PUBLIC, zaten uye/basvurmus
+     * olunanlar haric; bolum eslesmesi fakulteden once gelir. Profil bos ya da eslesme yoksa bos liste.
+     */
+    @Transactional(readOnly = true)
+    public List<CommunityView> recommended(Actor a, int size) {
+        if (audience == null) {
+            return List.of();
+        }
+        User u = users.findById(a.id()).orElse(null);
+        if (u == null) {
+            return List.of();
+        }
+        List<Long> ranked = audience.rankedFor(u.getFaculty(), u.getDepartment());
+        if (ranked.isEmpty()) {
+            return List.of();
+        }
+        Map<Long, Community> byId = byIds(ranked);
+        Set<Long> joined = new java.util.HashSet<>();
+        members.findByUserIdAndCommunityIdIn(a.id(), ranked).forEach(m -> joined.add(m.getCommunityId()));
+        int max = Math.max(1, Math.min(size, 30));
+        List<Community> ordered = new ArrayList<>();
+        for (Long id : ranked) {
+            Community c = byId.get(id);
+            if (c != null && !joined.contains(id) && c.getStatus() == Community.Status.ACTIVE
+                    && c.getVisibility() == Community.Visibility.PUBLIC) {
+                ordered.add(c);
+                if (ordered.size() >= max) {
+                    break;
+                }
+            }
+        }
+        return views(ordered, a);
+    }
+
+    /** Kullanici bolumune/fakultesine hedeflenmis ACTIVE + PUBLIC kulup kimlikleri (en uygun once; uyelik fark etmez). */
+    @Transactional(readOnly = true)
+    public List<Long> recommendedClubIds(Actor a) {
+        if (audience == null) {
+            return List.of();
+        }
+        User u = users.findById(a.id()).orElse(null);
+        if (u == null) {
+            return List.of();
+        }
+        List<Long> ranked = audience.rankedFor(u.getFaculty(), u.getDepartment());
+        if (ranked.isEmpty()) {
+            return List.of();
+        }
+        Map<Long, Community> byId = byIds(ranked);
+        return ranked.stream().filter(id -> {
+            Community c = byId.get(id);
+            return c != null && c.getStatus() == Community.Status.ACTIVE && c.getVisibility() == Community.Visibility.PUBLIC;
+        }).toList();
+    }
+
     /** Kategori filtresi icin: kesfette gorunen kulupler sayilir, ozel/bekleyen/gizli kulup sizmaz. */
     @Transactional(readOnly = true)
     public List<CategoryCount> categories() {
@@ -389,6 +455,9 @@ public class CommunityService {
         }
         c.setUpdatedAt(Instant.now());
         communities.save(c);
+        if (audience != null) {
+            audience.replace(c.getId(), r.targetFaculties(), r.targetDepartments());
+        }
         if (renamed) {
             hooks.onRenamed(c);
         }
@@ -726,9 +795,11 @@ public class CommunityService {
         if (viewerId != null) {
             members.findByUserIdAndCommunityIdIn(viewerId, ids).forEach(m -> mine.put(m.getCommunityId(), m));
         }
+        Map<Long, CommunityAudienceService.Targets> targets = audience == null ? Map.of() : audience.of(ids);
         List<CommunityView> out = new ArrayList<>();
         for (Community c : list) {
             CommunityMember m = mine.get(c.getId());
+            CommunityAudienceService.Targets tg = targets.getOrDefault(c.getId(), CommunityAudienceService.Targets.NONE);
             // Ozel kulubun aciklamasi uye olmayana (sahip/yonetici haric) gosterilmez.
             boolean hideDesc = viewerId != null && c.getVisibility() == Community.Visibility.PRIVATE
                     && (m == null || !m.isActive()) && !viewerId.equals(c.getOwnerId()) && !viewerAdmin;
@@ -736,7 +807,8 @@ public class CommunityService {
                     c.getCoverUrl(), c.getJoinPolicy(), c.getVisibility(), c.getStatus(), c.getOwnerId(),
                     counts.getOrDefault(c.getId(), 0L), m == null ? "NONE" : m.getStatus().name(),
                     m != null && m.isActive() ? m.getRole() : null, c.getCreatedAt(), c.getLogoUrl(),
-                    c.getStatus() == Community.Status.PENDING_REVIEW ? c.getCreatedAt() : null));
+                    c.getStatus() == Community.Status.PENDING_REVIEW ? c.getCreatedAt() : null,
+                    audience == null ? null : tg.faculties(), audience == null ? null : tg.departments()));
         }
         return out;
     }

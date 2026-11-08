@@ -96,6 +96,14 @@ public class CommunityController {
         return communities.discover(Actor.current(), category, q, cursor, size);
     }
 
+    /** Kullanicinin fakulte/bolumune hedeflenmis kulupler (oneri; bos olabilir). */
+    @GetMapping("/communities/recommended")
+    public List<CommunityView> recommended(@RequestParam(defaultValue = "10") int size) {
+        Actor a = Actor.current();
+        limiter.check("community-recommended:user:" + a.id(), 60, Duration.ofMinutes(1));
+        return communities.recommended(a, size);
+    }
+
     @GetMapping("/communities/{id}")
     public CommunityView get(@PathVariable Long id) {
         return communities.get(Actor.current(), id);
