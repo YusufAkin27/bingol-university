@@ -9,6 +9,7 @@ import '../../core/permissions/ensure_permission.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../clubs/clubs_widgets.dart' show ClubOutlineButton, ClubPageHeader, ClubTextTabs;
+import '../../core/foreground_timer.dart';
 import 'etkinlik2_widgets.dart';
 import 'etkinlik3_scan_page.dart';
 
@@ -57,7 +58,7 @@ class Etkinlik2AttendancePage extends StatefulWidget {
   State<Etkinlik2AttendancePage> createState() => _Etkinlik2AttendancePageState();
 }
 
-class _Etkinlik2AttendancePageState extends State<Etkinlik2AttendancePage> {
+class _Etkinlik2AttendancePageState extends State<Etkinlik2AttendancePage> with WidgetsBindingObserver, ForegroundTimer<Etkinlik2AttendancePage> {
   List<Map<String, dynamic>> _rows = [];
   bool _loading = true;
   Object? _error;
@@ -66,7 +67,6 @@ class _Etkinlik2AttendancePageState extends State<Etkinlik2AttendancePage> {
   final _search = TextEditingController();
   final _busy = <int>{};
   bool _bulkBusy = false;
-  Timer? _timer;
 
   int get _id => (widget.event['id'] as num).toInt();
 
@@ -74,14 +74,14 @@ class _Etkinlik2AttendancePageState extends State<Etkinlik2AttendancePage> {
   void initState() {
     super.initState();
     _load();
-    _timer = Timer.periodic(widget.refreshEvery, (_) {
+    startForegroundTimer(widget.refreshEvery, () {
       if (mounted && !_loading && _busy.isEmpty && !_bulkBusy) _load(silent: true, quiet: true);
     });
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    stopForegroundTimer();
     _search.dispose();
     super.dispose();
   }

@@ -134,7 +134,13 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Ticker
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) {
+      _poll?.cancel(); // arka planda dakikalik yoklama durur
+      _poll = null;
+      return;
+    }
     if (state == AppLifecycleState.resumed) {
+      _poll ??= Timer.periodic(const Duration(minutes: 1), (_) => _refreshBadges());
       _refreshBadges();
       WidgetSyncService.instance.refreshAll(reason: 'resume'); // ana ekran widget'ları (debounce'lu, sessiz)
     }

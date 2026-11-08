@@ -7,6 +7,7 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../academic/academic_api.dart';
 import '../academic/academic_models.dart';
+import '../../core/foreground_timer.dart';
 import '../academic/reminders.dart';
 
 /// Notification detail reads the current exam, so changed times/rooms never come from an old push.
@@ -20,9 +21,8 @@ class NotificationExamDetail extends StatefulWidget {
   State<NotificationExamDetail> createState() => _NotificationExamDetailState();
 }
 
-class _NotificationExamDetailState extends State<NotificationExamDetail> {
+class _NotificationExamDetailState extends State<NotificationExamDetail> with WidgetsBindingObserver, ForegroundTimer<NotificationExamDetail> {
   late Future<Exam?> _exam;
-  Timer? _timer;
 
   /// Sınav hatırlatıcısı (yerel, "bir gün önce"): genel ayardır, sınav başına değil; etiket bunu dürüstçe söyler.
   bool? _alarm;
@@ -63,14 +63,14 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
     super.initState();
     _exam = _load();
     _loadAlarm();
-    _timer = Timer.periodic(const Duration(minutes: 1), (_) {
+    startForegroundTimer(const Duration(minutes: 1), () {
       if (mounted) setState(() {});
     });
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    stopForegroundTimer();
     super.dispose();
   }
 

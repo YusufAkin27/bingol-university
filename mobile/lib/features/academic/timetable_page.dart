@@ -9,6 +9,7 @@ import '../../core/session.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/bu.dart';
 import 'acad_ref_widgets.dart';
+import '../../core/foreground_timer.dart';
 import 'academic_api.dart';
 import 'academic_models.dart';
 import 'academic_widgets.dart';
@@ -31,7 +32,7 @@ class TimetablePage extends StatefulWidget {
   State<TimetablePage> createState() => _TimetablePageState();
 }
 
-class _TimetablePageState extends State<TimetablePage> {
+class _TimetablePageState extends State<TimetablePage> with WidgetsBindingObserver, ForegroundTimer<TimetablePage> {
   late final AcademicApi _api = AcademicApi(widget.session);
   TimetableData? _data;
   Object? _error;
@@ -39,20 +40,19 @@ class _TimetablePageState extends State<TimetablePage> {
   int? _semesterId;
   int _day = istanbulWall(academicClock()).weekday;
   int _dayDir = 1; // gün şeridi geçişinin yönü: içerik o yöne kayar
-  Timer? _tick;
 
   @override
   void initState() {
     super.initState();
     _load();
-    _tick = Timer.periodic(const Duration(minutes: 1), (_) {
+    startForegroundTimer(const Duration(minutes: 1), () {
       if (mounted) setState(() {});
     });
   }
 
   @override
   void dispose() {
-    _tick?.cancel();
+    stopForegroundTimer();
     super.dispose();
   }
 
