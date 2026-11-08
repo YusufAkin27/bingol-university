@@ -15,6 +15,8 @@ import '../../core/theme.dart';
 import '../../core/theme_controller.dart';
 import '../../core/theme/bu_motion.dart';
 import '../../widgets/bu_overlays.dart' show BuToast, BuToastKind;
+import '../../widgets/bu_widgets.dart' show BuAvatar;
+import '../posts/post_models.dart' show postAuthHeaders;
 import '../chat/chat_tab.dart';
 import '../clubs/clubs_tab.dart';
 import '../discover/discover_tab.dart';
@@ -444,6 +446,10 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Ticker
               if (i == AppTab.chat) _refreshBadges();
             },
             chatBadge: s.badges.chat,
+            profileAvatar: (size) => ValueListenableBuilder<String?>(
+              valueListenable: s.avatarUrl,
+              builder: (_, url, __) => BuAvatar(name: s.displayName, url: url, size: size, headers: postAuthHeaders(s)),
+            ),
           ),
         ),
       ),

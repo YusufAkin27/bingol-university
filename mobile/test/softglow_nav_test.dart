@@ -426,8 +426,10 @@ void main() {
         expect(t.navAccent, const Color(0xFF09090B)); // kirmizi YOK (kullanici karari 2026-11-07, WhatsApp)
         // Alt cubuk iki temada da beyaz (kullanici karari 2026-11-07): kirmizi parlama yok, hafif gri golge.
         expect(t.navBorder, const Color(0x14000000));
-        expect(t.navTextIdle, const Color(0xFF71717A));
-        expect(t.navIconIdle, const Color(0xFF52525B));
+        // Cam yari saydam (kullanici karari 2026-11-08: alttaki renkler gorunsun); pasif renkler okunurluk icin koyulastirildi.
+        expect(t.navGlass, const Color(0xB8FFFFFF));
+        expect(t.navTextIdle, const Color(0xFF3F3F46));
+        expect(t.navIconIdle, const Color(0xFF3F3F46));
         expect(t.navBase, const Color(0xFFFFFFFF));
         expect(t.navAccentHi, const Color(0xFF09090B));
       });
