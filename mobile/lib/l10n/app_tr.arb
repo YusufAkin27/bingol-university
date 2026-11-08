@@ -7512,5 +7512,6 @@
     }
   },
   "accBusy": "Hesap şu an değiştirilemiyor. Biraz sonra tekrar dene.",
-  "accAccountNoName": "Hesap"
+  "accAccountNoName": "Hesap",
+  "postPeekOpen": "Gönderiyi aç"
 }

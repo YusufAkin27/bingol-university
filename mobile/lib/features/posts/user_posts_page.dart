@@ -8,6 +8,7 @@ import 'post_card.dart';
 import 'post_carousel.dart' show PostMultiBadge;
 import 'post_routes.dart';
 import 'post_models.dart';
+import 'post_peek.dart';
 
 /// Bir kullanıcının gönderileri (imleçli sayfalama). [userId] null ya da kendi kimliğim ise `GET /posts/mine`.
 class UserPostsPage extends StatefulWidget {
@@ -189,6 +190,7 @@ class _GridTile extends StatelessWidget {
       child: BuPressable(
         scale: .97,
         onTap: () => onOpen(post),
+        onLongPress: () => showPostPeek(context, session: session, post: post, onOpen: onOpen),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(BuRadius.md),
           child: Stack(fit: StackFit.expand, children: [
