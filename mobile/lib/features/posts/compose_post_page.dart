@@ -1,3 +1,4 @@
+import '../chat/emoji_presentation.dart';
 import 'dart:async';
 import 'dart:io' show File;
 
@@ -140,7 +141,7 @@ class ComposePostPage extends StatefulWidget {
 }
 
 class _ComposePostPageState extends State<ComposePostPage> {
-  final _text = TextEditingController();
+  final _text = EmojiTextEditingController();
   final _focus = FocusNode();
   late final PostMediaUploader _uploader = widget.uploader ?? PostMediaUploader(widget.session);
   late final PostApi _api = widget.api ?? PostApi(widget.session);
@@ -811,7 +812,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
         ids = [for (final s in shots) s.uploaded!.id];
       }
       final post = await _api.create(
-          text: _text.text,
+          text: withEmojiPresentation(_text.text),
           mediaIds: ids,
           mentionUserIds: _mentionIds(),
           hideLikeCount: _hideLikes,

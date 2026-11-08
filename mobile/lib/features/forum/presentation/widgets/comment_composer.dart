@@ -1,3 +1,4 @@
+import '../../../chat/emoji_presentation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -65,7 +66,7 @@ class CommentComposer extends StatefulWidget {
 }
 
 class CommentComposerState extends State<CommentComposer> {
-  final TextEditingController _c = TextEditingController();
+  final TextEditingController _c = EmojiTextEditingController();
   final FocusNode _focus = FocusNode();
   bool _anon = false;
   bool _sending = false;
@@ -112,7 +113,7 @@ class CommentComposerState extends State<CommentComposer> {
 
   Future<void> _submit() async {
     if (_sending || !_hasText || widget.locked) return;
-    final text = _c.text.trim();
+    final text = withEmojiPresentation(_c.text.trim());
     setState(() => _sending = true); // eşzamanlı: ikinci dokunuş geçmez
     try {
       if (widget.editing) {

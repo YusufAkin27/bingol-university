@@ -1,3 +1,4 @@
+import '../../chat/emoji_presentation.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -94,7 +95,7 @@ class CommentSheet extends StatefulWidget {
 
 class _CommentSheetState extends State<CommentSheet> {
   late final CommentsController _c;
-  final _input = TextEditingController();
+  final _input = EmojiTextEditingController();
   final _focus = FocusNode();
   final _focusKey = GlobalKey();
   ScrollController? _sc;

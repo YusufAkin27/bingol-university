@@ -1,10 +1,11 @@
-/// Yazı biçimi varsayılan olan emojilere (❤ ♥ ☺ ✌ …) renkli emoji görünüm seçicisi (U+FE0F) ekler.
+/// Yazi bicimi varsayilan olan emojilere (kalp, kalp isareti vb.) renkli emoji gorunum secicisi (U+FE0F) ekler.
+///
 ///
 /// Seçici eksik gelince (klavye/sunucu/eski sürüm) sistem bu karakterleri yazı glifiyle çizer: kırmızı kalp siyah çıkar.
 /// Açıkça yazı biçimi istenmişse (U+FE0E) dokunulmaz. Metin içeriği aynı kalır, yalnız görünüm seçici eklenir.
 library;
 
-import 'package:flutter/painting.dart' show TextStyle, TextSpan, InlineSpan;
+import 'package:flutter/widgets.dart';
 
 final RegExp _textDefault = RegExp(
   '[❤❣♥♠♣♦☺☹☀-☄☎☑☘☝☠✌✍✏✔✖❄❇⚙⚠]'
@@ -40,4 +41,31 @@ TextSpan emojiAwareSpan(String text, TextStyle style, {double scale = 1.3}) {
   }
   if (i < s.length) out.add(TextSpan(text: s.substring(i)));
   return TextSpan(style: style, children: out);
+}
+
+/// Yazarken emojileri renkli yazı tipiyle ve %30 büyük çizen denetleyici (metin değerine dokunmaz).
+class EmojiTextEditingController extends TextEditingController {
+  EmojiTextEditingController({super.text});
+
+  @override
+  TextSpan buildTextSpan({required BuildContext context, TextStyle? style, required bool withComposing}) {
+    final base = style ?? const TextStyle();
+    if (value.composing.isValid && withComposing) {
+      return super.buildTextSpan(context: context, style: style, withComposing: withComposing);
+    }
+    // FE0F eklemek metin uzunluğunu değiştirir; imleç kaymasın diye yalnız çizimde değil, burada da eklemeden böleriz.
+    final s = text;
+    final ms = _emojiRun.allMatches(s).toList();
+    if (ms.isEmpty) return TextSpan(text: s, style: base);
+    final big = kEmojiFontStyle.copyWith(fontSize: (base.fontSize ?? 14) * 1.3);
+    final out = <InlineSpan>[];
+    var i = 0;
+    for (final m in ms) {
+      if (m.start > i) out.add(TextSpan(text: s.substring(i, m.start)));
+      out.add(TextSpan(text: m.group(0), style: big));
+      i = m.end;
+    }
+    if (i < s.length) out.add(TextSpan(text: s.substring(i)));
+    return TextSpan(style: base, children: out);
+  }
 }

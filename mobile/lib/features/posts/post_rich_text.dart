@@ -1,3 +1,4 @@
+import '../chat/emoji_presentation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
@@ -102,14 +103,15 @@ class _PostRichTextState extends State<PostRichText> {
     _disposeRecognizers();
     final parts = splitMentions(widget.text, widget.mentions);
     if (parts.every((p) => p.mention == null)) {
-      return Text(widget.text, maxLines: widget.maxLines, overflow: widget.overflow, style: widget.style);
+      return Text.rich(emojiAwareSpan(widget.text, widget.style ?? DefaultTextStyle.of(context).style),
+          maxLines: widget.maxLines, overflow: widget.overflow);
     }
     final color = widget.mentionColor ?? context.bu.ink;
     final spans = <InlineSpan>[];
     for (final p in parts) {
       final m = p.mention;
       if (m == null) {
-        spans.add(TextSpan(text: p.text));
+        spans.add(emojiAwareSpan(p.text, widget.style ?? DefaultTextStyle.of(context).style));
         continue;
       }
       final rec = TapGestureRecognizer()..onTap = () => _open(m);
