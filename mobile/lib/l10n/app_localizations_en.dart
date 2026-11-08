@@ -14039,4 +14039,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accAccountNoName => 'Account';
+
+  @override
+  String get postPeekOpen => 'Open post';
 }

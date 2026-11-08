@@ -13930,4 +13930,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get accAccountNoName => 'حساب';
+
+  @override
+  String get postPeekOpen => 'فتح المنشور';
 }

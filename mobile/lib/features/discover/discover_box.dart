@@ -8,6 +8,7 @@ import '../posts/like_button.dart';
 import '../posts/post_card.dart';
 import '../posts/post_carousel.dart' show PostMultiBadge;
 import '../posts/post_models.dart';
+import '../posts/post_peek.dart';
 import '../posts/post_video.dart';
 import '../profile/user_profile_page.dart' show openUserProfile;
 
@@ -36,7 +37,7 @@ double discoverBoxRatio(Post p) {
 /// yalnız okunaklılık için gradyan; SOL ALT yazar avatarı + ad (dokununca yazar), SAĞ ALT açık yüzey hapı içinde kalp +
 /// sayı: beğenmemişse BOŞ çizgi kalp, beğenmişse DOLU KIRMIZI kalp (dokununca beğenir / geri alır; beyaz kalp YOK).
 /// Gönderi metni kutuda yoktur (yalnız gönderi sayfasında; ekran okuyucu etiketinde vardır). Kutu boyutunu üst öğe (masonry
-/// ızgarası) verir. Dokunma: gönderi sayfası; uzun basma: gönderi menüsü ([onMenu]).
+/// ızgarası) verir. Dokunma: gönderi sayfası; uzun basma: ön izleme (post_peek; menü ⋯ düğmesiyle [onMenu]).
 class DiscoverPostBox extends StatelessWidget {
   const DiscoverPostBox({
     super.key,
@@ -52,7 +53,7 @@ class DiscoverPostBox extends StatelessWidget {
   final ValueChanged<Post> onOpen;
   final ValueChanged<Post> onChanged;
 
-  /// Uzun basma (⋯ menüsüyle aynı alt sayfa); null ise uzun basma yok (kendi gönderisi, işlem yetkisiz).
+  /// Ön izlemedeki ⋯ düğmesi (gönderi menüsü); null ise düğme yok (kendi gönderisi, işlem yetkisiz).
   final ValueChanged<Post>? onMenu;
 
   @override
@@ -70,7 +71,7 @@ class DiscoverPostBox extends StatelessWidget {
       pressedOpacity: 1,
       semanticLabel: label,
       onTap: () => onOpen(p),
-      onLongPress: onMenu == null ? null : () => onMenu!(p),
+      onLongPress: () => showPostPeek(context, session: session, post: p, onOpen: onOpen, onMenu: onMenu),
       child: Stack(fit: StackFit.expand, children: [
         if (photo != null)
           PostPhoto(

@@ -25151,6 +25151,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Hesap'**
   String get accAccountNoName;
+
+  /// No description provided for @postPeekOpen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderiyi aç'**
+  String get postPeekOpen;
 }
 
 class _AppLocalizationsDelegate

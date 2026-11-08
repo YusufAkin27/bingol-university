@@ -13985,4 +13985,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get accAccountNoName => 'Hesap';
+
+  @override
+  String get postPeekOpen => 'Gönderiyi aç';
 }
