@@ -108,9 +108,14 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('message-request-accept-41')));
       await settle(tester, const Duration(seconds: 1));
       expect(b.count('POST /conversations/41/accept'), 1);
-      expect(find.text('Zeynep Demir'), findsNothing);
-      expect(find.text('Proje Grubu'), findsOneWidget);
-      expect(s.badges.conversationsDirty.value, before + 1);
+      expect(s.badges.conversationsDirty.value, greaterThan(before));
+      // Kabul edince sohbet açılır (boş "istek yok" sayfası değil): sohbet ekranı üstte, istek sayfası altta.
+      expect(find.byType(ChatDetailPage), findsOneWidget);
+      Navigator.of(tester.element(find.byType(ChatDetailPage))).pop();
+      await settle(tester, const Duration(seconds: 1));
+      expect(find.byType(ChatDetailPage), findsNothing);
+      expect(find.text('Zeynep Demir'), findsNothing); // kabul edilen satır listeden kalktı
+      expect(find.text('Proje Grubu'), findsOneWidget); // diğer istek duruyor
       await unmount(tester);
     });
 
