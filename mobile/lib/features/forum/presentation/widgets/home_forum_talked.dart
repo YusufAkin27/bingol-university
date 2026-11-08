@@ -1,3 +1,4 @@
+import '../../../chat/emoji_presentation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/locale_controller.dart';
@@ -146,10 +147,11 @@ class _Row extends StatelessWidget {
             child: Row(children: [
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                  Text(topic.title,
+                  Text.rich(
+                      emojiAwareSpan(topic.title,
+                          (tt.bodyLarge ?? const TextStyle()).copyWith(color: t.ink, fontWeight: FontWeight.w400, height: 1.3), scale: kEmojiTitleScale),
                       maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: tt.bodyLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w400, height: 1.3)),
+                      overflow: TextOverflow.ellipsis),
                   BuGap.h4,
                   Row(children: [
                     Icon(BuIcons.messageSquare, size: 14, color: t.mut),

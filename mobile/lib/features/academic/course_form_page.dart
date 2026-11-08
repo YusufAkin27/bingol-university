@@ -1,3 +1,4 @@
+import '../chat/emoji_presentation.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
@@ -47,10 +48,10 @@ class CourseFormPage extends StatefulWidget {
 
 class _CourseFormPageState extends State<CourseFormPage> {
   late final AcademicApi _api = AcademicApi(widget.session);
-  late final _name = TextEditingController(text: widget.course?.name ?? '');
+  late final _name = EmojiTextEditingController(text: widget.course?.name ?? '');
   late final _code = TextEditingController(text: widget.course?.code ?? '');
-  late final _instructor = TextEditingController(text: widget.course?.instructor ?? '');
-  late final _note = TextEditingController(text: widget.course?.note ?? '');
+  late final _instructor = EmojiTextEditingController(text: widget.course?.instructor ?? '');
+  late final _note = EmojiTextEditingController(text: widget.course?.note ?? '');
   late String? _color = widget.course?.color;
   late final List<_SessionDraft> _sessions;
   bool _busy = false;

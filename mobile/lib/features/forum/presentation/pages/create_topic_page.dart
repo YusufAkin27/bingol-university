@@ -1,3 +1,4 @@
+import '../../../chat/emoji_presentation.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -76,8 +77,8 @@ class _CreateTopicPageState extends State<CreateTopicPage> {
   late final ForumImageUploader _upload = widget.uploader ?? ((b) => _api.uploadImage(b));
   late final ForumPhotoPicker _pick = widget.pickPhoto ?? _defaultPick;
 
-  final _title = TextEditingController();
-  final _body = TextEditingController();
+  final _title = EmojiTextEditingController(scale: kEmojiTitleScale);
+  final _body = EmojiTextEditingController();
   final _titleFocus = FocusNode();
   final _bodyFocus = FocusNode();
   final _scroll = ScrollController();
@@ -312,7 +313,7 @@ class _CreateTopicPageState extends State<CreateTopicPage> {
     final d = _snapshot();
     return [
       d.title.trim(),
-      d.body.trim(),
+      withEmojiPresentation(d.body.trim()),
       d.categoryId,
       d.anonymous,
       [for (final i in d.images) i.id].join(','),

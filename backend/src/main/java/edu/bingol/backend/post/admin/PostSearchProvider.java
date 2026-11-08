@@ -27,7 +27,7 @@ public class PostSearchProvider implements SearchProvider {
             + "AND u.status = 'ACTIVE' "
             + "AND EXISTS (SELECT 1 FROM post_media pm WHERE pm.post_id = p.id AND pm.hidden_at IS NULL) ";
 
-    static final String SQL = "SELECT p.id, p.body, u.display_name, CAST(p.created_at AS varchar) AS created, p.like_count, p.hide_like_count, p.author_id, "
+    static final String SQL = "SELECT p.id, p.body, u.display_name, CAST(p.created_at AS varchar) AS created, (p.like_count + p.like_boost) AS like_count, p.hide_like_count, p.author_id, "
             + "(SELECT m.id FROM post_media m WHERE m.post_id = p.id AND m.hidden_at IS NULL ORDER BY m.position, m.id LIMIT 1) AS media_id "
             + "FROM post p JOIN app_user u ON u.id = p.author_id "
             + "WHERE " + VISIBLE_SQL + "AND p.body IS NOT NULL "

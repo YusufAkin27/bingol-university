@@ -1,3 +1,4 @@
+import '../chat/emoji_presentation.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
@@ -32,8 +33,8 @@ class _ApplySheet extends StatefulWidget {
 }
 
 class _ApplySheetState extends State<_ApplySheet> {
-  final _note = TextEditingController();
-  late final List<TextEditingController> _answers = [for (final _ in widget.questions) TextEditingController()];
+  final _note = EmojiTextEditingController();
+  late final List<TextEditingController> _answers = [for (final _ in widget.questions) EmojiTextEditingController()];
   String? _error;
 
   @override

@@ -1,3 +1,4 @@
+import '../chat/emoji_presentation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -258,7 +259,7 @@ class _EditDialog extends StatefulWidget {
 }
 
 class _EditDialogState extends State<_EditDialog> {
-  late final _c = TextEditingController(text: widget.post.text ?? '');
+  late final _c = EmojiTextEditingController(text: widget.post.text ?? '');
   bool _busy = false;
   String? _error;
 
@@ -272,7 +273,7 @@ class _EditDialogState extends State<_EditDialog> {
   bool get _canSave => !_busy && !_empty;
 
   Future<void> _save() async {
-    final text = _c.text.trim();
+    final text = withEmojiPresentation(_c.text.trim());
     if (!_canSave) return;
     if (text == (widget.post.text ?? '').trim()) {
       Navigator.pop(context);

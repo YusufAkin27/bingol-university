@@ -613,6 +613,11 @@ class _PostCardState extends State<PostCard> {
                       style: tt.bodyLarge?.copyWith(color: t.ink, height: 1.4)),
                 ),
               ),
+            if (p.mentions.isNotEmpty)
+              Padding(
+                padding: detail ? sidePad : EdgeInsets.zero,
+                child: PostMentionsLine(session: widget.session, mentions: p.mentions),
+              ),
           ],
         ),
       ),

@@ -1,3 +1,4 @@
+import '../chat/emoji_presentation.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
@@ -115,7 +116,7 @@ class ClubDeleteDialog extends StatefulWidget {
 }
 
 class _ClubDeleteDialogState extends State<ClubDeleteDialog> {
-  final _c = TextEditingController();
+  final _c = EmojiTextEditingController();
 
   @override
   void dispose() {

@@ -1,6 +1,8 @@
+import '../chat/emoji_presentation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/icons/bu_icons.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -102,14 +104,15 @@ class _PostRichTextState extends State<PostRichText> {
     _disposeRecognizers();
     final parts = splitMentions(widget.text, widget.mentions);
     if (parts.every((p) => p.mention == null)) {
-      return Text(widget.text, maxLines: widget.maxLines, overflow: widget.overflow, style: widget.style);
+      return Text.rich(emojiAwareSpan(widget.text, widget.style ?? DefaultTextStyle.of(context).style),
+          maxLines: widget.maxLines, overflow: widget.overflow);
     }
     final color = widget.mentionColor ?? context.bu.ink;
     final spans = <InlineSpan>[];
     for (final p in parts) {
       final m = p.mention;
       if (m == null) {
-        spans.add(TextSpan(text: p.text));
+        spans.add(emojiAwareSpan(p.text, widget.style ?? DefaultTextStyle.of(context).style));
         continue;
       }
       final rec = TapGestureRecognizer()..onTap = () => _open(m);
@@ -130,6 +133,42 @@ class _PostRichTextState extends State<PostRichText> {
       maxLines: widget.maxLines,
       overflow: widget.overflow,
       style: widget.style,
+    );
+  }
+}
+
+/// Gönderi altında etiketlenen kişiler: her ad dokununca kişinin profilini açar (açıklama kısalsa/kesilse de erişilir).
+class PostMentionsLine extends StatelessWidget {
+  const PostMentionsLine({super.key, required this.session, required this.mentions});
+
+  final Session session;
+  final List<PostMention> mentions;
+
+  @override
+  Widget build(BuildContext context) {
+    if (mentions.isEmpty) return const SizedBox.shrink();
+    final t = context.bu;
+    final tt = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Wrap(
+        spacing: 12,
+        children: [
+          for (final m in mentions)
+            InkWell(
+              key: ValueKey('post-mention-${m.userId}'),
+              onTap: () => openUserProfile(context, session, userId: m.userId, name: m.displayName),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 32),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(BuIcons.atSign, size: 14, color: t.mut),
+                  const SizedBox(width: 2),
+                  Text(m.displayName, style: tt.bodySmall?.copyWith(color: t.ink, fontSize: 13)),
+                ]),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

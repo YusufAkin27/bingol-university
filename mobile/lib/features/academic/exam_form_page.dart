@@ -1,3 +1,4 @@
+import '../chat/emoji_presentation.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
@@ -24,9 +25,9 @@ class ExamFormPage extends StatefulWidget {
 
 class _ExamFormPageState extends State<ExamFormPage> {
   late final AcademicApi _api = AcademicApi(widget.session);
-  late final _title = TextEditingController(text: widget.exam?.title ?? '');
+  late final _title = EmojiTextEditingController(scale: kEmojiTitleScale, text: widget.exam?.title ?? '');
   late final _room = TextEditingController(text: widget.exam?.room ?? '');
-  late final _note = TextEditingController(text: widget.exam?.note ?? '');
+  late final _note = EmojiTextEditingController(text: widget.exam?.note ?? '');
   late String _type = widget.exam?.type ?? 'VIZE';
   late int? _courseId = widget.exam?.courseId;
   DateTime? _day; // duvar tarihi

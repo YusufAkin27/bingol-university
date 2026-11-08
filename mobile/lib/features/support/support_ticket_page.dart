@@ -1,3 +1,4 @@
+import '../chat/emoji_presentation.dart';
 import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
@@ -24,7 +25,7 @@ class SupportTicketPage extends StatefulWidget {
 }
 
 class _SupportTicketPageState extends State<SupportTicketPage> {
-  final _reply = TextEditingController();
+  final _reply = EmojiTextEditingController();
   final _scroll = ScrollController();
   Map<String, dynamic>? _ticket;
   List<Map<String, dynamic>> _messages = [];

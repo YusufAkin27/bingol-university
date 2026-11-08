@@ -8,6 +8,7 @@ import '../../../widgets/bu.dart';
 import '../avatar_preview.dart';
 import '../post_models.dart';
 import '../../profile/user_profile_page.dart' show openUserProfile;
+import '../../chat/emoji_presentation.dart';
 import 'comment_models.dart';
 
 /// Tek yorum / yanıt satırı: avatar (üst düzey 36 dp, yanıt 28 dp) + kullanıcı adı + göreli zaman + metin; sağda küçük
@@ -88,10 +89,10 @@ class CommentTile extends StatelessWidget {
           ]),
         ),
         const SizedBox(height: 2),
-        Text(c.body ?? '',
+        Text.rich(
+            emojiAwareSpan(c.body ?? '', (tt.bodyMedium ?? const TextStyle()).copyWith(color: t.ink, height: 1.35)),
             maxLines: readOnly ? 2 : null,
-            overflow: readOnly ? TextOverflow.ellipsis : null,
-            style: tt.bodyMedium?.copyWith(color: t.ink, height: 1.35)),
+            overflow: readOnly ? TextOverflow.ellipsis : null),
         if (!readOnly) _actions(context, t, tt, l, sending: sending, failed: failed),
       ]);
     }

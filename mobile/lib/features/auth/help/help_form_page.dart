@@ -1,3 +1,4 @@
+import '../../chat/emoji_presentation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -27,9 +28,9 @@ class _HelpFormPageState extends State<HelpFormPage> {
   static const _categories = ['ACCOUNT', 'TECHNICAL', 'CONTENT', 'OTHER'];
 
   final _form = GlobalKey<FormState>();
-  final _name = TextEditingController();
+  final _name = EmojiTextEditingController();
   final _email = TextEditingController();
-  final _message = TextEditingController();
+  final _message = EmojiTextEditingController();
   final _opened = Stopwatch()..start();
   String _category = 'ACCOUNT';
   bool _busy = false;

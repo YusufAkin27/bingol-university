@@ -1,3 +1,4 @@
+import '../../../chat/emoji_presentation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' show DateFormat;
@@ -33,7 +34,7 @@ class PollBuilder extends StatefulWidget {
 }
 
 class _Opt {
-  _Opt(String text) : c = TextEditingController(text: text);
+  _Opt(String text) : c = EmojiTextEditingController(text: text);
   final TextEditingController c;
   final FocusNode f = FocusNode();
   final Key key = UniqueKey();
@@ -44,7 +45,7 @@ class _Opt {
 }
 
 class _PollBuilderState extends State<PollBuilder> {
-  late final TextEditingController _q = TextEditingController(text: widget.value.question);
+  late final TextEditingController _q = EmojiTextEditingController(scale: kEmojiTitleScale, text: widget.value.question);
   late final List<_Opt> _opts = [for (final o in widget.value.options) _Opt(o)];
 
   @override

@@ -109,7 +109,7 @@ public class PostViewAssembler {
             Integer score = rankProps == null ? null : PostRank.displayScore(rankProps, p.getLikeCount(),
                     followers == null ? 0 : followers, video ? p.getViewCount() : 0, video ? p.avgCompletion() : 0);
             // begeni sayisi gizliyse yalniz sahibi (ve yonetici) gorur; siralama/puan ic hesapta gercek sayiyla calisir
-            Integer shownLikes = p.isHideLikeCount() && !mine && !admin ? null : p.getLikeCount();
+            Integer shownLikes = p.isHideLikeCount() && !mine && !admin ? null : p.getLikeCount() + p.getLikeBoost();
             out.add(new PostView(p.getId(), author, p.getBody(), mv,
                     shownLikes, liked.contains(p.getId()), mine, mine, mine || admin,
                     p.getCreatedAt(), p.getEditedAt(), video ? Post.KIND_VIDEO : Post.KIND_PHOTO, vv, viewCount,

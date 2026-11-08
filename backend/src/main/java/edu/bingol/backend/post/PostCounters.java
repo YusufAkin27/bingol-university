@@ -25,7 +25,7 @@ public class PostCounters {
 
     /** Guncel begeni sayisi (yanit icin). */
     public int likeCount(long postId) {
-        Integer n = jdbc.queryForObject("SELECT like_count FROM post WHERE id = ?", Integer.class, postId);
+        Integer n = jdbc.queryForObject("SELECT like_count + like_boost FROM post WHERE id = ?", Integer.class, postId);
         return n == null ? 0 : n;
     }
 }

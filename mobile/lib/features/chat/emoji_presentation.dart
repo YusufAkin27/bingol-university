@@ -1,10 +1,11 @@
-/// Yazı biçimi varsayılan olan emojilere (❤ ♥ ☺ ✌ …) renkli emoji görünüm seçicisi (U+FE0F) ekler.
+/// Yazi bicimi varsayilan olan emojilere (kalp, kalp isareti vb.) renkli emoji gorunum secicisi (U+FE0F) ekler.
+///
 ///
 /// Seçici eksik gelince (klavye/sunucu/eski sürüm) sistem bu karakterleri yazı glifiyle çizer: kırmızı kalp siyah çıkar.
 /// Açıkça yazı biçimi istenmişse (U+FE0E) dokunulmaz. Metin içeriği aynı kalır, yalnız görünüm seçici eklenir.
 library;
 
-import 'package:flutter/painting.dart' show TextStyle;
+import 'package:flutter/widgets.dart';
 
 final RegExp _textDefault = RegExp(
   '[❤❣♥♠♣♦☺☹☀-☄☎☑☘☝☠✌✍✏✔✖❄❇⚙⚠]'
@@ -19,3 +20,58 @@ String withEmojiPresentation(String s) =>
 const TextStyle kEmojiFontStyle = TextStyle(
     fontFamily: 'Apple Color Emoji',
     fontFamilyFallback: ['Noto Color Emoji', 'Segoe UI Emoji']);
+
+final RegExp _emojiRun = RegExp(
+    '(?:[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B50}\u{2B55}\u{231A}\u{231B}\u{23E9}-\u{23F3}\u{2705}\u{2728}\u{274C}\u{274E}\u{2753}-\u{2755}\u{2757}\u{2795}-\u{2797}\u{2B1B}\u{2B1C}]'
+    '[\u{FE0F}\u{1F3FB}-\u{1F3FF}]?(?:\u{200D}[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2640}\u{2642}][\u{FE0F}\u{1F3FB}-\u{1F3FF}]?)*)+',
+    unicode: true);
+
+/// Metni, emoji katarları renkli emoji yazı tipiyle ve [scale] kat büyük çizilecek biçimde TextSpan'e böler.
+/// Emoji, düz yazıya göre sohbet balonlarıyla aynı oranda (1.7) büyük; başlıklarda sohbetten %20 fazla (2.04).
+const double kEmojiScale = 1.7;
+const double kEmojiTitleScale = 2.04;
+
+TextSpan emojiAwareSpan(String text, TextStyle style, {double scale = kEmojiScale}) {
+  final s = withEmojiPresentation(text);
+  final ms = _emojiRun.allMatches(s).toList();
+  if (ms.isEmpty) return TextSpan(text: s, style: style);
+  final big = kEmojiFontStyle.copyWith(fontSize: (style.fontSize ?? 14) * scale);
+  final out = <InlineSpan>[];
+  var i = 0;
+  for (final m in ms) {
+    if (m.start > i) out.add(TextSpan(text: s.substring(i, m.start)));
+    out.add(TextSpan(text: m.group(0), style: big));
+    i = m.end;
+  }
+  if (i < s.length) out.add(TextSpan(text: s.substring(i)));
+  return TextSpan(style: style, children: out);
+}
+
+/// Yazarken emojileri renkli yazı tipiyle ve %30 büyük çizen denetleyici (metin değerine dokunmaz).
+class EmojiTextEditingController extends TextEditingController {
+  EmojiTextEditingController({super.text, this.scale = kEmojiScale});
+
+  final double scale;
+
+  @override
+  TextSpan buildTextSpan({required BuildContext context, TextStyle? style, required bool withComposing}) {
+    final base = style ?? const TextStyle();
+    if (value.composing.isValid && withComposing) {
+      return super.buildTextSpan(context: context, style: style, withComposing: withComposing);
+    }
+    // FE0F eklemek metin uzunluğunu değiştirir; imleç kaymasın diye yalnız çizimde değil, burada da eklemeden böleriz.
+    final s = text;
+    final ms = _emojiRun.allMatches(s).toList();
+    if (ms.isEmpty) return TextSpan(text: s, style: base);
+    final big = kEmojiFontStyle.copyWith(fontSize: (base.fontSize ?? 14) * scale);
+    final out = <InlineSpan>[];
+    var i = 0;
+    for (final m in ms) {
+      if (m.start > i) out.add(TextSpan(text: s.substring(i, m.start)));
+      out.add(TextSpan(text: m.group(0), style: big));
+      i = m.end;
+    }
+    if (i < s.length) out.add(TextSpan(text: s.substring(i)));
+    return TextSpan(style: base, children: out);
+  }
+}

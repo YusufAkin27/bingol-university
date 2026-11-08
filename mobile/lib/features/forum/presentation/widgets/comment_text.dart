@@ -1,3 +1,4 @@
+import '../../../chat/emoji_presentation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/locale_controller.dart';
@@ -27,16 +28,15 @@ class _CommentTextState extends State<CommentText> {
     return LayoutBuilder(builder: (context, c) {
       final scaler = MediaQuery.textScalerOf(context);
       final painter = TextPainter(
-        text: TextSpan(text: widget.text, style: style),
+        text: emojiAwareSpan(widget.text, style),
         maxLines: widget.maxLines,
         textDirection: Directionality.of(context),
         textScaler: scaler,
       )..layout(maxWidth: c.maxWidth.isFinite ? c.maxWidth : 10000);
       final overflow = painter.didExceedMaxLines;
       painter.dispose();
-      final text = Text(
-        widget.text,
-        style: style,
+      final text = Text.rich(
+        emojiAwareSpan(widget.text, style),
         maxLines: _open || !overflow ? null : widget.maxLines,
         overflow: _open || !overflow ? TextOverflow.clip : TextOverflow.ellipsis,
       );

@@ -1,3 +1,4 @@
+import '../chat/emoji_presentation.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/app_gate.dart' show appVersion;
@@ -23,8 +24,8 @@ class FeedbackPage extends StatefulWidget {
 }
 
 class _FeedbackPageState extends State<FeedbackPage> {
-  final _subject = TextEditingController();
-  final _message = TextEditingController();
+  final _subject = EmojiTextEditingController();
+  final _message = EmojiTextEditingController();
   late String _category = const ['BUG', 'SUGGESTION', 'COMPLAINT', 'PRAISE'].contains(widget.initialCategory) ? widget.initialCategory : 'BUG';
   bool _busy = false;
   String? _idemKey; // bu gönderme niyetinin Idempotency-Key'i

@@ -1,3 +1,4 @@
+import '../chat/emoji_presentation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -107,12 +108,12 @@ class EventFormPage extends StatefulWidget {
 }
 
 class _EventFormPageState extends State<EventFormPage> {
-  final _title = TextEditingController();
-  final _desc = TextEditingController();
-  final _place = TextEditingController();
+  final _title = EmojiTextEditingController(scale: kEmojiTitleScale);
+  final _desc = EmojiTextEditingController();
+  final _place = EmojiTextEditingController();
   final _placeFocus = FocusNode();
   final _cap = TextEditingController();
-  final _meet = TextEditingController(); // buluşma noktası (etkinlik yerinden ayrı)
+  final _meet = EmojiTextEditingController(); // buluşma noktası (etkinlik yerinden ayrı)
   late DateTime _start;
   late DateTime _end;
   DateTime? _origStart; // düzenlemede: başlangıç değişmediyse geçmiş kuralı uygulanmaz

@@ -1,3 +1,4 @@
+import '../../../chat/emoji_presentation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/icons/bu_icons.dart';
@@ -67,7 +68,7 @@ class TopicHeaderBlock extends StatelessWidget {
         const SizedBox(height: 12),
         Semantics(
           header: true,
-          child: Text(s.title, key: const ValueKey('topicTitle'), style: tx.headlineSmall!.copyWith(color: t.ink, height: 1.3)),
+          child: Text.rich(emojiAwareSpan(s.title, tx.headlineSmall!.copyWith(color: t.ink, height: 1.3), scale: kEmojiTitleScale), key: const ValueKey('topicTitle')),
         ),
         const SizedBox(height: 12),
         if (full != null)
