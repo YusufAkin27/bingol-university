@@ -94,7 +94,7 @@ public final class AdminPermissionPolicy {
         // --- sohbet ---
         one(Set.of("GET"), "/api/admin/(chat-media|chat-messages)(/.*)?", CHAT_READ);
         one(Set.of("GET"), "/api/admin/media/attachments/.*", CHAT_READ);
-        area("/api/admin/(messages|conversations)(/.*)?", CHAT_READ, CHAT_WRITE);
+        area("/api/admin/(messages|conversations|department-chats)(/.*)?", CHAT_READ, CHAT_WRITE);
 
         // --- zorla senkron (icerik kaynaklari) ---
         one(Set.of("POST"), "/api/admin/(sync|sync-menu|sources/sync)", SYSTEM_WRITE);
