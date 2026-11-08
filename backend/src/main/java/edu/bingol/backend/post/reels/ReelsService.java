@@ -49,8 +49,12 @@ public class ReelsService {
     private final PostRankProperties rankProps;
     private final FeedSeenService seen;
 
+    private final FamiliarityService familiarity;
+
     public ReelsService(PostWatchRepository watches, PostRankRepository ranks, PostViewAssembler assembler,
-                        ReelsProperties props, PostRankProperties rankProps, FeedSeenService seen) {
+                        ReelsProperties props, PostRankProperties rankProps, FeedSeenService seen,
+                        FamiliarityService familiarity) {
+        this.familiarity = familiarity;
         this.watches = watches;
         this.ranks = ranks;
         this.assembler = assembler;
@@ -160,10 +164,13 @@ public class ReelsService {
             List<Long> authors = rows.stream().map(Post::getAuthorId).distinct().toList();
             Set<Long> followed = new HashSet<>(watches.followedAmong(viewer, authors));
             Map<Long, Integer> likes = toIntMap(watches.likedAuthorCounts(viewer, authors));
+            // Tanıdığın kişiler (karşılıklı takip, sohbet, ortak kulüp, aynı bölüm...): yalnız sırayı öne çeker
+            Map<Long, Double> known = familiarity.bonuses(viewer, authors);
             Map<Long, Double> sc = new HashMap<>();
             for (Post p : rows) {
                 sc.put(p.getId(), ReelsRanker.forYou(props, p.getRankScore(), followed.contains(p.getAuthorId()),
-                        likes.getOrDefault(p.getAuthorId(), 0), ReelsRanker.jitter(seed, p.getId())));
+                        likes.getOrDefault(p.getAuthorId(), 0), ReelsRanker.jitter(seed, p.getId()))
+                        + known.getOrDefault(p.getAuthorId(), 0.0));
             }
             List<Post> out = new ArrayList<>(rows);
             out.sort(Comparator.<Post>comparingDouble(p -> sc.get(p.getId())).reversed()
