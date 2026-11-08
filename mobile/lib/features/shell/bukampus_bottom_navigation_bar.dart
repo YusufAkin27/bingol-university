@@ -34,6 +34,7 @@ class BukampusBottomNavigationBar extends StatelessWidget {
     this.onPublish,
     this.immersive = false,
     this.glass = true,
+    this.profileAvatar,
   });
 
   final int index;
@@ -50,6 +51,9 @@ class BukampusBottomNavigationBar extends StatelessWidget {
 
   /// Cam (bulanıklık) açık mı; false: opak yedek.
   final bool glass;
+
+  /// Profil sekmesinin simgesi yerine kişinin fotoğrafı (boyut verilir); null ise çizgi kullanıcı simgesi.
+  final Widget Function(double size)? profileAvatar;
 
   /// Çubuğun yüksekliği.
   static const double height = BuSize.nav;
@@ -138,6 +142,7 @@ class BukampusBottomNavigationBar extends StatelessWidget {
                     onChanged: onChanged,
                     chatBadge: chatBadge,
                     labelOf: (tab) => _label(l, tab),
+                    profileAvatar: profileAvatar,
                     tabCount: order.where((e) => e >= 0).length,
                   ),
                 ),
@@ -226,7 +231,7 @@ class _GlassSurface extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   stops: const [0, .5],
-                  colors: [t.onMedia.withValues(alpha: t.navBase.computeLuminance() < .5 ? .05 : .5), t.onMedia.withValues(alpha: 0)],
+                  colors: [t.onMedia.withValues(alpha: t.navBase.computeLuminance() < .5 ? .05 : .32), t.onMedia.withValues(alpha: 0)],
                 ),
               ),
               child: const SizedBox.expand(),
@@ -250,7 +255,7 @@ class _GlassSurface extends StatelessWidget {
   Widget _glass(BorderRadius r, Widget surface) {
     return ClipRRect(
       borderRadius: r,
-      child: opaque ? surface : BackdropFilter(filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10), child: surface),
+      child: opaque ? surface : BackdropFilter(filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18), child: surface),
     );
   }
 }
@@ -284,6 +289,7 @@ class _TabsLayer extends StatelessWidget {
     required this.chatBadge,
     required this.labelOf,
     required this.tabCount,
+    this.profileAvatar,
   });
 
   final BuTokens tokens;
@@ -293,6 +299,7 @@ class _TabsLayer extends StatelessWidget {
   final ValueListenable<int> chatBadge;
   final String Function(int tab) labelOf;
   final int tabCount;
+  final Widget Function(double size)? profileAvatar;
 
   @override
   Widget build(BuildContext context) {
@@ -337,6 +344,7 @@ class _TabsLayer extends StatelessWidget {
                   count: tabCount,
                   selected: order[pos] == selected,
                   badge: BukampusBottomNavigationBar._items[order[pos]].hasBadge ? chatBadge : null,
+                  profileAvatar: profileAvatar,
                   onTap: () {
                     if (order[pos] != selected) buHaptic(BuHaptic.selection);
                     onChanged(order[pos]);
@@ -361,6 +369,7 @@ class _NavTab extends StatelessWidget {
     required this.selected,
     required this.onTap,
     this.badge,
+    this.profileAvatar,
   });
 
   final BukampusNavItem item;
@@ -371,6 +380,7 @@ class _NavTab extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
   final ValueListenable<int>? badge;
+  final Widget Function(double size)? profileAvatar;
 
   @override
   Widget build(BuildContext context) {
@@ -380,16 +390,31 @@ class _NavTab extends StatelessWidget {
     final textColor = selected ? t.navAccent : t.navTextIdle;
     final style = TextStyle(fontSize: 11, height: 1.2, fontWeight: FontWeight.w400, letterSpacing: 0, color: textColor);
 
+    final avatarBuilder = item.tab == 4 ? profileAvatar : null;
     Widget icon = AnimatedScale(
       scale: selected ? 1.05 : 1,
       duration: dur,
       curve: Curves.easeOutCubic,
-      child: TweenAnimationBuilder<Color?>(
-        tween: ColorTween(end: iconColor),
-        duration: dur,
-        curve: Curves.easeOutCubic,
-        builder: (_, c, __) => Icon(item.icon, size: BukampusBottomNavigationBar.iconSize, color: c),
-      ),
+      child: avatarBuilder != null
+          // Profil sekmesi: kişinin fotoğrafı; aktifken ince vurgu halkası.
+          ? AnimatedContainer(
+              key: const ValueKey('nav-profile-avatar'),
+              duration: dur,
+              curve: Curves.easeOutCubic,
+              width: BukampusBottomNavigationBar.iconSize,
+              height: BukampusBottomNavigationBar.iconSize,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: selected ? t.navAccent : Colors.transparent, width: 1.5),
+              ),
+              child: ClipOval(child: avatarBuilder(BukampusBottomNavigationBar.iconSize - 3)),
+            )
+          : TweenAnimationBuilder<Color?>(
+              tween: ColorTween(end: iconColor),
+              duration: dur,
+              curve: Curves.easeOutCubic,
+              builder: (_, c, __) => Icon(item.icon, size: BukampusBottomNavigationBar.iconSize, color: c),
+            ),
     );
     final unread = badge;
     if (unread != null) {
