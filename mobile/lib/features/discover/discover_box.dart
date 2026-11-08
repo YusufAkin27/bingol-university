@@ -71,7 +71,7 @@ class DiscoverPostBox extends StatelessWidget {
       pressedOpacity: 1,
       semanticLabel: label,
       onTap: () => onOpen(p),
-      onLongPress: () => showPostPeek(context, session: session, post: p, onOpen: onOpen, onMenu: onMenu),
+      onLongPress: () => showPostPeek(context, session: session, post: p, onOpen: onOpen, onMenu: onMenu, onChanged: onChanged),
       child: Stack(fit: StackFit.expand, children: [
         if (photo != null)
           PostPhoto(

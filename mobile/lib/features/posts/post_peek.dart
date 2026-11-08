@@ -8,6 +8,8 @@ import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../chat/emoji_presentation.dart';
+import 'comments/comment_button.dart';
+import 'like_button.dart';
 import 'post_card.dart';
 import 'post_carousel.dart';
 import 'post_models.dart';
@@ -22,6 +24,7 @@ Future<void> showPostPeek(
   required Post post,
   ValueChanged<Post>? onOpen,
   ValueChanged<Post>? onMenu,
+  ValueChanged<Post>? onChanged,
 }) {
   HapticFeedback.mediumImpact();
   final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
@@ -30,24 +33,31 @@ Future<void> showPostPeek(
     barrierDismissible: true,
     barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
     barrierColor: Colors.transparent,
-    transitionDuration: reduce ? Duration.zero : const Duration(milliseconds: 220),
+    transitionDuration:
+        reduce ? Duration.zero : const Duration(milliseconds: 220),
     transitionBuilder: (ctx, anim, _, child) {
-      final curved = CurvedAnimation(parent: anim, curve: Curves.easeOutCubic, reverseCurve: Curves.easeInCubic);
+      final curved = CurvedAnimation(
+          parent: anim,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic);
       return AnimatedBuilder(
         animation: curved,
         builder: (_, __) => Stack(children: [
           Positioned.fill(
             child: IgnorePointer(
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 14 * curved.value, sigmaY: 14 * curved.value),
-                child: ColoredBox(color: Colors.black.withValues(alpha: .46 * curved.value)),
+                filter: ImageFilter.blur(
+                    sigmaX: 14 * curved.value, sigmaY: 14 * curved.value),
+                child: ColoredBox(
+                    color: Colors.black.withValues(alpha: .46 * curved.value)),
               ),
             ),
           ),
           Center(
             child: Opacity(
               opacity: curved.value.clamp(0.0, 1.0),
-              child: Transform.scale(scale: .88 + .12 * curved.value, child: child),
+              child: Transform.scale(
+                  scale: .88 + .12 * curved.value, child: child),
             ),
           ),
         ]),
@@ -57,6 +67,7 @@ Future<void> showPostPeek(
       key: const ValueKey('postPeek'),
       session: session,
       post: post,
+      onChanged: onChanged,
       onOpen: onOpen == null
           ? null
           : (p) {
@@ -73,20 +84,42 @@ Future<void> showPostPeek(
   );
 }
 
-class _PostPeekCard extends StatelessWidget {
-  const _PostPeekCard({super.key, required this.session, required this.post, this.onOpen, this.onMenu});
+class _PostPeekCard extends StatefulWidget {
+  const _PostPeekCard(
+      {super.key,
+      required this.session,
+      required this.post,
+      this.onOpen,
+      this.onMenu,
+      this.onChanged});
 
   final Session session;
   final Post post;
   final ValueChanged<Post>? onOpen;
   final ValueChanged<Post>? onMenu;
+  final ValueChanged<Post>? onChanged;
+
+  @override
+  State<_PostPeekCard> createState() => _PostPeekCardState();
+}
+
+class _PostPeekCardState extends State<_PostPeekCard> {
+  late Post _post = widget.post;
+  Session get session => widget.session;
+  ValueChanged<Post>? get onOpen => widget.onOpen;
+  ValueChanged<Post>? get onMenu => widget.onMenu;
+
+  void _changed(Post p) {
+    setState(() => _post = p);
+    widget.onChanged?.call(p);
+  }
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final tt = Theme.of(context).textTheme;
     final l = context.l10n;
-    final p = post;
+    final p = _post;
     final size = MediaQuery.sizeOf(context);
     final width = (size.width - 40).clamp(240.0, 440.0);
     // Medya oranı: dikey video/foto 4:5, en fazla ekranın %52'si yükseklik.
@@ -103,75 +136,119 @@ class _PostPeekCard extends StatelessWidget {
           child: Material(
             color: t.sf,
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: BorderSide(color: t.bd)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(22),
+                side: BorderSide(color: t.bd)),
             clipBehavior: Clip.antiAlias,
             child: SizedBox(
               width: width,
-              child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Padding(
-                  padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 6, 10),
-                  child: Row(children: [
-                    BuAvatar(name: name, url: p.author.avatarUrl, size: 32, headers: postAuthHeaders(session)),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: tt.bodyMedium?.copyWith(color: t.ink, fontWeight: BuType.emphasisWeight)),
+              child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding:
+                          const EdgeInsetsDirectional.fromSTEB(12, 10, 6, 10),
+                      child: Row(children: [
+                        BuAvatar(
+                            name: name,
+                            url: p.author.avatarUrl,
+                            size: 32,
+                            headers: postAuthHeaders(session)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: tt.bodyMedium?.copyWith(
+                                  color: t.ink,
+                                  fontWeight: BuType.emphasisWeight)),
+                        ),
+                        if (onMenu != null)
+                          IconButton(
+                            key: const ValueKey('peekMenu'),
+                            tooltip: l.postComposeMore,
+                            onPressed: () => onMenu!(p),
+                            icon: Icon(BuIcons.ellipsis, color: t.ink),
+                          ),
+                      ]),
                     ),
-                    if (onMenu != null)
-                      IconButton(
-                        key: const ValueKey('peekMenu'),
-                        tooltip: l.postComposeMore,
-                        onPressed: () => onMenu!(p),
-                        icon: Icon(BuIcons.ellipsis, color: t.ink),
+                    SizedBox(
+                      height: mediaH,
+                      width: width,
+                      child: GestureDetector(
+                        key: const ValueKey('peekMedia'),
+                        behavior: HitTestBehavior.opaque,
+                        onTap: onOpen == null ? null : () => onOpen!(p),
+                        child: ClipRect(
+                          child: p.isVideo && p.video != null
+                              ? PostVideoView(
+                                  key: const ValueKey('peekVideo'),
+                                  session: session,
+                                  post: p,
+                                  active: true,
+                                  handleTap: false,
+                                  showFullscreen: false,
+                                  reportViews: false,
+                                  fit: BoxFit.cover,
+                                )
+                              : p.isMulti
+                                  ? PostPhotoCarousel(
+                                      session: session,
+                                      post: p,
+                                      radius: 0,
+                                      aspectRatio: width / mediaH)
+                                  : PostPhoto(
+                                      session: session,
+                                      post: p,
+                                      radius: 0,
+                                      aspectRatio: width / mediaH),
+                        ),
                       ),
-                  ]),
-                ),
-                SizedBox(
-                  height: mediaH,
-                  width: width,
-                  child: ClipRect(
-                    child: p.isVideo && p.video != null
-                        ? PostVideoView(
-                            key: const ValueKey('peekVideo'),
+                    ),
+                    Padding(
+                      padding:
+                          const EdgeInsetsDirectional.fromSTEB(10, 4, 8, 0),
+                      child: Row(children: [
+                        LikeButton(
                             session: session,
                             post: p,
-                            active: true,
-                            handleTap: false,
-                            showFullscreen: false,
-                            reportViews: false,
-                            fit: BoxFit.cover,
-                          )
-                        : p.isMulti
-                            ? PostPhotoCarousel(session: session, post: p, radius: 0, aspectRatio: width / mediaH)
-                            : PostPhoto(session: session, post: p, radius: 0, aspectRatio: width / mediaH),
-                  ),
-                ),
-                if (text.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 14, 0),
-                    child: Text.rich(
-                      emojiAwareSpan(text, (tt.bodyMedium ?? const TextStyle()).copyWith(color: t.ink, height: 1.35)),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                            compact: true,
+                            onChanged: _changed),
+                        const SizedBox(width: 6),
+                        CommentButton(
+                          session: session,
+                          postId: p.id,
+                          count: p.commentCount ?? 0,
+                          commentsDisabled: p.commentsDisabled,
+                          onCountChanged: (n) =>
+                              _changed(p.copyWith(commentCount: n)),
+                        ),
+                        const Spacer(),
+                        if (onOpen != null)
+                          TextButton(
+                            key: const ValueKey('peekOpen'),
+                            onPressed: () => onOpen!(p),
+                            child: Text(l.postPeekOpen,
+                                style: tt.labelLarge?.copyWith(color: t.ink)),
+                          ),
+                      ]),
                     ),
-                  ),
-                if (onOpen != null)
-                  Padding(
-                    padding: const EdgeInsetsDirectional.fromSTEB(8, 2, 8, 6),
-                    child: Align(
-                      alignment: AlignmentDirectional.centerEnd,
-                      child: TextButton(
-                        key: const ValueKey('peekOpen'),
-                        onPressed: () => onOpen!(p),
-                        child: Text(l.postPeekOpen, style: tt.labelLarge?.copyWith(color: t.ink)),
+                    if (text.isNotEmpty)
+                      Padding(
+                        padding:
+                            const EdgeInsetsDirectional.fromSTEB(14, 10, 14, 0),
+                        child: Text.rich(
+                          emojiAwareSpan(
+                              text,
+                              (tt.bodyMedium ?? const TextStyle())
+                                  .copyWith(color: t.ink, height: 1.35)),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                  )
-                else
-                  const SizedBox(height: 10),
-              ]),
+                    if (text.isNotEmpty) const SizedBox(height: 14),
+                  ]),
             ),
           ),
         ),
