@@ -2,6 +2,7 @@ import '../chat/emoji_presentation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/icons/bu_icons.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -160,7 +161,7 @@ class PostMentionsLine extends StatelessWidget {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(minHeight: 32),
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(Icons.alternate_email_rounded, size: 14, color: t.mut),
+                  Icon(BuIcons.atSign, size: 14, color: t.mut),
                   const SizedBox(width: 2),
                   Text(m.displayName, style: tt.bodySmall?.copyWith(color: t.ink, fontSize: 13)),
                 ]),
