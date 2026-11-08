@@ -1,3 +1,4 @@
+import 'widgets/bu_swipe_back.dart';
 import 'widgets/bu_keyboard.dart' show BuFocusRouteObserver, BuTapOutsideUnfocus;
 import 'dart:async';
 
@@ -249,7 +250,7 @@ class BingolApp extends StatelessWidget {
           child: AcademicCatalogScope(
             session: session,
             // Boş alana dokunmak odağı bırakır (klavye kapanır); düğme/alan dokunuşlarını engellemez.
-            child: AppGate(api: session.api, child: BuTapOutsideUnfocus(child: child ?? const SizedBox.shrink())),
+            child: AppGate(api: session.api, child: BuGlobalSwipeBack(child: BuTapOutsideUnfocus(child: child ?? const SizedBox.shrink()))),
           ),
         ),
         home: ListenableBuilder(
