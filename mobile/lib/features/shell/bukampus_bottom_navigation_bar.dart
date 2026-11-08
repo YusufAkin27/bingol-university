@@ -231,7 +231,7 @@ class _GlassSurface extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   stops: const [0, .5],
-                  colors: [t.onMedia.withValues(alpha: t.navBase.computeLuminance() < .5 ? .05 : .32), t.onMedia.withValues(alpha: 0)],
+                  colors: [t.onMedia.withValues(alpha: t.navBase.computeLuminance() < .5 ? .05 : .22), t.onMedia.withValues(alpha: 0)],
                 ),
               ),
               child: const SizedBox.expand(),
