@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BU Kampüs - Yaklaşan Etkinlikler Widget Ailesi</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    * {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+      font-weight: 400 !important;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .font-light-custom {
+      font-weight: 300 !important;
+    }
+    /* iOS Widget exact dimension proportional helpers */
+    .widget-radius {
+      border-radius: 22px;
+    }
+    .truncate-custom {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body class="bg-[#09090B] text-white min-h-screen p-5 sm:p-8 flex flex-col items-center justify-start antialiased selection:bg-zinc-800 selection:text-white">
+
+  <!-- Presentation Header -->
+  <header class="w-full max-w-[390px] mb-8 pt-3">
+    <div class="flex items-center justify-between pb-3 border-b border-zinc-800/80">
+      <div>
+        <p class="text-[11px] tracking-[0.2em] uppercase text-[#A1A1AA]">Bingöl Üniversitesi</p>
+        <h1 class="text-lg text-zinc-100 tracking-tight mt-0.5">BU Kampüs · Widget Ailesi</h1>
+      </div>
+      <span class="text-[10px] px-2.5 py-1 rounded-full border border-zinc-800 text-zinc-400 bg-zinc-900/60 tracking-wide">iOS 17</span>
+    </div>
+    <div class="flex items-center justify-between mt-3 text-xs text-[#A1A1AA]">
+      <span>Yaklaşan Etkinlikler</span>
+      <span class="text-[11px] font-light-custom text-zinc-500">Monochrome Serisi</span>
+    </div>
+  </header>
+
+  <!-- Widgets Presentation Showcase Canvas -->
+  <main class="w-full max-w-[390px] flex flex-col items-center gap-7 pb-16">
+
+    <!-- 1. SMALL WIDGET (158x158pt) -->
+    <section class="flex flex-col items-center w-full">
+      <div class="w-full flex items-center justify-between text-[11px] text-[#A1A1AA] px-1 mb-2">
+        <span class="tracking-wider uppercase text-[10px] text-zinc-500">Small (158 × 158 pt)</span>
+        <span class="text-zinc-600">Tekil Odak</span>
+      </div>
+      
+      <!-- Small Widget Container -->
+      <div class="w-[158px] h-[158px] bg-[#18181B] border border-zinc-800/90 widget-radius p-3.5 flex flex-col justify-between shadow-2xl relative overflow-hidden transition-transform duration-200 hover:border-zinc-700">
+        <!-- Top row: App context & Date badge -->
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span class="text-[10px] text-[#A1A1AA] tracking-wider uppercase font-light-custom">BU</span>
+          </div>
+          <!-- Date Badge -->
+          <div class="px-2 py-0.5 rounded-md border border-zinc-800 bg-zinc-900/80 flex flex-col items-center leading-none">
+            <span class="text-[11px] text-zinc-200">12</span>
+            <span class="text-[8px] text-[#A1A1AA] tracking-widest uppercase mt-0.5">KAS</span>
+          </div>
+        </div>
+
+        <!-- Center/Bottom content: Event Details -->
+        <div class="mt-auto pt-2">
+          <div class="text-[10px] text-zinc-400 font-light-custom mb-1 truncate-custom">
+            Bilgisayar Topluluğu
+          </div>
+          <h2 class="text-xs text-zinc-100 leading-snug line-clamp-2 mb-2 font-normal">
+            Yapay Zeka Söyleşisi
+          </h2>
+          <div class="flex items-center gap-1.5 text-[11px] text-[#A1A1AA] border-t border-zinc-800/60 pt-2">
+            <svg class="w-3 h-3 text-zinc-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span>14:00</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. MEDIUM WIDGET (338x158pt) -->
+    <section class="flex flex-col items-center w-full">
+      <div class="w-full flex items-center justify-between text-[11px] text-[#A1A1AA] px-1 mb-2">
+        <span class="tracking-wider uppercase text-[10px] text-zinc-500">Medium (338 × 158 pt)</span>
+        <span class="text-zinc-600">3 Sıralı Akış</span>
+      </div>
+
+      <!-- Medium Widget Container -->
+      <div class="w-[338px] h-[158px] bg-[#18181B] border border-zinc-800/90 widget-radius px-4 py-3 flex flex-col justify-between shadow-2xl relative overflow-hidden transition-transform duration-200 hover:border-zinc-700">
+        
+        <!-- Row 1: Yapay Zeka Söyleşisi -->
+        <div class="flex items-center gap-3 py-0.5 border-b border-zinc-800/60">
+          <!-- Date badge -->
+          <div class="w-10 py-1 rounded border border-zinc-800 bg-zinc-900/90 flex flex-col items-center justify-center shrink-0 leading-none">
+            <span class="text-[11px] text-zinc-200">12</span>
+            <span class="text-[7.5px] text-[#A1A1AA] tracking-wider uppercase mt-0.5">KAS</span>
+          </div>
+          <!-- Info -->
+          <div class="flex-1 min-w-0">
+            <div class="text-[11.5px] text-zinc-100 truncate-custom">Yapay Zeka Söyleşisi</div>
+            <div class="text-[10px] text-[#A1A1AA] truncate-custom font-light-custom">Bilgisayar Topluluğu</div>
+          </div>
+          <!-- Time & Venue -->
+          <div class="flex items-center gap-1.5 text-[10px] text-[#A1A1AA] shrink-0 font-light-custom">
+            <svg class="w-3 h-3 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span>14:00</span>
+          </div>
+        </div>
+
+        <!-- Row 2: Bahar Şenliği Hazırlık -->
+        <div class="flex items-center gap-3 py-0.5 border-b border-zinc-800/60">
+          <!-- Date badge -->
+          <div class="w-10 py-1 rounded border border-zinc-800 bg-zinc-900/90 flex flex-col items-center justify-center shrink-0 leading-none">
+            <span class="text-[11px] text-zinc-200">15</span>
+            <span class="text-[7.5px] text-[#A1A1AA] tracking-wider uppercase mt-0.5">KAS</span>
+          </div>
+          <!-- Info -->
+          <div class="flex-1 min-w-0">
+            <div class="text-[11.5px] text-zinc-100 truncate-custom">Bahar Şenliği Hazırlık</div>
+            <div class="text-[10px] text-[#A1A1AA] truncate-custom font-light-custom">Müzik Kulübü</div>
+          </div>
+          <!-- Time & Venue -->
+          <div class="flex items-center gap-1.5 text-[10px] text-[#A1A1AA] shrink-0 font-light-custom">
+            <svg class="w-3 h-3 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span>17:30</span>
+          </div>
+        </div>
+
+        <!-- Row 3: Fotoğraf Yürüyüşü -->
+        <div class="flex items-center gap-3 py-0.5">
+          <!-- Date badge -->
+          <div class="w-10 py-1 rounded border border-zinc-800 bg-zinc-900/90 flex flex-col items-center justify-center shrink-0 leading-none">
+            <span class="text-[11px] text-zinc-200">18</span>
+            <span class="text-[7.5px] text-[#A1A1AA] tracking-wider uppercase mt-0.5">KAS</span>
+          </div>
+          <!-- Info -->
+          <div class="flex-1 min-w-0">
+            <div class="text-[11.5px] text-zinc-100 truncate-custom">Fotoğraf Yürüyüşü</div>
+            <div class="text-[10px] text-[#A1A1AA] truncate-custom font-light-custom">Fotoğraf Kulübü</div>
+          </div>
+          <!-- Time & Venue -->
+          <div class="flex items-center gap-1.5 text-[10px] text-[#A1A1AA] shrink-0 font-light-custom">
+            <svg class="w-3 h-3 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span>10:00</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 3. LARGE WIDGET (338x354pt) -->
+    <section class="flex flex-col items-center w-full">
+      <div class="w-full flex items-center justify-between text-[11px] text-[#A1A1AA] px-1 mb-2">
+        <span class="tracking-wider uppercase text-[10px] text-zinc-500">Large (338 × 354 pt)</span>
+        <span class="text-zinc-600">Genişletilmiş Detay</span>
+      </div>
+
+      <!-- Large Widget Container -->
+      <div class="w-[338px] h-[354px] bg-[#18181B] border border-zinc-800/90 widget-radius p-5 flex flex-col justify-between shadow-2xl relative overflow-hidden transition-transform duration-200 hover:border-zinc-700">
+        
+        <!-- Header with small BU Emblem & Title -->
+        <div class="flex items-center justify-between pb-3.5 border-b border-zinc-800">
+          <div class="flex items-center gap-2.5">
+            <!-- BU Minimalist Emblem (Monochrome SVG) -->
+            <div class="w-6 h-6 rounded-md border border-zinc-700/80 bg-zinc-900 flex items-center justify-center text-[10px] text-zinc-300 font-light tracking-tighter">
+              BU
+            </div>
+            <div>
+              <h3 class="text-xs text-zinc-100 tracking-tight">Yaklaşan Etkinlikler</h3>
+              <p class="text-[9.5px] text-[#A1A1AA] tracking-wide font-light-custom">BU Kampüs · Bingöl</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-1 text-[11px] text-zinc-500 font-light-custom">
+            <span>3 Etkinlik</span>
+          </div>
+        </div>
+
+        <!-- Roomy 3 Rows of Events -->
+        <div class="flex flex-col gap-3.5 my-auto">
+          
+          <!-- Event Item 1 -->
+          <div class="p-2.5 rounded-xl border border-zinc-800/80 bg-zinc-900/40 hover:border-zinc-700/70 transition-colors">
+            <div class="flex items-start gap-3">
+              <!-- Date Badge -->
+              <div class="w-11 py-1.5 rounded-lg border border-zinc-800 bg-zinc-900 flex flex-col items-center justify-center shrink-0 leading-none">
+                <span class="text-xs text-zinc-100">12</span>
+                <span class="text-[8px] text-[#A1A1AA] tracking-widest uppercase mt-0.5">KAS</span>
+              </div>
+              
+              <!-- Content -->
+              <div class="flex-1 min-w-0">
+                <div class="text-[12.5px] text-zinc-100 truncate-custom leading-tight mb-0.5">
+                  Yapay Zeka Söyleşisi
+                </div>
+                <div class="text-[10.5px] text-[#A1A1AA] truncate-custom font-light-custom mb-1.5">
+                  Bilgisayar Topluluğu
+                </div>
+                
+                <!-- Time & Venue -->
+                <div class="flex items-center gap-3 text-[10px] text-[#A1A1AA] font-light-custom">
+                  <div class="flex items-center gap-1 shrink-0">
+                    <svg class="w-3 h-3 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>14:00</span>
+                  </div>
+                  <div class="w-1 h-1 rounded-full bg-zinc-700"></div>
+                  <div class="flex items-center gap-1 truncate-custom">
+                    <svg class="w-3 h-3 text-zinc-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                      <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span class="truncate-custom">Konferans Salonu</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Event Item 2 -->
+          <div class="p-2.5 rounded-xl border border-zinc-800/80 bg-zinc-900/40 hover:border-zinc-700/70 transition-colors">
+            <div class="flex items-start gap-3">
+              <!-- Date Badge -->
+              <div class="w-11 py-1.5 rounded-lg border border-zinc-800 bg-zinc-900 flex flex-col items-center justify-center shrink-0 leading-none">
+                <span class="text-xs text-zinc-100">15</span>
+                <span class="text-[8px] text-[#A1A1AA] tracking-widest uppercase mt-0.5">KAS</span>
+              </div>
+              
+              <!-- Content -->
+              <div class="flex-1 min-w-0">
+                <div class="text-[12.5px] text-zinc-100 truncate-custom leading-tight mb-0.5">
+                  Bahar Şenliği Hazırlık
+                </div>
+                <div class="text-[10.5px] text-[#A1A1AA] truncate-custom font-light-custom mb-1.5">
+                  Müzik Kulübü
+                </div>
+                
+                <!-- Time & Venue -->
+                <div class="flex items-center gap-3 text-[10px] text-[#A1A1AA] font-light-custom">
+                  <div class="flex items-center gap-1 shrink-0">
+                    <svg class="w-3 h-3 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>17:30</span>
+                  </div>
+                  <div class="w-1 h-1 rounded-full bg-zinc-700"></div>
+                  <div class="flex items-center gap-1 truncate-custom">
+                    <svg class="w-3 h-3 text-zinc-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                      <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span class="truncate-custom">Öğrenci Merkezi</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Event Item 3 -->
+          <div class="p-2.5 rounded-xl border border-zinc-800/80 bg-zinc-900/40 hover:border-zinc-700/70 transition-colors">
+            <div class="flex items-start gap-3">
+              <!-- Date Badge -->
+              <div class="w-11 py-1.5 rounded-lg border border-zinc-800 bg-zinc-900 flex flex-col items-center justify-center shrink-0 leading-none">
+                <span class="text-xs text-zinc-100">18</span>
+                <span class="text-[8px] text-[#A1A1AA] tracking-widest uppercase mt-0.5">KAS</span>
+              </div>
+              
+              <!-- Content -->
+              <div class="flex-1 min-w-0">
+                <div class="text-[12.5px] text-zinc-100 truncate-custom leading-tight mb-0.5">
+                  Fotoğraf Yürüyüşü
+                </div>
+                <div class="text-[10.5px] text-[#A1A1AA] truncate-custom font-light-custom mb-1.5">
+                  Fotoğraf Kulübü
+                </div>
+                
+                <!-- Time & Venue -->
+                <div class="flex items-center gap-3 text-[10px] text-[#A1A1AA] font-light-custom">
+                  <div class="flex items-center gap-1 shrink-0">
+                    <svg class="w-3 h-3 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>10:00</span>
+                  </div>
+                  <div class="w-1 h-1 rounded-full bg-zinc-700"></div>
+                  <div class="flex items-center gap-1 truncate-custom">
+                    <svg class="w-3 h-3 text-zinc-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                      <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span class="truncate-custom">Kampüs Girişi</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Large Footer Info -->
+        <div class="pt-2.5 border-t border-zinc-800/80 flex items-center justify-between text-[10px] text-zinc-500 font-light-custom">
+          <span>Son güncelleme 12:45</span>
+          <span class="flex items-center gap-1 text-zinc-400">
+            Tüm Takvim
+            <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Presentation Footer Notes -->
+    <footer class="w-full text-center pt-4 border-t border-zinc-800/60 text-[11px] text-zinc-500 font-light-custom">
+      Bingöl Üniversitesi · BU Kampüs iOS Widget Family · Inter font (Weight ≤ 400)
+    </footer>
+
+  </main>
+</body>
+</html>

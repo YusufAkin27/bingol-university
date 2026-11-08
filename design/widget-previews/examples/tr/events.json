@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "slug": "events",
+  "state": "ok",
+  "generatedAt": "2026-11-06T10:00:00+03:00",
+  "expiresAt": "2026-11-07T22:00:00+03:00",
+  "lang": "tr",
+  "rtl": false,
+  "deepLink": "bukampus://events",
+  "a11y": "Yaklaşan etkinlik: Kodlama Gecesi 12 KAS 14:00; Kariyer Söyleşisi 18 KAS 15:00",
+  "strings": {
+    "signedOutTitle": "Giriş yap",
+    "signedOutSub": "BÜ Kampüs'ü aç",
+    "captionSmall": "Yaklaşan",
+    "captionEmpty": "Etkinlik",
+    "title": "Yaklaşan Etkinlikler",
+    "countLabel": "{n} etkinlik",
+    "emptyTitle": "Yaklaşan etkinlik yok",
+    "emptySub": "Kulüpler yeni etkinlik eklediğinde burada görünür"
+  },
+  "count": 2,
+  "countLabel": "2 etkinlik",
+  "events": [
+    {
+      "id": 9,
+      "title": "Kodlama Gecesi",
+      "communityName": "Yazılım Kulübü",
+      "startsAt": "2026-11-12T14:00:00+03:00",
+      "day": "12",
+      "monthCaps": "KAS",
+      "timeLabel": "14:00",
+      "venue": "Amfi 2",
+      "deepLink": "bukampus://events/9"
+    },
+    {
+      "id": 12,
+      "title": "Kariyer Söyleşisi",
+      "communityName": "Girişimcilik Kulübü",
+      "startsAt": "2026-11-18T15:00:00+03:00",
+      "day": "18",
+      "monthCaps": "KAS",
+      "timeLabel": "15:00",
+      "venue": null,
+      "deepLink": "bukampus://events/12"
+    }
+  ]
+}

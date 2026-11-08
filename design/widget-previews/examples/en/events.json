@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "slug": "events",
+  "state": "ok",
+  "generatedAt": "2026-11-06T10:00:00+03:00",
+  "expiresAt": "2026-11-07T22:00:00+03:00",
+  "lang": "en",
+  "rtl": false,
+  "deepLink": "bukampus://events",
+  "a11y": "Upcoming event: Kodlama Gecesi 12 NOV 14:00; Kariyer Söyleşisi 18 NOV 15:00",
+  "strings": {
+    "signedOutTitle": "Sign in",
+    "signedOutSub": "Open BU Campus",
+    "captionSmall": "Upcoming",
+    "captionEmpty": "Events",
+    "title": "Upcoming Events",
+    "countLabel": "{n} events",
+    "emptyTitle": "No upcoming events",
+    "emptySub": "New club events will appear here"
+  },
+  "count": 2,
+  "countLabel": "2 events",
+  "events": [
+    {
+      "id": 9,
+      "title": "Kodlama Gecesi",
+      "communityName": "Yazılım Kulübü",
+      "startsAt": "2026-11-12T14:00:00+03:00",
+      "day": "12",
+      "monthCaps": "NOV",
+      "timeLabel": "14:00",
+      "venue": "Amfi 2",
+      "deepLink": "bukampus://events/9"
+    },
+    {
+      "id": 12,
+      "title": "Kariyer Söyleşisi",
+      "communityName": "Girişimcilik Kulübü",
+      "startsAt": "2026-11-18T15:00:00+03:00",
+      "day": "18",
+      "monthCaps": "NOV",
+      "timeLabel": "15:00",
+      "venue": null,
+      "deepLink": "bukampus://events/12"
+    }
+  ]
+}

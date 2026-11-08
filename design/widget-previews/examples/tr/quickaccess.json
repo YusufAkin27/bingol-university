@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "slug": "quickaccess",
+  "state": "ok",
+  "generatedAt": "2026-11-06T10:00:00+03:00",
+  "expiresAt": null,
+  "lang": "tr",
+  "rtl": false,
+  "deepLink": "bukampus://home",
+  "a11y": "Hızlı erişim kısayolları",
+  "strings": {
+    "signedOutTitle": "Giriş yap",
+    "signedOutSub": "BÜ Kampüs'ü aç",
+    "caption": "HIZLI ERİŞİM",
+    "heading": "Neye bakmak istersin?",
+    "sub": "Dokun, uygulamada doğrudan aç",
+    "menu": "Yemek",
+    "timetable": "Ders",
+    "timetableFull": "Ders Programı",
+    "events": "Etkinlik",
+    "clubs": "Kulüpler",
+    "chat": "Sohbet",
+    "qr": "QR Kodum",
+    "news": "Haberler",
+    "search": "Ara"
+  },
+  "smallIds": [
+    "menu",
+    "events",
+    "chat",
+    "qr"
+  ],
+  "items": [
+    {
+      "id": "menu",
+      "icon": "utensils",
+      "label": "Yemek",
+      "a11yLabel": "Yemek",
+      "deepLink": "bukampus://menu"
+    },
+    {
+      "id": "timetable",
+      "icon": "calendar-clock",
+      "label": "Ders",
+      "a11yLabel": "Ders Programı",
+      "deepLink": "bukampus://timetable"
+    },
+    {
+      "id": "events",
+      "icon": "ticket",
+      "label": "Etkinlik",
+      "a11yLabel": "Etkinlik",
+      "deepLink": "bukampus://events"
+    },
+    {
+      "id": "clubs",
+      "icon": "users",
+      "label": "Kulüpler",
+      "a11yLabel": "Kulüpler",
+      "deepLink": "bukampus://clubs"
+    },
+    {
+      "id": "chat",
+      "icon": "message-circle",
+      "label": "Sohbet",
+      "a11yLabel": "Sohbet",
+      "deepLink": "bukampus://chat"
+    },
+    {
+      "id": "qr",
+      "icon": "qr-code",
+      "label": "QR Kodum",
+      "a11yLabel": "QR Kodum",
+      "deepLink": "bukampus://qr"
+    },
+    {
+      "id": "news",
+      "icon": "newspaper",
+      "label": "Haberler",
+      "a11yLabel": "Haberler",
+      "deepLink": "bukampus://news"
+    },
+    {
+      "id": "search",
+      "icon": "search",
+      "label": "Ara",
+      "a11yLabel": "Ara",
+      "deepLink": "bukampus://search"
+    }
+  ]
+}

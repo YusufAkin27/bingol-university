@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "slug": "menu",
+  "state": "signedOut",
+  "generatedAt": "2026-11-06T10:00:00+03:00",
+  "expiresAt": null,
+  "lang": "tr",
+  "rtl": false,
+  "deepLink": "bukampus://home",
+  "a11y": "BÜ Kampüs: Giriş yap",
+  "strings": {
+    "signedOutTitle": "Giriş yap",
+    "signedOutSub": "BÜ Kampüs'ü aç",
+    "caption": "ÖĞLE",
+    "captionAny": "YEMEK",
+    "captionFull": "YEMEK MENÜSÜ",
+    "emptyTitle": "Bugün menü yok",
+    "emptySmallSub": "Yemekhane tatilde olabilir",
+    "emptySub": "Menü yayımlanınca burada görünür",
+    "totalLine": "Toplam {kcal} kcal",
+    "kcalToday": "{kcal} kcal bugün",
+    "dailyTotal": "Günlük toplam",
+    "kcalUnit": "kcal",
+    "more": "+{n} yemek"
+  }
+}
