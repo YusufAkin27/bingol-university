@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../core/api.dart' show ApiError;
+import '../../chat/emoji_presentation.dart';
 import 'comment_models.dart';
 import 'comments_api.dart';
 
@@ -235,7 +236,7 @@ class CommentsController extends ChangeNotifier {
 
   /// Yeni yorum / yanıt. Tek uçuşlu: bir gönderim sürerken ikincisi başlamaz. İyimser eklenir.
   Future<bool> send(String raw) async {
-    final body = raw.trim();
+    final body = withEmojiPresentation(raw.trim());
     if (body.isEmpty || body.length > kCommentMaxLength || sending) return false;
     final target = replyTo;
     final rootId = target == null ? null : (target.parentId ?? target.id);
