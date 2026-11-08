@@ -10,7 +10,14 @@ import UserNotificationsUI
 final class NotificationViewController: UIViewController, UNNotificationContentExtension {
   private let stack = UIStackView()
   private let criticalBar = UIView()
-  private let brand = UIColor(red: 0.776, green: 0.165, blue: 0.125, alpha: 1)
+  // Marka vurgusu kirmizi degil (kullanici karari 2026-11-07): nötr mürekkep; kirmizi yalniz tehlike/onemli (danger).
+  private let danger = UIColor(red: 0.776, green: 0.165, blue: 0.125, alpha: 1)
+  private let brand = UIColor { traits in
+    traits.userInterfaceStyle == .dark ? UIColor(white: 0.96, alpha: 1) : UIColor(red: 0.035, green: 0.035, blue: 0.043, alpha: 1)
+  }
+  private let onBrand = UIColor { traits in
+    traits.userInterfaceStyle == .dark ? UIColor(red: 0.035, green: 0.035, blue: 0.043, alpha: 1) : UIColor.white
+  }
   private let navy = UIColor { traits in
     traits.userInterfaceStyle == .dark ? UIColor(white: 0.96, alpha: 1) : UIColor(red: 0.09, green: 0.12, blue: 0.20, alpha: 1)
   }
@@ -21,7 +28,7 @@ final class NotificationViewController: UIViewController, UNNotificationContentE
   override func viewDidLoad() {
     super.viewDidLoad()
     view.backgroundColor = paper
-    criticalBar.backgroundColor = brand
+    criticalBar.backgroundColor = danger
     criticalBar.isHidden = true
     criticalBar.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(criticalBar)
@@ -158,7 +165,7 @@ final class NotificationViewController: UIViewController, UNNotificationContentE
     switch style {
     case "CHAT_DIRECT", "CHAT_GROUP", "CHAT_MEDIA": return ("bubble.left.fill", .systemBlue)
     case "EVENT_REMINDER", "EVENT_UPDATE", "EVENT_ADMISSION": return ("calendar", .systemBlue)
-    case "EVENT_CANCELLED": return ("calendar.badge.exclamationmark", brand)
+    case "EVENT_CANCELLED": return ("calendar.badge.exclamationmark", danger)
     case "MODERATION": return ("exclamationmark.triangle.fill", .systemOrange)
     case "SYSTEM": return ("gearshape.fill", .systemGray)
     case "EXAM", "ACADEMIC": return ("graduationcap.fill", .systemPurple)
@@ -166,7 +173,7 @@ final class NotificationViewController: UIViewController, UNNotificationContentE
     case "POLL": return ("chart.bar.fill", .systemBlue)
     case "MEAL": return ("fork.knife", .systemOrange)
     case "SOCIAL", "LIKE", "FOLLOW", "FOLLOW_REQUEST", "FOLLOW_ACCEPTED": return ("person.fill", .systemGray)
-    case "SECURITY": return ("shield.fill", brand)
+    case "SECURITY": return ("shield.fill", danger)
     case "SUPPORT": return ("lifepreserver", .systemIndigo)
     default: return ("bell.fill", brand)
     }
@@ -177,12 +184,12 @@ final class NotificationViewController: UIViewController, UNNotificationContentE
     badge.layer.borderWidth = 2; badge.layer.borderColor = paper.resolvedColor(with: traitCollection).cgColor
     fixedSize(badge, 20, 20)
     if let badgeText = badgeText {
-      let label = UILabel(); label.text = badgeText; label.font = .systemFont(ofSize: 10); label.textColor = .white
+      let label = UILabel(); label.text = badgeText; label.font = .systemFont(ofSize: 10); label.textColor = (color == danger) ? .white : onBrand
       label.textAlignment = .center; label.translatesAutoresizingMaskIntoConstraints = false
       badge.addSubview(label)
       NSLayoutConstraint.activate([label.centerXAnchor.constraint(equalTo: badge.centerXAnchor), label.centerYAnchor.constraint(equalTo: badge.centerYAnchor)])
     } else if let symbol = symbol, let image = UIImage(systemName: symbol) {
-      let icon = UIImageView(image: image); icon.tintColor = .white; icon.contentMode = .scaleAspectFit
+      let icon = UIImageView(image: image); icon.tintColor = (color == danger) ? .white : onBrand; icon.contentMode = .scaleAspectFit
       icon.translatesAutoresizingMaskIntoConstraints = false
       badge.addSubview(icon)
       NSLayoutConstraint.activate([
@@ -222,7 +229,7 @@ final class NotificationViewController: UIViewController, UNNotificationContentE
     if style.hasPrefix("CHAT"), count > 1 {
       badge = badgeView(symbol: nil, text: count > 9 ? "9+" : String(count), color: brand)
     } else if style == "LIKE" {
-      badge = badgeView(symbol: "heart.fill", text: nil, color: brand)
+      badge = badgeView(symbol: "heart.fill", text: nil, color: danger)
     } else if style == "FOLLOW" {
       badge = badgeView(symbol: "person.badge.plus", text: nil, color: UIColor(red: 0.09, green: 0.12, blue: 0.20, alpha: 1))
     } else if style == "FOLLOW_REQUEST" {
@@ -296,15 +303,16 @@ final class NotificationViewController: UIViewController, UNNotificationContentE
 
     // 1) Ust satir: BU logosu, "BU Kampüs", kaynak, (onemli), zaman
     let header = UIStackView(); header.axis = .horizontal; header.alignment = .center; header.spacing = 6
-    let logo = UILabel(); logo.text = "BU"; logo.font = .systemFont(ofSize: 9); logo.textColor = .white
+    let logo = UILabel(); logo.text = "BÜ"; logo.textColor = onBrand
+    logo.font = UIFont(descriptor: UIFont.systemFont(ofSize: 10, weight: .semibold).fontDescriptor.withDesign(.serif) ?? UIFont.systemFont(ofSize: 10).fontDescriptor, size: 10)
     logo.textAlignment = .center; logo.backgroundColor = brand; logo.layer.cornerRadius = 11; logo.clipsToBounds = true
     fixedSize(logo, 22, 22)
     header.addArrangedSubview(logo)
     header.addArrangedSubview(text("BU Kampüs", size: 13, bold: true))
     if important {
-      header.addArrangedSubview(text("• " + (badgeText ?? label("ÖNEMLİ", "IMPORTANT", "مهم")), size: 11, bold: true, color: brand))
+      header.addArrangedSubview(text("• " + (badgeText ?? label("ÖNEMLİ", "IMPORTANT", "مهم")), size: 11, bold: true, color: danger))
     } else if let source = source {
-      let sourceLabel = text("· " + source, size: 12, color: critical ? brand : .secondaryLabel)
+      let sourceLabel = text("· " + source, size: 12, color: critical ? danger : .secondaryLabel)
       if critical { sourceLabel.font = .systemFont(ofSize: 12) }
       sourceLabel.numberOfLines = 1; sourceLabel.lineBreakMode = .byTruncatingTail
       sourceLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
