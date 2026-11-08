@@ -30,7 +30,7 @@ class ForumCommentStore {
     private static final Set<Long> NO_HIDDEN = Set.of(Long.MIN_VALUE);
 
     static final String COLS = "c.id, c.topic_id, c.user_id, c.parent_comment_id, c.root_comment_id, c.depth, c.body, "
-            + "c.anonymous, c.like_count, c.reply_count, c.status, c.removed_reason, c.created_at, c.edited_at, c.deleted_at";
+            + "c.anonymous, (c.like_count + c.like_boost) AS like_count, c.reply_count, c.status, c.removed_reason, c.created_at, c.edited_at, c.deleted_at";
 
     /** Listelenir: canli, ya da altinda listelenen yaniti olan yer tutucu. */
     static final String LISTED = "((c.deleted_at IS NULL AND c.status = 'ACTIVE') OR c.reply_count > 0)";
@@ -235,7 +235,7 @@ class ForumCommentStore {
     }
 
     int likeCount(long commentId) {
-        List<Integer> n = jdbc.queryForList("SELECT like_count FROM forum_comment WHERE id = ?", Integer.class, commentId);
+        List<Integer> n = jdbc.queryForList("SELECT like_count + like_boost FROM forum_comment WHERE id = ?", Integer.class, commentId);
         return n.isEmpty() || n.get(0) == null ? 0 : n.get(0);
     }
 }

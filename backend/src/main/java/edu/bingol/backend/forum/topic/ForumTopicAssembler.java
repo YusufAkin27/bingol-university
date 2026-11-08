@@ -84,7 +84,7 @@ public class ForumTopicAssembler {
             CategoryRef cref = c == null ? new CategoryRef(t.getCategoryId(), "", "")
                     : new CategoryRef(c.getId(), ForumCategoryService.nameOf(c, lang), c.getSlug());
             out.add(new TopicSummary(t.getId(), t.getTitle(), ForumText.preview(t.getBody(), PREVIEW_MAX), cref,
-                    authorViews.get(i), t.getCreatedAt(), t.getEditedAt(), t.getLikeCount(), t.getCommentCount(),
+                    authorViews.get(i), t.getCreatedAt(), t.getEditedAt(), t.getLikeCount() + t.getLikeBoost(), t.getCommentCount(),
                     liked.contains(t.getId()), saved.contains(t.getId()), followed.contains(t.getId()),
                     thumbs.get(t.getId()), t.getImageCount(), withPoll.contains(t.getId()), t.getPinnedAt() != null,
                     t.isLocked(), t.getUserId().equals(viewerId), moderator, t.getStatus()));

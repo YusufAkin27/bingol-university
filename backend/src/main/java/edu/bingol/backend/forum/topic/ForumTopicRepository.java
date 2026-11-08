@@ -104,7 +104,7 @@ public interface ForumTopicRepository extends JpaRepository<ForumTopic, Long> {
     @Query("UPDATE ForumTopic t SET t.bookmarkCount = t.bookmarkCount + :d WHERE t.id = :id AND (t.bookmarkCount + :d) >= 0")
     int addBookmarks(@Param("id") Long id, @Param("d") int delta);
 
-    @Query("SELECT t.likeCount FROM ForumTopic t WHERE t.id = :id")
+    @Query("SELECT (t.likeCount + t.likeBoost) FROM ForumTopic t WHERE t.id = :id")
     Optional<Integer> likeCountOf(@Param("id") Long id);
 
     @Query("SELECT t.userId FROM ForumTopic t WHERE t.id = :id")
