@@ -43,7 +43,7 @@ class SecurityConfigAuthMatrixTest {
     private static final Set<String> PUBLIC = Set.of(
             "POST /api/auth/register", "POST /api/auth/resend-code", "POST /api/auth/forgot-password",
             "POST /api/auth/verify-reset-code", "POST /api/auth/reset-password", "POST /api/auth/verify-email",
-            "POST /api/auth/login", "POST /api/auth/refresh", "POST /api/auth/logout");
+            "POST /api/auth/login", "POST /api/auth/login/2fa", "POST /api/auth/login/2fa/resend", "POST /api/auth/refresh", "POST /api/auth/logout");
 
     @Autowired WebApplicationContext ctx;
     @Autowired @Qualifier("requestMappingHandlerMapping") RequestMappingHandlerMapping mapping;
