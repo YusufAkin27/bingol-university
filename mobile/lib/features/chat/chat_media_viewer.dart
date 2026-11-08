@@ -160,11 +160,43 @@ class _ChatMediaViewerState extends State<ChatMediaViewer> {
   bool _bars = true;
   bool _zoomed = false;
   bool _saving = false;
+  final ScrollController _strip = ScrollController();
+
+  /// Alt şerit: küçük resim kenarı + aralık (kaydırma konumu hesabı için).
+  static const double _thumb = 52;
+  static const double _gap = 6;
 
   @override
   void dispose() {
     _pc.dispose();
+    _strip.dispose();
     super.dispose();
+  }
+
+  /// Seçili küçük resmi şeridin ortasına getirir.
+  void _centerStrip(int i, {bool animate = true}) {
+    if (!_strip.hasClients) return;
+    final view = _strip.position.viewportDimension;
+    final target = (i * (_thumb + _gap) - (view - _thumb) / 2).clamp(0.0, _strip.position.maxScrollExtent);
+    if (animate) {
+      _strip.animateTo(target, duration: BuMotion.of(context, BuMotion.short), curve: BuMotion.standard);
+    } else {
+      _strip.jumpTo(target);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _centerStrip(_index, animate: false);
+    });
+  }
+
+  void _goTo(int i) {
+    if (i == _index) return;
+    buHaptic(BuHaptic.light);
+    _pc.animateToPage(i, duration: BuMotion.of(context, BuMotion.medium), curve: BuMotion.standard);
   }
 
   Future<void> _save() async {
@@ -193,7 +225,10 @@ class _ChatMediaViewerState extends State<ChatMediaViewer> {
     final it = widget.items[_index];
     // Sayfa içeriği üst çubuğun altından başlar (referans 26: çubuk ile kart ayrı bantlarda).
     final top = MediaQuery.paddingOf(context).top + 4 + 48 + 12;
-    final bottom = MediaQuery.paddingOf(context).bottom + 16;
+    final safeBottom = MediaQuery.paddingOf(context).bottom;
+    // Birden çok medya varsa alta küçük resim şeridi girer; sayfa içeriği şeridin üstünde kalır.
+    final stripH = n > 1 ? _thumb + 16 : 0.0;
+    final bottom = safeBottom + 16 + stripH;
     return ChatdMediaScaffold(
       body: Stack(children: [
         Positioned.fill(
@@ -207,10 +242,13 @@ class _ChatMediaViewerState extends State<ChatMediaViewer> {
                 controller: _pc,
                 itemCount: n,
                 physics: _zoomed ? const NeverScrollableScrollPhysics() : const PageScrollPhysics(),
-                onPageChanged: (i) => setState(() {
-                  _index = i;
-                  _zoomed = false;
-                }),
+                onPageChanged: (i) {
+                  setState(() {
+                    _index = i;
+                    _zoomed = false;
+                  });
+                  _centerStrip(i);
+                },
                 itemBuilder: (c, i) => widget.items[i].isVideo
                     ? _VideoPosterPage(
                         key: ValueKey(widget.items[i].url),
@@ -231,6 +269,36 @@ class _ChatMediaViewerState extends State<ChatMediaViewer> {
             ),
           ),
         ),
+        if (n > 1)
+          PositionedDirectional(
+            start: 0,
+            end: 0,
+            bottom: safeBottom + 8,
+            child: ChatdChrome(
+              visible: _bars,
+              fromTop: false,
+              child: SizedBox(
+                key: const ValueKey('viewerStrip'),
+                height: _thumb + 4,
+                child: ListView.separated(
+                  controller: _strip,
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                  itemCount: n,
+                  separatorBuilder: (_, __) => const SizedBox(width: _gap),
+                  itemBuilder: (c, i) => _StripThumb(
+                    key: ValueKey('viewerThumb$i'),
+                    item: widget.items[i],
+                    headers: widget.headers,
+                    size: _thumb,
+                    selected: i == _index,
+                    label: '${i + 1} / $n',
+                    onTap: () => _goTo(i),
+                  ),
+                ),
+              ),
+            ),
+          ),
         PositionedDirectional(
           start: 0,
           end: 0,
@@ -257,6 +325,70 @@ class _ChatMediaViewerState extends State<ChatMediaViewer> {
           ),
         ),
       ]),
+    );
+  }
+}
+
+/// Alt şeritteki küçük resim: seçili olan tam opak + beyaz çerçeve, diğerleri soluk; videoda küçük oynat simgesi.
+class _StripThumb extends StatelessWidget {
+  const _StripThumb(
+      {super.key,
+      required this.item,
+      required this.headers,
+      required this.size,
+      required this.selected,
+      required this.label,
+      required this.onTap});
+
+  final ChatMediaItem item;
+  final Map<String, String> headers;
+  final double size;
+  final bool selected;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final src = item.thumbUrl ?? (item.isVideo ? null : item.url);
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: AnimatedOpacity(
+          opacity: selected ? 1 : .55,
+          duration: BuMotion.of(context, BuMotion.short),
+          child: Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: selected ? t.prText : Colors.transparent, width: 2),
+              color: kChatdNavy,
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Stack(fit: StackFit.expand, children: [
+                if (src != null)
+                  Image.network(
+                    chatMediaUrl(src),
+                    headers: headers,
+                    fit: BoxFit.cover,
+                    cacheWidth: (size * dpr).ceil(),
+                    gaplessPlayback: true,
+                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                  ),
+                if (item.isVideo)
+                  Center(child: Icon(BuIcons.video, size: 18, color: t.prText)),
+              ]),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
