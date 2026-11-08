@@ -335,7 +335,12 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
       return;
     }
     try {
-      await _api.post('/conversations/$_cid/leave');
+      // Bölüm grubu bir sohbet odasıdır: üyelikten ayrılma bölüm ucundan yapılır.
+      if (_type == 'DEPARTMENT') {
+        await _api.delete('/department-chat/membership');
+      } else {
+        await _api.post('/conversations/$_cid/leave');
+      }
       if (!mounted) return;
       Navigator.pop(context, 'left');
     } catch (e) {

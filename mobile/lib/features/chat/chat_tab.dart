@@ -19,6 +19,7 @@ import 'chat_security_page.dart';
 import 'chat_sheet_parts.dart' show showChatMuteSheet;
 import 'chatlist_widgets.dart';
 import 'conversation_actions.dart';
+import 'department_chat_entry.dart';
 import 'message_bubble.dart' show OnceBadge;
 import 'message_requests_page.dart';
 import 'message_placeholder.dart';
@@ -65,6 +66,7 @@ class _ChatTabState extends State<ChatTab> {
   Timer? _badgeTimer;
   Timer? _reloadTimer;
   int _filter = 0;
+  final _deptEntryKey = GlobalKey<DepartmentChatEntryState>();
   String _query = '';
   bool _archived = false;
   int? _cursor;
@@ -133,6 +135,7 @@ class _ChatTabState extends State<ChatTab> {
   /// ulaşılamazsa kayıtlı liste SESSİZCE kalır; hata ekranı yalnız gösterilecek hiçbir şey yokken çıkar.
   Future<void> _load({bool silent = false}) async {
     final my = ++_seq;
+    _deptEntryKey.currentState?.refresh(); // ayrılma/katılma sonrası "bölüm grubu" satırı güncellensin
     if (!silent && _items.isEmpty && !_archived) {
       final cached = await MessageCache.instance.readConversations();
       if (!mounted || my != _seq) return;
@@ -580,7 +583,7 @@ class _ChatTabState extends State<ChatTab> {
       group: type != 'DIRECT',
       muted: muted,
       archived: _archived,
-      canDelete: type != 'CLUB' && type != 'EVENT',
+      canDelete: type != 'CLUB' && type != 'EVENT' && type != 'DEPARTMENT',
     );
     if (choice == null || !mounted) return;
     switch (choice) {
@@ -695,6 +698,14 @@ class _ChatTabState extends State<ChatTab> {
               ),
             if (!_archived && _msgReq > 0)
               SliverToBoxAdapter(child: MessageRequestsEntry(count: _msgReq, onTap: _openMsgRequests)),
+            if (!_archived && _filter == 0 && _query.trim().isEmpty)
+              SliverToBoxAdapter(
+                child: DepartmentChatEntry(
+                  key: _deptEntryKey,
+                  session: widget.session,
+                  onJoined: () => _load(silent: true),
+                ),
+              ),
             ..._bodySlivers(t),
           ],
         ),
@@ -990,6 +1001,7 @@ class _ConversationRow extends StatelessWidget {
     final tag = switch (type) {
       'CLUB' => l.chatMiscTagClub,
       'EVENT' => l.chatMiscTagEvent,
+      'DEPARTMENT' => l.deptChatTag,
       _ => null
     };
     final isDirect = type == 'DIRECT';
