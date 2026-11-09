@@ -7,6 +7,7 @@ import 'package:bu_kampus/core/push/active_conversation.dart';
 import 'package:bu_kampus/core/push/push_router.dart';
 import 'package:bu_kampus/core/push/push_service.dart';
 import 'package:bu_kampus/core/session.dart';
+import 'package:bu_kampus/features/auth/data/onboarding_api.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../support/fake_app.dart';
@@ -154,6 +155,36 @@ void main() {
       expect(s.userId, 1);
       expect(PushRouter.hasPending, isTrue);
       PushRouter.resetForTest();
+    });
+  });
+
+  group('Onboarding taslağı hesap bazlı', () {
+    test('hesaplar birbirinin taslağını görmez; kimlik değişince taslak yerinde kalır', () async {
+      mockSecureStorage();
+      OnboardingDraftStore.activeUserId = 1;
+      await OnboardingDraftStore.save(const OnboardingDraft(firstName: 'Ali'));
+      OnboardingDraftStore.activeUserId = 2;
+      expect(await OnboardingDraftStore.load(), isNull);
+      await OnboardingDraftStore.save(const OnboardingDraft(firstName: 'Veli'));
+      OnboardingDraftStore.activeUserId = 1;
+      expect((await OnboardingDraftStore.load())!.firstName, 'Ali');
+      await OnboardingDraftStore.clearFor(1);
+      expect(await OnboardingDraftStore.load(), isNull);
+      OnboardingDraftStore.activeUserId = 2;
+      expect((await OnboardingDraftStore.load())!.firstName, 'Veli');
+      OnboardingDraftStore.activeUserId = null;
+    });
+
+    test('Apple adı hesap bilinmeden saklanır, hesap belli olunca o hesabın taslağına geçer', () async {
+      mockSecureStorage();
+      OnboardingDraftStore.activeUserId = null;
+      await OnboardingDraftStore.savePending(firstName: 'Ali', lastName: 'Kaya');
+      OnboardingDraftStore.activeUserId = 5;
+      await OnboardingDraftStore.savePrefill();
+      final d = await OnboardingDraftStore.load();
+      expect(d!.firstName, 'Ali');
+      expect(d.lastName, 'Kaya');
+      OnboardingDraftStore.activeUserId = null;
     });
   });
 }

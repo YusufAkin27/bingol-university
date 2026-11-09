@@ -172,15 +172,27 @@ class OnboardingDraft {
       };
 }
 
+/// Profil tamamlama taslağı HESAP BAZLIDIR: anahtar `onboarding_draft_<kullanıcı kimliği>`; etkin hesap
+/// [activeUserId] ile bildirilir (Session). Hesaplar birbirinin taslağını görmez, hesap değişiminde silinmesi gerekmez.
+/// Apple'ın yalnız bir kez verdiği ad hesap henüz bilinmezken `onboarding_draft_pending` anahtarına yazılır ve
+/// hesap belli olunca ([savePrefill]) o hesabın taslağına katılır.
 class OnboardingDraftStore {
   OnboardingDraftStore._();
 
-  static const _key = 'onboarding_draft';
+  static const _legacyKey = 'onboarding_draft';
+  static const _pendingKey = 'onboarding_draft_pending';
   static const FlutterSecureStorage _storage = kDeviceSecureStorage;
 
+  /// Etkin hesap (Session atar). Null: oturum yok, taslak okunmaz/yazılmaz.
+  static int? activeUserId;
+
+  static String? get _key => activeUserId == null ? null : 'onboarding_draft_$activeUserId';
+
   static Future<OnboardingDraft?> load() async {
+    final k = _key;
+    if (k == null) return null;
     try {
-      final raw = await _storage.read(key: _key);
+      final raw = await _storage.read(key: k);
       if (raw == null || raw.isEmpty) return null;
       final j = jsonDecode(raw);
       return j is Map<String, dynamic> ? OnboardingDraft.fromJson(j) : null;
@@ -190,17 +202,45 @@ class OnboardingDraftStore {
   }
 
   static Future<void> save(OnboardingDraft d) async {
+    final k = _key;
+    if (k == null) return;
     try {
-      await _storage.write(key: _key, value: jsonEncode(d.toJson()));
+      await _storage.write(key: k, value: jsonEncode(d.toJson()));
     } catch (_) {
       // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
     }
   }
 
-  /// Apple'ın yalnız bir kez verdiği ad/soyadı, onboarding açılana kadar saklar (mevcut taslağı bozmadan).
-  static Future<void> savePrefill({String? firstName, String? lastName}) async {
+  /// Hesap bilinmeden önce (Apple yanıtı gelmeden) adı geçici saklar.
+  static Future<void> savePending({String? firstName, String? lastName}) async {
     final f = (firstName ?? '').trim();
     final l = (lastName ?? '').trim();
+    if (f.isEmpty && l.isEmpty) return;
+    try {
+      await _storage.write(key: _pendingKey, value: jsonEncode({'f': f, 'l': l}));
+    } catch (_) {
+      // en iyi çaba
+    }
+  }
+
+  /// Ad/soyadı ETKİN hesabın taslağına yazar (mevcut taslağı bozmadan); bekleyen geçici ad varsa katılır ve silinir.
+  static Future<void> savePrefill({String? firstName, String? lastName}) async {
+    var f = (firstName ?? '').trim();
+    var l = (lastName ?? '').trim();
+    if (activeUserId == null) return savePending(firstName: f, lastName: l);
+    try {
+      final raw = await _storage.read(key: _pendingKey);
+      if (raw != null && raw.isNotEmpty) {
+        final j = jsonDecode(raw);
+        if (j is Map) {
+          if (f.isEmpty) f = '${j['f'] ?? ''}';
+          if (l.isEmpty) l = '${j['l'] ?? ''}';
+        }
+        await _storage.delete(key: _pendingKey);
+      }
+    } catch (_) {
+      // en iyi çaba
+    }
     if (f.isEmpty && l.isEmpty) return;
     final cur = await load() ?? const OnboardingDraft();
     await save(OnboardingDraft(
@@ -214,11 +254,33 @@ class OnboardingDraftStore {
     ));
   }
 
+  /// Etkin hesabın taslağını siler.
   static Future<void> clear() async {
+    final k = _key;
     try {
-      await _storage.delete(key: _key);
+      if (k != null) await _storage.delete(key: k);
     } catch (_) {
       // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
+    }
+  }
+
+  /// Belirli hesabın taslağı (hesap cihazdan kaldırılırken) + geçici ad + eski cihaz-geneli anahtar.
+  static Future<void> clearFor(int userId) async {
+    try {
+      await _storage.delete(key: 'onboarding_draft_$userId');
+      await _storage.delete(key: _legacyKey);
+    } catch (_) {
+      // en iyi çaba
+    }
+  }
+
+  /// Tüm hesaplardan çıkış: geçici ad ve eski anahtar silinir (hesap taslakları [clearFor] ile).
+  static Future<void> clearShared() async {
+    try {
+      await _storage.delete(key: _pendingKey);
+      await _storage.delete(key: _legacyKey);
+    } catch (_) {
+      // en iyi çaba
     }
   }
 }

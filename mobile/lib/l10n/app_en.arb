@@ -5098,5 +5098,10 @@
   "pushForeignSwitched": "This notification belonged to another of your accounts; switched to it.",
   "pushForeignMissing": "This notification belongs to another account that is not saved on this device.",
   "pushForeignExpired": "This notification belongs to an account whose session ended. It opens after you log in to it.",
-  "pushContentGone": "This content is no longer available."
+  "pushContentGone": "This content is no longer available.",
+  "sessionEndedFormClosed": "Your session ended, so the open page was closed. What you typed was not saved.",
+  "formDiscardTitle": "Discard what you wrote?",
+  "formDiscardBody": "If you leave, the information you entered will be lost.",
+  "formDiscardConfirm": "Discard and leave",
+  "formDiscardKeep": "Keep editing"
 }
