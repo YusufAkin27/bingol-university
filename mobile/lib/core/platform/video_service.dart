@@ -346,10 +346,13 @@ class VideoUploader {
 
   static const _timeout = Duration(minutes: 5);
 
-  Future<dynamic> upload(String path, PreparedVideo video, {void Function(double progress)? onProgress}) =>
-      _send(path, video, onProgress, false);
+  /// [headers]: ek başlıklar (aktarım kuyruğu `Idempotency-Key` verir: yeniden denemede ikinci ek oluşmaz).
+  Future<dynamic> upload(String path, PreparedVideo video,
+          {void Function(double progress)? onProgress, Map<String, String>? headers}) =>
+      _send(path, video, onProgress, false, headers);
 
-  Future<http.MultipartRequest> _build(String path, PreparedVideo video, void Function(double)? onProgress) async {
+  Future<http.MultipartRequest> _build(
+      String path, PreparedVideo video, void Function(double)? onProgress, Map<String, String>? headers) async {
     final api = session.api;
     final req = _ProgressRequest('POST', Uri.parse('$apiBase$path'), (sent, total) {
       if (total > 0) onProgress?.call((sent / total).clamp(0.0, 1.0));
@@ -358,6 +361,7 @@ class VideoUploader {
     req.headers['Accept'] = 'application/json';
     final t = api.tokens;
     if (t != null) req.headers['Authorization'] = 'Bearer ${t.access}';
+    if (headers != null) req.headers.addAll(headers);
     final ct = MediaType('video', 'mp4');
     final bytes = video.bytes;
     if (bytes != null) {
@@ -376,10 +380,11 @@ class VideoUploader {
     return req;
   }
 
-  Future<dynamic> _send(String path, PreparedVideo video, void Function(double)? onProgress, bool retried) async {
+  Future<dynamic> _send(String path, PreparedVideo video, void Function(double)? onProgress, bool retried,
+      Map<String, String>? headers) async {
     final api = session.api;
     final t = api.tokens;
-    final req = await _build(path, video, onProgress);
+    final req = await _build(path, video, onProgress, headers);
     http.Response res;
     try {
       res = await http.Response.fromStream(await _http.send(req).timeout(_timeout));
@@ -393,7 +398,7 @@ class VideoUploader {
         api.handleRefreshFailure(e);
         rethrow;
       }
-      return _send(path, video, onProgress, true);
+      return _send(path, video, onProgress, true, headers);
     }
     // Geçersiz UTF-8 FormatException sızdırmasın (bkz. MultipartUploader).
     final text = utf8.decode(res.bodyBytes, allowMalformed: true);

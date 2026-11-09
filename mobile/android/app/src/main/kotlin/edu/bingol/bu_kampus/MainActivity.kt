@@ -94,6 +94,8 @@ class MainActivity : FlutterActivity() {
         BuVideoTrim.register(messenger, this)
         // Bildirim ayarlari: kanal ayar sayfasi, uygulama bildirim ayari, onizleme gizleme (lib/core/platform/notif_settings.dart).
         BuNotifSettings.register(messenger, this)
+        // Arka plan aktarimi: tek ilerleme bildirimi + on plan servisi (lib/core/transfers/transfer_platform.dart).
+        BuTransfers.register(messenger, this)
         pushChannel = MethodChannel(messenger, "bu_kampus/push_actions").apply {
             setMethodCallHandler { call, result ->
                 when (call.method) {
