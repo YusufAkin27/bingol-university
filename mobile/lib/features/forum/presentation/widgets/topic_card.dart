@@ -142,16 +142,22 @@ class ForumStatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    return Row(mainAxisSize: MainAxisSize.min, children: [
-      ExcludeSemantics(child: Icon(icon, size: 14, color: t.mut)),
-      const SizedBox(width: 4),
-      Flexible(
-        child: Text(label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
+    return DecoratedBox(
+      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.pill)),
+      child: Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(8, 3, 10, 3),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          ExcludeSemantics(child: Icon(icon, size: 14, color: t.mut)),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(color: t.mut, fontWeight: FontWeight.w500)),
+          ),
+        ]),
       ),
-    ]);
+    );
   }
 }
 
@@ -223,14 +229,18 @@ class TopicCard extends StatelessWidget {
       child: DecoratedBox(
         key: ValueKey('forum-topic-${topic.id}'),
         decoration: BoxDecoration(
-          border: showDivider ? Border(bottom: BorderSide(color: t.bdSubtle)) : null,
+          color: t.sf,
+          borderRadius: BorderRadius.circular(BuRadius.lg),
+          border: Border.all(color: t.bd),
         ),
         child: Material(
           type: MaterialType.transparency,
+          clipBehavior: Clip.antiAlias,
+          borderRadius: BorderRadius.circular(BuRadius.lg),
           child: InkWell(
             onTap: onOpen,
             child: Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(0, 14, 0, 6),
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 8, 4),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 ForumAuthorLine(
                   session: session,
@@ -255,11 +265,11 @@ class TopicCard extends StatelessWidget {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsetsDirectional.only(end: 4),
+                  padding: const EdgeInsetsDirectional.only(end: 8),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     if (badges.isNotEmpty) ...[
                       BuGap.h4,
-                      Wrap(spacing: 12, runSpacing: 4, children: badges),
+                      Wrap(spacing: 6, runSpacing: 6, children: badges),
                     ],
                     BuGap.h8,
                     Text.rich(
@@ -280,6 +290,7 @@ class TopicCard extends StatelessWidget {
                       BuGap.h12,
                       ForumTopicImage(session: session, image: topic.thumbnail!, count: topic.imageCount),
                     ],
+                    BuGap.h4,
                   ]),
                 ),
                 Row(children: [
@@ -329,9 +340,13 @@ class TopicCardSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     return DecoratedBox(
-      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bdSubtle))),
+      decoration: BoxDecoration(
+        color: t.sf,
+        borderRadius: BorderRadius.circular(BuRadius.lg),
+        border: Border.all(color: t.bd),
+      ),
       child: const Padding(
-        padding: EdgeInsets.symmetric(vertical: 16),
+        padding: EdgeInsets.all(16),
         child: BuSkeletonScope(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
