@@ -130,3 +130,9 @@ silinmis (anonimlestirilmis) hesapta NULL. `ProfileView`/KVKK dis aktarimi bu su
 - `GET /api/users/search` minimum 2 karakter **değişmedi** (istemci sözleşmesi); 2 karakterde tam tarama riski ölçüm gerektirir.
 - Dışa aktarım: `feedback` ve `supportTickets` bölümleri en yeni 5000 kayıtla sınırlı (diğer bölümlerle aynı `MAX_ROWS`).
 - Migration: `V1140` (grade geriye doldurma), `V1141` (hesap silme indeksleri); ayrıntı `docs/changes/academic.md`.
+
+## FIX-TT: sinif/bolum degisince ders programi
+- Kok neden: resmi program kisisel programa BIR KEZ kopyalaniyordu (`tt_official_seed`, "dersler varken tekrar tohumlanmaz"); profilde `grade`/`department` degisince hicbir sey yenilenmiyor, mobil de `/timetable` onbellegi, ekranlar, widget snapshot'i ve yerel hatirlatmalari tazelemiyordu.
+- Backend: V1770 `tt_course.official` (+ eski tohumlar icin zaman yakinligiyla geriye doldurma). `ProfileService.update` bolum/sinif degisince `AcademicProfileChanged` yayinlar; `OfficialTimetableSeeder.onAcademicProfileChanged` (AFTER_COMMIT, yeni islem) resmi kopya dersleri siler, tohum isaretini siler, tek birim eslesirse yeni programi kopyalar. Elle dersler korunur; sinavlar dersten ayrilir. Hata profil kaydini bozmaz (log).
+- Mobil: `notifyAcademicProfileChanged(session)` (`features/academic/academic_refresh.dart`): `/timetable` onbellegi, `Session.academicRevision` (Ders Programi, Sinavlar, Akademik merkez, Ana Sayfa dinler), widget snapshot'i, yerel hatirlatmalar.
+
