@@ -25421,6 +25421,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Düzenlemeye devam et'**
   String get formDiscardKeep;
+
+  /// No description provided for @g4ChatJumpMissing.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu mesaj artık mevcut değil veya yüklenemedi.'**
+  String get g4ChatJumpMissing;
 }
 
 class _AppLocalizationsDelegate

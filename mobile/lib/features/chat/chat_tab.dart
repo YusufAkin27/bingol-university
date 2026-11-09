@@ -1,6 +1,7 @@
 import 'emoji_presentation.dart';
 import '../../core/analytics.dart';
 import 'dart:async';
+import '../../core/push/active_conversation.dart';
 
 import 'package:flutter/foundation.dart' show kDebugMode, debugPrint;
 import 'package:flutter/material.dart';
@@ -333,7 +334,8 @@ class _ChatTabState extends State<ChatTab> {
     final mine = (m['senderId'] as num?)?.toInt() == widget.session.userId;
     final row = Map<String, dynamic>.from(_items[i]);
     row['lastMessage'] = m;
-    if (!mine) {
+    // Kullanıcının o an baktığı (açık + ön plan) sohbette sayaç artmaz: mesajı görüyor, imleç sohbet ekranından gider.
+    if (!mine && ActiveConversation.instance.viewingId != cid) {
       row['unreadCount'] = ((row['unreadCount'] as num?)?.toInt() ?? 0) + 1;
     }
     setState(() {
@@ -365,7 +367,12 @@ class _ChatTabState extends State<ChatTab> {
     final cur = _tickRank['${last['status'] ?? 'SENT'}'.toUpperCase()] ?? 1;
     if (nr <= cur) return;
     if (kDebugMode) debugPrint('[receipt] list cid=${e.conversationId} msg=$id $next');
-    setState(() => _items[i] = {..._items[i], 'lastMessage': {...Map<String, dynamic>.from(last), 'status': next}});
+    setState(() => _items[i] = {..._items[i], 'lastMessage': {
+          ...Map<String, dynamic>.from(last),
+          'status': next,
+          // Sohbet ekranıyla aynı metin: canlı okundu olayında zaman da yazılır (liste yeniden çekilince sıçramasın).
+          if (next == 'READ') 'readAt': DateTime.now().toUtc().toIso8601String(),
+        }});
     _persistList();
   }
 

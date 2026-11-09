@@ -7568,5 +7568,6 @@
   "formDiscardTitle": "Yazdıkların silinsin mi?",
   "formDiscardBody": "Çıkarsan girdiğin bilgiler kaybolur.",
   "formDiscardConfirm": "Sil ve çık",
-  "formDiscardKeep": "Düzenlemeye devam et"
+  "formDiscardKeep": "Düzenlemeye devam et",
+  "g4ChatJumpMissing": "Bu mesaj artık mevcut değil veya yüklenemedi."
 }

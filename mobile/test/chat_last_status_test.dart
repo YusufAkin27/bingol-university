@@ -68,7 +68,7 @@ Future<void> _pump(WidgetTester tester, Widget page,
 }
 
 final _lines = find.byKey(const ValueKey('msg-status-line'));
-Finder _t(String t) => find.descendant(of: _lines, matching: find.text(t));
+Finder _t(String t) => find.descendant(of: _lines, matching: find.textContaining(t));
 Finder _bubbleOf(String text) => find.ancestor(of: find.text(text), matching: find.byType(MessageBubble)).first;
 
 void main() {
@@ -76,7 +76,10 @@ void main() {
     await loadTestFonts();
     mockSecureStorage();
   });
-  setUp(() => MessageCache.instance = MessageCache.memoryOnly());
+  setUp(() {
+    MessageCache.instance = MessageCache.memoryOnly();
+    debugResetChatSeen();
+  });
 
   Widget page(FakeBackend be, {ChatRealtime? rt}) {
     final s = makeSession(be);

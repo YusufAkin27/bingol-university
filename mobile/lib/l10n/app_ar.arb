@@ -5107,5 +5107,6 @@
   "formDiscardTitle": "هل تريد تجاهل ما كتبته؟",
   "formDiscardBody": "إذا غادرت ستفقد المعلومات التي أدخلتها.",
   "formDiscardConfirm": "تجاهل وخروج",
-  "formDiscardKeep": "متابعة التحرير"
+  "formDiscardKeep": "متابعة التحرير",
+  "g4ChatJumpMissing": "هذه الرسالة لم تعد متاحة أو تعذر تحميلها."
 }

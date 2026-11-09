@@ -14082,4 +14082,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get formDiscardKeep => 'متابعة التحرير';
+
+  @override
+  String get g4ChatJumpMissing => 'هذه الرسالة لم تعد متاحة أو تعذر تحميلها.';
 }

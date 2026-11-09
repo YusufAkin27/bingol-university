@@ -14138,4 +14138,8 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get formDiscardKeep => 'Düzenlemeye devam et';
+
+  @override
+  String get g4ChatJumpMissing =>
+      'Bu mesaj artık mevcut değil veya yüklenemedi.';
 }

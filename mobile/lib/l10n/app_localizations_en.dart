@@ -14193,4 +14193,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get formDiscardKeep => 'Keep editing';
+
+  @override
+  String get g4ChatJumpMissing =>
+      'This message is no longer available or could not be loaded.';
 }

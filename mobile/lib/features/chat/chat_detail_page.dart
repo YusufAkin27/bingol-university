@@ -86,6 +86,12 @@ class _VideoPrepareDialog extends StatelessWidget {
   }
 }
 
+final Map<String, ({int upTo, DateTime at})> _chatSeenAt = {};
+
+/// Testler arası sızıntıyı önlemek için (oturum içi "görülme anı" haritasını boşaltır).
+@visibleForTesting
+void debugResetChatSeen() => _chatSeenAt.clear();
+
 /// Sohbet detayı: mesaj geçmişi (imleçli), iyimser gönderim, yanıt/düzenle/sil/tepki, görsel gönderme.
 /// Gerçek zamanlı (STOMP) çalışır; bağlı değilken 4 sn'lik `after` yoklamasına düşer.
 class ChatDetailPage extends StatefulWidget {
@@ -197,13 +203,19 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   final _searchCtl = TextEditingController();
   final _searchFocus = FocusNode();
 
-  /// Karşı tarafın okuduğu son mesaj id'si ve "yazıyor" göstergesi (yalnız ilgili widget'ları yeniler).
-  final _peerRead = ValueNotifier<int>(0);
-
   /// Okundu bilgisinin YAKLAŞIK zamanı: sunucu mesaj görünümünde readAt vermez, bu yüzden
   /// canlı `receipt` olayının istemciye ulaştığı an saklanır (oturum içi, bellekte).
   /// Sayfaya yeniden girince/ilk yüklemede bilinmez; durum yazısı zamansız "Görüldü" kalır.
-  static final Map<int, ({int upTo, DateTime at})> _seenAtByConv = {};
+  /// Anahtar `hesap:sohbet` (I4-11): hesap değişince başka hesabın görülme anı gösterilmez.
+  Map<String, ({int upTo, DateTime at})> get _seenAtByConv => _chatSeenAt;
+
+  String get _seenKey => '$_myId:$_cid';
+
+  /// Uygulama yaşam döngüsü durumu: okundu imleci yalnız ön plandayken (`resumed`) gider (I4-02).
+  AppLifecycleState _life = AppLifecycleState.resumed;
+
+  /// Okundu imleci engellendiyse (arka plan / üstte başka sayfa / kullanıcı yukarıda) true: koşul düzelince yeniden denenir.
+  bool _readPending = false;
 
   /// `around` penceresi açıkken konuşmanın gerçek en güncel mesajı bellekte olmayabilir (durum yazısı gizlenir).
   bool _newerGap = false;
@@ -501,7 +513,6 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     }
     // WS ack zamanlayıcıları artık Outbox'tadır (sayfadan bağımsız); yalnız yedek yoldakiler yukarıda iptal edilir.
     _ownRt?.dispose();
-    _peerRead.dispose();
     _typingNow.dispose();
     _input.removeListener(_onInput);
     _input.dispose();
@@ -512,9 +523,11 @@ class _ChatDetailPageState extends State<ChatDetailPage>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    _life = state;
     if (state == AppLifecycleState.resumed) {
       _startTimer();
       _poll(force: true);
+      _markRead(); // arka planda biriken mesajlar ancak şimdi okunmuş sayılır
     } else {
       _timer?.cancel();
       _timer = null;
@@ -695,6 +708,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     final away = _scroll.position.pixels > 200;
     if (_showDown.value != away) _showDown.value = away;
     if (!away && _newBelow.value != 0) _newBelow.value = 0;
+    if (!away && _readPending) _markRead();
   }
 
   Future<void> _loadOlder() async {
@@ -725,10 +739,17 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   /// bağlı değilken her turda `after` ile yeni mesajlar çekilir.
   Future<void> _poll({bool force = false}) async {
     if (_polling || _loading || _error != null || !mounted || _leaving) return;
+    if (_readPending) _markRead(); // engel kalktıysa (öne dönüş, alta inme) imleç gecikmeden gider
     // Üstte başka sayfa (profil, medya, bilgi...) varken arka planda yoklama yapılmaz; geri dönünce sıradaki tur çalışır.
     if (!force && _route != null && !_route!.isCurrent) return;
     _tick++;
-    if (_rtOn && !force && _tick % 5 != 0 && !(_tick % 2 == 0 && _awaitingPeerReceipt)) return;
+    if (_rtOn &&
+        !force &&
+        !_newerGap &&
+        _tick % 5 != 0 &&
+        !(_tick % 2 == 0 && _awaitingPeerReceipt)) {
+      return;
+    }
     // Çevrimdışıyken her 4 sn'de ölü ağa vurma (pil): yaklaşık 30 sn'de bir dener; bağlantı gelince STOMP/öne gelme
     // `force` ile hemen tetikler.
     if (!force && !_api.connectivity.online && _tick % 8 != 0) return;
@@ -748,9 +769,15 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         added = r.added > 0 || added;
         changed = r.changed || changed;
       }
+      if (_newerGap) {
+        // `around` penceresinden sonra boşluk kapanmadıysa (ağ hatası) her turda yeniden dene (I4-03).
+        final r = await _fetchAfter();
+        added = r.added > 0 || added;
+        if (mounted && r.complete) setState(() => _newerGap = false);
+      }
       if (_tick % 8 == 0) _loadPresence();
       if (mounted) {
-        if (added) _markRead();
+        if (added || _readPending) _markRead();
         _scheduleDelivered();
       }
     } catch (e) {
@@ -804,15 +831,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         if (id == _cid) _onRemovedFromConversation();
       }),
       _rt.messages.listen(_onRtMessage),
-      _rt.readReceipts.listen((r) {
-        if (r.conversationId == _cid && r.userId != _myId) {
-          _advanceStatus(r.lastMessageId, 'READ');
-          if (r.lastMessageId > _peerRead.value) {
-            _seenAtByConv[_cid] = (upTo: r.lastMessageId, at: DateTime.now());
-            _peerRead.value = r.lastMessageId;
-          }
-        }
-      }),
+      // Eski `read-receipts` olayı DİNLENMEZ (I4-01): okuyan her üye için ve gölge engel süzülmeden gelir, tek üyenin
+      // okuması "Görüldü" gösterirdi. "Görüldü" yalnız sunucunun hesapladığı `receipt`/`status=READ` bilgisine dayanır
+      // (birebirde karşı taraf, grupta politika; gölge engelde hiç READ üretilmez).
       _rt.receipts.listen((e) {
         if (e.conversationId == _cid) {
           _advanceStatus(e.upToMessageId, e.effectiveStatus);
@@ -919,6 +940,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         m['status'] = status;
         changed = true;
       }
+    }
+    if (status == 'READ' && changed) {
+      _seenAtByConv[_seenKey] = (upTo: upTo, at: DateTime.now());
     }
     if (kDebugMode) debugPrint('[receipt] detail cid=$_cid upTo=$upTo $status changed=$changed');
     if (changed && mounted) setState(() {});
@@ -1139,9 +1163,29 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     }
   }
 
+  /// Okundu imleci yalnız kullanıcı gerçekten bakıyorsa gider: uygulama ön planda, bu sohbet en üst rota ve liste
+  /// alt uçta (yukarı kaydırılmışsa yeni mesajlar "N yeni mesaj" sayacında kalır, okunmamış sayılır).
+  bool get _canMarkRead {
+    if (_life != AppLifecycleState.resumed) return false;
+    if (!mounted) return false;
+    if (ModalRoute.of(context)?.isCurrent == false) return false;
+    return !_showDown.value;
+  }
+
+  @visibleForTesting
+  bool get debugReadPending => _readPending;
+
   Future<void> _markRead() async {
     final id = _newestServerId;
-    if (id == null || id <= _lastRead) return;
+    if (id == null || id <= _lastRead) {
+      _readPending = false;
+      return;
+    }
+    if (!_canMarkRead) {
+      _readPending = true;
+      return;
+    }
+    _readPending = false;
     _lastRead = id;
     _changed = true;
     if (_rtOn && _rt.sendRead(_cid, id)) return;
@@ -1874,7 +1918,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     }
   }
 
-  /// Alıntılanan mesaja kaydırır ve kısa süre vurgular (yüklü değilse sessizce geçer).
+  /// Alıntılanan mesaja kaydırır ve kısa süre vurgular. Hedef yüklenemez/silinmişse kullanıcıya söylenir; vurgu yalnız
+  /// satır gerçekten kurulduysa verilir (I4-06).
   Future<void> _jumpTo(int id) async {
     var ctx = _rowKeys[id]?.currentContext;
     if (ctx == null) {
@@ -1884,20 +1929,31 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         await _loadAround(id);
         idx = _msgs.indexWhere((e) => (e['id'] as num?)?.toInt() == id);
       }
-      if (idx < 0 || !_scroll.hasClients) return;
+      if (!mounted) return;
+      if (idx < 0) {
+        _toast(context.l10n.g4ChatJumpMissing);
+        return;
+      }
+      if (!_scroll.hasClients) return;
       final target = (idx * 76.0).clamp(0.0, _scroll.position.maxScrollExtent);
       await _scroll.animateTo(target,
           duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
-      await WidgetsBinding.instance.endOfFrame;
+      // Satır tahmini konuma kurulana dek birkaç kare bekle (sabit 76 px tahmini yaklaşıktır).
+      for (var i = 0; i < 6 && mounted; i++) {
+        await WidgetsBinding.instance.endOfFrame;
+        ctx = _rowKeys[id]?.currentContext;
+        if (ctx != null) break;
+      }
       if (!mounted) return;
-      ctx = _rowKeys[id]?.currentContext;
     }
-    if (ctx != null && ctx.mounted) {
-      await Scrollable.ensureVisible(ctx,
-          alignment: .5,
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOut);
+    if (ctx == null || !ctx.mounted) {
+      _toast(context.l10n.g4ChatJumpMissing);
+      return;
     }
+    await Scrollable.ensureVisible(ctx,
+        alignment: .5,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut);
     if (!mounted) return;
     _hi.value = id;
     _hiOff?.cancel();
@@ -3090,10 +3146,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     }
     return Stack(children: [
       Positioned.fill(
-        child: ValueListenableBuilder<int>(
-          valueListenable: _peerRead,
-          builder: (c, peerRead, _) => _list(t, peerRead),
-        ),
+        child: _list(t),
       ),
       PositionedDirectional(end: 20, bottom: 12, child: _downButton(t)),
     ]);
@@ -3244,7 +3297,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     }
   }
 
-  Widget _list(BuTokens t, int peerRead) {
+  Widget _list(BuTokens t) {
     // findChildIndexCallback için kimlik -> konum (yapı başına bir kez).
     final indexOf = <String, int>{
       for (var i = 0; i < _msgs.length; i++) _rowId(_msgs[i]): i,
@@ -3299,7 +3352,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
             final id = (m['id'] as num?)?.toInt();
             final row = Padding(
                 padding: EdgeInsets.only(top: tight ? 3 : 10),
-                child: _rowFor(t, m, i, peerRead));
+                child: _rowFor(t, m, i));
             return Column(key: ValueKey<String>(_rowId(m)), children: [
               if (newDay) _dayChip(t, _dayLabel(_time(m)!)),
               id == null
@@ -3346,8 +3399,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
 
   /// Satır: gelen mesajlarda solda 28 px avatar sütunu (yalnız serinin son mesajında avatar görünür,
   /// baloncuğun altına hizalı); giden mesajlarda yalnız baloncuk.
-  Widget _rowFor(BuTokens t, Map<String, dynamic> m, int i, int peerRead) {
-    final bubble = _bubble(m, peerRead,
+  Widget _rowFor(BuTokens t, Map<String, dynamic> m, int i) {
+    final bubble = _bubble(m,
         first: _firstOfRun(i), last: _lastOfRun(i), latest: i == 0);
     final mine = _isMine(m) || m['_state'] != null;
     // Birebir sohbette gelen mesajların yanında avatar YOK (Stitch v3 referansı); grup/kulüp/etkinlikte gönderen avatarı.
@@ -3376,13 +3429,13 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   /// Menü önizlemesi için: mesajı listedeki konumuna göre kurar.
   Widget _bubbleFor(Map<String, dynamic> m, {bool preview = false}) {
     final i = _msgs.indexOf(m);
-    return _bubble(m, _peerRead.value,
+    return _bubble(m,
         first: i < 0 || _firstOfRun(i),
         last: i < 0 || _lastOfRun(i),
         preview: preview);
   }
 
-  Widget _bubble(Map<String, dynamic> m, int peerRead,
+  Widget _bubble(Map<String, dynamic> m,
       {bool first = true,
       bool last = true,
       bool preview = false,
@@ -3406,8 +3459,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       if (st == 'pending') {
         statusLine = 'sending';
       } else if (st == null && id != null) {
-        statusLine = (id <= peerRead || m['status'] == 'READ') ? 'seen' : 'sent';
-        final rec = _seenAtByConv[_cid];
+        statusLine = m['status'] == 'READ' ? 'seen' : 'sent';
+        final rec = _seenAtByConv[_seenKey];
         if (statusLine == 'seen') {
           // Sunucu okunma zamanını (MessageView.readAt, yalnız gönderene) verirse o kesindir; yoksa canlı olay anı (yaklaşık).
           final srv = DateTime.tryParse('${m['readAt'] ?? ''}');
