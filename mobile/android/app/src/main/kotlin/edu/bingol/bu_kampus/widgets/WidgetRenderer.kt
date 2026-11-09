@@ -36,11 +36,19 @@ internal object WidgetRenderer {
         return r
     }
 
+    /** Veri eskiyse ("Eski veri") baslik satirlarina eklenir; render() ayarlar, cizim bitince temizler. */
+    private val staleNote = ThreadLocal<String?>()
+
+    private val headerIds: Set<Int> by lazy {
+        setOf(R.id.mn_hcap, R.id.tt_hcap, R.id.ev_hcap, R.id.an_hcap, R.id.pl_hcap, R.id.qa_hcap, R.id.sc_hcap, R.id.e_hcap)
+    }
+
     private fun RemoteViews.txt(id: Int, s: String?) {
         if (s.isNullOrEmpty()) {
             setViewVisibility(id, GONE)
         } else {
-            setTextViewText(id, s)
+            val note = if (id in headerIds) staleNote.get() else null
+            setTextViewText(id, if (note.isNullOrEmpty()) s else "$s · $note")
             setViewVisibility(id, VISIBLE)
         }
     }
@@ -101,10 +109,17 @@ internal object WidgetRenderer {
         } catch (_: Throwable) {
             Gate.SignedOut(null, null, false)
         }
-        return when (gate) {
-            is Gate.SignedOut -> signedOut(Env(ctx, sz, hDp, nowMs, gate.rtl), gate)
-            is Gate.Empty -> bind(Env(ctx, sz, hDp, nowMs, gate.rtl), slug, gate.snap, true)
-            is Gate.Ok -> bind(Env(ctx, sz, hDp, nowMs, gate.rtl), slug, gate.snap, false)
+        return try {
+            if (gate is Gate.Ok && slug != WidgetSlug.QUICKACCESS && WidgetGate.isStale(gate.snap, nowMs)) {
+                staleNote.set(Strs(gate.snap.obj("strings")).opt("stale"))
+            }
+            when (gate) {
+                is Gate.SignedOut -> signedOut(Env(ctx, sz, hDp, nowMs, gate.rtl), gate)
+                is Gate.Empty -> bind(Env(ctx, sz, hDp, nowMs, gate.rtl), slug, gate.snap, true)
+                is Gate.Ok -> bind(Env(ctx, sz, hDp, nowMs, gate.rtl), slug, gate.snap, false)
+            }
+        } finally {
+            staleNote.remove()
         }
     }
 
