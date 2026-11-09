@@ -52,6 +52,7 @@ check "kullanici icerik 403" 403 "$(code -H "$A1" "$A/admin/community-posts")"
 echo "== kulup olustur (kullanici) + uyeler"
 CID=$(curl -s -X POST -H "$H" -H "$A1" $A/communities -d "{\"name\":\"$TAG\",\"description\":\"duman testi\",\"joinPolicy\":\"OPEN\",\"visibility\":\"PUBLIC\"}" | idof)
 [ -n "$CID" ] || { echo "kulup olusmadi"; exit 1; }
+curl -s -o /dev/null -X POST -H "Authorization: Bearer $TA" -H "X-Admin-Reason: smoke onay" $A/admin/communities/$CID/approve   # varsayilan: onay bekler
 check "uye2 katilir" 200 "$(code -X POST -H "$A2" $A/communities/$CID/join)"
 check "hedef katilir" 200 "$(code -X POST -H "$A3" $A/communities/$CID/join)"
 

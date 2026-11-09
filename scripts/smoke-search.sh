@@ -107,6 +107,10 @@ echo "== kullanici / kulup / etkinlik arama (haberden bagimsiz)"
 JT='Content-Type: application/json'
 CRES=$(curl -s -X POST -H "$JT" -H "$AUTH" $A/communities -d "{\"name\":\"Aramakulubu$SFX\",\"description\":\"arama testi kulubu\"}")
 CID=$(echo "$CRES" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2)
+# Kulup varsayilan olarak yonetici onayi bekler; etkinlik/arama icin admin onaylar.
+ADMIN_EMAIL=${ADMIN_EMAIL:-boss@bingol.edu.tr}
+TA=$(register "$ADMIN_EMAIL" "Sistem Yoneticisi")
+curl -s -o /dev/null -X POST -H "Authorization: Bearer $TA" -H "X-Admin-Reason: smoke onay" $A/admin/communities/${CID:-0}/approve
 [ -n "$CID" ] && echo "  ok   kulup olustu (id=$CID)" || { echo "  FAIL kulup olusmadi: $CRES"; FAIL=1; }
 S1=$(date -u -d '+2 days' +%Y-%m-%dT%H:%M:%SZ); E1=$(date -u -d '+2 days 2 hours' +%Y-%m-%dT%H:%M:%SZ)
 ERES=$(curl -s -X POST -H "$JT" -H "$AUTH" $A/events -d "{\"title\":\"Aramaetkinligi$SFX\",\"startsAt\":\"$S1\",\"endsAt\":\"$E1\",\"communityId\":${CID:-0}}")

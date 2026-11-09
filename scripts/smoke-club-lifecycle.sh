@@ -2,12 +2,13 @@
 # Kulup yasam dongusu + etkinlik kapatma/iptal + "Etkinliklerim" duman testi (calisan compose yigina karsi).
 # Kullanim: BASE=http://localhost:8080 ./scripts/smoke-club-lifecycle.sh
 # Onkosul: MAIL_ENABLED=false (kod log'dan okunur). Oncesinde: docker compose exec -T redis redis-cli flushall
-# Kapsam: kulup kur (auto-approve), duzenle, istek akisi, katil/ayril -> sohbet kaybolur ve gecmise erisilemez,
+# Kapsam: kulup kur (202 onay bekler -> admin onaylar), duzenle, istek akisi, katil/ayril -> sohbet kaybolur ve gecmise erisilemez,
 # sahip ayrilamaz, kulup sil; etkinlik kur/kapat/yeniden ac/iptal; RSVP -> Etkinliklerim modlari.
 set -u
 BASE=${BASE:-http://localhost:8080}
 A=$BASE/api
 H='Content-Type: application/json'
+ADMIN_EMAIL=${ADMIN_EMAIL:-boss@bingol.edu.tr}
 FAIL=0
 TMP=$(mktemp)
 trap 'rm -f "$TMP"' EXIT
@@ -44,6 +45,7 @@ register() { # email ad
 SFX=$RANDOM
 echo "== kullanicilar"
 T1=$(register "ksahip$SFX@bingol.edu.tr" "Kulup Sahibi")
+TA=$(register "$ADMIN_EMAIL" "Sistem Yoneticisi")
 T2=$(register "kuye$SFX@bingol.edu.tr" "Kulup Uyesi")
 T3=$(register "kistek$SFX@bingol.edu.tr" "Istekci Kisi")
 [ -n "$T1" ] && [ -n "$T2" ] && [ -n "$T3" ] || { echo "kayit basarisiz"; exit 1; }
@@ -51,16 +53,14 @@ ID2=$(curl -s -H "Authorization: Bearer $T2" $A/users/me | idof)
 T_OUT=$(register "kdisi$SFX@bingol.edu.tr" "Kulup Disi")
 ID_OUT=$(curl -s -H "Authorization: Bearer $T_OUT" $A/users/me | idof)
 
-echo "== kulup kur (auto-approve) ve duzenle"
+echo "== kulup kur (yonetici onayi) ve duzenle"
 call POST /communities "$T1" "{\"name\":\"Yasam Dongusu $SFX\",\"description\":\"ilk\",\"category\":\"teknoloji\"}"
-if [ "$CODE" = "201" ]; then
-  echo "  ok   olusturma 201 (auto-approve acik)"
-  contains "status ACTIVE" '"status":"ACTIVE"' "$BODY"
-else
-  echo "  not  olusturma $CODE (auto-approve kapali olabilir; yonetici onayi gerekir, kalan adimlar atlandi)"
-  exit 0
-fi
+check "olusturma 202 (onay bekler)" 202 "$CODE"
+contains "status PENDING_REVIEW" '"status":"PENDING_REVIEW"' "$BODY"
 CID=$(printf '%s' "$BODY" | idof)
+step "bekleyen kulup yabanciya 404" 404 GET /communities/$CID "$T2"
+step "bekleyen kulube katilim 404" 404 POST /communities/$CID/join "$T2"
+step "yonetici onaylar" 204 POST /admin/communities/$CID/approve "$TA"
 step "duzenle (sahip)" 200 PATCH /communities/$CID "$T1" '{"description":"guncel aciklama","joinPolicy":"APPROVAL","category":"kultur"}'
 contains "aciklama guncel" "guncel aciklama" "$BODY"
 step "duzenle (uye olmayan) 403" 403 PATCH /communities/$CID "$T3" '{"description":"hack"}'
@@ -145,10 +145,9 @@ contains "CANCELLED" "CANCELLED" "$BODY"
 echo "== kulupten cikarilan olusturan etkinligi yonetemez (T-041)"
 step "T2 moderator yapildi" 204 PUT /communities/$CID/members/$ID2/role "$T1" '{"role":"MODERATOR"}'
 call POST /events "$T2" "{\"title\":\"Moderator Etkinligi $SFX\",\"startsAt\":\"$S\",\"endsAt\":\"$E\",\"communityId\":$CID}"
-# MANAGE_EVENTS izinli sade uye (MODERATOR) etkinligi onaya gonderir (202 PENDING_REVIEW); yonetici onaylayana kadar listeler 404
-check "moderator etkinlik acar (onay bekler)" 202 "$CODE"
+# Etkinlik admin onayi gerektirmez: MANAGE_EVENTS sahibi dogrudan ACTIVE (201)
+check "moderator etkinlik acar (onaysiz)" 201 "$CODE"
 EV3=$(printf '%s' "$BODY" | idof)
-check "yonetici etkinligi onaylar" 204 "$(curl -s -o /dev/null -w '%{http_code}' -u "admin:${ADMIN_PASSWORD:-}" -X POST -H 'X-Admin-Reason: smoke onay testi' $A/admin/events/$EV3/approve)"
 step "olusturan katilimci listesini gorur" 200 GET /events/$EV3/attendees "$T2"
 step "yabanci ortak organizator ekleyemez" 403 POST /events/$EV3/co-organizers "$T3" "{\"userId\":$ID2}"
 step "sahip kulup disi kisiyi ortak organizator yapamaz" 409 POST /events/$EV3/co-organizers "$T1" "{\"userId\":$ID_OUT}"

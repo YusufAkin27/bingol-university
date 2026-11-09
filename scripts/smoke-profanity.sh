@@ -63,7 +63,7 @@ hasnt "kelime yankilanmadi" "$WORD" "$R"
 EN=$(curl -s -X POST -H "$H" -H "Accept-Language: en" -H "$AU" $A/communities -d "{\"name\":\"Club ${WORD}\"}")
 has "EN mesaj" "Inappropriate language" "$EN"
 check "kulup aciklamasi 422" 422 "$(code -X POST -H "$H" -H "$AU" $A/communities -d "{\"name\":\"Temiz Kulup $SFX\",\"description\":\"x $WORD\"}")"
-check "temiz kulup 201" 201 "$(code -X POST -H "$H" -H "$AU" $A/communities -d "{\"name\":\"Temiz Kulup $SFX\",\"description\":\"herkese acik\"}")"
+check "temiz kulup 202 (onay bekler)" 202 "$(code -X POST -H "$H" -H "$AU" $A/communities -d "{\"name\":\"Temiz Kulup $SFX\",\"description\":\"herkese acik\"}")"
 check "profil biyografi 422" 422 "$(code -X PATCH -H "$H" -H "$AU" $A/users/me -d "{\"bio\":\"ben $WORD\"}")"
 check "e-posta bicimi atlatma 422 (T-022)" 422 "$(code -X PATCH -H "$H" -H "$AU" $A/users/me -d "{\"bio\":\"${WORD}@x.y\"}")"
 check "www bicimi atlatma 422 (T-022)" 422 "$(code -X PATCH -H "$H" -H "$AU" $A/users/me -d "{\"bio\":\"www.${WORD}\"}")"
@@ -79,7 +79,7 @@ check "mesaj govdesinde test kelimesi 201" 201 "$(code -X POST -H "$H" -H "$AU" 
 echo "== ALLOW ile istisna"
 check "ALLOW ekle" 201 "$(code -X POST -H "$H" -H "$AAD" $A/admin/profanity -d "{\"term\":\"$WORD\",\"kind\":\"ALLOW\"}")"
 sleep 1
-check "ALLOW sonrasi kulup 201" 201 "$(code -X POST -H "$H" -H "$AU" $A/communities -d "{\"name\":\"Allow Kulup ${WORD} $SFX\"}")"
+check "ALLOW sonrasi kulup 202 (onay bekler)" 202 "$(code -X POST -H "$H" -H "$AU" $A/communities -d "{\"name\":\"Allow Kulup ${WORD} $SFX\"}")"
 
 echo "== temizlik"
 ALLOWID=$(curl -s -H "$AAD" "$A/admin/profanity?kind=ALLOW&q=zzqxprof" | idof)

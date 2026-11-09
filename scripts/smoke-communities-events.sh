@@ -70,25 +70,33 @@ ID3=$(curl -s -H "Authorization: Bearer $T3" $A/users/me | idof)
 ID4=$(curl -s -H "Authorization: Bearer $T4" $A/users/me | idof)
 ID5=$(curl -s -H "Authorization: Bearer $T5" $A/users/me | idof)
 
-echo "== topluluk olusturma (app.community.auto-approve=true: dogrudan ACTIVE; sahip OWNER)"
+echo "== topluluk olusturma (varsayilan: yonetici onayi; 202 PENDING_REVIEW, onaylaninca ACTIVE; sahip OWNER)"
 NAME="Yazilim Kulubu $SFX"
-step "olustur (201)" 201 POST /communities "$T1" "{\"name\":\"$NAME\",\"description\":\"Kod yazanlar\",\"category\":\"teknoloji\"}"
+step "olustur (202 onay bekler)" 202 POST /communities "$T1" "{\"name\":\"$NAME\",\"description\":\"Kod yazanlar\",\"category\":\"teknoloji\"}"
 C1=$(printf '%s' "$BODY" | idof)
-contains "durum ACTIVE" '"status":"ACTIVE"' "$BODY"
+contains "durum PENDING_REVIEW" '"status":"PENDING_REVIEW"' "$BODY"
+call GET "/communities?q=$SFX" "$T2"
+lacks "bekleyen kulup kesfette yok" "yazilim-kulubu-$SFX" "$BODY"
+step "bekleyen kulup yabanciya 404" 404 GET /communities/$C1 "$T2"
+step "bekleyen kulube katilim 404" 404 POST /communities/$C1/join "$T2"
+step "sahip bekleyen kulubunu gorur" 200 GET /communities/$C1 "$T1"
+step "admin onayla" 204 POST /admin/communities/$C1/approve "$TA"
 contains "slug uretildi" "\"slug\":\"yazilim-kulubu-$SFX\"" "$BODY"
 step "gecersiz ad 400" 400 POST /communities "$T1" '{"name":"ab"}'
 call GET "/communities?q=$SFX" "$T2"
 contains "yayindaki kulup kesfette gorunur" "yazilim-kulubu-$SFX" "$BODY"
 step "normal kullanici admin ucu 403" 403 GET /admin/communities "$T1"
 step "admin liste" 200 GET /admin/communities "$TA"
-step "ACTIVE kulup icin onay 409" 409 POST /admin/communities/$C1/approve "$TA"
+step "ACTIVE kulup icin tekrar onay 409" 409 POST /admin/communities/$C1/approve "$TA"
 step "kesfet (kategori)" 200 GET "/communities?q=$SFX&category=teknoloji" "$T2"
 contains "kategoride gorunur" "yazilim-kulubu-$SFX" "$BODY"
-step "baslik slug cakisma -> yeni slug" 201 POST /communities "$T1" "{\"name\":\"$NAME\",\"joinPolicy\":\"APPROVAL\"}"
+step "baslik slug cakisma -> yeni slug" 202 POST /communities "$T1" "{\"name\":\"$NAME\",\"joinPolicy\":\"APPROVAL\"}"
 C2=$(printf '%s' "$BODY" | idof)
 contains "slug -2" "yazilim-kulubu-$SFX-2" "$BODY"
-step "ozel topluluk" 201 POST /communities "$T1" "{\"name\":\"Gizli Kulup $SFX\",\"visibility\":\"PRIVATE\"}"
+step "admin onayla (C2)" 204 POST /admin/communities/$C2/approve "$TA"
+step "ozel topluluk" 202 POST /communities "$T1" "{\"name\":\"Gizli Kulup $SFX\",\"visibility\":\"PRIVATE\"}"
 C3=$(printf '%s' "$BODY" | idof)
+step "admin onayla (C3)" 204 POST /admin/communities/$C3/approve "$TA"
 step "4. topluluk limiti 409" 409 POST /communities "$T1" '{"name":"Dorduncu Kulup"}'
 contains "limit kodu" "COMMUNITY_LIMIT" "$BODY"
 call GET "/communities?q=Gizli" "$T2"
@@ -168,7 +176,7 @@ step "uye ayrilir" 204 DELETE /communities/$C1/membership "$T2"
 step "tekrar katil" 200 POST /communities/$C1/join "$T2"
 step "yeniden moderator" 204 PUT /communities/$C1/members/$ID2/role "$T1" '{"role":"MODERATOR"}'
 
-echo "== etkinlik dogrulamalari ve onay akisi (etkinlik yalniz kulup adina; izinli uye -> PENDING_REVIEW)"
+echo "== etkinlik dogrulamalari (etkinlik yalniz kulup adina; admin onayi YOK: izinli uye -> ACTIVE; rezerve baslik -> PENDING_REVIEW)"
 START=$(iso "+10 minutes"); END=$(iso "+2 hours")
 PAST=$(iso "-3 hours"); PAST_END=$(iso "-2 hours")
 step "gecmis etkinlik 400" 400 POST /events "$T1" "{\"title\":\"Eski\",\"startsAt\":\"$PAST\",\"endsAt\":\"$PAST_END\",\"communityId\":$C1}"
@@ -181,18 +189,13 @@ step "uye olmayan topluluk etkinligi 403" 403 POST /events "$T3" "{\"title\":\"I
 step "T5 katilir" 200 POST /communities/$C1/join "$T5"
 step "izinsiz sade uye etkinlik acamaz 403" 403 POST /events "$T5" "{\"title\":\"Yetkisiz\",\"startsAt\":\"$START\",\"endsAt\":\"$END\",\"communityId\":$C1}"
 step "etkinlik sorumlusu yetkisi ver (T5)" 200 PUT /communities/$C1/members/$ID5/permissions "$T1" '{"template":"EVENT_MANAGER"}'
-step "izinli sade uye etkinligi -> 202" 202 POST /events "$T5" "{\"title\":\"Onayli Soylesi $SFX\",\"startsAt\":\"$START\",\"endsAt\":\"$END\",\"capacity\":10,\"communityId\":$C1}"
+step "izinli sade uye etkinligi -> 201 (onaysiz)" 201 POST /events "$T5" "{\"title\":\"Onaysiz Soylesi $SFX\",\"startsAt\":\"$START\",\"endsAt\":\"$END\",\"capacity\":10,\"communityId\":$C1}"
 EV_IND=$(printf '%s' "$BODY" | idof)
-contains "PENDING_REVIEW" '"status":"PENDING_REVIEW"' "$BODY"
-step "onaysiz etkinlik baskasina 404" 404 GET /events/$EV_IND "$T4"
-step "onaysiz etkinlige RSVP olmaz" 404 PUT /events/$EV_IND/rsvp "$T4" '{"status":"GOING"}'
-step "admin bekleyen etkinlikler" 200 GET /admin/events "$TA"
-contains "bekleyen etkinlik listede" "Onayli Soylesi $SFX" "$BODY"
-step "admin onayla" 204 POST /admin/events/$EV_IND/approve "$TA"
-step "etkinlik gorunur" 200 GET /events/$EV_IND "$T4"
 contains "ACTIVE" '"status":"ACTIVE"' "$BODY"
-step "reddedilecek etkinlik" 202 POST /events "$T5" "{\"title\":\"Reddedilecek $SFX\",\"startsAt\":\"$START\",\"endsAt\":\"$END\",\"communityId\":$C1}"
+step "etkinlik herkese gorunur" 200 GET /events/$EV_IND "$T4"
+step "rezerve baslik etkinligi onaya duser" 202 POST /events "$T5" "{\"title\":\"BU Kampus Resmi Duyuru\",\"startsAt\":\"$START\",\"endsAt\":\"$END\",\"communityId\":$C1}"
 EV_REJ=$(printf '%s' "$BODY" | idof)
+step "onaysiz etkinlik baskasina 404" 404 GET /events/$EV_REJ "$T4"
 step "admin reddet" 204 POST /admin/events/$EV_REJ/reject "$TA" '{"reason":"uygun degil"}'
 step "tekrar reddet 409" 409 POST /admin/events/$EV_REJ/reject "$TA"
 
