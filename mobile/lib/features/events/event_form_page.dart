@@ -9,6 +9,7 @@ import '../../core/locale_controller.dart';
 import '../../core/platform/image_service.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../../widgets/bu_dirty_guard.dart';
 import '../clubs/clubs_tab.dart';
 import '../media_crop/media_crop.dart';
 import 'etkinlik2_widgets.dart';
@@ -138,6 +139,19 @@ class _EventFormPageState extends State<EventFormPage> {
   late final ImageService _images = ImageService();
 
   bool get _editing => widget.event != null;
+
+  /// Açılıştaki alan özeti: geri jestinde "değişiklik var mı" karşılaştırması (I5-01).
+  String _snapshot = '';
+  String _formKey() => [
+        _title.text.trim(), _desc.text.trim(), _place.text.trim(), _meet.text.trim(), _cap.text.trim(),
+        _start.millisecondsSinceEpoch, _end.millisecondsSinceEpoch, _policy, _picked != null, _removeCover,
+      ].join('');
+  bool get _dirty => _formKey() != _snapshot;
+  bool _lastDirty = false;
+  void _syncDirty() {
+    final d = _dirty;
+    if (d != _lastDirty && mounted) setState(() => _lastDirty = d);
+  }
   int? get _id => (widget.event?['id'] as num?)?.toInt();
 
   @override
@@ -163,7 +177,12 @@ class _EventFormPageState extends State<EventFormPage> {
     _start = DateTime.tryParse('${e?['startsAt']}')?.toLocal() ?? base;
     _end = DateTime.tryParse('${e?['endsAt']}')?.toLocal() ?? _start.add(const Duration(hours: 2));
     _origStart = e == null ? null : _start;
+    _snapshot = _formKey();
     _desc.addListener(() => setState(() {})); // canlı sayaç
+    // Geri korumasının (PopScope.canPop) güncel kalması için alan değişince yalnız durum değişirse yeniden çiz.
+    for (final c in [_title, _place, _meet, _cap]) {
+      c.addListener(_syncDirty);
+    }
     // Odak bırakılınca uzun mekân metni başa sarılır (ilk harf kesik görünmesin).
     _placeFocus.addListener(() {
       if (!_placeFocus.hasFocus) _place.selection = const TextSelection.collapsed(offset: 0);
@@ -1021,7 +1040,10 @@ class _EventFormPageState extends State<EventFormPage> {
     final descErr = _descErr;
     final capErr = _submitted ? _capErr : null;
     final descLen = _desc.text.length;
-    return Scaffold(
+    return BuDirtyGuard(
+      dirty: () => _dirty,
+      busy: _busy,
+      child: Scaffold(
       backgroundColor: t.bg,
       resizeToAvoidBottomInset: true,
       // Oluştur/Kaydet klavyenin hemen üstünde sabit; uzun formda hep erişilebilir.
@@ -1153,6 +1175,7 @@ class _EventFormPageState extends State<EventFormPage> {
           ),
         ),
       ]),
+      ),
     );
   }
 }

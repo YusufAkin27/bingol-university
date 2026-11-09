@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import edu.bingol.backend.community.Community;
+import edu.bingol.backend.community.CommunityMember;
+import edu.bingol.backend.community.CommunityMemberRepository;
 import edu.bingol.backend.community.CommunityRepository;
 import edu.bingol.backend.community.CommunitySearchProvider;
 import edu.bingol.backend.event.EventSearchProvider;
@@ -31,6 +33,7 @@ class SearchProviderVisibilityTest {
     @Autowired CommunityRepository communities;
     @Autowired UserEventRepository eventRepo;
     @Autowired CommunitySearchProvider communitySearch;
+    @Autowired CommunityMemberRepository members;
     @Autowired EventSearchProvider eventSearch;
 
     private Community club(String name, Community.Status st, Community.Visibility vis) {
@@ -65,6 +68,34 @@ class SearchProviderVisibilityTest {
         List<SearchHit> hits = communitySearch.search(tag, 20);
         assertEquals(1, hits.size());
         assertTrue(hits.get(0).title().endsWith("acik"));
+    }
+
+    @Test
+    void privateClubFoundOnlyByActiveMember() {
+        SecurityContextHolder.clearContext();
+        String tag = "pm" + UUID.randomUUID().toString().substring(0, 6);
+        Community priv = club(tag + " gizli", Community.Status.ACTIVE, Community.Visibility.PRIVATE);
+        CommunityMember m = new CommunityMember();
+        m.setCommunityId(priv.getId());
+        m.setUserId(777L);
+        m.setStatus(CommunityMember.Status.ACTIVE);
+        members.saveAndFlush(m);
+        CommunityMember pending = new CommunityMember();
+        pending.setCommunityId(priv.getId());
+        pending.setUserId(778L);
+        pending.setStatus(CommunityMember.Status.PENDING);
+        members.saveAndFlush(pending);
+        assertTrue(communitySearch.search(tag, 20).isEmpty(), "anonim ozel kulubu bulamaz");
+        asUser(777L);
+        assertEquals(1, communitySearch.search(tag, 20).size(), "aktif uye ozel kulubunu bulur");
+        asUser(778L);
+        assertTrue(communitySearch.search(tag, 20).isEmpty(), "bekleyen basvuru uye degildir");
+        SecurityContextHolder.clearContext();
+    }
+
+    private static void asUser(long id) {
+        SecurityContextHolder.getContext().setAuthentication(
+                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(Long.valueOf(id), null, List.of()));
     }
 
     @Test
