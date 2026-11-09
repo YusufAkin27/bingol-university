@@ -11260,7 +11260,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notifPrefMealMenuSub =>
-      'A notification with the menu of the day. Off by default.';
+      'The menu of the day around 11:30, only on days with a menu.';
 
   @override
   String get notifExamAlarmOn => 'Reminder on';

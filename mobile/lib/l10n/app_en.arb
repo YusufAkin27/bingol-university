@@ -3904,7 +3904,7 @@
     }
   },
   "notifPrefMealMenu": "Daily menu",
-  "notifPrefMealMenuSub": "A notification with the menu of the day. Off by default.",
+  "notifPrefMealMenuSub": "The menu of the day around 11:30, only on days with a menu.",
   "notifExamAlarmOn": "Reminder on",
   "notifExamAlarmOff": "Reminder off",
   "notifCapacityFull": "Capacity: {n}% full",

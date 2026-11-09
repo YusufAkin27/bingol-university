@@ -3904,7 +3904,7 @@
     }
   },
   "notifPrefMealMenu": "قائمة اليوم",
-  "notifPrefMealMenuSub": "إشعار بقائمة طعام اليوم. متوقف افتراضيا.",
+  "notifPrefMealMenuSub": "قائمة طعام اليوم نحو الساعة 11:30، في الأيام التي تتوفر فيها قائمة فقط.",
   "notifExamAlarmOn": "التذكير مفعل",
   "notifExamAlarmOff": "التذكير متوقف",
   "notifCapacityFull": "السعة: {n}% ممتلئة",

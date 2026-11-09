@@ -11153,7 +11153,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notifPrefMealMenu => 'قائمة اليوم';
 
   @override
-  String get notifPrefMealMenuSub => 'إشعار بقائمة طعام اليوم. متوقف افتراضيا.';
+  String get notifPrefMealMenuSub =>
+      'قائمة طعام اليوم نحو الساعة 11:30، في الأيام التي تتوفر فيها قائمة فقط.';
 
   @override
   String get notifExamAlarmOn => 'التذكير مفعل';

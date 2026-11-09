@@ -11224,7 +11224,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get notifPrefMealMenuSub =>
-      'Günün yemek listesi bildirimi. Varsayılan olarak kapalıdır.';
+      'Menü olan günlerde saat 11.30 civarı günün yemek listesi bildirimi.';
 
   @override
   String get notifExamAlarmOn => 'Hatırlatıcı açık';

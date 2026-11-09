@@ -6008,7 +6008,7 @@
     }
   },
   "notifPrefMealMenu": "Günlük menü",
-  "notifPrefMealMenuSub": "Günün yemek listesi bildirimi. Varsayılan olarak kapalıdır.",
+  "notifPrefMealMenuSub": "Menü olan günlerde saat 11.30 civarı günün yemek listesi bildirimi.",
   "notifExamAlarmOn": "Hatırlatıcı açık",
   "notifExamAlarmOff": "Hatırlatıcı kapalı",
   "notifCapacityFull": "Kapasite: %{n} dolu",

@@ -20385,7 +20385,7 @@ abstract class AppLocalizations {
   /// No description provided for @notifPrefMealMenuSub.
   ///
   /// In tr, this message translates to:
-  /// **'Günün yemek listesi bildirimi. Varsayılan olarak kapalıdır.'**
+  /// **'Menü olan günlerde saat 11.30 civarı günün yemek listesi bildirimi.'**
   String get notifPrefMealMenuSub;
 
   /// No description provided for @notifExamAlarmOn.

@@ -62,6 +62,7 @@ Doğrulama kodu (`vc:*`), refresh token (`rt:*`, yalnız SHA-256 hash), rate lim
 | Yemek listesi | ayın son günü 23:30 | `menu.sync.cron` |
 | Push kampanya dağıtıcı | 10 sn'de bir (`FOR UPDATE SKIP LOCKED`) | `app.push.poll-ms` |
 | Etkinlik hatırlatma | 1 gün / 1 saat önce | event paketi |
+| Günün menüsü push'u (yalnız o gün menü varsa; kalıcı push kuyruğu, günde bir kez `daily_menu_push_log`; telafi 11:30-14:00) | her gün 11:30 | `app.push.daily-menu-cron`, `app.push.daily-menu-catchup-cron`, `app.push.daily-menu-enabled`, `app_setting daily_menu_push_enabled` |
 | Mail kuyruğu işleyici | `app.mail.queue-poll-ms` (5 sn) ve yeni kayıtta; 30 günden eski SENT/DEAD kayıtlar gece silinir | `app.mail.*` |
 | Eski cihaz token temizliği | her gece 04:00 (60 gün görülmeyen) | `app.push.device-cleanup-cron`, `app.push.device-ttl-days` |
 | Sohbet odası bakımı | 5 dk (kapanan/yasaklı üyelerin düşürülmesi) | `app.chat.room-purge-ms` |
