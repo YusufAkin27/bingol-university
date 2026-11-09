@@ -21158,6 +21158,48 @@ abstract class AppLocalizations {
   /// **'{n} yanıtı göster'**
   String forumCommentShowReplies(String n);
 
+  /// No description provided for @forumCommentReplyContext.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} adlı kişiye yanıt'**
+  String forumCommentReplyContext(String name);
+
+  /// No description provided for @forumModRemoveAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaldır (moderatör)'**
+  String get forumModRemoveAction;
+
+  /// No description provided for @forumModReasonTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'İçeriği kaldır'**
+  String get forumModReasonTitle;
+
+  /// No description provided for @forumModReasonBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gerekçe içerik sahibine bildirilir ve moderasyon kaydına yazılır.'**
+  String get forumModReasonBody;
+
+  /// No description provided for @forumModReasonHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gerekçe (en az 3 karakter)'**
+  String get forumModReasonHint;
+
+  /// No description provided for @forumModRemoveConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaldır'**
+  String get forumModRemoveConfirm;
+
+  /// No description provided for @forumModRemovedDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'İçerik kaldırıldı.'**
+  String get forumModRemovedDone;
+
   /// No description provided for @forumCommentHideReplies.
   ///
   /// In tr, this message translates to:

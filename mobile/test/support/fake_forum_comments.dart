@@ -44,6 +44,12 @@ class FakeForumComments {
   /// true iken beğeni 500 döner.
   bool failLike = false;
 
+  /// true iken görüntüleyen moderatördür (başkasının yorumunda canModerate=true).
+  bool moderator = false;
+
+  /// Yorum moderasyon çağrıları: `REMOVE:<gerekçe>`.
+  final List<String> commentModerations = [];
+
   /// true iken yorum listesi 500 döner.
   bool failList = false;
 
@@ -158,7 +164,7 @@ class FakeForumComments {
       if (preview) 'replyPreview': [for (final k in kids.take(2)) view(k)],
       'mine': mine,
       'deleted': deleted,
-      'canModerate': false,
+      'canModerate': moderator,
       'topicAuthor': c['topicAuthor'] == true,
     };
   }
@@ -327,6 +333,15 @@ class FakeForumComments {
     mt = RegExp(r'^/forum/topics/(\d+)/block-author$').firstMatch(path);
     if (mt != null && m == 'POST') {
       blockedTopics.add(int.parse(mt.group(1)!));
+      return const FakeResult.json(null, status: 204);
+    }
+    mt = RegExp(r'^/forum/comments/(\d+)/moderate$').firstMatch(path);
+    if (mt != null && m == 'POST') {
+      final c = byId(int.parse(mt.group(1)!));
+      if (!moderator) return _err(403, 'FORUM_MOD_FORBIDDEN', 'Yetkiniz yok.');
+      final bd = body();
+      commentModerations.add('${bd is Map ? bd['action'] : ''}:${bd is Map ? bd['reason'] : ''}');
+      if (c != null) c['deleted'] = true;
       return const FakeResult.json(null, status: 204);
     }
     mt = RegExp(r'^/forum/topics/(\d+)/moderate$').firstMatch(path);

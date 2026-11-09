@@ -4091,6 +4091,20 @@
       }
     }
   },
+  "forumCommentReplyContext": "رد على {name}",
+  "@forumCommentReplyContext": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forumModRemoveAction": "إزالة (مشرف)",
+  "forumModReasonTitle": "إزالة المحتوى",
+  "forumModReasonBody": "يُرسل السبب إلى صاحب المحتوى ويُسجَّل في سجل الإشراف.",
+  "forumModReasonHint": "السبب (3 أحرف على الأقل)",
+  "forumModRemoveConfirm": "إزالة",
+  "forumModRemovedDone": "تمت إزالة المحتوى.",
   "forumCommentHideReplies": "إخفاء الردود",
   "forumCommentMoreReplies": "{n} ردود أخرى",
   "@forumCommentMoreReplies": {

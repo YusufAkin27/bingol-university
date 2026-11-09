@@ -24,6 +24,7 @@ import '../widgets/comment_section.dart';
 import '../widgets/comment_tree.dart';
 import '../widgets/poll_view.dart';
 import '../widgets/topic_detail_header.dart';
+import '../widgets/mod_remove_sheet.dart';
 import '../widgets/topic_detail_menu.dart';
 import '../widgets/topic_detail_share.dart';
 import 'comment_thread_page.dart';
@@ -408,6 +409,17 @@ class _TopicDetailPageState extends State<TopicDetailPage>
             anonymousAuthor: t.author.anonymous);
       case TopicMenuAction.block:
         await _confirmBlockAuthor();
+      case TopicMenuAction.modRemove:
+        final reason = await showForumModRemoveSheet(context, title: l.forumModReasonTitle);
+        if (reason == null || !mounted) return;
+        try {
+          await _api.moderateTopic(widget.topicId, 'REMOVE', reason: reason);
+          if (!mounted) return;
+          toast(l.forumModRemovedDone, kind: BuToastKind.success);
+          Navigator.of(context).pop<TopicSummary?>(null);
+        } catch (e) {
+          if (mounted) toast(errorText(e), kind: BuToastKind.error);
+        }
     }
   }
 

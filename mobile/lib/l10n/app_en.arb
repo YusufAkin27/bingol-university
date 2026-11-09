@@ -4091,6 +4091,20 @@
       }
     }
   },
+  "forumCommentReplyContext": "Replying to {name}",
+  "@forumCommentReplyContext": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forumModRemoveAction": "Remove (moderator)",
+  "forumModReasonTitle": "Remove content",
+  "forumModReasonBody": "The reason is sent to the author and written to the moderation log.",
+  "forumModReasonHint": "Reason (at least 3 characters)",
+  "forumModRemoveConfirm": "Remove",
+  "forumModRemovedDone": "Content removed.",
   "forumCommentHideReplies": "Hide replies",
   "forumCommentMoreReplies": "{n} more replies",
   "@forumCommentMoreReplies": {
