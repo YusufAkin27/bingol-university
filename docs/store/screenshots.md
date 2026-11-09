@@ -6,8 +6,8 @@
 
 | Varlık | Boyut / biçim | Not |
 |---|---|---|
-| Uygulama simgesi | **512 x 512 px**, 32 bit PNG, ≤ 1 MB | Kaynak: `brand/dist/mark-fullbleed-1024.png` (1024'ten küçültün). **Üniversite logosu içermemeli** |
-| Öne çıkan grafik (feature graphic) | **1024 x 500 px**, PNG/JPEG | Marka rengi + "BÜ Kampüs" + kısa slogan; üniversite logosu ve "resmî" izlenimi yok. `brand/dist/horizontal-*.png` kullanılabilir |
+| Uygulama simgesi | **512 x 512 px**, 32 bit PNG, ≤ 1 MB | Kaynak: `mobile/branding/store/play-store-512.png` (hazır). **Üniversite logosu içermemeli** |
+| Öne çıkan grafik (feature graphic) | **1024 x 500 px**, PNG/JPEG | Marka rengi + "BÜ Kampüs" + kısa slogan; üniversite logosu ve "resmî" izlenimi yok. `mobile/branding/store/feature-graphic-1024x500.png` hazır |
 | Telefon ekran görüntüleri | **2-8 adet**, PNG/JPEG, kenar uzunluğu 320-3840 px, uzun kenar ≤ 2 x kısa kenar. Önerilen: **1080 x 1920** (9:16) ya da 1080 x 2400 | En az 4 adet yüklemek keşfedilebilirliği artırır |
 | 7" / 10" tablet görüntüleri | İsteğe bağlı | Uygulama tablette çalışır (>= 600 dp yatay serbest) ama ilk sürüm için gerekmez |
 | Tanıtım videosu | İsteğe bağlı (YouTube) | READ_CONTACTS beyanı için kısa bir izin/özellik videosu gerekebilir ([data_safety.md](data_safety.md) bölüm 4) |
