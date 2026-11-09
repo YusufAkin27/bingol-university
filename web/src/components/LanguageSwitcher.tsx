@@ -128,3 +128,40 @@ export function LanguageSwitcher({ compact }: { compact?: boolean }) {
     </div>
   );
 }
+
+/** Dil değiştirme eylemi (düğme/segment bileşenleri için): önekli sayfada URL'deki dil değişir. */
+export function useChangeLang() {
+  const { setLang } = useI18n();
+  const location = useLocation();
+  const navigate = useNavigate();
+  return (next: Lang) => {
+    if (splitLangPath(location.pathname).lang) {
+      navigate(switchLangPath(`${location.pathname}${location.search}${location.hash}`, next));
+    } else {
+      setLang(next);
+    }
+  };
+}
+
+/** Mobil çekmece için üç düğmeli dil seçici (TR / EN / AR). */
+export function LanguageSegmented() {
+  const { lang, t } = useI18n();
+  const change = useChangeLang();
+  return (
+    <div role="group" aria-label={t('common.language')} className={styles.seg}>
+      {LANGS.map((l) => (
+        <button
+          key={l.code}
+          type="button"
+          lang={l.code}
+          className={`${styles.segBtn} ${l.code === lang ? styles.segOn : ''}`}
+          aria-pressed={l.code === lang}
+          aria-label={l.label}
+          onClick={() => change(l.code)}
+        >
+          {l.code.toUpperCase()}
+        </button>
+      ))}
+    </div>
+  );
+}
