@@ -188,6 +188,9 @@ im.Image _scene(int v) {
   return g;
 }
 
+/// Doluysa (magaza testi) soyut sahneler yerine bu GERCEK fotograf baytlari donulur (p1..pN, sirayla).
+List<Uint8List>? storePhotos;
+
 final Map<int, Uint8List> _cache = {};
 
 Uint8List storeImageBytes(int variant) =>
@@ -232,7 +235,9 @@ class _FakeRequest implements HttpClientRequest {
   @override
   HttpHeaders get headers => _FakeHeaders();
   @override
-  Future<HttpClientResponse> close() async => _FakeResponse(storeImageBytes(storeVariantFor(uri)));
+  Future<HttpClientResponse> close() async => _FakeResponse(storePhotos != null && storePhotos!.isNotEmpty
+          ? storePhotos![storeVariantFor(uri) % storePhotos!.length]
+          : storeImageBytes(storeVariantFor(uri)));
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
 }
