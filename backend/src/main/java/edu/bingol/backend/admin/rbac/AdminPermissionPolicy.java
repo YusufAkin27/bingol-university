@@ -64,6 +64,7 @@ public final class AdminPermissionPolicy {
         one(Set.of("POST"), "/api/admin/users/" + ID + "/export", USERS_EXPORT);
         // T-011: e-posta sahipligini kanitlamadan hesap acma/dogrulama yalniz FULL (users.write sahibi MODERATOR yapamaz)
         one(Set.of("POST"), "/api/admin/users/" + ID + "/verify-email", USERS_VERIFY);
+        one(Set.of("POST"), "/api/admin/users", USERS_VERIFY); // yonetici kullanici ekler (kodsuz dogrulanmis hesap)
         one(Set.of("POST"), "/api/admin/pending-registrations/" + ID + "/verify", USERS_VERIFY);
         one(Set.of("PATCH"), "/api/admin/users/" + ID + "/role", USERS_ROLE);
         one(Set.of("DELETE"), "/api/admin/users/" + ID, USERS_DELETE);
