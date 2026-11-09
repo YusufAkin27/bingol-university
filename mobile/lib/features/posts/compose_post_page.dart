@@ -1,6 +1,6 @@
 import '../chat/emoji_presentation.dart';
 import 'dart:async';
-import 'dart:io' show File;
+import 'dart:io' show File, Platform;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -20,11 +20,17 @@ import '../media_crop/media_crop.dart';
 import 'mention_picker_sheet.dart';
 import '../chat/chat_media.dart' show formatMediaDuration;
 import '../chat/media_library.dart' show MediaLibrary;
+import '../../core/idempotency_key.dart' show keepKeyAfterError;
+import '../../core/transfers/transfer_hub.dart';
+import '../../core/transfers/transfer_job.dart' show TransferStatusX;
+import '../../core/transfers/transfer_queue.dart';
 import 'post_api.dart';
+import 'post_draft_store.dart';
 import 'post_gallery_picker_page.dart';
 import 'post_media_uploader.dart';
 import 'post_models.dart';
 import 'post_text_rules.dart';
+import 'post_transfer.dart';
 import 'post_video.dart';
 import 'post_video_limits.dart';
 import 'social_models.dart' show SocialUser;
@@ -76,9 +82,13 @@ enum ComposeKind { photo, video }
 /// [kind] verilirse ya da [menu] false ise seçici atlanıp boş oluşturucu açılır (eski doğrudan yol). Vazgeçilirse null.
 Future<Post?> openComposePost(BuildContext context, Session session, {ComposeKind? kind, bool menu = true, MediaLibrary? library}) {
   if (kind == null && menu) return openPostGalleryPicker(context, session, library: library);
-  return Navigator.of(context).push<Post>(
-    MaterialPageRoute(settings: const RouteSettings(name: 'compose_post'), fullscreenDialog: true, builder: (_) => ComposePostPage(session: session, initialKind: kind)),
-  );
+  return Navigator.of(context)
+      .push<Object?>(
+        MaterialPageRoute<Object?>(settings: const RouteSettings(name: 'compose_post'), fullscreenDialog: true, builder: (_) => ComposePostPage(session: session, initialKind: kind)),
+      )
+      // Kuyruğa alınan paylaşımda ([PostQueued]) henüz gönderi yoktur: null döner; gönderi yayımlanınca
+      // `PendingPostsStrip.onPublished` ile gelir.
+      .then((r) => r is Post ? r : null);
 }
 
 enum _Err { none, generic, profanity, rate, network }
@@ -108,9 +118,23 @@ class ComposePostPage extends StatefulWidget {
     this.trimService,
     this.trimFrames,
     this.mentionFetch,
+    this.transferQueue,
+    this.restoreJobId,
+    this.drafts,
   });
 
   final Session session;
+
+  /// Testler için: aktarım kuyruğu. Verilmezse oturumun kuyruğu ([TransferHub]) kullanılır; kuyruk yoksa
+  /// (testler/erken açılış) paylaşım ekranda yüklenir (eski doğrudan yol).
+  final TransferQueue? transferQueue;
+
+  /// Başarısız bir paylaşımı düzenle: iş dizinindeki metin ve dosyalar forma geri yüklenir; yeniden kuyruğa alınınca
+  /// eski kayıt kaldırılır, vazgeçilirse olduğu gibi kalır (veri kaybolmaz).
+  final String? restoreJobId;
+
+  /// Testler için: metin taslağı deposu.
+  final PostDraftStore? drafts;
 
   /// Açılışta doğrudan ilgili kaynak seçiciyi aç (eski doğrudan yol).
   final ComposeKind? initialKind;
@@ -175,7 +199,23 @@ class _ComposePostPageState extends State<ComposePostPage> {
   Uint8List? _original; // kırpılmamış seçim (yeniden kırpmak için)
   Uint8List? _photo; // düzenlenmiş fotoğraf (varsayılan 4:5; düzenleyicide oran seçilebilir)
   double _photoAspect = 4 / 5; // önizleme oranı: düzenlenmiş fotoğrafın gerçek oranı (0.5-1.91)
-  final String _idemKey = PostApi.newIdempotencyKey(); // bu paylaşma niyeti için tek anahtar (yeniden denemede aynı)
+  // Bu paylaşma niyeti için tek anahtar (yeniden denemede aynı). İçerik/medya değişince ya da sunucu açıkça reddedince
+  // yenilenir (I2-10): yoksa sunucu düzeltilmiş içerik yerine ilk (eski) gönderiyi döndürür.
+  String _idemKey = PostApi.newIdempotencyKey();
+  bool _attempted = false;
+
+  void _rekey() {
+    if (!_attempted) return;
+    _attempted = false;
+    _idemKey = PostApi.newIdempotencyKey();
+  }
+
+  late final PostDraftStore _drafts = widget.drafts ?? PostDraftStore();
+  Timer? _draftTimer;
+  bool _draftDone = false; // paylaşıldı / kuyruğa alındı / kullanıcı attı: taslak yazılmaz
+  TransferQueue? get _queue => widget.transferQueue ?? TransferHub.instance.queue;
+  final _errKey = GlobalKey();
+  final _scroll = ScrollController();
   PostMedia? _uploaded; // aynı fotoğraf için yeniden yüklemeyi önler (metin hatasından sonra tekrar dene)
   bool _publishing = false;
 
@@ -199,6 +239,12 @@ class _ComposePostPageState extends State<ComposePostPage> {
   @override
   void initState() {
     super.initState();
+    final restore = widget.restoreJobId;
+    if (restore != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _restore(restore));
+    } else {
+      unawaited(_loadDraft());
+    }
     final photo = widget.initialPhoto;
     final video = widget.initialVideoPath;
     if (photo != null || video != null) {
@@ -225,12 +271,96 @@ class _ComposePostPageState extends State<ComposePostPage> {
     }
   }
 
+  // ---- Metin taslağı (hesap bazlı, I2-05) ------------------------------------------------------------------------------
+
+  int? get _uid => widget.session.userId;
+
+  // Taslak yalniz oturum baglami (aktarim kuyrugu) varken ya da deposu verilmisken tutulur.
+  bool get _draftsOn => widget.drafts != null || _queue != null;
+
+  Future<void> _loadDraft() async {
+    if (!_draftsOn) return;
+    final d = await _drafts.load(_uid);
+    if (d == null || !mounted || _draftDone || _text.text.isNotEmpty) return;
+    setState(() {
+      _mentions
+        ..clear()
+        ..addAll([for (final m in d.mentions) SocialUser(id: m.id, displayName: m.name)]);
+      _setText(d.text, d.text.length);
+    });
+  }
+
+  void _scheduleDraft() {
+    if (widget.restoreJobId != null || !_draftsOn) return;
+    _draftTimer?.cancel();
+    _draftTimer = Timer(const Duration(milliseconds: 700), () => unawaited(_saveDraft()));
+  }
+
+  Future<void> _saveDraft() async {
+    if (_draftDone || widget.restoreJobId != null || !_draftsOn) return;
+    await _drafts.save(_uid, PostDraft(text: _text.text, mentions: [for (final m in _mentions) (id: m.id, name: m.displayName)]));
+  }
+
+  /// Kullanıcı attı / paylaşım kuyruğa alındı: taslak silinir ve bir daha yazılmaz.
+  void _dropDraft() {
+    _draftDone = true;
+    _draftTimer?.cancel();
+    unawaited(_drafts.clear(_uid));
+  }
+
+  /// Kuyruktan başarısız paylaşımı forma geri yükler (metin, etiketler, ayarlar, fotoğraflar ya da video).
+  Future<void> _restore(String jobId) async {
+    final job = _queue?.job(jobId);
+    if (job == null) return;
+    try {
+      final pay = await PostPayload.read(PostPayload.dirOf(job));
+      final dir = PostPayload.dirOf(job).path;
+      final sep = Platform.pathSeparator;
+      Uint8List? poster;
+      PreparedVideo? prepared;
+      final v = pay.video;
+      if (v != null) {
+        if (v.poster != null) poster = await File('$dir$sep${v.poster}').readAsBytes();
+        prepared = PreparedVideo(
+            path: '$dir$sep${v.file}', sizeBytes: v.size, durationMs: v.durationMs, width: v.width, height: v.height, poster: poster);
+      }
+      final shots = <_Shot>[];
+      for (final p in pay.photos) {
+        final b = await File('$dir$sep${p.file}').readAsBytes();
+        shots.add(_Shot(b, p.aspect, orig: b));
+      }
+      if (!mounted) return;
+      setState(() {
+        _mentions
+          ..clear()
+          ..addAll([for (final m in pay.mentions) SocialUser(id: m.id, displayName: m.name, avatarUrl: m.avatarUrl)]);
+        _setText(pay.text, pay.text.length);
+        _hideLikes = pay.hideLikes;
+        _commentsOff = pay.commentsOff;
+        _advOpen = pay.hideLikes || pay.commentsOff;
+        if (prepared != null) {
+          _video = prepared;
+          _srcPath = prepared.path;
+          _srcMs = prepared.durationMs;
+        } else {
+          _applyShots(shots);
+        }
+      });
+      if (prepared != null) unawaited(_loadFrames(prepared));
+    } catch (e) {
+      if (mounted) setState(() => _setError(e));
+    }
+  }
+
   @override
   void dispose() {
+    _draftTimer?.cancel();
+    if (!_draftDone && widget.restoreJobId == null && _text.text.trim().isNotEmpty) unawaited(_saveDraft());
     _prepCancel?.cancel();
     final tmp = _trimmedPath;
     if (tmp != null) unawaited(_trimSvc.discard(tmp));
     _timer?.cancel();
+    _scroll.dispose();
     _text.dispose();
     _focus.dispose();
     super.dispose();
@@ -332,6 +462,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
     if (_text.text.trim().isNotEmpty) {
       final ok = await showDialog<bool>(context: context, builder: (c) => const _DiscardDialog());
       if (ok != true || !mounted) return;
+      _dropDraft();
     }
     unawaited(_discardTrimmed());
     Navigator.pop(context);
@@ -617,6 +748,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
 
   /// Sıralı listeyi ilk fotoğraf + ekler olarak geri yazar (boşsa hepsi temizlenir).
   void _applyShots(List<_Shot> l) {
+    _rekey();
     if (l.isEmpty) {
       _photo = null;
       _original = null;
@@ -722,6 +854,8 @@ class _ComposePostPageState extends State<ComposePostPage> {
         v[sel.baseOffset - 1] == '@' &&
         (sel.baseOffset == 1 || RegExp(r'\s').hasMatch(v[sel.baseOffset - 2]));
     _prevText = v;
+    _rekey();
+    _scheduleDraft();
     setState(_syncMentions);
     if (typedAt && !_publishing) unawaited(_openMentionPicker(atIndex: sel.baseOffset - 1));
   }
@@ -731,6 +865,8 @@ class _ComposePostPageState extends State<ComposePostPage> {
     _text.value = TextEditingValue(text: clamped, selection: TextSelection.collapsed(offset: caret.clamp(0, clamped.length).toInt()));
     _prevText = clamped;
     _syncMentions();
+    _rekey();
+    _scheduleDraft();
   }
 
   /// Takip ettiklerimden seçici: seçilenler metne `@Ad Soyad ` olarak eklenir, çıkarılanların etiketi metinden silinir.
@@ -778,16 +914,87 @@ class _ComposePostPageState extends State<ComposePostPage> {
     });
   }
 
+  /// Hata oluşunca görünür yere kaydırır ve kısa bir bildirim gösterir (I2-04): satır içi hata listenin sonunda kaldığı
+  /// için küçük ekranda katlanmanın altında kalabiliyordu.
+  void _surfaceError() => WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted || _err == _Err.none) return;
+        final d = BuMotion.of(context, BuMotion.medium);
+        // Hata satırı listenin SON öğesidir ve tembel kurulur: önce sona kaydır, kurulunca tam görünür yap.
+        if (_scroll.hasClients) {
+          final end = _scroll.position.maxScrollExtent;
+          if (d == Duration.zero) {
+            _scroll.jumpTo(end);
+          } else {
+            await _scroll.animateTo(end, duration: d, curve: BuMotion.standard);
+          }
+        }
+        if (!mounted) return;
+        final c = _errKey.currentContext;
+        if (c != null) {
+          await Scrollable.ensureVisible(c, duration: d, alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd);
+        }
+      });
+
+  /// Medyayı ve metni aktarım kuyruğuna alır ve oluşturucuyu kapatır; yükleme/paylaşma arka planda sürer (ekran
+  /// kullanılabilir kalır). "Paylaşıldı" burada DENMEZ: gönderi sunucuda oluşunca `PendingPostsStrip` söyler.
+  Future<void> _enqueue(TransferQueue q, int uid) async {
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _publishing = true;
+      _err = _Err.none;
+    });
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final queuedText = context.l10n.g2PostQueuedToast;
+    try {
+      final ids = _mentionIds();
+      final job = await enqueuePostTransfer(
+        q,
+        ownerUserId: uid,
+        text: withEmojiPresentation(_text.text),
+        mentions: [for (final u in _mentions) if (ids.contains(u.id)) PostMentionRef(u.id, u.displayName, u.avatarUrl)],
+        hideLikes: _hideLikes,
+        commentsOff: _commentsOff,
+        photos: _video != null ? const [] : [for (final s in _shots()) (bytes: s.bytes, aspect: s.aspect)],
+        video: _video,
+      );
+      final old = widget.restoreJobId;
+      if (old != null) {
+        // Düzenlenen başarısız kayıt yerine yenisi geçti (araya yeniden denenip sürüyorsa önce durdurulur).
+        if (q.job(old)?.status.isLive == true) await q.cancel(old);
+        await q.dismiss(old);
+      }
+      _dropDraft();
+      if (!mounted) return;
+      if (messenger != null) {
+        messenger.showSnackBar(SnackBar(
+            content: BuToastGuard(duration: BuToast.defaultDuration, messenger: messenger, child: Text(queuedText)),
+            duration: BuToast.defaultDuration,
+            persist: false));
+      }
+      Navigator.pop(context, PostQueued(job.id));
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _publishing = false;
+        _setError(e);
+      });
+      _surfaceError();
+    }
+  }
+
   Future<void> _publish() async {
     final bytes = _photo;
     final video = _video;
     if (!_canShare || (bytes == null && video == null)) return;
+    final q = _queue, uid = widget.session.userId;
+    if (q != null && uid != null && q.owner == uid) return _enqueue(q, uid);
     FocusScope.of(context).unfocus();
     setState(() {
       _publishing = true;
       _progress = 0;
       _err = _Err.none;
     });
+    _attempted = true;
     final messenger = ScaffoldMessenger.maybeOf(context);
     try {
       final List<int> ids;
@@ -818,6 +1025,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
           hideLikeCount: _hideLikes,
           commentsDisabled: _commentsOff,
           idempotencyKey: _idemKey);
+      _dropDraft();
       if (!mounted) return;
       if (messenger != null) {
         messenger.showSnackBar(SnackBar(
@@ -835,10 +1043,16 @@ class _ComposePostPageState extends State<ComposePostPage> {
           s.uploaded = null;
         }
       }
+      // Sunucu açıkça reddettiyse (4xx) niyet bitti: düzeltilip yeniden paylaşılırken yeni anahtar (I2-10).
+      if (!keepKeyAfterError(e)) {
+        _attempted = false;
+        _idemKey = PostApi.newIdempotencyKey();
+      }
       setState(() {
         _publishing = false;
         _setError(e);
       });
+      _surfaceError();
     }
   }
 
@@ -851,6 +1065,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
     if (_dirty) {
       final ok = await showDialog<bool>(context: context, builder: (c) => const _DiscardDialog());
       if (ok != true || !mounted) return;
+      _dropDraft();
     }
     if (mounted) Navigator.pop(context);
   }
@@ -873,6 +1088,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
               _topBar(t),
               Expanded(
                 child: ListView(
+                  controller: _scroll,
                   keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                   padding: const EdgeInsets.fromLTRB(BuSpace.page, 4, BuSpace.page, 24),
                   children: [
@@ -896,7 +1112,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
                       duration: BuMotion.of(context, BuMotion.short),
                       curve: BuMotion.standard,
                       alignment: Alignment.topCenter,
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: _errors(t)),
+                      child: Column(key: _errKey, crossAxisAlignment: CrossAxisAlignment.stretch, children: _errors(t)),
                     ),
                   ],
                 ),
@@ -1269,14 +1485,20 @@ class _ComposePostPageState extends State<ComposePostPage> {
                       title: l.postSettingsHideLikes,
                       subtitle: l.postSettingsHideLikesDesc,
                       value: _hideLikes,
-                      onChanged: (v) => setState(() => _hideLikes = v)),
+                      onChanged: (v) => setState(() {
+                            _rekey();
+                            _hideLikes = v;
+                          })),
                   Divider(height: 1, color: t.bd),
                   _switchRow(t, tt,
                       key: const ValueKey('composeCommentsOff'),
                       title: l.postSettingsCommentsOff,
                       subtitle: l.postSettingsCommentsOffDesc,
                       value: _commentsOff,
-                      onChanged: (v) => setState(() => _commentsOff = v)),
+                      onChanged: (v) => setState(() {
+                            _rekey();
+                            _commentsOff = v;
+                          })),
                 ]),
         ),
       ]),

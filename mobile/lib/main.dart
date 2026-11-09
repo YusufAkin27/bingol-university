@@ -23,6 +23,7 @@ import 'core/user_data.dart';
 import 'core/crash/crash_reporter.dart';
 import 'core/icons/bu_icon_licenses.dart';
 import 'core/transfers/transfer_hub.dart';
+import 'features/posts/post_transfer.dart' show registerPostTransfer;
 import 'core/outbox/outbox.dart';
 import 'core/outbox/outbox_uploader.dart';
 import 'core/locale_controller.dart';
@@ -162,6 +163,7 @@ Future<void> _bootstrap() async {
   hooks.onSignedIn.add((_) => LanguageSync.sync(session.api, session.userId, localeCtl.locale.languageCode));
   session.beforeSignOut.add(push.onSignedOut); // cihaz kaydı, token geçerliyken silinir
   TransferHub.instance.attach(session, connectivity); // kalıcı aktarım kuyruğu (G10): giriş/çıkış kancaları
+  registerPostTransfer(); // gönderi (foto/video) çalıştırıcısı (G2): yarım kalan paylaşımlar açılışta sürer
   hooks.attach(session);
   // Oturum geri yüklemesi iOS temizliğinden sonra başlar ama runApp'i BEKLETMEZ (splash görünür).
   unawaited(() async {

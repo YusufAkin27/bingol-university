@@ -82,11 +82,14 @@ class PostMediaUploader {
   static const maxEdge = 1600;
 
   /// Hata: [ImageException] ya da [ApiError]; [postErrorText] ile çevrilir.
-  Future<PostMedia> upload(Uint8List bytes) async {
+  Future<PostMedia> upload(Uint8List bytes) => uploadWith(bytes);
+
+  /// [upload] + ek başlıklar (aktarım kuyruğu yeniden denemede aynı `Idempotency-Key`'i verir).
+  Future<PostMedia> uploadWith(Uint8List bytes, {Map<String, String>? headers}) async {
     if (bytes.isEmpty) throw ImageException('EMPTY');
     final resized = await _fit(bytes);
     final prepared = await _image.prepare(resized);
-    final json = await _up.upload(path, prepared);
+    final json = await _up.upload(path, prepared, headers: headers);
     if (json is! Map) throw ApiError(500, 'BAD_RESPONSE', '');
     return PostMedia.fromJson(Map<String, dynamic>.from(json));
   }

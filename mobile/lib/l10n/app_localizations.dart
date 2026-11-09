@@ -9198,6 +9198,90 @@ abstract class AppLocalizations {
   /// **'Paylaşıldı'**
   String get postComposeShared;
 
+  /// No description provided for @g2PostQueued.
+  ///
+  /// In tr, this message translates to:
+  /// **'Paylaşım sırada'**
+  String get g2PostQueued;
+
+  /// No description provided for @g2PostUploading.
+  ///
+  /// In tr, this message translates to:
+  /// **'Paylaşım yükleniyor {pct}'**
+  String g2PostUploading(String pct);
+
+  /// No description provided for @g2PostWaiting.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlantı bekleniyor, gelince devam edecek'**
+  String get g2PostWaiting;
+
+  /// No description provided for @g2PostPublishing.
+  ///
+  /// In tr, this message translates to:
+  /// **'Paylaşılıyor'**
+  String get g2PostPublishing;
+
+  /// No description provided for @g2PostFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Paylaşılamadı'**
+  String get g2PostFailed;
+
+  /// No description provided for @g2PostEdit.
+  ///
+  /// In tr, this message translates to:
+  /// **'Düzenle'**
+  String get g2PostEdit;
+
+  /// No description provided for @g2PostRetry.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeniden dene'**
+  String get g2PostRetry;
+
+  /// No description provided for @g2PostRemove.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sil'**
+  String get g2PostRemove;
+
+  /// No description provided for @g2PostCancel.
+  ///
+  /// In tr, this message translates to:
+  /// **'İptal'**
+  String get g2PostCancel;
+
+  /// No description provided for @g2PostRemoveTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Paylaşım silinsin mi?'**
+  String get g2PostRemoveTitle;
+
+  /// No description provided for @g2PostRemoveBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yazdığın metin ve seçtiğin dosyalar silinir.'**
+  String get g2PostRemoveBody;
+
+  /// No description provided for @g2PostQueuedToast.
+  ///
+  /// In tr, this message translates to:
+  /// **'Paylaşım arka planda gönderiliyor.'**
+  String get g2PostQueuedToast;
+
+  /// No description provided for @g2PostErrFiles.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dosyalar bulunamadı. Paylaşımı düzenleyip yeniden dene.'**
+  String get g2PostErrFiles;
+
+  /// No description provided for @g2PostPending.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bekleyen paylaşım'**
+  String get g2PostPending;
+
   /// No description provided for @postComposeDiscardTitle.
   ///
   /// In tr, this message translates to:
