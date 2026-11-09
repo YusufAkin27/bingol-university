@@ -10,6 +10,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { qk } from '../../api/queryKeys';
 import { getUser } from '../../api/users';
 import { useAuth } from '../../auth/AuthProvider';
+import { useCan } from '../../auth/permissions';
 import {
   Avatar,
   Badge,
@@ -80,6 +81,8 @@ const SUPPORT_KEYS = ['feedback', 'tickets'] as const;
 const MOD_KEYS = ['reportsAgainst', 'reportsFiled'] as const;
 
 export default function UserDetailPage() {
+  const canUsage = useCan('analytics.read');
+  const canPersonalUsage = useCan('users.pii');
   const i18n = useI18n();
   const { t, td, formatDate, formatDateTime, formatNumber } = i18n;
   const kit = useKitFormat();
@@ -152,23 +155,57 @@ export default function UserDetailPage() {
 
   // Durum bandı: renk + simge + metin (yalnız renge güvenilmez)
   const band = deleted
-    ? { tone: 'neutral', icon: 'x' as const, title: t('admin.v2p.ud.band.deleted'), text: u.deletedAt ? t('admin.v2p.ud.band.deletedAt', { date: formatDateTime(u.deletedAt) }) : t('admin.v2p.ud.band.deletedHint') }
+    ? {
+        tone: 'neutral',
+        icon: 'x' as const,
+        title: t('admin.v2p.ud.band.deleted'),
+        text: u.deletedAt
+          ? t('admin.v2p.ud.band.deletedAt', { date: formatDateTime(u.deletedAt) })
+          : t('admin.v2p.ud.band.deletedHint'),
+      }
     : suspended
-      ? { tone: 'danger', icon: 'alert' as const, title: t('admin.v2p.ud.band.suspended'), text: u.suspendedReason ? `${t('admin.users.detail.suspendedReason')}: ${u.suspendedReason}` : t('admin.v2p.ud.band.suspendedHint') }
+      ? {
+          tone: 'danger',
+          icon: 'alert' as const,
+          title: t('admin.v2p.ud.band.suspended'),
+          text: u.suspendedReason
+            ? `${t('admin.users.detail.suspendedReason')}: ${u.suspendedReason}`
+            : t('admin.v2p.ud.band.suspendedHint'),
+        }
       : !u.emailVerified
-        ? { tone: 'warning', icon: 'alert' as const, title: t('admin.v2p.ud.band.unverified'), text: t('admin.v2p.ud.band.unverifiedHint') }
-        : { tone: 'success', icon: 'check' as const, title: t('admin.v2p.ud.band.ok'), text: t('admin.v2p.ud.band.okHint') };
+        ? {
+            tone: 'warning',
+            icon: 'alert' as const,
+            title: t('admin.v2p.ud.band.unverified'),
+            text: t('admin.v2p.ud.band.unverifiedHint'),
+          }
+        : {
+            tone: 'success',
+            icon: 'check' as const,
+            title: t('admin.v2p.ud.band.ok'),
+            text: t('admin.v2p.ud.band.okHint'),
+          };
 
-  const group = (title: string, keys: readonly (keyof typeof u.counts)[], alertKey?: keyof typeof u.counts) => (
+  const group = (
+    title: string,
+    keys: readonly (keyof typeof u.counts)[],
+    alertKey?: keyof typeof u.counts,
+  ) => (
     <>
       <h3 className={styles.groupTitle}>{title}</h3>
       <dl className={styles.counts}>
         {keys.map((k) => (
-          <div key={k} className={styles.count} data-alert={k === alertKey && u.counts[k] > 0 ? 'true' : undefined}>
+          <div
+            key={k}
+            className={styles.count}
+            data-alert={k === alertKey && u.counts[k] > 0 ? 'true' : undefined}
+          >
             <dt>{td(`admin.users.count.${k}`)}</dt>
             <dd>
               {formatNumber(u.counts[k])}
-              {k === alertKey && u.counts[k] > 0 && <span className="sr-only"> {t('admin.v2p.ud.needsAttention')}</span>}
+              {k === alertKey && u.counts[k] > 0 && (
+                <span className="sr-only"> {t('admin.v2p.ud.needsAttention')}</span>
+              )}
             </dd>
           </div>
         ))}
@@ -188,7 +225,9 @@ export default function UserDetailPage() {
             <span className={`${styles.muted} ltr ${styles.wrapAnywhere}`}>{u.email}</span>
             <div className={styles.badges}>
               <StatusPill tone={toneFor(u.status)}>{td(`admin.users.status.${u.status}`)}</StatusPill>
-              <Badge tone={u.role === 'ADMIN' ? 'primary' : 'neutral'}>{td(`admin.users.role.${u.role}`)}</Badge>
+              <Badge tone={u.role === 'ADMIN' ? 'primary' : 'neutral'}>
+                {td(`admin.users.role.${u.role}`)}
+              </Badge>
               <Badge tone={u.emailVerified ? 'success' : 'warning'}>
                 {u.emailVerified ? t('admin.users.verified.yes') : t('admin.users.verified.no')}
               </Badge>
@@ -203,7 +242,12 @@ export default function UserDetailPage() {
           </div>
         </div>
 
-        <div className={styles.statusBand} data-tone={band.tone} role="status" style={{ marginBlockStart: 'var(--space-4)' }}>
+        <div
+          className={styles.statusBand}
+          data-tone={band.tone}
+          role="status"
+          style={{ marginBlockStart: 'var(--space-4)' }}
+        >
           <Icon name={band.icon} size={22} aria-hidden="true" />
           <div className={styles.statusText}>
             <strong>{band.title}</strong>
@@ -239,7 +283,12 @@ export default function UserDetailPage() {
         </p>
       </div>
       {notifyOpen && (
-        <QuickSendDialog open onClose={() => setNotifyOpen(false)} userId={u.id} userName={u.displayName || u.email} />
+        <QuickSendDialog
+          open
+          onClose={() => setNotifyOpen(false)}
+          userId={u.id}
+          userName={u.displayName || u.email}
+        />
       )}
 
       {/* 3) Sade bölümler */}
@@ -297,7 +346,11 @@ export default function UserDetailPage() {
               <Card title={t('admin.users.detail.counts')} data-search-anchor="ud-counts">
                 {group(t('admin.v2p.ud.group.social'), SOCIAL_KEYS)}
                 {u.follow && (
-                  <dl className={styles.counts} data-testid="follow-stats" style={{ marginBlockStart: 'var(--space-3)' }}>
+                  <dl
+                    className={styles.counts}
+                    data-testid="follow-stats"
+                    style={{ marginBlockStart: 'var(--space-3)' }}
+                  >
                     <div className={styles.count}>
                       <dt>{t('admin.social.follow.followers')}</dt>
                       <dd>{formatNumber(u.follow.followerCount)}</dd>
@@ -312,7 +365,17 @@ export default function UserDetailPage() {
                 {group(t('admin.v2p.ud.group.moderation'), MOD_KEYS, 'reportsAgainst')}
               </Card>
 
-              <Card title={t('admin.users.detail.activity')} data-search-anchor="ud-activity">
+              <Card
+                title={t('admin.users.detail.activity')}
+                data-search-anchor="ud-activity"
+                actions={
+                  canUsage && canPersonalUsage ? (
+                    <ButtonLink to={`${paths.admin.analytics()}?tab=behavior&sub=users&uid=${u.id}`}>
+                      {t('admin.bh.insights.open')}
+                    </ButtonLink>
+                  ) : undefined
+                }
+              >
                 <Insight
                   tone={activeDays === 0 ? 'neutral' : 'info'}
                   parts={

@@ -63,7 +63,8 @@ export interface BehaviorActions {
   items: BehaviorAction[];
 }
 
-export type UserSort = 'sessions' | 'totalMs' | 'avgSessionMs' | 'bounceRate' | 'quickCloseCount' | 'lastSeenAt';
+export type UserSort =
+  'sessions' | 'totalMs' | 'avgSessionMs' | 'bounceRate' | 'quickCloseCount' | 'lastSeenAt';
 
 export interface BehaviorUserRow {
   userId: number;
@@ -104,6 +105,7 @@ export interface BehaviorSession {
 }
 
 export interface BehaviorUserDetail {
+  insights?: UserInsights;
   user: {
     userId: number;
     displayName: string;
@@ -122,6 +124,25 @@ export interface BehaviorUserDetail {
   sessions: BehaviorSession[];
 }
 
+export interface UserInsights {
+  from: string;
+  to: string;
+  screens: {
+    screen: string;
+    views: number;
+    measuredVisits: number;
+    totalMs: number;
+    avgMs: number;
+    maxMs: number;
+    share: number;
+  }[];
+  byDay: { day: string; sessions: number; totalMs: number; views: number; actions: number }[];
+  byHour: { hour: number; views: number; actions: number }[];
+  actions: { kind: string; count: number }[];
+  eventCount: number;
+  partial: boolean;
+}
+
 export interface ListParams<S extends string> {
   from?: string;
   to?: string;
@@ -133,10 +154,11 @@ export interface ListParams<S extends string> {
 }
 
 export const getBehaviorOverview = (r: BehaviorRange) => api.get<BehaviorOverview>(`${B}/overview`, { ...r });
-export const getBehaviorScreens = (p: ListParams<ScreenSort>) => api.get<Paged<ScreenStat>>(`${B}/screens`, { ...p });
+export const getBehaviorScreens = (p: ListParams<ScreenSort>) =>
+  api.get<Paged<ScreenStat>>(`${B}/screens`, { ...p });
 export const getBehaviorFlows = (r: BehaviorRange) => api.get<BehaviorFlows>(`${B}/flows`, { ...r });
 export const getBehaviorActions = (r: BehaviorRange) => api.get<BehaviorActions>(`${B}/actions`, { ...r });
 export const getBehaviorUsers = (p: ListParams<UserSort>) =>
   api.get<Paged<BehaviorUserRow>>(`${B}/users`, { ...p, q: p.q || undefined });
-export const getBehaviorUser = (id: number, days: number) =>
-  api.get<BehaviorUserDetail>(`${B}/users/${id}`, { days });
+export const getBehaviorUser = (id: number, range: number | BehaviorRange) =>
+  api.get<BehaviorUserDetail>(`${B}/users/${id}`, typeof range === 'number' ? { days: range } : { ...range });

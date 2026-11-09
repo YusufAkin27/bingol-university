@@ -58,5 +58,17 @@ public final class BehaviorDtos {
     public record SessionOut(String sid, Instant startedAt, Instant endedAt, long durationMs, boolean bounce,
                              boolean quickClose, String reason, List<StepOut> steps) {}
 
-    public record UserDetail(UserInfo user, UserSummary summary, List<SessionOut> sessions) {}
+    public record UserScreen(String screen, int views, int measuredVisits, long totalMs, long avgMs,
+                             long maxMs, double share) {}
+
+    public record UserDay(String day, int sessions, long totalMs, int views, int actions) {}
+
+    public record UserHour(int hour, int views, int actions) {}
+
+    public record UserAction(String kind, int count) {}
+
+    public record UserInsights(String from, String to, List<UserScreen> screens, List<UserDay> byDay,
+                               List<UserHour> byHour, List<UserAction> actions, int eventCount, boolean partial) {}
+
+    public record UserDetail(UserInfo user, UserSummary summary, List<SessionOut> sessions, UserInsights insights) {}
 }

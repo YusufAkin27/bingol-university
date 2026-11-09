@@ -36,23 +36,34 @@ export const overviewFixture: BehaviorOverview = {
   ],
 };
 
-const screens = ['/home', '/news_detail', 'EventDetailPage', '/yeni-ekran-x', '/menu', '/chat_detail', '/clubs'];
+const screens = [
+  '/home',
+  '/news_detail',
+  'EventDetailPage',
+  '/yeni-ekran-x',
+  '/menu',
+  '/chat_detail',
+  '/clubs',
+];
 
 export function screensFixture(page = 0, size = 20, total = 45): Paged<ScreenStat> {
-  const items: ScreenStat[] = Array.from({ length: Math.min(size, Math.max(0, total - page * size)) }, (_, i) => {
-    const n = page * size + i;
-    return {
-      screen: n < screens.length ? screens[n] : `/ekran_${n}`,
-      views: 5000 - n * 90,
-      users: 300 - n * 5,
-      avgDwellMs: 20_000 + n * 3_000,
-      medianDwellMs: 12_000 + n * 1_500,
-      p90DwellMs: 70_000 + n * 4_000,
-      exitRate: Math.max(0.02, 0.4 - n * 0.006),
-      bounceRate: Math.max(0.01, 0.25 - n * 0.004),
-      sharePct: Math.max(0.2, 18 - n * 0.4),
-    };
-  });
+  const items: ScreenStat[] = Array.from(
+    { length: Math.min(size, Math.max(0, total - page * size)) },
+    (_, i) => {
+      const n = page * size + i;
+      return {
+        screen: n < screens.length ? screens[n] : `/ekran_${n}`,
+        views: 5000 - n * 90,
+        users: 300 - n * 5,
+        avgDwellMs: 20_000 + n * 3_000,
+        medianDwellMs: 12_000 + n * 1_500,
+        p90DwellMs: 70_000 + n * 4_000,
+        exitRate: Math.max(0.02, 0.4 - n * 0.006),
+        bounceRate: Math.max(0.01, 0.25 - n * 0.004),
+        sharePct: Math.max(0.2, 18 - n * 0.4),
+      };
+    },
+  );
   return { items, page, size, total };
 }
 
@@ -121,6 +132,46 @@ export function usersFixture(page = 0, size = 20, total = 45): Paged<BehaviorUse
 }
 
 export const userDetailFixture: BehaviorUserDetail = {
+  insights: {
+    from: '2026-11-01',
+    to: '2026-11-03',
+    eventCount: 20,
+    partial: false,
+    screens: [
+      {
+        screen: '/news_detail',
+        views: 4,
+        measuredVisits: 3,
+        totalMs: 90000,
+        avgMs: 30000,
+        maxMs: 60000,
+        share: 0.75,
+      },
+      {
+        screen: '/home',
+        views: 2,
+        measuredVisits: 2,
+        totalMs: 30000,
+        avgMs: 15000,
+        maxMs: 20000,
+        share: 0.25,
+      },
+    ],
+    byDay: [
+      { day: '2026-11-01', sessions: 0, totalMs: 0, views: 0, actions: 0 },
+      { day: '2026-11-02', sessions: 1, totalMs: 3000, views: 1, actions: 0 },
+      { day: '2026-11-03', sessions: 1, totalMs: 170000, views: 5, actions: 2 },
+    ],
+    byHour: Array.from({ length: 24 }, (_, hour) => ({
+      hour,
+      views: hour === 11 ? 5 : 0,
+      actions: hour === 11 ? 2 : 0,
+    })),
+    actions: [
+      { kind: 'like', count: 1 },
+      { kind: 'pull_refresh', count: 1 },
+    ],
+  },
   user: {
     userId: 1,
     displayName: 'Test Kullanıcı 1',
@@ -128,7 +179,14 @@ export const userDetailFixture: BehaviorUserDetail = {
     department: 'Bilgisayar Mühendisliği',
     grade: '3. sınıf',
   },
-  summary: { sessions: 2, totalMs: 190_000, avgSessionMs: 95_000, bounceRate: 0.5, quickCloseCount: 1, lastSeenAt: '2026-11-03T08:30:00Z' },
+  summary: {
+    sessions: 2,
+    totalMs: 190_000,
+    avgSessionMs: 95_000,
+    bounceRate: 0.5,
+    quickCloseCount: 1,
+    lastSeenAt: '2026-11-03T08:30:00Z',
+  },
   sessions: [
     {
       sid: 'abcd1234',

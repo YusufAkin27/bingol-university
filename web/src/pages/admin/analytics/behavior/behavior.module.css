@@ -138,6 +138,66 @@
   display: grid;
   gap: var(--space-3);
 }
+
+.dayActivity,
+.hourActivity,
+.actionBreakdown {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.dayActivity {
+  max-block-size: 26rem;
+  overflow: auto;
+}
+.dayActivity li {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+}
+.dayHead,
+.actionBreakdown li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  align-items: center;
+}
+.activityTrack {
+  block-size: 6px;
+  background: var(--surface-2);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+.activityTrack span {
+  display: block;
+  block-size: 100%;
+  background: var(--chart-1);
+  border-radius: inherit;
+}
+.hourActivity {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+.hourActivity li {
+  padding: var(--space-2);
+  display: grid;
+  gap: var(--space-1);
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+}
+.partial {
+  border-inline-start: 3px solid var(--chart-3);
+  padding: var(--space-3);
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+}
+@media (max-width: 640px) {
+  .hourActivity {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
 .drawerKpis {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

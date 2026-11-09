@@ -80,9 +80,10 @@ public class BehaviorController {
     @AuditRead
     @GetMapping("/users/{id}")
     public UserDetail userDetail(@PathVariable long id, @RequestParam(required = false) Integer days,
+                                 @RequestParam(required = false) String from, @RequestParam(required = false) String to,
                                  Authentication auth) {
         limit(auth);
-        return service.userDetail(id, days);
+        return service.userDetail(id, days, from, to);
     }
 
     private void limit(Authentication auth) {

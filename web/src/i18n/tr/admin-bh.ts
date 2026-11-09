@@ -73,7 +73,8 @@ export default {
   'admin.bh.screens.hint':
     'Çıkış %: oturumun bu ekranda bittiği oran. Bounce %: bu ekranda başlayıp tek ekranda ve 10 saniyeden kısa süren oturum oranı. Sütun başlığına basarak sıralayın.',
   'admin.bh.screens.emptyTitle': 'Bu aralıkta ekran verisi yok',
-  'admin.bh.screens.emptyBody': 'Ekran süreleri mobil uygulamanın yeni sürümünden gelir; başka bir aralık deneyin.',
+  'admin.bh.screens.emptyBody':
+    'Ekran süreleri mobil uygulamanın yeni sürümünden gelir; başka bir aralık deneyin.',
 
   'admin.bh.flows.transitions': 'En çok yapılan geçişler',
   'admin.bh.flows.transitionsHint': 'Kullanıcılar bir ekrandan sonra en çok hangi ekrana gidiyor.',
@@ -82,14 +83,17 @@ export default {
   'admin.bh.flows.exits': 'Çıkış ekranları',
   'admin.bh.flows.exitsHint': 'Oturumların son görüldüğü ekranlar.',
   'admin.bh.flows.dropOff': 'Terk edilen ekranlar',
-  'admin.bh.flows.dropOffHint': 'Bırakma %: bu ekrana gelen oturumların, ekrandan sonra uygulamayı bırakanların oranı.',
+  'admin.bh.flows.dropOffHint':
+    'Bırakma %: bu ekrana gelen oturumların, ekrandan sonra uygulamayı bırakanların oranı.',
   'admin.bh.flows.emptyTitle': 'Bu aralıkta akış verisi yok',
-  'admin.bh.flows.emptyBody': 'Akışlar mobil uygulamanın yeni sürümünden gelen ekran olaylarından çıkarılır; başka bir aralık deneyin.',
+  'admin.bh.flows.emptyBody':
+    'Akışlar mobil uygulamanın yeni sürümünden gelen ekran olaylarından çıkarılır; başka bir aralık deneyin.',
 
   'admin.bh.actions.chart': 'En çok yapılan eylemler',
   'admin.bh.actions.table': 'Eylem ayrıntıları',
   'admin.bh.actions.emptyTitle': 'Bu aralıkta eylem verisi yok',
-  'admin.bh.actions.emptyBody': 'Beğeni, takip, katılım gibi eylemler mobil uygulamanın yeni sürümünden gelir; başka bir aralık deneyin.',
+  'admin.bh.actions.emptyBody':
+    'Beğeni, takip, katılım gibi eylemler mobil uygulamanın yeni sürümünden gelir; başka bir aralık deneyin.',
 
   'admin.bh.users.title': 'Kullanıcı bazlı davranış',
   'admin.bh.users.audited': 'Denetim kaydına yazılır',
@@ -116,4 +120,25 @@ export default {
   'admin.bh.drawer.emptyTitle': 'Bu aralıkta oturum yok',
   'admin.bh.drawer.emptyBody': 'Kullanıcının seçili aralıkta kaydedilmiş oturumu bulunmuyor.',
   'admin.bh.drawer.openProfile': 'Kullanıcı kartını aç',
+  'admin.bh.insights.longest': 'En uzun ziyaret',
+  'admin.bh.insights.open': 'Sayfa ve kullanım analizi',
+  'admin.bh.insights.activeDays': 'Aktif gün',
+  'admin.bh.insights.screenCount': 'Ziyaret edilen sayfa',
+  'admin.bh.insights.actions': 'İşlem dağılımı',
+  'admin.bh.insights.screens': 'Bu kullanıcı hangi sayfalarda vakit geçiriyor?',
+  'admin.bh.insights.measurement':
+    'Ölçülen ön plan süreleri çoktan aza sıralanır. Ortalama yalnız süresi ölçülen ziyaretlerden hesaplanır. Açık kalan veya gönderilmeyen ziyaretlerin süresi bilinmeyebilir; pay, ölçülen sayfa süresine göredir.',
+  'admin.bh.insights.daily': 'Günlük kullanım',
+  'admin.bh.insights.dailyNote':
+    'İstanbul saatine göre. Oturum süresi oturumun başladığı güne yazılır; gece yarısını geçen süre aynı güne dahildir.',
+  'admin.bh.insights.dayCounts': '{sessions} oturum · {views} görüntüleme · {actions} işlem',
+  'admin.bh.insights.hours': 'Hangi saatlerde kullanıyor?',
+  'admin.bh.insights.hoursNote':
+    'İstanbul saatine göre sayfa açılışları ve işlemler. Bu dağılım süreyi değil olay sayısını gösterir.',
+  'admin.bh.insights.hourCounts': '{hour}:00 · {views} görüntüleme · {actions} işlem',
+  'admin.bh.insights.views': '{n} görüntüleme',
+  'admin.bh.insights.actionCount': '{n} işlem',
+  'admin.bh.insights.noActions': 'Bu aralıkta işlem kaydı yok',
+  'admin.bh.insights.partial':
+    'Yoğun kullanım nedeniyle en yeni {n} olay analiz edildi. Bu aralığın bazı eski kayıtları bu özete dahil olmayabilir.',
 };

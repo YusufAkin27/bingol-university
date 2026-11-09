@@ -1,7 +1,12 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { getBehaviorUsers, type BehaviorUserRow, type SortDir, type UserSort } from '../../../../api/analyticsBehavior';
+import {
+  getBehaviorUsers,
+  type BehaviorUserRow,
+  type SortDir,
+  type UserSort,
+} from '../../../../api/analyticsBehavior';
 import { qk } from '../../../../api/queryKeys';
 import {
   Badge,
@@ -16,13 +21,20 @@ import {
 import { useI18n } from '../../../../i18n/I18nProvider';
 import analytics from '../analytics.module.css';
 import styles from './behavior.module.css';
-import { drawerDays, formatDuration, formatInt, formatPct, screenLabel, type Range } from './format';
+import { formatDuration, formatInt, formatPct, screenLabel, type Range } from './format';
 import { totalPagesOf } from './shared';
 import { nextSort } from './ScreensSection';
 import UserDrawer from './UserDrawer';
 
 export const USER_PAGE_SIZE = 20;
-const SORT_KEYS: UserSort[] = ['sessions', 'totalMs', 'avgSessionMs', 'bounceRate', 'quickCloseCount', 'lastSeenAt'];
+const SORT_KEYS: UserSort[] = [
+  'sessions',
+  'totalMs',
+  'avgSessionMs',
+  'bounceRate',
+  'quickCloseCount',
+  'lastSeenAt',
+];
 
 export default function UsersSection({ range }: { range: Range }) {
   const { t, formatDateTime } = useI18n();
@@ -72,11 +84,43 @@ export default function UsersSection({ range }: { range: Range }) {
         </span>
       ),
     },
-    { key: 'sessions', header: t('admin.bh.col.sessions'), sortable: true, align: 'end', card: { priority: 2 }, render: (r) => num(formatInt(r.sessions)) },
-    { key: 'totalMs', header: t('admin.bh.col.totalTime'), sortable: true, align: 'end', card: { priority: 3 }, render: (r) => num(formatDuration(r.totalMs)) },
-    { key: 'avgSessionMs', header: t('admin.bh.col.avgSession'), sortable: true, align: 'end', render: (r) => num(formatDuration(r.avgSessionMs)) },
-    { key: 'bounceRate', header: t('admin.bh.col.bounce'), sortable: true, align: 'end', render: (r) => num(formatPct(r.bounceRate)) },
-    { key: 'quickCloseCount', header: t('admin.bh.col.quickCloseCount'), sortable: true, align: 'end', render: (r) => num(formatInt(r.quickCloseCount)) },
+    {
+      key: 'sessions',
+      header: t('admin.bh.col.sessions'),
+      sortable: true,
+      align: 'end',
+      card: { priority: 2 },
+      render: (r) => num(formatInt(r.sessions)),
+    },
+    {
+      key: 'totalMs',
+      header: t('admin.bh.col.totalTime'),
+      sortable: true,
+      align: 'end',
+      card: { priority: 3 },
+      render: (r) => num(formatDuration(r.totalMs)),
+    },
+    {
+      key: 'avgSessionMs',
+      header: t('admin.bh.col.avgSession'),
+      sortable: true,
+      align: 'end',
+      render: (r) => num(formatDuration(r.avgSessionMs)),
+    },
+    {
+      key: 'bounceRate',
+      header: t('admin.bh.col.bounce'),
+      sortable: true,
+      align: 'end',
+      render: (r) => num(formatPct(r.bounceRate)),
+    },
+    {
+      key: 'quickCloseCount',
+      header: t('admin.bh.col.quickCloseCount'),
+      sortable: true,
+      align: 'end',
+      render: (r) => num(formatInt(r.quickCloseCount)),
+    },
     {
       key: 'lastSeenAt',
       header: t('admin.bh.col.lastSeen'),
@@ -157,7 +201,7 @@ export default function UsersSection({ range }: { range: Range }) {
           </>
         )}
       </Card>
-      {selected !== null && <UserDrawer userId={selected} days={drawerDays(range)} onClose={() => open(null)} />}
+      {selected !== null && <UserDrawer userId={selected} range={range} onClose={() => open(null)} />}
     </>
   );
 }

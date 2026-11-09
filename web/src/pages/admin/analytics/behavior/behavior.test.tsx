@@ -37,7 +37,8 @@ function setup(opts: Opts = {}) {
     const u = new URL(url, 'http://x');
     const path = u.pathname;
     if (path.endsWith('/rbac/me')) return jsonResponse(200, rbac(perms));
-    if ((opts.fail ?? []).some((f) => path.includes(f))) return jsonResponse(500, { code: 'X', message: 'x' });
+    if ((opts.fail ?? []).some((f) => path.includes(f)))
+      return jsonResponse(500, { code: 'X', message: 'x' });
     if (path.endsWith('/behavior/overview')) return jsonResponse(200, opts.overview ?? overviewFixture);
     if (path.endsWith('/behavior/screens')) {
       const page = Number(u.searchParams.get('page') ?? 0);
@@ -144,9 +145,17 @@ describe('Davranış sekmesi: ekranlar', () => {
     expect(calls(f, '/behavior/screens')[0]).toContain('size=20');
 
     await user.click(screen.getByRole('button', { name: /Çıkış %/ }));
-    await waitFor(() => expect(calls(f, '/behavior/screens').some((u) => u.includes('sort=exitRate') && u.includes('dir=desc'))).toBe(true));
+    await waitFor(() =>
+      expect(
+        calls(f, '/behavior/screens').some((u) => u.includes('sort=exitRate') && u.includes('dir=desc')),
+      ).toBe(true),
+    );
     await user.click(screen.getByRole('button', { name: /Çıkış %/ }));
-    await waitFor(() => expect(calls(f, '/behavior/screens').some((u) => u.includes('sort=exitRate') && u.includes('dir=asc'))).toBe(true));
+    await waitFor(() =>
+      expect(
+        calls(f, '/behavior/screens').some((u) => u.includes('sort=exitRate') && u.includes('dir=asc')),
+      ).toBe(true),
+    );
 
     await user.click(screen.getByRole('button', { name: 'Sonraki sayfa' }));
     await waitFor(() => expect(calls(f, '/behavior/screens').some((u) => u.includes('page=1'))).toBe(true));
@@ -154,8 +163,14 @@ describe('Davranış sekmesi: ekranlar', () => {
   });
 
   it('nextSort: yeni sütun çoktan aza başlar, aynı sütun yönü korur', () => {
-    expect(nextSort({ key: 'views', dir: 'desc' }, { key: 'users', dir: 'asc' })).toEqual({ key: 'users', dir: 'desc' });
-    expect(nextSort({ key: 'views', dir: 'desc' }, { key: 'views', dir: 'asc' })).toEqual({ key: 'views', dir: 'asc' });
+    expect(nextSort({ key: 'views', dir: 'desc' }, { key: 'users', dir: 'asc' })).toEqual({
+      key: 'users',
+      dir: 'desc',
+    });
+    expect(nextSort({ key: 'views', dir: 'desc' }, { key: 'views', dir: 'asc' })).toEqual({
+      key: 'views',
+      dir: 'asc',
+    });
   });
 });
 
@@ -184,7 +199,9 @@ describe('Davranış sekmesi: akışlar ve eylemler', () => {
         ? jsonResponse(200, { topTransitions: [], entryScreens: [], exitScreens: [], dropOff: [] })
         : jsonResponse(200, { items: [] }),
     );
-    const { unmount } = renderWithProviders(<AnalyticsPage />, { route: '/admin/analytics?tab=behavior&sub=flows' });
+    const { unmount } = renderWithProviders(<AnalyticsPage />, {
+      route: '/admin/analytics?tab=behavior&sub=flows',
+    });
     expect(await screen.findByText('Bu aralıkta akış verisi yok')).toBeInTheDocument();
     unmount();
     renderWithProviders(<AnalyticsPage />, { route: '/admin/analytics?tab=behavior&sub=actions' });
@@ -212,14 +229,18 @@ describe('Davranış sekmesi: kullanıcılar', () => {
     expect(calls(f, '/behavior/users')[0]).toContain('sort=totalMs');
 
     await user.click(screen.getByRole('button', { name: /Oturum$/ }));
-    await waitFor(() => expect(calls(f, '/behavior/users').some((u) => u.includes('sort=sessions'))).toBe(true));
+    await waitFor(() =>
+      expect(calls(f, '/behavior/users').some((u) => u.includes('sort=sessions'))).toBe(true),
+    );
 
     await user.click(screen.getByRole('button', { name: 'Sonraki sayfa' }));
     await waitFor(() => expect(calls(f, '/behavior/users').some((u) => u.includes('page=1'))).toBe(true));
     expect(await screen.findByText('Test Kullanıcı 21')).toBeInTheDocument();
 
     await user.type(screen.getByRole('searchbox'), 'ayşe');
-    await waitFor(() => expect(calls(f, '/behavior/users').some((u) => u.includes('q=ay%C5%9Fe'))).toBe(true));
+    await waitFor(() =>
+      expect(calls(f, '/behavior/users').some((u) => u.includes('q=ay%C5%9Fe'))).toBe(true),
+    );
   });
 
   it('satıra basınca çekmece açılır: özet ve oturum zaman çizelgesi', async () => {
@@ -232,7 +253,8 @@ describe('Davranış sekmesi: kullanıcılar', () => {
 
     const dlg = await screen.findByRole('dialog');
     expect(await within(dlg).findByText('Test Kullanıcı 1: davranış')).toBeInTheDocument();
-    expect(calls(f, '/behavior/users/1')[0]).toMatch(/days=7$/);
+    expect(calls(f, '/behavior/users/1')[0]).toMatch(/from=\d{4}-\d{2}-\d{2}/);
+    expect(calls(f, '/behavior/users/1')[0]).toMatch(/to=\d{4}-\d{2}-\d{2}/);
     // iki oturum: biri hemen kapatma + bounce rozetli
     expect(within(dlg).getByText('Hemen kapattı')).toBeInTheDocument();
     expect(within(dlg).getAllByText('Bounce').length).toBeGreaterThan(0);
@@ -243,19 +265,42 @@ describe('Davranış sekmesi: kullanıcılar', () => {
     expect(within(steps).getByText('Beğeni')).toBeInTheDocument();
     expect(within(steps).getByText('Yenileme (aşağı çekme)')).toBeInTheDocument();
     expect(within(steps).getByText(/süre ölçülemedi/)).toBeInTheDocument();
-    expect(within(dlg).getByRole('link', { name: 'Kullanıcı kartını aç' })).toHaveAttribute('href', expect.stringContaining('/users/1'));
+    expect(within(dlg).getByRole('link', { name: 'Kullanıcı kartını aç' })).toHaveAttribute(
+      'href',
+      expect.stringContaining('/users/1'),
+    );
 
     // ikinci oturum kapalıdır; açınca adımı görünür
     expect(within(dlg).getAllByRole('list', { name: 'Oturum adımları' })).toHaveLength(1);
     await user.click(within(dlg).getByText('Uygulamadan çıkıldı'));
-    await waitFor(() => expect(within(dlg).getAllByRole('list', { name: 'Oturum adımları' })).toHaveLength(2));
+    await waitFor(() =>
+      expect(within(dlg).getAllByRole('list', { name: 'Oturum adımları' })).toHaveLength(2),
+    );
+  });
+
+  it('geçmiş tarih seçilince kullanıcı detayı da aynı tarih aralığını ister', async () => {
+    const f = setup();
+    renderWithProviders(<AnalyticsPage />, {
+      route: '/admin/analytics?tab=behavior&sub=users&uid=1&from=2026-10-01&to=2026-10-03',
+    });
+    const dlg = await screen.findByRole('dialog');
+    await within(dlg).findByText('Test Kullanıcı 1: davranış');
+    const url = calls(f, '/behavior/users/1')[0];
+    expect(url).toContain('from=2026-10-01');
+    expect(url).toContain('to=2026-10-03');
+    expect(url).not.toContain('days=');
+    expect(within(dlg).getByText('2026-10-01 – 2026-10-03')).toBeInTheDocument();
+    expect(
+      within(dlg).getByRole('table', { name: 'Bu kullanıcı hangi sayfalarda vakit geçiriyor?' }),
+    ).toBeInTheDocument();
   });
 
   it('çekmece hatasında neden gösterilir (403)', async () => {
     mockFetch((url) => {
       const path = new URL(url, 'http://x').pathname;
       if (path.endsWith('/rbac/me')) return jsonResponse(200, rbac(FULL));
-      if (/\/behavior\/users\/\d+$/.test(path)) return jsonResponse(403, { code: 'ADMIN_PERMISSION_DENIED', message: 'yok' });
+      if (/\/behavior\/users\/\d+$/.test(path))
+        return jsonResponse(403, { code: 'ADMIN_PERMISSION_DENIED', message: 'yok' });
       return jsonResponse(200, usersFixture());
     });
     const user = userEvent.setup();
@@ -283,8 +328,14 @@ describe('StepRow', () => {
     const start = '2026-11-03T08:20:00Z';
     renderWithProviders(
       <ol>
-        <StepRow start={start} step={{ type: 'screen', screen: '/menu', dwellMs: 134_000, at: '2026-11-03T08:20:30Z' }} />
-        <StepRow start={start} step={{ type: 'action', screen: '/menu', kind: 'rate_menu', at: '2026-11-03T08:21:00Z' }} />
+        <StepRow
+          start={start}
+          step={{ type: 'screen', screen: '/menu', dwellMs: 134_000, at: '2026-11-03T08:20:30Z' }}
+        />
+        <StepRow
+          start={start}
+          step={{ type: 'action', screen: '/menu', kind: 'rate_menu', at: '2026-11-03T08:21:00Z' }}
+        />
       </ol>,
     );
     expect(screen.getByText('Yemek Listesi', { selector: 'strong' })).toBeInTheDocument();

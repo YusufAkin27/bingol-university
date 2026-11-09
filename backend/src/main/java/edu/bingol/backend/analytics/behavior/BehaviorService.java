@@ -237,12 +237,20 @@ public class BehaviorService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "RANGE_TOO_LARGE",
                     "Tarih aralığı çok geniş (en çok " + MAX_DAYS + " gün).", String.valueOf(MAX_DAYS));
         }
+        LocalDate today = DateRange.today(clock);
+        return userDetail(userId, new DateRange(today.minusDays(d - 1L), today));
+    }
+
+    public UserDetail userDetail(long userId, Integer days, String from, String to) {
+        return (from == null && to == null) ? userDetail(userId, days) : userDetail(userId, range(from, to));
+    }
+
+    private UserDetail userDetail(long userId, DateRange r) {
         UserInfo info = repo.userInfo(userId).orElseThrow(
                 () -> new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Kullanıcı bulunamadı."));
-        AuditContext.target("USER", userId).summary("kullanici davranis zaman cizelgesi: " + d + " gun");
-        LocalDate today = DateRange.today(clock);
-        DateRange r = new DateRange(today.minusDays(d - 1L), today);
-        List<Session> all = BehaviorMath.sessionize(repo.userEvents(userId, r.startUtc(), r.endUtc()));
+        AuditContext.target("USER", userId).summary("kullanici davranis analizi: " + r.from() + " / " + r.to());
+        var events = repo.userEvents(userId, r.startUtc(), r.endUtc());
+        List<Session> all = BehaviorMath.sessionize(events);
         Summary sum = BehaviorMath.summarize(all);
         List<SessionOut> out = new ArrayList<>();
         for (int i = all.size() - 1; i >= 0 && out.size() < BehaviorMath.MAX_SESSIONS; i--) { // en yeni once
@@ -254,7 +262,7 @@ public class BehaviorService {
         return new UserDetail(new UserInfo(info.userId(), info.displayName(), PermissionAwareMasking.email(info.email()),
                 info.department(), info.grade()),
                 new UserSummary(sum.sessions(), sum.totalMs(), sum.avgSessionMs(), sum.bounceRate(),
-                        sum.quickCloseCount(), sum.lastSeenAt()), out);
+                        sum.quickCloseCount(), sum.lastSeenAt()), out, UserInsightsBuilder.build(r, events, all));
     }
 
     // --- yardimcilar ---
