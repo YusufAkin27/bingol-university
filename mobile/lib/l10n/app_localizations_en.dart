@@ -11752,6 +11752,30 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String forumCommentReplyContext(String name) {
+    return 'Replying to $name';
+  }
+
+  @override
+  String get forumModRemoveAction => 'Remove (moderator)';
+
+  @override
+  String get forumModReasonTitle => 'Remove content';
+
+  @override
+  String get forumModReasonBody =>
+      'The reason is sent to the author and written to the moderation log.';
+
+  @override
+  String get forumModReasonHint => 'Reason (at least 3 characters)';
+
+  @override
+  String get forumModRemoveConfirm => 'Remove';
+
+  @override
+  String get forumModRemovedDone => 'Content removed.';
+
+  @override
   String get forumCommentHideReplies => 'Hide replies';
 
   @override

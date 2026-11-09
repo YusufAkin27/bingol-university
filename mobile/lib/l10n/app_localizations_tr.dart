@@ -11710,6 +11710,30 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String forumCommentReplyContext(String name) {
+    return '$name adlı kişiye yanıt';
+  }
+
+  @override
+  String get forumModRemoveAction => 'Kaldır (moderatör)';
+
+  @override
+  String get forumModReasonTitle => 'İçeriği kaldır';
+
+  @override
+  String get forumModReasonBody =>
+      'Gerekçe içerik sahibine bildirilir ve moderasyon kaydına yazılır.';
+
+  @override
+  String get forumModReasonHint => 'Gerekçe (en az 3 karakter)';
+
+  @override
+  String get forumModRemoveConfirm => 'Kaldır';
+
+  @override
+  String get forumModRemovedDone => 'İçerik kaldırıldı.';
+
+  @override
   String get forumCommentHideReplies => 'Yanıtları gizle';
 
   @override

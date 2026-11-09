@@ -2,6 +2,9 @@ import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/features/forum/forum_routes.dart';
 import 'package:bu_kampus/features/forum/presentation/pages/comment_thread_page.dart';
 import 'package:bu_kampus/features/forum/presentation/pages/topic_detail_page.dart';
+import 'package:bu_kampus/features/forum/data/forum_models.dart';
+import 'package:bu_kampus/features/forum/presentation/widgets/comment_card.dart';
+import 'package:bu_kampus/features/forum/presentation/widgets/comment_tree.dart';
 import 'package:bu_kampus/features/forum/presentation/widgets/topic_detail_share.dart';
 import 'package:bu_kampus/widgets/bu_widgets.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +16,9 @@ import 'support/fake_forum.dart';
 import 'support/fake_forum_comments.dart';
 
 /// Konu detayı + yorum sistemi (MB-B). Sahte uçlar: FakeForum (konular) + FakeForumComments (yorumlar).
+// Sunucu 500 SERVER_ERROR: istemci ortak metni gosterir (core/session.dart knownErrorText), sunucu govdesindeki metni degil.
+const _kServiceDown = 'İşlem şu anda tamamlanamıyor. Lütfen biraz sonra tekrar deneyin.';
+
 void main() {
   setUpAll(loadTestFonts);
 
@@ -341,7 +347,7 @@ void main() {
       await write(tester, 'Yarim kalan yorum');
       await tapSend(tester);
       expect(tester.widget<TextField>(field()).controller!.text, 'Yarim kalan yorum');
-      expect(find.text('Sunucu hatası'), findsOneWidget);
+      expect(find.text(_kServiceDown), findsOneWidget);
       r.c.failPost = false;
       await tester.pump(const Duration(seconds: 4));
       await tapSend(tester);
@@ -626,7 +632,7 @@ void main() {
       await tester.tap(like);
       await settle(tester, const Duration(seconds: 1));
       expect(find.descendant(of: like, matching: find.text('3')), findsOneWidget);
-      expect(find.text('Hata'), findsOneWidget);
+      expect(find.text(_kServiceDown), findsOneWidget);
       await unmount(tester);
     });
   });
@@ -945,6 +951,98 @@ void main() {
       await tester.pump(const Duration(milliseconds: 20));
       expect(find.text('Zeynep yanıtı'), findsNothing);
       await unmount(tester);
+    });
+  });
+
+  group('G5: moderator kaldirma + kime yanit', () {
+    testWidgets('moderator: baskasinin yorumunda Kaldir (gerekce zorunlu) -> moderate REMOVE; kendi yorumunda yok', (tester) async {
+      final r = await open(tester, prepare: (f, c) => c.moderator = true);
+      await openMenu(tester, 6);
+      expect(find.byKey(const ValueKey('commentAction-modRemove')), findsNothing, reason: 'kendi yorumum');
+      await tester.tapAt(const Offset(5, 5));
+      await settle(tester, const Duration(milliseconds: 500));
+      await openMenu(tester, 1);
+      await pick(tester, 'modRemove');
+      final send = find.byKey(const ValueKey('forum-mod-remove-confirm'));
+      expect(tester.widget<BuButton>(send).onPressed, isNull, reason: 'gerekcesiz kaldirilmaz');
+      await tester.enterText(find.byKey(const ValueKey('forum-mod-reason')), 'Spam icerik');
+      await tester.pump();
+      await tester.tap(send);
+      await settle(tester, const Duration(seconds: 1));
+      expect(r.c.commentModerations, ['REMOVE:Spam icerik']);
+      await unmount(tester);
+    });
+
+    testWidgets('moderator degilse Kaldir yok', (tester) async {
+      await open(tester);
+      await openMenu(tester, 1);
+      expect(find.byKey(const ValueKey('commentAction-modRemove')), findsNothing);
+      await unmount(tester);
+    });
+
+    testWidgets('moderator: konu menusunde Kaldir; sahip kendi konusunda yalniz Sil', (tester) async {
+      await open(tester, prepare: (f, c) {
+        f.byId(500)!['canModerate'] = true;
+        f.byId(500)!['mine'] = false;
+      });
+      await tester.tap(find.byKey(const ValueKey('topicMore')));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.byKey(const ValueKey('topicMenu-modRemove')), findsOneWidget);
+      await unmount(tester);
+    });
+
+    testWidgets('yanit baglami: "X adli kisiye yanit" + ozet; 360 dp en derin seviyede metin >= 200 dp', (tester) async {
+      final r = await open(tester, size: const Size(360, 780));
+      CommentNode mk(Map<String, dynamic> j) => CommentNode(ForumComment.fromJson(j));
+      Map<String, dynamic> j(int id, String name, String body, {int? parent, int depth = 0}) => {
+            'id': id,
+            'topicId': 500,
+            'parentCommentId': parent,
+            'depth': depth,
+            'author': {'userId': id + 100, 'displayName': name, 'anonymous': false},
+            'body': body,
+            'anonymous': false,
+            'createdAt': '2026-11-09T10:00:00Z',
+            'likeCount': 0,
+            'replyCount': 0,
+          };
+      final parent = mk(j(10, 'Ayse', 'Ilk yorumun uzun bir metni burada duruyor'));
+      final deep = mk(j(11, 'Ali', 'Derin yanit metni', parent: 10, depth: kCommentMaxLevel));
+      await tester.pumpWidget(buildApp(
+        Scaffold(
+          body: CommentCard(
+            node: deep,
+            level: kCommentMaxLevel,
+            session: r.s,
+            replyingTo: parent,
+            actions: CommentCardActions(onReply: (_) {}, onMore: (_) {}, onLike: (_) {}, onOpenProfile: (_) {}),
+          ),
+        ),
+        size: const Size(360, 780),
+      ));
+      await tester.pump();
+      expect(find.textContaining('Ayse adlı kişiye yanıt'), findsOneWidget);
+      expect(find.textContaining('Ilk yorumun'), findsOneWidget);
+      final w = tester.getSize(find.text('Derin yanit metni')).width;
+      final rowW = tester.getSize(find.byKey(const ValueKey('commentCard-11'))).width;
+      // Girinti + avatar sonrasi kalan satir genisligi (360 dp): metin kutusu >= 200 dp
+      expect(rowW - (16 + kCommentMaxLevel * CommentCard.indentStep + 28 + 10 + 16), greaterThanOrEqualTo(200), reason: 'w=$w');
+      // Silinmis ust yorum: baglam satiri yok
+      parent.deleted = true;
+      await tester.pumpWidget(buildApp(
+        Scaffold(
+          body: CommentCard(
+            node: deep,
+            level: 0,
+            session: r.s,
+            replyingTo: parent,
+            actions: CommentCardActions(onReply: (_) {}, onMore: (_) {}, onLike: (_) {}, onOpenProfile: (_) {}),
+          ),
+        ),
+        size: const Size(360, 780),
+      ));
+      await tester.pump();
+      expect(find.byKey(const ValueKey('commentReplyContext-11')), findsNothing);
     });
   });
 }

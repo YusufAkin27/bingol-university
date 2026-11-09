@@ -49,6 +49,7 @@ class CommentCard extends StatelessWidget {
     required this.actions,
     this.highlighted = false,
     this.canReply = true,
+    this.replyingTo,
   });
 
   final CommentNode node;
@@ -59,6 +60,10 @@ class CommentCard extends StatelessWidget {
 
   /// false: kilitli konu (Yanıtla gizlenir).
   final bool canReply;
+
+  /// Bu yorumun yanıtladığı yorum (üstünde görünmediği durumlarda: ayrı zincir ekranının kökü). Yazar adı +
+  /// kısa özet tek satırda gösterilir; anonim yazarda yalnız sunucunun "Anonim #N" adı, silinmiş yorumda satır yok.
+  final CommentNode? replyingTo;
 
   static const double indentStep = 20;
   static const double _pad = 16;
@@ -114,6 +119,27 @@ class CommentCard extends StatelessWidget {
     );
   }
 
+  Widget _replyContext(BuildContext context, TextTheme tx, BuTokens t, AppLocalizations l) {
+    final p = replyingTo!;
+    final name = commentAuthorName(context, p);
+    final snippet = (p.body ?? '').replaceAll(RegExp(r'\s+'), ' ').trim();
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Row(key: ValueKey('commentReplyContext-${node.id}'), children: [
+        ExcludeSemantics(child: Icon(BuIcons.reply, size: 14, color: t.mutSoft)),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            snippet.isEmpty ? l.forumCommentReplyContext(name) : '${l.forumCommentReplyContext(name)} · $snippet',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: tx.bodySmall!.copyWith(color: t.mut),
+          ),
+        ),
+      ]),
+    );
+  }
+
   Widget _deleted(BuildContext context, TextTheme tx, BuTokens t) {
     final l = context.l10n;
     return Padding(
@@ -164,6 +190,7 @@ class CommentCard extends StatelessWidget {
                 Text(l.forumCommentEdited, key: const ValueKey('commentEdited'), style: tx.bodySmall!.copyWith(color: t.mut)),
             ],
           ),
+          if (replyingTo != null && !replyingTo!.deleted) _replyContext(context, tx, t, l),
           const SizedBox(height: 4),
           GestureDetector(
             behavior: HitTestBehavior.opaque,

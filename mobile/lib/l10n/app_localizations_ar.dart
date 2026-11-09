@@ -11650,6 +11650,30 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String forumCommentReplyContext(String name) {
+    return 'رد على $name';
+  }
+
+  @override
+  String get forumModRemoveAction => 'إزالة (مشرف)';
+
+  @override
+  String get forumModReasonTitle => 'إزالة المحتوى';
+
+  @override
+  String get forumModReasonBody =>
+      'يُرسل السبب إلى صاحب المحتوى ويُسجَّل في سجل الإشراف.';
+
+  @override
+  String get forumModReasonHint => 'السبب (3 أحرف على الأقل)';
+
+  @override
+  String get forumModRemoveConfirm => 'إزالة';
+
+  @override
+  String get forumModRemovedDone => 'تمت إزالة المحتوى.';
+
+  @override
   String get forumCommentHideReplies => 'إخفاء الردود';
 
   @override

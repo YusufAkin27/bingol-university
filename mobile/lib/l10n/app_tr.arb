@@ -6402,6 +6402,20 @@
       }
     }
   },
+  "forumCommentReplyContext": "{name} adlı kişiye yanıt",
+  "@forumCommentReplyContext": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "forumModRemoveAction": "Kaldır (moderatör)",
+  "forumModReasonTitle": "İçeriği kaldır",
+  "forumModReasonBody": "Gerekçe içerik sahibine bildirilir ve moderasyon kaydına yazılır.",
+  "forumModReasonHint": "Gerekçe (en az 3 karakter)",
+  "forumModRemoveConfirm": "Kaldır",
+  "forumModRemovedDone": "İçerik kaldırıldı.",
   "forumCommentHideReplies": "Yanıtları gizle",
   "forumCommentMoreReplies": "{n} yanıt daha",
   "@forumCommentMoreReplies": {

@@ -14,6 +14,7 @@ import 'comment_actions_sheet.dart';
 import 'comment_card.dart';
 import 'comment_controller.dart';
 import 'comment_tree.dart';
+import 'mod_remove_sheet.dart';
 import 'topic_detail_share.dart';
 
 /// Konu ekranı ile "yanıt zinciri" ekranının ORTAK yorum etkileşimleri: yanıtla / düzenle / sil / beğen / kaydet /
@@ -139,6 +140,8 @@ mixin CommentInteractions<T extends StatefulWidget> on State<T> {
             targetType: kForumReportComment, targetId: n.id, anonymousAuthor: n.anonymous || (n.author?.anonymous ?? false));
       case CommentAction.block:
         await _confirmBlock(n);
+      case CommentAction.modRemove:
+        await _modRemove(n);
     }
   }
 
@@ -159,6 +162,19 @@ mixin CommentInteractions<T extends StatefulWidget> on State<T> {
       toast(l.forumCommentDeleted, kind: BuToastKind.success);
     } catch (e) {
       if (mounted) await handleError(e);
+    }
+  }
+
+  Future<void> _modRemove(CommentNode n) async {
+    final l = context.l10n;
+    final reason = await showForumModRemoveSheet(context, title: l.forumModReasonTitle);
+    if (reason == null || !mounted) return;
+    try {
+      await api.moderateComment(n.id, 'REMOVE', reason: reason);
+      toast(l.forumModRemovedDone, kind: BuToastKind.success);
+      await refreshComments();
+    } catch (e) {
+      if (mounted) await handleError(e, refresh: false);
     }
   }
 
