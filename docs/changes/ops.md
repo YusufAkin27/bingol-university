@@ -332,3 +332,6 @@ yeni `chatRooms` bolumu odanin kaynagini (kulup/etkinlik kimligi) ekler. Forum s
 **Yuk notlari (B10)**: `CommunityCategoryService.version()` (`findAll`) kisa katmanda onbellekli ve tablo yoneticiyle sinirli; buyuk/kucuk
 harf aramasi `findFirstByKeyIgnoreCase` ile tek satir. Herkese acik GET'ler (`/api/app/info`, `/api/app/version`, `/api/status`,
 `/api/faq`, `/api/catalog/*`) sunucu onbellegi arkasindadir; kampus NAT'inda yanlis engel olmasin diye IP basina ek limit konmadi.
+
+## Günün menüsü zamanlayıcısı (V1800)
+Her gün 11:30 (`app.push.daily-menu-cron`; telafi `app.push.daily-menu-catchup-cron` 11:00-13:45, 15 dk) günün menüsü push'u kalıcı kuyruğa yazılır; tablo `daily_menu_push_log` (tarih PK, `outcome` QUEUED|NO_MENU|FAILED, `enqueued_count`; kişisel veri yok, günde bir satır). Yönetici ayarı `daily_menu_push_enabled` (`PUT /api/admin/settings/...`, true|false). Ayrıntı: `docs/changes/push.md` "Günün menüsü push'u". Yeni admin ucu YOK (RBAC değişikliği gerekmez).
