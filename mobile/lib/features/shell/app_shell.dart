@@ -96,6 +96,13 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Ticker
     _refreshBadges();
     WidgetSyncService.instance.refreshAll(reason: 'shell');
     _loadAvatar();
+    _startPoll();
+  }
+
+  /// Rozet yoklaması yalnız ön planda çalışır (Android arka planda Dart zamanlayıcıları süreç dondurulana kadar
+  /// sürer: gereksiz `/me/summary` isteği, pil/veri; A5-05).
+  void _startPoll() {
+    _poll?.cancel();
     _poll = Timer.periodic(const Duration(minutes: 1), (_) => _refreshBadges());
   }
 
@@ -134,7 +141,11 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Ticker
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden || state == AppLifecycleState.detached) {
+      _poll?.cancel();
+      _poll = null;
+    } else if (state == AppLifecycleState.resumed) {
+      if (_poll == null) _startPoll();
       _refreshBadges();
       WidgetSyncService.instance.refreshAll(reason: 'resume'); // ana ekran widget'ları (debounce'lu, sessiz)
     }
