@@ -75,6 +75,22 @@ void main() {
       await unmount(t);
     });
 
+    testWidgets('bos sayfa + nextCursor: bos durum cizilmez, sonraki sayfa istenir (I3-02)', (t) async {
+      final b = FakeBackend();
+      b.handlers.add((req, path) {
+        if (path != '/bookmarks') return null;
+        final cursor = req.url.queryParameters['cursor'];
+        if (cursor == null) return const FakeResult.json({'items': [], 'nextCursor': 5});
+        return FakeResult.json({'items': [_saved('EVENT', 12, 'Yaz şenliği'), _saved('POLL', 9, 'Anket A')], 'nextCursor': null});
+      });
+      await _app(t, SavedItemsPage(session: makeSession(b)));
+      expect(find.byKey(const ValueKey('saved-empty')), findsNothing);
+      expect(find.text('Yaz şenliği'), findsOneWidget);
+      expect(find.text('Anket A'), findsOneWidget);
+      expect(b.requests.any((r) => r.contains('cursor=5')), isTrue);
+      await unmount(t);
+    });
+
     testWidgets('boş durum ve tür boşsa süzgeç metni', (t) async {
       await _app(t, SavedItemsPage(session: makeSession(_savedBackend(empty: true))));
       expect(find.byKey(const ValueKey('saved-empty')), findsOneWidget);

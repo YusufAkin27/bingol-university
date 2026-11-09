@@ -23,11 +23,20 @@ import '../profile/user_profile_page.dart';
 import 'recent_searches.dart';
 import '../../core/academic_catalog.dart';
 
-/// Genel arama: haber/duyuru, kulüp, etkinlik, gönderi ve kişi.
+/// Tek arama deneyimi: Ana Sayfa, Haberler ve Keşfet aynı ekranı açar (aynı sorgu = aynı sonuç).
 class SearchPage extends StatefulWidget {
-  const SearchPage({super.key, required this.session});
+  const SearchPage({super.key, required this.session, this.initialQuery, this.initialTab = SearchTab.all});
 
   final Session session;
+  final String? initialQuery;
+  final SearchTab initialTab;
+
+  /// Keşfet / kısayol girişleri için ortak rota (Keşfet: [SearchTab.post]).
+  static Route<void> route(Session session, {String? initialQuery, SearchTab initialTab = SearchTab.all}) =>
+      MaterialPageRoute<void>(
+        settings: const RouteSettings(name: 'search'),
+        builder: (_) => SearchPage(session: session, initialQuery: initialQuery, initialTab: initialTab),
+      );
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -68,38 +77,39 @@ class _Hit {
   final bool isPrivate; // kişi: gizli hesap
 }
 
-enum _Tab { all, news, club, event, post, person, forum }
+/// Sonuç türü süzgeç çipleri.
+enum SearchTab { all, news, club, event, post, person, forum }
 
 /// Sekme çiplerinin görünüm sırası (Ic1: Tümü, Haber, Etkinlik, Kulüp, Kişi; Gönderi sona eklendi).
-const _tabOrder = [_Tab.all, _Tab.news, _Tab.event, _Tab.club, _Tab.person, _Tab.forum, _Tab.post];
+const _tabOrder = [SearchTab.all, SearchTab.news, SearchTab.event, SearchTab.club, SearchTab.person, SearchTab.forum, SearchTab.post];
 
-String _tabLabel(AppLocalizations l, _Tab tab) => switch (tab) {
-      _Tab.all => l.searchAll,
-      _Tab.news => l.newsTypeNews,
-      _Tab.club => l.searchClub,
-      _Tab.event => l.newsTypeEvent,
-      _Tab.post => l.searchPost,
-      _Tab.person => l.searchPerson,
-      _Tab.forum => l.searchForum,
+String _tabLabel(AppLocalizations l, SearchTab tab) => switch (tab) {
+      SearchTab.all => l.searchAll,
+      SearchTab.news => l.newsTypeNews,
+      SearchTab.club => l.searchClub,
+      SearchTab.event => l.newsTypeEvent,
+      SearchTab.post => l.searchPost,
+      SearchTab.person => l.searchPerson,
+      SearchTab.forum => l.searchForum,
     };
 
-_Tab _tabOf(String type) {
+SearchTab _tabOf(String type) {
   switch (type) {
     case 'NEWS':
     case 'ANNOUNCEMENT':
-      return _Tab.news;
+      return SearchTab.news;
     case 'COMMUNITY':
-      return _Tab.club;
+      return SearchTab.club;
     case 'EVENT':
     case 'EVENT_OFFICIAL':
-      return _Tab.event;
+      return SearchTab.event;
     case 'POSTS':
     case 'POST':
-      return _Tab.post;
+      return SearchTab.post;
     case 'FORUM_TOPIC':
-      return _Tab.forum;
+      return SearchTab.forum;
     default:
-      return _Tab.person;
+      return SearchTab.person;
   }
 }
 
@@ -111,15 +121,15 @@ IconData _iconOf(String type) {
       break;
   }
   switch (_tabOf(type)) {
-    case _Tab.news:
+    case SearchTab.news:
       return BuIcons.newspaper;
-    case _Tab.club:
+    case SearchTab.club:
       return BuIcons.users;
-    case _Tab.event:
+    case SearchTab.event:
       return BuIcons.calendar;
-    case _Tab.post:
+    case SearchTab.post:
       return BuIcons.image;
-    case _Tab.forum:
+    case SearchTab.forum:
       return BuIcons.messageSquare;
     default:
       return BuIcons.user;
@@ -148,12 +158,12 @@ class _TabData {
 }
 
 /// Sekme -> /search type değerleri (Kişi ayrı uçtan gelir).
-const _tabTypes = <_Tab, List<String>>{
-  _Tab.news: ['NEWS', 'ANNOUNCEMENT'],
-  _Tab.club: ['COMMUNITY'],
-  _Tab.event: ['EVENT', 'EVENT_OFFICIAL'],
-  _Tab.post: ['POSTS'],
-  _Tab.forum: ['FORUM_TOPIC'],
+const _tabTypes = <SearchTab, List<String>>{
+  SearchTab.news: ['NEWS', 'ANNOUNCEMENT'],
+  SearchTab.club: ['COMMUNITY'],
+  SearchTab.event: ['EVENT', 'EVENT_OFFICIAL'],
+  SearchTab.post: ['POSTS'],
+  SearchTab.forum: ['FORUM_TOPIC'],
 };
 
 _Hit _hitFromSearch(Map h) => _Hit(
@@ -198,10 +208,13 @@ class _SearchPageState extends State<SearchPage> {
   Timer? _debounce;
   int _seq = 0; // eski yanıtları yok saymak için
 
-  _Tab _tab = _Tab.all;
+  late SearchTab _tab = widget.initialTab;
+
+  /// Sekme başına kaydırma konumu (sekme değişince kaybolmasın).
+  final Map<SearchTab, double> _offsets = {};
   List<String> _recent = [];
   List<_Hit> _hits = []; // Tümü sekmesi
-  final Map<_Tab, _TabData> _tabs = {};
+  final Map<SearchTab, _TabData> _tabs = {};
   bool _loading = false;
   Object? _error;
   String _query = '';
@@ -212,6 +225,13 @@ class _SearchPageState extends State<SearchPage> {
     super.initState();
     _scroll.addListener(_onScroll);
     _loadRecent();
+    final q = widget.initialQuery?.trim() ?? '';
+    if (q.length >= 2) {
+      _ctrl.text = q;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _run(q);
+      });
+    }
   }
 
   @override
@@ -223,24 +243,24 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   void _onScroll() {
-    if (_tab == _Tab.all || !_scroll.hasClients) return;
+    if (_tab == SearchTab.all || !_scroll.hasClients) return;
     if (_scroll.position.pixels >= _scroll.position.maxScrollExtent - 400) _loadMore(_tab);
   }
 
   Future<void> _loadRecent() async {
-    final list = await RecentSearches.load();
+    final list = await RecentSearches.load(widget.session.userId);
     if (mounted && list.isNotEmpty) setState(() => _recent = list);
   }
 
   Future<void> _saveRecent(String q) async {
     final list = [q, ..._recent.where((e) => e.toLowerCase() != q.toLowerCase())].take(RecentSearches.max).toList();
     if (mounted) setState(() => _recent = list);
-    await RecentSearches.save(list);
+    await RecentSearches.save(widget.session.userId, list);
   }
 
   Future<void> _clearRecent() async {
     setState(() => _recent = []);
-    await RecentSearches.clear();
+    await RecentSearches.clearFor(widget.session.userId);
   }
 
   void _onChanged(String v) {
@@ -317,12 +337,16 @@ class _SearchPageState extends State<SearchPage> {
     _run(q);
   }
 
-  void _selectTab(_Tab tab) {
+  void _selectTab(SearchTab tab) {
     if (tab == _tab) return;
+    if (_scroll.hasClients) _offsets[_tab] = _scroll.offset;
     setState(() => _tab = tab);
-    if (_scroll.hasClients) _scroll.jumpTo(0);
+    final off = _offsets[tab] ?? 0;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scroll.hasClients) _scroll.jumpTo(off.clamp(0.0, _scroll.position.maxScrollExtent));
+    });
     if (_query.isEmpty) return;
-    if (tab == _Tab.all) {
+    if (tab == SearchTab.all) {
       if (_hits.isEmpty) _run(_query);
     } else if (!(_tabs[tab]?.loaded ?? false)) {
       _loadMore(tab);
@@ -341,8 +365,9 @@ class _SearchPageState extends State<SearchPage> {
       _loading = true;
       _error = null;
       _tabs.clear();
+      _offsets.clear();
     });
-    if (_tab != _Tab.all) {
+    if (_tab != SearchTab.all) {
       // Tür sekmesi açıkken doğrudan o sekmeyi sayfalı yükle.
       setState(() {
         _query = q;
@@ -393,7 +418,7 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   /// Tür sekmesinin sıradaki sayfasını getirir (ilk yükleme dahil).
-  Future<void> _loadMore(_Tab tab) async {
+  Future<void> _loadMore(SearchTab tab) async {
     final d = _tabs.putIfAbsent(tab, _TabData.new);
     if (d.loading || d.done || _query.isEmpty) return;
     final cool = d.cooldownUntil;
@@ -414,7 +439,7 @@ class _SearchPageState extends State<SearchPage> {
       for (var guard = 0; guard < 3 && fresh.isEmpty && !d.done; guard++) {
         final c = d.cursor == null ? '' : '&cursor=${d.cursor}';
         int? next;
-        if (tab == _Tab.person) {
+        if (tab == SearchTab.person) {
           final r = await api.get('/users/search?q=$enc&size=$_pageSize$c');
           if (!mounted || seq != _seq) return;
           for (final u in (r is Map ? r['items'] : null) as List? ?? []) {
@@ -655,9 +680,9 @@ class _SearchPageState extends State<SearchPage> {
     final list = [..._recent]..removeAt(i);
     setState(() => _recent = list);
     if (list.isEmpty) {
-      await RecentSearches.clear();
+      await RecentSearches.clearFor(widget.session.userId);
     } else {
-      await RecentSearches.save(list);
+      await RecentSearches.save(widget.session.userId, list);
     }
   }
 
@@ -666,11 +691,11 @@ class _SearchPageState extends State<SearchPage> {
         'ANNOUNCEMENT' => l.icerikGroupAnnouncement,
         'NEWS' => l.icerikGroupNews,
         _ => switch (_tabOf(type)) {
-            _Tab.news => l.icerikGroupNews,
-            _Tab.club => l.icerikGroupClub,
-            _Tab.event => l.icerikGroupEvent,
-            _Tab.post => l.icerikGroupPost,
-            _Tab.forum => l.icerikGroupForum,
+            SearchTab.news => l.icerikGroupNews,
+            SearchTab.club => l.icerikGroupClub,
+            SearchTab.event => l.icerikGroupEvent,
+            SearchTab.post => l.icerikGroupPost,
+            SearchTab.forum => l.icerikGroupForum,
             _ => l.icerikGroupPerson,
           },
       };
@@ -695,7 +720,7 @@ class _SearchPageState extends State<SearchPage> {
 
   Widget _results(BuTokens t) {
     final l = context.l10n;
-    final paged = _tab != _Tab.all;
+    final paged = _tab != SearchTab.all;
     final d = paged ? _tabs[_tab] : null;
     final error = paged ? d?.error : _error;
     if (error != null) {
@@ -732,7 +757,7 @@ class _SearchPageState extends State<SearchPage> {
     } else {
       blocks = [
         _countLine(t, l.searchResultCount('${visible.length}${more ? '+' : ''}')),
-        if (_tab == _Tab.post)
+        if (_tab == SearchTab.post)
           Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 12), child: _postGrid(t, visible))
         else
           Padding(
@@ -845,7 +870,7 @@ class _SearchPageState extends State<SearchPage> {
   static const _groupPreview = 4;
 
   /// Sekmeyi baştan yükler (yenile / yeniden dene).
-  Future<void> _retryTab(_Tab tab) async {
+  Future<void> _retryTab(SearchTab tab) async {
     _tabs.remove(tab);
     if (mounted) setState(() {});
     await _loadMore(tab);
@@ -951,7 +976,7 @@ class _SearchPageState extends State<SearchPage> {
     Widget? trailing;
     var titleLines = 2;
     switch (tab) {
-      case _Tab.news:
+      case SearchTab.news:
         if (hasImg) {
           leading = ClipRRect(
             borderRadius: BorderRadius.circular(BuRadius.xs),
@@ -963,7 +988,7 @@ class _SearchPageState extends State<SearchPage> {
           );
         }
         if (h.date != null) sub = newsLocalDate(context, h.date);
-      case _Tab.event:
+      case SearchTab.event:
         final d = h.date == null ? null : DateTime.tryParse(h.date!)?.toLocal();
         if (d != null) {
           leading = ExcludeSemantics(
@@ -984,7 +1009,7 @@ class _SearchPageState extends State<SearchPage> {
         sub = [if (snip.isNotEmpty) snip, if (_timeRange(h) != null) _timeRange(h)!].join(' · ');
         trailing = _chevron(t);
         titleLines = 1;
-      case _Tab.club:
+      case SearchTab.club:
         leading = hasImg ? BuAvatar(name: h.title, url: h.imageUrl, size: 44, group: true) : _initialsCircle(t, h.title, 3);
         sub = h.members != null ? l.clubMemberCount('${h.members}') : snip;
         if (h.myStatus == 'ACTIVE') {
@@ -993,18 +1018,18 @@ class _SearchPageState extends State<SearchPage> {
           trailing = _ClubPill(text: l.clubJoin, member: false);
         }
         titleLines = 1;
-      case _Tab.post:
+      case SearchTab.post:
         leading = IcerikThumb(url: h.imageUrl, size: 56, radius: BuRadius.xs, fallbackIcon: BuIcons.image);
         trailing = _chevron(t);
         titleLines = 1;
-      case _Tab.forum:
+      case SearchTab.forum:
         // Yazar bilgisi sunucudan gelmez ve gosterilmez: baslik + ozet + kategori + begeni.
         leading = ExcludeSemantics(child: Icon(BuIcons.messageSquare, size: 24, color: t.mut));
         sub = snip;
         trailing = _chevron(t);
         titleLines = 2;
-      case _Tab.person:
-      case _Tab.all:
+      case SearchTab.person:
+      case SearchTab.all:
         // Kişi avatarına uzun basma = büyük önizleme (diğer avatarlarla tutarlı); fotoğraf yoksa hiçbir şey açılmaz.
         // Fotoğrafı yoksa varsayılan profil görseli ([BuAvatar]).
         final personAvatar = BuAvatar(name: h.title, url: h.imageUrl, size: 44, headers: h.type == 'USER' ? postAuthHeaders(widget.session) : null);
@@ -1020,7 +1045,7 @@ class _SearchPageState extends State<SearchPage> {
         titleLines = 1;
     }
     // Gönderi satırında başlık yerine gönderi metni öne çıkar; altında kalp + beğeni sayısı.
-    final isPost = tab == _Tab.post;
+    final isPost = tab == SearchTab.post;
     final headline = isPost && snip.isNotEmpty ? snip : h.title;
     return BuPressable(
       key: ValueKey('search-hit-${h.type}-${h.id}'),
@@ -1035,7 +1060,7 @@ class _SearchPageState extends State<SearchPage> {
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
               Text.rich(_highlight(headline, base, t), maxLines: titleLines, overflow: TextOverflow.ellipsis),
-              if (tab == _Tab.forum) ...[
+              if (tab == SearchTab.forum) ...[
                 if (sub.isNotEmpty)
                   Padding(padding: const EdgeInsets.only(top: 4), child: Text(sub, maxLines: 2, overflow: TextOverflow.ellipsis, style: mut)),
                 if ((h.category ?? '').isNotEmpty || h.likes != null)
