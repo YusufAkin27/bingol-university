@@ -33,7 +33,7 @@ void main() {
       final s = makeSession(FakeBackend());
       final up = MultipartUploader(s, client: MockClient((_) async => http.Response.bytes(badBody, 502)));
       await expectLater(
-        up.upload('/users/me/avatar', PreparedImage(Uint8List.fromList([1, 2, 3]), 'image/png')),
+        up.upload('/users/me/avatar', PreparedImage(Uint8List.fromList(kFakePng), 'image/png')),
         throwsA(isA<ApiError>().having((e) => e.status, 'status', 502)),
       );
     });
@@ -41,7 +41,7 @@ void main() {
     test('MultipartUploader: 200 + bozuk govde istisna firlatmaz (null sonuc)', () async {
       final s = makeSession(FakeBackend());
       final up = MultipartUploader(s, client: MockClient((_) async => http.Response.bytes(badBody, 200)));
-      expect(await up.upload('/users/me/avatar', PreparedImage(Uint8List.fromList([1, 2, 3]), 'image/png')), isNull);
+      expect(await up.upload('/users/me/avatar', PreparedImage(Uint8List.fromList(kFakePng), 'image/png')), isNull);
     });
 
     test('VideoUploader: 500 + bozuk govde ApiError(500) olur', () async {

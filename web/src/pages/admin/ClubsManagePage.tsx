@@ -48,7 +48,16 @@ export default function ClubsManagePage() {
             { id: 'all', label: t('admin.p06.clubs.tab.all') },
             { id: 'queue', label: t('admin.p06.clubs.tab.queue') },
           ]}
-          onChange={(id) => setTab(id as MainTab)}
+          onChange={(id) => {
+            setTab(id as MainTab);
+            const next = new URLSearchParams(params);
+            if (id === 'queue') next.set('tab', 'queue');
+            else {
+              next.delete('tab');
+              next.delete('status');
+            }
+            setParams(next, { replace: true });
+          }}
         />
       </div>
       {tab === 'all' ? <ClubList onOpen={open} onOpenQueue={() => setTab('queue')} /> : <CommunitiesAdminPage embedded />}

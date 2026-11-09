@@ -18,14 +18,24 @@ class DepartmentChatApi {
     return r is Map ? Map<String, dynamic>.from(r) : <String, dynamic>{};
   }
 
-  Future<Map<String, dynamic>> join() async {
-    final r = await session.api.post('/department-chat/join');
+  Future<Map<String, dynamic>> join([String? department]) async {
+    final query = department == null ? '' : '?department=${Uri.encodeComponent(department)}';
+    final r = await session.api.post('/department-chat/join$query');
     return r is Map ? Map<String, dynamic>.from(r) : <String, dynamic>{};
+  }
+
+  Future<List<Map<String, dynamic>>> rooms() async {
+    final r = await session.api.get('/department-chat/rooms', force: true);
+    return r is List ? r.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList() : [];
+  }
+
+  Future<void> leave(int conversationId) async {
+    await session.api.delete('/department-chat/membership?conversationId=$conversationId');
   }
 }
 
 /// Sohbet listesinin üstündeki "Bölüm grubuna katıl" satırı. Yalnız profilde bölüm varsa, oda açıksa ve kullanıcı
-/// henüz üye değilse çizilir (katılım isteğe bağlıdır; üye olunca grup listede görünür). Hata/yükleme sessizdir.
+/// henüz üye değilse çizilir (ayrılanlar ve eski hesaplar yeniden katılabilir). Hata/yükleme sessizdir.
 class DepartmentChatEntry extends StatefulWidget {
   const DepartmentChatEntry({super.key, required this.session, this.onJoined});
 

@@ -337,7 +337,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     try {
       // Bölüm grubu bir sohbet odasıdır: üyelikten ayrılma bölüm ucundan yapılır.
       if (_type == 'DEPARTMENT') {
-        await _api.delete('/department-chat/membership');
+        await _api.delete('/department-chat/membership?conversationId=$_cid');
       } else {
         await _api.post('/conversations/$_cid/leave');
       }

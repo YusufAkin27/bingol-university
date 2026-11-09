@@ -1,0 +1,100 @@
+{
+  "sources": {
+    "photo": "https://www.gstatic.com/webp/gallery/4.png",
+    "imageLibrary": "https://github.com/brendan-duncan/image",
+    "videoEncoder": "https://ffmpeg.org/ffmpeg-codecs.html",
+    "metric": "https://ffmpeg.org/ffmpeg-filters.html#ssim"
+  },
+  "photo": [
+    {
+      "fixture": "photo-png",
+      "originalBytes": 1790495,
+      "outputBytes": 299088,
+      "ratio": 5.986515674316589,
+      "savedPercent": 83.29579250430747,
+      "originalWidth": 1024,
+      "originalHeight": 772,
+      "width": 1024,
+      "height": 772,
+      "sampledRgbSsim": 0.9801430574679935,
+      "encoderQuality": 88,
+      "codec": "WebP",
+      "elapsedMs": 926
+    },
+    {
+      "fixture": "photo-jpeg95",
+      "originalBytes": 678288,
+      "outputBytes": 302478,
+      "ratio": 2.242437466526491,
+      "savedPercent": 55.40566838864906,
+      "originalWidth": 1024,
+      "originalHeight": 772,
+      "width": 1024,
+      "height": 772,
+      "sampledRgbSsim": 0.9801490215883613,
+      "encoderQuality": 88,
+      "codec": "WebP",
+      "elapsedMs": 1823
+    },
+    {
+      "fixture": "photo-jpeg70",
+      "originalBytes": 257332,
+      "outputBytes": 257332,
+      "ratio": 1,
+      "savedPercent": 0,
+      "originalWidth": 1024,
+      "originalHeight": 772,
+      "width": 1024,
+      "height": 772,
+      "sampledRgbSsim": 1,
+      "encoderQuality": null,
+      "codec": "original",
+      "elapsedMs": 1209
+    }
+  ],
+  "video": [
+    {
+      "source": "synthetic testsrc2 (not real camera footage)",
+      "crf": 18,
+      "sourceBytes": 16538760,
+      "outputBytes": 3911368,
+      "ratio": 4.228382499422197,
+      "savedPercent": 76.3502947016584,
+      "ssim": 0.995569,
+      "elapsedMs": 5886,
+      "selectedByDefault": false,
+      "qualityNote": "SSIM is a similarity index, not a percentage of perceived visual loss."
+    },
+    {
+      "source": "synthetic testsrc2 (not real camera footage)",
+      "crf": 22,
+      "sourceBytes": 16538760,
+      "outputBytes": 3909923,
+      "ratio": 4.229945193294088,
+      "savedPercent": 76.35903175328743,
+      "ssim": 0.995686,
+      "elapsedMs": 6065,
+      "selectedByDefault": true,
+      "qualityNote": "SSIM is a similarity index, not a percentage of perceived visual loss."
+    },
+    {
+      "source": "synthetic testsrc2 (not real camera footage)",
+      "crf": 26,
+      "sourceBytes": 16538760,
+      "outputBytes": 2440678,
+      "ratio": 6.776297405884758,
+      "savedPercent": 85.24267841119891,
+      "ssim": 0.99089,
+      "elapsedMs": 5511,
+      "selectedByDefault": false,
+      "qualityNote": "SSIM is a similarity index, not a percentage of perceived visual loss."
+    }
+  ],
+  "notes": [
+    "Photo savings are upload-stage bytes, not server JPEG/PNG storage bytes.",
+    "Photo SSIM is sampled RGB at maximum 512px; video SSIM is from FFmpeg at source resolution.",
+    "SSIM is not a percentage of perceived visual loss.",
+    "Video fixture is synthetic, not a real-camera benchmark.",
+    "Android uses existing platform Transcoder at a 1080p ceiling; iOS keeps original when local encoding is unavailable."
+  ]
+}

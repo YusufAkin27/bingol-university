@@ -58,8 +58,10 @@ senkron ve uyelik islemiyle ayni islemde yayinlanir. Dinleyici hatasi uyelik isl
 
 ## 6. Kulup kurma (auto-approve), silme, ayrilma (V250)
 
-- **`app.community.auto-approve`** (env `APP_COMMUNITY_AUTO_APPROVE`, varsayilan `true`): `POST /api/communities` kulubu hemen `ACTIVE` yapar,
-  sohbet odasi kurulur, yanit **201** (eski onay akisi: `false` -> **202** + `PENDING_REVIEW`). Olusturan `OWNER`. Kota: 3 sahip olunan kulup (`COMMUNITY_LIMIT`).
+- **Kulup kurma yonetici onayi gerektirir.** Kullanici tarafindan olusturulan kulup her zaman `PENDING_REVIEW` ve HTTP **202** olur; ortam ayariyla onay atlanamaz. Eski `APP_COMMUNITY_AUTO_APPROVE` ayari kaldirildi.
+  Onaylanana kadar kesfet/arama/oneri listelerinde gorunmez, baskalari katilamaz ve sohbet odasi kurulmaz. Kurucu Kulüplerim ve kulup detayinda onay durumunu gorur; olusturma formu bu sureci onceden aciklar.
+  Admin paneli Kulüpler > Onay kuyruğu: onay `ACTIVE` yapar, sohbet odasini kurar ve kurucuya uygulama ici/push `notif.community.approved` bildirimi gonderir; red `REJECTED` ve gerekceli bildirimdir. Kararlar satir kilidi ile seri hale gelir; tekrar karar 409 `NOT_PENDING` verir.
+  Sistem ADMIN'inin (CONTENT_WRITE) kendi actigi kulup dogrudan `ACTIVE` (201) kalir. Olusturan `OWNER`; bekleyenler dahil en fazla 3 sahip olunan kulup.
 - **`DELETE /api/communities/{id}`** (yeni, 204; yalniz sahip/ADMIN, `403 FORBIDDEN`; saatte 10): yumusak silme, `Community.Status.DELETED`
   (V250: `ck_community_status` kisitina `DELETED` eklendi). `CommunityService.load/loadVisible` DELETED'i herkese 404 verir. Etkileri:
   `ClubExtrasHooks.onCommunityDeleted` -> sohbet odasi kapanir (`RoomConversations.closeRoom`: herkes `leftAt` ile cikar) ve `ClubDeletedEvent`
@@ -107,7 +109,7 @@ Yeni hata kodu eklenmedi.
 
 ## W2-D: kurum taklidi ve toplu bildirim (T-052, T-051)
 
-- Yeni kulüp adı rezerve ifade (bkz. `docs/changes/event.md` W2-D) taşıyorsa kulüp `app.community.auto-approve=true` olsa bile **PENDING_REVIEW** olur (sohbet odası onayda kurulur); yayındaki kulübün adı rezerve ifadeye çevrilemez (`400 RESERVED_DISPLAY_NAME`); kulüp adı/açıklama/kategoride görünmez karakter `400 INVALID_DISPLAY_NAME`.
+- Yeni kulüp adı rezerve ifade (bkz. `docs/changes/event.md` W2-D) taşıyorsa kulüp her zaman **PENDING_REVIEW** olur (sohbet odası onayda kurulur); yayındaki kulübün adı rezerve ifadeye çevrilemez (`400 RESERVED_DISPLAY_NAME`); kulüp adı/açıklama/kategoride görünmez karakter `400 INVALID_DISPLAY_NAME`.
 - Kulüp silinince tüm aktif üyelere (500 sınırı kalktı) ve kulüp yazısında tüm aktif üyelere bildirim gider (`CommunityMemberRepository.userIdsByStatusAfter`, kimlik imeçli).
 
 ## Mobil: Kulüp ve Etkinlik Merkezi (2026-11-07, yalniz istemci; backend degisikligi YOK)

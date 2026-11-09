@@ -22,6 +22,9 @@ public class AccountCreator {
     private final LegalService legal;
     private final AdminProperties admin;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private edu.bingol.backend.messaging.room.dept.DepartmentChatService departmentChat;
+
     /** Ihlal defteri (istege bagli: defter olmadan kurulan testler icin). */
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private edu.bingol.backend.moderation.ViolationLedgerService ledger;
@@ -144,6 +147,9 @@ public class AccountCreator {
         // Silinip ayni e-postayla yeniden kayit: ihlal defterindeki strike'lar devralinir (T-058)
         if (fresh && ledger != null) {
             ledger.inheritOnRegister(user.getId(), email);
+        }
+        if (departmentChat != null && user.getDepartment() != null && !user.getDepartment().isBlank()) {
+            departmentChat.joinOnSignup(user.getId());
         }
     }
 }

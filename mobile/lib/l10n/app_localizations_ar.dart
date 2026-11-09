@@ -121,8 +121,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get commonSomethingWentWrong => 'حدث خطأ ما';
 
   @override
-  String get configError =>
-      'خطأ في الإعدادات: عنوان الخادم (API_BASE) غير آمن (https). أعد بناء التطبيق بالعنوان الصحيح.';
+  String get configError => 'الخدمة غير متاحة حالياً. يرجى المحاولة لاحقاً.';
 
   @override
   String get exitAgainHint => 'اضغط رجوع مرة أخرى للخروج';
@@ -8513,11 +8512,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p08Queued => 'في قائمة الانتظار · بانتظار الاتصال';
 
   @override
-  String get p01ConfigTitle => 'خطأ في الإعدادات';
+  String get p01ConfigTitle => 'يتعذر الاتصال الآن';
 
   @override
   String get p01ConfigBody =>
-      'عنوان الخادم (API_BASE) غير آمن (https). أعد بناء التطبيق بالعنوان الصحيح.';
+      'الخدمة غير متاحة حالياً. يرجى المحاولة لاحقاً. إذا استمرت المشكلة، تأكد من تحديث التطبيق.';
 
   @override
   String get p01ConfigCode => 'رمز الخطأ • BUILD_ENV';
@@ -14016,4 +14015,28 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get eventRecommendedTitle => 'فعاليات مناسبة لقسمك';
+
+  @override
+  String get deptChatFilterDepartments => 'الأقسام';
+
+  @override
+  String get deptChatBrowse => 'استكشف محادثات الأقسام';
+
+  @override
+  String get deptChatBrowseSubtitle =>
+      'ابحث عن قسم وانضم إلى محادثته أو غادر متى شئت.';
+
+  @override
+  String get deptChatSearch => 'ابحث عن قسم';
+
+  @override
+  String get clubReviewRequiredTitle => 'موافقة الإدارة مطلوبة';
+
+  @override
+  String get clubReviewRequiredBody =>
+      'سينتظر ناديك المراجعة بعد إنشائه. يمكنك وحدك رؤيته حتى الموافقة عليه. سنرسل إليك إشعاراً عند الموافقة.';
+
+  @override
+  String get coreErrServiceUnavailable =>
+      'يتعذر إكمال العملية حالياً. يرجى المحاولة لاحقاً.';
 }

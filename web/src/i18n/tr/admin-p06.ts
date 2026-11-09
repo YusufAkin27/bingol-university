@@ -7,7 +7,7 @@ export default {
   // ---- sayfa ----
   'admin.p06.clubs.title': 'Kulüpler',
   'admin.p06.clubs.subtitle':
-    'Tüm kulüpleri görüntüleyin, düzenleyin, üyelerini yönetin, kapatın veya silin. Her işlem denetim kaydına yazılır.',
+    'Kullanıcıların oluşturduğu kulüpler onay kuyruğuna gelir. Onayladığınızda kulüp yayına açılır ve kurucusuna bildirim gönderilir. Tüm kulüpleri ve üyelerini buradan yönetebilirsiniz.',
   'admin.p06.clubs.tabs': 'Kulüp görünümleri',
   'admin.p06.clubs.tab.all': 'Tüm kulüpler',
   'admin.p06.clubs.tab.queue': 'Onay kuyruğu',

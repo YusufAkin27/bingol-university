@@ -67,7 +67,8 @@ String postErrorText(Object e, [AppLocalizations? l]) {
   return t.postComposeErrGeneric;
 }
 
-/// `POST /posts/media` (multipart `file`): tek fotoğraf. En uzun kenar 1600, kalite 85.
+/// `POST /posts/media` (multipart `file`): tek fotoğraf. En uzun kenar 1600;
+/// kayıpsız ara görüntü ortak sıkıştırma hattında son biçimine dönüştürülür.
 class PostMediaUploader {
   PostMediaUploader(this.session, {http.Client? client, ImageService? image})
       : _image = image ?? ImageService(),
@@ -95,13 +96,15 @@ class PostMediaUploader {
     if (bytes.length < 600 * 1024) return bytes;
     try {
       final out = await Isolate.run(() {
-        final src = img.decodeImage(bytes);
-        if (src == null) return null;
+        final decoded = img.decodeImage(bytes);
+        if (decoded == null) return null;
+        final src = img.bakeOrientation(decoded);
         if (src.width <= maxEdge && src.height <= maxEdge) return null;
         final scaled = src.width >= src.height
             ? img.copyResize(src, width: maxEdge)
             : img.copyResize(src, height: maxEdge);
-        return Uint8List.fromList(img.encodeJpg(scaled, quality: 85));
+        // Kayipli ara JPEG yerine PNG: son kodlayici kaliteyi tek kez degerlendirir; alfa korunur.
+        return Uint8List.fromList(img.encodePng(scaled));
       });
       return out ?? bytes;
     } catch (_) {

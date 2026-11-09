@@ -325,7 +325,7 @@ abstract class AppLocalizations {
   /// No description provided for @configError.
   ///
   /// In tr, this message translates to:
-  /// **'Yapılandırma hatası: sunucu adresi (API_BASE) güvenli (https) değil. Uygulamayı doğru adresle yeniden derleyin.'**
+  /// **'Hizmete şu anda ulaşılamıyor. Lütfen biraz sonra tekrar deneyin.'**
   String get configError;
 
   /// No description provided for @exitAgainHint.
@@ -15699,13 +15699,13 @@ abstract class AppLocalizations {
   /// No description provided for @p01ConfigTitle.
   ///
   /// In tr, this message translates to:
-  /// **'Yapılandırma hatası'**
+  /// **'Şu anda bağlantı kurulamıyor'**
   String get p01ConfigTitle;
 
   /// No description provided for @p01ConfigBody.
   ///
   /// In tr, this message translates to:
-  /// **'Sunucu adresi (API_BASE) güvenli (https) değil. Uygulamayı doğru adresle yeniden derleyin.'**
+  /// **'Hizmete şu anda ulaşılamıyor. Lütfen biraz sonra tekrar deneyin. Sorun devam ederse uygulamanın güncel olduğundan emin olun.'**
   String get p01ConfigBody;
 
   /// No description provided for @p01ConfigCode.
@@ -25301,6 +25301,48 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bölümüne uygun etkinlikler'**
   String get eventRecommendedTitle;
+
+  /// No description provided for @deptChatFilterDepartments.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölümler'**
+  String get deptChatFilterDepartments;
+
+  /// No description provided for @deptChatBrowse.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölüm sohbetlerini keşfet'**
+  String get deptChatBrowse;
+
+  /// No description provided for @deptChatBrowseSubtitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölüm ara, sohbetine katıl veya istediğin zaman ayrıl.'**
+  String get deptChatBrowseSubtitle;
+
+  /// No description provided for @deptChatSearch.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölüm ara'**
+  String get deptChatSearch;
+
+  /// No description provided for @clubReviewRequiredTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yönetici onayı gerekiyor'**
+  String get clubReviewRequiredTitle;
+
+  /// No description provided for @clubReviewRequiredBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulübün oluşturulduktan sonra onay bekleyecek. Onaylanana kadar yalnızca sen görebilirsin. Onaylandığında sana bildirim göndereceğiz.'**
+  String get clubReviewRequiredBody;
+
+  /// No description provided for @coreErrServiceUnavailable.
+  ///
+  /// In tr, this message translates to:
+  /// **'İşlem şu anda tamamlanamıyor. Lütfen biraz sonra tekrar deneyin.'**
+  String get coreErrServiceUnavailable;
 }
 
 class _AppLocalizationsDelegate

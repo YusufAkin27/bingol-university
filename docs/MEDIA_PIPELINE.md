@@ -106,7 +106,7 @@ Dosyalar `<storage.dir>/_private/<kova>/<uuid>.jpg|png` (+ `-t`); `FileControlle
 `transcode_status`: `NULL` (dönüştürme yok) · `PENDING` · `PROCESSING` · `DONE` · `FAILED`. İstemci sözleşmesi **değişmedi** (yanıtlarda alan yok); ileride `status` alanı eklenirse geriye uyumlu eklenir. `message_attachment.transcode_status` kolonu sohbet için hazırdır (V360), sohbet videosu dönüştürmesi bu sürümde **etkin değildir**.
 
 ### ffmpeg komutu (kabuk yok, argüman listesi)
-`ffmpeg -hide_banner -nostdin -loglevel error -y -protocol_whitelist file -i IN -t <max sn> -map 0:v:0 -map 0:a:0? -sn -dn -map_metadata -1 -vf scale=-2:'min(720,ih)' -c:v libx264 -profile:v main -pix_fmt yuv420p -preset veryfast -b:v 1500k -maxrate 1800k -bufsize 3000k -threads 1 -c:a aac -b:a 96k -ac 2 -movflags +faststart -f mp4 OUT`. Yükseltme yok (`min`), genişlik çift, meta veri (GPS vb.) atılır, yalnız `file` protokolü. Yollar uygulamanın ürettiği geçici dosyalardır. Zaman aşımı `timeout-seconds` (300): süreç ve alt süreçleri öldürülür. Poster: `thumbnail=60,scale=...` ile tek JPEG → mevcut `ImageKind.FEED` hattı (yeniden kodlama, EXIF temizliği).
+Uretim komutu `VideoTranscoder.transcodeCommand` tarafindan arguman listesi olarak kurulur: H.264 main/yuv420p, `preset=medium`, `CRF=22`, varsayilan en fazla 1080x1920 (yon korunur, buyutme yok), `maxrate=5400k`, `bufsize=9000k`, AAC 128k stereo ve `+faststart`. `video-kbps` artik sabit hedef degil VBV tavaninin temelidir (varsayilan 4500). Metadata temizlenir; yalniz file protokolu kullanilir. Cikti buyurse orijinal baytlar yeniden sifrelenerek korunur; eksik/gecersiz cikti secilmez.
 
 ### Şifreli biçim (`BUP1`)
 `"BUP1" | parçaBoyu(4) | { AES-GCM(parça 64 KB) + etiket(16) }*`. Parçalar sabit boyutlu → **Range okuması doğrudan konumlanır** (yalnız ilgili parçalar çözülür, 206/416 sözleşmesi aynı). AAD: dosya yolu + başlık + "son parça" bayrağı (sıra/kesme/başka dosyaya taşıma yakalanır). Sarma AAD'si de yolu içerir. Eski kayıtlar (`encrypted=false`) düz okunur (geriye uyum). Ana anahtar yoksa (yalnız geliştirme) düz yazım sürer.
@@ -125,3 +125,31 @@ Dosyalar `<storage.dir>/_private/<kova>/<uuid>.jpg|png` (+ `-t`); `FileControlle
 
 ## Sohbet kucuk resmi (P3)
 `ImageKind.CHAT` icin kucuk resim 320 px degil: kisa kenar ~720 px, uzun kenar en cok 1280 px (`ImageProcessor.CHAT_THUMB_SHORT/LONG_CAP`; kaynak kucukse buyutulmez, kalite 0.82). Gercek uzun kenar `ProcessedImage.thumbEdge` -> `PrivateMedia.thumbEdge` -> `message_attachment.thumb_edge` (V890) -> `AttachmentView.thumbEdge`. Istemci bu degerle balonda kucuk resmin yeterli olup olmadigina karar verir (bkz. docs/changes/messaging.md).
+
+
+## Kaliteyi koruyan mobil sikistirma ve olcum (2026-11-09)
+
+- Fotograflar: mevcut acik kaynak Dart image 4.12 kutuphanesinin WebP kodlayicisi kullanilir. ImageService.prepare, 128 KiB ve uzeri uygun fotograflari ayri isolate'ta dener. JPEG/PNG boyutu sinirin altinda olsa da optimizasyon uygulanabilir.
+- WebP 88/84/80 adaylari: piksel boyutu korunur, 512 px ornek uzerinde 8x8 pencere RGB SSIM >= 0.98 olmali; 4x hedefe ulasilinca durulur. En az %15 kazanc yoksa (kaynak zaten yukleme siniri altindaysa) orijinal secilir. Kalite tabani sirf 3-4x oranini tutturmak icin dusurulmez. Saydamlik icin kayipsiz WebP, animasyon/ICC/5 MP uzeri kaynaklar icin mevcut yol korunur. Sert yukleme siniri asiliyorsa onceki JPEG boyutlandirma yolu devam eder; bunun SSIM'i olculmedigi icin skor uretilmez.
+- PreparedImage.compression ve PreparedVideo.compression: gercek once/sonra bayt, oran, tasarruf yuzdesi, boyutlar ve codec. Fotograf icin orneklenmis SSIM ve encoder kalite ayari; video icin olculmediyse SSIM=null. SSIM veya encoder q degeri gozle gorulur kaybin yuzdesi degildir.
+- Android video: mevcut video_compress/Transcoder 1080p secenegi, kaynak uzerine buyutme yok; ciktisi buyurse veya bilinen sure 500 ms'den fazla eksikse orijinal secilir. iOS mevcut bilgi/oynatma yolunu kullanir; yerel video kodlama desteklenmediginde orijinal gonderilir. Gonderi videosu sunucudaki FFmpeg kuyrugunda ayrica kodlanir; sohbet videosu sunucuda yeniden kodlanmaz.
+- Fotograf olcumleri MOBIL YUKLEME baytlarina aittir. Sunucu ImageProcessor, guvenli yeniden kodlama ile JPEG/PNG ana gorsel/kucuk resim uretmeye devam eder; WebP yukleme tasarrufu ile sunucudaki depolama tasarrufu ayni sayi olarak sunulmaz.
+
+Olcumler: docs/qa/media-compression-20261109/photo-results.json ve video-results.json. Kaynak fotograf Google WebP galerisi 4.png (1024x772); JPEG 95/70 ayni fotografin turevleridir. Video 5 sn 1920x1080 testsrc2 sentetik ornegidir, gercek kamera veri seti sonucu degildir.
+
+| Ornek | Giris -> cikti | Oran | Tasarruf | SSIM |
+|---|---|---|---|---|
+| Fotograf PNG -> WebP | 1,790,495 -> 299,088 B | 5.99x | %83.30 | 0.98014 (orneklenmis RGB) |
+| Fotograf JPEG95 -> WebP | 678,288 -> 302,478 B | 2.24x | %55.41 | 0.98015 (orneklenmis RGB) |
+| Fotograf JPEG70 -> orijinal | 257,332 -> 257,332 B | 1x | %0 | 1 (yeniden kodlanmadi) |
+| Video CRF22 | 16,538,760 -> 3,909,923 B | 4.23x | %76.36 | 0.995686 (FFmpeg) |
+| Video CRF26 karsilastirma | 16,538,760 -> 2,440,678 B | 6.78x | %85.24 | 0.990890 (FFmpeg) |
+
+Tekrar olcum: mobil proje kokunden dart --packages=.dart_tool/package_config.json tool/benchmark_compression.dart <foto.png> <cikti-klasoru>; depo kokunden node scripts/benchmark-media.mjs <ffmpeg> <cikti-klasoru> [gercek-video.mp4]. Gercek video verilmezse sentetik ornek uretilir. Kodlayici, icerik, mevcut sikistirma ve cihaz yuzunden bu oranlar garanti degildir.
+
+Kaynaklar: https://github.com/brendan-duncan/image ; https://ffmpeg.org/ffmpeg-codecs.html ; https://ffmpeg.org/ffmpeg-filters.html#ssim ; https://developers.google.com/speed/webp/docs/webp_study .
+
+
+### Tum mobil yukleme noktalarinda ortak politika
+
+MultipartUploader.upload ve grup fotografi PUT yardimcisi, HTTP istegi kurulmadan once ImageService.prepareForUpload kullanir. Profil/grup avatari ve kulup logosu icin 2 MiB, sohbet icin 4 MiB, forum icin 8 MiB, diger fotograflar icin 3 MiB istemci limiti korunur. Etkinlik kapagi kirpma tamamlandiktan sonra hazirlanir; cevrimdisi kuyruk ve dogrudan PreparedImage ile gelen fotograflar da yukleme sinirinda kontrol edilir. CompressionStats tasiyan uygun hazir dosya tekrar kodlanmaz. Video posterinin turu bayttan okunur ve JPEG/PNG/WebP hangisiyse dogru MIME/uzanti ile gonderilir. Gonderi yeniden boyutlandirmasindaki ara dosya PNG'dir; WebP'den once gereksiz JPEG kaybi ve alfa kaybi olusmaz.

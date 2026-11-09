@@ -39,13 +39,15 @@ class VideoTranscoderTest {
         assertEquals("libx264", c.get(c.indexOf("-c:v") + 1));
         assertEquals("main", c.get(c.indexOf("-profile:v") + 1));
         assertEquals("aac", c.get(c.indexOf("-c:a") + 1));
-        assertEquals("1500k", c.get(c.indexOf("-b:v") + 1));
+        assertFalse(c.contains("-b:v"), "sabit bit hizi yerine kalite hedefi");
+        assertEquals("22", c.get(c.indexOf("-crf") + 1));
+        assertEquals("medium", c.get(c.indexOf("-preset") + 1));
         assertEquals("1800k", c.get(c.indexOf("-maxrate") + 1));
         assertEquals("+faststart", c.get(c.indexOf("-movflags") + 1));
         assertEquals("90", c.get(c.indexOf("-t") + 1), "sure siniri");
         assertEquals("-1", c.get(c.indexOf("-map_metadata") + 1), "meta veri (GPS vb.) atilir");
         String vf = c.get(c.indexOf("-vf") + 1);
-        assertTrue(vf.contains("min(720,ih)") && vf.startsWith("scale=-2:"), vf);
+        assertTrue(vf.contains("min(720,ih)") && vf.contains("force_divisible_by=2") && vf.contains("gte(iw,ih)"), vf);
         assertTrue(c.contains("0:a:0?"), "ses akisi yoksa da calisir");
         assertFalse(c.contains("sh") || c.contains("-c") && c.get(0).equals("sh"));
         assertTrue(c.stream().noneMatch(a -> a.startsWith("http") || a.startsWith("concat")));
@@ -139,7 +141,7 @@ class VideoTranscoderTest {
         assertEquals(8, p.workers());
         assertEquals(1, p.threadsPerJob());
         assertEquals(10, p.timeoutSeconds());
-        assertEquals(720, p.maxHeight());
+        assertEquals(1080, p.maxHeight());
         assertEquals(1, p.maxAttempts());
     }
 }

@@ -122,7 +122,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get configError =>
-      'Yapılandırma hatası: sunucu adresi (API_BASE) güvenli (https) değil. Uygulamayı doğru adresle yeniden derleyin.';
+      'Hizmete şu anda ulaşılamıyor. Lütfen biraz sonra tekrar deneyin.';
 
   @override
   String get exitAgainHint => 'Çıkmak için tekrar geri basın';
@@ -8556,11 +8556,11 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p08Queued => 'Kuyrukta · Bekliyor';
 
   @override
-  String get p01ConfigTitle => 'Yapılandırma hatası';
+  String get p01ConfigTitle => 'Şu anda bağlantı kurulamıyor';
 
   @override
   String get p01ConfigBody =>
-      'Sunucu adresi (API_BASE) güvenli (https) değil. Uygulamayı doğru adresle yeniden derleyin.';
+      'Hizmete şu anda ulaşılamıyor. Lütfen biraz sonra tekrar deneyin. Sorun devam ederse uygulamanın güncel olduğundan emin olun.';
 
   @override
   String get p01ConfigCode => 'HATA KODU • BUILD_ENV';
@@ -14071,4 +14071,28 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get eventRecommendedTitle => 'Bölümüne uygun etkinlikler';
+
+  @override
+  String get deptChatFilterDepartments => 'Bölümler';
+
+  @override
+  String get deptChatBrowse => 'Bölüm sohbetlerini keşfet';
+
+  @override
+  String get deptChatBrowseSubtitle =>
+      'Bölüm ara, sohbetine katıl veya istediğin zaman ayrıl.';
+
+  @override
+  String get deptChatSearch => 'Bölüm ara';
+
+  @override
+  String get clubReviewRequiredTitle => 'Yönetici onayı gerekiyor';
+
+  @override
+  String get clubReviewRequiredBody =>
+      'Kulübün oluşturulduktan sonra onay bekleyecek. Onaylanana kadar yalnızca sen görebilirsin. Onaylandığında sana bildirim göndereceğiz.';
+
+  @override
+  String get coreErrServiceUnavailable =>
+      'İşlem şu anda tamamlanamıyor. Lütfen biraz sonra tekrar deneyin.';
 }

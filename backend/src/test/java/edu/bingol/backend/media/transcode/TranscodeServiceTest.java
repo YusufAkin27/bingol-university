@@ -67,8 +67,10 @@ class TranscodeServiceTest {
     /** ffmpeg/ffprobe taklidi: transcode = girdiyi "TRN" onekiyle kopyalar; poster = kucuk JPEG. */
     static class FakeFfmpeg implements ProcessRunner {
         volatile boolean failTranscode;
+        volatile boolean largerOutput;
         volatile boolean probeNoVideo;
         volatile long probeMs = 3500;
+        volatile long outputProbeMs;
         final List<List<String>> calls = new java.util.concurrent.CopyOnWriteArrayList<>();
 
         @Override
@@ -78,8 +80,9 @@ class TranscodeServiceTest {
                 return new Output(0, "version", false);
             }
             if (cmd.get(0).equals("ffprobe")) {
+                long duration = outputProbeMs > 0 && cmd.get(cmd.size() - 1).endsWith("out.mp4") ? outputProbeMs : probeMs;
                 return probeNoVideo ? new Output(0, "duration=3.5\n", false)
-                        : new Output(0, "width=640\nheight=360\nduration=" + (probeMs / 1000.0) + "\n", false);
+                        : new Output(0, "width=640\nheight=360\nduration=" + (duration / 1000.0) + "\n", false);
             }
             Path out = Path.of(cmd.get(cmd.size() - 1));
             if (cmd.contains("image2")) {
@@ -93,9 +96,9 @@ class TranscodeServiceTest {
                 return new Output(1, "Conversion failed!", false);
             }
             byte[] in = Files.readAllBytes(Path.of(cmd.get(cmd.indexOf("-i") + 1)));
-            byte[] res = new byte[in.length + 3];
+            byte[] res = new byte[largerOutput ? in.length + 3 : in.length / 2];
             System.arraycopy("TRN".getBytes(), 0, res, 0, 3);
-            System.arraycopy(in, 0, res, 3, in.length);
+            System.arraycopy(in, 0, res, 3, Math.min(in.length, res.length - 3));
             Files.write(out, res);
             return new Output(0, "", false);
         }
@@ -235,6 +238,28 @@ class TranscodeServiceTest {
     }
 
     @Test
+    void truncatedEncodingDoesNotReplaceOriginal() throws Exception {
+        PostMedia m = sealedUpload(8, false);
+        String oldKey = m.getStorageKey();
+        ffmpeg.outputProbeMs = 1000;
+        assertEquals(1, repo.claim(8L, java.time.Instant.now()));
+        assertFalse(service.process(8));
+        assertEquals(oldKey, m.getStorageKey());
+        assertArrayEquals(original, playable(m));
+    }
+
+    @Test
+    void largerEncodingRetainsOriginalPixelsAndSize() throws Exception {
+        PostMedia m = sealedUpload(9, false);
+        ffmpeg.largerOutput = true;
+        assertEquals(1, repo.claim(9L, java.time.Instant.now()));
+        assertTrue(service.process(9));
+        assertEquals(original.length, m.getBytes());
+        assertArrayEquals(original, playable(m));
+        assertEquals("DONE", m.getTranscodeStatus());
+    }
+
+    @Test
     void successReplacesOriginalWithEncryptedTranscodeAndKeepsPoster() throws Exception {
         PostMedia m = sealedUpload(1, true);
         String oldKey = m.getStorageKey();
@@ -248,7 +273,7 @@ class TranscodeServiceTest {
         assertNotEquals(oldKey, m.getStorageKey(), "yeni anahtar: ETag/onbellek tazelenir");
         assertTrue(m.isEncrypted());
         assertNotNull(m.getWrappedDek());
-        assertEquals(original.length + 3, m.getBytes());
+        assertEquals(original.length / 2, m.getBytes());
         assertEquals(640, m.getWidth());
         assertEquals(360, m.getHeight());
         assertEquals(3500, m.getDurationMs());

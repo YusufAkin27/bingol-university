@@ -500,6 +500,14 @@ class _ClubFormPageState extends State<ClubFormPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    if (create) ...[
+                      ClubNoteCard(
+                        icon: BuIcons.clock,
+                        title: l10n.clubReviewRequiredTitle,
+                        body: l10n.clubReviewRequiredBody,
+                      ),
+                      const SizedBox(height: 20),
+                    ],
                     if (_partial) ...[
                       ClubNoteCard(
                         icon: BuIcons.triangleAlert,

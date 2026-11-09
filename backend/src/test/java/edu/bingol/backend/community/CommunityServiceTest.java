@@ -235,7 +235,9 @@ class CommunityServiceTest {
         svc.review(10L, true, null);
 
         assertEquals(Community.Status.ACTIVE, c.getStatus());
-        verify(notifications).sendTemplated(eq(99L), eq(NotificationType.COMMUNITY), anyString(), any(), any(String[].class));
+        verify(communities).lockById(10L);
+        verify(notifications).sendTemplated(eq(99L), eq(NotificationType.COMMUNITY), eq("notif.community.approved"),
+                eq(java.util.Map.of("communityId", "10")), eq("Kulup"));
     }
 
     @Test

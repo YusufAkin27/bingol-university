@@ -122,7 +122,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get configError =>
-      'Configuration error: the server address (API_BASE) is not secure (HTTPS). Rebuild the app with the correct address.';
+      'The service is currently unavailable. Please try again later.';
 
   @override
   String get exitAgainHint => 'Press back again to exit';
@@ -8590,11 +8590,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p08Queued => 'Queued · Waiting';
 
   @override
-  String get p01ConfigTitle => 'Configuration error';
+  String get p01ConfigTitle => 'Unable to connect right now';
 
   @override
   String get p01ConfigBody =>
-      'The server address (API_BASE) is not secure (https). Rebuild the app with the correct address.';
+      'The service is currently unavailable. Please try again later. If the problem continues, make sure your app is up to date.';
 
   @override
   String get p01ConfigCode => 'ERROR CODE • BUILD_ENV';
@@ -14125,4 +14125,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get eventRecommendedTitle => 'Events for your department';
+
+  @override
+  String get deptChatFilterDepartments => 'Departments';
+
+  @override
+  String get deptChatBrowse => 'Explore department chats';
+
+  @override
+  String get deptChatBrowseSubtitle =>
+      'Find a department, join its chat or leave anytime.';
+
+  @override
+  String get deptChatSearch => 'Search departments';
+
+  @override
+  String get clubReviewRequiredTitle => 'Admin approval required';
+
+  @override
+  String get clubReviewRequiredBody =>
+      'Your club will wait for review after creation. Only you can see it until approval. We will notify you when it is approved.';
+
+  @override
+  String get coreErrServiceUnavailable =>
+      'This action cannot be completed right now. Please try again later.';
 }

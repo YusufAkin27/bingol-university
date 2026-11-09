@@ -32,7 +32,7 @@ class DepartmentChatServiceTest {
     private final RoomConversations rooms = mock(RoomConversations.class);
     private final DepartmentChatRoomRepository depts = mock(DepartmentChatRoomRepository.class);
     private final UserRepository users = mock(UserRepository.class);
-    private final DepartmentChatService svc = new DepartmentChatService(rooms, depts, users);
+    private final DepartmentChatService svc = new DepartmentChatService(rooms, depts, users, new edu.bingol.backend.catalog.CatalogService());
 
     private User user(long id, String dept, Role role) {
         User u = new User();
@@ -125,6 +125,67 @@ class DepartmentChatServiceTest {
         when(depts.findByDeptKey(any())).thenReturn(Optional.of(r));
         svc.leave(5L);
         verify(rooms).removeMember(RoomKind.DEPARTMENT, 7L, 5L);
+    }
+
+    @Test
+    void canJoinAnotherDepartmentWithoutChangingProfile() {
+        User u = user(5L, "Hukuk", Role.USER);
+        DepartmentChatRoom r = room(7L, edu.bingol.backend.unitnews.UnitKeys.deptKey("Bilgisayar Mühendisliği"));
+        when(rooms.find(RoomKind.DEPARTMENT, 7L))
+                .thenReturn(Optional.of(new RoomInfo(300L, RoomKind.DEPARTMENT, 7L, false)));
+        when(rooms.addMember(RoomKind.DEPARTMENT, 7L, 5L)).thenReturn(true);
+        when(rooms.isMember(RoomKind.DEPARTMENT, 7L, 5L)).thenReturn(true);
+
+        DepartmentChatView v = svc.join(5L, "Bilgisayar Mühendisliği");
+
+        assertTrue(v.joined());
+        assertEquals(r.getName(), v.departmentName());
+        assertEquals("Hukuk", u.getDepartment());
+    }
+
+    @Test
+    void rejectsDepartmentOutsideCatalog() {
+        user(5L, "Hukuk", Role.USER);
+        assertThrows(ApiException.class, () -> svc.join(5L, "uydurma bölüm"));
+        verify(rooms, never()).addMember(any(), anyLong(), anyLong());
+    }
+
+    @Test
+    void canLeaveAnotherDepartmentByConversationIdWithoutProfileDepartment() {
+        user(5L, null, Role.USER);
+        DepartmentChatRoom r = new DepartmentChatRoom();
+        r.setId(7L);
+        when(depts.findByConversationId(300L)).thenReturn(Optional.of(r));
+        svc.leave(5L, 300L);
+        verify(rooms).removeMember(RoomKind.DEPARTMENT, 7L, 5L);
+    }
+
+    @Test
+    void browseIncludesDepartmentsWithNoRoomOrMessages() {
+        user(5L, null, Role.USER);
+        var result = svc.browse(5L);
+        assertTrue(result.stream().anyMatch(r -> "Bilgisayar Mühendisliği".equals(r.departmentName())));
+        assertTrue(result.stream().allMatch(r -> !r.joined() && r.conversationId() == null));
+    }
+
+    @Test
+    void signupJoinsOwnDepartment() {
+        user(5L, "Hukuk", Role.USER);
+        room(7L, edu.bingol.backend.unitnews.UnitKeys.deptKey("Hukuk"));
+        when(rooms.find(RoomKind.DEPARTMENT, 7L))
+                .thenReturn(Optional.of(new RoomInfo(300L, RoomKind.DEPARTMENT, 7L, false)));
+        svc.joinOnSignup(5L);
+        verify(rooms).addMemberIfSpace(RoomKind.DEPARTMENT, 7L, 5L);
+    }
+
+    @Test
+    void closedDepartmentDoesNotPreventSignup() {
+        user(5L, "Hukuk", Role.USER);
+        room(7L, edu.bingol.backend.unitnews.UnitKeys.deptKey("Hukuk"));
+        when(rooms.find(RoomKind.DEPARTMENT, 7L))
+                .thenReturn(Optional.of(new RoomInfo(300L, RoomKind.DEPARTMENT, 7L, true)));
+        svc.joinOnSignup(5L);
+        verify(rooms, never()).addMemberIfSpace(any(), anyLong(), anyLong());
     }
 
     @Test

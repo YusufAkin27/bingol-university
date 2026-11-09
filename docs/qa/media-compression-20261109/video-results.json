@@ -1,0 +1,38 @@
+[
+  {
+    "source": "synthetic testsrc2 (not real camera footage)",
+    "crf": 18,
+    "sourceBytes": 16538760,
+    "outputBytes": 3911368,
+    "ratio": 4.228382499422197,
+    "savedPercent": 76.3502947016584,
+    "ssim": 0.995569,
+    "elapsedMs": 5886,
+    "selectedByDefault": false,
+    "qualityNote": "SSIM is a similarity index, not a percentage of perceived visual loss."
+  },
+  {
+    "source": "synthetic testsrc2 (not real camera footage)",
+    "crf": 22,
+    "sourceBytes": 16538760,
+    "outputBytes": 3909923,
+    "ratio": 4.229945193294088,
+    "savedPercent": 76.35903175328743,
+    "ssim": 0.995686,
+    "elapsedMs": 6065,
+    "selectedByDefault": true,
+    "qualityNote": "SSIM is a similarity index, not a percentage of perceived visual loss."
+  },
+  {
+    "source": "synthetic testsrc2 (not real camera footage)",
+    "crf": 26,
+    "sourceBytes": 16538760,
+    "outputBytes": 2440678,
+    "ratio": 6.776297405884758,
+    "savedPercent": 85.24267841119891,
+    "ssim": 0.99089,
+    "elapsedMs": 5511,
+    "selectedByDefault": false,
+    "qualityNote": "SSIM is a similarity index, not a percentage of perceived visual loss."
+  }
+]

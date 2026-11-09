@@ -1,0 +1,470 @@
+[
+  {
+    "scene": "home_320_1.0_light",
+    "errors": []
+  },
+  {
+    "scene": "home_320_1.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "home_320_1.3_light",
+    "errors": []
+  },
+  {
+    "scene": "home_320_1.3_dark",
+    "errors": []
+  },
+  {
+    "scene": "home_320_2.0_light",
+    "errors": []
+  },
+  {
+    "scene": "home_320_2.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "home_390_1.0_light",
+    "errors": [],
+    "targetsPassed": true,
+    "targetDetails": null,
+    "labelsPassed": true,
+    "labelDetails": null
+  },
+  {
+    "scene": "home_390_1.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "home_390_1.3_light",
+    "errors": []
+  },
+  {
+    "scene": "home_390_1.3_dark",
+    "errors": []
+  },
+  {
+    "scene": "home_390_2.0_light",
+    "errors": []
+  },
+  {
+    "scene": "home_390_2.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "chat_320_1.0_light",
+    "errors": []
+  },
+  {
+    "scene": "chat_320_1.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "chat_320_1.3_light",
+    "errors": []
+  },
+  {
+    "scene": "chat_320_1.3_dark",
+    "errors": []
+  },
+  {
+    "scene": "chat_320_2.0_light",
+    "errors": []
+  },
+  {
+    "scene": "chat_320_2.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "chat_390_1.0_light",
+    "errors": [],
+    "targetsPassed": true,
+    "targetDetails": null,
+    "labelsPassed": true,
+    "labelDetails": null
+  },
+  {
+    "scene": "chat_390_1.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "chat_390_1.3_light",
+    "errors": []
+  },
+  {
+    "scene": "chat_390_1.3_dark",
+    "errors": []
+  },
+  {
+    "scene": "chat_390_2.0_light",
+    "errors": []
+  },
+  {
+    "scene": "chat_390_2.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "departments_320_1.0_light",
+    "errors": []
+  },
+  {
+    "scene": "departments_320_1.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "departments_320_1.3_light",
+    "errors": []
+  },
+  {
+    "scene": "departments_320_1.3_dark",
+    "errors": []
+  },
+  {
+    "scene": "departments_320_2.0_light",
+    "errors": []
+  },
+  {
+    "scene": "departments_320_2.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "departments_390_1.0_light",
+    "errors": [],
+    "targetsPassed": true,
+    "targetDetails": null,
+    "labelsPassed": true,
+    "labelDetails": null
+  },
+  {
+    "scene": "departments_390_1.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "departments_390_1.3_light",
+    "errors": []
+  },
+  {
+    "scene": "departments_390_1.3_dark",
+    "errors": []
+  },
+  {
+    "scene": "departments_390_2.0_light",
+    "errors": []
+  },
+  {
+    "scene": "departments_390_2.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "clubs_320_1.0_light",
+    "errors": []
+  },
+  {
+    "scene": "clubs_320_1.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "clubs_320_1.3_light",
+    "errors": []
+  },
+  {
+    "scene": "clubs_320_1.3_dark",
+    "errors": []
+  },
+  {
+    "scene": "clubs_320_2.0_light",
+    "errors": []
+  },
+  {
+    "scene": "clubs_320_2.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "clubs_390_1.0_light",
+    "errors": [],
+    "targetsPassed": false,
+    "targetDetails": "SemanticsNode#896(Rect.fromLTRB(65.0, 86.0, 353.0, 106.0), actions: [focus, tap], flags: [isTextField, hasEnabledState, isEnabled, isFocusable], label: \"Kulüp ara\", textDirection: ltr, currentValueLength: 0, inputType: text): expected tap target size of at least Size(48.0, 48.0), but found Size(288.0, 20.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\n\n",
+    "labelsPassed": true,
+    "labelDetails": null
+  },
+  {
+    "scene": "clubs_390_1.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "clubs_390_1.3_light",
+    "errors": []
+  },
+  {
+    "scene": "clubs_390_1.3_dark",
+    "errors": []
+  },
+  {
+    "scene": "clubs_390_2.0_light",
+    "errors": []
+  },
+  {
+    "scene": "clubs_390_2.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "notifications_320_1.0_light",
+    "errors": []
+  },
+  {
+    "scene": "notifications_320_1.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "notifications_320_1.3_light",
+    "errors": []
+  },
+  {
+    "scene": "notifications_320_1.3_dark",
+    "errors": []
+  },
+  {
+    "scene": "notifications_320_2.0_light",
+    "errors": []
+  },
+  {
+    "scene": "notifications_320_2.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "notifications_390_1.0_light",
+    "errors": [],
+    "targetsPassed": false,
+    "targetDetails": "SemanticsNode#1195(Rect.fromLTRB(82.5, 60.0, 370.0, 104.0), actions: [tap], flags: [isButton, hasEnabledState, isEnabled], label: \"Tümünü okundu yap\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(287.5, 44.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\n\n",
+    "labelsPassed": true,
+    "labelDetails": null
+  },
+  {
+    "scene": "notifications_390_1.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "notifications_390_1.3_light",
+    "errors": []
+  },
+  {
+    "scene": "notifications_390_1.3_dark",
+    "errors": []
+  },
+  {
+    "scene": "notifications_390_2.0_light",
+    "errors": []
+  },
+  {
+    "scene": "notifications_390_2.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "academic_320_1.0_light",
+    "errors": []
+  },
+  {
+    "scene": "academic_320_1.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "academic_320_1.3_light",
+    "errors": []
+  },
+  {
+    "scene": "academic_320_1.3_dark",
+    "errors": []
+  },
+  {
+    "scene": "academic_320_2.0_light",
+    "errors": []
+  },
+  {
+    "scene": "academic_320_2.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "academic_390_1.0_light",
+    "errors": [],
+    "targetsPassed": true,
+    "targetDetails": null,
+    "labelsPassed": true,
+    "labelDetails": null
+  },
+  {
+    "scene": "academic_390_1.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "academic_390_1.3_light",
+    "errors": []
+  },
+  {
+    "scene": "academic_390_1.3_dark",
+    "errors": []
+  },
+  {
+    "scene": "academic_390_2.0_light",
+    "errors": []
+  },
+  {
+    "scene": "academic_390_2.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "profile_320_1.0_light",
+    "errors": []
+  },
+  {
+    "scene": "profile_320_1.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "profile_320_1.3_light",
+    "errors": []
+  },
+  {
+    "scene": "profile_320_1.3_dark",
+    "errors": []
+  },
+  {
+    "scene": "profile_320_2.0_light",
+    "errors": []
+  },
+  {
+    "scene": "profile_320_2.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "profile_390_1.0_light",
+    "errors": [],
+    "targetsPassed": false,
+    "targetDetails": "SemanticsNode#1664(Rect.fromLTRB(0.0, 108.0, 350.0, 153.0), actions: [tap], flags: [isButton], label: \"Ad soyadı düzenle\", value: \"Ayşe Yılmaz\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(350.0, 45.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#1665(Rect.fromLTRB(23.2, 157.0, 224.8, 203.0), actions: [tap], flags: [isButton], label: \"Bölümü değiştir\", value: \"Bilgisayar Mühendisliği\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(201.6, 46.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#1666(Rect.fromLTRB(232.8, 157.0, 326.8, 203.0), actions: [tap], flags: [isButton], label: \"Sınıfı değiştir\", value: \"3. sınıf\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(93.9, 46.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#1667(Rect.fromLTRB(0.0, 211.0, 350.0, 255.0), actions: [tap], flags: [isButton], label: \"Hakkımda alanını düzenle\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(350.0, 44.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\n\n\n",
+    "labelsPassed": true,
+    "labelDetails": null
+  },
+  {
+    "scene": "profile_390_1.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "profile_390_1.3_light",
+    "errors": []
+  },
+  {
+    "scene": "profile_390_1.3_dark",
+    "errors": []
+  },
+  {
+    "scene": "profile_390_2.0_light",
+    "errors": []
+  },
+  {
+    "scene": "profile_390_2.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "settings_320_1.0_light",
+    "errors": []
+  },
+  {
+    "scene": "settings_320_1.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "settings_320_1.3_light",
+    "errors": []
+  },
+  {
+    "scene": "settings_320_1.3_dark",
+    "errors": []
+  },
+  {
+    "scene": "settings_320_2.0_light",
+    "errors": []
+  },
+  {
+    "scene": "settings_320_2.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "settings_390_1.0_light",
+    "errors": [],
+    "targetsPassed": true,
+    "targetDetails": null,
+    "labelsPassed": true,
+    "labelDetails": null
+  },
+  {
+    "scene": "settings_390_1.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "settings_390_1.3_light",
+    "errors": []
+  },
+  {
+    "scene": "settings_390_1.3_dark",
+    "errors": []
+  },
+  {
+    "scene": "settings_390_2.0_light",
+    "errors": []
+  },
+  {
+    "scene": "settings_390_2.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "events_320_1.0_light",
+    "errors": []
+  },
+  {
+    "scene": "events_320_1.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "events_320_1.3_light",
+    "errors": []
+  },
+  {
+    "scene": "events_320_1.3_dark",
+    "errors": []
+  },
+  {
+    "scene": "events_320_2.0_light",
+    "errors": []
+  },
+  {
+    "scene": "events_320_2.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "events_390_1.0_light",
+    "errors": [],
+    "targetsPassed": false,
+    "targetDetails": "SemanticsNode#2535(Rect.fromLTRB(304.0, 14.0, 340.0, 62.0), actions: [tap], flags: [isButton, hasEnabledState, isEnabled], label: \"Önceki ay\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(36.0, 48.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2536(Rect.fromLTRB(340.0, 14.0, 376.0, 62.0), actions: [tap], flags: [isButton, hasEnabledState, isEnabled], label: \"Sonraki ay\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(36.0, 48.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2537(Rect.fromLTRB(20.0, 81.0, 70.0, 122.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"26 Ekim, Pazartesi\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2538(Rect.fromLTRB(70.0, 81.0, 120.0, 122.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"27 Ekim, Salı\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2539(Rect.fromLTRB(120.0, 81.0, 170.0, 122.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"28 Ekim, Çarşamba\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2540(Rect.fromLTRB(170.0, 81.0, 220.0, 122.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"29 Ekim, Perşembe\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2541(Rect.fromLTRB(220.0, 81.0, 270.0, 122.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"30 Ekim, Cuma\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2542(Rect.fromLTRB(270.0, 81.0, 320.0, 122.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"31 Ekim, Cumartesi\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2543(Rect.fromLTRB(320.0, 81.0, 370.0, 122.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"1 Kasım, Pazar\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2544(Rect.fromLTRB(20.0, 122.0, 70.0, 163.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"2 Kasım, Pazartesi\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2545(Rect.fromLTRB(70.0, 122.0, 120.0, 163.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"3 Kasım, Salı\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2546(Rect.fromLTRB(120.0, 122.0, 170.0, 163.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"4 Kasım, Çarşamba\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2547(Rect.fromLTRB(170.0, 122.0, 220.0, 163.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"5 Kasım, Perşembe\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2548(Rect.fromLTRB(220.0, 122.0, 270.0, 163.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"6 Kasım, Cuma\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2549(Rect.fromLTRB(270.0, 122.0, 320.0, 163.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"7 Kasım, Cumartesi\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2550(Rect.fromLTRB(320.0, 122.0, 370.0, 163.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"8 Kasım, Pazar\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2551(Rect.fromLTRB(20.0, 163.0, 70.0, 204.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"9 Kasım, Pazartesi\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2552(Rect.fromLTRB(70.0, 163.0, 120.0, 204.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"10 Kasım, Salı\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2553(Rect.fromLTRB(120.0, 163.0, 170.0, 204.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"11 Kasım, Çarşamba\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2554(Rect.fromLTRB(170.0, 163.0, 220.0, 204.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"12 Kasım, Perşembe\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2555(Rect.fromLTRB(220.0, 163.0, 270.0, 204.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"13 Kasım, Cuma\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2556(Rect.fromLTRB(270.0, 163.0, 320.0, 204.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"14 Kasım, Cumartesi\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2557(Rect.fromLTRB(320.0, 163.0, 370.0, 204.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"15 Kasım, Pazar\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2558(Rect.fromLTRB(20.0, 204.0, 70.0, 245.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"16 Kasım, Pazartesi\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2559(Rect.fromLTRB(70.0, 204.0, 120.0, 245.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"17 Kasım, Salı\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2560(Rect.fromLTRB(120.0, 204.0, 170.0, 245.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"18 Kasım, Çarşamba\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2561(Rect.fromLTRB(170.0, 204.0, 220.0, 245.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"19 Kasım, Perşembe\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2562(Rect.fromLTRB(220.0, 204.0, 270.0, 245.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"20 Kasım, Cuma\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2563(Rect.fromLTRB(270.0, 204.0, 320.0, 245.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"21 Kasım, Cumartesi\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2564(Rect.fromLTRB(320.0, 204.0, 370.0, 245.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"22 Kasım, Pazar\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2565(Rect.fromLTRB(20.0, 245.0, 70.0, 286.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"23 Kasım, Pazartesi\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2566(Rect.fromLTRB(70.0, 245.0, 120.0, 286.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"24 Kasım, Salı\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2567(Rect.fromLTRB(120.0, 245.0, 170.0, 286.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"25 Kasım, Çarşamba\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2568(Rect.fromLTRB(170.0, 245.0, 220.0, 286.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"26 Kasım, Perşembe\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2569(Rect.fromLTRB(220.0, 245.0, 270.0, 286.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"27 Kasım, Cuma\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2570(Rect.fromLTRB(270.0, 245.0, 320.0, 286.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"28 Kasım, Cumartesi\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2571(Rect.fromLTRB(320.0, 245.0, 370.0, 286.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"29 Kasım, Pazar\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2572(Rect.fromLTRB(20.0, 286.0, 70.0, 327.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"30 Kasım, Pazartesi\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2573(Rect.fromLTRB(70.0, 286.0, 120.0, 327.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"1 Aralık, Salı\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2574(Rect.fromLTRB(120.0, 286.0, 170.0, 327.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"2 Aralık, Çarşamba\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2575(Rect.fromLTRB(170.0, 286.0, 220.0, 327.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"3 Aralık, Perşembe\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2576(Rect.fromLTRB(220.0, 286.0, 270.0, 327.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"4 Aralık, Cuma\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2577(Rect.fromLTRB(270.0, 286.0, 320.0, 327.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"5 Aralık, Cumartesi\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\nSemanticsNode#2578(Rect.fromLTRB(320.0, 286.0, 370.0, 327.0), actions: [tap], flags: [isButton, hasSelectedState], label: \"6 Aralık, Pazar\", textDirection: ltr): expected tap target size of at least Size(48.0, 48.0), but found Size(50.0, 41.0)\nSee also: https://support.google.com/accessibility/android/answer/7101858?hl=en\n\n",
+    "labelsPassed": true,
+    "labelDetails": null
+  },
+  {
+    "scene": "events_390_1.0_dark",
+    "errors": []
+  },
+  {
+    "scene": "events_390_1.3_light",
+    "errors": []
+  },
+  {
+    "scene": "events_390_1.3_dark",
+    "errors": []
+  },
+  {
+    "scene": "events_390_2.0_light",
+    "errors": []
+  },
+  {
+    "scene": "events_390_2.0_dark",
+    "errors": []
+  }
+]

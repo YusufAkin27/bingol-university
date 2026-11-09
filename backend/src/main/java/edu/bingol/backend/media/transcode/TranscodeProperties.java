@@ -12,8 +12,8 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * @param workers         ayni anda en fazla bu kadar donusum (CPU korumasi)
  * @param threadsPerJob   ffmpeg/x264 is parcacigi sayisi (workers x threads <= CPU limiti)
  * @param timeoutSeconds  tek ffmpeg cagrisi icin sert zaman asimi (asilirsa surec oldurulur)
- * @param maxHeight       cikti yuksekligi ust siniri (yukseltme yapilmaz)
- * @param videoKbps       hedef video bit hizi
+ * @param maxHeight       cikti kisa kenari ust siniri; uzun kenar en fazla 16/9 kati (yukseltme yok)
+ * @param videoKbps       VBV tavaninin temel bit hizi; kalite CRF 22 ile belirlenir
  * @param audioKbps       hedef ses bit hizi
  * @param maxDurationSeconds kabul edilen en uzun sure (ffprobe ile dogrulanir)
  * @param maxAttempts     basarisiz donusum yeniden deneme siniri; sonra FAILED ve orijinal kullanilir
@@ -33,9 +33,9 @@ public record TranscodeProperties(
         @DefaultValue("2") int workers,
         @DefaultValue("1") int threadsPerJob,
         @DefaultValue("300") int timeoutSeconds,
-        @DefaultValue("720") int maxHeight,
-        @DefaultValue("1500") int videoKbps,
-        @DefaultValue("96") int audioKbps,
+        @DefaultValue("1080") int maxHeight,
+        @DefaultValue("4500") int videoKbps,
+        @DefaultValue("128") int audioKbps,
         @DefaultValue("120") int maxDurationSeconds,
         @DefaultValue("3") int maxAttempts,
         @DefaultValue("5000") long pollMs,
@@ -50,7 +50,7 @@ public record TranscodeProperties(
         workers = Math.max(1, Math.min(workers, 8));
         threadsPerJob = Math.max(1, Math.min(threadsPerJob, 8));
         timeoutSeconds = Math.max(10, timeoutSeconds);
-        maxHeight = maxHeight < 144 ? 720 : maxHeight;
+        maxHeight = maxHeight < 144 ? 1080 : Math.min(maxHeight, 2160);
         videoKbps = Math.max(200, videoKbps);
         audioKbps = Math.max(32, audioKbps);
         maxAttempts = Math.max(1, maxAttempts);

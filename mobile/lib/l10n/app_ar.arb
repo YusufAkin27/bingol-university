@@ -37,7 +37,7 @@
   "commonUpdate": "تحديث",
   "commonOpenInStore": "افتح في المتجر",
   "commonSomethingWentWrong": "حدث خطأ ما",
-  "configError": "خطأ في الإعدادات: عنوان الخادم (API_BASE) غير آمن (https). أعد بناء التطبيق بالعنوان الصحيح.",
+  "configError": "الخدمة غير متاحة حالياً. يرجى المحاولة لاحقاً.",
   "exitAgainHint": "اضغط رجوع مرة أخرى للخروج",
   "navHome": "الرئيسية",
   "navDiscover": "استكشف",
@@ -2699,8 +2699,8 @@
   "p08Percent": "{n}٪",
   "p08PhotoLoadingSub": "جارٍ التنزيل من الخادم",
   "p08Queued": "في قائمة الانتظار · بانتظار الاتصال",
-  "p01ConfigTitle": "خطأ في الإعدادات",
-  "p01ConfigBody": "عنوان الخادم (API_BASE) غير آمن (https). أعد بناء التطبيق بالعنوان الصحيح.",
+  "p01ConfigTitle": "يتعذر الاتصال الآن",
+  "p01ConfigBody": "الخدمة غير متاحة حالياً. يرجى المحاولة لاحقاً. إذا استمرت المشكلة، تأكد من تحديث التطبيق.",
   "p01ConfigCode": "رمز الخطأ • BUILD_ENV",
   "p01UpdateNoticeLabel": "تحديث التطبيق",
   "p01PushNow": "الآن",
@@ -5087,5 +5087,12 @@
   "clubAudienceDone": "تم ({count})",
   "clubRecommendedTitle": "أندية مناسبة لقسمك",
   "clubRecommendedAll": "جميع الأندية",
-  "eventRecommendedTitle": "فعاليات مناسبة لقسمك"
+  "eventRecommendedTitle": "فعاليات مناسبة لقسمك",
+  "deptChatFilterDepartments": "الأقسام",
+  "deptChatBrowse": "استكشف محادثات الأقسام",
+  "deptChatBrowseSubtitle": "ابحث عن قسم وانضم إلى محادثته أو غادر متى شئت.",
+  "deptChatSearch": "ابحث عن قسم",
+  "clubReviewRequiredTitle": "موافقة الإدارة مطلوبة",
+  "clubReviewRequiredBody": "سينتظر ناديك المراجعة بعد إنشائه. يمكنك وحدك رؤيته حتى الموافقة عليه. سنرسل إليك إشعاراً عند الموافقة.",
+  "coreErrServiceUnavailable": "يتعذر إكمال العملية حالياً. يرجى المحاولة لاحقاً."
 }

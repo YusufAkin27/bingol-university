@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * ffmpeg/ffprobe sarmalayicisi: H.264 (main) + AAC, en fazla {@code maxHeight} (720p), ~1.5 Mbps,
+ * ffmpeg/ffprobe sarmalayicisi: H.264 (main) + AAC, yonu korunan 1080p ust siniri, CRF 22 + VBV,
  * {@code -movflags +faststart}. Girdi/cikti yollari uygulamanin kendi urettigi gecici dosyalardir; komutlar
  * argüman listesidir (kabuk yok) ve {@code -protocol_whitelist file} ile agsal/dolayli kaynak okuma kapatilir.
  */
@@ -94,10 +94,13 @@ public class VideoTranscoder {
         c.addAll(List.of("-protocol_whitelist", "file", "-i", in.toString()));
         c.addAll(List.of("-t", String.valueOf(p.maxDurationSeconds())));
         c.addAll(List.of("-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn", "-map_metadata", "-1"));
-        // Yukseklik: en fazla maxHeight, yukseltme yok, genislik cift sayi (H.264 icin)
-        c.addAll(List.of("-vf", "scale=-2:'min(" + p.maxHeight() + ",ih)'"));
-        c.addAll(List.of("-c:v", "libx264", "-profile:v", "main", "-pix_fmt", "yuv420p", "-preset", "veryfast",
-                "-b:v", p.videoKbps() + "k", "-maxrate", (p.videoKbps() * 6 / 5) + "k",
+        // Dikey videoda da kisa kenar korunur; her iki eksen sinirli, buyutme yapilmaz.
+        int longEdge = p.maxHeight() * 16 / 9 / 2 * 2;
+        c.addAll(List.of("-vf", "scale=w='if(gte(iw,ih),min(" + longEdge + ",iw),min(" + p.maxHeight()
+                + ",iw))':h='if(gte(iw,ih),min(" + p.maxHeight() + ",ih),min(" + longEdge
+                + ",ih))':force_original_aspect_ratio=decrease:force_divisible_by=2"));
+        c.addAll(List.of("-c:v", "libx264", "-profile:v", "main", "-pix_fmt", "yuv420p", "-preset", "medium",
+                "-crf", "22", "-maxrate", (p.videoKbps() * 6 / 5) + "k",
                 "-bufsize", (p.videoKbps() * 2) + "k", "-threads", String.valueOf(p.threadsPerJob())));
         c.addAll(List.of("-c:a", "aac", "-b:a", p.audioKbps() + "k", "-ac", "2"));
         c.addAll(List.of("-movflags", "+faststart", "-f", "mp4", out.toString()));

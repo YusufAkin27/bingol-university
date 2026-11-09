@@ -187,7 +187,7 @@ void _seed(FakeBackend b, String screen) {
 
 List<Map<String, dynamic>> _feed() {
   const heights = [1350, 1080, 1620, 1350, 1080, 1480, 1350, 1620, 1080, 1350, 1480, 1080];
-  const names = ['Elif D.', 'Mert K.', 'Selin A.', 'Can Y.', 'Derya T.', 'Emre S.'];
+  final names = _lang == 'ar' ? ['ليلى ح', 'عمر ك', 'سلمى أ', 'يوسف ن', 'دينا ط', 'كريم س'] : ['Elif D.', 'Mert K.', 'Selin A.', 'Can Y.', 'Derya T.', 'Emre S.'];
   return [
     for (var i = 0; i < heights.length; i++)
       samplePost(

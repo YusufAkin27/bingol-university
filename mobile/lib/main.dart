@@ -73,7 +73,7 @@ void installErrorHandling({bool release = kReleaseMode}) {
   if (release) ErrorWidget.builder = (_) => const RenderErrorView();
 }
 
-/// Release derlemede API_BASE https değilse (yanlış derleme) açılışta net hata gösterir (05/6; yalnız geliştirici).
+/// Gecersiz derleme adresinde kullaniciya teknik ayrinti icermeyen erisim ekrani gosterir.
 class ConfigErrorApp extends StatelessWidget {
   const ConfigErrorApp({super.key});
 
@@ -111,6 +111,7 @@ Future<void> _bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
   registerBuIconLicenses(); // BuIcons glifleri Hugeicons (MIT): lisans sayfasında görünür
   if (!apiConfigValid()) {
+    _reportError(StateError('INVALID_API_CONFIGURATION'), StackTrace.current, source: 'configuration');
     runApp(const ConfigErrorApp());
     return;
   }

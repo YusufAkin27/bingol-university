@@ -59,8 +59,8 @@ public class CommunityController {
     }
 
     /**
-     * Kulup olusturur: auto-approve acikken (varsayilan) hemen yayinda, 201 + status ACTIVE; kapaliyken onay
-     * bekler, 202 + status PENDING_REVIEW. Olusturan OWNER olur.
+     * Kullanici kulubu 202 PENDING_REVIEW ile yonetici onayini bekler. Sistem yoneticisi kulubu 201 ACTIVE olur.
+     * Olusturan OWNER olur.
      */
     private edu.bingol.backend.common.IdempotentCreate idem;
 

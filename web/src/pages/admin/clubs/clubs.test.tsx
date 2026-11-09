@@ -266,6 +266,14 @@ describe('ClubsManagePage: liste', () => {
     await waitFor(() => expect(calls.some((c) => /communities\?status=PENDING_REVIEW/.test(c.url) && !c.url.includes('page='))).toBe(true));
   });
 
+  it('kayitli onay kuyrugu baglantisi yeniden acilinca bekleyenleri gosterir', async () => {
+    const { calls } = setup();
+    renderWithProviders(<ClubsManagePage />, { route: '/admin/communities?tab=queue' });
+    expect(screen.getByRole('tab', { name: 'Onay kuyruğu' })).toHaveAttribute('aria-selected', 'true');
+    await waitFor(() => expect(calls.some((c) => /communities\?status=PENDING_REVIEW/.test(c.url))).toBe(true));
+    expect(calls.some((c) => /communities\?/.test(c.url) && c.url.includes('page='))).toBe(false);
+  });
+
   it('?club= parametresi cekmeceyi dogrudan acar', async () => {
     setup();
     renderWithProviders(<ClubsManagePage />, { route: '/admin/communities?club=5' });

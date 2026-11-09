@@ -128,7 +128,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
       });
     }
     try {
-      final r = await widget.session.api.get(_base);
+      final r = await widget.session.api.get(_base, force: true);
       if (!mounted) return;
       setState(() {
         _club = Map<String, dynamic>.from(r as Map);
@@ -145,7 +145,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
         }
       }
       if (!_locked) _refreshTab(reset: true);
-      if (_isManager) {
+      if (_isManager && !_clubPending) {
         _fetch(_requests, _requestsPath, reset: true);
       } else {
         setState(() => _requests.items.clear());
@@ -789,12 +789,14 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   }
 
   /// Üye olunmadan içerik kilitli mi (özel kulüp ya da yasak)?
-  bool get _locked => _club != null && (_status == 'BANNED' || (_club!['visibility'] == 'PRIVATE' && !_isMember));
+  bool get _locked => _club != null && (_clubPending || _status == 'BANNED' || (_club!['visibility'] == 'PRIVATE' && !_isMember));
 
   static const _pad = EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12);
 
   List<Widget> _content(BuTokens t) {
     final l10n = context.l10n;
+    // Kurucu da onay verilene kadar gonderi/anket/uye icerigini yukleyemez; ustte onay bilgisi gorunur.
+    if (_clubPending) return [const SliverToBoxAdapter(child: SizedBox(height: 24))];
     if (_locked) {
       final (icon, title, body) = _status == 'BANNED'
           ? (BuIcons.eyeOff, l10n.p11LockBannedTitle, l10n.p11LockBannedBody)

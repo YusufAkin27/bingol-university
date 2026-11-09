@@ -314,10 +314,14 @@ void main() {
       expect(ImageService.shrinkQualities.first, 88);
     });
 
-    test('sinirin altindaki fotograf aynen korunur', () async {
+    test('sinirin altindaki fotograf kalite esigiyle optimize edilir, buyutulmez', () async {
       final b = jpeg(2400, 1800, quality: 60);
       final p = await ImageService().prepare(b, limit: b.length + 1);
-      expect(identical(p.bytes, b) || p.bytes.length == b.length, isTrue);
+      expect(p.bytes.length, lessThanOrEqualTo(b.length));
+      expect(p.compression!.ssim, greaterThanOrEqualTo(.98));
+      final decoded = img.decodeImage(p.bytes)!;
+      expect(decoded.width, 2400);
+      expect(decoded.height, 1800);
     });
 
     test('shrink: sigarsa uzun kenar 2048 px ve yuksek kalitede kalir', () {

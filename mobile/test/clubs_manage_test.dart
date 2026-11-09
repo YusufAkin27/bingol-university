@@ -167,6 +167,8 @@ void main() {
       final be = base()..on('/communities', {'id': 9, 'status': 'PENDING_REVIEW'}, status: 202);
       await _pump(tester, host(makeSession(be)));
       await _open(tester);
+      expect(find.text('Yönetici onayı gerekiyor'), findsOneWidget);
+      expect(find.textContaining('Onaylandığında sana bildirim'), findsOneWidget);
       await tester.enterText(find.byType(TextField).at(0), 'Yeni Kulüp');
       await _reveal(tester, find.text('Oluştur'));
       await tester.tap(find.text('Oluştur'));

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/api.dart';
 import '../core/locale_controller.dart';
-import '../core/session.dart' show errorText;
+import '../core/session.dart' show errorText, knownErrorText;
 import '../core/theme.dart';
 import '../core/theme/bu_motion.dart';
 import '../core/theme/bu_shape.dart';
@@ -115,11 +115,13 @@ class BuEmptyState extends StatelessWidget {
                             color: t.sf2,
                             border: Border.all(color: t.bdSubtle),
                             borderRadius: BorderRadius.circular(BuRadius.md)),
-                        child: Icon(icon, size: compact ? 28 : 34, color: t.ink),
+                        child:
+                            Icon(icon, size: compact ? 28 : 34, color: t.ink),
                       ),
                     )
                   else
-                    BuIllustrationView(illustration, size: mini ? 60 : (compact ? 96 : 132)),
+                    BuIllustrationView(illustration,
+                        size: mini ? 60 : (compact ? 96 : 132)),
                   SizedBox(height: mini ? 6 : (compact ? 12 : 20)),
                   Semantics(
                     header: true,
@@ -181,7 +183,13 @@ class BuErrorState extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
-    final net = error is ApiError && (error! as ApiError).isNetwork;
+    final failure = error;
+    final net = failure is ApiError &&
+        failure.isNetwork &&
+        knownErrorText(failure, l) == null;
+    final maintenance = failure is ApiError &&
+        const {'MAINTENANCE', 'SYSTEM_MAINTENANCE', 'SERVICE_MAINTENANCE'}
+            .contains(failure.code);
     final body =
         message ?? (error != null ? errorText(error!) : l.sistemuiOfflineBody);
     return _FitCenter(
@@ -204,9 +212,11 @@ class BuErrorState extends StatelessWidget {
                     header: true,
                     child: Text(
                         title ??
-                            (net
-                                ? l.sistemuiOfflineTitle
-                                : l.sistemuiErrorTitle),
+                            (maintenance
+                                ? l.sistemuiMaintTitle
+                                : net
+                                    ? l.sistemuiOfflineTitle
+                                    : l.sistemuiErrorTitle),
                         textAlign: TextAlign.center,
                         style: tx.titleLarge!.copyWith(color: t.ink)),
                   ),
@@ -280,8 +290,7 @@ class BuOfflineBanner extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
                   child: ExcludeSemantics(
-                      child: Icon(BuIcons.wifiOff,
-                          size: 18, color: t.ink)),
+                      child: Icon(BuIcons.wifiOff, size: 18, color: t.ink)),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -292,12 +301,10 @@ class BuOfflineBanner extends StatelessWidget {
                       children: [
                         Text(message ?? l.cevrimdisiInternetYok,
                             style: tx.labelLarge!.copyWith(
-                                color: t.ink,
-                                fontWeight: FontWeight.w400)),
+                                color: t.ink, fontWeight: FontWeight.w400)),
                         if (showCachedHint && message == null)
                           Text(l.cevrimdisiKayitliVeri,
-                              style:
-                                  tx.bodySmall!.copyWith(color: t.ink)),
+                              style: tx.bodySmall!.copyWith(color: t.ink)),
                       ],
                     ),
                   ),
@@ -310,8 +317,7 @@ class BuOfflineBanner extends StatelessWidget {
                 child: TextButton(
                   onPressed: onRetry,
                   style: TextButton.styleFrom(
-                      foregroundColor: t.ink,
-                      minimumSize: const Size(48, 48)),
+                      foregroundColor: t.ink, minimumSize: const Size(48, 48)),
                   child: Text(l.cevrimdisiYenidenDene),
                 ),
               ),

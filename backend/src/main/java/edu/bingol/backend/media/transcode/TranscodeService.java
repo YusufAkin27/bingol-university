@@ -69,14 +69,20 @@ public class TranscodeService {
             if (!res.hasVideo() || res.durationMs() <= 0) {
                 throw new VideoTranscoder.TranscodeException("cikti gecersiz", false);
             }
+            if (Math.abs(res.durationMs() - src.durationMs()) > 500) {
+                throw new VideoTranscoder.TranscodeException("cikti suresi kaynakla uyusmuyor", false);
+            }
+            // Zaten iyi sikistirilmis videoyu daha buyuk bir dosyayla degistirme.
+            Path selected = Files.size(out) < Files.size(in) ? out : in;
+            VideoTranscoder.Probe selectedInfo = selected.equals(out) ? res : src;
 
             String sha;
-            try (InputStream is = Files.newInputStream(out)) {
+            try (InputStream is = Files.newInputStream(selected)) {
                 sha = sha256Hex(is);
             }
-            long bytes = Files.size(out);
+            long bytes = Files.size(selected);
             String[] w;
-            try (InputStream is = Files.newInputStream(out)) {
+            try (InputStream is = Files.newInputStream(selected)) {
                 w = store.writeSealedVideo(PostMediaService.BUCKET, is);
             }
             newKey = w[0];
@@ -87,14 +93,14 @@ public class TranscodeService {
             }
             if (thumbKey == null && props.posterEnabled()) {
                 try {
-                    thumbKey = makePoster(out, dir, newKey);
+                    thumbKey = makePoster(selected, dir, newKey);
                 } catch (VideoTranscoder.TranscodeException e) {
                     log.info("Poster uretilemedi (media={}): {}", mediaId, e.getMessage()); // poster zorunlu degil
                 }
             }
             int rows = repo.complete(mediaId, newKey, w[1], bytes,
-                    (int) Math.min(res.durationMs(), Integer.MAX_VALUE), res.width() > 0 ? res.width() : null,
-                    res.height() > 0 ? res.height() : null, sha, thumbKey, Instant.now());
+                    (int) Math.min(selectedInfo.durationMs(), Integer.MAX_VALUE), selectedInfo.width() > 0 ? selectedInfo.width() : null,
+                    selectedInfo.height() > 0 ? selectedInfo.height() : null, sha, thumbKey, Instant.now());
             if (rows != 1) { // satir silindi / baska durumda
                 store.delete(PostMediaService.BUCKET, newKey); // video + turetilmis poster
                 return false;

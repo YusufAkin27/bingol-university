@@ -1,0 +1,47 @@
+[
+  {
+    "fixture": "photo-png",
+    "originalBytes": 1790495,
+    "outputBytes": 299088,
+    "ratio": 5.986515674316589,
+    "savedPercent": 83.29579250430747,
+    "originalWidth": 1024,
+    "originalHeight": 772,
+    "width": 1024,
+    "height": 772,
+    "sampledRgbSsim": 0.9801430574679935,
+    "encoderQuality": 88,
+    "codec": "WebP",
+    "elapsedMs": 926
+  },
+  {
+    "fixture": "photo-jpeg95",
+    "originalBytes": 678288,
+    "outputBytes": 302478,
+    "ratio": 2.242437466526491,
+    "savedPercent": 55.40566838864906,
+    "originalWidth": 1024,
+    "originalHeight": 772,
+    "width": 1024,
+    "height": 772,
+    "sampledRgbSsim": 0.9801490215883613,
+    "encoderQuality": 88,
+    "codec": "WebP",
+    "elapsedMs": 1823
+  },
+  {
+    "fixture": "photo-jpeg70",
+    "originalBytes": 257332,
+    "outputBytes": 257332,
+    "ratio": 1.0,
+    "savedPercent": 0.0,
+    "originalWidth": 1024,
+    "originalHeight": 772,
+    "width": 1024,
+    "height": 772,
+    "sampledRgbSsim": 1.0,
+    "encoderQuality": null,
+    "codec": "original",
+    "elapsedMs": 1209
+  }
+]

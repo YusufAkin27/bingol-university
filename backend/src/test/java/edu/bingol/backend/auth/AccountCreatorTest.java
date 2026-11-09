@@ -61,6 +61,8 @@ class AccountCreatorTest {
 
     @Test
     void writesAcademicFieldsFromPendingRegistration() {
+        var departmentChat = mock(edu.bingol.backend.messaging.room.dept.DepartmentChatService.class);
+        org.springframework.test.util.ReflectionTestUtils.setField(creator, "departmentChat", departmentChat);
         when(users.findByEmail(EMAIL)).thenReturn(Optional.empty());
         when(users.saveAndFlush(any(User.class))).thenAnswer(i -> {
             User u = i.getArgument(0);
@@ -73,6 +75,7 @@ class AccountCreatorTest {
         assertEquals("Hukuk Fakültesi", u.getFaculty());
         assertEquals("Hukuk", u.getDepartment());
         assertEquals("PREP", u.getGrade());
+        verify(departmentChat).joinOnSignup(6L);
     }
 
     @Test

@@ -45,7 +45,6 @@ class CommunityReservedFanoutW2dTest {
     private final Actor user = new Actor(1L, false);
 
     private Community create(String name) {
-        svc.setAutoApprove(true); // varsayilan uretim davranisi: temiz ad aninda yayinda
         when(communities.countByOwnerIdAndStatusIn(eq(1L), any())).thenReturn(0L);
         org.mockito.Mockito.doAnswer(i -> {
             Community c = i.getArgument(0);
@@ -56,16 +55,15 @@ class CommunityReservedFanoutW2dTest {
     }
 
     @Test
-    void impersonatingClubNamesAreHeldForReviewCleanNamesGoLive() {
+    void allUserClubNamesRequireReview() {
         assertEquals(Community.Status.PENDING_REVIEW, create("Bingöl Üniversitesi Rektörlüğü").getStatus());
         assertEquals(Community.Status.PENDING_REVIEW, create("BU Kampus Resmi Duyuru").getStatus());
-        assertEquals(Community.Status.ACTIVE, create("Yazılım Kulübü").getStatus());
-        verify(hooks, times(1)).onCommunityActivated(any()); // yalniz temiz ad odayi kurar
+        assertEquals(Community.Status.PENDING_REVIEW, create("Yazılım Kulübü").getStatus());
+        verify(hooks, never()).onCommunityActivated(any());
     }
 
     @Test
     void invisibleOrBidiCharactersInClubNameAreRejected() {
-        svc.setAutoApprove(true);
         ApiException e = assertThrows(ApiException.class,
                 () -> svc.create(user, new CreateCommunityRequest("Yaz​ilim Kulubu", null, null, null, null)));
         assertEquals("INVALID_DISPLAY_NAME", e.code());

@@ -933,9 +933,9 @@ String errorText(Object e) {
   // Bağlamsız çağrılar için etkin uygulama dili (yoksa Türkçe).
   final l = lookupAppLocalizations(LocaleController.current?.locale ?? const Locale('tr'));
   if (e is ApiError) {
-    if (e.isNetwork) return l.coreErrNetwork;
     final known = knownErrorText(e, l);
     if (known != null) return known;
+    if (e.isNetwork) return l.coreErrNetwork;
     if (e.message.isNotEmpty) {
       // 429: sunucu metni süre içermiyorsa Retry-After eklenir.
       if (e.status == 429 && !RegExp(r'\d').hasMatch(e.message)) {
@@ -966,6 +966,20 @@ String? knownErrorText(ApiError e, AppLocalizations l) {
   // Kodsuz 413 (proxy/nginx); kodlu 413'ler (VIDEO_TOO_LARGE, FILE_TOO_LARGE...) kendi sunucu metnini korur.
   if (e.status == 413 && e.code.startsWith('HTTP_')) return l.errPayloadTooLarge;
   switch (e.code) {
+    case 'MAINTENANCE':
+    case 'SYSTEM_MAINTENANCE':
+    case 'SERVICE_MAINTENANCE':
+      return _withRetry(l.sistemuiMaintBody, e, l);
+    case 'BAD_RESPONSE':
+    case 'INTERNAL_ERROR':
+    case 'SERVER_ERROR':
+    case 'CONFIG_ERROR':
+    case 'INVALID_API_CONFIG':
+    case 'INSECURE_API':
+    case 'SSL_ERROR':
+    case 'TLS_ERROR':
+    case 'CERTIFICATE_VERIFY_FAILED':
+      return _withRetry(l.coreErrServiceUnavailable, e, l);
     case 'ACCOUNT_LIMIT':
       return l.accLimit;
     case 'EMAIL_ALIAS_NOT_ALLOWED':
@@ -1029,5 +1043,6 @@ String? knownErrorText(ApiError e, AppLocalizations l) {
     case 'COMMUNITY_NOT_FOUND': // P06: kulüp kapatıldı (HIDDEN) / silindi
       return l.clubUnavailable;
   }
+  if (e.status >= 500) return _withRetry(l.coreErrServiceUnavailable, e, l);
   return null;
 }

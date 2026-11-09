@@ -37,7 +37,7 @@
   "commonUpdate": "Update",
   "commonOpenInStore": "Open in store",
   "commonSomethingWentWrong": "Something went wrong",
-  "configError": "Configuration error: the server address (API_BASE) is not secure (HTTPS). Rebuild the app with the correct address.",
+  "configError": "The service is currently unavailable. Please try again later.",
   "exitAgainHint": "Press back again to exit",
   "navHome": "Home",
   "navDiscover": "Discover",
@@ -2699,8 +2699,8 @@
   "p08Percent": "{n}%",
   "p08PhotoLoadingSub": "Downloading from the server",
   "p08Queued": "Queued · Waiting",
-  "p01ConfigTitle": "Configuration error",
-  "p01ConfigBody": "The server address (API_BASE) is not secure (https). Rebuild the app with the correct address.",
+  "p01ConfigTitle": "Unable to connect right now",
+  "p01ConfigBody": "The service is currently unavailable. Please try again later. If the problem continues, make sure your app is up to date.",
   "p01ConfigCode": "ERROR CODE • BUILD_ENV",
   "p01UpdateNoticeLabel": "App update",
   "p01PushNow": "now",
@@ -5087,5 +5087,12 @@
   "clubAudienceDone": "Done ({count})",
   "clubRecommendedTitle": "Clubs for your department",
   "clubRecommendedAll": "All clubs",
-  "eventRecommendedTitle": "Events for your department"
+  "eventRecommendedTitle": "Events for your department",
+  "deptChatFilterDepartments": "Departments",
+  "deptChatBrowse": "Explore department chats",
+  "deptChatBrowseSubtitle": "Find a department, join its chat or leave anytime.",
+  "deptChatSearch": "Search departments",
+  "clubReviewRequiredTitle": "Admin approval required",
+  "clubReviewRequiredBody": "Your club will wait for review after creation. Only you can see it until approval. We will notify you when it is approved.",
+  "coreErrServiceUnavailable": "This action cannot be completed right now. Please try again later."
 }

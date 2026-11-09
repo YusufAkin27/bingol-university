@@ -19,12 +19,18 @@ class RenderErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Ağaçta yerelleştirme varsa onu kullan (uygulama dili); yoksa cihaz dilinden çöz.
-    final l = AppLocalizations.of(context) ?? lookupAppLocalizations(resolveAppLocale('system', PlatformDispatcher.instance.locales));
+    final l = AppLocalizations.of(context) ??
+        lookupAppLocalizations(
+            resolveAppLocale('system', PlatformDispatcher.instance.locales));
     final theme = context.findAncestorWidgetOfExactType<Theme>()?.data;
-    final dark = (theme?.brightness ?? PlatformDispatcher.instance.platformBrightness) == Brightness.dark;
-    final t = theme?.extension<BuTokens>() ?? (dark ? BuTokens.dark : BuTokens.light);
+    final dark =
+        (theme?.brightness ?? PlatformDispatcher.instance.platformBrightness) ==
+            Brightness.dark;
+    final t =
+        theme?.extension<BuTokens>() ?? (dark ? BuTokens.dark : BuTokens.light);
     final tx = (theme ?? (dark ? BuTheme.dark() : BuTheme.light())).textTheme;
-    final dir = Directionality.maybeOf(context) ?? (l.localeName == 'ar' ? TextDirection.rtl : TextDirection.ltr);
+    final dir = Directionality.maybeOf(context) ??
+        (l.localeName == 'ar' ? TextDirection.rtl : TextDirection.ltr);
     return Directionality(
       textDirection: dir,
       child: Material(
@@ -43,17 +49,26 @@ class RenderErrorView extends StatelessWidget {
                       width: 72,
                       height: 72,
                       alignment: Alignment.center,
-                      decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-                      child: Icon(BuIcons.triangleAlert, size: 48, color: t.ink),
+                      decoration:
+                          BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+                      child:
+                          Icon(BuIcons.triangleAlert, size: 48, color: t.ink),
                     ),
                   ),
                   const SizedBox(height: 24),
                   Text(l.commonSomethingWentWrong,
                       textAlign: TextAlign.center,
-                      style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400, decoration: TextDecoration.none)),
+                      style: tx.headlineSmall!.copyWith(
+                          color: t.ink,
+                          fontWeight: FontWeight.w400,
+                          decoration: TextDecoration.none)),
                   const SizedBox(height: 8),
                   Text(l.coreErrGeneric,
-                      textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.5, decoration: TextDecoration.none)),
+                      textAlign: TextAlign.center,
+                      style: tx.bodyMedium!.copyWith(
+                          color: t.mut,
+                          height: 1.5,
+                          decoration: TextDecoration.none)),
                   const SizedBox(height: 24),
                   Semantics(
                     button: true,
@@ -61,19 +76,26 @@ class RenderErrorView extends StatelessWidget {
                     excludeSemantics: true,
                     child: Material(
                       color: t.sf,
-                      shape: RoundedRectangleBorder(borderRadius: BuRadius.bControl, side: BorderSide(color: t.bdStrong)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BuRadius.bControl,
+                          side: BorderSide(color: t.bdStrong)),
                       child: InkWell(
                         borderRadius: BuRadius.bControl,
                         onTap: onRetry ??
                             () {
                               final nav = rootNavigatorKey.currentState;
-                              if (nav != null && nav.canPop()) nav.popUntil((r) => r.isFirst);
+                              if (nav != null && nav.canPop()) {
+                                nav.popUntil((r) => r.isFirst);
+                              }
                             },
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(minHeight: 48),
                           child: Center(
                             child: Text(l.commonRetry,
-                                style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w400, decoration: TextDecoration.none)),
+                                style: tx.titleMedium!.copyWith(
+                                    color: t.ink,
+                                    fontWeight: FontWeight.w400,
+                                    decoration: TextDecoration.none)),
                           ),
                         ),
                       ),
@@ -89,11 +111,11 @@ class RenderErrorView extends StatelessWidget {
   }
 }
 
-/// Yapılandırma hatası ekranı (05/6; yalnız geliştirici): API_BASE https değil. Düğme yok.
-/// Tam adres yazılmaz (yalnız şema): yanlış derlemenin nedeni anlaşılır, adres sızmaz.
+/// Uygulama hizmete baglanamiyorsa teknik ayrinti icermeyen kullanici ekrani.
 class ConfigErrorView extends StatelessWidget {
   const ConfigErrorView({super.key, this.origin = apiOrigin});
 
+  // Teshis/test icin tutulur; adres veya sema arayuzde gosterilmez.
   final String origin;
 
   @override
@@ -101,77 +123,30 @@ class ConfigErrorView extends StatelessWidget {
     final t = context.bu;
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
-    final rtl = Directionality.of(context) == TextDirection.rtl;
-    final scheme = Uri.tryParse(origin)?.scheme ?? '';
-    final shown = 'API_BASE=${scheme.isEmpty ? '' : '$scheme://'}...';
     return Scaffold(
       backgroundColor: t.bg,
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                ExcludeSemantics(
-                  child: Center(
-                    child: Container(
-                      width: 88,
-                      height: 88,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bLg, border: Border.all(color: t.bd)),
-                      child: Icon(BuIcons.shieldAlert, size: 40, color: t.ink),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Semantics(
-                  header: true,
-                  child: Text(l.p01ConfigTitle,
-                      textAlign: TextAlign.center, style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w400)),
-                ),
-                const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(l.p01ConfigBody, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.6)),
-                ),
-                const SizedBox(height: 24),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(l.p01ConfigCode,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: tx.labelSmall!.copyWith(color: t.mut, letterSpacing: rtl ? 0 : 1.1, fontWeight: FontWeight.w400)),
-                          ),
-                          const SizedBox(width: 8),
-                          ExcludeSemantics(child: Icon(BuIcons.squareTerminal, size: 16, color: t.mut)),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        decoration: BoxDecoration(color: t.bd.withValues(alpha: .6), borderRadius: BorderRadius.circular(12)),
-                        child: Directionality(
-                          textDirection: TextDirection.ltr,
-                          child: Text(shown, style: tx.bodyMedium!.copyWith(color: t.ink, fontFamily: 'monospace')),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
+          child: Center(
+              child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 360),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            ExcludeSemantics(
+                child: Icon(BuIcons.cloudOff, size: 64, color: t.mut)),
+            const SizedBox(height: 24),
+            Semantics(
+                header: true,
+                child: Text(l.p01ConfigTitle,
+                    textAlign: TextAlign.center,
+                    style: tx.headlineSmall!.copyWith(color: t.ink))),
+            const SizedBox(height: 12),
+            Text(l.p01ConfigBody,
+                textAlign: TextAlign.center,
+                style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.6)),
+          ]),
         ),
-      ),
+      ))),
     );
   }
 }

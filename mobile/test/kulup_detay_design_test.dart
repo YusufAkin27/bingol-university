@@ -63,6 +63,24 @@ Future<void> _pump(WidgetTester tester, Widget w, {Brightness b = Brightness.lig
 void main() {
   setUpAll(_fonts);
 
+  testWidgets('onay bekleyen kurucuya bekleme durumu gosterilir, icerik yuklenmez', (tester) async {
+    final be = _be(status: 'ACTIVE', role: 'OWNER')
+      ..on('/communities/7', {
+        'id': 7, 'name': 'Yeni Kulüp', 'status': 'PENDING_REVIEW',
+        'myStatus': 'ACTIVE', 'myRole': 'OWNER', 'memberCount': 1,
+        'visibility': 'PUBLIC', 'joinPolicy': 'OPEN',
+      });
+    await _pump(tester, ClubDetailPage(session: makeSession(be), communityId: 7));
+    expect(find.text('Onay bekliyor'), findsOneWidget);
+    expect(find.text('Kulübün onaya gönderildi'), findsOneWidget);
+    expect(find.text('Kulüp sohbeti'), findsNothing);
+    expect(be.count('/polls'), 0);
+    expect(be.count('/requests'), 0);
+    expect(be.count('/posts'), 0);
+    expect(tester.takeException(), isNull);
+    await unmount(tester);
+  });
+
   group('Kulup detay: ziyaretci', () {
     testWidgets('katilma istegi: sorular, zorunlu hata, gonderim', (tester) async {
       final be = _be()..on('/communities/7/join', {'status': 'PENDING'});

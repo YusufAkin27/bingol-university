@@ -37,7 +37,7 @@
   "commonUpdate": "Güncelle",
   "commonOpenInStore": "Mağazada aç",
   "commonSomethingWentWrong": "Bir şeyler ters gitti",
-  "configError": "Yapılandırma hatası: sunucu adresi (API_BASE) güvenli (https) değil. Uygulamayı doğru adresle yeniden derleyin.",
+  "configError": "Hizmete şu anda ulaşılamıyor. Lütfen biraz sonra tekrar deneyin.",
   "exitAgainHint": "Çıkmak için tekrar geri basın",
   "navHome": "Ana Sayfa",
   "navDiscover": "Keşfet",
@@ -4525,8 +4525,8 @@
   },
   "p08PhotoLoadingSub": "Sunucudan indiriliyor",
   "p08Queued": "Kuyrukta · Bekliyor",
-  "p01ConfigTitle": "Yapılandırma hatası",
-  "p01ConfigBody": "Sunucu adresi (API_BASE) güvenli (https) değil. Uygulamayı doğru adresle yeniden derleyin.",
+  "p01ConfigTitle": "Şu anda bağlantı kurulamıyor",
+  "p01ConfigBody": "Hizmete şu anda ulaşılamıyor. Lütfen biraz sonra tekrar deneyin. Sorun devam ederse uygulamanın güncel olduğundan emin olun.",
   "p01ConfigCode": "HATA KODU • BUILD_ENV",
   "p01UpdateNoticeLabel": "Uygulama Güncellemesi",
   "p01PushNow": "şimdi",
@@ -7548,5 +7548,12 @@
   "@clubAudienceDone": {"placeholders": {"count": {"type": "int"}}},
   "clubRecommendedTitle": "Bölümüne uygun kulüpler",
   "clubRecommendedAll": "Tüm kulüpler",
-  "eventRecommendedTitle": "Bölümüne uygun etkinlikler"
+  "eventRecommendedTitle": "Bölümüne uygun etkinlikler",
+  "deptChatFilterDepartments": "Bölümler",
+  "deptChatBrowse": "Bölüm sohbetlerini keşfet",
+  "deptChatBrowseSubtitle": "Bölüm ara, sohbetine katıl veya istediğin zaman ayrıl.",
+  "deptChatSearch": "Bölüm ara",
+  "clubReviewRequiredTitle": "Yönetici onayı gerekiyor",
+  "clubReviewRequiredBody": "Kulübün oluşturulduktan sonra onay bekleyecek. Onaylanana kadar yalnızca sen görebilirsin. Onaylandığında sana bildirim göndereceğiz.",
+  "coreErrServiceUnavailable": "İşlem şu anda tamamlanamıyor. Lütfen biraz sonra tekrar deneyin."
 }

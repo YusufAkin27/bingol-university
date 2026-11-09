@@ -20,6 +20,8 @@ import 'chat_sheet_parts.dart' show showChatMuteSheet;
 import 'chatlist_widgets.dart';
 import 'conversation_actions.dart';
 import 'department_chat_entry.dart';
+import 'department_chats_page.dart';
+import '../../widgets/requests_entry_row.dart';
 import 'message_bubble.dart' show OnceBadge;
 import 'message_requests_page.dart';
 import 'message_placeholder.dart';
@@ -51,7 +53,8 @@ class _ChatTabState extends State<ChatTab> {
       l.chatMiscFilterAll,
       l.chatMiscFilterPeople,
       l.chatMiscFilterClubs,
-      l.chatMiscFilterEvents
+      l.chatMiscFilterEvents,
+      l.deptChatFilterDepartments,
     ];
   }
 
@@ -628,6 +631,7 @@ class _ChatTabState extends State<ChatTab> {
         1 => type == 'DIRECT' || type == 'GROUP',
         2 => type == 'CLUB',
         3 => type == 'EVENT',
+        4 => type == 'DEPARTMENT',
         _ => true,
       };
       return ok && (q.isEmpty || _title(context, c).toLowerCase().contains(q));
@@ -704,6 +708,21 @@ class _ChatTabState extends State<ChatTab> {
                   key: _deptEntryKey,
                   session: widget.session,
                   onJoined: () => _load(silent: true),
+                ),
+              ),
+            if (!_archived && (_filter == 0 || _filter == 4))
+              SliverToBoxAdapter(
+                child: RequestsEntryRow(
+                  key: const ValueKey('department-chats-browse'),
+                  icon: BuIcons.graduationCap,
+                  label: context.l10n.deptChatBrowse,
+                  onTap: () async {
+                    await Navigator.push(context, MaterialPageRoute(
+                      settings: const RouteSettings(name: 'department_chats'),
+                      builder: (_) => DepartmentChatsPage(session: widget.session),
+                    ));
+                    if (mounted) _load(silent: true);
+                  },
                 ),
               ),
             ..._bodySlivers(t),

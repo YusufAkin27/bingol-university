@@ -13,7 +13,10 @@ import 'outbox/outbox.dart';
 
 /// Taban adres derleme anında verilir: `--dart-define=API_BASE=http://192.168.1.20:8080`.
 /// Android emülatöründe bilgisayarın localhost'u 10.0.2.2'dir; gerçek iPhone için bilgisayarın LAN IP'si gerekir.
-const apiOrigin = String.fromEnvironment('API_BASE', defaultValue: 'http://10.0.2.2:8080');
+const productionApiOrigin = 'https://bukampus.com.tr';
+const developmentApiOrigin = 'http://10.0.2.2:8080';
+const apiOrigin = String.fromEnvironment('API_BASE',
+    defaultValue: kReleaseMode ? productionApiOrigin : developmentApiOrigin);
 const apiBase = '$apiOrigin/api';
 
 /// Yerel/elden test sürümünde (`--dart-define=ALLOW_INSECURE_API=true`) http'ye izin verir.
@@ -31,11 +34,22 @@ bool apiConfigValid({String origin = apiOrigin, bool release = kReleaseMode, boo
 
 /// Sunucunun `{code,message}` hatası. Mantık `code` üzerine kurulur; `message` kullanıcıya gösterilir.
 class ApiError implements Exception {
-  ApiError(this.status, this.code, this.message, {this.retryAfter, this.data});
+  ApiError(this.status, this.code, String message, {this.retryAfter, this.data}) : _message = message;
 
   final int status;
   final String code;
-  final String message;
+  final String _message;
+
+  /// Teknik sunucu ayrintilari, dogrudan e.message kullanan ekranlara da sizmaz.
+  String get message => status >= 500 || _technicalMessage.hasMatch(_message) ? '' : _message;
+
+  static final _technicalMessage = RegExp(
+    r'API_BASE|dart-define|yeniden derley|rebuild (?:the )?app|https?://|wss?://|'
+    r'(?:socket|handshake|ssl|tls|format|state|type|platform|client|http|sql|runtime|illegalargument|unknownhost)(?:exception|error)|'
+    r'stack\s?trace|sqlstate|jdbc:|org\.springframework|io\.netty|java\.(?:lang|sql|net)|'
+    r'<\s*(?:!doctype|html|body|head)\b|\n\s*at\s+\S+\(|\b[A-Za-z_$][\w.$]*(?:Exception|Error)\b',
+    caseSensitive: false,
+  );
 
   /// 429/503'te sunucunun `Retry-After` başlığı (saniye); yoksa null.
   final int? retryAfter;

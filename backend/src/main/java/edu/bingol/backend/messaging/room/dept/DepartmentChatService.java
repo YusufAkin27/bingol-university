@@ -1,6 +1,7 @@
 package edu.bingol.backend.messaging.room.dept;
 
 import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.catalog.CatalogService;
 import edu.bingol.backend.messaging.room.RoomConversations;
 import edu.bingol.backend.messaging.room.RoomConversations.RoomInfo;
 import edu.bingol.backend.messaging.room.RoomKind;
@@ -16,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Bolum sohbet gruplari (RoomConversations, DEPARTMENT, department_chat_room.id). Her bolumun tek odasi vardir;
- * kullanici kendi profil bolumunun odasina ISTERSE katilir (zorunlu degil), istedigi an ayrilir. Oda ilk katilimda
+ * kullanici kayitta kendi bolumune katilir; diger bolumlere de katilabilir ve istedigi an ayrilir. Oda ilk katilimda
  * tembel kurulur; kurucu/grup yoneticisi sistem yoneticisidir (ADMIN; moderasyon: DepartmentRoomModerators).
  * Uyeler birbirini mevcut sikayet akisiyle (USER / MESSAGE / CONVERSATION) bildirir.
  */
@@ -26,11 +27,14 @@ public class DepartmentChatService {
     private final RoomConversations rooms;
     private final DepartmentChatRoomRepository depts;
     private final UserRepository users;
+    private final CatalogService catalog;
 
-    public DepartmentChatService(RoomConversations rooms, DepartmentChatRoomRepository depts, UserRepository users) {
+    public DepartmentChatService(RoomConversations rooms, DepartmentChatRoomRepository depts, UserRepository users,
+                                 CatalogService catalog) {
         this.rooms = rooms;
         this.depts = depts;
         this.users = users;
+        this.catalog = catalog;
     }
 
     /**
@@ -67,14 +71,63 @@ public class DepartmentChatService {
             throw new ApiException(HttpStatus.CONFLICT, "DEPARTMENT_REQUIRED",
                     "Bölüm grubuna katılmak için profilinde bölüm seçmelisin.");
         }
-        DepartmentChatRoom room = ensureRecord(key, u.getDepartment());
+        return joinRoom(u, key, u.getDepartment());
+    }
+
+    /** Katalogdaki herhangi bir bolume katilim; profil bolumunu degistirmez. */
+    @Transactional
+    public DepartmentChatView join(Long userId, String department) {
+        if (department == null) return join(userId);
+        User u = requireUser(userId);
+        String name = catalog.catalog().faculties().stream().flatMap(f -> f.departments().stream())
+                .map(CatalogService.Department::name).filter(department::equals).findFirst()
+                .orElseThrow(DepartmentChatService::notFound);
+        return joinRoom(u, UnitKeys.deptKey(name), name);
+    }
+
+    @Transactional(readOnly = true)
+    public List<DepartmentChatView> browse(Long userId) {
+        User u = requireUser(userId);
+        var names = new java.util.TreeMap<String, String>();
+        catalog.catalog().faculties().forEach(f -> f.departments().forEach(d ->
+                names.putIfAbsent(UnitKeys.deptKey(d.name()), d.name())));
+        var existing = depts.findAll().stream().collect(java.util.stream.Collectors.toMap(
+                DepartmentChatRoom::getDeptKey, java.util.function.Function.identity()));
+        return names.entrySet().stream().map(e -> {
+            DepartmentChatRoom room = existing.get(e.getKey());
+            RoomInfo info = room == null ? null : rooms.find(RoomKind.DEPARTMENT, room.getId()).orElse(null);
+            return info == null ? new DepartmentChatView(true, e.getValue(), false, false, 0, null)
+                    : view(u, room, info);
+        }).toList();
+    }
+
+    private DepartmentChatView joinRoom(User u, String key, String name) {
+        return joinRoom(u, key, name, false);
+    }
+
+    /** Yalniz kayitta cagirilir; ayrilan kullanicilar giriste yeniden eklenmez. */
+    @Transactional
+    public void joinOnSignup(Long userId) {
+        User u = requireUser(userId);
+        String key = keyOf(u);
+        if (key != null) joinRoom(u, key, u.getDepartment(), true);
+    }
+
+    private DepartmentChatView joinRoom(User u, String key, String name, boolean signup) {
+        Long userId = u.getId();
+        DepartmentChatRoom room = ensureRecord(key, name);
         RoomInfo info = rooms.find(RoomKind.DEPARTMENT, room.getId()).orElse(null);
         if (info == null) {
             rooms.ensureRoom(RoomKind.DEPARTMENT, room.getId(), room.getName(), ownerOf(userId));
             info = rooms.find(RoomKind.DEPARTMENT, room.getId()).orElseThrow(DepartmentChatService::notFound);
         }
         if (info.closed()) {
+            if (signup) return view(u, room, info);
             throw new ApiException(HttpStatus.CONFLICT, "CHAT_ROOM_CLOSED", "Sohbet odası kapalı.");
+        }
+        if (signup) {
+            rooms.addMemberIfSpace(RoomKind.DEPARTMENT, room.getId(), userId);
+            return view(u, room, info);
         }
         if (!rooms.addMember(RoomKind.DEPARTMENT, room.getId(), userId)) {
             throw notFound(); // hesap uygun degil (askida/dogrulanmamis)
@@ -91,6 +144,17 @@ public class DepartmentChatService {
             return;
         }
         depts.findByDeptKey(key).ifPresent(r -> rooms.removeMember(RoomKind.DEPARTMENT, r.getId(), userId));
+    }
+
+    @Transactional
+    public void leave(Long userId, Long conversationId) {
+        if (conversationId == null) {
+            leave(userId);
+            return;
+        }
+        requireUser(userId);
+        var room = depts.findByConversationId(conversationId).orElseThrow(DepartmentChatService::notFound);
+        rooms.removeMember(RoomKind.DEPARTMENT, room.getId(), userId);
     }
 
     // ---- yonetici ----
@@ -138,7 +202,7 @@ public class DepartmentChatService {
 
     private DepartmentChatView view(User u, DepartmentChatRoom room, RoomInfo info) {
         boolean joined = !info.closed() && rooms.isMember(RoomKind.DEPARTMENT, room.getId(), u.getId());
-        return new DepartmentChatView(true, u.getDepartment(), info.closed(), joined,
+        return new DepartmentChatView(true, room.getName(), info.closed(), joined,
                 info.closed() ? 0 : rooms.memberCount(RoomKind.DEPARTMENT, room.getId()),
                 joined ? info.conversationId() : null);
     }

@@ -64,6 +64,23 @@ class RoomConversationsTest {
     }
 
     @Test
+    void automaticMembershipSkipsFullRoomWithoutFailingSignup() {
+        openRoom();
+        when(members.countByConversationIdAndLeftAtIsNull(500L)).thenReturn(3L);
+        assertFalse(rooms.addMemberIfSpace(RoomKind.COMMUNITY, 10L, 7L));
+        verify(convs).lockById(500L);
+        verify(members, never()).save(any());
+    }
+
+    @Test
+    void automaticMembershipAddsVerifiedUserWhenSpaceAvailable() {
+        openRoom();
+        userOk(7L);
+        assertTrue(rooms.addMemberIfSpace(RoomKind.COMMUNITY, 10L, 7L));
+        verify(members).save(any());
+    }
+
+    @Test
     void ensureRoomCreatesGroupConversationWithoutAdminAndLinksIt() {
         userOk(1L);
         when(links.findByKindAndRefId(RoomKind.COMMUNITY, 10L)).thenReturn(Optional.empty());

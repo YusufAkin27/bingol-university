@@ -188,8 +188,16 @@ class _EventFormPageState extends State<EventFormPage> {
 
   // ---- kapak ----
 
-  Future<PreparedImage?> _pick(ImageSource s) =>
-      widget.pickCover != null ? widget.pickCover!(s) : _images.pickPrepared(s);
+  Future<PreparedImage?> _pick(ImageSource s) async {
+    if (widget.pickCover != null) return widget.pickCover!(s);
+    final file = await _images.pick(s);
+    if (file == null) return null;
+    final bytes = await file.readAsBytes();
+    final mime = ImageService.sniffMime(bytes);
+    if (mime == null) throw ImageException('UNSUPPORTED_TYPE');
+    // Once duzenleme; kayipli sikistirma kirpma tamamlandiktan sonra bir kez uygulanir.
+    return PreparedImage(bytes, mime);
+  }
 
   Future<void> _chooseCover() async {
     final has = _picked != null || (!_removeCover && _existingCover != null);
@@ -228,8 +236,10 @@ class _EventFormPageState extends State<EventFormPage> {
         }
         final bytes = out.bytes;
         if (bytes == null) return;
+        final prepared = await _images.prepare(bytes);
+        if (!mounted) return;
         setState(() {
-          _picked = PreparedImage(bytes, 'image/jpeg'); // kırpma çıktısı her zaman JPEG
+          _picked = prepared;
           _removeCover = false;
         });
         return;

@@ -13,6 +13,8 @@ import 'package:video_player/video_player.dart';
 import '../api.dart';
 import '../session.dart';
 import 'video_frame.dart';
+import 'media_compression.dart';
+import 'image_service.dart';
 
 /// Seçilmiş (henüz işlenmemiş) video dosyası.
 class PickedVideo {
@@ -44,6 +46,7 @@ class PreparedVideo {
     this.width,
     this.height,
     this.poster,
+    this.compression,
   }) : assert(path != null || bytes != null);
 
   /// Disk yolu (üretimde); testlerde yerine [bytes] verilebilir.
@@ -56,6 +59,7 @@ class PreparedVideo {
 
   /// JPEG önizleme karesi (alınamazsa null).
   final Uint8List? poster;
+  final CompressionStats? compression;
 
   String get fileName => 'video.mp4';
 
@@ -68,6 +72,7 @@ class PreparedVideo {
         width: width,
         height: height,
         poster: poster,
+        compression: compression,
       );
 }
 
@@ -97,7 +102,7 @@ abstract class VideoCompressor {
   /// Bilgi okunamazsa null.
   Future<VideoInfo?> info(String path);
 
-  /// Orta kalitede (720p) sıkıştırır; başarısızlıkta/iptalde null.
+  /// En fazla 1080p sıkıştırır; başarısızlıkta/iptalde null.
   Future<VideoInfo?> compress(String path, void Function(double progress) onProgress);
 
   /// İlk anlamlı kare (JPEG); alınamazsa null.
@@ -106,8 +111,8 @@ abstract class VideoCompressor {
   Future<void> cancel();
 }
 
-/// `video_compress` ile: Android'de Transcoder (720p üst sınırlı), iOS'ta AVAssetExportSession.
-/// Android/iOS dışında hiçbir şey yapmaz (null döner): çağıran sıkıştırmasız yola düşer.
+/// `video_compress` ile Android'de Transcoder (1080p üst sınırlı).
+/// Diğer platformlarda sıkıştırma null döner; çağıran özgün dosyayı kullanır.
 class PlatformVideoCompressor implements VideoCompressor {
   // video_compress yalniz Android'de derlenir (iOS'ta CocoaPods gerekir, xcross desteklemez).
   bool get _supported => Platform.isAndroid;
@@ -174,7 +179,7 @@ class PlatformVideoCompressor implements VideoCompressor {
     try {
       final r = await vc.VideoCompress.compressVideo(
         path,
-        quality: vc.VideoQuality.Res1280x720Quality, // 720p, varsayılan bit hızı: belirgin kalite kaybı yok
+        quality: vc.VideoQuality.Res1920x1080Quality,
         deleteOrigin: false,
         includeAudio: true,
         frameRate: 30,
@@ -298,7 +303,8 @@ class VideoService {
     if (!small) {
       final c = await _compressor.compress(picked.path, (p) => onProgress?.call(p));
       check();
-      if (c != null && c.sizeBytes > 0) {
+      if (c != null && c.sizeBytes > 0 && (origSize <= 0 || c.sizeBytes < origSize) &&
+          (orig == null || orig.durationMs <= 0 || c.durationMs <= 0 || (c.durationMs - orig.durationMs).abs() <= 500)) {
         best = VideoInfo(
           path: c.path,
           sizeBytes: c.sizeBytes,
@@ -324,6 +330,9 @@ class VideoService {
       width: best.width,
       height: best.height,
       poster: poster,
+      compression: CompressionStats(originalBytes: origSize, outputBytes: best.sizeBytes,
+        originalWidth: orig?.width, originalHeight: orig?.height, width: best.width, height: best.height,
+        codec: best.path == picked.path ? 'original' : 'H.264/AAC'),
     );
   }
 }
@@ -360,8 +369,9 @@ class VideoUploader {
     }
     final poster = video.poster;
     if (poster != null && poster.isNotEmpty) {
-      req.files.add(http.MultipartFile.fromBytes('poster', poster,
-          filename: 'poster.jpg', contentType: MediaType('image', 'jpeg')));
+      final ready = await ImageService().prepare(poster);
+      req.files.add(http.MultipartFile.fromBytes('poster', ready.bytes,
+          filename: 'poster.${ready.fileName.split('.').last}', contentType: MediaType.parse(ready.mime)));
     }
     return req;
   }

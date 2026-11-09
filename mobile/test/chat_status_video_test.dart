@@ -533,7 +533,7 @@ void main() {
       expect(c.cancelled, isTrue);
     });
 
-    test('yukleme: file(video/mp4) + poster(image/jpeg) govdesi ve ilerleme', () async {
+    test('yukleme: video/mp4 + posterin gercek MIME turu ve ilerleme', () async {
       final seenReq = <String>[];
       final client = MockClient((req) async {
         final body = latin1.decode(req.bodyBytes);
@@ -554,8 +554,8 @@ void main() {
       expect(body, contains('filename="video.mp4"'));
       expect(body.toLowerCase(), contains('content-type: video/mp4'));
       expect(body, contains('name="poster"'));
-      expect(body, contains('filename="poster.jpg"'));
-      expect(body.toLowerCase(), contains('content-type: image/jpeg'));
+      expect(body, contains('filename="poster.png"'));
+      expect(body.toLowerCase(), contains('content-type: image/png'));
       expect(progress, isNotEmpty);
       expect(progress.last, 1.0);
       for (var i = 1; i < progress.length; i++) {

@@ -55,8 +55,7 @@ class ClubLifecycleTest {
     }
 
     @Test
-    void autoApproveCreatesActiveClubAndRoom() {
-        svc.setAutoApprove(true);
+    void ordinaryUserAlwaysNeedsReviewAndHasNoChatRoom() {
         when(communities.saveAndFlush(any())).thenAnswer(i -> {
             Community c = i.getArgument(0);
             c.setId(10L);
@@ -65,13 +64,12 @@ class ClubLifecycleTest {
 
         Community c = svc.create(owner, new CreateCommunityRequest("Yazılım Kulübü", null, null, null, null));
 
-        assertEquals(Community.Status.ACTIVE, c.getStatus());
-        verify(hooks).onCommunityActivated(c);
+        assertEquals(Community.Status.PENDING_REVIEW, c.getStatus());
+        verify(hooks, never()).onCommunityActivated(any());
     }
 
     @Test
-    void approvalFlowStillWorksWhenAutoApproveOff() {
-        svc.setAutoApprove(false);
+    void creationStartsInReview() {
         when(communities.saveAndFlush(any())).thenAnswer(i -> i.getArgument(0));
 
         Community c = svc.create(owner, new CreateCommunityRequest("Yazılım Kulübü", null, null, null, null));
@@ -81,8 +79,30 @@ class ClubLifecycleTest {
     }
 
     @Test
-    void systemAdminClubIsActiveEvenWhenAutoApproveOff() {
-        svc.setAutoApprove(false);
+    void clubBecomesUsableOnlyAfterReviewAndNotifiesOwnerOnce() {
+        when(communities.saveAndFlush(any())).thenAnswer(i -> {
+            Community c = i.getArgument(0);
+            c.setId(10L);
+            return c;
+        });
+        Community c = svc.create(owner, new CreateCommunityRequest("Yazılım Kulübü", null, null, null, null));
+        when(communities.findById(10L)).thenReturn(Optional.of(c));
+        assertEquals("COMMUNITY_NOT_FOUND", assertThrows(ApiException.class, () -> svc.loadVisible(other, 10L)).code());
+        assertEquals("COMMUNITY_NOT_FOUND", assertThrows(ApiException.class, () -> svc.join(other, 10L)).code());
+
+        svc.review(10L, true, null);
+
+        assertEquals(c, svc.loadVisible(other, 10L));
+        assertEquals("ACTIVE", svc.join(other, 10L));
+        verify(hooks).onCommunityActivated(c);
+        verify(notifications).sendTemplated(eq(1L), eq(NotificationType.COMMUNITY), eq("notif.community.approved"),
+                eq(java.util.Map.of("communityId", "10")), eq("Yazılım Kulübü"));
+        assertEquals("NOT_PENDING", assertThrows(ApiException.class, () -> svc.review(10L, true, null)).code());
+        verify(hooks, org.mockito.Mockito.times(1)).onCommunityActivated(c);
+    }
+
+    @Test
+    void systemAdminClubCanBePublishedDirectly() {
         when(communities.saveAndFlush(any())).thenAnswer(i -> i.getArgument(0));
 
         Community c = svc.create(new Actor(9L, true), new CreateCommunityRequest("Yazılım Kulübü", null, null, null, null));

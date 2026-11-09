@@ -1,10 +1,5 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
 
-import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/platform/image_service.dart';
 import '../../core/session.dart';
@@ -477,45 +472,6 @@ class _MembersError extends StatelessWidget {
 }
 
 
-/// `PUT {path}` ile multipart (`file`) yükleme; [MultipartUploader] yalnız POST yapar.
-Future<dynamic> putMultipartImage(
-    Session session, String path, PreparedImage image) async {
-  Future<dynamic> send(bool retried) async {
-    final api = session.api;
-    final req = http.MultipartRequest('PUT', Uri.parse('$apiBase$path'));
-    req.headers['Accept-Language'] = api.lang;
-    req.headers['Accept'] = 'application/json';
-    final tok = api.tokens;
-    if (tok != null) req.headers['Authorization'] = 'Bearer ${tok.access}';
-    req.files.add(http.MultipartFile.fromBytes('file', image.bytes,
-        filename: image.fileName, contentType: MediaType.parse(image.mime)));
-    http.Response res;
-    try {
-      res = await http.Response.fromStream(
-          await req.send().timeout(const Duration(seconds: 60)));
-    } catch (_) {
-      throw ApiError(0, 'NETWORK', '');
-    }
-    if (res.statusCode == 401 && tok != null && !retried) {
-      await api.refresh();
-      return send(true);
-    }
-    dynamic json;
-    final text = utf8.decode(res.bodyBytes, allowMalformed: true);
-    if (text.isNotEmpty) {
-      try {
-        json = jsonDecode(text);
-      } catch (_) {
-        // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
-      }
-    }
-    if (res.statusCode >= 200 && res.statusCode < 300) return json;
-    if (json is Map && json['code'] is String) {
-      throw ApiError(res.statusCode, json['code'] as String,
-          json['message'] is String ? json['message'] as String : '');
-    }
-    throw ApiError(res.statusCode, 'HTTP_${res.statusCode}', '');
-  }
-
-  return send(false);
-}
+/// Grup fotografi da ortak sikistirma ve kimlik yenileme hattindan yuklenir.
+Future<dynamic> putMultipartImage(Session session, String path, PreparedImage image) =>
+    MultipartUploader(session).upload(path, image, method: 'PUT');

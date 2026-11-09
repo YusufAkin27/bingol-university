@@ -13,14 +13,16 @@ import '../api.dart';
 import '../nav.dart';
 import '../permissions/ensure_permission.dart';
 import '../session.dart';
+import 'media_compression.dart';
 
 export 'package:image_picker/image_picker.dart' show ImageSource, XFile;
 
 /// Yüklemeye hazır görsel: doğrulanmış tür + sınır altı boyut.
 class PreparedImage {
-  PreparedImage(this.bytes, this.mime);
+  PreparedImage(this.bytes, this.mime, {this.compression});
   final Uint8List bytes;
   final String mime; // image/jpeg | image/png | image/webp
+  final CompressionStats? compression;
 
   String get fileName => 'upload.${mime == 'image/png' ? 'png' : mime == 'image/webp' ? 'webp' : 'jpg'}';
 }
@@ -50,6 +52,17 @@ class ImageService {
   /// Sohbet görseli ham yükleme sınırı (sunucu `app.media.chat.max-upload-bytes` 5 MB; pay bırakılır).
   static const chatLimit = 4 * 1024 * 1024;
 
+  /// Tum multipart girisleri bu kapidan gecer; once hazirlanmissa tekrar kodlanmaz.
+  Future<PreparedImage> prepareForUpload(String path, PreparedImage image) {
+    final avatar = path.endsWith('/avatar') || path.endsWith('/logo');
+    final limit = avatar ? avatarLimit
+        : path == '/forum/media' ? 8 * 1024 * 1024
+        : path.startsWith('/conversations/') && path.endsWith('/media') ? chatLimit
+        : defaultLimit;
+    if (image.compression != null && image.bytes.length <= limit) return Future.value(image);
+    return prepare(image.bytes, avatar: avatar, limit: limit);
+  }
+
   /// Galeriden/kameradan seçer (uzun kenar 2048 px, kalite 88). İptalde null.
   /// Kamera kaynağında önce izin garanti edilir (manifestte CAMERA bildirili olduğundan Android
   /// kamera niyeti izinsiz çökerdi); galeri seçici kendi sistem seçicisini kullanır, çift istem olmaz.
@@ -72,7 +85,7 @@ class ImageService {
     return prepare(await f.readAsBytes(), avatar: avatar);
   }
 
-  /// Tür (sihirli baytlar) ve boyut doğrulaması; sınırı aşarsa JPEG'e küçülterek sıkıştırır.
+  /// Tür ve boyut doğrulaması + kalite kontrollü WebP; sert sınır aşılırsa JPEG boyutlandırma.
   /// [limit] verilirse varsayılan sınırın yerine geçer (sohbet: [chatLimit]).
   Future<PreparedImage> prepare(Uint8List bytes, {bool avatar = false, int? limit}) async {
     if (bytes.isEmpty) throw ImageException('EMPTY');
@@ -80,10 +93,23 @@ class ImageService {
     if (mime == null) throw ImageException('UNSUPPORTED_TYPE');
     limit ??= avatar ? avatarLimit : defaultLimit;
     final lim = limit;
+    if (bytes.length <= lim && (bytes.length < PhotoCompression.minBytes || mime == 'image/webp')) {
+      return PreparedImage(bytes, mime, compression: CompressionStats(
+        originalBytes: bytes.length, outputBytes: bytes.length, codec: 'original', ssim: 1));
+    }
+    try {
+      final optimized = await Isolate.run(() => PhotoCompression.optimize(bytes, mime, lim));
+      if (optimized.bytes.length <= lim) {
+        return PreparedImage(optimized.bytes, optimized.mime, compression: optimized.stats);
+      }
+    } catch (_) {
+      // Codec failure must not prevent uploading an otherwise supported original.
+    }
     if (bytes.length <= lim) return PreparedImage(bytes, mime);
     final out = await Isolate.run(() => shrink(bytes, lim));
     if (out == null) throw ImageException('TOO_LARGE');
-    return PreparedImage(out, 'image/jpeg');
+    return PreparedImage(out, 'image/jpeg', compression: CompressionStats(
+      originalBytes: bytes.length, outputBytes: out.length, codec: 'JPEG resized'));
   }
 
   /// Dosya imzasından tür; uzantıya/istemci bildirimine güvenilmez.
@@ -124,17 +150,21 @@ class ImageService {
 
 /// `multipart/form-data` yükleme (alan adı `file`); ApiClient'a dokunmaz.
 class MultipartUploader {
-  MultipartUploader(this.session, {http.Client? client}) : _http = client ?? http.Client();
+  MultipartUploader(this.session, {http.Client? client, ImageService? image})
+      : _http = client ?? http.Client(), _image = image ?? ImageService();
 
   final Session session;
   final http.Client _http;
+  final ImageService _image;
 
   static const _timeout = Duration(seconds: 60);
 
   /// Örn. `upload('/users/me/avatar', img)`; yol `/api` önekisizdir. Sonuç JSON (çoğu uçta `avatarUrl`/`url`).
   /// [method] varsayılan POST; kapak gibi uçlar PUT ister.
-  Future<dynamic> upload(String path, PreparedImage image, {String method = 'POST'}) =>
-      _send(path, image, false, method);
+  Future<dynamic> upload(String path, PreparedImage image, {String method = 'POST'}) async {
+    final ready = await _image.prepareForUpload(path, image);
+    return _send(path, ready, false, method);
+  }
 
   Future<dynamic> _send(String path, PreparedImage image, bool retried, String method) async {
     final api = session.api;
