@@ -17,6 +17,7 @@ import 'chat_info_parts.dart' show ChatConfirmLayout, showChatInfoConfirm;
 import 'chat_media.dart';
 import 'chat_security_page.dart';
 import 'chat_sheet_parts.dart' show showChatMuteSheet;
+import 'chatlist_gestures.dart';
 import 'chatlist_widgets.dart';
 import 'conversation_actions.dart';
 import 'department_chat_entry.dart';
@@ -575,6 +576,30 @@ class _ChatTabState extends State<ChatTab> {
     }
   }
 
+  /// Uzun basma: salt okunur önizleme (okundu İŞARETLENMEZ, bkz. [showConversationPeek]). "Sohbeti aç" ile sohbete geçilir.
+  Future<void> _peek(Map<String, dynamic> c) async {
+    final type = _type(c);
+    final peer = c['peer'];
+    final id = (c['id'] as num?)?.toInt();
+    if (id == null) return;
+    final open = await showConversationPeek(
+      context,
+      session: widget.session,
+      conversationId: id,
+      title: _title(context, c),
+      avatarUrl: type == 'DIRECT' ? (peer is Map ? peer['avatarUrl'] as String? : null) : c['avatarUrl'] as String?,
+      group: type != 'DIRECT',
+      myId: widget.session.userId,
+      describe: (ctx, m) {
+        if (m['removed'] == true || m['deleted'] == true) {
+          return isAdminRemovedText(m['text'] as String?) ? ctx.l10n.chatAdminRemovedMsg : ctx.l10n.chatMiscMessageDeleted;
+        }
+        return _ConversationRow._preview(ctx, m).$1;
+      },
+    );
+    if (open == true && mounted) _openChat(c);
+  }
+
   Future<void> _showActions(Map<String, dynamic> c) async {
     final muted = c['muted'] == true || c['mutedForever'] == true;
     final type = _type(c);
@@ -811,7 +836,6 @@ class _ChatTabState extends State<ChatTab> {
   }
 
   Widget _list(List<Map<String, dynamic>> list) {
-    final t = context.bu;
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(0, 8, 0, kNavInset),
       sliver: SliverList.builder(
@@ -824,45 +848,22 @@ class _ChatTabState extends State<ChatTab> {
             );
           }
           final c = list[k];
-          final row = Dismissible(
+          final row = ConversationSwipeRow(
             key: ValueKey('conv-${c['id']}'),
-            direction: DismissDirection.endToStart,
-            // Kaydırınca satır kayarak kaybolur ve arşiv çubuğuna "girer" (sayı güncellenir); geri alma arşiv ekranında.
-            movementDuration: BuMotion.of(context, const Duration(milliseconds: 200)),
-            resizeDuration: BuMotion.of(context, const Duration(milliseconds: 220)),
-            onDismissed: (_) => _toggleArchive(c, dismissed: true),
-            // Kaydırma eylemi sakin: nötr zemin, tek simge + kısa etiket (kırmızı/lacivert dolgu yok).
-            background: Container(
-              alignment: AlignmentDirectional.centerEnd,
-              padding: const EdgeInsetsDirectional.only(end: 20),
-              decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
-              child: SizedBox(
-                width: 88,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(_archived ? BuIcons.archiveRestore : BuIcons.archive, size: 22, color: t.ink),
-                    const SizedBox(height: 4),
-                    Text(_archived ? context.l10n.chatMiscUnarchiveAction : context.l10n.chatMiscArchiveAction,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
-                  ],
-                ),
-              ),
-            ),
-            child: Builder(
-              builder: (rowCtx) => _ConversationRow(
-                title: _title(context, c),
-                conversation: c,
-                myId: widget.session.userId,
-                last: k == list.length - 1,
-                onTap: () => _openChat(c),
-                onLongPress: () {
-                  HapticFeedback.selectionClick();
-                  _showActions(c);
-                },
-              ),
+            archived: _archived,
+            // Kaydırma yalnız düğmeleri açar; arşivleme/menü düğmeye dokununca çalışır.
+            onArchive: () => _toggleArchive(c),
+            onMore: () => _showActions(c),
+            child: _ConversationRow(
+              title: _title(context, c),
+              conversation: c,
+              myId: widget.session.userId,
+              last: k == list.length - 1,
+              onTap: () => _openChat(c),
+              onLongPress: () {
+                HapticFeedback.selectionClick();
+                _peek(c);
+              },
             ),
           );
           final removing = _removing.contains((c['id'] as num?)?.toInt());

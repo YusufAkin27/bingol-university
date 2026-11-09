@@ -5094,5 +5094,9 @@
   "deptChatSearch": "Search departments",
   "clubReviewRequiredTitle": "Admin approval required",
   "clubReviewRequiredBody": "Your club will wait for review after creation. Only you can see it until approval. We will notify you when it is approved.",
-  "coreErrServiceUnavailable": "This action cannot be completed right now. Please try again later."
+  "coreErrServiceUnavailable": "This action cannot be completed right now. Please try again later.",
+  "chatMiscMoreAction": "More",
+  "chatMiscPeekOpen": "Open chat",
+  "chatMiscPeekError": "Could not load messages.",
+  "chatMiscPeekEmpty": "No messages yet."
 }

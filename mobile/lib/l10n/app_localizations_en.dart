@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -668,7 +669,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown) {
+    String type,
+    String title,
+    String date,
+    String countdown,
+  ) {
     return '$type: $title. $date. $countdown. Tap to edit.';
   }
 
@@ -987,7 +992,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end) {
+    String name,
+    String day,
+    String start,
+    String end,
+  ) {
     return '$name, $day from $start to $end';
   }
 
@@ -14149,4 +14158,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get coreErrServiceUnavailable =>
       'This action cannot be completed right now. Please try again later.';
+
+  @override
+  String get chatMiscMoreAction => 'More';
+
+  @override
+  String get chatMiscPeekOpen => 'Open chat';
+
+  @override
+  String get chatMiscPeekError => 'Could not load messages.';
+
+  @override
+  String get chatMiscPeekEmpty => 'No messages yet.';
 }

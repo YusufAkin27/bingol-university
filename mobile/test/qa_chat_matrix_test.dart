@@ -174,8 +174,10 @@ void main() {
     testWidgets('uzun basma: sessize al -> sure sec -> PUT /mute {durationMinutes}', (tester) async {
       final be = _listBe();
       await _pump(tester, ChatTab(session: makeSession(be), connectRealtime: false));
-      await tester.longPress(find.text('Ali Veli'));
-      await settle(tester, const Duration(milliseconds: 300));
+      await tester.drag(find.text('Ali Veli'), const Offset(-600, 0));
+      await settle(tester, const Duration(milliseconds: 400));
+      await tester.tap(find.byKey(const ValueKey('swipe-more')));
+      await settle(tester, const Duration(milliseconds: 400));
       await tester.tap(find.byKey(const ValueKey('act-mute')));
       await settle(tester, const Duration(milliseconds: 400));
       await tester.tap(find.text('Sessize al').last);
@@ -189,8 +191,10 @@ void main() {
     testWidgets('sessize alma hatasi (429): satir geri doner, istisna yok', (tester) async {
       final be = _listBe()..fail('/conversations/1/mute', status: 429, code: 'RATE_LIMITED');
       await _pump(tester, ChatTab(session: makeSession(be), connectRealtime: false));
-      await tester.longPress(find.text('Ali Veli'));
-      await settle(tester, const Duration(milliseconds: 300));
+      await tester.drag(find.text('Ali Veli'), const Offset(-600, 0));
+      await settle(tester, const Duration(milliseconds: 400));
+      await tester.tap(find.byKey(const ValueKey('swipe-more')));
+      await settle(tester, const Duration(milliseconds: 400));
       await tester.tap(find.byKey(const ValueKey('act-mute')));
       await settle(tester, const Duration(milliseconds: 400));
       await tester.tap(find.text('Sessize al').last);

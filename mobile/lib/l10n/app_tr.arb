@@ -7555,5 +7555,9 @@
   "deptChatSearch": "Bölüm ara",
   "clubReviewRequiredTitle": "Yönetici onayı gerekiyor",
   "clubReviewRequiredBody": "Kulübün oluşturulduktan sonra onay bekleyecek. Onaylanana kadar yalnızca sen görebilirsin. Onaylandığında sana bildirim göndereceğiz.",
-  "coreErrServiceUnavailable": "İşlem şu anda tamamlanamıyor. Lütfen biraz sonra tekrar deneyin."
+  "coreErrServiceUnavailable": "İşlem şu anda tamamlanamıyor. Lütfen biraz sonra tekrar deneyin.",
+  "chatMiscMoreAction": "Daha fazla",
+  "chatMiscPeekOpen": "Sohbeti aç",
+  "chatMiscPeekError": "Mesajlar yüklenemedi.",
+  "chatMiscPeekEmpty": "Henüz mesaj yok."
 }
