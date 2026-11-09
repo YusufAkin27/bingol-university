@@ -3,6 +3,7 @@ package edu.bingol.backend.user;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -42,6 +43,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
             + " AND u.status = edu.bingol.backend.user.UserStatus.ACTIVE"
             + " AND (u.adminProfile IS NULL OR u.adminProfile = edu.bingol.backend.admin.rbac.AdminProfile.FULL)")
     long countFullAdmins();
+
+    /** Bolum kanali geri doldurma: bolumu olan aktif + dogrulanmis kullanici kimlikleri, `after`'dan sonra, artan sirada. */
+    @Query("SELECT u.id FROM User u WHERE u.id > :after AND u.department IS NOT NULL"
+            + " AND u.status = edu.bingol.backend.user.UserStatus.ACTIVE AND u.emailVerified = true ORDER BY u.id")
+    List<Long> deptUserIdsAfter(@Param("after") long after, Pageable page);
 
     /** P16: silinmemis tum yonetici hesaplari (profil atama listesi). */
     @Query("SELECT u FROM User u WHERE u.role = edu.bingol.backend.user.Role.ADMIN"

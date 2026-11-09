@@ -32,6 +32,8 @@ public class AccountDataPurger {
     /** Silinecek tablolar (hepsinde user_id sutunu var). Topluluk sahipligi ve yasak kayitlari korunur. */
     public static final List<String> DELETES = List.of(
             "DELETE FROM device WHERE user_id = ?",
+            // Bolum kanali opt-out tercihi (V1810); disa aktarim bolumu: departmentChatOptouts
+            "DELETE FROM department_chat_optout WHERE user_id = ?",
             // iOS Canli Etkinlik jetonlari
             "DELETE FROM live_activity WHERE user_id = ?",
             // Kalici push kuyrugu: bekleyen push kayitlari

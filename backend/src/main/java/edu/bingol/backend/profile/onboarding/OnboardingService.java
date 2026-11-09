@@ -38,6 +38,10 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Service
 public class OnboardingService {
 
+    /** Bolum atanince kendi bolum kanalina otomatik uyelik (kullanici karari 2026-11-09); testlerde yok olabilir. */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private edu.bingol.backend.messaging.room.dept.DepartmentAutoJoin deptAutoJoin;
+
     static final String DEFAULT_UNIVERSITY = "Bingöl Üniversitesi";
     static final int BIO_MAX = 300;
     static final int PART_MAX = 60;
@@ -183,6 +187,9 @@ public class OnboardingService {
                 User saved = users.saveAndFlush(user);
                 if (recordTerms) {
                     legal.recordSignupConsent(userId);
+                }
+                if (deptAutoJoin != null && saved.getDepartment() != null) {
+                    deptAutoJoin.schedule(userId); // kendi bolum kanalina varsayilan uye (commit sonrasi, sessiz)
                 }
                 return new OnboardingResponse(true, ProfileView.of(saved));
             });

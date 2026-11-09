@@ -35,7 +35,8 @@ class DepartmentChatServiceTest {
     private final edu.bingol.backend.messaging.ConversationService convs =
             mock(edu.bingol.backend.messaging.ConversationService.class);
     private final DepartmentChatService svc = new DepartmentChatService(rooms, depts, users,
-            new edu.bingol.backend.catalog.CatalogService(), convs);
+            new edu.bingol.backend.catalog.CatalogService(), convs,
+            mock(DepartmentChatOptoutRepository.class));
 
     private User user(long id, String dept, Role role) {
         User u = new User();

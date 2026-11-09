@@ -66,6 +66,20 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
     List<Conversation> page(@Param("uid") Long userId, @Param("cursor") Long cursor,
                             @Param("archived") boolean archived, Pageable pageable);
 
+    /**
+     * Henuz mesaji olmayan bolum kanallari (kullanici uye): `page` yalniz mesajli konusmalari getirir; yeni katilinan bos
+     * bolum odasi da sohbet listesinde gorunsun diye listenin sonuna eklenir (en yeni katilim once).
+     */
+    @Query("SELECT c FROM Conversation c, ConversationMember m, edu.bingol.backend.messaging.room.ChatRoomLink l "
+            + "WHERE m.conversationId = c.id AND l.conversationId = c.id "
+            + "AND l.kind = edu.bingol.backend.messaging.room.RoomKind.DEPARTMENT AND l.closed = false "
+            + "AND m.userId = :uid AND m.leftAt IS NULL AND m.hiddenAt IS NULL AND c.lastMessageId IS NULL "
+            + "AND m.requestState = edu.bingol.backend.messaging.ConversationMember.RequestState.ACCEPTED "
+            + "AND ((:archived = true AND m.archivedAt IS NOT NULL) OR (:archived = false AND m.archivedAt IS NULL)) "
+            + "ORDER BY m.joinedAt DESC, c.id DESC")
+    List<Conversation> emptyDepartmentRooms(@Param("uid") Long userId, @Param("archived") boolean archived,
+                                            Pageable pageable);
+
     /** Arsivdeki (listede gorunen) konusma sayisi: `page(archived=true)` ile ayni kosullar. Arsiv cubugu icin. */
     @Query("SELECT COUNT(c) FROM Conversation c, ConversationMember m WHERE m.conversationId = c.id AND m.userId = :uid "
             + "AND m.leftAt IS NULL AND m.hiddenAt IS NULL AND c.lastMessageId IS NOT NULL "

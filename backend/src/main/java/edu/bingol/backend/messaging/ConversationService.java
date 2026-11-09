@@ -314,7 +314,7 @@ public class ConversationService {
         members.save(self);
     }
 
-    /** Mesaji olan konusmalar, en yeni mesaj once. Imlec = onceki sayfanin son `lastMessage.id` degeri. */
+    /** Mesaji olan konusmalar, en yeni mesaj once (+ ilk sayfada mesajsiz bolum kanallari en ustte). Imlec = onceki sayfanin son `lastMessage.id` degeri. */
     @Transactional(readOnly = true)
     public CursorPage<ConversationView> list(Long me, Long cursor, int size) {
         return list(me, cursor, size, false);
@@ -331,6 +331,16 @@ public class ConversationService {
         if (more) {
             Conversation lastRow = page.get(page.size() - 1);
             next = lastKey(lastRow, members.findByConversationIdAndUserId(lastRow.getId(), me).stream().toList(), me);
+        }
+        if (cursor == null) {
+            // Mesajsiz bolum kanali (yeni katilim) da listede gorunur: ilk sayfanin en ustune (katilma zamani yeni -> eski).
+            // Imlec yalniz mesajli satirlardan hesaplanir (yukarida), sonraki sayfalar etkilenmez.
+            List<Conversation> empty = convs.emptyDepartmentRooms(me, archived, PageRequest.of(0, 100));
+            if (!empty.isEmpty()) {
+                List<Conversation> merged = new java.util.ArrayList<>(empty);
+                merged.addAll(page);
+                page = merged;
+            }
         }
         return new CursorPage<>(views(me, page), next);
     }

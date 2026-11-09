@@ -14128,4 +14128,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deptChanNoMessages => 'No messages yet';
+
+  @override
+  String get chatMiscFilterDepartments => 'Departments';
+
+  @override
+  String get deptChanFilterEmptyTitle =>
+      'You haven\'t joined a department channel yet';
+
+  @override
+  String get deptChanEmptyRoomPreview => 'No messages yet. Write the first one';
+
+  @override
+  String get deptChanAutoAdded =>
+      'You were added to your department channel automatically (notifications are muted). You can leave any time.';
 }

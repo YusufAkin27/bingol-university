@@ -112,6 +112,35 @@ public class RoomConversations {
         return addTo(l.getConversationId(), userId, null);
     }
 
+    /** Otomatik katilim sonucu ({@link #addMemberQuietly}). */
+    public enum AutoAdd { ADDED, ALREADY, FULL, REJECTED }
+
+    /**
+     * Otomatik (kullanici istemeden) katilim: oda doluysa HATA FIRLATMAZ (cagiran islem rollback-only olmasin), FULL doner;
+     * yeni eklenen uyenin bildirimleri VARSAYILAN SESSIZDIR (sessize alma "her zaman"; kullanici kendisi acabilir).
+     * Zaten uye olan kullanicinin tercihine dokunulmaz.
+     */
+    @Transactional
+    public AutoAdd addMemberQuietly(RoomKind kind, Long refId, Long userId) {
+        ChatRoomLink l = links.findByKindAndRefId(kind, refId).orElse(null);
+        if (l == null || l.isClosed()) {
+            return AutoAdd.REJECTED;
+        }
+        Long cid = l.getConversationId();
+        convs.lockById(cid);
+        if (members.findByConversationIdAndUserIdAndLeftAtIsNull(cid, userId).isPresent()) {
+            return AutoAdd.ALREADY;
+        }
+        if (members.countByConversationIdAndLeftAtIsNull(cid) >= maxMembers) {
+            return AutoAdd.FULL;
+        }
+        if (!addTo(cid, userId, null)) {
+            return AutoAdd.REJECTED;
+        }
+        members.updateMute(cid, userId, Instant.now().plus(java.time.Duration.ofDays(365L * 100)));
+        return AutoAdd.ADDED;
+    }
+
     /** Birden cok kullaniciyi ekler; dolunca durur. Eklenen/zaten uye olan sayisini doner. */
     @Transactional
     public int addMembers(RoomKind kind, Long refId, Collection<Long> userIds) {

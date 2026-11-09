@@ -7555,5 +7555,9 @@
       }
     }
   },
-  "deptChanNoMessages": "Henüz mesaj yok"
+  "deptChanNoMessages": "Henüz mesaj yok",
+  "chatMiscFilterDepartments": "Bölüm",
+  "deptChanFilterEmptyTitle": "Henüz bölüm kanalına katılmadın",
+  "deptChanEmptyRoomPreview": "Henüz mesaj yok. İlk mesajı sen yaz",
+  "deptChanAutoAdded": "Bölüm kanalına otomatik eklendin (bildirimler sessiz). İstersen çıkabilirsin."
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
@@ -82,9 +83,13 @@ Future<void> openDepartmentChannel(BuildContext context, Session session, Map<St
 /// rozeti, son mesaj önizlemesi); hiç kanal yoksa sade öneri kartı (kendi bölümün öne çıkar) ve "Tüm bölümler"
 /// bağlantısı. Yükleme/hata sessizdir (sohbet listesini etkilemez); "Tüm bölümler" ekranı kendi durumlarını gösterir.
 class DepartmentChannelsStrip extends StatefulWidget {
-  const DepartmentChannelsStrip({super.key, required this.session, this.onChanged});
+  const DepartmentChannelsStrip(
+      {super.key, required this.session, this.onChanged, this.hideSuggest = false});
 
   final Session session;
+
+  /// true: kanal yokken öneri kartı çizilmez (sohbet listesindeki "Bölüm" süzgeci kendi boş durumunu gösterir).
+  final bool hideSuggest;
 
   /// Katılma/ayrılma sonrası sohbet listesi yenilensin.
   final VoidCallback? onChanged;
@@ -120,8 +125,26 @@ class DepartmentChannelsStripState extends State<DepartmentChannelsStrip> {
         _own = own is Map ? Map<String, dynamic>.from(own) : null;
         _loaded = true;
       });
+      _maybeAutoAddedHint();
     } catch (_) {
       // Bilerek yutulur: en iyi çaba. Daha önce yüklenmiş alan korunur.
+    }
+  }
+
+  /// Otomatik eklenen kendi bölüm kanalı için tek seferlik bilgi (cihaz+kullanıcı başına). Depo yoksa sessiz.
+  Future<void> _maybeAutoAddedHint() async {
+    final hasOwn = _items.any((e) => e['own'] == true);
+    final uid = widget.session.userId;
+    if (!hasOwn || uid == null) return;
+    final key = 'dept_auto_hint_$uid';
+    try {
+      const st = FlutterSecureStorage();
+      if (await st.read(key: key) != null) return;
+      await st.write(key: key, value: '1');
+      if (!mounted) return;
+      BuToast.show(context, context.l10n.deptChanAutoAdded);
+    } catch (_) {
+      // Depo kullanılamıyorsa (test/izin) bilgi atlanır.
     }
   }
 
@@ -157,6 +180,7 @@ class DepartmentChannelsStripState extends State<DepartmentChannelsStrip> {
       if (!mounted) return;
       setState(() => _busy = false);
       await refresh();
+      widget.session.badges.conversationsDirty.value++;
       widget.onChanged?.call();
       final cid = (r['conversationId'] as num?)?.toInt();
       if (cid == null || !mounted) return;
@@ -179,6 +203,7 @@ class DepartmentChannelsStripState extends State<DepartmentChannelsStrip> {
   @override
   Widget build(BuildContext context) {
     if (!_loaded) return const SizedBox.shrink();
+    if (widget.hideSuggest && _items.isEmpty) return const SizedBox.shrink();
     final l = context.l10n;
     final t = context.bu;
     final tx = Theme.of(context).textTheme;

@@ -14020,4 +14020,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get deptChanNoMessages => 'لا رسائل بعد';
+
+  @override
+  String get chatMiscFilterDepartments => 'الأقسام';
+
+  @override
+  String get deptChanFilterEmptyTitle => 'لم تنضم إلى أي قناة قسم بعد';
+
+  @override
+  String get deptChanEmptyRoomPreview => 'لا توجد رسائل بعد. اكتب أول رسالة';
+
+  @override
+  String get deptChanAutoAdded =>
+      'تمت إضافتك تلقائيًا إلى قناة قسمك (الإشعارات صامتة). يمكنك المغادرة في أي وقت.';
 }

@@ -5097,5 +5097,9 @@
       }
     }
   },
-  "deptChanNoMessages": "لا رسائل بعد"
+  "deptChanNoMessages": "لا رسائل بعد",
+  "chatMiscFilterDepartments": "الأقسام",
+  "deptChanFilterEmptyTitle": "لم تنضم إلى أي قناة قسم بعد",
+  "deptChanEmptyRoomPreview": "لا توجد رسائل بعد. اكتب أول رسالة",
+  "deptChanAutoAdded": "تمت إضافتك تلقائيًا إلى قناة قسمك (الإشعارات صامتة). يمكنك المغادرة في أي وقت."
 }

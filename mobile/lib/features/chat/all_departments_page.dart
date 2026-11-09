@@ -105,6 +105,7 @@ class _AllDepartmentsPageState extends State<AllDepartmentsPage> {
         }
         BuToast.show(context, l.deptChanJoinedToast(name), kind: BuToastKind.success);
       }
+      widget.session.badges.conversationsDirty.value++; // sohbet listesi/şerit/rozetler anında eşitlenir
     } catch (e) {
       if (!mounted) return;
       final j = _indexOf(key);

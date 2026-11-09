@@ -25285,6 +25285,30 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Henüz mesaj yok'**
   String get deptChanNoMessages;
+
+  /// No description provided for @chatMiscFilterDepartments.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölüm'**
+  String get chatMiscFilterDepartments;
+
+  /// No description provided for @deptChanFilterEmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz bölüm kanalına katılmadın'**
+  String get deptChanFilterEmptyTitle;
+
+  /// No description provided for @deptChanEmptyRoomPreview.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz mesaj yok. İlk mesajı sen yaz'**
+  String get deptChanEmptyRoomPreview;
+
+  /// No description provided for @deptChanAutoAdded.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölüm kanalına otomatik eklendin (bildirimler sessiz). İstersen çıkabilirsin.'**
+  String get deptChanAutoAdded;
 }
 
 class _AppLocalizationsDelegate

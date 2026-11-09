@@ -5097,5 +5097,9 @@
       }
     }
   },
-  "deptChanNoMessages": "No messages yet"
+  "deptChanNoMessages": "No messages yet",
+  "chatMiscFilterDepartments": "Departments",
+  "deptChanFilterEmptyTitle": "You haven't joined a department channel yet",
+  "deptChanEmptyRoomPreview": "No messages yet. Write the first one",
+  "deptChanAutoAdded": "You were added to your department channel automatically (notifications are muted). You can leave any time."
 }

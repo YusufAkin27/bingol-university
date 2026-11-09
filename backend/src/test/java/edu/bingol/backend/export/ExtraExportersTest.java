@@ -147,6 +147,7 @@ class ExtraExportersTest {
             // W2-E/W2-F (T-063): sonradan eklenen silme kapsami; bolumu olanlar baglandi, digerleri EXEMPT'te gerekceli
             Map.entry("message_reaction", "messageReactions"),
             Map.entry("conversation_member", "conversationMemberships"),
+            Map.entry("department_chat_optout", "departmentChatOptouts"),
             Map.entry("club_member_grant", "clubPermissions"),
             Map.entry("display_name_history", "displayNameHistory"),
             // FOLLOWREQ: gonderdigim bekleyen takip istekleri (gelenler baskalarinin verisi, dahil degil)

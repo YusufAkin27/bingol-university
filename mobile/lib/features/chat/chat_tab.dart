@@ -19,6 +19,7 @@ import 'chat_security_page.dart';
 import 'chat_sheet_parts.dart' show showChatMuteSheet;
 import 'chatlist_widgets.dart';
 import 'conversation_actions.dart';
+import 'all_departments_page.dart';
 import 'department_chat_entry.dart';
 import 'message_bubble.dart' show OnceBadge;
 import 'message_requests_page.dart';
@@ -44,6 +45,9 @@ class ChatTab extends StatefulWidget {
   State<ChatTab> createState() => _ChatTabState();
 }
 
+/// "Bölüm" süzgeç çipinin sırası (Tümü, Kişiler, Kulüpler, Etkinlikler, Bölüm).
+const int _kDeptFilter = 4;
+
 class _ChatTabState extends State<ChatTab> {
   List<String> _filterLabels(BuildContext context) {
     final l = context.l10n;
@@ -51,7 +55,8 @@ class _ChatTabState extends State<ChatTab> {
       l.chatMiscFilterAll,
       l.chatMiscFilterPeople,
       l.chatMiscFilterClubs,
-      l.chatMiscFilterEvents
+      l.chatMiscFilterEvents,
+      l.chatMiscFilterDepartments
     ];
   }
 
@@ -628,6 +633,7 @@ class _ChatTabState extends State<ChatTab> {
         1 => type == 'DIRECT' || type == 'GROUP',
         2 => type == 'CLUB',
         3 => type == 'EVENT',
+        4 => type == 'DEPARTMENT',
         _ => true,
       };
       return ok && (q.isEmpty || _title(context, c).toLowerCase().contains(q));
@@ -698,11 +704,13 @@ class _ChatTabState extends State<ChatTab> {
               ),
             if (!_archived && _msgReq > 0)
               SliverToBoxAdapter(child: MessageRequestsEntry(count: _msgReq, onTap: _openMsgRequests)),
-            if (!_archived && _filter == 0 && _query.trim().isEmpty)
+            if (!_archived && (_filter == 0 || _filter == _kDeptFilter) && _query.trim().isEmpty)
               SliverToBoxAdapter(
                 child: DepartmentChannelsStrip(
                   key: _deptEntryKey,
                   session: widget.session,
+                  // "Bölüm" süzgecinde kanal yoksa öneri kartı yerine boş durum (tek çağrı) gösterilir.
+                  hideSuggest: _filter == _kDeptFilter,
                   onChanged: () => _load(silent: true),
                 ),
               ),
@@ -737,6 +745,17 @@ class _ChatTabState extends State<ChatTab> {
     return [_list(list)];
   }
 
+  Future<void> _openAllDepartments() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        settings: const RouteSettings(name: 'department_channels'),
+        builder: (_) => AllDepartmentsPage(session: widget.session),
+      ),
+    );
+    if (mounted) _load(silent: true);
+  }
+
   void _resetSearch() {
     _search.clear();
     setState(() {
@@ -755,6 +774,13 @@ class _ChatTabState extends State<ChatTab> {
         title: l.chatMiscEmptyArchive,
         actionLabel: l.p06BackToChats,
         onAction: () => _setArchiveView(false),
+      );
+    } else if (_filter == _kDeptFilter && _query.trim().isEmpty) {
+      view = BuEmptyState(
+        illustration: BuIllustration.message,
+        title: l.deptChanFilterEmptyTitle,
+        actionLabel: l.deptChanAll,
+        onAction: _openAllDepartments,
       );
     } else if (_items.isNotEmpty && searching) {
       view = BuEmptyState(
@@ -1037,6 +1063,8 @@ class _ConversationRow extends StatelessWidget {
         }
       }
       when = lastMsg['createdAt'] as String?;
+    } else if (type == 'DEPARTMENT') {
+      preview = l.deptChanEmptyRoomPreview; // yeni katılınan, henüz mesajı olmayan bölüm odası
     }
 
     final tick = switch (status) {

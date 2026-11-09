@@ -14074,4 +14074,17 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get deptChanNoMessages => 'Henüz mesaj yok';
+
+  @override
+  String get chatMiscFilterDepartments => 'Bölüm';
+
+  @override
+  String get deptChanFilterEmptyTitle => 'Henüz bölüm kanalına katılmadın';
+
+  @override
+  String get deptChanEmptyRoomPreview => 'Henüz mesaj yok. İlk mesajı sen yaz';
+
+  @override
+  String get deptChanAutoAdded =>
+      'Bölüm kanalına otomatik eklendin (bildirimler sessiz). İstersen çıkabilirsin.';
 }

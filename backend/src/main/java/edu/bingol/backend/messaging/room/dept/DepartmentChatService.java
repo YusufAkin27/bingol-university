@@ -37,22 +37,29 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class DepartmentChatService {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DepartmentChatService.class);
+
     private final RoomConversations rooms;
     private final DepartmentChatRoomRepository depts;
     private final UserRepository users;
     private final ConversationService conversations;
+    private final DepartmentChatOptoutRepository optouts;
     /** Katalog bolumleri (kanal kimligi = katalog bolum id'si; ayni oda anahtarina dusenler tek kanal). */
     private final List<Channel> channels;
     private final Map<String, Channel> byId;
+    private final Map<String, Channel> byRoomKey;
 
     public DepartmentChatService(RoomConversations rooms, DepartmentChatRoomRepository depts, UserRepository users,
-                                 CatalogService catalog, ConversationService conversations) {
+                                 CatalogService catalog, ConversationService conversations,
+                                 DepartmentChatOptoutRepository optouts) {
         this.rooms = rooms;
         this.depts = depts;
         this.users = users;
         this.conversations = conversations;
+        this.optouts = optouts;
         List<Channel> list = new ArrayList<>();
         Map<String, Channel> ids = new HashMap<>();
+        Map<String, Channel> keys = new HashMap<>();
         Set<String> seenKeys = new HashSet<>();
         for (Faculty f : catalog.catalog().faculties()) {
             for (Department d : f.departments()) {
@@ -64,10 +71,12 @@ public class DepartmentChatService {
                         + fold(d.nameAr()) + " " + fold(f.name()));
                 list.add(c);
                 ids.put(d.id(), c);
+                keys.put(key, c);
             }
         }
         this.channels = List.copyOf(list);
         this.byId = Map.copyOf(ids);
+        this.byRoomKey = Map.copyOf(keys);
     }
 
     private record Channel(String id, String roomKey, Department dept, Faculty faculty, String haystack) {}
@@ -122,6 +131,7 @@ public class DepartmentChatService {
                     "Bölüm grubuna katılmak için profilinde bölüm seçmelisin.");
         }
         DepartmentChatRoom room = ensureRecord(key, u.getDepartment());
+        optouts.deleteOne(userId, key); // elle katilim: opt-out kaydi silinir
         RoomInfo info = rooms.find(RoomKind.DEPARTMENT, room.getId()).orElse(null);
         if (info == null) {
             rooms.ensureRoom(RoomKind.DEPARTMENT, room.getId(), room.getName(), ownerOf(userId));
@@ -144,7 +154,14 @@ public class DepartmentChatService {
         if (key == null) {
             return;
         }
-        depts.findByDeptKey(key).ifPresent(r -> rooms.removeMember(RoomKind.DEPARTMENT, r.getId(), userId));
+        depts.findByDeptKey(key).ifPresent(r -> leaveRoom(userId, key, r.getId()));
+    }
+
+    /** Kullanici kendisi cikar: uyelik kapanir ve tercih kalici saklanir (otomatik katilim bir daha eklemez). */
+    private void leaveRoom(Long userId, String roomKey, Long roomId) {
+        if (rooms.removeMember(RoomKind.DEPARTMENT, roomId, userId)) {
+            optouts.save(new DepartmentChatOptout(userId, roomKey));
+        }
     }
 
     // ---- bolum kanallari (v2): her ogrenci herhangi bir bolume katilip cikabilir ----
@@ -220,6 +237,7 @@ public class DepartmentChatService {
         if (!rooms.addMember(RoomKind.DEPARTMENT, room.getId(), userId)) {
             throw joinForbidden();
         }
+        optouts.deleteOne(userId, c.roomKey()); // elle katilim: opt-out kaydi silinir
         return new DepartmentChannel(c.id(), c.dept().name(), c.dept().nameEn(), c.dept().nameAr(),
                 c.faculty().name(), c.faculty().nameEn(), c.faculty().nameAr(), c.roomKey().equals(keyOf(u)), true,
                 false, rooms.memberCount(RoomKind.DEPARTMENT, room.getId()), info.conversationId());
@@ -229,14 +247,69 @@ public class DepartmentChatService {
     @Transactional
     public void leaveChannel(Long userId, String key) {
         Channel c = channelOf(key);
-        depts.findByDeptKey(c.roomKey()).ifPresent(r -> rooms.removeMember(RoomKind.DEPARTMENT, r.getId(), userId));
+        depts.findByDeptKey(c.roomKey()).ifPresent(r -> leaveRoom(userId, c.roomKey(), r.getId()));
     }
 
     /** Konusma kimligiyle ayrilir (sohbet bilgi sayfasi); bolum odasi degilse no-op. */
     @Transactional
     public void leaveByConversation(Long userId, Long conversationId) {
         rooms.findByConversation(conversationId).filter(i -> i.kind() == RoomKind.DEPARTMENT)
-                .ifPresent(i -> rooms.removeMember(RoomKind.DEPARTMENT, i.refId(), userId));
+                .ifPresent(i -> depts.findById(i.refId()).ifPresent(r -> leaveRoom(userId, r.getDeptKey(), r.getId())));
+    }
+
+    // ---- otomatik katilim (kullanici karari 2026-11-09): herkes kendi bolum kanalina varsayilan uye ----
+
+    /** Otomatik katilim sonucu. */
+    public enum AutoJoinResult { ADDED, ALREADY, OPTED_OUT, FULL, SKIPPED }
+
+    /**
+     * Kullaniciyi KENDI bolum kanalina otomatik ekler: yalniz aktif + e-postasi dogrulanmis hesap, bolum katalogda,
+     * kullanici o kanaldan daha once KENDISI cikmamis, oda acik ve dolu degil. Idempotent; yeni uye icin bildirimler
+     * sessizdir. Eski bolum kanallarindan cikarma YOK. Hata sizdirmaz. Yeni islemde calisir (cagiran akisi bozmaz).
+     */
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
+    public AutoJoinResult autoJoinOwn(Long userId) {
+        try {
+            User u = users.findById(userId).orElse(null);
+            if (u == null || !u.isActive() || !u.isEmailVerified()) {
+                return AutoJoinResult.SKIPPED;
+            }
+            String key = keyOf(u);
+            Channel c = key == null ? null : byRoomKey.get(key);
+            if (c == null) {
+                return AutoJoinResult.SKIPPED;
+            }
+            if (optouts.existsByUserIdAndDeptKey(userId, key)) {
+                return AutoJoinResult.OPTED_OUT;
+            }
+            DepartmentChatRoom room = ensureRecord(key, c.dept().name());
+            RoomInfo info = rooms.find(RoomKind.DEPARTMENT, room.getId()).orElse(null);
+            if (info == null) {
+                rooms.ensureRoom(RoomKind.DEPARTMENT, room.getId(), room.getName(), ownerOf(userId));
+                info = rooms.find(RoomKind.DEPARTMENT, room.getId()).orElse(null);
+            }
+            if (info == null || info.closed()) {
+                return AutoJoinResult.SKIPPED;
+            }
+            RoomConversations.AutoAdd r = rooms.addMemberQuietly(RoomKind.DEPARTMENT, room.getId(), userId);
+            if (r == null) {
+                return AutoJoinResult.SKIPPED;
+            }
+            switch (r) {
+                case ADDED:
+                    return AutoJoinResult.ADDED;
+                case ALREADY:
+                    return AutoJoinResult.ALREADY;
+                case FULL:
+                    log.info("Bolum kanali dolu, otomatik katilim atlandi: dept={} user={}", key, userId);
+                    return AutoJoinResult.FULL;
+                default:
+                    return AutoJoinResult.SKIPPED;
+            }
+        } catch (RuntimeException e) {
+            log.warn("Bolum kanali otomatik katilim basarisiz: user={} ({})", userId, e.getClass().getSimpleName());
+            return AutoJoinResult.SKIPPED;
+        }
     }
 
     private Map<String, DepartmentChatStats> statsByKey(Long userId) {

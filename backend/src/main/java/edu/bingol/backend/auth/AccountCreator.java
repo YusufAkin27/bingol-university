@@ -18,6 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class AccountCreator {
 
+    /** Bolum atanince kendi bolum kanalina otomatik uyelik (kullanici karari 2026-11-09); testlerde yok olabilir. */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private edu.bingol.backend.messaging.room.dept.DepartmentAutoJoin deptAutoJoin;
+
     private final UserRepository users;
     private final LegalService legal;
     private final AdminProperties admin;
@@ -98,6 +102,9 @@ public class AccountCreator {
         user = users.saveAndFlush(user);
         legal.recordSignupConsent(user.getId());
         defaultsForNewAccount(user, fresh, email);
+        if (deptAutoJoin != null && !deferred && user.getDepartment() != null) {
+            deptAutoJoin.schedule(user.getId()); // kendi bolum kanalina varsayilan uye (commit sonrasi, sessiz)
+        }
         return user;
     }
 

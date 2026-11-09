@@ -40,6 +40,10 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class ProfileService {
 
+    /** Bolum atanince kendi bolum kanalina otomatik uyelik (kullanici karari 2026-11-09); testlerde yok olabilir. */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private edu.bingol.backend.messaging.room.dept.DepartmentAutoJoin deptAutoJoin;
+
     private static final int MIN_QUERY = 2;
     /** Silinen hesabin parola alani: "!" bcrypt bicimine uymaz, matches() daima false doner. */
     static final String UNUSABLE_PASSWORD_PREFIX = "!deleted:";
@@ -321,7 +325,11 @@ public class ProfileService {
         if (r.language() != null) {
             u.setLanguage(r.language());
         }
-        return users.save(u);
+        User saved = users.save(u);
+        if (deptAutoJoin != null && r.department() != null && saved.getDepartment() != null) {
+            deptAutoJoin.schedule(saved.getId()); // yeni bolumun kanalina eklenir; eski kanal kalir
+        }
+        return saved;
     }
 
     /**
