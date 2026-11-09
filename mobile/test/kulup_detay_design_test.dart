@@ -213,7 +213,8 @@ void main() {
       expect(find.text('Başvurular'), findsNothing); // sayfa başlığı görünmez (sadeleştirme)
       await tester.tap(find.text('Onayla'));
       await tester.pump(const Duration(milliseconds: 50));
-      expect(find.text('Onaylanıyor...'), findsOneWidget);
+      // ClubBtn artik ortak BuButton: mesgulken gorunur metin yerine donen gosterge, ad erisilebilirlik etiketinde (G1).
+      expect(find.byKey(const ValueKey('busy')), findsOneWidget);
       await settle(tester, const Duration(seconds: 1));
       await unmount(tester);
     });
