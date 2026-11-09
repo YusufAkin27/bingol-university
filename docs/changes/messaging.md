@@ -291,3 +291,13 @@ Geriye uyumlu (yalniz ekleme; tek davranis degisikligi: arsiv artik yeni mesajla
 
 - `MessageView.readAt` (ISO-8601 UTC, ornek `2026-11-07T10:00:00Z`; alan yoksa/`null` ise okunmadi). YALNIZ istek sahibi mesajin gondereniyse ve `status=READ` ise dolar; aliciya/baskasina asla gonderilmez. Birebirde kaydedilir (`message.read_at`); grup/oda ve `status=null` durumlarinda gelmez. Mesaj listesi, gonderim/duzenleme yanitlari ve konusma listesindeki `lastMessage` ayni assembler'dan gecer. Gizlilik tercihi (okundu bilgisini kapat) sunucuda yoktur.
 - STOMP `receipt` olayi `readAt` tasir (yalniz `kind="read"`, olay ani UTC = `at`); `delivered` olayinda yok. Eski istemciler alani yok sayar.
+
+## Cevrimici / cevrimdisi durumu (presence) duzeltmesi (2026-11-09)
+
+Beklenen DOGRU davranis:
+- **Cevrimici** = kullanicinin en az bir acik STOMP oturumu var. Mobil arka plana (`paused`) gecince soketi kapatir, bu yuzden arka plan = cevrimdisi. Cok cihazda biri acik kaldikca cevrimici; son oturum kapaninca cevrimdisi.
+- Kopus **3 sn ertelenir** (`PresenceEvents.GRACE_MS`): belirtec yenilemede (yaklasik 14 dk'da bir) istemci eski soketi kapatip hemen yenisini acar; erteleme bitince hic oturum yoksa `presence:<id>` silinir, `lastseen:<id>` KOPUS ANI olarak yazilir (`PresenceService.markOffline(id, at)`). Sunucu cokerse `presence:` anahtari en cok 30 sn TTL ile kendiliginden duser (sahte "cevrimici" kalintisi en cok 30 sn).
+- **Askidaki** (`suspended:<id>`) kullanici `GET /api/users/{id}/presence` ve sohbet listesi `peer.online` icinde hicbir zaman cevrimici gorunmez (sabit cevrimdisi, son gorulme yok). Engel / `presenceAudience=ONLY_ME` / karsilik gormemis birebir kurallari degismedi.
+- Mobil: sohbet detayinda karsi tarafin durumu yoklama turundan BAGIMSIZ 15 sn'de bir (ve yeniden baglanma/one gelmede hemen) yenilenir; eskiden gercek zamanli bagliyken ~160 sn'de bir yenileniyordu (bayat "cevrimici"). Yenileme 60 sn'den eskiyse ya da kendi cihaz cevrimdisiyse durum yazisi gosterilmez. Sohbet listesi gorunurken 45 sn'de bir sessiz yenilenir (birebir satir noktasi).
+- "Son gorulme" mobilde gosterilmez (kullanici karari 2026-11-07); sunucu `lastSeenAt` alanini gizlilik kurallariyla dondurmeye devam eder.
+- Bilinen sinir: `fg:<uid>` (push bastirma) kullanici basina tek anahtardir, cihaz basina degil; cok sunuculu kurulumda bir sunucudaki kopus digerinin heartbeat'i (10 sn) ile duzelir. Tek sunucuda sorun yoktur. Redis anahtar bicimi degismedi.

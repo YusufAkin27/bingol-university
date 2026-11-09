@@ -101,9 +101,14 @@ public class PresenceService {
     }
 
     public void markOffline(Long userId) {
+        markOffline(userId, Instant.now());
+    }
+
+    /** {@code at}: kopusun gercek zamani (kopus ertelenerek islenirse son gorulme gec yazilmaz). */
+    public void markOffline(Long userId, Instant at) {
         try {
             redis.delete(ONLINE_PREFIX + userId);
-            redis.opsForValue().set(LAST_SEEN_PREFIX + userId, String.valueOf(Instant.now().toEpochMilli()), LAST_SEEN_TTL);
+            redis.opsForValue().set(LAST_SEEN_PREFIX + userId, String.valueOf(at.toEpochMilli()), LAST_SEEN_TTL);
         } catch (RuntimeException e) {
             log.warn("Presence yazilamadi: {}", e.toString());
         }
@@ -153,6 +158,9 @@ public class PresenceService {
             if (blocks.isBlocked(viewerId, targetId) || !audienceAllows(targetId)) {
                 return HIDDEN;
             }
+        }
+        if (!viewerId.equals(targetId) && isSuspended(targetId)) {
+            return HIDDEN; // askidaki hesap "cevrimici" gorunmez (acik soketi kalmis olsa bile)
         }
         boolean online = isOnline(targetId);
         String lastSeen = null;
@@ -217,7 +225,21 @@ public class PresenceService {
             return Set.of();
         }
         Set<Long> visible = visibleAmong(viewerId, targetIds);
-        return visible.isEmpty() ? Set.of() : onlineAmong(visible);
+        if (visible.isEmpty()) {
+            return Set.of();
+        }
+        Set<Long> online = new HashSet<>(onlineAmong(visible));
+        online.removeIf(this::isSuspended);
+        return online;
+    }
+
+    /** Askiya alinan kullanici isareti (`suspended:<id>`; bkz. CLAUDE.md Redis bolumu). Redis yoksa askida degil sayilir. */
+    private boolean isSuspended(Long userId) {
+        try {
+            return Boolean.TRUE.equals(redis.hasKey("suspended:" + userId));
+        } catch (RuntimeException e) {
+            return false;
+        }
     }
 
     /** Ortak konusma var ve (yalniz birebirse) hedef orada konusmus mu. SQL yoksa eski kural. */

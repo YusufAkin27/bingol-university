@@ -87,6 +87,16 @@ class PresencePrivacyTest {
     }
 
     @Test
+    void suspendedTargetNeverAppearsOnline() {
+        when(redis.hasKey("suspended:2")).thenReturn(true);
+
+        PresenceView v = presence.view(VIEWER, TARGET);
+
+        assertFalse(v.online());
+        assertNull(v.lastSeenAt());
+    }
+
+    @Test
     void onlyMeAudienceHidesPresence() {
         ProfilePrivacy p = ProfilePrivacy.defaults(TARGET);
         p.setPresenceAudience(Audience.ONLY_ME);
