@@ -67,6 +67,7 @@ class ForumEmptyView extends StatelessWidget {
   Widget build(BuildContext context) => BuEmptyState(
         title: title,
         message: message,
+        illustration: BuIllustration.message,
         icon: icon ?? BuIcons.messageSquareText,
         actionLabel: actionLabel,
         onAction: onAction,
@@ -104,7 +105,7 @@ class ForumNoticeBar extends StatelessWidget {
       child: Container(
         margin: margin,
         padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 14, 12),
-        decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.sm)),
+        decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.md)),
         child: Row(children: [
           if (icon != null) ...[
             ExcludeSemantics(child: Icon(icon, size: 18, color: t.mut)),

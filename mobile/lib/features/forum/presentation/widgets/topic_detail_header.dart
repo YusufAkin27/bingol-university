@@ -1,5 +1,6 @@
 import '../../../chat/emoji_presentation.dart';
 import 'package:flutter/material.dart';
+import '../../../../core/theme/bu_shape.dart' show BuRadius;
 
 import '../../../../core/icons/bu_icons.dart';
 import '../../../../core/locale_controller.dart';
@@ -68,7 +69,7 @@ class TopicHeaderBlock extends StatelessWidget {
         const SizedBox(height: 12),
         Semantics(
           header: true,
-          child: Text.rich(emojiAwareSpan(s.title, tx.headlineSmall!.copyWith(color: t.ink, height: 1.3), scale: kEmojiTitleScale), key: const ValueKey('topicTitle')),
+          child: Text.rich(emojiAwareSpan(s.title, tx.headlineSmall!.copyWith(color: t.ink, height: 1.28, letterSpacing: -.2), scale: kEmojiTitleScale), key: const ValueKey('topicTitle')),
         ),
         const SizedBox(height: 12),
         if (full != null)
@@ -98,8 +99,8 @@ class _Chip extends StatelessWidget {
     // Monochrome: dolgu yok; ince kenarlık, vurgulu (sabit) etiket daha güçlü kenarlık + ink metin.
     final fg = accent ? t.ink : t.mut;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(border: Border.all(color: accent ? t.bdStrong : t.bd), borderRadius: BorderRadius.circular(8)),
+      padding: const EdgeInsetsDirectional.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(color: accent ? t.sf3 : t.sf2, borderRadius: BorderRadius.circular(BuRadius.pill), border: accent ? Border.all(color: t.bdStrong) : null),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         if (icon != null) ...[Icon(icon, size: 14, color: fg), const SizedBox(width: 6)],
         Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: fg))),
@@ -157,7 +158,7 @@ class _TopicGalleryState extends State<TopicGallery> {
           image: true,
           label: l.forumDetailImageSemantic((idx + 1).toString(), imgs.length.toString()),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(BuRadius.lg),
             child: ColoredBox(
               color: t.sf2,
               child: AspectRatio(
@@ -222,7 +223,7 @@ class TopicActionBar extends StatelessWidget {
     final s = topic;
     return Container(
       margin: const EdgeInsets.only(top: 16),
-      decoration: BoxDecoration(border: Border(top: BorderSide(color: t.bdSubtle), bottom: BorderSide(color: t.bdSubtle))),
+      decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.lg), border: Border.all(color: t.bd)),
       child: Row(children: [
         _Act(
           key: const ValueKey('topicLike'),

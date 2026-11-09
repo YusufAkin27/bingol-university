@@ -4,6 +4,7 @@ import '../../../../core/icons/bu_icons.dart';
 import '../../../../core/locale_controller.dart';
 import '../../../../core/session.dart';
 import '../../../../core/theme.dart';
+import '../../../../core/theme/bu_shape.dart' show BuRadius;
 import '../../../../core/theme/bu_motion.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../widgets/bu_pressable.dart';
@@ -77,7 +78,7 @@ class CommentCard extends StatelessWidget {
       key: ValueKey('commentCard-${n.id}'),
       duration: BuMotion.of(context, const Duration(milliseconds: 400)),
       curve: Curves.easeOut,
-      color: highlighted ? t.sf2 : Colors.transparent,
+      color: highlighted ? t.soft.withValues(alpha: .5) : Colors.transparent,
       child: Stack(children: [
         // Girinti kılavuz çizgileri (her seviye için ince dikey çizgi).
         for (var i = 0; i < level; i++)
@@ -154,9 +155,9 @@ class CommentCard extends StatelessWidget {
               if (n.topicAuthor)
                 Container(
                   key: const ValueKey('commentAuthorBadge'),
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                  decoration: BoxDecoration(border: Border.all(color: t.bdStrong), borderRadius: BorderRadius.circular(6)),
-                  child: Text(l.forumCommentAuthorBadge, style: tx.bodySmall!.copyWith(color: t.ink, fontSize: 11.5)),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(BuRadius.pill)),
+                  child: Text(l.forumCommentAuthorBadge, style: tx.bodySmall!.copyWith(color: t.onSoft, fontSize: 11.5)),
                 ),
               if (time.isNotEmpty) Text(time, style: tx.bodySmall!.copyWith(color: t.mut)),
               if (n.edited)
