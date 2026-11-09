@@ -7524,5 +7524,24 @@
         "type": "String"
       }
     }
-  }
+  },
+  "clubAudienceLabel": "Önerilecek bölümler",
+  "clubAudienceHint": "Seçilmedi (isteğe bağlı)",
+  "clubAudienceSheetTitle": "Kulüp kime önerilsin?",
+  "clubAudienceSheetHint": "Yalnızca öneri sıralamasını etkiler; kulüp herkese görünür kalır.",
+  "clubAudienceSearchHint": "Fakülte veya bölüm ara",
+  "clubAudienceNoMatch": "Eşleşen fakülte veya bölüm yok",
+  "clubAudienceRetry": "Tekrar dene",
+  "clubAudienceClear": "Temizle",
+  "clubAudienceExpand": "Bölümleri göster",
+  "clubAudienceCollapse": "Bölümleri gizle",
+  "clubAudienceDeptCount": "{count} bölüm",
+  "@clubAudienceDeptCount": {"placeholders": {"count": {"type": "int"}}},
+  "clubAudienceSelected": "{count} hedef seçildi",
+  "@clubAudienceSelected": {"placeholders": {"count": {"type": "int"}}},
+  "clubAudienceDone": "Tamam ({count})",
+  "@clubAudienceDone": {"placeholders": {"count": {"type": "int"}}},
+  "clubRecommendedTitle": "Bölümüne uygun kulüpler",
+  "clubRecommendedAll": "Tüm kulüpler",
+  "eventRecommendedTitle": "Bölümüne uygun etkinlikler"
 }

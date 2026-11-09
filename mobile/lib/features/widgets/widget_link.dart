@@ -21,7 +21,9 @@ enum WidgetDest {
   search('search'),
   notifications('notifications'),
   discover('discover'),
-  poll('poll');
+  poll('poll'),
+  exams('exams'),
+  academic('academic');
 
   const WidgetDest(this.host);
 
@@ -53,6 +55,8 @@ class WidgetLink {
   static const search = WidgetLink(WidgetDest.search);
   static const notifications = WidgetLink(WidgetDest.notifications);
   static const discover = WidgetLink(WidgetDest.discover);
+  static const exams = WidgetLink(WidgetDest.exams);
+  static const academic = WidgetLink(WidgetDest.academic);
 
   static WidgetLink event(int id) => WidgetLink(WidgetDest.event, id);
   static WidgetLink club(int id) => WidgetLink(WidgetDest.club, id);
@@ -114,6 +118,10 @@ class WidgetLink {
           return seg.length == 1 ? notifications : null;
         case 'discover':
           return seg.length == 1 ? discover : null;
+        case 'exams':
+          return seg.length == 1 ? exams : null;
+        case 'academic':
+          return seg.length == 1 ? academic : null;
         case 'poll':
           return poll(id);
         default:

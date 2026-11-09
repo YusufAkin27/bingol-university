@@ -97,6 +97,14 @@ public class EventController {
         return events.list(Actor.current(), from, to, communityId, cursor, size);
     }
 
+    /** Kullanicinin bolumune/fakultesine hedeflenmis kuluplerin yaklasan etkinlikleri (oneri; bos olabilir). */
+    @GetMapping("/events/recommended")
+    public List<EventView> recommended(@RequestParam(defaultValue = "10") int size) {
+        Actor a = Actor.current();
+        limiter.check("event-recommended:user:" + a.id(), 60, Duration.ofMinutes(1));
+        return events.recommended(a, size);
+    }
+
     /**
      * Aylik birlesik takvim: kullanici etkinlikleri (USER) + resmi site etkinlikleri (OFFICIAL). month=YYYY-MM.
      * Sinira (300/200) carpildiysa govde degismeden {@code X-Truncated: true} basligi eklenir.

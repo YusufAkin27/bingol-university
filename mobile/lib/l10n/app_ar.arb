@@ -5066,5 +5066,21 @@
         "type": "String"
       }
     }
-  }
+  },
+  "clubAudienceLabel": "اقتراح النادي لأقسام",
+  "clubAudienceHint": "لم يتم الاختيار (اختياري)",
+  "clubAudienceSheetTitle": "لمن يُقترح هذا النادي؟",
+  "clubAudienceSheetHint": "يؤثر على الاقتراحات فقط، ويبقى النادي ظاهرا للجميع.",
+  "clubAudienceSearchHint": "ابحث عن كلية أو قسم",
+  "clubAudienceNoMatch": "لا توجد كلية أو قسم مطابق",
+  "clubAudienceRetry": "أعد المحاولة",
+  "clubAudienceClear": "مسح",
+  "clubAudienceExpand": "عرض الأقسام",
+  "clubAudienceCollapse": "إخفاء الأقسام",
+  "clubAudienceDeptCount": "{count} أقسام",
+  "clubAudienceSelected": "تم اختيار {count} هدف",
+  "clubAudienceDone": "تم ({count})",
+  "clubRecommendedTitle": "أندية مناسبة لقسمك",
+  "clubRecommendedAll": "جميع الأندية",
+  "eventRecommendedTitle": "فعاليات مناسبة لقسمك"
 }

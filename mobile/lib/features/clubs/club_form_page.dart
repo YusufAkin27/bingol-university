@@ -11,6 +11,7 @@ import '../../widgets/bu.dart';
 import '../media_crop/media_crop.dart';
 import 'club_categories.dart';
 import 'club_detail_page.dart';
+import 'club_audience_picker.dart';
 import 'club_detail_parts.dart' show ClubBarIcon;
 import 'clubs_widgets.dart' show ClubTextTabs;
 import 'club_ref_widgets.dart';
@@ -84,6 +85,10 @@ class _ClubFormPageState extends State<ClubFormPage> {
     final k = (widget.club?['category'] ?? '').toString().trim();
     return k.isEmpty ? null : k;
   }
+
+  /// Öneri hedefi (isteğe bağlı): kulüp hangi fakülte/bölümlere önerilsin. Yalnız sıralama; görünürlüğü kısıtlamaz.
+  late final ClubAudience _origAudience = ClubAudience.fromClub(widget.club);
+  late ClubAudience _audience = _origAudience;
 
   late String _visibility =
       widget.club?['visibility'] == 'PRIVATE' ? 'PRIVATE' : 'PUBLIC';
@@ -327,6 +332,11 @@ class _ClubFormPageState extends State<ClubFormPage> {
       'joinPolicy': _policy,
       'visibility': _visibility,
     };
+    // Hedef: kurmada seçildiyse gönderilir; düzenlemede yalnız değiştiyse (boş liste = temizle).
+    if (_edit ? _audience != _origAudience : !_audience.isEmpty) {
+      body['targetFaculties'] = _audience.faculties.toList();
+      body['targetDepartments'] = _audience.departments.toList();
+    }
     try {
       Map<String, dynamic> result;
       if (_edit) {
@@ -519,6 +529,8 @@ class _ClubFormPageState extends State<ClubFormPage> {
                     const SizedBox(height: 20),
                     _field(t, l10n.p51DescLabel, _descField(t, tx), error: _errors['description']),
                     const SizedBox(height: 20),
+                    _field(t, l10n.clubAudienceLabel, _audienceField(t, tx)),
+                    const SizedBox(height: 20),
                     _label(t, l10n.clubMgmtJoinLabel),
                     ClubTextTabs(
                       labels: [l10n.clubMgmtPublic, l10n.p51JoinApproval],
@@ -607,6 +619,48 @@ class _ClubFormPageState extends State<ClubFormPage> {
           ),
         ],
       );
+
+  Future<void> _pickAudience() async {
+    final v = await pickClubAudience(context, widget.session, _audience);
+    if (v == null || !mounted) return;
+    setState(() => _audience = v);
+  }
+
+  Widget _audienceField(BuTokens t, TextTheme tx) {
+    final l10n = context.l10n;
+    final n = _audience.count;
+    return Semantics(
+      button: true,
+      label: l10n.clubAudienceLabel,
+      child: BuPressable(
+        scale: .99,
+        child: InkWell(
+          onTap: _pickAudience,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            constraints: const BoxConstraints(minHeight: BuSize.field),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: t.sf,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: t.bdStrong),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(n == 0 ? l10n.clubAudienceHint : l10n.clubAudienceSelected(n),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: tx.bodyLarge!.copyWith(color: n == 0 ? t.mut : t.ink, fontWeight: FontWeight.w400)),
+                ),
+                ExcludeSemantics(child: Icon(BuIcons.chevronDown, size: 20, color: t.ink)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _categoryField(BuTokens t, TextTheme tx) {
     final l10n = context.l10n;

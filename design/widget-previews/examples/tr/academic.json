@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "slug": "academic",
+  "state": "ok",
+  "generatedAt": "2026-11-06T10:00:00+03:00",
+  "expiresAt": "2026-11-09T10:00:00+03:00",
+  "lang": "tr",
+  "rtl": false,
+  "deepLink": "bukampus://academic",
+  "a11y": "Akademik takvim: Ara sınav haftası 9 – 15 Kas; Atatürk'ü Anma Günü 10 Kas; Ders ekleme-bırakma 23 – 27 Kas",
+  "strings": {
+    "signedOutTitle": "Giriş yap",
+    "signedOutSub": "BÜ Kampüs'ü aç",
+    "titleSmall": "Akademik Takvim",
+    "title": "Akademik Takvim",
+    "last": "Sonraki {n}",
+    "emptyTitle": "Yaklaşan akademik tarih yok",
+    "emptySub": "Önemli akademik tarihler burada görünür"
+  },
+  "count": 3,
+  "lastLabel": "Sonraki 3",
+  "items": [
+    {
+      "id": 11,
+      "title": "Ara sınav haftası",
+      "sourceName": null,
+      "publishedAt": "2026-11-09",
+      "startsAt": "2026-11-09T00:00:00+03:00",
+      "dateLabel": "9 – 15 Kas",
+      "urgent": false,
+      "urgentLabel": null,
+      "metaText": "Vize · 9 – 15 Kas",
+      "deepLink": "bukampus://academic"
+    },
+    {
+      "id": 12,
+      "title": "Atatürk'ü Anma Günü",
+      "sourceName": null,
+      "publishedAt": "2026-11-10",
+      "startsAt": "2026-11-10T00:00:00+03:00",
+      "dateLabel": "10 Kas",
+      "urgent": false,
+      "urgentLabel": null,
+      "metaText": "Resmi tatil · 10 Kas",
+      "deepLink": "bukampus://academic"
+    },
+    {
+      "id": 13,
+      "title": "Ders ekleme-bırakma",
+      "sourceName": null,
+      "publishedAt": "2026-11-23",
+      "startsAt": "2026-11-23T00:00:00+03:00",
+      "dateLabel": "23 – 27 Kas",
+      "urgent": false,
+      "urgentLabel": null,
+      "metaText": "Ders kaydı · 23 – 27 Kas",
+      "deepLink": "bukampus://academic"
+    }
+  ]
+}

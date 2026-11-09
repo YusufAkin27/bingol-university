@@ -4,6 +4,11 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### Kulüp bölüm/fakülte önerisi + 2 yeni ana ekran widget'ı (2026-11-09, dal `feat/club-dept-targeting-widgets`)
+
+- **V1750** `community_audience`: kulüp oluşturulurken seçilen önerilecek fakülte/bölümler; `GET /api/communities/recommended`, `GET /api/events/recommended`; görünürlüğü kısıtlamaz (bkz. `docs/changes/community.md`).
+- Ana ekran widget'ları: **Yaklaşan Sınavlar** (`exams`, yalnız kullanıcının kendi sınavları) ve **Akademik Takvim** (`academic`, herkese açık takvim); duyuru çizimini paylaşır (`DATA_CONTRACT.md` 5.8-5.9).
+
 ### Hukuki metinler: e-posta alan adı kısıtı kalktı (2026-11-06, `deploy/legal-20261106`)
 
 - **V1470** Kullanım Koşulları, Gizlilik Politikası ve KVKK Aydınlatma için yeni sürüm (tr/en/ar, `require_reaccept=FALSE`: yeniden onay istenmez): "yalnız bingol.edu.tr" kısıtı kalktı (herhangi bir geçerli e-posta + e-posta doğrulama kodu), isteğe bağlı Google/Apple girişi veri kategorisi eklendi, "kurumsal e-posta" ve alan adı denetimi ifadeleri düzeltildi. Üretim: `scripts/build-legal-migration-v1470.js`; V820 kaynakları `docs/legal/archive/v820/`.

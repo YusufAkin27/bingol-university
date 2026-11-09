@@ -14064,4 +14064,58 @@ class AppLocalizationsEn extends AppLocalizations {
   String deptChatJoinRow(String name) {
     return 'Join the department group: $name';
   }
+
+  String get clubAudienceLabel => 'Suggest to departments';
+
+  @override
+  String get clubAudienceHint => 'None selected (optional)';
+
+  @override
+  String get clubAudienceSheetTitle => 'Who should see this club suggested?';
+
+  @override
+  String get clubAudienceSheetHint =>
+      'Only affects suggestions; the club stays visible to everyone.';
+
+  @override
+  String get clubAudienceSearchHint => 'Search faculty or department';
+
+  @override
+  String get clubAudienceNoMatch => 'No matching faculty or department';
+
+  @override
+  String get clubAudienceRetry => 'Try again';
+
+  @override
+  String get clubAudienceClear => 'Clear';
+
+  @override
+  String get clubAudienceExpand => 'Show departments';
+
+  @override
+  String get clubAudienceCollapse => 'Hide departments';
+
+  @override
+  String clubAudienceDeptCount(int count) {
+    return '$count departments';
+  }
+
+  @override
+  String clubAudienceSelected(int count) {
+    return '$count targets selected';
+  }
+
+  @override
+  String clubAudienceDone(int count) {
+    return 'Done ($count)';
+  }
+
+  @override
+  String get clubRecommendedTitle => 'Clubs for your department';
+
+  @override
+  String get clubRecommendedAll => 'All clubs';
+
+  @override
+  String get eventRecommendedTitle => 'Events for your department';
 }

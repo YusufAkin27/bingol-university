@@ -13955,4 +13955,58 @@ class AppLocalizationsAr extends AppLocalizations {
   String deptChatJoinRow(String name) {
     return 'انضم إلى مجموعة القسم: $name';
   }
+
+  String get clubAudienceLabel => 'اقتراح النادي لأقسام';
+
+  @override
+  String get clubAudienceHint => 'لم يتم الاختيار (اختياري)';
+
+  @override
+  String get clubAudienceSheetTitle => 'لمن يُقترح هذا النادي؟';
+
+  @override
+  String get clubAudienceSheetHint =>
+      'يؤثر على الاقتراحات فقط، ويبقى النادي ظاهرا للجميع.';
+
+  @override
+  String get clubAudienceSearchHint => 'ابحث عن كلية أو قسم';
+
+  @override
+  String get clubAudienceNoMatch => 'لا توجد كلية أو قسم مطابق';
+
+  @override
+  String get clubAudienceRetry => 'أعد المحاولة';
+
+  @override
+  String get clubAudienceClear => 'مسح';
+
+  @override
+  String get clubAudienceExpand => 'عرض الأقسام';
+
+  @override
+  String get clubAudienceCollapse => 'إخفاء الأقسام';
+
+  @override
+  String clubAudienceDeptCount(int count) {
+    return '$count أقسام';
+  }
+
+  @override
+  String clubAudienceSelected(int count) {
+    return 'تم اختيار $count هدف';
+  }
+
+  @override
+  String clubAudienceDone(int count) {
+    return 'تم ($count)';
+  }
+
+  @override
+  String get clubRecommendedTitle => 'أندية مناسبة لقسمك';
+
+  @override
+  String get clubRecommendedAll => 'جميع الأندية';
+
+  @override
+  String get eventRecommendedTitle => 'فعاليات مناسبة لقسمك';
 }

@@ -15,6 +15,10 @@
     <string name="bw_desc_quickaccess">اختصارات للشاشات المتكررة</string>
     <string name="bw_label_social">ملخص اجتماعي</string>
     <string name="bw_desc_social">أعداد الرسائل والإشعارات والإعجابات</string>
+    <string name="bw_label_exams">الامتحانات القادمة</string>
+    <string name="bw_desc_exams">امتحاناتك القادمة وتواريخها</string>
+    <string name="bw_label_academic">التقويم الأكاديمي</string>
+    <string name="bw_desc_academic">المواعيد الأكاديمية المهمة القادمة</string>
     <string name="bw_signed_out_title">تسجيل الدخول</string>
     <string name="bw_signed_out_sub">افتح BÜ Kampüs</string>
 </resources>

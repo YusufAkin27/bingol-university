@@ -15,3 +15,7 @@
 "widget.quickaccess.desc" = "Jump to your favorite sections with one tap.";
 "widget.social.name" = "Social Summary";
 "widget.social.desc" = "Shows counts of unread messages, notifications and likes (numbers only).";
+"widget.exams.name" = "Upcoming Exams";
+"widget.exams.desc" = "Shows your upcoming exams and their dates.";
+"widget.academic.name" = "Academic Calendar";
+"widget.academic.desc" = "Shows upcoming key academic dates.";
