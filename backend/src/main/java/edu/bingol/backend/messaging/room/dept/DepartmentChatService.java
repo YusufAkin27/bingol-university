@@ -254,7 +254,14 @@ public class DepartmentChatService {
     @Transactional
     public void leaveByConversation(Long userId, Long conversationId) {
         rooms.findByConversation(conversationId).filter(i -> i.kind() == RoomKind.DEPARTMENT)
-                .ifPresent(i -> depts.findById(i.refId()).ifPresent(r -> leaveRoom(userId, r.getDeptKey(), r.getId())));
+                .ifPresent(i -> {
+                    DepartmentChatRoom r = depts.findById(i.refId()).orElse(null);
+                    if (r != null) {
+                        leaveRoom(userId, r.getDeptKey(), r.getId());
+                    } else {
+                        rooms.removeMember(RoomKind.DEPARTMENT, i.refId(), userId);
+                    }
+                });
     }
 
     // ---- otomatik katilim (kullanici karari 2026-11-09): herkes kendi bolum kanalina varsayilan uye ----

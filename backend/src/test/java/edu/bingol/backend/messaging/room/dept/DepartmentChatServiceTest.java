@@ -251,7 +251,8 @@ class DepartmentChatServiceTest {
     void listChannelsShowsMembershipOwnFlagAndSearch() {
         user(5L, "Bilgisayar Mühendisliği", Role.USER);
         String key = edu.bingol.backend.unitnews.UnitKeys.deptKey("Matematik");
-        when(depts.statsFor(5L)).thenReturn(List.of(stat(key, 9L, 311L, false, 12, true)));
+        var st = stat(key, 9L, 311L, false, 12, true); // mock'u when(...) disinda kur (ic ice stubbing olmasin)
+        when(depts.statsFor(5L)).thenReturn(List.of(st));
 
         var all = svc.listChannels(5L, "", 0, 200);
         assertEquals("bilgisayar-muhendisligi", all.ownKey());
@@ -278,7 +279,8 @@ class DepartmentChatServiceTest {
     void listChannelsClosedRoomShowsNoMembership() {
         user(5L, null, Role.USER);
         String key = edu.bingol.backend.unitnews.UnitKeys.deptKey("Matematik");
-        when(depts.statsFor(5L)).thenReturn(List.of(stat(key, 9L, 311L, true, 12, true)));
+        var st = stat(key, 9L, 311L, true, 12, true);
+        when(depts.statsFor(5L)).thenReturn(List.of(st));
         var mat = svc.listChannels(5L, "matematik", 0, 5).items().stream()
                 .filter(c -> c.key().equals("matematik")).findFirst().orElseThrow();
         assertTrue(mat.closed());
@@ -292,8 +294,10 @@ class DepartmentChatServiceTest {
         String mat = edu.bingol.backend.unitnews.UnitKeys.deptKey("Matematik");
         String fiz = edu.bingol.backend.unitnews.UnitKeys.deptKey("Fizik");
         String kim = edu.bingol.backend.unitnews.UnitKeys.deptKey("Kimya");
-        when(depts.statsFor(5L)).thenReturn(List.of(stat(mat, 9L, 311L, false, 3, true),
-                stat(fiz, 10L, 312L, true, 3, true), stat(kim, 11L, 313L, false, 3, false)));
+        var s1 = stat(mat, 9L, 311L, false, 3, true);
+        var s2 = stat(fiz, 10L, 312L, true, 3, true);
+        var s3 = stat(kim, 11L, 313L, false, 3, false);
+        when(depts.statsFor(5L)).thenReturn(List.of(s1, s2, s3));
         var cv = mock(edu.bingol.backend.messaging.dto.MessagingDtos.ConversationView.class);
         when(convs.view(5L, 311L)).thenReturn(cv);
 
