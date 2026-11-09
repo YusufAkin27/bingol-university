@@ -47,7 +47,7 @@ describe('yönlendirme', () => {
       </AuthProvider>,
     );
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Kampüs hayatı tek uygulamada' }),
+      await screen.findByRole('heading', { level: 1, name: 'Öğrencilere özel kampüs sosyal ağı' }),
     ).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: 'Ana menü' })).toBeInTheDocument();
   });
@@ -126,7 +126,7 @@ const where = () => screen.getByTestId('where').textContent;
 describe('dil önekli rotalar', () => {
   it('/ → tarayıcı dili Türkçe iken /tr', async () => {
     renderRoutes('/');
-    await screen.findByRole('heading', { level: 1, name: 'Kampüs hayatı tek uygulamada' });
+    await screen.findByRole('heading', { level: 1, name: 'Öğrencilere özel kampüs sosyal ağı' });
     expect(where()).toBe('/tr');
   });
 

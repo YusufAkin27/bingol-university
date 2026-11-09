@@ -65,7 +65,8 @@ describe('tasarım belirteçleri', () => {
 
   it('Inter: serif yok, 400-800 değişken, yerel woff2 dosyaları var', () => {
     expect(tokens).toMatch(/--font-sans:\s*'inter'/);
-    expect(tokens).not.toMatch(/georgia|palatino|iowan|(?<!sans-)serif/);
+    // --font-serif yalniz marka kiti baslik ornegi icindir (BrandPage); govde ve basliklarda serif yok
+    expect(tokens.replace(/--font-serif:.*/, '')).not.toMatch(/georgia|palatino|iowan|(?<!sans-)serif/);
     expect(global).toMatch(/font-family:\s*'Inter'/);
     expect(global).toMatch(/font-weight:\s*400 800/);
     expect(global).toContain('font-display: swap');
