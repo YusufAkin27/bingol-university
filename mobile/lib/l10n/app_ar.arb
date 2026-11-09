@@ -5059,12 +5059,43 @@
   "accAccountNoName": "حساب",
   "postPeekOpen": "فتح المنشور",
   "deptChatTag": "القسم",
-  "deptChatJoinRow": "انضم إلى مجموعة القسم: {name}",
-  "@deptChatJoinRow": {
+  "deptChanMine": "قنوات أقسامي",
+  "deptChanAll": "كل الأقسام",
+  "deptChanSuggestTitle": "انضم إلى قناة قسمك",
+  "deptChanSuggestBody": "تحدّث مع طلاب {name}. يمكنك المغادرة في أي وقت.",
+  "@deptChanSuggestBody": {
     "placeholders": {
       "name": {
         "type": "String"
       }
     }
-  }
+  },
+  "deptChanBrowseTitle": "قنوات الأقسام",
+  "deptChanBrowseBody": "انضم إلى قناة أي قسم وغادرها متى شئت.",
+  "deptChanBrowse": "تصفّح الأقسام",
+  "deptChanJoin": "انضمام",
+  "deptChanLeave": "مغادرة",
+  "deptChanYours": "قسمك",
+  "deptChanClosed": "مغلقة",
+  "deptChanMembers": "{count, plural, =0{لا أعضاء بعد} =1{عضو واحد} =2{عضوان} few{{count} أعضاء} other{{count} عضوًا}}",
+  "@deptChanMembers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deptChanSearchHint": "ابحث عن قسم",
+  "deptChanNoMatchTitle": "لا يوجد قسم مطابق",
+  "deptChanNoMatchBody": "جرّب اسم قسم أو كلية آخر.",
+  "deptChanLeftHint": "غادرت القناة. يمكنك الانضمام مجددًا في أي وقت.",
+  "deptChanJoinedToast": "انضممت إلى قناة {name}",
+  "@deptChanJoinedToast": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deptChanNoMessages": "لا رسائل بعد"
 }

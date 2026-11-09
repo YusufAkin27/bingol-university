@@ -14061,7 +14061,71 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deptChatTag => 'Department';
 
   @override
-  String deptChatJoinRow(String name) {
-    return 'Join the department group: $name';
+  String get deptChanMine => 'My department channels';
+
+  @override
+  String get deptChanAll => 'All departments';
+
+  @override
+  String get deptChanSuggestTitle => 'Join your department channel';
+
+  @override
+  String deptChanSuggestBody(String name) {
+    return 'Chat with $name students. You can leave any time.';
   }
+
+  @override
+  String get deptChanBrowseTitle => 'Department channels';
+
+  @override
+  String get deptChanBrowseBody =>
+      'Join the channel of any department and leave whenever you like.';
+
+  @override
+  String get deptChanBrowse => 'Browse departments';
+
+  @override
+  String get deptChanJoin => 'Join';
+
+  @override
+  String get deptChanLeave => 'Leave';
+
+  @override
+  String get deptChanYours => 'Your department';
+
+  @override
+  String get deptChanClosed => 'Closed';
+
+  @override
+  String deptChanMembers(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count members',
+      one: '1 member',
+      zero: 'No members yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get deptChanSearchHint => 'Search departments';
+
+  @override
+  String get deptChanNoMatchTitle => 'No matching department';
+
+  @override
+  String get deptChanNoMatchBody => 'Try another department or faculty name.';
+
+  @override
+  String get deptChanLeftHint =>
+      'You left the channel. You can join again any time.';
+
+  @override
+  String deptChanJoinedToast(String name) {
+    return 'You joined the $name channel';
+  }
+
+  @override
+  String get deptChanNoMessages => 'No messages yet';
 }

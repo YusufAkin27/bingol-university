@@ -13952,7 +13952,72 @@ class AppLocalizationsAr extends AppLocalizations {
   String get deptChatTag => 'القسم';
 
   @override
-  String deptChatJoinRow(String name) {
-    return 'انضم إلى مجموعة القسم: $name';
+  String get deptChanMine => 'قنوات أقسامي';
+
+  @override
+  String get deptChanAll => 'كل الأقسام';
+
+  @override
+  String get deptChanSuggestTitle => 'انضم إلى قناة قسمك';
+
+  @override
+  String deptChanSuggestBody(String name) {
+    return 'تحدّث مع طلاب $name. يمكنك المغادرة في أي وقت.';
   }
+
+  @override
+  String get deptChanBrowseTitle => 'قنوات الأقسام';
+
+  @override
+  String get deptChanBrowseBody => 'انضم إلى قناة أي قسم وغادرها متى شئت.';
+
+  @override
+  String get deptChanBrowse => 'تصفّح الأقسام';
+
+  @override
+  String get deptChanJoin => 'انضمام';
+
+  @override
+  String get deptChanLeave => 'مغادرة';
+
+  @override
+  String get deptChanYours => 'قسمك';
+
+  @override
+  String get deptChanClosed => 'مغلقة';
+
+  @override
+  String deptChanMembers(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عضوًا',
+      few: '$count أعضاء',
+      two: 'عضوان',
+      one: 'عضو واحد',
+      zero: 'لا أعضاء بعد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get deptChanSearchHint => 'ابحث عن قسم';
+
+  @override
+  String get deptChanNoMatchTitle => 'لا يوجد قسم مطابق';
+
+  @override
+  String get deptChanNoMatchBody => 'جرّب اسم قسم أو كلية آخر.';
+
+  @override
+  String get deptChanLeftHint =>
+      'غادرت القناة. يمكنك الانضمام مجددًا في أي وقت.';
+
+  @override
+  String deptChanJoinedToast(String name) {
+    return 'انضممت إلى قناة $name';
+  }
+
+  @override
+  String get deptChanNoMessages => 'لا رسائل بعد';
 }

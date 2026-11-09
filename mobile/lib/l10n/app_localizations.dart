@@ -25178,11 +25178,113 @@ abstract class AppLocalizations {
   /// **'Bölüm'**
   String get deptChatTag;
 
-  /// No description provided for @deptChatJoinRow.
+  /// No description provided for @deptChanMine.
   ///
   /// In tr, this message translates to:
-  /// **'Bölüm grubuna katıl: {name}'**
-  String deptChatJoinRow(String name);
+  /// **'Bölüm kanallarım'**
+  String get deptChanMine;
+
+  /// No description provided for @deptChanAll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm bölümler'**
+  String get deptChanAll;
+
+  /// No description provided for @deptChanSuggestTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölümünün kanalına katıl'**
+  String get deptChanSuggestTitle;
+
+  /// No description provided for @deptChanSuggestBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} öğrencileriyle yaz. İstediğin zaman çıkabilirsin.'**
+  String deptChanSuggestBody(String name);
+
+  /// No description provided for @deptChanBrowseTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölüm kanalları'**
+  String get deptChanBrowseTitle;
+
+  /// No description provided for @deptChanBrowseBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstediğin bölümün kanalına katıl, istediğin zaman çık.'**
+  String get deptChanBrowseBody;
+
+  /// No description provided for @deptChanBrowse.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölümlere göz at'**
+  String get deptChanBrowse;
+
+  /// No description provided for @deptChanJoin.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katıl'**
+  String get deptChanJoin;
+
+  /// No description provided for @deptChanLeave.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ayrıl'**
+  String get deptChanLeave;
+
+  /// No description provided for @deptChanYours.
+  ///
+  /// In tr, this message translates to:
+  /// **'Senin bölümün'**
+  String get deptChanYours;
+
+  /// No description provided for @deptChanClosed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kapalı'**
+  String get deptChanClosed;
+
+  /// No description provided for @deptChanMembers.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count, plural, =0{Henüz üye yok} =1{1 üye} other{{count} üye}}'**
+  String deptChanMembers(int count);
+
+  /// No description provided for @deptChanSearchHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölüm ara'**
+  String get deptChanSearchHint;
+
+  /// No description provided for @deptChanNoMatchTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Eşleşen bölüm yok'**
+  String get deptChanNoMatchTitle;
+
+  /// No description provided for @deptChanNoMatchBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başka bir bölüm adı veya fakülte dene.'**
+  String get deptChanNoMatchBody;
+
+  /// No description provided for @deptChanLeftHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kanaldan çıktın. İstediğin zaman tekrar katılabilirsin.'**
+  String get deptChanLeftHint;
+
+  /// No description provided for @deptChanJoinedToast.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} kanalına katıldın'**
+  String deptChanJoinedToast(String name);
+
+  /// No description provided for @deptChanNoMessages.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz mesaj yok'**
+  String get deptChanNoMessages;
 }
 
 class _AppLocalizationsDelegate

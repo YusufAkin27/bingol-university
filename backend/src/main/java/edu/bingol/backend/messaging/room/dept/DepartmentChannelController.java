@@ -4,9 +4,8 @@ import edu.bingol.backend.common.CurrentUser;
 import edu.bingol.backend.common.RateLimiter;
 import edu.bingol.backend.messaging.room.dept.DepartmentChatService.DepartmentChannel;
 import edu.bingol.backend.messaging.room.dept.DepartmentChatService.DepartmentChannelPage;
-import edu.bingol.backend.messaging.room.dept.DepartmentChatService.MyChannel;
+import edu.bingol.backend.messaging.room.dept.DepartmentChatService.MyChannels;
 import java.time.Duration;
-import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -44,7 +43,7 @@ public class DepartmentChannelController {
 
     /** Katildigim bolum kanallari (sohbet sekmesi seridi). */
     @GetMapping("/mine")
-    public List<MyChannel> mine() {
+    public MyChannels mine() {
         Long me = CurrentUser.id();
         limiter.check("dept-chan-read:user:" + me, 120, Duration.ofMinutes(1));
         return chat.myChannels(me);

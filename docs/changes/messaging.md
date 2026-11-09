@@ -299,3 +299,15 @@ Geriye uyumlu (yalniz ekleme; tek davranis degisikligi: arsiv artik yeni mesajla
 - Grup yoneticisi = sistem yoneticisi: `DepartmentRoomModerators` (ADMIN + FULL/MODERATOR profili, bos profil = FULL) baskasinin mesajini silebilir (`canModerate`). Yonetici ucu: `GET /api/admin/department-chats`, `PUT /api/admin/department-chats/{id}/closed` (RBAC: `chat.read` / `chat.write`).
 - Uyeler birbirini mevcut sikayet akisiyle bildirir (`USER`, `MESSAGE`, `CONVERSATION` hedefleri; yeni hedef turu yok). Dikkat: `CONVERSATION` sikayetinde `hide` odayi kapatir, yalniz yonetici karariyla.
 - Mobil: sohbet sekmesinde `DepartmentChatEntry` ("Bolum grubuna katil") yalniz bolum var + uye degil + oda acikken gorunur; ayrilma sohbet bilgisinden `DELETE /department-chat/membership`.
+
+## Bolum kanallari v2 (herhangi bir bolume katil/cik; migration YOK)
+
+Onceki "yalniz kendi bolumun" kurali genisledi: her ogrenci HERHANGI bir bolumun kanalina isteyerek katilir/ayrilir (otomatik katilim yok). Oda ayni `department_chat_room` + `chat_room_link DEPARTMENT` yapisidir (V1710 yeterli, yeni migration yok). Kimlik: `{key}` = akademik katalog bolum kimligi (`GET /api/catalog/academic` -> `faculties[].departments[].id`, ornek `bilgisayar-muhendisligi`); ayni adli (oda anahtari `UnitKeys.deptKey` ayni) bolumler tek kanala indirgenir. Bolum degisse de secilen kanallar kalir; kendi bolumu `own=true` ile isaretlenir.
+
+- `GET /api/chat/departments?q=&page=0&size=100` (size en cok 200) -> `{items:[{key,name,nameEn,nameAr,faculty,facultyEn,facultyAr,own,joined,closed,memberCount,conversationId}], page,size,total,ownKey}`. Katalog sirasi (fakulte gruplamasi istemcide `faculty`); `q` tr/en/ar bolum + fakulte adinda aksan duyarsiz; `conversationId` yalniz uyeyken; kapali odada `joined=false`, `memberCount=0`. Tek sorgu (`DepartmentChatRoomRepository.statsFor`, LIMIT 1000).
+- `GET /api/chat/departments/mine` -> `{items:[{key,name,nameEn,nameAr,faculty,own,conversation:ConversationView}], own:DepartmentChannel|null}` (acik odalar, en cok 100; `conversation` sohbet listesiyle ayni: `unreadCount`, `lastMessage`, `memberCount`; `own` = profil bolumunun kanali, oneri karti icin, katalogda yoksa null).
+- `POST /api/chat/departments/{key}/join` -> `DepartmentChannel` (idempotent; oda tembel kurulur). Hatalar: 404 `DEPARTMENT_NOT_FOUND`, 403 `DEPARTMENT_JOIN_FORBIDDEN` (askida/silinmis/e-postasi dogrulanmamis), 409 `CHAT_ROOM_CLOSED`, 409 `ROOM_FULL`.
+- `POST /api/chat/departments/{key}/leave` -> 204 (idempotent; uye degilse/oda yoksa no-op).
+- `DELETE /api/department-chat/membership?conversationId=` (YENI opsiyonel parametre): verilirse o bolum odasindan ayrilir (sohbet bilgisi sayfasi); verilmezse eski davranis (profil bolumunun odasi). Eski `GET/POST /api/department-chat*` uclari geriye uyum icin durur.
+- Hiz siniri: okuma 120/dk, katil/ayril 60/10 dk. Yeni hata metinleri tr/en/ar (`messages*.properties`). Sikayet, engel ve yonetici moderasyonu degismedi.
+- Mobil: sohbet sekmesinde "Bolum kanallarim" seridi (`DepartmentChannelsStrip`) + "Tum bolumler" ekrani (`AllDepartmentsPage`); eski `DepartmentChatEntry` kaldirildi.

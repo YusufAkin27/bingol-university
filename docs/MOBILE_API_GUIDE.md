@@ -1025,3 +1025,7 @@ Yukarıdaki "yorumlar kaldırıldı / 410", "Yorum ve yanıt (iç içe)" (derinl
 - `PostView` yeni alanlar `hideLikeCount`, `commentsDisabled`. **`likeCount` `hideLikeCount=true` iken sahibi dışında `null`** (sayı çizmeyin; `likedByMe` kendi durumu olarak gelir). Aynı kural `PUT|DELETE /like` yanıtında, beğenenler listesinde (boş + `total:0`) ve aramada geçerli.
 - Yorumlar kapalıyken yeni yorum/yanıt/yorum beğenisi `403 COMMENTS_DISABLED` ("Bu gönderide yorumlar kapalı."); mevcut yorumlar okunur, sahibi silebilir (`CommentView.canDelete`).
 - Yeni hesaplar artık **herkese açık** başlar (`privateAccount=false`); mevcut hesaplar değişmedi.
+
+## Bölüm kanalları v2 (herhangi bir bölüme katıl/çık)
+
+Ayrıntı: `docs/changes/messaging.md` "Bolum kanallari v2". Özet: `GET /api/chat/departments?q=&page=&size=` (tüm bölümler, `faculty` ile gruplanır, `own`/`joined`/`memberCount`, `ownKey`), `GET /api/chat/departments/mine` (katıldıklarım + `ConversationView`), `POST /api/chat/departments/{key}/join` (idempotent), `POST /api/chat/departments/{key}/leave` (204, idempotent); `{key}` = katalog bölüm kimliği. Sohbet bilgisinden ayrılma: `DELETE /api/department-chat/membership?conversationId=<id>`. Hatalar: 404 `DEPARTMENT_NOT_FOUND`, 403 `DEPARTMENT_JOIN_FORBIDDEN`, 409 `CHAT_ROOM_CLOSED`/`ROOM_FULL`.

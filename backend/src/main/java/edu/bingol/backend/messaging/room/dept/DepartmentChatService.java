@@ -168,9 +168,12 @@ public class DepartmentChatService {
         return new DepartmentChannelPage(items, pg, sz, hits.size(), ownId);
     }
 
+    /** `items`: katildigim acik kanallar; `own`: profil bolumunun kanali (katalogda yoksa null; oneri karti icin). */
+    public record MyChannels(List<MyChannel> items, DepartmentChannel own) {}
+
     /** Katildigim kanallar (acik odalar), ConversationView ile; en cok 100. */
     @Transactional(readOnly = true)
-    public List<MyChannel> myChannels(Long userId) {
+    public MyChannels myChannels(Long userId) {
         User u = requireUser(userId);
         String ownKey = keyOf(u);
         Map<String, DepartmentChatStats> stats = statsByKey(userId);
@@ -192,7 +195,9 @@ public class DepartmentChatService {
                 break;
             }
         }
-        return out;
+        DepartmentChannel own = ownKey == null ? null : channels.stream().filter(c -> c.roomKey().equals(ownKey))
+                .findFirst().map(c -> channelView(c, stats.get(c.roomKey()), ownKey)).orElse(null);
+        return new MyChannels(out, own);
     }
 
     /** Herhangi bir bolum kanalina katilir (idempotent; oda tembel kurulur; askida/dogrulanmamis hesap 403). */

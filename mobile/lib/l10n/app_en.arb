@@ -5059,12 +5059,43 @@
   "accAccountNoName": "Account",
   "postPeekOpen": "Open post",
   "deptChatTag": "Department",
-  "deptChatJoinRow": "Join the department group: {name}",
-  "@deptChatJoinRow": {
+  "deptChanMine": "My department channels",
+  "deptChanAll": "All departments",
+  "deptChanSuggestTitle": "Join your department channel",
+  "deptChanSuggestBody": "Chat with {name} students. You can leave any time.",
+  "@deptChanSuggestBody": {
     "placeholders": {
       "name": {
         "type": "String"
       }
     }
-  }
+  },
+  "deptChanBrowseTitle": "Department channels",
+  "deptChanBrowseBody": "Join the channel of any department and leave whenever you like.",
+  "deptChanBrowse": "Browse departments",
+  "deptChanJoin": "Join",
+  "deptChanLeave": "Leave",
+  "deptChanYours": "Your department",
+  "deptChanClosed": "Closed",
+  "deptChanMembers": "{count, plural, =0{No members yet} =1{1 member} other{{count} members}}",
+  "@deptChanMembers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deptChanSearchHint": "Search departments",
+  "deptChanNoMatchTitle": "No matching department",
+  "deptChanNoMatchBody": "Try another department or faculty name.",
+  "deptChanLeftHint": "You left the channel. You can join again any time.",
+  "deptChanJoinedToast": "You joined the {name} channel",
+  "@deptChanJoinedToast": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deptChanNoMessages": "No messages yet"
 }

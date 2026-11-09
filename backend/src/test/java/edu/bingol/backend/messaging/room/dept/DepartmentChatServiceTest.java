@@ -296,12 +296,15 @@ class DepartmentChatServiceTest {
         var cv = mock(edu.bingol.backend.messaging.dto.MessagingDtos.ConversationView.class);
         when(convs.view(5L, 311L)).thenReturn(cv);
 
-        var mine = svc.myChannels(5L);
+        var res = svc.myChannels(5L);
+        var mine = res.items();
 
         assertEquals(1, mine.size());
         assertEquals("matematik", mine.get(0).key());
         assertTrue(mine.get(0).own());
         assertEquals(cv, mine.get(0).conversation());
+        assertEquals("matematik", res.own().key());
+        assertTrue(res.own().joined());
     }
 
     @Test

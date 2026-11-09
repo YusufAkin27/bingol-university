@@ -66,7 +66,7 @@ class _ChatTabState extends State<ChatTab> {
   Timer? _badgeTimer;
   Timer? _reloadTimer;
   int _filter = 0;
-  final _deptEntryKey = GlobalKey<DepartmentChatEntryState>();
+  final _deptEntryKey = GlobalKey<DepartmentChannelsStripState>();
   String _query = '';
   bool _archived = false;
   int? _cursor;
@@ -135,7 +135,7 @@ class _ChatTabState extends State<ChatTab> {
   /// ulaşılamazsa kayıtlı liste SESSİZCE kalır; hata ekranı yalnız gösterilecek hiçbir şey yokken çıkar.
   Future<void> _load({bool silent = false}) async {
     final my = ++_seq;
-    _deptEntryKey.currentState?.refresh(); // ayrılma/katılma sonrası "bölüm grubu" satırı güncellensin
+    _deptEntryKey.currentState?.refresh(); // ayrılma/katılma sonrası "Bölüm kanallarım" alanı güncellensin
     if (!silent && _items.isEmpty && !_archived) {
       final cached = await MessageCache.instance.readConversations();
       if (!mounted || my != _seq) return;
@@ -700,10 +700,10 @@ class _ChatTabState extends State<ChatTab> {
               SliverToBoxAdapter(child: MessageRequestsEntry(count: _msgReq, onTap: _openMsgRequests)),
             if (!_archived && _filter == 0 && _query.trim().isEmpty)
               SliverToBoxAdapter(
-                child: DepartmentChatEntry(
+                child: DepartmentChannelsStrip(
                   key: _deptEntryKey,
                   session: widget.session,
-                  onJoined: () => _load(silent: true),
+                  onChanged: () => _load(silent: true),
                 ),
               ),
             ..._bodySlivers(t),

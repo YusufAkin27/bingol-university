@@ -14007,7 +14007,71 @@ class AppLocalizationsTr extends AppLocalizations {
   String get deptChatTag => 'Bölüm';
 
   @override
-  String deptChatJoinRow(String name) {
-    return 'Bölüm grubuna katıl: $name';
+  String get deptChanMine => 'Bölüm kanallarım';
+
+  @override
+  String get deptChanAll => 'Tüm bölümler';
+
+  @override
+  String get deptChanSuggestTitle => 'Bölümünün kanalına katıl';
+
+  @override
+  String deptChanSuggestBody(String name) {
+    return '$name öğrencileriyle yaz. İstediğin zaman çıkabilirsin.';
   }
+
+  @override
+  String get deptChanBrowseTitle => 'Bölüm kanalları';
+
+  @override
+  String get deptChanBrowseBody =>
+      'İstediğin bölümün kanalına katıl, istediğin zaman çık.';
+
+  @override
+  String get deptChanBrowse => 'Bölümlere göz at';
+
+  @override
+  String get deptChanJoin => 'Katıl';
+
+  @override
+  String get deptChanLeave => 'Ayrıl';
+
+  @override
+  String get deptChanYours => 'Senin bölümün';
+
+  @override
+  String get deptChanClosed => 'Kapalı';
+
+  @override
+  String deptChanMembers(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count üye',
+      one: '1 üye',
+      zero: 'Henüz üye yok',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get deptChanSearchHint => 'Bölüm ara';
+
+  @override
+  String get deptChanNoMatchTitle => 'Eşleşen bölüm yok';
+
+  @override
+  String get deptChanNoMatchBody => 'Başka bir bölüm adı veya fakülte dene.';
+
+  @override
+  String get deptChanLeftHint =>
+      'Kanaldan çıktın. İstediğin zaman tekrar katılabilirsin.';
+
+  @override
+  String deptChanJoinedToast(String name) {
+    return '$name kanalına katıldın';
+  }
+
+  @override
+  String get deptChanNoMessages => 'Henüz mesaj yok';
 }
