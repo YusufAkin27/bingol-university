@@ -74,7 +74,9 @@ if [ -n "$TA" ]; then
   check "admin stats" 200 "$(code -H "$AUTHA" $A/admin/stats)"
   # (RID: yukarida olusturulan raporun id si)
   check "rapor coz (askiya al)" 204 "$(code -X POST -H "$H" -H "$AUTHA" $A/admin/reports/$RID/resolve -d '{"action":"SUSPEND_USER","message":"test"}')"
-  check "askidaki kullanici token'i gecersiz" 401 "$(code -H "$AUTH2" $A/users/me)"
+  check "askidaki kullanici token'i 403 ACCOUNT_SUSPENDED" 403 "$(code -H "$AUTH2" $A/users/me)"
+  case "$(curl -s -H "$AUTH2" $A/users/me)" in *ACCOUNT_SUSPENDED*) echo "  ok   askida: kod ACCOUNT_SUSPENDED" ;; *) echo "  FAIL askida: kod ACCOUNT_SUSPENDED degil"; FAIL=1 ;; esac
+  check "askidaki yanlis sifre genel hata" 401 "$(code -X POST -H "$H" $A/auth/login -d "{\"email\":\"ayse$SFX@bingol.edu.tr\",\"password\":\"Yanlis-Sifre-1\"}")"
   check "askidaki giris 403" 403 "$(code -X POST -H "$H" $A/auth/login -d "{\"email\":\"ayse$SFX@bingol.edu.tr\",\"password\":\"Zk7-Qmv-Lpx92w\"}")"
   check "geri ac" 204 "$(code -X POST -H "$AUTHA" $A/admin/users/$ID2/unsuspend)"
 else

@@ -38,6 +38,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
      */
     public static final String SESSION_REVOKED_KEY_PREFIX = "sessrev:";
 
+    /**
+     * Token imzali ve suresi icinde ama hesap askida (Redis `suspended:<id>`): kimlik konmaz, giris noktasi 403
+     * ACCOUNT_SUSPENDED yazar (istemci tek "hesabiniz askiya alindi" ekranina gecer). Gerekce metni asla tasinmaz.
+     */
+    public static final String SUSPENDED_ATTR = "auth.suspended";
+
     /** Istek niteligi: access token'daki oturum kimligi (sid; yoksa null). */
     public static final String SESSION_ID_ATTR = "auth.sid";
 
@@ -90,13 +96,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                             id.userId(), null, List.of(new SimpleGrantedAuthority("ROLE_" + id.role().name()))));
                 } else if (v == Verdict.REPLACED) {
                     req.setAttribute(SESSION_REPLACED_ATTR, Boolean.TRUE);
+                } else if (v == Verdict.SUSPENDED) {
+                    req.setAttribute(SUSPENDED_ATTR, Boolean.TRUE);
                 }
             }
         }
         chain.doFilter(req, res);
     }
 
-    private enum Verdict { OK, DENIED, REPLACED, UNAVAILABLE }
+    private enum Verdict { OK, DENIED, SUSPENDED, REPLACED, UNAVAILABLE }
 
     /** Devre kesici aciksa Redis'e gitmeden, degilse kontrol ederek; Redis hatasinda devreyi acar. */
     private Verdict verdictOf(HttpServletRequest req, JwtService.Identity id) {
@@ -132,7 +140,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return Verdict.OK;
         }
         if (v.get(0) != null) {
-            return Verdict.DENIED;
+            return Verdict.SUSPENDED;
         }
         if (tokenRevoked(id.issuedAtMillis(), at(v, 2))
                 || ("mobile".equals(id.client()) && tokenRevoked(id.issuedAtMillis(), at(v, 3)))

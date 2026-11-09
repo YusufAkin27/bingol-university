@@ -47,6 +47,11 @@ public class ApiAuthenticationEntryPoint implements AuthenticationEntryPoint {
             writer.write(request, response, 503, "REDIS_UNAVAILABLE", null, retry);
             return;
         }
+        // Askida hesap: tek bicimli 403 ACCOUNT_SUSPENDED (gerekce sizdirilmaz); Basic challenge yazilmaz.
+        if (request.getAttribute(JwtAuthFilter.SUSPENDED_ATTR) != null) {
+            writer.write(request, response, 403, "ACCOUNT_SUSPENDED", null, -1);
+            return;
+        }
         // Imzali ama iptal edilmis token (baska cihaz girisi, tum oturumlari kapatma): istemci ayirt edebilsin.
         boolean replaced = request.getAttribute(JwtAuthFilter.SESSION_REPLACED_ATTR) != null;
         if (wantsBasicChallenge(request)) {

@@ -184,4 +184,19 @@ class ErrorEnvelopeTest {
         assertNull(commence(true, new MockHttpServletRequest("GET", "/api/profile")).getHeader("WWW-Authenticate"));
         assertNull(commence(false, new MockHttpServletRequest("GET", "/api/admin/users")).getHeader("WWW-Authenticate"));
     }
+
+    @Test
+    void suspendedTokenGets403AccountSuspendedWithoutReasonLeak() throws Exception {
+        ApiAuthenticationEntryPoint entry = new ApiAuthenticationEntryPoint(i18n);
+        MockHttpServletRequest req = new MockHttpServletRequest("GET", "/api/users/me");
+        req.addHeader("Authorization", "Bearer x");
+        req.setAttribute(edu.bingol.backend.auth.jwt.JwtAuthFilter.SUSPENDED_ATTR, Boolean.TRUE);
+        MockHttpServletResponse res = new MockHttpServletResponse();
+
+        entry.commence(req, res, new BadCredentialsException("x"));
+
+        assertEquals(403, res.getStatus());
+        assertTrue(res.getContentAsString().contains("\"code\":\"ACCOUNT_SUSPENDED\""));
+        assertNull(res.getHeader("WWW-Authenticate"));
+    }
 }

@@ -45,6 +45,7 @@ public class ApiErrorWriter {
         return switch (code) {
             case "UNAUTHORIZED" -> "Giriş gerekli.";
             case "SESSION_REPLACED" -> "Hesabınıza başka bir cihazdan giriş yapıldı.";
+            case "ACCOUNT_SUSPENDED" -> "Hesabınız askıya alınmıştır.";
             case "FORBIDDEN" -> "Bu işlem için yetkiniz yok.";
             case "NOT_FOUND" -> "Bulunamadı.";
             case "METHOD_NOT_ALLOWED" -> "Bu yöntem bu adreste desteklenmiyor.";

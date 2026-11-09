@@ -106,6 +106,24 @@ class JwtAuthFilterTest {
     }
 
     @Test
+    void suspendedUserGetsSuspendedAttributeButRoleChangeDoesNot() throws Exception {
+        when(redis.opsForValue()).thenReturn(ops);
+        when(ops.multiGet(anyList())).thenReturn(Arrays.asList("1", null));
+        MockHttpServletRequest req = new MockHttpServletRequest();
+        req.addHeader("Authorization", "Bearer " + token(Role.USER));
+        filter.doFilter(req, new MockHttpServletResponse(), new MockFilterChain());
+        assertNotNull(req.getAttribute(JwtAuthFilter.SUSPENDED_ATTR));
+
+        String t = token(Role.ADMIN);
+        long iat = jwt.parse(t).issuedAt().getEpochSecond();
+        when(ops.multiGet(anyList())).thenReturn(Arrays.asList(null, String.valueOf(iat + 5)));
+        MockHttpServletRequest req2 = new MockHttpServletRequest();
+        req2.addHeader("Authorization", "Bearer " + t);
+        filter.doFilter(req2, new MockHttpServletResponse(), new MockFilterChain());
+        assertNull(req2.getAttribute(JwtAuthFilter.SUSPENDED_ATTR));
+    }
+
+    @Test
     void tokenIssuedBeforeRoleChangeIsRejectedButFreshOneAccepted() throws Exception {
         String t = token(Role.ADMIN);
         long iat = jwt.parse(t).issuedAt().getEpochSecond();
