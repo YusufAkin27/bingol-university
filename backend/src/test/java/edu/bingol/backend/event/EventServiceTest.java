@@ -103,7 +103,7 @@ class EventServiceTest {
 
         EventView v = svc.create(user, req(start, end, null, 10L));
 
-        assertEquals(UserEvent.Status.PENDING_REVIEW, v.status());
+        assertEquals(UserEvent.Status.ACTIVE, v.status());
     }
 
     @Test

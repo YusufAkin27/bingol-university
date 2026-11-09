@@ -175,7 +175,7 @@ class EventLiveClubAuthorityTest {
     // ---- icerik degisikligi yeniden onaya ----
 
     @Test
-    void plainMemberEditingActiveClubEventSendsItBackToReview() {
+    void plainMemberEditingActiveClubEventKeepsItActive() {
         UserEvent e = clubEvent();
         when(communities.can(any(), eq(CLUB), eq(ClubPermission.MANAGE_EVENTS))).thenReturn(true);
         when(communities.roleOf(CLUB, CREATOR)).thenReturn(Optional.of(CommunityMember.Role.MEMBER)); // staff degil
@@ -187,7 +187,7 @@ class EventLiveClubAuthorityTest {
 
         svc.update(creator, 5L, new UpdateEventRequest("Yeni baslik", null, null, null, null, null, null));
 
-        assertEquals(UserEvent.Status.PENDING_REVIEW, e.getStatus());
+        assertEquals(UserEvent.Status.ACTIVE, e.getStatus());
     }
 
     @Test
@@ -209,21 +209,20 @@ class EventLiveClubAuthorityTest {
     // ---- seri ----
 
     @Test
-    void seriesCopiesOfNonStaffAreNotAutoApproved() {
+    void seriesCopiesOfNonStaffStayActive() {
         EventService events = mock(EventService.class);
         UserEventRepository repo = mock(UserEventRepository.class);
         EventSeriesMemberRepository members = mock(EventSeriesMemberRepository.class);
         UserEvent src = clubEvent();
         when(events.load(5L)).thenReturn(src);
         when(events.requireManager(any(), any())).thenReturn(src);
-        when(events.isStaff(creator, CLUB)).thenReturn(false);
         when(repo.findAllById(any())).thenReturn(List.of());
         ArgumentCaptor<UserEvent> saved = ArgumentCaptor.forClass(UserEvent.class);
 
         new SeriesService(events, repo, members).create(creator, 5L, 2, Instant.now());
 
         verify(repo, org.mockito.Mockito.times(2)).save(saved.capture());
-        assertTrue(saved.getAllValues().stream().allMatch(c -> c.getStatus() == UserEvent.Status.PENDING_REVIEW));
+        assertTrue(saved.getAllValues().stream().allMatch(c -> c.getStatus() == UserEvent.Status.ACTIVE));
     }
 
     @Test

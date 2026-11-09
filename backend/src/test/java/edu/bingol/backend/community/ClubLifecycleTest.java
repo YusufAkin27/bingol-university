@@ -80,6 +80,16 @@ class ClubLifecycleTest {
     }
 
     @Test
+    void systemAdminClubIsActiveEvenWhenAutoApproveOff() {
+        svc.setAutoApprove(false);
+        when(communities.saveAndFlush(any())).thenAnswer(i -> i.getArgument(0));
+
+        Community c = svc.create(new Actor(9L, true), new CreateCommunityRequest("Yazılım Kulübü", null, null, null, null));
+
+        assertEquals(Community.Status.ACTIVE, c.getStatus());
+    }
+
+    @Test
     void ownerDeletesClub() {
         Community c = club(Community.Status.ACTIVE);
         when(communities.findById(10L)).thenReturn(Optional.of(c));

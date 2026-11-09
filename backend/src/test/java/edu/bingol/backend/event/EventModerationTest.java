@@ -428,7 +428,7 @@ class EventModerationTest {
         assertEquals("EVENT_CLUB_REQUIRED", fail(() -> service.create(new Actor(mod.getId(), false), createReq(null))).code());
         assertEquals(UserEvent.Status.ACTIVE, service.create(new Actor(owner.getId(), false), createReq(c.getId())).status());
         assertEquals(UserEvent.Status.ACTIVE, service.create(new Actor(mod.getId(), false), createReq(c.getId())).status());
-        assertEquals(UserEvent.Status.PENDING_REVIEW, service.create(new Actor(granted.getId(), false), createReq(c.getId())).status());
+        assertEquals(UserEvent.Status.ACTIVE, service.create(new Actor(granted.getId(), false), createReq(c.getId())).status());
         assertEquals(403, fail(() -> service.create(new Actor(plain.getId(), false), createReq(c.getId()))).status().value());
         assertEquals(403, fail(() -> service.create(new Actor(user("Yabanci").getId(), false), createReq(c.getId()))).status().value());
     }
