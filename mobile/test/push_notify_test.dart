@@ -140,12 +140,14 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('acilmayan sohbet Bildirimler listesine duser', (tester) async {
+    testWidgets('acilmayan sohbet (404): liste yerine icerik-yok toast i', (tester) async {
       await pumpShell(tester);
       b.fail('/conversations/9', status: 404, code: 'NOT_FOUND');
       PushRouter.open({'conversationId': '9'});
       await tester.pumpAndSettle();
-      expect(find.byType(NotificationsPage), findsOneWidget);
+      // Silinmis/erisilemeyen hedef: Bildirimler listesine dusmez, toast gosterilir (G7).
+      expect(find.byType(NotificationsPage), findsNothing);
+      expect(find.text('Bu içerik artık mevcut değil.'), findsOneWidget);
     });
 
     testWidgets('sohbet push: {conversation, members} sarmalayicisi acilir, sohbet sayfasi yuklenir', (tester) async {

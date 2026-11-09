@@ -108,12 +108,13 @@ void main() {
       expect(log.count('forum_topic'), 2);
     });
 
-    testWidgets('silinmis yorum (404): bildirim listesine duser, cokmez', (tester) async {
+    testWidgets('silinmis yorum (404): liste yerine icerik-yok toast i, cokmez', (tester) async {
       await mount(tester, const Scaffold());
       final r = await PushRouter.open({'type': 'FORUM_COMMENT_LIKE', 'targetType': 'FORUM_COMMENT', 'targetId': '999'});
       await settle(tester, const Duration(milliseconds: 600));
       expect(r, isFalse);
-      expect(log.count('activity'), 1);
+      expect(log.count('activity'), 0, reason: 'silinmis hedefte Hareketler listesi acilmaz (G7)');
+      expect(find.text('Bu içerik artık mevcut değil.'), findsOneWidget);
       expectNoException(tester);
     });
 
