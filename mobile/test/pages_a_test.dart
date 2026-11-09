@@ -175,7 +175,7 @@ void main() {
       await tester.tap(find.text('Kayıt ol').last);
       await settle(tester, const Duration(milliseconds: 500));
       expect(b.count('/auth/register'), 1);
-      expect(find.textContaining('Bir sorun oluştu'), findsOneWidget);
+      expect(find.textContaining('İşlem şu anda tamamlanamıyor'), findsOneWidget);
       noErr(tester);
     });
   });

@@ -378,7 +378,7 @@ void main() {
       await tester.fling(find.byType(Scrollable).first, const Offset(0, 400), 1000);
       await settle(tester, const Duration(milliseconds: 800));
       expect(find.text('Robotik Kulübü'), findsWidgets, reason: 'eski veri kalır');
-      expect(find.textContaining('Bir sorun'), findsWidgets, reason: 'hata kullanıcıya gösterilir');
+      expect(find.textContaining('İşlem şu anda tamamlanamıyor'), findsWidgets, reason: 'hata kullanıcıya gösterilir');
       await tester.pump(const Duration(seconds: 6));
       await _gone(tester);
     });
