@@ -65,7 +65,7 @@ services:
     image: redis:7-alpine
     restart: unless-stopped
     mem_limit: ${REDIS_MEM_LIMIT:-256m}
-    command: ["redis-server", "--appendonly", "yes"]
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "200mb", "--maxmemory-policy", "volatile-lru"]
     volumes:
       - redisdata:/data
     healthcheck:

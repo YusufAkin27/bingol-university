@@ -16,6 +16,22 @@ import org.springframework.stereotype.Component;
 @Component
 public class ClubExtrasMaintenance {
 
+    /** Coklu ornek kilidi (DATABASE.md sorgu kurali 9.4); yoksa (testler/elle kurulum) eski davranis: kilitsiz calisir. */
+    private edu.bingol.backend.config.SchedulerLock lock;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setLock(edu.bingol.backend.config.SchedulerLock lock) {
+        this.lock = lock;
+    }
+
+    private void locked(String name, int minutes, Runnable job) {
+        if (lock == null) {
+            job.run();
+        } else {
+            lock.tryRunOrLocal(name, java.time.Duration.ofMinutes(minutes), job);
+        }
+    }
+
     private static final Logger log = LoggerFactory.getLogger(ClubExtrasMaintenance.class);
 
     private final RoomConversations rooms;
@@ -27,6 +43,10 @@ public class ClubExtrasMaintenance {
     }
 
     @Scheduled(fixedDelayString = "${app.chat.room-purge-ms:300000}", initialDelayString = "${app.chat.room-purge-ms:300000}")
+    public void scheduledRun() {
+        locked("club-extras-maintenance", 10, this::run);
+    }
+
     public void run() {
         try {
             List<Long> ids = jdbc.queryForList("""
