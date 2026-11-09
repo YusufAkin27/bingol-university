@@ -655,3 +655,19 @@ button.groupBtn:hover {
     min-height: 44px;
   }
 }
+
+/* menüde onay bekleyen sayısı: nötr (Premium Monochrome), kalın yazı yok */
+.navCount {
+  margin-inline-start: auto;
+  min-width: 20px;
+  padding: 0 var(--space-2);
+  border: 1px solid currentColor;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: var(--fw-emphasis);
+  line-height: 18px;
+  text-align: center;
+}
+.sidebar[data-mode='rail'] .navCount {
+  display: none;
+}
