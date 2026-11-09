@@ -176,7 +176,15 @@ class Session extends ChangeNotifier {
   /// hesap silme, hesap bağlama ve 2FA kapatma parola yerine sağlayıcı yeniden doğrulaması ister. Null: bilinmiyor
   /// (eski sunucu ya da `/auth/me` henüz gelmedi) = parola varmış gibi davranılır.
   bool? hasPassword;
-  int? userId;
+  int? _userId;
+  int? get userId => _userId;
+
+  /// Etkin hesap değişince giden kutusu o hesaba bağlanır (bekleyen mesajlar yanlış kimlikle gitmez).
+  set userId(int? v) {
+    _userId = v;
+    api.outbox?.bindOwner(v);
+  }
+
   String? displayName;
   String? email;
 
@@ -270,7 +278,7 @@ class Session extends ChangeNotifier {
       final id = me['id'];
       final dn = me['displayName'];
       final em = me['email'];
-      userId = id is num ? id.toInt() : null;
+      if (id is num) userId = id.toInt();
       displayName = dn is String ? dn : null;
       email = em is String ? em : null;
       final hp = me['hasPassword'];
@@ -398,10 +406,11 @@ class Session extends ChangeNotifier {
       'nonce': c.nonce, // HAM nonce (Apple'a SHA-256 özeti verilmişti)
       if (f.isNotEmpty) 'firstName': f,
       if (l.isNotEmpty) 'lastName': l,
-    });
+    }, applePrefill: (f, l));
   }
 
-  Future<OAuthLoginResult> _oauthLogin(String path, Map<String, Object?> body, {String? fallbackName}) async {
+  Future<OAuthLoginResult> _oauthLogin(String path, Map<String, Object?> body,
+      {String? fallbackName, (String, String)? applePrefill}) async {
     final res = await api.post(path, {...body, 'client': kClientMobile}, false);
     final challenge = TwoFactorChallenge.tryParse(res);
     if (challenge != null) return OAuthLoginResult(challenge: challenge);
@@ -410,6 +419,12 @@ class Session extends ChangeNotifier {
     profileCompletedHint = completed;
     if (completed != true) await _savePrefillFrom(map, fallbackName);
     await _accept(res);
+    // Başka hesap açıkken eklenen yeni hesapta `_accept` -> `_leaveActive` kullanıcı verisini (onboarding taslağı dahil)
+    // siler: ad ön doldurması YENİ hesap etkinleştikten SONRA yeniden yazılır (I2-07).
+    if (completed != true) {
+      if (applePrefill != null) await OnboardingDraftStore.savePrefill(firstName: applePrefill.$1, lastName: applePrefill.$2);
+      await _savePrefillFrom(map, fallbackName);
+    }
     if (completed == true) unawaited(OnboardingDraftStore.clear());
     return OAuthLoginResult(profileCompleted: completed, isNewUser: map['isNewUser'] == true);
   }
@@ -637,7 +652,7 @@ class Session extends ChangeNotifier {
 
   /// Yalnız ETKİN hesabı çıkarır: sunucuda o hesabın oturumu kapanır, yerel verisi temizlenir, listeden silinir.
   /// Cihazda geçilebilecek başka hesap varsa ona geçilir ([switchToOther]); yoksa giriş ekranına dönülür.
-  Future<void> signOut({bool remote = true, bool switchToOther = true}) async {
+  Future<void> signOut({bool remote = true, bool switchToOther = true, bool purgeQueue = false}) async {
     if (_forcing || _switching) return;
     final refresh = api.tokens?.refresh;
     final id = userId ?? jwtSubjectId(api.tokens?.access ?? '');
@@ -667,6 +682,9 @@ class Session extends ChangeNotifier {
     if (id != null) {
       _knownEmails.remove(id);
       await accounts.remove(id);
+      // Hesap silme: bekleyen mesajlar ve ek dosyaları da gider. Normal çıkışta hesabına bağlı kalır (bkz.
+      // docs/changes/account-context.md).
+      if (purgeQueue) await api.outbox?.purgeOwner(id);
     }
     final next = switchToOther ? accounts.nextSwitchable(except: id) : null;
     if (next != null) {
@@ -703,6 +721,7 @@ class Session extends ChangeNotifier {
     _knownEmails.clear();
     await signOut(switchToOther: false);
     await accounts.clear();
+    await api.outbox?.clear(); // tüm hesaplardan çıkış: hiçbir hesabın bekleyen mesajı kalmaz
   }
 
   /// Etkin olmayan hesabın sunucu oturumunu kapatır (yalnız yenileme belirteci; ağ hatası yutulur).

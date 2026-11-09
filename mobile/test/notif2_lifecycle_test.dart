@@ -99,7 +99,9 @@ void main() {
       final fut = PushRouter.flushPending();
       await tester.pumpAndSettle();
       await fut;
-      expect(find.byType(NotificationsPage), findsOneWidget); // erişilemeyen sohbet: liste
+      // Erişilemeyen sohbet: alakasız bildirim listesi AÇILMAZ; Sohbet sekmesi + "içerik yok" bilgisi.
+      expect(find.byType(NotificationsPage), findsNothing);
+      expect(find.text('Bu içerik artık mevcut değil.'), findsOneWidget);
     });
 
     testWidgets('PushService.onSignedIn saklanan dokunuşu açar', (tester) async {
@@ -195,7 +197,6 @@ void main() {
       ('gönderi', {'postId': '9'}, '/posts/9'),
       ('haber', {'targetType': 'NEWS', 'targetId': '9'}, '/news/9'),
       ('kullanıcı', {'targetType': 'USER', 'targetId': '9'}, '/users/9'),
-      ('sohbet', {'conversationId': '9'}, '/conversations/9'),
     ]) {
       testWidgets('${c.$1} 404: çökmez, kullanıcı sessiz kalmaz', (tester) async {
         await pumpShell(tester);

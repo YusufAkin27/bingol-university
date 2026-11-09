@@ -61,7 +61,7 @@ mkdir -p "$OUT_DIR" "$OUT_DIR/symbols" "$OUT_DIR/ipa"
 cd "$MOBILE"
 flutter pub get
 
-# Google ile giris dugmesi yalniz GOOGLE_SIGNIN=true iken gorunur (varsayilan false; sunucuda GOOGLE_CLIENT_IDS hazir olunca).
+# Google ile giris dugmesi yalniz GOOGLE_SIGNIN=true iken gorunur (varsayilan true; sunucuda GOOGLE_CLIENT_IDS hazir olunca).
 # Istemci kimlikleri kodda/Info.plist'te gomulu; GOOGLE_SERVER_CLIENT_ID / GOOGLE_IOS_CLIENT_ID verilirse dart-define ile gecersiz kilinir.
 OAUTH_DEFINES="--dart-define=GOOGLE_SIGNIN=${GOOGLE_SIGNIN:-true} --dart-define=APPLE_SIGNIN=${APPLE_SIGNIN:-true}"
 if [ -n "${GOOGLE_SERVER_CLIENT_ID:-}" ]; then OAUTH_DEFINES="$OAUTH_DEFINES --dart-define=GOOGLE_SERVER_CLIENT_ID=$GOOGLE_SERVER_CLIENT_ID"; fi
