@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -669,11 +668,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-    String type,
-    String title,
-    String date,
-    String countdown,
-  ) {
+      String type, String title, String date, String countdown) {
     return '$type: $title. $date. $countdown. Düzenlemek için dokun.';
   }
 
@@ -991,11 +986,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-    String name,
-    String day,
-    String start,
-    String end,
-  ) {
+      String name, String day, String start, String end) {
     return '$name, $day $start ile $end arası';
   }
 
@@ -14116,4 +14107,35 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get chatMiscPeekEmpty => 'Henüz mesaj yok.';
+
+  @override
+  String get pushForeignSwitched =>
+      'Bu bildirim diğer hesabına aitti; o hesaba geçildi.';
+
+  @override
+  String get pushForeignMissing =>
+      'Bu bildirim, bu cihazda kayıtlı olmayan başka bir hesaba ait.';
+
+  @override
+  String get pushForeignExpired =>
+      'Bu bildirim oturumu kapanmış bir hesaba ait. O hesaba giriş yapınca açılır.';
+
+  @override
+  String get pushContentGone => 'Bu içerik artık mevcut değil.';
+
+  @override
+  String get sessionEndedFormClosed =>
+      'Oturumun sona erdiği için açık sayfa kapatıldı. Yazdıkların kaydedilmedi.';
+
+  @override
+  String get formDiscardTitle => 'Yazdıkların silinsin mi?';
+
+  @override
+  String get formDiscardBody => 'Çıkarsan girdiğin bilgiler kaybolur.';
+
+  @override
+  String get formDiscardConfirm => 'Sil ve çık';
+
+  @override
+  String get formDiscardKeep => 'Düzenlemeye devam et';
 }

@@ -441,3 +441,7 @@ Ayni uclar parola/Google hesabinda da calisir ama hesap ele gecirme riskine kars
 - Apple tarafinda kullaniciyi gercek e-posta paylasmaya zorlamak mumkun degildir; yeni hesap kapiyla, mevcut hesap yumusak adimla yonlendirilir.
 - Role hesapta e-posta degisiminde diger cihazlarin oturumlari kapatilmaz (yeniden dogrulama istenmez); eski role adresine "adresiniz degisti" postasi gonderilmez (ulasmaz).
 - Gercek Apple jetonuyla uctan uca dogrulanmadi (yapilandirma yok); testler yerel RSA anahtarli MVC/birim testleridir, canli e-posta kodu `scripts/smoke-real-email.sh` ile PostgreSQL'de dogrulanir.
+
+## 2026-11-09 mobil hesap baglami (G8)
+Backend degismedi. Mobil: giden kutusu `ownerUserId`, yabanci alicili bildirimde hesap gecisi, Google bayragi varsayilan acik; ayrinti
+`docs/changes/account-context.md`.

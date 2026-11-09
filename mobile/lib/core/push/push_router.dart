@@ -24,6 +24,9 @@ import '../../features/support/support_page.dart';
 import '../../features/support/support_ticket_page.dart';
 import '../api.dart';
 import '../closed_conversations.dart';
+import '../../widgets/bu_overlays.dart';
+import '../locale_controller.dart';
+import '../../l10n/app_localizations.dart';
 import '../nav.dart';
 import '../session.dart';
 import 'push_targets.dart';
@@ -109,10 +112,52 @@ class PushRouter {
   }
 
   /// Yük başka bir hesaba mı ait (cihazda hesap değişti; sunucu yüküne `recipientId` koyar).
+  static bool isForeignRecipient(Map<String, dynamic> d, Session s) => _foreignRecipient(d, s);
+
   static bool _foreignRecipient(Map<String, dynamic> d, Session s) {
     final r = int.tryParse('${d['recipientId'] ?? ''}');
     final me = s.userId;
     return r != null && r > 0 && me != null && r != me;
+  }
+
+  /// Başka hesaba ait bildirim: hesap cihazda kayıtlı ve oturumu açıksa o hesaba geçilir ve hedef orada açılır
+  /// (yük [_pending] olarak saklanır, geçişle tetiklenen `onSignedIn` -> [flushPending] açar). Oturumu dolmuş hesapta
+  /// yük bekletilir ve bilgi verilir; cihazda kayıtlı olmayan hesapta yük atılır. Bu ekranda hiçbir içerik açılmaz.
+  static Future<bool> _openForeign(Map<String, dynamic> d, Session s,
+      {required bool compose, required bool listFallback}) async {
+    final r = int.tryParse('${d['recipientId'] ?? ''}')!;
+    void say(String Function(AppLocalizations l) f) {
+      final ctx = rootNavigatorKey.currentContext;
+      if (ctx == null) return;
+      try {
+        BuToast.show(ctx, f(ctx.l10n));
+      } catch (_) {
+        /* ekran yok */
+      }
+    }
+
+    if (!s.accounts.has(r)) {
+      say((l) => l.pushForeignMissing);
+      return false;
+    }
+    _pending = Map<String, dynamic>.from(d);
+    _pendingLocal = false;
+    _pendingAt = clock();
+    final res = await s.switchAccount(r);
+    switch (res) {
+      case SwitchResult.switched:
+        say((l) => l.pushForeignSwitched);
+        return true;
+      case SwitchResult.same:
+        _pending = null;
+        _pendingAt = null;
+        return open(d, compose: compose, listFallback: listFallback);
+      case SwitchResult.needsLogin:
+        say((l) => l.pushForeignExpired);
+        return false;
+      case SwitchResult.busy:
+        return false;
+    }
   }
 
   /// [localReminder] = yük yerel hatırlatma dokunuşundan geldi (Android intent ekstrası dışarıdan sahte
@@ -126,7 +171,7 @@ class PushRouter {
     final s = session;
     final payload = localReminder ? sanitizeLocalReminderPayload(data) : data;
     if (!localReminder && s != null && s.state == SessionState.signedIn && _foreignRecipient(payload, s)) {
-      return false; // başka hesabın bildirimi: ne durum işlenir ne sayfa açılır
+      return _openForeign(payload, s, compose: compose, listFallback: listFallback);
     }
     // Sohbet kapatıldı/yeniden açıldı bildirimi: durum, hedef ekran açılmadan önce işlenir (bantlı açılsın).
     if (!localReminder) ClosedConversations.instance.applyPushData(payload);
@@ -159,6 +204,16 @@ class PushRouter {
     Analytics.instance.action('push_open', target: localReminder ? 'reminder' : 'push');
     try {
       if (await _go(nav, s, target, compose: !localReminder && compose)) return true;
+    } on ApiError catch (e) {
+      if (e.status == 404 || e.status == 403 || e.status == 410) {
+        // Silinmiş/erişilemeyen hedef: alakasız listeye düşmek yerine açıklama (sohbette Sohbet sekmesi).
+        if (target.dest == PushDest.conversation && nav.mounted) {
+          nav.popUntil((r) => r.isFirst);
+          shellTabRequest.value = 2;
+        }
+        if (nav.mounted) BuToast.show(nav.context, nav.context.l10n.pushContentGone);
+        return false;
+      }
     } catch (_) {
       // Açılamayan hedef: bildirim listesine düş.
     }
@@ -190,16 +245,11 @@ class PushRouter {
         nav.push(MaterialPageRoute<void>(settings: RouteSettings(name: screen), builder: (_) => page));
     switch (t.dest) {
       case PushDest.conversation:
-        try {
-          final conv =
-              conversationFromDetail(await s.api.get('/conversations/$id'));
-          if (conv == null)
-            return false; // beklenmeyen biçim: Bildirimler listesine düş
-          push(ChatDetailPage(session: s, conversation: conv, focusComposer: compose), 'chat_detail');
-          return true;
-        } on ApiError {
-          return false;
-        }
+        // 404/403: [open] "içerik yok" bilgisi + Sohbet sekmesi gösterir; ağ hatası listeye düşer.
+        final conv = conversationFromDetail(await s.api.get('/conversations/$id'));
+        if (conv == null) return false; // beklenmeyen biçim: Bildirimler listesine düş
+        push(ChatDetailPage(session: s, conversation: conv, focusComposer: compose), 'chat_detail');
+        return true;
       case PushDest.chatList:
         // Sohbet sekmesi: açık rotaları kapatıp kabukta Sohbet'e geç.
         nav.popUntil((r) => r.isFirst);

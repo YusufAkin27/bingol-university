@@ -64,7 +64,7 @@ import 'app_localizations_tr.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -87,17 +87,17 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-        delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('ar'),
     Locale('en'),
-    Locale('tr'),
+    Locale('tr')
   ];
 
   /// No description provided for @chatReactionPickerTitle.
@@ -1341,11 +1341,7 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{type}: {title}. {date}. {countdown}. Düzenlemek için dokun.'**
   String acadExamsSemanticCd(
-    String type,
-    String title,
-    String date,
-    String countdown,
-  );
+      String type, String title, String date, String countdown);
 
   /// No description provided for @acadFormErrTitle.
   ///
@@ -1910,11 +1906,7 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{name}, {day} {start} ile {end} arası'**
   String acadTimeSlotSemantic(
-    String name,
-    String day,
-    String start,
-    String end,
-  );
+      String name, String day, String start, String end);
 
   /// No description provided for @acadTimeCourseSemantic.
   ///
@@ -25375,6 +25367,60 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Henüz mesaj yok.'**
   String get chatMiscPeekEmpty;
+
+  /// No description provided for @pushForeignSwitched.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu bildirim diğer hesabına aitti; o hesaba geçildi.'**
+  String get pushForeignSwitched;
+
+  /// No description provided for @pushForeignMissing.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu bildirim, bu cihazda kayıtlı olmayan başka bir hesaba ait.'**
+  String get pushForeignMissing;
+
+  /// No description provided for @pushForeignExpired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu bildirim oturumu kapanmış bir hesaba ait. O hesaba giriş yapınca açılır.'**
+  String get pushForeignExpired;
+
+  /// No description provided for @pushContentGone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu içerik artık mevcut değil.'**
+  String get pushContentGone;
+
+  /// No description provided for @sessionEndedFormClosed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oturumun sona erdiği için açık sayfa kapatıldı. Yazdıkların kaydedilmedi.'**
+  String get sessionEndedFormClosed;
+
+  /// No description provided for @formDiscardTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yazdıkların silinsin mi?'**
+  String get formDiscardTitle;
+
+  /// No description provided for @formDiscardBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çıkarsan girdiğin bilgiler kaybolur.'**
+  String get formDiscardBody;
+
+  /// No description provided for @formDiscardConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sil ve çık'**
+  String get formDiscardConfirm;
+
+  /// No description provided for @formDiscardKeep.
+  ///
+  /// In tr, this message translates to:
+  /// **'Düzenlemeye devam et'**
+  String get formDiscardKeep;
 }
 
 class _AppLocalizationsDelegate
@@ -25406,9 +25452,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-    'an issue with the localizations generation tool. Please file an issue '
-    'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.',
-  );
+      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+      'an issue with the localizations generation tool. Please file an issue '
+      'on GitHub with a reproducible sample app and the gen-l10n configuration '
+      'that was used.');
 }

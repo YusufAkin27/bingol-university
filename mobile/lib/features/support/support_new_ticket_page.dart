@@ -38,6 +38,7 @@ class _NewTicketPageState extends State<NewTicketPage> {
   void initState() {
     super.initState();
     _message.addListener(() => setState(() {}));
+    _subject.addListener(() => setState(() {}));
   }
 
   @override
@@ -90,7 +91,20 @@ class _NewTicketPageState extends State<NewTicketPage> {
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
     final field = tx.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400);
-    return BuPageScaffold(
+    // Yazılmış metin varken geri/kenar jesti onay ister (I5-01); gönderim sürerken çıkış engellenmez.
+    return PopScope(
+      canPop: !_dirty || _busy,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final leave = await BuDialog.confirm(context,
+            title: l.formDiscardTitle,
+            message: l.formDiscardBody,
+            confirmLabel: l.formDiscardConfirm,
+            cancelLabel: l.formDiscardKeep,
+            destructive: true);
+        if (leave && context.mounted) Navigator.of(context).pop();
+      },
+      child: BuPageScaffold(
       title: l.supportNewTicketTitle,
       large: false,
       bottomInset: 24,
@@ -167,8 +181,11 @@ class _NewTicketPageState extends State<NewTicketPage> {
           ),
         ),
       ],
+    ),
     );
   }
+
+  bool get _dirty => _subject.text.trim().isNotEmpty || _message.text.trim().isNotEmpty;
 }
 
 /// Kategori çipi: 34 dp görünür; seçili `soft` zemin + `pr` metin, değilse çerçeveli. Dokunma alanı 48 dp.

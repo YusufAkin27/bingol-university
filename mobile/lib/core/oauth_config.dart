@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 
 /// Google / Apple ile giriş yapılandırması: bayrak değerleri TEK yerde (derleme anında `--dart-define`).
 ///
-/// - Google: düğme için `--dart-define=GOOGLE_SIGNIN=true` ŞART (sunucuda `GOOGLE_CLIENT_IDS` hazır olunca açılır;
-///   varsayılan KAPALI) ve web istemci kimliği dolu olmalı. İstemci kimlikleri GİZLİ DEĞİLDİR (herkese açık tanımlayıcı);
+/// - Google: düğme VARSAYILAN AÇIK (Android AAB'de de dart-define gerekmez; kapatmak için `--dart-define=GOOGLE_SIGNIN=false`).
+///   Sunucuda `AUTH_OAUTH_ENABLED`/`GOOGLE_CLIENT_IDS` kapalıysa ilk denemede 404 `OAUTH_DISABLED` düğmeyi gizler. Web istemci kimliği dolu olmalı. İstemci kimlikleri GİZLİ DEĞİLDİR (herkese açık tanımlayıcı);
 ///   varsayılanları aşağıda gömülüdür, `--dart-define=GOOGLE_SERVER_CLIENT_ID=...` / `GOOGLE_IOS_CLIENT_ID=...` ile
 ///   geçersiz kılınır (boş verilirse düğme gizlenir). iOS tarafında aynı iOS kimliği `Info.plist` `GIDClientID` ve
 ///   ters kimlik URL şemasıdır (bkz. docs/MOBILE_OAUTH.md).
@@ -35,7 +35,7 @@ class OAuthConfig {
   });
 
   /// Derleme anı değerleri (`String.fromEnvironment` yalnız const bağlamda çalışır).
-  static const _googleFlag = bool.fromEnvironment('GOOGLE_SIGNIN');
+  static const _googleFlag = bool.fromEnvironment('GOOGLE_SIGNIN', defaultValue: true);
   static const _googleServerClientId =
       String.fromEnvironment('GOOGLE_SERVER_CLIENT_ID', defaultValue: kDefaultGoogleServerClientId);
   static const _googleIosClientId =

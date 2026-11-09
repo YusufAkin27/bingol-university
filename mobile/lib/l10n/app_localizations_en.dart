@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -669,11 +668,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-    String type,
-    String title,
-    String date,
-    String countdown,
-  ) {
+      String type, String title, String date, String countdown) {
     return '$type: $title. $date. $countdown. Tap to edit.';
   }
 
@@ -992,11 +987,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-    String name,
-    String day,
-    String start,
-    String end,
-  ) {
+      String name, String day, String start, String end) {
     return '$name, $day from $start to $end';
   }
 
@@ -14170,4 +14161,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatMiscPeekEmpty => 'No messages yet.';
+
+  @override
+  String get pushForeignSwitched =>
+      'This notification belonged to another of your accounts; switched to it.';
+
+  @override
+  String get pushForeignMissing =>
+      'This notification belongs to another account that is not saved on this device.';
+
+  @override
+  String get pushForeignExpired =>
+      'This notification belongs to an account whose session ended. It opens after you log in to it.';
+
+  @override
+  String get pushContentGone => 'This content is no longer available.';
+
+  @override
+  String get sessionEndedFormClosed =>
+      'Your session ended, so the open page was closed. What you typed was not saved.';
+
+  @override
+  String get formDiscardTitle => 'Discard what you wrote?';
+
+  @override
+  String get formDiscardBody =>
+      'If you leave, the information you entered will be lost.';
+
+  @override
+  String get formDiscardConfirm => 'Discard and leave';
+
+  @override
+  String get formDiscardKeep => 'Keep editing';
 }

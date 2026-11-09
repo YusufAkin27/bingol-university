@@ -5098,5 +5098,14 @@
   "chatMiscMoreAction": "المزيد",
   "chatMiscPeekOpen": "فتح المحادثة",
   "chatMiscPeekError": "تعذر تحميل الرسائل.",
-  "chatMiscPeekEmpty": "لا توجد رسائل بعد."
+  "chatMiscPeekEmpty": "لا توجد رسائل بعد.",
+  "pushForeignSwitched": "كان هذا الإشعار يخص حسابًا آخر لديك، وتم التبديل إليه.",
+  "pushForeignMissing": "يخص هذا الإشعار حسابًا آخر غير محفوظ على هذا الجهاز.",
+  "pushForeignExpired": "يخص هذا الإشعار حسابًا انتهت جلسته. سيُفتح بعد تسجيل الدخول إليه.",
+  "pushContentGone": "هذا المحتوى لم يعد متاحًا.",
+  "sessionEndedFormClosed": "انتهت جلستك فأُغلقت الصفحة المفتوحة. لم يتم حفظ ما كتبته.",
+  "formDiscardTitle": "هل تريد تجاهل ما كتبته؟",
+  "formDiscardBody": "إذا غادرت ستفقد المعلومات التي أدخلتها.",
+  "formDiscardConfirm": "تجاهل وخروج",
+  "formDiscardKeep": "متابعة التحرير"
 }
