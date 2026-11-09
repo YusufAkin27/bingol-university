@@ -15,3 +15,7 @@
 "widget.quickaccess.desc" = "Sık kullandığın bölümlere tek dokunuşla ulaş.";
 "widget.social.name" = "Sosyal Özet";
 "widget.social.desc" = "Okunmamış mesaj, bildirim ve beğeni sayılarını gösterir (yalnızca sayılar).";
+"widget.exams.name" = "Yaklaşan Sınavlar";
+"widget.exams.desc" = "Yaklaşan sınavlarını ve tarihlerini gösterir.";
+"widget.academic.name" = "Akademik Takvim";
+"widget.academic.desc" = "Yaklaşan önemli akademik tarihleri gösterir.";

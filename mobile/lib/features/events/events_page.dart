@@ -99,6 +99,9 @@ class _EventsPageState extends State<EventsPage> {
     'created': _Feed()
   };
 
+  /// "Bölümüne uygun etkinlikler" (GET /events/recommended): yalnız öneri, boşsa çizilmez.
+  List<Map<String, dynamic>> _rec = const [];
+
   bool _loading = true;
   Object? _error;
   int _gen = 0;
@@ -120,6 +123,7 @@ class _EventsPageState extends State<EventsPage> {
         _loadMoreFeed(_feedKey);
       }
     });
+    _loadRec();
     if (_tab == 0) {
       _load();
     } else {
@@ -142,6 +146,16 @@ class _EventsPageState extends State<EventsPage> {
       for (final e in list)
         if (e is Map) e.cast<String, dynamic>()
     ];
+  }
+
+  Future<void> _loadRec() async {
+    try {
+      final res = await widget.session.api.get('/events/recommended?size=3');
+      if (!mounted) return;
+      setState(() => _rec = [for (final e in _parse(res).map(_norm)) if (e['_day'] is DateTime) e]);
+    } catch (_) {
+      // En iyi çaba: öneri gelmezse çizilmez.
+    }
   }
 
   Future<List<Map<String, dynamic>>> _fetchMonth(DateTime m, {bool force = false}) async {
@@ -989,6 +1003,9 @@ class _EventsPageState extends State<EventsPage> {
       }
       others.sort((a, b) => _effDay(a).compareTo(_effDay(b)));
     }
+    // Öneri şeridi: listede zaten görünen etkinlikler tekrarlanmaz.
+    final shownIds = <Object?>{for (final e in [...items, ...others]) e['id']};
+    final rec = [for (final e in _rec) if (!shownIds.contains(e['id'])) e];
     return [
       SliverPadding(
         padding: EdgeInsets.zero,
@@ -1001,6 +1018,10 @@ class _EventsPageState extends State<EventsPage> {
             _emptyForTab(),
           ],
           if (others.isNotEmpty) _otherDaysHeader(others.length),
+          if (rec.isNotEmpty && _selected == null) ...[
+            _recHeader(),
+            for (final e in rec) _card(e, _Mode.discover, _effDay(e)),
+          ],
         ]),
       ),
       if (others.isNotEmpty)
@@ -1042,6 +1063,19 @@ class _EventsPageState extends State<EventsPage> {
   }
 
   /// "Yaklaşan diğer günler" başlığı + etkinlik sayısı (muted).
+  Widget _recHeader() {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
+      child: Semantics(
+        header: true,
+        child: Text(context.l10n.eventRecommendedTitle,
+            maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w400, color: t.ink)),
+      ),
+    );
+  }
+
   Widget _otherDaysHeader(int count) {
     final t = context.bu;
     final l = context.l10n;

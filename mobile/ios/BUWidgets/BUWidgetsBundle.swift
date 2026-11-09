@@ -1,5 +1,5 @@
 // BUWidgetsBundle.swift
-// Widget Extension girisi: yedi ana ekran widget'i (kind adlari DATA_CONTRACT bolum 10).
+// Widget Extension girisi: dokuz ana ekran widget'i (kind adlari DATA_CONTRACT bolum 10).
 // Lock Screen widget'i ve interaktif widget KAPSAM DISI.
 
 import SwiftUI
@@ -15,6 +15,8 @@ struct BUWidgetsBundle: WidgetBundle {
         BUPollWidget()
         BUQuickAccessWidget()
         BUSocialWidget()
+        BUExamsWidget()
+        BUAcademicWidget()
         // Canli Etkinlik (kilit ekrani + Dynamic Island), yalniz iOS 16.1+.
         if #available(iOS 16.1, *) {
             BuLiveActivityWidget()

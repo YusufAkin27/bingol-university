@@ -383,6 +383,8 @@ void main() {
           bb.poll(null),
           bb.quickAccess(),
           bb.social(unreadMessages: 1, newNotifications: 1, newLikesAndFollowers: 1),
+          bb.exams([WidgetExamInput(id: 1, title: 'V', courseName: 'C', type: 'VIZE', startsAt: DateTime.utc(2026, 11, 12, 7))]),
+          bb.academic([WidgetAcademicInput(id: 1, kind: 'TATIL', title: 'T', startsAt: DateTime.utc(2026, 11, 12, 7))]),
         ];
         for (final s in snaps) {
           final text = jsonEncode(s);
@@ -392,6 +394,58 @@ void main() {
           expect(dec['lang'], lang);
         }
       }
+    });
+  });
+
+  group('sinavlar ve akademik takvim', () {
+    test('sinavlar: gecmis elenir, tarihe gore siralanir, 4 ile sinirli, mutlak tarih', () {
+      final m = asJson(b('tr').exams([
+        WidgetExamInput(id: 1, title: 'Eski', type: 'VIZE', startsAt: DateTime.utc(2026, 11, 5, 7)),
+        WidgetExamInput(id: 2, title: 'Final', courseName: 'Algoritma', type: 'FINAL', startsAt: DateTime.utc(2026, 11, 20, 7), room: 'A-1'),
+        WidgetExamInput(id: 3, title: 'Vize', courseName: 'Fizik', type: 'VIZE', startsAt: DateTime.utc(2026, 11, 10, 7)),
+      ]));
+      expect(m['slug'], 'exams');
+      expect(m['state'], 'ok');
+      expect(m['deepLink'], 'bukampus://exams');
+      final items = m['items'] as List;
+      expect(items.map((e) => (e as Map)['title']), ['Fizik', 'Algoritma']);
+      expect((items[0] as Map)['metaText'], 'Vize · 10 Kas 10:00');
+      expect((items[1] as Map)['metaText'], 'Final · 20 Kas 10:00 · A-1');
+      expect(jsonEncode(m).contains('gün kaldı'), isFalse);
+    });
+
+    test('sinavlar: bos liste bos durum, bilinmeyen tur Sinav olur', () {
+      expect(asJson(b('en').exams(const []))['state'], 'empty');
+      final m = asJson(b('en').exams([WidgetExamInput(id: 1, title: 'X', type: 'ZZZ', startsAt: DateTime.utc(2026, 11, 12, 7))]));
+      expect(((m['items'] as List).first as Map)['metaText'], 'Exam · 12 Nov 10:00');
+    });
+
+    test('sinavlar: oda ve tur dilde, yer tutucu kalmaz (ar)', () {
+      final m = asJson(b('ar').exams([WidgetExamInput(id: 1, title: 'X', type: 'FINAL', startsAt: DateTime.utc(2026, 11, 12, 7))]));
+      expect(m['rtl'], true);
+      expect(((m['items'] as List).first as Map)['metaText'], startsWith('نهائي'));
+    });
+
+    test('akademik takvim: biten elenir, aralik bicimi, ay gecisi', () {
+      final m = asJson(b('tr').academic([
+        WidgetAcademicInput(id: 1, kind: 'TATIL', title: 'Bitti', startsAt: DateTime.utc(2026, 11, 1), endsAt: DateTime.utc(2026, 11, 3)),
+        WidgetAcademicInput(id: 2, kind: 'VIZE', title: 'Devam eden', startsAt: DateTime.utc(2026, 11, 3, 21), endsAt: DateTime.utc(2026, 11, 8, 21)),
+        WidgetAcademicInput(id: 3, kind: 'DERS_KAYIT', title: 'Aylar arasi', startsAt: DateTime.utc(2026, 11, 28, 21), endsAt: DateTime.utc(2026, 12, 2, 21)),
+        WidgetAcademicInput(id: 4, kind: 'RESMI_TATIL', title: 'Tek gun', startsAt: DateTime.utc(2026, 11, 9, 21)),
+      ]));
+      final items = (m['items'] as List).cast<Map>();
+      expect(items.map((e) => e['title']), ['Devam eden', 'Tek gun', 'Aylar arasi']);
+      expect(items[0]['metaText'], 'Vize · 4 – 9 Kas');
+      expect(items[1]['metaText'], 'Resmi tatil · 10 Kas');
+      expect(items[2]['metaText'], 'Ders kaydı · 29 Kas – 3 Ara');
+      expect(m['deepLink'], 'bukampus://academic');
+    });
+
+    test('akademik takvim: bos durum', () {
+      final m = asJson(b('tr').academic(const []));
+      expect(m['state'], 'empty');
+      expect((m['strings'] as Map)['emptyTitle'], 'Yaklaşan akademik tarih yok');
+      expect((m['strings'] as Map).containsKey('kind.VIZE'), isFalse);
     });
   });
 }

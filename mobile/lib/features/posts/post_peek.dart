@@ -1,12 +1,10 @@
-import 'dart:ui' show ImageFilter;
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../core/icons/bu_icons.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../../widgets/peek_dialog.dart';
 import '../chat/emoji_presentation.dart';
 import 'comments/comment_button.dart';
 import 'like_button.dart';
@@ -26,45 +24,9 @@ Future<void> showPostPeek(
   ValueChanged<Post>? onMenu,
   ValueChanged<Post>? onChanged,
 }) {
-  HapticFeedback.mediumImpact();
-  final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-  return showGeneralDialog<void>(
-    context: context,
-    barrierDismissible: true,
-    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-    barrierColor: Colors.transparent,
-    transitionDuration:
-        reduce ? Duration.zero : const Duration(milliseconds: 220),
-    transitionBuilder: (ctx, anim, _, child) {
-      final curved = CurvedAnimation(
-          parent: anim,
-          curve: Curves.easeOutCubic,
-          reverseCurve: Curves.easeInCubic);
-      return AnimatedBuilder(
-        animation: curved,
-        builder: (_, __) => Stack(children: [
-          Positioned.fill(
-            child: IgnorePointer(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(
-                    sigmaX: 14 * curved.value, sigmaY: 14 * curved.value),
-                child: ColoredBox(
-                    color: ctx.bu.scrim
-                        .withValues(alpha: .46 * curved.value)),
-              ),
-            ),
-          ),
-          Center(
-            child: Opacity(
-              opacity: curved.value.clamp(0.0, 1.0),
-              child: Transform.scale(
-                  scale: .88 + .12 * curved.value, child: child),
-            ),
-          ),
-        ]),
-      );
-    },
-    pageBuilder: (ctx, _, __) => _PostPeekCard(
+  return showPeekDialog(
+    context,
+    builder: (ctx, close) => _PostPeekCard(
       key: const ValueKey('postPeek'),
       session: session,
       post: post,
@@ -72,13 +34,13 @@ Future<void> showPostPeek(
       onOpen: onOpen == null
           ? null
           : (p) {
-              Navigator.of(ctx).pop();
+              close();
               onOpen(p);
             },
       onMenu: onMenu == null
           ? null
           : (p) {
-              Navigator.of(ctx).pop();
+              close();
               onMenu(p);
             },
     ),

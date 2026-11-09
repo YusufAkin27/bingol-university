@@ -89,6 +89,8 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   String get _status => (_club?['myStatus'] ?? 'NONE').toString();
   bool get _isMember => _status == 'ACTIVE';
   bool get _isPending => _status == 'PENDING';
+  /// Kulüp yönetici onayı bekliyor (yalnız kurucu görür): paylaşma/etkinlik/sohbet kapalı.
+  bool get _clubPending => _club?['status'] == 'PENDING_REVIEW';
   String? get _role => _club?['myRole']?.toString();
   bool get _isOwner => _isMember && _role == 'OWNER';
   bool get _isManager => _isMember && isClubManagerRole(_role);
@@ -653,6 +655,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
               id: widget.communityId,
               builder: (icon, tip, onTap) => ClubBarIcon(icon: icon, tooltip: tip, onTap: onTap, color: fg),
             ),
+            if (!_clubPending)
             ClubBarIcon(
               key: const ValueKey('club-share'),
               icon: BuIcons.send,
@@ -717,6 +720,10 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
               padding: const EdgeInsets.only(top: 12, left: 2, right: 2),
               child: Text(l10n.p11ApprovalNote, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.4)),
             ),
+          if (_clubPending) ...[
+            const SizedBox(height: 12),
+            ClubNoteCard(icon: BuIcons.clock, title: l10n.clubMgmtPendingTitle, body: l10n.clubMgmtPendingBody),
+          ],
           if (_isPending) ...[
             const SizedBox(height: 12),
             ClubNoteCard(icon: BuIcons.mailCheck, title: l10n.p11PendingInfoTitle, body: l10n.p11PendingInfoBody),
@@ -739,6 +746,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   }
 
   Future<void> _createEvent() async {
+    if (_clubPending) return;
     await Navigator.push<bool>(
         context, MaterialPageRoute(settings: const RouteSettings(name: 'event_form'), builder: (_) => EventFormPage(session: widget.session, communityId: widget.communityId)));
     // Form başarıda detay sayfasıyla yer değiştirir (pop sonucu güvenilir değil): dönünce etkinlik listesi her durumda tazelenir.
@@ -749,6 +757,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   /// Üyelik durumuna göre ana eylem(ler): Katıl (dolu) / Kulüp sohbeti (çerçeveli) / Etkinlik oluştur (yönetici).
   Widget _cta() {
     final l10n = context.l10n;
+    if (_clubPending) return ClubOutlineButton(label: l10n.profilePrefsAwaitingApproval);
     if (_isMember) {
       final chat = ClubOutlineButton(label: l10n.clubChat, busy: _busy, onPressed: _openChat);
       if (!_isManager) return chat;

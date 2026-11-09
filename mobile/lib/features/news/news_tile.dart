@@ -310,6 +310,9 @@ class NewsFeaturedCard extends StatelessWidget {
   }
 }
 
+/// Duyuru kartı gibi başka dosyaların kullandığı kaydet düğmesi.
+Widget newsSaveIcon({required bool saved, required VoidCallback onTap}) => _SaveIcon(saved: saved, onTap: onTap);
+
 /// Favori simgesi: görünür 20 dp, dokunma alanı 48x48 dp; simge merkezi sağ kenardan 18 dp (referans: 36 dp düğme).
 /// Kayıtlı = marka renkli dolu, değil = ink çizgi. Ekran okuyucuya düğme olarak bildirilir; durum değişince kısa "pop".
 class _SaveIcon extends StatelessWidget {

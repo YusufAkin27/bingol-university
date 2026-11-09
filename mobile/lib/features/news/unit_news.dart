@@ -6,6 +6,7 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../../widgets/common.dart';
 import '../../widgets/linkified_text.dart';
+import 'announcement_parts.dart';
 import 'news_tile.dart';
 
 /// "Bölümüm" duyuruları: `GET /news/unit?limit=` (giriş gerekli). Sunucu kuralı: kullanıcının bölümüyle eşleşme yoksa
@@ -23,6 +24,7 @@ Map<String, dynamic> unitNewsAsTile(Map<String, dynamic> u) => {
       'title': u['title'],
       'publishedDate': u['publishedDate'],
       'url': u['url'],
+      if (u['unitName'] != null) 'unitName': u['unitName'],
     };
 
 /// Haber listesinin üstünde duran kısa "Bölümüm" şeridi. Boş/hatalı/yüklenirken görünmez.
@@ -81,11 +83,15 @@ class _UnitNewsStripState extends State<UnitNewsStrip> {
             header: true,
             child: Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: Text(l.unitNewsTitle, style: BuType.caption.copyWith(fontSize: 14, height: 1.3, color: t.mut)),
+              child: Row(children: [
+                Icon(BuIcons.megaphone, size: 16, color: t.mut),
+                const SizedBox(width: 8),
+                Expanded(child: Text(l.unitNewsTitle, style: BuType.caption.copyWith(fontSize: 14, height: 1.3, color: t.mut))),
+              ]),
             ),
           ),
           for (final u in _items)
-            NewsTile(
+            AnnouncementTile(
               key: ValueKey('unit-news-${u['id']}'),
               item: unitNewsAsTile(u),
               showSource: false,
@@ -176,7 +182,7 @@ class _UnitNewsDetailPageState extends State<UnitNewsDetailPage> {
         if (a is Map && '${a['url'] ?? ''}'.startsWith('https://')) Map<String, dynamic>.from(a),
     ];
     final url = d['url'] as String?;
-    final bodyStyle = Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w400, height: 1.5, color: t.ink);
+    final bodyStyle = Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w400, height: 1.6, color: t.ink);
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(children: [
@@ -185,45 +191,75 @@ class _UnitNewsDetailPageState extends State<UnitNewsDetailPage> {
           child: _error != null
               ? ErrorView(error: _error!, onRetry: _load)
               : ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+                  padding: EdgeInsets.fromLTRB(20, 12, 20, MediaQuery.paddingOf(context).bottom + 32),
                   children: [
-                    Text(title,
-                        style: Theme.of(context).textTheme.headlineSmall!.copyWith(fontSize: 24, fontWeight: FontWeight.w400, height: 1.25, color: t.ink)),
-                    const SizedBox(height: 8),
-                    Text([if (unit.isNotEmpty) unit, date].join(' · '),
-                        style: BuType.caption.copyWith(fontSize: 13, height: 1.4, color: t.mut)),
+                    if (unit.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Row(children: [
+                          Icon(BuIcons.megaphone, size: 16, color: t.mut),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text(unit, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(fontSize: 13, height: 1.4, color: t.mut))),
+                        ]),
+                      ),
+                    Semantics(
+                      header: true,
+                      child: Text(title,
+                          style: Theme.of(context).textTheme.headlineSmall!.copyWith(fontSize: 24, fontWeight: FontWeight.w400, height: 1.3, color: t.ink)),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(date, style: BuType.caption.copyWith(fontSize: 13, height: 1.4, color: t.mut)),
+                    const SizedBox(height: 16),
+                    Divider(height: 1, thickness: 1, color: t.bd),
                     const SizedBox(height: 20),
                     if (_loading)
-                      const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
-                    else ...[
-                      for (final p in body)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: LinkifiedText(p, style: bodyStyle),
-                        ),
-                      if (atts.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Semantics(header: true, child: Text(l.unitNewsAttachments, style: BuType.caption.copyWith(fontSize: 14, color: t.mut))),
-                        const SizedBox(height: 8),
-                        for (final a in atts)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: BuButton(
-                              key: ValueKey('unit-att-${a['url']}'),
-                              label: '${a['name'] ?? a['type'] ?? l.unitNewsAttachments}',
-                              kind: BuButtonKind.outline,
-                              icon: BuIcons.arrowUpRight,
-                              onPressed: () => _open(a['url'] as String?),
+                      const _UnitBodySkeleton()
+                    else
+                      BuFadeThrough(
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                          for (final p in body)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: LinkifiedText(p, style: bodyStyle),
                             ),
-                          ),
-                      ],
-                      if (url != null && url.startsWith('https://') && atts.isEmpty && body.isEmpty)
-                        BuButton(label: newsSourceHost({'url': url}), kind: BuButtonKind.outline, icon: BuIcons.arrowUpRight, onPressed: () => _open(url)),
-                    ],
+                          if (atts.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            Semantics(header: true, child: Text(l.unitNewsAttachments, style: BuType.caption.copyWith(fontSize: 14, color: t.mut))),
+                            const SizedBox(height: 10),
+                            for (final a in atts)
+                              KeyedSubtree(
+                                key: ValueKey('unit-att-${a['url']}'),
+                                child: AnnouncementAttachmentRow(
+                                  name: '${a['name'] ?? a['type'] ?? l.unitNewsAttachments}',
+                                  kind: a['type'] == null || a['type'] == a['name'] ? null : '${a['type']}',
+                                  onTap: () => _open(a['url'] as String?),
+                                ),
+                              ),
+                          ],
+                          if (url != null && url.startsWith('https://') && atts.isEmpty && body.isEmpty)
+                            BuButton(label: newsSourceHost({'url': url}), kind: BuButtonKind.outline, icon: BuIcons.arrowUpRight, onPressed: () => _open(url)),
+                        ]),
+                      ),
                   ],
                 ),
         ),
       ]),
     );
+  }
+}
+
+/// Gövde yüklenirken sönük satırlar (spinner yok; hareket yalnız içeri geçişte).
+class _UnitBodySkeleton extends StatelessWidget {
+  const _UnitBodySkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    Widget bar(double f) => FractionallySizedBox(
+          alignment: AlignmentDirectional.centerStart,
+          widthFactor: f,
+          child: Container(height: 14, margin: const EdgeInsets.only(bottom: 12), decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(7))),
+        );
+    return ExcludeSemantics(child: Column(children: [bar(1), bar(.92), bar(.97), bar(.6), const SizedBox(height: 12), bar(1), bar(.85)]));
   }
 }

@@ -19,6 +19,7 @@ class AcademicApi {
 
   // Ders eklenince/değişince/silinince ana ekran ders widget'ı tazelenir (sessiz, debounce'lu).
   void _widgetTimetable() => WidgetSyncService.instance.request(const {WidgetSlug.timetable});
+  void _widgetExams() => WidgetSyncService.instance.request(const {WidgetSlug.exams});
 
   Future<Course> createCourse(Map<String, dynamic> body) async {
     final c = Course.fromJson(_map(await session.api.post('/timetable/courses', body)));
@@ -63,12 +64,22 @@ class AcademicApi {
   Future<List<Exam>> upcomingExams({int days = 30}) async =>
       [for (final e in _items(await session.api.get('/timetable/exams/upcoming?days=$days'))) Exam.fromJson(e)];
 
-  Future<Exam> createExam(Map<String, dynamic> body) async => Exam.fromJson(_map(await session.api.post('/timetable/exams', body)));
+  Future<Exam> createExam(Map<String, dynamic> body) async {
+    final e = Exam.fromJson(_map(await session.api.post('/timetable/exams', body)));
+    _widgetExams();
+    return e;
+  }
 
-  Future<Exam> updateExam(int id, Map<String, dynamic> body) async =>
-      Exam.fromJson(_map(await session.api.patch('/timetable/exams/$id', body)));
+  Future<Exam> updateExam(int id, Map<String, dynamic> body) async {
+    final e = Exam.fromJson(_map(await session.api.patch('/timetable/exams/$id', body)));
+    _widgetExams();
+    return e;
+  }
 
-  Future<void> deleteExam(int id) async => session.api.delete('/timetable/exams/$id');
+  Future<void> deleteExam(int id) async {
+    await session.api.delete('/timetable/exams/$id');
+    _widgetExams();
+  }
 
   // ---- akademik takvim
   Future<List<AcademicEvent>> calendar(int year, int month) async =>

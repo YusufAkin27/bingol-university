@@ -32,7 +32,14 @@ SLUGS = [
      ('Sık kullanılan ekranlara kısayollar', 'Shortcuts to frequent screens', 'اختصارات للشاشات المتكررة')),
     ('social', 'Social', ('Sosyal Özet', 'Social Summary', 'ملخص اجتماعي'),
      ('Mesaj, bildirim ve beğeni sayıları', 'Message, notification and like counts', 'أعداد الرسائل والإشعارات والإعجابات')),
+    ('exams', 'Exams', ('Yaklaşan Sınavlar', 'Upcoming Exams', 'الامتحانات القادمة'),
+     ('Yaklaşan sınavların ve tarihleri', 'Your upcoming exams and dates', 'امتحاناتك القادمة وتواريخها')),
+    ('academic', 'Academic', ('Akademik Takvim', 'Academic Calendar', 'التقويم الأكاديمي'),
+     ('Yaklaşan önemli akademik tarihler', 'Upcoming key academic dates', 'المواعيد الأكاديمية المهمة القادمة')),
 ]
+# Yeni widget'lar duyuru ile ayni cizimi paylasir; secici onizlemesi su an duyuru gorselidir (kendi tasarimi gelince
+# design/widget-previews/<slug>/android-*.png konur ve buradan kalkar).
+PREVIEW_ALIAS = {'exams': 'announcements', 'academic': 'announcements'}
 SIZES = [('2x2', 2, 2, '2x2', ''), ('4x2', 4, 2, '4x2', '4x2'), ('4x4', 4, 4, '4x4', '4x4')]
 MIN = {2: 110, 4: 250}
 
@@ -62,7 +69,7 @@ def previews():
     for slug, *_ in SLUGS:
         for size, *_ in SIZES:
             for theme, dst in (('light', 'drawable-nodpi'), ('dark', 'drawable-night-nodpi')):
-                src = os.path.join(PREV, slug, 'android-%s-%s.png' % (size, theme))
+                src = os.path.join(PREV, PREVIEW_ALIAS.get(slug, slug), 'android-%s-%s.png' % (size, theme))
                 im = Image.open(src).convert('RGBA')
                 w, h = im.size
                 im = im.resize((w * 2 // 3, h * 2 // 3), Image.LANCZOS)  # 3x -> 2x
@@ -123,7 +130,7 @@ def receivers():
         lines.append('        WidgetSlug.%s to listOf(%s),' % (slug.upper(), names))
     lines += ['    )', '}']
     write('WidgetReceivers.kt', '\n'.join(lines), root=KT)
-    man = ['        <!-- Ana ekran widget\'lari (uretilmis: mobile/tool/gen_android_widgets_meta.py): 7 widget x 3 boyut. -->']
+    man = ['        <!-- Ana ekran widget\'lari (uretilmis: mobile/tool/gen_android_widgets_meta.py): 9 widget x 3 boyut. -->']
     for slug, cls, labels, descs in SLUGS:
         for size, cw, ch, _, suffix in SIZES:
             name = '%sWidget%sReceiver' % (cls, suffix)

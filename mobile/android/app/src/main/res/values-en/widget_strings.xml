@@ -15,6 +15,10 @@
     <string name="bw_desc_quickaccess">Shortcuts to frequent screens</string>
     <string name="bw_label_social">Social Summary</string>
     <string name="bw_desc_social">Message, notification and like counts</string>
+    <string name="bw_label_exams">Upcoming Exams</string>
+    <string name="bw_desc_exams">Your upcoming exams and dates</string>
+    <string name="bw_label_academic">Academic Calendar</string>
+    <string name="bw_desc_academic">Upcoming key academic dates</string>
     <string name="bw_signed_out_title">Sign in</string>
     <string name="bw_signed_out_sub">Open BÜ Kampüs</string>
 </resources>

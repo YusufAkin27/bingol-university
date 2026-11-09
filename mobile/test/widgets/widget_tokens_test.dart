@@ -288,6 +288,8 @@ void main() {
         'keyPoll': 'bu_widget_poll',
         'keyQuickAccess': 'bu_widget_quickaccess',
         'keySocial': 'bu_widget_social',
+        'keyExams': 'bu_widget_exams',
+        'keyAcademic': 'bu_widget_academic',
       };
       final contract = read('../design/widget-previews/DATA_CONTRACT.md');
       for (final e in keys.entries) {

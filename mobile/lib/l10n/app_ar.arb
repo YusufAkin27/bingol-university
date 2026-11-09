@@ -5057,5 +5057,35 @@
   "accReloginHint": "انتهت الجلسة. سجّل الدخول مجددًا: {mail}",
   "accBusy": "لا يمكن تبديل الحساب الآن. حاول مرة أخرى بعد قليل.",
   "accAccountNoName": "حساب",
-  "postPeekOpen": "فتح المنشور"
+  "postPeekOpen": "فتح المنشور",
+  "homeTodayPeekOpen": "فتح",
+  "homeTodayPeekHint": "فتح المعاينة",
+  "homeTodayPeekTime": "الوقت",
+  "homeTodayPeekRoom": "المكان",
+  "homeTodayPeekInstructor": "المحاضر",
+  "deptChatTag": "القسم",
+  "deptChatJoinRow": "انضم إلى مجموعة القسم: {name}",
+  "@deptChatJoinRow": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "clubAudienceLabel": "اقتراح النادي لأقسام",
+  "clubAudienceHint": "لم يتم الاختيار (اختياري)",
+  "clubAudienceSheetTitle": "لمن يُقترح هذا النادي؟",
+  "clubAudienceSheetHint": "يؤثر على الاقتراحات فقط، ويبقى النادي ظاهرا للجميع.",
+  "clubAudienceSearchHint": "ابحث عن كلية أو قسم",
+  "clubAudienceNoMatch": "لا توجد كلية أو قسم مطابق",
+  "clubAudienceRetry": "أعد المحاولة",
+  "clubAudienceClear": "مسح",
+  "clubAudienceExpand": "عرض الأقسام",
+  "clubAudienceCollapse": "إخفاء الأقسام",
+  "clubAudienceDeptCount": "{count} أقسام",
+  "clubAudienceSelected": "تم اختيار {count} هدف",
+  "clubAudienceDone": "تم ({count})",
+  "clubRecommendedTitle": "أندية مناسبة لقسمك",
+  "clubRecommendedAll": "جميع الأندية",
+  "eventRecommendedTitle": "فعاليات مناسبة لقسمك"
 }

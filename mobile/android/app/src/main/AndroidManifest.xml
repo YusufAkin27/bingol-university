@@ -108,7 +108,7 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
             </intent-filter>
         </receiver>
-        <!-- Ana ekran widget'lari (uretilmis: mobile/tool/gen_android_widgets_meta.py): 7 widget x 3 boyut. -->
+        <!-- Ana ekran widget'lari (uretilmis: mobile/tool/gen_android_widgets_meta.py): 9 widget x 3 boyut. -->
         <receiver android:name=".widgets.MenuWidgetReceiver" android:exported="false" android:label="@string/bw_label_menu">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/bw_menu_2x2_info"/>
@@ -192,6 +192,30 @@
         <receiver android:name=".widgets.SocialWidget4x4Receiver" android:exported="false" android:label="@string/bw_label_social">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/bw_social_4x4_info"/>
+        </receiver>
+        <receiver android:name=".widgets.ExamsWidgetReceiver" android:exported="false" android:label="@string/bw_label_exams">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/bw_exams_2x2_info"/>
+        </receiver>
+        <receiver android:name=".widgets.ExamsWidget4x2Receiver" android:exported="false" android:label="@string/bw_label_exams">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/bw_exams_4x2_info"/>
+        </receiver>
+        <receiver android:name=".widgets.ExamsWidget4x4Receiver" android:exported="false" android:label="@string/bw_label_exams">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/bw_exams_4x4_info"/>
+        </receiver>
+        <receiver android:name=".widgets.AcademicWidgetReceiver" android:exported="false" android:label="@string/bw_label_academic">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/bw_academic_2x2_info"/>
+        </receiver>
+        <receiver android:name=".widgets.AcademicWidget4x2Receiver" android:exported="false" android:label="@string/bw_label_academic">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/bw_academic_4x2_info"/>
+        </receiver>
+        <receiver android:name=".widgets.AcademicWidget4x4Receiver" android:exported="false" android:label="@string/bw_label_academic">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/bw_academic_4x4_info"/>
         </receiver>
 
         <!-- Widget yenileme: alarm (gece 00:05, 12:00/18:00, ders gecisleri) + acilis/guncelleme/saat degisimi. Kesin alarm izni YOK. -->
