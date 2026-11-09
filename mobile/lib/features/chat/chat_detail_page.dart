@@ -88,6 +88,9 @@ class _VideoPrepareDialog extends StatelessWidget {
 
 /// Sohbet detayı: mesaj geçmişi (imleçli), iyimser gönderim, yanıt/düzenle/sil/tepki, görsel gönderme.
 /// Gerçek zamanlı (STOMP) çalışır; bağlı değilken 4 sn'lik `after` yoklamasına düşer.
+/// Karşı tarafın çevrimiçi durumunu yenileme aralığı (yoklama turundan bağımsız).
+const Duration kChatPresenceInterval = Duration(seconds: 15);
+
 class ChatDetailPage extends StatefulWidget {
   const ChatDetailPage({
     super.key,
@@ -216,6 +219,15 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   final _rowKeys = <int, GlobalKey>{};
 
   Timer? _timer;
+
+  /// Karşı tarafın çevrimiçi durumu: yoklama turundan BAĞIMSIZ, kendi saatiyle yenilenir (gerçek zamanlı bağlıyken
+  /// tur ~20 sn'de bir çalışır ve presence yalnız 8. turda istenirdi: durum dakikalarca bayat kalıyordu).
+  Timer? _presenceTimer;
+  DateTime? _presenceAt;
+  static const presenceInterval = kChatPresenceInterval;
+
+  /// Bu süreden eski durum gösterilmez (yenileme sessizce başarısızsa "çevrimiçi" takılı kalmasın).
+  static const _presenceFresh = Duration(seconds: 60);
   int _tick = 0;
   int _seq = 0;
   int? get _myId => widget.session.userId;
@@ -479,6 +491,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     if (_conv['id'] is num) ActiveConversation.instance.leave(_cid);
     WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
+    _presenceTimer?.cancel();
     _deliveredTimer?.cancel();
     _typingOff?.cancel();
     _hiOff?.cancel();
@@ -515,9 +528,12 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     if (state == AppLifecycleState.resumed) {
       _startTimer();
       _poll(force: true);
+      _loadPresence();
     } else {
       _timer?.cancel();
       _timer = null;
+      _presenceTimer?.cancel();
+      _presenceTimer = null;
     }
   }
 
@@ -525,6 +541,14 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     _timer?.cancel();
     if (_leaving) return;
     _timer = Timer.periodic(_pollInterval, (_) => _poll());
+    _presenceTimer?.cancel();
+    if (_direct) {
+      _presenceTimer = Timer.periodic(presenceInterval, (_) {
+        // Üstte başka sayfa varken yoklama yok (pil/istek); geri dönünce sıradaki tur çalışır.
+        if (_route != null && !_route!.isCurrent) return;
+        _loadPresence();
+      });
+    }
   }
 
   // ---------- Yükleme ----------
@@ -666,6 +690,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     try {
       final p = await _api.get('/users/$pid/presence') as Map<String, dynamic>;
       // Değişmediyse yeniden kurma: bu setState tüm balonları da kuruyordu (A5-04).
+      _presenceAt = DateTime.now();
       final same = _presence != null && _sameContent(_presence!, p);
       if (mounted && !same) setState(() => _presence = p);
     } catch (_) {
@@ -867,7 +892,10 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       _rt.connected.listen((on) {
         if (!mounted) return;
         _rtOn = on;
-        if (on) _poll(force: true);
+        if (on) {
+          _poll(force: true);
+          _loadPresence(); // yeniden bağlanma: durum hemen tazelenir
+        }
       }),
       _rt.resync.listen((_) {
         _poll(force: true);
@@ -2145,6 +2173,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     if (_direct) {
       final p = _presence;
       if (p == null) return null;
+      // Ben çevrimdışıyken ya da son başarılı okuma eskiyse karşı tarafın "çevrimiçi" bilgisi bayattır: gösterme.
+      final at = _presenceAt;
+      if (!_api.connectivity.online || at == null || DateTime.now().difference(at) > _presenceFresh) return null;
       if (p['online'] == true) return l.chatDetailOnline;
       // "Son görülme" hiçbir kullanıcı için gösterilmez (kullanıcı kararı 2026-11-07); yalnız "Çevrimiçi".
       return null;

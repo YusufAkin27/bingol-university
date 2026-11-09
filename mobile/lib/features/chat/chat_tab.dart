@@ -65,6 +65,7 @@ class _ChatTabState extends State<ChatTab> {
   final _subs = <StreamSubscription<dynamic>>[];
   Timer? _badgeTimer;
   Timer? _reloadTimer;
+  Timer? _presenceTimer;
   int _filter = 0;
   final _deptEntryKey = GlobalKey<DepartmentChatEntryState>();
   String _query = '';
@@ -103,6 +104,12 @@ class _ChatTabState extends State<ChatTab> {
       ..add(_rt.resync.listen((_) => _scheduleReload()));
     _load();
     _refreshBadge();
+    // Birebir satırlardaki "çevrimiçi" noktası sunucudan gelir ve olay tetiklemez: görünürken 45 sn'de bir tazelenir.
+    _presenceTimer = Timer.periodic(const Duration(seconds: 45), (_) {
+      final st = WidgetsBinding.instance.lifecycleState;
+      if (!mounted || !TickerMode.valuesOf(context).enabled || (st != null && st != AppLifecycleState.resumed)) return;
+      if (!_loading && !_loadingMore) _load(silent: true);
+    });
   }
 
   @override
@@ -110,6 +117,7 @@ class _ChatTabState extends State<ChatTab> {
     widget.session.badges.conversationsDirty.removeListener(_scheduleReload);
     _badgeTimer?.cancel();
     _reloadTimer?.cancel();
+    _presenceTimer?.cancel();
     for (final s in _subs) {
       s.cancel();
     }
