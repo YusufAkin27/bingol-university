@@ -10,7 +10,8 @@ import '../../widgets/bu.dart';
 
 enum ClubBtnKind { neutral, danger, primary, ink }
 
-/// Diyalog/sheet düğmesi: 48 dp, 16 dp köşe, ortalanmış simge + etiket. Pasifken soluk.
+/// Diyalog/sheet düğmesi: ortak [BuButton] üstünde ince sarmalayıcı (imza korunur). neutral -> soft, danger -> danger,
+/// primary/ink -> primary. Yükseklik/köşe/yükleniyor durumu BuButton'dan gelir (özel ölçü yok).
 class ClubBtn extends StatelessWidget {
   const ClubBtn({super.key, required this.label, required this.onPressed, this.kind = ClubBtnKind.neutral, this.icon, this.busy = false});
 
@@ -22,58 +23,16 @@ class ClubBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
-    final (bg, fg) = switch (kind) {
-      ClubBtnKind.neutral => (t.sf2, t.ink),
-      ClubBtnKind.danger => (t.danger, t.onPr),
-      ClubBtnKind.primary => (t.pr, t.onPr),
-      ClubBtnKind.ink => (t.ink, t.bg),
-    };
-    final on = onPressed != null && !busy;
-    return Semantics(
-      button: true,
-      enabled: on,
+    return BuButton(
       label: label,
-      child: ExcludeSemantics(
-        child: BuPressable(
-          scale: .98,
-          enabled: on,
-          onTap: on
-              ? () {
-                  buHaptic(BuHaptic.selection);
-                  onPressed!();
-                }
-              : null,
-          child: Container(
-            constraints: const BoxConstraints(minHeight: 48),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: on || busy ? bg : bg.withValues(alpha: .45),
-              borderRadius: BorderRadius.circular(BuRadius.control),
-              border: kind == ClubBtnKind.neutral ? Border.all(color: t.bd) : null,
-            ),
-            alignment: Alignment.center,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (busy) ...[
-                  SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: fg)),
-                  const SizedBox(width: 8),
-                ] else if (icon != null) ...[
-                  Icon(icon, size: 17, color: fg),
-                  const SizedBox(width: 8),
-                ],
-                Flexible(
-                  child: Text(label,
-                      maxLines: 2,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.labelLarge!.copyWith(color: fg, fontWeight: FontWeight.w400)),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+      onPressed: onPressed,
+      icon: icon,
+      busy: busy,
+      kind: switch (kind) {
+        ClubBtnKind.neutral => BuButtonKind.soft,
+        ClubBtnKind.danger => BuButtonKind.danger,
+        ClubBtnKind.primary || ClubBtnKind.ink => BuButtonKind.primary,
+      },
     );
   }
 }

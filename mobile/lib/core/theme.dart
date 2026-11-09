@@ -94,13 +94,13 @@ class BuTokens extends ThemeExtension<BuTokens> {
     this.qrPaper = const Color(0xFFFFFFFF),
     this.shadow = const Color(0xFF09090B),
     this.navBase = const Color(0xFFFFFFFF),
-    this.navGlass = const Color(0x33FFFFFF),
+    this.navGlass = const Color(0xFFFFFFFF),
     this.navAccent = const Color(0xFF09090B),
     this.navAccentHi = const Color(0xFF09090B),
     this.navIconIdle = const Color(0xFF18181B),
     this.navTextIdle = const Color(0xFF18181B),
-    this.navBorder = const Color(0x14000000),
-    this.navGlow = const Color(0x1F000000),
+    this.navBorder = const Color(0xFFE4E4E7),
+    this.navGlow = const Color(0x00000000),
     this.tints = _tintsLight,
   });
 
@@ -189,16 +189,15 @@ class BuTokens extends ThemeExtension<BuTokens> {
   /// Gölge rengi.
   final Color shadow;
 
-  /// ALT NAVİGASYON "Soft Glow Premium" belirteçleri. Kırmızı YALNIZ alt çubukta kullanılır (kullanıcı kararı
-  /// 2026-11-07); uygulamanın başka yerinde `nav*` kırmızı belirteçleri kullanılmaz.
-  final Color navBase; // çubuk zemini (opak yedek, nokta halkası)
-  final Color navGlass; // cam yüzey (yarı saydam)
+  /// ALT GEZİNME belirteçleri (monokrom): light'ta opak beyaz, dark'ta opak koyu yüzey; kırmızı/cam/ışık YOK.
+  final Color navBase; // çubuk zemini (opak) ve nokta halkası
+  final Color navGlass; // eski ad; navBase ile aynı opak renk (saydamlık yok)
   final Color navAccent; // aktif simge/etiket + Paylaş düğmesi
   final Color navAccentHi; // okunmamış noktası vurgusu
   final Color navIconIdle; // pasif simge
   final Color navTextIdle; // pasif etiket
   final Color navBorder; // ince dış kenarlık
-  final Color navGlow; // yumuşak kırmızı ışık yansıması
+  final Color navGlow; // kullanılmaz (saydam); eski belirteç
 
   /// Kategori renkleri (kulüp/ders/haber türü): 6 çift, indeksler [BuTintId]. [tint] ile `id` bazlı döngüsel seçilir.
   /// Değerler yukarıdaki ailelerden gelir: marka, mavi, yeşil, amber, su mavisi, nötr (mor/turkuaz/pembe yok).
@@ -268,11 +267,11 @@ class BuTokens extends ThemeExtension<BuTokens> {
     onWarnSoft: Color(0xFF7A4F10),
     shadow: Color(0xFF09090B),
     navBase: Color(0xFFFFFFFF),
-    navGlass: Color(0x33FFFFFF),
-    navIconIdle: Color(0xFF18181B),
-    navTextIdle: Color(0xFF18181B),
-    navBorder: Color(0x14000000),
-    navGlow: Color(0x1F000000),
+    navGlass: Color(0xFFFFFFFF),
+    navIconIdle: Color(0xFF52525B),
+    navTextIdle: Color(0xFF52525B),
+    navBorder: Color(0xFFE4E4E7),
+    navGlow: Color(0x00000000),
   );
 
   /// PREMIUM BLACK (koyu, varsayılan): zemin #09090B, kartlar #141416, ikincil #1C1C1F, yükseltilmiş #252528;
@@ -313,7 +312,15 @@ class BuTokens extends ThemeExtension<BuTokens> {
     warnSoft: Color(0xFF3A2B0E),
     onWarnSoft: Color(0xFFFFD98F),
     shadow: Color(0xFF000000),
-    navGlass: Color(0x8CFFFFFF), // koyu temada %20 cam, koyu simgeyi okunmaz yapar: okunurluk icin %55 kalir
+    // Alt cubuk koyu temada opak koyu yuzey; secili acik, pasif soluk.
+    navBase: Color(0xFF141416),
+    navGlass: Color(0xFF141416),
+    navAccent: Color(0xFFFAFAFA),
+    navAccentHi: Color(0xFFFAFAFA),
+    navIconIdle: Color(0xFFA1A1AA),
+    navTextIdle: Color(0xFFA1A1AA),
+    navBorder: Color(0xFF303034),
+    navGlow: Color(0x00000000),
     tints: _tintsDark,
   );
 

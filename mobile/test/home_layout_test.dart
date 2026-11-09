@@ -163,19 +163,32 @@ void main() {
       expect(await HomeLayoutStore.load(7), v);
       expect(await HomeLayoutStore.load(8), HomeLayout.defaults);
       await HomeLayoutStore.save(HomeLayout.defaults, 7);
-      expect(await st.read(key: HomeLayoutStore.key), isNull, reason: 'varsayilan duzen kayit tutmaz');
-      await st.write(key: HomeLayoutStore.key, value: '{bozuk json');
+      expect(await st.read(key: HomeLayoutStore.keyFor(7)), isNull, reason: 'varsayilan duzen kayit tutmaz');
+      await st.write(key: HomeLayoutStore.keyFor(7), value: '{bozuk json');
       expect(await HomeLayoutStore.load(7), HomeLayout.defaults);
+    });
+
+    test('hesap bazli anahtar (home_layout_<uid>) ve eski tek anahtardan tasima', () async {
+      final v = HomeLayout.defaults.setVisible(HomeSection.menu, false);
+      await HomeLayoutStore.save(v, 7);
+      expect(await st.read(key: 'home_layout_7'), isNotNull);
+      expect(await st.read(key: 'home_layout_8'), isNull);
+      await HomeLayoutStore.clear();
+      await st.write(key: HomeLayoutStore.key, value: jsonEncode(v.toJson(5)));
+      expect(await HomeLayoutStore.load(6), HomeLayout.defaults);
+      expect(await HomeLayoutStore.load(5), v);
+      expect(await st.read(key: 'home_layout_5'), isNotNull);
+      expect(await st.read(key: HomeLayoutStore.key), isNull);
     });
 
     test('cikis: kullaniciya ozel duzen silinir (registerUserDataCleaners)', () async {
       final api = ApiClient();
       registerUserDataCleaners(api);
       await HomeLayoutStore.save(HomeLayout.defaults.setVisible(HomeSection.menu, false), 7);
-      expect(await st.read(key: HomeLayoutStore.key), isNotNull);
+      expect(await st.read(key: HomeLayoutStore.keyFor(7)), isNotNull);
       await api.setTokens(null);
       await Future<void>.delayed(const Duration(milliseconds: 100));
-      expect(await st.read(key: HomeLayoutStore.key), isNull);
+      expect(await st.read(key: HomeLayoutStore.keyFor(7)), isNull);
     });
   });
 
@@ -327,7 +340,7 @@ void main() {
       await settle(tester, const Duration(seconds: 2));
       expect(find.text('Günün menüsü'), findsOneWidget);
       await unmount(tester);
-      await st.write(key: HomeLayoutStore.key, value: 'bu json degil');
+      await st.write(key: HomeLayoutStore.keyFor(1), value: 'bu json degil');
       final b2 = be();
       await tester.pumpWidget(buildApp(home(b2)));
       await settle(tester, const Duration(seconds: 2));
@@ -353,17 +366,17 @@ void main() {
       // Menu'yu yukari tasi -> kayit: menu en basta.
       await tester.tap(up('Günün menüsü'));
       await settle(tester, const Duration(milliseconds: 600));
-      final saved1 = jsonDecode((await st.read(key: HomeLayoutStore.key))!) as Map;
+      final saved1 = jsonDecode((await st.read(key: HomeLayoutStore.keyFor(1)))!) as Map;
       expect((saved1['order'] as List).take(3), ['menu', 'quickAccess', 'suggestions']);
       // Menu'yu gizle.
       await tester.tap(rowSwitch('Günün menüsü'));
       await settle(tester, const Duration(milliseconds: 600));
-      final saved2 = jsonDecode((await st.read(key: HomeLayoutStore.key))!) as Map;
+      final saved2 = jsonDecode((await st.read(key: HomeLayoutStore.keyFor(1)))!) as Map;
       expect(saved2['hidden'], contains('menu'));
       // Varsayilana don: kayit silinir.
       await tester.tap(find.text('Varsayılana dön'));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(await st.read(key: HomeLayoutStore.key), isNull);
+      expect(await st.read(key: HomeLayoutStore.keyFor(1)), isNull);
       await tester.tap(find.text('Bitti'));
       await settle(tester, const Duration(milliseconds: 700));
       expect(find.byType(HomeLayoutPage), findsNothing);
@@ -465,7 +478,7 @@ void main() {
       await tester.tap(poolRow('Sohbet'));
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.text('5/5'), findsOneWidget);
-      final j = jsonDecode((await st.read(key: HomeLayoutStore.key))!) as Map;
+      final j = jsonDecode((await st.read(key: HomeLayoutStore.keyFor(1)))!) as Map;
       expect(j['sOn'], ['news', 'events', 'schedule', 'more', 'chat']);
       await tester.tap(find.text('Bitti').last);
       await settle(tester, const Duration(milliseconds: 700));

@@ -167,24 +167,25 @@ void main() {
   });
 
   group('malzeme', () {
-    testWidgets('cam: BackdropFilter yalniz cubuk alaninda (ClipRRect 34), opak yedekte yok', (tester) async {
+    testWidgets('yuzey OPAK ve duz: light beyaz, dark koyu; BackdropFilter/gradient/golge yok', (tester) async {
       useScreen(tester, kPhoneMedium);
-      await tester.pumpWidget(_app(nav()));
-      await tester.pump(settle);
-      final pill = find.byKey(const ValueKey('nav-pill'));
-      final bf = find.descendant(of: pill, matching: find.byType(BackdropFilter));
-      expect(bf, findsOneWidget);
-      expect(tester.getRect(bf), tester.getRect(pill));
-      final clip = tester.widget<ClipRRect>(find.descendant(of: pill, matching: find.byType(ClipRRect)));
-      expect(clip.borderRadius, BorderRadius.circular(34));
-      expect(find.byType(RepaintBoundary), findsWidgets);
-
-      await tester.pumpWidget(_app(nav(glass: false)));
-      await tester.pump(settle);
-      expect(find.descendant(of: pill, matching: find.byType(BackdropFilter)), findsNothing);
-      await tester.pumpWidget(_app(nav(), highContrast: true));
-      await tester.pump(settle);
-      expect(find.descendant(of: pill, matching: find.byType(BackdropFilter)), findsNothing);
+      for (final br in Brightness.values) {
+        for (final hc in [false, true]) {
+          await tester.pumpWidget(_app(nav(), brightness: br, highContrast: hc));
+          await tester.pump(settle);
+          final pill = find.byKey(const ValueKey('nav-pill'));
+          expect(find.descendant(of: pill, matching: find.byType(BackdropFilter)), findsNothing);
+          final box = tester.widget<DecoratedBox>(find.descendant(of: pill, matching: find.byType(DecoratedBox)).first).decoration as BoxDecoration;
+          expect(box.color!.a, 1.0);
+          expect(box.gradient, isNull);
+          expect(box.boxShadow, isNull);
+          if (br == Brightness.light) {
+            expect(box.color, const Color(0xFFFFFFFF));
+          } else {
+            expect(box.color!.computeLuminance(), lessThan(.2));
+          }
+        }
+      }
     });
 
     testWidgets('kenarlik 0.8 dp, belirtec renginde', (tester) async {
@@ -350,7 +351,7 @@ void main() {
       expect(haptics, contains('HapticFeedbackType.mediumImpact'));
     });
 
-    testWidgets('kirmizi daire, beyaz +, onerilen golge (kirmizi %22, blur 18, spread 1, offset 0,4)', (tester) async {
+    testWidgets('duz daire (navAccent), + onPr renginde, golge yok', (tester) async {
       useScreen(tester, kPhoneMedium);
       for (final br in Brightness.values) {
         await tester.pumpWidget(_app(nav(), brightness: br));
@@ -359,13 +360,9 @@ void main() {
         final t = br == Brightness.dark ? BuTokens.dark : BuTokens.light;
         expect(deco.shape, BoxShape.circle);
         expect(deco.color, t.navAccent);
-        final sh = deco.boxShadow!.single;
-        expect(sh.blurRadius, 18);
-        expect(sh.spreadRadius, 1);
-        expect(sh.offset, const Offset(0, 4));
-        expect(sh.color.a, closeTo(.22, .01));
+        expect(deco.boxShadow, isNull);
         final icon = tester.widget<Icon>(find.descendant(of: find.byKey(const ValueKey('nav-publish')), matching: find.byType(Icon)));
-        expect(icon.color, t.onMedia);
+        expect(icon.color, t.onPr);
       }
     });
   });
@@ -422,22 +419,18 @@ void main() {
     for (final dark in [false, true]) {
       final t = dark ? BuTokens.dark : BuTokens.light;
       test('${dark ? "koyu" : "acik"}: belirtilen onaltilik degerler', () {
-        expect(t.navAccent, const Color(0xFF09090B)); // kirmizi YOK (kullanici karari 2026-11-07, WhatsApp)
-        // Alt cubuk iki temada da beyaz (kullanici karari 2026-11-07): kirmizi parlama yok, hafif gri golge.
-        expect(t.navBorder, const Color(0x14000000));
-        // Cam yari saydam (kullanici karari 2026-11-08: alttaki renkler gorunsun); pasif renkler okunurluk icin koyulastirildi.
-        expect(t.navGlass, dark ? const Color(0x8CFFFFFF) : const Color(0x33FFFFFF));
-        expect(t.navTextIdle, const Color(0xFF18181B));
-        expect(t.navIconIdle, const Color(0xFF18181B));
-        expect(t.navBase, const Color(0xFFFFFFFF));
-        expect(t.navAccentHi, const Color(0xFF09090B));
+        // Monokrom: secili = ink tonu, opak yuzey, kirmizi/cam/isik yok.
+        expect(t.navAccent, dark ? const Color(0xFFFAFAFA) : const Color(0xFF09090B));
+        expect(t.navBase, dark ? const Color(0xFF141416) : const Color(0xFFFFFFFF));
+        expect(t.navGlass, t.navBase);
+        expect(t.navGlow.a, 0);
+        expect(t.navAccentHi, t.navAccent);
       });
-      test('${dark ? "koyu" : "acik"}: cam ustunde pasif simge >= 3, pasif yazi >= 4.5, aktif >= 3', () {
-        final glass = Color.alphaBlend(t.navGlass, dark ? const Color(0xFF000000) : const Color(0xFFFFFFFF));
-        expect(p00Contrast(t.navIconIdle, glass), greaterThanOrEqualTo(3));
-        expect(p00Contrast(t.navTextIdle, glass), greaterThanOrEqualTo(4.5));
-        expect(p00Contrast(t.navAccent, glass), greaterThanOrEqualTo(3));
-        expect(p00Contrast(t.onMedia, t.navAccent), greaterThanOrEqualTo(3));
+      test('${dark ? "koyu" : "acik"}: opak yuzeyde pasif simge >= 3, pasif yazi >= 4.5, aktif >= 3', () {
+        expect(p00Contrast(t.navIconIdle, t.navBase), greaterThanOrEqualTo(3));
+        expect(p00Contrast(t.navTextIdle, t.navBase), greaterThanOrEqualTo(4.5));
+        expect(p00Contrast(t.navAccent, t.navBase), greaterThanOrEqualTo(3));
+        expect(p00Contrast(t.onPr, t.navAccent), greaterThanOrEqualTo(3));
       });
     }
   });

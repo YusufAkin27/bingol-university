@@ -1,5 +1,3 @@
-import 'dart:ui' show ImageFilter;
-
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 
@@ -11,20 +9,16 @@ import '../../core/theme/bu_sizes.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/bu_pressable.dart' show BuHaptic, BuPressable, buHaptic;
 
-/// Alt gezinme "SOFT GLOW PREMIUM": ekranın altında yüzen yatay kapsül (yükseklik 68, yan boşluk 16, köşe 34).
-/// Koyu yarı saydam cam yüzey (yalnız çubuk alanında, sigma 10), ince kırmızımsı kenarlık (0.8) ve çok hafif kırmızı
-/// ışık yansıması. Beş eşit bölüm: Ana Sayfa, Keşfet, ortada Paylaş ([PremiumCreateButton], 58 dp, çubuğun üstünden 8 dp
-/// taşar), Sohbet (okunmamış varken kırmızı nokta), Profil (outline kullanıcı simgesi; fotoğraf DEĞİL).
+/// Alt gezinme (monokrom): ekranın altında yüzen yatay kapsül (yükseklik 68, yan boşluk 16, köşe 34). Yüzey OPAK:
+/// light'ta beyaz, dark'ta koyu yüzey; ince kenarlık, blur/gradient/gölge/ışık YOK. Beş eşit bölüm: Ana Sayfa, Keşfet,
+/// ortada Paylaş ([PremiumCreateButton], 58 dp, çubuğun üstünden 8 dp taşar), Sohbet (okunmamış varken nokta), Profil
+/// (outline kullanıcı simgesi; fotoğraf DEĞİL).
 ///
-/// Kırmızı YALNIZ bu çubukta kullanılır (kullanıcı kararı 2026-11-07; renkler `BuTokens.nav*`). Aktif sekme: kırmızı
-/// simge + etiket, altında ince kısa çizgi ve simgenin arkasında hafif kırmızı yumuşak zemin; pasif simgede ışık YOK.
+/// Aktif sekme: tam kontrast simge (`navAccent`: light'ta siyah, dark'ta beyaz), altında kısa çizgi ve simgenin arkasında
+/// düz `navAccent` %8 zemin (sekmeler arasında 220 ms `easeOutCubic` ile kayar, ziplama yok); pasif simge soluk gri.
 ///
-/// **Kayan zemin kararı:** eski "kayan hap" korunur ama yeni dile uyarlandı: aktif simgenin arkasında çok hafif
-/// kırmızı yumuşak zemin/ışık sekmeler arasında 220 ms `easeOutCubic` ile kayar (aşım/ziplama yok, sürükle-esnet
-/// kaldırıldı). Sayfa kaydırma ve sekme durumu korunması kabukta (`app_shell.dart`) kalır, burada değişmedi.
-///
-/// Klavye açılınca çubuk gizlenir (içeriği/alt eylem çubuğunu itmez). Tam ekran videoda (`immersive`) her zaman koyu
-/// palet. "Animasyonları azalt": tüm geçişler anlıktır. Yazı ölçeği etiketlerde en çok 1.15.
+/// Klavye açılınca çubuk gizlenir. Tam ekran videoda (`immersive`) her zaman koyu palet. "Animasyonları azalt":
+/// tüm geçişler anlıktır. Yazı ölçeği etiketlerde en çok 1.15.
 class BukampusBottomNavigationBar extends StatelessWidget {
   const BukampusBottomNavigationBar({
     super.key,
@@ -49,7 +43,7 @@ class BukampusBottomNavigationBar extends StatelessWidget {
   /// Tam ekran video (Reels) üstünde: koyu palet.
   final bool immersive;
 
-  /// Cam (bulanıklık) açık mı; false: opak yedek.
+  /// Eski parametre: yüzey artık her zaman opaktır (yok sayılır).
   final bool glass;
 
   /// Profil sekmesinin simgesi yerine kişinin fotoğrafı (boyut verilir); null ise çizgi kullanıcı simgesi.
@@ -89,9 +83,8 @@ class BukampusBottomNavigationBar extends StatelessWidget {
         _ => l.navProfile,
       };
 
-  /// Cam yerine opak yüzey: kapalı anahtar ya da yüksek karşıtlık.
-  static bool opaqueFallback(BuildContext context, {bool glass = true}) =>
-      !glass || (MediaQuery.maybeOf(context)?.highContrast ?? false);
+  /// Yüzey her zaman opaktır (geriye uyum için korunur).
+  static bool opaqueFallback(BuildContext context, {bool glass = true}) => true;
 
   @override
   Widget build(BuildContext context) {
@@ -175,35 +168,16 @@ class BukampusNavItem {
   final bool hasBadge;
 }
 
-/// Gezinme çubuğunun gölge/ışık tanımları (tek yer): çubuk dış yansıması, Paylaş arkası ışık, aktif sekme zemini.
+/// Gezinme çubuğunun düz tanımları (gölge/ışık YOK): aktif sekme zemini.
 abstract final class NavigationGlowDecoration {
-  static bool _dark(BuTokens t) => t.navBase.computeLuminance() < .5;
-
-  /// Çubuğun çevresinde çok hafif kırmızı dış yansıma + zemine oturan yumuşak gölge.
-  static List<BoxShadow> bar(BuTokens t) => [
-        BoxShadow(color: t.navGlow, blurRadius: 22, offset: const Offset(0, 4)),
-        BoxShadow(color: t.shadow.withValues(alpha: _dark(t) ? .28 : .07), blurRadius: 16, offset: const Offset(0, 6)),
-      ];
-
-  /// Paylaş düğmesinin arkasındaki küçük kırmızı ışık (basılıyken biraz güçlenir).
-  static List<BoxShadow> button(BuTokens t, {bool pressed = false}) => [
-        BoxShadow(
-          color: t.navAccent.withValues(alpha: pressed ? .36 : .22),
-          blurRadius: 18,
-          spreadRadius: 1,
-          offset: const Offset(0, 4),
-        ),
-      ];
-
-  /// Aktif sekmenin simgesi arkasındaki çok hafif yumuşak zemin + ışık (pasif simgede YOK).
+  /// Aktif sekmenin simgesi arkasındaki düz yumuşak zemin (pasif simgede YOK).
   static BoxDecoration activeTab(BuTokens t) => BoxDecoration(
-        color: t.navAccent.withValues(alpha: _dark(t) ? .10 : .07),
+        color: t.navAccent.withValues(alpha: .08),
         borderRadius: BorderRadius.circular(22),
-        boxShadow: [BoxShadow(color: t.navGlow, blurRadius: 14)],
       );
 }
 
-/// Cam kapsül: yalnız çubuk alanında hafif bulanıklık (sigma 10), yarı saydam yüzey, ince kenarlık, üstte hafif yansıma.
+/// Opak kapsül: düz yüzey + ince kenarlık (blur, gradient, gölge yok).
 class _GlassSurface extends StatelessWidget {
   const _GlassSurface({super.key, required this.tokens, required this.opaque});
 
@@ -213,70 +187,15 @@ class _GlassSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = tokens;
-    final r = BorderRadius.circular(BukampusBottomNavigationBar.radius);
-    // Zemin rengi ve parlama AYRI katman: BoxDecoration'da gradient varken color çizilmez (shader rengi ezer);
-    // tek katmanda cam çubuk beyaz değil şeffaf koyu görünüyordu.
-    final surface = DecoratedBox(
+    return DecoratedBox(
       decoration: BoxDecoration(
-        borderRadius: r,
-        color: opaque ? t.navBase : t.navGlass,
+        borderRadius: BorderRadius.circular(BukampusBottomNavigationBar.radius),
+        color: t.navBase,
         border: Border.all(color: t.navBorder, width: BukampusBottomNavigationBar.borderWidth),
       ),
-      child: opaque
-          ? const SizedBox.expand()
-          : DecoratedBox(
-              decoration: BoxDecoration(
-                borderRadius: r,
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  stops: const [0, .5],
-                  colors: [t.onMedia.withValues(alpha: t.navBase.computeLuminance() < .5 ? .05 : .22), t.onMedia.withValues(alpha: 0)],
-                ),
-              ),
-              child: const SizedBox.expand(),
-            ),
-    );
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        // Dış ışık/gölge yalnız çubuğun DIŞINDA çizilir: yarı saydam camın içini kırmızıya boyamaz.
-        Positioned.fill(
-          child: ClipPath(
-            clipper: const _OutsideRRectClipper(BukampusBottomNavigationBar.radius),
-            child: DecoratedBox(decoration: BoxDecoration(borderRadius: r, boxShadow: NavigationGlowDecoration.bar(t))),
-          ),
-        ),
-        Positioned.fill(child: _glass(r, surface)),
-      ],
+      child: const SizedBox.expand(),
     );
   }
-
-  Widget _glass(BorderRadius r, Widget surface) {
-    return ClipRRect(
-      borderRadius: r,
-      child: opaque ? surface : BackdropFilter(filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18), child: surface),
-    );
-  }
-}
-
-/// Yuvarlatılmış dikdörtgenin dışını bırakan kırpıcı (gölge iç yüzeyi lekelemesin).
-class _OutsideRRectClipper extends CustomClipper<Path> {
-  const _OutsideRRectClipper(this.radius);
-
-  final double radius;
-
-  @override
-  Path getClip(Size size) {
-    const pad = 80.0;
-    return Path()
-      ..fillType = PathFillType.evenOdd
-      ..addRect(Rect.fromLTRB(-pad, -pad, size.width + pad, size.height + pad))
-      ..addRRect(RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(radius)));
-  }
-
-  @override
-  bool shouldReclip(_OutsideRRectClipper old) => old.radius != radius;
 }
 
 /// Sekme hücreleri + aktif simge arkasında kayan yumuşak zemin.
@@ -474,7 +393,7 @@ class _NavTab extends StatelessWidget {
   }
 }
 
-/// Sohbet simgesinin sağ üstündeki küçük kırmızı nokta (yalnız okunmamış varken oluşturulur).
+/// Sohbet simgesinin sağ üstündeki küçük nokta (yalnız okunmamış varken oluşturulur).
 class _UnreadDot extends StatelessWidget {
   const _UnreadDot({required this.tokens});
 
@@ -504,8 +423,8 @@ class _UnreadDot extends StatelessWidget {
   }
 }
 
-/// Ortadaki Paylaş düğmesi: 58 dp kırmızı daire, 30 dp beyaz "+", arkasında hafif kırmızı ışık. Basılınca 0.95'e
-/// küçülür ve ışık biraz güçlenir, bırakınca normale döner; dokunuşta orta şiddette titreşim. Zıplama yok.
+/// Ortadaki Paylaş düğmesi: 58 dp düz `navAccent` daire, 30 dp "+" (gölge yok). Basılınca 0.95'e
+/// küçülür, bırakınca normale döner; dokunuşta orta şiddette titreşim. Zıplama yok.
 class PremiumCreateButton extends StatefulWidget {
   const PremiumCreateButton({super.key, required this.tokens, required this.onPressed});
 
@@ -559,12 +478,11 @@ class _PremiumCreateButtonState extends State<PremiumCreateButton> {
                   decoration: BoxDecoration(
                     color: t.navAccent,
                     shape: BoxShape.circle,
-                    boxShadow: NavigationGlowDecoration.button(t, pressed: pressed),
                   ),
                   child: SizedBox(
                     width: PremiumCreateButton.size,
                     height: PremiumCreateButton.size,
-                    child: Center(child: Icon(BuIcons.plus, size: PremiumCreateButton.iconSize, color: t.onMedia)),
+                    child: Center(child: Icon(BuIcons.plus, size: PremiumCreateButton.iconSize, color: t.onPr)),
                   ),
                 ),
               ),

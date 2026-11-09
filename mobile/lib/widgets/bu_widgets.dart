@@ -547,7 +547,7 @@ class BuButton extends StatelessWidget {
     final (bg, fg, side) = switch (kind) {
       BuButtonKind.primary => disabled && background == null ? (t.bd, t.mutSoft, BorderSide.none) : (background ?? t.pr, t.onPr, BorderSide.none),
       BuButtonKind.soft => (t.soft, t.onSoft, BorderSide.none),
-      BuButtonKind.outline => (Colors.transparent, t.ink, BorderSide(color: t.bd)),
+      BuButtonKind.outline => (Colors.transparent, t.ink, BorderSide(color: t.bdStrong)),
       BuButtonKind.text => (Colors.transparent, t.ink, BorderSide.none),
       BuButtonKind.danger => disabled ? (t.bd, t.mutSoft, BorderSide.none) : (cs.error, cs.onError, BorderSide.none),
     };
