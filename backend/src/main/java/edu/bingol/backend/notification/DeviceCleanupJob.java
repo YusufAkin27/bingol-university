@@ -22,9 +22,21 @@ public class DeviceCleanupJob {
         this.ttlDays = ttlDays;
     }
 
+    /** Coklu ornek kilidi; yoksa (testler) eski davranis. */
+    private edu.bingol.backend.config.SchedulerLock lock;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setLock(edu.bingol.backend.config.SchedulerLock lock) {
+        this.lock = lock;
+    }
+
     @Scheduled(cron = "${app.push.device-cleanup-cron:0 0 4 * * *}", zone = "Europe/Istanbul")
     public void scheduled() {
-        run(Instant.now());
+        if (lock == null) {
+            run(Instant.now());
+        } else {
+            lock.tryRunOrLocal("device-cleanup", java.time.Duration.ofMinutes(30), () -> run(Instant.now()));
+        }
     }
 
     /** @return silinen cihaz sayisi; hata cagirana sizmaz. */

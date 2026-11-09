@@ -28,11 +28,24 @@ public class MediaOrphanSweeper {
         this.props = props;
     }
 
+    /** Coklu ornek kilidi (DATABASE.md sorgu kurali 9.4); yoksa (testler/elle kurulum) eski davranis: kilitsiz calisir. */
+    private edu.bingol.backend.config.SchedulerLock lock;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setLock(edu.bingol.backend.config.SchedulerLock lock) {
+        this.lock = lock;
+    }
+
     @Scheduled(cron = "${app.media.sweep-cron:0 30 3 * * *}", zone = "Europe/Istanbul")
     public void scheduled() {
-        if (props.sweepEnabled()) {
-            int n = sweepOnce();
-            log.info("Medya yetim temizligi: {} dosya silindi", n);
+        if (!props.sweepEnabled()) {
+            return;
+        }
+        Runnable job = () -> log.info("Medya yetim temizligi: {} dosya silindi", sweepOnce());
+        if (lock == null) {
+            job.run();
+        } else {
+            lock.tryRunOrLocal("media-orphan-sweep", java.time.Duration.ofMinutes(60), job); // iki ornek ayni dosyalari silmesin
         }
     }
 

@@ -239,4 +239,13 @@ public interface UserEventRepository extends JpaRepository<UserEvent, Long> {
             LIMIT :lim
             """, nativeQuery = true)
     List<UserEvent> search(@Param("pattern") String pattern, @Param("lim") int limit);
+
+    /** Onerilen kulup etkinlikleri: verilen (zaten ACTIVE + PUBLIC dogrulanmis) kuluplerin yaklasan ACTIVE etkinlikleri. */
+    @Query("""
+            SELECT e FROM UserEvent e
+            WHERE e.status = :active AND e.endsAt >= :now AND e.communityId IN :ids
+            ORDER BY e.startsAt, e.id
+            """)
+    List<UserEvent> upcomingOfClubs(@Param("active") UserEvent.Status active, @Param("now") Instant now,
+                                    @Param("ids") java.util.Collection<Long> ids, Pageable page);
 }

@@ -25,6 +25,22 @@ import org.springframework.stereotype.Component;
 @Component
 public class DeletedMessageRetention {
 
+    /** Coklu ornek kilidi (DATABASE.md sorgu kurali 9.4); yoksa (testler/elle kurulum) eski davranis: kilitsiz calisir. */
+    private edu.bingol.backend.config.SchedulerLock lock;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setLock(edu.bingol.backend.config.SchedulerLock lock) {
+        this.lock = lock;
+    }
+
+    private void locked(String name, int minutes, Runnable job) {
+        if (lock == null) {
+            job.run();
+        } else {
+            lock.tryRunOrLocal(name, java.time.Duration.ofMinutes(minutes), job);
+        }
+    }
+
     private static final Logger log = LoggerFactory.getLogger(DeletedMessageRetention.class);
 
     static final String CHUNK_SQL = "DELETE FROM message WHERE id IN (SELECT id FROM message "
@@ -50,6 +66,10 @@ public class DeletedMessageRetention {
     }
 
     @Scheduled(cron = "${app.chat.deleted-retention-cron:0 40 3 * * *}", zone = "Europe/Istanbul")
+    public void scheduledPurge() {
+        locked("deleted-message-retention", 60, this::purge);
+    }
+
     public void purge() {
         if (retentionDays == 0) {
             return;

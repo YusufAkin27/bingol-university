@@ -16,6 +16,22 @@ import org.springframework.stereotype.Component;
 @Component
 public class ClubExtrasMaintenance {
 
+    /** Coklu ornek kilidi (DATABASE.md sorgu kurali 9.4); yoksa (testler/elle kurulum) eski davranis: kilitsiz calisir. */
+    private edu.bingol.backend.config.SchedulerLock lock;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setLock(edu.bingol.backend.config.SchedulerLock lock) {
+        this.lock = lock;
+    }
+
+    private void locked(String name, int minutes, Runnable job) {
+        if (lock == null) {
+            job.run();
+        } else {
+            lock.tryRunOrLocal(name, java.time.Duration.ofMinutes(minutes), job);
+        }
+    }
+
     private static final Logger log = LoggerFactory.getLogger(ClubExtrasMaintenance.class);
 
     private final RoomConversations rooms;
@@ -27,16 +43,23 @@ public class ClubExtrasMaintenance {
     }
 
     @Scheduled(fixedDelayString = "${app.chat.room-purge-ms:300000}", initialDelayString = "${app.chat.room-purge-ms:300000}")
+    public void scheduledRun() {
+        locked("club-extras-maintenance", 10, this::run);
+    }
+
     public void run() {
         try {
             List<Long> ids = jdbc.queryForList("""
                     SELECT l.ref_id FROM chat_room_link l JOIN community c ON c.id = l.ref_id
                     WHERE l.kind = 'COMMUNITY' AND l.closed = FALSE AND c.status <> 'ACTIVE'
+                    LIMIT 200
                     """, Long.class);
             for (Long id : ids) {
                 rooms.closeRoom(RoomKind.COMMUNITY, id);
             }
-            jdbc.update("DELETE FROM club_join_answer WHERE user_id IN (SELECT id FROM app_user WHERE status = 'DELETED')");
+            // tur basina en cok 200 satir; kalani sonraki turda
+            jdbc.update("DELETE FROM club_join_answer WHERE id IN (SELECT a.id FROM club_join_answer a "
+                    + "WHERE a.user_id IN (SELECT id FROM app_user WHERE status = 'DELETED') LIMIT 200)");
         } catch (RuntimeException e) {
             log.warn("Kulup bakim gorevi basarisiz: {}", e.toString());
         }

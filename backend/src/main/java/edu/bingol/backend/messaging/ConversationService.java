@@ -824,7 +824,8 @@ public class ConversationService {
             var room = roomOf.get(c.getId());
             boolean club = room != null && room.getKind() == edu.bingol.backend.messaging.room.RoomKind.COMMUNITY;
             boolean event = room != null && room.getKind() == edu.bingol.backend.messaging.room.RoomKind.EVENT;
-            String type = club ? "CLUB" : event ? "EVENT" : c.getType().name();
+            boolean dept = room != null && room.getKind() == edu.bingol.backend.messaging.room.RoomKind.DEPARTMENT;
+            String type = club ? "CLUB" : event ? "EVENT" : dept ? "DEPARTMENT" : c.getType().name();
             // Golge engel (T-028): `blocked` yalniz ENGELLEYEN tarafta true; engellenen taraf bunu goremez
             boolean iBlockedPeer = direct && peerId != null && related.contains(peerId) && blocks.hasBlocked(me, peerId);
             // C1: oda moderatoru/organizatoru ya da grup yoneticisi baskasinin mesajini silebilir; birebirde yok
