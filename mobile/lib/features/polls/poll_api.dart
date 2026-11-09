@@ -69,6 +69,7 @@ class PollApi {
     bool allowChangeVote = true,
     String showResults = 'ALWAYS',
     bool notify = true,
+    String? idempotencyKey,
   }) async {
     final r = await session.api.post('/polls', {
       'title': title.trim(),
@@ -83,7 +84,7 @@ class PollApi {
       'showResults': showResults,
       'notify': notify,
       'closesAt': pollIstanbulIso(closesAt),
-    });
+    }, true, idempotencyKey == null ? null : {'Idempotency-Key': idempotencyKey});
     return Poll.fromJson(r as Map<String, dynamic>?);
   }
 }

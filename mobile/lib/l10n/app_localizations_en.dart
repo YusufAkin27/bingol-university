@@ -4966,6 +4966,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postComposeShared => 'Shared';
 
   @override
+  String get g2PostQueued => 'Post queued';
+
+  @override
+  String g2PostUploading(String pct) {
+    return 'Uploading post $pct';
+  }
+
+  @override
+  String get g2PostWaiting => 'Waiting for connection, will continue when back';
+
+  @override
+  String get g2PostPublishing => 'Posting';
+
+  @override
+  String get g2PostFailed => 'Could not post';
+
+  @override
+  String get g2PostEdit => 'Edit';
+
+  @override
+  String get g2PostRetry => 'Try again';
+
+  @override
+  String get g2PostRemove => 'Delete';
+
+  @override
+  String get g2PostCancel => 'Cancel';
+
+  @override
+  String get g2PostRemoveTitle => 'Delete this post?';
+
+  @override
+  String get g2PostRemoveBody =>
+      'The text you wrote and the files you chose will be deleted.';
+
+  @override
+  String get g2PostQueuedToast => 'Your post is being sent in the background.';
+
+  @override
+  String get g2PostErrFiles => 'Files not found. Edit the post and try again.';
+
+  @override
+  String get g2PostPending => 'Pending post';
+
+  @override
   String get postComposeDiscardTitle => 'Discard the draft?';
 
   @override

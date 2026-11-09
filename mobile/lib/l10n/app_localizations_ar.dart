@@ -4920,6 +4920,52 @@ class AppLocalizationsAr extends AppLocalizations {
   String get postComposeShared => 'تمت المشاركة';
 
   @override
+  String get g2PostQueued => 'المنشور في قائمة الانتظار';
+
+  @override
+  String g2PostUploading(String pct) {
+    return 'جارٍ رفع المنشور $pct';
+  }
+
+  @override
+  String get g2PostWaiting => 'بانتظار الاتصال، سيتابع عند عودته';
+
+  @override
+  String get g2PostPublishing => 'جارٍ النشر';
+
+  @override
+  String get g2PostFailed => 'تعذّر النشر';
+
+  @override
+  String get g2PostEdit => 'تعديل';
+
+  @override
+  String get g2PostRetry => 'أعد المحاولة';
+
+  @override
+  String get g2PostRemove => 'حذف';
+
+  @override
+  String get g2PostCancel => 'إلغاء';
+
+  @override
+  String get g2PostRemoveTitle => 'هل تريد حذف هذا المنشور؟';
+
+  @override
+  String get g2PostRemoveBody =>
+      'سيتم حذف النص الذي كتبته والملفات التي اخترتها.';
+
+  @override
+  String get g2PostQueuedToast => 'يتم إرسال منشورك في الخلفية.';
+
+  @override
+  String get g2PostErrFiles =>
+      'لم يتم العثور على الملفات. عدّل المنشور وحاول مجدداً.';
+
+  @override
+  String get g2PostPending => 'منشور قيد الانتظار';
+
+  @override
   String get postComposeDiscardTitle => 'هل تريد حذف المسودة؟';
 
   @override

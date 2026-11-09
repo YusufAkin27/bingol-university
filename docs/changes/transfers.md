@@ -121,3 +121,24 @@ kesintisiz sürer SÖZÜ VERİLMEZ; sonraki açılışta kuyruk sunucuyla karş�
 * Görsel yüklemede ara ilerleme yok (tek parça); video ilerlemesi gönderilen bayttan ölçülür.
 * İndirme (`TransferDirection.download`) için çalıştırıcı yazılmadı; model/UI hazır.
 * Mevcut `Outbox` (sohbet metin kuyruğu) değiştirilmedi; G4 medya mesajlarını bu kuyruğa taşıyınca Outbox medya yolu kaldırılabilir.
+
+## G2: gönderi (foto/video) aktarımı ve oluşturucu (feat/g2-compose-20261109)
+
+* `TransferKind.postMedia` çalıştırıcısı: `mobile/lib/features/posts/post_transfer.dart` (`PostTransferExecutor`, `enqueuePostTransfer`,
+  `registerPostTransfer()` main'de `TransferHub.attach` yanında). İş dizini `transfers/files/<jobId>/`: `post.json` (metin, etiketler, ayarlar),
+  `photoN.img` (1..10 foto) ya da `video.mp4` + `poster.jpg`. Metin kuyruk meta'sında DEĞİL `post.json`'dadır; dizini kuyruk iş bitince/iptalde/çıkışta siler.
+* Sıra: medya `POST /posts/media` (her istek `Idempotency-Key: <iş anahtarı>-m<i>`) -> `POST /posts` (`Idempotency-Key: <iş anahtarı>`). Yüklenen medya
+  kimlikleri `serverRef`te (virgüllü) kalıcıdır; yeniden denemede yüklenenler atlanır. `POST_MEDIA_INVALID` yüklemeleri sıfırlar ve yeniden dener.
+  İptal/çıkışta bağlanmamış medya `DELETE /posts/media/{id}` ile silinir (hata yutulur).
+* Sunucu gönderiyi yalnız yükleme tamamlanıp `POST /posts` dönünce oluşturur: bekleyen/kırık içerik başkalarına GÖRÜNMEZ. "Paylaşıldı" yalnız iş
+  `published` olunca (`PendingPostsStrip`) gösterilir.
+* Sahibin ekranı: `PendingPostsStrip` Keşfet üstünde ve kendi gönderiler sayfasında (sırada / yükleniyor % / bağlantı bekleniyor / paylaşılıyor / başarısız).
+  Başarısızlıkta neden (`postFailureText`), Yeniden dene (geçici hata), Düzenle (metin + dosyalar forma geri yüklenir, `ComposePostPage(restoreJobId:)`; yeni
+  iş kuyruğa alınınca eski kayıt kalkar), Sil (onaylı). Kalıcı reddedilen (ör. uygunsuz ifade) işte Yeniden dene gösterilmez.
+* Oluşturucu: kuyruk varsa (`TransferHub.queue` ya da `transferQueue:`) Paylaş işi kuyruğa alıp `PostQueued` ile kapanır; yoksa (testler) eski doğrudan yol.
+  Galeri seçici de kapanır; `openComposePost` kuyruğa alınırsa null döner (gönderi `onPublished` ile akışa eklenir, kabuk Keşfet'e geçer).
+* Hesap bazlı metin taslağı: `PostDraftStore` (`post_draft_v1_<userId>`, güvenli depo; `registerUserDataCleaners` çıkışta siler). Kuyruğa alınınca/"At"
+  denince silinir. Taslak yalnız metin + etiketler (medya yeniden seçilir). Çıkış (zorunlu oturum sonu dahil) taslağı da siler: yeniden girişte taslak yoktur.
+* Paylaşım hatası görünür: hata satırı listenin sonundaysa ekrana kaydırılır (I2-04). `_idemKey` içerik/medya değişince ya da 4xx sonrası yenilenir (I2-10).
+* Anket formu: `Idempotency-Key` (içerik özeti değişmedikçe aynı), `_busy` koruması, `BuDirtyGuard` (I2-02/03), saat seçici iptalinde tarih korunur (I2-15).
+* Doğrulanmadı: cihazda/emülatörde arka plan yükleme ve uygulama sonlanınca kurtarma çalıştırılmadı (yalnız birim/widget testleri, sahte aktarıcı).

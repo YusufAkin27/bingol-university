@@ -24,6 +24,7 @@ import 'core/crash/crash_reporter.dart';
 import 'core/icons/bu_icon_licenses.dart';
 import 'core/transfers/transfer_hub.dart';
 import 'features/chat/chat_transfer.dart';
+import 'features/posts/post_transfer.dart' show registerPostTransfer;
 import 'core/outbox/outbox.dart';
 import 'core/outbox/outbox_uploader.dart';
 import 'core/locale_controller.dart';
@@ -164,6 +165,7 @@ Future<void> _bootstrap() async {
   session.beforeSignOut.add(push.onSignedOut); // cihaz kaydı, token geçerliyken silinir
   ChatTransfers.register(); // sohbet medya çalıştırıcısı (G4): kurtarılan işler için kuyruktan ÖNCE kaydedilir
   TransferHub.instance.attach(session, connectivity); // kalıcı aktarım kuyruğu (G10): giriş/çıkış kancaları
+  registerPostTransfer(); // gönderi (foto/video) çalıştırıcısı (G2): yarım kalan paylaşımlar açılışta sürer
   hooks.attach(session);
   // Oturum geri yüklemesi iOS temizliğinden sonra başlar ama runApp'i BEKLETMEZ (splash görünür).
   unawaited(() async {

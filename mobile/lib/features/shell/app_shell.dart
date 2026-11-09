@@ -23,6 +23,7 @@ import '../discover/discover_tab.dart';
 import '../home/home_tab.dart';
 import '../profile/profile_tab.dart';
 import '../posts/post_routes.dart' show openComposePost;
+import '../posts/post_transfer.dart' show livePostTransfers;
 import '../widgets/widget_sync_service.dart';
 import 'bukampus_bottom_navigation_bar.dart';
 
@@ -347,8 +348,15 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Ticker
     if (_publishing) return;
     _publishing = true;
     try {
+      final before = livePostTransfers();
       final post = await openComposePost(context, s);
-      if (!mounted || post == null) return;
+      if (!mounted) return;
+      if (post == null) {
+        // Paylaşım aktarım kuyruğuna alındıysa (gönderi henüz yok) Keşfet'e geç: bekleyen satır orada görünür,
+        // yayımlanınca gönderi akışın başına kendiliğinden eklenir.
+        if (livePostTransfers() > before) _select(AppTab.discover);
+        return;
+      }
       setState(() => _publishedVersion++);
       _select(AppTab.discover);
     } finally {

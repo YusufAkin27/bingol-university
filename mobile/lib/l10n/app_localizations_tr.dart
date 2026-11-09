@@ -4943,6 +4943,51 @@ class AppLocalizationsTr extends AppLocalizations {
   String get postComposeShared => 'Paylaşıldı';
 
   @override
+  String get g2PostQueued => 'Paylaşım sırada';
+
+  @override
+  String g2PostUploading(String pct) {
+    return 'Paylaşım yükleniyor $pct';
+  }
+
+  @override
+  String get g2PostWaiting => 'Bağlantı bekleniyor, gelince devam edecek';
+
+  @override
+  String get g2PostPublishing => 'Paylaşılıyor';
+
+  @override
+  String get g2PostFailed => 'Paylaşılamadı';
+
+  @override
+  String get g2PostEdit => 'Düzenle';
+
+  @override
+  String get g2PostRetry => 'Yeniden dene';
+
+  @override
+  String get g2PostRemove => 'Sil';
+
+  @override
+  String get g2PostCancel => 'İptal';
+
+  @override
+  String get g2PostRemoveTitle => 'Paylaşım silinsin mi?';
+
+  @override
+  String get g2PostRemoveBody => 'Yazdığın metin ve seçtiğin dosyalar silinir.';
+
+  @override
+  String get g2PostQueuedToast => 'Paylaşım arka planda gönderiliyor.';
+
+  @override
+  String get g2PostErrFiles =>
+      'Dosyalar bulunamadı. Paylaşımı düzenleyip yeniden dene.';
+
+  @override
+  String get g2PostPending => 'Bekleyen paylaşım';
+
+  @override
   String get postComposeDiscardTitle => 'Taslağı silmek istiyor musun?';
 
   @override

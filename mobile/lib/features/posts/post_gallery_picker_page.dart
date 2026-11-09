@@ -200,7 +200,7 @@ class _PostGalleryPickerPageState extends State<PostGalleryPickerPage> with Widg
   Future<void> _open(MediaPick p, {String? id}) async {
     if (_opening != null) return;
     setState(() => _opening = id ?? p.key);
-    Post? post;
+    Object? post; // Post (doğrudan paylaşıldı) ya da PostQueued (aktarım kuyruğuna alındı)
     try {
       Uint8List? photo;
       String? video;
@@ -214,7 +214,7 @@ class _PostGalleryPickerPageState extends State<PostGalleryPickerPage> with Widg
         BuToast.show(context, context.l10n.postComposeErrPrepare, kind: BuToastKind.error);
         return;
       }
-      post = await Navigator.of(context).push<Post>(MaterialPageRoute<Post>(
+      post = await Navigator.of(context).push<Object?>(MaterialPageRoute<Object?>(
         settings: const RouteSettings(name: 'compose_post'),
         fullscreenDialog: true,
         builder: (_) =>
@@ -225,7 +225,8 @@ class _PostGalleryPickerPageState extends State<PostGalleryPickerPage> with Widg
     } finally {
       if (mounted) setState(() => _opening = null);
     }
-    if (post != null && mounted) Navigator.pop(context, post);
+    // Kuyruğa alınan paylaşımda seçici de kapanır (gönderi henüz yok: null döner, bekleyen satır sahibinde görünür).
+    if (post != null && mounted) Navigator.pop(context, post is Post ? post : null);
   }
 
   Future<void> _camera() async {

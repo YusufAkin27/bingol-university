@@ -9,6 +9,7 @@ import '../features/chat/chat_wallpaper.dart';
 import '../features/chat/photo_autosave.dart';
 import '../features/chat/recent_reactions.dart';
 import '../features/forum/data/forum_draft_store.dart';
+import '../features/posts/post_draft_store.dart';
 import '../features/forum/data/forum_recent_searches.dart';
 import '../features/home/home_layout.dart';
 import '../features/search/recent_searches.dart';
@@ -39,6 +40,7 @@ void registerUserDataCleaners(ApiClient api) {
     ..add(RecentSearches.clear) // arama geçmişi (kişi adı olabilir)
     ..add(ForumRecentSearches.clear) // forum son aramaları (cihazda, kullanıcıya özel)
     ..add(ForumDraftStore.clearAll) // yarım kalan forum konu taslakları (başlık/metin/görsel adresi)
+    ..add(PostDraftStore.clearAll) // yarım kalan gönderi metni taslağı (hesap bazlı anahtar; çıkışta sızmaz)
     ..add(() => PhotoAutoSave.instance.reset()) // galeriye otomatik kayıt ayarı + kaydedilen ek kimlikleri
     ..add(ReminderService.clearUserData) // ders hatırlatıcı ayarı + kurulu yerel hatırlatmalar
     ..add(() => MenuReminderService.instance.clearUserData()) // günlük menü hatırlatıcısı tercihi + bildirimleri
