@@ -193,6 +193,24 @@ class PushService with WidgetsBindingObserver {
 
   final _seenMessageIds = <String>{}; // ön plan şeridi tekilleştirmesi (son 60 mesaj)
 
+  /// Sohbet dışı ön plan yükü tekilleştirmesi (I4-12): sunucu yükünde bildirim kimliği yok; hedefli (targetId/commentId)
+  /// aynı tür+hedef+başlık+gövde kısa pencerede (3 sn) iki kez gelirse ikincisi sayılmaz (rozet çift artmasın).
+  final _recentPushes = <String, DateTime>{};
+  static const _dupWindow = Duration(seconds: 3);
+  @visibleForTesting
+  DateTime Function() nowFn = DateTime.now;
+
+  bool _isRecentDuplicate(Map<String, dynamic> data, String title, String body) {
+    final tid = '${data['targetId'] ?? data['value'] ?? ''}${data['commentId'] ?? ''}';
+    if (tid.isEmpty) return false; // hedefsiz duyuru: her biri ayrı bildirim sayılır
+    final key = '${data['type'] ?? ''}|${data['targetType'] ?? data['target'] ?? ''}|$tid|$title|$body';
+    final now = nowFn();
+    _recentPushes.removeWhere((_, t) => now.difference(t) > _dupWindow);
+    if (_recentPushes.containsKey(key)) return true;
+    _recentPushes[key] = now;
+    return false;
+  }
+
   bool _tapBridge = false;
   bool _nativeBridge = false;
   late final PushActions _actions = PushActions(session);
@@ -540,7 +558,9 @@ class PushService with WidgetsBindingObserver {
       if (_seenMessageIds.length > 60) _seenMessageIds.remove(_seenMessageIds.first);
     }
     final type = '${data['type'] ?? ''}'.toUpperCase();
-    if (type == 'MESSAGE' || data['conversationId'] != null) {
+    final isChat = type == 'MESSAGE' || data['conversationId'] != null;
+    if (!isChat && _isRecentDuplicate(data, title, body)) return false;
+    if (isChat) {
       session.badges.conversationsDirty.value++; // sohbet listesi/okunmamış sayacı yenilenir
     } else if (notificationCategory(data) == NotificationCategory.social) {
       session.badges.social.value++; // kalp (Hareketler); zil rozeti artmaz

@@ -34,4 +34,20 @@ void main() {
     push.registrar.token = 'abc';
     expect(s.pushToken!(), 'abc');
   });
+
+  test('G7: hedefli sosyal yuk 3 sn icinde iki kez gelirse rozet ve serit tekrarlanmaz', () {
+    final s = makeSession(FakeBackend());
+    final push = PushService(s, active: ActiveConversation.test());
+    var t = DateTime(2026, 11, 9, 12);
+    push.nowFn = () => t;
+    const like = {'type': 'POST_LIKE', 'targetType': 'POST', 'targetId': '5'};
+    final before = s.badges.social.value + s.badges.notifications.value;
+    expect(push.handleForeground(title: 'Ali', body: 'gonderini begendi', data: like), isTrue);
+    expect(push.handleForeground(title: 'Ali', body: 'gonderini begendi', data: like), isFalse);
+    expect(s.badges.social.value + s.badges.notifications.value, before + 1);
+    t = t.add(const Duration(seconds: 5));
+    expect(push.handleForeground(title: 'Ali', body: 'gonderini begendi', data: like), isTrue);
+    // baska kisi (baska govde) ayni gonderiyi begenirse ayri bildirimdir
+    expect(push.handleForeground(title: 'Veli', body: 'gonderini begendi', data: like), isTrue);
+  });
 }
