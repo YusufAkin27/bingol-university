@@ -103,7 +103,11 @@ void main() {
 
   tearDown(() async {
     await q.dispose();
-    if (tmp.existsSync()) await tmp.delete(recursive: true);
+    try {
+      if (tmp.existsSync()) await tmp.delete(recursive: true);
+    } on FileSystemException {
+      // kuyruk son dosya temizligini bu sirada bitirmis olabilir (yaris); geri kalan bir sey yok
+    }
   });
 
   Future<TransferJob> enq({int photos = 2, String text = 'Merhaba', PreparedVideo? video}) => enqueuePostTransfer(
@@ -132,6 +136,8 @@ void main() {
     expect(api.created.single['mentions'], [5]);
     expect(api.created.single['hide'], true);
     expect(q.job(job.id)!.publishedRef, '777');
+    // `published` durumu dosya silinmeden ONCE yazilir (iptal yarisi icin); silme hemen ardindan biter -> bekle.
+    await until(() => !Directory(PostPayload.dirOf(q.job(job.id)!).path).existsSync());
     expect(Directory(PostPayload.dirOf(q.job(job.id)!).path).existsSync(), isFalse, reason: 'bitince yerel kopya silinir');
   });
 
