@@ -441,3 +441,12 @@ Ayni uclar parola/Google hesabinda da calisir ama hesap ele gecirme riskine kars
 - Apple tarafinda kullaniciyi gercek e-posta paylasmaya zorlamak mumkun degildir; yeni hesap kapiyla, mevcut hesap yumusak adimla yonlendirilir.
 - Role hesapta e-posta degisiminde diger cihazlarin oturumlari kapatilmaz (yeniden dogrulama istenmez); eski role adresine "adresiniz degisti" postasi gonderilmez (ulasmaz).
 - Gercek Apple jetonuyla uctan uca dogrulanmadi (yapilandirma yok); testler yerel RSA anahtarli MVC/birim testleridir, canli e-posta kodu `scripts/smoke-real-email.sh` ile PostgreSQL'de dogrulanir.
+
+
+## Askiya alinmis hesap: tek bicimli 403 + tek ekran (2026-11-09)
+
+- **Sunucu:** askidaki hesapla (Redis `suspended:<id>`) gelen HER korumali istek (gecerli imzali access token) artik `401 UNAUTHORIZED` yerine `403 ACCOUNT_SUSPENDED` alir (`JwtAuthFilter.SUSPENDED_ATTR` + `ApiAuthenticationEntryPoint`; tr/en/ar `error.ACCOUNT_SUSPENDED` zaten vardi). Giris (dogru sifre), 2FA, OAuth ve `refresh` zaten ayni kodu veriyordu; yanlis sifre genel `401 INVALID_CREDENTIALS` kalir (enumerasyon yok). Yanit yalniz genel mesaj tasir: `app_user.suspended_reason` / yonetici notu kullaniciya HICBIR uctan sizmaz. Askiya alma `SessionService.revokeAll` cagirir (refresh token'lar silinir, WebSocket kapanir, push `RecipientGuard` ile durur).
+- **Sinirlama:** `suspended:<id>` anahtari hesap SILINDIGINDE de yazilir (deger ayni `1`); silinmis hesabin eski token'i da `403 ACCOUNT_SUSPENDED` alir. Hesabi siliniyor olan cihaz zaten cikis yapmistir; baska cihazda kalan token "askida" ekranini gorebilir.
+- **Destek yolu (yeni yetki yuzeyi YOK):** askili kullanici mevcut herkese acik destek talebi akisini kullanir (`/api/public/support/**`, hesapsiz, e-posta dogrulama kodu, IP/e-posta hiz siniri); baska hicbir uc acik degildir (korumali uclarin hepsi 403).
+- **Mobil:** `ApiClient.onAccountSuspended` -> `Session.notifyAccountSuspended` (oturum yerelde kapanir, kullanici verisi/widget/hatirlatici temizlenir) ve `SuspendedGate` kok Navigator YERINE tek ekran koyar. Bayrak yalniz bellekte; uygulama yeniden acilinca karar yine sunucudan (giris denemesi) gelir.
+- Duman: `scripts/smoke.sh` ("askidaki kullanici token'i 403 ACCOUNT_SUSPENDED"). Testler: `JwtAuthFilterTest`, `ErrorEnvelopeTest`, `mobile/test/suspended_gate_test.dart`.
