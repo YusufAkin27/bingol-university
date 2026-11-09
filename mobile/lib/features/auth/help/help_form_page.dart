@@ -16,9 +16,29 @@ import 'public_support_api.dart';
 /// sonraki adım kod doğrulama. Alanlar: ad soyad, e-posta (her alan adı), konu (kategori), mesaj. Bal kabağı alanı
 /// (`website`) ekranda yoktur ve hep boş gider; `elapsedMs` açılıştan gönderime geçen süredir.
 class HelpFormPage extends StatefulWidget {
-  const HelpFormPage({super.key, required this.session});
+  const HelpFormPage({
+    super.key,
+    required this.session,
+    this.prefillName,
+    this.prefillEmail,
+    this.lockEmail = false,
+    this.initialCategory,
+    this.initialMessage,
+    this.title,
+    this.subtitle,
+  });
 
   final Session session;
+
+  /// Askıya alınmış hesap itirazı gibi akışlar için ön dolgu: ad, e-posta (salt okunur olabilir), konu, mesaj, başlık.
+  /// Gönderim yine aynı herkese açık uçtur (`/api/public/support/**`), yeni yetki yüzeyi yoktur.
+  final String? prefillName;
+  final String? prefillEmail;
+  final bool lockEmail;
+  final String? initialCategory;
+  final String? initialMessage;
+  final String? title;
+  final String? subtitle;
 
   @override
   State<HelpFormPage> createState() => _HelpFormPageState();
@@ -28,11 +48,11 @@ class _HelpFormPageState extends State<HelpFormPage> {
   static const _categories = ['ACCOUNT', 'TECHNICAL', 'CONTENT', 'OTHER'];
 
   final _form = GlobalKey<FormState>();
-  final _name = EmojiTextEditingController();
-  final _email = TextEditingController();
-  final _message = EmojiTextEditingController();
+  late final _name = EmojiTextEditingController(text: widget.prefillName ?? '');
+  late final _email = TextEditingController(text: widget.prefillEmail ?? '');
+  late final _message = EmojiTextEditingController(text: widget.initialMessage ?? '');
   final _opened = Stopwatch()..start();
-  String _category = 'ACCOUNT';
+  late String _category = _categories.contains(widget.initialCategory) ? widget.initialCategory! : 'ACCOUNT';
   bool _busy = false;
   String? _error;
   String? _retry;
@@ -109,7 +129,7 @@ class _HelpFormPageState extends State<HelpFormPage> {
     };
     return RefPage(
       children: [
-        RefHeading(title: l.p66HelpAction, subtitle: l.p66HelpSub),
+        RefHeading(title: widget.title ?? l.p66HelpAction, subtitle: widget.subtitle ?? l.p66HelpSub),
         const SizedBox(height: 32),
         Form(
           key: _form,
@@ -129,7 +149,7 @@ class _HelpFormPageState extends State<HelpFormPage> {
               LoginUnderlineField(
                 controller: _email,
                 label: l.p66FieldEmail,
-                enabled: !_busy,
+                enabled: !_busy && !widget.lockEmail,
                 keyboardType: TextInputType.emailAddress,
                 autofillHints: const [AutofillHints.email],
                 validator: (v) => validatePublicSupport(name: 'x', email: v ?? '', message: 'x' * 10).email == null ? null : l.p66ErrEmail,

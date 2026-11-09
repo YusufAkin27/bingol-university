@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -669,7 +670,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown) {
+    String type,
+    String title,
+    String date,
+    String countdown,
+  ) {
     return '$type: $title. $date. $countdown. المس للتعديل.';
   }
 
@@ -987,7 +992,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end) {
+    String name,
+    String day,
+    String start,
+    String end,
+  ) {
     return '$name، $day من $start إلى $end';
   }
 
@@ -14016,4 +14025,38 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get eventRecommendedTitle => 'فعاليات مناسبة لقسمك';
+
+  @override
+  String get suspTitle => 'تم تعليق حسابك';
+
+  @override
+  String get suspBody =>
+      'تم تعليق حسابك. إذا كنت تعتقد أن هذا خطأ، يُرجى التواصل معنا.';
+
+  @override
+  String get suspCreateTicket => 'إنشاء طلب دعم';
+
+  @override
+  String get suspContact => 'تواصل معنا عبر البريد الإلكتروني';
+
+  @override
+  String get suspSwitchAccount => 'تسجيل الدخول بحساب آخر';
+
+  @override
+  String get suspFormTitle => 'الاعتراض على التعليق';
+
+  @override
+  String get suspFormSub =>
+      'إذا كنت تعتقد أن هذا خطأ، اكتب طلبك. سنرسل رمز التحقق إلى بريدك الإلكتروني.';
+
+  @override
+  String get suspMessagePrefill => 'أعترض على تعليق حسابي. ';
+
+  @override
+  String get suspMailSubject => 'اعتراض على تعليق الحساب';
+
+  @override
+  String suspMailFailed(String email) {
+    return 'تعذّر فتح تطبيق البريد. العنوان: $email';
+  }
 }

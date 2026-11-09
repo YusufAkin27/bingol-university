@@ -7548,5 +7548,16 @@
   "@clubAudienceDone": {"placeholders": {"count": {"type": "int"}}},
   "clubRecommendedTitle": "Bölümüne uygun kulüpler",
   "clubRecommendedAll": "Tüm kulüpler",
-  "eventRecommendedTitle": "Bölümüne uygun etkinlikler"
+  "eventRecommendedTitle": "Bölümüne uygun etkinlikler",
+  "suspTitle": "Hesabınız askıya alındı",
+  "suspBody": "Hesabınız askıya alınmıştır. Bir hata olduğunu düşünüyorsanız bizimle iletişime geçin.",
+  "suspCreateTicket": "Destek talebi oluştur",
+  "suspContact": "E-posta ile iletişime geç",
+  "suspSwitchAccount": "Farklı hesapla giriş yap",
+  "suspFormTitle": "Askıya alma itirazı",
+  "suspFormSub": "Bir hata olduğunu düşünüyorsanız talebinizi yazın. E-posta adresinize bir doğrulama kodu göndereceğiz.",
+  "suspMessagePrefill": "Hesabımın askıya alınmasına itiraz ediyorum. ",
+  "suspMailSubject": "Hesap askıya alma itirazı",
+  "suspMailFailed": "E-posta uygulaması açılamadı. Adres: {email}",
+  "@suspMailFailed": {"placeholders": {"email": {"type": "String"}}}
 }

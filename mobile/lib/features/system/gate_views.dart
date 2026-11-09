@@ -57,8 +57,8 @@ Future<void> openStore(String? url) async {
 /// Tam ekran sistem durumlarının ortak iskeleti (04 grubu): üstte isteğe bağlı şerit, ortada içerik,
 /// altta düğmeler. Dört durum ekranı da aynı düzeni kullanır (simge -> başlık -> metin -> düğme), böylece
 /// geçişlerde yer değiştirmez. Sığmayan içerik (büyük yazı) kayar; düğmeler yerinde kalır.
-class _GateLayout extends StatelessWidget {
-  const _GateLayout({required this.content, this.actions = const []});
+class GateLayout extends StatelessWidget {
+  const GateLayout({super.key, required this.content, this.actions = const []});
 
   final Widget content;
   final List<Widget> actions;
@@ -102,8 +102,8 @@ class _GateLayout extends StatelessWidget {
 
 /// Tüm durum ekranlarının ortak simgesi (Stitch v3 "18-23"): 72 dp sf2 daire + 48 dp çizgi simge; yalnız [danger]
 /// (erişim kapatıldı) dangerSoft daire + danger simge. Dekoratiftir; ekran okuyucudan gizlenir.
-class _GateIcon extends StatefulWidget {
-  const _GateIcon({required this.icon, this.danger = false, this.breathe = false});
+class GateIcon extends StatefulWidget {
+  const GateIcon({super.key, required this.icon, this.danger = false, this.breathe = false});
 
   final IconData icon;
   final bool danger;
@@ -113,10 +113,10 @@ class _GateIcon extends StatefulWidget {
   final bool breathe;
 
   @override
-  State<_GateIcon> createState() => _GateIconState();
+  State<GateIcon> createState() => GateIconState();
 }
 
-class _GateIconState extends State<_GateIcon> with SingleTickerProviderStateMixin {
+class GateIconState extends State<GateIcon> with SingleTickerProviderStateMixin {
   AnimationController? _c;
 
   @override
@@ -163,8 +163,8 @@ class _GateIconState extends State<_GateIcon> with SingleTickerProviderStateMixi
 }
 
 /// Başlık + açıklama (ortalı); açıklama ekran okuyucuya canlı bölge olarak duyurulur.
-class _GateText extends StatelessWidget {
-  const _GateText({required this.title, required this.body});
+class GateText extends StatelessWidget {
+  const GateText({super.key, required this.title, required this.body});
 
   final String title;
   final String body;
@@ -280,13 +280,13 @@ class UpdateRequiredScreen extends StatelessWidget {
       canPop: false,
       child: Scaffold(
         backgroundColor: t.bg,
-        body: _GateLayout(
+        body: GateLayout(
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const _GateIcon(icon: BuIcons.download),
+              const GateIcon(icon: BuIcons.download),
               const SizedBox(height: 24),
-              _GateText(title: l.updateRequiredTitle, body: custom != null && custom.isNotEmpty ? custom : l.updateRequiredBody),
+              GateText(title: l.updateRequiredTitle, body: custom != null && custom.isNotEmpty ? custom : l.updateRequiredBody),
               if (!canOpen) ...[
                 // Mağaza adresi yok: ölü düğme yerine ne yapılacağı söylenir.
                 const SizedBox(height: 16),
@@ -338,13 +338,13 @@ class MaintenanceScreen extends StatelessWidget {
     final l = context.l10n;
     return Scaffold(
       backgroundColor: t.bg,
-      body: _GateLayout(
+      body: GateLayout(
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const _GateIcon(icon: BuIcons.wrench, breathe: true),
+            const GateIcon(icon: BuIcons.wrench, breathe: true),
             const SizedBox(height: 24),
-            _GateText(title: l.sistemuiMaintTitle, body: message ?? l.sistemuiMaintBody),
+            GateText(title: l.sistemuiMaintTitle, body: message ?? l.sistemuiMaintBody),
           ],
         ),
         actions: [BuButton(label: l.commonRetry, kind: BuButtonKind.outline, onPressed: onRetry)],
@@ -365,13 +365,13 @@ class OfflineScreen extends StatelessWidget {
     final l = context.l10n;
     return Scaffold(
       backgroundColor: t.bg,
-      body: _GateLayout(
+      body: GateLayout(
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const _GateIcon(icon: BuIcons.cloudOff, breathe: true),
+            const GateIcon(icon: BuIcons.cloudOff, breathe: true),
             const SizedBox(height: 24),
-            _GateText(title: l.sistemuiOfflineTitle, body: l.sistemuiOfflineBody),
+            GateText(title: l.sistemuiOfflineTitle, body: l.sistemuiOfflineBody),
           ],
         ),
         actions: [BuButton(label: l.commonRetry, kind: BuButtonKind.outline, onPressed: onRetry)],
@@ -394,13 +394,13 @@ class AccessBlockedScreen extends StatelessWidget {
       canPop: false,
       child: Scaffold(
         backgroundColor: t.bg,
-        body: _GateLayout(
+        body: GateLayout(
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const _GateIcon(icon: BuIcons.shieldX, danger: true),
+              const GateIcon(icon: BuIcons.shieldX, danger: true),
               const SizedBox(height: 24),
-              _GateText(title: l.accessBlockedTitle, body: l.accessBlockedBody),
+              GateText(title: l.accessBlockedTitle, body: l.accessBlockedBody),
               const SizedBox(height: 16),
               BuStaggerItem(
                 index: 2,

@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -668,7 +669,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown) {
+    String type,
+    String title,
+    String date,
+    String countdown,
+  ) {
     return '$type: $title. $date. $countdown. Tap to edit.';
   }
 
@@ -987,7 +992,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end) {
+    String name,
+    String day,
+    String start,
+    String end,
+  ) {
     return '$name, $day from $start to $end';
   }
 
@@ -14125,4 +14134,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get eventRecommendedTitle => 'Events for your department';
+
+  @override
+  String get suspTitle => 'Your account has been suspended';
+
+  @override
+  String get suspBody =>
+      'Your account has been suspended. If you think this is a mistake, please contact us.';
+
+  @override
+  String get suspCreateTicket => 'Create a support request';
+
+  @override
+  String get suspContact => 'Contact us by email';
+
+  @override
+  String get suspSwitchAccount => 'Sign in with another account';
+
+  @override
+  String get suspFormTitle => 'Appeal the suspension';
+
+  @override
+  String get suspFormSub =>
+      'If you think this is a mistake, write your request. We will email you a verification code.';
+
+  @override
+  String get suspMessagePrefill =>
+      'I would like to appeal the suspension of my account. ';
+
+  @override
+  String get suspMailSubject => 'Account suspension appeal';
+
+  @override
+  String suspMailFailed(String email) {
+    return 'Could not open the email app. Address: $email';
+  }
 }

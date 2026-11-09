@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -668,7 +669,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown) {
+    String type,
+    String title,
+    String date,
+    String countdown,
+  ) {
     return '$type: $title. $date. $countdown. Düzenlemek için dokun.';
   }
 
@@ -986,7 +991,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end) {
+    String name,
+    String day,
+    String start,
+    String end,
+  ) {
     return '$name, $day $start ile $end arası';
   }
 
@@ -14071,4 +14080,39 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get eventRecommendedTitle => 'Bölümüne uygun etkinlikler';
+
+  @override
+  String get suspTitle => 'Hesabınız askıya alındı';
+
+  @override
+  String get suspBody =>
+      'Hesabınız askıya alınmıştır. Bir hata olduğunu düşünüyorsanız bizimle iletişime geçin.';
+
+  @override
+  String get suspCreateTicket => 'Destek talebi oluştur';
+
+  @override
+  String get suspContact => 'E-posta ile iletişime geç';
+
+  @override
+  String get suspSwitchAccount => 'Farklı hesapla giriş yap';
+
+  @override
+  String get suspFormTitle => 'Askıya alma itirazı';
+
+  @override
+  String get suspFormSub =>
+      'Bir hata olduğunu düşünüyorsanız talebinizi yazın. E-posta adresinize bir doğrulama kodu göndereceğiz.';
+
+  @override
+  String get suspMessagePrefill =>
+      'Hesabımın askıya alınmasına itiraz ediyorum. ';
+
+  @override
+  String get suspMailSubject => 'Hesap askıya alma itirazı';
+
+  @override
+  String suspMailFailed(String email) {
+    return 'E-posta uygulaması açılamadı. Adres: $email';
+  }
 }

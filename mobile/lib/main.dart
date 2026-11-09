@@ -46,6 +46,7 @@ import 'features/shell/app_shell.dart';
 import 'features/system/error_views.dart';
 import 'features/system/gate_views.dart';
 import 'features/system/splash_screen.dart';
+import 'features/system/suspended_gate.dart';
 import 'features/widgets/widget_sync_service.dart';
 
 /// Yakalanmamış hatayı yerel günlüğe (disk + bellek) ve — oturum açıksa — anonim `app_error` analitik
@@ -250,7 +251,14 @@ class BingolApp extends StatelessWidget {
           child: AcademicCatalogScope(
             session: session,
             // Boş alana dokunmak odağı bırakır (klavye kapanır); düğme/alan dokunuşlarını engellemez.
-            child: AppGate(api: session.api, child: BuGlobalSwipeBack(child: BuTapOutsideUnfocus(child: child ?? const SizedBox.shrink()))),
+            child: AppGate(
+              api: session.api,
+              // Askıya alınmış hesap: kök Navigator YERİNE tek askı ekranı (rota/derin bağlantı/bildirim hiçbir bölümü açamaz).
+              child: SuspendedGate(
+                session: session,
+                child: BuGlobalSwipeBack(child: BuTapOutsideUnfocus(child: child ?? const SizedBox.shrink())),
+              ),
+            ),
           ),
         ),
         home: ListenableBuilder(

@@ -5087,5 +5087,15 @@
   "clubAudienceDone": "Done ({count})",
   "clubRecommendedTitle": "Clubs for your department",
   "clubRecommendedAll": "All clubs",
-  "eventRecommendedTitle": "Events for your department"
+  "eventRecommendedTitle": "Events for your department",
+  "suspTitle": "Your account has been suspended",
+  "suspBody": "Your account has been suspended. If you think this is a mistake, please contact us.",
+  "suspCreateTicket": "Create a support request",
+  "suspContact": "Contact us by email",
+  "suspSwitchAccount": "Sign in with another account",
+  "suspFormTitle": "Appeal the suspension",
+  "suspFormSub": "If you think this is a mistake, write your request. We will email you a verification code.",
+  "suspMessagePrefill": "I would like to appeal the suspension of my account. ",
+  "suspMailSubject": "Account suspension appeal",
+  "suspMailFailed": "Could not open the email app. Address: {email}"
 }

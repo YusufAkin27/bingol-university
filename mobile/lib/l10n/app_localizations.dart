@@ -64,7 +64,7 @@ import 'app_localizations_tr.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -87,17 +87,17 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('ar'),
     Locale('en'),
-    Locale('tr')
+    Locale('tr'),
   ];
 
   /// No description provided for @chatReactionPickerTitle.
@@ -1341,7 +1341,11 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{type}: {title}. {date}. {countdown}. Düzenlemek için dokun.'**
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown);
+    String type,
+    String title,
+    String date,
+    String countdown,
+  );
 
   /// No description provided for @acadFormErrTitle.
   ///
@@ -1906,7 +1910,11 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{name}, {day} {start} ile {end} arası'**
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end);
+    String name,
+    String day,
+    String start,
+    String end,
+  );
 
   /// No description provided for @acadTimeCourseSemantic.
   ///
@@ -25301,6 +25309,66 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bölümüne uygun etkinlikler'**
   String get eventRecommendedTitle;
+
+  /// No description provided for @suspTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabınız askıya alındı'**
+  String get suspTitle;
+
+  /// No description provided for @suspBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabınız askıya alınmıştır. Bir hata olduğunu düşünüyorsanız bizimle iletişime geçin.'**
+  String get suspBody;
+
+  /// No description provided for @suspCreateTicket.
+  ///
+  /// In tr, this message translates to:
+  /// **'Destek talebi oluştur'**
+  String get suspCreateTicket;
+
+  /// No description provided for @suspContact.
+  ///
+  /// In tr, this message translates to:
+  /// **'E-posta ile iletişime geç'**
+  String get suspContact;
+
+  /// No description provided for @suspSwitchAccount.
+  ///
+  /// In tr, this message translates to:
+  /// **'Farklı hesapla giriş yap'**
+  String get suspSwitchAccount;
+
+  /// No description provided for @suspFormTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Askıya alma itirazı'**
+  String get suspFormTitle;
+
+  /// No description provided for @suspFormSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir hata olduğunu düşünüyorsanız talebinizi yazın. E-posta adresinize bir doğrulama kodu göndereceğiz.'**
+  String get suspFormSub;
+
+  /// No description provided for @suspMessagePrefill.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabımın askıya alınmasına itiraz ediyorum. '**
+  String get suspMessagePrefill;
+
+  /// No description provided for @suspMailSubject.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap askıya alma itirazı'**
+  String get suspMailSubject;
+
+  /// No description provided for @suspMailFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'E-posta uygulaması açılamadı. Adres: {email}'**
+  String suspMailFailed(String email);
 }
 
 class _AppLocalizationsDelegate
@@ -25332,8 +25400,9 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-      'an issue with the localizations generation tool. Please file an issue '
-      'on GitHub with a reproducible sample app and the gen-l10n configuration '
-      'that was used.');
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
 }

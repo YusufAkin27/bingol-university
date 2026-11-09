@@ -170,6 +170,10 @@ class ApiClient {
   /// 403 ACCESS_BLOCKED: cihaz/ağ engeli. Oturum silinir, refresh denenmez, engel ekranı gösterilir.
   void Function()? onAccessBlocked;
 
+  /// 403 ACCOUNT_SUSPENDED (giriş yanıtı, refresh ya da herhangi bir korumalı uç): hesap askıya alındı. Oturum yerelde
+  /// kapatılır ve tek "Hesabınız askıya alındı" ekranı gösterilir (bkz. Session.suspended).
+  void Function()? onAccountSuspended;
+
   /// 403 LEGAL_REACCEPT_REQUIRED: yeni sözleşme sürümü onaylanmadan yazma isteği reddedildi.
   /// Parametre: yanıttaki `requiresAcceptance` listesi (yoksa null). Hata yine çağırana iletilir.
   void Function(Object? requiresAcceptance)? onLegalReaccept;
@@ -557,6 +561,7 @@ class ApiClient {
       final code = json['code'] as String;
       final msg = json['message'];
       if (res.statusCode == 403 && code == 'ACCESS_BLOCKED') onAccessBlocked?.call();
+      if (res.statusCode == 403 && code == 'ACCOUNT_SUSPENDED') onAccountSuspended?.call();
       if (res.statusCode == 403 && code == 'LEGAL_REACCEPT_REQUIRED') onLegalReaccept?.call(json['requiresAcceptance']);
       if (res.statusCode == 403 && code == 'EMAIL_VERIFICATION_REQUIRED') onEmailVerificationRequired?.call();
       if (res.statusCode == 403 && code == 'PROFILE_INCOMPLETE') onProfileIncomplete?.call();

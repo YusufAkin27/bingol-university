@@ -27,7 +27,15 @@ enum SessionState { loading, signedOut, signedIn }
 enum SwitchResult { switched, same, needsLogin, busy }
 
 /// Oturumun neden zorla kapandığı.
-enum SignOutReason { expired, replaced, blocked }
+enum SignOutReason { expired, replaced, blocked, suspended }
+
+/// Askı ekranının bilgisi: yalnız e-posta ön dolgusu için bellekte tutulur (gerekçe metni sunucudan GELMEZ).
+class SuspendedState {
+  const SuspendedState({this.email, this.displayName});
+
+  final String? email;
+  final String? displayName;
+}
 
 /// Tek cihaz kuralı: sunucunun mobil istemci işareti (her girişte gönderilir).
 const kClientMobile = 'mobile';
@@ -36,10 +44,14 @@ const kClientMobile = 'mobile';
 class Session extends ChangeNotifier {
   Session(this.api, {AccountStore? accounts}) : accounts = accounts ?? AccountStore() {
     api.onTokensChanged = _persist;
-    api.onSessionExpired = () => forceSignOut(force: true);
+    api.onSessionExpired = () {
+      if (suspended.value != null) return; // askı kendi yolunu izler (çift çıkış yok)
+      forceSignOut(force: true);
+    };
     avatarUrl.addListener(_onAvatarChanged);
     api.onSessionReplaced = () => forceSignOut(reason: SignOutReason.replaced);
     api.onAccessBlocked = _onAccessBlocked;
+    api.onAccountSuspended = notifyAccountSuspended;
     legal = LegalReacceptController(api);
     api.onLegalReaccept = legal.onRequired;
     api.onEmailVerificationRequired = _onVerificationRequired;
@@ -159,6 +171,29 @@ class Session extends ChangeNotifier {
 
   /// Engel ekranından "tekrar dene": bayrağı kaldırır, giriş ekranına dönülür.
   void dismissAccessBlocked() => accessBlocked.value = false;
+
+  /// 403 ACCOUNT_SUSPENDED: uygulama TEK "Hesabınız askıya alındı" ekranına kilitlenir (bkz. SuspendedGate). Yalnız
+  /// bellekte yaşar, diske YAZILMAZ: uygulama yeniden açılınca karar yine sunucudan (giriş denemesi) alınır; askı
+  /// kalkmışsa normal giriş çalışır. Gerekçe metni sunucudan gelmez.
+  final suspended = ValueNotifier<SuspendedState?>(null);
+
+  /// Son giriş denemesinde yazılan e-posta (askı ekranında destek talebi formunu ön doldurmak için; yalnız bellekte).
+  String? _lastLoginEmail;
+
+  /// Askı ekranını açar ve (oturum varsa) yerel oturumu sunucuya hiçbir istek atmadan kapatır. Yinelenen çağrılar yok sayılır.
+  void notifyAccountSuspended() {
+    if (suspended.value != null) return;
+    final uid = userId ?? jwtSubjectId(api.tokens?.access ?? '');
+    final em = email ?? (uid == null ? null : _knownEmails[uid]) ?? _lastLoginEmail;
+    suspended.value = SuspendedState(email: em, displayName: displayName);
+    unawaited(forceSignOut(reason: SignOutReason.suspended, force: true));
+  }
+
+  /// Askı ekranından "farklı hesapla giriş yap": ekran kapanır, giriş ekranına dönülür. Hiçbir şey saklanmaz.
+  void dismissSuspended() {
+    _lastLoginEmail = null;
+    suspended.value = null;
+  }
 
   /// Doğrulaması bekleyen kayıt (şifresiz, 72 sa). Testler bellek içi depo atar.
   PendingVerificationStore pending = PendingVerificationStore();
@@ -356,6 +391,7 @@ class Session extends ChangeNotifier {
   /// sunucu 202 + `twoFactorRequired:true` + `challengeToken` döner (token YOK, kod e-postaya gitti): oturum açılmaz,
   /// [TwoFactorChallenge] döner ve çağıran kod adımını gösterip [loginTwoFactor] ile tamamlar.
   Future<TwoFactorChallenge?> login(String email, String password) async {
+    _lastLoginEmail = normalizeIdentifier(email);
     final res = await api.post('/auth/login', {'email': normalizeIdentifier(email), 'password': password, 'client': kClientMobile}, false);
     final challenge = TwoFactorChallenge.tryParse(res);
     if (challenge != null) return challenge;
@@ -402,6 +438,7 @@ class Session extends ChangeNotifier {
   }
 
   Future<OAuthLoginResult> _oauthLogin(String path, Map<String, Object?> body, {String? fallbackName}) async {
+    _lastLoginEmail = null; // sağlayıcı girişinde e-posta önceden bilinmez
     final res = await api.post(path, {...body, 'client': kClientMobile}, false);
     final challenge = TwoFactorChallenge.tryParse(res);
     if (challenge != null) return OAuthLoginResult(challenge: challenge);
@@ -612,7 +649,9 @@ class Session extends ChangeNotifier {
           await accounts.markExpired(id);
         }
       }
-      final next = reason == SignOutReason.blocked ? null : accounts.nextSwitchable(except: id, prefer: _previousId);
+      final next = reason == SignOutReason.blocked || reason == SignOutReason.suspended
+          ? null // askı/engel: başka hesaba otomatik geçilmez, kapı ekranı kalır
+          : accounts.nextSwitchable(except: id, prefer: _previousId);
       if (next != null) {
         _switching = true;
         _set(SessionState.loading);

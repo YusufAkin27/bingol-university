@@ -122,7 +122,8 @@ class ChatRealtime with WidgetsBindingObserver {
     _client.fatal.listen((f) {
       _fatal.add(f);
       // Askıya alınan hesap HTTP'de de 403 ACCOUNT_SUSPENDED ile oturumu bitirir: soket kalıcı durduğu için aynı sonuç.
-      if (f == StompFatal.sessionExpired || f == StompFatal.suspended) session.api.onSessionExpired?.call();
+      if (f == StompFatal.suspended) session.notifyAccountSuspended();
+      if (f == StompFatal.sessionExpired) session.api.onSessionExpired?.call();
       if (f == StompFatal.sessionReplaced) session.forceSignOut(reason: SignOutReason.replaced);
     });
   }

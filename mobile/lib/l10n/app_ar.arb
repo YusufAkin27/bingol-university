@@ -5087,5 +5087,15 @@
   "clubAudienceDone": "تم ({count})",
   "clubRecommendedTitle": "أندية مناسبة لقسمك",
   "clubRecommendedAll": "جميع الأندية",
-  "eventRecommendedTitle": "فعاليات مناسبة لقسمك"
+  "eventRecommendedTitle": "فعاليات مناسبة لقسمك",
+  "suspTitle": "تم تعليق حسابك",
+  "suspBody": "تم تعليق حسابك. إذا كنت تعتقد أن هذا خطأ، يُرجى التواصل معنا.",
+  "suspCreateTicket": "إنشاء طلب دعم",
+  "suspContact": "تواصل معنا عبر البريد الإلكتروني",
+  "suspSwitchAccount": "تسجيل الدخول بحساب آخر",
+  "suspFormTitle": "الاعتراض على التعليق",
+  "suspFormSub": "إذا كنت تعتقد أن هذا خطأ، اكتب طلبك. سنرسل رمز التحقق إلى بريدك الإلكتروني.",
+  "suspMessagePrefill": "أعترض على تعليق حسابي. ",
+  "suspMailSubject": "اعتراض على تعليق الحساب",
+  "suspMailFailed": "تعذّر فتح تطبيق البريد. العنوان: {email}"
 }
