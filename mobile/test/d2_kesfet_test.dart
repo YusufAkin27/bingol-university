@@ -7,7 +7,7 @@ import 'package:bu_kampus/features/search/search_page.dart';
 import 'package:bu_kampus/features/posts/post_card.dart';
 import 'package:bu_kampus/features/posts/post_models.dart';
 import 'package:bu_kampus/widgets/bu.dart' show BuChip;
-import 'package:bu_kampus/features/search/global_search_screen.dart';
+import 'package:bu_kampus/features/search/search_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -55,7 +55,7 @@ void main() {
       await settle(tester, const Duration(milliseconds: 600));
       await tester.tap(find.byKey(const ValueKey('discoverSearch')));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(find.byType(GlobalSearchScreen), findsOneWidget);
+      expect(find.byType(SearchPage), findsOneWidget);
       noErr(tester);
     });
 

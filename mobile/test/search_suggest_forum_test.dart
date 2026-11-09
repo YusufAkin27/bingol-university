@@ -151,24 +151,35 @@ void main() {
       await tester.pumpWidget(buildApp(SearchPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
       await type(tester, 'yurt');
-      expect(await RecentSearches.load(), ['yurt']);
+      expect(await RecentSearches.load(1), ['yurt']);
       expect(b.requests.where((r) => r.contains('recent')), isEmpty);
 
-      await const FlutterSecureStorage().write(key: RecentSearches.key, value: jsonEncode(['a1', 'b2', 'c3']));
+      await const FlutterSecureStorage().write(key: '${RecentSearches.key}_1', value: jsonEncode(['a1', 'b2', 'c3']));
       await tester.pumpWidget(const SizedBox());
       await tester.pumpWidget(buildApp(SearchPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
       expect(find.text('b2'), findsOneWidget);
       await tester.tap(find.byTooltip('Aramayı sil').first, warnIfMissed: false);
       await settle(tester);
-      expect((await RecentSearches.load()).length, lessThan(3));
+      expect((await RecentSearches.load(1)).length, lessThan(3));
       await tester.tap(find.text('Temizle'));
       await settle(tester);
-      expect(await RecentSearches.load(), isEmpty);
+      expect(await RecentSearches.load(1), isEmpty);
+    });
+
+    test('hesap bazli: baska hesabin gecmisi gorunmez', () async {
+      await RecentSearches.clear();
+      await RecentSearches.save(1, ['a']);
+      await RecentSearches.save(2, ['b']);
+      expect(await RecentSearches.load(1), ['a']);
+      expect(await RecentSearches.load(2), ['b']);
+      await RecentSearches.clear();
+      expect(await RecentSearches.load(1), isEmpty);
+      expect(await RecentSearches.load(2), isEmpty);
     });
 
     test('en çok 10 tutulur ve çıkış temizleyicisine kayıtlıdır', () async {
-      await RecentSearches.save([for (var i = 0; i < 15; i++) 'q$i']);
+      await RecentSearches.save(null, [for (var i = 0; i < 15; i++) 'q$i']);
       expect((await RecentSearches.load()).length, 10);
       final api = ApiClient();
       registerUserDataCleaners(api);

@@ -15,6 +15,7 @@ import 'avatar_preview.dart';
 import 'post_routes.dart';
 import 'post_video.dart';
 import '../share/share_button.dart' show PostShareButton;
+import 'post_save_button.dart';
 import '../../core/academic_catalog.dart';
 import '../profile/user_profile_page.dart' show openUserProfile;
 
@@ -446,6 +447,7 @@ class _PostCardState extends State<PostCard> {
                 ),
               ] else
                 const Spacer(),
+              PostSaveButton(session: widget.session, post: p, onChanged: widget.onChanged),
               PostShareButton(session: widget.session, post: p),
             ]),
           ),
@@ -590,7 +592,8 @@ class _PostCardState extends State<PostCard> {
                     commentsDisabled: p.commentsDisabled,
                     onCountChanged: (n) => widget.onChanged(p.copyWith(commentCount: n))),
                 const Spacer(),
-                PostShareButton(session: widget.session, post: p),
+                PostSaveButton(session: widget.session, post: p, onChanged: widget.onChanged),
+              PostShareButton(session: widget.session, post: p),
               ]),
             ),
             if (p.hasText)
