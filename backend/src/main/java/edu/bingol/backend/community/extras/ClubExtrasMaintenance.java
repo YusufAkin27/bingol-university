@@ -52,11 +52,14 @@ public class ClubExtrasMaintenance {
             List<Long> ids = jdbc.queryForList("""
                     SELECT l.ref_id FROM chat_room_link l JOIN community c ON c.id = l.ref_id
                     WHERE l.kind = 'COMMUNITY' AND l.closed = FALSE AND c.status <> 'ACTIVE'
+                    LIMIT 200
                     """, Long.class);
             for (Long id : ids) {
                 rooms.closeRoom(RoomKind.COMMUNITY, id);
             }
-            jdbc.update("DELETE FROM club_join_answer WHERE user_id IN (SELECT id FROM app_user WHERE status = 'DELETED')");
+            // tur basina en cok 200 satir; kalani sonraki turda
+            jdbc.update("DELETE FROM club_join_answer WHERE id IN (SELECT a.id FROM club_join_answer a "
+                    + "WHERE a.user_id IN (SELECT id FROM app_user WHERE status = 'DELETED') LIMIT 200)");
         } catch (RuntimeException e) {
             log.warn("Kulup bakim gorevi basarisiz: {}", e.toString());
         }
