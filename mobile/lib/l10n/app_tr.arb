@@ -7515,5 +7515,14 @@
   },
   "accBusy": "Hesap şu an değiştirilemiyor. Biraz sonra tekrar dene.",
   "accAccountNoName": "Hesap",
-  "postPeekOpen": "Gönderiyi aç"
+  "postPeekOpen": "Gönderiyi aç",
+  "deptChatTag": "Bölüm",
+  "deptChatJoinRow": "Bölüm grubuna katıl: {name}",
+  "@deptChatJoinRow": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }
