@@ -323,6 +323,8 @@ class ClubsRowCard extends StatelessWidget {
     Widget text(String s, {bool strong = false}) =>
         Text(s, maxLines: 2, textAlign: TextAlign.end, overflow: TextOverflow.ellipsis, style: strong ? muted.copyWith(fontWeight: FontWeight.w400) : muted);
     if (mine) {
+      // Kulüp kurma yönetici onayı ister: onaylanana kadar kurucuya "Onay bekliyor" gösterilir.
+      if (club['status'] == 'PENDING_REVIEW') return text(l.profilePrefsAwaitingApproval);
       return switch (status) {
         'PENDING' => text(l.p51AwaitingReply),
         'BANNED' => text(l.clubMgmtBanned),
