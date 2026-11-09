@@ -7548,5 +7548,9 @@
   "@clubAudienceDone": {"placeholders": {"count": {"type": "int"}}},
   "clubRecommendedTitle": "Bölümüne uygun kulüpler",
   "clubRecommendedAll": "Tüm kulüpler",
-  "eventRecommendedTitle": "Bölümüne uygun etkinlikler"
+  "eventRecommendedTitle": "Bölümüne uygun etkinlikler",
+  "chatMediaPosition": "Medya {n} / {total}",
+  "@chatMediaPosition": {"placeholders": {"n": {"type": "int"}, "total": {"type": "int"}}},
+  "chatMediaOlderFailed": "Eski medya yüklenemedi. Yeniden dene",
+  "chatMediaOlderLoading": "Eski medya yükleniyor"
 }

@@ -5087,5 +5087,9 @@
   "clubAudienceDone": "تم ({count})",
   "clubRecommendedTitle": "أندية مناسبة لقسمك",
   "clubRecommendedAll": "جميع الأندية",
-  "eventRecommendedTitle": "فعاليات مناسبة لقسمك"
+  "eventRecommendedTitle": "فعاليات مناسبة لقسمك",
+  "chatMediaPosition": "الوسائط {n} / {total}",
+  "@chatMediaPosition": {"placeholders": {"n": {"type": "int"}, "total": {"type": "int"}}},
+  "chatMediaOlderFailed": "تعذر تحميل وسائط أقدم. أعد المحاولة",
+  "chatMediaOlderLoading": "جارٍ تحميل وسائط أقدم"
 }

@@ -15,6 +15,7 @@ import 'chat_media_gallery_page.dart';
 import 'chat_info_members.dart';
 import 'chat_info_parts.dart';
 import 'chat_sheet_parts.dart';
+import 'chat_media_pager.dart';
 import 'chat_media_viewer.dart';
 import 'chat_security_page.dart';
 import 'chatlist_widgets.dart';
@@ -208,17 +209,26 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   // ---- medya ----
 
   void _openViewer(int index) {
+    // Sohbet ekranıyla aynı sıra: eskiden yeniye; eskiye doğru sonsuz yükleme.
+    final all = _feed.items.reversed.toList();
+    final pager = ChatMediaPager(
+        api: _api,
+        conversationId: _cid,
+        senderName: _senderName,
+        items: all,
+        olderCursor: _feed.olderCursor);
     Navigator.push(
       context,
       MaterialPageRoute<void>(settings: const RouteSettings(name: 'chat_media_viewer'), 
         builder: (_) => ChatMediaViewer(
-          items: List.of(_feed.items),
+          items: all,
+          pager: pager,
           headers: _headers,
-          initialIndex: index,
+          initialIndex: all.length - 1 - index,
           saveImage: widget.saveImage,
         ),
       ),
-    );
+    ).whenComplete(pager.dispose);
   }
 
   /// Galeri sekmesinden: süzülmüş listede görüntüleyici.

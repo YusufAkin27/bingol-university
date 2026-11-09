@@ -5087,5 +5087,9 @@
   "clubAudienceDone": "Done ({count})",
   "clubRecommendedTitle": "Clubs for your department",
   "clubRecommendedAll": "All clubs",
-  "eventRecommendedTitle": "Events for your department"
+  "eventRecommendedTitle": "Events for your department",
+  "chatMediaPosition": "Media {n} / {total}",
+  "@chatMediaPosition": {"placeholders": {"n": {"type": "int"}, "total": {"type": "int"}}},
+  "chatMediaOlderFailed": "Could not load older media. Try again",
+  "chatMediaOlderLoading": "Loading older media"
 }

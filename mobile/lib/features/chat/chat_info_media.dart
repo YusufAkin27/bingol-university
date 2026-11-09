@@ -27,6 +27,9 @@ class ChatMediaFeed extends ChangeNotifier {
   final String? Function(Map<String, dynamic> message) senderName;
 
   final items = <ChatMediaItem>[];
+
+  /// Daha eskiye devam imleci (yoksa null); görüntüleyicinin sonsuz yüklemesi buradan sürer.
+  int? get olderCursor => more ? _cursor : null;
   final _seen = <int>{};
   int? _cursor;
   bool more = true;

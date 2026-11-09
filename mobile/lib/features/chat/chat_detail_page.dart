@@ -34,6 +34,7 @@ import 'chatd_parts.dart' show ChatTypingDots;
 import 'chatlist_widgets.dart' show ChatlistAvatar;
 import 'recent_reactions.dart';
 import 'message_info_page.dart';
+import 'chat_media_pager.dart';
 import 'chat_media_viewer.dart';
 import 'chat_security_page.dart';
 import 'chat_video_player.dart';
@@ -1724,14 +1725,22 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     final tapped = (index >= 0 && index < atts.length) ? atts[index] : null;
     final all = _conversationMedia(tapped);
     if (all != null) {
+      // Yüklü medyadan başlar; başa yaklaşınca daha eski mesajların medyası imleçle yüklenir.
+      final pager = ChatMediaPager(
+          api: _api,
+          conversationId: _cid,
+          senderName: (m) => _nameOf((m['senderId'] as num?)?.toInt()),
+          items: all.items,
+          olderCursor: _beforeCursor);
       Navigator.push(
           context,
           MaterialPageRoute<void>(settings: const RouteSettings(name: 'chat_media_viewer'),
               builder: (_) => ChatMediaViewer(
                   items: all.items,
+                  pager: pager,
                   headers: _authHeaders,
                   initialIndex: all.start,
-                  videoControllerFactory: widget.videoControllerFactory)));
+                  videoControllerFactory: widget.videoControllerFactory))).whenComplete(pager.dispose);
       return;
     }
     final items = <ChatMediaItem>[];

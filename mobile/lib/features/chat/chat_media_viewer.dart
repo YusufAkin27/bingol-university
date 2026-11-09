@@ -3,12 +3,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:gal/gal.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../core/locale_controller.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/bu.dart';
 import 'chat_media.dart';
+import 'chat_media_pager.dart';
 import 'chat_media_parts.dart';
 import 'chat_video_cover.dart';
 import 'chat_video_player.dart';
@@ -137,9 +139,13 @@ class ChatMediaViewer extends StatefulWidget {
     this.saveImage = saveChatImageToGallery,
     this.saveVideo = saveChatVideoToGallery,
     this.videoControllerFactory,
+    this.pager,
   });
 
   final List<ChatMediaItem> items;
+
+  /// Doluysa eskiye doğru sonsuz yükleme: [items] eskiden yeniye sıralı olmalı ve pager'ın başlangıç listesi ile aynıdır.
+  final ChatMediaPager? pager;
   final Map<String, String> headers;
   final int initialIndex;
 
@@ -155,8 +161,10 @@ class ChatMediaViewer extends StatefulWidget {
 }
 
 class _ChatMediaViewerState extends State<ChatMediaViewer> {
-  late final PageController _pc = PageController(initialPage: widget.initialIndex.clamp(0, widget.items.length - 1));
+  late PageController _pc = PageController(initialPage: _index);
   late int _index = widget.initialIndex.clamp(0, widget.items.length - 1);
+  double _drag = 0;
+  List<ChatMediaItem> get _items => widget.pager?.items ?? widget.items;
   bool _bars = true;
   bool _zoomed = false;
   bool _saving = false;
@@ -168,6 +176,7 @@ class _ChatMediaViewerState extends State<ChatMediaViewer> {
 
   @override
   void dispose() {
+    widget.pager?.removeListener(_onPager);
     _pc.dispose();
     _strip.dispose();
     super.dispose();
@@ -188,10 +197,38 @@ class _ChatMediaViewerState extends State<ChatMediaViewer> {
   @override
   void initState() {
     super.initState();
+    widget.pager?.addListener(_onPager);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _centerStrip(_index, animate: false);
     });
+    _maybeLoadOlder();
   }
+
+  /// Başa yakınsa daha eski medyayı ister (sınırsız sorgu yok: pager sayfalı ve imleçli).
+  void _maybeLoadOlder() {
+    final p = widget.pager;
+    if (p != null && p.hasOlder && !p.loadingOlder && p.error == null && _index < 5) p.loadOlder();
+  }
+
+  void _onPager() {
+    if (!mounted) return;
+    final k = widget.pager!.prepended;
+    if (k > 0 && !_consumed) {
+      // Başa eklenen öğeler indeksleri kaydırır: aynı medyada kalmak için yeni denetleyici (kare sıçraması olmadan).
+      _consumed = true;
+      final old = _pc;
+      _index += k;
+      _pc = PageController(initialPage: _index);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        old.dispose();
+        if (mounted) _centerStrip(_index, animate: false);
+      });
+    }
+    if (widget.pager!.loadingOlder) _consumed = false;
+    setState(() {});
+  }
+
+  bool _consumed = false;
 
   void _goTo(int i) {
     if (i == _index) return;
@@ -205,7 +242,7 @@ class _ChatMediaViewerState extends State<ChatMediaViewer> {
     setState(() => _saving = true);
     String msg;
     var ok = false;
-    final item = widget.items[_index];
+    final item = _items[_index];
     try {
       await (item.isVideo ? widget.saveVideo : widget.saveImage)(item.url, widget.headers);
       msg = l.chatMiscSavedToGallery;
@@ -218,11 +255,32 @@ class _ChatMediaViewerState extends State<ChatMediaViewer> {
     BuToast.show(context, msg, kind: ok ? BuToastKind.success : BuToastKind.error, duration: const Duration(seconds: 2));
   }
 
+  /// "Gönderen · 9 Kas 14:32" alt yazısı; ikisi de yoksa null.
+  String? _meta(ChatMediaItem it) {
+    final parts = <String>[];
+    if (it.sender != null && it.sender!.isNotEmpty) parts.add(it.sender!);
+    final at = it.at;
+    if (at != null) {
+      final loc = Localizations.localeOf(context).toLanguageTag();
+      try {
+        parts.add(DateFormat.MMMd(loc).add_Hm().format(at.toLocal()));
+      } catch (_) {
+        parts.add(DateFormat.MMMd().add_Hm().format(at.toLocal()));
+      }
+    }
+    return parts.isEmpty ? null : parts.join(' · ');
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final n = widget.items.length;
-    final it = widget.items[_index];
+    final items = _items;
+    final n = items.length;
+    final it = items[_index];
+    final pager = widget.pager;
+    final more = pager?.hasOlder ?? false;
+    final counter = '${_index + 1} / $n${more ? '+' : ''}';
+    final meta = _meta(it);
     // Sayfa içeriği üst çubuğun altından başlar (referans 26: çubuk ile kart ayrı bantlarda).
     final top = MediaQuery.paddingOf(context).top + 4 + 48 + 12;
     final safeBottom = MediaQuery.paddingOf(context).bottom;
@@ -238,7 +296,23 @@ class _ChatMediaViewerState extends State<ChatMediaViewer> {
               behavior: HitTestBehavior.opaque,
               excludeFromSemantics: true,
               onTap: () => setState(() => _bars = !_bars),
-              child: PageView.builder(
+              onVerticalDragUpdate: _zoomed ? null : (d) => setState(() => _drag = (_drag + d.delta.dy).clamp(0.0, 600.0)),
+              onVerticalDragEnd: _zoomed
+                  ? null
+                  : (d) {
+                      if (_drag > 120 || (d.primaryVelocity ?? 0) > 800) {
+                        Navigator.pop(context);
+                      } else {
+                        setState(() => _drag = 0);
+                      }
+                    },
+              onVerticalDragCancel: () => setState(() => _drag = 0),
+              child: Transform.translate(
+                offset: Offset(0, _drag),
+                child: Opacity(
+                  opacity: (1 - _drag / 500).clamp(.4, 1.0),
+                  child: PageView.builder(
+                key: ValueKey(_pc),
                 controller: _pc,
                 itemCount: n,
                 physics: _zoomed ? const NeverScrollableScrollPhysics() : const PageScrollPhysics(),
@@ -248,27 +322,80 @@ class _ChatMediaViewerState extends State<ChatMediaViewer> {
                     _zoomed = false;
                   });
                   _centerStrip(i);
+                  _maybeLoadOlder();
                 },
-                itemBuilder: (c, i) => widget.items[i].isVideo
+                itemBuilder: (c, i) => Semantics(
+                  container: true,
+                  label: l.chatMediaPosition(i + 1, n),
+                  child: items[i].isVideo
                     ? _VideoPosterPage(
-                        key: ValueKey(widget.items[i].url),
-                        item: widget.items[i],
+                        key: ValueKey(items[i].url),
+                        item: items[i],
                         headers: widget.headers,
                         controllerFactory: widget.videoControllerFactory,
                       )
                     : ChatZoomImage(
-                        key: ValueKey(widget.items[i].url),
-                        url: widget.items[i].url,
-                        thumbUrl: widget.items[i].thumbUrl,
+                        key: ValueKey(items[i].url),
+                        url: items[i].url,
+                        thumbUrl: items[i].thumbUrl,
                         headers: widget.headers,
                         onZoom: (z) {
                           if (z != _zoomed && i == _index) setState(() => _zoomed = z);
                         },
                       ),
+                ),
+              ),
+                ),
               ),
             ),
           ),
         ),
+        if (meta != null || (pager != null && (pager.loadingOlder || pager.error != null)))
+          PositionedDirectional(
+            start: 16,
+            end: 16,
+            bottom: safeBottom + 8 + (n > 1 ? _thumb + 12 : 0),
+            child: ChatdChrome(
+              visible: _bars,
+              fromTop: false,
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                if (pager != null && pager.error != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: ChatdBarPill(
+                      key: const ValueKey('viewerOlderRetry'),
+                      icon: BuIcons.refreshCw,
+                      label: l.chatMediaOlderFailed,
+                      onTap: () {
+                        pager.error = null;
+                        pager.loadOlder();
+                      },
+                    ),
+                  )
+                else if (pager != null && pager.loadingOlder)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Semantics(
+                      liveRegion: true,
+                      label: l.chatMediaOlderLoading,
+                      child: SizedBox(
+                        key: const ValueKey('viewerOlderLoading'),
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2, strokeCap: StrokeCap.round, color: context.bu.onMedia),
+                      ),
+                    ),
+                  ),
+                if (meta != null)
+                  Text(meta,
+                      key: const ValueKey('viewerMeta'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.labelLarge!.copyWith(color: context.bu.onMedia, fontWeight: FontWeight.w400)),
+              ]),
+            ),
+          ),
         if (n > 1)
           PositionedDirectional(
             start: 0,
@@ -288,11 +415,11 @@ class _ChatMediaViewerState extends State<ChatMediaViewer> {
                   separatorBuilder: (_, __) => const SizedBox(width: _gap),
                   itemBuilder: (c, i) => _StripThumb(
                     key: ValueKey('viewerThumb$i'),
-                    item: widget.items[i],
+                    item: items[i],
                     headers: widget.headers,
                     size: _thumb,
                     selected: i == _index,
-                    label: '${i + 1} / $n',
+                    label: l.chatMediaPosition(i + 1, n),
                     onTap: () => _goTo(i),
                   ),
                 ),
@@ -314,7 +441,7 @@ class _ChatMediaViewerState extends State<ChatMediaViewer> {
                     alignment: AlignmentDirectional.centerStart,
                     child: ChatdRoundButton(icon: BuIcons.x, tooltip: l.chatMiscClose, onPressed: () => Navigator.pop(context)),
                   ),
-                  ChatdBarPill(icon: it.isVideo ? null : BuIcons.image, label: '${_index + 1} / $n'),
+                  ChatdBarPill(icon: it.isVideo ? null : BuIcons.image, label: counter, semanticsLabel: l.chatMediaPosition(_index + 1, n)),
                   Align(
                     alignment: AlignmentDirectional.centerEnd,
                     child: ChatdBarPill(icon: BuIcons.download, label: l.chatMiscDownload, busy: _saving, onTap: _save),

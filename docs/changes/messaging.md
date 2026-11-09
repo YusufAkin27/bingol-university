@@ -291,3 +291,9 @@ Geriye uyumlu (yalniz ekleme; tek davranis degisikligi: arsiv artik yeni mesajla
 
 - `MessageView.readAt` (ISO-8601 UTC, ornek `2026-11-07T10:00:00Z`; alan yoksa/`null` ise okunmadi). YALNIZ istek sahibi mesajin gondereniyse ve `status=READ` ise dolar; aliciya/baskasina asla gonderilmez. Birebirde kaydedilir (`message.read_at`); grup/oda ve `status=null` durumlarinda gelmez. Mesaj listesi, gonderim/duzenleme yanitlari ve konusma listesindeki `lastMessage` ayni assembler'dan gecer. Gizlilik tercihi (okundu bilgisini kapat) sunucuda yoktur.
 - STOMP `receipt` olayi `readAt` tasir (yalniz `kind="read"`, olay ani UTC = `at`); `delivered` olayinda yok. Eski istemciler alani yok sayar.
+
+## Mobil: sohbet medya galerisi (alt şerit + eskiye sonsuz yükleme)
+
+- Tam ekran görüntüleyici (`ChatMediaViewer`) eskiden yeniye sıralı sohbet medyasını gösterir; sağa/sola kaydırma, alt küçük resim şeridi (aktif kare ortalanır), üstte `3 / 27` sayacı (daha eski medya varsa `27+`), altta gönderen ve tarih, tek dokunuşla çubukları gizleme, aşağı çekerek kapatma.
+- `ChatMediaPager` (mobile/lib/features/chat/chat_media_pager.dart): başa 5 kareden fazla yaklaşınca `GET /conversations/{cid}/messages?size=40&before=<imleç>` ile daha eski mesajların medyasını getirir (yükleme başına en çok 6 istek; silinmiş/kaldırılmış/tek gösterimlik ekler girmez). Backend değişikliği YOK: ayrı medya listesi ucu eklenmedi, mevcut mesaj sayfalama yeterli.
+- Yeni l10n: chatMediaPosition, chatMediaOlderFailed, chatMediaOlderLoading (tr/en/ar). Test: mobile/test/chat_media_gallery_test.dart.
