@@ -535,6 +535,16 @@ CUR="\$(cat "\$BASEDIR/.current_release" 2>/dev/null || true)"
 # bekleyen Flyway migration'lari: yeni surumde olup calisan surumde olmayanlar (Flyway geri SARILMAZ)
 if [ -n "\$CUR" ] && [ -d "\$BASEDIR/releases/\$CUR" ]; then
   MIG=backend/src/main/resources/db/migration
+  # Applied migrations are immutable. Detect drift BEFORE replacing healthy containers.
+  for old in "\$BASEDIR/releases/\$CUR/\$MIG"/V*.sql; do
+    [ -f "\$old" ] || continue
+    next="\$MIG/\$(basename "\$old")"
+    if [ ! -f "\$next" ] || ! diff --strip-trailing-cr -q "\$old" "\$next" >/dev/null; then
+      rlog "MIGRATION UYUSMAZLIGI: \$(basename "\$old") degistirilmis veya kaldirilmis; calisan surum korunuyor"
+      exit 5
+    fi
+  done
+  rlog "mevcut migration dosyalari calisan surumle ayni"
   NEWM="\$(comm -13 <(ls -1 "\$BASEDIR/releases/\$CUR/\$MIG" 2>/dev/null | sort) <(ls -1 "\$MIG" 2>/dev/null | sort) | tr '\n' ' ')"
   if [ -n "\$NEWM" ]; then
     rlog "UYARI: \$(printf '%s' "\$NEWM" | wc -w) yeni Flyway migration uygulanacak: \$NEWM"
@@ -593,6 +603,7 @@ if [ "$DEPLOY_RC" != 0 ]; then
     2) die "dagitim basarisiz VE geri alma basarisiz: elle mudahale gerekli (ssh $SSH_USER@$HOST; $BASEDIR/releases)" 1;;
     3) die "compose yapilandirma hatasi (.env.prod eksik degisken?)" 1;;
     4) die "dagitim oncesi YEDEK basarisiz: calisan surum degismedi. Yedek hatasini giderin (docker compose logs backup) ya da bilincli --skip-backup" 1;;
+    5) die "mevcut migration dosyasi degistirilmis/kaldirilmis: dagitim durduruldu, calisan surum korunuyor; uygulanmis dosyayi geri getirin ve yeni degisiklik icin yeni migration ekleyin" 1;;
     *) die "dagitim basarisiz (varsa onceki surume donuldu); gunlukler: ssh $SSH_USER@$HOST 'cd $BASEDIR/current && docker compose -p bu -f docker-compose.prod.yml -f deploy/compose.bukampus.yml --env-file $BASEDIR/.env.prod logs --tail=100'" 1;;
   esac
 fi
