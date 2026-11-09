@@ -152,7 +152,7 @@ class _EventsPageState extends State<EventsPage> {
     try {
       final res = await widget.session.api.get('/events/recommended?size=3');
       if (!mounted) return;
-      setState(() => _rec = [for (final e in _parse(res)) _norm(e)]);
+      setState(() => _rec = [for (final e in _parse(res).map(_norm)) if (e['_day'] is DateTime) e]);
     } catch (_) {
       // En iyi çaba: öneri gelmezse çizilmez.
     }

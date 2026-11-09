@@ -25193,6 +25193,114 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Öğretim elemanı'**
   String get homeTodayPeekInstructor;
+
+  /// No description provided for @deptChatTag.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölüm'**
+  String get deptChatTag;
+
+  /// No description provided for @deptChatJoinRow.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölüm grubuna katıl: {name}'**
+  String deptChatJoinRow(String name);
+
+  /// No description provided for @clubAudienceLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Önerilecek bölümler'**
+  String get clubAudienceLabel;
+
+  /// No description provided for @clubAudienceHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçilmedi (isteğe bağlı)'**
+  String get clubAudienceHint;
+
+  /// No description provided for @clubAudienceSheetTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp kime önerilsin?'**
+  String get clubAudienceSheetTitle;
+
+  /// No description provided for @clubAudienceSheetHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yalnızca öneri sıralamasını etkiler; kulüp herkese görünür kalır.'**
+  String get clubAudienceSheetHint;
+
+  /// No description provided for @clubAudienceSearchHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fakülte veya bölüm ara'**
+  String get clubAudienceSearchHint;
+
+  /// No description provided for @clubAudienceNoMatch.
+  ///
+  /// In tr, this message translates to:
+  /// **'Eşleşen fakülte veya bölüm yok'**
+  String get clubAudienceNoMatch;
+
+  /// No description provided for @clubAudienceRetry.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tekrar dene'**
+  String get clubAudienceRetry;
+
+  /// No description provided for @clubAudienceClear.
+  ///
+  /// In tr, this message translates to:
+  /// **'Temizle'**
+  String get clubAudienceClear;
+
+  /// No description provided for @clubAudienceExpand.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölümleri göster'**
+  String get clubAudienceExpand;
+
+  /// No description provided for @clubAudienceCollapse.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölümleri gizle'**
+  String get clubAudienceCollapse;
+
+  /// No description provided for @clubAudienceDeptCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} bölüm'**
+  String clubAudienceDeptCount(int count);
+
+  /// No description provided for @clubAudienceSelected.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} hedef seçildi'**
+  String clubAudienceSelected(int count);
+
+  /// No description provided for @clubAudienceDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tamam ({count})'**
+  String clubAudienceDone(int count);
+
+  /// No description provided for @clubRecommendedTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölümüne uygun kulüpler'**
+  String get clubRecommendedTitle;
+
+  /// No description provided for @clubRecommendedAll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm kulüpler'**
+  String get clubRecommendedAll;
+
+  /// No description provided for @eventRecommendedTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölümüne uygun etkinlikler'**
+  String get eventRecommendedTitle;
 }
 
 class _AppLocalizationsDelegate
