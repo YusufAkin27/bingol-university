@@ -1,5 +1,6 @@
 import '../../core/analytics.dart';
 import 'dart:async';
+import 'dart:io' show File;
 
 import '../../core/push/active_conversation.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, debugPrint;
@@ -20,6 +21,10 @@ import '../../core/platform/video_service.dart';
 import '../../core/realtime/chat_realtime.dart';
 import '../../core/realtime/stomp_client.dart' show StompFatal;
 import '../../core/session.dart';
+import '../../core/transfers/transfer_hub.dart';
+import '../../core/transfers/transfer_job.dart';
+import '../../core/transfers/transfer_queue.dart';
+import 'chat_transfer.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/bu.dart';
 import '../../widgets/common.dart';
@@ -108,6 +113,7 @@ class ChatDetailPage extends StatefulWidget {
     @visibleForTesting this.videoService,
     @visibleForTesting this.ensureAccess,
     @visibleForTesting this.videoControllerFactory,
+    @visibleForTesting this.transferQueue,
   });
 
   final Session session;
@@ -138,6 +144,9 @@ class ChatDetailPage extends StatefulWidget {
 
   /// Testlerde sahte oynatıcı denetleyicisi.
   final VideoControllerFactory? videoControllerFactory;
+
+  /// Testlerde aktarım kuyruğu (yoksa uygulama genelindeki `TransferHub` kuyruğu).
+  final TransferQueue? transferQueue;
 
   /// Yalnız testler: kurulan balon sayısı (gereksiz yeniden kurulum denetimi, A5-04).
   @visibleForTesting
@@ -354,7 +363,179 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     _input.addListener(_onInput);
     ClosedConversations.instance.addListener(_onClosedChanged);
     _watchOutbox();
+    _watchTransfers();
     _boot();
+  }
+
+  // ---------- Medya aktarım kuyruğu (G10) ----------
+
+  TransferQueue? get _tq {
+    final q = widget.transferQueue ?? TransferHub.instance.queue;
+    return q != null && q.owner == _myId ? q : null;
+  }
+
+  StreamSubscription<List<TransferJob>>? _tqSub;
+  StreamSubscription<Map<String, dynamic>>? _tPubSub;
+  final _tProgress = <String, ValueNotifier<double>>{};
+
+  void _watchTransfers() {
+    final q = _tq;
+    if (q == null) return;
+    _tPubSub = ChatTransfers.published.listen((res) {
+      if (!mounted || (res['conversationId'] as num?)?.toInt() != _cid) return;
+      setState(() => _merge([res]));
+      _changed = true;
+    });
+    _tqSub = q.watch(targetKey: ChatTransfers.targetKey(_cid)).listen(_onTransfers);
+  }
+
+  /// Aktarım işlerini balonlara yansıtır: ilerleme tek kaynaktan (iş), yeniden açılışta balon geri gelir.
+  /// Durum eşlemesi: sırada/aktarılıyor/sunucuda işleniyor = "gönderiliyor"; hata = "gönderilemedi"; yalnız sunucu
+  /// mesaj kimliği dönünce (published) mesaj gönderildi sayılır. İptal = balon kalkar.
+  void _onTransfers(List<TransferJob> jobs) {
+    if (!mounted || _loading) return;
+    var dirty = false;
+    for (final j in jobs) {
+      if (j.kind != TransferKind.chatMedia) continue;
+      final i = _msgs.indexWhere((m) => '${m['clientId']}' == j.id);
+      Map<String, dynamic>? m = i < 0 ? null : _msgs[i];
+      if (m != null && m['id'] != null && m['_transfer'] != true) continue; // sunucu mesajı zaten listede
+      if (m == null) {
+        if (j.status == TransferStatus.published || j.status == TransferStatus.canceled) continue;
+        m = _bubbleForJob(j);
+        _msgs.add(m);
+        _msgs.sort((a, b) => _key(b).compareTo(_key(a)));
+        dirty = true;
+      }
+      switch (j.status) {
+        case TransferStatus.canceled:
+          _msgs.remove(m);
+          _disposeProgress(j.id);
+          dirty = true;
+        case TransferStatus.failed:
+          if (m['_state'] != 'failed') {
+            m['_state'] = 'failed';
+            m['_error'] = null;
+            dirty = true;
+          }
+        case TransferStatus.published:
+          final id = int.tryParse(j.publishedRef ?? '');
+          if (id != null && m['id'] == null) {
+            // Sunucu mesaj kimliğini döndürdü: artık "gönderildi" (karşıya ulaştı/okundu ayrı `receipt` olaylarıdır).
+            m['id'] = id;
+            m['status'] = 'SENT';
+            m['_state'] = null;
+            m['_transfer'] = false;
+            _disposeProgress(j.id);
+            dirty = true;
+            unawaited(_poll(force: true)); // tam sunucu mesajı (ekler, saat) gelsin
+          }
+        default:
+          if (m['_state'] != 'pending') {
+            m['_state'] = 'pending';
+            m['_error'] = null;
+            dirty = true;
+          }
+          final f = j.fraction;
+          final n = _tProgress[j.id];
+          if (n != null && f != null && f > n.value) n.value = f;
+      }
+    }
+    if (dirty) setState(() {});
+  }
+
+  /// Yükleme bittikten sonra kuyrukta bekleyen/hatalı işleri balon olarak geri getirir.
+  void _syncTransfers() {
+    final q = _tq;
+    if (q != null) _onTransfers(q.jobsFor(targetKey: ChatTransfers.targetKey(_cid)));
+  }
+
+  void _disposeProgress(String id) {
+    final n = _tProgress.remove(id);
+    if (n != null) {
+      // Balon son kez çizilirken hâlâ dinliyor olabilir: kareden sonra bırak.
+      WidgetsBinding.instance.addPostFrameCallback((_) => n.dispose());
+    }
+  }
+
+  /// Süreç yeniden açılınca kuyruktaki işten yerel balon kurar (önizleme: görsel dosyası ya da video posteri).
+  Map<String, dynamic> _bubbleForJob(TransferJob j) {
+    final isVideo = j.mime.startsWith('video/');
+    Uint8List? thumb;
+    try {
+      final path = isVideo ? j.meta['posterPath'] as String? : j.localPath;
+      if (path != null && j.meta['viewOnce'] != true) {
+        final f = File(path);
+        if (f.existsSync() && f.lengthSync() < 4 * 1024 * 1024) thumb = f.readAsBytesSync();
+      }
+    } catch (_) {
+      // Önizleme en iyi çaba.
+    }
+    final progress = _tProgress.putIfAbsent(j.id, () => ValueNotifier<double>(j.fraction ?? 0));
+    final m = <String, dynamic>{
+      'id': null,
+      'clientId': j.id,
+      'senderId': _myId,
+      'text': (j.meta['text'] as String?) ?? '',
+      'createdAt': j.createdAt.toUtc().toIso8601String(),
+      'replyToMessageId': (j.meta['replyToMessageId'] as num?)?.toInt(),
+      '_state': 'pending',
+      '_transfer': true,
+      '_seq': _seq++,
+      if (j.meta['viewOnce'] == true) '_viewOnce': true,
+    };
+    if (j.meta['viewOnce'] != true) {
+      m['_localItems'] = [
+        {
+          'bytes': thumb,
+          'video': isVideo,
+          'durationMs': (j.meta['durationMs'] as num?)?.toInt(),
+        }
+      ];
+      if (thumb != null) m['_bytes'] = thumb;
+      if (isVideo) {
+        m
+          ..['_isVideo'] = true
+          ..['_durationMs'] = (j.meta['durationMs'] as num?)?.toInt()
+          ..['_vw'] = (j.meta['width'] as num?)?.toInt()
+          ..['_vh'] = (j.meta['height'] as num?)?.toInt()
+          ..['_progress'] = progress;
+      }
+    }
+    return m;
+  }
+
+  /// Tek eki G10 kuyruğuna alır (varsa). Başarılıysa true: gönderim sayfadan bağımsız sürer. Çok ekli mesajlar,
+  /// kuyruk yoksa ya da kuyruğa alma başarısızsa false (eski yol: sayfa içi yükleme / Outbox).
+  Future<bool> _enqueueTransfer(Map<String, dynamic> local) async {
+    final q = _tq;
+    final ups = _uploadsOf(local);
+    if (q == null || ups.length != 1 || ups.first['attId'] != null) return false;
+    final u = ups.first;
+    final cid = '${local['clientId']}';
+    // İlerleme bildirimcisi balonla paylaşılır (video balonu `_progress` dinler).
+    final n = _tProgress.putIfAbsent(cid, () => ValueNotifier<double>(0));
+    final oldProgress = local['_progress'];
+    if (u['video'] != null) local['_progress'] = n;
+    final ok = await ChatTransfers.enqueue(
+      q,
+      ownerUserId: _myId!,
+      conversationId: _cid,
+      clientId: cid,
+      text: (local['text'] as String?) ?? '',
+      replyToMessageId: (local['replyToMessageId'] as num?)?.toInt(),
+      viewOnce: local['_viewOnce'] == true,
+      image: u['image'] as PreparedImage?,
+      video: u['video'] as PreparedVideo?,
+    );
+    if (!ok) {
+      _tProgress.remove(cid)?.dispose();
+      local['_progress'] = oldProgress;
+      return false;
+    }
+    local['_transfer'] = true;
+    if (mounted) setState(() => local['_state'] = 'pending');
+    return true;
   }
 
   // ---------- Çevrimdışı kuyruk (Outbox) ----------
@@ -495,6 +676,11 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     _typingOff?.cancel();
     _hiOff?.cancel();
     _deliverySub?.cancel();
+    _tqSub?.cancel();
+    _tPubSub?.cancel();
+    for (final n in _tProgress.values) {
+      n.dispose();
+    }
     _outbox?.removeListener(_onOutboxChanged);
     ClosedConversations.instance.removeListener(_onClosedChanged);
     for (final tm in _noticeTimers.values) {
@@ -590,6 +776,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       _startTimer();
       _loadPresence();
       _startRealtime();
+      _syncTransfers();
     } catch (e) {
       if (!mounted) return;
       // Çıkarıldık/ayrıldık (404 CONVERSATION_NOT_FOUND): önbellekli açılış 404'ü yutmaz, sayfa kapanır.
@@ -1275,6 +1462,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
             e.status == OutboxStatus.pending &&
             !_rt.isAwaitingAck(e.clientId)) ??
         false;
+    // Tek ekli medya mesajı: G10 kalıcı aktarım kuyruğu (sayfa kapansa da sürer, ilerleme tek kaynaktan).
+    if (uploads.length == 1 && await _enqueueTransfer(local)) return;
     // Bağlantı yok: fotoğraf/video yerel kuyruğa alınır, bağlantı gelince kendiliğinden yüklenip gider.
     // Balon normal "gönderiliyor" görünür (bekliyor/kuyrukta metni yok).
     if (uploads.isNotEmpty &&
@@ -1495,6 +1684,17 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     });
     final ob = _outbox;
     final cid = '${m['clientId']}';
+    if (m['_transfer'] == true) {
+      final q = _tq;
+      if (q != null && await q.retry(cid)) return;
+      if (mounted) {
+        setState(() {
+          m['_state'] = 'failed';
+          m['_error'] = null;
+        });
+      }
+      return;
+    }
     if (ob != null && ob.contains(cid)) {
       // Kuyruktaki öğe: kuyruk yeniden dener (aynı clientId, çift mesaj olmaz).
       m['_queued'] = true;
@@ -2316,6 +2516,14 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       case 'drop':
         final ob = _outbox;
         if (ob != null) await ob.remove('${m['clientId']}');
+        if (m['_transfer'] == true) {
+          final q = _tq;
+          final jid = '${m['clientId']}';
+          if (q != null) {
+            // Yüklenmiş ama gönderilmemiş ek sunucudan silinir; sonlanmış kayıt listeden kalkar.
+            if (!await q.cancel(jid)) await q.dismiss(jid);
+          }
+        }
         if (mounted) setState(() => _msgs.remove(m));
     }
   }

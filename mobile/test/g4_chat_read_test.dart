@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'redesign/p00_support.dart';
 import 'support/fake_app.dart';
 
 /// G4: "Görüldü" yalnız sunucu `receipt`/`status=READ` bilgisine dayanır (I4-01), okundu imleci yalnız ön plan + alt uç
