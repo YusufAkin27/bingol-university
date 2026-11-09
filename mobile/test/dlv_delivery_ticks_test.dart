@@ -63,7 +63,8 @@ void main() {
   setUp(() => MessageCache.instance = MessageCache.memoryOnly());
 
   group('Gonderen: son mesaj durum yazisi', () {
-    Finder line(String t) => find.descendant(of: find.byKey(const ValueKey('msg-status-line')), matching: find.text(t));
+    // Goruldu artik "Görüldü · saat" zaman ekiyle gelir (seenAt varsa, G4): onek eslesir.
+    Finder line(String t) => find.descendant(of: find.byKey(const ValueKey('msg-status-line')), matching: find.textContaining(t));
 
     testWidgets('SENT -> iletildi hala Gonderildi -> okundu Goruldu; geri dusmez', (tester) async {
       final be = _be([_msg(5, 1, 'merhaba', status: 'SENT')]);
