@@ -14047,4 +14047,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get postPeekOpen => 'Open post';
+
+  @override
+  String get homeTodayPeekOpen => 'Open';
+
+  @override
+  String get homeTodayPeekHint => 'open preview';
+
+  @override
+  String get homeTodayPeekTime => 'Time';
+
+  @override
+  String get homeTodayPeekRoom => 'Place';
+
+  @override
+  String get homeTodayPeekInstructor => 'Instructor';
 }

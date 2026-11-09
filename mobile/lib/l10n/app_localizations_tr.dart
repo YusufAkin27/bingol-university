@@ -13993,4 +13993,19 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get postPeekOpen => 'Gönderiyi aç';
+
+  @override
+  String get homeTodayPeekOpen => 'Aç';
+
+  @override
+  String get homeTodayPeekHint => 'Ön izlemeyi aç';
+
+  @override
+  String get homeTodayPeekTime => 'Saat';
+
+  @override
+  String get homeTodayPeekRoom => 'Yer';
+
+  @override
+  String get homeTodayPeekInstructor => 'Öğretim elemanı';
 }

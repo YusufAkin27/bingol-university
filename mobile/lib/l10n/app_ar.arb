@@ -5057,5 +5057,10 @@
   "accReloginHint": "انتهت الجلسة. سجّل الدخول مجددًا: {mail}",
   "accBusy": "لا يمكن تبديل الحساب الآن. حاول مرة أخرى بعد قليل.",
   "accAccountNoName": "حساب",
-  "postPeekOpen": "فتح المنشور"
+  "postPeekOpen": "فتح المنشور",
+  "homeTodayPeekOpen": "فتح",
+  "homeTodayPeekHint": "فتح المعاينة",
+  "homeTodayPeekTime": "الوقت",
+  "homeTodayPeekRoom": "المكان",
+  "homeTodayPeekInstructor": "المحاضر"
 }

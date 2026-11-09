@@ -13938,4 +13938,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get postPeekOpen => 'فتح المنشور';
+
+  @override
+  String get homeTodayPeekOpen => 'فتح';
+
+  @override
+  String get homeTodayPeekHint => 'فتح المعاينة';
+
+  @override
+  String get homeTodayPeekTime => 'الوقت';
+
+  @override
+  String get homeTodayPeekRoom => 'المكان';
+
+  @override
+  String get homeTodayPeekInstructor => 'المحاضر';
 }

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
 import '../menu/menu_photo.dart';
+import 'home_today_peek.dart';
 import '../news/icerik_parts.dart' show newsHero;
 
 /// Ana Sayfa (Stitch v3, `docs/design/BIREBIR_HOME.md`): tek yüzey ailesi = beyaz (`sf`) + 1 dp `bd` çerçeve + 16 köşe,
@@ -478,12 +479,20 @@ class HomeEmptyHome extends StatelessWidget {
   }
 }
 
+/// "Bugün kampüste" satırı. [peek] doluysa satıra uzun basınca ön izleme açılır (yoksa yalnız dokunma).
+typedef HomeTodayRow = ({
+  String label,
+  String value,
+  VoidCallback onTap,
+  bool muted,
+  HomeTodayPeek? peek
+});
+
 /// Bugün kampüste (Stitch v5): tek beyaz yüzey, satır başına tek tonlu (`soft`) ikon karosu + büyük harfli küçük
 /// etiket + değer + ok. Satırların tamamı dokunulabilir.
 class HomeTodayCard extends StatelessWidget {
   const HomeTodayCard({super.key, required this.rows, this.mealImageUrl});
-  final List<({String label, String value, VoidCallback onTap, bool muted})>
-      rows;
+  final List<HomeTodayRow> rows;
 
   /// Günün menü fotoğrafı varsa öğle yemeği satırının sağında küçük görsel olarak çizilir (yoksa/bozuksa hiçbir şey).
   final String? mealImageUrl;
@@ -507,13 +516,19 @@ class HomeTodayCard extends StatelessWidget {
                 : lesson
                     ? BuIcons.bookOpen
                     : BuIcons.calendar;
+            final peek = row.peek;
+            void openPeek() => showHomeTodayPeek(context,
+                icon: icon, label: row.label, peek: peek!, onOpen: row.onTap);
             return Semantics(
               button: true,
               label: '${row.label}: ${row.value}',
               excludeSemantics: true,
               onTap: row.onTap,
+              onLongPress: peek == null ? null : openPeek,
+              onLongPressHint: peek == null ? null : l.homeTodayPeekHint,
               child: InkWell(
                 onTap: row.onTap,
+                onLongPress: peek == null ? null : openPeek,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   child: Row(children: [

@@ -5057,5 +5057,10 @@
   "accReloginHint": "Session expired. Log in again: {mail}",
   "accBusy": "Cannot switch accounts right now. Try again shortly.",
   "accAccountNoName": "Account",
-  "postPeekOpen": "Open post"
+  "postPeekOpen": "Open post",
+  "homeTodayPeekOpen": "Open",
+  "homeTodayPeekHint": "open preview",
+  "homeTodayPeekTime": "Time",
+  "homeTodayPeekRoom": "Place",
+  "homeTodayPeekInstructor": "Instructor"
 }

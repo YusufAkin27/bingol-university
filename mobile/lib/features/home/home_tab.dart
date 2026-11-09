@@ -36,6 +36,7 @@ import 'home_layout.dart';
 import 'home_layout_sheet.dart';
 import 'home_menu_rating.dart';
 import 'home_parts.dart';
+import 'home_today_peek.dart';
 import 'home_suggestions.dart';
 import '../forum/presentation/widgets/home_forum_talked.dart';
 import 'home_clubs.dart';
@@ -430,11 +431,9 @@ class _HomeTabState extends State<HomeTab> {
         .toList();
   }
 
-  List<({String label, String value, VoidCallback onTap, bool muted})>
-      _todayRows(BuildContext context) {
+  List<HomeTodayRow> _todayRows(BuildContext context) {
     final l = context.l10n;
-    final rows =
-        <({String label, String value, VoidCallback onTap, bool muted})>[];
+    final rows = <HomeTodayRow>[];
     // Öğle yemeği: ilk iki yemek + "+N" + toplam kcal; liste yoksa soluk tek cümle.
     final day = _today == null ? const MenuDay() : MenuDay.fromJson(_today!);
     final names = [for (final d in _dishes(day)) d.name];
@@ -443,7 +442,8 @@ class _HomeTabState extends State<HomeTab> {
         label: l.yemekLunch,
         value: l.homeNoMenuToday,
         onTap: () => _push(MenuPage(session: _s), 'menu'),
-        muted: true
+        muted: true,
+        peek: HomeTodayPeek(title: l.homeNoMenuToday)
       ));
     } else {
       final extra = names.length - 2;
@@ -454,7 +454,22 @@ class _HomeTabState extends State<HomeTab> {
         label: l.yemekLunch,
         value: value,
         onTap: () => _push(MenuPage(session: _s), 'menu'),
-        muted: false
+        muted: false,
+        peek: HomeTodayPeek(
+          title: l.yemekLunch,
+          lines: [
+            for (final d in _dishes(day))
+              (
+                label: d.name,
+                value: d.kcal == null ? '' : l.p03MenuKcal('${d.kcal}')
+              )
+          ],
+          badge: kcal == null
+              ? null
+              : (day.kcalComplete
+                  ? l.p03MenuKcal('$kcal')
+                  : l.p03MenuAtLeast('$kcal')),
+        )
       ));
     }
     // Sıradaki ders (akademik veri yoksa satır gizlenir).
@@ -477,6 +492,27 @@ class _HomeTabState extends State<HomeTab> {
               '$prefix${s.session.start} ${s.course.name}${room != null && room.trim().isNotEmpty ? ' · ${room.trim()}' : ''}',
           onTap: () => _push(AcademicHubPage(session: _s), 'academic_hub'),
           muted: false,
+          peek: HomeTodayPeek(
+            title: s.course.name,
+            subtitle: (s.course.code ?? '').trim().isEmpty
+                ? null
+                : s.course.code!.trim(),
+            lines: [
+              (
+                label: l.homeTodayPeekTime,
+                value: '$prefix${s.session.start} - ${s.session.end}'.trim()
+              ),
+              if ((room ?? '').trim().isNotEmpty)
+                (label: l.homeTodayPeekRoom, value: room!.trim()),
+              if ((s.course.instructor ?? '').trim().isNotEmpty)
+                (
+                  label: l.homeTodayPeekInstructor,
+                  value: s.course.instructor!.trim()
+                ),
+              if ((s.course.note ?? '').trim().isNotEmpty)
+                (label: '', value: s.course.note!.trim()),
+            ],
+          ),
         ));
       }
     }
@@ -496,7 +532,22 @@ class _HomeTabState extends State<HomeTab> {
         label: l.p60UpcomingExam,
         value: '${w.day} ${newsMonthName(context, w.month)} · $name',
         onTap: () => _push(AcademicHubPage(session: _s), 'academic_hub'),
-        muted: false
+        muted: false,
+        peek: HomeTodayPeek(
+          title: name,
+          subtitle: e.title == name ? null : e.title,
+          lines: [
+            (
+              label: l.homeTodayPeekTime,
+              value:
+                  '${w.day} ${newsMonthName(context, w.month)} ${w.hour.toString().padLeft(2, '0')}:${w.minute.toString().padLeft(2, '0')}'
+            ),
+            if ((e.room ?? '').trim().isNotEmpty)
+              (label: l.homeTodayPeekRoom, value: e.room!.trim()),
+            if ((e.note ?? '').trim().isNotEmpty)
+              (label: '', value: e.note!.trim()),
+          ],
+        )
       ));
     }
     rows.sort((a, b) => (a.label == l.p60NextClass

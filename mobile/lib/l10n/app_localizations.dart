@@ -25163,6 +25163,36 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Gönderiyi aç'**
   String get postPeekOpen;
+
+  /// No description provided for @homeTodayPeekOpen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aç'**
+  String get homeTodayPeekOpen;
+
+  /// No description provided for @homeTodayPeekHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ön izlemeyi aç'**
+  String get homeTodayPeekHint;
+
+  /// No description provided for @homeTodayPeekTime.
+  ///
+  /// In tr, this message translates to:
+  /// **'Saat'**
+  String get homeTodayPeekTime;
+
+  /// No description provided for @homeTodayPeekRoom.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yer'**
+  String get homeTodayPeekRoom;
+
+  /// No description provided for @homeTodayPeekInstructor.
+  ///
+  /// In tr, this message translates to:
+  /// **'Öğretim elemanı'**
+  String get homeTodayPeekInstructor;
 }
 
 class _AppLocalizationsDelegate
