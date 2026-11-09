@@ -7,6 +7,7 @@ import '../../widgets/bu.dart';
 import '../academic/academic_models.dart' show istanbulWall;
 import '../profile/saved_news_page.dart';
 import '../search/search_page.dart';
+import 'announcement_parts.dart';
 import 'icerik_parts.dart';
 import 'news_detail_page.dart';
 import 'news_tile.dart';
@@ -358,6 +359,8 @@ class _NewsListPageState extends State<NewsListPage> {
       ];
     }
     final rest = _items;
+    // Duyuru sekmesi: tarih gruplu (Bugün / Bu hafta / Daha eski) duyuru kartları; diğerleri düz haber kartı.
+    final rows = _type == 'DUYURU' ? groupAnnouncements(rest, istanbulWall(DateTime.now())) : null;
     return [
       SliverSemantics(
         container: true,
@@ -369,9 +372,23 @@ class _NewsListPageState extends State<NewsListPage> {
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
               sliver: SliverList.separated(
-                itemCount: rest.length,
+                itemCount: rows?.length ?? rest.length,
                 separatorBuilder: (_, __) => const SizedBox.shrink(),
                 itemBuilder: (context, i) {
+                  if (rows != null) {
+                    final r = rows[i];
+                    if (r is AnnouncementGroup) return AnnouncementGroupHeader(group: r, first: i == 0);
+                    final n = r as Map<String, dynamic>;
+                    return BuStaggerItem(
+                      index: i,
+                      child: AnnouncementTile(
+                        item: n,
+                        saved: _savedIds.contains((n['id'] as num).toInt()),
+                        onToggleSave: () => _toggleSave(n),
+                        onTap: () => _open(n),
+                      ),
+                    );
+                  }
                   final n = rest[i];
                   return BuStaggerItem(
                     index: i,
