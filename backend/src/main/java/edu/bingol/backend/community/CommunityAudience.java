@@ -29,14 +29,14 @@ public class CommunityAudience {
     @Column(nullable = false, length = 12)
     private String kind;
 
-    @Column(nullable = false, length = 120)
-    private String value;
+    @Column(name = "target_value", nullable = false, length = 120)
+    private String targetValue;
 
     public CommunityAudience() {}
 
     public CommunityAudience(Long communityId, String kind, String value) {
         this.communityId = communityId;
         this.kind = kind;
-        this.value = value;
+        this.targetValue = value;
     }
 }

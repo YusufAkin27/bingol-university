@@ -90,7 +90,7 @@ public class CommunityAudienceService {
         Map<Long, List<String>> ds = new HashMap<>();
         for (CommunityAudience a : repo.findByCommunityIdIn(communityIds)) {
             (CommunityAudience.FACULTY.equals(a.getKind()) ? fs : ds)
-                    .computeIfAbsent(a.getCommunityId(), k -> new ArrayList<>()).add(a.getValue());
+                    .computeIfAbsent(a.getCommunityId(), k -> new ArrayList<>()).add(a.getTargetValue());
         }
         Map<Long, Targets> out = new HashMap<>();
         for (Long id : communityIds) {
