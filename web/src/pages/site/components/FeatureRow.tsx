@@ -7,7 +7,7 @@ import styles from './FeatureRow.module.css';
 interface Props {
   /** Ana ekran görüntüsü (telefon). `figure` verilmezse zorunlu. */
   shot?: ShotId;
-  /** Telefon yerine özel görsel (örn. FeedSketch); sahne panelinin içine ortalanır. */
+  /** Telefon yerine özel görsel (örn. çizim); sahne panelinin içine ortalanır. */
   figure?: ReactNode;
   /** İkinci, daha geride duran telefon (örn. etkinlik + QR). */
   secondShot?: ShotId;

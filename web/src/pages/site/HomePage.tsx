@@ -1,8 +1,8 @@
 // SAYFA: Ana sayfa (/)
 // API: GET /api/app/info (useAppInfo: bakım/iletişim), mağaza bağlantıları için useStoreLinks (info.stores ya da GET /api/app/version).
-// Yapı: Hero (ortalı başlık + iki mağaza rozeti + alttan solan 3 telefon) > kampüsün sosyal tarafı (akış çizimi + 4 madde) > ekran vitrini (4 kart, 2x2)
+// Yapı: Hero (ortalı başlık + iki mağaza rozeti + alttan solan 3 telefon) > kampüsün sosyal tarafı (Keşfet telefonu + 4 madde) > ekran vitrini (4 kart, 2x2)
 //       > 3 adım > öğrencilere özel güvenli alan (reklamsız, moderasyonlu) > alt CTA.
-// Keşfet ekranı maketlerde KULLANILMAZ (gerçek kullanıcı içeriği): akış, soyut FeedSketch çizimiyle anlatılır.
+// Keşfet ekranı: uydurma, kampüs temalı içerikle üretilmiş GERÇEK uygulama görüntüsü (mobile/test/web_shots; gerçek kişi/fotoğraf yok).
 // Mobil öncelikli (390 px); telefon görselleri uygulamanın kendi ekran çıktılarıdır (bkz. components/screenshots.ts).
 import { Link } from '../../components/LocalizedLink';
 import { useAppInfo, useStoreLinks } from '../../api/hooks';
@@ -12,7 +12,6 @@ import { paths } from '../../paths';
 import { siteOrigin } from '../../seo/siteUrl';
 import { CtaBand } from './components/CtaBand';
 import { SHOWCASE } from './components/features';
-import { FeedSketch } from './components/FeedSketch';
 import { mobileAppLd, organizationLd, websiteLd } from './components/jsonLd';
 import { MaintenanceNotice } from './components/Notices';
 import { useHeadingFocus } from './components/PageHero';
@@ -100,7 +99,7 @@ export default function HomePage() {
             </ul>
           </div>
           <Reveal className={styles.socialFigure} delay={80}>
-            <FeedSketch />
+            <PhoneMockup shot="discover" crop={0.78} width="min(100%, 260px)" />
           </Reveal>
         </div>
       </section>

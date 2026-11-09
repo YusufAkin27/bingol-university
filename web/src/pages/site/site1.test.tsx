@@ -153,11 +153,11 @@ describe('vitrin sayfaları (SITE1)', () => {
     expect(main.getAllByRole('button', { name: /Yakında/ }).length).toBeGreaterThanOrEqual(2);
     expect(main.getAllByRole('img').length).toBeGreaterThanOrEqual(2);
     expect(main.getByRole('heading', { level: 3, name: 'Yemek listesi' })).toBeInTheDocument();
-    // sosyal medya vurgusu + öğrencilere özel güvenli alan; Keşfet ekranı (gerçek kullanıcı içeriği) maket olarak KULLANILMAZ
+    // sosyal medya vurgusu + öğrencilere özel güvenli alan; Keşfet ekranı uydurma içerikli gerçek uygulama görüntüsüdür (tel kafes çizim yok)
     expect(main.getByRole('heading', { level: 2, name: 'Kampüsün sosyal tarafı' })).toBeInTheDocument();
     expect(main.getByRole('heading', { level: 3, name: 'Kampüs Forum' })).toBeInTheDocument();
     expect(main.getByRole('heading', { level: 2, name: 'Öğrencilere özel, güvenli bir alan' })).toBeInTheDocument();
-    expect(main.queryByRole('img', { name: /Keşfet/ })).toBeNull();
+    expect(main.getByRole('img', { name: /Keşfet/ })).toBeInTheDocument();
     expect(main.getAllByRole('listitem').length).toBeGreaterThanOrEqual(7);
     expect(h1).toBeInTheDocument();
   });

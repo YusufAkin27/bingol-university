@@ -6,7 +6,6 @@ import { useI18n } from '../../i18n/I18nProvider';
 import { CtaBand } from './components/CtaBand';
 import { FEATURES, MORE_FEATURE_IDS, SHOWCASE } from './components/features';
 import { FeatureRow } from './components/FeatureRow';
-import { FeedSketch } from './components/FeedSketch';
 import { PageHero } from './components/PageHero';
 import { Reveal } from './components/Reveal';
 import { SectionHeading } from './components/SectionHeading';
@@ -23,11 +22,11 @@ export default function FeaturesPage() {
       <PageHero eyebrow={t('site.v3.eyebrow')} title={t('site.features.title')} lead={t('site.features.lead')} />
       <section className="container" aria-label={t('site.features.title')}>
         <ul className={styles.rows}>
-          {/* Sosyal akış: gerçek kullanıcı içeriği içermeyen soyut çizim (mahremiyet); diğer satırlar uygulamanın kendi ekranları */}
+          {/* Sosyal akış: uydurma içerikli Keşfet ekran görüntüsü (gerçek kullanıcı içeriği yok) */}
           <li>
             <FeatureRow
               id="feat-social"
-              figure={<FeedSketch />}
+              shot="discover"
               title={t('site.show.social.title')}
               text={t('site.show.social.text')}
             />

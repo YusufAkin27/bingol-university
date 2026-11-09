@@ -7,7 +7,7 @@
 // Sayfanın o anki temasına göre doğru dosya seçilir. Dosya yoksa PhoneMockup .png'yi, o da yoksa boş zemini çizer (çökmez).
 import type { TranslationKey } from '../../../i18n';
 
-export type ShotId = 'home' | 'menu' | 'clubs' | 'events' | 'news' | 'profile' | 'settings' | 'support' | 'delete';
+export type ShotId = 'home' | 'discover' | 'menu' | 'clubs' | 'events' | 'news' | 'profile' | 'settings' | 'support' | 'delete';
 
 export type ShotTheme = 'light' | 'dark';
 
@@ -29,6 +29,7 @@ const shot = (name: string, alt: TranslationKey): Shot => ({ name, width: SHOT_W
 
 export const SHOTS: Record<ShotId, Shot> = {
   home: shot('home', 'site.shot.home.alt'),
+  discover: shot('discover', 'site.shot.discover.alt'),
   menu: shot('menu', 'site.shot.menu.alt'),
   clubs: shot('clubs', 'site.shot.clubs.alt'),
   events: shot('events', 'site.shot.events.alt'),
