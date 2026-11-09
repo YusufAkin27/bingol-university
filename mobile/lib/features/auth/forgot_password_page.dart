@@ -143,7 +143,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 // Giriş ile aynı alan: yalnız e-posta (istemci alan adı eklemez).
                 LoginIdentifierField(
                   controller: _email,
-                  boxed: true,
                   enabled: !_busy,
                   textInputAction: TextInputAction.done,
                   onSubmitted: _sendCode,

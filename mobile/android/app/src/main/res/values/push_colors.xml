@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Bildirim karti (RemoteViews) renkleri: kart her zaman beyaz zeminlidir (tasarim: bildirim-ekranlari). -->
 <resources>
-    <color name="push_brand">#ED211B</color>
+    <color name="push_brand">#09090B</color> <!-- marka vurgusu kirmizi degil (nötr mürekkep); kirmizi yalniz kalp: push_heart -->
+    <color name="push_heart">#DC2626</color>
     <color name="push_navy">#171E33</color>
     <color name="push_muted">#515460</color>
     <color name="push_red_fg">#CE0012</color>

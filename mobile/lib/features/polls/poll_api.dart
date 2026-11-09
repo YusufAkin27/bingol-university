@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart' show ValueNotifier;
+
 import '../../core/api.dart';
 import '../../core/session.dart';
 import '../posts/post_models.dart' show PostPage;
@@ -12,6 +14,15 @@ class PollApi {
   PollApi(this.session);
 
   final Session session;
+
+  /// Oy/geri çekme sonrası güncel anket: aynı anketi gösteren ekranlar (ana sayfa menü puanı, yemek kartı...)
+  /// birbirinin verdiği puanı hemen görsün diye dinler (anket kimliği eşleşirse kendi kopyasını yeniler).
+  static final ValueNotifier<Poll?> latest = ValueNotifier<Poll?>(null);
+
+  Poll _publish(Poll p) {
+    latest.value = p;
+    return p;
+  }
 
   /// `scope`: `open` | `mine` | `closed` | `community:{id}`. İmleç sayısaldır (`nextCursor`).
   Future<PostPage<Poll>> list({String scope = 'open', String? cursor, int size = 20}) async {
@@ -36,13 +47,13 @@ class PollApi {
   Future<Poll> vote(int id, PollSelection s) async {
     final r = await session.api.post('/polls/$id/vote', s.toBody());
     WidgetSyncService.instance.request(const {WidgetSlug.poll}); // ana ekran anket widget'ı
-    return r is Map<String, dynamic> && r['id'] != null ? Poll.fromJson(r) : await get(id);
+    return _publish(r is Map<String, dynamic> && r['id'] != null ? Poll.fromJson(r) : await get(id));
   }
 
   Future<Poll> retract(int id) async {
     final r = await session.api.delete('/polls/$id/vote');
     WidgetSyncService.instance.request(const {WidgetSlug.poll});
-    return r is Map<String, dynamic> && r['id'] != null ? Poll.fromJson(r) : await get(id);
+    return _publish(r is Map<String, dynamic> && r['id'] != null ? Poll.fromJson(r) : await get(id));
   }
 
   /// Kulüp anketi oluşturur (`scope=COMMUNITY`).

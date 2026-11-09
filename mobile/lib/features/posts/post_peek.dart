@@ -49,7 +49,8 @@ Future<void> showPostPeek(
                 filter: ImageFilter.blur(
                     sigmaX: 14 * curved.value, sigmaY: 14 * curved.value),
                 child: ColoredBox(
-                    color: Colors.black.withValues(alpha: .46 * curved.value)),
+                    color: ctx.bu.scrim
+                        .withValues(alpha: .46 * curved.value)),
               ),
             ),
           ),
