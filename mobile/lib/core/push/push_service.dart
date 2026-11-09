@@ -528,6 +528,8 @@ class PushService with WidgetsBindingObserver {
   /// Dönüş: şerit gösterildi mi (test için).
   bool handleForeground({required String title, required String body, required Map<String, dynamic> data}) {
     // Kapatma/yeniden açma durumu, sohbet açıkken şerit bastırılsa bile işlenir (bant canlı görünsün).
+    // Başka hesaba ait yük (cihazda hesap değişti): şerit yok, rozet artmaz, kapanma durumu işlenmez.
+    if (PushRouter.isForeignRecipient(data, session)) return false;
     ClosedConversations.instance.applyPushData(data);
     if (active.shouldSuppress(data)) return false;
     // Aynı mesaj push'u iki kez gelirse (yeniden deneme / çoklu yol) şerit tekrar çıkmaz (data.messageId, sunucu yükünde).
