@@ -197,7 +197,8 @@ describe('dil önekli rotalar', () => {
   it('dil değiştirici aynı sayfanın başka dilindeki adrese götürür', async () => {
     renderRoutes('/tr/about');
     await screen.findByRole('heading', { level: 1, name: 'Hakkımızda' });
-    fireEvent.change(screen.getByRole('combobox', { name: 'Dil' }), { target: { value: 'en' } });
+    fireEvent.click(screen.getByRole('button', { name: /Dil/ }));
+    fireEvent.click(screen.getByRole('option', { name: 'English' }));
     await waitFor(() => expect(where()).toBe('/en/about'));
     expect(document.documentElement.lang).toBe('en');
     await waitFor(() => expect(window.localStorage.getItem('bu.lang')).toBe('en'));
