@@ -16,6 +16,7 @@ import type { MenuMatch } from '../search/menu';
 import { adminNav, locateNav, navMatches } from './adminNav';
 import { StorageBanner } from '../pages/admin/dataretention/StorageBanner';
 import { DismissibleBand, MaintenanceBand } from './ShellBands';
+import { NavPendingCount } from './NavPendingCount';
 import { UserMenu } from './UserMenu';
 import styles from './AdminLayout.module.css';
 
@@ -335,6 +336,7 @@ export function AdminLayout() {
                           >
                             <Icon name={i.icon} size={20} />
                             <span className={styles.itemLabel}>{i.label}</span>
+                            {i.id === 'communities' && <NavPendingCount />}
                           </NavLink>
                           {filtering && Highlight && i.sub.length > 0 && (
                             <ul className={styles.subList} aria-label={t('admin.search.menu.inside')}>
