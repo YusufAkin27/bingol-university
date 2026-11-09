@@ -257,6 +257,8 @@ public class ProfileService {
         requireMaxCodePoints("department", r.department(), 120);
         requireMaxCodePoints("bio", r.bio(), BIO_MAX);
         User u = get(id);
+        String beforeDept = u.getDepartment();
+        String beforeGrade = u.getGrade();
         if (r.displayName() != null) {
             String newName = DisplayNamePolicy.normalize(r.displayName(), u.getRole() == Role.ADMIN);
             ContentGuard.changed(guard, Entity.PROFILE, "displayName", id, u.getDisplayName(), newName);
@@ -321,7 +323,20 @@ public class ProfileService {
         if (r.language() != null) {
             u.setLanguage(r.language());
         }
-        return users.save(u);
+        User saved = users.save(u);
+        // bolum/sinif degistiyse resmi ders programi yeni profile gore yenilenir (commit sonrasi dinleyici)
+        if (academicEvents != null && (!java.util.Objects.equals(beforeDept, saved.getDepartment())
+                || !java.util.Objects.equals(beforeGrade, saved.getGrade()))) {
+            academicEvents.publishEvent(new AcademicProfileChanged(id));
+        }
+        return saved;
+    }
+
+    private org.springframework.context.ApplicationEventPublisher academicEvents;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setAcademicEvents(org.springframework.context.ApplicationEventPublisher academicEvents) {
+        this.academicEvents = academicEvents;
     }
 
     /**

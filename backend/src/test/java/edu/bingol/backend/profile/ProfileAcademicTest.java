@@ -90,4 +90,20 @@ class ProfileAcademicTest {
         service.update(1L, new UpdateProfileRequest("Yeni Ad", null, null, null, null, null, null, null));
         assertEquals("Eski serbest metin", u.getFaculty());
     }
+
+    @Test
+    void gradeOrDepartmentChangePublishesAcademicProfileChangedOnlyWhenChanged() {
+        User u = user();
+        u.setFaculty("Hukuk Fakültesi");
+        u.setDepartment("Hukuk");
+        u.setGrade("1");
+        org.springframework.context.ApplicationEventPublisher pub = mock(org.springframework.context.ApplicationEventPublisher.class);
+        service.setAcademicEvents(pub);
+
+        service.update(1L, req(null, null, "1")); // ayni deger
+        org.mockito.Mockito.verifyNoInteractions(pub);
+
+        service.update(1L, req(null, null, "2"));
+        org.mockito.Mockito.verify(pub).publishEvent(new AcademicProfileChanged(1L));
+    }
 }

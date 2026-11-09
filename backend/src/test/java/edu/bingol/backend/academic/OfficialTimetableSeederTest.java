@@ -318,4 +318,73 @@ class OfficialTimetableSeederTest {
         assertTrue(seeder.autoSeed(uid));
         assertEquals(TimetableService.MAX_COURSES, tt.timetable(uid, null).courses().size());
     }
+
+    // ---- sinif / bolum degisimi (hata: eski sinifin programi kaliyordu) ----
+
+    private java.util.Set<String> names(long u) {
+        return tt.timetable(u, null).courses().stream().map(CourseView::name).collect(java.util.stream.Collectors.toSet());
+    }
+
+    @Test
+    void gradeChangeReplacesOfficialCoursesAndKeepsManualOnes() {
+        baseProgram();
+        assertTrue(seeder.autoSeed(uid));
+        tt.createCourse(uid, new CourseRequest("Kendi Dersim", null, null, null, null, null, true,
+                List.of(new SessionIn(5, "16:00", "17:00", null)), null, null, null, null));
+        jdbc.update("UPDATE app_user SET grade = '2' WHERE id = ?", uid);
+
+        seeder.reseedForProfile(uid);
+
+        assertEquals(java.util.Set.of("İkinci Sınıf Dersi", "Kendi Dersim"), names(uid), "eski sinif kalmaz, elle ders korunur");
+        assertTrue(seeder.status(uid).applied());
+    }
+
+    @Test
+    void gradeChangeToClassWithoutProgramLeavesNoStaleOfficialCourses() {
+        baseProgram();
+        assertTrue(seeder.autoSeed(uid));
+        jdbc.update("UPDATE app_user SET grade = '3' WHERE id = ?", uid);
+
+        seeder.reseedForProfile(uid);
+
+        assertEquals(0, tt.timetable(uid, null).courses().size());
+        assertFalse(seeder.status(uid).available());
+    }
+
+    @Test
+    void gradeClearedToNullLeavesEmptyTimetable() {
+        baseProgram();
+        assertTrue(seeder.autoSeed(uid));
+        jdbc.update("UPDATE app_user SET grade = NULL WHERE id = ?", uid);
+
+        seeder.reseedForProfile(uid);
+
+        assertEquals(0, tt.timetable(uid, null).courses().size());
+    }
+
+    @Test
+    void departmentChangeReseedsFromNewDepartment() {
+        baseProgram();
+        off(TERM, MYO, "Hukuk", "1", null, 1, "08:15", "10:00", null, "Hukuk Dersi", null);
+        assertTrue(seeder.autoSeed(uid));
+        jdbc.update("UPDATE app_user SET department = 'Hukuk' WHERE id = ?", uid);
+
+        seeder.reseedForProfile(uid);
+
+        assertEquals(java.util.Set.of("Hukuk Dersi"), names(uid));
+    }
+
+    @Test
+    void examLinkedToReplacedCourseSurvivesUnlinked() {
+        baseProgram();
+        assertTrue(seeder.autoSeed(uid));
+        Long cid = jdbc.queryForObject("SELECT MIN(id) FROM tt_course WHERE user_id = ?", Long.class, uid);
+        jdbc.update("INSERT INTO tt_exam (user_id, course_id, title, type, starts_at) VALUES (?, ?, 'Vize', 'MIDTERM', CURRENT_TIMESTAMP)",
+                uid, cid);
+        jdbc.update("UPDATE app_user SET grade = '2' WHERE id = ?", uid);
+
+        seeder.reseedForProfile(uid);
+
+        assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM tt_exam WHERE user_id = ? AND course_id IS NULL", Integer.class, uid));
+    }
 }

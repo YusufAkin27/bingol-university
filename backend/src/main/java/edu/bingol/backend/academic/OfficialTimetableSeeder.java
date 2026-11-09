@@ -77,6 +77,47 @@ public class OfficialTimetableSeeder {
         return true;
     }
 
+    // ---- profil degisimi (bolum / sinif) ----
+
+    /**
+     * Bolum veya sinif degisti: resmi programdan kopyalanan (official=true) dersler ve tohum isareti silinir, yeni profilin
+     * programi kopyalanir (tek birim eslesirse; birden cok birimde istemci birim sectirir, hic yoksa kalinti birakmaz).
+     * Ogrencinin elle ekledigi dersler korunur. Sinav kayitlari silinen derse bagliysa dersten ayrilir (silinmez).
+     */
+    @Transactional
+    public void reseedForProfile(Long uid) {
+        Long semId = currentSemesterId(uid);
+        List<Long> ids = jdbc.queryForList("SELECT id FROM tt_course WHERE user_id = ? AND official = TRUE", Long.class, uid);
+        if (!ids.isEmpty()) {
+            String in = placeholders(ids);
+            jdbc.update("UPDATE tt_exam SET course_id = NULL WHERE user_id = ? AND course_id IN (" + in + ")", withFirst(uid, ids));
+            jdbc.update("DELETE FROM tt_session WHERE course_id IN (" + in + ")", ids.toArray());
+            jdbc.update("DELETE FROM tt_course WHERE user_id = ? AND id IN (" + in + ")", withFirst(uid, ids));
+        }
+        jdbc.update("DELETE FROM tt_official_seed WHERE user_id = ?", uid);
+        OfficialMatch m = official.matchFor(uid);
+        List<String> units = m.units();
+        if (m.term() == null || units.size() != 1) {
+            return;
+        }
+        int remaining = visibleCourseCount(uid, semId);
+        write(uid, group(m.items()), semId, Math.max(0, TimetableService.MAX_COURSES - remaining));
+        markSeeded(uid, m.term(), units.get(0));
+    }
+
+    /** Profil kaydi islendikten sonra (yeni islemde) program yenilenir; hata profil kaydini etkilemez. */
+    @org.springframework.transaction.event.TransactionalEventListener(
+            phase = org.springframework.transaction.event.TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
+    public void onAcademicProfileChanged(edu.bingol.backend.profile.AcademicProfileChanged ev) {
+        try {
+            reseedForProfile(ev.userId());
+        } catch (RuntimeException e) {
+            org.slf4j.LoggerFactory.getLogger(OfficialTimetableSeeder.class)
+                    .warn("resmi program yenilenemedi (kullanici {}): {}", ev.userId(), e.toString());
+        }
+    }
+
     // ---- elle uygulama ----
 
     @Transactional
@@ -167,8 +208,8 @@ public class OfficialTimetableSeeder {
             if (n >= capacity) {
                 break;
             }
-            long id = insert(jdbc, "INSERT INTO tt_course (user_id, semester_id, name, code, instructor, color, note) "
-                    + "VALUES (?, ?, ?, NULL, ?, ?, NULL)", uid, semId, g.name, g.instructor,
+            long id = insert(jdbc, "INSERT INTO tt_course (user_id, semester_id, name, code, instructor, color, note, official) "
+                    + "VALUES (?, ?, ?, NULL, ?, ?, NULL, TRUE)", uid, semId, g.name, g.instructor,
                     TimetableLogic.resolveColor(null, g.name));
             g.sessions.stream()
                     .sorted(Comparator.comparingInt(Sess::day).thenComparing(Sess::start).thenComparing(Sess::end))
