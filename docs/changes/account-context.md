@@ -33,3 +33,11 @@ Kapsam: mobil `bu_kampus`. Backend degisikligi YOK (yeni Flyway yok).
 ## Kalan (bu dalda yapilmadi)
 Hesap bazli anahtarli onbellek/taslak (simdilik hesap degisiminde `registerUserDataCleaners` ile temizlenir, sizinti yok), varsayilan avatar
 olcu/kirpma (G1 ortak bilesen `bu_default_avatar.dart`), forceSignOut acik form uyarisi (I2-05), profil fotografi secimi sadelestirme.
+
+## Ek (2. tur)
+- Onboarding taslagi hesap bazli: anahtar `onboarding_draft_<uid>`, etkin hesap `OnboardingDraftStore.activeUserId` (Session atar). Hesap
+  bilinmeden gelen Apple adi `onboarding_draft_pending`'te bekler, `savePrefill` ile hesabin taslagina katilir. Hesap kaldirilinca `clearFor(id)`.
+- `forceSignOut`: acik sayfa varsa kapaninca "Oturumun sona erdigi icin acik sayfa kapatildi" toast'i (yazilanlar kaydedilmez).
+- Destek talebi formu: yazilmis metin varken geri/kenar jesti onay ister (`formDiscard*`).
+- Gizlilik notu: cikista bekleyen mesaj/ek dosyalari hesabina bagli diskte kalir (karar geregi, harfi harfine); gerekirse `signOut` icinde
+  `purgeQueue` varsayilani degistirilir.

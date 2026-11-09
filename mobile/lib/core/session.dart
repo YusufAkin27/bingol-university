@@ -10,6 +10,7 @@ import 'analytics.dart';
 import 'api.dart';
 import 'badges.dart';
 import 'identifier.dart';
+import '../widgets/bu_overlays.dart' show BuToast, BuToastKind;
 import 'locale_controller.dart';
 import 'nav.dart';
 import 'pending_verification.dart';
@@ -182,6 +183,7 @@ class Session extends ChangeNotifier {
   /// Etkin hesap değişince giden kutusu o hesaba bağlanır (bekleyen mesajlar yanlış kimlikle gitmez).
   set userId(int? v) {
     _userId = v;
+    OnboardingDraftStore.activeUserId = v;
     api.outbox?.bindOwner(v);
   }
 
@@ -399,7 +401,7 @@ class Session extends ChangeNotifier {
   /// Apple ile giriş/kayıt: `POST /auth/oauth/apple`. Apple yalnız ilk yetkilendirmede ad/soyad verir: istek başarısız
   /// olsa bile güvenli yerel depoya yazılır (onboarding ön doldurması) ve istekle birlikte sunucuya da gider.
   Future<OAuthLoginResult> loginWithApple(AppleCredential c) async {
-    await OnboardingDraftStore.savePrefill(firstName: c.firstName, lastName: c.lastName);
+    await OnboardingDraftStore.savePending(firstName: c.firstName, lastName: c.lastName);
     final f = c.firstName?.trim() ?? '', l = c.lastName?.trim() ?? '';
     return _oauthLogin('/auth/oauth/apple', {
       'identityToken': c.identityToken,
@@ -417,7 +419,6 @@ class Session extends ChangeNotifier {
     final map = res is Map ? res : const {};
     final completed = map['profileCompleted'] is bool ? map['profileCompleted'] as bool : null;
     profileCompletedHint = completed;
-    if (completed != true) await _savePrefillFrom(map, fallbackName);
     await _accept(res);
     // Başka hesap açıkken eklenen yeni hesapta `_accept` -> `_leaveActive` kullanıcı verisini (onboarding taslağı dahil)
     // siler: ad ön doldurması YENİ hesap etkinleştikten SONRA yeniden yazılır (I2-07).
@@ -627,6 +628,7 @@ class Session extends ChangeNotifier {
           await accounts.markExpired(id);
         }
       }
+      final hadOpenForm = rootNavigatorKey.currentState?.canPop() ?? false;
       final next = reason == SignOutReason.blocked ? null : accounts.nextSwitchable(except: id, prefer: _previousId);
       if (next != null) {
         _switching = true;
@@ -637,6 +639,7 @@ class Session extends ChangeNotifier {
         _switching = false;
         accountNotice.value = dead?.displayName ?? dead?.username ?? '';
         rootNavigatorKey.currentState?.popUntil((r) => r.isFirst);
+        if (hadOpenForm) _toastFormsClosed();
         return;
       }
       if (reason == SignOutReason.replaced) replacedNotice.value = true;
@@ -644,9 +647,21 @@ class Session extends ChangeNotifier {
       _resetFields();
       _set(SessionState.signedOut); // push yerel temizliği kancadan (token yok: sunucu çağrısı atlanır)
       rootNavigatorKey.currentState?.popUntil((r) => r.isFirst);
+      if (hadOpenForm) _toastFormsClosed();
     } finally {
       _forcing = false;
       _switching = false;
+    }
+  }
+
+  /// Zorunlu oturum sonunda açık sayfalar kapatıldı: yarım kalan işlemin neden kaybolduğunu söyler (I2-05).
+  void _toastFormsClosed() {
+    final ctx = rootNavigatorKey.currentContext;
+    if (ctx == null) return;
+    try {
+      BuToast.show(ctx, ctx.l10n.sessionEndedFormClosed, kind: BuToastKind.warning, duration: const Duration(seconds: 4));
+    } catch (_) {
+      // ekran yok
     }
   }
 
@@ -685,6 +700,7 @@ class Session extends ChangeNotifier {
       // Hesap silme: bekleyen mesajlar ve ek dosyaları da gider. Normal çıkışta hesabına bağlı kalır (bkz.
       // docs/changes/account-context.md).
       if (purgeQueue) await api.outbox?.purgeOwner(id);
+      await OnboardingDraftStore.clearFor(id);
     }
     final next = switchToOther ? accounts.nextSwitchable(except: id) : null;
     if (next != null) {

@@ -50,7 +50,7 @@ void registerUserDataCleaners(ApiClient api) {
     ..add(WidgetSyncService.clearUserData) // ana ekran widget snapshot'ları + kısayol sırası (widget "Giriş yap" durumuna döner)
     ..add(HomeLayoutStore.clear) // Ana Sayfa düzeni (bölüm sırası/görünürlüğü + Hızlı Erişim kısayolları)
     ..add(LiveActivityService.clearUserData) // iOS Canlı Etkinlik / Android canlı güncelleme (kullanıcının kendi geri sayımları)
-    ..add(OnboardingDraftStore.clear) // yarım kalan profil tamamlama taslağı + Apple'ın bir kez verdiği ad/soyad
+    ..add(OnboardingDraftStore.clearShared) // Apple'ın bir kez verdiği geçici ad (hesap taslakları hesap bazlıdır, Session.signOut siler)
     ..add(TrackTokenStore.clear) // herkese açık destek talebinin takip jetonu (e-postaya bağlı)
     ..add(_clearLegalLater); // "sözleşme onayını sonra yap" işareti (kullanıcı kimliği içerir)
 }

@@ -305,3 +305,20 @@ Geriye uyumlu (yalniz ekleme; tek davranis degisikligi: arsiv artik yeni mesajla
 ## Sohbet medya yüklemede Idempotency-Key (G10)
 
 `POST /api/conversations/{cid}/media` isteğe bağlı `Idempotency-Key` (8-64 karakter) kabul eder: aynı kullanıcı + sohbet + anahtarla yeniden deneme yeni dosya üretmez, mevcut eki döner (kapsam `chatmedia:<cid>`, `idempotency_record`, migration yok). Başlıksız istek eski davranıştır. Mobil arka plan aktarım kuyruğu bunu kullanır; ayrıntı `docs/changes/transfers.md`.
+
+## G4: Görüldü/okundu doğruluğu ve medya aktarım kuyruğu (2026-11-09, mobil)
+
+- **Görüldü (I4-01):** mobil istemci eski `/user/queue/read-receipts` olayını artık DİNLEMEZ (okuyan her üye için, gölge engel
+  süzülmeden gelir). Yazı yalnız sunucunun hesapladığı `receipt` olayı / `status=READ` ile çıkar; grupta politika sunucudadır
+  (herkes okuyunca READ), gölge engelde READ üretilmez. Durum yazısı yalnız konuşmanın en son mesajı benimse çıkar (I4-10 ürün
+  kararı: Instagram düzeni korundu). Canlı READ olayında zaman yazılır (`hesap:sohbet` anahtarı, I4-11); listede de `readAt` yazılır (I4-09).
+  Sunucudaki eski `read-receipts` yayını DEĞİŞMEDİ (başka istemciler/eski sürümler için); gölge engelde süzülmesi sonraki iştir.
+- **Okundu imleci (I4-02):** `POST /read` / STOMP `read` yalnız uygulama `resumed`, sohbet en üst rota ve liste alt uçtayken gider;
+  aksi halde bekler (`_readPending`) ve öne dönünce / alta inince / yoklama turunda gönderilir.
+- **Boşluk (I4-03):** `around` penceresi sonrası `after` başarısız olursa her yoklama turunda yeniden denenir.
+- **Yanıt alıntısı (I4-06):** hedef yüklenemez/silinmişse toast (`g4ChatJumpMissing`); vurgu yalnız satır kurulduysa.
+- **Liste (I4-12):** ön planda açık sohbette gelen mesaj `unreadCount` artırmaz.
+- **Medya (G10):** tek ekli (1 foto / 1 video) mesaj `TransferQueue`'ya girer (`features/chat/chat_transfer.dart`, iş kimliği = `clientId`,
+  `ChatMediaTransferExecutor` + mesaj tamamlama `attachmentIds + clientId`). Balon durumu işten türetilir; "Gönderildi" yalnız
+  sunucu mesaj kimliği dönünce. Çok ekli mesajlar ve kuyruk yokken eski sayfa içi yükleme / `Outbox` yolu korunur (kaldırılmadı).
+  Uyarı: iş `meta` içinde başlık metni diskte tutulur (Outbox ile aynı düzey).

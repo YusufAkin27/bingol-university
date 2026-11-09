@@ -209,7 +209,7 @@ ChatDetailPage _detail(
 
 Finder _bubbleOf(String text) => find.ancestor(of: find.text(text), matching: find.byType(MessageBubble)).first;
 
-Finder _line(String t) => find.descendant(of: find.byKey(const ValueKey('msg-status-line')), matching: find.text(t));
+Finder _line(String t) => find.descendant(of: find.byKey(const ValueKey('msg-status-line')), matching: find.textContaining(t));
 
 /// Hicbir balonda tik/durum ikonu olmamali.
 void _noTicks() {

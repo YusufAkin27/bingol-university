@@ -391,8 +391,12 @@ void main() {
       await open(tester, backend: b);
       await tester.tap(find.byKey(_appleKey));
       await settle(tester, const Duration(milliseconds: 600));
+      // Hesap henüz bilinmiyor: ad geçici anahtarda bekler, hesap belli olunca o hesabın taslağına katılır.
+      OnboardingDraftStore.activeUserId = 42;
+      await OnboardingDraftStore.savePrefill();
       final d = await OnboardingDraftStore.load();
       expect((d?.firstName, d?.lastName), ('Zeynep', 'Kaya'));
+      OnboardingDraftStore.activeUserId = null;
       await unmount(tester);
     });
 

@@ -5109,8 +5109,18 @@
   "clubReviewRequiredTitle": "Admin approval required",
   "clubReviewRequiredBody": "Your club will wait for review after creation. Only you can see it until approval. We will notify you when it is approved.",
   "coreErrServiceUnavailable": "This action cannot be completed right now. Please try again later.",
+  "chatMiscMoreAction": "More",
+  "chatMiscPeekOpen": "Open chat",
+  "chatMiscPeekError": "Could not load messages.",
+  "chatMiscPeekEmpty": "No messages yet.",
   "pushForeignSwitched": "This notification belonged to another of your accounts; switched to it.",
   "pushForeignMissing": "This notification belongs to another account that is not saved on this device.",
   "pushForeignExpired": "This notification belongs to an account whose session ended. It opens after you log in to it.",
-  "pushContentGone": "This content is no longer available."
+  "pushContentGone": "This content is no longer available.",
+  "sessionEndedFormClosed": "Your session ended, so the open page was closed. What you typed was not saved.",
+  "formDiscardTitle": "Discard what you wrote?",
+  "formDiscardBody": "If you leave, the information you entered will be lost.",
+  "formDiscardConfirm": "Discard and leave",
+  "formDiscardKeep": "Keep editing",
+  "g4ChatJumpMissing": "This message is no longer available or could not be loaded."
 }

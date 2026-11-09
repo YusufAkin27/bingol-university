@@ -7570,8 +7570,18 @@
   "clubReviewRequiredTitle": "Yönetici onayı gerekiyor",
   "clubReviewRequiredBody": "Kulübün oluşturulduktan sonra onay bekleyecek. Onaylanana kadar yalnızca sen görebilirsin. Onaylandığında sana bildirim göndereceğiz.",
   "coreErrServiceUnavailable": "İşlem şu anda tamamlanamıyor. Lütfen biraz sonra tekrar deneyin.",
+  "chatMiscMoreAction": "Daha fazla",
+  "chatMiscPeekOpen": "Sohbeti aç",
+  "chatMiscPeekError": "Mesajlar yüklenemedi.",
+  "chatMiscPeekEmpty": "Henüz mesaj yok.",
   "pushForeignSwitched": "Bu bildirim diğer hesabına aitti; o hesaba geçildi.",
   "pushForeignMissing": "Bu bildirim, bu cihazda kayıtlı olmayan başka bir hesaba ait.",
   "pushForeignExpired": "Bu bildirim oturumu kapanmış bir hesaba ait. O hesaba giriş yapınca açılır.",
-  "pushContentGone": "Bu içerik artık mevcut değil."
+  "pushContentGone": "Bu içerik artık mevcut değil.",
+  "sessionEndedFormClosed": "Oturumun sona erdiği için açık sayfa kapatıldı. Yazdıkların kaydedilmedi.",
+  "formDiscardTitle": "Yazdıkların silinsin mi?",
+  "formDiscardBody": "Çıkarsan girdiğin bilgiler kaybolur.",
+  "formDiscardConfirm": "Sil ve çık",
+  "formDiscardKeep": "Düzenlemeye devam et",
+  "g4ChatJumpMissing": "Bu mesaj artık mevcut değil veya yüklenemedi."
 }
