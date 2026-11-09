@@ -1,7 +1,8 @@
 // SAYFA: Uygulama güncelleme (/admin/app-versions)  [UPDATEGATE]
 // API: GET /api/admin/app-versions (sürüm dağılımı), POST /api/admin/app-versions/enforce (api/appVersions.ts);
 //      mağaza alanları için GET /api/admin/settings. Okuma: settings.read; yazma: settings.write (sebep + "ZORLA" onayı).
-// Cihaz sayıları `user_device_log` kaynaklıdır (giriş yapmış kullanıcıların son 30 günü); kaynak notu sayfada gösterilir.
+// Cihaz sayıları `user_device_log` kaynaklıdır; birim fiziksel cihazdır (cihaz kimliği özetine göre tekil), push için ayrı kaynak
+// (`device`). Üstteki "Cihaz sayıları" kartı her sayıyı "i" ile açıklar; kaynak notu sayfada gösterilir.
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import {
@@ -35,6 +36,7 @@ import { usePageTitle } from '../../lib/hooks';
 import { SearchAnchor } from '../../search/anchor';
 import { adminErrorMessage, Callout } from './campaigns/shared';
 import { isInverted, rowStatus, type RowStatus, type StoreInfo } from './appVersions/lib';
+import { DeviceCounts } from './appVersions/DeviceCounts';
 import { PreviewDialog } from './appVersions/PreviewDialog';
 import { PublishWizard } from './appVersions/PublishWizard';
 import styles from './appVersions/appVersions.module.css';
@@ -89,6 +91,7 @@ export default function AppVersionsPage() {
         </div>
       ) : (
         <div className={styles.page}>
+          {data.devices && <DeviceCounts devices={data.devices} />}
           <div className={styles.cards}>
             {APP_PLATFORMS.map((p) => {
               const summary = data.platforms.find((s) => s.platform === p);

@@ -136,4 +136,31 @@ export default {
   'admin.uv.preview.target.none': 'Bağlantı yok: düğme yerine "Mağazadan güncelleyin" yazısı görünür',
   'admin.uv.preview.close': 'Kapat',
   'admin.uv.loadError': 'Sürüm bilgisi yüklenemedi.',
+
+  'admin.uv.dev.title': 'Cihaz sayıları',
+  'admin.uv.dev.total': 'Toplam benzersiz cihaz',
+  'admin.uv.dev.total.info':
+    'Son {n} günde giriş yapmış kullanıcılardan istek alan farklı cihaz sayısı. Cihaz kimliği özetine göre tekildir: aynı telefondaki birden çok hesap ya da aynı cihazın farklı IP adresleri tek sayılır. Silinmiş hesaplar sayılmaz. Hiç giriş yapmamış cihazlar bu kayıtta yoktur; Android\'de uygulama silinip yeniden kurulursa yeni cihaz gibi görünebilir.',
+  'admin.uv.dev.active30': 'Aktif cihaz (30 gün)',
+  'admin.uv.dev.active30.info': 'Toplam benzersiz cihazlardan son {n} gün içinde sunucuya ulaşanlar.',
+  'admin.uv.dev.active7': 'Aktif cihaz (7 gün)',
+  'admin.uv.dev.active7.info': 'Toplam benzersiz cihazlardan son {n} gün içinde sunucuya ulaşanlar.',
+  'admin.uv.dev.push': 'Bildirim alabilen cihaz',
+  'admin.uv.dev.push.info':
+    'Son {n} günde görülmüş geçerli bildirim jetonu (FCM) olan cihaz sayısı. Bildirim izni vermeyen cihazlar burada yoktur. Jeton cihaz kimliğine bağlı olmadığından bu sayı yukarıdakilerden çıkarılmaz; uygulama yeniden kurulumunda jeton değişirse biraz fazla görünebilir.',
+  'admin.uv.dev.latest': 'En güncel sürümde',
+  'admin.uv.dev.latest.info':
+    'Aktif (30 gün) Android ve iOS cihazlarından, o platformun yayındaki sürümünde ya da daha yenisinde olanların oranı. Sürümü bilinmeyen cihazlar paydaya girer, paya girmez.',
+  'admin.uv.dev.unknown': 'Sürümü bilinmeyen',
+  'admin.uv.dev.unknown.info':
+    'Aktif Android ve iOS cihazlarından sürüm başlığı göndermeyen ya da sürümü okunamayanlar. Sürüm tablolarında "Bilinmiyor" satırı olarak ayrıca görünür.',
+  'admin.uv.dev.byPlatform': 'Platform kırılımı',
+  'admin.uv.dev.col.platform': 'Platform',
+  'admin.uv.dev.col.push': 'Bildirim alabilen',
+  'admin.uv.dev.platform.android': 'Android',
+  'admin.uv.dev.platform.ios': 'iOS',
+  'admin.uv.dev.platform.other': 'Diğer (web / bilinmiyor)',
+  'admin.uv.dev.unidentified':
+    'Aktif cihazların {n} tanesi cihaz kimliği göndermeyen eski sürümlerden gelir; bunlar kullanıcı başına bir cihaz olarak sayılır.',
+  'admin.uv.dev.pushNote': 'Bildirim jetonu ile cihaz kimliği birbirine bağlanmadığından iki sayı ayrı kaynaklardan gelir.',
 };

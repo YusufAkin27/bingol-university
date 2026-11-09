@@ -38,6 +38,25 @@ const dist = (over: Record<string, unknown> = {}) => ({
   source: 'USER_DEVICE_LOG',
   sourceNote: 'Giriş yapmış kullanıcıların son 30 günde sunucuya ulaşan istekleri.',
   windowDays: 30,
+  devices: {
+    totalUnique: 321,
+    active30: 200,
+    active7: 120,
+    unidentified30: 4,
+    onLatest30: 40,
+    latestPercent: 27.0,
+    unknownVersion30: 7,
+    pushCapable: 150,
+    platforms: [
+      { platform: 'android', total: 250, active30: 160, active7: 100, pushCapable: 120 },
+      { platform: 'ios', total: 60, active30: 38, active7: 20, pushCapable: 30 },
+      { platform: 'other', total: 11, active30: 2, active7: 0, pushCapable: 0 },
+    ],
+    retentionDays: 90,
+    active30Days: 30,
+    active7Days: 7,
+    pushDays: 60,
+  },
   ...over,
 });
 
@@ -94,6 +113,24 @@ describe('dağılım', () => {
     expect(screen.getByTestId('uv-below-ios')).toHaveTextContent('Zorunlu en düşük sürümün altında cihaz yok.');
     expect(screen.getByText(/Cihaz sayıları nereden geliyor/)).toBeInTheDocument();
     expect(screen.getByText(/son 30 günde sunucuya ulaşan istekleri/)).toBeInTheDocument();
+  });
+
+  it('cihaz sayıları kartı: tekil/aktif/push/yüzde, platform kırılımı ve her sayı için açıklama', async () => {
+    setup();
+    renderWithProviders(<AppVersionsPage />);
+    const card = await screen.findByTestId('uv-devices');
+    expect(within(screen.getByTestId('dev-total')).getByText('321')).toBeInTheDocument();
+    expect(within(screen.getByTestId('dev-active30')).getByText('200')).toBeInTheDocument();
+    expect(within(screen.getByTestId('dev-active7')).getByText('120')).toBeInTheDocument();
+    expect(within(screen.getByTestId('dev-push')).getByText('150')).toBeInTheDocument();
+    expect(screen.getByTestId('dev-latest')).toHaveTextContent(/27/);
+    expect(within(screen.getByTestId('dev-unknown')).getByText('7')).toBeInTheDocument();
+    expect(within(screen.getByTestId('dev-row-android')).getByText('250')).toBeInTheDocument();
+    expect(within(screen.getByTestId('dev-row-other')).getByText('11')).toBeInTheDocument();
+    // her sayının yanında "i" açıklaması (6 düğme)
+    expect(within(card).getAllByRole('button')).toHaveLength(6);
+    expect(within(card).getByText(/Cihaz kimliği özetine göre tekildir/)).toBeInTheDocument();
+    expect(within(card).getByText(/4 tanesi cihaz kimliği göndermeyen/)).toBeInTheDocument();
   });
 
   it('min > latest tutarsızlığı uyarısı', async () => {

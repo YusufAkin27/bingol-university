@@ -34,6 +34,35 @@ export interface PlatformSummary {
   belowLatest: number;
 }
 
+export interface DevicePlatformCount {
+  /** other = web / bilinmeyen platform. */
+  platform: AppPlatform | 'other';
+  total: number;
+  active30: number;
+  active7: number;
+  pushCapable: number;
+}
+
+/** Fiziksel cihaz özeti (cihaz kimliği özetine göre tekil). Yalnız toplulaştırılmış sayılar; kimlik/jeton dönmez. */
+export interface DeviceSummary {
+  totalUnique: number;
+  active30: number;
+  active7: number;
+  /** Cihaz kimliği göndermeyen (eski sürüm) ve kullanıcı başına sayılan aktif cihaz. */
+  unidentified30: number;
+  onLatest30: number;
+  /** Aktif android+ios cihazların en güncel sürümde olan yüzdesi. */
+  latestPercent: number;
+  unknownVersion30: number;
+  /** Geçerli push jetonu olan cihaz. */
+  pushCapable: number;
+  platforms: DevicePlatformCount[];
+  retentionDays: number;
+  active30Days: number;
+  active7Days: number;
+  pushDays: number;
+}
+
 export interface VersionDistribution {
   distribution: VersionRow[];
   platforms: PlatformSummary[];
@@ -43,6 +72,8 @@ export interface VersionDistribution {
   source: string;
   sourceNote: string;
   windowDays: number;
+  /** Eski sunucu yanıtında yok olabilir. */
+  devices?: DeviceSummary;
 }
 
 export interface EnforceResult {
