@@ -29,5 +29,4 @@ platform klasörlerine yazar (`android/`, `ios/` zaten repoda; `flutter create` 
 
 Renkler: açık zemin `#FFFFFF`, koyu zemin `#09090B` (`BuTokens.bg` ile aynı); bildirim vurgusu `#09090B`.
 
-Uyarı: `brand/build.js` (eski kırmızı logo hattı, web için) artık mobil çıktıları ÜRETMEZ ve çalıştırılmamalıdır
-(`mobile/branding/{android,ios}` ve `assets/branding/mark*` kaldırıldı).
+Not: eski kırmızı logo hattı (`brand/build.js`, `brand/dist`) repodan kaldırıldı; tüm çıktılar bu betikten ve `web/scripts/build-brand.py`den üretilir.

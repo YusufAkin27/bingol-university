@@ -56,4 +56,4 @@ Play formu "isteğe bağlı mı" sorarsa: kullanıcı özelliği hiç kullanmada
 | **Hesap silme** | Uygulama içi + web URL | |
 | **Reklam kimliği** | **Kullanmıyor** ("Reklam kimliği" bildirimi: Hayır) | |
 | **Tam ekran niyet / ön plan hizmeti / VPN** | Yok | |
-| **Hükümet/sağlık/finans uygulaması mı** | Hayır; **resmî kurum uygulaması değil** (Taklit politikası: açıklamada ve ekranda "resmî değildir" ifadesi var) | Uygulama simgesi/mağaza görselleri üniversite logosu içermemeli; yayından önce simgeyi gözle kontrol edin (`brand/dist`, `mobile/android/app/src/main/res/mipmap-*`) |
+| **Hükümet/sağlık/finans uygulaması mı** | Hayır; **resmî kurum uygulaması değil** (Taklit politikası: açıklamada ve ekranda "resmî değildir" ifadesi var) | Uygulama simgesi/mağaza görselleri üniversite logosu içermemeli; yayından önce simgeyi gözle kontrol edin (`mobile/branding/store`, `mobile/android/app/src/main/res/mipmap-*`) |
