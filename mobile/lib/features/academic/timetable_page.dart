@@ -45,13 +45,20 @@ class _TimetablePageState extends State<TimetablePage> {
   void initState() {
     super.initState();
     _load();
+    widget.session.academicRevision.addListener(_onAcademicChanged);
     _tick = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) setState(() {});
     });
   }
 
+  /// Sınıf/bölüm değişti: sunucu programı yeniden kurdu; eski program kalıntısı göstermeden sessizce yeniden yükle.
+  void _onAcademicChanged() {
+    if (mounted) unawaited(_load(quiet: true));
+  }
+
   @override
   void dispose() {
+    widget.session.academicRevision.removeListener(_onAcademicChanged);
     _tick?.cancel();
     super.dispose();
   }

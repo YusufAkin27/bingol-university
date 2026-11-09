@@ -110,6 +110,10 @@ class Session extends ChangeNotifier {
   /// kabuk yerine "Profilini tamamla" akışını gösterir. Normal akışa erişim profil tamamlanmadan açılmaz.
   final profileIncompleteSignal = ValueNotifier<int>(0);
 
+  /// Sınıf/bölüm değişince artar: resmi ders programı sunucuda yeni profile göre yenilenir; ders programı, sınav,
+  /// akademik merkez ve ana sayfa bunu dinleyip kendiliğinden yeniden yükler (bkz. `notifyAcademicProfileChanged`).
+  final academicRevision = ValueNotifier<int>(0);
+
   void _onProfileIncomplete() {
     profileCompletedHint = false;
     profileIncompleteSignal.value++;

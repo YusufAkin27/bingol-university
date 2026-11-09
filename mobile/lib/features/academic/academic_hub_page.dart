@@ -47,6 +47,17 @@ class _AcademicHubPageState extends State<AcademicHubPage> {
     // Hatırlatmalar sunucudaki güncel veriyle yeniden kurulur (hata sessizce yutulur).
     ReminderService.registerProvider(_api);
     unawaited(ReminderService.sync(_api));
+    widget.session.academicRevision.addListener(_onAcademicChanged);
+  }
+
+  void _onAcademicChanged() {
+    if (mounted) unawaited(_refresh());
+  }
+
+  @override
+  void dispose() {
+    widget.session.academicRevision.removeListener(_onAcademicChanged);
+    super.dispose();
   }
 
   void _note(Object e) {

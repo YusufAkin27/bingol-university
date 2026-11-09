@@ -114,6 +114,7 @@ class _HomeTabState extends State<HomeTab> {
   void initState() {
     super.initState();
     _layout.addListener(_onLayout);
+    widget.session.academicRevision.addListener(_onAcademicChanged);
     _boot();
     unawaited(_loadSocialDot());
     // Menüyü sessizce önbelleğe al + günlük menü hatırlatıcısını (açıksa) yeniden kur.
@@ -124,6 +125,7 @@ class _HomeTabState extends State<HomeTab> {
 
   @override
   void dispose() {
+    widget.session.academicRevision.removeListener(_onAcademicChanged);
     _layout.removeListener(_onLayout);
     _layout.dispose();
     super.dispose();
@@ -246,6 +248,11 @@ class _HomeTabState extends State<HomeTab> {
     } finally {
       if (mounted) setState(() => _eventRetrying = false);
     }
+  }
+
+  /// Sınıf/bölüm değişti: "Bugün" yüzeyi ve "Bugünkü dersler" eski programı göstermesin diye yeniden yüklenir.
+  void _onAcademicChanged() {
+    if (mounted && _academicRequested) unawaited(_loadAcademic());
   }
 
   /// Ders programı (`GET /timetable`) + yaklaşan sınavlar (`GET /timetable/exams/upcoming`): mevcut uçlar, hata sessiz.

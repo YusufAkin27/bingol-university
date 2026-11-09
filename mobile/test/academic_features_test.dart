@@ -1,5 +1,6 @@
 import 'package:bu_kampus/features/academic/academic_calendar_page.dart';
 import 'package:bu_kampus/features/academic/academic_hub_page.dart';
+import 'package:bu_kampus/features/academic/academic_refresh.dart';
 import 'package:bu_kampus/features/academic/academic_models.dart';
 import 'package:bu_kampus/features/academic/exams_page.dart';
 import 'package:bu_kampus/features/academic/reminder_settings_page.dart';
@@ -179,6 +180,45 @@ void main() {
       await tester.tap(find.text('Sal'));
       await tester.pump();
       expect(find.textContaining('Salı günü dersin yok'), findsOneWidget);
+      await unmount(tester);
+    });
+
+    testWidgets('sinif degisince (notifyAcademicProfileChanged) program kendiliginden yeni sinifa gore yuklenir', (tester) async {
+      useScreen(tester, kPhoneMedium);
+      final b = FakeBackend();
+      final f = fakeAcademic(b)..addCourse('Eski Sınıf Dersi', 1, '09:00', '10:50');
+      final session = makeSession(b);
+      await tester.pumpWidget(buildApp(TimetablePage(session: session), size: kPhoneMedium));
+      await settle(tester);
+      expect(find.text('Eski Sınıf Dersi'), findsWidgets);
+      final before = platform.calls;
+
+      // Sunucu profil kaydında programı yeniden kurdu.
+      f.courses.clear();
+      f.addCourse('Yeni Sınıf Dersi', 1, '11:00', '12:50');
+      notifyAcademicProfileChanged(session);
+      await settle(tester, const Duration(seconds: 2));
+
+      expect(find.text('Eski Sınıf Dersi'), findsNothing, reason: 'eski sınıfın programı kalmamalı');
+      expect(find.text('Yeni Sınıf Dersi'), findsWidgets);
+      expect(platform.calls, greaterThan(before), reason: 'yerel hatırlatmalar yeni programa göre yeniden kurulur');
+      await unmount(tester);
+    });
+
+    testWidgets('sinif degisince program bos kalirsa eski kalinti gosterilmez (bos durum)', (tester) async {
+      useScreen(tester, kPhoneMedium);
+      final b = FakeBackend();
+      final f = fakeAcademic(b)..addCourse('Eski Sınıf Dersi', 1, '09:00', '10:50');
+      final session = makeSession(b);
+      await tester.pumpWidget(buildApp(TimetablePage(session: session), size: kPhoneMedium));
+      await settle(tester);
+
+      f.courses.clear();
+      notifyAcademicProfileChanged(session);
+      await settle(tester, const Duration(seconds: 2));
+
+      expect(find.text('Eski Sınıf Dersi'), findsNothing);
+      expect(find.textContaining('Henüz ders eklemedin'), findsOneWidget);
       await unmount(tester);
     });
 

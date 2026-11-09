@@ -46,6 +46,17 @@ class _ExamsPageState extends State<ExamsPage> {
     super.initState();
     _loadMine();
     _loadDue();
+    widget.session.academicRevision.addListener(_onAcademicChanged);
+  }
+
+  void _onAcademicChanged() {
+    if (mounted) unawaited(_loadMine());
+  }
+
+  @override
+  void dispose() {
+    widget.session.academicRevision.removeListener(_onAcademicChanged);
+    super.dispose();
   }
 
   Future<void> _loadDue() async {
