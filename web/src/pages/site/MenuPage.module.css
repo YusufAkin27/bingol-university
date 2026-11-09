@@ -7,21 +7,32 @@
   min-block-size: 34rem;
   align-content: start;
 }
+
+/* Bakım bildirimi */
 .maint {
   display: flex;
-  align-items: center;
-  gap: var(--space-2);
+  align-items: flex-start;
+  gap: var(--space-3);
   margin: 0;
   padding: var(--space-3) var(--space-4);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   background: var(--surface-2);
   color: var(--text);
-  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
 }
-.maint svg {
+.maint > svg {
   flex: none;
+  margin-block-start: 2px;
 }
+.maintSince {
+  display: block;
+  margin-block-start: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--fw-medium);
+}
+
+/* Görünüm seçici + gezinme */
 .bar {
   display: flex;
   flex-wrap: wrap;
@@ -29,7 +40,6 @@
   justify-content: space-between;
   gap: var(--space-3);
 }
-/* Görünüm anahtarı: tek çerçeve içinde bölmeler; seçili bölme ters yüzey */
 .seg {
   display: inline-flex;
   padding: 3px;
@@ -40,7 +50,9 @@
 }
 .segBtn:focus-visible,
 .chip:focus-visible,
-.today:focus-visible {
+.today:focus-visible,
+.pri:focus-visible,
+.sec:focus-visible {
   outline: var(--focus-w) solid var(--focus);
   outline-offset: 2px;
 }
@@ -52,12 +64,8 @@
   background: transparent;
   color: var(--text-muted);
   font: inherit;
-  font-size: var(--text-sm);
-  font-weight: var(--fw-regular);
+  font-weight: var(--fw-semibold);
   cursor: pointer;
-  transition:
-    background-color var(--site-dur, 200ms) var(--ease),
-    color var(--site-dur, 200ms) var(--ease);
 }
 .segBtn:hover {
   color: var(--text);
@@ -76,8 +84,6 @@
 .label {
   min-width: 10ch;
   text-align: center;
-  font-size: var(--text-base);
-  color: var(--text);
 }
 .today {
   min-height: 44px;
@@ -86,17 +92,13 @@
   background: transparent;
   color: var(--text);
   font: inherit;
-  font-size: var(--text-sm);
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 4px;
   text-decoration-color: var(--border-strong);
 }
-.today:hover {
-  text-decoration-color: var(--text);
-}
 
-/* Gün şeridi: yatay kaydırılır, mobilde başlığın altına yapışır */
+/* Gün şeridi: yatay kaydırılır, mobilde başlığın altına yapışır; her gün kutusunda günün toplam kalorisi */
 .stripWrap {
   min-width: 0;
   position: sticky;
@@ -123,6 +125,7 @@
   scroll-snap-type: x proximity;
   padding-block: 2px;
   scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
 }
 .chip {
   /* içindeki sr-only ay adı kendi kutusunda kalsın (aksi halde şerit dışına taşıp sayfayı yatay kaydırır) */
@@ -131,9 +134,10 @@
   display: grid;
   gap: 2px;
   justify-items: center;
-  min-width: 52px;
-  padding: var(--space-2);
-  min-height: 60px;
+  align-content: center;
+  min-width: 64px;
+  padding: var(--space-2) var(--space-2);
+  min-height: 84px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background: var(--surface);
@@ -154,24 +158,41 @@
   text-transform: capitalize;
 }
 .chipNum {
-  font-size: var(--text-lg);
-  font-variant-numeric: tabular-nums;
+  font-weight: var(--fw-black);
+  font-size: var(--text-xl);
+  line-height: 1.1;
 }
-/* bugün: ince çerçeve (renk yok) */
+.chipKcal {
+  min-height: 1.3em;
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
 .chipToday {
   border-color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--text);
 }
 .chipEmpty {
-  opacity: 0.55;
+  /* hafta sonu/menüsüz gün: opaklık yerine kesik çerçeve + ikincil yazı (AA korunur) */
+  background: transparent;
+  border-style: dashed;
+  color: var(--text-muted);
 }
 .chipOn,
 .chipOn:hover {
+  /* ters yüzey: koyu temada açık zemin + koyu yazı (ham beyaz yok) */
   background: var(--text);
   border-color: var(--text);
+  border-style: solid;
   color: var(--bg);
 }
-.chipOn .chipDow {
+.chipOn .chipDow,
+.chipOn .chipKcal {
   color: inherit;
+}
+.chipOn.chipToday {
+  box-shadow: inset 0 0 0 2px var(--bg), inset 0 0 0 3px var(--text);
 }
 
 .skel {
@@ -179,7 +200,23 @@
   gap: var(--space-3);
 }
 
-/* Günlük kart */
+/* Günlük görünüm: menü kartı + "uygulamada puanla" yan kartı */
+.dayLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+@media (min-width: 960px) {
+  .dayLayout {
+    grid-template-columns: minmax(0, 1fr) 320px;
+  }
+  .rate {
+    position: sticky;
+    top: calc(var(--header-h) + var(--space-4));
+  }
+}
+
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -194,13 +231,13 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: var(--space-3);
-  padding: var(--space-5);
-  border-block-end: 1px solid var(--border);
+  padding: var(--space-5) var(--space-5) var(--space-4);
 }
 .cardEyebrow {
-  margin: 0 0 var(--space-1);
+  margin: 0;
   font-size: var(--text-xs);
-  letter-spacing: 0.08em;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
@@ -210,8 +247,7 @@
 }
 .cardTitle {
   margin: 0;
-  font-size: var(--text-h3);
-  line-height: 1.15;
+  font-size: var(--text-xl);
 }
 .count {
   flex: none;
@@ -219,26 +255,28 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-xs);
+  font-weight: var(--fw-bold);
   color: var(--text-muted);
+}
+.photo {
+  margin-inline: var(--space-5);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--surface-2);
+  aspect-ratio: 16 / 7;
+}
+.photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .cardBody {
   display: grid;
-  gap: var(--space-5);
-  padding: var(--space-5);
-  align-items: start;
-}
-@media (min-width: 780px) {
-  .cardBody {
-    grid-template-columns: minmax(0, 1fr) 300px;
-    gap: var(--space-6);
-  }
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5) var(--space-5);
 }
 
-.meals {
-  display: grid;
-  gap: var(--space-4);
-  align-content: start;
-}
 .meal {
   display: grid;
   gap: var(--space-2);
@@ -246,102 +284,216 @@
 .mealH {
   margin: 0;
   font-family: var(--font-sans);
-  font-size: var(--text-xs);
-  font-weight: var(--fw-regular);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: var(--text-sm);
   color: var(--text-muted);
 }
-:global(:lang(ar)) .mealH {
-  letter-spacing: 0;
-  text-transform: none;
-  font-size: var(--text-sm);
+.dishList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
 }
-.dishes,
+.dish {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+.dishNo {
+  display: grid;
+  place-items: center;
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  color: var(--text);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+.dishName {
+  font-size: var(--text-lg);
+  font-weight: var(--fw-semibold);
+  overflow-wrap: anywhere;
+}
+.dishKcal {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Günün toplamı (koyu şerit) + alerjenler */
+.sum {
+  display: grid;
+  gap: var(--space-3);
+}
+.total {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-1) var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--text);
+}
+.totalLabel {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.totalNum {
+  font-size: var(--text-xl);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.totalNote {
+  grid-column: 1 / -1;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.allergens {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+/* "Uygulamada puanla" yan kartı: yüzey + ince çerçeve; yazı token (ham beyaz yok, iki temada AA) */
+.rate {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--text);
+}
+.rateIcon {
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--text);
+}
+.rateTitle {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--text-xl);
+  line-height: 1.2;
+}
+.rateText {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-base);
+}
+
+/* Menü yok */
+.noDay {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  padding: clamp(2rem, 6vw, 3.5rem) var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  text-align: center;
+}
+.noDayIcon {
+  display: grid;
+  place-items: center;
+  inline-size: 72px;
+  block-size: 72px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+.noDayTitle {
+  margin: 0;
+  font-size: var(--text-xl);
+}
+.noDayText {
+  margin: 0;
+  max-width: 44ch;
+  color: var(--text-muted);
+}
+.noDayActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-block-start: var(--space-2);
+}
+.pri,
+.sec {
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-weight: var(--fw-bold);
+  cursor: pointer;
+}
+.pri {
+  border: 1px solid var(--text);
+  background: var(--text);
+  color: var(--bg);
+}
+.sec {
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text);
+}
+
+/* Hafta / ay ızgarası */
+.meals {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+}
 .dishesCompact {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
 }
-.dishes li,
 .dishesCompact li {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-3);
-  padding-block: var(--space-3);
+  padding-block: var(--space-2);
   border-block-end: 1px solid var(--border);
-  overflow-wrap: anywhere;
-}
-.dishes li {
-  font-size: var(--text-lg);
-}
-.dishesCompact li {
   font-size: var(--text-sm);
   color: var(--text-muted);
-  padding-block: var(--space-2);
 }
-.dishes li:last-child,
 .dishesCompact li:last-child {
   border-block-end: 0;
 }
 .kcal {
   flex: none;
   font-size: var(--text-xs);
-  font-variant-numeric: tabular-nums;
+  font-weight: var(--fw-semibold);
   color: var(--text-faint);
   white-space: nowrap;
 }
 .facts {
-  display: grid;
-  gap: var(--space-1);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
   padding-block-start: var(--space-3);
   border-block-start: 1px solid var(--border-strong);
-}
-.facts p {
-  margin: 0;
-}
-.total {
-  font-size: var(--text-base);
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-}
-.allergens {
   font-size: var(--text-sm);
   color: var(--text-muted);
 }
-
-/* Menü fotoğrafı + boş durum: kutu her zaman aynı oranda, düzen kaymaz */
-.photo {
-  margin: 0;
-  position: relative;
-  aspect-ratio: 4 / 3;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface-2);
-  overflow: hidden;
-}
-.photo img {
-  display: block;
-  inline-size: 100%;
-  block-size: 100%;
-  object-fit: cover;
-}
-.photoEmpty {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  gap: var(--space-2);
-  padding: var(--space-4);
-  text-align: center;
-  font-size: var(--text-sm);
-  color: var(--text-faint);
-}
-
-/* Hafta / ay ızgarası */
 .grid {
   list-style: none;
   margin: 0;
@@ -356,10 +508,6 @@
   border-radius: var(--radius-md);
   overflow: hidden;
 }
-.day .meals {
-  padding: var(--space-3) var(--space-4) var(--space-4);
-  gap: var(--space-3);
-}
 .dayToday {
   border-color: var(--text);
 }
@@ -369,11 +517,10 @@
   justify-content: space-between;
   gap: var(--space-2);
   margin: 0;
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-2) var(--space-4);
   border-block-end: 1px solid var(--border);
   font-family: var(--font-sans);
   font-size: var(--text-sm);
-  font-weight: var(--fw-regular);
 }
 .todayPill {
   padding: 0 var(--space-2);
@@ -381,17 +528,26 @@
   background: var(--text);
   color: var(--bg);
   font-size: var(--text-xs);
+  font-weight: var(--fw-bold);
 }
 
 @media (max-width: 520px) {
   .cardHead,
   .cardBody {
-    padding: var(--space-4);
+    padding-inline: var(--space-4);
+  }
+  .photo {
+    margin-inline: var(--space-4);
+  }
+  .dish {
+    padding: var(--space-3);
+    gap: var(--space-2);
   }
   .bar {
     justify-content: center;
   }
 }
+
 @media (prefers-reduced-motion: reduce) {
   .segBtn,
   .chip {
