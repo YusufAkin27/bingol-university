@@ -203,8 +203,9 @@ public class CommunityService {
             c.setVisibility(r.visibility());
         }
         c.setOwnerId(a.id());
-        // auto-approve (varsayilan acik): kulup hemen yayinda; kapaliysa eski yonetici onayi akisi.
-        boolean active = autoApprove && !reservedName;
+        // Varsayilan: yonetici onayi gerekir (PENDING_REVIEW, yalniz olusturana gorunur). Sistem ADMIN'inin kendi actigi
+        // kulup dogrudan ACTIVE; app.community.auto-approve=true tum kuluplari onaysiz yayinlar (yalniz dev/test).
+        boolean active = (autoApprove || a.systemAdmin(PermissionMatrix.CONTENT_WRITE)) && !reservedName;
         c.setStatus(active ? Community.Status.ACTIVE : Community.Status.PENDING_REVIEW);
         try {
             communities.saveAndFlush(c);
@@ -222,7 +223,7 @@ public class CommunityService {
     }
 
     /** Yeni kulup yonetici onayi beklemeden yayina girsin mi (app.community.auto-approve). */
-    @Value("${app.community.auto-approve:true}")
+    @Value("${app.community.auto-approve:false}")
     private boolean autoApprove;
 
     void setAutoApprove(boolean v) { // testler icin
