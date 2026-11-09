@@ -43,6 +43,13 @@ public class MessageMediaController {
         this.limiter = limiter;
     }
 
+    private edu.bingol.backend.common.IdempotentCreate idem;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setIdem(edu.bingol.backend.common.IdempotentCreate idem) {
+        this.idem = idem;
+    }
+
     /**
      * Alan adi `file` (gorsel ya da video/mp4); video icin istege bagli `poster` (JPEG/PNG onizleme karesi).
      * Yanit `id`yi mesaj gonderiminde `attachmentIds` ile kullanin. Hiz/kota servis icinde.
@@ -50,8 +57,13 @@ public class MessageMediaController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public AttachmentView upload(@PathVariable Long cid, @RequestParam("file") MultipartFile file,
-                                 @RequestParam(value = "poster", required = false) MultipartFile poster) {
-        return service.upload(CurrentUser.id(), cid, file, poster);
+                                 @RequestParam(value = "poster", required = false) MultipartFile poster,
+                                 @RequestHeader(value = "Idempotency-Key", required = false) String idemKey) {
+        Long uid = CurrentUser.id();
+        // Arka plan aktarimi (G10): ayni anahtarla yeniden deneme ayni eki doner, ikinci dosya olusmaz
+        return edu.bingol.backend.common.IdempotentCreate.exec(idem, uid, "chatmedia:" + cid, idemKey, () -> { },
+                () -> service.upload(uid, cid, file, poster), AttachmentView::id,
+                id -> AttachmentView.of(service.require(uid, cid, id)));
     }
 
     /** Gorsel: tam govde. Video: HTTP Range (206 + Accept-Ranges) ile akis; govde dogrudan yanita yazilir (null doner). */

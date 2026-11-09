@@ -301,3 +301,7 @@ Geriye uyumlu (yalniz ekleme; tek davranis degisikligi: arsiv artik yeni mesajla
 - Uyeler birbirini mevcut sikayet akisiyle bildirir (`USER`, `MESSAGE`, `CONVERSATION` hedefleri; yeni hedef turu yok). Dikkat: `CONVERSATION` sikayetinde `hide` odayi kapatir, yalniz yonetici karariyla.
 - Mobil: Tumu/Kisiler/Kulupler/Etkinlikler filtrelerine Bolumler eklendi. Tumu ve Bolumler gorunumundeki "Bolum sohbetlerini kesfet" satiri aranabilir bolum listesine gider; uye olunan sohbete dokununca acilir, Katil/Ayril dugmeleri uyeligi yonetir. `DepartmentChatEntry` ("Bolum grubuna katil") yalniz bolum var + uye degil + oda acikken gorunur; ayrilma sohbet bilgisinden `DELETE /department-chat/membership?conversationId=<id>`.
 - Mesajsiz bolum odalari da sohbet listesinde yer alir. Mesajli sohbetler once, bos bolum odalari sonra siralanir; bos odalarin sayfalama imleci `-conversationId` olur. Ayrilan/gizlenen/arsivlenen uyelikler ve golge engel suzgeci korunur.
+
+## Sohbet medya yüklemede Idempotency-Key (G10)
+
+`POST /api/conversations/{cid}/media` isteğe bağlı `Idempotency-Key` (8-64 karakter) kabul eder: aynı kullanıcı + sohbet + anahtarla yeniden deneme yeni dosya üretmez, mevcut eki döner (kapsam `chatmedia:<cid>`, `idempotency_record`, migration yok). Başlıksız istek eski davranıştır. Mobil arka plan aktarım kuyruğu bunu kullanır; ayrıntı `docs/changes/transfers.md`.

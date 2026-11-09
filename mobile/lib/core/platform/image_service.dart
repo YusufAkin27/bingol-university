@@ -161,18 +161,20 @@ class MultipartUploader {
 
   /// Örn. `upload('/users/me/avatar', img)`; yol `/api` önekisizdir. Sonuç JSON (çoğu uçta `avatarUrl`/`url`).
   /// [method] varsayılan POST; kapak gibi uçlar PUT ister.
-  Future<dynamic> upload(String path, PreparedImage image, {String method = 'POST'}) async {
+  /// [headers]: ek başlıklar (örn. aktarım kuyruğunun `Idempotency-Key`'i).
+  Future<dynamic> upload(String path, PreparedImage image, {String method = 'POST', Map<String, String>? headers}) async {
     final ready = await _image.prepareForUpload(path, image);
-    return _send(path, ready, false, method);
+    return _send(path, ready, false, method, headers);
   }
 
-  Future<dynamic> _send(String path, PreparedImage image, bool retried, String method) async {
+  Future<dynamic> _send(String path, PreparedImage image, bool retried, String method, [Map<String, String>? headers]) async {
     final api = session.api;
     final req = http.MultipartRequest(method, Uri.parse('$apiBase$path'));
     req.headers['Accept-Language'] = api.lang;
     req.headers['Accept'] = 'application/json';
     final t = api.tokens;
     if (t != null) req.headers['Authorization'] = 'Bearer ${t.access}';
+    if (headers != null) req.headers.addAll(headers);
     req.files.add(http.MultipartFile.fromBytes(
       'file',
       image.bytes,
@@ -194,7 +196,7 @@ class MultipartUploader {
         api.handleRefreshFailure(e);
         rethrow;
       }
-      return _send(path, image, true, method);
+      return _send(path, image, true, method, headers);
     }
 
     // Geçersiz UTF-8 (proxy/portal gövdesi) FormatException sızdırmasın: ApiError akışı bozulmaz (ApiClient ile aynı kural).
