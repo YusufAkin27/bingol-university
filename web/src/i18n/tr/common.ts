@@ -80,6 +80,7 @@ const common = {
   'admin.nav.users': 'Kullanıcılar',
   'admin.nav.reports': 'Raporlar',
   'admin.nav.communities': 'Topluluklar',
+  'admin.nav.pendingCount': '{n} onay bekliyor',
   'admin.nav.events': 'Etkinlikler',
   'admin.nav.tickets': 'Destek talepleri',
   'admin.nav.feedback': 'Geri bildirim ve öneriler',
