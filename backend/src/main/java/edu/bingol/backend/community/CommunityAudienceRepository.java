@@ -19,7 +19,7 @@ public interface CommunityAudienceRepository extends JpaRepository<CommunityAudi
     /** Kullanicinin fakulte/bolumune hedeflenmis satirlar (sinirli havuz). */
     @Query("""
             SELECT a FROM CommunityAudience a
-            WHERE (a.kind = 'FACULTY' AND a.value = :faculty) OR (a.kind = 'DEPARTMENT' AND a.value = :department)
+            WHERE (a.kind = 'FACULTY' AND a.targetValue = :faculty) OR (a.kind = 'DEPARTMENT' AND a.targetValue = :department)
             """)
     List<CommunityAudience> matching(@Param("faculty") String faculty, @Param("department") String department,
                                      Pageable page);
