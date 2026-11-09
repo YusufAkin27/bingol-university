@@ -71,7 +71,7 @@
 }
 .segOn {
   background: var(--chrome);
-  color: #fff;
+  color: var(--on-chrome);
 }
 .nav {
   display: flex;
@@ -174,7 +174,7 @@
   opacity: 1;
   background: var(--chrome);
   border-color: var(--chrome);
-  color: #fff;
+  color: var(--on-chrome);
 }
 .chipOn .chipDow,
 .chipOn .chipKcal {
@@ -324,7 +324,7 @@
   padding: var(--space-4);
   border-radius: var(--radius-md);
   background: var(--chrome);
-  color: #fff;
+  color: var(--on-chrome);
 }
 .totalLabel {
   font-size: var(--text-sm);
@@ -355,7 +355,7 @@
   padding: var(--space-5);
   border-radius: var(--radius-lg);
   background: linear-gradient(165deg, var(--chrome-2), var(--chrome));
-  color: #fff;
+  color: var(--on-chrome);
 }
 .rateIcon {
   display: grid;
@@ -368,13 +368,13 @@
 }
 .rateTitle {
   margin: 0;
-  color: #fff;
+  color: var(--on-chrome);
   font-size: var(--text-xl);
   line-height: 1.2;
 }
 .rateText {
   margin: 0;
-  color: rgba(255, 255, 255, 0.82);
+  color: var(--on-chrome);
 }
 
 /* Menü yok */
@@ -425,7 +425,7 @@
 .pri {
   border: 1px solid var(--chrome);
   background: var(--chrome);
-  color: #fff;
+  color: var(--on-chrome);
 }
 .sec {
   border: 1px solid var(--border-strong);
