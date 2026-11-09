@@ -79,6 +79,7 @@ const common = {
   'admin.nav.users': 'Users',
   'admin.nav.reports': 'Reports',
   'admin.nav.communities': 'Communities',
+  'admin.nav.pendingCount': '{n} awaiting approval',
   'admin.nav.events': 'Events',
   'admin.nav.tickets': 'Support tickets',
   'admin.nav.feedback': 'Feedback and suggestions',

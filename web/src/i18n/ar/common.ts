@@ -79,6 +79,7 @@ const common = {
   'admin.nav.users': 'المستخدمون',
   'admin.nav.reports': 'البلاغات',
   'admin.nav.communities': 'المجتمعات',
+  'admin.nav.pendingCount': '{n} بانتظار الموافقة',
   'admin.nav.events': 'الفعاليات',
   'admin.nav.tickets': 'تذاكر الدعم',
   'admin.nav.feedback': 'الملاحظات والاقتراحات',
