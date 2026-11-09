@@ -78,6 +78,12 @@ public class RoomConversations {
         return links.findByKindAndRefId(kind, refId).map(RoomConversations::info);
     }
 
+    /** Konusma bir odaya bagliysa durumu (ornegin bolum kanalindan konusma kimligiyle ayrilmak icin). */
+    @Transactional(readOnly = true)
+    public Optional<RoomInfo> findByConversation(Long conversationId) {
+        return links.findByConversationId(conversationId).map(RoomConversations::info);
+    }
+
     /** Kullanici odanin su an AKTIF uyesi mi. */
     @Transactional(readOnly = true)
     public boolean isMember(RoomKind kind, Long refId, Long userId) {
