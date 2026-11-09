@@ -22,6 +22,8 @@ export default {
     'Ayar değeri geçersiz: e-posta ayarı tek ve geçerli bir adres, bağlantı ayarı boşluksuz ve https:// ile başlayan bir adres olmalıdır.',
   'admin.wp02.err.FEED_FILTER_REQUIRED':
     'Sohbet akışı süzgeçsiz açılamaz. Kullanıcı, gönderen ya da sohbet kimliğinden en az birini seçip yeniden deneyin.',
+  'admin.wp02.err.FEED_WINDOW_TOO_WIDE':
+    'Tüm sohbetler görünümünde tarih aralığı en fazla 31 gün olabilir. Aralığı daraltın.',
   'admin.wp02.err.DECRYPT_BATCH_TOO_LARGE':
     'Tek seferde çok fazla mesaj istendi. Süzgeci veya tarih aralığını daraltın.',
   'admin.wp02.err.ADMIN_TARGET_FORBIDDEN':

@@ -332,3 +332,5 @@ yeni `chatRooms` bolumu odanin kaynagini (kulup/etkinlik kimligi) ekler. Forum s
 **Yuk notlari (B10)**: `CommunityCategoryService.version()` (`findAll`) kisa katmanda onbellekli ve tablo yoneticiyle sinirli; buyuk/kucuk
 harf aramasi `findFirstByKeyIgnoreCase` ile tek satir. Herkese acik GET'ler (`/api/app/info`, `/api/app/version`, `/api/status`,
 `/api/faq`, `/api/catalog/*`) sunucu onbellegi arkasindadir; kampus NAT'inda yanlis engel olmasin diye IP basina ek limit konmadi.
+
+**Yeni izin `chat.read.all` (2026-11-09):** `PermissionMatrix.CHAT_READ_ALL`, yalnız FULL. Sohbet akışının `scope=ALL` (tüm sohbetler) kapsamı için; yol kuralı `chat.read` kalır, izin denetleyicide ayrıca aranır. V1790 `message_access_audit` tablosuna `scope`, `filters` sütunları (tablo yalnızca-ekleme kalır). Bkz. `docs/ADMIN_API.md`.

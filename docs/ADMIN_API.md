@@ -179,6 +179,17 @@ Sorgu: `cursor` (mesaj id; en yeni önce), `size` (≤50, varsayılan 30), `user
 ```
 `message.mine` yalnız `userId` verildiyse o kullanıcıya göre doludur. Denetim: `kind=FEED`.
 
+#### "Tüm sohbetler" kapsamı (`scope=ALL`, 2026-11-09)
+`chat-media` ve `chat-messages` uçlarına `scope` sorgu parametresi eklendi (`USER`/`CONVERSATION`/boş = eski davranış: `userId`/`senderId`/`conversationId`'den biri zorunlu, yoksa `400 FEED_FILTER_REQUIRED`). `scope=ALL`:
+- **İzin `chat.read.all` (yalnız FULL)**; yol kuralı `chat.read` kalır, `scope=ALL` için izin `AdminChatFeedController.isAll` içinde ayrıca aranır (izin yok ya da yetki bağlamı yok: `403 ADMIN_PERMISSION_DENIED`, fail-closed). `userId`/`senderId`/`conversationId` ile birlikte verilirse ya da tanınmayan değerde `400 INVALID_FILTER`.
+- Kullanıcı/sohbet süzgeci gerekmez; en yeni → eski imleçli akış (mesaj id / ek id), sayfa ≤ 50 mesaj / ≤ 60 ek; `kind`, `viewOnce`, `deleted`, `suppressed`, `hasMedia`, `from`, `to`, `order` birlikte çalışır.
+- **Tarih penceresi:** `from` yoksa (`to` ya da şimdi) − 7 gün; aralık 31 günü aşarsa `400 FEED_WINDOW_TOO_WIDE` (tam tablo taraması yok; sorgu `created_at` aralığı + id imleci ile).
+- **Sebep zorunlu** (>= 20 karakter, `X-Admin-Reason`); `app.admin.require-reason=false` olsa bile bu kapsamda zorunludur.
+- **Hız sınırı:** yönetici başına dakikada 20 sayfa (`adminchatall:<id>`, genel 120 sınırından ayrı ve sıkı); ayrıca saatlik çözme kotası (`admin-decrypt-per-hour`) ve tek çağrı mesaj sınırı aynen geçerlidir.
+- **Denetim:** içerik dönmeden önce `message_access_audit`'e sohbet başına bir satır: `kind=FEED_ALL|MEDIA_ALL`, `scope=ALL`, `filters` (ör. `deleted=true;from=...;to=...;cursor=123;size=30;returned=50`), `reason`, `ip`, `message_count`; boş sayfada da `conversation_id=0` işaret satırı yazılır. İçerik/şifreli metin/anahtar hiçbir yerde tutulmaz. Yazılamazsa `503 CRYPTO_UNAVAILABLE`, içerik dönmez. `GET /api/admin/audit/message-access` satırlarına `scope` ve `filters` eklendi; `kind=FEED_ALL` süzgeci çalışır.
+- Bu kapsamda toplu dışa aktarma/CSV **yoktur** (konuşma dışa aktarımı yalnız tek sohbet için, `scope` almaz).
+- Şema: V1790 (`message_access_audit.scope`, `filters`, indeks `cf_maa_scope_created`). Web: sohbet akışı süzgecinde "Kapsam" seçimi; "Tüm sohbetler" yalnız izin bilgisi yüklü ve `chat.read.all` varsa görünür; seçenek yanında uyarı; görseller varsayılan bulanık.
+
 ### Şikâyet bağlamı
 - `GET /api/admin/reports?...` (mevcut kuyruk) satırlarına eklendi: `reporter{id,displayName,email}`, `reportedUser{id,displayName,email}|null`, `viewerPath|null`.
 - `GET /api/admin/reports/{id}` → şikâyet + bağlam. `404 REPORT_NOT_FOUND`. Denetim: `kind=REPORT_CONTEXT` (sohbet içeriği çözülürse).
@@ -940,6 +951,7 @@ Haber, akademik içerik, yemek menüsü ve bekleyen kayıtlar için toplu işlem
 | users.2fa (HARDEN O3: 2FA hesap kurtarma kapatması; MODERATOR yapamaz) | x |  | x |  |  |
 | moderation.read | x | x |  |  | x |
 | moderation.write, chat.read, chat.write | x | x |  |  |  |
+| chat.read.all (sohbet akışı "tüm sohbetler" kapsamı) | x |  |  |  |  |
 | content.write | x |  |  | x |  |
 | content.hide | x | x |  | x |  |
 | support.read | x |  | x |  | x |

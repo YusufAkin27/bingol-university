@@ -57,6 +57,7 @@ export default {
   'admin.p16.perm.moderation.read': 'Rapor, itiraz, strike, engel listesi, erişim engeli okuma',
   'admin.p16.perm.moderation.write': 'Rapor kararı, itiraz, strike, erişim engeli, uygunsuz ifade listesi',
   'admin.p16.perm.chat.read': 'Sohbet içeriğini görme (sebep + denetim kaydı)',
+  'admin.p16.perm.chat.read.all': 'Tüm sohbetleri tek akışta görme (yalnız Tam yetki; sebep + denetim)',
   'admin.p16.perm.chat.write': 'Mesaj gizleme/silme, sohbet kapatma, üye çıkarma',
   'admin.p16.perm.content.read': 'İçerikleri görme (haber, kulüp, etkinlik, anket, gönderi...)',
   'admin.p16.perm.content.write': 'İçerik yönetimi: haber, menü, akademik, SSS, kulüp, etkinlik, anket, gönderi, kategori',

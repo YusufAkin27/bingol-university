@@ -62,10 +62,13 @@ const feedMsg = (id: number, over: Record<string, unknown> = {}) => ({
 });
 const counts = { imageCount: 5, videoCount: 2, viewOnceCount: 1, deletedMessageMediaCount: 3, hiddenCount: 0, suppressedCount: 0, purgedCount: 4, totalBytes: 4096 };
 
-function setup(opts: { mediaError?: boolean } = {}) {
+function setup(opts: { mediaError?: boolean; perms?: string[] } = {}) {
   const calls: string[] = [];
   mockFetch((url) => {
     calls.push(url);
+    if (url.includes('/admin/rbac/me')) {
+      return jsonResponse(200, { userId: 1, email: 'a@b.c', displayName: 'A', profile: 'FULL', pinned: false, permissions: opts.perms ?? ['chat.read', 'chat.read.all'] });
+    }
     if (url.includes('/media/attachments/')) return new Response(new Blob(['x']), { status: 200, headers: { 'Content-Type': 'image/jpeg' } });
     if (url.includes('/chat-media/stats')) return jsonResponse(200, { ...counts, last24h: counts });
     if (url.includes('/chat-media')) {
@@ -87,6 +90,7 @@ function setup(opts: { mediaError?: boolean } = {}) {
 
 /** W1-B (T-015): sunucu süzgeçsiz akışı reddeder; sayfa da süzgeç seçilmeden içerik istemez. Sohbet no ile süzgeç koyar. */
 async function pickConversation(id = '30') {
+  await userEvent.selectOptions(await screen.findByLabelText('Kapsam'), 'CONVERSATION');
   await userEvent.type(await screen.findByLabelText('Sohbet no'), id);
 }
 
@@ -162,6 +166,34 @@ describe('Sohbet medyası ve mesajlar sayfası', () => {
     await userEvent.click(screen.getByRole('tab', { name: 'Mesajlar' }));
     expect(screen.getByText('Önce bir süzgeç seçin')).toBeInTheDocument();
     expect(calls.some((u) => u.includes('chat-messages'))).toBe(false);
+  });
+
+  it('"Tüm sohbetler" kapsamı süzgeçsiz scope=ALL ister, uyarıyı gösterir, kullanıcı/sohbet alanlarını gizler', async () => {
+    const calls = setup();
+    renderWithProviders(<ChatFeedPage />);
+    await waitFor(() => expect(calls.some((u) => u.includes('/admin/rbac/me'))).toBe(true));
+    const scope = await screen.findByLabelText('Kapsam');
+    await waitFor(() => expect(within(scope).getByRole('option', { name: 'Tüm sohbetler' })).toBeInTheDocument());
+    await userEvent.selectOptions(scope, 'ALL');
+    expect(screen.getByTestId('feed-all-warn')).toHaveTextContent('her görüntüleme denetim kaydına yazılır');
+    expect(screen.queryByLabelText('Sohbet no')).toBeNull();
+    await screen.findByTestId('media-grid');
+    const url = calls.filter((u) => u.includes('chat-media?')).pop() ?? '';
+    expect(url).toContain('scope=ALL');
+    expect(url).not.toContain('userId=');
+    expect(url).not.toContain('conversationId=');
+    await userEvent.click(screen.getByRole('tab', { name: 'Mesajlar' }));
+    await screen.findByTestId('feed-list');
+    expect(calls.some((u) => u.includes('chat-messages?') && u.includes('scope=ALL'))).toBe(true);
+  });
+
+  it('chat.read.all izni yoksa "Tüm sohbetler" seçeneği hiç görünmez', async () => {
+    const calls = setup({ perms: ['chat.read'] });
+    renderWithProviders(<ChatFeedPage />);
+    const scope = await screen.findByLabelText('Kapsam');
+    await waitFor(() => expect(calls.some((u) => u.includes('/admin/rbac/me'))).toBe(true));
+    expect(within(scope).queryByRole('option', { name: 'Tüm sohbetler' })).toBeNull();
+    expect(within(scope).getByRole('option', { name: 'Belirli sohbet' })).toBeInTheDocument();
   });
 
   it('hata durumunu gösterir', async () => {

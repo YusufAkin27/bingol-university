@@ -20,6 +20,7 @@ const GRANTS: Record<string, Profile[]> = {
   'moderation.read': ['FULL', 'MODERATOR', 'VIEWER'],
   'moderation.write': ['FULL', 'MODERATOR'],
   'chat.read': ['FULL', 'MODERATOR'],
+  'chat.read.all': ['FULL'],
   'chat.write': ['FULL', 'MODERATOR'],
   'content.read': ['FULL', 'MODERATOR', 'SUPPORT', 'EDITOR', 'VIEWER'],
   'content.write': ['FULL', 'EDITOR'],

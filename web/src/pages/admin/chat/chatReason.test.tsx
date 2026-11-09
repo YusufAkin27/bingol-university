@@ -191,6 +191,7 @@ describe('Sohbet akışı: sebep kapısı', () => {
 
     // süzgeçsiz akış istenmez (FEED_FILTER_REQUIRED önlemi): sohbet no girilince içerik istenir
     expect(calls.some((c) => c.url.includes('/chat-media?'))).toBe(false);
+    await userEvent.selectOptions(await screen.findByLabelText('Kapsam'), 'CONVERSATION');
     await userEvent.type(await screen.findByLabelText('Sohbet no'), '30');
     await waitFor(() => expect(calls.some((c) => c.url.includes('/chat-media?'))).toBe(true));
     expect(calls.find((c) => c.url.includes('/chat-media?'))?.reason).toBe(encodeURIComponent('Rapor incelemesi #9 toplu bakış'));

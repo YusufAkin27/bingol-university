@@ -348,6 +348,18 @@
 .filters > * {
   min-inline-size: 0;
 }
+/* "Tüm sohbetler" uyarısı: nötr çerçeve, kalın yazı yok (Premium Monochrome) */
+.allWarn {
+  flex: 1 1 18rem;
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
 .checks {
   display: flex;
   flex-wrap: wrap;

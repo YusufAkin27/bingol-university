@@ -291,3 +291,9 @@ Geriye uyumlu (yalniz ekleme; tek davranis degisikligi: arsiv artik yeni mesajla
 
 - `MessageView.readAt` (ISO-8601 UTC, ornek `2026-11-07T10:00:00Z`; alan yoksa/`null` ise okunmadi). YALNIZ istek sahibi mesajin gondereniyse ve `status=READ` ise dolar; aliciya/baskasina asla gonderilmez. Birebirde kaydedilir (`message.read_at`); grup/oda ve `status=null` durumlarinda gelmez. Mesaj listesi, gonderim/duzenleme yanitlari ve konusma listesindeki `lastMessage` ayni assembler'dan gecer. Gizlilik tercihi (okundu bilgisini kapat) sunucuda yoktur.
 - STOMP `receipt` olayi `readAt` tasir (yalniz `kind="read"`, olay ani UTC = `at`); `delivered` olayinda yok. Eski istemciler alani yok sayar.
+
+## Yönetici sohbet akışı: "Tüm sohbetler" kapsamı (2026-11-09)
+
+- `GET /api/admin/chat-media` ve `/chat-messages` yeni `scope=ALL` parametresi: kullanıcı/sohbet süzgeci olmadan tüm sohbetler tek imleçli akışta. Yalnız FULL (`chat.read.all`), gerçek sebep zorunlu (>= 20 karakter, `require-reason=false` olsa da), varsayılan 7 / en çok 31 gün penceresi (`400 FEED_WINDOW_TOO_WIDE`, tr/en/ar `chatadmin*.properties`), yönetici başına 20 sayfa/dk, dışa aktarma yok.
+- Her sayfa `message_access_audit`'e `kind=FEED_ALL|MEDIA_ALL`, `scope=ALL`, süzgeç özeti (`filters`) ile yazılır (V1790; içerik yok). Eski kullanıcı/sohbet bazlı akış ve `FEED_FILTER_REQUIRED` davranışı aynen.
+- Ayrıntı: `docs/ADMIN_API.md` ("Tüm sohbetler" kapsamı), hukuki not: `docs/LEGAL_NOTES.md` bölüm 15.

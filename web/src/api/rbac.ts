@@ -23,6 +23,7 @@ export type Permission =
   | 'moderation.read'
   | 'moderation.write'
   | 'chat.read'
+  | 'chat.read.all'
   | 'chat.write'
   | 'content.read'
   | 'content.write'

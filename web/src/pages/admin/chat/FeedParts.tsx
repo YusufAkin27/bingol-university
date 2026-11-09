@@ -19,6 +19,7 @@ import {
   Skeleton,
 } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
+import { usePermissions } from '../../../auth/permissions';
 import { useDebouncedValue } from '../../../lib/hooks';
 import { adminErrorMessage } from '../campaigns/shared';
 import { ChatBubble } from './ChatBubble';
@@ -31,7 +32,11 @@ import v2 from '../moderation/v2.module.css';
 import { collectLightboxItems, mediaToItem, nextCursorParam, parseId, viewerLink } from './chatLogic';
 import styles from './chat.module.css';
 
+export type FeedScope = 'USER' | 'CONVERSATION' | 'ALL';
+
 export interface FeedFilterState {
+  /** Kapsam: belirli kullanıcı / belirli sohbet / tüm sohbetler (yalnız chat.read.all). */
+  scope: FeedScope;
   user: { id: number; name: string } | null;
   conversationId: string;
   from: string;
@@ -44,6 +49,7 @@ export interface FeedFilterState {
 }
 
 export const EMPTY_FILTERS: FeedFilterState = {
+  scope: 'USER',
   user: null,
   conversationId: '',
   from: '',
@@ -124,6 +130,10 @@ export function FeedFilters({
 }) {
   const { t } = useI18n();
   const set = (p: Partial<FeedFilterState>) => onChange({ ...value, ...p });
+  // Fail-closed: izinler bilinmiyorsa (yükleniyor/alınamadı) "Tüm sohbetler" seçeneği görünmez; asıl denetim sunucudadır.
+  const perms = usePermissions(true);
+  const canAll = perms.status === 'ready' && perms.can('chat.read.all');
+  const scope = value.scope;
   return (
     <div className={styles.filters} role="search" aria-label={t('admin.chatFeed.filters')}>
       {tab === 'media' && (
@@ -135,17 +145,37 @@ export function FeedFilters({
           </Select>
         </FormField>
       )}
-      <FormField label={t('admin.chatFeed.filter.user')}>
-        <UserFilter value={value.user} onChange={(user) => set({ user })} />
+      <FormField label={t('admin.chatFeed.scope.label')}>
+        <Select
+          value={scope}
+          data-testid="feed-scope"
+          onChange={(e) => set({ scope: e.target.value as FeedScope, user: null, conversationId: '' })}
+        >
+          <option value="USER">{t('admin.chatFeed.scope.user')}</option>
+          <option value="CONVERSATION">{t('admin.chatFeed.scope.conversation')}</option>
+          {canAll && <option value="ALL">{t('admin.chatFeed.scope.all')}</option>}
+        </Select>
       </FormField>
-      <FormField label={t('admin.chatFeed.filter.conversation')}>
-        <Input
-          inputMode="numeric"
-          value={value.conversationId}
-          placeholder="ID"
-          onChange={(e) => set({ conversationId: e.target.value.replace(/\D/g, '') })}
-        />
-      </FormField>
+      {scope === 'ALL' && (
+        <p className={styles.allWarn} role="note" data-testid="feed-all-warn">
+          <strong>{t('admin.chatFeed.scope.allWarn')}</strong> {t('admin.chatFeed.scope.allWindow')}
+        </p>
+      )}
+      {scope === 'USER' && (
+        <FormField label={t('admin.chatFeed.filter.user')}>
+          <UserFilter value={value.user} onChange={(user) => set({ user })} />
+        </FormField>
+      )}
+      {scope === 'CONVERSATION' && (
+        <FormField label={t('admin.chatFeed.filter.conversation')}>
+          <Input
+            inputMode="numeric"
+            value={value.conversationId}
+            placeholder="ID"
+            onChange={(e) => set({ conversationId: e.target.value.replace(/\D/g, '') })}
+          />
+        </FormField>
+      )}
       <FormField label={t('admin.chatFeed.filter.from')}>
         <Input type="date" value={value.from} onChange={(e) => set({ from: e.target.value })} />
       </FormField>
@@ -213,6 +243,7 @@ export function MediaTab({ filters, reason }: { filters: FeedFilterState; reason
       kind: filters.kind,
       viewOnce: filters.viewOnce,
       deleted: filters.deleted,
+      scope: filters.scope === 'ALL' ? ('ALL' as const) : undefined,
       userId: filters.user?.id ?? null,
       conversationId: convId,
       from: filters.from,
@@ -239,7 +270,7 @@ export function MediaTab({ filters, reason }: { filters: FeedFilterState; reason
 
   if (q.isError) return <ErrorState description={adminErrorMessage(i18n, q.error)} onRetry={() => void q.refetch()} />;
   if (q.isLoading) return <Skeleton height="14rem" width="100%" />;
-  if (items.length === 0) return <EmptyState icon="message" title={t('admin.chatFeed.media.empty')} description=" " />;
+  if (items.length === 0) return <EmptyState icon="message" title={t(filters.scope === 'ALL' ? 'admin.chatFeed.scope.allEmptyMedia' : 'admin.chatFeed.media.empty')} description=" " />;
   return (
     <>
       <ul className={styles.grid} data-testid="media-grid">
@@ -277,6 +308,7 @@ export function MessagesTab({ filters, reason }: { filters: FeedFilterState; rea
   const convId = parseId(useDebouncedValue(filters.conversationId, 400) || null);
   const f = useMemo(
     () => ({
+      scope: filters.scope === 'ALL' ? ('ALL' as const) : undefined,
       userId: filters.user?.id ?? null,
       conversationId: convId,
       deleted: filters.deleted,
@@ -315,7 +347,7 @@ export function MessagesTab({ filters, reason }: { filters: FeedFilterState; rea
 
   if (q.isError) return <ErrorState description={adminErrorMessage(i18n, q.error)} onRetry={() => void q.refetch()} />;
   if (q.isLoading) return <Skeleton height="14rem" width="100%" />;
-  if (rows.length === 0) return <EmptyState icon="message" title={t('admin.chatFeed.messages.empty')} description=" " />;
+  if (rows.length === 0) return <EmptyState icon="message" title={t(filters.scope === 'ALL' ? 'admin.chatFeed.scope.allEmpty' : 'admin.chatFeed.messages.empty')} description=" " />;
   return (
     <>
       <ul className={styles.feedList} data-testid="feed-list">

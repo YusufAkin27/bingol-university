@@ -47,6 +47,8 @@ export interface MediaFilters {
   conversationId?: number | null;
   from?: string;
   to?: string;
+  /** 'ALL' = tüm sohbetler (kullanıcı/sohbet süzgeci gönderilmez; chat.read.all ister). */
+  scope?: 'ALL';
 }
 export interface MessageFilters {
   userId?: number | null;
@@ -56,6 +58,7 @@ export interface MessageFilters {
   hasMedia?: boolean;
   from?: string;
   to?: string;
+  scope?: 'ALL';
 }
 
 /** Tüm sohbet ekleri (imleç = ek kimliği, en yeni önce). Boş süzgeçler gönderilmez. */
@@ -67,8 +70,9 @@ export const listChatMedia = (f: MediaFilters, reason: string, cursor?: number |
       kind: f.kind || undefined,
       viewOnce: f.viewOnce ? true : undefined,
       deleted: f.deleted ? true : undefined,
-      userId: f.userId ?? undefined,
-      conversationId: f.conversationId ?? undefined,
+      scope: f.scope,
+      userId: f.scope === 'ALL' ? undefined : (f.userId ?? undefined),
+      conversationId: f.scope === 'ALL' ? undefined : (f.conversationId ?? undefined),
       from: f.from || undefined,
       to: f.to || undefined,
     },
@@ -82,8 +86,9 @@ export const listChatMessages = (f: MessageFilters, reason: string, cursor?: num
     query: {
       cursor,
       size,
-      userId: f.userId ?? undefined,
-      conversationId: f.conversationId ?? undefined,
+      scope: f.scope,
+      userId: f.scope === 'ALL' ? undefined : (f.userId ?? undefined),
+      conversationId: f.scope === 'ALL' ? undefined : (f.conversationId ?? undefined),
       deleted: f.deleted ? true : undefined,
       suppressed: f.suppressed ? true : undefined,
       hasMedia: f.hasMedia ? true : undefined,

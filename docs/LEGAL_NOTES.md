@@ -234,3 +234,13 @@ Not: `relation` ve `jurisdiction` anahtarları V480 ile boş eklendi, V481 ile d
 - V820 metinlerinde kodla artık uyuşmayan beyanlar (`LegalMigrationV820FileTest` içindeki notlar): gönderi "en çok 7 kelime" (kod 2200 karakter), tek gösterimlik medya 365 gün (kod 7 gün), yönetici gerekçe uzunlukları.
 - SSS V3 tohumu "Şifremi unuttum." cevabı ("yakında eklenecek") şifre sıfırlama varken eskidir; yönetici panelinden ya da yeni migration ile düzeltilmeli.
 - Web tanıtım sitesi/çocuk güvenliği metinleri ve mobil istemci metinleri ayrı işlerdir (bölüm 13).
+
+## 15. Yönetici "Tüm sohbetler" görünümü: KVKK / aydınlatma notu (2026-11-09)
+
+**Ne eklendi?** Yönetim paneli sohbet akışında (`/admin/chat-feed`) `scope=ALL` kapsamı: yalnız **FULL** profildeki yönetici (`chat.read.all`), kullanıcı ya da sohbet süzgeci olmadan tüm kullanıcıların özel yazışmalarını (şifre çözülmüş) ve eklerini tek akışta görebilir. Korumalar: gerçek sebep (>= 20 karakter) zorunlu, her sayfa `message_access_audit`'e (yönetici, sebep, IP, kapsam=ALL, süzgeç özeti, dönen sayı; **içerik değil**) yazılır, varsayılan 7 gün / en çok 31 gün penceresi, yönetici başına dakikada 20 sayfa, bu kapsamda CSV/toplu dışa aktarma yok, görseller varsayılan bulanık. Kullanıcıya bildirim gönderilmez (mevcut kural korundu).
+
+**Hukuki risk (hukuk danışmanı kararı gerekir; kod ve metin DEĞİŞTİRİLMEDİ):**
+1. KVKK m.10 aydınlatma ve m.4 (ölçülülük, belirli/meşru amaç): yayımlı Gizlilik/KVKK metinleri (V99/V290/V370/V480/V820/V1470) mesajların "güvenlik, şikâyet ve yasal yükümlülükler için yetkili yönetici tarafından, sebep ve denetim kaydıyla" incelenebildiğini söylüyorsa bu görünüm o amaçla uyumlu mu, yoksa şikâyetten bağımsız **toplu/rutin** erişim ayrıca açıkça yazılmalı mı? Şikâyetten bağımsız, kullanıcı süzgeçsiz erişim ölçülülük ilkesi açısından en riskli kullanım biçimidir.
+2. Haberleşmenin gizliliği (Anayasa m.22, TCK m.132-134): yöneticinin kişisel yazışmalara geniş erişimi, açık dayanak ve aydınlatma olmadan suç/ihlal riski taşıyabilir; öneri: yalnız belirli olay/şikâyet incelemesi için kullanım politikası ve iç yönerge.
+3. Veri sorumlusu iç kontrolü: `chat.read.all` sahibi kişi sayısını asgaride tutun (şimdilik tüm FULL profiller); erişim kayıtları (`message_access_audit`, 730 gün saklama V621) düzenli gözden geçirilmeli; kayıtlar aynı zamanda ilgili kişi başvurusunda ("kim erişti") delil olabilir.
+4. Kullanıcıya gösterilen sözleşme/gizlilik metinleri (DB'de V481/V820/V1470) bu özelliğe göre **değiştirilmedi** (uygulanmış migration değişmez); hukuk kararı gelirse yeni sürüm migration'ı (`require_reaccept` kararı bölüm 8/14 çizgisinde) gerekir.

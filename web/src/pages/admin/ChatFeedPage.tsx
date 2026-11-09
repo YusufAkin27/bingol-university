@@ -36,10 +36,12 @@ export default function ChatFeedPage() {
   const stats = useQuery({ queryKey: qk.adminChat.mediaStats(), queryFn: adminChatApi.chatMediaStats, staleTime: 60_000 });
   const s = stats.data;
   // W1-B (T-015): sunucu süzgeçsiz akışı 400 FEED_FILTER_REQUIRED ile reddeder; süzgeç seçilmeden istek atılmaz.
-  const hasFilter = filters.user !== null || parseId(filters.conversationId || null) !== null;
+  // "Tüm sohbetler" kapsamı süzgeç istemez (sunucu: chat.read.all + sebep + denetim, varsayılan 7 gün penceresi).
+  const hasFilter = filters.scope === 'ALL' || filters.user !== null || parseId(filters.conversationId || null) !== null;
   const total = s ? s.imageCount + s.videoCount : 0;
   const imgPct = total > 0 && s ? Math.round((s.imageCount / total) * 100) : 0;
   const activeCount = [
+    filters.scope === 'ALL',
     filters.kind !== '',
     filters.user !== null,
     filters.conversationId !== '',
