@@ -84,8 +84,24 @@ public class AdminChatFeedService {
 
     public MediaPage media(long adminId, Long cursor, int size, String kind, Boolean viewOnce, Boolean deleted,
                            Long userId, Long conversationId, String from, String to, String order, String ip) {
+        return doMedia(adminId, cursor, size, kind, viewOnce, deleted, userId, conversationId, from, to, order, ip, false);
+    }
+
+    /**
+     * "Tum sohbetler" kapsami: kullanici/sohbet suzgeci YOK; tarih penceresi varsayilan son {@value #DEFAULT_WINDOW_DAYS}
+     * gun, en cok {@value #MAX_WINDOW_DAYS} gun (aksi 400 FEED_WINDOW_TOO_WIDE). Yetki denetimi (chat.read.all)
+     * denetleyicidedir; burada gercek sebep zorunlu ve her sayfa kapsam=ALL olarak denetlenir.
+     */
+    public MediaPage mediaAll(long adminId, Long cursor, int size, String kind, Boolean viewOnce, Boolean deleted,
+                              String from, String to, String order, String ip) {
+        return doMedia(adminId, cursor, size, kind, viewOnce, deleted, null, null, from, to, order, ip, true);
+    }
+
+    private MediaPage doMedia(long adminId, Long cursor, int size, String kind, Boolean viewOnce, Boolean deleted,
+                              Long userId, Long conversationId, String from, String to, String order, String ip,
+                              boolean all) {
         crypto.requireEnabled();
-        crypto.requireReason();
+        crypto.requireReason(all);
         int s = Math.min(Math.max(size, 1), MAX_MEDIA);
         boolean asc = isAsc(order);
         String k = kind == null ? "ALL" : kind.trim().toUpperCase(java.util.Locale.ROOT);
@@ -118,7 +134,12 @@ public class AdminChatFeedService {
             w.append(" AND a.conversation_id = :cid");
             p.addValue("cid", conversationId);
         }
-        range(w, p, "a.created_at", from, to);
+        Window win = all ? window(from, to, clock.instant()) : null;
+        if (all) {
+            rangeI(w, p, "a.created_at", win.from(), win.to());
+        } else {
+            range(w, p, "a.created_at", from, to);
+        }
         String sql = "SELECT a.id, a.conversation_id, a.message_id, a.uploader_id, a.kind, a.view_once, a.purged_at, "
                 + "a.hidden_at, a.created_at, a.width, a.height, a.duration_ms, a.bytes, m.deleted_at, m.suppressed "
                 + "FROM message_attachment a JOIN message m ON m.id = a.message_id" + w
@@ -170,10 +191,9 @@ public class AdminChatFeedService {
             c[1] = Math.min(c[1], mid);
             c[2] = Math.max(c[2], mid);
         }
-        List<Entry> audit = new ArrayList<>();
-        perConv.forEach((cid, c) -> audit.add(new Entry(adminId, userId, cid, (int) c[0], c[1], c[2],
-                AdminDecryptService.currentReason(), ip, "MEDIA")));
-        crypto.record(audit, ip); // once denetim, sonra icerik
+        crypto.record(auditEntries(adminId, userId, perConv, "MEDIA", all, ip, all ? summary(
+                "kind", k, "viewOnce", viewOnce, "deleted", deleted, "from", win.from(), "to", win.to(), "order",
+                asc ? "asc" : "desc", "cursor", cursor, "size", s, "returned", items.size()) : null), ip); // once denetim, sonra icerik
         return new MediaPage(items, next);
     }
 
@@ -181,8 +201,21 @@ public class AdminChatFeedService {
 
     public FeedPage messages(long adminId, Long cursor, int size, Long userId, Long senderId, Long conversationId,
                              Boolean deleted, Boolean suppressed, Boolean hasMedia, String from, String to, String ip) {
+        return doMessages(adminId, cursor, size, userId, senderId, conversationId, deleted, suppressed, hasMedia, from,
+                to, ip, false);
+    }
+
+    /** "Tum sohbetler" kapsami (bkz. {@link #mediaAll}): kullanici/gonderen/sohbet suzgeci yok, tarih penceresi sinirli. */
+    public FeedPage messagesAll(long adminId, Long cursor, int size, Boolean deleted, Boolean suppressed,
+                                Boolean hasMedia, String from, String to, String ip) {
+        return doMessages(adminId, cursor, size, null, null, null, deleted, suppressed, hasMedia, from, to, ip, true);
+    }
+
+    private FeedPage doMessages(long adminId, Long cursor, int size, Long userId, Long senderId, Long conversationId,
+                                Boolean deleted, Boolean suppressed, Boolean hasMedia, String from, String to,
+                                String ip, boolean all) {
         crypto.requireEnabled();
-        crypto.requireReason();
+        crypto.requireReason(all);
         int s = Math.min(Math.max(size, 1), MAX_MESSAGES);
         MapSqlParameterSource p = new MapSqlParameterSource();
         StringBuilder w = new StringBuilder(" WHERE 1 = 1");
@@ -213,7 +246,12 @@ public class AdminChatFeedService {
             w.append(hasMedia ? " AND" : " AND NOT").append(
                     " EXISTS (SELECT 1 FROM message_attachment x WHERE x.message_id = m.id)");
         }
-        range(w, p, "m.created_at", from, to);
+        Window win = all ? window(from, to, clock.instant()) : null;
+        if (all) {
+            rangeI(w, p, "m.created_at", win.from(), win.to());
+        } else {
+            range(w, p, "m.created_at", from, to);
+        }
         p.addValue("lim", s + 1);
         List<Row> rows = new ArrayList<>(named.query(AdminChatViewerService.MESSAGE_SELECT + w
                 + " ORDER BY m.id DESC LIMIT :lim", p, (rs, i) -> AdminChatViewerService.row(rs)));
@@ -238,10 +276,9 @@ public class AdminChatFeedService {
             c[1] = Math.min(c[1], it.id());
             c[2] = Math.max(c[2], it.id());
         }
-        List<Entry> audit = new ArrayList<>();
-        perConv.forEach((cid, c) -> audit.add(new Entry(adminId, userId, cid, (int) c[0], c[1], c[2],
-                AdminDecryptService.currentReason(), ip, "FEED")));
-        crypto.record(audit, ip); // once denetim, sonra icerik
+        crypto.record(auditEntries(adminId, userId, perConv, "FEED", all, ip, all ? summary(
+                "deleted", deleted, "suppressed", suppressed, "hasMedia", hasMedia, "from", win.from(), "to", win.to(),
+                "cursor", cursor, "size", s, "returned", items.size()) : null), ip); // once denetim, sonra icerik
         return new FeedPage(items, next);
     }
 
@@ -300,6 +337,71 @@ public class AdminChatFeedService {
     }
 
     // --- yardimcilar ---
+
+    /** Varsayilan ve en genis tarih penceresi ("tum sohbetler": tam tablo taramasi yok, created_at/id indeksli). */
+    public static final int DEFAULT_WINDOW_DAYS = 7;
+    public static final int MAX_WINDOW_DAYS = 31;
+
+    /** Test icin degistirilebilir saat. */
+    java.time.Clock clock = java.time.Clock.systemUTC();
+
+    public record Window(Instant from, Instant to) {}
+
+    /**
+     * "Tum sohbetler" tarih penceresi: from yoksa (to ya da simdi) - 7 gun; to yoksa ust sinir yok (simdi). Pencere
+     * 31 gunu asarsa 400 FEED_WINDOW_TOO_WIDE.
+     */
+    static Window window(String from, String to, Instant now) {
+        Instant t = to == null || to.isBlank() ? null : parse(to, true);
+        Instant f = from == null || from.isBlank() ? null : parse(from, false);
+        Instant end = t != null ? t : now;
+        if (f == null) {
+            f = end.minus(java.time.Duration.ofDays(DEFAULT_WINDOW_DAYS));
+        }
+        if (java.time.Duration.between(f, end).compareTo(java.time.Duration.ofDays(MAX_WINDOW_DAYS)) > 0) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "FEED_WINDOW_TOO_WIDE",
+                    "Tüm sohbetler görünümünde tarih aralığı en fazla " + MAX_WINDOW_DAYS + " gün olabilir.",
+                    String.valueOf(MAX_WINDOW_DAYS));
+        }
+        return new Window(f, t);
+    }
+
+    /** Denetim satirlari: sohbet basina bir satir; "tum sohbetler"de bos sayfa da bir isaret satiri (sohbet 0) birakir. */
+    private static List<Entry> auditEntries(long adminId, Long userId, Map<Long, long[]> perConv, String kind,
+                                            boolean all, String ip, String filters) {
+        String reason = AdminDecryptService.currentReason();
+        List<Entry> audit = new ArrayList<>();
+        String k = all ? kind + "_ALL" : kind;
+        String scope = all ? "ALL" : null;
+        perConv.forEach((cid, c) -> audit.add(new Entry(adminId, userId, cid, (int) c[0], c[1], c[2], reason, ip, k,
+                scope, filters)));
+        if (all && audit.isEmpty()) {
+            audit.add(new Entry(adminId, null, 0L, 0, null, null, reason, ip, k, scope, filters));
+        }
+        return audit;
+    }
+
+    /** "ad=deger;..." suzgec ozeti (null degerler atlanir; yalniz suzgec, icerik DEGIL). */
+    static String summary(Object... kv) {
+        StringBuilder b = new StringBuilder();
+        for (int i = 0; i + 1 < kv.length; i += 2) {
+            if (kv[i + 1] != null) {
+                b.append(b.length() == 0 ? "" : ";").append(kv[i]).append('=').append(kv[i + 1]);
+            }
+        }
+        return b.toString();
+    }
+
+    private static void rangeI(StringBuilder w, MapSqlParameterSource p, String col, Instant from, Instant to) {
+        if (from != null) {
+            w.append(" AND ").append(col).append(" >= :from");
+            p.addValue("from", Timestamp.from(from));
+        }
+        if (to != null) {
+            w.append(" AND ").append(col).append(" < :to");
+            p.addValue("to", Timestamp.from(to));
+        }
+    }
 
     private static boolean isAsc(String order) {
         if (order == null || order.isBlank() || "desc".equalsIgnoreCase(order)) {

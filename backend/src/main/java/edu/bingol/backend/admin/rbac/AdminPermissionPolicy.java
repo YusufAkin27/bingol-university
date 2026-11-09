@@ -92,6 +92,7 @@ public final class AdminPermissionPolicy {
         area("/api/admin/forum(/.*)?", FORUM_READ, FORUM_MODERATE);
 
         // --- sohbet ---
+        // `scope=ALL` (tum sohbetler) ayrica chat.read.all ister: AdminChatFeedController.requireAllScopePermission
         one(Set.of("GET"), "/api/admin/(chat-media|chat-messages)(/.*)?", CHAT_READ);
         one(Set.of("GET"), "/api/admin/media/attachments/.*", CHAT_READ);
         area("/api/admin/(messages|conversations)(/.*)?", CHAT_READ, CHAT_WRITE);

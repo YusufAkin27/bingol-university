@@ -37,9 +37,14 @@ public class AdminChatFeedController {
             @RequestParam(required = false) Boolean viewOnce, @RequestParam(required = false) Boolean deleted,
             @RequestParam(required = false) Long userId, @RequestParam(required = false) Long conversationId,
             @RequestParam(required = false) String from, @RequestParam(required = false) String to,
-            @RequestParam(defaultValue = "desc") String order, HttpServletRequest http) {
-        AdminChatFeedService.requireScope(userId, null, conversationId);
+            @RequestParam(defaultValue = "desc") String order, @RequestParam(required = false) String scope,
+            HttpServletRequest http) {
         long adminId = CurrentUser.id();
+        if (isAll(scope, userId, null, conversationId)) {
+            limitAll(adminId);
+            return service.mediaAll(adminId, cursor, size, kind, viewOnce, deleted, from, to, order, clientIp.of(http));
+        }
+        AdminChatFeedService.requireScope(userId, null, conversationId);
         limit(adminId);
         return service.media(adminId, cursor, size, kind, viewOnce, deleted, userId, conversationId, from, to, order,
                 clientIp.of(http));
@@ -61,12 +66,47 @@ public class AdminChatFeedController {
             @RequestParam(required = false) Long senderId, @RequestParam(required = false) Long conversationId,
             @RequestParam(required = false) Boolean deleted, @RequestParam(required = false) Boolean suppressed,
             @RequestParam(required = false) Boolean hasMedia, @RequestParam(required = false) String from,
-            @RequestParam(required = false) String to, HttpServletRequest http) {
-        AdminChatFeedService.requireScope(userId, senderId, conversationId);
+            @RequestParam(required = false) String to, @RequestParam(required = false) String scope,
+            HttpServletRequest http) {
         long adminId = CurrentUser.id();
+        if (isAll(scope, userId, senderId, conversationId)) {
+            limitAll(adminId);
+            return service.messagesAll(adminId, cursor, size, deleted, suppressed, hasMedia, from, to, clientIp.of(http));
+        }
+        AdminChatFeedService.requireScope(userId, senderId, conversationId);
         limit(adminId);
         return service.messages(adminId, cursor, size, userId, senderId, conversationId, deleted, suppressed, hasMedia,
                 from, to, clientIp.of(http));
+    }
+
+    /** "Tum sohbetler" sayfa hizi (yonetici basina dakikada); genel sinirdan siki. */
+    public static final int ALL_PAGES_PER_MINUTE = 20;
+
+    /**
+     * scope = ALL ise (kullanici/gonderen/sohbet suzgeciyle birlikte verilemez: 400 INVALID_FILTER) true; ayrica
+     * chat.read.all izni ister (yoksa 403 ADMIN_PERMISSION_DENIED). Baglam yoksa (interceptor calismadi) ret: fail-closed.
+     */
+    static boolean isAll(String scope, Long userId, Long senderId, Long conversationId) {
+        String sc = scope == null ? "" : scope.trim().toUpperCase(java.util.Locale.ROOT);
+        if (sc.isEmpty() || "USER".equals(sc) || "CONVERSATION".equals(sc)) {
+            return false;
+        }
+        if (!"ALL".equals(sc) || userId != null || senderId != null || conversationId != null) {
+            throw new edu.bingol.backend.common.ApiException(org.springframework.http.HttpStatus.BAD_REQUEST,
+                    "INVALID_FILTER", "Geçersiz süzgeç değeri.");
+        }
+        var ctx = edu.bingol.backend.admin.rbac.AdminPermissionContext.current();
+        if (ctx == null || !ctx.can(edu.bingol.backend.admin.rbac.PermissionMatrix.CHAT_READ_ALL)) {
+            throw new edu.bingol.backend.common.ApiException(org.springframework.http.HttpStatus.FORBIDDEN,
+                    "ADMIN_PERMISSION_DENIED", "Bu işlem için yetkiniz yok (gereken izin: "
+                            + edu.bingol.backend.admin.rbac.PermissionMatrix.CHAT_READ_ALL + ").",
+                    edu.bingol.backend.admin.rbac.PermissionMatrix.CHAT_READ_ALL);
+        }
+        return true;
+    }
+
+    private void limitAll(long adminId) {
+        limiter.check("adminchatall:" + adminId, ALL_PAGES_PER_MINUTE, Duration.ofMinutes(1));
     }
 
     private void limit(long adminId) {

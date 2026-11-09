@@ -118,7 +118,7 @@ public final class AdminDtos {
     /** Yonetici sohbet icerigi erisim kaydi (message_access_audit); mesaj icerigi ASLA dahil degildir. */
     public record MessageAccessRow(Long id, Long adminId, String adminEmail, Long conversationId, Long targetUserId,
                                    String kind, int messageCount, Long fromMessageId, Long toMessageId, String reason,
-                                   String ip, String at) {}
+                                   String ip, String at, String scope, String filters) {}
 
     public record AdminNewsRow(Long id, String type, String title, String summary, String url, String imageUrl,
                                String publishedDate, String fetchedAt, boolean hidden) {}

@@ -34,6 +34,12 @@ public final class PermissionMatrix {
     public static final String MODERATION_WRITE = "moderation.write";
     public static final String CHAT_READ = "chat.read";
     public static final String CHAT_WRITE = "chat.write";
+    /**
+     * "Tum sohbetler" kapsami: sohbet akisi (chat-media / chat-messages) kullanici ya da sohbet suzgeci OLMADAN tum
+     * kullanicilarin ozel yazismalarini tek akista gosterir. YALNIZ FULL. Yol kurali `chat.read` ister; `scope=ALL`
+     * oldugunda bu izin ayrica denetleyicide aranir (sorgu parametresi yol kuralina giremez).
+     */
+    public static final String CHAT_READ_ALL = "chat.read.all";
     public static final String CONTENT_READ = "content.read";
     public static final String CONTENT_WRITE = "content.write";
     /** Gizle/geri goster ve gonderi/haber kaldirma alt kumesi. */
@@ -94,6 +100,7 @@ public final class PermissionMatrix {
         grant(MODERATION_WRITE, F, M);
         grant(CHAT_READ, F, M);
         grant(CHAT_WRITE, F, M);
+        grant(CHAT_READ_ALL, F);
         grant(CONTENT_READ, F, M, S, E, V);
         grant(CONTENT_WRITE, F, E);
         grant(CONTENT_HIDE, F, E, M);

@@ -72,7 +72,15 @@ public class AdminDecryptService {
      * cagrida (birim testi, zamanlayici) zorlanmaz; sebep yoksa sistem gerekcesi yazilir.
      */
     public void requireReason() {
-        if (!requireReason || !(org.springframework.web.context.request.RequestContextHolder.getRequestAttributes()
+        requireReason(false);
+    }
+
+    /**
+     * {@code force=true} ("tum sohbetler" kapsami): `app.admin.require-reason=false` olsa bile HTTP isteginde gercek
+     * sebep ZORUNLUDUR (bu kapsamda gevsetme yok).
+     */
+    public void requireReason(boolean force) {
+        if ((!requireReason && !force) || !(org.springframework.web.context.request.RequestContextHolder.getRequestAttributes()
                 instanceof org.springframework.web.context.request.ServletRequestAttributes)) {
             return;
         }

@@ -68,7 +68,7 @@ public class MessageAccessAuditReader {
         String w = where(f, p);
         p.addValue("lim", size).addValue("off", (long) page * size);
         return jdbc.query("SELECT a.id, a.admin_id, u.email AS admin_email, a.conversation_id, a.target_user_id, a.kind, "
-                + "a.message_count, a.from_message_id, a.to_message_id, a.reason, a.ip, a.created_at "
+                + "a.message_count, a.from_message_id, a.to_message_id, a.reason, a.ip, a.created_at, a.scope, a.filters "
                 + "FROM message_access_audit a LEFT JOIN app_user u ON u.id = a.admin_id WHERE " + w
                 + " ORDER BY a.id DESC LIMIT :lim OFFSET :off", p, (rs, i) -> {
                     long tu = rs.getLong("target_user_id");
@@ -80,7 +80,7 @@ public class MessageAccessAuditReader {
                     return new MessageAccessRow(rs.getLong("id"), rs.getLong("admin_id"), rs.getString("admin_email"),
                             rs.getLong("conversation_id"), target, rs.getString("kind"), rs.getInt("message_count"),
                             fromId, toId, rs.getString("reason"), rs.getString("ip"),
-                            AdminUserRepository.ts(rs, "created_at"));
+                            AdminUserRepository.ts(rs, "created_at"), rs.getString("scope"), rs.getString("filters"));
                 });
     }
 }

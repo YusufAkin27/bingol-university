@@ -8212,6 +8212,9 @@
             "format" : "int64",
             "type" : [ "integer", "null" ]
           },
+          "filters" : {
+            "type" : [ "string", "null" ]
+          },
           "fromMessageId" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
@@ -8231,6 +8234,9 @@
             "type" : [ "integer", "null" ]
           },
           "reason" : {
+            "type" : [ "string", "null" ]
+          },
+          "scope" : {
             "type" : [ "string", "null" ]
           },
           "targetUserId" : {
@@ -19146,6 +19152,13 @@
             "default" : "desc",
             "type" : "string"
           }
+        }, {
+          "in" : "query",
+          "name" : "scope",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
         } ],
         "responses" : {
           "200" : {
@@ -19325,6 +19338,13 @@
         }, {
           "in" : "query",
           "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "scope",
           "required" : false,
           "schema" : {
             "type" : "string"

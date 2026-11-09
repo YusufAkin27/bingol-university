@@ -15,10 +15,17 @@ public class MessageAccessAuditRepository {
 
     /** Tek erisim kaydi; targetUserId/kind eski kayitlarda null olabilir. */
     public record Entry(long adminId, Long targetUserId, long conversationId, int messageCount, Long fromId, Long toId,
-                        String reason, String ip, String kind) {}
+                        String reason, String ip, String kind, String scope, String filters) {
+
+        /** Kapsamsiz (kullanici/sohbet bazli) eski kayit bicimi. */
+        public Entry(long adminId, Long targetUserId, long conversationId, int messageCount, Long fromId, Long toId,
+                     String reason, String ip, String kind) {
+            this(adminId, targetUserId, conversationId, messageCount, fromId, toId, reason, ip, kind, null, null);
+        }
+    }
 
     private static final String SQL = "INSERT INTO message_access_audit (admin_id, conversation_id, message_count, "
-            + "from_message_id, to_message_id, reason, ip, target_user_id, kind) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            + "from_message_id, to_message_id, reason, ip, target_user_id, kind, scope, filters) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     private final JdbcTemplate jdbc;
 
@@ -44,5 +51,8 @@ public class MessageAccessAuditRepository {
         ps.setString(7, e.ip());
         ps.setObject(8, e.targetUserId());
         ps.setString(9, e.kind());
+        ps.setString(10, e.scope());
+        String f = e.filters();
+        ps.setString(11, f == null || f.length() <= 400 ? f : f.substring(0, 400));
     }
 }

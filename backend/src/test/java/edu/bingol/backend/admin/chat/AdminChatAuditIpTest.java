@@ -51,10 +51,10 @@ class AdminChatAuditIpTest {
         AdminChatFeedService svc = mock(AdminChatFeedService.class);
         AdminChatFeedController c = new AdminChatFeedController(svc, limiter, clientIp);
 
-        c.media(null, 30, null, null, null, 5L, null, null, null, "desc", viaProxy());
+        c.media(null, 30, null, null, null, 5L, null, null, null, "desc", null, viaProxy());
         verify(svc).media(eq(900L), any(), anyInt(), any(), any(), any(), any(), any(), any(), any(), anyString(), eq(CLIENT));
 
-        c.messages(null, 30, 5L, null, null, null, null, null, null, null, viaProxy());
+        c.messages(null, 30, 5L, null, null, null, null, null, null, null, null, viaProxy());
         verify(svc).messages(eq(900L), any(), anyInt(), any(), any(), any(), any(), any(), any(), any(), any(), eq(CLIENT));
 
         c.stats(viaProxy());

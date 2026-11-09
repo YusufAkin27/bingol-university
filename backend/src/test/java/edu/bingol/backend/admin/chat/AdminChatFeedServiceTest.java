@@ -313,4 +313,115 @@ class AdminChatFeedServiceTest {
         assertEquals(0, s.last24h().videoCount());
         assertEquals(1, s.last24h().viewOnceCount());
     }
+
+    // --- "tum sohbetler" kapsami ---
+
+    private void fixedClock(String iso) {
+        svc.clock = java.time.Clock.fixed(Instant.parse(iso), java.time.ZoneOffset.UTC);
+    }
+
+    @Test
+    void allScopeNeedsNoUserFilterAndIsNewestFirstAcrossConversations() {
+        fixedClock("2026-02-02T00:00:00Z");
+        msg(DM, ALICE, "bir");
+        msg(GROUP, CAROL, "iki");
+        long c = msg(OTHER, BOB, "uc");
+
+        FeedPage p = svc.messagesAll(ADMIN, null, 30, null, null, null, null, null, "9.9.9.9");
+
+        assertEquals(3, p.items().size());
+        assertEquals(c, p.items().get(0).message().id());
+        assertEquals("uc", p.items().get(0).message().text());
+        assertNull(p.nextCursor());
+    }
+
+    @Test
+    void allScopeDefaultsToLastSevenDaysAndHonoursFiltersAndCursor() {
+        fixedClock("2026-02-20T00:00:00Z"); // mesajlar 2026-02-01 civari: 7 gun penceresinin DISINDA
+        msg(DM, ALICE, "eski");
+        assertEquals(0, svc.messagesAll(ADMIN, null, 30, null, null, null, null, null, "ip").items().size());
+
+        fixedClock("2026-02-05T00:00:00Z");
+        for (int i = 1; i <= 120; i++) {
+            msg(i % 2 == 0 ? DM : GROUP, i % 2 == 0 ? ALICE : CAROL, "m" + i);
+        }
+        FeedPage p1 = svc.messagesAll(ADMIN, null, 500, null, null, null, null, null, "ip");
+        assertEquals(50, p1.items().size()); // sayfa ust siniri
+        assertNotNull(p1.nextCursor());
+        FeedPage p2 = svc.messagesAll(ADMIN, p1.nextCursor(), 50, null, null, null, null, null, "ip");
+        assertEquals("m70", p2.items().get(0).message().text());
+        // acik aralik: pencere disi
+        assertEquals(0, svc.messagesAll(ADMIN, null, 30, null, null, null, "2026-03-01", "2026-03-02", "ip").items().size());
+        // silinmis / tek gonderimlik suzgeci birlikte calisir
+        long del = msg(DM, BOB, "silinecek");
+        t.jdbc.update("UPDATE message SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?", del);
+        var deleted = svc.messagesAll(ADMIN, null, 30, true, null, null, null, null, "ip").items();
+        assertEquals(1, deleted.size());
+        assertEquals("silinecek", deleted.get(0).message().text());
+    }
+
+    @Test
+    void allScopeRejectsTooWideWindow() {
+        fixedClock("2026-06-01T00:00:00Z");
+        assertEquals("FEED_WINDOW_TOO_WIDE", assertThrows(ApiException.class,
+                () -> svc.messagesAll(ADMIN, null, 30, null, null, null, "2026-01-01", null, "ip")).code());
+        assertEquals("FEED_WINDOW_TOO_WIDE", assertThrows(ApiException.class,
+                () -> svc.mediaAll(ADMIN, null, 30, null, null, null, "2026-01-01", "2026-03-01", "desc", "ip")).code());
+        assertEquals("INVALID_FILTER", assertThrows(ApiException.class,
+                () -> svc.messagesAll(ADMIN, null, 30, null, null, null, "dun", null, "ip")).code());
+    }
+
+    @Test
+    void allScopeWritesScopedAuditRowsWithFiltersButNoContent() {
+        fixedClock("2026-02-02T00:00:00Z");
+        long m1 = msg(DM, ALICE, "gizli yazisma");
+        att(m1, DM, ALICE, "IMAGE", true);
+        msg(GROUP, CAROL, "baska");
+
+        svc.messagesAll(ADMIN, null, 30, null, null, null, null, null, "10.0.0.5");
+        svc.clock = java.time.Clock.systemUTC(); // ek created_at = simdi
+        svc.mediaAll(ADMIN, null, 30, "image", null, null, null, null, "desc", "10.0.0.5");
+
+        assertEquals(2, audits("FEED_ALL"));
+        assertEquals(1, audits("MEDIA_ALL"));
+        assertEquals(0, audits("FEED"));
+        var row = t.jdbc.queryForMap("SELECT * FROM message_access_audit WHERE kind = 'MEDIA_ALL'");
+        assertEquals("ALL", row.get("SCOPE"));
+        assertEquals(ADMIN, ((Number) row.get("ADMIN_ID")).longValue());
+        assertEquals("10.0.0.5", row.get("IP"));
+        String filters = (String) row.get("FILTERS");
+        assertTrue(filters.contains("kind=IMAGE") && filters.contains("returned=1"), filters);
+        assertFalse(filters.contains("gizli"));
+    }
+
+    @Test
+    void allScopeEmptyPageStillLeavesAnAuditMarkerRow() {
+        fixedClock("2026-02-02T00:00:00Z");
+        assertEquals(0, svc.messagesAll(ADMIN, null, 30, null, null, null, null, null, "ip").items().size());
+        var row = t.jdbc.queryForMap("SELECT * FROM message_access_audit WHERE kind = 'FEED_ALL'");
+        assertEquals(0L, ((Number) row.get("CONVERSATION_ID")).longValue());
+        assertEquals(0, ((Number) row.get("MESSAGE_COUNT")).intValue());
+    }
+
+    @Test
+    void allScopeNoContentWhenAuditFails() {
+        fixedClock("2026-02-02T00:00:00Z");
+        msg(DM, ALICE, "a");
+        t.jdbc.execute("DROP TABLE message_access_audit");
+        assertEquals("CRYPTO_UNAVAILABLE", assertThrows(ApiException.class,
+                () -> svc.messagesAll(ADMIN, null, 30, null, null, null, null, null, "ip")).code());
+    }
+
+    @Test
+    void allScopeControllerGateNeedsFullPermissionAndNoOtherFilters() {
+        // baglam yok (interceptor calismadi) => fail-closed
+        assertEquals("ADMIN_PERMISSION_DENIED", assertThrows(ApiException.class,
+                () -> AdminChatFeedController.isAll("ALL", null, null, null)).code());
+        assertFalse(AdminChatFeedController.isAll(null, null, null, null));
+        assertFalse(AdminChatFeedController.isAll("USER", 1L, null, null));
+        assertEquals("INVALID_FILTER", assertThrows(ApiException.class,
+                () -> AdminChatFeedController.isAll("ALL", 1L, null, null)).code());
+        assertEquals("INVALID_FILTER", assertThrows(ApiException.class,
+                () -> AdminChatFeedController.isAll("EVERYTHING", null, null, null)).code());
+    }
 }

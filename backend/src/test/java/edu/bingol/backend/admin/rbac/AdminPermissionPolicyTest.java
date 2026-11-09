@@ -139,7 +139,7 @@ class AdminPermissionPolicyTest {
         for (String perm : List.of(PermissionMatrix.USERS_ROLE, PermissionMatrix.USERS_DELETE,
                 PermissionMatrix.LEGAL_PUBLISH, PermissionMatrix.SETTINGS_WRITE, PermissionMatrix.COMMS_SEND,
                 PermissionMatrix.SYSTEM_WRITE, PermissionMatrix.RBAC_MANAGE, PermissionMatrix.USERS_EXPORT,
-                PermissionMatrix.USERS_VERIFY)) {
+                PermissionMatrix.USERS_VERIFY, PermissionMatrix.CHAT_READ_ALL)) {
             for (AdminProfile p : AdminProfile.values()) {
                 assertThat(PermissionMatrix.allows(p, perm)).as(p + " " + perm).isEqualTo(p == AdminProfile.FULL);
             }
