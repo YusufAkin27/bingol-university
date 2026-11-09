@@ -126,6 +126,8 @@ void main() {
 
     await tester.drag(find.text('Ali Veli'), const Offset(-500, 0));
     await settle(tester, const Duration(seconds: 1));
+    await tester.tap(find.byKey(const ValueKey('swipe-archive')));
+    await settle(tester, const Duration(seconds: 1));
 
     expect(find.text('Ali Veli'), findsNothing); // listeden çıktı
     expect(find.text('Veli Can'), findsOneWidget);
@@ -137,6 +139,8 @@ void main() {
 
     // Okunmamışı olmayan ikinci sohbet de arşive girer: çubuktaki sayı değişmez (okunmamış sohbet sayısı).
     await tester.drag(find.text('Veli Can'), const Offset(-500, 0));
+    await settle(tester, const Duration(seconds: 1));
+    await tester.tap(find.byKey(const ValueKey('swipe-archive')));
     await settle(tester, const Duration(seconds: 1));
     expect(find.text('Veli Can'), findsNothing);
     expect(find.text('1 bildirim'), findsOneWidget);
@@ -151,6 +155,8 @@ void main() {
         : null);
     await _pump(tester, be);
     await tester.drag(find.text('Ali Veli'), const Offset(-500, 0));
+    await settle(tester, const Duration(seconds: 1));
+    await tester.tap(find.byKey(const ValueKey('swipe-archive')));
     await settle(tester, const Duration(seconds: 1));
     expect(find.text('Ali Veli'), findsOneWidget);
     expect(_bar, findsNothing);
@@ -170,6 +176,8 @@ void main() {
     expect(find.text('Ali Veli'), findsNothing);
 
     await tester.drag(find.text('Arşiv Bir'), const Offset(-500, 0));
+    await settle(tester, const Duration(seconds: 1));
+    await tester.tap(find.byKey(const ValueKey('swipe-archive')));
     await settle(tester, const Duration(seconds: 1));
     expect(be.count('DELETE /conversations/2/archive'), 1);
     expect(find.text('Arşiv Bir'), findsNothing);

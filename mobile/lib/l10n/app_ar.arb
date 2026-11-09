@@ -5094,5 +5094,9 @@
   "deptChatSearch": "ابحث عن قسم",
   "clubReviewRequiredTitle": "موافقة الإدارة مطلوبة",
   "clubReviewRequiredBody": "سينتظر ناديك المراجعة بعد إنشائه. يمكنك وحدك رؤيته حتى الموافقة عليه. سنرسل إليك إشعاراً عند الموافقة.",
-  "coreErrServiceUnavailable": "يتعذر إكمال العملية حالياً. يرجى المحاولة لاحقاً."
+  "coreErrServiceUnavailable": "يتعذر إكمال العملية حالياً. يرجى المحاولة لاحقاً.",
+  "chatMiscMoreAction": "المزيد",
+  "chatMiscPeekOpen": "فتح المحادثة",
+  "chatMiscPeekError": "تعذر تحميل الرسائل.",
+  "chatMiscPeekEmpty": "لا توجد رسائل بعد."
 }
