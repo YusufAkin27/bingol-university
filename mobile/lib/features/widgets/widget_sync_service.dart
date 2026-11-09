@@ -36,6 +36,26 @@ class WidgetSyncService {
   bool _running = false;
   bool _rerun = false;
 
+  /// Hesap/oturum nesli: [clear] her çağrıda artırır. Uçuştaki bir eşitleme, başlarken aldığı nesil değişmişse
+  /// (çıkış, hesap değişimi) sonucunu YAZMAZ; böylece eski hesabın verisi yeni hesabın widget'ına sızmaz.
+  int _gen = 0;
+
+  /// Kişisel widget'larda ayrıntıyı gizleme tercihi (cihaza özel; çıkışta silinmez, hesaptan bağımsız gizlilik seçimi).
+  static const String privacyKey = 'bu_widget_privacy';
+
+  static const Set<WidgetSlug> personalSlugs = {WidgetSlug.timetable, WidgetSlug.exams, WidgetSlug.social};
+
+  Future<bool> hidePersonal() async => (await store.get(privacyKey)) == '1';
+
+  /// Tercihi kaydeder ve kişisel widget'ları hemen yeniden yazar (oturum yoksa yalnız tercih saklanır).
+  Future<void> setHidePersonal(bool hide) async {
+    await store.put(privacyKey, hide ? '1' : '0');
+    if (_session == null) return;
+    _queued.addAll(personalSlugs);
+    _debounce?.cancel();
+    await syncNow();
+  }
+
   /// Debounce süresi: art arda tetikleyiciler (açılış + oturum + dil) tek eşitlemede birleşir.
   static const Duration debounceDelay = Duration(seconds: 2);
 
@@ -107,10 +127,16 @@ class WidgetSyncService {
       final now = clock();
       final b = WidgetSnapshotBuilder(lang: session.api.lang, now: now);
       final written = <WidgetSlug>{};
+      final gen = _gen;
+      final owner = session.userId;
+      // Hesap/oturum değişti mi (çıkış, hesap değişimi)? Değiştiyse bu turun hiçbir çıktısı yazılmaz.
+      bool stale() => gen != _gen || session.state != SessionState.signedIn || session.userId != owner;
+      final hide = await hidePersonal();
       for (final slug in slugs) {
         try {
-          final snap = await _build(slug, b, session);
+          final snap = hide && personalSlugs.contains(slug) ? b.hidden(slug) : await _build(slug, b, session);
           if (snap == null) continue; // ağ/okuma hatası: önceki snapshot kalır
+          if (stale()) return;
           await store.put(slug.key, jsonEncode(snap));
           written.add(slug);
         } catch (e) {
@@ -118,7 +144,8 @@ class WidgetSyncService {
           // Tek widget'ın hatası diğerlerini etkilemez.
         }
       }
-      await store.put(kWidgetMetaKey, jsonEncode(b.meta(signedIn: true)));
+      if (stale()) return;
+      await store.put(kWidgetMetaKey, jsonEncode(b.meta(signedIn: true, ownerUserId: owner)));
       if (written.isNotEmpty) await store.reload(written);
       await _scheduleMidnight(now);
     } catch (e) {
@@ -148,6 +175,7 @@ class WidgetSyncService {
   /// "Giriş yap" boş durumuna döner. Kişisel veri (kısayol sırası) da silinir.
   Future<void> clear({String? lang}) async {
     try {
+      _gen++;
       _debounce?.cancel();
       _queued.clear();
       for (final s in WidgetSlug.values) {

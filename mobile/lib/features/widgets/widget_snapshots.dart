@@ -175,6 +175,8 @@ class WidgetSnapshotBuilder {
   Map<String, String> _strings(String prefix) => {
         'signedOutTitle': s['signedOutTitle'],
         'signedOutSub': s['signedOutSub'],
+        // Yerel taraf "veri eski" olduğunda başlığa ekler (generatedAt eşiği yerelde hesaplanır).
+        'stale': s['stale'],
         for (final k in s.keys)
           // `type.*` / `kind.*` yalnız üretimde etiket seçmek içindir (metaText hazır gelir), widget'a taşınmaz.
           if (k.startsWith('$prefix.') && k != '$prefix.a11y' && !k.startsWith('$prefix.type.') && !k.startsWith('$prefix.kind.'))
@@ -214,8 +216,12 @@ class WidgetSnapshotBuilder {
   // ------------------------------------------------------------ meta
 
   /// `bu_widget_meta`. [signedIn] false iken `strings` "Giriş yap" boş durumunu taşır (snapshot'lar silinmiştir).
-  Map<String, Object?> meta({required bool signedIn}) => {
+  ///
+  /// [ownerUserId]: snapshot'ları yazan hesap (isteğe bağlı alan; yerel taraf başka hesabın verisini ayırt edebilsin
+  /// ve hesap değişiminde eski hesabın verisi gösterilmesin diye). Kimlik dışında kişisel veri taşımaz.
+  Map<String, Object?> meta({required bool signedIn, int? ownerUserId}) => {
         'schema': kWidgetSchema,
+        if (signedIn && ownerUserId != null) 'ownerUserId': ownerUserId,
         'updatedAt': widgetIso(now),
         'lang': lang,
         'rtl': s.rtl,
@@ -227,6 +233,30 @@ class WidgetSnapshotBuilder {
   /// Oturumsuz durum (testlerde ve gerekirse doğrudan yazım için). Üretimde çıkışta snapshot SİLİNİR.
   Map<String, Object?> signedOut(WidgetSlug slug) => _env(slug, 'signedOut',
       deepLink: WidgetLink.home.uri, a11y: '${s['appName']}: ${s['signedOutTitle']}', prefix: _prefix[slug]!);
+
+  /// Gizlilik tercihi açıkken KİŞİSEL widget'lar (ders programı, sınavlar, sosyal özet) için içerik taşımayan kart:
+  /// boş durum biçiminde, başlık "Ayrıntılar gizli". Ağ okuması yapılmaz; yerel taraf yeni sözleşme alanı bilmez
+  /// (var olan `empty` durumu + `strings.emptyTitle/emptySub` kullanılır).
+  Map<String, Object?> hidden(WidgetSlug slug) {
+    final base = switch (slug) {
+      WidgetSlug.timetable => timetable(const [], null),
+      WidgetSlug.exams => exams(const []),
+      WidgetSlug.social => social(unreadMessages: 0, newNotifications: 0, newLikesAndFollowers: 0),
+      _ => signedOut(slug),
+    };
+    if (slug != WidgetSlug.timetable && slug != WidgetSlug.exams && slug != WidgetSlug.social) return base;
+    final strings = {...(base['strings'] as Map<String, String>)}
+      ..['emptyTitle'] = s['privTitle']
+      ..['emptySub'] = s['privSub']
+      ..remove('emptySmallSub');
+    return {
+      ...base,
+      'state': 'empty',
+      'next': null, // ders programı boş durumu "sıradaki ders" ipucu yazmasın
+      'a11y': '${s['appName']}: ${s['privTitle']}',
+      'strings': strings,
+    };
+  }
 
   // ------------------------------------------------------------ menü
 

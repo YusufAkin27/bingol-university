@@ -161,6 +161,15 @@ sealed class Gate {
 object WidgetGate {
     const val SCHEMA = 1
 
+    /** Anlik goruntu bu kadar suredir yazilmadiysa (cevrimdisi / uygulama acilmadi) widget "Eski veri" uyarir. */
+    const val STALE_AFTER_MS = 24L * 60 * 60 * 1000
+
+    /** `generatedAt` yoksa/bozuksa eski SAYILMAZ (sahte uyari yok); gelecekteki zaman da eski degildir. */
+    fun isStale(snap: JSONObject, nowMs: Long): Boolean {
+        val at = WidgetClock.parseIso(snap.str("generatedAt")) ?: return false
+        return nowMs - at > STALE_AFTER_MS
+    }
+
     fun resolve(metaRaw: String?, snapRaw: String?, nowMs: Long): Gate {
         val meta = parseObject(metaRaw)
         val ms = Strs(meta.obj("strings"))

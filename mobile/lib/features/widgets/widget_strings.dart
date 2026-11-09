@@ -105,6 +105,11 @@ const _tr = <String, String>{
   // Ortak
   'signedOutTitle': 'Giriş yap',
   'signedOutSub': "BÜ Kampüs'ü aç",
+  'ui.hideTitle': 'Ana ekranda kişisel ayrıntıları gizle',
+  'ui.hideSub': 'Ders programı, sınavlar ve sosyal özet widget’larında içerik yerine “Ayrıntılar gizli” yazar. Menü, etkinlik ve duyurular herkese açık bilgidir, etkilenmez.',
+  'privTitle': 'Ayrıntılar gizli',
+  'privSub': "Görmek için BÜ Kampüs'ü aç",
+  'stale': 'Eski veri',
   'appName': 'BÜ Kampüs',
   // Menü
   'm.caption': 'ÖĞLE',
@@ -228,6 +233,11 @@ const _tr = <String, String>{
 const _en = <String, String>{
   'signedOutTitle': 'Sign in',
   'signedOutSub': 'Open BU Campus',
+  'ui.hideTitle': 'Hide personal details on the home screen',
+  'ui.hideSub': 'Timetable, exams and social summary widgets show “Details hidden” instead of content. Menu, events and announcements are public information and are not affected.',
+  'privTitle': 'Details hidden',
+  'privSub': 'Open BU Campus to view',
+  'stale': 'Old data',
   'appName': 'BU Campus',
   'm.caption': 'LUNCH',
   'm.captionAny': 'MEAL',
@@ -344,6 +354,11 @@ const _en = <String, String>{
 const _ar = <String, String>{
   'signedOutTitle': 'تسجيل الدخول',
   'signedOutSub': 'افتح BÜ Kampüs',
+  'ui.hideTitle': 'إخفاء التفاصيل الشخصية على الشاشة الرئيسية',
+  'ui.hideSub': 'تعرض أدوات الجدول والامتحانات والملخص الاجتماعي عبارة «التفاصيل مخفية» بدل المحتوى. القائمة والفعاليات والإعلانات معلومات عامة ولا تتأثر.',
+  'privTitle': 'التفاصيل مخفية',
+  'privSub': 'افتح BÜ Kampüs للعرض',
+  'stale': 'بيانات قديمة',
   'appName': 'BÜ Kampüs',
   'm.caption': 'الغداء',
   'm.captionAny': 'الوجبة',
