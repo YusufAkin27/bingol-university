@@ -56,10 +56,19 @@ senkron ve uyelik islemiyle ayni islemde yayinlanir. Dinleyici hatasi uyelik isl
 - Sabitleme: `PUT/DELETE /api/communities/{id}/posts/{postId}/pin` (MANAGE_POSTS, en fazla 3); kaldirma:
   `DELETE /api/communities/{id}/posts/{postId}` (yazar veya MANAGE_POSTS).
 
-## 6. Kulup kurma (auto-approve), silme, ayrilma (V250)
+## 6. Kulup kurma (yonetici onayi), silme, ayrilma (V250)
 
-- **`app.community.auto-approve`** (env `APP_COMMUNITY_AUTO_APPROVE`, varsayilan `true`): `POST /api/communities` kulubu hemen `ACTIVE` yapar,
-  sohbet odasi kurulur, yanit **201** (eski onay akisi: `false` -> **202** + `PENDING_REVIEW`). Olusturan `OWNER`. Kota: 3 sahip olunan kulup (`COMMUNITY_LIMIT`).
+- **Kulup kurma yonetici onayi gerektirir (kullanici karari 2026-11-09).** `app.community.auto-approve` (env `APP_COMMUNITY_AUTO_APPROVE`) varsayilani
+  artik **`false`**: `POST /api/communities` kulubu `PENDING_REVIEW` yapar, yanit **202**; kulup yalniz olusturana (ve yoneticiye) gorunur
+  (kesfet/arama/kategori sayilari/oneri disinda; baskasina `GET /communities/{id}` 404, katilim/gonderi/etkinlik/duyuru 404 ya da 409 `COMMUNITY_NOT_ACTIVE`),
+  sohbet odasi kurulmaz. Yonetici `POST /api/admin/communities/{id}/approve` ile `ACTIVE` yapar (sohbet odasi kurulur, olusturana `notif.community.approved`);
+  `reject` acikca reddederse `REJECTED` + gerekce bildirimi; onaylamadan beklemek durumu `PENDING_REVIEW` birakir. **Sistem ADMIN'inin (CONTENT_WRITE)
+  kendi actigi kulup dogrudan `ACTIVE` (201) kalir.** `true` yalniz dev/test icin tum kuluplari onaysiz yayinlar (canli ortamda ayarlamayin).
+  Olusturan `OWNER`. Kota: 3 sahip olunan kulup (bekleyen dahil, `COMMUNITY_LIMIT`).
+- **Etkinlik onayi YOK (kullanici karari 2026-11-09):** aktif kulup adina etkinlik, `MANAGE_EVENTS` sahibi herkesce (MODERATOR+ ve izinli sade uye) onaysiz
+  `ACTIVE` (201) acilir; izinsiz uye 403; kulup `ACTIVE` degilse (onay bekliyorsa) 409 `COMMUNITY_NOT_ACTIVE`. Sade uyenin ACTIVE etkinlik metnini
+  degistirmesi artik yeniden onaya dusurmez; seri kopyalari kaynagin durumunu alir. Yalniz kurum taklidi gibi gorunen (rezerve) baslik hala
+  `PENDING_REVIEW` olur (T-052); yonetici onay/red uclari bunlar icin durur.
 - **`DELETE /api/communities/{id}`** (yeni, 204; yalniz sahip/ADMIN, `403 FORBIDDEN`; saatte 10): yumusak silme, `Community.Status.DELETED`
   (V250: `ck_community_status` kisitina `DELETED` eklendi). `CommunityService.load/loadVisible` DELETED'i herkese 404 verir. Etkileri:
   `ClubExtrasHooks.onCommunityDeleted` -> sohbet odasi kapanir (`RoomConversations.closeRoom`: herkes `leftAt` ile cikar) ve `ClubDeletedEvent`
