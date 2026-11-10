@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hizli Erisim widget yapilandirma ekrani metinleri (QuickAccessConfigActivity). Kisisel veri icermez. -->
+<resources>
+    <string name="bw_qa_menu">Meals</string>
+    <string name="bw_qa_timetable">Classes</string>
+    <string name="bw_qa_events">Events</string>
+    <string name="bw_qa_clubs">Clubs</string>
+    <string name="bw_qa_chat">Chat</string>
+    <string name="bw_qa_qr">My QR</string>
+    <string name="bw_qa_news">News</string>
+    <string name="bw_qa_search">Search</string>
+    <string name="bw_qa_cfg_title">Choose shortcuts</string>
+    <string name="bw_qa_cfg_hint">Pick and order the shortcuts shown on the widget.</string>
+    <string name="bw_qa_cfg_save">Save</string>
+    <string name="bw_qa_cfg_min">Select at least one shortcut.</string>
+    <string name="bw_qa_cfg_up">Move up</string>
+    <string name="bw_qa_cfg_down">Move down</string>
+</resources>

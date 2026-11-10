@@ -12,4 +12,6 @@
     android:initialLayout="@layout/bw_loading"
     android:previewImage="@drawable/bw_prev_quickaccess_2x2"
     android:description="@string/bw_desc_quickaccess"
+    android:configure="edu.bingol.bu_kampus.widgets.QuickAccessConfigActivity"
+    android:widgetFeatures="reconfigurable|configuration_optional"
     android:widgetCategory="home_screen" />

@@ -47,6 +47,10 @@ abstract class BuWidgetReceiver(private val slug: WidgetSlug, private val defaul
         WidgetUpdater.update(context, appWidgetManager, slug, appWidgetId, newOptions, defaultSize)
     }
 
+    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
+        QuickSelectionStore.remove(context, appWidgetIds)
+    }
+
     override fun onEnabled(context: Context) = WidgetScheduler.schedule(context)
 
     override fun onDisabled(context: Context) = WidgetScheduler.schedule(context)
@@ -77,7 +81,7 @@ internal object WidgetUpdater {
         val cls = WidgetSizing.classify(w, h, def)
         val hh = if (h > 0) h else when (cls) { SizeClass.SMALL -> 170; SizeClass.MEDIUM -> 170; SizeClass.LARGE -> 350 }
         val rv = try {
-            WidgetRenderer.render(context, slug, cls, hh)
+            WidgetRenderer.render(context, slug, cls, hh, id)
         } catch (_: Throwable) {
             WidgetRenderer.fallback(context)
         }

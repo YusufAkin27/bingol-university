@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hizli Erisim widget yapilandirma ekrani metinleri (QuickAccessConfigActivity). Kisisel veri icermez. -->
+<resources>
+    <string name="bw_qa_menu">Yemek</string>
+    <string name="bw_qa_timetable">Ders</string>
+    <string name="bw_qa_events">Etkinlik</string>
+    <string name="bw_qa_clubs">Kulüpler</string>
+    <string name="bw_qa_chat">Sohbet</string>
+    <string name="bw_qa_qr">QR Kodum</string>
+    <string name="bw_qa_news">Haberler</string>
+    <string name="bw_qa_search">Ara</string>
+    <string name="bw_qa_cfg_title">Kısayolları seç</string>
+    <string name="bw_qa_cfg_hint">Widget\'ta görünecek kısayolları seçin ve sıralayın.</string>
+    <string name="bw_qa_cfg_save">Kaydet</string>
+    <string name="bw_qa_cfg_min">En az bir kısayol seçin.</string>
+    <string name="bw_qa_cfg_up">Yukarı taşı</string>
+    <string name="bw_qa_cfg_down">Aşağı taşı</string>
+</resources>
