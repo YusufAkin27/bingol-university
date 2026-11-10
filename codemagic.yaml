@@ -31,7 +31,7 @@ workflows:
         certificates:
           - bu_dist
         provisioning_profiles:
-          - bu_app_store
+          - bu_app_store_al   # Associated Domains (applinks:bukampus.com.tr) yetenekli profil (eski bu_app_store Codemagic'te yedek)
           - bu_notif_service
           - bu_notif_content
           - bu_widgets
