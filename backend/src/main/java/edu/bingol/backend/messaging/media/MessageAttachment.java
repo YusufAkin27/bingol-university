@@ -76,6 +76,16 @@ public class MessageAttachment {
         return "VIDEO".equals(kind);
     }
 
+    /** Sesli mesaj (m4a/AAC): video gibi Range ile akar, posteri/boyutu yoktur. */
+    public boolean isAudio() {
+        return "AUDIO".equals(kind);
+    }
+
+    /** Govdesi Range destekli uctan akan ekler (VIDEO, AUDIO). */
+    public boolean isStream() {
+        return isVideo() || isAudio();
+    }
+
     public boolean isHidden() {
         return hiddenAt != null;
     }

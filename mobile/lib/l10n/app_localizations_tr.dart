@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -669,11 +668,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-    String type,
-    String title,
-    String date,
-    String countdown,
-  ) {
+      String type, String title, String date, String countdown) {
     return '$type: $title. $date. $countdown. Düzenlemek için dokun.';
   }
 
@@ -991,11 +986,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-    String name,
-    String day,
-    String start,
-    String end,
-  ) {
+      String name, String day, String start, String end) {
     return '$name, $day $start ile $end arası';
   }
 
@@ -14323,4 +14314,56 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get commentFocusMissing =>
       'Bu yorum artık yok ya da silinmiş olabilir.';
+
+  @override
+  String get chatVoiceMic => 'Sesli mesaj kaydet';
+
+  @override
+  String get chatVoiceHold => 'Kaydetmek için mikrofona basılı tutun';
+
+  @override
+  String get chatVoiceSlideCancel => 'İptal için kaydır';
+
+  @override
+  String get chatVoiceStopSend => 'Kaydı bitir ve gönder';
+
+  @override
+  String get chatVoiceCancel => 'Kaydı iptal et';
+
+  @override
+  String get chatVoiceMessage => 'Sesli mesaj';
+
+  @override
+  String get chatVoicePlay => 'Oynat';
+
+  @override
+  String get chatVoicePause => 'Duraklat';
+
+  @override
+  String get chatVoiceInterrupted => 'Kayıt kesildi';
+
+  @override
+  String get chatVoiceFailed => 'Sesli mesaj oynatılamadı';
+
+  @override
+  String get chatVoiceLimit =>
+      'Sesli mesaj en fazla 5 dakika olabilir; kayıt gönderildi.';
+
+  @override
+  String get chatVoiceNoMic => 'Mikrofon başlatılamadı';
+
+  @override
+  String chatVoiceSemantics(String duration, String state) {
+    return 'Sesli mesaj, $duration, $state';
+  }
+
+  @override
+  String chatVoiceRecording(String time) {
+    return 'Kaydediliyor $time';
+  }
+
+  @override
+  String chatVoiceSpeed(String speed) {
+    return 'Oynatma hızı $speed';
+  }
 }

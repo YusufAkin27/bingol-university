@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -669,11 +668,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-    String type,
-    String title,
-    String date,
-    String countdown,
-  ) {
+      String type, String title, String date, String countdown) {
     return '$type: $title. $date. $countdown. المس للتعديل.';
   }
 
@@ -991,11 +986,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-    String name,
-    String day,
-    String start,
-    String end,
-  ) {
+      String name, String day, String start, String end) {
     return '$name، $day من $start إلى $end';
   }
 
@@ -14264,4 +14255,56 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get commentFocusMissing =>
       'ربما لم يعد هذا التعليق موجودًا أو تم حذفه.';
+
+  @override
+  String get chatVoiceMic => 'تسجيل رسالة صوتية';
+
+  @override
+  String get chatVoiceHold => 'اضغط مطولاً على الميكروفون للتسجيل';
+
+  @override
+  String get chatVoiceSlideCancel => 'اسحب للإلغاء';
+
+  @override
+  String get chatVoiceStopSend => 'إنهاء التسجيل وإرساله';
+
+  @override
+  String get chatVoiceCancel => 'إلغاء التسجيل';
+
+  @override
+  String get chatVoiceMessage => 'رسالة صوتية';
+
+  @override
+  String get chatVoicePlay => 'تشغيل';
+
+  @override
+  String get chatVoicePause => 'إيقاف مؤقت';
+
+  @override
+  String get chatVoiceInterrupted => 'انقطع التسجيل';
+
+  @override
+  String get chatVoiceFailed => 'تعذر تشغيل الرسالة الصوتية';
+
+  @override
+  String get chatVoiceLimit =>
+      'يجب ألا تتجاوز الرسالة الصوتية 5 دقائق؛ تم إرسال التسجيل.';
+
+  @override
+  String get chatVoiceNoMic => 'تعذر تشغيل الميكروفون';
+
+  @override
+  String chatVoiceSemantics(String duration, String state) {
+    return 'رسالة صوتية، $duration، $state';
+  }
+
+  @override
+  String chatVoiceRecording(String time) {
+    return 'جارٍ التسجيل $time';
+  }
+
+  @override
+  String chatVoiceSpeed(String speed) {
+    return 'سرعة التشغيل $speed';
+  }
 }

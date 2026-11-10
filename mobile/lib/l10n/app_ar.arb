@@ -1550,7 +1550,13 @@
   "postComposeShared": "تمت المشاركة",
   "g2PostQueued": "المنشور في قائمة الانتظار",
   "g2PostUploading": "جارٍ رفع المنشور {pct}",
-  "@g2PostUploading": {"placeholders": {"pct": {"type": "String"}}},
+  "@g2PostUploading": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
   "g2PostWaiting": "بانتظار الاتصال، سيتابع عند عودته",
   "g2PostPublishing": "جارٍ النشر",
   "g2PostFailed": "تعذّر النشر",
@@ -5019,7 +5025,13 @@
   "chatSeenAgoMonths": "{n, plural, =1{منذ شهر واحد} =2{منذ شهرين} few{منذ {n} أشهر} many{منذ {n} شهرًا} other{منذ {n} شهرًا}}",
   "chatSeenAgoYears": "{n, plural, =1{منذ سنة واحدة} =2{منذ سنتين} few{منذ {n} سنوات} many{منذ {n} سنة} other{منذ {n} سنة}}",
   "chatStatusSentAt": "تم الإرسال · {when}",
-  "@chatStatusSentAt": {"placeholders": {"when": {"type": "String"}}},
+  "@chatStatusSentAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "chatStatusSeenAt": "تمت المشاهدة · {when}",
   "pcmWriteHint": "أضف تعليقًا…",
   "pcmEmptyTitle": "كن أول من يعلّق",
@@ -5151,10 +5163,22 @@
   "scanHint": "وجّه رمز ملف أو نادٍ أو استطلاع أو فعالية إلى الإطار.",
   "scanCheckinNoRight": "ليست لديك صلاحية مسح رمز الحضور هذا.",
   "scanCheckinDone": "تم تسجيل الحضور: {name}",
-  "@scanCheckinDone": {"placeholders": {"name": {"type": "String"}}},
+  "@scanCheckinDone": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "signOutPendingTitle": "سيتم حذف الرسائل غير المرسلة",
   "signOutPendingBody": "سيتم حذف {count} رسائل غير مرسلة. هل تريد تسجيل الخروج؟",
-  "@signOutPendingBody": {"placeholders": {"count": {"type": "String"}}},
+  "@signOutPendingBody": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "profileShareAction": "مشاركة الملف الشخصي",
   "profileQrMyCode": "رمز QR الخاص بي",
   "profileQrHint": "من يمسح هذا الرمز يرى الملف الشخصي في BÜ Kampüs. يمكن لكاميرا الهاتف قراءته أيضًا.",
@@ -5170,5 +5194,44 @@
   "profileQrGalleryNone": "لم يتم العثور على رمز QR في الصورة.",
   "profileQrMyProfile": "هذا رمزك، سيتم فتح ملفك الشخصي.",
   "profileQrFindMe": "ابحث عني في BÜ Kampüs",
-  "commentFocusMissing": "ربما لم يعد هذا التعليق موجودًا أو تم حذفه."
+  "commentFocusMissing": "ربما لم يعد هذا التعليق موجودًا أو تم حذفه.",
+  "chatVoiceMic": "تسجيل رسالة صوتية",
+  "chatVoiceHold": "اضغط مطولاً على الميكروفون للتسجيل",
+  "chatVoiceSlideCancel": "اسحب للإلغاء",
+  "chatVoiceStopSend": "إنهاء التسجيل وإرساله",
+  "chatVoiceCancel": "إلغاء التسجيل",
+  "chatVoiceMessage": "رسالة صوتية",
+  "chatVoicePlay": "تشغيل",
+  "chatVoicePause": "إيقاف مؤقت",
+  "chatVoiceInterrupted": "انقطع التسجيل",
+  "chatVoiceFailed": "تعذر تشغيل الرسالة الصوتية",
+  "chatVoiceLimit": "يجب ألا تتجاوز الرسالة الصوتية 5 دقائق؛ تم إرسال التسجيل.",
+  "chatVoiceNoMic": "تعذر تشغيل الميكروفون",
+  "chatVoiceSemantics": "رسالة صوتية، {duration}، {state}",
+  "@chatVoiceSemantics": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      },
+      "state": {
+        "type": "String"
+      }
+    }
+  },
+  "chatVoiceRecording": "جارٍ التسجيل {time}",
+  "@chatVoiceRecording": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "chatVoiceSpeed": "سرعة التشغيل {speed}",
+  "@chatVoiceSpeed": {
+    "placeholders": {
+      "speed": {
+        "type": "String"
+      }
+    }
+  }
 }

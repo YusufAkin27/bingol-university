@@ -322,3 +322,14 @@ Geriye uyumlu (yalniz ekleme; tek davranis degisikligi: arsiv artik yeni mesajla
   `ChatMediaTransferExecutor` + mesaj tamamlama `attachmentIds + clientId`). Balon durumu işten türetilir; "Gönderildi" yalnız
   sunucu mesaj kimliği dönünce. Çok ekli mesajlar ve kuyruk yokken eski sayfa içi yükleme / `Outbox` yolu korunur (kaldırılmadı).
   Uyarı: iş `meta` içinde başlık metni diskte tutulur (Outbox ile aynı düzey).
+
+## Sesli mesaj (V1, 2026-11-10)
+- **Ek türü `AUDIO`** (V1820: `vcm1820_att_kind_ck`). `POST /api/conversations/{cid}/media` alanı `file` = `audio/mp4` (m4a/AAC; `audio/x-m4a|m4a|aac` takma adları kabul).
+  Sunucu içeriği gerçekten doğrular (`ftyp` + `mvhd` süresi, `Mp4Info`); ham ADTS/MP3/OGG kabul edilmez (süre güvenle okunamaz). Sınırlar:
+  `app.chat.media.audio-max-bytes` (10 MB), `audio-max-seconds` (300, +1,5 sn tolerans), `audio-daily-limit` (200/gün). Hatalar `AUDIO_INVALID`,
+  `AUDIO_TOO_LARGE`, `AUDIO_TOO_LONG` (tr/en/ar). Meta veri (`udta/meta/uuid`) sıfırlanır.
+- Depolama/sunum videoyla aynı yol: konuşma DEK'iyle parçalı AES-GCM, `GET .../media/{aid}` HTTP Range (206), imzalı adres yok. `AttachmentView`
+  `kind:"AUDIO"`, `durationMs`, `width/height` null, `thumbUrl` yok. Tek gösterimlik sesli mesaj reddedilir (`VIEW_ONCE_INVALID`).
+- Push önizleme `chat.preview.AUDIO` ("🎤 Sesli mesaj gönderdi", tr/en/ar); metin sızmaz. Rapor/gizleme/admin önizleme video yolunu kullanır.
+- Mobil: `features/chat/chat_voice.dart` (kayıt: basılı tut = kaydet, bırak = gönder, başlangıç yönüne kaydır = iptal, < 1 sn atılır, 5 dk sınırı),
+  `chat_voice_bubble.dart` (oynat/duraklat, dalga, 1x/1.5x/2x), gönderim `ChatTransfers.enqueueVoice` (G10 kuyruğu, `audio/mp4`). Paket: `record`.

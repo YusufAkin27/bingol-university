@@ -2554,7 +2554,13 @@
   "postComposeShared": "Paylaşıldı",
   "g2PostQueued": "Paylaşım sırada",
   "g2PostUploading": "Paylaşım yükleniyor {pct}",
-  "@g2PostUploading": {"placeholders": {"pct": {"type": "String"}}},
+  "@g2PostUploading": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
   "g2PostWaiting": "Bağlantı bekleniyor, gelince devam edecek",
   "g2PostPublishing": "Paylaşılıyor",
   "g2PostFailed": "Paylaşılamadı",
@@ -7424,26 +7430,80 @@
   "reportsReasonPersonalInfo": "Kişisel bilgi paylaşımı",
   "chatSeenAgoNow": "az önce",
   "chatSeenAgoMinutes": "{n, plural, other{{n} dakika önce}}",
-  "@chatSeenAgoMinutes": {"placeholders": {"n": {"type": "int"}}},
+  "@chatSeenAgoMinutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "chatSeenAgoHours": "{n, plural, other{{n} saat önce}}",
-  "@chatSeenAgoHours": {"placeholders": {"n": {"type": "int"}}},
+  "@chatSeenAgoHours": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "chatSeenAgoDays": "{n, plural, other{{n} gün önce}}",
-  "@chatSeenAgoDays": {"placeholders": {"n": {"type": "int"}}},
+  "@chatSeenAgoDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "chatSeenAgoWeeks": "{n, plural, other{{n} hafta önce}}",
-  "@chatSeenAgoWeeks": {"placeholders": {"n": {"type": "int"}}},
+  "@chatSeenAgoWeeks": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "chatSeenAgoMonths": "{n, plural, other{{n} ay önce}}",
-  "@chatSeenAgoMonths": {"placeholders": {"n": {"type": "int"}}},
+  "@chatSeenAgoMonths": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "chatSeenAgoYears": "{n, plural, other{{n} yıl önce}}",
-  "@chatSeenAgoYears": {"placeholders": {"n": {"type": "int"}}},
+  "@chatSeenAgoYears": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "chatStatusSentAt": "Gönderildi · {when}",
-  "@chatStatusSentAt": {"placeholders": {"when": {"type": "String"}}},
+  "@chatStatusSentAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "chatStatusSeenAt": "Görüldü · {when}",
-  "@chatStatusSeenAt": {"placeholders": {"when": {"type": "String"}}},
+  "@chatStatusSeenAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "pcmWriteHint": "Yorum ekle…",
   "pcmEmptyTitle": "İlk yorumu sen yaz",
   "pcmEmptyBody": "Düşüncelerini paylaş, sohbeti başlat.",
   "pcmReplyingTo": "{name} kişisine yanıt veriliyor",
-  "@pcmReplyingTo": {"placeholders": {"name": {"type": "String"}}},
+  "@pcmReplyingTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "pcmHideReplies": "Yanıtları gizle",
   "pcmSendFailed": "Gönderilemedi",
   "pcmRetry": "Yeniden dene",
@@ -7457,11 +7517,29 @@
   "pcmLikeA11y": "Yorumu beğen",
   "pcmUnlikeA11y": "Beğenmekten vazgeç",
   "pcmLikeCountA11y": "{count} beğeni",
-  "@pcmLikeCountA11y": {"placeholders": {"count": {"type": "String"}}},
+  "@pcmLikeCountA11y": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "pcmCommentCountA11y": "{count} yorum",
-  "@pcmCommentCountA11y": {"placeholders": {"count": {"type": "String"}}},
+  "@pcmCommentCountA11y": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "pcmViewAll": "{count} yorumun tümünü gör",
-  "@pcmViewAll": {"placeholders": {"count": {"type": "String"}}},
+  "@pcmViewAll": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "pcmViewAllPlain": "Yorumları gör",
   "pcmErrTooLong": "Yorum en çok 500 karakter olabilir.",
   "pcmErrPostGone": "Bu gönderi artık yok.",
@@ -7470,7 +7548,13 @@
   "pcmMoreReplies": "Daha fazla yanıt",
   "pcmSortLabel": "Sırala",
   "pcmCharsLeft": "{n} karakter kaldı",
-  "@pcmCharsLeft": {"placeholders": {"n": {"type": "String"}}},
+  "@pcmCharsLeft": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "postSettingsAdvanced": "Gelişmiş ayarlar",
   "postSettingsHideLikes": "Beğeni sayısını gizle",
   "postSettingsHideLikesDesc": "Başkaları bu gönderinin beğeni sayısını göremez. Sen görmeye devam edersin.",
@@ -7571,11 +7655,29 @@
   "clubAudienceExpand": "Bölümleri göster",
   "clubAudienceCollapse": "Bölümleri gizle",
   "clubAudienceDeptCount": "{count} bölüm",
-  "@clubAudienceDeptCount": {"placeholders": {"count": {"type": "int"}}},
+  "@clubAudienceDeptCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "clubAudienceSelected": "{count} hedef seçildi",
-  "@clubAudienceSelected": {"placeholders": {"count": {"type": "int"}}},
+  "@clubAudienceSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "clubAudienceDone": "Tamam ({count})",
-  "@clubAudienceDone": {"placeholders": {"count": {"type": "int"}}},
+  "@clubAudienceDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "clubRecommendedTitle": "Bölümüne uygun kulüpler",
   "clubRecommendedAll": "Tüm kulüpler",
   "eventRecommendedTitle": "Bölümüne uygun etkinlikler",
@@ -7612,10 +7714,22 @@
   "scanHint": "Profil, kulüp, anket ya da etkinlik kodunu çerçeveye hizala.",
   "scanCheckinNoRight": "Bu yoklama kodunu okutma yetkin yok.",
   "scanCheckinDone": "Yoklama alındı: {name}",
-  "@scanCheckinDone": {"placeholders": {"name": {"type": "String"}}},
+  "@scanCheckinDone": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "signOutPendingTitle": "Gönderilmemiş mesajlar silinecek",
   "signOutPendingBody": "Gönderilmemiş {count} mesaj silinecek. Çıkış yapmak istiyor musun?",
-  "@signOutPendingBody": {"placeholders": {"count": {"type": "String"}}},
+  "@signOutPendingBody": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "profileShareAction": "Profili paylaş",
   "profileQrMyCode": "QR kodum",
   "profileQrHint": "Bu kodu okutan kişi profilini BÜ Kampüs uygulamasında görür. Telefonun kamerası da okuyabilir.",
@@ -7632,5 +7746,46 @@
   "profileQrMyProfile": "Bu senin kodun, profiline gidiliyor.",
   "profileQrFindMe": "Beni BÜ Kampüs’te bul",
   "commentFocusMissing": "Bu yorum artık yok ya da silinmiş olabilir.",
-  "@commentFocusMissing": {"description": "Bildirimden açılan yorum bulunamadığında panel uyarısı"}
+  "@commentFocusMissing": {
+    "description": "Bildirimden açılan yorum bulunamadığında panel uyarısı"
+  },
+  "chatVoiceMic": "Sesli mesaj kaydet",
+  "chatVoiceHold": "Kaydetmek için mikrofona basılı tutun",
+  "chatVoiceSlideCancel": "İptal için kaydır",
+  "chatVoiceStopSend": "Kaydı bitir ve gönder",
+  "chatVoiceCancel": "Kaydı iptal et",
+  "chatVoiceMessage": "Sesli mesaj",
+  "chatVoicePlay": "Oynat",
+  "chatVoicePause": "Duraklat",
+  "chatVoiceInterrupted": "Kayıt kesildi",
+  "chatVoiceFailed": "Sesli mesaj oynatılamadı",
+  "chatVoiceLimit": "Sesli mesaj en fazla 5 dakika olabilir; kayıt gönderildi.",
+  "chatVoiceNoMic": "Mikrofon başlatılamadı",
+  "chatVoiceSemantics": "Sesli mesaj, {duration}, {state}",
+  "@chatVoiceSemantics": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      },
+      "state": {
+        "type": "String"
+      }
+    }
+  },
+  "chatVoiceRecording": "Kaydediliyor {time}",
+  "@chatVoiceRecording": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "chatVoiceSpeed": "Oynatma hızı {speed}",
+  "@chatVoiceSpeed": {
+    "placeholders": {
+      "speed": {
+        "type": "String"
+      }
+    }
+  }
 }

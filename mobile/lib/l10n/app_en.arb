@@ -1550,7 +1550,13 @@
   "postComposeShared": "Shared",
   "g2PostQueued": "Post queued",
   "g2PostUploading": "Uploading post {pct}",
-  "@g2PostUploading": {"placeholders": {"pct": {"type": "String"}}},
+  "@g2PostUploading": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
   "g2PostWaiting": "Waiting for connection, will continue when back",
   "g2PostPublishing": "Posting",
   "g2PostFailed": "Could not post",
@@ -5019,7 +5025,13 @@
   "chatSeenAgoMonths": "{n, plural, =1{1 month ago} other{{n} months ago}}",
   "chatSeenAgoYears": "{n, plural, =1{1 year ago} other{{n} years ago}}",
   "chatStatusSentAt": "Sent · {when}",
-  "@chatStatusSentAt": {"placeholders": {"when": {"type": "String"}}},
+  "@chatStatusSentAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "chatStatusSeenAt": "Seen · {when}",
   "pcmWriteHint": "Add a comment…",
   "pcmEmptyTitle": "Be the first to comment",
@@ -5151,10 +5163,22 @@
   "scanHint": "Align a profile, club, poll or event code in the frame.",
   "scanCheckinNoRight": "You are not allowed to scan this attendance code.",
   "scanCheckinDone": "Attendance recorded: {name}",
-  "@scanCheckinDone": {"placeholders": {"name": {"type": "String"}}},
+  "@scanCheckinDone": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "signOutPendingTitle": "Unsent messages will be deleted",
   "signOutPendingBody": "{count} unsent messages will be deleted. Sign out anyway?",
-  "@signOutPendingBody": {"placeholders": {"count": {"type": "String"}}},
+  "@signOutPendingBody": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "profileShareAction": "Share profile",
   "profileQrMyCode": "My QR code",
   "profileQrHint": "Anyone who scans this code sees the profile in BÜ Kampüs. A phone camera can read it too.",
@@ -5170,5 +5194,44 @@
   "profileQrGalleryNone": "No QR code found in the image.",
   "profileQrMyProfile": "That is your own code, opening your profile.",
   "profileQrFindMe": "Find me on BÜ Kampüs",
-  "commentFocusMissing": "This comment may no longer exist or was deleted."
+  "commentFocusMissing": "This comment may no longer exist or was deleted.",
+  "chatVoiceMic": "Record voice message",
+  "chatVoiceHold": "Hold the microphone to record",
+  "chatVoiceSlideCancel": "Slide to cancel",
+  "chatVoiceStopSend": "Stop and send recording",
+  "chatVoiceCancel": "Cancel recording",
+  "chatVoiceMessage": "Voice message",
+  "chatVoicePlay": "Play",
+  "chatVoicePause": "Pause",
+  "chatVoiceInterrupted": "Recording interrupted",
+  "chatVoiceFailed": "Could not play the voice message",
+  "chatVoiceLimit": "Voice messages can be at most 5 minutes; the recording was sent.",
+  "chatVoiceNoMic": "Could not start the microphone",
+  "chatVoiceSemantics": "Voice message, {duration}, {state}",
+  "@chatVoiceSemantics": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      },
+      "state": {
+        "type": "String"
+      }
+    }
+  },
+  "chatVoiceRecording": "Recording {time}",
+  "@chatVoiceRecording": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "chatVoiceSpeed": "Playback speed {speed}",
+  "@chatVoiceSpeed": {
+    "placeholders": {
+      "speed": {
+        "type": "String"
+      }
+    }
+  }
 }

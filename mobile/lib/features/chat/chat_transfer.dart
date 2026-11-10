@@ -43,6 +43,48 @@ class ChatTransfers {
     return '${(res['id'] as num).toInt()}';
   }
 
+  /// Sesli mesajı kuyruğa alır (kayıt dosyası iş dizinine TAŞINIR/kopyalanır). Başarısızsa false.
+  static Future<bool> enqueueVoice(
+    TransferQueue queue, {
+    required int ownerUserId,
+    required int conversationId,
+    required String clientId,
+    required String path,
+    required int durationMs,
+    int? replyToMessageId,
+  }) async {
+    if (queue.owner != ownerUserId) return false;
+    try {
+      final filesRoot = await queue.store.filesDir();
+      final jobDir = Directory('${filesRoot.path}${Platform.pathSeparator}$clientId');
+      await jobDir.create(recursive: true);
+      final dest = File('${jobDir.path}${Platform.pathSeparator}voice.m4a');
+      await File(path).copy(dest.path);
+      await queue.enqueue(TransferRequest(
+        ownerUserId: ownerUserId,
+        kind: TransferKind.chatMedia,
+        targetKey: targetKey(conversationId),
+        sourcePath: dest.path,
+        mime: 'audio/mp4',
+        meta: <String, Object?>{
+          'conversationId': conversationId,
+          'text': '',
+          if (replyToMessageId != null) 'replyToMessageId': replyToMessageId,
+          'durationMs': durationMs,
+        },
+        jobId: clientId,
+      ));
+      try {
+        await File(path).delete();
+      } catch (_) {
+        // Geçici kayıt; sistem temizler.
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   static bool _registered = false;
 
   /// Çalıştırıcıyı kaydeder (idempotent). Kuyruk başlamadan önce (açılışta) çağrılmalı: süreç ölümünden kurtarılan

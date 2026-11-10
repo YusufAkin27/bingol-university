@@ -64,7 +64,7 @@ import 'app_localizations_tr.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -87,17 +87,17 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-        delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('ar'),
     Locale('en'),
-    Locale('tr'),
+    Locale('tr')
   ];
 
   /// No description provided for @chatReactionPickerTitle.
@@ -1341,11 +1341,7 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{type}: {title}. {date}. {countdown}. Düzenlemek için dokun.'**
   String acadExamsSemanticCd(
-    String type,
-    String title,
-    String date,
-    String countdown,
-  );
+      String type, String title, String date, String countdown);
 
   /// No description provided for @acadFormErrTitle.
   ///
@@ -1910,11 +1906,7 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{name}, {day} {start} ile {end} arası'**
   String acadTimeSlotSemantic(
-    String name,
-    String day,
-    String start,
-    String end,
-  );
+      String name, String day, String start, String end);
 
   /// No description provided for @acadTimeCourseSemantic.
   ///
@@ -25747,6 +25739,96 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bu yorum artık yok ya da silinmiş olabilir.'**
   String get commentFocusMissing;
+
+  /// No description provided for @chatVoiceMic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sesli mesaj kaydet'**
+  String get chatVoiceMic;
+
+  /// No description provided for @chatVoiceHold.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydetmek için mikrofona basılı tutun'**
+  String get chatVoiceHold;
+
+  /// No description provided for @chatVoiceSlideCancel.
+  ///
+  /// In tr, this message translates to:
+  /// **'İptal için kaydır'**
+  String get chatVoiceSlideCancel;
+
+  /// No description provided for @chatVoiceStopSend.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydı bitir ve gönder'**
+  String get chatVoiceStopSend;
+
+  /// No description provided for @chatVoiceCancel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydı iptal et'**
+  String get chatVoiceCancel;
+
+  /// No description provided for @chatVoiceMessage.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sesli mesaj'**
+  String get chatVoiceMessage;
+
+  /// No description provided for @chatVoicePlay.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oynat'**
+  String get chatVoicePlay;
+
+  /// No description provided for @chatVoicePause.
+  ///
+  /// In tr, this message translates to:
+  /// **'Duraklat'**
+  String get chatVoicePause;
+
+  /// No description provided for @chatVoiceInterrupted.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kayıt kesildi'**
+  String get chatVoiceInterrupted;
+
+  /// No description provided for @chatVoiceFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sesli mesaj oynatılamadı'**
+  String get chatVoiceFailed;
+
+  /// No description provided for @chatVoiceLimit.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sesli mesaj en fazla 5 dakika olabilir; kayıt gönderildi.'**
+  String get chatVoiceLimit;
+
+  /// No description provided for @chatVoiceNoMic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mikrofon başlatılamadı'**
+  String get chatVoiceNoMic;
+
+  /// No description provided for @chatVoiceSemantics.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sesli mesaj, {duration}, {state}'**
+  String chatVoiceSemantics(String duration, String state);
+
+  /// No description provided for @chatVoiceRecording.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydediliyor {time}'**
+  String chatVoiceRecording(String time);
+
+  /// No description provided for @chatVoiceSpeed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oynatma hızı {speed}'**
+  String chatVoiceSpeed(String speed);
 }
 
 class _AppLocalizationsDelegate
@@ -25778,9 +25860,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-    'an issue with the localizations generation tool. Please file an issue '
-    'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.',
-  );
+      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+      'an issue with the localizations generation tool. Please file an issue '
+      'on GitHub with a reproducible sample app and the gen-l10n configuration '
+      'that was used.');
 }

@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -669,11 +668,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-    String type,
-    String title,
-    String date,
-    String countdown,
-  ) {
+      String type, String title, String date, String countdown) {
     return '$type: $title. $date. $countdown. Tap to edit.';
   }
 
@@ -992,11 +987,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-    String name,
-    String day,
-    String start,
-    String end,
-  ) {
+      String name, String day, String start, String end) {
     return '$name, $day from $start to $end';
   }
 
@@ -14380,4 +14371,56 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get commentFocusMissing =>
       'This comment may no longer exist or was deleted.';
+
+  @override
+  String get chatVoiceMic => 'Record voice message';
+
+  @override
+  String get chatVoiceHold => 'Hold the microphone to record';
+
+  @override
+  String get chatVoiceSlideCancel => 'Slide to cancel';
+
+  @override
+  String get chatVoiceStopSend => 'Stop and send recording';
+
+  @override
+  String get chatVoiceCancel => 'Cancel recording';
+
+  @override
+  String get chatVoiceMessage => 'Voice message';
+
+  @override
+  String get chatVoicePlay => 'Play';
+
+  @override
+  String get chatVoicePause => 'Pause';
+
+  @override
+  String get chatVoiceInterrupted => 'Recording interrupted';
+
+  @override
+  String get chatVoiceFailed => 'Could not play the voice message';
+
+  @override
+  String get chatVoiceLimit =>
+      'Voice messages can be at most 5 minutes; the recording was sent.';
+
+  @override
+  String get chatVoiceNoMic => 'Could not start the microphone';
+
+  @override
+  String chatVoiceSemantics(String duration, String state) {
+    return 'Voice message, $duration, $state';
+  }
+
+  @override
+  String chatVoiceRecording(String time) {
+    return 'Recording $time';
+  }
+
+  @override
+  String chatVoiceSpeed(String speed) {
+    return 'Playback speed $speed';
+  }
 }

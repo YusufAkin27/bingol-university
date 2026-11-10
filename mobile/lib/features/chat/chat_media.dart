@@ -15,6 +15,9 @@ bool isViewOnceAttachment(Map a) => a['viewOnce'] == true;
 /// Ek video mu (`kind: "VIDEO"`).
 bool isVideoAttachment(Map a) => '${a['kind'] ?? ''}'.toUpperCase() == 'VIDEO';
 
+/// Ek sesli mesaj mı (`kind: "AUDIO"`).
+bool isAudioAttachmentKind(Map a) => '${a['kind'] ?? ''}'.toUpperCase() == 'AUDIO';
+
 /// Milisaniyeyi "0:42" / "1:05:09" biçimine çevirir.
 String formatMediaDuration(int ms) {
   final s = (ms / 1000).round();
@@ -34,6 +37,7 @@ List<Map<String, dynamic>> galleryAttachments(Map message) {
       .whereType<Map>()
       .where((a) =>
           !isViewOnceAttachment(a) &&
+          !isAudioAttachmentKind(a) &&
           a['removed'] != true &&
           (a['url'] ?? a['thumbUrl']) != null)
       .map((a) => Map<String, dynamic>.from(a))
@@ -63,6 +67,7 @@ String attachmentPreviewLabel(Map message, [AppLocalizations? l10n]) {
   final l = l10n ?? lookupAppLocalizations(const Locale('tr'));
   if (atts.any(isViewOnceAttachment)) return l.chatMiscOnceText;
   if (atts.any(isVideoAttachment)) return l.chatMiscVideo;
+  if (atts.every(isAudioAttachmentKind)) return l.chatVoiceMessage;
   return l.chatMiscPhoto;
 }
 

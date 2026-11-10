@@ -348,11 +348,11 @@ class VideoUploader {
 
   /// [headers]: ek başlıklar (aktarım kuyruğu `Idempotency-Key` verir: yeniden denemede ikinci ek oluşmaz).
   Future<dynamic> upload(String path, PreparedVideo video,
-          {void Function(double progress)? onProgress, Map<String, String>? headers}) =>
-      _send(path, video, onProgress, false, headers);
+          {void Function(double progress)? onProgress, Map<String, String>? headers, bool audio = false}) =>
+      _send(path, video, onProgress, false, headers, audio);
 
-  Future<http.MultipartRequest> _build(
-      String path, PreparedVideo video, void Function(double)? onProgress, Map<String, String>? headers) async {
+  Future<http.MultipartRequest> _build(String path, PreparedVideo video, void Function(double)? onProgress,
+      Map<String, String>? headers, bool audio) async {
     final api = session.api;
     final req = _ProgressRequest('POST', Uri.parse('$apiBase$path'), (sent, total) {
       if (total > 0) onProgress?.call((sent / total).clamp(0.0, 1.0));
@@ -362,14 +362,16 @@ class VideoUploader {
     final t = api.tokens;
     if (t != null) req.headers['Authorization'] = 'Bearer ${t.access}';
     if (headers != null) req.headers.addAll(headers);
-    final ct = MediaType('video', 'mp4');
+    // Sesli mesaj (m4a/AAC) de MP4 kabıdır: aynı yükleyici, yalnız tür ve dosya adı farklı.
+    final ct = MediaType(audio ? 'audio' : 'video', 'mp4');
+    final fileName = audio ? 'voice.m4a' : video.fileName;
     final bytes = video.bytes;
     if (bytes != null) {
-      req.files.add(http.MultipartFile.fromBytes('file', bytes, filename: video.fileName, contentType: ct));
+      req.files.add(http.MultipartFile.fromBytes('file', bytes, filename: fileName, contentType: ct));
     } else {
       final f = File(video.path!);
       req.files.add(http.MultipartFile('file', http.ByteStream(f.openRead()), await f.length(),
-          filename: video.fileName, contentType: ct));
+          filename: fileName, contentType: ct));
     }
     final poster = video.poster;
     if (poster != null && poster.isNotEmpty) {
@@ -381,10 +383,10 @@ class VideoUploader {
   }
 
   Future<dynamic> _send(String path, PreparedVideo video, void Function(double)? onProgress, bool retried,
-      Map<String, String>? headers) async {
+      Map<String, String>? headers, bool audio) async {
     final api = session.api;
     final t = api.tokens;
-    final req = await _build(path, video, onProgress, headers);
+    final req = await _build(path, video, onProgress, headers, audio);
     http.Response res;
     try {
       res = await http.Response.fromStream(await _http.send(req).timeout(_timeout));
@@ -398,7 +400,7 @@ class VideoUploader {
         api.handleRefreshFailure(e);
         rethrow;
       }
-      return _send(path, video, onProgress, true, headers);
+      return _send(path, video, onProgress, true, headers, audio);
     }
     // Geçersiz UTF-8 FormatException sızdırmasın (bkz. MultipartUploader).
     final text = utf8.decode(res.bodyBytes, allowMalformed: true);
