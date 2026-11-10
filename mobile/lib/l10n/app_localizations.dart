@@ -25580,6 +25580,78 @@ abstract class AppLocalizations {
   /// **'Profil paylaştı'**
   String get shareChatProfileShared;
 
+  /// No description provided for @shareKindClub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp'**
+  String get shareKindClub;
+
+  /// No description provided for @shareKindPoll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anket'**
+  String get shareKindPoll;
+
+  /// No description provided for @shareChatClubShared.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp paylaştı'**
+  String get shareChatClubShared;
+
+  /// No description provided for @shareChatPollShared.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anket paylaştı'**
+  String get shareChatPollShared;
+
+  /// No description provided for @pollShareAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anketi paylaş'**
+  String get pollShareAction;
+
+  /// No description provided for @scanNotBu.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu bir BÜ Kampüs kodu değil.'**
+  String get scanNotBu;
+
+  /// No description provided for @scanTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR tara'**
+  String get scanTitle;
+
+  /// No description provided for @scanHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil, kulüp, anket ya da etkinlik kodunu çerçeveye hizala.'**
+  String get scanHint;
+
+  /// No description provided for @scanCheckinNoRight.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yoklama kodunu okutma yetkin yok.'**
+  String get scanCheckinNoRight;
+
+  /// No description provided for @scanCheckinDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklama alındı: {name}'**
+  String scanCheckinDone(String name);
+
+  /// No description provided for @signOutPendingTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderilmemiş mesajlar silinecek'**
+  String get signOutPendingTitle;
+
+  /// No description provided for @signOutPendingBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderilmemiş {count} mesaj silinecek. Çıkış yapmak istiyor musun?'**
+  String signOutPendingBody(String count);
+
   /// No description provided for @profileShareAction.
   ///
   /// In tr, this message translates to:

@@ -182,3 +182,19 @@ Metin gövdesi alıcının **kayıtlı dilinde** nötrdür; içerik başlığı/
 - **Mesaj kartı (görüntüleyene göre, `ShareService.resolveUsers`):** yalnız giriş yapmış görüntüleyene; `available=false` (içerik sızmaz): hesap yok / ACTIVE değil (askı, silinmiş) / iki yönlü engel. Kendi profilim her zaman görünür. Gizli hesabın başlığı (ad, @kullanıcı adı, avatar) zaten her üyeye görünür; içerik kilidi profil ekranında takip isteği akışıyla sürer. Karta yalnız `title`=ad, `subtitle`=`@kullaniciAdi`, `imageUrl`=avatar (`AvatarVisibility` gizlilik kararına uyar; gizliyse yok) girer. Gönderme: `share:{type:"USER",id}`, görünmüyorsa 422 `SHARE_TARGET_INVALID`. Sohbet listesi önizlemesi `share.preview.USER`.
 - **Mobil:** profilde (kendi/başkası) "Profili paylaş" mevcut paylaşım sayfasıyla; "QR kodum" (Profil üst satırı, Profil menüsü, Ayarlar) ve "QR tara" (QR ekranı, Profil menüsü, Ayarlar, Arama). QR içeriği = yukarıdaki https bağlantısı (telefon kamerası da açar). Tarama yalnız `parseShareLink` ile çözülen kendi alan adımızı/`bukampus://` şemasını ve YALNIZ `u` türünü kabul eder; başka her değer "Bu bir BÜ Kampüs profil kodu değil" der, taranan metin asla açılmaz. QR çizimi `features/events/qr_painter.dart` (saf Dart, bağımsız çözücü testli) yeniden kullanılır; yeni bağımlılık yok.
 
+
+## 8. Kulüp (`CLUB`, kod `c`) ve anket (`POLL`, kod `o`) paylaşımı + tek QR tarayıcı (S1, 2026-11-10)
+
+- Bağlantı: `https://bukampus.com.tr/s/c/{kulüpId}`, `https://bukampus.com.tr/s/o/{anketId}` (`bukampus://s/c|o/{id}`). Migration YOK:
+  `message.share_type` VARCHAR(16) (V1441) "CLUB"/"POLL" sığar. Mesaj kartı, bağlantıyı kopyala, sistem paylaşımı ortak paylaşım sayfasındandır.
+- Görünürlük TEK yerde (`ShareService`): **kulüp** yalnız ACTIVE; PUBLIC herkese (anonim sayfa dahil), PRIVATE yalnız aktif üyesine (anonim/üye olmayan
+  için nötr sayfa ve `available=false`). **Anket**: DRAFT/CANCELLED ve menü puanlaması paylaşılamaz; anonim sayfa yalnız kitlesiz GENEL anketi gösterir;
+  girişli görüntüleyen için kulüp anketi yalnız o (yayındaki) kulübün üyesine, hedef kitleli anket yalnız kitleye uyana (oluşturan her zaman).
+  Kart yalnız başlık (+ kısa açıklama); oy/sonuç/seçenek sızmaz.
+- Mobil: kulüp sayfası ve anket detayında paylaş düğmesi; özel kulüp ve kulüp anketi `restricted` (yalnız kişiyle mesajla). Derin bağlantı/kart
+  dokunuşu `openShared` ile kulüp/anket ekranını açar (erişim hedef ekranda sınanır). Eski `bukampus://clubs/{id}` (ana ekran widget'ı) sürer.
+- **Tek QR tarayıcı:** tüm "QR tara" girişleri `QrScanHubPage` (`features/scan/scan_page.dart`) açar; çözümleme `resolveScan` (`scan_resolver.dart`):
+  kendi alan adı/`bukampus://` bağlantısı (profil, kulüp, anket, etkinlik, haber, gönderi, forum) ya da katı biçimli `bingol-checkin:{id}.{...}`
+  yoklama yükü; geri kalanı (yabancı alan adı/şema, boşluk/kontrol karakteri, 300+ karakter) "Bu bir BÜ Kampüs kodu değil." — metin asla açılmaz.
+  Yoklama yükü `POST /events/{id}/scan` ile gönderilir (yetki/hız sınırı sunucuda; yetkisiz 403 mesajı gösterilir). Etkinlik görevlisinin canlı
+  sayaçlı ekranı (`Etkinlik3ScanPage`) etkinlik bağlamında ayrı kalır.

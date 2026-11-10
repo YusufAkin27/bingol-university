@@ -4,7 +4,7 @@ import '../../core/session.dart';
 import '../share/share_models.dart';
 import '../share/share_sheet.dart';
 import 'profile_qr_page.dart';
-import 'profile_qr_scan_page.dart';
+import '../scan/scan_page.dart';
 
 /// Profil için paylaşım içeriği: başlık = görünen ad, kaynak = @kullanıcı adı (yoksa null), görsel = avatar.
 /// Bağlantı `https://bukampus.com.tr/s/u/{kimlik}`; sunucu sayfası her kimlik için aynı nötr sayfadır, hesap
@@ -39,10 +39,10 @@ Future<void> openMyQr(BuildContext context, Session session) {
   ));
 }
 
-/// "QR tara" ekranını açar; geçerli profil kodu okunursa profil o ekranda açılır.
+/// TEK "QR tara" giriş noktası: profil, kulüp, anket, etkinlik bağlantısı ve yoklama kodu aynı kamera ekranından çözülür.
 Future<void> openProfileScanner(BuildContext context, Session session) {
   return Navigator.of(context).push<void>(MaterialPageRoute<void>(
-    settings: const RouteSettings(name: 'profile_qr_scan'),
-    builder: (_) => ProfileQrScanPage(session: session),
+    settings: const RouteSettings(name: 'qr_scan'),
+    builder: (_) => QrScanHubPage(session: session),
   ));
 }

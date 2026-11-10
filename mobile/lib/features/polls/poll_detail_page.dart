@@ -5,6 +5,8 @@ import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../share/share_models.dart';
+import '../share/share_sheet.dart';
 import 'anket_flat.dart';
 import 'poll_api.dart';
 import 'poll_models.dart';
@@ -156,6 +158,20 @@ class _PollDetailPageState extends State<PollDetailPage> {
         onRefresh: _load,
         loading: const _DetailSkeleton(),
         bottomInset: 32,
+        actions: [
+          if (p != null && !p.notOpenYet && p.scope != 'MENU')
+            IconButton(
+              key: const ValueKey('poll-share'),
+              tooltip: context.l10n.pollShareAction,
+              icon: const Icon(BuIcons.send),
+              onPressed: () => showShareSheet(
+                context,
+                widget.session,
+                // Kulüp anketi / kitleli anket bağlantısı yalnız yetkiliye açılır; yine de yalnız kişiyle mesajla paylaşılır.
+                ShareContent(type: ShareType.poll, id: p.id, title: p.title, source: p.communityName, restricted: p.scope == 'COMMUNITY'),
+              ),
+            ),
+        ],
         slivers: p == null ? const [] : [SliverToBoxAdapter(child: _isVoting(p) ? _votingContent(p) : _stateContent(p))],
       ),
     );

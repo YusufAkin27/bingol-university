@@ -14286,6 +14286,48 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shareChatProfileShared => 'Shared a profile';
 
   @override
+  String get shareKindClub => 'Club';
+
+  @override
+  String get shareKindPoll => 'Poll';
+
+  @override
+  String get shareChatClubShared => 'Shared a club';
+
+  @override
+  String get shareChatPollShared => 'Shared a poll';
+
+  @override
+  String get pollShareAction => 'Share poll';
+
+  @override
+  String get scanNotBu => 'This is not a BÜ Kampüs code.';
+
+  @override
+  String get scanTitle => 'Scan QR';
+
+  @override
+  String get scanHint =>
+      'Align a profile, club, poll or event code in the frame.';
+
+  @override
+  String get scanCheckinNoRight =>
+      'You are not allowed to scan this attendance code.';
+
+  @override
+  String scanCheckinDone(String name) {
+    return 'Attendance recorded: $name';
+  }
+
+  @override
+  String get signOutPendingTitle => 'Unsent messages will be deleted';
+
+  @override
+  String signOutPendingBody(String count) {
+    return '$count unsent messages will be deleted. Sign out anyway?';
+  }
+
+  @override
   String get profileShareAction => 'Share profile';
 
   @override

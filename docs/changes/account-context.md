@@ -39,5 +39,9 @@ olcu/kirpma (G1 ortak bilesen `bu_default_avatar.dart`), forceSignOut acik form 
   bilinmeden gelen Apple adi `onboarding_draft_pending`'te bekler, `savePrefill` ile hesabin taslagina katilir. Hesap kaldirilinca `clearFor(id)`.
 - `forceSignOut`: acik sayfa varsa kapaninca "Oturumun sona erdigi icin acik sayfa kapatildi" toast'i (yazilanlar kaydedilmez).
 - Destek talebi formu: yazilmis metin varken geri/kenar jesti onay ister (`formDiscard*`).
-- Gizlilik notu: cikista bekleyen mesaj/ek dosyalari hesabina bagli diskte kalir (karar geregi, harfi harfine); gerekirse `signOut` icinde
-  `purgeQueue` varsayilani degistirilir.
+- ~~Gizlilik notu: cikista bekleyen mesaj/ek dosyalari hesabina bagli diskte kalir~~ **DEGISTI (2026-11-10, S1, kullanici karari):**
+  `Session.signOut` artik `purgeQueue: true` varsayilanli: NORMAL cikista (ayarlar, cihazlar "bu cihazdan cik", zorunlu cikis yollari)
+  bekleyen mesaj kuyrugu (Outbox, `purgeOwner`) ve yerel ek kopyalari silinir; aktarim kuyrugu (TransferQueue) `onSignedOut` kancasiyla
+  zaten siler. Hesap DEGISTIRME (`switchAccount`) bu yoldan gecmez: kuyruk hesabina bagli kalir, dokunulmaz. Cikis oncesi kuyrukta
+  gonderilmemis mesaj varsa `confirmUnsentLoss` (`features/profile/signout_guard.dart`, BuDialog.confirm) "Gonderilmemis N mesaj silinecek"
+  onayi ister (ayarlar cikisi, tum hesaplardan cik, cihazlar ekraninda bu cihaz). `signOut(purgeQueue: false)` yalniz kasitli korumada.

@@ -14232,6 +14232,47 @@ class AppLocalizationsTr extends AppLocalizations {
   String get shareChatProfileShared => 'Profil paylaştı';
 
   @override
+  String get shareKindClub => 'Kulüp';
+
+  @override
+  String get shareKindPoll => 'Anket';
+
+  @override
+  String get shareChatClubShared => 'Kulüp paylaştı';
+
+  @override
+  String get shareChatPollShared => 'Anket paylaştı';
+
+  @override
+  String get pollShareAction => 'Anketi paylaş';
+
+  @override
+  String get scanNotBu => 'Bu bir BÜ Kampüs kodu değil.';
+
+  @override
+  String get scanTitle => 'QR tara';
+
+  @override
+  String get scanHint =>
+      'Profil, kulüp, anket ya da etkinlik kodunu çerçeveye hizala.';
+
+  @override
+  String get scanCheckinNoRight => 'Bu yoklama kodunu okutma yetkin yok.';
+
+  @override
+  String scanCheckinDone(String name) {
+    return 'Yoklama alındı: $name';
+  }
+
+  @override
+  String get signOutPendingTitle => 'Gönderilmemiş mesajlar silinecek';
+
+  @override
+  String signOutPendingBody(String count) {
+    return 'Gönderilmemiş $count mesaj silinecek. Çıkış yapmak istiyor musun?';
+  }
+
+  @override
   String get profileShareAction => 'Profili paylaş';
 
   @override
