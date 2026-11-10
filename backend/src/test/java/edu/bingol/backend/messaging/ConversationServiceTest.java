@@ -51,6 +51,21 @@ class ConversationServiceTest {
     }
 
     @Test
+    void emptyDepartmentChatsHaveDistinctPaginationCursors() {
+        Conversation a = conv(91L, Conversation.Type.GROUP);
+        Conversation b = conv(92L, Conversation.Type.GROUP);
+        when(convs.page(eq(2L), eq(null), eq(false), any())).thenReturn(List.of(a, b));
+        var first = service.list(2L, null, 1);
+        assertEquals(-91L, first.nextCursor());
+        assertEquals(91L, first.items().get(0).id());
+        assertEquals(null, first.items().get(0).lastMessage());
+        when(convs.page(eq(2L), eq(-91L), eq(false), any())).thenReturn(List.of(b));
+        var second = service.list(2L, first.nextCursor(), 1);
+        assertEquals(92L, second.items().get(0).id());
+        assertEquals(null, second.nextCursor());
+    }
+
+    @Test
     void cannotStartConversationWithSelf() {
         assertEquals("CANNOT_MESSAGE_SELF", assertThrows(ApiException.class, () -> service.openDirect(1L, 1L)).code());
     }
