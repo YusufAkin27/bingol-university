@@ -9,6 +9,9 @@ import edu.bingol.backend.event.UserEventRepository;
 import edu.bingol.backend.moderation.BlockService;
 import edu.bingol.backend.news.NewsItem;
 import edu.bingol.backend.news.NewsRepository;
+import edu.bingol.backend.poll.Poll;
+import edu.bingol.backend.poll.PollAccess;
+import edu.bingol.backend.poll.PollRepository;
 import edu.bingol.backend.post.Post;
 import edu.bingol.backend.post.PostRepository;
 import edu.bingol.backend.post.follow.PrivateAccountGate;
@@ -65,12 +68,14 @@ public class ShareService {
     private final UserRepository users;
     private final PrivateAccountGate gate;
     private final BlockService blocks;
+    private final PollRepository polls;
+    private final PollAccess pollAccess;
     private final String baseUrl;
 
     public ShareService(NewsRepository news, PostRepository posts, PostMediaRepository postMedia,
                         UserEventRepository events, CommunityRepository communities,
                         CommunityMemberRepository communityMembers, UserRepository users, PrivateAccountGate gate,
-                        BlockService blocks,
+                        BlockService blocks, PollRepository polls, PollAccess pollAccess,
                         @Value("${app.share.base-url:${PUBLIC_WEB_URL:https://bukampus.com.tr}}") String baseUrl) {
         this.news = news;
         this.posts = posts;
@@ -81,6 +86,8 @@ public class ShareService {
         this.users = users;
         this.gate = gate;
         this.blocks = blocks;
+        this.polls = polls;
+        this.pollAccess = pollAccess;
         this.baseUrl = baseUrl == null ? "https://bukampus.com.tr" : baseUrl.replaceAll("/+$", "");
     }
 
@@ -193,6 +200,8 @@ public class ShareService {
         List<ShareRef> eventRefs = new ArrayList<>();
         List<ShareRef> forumRefs = new ArrayList<>();
         List<ShareRef> userRefs = new ArrayList<>();
+        List<ShareRef> clubRefs = new ArrayList<>();
+        List<ShareRef> pollRefs = new ArrayList<>();
         for (ShareRef r : refs) {
             switch (r.type()) {
                 case POST, REEL -> postRefs.add(r);
@@ -200,6 +209,8 @@ public class ShareService {
                 case EVENT -> eventRefs.add(r);
                 case FORUM_TOPIC, FORUM_COMMENT -> forumRefs.add(r);
                 case USER -> userRefs.add(r);
+                case CLUB -> clubRefs.add(r);
+                case POLL -> pollRefs.add(r);
             }
         }
         if (!forumRefs.isEmpty() && forumResolver != null) {
@@ -209,6 +220,8 @@ public class ShareService {
         resolvePosts(viewerId, postRefs, out);
         resolveEvents(viewerId, eventRefs, out);
         resolveUsers(viewerId, userRefs, out);
+        resolveClubs(viewerId, clubRefs, out);
+        resolvePolls(viewerId, pollRefs, out);
         return out;
     }
 
@@ -255,6 +268,68 @@ public class ShareService {
             String avatar = u.getAvatarUrl() != null && avatarOk.contains(u.getId()) ? eventImage(u.getAvatarUrl()) : null;
             out.put(r, new Resolved(r, u.getId(), clip(u.getDisplayName(), TITLE_MAX), uname, null, avatar, null,
                     null, null, null));
+        }
+    }
+
+    /**
+     * Kulup karti: yalniz yayindaki (ACTIVE) kulup. PUBLIC kulup herkese (anonim dahil); PRIVATE kulup YALNIZ aktif
+     * uyesine (anonim ve uye olmayan icin kullanilamaz). Karta ad + kategori girer; uye listesi/aciklama ozel kulupte yok.
+     */
+    private void resolveClubs(Long viewerId, List<ShareRef> refs, Map<ShareRef, Resolved> out) {
+        if (refs.isEmpty()) {
+            return;
+        }
+        Map<Long, Community> byId = communities.findAllById(ids(refs)).stream()
+                .collect(Collectors.toMap(Community::getId, c -> c, (a, b) -> a));
+        for (ShareRef r : refs) {
+            Community c = byId.get(r.id());
+            if (c == null || c.getStatus() != Community.Status.ACTIVE || c.getName() == null || c.getName().isBlank()) {
+                continue;
+            }
+            if (c.getVisibility() == Community.Visibility.PRIVATE && !isMember(c.getId(), viewerId)) {
+                continue;
+            }
+            String desc = c.getDescription() == null || c.getDescription().isBlank() ? null
+                    : clip(c.getDescription().strip(), DESC_MAX);
+            String img = eventImage(c.getLogoUrl() != null ? c.getLogoUrl() : c.getCoverUrl());
+            out.put(r, new Resolved(r, null, clip(c.getName(), TITLE_MAX), c.getCategory(), desc, img, null, null,
+                    null, null));
+        }
+    }
+
+    /**
+     * Anket karti: taslak/iptal ve menu puanlamasi paylasilamaz. Anonim: yalniz kitlesiz GENEL anket. Giris yapmis:
+     * kulup anketi yalniz o (yayindaki) kulubun uyesine, hedef kitleli anket yalniz kitleye uyana ya da olusturana.
+     */
+    private void resolvePolls(Long viewerId, List<ShareRef> refs, Map<ShareRef, Resolved> out) {
+        if (refs.isEmpty()) {
+            return;
+        }
+        Map<Long, Poll> byId = polls.findAllById(ids(refs)).stream()
+                .collect(Collectors.toMap(Poll::getId, p -> p, (a, b) -> a));
+        User me = viewerId == null ? null : users.findById(viewerId).orElse(null);
+        Set<Long> memberCids = me == null ? Set.of() : pollAccess.memberCommunityIds(viewerId);
+        for (ShareRef r : refs) {
+            Poll p = byId.get(r.id());
+            if (p == null || p.getTitle() == null || p.getTitle().isBlank() || p.getScope() == Poll.Scope.MENU
+                    || p.getStatus() != Poll.Status.OPEN && p.getStatus() != Poll.Status.CLOSED) {
+                continue;
+            }
+            boolean owner = viewerId != null && viewerId.equals(p.getCreatedBy());
+            if (!owner) {
+                if (viewerId == null || me == null || !me.isActive()) {
+                    if (p.getScope() != Poll.Scope.GLOBAL || p.hasAudience()) {
+                        continue; // anonim: yalniz kitlesiz genel anket
+                    }
+                } else if (p.getScope() == Poll.Scope.COMMUNITY && !memberCids.contains(p.getCommunityId())
+                        || !pollAccess.audienceMatches(p, me)) {
+                    continue;
+                }
+            }
+            String desc = p.getDescription() == null || p.getDescription().isBlank() ? null
+                    : clip(p.getDescription().strip(), DESC_MAX);
+            out.put(r, new Resolved(r, null, clip(p.getTitle(), TITLE_MAX), null, desc, null, null,
+                    p.getStatus() == Poll.Status.CLOSED ? "CLOSED" : "OPEN", p.getClosesAt(), null));
         }
     }
 
