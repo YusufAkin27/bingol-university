@@ -8,9 +8,6 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <!-- Android 16+ Canli Guncellemeler (promoted ongoing): yalniz kullanicinin baslattigi canli takip. -->
     <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS"/>
-    <!-- Arka plan aktarimi (G10): yukleme surerken on plan servisi (dataSync) + tek ilerleme bildirimi. -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
     <!-- Yerel ders/sinav hatirlatmalarini cihaz yeniden basladiktan sonra tekrar kurmak icin. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <!-- Akademik takvimi cihaz takvimine yazma (calisma zamani izni, kullanici "Takvime ekle" deyince istenir). -->
@@ -90,7 +87,6 @@
             android:value="false" />
         <!-- FCM: eklentinin servisi/alicisi yerine alt siniflar (uygulama kapaliyken zengin kart NATIVE cizilir, Dart motoru acilmaz). -->
         <service android:name="io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingService" tools:node="remove"/>
-        <service android:name=".TransferService" android:exported="false" android:foregroundServiceType="dataSync"/>
         <service android:name=".BuMessagingService" android:exported="false">
             <intent-filter><action android:name="com.google.firebase.MESSAGING_EVENT"/></intent-filter>
         </service>

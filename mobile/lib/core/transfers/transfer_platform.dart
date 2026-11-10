@@ -37,7 +37,7 @@ class NoopTransferPlatform implements TransferPlatform {
   Future<void> stop() async {}
 }
 
-/// Android: `bu_kampus/transfers` kanalı -> `TransferService` (ön plan servisi, dataSync) tek ilerleme bildirimi.
+/// Android: `bu_kampus/transfers` kanalı -> tek ilerleme bildirimi (ön plan servisi YOK; Play beyanı gerektirmesin).
 /// Aynı bildirim kimliği güncellenir (her ilerlemede yeni bildirim yok); güncellemeler en çok 700 ms'de bir gider.
 class MethodChannelTransferPlatform implements TransferPlatform {
   MethodChannelTransferPlatform({MethodChannel? channel, this.throttle = const Duration(milliseconds: 700)})

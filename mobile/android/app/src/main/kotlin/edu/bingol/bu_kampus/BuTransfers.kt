@@ -5,26 +5,21 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.Service
 import android.content.Context
-import android.content.Intent
-import android.content.pm.ServiceInfo
 import android.os.Build
-import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
 
 /**
  * Arka plan aktarimi koprusu (kanal `bu_kampus/transfers`; Dart tarafi lib/core/transfers/transfer_platform.dart).
  *  - update{live,active,waiting,processing,failed,percent,...metinler}: TEK ilerleme bildirimini gunceller (sabit id,
- *    her ilerlemede yeni bildirim YOK). Canli is varken `TransferService` on plan servisi (dataSync) sureci canli tutar.
- *  - stop(): servisi ve bildirimi kaldirir.
+ *    her ilerlemede yeni bildirim YOK). On plan servisi KULLANILMAZ (Play "on plan hizmeti izni" beyani gerektirir).
+ *  - stop(): bildirimi kaldirir.
  * Yuzde: `percent < 0` = belirsiz ilerleme (toplam bilinmiyor ya da sunucu isliyor); yuzde uydurulmaz.
  * GIZLILIK: bildirim yalniz genel sayim tasir; alici, mesaj metni, dosya adi, onizleme YOK.
- * SINIR (durust): servis sureci canli tutar ama kullanici "Zorla durdur" derse ya da sistem sonlandirirsa aktarim biter;
- * Android 15+ dataSync servisi gunluk ~6 saat ust sinira tabidir (onTimeout). Dart kuyrugu acilista kalan isi surdurur.
+ * SINIR (durust): aktarim Dart surecinde surer; uygulama arka plana gecince sistem sureci durdurabilir. Dart kuyrugu
+ * acilista kalan isi ayni Idempotency-Key ile surdurur.
  */
 object BuTransfers {
     private const val CHANNEL = "bu_kampus/transfers"
@@ -69,32 +64,22 @@ object BuTransfers {
     fun update(ctx: Context, s: State): Boolean {
         return try {
             ensureChannel(ctx, s.channelName)
-            val svc = TransferService.current
             if (s.live > 0) {
-                if (svc != null) {
-                    svc.render(s)
-                } else {
-                    val i = Intent(ctx, TransferService::class.java)
-                    TransferService.pending = s
-                    ContextCompat.startForegroundService(ctx, i)
-                }
+                // Canli is: TEK ilerleme bildirimi (sabit id, yerinde guncellenir). On plan servisi YOK (Play politikasi).
+                nm(ctx)?.notify(NOTIF_ID, build(ctx, s, ongoing = true))
             } else {
-                // Canli is yok: servis kapanir; basarisiz is varsa kalici (silinebilir) uyari birakilir.
-                svc?.shutdown()
-                if (svc == null) nm(ctx)?.cancel(NOTIF_ID)
+                // Canli is yok: bildirim kalkar; basarisiz is varsa kalici (silinebilir) uyari birakilir.
+                nm(ctx)?.cancel(NOTIF_ID)
                 if (s.failed > 0) nm(ctx)?.notify(NOTIF_ID, build(ctx, s, ongoing = false))
             }
             true
         } catch (e: Exception) {
-            // ForegroundServiceStartNotAllowedException vb.: servis kurulamadi; sade bildirimle devam et.
-            runCatching { nm(ctx)?.notify(NOTIF_ID, build(ctx, s, ongoing = s.live > 0)) }
+            // Bildirim izni yok vb.: bildirim gorunmez, uygulama ici takip surer.
             false
         }
     }
 
     fun stop(ctx: Context) {
-        TransferService.current?.shutdown()
-        TransferService.pending = null
         nm(ctx)?.cancel(NOTIF_ID)
     }
 
@@ -137,62 +122,5 @@ object BuTransfers {
             b.setContentTitle(s.failedText).setContentText(s.retryHint).setAutoCancel(true)
         }
         return b.build()
-    }
-}
-
-/** Dataszync turunde on plan servisi: yalniz sureci canli tutar ve TEK bildirimi gosterir; aktarimi Dart kuyrugu surdurur. */
-class TransferService : Service() {
-    companion object {
-        @Volatile var current: TransferService? = null
-        @Volatile var pending: BuTransfers.State? = null
-    }
-
-    override fun onBind(intent: Intent?): IBinder? = null
-
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        current = this
-        val s = pending
-        if (s == null) {
-            stopSelf()
-            return START_NOT_STICKY
-        }
-        render(s, first = true)
-        // Sistem sonlandirirsa yeniden baslatma: Dart kuyrugu bir sonraki acilista kalan isi kurtarir.
-        return START_NOT_STICKY
-    }
-
-    fun render(s: BuTransfers.State, first: Boolean = false) {
-        pending = s
-        val n = BuTransfers.build(this, s, ongoing = true)
-        if (first) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                startForeground(BuTransfers.NOTIF_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-            } else {
-                startForeground(BuTransfers.NOTIF_ID, n)
-            }
-        } else {
-            getSystemService(NotificationManager::class.java)?.notify(BuTransfers.NOTIF_ID, n)
-        }
-    }
-
-    fun shutdown() {
-        current = null
-        pending = null
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            stopForeground(STOP_FOREGROUND_REMOVE)
-        } else {
-            @Suppress("DEPRECATION") stopForeground(true)
-        }
-        stopSelf()
-    }
-
-    /** Android 15+: dataSync zaman asimi; servis kapanir (Dart kuyrugu islerini sonraki acilista surdurur). */
-    override fun onTimeout(startId: Int, fgsType: Int) {
-        shutdown()
-    }
-
-    override fun onDestroy() {
-        if (current === this) current = null
-        super.onDestroy()
     }
 }
