@@ -19,3 +19,17 @@
 "widget.exams.desc" = "Yaklaşan sınavlarını ve tarihlerini gösterir.";
 "widget.academic.name" = "Akademik Takvim";
 "widget.academic.desc" = "Yaklaşan önemli akademik tarihleri gösterir.";
+"widget.quickaccess.shortcut" = "Kısayol";
+"widget.quickaccess.q.menu" = "Yemek";
+"widget.quickaccess.q.timetable" = "Ders";
+"widget.quickaccess.q.events" = "Etkinlik";
+"widget.quickaccess.q.clubs" = "Kulüpler";
+"widget.quickaccess.q.chat" = "Sohbet";
+"widget.quickaccess.q.qr" = "QR Kodum";
+"widget.quickaccess.q.news" = "Haberler";
+"widget.quickaccess.q.search" = "Ara";
+"widget.quickaccess.configure.title" = "Kısayolları seç";
+"widget.quickaccess.configure.desc" = "Widget'ta görünecek kısayolları seç.";
+"widget.quickaccess.shortcuts" = "Kısayollar";
+"widget.quickaccess.picker.name" = "Hızlı Erişim (Seçilebilir)";
+"widget.quickaccess.picker.desc" = "Kısayollarını seç ve sırala.";

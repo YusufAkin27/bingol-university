@@ -42,6 +42,8 @@ SLUGS = [
 PREVIEW_ALIAS = {'exams': 'announcements', 'academic': 'announcements'}
 SIZES = [('2x2', 2, 2, '2x2', ''), ('4x2', 4, 2, '4x2', '4x2'), ('4x4', 4, 4, '4x4', '4x4')]
 MIN = {2: 110, 4: 250}
+# Hizli Erisim: kisayol secimi yapilandirma ekrani (QuickAccessConfigActivity); Android 12+ sonradan yeniden yapilandirilabilir.
+CONFIGURE = '    android:configure="edu.bingol.bu_kampus.widgets.QuickAccessConfigActivity"\n    android:widgetFeatures="reconfigurable|configuration_optional"\n'
 
 
 def write(path, text, root=RES):
@@ -99,7 +101,7 @@ def infos():
     android:initialLayout="@layout/bw_loading"
     android:previewImage="@drawable/bw_prev_%s_%s"
     android:description="@string/bw_desc_%s"
-    android:widgetCategory="home_screen" />''' % (minw, minh, cw, ch, slug, size, slug))
+%s    android:widgetCategory="home_screen" />''' % (minw, minh, cw, ch, slug, size, slug, CONFIGURE if slug == 'quickaccess' else ''))
 
 
 def strings():

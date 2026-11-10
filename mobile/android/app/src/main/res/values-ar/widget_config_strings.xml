@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hizli Erisim widget yapilandirma ekrani metinleri (QuickAccessConfigActivity). Kisisel veri icermez. -->
+<resources>
+    <string name="bw_qa_menu">الطعام</string>
+    <string name="bw_qa_timetable">الجدول</string>
+    <string name="bw_qa_events">الفعاليات</string>
+    <string name="bw_qa_clubs">الأندية</string>
+    <string name="bw_qa_chat">المحادثات</string>
+    <string name="bw_qa_qr">رمز QR</string>
+    <string name="bw_qa_news">الأخبار</string>
+    <string name="bw_qa_search">بحث</string>
+    <string name="bw_qa_cfg_title">اختيار الاختصارات</string>
+    <string name="bw_qa_cfg_hint">اختر الاختصارات المعروضة في الودجت ورتبها.</string>
+    <string name="bw_qa_cfg_save">حفظ</string>
+    <string name="bw_qa_cfg_min">اختر اختصارا واحدا على الأقل.</string>
+    <string name="bw_qa_cfg_up">نقل لأعلى</string>
+    <string name="bw_qa_cfg_down">نقل لأسفل</string>
+</resources>

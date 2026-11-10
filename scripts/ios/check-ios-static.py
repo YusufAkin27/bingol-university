@@ -545,7 +545,10 @@ def check_widget_files():
         if w != 'regular':
             bad('BUWidgets: kalin/ince yazi agirligi .%s (yalniz regular)' % w)
     (ok if 'systemName' not in all_swift else bad)('BUWidgets: SF Symbols (systemName) kullanilmamis (Lucide)')
-    (ok if 'AppIntent' not in all_swift and 'Button(' not in all_swift else bad)('BUWidgets: interaktif widget/AppIntents yok')
+    # AppIntents YALNIZ secilebilir Hizli Erisim yapilandirmasi icin (BuQuickAccessPickerWidget.swift); interaktif widget (Button) yine yok.
+    picker = read(os.path.join(WIDGETS, 'BuQuickAccessPickerWidget.swift')) if os.path.isfile(os.path.join(WIDGETS, 'BuQuickAccessPickerWidget.swift')) else ''
+    rest_swift = all_swift.replace(picker, '') if picker else all_swift
+    (ok if 'AppIntent' not in rest_swift and 'Button(' not in all_swift else bad)('BUWidgets: interaktif widget yok, AppIntents yalniz yapilandirma widgetinda')
     (ok if not re.search(r'URLSession|URLRequest|Data\(contentsOf', all_swift) else bad)('BUWidgets: ag istegi yok')
     keys = set(re.findall(r'"(widget\.[a-z]+\.(?:name|desc))"', all_swift)) | {'signedout.title', 'signedout.sub'}
     for lang in LANGS:
