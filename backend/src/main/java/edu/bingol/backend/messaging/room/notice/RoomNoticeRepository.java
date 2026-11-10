@@ -55,9 +55,6 @@ public interface RoomNoticeRepository extends JpaRepository<RoomNotice, Long> {
     @Query("SELECT c.title FROM edu.bingol.backend.messaging.Conversation c WHERE c.id = :cid")
     java.util.Optional<String> conversationTitle(@Param("cid") Long cid);
 
-    @Query("SELECT c.title FROM edu.bingol.backend.messaging.Conversation c WHERE c.id = :cid")
-    java.util.Optional<String> conversationTitle(@Param("cid") Long cid);
-
     @Query("SELECT n FROM RoomNotice n WHERE n.authorId = :uid AND n.deletedAt IS NULL ORDER BY n.id DESC")
     List<RoomNotice> authoredBy(@Param("uid") Long uid, Pageable p);
 }

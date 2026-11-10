@@ -61,7 +61,7 @@ class RoomNoticeServiceTest {
         room(5L);
         when(moderation.canModerate(5L, 9L)).thenReturn(false);
         ApiException e1 = assertThrows(ApiException.class, () -> svc.create(5L, 9L, "Baslik", "Metin", false));
-        assertEquals("NOTICE_FORBIDDEN", e1.getCode());
+        assertEquals("NOTICE_FORBIDDEN", e1.code());
         assertThrows(ApiException.class, () -> svc.update(5L, 9L, 1L, "x", null, null));
         assertThrows(ApiException.class, () -> svc.delete(5L, 9L, 1L));
         verify(notices, never()).save(any());
@@ -73,7 +73,7 @@ class RoomNoticeServiceTest {
         when(moderation.canModerate(5L, 9L)).thenReturn(false);
         when(members.findByConversationIdAndUserIdAndLeftAtIsNull(5L, 9L)).thenReturn(Optional.empty());
         ApiException e = assertThrows(ApiException.class, () -> svc.pinned(5L, 9L));
-        assertEquals(404, e.getStatus().value());
+        assertEquals(404, e.status().value());
     }
 
     @Test
