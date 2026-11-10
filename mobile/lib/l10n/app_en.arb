@@ -5154,5 +5154,6 @@
   "profileQrGallery": "Choose from gallery",
   "profileQrGalleryNone": "No QR code found in the image.",
   "profileQrMyProfile": "That is your own code, opening your profile.",
-  "profileQrFindMe": "Find me on BÜ Kampüs"
+  "profileQrFindMe": "Find me on BÜ Kampüs",
+  "commentFocusMissing": "This comment may no longer exist or was deleted."
 }
