@@ -14366,4 +14366,52 @@ class AppLocalizationsTr extends AppLocalizations {
   String chatVoiceSpeed(String speed) {
     return 'Oynatma hızı $speed';
   }
+
+  @override
+  String get evtTicketTitle => 'Biletim';
+
+  @override
+  String get evtTicketOpen => 'Biletim';
+
+  @override
+  String get evtTicketLoadFailed => 'Bilet yüklenemedi.';
+
+  @override
+  String get evtTicketOffline =>
+      'Çevrimdışısın: son görülen bilet gösteriliyor.';
+
+  @override
+  String get evtTicketOrganizer => 'Düzenleyen';
+
+  @override
+  String get evtTicketHolder => 'Bilet sahibi';
+
+  @override
+  String get evtTicketAddWallet => 'Cüzdana ekle';
+
+  @override
+  String get evtTicketWalletSoon => 'Cüzdana ekleme yakında.';
+
+  @override
+  String get evtTicketPrivacyNote =>
+      'Bu bilet sana özeldir; paylaşma ve ekran görüntüsünü başkalarına gönderme.';
+
+  @override
+  String get evtTicketCancelled => 'Bu etkinlik iptal edildi; bilet geçersiz.';
+
+  @override
+  String get evtTicketEnded =>
+      'Bu etkinlik sona erdi; bilet artık kullanılamaz.';
+
+  @override
+  String get evtTicketQrUnavailable =>
+      'QR kodu şu an alınamadı. Daha sonra tekrar dene.';
+
+  @override
+  String get evtTicketQrNotOpen =>
+      'QR kodun, yoklama açıldığında burada görünür.';
+
+  @override
+  String get evtTicketQrMaybeExpired =>
+      'Bu kodun süresi dolmuş olabilir. Bağlanınca yenilenir.';
 }

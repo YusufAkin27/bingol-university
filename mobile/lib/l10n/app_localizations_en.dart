@@ -14423,4 +14423,53 @@ class AppLocalizationsEn extends AppLocalizations {
   String chatVoiceSpeed(String speed) {
     return 'Playback speed $speed';
   }
+
+  @override
+  String get evtTicketTitle => 'My ticket';
+
+  @override
+  String get evtTicketOpen => 'My ticket';
+
+  @override
+  String get evtTicketLoadFailed => 'Couldn\'t load the ticket.';
+
+  @override
+  String get evtTicketOffline =>
+      'You are offline: showing the last seen ticket.';
+
+  @override
+  String get evtTicketOrganizer => 'Organizer';
+
+  @override
+  String get evtTicketHolder => 'Ticket holder';
+
+  @override
+  String get evtTicketAddWallet => 'Add to Wallet';
+
+  @override
+  String get evtTicketWalletSoon => 'Adding to Wallet is coming soon.';
+
+  @override
+  String get evtTicketPrivacyNote =>
+      'This ticket is personal. Do not share it or send a screenshot to others.';
+
+  @override
+  String get evtTicketCancelled =>
+      'This event was cancelled; the ticket is void.';
+
+  @override
+  String get evtTicketEnded =>
+      'This event has ended; the ticket can no longer be used.';
+
+  @override
+  String get evtTicketQrUnavailable =>
+      'The QR code couldn\'t be loaded right now. Try again later.';
+
+  @override
+  String get evtTicketQrNotOpen =>
+      'Your QR code appears here when attendance opens.';
+
+  @override
+  String get evtTicketQrMaybeExpired =>
+      'This code may have expired. It refreshes when you are back online.';
 }

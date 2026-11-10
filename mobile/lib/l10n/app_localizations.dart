@@ -25829,6 +25829,90 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Oynatma hızı {speed}'**
   String chatVoiceSpeed(String speed);
+
+  /// No description provided for @evtTicketTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Biletim'**
+  String get evtTicketTitle;
+
+  /// No description provided for @evtTicketOpen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Biletim'**
+  String get evtTicketOpen;
+
+  /// No description provided for @evtTicketLoadFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bilet yüklenemedi.'**
+  String get evtTicketLoadFailed;
+
+  /// No description provided for @evtTicketOffline.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çevrimdışısın: son görülen bilet gösteriliyor.'**
+  String get evtTicketOffline;
+
+  /// No description provided for @evtTicketOrganizer.
+  ///
+  /// In tr, this message translates to:
+  /// **'Düzenleyen'**
+  String get evtTicketOrganizer;
+
+  /// No description provided for @evtTicketHolder.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bilet sahibi'**
+  String get evtTicketHolder;
+
+  /// No description provided for @evtTicketAddWallet.
+  ///
+  /// In tr, this message translates to:
+  /// **'Cüzdana ekle'**
+  String get evtTicketAddWallet;
+
+  /// No description provided for @evtTicketWalletSoon.
+  ///
+  /// In tr, this message translates to:
+  /// **'Cüzdana ekleme yakında.'**
+  String get evtTicketWalletSoon;
+
+  /// No description provided for @evtTicketPrivacyNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu bilet sana özeldir; paylaşma ve ekran görüntüsünü başkalarına gönderme.'**
+  String get evtTicketPrivacyNote;
+
+  /// No description provided for @evtTicketCancelled.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu etkinlik iptal edildi; bilet geçersiz.'**
+  String get evtTicketCancelled;
+
+  /// No description provided for @evtTicketEnded.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu etkinlik sona erdi; bilet artık kullanılamaz.'**
+  String get evtTicketEnded;
+
+  /// No description provided for @evtTicketQrUnavailable.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR kodu şu an alınamadı. Daha sonra tekrar dene.'**
+  String get evtTicketQrUnavailable;
+
+  /// No description provided for @evtTicketQrNotOpen.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR kodun, yoklama açıldığında burada görünür.'**
+  String get evtTicketQrNotOpen;
+
+  /// No description provided for @evtTicketQrMaybeExpired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu kodun süresi dolmuş olabilir. Bağlanınca yenilenir.'**
+  String get evtTicketQrMaybeExpired;
 }
 
 class _AppLocalizationsDelegate

@@ -5233,5 +5233,19 @@
         "type": "String"
       }
     }
-  }
+  },
+  "evtTicketTitle": "تذكرتي",
+  "evtTicketOpen": "تذكرتي",
+  "evtTicketLoadFailed": "تعذّر تحميل التذكرة.",
+  "evtTicketOffline": "أنت غير متصل: تُعرض آخر تذكرة شوهدت.",
+  "evtTicketOrganizer": "المنظّم",
+  "evtTicketHolder": "صاحب التذكرة",
+  "evtTicketAddWallet": "إضافة إلى المحفظة",
+  "evtTicketWalletSoon": "الإضافة إلى المحفظة قريباً.",
+  "evtTicketPrivacyNote": "هذه التذكرة شخصية. لا تشاركها ولا ترسل لقطة شاشة لها للآخرين.",
+  "evtTicketCancelled": "أُلغيت هذه الفعالية؛ التذكرة غير صالحة.",
+  "evtTicketEnded": "انتهت هذه الفعالية؛ لم تعد التذكرة صالحة للاستخدام.",
+  "evtTicketQrUnavailable": "تعذّر تحميل رمز QR الآن. حاول لاحقاً.",
+  "evtTicketQrNotOpen": "يظهر رمز QR هنا عند فتح تسجيل الحضور.",
+  "evtTicketQrMaybeExpired": "قد تكون صلاحية هذا الرمز انتهت. يتجدد عند عودة الاتصال."
 }

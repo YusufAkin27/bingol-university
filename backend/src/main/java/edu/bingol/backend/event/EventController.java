@@ -266,6 +266,14 @@ public class EventController {
         return attendance.issueTicket(a, id, Instant.now());
     }
 
+    /** T1 "Biletim": bilet verisi (etkinlik + sahip + durum + cuzdan bayraklari); QR icin /my-ticket. */
+    @GetMapping("/events/{id}/ticket")
+    public edu.bingol.backend.event.dto.EventDtos.TicketInfo ticket(@PathVariable Long id) {
+        Actor a = Actor.current();
+        limiter.check("event-ticket:user:" + a.id(), 60, Duration.ofMinutes(1));
+        return attendance.ticketInfo(a, id, Instant.now());
+    }
+
     /** Organizator: katilimcinin QR'ini okutur, yoklamayi isler. */
     @PostMapping("/events/{id}/scan")
     public edu.bingol.backend.event.dto.EventDtos.ScanResult scan(@PathVariable Long id,

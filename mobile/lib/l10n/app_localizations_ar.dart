@@ -14307,4 +14307,49 @@ class AppLocalizationsAr extends AppLocalizations {
   String chatVoiceSpeed(String speed) {
     return 'سرعة التشغيل $speed';
   }
+
+  @override
+  String get evtTicketTitle => 'تذكرتي';
+
+  @override
+  String get evtTicketOpen => 'تذكرتي';
+
+  @override
+  String get evtTicketLoadFailed => 'تعذّر تحميل التذكرة.';
+
+  @override
+  String get evtTicketOffline => 'أنت غير متصل: تُعرض آخر تذكرة شوهدت.';
+
+  @override
+  String get evtTicketOrganizer => 'المنظّم';
+
+  @override
+  String get evtTicketHolder => 'صاحب التذكرة';
+
+  @override
+  String get evtTicketAddWallet => 'إضافة إلى المحفظة';
+
+  @override
+  String get evtTicketWalletSoon => 'الإضافة إلى المحفظة قريباً.';
+
+  @override
+  String get evtTicketPrivacyNote =>
+      'هذه التذكرة شخصية. لا تشاركها ولا ترسل لقطة شاشة لها للآخرين.';
+
+  @override
+  String get evtTicketCancelled => 'أُلغيت هذه الفعالية؛ التذكرة غير صالحة.';
+
+  @override
+  String get evtTicketEnded =>
+      'انتهت هذه الفعالية؛ لم تعد التذكرة صالحة للاستخدام.';
+
+  @override
+  String get evtTicketQrUnavailable => 'تعذّر تحميل رمز QR الآن. حاول لاحقاً.';
+
+  @override
+  String get evtTicketQrNotOpen => 'يظهر رمز QR هنا عند فتح تسجيل الحضور.';
+
+  @override
+  String get evtTicketQrMaybeExpired =>
+      'قد تكون صلاحية هذا الرمز انتهت. يتجدد عند عودة الاتصال.';
 }

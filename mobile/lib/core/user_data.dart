@@ -8,6 +8,7 @@ import '../features/auth/help/public_support_api.dart' show TrackTokenStore;
 import '../features/chat/chat_wallpaper.dart';
 import '../features/chat/photo_autosave.dart';
 import '../features/chat/recent_reactions.dart';
+import '../features/events/event_ticket_store.dart';
 import '../features/forum/data/forum_draft_store.dart';
 import '../features/posts/post_draft_store.dart';
 import '../features/forum/data/forum_recent_searches.dart';
@@ -48,6 +49,7 @@ void registerUserDataCleaners(ApiClient api) {
     ..add(AlarmService.clearUserData) // ertelenmiş sınav alarmları + hatırlatmaları + iOS alarm bildirimleri
     ..add(LanguageSync.clear) // son eşitlenen profil dili
     ..add(ChatBackgroundPrefs.clear) // sohbet arka planı tercihi (Desen/Hafif/Orta/Düz)
+    ..add(EventTicketStore.clear) // son görülen etkinlik biletleri (çevrimdışı gösterim; hesap bazlı)
     ..add(RecentReactions.clear) // hesaba ozel son alti tepki
     ..add(_clearRemovedMapData) // kaldırılan harita özelliğinin eski sürümlerden kalan yerel verisi
     ..add(WidgetSyncService.clearUserData) // ana ekran widget snapshot'ları + kısayol sırası (widget "Giriş yap" durumuna döner)

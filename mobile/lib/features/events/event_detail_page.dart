@@ -18,6 +18,7 @@ import 'etkinlik2_apply_sheet.dart';
 import 'etkinlik2_attendance_page.dart';
 import 'etkinlik3_moderators_page.dart';
 import 'etkinlik3_my_qr_page.dart';
+import 'event_ticket_page.dart';
 import 'etkinlik3_scan_page.dart';
 import 'etkinlik2_requests_page.dart';
 import 'etkinlik2_settings_page.dart';
@@ -467,6 +468,13 @@ class _EventDetailPageState extends State<EventDetailPage> {
         ),
         if (rows.isEmpty) Padding(padding: const EdgeInsets.all(16), child: Text(l.evtModManageNone, style: tx.bodyMedium!.copyWith(color: t.mut))) else ...rows,
       ]),
+    );
+  }
+
+  Future<void> _openTicket() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(settings: const RouteSettings(name: 'event_ticket'), builder: (_) => EventTicketPage(session: widget.session, event: _ev!)),
     );
   }
 
@@ -991,6 +999,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
       cover0,
       // Yoklama durumu (Stitch v3 04): kapağın hemen altında yeşil not; durum değişince solarak yer değiştirir.
       if (rsvp == 'GOING' && !cancelled && !_manage && !_isMod) _pad(BuFadeThrough(duration: BuMotion.short, child: _attendanceBlock()), top: 16),
+      if (rsvp == 'GOING' && !cancelled && !_manage && !_isMod)
+        _pad(BuButton(key: const ValueKey('detail-ticket'), label: l.evtTicketOpen, icon: BuIcons.qrCode, kind: BuButtonKind.outline, onPressed: _openTicket), top: 12),
       _pad(
         Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           if (who.isNotEmpty)
