@@ -383,8 +383,17 @@ class PostCommentServiceTest {
         service.unlike(b.getId(), c.id());
         service.like(b.getId(), c.id()); // geri alip tekrar: yeni bildirim yok
         assertEquals(1, jdbc.queryForObject(sql, Integer.class, a.getId()));
+        // baska kisi ayni pencerede: yeni satir degil, ayni satir birlesir (grup sayaci 2, govde "ve 1 kisi")
         service.like(author.getId(), c.id());
-        assertEquals(2, jdbc.queryForObject(sql, Integer.class, a.getId()));
+        assertEquals(1, jdbc.queryForObject(sql, Integer.class, a.getId()));
+        assertEquals(2, jdbc.queryForObject(
+                "SELECT group_count FROM notification WHERE user_id = ? AND type = 'COMMENT_LIKE'", Integer.class, a.getId()));
+        String body = jdbc.queryForObject(
+                "SELECT body FROM notification WHERE user_id = ? AND type = 'COMMENT_LIKE'", String.class, a.getId());
+        assertTrue(body.contains("1"), body);
+        String data = jdbc.queryForObject(
+                "SELECT data FROM notification WHERE user_id = ? AND type = 'COMMENT_LIKE'", String.class, a.getId());
+        assertTrue(data.contains("\"commentId\""), data);
     }
 
     // ---------------------------------------------------------------- moderasyon (rapor + yonetici)
