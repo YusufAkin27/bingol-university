@@ -19,3 +19,17 @@
 "widget.exams.desc" = "يعرض امتحاناتك القادمة وتواريخها.";
 "widget.academic.name" = "التقويم الأكاديمي";
 "widget.academic.desc" = "يعرض المواعيد الأكاديمية المهمة القادمة.";
+"widget.quickaccess.shortcut" = "اختصار";
+"widget.quickaccess.q.menu" = "الطعام";
+"widget.quickaccess.q.timetable" = "الجدول";
+"widget.quickaccess.q.events" = "الفعاليات";
+"widget.quickaccess.q.clubs" = "الأندية";
+"widget.quickaccess.q.chat" = "المحادثات";
+"widget.quickaccess.q.qr" = "رمز QR";
+"widget.quickaccess.q.news" = "الأخبار";
+"widget.quickaccess.q.search" = "بحث";
+"widget.quickaccess.configure.title" = "اختيار الاختصارات";
+"widget.quickaccess.configure.desc" = "اختر الاختصارات المعروضة في الودجت.";
+"widget.quickaccess.shortcuts" = "الاختصارات";
+"widget.quickaccess.picker.name" = "وصول سريع (قابل للتخصيص)";
+"widget.quickaccess.picker.desc" = "اختر اختصاراتك ورتبها.";
