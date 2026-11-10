@@ -494,7 +494,7 @@ services:
       retries: 10
 
   redis:
-    image: redis:7-alpine
+    image: redis:8-alpine
     restart: unless-stopped
     <<: *hardening
     # AOF verisi redis kullanicisina ait; root taramasi ve ek capability gerekmez.
