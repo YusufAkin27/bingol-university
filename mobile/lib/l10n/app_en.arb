@@ -5154,5 +5154,19 @@
   "profileQrGallery": "Choose from gallery",
   "profileQrGalleryNone": "No QR code found in the image.",
   "profileQrMyProfile": "That is your own code, opening your profile.",
-  "profileQrFindMe": "Find me on BÜ Kampüs"
+  "profileQrFindMe": "Find me on BÜ Kampüs",
+  "evtTicketTitle": "My ticket",
+  "evtTicketOpen": "My ticket",
+  "evtTicketLoadFailed": "Couldn't load the ticket.",
+  "evtTicketOffline": "You are offline: showing the last seen ticket.",
+  "evtTicketOrganizer": "Organizer",
+  "evtTicketHolder": "Ticket holder",
+  "evtTicketAddWallet": "Add to Wallet",
+  "evtTicketWalletSoon": "Adding to Wallet is coming soon.",
+  "evtTicketPrivacyNote": "This ticket is personal. Do not share it or send a screenshot to others.",
+  "evtTicketCancelled": "This event was cancelled; the ticket is void.",
+  "evtTicketEnded": "This event has ended; the ticket can no longer be used.",
+  "evtTicketQrUnavailable": "The QR code couldn't be loaded right now. Try again later.",
+  "evtTicketQrNotOpen": "Your QR code appears here when attendance opens.",
+  "evtTicketQrMaybeExpired": "This code may have expired. It refreshes when you are back online."
 }

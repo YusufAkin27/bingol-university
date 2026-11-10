@@ -7615,5 +7615,19 @@
   "profileQrGallery": "Galeriden seç",
   "profileQrGalleryNone": "Görselde QR kod bulunamadı.",
   "profileQrMyProfile": "Bu senin kodun, profiline gidiliyor.",
-  "profileQrFindMe": "Beni BÜ Kampüs’te bul"
+  "profileQrFindMe": "Beni BÜ Kampüs’te bul",
+  "evtTicketTitle": "Biletim",
+  "evtTicketOpen": "Biletim",
+  "evtTicketLoadFailed": "Bilet yüklenemedi.",
+  "evtTicketOffline": "Çevrimdışısın: son görülen bilet gösteriliyor.",
+  "evtTicketOrganizer": "Düzenleyen",
+  "evtTicketHolder": "Bilet sahibi",
+  "evtTicketAddWallet": "Cüzdana ekle",
+  "evtTicketWalletSoon": "Cüzdana ekleme yakında.",
+  "evtTicketPrivacyNote": "Bu bilet sana özeldir; paylaşma ve ekran görüntüsünü başkalarına gönderme.",
+  "evtTicketCancelled": "Bu etkinlik iptal edildi; bilet geçersiz.",
+  "evtTicketEnded": "Bu etkinlik sona erdi; bilet artık kullanılamaz.",
+  "evtTicketQrUnavailable": "QR kodu şu an alınamadı. Daha sonra tekrar dene.",
+  "evtTicketQrNotOpen": "QR kodun, yoklama açıldığında burada görünür.",
+  "evtTicketQrMaybeExpired": "Bu kodun süresi dolmuş olabilir. Bağlanınca yenilenir."
 }

@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -668,7 +669,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown) {
+    String type,
+    String title,
+    String date,
+    String countdown,
+  ) {
     return '$type: $title. $date. $countdown. المس للتعديل.';
   }
 
@@ -986,7 +991,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end) {
+    String name,
+    String day,
+    String start,
+    String end,
+  ) {
     return '$name، $day من $start إلى $end';
   }
 
@@ -14207,4 +14216,49 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get profileQrFindMe => 'ابحث عني في BÜ Kampüs';
+
+  @override
+  String get evtTicketTitle => 'تذكرتي';
+
+  @override
+  String get evtTicketOpen => 'تذكرتي';
+
+  @override
+  String get evtTicketLoadFailed => 'تعذّر تحميل التذكرة.';
+
+  @override
+  String get evtTicketOffline => 'أنت غير متصل: تُعرض آخر تذكرة شوهدت.';
+
+  @override
+  String get evtTicketOrganizer => 'المنظّم';
+
+  @override
+  String get evtTicketHolder => 'صاحب التذكرة';
+
+  @override
+  String get evtTicketAddWallet => 'إضافة إلى المحفظة';
+
+  @override
+  String get evtTicketWalletSoon => 'الإضافة إلى المحفظة قريباً.';
+
+  @override
+  String get evtTicketPrivacyNote =>
+      'هذه التذكرة شخصية. لا تشاركها ولا ترسل لقطة شاشة لها للآخرين.';
+
+  @override
+  String get evtTicketCancelled => 'أُلغيت هذه الفعالية؛ التذكرة غير صالحة.';
+
+  @override
+  String get evtTicketEnded =>
+      'انتهت هذه الفعالية؛ لم تعد التذكرة صالحة للاستخدام.';
+
+  @override
+  String get evtTicketQrUnavailable => 'تعذّر تحميل رمز QR الآن. حاول لاحقاً.';
+
+  @override
+  String get evtTicketQrNotOpen => 'يظهر رمز QR هنا عند فتح تسجيل الحضور.';
+
+  @override
+  String get evtTicketQrMaybeExpired =>
+      'قد تكون صلاحية هذا الرمز انتهت. يتجدد عند عودة الاتصال.';
 }

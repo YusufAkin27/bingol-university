@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -668,7 +669,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown) {
+    String type,
+    String title,
+    String date,
+    String countdown,
+  ) {
     return '$type: $title. $date. $countdown. Düzenlemek için dokun.';
   }
 
@@ -986,7 +991,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end) {
+    String name,
+    String day,
+    String start,
+    String end,
+  ) {
     return '$name, $day $start ile $end arası';
   }
 
@@ -14265,4 +14274,52 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get profileQrFindMe => 'Beni BÜ Kampüs’te bul';
+
+  @override
+  String get evtTicketTitle => 'Biletim';
+
+  @override
+  String get evtTicketOpen => 'Biletim';
+
+  @override
+  String get evtTicketLoadFailed => 'Bilet yüklenemedi.';
+
+  @override
+  String get evtTicketOffline =>
+      'Çevrimdışısın: son görülen bilet gösteriliyor.';
+
+  @override
+  String get evtTicketOrganizer => 'Düzenleyen';
+
+  @override
+  String get evtTicketHolder => 'Bilet sahibi';
+
+  @override
+  String get evtTicketAddWallet => 'Cüzdana ekle';
+
+  @override
+  String get evtTicketWalletSoon => 'Cüzdana ekleme yakında.';
+
+  @override
+  String get evtTicketPrivacyNote =>
+      'Bu bilet sana özeldir; paylaşma ve ekran görüntüsünü başkalarına gönderme.';
+
+  @override
+  String get evtTicketCancelled => 'Bu etkinlik iptal edildi; bilet geçersiz.';
+
+  @override
+  String get evtTicketEnded =>
+      'Bu etkinlik sona erdi; bilet artık kullanılamaz.';
+
+  @override
+  String get evtTicketQrUnavailable =>
+      'QR kodu şu an alınamadı. Daha sonra tekrar dene.';
+
+  @override
+  String get evtTicketQrNotOpen =>
+      'QR kodun, yoklama açıldığında burada görünür.';
+
+  @override
+  String get evtTicketQrMaybeExpired =>
+      'Bu kodun süresi dolmuş olabilir. Bağlanınca yenilenir.';
 }
