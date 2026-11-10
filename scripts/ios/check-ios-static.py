@@ -177,10 +177,15 @@ def check_entitlements():
             ok(f'{name}: aps-environment={env}')
         else:
             bad(f'{name}: aps-environment={env} olmali')
-        # time-sensitive ve associated-domains yetkileri KASITLI olarak YOK: App ID'de (developer.apple.com) bu iki yetenek
-        # acilip profil yenilenmeden imza hatasi verir (Codemagic: "Provisioning profile ... doesn't include ...").
-        # Acilinca geri eklenir (bkz. docs/IOS_RELEASE.md). Yokken bildirim normal duzeyde teslim edilir (kod uyumlu).
-        for key in ('com.apple.developer.usernotifications.time-sensitive', 'com.apple.developer.associated-domains'):
+        # time-sensitive yetkisi KASITLI olarak YOK (App ID'de acilip profil yenilenmeden imza hatasi verir).
+        # associated-domains (applinks:bukampus.com.tr) I1 ile eklendi: profil o yetenekle yenilenmeden BU DAL
+        # birlestirilmemeli (Codemagic: "Provisioning profile ... doesn't include ..."). Yalniz alan adi dogrulanir.
+        ad = d.get('com.apple.developer.associated-domains')
+        if ad == ['applinks:bukampus.com.tr']:
+            ok(f'{name}: associated-domains = applinks:bukampus.com.tr')
+        else:
+            bad(f'{name}: associated-domains [applinks:bukampus.com.tr] olmali')
+        for key in ('com.apple.developer.usernotifications.time-sensitive',):
             if key in d:
                 bad(f'{name}: {key} App ID yetkisi acilmadan eklenmemeli (imza hatasi)')
             else:

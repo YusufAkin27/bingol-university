@@ -36,6 +36,15 @@ import UserNotifications
     super.userNotificationCenter(center, didReceive: response, withCompletionHandler: completionHandler)
   }
 
+  // Arka plan yukleme (BuBackgroundUploads): sistem uygulamayi URLSession olaylari icin uyandirdiginda.
+  override func application(
+    _ application: UIApplication,
+    handleEventsForBackgroundURLSession identifier: String,
+    completionHandler: @escaping () -> Void
+  ) {
+    BuBackgroundUploads.handleEvents(identifier: identifier, completion: completionHandler)
+  }
+
   private func registerPushCategories() {
     let lang = Locale.preferredLanguages.first ?? "tr"
     func label(_ tr: String, _ en: String, _ ar: String) -> String {

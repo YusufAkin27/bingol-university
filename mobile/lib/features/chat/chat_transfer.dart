@@ -5,6 +5,7 @@ import '../../core/platform/image_service.dart';
 import '../../core/platform/video_service.dart';
 import '../../core/session.dart';
 import '../../core/transfers/chat_media_executor.dart';
+import '../../core/transfers/ios_background_upload.dart';
 import '../../core/transfers/transfer_hub.dart';
 import '../../core/transfers/transfer_job.dart';
 import '../../core/transfers/transfer_queue.dart';
@@ -51,7 +52,8 @@ class ChatTransfers {
     _registered = true;
     TransferHub.instance.addExecutor(
       TransferKind.chatMedia,
-      (session) => ChatMediaTransferExecutor(session, (job, aid) => finalize(session, job, aid)),
+      (session) => ChatMediaTransferExecutor(session, (job, aid) => finalize(session, job, aid),
+          background: IosBackgroundUploader.shared),
     );
   }
 

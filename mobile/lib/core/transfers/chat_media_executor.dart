@@ -1,9 +1,11 @@
 import 'dart:io';
 
+import '../api.dart' show apiBase;
 import '../platform/image_service.dart';
 import '../platform/video_service.dart';
 import '../session.dart';
 import 'transfer_executor.dart';
+import 'ios_background_upload.dart';
 import 'transfer_job.dart';
 
 /// Sohbet mesajını sunucuda tamamlar (G4 yazar): yüklenen ek kimliğiyle mesajı gönderir ve SUNUCUDAN dönen mesaj
@@ -17,7 +19,7 @@ typedef ChatMessageFinalizer = Future<String> Function(TransferJob job, int atta
 /// Aşama 2: [finalize] mesajı gönderir. "Yayımlandı" yalnız [finalize] sunucu sonucuyla dönünce olur.
 /// İş meta alanları: `conversationId` (zorunlu), `durationMs`, `width`, `height`, `posterPath`.
 class ChatMediaTransferExecutor extends TransferExecutor {
-  ChatMediaTransferExecutor(this.session, this.finalize, {MultipartUploader? images, VideoUploader? videos})
+  ChatMediaTransferExecutor(this.session, this.finalize, {MultipartUploader? images, VideoUploader? videos, this.background})
       : _images = images ?? MultipartUploader(session),
         _videos = videos ?? VideoUploader(session);
 
@@ -25,6 +27,9 @@ class ChatMediaTransferExecutor extends TransferExecutor {
   final ChatMessageFinalizer finalize;
   final MultipartUploader _images;
   final VideoUploader _videos;
+
+  /// iOS arka plan yükleme (yalnız FOTOĞRAF; video ön planda kalır). null ise ön plan Dart http.
+  final IosBackgroundUploader? background;
 
   static int? _conv(TransferJob j) => (j.meta['conversationId'] as num?)?.toInt();
 
@@ -53,6 +58,34 @@ class ChatMediaTransferExecutor extends TransferExecutor {
           );
           res = await _videos.upload(path, pv,
               headers: headers, onProgress: (f) => ctx.progress((f * size).round(), size));
+        } else if (background != null) {
+          // Sıkıştırma ön planda yapılır; hazır bayt iş dizinine yazılır, URLSession dosyadan gönderir (arka planda sürer).
+          final ready = await ImageService().prepareForUpload(path, PreparedImage(await file.readAsBytes(), job.mime));
+          final out = File('${file.path}.bgup');
+          await out.writeAsBytes(ready.bytes, flush: true);
+          final api = session.api;
+          final t = api.tokens;
+          try {
+            res = await background!.upload(
+              taskKey: job.id,
+              url: '$apiBase$path',
+              filePath: out.path,
+              fileName: ready.fileName,
+              mime: ready.mime,
+              headers: {
+                ...headers,
+                'Accept': 'application/json',
+                'Accept-Language': api.lang,
+                if (t != null) 'Authorization': 'Bearer ${t.access}',
+              },
+              onProgress: (sent, total) => ctx.progress(sent, total),
+            );
+          } finally {
+            try {
+              await out.delete();
+            } catch (_) {}
+          }
+          ctx.progress(size, size);
         } else {
           res = await _images.upload(path, PreparedImage(await file.readAsBytes(), job.mime), headers: headers);
           ctx.progress(size, size);
