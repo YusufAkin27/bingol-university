@@ -14376,4 +14376,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileQrFindMe => 'Find me on BÜ Kampüs';
+
+  @override
+  String get commentFocusMissing =>
+      'This comment may no longer exist or was deleted.';
 }

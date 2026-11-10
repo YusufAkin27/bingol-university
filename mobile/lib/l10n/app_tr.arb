@@ -7630,5 +7630,7 @@
   "profileQrGallery": "Galeriden seç",
   "profileQrGalleryNone": "Görselde QR kod bulunamadı.",
   "profileQrMyProfile": "Bu senin kodun, profiline gidiliyor.",
-  "profileQrFindMe": "Beni BÜ Kampüs’te bul"
+  "profileQrFindMe": "Beni BÜ Kampüs’te bul",
+  "commentFocusMissing": "Bu yorum artık yok ya da silinmiş olabilir.",
+  "@commentFocusMissing": {"description": "Bildirimden açılan yorum bulunamadığında panel uyarısı"}
 }

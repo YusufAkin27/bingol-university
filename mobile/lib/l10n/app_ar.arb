@@ -5169,5 +5169,6 @@
   "profileQrGallery": "اختيار من المعرض",
   "profileQrGalleryNone": "لم يتم العثور على رمز QR في الصورة.",
   "profileQrMyProfile": "هذا رمزك، سيتم فتح ملفك الشخصي.",
-  "profileQrFindMe": "ابحث عني في BÜ Kampüs"
+  "profileQrFindMe": "ابحث عني في BÜ Kampüs",
+  "commentFocusMissing": "ربما لم يعد هذا التعليق موجودًا أو تم حذفه."
 }

@@ -25741,6 +25741,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Beni BÜ Kampüs’te bul'**
   String get profileQrFindMe;
+
+  /// Bildirimden açılan yorum bulunamadığında panel uyarısı
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yorum artık yok ya da silinmiş olabilir.'**
+  String get commentFocusMissing;
 }
 
 class _AppLocalizationsDelegate

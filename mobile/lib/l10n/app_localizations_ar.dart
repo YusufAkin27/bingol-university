@@ -14260,4 +14260,8 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get profileQrFindMe => 'ابحث عني في BÜ Kampüs';
+
+  @override
+  String get commentFocusMissing =>
+      'ربما لم يعد هذا التعليق موجودًا أو تم حذفه.';
 }

@@ -106,6 +106,7 @@ class _CommentSheetState extends State<CommentSheet> {
   Timer? _noticeTimer;
   Timer? _hlTimer;
   int? _scrolledTo;
+  bool _missingShown = false;
   late bool _disabled = widget.commentsDisabled;
 
   @override
@@ -145,6 +146,10 @@ class _CommentSheetState extends State<CommentSheet> {
   void _onChange() {
     if (!mounted) return;
     setState(() {});
+    if (_c.focusNotFound && !_missingShown) {
+      _missingShown = true;
+      _showNotice(context.l10n.commentFocusMissing, error: true);
+    }
     final id = _c.highlightId;
     if (id != null && _scrolledTo != id) {
       _scrolledTo = id;

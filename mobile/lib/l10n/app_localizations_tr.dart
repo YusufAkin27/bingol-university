@@ -14319,4 +14319,8 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get profileQrFindMe => 'Beni BÜ Kampüs’te bul';
+
+  @override
+  String get commentFocusMissing =>
+      'Bu yorum artık yok ya da silinmiş olabilir.';
 }
