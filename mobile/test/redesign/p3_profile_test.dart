@@ -175,6 +175,8 @@ void main() {
       await _open(tester, ProfileTab(session: makeSession(_backend()), themeController: ThemeController()));
       await tester.tap(find.byKey(const ValueKey('profile-menu-button')));
       await settle(tester, const Duration(seconds: 1));
+      await tester.ensureVisible(find.widgetWithText(ProfilRow, 'Ayarlar'));
+      await settle(tester, const Duration(milliseconds: 300));
       await tester.tap(find.widgetWithText(ProfilRow, 'Ayarlar'));
       await settle(tester, const Duration(seconds: 1));
       expect(find.byType(SettingsPage), findsOneWidget);
