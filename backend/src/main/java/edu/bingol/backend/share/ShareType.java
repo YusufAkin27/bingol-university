@@ -10,7 +10,9 @@ import java.util.Locale;
 public enum ShareType {
     POST("p"), REEL("r"), NEWS("n"), EVENT("e"),
     // Kampus Forum (E): konu `/s/f/{konuId}`, yorum `/s/fc/{yorumId}` (kod tek harfle sinirli degil)
-    FORUM_TOPIC("f"), FORUM_COMMENT("fc");
+    FORUM_TOPIC("f"), FORUM_COMMENT("fc"),
+    // Kullanici profili: `/s/u/{kullaniciId}` (herkese acik sayfa HER ZAMAN notrdur; kart goruntuleyene gore)
+    USER("u");
 
     private final String code;
 
@@ -47,6 +49,10 @@ public enum ShareType {
             }
         }
         return null;
+    }
+
+    public boolean isUser() {
+        return this == USER;
     }
 
     public boolean isPost() {

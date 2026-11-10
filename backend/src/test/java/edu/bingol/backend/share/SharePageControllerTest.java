@@ -239,4 +239,20 @@ class SharePageControllerTest {
         assertEquals(404, call("/s/n/5/img", null).getStatus()); // haber gorseli bu uctan sunulmaz
         assertEquals(404, call("/s/p/abc/img", null).getStatus());
     }
+
+    @Test
+    void profileLinkIsAlwaysTheSameNeutralPageAndNeverResolvesTheUser() throws Exception {
+        MockHttpServletResponse existing = call("/s/u/7", "tr");
+        MockHttpServletResponse missing = call("/s/u/999999", "tr");
+        String a = body(existing).replace("/s/u/7", "/s/u/X").replace("u/7", "u/X");
+        String b = body(missing).replace("/s/u/999999", "/s/u/X").replace("u/999999", "u/X");
+
+        assertEquals(200, existing.getStatus());
+        assertEquals(200, missing.getStatus());
+        assertEquals(a, b); // var/yok/gizli/engelli ayrimi sayfadan anlasilmaz
+        assertTrue(a.contains("BÜ Kampüs profili"));
+        assertTrue(a.contains("bukampus://s/u/X"));
+        assertEquals("noindex, nofollow", existing.getHeader("X-Robots-Tag"));
+        verify(shares, never()).publicView(any());
+    }
 }

@@ -14,6 +14,7 @@ import edu.bingol.backend.post.PostRepository;
 import edu.bingol.backend.post.follow.PrivateAccountGate;
 import edu.bingol.backend.post.media.PostMedia;
 import edu.bingol.backend.post.media.PostMediaRepository;
+import edu.bingol.backend.profile.privacy.AvatarVisibility;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
 import edu.bingol.backend.user.UserStatus;
@@ -191,12 +192,14 @@ public class ShareService {
         List<ShareRef> newsRefs = new ArrayList<>();
         List<ShareRef> eventRefs = new ArrayList<>();
         List<ShareRef> forumRefs = new ArrayList<>();
+        List<ShareRef> userRefs = new ArrayList<>();
         for (ShareRef r : refs) {
             switch (r.type()) {
                 case POST, REEL -> postRefs.add(r);
                 case NEWS -> newsRefs.add(r);
                 case EVENT -> eventRefs.add(r);
                 case FORUM_TOPIC, FORUM_COMMENT -> forumRefs.add(r);
+                case USER -> userRefs.add(r);
             }
         }
         if (!forumRefs.isEmpty() && forumResolver != null) {
@@ -205,7 +208,54 @@ public class ShareService {
         resolveNews(newsRefs, out);
         resolvePosts(viewerId, postRefs, out);
         resolveEvents(viewerId, eventRefs, out);
+        resolveUsers(viewerId, userRefs, out);
         return out;
+    }
+
+    /** Avatar gorunurlugu (profil gizliligi; yoksa avatar hic gonderilmez). */
+    private AvatarVisibility avatarVisibility;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setAvatarVisibility(AvatarVisibility avatarVisibility) {
+        this.avatarVisibility = avatarVisibility;
+    }
+
+    /**
+     * Profil karti: YALNIZ giris yapmis goruntuleyene (anonim = hicbir sey; herkese acik sayfa zaten notrdur).
+     * Gorunmez: yok/askida/silinmis hesap ve iki yonlu engel. Gizli hesap profil basligi (ad, kullanici adi, avatar)
+     * zaten her uyeye gorunur; icerik kilidi profil ekraninda takip istegi akisiyla surer. Ad/@kullanici adi disinda
+     * hicbir alan (e-posta, bolum, biyografi) karta girmez.
+     */
+    private void resolveUsers(Long viewerId, List<ShareRef> refs, Map<ShareRef, Resolved> out) {
+        if (refs.isEmpty() || viewerId == null) {
+            return;
+        }
+        Map<Long, User> byId = users.findAllById(ids(refs)).stream()
+                .collect(Collectors.toMap(User::getId, u -> u, (a, b) -> a));
+        Set<Long> related = blocks.hiddenFrom(viewerId);
+        Set<Long> avatarOk = Set.of();
+        if (avatarVisibility != null && !byId.isEmpty()) {
+            try {
+                avatarOk = avatarVisibility.visibleOwners(viewerId, byId.keySet(), AvatarVisibility.Field.AVATAR);
+            } catch (RuntimeException e) {
+                avatarOk = Set.of(); // karar verilemezse avatar gonderilmez
+            }
+        }
+        for (ShareRef r : refs) {
+            User u = byId.get(r.id());
+            if (u == null || u.getStatus() != UserStatus.ACTIVE || u.getDisplayName() == null
+                    || u.getDisplayName().isBlank()) {
+                continue;
+            }
+            boolean self = viewerId.equals(u.getId());
+            if (!self && related.contains(u.getId())) {
+                continue;
+            }
+            String uname = u.getUsername() == null || u.getUsername().isBlank() ? null : "@" + u.getUsername().strip();
+            String avatar = u.getAvatarUrl() != null && avatarOk.contains(u.getId()) ? eventImage(u.getAvatarUrl()) : null;
+            out.put(r, new Resolved(r, u.getId(), clip(u.getDisplayName(), TITLE_MAX), uname, null, avatar, null,
+                    null, null, null));
+        }
     }
 
     private void resolveNews(List<ShareRef> refs, Map<ShareRef, Resolved> out) {
