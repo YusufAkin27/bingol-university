@@ -111,6 +111,8 @@ final class BuNativeBridge: NSObject, FlutterPlugin, UNUserNotificationCenterDel
     BuAlarmBridge.register(messenger: messenger)
     // Canli Etkinlik (ActivityKit): BuLiveActivityBridge.swift.
     BuLiveActivityBridge.register(messenger: messenger)
+    // Arka plan yukleme (kalici URLSession): BuBackgroundUploads.swift, kanal bu_kampus/transfers.
+    BuBackgroundUploads.register(messenger: messenger)
     registrar.addApplicationDelegate(instance)
   }
 
