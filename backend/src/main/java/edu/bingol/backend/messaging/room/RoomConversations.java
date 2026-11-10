@@ -106,6 +106,17 @@ public class RoomConversations {
         return addTo(l.getConversationId(), userId, null);
     }
 
+    /** Varsayilan kayit uyeligi: kapali/dolu oda hesap olusturmayi engellemez. */
+    @Transactional
+    public boolean addMemberIfSpace(RoomKind kind, Long refId, Long userId) {
+        ChatRoomLink l = links.findByKindAndRefId(kind, refId).orElse(null);
+        if (l == null || l.isClosed()) return false;
+        convs.lockById(l.getConversationId());
+        if (members.findByConversationIdAndUserIdAndLeftAtIsNull(l.getConversationId(), userId).isPresent()) return true;
+        if (members.countByConversationIdAndLeftAtIsNull(l.getConversationId()) >= maxMembers) return false;
+        return addTo(l.getConversationId(), userId, null);
+    }
+
     /** Birden cok kullaniciyi ekler; dolunca durur. Eklenen/zaten uye olan sayisini doner. */
     @Transactional
     public int addMembers(RoomKind kind, Long refId, Collection<Long> userIds) {

@@ -12,6 +12,10 @@ public interface DepartmentChatRoomRepository extends JpaRepository<DepartmentCh
 
     Optional<DepartmentChatRoom> findByDeptKey(String deptKey);
 
+    @Query("SELECT d FROM DepartmentChatRoom d, ChatRoomLink l WHERE l.refId = d.id "
+            + "AND l.kind = edu.bingol.backend.messaging.room.RoomKind.DEPARTMENT AND l.conversationId = :cid")
+    Optional<DepartmentChatRoom> findByConversationId(@Param("cid") Long conversationId);
+
     java.util.List<DepartmentChatRoom> findAllByOrderByNameAsc(org.springframework.data.domain.Pageable page);
 
     /** Yaristan guvenli ekleme: anahtar varsa 0 doner, hata firlatmaz (cagiran islem rollback-only olmasin). */

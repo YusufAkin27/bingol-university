@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -34,17 +35,24 @@ public class DepartmentChatController {
     }
 
     @PostMapping("/join")
-    public DepartmentChatView join() {
+    public DepartmentChatView join(@RequestParam(required = false) String department) {
         Long me = CurrentUser.id();
         limiter.check("dept-chat:user:" + me, 20, Duration.ofMinutes(10));
-        return chat.join(me);
+        return chat.join(me, department);
+    }
+
+    @GetMapping("/rooms")
+    public java.util.List<DepartmentChatView> browse() {
+        Long me = CurrentUser.id();
+        limiter.check("dept-chat-read:user:" + me, 120, Duration.ofMinutes(1));
+        return chat.browse(me);
     }
 
     @DeleteMapping("/membership")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void leave() {
+    public void leave(@RequestParam(required = false) Long conversationId) {
         Long me = CurrentUser.id();
         limiter.check("dept-chat:user:" + me, 20, Duration.ofMinutes(10));
-        chat.leave(me);
+        chat.leave(me, conversationId);
     }
 }
