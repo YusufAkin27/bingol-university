@@ -40,7 +40,16 @@ class ChatMediaTransferExecutor extends TransferExecutor {
       final size = job.totalBytes ?? await file.length();
       final dynamic res;
       try {
-        if (job.mime.startsWith('video/')) {
+        if (job.mime.startsWith('audio/')) {
+          // Sesli mesaj: m4a/AAC, posteri yok; süre meta'dadır.
+          final pv = PreparedVideo(
+            path: file.path,
+            sizeBytes: size,
+            durationMs: (job.meta['durationMs'] as num?)?.toInt() ?? 0,
+          );
+          res = await _videos.upload(path, pv,
+              headers: headers, audio: true, onProgress: (f) => ctx.progress((f * size).round(), size));
+        } else if (job.mime.startsWith('video/')) {
           final posterPath = job.meta['posterPath'] as String?;
           final poster = posterPath != null && File(posterPath).existsSync() ? await File(posterPath).readAsBytes() : null;
           final pv = PreparedVideo(

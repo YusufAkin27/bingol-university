@@ -14322,4 +14322,56 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileQrFindMe => 'Find me on BÜ Kampüs';
+
+  @override
+  String get chatVoiceMic => 'Record voice message';
+
+  @override
+  String get chatVoiceHold => 'Hold the microphone to record';
+
+  @override
+  String get chatVoiceSlideCancel => 'Slide to cancel';
+
+  @override
+  String get chatVoiceStopSend => 'Stop and send recording';
+
+  @override
+  String get chatVoiceCancel => 'Cancel recording';
+
+  @override
+  String get chatVoiceMessage => 'Voice message';
+
+  @override
+  String get chatVoicePlay => 'Play';
+
+  @override
+  String get chatVoicePause => 'Pause';
+
+  @override
+  String get chatVoiceInterrupted => 'Recording interrupted';
+
+  @override
+  String get chatVoiceFailed => 'Could not play the voice message';
+
+  @override
+  String get chatVoiceLimit =>
+      'Voice messages can be at most 5 minutes; the recording was sent.';
+
+  @override
+  String get chatVoiceNoMic => 'Could not start the microphone';
+
+  @override
+  String chatVoiceSemantics(String duration, String state) {
+    return 'Voice message, $duration, $state';
+  }
+
+  @override
+  String chatVoiceRecording(String time) {
+    return 'Recording $time';
+  }
+
+  @override
+  String chatVoiceSpeed(String speed) {
+    return 'Playback speed $speed';
+  }
 }

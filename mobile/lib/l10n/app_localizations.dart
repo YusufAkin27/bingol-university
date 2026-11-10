@@ -25655,6 +25655,96 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Beni BÜ Kampüs’te bul'**
   String get profileQrFindMe;
+
+  /// No description provided for @chatVoiceMic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sesli mesaj kaydet'**
+  String get chatVoiceMic;
+
+  /// No description provided for @chatVoiceHold.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydetmek için mikrofona basılı tutun'**
+  String get chatVoiceHold;
+
+  /// No description provided for @chatVoiceSlideCancel.
+  ///
+  /// In tr, this message translates to:
+  /// **'İptal için kaydır'**
+  String get chatVoiceSlideCancel;
+
+  /// No description provided for @chatVoiceStopSend.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydı bitir ve gönder'**
+  String get chatVoiceStopSend;
+
+  /// No description provided for @chatVoiceCancel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydı iptal et'**
+  String get chatVoiceCancel;
+
+  /// No description provided for @chatVoiceMessage.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sesli mesaj'**
+  String get chatVoiceMessage;
+
+  /// No description provided for @chatVoicePlay.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oynat'**
+  String get chatVoicePlay;
+
+  /// No description provided for @chatVoicePause.
+  ///
+  /// In tr, this message translates to:
+  /// **'Duraklat'**
+  String get chatVoicePause;
+
+  /// No description provided for @chatVoiceInterrupted.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kayıt kesildi'**
+  String get chatVoiceInterrupted;
+
+  /// No description provided for @chatVoiceFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sesli mesaj oynatılamadı'**
+  String get chatVoiceFailed;
+
+  /// No description provided for @chatVoiceLimit.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sesli mesaj en fazla 5 dakika olabilir; kayıt gönderildi.'**
+  String get chatVoiceLimit;
+
+  /// No description provided for @chatVoiceNoMic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mikrofon başlatılamadı'**
+  String get chatVoiceNoMic;
+
+  /// No description provided for @chatVoiceSemantics.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sesli mesaj, {duration}, {state}'**
+  String chatVoiceSemantics(String duration, String state);
+
+  /// No description provided for @chatVoiceRecording.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydediliyor {time}'**
+  String chatVoiceRecording(String time);
+
+  /// No description provided for @chatVoiceSpeed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oynatma hızı {speed}'**
+  String chatVoiceSpeed(String speed);
 }
 
 class _AppLocalizationsDelegate

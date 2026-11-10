@@ -14265,4 +14265,56 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get profileQrFindMe => 'Beni BÜ Kampüs’te bul';
+
+  @override
+  String get chatVoiceMic => 'Sesli mesaj kaydet';
+
+  @override
+  String get chatVoiceHold => 'Kaydetmek için mikrofona basılı tutun';
+
+  @override
+  String get chatVoiceSlideCancel => 'İptal için kaydır';
+
+  @override
+  String get chatVoiceStopSend => 'Kaydı bitir ve gönder';
+
+  @override
+  String get chatVoiceCancel => 'Kaydı iptal et';
+
+  @override
+  String get chatVoiceMessage => 'Sesli mesaj';
+
+  @override
+  String get chatVoicePlay => 'Oynat';
+
+  @override
+  String get chatVoicePause => 'Duraklat';
+
+  @override
+  String get chatVoiceInterrupted => 'Kayıt kesildi';
+
+  @override
+  String get chatVoiceFailed => 'Sesli mesaj oynatılamadı';
+
+  @override
+  String get chatVoiceLimit =>
+      'Sesli mesaj en fazla 5 dakika olabilir; kayıt gönderildi.';
+
+  @override
+  String get chatVoiceNoMic => 'Mikrofon başlatılamadı';
+
+  @override
+  String chatVoiceSemantics(String duration, String state) {
+    return 'Sesli mesaj, $duration, $state';
+  }
+
+  @override
+  String chatVoiceRecording(String time) {
+    return 'Kaydediliyor $time';
+  }
+
+  @override
+  String chatVoiceSpeed(String speed) {
+    return 'Oynatma hızı $speed';
+  }
 }

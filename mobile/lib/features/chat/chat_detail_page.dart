@@ -42,6 +42,7 @@ import 'message_info_page.dart';
 import 'chat_media_viewer.dart';
 import 'chat_security_page.dart';
 import 'chat_video_player.dart';
+import 'chat_voice.dart';
 import 'chat_wallpaper.dart';
 import 'forward_sheet.dart';
 import 'view_once_viewer.dart';
@@ -114,6 +115,7 @@ class ChatDetailPage extends StatefulWidget {
     @visibleForTesting this.ensureAccess,
     @visibleForTesting this.videoControllerFactory,
     @visibleForTesting this.transferQueue,
+    @visibleForTesting this.voiceRecorder,
   });
 
   final Session session;
@@ -144,6 +146,9 @@ class ChatDetailPage extends StatefulWidget {
 
   /// Testlerde sahte oynatıcı denetleyicisi.
   final VideoControllerFactory? videoControllerFactory;
+
+  /// Testlerde sahte sesli mesaj kaydedici (yoksa `record` paketi).
+  final VoiceRecorder? voiceRecorder;
 
   /// Testlerde aktarım kuyruğu (yoksa uygulama genelindeki `TransferHub` kuyruğu).
   final TransferQueue? transferQueue;
@@ -352,6 +357,10 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _voice = VoiceRecordController(recorder: widget.voiceRecorder)
+      ..addListener(_onVoiceChanged)
+      ..onAutoFinished = _onVoiceAutoFinished
+      ..onInterrupted = _onVoiceInterrupted;
     // Yazma alanı odak alınca (klavye açılırken) + menüsü kapanır.
     _focus.addListener(() {
       if (_focus.hasFocus) _closeAttach();
@@ -461,6 +470,20 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   /// Süreç yeniden açılınca kuyruktaki işten yerel balon kurar (önizleme: görsel dosyası ya da video posteri).
   Map<String, dynamic> _bubbleForJob(TransferJob j) {
     final isVideo = j.mime.startsWith('video/');
+    if (j.mime.startsWith('audio/')) {
+      return <String, dynamic>{
+        'id': null,
+        'clientId': j.id,
+        'senderId': _myId,
+        'text': '',
+        'createdAt': j.createdAt.toUtc().toIso8601String(),
+        'replyToMessageId': (j.meta['replyToMessageId'] as num?)?.toInt(),
+        '_state': 'pending',
+        '_transfer': true,
+        '_seq': _seq++,
+        '_voice': {'path': j.localPath, 'durationMs': (j.meta['durationMs'] as num?)?.toInt() ?? 0},
+      };
+    }
     Uint8List? thumb;
     try {
       final path = isVideo ? j.meta['posterPath'] as String? : j.localPath;
@@ -671,6 +694,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   void dispose() {
     if (_conv['id'] is num) ActiveConversation.instance.leave(_cid);
     WidgetsBinding.instance.removeObserver(this);
+    _voice.dispose();
     _timer?.cancel();
     _deliveredTimer?.cancel();
     _typingOff?.cancel();
@@ -1764,6 +1788,71 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       };
 
   /// Planı mesajlara böler (bkz. [planMessages]), öğeleri hazırlar, yerel baloncukları sırayla ekler ve yükler.
+  // ---------- Sesli mesaj (V1) ----------
+
+  late final VoiceRecordController _voice;
+
+  void _onVoiceChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _onVoiceInterrupted() {
+    if (mounted) _notice(context.l10n.chatVoiceInterrupted, SohbetyNoticeKind.warning);
+  }
+
+  void _onVoiceAutoFinished(VoiceClip clip) {
+    if (!mounted) return;
+    _notice(context.l10n.chatVoiceLimit, SohbetyNoticeKind.info);
+    unawaited(_sendVoice(clip));
+  }
+
+  /// Kayıttan önce: izin yoksa açıklayıcı pencere/ayarlar bağlantısı gösterilir (bu basış kayıt başlatmaz).
+  Future<bool> _voiceBeforeStart() async {
+    if (await _voice.hasPermission()) return true;
+    if (!mounted) return false;
+    await (widget.ensureAccess ?? ensurePermission)(context, AppPermission.microphone);
+    return false;
+  }
+
+  /// Biten kaydı G10 kuyruğuna alır; sayfa kapansa da yükleme sürer (video gibi).
+  Future<void> _sendVoice(VoiceClip clip) async {
+    final q = _tq;
+    final l = context.l10n;
+    if (q == null || _myId == null) {
+      _notice(l.chatMiscSendFailed, SohbetyNoticeKind.error);
+      return;
+    }
+    final local = _newLocal('');
+    final cid = '${local['clientId']}';
+    final ok = await ChatTransfers.enqueueVoice(
+      q,
+      ownerUserId: _myId!,
+      conversationId: _cid,
+      clientId: cid,
+      path: clip.path,
+      durationMs: clip.durationMs,
+      replyToMessageId: (local['replyToMessageId'] as num?)?.toInt(),
+    );
+    if (!mounted) return;
+    if (!ok) {
+      _notice(l.chatMiscSendFailed, SohbetyNoticeKind.error);
+      return;
+    }
+    String? stored;
+    for (final j in q.jobsFor(targetKey: ChatTransfers.targetKey(_cid))) {
+      if (j.id == cid) stored = j.localPath;
+    }
+    local
+      ..['_transfer'] = true
+      ..['_voice'] = {'path': stored, 'durationMs': clip.durationMs};
+    setState(() {
+      _msgs.insert(0, local);
+      _replyTo = null;
+    });
+    _scrollToEnd();
+    Analytics.instance.action('send_message', target: 'voice');
+  }
+
   Future<void> _sendPlan(MediaSendPlan plan) async {
     final lc = context.l10n;
     final locals = <Map<String, dynamic>>[];
@@ -3983,6 +4072,15 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           padding: EdgeInsetsDirectional.fromSTEB(
               6, 8, 12, 8 + MediaQuery.paddingOf(context).bottom),
           child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+            if (_voice.recording) ...[
+              const SizedBox(width: 6),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 1),
+                  child: VoiceRecordingBar(controller: _voice),
+                ),
+              ),
+            ] else ...[
             if (_editing == null) ...[
               _plusButton(t),
               const SizedBox(width: 2),
@@ -4025,8 +4123,10 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                 ),
               ),
             ),
-            // Gönder yalnız metin varken görünür (Stitch v3); boşken alan genişler. 150 ms ölçek + solma, basınca küçülür.
+            ],
+            // Gönder yalnız metin varken görünür (Stitch v3); boşken mikrofon (sesli mesaj). 150 ms ölçek + solma.
             AnimatedSwitcher(
+              key: const ValueKey('composerTrailing'),
               duration: BuMotion.of(context, BuMotion.short),
               // Başlangıç opaklığı .4: ilk karede de dokunulabilir ve ekran okuyucuya görünür.
               transitionBuilder: (child, anim) => FadeTransition(
@@ -4035,7 +4135,18 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                       scale: Tween<double>(begin: .6, end: 1).animate(anim),
                       child: child)),
               child: trimmed.isEmpty
-                  ? const SizedBox.shrink(key: ValueKey('noSend'))
+                  ? (_editing != null
+                      ? const SizedBox.shrink(key: ValueKey('noSend'))
+                      : Padding(
+                          key: const ValueKey('micSlot'),
+                          padding: const EdgeInsetsDirectional.only(start: 6),
+                          child: VoiceMicButton(
+                            controller: _voice,
+                            onClip: (c) => unawaited(_sendVoice(c)),
+                            beforeStart: _voiceBeforeStart,
+                            onTooShort: () => _notice(l.chatVoiceHold, SohbetyNoticeKind.info),
+                          ),
+                        ))
                   : Padding(
                       key: const ValueKey('sendSlot'),
                       padding: const EdgeInsetsDirectional.only(start: 6),
