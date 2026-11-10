@@ -130,3 +130,7 @@ silinmis (anonimlestirilmis) hesapta NULL. `ProfileView`/KVKK dis aktarimi bu su
 - `GET /api/users/search` minimum 2 karakter **değişmedi** (istemci sözleşmesi); 2 karakterde tam tarama riski ölçüm gerektirir.
 - Dışa aktarım: `feedback` ve `supportTickets` bölümleri en yeni 5000 kayıtla sınırlı (diğer bölümlerle aynı `MAX_ROWS`).
 - Migration: `V1140` (grade geriye doldurma), `V1141` (hesap silme indeksleri); ayrıntı `docs/changes/academic.md`.
+
+## Profil paylaşımı + QR (2026-11-10)
+- `ShareType.USER` (`/s/u/{id}`): sohbete profil kartı (`MessageView.share`, ad + @kullanıcı adı + avatar, engel/askı/yok hesapta `available=false`), herkese açık nötr profil sayfası, mobilde "Profili paylaş", "QR kodum", "QR tara". Sözleşme ve gizlilik gerekçesi `docs/SHARING.md` bölüm 7. Migration yok; yeni hata kodu yok (`SHARE_TARGET_INVALID` mevcut). Yeni i18n: `share.profile.*`, `share.label.USER`, `share.preview.USER` (tr/en/ar).
+

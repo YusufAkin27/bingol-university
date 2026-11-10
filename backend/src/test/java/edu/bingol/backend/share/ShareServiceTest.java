@@ -28,6 +28,7 @@ import edu.bingol.backend.post.PostRepository;
 import edu.bingol.backend.post.follow.PrivateAccountGate;
 import edu.bingol.backend.post.media.PostMedia;
 import edu.bingol.backend.post.media.PostMediaRepository;
+import edu.bingol.backend.profile.privacy.AvatarVisibility;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
 import edu.bingol.backend.user.UserStatus;
@@ -349,5 +350,84 @@ class ShareServiceTest {
         assertEquals("POST", n.type());
         assertNull(n.title());
         assertNull(n.imageUrl());
+    }
+
+    // --- profil ---
+
+    private User profileUser(long id, UserStatus st) {
+        User u = new User();
+        u.setId(id);
+        u.setDisplayName("Ayse Yilmaz");
+        u.setUsername("ayse");
+        u.setAvatarUrl("/files/avatars/a.jpg");
+        u.setStatus(st);
+        when(users.findAllById(anyCollection())).thenReturn(List.of(u));
+        return u;
+    }
+
+    @Test
+    void profileLinkUsesUserCode() {
+        assertEquals("https://bukampus.com.tr/s/u/5", service.link(new ShareRef(ShareType.USER, 5)));
+        assertEquals(ShareType.USER, ShareType.parse("user"));
+        assertEquals(ShareType.USER, ShareType.ofCode("u"));
+    }
+
+    @Test
+    void activeProfileResolvesForViewerWithNameUsernameAndAvatar() {
+        profileUser(AUTHOR, UserStatus.ACTIVE);
+        ShareRef ref = new ShareRef(ShareType.USER, AUTHOR);
+        AvatarVisibility av = mock(AvatarVisibility.class);
+        when(av.visibleOwners(anyLong(), anyCollection(), any(AvatarVisibility.Field.class))).thenReturn(Set.of(AUTHOR));
+        service.setAvatarVisibility(av);
+
+        ShareCard c = service.cards(VIEWER, List.of(ref)).get(ref);
+
+        assertTrue(c.available());
+        assertEquals("Ayse Yilmaz", c.title());
+        assertEquals("@ayse", c.subtitle());
+        assertEquals("/files/avatars/a.jpg", c.imageUrl());
+        assertEquals("https://bukampus.com.tr/s/u/" + AUTHOR, c.url());
+        assertNotNull(service.requireVisible(VIEWER, "USER", AUTHOR));
+    }
+
+    @Test
+    void profileAvatarIsDroppedWhenPrivacyHidesIt() {
+        profileUser(AUTHOR, UserStatus.ACTIVE);
+        ShareRef ref = new ShareRef(ShareType.USER, AUTHOR);
+        AvatarVisibility av = mock(AvatarVisibility.class);
+        when(av.visibleOwners(anyLong(), anyCollection(), any(AvatarVisibility.Field.class))).thenReturn(Set.of());
+        service.setAvatarVisibility(av);
+
+        ShareCard c = service.cards(VIEWER, List.of(ref)).get(ref);
+
+        assertTrue(c.available());
+        assertNull(c.imageUrl());
+    }
+
+    @Test
+    void blockedSuspendedMissingAndAnonymousProfilesAreUnavailable() {
+        profileUser(AUTHOR, UserStatus.ACTIVE);
+        ShareRef ref = new ShareRef(ShareType.USER, AUTHOR);
+        when(blocks.hiddenFrom(VIEWER)).thenReturn(Set.of(AUTHOR));
+        assertFalse(service.cards(VIEWER, List.of(ref)).get(ref).available());
+        assertThrows(ApiException.class, () -> service.requireVisible(VIEWER, "USER", AUTHOR));
+
+        when(blocks.hiddenFrom(VIEWER)).thenReturn(Set.of());
+        profileUser(AUTHOR, UserStatus.SUSPENDED);
+        assertFalse(service.cards(VIEWER, List.of(ref)).get(ref).available());
+
+        when(users.findAllById(anyCollection())).thenReturn(List.of());
+        assertFalse(service.cards(VIEWER, List.of(ref)).get(ref).available());
+
+        profileUser(AUTHOR, UserStatus.ACTIVE);
+        assertTrue(service.publicView(ref).isEmpty()); // anonim: profil asla
+    }
+
+    @Test
+    void ownProfileIsAlwaysSharable() {
+        profileUser(VIEWER, UserStatus.ACTIVE);
+        when(blocks.hiddenFrom(VIEWER)).thenReturn(Set.of(VIEWER));
+        ShareRef ref = new ShareRef(ShareType.USER, VIEWER);
+        assertTrue(service.cards(VIEWER, List.of(ref)).get(ref).available());
     }
 }

@@ -14211,4 +14211,55 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get g4ChatJumpMissing =>
       'Bu mesaj artık mevcut değil veya yüklenemedi.';
+
+  @override
+  String get shareKindProfile => 'Profil';
+
+  @override
+  String get shareChatProfileShared => 'Profil paylaştı';
+
+  @override
+  String get profileShareAction => 'Profili paylaş';
+
+  @override
+  String get profileQrMyCode => 'QR kodum';
+
+  @override
+  String get profileQrHint =>
+      'Bu kodu okutan kişi profilini BÜ Kampüs uygulamasında görür. Telefonun kamerası da okuyabilir.';
+
+  @override
+  String get profileQrShareImage => 'Görsel olarak paylaş';
+
+  @override
+  String get profileQrImageFailed =>
+      'Görsel hazırlanamadı. Bağlantıyı paylaşabilirsin.';
+
+  @override
+  String get profileQrLoadFailed => 'QR kodu şu an hazırlanamadı.';
+
+  @override
+  String get profileQrScan => 'QR tara';
+
+  @override
+  String get profileQrScanTitle => 'Profil QR kodunu tara';
+
+  @override
+  String get profileQrScanHint =>
+      'Bir BÜ Kampüs profil kodunu çerçeveye hizala.';
+
+  @override
+  String get profileQrInvalid => 'Bu bir BÜ Kampüs profil kodu değil.';
+
+  @override
+  String get profileQrOpenSettings => 'Ayarları aç';
+
+  @override
+  String get profileQrGallery => 'Galeriden seç';
+
+  @override
+  String get profileQrGalleryNone => 'Görselde QR kod bulunamadı.';
+
+  @override
+  String get profileQrMyProfile => 'Bu senin kodun, profiline gidiliyor.';
 }

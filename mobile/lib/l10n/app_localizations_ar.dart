@@ -14155,4 +14155,53 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get g4ChatJumpMissing => 'هذه الرسالة لم تعد متاحة أو تعذر تحميلها.';
+
+  @override
+  String get shareKindProfile => 'ملف شخصي';
+
+  @override
+  String get shareChatProfileShared => 'شارك ملفًا شخصيًا';
+
+  @override
+  String get profileShareAction => 'مشاركة الملف الشخصي';
+
+  @override
+  String get profileQrMyCode => 'رمز QR الخاص بي';
+
+  @override
+  String get profileQrHint =>
+      'من يمسح هذا الرمز يرى الملف الشخصي في BÜ Kampüs. يمكن لكاميرا الهاتف قراءته أيضًا.';
+
+  @override
+  String get profileQrShareImage => 'مشاركة كصورة';
+
+  @override
+  String get profileQrImageFailed => 'تعذر تجهيز الصورة. يمكنك مشاركة الرابط.';
+
+  @override
+  String get profileQrLoadFailed => 'تعذر تجهيز رمز QR الآن.';
+
+  @override
+  String get profileQrScan => 'مسح رمز QR';
+
+  @override
+  String get profileQrScanTitle => 'مسح رمز QR لملف شخصي';
+
+  @override
+  String get profileQrScanHint => 'وجّه رمز ملف BÜ Kampüs داخل الإطار.';
+
+  @override
+  String get profileQrInvalid => 'هذا ليس رمز ملف شخصي في BÜ Kampüs.';
+
+  @override
+  String get profileQrOpenSettings => 'فتح الإعدادات';
+
+  @override
+  String get profileQrGallery => 'اختيار من المعرض';
+
+  @override
+  String get profileQrGalleryNone => 'لم يتم العثور على رمز QR في الصورة.';
+
+  @override
+  String get profileQrMyProfile => 'هذا رمزك، سيتم فتح ملفك الشخصي.';
 }

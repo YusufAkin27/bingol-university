@@ -25553,6 +25553,102 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bu mesaj artık mevcut değil veya yüklenemedi.'**
   String get g4ChatJumpMissing;
+
+  /// No description provided for @shareKindProfile.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil'**
+  String get shareKindProfile;
+
+  /// No description provided for @shareChatProfileShared.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil paylaştı'**
+  String get shareChatProfileShared;
+
+  /// No description provided for @profileShareAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profili paylaş'**
+  String get profileShareAction;
+
+  /// No description provided for @profileQrMyCode.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR kodum'**
+  String get profileQrMyCode;
+
+  /// No description provided for @profileQrHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu kodu okutan kişi profilini BÜ Kampüs uygulamasında görür. Telefonun kamerası da okuyabilir.'**
+  String get profileQrHint;
+
+  /// No description provided for @profileQrShareImage.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görsel olarak paylaş'**
+  String get profileQrShareImage;
+
+  /// No description provided for @profileQrImageFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görsel hazırlanamadı. Bağlantıyı paylaşabilirsin.'**
+  String get profileQrImageFailed;
+
+  /// No description provided for @profileQrLoadFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR kodu şu an hazırlanamadı.'**
+  String get profileQrLoadFailed;
+
+  /// No description provided for @profileQrScan.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR tara'**
+  String get profileQrScan;
+
+  /// No description provided for @profileQrScanTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil QR kodunu tara'**
+  String get profileQrScanTitle;
+
+  /// No description provided for @profileQrScanHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir BÜ Kampüs profil kodunu çerçeveye hizala.'**
+  String get profileQrScanHint;
+
+  /// No description provided for @profileQrInvalid.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu bir BÜ Kampüs profil kodu değil.'**
+  String get profileQrInvalid;
+
+  /// No description provided for @profileQrOpenSettings.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ayarları aç'**
+  String get profileQrOpenSettings;
+
+  /// No description provided for @profileQrGallery.
+  ///
+  /// In tr, this message translates to:
+  /// **'Galeriden seç'**
+  String get profileQrGallery;
+
+  /// No description provided for @profileQrGalleryNone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görselde QR kod bulunamadı.'**
+  String get profileQrGalleryNone;
+
+  /// No description provided for @profileQrMyProfile.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu senin kodun, profiline gidiliyor.'**
+  String get profileQrMyProfile;
 }
 
 class _AppLocalizationsDelegate

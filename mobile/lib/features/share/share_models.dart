@@ -13,7 +13,10 @@ enum ShareType {
 
   /// Kampüs Forum konusu / yorumu (`/s/f/{id}`, `/s/fc/{id}`; yorumda `id` yorum kimliğidir).
   forumTopic('FORUM_TOPIC', 'f'),
-  forumComment('FORUM_COMMENT', 'fc');
+  forumComment('FORUM_COMMENT', 'fc'),
+
+  /// Kullanıcı profili (`/s/u/{kullanıcıKimliği}`; QR kodu da bu bağlantıyı taşır).
+  user('USER', 'u');
 
   const ShareType(this.apiName, this.code);
 

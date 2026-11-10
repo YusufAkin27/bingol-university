@@ -5137,5 +5137,21 @@
   "formDiscardBody": "If you leave, the information you entered will be lost.",
   "formDiscardConfirm": "Discard and leave",
   "formDiscardKeep": "Keep editing",
-  "g4ChatJumpMissing": "This message is no longer available or could not be loaded."
+  "g4ChatJumpMissing": "This message is no longer available or could not be loaded.",
+  "shareKindProfile": "Profile",
+  "shareChatProfileShared": "Shared a profile",
+  "profileShareAction": "Share profile",
+  "profileQrMyCode": "My QR code",
+  "profileQrHint": "Anyone who scans this code sees the profile in BÜ Kampüs. A phone camera can read it too.",
+  "profileQrShareImage": "Share as image",
+  "profileQrImageFailed": "Could not prepare the image. You can share the link instead.",
+  "profileQrLoadFailed": "The QR code could not be prepared right now.",
+  "profileQrScan": "Scan QR",
+  "profileQrScanTitle": "Scan a profile QR code",
+  "profileQrScanHint": "Align a BÜ Kampüs profile code inside the frame.",
+  "profileQrInvalid": "This is not a BÜ Kampüs profile code.",
+  "profileQrOpenSettings": "Open settings",
+  "profileQrGallery": "Choose from gallery",
+  "profileQrGalleryNone": "No QR code found in the image.",
+  "profileQrMyProfile": "That is your own code, opening your profile."
 }

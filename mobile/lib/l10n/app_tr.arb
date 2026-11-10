@@ -7598,5 +7598,21 @@
   "formDiscardBody": "Çıkarsan girdiğin bilgiler kaybolur.",
   "formDiscardConfirm": "Sil ve çık",
   "formDiscardKeep": "Düzenlemeye devam et",
-  "g4ChatJumpMissing": "Bu mesaj artık mevcut değil veya yüklenemedi."
+  "g4ChatJumpMissing": "Bu mesaj artık mevcut değil veya yüklenemedi.",
+  "shareKindProfile": "Profil",
+  "shareChatProfileShared": "Profil paylaştı",
+  "profileShareAction": "Profili paylaş",
+  "profileQrMyCode": "QR kodum",
+  "profileQrHint": "Bu kodu okutan kişi profilini BÜ Kampüs uygulamasında görür. Telefonun kamerası da okuyabilir.",
+  "profileQrShareImage": "Görsel olarak paylaş",
+  "profileQrImageFailed": "Görsel hazırlanamadı. Bağlantıyı paylaşabilirsin.",
+  "profileQrLoadFailed": "QR kodu şu an hazırlanamadı.",
+  "profileQrScan": "QR tara",
+  "profileQrScanTitle": "Profil QR kodunu tara",
+  "profileQrScanHint": "Bir BÜ Kampüs profil kodunu çerçeveye hizala.",
+  "profileQrInvalid": "Bu bir BÜ Kampüs profil kodu değil.",
+  "profileQrOpenSettings": "Ayarları aç",
+  "profileQrGallery": "Galeriden seç",
+  "profileQrGalleryNone": "Görselde QR kod bulunamadı.",
+  "profileQrMyProfile": "Bu senin kodun, profiline gidiliyor."
 }

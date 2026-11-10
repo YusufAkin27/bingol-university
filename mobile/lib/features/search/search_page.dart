@@ -1,4 +1,5 @@
 import '../../core/analytics.dart';
+import '../profile/profile_share.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -548,6 +549,14 @@ class _SearchPageState extends State<SearchPage> {
               IcerikIconButton(icon: buDirIcon(context, BuIcons.arrowLeft), label: l.authBack, onTap: () => Navigator.pop(context)),
               const SizedBox(width: 6),
               Expanded(child: _SearchBox(hint: l.searchHint, controller: _ctrl, onChanged: _onChanged, onSubmitted: _submit)),
+              const SizedBox(width: 6),
+              // Profil QR kodu tara: arama dışında kişiyi bulmanın ikinci yolu.
+              IcerikIconButton(
+                key: const ValueKey('search-qr-scan'),
+                icon: BuIcons.qrCode,
+                label: l.profileQrScan,
+                onTap: () => openProfileScanner(context, widget.session),
+              ),
             ]),
           ),
           Semantics(

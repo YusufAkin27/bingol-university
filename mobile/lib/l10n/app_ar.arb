@@ -5137,5 +5137,21 @@
   "formDiscardBody": "إذا غادرت ستفقد المعلومات التي أدخلتها.",
   "formDiscardConfirm": "تجاهل وخروج",
   "formDiscardKeep": "متابعة التحرير",
-  "g4ChatJumpMissing": "هذه الرسالة لم تعد متاحة أو تعذر تحميلها."
+  "g4ChatJumpMissing": "هذه الرسالة لم تعد متاحة أو تعذر تحميلها.",
+  "shareKindProfile": "ملف شخصي",
+  "shareChatProfileShared": "شارك ملفًا شخصيًا",
+  "profileShareAction": "مشاركة الملف الشخصي",
+  "profileQrMyCode": "رمز QR الخاص بي",
+  "profileQrHint": "من يمسح هذا الرمز يرى الملف الشخصي في BÜ Kampüs. يمكن لكاميرا الهاتف قراءته أيضًا.",
+  "profileQrShareImage": "مشاركة كصورة",
+  "profileQrImageFailed": "تعذر تجهيز الصورة. يمكنك مشاركة الرابط.",
+  "profileQrLoadFailed": "تعذر تجهيز رمز QR الآن.",
+  "profileQrScan": "مسح رمز QR",
+  "profileQrScanTitle": "مسح رمز QR لملف شخصي",
+  "profileQrScanHint": "وجّه رمز ملف BÜ Kampüs داخل الإطار.",
+  "profileQrInvalid": "هذا ليس رمز ملف شخصي في BÜ Kampüs.",
+  "profileQrOpenSettings": "فتح الإعدادات",
+  "profileQrGallery": "اختيار من المعرض",
+  "profileQrGalleryNone": "لم يتم العثور على رمز QR في الصورة.",
+  "profileQrMyProfile": "هذا رمزك، سيتم فتح ملفك الشخصي."
 }

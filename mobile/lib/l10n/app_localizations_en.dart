@@ -14266,4 +14266,57 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get g4ChatJumpMissing =>
       'This message is no longer available or could not be loaded.';
+
+  @override
+  String get shareKindProfile => 'Profile';
+
+  @override
+  String get shareChatProfileShared => 'Shared a profile';
+
+  @override
+  String get profileShareAction => 'Share profile';
+
+  @override
+  String get profileQrMyCode => 'My QR code';
+
+  @override
+  String get profileQrHint =>
+      'Anyone who scans this code sees the profile in BÜ Kampüs. A phone camera can read it too.';
+
+  @override
+  String get profileQrShareImage => 'Share as image';
+
+  @override
+  String get profileQrImageFailed =>
+      'Could not prepare the image. You can share the link instead.';
+
+  @override
+  String get profileQrLoadFailed =>
+      'The QR code could not be prepared right now.';
+
+  @override
+  String get profileQrScan => 'Scan QR';
+
+  @override
+  String get profileQrScanTitle => 'Scan a profile QR code';
+
+  @override
+  String get profileQrScanHint =>
+      'Align a BÜ Kampüs profile code inside the frame.';
+
+  @override
+  String get profileQrInvalid => 'This is not a BÜ Kampüs profile code.';
+
+  @override
+  String get profileQrOpenSettings => 'Open settings';
+
+  @override
+  String get profileQrGallery => 'Choose from gallery';
+
+  @override
+  String get profileQrGalleryNone => 'No QR code found in the image.';
+
+  @override
+  String get profileQrMyProfile =>
+      'That is your own code, opening your profile.';
 }
