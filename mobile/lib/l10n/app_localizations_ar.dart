@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -668,7 +669,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown) {
+    String type,
+    String title,
+    String date,
+    String countdown,
+  ) {
     return '$type: $title. $date. $countdown. المس للتعديل.';
   }
 
@@ -986,7 +991,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end) {
+    String name,
+    String day,
+    String start,
+    String end,
+  ) {
     return '$name، $day من $start إلى $end';
   }
 
@@ -14161,6 +14170,47 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get shareChatProfileShared => 'شارك ملفًا شخصيًا';
+
+  @override
+  String get shareKindClub => 'نادٍ';
+
+  @override
+  String get shareKindPoll => 'استطلاع';
+
+  @override
+  String get shareChatClubShared => 'شارك نادياً';
+
+  @override
+  String get shareChatPollShared => 'شارك استطلاعاً';
+
+  @override
+  String get pollShareAction => 'مشاركة الاستطلاع';
+
+  @override
+  String get scanNotBu => 'هذا ليس رمزاً لـ BÜ Kampüs.';
+
+  @override
+  String get scanTitle => 'مسح رمز QR';
+
+  @override
+  String get scanHint =>
+      'وجّه رمز ملف أو نادٍ أو استطلاع أو فعالية إلى الإطار.';
+
+  @override
+  String get scanCheckinNoRight => 'ليست لديك صلاحية مسح رمز الحضور هذا.';
+
+  @override
+  String scanCheckinDone(String name) {
+    return 'تم تسجيل الحضور: $name';
+  }
+
+  @override
+  String get signOutPendingTitle => 'سيتم حذف الرسائل غير المرسلة';
+
+  @override
+  String signOutPendingBody(String count) {
+    return 'سيتم حذف $count رسائل غير مرسلة. هل تريد تسجيل الخروج؟';
+  }
 
   @override
   String get profileShareAction => 'مشاركة الملف الشخصي';

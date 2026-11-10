@@ -10,19 +10,21 @@ import '../../core/locale_controller.dart';
 import '../../core/permissions/ensure_permission.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../share/share_models.dart';
 import '../platform/qr_scan_page.dart' show ScanThrottle;
-import 'profile_qr_logic.dart';
-import 'profile_qr_style.dart' show QrCornerMarks;
-import 'user_profile_page.dart';
+import '../profile/profile_qr_style.dart' show QrCornerMarks;
+import '../profile/user_profile_page.dart';
+import '../share/share_open.dart';
+import 'scan_resolver.dart';
 
 /// Kamera önizlemesi yerine konan test parçası: okunan metni [onValue] ile iletir.
-typedef ProfileQrScannerBuilder = Widget Function(BuildContext context, void Function(String value) onValue);
+typedef ScanScannerBuilder = Widget Function(BuildContext context, void Function(String value) onValue);
 
 /// Profil QR taraması: BÜ Kampüs profil kodu okunursa o profil açılır (kendi kodunda kendi profil). Başka değer,
 /// yabancı alan adı ya da bozuk metin "Bu bir BÜ Kampüs profil kodu değil" der; okunan metin ASLA açılmaz/çalıştırılmaz.
 /// Kamera izni yoksa açıklayıcı durum + ayarlara git; el feneri ve (destekleniyorsa) galeriden okuma vardır.
-class ProfileQrScanPage extends StatefulWidget {
-  const ProfileQrScanPage({super.key, required this.session, this.permissionService, this.scannerBuilder, this.openProfile});
+class QrScanHubPage extends StatefulWidget {
+  const QrScanHubPage({super.key, required this.session, this.permissionService, this.scannerBuilder, this.openProfile});
 
   final Session session;
 
@@ -30,22 +32,23 @@ class ProfileQrScanPage extends StatefulWidget {
   final PermissionService? permissionService;
 
   @visibleForTesting
-  final ProfileQrScannerBuilder? scannerBuilder;
+  final ScanScannerBuilder? scannerBuilder;
 
   /// Testlerde profil açma yerine konur; varsayılan: bu sayfanın yerine [UserProfilePage].
   @visibleForTesting
   final void Function(BuildContext context, int userId)? openProfile;
 
   @override
-  State<ProfileQrScanPage> createState() => _ProfileQrScanPageState();
+  State<QrScanHubPage> createState() => _QrScanHubPageState();
 }
 
-class _ProfileQrScanPageState extends State<ProfileQrScanPage> with SingleTickerProviderStateMixin {
+class _QrScanHubPageState extends State<QrScanHubPage> with SingleTickerProviderStateMixin {
   late final AnimationController _sweep = AnimationController(vsync: this, duration: const Duration(milliseconds: 2200));
   final _controller = MobileScannerController(formats: const [BarcodeFormat.qrCode]);
   final _throttle = ScanThrottle();
   bool? _cam; // null = denetleniyor
   bool _done = false;
+  bool _busy = false;
   bool _torch = false;
   String? _message;
   Timer? _clear;
@@ -82,33 +85,66 @@ class _ProfileQrScanPageState extends State<ProfileQrScanPage> with SingleTicker
     }
   }
 
-  /// Okunan değeri çözer: geçerliyse profili açar, değilse anlaşılır hata gösterir.
-  void _onValue(String raw) {
-    if (_done) return;
+  /// Okunan değeri çözer ([resolveScan]): tanınırsa ilgili ekranı açar, değilse anlaşılır hata gösterir.
+  /// Yoklama yükünde sunucu yetkiyi/hız sınırını denetler; sayfa açık kalır (görevli art arda okutabilir).
+  Future<void> _onValue(String raw) async {
+    if (_done || _busy) return;
     final now = DateTime.now();
     final v = raw.trim();
     if (!_throttle.accept(v, now)) return;
-    final r = resolveProfileQr(v, selfId: widget.session.userId);
+    final r = resolveScan(v, selfId: widget.session.userId);
     if (!r.valid) {
       _throttle.rejected(v, now);
-      _flash(context.l10n.profileQrInvalid);
+      _flash(context.l10n.scanNotBu);
+      return;
+    }
+    if (r.kind == ScanKind.checkin) {
+      await _checkin(r, v);
       return;
     }
     _done = true;
     buHaptic(BuHaptic.light);
-    Analytics.instance.action('profile_qr', target: r.kind == ProfileQrKind.own ? 'scan_own' : 'scan_profile');
-    if (r.kind == ProfileQrKind.own) {
+    Analytics.instance.action('qr_scan', target: r.kind.name);
+    if (r.kind == ScanKind.ownProfile) {
       BuToast.show(context, context.l10n.profileQrMyProfile, kind: BuToastKind.info);
     }
+    final target = r.target!;
     final open = widget.openProfile;
-    if (open != null) {
-      open(context, r.userId!);
+    if (open != null && target.type == ShareType.user) {
+      open(context, target.id);
       return;
     }
-    Navigator.of(context).pushReplacement(MaterialPageRoute<void>(
-      settings: const RouteSettings(name: 'user_profile'),
-      builder: (_) => UserProfilePage(session: widget.session, userId: r.userId!),
-    ));
+    final nav = Navigator.of(context);
+    final ctx = context;
+    if (target.type == ShareType.user) {
+      nav.pushReplacement(MaterialPageRoute<void>(
+        settings: const RouteSettings(name: 'user_profile'),
+        builder: (_) => UserProfilePage(session: widget.session, userId: target.id),
+      ));
+      return;
+    }
+    // Kulüp/anket/etkinlik...: önce tarayıcı kapanır, sonra hedef ortak yoldan açılır (gizlilik hedef ekranda).
+    final root = nav.context;
+    nav.pop();
+    await openShared(root.mounted ? root : ctx, widget.session, target);
+  }
+
+  Future<void> _checkin(ScanResult r, String v) async {
+    final l = context.l10n;
+    setState(() => _busy = true);
+    try {
+      final res = await widget.session.api.post('/events/${r.eventId}/scan', {'code': r.code});
+      if (!mounted) return;
+      final name = res is Map ? '${res['displayName'] ?? ''}' : '';
+      buHaptic(BuHaptic.medium);
+      _flash(res is Map && res['status'] == 'ALREADY' ? l.evtQrScanAlready(name) : l.scanCheckinDone(name));
+    } catch (e) {
+      _throttle.rejected(v, DateTime.now());
+      if (!mounted) return;
+      _flash(errorText(e));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   void _flash(String text) {
@@ -163,7 +199,7 @@ class _ProfileQrScanPageState extends State<ProfileQrScanPage> with SingleTicker
         scopesRoute: true,
         namesRoute: true,
         explicitChildNodes: true,
-        label: l.profileQrScanTitle,
+        label: l.scanTitle,
         child: _cam == false ? _denied(context) : _scanner(context),
       ),
     );
@@ -268,7 +304,7 @@ class _ProfileQrScanPageState extends State<ProfileQrScanPage> with SingleTicker
                       const SizedBox(width: 8),
                     ],
                     Flexible(
-                      child: Text(_message ?? l.profileQrScanHint,
+                      child: Text(_message ?? l.scanHint,
                           textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.onMedia, height: 1.35)),
                     ),
                   ]),
@@ -343,7 +379,7 @@ class _ProfileQrScanPageState extends State<ProfileQrScanPage> with SingleTicker
                 const SizedBox(height: 16),
                 Semantics(
                   header: true,
-                  child: Text(l.profileQrScanTitle, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(color: t.ink)),
+                  child: Text(l.scanTitle, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(color: t.ink)),
                 ),
                 const SizedBox(height: 8),
                 Text(l.qrDeniedSettings, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.45)),

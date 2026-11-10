@@ -5,6 +5,8 @@ import 'package:bu_kampus/features/events/event_calendar.dart';
 import 'package:bu_kampus/features/events/event_detail_page.dart';
 import 'package:bu_kampus/features/widgets/widget_link.dart';
 import 'package:flutter/material.dart';
+import 'package:bu_kampus/features/share/share_models.dart';
+import 'package:bu_kampus/features/share/share_sheet.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -165,8 +167,10 @@ void main() {
       await settle(tester, const Duration(milliseconds: 600));
       await tester.tap(find.byKey(const ValueKey('club-share')));
       await settle(tester, const Duration(milliseconds: 300));
-      expect(got?.text, contains('bukampus://clubs/7'));
-      expect(got?.text, contains('Robotik'));
+      // Paylaşım artık ortak paylaşım sayfasıdır; bağlantı herkese açık /s/c/7 biçimidir.
+      expect(find.byType(ShareSheet), findsOneWidget);
+      expect(const ShareTarget(ShareType.club, 7).url, 'https://bukampus.com.tr/s/c/7');
+      expect(got, isNull);
     });
   });
 }

@@ -64,7 +64,7 @@ import 'app_localizations_tr.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -87,17 +87,17 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('ar'),
     Locale('en'),
-    Locale('tr')
+    Locale('tr'),
   ];
 
   /// No description provided for @chatReactionPickerTitle.
@@ -1341,7 +1341,11 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{type}: {title}. {date}. {countdown}. Düzenlemek için dokun.'**
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown);
+    String type,
+    String title,
+    String date,
+    String countdown,
+  );
 
   /// No description provided for @acadFormErrTitle.
   ///
@@ -1906,7 +1910,11 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{name}, {day} {start} ile {end} arası'**
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end);
+    String name,
+    String day,
+    String start,
+    String end,
+  );
 
   /// No description provided for @acadTimeCourseSemantic.
   ///
@@ -25566,6 +25574,78 @@ abstract class AppLocalizations {
   /// **'Profil paylaştı'**
   String get shareChatProfileShared;
 
+  /// No description provided for @shareKindClub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp'**
+  String get shareKindClub;
+
+  /// No description provided for @shareKindPoll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anket'**
+  String get shareKindPoll;
+
+  /// No description provided for @shareChatClubShared.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp paylaştı'**
+  String get shareChatClubShared;
+
+  /// No description provided for @shareChatPollShared.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anket paylaştı'**
+  String get shareChatPollShared;
+
+  /// No description provided for @pollShareAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anketi paylaş'**
+  String get pollShareAction;
+
+  /// No description provided for @scanNotBu.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu bir BÜ Kampüs kodu değil.'**
+  String get scanNotBu;
+
+  /// No description provided for @scanTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR tara'**
+  String get scanTitle;
+
+  /// No description provided for @scanHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil, kulüp, anket ya da etkinlik kodunu çerçeveye hizala.'**
+  String get scanHint;
+
+  /// No description provided for @scanCheckinNoRight.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yoklama kodunu okutma yetkin yok.'**
+  String get scanCheckinNoRight;
+
+  /// No description provided for @scanCheckinDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklama alındı: {name}'**
+  String scanCheckinDone(String name);
+
+  /// No description provided for @signOutPendingTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderilmemiş mesajlar silinecek'**
+  String get signOutPendingTitle;
+
+  /// No description provided for @signOutPendingBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderilmemiş {count} mesaj silinecek. Çıkış yapmak istiyor musun?'**
+  String signOutPendingBody(String count);
+
   /// No description provided for @profileShareAction.
   ///
   /// In tr, this message translates to:
@@ -25686,8 +25766,9 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-      'an issue with the localizations generation tool. Please file an issue '
-      'on GitHub with a reproducible sample app and the gen-l10n configuration '
-      'that was used.');
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
 }

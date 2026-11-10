@@ -16,7 +16,11 @@ enum ShareType {
   forumComment('FORUM_COMMENT', 'fc'),
 
   /// Kullanıcı profili (`/s/u/{kullanıcıKimliği}`; QR kodu da bu bağlantıyı taşır).
-  user('USER', 'u');
+  user('USER', 'u'),
+
+  /// Kulüp (`/s/c/{id}`) ve anket (`/s/o/{id}`); özel kulüp/kitleli anket yalnız yetkili görüntüleyene kart olur.
+  club('CLUB', 'c'),
+  poll('POLL', 'o');
 
   const ShareType(this.apiName, this.code);
 
