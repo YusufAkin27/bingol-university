@@ -322,3 +322,13 @@ Geriye uyumlu (yalniz ekleme; tek davranis degisikligi: arsiv artik yeni mesajla
   `ChatMediaTransferExecutor` + mesaj tamamlama `attachmentIds + clientId`). Balon durumu işten türetilir; "Gönderildi" yalnız
   sunucu mesaj kimliği dönünce. Çok ekli mesajlar ve kuyruk yokken eski sayfa içi yükleme / `Outbox` yolu korunur (kaldırılmadı).
   Uyarı: iş `meta` içinde başlık metni diskte tutulur (Outbox ile aynı düzey).
+
+## Oda duyuru panosu (B1, V1840)
+
+- Tablolar: `room_notice` (baslik 80 / metin 600, `pinned`, `seen_count`, yumusak silme `deleted_at`, moderasyon `hidden_at`), `room_notice_seen` (duyuru+kullanici tekil). Kod: `messaging.room.notice`.
+- Uclar (`/api/conversations/{cid}/notices`): `GET /pinned` ({items, canManage, total}), `GET ?cursor&size`, `POST`, `PATCH /{id}`, `DELETE /{id}`, `POST /{id}/seen`.
+- Yetki sunucuda: yazma/duzenleme/silme/sabitleme = `RoomModeration.canModerate` (bolum odasi: ADMIN FULL/MODERATOR; kulup: kulup yetkilisi; etkinlik: etkinlik yetkilisi). Yeni rol yok. Okuma = aktif oda uyesi (degilse 404). En fazla 3 sabit (409 `NOTICE_PIN_LIMIT`).
+- Gorulme: yalniz SAYI, yalniz yetkiliye (`seenCount`); kimlik listesi hicbir uctan yok (gizlilik). Ayni kullanici bir kez sayilir, yazar sayilmaz.
+- Bildirim: `NotificationType.ANNOUNCEMENT` (tercih/sessiz saat kurallari `sendTemplatedBulk` icinde), `FanoutNotifier` ile commit sonrasi, 250'lik parca; yazar ve engel iliskisi haric. Yukte `conversationId`, `noticeId`.
+- Moderasyon: `ReportTargetType.BOARD_NOTICE` + `RoomNoticeReportHandler` (geri alinabilir gizleme). KVKK: hesap silinince gorulme kayitlari silinir, `DataExporter` bolumu `roomNotices`.
+- Hata kodlari: `NOTICE_FORBIDDEN`, `NOTICE_NOT_FOUND`, `NOTICE_PIN_LIMIT` (tr/en/ar `messaging*.properties`).
