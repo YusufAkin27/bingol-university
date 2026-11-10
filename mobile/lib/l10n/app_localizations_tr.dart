@@ -14262,4 +14262,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get profileQrMyProfile => 'Bu senin kodun, profiline gidiliyor.';
+
+  @override
+  String get profileQrFindMe => 'Beni BÜ Kampüs’te bul';
 }

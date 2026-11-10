@@ -14204,4 +14204,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get profileQrMyProfile => 'هذا رمزك، سيتم فتح ملفك الشخصي.';
+
+  @override
+  String get profileQrFindMe => 'ابحث عني في BÜ Kampüs';
 }

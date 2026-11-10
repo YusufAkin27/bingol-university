@@ -4,11 +4,14 @@ import 'package:bu_kampus/features/events/qr_painter.dart' show QrCode;
 import 'package:bu_kampus/features/profile/profile_qr_logic.dart';
 import 'package:bu_kampus/features/profile/profile_qr_page.dart';
 import 'package:bu_kampus/features/profile/profile_qr_scan_page.dart';
+import 'package:bu_kampus/features/profile/profile_qr_style.dart';
 import 'package:bu_kampus/features/profile/profile_qr_widgets.dart';
 import 'package:bu_kampus/features/profile/profile_share.dart';
 import 'package:bu_kampus/features/share/share_card.dart';
 import 'package:bu_kampus/features/share/share_models.dart';
 import 'package:bu_kampus/features/share/share_sheet.dart';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -244,6 +247,91 @@ void main() {
           mine: true, br: Brightness.dark);
       expect(tester.takeException(), isNull);
     });
+  });
+
+  group('QR tasarımı (profil stili)', () {
+    testWidgets('stilli PNG: her modülün merkezi matrisle birebir (koyu/açık), sessiz bölge açık', (tester) async {
+      for (final id in [1, 424242, 9007199254740991]) {
+        final link = profileLinkFor(id);
+        final qr = buildProfileQr(link)!;
+        const px = 900;
+        final png = await tester.runAsync(() => renderStyledQrPng(link, px: px));
+        final codec = await tester.runAsync(() => ui.instantiateImageCodec(png!));
+        final frame = await tester.runAsync(() => codec!.getNextFrame());
+        final bd = await tester.runAsync(() => frame!.image.toByteData(format: ui.ImageByteFormat.rawRgba));
+        int lum(double x, double y) {
+          final i = ((y.floor() * px) + x.floor()) * 4;
+          return (bd!.getUint8(i) + bd.getUint8(i + 1) + bd.getUint8(i + 2)) ~/ 3;
+        }
+
+        final cell = px / (qr.size + 8);
+        var bad = 0;
+        for (var y = 0; y < qr.size; y++) {
+          for (var x = 0; x < qr.size; x++) {
+            final l = lum((x + 4 + .5) * cell, (y + 4 + .5) * cell);
+            if (qr.isDark(x, y) ? l > 60 : l < 200) bad++;
+          }
+        }
+        expect(bad, 0, reason: 'id $id');
+        // 4 modüllük sessiz bölge tamamen açık.
+        for (final q in [(.5, .5), (3.5, 3.5), (qr.size + 4.5, 3.5), (3.5, qr.size + 4.5), (qr.size + 7.5, qr.size + 7.5)]) {
+          expect(lum(q.$1 * cell, q.$2 * cell), greaterThan(240), reason: 'sessiz bölge $q');
+        }
+      }
+    });
+
+    testWidgets('paylaşım kartı PNG 4:5 üretilir (tr/ar)', (tester) async {
+      for (final rtl in [false, true]) {
+        final png = await tester.runAsync(() => renderProfileCardPng(
+            profileLinkFor(12),
+            ProfileCardTexts(
+                brand: 'BÜ Kampüs', name: 'Ayşe Yılmaz ' * 6, username: '@ayse', findMe: 'Beni BÜ Kampüs’te bul', link: profileLinkFor(12), rtl: rtl)));
+        expect(png, isNotNull);
+        final codec = await tester.runAsync(() => ui.instantiateImageCodec(png!));
+        final f = await tester.runAsync(() => codec!.getNextFrame());
+        expect(f!.image.width * 5, f.image.height * 4);
+      }
+    });
+
+    for (final c in [(const Size(320, 640), 1.3, Brightness.dark, false), (const Size(390, 844), 1.0, Brightness.light, true)]) {
+      testWidgets('QR kodum taşma yok: ${c.$1.width.toInt()} dp x${c.$2} ${c.$3.name} rtl=${c.$4}', (tester) async {
+        final b = FakeBackend();
+        b.on('/users/me', {'id': 1, 'displayName': 'Çok Uzun Bir Görünen Ad Soyad ' * 3, 'username': 'kullanici_adi_uzun', 'avatarUrl': null});
+        useScreen(tester, c.$1);
+        await tester.pumpWidget(buildApp(
+          Directionality(
+            textDirection: c.$4 ? TextDirection.rtl : TextDirection.ltr,
+            child: MediaQuery(
+              data: MediaQueryData(size: c.$1, textScaler: TextScaler.linear(c.$2)),
+              child: ProfileQrPage(session: makeSession(b)),
+            ),
+          ),
+          brightness: c.$3,
+          size: c.$1,
+        ));
+        await settle(tester, const Duration(milliseconds: 700));
+        expect(tester.takeException(), isNull);
+        expect(find.byType(ProfileQrPlate), findsOneWidget);
+      });
+
+      testWidgets('QR tara taşma yok: ${c.$1.width.toInt()} dp x${c.$2} ${c.$3.name}', (tester) async {
+        useScreen(tester, c.$1);
+        final perms = FakePermissionService(initial: {AppPermission.camera: PermState.granted});
+        await tester.pumpWidget(buildApp(
+          MediaQuery(
+            data: MediaQueryData(size: c.$1, textScaler: TextScaler.linear(c.$2)),
+            child: ProfileQrScanPage(
+                session: makeSession(FakeBackend()), permissionService: perms, scannerBuilder: (ctx, _) => const ColoredBox(color: Color(0xFF222222))),
+          ),
+          brightness: c.$3,
+          size: c.$1,
+        ));
+        await settle(tester, const Duration(milliseconds: 500));
+        expect(tester.takeException(), isNull);
+        expect(find.byKey(const ValueKey('pqr-torch')), findsOneWidget);
+        expect(find.byKey(const ValueKey('pqr-gallery')), findsOneWidget);
+      });
+    }
   });
 
   group('QR tara ekranı', () {

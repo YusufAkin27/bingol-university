@@ -7614,5 +7614,6 @@
   "profileQrOpenSettings": "Ayarları aç",
   "profileQrGallery": "Galeriden seç",
   "profileQrGalleryNone": "Görselde QR kod bulunamadı.",
-  "profileQrMyProfile": "Bu senin kodun, profiline gidiliyor."
+  "profileQrMyProfile": "Bu senin kodun, profiline gidiliyor.",
+  "profileQrFindMe": "Beni BÜ Kampüs’te bul"
 }

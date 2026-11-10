@@ -5153,5 +5153,6 @@
   "profileQrOpenSettings": "فتح الإعدادات",
   "profileQrGallery": "اختيار من المعرض",
   "profileQrGalleryNone": "لم يتم العثور على رمز QR في الصورة.",
-  "profileQrMyProfile": "هذا رمزك، سيتم فتح ملفك الشخصي."
+  "profileQrMyProfile": "هذا رمزك، سيتم فتح ملفك الشخصي.",
+  "profileQrFindMe": "ابحث عني في BÜ Kampüs"
 }

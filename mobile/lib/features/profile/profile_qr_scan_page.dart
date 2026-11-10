@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -11,6 +12,7 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../platform/qr_scan_page.dart' show ScanThrottle;
 import 'profile_qr_logic.dart';
+import 'profile_qr_style.dart' show QrCornerMarks;
 import 'user_profile_page.dart';
 
 /// Kamera önizlemesi yerine konan test parçası: okunan metni [onValue] ile iletir.
@@ -38,7 +40,8 @@ class ProfileQrScanPage extends StatefulWidget {
   State<ProfileQrScanPage> createState() => _ProfileQrScanPageState();
 }
 
-class _ProfileQrScanPageState extends State<ProfileQrScanPage> {
+class _ProfileQrScanPageState extends State<ProfileQrScanPage> with SingleTickerProviderStateMixin {
+  late final AnimationController _sweep = AnimationController(vsync: this, duration: const Duration(milliseconds: 2200));
   final _controller = MobileScannerController(formats: const [BarcodeFormat.qrCode]);
   final _throttle = ScanThrottle();
   bool? _cam; // null = denetleniyor
@@ -56,6 +59,7 @@ class _ProfileQrScanPageState extends State<ProfileQrScanPage> {
   @override
   void dispose() {
     _clear?.cancel();
+    _sweep.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -68,7 +72,14 @@ class _ProfileQrScanPageState extends State<ProfileQrScanPage> {
       rationale: context.l10n.qrCameraRationale,
       service: widget.permissionService,
     );
-    if (mounted) setState(() => _cam = ok);
+    if (!mounted) return;
+    setState(() => _cam = ok);
+    // Tarama çizgisi sade ve sınırlı (6 gidiş-dönüş); "animasyonları azalt" açıkken durağan orta çizgi.
+    if (ok && !MediaQuery.disableAnimationsOf(context)) {
+      _sweep.repeat(reverse: true, count: 6);
+    } else {
+      _sweep.value = .5;
+    }
   }
 
   /// Okunan değeri çözer: geçerliyse profili açar, değilse anlaşılır hata gösterir.
@@ -183,18 +194,35 @@ class _ProfileQrScanPageState extends State<ProfileQrScanPage> {
               ),
             ),
       if (ready)
-        Center(
-          child: ExcludeSemantics(
-            child: SizedBox(
-              width: 250,
-              height: 250,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: t.onMedia, width: 3),
+        Positioned.fill(
+          child: IgnorePointer(
+            child: ExcludeSemantics(
+            child: LayoutBuilder(builder: (ctx, c) {
+              final side = math.min(264.0, math.min(c.maxWidth, c.maxHeight) - 96);
+              final hole = Rect.fromCenter(center: Offset(c.maxWidth / 2, c.maxHeight * .42), width: side, height: side);
+              return Stack(children: [
+                Positioned.fill(child: CustomPaint(painter: _ScrimPainter(hole, t.scrim.withValues(alpha: .62)))),
+                Positioned.fromRect(
+                  rect: hole,
+                  child: CustomPaint(painter: QrCornerMarks(color: t.onMedia, arm: 34, stroke: 4)),
                 ),
-              ),
-            ),
+                Positioned.fromRect(
+                  rect: hole,
+                  child: AnimatedBuilder(
+                    animation: _sweep,
+                    builder: (_, __) => Align(
+                      alignment: Alignment(0, -.86 + 1.72 * _sweep.value),
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 22),
+                        height: 2,
+                        decoration: BoxDecoration(color: t.onMedia.withValues(alpha: .85), borderRadius: BorderRadius.circular(2)),
+                      ),
+                    ),
+                  ),
+                ),
+              ]);
+            }),
+          ),
           ),
         ),
       // Üst çubuk: geri, el feneri.
@@ -214,13 +242,6 @@ class _ProfileQrScanPageState extends State<ProfileQrScanPage> {
                 onTap: () => Navigator.of(context).maybePop(),
               ),
               const Spacer(),
-              if (ready)
-                _GlassButton(
-                  key: const ValueKey('pqr-torch'),
-                  icon: _torch ? BuIcons.flashlightOff : BuIcons.flashlight,
-                  label: l.qrTorch,
-                  onTap: _toggleTorch,
-                ),
             ]),
           ),
         ),
@@ -255,14 +276,24 @@ class _ProfileQrScanPageState extends State<ProfileQrScanPage> {
               ),
               if (ready) ...[
                 const SizedBox(height: 12),
-                BuButton(
-                  key: const ValueKey('pqr-gallery'),
-                  label: l.profileQrGallery,
-                  icon: BuIcons.image,
-                  kind: BuButtonKind.soft,
-                  compact: true,
-                  onPressed: _gallery,
-                ),
+                Row(mainAxisSize: MainAxisSize.min, children: [
+                  BuIconButton(
+                    key: const ValueKey('pqr-torch'),
+                    icon: _torch ? BuIcons.flashlightOff : BuIcons.flashlight,
+                    tooltip: l.qrTorch,
+                    filled: _torch,
+                    size: 52,
+                    onTap: _toggleTorch,
+                  ),
+                  const SizedBox(width: 20),
+                  BuIconButton(
+                    key: const ValueKey('pqr-gallery'),
+                    icon: BuIcons.image,
+                    tooltip: l.profileQrGallery,
+                    size: 52,
+                    onTap: _gallery,
+                  ),
+                ]),
               ],
             ]),
           ),
@@ -376,4 +407,24 @@ class _GlassButton extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Karartma: tüm ekran yarı saydam, tarama penceresi (yuvarlak köşeli) açık.
+class _ScrimPainter extends CustomPainter {
+  _ScrimPainter(this.hole, this.color);
+
+  final Rect hole;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..fillType = PathFillType.evenOdd
+      ..addRect(Offset.zero & size)
+      ..addRRect(RRect.fromRectAndRadius(hole, const Radius.circular(28)));
+    canvas.drawPath(path, Paint()..color = color);
+  }
+
+  @override
+  bool shouldRepaint(_ScrimPainter old) => old.hole != hole || old.color != color;
 }

@@ -14319,4 +14319,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get profileQrMyProfile =>
       'That is your own code, opening your profile.';
+
+  @override
+  String get profileQrFindMe => 'Find me on BÜ Kampüs';
 }

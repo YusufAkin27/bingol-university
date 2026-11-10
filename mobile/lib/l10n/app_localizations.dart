@@ -25649,6 +25649,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bu senin kodun, profiline gidiliyor.'**
   String get profileQrMyProfile;
+
+  /// No description provided for @profileQrFindMe.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beni BÜ Kampüs’te bul'**
+  String get profileQrFindMe;
 }
 
 class _AppLocalizationsDelegate

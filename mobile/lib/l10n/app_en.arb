@@ -5153,5 +5153,6 @@
   "profileQrOpenSettings": "Open settings",
   "profileQrGallery": "Choose from gallery",
   "profileQrGalleryNone": "No QR code found in the image.",
-  "profileQrMyProfile": "That is your own code, opening your profile."
+  "profileQrMyProfile": "That is your own code, opening your profile.",
+  "profileQrFindMe": "Find me on BÜ Kampüs"
 }
