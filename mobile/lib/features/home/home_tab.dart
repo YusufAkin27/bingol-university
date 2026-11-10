@@ -12,6 +12,7 @@ import '../../widgets/common.dart';
 import '../academic/academic_api.dart';
 import '../academic/academic_hub_page.dart';
 import '../academic/academic_models.dart';
+import '../academic/reminders.dart' show ReminderService;
 import '../events/event_detail_page.dart';
 import '../events/event_parts.dart' show eventIsExpired;
 import '../events/events_page.dart';
@@ -118,6 +119,7 @@ class _HomeTabState extends State<HomeTab> {
     unawaited(_loadSocialDot());
     // Menüyü sessizce önbelleğe al + günlük menü hatırlatıcısını (açıksa) yeniden kur.
     unawaited(prefetchMenu(widget.session.api));
+    ReminderService.bindUser(widget.session.userId); // ders hatırlatıcı ayarı hesap anahtarına bağlanır
     MenuReminderService.instance.registerProvider();
     unawaited(MenuReminderService.instance.sync());
   }

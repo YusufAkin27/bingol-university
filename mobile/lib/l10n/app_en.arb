@@ -1433,6 +1433,7 @@
   "pollMenuRateToday": "Rate today’s menu",
   "pollYourRating": "Your rating: {rating}",
   "pollYourRatingAvg": "Your rating: {rating} · Average {avg}",
+  "d1MenuRateTodayOnly": "Rating is only open for today's menu.",
   "pollTapStar": "Tap a star to rate",
   "pollNoVoteRight": "You cannot vote in this poll.",
   "pollStars": "Rating: {n}",

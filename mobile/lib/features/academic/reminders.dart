@@ -136,7 +136,7 @@ List<PlannedReminder> planReminders({
   required ReminderSettings settings,
   required DateTime now,
   int horizonDays = 14,
-  int maxCount = 60,
+  int maxCount = 40,
   AppLocalizations? l10n,
 }) {
   final l = l10n ?? lookupAppLocalizations(const Locale('tr'));
@@ -231,12 +231,23 @@ abstract class ReminderStore {
 
 class SecureReminderStore implements ReminderStore {
   const SecureReminderStore();
-  static const _key = 'academic_reminders';
+  static const _prefix = 'academic_reminders';
+
+  /// Ayar anahtarı hesaba bağlıdır (`academic_reminders_<userId>`): cihazda hesap değişse de ayar karışmaz.
+  /// Kullanıcı bilinmiyorsa eski tek anahtar kullanılır.
+  static int? userId;
+
+  /// Verilen kullanıcı için saklama anahtarı (saf; test edilebilir).
+  static String keyFor(int? uid) => uid == null ? _prefix : '${_prefix}_$uid';
+
+  static String get _key => keyFor(userId);
 
   @override
   Future<ReminderSettings> load() async {
     try {
-      final raw = await const FlutterSecureStorage().read(key: _key);
+      const st = FlutterSecureStorage();
+      // Hesap anahtarı yoksa eski tek anahtardan devral (güncelleme sonrası ayar kaybolmasın).
+      final raw = await st.read(key: _key) ?? (userId == null ? null : await st.read(key: _prefix));
       if (raw == null) return const ReminderSettings();
       return ReminderSettings.fromJson((jsonDecode(raw) as Map).cast<String, dynamic>());
     } catch (e) {
@@ -254,10 +265,16 @@ class SecureReminderStore implements ReminderStore {
     }
   }
 
-  /// Çıkış: ayar kaydı silinir (kullanıcıya özel).
+  /// Çıkış: ayar kaydı silinir (kullanıcıya özel; önek taşıyan tüm hesap anahtarları ve eski anahtar).
   Future<void> clear() async {
     try {
-      await const FlutterSecureStorage().delete(key: _key);
+      const st = FlutterSecureStorage();
+      final all = await st.readAll();
+      for (final k in all.keys) {
+        if (k == _prefix || k.startsWith('${_prefix}_')) await st.delete(key: k);
+      }
+      await st.delete(key: _key);
+      userId = null;
     } catch (e) {
       swallow('reminder.clear', e);
     }
@@ -283,6 +300,9 @@ class ReminderService {
 
   static ReminderPlatform platform = const ChannelReminderPlatform();
   static ReminderStore store = const SecureReminderStore();
+
+  /// Ayar deposunu oturumdaki hesaba bağlar (ekranlar ayarı okumadan önce çağırır).
+  static void bindUser(int? uid) => SecureReminderStore.userId = uid;
 
   /// Çıkış / hesap değişimi: önceki kullanıcının ders hatırlatıcı ayarı silinir ve kurulu yerel hatırlatmalar
   /// (alarmlar önceki kullanıcının ders/sınav programıdır) kaldırılır. Hata sızdırmaz.

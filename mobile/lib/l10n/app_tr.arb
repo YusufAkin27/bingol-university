@@ -2302,6 +2302,7 @@
       }
     }
   },
+  "d1MenuRateTodayOnly": "Puanlama yalnız bugünün menüsü için açıktır.",
   "pollTapStar": "Yıldıza dokunarak puanla",
   "pollNoVoteRight": "Bu anket için oy hakkınız yok",
   "pollStars": "{n} yıldız",

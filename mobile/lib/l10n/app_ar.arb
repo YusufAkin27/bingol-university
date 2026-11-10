@@ -1433,6 +1433,7 @@
   "pollMenuRateToday": "قيّم قائمة اليوم",
   "pollYourRating": "تقييمك: {rating}",
   "pollYourRatingAvg": "تقييمك: {rating} · المتوسط {avg}",
+  "d1MenuRateTodayOnly": "التقييم متاح لقائمة اليوم فقط.",
   "pollTapStar": "المس نجمة للتقييم",
   "pollNoVoteRight": "لا يحق لك التصويت في هذا الاستطلاع",
   "pollStars": "النجوم: {n}",

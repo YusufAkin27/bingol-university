@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -668,7 +669,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String acadExamsSemanticCd(
-      String type, String title, String date, String countdown) {
+    String type,
+    String title,
+    String date,
+    String countdown,
+  ) {
     return '$type: $title. $date. $countdown. Düzenlemek için dokun.';
   }
 
@@ -986,7 +991,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String acadTimeSlotSemantic(
-      String name, String day, String start, String end) {
+    String name,
+    String day,
+    String start,
+    String end,
+  ) {
     return '$name, $day $start ile $end arası';
   }
 
@@ -4553,6 +4562,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String pollYourRatingAvg(String rating, String avg) {
     return 'Puanınız: $rating · Ortalama $avg';
   }
+
+  @override
+  String get d1MenuRateTodayOnly =>
+      'Puanlama yalnız bugünün menüsü için açıktır.';
 
   @override
   String get pollTapStar => 'Yıldıza dokunarak puanla';

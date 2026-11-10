@@ -45,6 +45,7 @@ class _AcademicHubPageState extends State<AcademicHubPage> {
     super.initState();
     _refresh();
     // Hatırlatmalar sunucudaki güncel veriyle yeniden kurulur (hata sessizce yutulur).
+    ReminderService.bindUser(widget.session.userId);
     ReminderService.registerProvider(_api);
     unawaited(ReminderService.sync(_api));
   }
