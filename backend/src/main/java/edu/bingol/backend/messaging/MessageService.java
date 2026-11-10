@@ -504,12 +504,15 @@ public class MessageService {
         if (body != null && !body.isEmpty()) {
             return null;
         }
+        if (att.stream().allMatch(a -> "AUDIO".equals(a.kind()))) {
+            return "AUDIO";
+        }
         return att.stream().allMatch(a -> "VIDEO".equals(a.kind())) ? "VIDEO" : "PHOTO";
     }
 
     /** Medya onizleme metni (alici dilinde): "Fotograf gonderdi" / "Video gonderdi". */
     String mediaPreview(String kind, Lang lang) {
-        String fallback = "VIDEO".equals(kind) ? "🎬" : "📷";
+        String fallback = "AUDIO".equals(kind) ? "🎤" : "VIDEO".equals(kind) ? "🎬" : "📷";
         return i18n == null ? fallback : i18n.msg("chat.preview." + kind, lang);
     }
 
