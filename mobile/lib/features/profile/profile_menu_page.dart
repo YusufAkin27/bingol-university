@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'profile_share.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme_controller.dart';
@@ -98,6 +99,18 @@ class _ProfileMenuPageState extends State<ProfileMenuPage> {
                       value: '$_followReq',
                       onTap: () => _go(FollowRequestsPage(session: s), 'follow_requests'),
                     ),
+                  ProfilRow(
+                    key: const ValueKey('menu-my-qr'),
+                    icon: BuIcons.qrCode,
+                    label: l.profileQrMyCode,
+                    onTap: () => openMyQr(context, s),
+                  ),
+                  ProfilRow(
+                    key: const ValueKey('menu-qr-scan'),
+                    icon: BuIcons.camera,
+                    label: l.profileQrScan,
+                    onTap: () => openProfileScanner(context, s),
+                  ),
                   ProfilRow(
                     key: const ValueKey('menu-my-posts'),
                     icon: BuIcons.image,

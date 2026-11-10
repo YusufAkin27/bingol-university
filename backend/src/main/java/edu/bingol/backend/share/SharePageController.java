@@ -88,6 +88,10 @@ public class SharePageController {
             log.debug("Paylasim sayfasi hiz siniri atlandi: {}", e.toString());
         }
         ShareRef ref = parse(t, id);
+        // Profil baglantisi: sayfa HER kimlik icin ayni notr profil sayfasidir (var/gizli/engelli/askida ayrimi sizmaz)
+        if (ref != null && ref.type().isUser()) {
+            return html(HttpStatus.OK, renderer.render(profile(lang, String.valueOf(ref.id()))), 300, null);
+        }
         Optional<ShareService.Resolved> item = ref == null ? Optional.empty() : shares.publicView(ref);
         SharePageRenderer.Page page = item.map(v -> publicPage(lang, v)).orElseGet(() -> neutral(lang, t, id));
         return html(HttpStatus.OK, renderer.render(page), 300, null);
@@ -146,6 +150,11 @@ public class SharePageController {
                 renderer.msg("share.neutral.desc", lang), null, code, num, false);
     }
 
+    private SharePageRenderer.Page profile(Lang lang, String id) {
+        return build(lang, true, null, renderer.msg("share.profile.title", lang), null,
+                renderer.msg("share.profile.desc", lang), null, ShareType.USER.code(), id, false);
+    }
+
     private SharePageRenderer.Page publicPage(Lang lang, ShareService.Resolved v) {
         ShareType type = v.ref().type();
         String labelKey = switch (type) {
@@ -155,6 +164,7 @@ public class SharePageController {
             case POST -> "VIDEO".equals(v.kind()) ? "share.label.REEL" : "share.label.POST";
             case FORUM_TOPIC -> "share.label.FORUM_TOPIC";
             case FORUM_COMMENT -> "share.label.FORUM_COMMENT";
+            case USER -> "share.label.USER";
         };
         String label = renderer.msg(labelKey, lang);
         String desc = v.description();

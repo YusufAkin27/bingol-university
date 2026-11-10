@@ -16,6 +16,7 @@ String shareKindLabel(BuildContext context, ShareType type, {bool announcement =
     ShareType.event => l.shareKindEvent,
     ShareType.forumTopic => l.forumShareKindTopic,
     ShareType.forumComment => l.forumShareKindComment,
+    ShareType.user => l.shareKindProfile,
   };
 }
 
@@ -26,6 +27,7 @@ IconData shareKindIcon(ShareType type, {bool announcement = false}) => switch (t
       ShareType.event => BuIcons.calendarDays,
       ShareType.forumTopic => BuIcons.messageSquareText,
       ShareType.forumComment => BuIcons.messageCircle,
+      ShareType.user => BuIcons.user,
     };
 
 BuTint shareKindTint(BuTokens t, ShareType type, {bool announcement = false}) => t.tint(switch (type) {
@@ -34,6 +36,7 @@ BuTint shareKindTint(BuTokens t, ShareType type, {bool announcement = false}) =>
       ShareType.news => announcement ? BuTintId.aqua : BuTintId.blue,
       ShareType.event => BuTintId.amber,
       ShareType.forumTopic || ShareType.forumComment => BuTintId.slate,
+      ShareType.user => BuTintId.slate,
     });
 
 /// Sohbet listesinde son mesaj önizlemesi ("Gönderi paylaştı"...). Paylaşım yoksa null.
@@ -51,6 +54,7 @@ String? sharePreviewText(BuildContext context, Map<dynamic, dynamic>? message) {
     ShareType.event => l.shareChatEventShared,
     ShareType.forumTopic => l.forumShareChatTopicShared,
     ShareType.forumComment => l.forumShareChatCommentShared,
+    ShareType.user => l.shareChatProfileShared,
   };
 }
 
@@ -94,10 +98,86 @@ class ShareCard extends StatelessWidget {
     return info.type == ShareType.post || info.type == ShareType.reel ? l.shareUnavailablePost : l.shareUnavailable;
   }
 
+  /// Profil kartı: yuvarlak avatar + ad + @kullanıcı adı (görsel bandı yok). Erişilemeyen profilde nötr metin.
+  Widget _profileCard(BuildContext context, BuTokens t, TextTheme tx) {
+    final mineBg = t.onPr.withValues(alpha: .14);
+    final fg = mine ? t.onPr : t.ink;
+    final sub = mine ? t.onPr.withValues(alpha: .8) : t.mut;
+    final ready = info.available;
+    final name = (info.title ?? '').trim();
+    final handle = (info.subtitle ?? '').trim();
+    final kind = shareKindLabel(context, ShareType.user);
+    final card = ClipRRect(
+      borderRadius: BorderRadius.circular(_radius),
+      child: ColoredBox(
+        color: mine ? mineBg : t.sf2,
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(12, 12, 12, 12),
+          child: Row(children: [
+            ready
+                ? BuAvatar(name: name, url: info.imageUrl, size: 48, headers: shareImageHeaders(info.imageUrl, headers))
+                : ExcludeSemantics(
+                    child: Container(
+                      width: 48,
+                      height: 48,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: mine ? t.onPr.withValues(alpha: .1) : t.sf3),
+                      child: Icon(BuIcons.userX, size: 22, color: sub),
+                    ),
+                  ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                Text(trUpper(kind),
+                    key: const ValueKey('share-card-kind'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: tx.labelSmall!.copyWith(color: sub, fontWeight: FontWeight.w400)),
+                const SizedBox(height: 2),
+                if (!ready)
+                  Text(context.l10n.shareUnavailable,
+                      key: const ValueKey('share-card-unavailable'),
+                      style: tx.bodyMedium!.copyWith(color: fg, fontWeight: FontWeight.w400, height: 1.3))
+                else ...[
+                  if (name.isNotEmpty)
+                    Text(name,
+                        key: const ValueKey('share-card-title'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: tx.bodyMedium!.copyWith(color: fg, fontWeight: FontWeight.w400)),
+                  if (handle.isNotEmpty)
+                    Text(handle,
+                        key: const ValueKey('share-card-source'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: tx.bodySmall!.copyWith(color: sub)),
+                ],
+              ]),
+            ),
+          ]),
+        ),
+      ),
+    );
+    return SizedBox(
+      width: width,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
+        BuPressable(
+          scale: .985,
+          onTap: onTap,
+          enabled: onTap != null,
+          semanticLabel: ready ? '$kind, $name $handle' : '$kind, ${context.l10n.shareUnavailable}',
+          child: card,
+        ),
+        if (footer != null) footer!,
+      ]),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
+    if (info.type == ShareType.user) return _profileCard(context, t, tx);
     // Giden balon kırmızı: kart zemini onPr'nin saydam tonu; gelen balon yüzey: kart zemini sf2.
     final cardBg = mine ? t.onPr.withValues(alpha: .14) : t.sf2;
     final fg = mine ? t.onPr : t.ink;

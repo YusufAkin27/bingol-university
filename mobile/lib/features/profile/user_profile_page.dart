@@ -1,4 +1,5 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
+import 'profile_share.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/academic_catalog.dart' show AcademicLabels, gradeLabelL;
@@ -357,6 +358,15 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 ),
                 // Stitch v3: üstte başlık yok (geri + sağda "...").
                 const Spacer(),
+                if (_p != null)
+                  IconButton(
+                    key: const ValueKey('profile-share'),
+                    constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                    tooltip: l.profileShareAction,
+                    icon: Icon(BuIcons.share2, size: 22, color: t.ink),
+                    onPressed: () => shareUserProfile(context, widget.session,
+                        id: widget.userId, displayName: _name, username: _s('username'), avatarUrl: _s('avatarUrl')),
+                  ),
                 if (showMenu)
                   IconButton(
                     key: const ValueKey('profile-more'),
