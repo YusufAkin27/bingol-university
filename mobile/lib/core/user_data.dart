@@ -22,6 +22,7 @@ import 'cache/video_prefetch.dart';
 import 'language_sync.dart';
 import 'live/live_activity_service.dart';
 import 'swallow.dart';
+import 'transfers/ios_background_upload.dart';
 
 /// Çıkış / hesap değişimi / hesap silme / oturum iptalinde silinmesi gereken kullanıcıya özel yerel depoların
 /// TEK kayıt noktası ([ApiClient.setTokens] bu kancaları çalıştırır). Kural: kullanıcıya özel veri tutan her yeni
@@ -54,6 +55,7 @@ void registerUserDataCleaners(ApiClient api) {
     ..add(LiveActivityService.clearUserData) // iOS Canlı Etkinlik / Android canlı güncelleme (kullanıcının kendi geri sayımları)
     ..add(OnboardingDraftStore.clearShared) // Apple'ın bir kez verdiği geçici ad (hesap taslakları hesap bazlıdır, Session.signOut siler)
     ..add(TrackTokenStore.clear) // herkese açık destek talebinin takip jetonu (e-postaya bağlı)
+    ..add(() async => IosBackgroundUploader.shared?.cancelAll()) // iOS arka plan yüklemeleri + geçici gövde dosyaları (başka hesaba sızmasın)
     ..add(_clearLegalLater); // "sözleşme onayını sonra yap" işareti (kullanıcı kimliği içerir)
 }
 

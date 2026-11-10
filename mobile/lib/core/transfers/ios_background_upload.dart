@@ -82,6 +82,8 @@ class IosBackgroundUploader {
         }
         // bgDone olayı kaçarsa 20 sn'de bir sonucu yokla.
         done = await _await(taskKey, completer);
+        // Yerel taraf sonucu "alınana" dek dosyada tutar; olayla gelen sonucu da tüketip temizle.
+        await _take(taskKey);
       }
       return _result(done);
     } on PlatformException catch (e) {

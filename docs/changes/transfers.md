@@ -10,7 +10,8 @@ Kapsam: sohbet medyası (foto/video/dosya), gönderi ve forum medyası yüklemes
 | Sunucu: sohbet medya yüklemede `Idempotency-Key` | Yazıldı, birim testli |
 | Android ön plan servisi + tek ilerleme bildirimi | Yazıldı, `assembleDebug` ile derlendi; **cihazda çalıştırılmadı** |
 | Aktarımlar arayüzü (`TransfersList`) | Yazıldı, widget testli; hiçbir ekrana bağlanmadı (G2/G4 yerleştirir) |
-| iOS (background URLSession, Canlı Etkinlik/ActivityKit) | **YAPILMADI.** Bu sürümde iOS yalnız uygulama içi takip + kuyruk kurtarma ile çalışır; Swift derlenemediği için dokunulmadı |
+| iOS background URLSession (I1) | Yazıldı (`BuBackgroundUploads.swift` + `ios_background_upload.dart`), **Swift derlenmedi/cihazda denenmedi**; yalnız sohbet FOTOĞRAF yüklemesinde kullanılır (video/gönderi/forum ön planda). Zorla kapatmada iOS oturumu sonlandırır; kuyruk açılışta aynı `Idempotency-Key` ile yeniden dener. Kanal: `bgUpload/bgTake/bgPending/bgCancel/bgCancelAll`, olaylar `bgProgress/bgDone`; çıkışta `cancelAll` |
+| iOS Canlı Etkinlik ile yükleme ilerlemesi | **YAPILMADI** (güncelleme kaynağı APNs gerektirir; kasıtlı) Bu sürümde iOS yalnız uygulama içi takip + kuyruk kurtarma ile çalışır; Swift derlenemediği için dokunulmadı |
 | Gönderi (G2) / sohbet (G4) çalıştırıcıları | Bu işin kapsamı dışı; sohbet için hazır `ChatMediaTransferExecutor` var |
 
 "Arka planda aktarım çalıştı" doğrulanmadı: emülatör/cihaz yok.
