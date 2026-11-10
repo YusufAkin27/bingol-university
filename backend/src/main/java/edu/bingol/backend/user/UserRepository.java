@@ -54,6 +54,20 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT DISTINCT u.department FROM User u WHERE u.department IS NOT NULL AND u.status = edu.bingol.backend.user.UserStatus.ACTIVE ORDER BY u.department")
     List<String> distinctDepartments();
 
+    /**
+     * Bolum sohbeti "bolum ara": ACTIVE kullanicisi olan DISTINCT bolum adlari, ada gore alfabetik keyset
+     * ({@code department > :after}; ilk sayfa icin after = ""). Indeks: au1870_dept (V1870).
+     */
+    @Query("SELECT u.department FROM User u WHERE u.department IS NOT NULL AND u.department <> '' "
+            + "AND u.status = edu.bingol.backend.user.UserStatus.ACTIVE AND u.department > :after "
+            + "GROUP BY u.department ORDER BY u.department")
+    List<String> pageActiveDepartments(@Param("after") String after, org.springframework.data.domain.Pageable page);
+
+    /** Bu bolum adiyla en az bir ACTIVE kullanici var mi (bolum sohbetine katilim dogrulamasi). */
+    @Query("SELECT COUNT(u) > 0 FROM User u WHERE u.department = :d "
+            + "AND u.status = edu.bingol.backend.user.UserStatus.ACTIVE")
+    boolean existsActiveDepartment(@Param("d") String department);
+
     /** Katlanmis ad ifadesi: V1230 trigram indeksiyle BIREBIR ayni (edu.bingol.backend.search.TrFold). */
     String NAME_FOLD = "lower(translate(u.display_name, '" + edu.bingol.backend.search.TrFold.SQL_FROM + "', '"
             + edu.bingol.backend.search.TrFold.SQL_TO + "'))";

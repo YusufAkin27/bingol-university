@@ -104,7 +104,7 @@ class DepartmentChatServiceTest {
     }
 
     @Test
-    void joinClosedRoomIsRejected() {
+    void joinReopensLegacyClosedRoomInsteadOfRejecting() {
         user(5L, "Bilgisayar Mühendisliği", Role.USER);
         DepartmentChatRoom r = new DepartmentChatRoom();
         r.setId(7L);
@@ -112,9 +112,24 @@ class DepartmentChatServiceTest {
         when(depts.findByDeptKey(any())).thenReturn(Optional.of(r));
         when(rooms.find(RoomKind.DEPARTMENT, 7L))
                 .thenReturn(Optional.of(new RoomInfo(300L, RoomKind.DEPARTMENT, 7L, true)));
-        ApiException e = assertThrows(ApiException.class, () -> svc.join(5L));
-        assertEquals("CHAT_ROOM_CLOSED", e.code());
-        verify(rooms, never()).addMember(any(), anyLong(), anyLong());
+        when(rooms.addMember(RoomKind.DEPARTMENT, 7L, 5L)).thenReturn(true);
+        DepartmentChatView v = svc.join(5L);
+        verify(rooms).openRoom(RoomKind.DEPARTMENT, 7L, List.of());
+        verify(rooms).addMember(RoomKind.DEPARTMENT, 7L, 5L);
+        assertFalse(v.closed());
+    }
+
+    @Test
+    void adminCannotCloseDepartmentRoom() {
+        DepartmentChatRoom r = new DepartmentChatRoom();
+        r.setId(7L);
+        when(depts.findById(7L)).thenReturn(Optional.of(r));
+        when(rooms.find(RoomKind.DEPARTMENT, 7L))
+                .thenReturn(Optional.of(new RoomInfo(300L, RoomKind.DEPARTMENT, 7L, false)));
+        ApiException e = assertThrows(ApiException.class, () -> svc.adminSetClosed(7L, true));
+        assertEquals("DEPT_ROOM_CANNOT_CLOSE", e.code());
+        assertEquals(HttpStatus.CONFLICT, e.status());
+        verify(rooms, never()).closeRoom(any(), anyLong());
     }
 
     @Test
@@ -161,11 +176,84 @@ class DepartmentChatServiceTest {
     }
 
     @Test
-    void browseIncludesDepartmentsWithNoRoomOrMessages() {
+    void joinAllowsDepartmentOfActiveUserOutsideCatalog() {
+        user(5L, "Hukuk", Role.USER);
+        when(users.existsActiveDepartment("Spor Medyası")).thenReturn(true);
+        DepartmentChatRoom r = new DepartmentChatRoom();
+        r.setId(8L);
+        r.setName("Spor Medyası");
+        when(depts.findByDeptKey(any())).thenReturn(Optional.of(r));
+        when(rooms.find(RoomKind.DEPARTMENT, 8L))
+                .thenReturn(Optional.of(new RoomInfo(310L, RoomKind.DEPARTMENT, 8L, false)));
+        when(rooms.addMember(RoomKind.DEPARTMENT, 8L, 5L)).thenReturn(true);
+        when(rooms.isMember(RoomKind.DEPARTMENT, 8L, 5L)).thenReturn(true);
+        assertTrue(svc.join(5L, "Spor Medyası").joined());
+    }
+
+    private void usersDepts(String... names) {
+        when(users.pageActiveDepartments(any(), any())).thenAnswer(inv -> {
+            String after = inv.getArgument(0);
+            org.springframework.data.domain.Pageable pg = inv.getArgument(1);
+            return java.util.Arrays.stream(names).filter(n -> n.compareTo(after) > 0).sorted()
+                    .limit(pg.getPageSize()).toList();
+        });
+    }
+
+    @Test
+    void browseListsOnlyDepartmentsOfRealUsersWithBatchRoomLookup() {
         user(5L, null, Role.USER);
-        var result = svc.browse(5L);
-        assertTrue(result.stream().anyMatch(r -> "Bilgisayar Mühendisliği".equals(r.departmentName())));
-        assertTrue(result.stream().allMatch(r -> !r.joined() && r.conversationId() == null));
+        usersDepts("Hukuk", "Spor Medyası");
+        DepartmentChatRoom r = new DepartmentChatRoom();
+        r.setId(7L);
+        r.setDeptKey(edu.bingol.backend.unitnews.UnitKeys.deptKey("Hukuk"));
+        r.setName("Hukuk");
+        when(depts.findByDeptKeyIn(any())).thenReturn(List.of(r));
+        when(rooms.stats(eq(RoomKind.DEPARTMENT), any(), eq(5L))).thenReturn(java.util.Map.of(7L,
+                new RoomConversations.RoomStat(300L, false, 4L, true)));
+        var result = svc.browse(5L, null, null, null);
+        assertEquals(2, result.size());
+        assertEquals("Hukuk", result.get(0).departmentName());
+        assertTrue(result.get(0).joined());
+        assertEquals(4L, result.get(0).memberCount());
+        assertEquals(300L, result.get(0).conversationId());
+        assertEquals("Spor Medyası", result.get(1).departmentName());
+        assertFalse(result.get(1).joined());
+        verify(rooms, never()).find(any(), anyLong()); // N+1 yok
+        verify(rooms, never()).memberCount(any(), anyLong());
+    }
+
+    @Test
+    void browseKeysetPagesAndCapsSize() {
+        user(5L, null, Role.USER);
+        String[] names = new String[120];
+        for (int i = 0; i < names.length; i++) names[i] = String.format("Bölüm %03d", i);
+        usersDepts(names);
+        var p1 = svc.browse(5L, 1000, null, null); // tavan 50
+        assertEquals(50, p1.size());
+        var p2 = svc.browse(5L, 50, p1.get(49).departmentName(), null);
+        assertEquals(50, p2.size());
+        assertEquals("Bölüm 050", p2.get(0).departmentName());
+        var p3 = svc.browse(5L, 50, p2.get(49).departmentName(), null);
+        assertEquals(20, p3.size()); // son sayfa: dönen sayı < size
+        assertEquals(30, svc.browse(5L, null, null, null).size()); // varsayilan 30
+    }
+
+    @Test
+    void browseSearchIsTurkishAwareAndLikeCharsAreLiteral() {
+        user(5L, null, Role.USER);
+        usersDepts("İşletme", "Bilgisayar Mühendisliği", "Hukuk 100%", "Hukuk 100x");
+        assertEquals(List.of("İşletme"), svc.browse(5L, null, null, "isletme").stream().map(DepartmentChatView::departmentName).toList());
+        assertEquals(List.of("Bilgisayar Mühendisliği"),
+                svc.browse(5L, null, null, "MUHENDİS").stream().map(DepartmentChatView::departmentName).toList());
+        assertEquals(List.of("Hukuk 100%"), svc.browse(5L, null, null, "100%").stream().map(DepartmentChatView::departmentName).toList());
+        assertTrue(svc.browse(5L, null, null, "zzz").isEmpty());
+    }
+
+    @Test
+    void browseSkipsBlankAndDedupesSpellingVariants() {
+        user(5L, null, Role.USER);
+        usersDepts("Hukuk", "Hukuk Bölümü", "  ");
+        assertEquals(1, svc.browse(5L, null, null, null).size());
     }
 
     @Test
@@ -179,13 +267,41 @@ class DepartmentChatServiceTest {
     }
 
     @Test
-    void closedDepartmentDoesNotPreventSignup() {
+    void closedDepartmentIsReopenedOnSignup() {
         user(5L, "Hukuk", Role.USER);
         room(7L, edu.bingol.backend.unitnews.UnitKeys.deptKey("Hukuk"));
         when(rooms.find(RoomKind.DEPARTMENT, 7L))
                 .thenReturn(Optional.of(new RoomInfo(300L, RoomKind.DEPARTMENT, 7L, true)));
         svc.joinOnSignup(5L);
-        verify(rooms, never()).addMemberIfSpace(any(), anyLong(), anyLong());
+        verify(rooms).openRoom(RoomKind.DEPARTMENT, 7L, List.of());
+        verify(rooms).addMemberIfSpace(RoomKind.DEPARTMENT, 7L, 5L);
+    }
+
+    @Test
+    void firstUserOfDepartmentCreatesRoomAndSecondReusesIt() {
+        user(5L, "Spor Medyası", Role.USER);
+        user(6L, "Spor Medyası", Role.USER);
+        DepartmentChatRoom r = new DepartmentChatRoom();
+        r.setId(9L);
+        r.setName("Spor Medyası");
+        when(depts.findByDeptKey(any())).thenReturn(Optional.of(r));
+        when(rooms.find(RoomKind.DEPARTMENT, 9L)).thenReturn(Optional.empty(),
+                Optional.of(new RoomInfo(320L, RoomKind.DEPARTMENT, 9L, false)));
+        svc.joinOnSignup(5L);
+        svc.joinOnSignup(6L);
+        verify(rooms, org.mockito.Mockito.times(1)).ensureRoom(eq(RoomKind.DEPARTMENT), eq(9L), any(), anyLong());
+        verify(rooms).addMemberIfSpace(RoomKind.DEPARTMENT, 9L, 5L);
+        verify(rooms).addMemberIfSpace(RoomKind.DEPARTMENT, 9L, 6L);
+    }
+
+    @Test
+    void firstDepartmentAssignmentJoinsRoom() {
+        user(5L, "Spor Medyası", Role.USER);
+        room(7L, edu.bingol.backend.unitnews.UnitKeys.deptKey("Spor Medyası"));
+        when(rooms.find(RoomKind.DEPARTMENT, 7L))
+                .thenReturn(Optional.of(new RoomInfo(300L, RoomKind.DEPARTMENT, 7L, false)));
+        svc.joinOnFirstDepartment(5L, "Spor Medyası");
+        verify(rooms).addMemberIfSpace(RoomKind.DEPARTMENT, 7L, 5L);
     }
 
     @Test

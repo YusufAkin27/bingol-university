@@ -78,6 +78,29 @@ public class RoomConversations {
         return links.findByKindAndRefId(kind, refId).map(RoomConversations::info);
     }
 
+    /** Toplu oda durumu (liste sayfasi): refId -> (conversationId, closed, aktif uye sayisi, kullanici uye mi). */
+    public record RoomStat(Long conversationId, boolean closed, long memberCount, boolean joined) {}
+
+    /** Sayfadaki odalar icin 3 sabit sorgu (N+1 yok). Odasi olmayan refId haritada yoktur. */
+    @Transactional(readOnly = true)
+    public java.util.Map<Long, RoomStat> stats(RoomKind kind, Collection<Long> refIds, Long userId) {
+        if (refIds.isEmpty()) return java.util.Map.of();
+        java.util.List<ChatRoomLink> ls = links.findByKindAndRefIdIn(kind, refIds);
+        if (ls.isEmpty()) return java.util.Map.of();
+        java.util.List<Long> cids = ls.stream().map(ChatRoomLink::getConversationId).toList();
+        java.util.Map<Long, Long> counts = new java.util.HashMap<>();
+        for (Object[] row : members.activeCounts(cids)) {
+            counts.put((Long) row[0], ((Number) row[1]).longValue());
+        }
+        java.util.Set<Long> mine = new java.util.HashSet<>(members.activeConversationIds(userId, cids));
+        java.util.Map<Long, RoomStat> out = new java.util.HashMap<>();
+        for (ChatRoomLink l : ls) {
+            out.put(l.getRefId(), new RoomStat(l.getConversationId(), l.isClosed(),
+                    counts.getOrDefault(l.getConversationId(), 0L), mine.contains(l.getConversationId())));
+        }
+        return out;
+    }
+
     /** Kullanici odanin su an AKTIF uyesi mi. */
     @Transactional(readOnly = true)
     public boolean isMember(RoomKind kind, Long refId, Long userId) {

@@ -68,6 +68,10 @@ public class ProfileService {
         this.tx = ShortTx.of(tm);
     }
 
+    /** Bolum sohbeti (istege bagli: elle kurulan testler icin). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private edu.bingol.backend.messaging.room.dept.DepartmentChatService departmentChat;
+
     /** Herkese acik metin denetimi (istege bagli: guard'siz kurulan testler icin). */
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private ContentGuard guard;
@@ -304,8 +308,10 @@ public class ProfileService {
                 u.setDepartment(null);
             }
         }
+        boolean firstDepartment = false;
         if (r.department() != null) {
             ContentGuard.changed(guard, Entity.PROFILE, "department", id, u.getDepartment(), blankToNull(r.department()));
+            firstDepartment = (u.getDepartment() == null || u.getDepartment().isBlank()) && blankToNull(r.department()) != null;
             u.setDepartment(blankToNull(r.department()));
         }
         if (newClassYear != null) {
@@ -321,7 +327,16 @@ public class ProfileService {
         if (r.language() != null) {
             u.setLanguage(r.language());
         }
-        return users.save(u);
+        User saved = users.save(u);
+        if (firstDepartment && departmentChat != null) {
+            // Yalniz ILK bolum atamasi: bolum sohbeti kurulur + uye eklenir; bolum DEGISTIRMEDE otomatik katilim yok.
+            try {
+                departmentChat.joinOnFirstDepartment(id, saved.getDepartment());
+            } catch (RuntimeException e) {
+                // sozlesme: sohbet katilimi profil kaydini asla bozmaz
+            }
+        }
+        return saved;
     }
 
     /**
