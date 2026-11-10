@@ -230,3 +230,9 @@ Ek (B1): `CalendarItem.pendingCount` (yalnız `manageableIds` içindeki etkinlik
 - Yeni STOMP kuyrugu `/user/queue/attendance-events` (`AttendanceLiveEvents`, `ChatEventBus` + Redis pub/sub; yalniz ilgili kisilere, commit SONRASI, hata yoklamayi bozmaz). Yeni okutmada: `SCAN` -> etkinlik sahibi + `TAKE/VIEW_ATTENDANCE` yetkili moderatorler `{key,eventId,userId,displayName,at,present,total}` (engel iliskisi olan ciftte ad/kimlik null, sayac gider); `MARKED` -> yalniz okutulan katilimci. `key` (`eventId:userId:markedAtMs`) ayni okutma icin sabit (istemci cift olayi eler); 'zaten okutulmus' olay uretmez.
 - Yedek: `GET /api/events/{id}/attendance/summary` -> `{present,total,lastName,lastAt}` (VIEW/TAKE yetkisi, 120/dk); katilimci icin mevcut `GET /my-attendance`.
 - Hata kodu eklenmedi (i18n degisikligi yok). Pub/sub kalici degildir; kacirilan olay yoklama ile telafi edilir.
+
+## T1: Etkinlik bileti "Biletim" (2026-11-10)
+
+- `GET /api/events/{id}/ticket`: bilet verisi (etkinlik, sahip adi, `state` VALID/ENDED/CANCELLED, `attendanceOpen`, `wallet{apple,google}`); yalniz `GOING` katilimci, sahip/moderator 403 `TICKET_NOT_FOR_STAFF`, katilmayan 403 `NOT_RSVPED`. QR yoklama sozlesmesi (`/my-ticket`) degismedi.
+- `app.wallet.*` bayraklari (varsayilan kapali, sir yok): bkz. `docs/WALLET_SETUP.md`. Migration yok.
+- Mobil: `EventTicketPage`, hesap bazli cevrimdisi onbellek `EventTicketStore` (cikista silinir), "Cuzdana ekle" yalniz `WALLET_ENABLED` + sunucu bayragi aciksa.
