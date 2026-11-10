@@ -314,7 +314,7 @@ public class ConversationService {
         members.save(self);
     }
 
-    /** Mesaji olan konusmalar, en yeni mesaj once. Imlec = onceki sayfanin son `lastMessage.id` degeri. */
+    /** Mesajli sohbetler ve bos oda sohbetleri (kulup, etkinlik, bolum). Imlec = son mesaj id'si; bos odada -conversationId. */
     @Transactional(readOnly = true)
     public CursorPage<ConversationView> list(Long me, Long cursor, int size) {
         return list(me, cursor, size, false);
@@ -330,7 +330,8 @@ public class ConversationService {
         Long next = null;
         if (more) {
             Conversation lastRow = page.get(page.size() - 1);
-            next = lastKey(lastRow, members.findByConversationIdAndUserId(lastRow.getId(), me).stream().toList(), me);
+            next = lastRow.getLastMessageId() == null ? -lastRow.getId()
+                    : lastKey(lastRow, members.findByConversationIdAndUserId(lastRow.getId(), me).stream().toList(), me);
         }
         return new CursorPage<>(views(me, page), next);
     }
