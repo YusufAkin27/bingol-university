@@ -123,6 +123,8 @@ String? _httpsUrl(Object? v) {
   return u.toString();
 }
 
+/// Bilerek eşlenmeyenler (Bildirimler listesi açılır): MESSAGE_IMAGE (targetId görsel/ek kimliği, sohbet kimliği yük
+/// içinde yok) ve BOARD_NOTICE (targetId pano duyurusu kimliği, oda kimliği yok): güvenli bir ekran çözülemez.
 /// `targetType` -> hedef. Önek eşleşmeleri: POLL_*, POST_*, EVENT_*, ACADEMIC_*.
 PushDest? _destOf(String t) {
   switch (t) {
@@ -143,6 +145,7 @@ PushDest? _destOf(String t) {
     case 'FEED_COMMENT':
       return PushDest.post;
     case 'USER':
+    case 'USER_AVATAR': // moderasyon: targetId = avatar sahibinin kullanıcı kimliği (bildirim alıcısı); profil ekranı
     case 'USER_FOLLOW':
     case 'FOLLOW':
       return PushDest.user;

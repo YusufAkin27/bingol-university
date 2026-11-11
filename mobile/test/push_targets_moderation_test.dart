@@ -16,4 +16,11 @@ void main() {
     final t = resolvePushTarget({'targetType': 'POST', 'targetId': '5', 'moderation': '1'});
     expect(t, const PushTarget(PushDest.post, id: 5));
   });
+
+  test('moderasyon USER_AVATAR profile gider; MESSAGE_IMAGE ve BOARD_NOTICE listeye (kimlik sohbet/oda değil)', () {
+    expect(resolvePushTarget({'targetType': 'USER_AVATAR', 'targetId': '12', 'moderation': '1'}),
+        const PushTarget(PushDest.user, id: 12));
+    expect(resolvePushTarget({'targetType': 'MESSAGE_IMAGE', 'targetId': '3', 'moderation': '1'}).dest, PushDest.notifications);
+    expect(resolvePushTarget({'targetType': 'BOARD_NOTICE', 'targetId': '4', 'moderation': '1'}).dest, PushDest.notifications);
+  });
 }
