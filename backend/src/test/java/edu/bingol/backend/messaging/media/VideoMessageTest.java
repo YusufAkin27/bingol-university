@@ -224,6 +224,9 @@ class VideoMessageTest {
                 () -> service.upload(ME, CONV, audio(new byte[500], "audio/mp4"), null)).code());
         assertEquals("AUDIO_TOO_LONG", assertThrows(ApiException.class,
                 () -> service.upload(ME, CONV, audio(Mp4Fixtures.mp4(400, 0, 0, 100), "audio/mp4"), null)).code());
+        // goruntu izi olan kap "ses" diye yuklenemez: video gunluk kotasi / 60 sn siniri atlanmasin
+        assertEquals("AUDIO_INVALID", assertThrows(ApiException.class,
+                () -> service.upload(ME, CONV, audio(Mp4Fixtures.mp4(5, 640, 360, 100), "audio/mp4"), null)).code());
     }
 
     @Test
