@@ -228,12 +228,12 @@ void main() {
     await settle(tester, const Duration(milliseconds: 400));
     expect(find.text('Ayşe Yılmaz katıldı'), findsOneWidget);
     expect(be.bodies['POST /events/5/scan'], {'code': 'bingol-ticket:a'});
-    await tester.pump(const Duration(seconds: 2));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 1000))); // gerçek saat: farklı kod bekleme süresi
     be.on('/events/5/scan', {'status': 'ALREADY', 'userId': 11, 'displayName': 'Ayşe Yılmaz'});
     send!('bingol-ticket:b');
     await settle(tester, const Duration(milliseconds: 400));
     expect(find.text('Ayşe Yılmaz zaten katıldı'), findsOneWidget);
-    await tester.pump(const Duration(seconds: 2));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 1000)));
     be.fail('/events/5/scan', status: 400, code: 'INVALID_CODE', message: 'Kod geçersiz veya süresi dolmuş.');
     send!('bingol-ticket:c');
     await settle(tester, const Duration(milliseconds: 400));
