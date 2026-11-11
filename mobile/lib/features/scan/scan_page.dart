@@ -136,6 +136,7 @@ class _QrScanHubPageState extends State<QrScanHubPage> with SingleTickerProvider
       final res = await widget.session.api.post('/events/${r.eventId}/scan', {'code': r.code});
       if (!mounted) return;
       final name = res is Map ? '${res['displayName'] ?? ''}' : '';
+      _throttle.succeeded(v, DateTime.now());
       buHaptic(BuHaptic.medium);
       _flash(res is Map && res['status'] == 'ALREADY' ? l.evtQrScanAlready(name) : l.scanCheckinDone(name));
     } catch (e) {

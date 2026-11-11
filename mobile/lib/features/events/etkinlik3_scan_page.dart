@@ -126,6 +126,7 @@ class _Etkinlik3ScanPageState extends State<Etkinlik3ScanPage> {
       final m = r is Map ? r : const {};
       final name = '${m['displayName'] ?? ''}';
       final already = m['status'] == 'ALREADY';
+      _throttle.succeeded(c, DateTime.now());
       buHaptic(already ? BuHaptic.light : BuHaptic.medium);
       setState(() {
         _isError = false;

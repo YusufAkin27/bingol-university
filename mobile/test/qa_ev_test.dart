@@ -115,6 +115,18 @@ void main() {
       expect(th.accept('A', now.add(const Duration(seconds: 33))), isTrue);
     });
 
+    test('başarıyla işlenen kod aynı karede tekrar gönderilmez (32 sn); farklı kod kabul edilir', () {
+      final th = ScanThrottle();
+      final t0 = DateTime(2026, 1, 1, 12);
+      expect(th.accept('A', t0), isTrue);
+      th.succeeded('A', t0);
+      for (var ms = 250; ms < 30000; ms += 250) {
+        expect(th.accept('A', t0.add(Duration(milliseconds: ms))), isFalse, reason: '$ms ms');
+      }
+      expect(th.accept('A', t0.add(const Duration(seconds: 33))), isTrue);
+      expect(th.accept('B', t0.add(const Duration(milliseconds: 1300))), isTrue);
+    });
+
     test('farklı kod en az 1,2 sn sonra kabul edilir; sayaç sıfırlanır', () {
       final th = ScanThrottle();
       final t0 = DateTime(2026, 1, 1, 12);
