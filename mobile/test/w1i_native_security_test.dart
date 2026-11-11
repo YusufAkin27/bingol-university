@@ -111,6 +111,8 @@ void main() {
           .map((m) => m.group(0)!)
           // FCM alicisi yalniz Google'in SEND izniyle korunur (baska uygulama sahte yayin basamaz): izinli, zorunlu istisna.
           .where((c) => !c.contains('android:permission="com.google.android.c2dm.permission.SEND"'))
+          // Widget yapilandirma ekrani launcher tarafindan acilir (APPWIDGET_CONFIGURE): sistem geregi disa acik.
+          .where((c) => !c.contains('android:name=".widgets.QuickAccessConfigActivity"'))
           .toList();
       expect(exported, hasLength(1), reason: exported.join('\n'));
       expect(exported.single, contains('android:name=".MainActivity"'));
