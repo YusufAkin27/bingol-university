@@ -178,6 +178,11 @@ class VoiceRecordController extends ChangeNotifier {
     final path = await _tempPath();
     final ok = await _recorder.start(path);
     if (!ok) return false;
+    if (_disposed) {
+      // Sayfa kayıt başlarken kapandı: kaydı bırak, dinleyici/zamanlayıcı kurma.
+      unawaited(_recorder.cancel());
+      return false;
+    }
     _phase = VoiceRecordPhase.recording;
     _startedAt = _now();
     _cancelArmed = false;
@@ -260,8 +265,17 @@ class VoiceRecordController extends ChangeNotifier {
     } catch (_) {}
   }
 
+  bool _disposed = false;
+
+  // Sayfa kapanırken bekleyen finish()/cancel()/start() sonradan notify ederse "dispose sonrası kullanım" olmasın.
+  @override
+  void notifyListeners() {
+    if (!_disposed) super.notifyListeners();
+  }
+
   @override
   void dispose() {
+    _disposed = true;
     _tick?.cancel();
     _lvlSub?.cancel();
     _intSub?.cancel();

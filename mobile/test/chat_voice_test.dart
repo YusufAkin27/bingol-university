@@ -49,6 +49,16 @@ class _FakeRecorder implements VoiceRecorder {
   Future<void> dispose() async {}
 }
 
+class _SlowRecorder extends _FakeRecorder {
+  _SlowRecorder(this.gate);
+  final Future<void> gate;
+  @override
+  Future<bool> start(String path) async {
+    await gate;
+    return true;
+  }
+}
+
 void main() {
   setUpAll(loadTestFonts);
 
@@ -67,6 +77,18 @@ void main() {
 
   VoiceRecordController make(_FakeRecorder r) =>
       VoiceRecordController(recorder: r, tempPath: () async => file.path, now: () => clock);
+
+  test('kayit baslarken denetleyici dispose edilirse kayit birakilir, notify patlamaz', () async {
+    final gate = Completer<void>();
+    final r = _SlowRecorder(gate.future);
+    final c = make(r);
+    final f = c.start();
+    c.dispose();
+    gate.complete();
+    expect(await f, isFalse);
+    expect(r.cancels, 1);
+    expect(c.recording, isFalse);
+  });
 
   test('1 sn altindaki kayit atilir ve dosya silinir', () async {
     final r = _FakeRecorder();
