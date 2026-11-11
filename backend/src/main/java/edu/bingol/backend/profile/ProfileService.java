@@ -261,6 +261,7 @@ public class ProfileService {
         requireMaxCodePoints("department", r.department(), 120);
         requireMaxCodePoints("bio", r.bio(), BIO_MAX);
         User u = get(id);
+        final String beforeAcademic = academicKey(u);
         if (r.displayName() != null) {
             String newName = DisplayNamePolicy.normalize(r.displayName(), u.getRole() == Role.ADMIN);
             ContentGuard.changed(guard, Entity.PROFILE, "displayName", id, u.getDisplayName(), newName);
@@ -336,7 +337,14 @@ public class ProfileService {
                 // sozlesme: sohbet katilimi profil kaydini asla bozmaz
             }
         }
+        if (publisher != null && !beforeAcademic.equals(academicKey(saved))) {
+            publisher.publishEvent(new ProfileAcademicChangedEvent(id));
+        }
         return saved;
+    }
+
+    private static String academicKey(User u) {
+        return u.getFaculty() + "" + u.getDepartment() + "" + u.getGrade();
     }
 
     /**

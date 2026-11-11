@@ -318,4 +318,42 @@ class OfficialTimetableSeederTest {
         assertTrue(seeder.autoSeed(uid));
         assertEquals(TimetableService.MAX_COURSES, tt.timetable(uid, null).courses().size());
     }
+
+    @Test
+    void profileChangeReplacesSeededCoursesWithNewDepartmentProgram() {
+        baseProgram();
+        off(TERM, MYO, "Hukuk", "1", null, 1, "08:15", "10:00", null, "Hukuk Dersi", null);
+        assertTrue(seeder.autoSeed(uid));
+        assertEquals(2, tt.timetable(uid, null).courses().size());
+
+        jdbc.update("UPDATE app_user SET department = 'Hukuk' WHERE id = ?", uid);
+        assertTrue(seeder.reseedAfterProfileChange(uid));
+
+        List<CourseView> now = tt.timetable(uid, null).courses();
+        assertEquals(1, now.size(), "eski bolumun dersleri gitti, yeni bolumunki geldi");
+        assertEquals("Hukuk Dersi", now.get(0).name());
+        assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM tt_official_seed WHERE user_id = ?", Integer.class, uid));
+
+        // sinif degisimi de yeniler; resmi programi olmayan bolume gecince eski dersler kalmaz
+        jdbc.update("UPDATE app_user SET department = 'Yok Bolum' WHERE id = ?", uid);
+        assertFalse(seeder.reseedAfterProfileChange(uid));
+        assertTrue(tt.timetable(uid, null).courses().isEmpty());
+    }
+
+    @Test
+    void profileChangeLeavesManuallyBuiltTimetableAlone() {
+        baseProgram();
+        tt.createCourse(uid, new CourseRequest("Benim Dersim", null, null, null, null, null, null,
+                List.of(new SessionIn(5, "09:00", "10:00", null)), null, null, null, null));
+        jdbc.update("UPDATE app_user SET department = 'Hukuk' WHERE id = ?", uid);
+        assertFalse(seeder.reseedAfterProfileChange(uid));
+        assertEquals(1, tt.timetable(uid, null).courses().size());
+    }
+
+    @Test
+    void profileChangeSeedsUserWithNoCoursesYet() {
+        baseProgram();
+        assertTrue(seeder.reseedAfterProfileChange(uid));
+        assertEquals(2, tt.timetable(uid, null).courses().size());
+    }
 }
