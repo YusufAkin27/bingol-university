@@ -235,6 +235,12 @@ PushTarget resolvePushTarget(Map<String, dynamic>? data) {
     return const PushTarget(PushDest.devices);
   }
 
+  // Moderasyon bildirimi (`moderation=1`) targetType=ANNOUNCEMENT: kimlik KULÜP duyurusunun (community_post) kimliğidir,
+  // haber kimliği değil; haber detayı yanlış kaydı/404'ü açmasın, Bildirimler listesi açılır.
+  if (target == 'ANNOUNCEMENT' && '${d['moderation'] ?? ''}'.trim().isNotEmpty && newsId == null) {
+    return const PushTarget(PushDest.notifications);
+  }
+
   final dest = _destOf(target);
   if (eventId != null) return PushTarget(PushDest.event, id: eventId);
   if (communityId != null && (dest == null || dest == PushDest.community))
