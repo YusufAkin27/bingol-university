@@ -344,7 +344,11 @@ void main() {
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 800));
       expect(find.byKey(const ValueKey('post-menu-button')), findsNothing);
+      // Uzun basma once on izleme (peek) acar; menu onizlemedeki ⋯ ile gelir.
       await tester.longPress(box(1000));
+      await settle(tester, const Duration(milliseconds: 700));
+      expect(find.byKey(const ValueKey('postPeek')), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('peekMenu')));
       await settle(tester, const Duration(milliseconds: 700));
       expect(find.byKey(const ValueKey('post-act-edit')), findsOneWidget);
       expect(find.byKey(const ValueKey('post-act-delete')), findsOneWidget);
@@ -352,6 +356,8 @@ void main() {
       await tester.tapAt(const Offset(20, 100)); // sheet disina dokun: kapat
       await settle(tester, const Duration(milliseconds: 500));
       await tester.longPress(box(999));
+      await settle(tester, const Duration(milliseconds: 700));
+      await tester.tap(find.byKey(const ValueKey('peekMenu')));
       await settle(tester, const Duration(milliseconds: 700));
       expect(find.byKey(const ValueKey('post-act-profile')), findsOneWidget);
       expect(find.byKey(const ValueKey('post-act-report')), findsOneWidget);
