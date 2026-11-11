@@ -38,12 +38,16 @@ class FeedPager {
 
   /// Sıfırlar: sonraki istek yeni oturum tohumudur.
   void reset() {
+    _gen++; // uçuştaki eski istek sonucu imleci/durumu yazamaz
     cursor = null;
     renew = true;
     ended = false;
   }
 
+  int _gen = 0;
+
   Future<FeedChunk> next(Set<int> have) async {
+    final gen = _gen;
     final seen = {...have};
     for (var attempt = 0; attempt < maxAttempts; attempt++) {
       final useCursor = renew ? null : cursor;
@@ -51,6 +55,7 @@ class FeedPager {
       try {
         page = await api.feed(scope: scope, cursor: useCursor, size: size);
       } on ApiError catch (e) {
+        if (gen != _gen) return const FeedChunk([]);
         // Bozuk/başka kapsamın imleci: akışı imleçsiz sürdür (bir deneme hakkı harcanır).
         if (e.code == 'POST_CURSOR_INVALID' && useCursor != null) {
           cursor = null;
@@ -59,6 +64,7 @@ class FeedPager {
         }
         rethrow;
       }
+      if (gen != _gen) return const FeedChunk([]); // reset() sonrası eski sonuç atılır
       cursor = page.nextCursor;
       renew = !page.hasMore;
       final fresh = [for (final p in page.items) if (seen.add(p.id)) p];
