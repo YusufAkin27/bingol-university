@@ -906,4 +906,30 @@ class PollServiceTest {
     private static List<Long> ids(PollPage page) {
         return page.items().stream().map(PollView::id).toList();
     }
+
+    @Test
+    void closeJobReadsInIdOrderedChunksAndClosesEveryExpiredPoll() {
+        User creator = user();
+        List<Long> ids = new java.util.ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            PollView p = create(admin(creator), new R());
+            Poll row = polls.findById(p.id()).orElseThrow();
+            row.setClosesAt(Instant.now().minus(Duration.ofMinutes(1)));
+            polls.saveAndFlush(row);
+            ids.add(p.id());
+        }
+        // parcali okuma: id > after, artan, sayfa boyutu 1
+        List<Poll> first = polls.findByStatusAndClosesAtLessThanEqualAndIdGreaterThanOrderByIdAsc(
+                Poll.Status.OPEN, Instant.now(), ids.get(0) - 1, org.springframework.data.domain.PageRequest.of(0, 1));
+        assertEquals(1, first.size());
+        assertEquals(ids.get(0), first.get(0).getId());
+        List<Poll> next = polls.findByStatusAndClosesAtLessThanEqualAndIdGreaterThanOrderByIdAsc(
+                Poll.Status.OPEN, Instant.now(), ids.get(0), org.springframework.data.domain.PageRequest.of(0, 1));
+        assertEquals(ids.get(1), next.get(0).getId());
+
+        assertTrue(closeJob.runOnce() >= 3);
+        for (Long id : ids) {
+            assertEquals(Poll.Status.CLOSED, polls.findById(id).orElseThrow().getStatus());
+        }
+    }
 }

@@ -4,6 +4,8 @@ import edu.bingol.backend.config.SchedulerLock;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
+import org.springframework.data.domain.PageRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,6 +20,9 @@ import org.springframework.stereotype.Component;
 public class PollCloseJob {
 
     private static final Logger log = LoggerFactory.getLogger(PollCloseJob.class);
+
+    static final int BATCH = 100;
+    static final int MAX_BATCHES = 20;
 
     private final PollRepository polls;
     private final PollService service;
@@ -51,13 +56,34 @@ public class PollCloseJob {
         int closed = 0;
         try {
             Instant now = clock.instant();
-            for (Poll p : polls.findByStatusAndClosesAtLessThanEqual(Poll.Status.OPEN, now)) {
-                if (service.autoClose(p.getId())) {
-                    closed++;
+            Instant soon = now.plus(Duration.ofHours(24));
+            // Sinirsiz liste yok: id'ye gore ilerleyen BATCH'lik parcalar, tur basina en cok MAX_BATCHES parca
+            Long after = 0L;
+            for (int i = 0; i < MAX_BATCHES; i++) {
+                List<Poll> page = polls.findByStatusAndClosesAtLessThanEqualAndIdGreaterThanOrderByIdAsc(
+                        Poll.Status.OPEN, now, after, PageRequest.of(0, BATCH));
+                for (Poll p : page) {
+                    if (service.autoClose(p.getId())) {
+                        closed++;
+                    }
                 }
+                if (page.size() < BATCH) break;
+                after = page.get(page.size() - 1).getId();
             }
-            polls.openedNotNotified(now).forEach(p -> notifier.notifyOpened(p.getId()));
-            polls.closingSoonNotNotified(now, now.plus(Duration.ofHours(24))).forEach(notifier::notifyClosingSoon);
+            after = 0L;
+            for (int i = 0; i < MAX_BATCHES; i++) {
+                List<Poll> page = polls.openedNotNotifiedPage(now, Poll.Status.OPEN, after, PageRequest.of(0, BATCH));
+                page.forEach(p -> notifier.notifyOpened(p.getId()));
+                if (page.size() < BATCH) break;
+                after = page.get(page.size() - 1).getId();
+            }
+            after = 0L;
+            for (int i = 0; i < MAX_BATCHES; i++) {
+                List<Poll> page = polls.closingSoonPage(now, soon, Poll.Status.OPEN, after, PageRequest.of(0, BATCH));
+                page.forEach(notifier::notifyClosingSoon);
+                if (page.size() < BATCH) break;
+                after = page.get(page.size() - 1).getId();
+            }
             if (closed > 0) {
                 log.info("{} anket suresi doldugu icin kapatildi", closed);
             }
