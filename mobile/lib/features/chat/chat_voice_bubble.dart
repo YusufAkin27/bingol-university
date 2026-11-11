@@ -121,6 +121,7 @@ class _VoiceBubbleState extends State<VoiceBubble> with WidgetsBindingObserver {
 
   Future<void> _toggle() async {
     if (widget.uploading && widget.source.file == null) return;
+    if (_loading) return; // yüklenirken ikinci dokunuş oynatmayı hemen duraklatmasın
     buHaptic(BuHaptic.selection);
     var c = _c;
     if (c == null || _failed) {

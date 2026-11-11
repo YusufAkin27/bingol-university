@@ -6,6 +6,7 @@ import 'package:bu_kampus/features/chat/chat_voice.dart';
 import 'package:bu_kampus/features/chat/chat_voice_bubble.dart';
 import 'package:bu_kampus/features/chat/message_bubble.dart';
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_app.dart';
@@ -57,6 +58,25 @@ class _SlowRecorder extends _FakeRecorder {
     await gate;
     return true;
   }
+}
+
+class _GateCtl extends VideoPlayerController {
+  _GateCtl(this.gate) : super.networkUrl(Uri.parse('http://x.invalid/a.mp4'));
+  final Completer<void> gate;
+  int plays = 0;
+  int pauses = 0;
+  @override
+  Future<void> initialize() => gate.future;
+  @override
+  Future<void> setLooping(bool looping) async {}
+  @override
+  Future<void> setPlaybackSpeed(double speed) async {}
+  @override
+  Future<void> play() async => plays++;
+  @override
+  Future<void> pause() async => pauses++;
+  @override
+  Future<void> dispose() async {}
 }
 
 void main() {
@@ -209,5 +229,27 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('voiceSpeedButton')));
     await tester.pump();
     expect(find.text('2x'), findsOneWidget);
+  });
+
+  testWidgets('balon: yuklenirken ikinci dokunus yok sayilir (oynatma tek kez baslar)', (tester) async {
+    useScreen(tester, const Size(390, 800));
+    final gate = Completer<void>();
+    final ctl = _GateCtl(gate);
+    await tester.pumpWidget(buildApp(
+        VoiceBubble(
+            source: const VoiceSource.network('/api/conversations/1/media/4', {}),
+            durationMs: 5000,
+            color: Colors.black,
+            controllerFactory: (_) => ctl),
+        size: kPhoneMedium));
+    await tester.tap(find.byKey(const ValueKey('voicePlayButton')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('voicePlayButton'))); // yüklenirken
+    await tester.pump();
+    gate.complete();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(ctl.plays, 1);
+    expect(ctl.pauses, 0);
+    await unmount(tester);
   });
 }
