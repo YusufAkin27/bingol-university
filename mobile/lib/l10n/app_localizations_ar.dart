@@ -12819,20 +12819,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get evtQrMyTitle => 'رمزي';
-
-  @override
-  String get evtQrMyHint =>
-      'اعرض هذا الرمز على منظم الفعالية عند الدخول. يتجدد خلال وقت قصير.';
-
-  @override
-  String get evtQrMyNotApproved => 'يظهر رمزك هنا بعد الموافقة على مشاركتك.';
-
-  @override
-  String get evtQrMyBeforeStart =>
-      'يُفتح تسجيل الحضور في موعد الفعالية؛ يمكنك تجهيز رمزك الآن.';
-
-  @override
   String get evtQrScanClosed => 'لم يُفتح تسجيل الحضور بعد أو أُغلق.';
 
   @override
@@ -12927,18 +12913,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get evtQrOwnerOutside =>
       'نحن خارج أوقات الفعالية؛ يُفتح الحضور تلقائيًا قبل البداية بـ 30 دقيقة. يمكنك فتحه الآن.';
-
-  @override
-  String get evtQrMyOwnerTitle => 'أنت منظم هذه الفعالية';
-
-  @override
-  String get evtQrMyOwnerBody => 'تسجّل الحضور بمسح رموز QR الخاصة بالمشاركين.';
-
-  @override
-  String get evtQrMyOwnerScan => 'مسح QR';
-
-  @override
-  String get evtQrMyOwnerJoin => 'انضم كمشارك أيضًا';
 
   @override
   String get evtAtt2ToolTitle => 'أداة الحضور';

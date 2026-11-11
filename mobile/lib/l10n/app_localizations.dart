@@ -23262,30 +23262,6 @@ abstract class AppLocalizations {
   /// **'{name} zaten katıldı'**
   String evtQrScanAlready(String name);
 
-  /// No description provided for @evtQrMyTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'QR kodum'**
-  String get evtQrMyTitle;
-
-  /// No description provided for @evtQrMyHint.
-  ///
-  /// In tr, this message translates to:
-  /// **'Girişte bu kodu etkinlik görevlisine okutun. Kod kısa sürede yenilenir.'**
-  String get evtQrMyHint;
-
-  /// No description provided for @evtQrMyNotApproved.
-  ///
-  /// In tr, this message translates to:
-  /// **'QR kodun, katılımın onaylanınca burada görünür.'**
-  String get evtQrMyNotApproved;
-
-  /// No description provided for @evtQrMyBeforeStart.
-  ///
-  /// In tr, this message translates to:
-  /// **'Yoklama etkinlik saatinde açılır; kodu şimdiden hazır tutabilirsin.'**
-  String get evtQrMyBeforeStart;
-
   /// No description provided for @evtQrScanClosed.
   ///
   /// In tr, this message translates to:
@@ -23471,30 +23447,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Yoklama etkinlik saatleri dışında; başlangıçtan 30 dk önce kendiliğinden açılır. İstersen şimdi açabilirsin.'**
   String get evtQrOwnerOutside;
-
-  /// No description provided for @evtQrMyOwnerTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Bu etkinliğin organizatörüsün'**
-  String get evtQrMyOwnerTitle;
-
-  /// No description provided for @evtQrMyOwnerBody.
-  ///
-  /// In tr, this message translates to:
-  /// **'Yoklamayı katılımcıların QR kodlarını okutarak alırsın.'**
-  String get evtQrMyOwnerBody;
-
-  /// No description provided for @evtQrMyOwnerScan.
-  ///
-  /// In tr, this message translates to:
-  /// **'QR okut'**
-  String get evtQrMyOwnerScan;
-
-  /// No description provided for @evtQrMyOwnerJoin.
-  ///
-  /// In tr, this message translates to:
-  /// **'Katılımcı olarak da katıl'**
-  String get evtQrMyOwnerJoin;
 
   /// No description provided for @evtAtt2ToolTitle.
   ///

@@ -6993,10 +6993,6 @@
       }
     }
   },
-  "evtQrMyTitle": "QR kodum",
-  "evtQrMyHint": "Girişte bu kodu etkinlik görevlisine okutun. Kod kısa sürede yenilenir.",
-  "evtQrMyNotApproved": "QR kodun, katılımın onaylanınca burada görünür.",
-  "evtQrMyBeforeStart": "Yoklama etkinlik saatinde açılır; kodu şimdiden hazır tutabilirsin.",
   "evtQrScanClosed": "Yoklama henüz açılmadı veya kapandı.",
   "evtAttOpenTitle": "Yoklama açık",
   "evtAttOpenSub": "Açıkken katılımcılar QR kodlarını gösterir; siz ve moderatörler okutur.",
@@ -7028,10 +7024,6 @@
   "evtQrOwnerClosed": "Yoklama kapalı: katılımcılar QR gösteremez.",
   "evtQrOwnerOpenAction": "Yoklamayı aç",
   "evtQrOwnerOutside": "Yoklama etkinlik saatleri dışında; başlangıçtan 30 dk önce kendiliğinden açılır. İstersen şimdi açabilirsin.",
-  "evtQrMyOwnerTitle": "Bu etkinliğin organizatörüsün",
-  "evtQrMyOwnerBody": "Yoklamayı katılımcıların QR kodlarını okutarak alırsın.",
-  "evtQrMyOwnerScan": "QR okut",
-  "evtQrMyOwnerJoin": "Katılımcı olarak da katıl",
   "evtAtt2ToolTitle": "Yoklama aracı",
   "evtAtt2ToolSub": "QR okut, listeden işaretle",
   "evtAtt2ScanQr": "QR okut",

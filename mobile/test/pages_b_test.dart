@@ -1318,7 +1318,7 @@ void main() {
     testWidgets('katilimci: yalniz QR kodum, kod girisi yok', (tester) async {
       final be = full(manage: false);
       await _pump(tester, build(makeSession(be)), size: kPhoneSmall);
-      expect(find.byKey(const ValueKey('detail-my-qr')), findsOneWidget);
+      expect(find.byKey(const ValueKey('detail-ticket')), findsOneWidget);
       expect(find.text('Kodu elle gir'), findsNothing);
       expect(find.text('Yoklamayı gönder'), findsNothing);
       expect(be.requests.where((r) => r.contains('check-in')), isEmpty);

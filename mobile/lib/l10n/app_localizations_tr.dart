@@ -12886,21 +12886,6 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get evtQrMyTitle => 'QR kodum';
-
-  @override
-  String get evtQrMyHint =>
-      'Girişte bu kodu etkinlik görevlisine okutun. Kod kısa sürede yenilenir.';
-
-  @override
-  String get evtQrMyNotApproved =>
-      'QR kodun, katılımın onaylanınca burada görünür.';
-
-  @override
-  String get evtQrMyBeforeStart =>
-      'Yoklama etkinlik saatinde açılır; kodu şimdiden hazır tutabilirsin.';
-
-  @override
   String get evtQrScanClosed => 'Yoklama henüz açılmadı veya kapandı.';
 
   @override
@@ -12998,19 +12983,6 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get evtQrOwnerOutside =>
       'Yoklama etkinlik saatleri dışında; başlangıçtan 30 dk önce kendiliğinden açılır. İstersen şimdi açabilirsin.';
-
-  @override
-  String get evtQrMyOwnerTitle => 'Bu etkinliğin organizatörüsün';
-
-  @override
-  String get evtQrMyOwnerBody =>
-      'Yoklamayı katılımcıların QR kodlarını okutarak alırsın.';
-
-  @override
-  String get evtQrMyOwnerScan => 'QR okut';
-
-  @override
-  String get evtQrMyOwnerJoin => 'Katılımcı olarak da katıl';
 
   @override
   String get evtAtt2ToolTitle => 'Yoklama aracı';

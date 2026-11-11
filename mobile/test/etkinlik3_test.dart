@@ -5,7 +5,7 @@ import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/events/etkinlik2_attendance_page.dart';
 import 'package:bu_kampus/features/events/etkinlik2_qr_page.dart';
 import 'package:bu_kampus/features/events/etkinlik3_moderators_page.dart';
-import 'package:bu_kampus/features/events/etkinlik3_my_qr_page.dart';
+import 'package:bu_kampus/features/events/event_ticket_page.dart';
 import 'package:bu_kampus/features/events/etkinlik3_scan_page.dart';
 import 'package:bu_kampus/features/events/event_detail_page.dart';
 import 'package:bu_kampus/features/events/event_form_page.dart';
@@ -82,6 +82,7 @@ FakeBackend _be({
       ..on('/events/5/attendance/roster', _roster())
       ..on('/events/5/my-attendance', {'present': false, 'checkInOpen': true})
       ..on('/events/5/my-permissions', {'owner': owner || manage, 'attendanceOpen': open, 'permissions': perms})
+      ..on('/events/5/ticket', {'state': 'ACTIVE', 'attendanceOpen': true, 'title': 'Kampüs halı saha maçı'})
       ..on('/events/5/my-ticket', {'code': '5.1.1.abc', 'qrPayload': 'bingol-ticket:5.1.1.abc', 'validForSeconds': 180})
       ..on('/events/5/moderators', [
         {'userId': 21, 'displayName': 'Zeynep Arslan', 'permissions': ['TAKE_ATTENDANCE'], 'createdAt': _iso(DateTime.now())},
@@ -144,7 +145,7 @@ void main() {
   final scenes = <String, (FakeBackend Function(), Widget Function(FakeBackend))>{
     'moderatorler': (() => _be(manage: true), (b) => Etkinlik3ModeratorsPage(session: makeSession(b), event: _ev(manage: true))),
     'okut': (() => _be(manage: true), (b) => Etkinlik3ScanPage(session: makeSession(b), event: _ev(manage: true), scannerBuilder: (c, f) => const SizedBox.expand())),
-    'qrkodum': (() => _be(rsvp: 'GOING', open: true), (b) => Etkinlik3MyQrPage(session: makeSession(b), event: _ev(rsvp: 'GOING'))),
+    'qrkodum': (() => _be(rsvp: 'GOING', open: true), (b) => EventTicketPage(session: makeSession(b), event: _ev(rsvp: 'GOING'))),
     'detay_sahip': (() => _be(manage: true, open: true), (b) => EventDetailPage(session: makeSession(b), eventId: 5)),
     'detay_moderator': (() => _be(open: true, perms: ['TAKE_ATTENDANCE', 'VIEW_ATTENDEES']), (b) => EventDetailPage(session: makeSession(b), eventId: 5)),
     'detay_katilimci_acik': (() => _be(rsvp: 'GOING', open: true), (b) => EventDetailPage(session: makeSession(b), eventId: 5)),
@@ -199,14 +200,17 @@ void main() {
     await unmount(tester);
   });
 
-  testWidgets('katilimci: yoklama aciksa QR kodum gorunur, kapaliysa gorunmez', (tester) async {
+  testWidgets('katilimci: yoklama acik da kapali da tek Biletim dugmesi (eski detail-my-qr yok)', (tester) async {
     await _pump(tester, EventDetailPage(session: makeSession(_be(rsvp: 'GOING', open: true)), eventId: 5));
-    expect(find.byKey(const ValueKey('detail-my-qr')), findsOneWidget); // alt çubuk: tek eylem
+    expect(find.byKey(const ValueKey('detail-ticket')), findsOneWidget); // alt çubuk: tek eylem
+    expect(find.byKey(const ValueKey('detail-my-qr')), findsNothing); // eski ikinci giriş kaldırıldı
+    expect(find.text('Biletim'), findsOneWidget);
     expect(find.byKey(const ValueKey('detail-enter-code')), findsNothing);
     expect(find.byKey(const ValueKey('detail-scan')), findsNothing);
     await unmount(tester);
     final closed = _be(rsvp: 'GOING', open: false)..on('/events/5/my-attendance', {'present': false, 'checkInOpen': false});
     await _pump(tester, EventDetailPage(session: makeSession(closed), eventId: 5));
+    expect(find.byKey(const ValueKey('detail-ticket')), findsOneWidget);
     expect(find.byKey(const ValueKey('detail-my-qr')), findsNothing);
     await unmount(tester);
   });
@@ -244,7 +248,7 @@ void main() {
   testWidgets('qr kodum: kapaliysa sunucu mesaji (genel hata degil)', (tester) async {
     final be = _be(rsvp: 'GOING');
     be.fail('/events/5/my-ticket', status: 409, code: 'ATTENDANCE_NOT_OPEN', message: 'Etkinlik sahibi yoklamayı henüz açmadı.');
-    await _pump(tester, Etkinlik3MyQrPage(session: makeSession(be), event: _ev(rsvp: 'GOING')));
+    await _pump(tester, EventTicketPage(session: makeSession(be), event: _ev(rsvp: 'GOING')));
     expect(find.text('Etkinlik sahibi yoklamayı henüz açmadı.'), findsOneWidget);
     await unmount(tester);
   });
@@ -252,7 +256,7 @@ void main() {
   testWidgets('qr kodum: 4xx sonrasi otomatik tekrar yok', (tester) async {
     final be = _be(rsvp: 'GOING');
     be.fail('/events/5/my-ticket', status: 409, code: 'ATTENDANCE_NOT_OPEN', message: 'Yoklama kapali.');
-    await _pump(tester, Etkinlik3MyQrPage(session: makeSession(be), event: _ev(rsvp: 'GOING')));
+    await _pump(tester, EventTicketPage(session: makeSession(be), event: _ev(rsvp: 'GOING')));
     final n = be.requests.where((r) => r.contains('/events/5/my-ticket')).length;
     await tester.pump(const Duration(seconds: 90));
     expect(be.requests.where((r) => r.contains('/events/5/my-ticket')).length, n);
@@ -261,21 +265,21 @@ void main() {
 
   testWidgets('qr kodum: ag/5xx hatasinda mevcut QR kalir', (tester) async {
     final be = _be(rsvp: 'GOING', open: true);
-    await _pump(tester, Etkinlik3MyQrPage(session: makeSession(be), event: _ev(rsvp: 'GOING')));
-    expect(find.byKey(const ValueKey('et3-my-qr')), findsOneWidget);
+    await _pump(tester, EventTicketPage(session: makeSession(be), event: _ev(rsvp: 'GOING')));
+    expect(find.byKey(const ValueKey('ticket-qr')), findsOneWidget);
     be.fail('/events/5/my-ticket', status: 500, message: 'Sunucu hatasi');
     await tester.pump(const Duration(seconds: 61));
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.byKey(const ValueKey('et3-my-qr-error')), findsOneWidget);
-    expect(find.byKey(const ValueKey('et3-my-qr')), findsOneWidget);
+    expect(find.byKey(const ValueKey('ticket-qr-error')), findsOneWidget);
+    expect(find.byKey(const ValueKey('ticket-qr')), findsOneWidget);
     await unmount(tester);
   });
 
   testWidgets('qr kodum: sahip/moderator icin 403 TICKET_NOT_FOR_STAFF: kisisel QR yok, aciklama gosterilir, yeniden deneme yok', (tester) async {
     final be = _be(manage: true, owner: true);
     be.fail('/events/5/my-ticket', status: 403, code: 'TICKET_NOT_FOR_STAFF', message: 'sunucu');
-    await _pump(tester, Etkinlik3MyQrPage(session: makeSession(be), event: _ev(manage: true)));
-    expect(find.byKey(const ValueKey('et3-my-qr-error')), findsOneWidget);
+    await _pump(tester, EventTicketPage(session: makeSession(be), event: _ev(manage: true, rsvp: 'GOING')));
+    expect(find.byKey(const ValueKey('ticket-staff-note')), findsOneWidget);
     expect(find.textContaining('kişisel QR kodu yoktur'), findsOneWidget);
     expect(find.text('Yeniden dene'), findsNothing);
     final n = be.requests.where((r) => r.contains('/events/5/my-ticket')).length;
@@ -333,18 +337,18 @@ void main() {
   testWidgets('rol matrisi: katilimci yalniz QR kodum; sahip ve moderator QR kodum gormez', (tester) async {
     // katilimci
     await _pump(tester, EventDetailPage(session: makeSession(_be(rsvp: 'GOING', open: true)), eventId: 5));
-    expect(find.byKey(const ValueKey('detail-my-qr')), findsOneWidget);
+    expect(find.byKey(const ValueKey('detail-ticket')), findsOneWidget);
     expect(find.byKey(const ValueKey('detail-open-attendance')), findsNothing);
     expect(find.byKey(const ValueKey('detail-mod-list')), findsNothing);
     await unmount(tester);
     // sahip (katilimci kaydi da olsa)
     await _pump(tester, EventDetailPage(session: makeSession(_be(manage: true, rsvp: 'GOING', open: true)), eventId: 5));
-    expect(find.byKey(const ValueKey('detail-my-qr')), findsNothing);
+    expect(find.byKey(const ValueKey('detail-ticket')), findsNothing);
     expect(find.byKey(const ValueKey('detail-checked-in')), findsNothing);
     await unmount(tester);
     // moderator (yetkili) katilimci kaydi olsa da
     await _pump(tester, EventDetailPage(session: makeSession(_be(rsvp: 'GOING', open: true, perms: ['TAKE_ATTENDANCE'])), eventId: 5));
-    expect(find.byKey(const ValueKey('detail-my-qr')), findsNothing);
+    expect(find.byKey(const ValueKey('detail-ticket')), findsNothing);
     await tester.scrollUntilVisible(find.byKey(const ValueKey('detail-mod-block')), 300, scrollable: find.byType(Scrollable).first);
     expect(find.byKey(const ValueKey('detail-mod-scan')), findsOneWidget);
     expect(find.byKey(const ValueKey('detail-mod-list')), findsOneWidget);

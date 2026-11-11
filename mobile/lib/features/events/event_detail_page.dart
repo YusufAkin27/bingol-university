@@ -17,7 +17,6 @@ import '../clubs/clubs_widgets.dart' show ClubJoinButton, ClubOutlineButton, clu
 import 'etkinlik2_apply_sheet.dart';
 import 'etkinlik2_attendance_page.dart';
 import 'etkinlik3_moderators_page.dart';
-import 'etkinlik3_my_qr_page.dart';
 import 'event_ticket_page.dart';
 import 'etkinlik3_scan_page.dart';
 import 'etkinlik2_requests_page.dart';
@@ -213,7 +212,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
         final att = _myAtt;
         if (mounted && widget.autoScan && !_autoScanned && att != null && att['checkInOpen'] == true && att['present'] != true && !_manage && !_isMod) {
           _autoScanned = true;
-          unawaited(_openMyQr()); // katılımcı yalnız QR'ını gösterir
+          unawaited(_openTicket()); // katılımcı yalnız biletini (QR) gösterir
         }
       } catch (_) {
         // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
@@ -414,12 +413,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
 
   bool get _isMod => !_manage && _perms.isNotEmpty;
 
-  /// Onaylı katılımcıda (sahip/moderatör değil) "QR kodum" görünür: yoklama açık (sahip anahtarı ya da pencere) ve henüz gelmedi.
-  bool get _canShowMyQr {
-    final att = _myAtt;
-    if (_rsvp != 'GOING' || att == null || _manage || _isMod) return false;
-    return (att['checkInOpen'] == true || _attOpen) && att['present'] != true;
-  }
+  /// Onaylı katılımcıda (sahip/moderatör değil) tek "Biletim" düğmesi görünür (yoklama açık olmasa da: bilet bilgisi/çevrimdışı).
+  bool get _showTicket => _rsvp == 'GOING' && !_manage && !_isMod;
 
   Future<void> _openModerators() async {
     await Navigator.push(
@@ -475,13 +470,6 @@ class _EventDetailPageState extends State<EventDetailPage> {
     await Navigator.push(
       context,
       MaterialPageRoute(settings: const RouteSettings(name: 'event_ticket'), builder: (_) => EventTicketPage(session: widget.session, event: _ev!)),
-    );
-  }
-
-  Future<void> _openMyQr() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(settings: const RouteSettings(name: 'etkinlik3_my_qr'), builder: (_) => Etkinlik3MyQrPage(session: widget.session, event: _ev!)),
     );
   }
 
@@ -684,10 +672,10 @@ class _EventDetailPageState extends State<EventDetailPage> {
     );
   }
 
-  /// Yoklama açıkken tek eylem: "QR kodum" (katılımcı yalnız QR'ını gösterir; okutmaz, kod girmez).
+  /// Katılımcının TEK bilet eylemi: "Biletim" (kişisel QR + etkinlik bilgisi; okutmaz, kod girmez).
   Widget _checkInButtons() {
     final l = context.l10n;
-    return BuButton(key: const ValueKey('detail-my-qr'), label: l.evtQrMyTitle, icon: BuIcons.qrCode, onPressed: _openMyQr);
+    return BuButton(key: const ValueKey('detail-ticket'), label: l.evtTicketOpen, icon: BuIcons.qrCode, onPressed: _openTicket);
   }
 
   /// Altta sabit eylem çubuğu (Stitch v3).
@@ -710,8 +698,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
       }
       // Katılımı onaylanan kişi de yoklama verebilmeli: yoklama açıkken yalnız QR + elle kod düğmeleri
       // ("Katılımdan ayrıl" sayfa gövdesinde zaten var, çubukta tekrarlanmaz).
-      final canCheck = _canShowMyQr;
-      if (!canCheck) return null;
+      if (!_showTicket) return null;
       return Et2BottomBar(child: _checkInButtons());
     }
     final ev = _ev!;
@@ -721,7 +708,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     final rsvp = _rsvp;
     final full = cap != null && going >= cap && rsvp != 'GOING';
     if (rsvp == 'GOING') {
-      final canCheck = _canShowMyQr;
+      final canCheck = _showTicket;
       return Et2BottomBar(
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           if (canCheck) _checkInButtons(),
@@ -999,8 +986,6 @@ class _EventDetailPageState extends State<EventDetailPage> {
       cover0,
       // Yoklama durumu (Stitch v3 04): kapağın hemen altında yeşil not; durum değişince solarak yer değiştirir.
       if (rsvp == 'GOING' && !cancelled && !_manage && !_isMod) _pad(BuFadeThrough(duration: BuMotion.short, child: _attendanceBlock()), top: 16),
-      if (rsvp == 'GOING' && !cancelled && !_manage && !_isMod)
-        _pad(BuButton(key: const ValueKey('detail-ticket'), label: l.evtTicketOpen, icon: BuIcons.qrCode, kind: BuButtonKind.outline, onPressed: _openTicket), top: 12),
       _pad(
         Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           if (who.isNotEmpty)

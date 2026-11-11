@@ -4647,10 +4647,6 @@
       }
     }
   },
-  "evtQrMyTitle": "رمزي",
-  "evtQrMyHint": "اعرض هذا الرمز على منظم الفعالية عند الدخول. يتجدد خلال وقت قصير.",
-  "evtQrMyNotApproved": "يظهر رمزك هنا بعد الموافقة على مشاركتك.",
-  "evtQrMyBeforeStart": "يُفتح تسجيل الحضور في موعد الفعالية؛ يمكنك تجهيز رمزك الآن.",
   "evtQrScanClosed": "لم يُفتح تسجيل الحضور بعد أو أُغلق.",
   "evtAttOpenTitle": "تسجيل الحضور مفتوح",
   "evtAttOpenSub": "أثناء الفتح يعرض المشاركون رموزهم ويقوم المنظم والمشرفون بمسحها.",
@@ -4682,10 +4678,6 @@
   "evtQrOwnerClosed": "الحضور مغلق: لا يستطيع المشاركون عرض رمز QR.",
   "evtQrOwnerOpenAction": "فتح الحضور",
   "evtQrOwnerOutside": "نحن خارج أوقات الفعالية؛ يُفتح الحضور تلقائيًا قبل البداية بـ 30 دقيقة. يمكنك فتحه الآن.",
-  "evtQrMyOwnerTitle": "أنت منظم هذه الفعالية",
-  "evtQrMyOwnerBody": "تسجّل الحضور بمسح رموز QR الخاصة بالمشاركين.",
-  "evtQrMyOwnerScan": "مسح QR",
-  "evtQrMyOwnerJoin": "انضم كمشارك أيضًا",
   "evtAtt2ToolTitle": "أداة الحضور",
   "evtAtt2ToolSub": "امسح رموز QR وسجّل من القائمة",
   "evtAtt2ScanQr": "مسح QR",

@@ -8,6 +8,7 @@ import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../clubs/clubs_widgets.dart' show ClubPageHeader;
+import 'attendance_live.dart';
 import 'event_ticket_store.dart';
 import 'qr_painter.dart';
 
@@ -24,7 +25,7 @@ class EventTicketPage extends StatefulWidget {
   State<EventTicketPage> createState() => _EventTicketPageState();
 }
 
-class _EventTicketPageState extends State<EventTicketPage> {
+class _EventTicketPageState extends State<EventTicketPage> with WidgetsBindingObserver {
   Map<String, dynamic>? _info;
   String? _qr;
   DateTime? _qrExp;
@@ -32,6 +33,12 @@ class _EventTicketPageState extends State<EventTicketPage> {
   bool _loading = true;
   String? _error;
   Timer? _refresh;
+  bool _staff = false; // sahip/moderatör: kişisel QR yok (sunucu 403 TICKET_NOT_FOR_STAFF)
+  String? _qrError; // my-ticket 4xx: sunucunun açıklayıcı mesajı (yoklama açık değil / katılım onaylı değil ...)
+
+  /// Görevli QR'ı okuttu: yoklama alındı (gerçek zamanlı olay ya da poll yedeği). Null = henüz okutulmadı.
+  DateTime? _checkedAt;
+  AttendanceLiveBinding? _live;
 
   int get _id => (widget.event['id'] as num).toInt();
   int? get _uid => widget.session.userId;
@@ -39,12 +46,54 @@ class _EventTicketPageState extends State<EventTicketPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _load();
+    _live = AttendanceLiveBinding(
+      session: widget.session,
+      eventId: _id,
+      onEvent: (e) {
+        if (e.isMarked) _markDone(e.at);
+      },
+      onPoll: _pollMine,
+    )..start();
+    _pollMine();
+  }
+
+  /// Yedek eşitleme: olay kaçsa da `my-attendance` doğruyu söyler (idempotent).
+  Future<void> _pollMine() async {
+    if (_checkedAt != null) return;
+    try {
+      final r = await widget.session.api.get('/events/$_id/my-attendance', force: true);
+      if (r is Map && r['present'] == true) _markDone(DateTime.tryParse('${r['markedAt'] ?? ''}'));
+    } catch (_) {
+      // En iyi çaba: sonraki turda yeniden denenir.
+    }
+  }
+
+  void _markDone(DateTime? at) {
+    if (!mounted || _checkedAt != null) return; // çift olay: yalnız ilk
+    _refresh?.cancel();
+    buHaptic(BuHaptic.medium);
+    setState(() {
+      _checkedAt = (at ?? DateTime.now()).toLocal();
+      _qr = null;
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Arka plandan dönünce bileti hemen yenile (zamanlayıcı uykudayken bayatlamış olabilir).
+    if (state == AppLifecycleState.resumed && _checkedAt == null) {
+      _load();
+      _pollMine();
+    }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _refresh?.cancel();
+    _live?.dispose();
     super.dispose();
   }
 
@@ -67,6 +116,11 @@ class _EventTicketPageState extends State<EventTicketPage> {
         await EventTicketStore.save(uid, _id, info, qr: _qr, qrExpiresAt: _qrExp?.toUtc().toIso8601String());
       }
     } catch (e) {
+      if (e is ApiError && e.status == 403 && e.code == 'TICKET_NOT_FOR_STAFF') {
+        if (mounted) setState(() => _staff = true);
+        _refresh?.cancel();
+        return;
+      }
       await _fallback(e);
       if (_offline) _scheduleRetry(); // ağ kesintisinde de biletin canlı hali kendiliğinden gelsin
     } finally {
@@ -83,6 +137,7 @@ class _EventTicketPageState extends State<EventTicketPage> {
   }
 
   Future<void> _loadQr(Map<String, dynamic> info) async {
+    if (_checkedAt != null) return;
     final state = ticketAvailability(widget.event, serverState: info['state'] as String?);
     if (state != TicketAvailability.valid || info['attendanceOpen'] != true) {
       if (mounted) setState(() => _qr = null);
@@ -102,13 +157,27 @@ class _EventTicketPageState extends State<EventTicketPage> {
       setState(() {
         _qr = m['qrPayload'] as String?;
         _qrExp = DateTime.tryParse('${m['expiresAt'] ?? ''}');
+        _qrError = null;
       });
       _refresh?.cancel();
       _refresh = Timer(const Duration(seconds: 60), () {
         if (mounted) _load();
       });
-    } catch (_) {
-      // QR alınamadı (yoklama kapandı/ağ): bilet bilgisi yine görünür; bayat QR kalmasın diye kısa aralıkla yeniden dene.
+    } catch (e) {
+      if (e is ApiError && e.status == 403 && e.code == 'TICKET_NOT_FOR_STAFF') {
+        // Görevlinin QR'ı olmaz: yeniden denemek anlamsız, sunucu mesajı gösterilir.
+        if (mounted) setState(() => _staff = true);
+        _refresh?.cancel();
+        return;
+      }
+      if (e is ApiError && !e.isNetwork && e.status < 500) {
+        // 4xx: sunucunun açıklayıcı mesajı gösterilir (genel "bağlanılamadı" değil); otomatik tekrar yok.
+        if (mounted) setState(() { _qr = null; _qrError = errorText(e); });
+        _refresh?.cancel();
+        return;
+      }
+      // QR alınamadı (ağ/5xx): mevcut QR korunur (süresi dolana kadar çalışır), hata altında gösterilir; kısa aralıkla yeniden dene.
+      if (mounted) setState(() => _qrError = errorText(e));
       _scheduleRetry();
     }
   }
@@ -153,7 +222,12 @@ class _EventTicketPageState extends State<EventTicketPage> {
         Expanded(
           child: ListView(padding: const EdgeInsets.fromLTRB(20, 11, 20, 32), children: [
             if (info == null && _loading) const Padding(padding: EdgeInsets.only(top: 80), child: Center(child: BuSpinner(size: 28))),
-            if (info == null && !_loading)
+            if (info == null && _staff)
+              Padding(
+                padding: const EdgeInsets.only(top: 60),
+                child: Text(l.evtAtt2StaffNoQr, key: const ValueKey('ticket-staff-note'), textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(color: t.ink)),
+              ),
+            if (info == null && !_loading && !_staff)
               Padding(
                 padding: const EdgeInsets.only(top: 60),
                 child: Column(children: [
@@ -236,13 +310,51 @@ class _EventTicketPageState extends State<EventTicketPage> {
           ]),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-            child: off ? _disabled(context, av) : _qrBlock(context, info, expired),
+            child: _checkedAt != null ? _done(context) : (off ? _disabled(context, av) : _qrBlock(context, info, expired)),
           ),
         ]),
       ),
       const SizedBox(height: 16),
       Text(l.evtTicketPrivacyNote, textAlign: TextAlign.center, style: tx.bodySmall!.copyWith(height: 1.45, color: t.mut)),
     ];
+  }
+
+  /// Okutuldu durumu: QR yerine belirgin onay (Semantics liveRegion ile ekran okuyucuya duyurulur).
+  Widget _done(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    final at = _checkedAt!;
+    final time = MaterialLocalizations.of(context).formatTimeOfDay(TimeOfDay.fromDateTime(at), alwaysUse24HourFormat: true);
+    return Semantics(
+      container: true,
+      liveRegion: true,
+      label: '${l.evtLiveCheckedInTitle}. ${l.evtLiveCheckedInBody}',
+      child: ExcludeSemantics(
+        child: AnimatedContainer(
+          key: const ValueKey('ticket-done'),
+          duration: liveMotion(context),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+          decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Container(
+              width: 72,
+              height: 72,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(color: t.ink, shape: BoxShape.circle),
+              child: Icon(BuIcons.check, size: 40, color: t.bg),
+            ),
+            const SizedBox(height: 16),
+            Text(l.evtLiveCheckedInTitle, textAlign: TextAlign.center, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w400, color: t.ink)),
+            const SizedBox(height: 6),
+            Text(l.evtLiveCheckedInBody, textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(color: t.ink)),
+            const SizedBox(height: 4),
+            Text(l.evtLiveCheckedInAt(time), textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut)),
+          ]),
+        ),
+      ),
+    );
   }
 
   Widget _disabled(BuildContext context, TicketAvailability av) {
@@ -261,6 +373,12 @@ class _EventTicketPageState extends State<EventTicketPage> {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
+    if (_staff) {
+      return Text(l.evtAtt2StaffNoQr, key: const ValueKey('ticket-staff-note'), textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(color: t.ink));
+    }
+    if (_qr == null && _qrError != null) {
+      return Text(_qrError!, key: const ValueKey('ticket-qr-error'), textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.ink));
+    }
     if (_qr == null) {
       return Text(info['attendanceOpen'] == true ? l.evtTicketQrUnavailable : l.evtTicketQrNotOpen,
           key: const ValueKey('ticket-qr-note'), textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut));
@@ -277,6 +395,10 @@ class _EventTicketPageState extends State<EventTicketPage> {
       const SizedBox(height: 12),
       Text(expired || _offline ? l.evtTicketQrMaybeExpired : l.evtAtt2ParticipantHint,
           key: const ValueKey('ticket-qr-hint'), textAlign: TextAlign.center, style: tx.bodySmall!.copyWith(height: 1.45, color: t.mut)),
+      if (_qrError != null) ...[
+        const SizedBox(height: 8),
+        Text(_qrError!, key: const ValueKey('ticket-qr-error'), textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.ink)),
+      ],
     ]);
   }
 }

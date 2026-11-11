@@ -4647,10 +4647,6 @@
       }
     }
   },
-  "evtQrMyTitle": "My QR code",
-  "evtQrMyHint": "Show this code to the event organizer at the entrance. It refreshes shortly.",
-  "evtQrMyNotApproved": "Your QR code appears here once your attendance is approved.",
-  "evtQrMyBeforeStart": "Check-in opens at the event time; you can keep your code ready.",
   "evtQrScanClosed": "Check-in has not opened yet or has closed.",
   "evtAttOpenTitle": "Check-in open",
   "evtAttOpenSub": "While open, attendees show their QR codes and you and moderators scan them.",
@@ -4682,10 +4678,6 @@
   "evtQrOwnerClosed": "Attendance is closed: attendees cannot show their QR.",
   "evtQrOwnerOpenAction": "Open attendance",
   "evtQrOwnerOutside": "It is outside the event hours; attendance opens by itself 30 min before the start. You can open it now if you like.",
-  "evtQrMyOwnerTitle": "You organize this event",
-  "evtQrMyOwnerBody": "You take attendance by scanning attendees' QR codes.",
-  "evtQrMyOwnerScan": "Scan QR",
-  "evtQrMyOwnerJoin": "Also join as an attendee",
   "evtAtt2ToolTitle": "Attendance tool",
   "evtAtt2ToolSub": "Scan QR codes, mark from the list",
   "evtAtt2ScanQr": "Scan QR",

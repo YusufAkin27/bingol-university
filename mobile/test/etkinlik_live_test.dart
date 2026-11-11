@@ -2,7 +2,7 @@ import 'package:bu_kampus/core/realtime/chat_realtime.dart';
 import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/events/etkinlik2_qr_page.dart';
-import 'package:bu_kampus/features/events/etkinlik3_my_qr_page.dart';
+import 'package:bu_kampus/features/events/event_ticket_page.dart';
 import 'package:bu_kampus/features/events/etkinlik3_scan_page.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +21,8 @@ Map<String, dynamic> _ev() {
     'startsAt': s.toUtc().toIso8601String(),
     'endsAt': s.add(const Duration(hours: 2)).toUtc().toIso8601String(),
     'canManage': true,
+    'myRsvp': 'GOING',
+    'status': 'ACTIVE',
     'goingCount': 9,
   };
 }
@@ -29,6 +31,7 @@ FakeBackend _be() => FakeBackend()
   ..on('/events/5/attendance/roster', {'rows': <Object>[], 'present': 1, 'absent': 0, 'pending': 3, 'total': 4})
   ..on('/events/5/my-attendance', {'present': false, 'checkInOpen': true})
   ..on('/events/5/my-permissions', {'owner': true, 'attendanceOpen': true, 'permissions': <String>[]})
+  ..on('/events/5/ticket', {'state': 'ACTIVE', 'attendanceOpen': true, 'title': 'Kampüs halı saha maçı'})
   ..on('/events/5/my-ticket', {'code': '5.1.1.abc', 'qrPayload': 'bingol-ticket:5.1.1.abc', 'validForSeconds': 180});
 
 Future<void> _pump(WidgetTester tester, Widget w, {String lang = 'tr', bool reduceMotion = false}) async {
@@ -74,13 +77,13 @@ void main() {
     for (final lang in ['tr', 'en', 'ar']) {
       testWidgets('MARKED olayi: QR gider, Okutuldu + yoklama alindi gelir ($lang)', (tester) async {
         final s = _session(_be());
-        await _pump(tester, Etkinlik3MyQrPage(session: s, event: _ev()), lang: lang);
-        expect(find.byKey(const ValueKey('et3-my-qr')), findsOneWidget);
-        expect(find.byKey(const ValueKey('et3-my-qr-done')), findsNothing);
+        await _pump(tester, EventTicketPage(session: s, event: _ev()), lang: lang);
+        expect(find.byKey(const ValueKey('ticket-qr')), findsOneWidget);
+        expect(find.byKey(const ValueKey('ticket-done')), findsNothing);
         s.realtime!.debugEmitAttendance(_marked());
         await settle(tester, const Duration(milliseconds: 400));
-        expect(find.byKey(const ValueKey('et3-my-qr-done')), findsOneWidget);
-        expect(find.byKey(const ValueKey('et3-my-qr')), findsNothing);
+        expect(find.byKey(const ValueKey('ticket-done')), findsOneWidget);
+        expect(find.byKey(const ValueKey('ticket-qr')), findsNothing);
         final l = await AppLocalizations.delegate.load(Locale(lang));
         expect(find.text(l.evtLiveCheckedInTitle), findsOneWidget);
         expect(find.text(l.evtLiveCheckedInBody), findsOneWidget);
@@ -91,14 +94,14 @@ void main() {
     testWidgets('baska etkinligin olayi etkilemez; cift olay tek kez isler; yeni bilet istenmez', (tester) async {
       final be = _be();
       final s = _session(be);
-      await _pump(tester, Etkinlik3MyQrPage(session: s, event: _ev()));
+      await _pump(tester, EventTicketPage(session: s, event: _ev()));
       s.realtime!.debugEmitAttendance({..._marked(), 'eventId': 99, 'key': '99:1:1'});
       await settle(tester, const Duration(milliseconds: 300));
-      expect(find.byKey(const ValueKey('et3-my-qr')), findsOneWidget);
+      expect(find.byKey(const ValueKey('ticket-qr')), findsOneWidget);
       s.realtime!.debugEmitAttendance(_marked());
       s.realtime!.debugEmitAttendance(_marked()); // ayni key: elenir
       await settle(tester, const Duration(milliseconds: 300));
-      expect(find.byKey(const ValueKey('et3-my-qr-done')), findsOneWidget);
+      expect(find.byKey(const ValueKey('ticket-done')), findsOneWidget);
       final n = be.count('/my-ticket');
       await tester.pump(const Duration(seconds: 90));
       expect(be.count('/my-ticket'), n, reason: 'okutulduktan sonra bilet yenilenmez');
@@ -108,30 +111,30 @@ void main() {
     testWidgets('olay kacarsa poll yedegi (my-attendance present=true) okutuldu durumuna gecirir', (tester) async {
       final be = _be();
       final s = _session(be);
-      await _pump(tester, Etkinlik3MyQrPage(session: s, event: _ev()));
-      expect(find.byKey(const ValueKey('et3-my-qr-done')), findsNothing);
+      await _pump(tester, EventTicketPage(session: s, event: _ev()));
+      expect(find.byKey(const ValueKey('ticket-done')), findsNothing);
       be.on('/events/5/my-attendance', {'present': true, 'method': 'QR', 'markedAt': DateTime.now().toUtc().toIso8601String(), 'checkInOpen': true});
       await tester.pump(const Duration(seconds: 9)); // baglanti yok: kisa aralikli yoklama
       await settle(tester, const Duration(milliseconds: 300));
-      expect(find.byKey(const ValueKey('et3-my-qr-done')), findsOneWidget);
+      expect(find.byKey(const ValueKey('ticket-done')), findsOneWidget);
       await unmount(tester);
     });
 
     testWidgets('acilista zaten okutulmussa dogrudan Okutuldu', (tester) async {
       final be = _be()..on('/events/5/my-attendance', {'present': true, 'markedAt': DateTime.now().toUtc().toIso8601String(), 'checkInOpen': true});
-      await _pump(tester, Etkinlik3MyQrPage(session: _session(be), event: _ev()));
-      expect(find.byKey(const ValueKey('et3-my-qr-done')), findsOneWidget);
+      await _pump(tester, EventTicketPage(session: _session(be), event: _ev()));
+      expect(find.byKey(const ValueKey('ticket-done')), findsOneWidget);
       await unmount(tester);
     });
 
     testWidgets('hareket azaltma acikken de durum gorunur (animasyona bagli degil) + liveRegion', (tester) async {
       final s = _session(_be());
-      await _pump(tester, Etkinlik3MyQrPage(session: s, event: _ev()), reduceMotion: true);
+      await _pump(tester, EventTicketPage(session: s, event: _ev()), reduceMotion: true);
       s.realtime!.debugEmitAttendance(_marked());
       await tester.pump();
       await tester.pump();
-      expect(find.byKey(const ValueKey('et3-my-qr-done')), findsOneWidget);
-      final sem = tester.getSemantics(find.byKey(const ValueKey('et3-my-qr-done')).first);
+      expect(find.byKey(const ValueKey('ticket-done')), findsOneWidget);
+      final sem = tester.getSemantics(find.byKey(const ValueKey('ticket-done')).first);
       expect(sem.getSemanticsData().flagsCollection.isLiveRegion || sem.label.isNotEmpty, isTrue);
       await unmount(tester);
     });

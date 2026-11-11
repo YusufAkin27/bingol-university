@@ -8,7 +8,7 @@ import 'package:bu_kampus/features/clubs/clubs_tab.dart';
 import 'package:bu_kampus/features/events/checkin_input.dart';
 import 'package:bu_kampus/features/events/etkinlik2_qr_page.dart';
 import 'package:bu_kampus/features/events/etkinlik2_requests_page.dart';
-import 'package:bu_kampus/features/events/etkinlik3_my_qr_page.dart';
+import 'package:bu_kampus/features/events/event_ticket_page.dart';
 import 'package:bu_kampus/features/events/event_detail_page.dart';
 import 'package:bu_kampus/features/events/events_page.dart';
 import 'package:bu_kampus/features/platform/qr_scan_page.dart';
@@ -211,20 +211,22 @@ void main() {
 
   group('EventDetailPage yoklama (katılımcı yalnız QR kodum)', () {
     FakeBackend det(Map<String, dynamic> ev, {bool open = true}) => _detail(ev, open: open)
+      ..on('/events/5/ticket', {'state': 'ACTIVE', 'attendanceOpen': true, 'title': 'Bahar Şenliği'})
       ..on('/events/5/my-ticket', {'code': '5.1.abc', 'qrPayload': 'bingol-ticket:5.1.1.abc', 'validForSeconds': 300});
 
-    testWidgets('katılımcı: yalnız "QR kodum"; tarama, kod girişi ve elle kod yok', (tester) async {
+    testWidgets('katılımcı: yalnız "Biletim"; tarama, kod girişi ve elle kod yok', (tester) async {
       final b = det(_ev(rsvp: 'GOING'));
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(EventDetailPage(session: makeSession(b), eventId: 5), size: kPhoneMedium));
       await settle(tester, const Duration(milliseconds: 800));
-      expect(find.byKey(const ValueKey('detail-my-qr')), findsOneWidget);
+      expect(find.byKey(const ValueKey('detail-ticket')), findsOneWidget);
+      expect(find.byKey(const ValueKey('detail-my-qr')), findsNothing, reason: 'etkinlik bileti tek: eski QR kodum girişi yok');
       expect(find.byKey(const ValueKey('detail-scan')), findsNothing);
       expect(find.byKey(const ValueKey('detail-enter-code')), findsNothing);
       expect(find.byKey(const ValueKey('detail-code-field')), findsNothing);
-      await tester.tap(find.byKey(const ValueKey('detail-my-qr')));
+      await tester.tap(find.byKey(const ValueKey('detail-ticket')));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(find.byType(Etkinlik3MyQrPage), findsOneWidget);
+      expect(find.byType(EventTicketPage), findsOneWidget);
       expect(b.requests.where((r) => r.contains('check-in')), isEmpty);
       await _gone(tester);
     });
@@ -234,7 +236,7 @@ void main() {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(EventDetailPage(session: makeSession(b), eventId: 5), size: kPhoneMedium));
       await settle(tester, const Duration(milliseconds: 800));
-      expect(find.byKey(const ValueKey('detail-my-qr')), findsOneWidget);
+      expect(find.byKey(const ValueKey('detail-ticket')), findsOneWidget);
       expect(find.byKey(const ValueKey('detail-enter-code')), findsNothing);
       // "Katılımdan ayrıl" yalnız gövdede (çubukta tekrarlanmaz)
       expect(find.byKey(const ValueKey('detail-leave')), findsNothing);
@@ -242,11 +244,12 @@ void main() {
       await _gone(tester);
     });
 
-    testWidgets('yoklama kapalı: QR kodum görünmez', (tester) async {
+    testWidgets('yoklama kapalı: yine tek Biletim düğmesi (eski anahtar yok)', (tester) async {
       final b = det(_ev(rsvp: 'GOING', policy: 'APPROVAL'), open: false);
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(EventDetailPage(session: makeSession(b), eventId: 5), size: kPhoneMedium));
       await settle(tester, const Duration(milliseconds: 800));
+      expect(find.byKey(const ValueKey('detail-ticket')), findsOneWidget);
       expect(find.byKey(const ValueKey('detail-my-qr')), findsNothing);
       expect(find.byKey(const ValueKey('detail-scan')), findsNothing);
       await _gone(tester);
@@ -257,7 +260,7 @@ void main() {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(EventDetailPage(session: makeSession(b), eventId: 5), size: kPhoneMedium));
       await settle(tester, const Duration(milliseconds: 800));
-      expect(find.byKey(const ValueKey('detail-my-qr')), findsNothing);
+      expect(find.byKey(const ValueKey('detail-ticket')), findsNothing);
       expect(find.byKey(const ValueKey('detail-checked-in')), findsNothing);
       expect(find.byKey(const ValueKey('detail-open-attendance')), findsOneWidget);
       await _gone(tester);

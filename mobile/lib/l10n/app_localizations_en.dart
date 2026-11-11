@@ -12931,21 +12931,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get evtQrMyTitle => 'My QR code';
-
-  @override
-  String get evtQrMyHint =>
-      'Show this code to the event organizer at the entrance. It refreshes shortly.';
-
-  @override
-  String get evtQrMyNotApproved =>
-      'Your QR code appears here once your attendance is approved.';
-
-  @override
-  String get evtQrMyBeforeStart =>
-      'Check-in opens at the event time; you can keep your code ready.';
-
-  @override
   String get evtQrScanClosed => 'Check-in has not opened yet or has closed.';
 
   @override
@@ -13046,19 +13031,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get evtQrOwnerOutside =>
       'It is outside the event hours; attendance opens by itself 30 min before the start. You can open it now if you like.';
-
-  @override
-  String get evtQrMyOwnerTitle => 'You organize this event';
-
-  @override
-  String get evtQrMyOwnerBody =>
-      'You take attendance by scanning attendees\' QR codes.';
-
-  @override
-  String get evtQrMyOwnerScan => 'Scan QR';
-
-  @override
-  String get evtQrMyOwnerJoin => 'Also join as an attendee';
 
   @override
   String get evtAtt2ToolTitle => 'Attendance tool';
