@@ -68,9 +68,18 @@ class _EventTicketPageState extends State<EventTicketPage> {
       }
     } catch (e) {
       await _fallback(e);
+      if (_offline) _scheduleRetry(); // ağ kesintisinde de biletin canlı hali kendiliğinden gelsin
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  /// Hata sonrası yeniden deneme (dispose'da iptal edilir).
+  void _scheduleRetry() {
+    _refresh?.cancel();
+    _refresh = Timer(const Duration(seconds: 15), () {
+      if (mounted) _load();
+    });
   }
 
   Future<void> _loadQr(Map<String, dynamic> info) async {
@@ -99,7 +108,8 @@ class _EventTicketPageState extends State<EventTicketPage> {
         if (mounted) _load();
       });
     } catch (_) {
-      // QR alınamadı (yoklama kapandı/ağ): bilet bilgisi yine görünür.
+      // QR alınamadı (yoklama kapandı/ağ): bilet bilgisi yine görünür; bayat QR kalmasın diye kısa aralıkla yeniden dene.
+      _scheduleRetry();
     }
   }
 
