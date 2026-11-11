@@ -77,6 +77,13 @@ class _EventTicketPageState extends State<EventTicketPage> {
     final state = ticketAvailability(widget.event, serverState: info['state'] as String?);
     if (state != TicketAvailability.valid || info['attendanceOpen'] != true) {
       if (mounted) setState(() => _qr = null);
+      _refresh?.cancel();
+      // Bilet geçerli ama yoklama henüz kapalı: sayfa açıkken görevli yoklamayı açınca QR kendiliğinden gelsin.
+      if (state == TicketAvailability.valid) {
+        _refresh = Timer(const Duration(seconds: 30), () {
+          if (mounted) _load();
+        });
+      }
       return;
     }
     try {
