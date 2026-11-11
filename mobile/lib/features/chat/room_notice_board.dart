@@ -309,7 +309,7 @@ class _RoomNoticeBoardPageState extends State<RoomNoticeBoardPage> {
     final tx = Theme.of(context).textTheme;
     Widget body;
     if (_loading) {
-      body = const Center(child: CircularProgressIndicator());
+      body = const Center(child: BuSpinner(size: 28));
     } else if (_error != null) {
       body = BuErrorState(error: _error, onRetry: _load);
     } else if (_items.isEmpty) {
@@ -328,7 +328,7 @@ class _RoomNoticeBoardPageState extends State<RoomNoticeBoardPage> {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted) _more();
             });
-            return const Padding(padding: EdgeInsets.all(12), child: Center(child: CircularProgressIndicator()));
+            return const Padding(padding: EdgeInsets.all(12), child: Center(child: BuSpinner(size: 28)));
           }
           final n = _items[i];
           final seen = (n['seenCount'] as num?)?.toInt();

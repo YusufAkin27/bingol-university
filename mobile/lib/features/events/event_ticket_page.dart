@@ -142,7 +142,7 @@ class _EventTicketPageState extends State<EventTicketPage> {
         ClubPageHeader(title: l.evtTicketTitle),
         Expanded(
           child: ListView(padding: const EdgeInsets.fromLTRB(20, 11, 20, 32), children: [
-            if (info == null && _loading) const Padding(padding: EdgeInsets.only(top: 80), child: Center(child: CircularProgressIndicator())),
+            if (info == null && _loading) const Padding(padding: EdgeInsets.only(top: 80), child: Center(child: BuSpinner(size: 28))),
             if (info == null && !_loading)
               Padding(
                 padding: const EdgeInsets.only(top: 60),

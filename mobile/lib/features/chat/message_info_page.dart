@@ -150,7 +150,7 @@ class _MessageInfoPageState extends State<MessageInfoPage> {
                   child: _bubble(message, mine: true)),
               const SizedBox(height: 24),
               if (_data == null && _error == null)
-                const Center(child: CircularProgressIndicator()),
+                const Center(child: BuSpinner(size: 28)),
               if (_error != null)
                 ErrorView(error: _error!, onRetry: () => _load()),
               Container(
