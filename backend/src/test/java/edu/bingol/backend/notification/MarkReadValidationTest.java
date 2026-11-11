@@ -1,6 +1,5 @@
 package edu.bingol.backend.notification;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -20,7 +19,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 
 /** QA: POST /api/notifications/read govdesi dogrulanmali (ids en fazla 200); eskiden @Valid yoktu, IN listesi sinirsizdi. */
 class MarkReadValidationTest {
@@ -42,10 +40,13 @@ class MarkReadValidationTest {
     @Test
     void tooManyIdsRejected() {
         String ids = LongStream.rangeClosed(1, 201).mapToObj(Long::toString).collect(Collectors.joining(","));
-        Exception e = org.junit.jupiter.api.Assertions.assertThrows(Exception.class, () -> mvc.perform(
-                post("/api/notifications/read").contentType(MediaType.APPLICATION_JSON).content("{\"ids\":[" + ids + "]}")));
-        Throwable c = e.getCause() != null ? e.getCause() : e;
-        assertTrue(c instanceof MethodArgumentNotValidException, c.toString());
+        // standalone MockMvc DefaultHandlerExceptionResolver: dogrulama hatasi 400 olarak doner
+        try {
+            mvc.perform(post("/api/notifications/read").contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"ids\":[" + ids + "]}")).andExpect(status().isBadRequest());
+        } catch (Exception e) {
+            throw new AssertionError(e);
+        }
         verify(inbox, never()).markRead(any(), any(), org.mockito.ArgumentMatchers.anyBoolean(), any());
     }
 
