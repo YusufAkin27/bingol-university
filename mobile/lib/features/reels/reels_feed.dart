@@ -260,11 +260,32 @@ class _ReelsFeedState extends State<ReelsFeed> {
 
   void _onBlocked() {
     final uid = BlockBus.instance.lastBlocked;
-    if (mounted) setState(() => _items.removeWhere((e) => e.author.id == uid));
+    if (mounted) {
+      setState(() {
+        _items.removeWhere((e) => e.author.id == uid);
+        _clampIndex();
+      });
+    }
   }
 
   void _removed(int id) {
-    if (mounted) setState(() => _items.removeWhere((e) => e.id == id));
+    if (mounted) {
+      setState(() {
+        _items.removeWhere((e) => e.id == id);
+        _clampIndex();
+      });
+    }
+  }
+
+  /// Son reel silinince/engellenince PageView sayfayi geri alir ama onPageChanged gelmez: indeks eski kalir, hicbir reel oynamazdi.
+  void _clampIndex() {
+    final extra = _exhausted && !_hasMore ? 1 : 0; // "tum videolari gordun" sayfasi da gecerli bir sayfa
+    final last = _items.length + extra - 1;
+    if (last < 0) {
+      _index = 0;
+    } else if (_index > last) {
+      _index = last;
+    }
   }
 
   /// En üstte aşağı çekme (iOS sıçrama / Android taşma) -> yeni oturum.
@@ -425,11 +446,11 @@ class _ReelPageState extends State<_ReelPage> {
     widget.onChanged(p.copyWith(savedByMe: want));
     try {
       final got = await widget.api.setSaved(p.id, want);
-      if (mounted) widget.onChanged(p.copyWith(savedByMe: got));
+      // Sayfa kaydirilip atilmis olsa da ust listedeki durum sunucuya gore duzelir (callback ust durumda mounted korumali).
+      widget.onChanged(p.copyWith(savedByMe: got));
     } catch (e) {
-      if (!mounted) return;
       widget.onChanged(p.copyWith(savedByMe: !want));
-      BuToast.show(context, postErrorText(e, context.l10n), kind: BuToastKind.error);
+      if (mounted) BuToast.show(context, postErrorText(e, context.l10n), kind: BuToastKind.error);
     }
   }
 

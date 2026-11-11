@@ -73,7 +73,8 @@ class _PostPeekCardState extends State<_PostPeekCard> {
   ValueChanged<Post>? get onMenu => widget.onMenu;
 
   void _changed(Post p) {
-    setState(() => _post = p);
+    // Onizleme kapaniyken ucustaki beğeni hata geri alimi da buraya gelir: dispose sonrasi setState olmasin.
+    if (mounted) setState(() => _post = p);
     widget.onChanged?.call(p);
   }
 

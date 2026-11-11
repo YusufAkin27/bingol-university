@@ -113,6 +113,7 @@ class ForumPagedListState<T> extends State<ForumPagedList<T>> implements ForumLi
       if (!mounted || gen != _gen) return;
       setState(() {
         _loading = false;
+        _more = false; // gecersiz kalan eski loadMore bayragi takili kalmasin
         // Yenilemede var olan liste korunur; yalnız boşken hata ekranı.
         if (_items.isEmpty) _error = e;
       });

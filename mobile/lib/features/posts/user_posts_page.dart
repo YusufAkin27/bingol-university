@@ -94,7 +94,7 @@ class _UserPostsPageState extends State<UserPostsPage> {
 
   void _changed(Post p) {
     final i = _items.indexWhere((e) => e.id == p.id);
-    if (i >= 0) setState(() => _items[i] = p);
+    if (i >= 0 && mounted) setState(() => _items[i] = p);
   }
 
 

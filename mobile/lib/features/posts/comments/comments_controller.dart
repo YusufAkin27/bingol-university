@@ -86,6 +86,7 @@ class CommentsController extends ChangeNotifier {
   Future<void> load() async {
     final gen = ++_gen;
     loading = true;
+    loadingMore = false; // eski loadMore artik gecersiz (gen), bayrak takili kalmasin
     error = null;
     _notify();
     try {
