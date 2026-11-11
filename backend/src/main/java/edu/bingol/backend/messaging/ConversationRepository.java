@@ -72,10 +72,13 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
 
     /** Arsivdeki (listede gorunen) konusma sayisi: `page(archived=true)` ile ayni kosullar. Arsiv cubugu icin. */
     @Query("SELECT COUNT(c) FROM Conversation c, ConversationMember m WHERE m.conversationId = c.id AND m.userId = :uid "
-            + "AND m.leftAt IS NULL AND m.hiddenAt IS NULL AND c.lastMessageId IS NOT NULL "
+            + "AND m.leftAt IS NULL AND m.hiddenAt IS NULL "
             + "AND m.requestState = edu.bingol.backend.messaging.ConversationMember.RequestState.ACCEPTED "
-            + "AND (CASE WHEN c.shadowed = true THEN GREATEST(COALESCE(c.lastVisibleMessageId, 0L), m.lastOwnSuppressedMessageId) "
-            + "ELSE c.lastMessageId END) > 0 "
+            // page() ile ayni kume: mesajsiz acik oda sohbetleri (kulup, etkinlik, bolum) de listelenir, bu yuzden sayilmali
+            + "AND ((c.lastMessageId IS NULL AND EXISTS (SELECT l.id FROM ChatRoomLink l WHERE l.conversationId = c.id "
+            + "AND l.closed = false)) "
+            + "OR (CASE WHEN c.shadowed = true THEN GREATEST(COALESCE(c.lastVisibleMessageId, 0L), m.lastOwnSuppressedMessageId) "
+            + "ELSE c.lastMessageId END) > 0) "
             + "AND m.archivedAt IS NOT NULL")
     long countArchived(@Param("uid") Long userId);
 
