@@ -14199,6 +14199,45 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get clubJoinQrAction => 'إضافة أعضاء عبر QR';
+
+  @override
+  String get clubJoinQrActionSub => 'عرض رمز QR للانضمام';
+
+  @override
+  String get clubJoinQrTitle => 'رمز QR للانضمام';
+
+  @override
+  String get clubJoinQrHint => 'كل من يمسح هذا الرمز ينضم إلى النادي مباشرة.';
+
+  @override
+  String clubJoinQrRefresh(int n) {
+    return 'يتجدد الرمز خلال $n ث';
+  }
+
+  @override
+  String get clubJoinQrFailed =>
+      'تعذر الحصول على رمز الانضمام. تحقق من الاتصال وحاول مجددا.';
+
+  @override
+  String get clubJoinQrNoAccess =>
+      'ليست لديك صلاحية إضافة أعضاء إلى هذا النادي.';
+
+  @override
+  String get clubScanJoin => 'الانضمام عبر QR';
+
+  @override
+  String scanClubJoined(String name) {
+    return 'انضممت إلى $name';
+  }
+
+  @override
+  String get scanClubJoinedNoName => 'انضممت إلى النادي';
+
+  @override
+  String get scanClubAlready => 'أنت عضو في هذا النادي بالفعل';
+
+  @override
   String get signOutPendingTitle => 'سيتم حذف الرسائل غير المرسلة';
 
   @override

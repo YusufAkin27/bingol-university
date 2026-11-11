@@ -1,3 +1,4 @@
+import 'package:bu_kampus/features/clubs/club_join_qr_page.dart';
 import 'package:bu_kampus/features/clubs/club_manage_page.dart';
 import 'package:bu_kampus/features/home/home_parts.dart';
 import 'package:bu_kampus/features/home/home_tab.dart';
@@ -113,7 +114,7 @@ void main() {
       expect(find.text('128'), findsOneWidget);
       final pend = find.byKey(const ValueKey('hub-stat-pending'));
       expect(find.descendant(of: pend, matching: find.text('2')), findsOneWidget);
-      for (final k in ['requests', 'members', 'event', 'events', 'announce', 'posts', 'edit', 'roles']) {
+      for (final k in ['requests', 'members', 'joinqr', 'event', 'events', 'announce', 'posts', 'edit', 'roles']) {
         expect(find.byKey(ValueKey('hub-act-$k')), findsOneWidget, reason: k);
       }
       expect(tester.takeException(), isNull);
@@ -126,6 +127,24 @@ void main() {
       for (final k in ['event', 'events', 'announce', 'posts', 'edit', 'roles']) {
         expect(find.byKey(ValueKey('hub-act-$k')), findsNothing, reason: k);
       }
+      expect(find.byKey(const ValueKey('hub-act-joinqr')), findsOneWidget);
+    });
+
+    testWidgets('QR ile üye ekle üye yönetme izni yoksa görünmez', (tester) async {
+      await _pump(tester, ClubManagePage(session: makeSession(_manage(perms: ['EDIT_INFO'], role: 'MODERATOR')), communityId: 1));
+      expect(find.byKey(const ValueKey('hub-act-edit')), findsOneWidget);
+      expect(find.byKey(const ValueKey('hub-act-joinqr')), findsNothing);
+    });
+
+    testWidgets('QR ile üye ekle katılım QR sayfasını açar', (tester) async {
+      final b = _manage(perms: _all)..on('/communities/1/join-code', {'code': 'bingol-clubjoin:1.30000000.abcdefghijklmnopqrstuv', 'expiresAt': '2026-11-11T12:00:00Z', 'validForSeconds': 150});
+      await _pump(tester, ClubManagePage(session: makeSession(b), communityId: 1));
+      await tester.ensureVisible(find.byKey(const ValueKey('hub-act-joinqr')));
+      await tester.tap(find.byKey(const ValueKey('hub-act-joinqr')));
+      await settle(tester, const Duration(milliseconds: 800));
+      expect(find.byType(ClubJoinQrPage), findsOneWidget);
+      expect(find.byKey(const ValueKey('cjq-code')), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
     });
 
     testWidgets('izin yok: hicbir arac yok, bilgi metni', (tester) async {

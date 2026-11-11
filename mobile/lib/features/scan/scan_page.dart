@@ -102,6 +102,10 @@ class _QrScanHubPageState extends State<QrScanHubPage> with SingleTickerProvider
       await _checkin(r, v);
       return;
     }
+    if (r.kind == ScanKind.clubJoin) {
+      await _joinClub(r, v);
+      return;
+    }
     _done = true;
     buHaptic(BuHaptic.light);
     Analytics.instance.action('qr_scan', target: r.kind.name);
@@ -139,6 +143,49 @@ class _QrScanHubPageState extends State<QrScanHubPage> with SingleTickerProvider
       _throttle.succeeded(v, DateTime.now());
       buHaptic(BuHaptic.medium);
       _flash(res is Map && res['status'] == 'ALREADY' ? l.evtQrScanAlready(name) : l.scanCheckinDone(name));
+    } catch (e) {
+      _throttle.rejected(v, DateTime.now());
+      if (!mounted) return;
+      _flash(errorText(e));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// Kulüp katılım QR'ı: sunucu kodu doğrular ve kullanıcıyı doğrudan üye yapar (idempotent: zaten üyeyse ALREADY).
+  /// Meşgul bayrağı + [ScanThrottle] çift okuma/çift istek olmasını önler; başarıda tarayıcı kapanır, kulüp sayfası açılır.
+  Future<void> _joinClub(ScanResult r, String v) async {
+    final l = context.l10n;
+    final id = r.clubId!;
+    setState(() => _busy = true);
+    try {
+      final res = await widget.session.api.post('/communities/$id/join-by-code', {'code': r.code});
+      if (!mounted) return;
+      final already = res is Map && res['status'] == 'ALREADY';
+      _done = true;
+      _throttle.succeeded(v, DateTime.now());
+      buHaptic(BuHaptic.medium);
+      Analytics.instance.action('qr_scan', target: 'club_join');
+      var name = '';
+      if (!already) {
+        try {
+          final c = await widget.session.api.get('/communities/$id');
+          if (c is Map) name = '${c['name'] ?? ''}'.trim();
+        } catch (_) {
+          // Ad alınamazsa genel mesaj gösterilir; katılım zaten tamamdır.
+        }
+        if (!mounted) return;
+      }
+      final nav = Navigator.of(context);
+      final root = nav.context;
+      BuToast.show(
+        context,
+        already ? l.scanClubAlready : (name.isEmpty ? l.scanClubJoinedNoName : l.scanClubJoined(name)),
+        kind: already ? BuToastKind.info : BuToastKind.success,
+      );
+      nav.pop();
+      if (!root.mounted) return;
+      await openShared(root, widget.session, ShareTarget(ShareType.club, id));
     } catch (e) {
       _throttle.rejected(v, DateTime.now());
       if (!mounted) return;

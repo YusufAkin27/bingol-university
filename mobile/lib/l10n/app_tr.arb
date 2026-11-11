@@ -7721,6 +7721,31 @@
       }
     }
   },
+  "clubJoinQrAction": "QR ile üye ekle",
+  "clubJoinQrActionSub": "Katılım QR kodunu göster",
+  "clubJoinQrTitle": "Katılım QR kodu",
+  "clubJoinQrHint": "Bu kodu okutan kişi kulübe doğrudan katılır.",
+  "clubJoinQrRefresh": "Kod {n} sn içinde yenilenir",
+  "@clubJoinQrRefresh": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "clubJoinQrFailed": "Katılım kodu alınamadı. Bağlantını kontrol edip tekrar dene.",
+  "clubJoinQrNoAccess": "Bu kulübe üye ekleme yetkin yok.",
+  "clubScanJoin": "QR ile katıl",
+  "scanClubJoined": "{name} kulübüne katıldınız",
+  "@scanClubJoined": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "scanClubJoinedNoName": "Kulübe katıldınız",
+  "scanClubAlready": "Bu kulübün zaten üyesisiniz",
   "signOutPendingTitle": "Gönderilmemiş mesajlar silinecek",
   "signOutPendingBody": "Gönderilmemiş {count} mesaj silinecek. Çıkış yapmak istiyor musun?",
   "@signOutPendingBody": {
