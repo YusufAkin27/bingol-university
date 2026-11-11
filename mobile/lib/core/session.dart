@@ -194,6 +194,10 @@ class Session extends ChangeNotifier {
   /// ve profil düzenleme fotoğraf değişince günceller; çıkışta temizlenir. Null: fotoğraf yok (varsayılan görsel).
   final avatarUrl = ValueNotifier<String?>(null);
 
+  /// Profildeki bölüm/sınıf değişti: bölüme bağlı ekranlar (ana sayfa ders kartı, ders programı, sınavlar) dinleyip
+  /// yeniden yükler. Değer her değişimde artar ([noteAcademicProfileChanged]); çıkışta sıfırlanmaz (dinleyici yalnız farkı bekler).
+  final academicProfileSignal = ValueNotifier<int>(0);
+
   /// Çıkışta belirteçler silinemediyse bırakılan işaret (bkz. [_persistNow]): sonraki açılışta oturum AÇILMAZ.
   static const _signedOutKey = 'signed_out';
   bool _signedOutMarker = false;
