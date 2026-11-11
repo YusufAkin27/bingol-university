@@ -209,7 +209,11 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
       }
     } catch (e) {
       _inflight = false;
-      if (!mounted) return;
+      if (!mounted) {
+        // Kalp ekrandan atilmisti (kaydirma): ust listedeki iyimser durum sunucunun son onayina geri alinir.
+        widget.onChanged?.call(_post.copyWith(likedByMe: _confirmedLiked, likeCount: _confirmedCount));
+        return;
+      }
       setState(() {
         _liked = _confirmedLiked;
         _changeCount(_confirmedCount);

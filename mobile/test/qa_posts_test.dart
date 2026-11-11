@@ -98,6 +98,23 @@ void main() {
       expect(last?.likeCount, 4);
     });
 
+    testWidgets('ucustayken ekrandan cikis + sunucu hatasi: ust listedeki iyimser durum geri alinir', (tester) async {
+      useScreen(tester, const Size(390, 844));
+      final b = FakeBackend(delay: const Duration(milliseconds: 500));
+      fakePosts(b, count: 1);
+      b.fail('/posts/500/like', status: 500);
+      b.handlers.insert(0, (req, path) => null);
+      Post? last;
+      await tester.pumpWidget(_like(b, _post(), onChanged: (p) => last = p));
+      await tester.tap(find.byKey(const ValueKey('like-heart')));
+      await tester.pump(const Duration(milliseconds: 400)); // debounce doldu, istek ucusta
+      expect(last?.likedByMe, isTrue);
+      await tester.pumpWidget(buildApp(const Scaffold(body: SizedBox()))); // kalp ekrandan atildi
+      await settle(tester, const Duration(milliseconds: 1500));
+      expect(last?.likedByMe, isFalse);
+      expect(last?.likeCount, 4);
+    });
+
     testWidgets('cevrimdisi: iyimser geri alinir ve uyari cikar', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend()..offline = true;
