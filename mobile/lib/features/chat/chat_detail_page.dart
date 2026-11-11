@@ -58,6 +58,7 @@ import 'message_bubble.dart';
 import 'long_message.dart';
 import 'emoji_presentation.dart';
 import 'photo_autosave.dart';
+import 'room_notice_board.dart';
 import '../share/share_card.dart' show sharePreviewText;
 import '../share/share_open.dart' show openShared;
 
@@ -2977,6 +2978,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         body: Stack(fit: StackFit.expand, children: [
           Positioned.fill(child: Column(children: [
           _searching ? _searchBar(t) : _topBar(t),
+          if (!_searching && (_type == 'CLUB' || _type == 'EVENT' || _type == 'DEPARTMENT'))
+            RoomNoticeStrip(session: widget.session, conversationId: _cid),
           // Duvar kağıdı yalnız mesaj alanının arkasında (üst çubuk/yazma alanı düz kalır).
           Expanded(
             child: Stack(clipBehavior: Clip.none, children: [
