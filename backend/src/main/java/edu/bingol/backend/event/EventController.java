@@ -266,7 +266,7 @@ public class EventController {
         return attendance.issueTicket(a, id, Instant.now());
     }
 
-    /** T1 "Biletim": bilet verisi (etkinlik + sahip + durum + cuzdan bayraklari); QR icin /my-ticket. */
+    /** T1 "Biletim": bilet verisi (etkinlik + sahip + durum); QR icin /my-ticket. */
     @GetMapping("/events/{id}/ticket")
     public edu.bingol.backend.event.dto.EventDtos.TicketInfo ticket(@PathVariable Long id) {
         Actor a = Actor.current();
