@@ -366,7 +366,8 @@ public class AttendanceService {
     /** Yeni toplu: status + (userIds | rest = hala bekleyen tum onayli katilimcilar). */
     public BulkResult bulkStatus(Actor a, Long eventId, String status, List<Long> userIds, boolean rest, Instant now) {
         String st = parseStatus(status);
-        if (!rest && (userIds == null || userIds.isEmpty() || userIds.size() > MAX_BULK)) {
+        if (!rest && (userIds == null || userIds.isEmpty() || userIds.size() > MAX_BULK
+                || userIds.stream().anyMatch(java.util.Objects::isNull))) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR",
                     "Toplu işaretleme 1-" + MAX_BULK + " kayıt içermelidir.");
         }
