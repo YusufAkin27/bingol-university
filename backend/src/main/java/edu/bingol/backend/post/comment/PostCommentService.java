@@ -220,6 +220,9 @@ public class PostCommentService {
     /** Idempotent begeni; yorum gorunur degilse 404. */
     public LikeState like(Long userId, Long commentId) {
         PostComment target = visibleComment(commentId, userId);
+        // Yorum gorunurlugu gonderininkini IZLER: gizli hesap / engelli / gizlenmis-silinmis gonderinin yorumu begenilemez
+        // (eskiden yalniz yorum satiri denetleniyordu; yorum kimligiyle gonderiye erisilmeyen kisi de begenebiliyordu).
+        visiblePost(target.getPostId(), userId);
         postRepo.findById(target.getPostId()).ifPresent(PostCommentService::requireCommentsOpen);
         boolean[] added = {false};
         for (int attempt = 0; attempt < 3; attempt++) {

@@ -173,6 +173,8 @@ class PostCommentServiceTest {
         posts.save(p);
         assertEquals("COMMENT_NOT_FOUND", code(() -> comment(a, p, "gizli")));
         assertEquals("COMMENT_NOT_FOUND", code(() -> service.list(a.getId(), p.getId(), null, null, 10)));
+        // gizlenen gonderinin yorumu yorum kimligiyle de begenilemez
+        assertEquals("COMMENT_NOT_FOUND", code(() -> service.like(author.getId(), c.id())));
     }
 
     // ---------------------------------------------------------------- liste + sayfalama
