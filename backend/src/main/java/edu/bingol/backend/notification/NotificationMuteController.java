@@ -36,6 +36,7 @@ public class NotificationMuteController {
     private final CommunityMemberRepository members;
     private final UserEventRepository events;
     private final RateLimiter limiter;
+    private edu.bingol.backend.event.EventService eventService;
 
     public NotificationMuteController(NotificationMuteRepository mutes, CommunityMemberRepository members,
                                       UserEventRepository events, RateLimiter limiter) {
@@ -43,6 +44,12 @@ public class NotificationMuteController {
         this.members = members;
         this.events = events;
         this.limiter = limiter;
+    }
+
+    /** Etkinlik gorunurluk kurali tek yerde (EventService); yoksa (birim testi) yalniz varlik denetimi. */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setEventService(edu.bingol.backend.event.EventService eventService) {
+        this.eventService = eventService;
     }
 
     @GetMapping("/api/communities/{id}/notification-mute")
@@ -77,8 +84,13 @@ public class NotificationMuteController {
         Long uid = CurrentUser.id();
         limiter.check("notifmute:user:" + uid, 60, Duration.ofMinutes(1));
         boolean on = req != null && Boolean.TRUE.equals(req.muted());
-        if (on && !events.existsById(id)) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "EVENT_NOT_FOUND", "Etkinlik bulunamadı.");
+        if (on) {
+            // Gorunurlugu olmayan (gizli/onay bekleyen/ozel kulup) etkinlik varlik sizdirmasin: loadVisible 404 firlatir
+            if (eventService != null) {
+                eventService.loadVisible(edu.bingol.backend.community.Actor.current(), id);
+            } else if (!events.existsById(id)) {
+                throw new ApiException(HttpStatus.NOT_FOUND, "EVENT_NOT_FOUND", "Etkinlik bulunamadı.");
+            }
         }
         return set(uid, NotificationMute.EVENT, id, on);
     }

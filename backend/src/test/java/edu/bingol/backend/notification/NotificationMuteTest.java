@@ -155,4 +155,21 @@ class NotificationMuteTest {
         assertThrows(ApiException.class, () -> c.eventSet(99L, new NotificationMuteController.MuteRequest(true)));
         assertFalse(c.eventSet(99L, new NotificationMuteController.MuteRequest(false)).muted());
     }
+
+    @Test
+    void invisibleEventCannotBeMutedAndDoesNotLeakExistence() {
+        UserEventRepository events = mock(UserEventRepository.class);
+        when(events.existsById(7L)).thenReturn(true); // var ama gorunmez (ozel kulup / onay bekleyen)
+        edu.bingol.backend.event.EventService svc = mock(edu.bingol.backend.event.EventService.class);
+        when(svc.loadVisible(any(), eq(7L))).thenThrow(new ApiException(org.springframework.http.HttpStatus.NOT_FOUND,
+                "EVENT_NOT_FOUND", "x"));
+        login(3L);
+        NotificationMuteController c = controller(mock(CommunityMemberRepository.class), events);
+        c.setEventService(svc);
+        ApiException e = assertThrows(ApiException.class,
+                () -> c.eventSet(7L, new NotificationMuteController.MuteRequest(true)));
+        assertEquals("EVENT_NOT_FOUND", e.code());
+        verify(mutes, never()).save(any());
+        assertFalse(c.eventSet(7L, new NotificationMuteController.MuteRequest(false)).muted()); // kaldirmak serbest
+    }
 }
