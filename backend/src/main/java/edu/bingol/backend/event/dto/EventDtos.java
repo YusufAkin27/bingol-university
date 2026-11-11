@@ -169,14 +169,10 @@ public final class EventDtos {
 
     /**
      * Bilet verisi (T1): etkinlik bilgisi + sahip adi + durum. QR YOKTUR (kisa omurlu QR /my-ticket'tan gelir).
-     * state: VALID | ENDED | CANCELLED. wallet: sunucuda cuzdan entegrasyonu acik mi (varsayilan hepsi false).
+     * state: VALID | ENDED | CANCELLED.
      */
     public record TicketInfo(Long eventId, String title, Instant startsAt, Instant endsAt, String location,
-                             String organizerName, String holderName, String state, boolean attendanceOpen,
-                             WalletFlags wallet) {
-    }
-
-    public record WalletFlags(boolean apple, boolean google) {
+                             String organizerName, String holderName, String state, boolean attendanceOpen) {
     }
 
     /** Organizatorun okuttugu QR istegi. */

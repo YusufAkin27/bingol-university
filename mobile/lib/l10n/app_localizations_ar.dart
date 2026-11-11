@@ -14327,12 +14327,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get evtTicketHolder => 'صاحب التذكرة';
 
   @override
-  String get evtTicketAddWallet => 'إضافة إلى المحفظة';
-
-  @override
-  String get evtTicketWalletSoon => 'الإضافة إلى المحفظة قريباً.';
-
-  @override
   String get evtTicketPrivacyNote =>
       'هذه التذكرة شخصية. لا تشاركها ولا ترسل لقطة شاشة لها للآخرين.';
 

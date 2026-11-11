@@ -7794,8 +7794,6 @@
   "evtTicketOffline": "Çevrimdışısın: son görülen bilet gösteriliyor.",
   "evtTicketOrganizer": "Düzenleyen",
   "evtTicketHolder": "Bilet sahibi",
-  "evtTicketAddWallet": "Cüzdana ekle",
-  "evtTicketWalletSoon": "Cüzdana ekleme yakında.",
   "evtTicketPrivacyNote": "Bu bilet sana özeldir; paylaşma ve ekran görüntüsünü başkalarına gönderme.",
   "evtTicketCancelled": "Bu etkinlik iptal edildi; bilet geçersiz.",
   "evtTicketEnded": "Bu etkinlik sona erdi; bilet artık kullanılamaz.",

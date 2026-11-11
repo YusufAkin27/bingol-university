@@ -5240,8 +5240,6 @@
   "evtTicketOffline": "You are offline: showing the last seen ticket.",
   "evtTicketOrganizer": "Organizer",
   "evtTicketHolder": "Ticket holder",
-  "evtTicketAddWallet": "Add to Wallet",
-  "evtTicketWalletSoon": "Adding to Wallet is coming soon.",
   "evtTicketPrivacyNote": "This ticket is personal. Do not share it or send a screenshot to others.",
   "evtTicketCancelled": "This event was cancelled; the ticket is void.",
   "evtTicketEnded": "This event has ended; the ticket can no longer be used.",

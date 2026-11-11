@@ -25866,18 +25866,6 @@ abstract class AppLocalizations {
   /// **'Bilet sahibi'**
   String get evtTicketHolder;
 
-  /// No description provided for @evtTicketAddWallet.
-  ///
-  /// In tr, this message translates to:
-  /// **'Cüzdana ekle'**
-  String get evtTicketAddWallet;
-
-  /// No description provided for @evtTicketWalletSoon.
-  ///
-  /// In tr, this message translates to:
-  /// **'Cüzdana ekleme yakında.'**
-  String get evtTicketWalletSoon;
-
   /// No description provided for @evtTicketPrivacyNote.
   ///
   /// In tr, this message translates to:

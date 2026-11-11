@@ -14,7 +14,6 @@ import edu.bingol.backend.event.dto.EventDtos.CheckinCode;
 import edu.bingol.backend.event.dto.EventDtos.MyAttendance;
 import edu.bingol.backend.event.dto.EventDtos.MyTicket;
 import edu.bingol.backend.event.dto.EventDtos.TicketInfo;
-import edu.bingol.backend.event.dto.EventDtos.WalletFlags;
 import edu.bingol.backend.event.dto.EventDtos.ScanResult;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserStatus;
@@ -81,14 +80,6 @@ public class AttendanceService {
     @Autowired
     public void setAdmission(@Lazy EventAdmissionHooks admission) {
         this.admission = admission;
-    }
-
-    /** T1: cuzdan bayraklari (null iken hepsi kapali: birim testler). */
-    private edu.bingol.backend.config.WalletProperties wallet;
-
-    @Autowired
-    public void setWallet(edu.bingol.backend.config.WalletProperties wallet) {
-        this.wallet = wallet;
     }
 
     // ---- QR ----
@@ -190,8 +181,7 @@ public class AttendanceService {
         User org = users.get(e.getCreatedBy());
         return new TicketInfo(e.getId(), e.getTitle(), e.getStartsAt(), e.getEndsAt(), e.getLocation(),
                 org == null ? null : org.getDisplayName(), holder == null ? null : holder.getDisplayName(), state,
-                e.isAttendanceOpen(),
-                new WalletFlags(wallet != null && wallet.apple(), wallet != null && wallet.google()));
+                e.isAttendanceOpen());
     }
 
     /**

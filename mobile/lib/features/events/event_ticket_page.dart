@@ -6,7 +6,6 @@ import 'package:intl/intl.dart';
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../core/wallet_config.dart';
 import '../../widgets/bu.dart';
 import '../clubs/clubs_widgets.dart' show ClubPageHeader;
 import 'event_ticket_store.dart';
@@ -165,8 +164,6 @@ class _EventTicketPageState extends State<EventTicketPage> {
     final org = '${info['organizerName'] ?? ''}'.trim();
     final holder = '${info['holderName'] ?? ''}'.trim();
     final expired = _qrExp != null && !_qrExp!.isAfter(DateTime.now());
-    final wallet = info['wallet'] is Map ? info['wallet'] as Map : const {};
-    final showWallet = kWalletEnabled && !off && (wallet['apple'] == true || wallet['google'] == true);
 
     Widget kv(String k, String v) => Padding(
           padding: const EdgeInsets.only(top: 10),
@@ -226,15 +223,6 @@ class _EventTicketPageState extends State<EventTicketPage> {
           ),
         ]),
       ),
-      if (showWallet) ...[
-        const SizedBox(height: 16),
-        BuButton(
-            key: const ValueKey('ticket-wallet'),
-            label: l.evtTicketAddWallet,
-            kind: BuButtonKind.outline,
-            icon: BuIcons.qrCode,
-            onPressed: () => BuToast.show(context, l.evtTicketWalletSoon)),
-      ],
       const SizedBox(height: 16),
       Text(l.evtTicketPrivacyNote, textAlign: TextAlign.center, style: tx.bodySmall!.copyWith(height: 1.45, color: t.mut)),
     ];

@@ -14444,12 +14444,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get evtTicketHolder => 'Ticket holder';
 
   @override
-  String get evtTicketAddWallet => 'Add to Wallet';
-
-  @override
-  String get evtTicketWalletSoon => 'Adding to Wallet is coming soon.';
-
-  @override
   String get evtTicketPrivacyNote =>
       'This ticket is personal. Do not share it or send a screenshot to others.';
 

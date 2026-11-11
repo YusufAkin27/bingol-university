@@ -14387,12 +14387,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get evtTicketHolder => 'Bilet sahibi';
 
   @override
-  String get evtTicketAddWallet => 'Cüzdana ekle';
-
-  @override
-  String get evtTicketWalletSoon => 'Cüzdana ekleme yakında.';
-
-  @override
   String get evtTicketPrivacyNote =>
       'Bu bilet sana özeldir; paylaşma ve ekran görüntüsünü başkalarına gönderme.';
 

@@ -12,7 +12,6 @@ import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.community.Actor;
 import edu.bingol.backend.community.CommunityService;
 import edu.bingol.backend.config.JwtProperties;
-import edu.bingol.backend.config.WalletProperties;
 import edu.bingol.backend.event.dto.EventDtos.TicketInfo;
 import edu.bingol.backend.user.User;
 import java.time.Duration;
@@ -85,15 +84,4 @@ class AttendanceTicketInfoTest {
         assertEquals("CANCELLED", svc.ticketInfo(member, 5L, start).state());
     }
 
-    @Test
-    void walletFlagsDefaultOffAndNeedMasterSwitch() {
-        rsvp(EventRsvp.Status.GOING);
-        assertFalse(svc.ticketInfo(member, 5L, start).wallet().apple());
-        svc.setWallet(new WalletProperties(false, true, true));
-        assertFalse(svc.ticketInfo(member, 5L, start).wallet().google());
-        svc.setWallet(new WalletProperties(true, true, false));
-        TicketInfo t = svc.ticketInfo(member, 5L, start);
-        assertTrue(t.wallet().apple());
-        assertFalse(t.wallet().google());
-    }
 }
