@@ -318,7 +318,7 @@ class _MemberPickerState extends State<_MemberPicker> {
             ),
             Expanded(
               child: _loading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const Center(child: BuSpinner(size: 28))
                   : _error != null
                       ? Center(
                           child: Text(errorText(_error!),

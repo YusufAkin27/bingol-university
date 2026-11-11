@@ -111,7 +111,7 @@ class _AudienceSheetState extends State<_AudienceSheet> {
         child: ClubBtn(label: l.clubAudienceRetry, onPressed: _cat.retry),
       );
     } else if (!_cat.ready) {
-      body = const Center(child: CircularProgressIndicator(strokeWidth: 2));
+      body = const Center(child: BuSpinner(size: 28));
     } else {
       final rows = <Widget>[];
       for (final f in _cat.faculties) {

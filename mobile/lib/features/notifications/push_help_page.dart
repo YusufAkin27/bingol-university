@@ -69,7 +69,7 @@ class _PushHelpPageState extends State<PushHelpPage> with WidgetsBindingObserver
     return AcademicScaffold(
       title: l.p21HelpTitle,
       child: h == null
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: BuSpinner(size: 28))
           : ListView(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
               children: [
