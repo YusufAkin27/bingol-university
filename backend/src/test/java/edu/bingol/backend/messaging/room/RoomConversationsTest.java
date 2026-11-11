@@ -301,4 +301,28 @@ class RoomConversationsTest {
 
         assertEquals(4, rooms.purgeInactiveUsers());
     }
+
+    @Test
+    void departmentRoomsUseTheirOwnHighLimitWhileClubRoomsKeepTheSmallOne() {
+        ChatRoomLink l = link(false);
+        l.setKind(RoomKind.DEPARTMENT);
+        when(links.findByKindAndRefId(RoomKind.DEPARTMENT, 10L)).thenReturn(Optional.of(l));
+        userOk(7L);
+        when(members.findByConversationIdAndUserIdAndLeftAtIsNull(500L, 7L)).thenReturn(Optional.empty());
+        when(members.findByConversationIdAndUserId(500L, 7L)).thenReturn(Optional.empty());
+        when(members.countByConversationIdAndLeftAtIsNull(500L)).thenReturn(3L); // genel tavan (3) dolu
+        Conversation c = new Conversation();
+        c.setId(500L);
+        when(convs.findById(500L)).thenReturn(Optional.of(c));
+
+        // bolum odasi: genel tavan uygulanmaz, kayit uyeligi girer
+        assertTrue(rooms.addMemberIfSpace(RoomKind.DEPARTMENT, 10L, 7L));
+        verify(members).save(any());
+        // kulup odasi davranisi degismedi
+        openRoom();
+        assertFalse(rooms.addMemberIfSpace(RoomKind.COMMUNITY, 10L, 7L));
+        // bolum tavani da vardir
+        RoomConversations tiny = new RoomConversations(links, convs, members, users, 3, 3);
+        assertFalse(tiny.addMemberIfSpace(RoomKind.DEPARTMENT, 10L, 7L));
+    }
 }
