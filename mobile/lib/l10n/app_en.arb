@@ -5162,6 +5162,31 @@
       }
     }
   },
+  "clubJoinQrAction": "Add members by QR",
+  "clubJoinQrActionSub": "Show the club join QR code",
+  "clubJoinQrTitle": "Join QR code",
+  "clubJoinQrHint": "Anyone who scans this code joins the club directly.",
+  "clubJoinQrRefresh": "Code refreshes in {n} s",
+  "@clubJoinQrRefresh": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "clubJoinQrFailed": "Could not get the join code. Check your connection and try again.",
+  "clubJoinQrNoAccess": "You are not allowed to add members to this club.",
+  "clubScanJoin": "Join by QR",
+  "scanClubJoined": "You joined {name}",
+  "@scanClubJoined": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "scanClubJoinedNoName": "You joined the club",
+  "scanClubAlready": "You are already a member of this club",
   "signOutPendingTitle": "Unsent messages will be deleted",
   "signOutPendingBody": "{count} unsent messages will be deleted. Sign out anyway?",
   "@signOutPendingBody": {

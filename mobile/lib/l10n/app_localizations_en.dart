@@ -14283,6 +14283,46 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get clubJoinQrAction => 'Add members by QR';
+
+  @override
+  String get clubJoinQrActionSub => 'Show the club join QR code';
+
+  @override
+  String get clubJoinQrTitle => 'Join QR code';
+
+  @override
+  String get clubJoinQrHint =>
+      'Anyone who scans this code joins the club directly.';
+
+  @override
+  String clubJoinQrRefresh(int n) {
+    return 'Code refreshes in $n s';
+  }
+
+  @override
+  String get clubJoinQrFailed =>
+      'Could not get the join code. Check your connection and try again.';
+
+  @override
+  String get clubJoinQrNoAccess =>
+      'You are not allowed to add members to this club.';
+
+  @override
+  String get clubScanJoin => 'Join by QR';
+
+  @override
+  String scanClubJoined(String name) {
+    return 'You joined $name';
+  }
+
+  @override
+  String get scanClubJoinedNoName => 'You joined the club';
+
+  @override
+  String get scanClubAlready => 'You are already a member of this club';
+
+  @override
   String get signOutPendingTitle => 'Unsent messages will be deleted';
 
   @override

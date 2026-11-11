@@ -1,7 +1,7 @@
 /// Tek QR tarayıcının çözümleme tablosu: saf Dart (UI'siz test edilir).
 ///
 /// Taranan metin ASLA açılmaz/çalıştırılmaz: yalnız kendi alan adımız (`bukampus.com.tr`) ve `bukampus://` şeması
-/// [parseShareLink] ile, etkinlik yoklama yükü ise katı biçimle (`bingol-checkin:{id}.{pencere}.{imza}`) tanınır.
+/// [parseShareLink] ile, etkinlik yoklama yükü ise katı biçimle (`bingol-checkin:{id}.{pencere}.{imza}`) ve kulüp katılım yükü (`bingol-clubjoin:...`) tanınır.
 /// Geri kalan her şey (yabancı alan adı, başka şema, uzun/kontrol karakterli/boşluklu metin) [ScanKind.invalid].
 library;
 
@@ -20,18 +20,25 @@ enum ScanKind {
   /// Etkinlik yoklama yükü: görevliyse yoklama alınır (yetki ve hız sınırı sunucudadır).
   checkin,
 
+  /// Kulüp katılım yükü (`bingol-clubjoin:{id}.{pencere}.{imza}`): kulüp yöneticisinin gösterdiği kısa ömürlü kod;
+  /// okutan kullanıcı `POST /communities/{id}/join-by-code` ile doğrudan üye olur (geçerlilik sunucudadır).
+  clubJoin,
+
   /// BÜ Kampüs kodu değil.
   invalid,
 }
 
 class ScanResult {
-  const ScanResult(this.kind, {this.target, this.eventId, this.code});
+  const ScanResult(this.kind, {this.target, this.eventId, this.clubId, this.code});
 
   final ScanKind kind;
   final ShareTarget? target;
   final int? eventId;
 
-  /// Sunucuya gönderilecek yoklama kodu (önek dahil/değil: ham yük).
+  /// Kulüp katılım yükünün kulüp kimliği.
+  final int? clubId;
+
+  /// Sunucuya gönderilecek yoklama / katılım kodu (ham yük, önek dahil).
   final String? code;
 
   bool get valid => kind != ScanKind.invalid;
@@ -40,6 +47,7 @@ class ScanResult {
 const int kScanMaxLength = 300;
 
 final RegExp _checkin = RegExp(r'^bingol-checkin:([0-9]{1,18})\.([A-Za-z0-9_\-.]{1,250})$');
+final RegExp _clubJoin = RegExp(r'^bingol-clubjoin:([0-9]{1,18})\.([A-Za-z0-9_\-.]{1,250})$');
 final RegExp _bad = RegExp(r'[\s\u0000-\u001f\u007f]');
 
 ScanResult resolveScan(String? raw, {int? selfId}) {
@@ -51,6 +59,12 @@ ScanResult resolveScan(String? raw, {int? selfId}) {
     final id = int.tryParse(m.group(1)!);
     if (id == null || id <= 0) return invalid;
     return ScanResult(ScanKind.checkin, eventId: id, code: text);
+  }
+  final j = _clubJoin.firstMatch(text);
+  if (j != null) {
+    final id = int.tryParse(j.group(1)!);
+    if (id == null || id <= 0) return invalid;
+    return ScanResult(ScanKind.clubJoin, clubId: id, code: text);
   }
   final t = parseShareLink(text);
   if (t == null) return invalid;

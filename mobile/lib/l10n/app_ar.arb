@@ -5162,6 +5162,31 @@
       }
     }
   },
+  "clubJoinQrAction": "إضافة أعضاء عبر QR",
+  "clubJoinQrActionSub": "عرض رمز QR للانضمام",
+  "clubJoinQrTitle": "رمز QR للانضمام",
+  "clubJoinQrHint": "كل من يمسح هذا الرمز ينضم إلى النادي مباشرة.",
+  "clubJoinQrRefresh": "يتجدد الرمز خلال {n} ث",
+  "@clubJoinQrRefresh": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "clubJoinQrFailed": "تعذر الحصول على رمز الانضمام. تحقق من الاتصال وحاول مجددا.",
+  "clubJoinQrNoAccess": "ليست لديك صلاحية إضافة أعضاء إلى هذا النادي.",
+  "clubScanJoin": "الانضمام عبر QR",
+  "scanClubJoined": "انضممت إلى {name}",
+  "@scanClubJoined": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "scanClubJoinedNoName": "انضممت إلى النادي",
+  "scanClubAlready": "أنت عضو في هذا النادي بالفعل",
   "signOutPendingTitle": "سيتم حذف الرسائل غير المرسلة",
   "signOutPendingBody": "سيتم حذف {count} رسائل غير مرسلة. هل تريد تسجيل الخروج؟",
   "@signOutPendingBody": {

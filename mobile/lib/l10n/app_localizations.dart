@@ -25584,6 +25584,72 @@ abstract class AppLocalizations {
   /// **'Yoklama alındı: {name}'**
   String scanCheckinDone(String name);
 
+  /// No description provided for @clubJoinQrAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR ile üye ekle'**
+  String get clubJoinQrAction;
+
+  /// No description provided for @clubJoinQrActionSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılım QR kodunu göster'**
+  String get clubJoinQrActionSub;
+
+  /// No description provided for @clubJoinQrTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılım QR kodu'**
+  String get clubJoinQrTitle;
+
+  /// No description provided for @clubJoinQrHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu kodu okutan kişi kulübe doğrudan katılır.'**
+  String get clubJoinQrHint;
+
+  /// No description provided for @clubJoinQrRefresh.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kod {n} sn içinde yenilenir'**
+  String clubJoinQrRefresh(int n);
+
+  /// No description provided for @clubJoinQrFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılım kodu alınamadı. Bağlantını kontrol edip tekrar dene.'**
+  String get clubJoinQrFailed;
+
+  /// No description provided for @clubJoinQrNoAccess.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu kulübe üye ekleme yetkin yok.'**
+  String get clubJoinQrNoAccess;
+
+  /// No description provided for @clubScanJoin.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR ile katıl'**
+  String get clubScanJoin;
+
+  /// No description provided for @scanClubJoined.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} kulübüne katıldınız'**
+  String scanClubJoined(String name);
+
+  /// No description provided for @scanClubJoinedNoName.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulübe katıldınız'**
+  String get scanClubJoinedNoName;
+
+  /// No description provided for @scanClubAlready.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu kulübün zaten üyesisiniz'**
+  String get scanClubAlready;
+
   /// No description provided for @signOutPendingTitle.
   ///
   /// In tr, this message translates to:

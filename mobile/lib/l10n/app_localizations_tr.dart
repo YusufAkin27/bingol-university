@@ -14228,6 +14228,44 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String get clubJoinQrAction => 'QR ile üye ekle';
+
+  @override
+  String get clubJoinQrActionSub => 'Katılım QR kodunu göster';
+
+  @override
+  String get clubJoinQrTitle => 'Katılım QR kodu';
+
+  @override
+  String get clubJoinQrHint => 'Bu kodu okutan kişi kulübe doğrudan katılır.';
+
+  @override
+  String clubJoinQrRefresh(int n) {
+    return 'Kod $n sn içinde yenilenir';
+  }
+
+  @override
+  String get clubJoinQrFailed =>
+      'Katılım kodu alınamadı. Bağlantını kontrol edip tekrar dene.';
+
+  @override
+  String get clubJoinQrNoAccess => 'Bu kulübe üye ekleme yetkin yok.';
+
+  @override
+  String get clubScanJoin => 'QR ile katıl';
+
+  @override
+  String scanClubJoined(String name) {
+    return '$name kulübüne katıldınız';
+  }
+
+  @override
+  String get scanClubJoinedNoName => 'Kulübe katıldınız';
+
+  @override
+  String get scanClubAlready => 'Bu kulübün zaten üyesisiniz';
+
+  @override
   String get signOutPendingTitle => 'Gönderilmemiş mesajlar silinecek';
 
   @override

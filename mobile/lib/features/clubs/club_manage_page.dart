@@ -10,6 +10,7 @@ import '../events/event_parts.dart' show eventIsExpired;
 import 'club_detail_page.dart';
 import 'club_form_page.dart';
 import 'club_logo.dart';
+import 'club_join_qr_page.dart';
 import 'club_members_page.dart';
 import 'club_requests_page.dart';
 
@@ -250,6 +251,10 @@ class _ClubManagePageState extends State<ClubManagePage> {
                   clubName: name,
                   memberCount: (club['memberCount'] as num?)?.toInt()),
               'club_members'));
+    }
+    if (_can('MANAGE_MEMBERS')) {
+      add('joinqr', BuIcons.qrCode, l.clubJoinQrAction, subtitle: l.clubJoinQrActionSub,
+          () => _go(ClubJoinQrPage(session: widget.session, communityId: _id, clubName: name), 'club_join_qr'));
     }
     if (_can('MANAGE_EVENTS')) {
       add('event', BuIcons.calendarPlus, l.eventListCreate,
