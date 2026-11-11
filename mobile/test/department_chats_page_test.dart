@@ -146,4 +146,22 @@ void main() {
     expect(b.requests.single,
         'POST /department-chat/join?department=${Uri.encodeComponent('Bilgisayar Mühendisliği')}');
   });
+
+  testWidgets('sayfalamayi bilmeyen sunucu ayni listeyi dondururse sonsuz yukleme dongusu olmaz',
+      (tester) async {
+    useScreen(tester, kPhoneSmall);
+    final all = [for (var i = 0; i < 35; i++) {'departmentName': 'Bölüm ${i.toString().padLeft(2, '0')}', 'joined': false}];
+    final b = FakeBackend()
+      ..handlers.add((req, path) => path == '/department-chat/rooms' ? FakeResult.json(all) : null);
+    await tester.pumpWidget(buildApp(DepartmentChatsPage(session: makeSession(b))));
+    await tester.pumpAndSettle();
+    for (var i = 0; i < 4; i++) {
+      await tester.drag(find.byType(ListView), const Offset(0, -8000));
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(ListView), const Offset(0, 8000));
+      await tester.pumpAndSettle();
+    }
+    // İlk sayfa + en çok bir "devam" isteği; sonra yeni satır gelmediği için durur.
+    expect(b.requests.where((r) => r.contains('/department-chat/rooms')).length, lessThanOrEqualTo(2));
+  });
 }

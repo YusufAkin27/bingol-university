@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../../widgets/report_sheet.dart';
@@ -193,6 +194,7 @@ class _RoomNoticeBoardPageState extends State<RoomNoticeBoardPage> {
   int? _next;
   bool _loading = true;
   bool _loadingMore = false;
+  bool _moreFailed = false;
   Object? _error;
 
   @override
@@ -205,6 +207,7 @@ class _RoomNoticeBoardPageState extends State<RoomNoticeBoardPage> {
     setState(() {
       _loading = true;
       _error = null;
+      _moreFailed = false;
     });
     try {
       final r = await _api.list();
@@ -228,7 +231,10 @@ class _RoomNoticeBoardPageState extends State<RoomNoticeBoardPage> {
 
   Future<void> _more() async {
     if (_next == null || _loadingMore) return;
-    setState(() => _loadingMore = true);
+    setState(() {
+      _loadingMore = true;
+      _moreFailed = false;
+    });
     try {
       final r = await _api.list(cursor: _next);
       if (!mounted) return;
@@ -237,7 +243,11 @@ class _RoomNoticeBoardPageState extends State<RoomNoticeBoardPage> {
         _next = (r['nextCursor'] as num?)?.toInt();
       });
     } catch (e) {
-      if (mounted) BuToast.show(context, errorText(e), kind: BuToastKind.error);
+      // Hata sonrası otomatik yeniden deneme döngüsü olmasın: kullanıcı dokunarak yeniden dener.
+      if (mounted) {
+        _moreFailed = true;
+        BuToast.show(context, errorText(e), kind: BuToastKind.error);
+      }
     } finally {
       if (mounted) setState(() => _loadingMore = false);
     }
@@ -311,7 +321,13 @@ class _RoomNoticeBoardPageState extends State<RoomNoticeBoardPage> {
         separatorBuilder: (_, __) => const SizedBox(height: 10),
         itemBuilder: (_, i) {
           if (i == _items.length) {
-            _more();
+            if (_moreFailed) {
+              return Center(child: TextButton(onPressed: _more, child: Text(context.l10n.commonRetry)));
+            }
+            // build sırasında setState çağrılmaz: sonraki kareye ertele.
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _more();
+            });
             return const Padding(padding: EdgeInsets.all(12), child: Center(child: CircularProgressIndicator()));
           }
           final n = _items[i];

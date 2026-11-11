@@ -44,4 +44,26 @@ void main() {
     await settle(tester);
     expect(find.byKey(const ValueKey('roomNoticeStrip')), findsOneWidget);
   });
+
+  testWidgets('pano sayfalama: build sirasinda setState yok, hata sonrasi otomatik tekrar dongusu yok', (tester) async {
+    useScreen(tester, kPhoneMedium);
+    final b = FakeBackend()
+      ..handlers.add((req, path) {
+        if (path != '/conversations/5/notices') return null;
+        final cursor = req.url.queryParameters['cursor'];
+        if (cursor == null) {
+          return FakeResult.json({'items': [for (var i = 1; i <= 3; i++) _n(i)], 'nextCursor': 3});
+        }
+        return FakeResult.json({'code': 'SERVER_ERROR', 'message': 'x'}, status: 500);
+      });
+    await tester.pumpWidget(buildApp(
+        RoomNoticeBoardPage(session: makeSession(b), conversationId: 5, canManage: false),
+        size: kPhoneMedium));
+    await tester.pumpAndSettle(const Duration(milliseconds: 100));
+    expect(tester.takeException(), isNull);
+    final n = b.requests.where((r) => r.contains('cursor=3')).length;
+    expect(n, 1);
+    await tester.pump(const Duration(seconds: 2));
+    expect(b.requests.where((r) => r.contains('cursor=3')).length, 1);
+  });
 }

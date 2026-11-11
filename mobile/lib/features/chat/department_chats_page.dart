@@ -117,8 +117,10 @@ class _DepartmentChatsPageState extends State<DepartmentChatsPage> {
       if (!mounted || gen != _gen) return;
       setState(() {
         final known = _rooms.map((r) => r['departmentName']).toSet();
-        _rooms.addAll(rooms.where((r) => !known.contains(r['departmentName'])));
-        _hasMore = rooms.length >= _pageSize;
+        final fresh = rooms.where((r) => !known.contains(r['departmentName'])).toList();
+        _rooms.addAll(fresh);
+        // Yeni satır gelmediyse (sayfalamayı bilmeyen sunucu hep aynı listeyi döner) döngüye girme.
+        _hasMore = fresh.isNotEmpty && rooms.length >= _pageSize;
         _loadingMore = false;
       });
     } catch (e) {
