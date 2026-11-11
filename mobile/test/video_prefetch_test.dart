@@ -36,6 +36,14 @@ class _Fetch {
   }
 }
 
+/// Sabit bekleme yerine kosul bekler (yuklu makinede dosya G/C yavas; zamanlama testi dalgalanirdi).
+Future<void> until(bool Function() ok) async {
+  final end = DateTime.now().add(const Duration(seconds: 5));
+  while (!ok() && DateTime.now().isBefore(end)) {
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+  }
+}
+
 String u(int id) => 'https://x/api/posts/media/$id';
 VideoPrefetchItem it(int id) => VideoPrefetchItem(u(id), const {'Authorization': 'Bearer t'});
 
@@ -81,11 +89,12 @@ void main() {
       fetch.gate(u(i));
     }
     p.plan([it(1), it(2), it(3), it(4)]);
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+    await until(() => fetch.calls.length >= 2);
+    await Future<void>.delayed(const Duration(milliseconds: 50)); // ucuncu baslamamali
     expect(fetch.calls, [u(1), u(2)]);
     expect(p.activeCount, 2);
     fetch.gates[u(1)]!.complete();
-    await Future<void>.delayed(const Duration(milliseconds: 80));
+    await until(() => fetch.calls.length >= 3);
     expect(fetch.calls, [u(1), u(2), u(3)]); // siradaki
     fetch.gates[u(2)]!.complete();
     fetch.gates[u(3)]!.complete();
@@ -103,6 +112,7 @@ void main() {
     p.plan([it(1)]);
     p.plan([it(1), it(2)]);
     p.plan([it(1), it(2)]);
+    await until(() => fetch.calls.isNotEmpty);
     await Future<void>.delayed(const Duration(milliseconds: 50));
     expect(fetch.calls.where((c) => c == u(1)).length, 1);
     fetch.gates[u(1)]!.complete();
