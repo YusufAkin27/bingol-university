@@ -123,4 +123,21 @@ class RoomNoticeServiceTest {
         verify(notifications, never()).sendTemplatedBulk(
                 org.mockito.ArgumentMatchers.argThat(c -> c.contains(1L)), any(), any(), any(), any(String[].class));
     }
+
+    @Test
+    void pinningLocksTheConversationRowBeforeCountingSoConcurrentPinsCannotExceedTheLimit() {
+        var convs = mock(edu.bingol.backend.messaging.ConversationRepository.class);
+        svc.setConvs(convs);
+        room(5L);
+        when(moderation.canModerate(5L, 7L)).thenReturn(true);
+        when(notices.countPinned(5L)).thenReturn((long) RoomNoticeService.MAX_PINNED);
+
+        ApiException e = assertThrows(ApiException.class, () -> svc.create(5L, 7L, "t", "b", true));
+
+        assertEquals("NOTICE_PIN_LIMIT", e.code());
+        var order = org.mockito.Mockito.inOrder(convs, notices);
+        order.verify(convs).lockById(5L);
+        order.verify(notices).countPinned(5L);
+        verify(notices, never()).save(any());
+    }
 }
