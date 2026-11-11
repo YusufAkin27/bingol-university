@@ -217,6 +217,7 @@ void main() {
     fetch.gate(u(2));
     final t = await p.ensure(it(2), wait: const Duration(milliseconds: 80));
     expect(t, isNull);
+    expect(p.waiterCount, 0, reason: "zaman asimina ugrayan bekleyici listede kalmaz");
     fetch.gates[u(2)]!.complete();
     await p.settle();
   });
