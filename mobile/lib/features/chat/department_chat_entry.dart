@@ -24,8 +24,13 @@ class DepartmentChatApi {
     return r is Map ? Map<String, dynamic>.from(r) : <String, dynamic>{};
   }
 
-  Future<List<Map<String, dynamic>>> rooms() async {
-    final r = await session.api.get('/department-chat/rooms', force: true);
+  /// "Bölüm ara": sunucu sayfalaması. Yanıt hâlâ düz listedir (eski sunucu/istemci uyumu); `after` = önceki
+  /// sayfanın son `departmentName` değeri, `q` sunucu tarafı Türkçe-duyarlı arama.
+  Future<List<Map<String, dynamic>>> rooms({int size = 30, String? after, String? q}) async {
+    final params = <String>['size=$size'];
+    if (after != null && after.isNotEmpty) params.add('after=${Uri.encodeQueryComponent(after)}');
+    if (q != null && q.isNotEmpty) params.add('q=${Uri.encodeQueryComponent(q)}');
+    final r = await session.api.get('/department-chat/rooms?${params.join('&')}', force: true);
     return r is List ? r.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList() : [];
   }
 
