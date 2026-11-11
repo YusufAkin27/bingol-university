@@ -45,9 +45,11 @@ abstract class VoiceRecorder {
 
 /// `record` paketiyle gerçek kayıt (AAC-LC, mono, 64 kb/sn: dakikada ~0,5 MB).
 class RecordVoiceRecorder implements VoiceRecorder {
-  RecordVoiceRecorder() : _rec = AudioRecorder();
+  RecordVoiceRecorder();
 
-  final AudioRecorder _rec;
+  // Tembel: sohbet her açılışında yerel kaydedici (mikrofon kaynağı) ayrılmasın; ilk kayıtta/izin sorgusunda kurulur.
+  AudioRecorder? _recorder;
+  AudioRecorder get _rec => _recorder ??= AudioRecorder();
   final _levels = StreamController<double>.broadcast();
   final _interrupted = StreamController<void>.broadcast();
   StreamSubscription<Amplitude>? _ampSub;
@@ -120,7 +122,7 @@ class RecordVoiceRecorder implements VoiceRecorder {
     await _levels.close();
     await _interrupted.close();
     try {
-      await _rec.dispose();
+      await _recorder?.dispose();
     } catch (_) {}
   }
 }
