@@ -447,7 +447,7 @@ class _PostCardState extends State<PostCard> {
                 ),
               ] else
                 const Spacer(),
-              PostSaveButton(session: widget.session, post: p, onChanged: widget.onChanged),
+              PostSaveButton(session: widget.session, post: p, onChanged: widget.onChanged, latest: () => widget.post),
               PostShareButton(session: widget.session, post: p),
             ]),
           ),
@@ -592,7 +592,7 @@ class _PostCardState extends State<PostCard> {
                     commentsDisabled: p.commentsDisabled,
                     onCountChanged: (n) => widget.onChanged(p.copyWith(commentCount: n))),
                 const Spacer(),
-                PostSaveButton(session: widget.session, post: p, onChanged: widget.onChanged),
+                PostSaveButton(session: widget.session, post: p, onChanged: widget.onChanged, latest: () => widget.post),
               PostShareButton(session: widget.session, post: p),
               ]),
             ),

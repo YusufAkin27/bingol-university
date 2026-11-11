@@ -624,6 +624,7 @@ class _ReelPageState extends State<_ReelPage> {
                 post: p,
                 notInterested: !mine,
                 onEdited: widget.onChanged,
+                latest: () => widget.post,
                 onDeleted: widget.onRemoved),
           ),
         ]),

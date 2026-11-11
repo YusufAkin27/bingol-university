@@ -26,6 +26,7 @@ Future<void> showPostActions(
   required Session session,
   required Post post,
   ValueChanged<Post>? onEdited,
+  Post Function()? latest,
   VoidCallback? onDeleted,
   BuildContext? anchorContext,
   BuildContext? cardContext,
@@ -83,7 +84,7 @@ Future<void> showPostActions(
     case 'share':
       await showShareSheet(context, session, shareContentForPost(session, post));
     case 'save':
-      await togglePostSaved(context, session, post, (v) => onEdited?.call(v));
+      await togglePostSaved(context, session, post, (v) => onEdited?.call(v), latest: latest);
     case 'notInterested':
       try {
         await PostApi(session).notInterested(post.id);
