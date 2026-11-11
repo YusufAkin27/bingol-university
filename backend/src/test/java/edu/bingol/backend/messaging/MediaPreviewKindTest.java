@@ -40,4 +40,9 @@ class MediaPreviewKindTest {
         assertNull(MessageService.mediaKindOf(msg(""), view(List.of(att("IMAGE", true)))));
         assertNull(MessageService.mediaKindOf(msg(""), view(List.of())));
     }
+
+    @Test
+    void captionlessVoiceMessageGetsAudioKindNotPhoto() {
+        assertEquals("AUDIO", MessageService.mediaKindOf(msg(""), view(List.of(att("AUDIO", false)))));
+    }
 }
