@@ -59,6 +59,7 @@ abstract final class PostVideoVolumeKeys {
 
   static int _users = 0;
   static double? _last;
+  // ignore: cancel_subscriptions (release() iptal eder)
   static StreamSubscription<double>? _sub;
 
   static void acquire() {
@@ -67,9 +68,8 @@ abstract final class PostVideoVolumeKeys {
     if (_users > 1) return;
     _last = null;
     try {
-      final sub = VolumeController.instance.addListener(onVolume);
-      sub.onError((Object _) {});
-      _sub = sub;
+      // Abonelik statik _sub'da tutulur ve release()'te iptal edilir.
+      _sub = VolumeController.instance.addListener(onVolume)..onError((Object _) {});
     } catch (_) {
       // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
     }
