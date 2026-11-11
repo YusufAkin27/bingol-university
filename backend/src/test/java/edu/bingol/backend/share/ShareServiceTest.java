@@ -23,6 +23,9 @@ import edu.bingol.backend.moderation.BlockService;
 import edu.bingol.backend.news.ContentType;
 import edu.bingol.backend.news.NewsItem;
 import edu.bingol.backend.news.NewsRepository;
+import edu.bingol.backend.poll.Poll;
+import edu.bingol.backend.poll.PollAccess;
+import edu.bingol.backend.poll.PollRepository;
 import edu.bingol.backend.post.Post;
 import edu.bingol.backend.post.PostRepository;
 import edu.bingol.backend.post.follow.PrivateAccountGate;
@@ -52,8 +55,10 @@ class ShareServiceTest {
     private final UserRepository users = mock(UserRepository.class);
     private final PrivateAccountGate gate = mock(PrivateAccountGate.class);
     private final BlockService blocks = mock(BlockService.class);
+    private final PollRepository polls = mock(PollRepository.class);
+    private final PollAccess pollAccess = mock(PollAccess.class);
     private final ShareService service = new ShareService(news, posts, postMedia, events, communities, members, users,
-            gate, blocks, "https://bukampus.com.tr/");
+            gate, blocks, polls, pollAccess, "https://bukampus.com.tr/");
 
     private static final long VIEWER = 7L;
     private static final long AUTHOR = 9L;
@@ -428,6 +433,121 @@ class ShareServiceTest {
         profileUser(VIEWER, UserStatus.ACTIVE);
         when(blocks.hiddenFrom(VIEWER)).thenReturn(Set.of(VIEWER));
         ShareRef ref = new ShareRef(ShareType.USER, VIEWER);
+        assertTrue(service.cards(VIEWER, List.of(ref)).get(ref).available());
+    }
+
+    // --- kulup ve anket paylasimi ---
+
+    private Community club(long id, Community.Visibility vis, Community.Status st) {
+        Community c = new Community();
+        c.setId(id);
+        c.setName("Satranc Kulubu");
+        c.setCategory("SPOR");
+        c.setVisibility(vis);
+        c.setStatus(st);
+        when(communities.findAllById(anyCollection())).thenReturn(List.of(c));
+        return c;
+    }
+
+    @Test
+    void clubAndPollLinksUseTheirCodes() {
+        assertEquals("https://bukampus.com.tr/s/c/5", service.link(new ShareRef(ShareType.CLUB, 5)));
+        assertEquals("https://bukampus.com.tr/s/o/6", service.link(new ShareRef(ShareType.POLL, 6)));
+        assertEquals(ShareType.CLUB, ShareType.ofCode("c"));
+        assertEquals(ShareType.POLL, ShareType.parse("poll"));
+    }
+
+    @Test
+    void publicClubIsVisibleToEveryoneIncludingAnonymous() {
+        club(3, Community.Visibility.PUBLIC, Community.Status.ACTIVE);
+        ShareRef ref = new ShareRef(ShareType.CLUB, 3);
+        assertTrue(service.cards(VIEWER, List.of(ref)).get(ref).available());
+        assertEquals("Satranc Kulubu", service.publicView(ref).orElseThrow().title());
+    }
+
+    @Test
+    void privateClubIsHiddenFromAnonymousAndNonMembersButVisibleToMembers() {
+        club(3, Community.Visibility.PRIVATE, Community.Status.ACTIVE);
+        ShareRef ref = new ShareRef(ShareType.CLUB, 3);
+        assertTrue(service.publicView(ref).isEmpty());
+        when(members.findByCommunityIdAndUserId(3L, VIEWER)).thenReturn(Optional.empty());
+        assertFalse(service.cards(VIEWER, List.of(ref)).get(ref).available());
+        assertThrows(ApiException.class, () -> service.requireVisible(VIEWER, "CLUB", 3L));
+        CommunityMember m = mock(CommunityMember.class);
+        when(m.isActive()).thenReturn(true);
+        when(members.findByCommunityIdAndUserId(3L, VIEWER)).thenReturn(Optional.of(m));
+        assertTrue(service.cards(VIEWER, List.of(ref)).get(ref).available());
+    }
+
+    @Test
+    void inactiveClubIsUnavailable() {
+        club(3, Community.Visibility.PUBLIC, Community.Status.HIDDEN);
+        ShareRef ref = new ShareRef(ShareType.CLUB, 3);
+        assertFalse(service.cards(VIEWER, List.of(ref)).get(ref).available());
+        assertTrue(service.publicView(ref).isEmpty());
+    }
+
+    private Poll poll(long id, Poll.Scope scope, Poll.Status st, String faculty) {
+        Poll p = new Poll();
+        p.setId(id);
+        p.setTitle("Yemek anketi");
+        p.setScope(scope);
+        p.setStatus(st);
+        p.setAudienceFaculty(faculty);
+        p.setCommunityId(scope == Poll.Scope.COMMUNITY ? 3L : null);
+        when(polls.findAllById(anyCollection())).thenReturn(List.of(p));
+        return p;
+    }
+
+    private User viewerUser() {
+        User u = new User();
+        u.setId(VIEWER);
+        u.setStatus(UserStatus.ACTIVE);
+        when(users.findById(VIEWER)).thenReturn(Optional.of(u));
+        return u;
+    }
+
+    @Test
+    void generalPollWithoutAudienceIsPublic() {
+        poll(8, Poll.Scope.GLOBAL, Poll.Status.OPEN, null);
+        ShareRef ref = new ShareRef(ShareType.POLL, 8);
+        assertEquals("Yemek anketi", service.publicView(ref).orElseThrow().title());
+    }
+
+    @Test
+    void audiencePollAndClubPollAndDraftAreHiddenFromAnonymous() {
+        ShareRef ref = new ShareRef(ShareType.POLL, 8);
+        poll(8, Poll.Scope.GLOBAL, Poll.Status.OPEN, "Muhendislik Fakultesi");
+        assertTrue(service.publicView(ref).isEmpty());
+        poll(8, Poll.Scope.COMMUNITY, Poll.Status.OPEN, null);
+        assertTrue(service.publicView(ref).isEmpty());
+        poll(8, Poll.Scope.GLOBAL, Poll.Status.DRAFT, null);
+        assertTrue(service.publicView(ref).isEmpty());
+        poll(8, Poll.Scope.MENU, Poll.Status.OPEN, null);
+        assertTrue(service.publicView(ref).isEmpty());
+    }
+
+    @Test
+    void audiencePollFollowsViewerMatch() {
+        User me = viewerUser();
+        ShareRef ref = new ShareRef(ShareType.POLL, 8);
+        Poll p = poll(8, Poll.Scope.GLOBAL, Poll.Status.OPEN, "Muhendislik Fakultesi");
+        when(pollAccess.memberCommunityIds(VIEWER)).thenReturn(Set.of());
+        when(pollAccess.audienceMatches(p, me)).thenReturn(false);
+        assertFalse(service.cards(VIEWER, List.of(ref)).get(ref).available());
+        when(pollAccess.audienceMatches(p, me)).thenReturn(true);
+        assertTrue(service.cards(VIEWER, List.of(ref)).get(ref).available());
+    }
+
+    @Test
+    void clubPollNeedsMembership() {
+        User me = viewerUser();
+        ShareRef ref = new ShareRef(ShareType.POLL, 8);
+        Poll p = poll(8, Poll.Scope.COMMUNITY, Poll.Status.OPEN, null);
+        when(pollAccess.audienceMatches(p, me)).thenReturn(true);
+        when(pollAccess.memberCommunityIds(VIEWER)).thenReturn(Set.of());
+        assertFalse(service.cards(VIEWER, List.of(ref)).get(ref).available());
+        when(pollAccess.memberCommunityIds(VIEWER)).thenReturn(Set.of(3L));
         assertTrue(service.cards(VIEWER, List.of(ref)).get(ref).available());
     }
 }

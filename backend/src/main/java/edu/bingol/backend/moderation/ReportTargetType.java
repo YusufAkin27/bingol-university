@@ -21,5 +21,7 @@ public enum ReportTargetType {
     /** Kampus Forum konusu (forum_topic; anonim olsa da raporlanabilir). Sutun report.target_type VARCHAR(16). */
     FORUM_TOPIC,
     /** Kampus Forum yorumu/yaniti (forum_comment). */
-    FORUM_COMMENT
+    FORUM_COMMENT,
+    /** Sohbet odasi duyuru panosu ilani (room_notice, V1873). */
+    BOARD_NOTICE
 }

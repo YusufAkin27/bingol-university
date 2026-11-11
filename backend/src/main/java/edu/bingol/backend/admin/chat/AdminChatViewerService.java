@@ -517,7 +517,7 @@ public class AdminChatViewerService {
     }
 
     static Integer videoDuration(String kind, int durationMs) {
-        return "VIDEO".equals(kind) && durationMs > 0 ? durationMs : null;
+        return ("VIDEO".equals(kind) || "AUDIO".equals(kind)) && durationMs > 0 ? durationMs : null;
     }
 
     /** Tek gosterimlik eki acanlar (kullanici + zaman), tek sorgu. */

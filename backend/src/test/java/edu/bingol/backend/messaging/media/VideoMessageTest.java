@@ -192,6 +192,52 @@ class VideoMessageTest {
         assertThrows(Mp4Info.Invalid.class, () -> Mp4Info.parse(Mp4Fixtures.mp4(0, 0, 0, 0, 0, 10))); // timescale 0
     }
 
+    // ------------------------------------------------------------ sesli mesaj (V1)
+
+    static MultipartFile audio(byte[] data, String type) {
+        return new MockMultipartFile("file", "v.m4a", type, data);
+    }
+
+    @Test
+    void validVoiceMessageIsStoredAsAudioAndStreamsWithRange() throws Exception {
+        byte[] m4a = Mp4Fixtures.mp4(42.0, 0, 0, 3000);
+        AttachmentView v = service.upload(ME, CONV, audio(m4a, "audio/mp4"), null);
+
+        assertEquals("AUDIO", v.kind());
+        assertEquals(42_000, v.durationMs());
+        assertEquals("audio/mp4", v.contentType());
+        assertNull(v.thumbUrl());
+        assertNull(v.width());
+        MessageAttachment a = sent(v);
+        MockHttpServletResponse resp = get(PEER, a.getId(), "bytes=0-9");
+        assertEquals(206, resp.getStatus());
+        assertEquals("audio/mp4", resp.getContentType());
+        assertEquals(10, resp.getContentAsByteArray().length);
+        assertThrows(ApiException.class, () -> service.stream(ME, CONV, a.getId(), false)); // govde yalniz Range ucundan
+    }
+
+    @Test
+    void voiceMessageRejectsWrongTypeGarbageAndTooLong() {
+        assertEquals("AUDIO_INVALID", assertThrows(ApiException.class,
+                () -> service.upload(ME, CONV, audio(Mp4Fixtures.mp4(5, 0, 0, 100), "audio/mpeg"), null)).code());
+        assertEquals("AUDIO_INVALID", assertThrows(ApiException.class,
+                () -> service.upload(ME, CONV, audio(new byte[500], "audio/mp4"), null)).code());
+        assertEquals("AUDIO_TOO_LONG", assertThrows(ApiException.class,
+                () -> service.upload(ME, CONV, audio(Mp4Fixtures.mp4(400, 0, 0, 100), "audio/mp4"), null)).code());
+    }
+
+    @Test
+    void voiceMessageTooLargeAndViewOnceRejected() throws Exception {
+        ReflectionTestUtils.setField(service, "audioMaxBytes", 1000L);
+        assertEquals("AUDIO_TOO_LARGE", assertThrows(ApiException.class,
+                () -> service.upload(ME, CONV, audio(Mp4Fixtures.mp4(5, 0, 0, 5000), "audio/mp4"), null)).code());
+        ReflectionTestUtils.setField(service, "audioMaxBytes", 10L << 20);
+        AttachmentView v = service.upload(ME, CONV, audio(Mp4Fixtures.mp4(5, 0, 0, 100), "audio/mp4"), null);
+        assertEquals("VIEW_ONCE_INVALID", assertThrows(ApiException.class,
+                () -> service.precheck(ME, CONV, List.of(v.id()), true)).code());
+        assertEquals(List.of(v.id()), service.precheck(ME, CONV, List.of(v.id()), false));
+    }
+
     // ------------------------------------------------------------ yukleme
 
     @Test

@@ -12,7 +12,9 @@ public enum ShareType {
     // Kampus Forum (E): konu `/s/f/{konuId}`, yorum `/s/fc/{yorumId}` (kod tek harfle sinirli degil)
     FORUM_TOPIC("f"), FORUM_COMMENT("fc"),
     // Kullanici profili: `/s/u/{kullaniciId}` (herkese acik sayfa HER ZAMAN notrdur; kart goruntuleyene gore)
-    USER("u");
+    USER("u"),
+    // Kulup `/s/c/{kulupId}`, anket `/s/o/{anketId}` (herkese acik sayfa yalniz herkese acik kulup / kitlesiz genel anket)
+    CLUB("c"), POLL("o");
 
     private final String code;
 
@@ -53,6 +55,14 @@ public enum ShareType {
 
     public boolean isUser() {
         return this == USER;
+    }
+
+    public boolean isClub() {
+        return this == CLUB;
+    }
+
+    public boolean isPoll() {
+        return this == POLL;
     }
 
     public boolean isPost() {

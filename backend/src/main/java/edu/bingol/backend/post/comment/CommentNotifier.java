@@ -76,25 +76,53 @@ public class CommentNotifier {
         }
     }
 
+    static final long WINDOW_SECONDS = 600;
+    static final long LIKE_DEDUPE_SECONDS = 600;
+    private static final int LIKE_DEDUPE_MAX = 20_000;
+    private java.time.Clock clock = java.time.Clock.systemUTC();
+
+    /** (kisi, yorum) -> bildirimin yeniden gonderilebilecegi an (epoch sn); sinirli LRU, orneğe ozel (en iyi caba). */
+    private final Map<String, Long> likeSeen = new LinkedHashMap<>(256, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, Long> eldest) {
+            return size() > LIKE_DEDUPE_MAX;
+        }
+    };
+
     /**
-     * Yorum begenisi: yorum sahibine. Kendi yorumu ve engel iliskisinde yok; ayni kisi ayni yorumu tekrar begenince
-     * (geri alip yeniden) ikinci bildirim gitmez: toplama anahtari yorum+kisi, kutuda satiri varsa (okunmus da olsa) atlanir.
+     * Yorum begenisi: yorum sahibine, BIRLESEN bildirim. Toplama anahtari {@code pclk:<yorum>:<pencere>} (pencere = 10 dk);
+     * ayni anahtarli OKUNMAMIS satir varsa guncellenir ("{ad} ve {n} kisi yorumunu begendi", sayac artar). Kendi yorumu ve
+     * engel iliskisinde yok; ayni kisinin begen/geri al/begen tekrari sayaci sisirmesin diye 10 dk icinde ikinci bildirim yok.
+     * Push yuku postId + commentId tasir (eski istemciler icin degismedi).
      */
     public void onLike(Long actorId, Long postId, Long commentId, Long commentAuthorId) {
         try {
             if (!shouldNotify(actorId, commentAuthorId)) {
                 return;
             }
-            String key = "pclk:" + commentId + ":" + actorId;
-            Integer seen = jdbc.queryForObject("SELECT COUNT(*) FROM notification WHERE user_id = ? AND collapse_key = ?",
-                    Integer.class, commentAuthorId, key);
-            if (seen != null && seen > 0) {
-                return;
+            long nowS = clock.instant().getEpochSecond();
+            String seenKey = actorId + ":" + commentId;
+            synchronized (likeSeen) {
+                Long until = likeSeen.get(seenKey);
+                if (until != null && until > nowS) {
+                    return;
+                }
+                likeSeen.put(seenKey, nowS + LIKE_DEDUPE_SECONDS);
             }
+            String key = "pclk:" + commentId + ":" + (nowS / WINDOW_SECONDS);
+            Integer prev = jdbc.queryForObject(
+                    "SELECT COALESCE(MAX(group_count), 0) FROM notification WHERE user_id = ? AND collapse_key = ? AND read_at IS NULL",
+                    Integer.class, commentAuthorId, key);
+            int others = prev == null ? 0 : prev;
             Lang lang = i18n.langOf(commentAuthorId);
+            String name = actorName(actorId);
+            String body = others > 0
+                    ? i18n.msg("notif.comment.like.many.body", lang, name, String.valueOf(others))
+                    : i18n.msg("notif.comment.like.body", lang, name);
+            Map<String, String> d = data(postId, commentId);
+            d.put("userId", String.valueOf(actorId)); // gelen kutusu avatar projeksiyonu icin (son begenen)
             notifications.send(commentAuthorId, NotificationType.COMMENT_LIKE, NotificationSubtype.COMMENT_LIKE, key,
-                    i18n.msg("notif.comment.like.title", lang), i18n.msg("notif.comment.like.body", lang, actorName(actorId)),
-                    data(postId, commentId));
+                    i18n.msg("notif.comment.like.title", lang), body, d);
         } catch (RuntimeException e) {
             log.warn("Yorum begeni bildirimi gonderilemedi (yorum {}): {}", commentId, e.toString());
         }

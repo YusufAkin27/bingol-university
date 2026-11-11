@@ -166,6 +166,11 @@ public class MessageAttachmentService {
 
     /** `file` video/mp4 ise video (istege bagli `poster` ile), degilse gorsel hattidir. */
     public AttachmentView upload(Long userId, Long conversationId, MultipartFile file, MultipartFile poster) {
+        if (isAudioUpload(file)) {
+            try (UploadGuard.Permit ignored = uploadGuard == null ? null : uploadGuard.acquire(userId, false)) {
+                return uploadAudio(userId, conversationId, file);
+            }
+        }
         boolean video = isVideoUpload(file);
         // Kullanici basina tek yukleme + (video icin) genel eszamanlilik siniri; bekleyen-sayi yarisini da kapatir
         try (UploadGuard.Permit ignored = uploadGuard == null ? null : uploadGuard.acquire(userId, video)) {
@@ -217,6 +222,98 @@ public class MessageAttachmentService {
         String type = file.getContentType() == null ? "" : file.getContentType().toLowerCase(java.util.Locale.ROOT);
         String name = file.getOriginalFilename() == null ? "" : file.getOriginalFilename().toLowerCase(java.util.Locale.ROOT);
         return type.startsWith("video/") || name.endsWith(".mp4") || name.endsWith(".mov");
+    }
+
+    /** Sesli mesaj: yalniz MP4 kabi (m4a/AAC); ftyp + mvhd suresi gercekten dogrulanir. */
+    static final java.util.Set<String> AUDIO_TYPES = java.util.Set.of("audio/mp4", "audio/x-m4a", "audio/m4a", "audio/aac");
+
+    @Value("${app.chat.media.audio-max-bytes:10485760}")
+    private long audioMaxBytes = 10L << 20;
+    @Value("${app.chat.media.audio-max-seconds:300}")
+    private int audioMaxSeconds = 300;
+    @Value("${app.chat.media.audio-daily-limit:200}")
+    private int audioDailyLimit = 200;
+
+    private static boolean isAudioUpload(MultipartFile file) {
+        if (file == null) {
+            return false;
+        }
+        String type = file.getContentType() == null ? ""
+                : file.getContentType().toLowerCase(java.util.Locale.ROOT).split(";")[0].trim();
+        String name = file.getOriginalFilename() == null ? "" : file.getOriginalFilename().toLowerCase(java.util.Locale.ROOT);
+        return type.startsWith("audio/") || name.endsWith(".m4a");
+    }
+
+    private AttachmentView uploadAudio(Long userId, Long conversationId, MultipartFile file) {
+        limiter.check("chatmedia:min:" + userId, perMinute, Duration.ofMinutes(1));
+        limiter.check("chatmedia:day:" + userId, perDay, Duration.ofDays(1));
+        limiter.check("chataudio:day:" + userId, audioDailyLimit, Duration.ofDays(1));
+        requireCanSend(userId, conversationId);
+        if (repo.countByUploaderIdAndMessageIdIsNull(userId) >= pendingMax) {
+            throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "CHAT_MEDIA_PENDING_LIMIT",
+                    "Gönderilmemiş çok fazla görsel var. Önce mevcut görselleri gönderin.", String.valueOf(pendingMax));
+        }
+        String type = file.getContentType() == null ? ""
+                : file.getContentType().toLowerCase(java.util.Locale.ROOT).split(";")[0].trim();
+        if (file.isEmpty() || !AUDIO_TYPES.contains(type)) {
+            throw audioInvalid();
+        }
+        if (file.getSize() > audioMaxBytes) {
+            throw audioTooLarge();
+        }
+        byte[] raw;
+        try (java.io.InputStream in = file.getInputStream()) {
+            raw = in.readNBytes((int) audioMaxBytes + 1);
+        } catch (java.io.IOException e) {
+            throw audioInvalid();
+        }
+        if (raw.length > audioMaxBytes) {
+            throw audioTooLarge();
+        }
+        chargeUpload(userId, raw.length);
+        Mp4Info.Info info;
+        try {
+            info = Mp4Info.parse(raw); // ftyp + moov/mvhd sure; kabsiz ADTS/MP3 akislari reddedilir
+        } catch (Mp4Info.Invalid | RuntimeException e) {
+            throw audioInvalid();
+        }
+        if (info.durationMs() <= 0) {
+            throw audioInvalid();
+        }
+        if (info.durationMs() > audioMaxSeconds * 1000L + 1500L) { // kodek doldurmasi icin 1,5 sn tolerans
+            throw new ApiException(HttpStatus.BAD_REQUEST, "AUDIO_TOO_LONG",
+                    "Sesli mesaj en fazla " + (audioMaxSeconds / 60) + " dakika olabilir.",
+                    String.valueOf(audioMaxSeconds / 60));
+        }
+        rejectIfBlocked(raw);
+        raw = Mp4Info.stripMetadata(raw).data(); // konum/cihaz meta verisi alicilara gitmesin
+        String[] st = store.storeVideo(BUCKET, conversationId, raw, null, POSTER_MAX_DIM, null);
+        try {
+            MessageAttachment a = new MessageAttachment();
+            a.setConversationId(conversationId);
+            a.setUploaderId(userId);
+            a.setKind("AUDIO");
+            a.setStorageKey(st[0]);
+            a.setWidth(0);
+            a.setHeight(0);
+            a.setBytes(raw.length);
+            a.setContentType("audio/mp4");
+            a.setDurationMs((int) Math.min(info.durationMs(), Integer.MAX_VALUE));
+            return AttachmentView.of(repo.save(a));
+        } catch (RuntimeException e) {
+            store.delete(BUCKET, st[0]);
+            throw e;
+        }
+    }
+
+    private ApiException audioTooLarge() {
+        long mb = Math.max(1, audioMaxBytes / 1024 / 1024);
+        return new ApiException(HttpStatus.PAYLOAD_TOO_LARGE, "AUDIO_TOO_LARGE",
+                "Sesli mesaj en fazla " + mb + " MB olabilir.", String.valueOf(mb));
+    }
+
+    private static ApiException audioInvalid() {
+        return new ApiException(HttpStatus.BAD_REQUEST, "AUDIO_INVALID", "Geçersiz ses dosyası.");
     }
 
     private AttachmentView uploadVideo(Long userId, Long conversationId, MultipartFile file, MultipartFile poster) {
@@ -368,7 +465,7 @@ public class MessageAttachmentService {
             // Tekrar gonderim (ayni clientId) mesaj zaten baglandiysa servis bunu once yakalar; burada gercek hata
             throw invalid();
         }
-        long videos = rows.stream().filter(MessageAttachment::isVideo).count();
+        long videos = rows.stream().filter(MessageAttachment::isStream).count();
         if (viewOnce && videos > 0) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "VIEW_ONCE_INVALID",
                     "Tek gösterimlik mesajda tam olarak bir görsel olmalıdır.");
@@ -503,7 +600,7 @@ public class MessageAttachmentService {
             }
             return openViewOnce(userId, a);
         }
-        if (a.isVideo() && !thumb) {
+        if (a.isStream() && !thumb) {
             throw notFound(); // video yalniz Range destekli uctan (serve) akar
         }
         if (thumb && a.getThumbKey() == null) {
@@ -519,7 +616,7 @@ public class MessageAttachmentService {
     public ResponseEntity<Resource> serve(Long userId, Long conversationId, Long attachmentId, boolean thumb,
                                           String rangeHeader, HttpServletResponse resp) {
         MessageAttachment a = require(userId, conversationId, attachmentId);
-        if (a.isVideo() && !thumb) {
+        if (a.isStream() && !thumb) {
             writeVideo(a, rangeHeader, resp);
             return null;
         }
@@ -550,7 +647,7 @@ public class MessageAttachmentService {
             return;
         }
         resp.setStatus(status);
-        resp.setContentType("video/mp4");
+        resp.setContentType(a.isAudio() ? "audio/mp4" : "video/mp4");
         resp.setHeader(HttpHeaders.CACHE_CONTROL, CacheControl.noStore().cachePrivate().getHeaderValue());
         resp.setHeader("X-Content-Type-Options", "nosniff");
         resp.setHeader(HttpHeaders.CONTENT_DISPOSITION, "inline");
@@ -814,11 +911,11 @@ public class MessageAttachmentService {
             // saklama suresi dolmus tek gosterimlik: bayt yok
             throw new ApiException(HttpStatus.GONE, "MEDIA_PURGED", "Bu görselin saklama süresi doldu; içerik silindi.");
         }
-        if (a.isVideo() && !thumb && resp != null) {
+        if (a.isStream() && !thumb && resp != null) {
             writeVideo(a, rangeHeader, resp);
             return null;
         }
-        if (thumb ? a.getThumbKey() == null : a.isVideo()) {
+        if (thumb ? a.getThumbKey() == null : a.isStream()) {
             throw notFound();
         }
         return privateNoStore(store.serve(BUCKET, thumb ? a.getThumbKey() : a.getStorageKey()));
@@ -844,7 +941,7 @@ public class MessageAttachmentService {
         Instant exp = Instant.now().plus(ttl.compareTo(Duration.ofHours(1)) > 0 ? Duration.ofHours(1) : ttl);
         String thumbUrl = a.getThumbKey() == null ? null : signer.sign(BUCKET, a.getThumbKey(), ttl);
         // Video govdesi imzali adresle verilmez (Range + konusma anahtari gerekir): url null, yalniz poster adresi
-        return new AttachmentView.Link(a.isVideo() ? null : signer.sign(BUCKET, a.getStorageKey(), ttl), thumbUrl,
+        return new AttachmentView.Link(a.isStream() ? null : signer.sign(BUCKET, a.getStorageKey(), ttl), thumbUrl,
                 exp.getEpochSecond());
     }
 
@@ -891,7 +988,7 @@ public class MessageAttachmentService {
                 return;
             }
             String oldKey = a.getStorageKey();
-            String[] nk = a.isVideo() ? store.copyVideo(BUCKET, oldKey, a.getThumbKey(), a.getConversationId())
+            String[] nk = a.isStream() ? store.copyVideo(BUCKET, oldKey, a.getThumbKey(), a.getConversationId())
                     : store.copy(BUCKET, oldKey, a.getThumbKey());
             a.setHiddenAt(Instant.now());
             a.setHiddenBy("MODERATION");

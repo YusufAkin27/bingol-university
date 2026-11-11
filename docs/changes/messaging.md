@@ -291,3 +291,17 @@ Geriye uyumlu (yalniz ekleme; tek davranis degisikligi: arsiv artik yeni mesajla
 
 - `MessageView.readAt` (ISO-8601 UTC, ornek `2026-11-07T10:00:00Z`; alan yoksa/`null` ise okunmadi). YALNIZ istek sahibi mesajin gondereniyse ve `status=READ` ise dolar; aliciya/baskasina asla gonderilmez. Birebirde kaydedilir (`message.read_at`); grup/oda ve `status=null` durumlarinda gelmez. Mesaj listesi, gonderim/duzenleme yanitlari ve konusma listesindeki `lastMessage` ayni assembler'dan gecer. Gizlilik tercihi (okundu bilgisini kapat) sunucuda yoktur.
 - STOMP `receipt` olayi `readAt` tasir (yalniz `kind="read"`, olay ani UTC = `at`); `delivered` olayinda yok. Eski istemciler alani yok sayar.
+
+## Sesli mesaj eki AUDIO (V1, V1872)
+
+- Ek turu `AUDIO` (m4a/AAC; sunucuda ftyp + sure dogrulamasi, sifreli depo, Range sunum). V1872 `message_attachment.kind` CHECK kisitini (`vcm1820_att_kind_ck`) IMAGE/VIDEO/AUDIO olarak yeniler. Hata kodlari `AUDIO_TOO_LARGE`, `AUDIO_TOO_LONG`, `AUDIO_INVALID`; push onizlemesi `chat.preview.AUDIO`.
+
+## Oda duyuru panosu (B1, V1873 (release: V1840))
+
+- Tablolar: `room_notice` (baslik 80 / metin 600, `pinned`, `seen_count`, yumusak silme `deleted_at`, moderasyon `hidden_at`), `room_notice_seen` (duyuru+kullanici tekil). Kod: `messaging.room.notice`.
+- Uclar (`/api/conversations/{cid}/notices`): `GET /pinned` ({items, canManage, total}), `GET ?cursor&size`, `POST`, `PATCH /{id}`, `DELETE /{id}`, `POST /{id}/seen`.
+- Yetki sunucuda: yazma/duzenleme/silme/sabitleme = `RoomModeration.canModerate` (bolum odasi: ADMIN FULL/MODERATOR; kulup: kulup yetkilisi; etkinlik: etkinlik yetkilisi). Yeni rol yok. Okuma = aktif oda uyesi (degilse 404). En fazla 3 sabit (409 `NOTICE_PIN_LIMIT`).
+- Gorulme: yalniz SAYI, yalniz yetkiliye (`seenCount`); kimlik listesi hicbir uctan yok (gizlilik). Ayni kullanici bir kez sayilir, yazar sayilmaz.
+- Bildirim: `NotificationType.ANNOUNCEMENT` (tercih/sessiz saat kurallari `sendTemplatedBulk` icinde), `FanoutNotifier` ile commit sonrasi, 250'lik parca; yazar ve engel iliskisi haric. Yukte `conversationId`, `noticeId`.
+- Moderasyon: `ReportTargetType.BOARD_NOTICE` + `RoomNoticeReportHandler` (geri alinabilir gizleme). KVKK: hesap silinince gorulme kayitlari silinir, `DataExporter` bolumu `roomNotices`.
+- Hata kodlari: `NOTICE_FORBIDDEN`, `NOTICE_NOT_FOUND`, `NOTICE_PIN_LIMIT` (tr/en/ar `messaging*.properties`).
