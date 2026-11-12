@@ -6093,7 +6093,7 @@ abstract class AppLocalizations {
   /// No description provided for @permNotificationsText.
   ///
   /// In tr, this message translates to:
-  /// **'Mesaj, etkinlik ve duyurulardan anında haberdar olmak için bildirim göndermemize izin verin.'**
+  /// **'Mesaj, etkinlik ve duyurulardan anında haberdar olmanız için bildirim göndermemiz gerekir.'**
   String get permNotificationsText;
 
   /// No description provided for @permCameraTitle.
@@ -6171,7 +6171,7 @@ abstract class AppLocalizations {
   /// No description provided for @permPageIntro.
   ///
   /// In tr, this message translates to:
-  /// **'Dilediğiniz izni şimdi verebilir, diğerlerini sonra Ayarlar’dan açabilirsiniz.'**
+  /// **'Her izin için ayrı karar verebilirsiniz; istediğiniz zaman Ayarlar’dan değiştirebilirsiniz.'**
   String get permPageIntro;
 
   /// No description provided for @permStart.
@@ -6201,7 +6201,7 @@ abstract class AppLocalizations {
   /// No description provided for @permAllow.
   ///
   /// In tr, this message translates to:
-  /// **'İzin ver'**
+  /// **'İleri'**
   String get permAllow;
 
   /// No description provided for @coreErrNetwork.
@@ -8403,7 +8403,7 @@ abstract class AppLocalizations {
   /// No description provided for @qrGrantCamera.
   ///
   /// In tr, this message translates to:
-  /// **'Kamera izni ver'**
+  /// **'Tekrar dene'**
   String get qrGrantCamera;
 
   /// No description provided for @qrDeniedSettings.
@@ -9333,7 +9333,7 @@ abstract class AppLocalizations {
   /// No description provided for @postPickerDeniedBody.
   ///
   /// In tr, this message translates to:
-  /// **'Gönderi paylaşmak için galerine erişim izni vermelisin. İstersen sistemin kendi galerisinden de seçebilirsin.'**
+  /// **'Gönderi paylaşmak için galeriye erişim gerekir. İstersen sistemin kendi galerisinden de seçebilirsin.'**
   String get postPickerDeniedBody;
 
   /// No description provided for @postPickerUseSystem.
@@ -17595,7 +17595,7 @@ abstract class AppLocalizations {
   /// No description provided for @p10DeniedBody.
   ///
   /// In tr, this message translates to:
-  /// **'Fotoğraf ve video gönderebilmek için uygulama ayarlarından galeri erişimine izin vermelisin.'**
+  /// **'Fotoğraf ve video gönderebilmek için uygulama ayarlarından galeri erişimi gerekir.'**
   String get p10DeniedBody;
 
   /// No description provided for @p10GalleryEmpty.
@@ -18807,7 +18807,7 @@ abstract class AppLocalizations {
   /// No description provided for @p67AttachAllowPhotos.
   ///
   /// In tr, this message translates to:
-  /// **'Fotoğraflara erişime izin ver'**
+  /// **'Fotoğraflara erişim'**
   String get p67AttachAllowPhotos;
 
   /// No description provided for @p67PickerSend.
@@ -18963,7 +18963,7 @@ abstract class AppLocalizations {
   /// No description provided for @p67AttachGrant.
   ///
   /// In tr, this message translates to:
-  /// **'İzin ver'**
+  /// **'Devam'**
   String get p67AttachGrant;
 
   /// No description provided for @p51ClubsEmpty.
@@ -23877,13 +23877,13 @@ abstract class AppLocalizations {
   /// No description provided for @chatMiscContactsPermText.
   ///
   /// In tr, this message translates to:
-  /// **'Rehberinizdeki kampüs kişilerini bulabilmemiz için rehbere erişim izni vermeniz gerekir.'**
+  /// **'Rehberinizdeki kampüs kişilerini bulabilmemiz için rehbere erişmemiz gerekir.'**
   String get chatMiscContactsPermText;
 
   /// No description provided for @chatMiscContactsPermAction.
   ///
   /// In tr, this message translates to:
-  /// **'İzin ver'**
+  /// **'Devam'**
   String get chatMiscContactsPermAction;
 
   /// No description provided for @chatMiscContactsNoneTitle.

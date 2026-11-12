@@ -3318,7 +3318,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get permPageIntro =>
-      'Allow what you like now; you can change the rest later in Settings.';
+      'You can decide on each permission separately and change it anytime in Settings.';
 
   @override
   String get permStart => 'Get started';
@@ -3333,7 +3333,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get permRetry => 'Try again';
 
   @override
-  String get permAllow => 'Allow';
+  String get permAllow => 'Next';
 
   @override
   String get coreErrNetwork =>
@@ -4509,7 +4509,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Camera permission was not granted. You can enter the code manually or grant permission and try scanning again.';
 
   @override
-  String get qrGrantCamera => 'Grant camera permission';
+  String get qrGrantCamera => 'Try again';
 
   @override
   String get qrDeniedSettings =>
@@ -5038,7 +5038,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get postPickerDeniedBody =>
-      'Allow access to your gallery to share a post. You can also choose from the system gallery instead.';
+      'Gallery access is needed to share a post. You can also choose from the system gallery instead.';
 
   @override
   String get postPickerUseSystem => 'Use system gallery';
@@ -9688,7 +9688,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p10DeniedBody =>
-      'To send photos and videos, allow gallery access in the app settings.';
+      'To send photos and videos, gallery access is needed in the app settings.';
 
   @override
   String get p10GalleryEmpty => 'There are no photos or videos in the gallery.';
@@ -10376,7 +10376,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p67SettingsChats => 'Chats';
 
   @override
-  String get p67AttachAllowPhotos => 'Allow access to photos';
+  String get p67AttachAllowPhotos => 'Photo access';
 
   @override
   String p67PickerSend(String n) {
@@ -10459,7 +10459,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'To send a view-once photo, select it and tap the 1 icon.';
 
   @override
-  String get p67AttachGrant => 'Allow';
+  String get p67AttachGrant => 'Continue';
 
   @override
   String get p51ClubsEmpty => 'No clubs yet.';
@@ -13289,10 +13289,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatMiscContactsPermText =>
-      'Allow access to your contacts so we can find campus people among them.';
+      'We need access to your contacts so we can find campus people among them.';
 
   @override
-  String get chatMiscContactsPermAction => 'Allow';
+  String get chatMiscContactsPermAction => 'Continue';
 
   @override
   String get chatMiscContactsNoneTitle => 'No matching people';

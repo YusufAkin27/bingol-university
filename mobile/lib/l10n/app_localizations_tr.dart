@@ -3257,7 +3257,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get permNotificationsText =>
-      'Mesaj, etkinlik ve duyurulardan anında haberdar olmak için bildirim göndermemize izin verin.';
+      'Mesaj, etkinlik ve duyurulardan anında haberdar olmanız için bildirim göndermemiz gerekir.';
 
   @override
   String get permCameraTitle => 'Kamera';
@@ -3302,7 +3302,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get permPageIntro =>
-      'Dilediğiniz izni şimdi verebilir, diğerlerini sonra Ayarlar’dan açabilirsiniz.';
+      'Her izin için ayrı karar verebilirsiniz; istediğiniz zaman Ayarlar’dan değiştirebilirsiniz.';
 
   @override
   String get permStart => 'Başla';
@@ -3317,7 +3317,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get permRetry => 'Tekrar dene';
 
   @override
-  String get permAllow => 'İzin ver';
+  String get permAllow => 'İleri';
 
   @override
   String get coreErrNetwork =>
@@ -4493,7 +4493,7 @@ class AppLocalizationsTr extends AppLocalizations {
       'Kamera izni verilmedi. Kodu elle girebilir ya da izin verip taramayı yeniden deneyebilirsiniz.';
 
   @override
-  String get qrGrantCamera => 'Kamera izni ver';
+  String get qrGrantCamera => 'Tekrar dene';
 
   @override
   String get qrDeniedSettings =>
@@ -5017,7 +5017,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get postPickerDeniedBody =>
-      'Gönderi paylaşmak için galerine erişim izni vermelisin. İstersen sistemin kendi galerisinden de seçebilirsin.';
+      'Gönderi paylaşmak için galeriye erişim gerekir. İstersen sistemin kendi galerisinden de seçebilirsin.';
 
   @override
   String get postPickerUseSystem => 'Sistem galerisini kullan';
@@ -9652,7 +9652,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p10DeniedBody =>
-      'Fotoğraf ve video gönderebilmek için uygulama ayarlarından galeri erişimine izin vermelisin.';
+      'Fotoğraf ve video gönderebilmek için uygulama ayarlarından galeri erişimi gerekir.';
 
   @override
   String get p10GalleryEmpty => 'Galeride fotoğraf ya da video yok.';
@@ -10341,7 +10341,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p67SettingsChats => 'Sohbetler';
 
   @override
-  String get p67AttachAllowPhotos => 'Fotoğraflara erişime izin ver';
+  String get p67AttachAllowPhotos => 'Fotoğraflara erişim';
 
   @override
   String p67PickerSend(String n) {
@@ -10424,7 +10424,7 @@ class AppLocalizationsTr extends AppLocalizations {
       'Tek gösterimlik göndermek için fotoğrafı seçtikten sonra 1 simgesine dokunun.';
 
   @override
-  String get p67AttachGrant => 'İzin ver';
+  String get p67AttachGrant => 'Devam';
 
   @override
   String get p51ClubsEmpty => 'Henüz kulüp yok.';
@@ -13240,10 +13240,10 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get chatMiscContactsPermText =>
-      'Rehberinizdeki kampüs kişilerini bulabilmemiz için rehbere erişim izni vermeniz gerekir.';
+      'Rehberinizdeki kampüs kişilerini bulabilmemiz için rehbere erişmemiz gerekir.';
 
   @override
-  String get chatMiscContactsPermAction => 'İzin ver';
+  String get chatMiscContactsPermAction => 'Devam';
 
   @override
   String get chatMiscContactsNoneTitle => 'Eşleşen kişi yok';

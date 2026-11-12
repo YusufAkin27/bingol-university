@@ -3247,7 +3247,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get permNotificationsText =>
-      'اسمح لنا بإرسال الإشعارات لتعرف فورًا بالرسائل والفعاليات والإعلانات.';
+      'نحتاج إلى إرسال الإشعارات لتعرف فورًا بالرسائل والفعاليات والإعلانات.';
 
   @override
   String get permCameraTitle => 'الكاميرا';
@@ -3292,7 +3292,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get permPageIntro =>
-      'امنح ما تشاء الآن، ويمكنك تغيير الباقي لاحقًا من الإعدادات.';
+      'يمكنك اتخاذ القرار لكل إذن على حدة وتغييره في أي وقت من الإعدادات.';
 
   @override
   String get permStart => 'ابدأ';
@@ -3307,7 +3307,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get permRetry => 'حاول مرة أخرى';
 
   @override
-  String get permAllow => 'السماح';
+  String get permAllow => 'التالي';
 
   @override
   String get coreErrNetwork => 'تعذر الوصول إلى الخادم. تحقق من اتصالك.';
@@ -4471,7 +4471,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'لم يتم منح إذن الكاميرا. يمكنك إدخال الرمز يدويًا أو منح الإذن ومحاولة المسح مرة أخرى.';
 
   @override
-  String get qrGrantCamera => 'منح إذن الكاميرا';
+  String get qrGrantCamera => 'حاول مرة أخرى';
 
   @override
   String get qrDeniedSettings =>
@@ -4994,7 +4994,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get postPickerDeniedBody =>
-      'اسمح بالوصول إلى المعرض لمشاركة منشور. يمكنك أيضًا الاختيار من معرض النظام.';
+      'يلزم الوصول إلى المعرض لمشاركة منشور. يمكنك أيضًا الاختيار من معرض النظام.';
 
   @override
   String get postPickerUseSystem => 'استخدام معرض النظام';
@@ -9597,7 +9597,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p10DeniedBody =>
-      'لإرسال الصور والفيديو، اسمح بالوصول إلى المعرض من إعدادات التطبيق.';
+      'لإرسال الصور والفيديو، يلزم الوصول إلى المعرض من إعدادات التطبيق.';
 
   @override
   String get p10GalleryEmpty => 'لا توجد صور أو فيديوهات في المعرض.';
@@ -10272,7 +10272,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p67SettingsChats => 'المحادثات';
 
   @override
-  String get p67AttachAllowPhotos => 'السماح بالوصول إلى الصور';
+  String get p67AttachAllowPhotos => 'الوصول إلى الصور';
 
   @override
   String p67PickerSend(String n) {
@@ -10355,7 +10355,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'لإرسال صورة تُعرض مرة واحدة، اختر الصورة ثم المس الرمز 1.';
 
   @override
-  String get p67AttachGrant => 'سماح';
+  String get p67AttachGrant => 'متابعة';
 
   @override
   String get p51ClubsEmpty => 'لا توجد أندية بعد.';
@@ -13169,10 +13169,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chatMiscContactsPermText =>
-      'يجب منح إذن الوصول إلى جهات الاتصال حتى نتمكن من العثور على أشخاص الحرم الجامعي بينها.';
+      'نحتاج إلى الوصول إلى جهات الاتصال حتى نتمكن من العثور على أشخاص الحرم الجامعي بينها.';
 
   @override
-  String get chatMiscContactsPermAction => 'السماح';
+  String get chatMiscContactsPermAction => 'متابعة';
 
   @override
   String get chatMiscContactsNoneTitle => 'لا يوجد أشخاص مطابقون';
