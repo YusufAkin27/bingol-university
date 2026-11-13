@@ -10,6 +10,7 @@ import '../../widgets/report_sheet.dart';
 import '../profile/user_profile_page.dart';
 import 'block_bus.dart';
 import 'post_api.dart';
+import 'post_save_button.dart';
 import 'post_media_uploader.dart' show postErrorText;
 import 'post_models.dart';
 import 'post_text_rules.dart';
@@ -39,6 +40,8 @@ Future<void> showPostActions(
     if (share) PostMenuAction('share', l.shareTitle, BuIcons.send),
     // Reels/Senin İçin önerisinden çıkar ("İlgilenmiyorum"): yalnız başkasının gönderisinde.
     if (notInterested && !mine) PostMenuAction('notInterested', l.kesNotInterested, BuIcons.eyeOff),
+    PostMenuAction('save', (post.savedByMe ?? false) ? l.svUnsave : l.svSave,
+        (post.savedByMe ?? false) ? BuIcons.bookmarkFilled : BuIcons.bookmark),
     if (post.canEdit) PostMenuAction('edit', l.postComposeEdit, BuIcons.squarePen),
     // Gönderi sahibi: beğeni sayısını gizle/göster ve yorumları kapat/aç (PATCH /posts/{id}/settings).
     if (mine) ...[
@@ -79,6 +82,8 @@ Future<void> showPostActions(
   switch (id) {
     case 'share':
       await showShareSheet(context, session, shareContentForPost(session, post));
+    case 'save':
+      await togglePostSaved(context, session, post, (v) => onEdited?.call(v));
     case 'notInterested':
       try {
         await PostApi(session).notInterested(post.id);

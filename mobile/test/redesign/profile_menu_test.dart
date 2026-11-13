@@ -91,7 +91,8 @@ void main() {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(_tab(_backend()), size: kPhoneMedium));
       await settle(tester, const Duration(seconds: 1));
-      final node = tester.getSemantics(find.byKey(const ValueKey('profile-menu-button')));
+      // Anlamsal düğüm doğrudan düğmenin Semantics'inden okunur (komşu QR/paylaş düğmeleri yüzünden anahtar bulucu yanlış düğüme çözülebiliyor).
+      final node = tester.getSemantics(find.descendant(of: find.byKey(const ValueKey('profile-menu-button')), matching: find.byType(Semantics)).first);
       expect(node.label, contains('Menü'));
       expect(node.flagsCollection.isButton, isTrue);
       h.dispose();

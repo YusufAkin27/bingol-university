@@ -110,7 +110,7 @@ void main() {
       expect(const OAuthConfig(appleSupportedPlatform: true).appleEnabled, isFalse, reason: 'bayrak kapalı');
     });
 
-    test('Google: SDK derlemede, varsayılan kimlikler dolu ve Info.plist ile tutarlı, bayrak varsayılan KAPALI', () {
+    test('Google: SDK derlemede, varsayılan kimlikler dolu ve Info.plist ile tutarlı, bayrak varsayılan AÇIK', () {
       expect(kGoogleSignInCompiled, isTrue);
       final env = OAuthConfig.fromEnvironment();
       expect(env.googleServerClientId, kDefaultGoogleServerClientId);
@@ -118,7 +118,7 @@ void main() {
       expect(env.googleServerClientId, endsWith('.apps.googleusercontent.com'));
       expect(env.googleIosClientId, endsWith('.apps.googleusercontent.com'));
       expect(env.googleServerClientId, isNot(env.googleIosClientId), reason: 'web ve iOS istemcileri ayrı');
-      expect(env.googleEnabled, isFalse, reason: 'GOOGLE_SIGNIN dart-define verilmedikçe düğme gizli');
+      expect(env.googleEnabled, isTrue, reason: 'GOOGLE_SIGNIN varsayılan açık (I2-01: Android AAB komutunda bayrak yok)');
       // iOS: Info.plist GIDClientID + ters kimlik URL şeması bu sabitle birebir aynı olmalı.
       final plist = File('ios/Runner/Info.plist').readAsStringSync();
       expect(plist, contains('<key>GIDClientID</key>'));
@@ -391,8 +391,12 @@ void main() {
       await open(tester, backend: b);
       await tester.tap(find.byKey(_appleKey));
       await settle(tester, const Duration(milliseconds: 600));
+      // Hesap henüz bilinmiyor: ad geçici anahtarda bekler, hesap belli olunca o hesabın taslağına katılır.
+      OnboardingDraftStore.activeUserId = 42;
+      await OnboardingDraftStore.savePrefill();
       final d = await OnboardingDraftStore.load();
       expect((d?.firstName, d?.lastName), ('Zeynep', 'Kaya'));
+      OnboardingDraftStore.activeUserId = null;
       await unmount(tester);
     });
 

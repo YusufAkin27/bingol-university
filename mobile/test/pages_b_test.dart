@@ -356,9 +356,13 @@ void main() {
       await unmount(tester);
     });
 
+    // G4: uzun basma artik salt okunur onizleme acar; eylem menusu satir kaydirilinca cikan "Daha fazla" dugmesindedir
+    // (chatlist_gestures.dart; onizleme/kaydirma davranisi chatlist_gestures_test.dart'ta). Ad `longPress` korunur.
     Future<void> longPress(WidgetTester tester, String text) async {
-      await tester.longPress(find.text(text));
-      await settle(tester, const Duration(milliseconds: 300));
+      await tester.drag(find.text(text), const Offset(-600, 0));
+      await settle(tester, const Duration(milliseconds: 500));
+      await tester.tap(find.byKey(const ValueKey('swipe-more')));
+      await settle(tester, const Duration(milliseconds: 500));
     }
 
     testWidgets('uzun basis menusu: birebirde Sil var, kulup/etkinlikte yok', (tester) async {

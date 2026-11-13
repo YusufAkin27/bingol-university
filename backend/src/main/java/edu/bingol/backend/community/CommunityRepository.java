@@ -57,13 +57,19 @@ public interface CommunityRepository extends JpaRepository<Community, Long> {
     @Query("SELECT c FROM Community c WHERE c.status = :status AND c.id < :cursor ORDER BY c.id DESC")
     List<Community> byStatus(@Param("status") Community.Status status, @Param("cursor") long cursor, Pageable page);
 
-    /** Genel arama (SearchProvider): ILIKE, yalnizca ACTIVE + PUBLIC. */
+    /**
+     * Genel arama (SearchProvider): ILIKE, ACTIVE + PUBLIC; ek olarak goruntuleyen ACTIVE uye ise OZEL kulup de
+     * (uyelik kaniti sorguda; uye olmayan ozel kulubu bulamaz). Anonimde viewer = -1 (hicbir uyelik eslesmez).
+     */
     @Query(value = """
-            SELECT * FROM community
-            WHERE status = 'ACTIVE' AND visibility = 'PUBLIC'
-              AND (name ILIKE :pattern ESCAPE '!' OR description ILIKE :pattern ESCAPE '!')
-            ORDER BY id DESC
+            SELECT * FROM community c
+            WHERE c.status = 'ACTIVE'
+              AND (c.visibility = 'PUBLIC' OR EXISTS (
+                    SELECT 1 FROM community_member m
+                    WHERE m.community_id = c.id AND m.user_id = :viewer AND m.status = 'ACTIVE'))
+              AND (c.name ILIKE :pattern ESCAPE '!' OR c.description ILIKE :pattern ESCAPE '!')
+            ORDER BY c.id DESC
             LIMIT :lim
             """, nativeQuery = true)
-    List<Community> search(@Param("pattern") String pattern, @Param("lim") int limit);
+    List<Community> search(@Param("pattern") String pattern, @Param("viewer") long viewer, @Param("lim") int limit);
 }

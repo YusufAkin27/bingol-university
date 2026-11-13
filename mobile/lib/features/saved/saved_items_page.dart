@@ -31,6 +31,9 @@ class SavedItemsPage extends StatefulWidget {
 /// Çip sırası -> sunucu `type` değeri (Forum çipi iki türü ayrı ayrı çekmez: konu süzgeci; yorumlar Tümü'de görünür).
 const _filterTypes = [kSavedTypeAll, 'NEWS', 'EVENT', 'COMMUNITY', 'POLL', 'POST', 'FORUM_TOPIC'];
 
+/// Art arda bos sayfa gelirse tek yuklemede en cok kac ek sayfa istenir.
+const _maxEmptyHops = 5;
+
 class _SavedItemsPageState extends State<SavedItemsPage> {
   late final SavedApi _api = SavedApi(widget.session);
   final _items = <SavedItem>[];
@@ -79,11 +82,16 @@ class _SavedItemsPageState extends State<SavedItemsPage> {
       _error = null;
     });
     try {
-      final p = await _api.list(type: _filterTypes[_filter], cursor: _cursor);
-      if (gen != _gen || !mounted) return;
-      _items.addAll(p.items.where((e) => !_items.any((x) => x.key == e.key)));
-      _cursor = p.nextCursor;
-      _hasMore = p.nextCursor != null;
+      // Sunucu once sayfalayip sonra erisilemeyenleri eler: bos sayfa + nextCursor gelirse
+      // "bos" gostermeden sonraki sayfayi iste (ust sinir _maxEmptyHops).
+      for (var hop = 0; hop <= _maxEmptyHops; hop++) {
+        final p = await _api.list(type: _filterTypes[_filter], cursor: _cursor);
+        if (gen != _gen || !mounted) return;
+        _items.addAll(p.items.where((e) => !_items.any((x) => x.key == e.key)));
+        _cursor = p.nextCursor;
+        _hasMore = p.nextCursor != null;
+        if (p.items.isNotEmpty || !_hasMore) break;
+      }
     } catch (e) {
       if (gen != _gen) return;
       _error = e;
@@ -97,13 +105,20 @@ class _SavedItemsPageState extends State<SavedItemsPage> {
     final gen = _gen;
     try {
       final p = await _api.list(type: _filterTypes[_filter]);
-      if (!mounted || gen != _gen || _items.length > 20) return;
+      if (!mounted || gen != _gen) return;
+      final fresh = p.items.map((e) => e.key).toSet();
       setState(() {
-        _items
-          ..clear()
-          ..addAll(p.items);
-        _cursor = p.nextCursor;
-        _hasMore = p.nextCursor != null;
+        if (_items.length <= 20) {
+          _items
+            ..clear()
+            ..addAll(p.items);
+          _cursor = p.nextCursor;
+          _hasMore = p.nextCursor != null;
+        } else {
+          // Derin liste: ilk sayfa kapsamindaki kaldirilmis kayitlari dusur.
+          final head = _items.take(20).where((x) => !fresh.contains(x.key)).map((x) => x.key).toSet();
+          _items.removeWhere((x) => head.contains(x.key));
+        }
       });
     } catch (_) {
       // Sessiz tazeleme en iyi çabadır.
@@ -223,7 +238,7 @@ class _SavedItemsPageState extends State<SavedItemsPage> {
 
   Widget _body() {
     final l = context.l10n;
-    if (_items.isEmpty && _loading) return const LoadingView();
+    if (_items.isEmpty && (_loading || (_hasMore && _error == null))) return const LoadingView();
     if (_items.isEmpty && _error != null) {
       return BuErrorState(error: _error!, onRetry: () {
         setState(() => _hasMore = true);

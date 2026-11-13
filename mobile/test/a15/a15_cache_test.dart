@@ -272,6 +272,7 @@ void main() {
       MessageCache.instance.saveMessages(5, [msg(1)]);
       await MessageCache.instance.flush();
       await ImageDiskCache.instance.write('https://x/a.png', Uint8List.fromList([1, 2, 3]));
+      outbox.bindOwner(7); // uretimde Session baglar; kuyruk ogeleri hesaba (7) bagli yazilir
       await outbox.enqueueMedia(conversationId: 5, clientId: 'cm', text: 'k', sources: [OutboxMediaSource(kind: 'image', mime: 'image/jpeg', bytes: Uint8List.fromList([1, 2]))]);
       outbox.enqueue(conversationId: 5, clientId: 'ct', text: 'bekleyen');
       await s.api.diskCache!.flush();
@@ -287,7 +288,9 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 20));
       final before = listAll(dirs);
       expect(before.isNotEmpty, isTrue);
-      await s.signOut(remote: false);
+      // purgeQueue = hesap silme yolu: bekleyen mesaj kuyrugu hesaba baglidir (normal cikista kalir, G2/account-context.md),
+      // hesap silinince ek dosyalariyla birlikte gider.
+      await s.signOut(remote: false, purgeQueue: true);
       await Future<void>.delayed(const Duration(milliseconds: 200));
       final after = listAll(dirs);
       // ignore: avoid_print
@@ -321,11 +324,12 @@ void main() {
       for (final k in ['recent_searches', 'academic_reminders', 'synced_language', 'legal_later', 'chat_background', 'chat_recent_reactions']) {
         await st.write(key: k, value: 'x');
       }
+      outbox.bindOwner(7);
       outbox.enqueue(conversationId: 5, clientId: 'bekleyen', text: 'gonderilmemis mesaj');
       await Future<void>.delayed(const Duration(milliseconds: 50));
       final all0 = await st.readAll();
       expect(all0.keys, containsAll(['access', 'refresh', 'outbox_v1']));
-      await s.signOut(remote: false);
+      await s.signOut(remote: false, purgeQueue: true); // hesap silme: kuyruk da gider (normal cikista hesaba bagli kalir)
       await Future<void>.delayed(const Duration(milliseconds: 200));
       final left = (await st.readAll()).keys.toSet();
       // ignore: avoid_print

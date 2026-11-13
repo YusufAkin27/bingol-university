@@ -570,7 +570,7 @@ void main() {
       await tester.pump();
       await tester.tap(find.text('Gönder'));
       await settle(tester, const Duration(milliseconds: 800));
-      expect(find.text('Bir sorun oluştu. Lütfen tekrar deneyin.'), findsOneWidget);
+      expect(find.text('İşlem şu anda tamamlanamıyor. Lütfen biraz sonra tekrar deneyin.'), findsOneWidget);
       expect(find.text('Gönder'), findsOneWidget);
       noErr(tester);
       await unmount(tester);

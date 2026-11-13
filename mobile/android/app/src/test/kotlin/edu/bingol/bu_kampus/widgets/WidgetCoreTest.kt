@@ -150,4 +150,15 @@ class WidgetCoreTest {
         assertEquals(SizeClass.SMALL, WidgetSizing.classify(170, 350, SizeClass.MEDIUM))
         assertEquals(SizeClass.MEDIUM, WidgetSizing.classify(0, 0, SizeClass.MEDIUM))
     }
+
+    @Test fun staleAfter24Hours() {
+        val fresh = JSONObject("""{"generatedAt":"2026-11-06T09:00:00+03:00"}""")
+        val old = JSONObject("""{"generatedAt":"2026-11-05T09:59:00+03:00"}""")
+        val future = JSONObject("""{"generatedAt":"2026-11-07T09:00:00+03:00"}""")
+        assertTrue(!WidgetGate.isStale(fresh, now))
+        assertTrue(WidgetGate.isStale(old, now))
+        assertTrue(!WidgetGate.isStale(future, now)) // gelecek zaman eski degildir
+        assertTrue(!WidgetGate.isStale(JSONObject("{}"), now)) // alan yok: sahte uyari yok
+        assertTrue(!WidgetGate.isStale(JSONObject("""{"generatedAt":"bozuk"}"""), now))
+    }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import 'pending_posts_strip.dart';
 import 'post_api.dart';
 import 'post_card.dart';
 import 'post_carousel.dart' show PostMultiBadge;
@@ -114,6 +115,15 @@ class _UserPostsPageState extends State<UserPostsPage> {
     }
   }
 
+  /// Kuyruktaki / başarısız paylaşımlarım (yalnız kendi sayfamda): yayımlanınca gönderi ızgaranın başına eklenir.
+  Widget _pending() => PendingPostsStrip(
+        session: widget.session,
+        onPublished: (p) {
+          if (!mounted || _items.any((e) => e.id == p.id)) return;
+          setState(() => _items.insert(0, p));
+        },
+      );
+
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
@@ -139,9 +149,12 @@ class _UserPostsPageState extends State<UserPostsPage> {
         ),
 
 
-        empty: _EmptyCard(mine: widget.isMine, onCompose: _compose),
+        empty: widget.isMine
+            ? Column(mainAxisSize: MainAxisSize.min, children: [_pending(), _EmptyCard(mine: true, onCompose: _compose)])
+            : _EmptyCard(mine: widget.isMine, onCompose: _compose),
         bottomInset: MediaQuery.paddingOf(context).bottom + 24,
         slivers: [
+          if (widget.isMine) SliverToBoxAdapter(child: _pending()),
           if (failed) SliverToBoxAdapter(child: _ErrorRow(onRetry: _load)),
           SliverPadding(
             padding: BuSpace.pageH,

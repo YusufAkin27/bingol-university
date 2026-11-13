@@ -9198,6 +9198,90 @@ abstract class AppLocalizations {
   /// **'Paylaşıldı'**
   String get postComposeShared;
 
+  /// No description provided for @g2PostQueued.
+  ///
+  /// In tr, this message translates to:
+  /// **'Paylaşım sırada'**
+  String get g2PostQueued;
+
+  /// No description provided for @g2PostUploading.
+  ///
+  /// In tr, this message translates to:
+  /// **'Paylaşım yükleniyor {pct}'**
+  String g2PostUploading(String pct);
+
+  /// No description provided for @g2PostWaiting.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlantı bekleniyor, gelince devam edecek'**
+  String get g2PostWaiting;
+
+  /// No description provided for @g2PostPublishing.
+  ///
+  /// In tr, this message translates to:
+  /// **'Paylaşılıyor'**
+  String get g2PostPublishing;
+
+  /// No description provided for @g2PostFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Paylaşılamadı'**
+  String get g2PostFailed;
+
+  /// No description provided for @g2PostEdit.
+  ///
+  /// In tr, this message translates to:
+  /// **'Düzenle'**
+  String get g2PostEdit;
+
+  /// No description provided for @g2PostRetry.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeniden dene'**
+  String get g2PostRetry;
+
+  /// No description provided for @g2PostRemove.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sil'**
+  String get g2PostRemove;
+
+  /// No description provided for @g2PostCancel.
+  ///
+  /// In tr, this message translates to:
+  /// **'İptal'**
+  String get g2PostCancel;
+
+  /// No description provided for @g2PostRemoveTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Paylaşım silinsin mi?'**
+  String get g2PostRemoveTitle;
+
+  /// No description provided for @g2PostRemoveBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yazdığın metin ve seçtiğin dosyalar silinir.'**
+  String get g2PostRemoveBody;
+
+  /// No description provided for @g2PostQueuedToast.
+  ///
+  /// In tr, this message translates to:
+  /// **'Paylaşım arka planda gönderiliyor.'**
+  String get g2PostQueuedToast;
+
+  /// No description provided for @g2PostErrFiles.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dosyalar bulunamadı. Paylaşımı düzenleyip yeniden dene.'**
+  String get g2PostErrFiles;
+
+  /// No description provided for @g2PostPending.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bekleyen paylaşım'**
+  String get g2PostPending;
+
   /// No description provided for @postComposeDiscardTitle.
   ///
   /// In tr, this message translates to:
@@ -21150,6 +21234,48 @@ abstract class AppLocalizations {
   /// **'{n} yanıtı göster'**
   String forumCommentShowReplies(String n);
 
+  /// No description provided for @forumCommentReplyContext.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} adlı kişiye yanıt'**
+  String forumCommentReplyContext(String name);
+
+  /// No description provided for @forumModRemoveAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaldır (moderatör)'**
+  String get forumModRemoveAction;
+
+  /// No description provided for @forumModReasonTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'İçeriği kaldır'**
+  String get forumModReasonTitle;
+
+  /// No description provided for @forumModReasonBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gerekçe içerik sahibine bildirilir ve moderasyon kaydına yazılır.'**
+  String get forumModReasonBody;
+
+  /// No description provided for @forumModReasonHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gerekçe (en az 3 karakter)'**
+  String get forumModReasonHint;
+
+  /// No description provided for @forumModRemoveConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaldır'**
+  String get forumModRemoveConfirm;
+
+  /// No description provided for @forumModRemovedDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'İçerik kaldırıldı.'**
+  String get forumModRemovedDone;
+
   /// No description provided for @forumCommentHideReplies.
   ///
   /// In tr, this message translates to:
@@ -25343,6 +25469,192 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'İşlem şu anda tamamlanamıyor. Lütfen biraz sonra tekrar deneyin.'**
   String get coreErrServiceUnavailable;
+
+  /// No description provided for @chatMiscMoreAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daha fazla'**
+  String get chatMiscMoreAction;
+
+  /// No description provided for @chatMiscPeekOpen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sohbeti aç'**
+  String get chatMiscPeekOpen;
+
+  /// No description provided for @chatMiscPeekError.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesajlar yüklenemedi.'**
+  String get chatMiscPeekError;
+
+  /// No description provided for @chatMiscPeekEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz mesaj yok.'**
+  String get chatMiscPeekEmpty;
+
+  /// No description provided for @pushForeignSwitched.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu bildirim diğer hesabına aitti; o hesaba geçildi.'**
+  String get pushForeignSwitched;
+
+  /// No description provided for @pushForeignMissing.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu bildirim, bu cihazda kayıtlı olmayan başka bir hesaba ait.'**
+  String get pushForeignMissing;
+
+  /// No description provided for @pushForeignExpired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu bildirim oturumu kapanmış bir hesaba ait. O hesaba giriş yapınca açılır.'**
+  String get pushForeignExpired;
+
+  /// No description provided for @pushContentGone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu içerik artık mevcut değil.'**
+  String get pushContentGone;
+
+  /// No description provided for @sessionEndedFormClosed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oturumun sona erdiği için açık sayfa kapatıldı. Yazdıkların kaydedilmedi.'**
+  String get sessionEndedFormClosed;
+
+  /// No description provided for @formDiscardTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yazdıkların silinsin mi?'**
+  String get formDiscardTitle;
+
+  /// No description provided for @formDiscardBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çıkarsan girdiğin bilgiler kaybolur.'**
+  String get formDiscardBody;
+
+  /// No description provided for @formDiscardConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sil ve çık'**
+  String get formDiscardConfirm;
+
+  /// No description provided for @formDiscardKeep.
+  ///
+  /// In tr, this message translates to:
+  /// **'Düzenlemeye devam et'**
+  String get formDiscardKeep;
+
+  /// No description provided for @g4ChatJumpMissing.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu mesaj artık mevcut değil veya yüklenemedi.'**
+  String get g4ChatJumpMissing;
+
+  /// No description provided for @shareKindProfile.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil'**
+  String get shareKindProfile;
+
+  /// No description provided for @shareChatProfileShared.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil paylaştı'**
+  String get shareChatProfileShared;
+
+  /// No description provided for @profileShareAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profili paylaş'**
+  String get profileShareAction;
+
+  /// No description provided for @profileQrMyCode.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR kodum'**
+  String get profileQrMyCode;
+
+  /// No description provided for @profileQrHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu kodu okutan kişi profilini BÜ Kampüs uygulamasında görür. Telefonun kamerası da okuyabilir.'**
+  String get profileQrHint;
+
+  /// No description provided for @profileQrShareImage.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görsel olarak paylaş'**
+  String get profileQrShareImage;
+
+  /// No description provided for @profileQrImageFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görsel hazırlanamadı. Bağlantıyı paylaşabilirsin.'**
+  String get profileQrImageFailed;
+
+  /// No description provided for @profileQrLoadFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR kodu şu an hazırlanamadı.'**
+  String get profileQrLoadFailed;
+
+  /// No description provided for @profileQrScan.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR tara'**
+  String get profileQrScan;
+
+  /// No description provided for @profileQrScanTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil QR kodunu tara'**
+  String get profileQrScanTitle;
+
+  /// No description provided for @profileQrScanHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir BÜ Kampüs profil kodunu çerçeveye hizala.'**
+  String get profileQrScanHint;
+
+  /// No description provided for @profileQrInvalid.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu bir BÜ Kampüs profil kodu değil.'**
+  String get profileQrInvalid;
+
+  /// No description provided for @profileQrOpenSettings.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ayarları aç'**
+  String get profileQrOpenSettings;
+
+  /// No description provided for @profileQrGallery.
+  ///
+  /// In tr, this message translates to:
+  /// **'Galeriden seç'**
+  String get profileQrGallery;
+
+  /// No description provided for @profileQrGalleryNone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görselde QR kod bulunamadı.'**
+  String get profileQrGalleryNone;
+
+  /// No description provided for @profileQrMyProfile.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu senin kodun, profiline gidiliyor.'**
+  String get profileQrMyProfile;
+
+  /// No description provided for @profileQrFindMe.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beni BÜ Kampüs’te bul'**
+  String get profileQrFindMe;
 }
 
 class _AppLocalizationsDelegate

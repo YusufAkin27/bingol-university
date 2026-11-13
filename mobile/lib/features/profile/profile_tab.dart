@@ -1,4 +1,5 @@
 import '../../core/analytics.dart';
+import 'profile_share.dart';
 import '../accounts/account_sheet.dart';
 import 'package:flutter/material.dart';
 
@@ -262,6 +263,12 @@ class _ProfileTabState extends State<ProfileTab> {
             index: 0,
             child: _TitleRow(
               onMenu: _openMenu,
+              onQr: () => openMyQr(context, widget.session),
+              onShare: () => shareUserProfile(context, widget.session,
+                  id: (p['id'] as num?)?.toInt() ?? uid ?? 0,
+                  displayName: p['displayName'] as String?,
+                  username: p['username'] as String?,
+                  avatarUrl: p['avatarUrl'] as String?),
               badge: _followReq > 0,
               title: (p['username'] is String && (p['username'] as String).isNotEmpty)
                   ? '@${p['username']}'
@@ -319,9 +326,13 @@ class _ProfileTabState extends State<ProfileTab> {
 /// Üst satır (başlık metni görünmez, yalnız anlamsal etiket) + sağ üstte üç çizgi menü düğmesi (tüm liste satırları [ProfileMenuPage]'de).
 /// Düzenleme düğmesi yok: alanlar kimlik kartında yerinde düzenlenir. [badge]: bekleyen takip isteği noktası.
 class _TitleRow extends StatelessWidget {
-  const _TitleRow({required this.onMenu, this.badge = false, this.title, this.onSwitch});
+  const _TitleRow({required this.onMenu, this.onQr, this.onShare, this.badge = false, this.title, this.onSwitch});
 
   final VoidCallback onMenu;
+
+  /// "QR kodum" ve "Profili paylaş" kısayolları (menüden önce).
+  final VoidCallback? onQr;
+  final VoidCallback? onShare;
   final bool badge;
 
   /// Kullanıcı adı (yoksa görünen ad); yanındaki ▾ ile hesap değiştirme sayfası açılır.
@@ -365,6 +376,8 @@ class _TitleRow extends StatelessWidget {
               ),
       ),
       const SizedBox(width: 12),
+      if (onShare != null) BuIconButton(key: const ValueKey('profile-share-button'), icon: BuIcons.share2, tooltip: l.profileShareAction, onTap: onShare!),
+      if (onQr != null) BuIconButton(key: const ValueKey('profile-qr-button'), icon: BuIcons.qrCode, tooltip: l.profileQrMyCode, onTap: onQr!),
       BuIconButton(key: const ValueKey('profile-menu-button'), icon: BuIcons.menu, tooltip: l.profileMenuTitle, badge: badge, onTap: onMenu),
     ]);
   }

@@ -17,9 +17,9 @@ Uygulamanın TEK ikon kapısı `BuIcons` (`lib/core/icons/bu_icons.dart`, `widge
 
 ## 2. Tasarım ilkeleri
 
-1. **Material 3 gövde, marka kimliği:** `useMaterial3`, M3 bileşenleri (NavigationBar, FilledButton.tonal, SegmentedButton, SearchBar, BottomSheet...) marka belirteçleriyle temalanır. Marka: sakin kampüs kırmızısı (`pr`), lacivert mürekkep (`ink`), sıcak-nötr zemin (`bg`), beyaz kartlar (`sf`); anlam renkleri mavi/su mavisi/yeşil/amber (bkz. bölüm 3).
-2. **Katmanlı yüzeyler:** sayfa `bg` < kart `sf` < ikincil `sf2` < üst katman `sf3` (diyalog, alt sayfa, menü). Açık temada ince çizgi + yumuşak gölge, koyu temada tonal yüzey (gölge yok).
-3. **Tonal vurgu:** seçili/etkin durum **marka tonu** (`soft` zemin + `onSoft` yazı + `selectedBorder`; tek stil) ile gösterilir (NavigationBar göstergesi, seçili çip, segment, tonal düğme); dolu kırmızı (`pr`) yalnız birincil eylemde.
+1. **Material 3 gövde, monokrom kimlik:** `useMaterial3`, M3 bileşenleri BuTokens ile temalanır. Arayüz SİYAH-BEYAZDIR (zinc nötrleri): marka/vurgu kırmızısı YOK; renk yalnız anlamsal durumda (`danger`, `heart`, `ok`, `warn`, `info`). Varsayılan tema koyu ("Premium Black"), açık tema "Premium White".
+2. **Katmanlı yüzeyler:** sayfa `bg` < kart `sf` < ikincil `sf2` < üst katman `sf3` (diyalog, alt sayfa, menü). Ayrım gölge/degrade ile değil yüzey tonu + ince `bd` kenarlıkla yapılır; gölge, blur, degrade, glow dekorasyon olarak KULLANILMAZ (görsel üstü okunurluk scrim'i hariç).
+3. **Nötr vurgu:** seçili/etkin durum `soft` zemin + `onSoft` yazı + `selectedBorder` (ink %50) ile gösterilir; birincil eylem `pr` (açıkta siyah, koyuda beyaz) dolu düğmedir. Kalın yazı yok: hiyerarşi boyut + `ink`/`mut` renk + boşlukla kurulur (tüm ağırlıklar w400, `BuType.emphasisWeight`).
 4. **Hareket anlamlıdır:** basma (hafif küçülme + titreşim), seçim (kayan gösterge), içerik girişi (aşamalı), durum geçişi (fade-through). 150/250/400 ms; yalnız `transform`/`opacity`. "Animasyonları azalt" açıkken hepsi anlık.
 5. **Durumlar eksiksiz:** yükleniyor (iskelet, çember değil) / boş (illüstrasyon + yönlendirme) / hata (yeniden dene) / çevrimdışı (şerit, eski veri) / bakım.
 6. **Hız:** `const`, tembel liste, `RepaintBoundary` ile ağır boyacılar izole, tek ticker (iskelet), ağ görselinde `cacheWidth`, kaydırılan listede `Opacity/BackdropFilter/saveLayer` yok.
@@ -28,54 +28,52 @@ Uygulamanın TEK ikon kapısı `BuIcons` (`lib/core/icons/bu_icons.dart`, `widge
 
 Renk yalnız `context.bu` (veya `Theme.of(context).colorScheme`) üzerinden. `Color(0x..)`, `Colors.*` yeni yazılmaz (`test/redesign/renk_paleti_test.dart` `lib/` taramasıyla denetler).
 
-> **RENK-1 (2026-10-31): palet tek ve küçük.** Sakin marka kırmızısı + dört anlam ailesi (koyu mavi, su mavisi, yeşil, amber) + sıcak-nötr yüzeyler. Mor/pembe/turkuaz/çivit/turuncu-sarı ayrı renk olarak KALDIRILDI; kategori ayrımı renkten çok simge + etiketle yapılır. Gerekçe: "çok fazla renk var, sabit ve temiz olsun, göz yormasın". Envanter ve önce/sonra: `docs/design/RENK_ENVANTERI.md`. Bu belgedeki "KİLİTLİ" imzalar değişmedi (yalnız eklendi: `info*`, `aqua*`, `onOkSoft`, `dangerSoft`, `bdStrong`, `selectedBorder`, `BuTintId`); düzen/boyut değişmedi.
+> **Monokrom karar (2026-11-06):** eski "kampüs kırmızısı + dört anlam ailesi" paleti kaldırıldı. Kaynak doğruluk: `lib/core/theme.dart` (`BuTokens.light/dark`); aşağıdaki tablo ondan birebir türetilmiştir. `tints` (kategori karoları) nötrdür, ayrım simge + etiketle yapılır.
 
 | Belirteç | Açık | Koyu | Kullanım |
 |---|---|---|---|
-| `bg` | #F7F5F2 | #171819 | sayfa zemini (sıcak kırık beyaz / yumuşak kömür) |
-| `sf` | #FFFFFF | #202123 | kart, girdi, liste |
-| `sf2` | #EEEBE6 | #2A2B2E | ikincil yüzey, segment zemini, yer tutucu, iskelet |
-| `sf3` | #FFFFFF | #313235 | diyalog, alt sayfa, menü, NavigationBar |
-| `ink` / `mut` | #171E33 / #5C5A56 | #F2EFEA / #A9A7A2 | ana / soluk yazı |
-| `bd` | #DAD5CD | #3A3B3F | kart/ayraç çizgisi (dekoratif) |
-| `bdStrong` (yeni) | #8A857E | #7D8087 | **kontrol çerçevesi**: giriş alanı, arama, seçilmemiş seçim halkası, outlined düğme. Tüm yüzeylere karşı >= 3:1 (WCAG 1.4.11) |
-| `pr` / `onPr` | #C0392B / #FFF | #F0766A / #2A0B07 | birincil eylem, seçili durum vurgusu (yalnız bunlar) |
-| `soft` / `onSoft` | #FBE9E6 / #8A2A20 | #3B2321 / #FFBBB2 | seçili/tonal zemin ve yazısı |
-| `selectedBorder` (yeni, getter) | `pr` %45 | `pr` %45 | seçili çip/segment çerçevesi |
-| `info` / `infoSoft` / `onInfoSoft` (yeni) | #1F4E96 / #E4ECF8 / #173F7B | #8DB4F0 / #1B2B45 / #B9D2FA | bilgi, haber, duyuru (koyu mavi) |
-| `aqua` / `aquaSoft` / `onAquaSoft` (yeni) | #0B6E86 / #DDF1F6 / #0A5468 | #6CCBE0 / #11323B / #A6E3F0 | ikincil vurgu (su mavisi) |
-| `ok` / `okSoft` / `onOkSoft` | #1E7A50 / #E0F2E8 / #0F5132 | #6FD0A0 / #16301F / #9BE3BE | başarı, yemek |
-| `warn` / `warnSoft` / `onWarnSoft` | #9A5700 / #FFF1D6 / #6B3E00 | #F2B24A / #3A2B0E / #FFD98F | uyarı, hatırlatma, bekleyen, çevrimdışı/bakım şeridi |
-| `danger` / `dangerSoft` | #A3162E / #FBE4E8 | #FF8FA0 / #3D1D24 | hata, yıkıcı eylem (marka kırmızısından ton olarak ayrı) |
-| `nav` / `onNav` | #171E33 / #FFF | #35373B / #F2EFEA | yüzen/koyu hap |
-| `h1`/`h2` + `hero` | #C8402F -> #BB3628 | #B5362B -> #992E24 | yalnız vitrin; iki uç neredeyse eş (düz görünür) |
-| `onMedia` | #FFFFFF | #FFFFFF | fotoğraf/video üstü yazı-simge |
-| `scrim` | #000000 | #000000 | medya zemini ve karartma (`.withValues(alpha:)`) |
-| `qrInk` / `qrPaper` | #000 / #FFF | aynı | QR (her temada yüksek kontrast) |
-| `shadow` | #171E33 | #000 | gölge |
-| `tints` / `tint(i)` | 6 çift | 6 çift | kategori renkleri; `context.bu.tint(BuTintId.blue)`; indeksler: 0 marka, 1 mavi, 2 yeşil, 3 amber, 4 su mavisi, 5 nötr |
+| `bg` | #FFFFFF | #09090B | sayfa zemini |
+| `sf` | #FAFAFA | #141416 | kart, girdi, liste |
+| `sf2` | #F4F4F5 | #1C1C1F | ikincil yüzey, segment zemini, iskelet |
+| `sf3` | #FFFFFF | #252528 | diyalog, alt sayfa, menü (kenarlıkla ayrışır) |
+| `ink` / `mut` / `mutSoft` | #09090B / #52525B / #71717A | #FAFAFA / #A1A1AA / #71717A | ana / ikincil (AA) / ipucu (yalnız dekoratif ya da büyük metin) |
+| `bd` / `bdSubtle` | #E4E4E7 / #EFEFF1 | #303034 / #242427 | kart/ayraç çizgisi (dekoratif) |
+| `bdStrong` | #8A8A93 | #71717A | **kontrol çerçevesi**: giriş, arama, seçim halkası, `outline` düğme (>= 3:1) |
+| `pr` / `onPr` | #09090B / #FFFFFF | #FAFAFA / #09090B | birincil eylem |
+| `soft` / `onSoft` | #F4F4F5 / #09090B | #1C1C1F / #FAFAFA | seçili/tonal zemin ve yazısı |
+| `selectedBorder` (getter) | `ink` %50 | `ink` %50 | seçili çip/segment çerçevesi |
+| `nav*` (alt gezinme) | `navBase` #FFFFFF opak, `navBorder` #E4E4E7, `navAccent` #09090B, pasif #52525B | `navBase` #141416 opak, `navBorder` #303034, `navAccent` #FAFAFA, pasif #A1A1AA | alt çubuk: OPAK, blur/degrade/gölge yok |
+| `ok` / `okSoft` | #166534 / #E7F5EC | #4ADE80 / #0F2A1A | başarı (anlamsal) |
+| `warn` / `warnSoft` | #946010 / #FDF3DC | #F2B24A / #3A2B0E | uyarı, bekleyen, çevrimdışı/bakım |
+| `info` / `infoSoft` | #356BB8 / #E8F0FB | #8DB4F0 / #1B2B45 | bilgi, okundu tiki |
+| `danger` / `dangerSoft` | #C81E1E / #FEECEC | #F87171 / #2A1517 | hata, yıkıcı eylem (kırmızı YALNIZ burada) |
+| `heart` | #DC2626 | #EF4444 | beğeni kalbi |
+| `onMedia` / `scrim` | #FFFFFF / #000000 | aynı | fotoğraf/video üstü yazı-simge ve karartma |
+| `qrInk` / `qrPaper` | #000 / #FFF | aynı | QR |
+| `tints` / `tint(i)` | 6 nötr çift | 6 nötr çift | kategori karoları; `context.bu.tint(BuTintId.blue)` |
 
-**Seçili çip/segment: TEK stil** (A6-03): `soft` zemin + `onSoft` yazı + `selectedBorder` çerçeve (`BuChip` ile aynı). Keşfet, Sohbet, Kulüpler, Akademik (gün, sınav, bildirim süzgeçleri), Etkinlik, Arama, Destek, Bildirimler artık bu stili kullanır; "lacivert/beyaz ters çevrilen" ve "dolu kırmızı" çipler kaldırıldı. Dolu `pr` yalnız birincil eylem düğmesindedir.
+**Seçili çip/segment: TEK stil:** `soft` zemin + `onSoft` yazı + `selectedBorder` çerçeve (`BuChip` ile aynı). Keşfet, Sohbet, Kulüpler, Akademik (gün, sınav, bildirim süzgeçleri), Etkinlik, Arama, Destek, Bildirimler artık bu stili kullanır; "lacivert/beyaz ters çevrilen" ve "dolu kırmızı" çipler kaldırıldı. Dolu `pr` yalnız birincil eylem düğmesindedir (siyah/beyaz).
 
-**Kontrol çerçevesi / kart ayrımı** (A6-02): metin alanı ve seçim halkası çizgisi `bdStrong` (3:1 üstü); kartlar `bd` çizgisi + yumuşak gölgeyle ayrılır, yüzey koyulaştırılmaz. Çizgi `bd` biraz güçlendirildi (#E3DFD9 -> #DAD5CD).
+**Kontrol çerçevesi / kart ayrımı:** metin alanı, seçim halkası ve `BuButtonKind.outline` çerçevesi `bdStrong` (3:1 üstü); kartlar `bd` çizgisiyle ayrılır, gölge kullanılmaz.
 
-**Anlam kuralları:** mavi = bilgi/haber/kişisel hesap; su mavisi = ikincil (etkinlik, topluluk, duyuru rozeti); yeşil = başarı/yemek; amber = uyarı/hatırlatma/bekleyen/etkinlik tarihi; kırmızı `pr` = eylem/seçili, `danger` = hata. Yeni kategori için yeni renk eklenmez, simge + etiket kullanılır.
+**Anlam kuralları:** renk yalnız durum bildirir: yeşil = başarı, amber = uyarı/bekleyen, mavi = bilgi, kırmızı = hata/silme/kalp. Kategori ayrımı için yeni renk eklenmez, simge + etiket kullanılır.
 
 ColorScheme eşlemesi: `primary=pr`, `primaryContainer=soft`, `secondary=ink`, `secondaryContainer=soft`, `tertiary=ok`, `error=danger`, `errorContainer=dangerSoft`, `surface=sf`, `surfaceContainerHigh=sf3`, `surfaceContainerHighest=sf2`, `outline=mut`, `outlineVariant=bd`. Kontrast: tüm metin çiftleri AA (>= 4.5:1), kontrol çerçeveleri >= 3:1; test: `test/redesign/p00_theme_test.dart` ve `test/redesign/renk_paleti_test.dart`. Durum çubuğu: `AppBar.systemOverlayStyle` açık/koyu için açıkça verilir (Android ikon parlaklığı, iOS `statusBarBrightness`); Cupertino bileşenleri `cupertinoOverrideTheme` ile aynı belirteçleri kullanır.
 
-Geçmiş: INT-I2'de açık tema Stitch'in soğuk gri-mavi tonlarına çekilmişti (`bg` #F8F9FC, `sf2` #EDEEF1, `bd` #E7E8EB, `mut` #575E76); RENK-1 bunu sıcak-nötr yüzeylerle değiştirdi (kullanıcı isteği: sakin, kırık beyaz zemin; koyu temada saf siyah değil yumuşak kömür). `SistemTones.radioOff` artık `mut` %70.
-
 ## 4. Yazı (Inter; `Theme.of(context).textTheme`)
 
-| Rol | Boyut/ağırlık | Kullanım |
+| Rol (`BuScale`) | Boyut | Kullanım |
 |---|---|---|
-| displayLarge / Medium / Small | 40 / 34 / 30, 800 | karşılama, büyük sayı |
-| headlineLarge / Medium / Small | 28 / 24 / 20, 800-700 | büyük sayfa başlığı (large app bar genişken: headlineMedium), bölüm başlığı |
-| titleLarge | 19, 700 | app bar başlığı (daralmış), diyalog/alt sayfa başlığı, boş durum başlığı |
-| titleMedium | 16, 700 | kart/bölüm başlığı, düğme (tam genişlik) |
-| titleSmall | 14, 600 | satır başlığı |
-| bodyLarge / Medium / Small | 15 / 14 / 12.5, 400 | gövde, açıklama, yardımcı metin |
-| labelLarge / Medium / Small | 14 / 12.5 / 11.5, 600-500 | düğme, çip, rozet, zaman |
+| hero | 28 | karşılama, büyük sayı |
+| display | 22 | büyük sayfa başlığı, profil adı |
+| title | 18 | app bar başlığı, diyalog/alt sayfa başlığı |
+| heading | 16 | bölüm/kart başlığı |
+| bodyLarge | 15 | uzun okuma |
+| body | 14 | gövde, liste satırı, düğme |
+| label | 12.5 | etiket, ikincil satır, çip |
+| caption | 11.5 | yardımcı metin, saat, rozet (en küçük) |
+
+Tüm ağırlıklar w400 (`BuType.emphasisWeight`); `FontWeight.w500+` yazılmaz. Başlık-gövde ayrımı boyut ve renk (`ink` / `mut`) ile yapılır.
 
 - **Tek ölçek (K-21/T-113):** boyutlar `core/typography.dart` içindeki `BuScale`'de durur (display 24, title 19, heading 16, bodyLarge 15, body 14, label 12.5, caption 11.5); `BuTextTheme` (M3 roller) ve `BuType` ikisi de buradan beslenir, ayrı sayı tutulmaz. Eski `BuType.micro` kaldırıldı, `BuType.caption` (11.5) ile birleşti (saat/rozet: `BuType.caption.copyWith(fontWeight: FontWeight.w500)`). Yeni kodda **`textTheme`** tercih edilir; `BuType` aynı ölçeği taşır. Elle `fontSize:` yazılmaz (rozet içi sayı gibi zorunlu durumda `BuScale.caption`); renk `.copyWith(color: t.mut)` ile verilir.
 - Arapça: harf aralığı 0, satır yüksekliği ×1.12 (`BuTheme.light()/dark()` `LocaleController.current` dilinden seçer; test için `BuTheme.forLocale(Brightness, 'ar')`). Başlıkta elle `letterSpacing` verirseniz Arapçada 0 yapın.
@@ -241,6 +239,24 @@ Kurallar: "animasyonları azalt" (`MediaQuery.disableAnimations`) açıkken tüm
 ### 6.6 Tema bileşenleri (M3'ü doğrudan kullanın, ek stil gerekmez)
 
 `FilledButton`/`.tonal`/`OutlinedButton`/`TextButton` (tema **tam genişlik 54 dp**; satır içinde `minimumSize: Size(0, 48)` verin), `IconButton(.filled/.filledTonal)`, `NavigationBar` (hap gösterge = `soft`), `AppBar`/`SliverAppBar(.large)`, `Card`, `FilterChip/ChoiceChip/InputChip/ActionChip` (hap, seçili `soft`), `TextField` (dolu + çerçeveli, odak 2 dp `pr`), `SearchBar/SearchAnchor`, `SegmentedButton`, `BottomSheet`, `AlertDialog`, `SnackBar`, `ListTile`, `Switch/Checkbox/Radio/Slider`, `Linear/CircularProgressIndicator`, `Badge`, `Divider`, `Tooltip`, `PopupMenu`, `TabBar`, `ExpansionTile`, `FloatingActionButton`, `showDatePicker/showTimePicker`. Hepsi `lib/core/theme/bu_component_themes.dart` içinde.
+
+## 6A. Ortak bileşen kullanım kılavuzu (G1, 2026-11-09; TÜM ekranlar buna uyar)
+
+Yeni ekranda özel düğme/çip/diyalog/uyarı sınıfı YAZILMAZ; aşağıdaki ortak bileşenler kullanılır. Eski özel sınıflar (`ClubBtn`, `AkadButton`, `RefButton`...) yalnız BuButton üstünde ince sarmalayıcıdır; yeni ekranda doğrudan ortak bileşen çağrılır.
+
+| İş | Bileşen | Kural |
+|---|---|---|
+| Düğme | `BuButton(kind:, compact:, busy:)` | Sayfada tek `primary`; ikincil `soft`/`outline` (çerçeve `bdStrong`); iptal `text`; silme `danger`. Yükseklik 48 (`BuSize.button`), `compact` görsel 36/hedef 48. Özel `minHeight`, `BorderRadius.circular(12\|16)` yazılmaz. Yükleniyor = `busy: true` (düğme içi çember tek meşru çember). |
+| Çip/filtre | `BuChip`, yatay liste `BuChipRow` | Seçili = `soft` + `selectedBorder`. Dolu/renkli seçili çip yok. |
+| Durum etiketi | `BuBadge`, sayaç `BuCountBadge` | Renk yalnız anlamsal (`ok/warn/info/danger`), diğerleri nötr. |
+| Alt sayfa | `BuSheet.show` | Elle `showModalBottomSheet` yok (tutamaç, köşe 28, klavye payı hazır). |
+| Onay/bilgi | `BuDialog` (+ `BuDialogAction`) | `AlertDialog` yok. Yıkıcı onayda `destructive: true`. |
+| Geçici ileti | `BuToast.show(context, msg, kind:)` | `ScaffoldMessenger.showSnackBar` yok. |
+| Yükleniyor | İlk yükleme `BuSkeletonList`/`BuSkeleton*`; satır içi/sayfalama `BuSpinner` | Sayfa ortasında ham `CircularProgressIndicator` yok. |
+| Liste satırı / ayar | `BuListTile`, `BuSettingsTile`, `BuGroup` | |
+| Boş/hata | `BuEmptyState`, `BuErrorState` (`bu_state.dart`) | Her ekranda yükleniyor/boş/hata durumu. |
+
+Yazı: yalnız `Theme.of(context).textTheme` ya da `BuType`; elle `fontSize:` yazılmaz (ölçek: hero 28, display 22, title 18, heading 16, body 14, label 12.5, caption 11.5; en küçük 11 sp). Renk yalnız `context.bu`. Gölge/degrade/blur yok (görsel üstü okunurluk scrim'i hariç). Dokunma hedefi >= 44 dp. Alt gezinme çubuğu `BukampusBottomNavigationBar`: light'ta OPAK beyaz, dark'ta opak koyu; sahibi G1, ekranlar ona dokunmaz.
 
 ## 7. Örnekler
 

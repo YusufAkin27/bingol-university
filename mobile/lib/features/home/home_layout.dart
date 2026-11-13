@@ -190,20 +190,37 @@ class HomeLayout {
   int get hashCode => Object.hash(Object.hashAll(order), Object.hashAllUnordered(hidden), Object.hashAll(shortcutOn));
 }
 
-/// Yerel ve kullanıcıya özel kalıcılık (sunucu ucu yok): güvenli depoda tek anahtar, kayıt kullanıcı kimliğini taşır.
-/// Çıkış / hesap silme / oturum değişiminde [clear] silinir (bkz. `registerUserDataCleaners`, KVKK).
+/// Yerel ve HESAP BAZLI kalıcılık (sunucu ucu yok): güvenli depoda kullanıcı kimliğini içeren anahtar
+/// (`home_layout_<uid>`), kayıt ayrıca kimliği taşır. Eski tek anahtar (`home_layout`) okunurken kimliği eşleşirse
+/// yeni anahtara taşınır. Çıkış / hesap silme / oturum değişiminde [clear] tüm düzen kayıtlarını siler (KVKK,
+/// bkz. `registerUserDataCleaners`).
 class HomeLayoutStore {
   const HomeLayoutStore._();
 
+  /// Eski (hesapsız) anahtar; yalnız geçiş okuması ve temizlik için.
   static const key = 'home_layout';
   static const _storage = FlutterSecureStorage();
 
-  /// [uid] null (kimlik henüz bilinmiyor) ise 0 kabul edilir.
+  /// Hesaba özel anahtar. [uid] null ise 0 kabul edilir.
+  static String keyFor(int? uid) => '${key}_${uid ?? 0}';
+
   static Future<HomeLayout> load(int? uid) async {
     try {
-      final raw = await _storage.read(key: key);
-      if (raw == null) return HomeLayout.defaults;
-      return HomeLayout.fromJson(jsonDecode(raw), uid ?? 0);
+      final id = uid ?? 0;
+      var raw = await _storage.read(key: keyFor(id));
+      if (raw == null) {
+        // Geçiş: eski tek anahtardaki kayıt bu hesaba aitse yeni anahtara taşı.
+        final legacy = await _storage.read(key: key);
+        if (legacy == null) return HomeLayout.defaults;
+        final decoded = jsonDecode(legacy);
+        // Başka hesabın eski kaydına dokunulmaz.
+        if (decoded is! Map || decoded['u'] != id) return HomeLayout.defaults;
+        final loaded = HomeLayout.fromJson(decoded, id);
+        if (!loaded.isDefault) await _storage.write(key: keyFor(id), value: jsonEncode(loaded.toJson(id)));
+        await _storage.delete(key: key);
+        return loaded;
+      }
+      return HomeLayout.fromJson(jsonDecode(raw), id);
     } catch (_) {
       return HomeLayout.defaults;
     }
@@ -213,9 +230,9 @@ class HomeLayoutStore {
   static Future<void> save(HomeLayout layout, int? uid) async {
     try {
       if (layout.isDefault) {
-        await _storage.delete(key: key);
+        await _storage.delete(key: keyFor(uid));
       } else {
-        await _storage.write(key: key, value: jsonEncode(layout.toJson(uid ?? 0)));
+        await _storage.write(key: keyFor(uid), value: jsonEncode(layout.toJson(uid ?? 0)));
       }
     } catch (_) {
       // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.
@@ -224,6 +241,10 @@ class HomeLayoutStore {
 
   static Future<void> clear() async {
     try {
+      final all = await _storage.readAll();
+      for (final k in all.keys) {
+        if (k == key || k.startsWith('${key}_')) await _storage.delete(key: k);
+      }
       await _storage.delete(key: key);
     } catch (_) {
       // Bilerek yutulur: en iyi çaba, akışı ve kullanıcı verisini etkilemez.

@@ -4,6 +4,7 @@ import '../../../../core/icons/bu_icons.dart';
 import '../../../../core/locale_controller.dart';
 import '../../../../core/session.dart';
 import '../../../../core/theme.dart';
+import '../../../../core/theme/bu_shape.dart' show BuRadius;
 import '../../../../core/theme/bu_motion.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../widgets/bu_pressable.dart';
@@ -48,6 +49,7 @@ class CommentCard extends StatelessWidget {
     required this.actions,
     this.highlighted = false,
     this.canReply = true,
+    this.replyingTo,
   });
 
   final CommentNode node;
@@ -58,6 +60,10 @@ class CommentCard extends StatelessWidget {
 
   /// false: kilitli konu (Yanıtla gizlenir).
   final bool canReply;
+
+  /// Bu yorumun yanıtladığı yorum (üstünde görünmediği durumlarda: ayrı zincir ekranının kökü). Yazar adı +
+  /// kısa özet tek satırda gösterilir; anonim yazarda yalnız sunucunun "Anonim #N" adı, silinmiş yorumda satır yok.
+  final CommentNode? replyingTo;
 
   static const double indentStep = 20;
   static const double _pad = 16;
@@ -77,7 +83,7 @@ class CommentCard extends StatelessWidget {
       key: ValueKey('commentCard-${n.id}'),
       duration: BuMotion.of(context, const Duration(milliseconds: 400)),
       curve: Curves.easeOut,
-      color: highlighted ? t.sf2 : Colors.transparent,
+      color: highlighted ? t.soft.withValues(alpha: .5) : Colors.transparent,
       child: Stack(children: [
         // Girinti kılavuz çizgileri (her seviye için ince dikey çizgi).
         for (var i = 0; i < level; i++)
@@ -110,6 +116,27 @@ class CommentCard extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: () => actions.onOpenProfile(n),
       child: av,
+    );
+  }
+
+  Widget _replyContext(BuildContext context, TextTheme tx, BuTokens t, AppLocalizations l) {
+    final p = replyingTo!;
+    final name = commentAuthorName(context, p);
+    final snippet = (p.body ?? '').replaceAll(RegExp(r'\s+'), ' ').trim();
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Row(key: ValueKey('commentReplyContext-${node.id}'), children: [
+        ExcludeSemantics(child: Icon(BuIcons.reply, size: 14, color: t.mutSoft)),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            snippet.isEmpty ? l.forumCommentReplyContext(name) : '${l.forumCommentReplyContext(name)} · $snippet',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: tx.bodySmall!.copyWith(color: t.mut),
+          ),
+        ),
+      ]),
     );
   }
 
@@ -154,15 +181,16 @@ class CommentCard extends StatelessWidget {
               if (n.topicAuthor)
                 Container(
                   key: const ValueKey('commentAuthorBadge'),
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                  decoration: BoxDecoration(border: Border.all(color: t.bdStrong), borderRadius: BorderRadius.circular(6)),
-                  child: Text(l.forumCommentAuthorBadge, style: tx.bodySmall!.copyWith(color: t.ink, fontSize: 11.5)),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(BuRadius.pill)),
+                  child: Text(l.forumCommentAuthorBadge, style: tx.bodySmall!.copyWith(color: t.onSoft, fontSize: 11.5)),
                 ),
               if (time.isNotEmpty) Text(time, style: tx.bodySmall!.copyWith(color: t.mut)),
               if (n.edited)
                 Text(l.forumCommentEdited, key: const ValueKey('commentEdited'), style: tx.bodySmall!.copyWith(color: t.mut)),
             ],
           ),
+          if (replyingTo != null && !replyingTo!.deleted) _replyContext(context, tx, t, l),
           const SizedBox(height: 4),
           GestureDetector(
             behavior: HitTestBehavior.opaque,

@@ -285,7 +285,7 @@ class _OptionRow extends StatelessWidget {
     final l = context.l10n;
     final tt = Theme.of(context).textTheme;
     final frac = (option.percent / 100).clamp(0.0, 1.0);
-    final radius = BorderRadius.circular(BuRadius.sm);
+    final radius = BorderRadius.circular(BuRadius.md);
     final label = '${l.forumPollSemantics(option.text, percentText, votesText)}${selected ? ', ${l.forumPollSelected}' : ''}';
     return Semantics(
       button: true,
@@ -299,13 +299,13 @@ class _OptionRow extends StatelessWidget {
         enabled: enabled,
         child: Material(
           color: t.sf,
-          shape: RoundedRectangleBorder(borderRadius: radius, side: BorderSide(color: selected ? t.ink : t.bd, width: selected ? 1.5 : 1)),
+          shape: RoundedRectangleBorder(borderRadius: radius, side: BorderSide(color: selected ? t.selectedBorder : t.bd, width: selected ? 1.5 : 1)),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             // Kapalı/değiştirilemez ankette de dokunuş kısa bilgi verir; görsel basış yalnız etkinken.
             onTap: onTap,
             child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: BuSize.touch),
+              constraints: const BoxConstraints(minHeight: 52),
               child: Stack(
                 alignment: AlignmentDirectional.centerStart,
                 children: [
@@ -319,7 +319,7 @@ class _OptionRow extends StatelessWidget {
                         builder: (_, v, __) => FractionallySizedBox(
                           widthFactor: v,
                           heightFactor: 1,
-                          child: ColoredBox(color: selected ? t.sf3 : t.sf2),
+                          child: ColoredBox(color: selected ? t.soft : t.sf2),
                         ),
                       ),
                     ),

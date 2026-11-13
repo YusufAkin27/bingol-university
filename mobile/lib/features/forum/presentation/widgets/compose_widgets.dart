@@ -25,8 +25,8 @@ class ComposeBox extends StatelessWidget {
       constraints: BoxConstraints(minHeight: minHeight),
       decoration: BoxDecoration(
         color: t.sf,
-        borderRadius: BorderRadius.circular(BuRadius.md),
-        border: Border.all(color: error ? t.danger : t.bd, width: error ? 1.5 : 1),
+        borderRadius: BorderRadius.circular(BuRadius.lg),
+        border: Border.all(color: error ? t.danger : t.bdStrong, width: error ? 1.5 : 1),
       ),
       padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 8, 0),
       child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [

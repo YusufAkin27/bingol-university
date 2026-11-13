@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:bu_kampus/core/theme.dart';
+import 'package:bu_kampus/core/theme/bu_shape.dart';
 import 'package:bu_kampus/features/academic/akad_widgets.dart';
 import 'package:bu_kampus/features/forum/presentation/widgets/author_line.dart';
 import 'package:bu_kampus/features/forum/presentation/pages/forum_home_page.dart';
@@ -54,16 +55,17 @@ void main() {
       expect(_ratio(tokens.pr, tokens.onPr), greaterThanOrEqualTo(4.5));
     });
 
-    testWidgets('ForumCategoryTag ($tag): dolgusuz, ince kenarlikli', (tester) async {
+    testWidgets('ForumCategoryTag ($tag): notr tonal hap (sf2 zemin, kenarliksiz, golgesiz)', (tester) async {
       await tester.pumpWidget(_wrap(const ForumCategoryTag(label: 'Genel'), b));
       final box = tester.widget<DecoratedBox>(find.byKey(const ValueKey('forum-category-tag')));
       final d = box.decoration as BoxDecoration;
-      expect(d.color, isNull);
-      expect((d.border! as Border).top.color, tokens.bd);
+      expect(d.color, tokens.sf2);
+      expect(d.border, isNull);
+      expect(d.borderRadius, BorderRadius.circular(BuRadius.pill));
       expect(d.boxShadow, isNull);
     });
 
-    testWidgets('Forum konu satiri ($tag): kart kutusu/golge yok, yalniz alt ince divider', (tester) async {
+    testWidgets('Forum konu karti ($tag): sf yuzey + ince bd kenarlik + lg yaricap, golge yok (G5 yuvarlak kart; MOBILE_DESIGN_SYSTEM kart kurali)', (tester) async {
       useScreen(tester, kPhoneMedium);
       final back = FakeBackend();
       fakeForum(back, count: 4);
@@ -80,12 +82,12 @@ void main() {
       final row = find.byKey(const ValueKey('forum-topic-500'));
       expect(row, findsOneWidget);
       final d = tester.widget<DecoratedBox>(row).decoration as BoxDecoration;
-      expect(d.color, isNull);
+      expect(d.color, tokens.sf);
       expect(d.boxShadow, isNull);
-      expect(d.borderRadius, isNull);
+      expect(d.borderRadius, BorderRadius.circular(BuRadius.lg));
       final border = d.border! as Border;
-      expect(border.bottom.color, tokens.bdSubtle);
-      expect(border.top, BorderSide.none);
+      expect(border.top.color, tokens.bd);
+      expect(border.bottom.color, tokens.bd);
       expect(tester.takeException(), isNull);
     });
   }

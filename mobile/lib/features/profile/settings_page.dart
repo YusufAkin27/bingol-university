@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'profile_share.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
@@ -242,6 +243,20 @@ class _SettingsPageState extends State<SettingsPage> {
                       icon: BuIcons.userX,
                       label: l.profilePrefsBlockedTitle,
                       onTap: () => _push(BlockedUsersPage(session: widget.session), 'blocked_users'),
+                    ),
+                    ProfilFlatRow(
+                      plainIcon: true,
+                      key: const ValueKey('settings-my-qr'),
+                      icon: BuIcons.qrCode,
+                      label: l.profileQrMyCode,
+                      onTap: () => openMyQr(context, widget.session),
+                    ),
+                    ProfilFlatRow(
+                      plainIcon: true,
+                      key: const ValueKey('settings-qr-scan'),
+                      icon: BuIcons.camera,
+                      label: l.profileQrScan,
+                      onTap: () => openProfileScanner(context, widget.session),
                     ),
                     ProfilFlatRow(
                     plainIcon: true,

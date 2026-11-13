@@ -30,7 +30,7 @@ import 'push_privacy.dart';
 import 'push_registrar.dart';
 import 'push_router.dart';
 
-const _appVersion = String.fromEnvironment('APP_VERSION', defaultValue: '2.5.3');
+const _appVersion = String.fromEnvironment('APP_VERSION', defaultValue: '2.5.5');
 
 /// Arka plan / kapalı durum işleyicisi: top-level + entry-point olmalı (ayrı isolate'ta çalışır) ve
 /// `main()` içinde ([PushService.prepare]) oturumdan bağımsız kaydedilir.
@@ -192,6 +192,24 @@ class PushService with WidgetsBindingObserver {
   }
 
   final _seenMessageIds = <String>{}; // ön plan şeridi tekilleştirmesi (son 60 mesaj)
+
+  /// Sohbet dışı ön plan yükü tekilleştirmesi (I4-12): sunucu yükünde bildirim kimliği yok; hedefli (targetId/commentId)
+  /// aynı tür+hedef+başlık+gövde kısa pencerede (3 sn) iki kez gelirse ikincisi sayılmaz (rozet çift artmasın).
+  final _recentPushes = <String, DateTime>{};
+  static const _dupWindow = Duration(seconds: 3);
+  @visibleForTesting
+  DateTime Function() nowFn = DateTime.now;
+
+  bool _isRecentDuplicate(Map<String, dynamic> data, String title, String body) {
+    final tid = '${data['targetId'] ?? data['value'] ?? ''}${data['commentId'] ?? ''}';
+    if (tid.isEmpty) return false; // hedefsiz duyuru: her biri ayrı bildirim sayılır
+    final key = '${data['type'] ?? ''}|${data['targetType'] ?? data['target'] ?? ''}|$tid|$title|$body';
+    final now = nowFn();
+    _recentPushes.removeWhere((_, t) => now.difference(t) > _dupWindow);
+    if (_recentPushes.containsKey(key)) return true;
+    _recentPushes[key] = now;
+    return false;
+  }
 
   bool _tapBridge = false;
   bool _nativeBridge = false;
@@ -528,6 +546,8 @@ class PushService with WidgetsBindingObserver {
   /// Dönüş: şerit gösterildi mi (test için).
   bool handleForeground({required String title, required String body, required Map<String, dynamic> data}) {
     // Kapatma/yeniden açma durumu, sohbet açıkken şerit bastırılsa bile işlenir (bant canlı görünsün).
+    // Başka hesaba ait yük (cihazda hesap değişti): şerit yok, rozet artmaz, kapanma durumu işlenmez.
+    if (PushRouter.isForeignRecipient(data, session)) return false;
     ClosedConversations.instance.applyPushData(data);
     if (active.shouldSuppress(data)) return false;
     // Aynı mesaj push'u iki kez gelirse (yeniden deneme / çoklu yol) şerit tekrar çıkmaz (data.messageId, sunucu yükünde).
@@ -538,7 +558,9 @@ class PushService with WidgetsBindingObserver {
       if (_seenMessageIds.length > 60) _seenMessageIds.remove(_seenMessageIds.first);
     }
     final type = '${data['type'] ?? ''}'.toUpperCase();
-    if (type == 'MESSAGE' || data['conversationId'] != null) {
+    final isChat = type == 'MESSAGE' || data['conversationId'] != null;
+    if (!isChat && _isRecentDuplicate(data, title, body)) return false;
+    if (isChat) {
       session.badges.conversationsDirty.value++; // sohbet listesi/okunmamış sayacı yenilenir
     } else if (notificationCategory(data) == NotificationCategory.social) {
       session.badges.social.value++; // kalp (Hareketler); zil rozeti artmaz

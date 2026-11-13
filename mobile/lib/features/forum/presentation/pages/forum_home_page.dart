@@ -231,7 +231,7 @@ class _ForumHomePageState extends State<ForumHomePage> {
       ),
       SliverToBoxAdapter(
         child: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.page, 4, BuSpace.page, 8),
+          padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.page, 2, BuSpace.page, 12),
           child: Text(l.forumHomeHint,
               key: const ValueKey('forum-hint'),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: t.mut)),
@@ -348,7 +348,8 @@ class _ForumHomePageState extends State<ForumHomePage> {
           sliver: SliverList.separated(
             itemCount: 3,
             separatorBuilder: (_, __) => const SizedBox.shrink(),
-            itemBuilder: (_, __) => const TopicCardSkeleton(key: ValueKey('forum-skeleton')),
+            itemBuilder: (_, __) => const Padding(
+                padding: EdgeInsetsDirectional.only(bottom: 12), child: TopicCardSkeleton(key: ValueKey('forum-skeleton'))),
           ),
         ),
       ];
@@ -385,7 +386,7 @@ class _ForumHomePageState extends State<ForumHomePage> {
         padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.page, 4, BuSpace.page, 0),
         sliver: SliverList.separated(
           itemCount: items.length,
-          separatorBuilder: (_, __) => const SizedBox.shrink(),
+          separatorBuilder: (_, __) => BuGap.h12,
           findItemIndexCallback: (key) {
             if (key is! ValueKey<String>) return null;
             final i = items.indexWhere((e) => 'forum-item-${e.id}' == key.value);
@@ -397,6 +398,7 @@ class _ForumHomePageState extends State<ForumHomePage> {
               session: widget.session,
               api: _api,
               topic: topic,
+              showDivider: false,
               onOpen: () => _open(topic),
               onChanged: _feed.replace,
               onMenuResult: _menuResult,

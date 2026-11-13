@@ -638,7 +638,7 @@ class ApiClient {
       _flightGets.clear();
       clearCache(); // bellek + disk
       final ob = outbox;
-      if (ob != null) unawaited(ob.clear()); // bekleyen mesajlar başka hesaba sızmasın
+      ob?.bindOwner(null); // bekleyen mesajlar silinmez ama hesap bağlanana dek gitmez (hesabına bağlı kalır)
       for (final f in List.of(onUserDataCleared)) {
         unawaited(f().catchError((Object _) {})); // mesaj kaydı, görsel önbelleği, arama geçmişi...
       }

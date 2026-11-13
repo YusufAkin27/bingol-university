@@ -4943,6 +4943,51 @@ class AppLocalizationsTr extends AppLocalizations {
   String get postComposeShared => 'Paylaşıldı';
 
   @override
+  String get g2PostQueued => 'Paylaşım sırada';
+
+  @override
+  String g2PostUploading(String pct) {
+    return 'Paylaşım yükleniyor $pct';
+  }
+
+  @override
+  String get g2PostWaiting => 'Bağlantı bekleniyor, gelince devam edecek';
+
+  @override
+  String get g2PostPublishing => 'Paylaşılıyor';
+
+  @override
+  String get g2PostFailed => 'Paylaşılamadı';
+
+  @override
+  String get g2PostEdit => 'Düzenle';
+
+  @override
+  String get g2PostRetry => 'Yeniden dene';
+
+  @override
+  String get g2PostRemove => 'Sil';
+
+  @override
+  String get g2PostCancel => 'İptal';
+
+  @override
+  String get g2PostRemoveTitle => 'Paylaşım silinsin mi?';
+
+  @override
+  String get g2PostRemoveBody => 'Yazdığın metin ve seçtiğin dosyalar silinir.';
+
+  @override
+  String get g2PostQueuedToast => 'Paylaşım arka planda gönderiliyor.';
+
+  @override
+  String get g2PostErrFiles =>
+      'Dosyalar bulunamadı. Paylaşımı düzenleyip yeniden dene.';
+
+  @override
+  String get g2PostPending => 'Bekleyen paylaşım';
+
+  @override
   String get postComposeDiscardTitle => 'Taslağı silmek istiyor musun?';
 
   @override
@@ -11710,6 +11755,30 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String forumCommentReplyContext(String name) {
+    return '$name adlı kişiye yanıt';
+  }
+
+  @override
+  String get forumModRemoveAction => 'Kaldır (moderatör)';
+
+  @override
+  String get forumModReasonTitle => 'İçeriği kaldır';
+
+  @override
+  String get forumModReasonBody =>
+      'Gerekçe içerik sahibine bildirilir ve moderasyon kaydına yazılır.';
+
+  @override
+  String get forumModReasonHint => 'Gerekçe (en az 3 karakter)';
+
+  @override
+  String get forumModRemoveConfirm => 'Kaldır';
+
+  @override
+  String get forumModRemovedDone => 'İçerik kaldırıldı.';
+
+  @override
   String get forumCommentHideReplies => 'Yanıtları gizle';
 
   @override
@@ -14095,4 +14164,105 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get coreErrServiceUnavailable =>
       'İşlem şu anda tamamlanamıyor. Lütfen biraz sonra tekrar deneyin.';
+
+  @override
+  String get chatMiscMoreAction => 'Daha fazla';
+
+  @override
+  String get chatMiscPeekOpen => 'Sohbeti aç';
+
+  @override
+  String get chatMiscPeekError => 'Mesajlar yüklenemedi.';
+
+  @override
+  String get chatMiscPeekEmpty => 'Henüz mesaj yok.';
+
+  @override
+  String get pushForeignSwitched =>
+      'Bu bildirim diğer hesabına aitti; o hesaba geçildi.';
+
+  @override
+  String get pushForeignMissing =>
+      'Bu bildirim, bu cihazda kayıtlı olmayan başka bir hesaba ait.';
+
+  @override
+  String get pushForeignExpired =>
+      'Bu bildirim oturumu kapanmış bir hesaba ait. O hesaba giriş yapınca açılır.';
+
+  @override
+  String get pushContentGone => 'Bu içerik artık mevcut değil.';
+
+  @override
+  String get sessionEndedFormClosed =>
+      'Oturumun sona erdiği için açık sayfa kapatıldı. Yazdıkların kaydedilmedi.';
+
+  @override
+  String get formDiscardTitle => 'Yazdıkların silinsin mi?';
+
+  @override
+  String get formDiscardBody => 'Çıkarsan girdiğin bilgiler kaybolur.';
+
+  @override
+  String get formDiscardConfirm => 'Sil ve çık';
+
+  @override
+  String get formDiscardKeep => 'Düzenlemeye devam et';
+
+  @override
+  String get g4ChatJumpMissing =>
+      'Bu mesaj artık mevcut değil veya yüklenemedi.';
+
+  @override
+  String get shareKindProfile => 'Profil';
+
+  @override
+  String get shareChatProfileShared => 'Profil paylaştı';
+
+  @override
+  String get profileShareAction => 'Profili paylaş';
+
+  @override
+  String get profileQrMyCode => 'QR kodum';
+
+  @override
+  String get profileQrHint =>
+      'Bu kodu okutan kişi profilini BÜ Kampüs uygulamasında görür. Telefonun kamerası da okuyabilir.';
+
+  @override
+  String get profileQrShareImage => 'Görsel olarak paylaş';
+
+  @override
+  String get profileQrImageFailed =>
+      'Görsel hazırlanamadı. Bağlantıyı paylaşabilirsin.';
+
+  @override
+  String get profileQrLoadFailed => 'QR kodu şu an hazırlanamadı.';
+
+  @override
+  String get profileQrScan => 'QR tara';
+
+  @override
+  String get profileQrScanTitle => 'Profil QR kodunu tara';
+
+  @override
+  String get profileQrScanHint =>
+      'Bir BÜ Kampüs profil kodunu çerçeveye hizala.';
+
+  @override
+  String get profileQrInvalid => 'Bu bir BÜ Kampüs profil kodu değil.';
+
+  @override
+  String get profileQrOpenSettings => 'Ayarları aç';
+
+  @override
+  String get profileQrGallery => 'Galeriden seç';
+
+  @override
+  String get profileQrGalleryNone => 'Görselde QR kod bulunamadı.';
+
+  @override
+  String get profileQrMyProfile => 'Bu senin kodun, profiline gidiliyor.';
+
+  @override
+  String get profileQrFindMe => 'Beni BÜ Kampüs’te bul';
 }

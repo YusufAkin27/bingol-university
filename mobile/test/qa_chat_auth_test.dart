@@ -100,7 +100,9 @@ void main() {
         expect(await res, isFalse);
       });
       await settle(tester);
-      expect(find.byType(NotificationsPage), findsOneWidget);
+      // Silinmis/erisilemeyen hedef (404): alakasiz listeye dusmek yerine "icerik artik yok" toast'i (G7, push_router).
+      expect(find.byType(NotificationsPage), findsNothing);
+      expect(find.text('Bu içerik artık mevcut değil.'), findsOneWidget);
       await unmount(tester);
     });
   });

@@ -367,6 +367,11 @@ class ChatRealtime with WidgetsBindingObserver {
   @visibleForTesting
   void debugEmitMessage(Map<String, dynamic> m) => _onMessage(m);
 
+  /// Yalnız testler: eski `read-receipts` olayını taklit eder.
+  @visibleForTesting
+  void debugEmitReadReceipt(int conversationId, int userId, int lastMessageId) =>
+      _reads.add(ReadReceipt(conversationId, userId, lastMessageId));
+
   /// Yalnız testler: bağlantı durumu değişimini taklit eder (`connected` akışı + `resync`).
   @visibleForTesting
   void debugEmitConnected(bool on) {

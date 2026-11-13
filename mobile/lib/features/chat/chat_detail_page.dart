@@ -1,5 +1,6 @@
 import '../../core/analytics.dart';
 import 'dart:async';
+import 'dart:io' show File;
 
 import '../../core/push/active_conversation.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, debugPrint;
@@ -20,6 +21,10 @@ import '../../core/platform/video_service.dart';
 import '../../core/realtime/chat_realtime.dart';
 import '../../core/realtime/stomp_client.dart' show StompFatal;
 import '../../core/session.dart';
+import '../../core/transfers/transfer_hub.dart';
+import '../../core/transfers/transfer_job.dart';
+import '../../core/transfers/transfer_queue.dart';
+import 'chat_transfer.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/bu.dart';
 import '../../widgets/common.dart';
@@ -86,6 +91,12 @@ class _VideoPrepareDialog extends StatelessWidget {
   }
 }
 
+final Map<String, ({int upTo, DateTime at})> _chatSeenAt = {};
+
+/// Testler arası sızıntıyı önlemek için (oturum içi "görülme anı" haritasını boşaltır).
+@visibleForTesting
+void debugResetChatSeen() => _chatSeenAt.clear();
+
 /// Sohbet detayı: mesaj geçmişi (imleçli), iyimser gönderim, yanıt/düzenle/sil/tepki, görsel gönderme.
 /// Gerçek zamanlı (STOMP) çalışır; bağlı değilken 4 sn'lik `after` yoklamasına düşer.
 class ChatDetailPage extends StatefulWidget {
@@ -102,6 +113,7 @@ class ChatDetailPage extends StatefulWidget {
     @visibleForTesting this.videoService,
     @visibleForTesting this.ensureAccess,
     @visibleForTesting this.videoControllerFactory,
+    @visibleForTesting this.transferQueue,
   });
 
   final Session session;
@@ -132,6 +144,9 @@ class ChatDetailPage extends StatefulWidget {
 
   /// Testlerde sahte oynatıcı denetleyicisi.
   final VideoControllerFactory? videoControllerFactory;
+
+  /// Testlerde aktarım kuyruğu (yoksa uygulama genelindeki `TransferHub` kuyruğu).
+  final TransferQueue? transferQueue;
 
   /// Yalnız testler: kurulan balon sayısı (gereksiz yeniden kurulum denetimi, A5-04).
   @visibleForTesting
@@ -197,13 +212,19 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   final _searchCtl = TextEditingController();
   final _searchFocus = FocusNode();
 
-  /// Karşı tarafın okuduğu son mesaj id'si ve "yazıyor" göstergesi (yalnız ilgili widget'ları yeniler).
-  final _peerRead = ValueNotifier<int>(0);
-
   /// Okundu bilgisinin YAKLAŞIK zamanı: sunucu mesaj görünümünde readAt vermez, bu yüzden
   /// canlı `receipt` olayının istemciye ulaştığı an saklanır (oturum içi, bellekte).
   /// Sayfaya yeniden girince/ilk yüklemede bilinmez; durum yazısı zamansız "Görüldü" kalır.
-  static final Map<int, ({int upTo, DateTime at})> _seenAtByConv = {};
+  /// Anahtar `hesap:sohbet` (I4-11): hesap değişince başka hesabın görülme anı gösterilmez.
+  Map<String, ({int upTo, DateTime at})> get _seenAtByConv => _chatSeenAt;
+
+  String get _seenKey => '$_myId:$_cid';
+
+  /// Uygulama yaşam döngüsü durumu: okundu imleci yalnız ön plandayken (`resumed`) gider (I4-02).
+  AppLifecycleState _life = AppLifecycleState.resumed;
+
+  /// Okundu imleci engellendiyse (arka plan / üstte başka sayfa / kullanıcı yukarıda) true: koşul düzelince yeniden denenir.
+  bool _readPending = false;
 
   /// `around` penceresi açıkken konuşmanın gerçek en güncel mesajı bellekte olmayabilir (durum yazısı gizlenir).
   bool _newerGap = false;
@@ -342,7 +363,179 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     _input.addListener(_onInput);
     ClosedConversations.instance.addListener(_onClosedChanged);
     _watchOutbox();
+    _watchTransfers();
     _boot();
+  }
+
+  // ---------- Medya aktarım kuyruğu (G10) ----------
+
+  TransferQueue? get _tq {
+    final q = widget.transferQueue ?? TransferHub.instance.queue;
+    return q != null && q.owner == _myId ? q : null;
+  }
+
+  StreamSubscription<List<TransferJob>>? _tqSub;
+  StreamSubscription<Map<String, dynamic>>? _tPubSub;
+  final _tProgress = <String, ValueNotifier<double>>{};
+
+  void _watchTransfers() {
+    final q = _tq;
+    if (q == null) return;
+    _tPubSub = ChatTransfers.published.listen((res) {
+      if (!mounted || (res['conversationId'] as num?)?.toInt() != _cid) return;
+      setState(() => _merge([res]));
+      _changed = true;
+    });
+    _tqSub = q.watch(targetKey: ChatTransfers.targetKey(_cid)).listen(_onTransfers);
+  }
+
+  /// Aktarım işlerini balonlara yansıtır: ilerleme tek kaynaktan (iş), yeniden açılışta balon geri gelir.
+  /// Durum eşlemesi: sırada/aktarılıyor/sunucuda işleniyor = "gönderiliyor"; hata = "gönderilemedi"; yalnız sunucu
+  /// mesaj kimliği dönünce (published) mesaj gönderildi sayılır. İptal = balon kalkar.
+  void _onTransfers(List<TransferJob> jobs) {
+    if (!mounted || _loading) return;
+    var dirty = false;
+    for (final j in jobs) {
+      if (j.kind != TransferKind.chatMedia) continue;
+      final i = _msgs.indexWhere((m) => '${m['clientId']}' == j.id);
+      Map<String, dynamic>? m = i < 0 ? null : _msgs[i];
+      if (m != null && m['id'] != null && m['_transfer'] != true) continue; // sunucu mesajı zaten listede
+      if (m == null) {
+        if (j.status == TransferStatus.published || j.status == TransferStatus.canceled) continue;
+        m = _bubbleForJob(j);
+        _msgs.add(m);
+        _msgs.sort((a, b) => _key(b).compareTo(_key(a)));
+        dirty = true;
+      }
+      switch (j.status) {
+        case TransferStatus.canceled:
+          _msgs.remove(m);
+          _disposeProgress(j.id);
+          dirty = true;
+        case TransferStatus.failed:
+          if (m['_state'] != 'failed') {
+            m['_state'] = 'failed';
+            m['_error'] = null;
+            dirty = true;
+          }
+        case TransferStatus.published:
+          final id = int.tryParse(j.publishedRef ?? '');
+          if (id != null && m['id'] == null) {
+            // Sunucu mesaj kimliğini döndürdü: artık "gönderildi" (karşıya ulaştı/okundu ayrı `receipt` olaylarıdır).
+            m['id'] = id;
+            m['status'] = 'SENT';
+            m['_state'] = null;
+            m['_transfer'] = false;
+            _disposeProgress(j.id);
+            dirty = true;
+            unawaited(_poll(force: true)); // tam sunucu mesajı (ekler, saat) gelsin
+          }
+        default:
+          if (m['_state'] != 'pending') {
+            m['_state'] = 'pending';
+            m['_error'] = null;
+            dirty = true;
+          }
+          final f = j.fraction;
+          final n = _tProgress[j.id];
+          if (n != null && f != null && f > n.value) n.value = f;
+      }
+    }
+    if (dirty) setState(() {});
+  }
+
+  /// Yükleme bittikten sonra kuyrukta bekleyen/hatalı işleri balon olarak geri getirir.
+  void _syncTransfers() {
+    final q = _tq;
+    if (q != null) _onTransfers(q.jobsFor(targetKey: ChatTransfers.targetKey(_cid)));
+  }
+
+  void _disposeProgress(String id) {
+    final n = _tProgress.remove(id);
+    if (n != null) {
+      // Balon son kez çizilirken hâlâ dinliyor olabilir: kareden sonra bırak.
+      WidgetsBinding.instance.addPostFrameCallback((_) => n.dispose());
+    }
+  }
+
+  /// Süreç yeniden açılınca kuyruktaki işten yerel balon kurar (önizleme: görsel dosyası ya da video posteri).
+  Map<String, dynamic> _bubbleForJob(TransferJob j) {
+    final isVideo = j.mime.startsWith('video/');
+    Uint8List? thumb;
+    try {
+      final path = isVideo ? j.meta['posterPath'] as String? : j.localPath;
+      if (path != null && j.meta['viewOnce'] != true) {
+        final f = File(path);
+        if (f.existsSync() && f.lengthSync() < 4 * 1024 * 1024) thumb = f.readAsBytesSync();
+      }
+    } catch (_) {
+      // Önizleme en iyi çaba.
+    }
+    final progress = _tProgress.putIfAbsent(j.id, () => ValueNotifier<double>(j.fraction ?? 0));
+    final m = <String, dynamic>{
+      'id': null,
+      'clientId': j.id,
+      'senderId': _myId,
+      'text': (j.meta['text'] as String?) ?? '',
+      'createdAt': j.createdAt.toUtc().toIso8601String(),
+      'replyToMessageId': (j.meta['replyToMessageId'] as num?)?.toInt(),
+      '_state': 'pending',
+      '_transfer': true,
+      '_seq': _seq++,
+      if (j.meta['viewOnce'] == true) '_viewOnce': true,
+    };
+    if (j.meta['viewOnce'] != true) {
+      m['_localItems'] = [
+        {
+          'bytes': thumb,
+          'video': isVideo,
+          'durationMs': (j.meta['durationMs'] as num?)?.toInt(),
+        }
+      ];
+      if (thumb != null) m['_bytes'] = thumb;
+      if (isVideo) {
+        m
+          ..['_isVideo'] = true
+          ..['_durationMs'] = (j.meta['durationMs'] as num?)?.toInt()
+          ..['_vw'] = (j.meta['width'] as num?)?.toInt()
+          ..['_vh'] = (j.meta['height'] as num?)?.toInt()
+          ..['_progress'] = progress;
+      }
+    }
+    return m;
+  }
+
+  /// Tek eki G10 kuyruğuna alır (varsa). Başarılıysa true: gönderim sayfadan bağımsız sürer. Çok ekli mesajlar,
+  /// kuyruk yoksa ya da kuyruğa alma başarısızsa false (eski yol: sayfa içi yükleme / Outbox).
+  Future<bool> _enqueueTransfer(Map<String, dynamic> local) async {
+    final q = _tq;
+    final ups = _uploadsOf(local);
+    if (q == null || ups.length != 1 || ups.first['attId'] != null) return false;
+    final u = ups.first;
+    final cid = '${local['clientId']}';
+    // İlerleme bildirimcisi balonla paylaşılır (video balonu `_progress` dinler).
+    final n = _tProgress.putIfAbsent(cid, () => ValueNotifier<double>(0));
+    final oldProgress = local['_progress'];
+    if (u['video'] != null) local['_progress'] = n;
+    final ok = await ChatTransfers.enqueue(
+      q,
+      ownerUserId: _myId!,
+      conversationId: _cid,
+      clientId: cid,
+      text: (local['text'] as String?) ?? '',
+      replyToMessageId: (local['replyToMessageId'] as num?)?.toInt(),
+      viewOnce: local['_viewOnce'] == true,
+      image: u['image'] as PreparedImage?,
+      video: u['video'] as PreparedVideo?,
+    );
+    if (!ok) {
+      _tProgress.remove(cid)?.dispose();
+      local['_progress'] = oldProgress;
+      return false;
+    }
+    local['_transfer'] = true;
+    if (mounted) setState(() => local['_state'] = 'pending');
+    return true;
   }
 
   // ---------- Çevrimdışı kuyruk (Outbox) ----------
@@ -483,6 +676,11 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     _typingOff?.cancel();
     _hiOff?.cancel();
     _deliverySub?.cancel();
+    _tqSub?.cancel();
+    _tPubSub?.cancel();
+    for (final n in _tProgress.values) {
+      n.dispose();
+    }
     _outbox?.removeListener(_onOutboxChanged);
     ClosedConversations.instance.removeListener(_onClosedChanged);
     for (final tm in _noticeTimers.values) {
@@ -501,7 +699,6 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     }
     // WS ack zamanlayıcıları artık Outbox'tadır (sayfadan bağımsız); yalnız yedek yoldakiler yukarıda iptal edilir.
     _ownRt?.dispose();
-    _peerRead.dispose();
     _typingNow.dispose();
     _input.removeListener(_onInput);
     _input.dispose();
@@ -512,9 +709,11 @@ class _ChatDetailPageState extends State<ChatDetailPage>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    _life = state;
     if (state == AppLifecycleState.resumed) {
       _startTimer();
       _poll(force: true);
+      _markRead(); // arka planda biriken mesajlar ancak şimdi okunmuş sayılır
     } else {
       _timer?.cancel();
       _timer = null;
@@ -577,6 +776,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       _startTimer();
       _loadPresence();
       _startRealtime();
+      _syncTransfers();
     } catch (e) {
       if (!mounted) return;
       // Çıkarıldık/ayrıldık (404 CONVERSATION_NOT_FOUND): önbellekli açılış 404'ü yutmaz, sayfa kapanır.
@@ -695,6 +895,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     final away = _scroll.position.pixels > 200;
     if (_showDown.value != away) _showDown.value = away;
     if (!away && _newBelow.value != 0) _newBelow.value = 0;
+    if (!away && _readPending) _markRead();
   }
 
   Future<void> _loadOlder() async {
@@ -725,10 +926,17 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   /// bağlı değilken her turda `after` ile yeni mesajlar çekilir.
   Future<void> _poll({bool force = false}) async {
     if (_polling || _loading || _error != null || !mounted || _leaving) return;
+    if (_readPending) _markRead(); // engel kalktıysa (öne dönüş, alta inme) imleç gecikmeden gider
     // Üstte başka sayfa (profil, medya, bilgi...) varken arka planda yoklama yapılmaz; geri dönünce sıradaki tur çalışır.
     if (!force && _route != null && !_route!.isCurrent) return;
     _tick++;
-    if (_rtOn && !force && _tick % 5 != 0 && !(_tick % 2 == 0 && _awaitingPeerReceipt)) return;
+    if (_rtOn &&
+        !force &&
+        !_newerGap &&
+        _tick % 5 != 0 &&
+        !(_tick % 2 == 0 && _awaitingPeerReceipt)) {
+      return;
+    }
     // Çevrimdışıyken her 4 sn'de ölü ağa vurma (pil): yaklaşık 30 sn'de bir dener; bağlantı gelince STOMP/öne gelme
     // `force` ile hemen tetikler.
     if (!force && !_api.connectivity.online && _tick % 8 != 0) return;
@@ -748,9 +956,15 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         added = r.added > 0 || added;
         changed = r.changed || changed;
       }
+      if (_newerGap) {
+        // `around` penceresinden sonra boşluk kapanmadıysa (ağ hatası) her turda yeniden dene (I4-03).
+        final r = await _fetchAfter();
+        added = r.added > 0 || added;
+        if (mounted && r.complete) setState(() => _newerGap = false);
+      }
       if (_tick % 8 == 0) _loadPresence();
       if (mounted) {
-        if (added) _markRead();
+        if (added || _readPending) _markRead();
         _scheduleDelivered();
       }
     } catch (e) {
@@ -804,15 +1018,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         if (id == _cid) _onRemovedFromConversation();
       }),
       _rt.messages.listen(_onRtMessage),
-      _rt.readReceipts.listen((r) {
-        if (r.conversationId == _cid && r.userId != _myId) {
-          _advanceStatus(r.lastMessageId, 'READ');
-          if (r.lastMessageId > _peerRead.value) {
-            _seenAtByConv[_cid] = (upTo: r.lastMessageId, at: DateTime.now());
-            _peerRead.value = r.lastMessageId;
-          }
-        }
-      }),
+      // Eski `read-receipts` olayı DİNLENMEZ (I4-01): okuyan her üye için ve gölge engel süzülmeden gelir, tek üyenin
+      // okuması "Görüldü" gösterirdi. "Görüldü" yalnız sunucunun hesapladığı `receipt`/`status=READ` bilgisine dayanır
+      // (birebirde karşı taraf, grupta politika; gölge engelde hiç READ üretilmez).
       _rt.receipts.listen((e) {
         if (e.conversationId == _cid) {
           _advanceStatus(e.upToMessageId, e.effectiveStatus);
@@ -919,6 +1127,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         m['status'] = status;
         changed = true;
       }
+    }
+    if (status == 'READ' && changed) {
+      _seenAtByConv[_seenKey] = (upTo: upTo, at: DateTime.now());
     }
     if (kDebugMode) debugPrint('[receipt] detail cid=$_cid upTo=$upTo $status changed=$changed');
     if (changed && mounted) setState(() {});
@@ -1139,9 +1350,29 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     }
   }
 
+  /// Okundu imleci yalnız kullanıcı gerçekten bakıyorsa gider: uygulama ön planda, bu sohbet en üst rota ve liste
+  /// alt uçta (yukarı kaydırılmışsa yeni mesajlar "N yeni mesaj" sayacında kalır, okunmamış sayılır).
+  bool get _canMarkRead {
+    if (_life != AppLifecycleState.resumed) return false;
+    if (!mounted) return false;
+    if (ModalRoute.of(context)?.isCurrent == false) return false;
+    return !_showDown.value;
+  }
+
+  @visibleForTesting
+  bool get debugReadPending => _readPending;
+
   Future<void> _markRead() async {
     final id = _newestServerId;
-    if (id == null || id <= _lastRead) return;
+    if (id == null || id <= _lastRead) {
+      _readPending = false;
+      return;
+    }
+    if (!_canMarkRead) {
+      _readPending = true;
+      return;
+    }
+    _readPending = false;
     _lastRead = id;
     _changed = true;
     if (_rtOn && _rt.sendRead(_cid, id)) return;
@@ -1231,6 +1462,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
             e.status == OutboxStatus.pending &&
             !_rt.isAwaitingAck(e.clientId)) ??
         false;
+    // Tek ekli medya mesajı: G10 kalıcı aktarım kuyruğu (sayfa kapansa da sürer, ilerleme tek kaynaktan).
+    if (uploads.length == 1 && await _enqueueTransfer(local)) return;
     // Bağlantı yok: fotoğraf/video yerel kuyruğa alınır, bağlantı gelince kendiliğinden yüklenip gider.
     // Balon normal "gönderiliyor" görünür (bekliyor/kuyrukta metni yok).
     if (uploads.isNotEmpty &&
@@ -1451,6 +1684,17 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     });
     final ob = _outbox;
     final cid = '${m['clientId']}';
+    if (m['_transfer'] == true) {
+      final q = _tq;
+      if (q != null && await q.retry(cid)) return;
+      if (mounted) {
+        setState(() {
+          m['_state'] = 'failed';
+          m['_error'] = null;
+        });
+      }
+      return;
+    }
     if (ob != null && ob.contains(cid)) {
       // Kuyruktaki öğe: kuyruk yeniden dener (aynı clientId, çift mesaj olmaz).
       m['_queued'] = true;
@@ -1874,7 +2118,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     }
   }
 
-  /// Alıntılanan mesaja kaydırır ve kısa süre vurgular (yüklü değilse sessizce geçer).
+  /// Alıntılanan mesaja kaydırır ve kısa süre vurgular. Hedef yüklenemez/silinmişse kullanıcıya söylenir; vurgu yalnız
+  /// satır gerçekten kurulduysa verilir (I4-06).
   Future<void> _jumpTo(int id) async {
     var ctx = _rowKeys[id]?.currentContext;
     if (ctx == null) {
@@ -1884,20 +2129,31 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         await _loadAround(id);
         idx = _msgs.indexWhere((e) => (e['id'] as num?)?.toInt() == id);
       }
-      if (idx < 0 || !_scroll.hasClients) return;
+      if (!mounted) return;
+      if (idx < 0) {
+        _toast(context.l10n.g4ChatJumpMissing);
+        return;
+      }
+      if (!_scroll.hasClients) return;
       final target = (idx * 76.0).clamp(0.0, _scroll.position.maxScrollExtent);
       await _scroll.animateTo(target,
           duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
-      await WidgetsBinding.instance.endOfFrame;
+      // Satır tahmini konuma kurulana dek birkaç kare bekle (sabit 76 px tahmini yaklaşıktır).
+      for (var i = 0; i < 6 && mounted; i++) {
+        await WidgetsBinding.instance.endOfFrame;
+        ctx = _rowKeys[id]?.currentContext;
+        if (ctx != null) break;
+      }
       if (!mounted) return;
-      ctx = _rowKeys[id]?.currentContext;
     }
-    if (ctx != null && ctx.mounted) {
-      await Scrollable.ensureVisible(ctx,
-          alignment: .5,
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOut);
+    if (ctx == null || !ctx.mounted) {
+      _toast(context.l10n.g4ChatJumpMissing);
+      return;
     }
+    await Scrollable.ensureVisible(ctx,
+        alignment: .5,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut);
     if (!mounted) return;
     _hi.value = id;
     _hiOff?.cancel();
@@ -2260,6 +2516,14 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       case 'drop':
         final ob = _outbox;
         if (ob != null) await ob.remove('${m['clientId']}');
+        if (m['_transfer'] == true) {
+          final q = _tq;
+          final jid = '${m['clientId']}';
+          if (q != null) {
+            // Yüklenmiş ama gönderilmemiş ek sunucudan silinir; sonlanmış kayıt listeden kalkar.
+            if (!await q.cancel(jid)) await q.dismiss(jid);
+          }
+        }
         if (mounted) setState(() => _msgs.remove(m));
     }
   }
@@ -3090,10 +3354,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     }
     return Stack(children: [
       Positioned.fill(
-        child: ValueListenableBuilder<int>(
-          valueListenable: _peerRead,
-          builder: (c, peerRead, _) => _list(t, peerRead),
-        ),
+        child: _list(t),
       ),
       PositionedDirectional(end: 20, bottom: 12, child: _downButton(t)),
     ]);
@@ -3244,7 +3505,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     }
   }
 
-  Widget _list(BuTokens t, int peerRead) {
+  Widget _list(BuTokens t) {
     // findChildIndexCallback için kimlik -> konum (yapı başına bir kez).
     final indexOf = <String, int>{
       for (var i = 0; i < _msgs.length; i++) _rowId(_msgs[i]): i,
@@ -3299,7 +3560,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
             final id = (m['id'] as num?)?.toInt();
             final row = Padding(
                 padding: EdgeInsets.only(top: tight ? 3 : 10),
-                child: _rowFor(t, m, i, peerRead));
+                child: _rowFor(t, m, i));
             return Column(key: ValueKey<String>(_rowId(m)), children: [
               if (newDay) _dayChip(t, _dayLabel(_time(m)!)),
               id == null
@@ -3346,8 +3607,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
 
   /// Satır: gelen mesajlarda solda 28 px avatar sütunu (yalnız serinin son mesajında avatar görünür,
   /// baloncuğun altına hizalı); giden mesajlarda yalnız baloncuk.
-  Widget _rowFor(BuTokens t, Map<String, dynamic> m, int i, int peerRead) {
-    final bubble = _bubble(m, peerRead,
+  Widget _rowFor(BuTokens t, Map<String, dynamic> m, int i) {
+    final bubble = _bubble(m,
         first: _firstOfRun(i), last: _lastOfRun(i), latest: i == 0);
     final mine = _isMine(m) || m['_state'] != null;
     // Birebir sohbette gelen mesajların yanında avatar YOK (Stitch v3 referansı); grup/kulüp/etkinlikte gönderen avatarı.
@@ -3376,13 +3637,13 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   /// Menü önizlemesi için: mesajı listedeki konumuna göre kurar.
   Widget _bubbleFor(Map<String, dynamic> m, {bool preview = false}) {
     final i = _msgs.indexOf(m);
-    return _bubble(m, _peerRead.value,
+    return _bubble(m,
         first: i < 0 || _firstOfRun(i),
         last: i < 0 || _lastOfRun(i),
         preview: preview);
   }
 
-  Widget _bubble(Map<String, dynamic> m, int peerRead,
+  Widget _bubble(Map<String, dynamic> m,
       {bool first = true,
       bool last = true,
       bool preview = false,
@@ -3406,8 +3667,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       if (st == 'pending') {
         statusLine = 'sending';
       } else if (st == null && id != null) {
-        statusLine = (id <= peerRead || m['status'] == 'READ') ? 'seen' : 'sent';
-        final rec = _seenAtByConv[_cid];
+        statusLine = m['status'] == 'READ' ? 'seen' : 'sent';
+        final rec = _seenAtByConv[_seenKey];
         if (statusLine == 'seen') {
           // Sunucu okunma zamanını (MessageView.readAt, yalnız gönderene) verirse o kesindir; yoksa canlı olay anı (yaklaşık).
           final srv = DateTime.tryParse('${m['readAt'] ?? ''}');

@@ -221,13 +221,14 @@ void main() {
       return (b, deleted);
     }
 
-    testWidgets('baskasinin menusu (Stitch v3 05): alt sayfa, Profili gor / Sikayet et / Engelle, 56 dp satirlar (kaydet/paylas/kopyala yok)', (tester) async {
+    testWidgets('baskasinin menusu (Stitch v3 05): alt sayfa, Profili gor / Sikayet et / Engelle, 56 dp satirlar (Kaydet var - G3; paylas/kopyala yok)', (tester) async {
       await open(tester, post());
       await tester.tap(find.byKey(const ValueKey('post-menu-button')));
       await settle(tester, const Duration(milliseconds: 900));
       expect(find.byKey(const ValueKey('post-act-profile')), findsOneWidget);
       expect(find.byKey(const ValueKey('post-act-report')), findsOneWidget);
       expect(find.byKey(const ValueKey('post-act-block')), findsOneWidget);
+      expect(find.byKey(const ValueKey('post-act-save')), findsOneWidget); // G3: gonderi kaydetme menude
       expect(find.byKey(const ValueKey('post-act-edit')), findsNothing);
       expect(find.text('Şikâyet et'), findsOneWidget);
       for (final id in ['profile', 'report', 'block']) {
@@ -236,7 +237,7 @@ void main() {
       // Alt sayfa: ekranin alt yarisinda, tam genislikte.
       expect(tester.getRect(find.byKey(const ValueKey('post-act-report'))).width, 390);
       expect(tester.getRect(find.byKey(const ValueKey('post-act-report'))).top, greaterThan(422));
-      for (final s in ['Kaydet', 'Paylaş', 'Bağlantıyı kopyala']) {
+      for (final s in ['Paylaş', 'Bağlantıyı kopyala']) {
         expect(find.text(s), findsNothing);
       }
       await tester.tapAt(const Offset(195, 60)); // karartma: kapat

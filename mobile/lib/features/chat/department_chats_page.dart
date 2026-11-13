@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/icons/bu_icons.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -136,7 +137,7 @@ class _DepartmentChatsPageState extends State<DepartmentChatsPage> {
             onChanged: (_) => setState(() {}),
             decoration: InputDecoration(
               hintText: l.deptChatSearch,
-              prefixIcon: const Icon(Icons.search),
+              prefixIcon: const Icon(BuIcons.search),
             ),
           ),
         ),

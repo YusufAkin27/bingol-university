@@ -9,7 +9,7 @@ import 'comment_tree.dart';
 import 'forum_sheet_row.dart';
 
 /// Yorum eylem sayfasındaki seçenekler.
-enum CommentAction { reply, edit, delete, copy, share, like, save, report, block }
+enum CommentAction { reply, edit, delete, copy, share, like, save, report, block, modRemove }
 
 /// Gösterilecek eylemler (sıralı). Yetki yalnız GÖSTERİM içindir (`mine`); sunucu yine reddeder.
 /// Tehlikeli eylemler (sil / şikâyet / engelle) listenin sonunda, ayrı bir blokta ve uyarı renginde durur.
@@ -25,10 +25,12 @@ List<CommentAction> commentActionsFor(CommentNode n, {required bool canReply}) {
     if (n.mine) CommentAction.delete,
     if (!n.mine) CommentAction.report,
     if (!n.mine) CommentAction.block,
+    // Moderatör kaldırması: yalnız GÖSTERİM; sunucu `forum.moderate` iznini yine doğrular.
+    if (n.canModerate && !n.mine) CommentAction.modRemove,
   ];
 }
 
-bool _danger(CommentAction a) => a == CommentAction.delete || a == CommentAction.report || a == CommentAction.block;
+bool _danger(CommentAction a) => a == CommentAction.delete || a == CommentAction.report || a == CommentAction.block || a == CommentAction.modRemove;
 
 /// Yorum için alt sayfa (uzun basma / ⋯). Seçilen eylemi döner, vazgeçilirse null.
 /// Hafif titreşim (selectionClick), yuvarlak üst köşe ([BuSheet]), koyu mod uyumlu.
@@ -96,6 +98,7 @@ class _Row extends StatelessWidget {
         node.savedByMe ? (BuIcons.bookmarkFilled, l.forumCommentActionUnsave) : (BuIcons.bookmark, l.forumCommentActionSave),
       CommentAction.report => (BuIcons.flag, l.forumCommentActionReport),
       CommentAction.block => (BuIcons.ban, l.forumCommentActionBlock),
+      CommentAction.modRemove => (BuIcons.shieldAlert, l.forumModRemoveAction),
     };
     return ForumSheetRow<CommentAction>(
       key: ValueKey('commentAction-${action.name}'),

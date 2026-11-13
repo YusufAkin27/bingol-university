@@ -159,19 +159,22 @@ void main() {
     expect(b.items, isEmpty);
   });
 
-  test('oturum kapanisi (setTokens null) kuyrugu ve depoyu temizler', () async {
+  test('oturum kapanisi (setTokens null): bekleyen mesaj hesabina bagli kalir, gonderilmez/gorunmez; clear() tamamen siler', () async {
     final store = MemoryOutboxStore();
     final api = ApiClient(
         client: MockClient((r) async => http.Response('{}', 200)), connectivity: ConnectivityService())
       ..tokens = Tokens('A', 'R');
     final ob = make(store: store);
     api.outbox = ob;
+    ob.bindOwner(1);
     ob.enqueue(conversationId: 1, clientId: 'a', text: 'gizli');
     await Future<void>.delayed(Duration.zero);
     expect(store.value, isNotNull);
     await api.setTokens(null);
     await Future<void>.delayed(Duration.zero);
-    expect(ob.items, isEmpty);
+    expect(ob.items, isEmpty); // oturum yok: gorunmez
+    expect(store.value, contains('"u":1')); // hesabina bagli, diskte
+    await ob.clear(); // tum hesaplardan cikis / hesap silme
     expect(store.value, isNull);
   });
 

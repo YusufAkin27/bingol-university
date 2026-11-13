@@ -232,3 +232,8 @@ iOS hedef: `mobile/ios/BUWidgets/` (token dosyası `Shared/BuWidgetTokens.swift`
 ## 11. Sürümleme
 
 `schema: 1`. Yeni alan eklemek geriye uyumludur (widget yok sayar). Alan kaldırma/anlam değişimi → `schema: 2` ve widget'lar hem 1 hem 2'yi okumalıdır (en az bir sürüm boyunca). `kWidgetSchema` (Dart) + bu belge + şema dosyası birlikte güncellenir.
+
+## G9 ek alanlari (2026-11-09; sozlesme surumu DEGISMEZ, yalniz alan eklendi)
+- `bu_widget_meta.ownerUserId` (opsiyonel, int): snapshot'lari yazan hesap. Cikista/oturumsuzda YOKTUR. Yerel taraf, meta sahibi ile uyusmayan veriyi gostermemeyi buna dayandirabilir (su an yalniz Dart eslemesi hesap degisiminde eski turu yazmaz ve cikista her sey silinir).
+- Her snapshot `strings.stale` ("Eski veri" / "Old data" / "بيانات قديمة"): yerel taraf `generatedAt` 24 saatten eskiyse (cevrimdisi / uygulama acilmadi) baslik satirina ` · <stale>` ekler. Android uygular (`WidgetGate.isStale`); iOS UYGULAMASI BEKLIYOR (macOS derlemesi gerekir). Hizli erisim (quickaccess) hariç.
+- Gizlilik tercihi (Ayarlar > Ana ekran widgetlari): aciksa `timetable`, `exams`, `social` yerine icerik tasimayan `state:"empty"` kart yazilir (`strings.emptyTitle` = "Ayrıntılar gizli", `next:null`, `emptySmallSub` yok). Tercih cihaza ozel, `bu_widget_privacy` ("1"/"0"), cikista silinmez. Menu/etkinlik/duyuru/anket/akademik takvim herkese acik oldugu icin etkilenmez.

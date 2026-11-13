@@ -29,7 +29,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
       builder: (_) => DeleteConfirmSheet(session: widget.session),
     );
     if (done == true) {
-      await widget.session.signOut(remote: false);
+      await widget.session.signOut(remote: false, purgeQueue: true);
       if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
     }
   }

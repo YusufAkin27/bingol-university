@@ -209,7 +209,7 @@ void main() {
       await tester.enterText(_k('inline-bio-field'), 'Yeni');
       await _tap(tester, _k('inline-save'), 1200);
       expect(out.value['bio'], 'Yazılım ve satranç.');
-      expect(find.text('Bir sorun oluştu. Lütfen tekrar deneyin.'), findsWidgets);
+      expect(find.text('İşlem şu anda tamamlanamıyor. Lütfen biraz sonra tekrar deneyin.'), findsWidgets);
       await unmount(tester);
     });
   });

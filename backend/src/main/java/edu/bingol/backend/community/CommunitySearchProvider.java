@@ -10,7 +10,7 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Genel arama: yalnizca ACTIVE + PUBLIC topluluklar (ad/aciklama, ILIKE, parametreli). */
+/** Genel arama: ACTIVE + PUBLIC topluluklar, ayrica goruntuleyenin ACTIVE uyesi oldugu ozel kulupler (ad/aciklama, ILIKE, parametreli). */
 @Component
 public class CommunitySearchProvider implements SearchProvider {
 
@@ -30,7 +30,8 @@ public class CommunitySearchProvider implements SearchProvider {
     @Override
     @Transactional(readOnly = true)
     public List<SearchHit> search(String q, int limit) {
-        List<Community> found = communities.search(Texts.likePattern(q), Math.max(1, limit));
+        Long viewerId = CurrentUser.idOrNull();
+        List<Community> found = communities.search(Texts.likePattern(q), viewerId == null ? -1L : viewerId, Math.max(1, limit));
         if (found.isEmpty()) {
             return List.of();
         }

@@ -10,7 +10,7 @@ import '../../data/forum_models.dart';
 import 'forum_sheet_row.dart';
 
 /// Konu ⋯ menüsü seçenekleri.
-enum TopicMenuAction { edit, delete, notifications, share, pin, lock, report, block }
+enum TopicMenuAction { edit, delete, notifications, share, pin, lock, report, block, modRemove }
 
 /// Gösterilecek seçenekler (yetki yalnız GÖSTERİM; sunucu yine doğrular):
 /// sahip → düzenle / sil / bildirim aç-kapa / paylaş; moderatör → sabitle / kilitle; başkası → paylaş / şikâyet / engelle.
@@ -25,11 +25,13 @@ List<TopicMenuAction> topicMenuActions(TopicView t) {
     if (owner && t.canDelete) TopicMenuAction.delete,
     if (!owner) TopicMenuAction.report,
     if (!owner) TopicMenuAction.block,
+    if (t.canModerate && !owner) TopicMenuAction.modRemove,
   ];
 }
 
 bool _danger(TopicMenuAction a) =>
-    a == TopicMenuAction.delete || a == TopicMenuAction.report || a == TopicMenuAction.block;
+    a == TopicMenuAction.delete || a == TopicMenuAction.report || a == TopicMenuAction.block ||
+    a == TopicMenuAction.modRemove;
 
 Future<TopicMenuAction?> showTopicMenu(BuildContext context, TopicView topic) {
   final actions = topicMenuActions(topic);
@@ -52,6 +54,7 @@ Future<TopicMenuAction?> showTopicMenu(BuildContext context, TopicView topic) {
             TopicMenuAction.lock => topic.locked ? (BuIcons.lockOpen, l.forumDetailMenuUnlock) : (BuIcons.lock, l.forumDetailMenuLock),
             TopicMenuAction.report => (BuIcons.flag, l.forumDetailMenuReport),
             TopicMenuAction.block => (BuIcons.ban, l.forumDetailMenuBlock),
+            TopicMenuAction.modRemove => (BuIcons.shieldAlert, l.forumModRemoveAction),
           };
       final safe = actions.where((a) => !_danger(a)).toList();
       final danger = actions.where(_danger).toList();

@@ -258,4 +258,46 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 50));
     expect(store.data, isEmpty);
   });
+
+  test('G9: meta ownerUserId yazar; cikista meta sahibi tasimaz', () async {
+    s.userId = 77;
+    await WidgetSyncService.instance.syncNow();
+    expect(read('bu_widget_meta')['ownerUserId'], 77);
+    expect(read('bu_widget_menu')['strings']['stale'], 'Eski veri'); // yerel taraf eskiyince basliga ekler
+    await WidgetSyncService.instance.clear(lang: 'tr');
+    expect(read('bu_widget_meta').containsKey('ownerUserId'), isFalse);
+  });
+
+  test('G9: ucustaki esitleme, esitleme sirasinda cikis/hesap degisimi olursa hicbir sey YAZMAZ', () async {
+    final f = WidgetSyncService.instance.syncNow();
+    await WidgetSyncService.instance.clear(lang: 'tr'); // hesap degisimi: temizleyici cagrisi
+    await f;
+    expect(store.data.keys.toSet(), {'bu_widget_meta'});
+    expect(read('bu_widget_meta')['signedIn'], false);
+  });
+
+  test('G9: gizlilik tercihi acikken ders/sinav/sosyal icerik tasimaz, menu/etkinlik/duyuru normal kalir', () async {
+    await WidgetSyncService.instance.setHidePersonal(true);
+    await WidgetSyncService.instance.syncNow(only: WidgetSyncService.personalSlugs);
+    for (final slug in ['timetable', 'exams', 'social']) {
+      final snap = read('bu_widget_$slug');
+      expect(snap['state'], 'empty', reason: slug);
+      expect(snap['strings']['emptyTitle'], 'Ayrıntılar gizli', reason: slug);
+      expect(snap['strings'].containsKey('emptySmallSub'), isFalse, reason: slug);
+      final raw = store.data['bu_widget_$slug']!;
+      expect(raw.contains('Algoritma'), isFalse);
+      expect(raw.contains('B-204'), isFalse);
+    }
+    expect(read('bu_widget_timetable')['next'], isNull);
+    // Herkese acik widget'lar etkilenmez.
+    await WidgetSyncService.instance.syncNow(only: {WidgetSlug.menu, WidgetSlug.events});
+    expect(read('bu_widget_menu')['state'], 'ok');
+    expect(read('bu_widget_events')['state'], 'ok');
+    // Tercih cikista silinmez (cihaza ozel gizlilik secimi).
+    await WidgetSyncService.instance.clear(lang: 'tr');
+    expect(await WidgetSyncService.instance.hidePersonal(), isTrue);
+    // Kapatinca gercek veri geri gelir.
+    await WidgetSyncService.instance.setHidePersonal(false);
+    expect(read('bu_widget_timetable')['state'], 'ok');
+  });
 }

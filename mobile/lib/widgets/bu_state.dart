@@ -327,3 +327,17 @@ class BuOfflineBanner extends StatelessWidget {
     );
   }
 }
+
+/// Küçük, tek tip yükleniyor göstergesi (sayfalama sonu, satır içi, düğme dışı yerler): 20 dp, çizgi 2, `ink` renk.
+/// Tam sayfa/gövde ilk yüklemesinde bunun yerine iskelet ([BuSkeletonList]) kullanılır.
+class BuSpinner extends StatelessWidget {
+  const BuSpinner({super.key, this.size = 20});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        liveRegion: true,
+        child: SizedBox(width: size, height: size, child: CircularProgressIndicator(strokeWidth: 2, color: context.bu.ink)),
+      );
+}

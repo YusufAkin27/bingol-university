@@ -5,8 +5,9 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../forum/forum_routes.dart' show openForumHome;
 import '../forum/presentation/widgets/forum_entry_strip.dart';
+import '../posts/pending_posts_strip.dart';
 import '../posts/post_routes.dart';
-import '../search/global_search_screen.dart';
+import '../search/search_page.dart';
 import 'discover_masonry.dart';
 import 'discover_suggestions.dart';
 
@@ -64,7 +65,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
     if (widget.typeRequest.value != null) widget.typeRequest.value = null;
   }
 
-  void _openSearch() => Navigator.push(context, GlobalSearchScreen.route(widget.session));
+  void _openSearch() => Navigator.push(context, SearchPage.route(widget.session, initialTab: SearchTab.post));
 
   Future<void> _compose() async {
     final p = await openComposePost(context, widget.session);
@@ -84,6 +85,8 @@ class _DiscoverTabState extends State<DiscoverTab> {
         tabActive: widget.tabActive,
         header: Column(mainAxisSize: MainAxisSize.min, children: [
           _Header(top: MediaQuery.paddingOf(context).top, onSearch: _openSearch, onCompose: _compose),
+          // Bekleyen / başarısız paylaşımlarım (yalnız bende görünür; yayımlanınca gönderi akışın başına eklenir).
+          PendingPostsStrip(session: widget.session, onPublished: _controller.insertPost),
           // Kampüs Forum giriş şeridi (alt çubuğa 6. sekme eklenmez).
           Padding(
             padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.page, 0, BuSpace.page, BuSpace.md),

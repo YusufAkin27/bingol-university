@@ -4920,6 +4920,52 @@ class AppLocalizationsAr extends AppLocalizations {
   String get postComposeShared => 'تمت المشاركة';
 
   @override
+  String get g2PostQueued => 'المنشور في قائمة الانتظار';
+
+  @override
+  String g2PostUploading(String pct) {
+    return 'جارٍ رفع المنشور $pct';
+  }
+
+  @override
+  String get g2PostWaiting => 'بانتظار الاتصال، سيتابع عند عودته';
+
+  @override
+  String get g2PostPublishing => 'جارٍ النشر';
+
+  @override
+  String get g2PostFailed => 'تعذّر النشر';
+
+  @override
+  String get g2PostEdit => 'تعديل';
+
+  @override
+  String get g2PostRetry => 'أعد المحاولة';
+
+  @override
+  String get g2PostRemove => 'حذف';
+
+  @override
+  String get g2PostCancel => 'إلغاء';
+
+  @override
+  String get g2PostRemoveTitle => 'هل تريد حذف هذا المنشور؟';
+
+  @override
+  String get g2PostRemoveBody =>
+      'سيتم حذف النص الذي كتبته والملفات التي اخترتها.';
+
+  @override
+  String get g2PostQueuedToast => 'يتم إرسال منشورك في الخلفية.';
+
+  @override
+  String get g2PostErrFiles =>
+      'لم يتم العثور على الملفات. عدّل المنشور وحاول مجدداً.';
+
+  @override
+  String get g2PostPending => 'منشور قيد الانتظار';
+
+  @override
   String get postComposeDiscardTitle => 'هل تريد حذف المسودة؟';
 
   @override
@@ -11650,6 +11696,30 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String forumCommentReplyContext(String name) {
+    return 'رد على $name';
+  }
+
+  @override
+  String get forumModRemoveAction => 'إزالة (مشرف)';
+
+  @override
+  String get forumModReasonTitle => 'إزالة المحتوى';
+
+  @override
+  String get forumModReasonBody =>
+      'يُرسل السبب إلى صاحب المحتوى ويُسجَّل في سجل الإشراف.';
+
+  @override
+  String get forumModReasonHint => 'السبب (3 أحرف على الأقل)';
+
+  @override
+  String get forumModRemoveConfirm => 'إزالة';
+
+  @override
+  String get forumModRemovedDone => 'تمت إزالة المحتوى.';
+
+  @override
   String get forumCommentHideReplies => 'إخفاء الردود';
 
   @override
@@ -14039,4 +14109,102 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get coreErrServiceUnavailable =>
       'يتعذر إكمال العملية حالياً. يرجى المحاولة لاحقاً.';
+
+  @override
+  String get chatMiscMoreAction => 'المزيد';
+
+  @override
+  String get chatMiscPeekOpen => 'فتح المحادثة';
+
+  @override
+  String get chatMiscPeekError => 'تعذر تحميل الرسائل.';
+
+  @override
+  String get chatMiscPeekEmpty => 'لا توجد رسائل بعد.';
+
+  @override
+  String get pushForeignSwitched =>
+      'كان هذا الإشعار يخص حسابًا آخر لديك، وتم التبديل إليه.';
+
+  @override
+  String get pushForeignMissing =>
+      'يخص هذا الإشعار حسابًا آخر غير محفوظ على هذا الجهاز.';
+
+  @override
+  String get pushForeignExpired =>
+      'يخص هذا الإشعار حسابًا انتهت جلسته. سيُفتح بعد تسجيل الدخول إليه.';
+
+  @override
+  String get pushContentGone => 'هذا المحتوى لم يعد متاحًا.';
+
+  @override
+  String get sessionEndedFormClosed =>
+      'انتهت جلستك فأُغلقت الصفحة المفتوحة. لم يتم حفظ ما كتبته.';
+
+  @override
+  String get formDiscardTitle => 'هل تريد تجاهل ما كتبته؟';
+
+  @override
+  String get formDiscardBody => 'إذا غادرت ستفقد المعلومات التي أدخلتها.';
+
+  @override
+  String get formDiscardConfirm => 'تجاهل وخروج';
+
+  @override
+  String get formDiscardKeep => 'متابعة التحرير';
+
+  @override
+  String get g4ChatJumpMissing => 'هذه الرسالة لم تعد متاحة أو تعذر تحميلها.';
+
+  @override
+  String get shareKindProfile => 'ملف شخصي';
+
+  @override
+  String get shareChatProfileShared => 'شارك ملفًا شخصيًا';
+
+  @override
+  String get profileShareAction => 'مشاركة الملف الشخصي';
+
+  @override
+  String get profileQrMyCode => 'رمز QR الخاص بي';
+
+  @override
+  String get profileQrHint =>
+      'من يمسح هذا الرمز يرى الملف الشخصي في BÜ Kampüs. يمكن لكاميرا الهاتف قراءته أيضًا.';
+
+  @override
+  String get profileQrShareImage => 'مشاركة كصورة';
+
+  @override
+  String get profileQrImageFailed => 'تعذر تجهيز الصورة. يمكنك مشاركة الرابط.';
+
+  @override
+  String get profileQrLoadFailed => 'تعذر تجهيز رمز QR الآن.';
+
+  @override
+  String get profileQrScan => 'مسح رمز QR';
+
+  @override
+  String get profileQrScanTitle => 'مسح رمز QR لملف شخصي';
+
+  @override
+  String get profileQrScanHint => 'وجّه رمز ملف BÜ Kampüs داخل الإطار.';
+
+  @override
+  String get profileQrInvalid => 'هذا ليس رمز ملف شخصي في BÜ Kampüs.';
+
+  @override
+  String get profileQrOpenSettings => 'فتح الإعدادات';
+
+  @override
+  String get profileQrGallery => 'اختيار من المعرض';
+
+  @override
+  String get profileQrGalleryNone => 'لم يتم العثور على رمز QR في الصورة.';
+
+  @override
+  String get profileQrMyProfile => 'هذا رمزك، سيتم فتح ملفك الشخصي.';
+
+  @override
+  String get profileQrFindMe => 'ابحث عني في BÜ Kampüs';
 }

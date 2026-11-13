@@ -366,11 +366,11 @@ class NotificationPushCard extends StatelessWidget {
                 child: Text('BU KAMPÜS', style: BuType.caption.copyWith(fontSize: 11, height: 1.2, fontWeight: FontWeight.w400, color: t.onPr)))
           else ...[
             Container(
-                width: 18,
-                height: 18,
+                width: 22,
+                height: 22,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(color: t.prPressed, shape: BoxShape.circle),
-                child: Text('BU', style: BuType.caption.copyWith(fontSize: 8, height: 1, fontWeight: FontWeight.w400, color: t.onPr))),
+                child: Text('BU', style: BuType.caption.copyWith(fontSize: 11, height: 1, fontWeight: FontWeight.w400, color: t.onPr))),
             const SizedBox(width: 6),
             Text('BU Kampüs', style: BuType.caption.copyWith(fontSize: 12, height: 1.2, fontWeight: FontWeight.w400, color: t.ink)),
           ],

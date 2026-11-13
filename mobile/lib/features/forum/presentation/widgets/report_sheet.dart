@@ -82,6 +82,16 @@ class _ReportBodyState extends State<_ReportBody> {
   bool _busy = false;
   bool _block = false;
   String? _error;
+  final _sendKey = GlobalKey();
+
+  /// Hata metni araya girince Gönder düğmesi sayfanın görünür alanından taşabilir: hata + düğme görünür kalsın.
+  void _revealError() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final c = _sendKey.currentContext;
+      if (!mounted || c == null) return;
+      Scrollable.ensureVisible(c, duration: Duration.zero, alignment: 1);
+    });
+  }
 
   @override
   void dispose() {
@@ -109,6 +119,7 @@ class _ReportBodyState extends State<_ReportBody> {
         _busy = false;
         _error = errorText(e);
       });
+      _revealError();
       return;
     } catch (e) {
       if (mounted) {
@@ -116,6 +127,7 @@ class _ReportBodyState extends State<_ReportBody> {
           _busy = false;
           _error = errorText(e);
         });
+        _revealError();
       }
       return;
     }
@@ -213,13 +225,15 @@ class _ReportBodyState extends State<_ReportBody> {
             child: Semantics(liveRegion: true, child: Text(_error!, key: const ValueKey('forum-report-error'), style: tx.bodySmall!.copyWith(color: t.danger))),
           ),
         const SizedBox(height: 14),
-        BuButton(
+        KeyedSubtree(
+          key: _sendKey,
+          child: BuButton(
           key: const ValueKey('forum-report-send'),
           label: l.reportSend,
           icon: BuIcons.send,
           busy: _busy,
           onPressed: (_busy || _reason == null) ? null : _submit,
-        ),
+        )),
         const SizedBox(height: 8),
       ],
     );

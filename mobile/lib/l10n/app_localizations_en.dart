@@ -4966,6 +4966,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String get postComposeShared => 'Shared';
 
   @override
+  String get g2PostQueued => 'Post queued';
+
+  @override
+  String g2PostUploading(String pct) {
+    return 'Uploading post $pct';
+  }
+
+  @override
+  String get g2PostWaiting => 'Waiting for connection, will continue when back';
+
+  @override
+  String get g2PostPublishing => 'Posting';
+
+  @override
+  String get g2PostFailed => 'Could not post';
+
+  @override
+  String get g2PostEdit => 'Edit';
+
+  @override
+  String get g2PostRetry => 'Try again';
+
+  @override
+  String get g2PostRemove => 'Delete';
+
+  @override
+  String get g2PostCancel => 'Cancel';
+
+  @override
+  String get g2PostRemoveTitle => 'Delete this post?';
+
+  @override
+  String get g2PostRemoveBody =>
+      'The text you wrote and the files you chose will be deleted.';
+
+  @override
+  String get g2PostQueuedToast => 'Your post is being sent in the background.';
+
+  @override
+  String get g2PostErrFiles => 'Files not found. Edit the post and try again.';
+
+  @override
+  String get g2PostPending => 'Pending post';
+
+  @override
   String get postComposeDiscardTitle => 'Discard the draft?';
 
   @override
@@ -11752,6 +11797,30 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String forumCommentReplyContext(String name) {
+    return 'Replying to $name';
+  }
+
+  @override
+  String get forumModRemoveAction => 'Remove (moderator)';
+
+  @override
+  String get forumModReasonTitle => 'Remove content';
+
+  @override
+  String get forumModReasonBody =>
+      'The reason is sent to the author and written to the moderation log.';
+
+  @override
+  String get forumModReasonHint => 'Reason (at least 3 characters)';
+
+  @override
+  String get forumModRemoveConfirm => 'Remove';
+
+  @override
+  String get forumModRemovedDone => 'Content removed.';
+
+  @override
   String get forumCommentHideReplies => 'Hide replies';
 
   @override
@@ -14149,4 +14218,108 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get coreErrServiceUnavailable =>
       'This action cannot be completed right now. Please try again later.';
+
+  @override
+  String get chatMiscMoreAction => 'More';
+
+  @override
+  String get chatMiscPeekOpen => 'Open chat';
+
+  @override
+  String get chatMiscPeekError => 'Could not load messages.';
+
+  @override
+  String get chatMiscPeekEmpty => 'No messages yet.';
+
+  @override
+  String get pushForeignSwitched =>
+      'This notification belonged to another of your accounts; switched to it.';
+
+  @override
+  String get pushForeignMissing =>
+      'This notification belongs to another account that is not saved on this device.';
+
+  @override
+  String get pushForeignExpired =>
+      'This notification belongs to an account whose session ended. It opens after you log in to it.';
+
+  @override
+  String get pushContentGone => 'This content is no longer available.';
+
+  @override
+  String get sessionEndedFormClosed =>
+      'Your session ended, so the open page was closed. What you typed was not saved.';
+
+  @override
+  String get formDiscardTitle => 'Discard what you wrote?';
+
+  @override
+  String get formDiscardBody =>
+      'If you leave, the information you entered will be lost.';
+
+  @override
+  String get formDiscardConfirm => 'Discard and leave';
+
+  @override
+  String get formDiscardKeep => 'Keep editing';
+
+  @override
+  String get g4ChatJumpMissing =>
+      'This message is no longer available or could not be loaded.';
+
+  @override
+  String get shareKindProfile => 'Profile';
+
+  @override
+  String get shareChatProfileShared => 'Shared a profile';
+
+  @override
+  String get profileShareAction => 'Share profile';
+
+  @override
+  String get profileQrMyCode => 'My QR code';
+
+  @override
+  String get profileQrHint =>
+      'Anyone who scans this code sees the profile in BÜ Kampüs. A phone camera can read it too.';
+
+  @override
+  String get profileQrShareImage => 'Share as image';
+
+  @override
+  String get profileQrImageFailed =>
+      'Could not prepare the image. You can share the link instead.';
+
+  @override
+  String get profileQrLoadFailed =>
+      'The QR code could not be prepared right now.';
+
+  @override
+  String get profileQrScan => 'Scan QR';
+
+  @override
+  String get profileQrScanTitle => 'Scan a profile QR code';
+
+  @override
+  String get profileQrScanHint =>
+      'Align a BÜ Kampüs profile code inside the frame.';
+
+  @override
+  String get profileQrInvalid => 'This is not a BÜ Kampüs profile code.';
+
+  @override
+  String get profileQrOpenSettings => 'Open settings';
+
+  @override
+  String get profileQrGallery => 'Choose from gallery';
+
+  @override
+  String get profileQrGalleryNone => 'No QR code found in the image.';
+
+  @override
+  String get profileQrMyProfile =>
+      'That is your own code, opening your profile.';
+
+  @override
+  String get profileQrFindMe => 'Find me on BÜ Kampüs';
 }

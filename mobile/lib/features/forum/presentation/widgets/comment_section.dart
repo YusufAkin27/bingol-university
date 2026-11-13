@@ -47,6 +47,8 @@ class CommentRowTile extends StatelessWidget {
           session: session,
           actions: actions,
           canReply: canReply,
+          // Ayrı zincir ekranının kökü üstündeki yorumu göstermez: kime yanıt olduğu satırda yazar.
+          replyingTo: row.level == 0 && n.parentId != null ? controller.find(n.parentId!) : null,
           highlighted: controller.highlightId == n.id,
         ),
       CommentRowKind.footer => CommentRepliesFooter(node: n, level: row.level, controller: controller),

@@ -2,10 +2,12 @@ import '../chat/emoji_presentation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
+import '../../core/idempotency_key.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/bu.dart';
+import '../../widgets/bu_dirty_guard.dart';
 import 'anket_flat.dart';
 import 'poll_api.dart';
 import 'poll_models.dart';
@@ -41,6 +43,11 @@ class _PollFormPageState extends State<PollFormPage> {
   bool _customEnd = false; // tarih seçiciyle belirlenen bitiş
   String? _error;
   bool _busy = false;
+
+  // Bir gonderme niyeti icin tek Idempotency-Key (I2-02): yanit kaybolursa (zaman asimi/5xx) ayni anahtarla tekrar
+  // denenir, sunucu ikinci anket/bildirim uretmez. Form icerigi degisti ya da sunucu acikca reddettiyse yeni anahtar.
+  String? _idemKey;
+  String? _idemPrint;
 
   /// Kullanıcının az önce eklediği seçenek alanı (odak alır); ilk iki alan odak istemez.
   TextEditingController? _justAdded;
@@ -82,14 +89,25 @@ class _PollFormPageState extends State<PollFormPage> {
       helpText: l.p13PollPickEndTime,
       builder: (c, child) => MediaQuery(data: MediaQuery.of(c).copyWith(alwaysUse24HourFormat: true), child: child!),
     );
-    if (tm == null || !mounted) return;
+    if (!mounted) return;
+    // Saat secici iptal edilirse secilen tarih mevcut saatle korunur (I2-15).
+    final hh = tm?.hour ?? base.hour, mm = tm?.minute ?? base.minute;
     setState(() {
-      _closesAt = DateTime(d.year, d.month, d.day, tm.hour, tm.minute);
+      _closesAt = DateTime(d.year, d.month, d.day, hh, mm);
       _customEnd = true;
     });
   }
 
+  /// Formun gonderilecek icerigine ozet (anahtar yalniz AYNI icerik icin korunur).
+  String _fingerprint(List<String> opts) => [
+        _title.text, _desc.text, _type.name, _anonymous, _notify, _showResults, _closesAt?.millisecondsSinceEpoch, ...opts,
+      ].join('\u0001');
+
+  /// Kaydedilmemis ve bos olmayan icerik var mi (geri jesti korumasi, I2-03).
+  bool get _dirty => _title.text.trim().isNotEmpty || _desc.text.trim().isNotEmpty || _opts.any((c) => c.text.trim().isNotEmpty);
+
   Future<void> _submit() async {
+    if (_busy) return; // cift dokunus / klavye eylemi yarisi (I2-02)
     BuKeyboard.dismiss();
     final opts = [for (final c in _opts) c.text];
     final err = validatePollDraft(title: _title.text, type: _type, options: opts, closesAt: _closesAt, l10n: context.l10n);
@@ -103,6 +121,11 @@ class _PollFormPageState extends State<PollFormPage> {
       _error = null;
       _busy = true;
     });
+    final print = _fingerprint(opts);
+    if (_idemKey == null || _idemPrint != print) {
+      _idemKey = newIdempotencyKey('q');
+      _idemPrint = print;
+    }
     try {
       final p = await _api.createCommunity(
         communityId: widget.communityId,
@@ -114,9 +137,11 @@ class _PollFormPageState extends State<PollFormPage> {
         options: [for (final o in opts) if (o.trim().isNotEmpty) o],
         showResults: _showResults,
         notify: _notify,
+        idempotencyKey: _idemKey,
       );
       if (mounted) Navigator.pop(context, p);
     } catch (e) {
+      if (!keepKeyAfterError(e)) _idemKey = null; // sunucu acikca reddetti: niyet bitti, yeni anahtar
       if (mounted) {
         setState(() {
           _error = pollErrorText(e, context.l10n);
@@ -178,7 +203,11 @@ class _PollFormPageState extends State<PollFormPage> {
     final err = _error;
     final optErr = err != null && _isOptionError(err, l);
     final field = tx.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400);
-    return BuPageScaffold(
+    // Yazildikca PopScope guncellensin (alanlar setState cagirmaz); iskelet yeniden kurulmaz (child).
+    return ListenableBuilder(
+      listenable: Listenable.merge([_title, _desc, ..._opts]),
+      builder: (context, child) => BuDirtyGuard(dirty: () => _dirty, busy: _busy, child: child!),
+      child: BuPageScaffold(
       title: l.pollCreate,
       large: false,
       bottomInset: 24,
@@ -309,6 +338,7 @@ class _PollFormPageState extends State<PollFormPage> {
           ),
         ),
       ],
+    ),
     );
   }
 }

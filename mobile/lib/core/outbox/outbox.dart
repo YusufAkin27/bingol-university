@@ -113,6 +113,7 @@ class OutboxItem {
     this.media = const [],
     this.viewOnce = false,
     this.share,
+    this.ownerUserId,
   });
 
   final String clientId;
@@ -127,6 +128,9 @@ class OutboxItem {
 
   /// Paylaşım kartı (`{type,id}`: gönderi/Reels/haber/etkinlik); varsa metin boş olabilir (yalnız kart).
   final Map<String, dynamic>? share;
+  /// Öğeyi kuyruğa alan hesabın kullanıcı kimliği. Öğe YALNIZ bu hesap etkinken gönderilir/görünür; hesap
+  /// değişiminde/çıkışta silinmez, hesabına bağlı bekler (null = eski sürümden kalan kayıt: ilk bağlanan hesaba atanır).
+  int? ownerUserId;
   OutboxStatus status;
 
   /// Tüm başarısız denemeler (geri çekilmeyi belirler).
@@ -151,6 +155,7 @@ class OutboxItem {
         if (media.isNotEmpty) 'md': [for (final m in media) m.toJson()],
         if (viewOnce) 'o': true,
         if (share != null) 'sh': share,
+        if (ownerUserId != null) 'u': ownerUserId,
       };
 
   static OutboxItem? fromJson(Object? j) {
@@ -177,6 +182,7 @@ class OutboxItem {
       ],
       viewOnce: j['o'] == true,
       share: validShare(j['sh']),
+      ownerUserId: j['u'] is int ? j['u'] as int : null,
     );
   }
 
@@ -342,9 +348,66 @@ class Outbox extends ChangeNotifier {
   }
 
   Stream<OutboxDelivery> get deliveries => _deliveries.stream;
-  List<OutboxItem> get items => List.unmodifiable(_items);
-  int get pendingCount => _items.where((e) => e.status == OutboxStatus.pending).length;
-  int get failedCount => _items.where((e) => e.status == OutboxStatus.failed).length;
+  /// Etkin hesabın öğeleri (başka hesaba ait bekleyenler görünmez).
+  List<OutboxItem> get items => List.unmodifiable(_mine);
+  int get pendingCount => _mine.where((e) => e.status == OutboxStatus.pending).length;
+  int get failedCount => _mine.where((e) => e.status == OutboxStatus.failed).length;
+
+  Iterable<OutboxItem> get _mine => _items.where((e) => e.ownerUserId == _owner);
+
+  /// Etkin hesap (null = oturum yok: hiçbir şey gönderilmez).
+  int? get owner => _owner;
+  int? _owner;
+
+  /// [bindOwner] en az bir kez çağrıldı (üretimde Session bağlar). Öncesinde sahiplik denetimi yoktur (birim testleri).
+  bool _ownerAware = false;
+
+  /// Süren [drain]'in kuşağı: hesap bağlama değişince eski hesabın kalan öğeleri gönderilmez.
+  int _drainGen = 0;
+
+  /// Etkin hesabı bağlar (oturum açılışı/hesap geçişi). Başka hesaba ait öğeler diskte hesabına bağlı KALIR, silinmez
+  /// ve gönderilmez. Sahipsiz (eski sürümden) kayıtlar bağlanan ilk hesaba atanır. [id] null = oturum yok.
+  void bindOwner(int? id) {
+    _ownerAware = true;
+    if (_owner == id) return;
+    _owner = id;
+    _drainGen++;
+    _timer?.cancel();
+    if (id == null) {
+      notifyListeners();
+      return;
+    }
+    _adoptLegacy();
+    notifyListeners();
+    _scheduleNext();
+    unawaited(drain());
+  }
+
+  void _adoptLegacy() {
+    final o = _owner;
+    if (o == null) return;
+    var changed = false;
+    for (final e in _items) {
+      if (e.ownerUserId == null) {
+        e.ownerUserId = o;
+        changed = true;
+      }
+    }
+    if (changed && _loaded) unawaited(_save());
+  }
+
+  /// Hesap silme: o hesabın bekleyen mesajları ve ek dosyaları kalıcı silinir.
+  Future<void> purgeOwner(int id) async {
+    final gone = _items.where((e) => e.ownerUserId == id).toList();
+    if (gone.isEmpty) return;
+    for (final e in gone) {
+      _deleteFiles(e);
+      _items.remove(e);
+    }
+    _drainGen++;
+    await _save();
+    notifyListeners();
+  }
   bool contains(String clientId) => _items.any((e) => e.clientId == clientId);
 
   OutboxItem? byClientId(String clientId) {
@@ -371,7 +434,7 @@ class Outbox extends ChangeNotifier {
 
   /// Uygulama öne geldi / STOMP yeniden bağlandı: geri çekilmeyi atlayıp hemen dener (olay tabanlı; yoklama yok).
   Future<void> nudge() {
-    for (final e in _items) {
+    for (final e in _mine) {
       if (e.status == OutboxStatus.pending) e.nextAttemptAt = 0;
     }
     if (!_loaded && _readFailed) unawaited(load()); // depo daha önce okunamadı: bu fırsatta yeniden dene
@@ -379,7 +442,7 @@ class Outbox extends ChangeNotifier {
   }
 
   void _onReconnect() {
-    for (final e in _items) {
+    for (final e in _mine) {
       if (e.status == OutboxStatus.pending) e.nextAttemptAt = 0;
     }
     if (!_loaded && _readFailed) unawaited(load());
@@ -438,6 +501,7 @@ class Outbox extends ChangeNotifier {
       }
     }
     _loaded = true;
+    _adoptLegacy();
     _readFailed = false;
     _loadFails = 0;
     _loadRetry?.cancel();
@@ -640,6 +704,7 @@ class Outbox extends ChangeNotifier {
       replyToMessageId: replyToMessageId,
       media: written,
       viewOnce: viewOnce,
+      ownerUserId: _owner,
       nextAttemptAt: now + backoff(1).inMilliseconds,
     ));
     _prune();
@@ -724,6 +789,7 @@ class Outbox extends ChangeNotifier {
       createdAt: _now().millisecondsSinceEpoch,
       replyToMessageId: replyToMessageId,
       share: share,
+      ownerUserId: _owner,
       nextAttemptAt: _now().millisecondsSinceEpoch + backoff(1).inMilliseconds,
     ));
     _prune();
@@ -784,9 +850,11 @@ class Outbox extends ChangeNotifier {
   /// Bekleyenleri sırayla göndermeyi dener (eşzamanlı çağrılar tek çalışmaya birleşir).
   Future<void> drain() async {
     final send = _sender;
-    if (send == null || _draining) return;
+    if (send == null || _draining || (_ownerAware && _owner == null)) return;
     _draining = true;
     final epoch = _epoch;
+    final gen = _drainGen;
+    final owner = _owner;
     try {
       final failedBefore = failedCount;
       _prune(); // 24 saati geçenler kalıcı hata olur
@@ -796,6 +864,8 @@ class Outbox extends ChangeNotifier {
       }
       final blocked = <int>{}; // sırası bozulmasın: sorunlu konuşmanın sonraki mesajları beklesin
       for (final it in List.of(_items)) {
+        if (gen != _drainGen) break; // hesap değişti: eski hesabın kalan mesajları yanlış kimlikle gitmez
+        if (it.ownerUserId != owner) continue; // başka hesabın öğesi: hesabına bağlı bekler
         if (epoch != _epoch) break; // oturum kapandı (clear): eski hesabın kalan mesajları gönderilmez
         if (!_items.any((x) => x.clientId == it.clientId)) continue; // iptal edildi / silindi
         if (it.status != OutboxStatus.pending || blocked.contains(it.conversationId)) continue;
@@ -826,6 +896,7 @@ class Outbox extends ChangeNotifier {
     } finally {
       _draining = false;
       _scheduleNext();
+      if (gen != _drainGen && _owner != null) unawaited(drain()); // araya giren hesap değişimi: yeni hesap için yeniden
     }
   }
 
@@ -907,7 +978,7 @@ class Outbox extends ChangeNotifier {
     _timer?.cancel();
     if (!autoSchedule || _sender == null) return;
     int? next;
-    for (final e in _items) {
+    for (final e in _mine) {
       if (e.status != OutboxStatus.pending) continue;
       if (next == null || e.nextAttemptAt < next) next = e.nextAttemptAt;
     }
