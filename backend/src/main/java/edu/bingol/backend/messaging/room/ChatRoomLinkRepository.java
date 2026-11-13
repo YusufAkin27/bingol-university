@@ -47,4 +47,7 @@ public interface ChatRoomLinkRepository extends JpaRepository<ChatRoomLink, Long
     List<ChatRoomLink> findByConversationIdIn(java.util.Collection<Long> conversationIds);
 
     List<ChatRoomLink> findByKind(RoomKind kind);
+
+    /** Toplu: bir turun verilen kaynak kimlikleri icin baglantilar. */
+    List<ChatRoomLink> findByKindAndRefIdIn(RoomKind kind, java.util.Collection<Long> refIds);
 }

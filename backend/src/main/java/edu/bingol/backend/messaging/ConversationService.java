@@ -314,7 +314,7 @@ public class ConversationService {
         members.save(self);
     }
 
-    /** Mesajli sohbetler ve bos bolum odalari. Imlec = son mesaj id'si; bos odada -conversationId. */
+    /** Mesajli sohbetler ve bos oda sohbetleri (kulup, etkinlik, bolum). Imlec = son mesaj id'si; bos odada -conversationId. */
     @Transactional(readOnly = true)
     public CursorPage<ConversationView> list(Long me, Long cursor, int size) {
         return list(me, cursor, size, false);

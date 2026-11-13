@@ -57,6 +57,7 @@ public class RoomNoticeService {
     private final ContentGuard guard;
     private final BlockService blocks;
     private FanoutNotifier fanout;
+    private edu.bingol.backend.messaging.ConversationRepository convs;
 
     public RoomNoticeService(RoomNoticeRepository notices, RoomModeration moderation, ChatRoomLinkRepository links,
                              ConversationMemberRepository members, UserRepository users,
@@ -69,6 +70,12 @@ public class RoomNoticeService {
         this.notifications = notifications;
         this.guard = guard;
         this.blocks = blocks;
+    }
+
+    /** Sabitleme sinirini seri hale getiren konusma satiri kilidi icin (istege bagli: birim testlerinde yok). */
+    @Autowired(required = false)
+    void setConvs(edu.bingol.backend.messaging.ConversationRepository convs) {
+        this.convs = convs;
     }
 
     @Autowired(required = false)
@@ -197,6 +204,10 @@ public class RoomNoticeService {
     // ---- ic ----
 
     private void requirePinRoom(Long cid, Long exceptId) {
+        // Kontrol-sonra-yaz yarisi: es zamanli iki sabitleme siniri asmasin diye oda satirini kilitle (islem sonuna dek)
+        if (convs != null) {
+            convs.lockById(cid);
+        }
         long cnt = notices.countPinned(cid);
         boolean already = exceptId != null && notices.findById(exceptId).map(RoomNotice::isPinned).orElse(false);
         if (cnt - (already ? 1 : 0) >= MAX_PINNED) {

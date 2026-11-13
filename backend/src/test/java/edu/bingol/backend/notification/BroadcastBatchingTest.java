@@ -105,6 +105,40 @@ class BroadcastBatchingTest {
     }
 
     @Test
+    void pushOnlyBroadcastChunksPerLanguageWritesNoInboxRowsAndSumsQueued() {
+        // 2500 kullanici = 3 aralik; her dilde (3 dil) 3 cagri, her cagri 10 cihaz kuyruga yazar
+        when(writer.upperBound(anyLong(), eq(BroadcastWriter.RANGE))).thenAnswer(inv -> {
+            long after = inv.getArgument(0);
+            return after >= 2500 ? null : Math.min(after + 1000, 2500L);
+        });
+        when(dispatcher.dispatchRange(any(PushMessage.class), eq("meal_menu"), anyString(), anyLong(), anyLong())).thenReturn(10);
+
+        int queued = svc.pushOnlyBroadcastLocalized(NotificationType.ANNOUNCEMENT, NotificationSubtype.MEAL_MENU, "meal_menu",
+                l -> "t-" + l.code(), l -> "b-" + l.code(), Map.of("target", "MEAL", "value", "2026-11-09"));
+
+        assertEquals(3 * Lang.values().length * 10, queued);
+        ArgumentCaptor<PushMessage> msg = ArgumentCaptor.forClass(PushMessage.class);
+        verify(dispatcher, times(3 * Lang.values().length)).dispatchRange(msg.capture(), eq("meal_menu"), anyString(), anyLong(),
+                anyLong());
+        verify(dispatcher).dispatchRange(any(), eq("meal_menu"), eq("ar"), eq(2000L), eq(2500L));
+        assertTrue(msg.getAllValues().stream().anyMatch(m -> "t-en".equals(m.title()) && "b-en".equals(m.body())));
+        PushMessage first = msg.getAllValues().get(0);
+        assertEquals("MEAL", first.data().get("target"));
+        assertEquals("MEAL_MENU", first.data().get("subtype"));
+        // uygulama ici bildirim kutusuna HICBIR sey yazilmaz
+        verify(writer, never()).insertNotifications(any(), any(), any(), any(), any(), any(), anyLong(), anyLong());
+        verify(notifications, never()).insertForAll(anyString(), anyString(), anyString(), any(), anyString());
+    }
+
+    @Test
+    void pushOnlyBroadcastDoesNothingWhenFcmQueueUnavailable() {
+        when(dispatcher.enabled()).thenReturn(false);
+        assertEquals(0, svc.pushOnlyBroadcastLocalized(NotificationType.ANNOUNCEMENT, NotificationSubtype.MEAL_MENU, "meal_menu",
+                l -> "t", l -> "b", Map.of()));
+        verify(dispatcher, never()).dispatchRange(any(), any(), any(), anyLong(), anyLong());
+    }
+
+    @Test
     void fcmDisabledSkipsPushButStillWritesInboxRows() {
         when(dispatcher.enabled()).thenReturn(false);
         when(writer.upperBound(anyLong(), eq(BroadcastWriter.RANGE))).thenAnswer(inv -> (long) inv.getArgument(0) >= 1000 ? null : 1000L);

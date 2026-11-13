@@ -78,6 +78,21 @@ public interface PollRepository extends JpaRepository<Poll, Long>, JpaSpecificat
     /** Suresi dolan acik anketler (kapanis isi). */
     List<Poll> findByStatusAndClosesAtLessThanEqual(Poll.Status status, Instant now);
 
+    /** Kapanis isi icin parcali (anahtar kumeli: id > after, id artan) okuma. */
+    List<Poll> findByStatusAndClosesAtLessThanEqualAndIdGreaterThanOrderByIdAsc(
+            Poll.Status status, Instant now, Long after, org.springframework.data.domain.Pageable page);
+
+    @Query("SELECT p FROM Poll p WHERE p.status = :open AND p.notify = TRUE AND p.openedNotifiedAt IS NULL "
+            + "AND p.opensAt <= :now AND p.id > :after ORDER BY p.id ASC")
+    List<Poll> openedNotNotifiedPage(@Param("now") Instant now, @Param("open") Poll.Status open,
+                                     @Param("after") Long after, org.springframework.data.domain.Pageable page);
+
+    @Query("SELECT p FROM Poll p WHERE p.status = :open AND p.notify = TRUE "
+            + "AND p.closingNotifiedAt IS NULL AND p.closesAt IS NOT NULL AND p.closesAt > :now AND p.closesAt <= :until "
+            + "AND p.opensAt <= :now AND p.id > :after ORDER BY p.id ASC")
+    List<Poll> closingSoonPage(@Param("now") Instant now, @Param("until") Instant until, @Param("open") Poll.Status open,
+                               @Param("after") Long after, org.springframework.data.domain.Pageable page);
+
     /** Acilisi bildirilmemis, simdi acik, bildirimli anketler. */
     @Query("SELECT p FROM Poll p WHERE p.status = :open AND p.notify = TRUE AND p.openedNotifiedAt IS NULL AND p.opensAt <= :now")
     List<Poll> openedNotNotifiedQuery(@Param("now") Instant now, @Param("open") Poll.Status open);

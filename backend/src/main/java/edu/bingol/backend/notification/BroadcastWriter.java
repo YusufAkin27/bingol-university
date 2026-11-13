@@ -31,6 +31,7 @@ public class BroadcastWriter {
             COALESCE(CASE :col WHEN 'news' THEN p.news WHEN 'announcements' THEN p.announcements
                            WHEN 'events' THEN p.events WHEN 'messages' THEN p.messages
                            WHEN 'communities' THEN p.communities
+                           WHEN 'meal_menu' THEN p.meal_menu
                            WHEN 'polls' THEN (p.polls AND p.announcements)
                            WHEN 'academic_announcements' THEN (p.academic_announcements AND p.announcements) ELSE TRUE END, TRUE)
             """;

@@ -152,7 +152,7 @@ public class AppInfoService {
         if ((key.startsWith("min_version_") || key.startsWith("latest_version_")) && !VERSION.matcher(v).matches()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_VERSION", "Geçersiz sürüm numarası.");
         }
-        if (key.equals("maintenance_mode") && !v.equals("true") && !v.equals("false")) {
+        if ((key.equals("maintenance_mode") || key.equals("daily_menu_push_enabled")) && !v.equals("true") && !v.equals("false")) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Değer true veya false olmalıdır.");
         }
         validateContactAndLinks(key, v);

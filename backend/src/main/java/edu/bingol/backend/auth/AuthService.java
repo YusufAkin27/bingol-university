@@ -954,6 +954,7 @@ public class AuthService {
         u.setEmailVerified(true);
         u.setVerificationDeferred(false);
         users.save(u);
+        accounts.joinDepartmentAfterVerification(u);
         return new VerificationDtos.VerifiedResponse(true, false);
     }
 

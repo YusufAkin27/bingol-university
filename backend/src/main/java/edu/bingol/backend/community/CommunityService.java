@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -181,6 +182,9 @@ public class CommunityService {
         ContentGuard.clean(guard, Entity.CLUB, "name", a.id(), r.name());
         ContentGuard.clean(guard, Entity.CLUB, "description", a.id(), r.description());
         ContentGuard.clean(guard, Entity.CLUB, "category", a.id(), r.category());
+        // T-052: kurum/yonetici taklidi gibi gorunen ad aninda yayina girmez, yonetici onayina duser
+        boolean reservedName = !a.systemAdmin(PermissionMatrix.CONTENT_WRITE)
+                && edu.bingol.backend.profile.naming.DisplayNamePolicy.looksReserved(r.name());
         // Sayim ile ekleme arasindaki yarisi kapatir: ayni kullanicinin istekleri bu satirda siralanir.
         communities.lockOwner(a.id());
         if (communities.countByOwnerIdAndStatusIn(a.id(), LIVE) >= MAX_OWNED) {
@@ -199,8 +203,9 @@ public class CommunityService {
             c.setVisibility(r.visibility());
         }
         c.setOwnerId(a.id());
-        // Kullanici kulupleri her zaman yonetici onayi ister; ortam ayariyla atlanamaz.
-        boolean active = a.systemAdmin(PermissionMatrix.CONTENT_WRITE);
+        // Varsayilan: yonetici onayi gerekir (PENDING_REVIEW, yalniz olusturana gorunur). Sistem ADMIN'inin kendi actigi
+        // kulup dogrudan ACTIVE; app.community.auto-approve=true tum kuluplari onaysiz yayinlar (yalniz dev/test).
+        boolean active = (autoApprove || a.systemAdmin(PermissionMatrix.CONTENT_WRITE)) && !reservedName;
         c.setStatus(active ? Community.Status.ACTIVE : Community.Status.PENDING_REVIEW);
         try {
             communities.saveAndFlush(c);
@@ -215,6 +220,14 @@ public class CommunityService {
             hooks.onCommunityActivated(c); // sohbet odasi kurulur, sahip odaya girer
         }
         return c;
+    }
+
+    /** Yeni kulup yonetici onayi beklemeden yayina girsin mi (app.community.auto-approve). */
+    @Value("${app.community.auto-approve:false}")
+    private boolean autoApprove;
+
+    void setAutoApprove(boolean v) { // testler icin
+        this.autoApprove = v;
     }
 
     /**

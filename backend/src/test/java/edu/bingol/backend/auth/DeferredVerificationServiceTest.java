@@ -289,6 +289,7 @@ class DeferredVerificationServiceTest {
         assertTrue(u.isEmailVerified());
         assertFalse(u.isVerificationDeferred());
         verify(users).save(u);
+        verify(accounts).joinDepartmentAfterVerification(u); // bolum sohbet odasina sonradan katilim
     }
 
     @Test
@@ -302,6 +303,7 @@ class DeferredVerificationServiceTest {
         assertEquals("INVALID_CODE", e.code());
         assertTrue(u.isVerificationDeferred());
         verify(users, never()).save(any());
+        verify(accounts, never()).joinDepartmentAfterVerification(any());
     }
 
     @Test

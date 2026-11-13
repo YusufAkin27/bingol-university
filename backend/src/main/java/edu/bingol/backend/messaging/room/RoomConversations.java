@@ -35,15 +35,29 @@ public class RoomConversations {
     private final ConversationMemberRepository members;
     private final UserRepository users;
     private final int maxMembers;
+    /** Bolum odalari icin ayri, yuksek tavan: her ogrenci kendi bolum sohbetine girebilmeli. */
+    private final int departmentMaxMembers;
 
     public RoomConversations(ChatRoomLinkRepository links, ConversationRepository convs,
+                             ConversationMemberRepository members, UserRepository users, int maxMembers) {
+        this(links, convs, members, users, maxMembers, 20000);
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public RoomConversations(ChatRoomLinkRepository links, ConversationRepository convs,
                              ConversationMemberRepository members, UserRepository users,
-                             @Value("${app.chat.room-max-members:500}") int maxMembers) {
+                             @Value("${app.chat.room-max-members:500}") int maxMembers,
+                             @Value("${app.chat.department-room-max-members:20000}") int departmentMaxMembers) {
         this.links = links;
         this.convs = convs;
         this.members = members;
         this.users = users;
         this.maxMembers = Math.max(2, maxMembers);
+        this.departmentMaxMembers = Math.max(this.maxMembers, departmentMaxMembers);
+    }
+
+    private int limitOf(RoomKind kind) {
+        return kind == RoomKind.DEPARTMENT ? departmentMaxMembers : maxMembers;
     }
 
     /** Odanin durumu: conversationId sohbet uclarinda (mesaj gonder/oku) kullanilan kimliktir. */
@@ -69,13 +83,36 @@ public class RoomConversations {
             convs.deleteById(c.getId());
             return links.findByKindAndRefId(kind, refId).orElseThrow().getConversationId();
         }
-        addTo(c.getId(), ownerUserId, c);
+        addTo(c.getId(), ownerUserId, c, limitOf(kind));
         return c.getId();
     }
 
     @Transactional(readOnly = true)
     public Optional<RoomInfo> find(RoomKind kind, Long refId) {
         return links.findByKindAndRefId(kind, refId).map(RoomConversations::info);
+    }
+
+    /** Toplu oda durumu (liste sayfasi): refId -> (conversationId, closed, aktif uye sayisi, kullanici uye mi). */
+    public record RoomStat(Long conversationId, boolean closed, long memberCount, boolean joined) {}
+
+    /** Sayfadaki odalar icin 3 sabit sorgu (N+1 yok). Odasi olmayan refId haritada yoktur. */
+    @Transactional(readOnly = true)
+    public java.util.Map<Long, RoomStat> stats(RoomKind kind, Collection<Long> refIds, Long userId) {
+        if (refIds.isEmpty()) return java.util.Map.of();
+        java.util.List<ChatRoomLink> ls = links.findByKindAndRefIdIn(kind, refIds);
+        if (ls.isEmpty()) return java.util.Map.of();
+        java.util.List<Long> cids = ls.stream().map(ChatRoomLink::getConversationId).toList();
+        java.util.Map<Long, Long> counts = new java.util.HashMap<>();
+        for (Object[] row : members.activeCounts(cids)) {
+            counts.put((Long) row[0], ((Number) row[1]).longValue());
+        }
+        java.util.Set<Long> mine = new java.util.HashSet<>(members.activeConversationIds(userId, cids));
+        java.util.Map<Long, RoomStat> out = new java.util.HashMap<>();
+        for (ChatRoomLink l : ls) {
+            out.put(l.getRefId(), new RoomStat(l.getConversationId(), l.isClosed(),
+                    counts.getOrDefault(l.getConversationId(), 0L), mine.contains(l.getConversationId())));
+        }
+        return out;
     }
 
     /** Kullanici odanin su an AKTIF uyesi mi. */
@@ -103,7 +140,7 @@ public class RoomConversations {
             return false;
         }
         convs.lockById(l.getConversationId()); // sinir kontrolu es zamanli eklemelerde asilmasin
-        return addTo(l.getConversationId(), userId, null);
+        return addTo(l.getConversationId(), userId, null, limitOf(kind));
     }
 
     /** Varsayilan kayit uyeligi: kapali/dolu oda hesap olusturmayi engellemez. */
@@ -113,8 +150,8 @@ public class RoomConversations {
         if (l == null || l.isClosed()) return false;
         convs.lockById(l.getConversationId());
         if (members.findByConversationIdAndUserIdAndLeftAtIsNull(l.getConversationId(), userId).isPresent()) return true;
-        if (members.countByConversationIdAndLeftAtIsNull(l.getConversationId()) >= maxMembers) return false;
-        return addTo(l.getConversationId(), userId, null);
+        if (members.countByConversationIdAndLeftAtIsNull(l.getConversationId()) >= limitOf(kind)) return false;
+        return addTo(l.getConversationId(), userId, null, limitOf(kind));
     }
 
     /** Birden cok kullaniciyi ekler; dolunca durur. Eklenen/zaten uye olan sayisini doner. */
@@ -128,7 +165,7 @@ public class RoomConversations {
         int n = 0;
         for (Long uid : userIds) {
             try {
-                if (addTo(l.getConversationId(), uid, null)) {
+                if (addTo(l.getConversationId(), uid, null, limitOf(kind))) {
                     n++;
                 }
             } catch (ApiException e) {
@@ -257,7 +294,7 @@ public class RoomConversations {
     // ---- ic yardimcilar ----
 
     /** Cagiran kilidi almis olmali. {@code known} varsa konusma tekrar okunmaz. */
-    private boolean addTo(Long conversationId, Long userId, Conversation known) {
+    private boolean addTo(Long conversationId, Long userId, Conversation known, int limit) {
         User u = users.findById(userId).orElse(null);
         if (u == null || !u.isActive() || !u.isEmailVerified()) {
             return false;
@@ -266,8 +303,8 @@ public class RoomConversations {
         if (m != null && m.getLeftAt() == null) {
             return true;
         }
-        if (members.countByConversationIdAndLeftAtIsNull(conversationId) >= maxMembers) {
-            throw new ApiException(HttpStatus.CONFLICT, "ROOM_FULL", "Sohbet odası dolu.", String.valueOf(maxMembers));
+        if (members.countByConversationIdAndLeftAtIsNull(conversationId) >= limit) {
+            throw new ApiException(HttpStatus.CONFLICT, "ROOM_FULL", "Sohbet odası dolu.", String.valueOf(limit));
         }
         Conversation c = known != null ? known : convs.findById(conversationId).orElse(null);
         long lastMsg = c == null || c.getLastMessageId() == null ? 0L : c.getLastMessageId();

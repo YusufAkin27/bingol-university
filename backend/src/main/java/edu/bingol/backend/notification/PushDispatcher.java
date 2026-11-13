@@ -171,8 +171,7 @@ public class PushDispatcher {
         }
     }
 
-    /** Genel yayin icin aralik tabanli kalici kuyruk yazimi kullanilabilir mi (kuyruk + PostgreSQL). */
-    public boolean rangeBroadcastSupported() {
+    /** Genel yayin icin aralik tabanli kalici kuyruk yazimi kullanilabilir mi (kuyruk + PostgreSQL). */    public boolean rangeBroadcastSupported() {
         return outbox != null && outbox.rangeEnqueueSupported();
     }
 
@@ -180,26 +179,26 @@ public class PushDispatcher {
      * Genel yayin: kullanici kimligi araligindaki (after, hi] alicilarin cihazlarini TEK ifadeyle kuyruga yazar
      * ({@link #rangeBroadcastSupported()} true iken). Hata cagirana sizmaz.
      */
-    public void dispatchRange(PushMessage original, String prefColumn, String lang, long after, long hi) {
+    public int dispatchRange(PushMessage original, String prefColumn, String lang, long after, long hi) {
         if (!rangeBroadcastSupported()) {
-            return;
+            return 0;
         }
         final PushMessage message = RichPushPayload.normalizeMedia(original, publicWebUrl);
         if (!outbox.accepting()) {
-            return; // FCM yok, tutma kapali: birikmesin
+            return 0; // FCM yok, tutma kapali: birikmesin
         }
         try {
             // Android zengin cizici (veri-only, yuksek oncelik: uygulama kapaliyken de yerel kart) ve digerleri (standart
             // FCM bildirimi / APNs alert) icin iki ayri yuk; cihaz kaydindaki `richNotifications` ayirir.
             PushMessage rich = RichPushPayload.enrichBroadcast(message, publicWebUrl, lang);
             if (RichPushPayload.isRich(rich)) {
-                outbox.enqueueBroadcastRange(message, prefColumn, lang, after, hi, BroadcastWriter.DEVICES_STANDARD);
-                outbox.enqueueBroadcastRange(rich, prefColumn, lang, after, hi, BroadcastWriter.DEVICES_RICH);
-            } else {
-                outbox.enqueueBroadcastRange(message, prefColumn, lang, after, hi);
+                return outbox.enqueueBroadcastRange(message, prefColumn, lang, after, hi, BroadcastWriter.DEVICES_STANDARD)
+                        + outbox.enqueueBroadcastRange(rich, prefColumn, lang, after, hi, BroadcastWriter.DEVICES_RICH);
             }
+            return outbox.enqueueBroadcastRange(message, prefColumn, lang, after, hi);
         } catch (RuntimeException e) {
             recordFailure("kalici kuyruga toplu yazilamadi: " + e.getClass().getSimpleName());
+            return 0;
         }
     }
 

@@ -116,7 +116,7 @@ public class NotificationController {
 
     @PostMapping("/notifications/read")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void markRead(@RequestBody MarkReadRequest r) {
+    public void markRead(@Valid @RequestBody MarkReadRequest r) {
         Long uid = CurrentUser.id();
         limiter.check("notif-write:" + uid, 120, MINUTE);
         inbox.markRead(uid, r.ids(), Boolean.TRUE.equals(r.all()), r.scope());

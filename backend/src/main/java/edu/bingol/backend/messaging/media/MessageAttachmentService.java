@@ -277,7 +277,7 @@ public class MessageAttachmentService {
         } catch (Mp4Info.Invalid | RuntimeException e) {
             throw audioInvalid();
         }
-        if (info.durationMs() <= 0) {
+        if (info.durationMs() <= 0 || (info.width() > 0 && info.height() > 0)) { // goruntu izi olan kap ses degildir (video kotasini asmasin)
             throw audioInvalid();
         }
         if (info.durationMs() > audioMaxSeconds * 1000L + 1500L) { // kodek doldurmasi icin 1,5 sn tolerans

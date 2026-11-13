@@ -118,4 +118,14 @@ class CheckinCodeServiceTest {
         assertFalse(other.verify(7, codes.generate(7, t0), t0));
         assertEquals(codes.generate(7, t0), codes.generate(7, t0));
     }
+
+    @Test
+    void ticketExpiresAtMatchesLastAcceptedInstant() {
+        String t = codes.generateTicket(7, 3, t0.plusSeconds(10));
+        Instant exp = codes.ticketExpiresAt(t0.plusSeconds(10));
+
+        assertEquals(3L, codes.verifyTicket(7, t, exp.minusSeconds(1)));
+        assertEquals(-1L, codes.verifyTicket(7, t, exp));
+        assertTrue(exp.getEpochSecond() - t0.plusSeconds(10).getEpochSecond() <= CheckinCodeService.TICKET_VALID_SECONDS);
+    }
 }

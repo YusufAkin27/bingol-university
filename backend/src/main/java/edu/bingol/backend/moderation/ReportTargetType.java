@@ -22,6 +22,6 @@ public enum ReportTargetType {
     FORUM_TOPIC,
     /** Kampus Forum yorumu/yaniti (forum_comment). */
     FORUM_COMMENT,
-    /** Sohbet odasi duyuru panosu ilani (room_notice, V1840). */
+    /** Sohbet odasi duyuru panosu ilani (room_notice, V1873). */
     BOARD_NOTICE
 }

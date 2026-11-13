@@ -107,7 +107,7 @@ class AttendanceTicketTest {
         Instant now = start.plusSeconds(120);
         String good = codes.generateTicket(5, 1, now);
         assertEquals(HttpStatus.FORBIDDEN, assertThrows(ApiException.class, () -> svc.scan(member, 5L, good, now)).status());
-        // suresi dolmus (5 pencere = 300 sn; 400 sn sonra)
+        // suresi dolmus (3 pencere = 180 sn; 400 sn sonra)
         assertEquals("INVALID_CODE", assertThrows(ApiException.class, () -> svc.scan(organizer, 5L, good, now.plusSeconds(400))).code());
         // sahte imza / baska etkinlik / baska kullanici
         assertEquals("INVALID_CODE", assertThrows(ApiException.class, () -> svc.scan(organizer, 5L, good + "x", now)).code());

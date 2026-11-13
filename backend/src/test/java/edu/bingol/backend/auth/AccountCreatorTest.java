@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -92,5 +93,24 @@ class AccountCreatorTest {
         // Tek transaction: metot @Transactional olmali
         assertTrue(AccountCreator.class.getMethod("create", String.class, Pending.class)
                 .isAnnotationPresent(Transactional.class));
+    }
+
+    @Test
+    void joinAfterVerificationJoinsDepartmentRoomAndNeverBreaksVerification() {
+        var departmentChat = mock(edu.bingol.backend.messaging.room.dept.DepartmentChatService.class);
+        org.springframework.test.util.ReflectionTestUtils.setField(creator, "departmentChat", departmentChat);
+        User u = new User();
+        u.setId(9L);
+        u.setDepartment("Hukuk");
+        creator.joinDepartmentAfterVerification(u);
+        verify(departmentChat).joinOnSignup(9L);
+
+        doThrow(new IllegalStateException("db")).when(departmentChat).joinOnSignup(9L);
+        creator.joinDepartmentAfterVerification(u); // istisna sizmaz
+
+        User noDept = new User();
+        noDept.setId(10L);
+        creator.joinDepartmentAfterVerification(noDept);
+        verify(departmentChat, never()).joinOnSignup(10L);
     }
 }

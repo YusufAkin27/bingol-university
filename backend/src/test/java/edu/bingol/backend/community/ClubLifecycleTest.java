@@ -102,7 +102,8 @@ class ClubLifecycleTest {
     }
 
     @Test
-    void systemAdminClubCanBePublishedDirectly() {
+    void systemAdminClubIsActiveEvenWhenAutoApproveOff() {
+        svc.setAutoApprove(false);
         when(communities.saveAndFlush(any())).thenAnswer(i -> i.getArgument(0));
 
         Community c = svc.create(new Actor(9L, true), new CreateCommunityRequest("Yazılım Kulübü", null, null, null, null));

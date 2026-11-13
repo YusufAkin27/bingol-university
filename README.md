@@ -1,4 +1,4 @@
-﻿<p align="center"><img src="docs/brand/logo-horizontal.png" alt="BÜ Kampüs" height="72"></p>
+﻿<p align="center"><img src="docs/brand/logo-mark.png" alt="BÜ Kampüs" height="72"></p>
 
 # BÜ Kampüs
 

@@ -126,7 +126,6 @@ Kulup kurulurken (isteğe bağlı) "hangi fakülte/bölümlere önerilsin" seçi
 - `GET /api/communities/recommended?size=10` (en çok 30): kullanıcının profil bölümü/fakültesine uyan ACTIVE + PUBLIC kulüpler, zaten üye/başvurmuş olunanlar hariç. Puan: bölüm eşleşmesi 2, fakülte 1; eşitlikte yeni kulüp önce. Profil boşsa ya da eşleşme yoksa `[]`.
 - `GET /api/events/recommended?size=10`: aynı kulüplerin yaklaşan ACTIVE etkinlikleri (en yakın başlangıç önce). Boş olabilir.
 - Mobil: kulüp formunda "Önerilecek bölümler" alanı; Kulüpler sekmesinde "Bölümüne uygun kulüpler" şeridi, Etkinlikler > Keşfet'te "Bölümüne uygun etkinlikler" (boşsa hiçbir şey çizilmez).
-
 ## QR ile kulube dogrudan katilma (2026-11-11)
 
 Kulup yoneticisi kendi telefonunda katilim QR'ini gosterir; uygulamadaki tek tarayiciyla okutan kullanici onay beklemeden uye olur (kod = davet). Tablo/migration YOK, durumsuz HMAC kod (`ClubJoinCodeService`, `ClubJoinCodeController`).

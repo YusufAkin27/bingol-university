@@ -41,11 +41,17 @@ public class DepartmentChatController {
         return chat.join(me, department);
     }
 
+    /**
+     * "Bolum ara": hala DUZ LISTE doner (eski mobil surumler liste bekler; yalniz ilk sayfayi gorurler).
+     * size varsayilan 30 / en cok 50; after = onceki sayfanin son departmentName'i; q = Turkce-duyarli icerir arama.
+     */
     @GetMapping("/rooms")
-    public java.util.List<DepartmentChatView> browse() {
+    public java.util.List<DepartmentChatView> browse(@RequestParam(required = false) Integer size,
+                                                     @RequestParam(required = false) String after,
+                                                     @RequestParam(required = false) String q) {
         Long me = CurrentUser.id();
         limiter.check("dept-chat-read:user:" + me, 120, Duration.ofMinutes(1));
-        return chat.browse(me);
+        return chat.browse(me, size, after, q == null || q.length() <= 100 ? q : q.substring(0, 100));
     }
 
     @DeleteMapping("/membership")

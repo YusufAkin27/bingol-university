@@ -152,4 +152,19 @@ public class AccountCreator {
             departmentChat.joinOnSignup(user.getId());
         }
     }
+
+    /**
+     * Ertelenmis dogrulamali hesap e-postasini sonradan dogrulayinca bolum odasina katilim (kayitta dogrulanmadigi
+     * icin eklenememisti). Hata dogrulamayi bozmaz.
+     */
+    public void joinDepartmentAfterVerification(User user) {
+        try {
+            if (departmentChat != null && user.getDepartment() != null && !user.getDepartment().isBlank()) {
+                departmentChat.joinOnSignup(user.getId());
+            }
+        } catch (RuntimeException e) {
+            org.slf4j.LoggerFactory.getLogger(AccountCreator.class)
+                    .warn("Dogrulama sonrasi bolum odasina katilim basarisiz (kullanici {}): {}", user.getId(), e.toString());
+        }
+    }
 }

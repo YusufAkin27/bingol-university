@@ -239,4 +239,25 @@ class ReportServiceTest {
 
         verify(notifier, never()).reporterRestricted(anyLong(), anyInt());
     }
+
+    @Test
+    void reporterOutcomeIsDeferredToAfterCommitNotSentInTheOpenTransaction() {
+        Report r = openReport(1L, 2L);
+        Report r2 = openReport(2L, 3L);
+        when(reports.lockById(1L)).thenReturn(Optional.of(r));
+        when(reports.findByTargetTypeAndTargetIdAndStatus(TYPE, TARGET, Report.Status.OPEN)).thenReturn(List.of(r, r2));
+        edu.bingol.backend.notification.FanoutNotifier fanout = org.mockito.Mockito.mock(
+                edu.bingol.backend.notification.FanoutNotifier.class);
+        service.setFanout(fanout);
+
+        service.resolve(1L, 99L, Report.Resolution.HIDE, null, null);
+
+        org.mockito.ArgumentCaptor<Runnable> job = org.mockito.ArgumentCaptor.forClass(Runnable.class);
+        verify(fanout).afterCommit(org.mockito.ArgumentMatchers.anyString(), job.capture());
+        verify(notifier, org.mockito.Mockito.never()).reporterOutcome(org.mockito.ArgumentMatchers.anyLong(),
+                org.mockito.ArgumentMatchers.anyBoolean()); // commit oncesi tek bildirim gitmez
+        job.getValue().run();
+        verify(notifier).reporterOutcome(2L, true);
+        verify(notifier).reporterOutcome(3L, true);
+    }
 }

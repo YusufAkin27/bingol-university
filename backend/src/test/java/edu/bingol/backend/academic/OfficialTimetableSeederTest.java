@@ -38,6 +38,8 @@ class OfficialTimetableSeederTest {
     static final String DEPT = "Çocuk Gelişimi";
 
     @Autowired JdbcTemplate jdbc;
+    @Autowired org.springframework.context.ApplicationEventPublisher publisher;
+    @Autowired org.springframework.transaction.PlatformTransactionManager txm;
 
     TimetableService tt;
     OfficialTimetableSeeder seeder;
@@ -355,5 +357,41 @@ class OfficialTimetableSeederTest {
         baseProgram();
         assertTrue(seeder.reseedAfterProfileChange(uid));
         assertEquals(2, tt.timetable(uid, null).courses().size());
+    }
+
+    // ---- gercek Spring baglaminda: ProfileAcademicListener (AFTER_COMMIT + REQUIRES_NEW) ----
+
+    @Test
+    void realListenerReseedsAfterTheProfileTransactionCommits() {
+        baseProgram();
+        off(TERM, MYO, "Hukuk", "1", null, 1, "08:15", "10:00", null, "Hukuk Dersi", null);
+        assertTrue(seeder.autoSeed(uid));
+        assertEquals(2, tt.timetable(uid, null).courses().size());
+
+        // ProfileService gibi: profil guncellemesi + olay AYNI islemde; dinleyici commit sonrasi calisir
+        new org.springframework.transaction.support.TransactionTemplate(txm).executeWithoutResult(st -> {
+            jdbc.update("UPDATE app_user SET department = 'Hukuk' WHERE id = ?", uid);
+            publisher.publishEvent(new edu.bingol.backend.profile.ProfileAcademicChangedEvent(uid));
+            assertEquals(2, tt.timetable(uid, null).courses().size(), "commit oncesi dinleyici calismaz");
+        });
+
+        List<CourseView> now = tt.timetable(uid, null).courses();
+        assertEquals(1, now.size(), "commit sonrasi dinleyici yeni bolumun programini tohumladi");
+        assertEquals("Hukuk Dersi", now.get(0).name());
+    }
+
+    @Test
+    void realListenerDoesNothingWhenTheProfileTransactionRollsBack() {
+        baseProgram();
+        off(TERM, MYO, "Hukuk", "1", null, 1, "08:15", "10:00", null, "Hukuk Dersi", null);
+        assertTrue(seeder.autoSeed(uid));
+
+        new org.springframework.transaction.support.TransactionTemplate(txm).executeWithoutResult(st -> {
+            jdbc.update("UPDATE app_user SET department = 'Hukuk' WHERE id = ?", uid);
+            publisher.publishEvent(new edu.bingol.backend.profile.ProfileAcademicChangedEvent(uid));
+            st.setRollbackOnly();
+        });
+
+        assertEquals(2, tt.timetable(uid, null).courses().size(), "geri alinan profil degisimi programa dokunmaz");
     }
 }

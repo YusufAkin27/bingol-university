@@ -23,6 +23,11 @@ public interface ConversationMemberRepository extends JpaRepository<Conversation
 
     long countByConversationIdAndLeftAtIsNull(Long conversationId);
 
+    /** Kullanicinin verilen konusmalardaki AKTIF uyelikleri (konusma kimlikleri). */
+    @Query("SELECT m.conversationId FROM ConversationMember m WHERE m.leftAt IS NULL AND m.userId = :uid "
+            + "AND m.conversationId IN :cids")
+    List<Long> activeConversationIds(@Param("uid") Long userId, @Param("cids") Collection<Long> conversationIds);
+
     /** Konusma basina aktif uye sayisi: [conversationId, adet] (liste/makbuz kararinda uyeleri yuklemeden). */
     @Query("SELECT m.conversationId, COUNT(m) FROM ConversationMember m "
             + "WHERE m.conversationId IN :cids AND m.leftAt IS NULL GROUP BY m.conversationId")

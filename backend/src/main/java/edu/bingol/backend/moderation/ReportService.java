@@ -56,6 +56,14 @@ public class ReportService {
     /** Esik asan geri alinamaz (kulup, kullanici...) hedefe eklenen oncelik: yonetici kuyrugunda one cikar. */
     static final int ESCALATION_PRIORITY = 200;
 
+    private edu.bingol.backend.notification.FanoutNotifier fanout;
+
+    /** Raporlayanlara sonuc bildirimi COMMIT sonrasi havuzda gider (istek thread'i/acik islem bloke olmaz). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setFanout(edu.bingol.backend.notification.FanoutNotifier fanout) {
+        this.fanout = fanout;
+    }
+
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     void setClusters(ReporterClusters clusters) {
         this.clusters = clusters;
@@ -281,7 +289,11 @@ public class ReportService {
             owner.ifPresent(uid -> strikes.record(uid, report, action));
         }
         boolean actioned = action != Report.Resolution.DISMISS;
-        reporters.forEach(rid -> notifier.reporterOutcome(rid, actioned));
+        if (!reporters.isEmpty()) {
+            java.util.List<Long> toNotify = java.util.List.copyOf(reporters);
+            edu.bingol.backend.notification.FanoutNotifier.dispatch(fanout, "report-outcome:" + reportId,
+                    () -> toNotify.forEach(rid -> notifier.reporterOutcome(rid, actioned)));
+        }
         if (!actioned) {
             reporters.forEach(this::restrictIfAbusive);
         }

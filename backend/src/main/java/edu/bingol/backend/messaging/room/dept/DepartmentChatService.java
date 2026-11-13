@@ -5,7 +5,9 @@ import edu.bingol.backend.catalog.CatalogService;
 import edu.bingol.backend.messaging.room.RoomConversations;
 import edu.bingol.backend.messaging.room.RoomConversations.RoomInfo;
 import edu.bingol.backend.messaging.room.RoomKind;
+import edu.bingol.backend.academic.AudienceKey;
 import edu.bingol.backend.unitnews.UnitKeys;
+import org.springframework.data.domain.PageRequest;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
 import edu.bingol.backend.user.UserStatus;
@@ -74,35 +76,92 @@ public class DepartmentChatService {
         return joinRoom(u, key, u.getDepartment());
     }
 
-    /** Katalogdaki herhangi bir bolume katilim; profil bolumunu degistirmez. */
+    /**
+     * Baska bir bolume katilim; profil bolumunu degistirmez. Gecerli bolum = katalogda olan YA DA en az bir ACTIVE
+     * kullanicinin profil bolumu olan ad (eski/katalog disi kayitlar da katilabilir).
+     */
     @Transactional
     public DepartmentChatView join(Long userId, String department) {
         if (department == null) return join(userId);
         User u = requireUser(userId);
-        String name = catalog.catalog().faculties().stream().flatMap(f -> f.departments().stream())
-                .map(CatalogService.Department::name).filter(department::equals).findFirst()
-                .orElseThrow(DepartmentChatService::notFound);
+        String name = department.trim();
+        if (name.isEmpty() || name.length() > 120 || UnitKeys.deptKey(name) == null
+                || !(inCatalog(name) || users.existsActiveDepartment(name))) {
+            throw notFound();
+        }
         return joinRoom(u, UnitKeys.deptKey(name), name);
     }
 
+    private boolean inCatalog(String name) {
+        return catalog.catalog().faculties().stream().flatMap(f -> f.departments().stream())
+                .map(CatalogService.Department::name).anyMatch(name::equals);
+    }
+
+    /** Istemci sayfa boyutu: varsayilan 30, sunucu tavani 50. */
+    public static final int DEFAULT_PAGE = 30;
+    public static final int MAX_PAGE = 50;
+    /** q aramasinda bellekte suzulen DISTINCT bolum adi tavani (gercek bolum sayisi yuzlerce). */
+    private static final int SEARCH_POOL = 2000;
+
+    /**
+     * "Bolum ara": UYESI (ACTIVE kullanicisi) olan bolumler, ada gore alfabetik keyset sayfalama. Kaynak katalog
+     * degil app_user.department'tir; hic kullanicisi olmayan bolum listelenmez. q: Turkce-duyarli (AudienceKey
+     * katlama) icerir aramasi. Oda/uye bilgisi sayfa icin TOPLU sorgulanir.
+     */
     @Transactional(readOnly = true)
-    public List<DepartmentChatView> browse(Long userId) {
+    public List<DepartmentChatView> browse(Long userId, Integer size, String after, String q) {
         User u = requireUser(userId);
-        var names = new java.util.TreeMap<String, String>();
-        catalog.catalog().faculties().forEach(f -> f.departments().forEach(d ->
-                names.putIfAbsent(UnitKeys.deptKey(d.name()), d.name())));
-        var existing = depts.findAll().stream().collect(java.util.stream.Collectors.toMap(
-                DepartmentChatRoom::getDeptKey, java.util.function.Function.identity()));
-        return names.entrySet().stream().map(e -> {
-            DepartmentChatRoom room = existing.get(e.getKey());
-            RoomInfo info = room == null ? null : rooms.find(RoomKind.DEPARTMENT, room.getId()).orElse(null);
-            return info == null ? new DepartmentChatView(true, e.getValue(), false, false, 0, null)
-                    : view(u, room, info);
-        }).toList();
+        int limit = size == null || size < 1 ? DEFAULT_PAGE : Math.min(size, MAX_PAGE);
+        String cursor = after == null ? "" : after;
+        String needle = q == null || q.isBlank() ? null : AudienceKey.of(q);
+        List<String> raw;
+        if (needle == null) {
+            // Indeksli keyset; ayni anahtarli yazim varyantlari sayfayi kisaltabilir: 2x okuyup kirpariz.
+            raw = users.pageActiveDepartments(cursor, PageRequest.of(0, limit * 2));
+        } else {
+            raw = users.pageActiveDepartments("", PageRequest.of(0, SEARCH_POOL)).stream()
+                    .filter(n -> n.compareTo(cursor) > 0)
+                    .filter(n -> {
+                        String f = AudienceKey.of(n);
+                        return f != null && f.contains(needle);
+                    }).toList();
+        }
+        var picked = new java.util.LinkedHashMap<String, String>(); // deptKey -> ham ad (keyset anahtari)
+        for (String n : raw) {
+            String key = n == null || n.isBlank() ? null : UnitKeys.deptKey(n);
+            if (key != null) picked.putIfAbsent(key, n);
+            if (picked.size() >= limit) break;
+        }
+        if (picked.isEmpty()) return List.of();
+        var roomByKey = new java.util.HashMap<String, DepartmentChatRoom>();
+        for (DepartmentChatRoom r : depts.findByDeptKeyIn(picked.keySet())) roomByKey.put(r.getDeptKey(), r);
+        var stats = rooms.stats(RoomKind.DEPARTMENT,
+                roomByKey.values().stream().map(DepartmentChatRoom::getId).toList(), u.getId());
+        var out = new java.util.ArrayList<DepartmentChatView>(picked.size());
+        picked.forEach((key, name) -> {
+            DepartmentChatRoom room = roomByKey.get(key);
+            RoomConversations.RoomStat st = room == null ? null : stats.get(room.getId());
+            // departmentName = ham ad: istemci `after` imlecini bundan alir (keyset anahtariyla ayni olmali)
+            out.add(st == null ? new DepartmentChatView(true, name, false, false, 0, null)
+                    : new DepartmentChatView(true, name, false, st.joined(), st.memberCount(),
+                            st.joined() ? st.conversationId() : null));
+        });
+        return out;
     }
 
     private DepartmentChatView joinRoom(User u, String key, String name) {
         return joinRoom(u, key, name, false);
+    }
+
+    /**
+     * Profilde ILK kez bolum belirlenince (profil guncelleme): bolum odasi kurulur ve kullanici eklenir. Ayri islem:
+     * hata/kilit profil kaydini bozmaz; bolum adi acikca verilir (dis islem henuz commit etmedi).
+     */
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
+    public void joinOnFirstDepartment(Long userId, String department) {
+        User u = requireUser(userId);
+        String key = department == null || department.isBlank() ? null : UnitKeys.deptKey(department);
+        if (key != null) joinRoom(u, key, department, true);
     }
 
     /** Yalniz kayitta cagirilir; ayrilan kullanicilar giriste yeniden eklenmez. */
@@ -122,8 +181,9 @@ public class DepartmentChatService {
             info = rooms.find(RoomKind.DEPARTMENT, room.getId()).orElseThrow(DepartmentChatService::notFound);
         }
         if (info.closed()) {
-            if (signup) return view(u, room, info);
-            throw new ApiException(HttpStatus.CONFLICT, "CHAT_ROOM_CLOSED", "Sohbet odası kapalı.");
+            // Bolum odalari ASLA kapali kalmaz (eski kapali kayitlar V1871 ile acildi; rastlanirsa kendiliginden acilir).
+            rooms.openRoom(RoomKind.DEPARTMENT, room.getId(), List.of());
+            info = new RoomInfo(info.conversationId(), info.kind(), info.refId(), false);
         }
         if (signup) {
             rooms.addMemberIfSpace(RoomKind.DEPARTMENT, room.getId(), userId);
@@ -169,7 +229,7 @@ public class DepartmentChatService {
                 }).toList();
     }
 
-    /** Odayi kapatir (herkes cikar, gecmis saklanir) ya da yeniden acar (eski uyeler otomatik donmez; kendileri katilir). */
+    /** Bolum odasi KAPATILAMAZ (409 DEPT_ROOM_CANNOT_CLOSE); acma (eski kapali kayitlar icin) serbest. */
     @Transactional
     public AdminRoomView adminSetClosed(Long id, boolean closed) {
         DepartmentChatRoom r = depts.findById(id).orElseThrow(DepartmentChatService::notFound);
@@ -177,10 +237,10 @@ public class DepartmentChatService {
             throw notFound();
         }
         if (closed) {
-            rooms.closeRoom(RoomKind.DEPARTMENT, id);
-        } else {
-            rooms.openRoom(RoomKind.DEPARTMENT, id, List.of());
+            throw new ApiException(HttpStatus.CONFLICT, "DEPT_ROOM_CANNOT_CLOSE",
+                    "Bölüm sohbet odaları kapatılamaz.");
         }
+        rooms.openRoom(RoomKind.DEPARTMENT, id, List.of());
         RoomInfo i = rooms.find(RoomKind.DEPARTMENT, id).orElseThrow(DepartmentChatService::notFound);
         return new AdminRoomView(r.getId(), r.getName(), i.conversationId(), i.closed(),
                 i.closed() ? 0 : rooms.memberCount(RoomKind.DEPARTMENT, id));
@@ -201,9 +261,9 @@ public class DepartmentChatService {
     }
 
     private DepartmentChatView view(User u, DepartmentChatRoom room, RoomInfo info) {
-        boolean joined = !info.closed() && rooms.isMember(RoomKind.DEPARTMENT, room.getId(), u.getId());
-        return new DepartmentChatView(true, room.getName(), info.closed(), joined,
-                info.closed() ? 0 : rooms.memberCount(RoomKind.DEPARTMENT, room.getId()),
+        boolean joined = rooms.isMember(RoomKind.DEPARTMENT, room.getId(), u.getId());
+        return new DepartmentChatView(true, room.getName(), false, joined,
+                rooms.memberCount(RoomKind.DEPARTMENT, room.getId()),
                 joined ? info.conversationId() : null);
     }
 

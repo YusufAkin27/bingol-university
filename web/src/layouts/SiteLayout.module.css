@@ -424,3 +424,10 @@
     text-align: end;
   }
 }
+
+/* Çekmece (≤1020 px) dil, tema ve İndir'i taşır: üst çubukta gizle (390 px'te yatay taşmayı önler) */
+@media (max-width: 1020px) {
+  .desk {
+    display: none;
+  }
+}

@@ -99,6 +99,18 @@ def tile(size, bg, m, scale=0.62):
 for name, bg, m in (('light', (255, 255, 255), mark_light), ('dark', (9, 9, 11), mark_dark)):
     save_png(tile(64, bg, m, 0.82).convert('RGB'), os.path.join(PUB, f'favicon-{name}.png'))
 
+# favicon.svg: tema duyarli (acik sekme: siyah glif/beyaz zemin, koyu sekme: beyaz glif/siyah zemin); PNG'ler gomulu
+import base64
+def _b64(n):
+    with open(os.path.join(PUB, n), 'rb') as f:
+        return base64.b64encode(f.read()).decode()
+with open(os.path.join(PUB, 'favicon.svg'), 'w', encoding='utf8', newline='\n') as f:
+    f.write('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">'
+            '<style>.d{display:none}@media (prefers-color-scheme:dark){.l{display:none}.d{display:inline}}</style>'
+            '<image class="l" width="64" height="64" href="data:image/png;base64,' + _b64('favicon-light.png') + '"/>'
+            '<image class="d" width="64" height="64" href="data:image/png;base64,' + _b64('favicon-dark.png') + '"/></svg>\n')
+print('favicon.svg', os.path.getsize(os.path.join(PUB, 'favicon.svg')))
+
 fav = tile(48, (255, 255, 255), mark_light, 0.82).convert('RGB')
 fav.save(os.path.join(PUB, 'favicon.ico'), sizes=[(16, 16), (32, 32), (48, 48)])
 print('favicon.ico', os.path.getsize(os.path.join(PUB, 'favicon.ico')))

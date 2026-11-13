@@ -68,6 +68,20 @@ public class OnboardingService {
         this.tx = ShortTx.of(tm);
     }
 
+    /** Bolum sohbeti (istege bagli: elle kurulan testler icin). */
+    @Autowired(required = false)
+    private edu.bingol.backend.messaging.room.dept.DepartmentChatService departmentChat;
+
+    /** Ilk bolum atamasi (OAuth onboarding): bolum odasi kurulur + kullanici eklenir; hata onboarding'i bozmaz. */
+    private void joinDepartmentChat(Long userId) {
+        if (departmentChat == null) return;
+        try {
+            departmentChat.joinOnSignup(userId);
+        } catch (RuntimeException e) {
+            // sozlesme: sohbet katilimi onboarding'i asla bozmaz
+        }
+    }
+
     // ------------------------------------------------------------------ kullanici adi
 
     /** Musaitlik (yalniz oturumlu; hiz siniri controller'da). Kendi adi "musait" sayilir. */
@@ -163,7 +177,7 @@ public class OnboardingService {
         boolean recordTerms = requireTerms(userId, r.acceptTerms());
 
         try {
-            return tx.call(() -> {
+            OnboardingResponse res = tx.call(() -> {
                 User user = load(userId);
                 if (user.isProfileCompleted()) {
                     return new OnboardingResponse(true, ProfileView.of(user)); // yaris: baska istek tamamladi
@@ -186,6 +200,8 @@ public class OnboardingService {
                 }
                 return new OnboardingResponse(true, ProfileView.of(saved));
             });
+            joinDepartmentChat(userId);
+            return res;
         } catch (DataIntegrityViolationException race) {
             throw taken(); // eszamanli iki kisi ayni kullanici adini aldi: benzersiz indeks ikincisini reddetti
         }

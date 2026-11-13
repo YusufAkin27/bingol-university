@@ -35,7 +35,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /** Gonderi/reel yorumlari (KS-BE2): yazma, yanit yassilama, sayaclar, gorunurluk, begeni, silme, gizleme (H2). */
-@SpringBootTest
+@SpringBootTest(properties = "spring.messages.basename=i18n/messages,i18n/comment")
 class PostCommentServiceTest {
 
     @Autowired PostCommentService service;
@@ -173,6 +173,8 @@ class PostCommentServiceTest {
         posts.save(p);
         assertEquals("COMMENT_NOT_FOUND", code(() -> comment(a, p, "gizli")));
         assertEquals("COMMENT_NOT_FOUND", code(() -> service.list(a.getId(), p.getId(), null, null, 10)));
+        // gizlenen gonderinin yorumu yorum kimligiyle de begenilemez
+        assertEquals("COMMENT_NOT_FOUND", code(() -> service.like(author.getId(), c.id())));
     }
 
     // ---------------------------------------------------------------- liste + sayfalama

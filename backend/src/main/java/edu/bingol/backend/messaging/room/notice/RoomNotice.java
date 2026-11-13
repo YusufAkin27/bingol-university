@@ -10,7 +10,7 @@ import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
 
-/** Sohbet odasi duyurusu (V1840). Yumusak silme: deletedAt (sahip/yetkili), hiddenAt (moderasyon). */
+/** Sohbet odasi duyurusu (V1873). Yumusak silme: deletedAt (sahip/yetkili), hiddenAt (moderasyon). */
 @Entity
 @Table(name = "room_notice")
 @Getter

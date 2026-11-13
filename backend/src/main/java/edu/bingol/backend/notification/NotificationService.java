@@ -670,6 +670,43 @@ public class NotificationService {
         }
     }
 
+    /**
+     * YALNIZ push (uygulama ici bildirim kutusuna yazmaz): her dil icin ayri metinle, kullanici kimligi araliklariyla
+     * ({@link BroadcastWriter#RANGE}) kalici push kuyruguna yazar. Tercih sutunu, aktif hesap, sessiz saat suzgeci
+     * {@link BroadcastWriter} ile aynidir. PostgreSQL disinda (aralik yazici yok) hicbir sey yazmaz.
+     * @return kuyruga yazilan cihaz satiri sayisi (hata/FCM kapali = 0); istisna sizdirmaz
+     */
+    public int pushOnlyBroadcastLocalized(NotificationType type, NotificationSubtype subtype, String prefColumn,
+                                          Function<Lang, String> title, Function<Lang, String> body,
+                                          Map<String, String> data) {
+        if (!rangeBroadcast() || !dispatcher.enabled() || !dispatcher.rangeBroadcastSupported()) {
+            return 0;
+        }
+        int total = 0;
+        for (Lang lang : Lang.values()) {
+            try {
+                var message = PushMessages.of(type, subtype, title.apply(lang), body.apply(lang),
+                        PushPayload.build(type, subtype, PushDisplay.withBadge(data, i18n, lang), 1), null, null);
+                long after = 0;
+                while (true) {
+                    Long hi = broadcastWriter.upperBound(after, BroadcastWriter.RANGE);
+                    if (hi == null) {
+                        break;
+                    }
+                    try {
+                        total += dispatcher.dispatchRange(message, prefColumn, lang.code(), after, hi);
+                    } catch (RuntimeException e) {
+                        log.warn("Yalniz-push araligi kuyruga yazilamadi ({}..{}): {}", after, hi, e.toString());
+                    }
+                    after = hi;
+                }
+            } catch (RuntimeException e) {
+                log.warn("Yalniz-push yayini ({}) basarisiz: {}", lang, e.toString());
+            }
+        }
+        return total;
+    }
+
     private boolean rangeBroadcast() {
         return broadcastWriter != null && broadcastWriter.supported();
     }
