@@ -57,6 +57,7 @@ class CommunityCategoryWriteTest {
         when(cats.findByKey("spor")).thenReturn(Optional.of(cat("spor", true)));
         when(cats.findByKey("eski")).thenReturn(Optional.of(cat("eski", false)));
         when(cats.findByKey("yok")).thenReturn(Optional.empty());
+        when(cats.findFirstByKeyIgnoreCase("SPOR")).thenReturn(Optional.of(cat("spor", true)));
         when(cats.findAll()).thenReturn(List.of(cat("spor", true), cat("eski", false)));
         when(communities.saveAndFlush(any())).thenAnswer(i -> {
             Community c = i.getArgument(0);

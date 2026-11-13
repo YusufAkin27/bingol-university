@@ -71,7 +71,23 @@ public class MenuSyncService {
     /** Ayda bir: ayin son gunu 23:30 (Istanbul). Ayar: menu.sync.cron */
     @Scheduled(cron = "${menu.sync.cron:0 30 23 L * *}", zone = "Europe/Istanbul")
     public void scheduledSync() {
-        sync();
+        locked("menu-sync", this::sync);
+    }
+
+    /** Coklu ornek kilidi (iki ornek kaynak siteye cift istek atmasin); yoksa (testler) eski davranis. */
+    private edu.bingol.backend.config.SchedulerLock lock;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setLock(edu.bingol.backend.config.SchedulerLock lock) {
+        this.lock = lock;
+    }
+
+    private void locked(String name, Runnable task) {
+        if (lock == null) {
+            task.run();
+        } else {
+            lock.tryRunOrLocal(name, java.time.Duration.ofMinutes(30), task);
+        }
     }
 
     /**
@@ -83,7 +99,7 @@ public class MenuSyncService {
      */
     @Scheduled(cron = "${menu.catchup.cron:-}", zone = "Europe/Istanbul")
     public void scheduledCatchUp() {
-        catchUp();
+        locked("menu-catchup", this::catchUp);
     }
 
     /** Kaynaga gidildiyse true. Exception firlatmaz. */

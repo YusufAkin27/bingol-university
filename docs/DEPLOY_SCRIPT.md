@@ -38,6 +38,8 @@ Adımlar: (0) **e-posta ön koşulu** (aşağıda; bilgi yoksa HİÇBİR şey ak
 
 Dağıtım öncesinde mevcut sürümün `V*.sql` migration dosyaları yeni sürümle karşılaştırılır. Değişmiş veya kaldırılmış bir dosya varsa derleme/yeniden başlatma yapılmadan dağıtım durur; çalışan sürüm korunur. Canlıya uygulanmış migration değiştirilmez: eski dosya aynen korunur, yeni şema değişikliği yeni sürüm numarasıyla eklenir.
 
+Sürüm dizini temizliği en yeni üç dizine ek olarak aktif sürümü ve `.previous_release` geri alma hedefini korur; başarısız denemelerin dizinleri eski çalışan sürümün silinmesine yol açmaz.
+
 ## Sırlar
 
 `.env.prod` ilk kez üretilirken (`scripts/ops/gen-secrets.sh`) `DB_PASSWORD`, `JWT_SECRET`, `ADMIN_PASSWORD`, `CRYPTO_MASTER_KEYS`/`CRYPTO_ACTIVE_KEY_ID`, `DEVICE_HMAC_KEY` rastgele oluşur. Sunucuda izin 600'dür. Yerelde **iki AYRI dosya** yazılır (gitignored, izin 600): `.deploy/generated-secrets.txt` (uygulama sırları + `CRYPTO_MASTER_KEYS`) ve `.deploy/backup-age-private.key` (yedek **age ÖZEL anahtarı**). **İkisini şifre yöneticisine ve çevrimdışı kasaya, FARKLI emanet yerlerine taşıyın** (tek yerde ikisi birden = tek hata noktası); `CRYPTO_MASTER_KEYS` kaybı şifreli verinin kaybıdır, age özel anahtarı olmadan yedekler açılamaz. Yedek şifreleme için sunucuda bir `age` anahtar çifti üretilir: genel anahtar `BACKUP_AGE_RECIPIENT`'e yazılır; özel anahtar **yerel kopya doğrulanınca** (`AGE-SECRET-KEY-` satırı var) sunucudan silinir, doğrulanamazsa silinmez ve uyarı verilir. Emanet düzeni ve tatbikat günlüğü: [KEY_MANAGEMENT.md](KEY_MANAGEMENT.md), [RUNBOOK.md](RUNBOOK.md) bölüm 12.

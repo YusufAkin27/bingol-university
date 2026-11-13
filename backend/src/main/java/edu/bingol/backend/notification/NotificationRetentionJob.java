@@ -32,9 +32,21 @@ public class NotificationRetentionJob {
         this.unreadDays = unreadDays;
     }
 
+    /** Coklu ornek kilidi; yoksa (testler) eski davranis. */
+    private edu.bingol.backend.config.SchedulerLock lock;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setLock(edu.bingol.backend.config.SchedulerLock lock) {
+        this.lock = lock;
+    }
+
     @Scheduled(cron = "${app.notification.retention-cron:0 30 3 * * *}", zone = "Europe/Istanbul")
     public void scheduled() {
-        run(Instant.now());
+        if (lock == null) {
+            run(Instant.now());
+        } else {
+            lock.tryRunOrLocal("notification-retention", java.time.Duration.ofMinutes(30), () -> run(Instant.now()));
+        }
     }
 
     /** @return silinen toplam satir; hata cagirana sizmaz. */

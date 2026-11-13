@@ -23,6 +23,22 @@ import org.springframework.stereotype.Component;
 @Component
 public class EventChatMaintenance {
 
+    /** Coklu ornek kilidi (DATABASE.md sorgu kurali 9.4); yoksa (testler/elle kurulum) eski davranis: kilitsiz calisir. */
+    private edu.bingol.backend.config.SchedulerLock lock;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setLock(edu.bingol.backend.config.SchedulerLock lock) {
+        this.lock = lock;
+    }
+
+    private void locked(String name, int minutes, Runnable job) {
+        if (lock == null) {
+            job.run();
+        } else {
+            lock.tryRunOrLocal(name, java.time.Duration.ofMinutes(minutes), job);
+        }
+    }
+
     private static final Logger log = LoggerFactory.getLogger(EventChatMaintenance.class);
 
     private final RoomConversations rooms;
@@ -37,6 +53,10 @@ public class EventChatMaintenance {
     }
 
     @Scheduled(fixedDelayString = "${app.chat.room-purge-ms:300000}", initialDelayString = "${app.chat.room-purge-ms:300000}")
+    public void scheduledRun() {
+        locked("event-chat-maintenance", 10, this::run);
+    }
+
     public void run() {
         try {
             Timestamp cutoff = Timestamp.from(Instant.now().minus(Duration.ofDays(closeDays)));
@@ -44,6 +64,7 @@ public class EventChatMaintenance {
                     SELECT l.ref_id FROM chat_room_link l JOIN user_event e ON e.id = l.ref_id
                     WHERE l.kind = 'EVENT' AND l.closed = FALSE
                       AND (e.status IN ('CANCELLED', 'HIDDEN', 'REJECTED') OR e.ends_at < ?)
+                    LIMIT 200
                     """, Long.class, cutoff);
             for (Long id : toClose) {
                 rooms.closeRoom(RoomKind.EVENT, id);

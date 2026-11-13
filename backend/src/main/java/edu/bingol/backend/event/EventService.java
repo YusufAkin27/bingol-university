@@ -232,8 +232,8 @@ public class EventService {
     // ---- olusturma / guncelleme / silme ----
 
     /**
-     * Yalnizca kulup adina (communityId zorunlu, yoksa 400 EVENT_CLUB_REQUIRED). MODERATOR+ ve sistem ADMIN'i dogrudan
-     * ACTIVE; MANAGE_EVENTS verilmis sade uye PENDING_REVIEW (yonetici onayi); izni olmayan 403.
+     * Yalnizca kulup adina (communityId zorunlu, yoksa 400 EVENT_CLUB_REQUIRED). MANAGE_EVENTS sahibi herkes dogrudan
+     * ACTIVE (etkinlik onayi yok; rezerve baslik haric); izni olmayan 403; kulup ACTIVE degilse 409.
      */
     @Transactional
     public EventView create(Actor a, CreateEventRequest r) {
@@ -278,7 +278,8 @@ public class EventService {
             admission.beforeCreate(a);
         }
         e.setCommunityId(c.getId());
-        e.setStatus(isStaff(a, c.getId()) && !reservedTitle ? UserEvent.Status.ACTIVE : UserEvent.Status.PENDING_REVIEW);
+        // Kullanici karari (2026-11-09): etkinlik admin onayi gerektirmez; onay yalniz kulup kurmada. Yalniz rezerve baslik onaya duser.
+        e.setStatus(reservedTitle ? UserEvent.Status.PENDING_REVIEW : UserEvent.Status.ACTIVE);
         e.setTitle(r.title().trim());
         e.setDescription(Texts.blankToNull(r.description()));
         e.setStartsAt(r.startsAt());
@@ -379,7 +380,7 @@ public class EventService {
                 && edu.bingol.backend.profile.naming.DisplayNamePolicy.looksReserved(r.title());
         Texts.requireNoInvisible(changed(r.title(), e.getTitle()), changed(r.location(), e.getLocation()));
         boolean backToReview = e.getStatus() == UserEvent.Status.ACTIVE && textChanged && e.getCommunityId() != null
-                && (reservedNow || !isStaff(a, e.getCommunityId()));
+                && reservedNow;
         if (r.title() != null && !r.title().isBlank()) {
             e.setTitle(r.title().trim());
         }

@@ -286,7 +286,7 @@ void main() {
       final api = ApiClient(
         client: MockClient((r) async {
           if (!online) throw http.ClientException('yok');
-          bodies.add(Map<String, dynamic>.from(jsonDecode((r as http.Request).body)));
+          bodies.add(Map<String, dynamic>.from((jsonDecode((r as http.Request).body) as Map)));
           return http.Response('{"id":1}', 200, headers: {'content-type': 'application/json'});
         }),
         retryDelay: Duration.zero,

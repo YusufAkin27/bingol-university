@@ -585,8 +585,14 @@ fi
 if [ "\$OK" = 1 ]; then
   ln -sfn "releases/\$REL" "\$BASEDIR/current"
   echo "\$REL" > "\$BASEDIR/.current_release"
-  # son 3 surum dizinini tut
-  ls -1dt "\$BASEDIR"/releases/*/ 2>/dev/null | tail -n +4 | xargs -r rm -rf
+  # Keep the rollback target even when failed attempts created newer release directories.
+  PREV_KEEP="\$(cat "\$BASEDIR/.previous_release" 2>/dev/null || true)"
+  while IFS= read -r old_release; do
+    old_name="\$(basename "\$old_release")"
+    [ "\$old_name" = "\$REL" ] && continue
+    [ "\$old_name" = "\$PREV_KEEP" ] && continue
+    rm -rf -- "\$old_release"
+  done < <(ls -1dt "\$BASEDIR"/releases/*/ 2>/dev/null | tail -n +4)
   docker image prune -f >/dev/null 2>&1 || true
   rlog "TAMAM: \$REL"
   exit 0

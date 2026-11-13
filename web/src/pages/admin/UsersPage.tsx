@@ -39,6 +39,7 @@ import {
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { adminError, errorMessage } from '../../lib/errors';
+import { CreateUserModal } from './users/CreateUserModal';
 import { useCan, usePermissions } from '../../auth/permissions';
 import { paths } from '../../paths';
 import { DebouncedInput } from './users/DebouncedInput';
@@ -83,6 +84,8 @@ export default function UsersPage() {
   const [sp, setSp] = useSearchParams();
   const filters = useMemo(() => parseUserFilters(sp), [sp]);
   const [exporting, setExporting] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const canCreate = useCan('users.verify');
   const [searchKey, setSearchKey] = useState(0);
   const [selected, setSelected] = useState<Set<string | number>>(new Set());
   const [bulkResult, setBulkResult] = useState<BulkUserResult | null>(null);
@@ -91,7 +94,11 @@ export default function UsersPage() {
   const kit = useKitFormat();
   // Özet şeridi: yalnız analitik izni olan profilde (sunucu /admin/analytics/* için analytics.read ister)
   const canOverview = useCan('analytics.read');
-  const overview = useQuery({ queryKey: qk.analytics.overview(), queryFn: getOverview, enabled: canOverview });
+  const overview = useQuery({
+    queryKey: qk.analytics.overview(),
+    queryFn: getOverview,
+    enabled: canOverview,
+  });
 
   const update = (patch: Partial<UserFilters>) =>
     setSp(filtersToSearch({ ...filters, page: 0, ...patch }), { replace: !('page' in patch) });
@@ -117,11 +124,13 @@ export default function UsersPage() {
   // Süzgeç/sayfa değişince seçim sıfırlanır: görünmeyen satırlar üzerinde toplu işlem yapılmasın.
   useEffect(() => setSelected(new Set()), [sp]);
 
-  const bulkAction = (action: BulkUserAction) => async ({ reason, idempotencyKey }: { reason: string; idempotencyKey: string }) => {
-    const res = await bulkUsers(action, [...selected].map(Number), reason, { idempotencyKey });
-    setBulkResult(res);
-    setSelected(new Set());
-  };
+  const bulkAction =
+    (action: BulkUserAction) =>
+    async ({ reason, idempotencyKey }: { reason: string; idempotencyKey: string }) => {
+      const res = await bulkUsers(action, [...selected].map(Number), reason, { idempotencyKey });
+      setBulkResult(res);
+      setSelected(new Set());
+    };
   const overLimit = selected.size > USER_BULK_MAX;
 
   async function onExport() {
@@ -259,7 +268,10 @@ export default function UsersPage() {
   const activeFilters = activeFilterCount(filters) + (filters.q ? 1 : 0);
   const data = list.data;
   // sunucu eksik/boş yanıt verirse özet şeridi hiç çizilmez (çökmesin)
-  const o = overview.data && typeof overview.data.totalUsers === 'number' && overview.data.newUsers ? overview.data : undefined;
+  const o =
+    overview.data && typeof overview.data.totalUsers === 'number' && overview.data.newUsers
+      ? overview.data
+      : undefined;
 
   const clearAll = () => {
     setSearchKey((k) => k + 1);
@@ -293,27 +305,38 @@ export default function UsersPage() {
   const chips: { key: string; label: string; clear: () => void }[] = [];
   const addChip = (key: keyof UserFilters, label: string) =>
     chips.push({ key, label, clear: () => update({ [key]: '' } as Partial<UserFilters>) });
-  if (filters.status) addChip('status', `${t('admin.users.filter.status')}: ${td(`admin.users.status.${filters.status}`)}`);
-  if (filters.role) addChip('role', `${t('admin.users.filter.role')}: ${td(`admin.users.role.${filters.role}`)}`);
+  if (filters.status)
+    addChip('status', `${t('admin.users.filter.status')}: ${td(`admin.users.status.${filters.status}`)}`);
+  if (filters.role)
+    addChip('role', `${t('admin.users.filter.role')}: ${td(`admin.users.role.${filters.role}`)}`);
   if (filters.faculty) addChip('faculty', `${t('admin.users.filter.faculty')}: ${filters.faculty}`);
-  if (filters.department) addChip('department', `${t('admin.users.filter.department')}: ${filters.department}`);
+  if (filters.department)
+    addChip('department', `${t('admin.users.filter.department')}: ${filters.department}`);
   if (filters.classYear)
     addChip('classYear', t('admin.users.classYearOption', { n: formatNumber(Number(filters.classYear)) }));
   if (filters.language)
-    addChip('language', `${t('admin.v2p.users.col.language')}: ${td(`admin.users.lang.${filters.language}`)}`);
+    addChip(
+      'language',
+      `${t('admin.v2p.users.col.language')}: ${td(`admin.users.lang.${filters.language}`)}`,
+    );
   if (filters.verified)
     addChip(
       'verified',
-      filters.verified === 'true' ? t('admin.users.filter.verified.true') : t('admin.users.filter.verified.false'),
+      filters.verified === 'true'
+        ? t('admin.users.filter.verified.true')
+        : t('admin.users.filter.verified.false'),
     );
   if (filters.twoFactor)
     addChip(
       'twoFactor',
       `${g2('admin.users.filter.twoFactor')}: ${
-        filters.twoFactor === 'true' ? g2('admin.users.filter.twoFactor.true') : g2('admin.users.filter.twoFactor.false')
+        filters.twoFactor === 'true'
+          ? g2('admin.users.filter.twoFactor.true')
+          : g2('admin.users.filter.twoFactor.false')
       }`,
     );
-  if (filters.createdFrom) addChip('createdFrom', `${t('admin.p09.filter.createdFrom')}: ${filters.createdFrom}`);
+  if (filters.createdFrom)
+    addChip('createdFrom', `${t('admin.p09.filter.createdFrom')}: ${filters.createdFrom}`);
   if (filters.createdTo) addChip('createdTo', `${t('admin.p09.filter.createdTo')}: ${filters.createdTo}`);
   if (filters.seenFrom) addChip('seenFrom', `${t('admin.p09.filter.seenFrom')}: ${filters.seenFrom}`);
   if (filters.seenTo) addChip('seenTo', `${t('admin.p09.filter.seenTo')}: ${filters.seenTo}`);
@@ -325,21 +348,36 @@ export default function UsersPage() {
       <PageHeader
         title={t('admin.users.title')}
         actions={
-          <Button
-            variant="secondary"
-            loading={exporting}
-            disabled={list.isError && !data}
-            leftIcon={<Icon name="download" size={18} />}
-            onClick={onExport}
-            data-search-anchor="users-export"
-          >
-            {t('admin.users.export')}
-          </Button>
+          <>
+            {canCreate && (
+              <Button
+                leftIcon={<Icon name="plus" size={18} />}
+                onClick={() => setCreateOpen(true)}
+                data-testid="user-create-open"
+              >
+                Kullanıcı ekle
+              </Button>
+            )}
+            <Button
+              variant="secondary"
+              loading={exporting}
+              disabled={list.isError && !data}
+              leftIcon={<Icon name="download" size={18} />}
+              onClick={onExport}
+              data-search-anchor="users-export"
+            >
+              {t('admin.users.export')}
+            </Button>
+          </>
         }
       />
 
       {canOverview && (overview.isLoading || o) && (
-        <section className={people.summary} aria-label={t('admin.v2p.users.summary')} data-search-anchor="users-summary">
+        <section
+          className={people.summary}
+          aria-label={t('admin.v2p.users.summary')}
+          data-search-anchor="users-summary"
+        >
           <div className={people.tiles}>
             <StatTile
               label={t('admin.v2p.users.tile.total')}
@@ -442,7 +480,9 @@ export default function UsersPage() {
               value={filters.status}
               onChange={(e) => update({ status: e.target.value as UserFilters['status'] })}
             >
-              <option value="">{t('admin.users.filter.status')}: {t('common.all')}</option>
+              <option value="">
+                {t('admin.users.filter.status')}: {t('common.all')}
+              </option>
               {(['ACTIVE', 'SUSPENDED', 'DELETED'] as const).map((s) => (
                 <option key={s} value={s}>
                   {td(`admin.users.status.${s}`)}
@@ -454,7 +494,9 @@ export default function UsersPage() {
               value={filters.role}
               onChange={(e) => update({ role: e.target.value as UserFilters['role'] })}
             >
-              <option value="">{t('admin.users.filter.role')}: {t('common.all')}</option>
+              <option value="">
+                {t('admin.users.filter.role')}: {t('common.all')}
+              </option>
               {(['USER', 'ADMIN'] as const).map((r) => (
                 <option key={r} value={r}>
                   {td(`admin.users.role.${r}`)}
@@ -467,7 +509,9 @@ export default function UsersPage() {
                 value={filters.faculty}
                 onChange={(e) => update({ faculty: e.target.value })}
               >
-                <option value="">{t('admin.users.filter.faculty')}: {t('common.all')}</option>
+                <option value="">
+                  {t('admin.users.filter.faculty')}: {t('common.all')}
+                </option>
                 {facultyList.map((f) => (
                   <option key={f} value={f}>
                     {f}
@@ -491,7 +535,9 @@ export default function UsersPage() {
               value={filters.classYear}
               onChange={(e) => update({ classYear: e.target.value as UserFilters['classYear'] })}
             >
-              <option value="">{t('admin.users.filter.classYear')}: {t('common.all')}</option>
+              <option value="">
+                {t('admin.users.filter.classYear')}: {t('common.all')}
+              </option>
               {[1, 2, 3, 4].map((n) => (
                 <option key={n} value={String(n)}>
                   {t('admin.users.classYearOption', { n: formatNumber(n) })}
@@ -503,7 +549,9 @@ export default function UsersPage() {
               value={filters.language}
               onChange={(e) => update({ language: e.target.value as UserFilters['language'] })}
             >
-              <option value="">{t('admin.v2p.users.col.language')}: {t('common.all')}</option>
+              <option value="">
+                {t('admin.v2p.users.col.language')}: {t('common.all')}
+              </option>
               {(['tr', 'en', 'ar'] as const).map((l) => (
                 <option key={l} value={l}>
                   {td(`admin.users.lang.${l}`)}
@@ -515,7 +563,9 @@ export default function UsersPage() {
               value={filters.verified}
               onChange={(e) => update({ verified: e.target.value as UserFilters['verified'] })}
             >
-              <option value="">{t('admin.users.filter.verified')}: {t('common.all')}</option>
+              <option value="">
+                {t('admin.users.filter.verified')}: {t('common.all')}
+              </option>
               <option value="true">{t('admin.users.filter.verified.true')}</option>
               <option value="false">{t('admin.users.filter.verified.false')}</option>
             </Select>
@@ -578,7 +628,9 @@ export default function UsersPage() {
               onSelectionChange={setSelected}
               breakpoint={720}
               onRowClick={(u) =>
-                navigate(paths.admin.user(u.id), { state: { from: `${location.pathname}${location.search}` } })
+                navigate(paths.admin.user(u.id), {
+                  state: { from: `${location.pathname}${location.search}` },
+                })
               }
               empty={
                 <EmptyState
@@ -670,6 +722,8 @@ export default function UsersPage() {
           {t('admin.p09.bulk.revoke')}
         </GuardedAction>
       </BulkBar>
+
+      <CreateUserModal open={createOpen} onClose={() => setCreateOpen(false)} />
 
       {bulkResult && (
         <Modal

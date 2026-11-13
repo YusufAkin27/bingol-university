@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui' show Color;
 
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/widgets/widget_tokens.dart';
@@ -65,8 +66,8 @@ void main() {
       for (final r in rows) {
         final f = fields[r[1]];
         expect(f, isNotNull, reason: 'BuTokens alani ${r[1]}');
-        expect(widgetHex(f!['l']! as dynamic), r[2], reason: '${r[0]} ${r[1]} acik');
-        expect(widgetHex(f['d']! as dynamic), r[3], reason: '${r[0]} ${r[1]} koyu');
+        expect(widgetHex(f!['l']! as Color), r[2], reason: '${r[0]} ${r[1]} acik');
+        expect(widgetHex(f['d']! as Color), r[3], reason: '${r[0]} ${r[1]} koyu');
       }
     });
 

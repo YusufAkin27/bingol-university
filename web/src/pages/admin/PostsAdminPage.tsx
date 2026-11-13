@@ -22,10 +22,13 @@ import {
   Skeleton,
   StatTile,
 } from '../../components/ui';
+import { useCan } from '../../auth/permissions';
+import { Icon } from '../../components/ui/Icon';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useDebouncedValue, usePageTitle } from '../../lib/hooks';
 import { adminErrorMessage } from './campaigns/shared';
 import { Lightbox } from './chat/Lightbox';
+import { CreatePostModal } from './posts/CreatePostModal';
 import { PostDetailDrawer } from './posts/PostDetail';
 import { PostActionButtons, PostMediaThumb, StatusBadges, usePostActions } from './posts/PostParts';
 import { EMPTY_POST_FILTERS, excerpt, mediaToLightbox, type PostFilterState } from './posts/postsLogic';
@@ -78,7 +81,9 @@ function PostRowItem({
       <p className={styles.text} dir="auto">
         {excerpt(post.text) || t('admin.posts.noText')}
       </p>
-      {post.hiddenReason && <p className={styles.reason}>{t('admin.posts.reasonShown', { reason: post.hiddenReason })}</p>}
+      {post.hiddenReason && (
+        <p className={styles.reason}>{t('admin.posts.reasonShown', { reason: post.hiddenReason })}</p>
+      )}
       {post.media.length > 0 && (
         <div className={styles.thumbs}>
           {post.media.slice(0, 6).map((m, i) => (
@@ -106,7 +111,9 @@ function PostsTab() {
   const { t, formatNumber } = i18n;
   const [params, setParams] = useSearchParams();
   const openParam = Number(params.get('open'));
-  const [openId, setOpenId] = useState<number | null>(Number.isInteger(openParam) && openParam > 0 ? openParam : null);
+  const [openId, setOpenId] = useState<number | null>(
+    Number.isInteger(openParam) && openParam > 0 ? openParam : null,
+  );
   const [filters, setFilters] = useState<PostFilterState>(EMPTY_POST_FILTERS);
   const set = (p: Partial<PostFilterState>) => setFilters((f) => ({ ...f, ...p }));
   const q = useDebouncedValue(filters.q, 400);
@@ -120,7 +127,11 @@ function PostsTab() {
     else if (anchor === 'posts-grid') setView('grid');
   });
 
-  const stats = useQuery({ queryKey: qk.adminPosts.stats(), queryFn: adminPostsApi.postStats, staleTime: 60_000 });
+  const stats = useQuery({
+    queryKey: qk.adminPosts.stats(),
+    queryFn: adminPostsApi.postStats,
+    staleTime: 60_000,
+  });
   const list = useInfiniteQuery({
     queryKey: qk.adminPosts.list(f),
     queryFn: ({ pageParam }) => adminPostsApi.listPosts(f, pageParam, 20),
@@ -191,7 +202,10 @@ function PostsTab() {
           parts={
             s.openReportedCount > 0
               ? [
-                  { text: t('admin.v2m.posts.sentenceReported', { n: formatNumber(s.openReportedCount) }), tone: 'warn' },
+                  {
+                    text: t('admin.v2m.posts.sentenceReported', { n: formatNumber(s.openReportedCount) }),
+                    tone: 'warn',
+                  },
                   ' ',
                   t('admin.v2m.posts.sentenceNew', { n: formatNumber(s.last24h.postCount) }),
                 ]
@@ -255,7 +269,11 @@ function PostsTab() {
           <Input type="date" value={filters.to} onChange={(e) => set({ to: e.target.value })} />
         </FormField>
         <div className={`${styles.checks} ${v2.touch}`}>
-          <Checkbox label={t('admin.posts.filter.hasMedia')} checked={filters.hasMedia} onChange={(e) => set({ hasMedia: e.target.checked })} />
+          <Checkbox
+            label={t('admin.posts.filter.hasMedia')}
+            checked={filters.hasMedia}
+            onChange={(e) => set({ hasMedia: e.target.checked })}
+          />
           <Button variant="ghost" size="sm" onClick={() => setFilters(EMPTY_POST_FILTERS)}>
             {t('admin.posts.filter.reset')}
           </Button>
@@ -285,7 +303,11 @@ function PostsTab() {
               ))}
             </ul>
           )}
-          <LoadMore hasMore={!!list.hasNextPage} loading={list.isFetchingNextPage} onLoadMore={() => void list.fetchNextPage()} />
+          <LoadMore
+            hasMore={!!list.hasNextPage}
+            loading={list.isFetchingNextPage}
+            onLoadMore={() => void list.fetchNextPage()}
+          />
         </>
       )}
 
@@ -306,9 +328,26 @@ function PostsTab() {
 export default function PostsAdminPage() {
   const { t } = useI18n();
   usePageTitle(t('admin.posts.title'));
+  const [createOpen, setCreateOpen] = useState(false);
+  const canCreate = useCan('content.write');
   return (
     <>
-      <PageHeader title={t('admin.posts.title')} description={t('admin.posts.subtitle')} />
+      <PageHeader
+        title={t('admin.posts.title')}
+        description={t('admin.posts.subtitle')}
+        actions={
+          canCreate ? (
+            <Button
+              leftIcon={<Icon name="plus" size={18} />}
+              onClick={() => setCreateOpen(true)}
+              data-testid="post-create-open"
+            >
+              Gönderi oluştur
+            </Button>
+          ) : undefined
+        }
+      />
+      <CreatePostModal open={createOpen} onClose={() => setCreateOpen(false)} />
       <PostsTab />
     </>
   );
