@@ -339,12 +339,11 @@ void main() {
           'nextCursor': null,
         });
       await _pump(tester, build(makeSession(be)), size: kPhoneMedium);
-      expect(find.byKey(const ValueKey('msg-status-SENT')), findsOneWidget);
-      expect(find.byKey(const ValueKey('msg-status-DELIVERED')), findsOneWidget);
-      expect(find.byKey(const ValueKey('msg-status-READ')), findsOneWidget);
-      final read = tester.widget<CustomPaint>(find.byKey(const ValueKey('msg-status-READ')));
-      // Okundu tiki de nötr (P2/P3: marka vurgusu yalnız okunmamış rozetinde): iki çift tik aynı sakin renk.
-      expect((read.painter as MessageTickPainter).color, equals((tester.widget<CustomPaint>(find.byKey(const ValueKey('msg-status-DELIVERED'))).painter as MessageTickPainter).color));
+      // Sohbet listesi tik yerine metin gosterir (chat_tab.dart): SENT/DELIVERED "Gönderildi", READ "Görüldü";
+      // durumu olmayan (CLUB) satirda metin yok.
+      expect(find.byKey(const ValueKey('chatListStatus')), findsNWidgets(3));
+      expect(find.textContaining('Gönderildi'), findsNWidgets(2));
+      expect(find.textContaining('Görüldü'), findsOneWidget);
       // Tüm sohbet avatarları 52 dp; fotoğrafsızlar varsayılan görselli, fotoğraflılar tam daire BuAvatar.
       final avatars = tester.widgetList<ChatlistAvatar>(find.byType(ChatlistAvatar));
       expect(avatars, isNotEmpty);
@@ -1319,7 +1318,7 @@ void main() {
     testWidgets('katilimci: yalniz QR kodum, kod girisi yok', (tester) async {
       final be = full(manage: false);
       await _pump(tester, build(makeSession(be)), size: kPhoneSmall);
-      expect(find.byKey(const ValueKey('detail-my-qr')), findsOneWidget);
+      expect(find.byKey(const ValueKey('detail-ticket')), findsOneWidget);
       expect(find.text('Kodu elle gir'), findsNothing);
       expect(find.text('Yoklamayı gönder'), findsNothing);
       expect(be.requests.where((r) => r.contains('check-in')), isEmpty);

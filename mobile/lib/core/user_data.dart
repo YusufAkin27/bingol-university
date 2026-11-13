@@ -8,6 +8,7 @@ import '../features/auth/help/public_support_api.dart' show TrackTokenStore;
 import '../features/chat/chat_wallpaper.dart';
 import '../features/chat/photo_autosave.dart';
 import '../features/chat/recent_reactions.dart';
+import '../features/events/event_ticket_store.dart';
 import '../features/forum/data/forum_draft_store.dart';
 import '../features/posts/post_draft_store.dart';
 import '../features/forum/data/forum_recent_searches.dart';
@@ -22,6 +23,7 @@ import 'cache/video_prefetch.dart';
 import 'language_sync.dart';
 import 'live/live_activity_service.dart';
 import 'swallow.dart';
+import 'transfers/ios_background_upload.dart';
 
 /// Çıkış / hesap değişimi / hesap silme / oturum iptalinde silinmesi gereken kullanıcıya özel yerel depoların
 /// TEK kayıt noktası ([ApiClient.setTokens] bu kancaları çalıştırır). Kural: kullanıcıya özel veri tutan her yeni
@@ -47,6 +49,7 @@ void registerUserDataCleaners(ApiClient api) {
     ..add(AlarmService.clearUserData) // ertelenmiş sınav alarmları + hatırlatmaları + iOS alarm bildirimleri
     ..add(LanguageSync.clear) // son eşitlenen profil dili
     ..add(ChatBackgroundPrefs.clear) // sohbet arka planı tercihi (Desen/Hafif/Orta/Düz)
+    ..add(EventTicketStore.clear) // son görülen etkinlik biletleri (çevrimdışı gösterim; hesap bazlı)
     ..add(RecentReactions.clear) // hesaba ozel son alti tepki
     ..add(_clearRemovedMapData) // kaldırılan harita özelliğinin eski sürümlerden kalan yerel verisi
     ..add(WidgetSyncService.clearUserData) // ana ekran widget snapshot'ları + kısayol sırası (widget "Giriş yap" durumuna döner)
@@ -54,6 +57,7 @@ void registerUserDataCleaners(ApiClient api) {
     ..add(LiveActivityService.clearUserData) // iOS Canlı Etkinlik / Android canlı güncelleme (kullanıcının kendi geri sayımları)
     ..add(OnboardingDraftStore.clearShared) // Apple'ın bir kez verdiği geçici ad (hesap taslakları hesap bazlıdır, Session.signOut siler)
     ..add(TrackTokenStore.clear) // herkese açık destek talebinin takip jetonu (e-postaya bağlı)
+    ..add(() async => IosBackgroundUploader.shared?.cancelAll()) // iOS arka plan yüklemeleri + geçici gövde dosyaları (başka hesaba sızmasın)
     ..add(_clearLegalLater); // "sözleşme onayını sonra yap" işareti (kullanıcı kimliği içerir)
 }
 

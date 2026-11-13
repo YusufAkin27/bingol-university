@@ -97,6 +97,10 @@ class VideoPrefetcher {
   /// Şu an indirilen iş sayısı (test/gözlem).
   int get activeCount => _active.length;
 
+  /// Bekleyen [ensure] çağrısı sayısı (test).
+  @visibleForTesting
+  int get waiterCount => _waiters.values.fold(0, (a, l) => a + l.length);
+
   /// Sırada bekleyen (henüz başlamamış) iş sayısı.
   int get queuedCount => _queue.where((e) => !_active.containsKey(keyOf(e.url))).length;
 
@@ -168,7 +172,13 @@ class VideoPrefetcher {
       _protected = {..._protected, key};
       _kick();
     }
-    return c.future.timeout(wait, onTimeout: () => null);
+    return c.future.timeout(wait, onTimeout: () {
+      // Zaman aşımına uğrayan bekleyici listede kalıp birikmesin.
+      final list = _waiters[key];
+      list?.remove(c);
+      if (list != null && list.isEmpty) _waiters.remove(key);
+      return null;
+    });
   }
 
   /// Uygulama ön/arka plan durumu: arka planda yeni indirme başlamaz ve süren iptal edilir.

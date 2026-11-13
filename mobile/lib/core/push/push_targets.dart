@@ -123,6 +123,8 @@ String? _httpsUrl(Object? v) {
   return u.toString();
 }
 
+/// Bilerek eşlenmeyenler (Bildirimler listesi açılır): MESSAGE_IMAGE (targetId görsel/ek kimliği, sohbet kimliği yük
+/// içinde yok) ve BOARD_NOTICE (targetId pano duyurusu kimliği, oda kimliği yok): güvenli bir ekran çözülemez.
 /// `targetType` -> hedef. Önek eşleşmeleri: POLL_*, POST_*, EVENT_*, ACADEMIC_*.
 PushDest? _destOf(String t) {
   switch (t) {
@@ -143,6 +145,7 @@ PushDest? _destOf(String t) {
     case 'FEED_COMMENT':
       return PushDest.post;
     case 'USER':
+    case 'USER_AVATAR': // moderasyon: targetId = avatar sahibinin kullanıcı kimliği (bildirim alıcısı); profil ekranı
     case 'USER_FOLLOW':
     case 'FOLLOW':
       return PushDest.user;
@@ -233,6 +236,12 @@ PushTarget resolvePushTarget(Map<String, dynamic>? data) {
       ((target == 'SECURITY' || target == 'ACCOUNT_SECURITY') &&
           (secValue == 'devices' || '${d['securityKind'] ?? ''}'.toUpperCase() == 'NEW_DEVICE'))) {
     return const PushTarget(PushDest.devices);
+  }
+
+  // Moderasyon bildirimi (`moderation=1`) targetType=ANNOUNCEMENT: kimlik KULÜP duyurusunun (community_post) kimliğidir,
+  // haber kimliği değil; haber detayı yanlış kaydı/404'ü açmasın, Bildirimler listesi açılır.
+  if (target == 'ANNOUNCEMENT' && '${d['moderation'] ?? ''}'.trim().isNotEmpty && newsId == null) {
+    return const PushTarget(PushDest.notifications);
   }
 
   final dest = _destOf(target);

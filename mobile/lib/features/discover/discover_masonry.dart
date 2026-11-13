@@ -309,7 +309,7 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
 
   /// Uzun basma: ⋯ düğmesiyle aynı alt sayfa (Düzenle/Sil; başkasının gönderisinde Profili gör/Şikâyet/Engelle).
   void _menu(Post p) => showPostActions(context,
-      session: widget.session, post: p, share: true, onEdited: _changed, onDeleted: () => _removed(p.id));
+      session: widget.session, post: p, share: true, onEdited: _changed, latest: () => _items.firstWhere((e) => e.id == p.id, orElse: () => p), onDeleted: () => _removed(p.id));
 
   bool _hasMenu(Post p) {
     final mine = p.mine || p.author.id == widget.session.userId;

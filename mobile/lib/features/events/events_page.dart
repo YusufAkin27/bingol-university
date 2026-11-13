@@ -10,6 +10,7 @@ import '../clubs/clubs_tab.dart';
 import '../clubs/clubs_widgets.dart' show ClubJoinButton, ClubTextTabs;
 import '../news/news_detail_page.dart';
 import 'event_detail_page.dart';
+import 'event_ticket_page.dart';
 import 'event_form_page.dart';
 import 'etkinlik_parts.dart';
 import 'event_parts.dart';
@@ -1238,11 +1239,17 @@ class _EventsPageState extends State<EventsPage> {
                 Flexible(child: my == 'INTERESTED' ? statusText(l.eventListInterested) : goingText()),
                 menu(
                   () => [
+                    if (my == 'GOING')
+                      PopupMenuItem(
+                          value: 'ticket',
+                          child: Row(children: [Icon(BuIcons.qrCode, size: 18, color: t.ink), const SizedBox(width: 10), Text(l.evtTicketOpen)])),
                     PopupMenuItem(
                         value: 'leave',
                         child: Row(children: [Icon(BuIcons.logOut, size: 18, color: t.danger), const SizedBox(width: 10), Text(l.eventListLeaveTitle)])),
                   ],
-                  (_) => _leave(ev),
+                  (v) => v == 'ticket'
+                      ? Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: 'event_ticket'), builder: (_) => EventTicketPage(session: widget.session, event: ev)))
+                      : _leave(ev),
                 ),
               ]);
       case _Mode.past:

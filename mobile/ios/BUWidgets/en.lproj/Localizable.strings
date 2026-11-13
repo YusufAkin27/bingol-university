@@ -19,3 +19,17 @@
 "widget.exams.desc" = "Shows your upcoming exams and their dates.";
 "widget.academic.name" = "Academic Calendar";
 "widget.academic.desc" = "Shows upcoming key academic dates.";
+"widget.quickaccess.shortcut" = "Shortcut";
+"widget.quickaccess.q.menu" = "Meals";
+"widget.quickaccess.q.timetable" = "Classes";
+"widget.quickaccess.q.events" = "Events";
+"widget.quickaccess.q.clubs" = "Clubs";
+"widget.quickaccess.q.chat" = "Chat";
+"widget.quickaccess.q.qr" = "My QR";
+"widget.quickaccess.q.news" = "News";
+"widget.quickaccess.q.search" = "Search";
+"widget.quickaccess.configure.title" = "Choose shortcuts";
+"widget.quickaccess.configure.desc" = "Pick the shortcuts shown on the widget.";
+"widget.quickaccess.shortcuts" = "Shortcuts";
+"widget.quickaccess.picker.name" = "Quick Access (Custom)";
+"widget.quickaccess.picker.desc" = "Choose and order your shortcuts.";

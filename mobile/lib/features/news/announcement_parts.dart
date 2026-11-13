@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
 import '../academic/academic_models.dart' show istanbulWall;
 import 'icerik_parts.dart';

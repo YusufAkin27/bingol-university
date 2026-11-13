@@ -61,10 +61,13 @@ Future<ValueNotifier<Map<String, dynamic>>> _open(WidgetTester tester, FakeBacke
   useScreen(tester, size);
   fakeCatalog(b);
   final out = ValueNotifier<Map<String, dynamic>>(profile ?? _profile());
-  await tester.pumpWidget(buildApp(_Harness(session: makeSession(b), initial: profile ?? _profile(), out: out), size: size));
+  final session = _lastSession = makeSession(b);
+  await tester.pumpWidget(buildApp(_Harness(session: session, initial: profile ?? _profile(), out: out), size: size));
   await settle(tester, const Duration(milliseconds: 400));
   return out;
 }
+
+Session? _lastSession;
 
 Finder _k(String key) => find.byKey(ValueKey(key));
 
@@ -250,6 +253,25 @@ void main() {
       await settle(tester, const Duration(milliseconds: 800));
       expect(b.bodies[_patch], {'grade': '4'});
       expect(out.value['grade'], '4');
+      await unmount(tester);
+    });
+
+    testWidgets('bölüm/sınıf kaydı ders programını yeniler: sinyal artar, /timetable yeniden çekilir; ad kaydı artırmaz', (tester) async {
+      final b = FakeBackend();
+      await _open(tester, b);
+      final s = _lastSession!;
+      expect(s.academicProfileSignal.value, 0);
+      await tester.tap(_k('inline-department'));
+      await pickFromSearch(tester, 'biyo', 'Biyoloji');
+      await settle(tester, const Duration(milliseconds: 500));
+      expect(s.academicProfileSignal.value, 1, reason: 'bölüm değişince açık ekranlar yeniden yüklenmeli');
+      await tester.tap(_k('inline-grade'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.tap(find.text('4. sınıf').last);
+      await settle(tester, const Duration(milliseconds: 800));
+      expect(s.academicProfileSignal.value, 2);
+      expect(b.requests.any((r) => r.startsWith('GET /timetable')), isTrue, reason: 'hatırlatıcılar yeni programdan kurulur');
       await unmount(tester);
     });
 

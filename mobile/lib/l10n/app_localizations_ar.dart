@@ -3247,7 +3247,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get permNotificationsText =>
-      'اسمح لنا بإرسال الإشعارات لتعرف فورًا بالرسائل والفعاليات والإعلانات.';
+      'نحتاج إلى إرسال الإشعارات لتعرف فورًا بالرسائل والفعاليات والإعلانات.';
 
   @override
   String get permCameraTitle => 'الكاميرا';
@@ -3292,7 +3292,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get permPageIntro =>
-      'امنح ما تشاء الآن، ويمكنك تغيير الباقي لاحقًا من الإعدادات.';
+      'يمكنك اتخاذ القرار لكل إذن على حدة وتغييره في أي وقت من الإعدادات.';
 
   @override
   String get permStart => 'ابدأ';
@@ -3307,7 +3307,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get permRetry => 'حاول مرة أخرى';
 
   @override
-  String get permAllow => 'السماح';
+  String get permAllow => 'التالي';
 
   @override
   String get coreErrNetwork => 'تعذر الوصول إلى الخادم. تحقق من اتصالك.';
@@ -4471,7 +4471,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'لم يتم منح إذن الكاميرا. يمكنك إدخال الرمز يدويًا أو منح الإذن ومحاولة المسح مرة أخرى.';
 
   @override
-  String get qrGrantCamera => 'منح إذن الكاميرا';
+  String get qrGrantCamera => 'حاول مرة أخرى';
 
   @override
   String get qrDeniedSettings =>
@@ -4531,6 +4531,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String pollYourRatingAvg(String rating, String avg) {
     return 'تقييمك: $rating · المتوسط $avg';
   }
+
+  @override
+  String get d1MenuRateTodayOnly => 'التقييم متاح لقائمة اليوم فقط.';
 
   @override
   String get pollTapStar => 'المس نجمة للتقييم';
@@ -4991,7 +4994,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get postPickerDeniedBody =>
-      'اسمح بالوصول إلى المعرض لمشاركة منشور. يمكنك أيضًا الاختيار من معرض النظام.';
+      'يلزم الوصول إلى المعرض لمشاركة منشور. يمكنك أيضًا الاختيار من معرض النظام.';
 
   @override
   String get postPickerUseSystem => 'استخدام معرض النظام';
@@ -9594,7 +9597,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p10DeniedBody =>
-      'لإرسال الصور والفيديو، اسمح بالوصول إلى المعرض من إعدادات التطبيق.';
+      'لإرسال الصور والفيديو، يلزم الوصول إلى المعرض من إعدادات التطبيق.';
 
   @override
   String get p10GalleryEmpty => 'لا توجد صور أو فيديوهات في المعرض.';
@@ -10269,7 +10272,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p67SettingsChats => 'المحادثات';
 
   @override
-  String get p67AttachAllowPhotos => 'السماح بالوصول إلى الصور';
+  String get p67AttachAllowPhotos => 'الوصول إلى الصور';
 
   @override
   String p67PickerSend(String n) {
@@ -10352,7 +10355,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'لإرسال صورة تُعرض مرة واحدة، اختر الصورة ثم المس الرمز 1.';
 
   @override
-  String get p67AttachGrant => 'سماح';
+  String get p67AttachGrant => 'متابعة';
 
   @override
   String get p51ClubsEmpty => 'لا توجد أندية بعد.';
@@ -12816,20 +12819,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get evtQrMyTitle => 'رمزي';
-
-  @override
-  String get evtQrMyHint =>
-      'اعرض هذا الرمز على منظم الفعالية عند الدخول. يتجدد خلال وقت قصير.';
-
-  @override
-  String get evtQrMyNotApproved => 'يظهر رمزك هنا بعد الموافقة على مشاركتك.';
-
-  @override
-  String get evtQrMyBeforeStart =>
-      'يُفتح تسجيل الحضور في موعد الفعالية؛ يمكنك تجهيز رمزك الآن.';
-
-  @override
   String get evtQrScanClosed => 'لم يُفتح تسجيل الحضور بعد أو أُغلق.';
 
   @override
@@ -12924,18 +12913,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get evtQrOwnerOutside =>
       'نحن خارج أوقات الفعالية؛ يُفتح الحضور تلقائيًا قبل البداية بـ 30 دقيقة. يمكنك فتحه الآن.';
-
-  @override
-  String get evtQrMyOwnerTitle => 'أنت منظم هذه الفعالية';
-
-  @override
-  String get evtQrMyOwnerBody => 'تسجّل الحضور بمسح رموز QR الخاصة بالمشاركين.';
-
-  @override
-  String get evtQrMyOwnerScan => 'مسح QR';
-
-  @override
-  String get evtQrMyOwnerJoin => 'انضم كمشارك أيضًا';
 
   @override
   String get evtAtt2ToolTitle => 'أداة الحضور';
@@ -13192,10 +13169,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chatMiscContactsPermText =>
-      'يجب منح إذن الوصول إلى جهات الاتصال حتى نتمكن من العثور على أشخاص الحرم الجامعي بينها.';
+      'نحتاج إلى الوصول إلى جهات الاتصال حتى نتمكن من العثور على أشخاص الحرم الجامعي بينها.';
 
   @override
-  String get chatMiscContactsPermAction => 'السماح';
+  String get chatMiscContactsPermAction => 'متابعة';
 
   @override
   String get chatMiscContactsNoneTitle => 'لا يوجد أشخاص مطابقون';
@@ -14163,6 +14140,86 @@ class AppLocalizationsAr extends AppLocalizations {
   String get shareChatProfileShared => 'شارك ملفًا شخصيًا';
 
   @override
+  String get shareKindClub => 'نادٍ';
+
+  @override
+  String get shareKindPoll => 'استطلاع';
+
+  @override
+  String get shareChatClubShared => 'شارك نادياً';
+
+  @override
+  String get shareChatPollShared => 'شارك استطلاعاً';
+
+  @override
+  String get pollShareAction => 'مشاركة الاستطلاع';
+
+  @override
+  String get scanNotBu => 'هذا ليس رمزاً لـ BÜ Kampüs.';
+
+  @override
+  String get scanTitle => 'مسح رمز QR';
+
+  @override
+  String get scanHint =>
+      'وجّه رمز ملف أو نادٍ أو استطلاع أو فعالية إلى الإطار.';
+
+  @override
+  String get scanCheckinNoRight => 'ليست لديك صلاحية مسح رمز الحضور هذا.';
+
+  @override
+  String scanCheckinDone(String name) {
+    return 'تم تسجيل الحضور: $name';
+  }
+
+  @override
+  String get clubJoinQrAction => 'إضافة أعضاء عبر QR';
+
+  @override
+  String get clubJoinQrActionSub => 'عرض رمز QR للانضمام';
+
+  @override
+  String get clubJoinQrTitle => 'رمز QR للانضمام';
+
+  @override
+  String get clubJoinQrHint => 'كل من يمسح هذا الرمز ينضم إلى النادي مباشرة.';
+
+  @override
+  String clubJoinQrRefresh(int n) {
+    return 'يتجدد الرمز خلال $n ث';
+  }
+
+  @override
+  String get clubJoinQrFailed =>
+      'تعذر الحصول على رمز الانضمام. تحقق من الاتصال وحاول مجددا.';
+
+  @override
+  String get clubJoinQrNoAccess =>
+      'ليست لديك صلاحية إضافة أعضاء إلى هذا النادي.';
+
+  @override
+  String get clubScanJoin => 'الانضمام عبر QR';
+
+  @override
+  String scanClubJoined(String name) {
+    return 'انضممت إلى $name';
+  }
+
+  @override
+  String get scanClubJoinedNoName => 'انضممت إلى النادي';
+
+  @override
+  String get scanClubAlready => 'أنت عضو في هذا النادي بالفعل';
+
+  @override
+  String get signOutPendingTitle => 'سيتم حذف الرسائل غير المرسلة';
+
+  @override
+  String signOutPendingBody(String count) {
+    return 'سيتم حذف $count رسائل غير مرسلة. هل تريد تسجيل الخروج؟';
+  }
+
+  @override
   String get profileShareAction => 'مشاركة الملف الشخصي';
 
   @override
@@ -14207,4 +14264,99 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get profileQrFindMe => 'ابحث عني في BÜ Kampüs';
+
+  @override
+  String get commentFocusMissing =>
+      'ربما لم يعد هذا التعليق موجودًا أو تم حذفه.';
+
+  @override
+  String get chatVoiceMic => 'تسجيل رسالة صوتية';
+
+  @override
+  String get chatVoiceHold => 'اضغط مطولاً على الميكروفون للتسجيل';
+
+  @override
+  String get chatVoiceSlideCancel => 'اسحب للإلغاء';
+
+  @override
+  String get chatVoiceStopSend => 'إنهاء التسجيل وإرساله';
+
+  @override
+  String get chatVoiceCancel => 'إلغاء التسجيل';
+
+  @override
+  String get chatVoiceMessage => 'رسالة صوتية';
+
+  @override
+  String get chatVoicePlay => 'تشغيل';
+
+  @override
+  String get chatVoicePause => 'إيقاف مؤقت';
+
+  @override
+  String get chatVoiceInterrupted => 'انقطع التسجيل';
+
+  @override
+  String get chatVoiceFailed => 'تعذر تشغيل الرسالة الصوتية';
+
+  @override
+  String get chatVoiceLimit =>
+      'يجب ألا تتجاوز الرسالة الصوتية 5 دقائق؛ تم إرسال التسجيل.';
+
+  @override
+  String get chatVoiceNoMic => 'تعذر تشغيل الميكروفون';
+
+  @override
+  String chatVoiceSemantics(String duration, String state) {
+    return 'رسالة صوتية، $duration، $state';
+  }
+
+  @override
+  String chatVoiceRecording(String time) {
+    return 'جارٍ التسجيل $time';
+  }
+
+  @override
+  String chatVoiceSpeed(String speed) {
+    return 'سرعة التشغيل $speed';
+  }
+
+  @override
+  String get evtTicketTitle => 'تذكرتي';
+
+  @override
+  String get evtTicketOpen => 'تذكرتي';
+
+  @override
+  String get evtTicketLoadFailed => 'تعذّر تحميل التذكرة.';
+
+  @override
+  String get evtTicketOffline => 'أنت غير متصل: تُعرض آخر تذكرة شوهدت.';
+
+  @override
+  String get evtTicketOrganizer => 'المنظّم';
+
+  @override
+  String get evtTicketHolder => 'صاحب التذكرة';
+
+  @override
+  String get evtTicketPrivacyNote =>
+      'هذه التذكرة شخصية. لا تشاركها ولا ترسل لقطة شاشة لها للآخرين.';
+
+  @override
+  String get evtTicketCancelled => 'أُلغيت هذه الفعالية؛ التذكرة غير صالحة.';
+
+  @override
+  String get evtTicketEnded =>
+      'انتهت هذه الفعالية؛ لم تعد التذكرة صالحة للاستخدام.';
+
+  @override
+  String get evtTicketQrUnavailable => 'تعذّر تحميل رمز QR الآن. حاول لاحقاً.';
+
+  @override
+  String get evtTicketQrNotOpen => 'يظهر رمز QR هنا عند فتح تسجيل الحضور.';
+
+  @override
+  String get evtTicketQrMaybeExpired =>
+      'قد تكون صلاحية هذا الرمز انتهت. يتجدد عند عودة الاتصال.';
 }

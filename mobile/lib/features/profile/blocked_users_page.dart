@@ -150,7 +150,7 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
               ),
               BuStaggerItem(index: 1, child: ProfilFlatGroup(children: [for (final u in _items!) _row(context, t, u)])),
               if (_more)
-                const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator())),
+                const Padding(padding: EdgeInsets.all(16), child: Center(child: BuSpinner(size: 28))),
             ],
           ),
         ),

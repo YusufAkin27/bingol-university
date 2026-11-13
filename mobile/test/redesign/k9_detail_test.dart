@@ -142,7 +142,7 @@ void main() {
     testWidgets('acik: katilimci yalniz QR kodum gorur; elle kod/okutma yok', (tester) async {
       final b = _be(_ev(rsvp: 'GOING'), open: true);
       await _show(tester, b);
-      expect(find.byKey(const ValueKey('detail-my-qr')), findsOneWidget);
+      expect(find.byKey(const ValueKey('detail-ticket')), findsOneWidget);
       expect(find.byKey(const ValueKey('detail-scan')), findsNothing);
       expect(find.byKey(const ValueKey('detail-enter-code')), findsNothing);
       expect(find.byKey(const ValueKey('detail-code-field')), findsNothing);

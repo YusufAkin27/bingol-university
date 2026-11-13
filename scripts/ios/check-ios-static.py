@@ -177,10 +177,15 @@ def check_entitlements():
             ok(f'{name}: aps-environment={env}')
         else:
             bad(f'{name}: aps-environment={env} olmali')
-        # time-sensitive ve associated-domains yetkileri KASITLI olarak YOK: App ID'de (developer.apple.com) bu iki yetenek
-        # acilip profil yenilenmeden imza hatasi verir (Codemagic: "Provisioning profile ... doesn't include ...").
-        # Acilinca geri eklenir (bkz. docs/IOS_RELEASE.md). Yokken bildirim normal duzeyde teslim edilir (kod uyumlu).
-        for key in ('com.apple.developer.usernotifications.time-sensitive', 'com.apple.developer.associated-domains'):
+        # time-sensitive yetkisi KASITLI olarak YOK (App ID'de acilip profil yenilenmeden imza hatasi verir).
+        # associated-domains (applinks:bukampus.com.tr) I1 ile eklendi: profil o yetenekle yenilenmeden BU DAL
+        # birlestirilmemeli (Codemagic: "Provisioning profile ... doesn't include ..."). Yalniz alan adi dogrulanir.
+        ad = d.get('com.apple.developer.associated-domains')
+        if ad == ['applinks:bukampus.com.tr']:
+            ok(f'{name}: associated-domains = applinks:bukampus.com.tr')
+        else:
+            bad(f'{name}: associated-domains [applinks:bukampus.com.tr] olmali')
+        for key in ('com.apple.developer.usernotifications.time-sensitive',):
             if key in d:
                 bad(f'{name}: {key} App ID yetkisi acilmadan eklenmemeli (imza hatasi)')
             else:
@@ -545,7 +550,10 @@ def check_widget_files():
         if w != 'regular':
             bad('BUWidgets: kalin/ince yazi agirligi .%s (yalniz regular)' % w)
     (ok if 'systemName' not in all_swift else bad)('BUWidgets: SF Symbols (systemName) kullanilmamis (Lucide)')
-    (ok if 'AppIntent' not in all_swift and 'Button(' not in all_swift else bad)('BUWidgets: interaktif widget/AppIntents yok')
+    # AppIntents YALNIZ secilebilir Hizli Erisim yapilandirmasi icin (BuQuickAccessPickerWidget.swift); interaktif widget (Button) yine yok.
+    picker = read(os.path.join(WIDGETS, 'BuQuickAccessPickerWidget.swift')) if os.path.isfile(os.path.join(WIDGETS, 'BuQuickAccessPickerWidget.swift')) else ''
+    rest_swift = all_swift.replace(picker, '') if picker else all_swift
+    (ok if 'AppIntent' not in rest_swift and 'Button(' not in all_swift else bad)('BUWidgets: interaktif widget yok, AppIntents yalniz yapilandirma widgetinda')
     (ok if not re.search(r'URLSession|URLRequest|Data\(contentsOf', all_swift) else bad)('BUWidgets: ag istegi yok')
     keys = set(re.findall(r'"(widget\.[a-z]+\.(?:name|desc))"', all_swift)) | {'signedout.title', 'signedout.sub'}
     for lang in LANGS:

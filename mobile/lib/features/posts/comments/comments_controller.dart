@@ -50,6 +50,9 @@ class CommentsController extends ChangeNotifier {
   bool loadingMore = false;
   Object? error;
   int? highlightId;
+
+  /// Derin bağlantıdaki yorum bulunamadı (silinmiş / aranan sayfalarda yok): panel anlaşılır uyarı gösterir.
+  bool focusNotFound = false;
   PostComment? replyTo;
   bool sending = false;
 
@@ -83,6 +86,7 @@ class CommentsController extends ChangeNotifier {
   Future<void> load() async {
     final gen = ++_gen;
     loading = true;
+    loadingMore = false; // eski loadMore artik gecersiz (gen), bayrak takili kalmasin
     error = null;
     _notify();
     try {
@@ -210,15 +214,26 @@ class CommentsController extends ChangeNotifier {
           return;
         }
       }
-      if (_cursor == null || ++pages >= 4) return;
+      if (_cursor == null || ++pages >= 4) {
+        _markFocusMissing();
+        return;
+      }
       final p = await api.list(postId, sort: sort, cursor: _cursor, size: pageSize).catchError((_) => const CommentPageData([], null));
       if (gen != _gen) return;
       final have = {for (final c in roots) c.id};
       roots.addAll(p.items.where((c) => have.add(c.id)));
       _cursor = p.nextCursor;
       _notify();
-      if (p.items.isEmpty) return;
+      if (p.items.isEmpty) {
+        _markFocusMissing();
+        return;
+      }
     }
+  }
+
+  void _markFocusMissing() {
+    focusNotFound = true;
+    _notify();
   }
 
   void clearHighlight() {

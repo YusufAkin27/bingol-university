@@ -36,6 +36,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> with Widget
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    ReminderService.bindUser(widget.session.userId);
     ReminderService.store.load().then((v) {
       if (mounted) {
         setState(() {
@@ -149,9 +150,9 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> with Widget
         ),
       );
 
-  /// Ders hatırlatma süresi çipleri: 5 / 15 / 30 dk (+ kayıtlı değer bunların dışındaysa o da, seçili görünsün).
+  /// Ders hatırlatma süresi çipleri: 10 / 15 / 30 dk (+ kayıtlı değer bunların dışındaysa o da, seçili görünsün).
   Widget _leadChips(AppLocalizations l) {
-    final opts = {5, 15, 30, _s.classLeadMin}.toList()..sort();
+    final opts = {10, 15, 30, _s.classLeadMin}.toList()..sort();
     return Align(
       alignment: AlignmentDirectional.centerStart,
       child: Wrap(spacing: 8, children: [

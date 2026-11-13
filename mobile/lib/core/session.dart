@@ -194,6 +194,10 @@ class Session extends ChangeNotifier {
   /// ve profil düzenleme fotoğraf değişince günceller; çıkışta temizlenir. Null: fotoğraf yok (varsayılan görsel).
   final avatarUrl = ValueNotifier<String?>(null);
 
+  /// Profildeki bölüm/sınıf değişti: bölüme bağlı ekranlar (ana sayfa ders kartı, ders programı, sınavlar) dinleyip
+  /// yeniden yükler. Değer her değişimde artar ([noteAcademicProfileChanged]); çıkışta sıfırlanmaz (dinleyici yalnız farkı bekler).
+  final academicProfileSignal = ValueNotifier<int>(0);
+
   /// Çıkışta belirteçler silinemediyse bırakılan işaret (bkz. [_persistNow]): sonraki açılışta oturum AÇILMAZ.
   static const _signedOutKey = 'signed_out';
   bool _signedOutMarker = false;
@@ -667,7 +671,7 @@ class Session extends ChangeNotifier {
 
   /// Yalnız ETKİN hesabı çıkarır: sunucuda o hesabın oturumu kapanır, yerel verisi temizlenir, listeden silinir.
   /// Cihazda geçilebilecek başka hesap varsa ona geçilir ([switchToOther]); yoksa giriş ekranına dönülür.
-  Future<void> signOut({bool remote = true, bool switchToOther = true, bool purgeQueue = false}) async {
+  Future<void> signOut({bool remote = true, bool switchToOther = true, bool purgeQueue = true}) async {
     if (_forcing || _switching) return;
     final refresh = api.tokens?.refresh;
     final id = userId ?? jwtSubjectId(api.tokens?.access ?? '');
@@ -697,8 +701,8 @@ class Session extends ChangeNotifier {
     if (id != null) {
       _knownEmails.remove(id);
       await accounts.remove(id);
-      // Hesap silme: bekleyen mesajlar ve ek dosyaları da gider. Normal çıkışta hesabına bağlı kalır (bkz.
-      // docs/changes/account-context.md).
+      // Çıkış (ve hesap silme): bekleyen mesaj kuyruğu ve yerel ek kopyaları kalıcı silinir (kullanıcı kararı
+      // 2026-11-10). Hesap DEĞİŞTİRME [switchAccount] bu yoldan geçmez, kuyruk hesabına bağlı kalır.
       if (purgeQueue) await api.outbox?.purgeOwner(id);
       await OnboardingDraftStore.clearFor(id);
     }

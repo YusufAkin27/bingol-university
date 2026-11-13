@@ -77,6 +77,35 @@ public class OfficialTimetableSeeder {
         return true;
     }
 
+    /**
+     * Profildeki bolum/sinif degisti: resmi programdan kopyalanmis (tt_official_seed isaretli) kisisel program eski
+     * bolume ait kalmasin diye gorunur dersler silinir ve yeni profile gore yeniden kopyalanir. Isaret yoksa ve ders
+     * varsa program elle kurulmustur, dokunulmaz. Yeni profilin resmi programi yoksa ya da birden cok birimde
+     * eslesirse program bos kalir (yanlis bolumun dersleri gostermektense). Yeniden kopyalandiysa true.
+     */
+    @Transactional
+    public boolean reseedAfterProfileChange(Long uid) {
+        Integer markers = jdbc.queryForObject("SELECT COUNT(*) FROM tt_official_seed WHERE user_id = ?", Integer.class, uid);
+        boolean hadSeed = markers != null && markers > 0;
+        if (!hadSeed && countCourses(uid) > 0) {
+            return false;
+        }
+        if (hadSeed) {
+            deleteVisibleCourses(uid, currentSemesterId(uid));
+            jdbc.update("DELETE FROM tt_official_seed WHERE user_id = ?", uid);
+        }
+        OfficialMatch m = official.matchFor(uid);
+        List<String> units = m.units();
+        if (m.term() == null || units.size() != 1) {
+            return false;
+        }
+        Long semId = currentSemesterId(uid);
+        int remaining = visibleCourseCount(uid, semId);
+        jdbc.update("INSERT INTO tt_official_seed (user_id, term, unit) VALUES (?, ?, ?)", uid, m.term(), units.get(0));
+        write(uid, group(m.items()), semId, Math.max(0, TimetableService.MAX_COURSES - remaining));
+        return true;
+    }
+
     // ---- elle uygulama ----
 
     @Transactional

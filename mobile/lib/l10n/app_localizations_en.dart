@@ -3318,7 +3318,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get permPageIntro =>
-      'Allow what you like now; you can change the rest later in Settings.';
+      'You can decide on each permission separately and change it anytime in Settings.';
 
   @override
   String get permStart => 'Get started';
@@ -3333,7 +3333,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get permRetry => 'Try again';
 
   @override
-  String get permAllow => 'Allow';
+  String get permAllow => 'Next';
 
   @override
   String get coreErrNetwork =>
@@ -4509,7 +4509,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Camera permission was not granted. You can enter the code manually or grant permission and try scanning again.';
 
   @override
-  String get qrGrantCamera => 'Grant camera permission';
+  String get qrGrantCamera => 'Try again';
 
   @override
   String get qrDeniedSettings =>
@@ -4570,6 +4570,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String pollYourRatingAvg(String rating, String avg) {
     return 'Your rating: $rating · Average $avg';
   }
+
+  @override
+  String get d1MenuRateTodayOnly => 'Rating is only open for today\'s menu.';
 
   @override
   String get pollTapStar => 'Tap a star to rate';
@@ -5035,7 +5038,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get postPickerDeniedBody =>
-      'Allow access to your gallery to share a post. You can also choose from the system gallery instead.';
+      'Gallery access is needed to share a post. You can also choose from the system gallery instead.';
 
   @override
   String get postPickerUseSystem => 'Use system gallery';
@@ -9685,7 +9688,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p10DeniedBody =>
-      'To send photos and videos, allow gallery access in the app settings.';
+      'To send photos and videos, gallery access is needed in the app settings.';
 
   @override
   String get p10GalleryEmpty => 'There are no photos or videos in the gallery.';
@@ -10373,7 +10376,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p67SettingsChats => 'Chats';
 
   @override
-  String get p67AttachAllowPhotos => 'Allow access to photos';
+  String get p67AttachAllowPhotos => 'Photo access';
 
   @override
   String p67PickerSend(String n) {
@@ -10456,7 +10459,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'To send a view-once photo, select it and tap the 1 icon.';
 
   @override
-  String get p67AttachGrant => 'Allow';
+  String get p67AttachGrant => 'Continue';
 
   @override
   String get p51ClubsEmpty => 'No clubs yet.';
@@ -12928,21 +12931,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get evtQrMyTitle => 'My QR code';
-
-  @override
-  String get evtQrMyHint =>
-      'Show this code to the event organizer at the entrance. It refreshes shortly.';
-
-  @override
-  String get evtQrMyNotApproved =>
-      'Your QR code appears here once your attendance is approved.';
-
-  @override
-  String get evtQrMyBeforeStart =>
-      'Check-in opens at the event time; you can keep your code ready.';
-
-  @override
   String get evtQrScanClosed => 'Check-in has not opened yet or has closed.';
 
   @override
@@ -13043,19 +13031,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get evtQrOwnerOutside =>
       'It is outside the event hours; attendance opens by itself 30 min before the start. You can open it now if you like.';
-
-  @override
-  String get evtQrMyOwnerTitle => 'You organize this event';
-
-  @override
-  String get evtQrMyOwnerBody =>
-      'You take attendance by scanning attendees\' QR codes.';
-
-  @override
-  String get evtQrMyOwnerScan => 'Scan QR';
-
-  @override
-  String get evtQrMyOwnerJoin => 'Also join as an attendee';
 
   @override
   String get evtAtt2ToolTitle => 'Attendance tool';
@@ -13314,10 +13289,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatMiscContactsPermText =>
-      'Allow access to your contacts so we can find campus people among them.';
+      'We need access to your contacts so we can find campus people among them.';
 
   @override
-  String get chatMiscContactsPermAction => 'Allow';
+  String get chatMiscContactsPermAction => 'Continue';
 
   @override
   String get chatMiscContactsNoneTitle => 'No matching people';
@@ -14274,6 +14249,88 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shareChatProfileShared => 'Shared a profile';
 
   @override
+  String get shareKindClub => 'Club';
+
+  @override
+  String get shareKindPoll => 'Poll';
+
+  @override
+  String get shareChatClubShared => 'Shared a club';
+
+  @override
+  String get shareChatPollShared => 'Shared a poll';
+
+  @override
+  String get pollShareAction => 'Share poll';
+
+  @override
+  String get scanNotBu => 'This is not a BÜ Kampüs code.';
+
+  @override
+  String get scanTitle => 'Scan QR';
+
+  @override
+  String get scanHint =>
+      'Align a profile, club, poll or event code in the frame.';
+
+  @override
+  String get scanCheckinNoRight =>
+      'You are not allowed to scan this attendance code.';
+
+  @override
+  String scanCheckinDone(String name) {
+    return 'Attendance recorded: $name';
+  }
+
+  @override
+  String get clubJoinQrAction => 'Add members by QR';
+
+  @override
+  String get clubJoinQrActionSub => 'Show the club join QR code';
+
+  @override
+  String get clubJoinQrTitle => 'Join QR code';
+
+  @override
+  String get clubJoinQrHint =>
+      'Anyone who scans this code joins the club directly.';
+
+  @override
+  String clubJoinQrRefresh(int n) {
+    return 'Code refreshes in $n s';
+  }
+
+  @override
+  String get clubJoinQrFailed =>
+      'Could not get the join code. Check your connection and try again.';
+
+  @override
+  String get clubJoinQrNoAccess =>
+      'You are not allowed to add members to this club.';
+
+  @override
+  String get clubScanJoin => 'Join by QR';
+
+  @override
+  String scanClubJoined(String name) {
+    return 'You joined $name';
+  }
+
+  @override
+  String get scanClubJoinedNoName => 'You joined the club';
+
+  @override
+  String get scanClubAlready => 'You are already a member of this club';
+
+  @override
+  String get signOutPendingTitle => 'Unsent messages will be deleted';
+
+  @override
+  String signOutPendingBody(String count) {
+    return '$count unsent messages will be deleted. Sign out anyway?';
+  }
+
+  @override
   String get profileShareAction => 'Share profile';
 
   @override
@@ -14322,4 +14379,103 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileQrFindMe => 'Find me on BÜ Kampüs';
+
+  @override
+  String get commentFocusMissing =>
+      'This comment may no longer exist or was deleted.';
+
+  @override
+  String get chatVoiceMic => 'Record voice message';
+
+  @override
+  String get chatVoiceHold => 'Hold the microphone to record';
+
+  @override
+  String get chatVoiceSlideCancel => 'Slide to cancel';
+
+  @override
+  String get chatVoiceStopSend => 'Stop and send recording';
+
+  @override
+  String get chatVoiceCancel => 'Cancel recording';
+
+  @override
+  String get chatVoiceMessage => 'Voice message';
+
+  @override
+  String get chatVoicePlay => 'Play';
+
+  @override
+  String get chatVoicePause => 'Pause';
+
+  @override
+  String get chatVoiceInterrupted => 'Recording interrupted';
+
+  @override
+  String get chatVoiceFailed => 'Could not play the voice message';
+
+  @override
+  String get chatVoiceLimit =>
+      'Voice messages can be at most 5 minutes; the recording was sent.';
+
+  @override
+  String get chatVoiceNoMic => 'Could not start the microphone';
+
+  @override
+  String chatVoiceSemantics(String duration, String state) {
+    return 'Voice message, $duration, $state';
+  }
+
+  @override
+  String chatVoiceRecording(String time) {
+    return 'Recording $time';
+  }
+
+  @override
+  String chatVoiceSpeed(String speed) {
+    return 'Playback speed $speed';
+  }
+
+  @override
+  String get evtTicketTitle => 'My ticket';
+
+  @override
+  String get evtTicketOpen => 'My ticket';
+
+  @override
+  String get evtTicketLoadFailed => 'Couldn\'t load the ticket.';
+
+  @override
+  String get evtTicketOffline =>
+      'You are offline: showing the last seen ticket.';
+
+  @override
+  String get evtTicketOrganizer => 'Organizer';
+
+  @override
+  String get evtTicketHolder => 'Ticket holder';
+
+  @override
+  String get evtTicketPrivacyNote =>
+      'This ticket is personal. Do not share it or send a screenshot to others.';
+
+  @override
+  String get evtTicketCancelled =>
+      'This event was cancelled; the ticket is void.';
+
+  @override
+  String get evtTicketEnded =>
+      'This event has ended; the ticket can no longer be used.';
+
+  @override
+  String get evtTicketQrUnavailable =>
+      'The QR code couldn\'t be loaded right now. Try again later.';
+
+  @override
+  String get evtTicketQrNotOpen =>
+      'Your QR code appears here when attendance opens.';
+
+  @override
+  String get evtTicketQrMaybeExpired =>
+      'This code may have expired. It refreshes when you are back online.';
 }

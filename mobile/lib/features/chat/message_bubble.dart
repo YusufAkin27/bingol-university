@@ -13,6 +13,7 @@ import '../../widgets/bu.dart';
 import 'bubble_entry.dart';
 import 'bubble_text_meta.dart';
 import 'chat_bubble_colors.dart';
+import 'chat_voice_bubble.dart';
 import 'chat_media.dart';
 import 'chat_video_cover.dart';
 import 'chat_media_parts.dart';
@@ -205,7 +206,9 @@ class MessageBubble extends StatelessWidget {
     final onceViewed = onceAtt?['viewed'] == true;
     final onceHasUrl = onceAtt?['url'] != null;
     final onceLocked = !mine && onceAtt != null && !onceViewed && onceHasUrl;
-    final atts = allAtts.where((a) => !isViewOnceAttachment(a)).toList();
+    final voiceAtt = allAtts.where(isAudioAttachment).firstOrNull;
+    final localVoice = (!deleted && !removed && voiceAtt == null) ? m['_voice'] as Map? : null;
+    final atts = allAtts.where((a) => !isViewOnceAttachment(a) && !isAudioAttachment(a)).toList();
     final localBytes = hasOnce ? null : m['_bytes'] as Uint8List?;
     final localItems = (hasOnce || deleted || removed)
         ? const <Map<String, dynamic>>[]
@@ -530,6 +533,20 @@ class MessageBubble extends StatelessWidget {
               Padding(
                 padding: EdgeInsets.only(bottom: showText ? 4 : 0),
                 child: mediaWithPill(mediaBlock),
+              ),
+            if ((voiceAtt != null && voiceAtt['url'] != null) || localVoice != null)
+              VoiceBubble(
+                key: ValueKey('voice-${voiceAtt?['id'] ?? m['clientId']}'),
+                source: voiceAtt != null
+                    ? VoiceSource.network('${voiceAtt['url']}', authHeaders)
+                    : (localVoice!['path'] != null
+                        ? VoiceSource.file('${localVoice['path']}')
+                        : const VoiceSource.network('', {})),
+                durationMs: ((voiceAtt?['durationMs'] ?? localVoice?['durationMs']) as num?)?.toInt() ?? 0,
+                color: fg,
+                waveSeed: (voiceAtt?['id'] as num?)?.toInt() ?? '${m['clientId']}'.hashCode,
+                uploading: voiceAtt == null && state == 'pending',
+                trailing: hasMeta ? metaRow(fg) : null,
               ),
             if (showText)
               Padding(

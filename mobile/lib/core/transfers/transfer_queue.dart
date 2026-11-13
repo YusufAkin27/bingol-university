@@ -143,8 +143,11 @@ class TransferQueue {
         await _drop(j, discardServer: j.status.isLive);
       }
     }
-    _owner = null;
-    _wakeTimer?.cancel();
+    // Çıkış sürerken yeni hesap girdiyse (start _owner'ı değiştirdi) onun sahipliğini ve zamanlayıcısını bozma.
+    if (_owner == o) {
+      _owner = null;
+      _wakeTimer?.cancel();
+    }
     await _persist();
     _emit(urgent: true);
   }

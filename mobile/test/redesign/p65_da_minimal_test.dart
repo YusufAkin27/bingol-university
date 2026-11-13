@@ -79,7 +79,7 @@ void main() {
       await settle(tester, const Duration(milliseconds: 900));
     }
 
-    testWidgets('düz satırlar: kart/adım çubuğu yok, "İzin ver" outlined, tek dolgulu birincil düğme', (tester) async {
+    testWidgets('düz satırlar: kart/adım çubuğu yok, "İleri" outlined, tek dolgulu birincil düğme', (tester) async {
       await perms(tester, {});
       final buttons = tester.widgetList<BuButton>(find.byType(BuButton)).toList();
       expect(buttons.where((b) => b.kind == BuButtonKind.primary).length, 1, reason: 'yalnız alttaki Başla');

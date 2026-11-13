@@ -165,6 +165,8 @@ public class SharePageController {
             case FORUM_TOPIC -> "share.label.FORUM_TOPIC";
             case FORUM_COMMENT -> "share.label.FORUM_COMMENT";
             case USER -> "share.label.USER";
+            case CLUB -> "share.label.CLUB";
+            case POLL -> "share.label.POLL";
         };
         String label = renderer.msg(labelKey, lang);
         String desc = v.description();

@@ -660,7 +660,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
               key: const ValueKey('club-share'),
               icon: BuIcons.send,
               tooltip: l10n.shareTitle,
-              onTap: () => shareClub(context, communityId: widget.communityId, name: name),
+              onTap: () => shareClubSheet(context, widget.session, _club!, widget.communityId),
               color: fg,
             ),
             Padding(

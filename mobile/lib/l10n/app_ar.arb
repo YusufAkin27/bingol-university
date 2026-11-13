@@ -1029,7 +1029,7 @@
   "reportDetailsHint": "تفاصيل إضافية (اختياري)",
   "reportSend": "إرسال",
   "permNotificationsTitle": "الإشعارات",
-  "permNotificationsText": "اسمح لنا بإرسال الإشعارات لتعرف فورًا بالرسائل والفعاليات والإعلانات.",
+  "permNotificationsText": "نحتاج إلى إرسال الإشعارات لتعرف فورًا بالرسائل والفعاليات والإعلانات.",
   "permCameraTitle": "الكاميرا",
   "permCameraText": "نحتاج إلى الوصول إلى الكاميرا لمسح رموز QR والتقاط الصور.",
   "permMicrophoneTitle": "الميكروفون",
@@ -1042,12 +1042,12 @@
   "permOpenSettings": "فتح الإعدادات",
   "permClose": "إغلاق",
   "permPageTitle": "بعض الأذونات",
-  "permPageIntro": "امنح ما تشاء الآن، ويمكنك تغيير الباقي لاحقًا من الإعدادات.",
+  "permPageIntro": "يمكنك اتخاذ القرار لكل إذن على حدة وتغييره في أي وقت من الإعدادات.",
   "permStart": "ابدأ",
   "permGranted": "تم المنح",
   "permDenied": "مرفوض",
   "permRetry": "حاول مرة أخرى",
-  "permAllow": "السماح",
+  "permAllow": "التالي",
   "coreErrNetwork": "تعذر الوصول إلى الخادم. تحقق من اتصالك.",
   "coreErrTooMany": "محاولات كثيرة. يرجى الانتظار قليلًا.",
   "coreErrGeneric": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
@@ -1414,7 +1414,7 @@
   "qrManualLabel": "أدخل الرمز يدويًا",
   "qrConfirm": "تأكيد",
   "qrCameraDenied": "لم يتم منح إذن الكاميرا. يمكنك إدخال الرمز يدويًا أو منح الإذن ومحاولة المسح مرة أخرى.",
-  "qrGrantCamera": "منح إذن الكاميرا",
+  "qrGrantCamera": "حاول مرة أخرى",
   "qrDeniedSettings": "لم يتم منح إذن الكاميرا. يمكنك السماح به من الإعدادات > BÜ Kampüs أو إدخال الرمز يدويًا.",
   "qrCameraFailed": "تعذر فتح الكاميرا. يمكنك إدخال الرمز يدويًا.",
   "qrTorch": "المصباح",
@@ -1433,6 +1433,7 @@
   "pollMenuRateToday": "قيّم قائمة اليوم",
   "pollYourRating": "تقييمك: {rating}",
   "pollYourRatingAvg": "تقييمك: {rating} · المتوسط {avg}",
+  "d1MenuRateTodayOnly": "التقييم متاح لقائمة اليوم فقط.",
   "pollTapStar": "المس نجمة للتقييم",
   "pollNoVoteRight": "لا يحق لك التصويت في هذا الاستطلاع",
   "pollStars": "النجوم: {n}",
@@ -1549,7 +1550,13 @@
   "postComposeShared": "تمت المشاركة",
   "g2PostQueued": "المنشور في قائمة الانتظار",
   "g2PostUploading": "جارٍ رفع المنشور {pct}",
-  "@g2PostUploading": {"placeholders": {"pct": {"type": "String"}}},
+  "@g2PostUploading": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
   "g2PostWaiting": "بانتظار الاتصال، سيتابع عند عودته",
   "g2PostPublishing": "جارٍ النشر",
   "g2PostFailed": "تعذّر النشر",
@@ -1569,7 +1576,7 @@
   "postComposeNewPost": "منشور جديد",
   "postPickerCameraHint": "اضغط لالتقاط صورة، واضغط مطولًا لتسجيل فيديو",
   "postPickerLimitedBody": "تظهر فقط الصور ومقاطع الفيديو التي سمحت بها. يمكنك إضافة المزيد للمشاركة.",
-  "postPickerDeniedBody": "اسمح بالوصول إلى المعرض لمشاركة منشور. يمكنك أيضًا الاختيار من معرض النظام.",
+  "postPickerDeniedBody": "يلزم الوصول إلى المعرض لمشاركة منشور. يمكنك أيضًا الاختيار من معرض النظام.",
   "postPickerUseSystem": "استخدام معرض النظام",
   "postComposeShare": "مشاركة",
   "postComposeDraftBanner": "لديك مسودة محفوظة.",
@@ -3140,7 +3147,7 @@
   "p10AlbumCount": "{n} ألبوم",
   "p10ItemUnit": "عنصر",
   "p10LimitedBody": "يمكنك اختيار المزيد من الصور من مكتبتك لإرسالها في الدردشة.",
-  "p10DeniedBody": "لإرسال الصور والفيديو، اسمح بالوصول إلى المعرض من إعدادات التطبيق.",
+  "p10DeniedBody": "لإرسال الصور والفيديو، يلزم الوصول إلى المعرض من إعدادات التطبيق.",
   "p10GalleryEmpty": "لا توجد صور أو فيديوهات في المعرض.",
   "p10SelCount": "{n} / {max}",
   "p10SelWord": "محدّد",
@@ -3429,7 +3436,7 @@
   "p67ChatBgPreviewIn": "مرحبا، نراك في المحاضرة.",
   "p67ChatBgPreviewOut": "حسنا، نراك لاحقا.",
   "p67SettingsChats": "المحادثات",
-  "p67AttachAllowPhotos": "السماح بالوصول إلى الصور",
+  "p67AttachAllowPhotos": "الوصول إلى الصور",
   "p67PickerSend": "إرسال ({n})",
   "@p67PickerSend": {
     "placeholders": {
@@ -3462,7 +3469,7 @@
   "p66AboutBody": "تطبيق طلابي مستقل مخصص لطلاب وموظفي جامعة بينغول.",
   "p67AttachRecent": "أحدث الصور",
   "p67AttachOnceHint": "لإرسال صورة تُعرض مرة واحدة، اختر الصورة ثم المس الرمز 1.",
-  "p67AttachGrant": "سماح",
+  "p67AttachGrant": "متابعة",
   "p51ClubsEmpty": "لا توجد أندية بعد.",
   "p51ClubsLoadFailed": "تعذّر التحميل، حاول مجددًا",
   "p51Managed": "أديرها",
@@ -4640,10 +4647,6 @@
       }
     }
   },
-  "evtQrMyTitle": "رمزي",
-  "evtQrMyHint": "اعرض هذا الرمز على منظم الفعالية عند الدخول. يتجدد خلال وقت قصير.",
-  "evtQrMyNotApproved": "يظهر رمزك هنا بعد الموافقة على مشاركتك.",
-  "evtQrMyBeforeStart": "يُفتح تسجيل الحضور في موعد الفعالية؛ يمكنك تجهيز رمزك الآن.",
   "evtQrScanClosed": "لم يُفتح تسجيل الحضور بعد أو أُغلق.",
   "evtAttOpenTitle": "تسجيل الحضور مفتوح",
   "evtAttOpenSub": "أثناء الفتح يعرض المشاركون رموزهم ويقوم المنظم والمشرفون بمسحها.",
@@ -4675,10 +4678,6 @@
   "evtQrOwnerClosed": "الحضور مغلق: لا يستطيع المشاركون عرض رمز QR.",
   "evtQrOwnerOpenAction": "فتح الحضور",
   "evtQrOwnerOutside": "نحن خارج أوقات الفعالية؛ يُفتح الحضور تلقائيًا قبل البداية بـ 30 دقيقة. يمكنك فتحه الآن.",
-  "evtQrMyOwnerTitle": "أنت منظم هذه الفعالية",
-  "evtQrMyOwnerBody": "تسجّل الحضور بمسح رموز QR الخاصة بالمشاركين.",
-  "evtQrMyOwnerScan": "مسح QR",
-  "evtQrMyOwnerJoin": "انضم كمشارك أيضًا",
   "evtAtt2ToolTitle": "أداة الحضور",
   "evtAtt2ToolSub": "امسح رموز QR وسجّل من القائمة",
   "evtAtt2ScanQr": "مسح QR",
@@ -4840,8 +4839,8 @@
   "chatMiscContactsRationale": "نحتاج إلى الوصول إلى جهات الاتصال للعثور على أشخاص الجامعة بينها. لا يتم إرسال جهات الاتصال إلى الخادم، بل تتم مطابقة ملخصات البريد الإلكتروني فقط.",
   "chatMiscContactsSubtitle": "أشخاص من الجامعة",
   "chatMiscContactsPermTitle": "إذن جهات الاتصال مطلوب",
-  "chatMiscContactsPermText": "يجب منح إذن الوصول إلى جهات الاتصال حتى نتمكن من العثور على أشخاص الحرم الجامعي بينها.",
-  "chatMiscContactsPermAction": "السماح",
+  "chatMiscContactsPermText": "نحتاج إلى الوصول إلى جهات الاتصال حتى نتمكن من العثور على أشخاص الحرم الجامعي بينها.",
+  "chatMiscContactsPermAction": "متابعة",
   "chatMiscContactsNoneTitle": "لا يوجد أشخاص مطابقون",
   "chatMiscContactsNoneText": "لم نجد أيًّا من جهات اتصالك يستخدم التطبيق. سيظهر أصدقاؤك هنا عند انضمامهم.",
   "chatMiscContactsSearchHint": "ابحث في الأشخاص",
@@ -5018,7 +5017,13 @@
   "chatSeenAgoMonths": "{n, plural, =1{منذ شهر واحد} =2{منذ شهرين} few{منذ {n} أشهر} many{منذ {n} شهرًا} other{منذ {n} شهرًا}}",
   "chatSeenAgoYears": "{n, plural, =1{منذ سنة واحدة} =2{منذ سنتين} few{منذ {n} سنوات} many{منذ {n} سنة} other{منذ {n} سنة}}",
   "chatStatusSentAt": "تم الإرسال · {when}",
-  "@chatStatusSentAt": {"placeholders": {"when": {"type": "String"}}},
+  "@chatStatusSentAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "chatStatusSeenAt": "تمت المشاهدة · {when}",
   "pcmWriteHint": "أضف تعليقًا…",
   "pcmEmptyTitle": "كن أول من يعلّق",
@@ -5140,6 +5145,57 @@
   "g4ChatJumpMissing": "هذه الرسالة لم تعد متاحة أو تعذر تحميلها.",
   "shareKindProfile": "ملف شخصي",
   "shareChatProfileShared": "شارك ملفًا شخصيًا",
+  "shareKindClub": "نادٍ",
+  "shareKindPoll": "استطلاع",
+  "shareChatClubShared": "شارك نادياً",
+  "shareChatPollShared": "شارك استطلاعاً",
+  "pollShareAction": "مشاركة الاستطلاع",
+  "scanNotBu": "هذا ليس رمزاً لـ BÜ Kampüs.",
+  "scanTitle": "مسح رمز QR",
+  "scanHint": "وجّه رمز ملف أو نادٍ أو استطلاع أو فعالية إلى الإطار.",
+  "scanCheckinNoRight": "ليست لديك صلاحية مسح رمز الحضور هذا.",
+  "scanCheckinDone": "تم تسجيل الحضور: {name}",
+  "@scanCheckinDone": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "clubJoinQrAction": "إضافة أعضاء عبر QR",
+  "clubJoinQrActionSub": "عرض رمز QR للانضمام",
+  "clubJoinQrTitle": "رمز QR للانضمام",
+  "clubJoinQrHint": "كل من يمسح هذا الرمز ينضم إلى النادي مباشرة.",
+  "clubJoinQrRefresh": "يتجدد الرمز خلال {n} ث",
+  "@clubJoinQrRefresh": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "clubJoinQrFailed": "تعذر الحصول على رمز الانضمام. تحقق من الاتصال وحاول مجددا.",
+  "clubJoinQrNoAccess": "ليست لديك صلاحية إضافة أعضاء إلى هذا النادي.",
+  "clubScanJoin": "الانضمام عبر QR",
+  "scanClubJoined": "انضممت إلى {name}",
+  "@scanClubJoined": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "scanClubJoinedNoName": "انضممت إلى النادي",
+  "scanClubAlready": "أنت عضو في هذا النادي بالفعل",
+  "signOutPendingTitle": "سيتم حذف الرسائل غير المرسلة",
+  "signOutPendingBody": "سيتم حذف {count} رسائل غير مرسلة. هل تريد تسجيل الخروج؟",
+  "@signOutPendingBody": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "profileShareAction": "مشاركة الملف الشخصي",
   "profileQrMyCode": "رمز QR الخاص بي",
   "profileQrHint": "من يمسح هذا الرمز يرى الملف الشخصي في BÜ Kampüs. يمكن لكاميرا الهاتف قراءته أيضًا.",
@@ -5154,5 +5210,57 @@
   "profileQrGallery": "اختيار من المعرض",
   "profileQrGalleryNone": "لم يتم العثور على رمز QR في الصورة.",
   "profileQrMyProfile": "هذا رمزك، سيتم فتح ملفك الشخصي.",
-  "profileQrFindMe": "ابحث عني في BÜ Kampüs"
+  "profileQrFindMe": "ابحث عني في BÜ Kampüs",
+  "commentFocusMissing": "ربما لم يعد هذا التعليق موجودًا أو تم حذفه.",
+  "chatVoiceMic": "تسجيل رسالة صوتية",
+  "chatVoiceHold": "اضغط مطولاً على الميكروفون للتسجيل",
+  "chatVoiceSlideCancel": "اسحب للإلغاء",
+  "chatVoiceStopSend": "إنهاء التسجيل وإرساله",
+  "chatVoiceCancel": "إلغاء التسجيل",
+  "chatVoiceMessage": "رسالة صوتية",
+  "chatVoicePlay": "تشغيل",
+  "chatVoicePause": "إيقاف مؤقت",
+  "chatVoiceInterrupted": "انقطع التسجيل",
+  "chatVoiceFailed": "تعذر تشغيل الرسالة الصوتية",
+  "chatVoiceLimit": "يجب ألا تتجاوز الرسالة الصوتية 5 دقائق؛ تم إرسال التسجيل.",
+  "chatVoiceNoMic": "تعذر تشغيل الميكروفون",
+  "chatVoiceSemantics": "رسالة صوتية، {duration}، {state}",
+  "@chatVoiceSemantics": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      },
+      "state": {
+        "type": "String"
+      }
+    }
+  },
+  "chatVoiceRecording": "جارٍ التسجيل {time}",
+  "@chatVoiceRecording": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "chatVoiceSpeed": "سرعة التشغيل {speed}",
+  "@chatVoiceSpeed": {
+    "placeholders": {
+      "speed": {
+        "type": "String"
+      }
+    }
+  },
+  "evtTicketTitle": "تذكرتي",
+  "evtTicketOpen": "تذكرتي",
+  "evtTicketLoadFailed": "تعذّر تحميل التذكرة.",
+  "evtTicketOffline": "أنت غير متصل: تُعرض آخر تذكرة شوهدت.",
+  "evtTicketOrganizer": "المنظّم",
+  "evtTicketHolder": "صاحب التذكرة",
+  "evtTicketPrivacyNote": "هذه التذكرة شخصية. لا تشاركها ولا ترسل لقطة شاشة لها للآخرين.",
+  "evtTicketCancelled": "أُلغيت هذه الفعالية؛ التذكرة غير صالحة.",
+  "evtTicketEnded": "انتهت هذه الفعالية؛ لم تعد التذكرة صالحة للاستخدام.",
+  "evtTicketQrUnavailable": "تعذّر تحميل رمز QR الآن. حاول لاحقاً.",
+  "evtTicketQrNotOpen": "يظهر رمز QR هنا عند فتح تسجيل الحضور.",
+  "evtTicketQrMaybeExpired": "قد تكون صلاحية هذا الرمز انتهت. يتجدد عند عودة الاتصال."
 }

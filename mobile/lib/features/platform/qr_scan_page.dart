@@ -36,6 +36,15 @@ class ScanThrottle {
     return true;
   }
 
+  /// [value] BAŞARIYLA işlendi: kamera aynı QR'ı kareler boyunca görmeye devam eder; aynı kod [sameCooldown] x 2
+  /// (varsayılan 8 sn) yeniden gönderilmez (ardışık kare tekrarı ve başarı mesajının ezilmesi önlenir). Süre dolunca
+  /// bilerek yeniden okutulan kod kabul edilir (ör. "zaten kayıtlı" geri bildirimi kaybolmaz).
+  void succeeded(String value, DateTime now) {
+    _last = value;
+    _lastAt = now;
+    _streak = 2;
+  }
+
   /// [value] sunucuda/doğrulamada reddedildi.
   void rejected(String value, DateTime now) {
     _streak = value == _last ? _streak + 1 : 1;

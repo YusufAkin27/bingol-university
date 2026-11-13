@@ -288,9 +288,8 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 20));
       final before = listAll(dirs);
       expect(before.isNotEmpty, isTrue);
-      // purgeQueue = hesap silme yolu: bekleyen mesaj kuyrugu hesaba baglidir (normal cikista kalir, G2/account-context.md),
-      // hesap silinince ek dosyalariyla birlikte gider.
-      await s.signOut(remote: false, purgeQueue: true);
+      // Normal cikista bekleyen mesaj kuyrugu ve ek dosyalari da silinir (karar 2026-11-10; purgeQueue varsayilan true).
+      await s.signOut(remote: false);
       await Future<void>.delayed(const Duration(milliseconds: 200));
       final after = listAll(dirs);
       // ignore: avoid_print
@@ -329,7 +328,7 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 50));
       final all0 = await st.readAll();
       expect(all0.keys, containsAll(['access', 'refresh', 'outbox_v1']));
-      await s.signOut(remote: false, purgeQueue: true); // hesap silme: kuyruk da gider (normal cikista hesaba bagli kalir)
+      await s.signOut(remote: false); // normal cikis: kuyruk da gider
       await Future<void>.delayed(const Duration(milliseconds: 200));
       final left = (await st.readAll()).keys.toSet();
       // ignore: avoid_print

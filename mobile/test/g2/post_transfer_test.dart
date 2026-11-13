@@ -37,7 +37,7 @@ class _Vid extends VideoUploader {
 
   @override
   Future<dynamic> upload(String path, PreparedVideo video,
-      {void Function(double progress)? onProgress, Map<String, String>? headers}) async {
+      {void Function(double progress)? onProgress, Map<String, String>? headers, bool audio = false}) async {
     calls.add(headers);
     onProgress?.call(1);
     return {'media': samplePostMedia(id: 900, video: true)};

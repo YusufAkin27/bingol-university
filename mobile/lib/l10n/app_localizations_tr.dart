@@ -3257,7 +3257,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get permNotificationsText =>
-      'Mesaj, etkinlik ve duyurulardan anında haberdar olmak için bildirim göndermemize izin verin.';
+      'Mesaj, etkinlik ve duyurulardan anında haberdar olmanız için bildirim göndermemiz gerekir.';
 
   @override
   String get permCameraTitle => 'Kamera';
@@ -3302,7 +3302,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get permPageIntro =>
-      'Dilediğiniz izni şimdi verebilir, diğerlerini sonra Ayarlar’dan açabilirsiniz.';
+      'Her izin için ayrı karar verebilirsiniz; istediğiniz zaman Ayarlar’dan değiştirebilirsiniz.';
 
   @override
   String get permStart => 'Başla';
@@ -3317,7 +3317,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get permRetry => 'Tekrar dene';
 
   @override
-  String get permAllow => 'İzin ver';
+  String get permAllow => 'İleri';
 
   @override
   String get coreErrNetwork =>
@@ -4493,7 +4493,7 @@ class AppLocalizationsTr extends AppLocalizations {
       'Kamera izni verilmedi. Kodu elle girebilir ya da izin verip taramayı yeniden deneyebilirsiniz.';
 
   @override
-  String get qrGrantCamera => 'Kamera izni ver';
+  String get qrGrantCamera => 'Tekrar dene';
 
   @override
   String get qrDeniedSettings =>
@@ -4553,6 +4553,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String pollYourRatingAvg(String rating, String avg) {
     return 'Puanınız: $rating · Ortalama $avg';
   }
+
+  @override
+  String get d1MenuRateTodayOnly =>
+      'Puanlama yalnız bugünün menüsü için açıktır.';
 
   @override
   String get pollTapStar => 'Yıldıza dokunarak puanla';
@@ -5013,7 +5017,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get postPickerDeniedBody =>
-      'Gönderi paylaşmak için galerine erişim izni vermelisin. İstersen sistemin kendi galerisinden de seçebilirsin.';
+      'Gönderi paylaşmak için galeriye erişim gerekir. İstersen sistemin kendi galerisinden de seçebilirsin.';
 
   @override
   String get postPickerUseSystem => 'Sistem galerisini kullan';
@@ -9648,7 +9652,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p10DeniedBody =>
-      'Fotoğraf ve video gönderebilmek için uygulama ayarlarından galeri erişimine izin vermelisin.';
+      'Fotoğraf ve video gönderebilmek için uygulama ayarlarından galeri erişimi gerekir.';
 
   @override
   String get p10GalleryEmpty => 'Galeride fotoğraf ya da video yok.';
@@ -10337,7 +10341,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p67SettingsChats => 'Sohbetler';
 
   @override
-  String get p67AttachAllowPhotos => 'Fotoğraflara erişime izin ver';
+  String get p67AttachAllowPhotos => 'Fotoğraflara erişim';
 
   @override
   String p67PickerSend(String n) {
@@ -10420,7 +10424,7 @@ class AppLocalizationsTr extends AppLocalizations {
       'Tek gösterimlik göndermek için fotoğrafı seçtikten sonra 1 simgesine dokunun.';
 
   @override
-  String get p67AttachGrant => 'İzin ver';
+  String get p67AttachGrant => 'Devam';
 
   @override
   String get p51ClubsEmpty => 'Henüz kulüp yok.';
@@ -12882,21 +12886,6 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get evtQrMyTitle => 'QR kodum';
-
-  @override
-  String get evtQrMyHint =>
-      'Girişte bu kodu etkinlik görevlisine okutun. Kod kısa sürede yenilenir.';
-
-  @override
-  String get evtQrMyNotApproved =>
-      'QR kodun, katılımın onaylanınca burada görünür.';
-
-  @override
-  String get evtQrMyBeforeStart =>
-      'Yoklama etkinlik saatinde açılır; kodu şimdiden hazır tutabilirsin.';
-
-  @override
   String get evtQrScanClosed => 'Yoklama henüz açılmadı veya kapandı.';
 
   @override
@@ -12994,19 +12983,6 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get evtQrOwnerOutside =>
       'Yoklama etkinlik saatleri dışında; başlangıçtan 30 dk önce kendiliğinden açılır. İstersen şimdi açabilirsin.';
-
-  @override
-  String get evtQrMyOwnerTitle => 'Bu etkinliğin organizatörüsün';
-
-  @override
-  String get evtQrMyOwnerBody =>
-      'Yoklamayı katılımcıların QR kodlarını okutarak alırsın.';
-
-  @override
-  String get evtQrMyOwnerScan => 'QR okut';
-
-  @override
-  String get evtQrMyOwnerJoin => 'Katılımcı olarak da katıl';
 
   @override
   String get evtAtt2ToolTitle => 'Yoklama aracı';
@@ -13264,10 +13240,10 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get chatMiscContactsPermText =>
-      'Rehberinizdeki kampüs kişilerini bulabilmemiz için rehbere erişim izni vermeniz gerekir.';
+      'Rehberinizdeki kampüs kişilerini bulabilmemiz için rehbere erişmemiz gerekir.';
 
   @override
-  String get chatMiscContactsPermAction => 'İzin ver';
+  String get chatMiscContactsPermAction => 'Devam';
 
   @override
   String get chatMiscContactsNoneTitle => 'Eşleşen kişi yok';
@@ -14219,6 +14195,85 @@ class AppLocalizationsTr extends AppLocalizations {
   String get shareChatProfileShared => 'Profil paylaştı';
 
   @override
+  String get shareKindClub => 'Kulüp';
+
+  @override
+  String get shareKindPoll => 'Anket';
+
+  @override
+  String get shareChatClubShared => 'Kulüp paylaştı';
+
+  @override
+  String get shareChatPollShared => 'Anket paylaştı';
+
+  @override
+  String get pollShareAction => 'Anketi paylaş';
+
+  @override
+  String get scanNotBu => 'Bu bir BÜ Kampüs kodu değil.';
+
+  @override
+  String get scanTitle => 'QR tara';
+
+  @override
+  String get scanHint =>
+      'Profil, kulüp, anket ya da etkinlik kodunu çerçeveye hizala.';
+
+  @override
+  String get scanCheckinNoRight => 'Bu yoklama kodunu okutma yetkin yok.';
+
+  @override
+  String scanCheckinDone(String name) {
+    return 'Yoklama alındı: $name';
+  }
+
+  @override
+  String get clubJoinQrAction => 'QR ile üye ekle';
+
+  @override
+  String get clubJoinQrActionSub => 'Katılım QR kodunu göster';
+
+  @override
+  String get clubJoinQrTitle => 'Katılım QR kodu';
+
+  @override
+  String get clubJoinQrHint => 'Bu kodu okutan kişi kulübe doğrudan katılır.';
+
+  @override
+  String clubJoinQrRefresh(int n) {
+    return 'Kod $n sn içinde yenilenir';
+  }
+
+  @override
+  String get clubJoinQrFailed =>
+      'Katılım kodu alınamadı. Bağlantını kontrol edip tekrar dene.';
+
+  @override
+  String get clubJoinQrNoAccess => 'Bu kulübe üye ekleme yetkin yok.';
+
+  @override
+  String get clubScanJoin => 'QR ile katıl';
+
+  @override
+  String scanClubJoined(String name) {
+    return '$name kulübüne katıldınız';
+  }
+
+  @override
+  String get scanClubJoinedNoName => 'Kulübe katıldınız';
+
+  @override
+  String get scanClubAlready => 'Bu kulübün zaten üyesisiniz';
+
+  @override
+  String get signOutPendingTitle => 'Gönderilmemiş mesajlar silinecek';
+
+  @override
+  String signOutPendingBody(String count) {
+    return 'Gönderilmemiş $count mesaj silinecek. Çıkış yapmak istiyor musun?';
+  }
+
+  @override
   String get profileShareAction => 'Profili paylaş';
 
   @override
@@ -14265,4 +14320,102 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get profileQrFindMe => 'Beni BÜ Kampüs’te bul';
+
+  @override
+  String get commentFocusMissing =>
+      'Bu yorum artık yok ya da silinmiş olabilir.';
+
+  @override
+  String get chatVoiceMic => 'Sesli mesaj kaydet';
+
+  @override
+  String get chatVoiceHold => 'Kaydetmek için mikrofona basılı tutun';
+
+  @override
+  String get chatVoiceSlideCancel => 'İptal için kaydır';
+
+  @override
+  String get chatVoiceStopSend => 'Kaydı bitir ve gönder';
+
+  @override
+  String get chatVoiceCancel => 'Kaydı iptal et';
+
+  @override
+  String get chatVoiceMessage => 'Sesli mesaj';
+
+  @override
+  String get chatVoicePlay => 'Oynat';
+
+  @override
+  String get chatVoicePause => 'Duraklat';
+
+  @override
+  String get chatVoiceInterrupted => 'Kayıt kesildi';
+
+  @override
+  String get chatVoiceFailed => 'Sesli mesaj oynatılamadı';
+
+  @override
+  String get chatVoiceLimit =>
+      'Sesli mesaj en fazla 5 dakika olabilir; kayıt gönderildi.';
+
+  @override
+  String get chatVoiceNoMic => 'Mikrofon başlatılamadı';
+
+  @override
+  String chatVoiceSemantics(String duration, String state) {
+    return 'Sesli mesaj, $duration, $state';
+  }
+
+  @override
+  String chatVoiceRecording(String time) {
+    return 'Kaydediliyor $time';
+  }
+
+  @override
+  String chatVoiceSpeed(String speed) {
+    return 'Oynatma hızı $speed';
+  }
+
+  @override
+  String get evtTicketTitle => 'Biletim';
+
+  @override
+  String get evtTicketOpen => 'Biletim';
+
+  @override
+  String get evtTicketLoadFailed => 'Bilet yüklenemedi.';
+
+  @override
+  String get evtTicketOffline =>
+      'Çevrimdışısın: son görülen bilet gösteriliyor.';
+
+  @override
+  String get evtTicketOrganizer => 'Düzenleyen';
+
+  @override
+  String get evtTicketHolder => 'Bilet sahibi';
+
+  @override
+  String get evtTicketPrivacyNote =>
+      'Bu bilet sana özeldir; paylaşma ve ekran görüntüsünü başkalarına gönderme.';
+
+  @override
+  String get evtTicketCancelled => 'Bu etkinlik iptal edildi; bilet geçersiz.';
+
+  @override
+  String get evtTicketEnded =>
+      'Bu etkinlik sona erdi; bilet artık kullanılamaz.';
+
+  @override
+  String get evtTicketQrUnavailable =>
+      'QR kodu şu an alınamadı. Daha sonra tekrar dene.';
+
+  @override
+  String get evtTicketQrNotOpen =>
+      'QR kodun, yoklama açıldığında burada görünür.';
+
+  @override
+  String get evtTicketQrMaybeExpired =>
+      'Bu kodun süresi dolmuş olabilir. Bağlanınca yenilenir.';
 }

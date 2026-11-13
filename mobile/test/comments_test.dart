@@ -369,6 +369,16 @@ void main() {
       expect(tester.takeException(), isNull);
       await tester.pump(const Duration(seconds: 3));
     });
+    testWidgets('derin bağlantı: yorum silinmiş/yoksa anlaşılır uyarı gösterilir', (tester) async {
+      final b = FakeBackend();
+      final f = CommentsFake(b);
+      f.roots.add(commentView(5, body: 'Başka yorum'));
+      await _open(tester, b, count: 1, focus: 999);
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.text('Bu yorum artık yok ya da silinmiş olabilir.'), findsOneWidget);
+      expect(find.text('Başka yorum'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 3));
+    });
   });
 
   group('yerleşim', () {

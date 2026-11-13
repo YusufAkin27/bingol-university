@@ -126,3 +126,12 @@ Kulup kurulurken (isteğe bağlı) "hangi fakülte/bölümlere önerilsin" seçi
 - `GET /api/communities/recommended?size=10` (en çok 30): kullanıcının profil bölümü/fakültesine uyan ACTIVE + PUBLIC kulüpler, zaten üye/başvurmuş olunanlar hariç. Puan: bölüm eşleşmesi 2, fakülte 1; eşitlikte yeni kulüp önce. Profil boşsa ya da eşleşme yoksa `[]`.
 - `GET /api/events/recommended?size=10`: aynı kulüplerin yaklaşan ACTIVE etkinlikleri (en yakın başlangıç önce). Boş olabilir.
 - Mobil: kulüp formunda "Önerilecek bölümler" alanı; Kulüpler sekmesinde "Bölümüne uygun kulüpler" şeridi, Etkinlikler > Keşfet'te "Bölümüne uygun etkinlikler" (boşsa hiçbir şey çizilmez).
+
+## QR ile kulube dogrudan katilma (2026-11-11)
+
+Kulup yoneticisi kendi telefonunda katilim QR'ini gosterir; uygulamadaki tek tarayiciyla okutan kullanici onay beklemeden uye olur (kod = davet). Tablo/migration YOK, durumsuz HMAC kod (`ClubJoinCodeService`, `ClubJoinCodeController`).
+
+- Kod bicimi: `bingol-clubjoin:{communityId}.{pencere}.{imza}` (yalniz `[A-Za-z0-9_\-.]`, <= 300 karakter). Pencere 60 sn; guncel + onceki 2 pencere kabul (`validForSeconds` 120..180). Anahtar `jwt.secret` + `bingol-clubjoin-v1` baglami (yoklama koduyla karismaz).
+- `GET /api/communities/{id}/join-code` -> `{code, expiresAt, validForSeconds}`. Izin `MANAGE_MEMBERS` (sahip/yonetici/moderator + bu izinli uye; sistem yoneticisi `CONTENT_WRITE` ile). Yetkisiz 403 `FORBIDDEN`, kulup yok (ya da yetkisize ozel kulup) 404 `COMMUNITY_NOT_FOUND`, kulup ACTIVE degil 409 `COMMUNITY_NOT_ACTIVE`. Limit 60/10 dk/kullanici. `expiresAt` sunucunun kodu kabul ettigi SON andir.
+- `POST /api/communities/{id}/join-by-code` govde `{code}` (onekli ya da oneksiz) -> `{communityId, status}`: `ACTIVE` (yeni uye; bekleyen basvuru varsa onayli uyeliga cevrilir) | `ALREADY` (zaten uye, hata degil). Gecersiz/suresi dolmus/baska kulubun kodu/ACTIVE olmayan kulup: 422 `CLUB_JOIN_CODE_INVALID` (genel mesaj). Yasakli/cikarilip engellenmis: 403 `BANNED`. Limit 10/dk/kullanici + 60/dk/IP.
+- Uyelik acma `ClubInviteService.activate` ile PAYLASILIR (davet koduyla ayni): onay/PRIVATE kisiti atlanir, es zamanli ikinci katilim 409 `ALREADY_MEMBER` (benzersiz kisit), yetki izni temizligi, `hooks.onMemberActivated` (sayac, kulup sohbeti vb.), denetim `INVITE_USED` detay `source=qr`. Kuluplerde uye ust siniri YOKTUR (kodda yok). Askida/dogrulanmamis/profili tamamlanmamis hesap mevcut filtrelerle zaten kesilir.

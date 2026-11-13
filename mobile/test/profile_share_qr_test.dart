@@ -3,7 +3,7 @@ import 'package:bu_kampus/core/permissions/permission_service.dart';
 import 'package:bu_kampus/features/events/qr_painter.dart' show QrCode;
 import 'package:bu_kampus/features/profile/profile_qr_logic.dart';
 import 'package:bu_kampus/features/profile/profile_qr_page.dart';
-import 'package:bu_kampus/features/profile/profile_qr_scan_page.dart';
+import 'package:bu_kampus/features/scan/scan_page.dart';
 import 'package:bu_kampus/features/profile/profile_qr_style.dart';
 import 'package:bu_kampus/features/profile/profile_qr_widgets.dart';
 import 'package:bu_kampus/features/profile/profile_share.dart';
@@ -320,7 +320,7 @@ void main() {
         await tester.pumpWidget(buildApp(
           MediaQuery(
             data: MediaQueryData(size: c.$1, textScaler: TextScaler.linear(c.$2)),
-            child: ProfileQrScanPage(
+            child: QrScanHubPage(
                 session: makeSession(FakeBackend()), permissionService: perms, scannerBuilder: (ctx, _) => const ColoredBox(color: Color(0xFF222222))),
           ),
           brightness: c.$3,
@@ -343,7 +343,7 @@ void main() {
       perms = FakePermissionService(initial: {AppPermission.camera: cam}, onRequest: {AppPermission.camera: cam});
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(
-        ProfileQrScanPage(
+        QrScanHubPage(
           session: makeSession(FakeBackend()),
           permissionService: perms,
           openProfile: (_, id) => opened.add(id),
@@ -378,9 +378,9 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('scan-bad')));
       await settle(tester, const Duration(milliseconds: 300));
       expect(opened, isEmpty);
-      expect(find.text('Bu bir BÜ Kampüs profil kodu değil.'), findsOneWidget);
+      expect(find.text('Bu bir BÜ Kampüs kodu değil.'), findsOneWidget);
       await tester.pump(const Duration(seconds: 4)); // ileti kendiliğinden temizlenir
-      expect(find.text('Bu bir BÜ Kampüs profil kodu değil.'), findsNothing);
+      expect(find.text('Bu bir BÜ Kampüs kodu değil.'), findsNothing);
     });
 
     testWidgets('kamera izni reddedilince açıklayıcı durum + ayarlara git', (tester) async {

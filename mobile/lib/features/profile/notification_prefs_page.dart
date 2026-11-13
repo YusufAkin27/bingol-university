@@ -374,6 +374,7 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
     MenuReminderService.instance.store.load().then((v) {
       if (mounted) setState(() => _menuRem = v);
     }).catchError((_) {});
+    ReminderService.bindUser(widget.session.userId);
     ReminderService.store.load().then((v) {
       if (mounted) setState(() => _rem = v);
     }).catchError((_) {});

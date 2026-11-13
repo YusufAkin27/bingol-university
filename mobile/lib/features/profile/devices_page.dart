@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'signout_guard.dart';
+
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
@@ -92,6 +94,7 @@ class _DevicesPageState extends State<DevicesPage> {
     );
     if (!ok || !mounted) return;
     if (s.current) {
+      if (!await confirmUnsentLoss(context, widget.session) || !mounted) return;
       // Bu cihaz: normal çıkış (refresh iptali + bu cihazın push kaydı), ardından giriş ekranı.
       setState(() => _busy.add(s.id));
       await widget.session.signOut();

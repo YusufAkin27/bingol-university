@@ -29,6 +29,7 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
 
   Future<void> _loadAlarm() async {
     try {
+      ReminderService.bindUser(widget.session.userId);
       final s = await ReminderService.store.load();
       if (mounted) setState(() => _alarm = s.examDayBefore);
     } catch (_) {

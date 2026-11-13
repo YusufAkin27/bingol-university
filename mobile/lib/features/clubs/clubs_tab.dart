@@ -8,6 +8,7 @@ import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/bu.dart';
+import '../profile/profile_share.dart' show openProfileScanner;
 import 'club_actions.dart';
 import 'club_categories.dart';
 import 'club_detail_page.dart';
@@ -455,6 +456,12 @@ class _ClubsTabState extends State<ClubsTab> {
                 ],
                 Expanded(
                   child: Semantics(header: true, label: l.clubMgmtClubsTitle, child: const SizedBox(height: 48)),
+                ),
+                ClubBarIcon(
+                  key: const ValueKey('clubs-qr-join'),
+                  icon: BuIcons.qrCode,
+                  tooltip: l.clubScanJoin,
+                  onTap: () => openProfileScanner(context, widget.session),
                 ),
                 TextButton(
                   style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 12)),

@@ -3,7 +3,6 @@ import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../core/locale_controller.dart';
 import 'bu.dart';
 
 /// Ortak ön izleme (peek) kabuğu: bulanık + `scrim` jetonlu zemin üstünde ortalanmış kart. Dışına dokununca ya da

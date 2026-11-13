@@ -1698,7 +1698,7 @@
   "reportDetailsHint": "Ek açıklama (isteğe bağlı)",
   "reportSend": "Gönder",
   "permNotificationsTitle": "Bildirimler",
-  "permNotificationsText": "Mesaj, etkinlik ve duyurulardan anında haberdar olmak için bildirim göndermemize izin verin.",
+  "permNotificationsText": "Mesaj, etkinlik ve duyurulardan anında haberdar olmanız için bildirim göndermemiz gerekir.",
   "permCameraTitle": "Kamera",
   "permCameraText": "QR kod okutmak ve fotoğraf çekmek için kameraya erişmemiz gerekir.",
   "permMicrophoneTitle": "Mikrofon",
@@ -1718,12 +1718,12 @@
   "permOpenSettings": "Ayarlardan aç",
   "permClose": "Kapat",
   "permPageTitle": "Birkaç izin",
-  "permPageIntro": "Dilediğiniz izni şimdi verebilir, diğerlerini sonra Ayarlar’dan açabilirsiniz.",
+  "permPageIntro": "Her izin için ayrı karar verebilirsiniz; istediğiniz zaman Ayarlar’dan değiştirebilirsiniz.",
   "permStart": "Başla",
   "permGranted": "Verildi",
   "permDenied": "Reddedildi",
   "permRetry": "Tekrar dene",
-  "permAllow": "İzin ver",
+  "permAllow": "İleri",
   "coreErrNetwork": "Sunucuya ulaşılamadı. Bağlantınızı kontrol edin.",
   "coreErrTooMany": "Çok fazla deneme. Lütfen biraz bekleyin.",
   "coreErrGeneric": "Bir sorun oluştu. Lütfen tekrar deneyin.",
@@ -2266,7 +2266,7 @@
   "qrManualLabel": "Kodu elle gir",
   "qrConfirm": "Onayla",
   "qrCameraDenied": "Kamera izni verilmedi. Kodu elle girebilir ya da izin verip taramayı yeniden deneyebilirsiniz.",
-  "qrGrantCamera": "Kamera izni ver",
+  "qrGrantCamera": "Tekrar dene",
   "qrDeniedSettings": "Kamera izni verilmedi. Ayarlar > BÜ Kampüs bölümünden izin verebilir ya da kodu elle girebilirsiniz.",
   "qrCameraFailed": "Kamera açılamadı. Kodu elle girebilirsiniz.",
   "qrTorch": "El feneri",
@@ -2302,6 +2302,7 @@
       }
     }
   },
+  "d1MenuRateTodayOnly": "Puanlama yalnız bugünün menüsü için açıktır.",
   "pollTapStar": "Yıldıza dokunarak puanla",
   "pollNoVoteRight": "Bu anket için oy hakkınız yok",
   "pollStars": "{n} yıldız",
@@ -2553,7 +2554,13 @@
   "postComposeShared": "Paylaşıldı",
   "g2PostQueued": "Paylaşım sırada",
   "g2PostUploading": "Paylaşım yükleniyor {pct}",
-  "@g2PostUploading": {"placeholders": {"pct": {"type": "String"}}},
+  "@g2PostUploading": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
   "g2PostWaiting": "Bağlantı bekleniyor, gelince devam edecek",
   "g2PostPublishing": "Paylaşılıyor",
   "g2PostFailed": "Paylaşılamadı",
@@ -2573,7 +2580,7 @@
   "postComposeNewPost": "Yeni gönderi",
   "postPickerCameraHint": "Fotoğraf için dokun, video için basılı tut",
   "postPickerLimitedBody": "Yalnızca izin verdiğin fotoğraf ve videolar görünüyor. Paylaşmak istediklerini ekleyebilirsin.",
-  "postPickerDeniedBody": "Gönderi paylaşmak için galerine erişim izni vermelisin. İstersen sistemin kendi galerisinden de seçebilirsin.",
+  "postPickerDeniedBody": "Gönderi paylaşmak için galeriye erişim gerekir. İstersen sistemin kendi galerisinden de seçebilirsin.",
   "postPickerUseSystem": "Sistem galerisini kullan",
   "postComposeShare": "Paylaş",
   "postComposeDraftBanner": "Kayıtlı bir taslağın var.",
@@ -5171,7 +5178,7 @@
   },
   "p10ItemUnit": "öğe",
   "p10LimitedBody": "Sohbete göndermek için kütüphanenden ek fotoğraflar seçebilirsin.",
-  "p10DeniedBody": "Fotoğraf ve video gönderebilmek için uygulama ayarlarından galeri erişimine izin vermelisin.",
+  "p10DeniedBody": "Fotoğraf ve video gönderebilmek için uygulama ayarlarından galeri erişimi gerekir.",
   "p10GalleryEmpty": "Galeride fotoğraf ya da video yok.",
   "p10SelCount": "{n} / {max}",
   "@p10SelCount": {
@@ -5512,7 +5519,7 @@
   "p67ChatBgPreviewIn": "Selam, derste görüşürüz.",
   "p67ChatBgPreviewOut": "Tamam, görüşürüz.",
   "p67SettingsChats": "Sohbetler",
-  "p67AttachAllowPhotos": "Fotoğraflara erişime izin ver",
+  "p67AttachAllowPhotos": "Fotoğraflara erişim",
   "p67PickerSend": "Gönder ({n})",
   "@p67PickerSend": {
     "placeholders": {
@@ -5545,7 +5552,7 @@
   "p66AboutBody": "Bingöl Üniversitesi öğrencileri ve personeli için geliştirilen bağımsız bir öğrenci uygulamasıdır.",
   "p67AttachRecent": "Son fotoğraflar",
   "p67AttachOnceHint": "Tek gösterimlik göndermek için fotoğrafı seçtikten sonra 1 simgesine dokunun.",
-  "p67AttachGrant": "İzin ver",
+  "p67AttachGrant": "Devam",
   "p51ClubsEmpty": "Henüz kulüp yok.",
   "p51ClubsLoadFailed": "Yüklenemedi, tekrar dene",
   "p51Managed": "Yönettiklerim",
@@ -6986,10 +6993,6 @@
       }
     }
   },
-  "evtQrMyTitle": "QR kodum",
-  "evtQrMyHint": "Girişte bu kodu etkinlik görevlisine okutun. Kod kısa sürede yenilenir.",
-  "evtQrMyNotApproved": "QR kodun, katılımın onaylanınca burada görünür.",
-  "evtQrMyBeforeStart": "Yoklama etkinlik saatinde açılır; kodu şimdiden hazır tutabilirsin.",
   "evtQrScanClosed": "Yoklama henüz açılmadı veya kapandı.",
   "evtAttOpenTitle": "Yoklama açık",
   "evtAttOpenSub": "Açıkken katılımcılar QR kodlarını gösterir; siz ve moderatörler okutur.",
@@ -7021,10 +7024,6 @@
   "evtQrOwnerClosed": "Yoklama kapalı: katılımcılar QR gösteremez.",
   "evtQrOwnerOpenAction": "Yoklamayı aç",
   "evtQrOwnerOutside": "Yoklama etkinlik saatleri dışında; başlangıçtan 30 dk önce kendiliğinden açılır. İstersen şimdi açabilirsin.",
-  "evtQrMyOwnerTitle": "Bu etkinliğin organizatörüsün",
-  "evtQrMyOwnerBody": "Yoklamayı katılımcıların QR kodlarını okutarak alırsın.",
-  "evtQrMyOwnerScan": "QR okut",
-  "evtQrMyOwnerJoin": "Katılımcı olarak da katıl",
   "evtAtt2ToolTitle": "Yoklama aracı",
   "evtAtt2ToolSub": "QR okut, listeden işaretle",
   "evtAtt2ScanQr": "QR okut",
@@ -7186,8 +7185,8 @@
   "chatMiscContactsRationale": "Rehberinizdeki Bingöl Üniversitesi kişilerini bulabilmemiz için rehbere erişmemiz gerekir. Rehberiniz sunucuya gönderilmez; yalnızca e-posta özetleri eşleştirilir.",
   "chatMiscContactsSubtitle": "Bingöl Üniversitesi kişileri",
   "chatMiscContactsPermTitle": "Rehber izni gerekli",
-  "chatMiscContactsPermText": "Rehberinizdeki kampüs kişilerini bulabilmemiz için rehbere erişim izni vermeniz gerekir.",
-  "chatMiscContactsPermAction": "İzin ver",
+  "chatMiscContactsPermText": "Rehberinizdeki kampüs kişilerini bulabilmemiz için rehbere erişmemiz gerekir.",
+  "chatMiscContactsPermAction": "Devam",
   "chatMiscContactsNoneTitle": "Eşleşen kişi yok",
   "chatMiscContactsNoneText": "Rehberindeki kişilerden uygulamayı kullanan kimse bulunamadı. Arkadaşların katıldıkça burada görünür.",
   "chatMiscContactsSearchHint": "Kişilerde ara",
@@ -7423,26 +7422,80 @@
   "reportsReasonPersonalInfo": "Kişisel bilgi paylaşımı",
   "chatSeenAgoNow": "az önce",
   "chatSeenAgoMinutes": "{n, plural, other{{n} dakika önce}}",
-  "@chatSeenAgoMinutes": {"placeholders": {"n": {"type": "int"}}},
+  "@chatSeenAgoMinutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "chatSeenAgoHours": "{n, plural, other{{n} saat önce}}",
-  "@chatSeenAgoHours": {"placeholders": {"n": {"type": "int"}}},
+  "@chatSeenAgoHours": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "chatSeenAgoDays": "{n, plural, other{{n} gün önce}}",
-  "@chatSeenAgoDays": {"placeholders": {"n": {"type": "int"}}},
+  "@chatSeenAgoDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "chatSeenAgoWeeks": "{n, plural, other{{n} hafta önce}}",
-  "@chatSeenAgoWeeks": {"placeholders": {"n": {"type": "int"}}},
+  "@chatSeenAgoWeeks": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "chatSeenAgoMonths": "{n, plural, other{{n} ay önce}}",
-  "@chatSeenAgoMonths": {"placeholders": {"n": {"type": "int"}}},
+  "@chatSeenAgoMonths": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "chatSeenAgoYears": "{n, plural, other{{n} yıl önce}}",
-  "@chatSeenAgoYears": {"placeholders": {"n": {"type": "int"}}},
+  "@chatSeenAgoYears": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "chatStatusSentAt": "Gönderildi · {when}",
-  "@chatStatusSentAt": {"placeholders": {"when": {"type": "String"}}},
+  "@chatStatusSentAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "chatStatusSeenAt": "Görüldü · {when}",
-  "@chatStatusSeenAt": {"placeholders": {"when": {"type": "String"}}},
+  "@chatStatusSeenAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "pcmWriteHint": "Yorum ekle…",
   "pcmEmptyTitle": "İlk yorumu sen yaz",
   "pcmEmptyBody": "Düşüncelerini paylaş, sohbeti başlat.",
   "pcmReplyingTo": "{name} kişisine yanıt veriliyor",
-  "@pcmReplyingTo": {"placeholders": {"name": {"type": "String"}}},
+  "@pcmReplyingTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "pcmHideReplies": "Yanıtları gizle",
   "pcmSendFailed": "Gönderilemedi",
   "pcmRetry": "Yeniden dene",
@@ -7456,11 +7509,29 @@
   "pcmLikeA11y": "Yorumu beğen",
   "pcmUnlikeA11y": "Beğenmekten vazgeç",
   "pcmLikeCountA11y": "{count} beğeni",
-  "@pcmLikeCountA11y": {"placeholders": {"count": {"type": "String"}}},
+  "@pcmLikeCountA11y": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "pcmCommentCountA11y": "{count} yorum",
-  "@pcmCommentCountA11y": {"placeholders": {"count": {"type": "String"}}},
+  "@pcmCommentCountA11y": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "pcmViewAll": "{count} yorumun tümünü gör",
-  "@pcmViewAll": {"placeholders": {"count": {"type": "String"}}},
+  "@pcmViewAll": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "pcmViewAllPlain": "Yorumları gör",
   "pcmErrTooLong": "Yorum en çok 500 karakter olabilir.",
   "pcmErrPostGone": "Bu gönderi artık yok.",
@@ -7469,7 +7540,13 @@
   "pcmMoreReplies": "Daha fazla yanıt",
   "pcmSortLabel": "Sırala",
   "pcmCharsLeft": "{n} karakter kaldı",
-  "@pcmCharsLeft": {"placeholders": {"n": {"type": "String"}}},
+  "@pcmCharsLeft": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "postSettingsAdvanced": "Gelişmiş ayarlar",
   "postSettingsHideLikes": "Beğeni sayısını gizle",
   "postSettingsHideLikesDesc": "Başkaları bu gönderinin beğeni sayısını göremez. Sen görmeye devam edersin.",
@@ -7570,11 +7647,29 @@
   "clubAudienceExpand": "Bölümleri göster",
   "clubAudienceCollapse": "Bölümleri gizle",
   "clubAudienceDeptCount": "{count} bölüm",
-  "@clubAudienceDeptCount": {"placeholders": {"count": {"type": "int"}}},
+  "@clubAudienceDeptCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "clubAudienceSelected": "{count} hedef seçildi",
-  "@clubAudienceSelected": {"placeholders": {"count": {"type": "int"}}},
+  "@clubAudienceSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "clubAudienceDone": "Tamam ({count})",
-  "@clubAudienceDone": {"placeholders": {"count": {"type": "int"}}},
+  "@clubAudienceDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "clubRecommendedTitle": "Bölümüne uygun kulüpler",
   "clubRecommendedAll": "Tüm kulüpler",
   "eventRecommendedTitle": "Bölümüne uygun etkinlikler",
@@ -7601,6 +7696,57 @@
   "g4ChatJumpMissing": "Bu mesaj artık mevcut değil veya yüklenemedi.",
   "shareKindProfile": "Profil",
   "shareChatProfileShared": "Profil paylaştı",
+  "shareKindClub": "Kulüp",
+  "shareKindPoll": "Anket",
+  "shareChatClubShared": "Kulüp paylaştı",
+  "shareChatPollShared": "Anket paylaştı",
+  "pollShareAction": "Anketi paylaş",
+  "scanNotBu": "Bu bir BÜ Kampüs kodu değil.",
+  "scanTitle": "QR tara",
+  "scanHint": "Profil, kulüp, anket ya da etkinlik kodunu çerçeveye hizala.",
+  "scanCheckinNoRight": "Bu yoklama kodunu okutma yetkin yok.",
+  "scanCheckinDone": "Yoklama alındı: {name}",
+  "@scanCheckinDone": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "clubJoinQrAction": "QR ile üye ekle",
+  "clubJoinQrActionSub": "Katılım QR kodunu göster",
+  "clubJoinQrTitle": "Katılım QR kodu",
+  "clubJoinQrHint": "Bu kodu okutan kişi kulübe doğrudan katılır.",
+  "clubJoinQrRefresh": "Kod {n} sn içinde yenilenir",
+  "@clubJoinQrRefresh": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "clubJoinQrFailed": "Katılım kodu alınamadı. Bağlantını kontrol edip tekrar dene.",
+  "clubJoinQrNoAccess": "Bu kulübe üye ekleme yetkin yok.",
+  "clubScanJoin": "QR ile katıl",
+  "scanClubJoined": "{name} kulübüne katıldınız",
+  "@scanClubJoined": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "scanClubJoinedNoName": "Kulübe katıldınız",
+  "scanClubAlready": "Bu kulübün zaten üyesisiniz",
+  "signOutPendingTitle": "Gönderilmemiş mesajlar silinecek",
+  "signOutPendingBody": "Gönderilmemiş {count} mesaj silinecek. Çıkış yapmak istiyor musun?",
+  "@signOutPendingBody": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "profileShareAction": "Profili paylaş",
   "profileQrMyCode": "QR kodum",
   "profileQrHint": "Bu kodu okutan kişi profilini BÜ Kampüs uygulamasında görür. Telefonun kamerası da okuyabilir.",
@@ -7615,5 +7761,60 @@
   "profileQrGallery": "Galeriden seç",
   "profileQrGalleryNone": "Görselde QR kod bulunamadı.",
   "profileQrMyProfile": "Bu senin kodun, profiline gidiliyor.",
-  "profileQrFindMe": "Beni BÜ Kampüs’te bul"
+  "profileQrFindMe": "Beni BÜ Kampüs’te bul",
+  "commentFocusMissing": "Bu yorum artık yok ya da silinmiş olabilir.",
+  "@commentFocusMissing": {
+    "description": "Bildirimden açılan yorum bulunamadığında panel uyarısı"
+  },
+  "chatVoiceMic": "Sesli mesaj kaydet",
+  "chatVoiceHold": "Kaydetmek için mikrofona basılı tutun",
+  "chatVoiceSlideCancel": "İptal için kaydır",
+  "chatVoiceStopSend": "Kaydı bitir ve gönder",
+  "chatVoiceCancel": "Kaydı iptal et",
+  "chatVoiceMessage": "Sesli mesaj",
+  "chatVoicePlay": "Oynat",
+  "chatVoicePause": "Duraklat",
+  "chatVoiceInterrupted": "Kayıt kesildi",
+  "chatVoiceFailed": "Sesli mesaj oynatılamadı",
+  "chatVoiceLimit": "Sesli mesaj en fazla 5 dakika olabilir; kayıt gönderildi.",
+  "chatVoiceNoMic": "Mikrofon başlatılamadı",
+  "chatVoiceSemantics": "Sesli mesaj, {duration}, {state}",
+  "@chatVoiceSemantics": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      },
+      "state": {
+        "type": "String"
+      }
+    }
+  },
+  "chatVoiceRecording": "Kaydediliyor {time}",
+  "@chatVoiceRecording": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "chatVoiceSpeed": "Oynatma hızı {speed}",
+  "@chatVoiceSpeed": {
+    "placeholders": {
+      "speed": {
+        "type": "String"
+      }
+    }
+  },
+  "evtTicketTitle": "Biletim",
+  "evtTicketOpen": "Biletim",
+  "evtTicketLoadFailed": "Bilet yüklenemedi.",
+  "evtTicketOffline": "Çevrimdışısın: son görülen bilet gösteriliyor.",
+  "evtTicketOrganizer": "Düzenleyen",
+  "evtTicketHolder": "Bilet sahibi",
+  "evtTicketPrivacyNote": "Bu bilet sana özeldir; paylaşma ve ekran görüntüsünü başkalarına gönderme.",
+  "evtTicketCancelled": "Bu etkinlik iptal edildi; bilet geçersiz.",
+  "evtTicketEnded": "Bu etkinlik sona erdi; bilet artık kullanılamaz.",
+  "evtTicketQrUnavailable": "QR kodu şu an alınamadı. Daha sonra tekrar dene.",
+  "evtTicketQrNotOpen": "QR kodun, yoklama açıldığında burada görünür.",
+  "evtTicketQrMaybeExpired": "Bu kodun süresi dolmuş olabilir. Bağlanınca yenilenir."
 }

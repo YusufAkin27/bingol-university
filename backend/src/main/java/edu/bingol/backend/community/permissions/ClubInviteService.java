@@ -123,6 +123,17 @@ public class ClubInviteService {
         if (invites.consume(i.getId(), Instant.now()) == 0) {
             throw invalid();
         }
+        activate(c, a, existing, "invite=" + i.getId());
+        return new JoinByCodeResult(c.getId(), CommunityMember.Status.ACTIVE.name());
+    }
+
+
+    /**
+     * Davetle/QR ile dogrudan uyelik: onay politikasini atlar. Bekleyen basvuru onayli uyeliga cevrilir, yoksa yeni
+     * satir acilir (es zamanli ikinci katilim 409), yetki izni temizlenir, "yeni uye" yan etkileri ve denetim kaydi
+     * normal katilimla ayni calisir. Yasakli/zaten uye kontrolu cagiranindir.
+     */
+    void activate(Community c, Actor a, CommunityMember existing, String auditDetail) {
         if (existing != null) {
             existing.setStatus(CommunityMember.Status.ACTIVE);
             existing.setJoinedAt(Instant.now());
@@ -137,8 +148,7 @@ public class ClubInviteService {
         }
         grants.deleteMember(c.getId(), a.id());
         hooks.onMemberActivated(c.getId(), a.id());
-        audit.record(c.getId(), a.id(), a.id(), ClubAuditService.INVITE_USED, "invite=" + i.getId());
-        return new JoinByCodeResult(c.getId(), CommunityMember.Status.ACTIVE.name());
+        audit.record(c.getId(), a.id(), a.id(), ClubAuditService.INVITE_USED, auditDetail);
     }
 
     // ---- ic yardimcilar ----

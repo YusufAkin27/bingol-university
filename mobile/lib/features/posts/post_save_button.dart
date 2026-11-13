@@ -10,27 +10,32 @@ import 'post_models.dart';
 /// Gönderiyi kaydet / kayıttan çıkar (PUT|DELETE /posts/{id}/save). İyimser; hata olursa geri alır.
 /// Reels'teki kaydet ile aynı uç ve davranış; `savedByMe` null ise (eski yanıt) kapalı sayılır.
 /// Hem kart/detay düğmesi hem ⋯ menüsü bu fonksiyonu kullanır.
-Future<void> togglePostSaved(BuildContext context, Session session, Post p, ValueChanged<Post> onChanged) async {
+/// [latest] verilirse `savedByMe` GÜNCEL nesneye uygulanır: kaydetme uçuştayken yapılan beğeni gibi diğer
+/// değişiklikler eski anlık görüntüyle ezilmez.
+Future<void> togglePostSaved(BuildContext context, Session session, Post p, ValueChanged<Post> onChanged,
+    {Post Function()? latest}) async {
   final l = context.l10n;
   final want = !(p.savedByMe ?? false);
-  onChanged(p.copyWith(savedByMe: want));
+  Post cur() => latest?.call() ?? p;
+  onChanged(cur().copyWith(savedByMe: want));
   try {
     final got = await PostApi(session).setSaved(p.id, want);
-    onChanged(p.copyWith(savedByMe: got));
+    onChanged(cur().copyWith(savedByMe: got));
     Analytics.instance.action('bookmark', target: got ? 'add' : 'remove');
     if (context.mounted) BuToast.show(context, got ? l.svSavedToast : l.svRemoved, kind: BuToastKind.success);
   } catch (e) {
-    onChanged(p.copyWith(savedByMe: !want));
+    onChanged(cur().copyWith(savedByMe: !want));
     if (context.mounted) BuToast.show(context, errorText(e), kind: BuToastKind.error);
   }
 }
 
 class PostSaveButton extends StatelessWidget {
-  const PostSaveButton({super.key, required this.session, required this.post, required this.onChanged});
+  const PostSaveButton({super.key, required this.session, required this.post, required this.onChanged, this.latest});
 
   final Session session;
   final Post post;
   final ValueChanged<Post> onChanged;
+  final Post Function()? latest;
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +50,7 @@ class PostSaveButton extends StatelessWidget {
         message: tip,
         child: BuPressable(
           key: const ValueKey('post-save'),
-          onTap: () => togglePostSaved(context, session, post, onChanged),
+          onTap: () => togglePostSaved(context, session, post, onChanged, latest: latest),
           haptic: BuHaptic.light,
           child: ConstrainedBox(
             constraints: const BoxConstraints(minWidth: BuSize.touch, minHeight: BuSize.touch),

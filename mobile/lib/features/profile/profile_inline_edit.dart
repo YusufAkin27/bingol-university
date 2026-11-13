@@ -11,6 +11,7 @@ import '../../core/name_format.dart';
 import '../../core/session.dart';
 import '../../widgets/academic_pickers.dart';
 import '../../widgets/bu.dart';
+import '../academic/academic_profile_sync.dart';
 
 /// Profilim'deki SATIR İÇİ düzenleme: ayrı "Profili düzenle" sayfası yok; kimlik kartındaki her alan yerinde düzenlenir.
 ///
@@ -114,6 +115,9 @@ class _InlineProfileHeroState extends State<InlineProfileHero> {
       await widget.session.api.patch('/users/me', patch);
       widget.session.api.invalidate('/users/me');
       if (patch.containsKey('displayName')) unawaited(widget.session.refreshName());
+      if (patch.containsKey('department') || patch.containsKey('faculty') || patch.containsKey('grade') || patch.containsKey('classYear')) {
+        onAcademicProfileChanged(widget.session);
+      }
       Analytics.instance.action('profile_edit');
       if (mounted) setState(() => _busyKey = null);
       return true;

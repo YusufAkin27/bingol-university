@@ -222,6 +222,11 @@ class _MenuPageState extends State<MenuPage> {
             ),
           ),
           if (today && has) ...[const SizedBox(height: 24), PollMenuCard(session: widget.session)],
+          // Başka günün menüsünde puanlama kapalıdır; nedeni açıkla (kart yalnız bugün için vardır).
+          if (!today && has) ...[
+            const SizedBox(height: 16),
+            Text(l.d1MenuRateTodayOnly, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.mut)),
+          ],
           // Bakiye biten öğrenci için yukle.al kartı: menü boş olsa da görünür.
           SizedBox(height: has ? 24 : 0),
           const MenuTopUpCard(),

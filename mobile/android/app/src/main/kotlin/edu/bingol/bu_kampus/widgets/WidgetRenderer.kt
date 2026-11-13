@@ -22,6 +22,7 @@ internal object WidgetRenderer {
 
     private class Env(
         val ctx: Context, val sz: SizeClass, val hDp: Int, val nowMs: Long, val rtl: Boolean,
+        val qaSel: List<String>? = null,
     ) {
         val nowMin = WidgetClock.minuteOfDay(nowMs)
 
@@ -101,7 +102,7 @@ internal object WidgetRenderer {
     }
 
     // ------------------------------------------------------------------ giris noktasi
-    fun render(ctx: Context, slug: WidgetSlug, sz: SizeClass, hDp: Int): RemoteViews {
+    fun render(ctx: Context, slug: WidgetSlug, sz: SizeClass, hDp: Int, appWidgetId: Int = 0): RemoteViews {
         val nowMs = WidgetClock.nowMillis(ctx)
         val prefs = ctx.getSharedPreferences(WidgetTokens.PREFS_NAME, Context.MODE_PRIVATE)
         val gate = try {
@@ -109,14 +110,17 @@ internal object WidgetRenderer {
         } catch (_: Throwable) {
             Gate.SignedOut(null, null, false)
         }
+        val qaSel = if (slug == WidgetSlug.QUICKACCESS && appWidgetId != 0) {
+            QuickSelectionStore.effective(ctx, appWidgetId, prefs.getString(WidgetTokens.KEY_META, null))
+        } else null
         return try {
             if (gate is Gate.Ok && slug != WidgetSlug.QUICKACCESS && WidgetGate.isStale(gate.snap, nowMs)) {
                 staleNote.set(Strs(gate.snap.obj("strings")).opt("stale"))
             }
             when (gate) {
                 is Gate.SignedOut -> signedOut(Env(ctx, sz, hDp, nowMs, gate.rtl), gate)
-                is Gate.Empty -> bind(Env(ctx, sz, hDp, nowMs, gate.rtl), slug, gate.snap, true)
-                is Gate.Ok -> bind(Env(ctx, sz, hDp, nowMs, gate.rtl), slug, gate.snap, false)
+                is Gate.Empty -> bind(Env(ctx, sz, hDp, nowMs, gate.rtl, qaSel), slug, gate.snap, true)
+                is Gate.Ok -> bind(Env(ctx, sz, hDp, nowMs, gate.rtl, qaSel), slug, gate.snap, false)
             }
         } finally {
             staleNote.remove()
@@ -647,7 +651,8 @@ internal object WidgetRenderer {
     }
 
     // ------------------------------------------------------------------ QUICK ACCESS
-    private fun quick(c: Env, m: QuickModel): RemoteViews {
+    private fun quick(c: Env, model: QuickModel): RemoteViews {
+        val m = if (c.qaSel != null) QuickSelection.apply(model, c.qaSel) else model
         val st = m.st
         val tiles = intArrayOf(R.id.qa_t0, R.id.qa_t1, R.id.qa_t2, R.id.qa_t3, R.id.qa_t4, R.id.qa_t5, R.id.qa_t6, R.id.qa_t7)
         val icons = intArrayOf(R.id.qa_i0, R.id.qa_i1, R.id.qa_i2, R.id.qa_i3, R.id.qa_i4, R.id.qa_i5, R.id.qa_i6, R.id.qa_i7)

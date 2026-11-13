@@ -13,6 +13,7 @@ import edu.bingol.backend.event.dto.EventDtos.BulkResult;
 import edu.bingol.backend.event.dto.EventDtos.CheckinCode;
 import edu.bingol.backend.event.dto.EventDtos.MyAttendance;
 import edu.bingol.backend.event.dto.EventDtos.MyTicket;
+import edu.bingol.backend.event.dto.EventDtos.TicketInfo;
 import edu.bingol.backend.event.dto.EventDtos.ScanResult;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserStatus;
@@ -155,6 +156,32 @@ public class AttendanceService {
         String code = codes.generateTicket(eventId, a.id(), now);
         return new MyTicket(code, CheckinCodeService.TICKET_PREFIX + code, codes.ticketExpiresAt(now),
                 CheckinCodeService.TICKET_VALID_SECONDS);
+    }
+
+    /**
+     * T1 "Biletim": onayli katilimcinin bilet verisi (QR yok). Iptal edilmis/bitmis etkinlikte 200 + state doner
+     * (istemci devre disi bileti aciklayici gosterir); gorunmeyen/yayinda olmayan etkinlik loadVisible ile 404.
+     */
+    @Transactional(readOnly = true)
+    public TicketInfo ticketInfo(Actor a, Long eventId, Instant now) {
+        UserEvent e = events.loadVisible(a, eventId);
+        if (events.canManage(a, e) || (moderators != null && moderators.isModerator(e, a.id()))) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "TICKET_NOT_FOR_STAFF",
+                    "Yoklamayı alanlar için kişisel QR kodu yoktur; katılımcıların QR kodunu okutursunuz.");
+        }
+        EventRsvp rsvp = rsvps.findByEventIdAndUserId(eventId, a.id()).orElse(null);
+        if (rsvp == null || rsvp.getStatus() != EventRsvp.Status.GOING) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "NOT_RSVPED", "Yoklama için etkinliğe \"Katılacağım\" demiş olmalısınız.");
+        }
+        String state = e.getStatus() == UserEvent.Status.CANCELLED ? "CANCELLED"
+                : (e.getStatus() == UserEvent.Status.ACTIVE && e.getEndsAt() != null && !e.getEndsAt().isAfter(now)) ? "ENDED"
+                : e.getStatus() == UserEvent.Status.ACTIVE ? "VALID" : "CANCELLED";
+        Map<Long, User> users = communities.usersById(List.of(a.id(), e.getCreatedBy()));
+        User holder = users.get(a.id());
+        User org = users.get(e.getCreatedBy());
+        return new TicketInfo(e.getId(), e.getTitle(), e.getStartsAt(), e.getEndsAt(), e.getLocation(),
+                org == null ? null : org.getDisplayName(), holder == null ? null : holder.getDisplayName(), state,
+                e.isAttendanceOpen());
     }
 
     /**

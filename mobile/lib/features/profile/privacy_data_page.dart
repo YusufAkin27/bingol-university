@@ -7,6 +7,7 @@ import '../chat/photo_autosave.dart';
 import '../follow/follow_sheets.dart';
 import '../saved/my_reports_page.dart';
 import 'blocked_users_page.dart';
+import 'profil2_delete_account_page.dart';
 import 'profil2_my_data_page.dart';
 import 'profil2_widgets.dart';
 import 'profil_widgets.dart';
@@ -323,6 +324,14 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
               icon: BuIcons.download,
               label: l.profil2MyDataRow,
               onTap: () => _push(MyDataPage(session: widget.session), 'my_data'),
+            ),
+            // Apple 5.1.1(v): hesap silme en çok 3 dokunuşta ve açık adla bulunur (Verilerim sayfası da aynı sayfaya götürür).
+            ProfilFlatRow(
+              key: const ValueKey('privacy-delete-account'),
+              icon: BuIcons.trash2,
+              label: l.profilePrefsDeleteMyAccount,
+              danger: true,
+              onTap: () => _push(DeleteAccountPage(session: widget.session), 'delete_account'),
             ),
           ]),
           Padding(

@@ -17,6 +17,10 @@ struct BUWidgetsBundle: WidgetBundle {
         BUSocialWidget()
         BUExamsWidget()
         BUAcademicWidget()
+        // Secilebilir Hizli Erisim (App Intents), yalniz iOS 17+; statik BUQuickAccessWidget da kalir.
+        if #available(iOS 17.0, *) {
+            BUQuickAccessPickerWidget()
+        }
         // Canli Etkinlik (kilit ekrani + Dynamic Island), yalniz iOS 16.1+.
         if #available(iOS 16.1, *) {
             BuLiveActivityWidget()

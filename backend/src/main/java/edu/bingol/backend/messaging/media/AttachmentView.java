@@ -29,7 +29,7 @@ public record AttachmentView(Long id, String kind, Integer width, Integer height
     }
 
     private static Integer dim(MessageAttachment a, int v) {
-        return v <= 0 && a.isVideo() ? null : v; // videoda bilinmeyen boyut null
+        return v <= 0 && a.isStream() ? null : v; // videoda bilinmeyen boyut null
     }
 
     public static AttachmentView of(MessageAttachment a) {
@@ -46,7 +46,7 @@ public record AttachmentView(Long id, String kind, Integer width, Integer height
         if (!a.isViewOnce()) {
             return new AttachmentView(a.getId(), a.getKind(), dim(a, a.getWidth()), dim(a, a.getHeight()), a.getBytes(),
                     a.getContentType(), false, base, a.getThumbKey() == null ? null : base + "/thumb", false, false,
-                    a.getDurationMs(), a.getBytes(), a.isVideo() ? null : a.getThumbEdge());
+                    a.getDurationMs(), a.getBytes(), a.isStream() ? null : a.getThumbEdge());
         }
         boolean sender = a.getUploaderId().equals(viewerId);
         boolean openable = viewerId != null && !sender && !viewed && a.getPurgedAt() == null;

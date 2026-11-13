@@ -1042,12 +1042,12 @@
   "permOpenSettings": "Open settings",
   "permClose": "Close",
   "permPageTitle": "A few permissions",
-  "permPageIntro": "Allow what you like now; you can change the rest later in Settings.",
+  "permPageIntro": "You can decide on each permission separately and change it anytime in Settings.",
   "permStart": "Get started",
   "permGranted": "Granted",
   "permDenied": "Denied",
   "permRetry": "Try again",
-  "permAllow": "Allow",
+  "permAllow": "Next",
   "coreErrNetwork": "Could not reach the server. Check your connection.",
   "coreErrTooMany": "Too many attempts. Please wait a moment.",
   "coreErrGeneric": "Something went wrong. Please try again.",
@@ -1414,7 +1414,7 @@
   "qrManualLabel": "Enter code manually",
   "qrConfirm": "Confirm",
   "qrCameraDenied": "Camera permission was not granted. You can enter the code manually or grant permission and try scanning again.",
-  "qrGrantCamera": "Grant camera permission",
+  "qrGrantCamera": "Try again",
   "qrDeniedSettings": "Camera permission was not granted. You can allow it in Settings > BÜ Kampüs or enter the code manually.",
   "qrCameraFailed": "The camera could not be opened. You can enter the code manually.",
   "qrTorch": "Flashlight",
@@ -1433,6 +1433,7 @@
   "pollMenuRateToday": "Rate today’s menu",
   "pollYourRating": "Your rating: {rating}",
   "pollYourRatingAvg": "Your rating: {rating} · Average {avg}",
+  "d1MenuRateTodayOnly": "Rating is only open for today's menu.",
   "pollTapStar": "Tap a star to rate",
   "pollNoVoteRight": "You cannot vote in this poll.",
   "pollStars": "Rating: {n}",
@@ -1549,7 +1550,13 @@
   "postComposeShared": "Shared",
   "g2PostQueued": "Post queued",
   "g2PostUploading": "Uploading post {pct}",
-  "@g2PostUploading": {"placeholders": {"pct": {"type": "String"}}},
+  "@g2PostUploading": {
+    "placeholders": {
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
   "g2PostWaiting": "Waiting for connection, will continue when back",
   "g2PostPublishing": "Posting",
   "g2PostFailed": "Could not post",
@@ -1569,7 +1576,7 @@
   "postComposeNewPost": "New post",
   "postPickerCameraHint": "Tap for a photo, hold for a video",
   "postPickerLimitedBody": "Only the photos and videos you allowed are shown. You can add more to share.",
-  "postPickerDeniedBody": "Allow access to your gallery to share a post. You can also choose from the system gallery instead.",
+  "postPickerDeniedBody": "Gallery access is needed to share a post. You can also choose from the system gallery instead.",
   "postPickerUseSystem": "Use system gallery",
   "postComposeShare": "Share",
   "postComposeDraftBanner": "You have a saved draft.",
@@ -3140,7 +3147,7 @@
   "p10AlbumCount": "{n} albums",
   "p10ItemUnit": "items",
   "p10LimitedBody": "You can pick more photos from your library to send in chat.",
-  "p10DeniedBody": "To send photos and videos, allow gallery access in the app settings.",
+  "p10DeniedBody": "To send photos and videos, gallery access is needed in the app settings.",
   "p10GalleryEmpty": "There are no photos or videos in the gallery.",
   "p10SelCount": "{n} / {max}",
   "p10SelWord": "selected",
@@ -3429,7 +3436,7 @@
   "p67ChatBgPreviewIn": "Hi, see you in class.",
   "p67ChatBgPreviewOut": "Okay, see you.",
   "p67SettingsChats": "Chats",
-  "p67AttachAllowPhotos": "Allow access to photos",
+  "p67AttachAllowPhotos": "Photo access",
   "p67PickerSend": "Send ({n})",
   "@p67PickerSend": {
     "placeholders": {
@@ -3462,7 +3469,7 @@
   "p66AboutBody": "An independent student app built for the students and staff of Bingöl University.",
   "p67AttachRecent": "Recent photos",
   "p67AttachOnceHint": "To send a view-once photo, select it and tap the 1 icon.",
-  "p67AttachGrant": "Allow",
+  "p67AttachGrant": "Continue",
   "p51ClubsEmpty": "No clubs yet.",
   "p51ClubsLoadFailed": "Couldn't load. Try again.",
   "p51Managed": "Managed by me",
@@ -4640,10 +4647,6 @@
       }
     }
   },
-  "evtQrMyTitle": "My QR code",
-  "evtQrMyHint": "Show this code to the event organizer at the entrance. It refreshes shortly.",
-  "evtQrMyNotApproved": "Your QR code appears here once your attendance is approved.",
-  "evtQrMyBeforeStart": "Check-in opens at the event time; you can keep your code ready.",
   "evtQrScanClosed": "Check-in has not opened yet or has closed.",
   "evtAttOpenTitle": "Check-in open",
   "evtAttOpenSub": "While open, attendees show their QR codes and you and moderators scan them.",
@@ -4675,10 +4678,6 @@
   "evtQrOwnerClosed": "Attendance is closed: attendees cannot show their QR.",
   "evtQrOwnerOpenAction": "Open attendance",
   "evtQrOwnerOutside": "It is outside the event hours; attendance opens by itself 30 min before the start. You can open it now if you like.",
-  "evtQrMyOwnerTitle": "You organize this event",
-  "evtQrMyOwnerBody": "You take attendance by scanning attendees' QR codes.",
-  "evtQrMyOwnerScan": "Scan QR",
-  "evtQrMyOwnerJoin": "Also join as an attendee",
   "evtAtt2ToolTitle": "Attendance tool",
   "evtAtt2ToolSub": "Scan QR codes, mark from the list",
   "evtAtt2ScanQr": "Scan QR",
@@ -4840,8 +4839,8 @@
   "chatMiscContactsRationale": "We need access to your contacts to find people from Bingöl University. Your contacts are never sent to the server; only hashed email addresses are matched.",
   "chatMiscContactsSubtitle": "People from Bingöl University",
   "chatMiscContactsPermTitle": "Contacts permission required",
-  "chatMiscContactsPermText": "Allow access to your contacts so we can find campus people among them.",
-  "chatMiscContactsPermAction": "Allow",
+  "chatMiscContactsPermText": "We need access to your contacts so we can find campus people among them.",
+  "chatMiscContactsPermAction": "Continue",
   "chatMiscContactsNoneTitle": "No matching people",
   "chatMiscContactsNoneText": "None of your contacts use the app yet. Your friends will appear here as they join.",
   "chatMiscContactsSearchHint": "Search contacts",
@@ -5018,7 +5017,13 @@
   "chatSeenAgoMonths": "{n, plural, =1{1 month ago} other{{n} months ago}}",
   "chatSeenAgoYears": "{n, plural, =1{1 year ago} other{{n} years ago}}",
   "chatStatusSentAt": "Sent · {when}",
-  "@chatStatusSentAt": {"placeholders": {"when": {"type": "String"}}},
+  "@chatStatusSentAt": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "chatStatusSeenAt": "Seen · {when}",
   "pcmWriteHint": "Add a comment…",
   "pcmEmptyTitle": "Be the first to comment",
@@ -5140,6 +5145,57 @@
   "g4ChatJumpMissing": "This message is no longer available or could not be loaded.",
   "shareKindProfile": "Profile",
   "shareChatProfileShared": "Shared a profile",
+  "shareKindClub": "Club",
+  "shareKindPoll": "Poll",
+  "shareChatClubShared": "Shared a club",
+  "shareChatPollShared": "Shared a poll",
+  "pollShareAction": "Share poll",
+  "scanNotBu": "This is not a BÜ Kampüs code.",
+  "scanTitle": "Scan QR",
+  "scanHint": "Align a profile, club, poll or event code in the frame.",
+  "scanCheckinNoRight": "You are not allowed to scan this attendance code.",
+  "scanCheckinDone": "Attendance recorded: {name}",
+  "@scanCheckinDone": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "clubJoinQrAction": "Add members by QR",
+  "clubJoinQrActionSub": "Show the club join QR code",
+  "clubJoinQrTitle": "Join QR code",
+  "clubJoinQrHint": "Anyone who scans this code joins the club directly.",
+  "clubJoinQrRefresh": "Code refreshes in {n} s",
+  "@clubJoinQrRefresh": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "clubJoinQrFailed": "Could not get the join code. Check your connection and try again.",
+  "clubJoinQrNoAccess": "You are not allowed to add members to this club.",
+  "clubScanJoin": "Join by QR",
+  "scanClubJoined": "You joined {name}",
+  "@scanClubJoined": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "scanClubJoinedNoName": "You joined the club",
+  "scanClubAlready": "You are already a member of this club",
+  "signOutPendingTitle": "Unsent messages will be deleted",
+  "signOutPendingBody": "{count} unsent messages will be deleted. Sign out anyway?",
+  "@signOutPendingBody": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
   "profileShareAction": "Share profile",
   "profileQrMyCode": "My QR code",
   "profileQrHint": "Anyone who scans this code sees the profile in BÜ Kampüs. A phone camera can read it too.",
@@ -5154,5 +5210,57 @@
   "profileQrGallery": "Choose from gallery",
   "profileQrGalleryNone": "No QR code found in the image.",
   "profileQrMyProfile": "That is your own code, opening your profile.",
-  "profileQrFindMe": "Find me on BÜ Kampüs"
+  "profileQrFindMe": "Find me on BÜ Kampüs",
+  "commentFocusMissing": "This comment may no longer exist or was deleted.",
+  "chatVoiceMic": "Record voice message",
+  "chatVoiceHold": "Hold the microphone to record",
+  "chatVoiceSlideCancel": "Slide to cancel",
+  "chatVoiceStopSend": "Stop and send recording",
+  "chatVoiceCancel": "Cancel recording",
+  "chatVoiceMessage": "Voice message",
+  "chatVoicePlay": "Play",
+  "chatVoicePause": "Pause",
+  "chatVoiceInterrupted": "Recording interrupted",
+  "chatVoiceFailed": "Could not play the voice message",
+  "chatVoiceLimit": "Voice messages can be at most 5 minutes; the recording was sent.",
+  "chatVoiceNoMic": "Could not start the microphone",
+  "chatVoiceSemantics": "Voice message, {duration}, {state}",
+  "@chatVoiceSemantics": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      },
+      "state": {
+        "type": "String"
+      }
+    }
+  },
+  "chatVoiceRecording": "Recording {time}",
+  "@chatVoiceRecording": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "chatVoiceSpeed": "Playback speed {speed}",
+  "@chatVoiceSpeed": {
+    "placeholders": {
+      "speed": {
+        "type": "String"
+      }
+    }
+  },
+  "evtTicketTitle": "My ticket",
+  "evtTicketOpen": "My ticket",
+  "evtTicketLoadFailed": "Couldn't load the ticket.",
+  "evtTicketOffline": "You are offline: showing the last seen ticket.",
+  "evtTicketOrganizer": "Organizer",
+  "evtTicketHolder": "Ticket holder",
+  "evtTicketPrivacyNote": "This ticket is personal. Do not share it or send a screenshot to others.",
+  "evtTicketCancelled": "This event was cancelled; the ticket is void.",
+  "evtTicketEnded": "This event has ended; the ticket can no longer be used.",
+  "evtTicketQrUnavailable": "The QR code couldn't be loaded right now. Try again later.",
+  "evtTicketQrNotOpen": "Your QR code appears here when attendance opens.",
+  "evtTicketQrMaybeExpired": "This code may have expired. It refreshes when you are back online."
 }

@@ -322,3 +322,24 @@ Geriye uyumlu (yalniz ekleme; tek davranis degisikligi: arsiv artik yeni mesajla
   `ChatMediaTransferExecutor` + mesaj tamamlama `attachmentIds + clientId`). Balon durumu işten türetilir; "Gönderildi" yalnız
   sunucu mesaj kimliği dönünce. Çok ekli mesajlar ve kuyruk yokken eski sayfa içi yükleme / `Outbox` yolu korunur (kaldırılmadı).
   Uyarı: iş `meta` içinde başlık metni diskte tutulur (Outbox ile aynı düzey).
+
+## Sesli mesaj (V1, 2026-11-10)
+- **Ek türü `AUDIO`** (V1820: `vcm1820_att_kind_ck`). `POST /api/conversations/{cid}/media` alanı `file` = `audio/mp4` (m4a/AAC; `audio/x-m4a|m4a|aac` takma adları kabul).
+  Sunucu içeriği gerçekten doğrular (`ftyp` + `mvhd` süresi, `Mp4Info`); ham ADTS/MP3/OGG kabul edilmez (süre güvenle okunamaz). Sınırlar:
+  `app.chat.media.audio-max-bytes` (10 MB), `audio-max-seconds` (300, +1,5 sn tolerans), `audio-daily-limit` (200/gün). Hatalar `AUDIO_INVALID`,
+  `AUDIO_TOO_LARGE`, `AUDIO_TOO_LONG` (tr/en/ar). Meta veri (`udta/meta/uuid`) sıfırlanır.
+- Depolama/sunum videoyla aynı yol: konuşma DEK'iyle parçalı AES-GCM, `GET .../media/{aid}` HTTP Range (206), imzalı adres yok. `AttachmentView`
+  `kind:"AUDIO"`, `durationMs`, `width/height` null, `thumbUrl` yok. Tek gösterimlik sesli mesaj reddedilir (`VIEW_ONCE_INVALID`).
+- Push önizleme `chat.preview.AUDIO` ("🎤 Sesli mesaj gönderdi", tr/en/ar); metin sızmaz. Rapor/gizleme/admin önizleme video yolunu kullanır.
+- Mobil: `features/chat/chat_voice.dart` (kayıt: basılı tut = kaydet, bırak = gönder, başlangıç yönüne kaydır = iptal, < 1 sn atılır, 5 dk sınırı),
+  `chat_voice_bubble.dart` (oynat/duraklat, dalga, 1x/1.5x/2x), gönderim `ChatTransfers.enqueueVoice` (G10 kuyruğu, `audio/mp4`). Paket: `record`.
+
+## Oda duyuru panosu (B1, V1840)
+
+- Tablolar: `room_notice` (baslik 80 / metin 600, `pinned`, `seen_count`, yumusak silme `deleted_at`, moderasyon `hidden_at`), `room_notice_seen` (duyuru+kullanici tekil). Kod: `messaging.room.notice`.
+- Uclar (`/api/conversations/{cid}/notices`): `GET /pinned` ({items, canManage, total}), `GET ?cursor&size`, `POST`, `PATCH /{id}`, `DELETE /{id}`, `POST /{id}/seen`.
+- Yetki sunucuda: yazma/duzenleme/silme/sabitleme = `RoomModeration.canModerate` (bolum odasi: ADMIN FULL/MODERATOR; kulup: kulup yetkilisi; etkinlik: etkinlik yetkilisi). Yeni rol yok. Okuma = aktif oda uyesi (degilse 404). En fazla 3 sabit (409 `NOTICE_PIN_LIMIT`).
+- Gorulme: yalniz SAYI, yalniz yetkiliye (`seenCount`); kimlik listesi hicbir uctan yok (gizlilik). Ayni kullanici bir kez sayilir, yazar sayilmaz.
+- Bildirim: `NotificationType.ANNOUNCEMENT` (tercih/sessiz saat kurallari `sendTemplatedBulk` icinde), `FanoutNotifier` ile commit sonrasi, 250'lik parca; yazar ve engel iliskisi haric. Yukte `conversationId`, `noticeId`.
+- Moderasyon: `ReportTargetType.BOARD_NOTICE` + `RoomNoticeReportHandler` (geri alinabilir gizleme). KVKK: hesap silinince gorulme kayitlari silinir, `DataExporter` bolumu `roomNotices`.
+- Hata kodlari: `NOTICE_FORBIDDEN`, `NOTICE_NOT_FOUND`, `NOTICE_PIN_LIMIT` (tr/en/ar `messaging*.properties`).

@@ -3,6 +3,8 @@ import 'profile_share.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
+import 'signout_guard.dart';
+
 import '../../core/app_gate.dart' show appVersion;
 import '../../core/analytics.dart';
 import '../../core/crash/crash_reporter.dart';
@@ -87,7 +89,7 @@ class _SettingsPageState extends State<SettingsPage> {
       destructive: true,
       icon: BuIcons.logOut,
     );
-    if (!ok) return;
+    if (!ok || !mounted || !await confirmUnsentLoss(context, widget.session)) return;
     await widget.session.signOut();
     if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
   }
@@ -104,7 +106,7 @@ class _SettingsPageState extends State<SettingsPage> {
       destructive: true,
       icon: BuIcons.logOut,
     );
-    if (!ok) return;
+    if (!ok || !mounted || !await confirmUnsentLoss(context, widget.session)) return;
     await widget.session.signOutAll();
     if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
   }

@@ -120,7 +120,7 @@ void main() {
     await tester.pumpWidget(buildApp(EventDetailPage(session: makeSession(_detailBe(rsvp: 'GOING', open: true)), eventId: 5), size: kPhoneMedium));
     await settle(tester, const Duration(milliseconds: 900));
     expect(find.text('Yoklama açık'), findsOneWidget);
-    expect(find.text('QR kodum'), findsOneWidget);
+    expect(find.text('Biletim'), findsOneWidget);
     expect(find.text('Kodu elle gir'), findsNothing);
     expect(find.text('Katılımdan ayrıl'), findsOneWidget);
     await unmount(tester);

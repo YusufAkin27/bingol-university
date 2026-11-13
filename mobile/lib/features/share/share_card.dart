@@ -17,6 +17,8 @@ String shareKindLabel(BuildContext context, ShareType type, {bool announcement =
     ShareType.forumTopic => l.forumShareKindTopic,
     ShareType.forumComment => l.forumShareKindComment,
     ShareType.user => l.shareKindProfile,
+    ShareType.club => l.shareKindClub,
+    ShareType.poll => l.shareKindPoll,
   };
 }
 
@@ -28,6 +30,8 @@ IconData shareKindIcon(ShareType type, {bool announcement = false}) => switch (t
       ShareType.forumTopic => BuIcons.messageSquareText,
       ShareType.forumComment => BuIcons.messageCircle,
       ShareType.user => BuIcons.user,
+      ShareType.club => BuIcons.users,
+      ShareType.poll => BuIcons.vote,
     };
 
 BuTint shareKindTint(BuTokens t, ShareType type, {bool announcement = false}) => t.tint(switch (type) {
@@ -37,6 +41,8 @@ BuTint shareKindTint(BuTokens t, ShareType type, {bool announcement = false}) =>
       ShareType.event => BuTintId.amber,
       ShareType.forumTopic || ShareType.forumComment => BuTintId.slate,
       ShareType.user => BuTintId.slate,
+      ShareType.club => BuTintId.blue,
+      ShareType.poll => BuTintId.aqua,
     });
 
 /// Sohbet listesinde son mesaj önizlemesi ("Gönderi paylaştı"...). Paylaşım yoksa null.
@@ -55,6 +61,8 @@ String? sharePreviewText(BuildContext context, Map<dynamic, dynamic>? message) {
     ShareType.forumTopic => l.forumShareChatTopicShared,
     ShareType.forumComment => l.forumShareChatCommentShared,
     ShareType.user => l.shareChatProfileShared,
+    ShareType.club => l.shareChatClubShared,
+    ShareType.poll => l.shareChatPollShared,
   };
 }
 

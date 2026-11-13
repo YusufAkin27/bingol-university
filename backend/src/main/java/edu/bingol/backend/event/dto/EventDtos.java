@@ -167,6 +167,14 @@ public final class EventDtos {
     public record MyTicket(String code, String qrPayload, Instant expiresAt, int validForSeconds) {
     }
 
+    /**
+     * Bilet verisi (T1): etkinlik bilgisi + sahip adi + durum. QR YOKTUR (kisa omurlu QR /my-ticket'tan gelir).
+     * state: VALID | ENDED | CANCELLED.
+     */
+    public record TicketInfo(Long eventId, String title, Instant startsAt, Instant endsAt, String location,
+                             String organizerName, String holderName, String state, boolean attendanceOpen) {
+    }
+
     /** Organizatorun okuttugu QR istegi. */
     public record ScanRequest(@NotBlank @Size(max = 300) String code) {
     }

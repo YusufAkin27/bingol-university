@@ -6093,7 +6093,7 @@ abstract class AppLocalizations {
   /// No description provided for @permNotificationsText.
   ///
   /// In tr, this message translates to:
-  /// **'Mesaj, etkinlik ve duyurulardan anında haberdar olmak için bildirim göndermemize izin verin.'**
+  /// **'Mesaj, etkinlik ve duyurulardan anında haberdar olmanız için bildirim göndermemiz gerekir.'**
   String get permNotificationsText;
 
   /// No description provided for @permCameraTitle.
@@ -6171,7 +6171,7 @@ abstract class AppLocalizations {
   /// No description provided for @permPageIntro.
   ///
   /// In tr, this message translates to:
-  /// **'Dilediğiniz izni şimdi verebilir, diğerlerini sonra Ayarlar’dan açabilirsiniz.'**
+  /// **'Her izin için ayrı karar verebilirsiniz; istediğiniz zaman Ayarlar’dan değiştirebilirsiniz.'**
   String get permPageIntro;
 
   /// No description provided for @permStart.
@@ -6201,7 +6201,7 @@ abstract class AppLocalizations {
   /// No description provided for @permAllow.
   ///
   /// In tr, this message translates to:
-  /// **'İzin ver'**
+  /// **'İleri'**
   String get permAllow;
 
   /// No description provided for @coreErrNetwork.
@@ -8403,7 +8403,7 @@ abstract class AppLocalizations {
   /// No description provided for @qrGrantCamera.
   ///
   /// In tr, this message translates to:
-  /// **'Kamera izni ver'**
+  /// **'Tekrar dene'**
   String get qrGrantCamera;
 
   /// No description provided for @qrDeniedSettings.
@@ -8513,6 +8513,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Puanınız: {rating} · Ortalama {avg}'**
   String pollYourRatingAvg(String rating, String avg);
+
+  /// No description provided for @d1MenuRateTodayOnly.
+  ///
+  /// In tr, this message translates to:
+  /// **'Puanlama yalnız bugünün menüsü için açıktır.'**
+  String get d1MenuRateTodayOnly;
 
   /// No description provided for @pollTapStar.
   ///
@@ -9327,7 +9333,7 @@ abstract class AppLocalizations {
   /// No description provided for @postPickerDeniedBody.
   ///
   /// In tr, this message translates to:
-  /// **'Gönderi paylaşmak için galerine erişim izni vermelisin. İstersen sistemin kendi galerisinden de seçebilirsin.'**
+  /// **'Gönderi paylaşmak için galeriye erişim gerekir. İstersen sistemin kendi galerisinden de seçebilirsin.'**
   String get postPickerDeniedBody;
 
   /// No description provided for @postPickerUseSystem.
@@ -17589,7 +17595,7 @@ abstract class AppLocalizations {
   /// No description provided for @p10DeniedBody.
   ///
   /// In tr, this message translates to:
-  /// **'Fotoğraf ve video gönderebilmek için uygulama ayarlarından galeri erişimine izin vermelisin.'**
+  /// **'Fotoğraf ve video gönderebilmek için uygulama ayarlarından galeri erişimi gerekir.'**
   String get p10DeniedBody;
 
   /// No description provided for @p10GalleryEmpty.
@@ -18801,7 +18807,7 @@ abstract class AppLocalizations {
   /// No description provided for @p67AttachAllowPhotos.
   ///
   /// In tr, this message translates to:
-  /// **'Fotoğraflara erişime izin ver'**
+  /// **'Fotoğraflara erişim'**
   String get p67AttachAllowPhotos;
 
   /// No description provided for @p67PickerSend.
@@ -18957,7 +18963,7 @@ abstract class AppLocalizations {
   /// No description provided for @p67AttachGrant.
   ///
   /// In tr, this message translates to:
-  /// **'İzin ver'**
+  /// **'Devam'**
   String get p67AttachGrant;
 
   /// No description provided for @p51ClubsEmpty.
@@ -23256,30 +23262,6 @@ abstract class AppLocalizations {
   /// **'{name} zaten katıldı'**
   String evtQrScanAlready(String name);
 
-  /// No description provided for @evtQrMyTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'QR kodum'**
-  String get evtQrMyTitle;
-
-  /// No description provided for @evtQrMyHint.
-  ///
-  /// In tr, this message translates to:
-  /// **'Girişte bu kodu etkinlik görevlisine okutun. Kod kısa sürede yenilenir.'**
-  String get evtQrMyHint;
-
-  /// No description provided for @evtQrMyNotApproved.
-  ///
-  /// In tr, this message translates to:
-  /// **'QR kodun, katılımın onaylanınca burada görünür.'**
-  String get evtQrMyNotApproved;
-
-  /// No description provided for @evtQrMyBeforeStart.
-  ///
-  /// In tr, this message translates to:
-  /// **'Yoklama etkinlik saatinde açılır; kodu şimdiden hazır tutabilirsin.'**
-  String get evtQrMyBeforeStart;
-
   /// No description provided for @evtQrScanClosed.
   ///
   /// In tr, this message translates to:
@@ -23465,30 +23447,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Yoklama etkinlik saatleri dışında; başlangıçtan 30 dk önce kendiliğinden açılır. İstersen şimdi açabilirsin.'**
   String get evtQrOwnerOutside;
-
-  /// No description provided for @evtQrMyOwnerTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Bu etkinliğin organizatörüsün'**
-  String get evtQrMyOwnerTitle;
-
-  /// No description provided for @evtQrMyOwnerBody.
-  ///
-  /// In tr, this message translates to:
-  /// **'Yoklamayı katılımcıların QR kodlarını okutarak alırsın.'**
-  String get evtQrMyOwnerBody;
-
-  /// No description provided for @evtQrMyOwnerScan.
-  ///
-  /// In tr, this message translates to:
-  /// **'QR okut'**
-  String get evtQrMyOwnerScan;
-
-  /// No description provided for @evtQrMyOwnerJoin.
-  ///
-  /// In tr, this message translates to:
-  /// **'Katılımcı olarak da katıl'**
-  String get evtQrMyOwnerJoin;
 
   /// No description provided for @evtAtt2ToolTitle.
   ///
@@ -23919,13 +23877,13 @@ abstract class AppLocalizations {
   /// No description provided for @chatMiscContactsPermText.
   ///
   /// In tr, this message translates to:
-  /// **'Rehberinizdeki kampüs kişilerini bulabilmemiz için rehbere erişim izni vermeniz gerekir.'**
+  /// **'Rehberinizdeki kampüs kişilerini bulabilmemiz için rehbere erişmemiz gerekir.'**
   String get chatMiscContactsPermText;
 
   /// No description provided for @chatMiscContactsPermAction.
   ///
   /// In tr, this message translates to:
-  /// **'İzin ver'**
+  /// **'Devam'**
   String get chatMiscContactsPermAction;
 
   /// No description provided for @chatMiscContactsNoneTitle.
@@ -25566,6 +25524,144 @@ abstract class AppLocalizations {
   /// **'Profil paylaştı'**
   String get shareChatProfileShared;
 
+  /// No description provided for @shareKindClub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp'**
+  String get shareKindClub;
+
+  /// No description provided for @shareKindPoll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anket'**
+  String get shareKindPoll;
+
+  /// No description provided for @shareChatClubShared.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp paylaştı'**
+  String get shareChatClubShared;
+
+  /// No description provided for @shareChatPollShared.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anket paylaştı'**
+  String get shareChatPollShared;
+
+  /// No description provided for @pollShareAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anketi paylaş'**
+  String get pollShareAction;
+
+  /// No description provided for @scanNotBu.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu bir BÜ Kampüs kodu değil.'**
+  String get scanNotBu;
+
+  /// No description provided for @scanTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR tara'**
+  String get scanTitle;
+
+  /// No description provided for @scanHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil, kulüp, anket ya da etkinlik kodunu çerçeveye hizala.'**
+  String get scanHint;
+
+  /// No description provided for @scanCheckinNoRight.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yoklama kodunu okutma yetkin yok.'**
+  String get scanCheckinNoRight;
+
+  /// No description provided for @scanCheckinDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklama alındı: {name}'**
+  String scanCheckinDone(String name);
+
+  /// No description provided for @clubJoinQrAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR ile üye ekle'**
+  String get clubJoinQrAction;
+
+  /// No description provided for @clubJoinQrActionSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılım QR kodunu göster'**
+  String get clubJoinQrActionSub;
+
+  /// No description provided for @clubJoinQrTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılım QR kodu'**
+  String get clubJoinQrTitle;
+
+  /// No description provided for @clubJoinQrHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu kodu okutan kişi kulübe doğrudan katılır.'**
+  String get clubJoinQrHint;
+
+  /// No description provided for @clubJoinQrRefresh.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kod {n} sn içinde yenilenir'**
+  String clubJoinQrRefresh(int n);
+
+  /// No description provided for @clubJoinQrFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılım kodu alınamadı. Bağlantını kontrol edip tekrar dene.'**
+  String get clubJoinQrFailed;
+
+  /// No description provided for @clubJoinQrNoAccess.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu kulübe üye ekleme yetkin yok.'**
+  String get clubJoinQrNoAccess;
+
+  /// No description provided for @clubScanJoin.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR ile katıl'**
+  String get clubScanJoin;
+
+  /// No description provided for @scanClubJoined.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} kulübüne katıldınız'**
+  String scanClubJoined(String name);
+
+  /// No description provided for @scanClubJoinedNoName.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulübe katıldınız'**
+  String get scanClubJoinedNoName;
+
+  /// No description provided for @scanClubAlready.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu kulübün zaten üyesisiniz'**
+  String get scanClubAlready;
+
+  /// No description provided for @signOutPendingTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderilmemiş mesajlar silinecek'**
+  String get signOutPendingTitle;
+
+  /// No description provided for @signOutPendingBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderilmemiş {count} mesaj silinecek. Çıkış yapmak istiyor musun?'**
+  String signOutPendingBody(String count);
+
   /// No description provided for @profileShareAction.
   ///
   /// In tr, this message translates to:
@@ -25655,6 +25751,174 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Beni BÜ Kampüs’te bul'**
   String get profileQrFindMe;
+
+  /// Bildirimden açılan yorum bulunamadığında panel uyarısı
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu yorum artık yok ya da silinmiş olabilir.'**
+  String get commentFocusMissing;
+
+  /// No description provided for @chatVoiceMic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sesli mesaj kaydet'**
+  String get chatVoiceMic;
+
+  /// No description provided for @chatVoiceHold.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydetmek için mikrofona basılı tutun'**
+  String get chatVoiceHold;
+
+  /// No description provided for @chatVoiceSlideCancel.
+  ///
+  /// In tr, this message translates to:
+  /// **'İptal için kaydır'**
+  String get chatVoiceSlideCancel;
+
+  /// No description provided for @chatVoiceStopSend.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydı bitir ve gönder'**
+  String get chatVoiceStopSend;
+
+  /// No description provided for @chatVoiceCancel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydı iptal et'**
+  String get chatVoiceCancel;
+
+  /// No description provided for @chatVoiceMessage.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sesli mesaj'**
+  String get chatVoiceMessage;
+
+  /// No description provided for @chatVoicePlay.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oynat'**
+  String get chatVoicePlay;
+
+  /// No description provided for @chatVoicePause.
+  ///
+  /// In tr, this message translates to:
+  /// **'Duraklat'**
+  String get chatVoicePause;
+
+  /// No description provided for @chatVoiceInterrupted.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kayıt kesildi'**
+  String get chatVoiceInterrupted;
+
+  /// No description provided for @chatVoiceFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sesli mesaj oynatılamadı'**
+  String get chatVoiceFailed;
+
+  /// No description provided for @chatVoiceLimit.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sesli mesaj en fazla 5 dakika olabilir; kayıt gönderildi.'**
+  String get chatVoiceLimit;
+
+  /// No description provided for @chatVoiceNoMic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mikrofon başlatılamadı'**
+  String get chatVoiceNoMic;
+
+  /// No description provided for @chatVoiceSemantics.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sesli mesaj, {duration}, {state}'**
+  String chatVoiceSemantics(String duration, String state);
+
+  /// No description provided for @chatVoiceRecording.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydediliyor {time}'**
+  String chatVoiceRecording(String time);
+
+  /// No description provided for @chatVoiceSpeed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oynatma hızı {speed}'**
+  String chatVoiceSpeed(String speed);
+
+  /// No description provided for @evtTicketTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Biletim'**
+  String get evtTicketTitle;
+
+  /// No description provided for @evtTicketOpen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Biletim'**
+  String get evtTicketOpen;
+
+  /// No description provided for @evtTicketLoadFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bilet yüklenemedi.'**
+  String get evtTicketLoadFailed;
+
+  /// No description provided for @evtTicketOffline.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çevrimdışısın: son görülen bilet gösteriliyor.'**
+  String get evtTicketOffline;
+
+  /// No description provided for @evtTicketOrganizer.
+  ///
+  /// In tr, this message translates to:
+  /// **'Düzenleyen'**
+  String get evtTicketOrganizer;
+
+  /// No description provided for @evtTicketHolder.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bilet sahibi'**
+  String get evtTicketHolder;
+
+  /// No description provided for @evtTicketPrivacyNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu bilet sana özeldir; paylaşma ve ekran görüntüsünü başkalarına gönderme.'**
+  String get evtTicketPrivacyNote;
+
+  /// No description provided for @evtTicketCancelled.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu etkinlik iptal edildi; bilet geçersiz.'**
+  String get evtTicketCancelled;
+
+  /// No description provided for @evtTicketEnded.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu etkinlik sona erdi; bilet artık kullanılamaz.'**
+  String get evtTicketEnded;
+
+  /// No description provided for @evtTicketQrUnavailable.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR kodu şu an alınamadı. Daha sonra tekrar dene.'**
+  String get evtTicketQrUnavailable;
+
+  /// No description provided for @evtTicketQrNotOpen.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR kodun, yoklama açıldığında burada görünür.'**
+  String get evtTicketQrNotOpen;
+
+  /// No description provided for @evtTicketQrMaybeExpired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu kodun süresi dolmuş olabilir. Bağlanınca yenilenir.'**
+  String get evtTicketQrMaybeExpired;
 }
 
 class _AppLocalizationsDelegate

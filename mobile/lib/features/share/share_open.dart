@@ -6,6 +6,8 @@ import '../../widgets/bu.dart';
 import '../events/event_detail_page.dart';
 import '../forum/forum_routes.dart' show ForumApi, openTopicDetail;
 import '../news/news_detail_page.dart';
+import '../clubs/club_detail_page.dart';
+import '../polls/poll_routes.dart' show openPollDetail;
 import '../profile/user_profile_page.dart';
 import '../posts/post_routes.dart';
 import 'share_models.dart';
@@ -40,6 +42,13 @@ Future<void> openShared(BuildContext context, Session session, ShareTarget targe
           settings: const RouteSettings(name: 'user_profile'),
           builder: (_) => UserProfilePage(session: session, userId: target.id, initialName: info?.title, initialAvatarUrl: info?.imageUrl),
         ));
+      case ShareType.club:
+        await Navigator.of(context).push<void>(MaterialPageRoute<void>(
+          settings: const RouteSettings(name: 'club_detail'),
+          builder: (_) => ClubDetailPage(session: session, communityId: target.id),
+        ));
+      case ShareType.poll:
+        await openPollDetail(context, session, target.id);
       case ShareType.forumTopic:
         await openTopicDetail(context, session, target.id);
       case ShareType.forumComment:

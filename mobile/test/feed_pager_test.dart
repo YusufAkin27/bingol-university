@@ -40,6 +40,22 @@ void main() {
       expect(pager.ended, isFalse);
     });
 
+    test('reset() sirasinda ucustaki eski sonuc imleci/durumu yazmaz', () async {
+      final b = FakeBackend();
+      late FeedPager pager;
+      b.handlers.add((req, path) {
+        if (path != '/feed') return null;
+        pager.reset(); // istek ucustayken yenileme
+        return FakeResult.json({'items': [p(1)], 'nextCursor': 'eski'});
+      });
+      pager = FeedPager(PostApi(makeSession(b)), renew: false, cursor: 'x');
+      final c = await pager.next(const {});
+      expect(c.items, isEmpty);
+      expect(pager.cursor, isNull);
+      expect(pager.renew, isTrue);
+      expect(pager.ended, isFalse);
+    });
+
     test('yalniz tekrardan olusan sayfalar: en cok 3 denemeden sonra ended (sonsuz dongu yok)', () async {
       final b = FakeBackend();
       var calls = 0;

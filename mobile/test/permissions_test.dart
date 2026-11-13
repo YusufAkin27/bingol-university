@@ -66,7 +66,7 @@ void main() {
         tester,
         PostLoginGate(service: _fake(), onNotificationsGranted: () => granted++, child: const Text('KABUK')),
       );
-      await tester.tap(find.text('İzin ver').first); // Bildirimler ilk satır
+      await tester.tap(find.text('İleri').first); // Bildirimler ilk satır
       await settle(tester, const Duration(milliseconds: 400));
       expect(granted, 1);
     });
@@ -78,14 +78,14 @@ void main() {
         ..willAnswer(AppPermission.camera, PermState.permanentlyDenied);
       final granted = <AppPermission>[];
       await _pumpPage(tester, PermissionsPage(service: svc, onFinished: () {}, onGranted: granted.add));
-      expect(find.text('İzin ver'), findsNWidgets(2));
+      expect(find.text('İleri'), findsNWidgets(2));
 
-      await tester.tap(find.text('İzin ver').at(0)); // bildirim -> verildi
+      await tester.tap(find.text('İleri').at(0)); // bildirim -> verildi
       await settle(tester, const Duration(milliseconds: 400));
       expect(find.text('Verildi'), findsOneWidget);
       expect(granted, [AppPermission.notifications]);
 
-      await tester.tap(find.text('İzin ver').at(0)); // kamera -> kalici ret
+      await tester.tap(find.text('İleri').at(0)); // kamera -> kalici ret
       await settle(tester, const Duration(milliseconds: 400));
       expect(find.text('Ayarlardan aç'), findsOneWidget);
       expect(find.text('Reddedildi'), findsOneWidget);
@@ -120,7 +120,7 @@ void main() {
       expect(find.text('Başla'), findsOneWidget);
       expect(find.text('Şimdi değil'), findsOneWidget);
 
-      await tester.tap(find.text('İzin ver').first); // bildirim istenir
+      await tester.tap(find.text('İleri').first); // bildirim istenir
       await settle(tester, const Duration(milliseconds: 300));
       expect(svc.requested, isNotEmpty);
       expect(find.text('Devam'), findsOneWidget);
@@ -148,7 +148,7 @@ void main() {
       await _pumpPage(tester, PermissionsPage(service: svc, onFinished: () {}, onGranted: granted.add));
       await tester.drag(find.byType(ListView), const Offset(0, -300));
       await tester.pump();
-      await tester.tap(find.text('İzin ver').last);
+      await tester.tap(find.text('İleri').last);
       await settle(tester, const Duration(milliseconds: 400));
       expect(granted, [AppPermission.camera]);
       expect(find.text('Verildi'), findsOneWidget);
@@ -165,7 +165,7 @@ void main() {
           _noErrors(tester);
           await tester.drag(find.byType(ListView), const Offset(0, -300));
           await tester.pump();
-          await tester.tap(find.text('İzin ver').first);
+          await tester.tap(find.text('İleri').first);
           await settle(tester, const Duration(milliseconds: 400));
           _noErrors(tester);
         });
