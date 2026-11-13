@@ -1,0 +1,4685 @@
+{
+ "generatedFrom": {
+  "branch": "deploy/be-257-20261111",
+  "commit": "3d0d5490"
+ },
+ "totals": {
+  "modules": 38,
+  "files": 1239,
+  "lines": 128113,
+  "endpoints": 783,
+  "entities": 125,
+  "jobs": 62,
+  "migrations": 169,
+  "maxMigration": 1873
+ },
+ "links": [
+  {
+   "source": "academic",
+   "target": "catalog",
+   "weight": 1
+  },
+  {
+   "source": "academic",
+   "target": "common",
+   "weight": 10
+  },
+  {
+   "source": "academic",
+   "target": "config",
+   "weight": 2
+  },
+  {
+   "source": "academic",
+   "target": "dbmaint",
+   "weight": 1
+  },
+  {
+   "source": "academic",
+   "target": "export",
+   "weight": 1
+  },
+  {
+   "source": "academic",
+   "target": "moderation",
+   "weight": 3
+  },
+  {
+   "source": "academic",
+   "target": "notification",
+   "weight": 1
+  },
+  {
+   "source": "academic",
+   "target": "profile",
+   "weight": 1
+  },
+  {
+   "source": "accessban",
+   "target": "admin",
+   "weight": 1
+  },
+  {
+   "source": "accessban",
+   "target": "auth",
+   "weight": 1
+  },
+  {
+   "source": "accessban",
+   "target": "common",
+   "weight": 4
+  },
+  {
+   "source": "accessban",
+   "target": "config",
+   "weight": 1
+  },
+  {
+   "source": "accessban",
+   "target": "dbmaint",
+   "weight": 1
+  },
+  {
+   "source": "accessban",
+   "target": "export",
+   "weight": 1
+  },
+  {
+   "source": "accessban",
+   "target": "i18n",
+   "weight": 1
+  },
+  {
+   "source": "accessban",
+   "target": "user",
+   "weight": 1
+  },
+  {
+   "source": "admin",
+   "target": "academic",
+   "weight": 2
+  },
+  {
+   "source": "admin",
+   "target": "analytics",
+   "weight": 2
+  },
+  {
+   "source": "admin",
+   "target": "auth",
+   "weight": 10
+  },
+  {
+   "source": "admin",
+   "target": "common",
+   "weight": 41
+  },
+  {
+   "source": "admin",
+   "target": "config",
+   "weight": 5
+  },
+  {
+   "source": "admin",
+   "target": "crypto",
+   "weight": 4
+  },
+  {
+   "source": "admin",
+   "target": "export",
+   "weight": 1
+  },
+  {
+   "source": "admin",
+   "target": "i18n",
+   "weight": 3
+  },
+  {
+   "source": "admin",
+   "target": "legal",
+   "weight": 1
+  },
+  {
+   "source": "admin",
+   "target": "mail",
+   "weight": 1
+  },
+  {
+   "source": "admin",
+   "target": "media",
+   "weight": 1
+  },
+  {
+   "source": "admin",
+   "target": "menu",
+   "weight": 4
+  },
+  {
+   "source": "admin",
+   "target": "messaging",
+   "weight": 3
+  },
+  {
+   "source": "admin",
+   "target": "moderation",
+   "weight": 2
+  },
+  {
+   "source": "admin",
+   "target": "news",
+   "weight": 5
+  },
+  {
+   "source": "admin",
+   "target": "notification",
+   "weight": 4
+  },
+  {
+   "source": "admin",
+   "target": "observability",
+   "weight": 1
+  },
+  {
+   "source": "admin",
+   "target": "profile",
+   "weight": 4
+  },
+  {
+   "source": "admin",
+   "target": "status",
+   "weight": 1
+  },
+  {
+   "source": "admin",
+   "target": "user",
+   "weight": 19
+  },
+  {
+   "source": "analytics",
+   "target": "admin",
+   "weight": 2
+  },
+  {
+   "source": "analytics",
+   "target": "common",
+   "weight": 6
+  },
+  {
+   "source": "analytics",
+   "target": "export",
+   "weight": 1
+  },
+  {
+   "source": "analytics",
+   "target": "i18n",
+   "weight": 1
+  },
+  {
+   "source": "analytics",
+   "target": "notification",
+   "weight": 2
+  },
+  {
+   "source": "analytics",
+   "target": "status",
+   "weight": 2
+  },
+  {
+   "source": "appinfo",
+   "target": "admin",
+   "weight": 1
+  },
+  {
+   "source": "appinfo",
+   "target": "common",
+   "weight": 3
+  },
+  {
+   "source": "appinfo",
+   "target": "i18n",
+   "weight": 2
+  },
+  {
+   "source": "auth",
+   "target": "accessban",
+   "weight": 6
+  },
+  {
+   "source": "auth",
+   "target": "catalog",
+   "weight": 1
+  },
+  {
+   "source": "auth",
+   "target": "common",
+   "weight": 22
+  },
+  {
+   "source": "auth",
+   "target": "config",
+   "weight": 12
+  },
+  {
+   "source": "auth",
+   "target": "export",
+   "weight": 3
+  },
+  {
+   "source": "auth",
+   "target": "i18n",
+   "weight": 14
+  },
+  {
+   "source": "auth",
+   "target": "legal",
+   "weight": 1
+  },
+  {
+   "source": "auth",
+   "target": "mail",
+   "weight": 5
+  },
+  {
+   "source": "auth",
+   "target": "moderation",
+   "weight": 2
+  },
+  {
+   "source": "auth",
+   "target": "notification",
+   "weight": 2
+  },
+  {
+   "source": "auth",
+   "target": "observability",
+   "weight": 4
+  },
+  {
+   "source": "auth",
+   "target": "profile",
+   "weight": 4
+  },
+  {
+   "source": "auth",
+   "target": "user",
+   "weight": 10
+  },
+  {
+   "source": "bookmark",
+   "target": "common",
+   "weight": 3
+  },
+  {
+   "source": "bookmark",
+   "target": "news",
+   "weight": 4
+  },
+  {
+   "source": "bookmark",
+   "target": "post",
+   "weight": 1
+  },
+  {
+   "source": "catalog",
+   "target": "common",
+   "weight": 2
+  },
+  {
+   "source": "catalog",
+   "target": "i18n",
+   "weight": 1
+  },
+  {
+   "source": "common",
+   "target": "admin",
+   "weight": 1
+  },
+  {
+   "source": "common",
+   "target": "auth",
+   "weight": 2
+  },
+  {
+   "source": "common",
+   "target": "config",
+   "weight": 3
+  },
+  {
+   "source": "common",
+   "target": "i18n",
+   "weight": 5
+  },
+  {
+   "source": "common",
+   "target": "media",
+   "weight": 1
+  },
+  {
+   "source": "community",
+   "target": "admin",
+   "weight": 7
+  },
+  {
+   "source": "community",
+   "target": "catalog",
+   "weight": 1
+  },
+  {
+   "source": "community",
+   "target": "common",
+   "weight": 34
+  },
+  {
+   "source": "community",
+   "target": "config",
+   "weight": 1
+  },
+  {
+   "source": "community",
+   "target": "export",
+   "weight": 2
+  },
+  {
+   "source": "community",
+   "target": "i18n",
+   "weight": 1
+  },
+  {
+   "source": "community",
+   "target": "media",
+   "weight": 5
+  },
+  {
+   "source": "community",
+   "target": "messaging",
+   "weight": 7
+  },
+  {
+   "source": "community",
+   "target": "moderation",
+   "weight": 6
+  },
+  {
+   "source": "community",
+   "target": "notification",
+   "weight": 8
+  },
+  {
+   "source": "community",
+   "target": "profile",
+   "weight": 1
+  },
+  {
+   "source": "community",
+   "target": "search",
+   "weight": 1
+  },
+  {
+   "source": "community",
+   "target": "user",
+   "weight": 9
+  },
+  {
+   "source": "config",
+   "target": "accessban",
+   "weight": 1
+  },
+  {
+   "source": "config",
+   "target": "admin",
+   "weight": 2
+  },
+  {
+   "source": "config",
+   "target": "analytics",
+   "weight": 1
+  },
+  {
+   "source": "config",
+   "target": "auth",
+   "weight": 1
+  },
+  {
+   "source": "config",
+   "target": "common",
+   "weight": 2
+  },
+  {
+   "source": "config",
+   "target": "legal",
+   "weight": 1
+  },
+  {
+   "source": "config",
+   "target": "mail",
+   "weight": 1
+  },
+  {
+   "source": "config",
+   "target": "media",
+   "weight": 1
+  },
+  {
+   "source": "config",
+   "target": "notification",
+   "weight": 1
+  },
+  {
+   "source": "crash",
+   "target": "accessban",
+   "weight": 1
+  },
+  {
+   "source": "crash",
+   "target": "admin",
+   "weight": 2
+  },
+  {
+   "source": "crash",
+   "target": "common",
+   "weight": 4
+  },
+  {
+   "source": "crash",
+   "target": "config",
+   "weight": 2
+  },
+  {
+   "source": "crash",
+   "target": "notification",
+   "weight": 1
+  },
+  {
+   "source": "crash",
+   "target": "observability",
+   "weight": 1
+  },
+  {
+   "source": "crash",
+   "target": "user",
+   "weight": 1
+  },
+  {
+   "source": "crypto",
+   "target": "common",
+   "weight": 2
+  },
+  {
+   "source": "crypto",
+   "target": "media",
+   "weight": 1
+  },
+  {
+   "source": "dbmaint",
+   "target": "admin",
+   "weight": 3
+  },
+  {
+   "source": "dbmaint",
+   "target": "analytics",
+   "weight": 1
+  },
+  {
+   "source": "dbmaint",
+   "target": "common",
+   "weight": 4
+  },
+  {
+   "source": "dbmaint",
+   "target": "config",
+   "weight": 2
+  },
+  {
+   "source": "dbmaint",
+   "target": "observability",
+   "weight": 1
+  },
+  {
+   "source": "devseed",
+   "target": "common",
+   "weight": 1
+  },
+  {
+   "source": "devseed",
+   "target": "messaging",
+   "weight": 1
+  },
+  {
+   "source": "devseed",
+   "target": "post",
+   "weight": 1
+  },
+  {
+   "source": "devseed",
+   "target": "user",
+   "weight": 1
+  },
+  {
+   "source": "event",
+   "target": "admin",
+   "weight": 7
+  },
+  {
+   "source": "event",
+   "target": "appinfo",
+   "weight": 1
+  },
+  {
+   "source": "event",
+   "target": "common",
+   "weight": 24
+  },
+  {
+   "source": "event",
+   "target": "community",
+   "weight": 33
+  },
+  {
+   "source": "event",
+   "target": "config",
+   "weight": 2
+  },
+  {
+   "source": "event",
+   "target": "export",
+   "weight": 3
+  },
+  {
+   "source": "event",
+   "target": "media",
+   "weight": 2
+  },
+  {
+   "source": "event",
+   "target": "messaging",
+   "weight": 6
+  },
+  {
+   "source": "event",
+   "target": "moderation",
+   "weight": 7
+  },
+  {
+   "source": "event",
+   "target": "news",
+   "weight": 2
+  },
+  {
+   "source": "event",
+   "target": "notification",
+   "weight": 8
+  },
+  {
+   "source": "event",
+   "target": "profile",
+   "weight": 2
+  },
+  {
+   "source": "event",
+   "target": "search",
+   "weight": 1
+  },
+  {
+   "source": "event",
+   "target": "user",
+   "weight": 11
+  },
+  {
+   "source": "export",
+   "target": "common",
+   "weight": 1
+  },
+  {
+   "source": "export",
+   "target": "legal",
+   "weight": 1
+  },
+  {
+   "source": "export",
+   "target": "moderation",
+   "weight": 1
+  },
+  {
+   "source": "export",
+   "target": "notification",
+   "weight": 1
+  },
+  {
+   "source": "export",
+   "target": "profile",
+   "weight": 1
+  },
+  {
+   "source": "export",
+   "target": "support",
+   "weight": 1
+  },
+  {
+   "source": "forum",
+   "target": "admin",
+   "weight": 2
+  },
+  {
+   "source": "forum",
+   "target": "common",
+   "weight": 34
+  },
+  {
+   "source": "forum",
+   "target": "community",
+   "weight": 2
+  },
+  {
+   "source": "forum",
+   "target": "config",
+   "weight": 3
+  },
+  {
+   "source": "forum",
+   "target": "dbmaint",
+   "weight": 1
+  },
+  {
+   "source": "forum",
+   "target": "export",
+   "weight": 2
+  },
+  {
+   "source": "forum",
+   "target": "i18n",
+   "weight": 7
+  },
+  {
+   "source": "forum",
+   "target": "media",
+   "weight": 2
+  },
+  {
+   "source": "forum",
+   "target": "moderation",
+   "weight": 13
+  },
+  {
+   "source": "forum",
+   "target": "notification",
+   "weight": 2
+  },
+  {
+   "source": "forum",
+   "target": "post",
+   "weight": 3
+  },
+  {
+   "source": "forum",
+   "target": "profile",
+   "weight": 2
+  },
+  {
+   "source": "forum",
+   "target": "search",
+   "weight": 2
+  },
+  {
+   "source": "forum",
+   "target": "share",
+   "weight": 2
+  },
+  {
+   "source": "forum",
+   "target": "user",
+   "weight": 4
+  },
+  {
+   "source": "i18n",
+   "target": "user",
+   "weight": 1
+  },
+  {
+   "source": "legal",
+   "target": "appinfo",
+   "weight": 1
+  },
+  {
+   "source": "legal",
+   "target": "common",
+   "weight": 3
+  },
+  {
+   "source": "legal",
+   "target": "i18n",
+   "weight": 3
+  },
+  {
+   "source": "mail",
+   "target": "admin",
+   "weight": 7
+  },
+  {
+   "source": "mail",
+   "target": "catalog",
+   "weight": 1
+  },
+  {
+   "source": "mail",
+   "target": "common",
+   "weight": 14
+  },
+  {
+   "source": "mail",
+   "target": "config",
+   "weight": 7
+  },
+  {
+   "source": "mail",
+   "target": "i18n",
+   "weight": 14
+  },
+  {
+   "source": "mail",
+   "target": "observability",
+   "weight": 2
+  },
+  {
+   "source": "mail",
+   "target": "user",
+   "weight": 2
+  },
+  {
+   "source": "media",
+   "target": "common",
+   "weight": 7
+  },
+  {
+   "source": "media",
+   "target": "config",
+   "weight": 7
+  },
+  {
+   "source": "media",
+   "target": "crypto",
+   "weight": 1
+  },
+  {
+   "source": "media",
+   "target": "post",
+   "weight": 3
+  },
+  {
+   "source": "menu",
+   "target": "admin",
+   "weight": 1
+  },
+  {
+   "source": "menu",
+   "target": "appinfo",
+   "weight": 1
+  },
+  {
+   "source": "menu",
+   "target": "common",
+   "weight": 10
+  },
+  {
+   "source": "menu",
+   "target": "config",
+   "weight": 2
+  },
+  {
+   "source": "menu",
+   "target": "i18n",
+   "weight": 1
+  },
+  {
+   "source": "menu",
+   "target": "media",
+   "weight": 1
+  },
+  {
+   "source": "menu",
+   "target": "notification",
+   "weight": 1
+  },
+  {
+   "source": "menu",
+   "target": "status",
+   "weight": 1
+  },
+  {
+   "source": "messaging",
+   "target": "academic",
+   "weight": 1
+  },
+  {
+   "source": "messaging",
+   "target": "accessban",
+   "weight": 2
+  },
+  {
+   "source": "messaging",
+   "target": "admin",
+   "weight": 1
+  },
+  {
+   "source": "messaging",
+   "target": "auth",
+   "weight": 3
+  },
+  {
+   "source": "messaging",
+   "target": "catalog",
+   "weight": 1
+  },
+  {
+   "source": "messaging",
+   "target": "common",
+   "weight": 23
+  },
+  {
+   "source": "messaging",
+   "target": "community",
+   "weight": 2
+  },
+  {
+   "source": "messaging",
+   "target": "config",
+   "weight": 1
+  },
+  {
+   "source": "messaging",
+   "target": "crypto",
+   "weight": 3
+  },
+  {
+   "source": "messaging",
+   "target": "dbmaint",
+   "weight": 1
+  },
+  {
+   "source": "messaging",
+   "target": "event",
+   "weight": 1
+  },
+  {
+   "source": "messaging",
+   "target": "export",
+   "weight": 3
+  },
+  {
+   "source": "messaging",
+   "target": "i18n",
+   "weight": 1
+  },
+  {
+   "source": "messaging",
+   "target": "media",
+   "weight": 1
+  },
+  {
+   "source": "messaging",
+   "target": "moderation",
+   "weight": 13
+  },
+  {
+   "source": "messaging",
+   "target": "notification",
+   "weight": 2
+  },
+  {
+   "source": "messaging",
+   "target": "profile",
+   "weight": 3
+  },
+  {
+   "source": "messaging",
+   "target": "share",
+   "weight": 3
+  },
+  {
+   "source": "messaging",
+   "target": "unitnews",
+   "weight": 1
+  },
+  {
+   "source": "messaging",
+   "target": "user",
+   "weight": 10
+  },
+  {
+   "source": "moderation",
+   "target": "accessban",
+   "weight": 2
+  },
+  {
+   "source": "moderation",
+   "target": "admin",
+   "weight": 6
+  },
+  {
+   "source": "moderation",
+   "target": "auth",
+   "weight": 1
+  },
+  {
+   "source": "moderation",
+   "target": "common",
+   "weight": 19
+  },
+  {
+   "source": "moderation",
+   "target": "export",
+   "weight": 1
+  },
+  {
+   "source": "moderation",
+   "target": "i18n",
+   "weight": 3
+  },
+  {
+   "source": "moderation",
+   "target": "news",
+   "weight": 1
+  },
+  {
+   "source": "moderation",
+   "target": "notification",
+   "weight": 2
+  },
+  {
+   "source": "moderation",
+   "target": "post",
+   "weight": 1
+  },
+  {
+   "source": "moderation",
+   "target": "profile",
+   "weight": 1
+  },
+  {
+   "source": "moderation",
+   "target": "user",
+   "weight": 11
+  },
+  {
+   "source": "news",
+   "target": "common",
+   "weight": 3
+  },
+  {
+   "source": "news",
+   "target": "config",
+   "weight": 1
+  },
+  {
+   "source": "news",
+   "target": "i18n",
+   "weight": 1
+  },
+  {
+   "source": "news",
+   "target": "notification",
+   "weight": 1
+  },
+  {
+   "source": "news",
+   "target": "search",
+   "weight": 1
+  },
+  {
+   "source": "news",
+   "target": "status",
+   "weight": 1
+  },
+  {
+   "source": "notification",
+   "target": "academic",
+   "weight": 1
+  },
+  {
+   "source": "notification",
+   "target": "accessban",
+   "weight": 1
+  },
+  {
+   "source": "notification",
+   "target": "admin",
+   "weight": 3
+  },
+  {
+   "source": "notification",
+   "target": "auth",
+   "weight": 1
+  },
+  {
+   "source": "notification",
+   "target": "common",
+   "weight": 14
+  },
+  {
+   "source": "notification",
+   "target": "community",
+   "weight": 1
+  },
+  {
+   "source": "notification",
+   "target": "config",
+   "weight": 1
+  },
+  {
+   "source": "notification",
+   "target": "event",
+   "weight": 2
+  },
+  {
+   "source": "notification",
+   "target": "export",
+   "weight": 2
+  },
+  {
+   "source": "notification",
+   "target": "i18n",
+   "weight": 4
+  },
+  {
+   "source": "notification",
+   "target": "user",
+   "weight": 1
+  },
+  {
+   "source": "observability",
+   "target": "common",
+   "weight": 1
+  },
+  {
+   "source": "observability",
+   "target": "config",
+   "weight": 5
+  },
+  {
+   "source": "observability",
+   "target": "dbmaint",
+   "weight": 1
+  },
+  {
+   "source": "observability",
+   "target": "i18n",
+   "weight": 2
+  },
+  {
+   "source": "observability",
+   "target": "mail",
+   "weight": 1
+  },
+  {
+   "source": "observability",
+   "target": "notification",
+   "weight": 3
+  },
+  {
+   "source": "observability",
+   "target": "user",
+   "weight": 2
+  },
+  {
+   "source": "poll",
+   "target": "academic",
+   "weight": 3
+  },
+  {
+   "source": "poll",
+   "target": "admin",
+   "weight": 2
+  },
+  {
+   "source": "poll",
+   "target": "common",
+   "weight": 5
+  },
+  {
+   "source": "poll",
+   "target": "community",
+   "weight": 10
+  },
+  {
+   "source": "poll",
+   "target": "config",
+   "weight": 1
+  },
+  {
+   "source": "poll",
+   "target": "export",
+   "weight": 1
+  },
+  {
+   "source": "poll",
+   "target": "i18n",
+   "weight": 3
+  },
+  {
+   "source": "poll",
+   "target": "menu",
+   "weight": 3
+  },
+  {
+   "source": "poll",
+   "target": "moderation",
+   "weight": 2
+  },
+  {
+   "source": "poll",
+   "target": "notification",
+   "weight": 1
+  },
+  {
+   "source": "poll",
+   "target": "user",
+   "weight": 5
+  },
+  {
+   "source": "post",
+   "target": "admin",
+   "weight": 5
+  },
+  {
+   "source": "post",
+   "target": "common",
+   "weight": 25
+  },
+  {
+   "source": "post",
+   "target": "community",
+   "weight": 2
+  },
+  {
+   "source": "post",
+   "target": "config",
+   "weight": 10
+  },
+  {
+   "source": "post",
+   "target": "export",
+   "weight": 3
+  },
+  {
+   "source": "post",
+   "target": "i18n",
+   "weight": 2
+  },
+  {
+   "source": "post",
+   "target": "media",
+   "weight": 1
+  },
+  {
+   "source": "post",
+   "target": "moderation",
+   "weight": 13
+  },
+  {
+   "source": "post",
+   "target": "notification",
+   "weight": 4
+  },
+  {
+   "source": "post",
+   "target": "profile",
+   "weight": 5
+  },
+  {
+   "source": "post",
+   "target": "search",
+   "weight": 2
+  },
+  {
+   "source": "post",
+   "target": "user",
+   "weight": 9
+  },
+  {
+   "source": "profile",
+   "target": "analytics",
+   "weight": 1
+  },
+  {
+   "source": "profile",
+   "target": "appinfo",
+   "weight": 1
+  },
+  {
+   "source": "profile",
+   "target": "auth",
+   "weight": 2
+  },
+  {
+   "source": "profile",
+   "target": "catalog",
+   "weight": 2
+  },
+  {
+   "source": "profile",
+   "target": "common",
+   "weight": 9
+  },
+  {
+   "source": "profile",
+   "target": "event",
+   "weight": 1
+  },
+  {
+   "source": "profile",
+   "target": "export",
+   "weight": 1
+  },
+  {
+   "source": "profile",
+   "target": "i18n",
+   "weight": 2
+  },
+  {
+   "source": "profile",
+   "target": "legal",
+   "weight": 1
+  },
+  {
+   "source": "profile",
+   "target": "media",
+   "weight": 1
+  },
+  {
+   "source": "profile",
+   "target": "messaging",
+   "weight": 1
+  },
+  {
+   "source": "profile",
+   "target": "moderation",
+   "weight": 3
+  },
+  {
+   "source": "profile",
+   "target": "post",
+   "weight": 1
+  },
+  {
+   "source": "profile",
+   "target": "search",
+   "weight": 2
+  },
+  {
+   "source": "profile",
+   "target": "user",
+   "weight": 7
+  },
+  {
+   "source": "search",
+   "target": "common",
+   "weight": 5
+  },
+  {
+   "source": "search",
+   "target": "news",
+   "weight": 2
+  },
+  {
+   "source": "search",
+   "target": "profile",
+   "weight": 1
+  },
+  {
+   "source": "share",
+   "target": "common",
+   "weight": 2
+  },
+  {
+   "source": "share",
+   "target": "community",
+   "weight": 1
+  },
+  {
+   "source": "share",
+   "target": "event",
+   "weight": 1
+  },
+  {
+   "source": "share",
+   "target": "i18n",
+   "weight": 2
+  },
+  {
+   "source": "share",
+   "target": "moderation",
+   "weight": 1
+  },
+  {
+   "source": "share",
+   "target": "news",
+   "weight": 1
+  },
+  {
+   "source": "share",
+   "target": "poll",
+   "weight": 1
+  },
+  {
+   "source": "share",
+   "target": "post",
+   "weight": 2
+  },
+  {
+   "source": "share",
+   "target": "profile",
+   "weight": 1
+  },
+  {
+   "source": "share",
+   "target": "user",
+   "weight": 1
+  },
+  {
+   "source": "status",
+   "target": "common",
+   "weight": 2
+  },
+  {
+   "source": "status",
+   "target": "i18n",
+   "weight": 2
+  },
+  {
+   "source": "support",
+   "target": "admin",
+   "weight": 5
+  },
+  {
+   "source": "support",
+   "target": "appinfo",
+   "weight": 1
+  },
+  {
+   "source": "support",
+   "target": "common",
+   "weight": 12
+  },
+  {
+   "source": "support",
+   "target": "config",
+   "weight": 2
+  },
+  {
+   "source": "support",
+   "target": "i18n",
+   "weight": 4
+  },
+  {
+   "source": "support",
+   "target": "mail",
+   "weight": 1
+  },
+  {
+   "source": "support",
+   "target": "moderation",
+   "weight": 1
+  },
+  {
+   "source": "support",
+   "target": "notification",
+   "weight": 4
+  },
+  {
+   "source": "support",
+   "target": "user",
+   "weight": 4
+  },
+  {
+   "source": "unitnews",
+   "target": "academic",
+   "weight": 3
+  },
+  {
+   "source": "unitnews",
+   "target": "admin",
+   "weight": 1
+  },
+  {
+   "source": "unitnews",
+   "target": "common",
+   "weight": 6
+  },
+  {
+   "source": "unitnews",
+   "target": "config",
+   "weight": 1
+  },
+  {
+   "source": "unitnews",
+   "target": "news",
+   "weight": 1
+  },
+  {
+   "source": "unitnews",
+   "target": "status",
+   "weight": 2
+  },
+  {
+   "source": "unitnews",
+   "target": "user",
+   "weight": 1
+  }
+ ],
+ "nodes": [
+  {
+   "id": "academic",
+   "files": 22,
+   "lines": 3594,
+   "subpackages": [],
+   "controllers": [
+    {
+     "name": "AcademicController",
+     "base": "/api",
+     "count": 10
+    },
+    {
+     "name": "OfficialTimetableController",
+     "base": "/api",
+     "count": 8
+    },
+    {
+     "name": "TimetableController",
+     "base": "/api",
+     "count": 19
+    }
+   ],
+   "endpoints": [
+    "DELETE /api/admin/academic/events/{id}",
+    "DELETE /api/admin/academic/timetable/programs",
+    "DELETE /api/timetable/courses/{id}",
+    "DELETE /api/timetable/exams/{id}",
+    "DELETE /api/timetable/semesters/{id}",
+    "GET /api/academic/calendar",
+    "GET /api/academic/calendar/next",
+    "GET /api/admin/academic/events",
+    "GET /api/admin/academic/events/{id}",
+    "GET /api/admin/academic/timetable/entries",
+    "GET /api/admin/academic/timetable/programs",
+    "GET /api/timetable",
+    "GET /api/timetable/exams",
+    "GET /api/timetable/exams/upcoming",
+    "GET /api/timetable/export.ics",
+    "GET /api/timetable/official",
+    "GET /api/timetable/official/status",
+    "GET /api/timetable/reminders",
+    "GET /api/timetable/semesters",
+    "GET /api/timetable/today",
+    "GET /api/timetable/week",
+    "PATCH /api/admin/academic/events/{id}",
+    "PATCH /api/timetable/courses/{id}",
+    "PATCH /api/timetable/exams/{id}",
+    "PATCH /api/timetable/semesters/{id}",
+    "POST /api/admin/academic/events",
+    "POST /api/admin/academic/events/import",
+    "POST /api/admin/academic/events/{id}/publish",
+    "POST /api/admin/academic/events/{id}/unpublish",
+    "POST /api/admin/academic/timetable/import",
+    "POST /api/admin/academic/timetable/publish",
+    "POST /api/timetable/courses",
+    "POST /api/timetable/exams",
+    "POST /api/timetable/import",
+    "POST /api/timetable/official/apply",
+    "POST /api/timetable/semesters",
+    "POST /api/timetable/semesters/from-official"
+   ],
+   "entities": [],
+   "tables": [],
+   "jobs": [
+    {
+     "cls": "AcademicRetentionJob",
+     "method": "nightly",
+     "when": "cron = \"${app.academic.retention-cron:0 30 3 * * *}\", zone = \"Europe/Istanbul\""
+    },
+    {
+     "cls": "ExamReminderJob",
+     "method": "scheduled",
+     "when": "fixedDelayString = \"${app.exam-reminder.poll-ms:60000}\", initialDelayString = \"${app.exam-reminder.initial-del"
+    }
+   ],
+   "services": [
+    "AcademicCalendarService",
+    "ExamService",
+    "OfficialTimetableSeeder",
+    "OfficialTimetableService",
+    "TimetableService"
+   ],
+   "repositories": 0,
+   "spi": [],
+   "ext": [
+    "Redis"
+   ],
+   "filters": []
+  },
+  {
+   "id": "accessban",
+   "files": 24,
+   "lines": 2589,
+   "subpackages": [],
+   "controllers": [
+    {
+     "name": "AdminAccessBanController",
+     "base": "/api/admin",
+     "count": 13
+    }
+   ],
+   "endpoints": [
+    "DELETE /api/admin/access-bans/anonymizers",
+    "DELETE /api/admin/access-bans/anonymizers/{id}",
+    "DELETE /api/admin/access-bans/{id}",
+    "GET /api/admin/access-bans",
+    "GET /api/admin/access-bans/anonymizers",
+    "GET /api/admin/access-bans/stats",
+    "GET /api/admin/access-bans/{id}/attempts",
+    "GET /api/admin/users/{id}/devices",
+    "PATCH /api/admin/access-bans/{id}",
+    "POST /api/admin/access-bans",
+    "POST /api/admin/access-bans/anonymizers",
+    "POST /api/admin/access-bans/bulk",
+    "POST /api/admin/users/{id}/block-access"
+   ],
+   "entities": [
+    "AccessBan",
+    "AnonymizerRange",
+    "BlockedAttemptLog",
+    "UserDeviceLog"
+   ],
+   "tables": [
+    "ban280_anonymizer_range",
+    "user_device_log"
+   ],
+   "jobs": [
+    {
+     "cls": "AccessBanHits",
+     "method": "flushScheduled",
+     "when": "fixedDelayString = \"${app.security.ban-flush-ms:5000}\""
+    },
+    {
+     "cls": "AccessBanRetentionJob",
+     "method": "scheduled",
+     "when": "cron = \"${app.security.ban-log-cleanup-cron:0 30 4 * * *}\", zone = \"Europe/Istanbul\""
+    }
+   ],
+   "services": [
+    "AccessBanService",
+    "DeviceLogService"
+   ],
+   "repositories": 4,
+   "spi": [],
+   "ext": [
+    "Redis"
+   ],
+   "filters": [
+    "AccessBanFilter"
+   ]
+  },
+  {
+   "id": "admin",
+   "files": 76,
+   "lines": 8908,
+   "subpackages": [
+    "bulk",
+    "chat",
+    "chat/action",
+    "pii",
+    "rbac",
+    "twofactor",
+    "users",
+    "users/extras"
+   ],
+   "controllers": [
+    {
+     "name": "AdminLegalController",
+     "base": "/api/admin/legal",
+     "count": 2
+    },
+    {
+     "name": "AdminNewsController",
+     "base": "/api/admin/news",
+     "count": 2
+    },
+    {
+     "name": "AdminOpsController",
+     "base": "/api/admin/ops",
+     "count": 4
+    },
+    {
+     "name": "AdminPendingRegistrationController",
+     "base": "/api/admin/pending-registrations",
+     "count": 4
+    },
+    {
+     "name": "AdminUserController",
+     "base": "/api/admin",
+     "count": 9
+    },
+    {
+     "name": "AdminUserCreateController",
+     "base": "/api/admin",
+     "count": 1
+    },
+    {
+     "name": "AuditController",
+     "base": "/api/admin",
+     "count": 3
+    },
+    {
+     "name": "AdminBulkController",
+     "base": "/api/admin",
+     "count": 10
+    },
+    {
+     "name": "AdminChatFeedController",
+     "base": "/api/admin",
+     "count": 3
+    },
+    {
+     "name": "AdminChatViewerController",
+     "base": "/api/admin/users/{userId}/conversations",
+     "count": 2
+    },
+    {
+     "name": "AdminReportContextController",
+     "base": "/api/admin/reports",
+     "count": 1
+    },
+    {
+     "name": "AdminChatActionController",
+     "base": "/api/admin",
+     "count": 9
+    },
+    {
+     "name": "RbacController",
+     "base": "/api/admin/rbac",
+     "count": 8
+    },
+    {
+     "name": "AdminTwoFactorController",
+     "base": "/api/admin",
+     "count": 3
+    },
+    {
+     "name": "AdminUserExtrasController",
+     "base": "/api/admin",
+     "count": 8
+    }
+   ],
+   "endpoints": [
+    "DELETE /api/admin/conversations/{id}/members/{userId}",
+    "DELETE /api/admin/messages/{id}",
+    "DELETE /api/admin/pending-registrations/{email}",
+    "DELETE /api/admin/users/{id}",
+    "DELETE /api/admin/users/{id}/push-devices/{deviceId}",
+    "DELETE /api/admin/users/{id}/sessions/{sessionId}",
+    "GET /api/admin/academic/export.csv",
+    "GET /api/admin/audit",
+    "GET /api/admin/audit/export.csv",
+    "GET /api/admin/audit/message-access",
+    "GET /api/admin/chat-media",
+    "GET /api/admin/chat-media/stats",
+    "GET /api/admin/chat-messages",
+    "GET /api/admin/conversations/{id}",
+    "GET /api/admin/conversations/{id}/export",
+    "GET /api/admin/legal/acceptance-stats",
+    "GET /api/admin/legal/{type}/versions",
+    "GET /api/admin/me",
+    "GET /api/admin/menu/export.csv",
+    "GET /api/admin/news",
+    "GET /api/admin/news/export.csv",
+    "GET /api/admin/ops/backup-status",
+    "GET /api/admin/ops/health",
+    "GET /api/admin/ops/mail-outbox/stats",
+    "GET /api/admin/pending-registrations",
+    "GET /api/admin/pending-registrations/export.csv",
+    "GET /api/admin/rbac/admins",
+    "GET /api/admin/rbac/changes",
+    "GET /api/admin/rbac/matrix",
+    "GET /api/admin/rbac/me",
+    "GET /api/admin/reports/{id}",
+    "GET /api/admin/sources/status",
+    "GET /api/admin/two-factor/summary",
+    "GET /api/admin/two-factor/users",
+    "GET /api/admin/users",
+    "GET /api/admin/users/export.csv",
+    "GET /api/admin/users/{id}",
+    "GET /api/admin/users/{id}/notifications",
+    "GET /api/admin/users/{id}/push-devices",
+    "GET /api/admin/users/{id}/sessions",
+    "GET /api/admin/users/{userId}/conversations",
+    "GET /api/admin/users/{userId}/conversations/{conversationId}/messages",
+    "PATCH /api/admin/news/{id}",
+    "PATCH /api/admin/users/{id}/profile",
+    "PATCH /api/admin/users/{id}/role",
+    "POST /api/admin/academic/bulk",
+    "POST /api/admin/conversations/{id}/close",
+    "POST /api/admin/conversations/{id}/reopen",
+    "POST /api/admin/menu/bulk-delete",
+    "POST /api/admin/messages/bulk-hide",
+    "POST /api/admin/messages/{id}/hide",
+    "POST /api/admin/messages/{id}/unhide",
+    "POST /api/admin/news/bulk",
+    "POST /api/admin/ops/mail-outbox/retry-dead",
+    "POST /api/admin/pending-registrations/bulk-cancel",
+    "POST /api/admin/pending-registrations/{email}/resend-code",
+    "POST /api/admin/pending-registrations/{email}/verify",
+    "POST /api/admin/rbac/changes",
+    "POST /api/admin/rbac/changes/{id}/approve",
+    "POST /api/admin/rbac/changes/{id}/reject",
+    "POST /api/admin/sources/sync",
+    "POST /api/admin/users",
+    "POST /api/admin/users/bulk",
+    "POST /api/admin/users/{id}/export",
+    "POST /api/admin/users/{id}/revoke-sessions",
+    "POST /api/admin/users/{id}/send-reset",
+    "POST /api/admin/users/{id}/two-factor/disable",
+    "POST /api/admin/users/{id}/verify-email",
+    "PUT /api/admin/rbac/users/{id}/profile"
+   ],
+   "entities": [
+    "AdminProfileChange"
+   ],
+   "tables": [
+    "admin_profile_change"
+   ],
+   "jobs": [],
+   "services": [
+    "AcademicBulkService",
+    "AdminAccountVerificationService",
+    "AdminChatFeedService",
+    "AdminChatMessageActionService",
+    "AdminChatViewerService",
+    "AdminConversationActionService",
+    "AdminConversationExportService",
+    "AdminPushDeviceService",
+    "AdminReportContextService",
+    "AdminTwoFactorService",
+    "AdminUserBulkService",
+    "AdminUserExportService",
+    "AdminUserNotificationService",
+    "AdminUserProfileService",
+    "AdminUserService",
+    "AdminUserSessionService",
+    "BulkCsvService",
+    "MenuBulkService",
+    "NewsBulkService",
+    "PendingBulkService",
+    "RbacService",
+    "SourcesService"
+   ],
+   "repositories": 1,
+   "spi": [],
+   "ext": [
+    "Redis"
+   ],
+   "filters": [
+    "AdminPathGuardFilter",
+    "AdminReasonFilter"
+   ]
+  },
+  {
+   "id": "analytics",
+   "files": 20,
+   "lines": 2413,
+   "subpackages": [
+    "behavior"
+   ],
+   "controllers": [
+    {
+     "name": "AdminAnalyticsController",
+     "base": "/api/admin/analytics",
+     "count": 9
+    },
+    {
+     "name": "AnalyticsController",
+     "base": "/api/analytics",
+     "count": 1
+    },
+    {
+     "name": "BehaviorController",
+     "base": "/api/admin/analytics/behavior",
+     "count": 6
+    }
+   ],
+   "endpoints": [
+    "GET /api/admin/analytics/active-users",
+    "GET /api/admin/analytics/behavior/actions",
+    "GET /api/admin/analytics/behavior/flows",
+    "GET /api/admin/analytics/behavior/overview",
+    "GET /api/admin/analytics/behavior/screens",
+    "GET /api/admin/analytics/behavior/users",
+    "GET /api/admin/analytics/behavior/users/{id}",
+    "GET /api/admin/analytics/breakdown",
+    "GET /api/admin/analytics/content",
+    "GET /api/admin/analytics/engagement",
+    "GET /api/admin/analytics/overview",
+    "GET /api/admin/analytics/push",
+    "GET /api/admin/analytics/registrations",
+    "GET /api/admin/analytics/retention",
+    "GET /api/admin/analytics/support",
+    "POST /api/analytics/events"
+   ],
+   "entities": [],
+   "tables": [],
+   "jobs": [],
+   "services": [
+    "AnalyticsReportService",
+    "AnalyticsService",
+    "BehaviorService"
+   ],
+   "repositories": 0,
+   "spi": [],
+   "ext": [
+    "Redis"
+   ],
+   "filters": []
+  },
+  {
+   "id": "appinfo",
+   "files": 6,
+   "lines": 699,
+   "subpackages": [],
+   "controllers": [
+    {
+     "name": "AppInfoController",
+     "base": "/api",
+     "count": 4
+    },
+    {
+     "name": "AppVersionAdminController",
+     "base": "/api/admin/app-versions",
+     "count": 2
+    }
+   ],
+   "endpoints": [
+    "GET /api/admin/app-versions",
+    "GET /api/admin/settings",
+    "GET /api/app/info",
+    "GET /api/app/version",
+    "POST /api/admin/app-versions/enforce",
+    "PUT /api/admin/settings/{key}"
+   ],
+   "entities": [
+    "AppSetting"
+   ],
+   "tables": [
+    "app_setting"
+   ],
+   "jobs": [],
+   "services": [
+    "AppInfoService",
+    "AppVersionAdminService"
+   ],
+   "repositories": 1,
+   "spi": [],
+   "ext": [
+    "Redis"
+   ],
+   "filters": []
+  },
+  {
+   "id": "auth",
+   "files": 73,
+   "lines": 7447,
+   "subpackages": [
+    "dto",
+    "jwt",
+    "oauth",
+    "realemail",
+    "session",
+    "token",
+    "twofactor"
+   ],
+   "controllers": [
+    {
+     "name": "AuthController",
+     "base": "/api/auth",
+     "count": 15
+    },
+    {
+     "name": "OAuthController",
+     "base": "/api/auth/oauth",
+     "count": 5
+    },
+    {
+     "name": "RealEmailController",
+     "base": "/api/users/me/email",
+     "count": 2
+    },
+    {
+     "name": "SessionController",
+     "base": "/api/auth/sessions",
+     "count": 2
+    },
+    {
+     "name": "TwoFactorController",
+     "base": "/api/auth",
+     "count": 8
+    }
+   ],
+   "endpoints": [
+    "DELETE /api/auth/2fa/devices/{id}",
+    "DELETE /api/auth/oauth/link/{provider}",
+    "DELETE /api/auth/sessions/{sid}",
+    "GET /api/auth/2fa",
+    "GET /api/auth/2fa/devices",
+    "GET /api/auth/me",
+    "GET /api/auth/oauth/identities",
+    "GET /api/auth/sessions",
+    "GET /api/auth/verification/status",
+    "POST /api/auth/2fa/disable",
+    "POST /api/auth/2fa/enable/confirm",
+    "POST /api/auth/2fa/enable/request",
+    "POST /api/auth/change-password",
+    "POST /api/auth/forgot-password",
+    "POST /api/auth/login",
+    "POST /api/auth/login/2fa",
+    "POST /api/auth/login/2fa/resend",
+    "POST /api/auth/logout",
+    "POST /api/auth/logout-all",
+    "POST /api/auth/oauth/apple",
+    "POST /api/auth/oauth/google",
+    "POST /api/auth/oauth/link",
+    "POST /api/auth/refresh",
+    "POST /api/auth/register",
+    "POST /api/auth/resend-code",
+    "POST /api/auth/reset-password",
+    "POST /api/auth/verification/resend",
+    "POST /api/auth/verification/verify",
+    "POST /api/auth/verify-email",
+    "POST /api/auth/verify-reset-code",
+    "POST /api/users/me/email/start",
+    "POST /api/users/me/email/verify"
+   ],
+   "entities": [
+    "AuthIdentity",
+    "TwoFactorDevice",
+    "UserSession"
+   ],
+   "tables": [
+    "auth_identity",
+    "two_factor_device",
+    "user_session"
+   ],
+   "jobs": [
+    {
+     "cls": "DeferredVerificationJob",
+     "method": "scheduledSend",
+     "when": "fixedDelayString = \"${app.auth.deferred-verification.poll-ms:3600000}\", initialDelayString = \"${app.auth.defer"
+    },
+    {
+     "cls": "DeferredVerificationJob",
+     "method": "scheduledPurge",
+     "when": "cron = \"${app.auth.deferred-verification.purge-cron:0 20 3 * * *}\", zone = \"Europe/Istanbul\""
+    }
+   ],
+   "services": [
+    "AuthService",
+    "JwtService",
+    "OAuthService",
+    "RealEmailService",
+    "RefreshTokenService",
+    "SessionService",
+    "TwoFactorService",
+    "UserSessionService",
+    "VerificationService"
+   ],
+   "repositories": 3,
+   "spi": [],
+   "ext": [
+    "Google/Apple OAuth",
+    "Redis"
+   ],
+   "filters": [
+    "ProfileIncompleteWriteFilter",
+    "UnverifiedWriteFilter",
+    "JwtAuthFilter",
+    "RealEmailRequiredWriteFilter"
+   ]
+  },
+  {
+   "id": "bookmark",
+   "files": 8,
+   "lines": 546,
+   "subpackages": [
+    "dto"
+   ],
+   "controllers": [
+    {
+     "name": "BookmarkController",
+     "base": "/api/bookmarks",
+     "count": 7
+    }
+   ],
+   "endpoints": [
+    "DELETE /api/bookmarks/news/{id}",
+    "DELETE /api/bookmarks/{type}/{id}",
+    "GET /api/bookmarks",
+    "GET /api/bookmarks/news/ids",
+    "GET /api/bookmarks/{type}/ids",
+    "PUT /api/bookmarks/news/{id}",
+    "PUT /api/bookmarks/{type}/{id}"
+   ],
+   "entities": [
+    "Bookmark"
+   ],
+   "tables": [
+    "bookmark"
+   ],
+   "jobs": [],
+   "services": [
+    "BookmarkFeedService",
+    "BookmarkService"
+   ],
+   "repositories": 1,
+   "spi": [],
+   "ext": [
+    "Redis"
+   ],
+   "filters": []
+  },
+  {
+   "id": "catalog",
+   "files": 2,
+   "lines": 283,
+   "subpackages": [],
+   "controllers": [
+    {
+     "name": "CatalogController",
+     "base": "/api/catalog",
+     "count": 2
+    }
+   ],
+   "endpoints": [
+    "GET /api/catalog/academic",
+    "GET /api/catalog/departments"
+   ],
+   "entities": [],
+   "tables": [],
+   "jobs": [],
+   "services": [
+    "CatalogService"
+   ],
+   "repositories": 0,
+   "spi": [],
+   "ext": [
+    "Redis"
+   ],
+   "filters": []
+  },
+  {
+   "id": "common",
+   "files": 29,
+   "lines": 2784,
+   "subpackages": [
+    "cache",
+    "storage",
+    "web"
+   ],
+   "controllers": [
+    {
+     "name": "ApiErrorController",
+     "base": "",
+     "count": 0
+    },
+    {
+     "name": "FileController",
+     "base": "",
+     "count": 1
+    }
+   ],
+   "endpoints": [
+    "GET /files/{folder:[a-z]+}/{name:[A-Za-z0-9\\\\-]+\\\\.(?:jpg|png|webp)}"
+   ],
+   "entities": [
+    "CacheInvalidationListener"
+   ],
+   "tables": [],
+   "jobs": [
+    {
+     "cls": "IdempotentCreate",
+     "method": "scheduledCleanup",
+     "when": "cron = \"${app.idempotency.cleanup-cron:0 40 3 * * *}\", zone = \"Europe/Istanbul\""
+    }
+   ],
+   "services": [],
+   "repositories": 0,
+   "spi": [],
+   "ext": [
+    "Dosya deposu",
+    "Redis"
+   ],
+   "filters": [
+    "IdempotencyFilter",
+    "RequestBodyLimitFilter"
+   ]
+  },
+  {
+   "id": "community",
+   "files": 74,
+   "lines": 8086,
+   "subpackages": [
+    "admin",
+    "category",
+    "dto",
+    "extras",
+    "permissions"
+   ],
+   "controllers": [
+    {
+     "name": "CommunityAdminController",
+     "base": "/api/admin/communities",
+     "count": 3
+    },
+    {
+     "name": "CommunityController",
+     "base": "/api",
+     "count": 23
+    },
+    {
+     "name": "ClubAdminController",
+     "base": "/api/admin/communities",
+     "count": 19
+    },
+    {
+     "name": "ClubContentAdminController",
+     "base": "/api/admin/community-posts",
+     "count": 6
+    },
+    {
+     "name": "CommunityCategoryAdminController",
+     "base": "/api/admin/community-categories",
+     "count": 6
+    },
+    {
+     "name": "ClubChatController",
+     "base": "",
+     "count": 1
+    },
+    {
+     "name": "ClubExtrasController",
+     "base": "/api/communities/{id}",
+     "count": 12
+    },
+    {
+     "name": "ClubJoinCodeController",
+     "base": "/api",
+     "count": 2
+    },
+    {
+     "name": "ClubPermissionController",
+     "base": "/api",
+     "count": 15
+    }
+   ],
+   "endpoints": [
+    "DELETE /api/admin/communities/{id}",
+    "DELETE /api/admin/communities/{id}/cover",
+    "DELETE /api/admin/communities/{id}/invites/{inviteId}",
+    "DELETE /api/admin/communities/{id}/members/{userId}",
+    "DELETE /api/admin/community-categories/{id}",
+    "DELETE /api/admin/community-posts/{id}",
+    "DELETE /api/communities/{id}",
+    "DELETE /api/communities/{id}/invites/{inviteId}",
+    "DELETE /api/communities/{id}/logo",
+    "DELETE /api/communities/{id}/members/{userId}",
+    "DELETE /api/communities/{id}/members/{userId}/permissions",
+    "DELETE /api/communities/{id}/membership",
+    "DELETE /api/communities/{id}/ownership-transfer",
+    "DELETE /api/communities/{id}/posts/{postId}",
+    "DELETE /api/communities/{id}/posts/{postId}/pin",
+    "GET /api/admin/communities",
+    "GET /api/admin/communities/export.csv",
+    "GET /api/admin/communities/{id}",
+    "GET /api/admin/communities/{id}/club-audit",
+    "GET /api/admin/communities/{id}/invites",
+    "GET /api/admin/communities/{id}/join-requests",
+    "GET /api/admin/communities/{id}/members",
+    "GET /api/admin/community-categories",
+    "GET /api/admin/community-posts",
+    "GET /api/admin/community-posts/{id}",
+    "GET /api/communities",
+    "GET /api/communities/categories",
+    "GET /api/communities/permission-templates",
+    "GET /api/communities/recommended",
+    "GET /api/communities/{id}",
+    "GET /api/communities/{id}/announcements",
+    "GET /api/communities/{id}/audit",
+    "GET /api/communities/{id}/chat",
+    "GET /api/communities/{id}/chat-room",
+    "GET /api/communities/{id}/invites",
+    "GET /api/communities/{id}/join-code",
+    "GET /api/communities/{id}/join-questions",
+    "GET /api/communities/{id}/members",
+    "GET /api/communities/{id}/members/search",
+    "GET /api/communities/{id}/members/{userId}/permissions",
+    "GET /api/communities/{id}/ownership-transfer",
+    "GET /api/communities/{id}/permissions/me",
+    "GET /api/communities/{id}/posts",
+    "GET /api/communities/{id}/requests",
+    "GET /api/communities/{id}/requests/{userId}/answers",
+    "GET /api/communities/{id}/stats",
+    "GET /api/me/communities",
+    "PATCH /api/admin/communities/{id}",
+    "PATCH /api/admin/communities/{id}/members/{userId}/role",
+    "PATCH /api/admin/community-categories/{id}/active",
+    "PATCH /api/admin/community-posts/{id}",
+    "PATCH /api/communities/{id}",
+    "POST /api/admin/communities/{id}/approve",
+    "POST /api/admin/communities/{id}/close",
+    "POST /api/admin/communities/{id}/cover",
+    "POST /api/admin/communities/{id}/join-requests/{userId}/approve",
+    "POST /api/admin/communities/{id}/join-requests/{userId}/reject",
+    "POST /api/admin/communities/{id}/reject",
+    "POST /api/admin/communities/{id}/reopen",
+    "POST /api/admin/communities/{id}/transfer-ownership",
+    "POST /api/admin/community-categories",
+    "POST /api/admin/community-posts/{id}/hide",
+    "POST /api/admin/community-posts/{id}/unhide",
+    "POST /api/communities",
+    "POST /api/communities/join-by-code",
+    "POST /api/communities/{id}/announcements",
+    "POST /api/communities/{id}/chat-room/join",
+    "POST /api/communities/{id}/cover",
+    "POST /api/communities/{id}/invites",
+    "POST /api/communities/{id}/join",
+    "POST /api/communities/{id}/join-by-code",
+    "POST /api/communities/{id}/logo",
+    "POST /api/communities/{id}/ownership-transfer",
+    "POST /api/communities/{id}/ownership-transfer/accept",
+    "POST /api/communities/{id}/ownership-transfer/decline",
+    "POST /api/communities/{id}/posts",
+    "POST /api/communities/{id}/posts/upload",
+    "POST /api/communities/{id}/requests/{userId}/approve",
+    "POST /api/communities/{id}/requests/{userId}/reject",
+    "PUT /api/admin/community-categories/order",
+    "PUT /api/admin/community-categories/{id}",
+    "PUT /api/communities/{id}/chat-room/closed",
+    "PUT /api/communities/{id}/join-questions",
+    "PUT /api/communities/{id}/members/{userId}/permissions",
+    "PUT /api/communities/{id}/members/{userId}/role",
+    "PUT /api/communities/{id}/posts/{postId}/pin"
+   ],
+   "entities": [
+    "ClubAudit",
+    "ClubInvite",
+    "ClubJoinAnswer",
+    "ClubJoinQuestion",
+    "ClubMemberGrant",
+    "ClubOwnershipTransfer",
+    "Community",
+    "CommunityAudience",
+    "CommunityCategory",
+    "CommunityMember",
+    "CommunityPost"
+   ],
+   "tables": [
+    "club_audit",
+    "club_invite",
+    "club_join_answer",
+    "club_join_question",
+    "club_member_grant",
+    "club_ownership_transfer",
+    "community",
+    "community_audience",
+    "community_category",
+    "community_member",
+    "community_post"
+   ],
+   "jobs": [
+    {
+     "cls": "ClubExtrasMaintenance",
+     "method": "scheduledRun",
+     "when": "fixedDelayString = \"${app.chat.room-purge-ms:300000}\", initialDelayString = \"${app.chat.room-purge-ms:300000}\""
+    }
+   ],
+   "services": [
+    "ClubAdminQueryService",
+    "ClubAdminService",
+    "ClubAnnouncementService",
+    "ClubAuditService",
+    "ClubChatRoomService",
+    "ClubChatService",
+    "ClubContentAdminService",
+    "ClubInviteService",
+    "ClubJoinCodeService",
+    "ClubJoinFormService",
+    "ClubMemberSearchService",
+    "ClubOwnershipService",
+    "ClubRoleService",
+    "ClubStatsService",
+    "CommunityAudienceService",
+    "CommunityCategoryService",
+    "CommunityPostService",
+    "CommunityService",
+    "PendingMembershipCounter"
+   ],
+   "repositories": 13,
+   "spi": [
+    "ReportTargetHandler: CommunityReportHandlers",
+    "SearchProvider: CommunitySearchProvider"
+   ],
+   "ext": [
+    "Dosya deposu",
+    "Redis"
+   ],
+   "filters": []
+  },
+  {
+   "id": "config",
+   "files": 27,
+   "lines": 2028,
+   "subpackages": [],
+   "controllers": [],
+   "endpoints": [],
+   "entities": [],
+   "tables": [],
+   "jobs": [],
+   "services": [],
+   "repositories": 0,
+   "spi": [],
+   "ext": [
+    "Redis"
+   ],
+   "filters": [
+    "BasicAuthThrottleFilter"
+   ]
+  },
+  {
+   "id": "crash",
+   "files": 8,
+   "lines": 1071,
+   "subpackages": [],
+   "controllers": [
+    {
+     "name": "CrashAdminController",
+     "base": "/api/admin/crashes",
+     "count": 5
+    },
+    {
+     "name": "CrashReportController",
+     "base": "/api/app",
+     "count": 1
+    }
+   ],
+   "endpoints": [
+    "DELETE /api/admin/crashes/{id}",
+    "GET /api/admin/crashes",
+    "GET /api/admin/crashes/summary",
+    "GET /api/admin/crashes/{id}",
+    "PATCH /api/admin/crashes/{id}/status",
+    "POST /api/app/crash-reports"
+   ],
+   "entities": [],
+   "tables": [],
+   "jobs": [
+    {
+     "cls": "CrashAlertService",
+     "method": "scheduled",
+     "when": "fixedDelay = 120_000, initialDelay = 150_000"
+    },
+    {
+     "cls": "CrashService",
+     "method": "scheduledFlush",
+     "when": "fixedDelay = 60_000, initialDelay = 90_000"
+    }
+   ],
+   "services": [
+    "CrashAdminService",
+    "CrashService"
+   ],
+   "repositories": 0,
+   "spi": [],
+   "ext": [
+    "Redis"
+   ],
+   "filters": []
+  },
+  {
+   "id": "crypto",
+   "files": 20,
+   "lines": 1356,
+   "subpackages": [],
+   "controllers": [
+    {
+     "name": "AdminCryptoController",
+     "base": "/api/admin",
+     "count": 2
+    }
+   ],
+   "endpoints": [
+    "GET /api/admin/crypto/status",
+    "POST /api/admin/crypto/rewrap"
+   ],
+   "entities": [],
+   "tables": [],
+   "jobs": [],
+   "services": [
+    "AdminDecryptService",
+    "ConversationKeyService"
+   ],
+   "repositories": 0,
+   "spi": [],
+   "ext": [
+    "Redis"
+   ],
+   "filters": []
+  },
+  {
+   "id": "dbmaint",
+   "files": 14,
+   "lines": 2099,
+   "subpackages": [
+    "admin"
+   ],
+   "controllers": [
+    {
+     "name": "RetentionAdminController",
+     "base": "/api/admin",
+     "count": 9
+    }
+   ],
+   "endpoints": [
+    "GET /api/admin/data-retention/exports",
+    "GET /api/admin/data-retention/exports/{id}",
+    "GET /api/admin/data-retention/purges",
+    "GET /api/admin/data-retention/purges/{id}",
+    "GET /api/admin/data-retention/tables",
+    "GET /api/admin/data-retention/tables/{table}/purge-preview",
+    "GET /api/admin/system/storage",
+    "POST /api/admin/data-retention/exports",
+    "POST /api/admin/data-retention/purges"
+   ],
+   "entities": [
+    "DataExportReceipt",
+    "DataPurgeLog"
+   ],
+   "tables": [
+    "data_export_receipt",
+    "data_purge_log"
+   ],
+   "jobs": [
+    {
+     "cls": "DbMaintenanceJob",
+     "method": "nightly",
+     "when": "cron = \"${app.dbmaint.cron:0 0 3 * * *}\", zone = \"Europe/Istanbul\""
+    },
+    {
+     "cls": "DbMaintenanceJob",
+     "method": "hourlyMailCodeScrub",
+     "when": "cron = \"${app.dbmaint.mail-code-scrub-cron:0 10 * * * *}\", zone = \"Europe/Istanbul\""
+    }
+   ],
+   "services": [
+    "RetentionExportService",
+    "RetentionPurgeService",
+    "RetentionService"
+   ],
+   "repositories": 2,
+   "spi": [],
+   "ext": [
+    "Redis"
+   ],
+   "filters": []
+  },
+  {
+   "id": "devseed",
+   "files": 3,
+   "lines": 513,
+   "subpackages": [],
+   "controllers": [],
+   "endpoints": [],
+   "entities": [],
+   "tables": [],
+   "jobs": [],
+   "services": [],
+   "repositories": 0,
+   "spi": [],
+   "ext": [
+    "Dosya deposu"
+   ],
+   "filters": []
+  },
+  {
+   "id": "event",
+   "files": 86,
+   "lines": 9980,
+   "subpackages": [
+    "admin",
+    "admission",
+    "chat",
+    "dto",
+    "extras"
+   ],
+   "controllers": [
+    {
+     "name": "EventAdminController",
+     "base": "/api/admin/events",
+     "count": 9
+    },
+    {
+     "name": "EventChatController",
+     "base": "",
+     "count": 1
+    },
+    {
+     "name": "EventController",
+     "base": "/api",
+     "count": 31
+    },
+    {
+     "name": "EventModeratorController",
+     "base": "/api",
+     "count": 5
+    },
+    {
+     "name": "EventAdminOpsController",
+     "base": "/api/admin/events",
+     "count": 18
+    },
+    {
+     "name": "EventAdmissionController",
+     "base": "/api",
+     "count": 16
+    },
+    {
+     "name": "EventChatController",
+     "base": "/api/events/{id}/chat-room",
+     "count": 5
+    },
+    {
+     "name": "EventExtrasController",
+     "base": "/api",
+     "count": 15
+    }
+   ],
+   "endpoints": [
+    "DELETE /api/admin/events/{id}",
+    "DELETE /api/admin/events/{id}/announcements/{aid}",
+    "DELETE /api/admin/events/{id}/feedback/{fid}",
+    "DELETE /api/admin/events/{id}/organizers/{userId}",
+    "DELETE /api/events/{id}",
+    "DELETE /api/events/{id}/applications/mine",
+    "DELETE /api/events/{id}/chat-room/membership",
+    "DELETE /api/events/{id}/co-organizers/{userId}",
+    "DELETE /api/events/{id}/cover",
+    "DELETE /api/events/{id}/moderators/{userId}",
+    "DELETE /api/events/{id}/participants/{userId}",
+    "DELETE /api/events/{id}/rsvp",
+    "DELETE /api/events/{id}/series",
+    "GET /api/admin/events",
+    "GET /api/admin/events/export.csv",
+    "GET /api/admin/events/{id}",
+    "GET /api/admin/events/{id}/announcements",
+    "GET /api/admin/events/{id}/applications",
+    "GET /api/admin/events/{id}/applications.csv",
+    "GET /api/admin/events/{id}/attendance",
+    "GET /api/admin/events/{id}/attendance.csv",
+    "GET /api/admin/events/{id}/certificates",
+    "GET /api/admin/events/{id}/feedback",
+    "GET /api/admin/events/{id}/organizers",
+    "GET /api/certificates/verify/{code}",
+    "GET /api/events",
+    "GET /api/events/calendar",
+    "GET /api/events/featured",
+    "GET /api/events/recommended",
+    "GET /api/events/{id}",
+    "GET /api/events/{id}/admission",
+    "GET /api/events/{id}/applications",
+    "GET /api/events/{id}/applications/mine",
+    "GET /api/events/{id}/applications/summary",
+    "GET /api/events/{id}/attendance",
+    "GET /api/events/{id}/attendance.csv",
+    "GET /api/events/{id}/attendance/roster",
+    "GET /api/events/{id}/attendance/summary",
+    "GET /api/events/{id}/attendees",
+    "GET /api/events/{id}/attendees/preview",
+    "GET /api/events/{id}/certificate",
+    "GET /api/events/{id}/chat",
+    "GET /api/events/{id}/chat-room",
+    "GET /api/events/{id}/checkin-code",
+    "GET /api/events/{id}/co-organizers",
+    "GET /api/events/{id}/feedback",
+    "GET /api/events/{id}/feedback/mine",
+    "GET /api/events/{id}/feedback/summary",
+    "GET /api/events/{id}/ics",
+    "GET /api/events/{id}/moderators",
+    "GET /api/events/{id}/my-attendance",
+    "GET /api/events/{id}/my-permissions",
+    "GET /api/events/{id}/my-ticket",
+    "GET /api/events/{id}/requests",
+    "GET /api/events/{id}/series",
+    "GET /api/events/{id}/ticket",
+    "GET /api/me/applications",
+    "GET /api/me/events",
+    "GET /api/me/events.ics",
+    "PATCH /api/admin/events/{id}",
+    "PATCH /api/events/{id}",
+    "POST /api/admin/events/bulk",
+    "POST /api/admin/events/{id}/applications/{userId}/accept",
+    "POST /api/admin/events/{id}/applications/{userId}/reject",
+    "POST /api/admin/events/{id}/approve",
+    "POST /api/admin/events/{id}/cancel",
+    "POST /api/admin/events/{id}/certificates/{userId}/restore",
+    "POST /api/admin/events/{id}/certificates/{userId}/revoke",
+    "POST /api/admin/events/{id}/hide",
+    "POST /api/admin/events/{id}/reject",
+    "POST /api/admin/events/{id}/unhide",
+    "POST /api/events",
+    "POST /api/events/{id}/announcements",
+    "POST /api/events/{id}/applications",
+    "POST /api/events/{id}/applications/decisions",
+    "POST /api/events/{id}/applications/{appId}/accept",
+    "POST /api/events/{id}/applications/{appId}/reject",
+    "POST /api/events/{id}/applications/{appId}/waitlist",
+    "POST /api/events/{id}/attendance/bulk",
+    "POST /api/events/{id}/cancel",
+    "POST /api/events/{id}/chat-room",
+    "POST /api/events/{id}/chat-room/join",
+    "POST /api/events/{id}/check-in",
+    "POST /api/events/{id}/close",
+    "POST /api/events/{id}/co-organizers",
+    "POST /api/events/{id}/cover",
+    "POST /api/events/{id}/feedback",
+    "POST /api/events/{id}/reopen",
+    "POST /api/events/{id}/requests/{userId}/approve",
+    "POST /api/events/{id}/requests/{userId}/reject",
+    "POST /api/events/{id}/scan",
+    "POST /api/events/{id}/series",
+    "PUT /api/admin/events/{id}/attendance/{userId}",
+    "PUT /api/events/{id}/admission",
+    "PUT /api/events/{id}/attendance-open",
+    "PUT /api/events/{id}/attendance/{userId}",
+    "PUT /api/events/{id}/chat-room/closed",
+    "PUT /api/events/{id}/cover",
+    "PUT /api/events/{id}/moderators/{userId}",
+    "PUT /api/events/{id}/rsvp"
+   ],
+   "entities": [
+    "CoOrganizer",
+    "EventAdmission",
+    "EventAnnouncement",
+    "EventApplication",
+    "EventAttendance",
+    "EventCertificate",
+    "EventFeedback",
+    "EventModerationLog",
+    "EventModerator",
+    "EventRsvp",
+    "EventSeriesMember",
+    "UserEvent"
+   ],
+   "tables": [
+    "event_admission",
+    "event_announcement",
+    "event_application",
+    "event_attendance",
+    "event_certificate",
+    "event_co_organizer",
+    "event_feedback",
+    "event_moderation_log",
+    "event_moderator",
+    "event_rsvp",
+    "event_series_member",
+    "user_event"
+   ],
+   "jobs": [
+    {
+     "cls": "EventGoingCountReconciler",
+     "method": "nightly",
+     "when": "cron = \"${app.event.going-reconcile-cron:0 20 3 * * *}\", zone = \"Europe/Istanbul\""
+    },
+    {
+     "cls": "EventReminderService",
+     "method": "scheduled",
+     "when": "fixedDelayString = \"${events.reminder.delay-ms:60000}\", initialDelayString = \"${events.reminder.initial-delay-"
+    },
+    {
+     "cls": "EventChatMaintenance",
+     "method": "scheduledRun",
+     "when": "fixedDelayString = \"${app.chat.room-purge-ms:300000}\", initialDelayString = \"${app.chat.room-purge-ms:300000}\""
+    }
+   ],
+   "services": [
+    "AnnouncementService",
+    "AttendanceService",
+    "CertificateService",
+    "CoOrganizerService",
+    "EventAdminBulkService",
+    "EventAdminCsvService",
+    "EventAdminOpsService",
+    "EventAdmissionService",
+    "EventAttendeePreviewService",
+    "EventChatService",
+    "EventFeedbackService",
+    "EventModerationService",
+    "EventModeratorService",
+    "EventReminderService",
+    "EventService",
+    "IcsService",
+    "SeriesService"
+   ],
+   "repositories": 18,
+   "spi": [
+    "ReportTargetHandler: EventCoverReportHandler",
+    "ReportTargetHandler: EventReportHandler",
+    "SearchProvider: EventSearchProvider"
+   ],
+   "ext": [
+    "Redis"
+   ],
+   "filters": []
+  },
+  {
+   "id": "export",
+   "files": 4,
+   "lines": 280,
+   "subpackages": [],
+   "controllers": [
+    {
+     "name": "DataExportController",
+     "base": "/api",
+     "count": 1
+    }
+   ],
+   "endpoints": [
+    "GET /api/users/me/export"
+   ],
+   "entities": [],
+   "tables": [],
+   "jobs": [],
+   "services": [],
+   "repositories": 0,
+   "spi": [],
+   "ext": [
+    "Redis"
+   ],
+   "filters": []
+  },
+  {
+   "id": "forum",
+   "files": 142,
+   "lines": 10758,
+   "subpackages": [
+    "admin",
+    "category",
+    "comment",
+    "comment/spi",
+    "media",
+    "moderation",
+    "moderation/spi",
+    "notify",
+    "notify/spi",
+    "poll",
+    "poll/spi",
+    "profile",
+    "search",
+    "share",
+    "topic",
+    "topic/dto",
+    "topic/spi"
+   ],
+   "controllers": [
+    {
+     "name": "ForumAdminController",
+     "base": "/api/admin/forum",
+     "count": 11
+    },
+    {
+     "name": "ForumCategoryController",
+     "base": "/api/forum/categories",
+     "count": 1
+    },
+    {
+     "name": "ForumCommentController",
+     "base": "/api/forum",
+     "count": 10
+    },
+    {
+     "name": "ForumMediaController",
+     "base": "",
+     "count": 3
+    },
+    {
+     "name": "ForumBlockAuthorController",
+     "base": "/api/forum",
+     "count": 2
+    },
+    {
+     "name": "ForumModerationController",
+     "base": "/api/forum",
+     "count": 2
+    },
+    {
+     "name": "ForumMuteController",
+     "base": "/api/forum/mutes",
+     "count": 3
+    },
+    {
+     "name": "ForumNotificationPrefController",
+     "base": "/api/forum/notification-prefs",
+     "count": 2
+    },
+    {
+     "name": "ForumPollController",
+     "base": "/api/forum/topics/{topicId}/poll",
+     "count": 3
+    },
+    {
+     "name": "ForumProfileController",
+     "base": "/api/forum",
+     "count": 7
+    },
+    {
+     "name": "ForumSearchController",
+     "base": "/api/forum/search",
+     "count": 2
+    },
+    {
+     "name": "ForumTopicController",
+     "base": "/api/forum/topics",
+     "count": 12
+    }
+   ],
+   "endpoints": [
+    "DELETE /api/admin/forum/categories/{id}",
+    "DELETE /api/forum/comments/{id}",
+    "DELETE /api/forum/comments/{id}/bookmark",
+    "DELETE /api/forum/comments/{id}/like",
+    "DELETE /api/forum/media/{id}",
+    "DELETE /api/forum/mutes/{userId}",
+    "DELETE /api/forum/topics/{id}",
+    "DELETE /api/forum/topics/{id}/bookmark",
+    "DELETE /api/forum/topics/{id}/follow",
+    "DELETE /api/forum/topics/{id}/like",
+    "DELETE /api/forum/topics/{topicId}/poll/vote",
+    "GET /api/admin/forum/actions",
+    "GET /api/admin/forum/categories",
+    "GET /api/admin/forum/reports",
+    "GET /api/admin/forum/topics",
+    "GET /api/forum/categories",
+    "GET /api/forum/comments/{id}",
+    "GET /api/forum/comments/{id}/replies",
+    "GET /api/forum/me/comments",
+    "GET /api/forum/me/following",
+    "GET /api/forum/me/saved",
+    "GET /api/forum/me/topics",
+    "GET /api/forum/media/{id}",
+    "GET /api/forum/mutes",
+    "GET /api/forum/notification-prefs",
+    "GET /api/forum/search",
+    "GET /api/forum/search/popular",
+    "GET /api/forum/topics",
+    "GET /api/forum/topics/{id}",
+    "GET /api/forum/topics/{id}/comments",
+    "GET /api/forum/topics/{topicId}/poll",
+    "GET /api/forum/users/{id}/comments",
+    "GET /api/forum/users/{id}/summary",
+    "GET /api/forum/users/{id}/topics",
+    "PATCH /api/admin/forum/categories/{id}",
+    "PATCH /api/forum/comments/{id}",
+    "PATCH /api/forum/topics/{id}",
+    "POST /api/admin/forum/categories",
+    "POST /api/admin/forum/categories/reorder",
+    "POST /api/admin/forum/comments/{id}/moderate",
+    "POST /api/admin/forum/reports/{id}/resolve",
+    "POST /api/admin/forum/topics/{id}/moderate",
+    "POST /api/forum/comments/{id}/block-author",
+    "POST /api/forum/comments/{id}/moderate",
+    "POST /api/forum/media",
+    "POST /api/forum/topics",
+    "POST /api/forum/topics/{id}/block-author",
+    "POST /api/forum/topics/{id}/comments",
+    "POST /api/forum/topics/{id}/moderate",
+    "PUT /api/forum/comments/{id}/bookmark",
+    "PUT /api/forum/comments/{id}/like",
+    "PUT /api/forum/mutes/{userId}",
+    "PUT /api/forum/notification-prefs",
+    "PUT /api/forum/topics/{id}/bookmark",
+    "PUT /api/forum/topics/{id}/follow",
+    "PUT /api/forum/topics/{id}/like",
+    "PUT /api/forum/topics/{id}/notifications",
+    "PUT /api/forum/topics/{topicId}/poll/vote"
+   ],
+   "entities": [
+    "ForumAnonAlias",
+    "ForumBookmark",
+    "ForumCategory",
+    "ForumCategoryGroup",
+    "ForumComment",
+    "ForumCommentLike",
+    "ForumMedia",
+    "ForumModerationActionRecord",
+    "ForumNotificationPref",
+    "ForumPoll",
+    "ForumPollOption",
+    "ForumPollVote",
+    "ForumTopic",
+    "ForumTopicFollow",
+    "ForumTopicImage",
+    "ForumTopicLike",
+    "ForumUserMute"
+   ],
+   "tables": [
+    "forum_anon_alias",
+    "forum_bookmark",
+    "forum_category",
+    "forum_category_group",
+    "forum_comment",
+    "forum_comment_like",
+    "forum_media",
+    "forum_moderation_action",
+    "forum_notification_pref",
+    "forum_poll",
+    "forum_poll_option",
+    "forum_poll_vote",
+    "forum_topic",
+    "forum_topic_follow",
+    "forum_topic_image",
+    "forum_topic_like",
+    "forum_user_mute"
+   ],
+   "jobs": [
+    {
+     "cls": "ForumMediaJanitor",
+     "method": "unattached",
+     "when": "cron = \"${app.forum.media.cleanup-cron:0 35 * * * *}\", zone = \"Europe/Istanbul\""
+    },
+    {
+     "cls": "ForumMediaJanitor",
+     "method": "deleted",
+     "when": "cron = \"${app.forum.media.deleted-cleanup-cron:0 50 4 * * *}\", zone = \"Europe/Istanbul\""
+    },
+    {
+     "cls": "ForumNotifyCleanupJob",
+     "method": "scheduled",
+     "when": "cron = \"${app.forum.notify-cleanup-cron:0 40 3 * * *}\", zone = \"Europe/Istanbul\""
+    }
+   ],
+   "services": [
+    "ForumAdminQueryService",
+    "ForumAnonAliasService",
+    "ForumAuthorResolverImpl",
+    "ForumBookmarkService",
+    "ForumCategoryService",
+    "ForumCommentService",
+    "ForumCommentStateServiceImpl",
+    "ForumEventPublisherImpl",
+    "ForumFeedService",
+    "ForumMediaService",
+    "ForumModerationService",
+    "ForumMuteService",
+    "ForumNotificationPrefService",
+    "ForumNotifier",
+    "ForumPollServiceImpl",
+    "ForumPollVoteService",
+    "ForumProfileService",
+    "ForumReactionService",
+    "ForumSearchService",
+    "ForumTopicLookupImpl",
+    "ForumTopicService",
+    "ForumTopicStateServiceImpl"
+   ],
+   "repositories": 15,
+   "spi": [
+    "ReportTargetHandler: ForumReportHandlers",
+    "SearchProvider: ForumSearchProvider"
+   ],
+   "ext": [
+    "Redis"
+   ],
+   "filters": []
+  },
+  {
+   "id": "health",
+   "files": 1,
+   "lines": 17,
+   "subpackages": [],
+   "controllers": [
+    {
+     "name": "HelloController",
+     "base": "/api",
+     "count": 1
+    }
+   ],
+   "endpoints": [
+    "GET /api/hello"
+   ],
+   "entities": [],
+   "tables": [],
+   "jobs": [],
+   "services": [],
+   "repositories": 0,
+   "spi": [],
+   "ext": [],
+   "filters": []
+  },
+  {
+   "id": "i18n",
+   "files": 3,
+   "lines": 127,
+   "subpackages": [],
+   "controllers": [],
+   "endpoints": [],
+   "entities": [],
+   "tables": [],
+   "jobs": [],
+   "services": [],
+   "repositories": 0,
+   "spi": [],
+   "ext": [],
+   "filters": []
+  },
+  {
+   "id": "legal",
+   "files": 10,
+   "lines": 818,
+   "subpackages": [],
+   "controllers": [
+    {
+     "name": "LegalController",
+     "base": "/api",
+     "count": 8
+    }
+   ],
+   "endpoints": [
+    "GET /api/legal",
+    "GET /api/legal/acceptance-status",
+    "GET /api/legal/consents/mine",
+    "GET /api/legal/consents/pending",
+    "GET /api/legal/{type}",
+    "GET /api/legal/{type}/versions",
+    "POST /api/admin/legal/{type}",
+    "POST /api/legal/consents"
+   ],
+   "entities": [
+    "LegalAcceptance",
+    "LegalDocument"
+   ],
+   "tables": [],
+   "jobs": [],
+   "services": [
+    "LegalService"
+   ],
+   "repositories": 2,
+   "spi": [],
+   "ext": [
+    "Redis"
+   ],
+   "filters": [
+    "LegalReacceptFilter"
+   ]
+  },
+  {
+   "id": "mail",
+   "files": 51,
+   "lines": 5862,
+   "subpackages": [
+    "admin",
+    "campaign"
+   ],
+   "controllers": [
+    {
+     "name": "MailUnsubscribeController",
+     "base": "/api/public/mail",
+     "count": 2
+    },
+    {
+     "name": "MailOpsAdminController",
+     "base": "/api/admin/mail",
+     "count": 11
+    },
+    {
+     "name": "MailCampaignAdminController",
+     "base": "/api/admin/mail/campaigns",
+     "count": 10
+    },
+    {
+     "name": "MailTemplateAdminController",
+     "base": "/api/admin/mail",
+     "count": 12
+    }
+   ],
+   "endpoints": [
+    "DELETE /api/admin/mail/suppressions/{id}",
+    "DELETE /api/admin/mail/templates/{id}",
+    "GET /api/admin/mail/campaigns",
+    "GET /api/admin/mail/campaigns/{id}",
+    "GET /api/admin/mail/campaigns/{id}/recipients",
+    "GET /api/admin/mail/outbox",
+    "GET /api/admin/mail/outbox/{id}",
+    "GET /api/admin/mail/quota",
+    "GET /api/admin/mail/suppressions",
+    "GET /api/admin/mail/suppressions/export.csv",
+    "GET /api/admin/mail/suppressions/{id}",
+    "GET /api/admin/mail/templates",
+    "GET /api/admin/mail/templates/{id}",
+    "GET /api/admin/mail/templates/{id}/versions",
+    "GET /api/admin/mail/variables",
+    "GET /api/public/mail/unsubscribe",
+    "POST /api/admin/mail/campaigns",
+    "POST /api/admin/mail/campaigns/audience/preview",
+    "POST /api/admin/mail/campaigns/{id}/cancel",
+    "POST /api/admin/mail/campaigns/{id}/pause",
+    "POST /api/admin/mail/campaigns/{id}/resume",
+    "POST /api/admin/mail/campaigns/{id}/schedule",
+    "POST /api/admin/mail/outbox/bulk",
+    "POST /api/admin/mail/outbox/{id}/cancel",
+    "POST /api/admin/mail/outbox/{id}/retry",
+    "POST /api/admin/mail/suppressions",
+    "POST /api/admin/mail/templates",
+    "POST /api/admin/mail/templates/preview",
+    "POST /api/admin/mail/templates/{id}/archive",
+    "POST /api/admin/mail/templates/{id}/preview",
+    "POST /api/admin/mail/templates/{id}/publish",
+    "POST /api/admin/mail/templates/{id}/test",
+    "POST /api/public/mail/unsubscribe",
+    "PUT /api/admin/mail/campaigns/{id}",
+    "PUT /api/admin/mail/templates/{id}"
+   ],
+   "entities": [
+    "MailCampaign",
+    "MailCustomTemplate",
+    "MailCustomTemplateVersion",
+    "MailOutbox",
+    "MailSuppression"
+   ],
+   "tables": [
+    "mail_campaign",
+    "mail_outbox",
+    "mail_suppression",
+    "mail_template_custom",
+    "mail_template_custom_version"
+   ],
+   "jobs": [
+    {
+     "cls": "MailQueueWorker",
+     "method": "poll",
+     "when": "fixedDelayString = \"${app.mail.queue-poll-ms:5000}\""
+    },
+    {
+     "cls": "MailQueueWorker",
+     "method": "purgeOld",
+     "when": "cron = \"0 40 3 * * *\", zone = \"Europe/Istanbul\""
+    },
+    {
+     "cls": "MailCampaignDispatcher",
+     "method": "poll",
+     "when": "fixedDelayString = \"${app.mail.campaign-poll-ms:10000}\""
+    },
+    {
+     "cls": "MailCampaignDispatcher",
+     "method": "purgeOld",
+     "when": "cron = \"0 20 3 * * *\", zone = \"Europe/Istanbul\""
+    }
+   ],
+   "services": [
+    "MailCampaignAdminService",
+    "MailOutboxAdminService",
+    "MailQuotaAdminService",
+    "MailService",
+    "MailSuppressionAdminService",
+    "MailSuppressionService",
+    "MailTemplateAdminService"
+   ],
+   "repositories": 7,
+   "spi": [],
+   "ext": [
+    "Kaynak siteler",
+    "Redis",
+    "SMTP"
+   ],
+   "filters": []
+  },
+  {
+   "id": "media",
+   "files": 30,
+   "lines": 3453,
+   "subpackages": [
+    "transcode"
+   ],
+   "controllers": [
+    {
+     "name": "PrivateMediaController",
+     "base": "",
+     "count": 1
+    },
+    {
+     "name": "AdminTranscodeController",
+     "base": "/api/admin/ops/transcode",
+     "count": 1
+    },
+    {
+     "name": "PostMediaCdnController",
+     "base": "",
+     "count": 1
+    }
+   ],
+   "endpoints": [
+    "GET /api/admin/ops/transcode/stats",
+    "GET /files/cdn/post/{id:[0-9]{1,18}}",
+    "GET /files/p/{bucket:[a-z]{1,20}}/{key:[A-Za-z0-9\\\\-]+\\\\.(?:jpg|png)}"
+   ],
+   "entities": [],
+   "tables": [],
+   "jobs": [
+    {
+     "cls": "MediaOrphanSweeper",
+     "method": "scheduled",
+     "when": "cron = \"${app.media.sweep-cron:0 30 3 * * *}\", zone = \"Europe/Istanbul\""
+    },
+    {
+     "cls": "TranscodeWorker",
+     "method": "tick",
+     "when": "fixedDelayString = \"${app.media.transcode.poll-ms:5000}\", initialDelayString = \"${app.media.transcode.initial-"
+    }
+   ],
+   "services": [
+    "MediaService",
+    "TranscodeService"
+   ],
+   "repositories": 1,
+   "spi": [],
+   "ext": [
+    "Redis"
+   ],
+   "filters": []
+  },
+  {
+   "id": "menu",
+   "files": 25,
+   "lines": 1691,
+   "subpackages": [
+    "dto"
+   ],
+   "controllers": [
+    {
+     "name": "MenuAdminController",
+     "base": "/api/admin/menu",
+     "count": 5
+    },
+    {
+     "name": "MenuController",
+     "base": "/api",
+     "count": 3
+    }
+   ],
+   "endpoints": [
+    "DELETE /api/admin/menu/{date}/image",
+    "GET /api/admin/menu",
+    "GET /api/menu",
+    "GET /api/menu/today",
+    "POST /api/admin/sync-menu",
+    "PUT /api/admin/menu/calories",
+    "PUT /api/admin/menu/{date}/calories",
+    "PUT /api/admin/menu/{date}/image"
+   ],
+   "entities": [
+    "DailyMenuPushLog",
+    "MenuContentImage",
+    "MenuDay",
+    "MenuDishCalorie",
+    "MenuItemCalorie"
+   ],
+   "tables": [
+    "daily_menu_push_log",
+    "menu_content_image",
+    "menu_dish_calorie",
+    "menu_item_calorie"
+   ],
+   "jobs": [
+    {
+     "cls": "MealMenuNotifier",
+     "method": "scheduled",
+     "when": "cron = \"${app.push.daily-menu-cron:0 30 11 * * *}\", zone = \"Europe/Istanbul\""
+    },
+    {
+     "cls": "MealMenuNotifier",
+     "method": "catchUp",
+     "when": "cron = \"${app.push.daily-menu-catchup-cron:0 0/15 11-13 * * *}\", zone = \"Europe/Istanbul\""
+    },
+    {
+     "cls": "MenuSyncService",
+     "method": "scheduledSync",
+     "when": "cron = \"${menu.sync.cron:0 30 23 L * *}\", zone = \"Europe/Istanbul\""
+    },
+    {
+     "cls": "MenuSyncService",
+     "method": "scheduledCatchUp",
+     "when": "cron = \"${menu.catchup.cron:-}\", zone = \"Europe/Istanbul\""
+    }
+   ],
+   "services": [
+    "MenuAdminService",
+    "MenuCalorieService",
+    "MenuContentImages",
+    "MenuService",
+    "MenuSyncService"
+   ],
+   "repositories": 4,
+   "spi": [],
+   "ext": [
+    "Kaynak siteler",
+    "Redis"
+   ],
+   "filters": []
+  },
+  {
+   "id": "messaging",
+   "files": 73,
+   "lines": 10481,
+   "subpackages": [
+    "dto",
+    "media",
+    "room",
+    "room/dept",
+    "room/notice",
+    "ws"
+   ],
+   "controllers": [
+    {
+     "name": "ConversationController",
+     "base": "/api/conversations",
+     "count": 19
+    },
+    {
+     "name": "MessageController",
+     "base": "/api",
+     "count": 11
+    },
+    {
+     "name": "MessageInfoController",
+     "base": "/api/messages",
+     "count": 1
+    },
+    {
+     "name": "AdminMediaPreviewController",
+     "base": "/api/admin/media/attachments",
+     "count": 1
+    },
+    {
+     "name": "MessageMediaController",
+     "base": "/api/conversations/{cid}/media",
+     "count": 6
+    },
+    {
+     "name": "DepartmentChatAdminController",
+     "base": "/api/admin/department-chats",
+     "count": 2
+    },
+    {
+     "name": "DepartmentChatController",
+     "base": "/api/department-chat",
+     "count": 4
+    },
+    {
+     "name": "RoomNoticeController",
+     "base": "/api/conversations/{cid}/notices",
+     "count": 6
+    },
+    {
+     "name": "ChatWsController",
+     "base": "",
+     "count": 0
+    },
+    {
+     "name": "ClientStateController",
+     "base": "/api",
+     "count": 3
+    }
+   ],
+   "endpoints": [
+    "DELETE /api/conversations/{cid}/media/{aid}",
+    "DELETE /api/conversations/{cid}/notices/{id}",
+    "DELETE /api/conversations/{id}",
+    "DELETE /api/conversations/{id}/archive",
+    "DELETE /api/conversations/{id}/avatar",
+    "DELETE /api/conversations/{id}/members/{userId}",
+    "DELETE /api/conversations/{id}/mute",
+    "DELETE /api/conversations/{id}/viewing",
+    "DELETE /api/department-chat/membership",
+    "DELETE /api/messages/{id}",
+    "DELETE /api/messages/{id}/reaction",
+    "GET /api/admin/department-chats",
+    "GET /api/admin/media/attachments/{id}/preview",
+    "GET /api/conversations",
+    "GET /api/conversations/requests",
+    "GET /api/conversations/requests/count",
+    "GET /api/conversations/unread-count",
+    "GET /api/conversations/{cid}/media/{aid}",
+    "GET /api/conversations/{cid}/media/{aid}/link",
+    "GET /api/conversations/{cid}/media/{aid}/thumb",
+    "GET /api/conversations/{cid}/notices",
+    "GET /api/conversations/{cid}/notices/pinned",
+    "GET /api/conversations/{id}",
+    "GET /api/conversations/{id}/messages",
+    "GET /api/department-chat",
+    "GET /api/department-chat/rooms",
+    "GET /api/messages/reactions",
+    "GET /api/messages/{id}/info",
+    "GET /api/users/{id}/presence",
+    "PATCH /api/conversations/{cid}/notices/{id}",
+    "PATCH /api/conversations/{id}",
+    "PATCH /api/messages/{id}",
+    "POST /api/conversations",
+    "POST /api/conversations/{cid}/media",
+    "POST /api/conversations/{cid}/media/{aid}/report",
+    "POST /api/conversations/{cid}/notices",
+    "POST /api/conversations/{cid}/notices/{id}/seen",
+    "POST /api/conversations/{id}/accept",
+    "POST /api/conversations/{id}/decline",
+    "POST /api/conversations/{id}/delivered",
+    "POST /api/conversations/{id}/leave",
+    "POST /api/conversations/{id}/members",
+    "POST /api/conversations/{id}/messages",
+    "POST /api/conversations/{id}/read",
+    "POST /api/department-chat/join",
+    "POST /api/messages/{id}/report",
+    "PUT /api/admin/department-chats/{id}/closed",
+    "PUT /api/conversations/{id}/archive",
+    "PUT /api/conversations/{id}/avatar",
+    "PUT /api/conversations/{id}/mute",
+    "PUT /api/conversations/{id}/viewing",
+    "PUT /api/devices/{fcmToken}/state",
+    "PUT /api/messages/{id}/reaction"
+   ],
+   "entities": [
+    "ChatRoomLink",
+    "Conversation",
+    "ConversationAddBan",
+    "ConversationMember",
+    "DepartmentChatRoom",
+    "Message",
+    "MessageAttachment",
+    "MessageAttachmentView",
+    "MessageReaction",
+    "RoomNotice"
+   ],
+   "tables": [
+    "chat_room_link",
+    "conversation_add_ban",
+    "conversation_member",
+    "department_chat_room",
+    "message_attachment",
+    "message_attachment_view",
+    "message_reaction",
+    "room_notice"
+   ],
+   "jobs": [
+    {
+     "cls": "DeletedMessageRetention",
+     "method": "scheduledPurge",
+     "when": "cron = \"${app.chat.deleted-retention-cron:0 40 3 * * *}\", zone = \"Europe/Istanbul\""
+    },
+    {
+     "cls": "MessageEncryptionMigrator",
+     "method": "scheduled",
+     "when": "initialDelayString = \"${app.crypto.migrate-initial-delay-ms:15000}\", fixedDelayString = \"${app.crypto.migrate-"
+    },
+    {
+     "cls": "ChatMediaMaintenance",
+     "method": "scheduled",
+     "when": "cron = \"${app.chat.media.cleanup-cron:0 15 * * * *}\", zone = \"Europe/Istanbul\""
+    },
+    {
+     "cls": "ChatMediaMaintenance",
+     "method": "purgeViewOnce",
+     "when": "cron = \"${app.chat.media.view-once-cron:0 30 * * * *}\", zone = \"Europe/Istanbul\""
+    },
+    {
+     "cls": "RoomMaintenance",
+     "method": "scheduledPurge",
+     "when": "fixedDelayString = \"${app.chat.room-purge-ms:300000}\", initialDelayString = \"${app.chat.room-purge-ms:300000}\""
+    },
+    {
+     "cls": "PresenceService",
+     "method": "refreshLocal",
+     "when": "fixedDelay = 10_000"
+    },
+    {
+     "cls": "TokenExpiryGuard",
+     "method": "sweep",
+     "when": "fixedDelay = 30_000"
+    }
+   ],
+   "services": [
+    "ConversationPrefsService",
+    "ConversationService",
+    "DepartmentChatService",
+    "MessageActionService",
+    "MessageAttachmentService",
+    "MessageService",
+    "PresenceService",
+    "ReceiptService",
+    "RoomConversations",
+    "RoomModeration",
+    "RoomNoticeService"
+   ],
+   "repositories": 10,
+   "spi": [
+    "ReportTargetHandler: MessageReportHandler",
+    "ReportTargetHandler: MessageImageReportHandler",
+    "ReportTargetHandler: RoomNoticeReportHandler"
+   ],
+   "ext": [
+    "Redis",
+    "WebSocket/STOMP"
+   ],
+   "filters": []
+  },
+  {
+   "id": "moderation",
+   "files": 66,
+   "lines": 5464,
+   "subpackages": [
+    "admin",
+    "dto",
+    "profanity"
+   ],
+   "controllers": [
+    {
+     "name": "AdminModerationController",
+     "base": "/api/admin",
+     "count": 7
+    },
+    {
+     "name": "AdminModerationExtrasController",
+     "base": "/api/admin/moderation",
+     "count": 8
+    },
+    {
+     "name": "AppealController",
+     "base": "/api/appeals",
+     "count": 2
+    },
+    {
+     "name": "BlockController",
+     "base": "/api/users",
+     "count": 3
+    },
+    {
+     "name": "ReportController",
+     "base": "/api/reports",
+     "count": 2
+    },
+    {
+     "name": "ModerationAdminController",
+     "base": "/api/admin",
+     "count": 9
+    },
+    {
+     "name": "ModerationExportController",
+     "base": "/api/admin",
+     "count": 2
+    },
+    {
+     "name": "ProfanityAdminController",
+     "base": "/api/admin/profanity",
+     "count": 8
+    }
+   ],
+   "endpoints": [
+    "DELETE /api/admin/moderation/blocklist/{sha256}",
+    "DELETE /api/admin/moderation/reason-templates/{id}",
+    "DELETE /api/admin/profanity/{id}",
+    "DELETE /api/users/{id}/block",
+    "GET /api/admin/appeals/export.csv",
+    "GET /api/admin/moderation/appeals",
+    "GET /api/admin/moderation/blocklist",
+    "GET /api/admin/moderation/hidden",
+    "GET /api/admin/moderation/reason-templates",
+    "GET /api/admin/moderation/strikes",
+    "GET /api/admin/moderation/suspend-recommendations",
+    "GET /api/admin/profanity",
+    "GET /api/admin/profanity/export.csv",
+    "GET /api/admin/profanity/info",
+    "GET /api/admin/profanity/stats",
+    "GET /api/admin/reports",
+    "GET /api/admin/reports/export.csv",
+    "GET /api/admin/reports/reason-templates",
+    "GET /api/admin/stats",
+    "GET /api/admin/users/{id}/strikes",
+    "GET /api/appeals/mine",
+    "GET /api/reports/mine",
+    "GET /api/users/me/blocks",
+    "POST /api/admin/moderation/appeals/{id}/decide",
+    "POST /api/admin/moderation/blocklist",
+    "POST /api/admin/moderation/hidden/{type}/{id}/restore",
+    "POST /api/admin/moderation/reason-templates",
+    "POST /api/admin/moderation/strikes/{id}/forgive",
+    "POST /api/admin/moderation/suspend-recommendations/{id}/accept",
+    "POST /api/admin/moderation/suspend-recommendations/{id}/dismiss",
+    "POST /api/admin/profanity",
+    "POST /api/admin/profanity/bulk",
+    "POST /api/admin/profanity/check",
+    "POST /api/admin/reports/bulk-resolve",
+    "POST /api/admin/reports/{id}/resolve",
+    "POST /api/admin/users/{id}/suspend",
+    "POST /api/admin/users/{id}/unsuspend",
+    "POST /api/appeals",
+    "POST /api/reports",
+    "POST /api/users/{id}/block",
+    "PUT /api/admin/moderation/reason-templates/{id}"
+   ],
+   "entities": [
+    "AccountDeleteHold",
+    "BlockedContentHash",
+    "ModerationAppeal",
+    "ModerationReasonTemplate",
+    "ModerationStrike",
+    "ModerationTargetState",
+    "ProfanityHitLog",
+    "ProfanityTerm",
+    "Report",
+    "SuspendRecommendation",
+    "UserBlock",
+    "ViolationLedger"
+   ],
+   "tables": [
+    "account_delete_hold",
+    "violation_ledger"
+   ],
+   "jobs": [
+    {
+     "cls": "ViolationLedgerService",
+     "method": "purgeExpired",
+     "when": "cron = \"0 40 4 * * *\", zone = \"Europe/Istanbul\""
+    },
+    {
+     "cls": "ProfanityHitLogger",
+     "method": "purgeOld",
+     "when": "cron = \"0 30 4 * * *\", zone = \"Europe/Istanbul\""
+    }
+   ],
+   "services": [
+    "AccountDeleteHolds",
+    "AppealService",
+    "BlockService",
+    "ContentBlocklist",
+    "ContentGuard",
+    "HiddenContentAdminService",
+    "ProfanityFilter",
+    "ProfanityHitLogger",
+    "ReasonTemplateService",
+    "ReportService",
+    "ReporterClusters",
+    "StrikeAdminService",
+    "StrikeService",
+    "UserModerationService",
+    "ViolationLedgerService"
+   ],
+   "repositories": 12,
+   "spi": [
+    "ReportTargetHandler: ConversationReportHandler",
+    "ReportTargetHandler: SmokeReportTargetHandler",
+    "ReportTargetHandler: UserReportHandler"
+   ],
+   "ext": [
+    "Redis"
+   ],
+   "filters": []
+  },
+  {
+   "id": "news",
+   "files": 13,
+   "lines": 1050,
+   "subpackages": [
+    "dto"
+   ],
+   "controllers": [
+    {
+     "name": "NewsController",
+     "base": "/api",
+     "count": 3
+    }
+   ],
+   "endpoints": [
+    "GET /api/news",
+    "GET /api/news/{id}",
+    "POST /api/admin/sync"
+   ],
+   "entities": [
+    "NewsItem"
+   ],
+   "tables": [
+    "news_item"
+   ],
+   "jobs": [
+    {
+     "cls": "NewsSyncService",
+     "method": "scheduledSync",
+     "when": "cron = \"${news.sync.cron:0 0 0 * * *}\", zone = \"Europe/Istanbul\""
+    }
+   ],
+   "services": [
+    "NewsService",
+    "NewsSyncService"
+   ],
+   "repositories": 1,
+   "spi": [],
+   "ext": [
+    "Kaynak siteler",
+    "Redis"
+   ],
+   "filters": []
+  },
+  {
+   "id": "notification",
+   "files": 77,
+   "lines": 8371,
+   "subpackages": [
+    "admin",
+    "campaign",
+    "dto",
+    "fcm",
+    "live",
+    "outbox"
+   ],
+   "controllers": [
+    {
+     "name": "NotificationController",
+     "base": "/api",
+     "count": 12
+    },
+    {
+     "name": "NotificationMuteController",
+     "base": "",
+     "count": 5
+    },
+    {
+     "name": "PushFcmAdminController",
+     "base": "/api/admin/push/fcm",
+     "count": 2
+    },
+    {
+     "name": "PushOpsController",
+     "base": "/api/admin",
+     "count": 8
+    },
+    {
+     "name": "CampaignController",
+     "base": "/api/admin/push",
+     "count": 11
+    },
+    {
+     "name": "LiveActivityController",
+     "base": "/api/live-activities",
+     "count": 3
+    },
+    {
+     "name": "PushOutboxAdminController",
+     "base": "/api/admin/push/outbox",
+     "count": 2
+    }
+   ],
+   "endpoints": [
+    "DELETE /api/devices/{idOrToken}",
+    "DELETE /api/live-activities/{activityId}",
+    "DELETE /api/notifications",
+    "DELETE /api/notifications/{id}",
+    "GET /api/admin/notifications/stats",
+    "GET /api/admin/push/campaigns",
+    "GET /api/admin/push/campaigns/{id}",
+    "GET /api/admin/push/campaigns/{id}/failures",
+    "GET /api/admin/push/devices/summary",
+    "GET /api/admin/push/fcm/status",
+    "GET /api/admin/push/outbox",
+    "GET /api/admin/push/outbox/stats",
+    "GET /api/admin/push/outbox/{id}",
+    "GET /api/communities/{id}/notification-mute",
+    "GET /api/devices",
+    "GET /api/events/{id}/notification-mute",
+    "GET /api/live-activities/status",
+    "GET /api/me/notification-mutes",
+    "GET /api/notifications",
+    "GET /api/notifications/preferences",
+    "GET /api/notifications/unread-count",
+    "GET /api/notifications/unread-counts",
+    "POST /api/admin/push/audience-count",
+    "POST /api/admin/push/audience/preview",
+    "POST /api/admin/push/campaigns",
+    "POST /api/admin/push/campaigns/test",
+    "POST /api/admin/push/campaigns/{id}/cancel",
+    "POST /api/admin/push/campaigns/{id}/pause",
+    "POST /api/admin/push/campaigns/{id}/resend",
+    "POST /api/admin/push/campaigns/{id}/resume",
+    "POST /api/admin/push/fcm/validate",
+    "POST /api/admin/push/outbox/bulk",
+    "POST /api/admin/push/outbox/retry-dead",
+    "POST /api/admin/push/outbox/{id}/cancel",
+    "POST /api/admin/push/outbox/{id}/retry",
+    "POST /api/admin/push/users/{userId}/send",
+    "POST /api/devices",
+    "POST /api/notifications/read",
+    "POST /api/notifications/{id}/read",
+    "PUT /api/communities/{id}/notification-mute",
+    "PUT /api/events/{id}/notification-mute",
+    "PUT /api/live-activities/{activityId}",
+    "PUT /api/notifications/preferences"
+   ],
+   "entities": [
+    "Device",
+    "LiveActivity",
+    "Notification",
+    "NotificationMute",
+    "NotificationPref",
+    "NotificationSubtypePref",
+    "PushCampaign",
+    "PushOutbox"
+   ],
+   "tables": [
+    "live_activity",
+    "notification_mute",
+    "notification_subtype_pref",
+    "push_outbox"
+   ],
+   "jobs": [
+    {
+     "cls": "DeviceCleanupJob",
+     "method": "scheduled",
+     "when": "cron = \"${app.push.device-cleanup-cron:0 0 4 * * *}\", zone = \"Europe/Istanbul\""
+    },
+    {
+     "cls": "NotificationRetentionJob",
+     "method": "scheduled",
+     "when": "cron = \"${app.notification.retention-cron:0 30 3 * * *}\", zone = \"Europe/Istanbul\""
+    },
+    {
+     "cls": "CampaignService",
+     "method": "dispatchDue",
+     "when": "fixedDelayString = \"${app.push.poll-ms:10000}\""
+    },
+    {
+     "cls": "CampaignService",
+     "method": "recoverStale",
+     "when": "fixedDelayString = \"${app.push.campaign-recover-ms:60000}\""
+    },
+    {
+     "cls": "LiveActivityService",
+     "method": "cleanup",
+     "when": "cron = \"0 17 * * * *\", zone = \"Europe/Istanbul\""
+    },
+    {
+     "cls": "PushOutboxWorker",
+     "method": "poll",
+     "when": "fixedDelayString = \"${app.push.outbox.poll-ms:5000}\""
+    },
+    {
+     "cls": "PushOutboxWorker",
+     "method": "purgeOld",
+     "when": "cron = \"${app.push.outbox.cleanup-cron:0 20 3 * * *}\", zone = \"Europe/Istanbul\""
+    }
+   ],
+   "services": [
+    "CampaignService",
+    "DeviceService",
+    "LiveActivityService",
+    "NotificationInboxService",
+    "NotificationMuteService",
+    "NotificationPrefService",
+    "NotificationService",
+    "PushOpsReadService",
+    "PushOutboxOpsService",
+    "PushOutboxService"
+   ],
+   "repositories": 8,
+   "spi": [],
+   "ext": [
+    "FCM",
+    "Redis"
+   ],
+   "filters": []
+  },
+  {
+   "id": "observability",
+   "files": 16,
+   "lines": 2079,
+   "subpackages": [],
+   "controllers": [
+    {
+     "name": "SystemOverviewController",
+     "base": "/api/admin/system",
+     "count": 8
+    }
+   ],
+   "endpoints": [
+    "GET /api/admin/system/backup",
+    "GET /api/admin/system/dead-letters/mail",
+    "GET /api/admin/system/dead-letters/push",
+    "GET /api/admin/system/overview",
+    "POST /api/admin/system/dead-letters/mail/delete",
+    "POST /api/admin/system/dead-letters/mail/retry",
+    "POST /api/admin/system/dead-letters/push/delete",
+    "POST /api/admin/system/dead-letters/push/retry"
+   ],
+   "entities": [],
+   "tables": [],
+   "jobs": [
+    {
+     "cls": "StorageAlertJob",
+     "method": "scheduled",
+     "when": "fixedDelayString = \"${app.observability.storage-check-ms:900000}\", initialDelay = 180_000"
+    },
+    {
+     "cls": "SystemAlertService",
+     "method": "scheduled",
+     "when": "fixedDelay = 60_000, initialDelay = 120_000"
+    }
+   ],
+   "services": [
+    "DeadLetterService",
+    "StorageUsageService",
+    "SystemOverviewService"
+   ],
+   "repositories": 0,
+   "spi": [],
+   "ext": [
+    "Redis"
+   ],
+   "filters": [
+    "RequestIdFilter"
+   ]
+  },
+  {
+   "id": "poll",
+   "files": 23,
+   "lines": 2902,
+   "subpackages": [],
+   "controllers": [
+    {
+     "name": "PollAdminController",
+     "base": "/api/admin/polls",
+     "count": 8
+    },
+    {
+     "name": "PollController",
+     "base": "/api/polls",
+     "count": 10
+    }
+   ],
+   "endpoints": [
+    "DELETE /api/admin/polls/{id}",
+    "DELETE /api/polls/{id}",
+    "DELETE /api/polls/{id}/vote",
+    "GET /api/admin/polls",
+    "GET /api/admin/polls/stats",
+    "GET /api/admin/polls/{id}",
+    "GET /api/admin/polls/{id}/export.csv",
+    "GET /api/polls",
+    "GET /api/polls/menu/today",
+    "GET /api/polls/{id}",
+    "GET /api/polls/{id}/export.csv",
+    "PATCH /api/polls/{id}",
+    "POST /api/admin/polls/bulk",
+    "POST /api/admin/polls/{id}/cancel",
+    "POST /api/admin/polls/{id}/close",
+    "POST /api/polls",
+    "POST /api/polls/{id}/close",
+    "POST /api/polls/{id}/vote"
+   ],
+   "entities": [
+    "Poll",
+    "PollBallot",
+    "PollOption",
+    "PollVote"
+   ],
+   "tables": [
+    "poll",
+    "poll_ballot",
+    "poll_option",
+    "poll_vote"
+   ],
+   "jobs": [
+    {
+     "cls": "PollCloseJob",
+     "method": "scheduled",
+     "when": "cron = \"${app.poll.close-cron:0 */10 * * * *}\", zone = \"Europe/Istanbul\""
+    },
+    {
+     "cls": "PollCloseJob",
+     "method": "ensureMenuPoll",
+     "when": "cron = \"0 5 0 * * *\", zone = \"Europe/Istanbul\""
+    }
+   ],
+   "services": [
+    "PollAdminService",
+    "PollMenuService",
+    "PollService",
+    "PollVoteService"
+   ],
+   "repositories": 4,
+   "spi": [
+    "ReportTargetHandler: PollReportHandler"
+   ],
+   "ext": [
+    "Redis"
+   ],
+   "filters": []
+  },
+  {
+   "id": "post",
+   "files": 106,
+   "lines": 10361,
+   "subpackages": [
+    "admin",
+    "comment",
+    "feed",
+    "follow",
+    "like",
+    "media",
+    "mention",
+    "notify",
+    "popularity",
+    "reel",
+    "reels",
+    "save",
+    "social",
+    "spi"
+   ],
+   "controllers": [
+    {
+     "name": "FeedController",
+     "base": "/api/feed",
+     "count": 3
+    },
+    {
+     "name": "PostController",
+     "base": "/api",
+     "count": 10
+    },
+    {
+     "name": "AdminPostController",
+     "base": "/api/admin",
+     "count": 7
+    },
+    {
+     "name": "AdminPostCommentController",
+     "base": "/api/admin",
+     "count": 4
+    },
+    {
+     "name": "PostCommentController",
+     "base": "/api",
+     "count": 9
+    },
+    {
+     "name": "FollowController",
+     "base": "/api/users",
+     "count": 5
+    },
+    {
+     "name": "FollowRequestController",
+     "base": "/api/users/me/follow-requests",
+     "count": 4
+    },
+    {
+     "name": "LikedPostsController",
+     "base": "/api/posts",
+     "count": 1
+    },
+    {
+     "name": "PostLikeController",
+     "base": "/api/posts/{id}",
+     "count": 2
+    },
+    {
+     "name": "PostMediaController",
+     "base": "",
+     "count": 4
+    },
+    {
+     "name": "UserReelsController",
+     "base": "/api",
+     "count": 1
+    },
+    {
+     "name": "PostSaveController",
+     "base": "/api/posts",
+     "count": 3
+    }
+   ],
+   "endpoints": [
+    "DELETE /api/admin/post-comments/{id}",
+    "DELETE /api/admin/posts/{id}",
+    "DELETE /api/comments/{cid}/like",
+    "DELETE /api/post-comments/{cid}",
+    "DELETE /api/post-comments/{cid}/like",
+    "DELETE /api/posts/media/{id}",
+    "DELETE /api/posts/{id}",
+    "DELETE /api/posts/{id}/like",
+    "DELETE /api/posts/{id}/not-interested",
+    "DELETE /api/posts/{id}/save",
+    "DELETE /api/users/{id}/follow",
+    "GET /api/admin/posts",
+    "GET /api/admin/posts/media/{id}",
+    "GET /api/admin/posts/stats",
+    "GET /api/admin/posts/{id}",
+    "GET /api/admin/posts/{id}/comments",
+    "GET /api/feed",
+    "GET /api/feed/reels",
+    "GET /api/post-comments/{cid}",
+    "GET /api/post-comments/{cid}/replies",
+    "GET /api/posts/liked",
+    "GET /api/posts/media/{id}",
+    "GET /api/posts/mine",
+    "GET /api/posts/saved",
+    "GET /api/posts/{id}",
+    "GET /api/posts/{id}/comments",
+    "GET /api/users/me/follow-requests",
+    "GET /api/users/me/follow-requests/count",
+    "GET /api/users/me/follow-suggestions",
+    "GET /api/users/{id}/followers",
+    "GET /api/users/{id}/following",
+    "GET /api/users/{id}/posts",
+    "GET /api/users/{id}/reels",
+    "PATCH /api/admin/posts/{id}",
+    "PATCH /api/posts/{id}",
+    "PATCH /api/posts/{id}/settings",
+    "POST /api/admin/post-comments/{id}/hide",
+    "POST /api/admin/post-comments/{id}/unhide",
+    "POST /api/admin/posts/{id}/hide",
+    "POST /api/admin/posts/{id}/unhide",
+    "POST /api/feed/seen",
+    "POST /api/posts",
+    "POST /api/posts/media",
+    "POST /api/posts/{id}/comments",
+    "POST /api/posts/{id}/not-interested",
+    "POST /api/posts/{id}/view",
+    "POST /api/users/me/follow-requests/{userId}/accept",
+    "POST /api/users/me/follow-requests/{userId}/decline",
+    "POST /api/users/{id}/follow",
+    "PUT /api/comments/{cid}/like",
+    "PUT /api/post-comments/{cid}/like",
+    "PUT /api/posts/{id}/like",
+    "PUT /api/posts/{id}/save"
+   ],
+   "entities": [
+    "FollowRequest",
+    "FollowStats",
+    "Post",
+    "PostComment",
+    "PostCommentLike",
+    "PostLike",
+    "PostMedia",
+    "PostMention",
+    "PostSave",
+    "PostWatch",
+    "UserFollow",
+    "UserPopularity"
+   ],
+   "tables": [
+    "follow_request",
+    "post",
+    "post_comment",
+    "post_comment_like",
+    "post_like",
+    "post_media",
+    "post_mention",
+    "post_save",
+    "post_watch",
+    "user_follow",
+    "user_follow_stats",
+    "user_popularity"
+   ],
+   "jobs": [
+    {
+     "cls": "PostCounterRepairJob",
+     "method": "scheduled",
+     "when": "cron = \"${app.post.counter-repair-cron:0 30 3 * * *}\", zone = \"Europe/Istanbul\""
+    },
+    {
+     "cls": "PostRankService",
+     "method": "scheduled",
+     "when": "fixedDelayString = \"${app.post.rank.recompute-ms:300000}\", initialDelayString = \"${app.post.rank.initial-delay"
+    },
+    {
+     "cls": "PostScoreJob",
+     "method": "scheduled",
+     "when": "cron = \"${app.post.score-cron:0 5 * * * *}\", zone = \"Europe/Istanbul\""
+    },
+    {
+     "cls": "PostRetentionJob",
+     "method": "scheduled",
+     "when": "cron = \"${app.post.retention.cron:0 10 5 * * *}\", zone = \"Europe/Istanbul\""
+    },
+    {
+     "cls": "CommentCounterRepairJob",
+     "method": "scheduled",
+     "when": "cron = \"${app.post.comment-repair-cron:0 40 3 * * *}\", zone = \"Europe/Istanbul\""
+    },
+    {
+     "cls": "FollowRequestJob",
+     "method": "scheduled",
+     "when": "fixedDelayString = \"${app.follow.request-heal-ms:300000}\", initialDelayString = \"${app.follow.request-heal-ms:"
+    },
+    {
+     "cls": "PostMediaJanitor",
+     "method": "unattached",
+     "when": "cron = \"${app.post.media.cleanup-cron:0 25 * * * *}\", zone = \"Europe/Istanbul\""
+    },
+    {
+     "cls": "PostMediaJanitor",
+     "method": "deleted",
+     "when": "cron = \"${app.post.media.deleted-cleanup-cron:0 40 4 * * *}\", zone = \"Europe/Istanbul\""
+    },
+    {
+     "cls": "UserPopularityService",
+     "method": "scheduled",
+     "when": "fixedDelayString = \"${app.post.popularity.recompute-ms:3600000}\", initialDelayString = \"${app.post.popularity."
+    },
+    {
+     "cls": "PostWatchRetentionJob",
+     "method": "scheduled",
+     "when": "cron = \"${app.post.reels.retention-cron:0 20 5 * * *}\", zone = \"Europe/Istanbul\""
+    }
+   ],
+   "services": [
+    "AdminPostCommentService",
+    "AdminPostService",
+    "CommentNotifier",
+    "FamiliarityService",
+    "FeedSeenService",
+    "FollowRequestService",
+    "FollowService",
+    "LikedPostsService",
+    "PostCommentService",
+    "PostLikeService",
+    "PostMediaService",
+    "PostMentionService",
+    "PostNotifier",
+    "PostRankService",
+    "PostSaveService",
+    "PostService",
+    "ReelsService",
+    "UserPopularityService",
+    "UserReelsService"
+   ],
+   "repositories": 14,
+   "spi": [
+    "ReportTargetHandler: PostReportHandlers",
+    "SearchProvider: PostSearchProvider",
+    "ReportTargetHandler: CommentReportHandler",
+    "SearchProvider: ReelSearchProvider"
+   ],
+   "ext": [
+    "Redis"
+   ],
+   "filters": []
+  },
+  {
+   "id": "profile",
+   "files": 33,
+   "lines": 3515,
+   "subpackages": [
+    "completeness",
+    "dto",
+    "naming",
+    "onboarding",
+    "privacy"
+   ],
+   "controllers": [
+    {
+     "name": "MeSummaryController",
+     "base": "/api/me",
+     "count": 1
+    },
+    {
+     "name": "ProfileController",
+     "base": "/api",
+     "count": 9
+    },
+    {
+     "name": "CompletenessController",
+     "base": "",
+     "count": 1
+    },
+    {
+     "name": "OnboardingController",
+     "base": "/api/users",
+     "count": 3
+    },
+    {
+     "name": "PrivacyController",
+     "base": "/api/users/me/privacy",
+     "count": 1
+    }
+   ],
+   "endpoints": [
+    "DELETE /api/users/me",
+    "DELETE /api/users/me/avatar",
+    "GET /api/departments",
+    "GET /api/faculties",
+    "GET /api/me/summary",
+    "GET /api/users/me",
+    "GET /api/users/me/completeness",
+    "GET /api/users/me/privacy",
+    "GET /api/users/search",
+    "GET /api/users/username-available",
+    "GET /api/users/{id}",
+    "PATCH /api/users/me",
+    "POST /api/users/me/avatar",
+    "PUT /api/users/me/onboarding",
+    "PUT /api/users/me/username"
+   ],
+   "entities": [
+    "DisplayNameChange",
+    "ProfilePrivacy"
+   ],
+   "tables": [
+    "display_name_history",
+    "profile_privacy"
+   ],
+   "jobs": [
+    {
+     "cls": "DeletionLedgerReapplier",
+     "method": "nightly",
+     "when": "cron = \"${app.privacy.deletion-ledger-cron:0 50 3 * * *}\", zone = \"Europe/Istanbul\""
+    }
+   ],
+   "services": [
+    "AvatarVisibility",
+    "CompletenessService",
+    "MeSummaryService",
+    "OnboardingService",
+    "PrivacyService",
+    "ProfileService"
+   ],
+   "repositories": 2,
+   "spi": [
+    "SearchProvider: UserSearchProvider",
+    "ReportTargetHandler: AvatarReportHandler"
+   ],
+   "ext": [
+    "Redis"
+   ],
+   "filters": []
+  },
+  {
+   "id": "search",
+   "files": 11,
+   "lines": 518,
+   "subpackages": [],
+   "controllers": [
+    {
+     "name": "SearchController",
+     "base": "/api",
+     "count": 1
+    },
+    {
+     "name": "SearchSuggestController",
+     "base": "",
+     "count": 1
+    }
+   ],
+   "endpoints": [
+    "GET /api/search",
+    "GET /api/search/suggest"
+   ],
+   "entities": [],
+   "tables": [],
+   "jobs": [],
+   "services": [
+    "SearchService",
+    "SearchSuggestService"
+   ],
+   "repositories": 0,
+   "spi": [
+    "SearchProvider: NewsSearchProvider"
+   ],
+   "ext": [
+    "Redis"
+   ],
+   "filters": []
+  },
+  {
+   "id": "share",
+   "files": 8,
+   "lines": 1042,
+   "subpackages": [],
+   "controllers": [
+    {
+     "name": "SharePageController",
+     "base": "",
+     "count": 2
+    }
+   ],
+   "endpoints": [
+    "GET /s/{t}/{id}",
+    "GET /s/{t}/{id}/img"
+   ],
+   "entities": [],
+   "tables": [],
+   "jobs": [],
+   "services": [
+    "ShareService"
+   ],
+   "repositories": 0,
+   "spi": [],
+   "ext": [
+    "Redis"
+   ],
+   "filters": []
+  },
+  {
+   "id": "status",
+   "files": 7,
+   "lines": 281,
+   "subpackages": [
+    "dto"
+   ],
+   "controllers": [
+    {
+     "name": "StatusController",
+     "base": "/api",
+     "count": 1
+    }
+   ],
+   "endpoints": [
+    "GET /api/status"
+   ],
+   "entities": [
+    "SyncStatus"
+   ],
+   "tables": [],
+   "jobs": [],
+   "services": [
+    "StatusService",
+    "StatusViewService"
+   ],
+   "repositories": 1,
+   "spi": [],
+   "ext": [],
+   "filters": []
+  },
+  {
+   "id": "support",
+   "files": 29,
+   "lines": 2652,
+   "subpackages": [
+    "admin",
+    "faq",
+    "feedback",
+    "ticket"
+   ],
+   "controllers": [
+    {
+     "name": "SupportAdminController",
+     "base": "/api/admin",
+     "count": 7
+    },
+    {
+     "name": "SupportExportController",
+     "base": "/api/admin/support",
+     "count": 2
+    },
+    {
+     "name": "FaqController",
+     "base": "/api",
+     "count": 5
+    },
+    {
+     "name": "FeedbackController",
+     "base": "/api",
+     "count": 7
+    },
+    {
+     "name": "PublicSupportController",
+     "base": "/api/public/support",
+     "count": 5
+    },
+    {
+     "name": "TicketController",
+     "base": "/api",
+     "count": 9
+    }
+   ],
+   "endpoints": [
+    "DELETE /api/admin/faq/{id}",
+    "DELETE /api/admin/support/feedback/{id}",
+    "DELETE /api/admin/support/tickets/{id}",
+    "DELETE /api/suggestions/{id}/vote",
+    "GET /api/admin/faq",
+    "GET /api/admin/feedback",
+    "GET /api/admin/support/feedback/export.csv",
+    "GET /api/admin/support/tickets",
+    "GET /api/admin/support/tickets/export.csv",
+    "GET /api/admin/support/tickets/{id}",
+    "GET /api/faq",
+    "GET /api/feedback/mine",
+    "GET /api/public/support/form-token",
+    "GET /api/suggestions",
+    "GET /api/support/tickets",
+    "GET /api/support/tickets/{id}",
+    "PATCH /api/admin/feedback/{id}",
+    "PATCH /api/admin/support/tickets/{id}",
+    "POST /api/admin/faq",
+    "POST /api/admin/support/feedback/merge",
+    "POST /api/admin/support/tickets/{id}/close",
+    "POST /api/admin/support/tickets/{id}/notes",
+    "POST /api/admin/support/tickets/{id}/reopen",
+    "POST /api/admin/support/tickets/{id}/reply",
+    "POST /api/feedback",
+    "POST /api/public/support/tickets",
+    "POST /api/public/support/tickets/verify",
+    "POST /api/public/support/track",
+    "POST /api/public/support/track/messages",
+    "POST /api/support/tickets",
+    "POST /api/support/tickets/{id}/close",
+    "POST /api/support/tickets/{id}/messages",
+    "PUT /api/admin/faq/order",
+    "PUT /api/admin/faq/{id}",
+    "PUT /api/suggestions/{id}/vote"
+   ],
+   "entities": [
+    "FaqItem",
+    "Feedback",
+    "SupportMessage",
+    "SupportTicket",
+    "SupportTicketNote",
+    "SupportTrackToken"
+   ],
+   "tables": [],
+   "jobs": [
+    {
+     "cls": "PublicSupportService",
+     "method": "scheduledCleanup",
+     "when": "cron = \"${app.support.cleanup-cron:0 30 3 * * *}\", zone = \"Europe/Istanbul\""
+    }
+   ],
+   "services": [
+    "FeedbackAdminService",
+    "FeedbackService",
+    "PublicSupportService",
+    "SupportAdminService",
+    "TicketService"
+   ],
+   "repositories": 6,
+   "spi": [],
+   "ext": [
+    "Redis"
+   ],
+   "filters": []
+  },
+  {
+   "id": "unitnews",
+   "files": 15,
+   "lines": 1704,
+   "subpackages": [],
+   "controllers": [
+    {
+     "name": "UnitNewsAdminController",
+     "base": "/api/admin/unit-news",
+     "count": 7
+    },
+    {
+     "name": "UnitNewsController",
+     "base": "/api/news/unit",
+     "count": 2
+    }
+   ],
+   "endpoints": [
+    "GET /api/admin/unit-news/announcements",
+    "GET /api/admin/unit-news/sources",
+    "GET /api/admin/unit-news/sources/{code}/departments",
+    "GET /api/news/unit",
+    "GET /api/news/unit/{id}",
+    "POST /api/admin/unit-news/sources/{code}/sync",
+    "POST /api/admin/unit-news/sync",
+    "PUT /api/admin/unit-news/announcements/{id}/hidden",
+    "PUT /api/admin/unit-news/sources/{code}"
+   ],
+   "entities": [
+    "UnitAnnouncement",
+    "UnitDepartment",
+    "UnitSource"
+   ],
+   "tables": [
+    "unit_announcement",
+    "unit_department",
+    "unit_source"
+   ],
+   "jobs": [
+    {
+     "cls": "UnitNewsSyncService",
+     "method": "scheduledSync",
+     "when": "cron = \"${unitnews.sync.cron:0 0 1 * * *}\", zone = \"Europe/Istanbul\""
+    }
+   ],
+   "services": [
+    "UnitNewsAdminService",
+    "UnitNewsService",
+    "UnitNewsSyncService"
+   ],
+   "repositories": 3,
+   "spi": [],
+   "ext": [
+    "Kaynak siteler",
+    "Redis"
+   ],
+   "filters": []
+  },
+  {
+   "id": "user",
+   "files": 4,
+   "lines": 291,
+   "subpackages": [],
+   "controllers": [],
+   "endpoints": [],
+   "entities": [
+    "User"
+   ],
+   "tables": [
+    "app_user"
+   ],
+   "jobs": [],
+   "services": [],
+   "repositories": 1,
+   "spi": [],
+   "ext": [],
+   "filters": []
+  }
+ ]
+}
