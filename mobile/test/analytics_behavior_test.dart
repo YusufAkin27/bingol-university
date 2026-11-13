@@ -290,6 +290,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
       final sw = find.byKey(const ValueKey('analyticsSwitch'));
       await tester.scrollUntilVisible(sw, 200, scrollable: find.byType(Scrollable).first);
+      await tester.pumpAndSettle(); // bölüm giriş animasyonu bitsin: dokunma konumu kaymasın
       expect(sw, findsOneWidget);
       expect(find.text('Kullanım analizi'), findsOneWidget);
       expect(Analytics.instance.enabled, isTrue);
