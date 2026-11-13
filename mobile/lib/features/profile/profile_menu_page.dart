@@ -85,9 +85,11 @@ class _ProfileMenuPageState extends State<ProfileMenuPage> {
         children: [
           ProfilTopBar(title: l.profileMenuTitle),
           Expanded(
-            child: ListView(
+            child: BuStaggerScope(
+              child: ListView(
               padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.paddingOf(context).bottom + 32),
               children: [
+BuStaggerItem(index: 0, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 ProfilSection(l.profil1SecContent, top: 8),
                 ProfilCard(children: [
                   // Takip istekleri (yalnız bekleyen varken): sayı satırın sağında metin, rozet yok.
@@ -157,6 +159,8 @@ class _ProfileMenuPageState extends State<ProfileMenuPage> {
                     onTap: () => _go(MyEventsPage(session: s), 'my_events'),
                   ),
                 ]),
+])),
+BuStaggerItem(index: 1, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 ProfilSection(l.p18SecPrefs, top: 24),
                 ProfilCard(children: [
                   ProfilRow(
@@ -191,7 +195,9 @@ class _ProfileMenuPageState extends State<ProfileMenuPage> {
                     onTap: () => _go(SupportPage(session: s), 'support'),
                   ),
                 ]),
+])),
                 // Kampüs Forum faaliyetim: her satır ilgili sekmeyi doğrudan açar.
+BuStaggerItem(index: 2, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 ProfilSection(l.forumActivitySection, top: 24),
                 ProfilCard(children: [
                   ProfilRow(
@@ -219,8 +225,9 @@ class _ProfileMenuPageState extends State<ProfileMenuPage> {
                     onTap: () => openMyForumActivity(context, s, initialTab: 3),
                   ),
                 ]),
+])),
               ],
-            ),
+            )),
           ),
         ],
       ),

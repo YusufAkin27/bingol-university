@@ -249,7 +249,7 @@ class _FollowListPageState extends State<FollowListPage> {
           ]),
         ),
         Expanded(
-          child: RefreshIndicator(
+          child: BuRefreshIndicator(
             onRefresh: Analytics.pullRefresh(() => _load(_tab, silent: true)),
             child: BuStaggerScope(
               child: ListView(

@@ -247,7 +247,7 @@ class _SavedItemsPageState extends State<SavedItemsPage> {
     }
     if (_items.isEmpty) {
       final all = _filter == 0;
-      return RefreshIndicator(
+      return BuRefreshIndicator(
         onRefresh: Analytics.pullRefresh(_reload),
         child: LayoutBuilder(
           builder: (context, c) => SingleChildScrollView(
@@ -265,26 +265,33 @@ class _SavedItemsPageState extends State<SavedItemsPage> {
         ),
       );
     }
-    return RefreshIndicator(
-      onRefresh: Analytics.pullRefresh(_reload),
-      child: ListView.builder(
-        key: const ValueKey('saved-list'),
-        controller: _scroll,
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.fromLTRB(20, 4, 20, MediaQuery.paddingOf(context).bottom + 24),
-        itemCount: _items.length + 1,
-        itemBuilder: (context, i) {
-          if (i == _items.length) return _footer();
-          final it = _items[i];
-          return Dismissible(
-            key: ValueKey('saved-${it.key}'),
-            direction: DismissDirection.endToStart,
-            background: _dismissBg(),
-            secondaryBackground: _dismissBg(),
-            onDismissed: (_) => _remove(it),
-            child: _SavedRow(item: it, typeLabel: _typeLabel(it), onTap: () => _open(it), onLongPress: () => _longPress(it)),
-          );
-        },
+    return BuStaggerScope(
+      child: BuRefreshIndicator(
+        onRefresh: Analytics.pullRefresh(_reload),
+        child: ListView.builder(
+          key: const ValueKey('saved-list'),
+          controller: _scroll,
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(20, 4, 20, MediaQuery.paddingOf(context).bottom + 24),
+          itemCount: _items.length + 1,
+          itemBuilder: (context, i) {
+            if (i == _items.length) return _footer();
+            final it = _items[i];
+            // Yalnız ilk görünen satırlar sırayla belirir (BuStaggerItem: ilk 8, tek sefer, azaltılmış harekette yok).
+            return BuStaggerItem(
+              key: ValueKey('saved-stagger-${it.key}'),
+              index: i,
+              child: Dismissible(
+                key: ValueKey('saved-${it.key}'),
+                direction: DismissDirection.endToStart,
+                background: _dismissBg(),
+                secondaryBackground: _dismissBg(),
+                onDismissed: (_) => _remove(it),
+                child: _SavedRow(item: it, typeLabel: _typeLabel(it), onTap: () => _open(it), onLongPress: () => _longPress(it)),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

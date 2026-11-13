@@ -583,7 +583,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
     return Scaffold(
       backgroundColor: t.bg,
       resizeToAvoidBottomInset: true,
-      body: RefreshIndicator(
+      body: BuRefreshIndicator(
         color: t.pr,
         backgroundColor: t.sf3,
         edgeOffset: MediaQuery.paddingOf(context).top + kToolbarHeight,

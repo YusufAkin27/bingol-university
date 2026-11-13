@@ -448,11 +448,14 @@ class _ShareSheetState extends State<ShareSheet> {
         shrinkWrap: true,
         padding: EdgeInsets.zero,
         itemCount: rows.length,
-        itemBuilder: (_, i) => SharePickRow(
-          key: ValueKey('share-pick-${rows[i].key}'),
-          recipient: rows[i],
-          selected: _selected.containsKey(rows[i].key),
-          onTap: () => _toggle(rows[i]),
+        itemBuilder: (_, i) => BuStaggerItem(
+          index: i,
+          child: SharePickRow(
+            key: ValueKey('share-pick-${rows[i].key}'),
+            recipient: rows[i],
+            selected: _selected.containsKey(rows[i].key),
+            onTap: () => _toggle(rows[i]),
+          ),
         ),
       ),
     );

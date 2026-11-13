@@ -200,7 +200,8 @@ class ForumPagedListState<T> extends State<ForumPagedList<T>> implements ForumLi
                 ),
               ],
             )
-          : ListView.builder(
+          : BuStaggerScope(
+              child: ListView.builder(
               controller: _scroll,
               physics: const AlwaysScrollableScrollPhysics(),
               padding: widget.padding,
@@ -211,8 +212,10 @@ class ForumPagedListState<T> extends State<ForumPagedList<T>> implements ForumLi
                   i -= 1;
                 }
                 if (i == _items.length) return _footer(ctx, t);
-                return widget.itemBuilder(ctx, _items[i], this);
+                // yalnız ilk 6 öğe ve yalnız bir kez (kapsam) belirir; sonradan yüklenen sayfalar anında gelir
+                return BuStaggerItem(index: i, maxAnimated: 6, child: widget.itemBuilder(ctx, _items[i], this));
               },
+            ),
             ),
     );
   }

@@ -781,7 +781,7 @@ class MessageBubble extends StatelessWidget {
           .toList();
 }
 
-class _ReactionChip extends StatelessWidget {
+class _ReactionChip extends StatefulWidget {
   const _ReactionChip(
       {required this.emoji,
       required this.count,
@@ -794,7 +794,38 @@ class _ReactionChip extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<_ReactionChip> createState() => _ReactionChipState();
+}
+
+class _ReactionChipState extends State<_ReactionChip> with SingleTickerProviderStateMixin {
+  // Sayı/seçim değişince kısa "pop" (1 -> 1.15 -> 1); ilk çizimde oynamaz (geçmiş kaydırmada titreşmez).
+  late final AnimationController _pop = AnimationController(vsync: this, duration: const Duration(milliseconds: 260));
+
+  @override
+  void didUpdateWidget(covariant _ReactionChip old) {
+    super.didUpdateWidget(old);
+    if ((old.count != widget.count || old.mine != widget.mine) && !BuMotion.reduced(context)) _pop.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _pop.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    return ScaleTransition(
+      scale: TweenSequence<double>([
+        TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.15).chain(CurveTween(curve: Curves.easeOut)), weight: 40),
+        TweenSequenceItem(tween: Tween(begin: 1.15, end: 1.0).chain(CurveTween(curve: Curves.easeInOut)), weight: 60),
+      ]).animate(_pop),
+      child: _chip(context),
+    );
+  }
+
+  Widget _chip(BuildContext context) {
+    final emoji = widget.emoji, count = widget.count, mine = widget.mine, onTap = widget.onTap;
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     // Görsel hap küçük; dokunma alanı dikeyde 8 dp genişletilir.

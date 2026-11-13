@@ -152,7 +152,7 @@ class _DepartmentChatsPageState extends State<DepartmentChatsPage> {
                         TextButton(
                             onPressed: _load, child: Text(l.commonRetry)),
                       ]))
-                    : RefreshIndicator(
+                    : BuRefreshIndicator(
                         onRefresh: _load,
                         child: ListView.builder(
                           physics: const AlwaysScrollableScrollPhysics(),
@@ -169,7 +169,9 @@ class _DepartmentChatsPageState extends State<DepartmentChatsPage> {
                             final closed = room['closed'] == true;
                             final joined = room['joined'] == true;
                             final busy = _busy.contains(name);
-                            return ListTile(
+                            return BuStaggerItem(
+                              index: i,
+                              child: ListTile(
                               key: ValueKey('department-$name'),
                               leading: const Icon(BuIcons.graduationCap),
                               title: Text(name),
@@ -191,6 +193,7 @@ class _DepartmentChatsPageState extends State<DepartmentChatsPage> {
                                           ? l.chatInfoLeave
                                           : l.clubJoin),
                                     ),
+                            ),
                             );
                           },
                         ),

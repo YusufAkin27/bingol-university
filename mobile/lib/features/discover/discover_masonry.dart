@@ -329,7 +329,7 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
     } else {
       body = _masonry(context);
     }
-    return RefreshIndicator(
+    return BuRefreshIndicator(
       onRefresh: Analytics.pullRefresh(_refresh),
       child: BuStaggerScope(
         key: ValueKey('discover-scope-$_scopeGen'),

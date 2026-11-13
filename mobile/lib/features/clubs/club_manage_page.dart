@@ -147,7 +147,7 @@ class _ClubManagePageState extends State<ClubManagePage> {
     } else if (_club == null) {
       body = const SizedBox.shrink();
     } else {
-      body = RefreshIndicator(
+      body = BuRefreshIndicator(
         color: t.pr,
         onRefresh: Analytics.pullRefresh(() => _load(silent: true)),
         child: ListView(

@@ -512,7 +512,7 @@ class _ClubsTabState extends State<ClubsTab> {
   }
 
   /// Durum metni (boş / hata) çekerek yenilenebilir bir alanda.
-  Widget _stateScroll(Widget state, {double reserve = 0}) => RefreshIndicator(
+  Widget _stateScroll(Widget state, {double reserve = 0}) => BuRefreshIndicator(
         onRefresh: Analytics.pullRefresh(_refresh),
         child: LayoutBuilder(
           builder: (context, c) => ListView(
@@ -619,7 +619,7 @@ class _ClubsTabState extends State<ClubsTab> {
       }
       // Bölümlü kısa liste (kaydırma sayfalaması yok).
       final secs = _sections();
-      return RefreshIndicator(
+      return BuRefreshIndicator(
         onRefresh: Analytics.pullRefresh(_refresh),
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -644,7 +644,7 @@ class _ClubsTabState extends State<ClubsTab> {
             ? ClubsStateText(text: l.clubMgmtNotFound, actionLabel: _typed.isNotEmpty ? null : l.clubMgmtAll, onAction: _typed.isNotEmpty ? null : () => _setCategory(null))
             : ClubsStateText(text: l.p51ClubsEmpty, actionLabel: l.clubMgmtCreateTitle, onAction: _create))
         : null;
-    return RefreshIndicator(
+    return BuRefreshIndicator(
       onRefresh: Analytics.pullRefresh(_refresh),
       // İlk 8 öğe sırayla belirir; yenileme/kaydırma geri gelen satırlar tekrar oynamaz (BuStaggerScope).
       child: LayoutBuilder(

@@ -134,7 +134,7 @@ class _ExamsPageState extends State<ExamsPage> {
     return AcademicScaffold(
       title: l.acadExamsTitle,
       showTitle: false,
-      child: RefreshIndicator(
+      child: BuRefreshIndicator(
         onRefresh: Analytics.pullRefresh(_loadMine),
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),

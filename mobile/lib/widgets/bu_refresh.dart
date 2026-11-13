@@ -13,6 +13,8 @@ class BuRefreshIndicator extends StatelessWidget {
     required this.child,
     this.notificationPredicate = defaultScrollNotificationPredicate,
     this.edgeOffset = 0,
+    this.color,
+    this.backgroundColor,
   });
 
   final Future<void> Function() onRefresh;
@@ -22,12 +24,16 @@ class BuRefreshIndicator extends StatelessWidget {
   /// Gösterge başlangıç ofseti (üstte sabit başlık varsa).
   final double edgeOffset;
 
+  /// Verilmezse BuTokens varsayilani (pr / sf).
+  final Color? color;
+  final Color? backgroundColor;
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     return RefreshIndicator(
-      color: t.pr,
-      backgroundColor: t.sf,
+      color: color ?? t.pr,
+      backgroundColor: backgroundColor ?? t.sf,
       strokeWidth: 2.4,
       edgeOffset: edgeOffset,
       notificationPredicate: notificationPredicate,

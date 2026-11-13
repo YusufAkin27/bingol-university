@@ -545,7 +545,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     } else if (_ev == null) {
       body = ErrorView(error: _error ?? 'hata', onRetry: _load);
     } else {
-      body = RefreshIndicator(
+      body = BuRefreshIndicator(
         color: t.pr,
         onRefresh: Analytics.pullRefresh(() => _load(refresh: true)),
         child: CustomScrollView(

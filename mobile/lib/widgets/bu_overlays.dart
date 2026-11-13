@@ -267,7 +267,13 @@ class BuDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    return AlertDialog(
+    // Açılışta hafif ölçek (0.94 -> 1); solma showDialog geçişinden gelir. Hareket azaltılmışsa anında.
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0.94, end: 1),
+      duration: BuMotion.of(context, BuMotion.medium),
+      curve: BuMotion.emphasizedDecelerate,
+      builder: (context, v, child) => Transform.scale(scale: v, child: child),
+      child: AlertDialog(
       icon: icon == null ? null : Icon(icon, size: 28, color: destructive ? t.danger : t.ink),
       title: Text(title, textAlign: icon == null ? TextAlign.start : TextAlign.center),
       content: (message == null && content == null)
@@ -286,7 +292,7 @@ class BuDialog extends StatelessWidget {
               ),
             ),
       actions: actions,
-    );
+    ));
   }
 
   /// Özel diyalog göster.

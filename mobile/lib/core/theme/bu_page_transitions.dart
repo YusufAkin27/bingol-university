@@ -1,9 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../motion/bu_page_transition.dart';
+
 /// Platform geçişini sarar ve "animasyonları azalt" açıksa geçişi anlık yapar.
 ///
-/// Android: tahmini geri (predictive back) + M3 "fade forwards" yedeği; iOS: yerel Cupertino kaydırma
+/// Android/diğer: tek geçiş dili `BuPageTransition.axisX` (kayma + solma), geri jestinde tahmini geri; iOS: yerel Cupertino kaydırma
 /// (kenardan geri jesti korunur). Sayfa içi paylaşılan eksen için `BuPageRoute` / `BuSharedAxis` (lib/widgets/bu_transitions.dart).
 class BuPageTransitionsBuilder extends PageTransitionsBuilder {
   const BuPageTransitionsBuilder(this.inner);
@@ -36,11 +38,11 @@ class BuPageTransitionsBuilder extends PageTransitionsBuilder {
 abstract final class BuPageTransitions {
   static const theme = PageTransitionsTheme(
     builders: <TargetPlatform, PageTransitionsBuilder>{
-      TargetPlatform.android: BuPageTransitionsBuilder(PredictiveBackPageTransitionsBuilder()),
+      TargetPlatform.android: BuAxisPageTransitionsBuilder(predictiveBack: true),
       TargetPlatform.iOS: BuPageTransitionsBuilder(CupertinoPageTransitionsBuilder()),
       TargetPlatform.macOS: BuPageTransitionsBuilder(CupertinoPageTransitionsBuilder()),
-      TargetPlatform.windows: BuPageTransitionsBuilder(ZoomPageTransitionsBuilder()),
-      TargetPlatform.linux: BuPageTransitionsBuilder(ZoomPageTransitionsBuilder()),
+      TargetPlatform.windows: BuAxisPageTransitionsBuilder(),
+      TargetPlatform.linux: BuAxisPageTransitionsBuilder(),
     },
   );
 }

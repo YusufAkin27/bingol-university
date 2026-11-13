@@ -685,29 +685,32 @@ class _ChatTabState extends State<ChatTab> {
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             // Başlık kaydıkça gizlenir; arama + süzgeç çipleri aşağıda sabit kalır.
-            SliverToBoxAdapter(
-              child: _archived
-                  ? BuHeader(title: context.l10n.chatMiscArchive, onBack: () => _setArchiveView(false))
-                  : Padding(
-                      // Üst güvenli alan (durum çubuğu) eklenir: Android 15 edge-to-edge'de başlık saat/simgelere binmesin (BuHeader ile aynı 12 dp).
-                      padding: EdgeInsetsDirectional.fromSTEB(16, MediaQuery.paddingOf(context).top + 12, 10, 4),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Semantics(
-                              header: true,
-                              label: context.l10n.chatMiscChat,
-                              child: const SizedBox(height: 48),
-                            ),
-                          ),
-                          ChatlistNewButton(tooltip: context.l10n.chatMiscNewChat, onTap: _openNew),
-                        ],
-                      ),
-                    ),
-            ),
+            if (_archived)
+              SliverToBoxAdapter(
+                child: BuHeader(title: context.l10n.chatMiscArchive, onBack: () => _setArchiveView(false)),
+              ),
             SliverPersistentHeader(
               pinned: true,
               delegate: _PinnedFilterDelegate(
+                topInset: MediaQuery.paddingOf(context).top,
+                title: _archived
+                    ? null
+                    : Padding(
+                        // Üst güvenli alan (durum çubuğu) eklenir: Android 15 edge-to-edge'de başlık saat/simgelere binmesin (BuHeader ile aynı 12 dp).
+                        padding: EdgeInsetsDirectional.fromSTEB(16, MediaQuery.paddingOf(context).top + 12, 10, 4),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Semantics(
+                                header: true,
+                                label: context.l10n.chatMiscChat,
+                                child: const SizedBox(height: 48),
+                              ),
+                            ),
+                            ChatlistNewButton(tooltip: context.l10n.chatMiscNewChat, onTap: _openNew),
+                          ],
+                        ),
+                      ),
                 filters: _filterLabels(context),
                 selected: _filter,
                 controller: _search,
@@ -907,8 +910,13 @@ class _PinnedFilterDelegate extends SliverPersistentHeaderDelegate {
     required this.showSearch,
     required this.onQuery,
     required this.onSelect,
+    this.title,
+    this.topInset = 0,
   });
 
+  /// Aramanın üstündeki kayan başlık satırı (arşiv görünümünde null).
+  final Widget? title;
+  final double topInset;
   final List<String> filters;
   final int selected;
   final TextEditingController controller;
@@ -919,20 +927,43 @@ class _PinnedFilterDelegate extends SliverPersistentHeaderDelegate {
 
   double get _height => !showSearch ? 0 : (showChips ? 12 + BuSize.search + 4 + 52 + 4 : 12 + BuSize.search + 8);
 
-  @override
-  double get minExtent => _height;
+  // Başlık bölümü (üst güvenli alan + 12 + 48 + 4) kaydıkça daralır; sabit kalan kısım üst güvenli alan + arama
+  // olduğundan arama alanı durum çubuğunun altında tam görünür kalır.
+  double get _titleH => title == null ? 0 : topInset + 12 + 48 + 4;
 
   @override
-  double get maxExtent => _height;
+  double get minExtent => _height + (title == null ? 0 : topInset);
 
   @override
-  bool shouldRebuild(covariant _PinnedFilterDelegate old) =>
-      old.selected != selected || old.filters != filters || old.showChips != showChips || old.showSearch != showSearch;
+  double get maxExtent => _height + _titleH;
+
+  @override
+  bool shouldRebuild(covariant _PinnedFilterDelegate old) => true;
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     if (!showSearch) return const SizedBox.shrink();
     final t = context.bu;
+    final search = _search(context, t);
+    if (title == null) return search;
+    return ColoredBox(
+      color: t.bg,
+      child: ClipRect(
+        child: Stack(children: [
+          PositionedDirectional(
+            start: 0,
+            end: 0,
+            top: -shrinkOffset,
+            height: _titleH,
+            child: title!,
+          ),
+          PositionedDirectional(start: 0, end: 0, bottom: 0, height: _height, child: search),
+        ]),
+      ),
+    );
+  }
+
+  Widget _search(BuildContext context, BuTokens t) {
     return Container(
       height: _height,
       color: t.bg,

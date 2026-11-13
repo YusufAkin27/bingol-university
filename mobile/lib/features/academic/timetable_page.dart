@@ -122,12 +122,12 @@ class _TimetablePageState extends State<TimetablePage> {
   Widget _body(TimetableData? data) {
     if (data == null) {
       if (_loading) return const SingleChildScrollView(physics: NeverScrollableScrollPhysics(), child: TtSkeleton());
-      return RefreshIndicator(
+      return BuRefreshIndicator(
         onRefresh: Analytics.pullRefresh(() => _load(quiet: true)),
         child: ListView(physics: const AlwaysScrollableScrollPhysics(), padding: const EdgeInsets.only(bottom: 32), children: [_errorBlock()]),
       );
     }
-    return RefreshIndicator(
+    return BuRefreshIndicator(
       onRefresh: Analytics.pullRefresh(() => _load(quiet: true)),
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),

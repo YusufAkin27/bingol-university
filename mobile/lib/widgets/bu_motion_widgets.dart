@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../core/theme/bu_motion.dart';
+import '../core/motion/bu_page_transition.dart';
 
 // --- Aşamalı (staggered) giriş -------------------------------------------------------------------------------
 
@@ -231,8 +232,8 @@ class BuPageRoute<T> extends PageRouteBuilder<T> {
     super.fullscreenDialog,
     BuRouteKind kind = BuRouteKind.axisX,
   }) : super(
-          transitionDuration: BuMotion.long,
-          reverseTransitionDuration: BuMotion.medium,
+          transitionDuration: BuPageTransition.forward,
+          reverseTransitionDuration: BuPageTransition.reverse,
           pageBuilder: (context, _, __) => builder(context),
           transitionsBuilder: (context, animation, secondary, child) {
             if (BuMotion.reduced(context)) return child;
@@ -244,23 +245,23 @@ class BuPageRoute<T> extends PageRouteBuilder<T> {
                 child: ScaleTransition(scale: Tween(begin: scaleFrom, end: 1.0).animate(inCurve), child: child),
               );
             }
-            final outCurve = CurvedAnimation(parent: secondary, curve: BuMotion.emphasized);
-            final rtl = Directionality.of(context) == TextDirection.rtl;
-            final vertical = kind == BuRouteKind.axisY;
-            final d = 30.0 * (rtl && !vertical ? -1 : 1);
-            return AnimatedBuilder(
-              animation: Listenable.merge([inCurve, outCurve]),
-              child: child,
-              builder: (context, c) {
-                final enter = inCurve.value;
-                final exit = outCurve.value;
-                final off = d * (1 - enter) - d * exit;
-                return Opacity(
-                  opacity: math.min(enter, 1 - exit * .9).clamp(0.0, 1.0),
-                  child: Transform.translate(offset: vertical ? Offset(0, off) : Offset(off, 0), child: c),
-                );
-              },
-            );
+            if (kind == BuRouteKind.axisY) {
+              final outCurve = CurvedAnimation(parent: secondary, curve: BuMotion.emphasized);
+              return AnimatedBuilder(
+                animation: Listenable.merge([inCurve, outCurve]),
+                child: child,
+                builder: (context, c) {
+                  final enter = inCurve.value;
+                  final exit = outCurve.value;
+                  final off = 30.0 * (1 - enter) - 30.0 * exit;
+                  return Opacity(
+                    opacity: math.min(enter, 1 - exit * .9).clamp(0.0, 1.0),
+                    child: Transform.translate(offset: Offset(0, off), child: c),
+                  );
+                },
+              );
+            }
+            return BuPageTransition.axisX(context, animation, secondary, child);
           },
         );
 }

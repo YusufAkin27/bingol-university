@@ -80,7 +80,7 @@ class _LegalListPageState extends State<LegalListPage> {
         ],
       );
     }
-    return RefreshIndicator(
+    return BuRefreshIndicator(
       key: const ValueKey('legal-list'),
       onRefresh: Analytics.pullRefresh(_refresh),
       child: ListView(

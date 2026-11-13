@@ -194,7 +194,7 @@ class _FollowRequestsPageState extends State<FollowRequestsPage> {
       body: Column(children: [
         BuHeader(title: l.frqReqTitle, onBack: () => Navigator.maybePop(context)),
         Expanded(
-          child: RefreshIndicator(
+          child: BuRefreshIndicator(
             onRefresh: Analytics.pullRefresh(() => _load(silent: true)),
             child: ListView(
               controller: _scroll,

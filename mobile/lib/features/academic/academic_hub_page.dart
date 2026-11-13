@@ -100,11 +100,13 @@ class _AcademicHubPageState extends State<AcademicHubPage> {
     return AcademicScaffold(
       title: l.acadHubTitle,
       actions: [AcadTextAction(l.acadHubReminders, onTap: () => _go(ReminderSettingsPage(session: s), 'reminder_settings'), size: 14)],
-      child: RefreshIndicator(
+      child: BuRefreshIndicator(
         onRefresh: Analytics.pullRefresh(() async {
           await _refresh();
         }),
-        child: ListView(
+        // Giriş: blok ve satırlar sırayla solarak yükselir (kapsam: kaydırınca yeniden oynamaz).
+        child: BuStaggerScope(
+         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.only(bottom: 32),
           children: [
@@ -116,27 +118,31 @@ class _AcademicHubPageState extends State<AcademicHubPage> {
               ),
             if (ex != null) ...[
               const SizedBox(height: 17),
-              AcadhubNextExam(
+              BuStaggerItem(index: 0, child: AcadhubNextExam(
                 key: const ValueKey('acadhub-next-exam'),
                 label: l.acadhubNextExam,
                 title: ex.title.isNotEmpty ? ex.title : (ex.courseName ?? ''),
                 detail: _examWhen(l, ex),
                 countdown: countdownTextL(l, ex.startsAt, academicClock()),
                 onTap: () => _go(ExamsPage(session: s), 'exams'),
-              ),
+              )),
               const SizedBox(height: 22),
             ] else
               const SizedBox(height: 14),
             const Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: AcadRule()),
-            AcadhubNavRow(key: const ValueKey('acadhub-timetable'), icon: BuIcons.calendar, title: l.acadHubTimetable, sub: timetableSub, onTap: () => _go(TimetablePage(session: s), 'timetable')),
-            AcadhubNavRow(key: const ValueKey('acadhub-exams'), icon: BuIcons.notebookPen, title: l.acadExamsTitle, sub: examsSub, onTap: () => _go(ExamsPage(session: s), 'exams')),
-            AcadhubNavRow(
-              key: const ValueKey('acadhub-calendar'), icon: BuIcons.calendarDays,
-              title: l.acadCalTitle,
-              sub: l.acadHubCalendarSub,
-              onTap: () => _go(AcademicCalendarPage(session: s), 'academic_calendar'),
+            BuStaggerItem(index: 1, child: AcadhubNavRow(key: const ValueKey('acadhub-timetable'), icon: BuIcons.calendar, title: l.acadHubTimetable, sub: timetableSub, onTap: () => _go(TimetablePage(session: s), 'timetable'))),
+            BuStaggerItem(index: 2, child: AcadhubNavRow(key: const ValueKey('acadhub-exams'), icon: BuIcons.notebookPen, title: l.acadExamsTitle, sub: examsSub, onTap: () => _go(ExamsPage(session: s), 'exams'))),
+            BuStaggerItem(
+              index: 3,
+              child: AcadhubNavRow(
+                key: const ValueKey('acadhub-calendar'), icon: BuIcons.calendarDays,
+                title: l.acadCalTitle,
+                sub: l.acadHubCalendarSub,
+                onTap: () => _go(AcademicCalendarPage(session: s), 'academic_calendar'),
+              ),
             ),
           ],
+         ),
         ),
       ),
     );

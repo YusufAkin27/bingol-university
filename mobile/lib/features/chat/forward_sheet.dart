@@ -190,7 +190,9 @@ class _ForwardSheetState extends State<ForwardSheet> {
             ? peer['avatarUrl'] as String?
             : conv['avatarUrl'] as String?;
         final on = _selected.contains(_id(conv));
-        return Semantics(
+        return BuStaggerItem(
+          index: i,
+          child: Semantics(
           button: true,
           selected: on,
           child: InkWell(
@@ -224,6 +226,7 @@ class _ForwardSheetState extends State<ForwardSheet> {
                 ]),
               ),
             ),
+          ),
           ),
         );
       },

@@ -183,7 +183,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 40));
       final p1 = maxRadius(tester);
-      await tester.pump(const Duration(milliseconds: 160));
+      await tester.pump(const Duration(milliseconds: 60)); // geri geçiş 150 ms: bitmeden ölç
       final p2 = maxRadius(tester);
       expect(p2, greaterThan(p1)); // donus: yaricap artar
       await tester.pumpAndSettle();

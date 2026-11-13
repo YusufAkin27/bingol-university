@@ -14,6 +14,7 @@ import '../../core/notification_counts.dart';
 import '../../core/theme.dart';
 import '../../core/theme_controller.dart';
 import '../../core/theme/bu_motion.dart';
+import '../../widgets/bu_pressable.dart' show BuHaptic, buHaptic;
 import '../../widgets/bu_overlays.dart' show BuToast, BuToastKind;
 import '../../widgets/bu_widgets.dart' show BuAvatar;
 import '../posts/post_models.dart' show postAuthHeaders;
@@ -103,6 +104,9 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Ticker
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    for (final c in _tabScroll) {
+      c.dispose();
+    }
     Analytics.instance.setTab(null);
     shellTabRequest.removeListener(_onTabRequest);
     _poll?.cancel();
@@ -306,7 +310,27 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Ticker
     );
   }
 
-  Widget _tabBody(int i) {
+  /// Sekme başına birincil kaydırma denetleyicisi: aktif sekmeye yeniden dokunulunca en üste kaydırır.
+  final List<ScrollController> _tabScroll = List.generate(AppTab.profile + 1, (_) => ScrollController());
+
+  /// Zaten açık sekmeye yeniden dokunma: en üste yumuşak kaydır (ilk konumdaysa dokunma geri bildirimi yok).
+  void _scrollTop(int i) {
+    final c = _tabScroll[i];
+    if (!c.hasClients || c.positions.length != 1) return;
+    final pos = c.position;
+    if (pos.pixels <= 1) return;
+    buHaptic(BuHaptic.selection);
+    final reduce = BuMotion.reduced(context);
+    if (reduce) {
+      c.jumpTo(pos.minScrollExtent);
+    } else {
+      c.animateTo(pos.minScrollExtent, duration: const Duration(milliseconds: 320), curve: Curves.easeOutCubic);
+    }
+  }
+
+  Widget _tabBody(int i) => PrimaryScrollController(controller: _tabScroll[i], child: _tabBodyRaw(i));
+
+  Widget _tabBodyRaw(int i) {
     switch (i) {
       case AppTab.home:
         return HomeTab(session: s, onOpenTab: _go);
@@ -450,6 +474,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Ticker
             immersive: immersive && _tab == AppTab.discover,
             onPublish: _publish,
             onChanged: (i) {
+              if (i == _tab) _scrollTop(i);
               _go(i);
               if (i == AppTab.chat) _refreshBadges();
             },

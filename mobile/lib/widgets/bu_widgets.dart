@@ -12,6 +12,7 @@ import '../core/typography.dart';
 import 'bu_default_avatar.dart';
 import 'bu_pressable.dart';
 import '../core/icons/bu_icons.dart';
+import '../core/motion/bu_pop_icon.dart';
 
 export 'package:lucide_icons_flutter/lucide_icons.dart' show LucideIcons;
 
@@ -177,7 +178,7 @@ class BuIconButton extends StatelessWidget {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              Icon(buDirIcon(context, icon), size: size * .5, color: filled ? t.onPr : t.ink),
+              BuPopIcon(buDirIcon(context, icon), size: size * .5, color: filled ? t.onPr : t.ink),
               if (badge)
                 PositionedDirectional(
                   top: size * .2,
@@ -366,11 +367,7 @@ class BuChip extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           if (icon != null) ...[
-                            TweenAnimationBuilder<Color?>(
-                              tween: ColorTween(end: fg),
-                              duration: BuMotion.of(context, BuMotion.short),
-                              builder: (context, c, _) => Icon(icon, size: 15, color: c ?? fg),
-                            ),
+                            BuPopIcon(icon!, size: 15, color: fg),
                             const SizedBox(width: 6),
                           ],
                           AnimatedDefaultTextStyle(

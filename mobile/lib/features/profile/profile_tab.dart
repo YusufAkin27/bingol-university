@@ -226,7 +226,7 @@ class _ProfileTabState extends State<ProfileTab> {
     } else if (p == null) {
       body = _ProfileSkeleton(top: top, error: _error, onRetry: _load);
     } else {
-      body = RefreshIndicator(
+      body = BuRefreshIndicator(
         color: t.pr,
         backgroundColor: t.sf3,
         edgeOffset: top,

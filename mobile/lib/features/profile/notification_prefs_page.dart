@@ -11,6 +11,7 @@ import '../../core/push/push_health.dart';
 import '../../core/push/push_privacy.dart';
 import '../../core/push/push_service.dart';
 import '../../core/session.dart';
+import '../../core/theme/bu_motion.dart';
 import '../../widgets/bu.dart';
 import '../academic/academic_api.dart';
 import '../academic/academic_widgets.dart';
@@ -48,7 +49,7 @@ class PrefSwitch extends StatelessWidget {
           height: 44, // dokunma alanı
           child: Center(
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 160),
+              duration: BuMotion.of(context, const Duration(milliseconds: 160)),
               width: 46,
               height: 28,
               padding: const EdgeInsets.all(3),

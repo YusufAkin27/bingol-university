@@ -97,8 +97,9 @@ class _BuPressableState extends State<BuPressable> {
     final pressed = _down && _active;
     Widget c = AnimatedScale(
       scale: pressed ? widget.scale : 1,
-      duration: BuMotion.short,
-      curve: BuMotion.standard,
+      // Basarken hızlı ve düz, bırakınca hafif yaylanarak (easeOutBack) geri döner: tüm düğmelerde ortak his.
+      duration: pressed ? const Duration(milliseconds: 90) : const Duration(milliseconds: 260),
+      curve: pressed ? BuMotion.standard : Curves.easeOutBack,
       child: AnimatedOpacity(
         opacity: pressed ? widget.pressedOpacity : 1,
         duration: const Duration(milliseconds: 100),

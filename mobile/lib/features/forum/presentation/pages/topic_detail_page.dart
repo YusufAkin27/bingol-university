@@ -28,6 +28,7 @@ import '../widgets/mod_remove_sheet.dart';
 import '../widgets/topic_detail_menu.dart';
 import '../widgets/topic_detail_share.dart';
 import 'comment_thread_page.dart';
+import '../../../../widgets/bu_refresh.dart';
 
 /// Anket parçası üreticisi (yalnız test/özelleştirme; varsayılan MB-C `PollView`).
 typedef TopicPollBuilder = Widget Function(BuildContext context, ForumApi api,
@@ -558,7 +559,7 @@ class _TopicDetailPageState extends State<TopicDetailPage>
     final t = context.bu;
     final s = _summary!;
     final locked = topic?.locked ?? s.locked;
-    return RefreshIndicator(
+    return BuRefreshIndicator(
       color: t.pr,
       backgroundColor: t.sf3,
       onRefresh: _refreshAll,

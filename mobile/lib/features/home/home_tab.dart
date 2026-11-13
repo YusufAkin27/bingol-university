@@ -397,7 +397,7 @@ class _HomeTabState extends State<HomeTab> {
         skeleton: const HomeSkeleton(),
         child: _loading
             ? const SizedBox.shrink()
-            : RefreshIndicator(
+            : BuRefreshIndicator(
                 color: t.pr,
                 onRefresh: Analytics.pullRefresh(_reload),
                 child: BuStaggerScope(

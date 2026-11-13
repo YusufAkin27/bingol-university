@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
+import '../../core/theme/bu_motion.dart';
 import '../../widgets/bu.dart';
 import '../auth/widgets/auth_motion.dart';
 import '../auth/widgets/auth_ref.dart';
@@ -361,7 +362,7 @@ class _AckCard extends StatelessWidget {
               child: Row(
                 children: [
                   AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
+                    duration: BuMotion.of(context, const Duration(milliseconds: 200)),
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(

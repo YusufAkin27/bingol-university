@@ -139,7 +139,7 @@ class _MessageInfoPageState extends State<MessageInfoPage> {
             title: l.chatMessageInfoTitle,
             onBack: () => Navigator.pop(context)),
         Expanded(
-            child: RefreshIndicator(
+            child: BuRefreshIndicator(
           onRefresh: _load,
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),

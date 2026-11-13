@@ -219,12 +219,14 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
           _aspect = ratio;
           _loading = false;
         });
+        _startViewTimer();
         return;
       }
       setState(() {
         _image = MemoryImage(data);
         _loading = false;
       });
+      _startViewTimer();
     } on ApiError catch (e) {
       if (e.status == 410) _consume();
       if (!mounted) return;
@@ -252,6 +254,18 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
     }
   }
 
+  /// Görüntü ekrana geldiği anda başlar; süre dolunca görüntü atılır ve sayfa kendiliğinden kapanır.
+  static const Duration viewDuration = Duration(minutes: 1);
+  Timer? _viewTimer;
+
+  void _startViewTimer() {
+    _viewTimer?.cancel();
+    _viewTimer = Timer(viewDuration, () {
+      _drop();
+      if (mounted) Navigator.of(context).maybePop();
+    });
+  }
+
   void _drop() {
     final img = _image;
     _image = null;
@@ -275,6 +289,7 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _viewTimer?.cancel();
     _secureSub?.cancel();
     // iOS: ekran görüntüsü işlemi sürerken yerel katman/örtü sökümü çökme riski taşır; kapatma 600 ms ertelenir.
     // (Android/test: yerel köprü yok, hemen.) Sayaçlı olduğundan arada yeni görüntüleyici açılırsa korumalı kalır.

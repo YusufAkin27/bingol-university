@@ -342,11 +342,12 @@ class _Etkinlik2AttendancePageState extends State<Etkinlik2AttendancePage> {
         ),
       ]);
     } else {
-      body = CustomScrollView(
+      body = BuStaggerScope(child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           SliverToBoxAdapter(child: header()),
-          SliverList.builder(itemCount: shown.length, itemBuilder: (c, i) => _row(c, shown[i])),
+          // İlk 8 satır sırayla belirir; arama/filtre değişince yeniden oynamaz (kapsam indeksleri tutar).
+          SliverList.builder(itemCount: shown.length, itemBuilder: (c, i) => BuStaggerItem(index: i, child: _row(c, shown[i]))),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
@@ -356,7 +357,7 @@ class _Etkinlik2AttendancePageState extends State<Etkinlik2AttendancePage> {
             ),
           ),
         ],
-      );
+      ));
     }
     return Scaffold(
       backgroundColor: t.bg,
@@ -366,7 +367,7 @@ class _Etkinlik2AttendancePageState extends State<Etkinlik2AttendancePage> {
           child: BuSwapIn(
             loading: _loading,
             skeleton: const SingleChildScrollView(primary: false, physics: NeverScrollableScrollPhysics(), child: _AttendanceSkeleton()),
-            child: RefreshIndicator(onRefresh: Analytics.pullRefresh(() => _load(silent: true)), child: body),
+            child: BuRefreshIndicator(onRefresh: Analytics.pullRefresh(() => _load(silent: true)), child: body),
           ),
         ),
       ]),
@@ -420,7 +421,7 @@ class _Etkinlik2AttendancePageState extends State<Etkinlik2AttendancePage> {
       key: ValueKey('att-row-$uid'),
       button: true,
       label: name,
-      child: InkWell(onTap: _busy.contains(uid) ? null : () => _pickStatus(r), child: content),
+      child: BuPressable(scale: .985, pressedOpacity: .94, child: InkWell(onTap: _busy.contains(uid) ? null : () => _pickStatus(r), child: content)),
     );
   }
 }
@@ -485,7 +486,9 @@ class _StatusBadge extends StatelessWidget {
     final fg = strong ? t.ink : t.mut;
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 150),
-      child: Container(
+      child: AnimatedContainer(
+        duration: BuMotion.of(context, BuMotion.short),
+        curve: BuMotion.standard,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: strong ? t.sf2 : Colors.transparent,
@@ -495,7 +498,7 @@ class _StatusBadge extends StatelessWidget {
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           busy
               ? SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: fg))
-              : ExcludeSemantics(child: Icon(icon, size: 14, color: fg)),
+              : ExcludeSemantics(child: BuPopIcon(icon, size: 14, color: fg)),
           const SizedBox(width: 6),
           Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: fg, fontWeight: FontWeight.w400))),
         ]),

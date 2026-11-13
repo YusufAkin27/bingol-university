@@ -206,7 +206,7 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
             child: BuSwapIn(
               loading: _loading,
               skeleton: const SingleChildScrollView(primary: false, physics: NeverScrollableScrollPhysics(), child: _RequestsSkeleton()),
-              child: RefreshIndicator(
+              child: BuRefreshIndicator(
                 onRefresh: Analytics.pullRefresh(() => _load(silent: true)),
                 child: BuStaggerScope(
                   child: ListView(

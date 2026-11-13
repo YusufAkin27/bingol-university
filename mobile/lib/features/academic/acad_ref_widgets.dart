@@ -166,12 +166,16 @@ class AcadRow extends StatelessWidget {
             onTap: onTap,
             child: Material(
               type: MaterialType.transparency,
-              child: InkWell(
-                onTap: () {
-                  buHaptic(BuHaptic.selection);
-                  onTap!();
-                },
-                child: body,
+              child: BuPressable(
+                scale: .985,
+                pressedOpacity: .94,
+                child: InkWell(
+                  onTap: () {
+                    buHaptic(BuHaptic.selection);
+                    onTap!();
+                  },
+                  child: body,
+                ),
               ),
             ),
           );

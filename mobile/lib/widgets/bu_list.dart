@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/motion/bu_count_up.dart' show BuPop;
 import '../core/theme.dart';
 import '../core/theme/bu_motion.dart';
 import '../core/theme/bu_shape.dart';
@@ -58,7 +59,9 @@ class BuCountBadge extends StatelessWidget {
     if (count <= 0) return const SizedBox.shrink();
     final t = context.bu;
     final text = count > max ? '$max+' : '$count';
-    return DecoratedBox(
+    return BuPop(
+      trigger: count,
+      child: DecoratedBox(
       decoration: BoxDecoration(color: muted ? t.mut : t.prText, borderRadius: BuRadius.bPill),
       child: ConstrainedBox(
         constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
@@ -77,6 +80,7 @@ class BuCountBadge extends StatelessWidget {
             ),
           ),
         ),
+      ),
       ),
     );
   }

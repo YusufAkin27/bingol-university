@@ -115,7 +115,7 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
       body = const LoadingView();
     } else if (_items!.isEmpty) {
       // Stitch v3: illüstrasyonsuz; ortada başlık 18/600 + mut 15.
-      body = RefreshIndicator(
+      body = BuRefreshIndicator(
         onRefresh: Analytics.pullRefresh(_load),
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -133,21 +133,26 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
         ),
       );
     } else {
-      body = RefreshIndicator(
+      body = BuRefreshIndicator(
         onRefresh: Analytics.pullRefresh(_load),
-        child: ListView(
-          controller: _scroll,
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.only(bottom: 32),
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-              child: Text(l.profilyardBlockedNote, style: tx.bodyMedium!.copyWith(fontSize: 13, color: t.mut, height: 1.45)),
-            ),
-            ProfilFlatGroup(children: [for (final u in _items!) _row(context, t, u)]),
-            if (_more)
-              const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator())),
-          ],
+        child: BuStaggerScope(
+          child: ListView(
+            controller: _scroll,
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.only(bottom: 32),
+            children: [
+              BuStaggerItem(
+                index: 0,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                  child: Text(l.profilyardBlockedNote, style: tx.bodyMedium!.copyWith(fontSize: 13, color: t.mut, height: 1.45)),
+                ),
+              ),
+              BuStaggerItem(index: 1, child: ProfilFlatGroup(children: [for (final u in _items!) _row(context, t, u)])),
+              if (_more)
+                const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator())),
+            ],
+          ),
         ),
       );
     }

@@ -781,7 +781,7 @@ class _SearchPageState extends State<SearchPage> {
         _footer(t, d!),
       ];
     }
-    return RefreshIndicator(
+    return BuRefreshIndicator(
       color: t.pr,
       backgroundColor: t.sf3,
       onRefresh: Analytics.pullRefresh(() => paged ? _retryTab(_tab) : _run(_query)),

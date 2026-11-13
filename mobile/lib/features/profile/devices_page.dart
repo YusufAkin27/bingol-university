@@ -159,15 +159,20 @@ class _DevicesPageState extends State<DevicesPage> {
     } else {
       body = BuRefreshIndicator(
         onRefresh: () => _load(quiet: true),
-        child: ListView(
+        child: BuStaggerScope(
+          child: ListView(
           key: const ValueKey('dev-list'),
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.only(bottom: 32),
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-              child: Text(l.devIntro, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.5)),
+            BuStaggerItem(
+              index: 0,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+                child: Text(l.devIntro, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.5)),
+              ),
             ),
+            BuStaggerItem(index: 1, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             ProfilFlatSection(l.devSection, top: 16, upper: true),
             if (_items.isEmpty)
               Padding(
@@ -185,6 +190,8 @@ class _DevicesPageState extends State<DevicesPage> {
                     onSignOut: () => _signOutOne(s),
                   ),
               ]),
+            ])),
+            BuStaggerItem(index: 2, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             ProfilFlatSection(l.devAllSection, top: 24, upper: true),
             ProfilFlatGroup(outlined: true, children: [
               ProfilFlatRow(
@@ -201,8 +208,9 @@ class _DevicesPageState extends State<DevicesPage> {
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
               child: Text(l.devAllHint, style: tx.bodySmall!.copyWith(fontSize: 12, color: t.mut, height: 1.4)),
             ),
+            ])),
           ],
-        ),
+        )),
       );
     }
     return Scaffold(

@@ -630,7 +630,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     } else if (shown.isEmpty) {
       final unreadEmpty = _unreadOnly && _items.isNotEmpty;
       // Boş: ortada soluk tek cümle (illüstrasyon yok).
-      body = RefreshIndicator(
+      body = BuRefreshIndicator(
         onRefresh: Analytics.pullRefresh(() => _load(silent: true)),
         child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -738,7 +738,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
           ),
         ));
       }
-      body = RefreshIndicator(
+      body = BuRefreshIndicator(
         onRefresh: Analytics.pullRefresh(() => _load(silent: true)),
         child: BuStaggerScope(
           // Uzun, sayfalanan liste: satırlar yalnız görünürken yerleşir/çizilir.

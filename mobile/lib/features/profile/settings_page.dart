@@ -154,9 +154,11 @@ class _SettingsPageState extends State<SettingsPage> {
         children: [
           ProfilTopBar(title: l.settingsTitle),
           Expanded(
-            child: ListView(
+            child: BuStaggerScope(
+              child: ListView(
               padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom + 32),
               children: [
+BuStaggerItem(index: 0, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 ProfilFlatSection(l.settingsSectionAppearance, top: 12),
                 ProfilFlatGroup(outlined: true, children: [
                   ProfilFlatRow(
@@ -193,6 +195,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     ],
                   ),
                 ]),
+])),
+BuStaggerItem(index: 1, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 ProfilFlatSection(l.navChat),
                 ProfilFlatGroup(outlined: true, children: [
                   ProfilFlatRow(
@@ -203,6 +207,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     onTap: () => _push(const ChatBackgroundSettingsPage(), 'chat_background_settings'),
                   ),
                 ]),
+])),
+BuStaggerItem(index: 2, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 ProfilFlatSection(l.settingsSectionNotifications),
                 ProfilFlatGroup(outlined: true, children: [
                   ProfilFlatRow(
@@ -222,6 +228,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     onTap: () => PermissionService.instance.openSettings(),
                   ),
                 ]),
+])),
+BuStaggerItem(index: 3, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 ProfilFlatSection(l.settingsSectionPrivacy),
                 ListenableBuilder(
                   listenable: Listenable.merge([_crash, Analytics.instance]),
@@ -317,6 +325,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ]),
                 ),
+])),
+BuStaggerItem(index: 4, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 ProfilFlatSection(l.widgetsRowTitle),
                 ProfilFlatGroup(outlined: true, children: [
                   ProfilFlatRow(
@@ -327,12 +337,13 @@ class _SettingsPageState extends State<SettingsPage> {
                     onTap: () => _push(const WidgetsInfoPage(), 'widgets_info'),
                   ),
                 ]),
+])),
                 const SizedBox(height: 24),
                 Center(
                   child: Text(l.settingsVersion(appVersion), style: tx.bodySmall!.copyWith(fontSize: 12, color: t.mut)),
                 ),
               ],
-            ),
+            )),
           ),
         ],
       ),

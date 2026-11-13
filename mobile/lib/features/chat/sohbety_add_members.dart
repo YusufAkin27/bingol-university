@@ -171,7 +171,9 @@ class _AddMembersSheetState extends State<AddMembersSheet> {
         final id = (u['id'] as num).toInt();
         final name = '${u['displayName'] ?? ''}';
         final sub = context.departmentOrFacultyName(u['department']?.toString(), u['faculty']?.toString());
-        return Semantics(
+        return BuStaggerItem(
+          index: i,
+          child: Semantics(
           button: true,
           selected: _selected.containsKey(id),
           child: InkWell(
@@ -195,6 +197,7 @@ class _AddMembersSheetState extends State<AddMembersSheet> {
                 ]),
               ),
             ),
+          ),
           ),
         );
       },

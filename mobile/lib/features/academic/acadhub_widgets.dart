@@ -24,7 +24,10 @@ class AcadhubNextExam extends StatelessWidget {
       excludeSemantics: true,
       label: '$label. $title. $detail${countdown == null ? '' : '. $countdown'}',
       onTap: onTap,
-      child: InkWell(
+      child: BuPressable(
+        scale: .985,
+        enabled: onTap != null,
+        child: InkWell(
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
@@ -42,6 +45,7 @@ class AcadhubNextExam extends StatelessWidget {
             Text(detail, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
           ]),
         ),
+      ),
       ),
     );
   }

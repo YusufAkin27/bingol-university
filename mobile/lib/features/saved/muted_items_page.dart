@@ -72,7 +72,7 @@ class _MutedItemsPageState extends State<MutedItemsPage> {
     } else if (_clubs == null) {
       body = const LoadingView();
     } else if (_clubs!.isEmpty && _events!.isEmpty) {
-      body = RefreshIndicator(
+      body = BuRefreshIndicator(
         onRefresh: Analytics.pullRefresh(_load),
         child: LayoutBuilder(
           builder: (context, c) => SingleChildScrollView(
@@ -90,7 +90,7 @@ class _MutedItemsPageState extends State<MutedItemsPage> {
         ),
       );
     } else {
-      body = RefreshIndicator(
+      body = BuRefreshIndicator(
         onRefresh: Analytics.pullRefresh(_load),
         child: ListView(
           key: const ValueKey('muted-list'),

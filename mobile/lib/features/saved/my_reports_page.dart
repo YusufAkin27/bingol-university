@@ -113,7 +113,7 @@ class _MyReportsListPageState extends State<MyReportsListPage> {
         _reload();
       });
     } else if (_items.isEmpty) {
-      body = RefreshIndicator(
+      body = BuRefreshIndicator(
         onRefresh: Analytics.pullRefresh(_reload),
         child: LayoutBuilder(
           builder: (context, c) => SingleChildScrollView(
@@ -131,7 +131,8 @@ class _MyReportsListPageState extends State<MyReportsListPage> {
         ),
       );
     } else {
-      body = RefreshIndicator(
+      body = BuStaggerScope(
+        child: BuRefreshIndicator(
         onRefresh: Analytics.pullRefresh(_reload),
         child: ListView.builder(
           key: const ValueKey('reports-list'),
@@ -147,16 +148,19 @@ class _MyReportsListPageState extends State<MyReportsListPage> {
               );
             }
             if (i == _items.length + 1) return _footer();
-            return _ReportRow(
-              report: _items[i - 1],
-              title: _typeLabel(_items[i - 1].targetType),
-              reason: _reasonLabel(_items[i - 1].reason),
-              date: _items[i - 1].resolved && _items[i - 1].resolvedAt != null ? l.reportsResolvedOn(_date(_items[i - 1].resolvedAt)) : _date(_items[i - 1].createdAt),
-              statusLabel: _items[i - 1].resolved ? l.reportsStatusResolved : l.reportsStatusOpen,
+            return BuStaggerItem(
+              index: i,
+              child: _ReportRow(
+                report: _items[i - 1],
+                title: _typeLabel(_items[i - 1].targetType),
+                reason: _reasonLabel(_items[i - 1].reason),
+                date: _items[i - 1].resolved && _items[i - 1].resolvedAt != null ? l.reportsResolvedOn(_date(_items[i - 1].resolvedAt)) : _date(_items[i - 1].createdAt),
+                statusLabel: _items[i - 1].resolved ? l.reportsStatusResolved : l.reportsStatusOpen,
+              ),
             );
           },
         ),
-      );
+      ));
     }
     return Scaffold(
       backgroundColor: t.bg,

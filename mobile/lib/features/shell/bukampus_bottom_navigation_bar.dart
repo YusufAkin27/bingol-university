@@ -406,8 +406,8 @@ class _UnreadDot extends StatelessWidget {
       child: TweenAnimationBuilder<double>(
         tween: Tween<double>(begin: 0, end: 1),
         duration: AppMotion.of(context, AppMotion.fast),
-        curve: Curves.easeOutCubic,
-        builder: (_, v, child) => Transform.scale(scale: v, child: child),
+        curve: Curves.easeOutBack,
+        builder: (_, v, child) => Transform.scale(scale: v.clamp(0.0, 1.15), child: Opacity(opacity: v.clamp(0.0, 1.0), child: child)),
         child: Container(
           key: const ValueKey('nav-dot'),
           width: 9,

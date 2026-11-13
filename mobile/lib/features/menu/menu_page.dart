@@ -203,7 +203,7 @@ class _MenuPageState extends State<MenuPage> {
     final label = today ? '${l.yemekToday} · $date' : '${newsWeekdayName(context, d.weekday)} · $date';
     final day = _menus[d.day];
     final has = day != null && day.items.isNotEmpty;
-    return RefreshIndicator(
+    return BuRefreshIndicator(
       onRefresh: Analytics.pullRefresh(() => _load(silent: true)),
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),

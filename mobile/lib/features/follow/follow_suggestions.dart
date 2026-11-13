@@ -134,7 +134,7 @@ class _FollowSuggestionsListState extends State<FollowSuggestionsList> {
       );
     }
 
-    return RefreshIndicator(onRefresh: Analytics.pullRefresh(_refresh), child: body);
+    return BuRefreshIndicator(onRefresh: Analytics.pullRefresh(_refresh), child: body);
   }
 }
 

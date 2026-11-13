@@ -74,6 +74,7 @@ class RenderErrorView extends StatelessWidget {
                     button: true,
                     label: l.commonRetry,
                     excludeSemantics: true,
+                    child: BuPressable(
                     child: Material(
                       color: t.sf,
                       shape: RoundedRectangleBorder(
@@ -99,6 +100,7 @@ class RenderErrorView extends StatelessWidget {
                           ),
                         ),
                       ),
+                    ),
                     ),
                   ),
                 ],

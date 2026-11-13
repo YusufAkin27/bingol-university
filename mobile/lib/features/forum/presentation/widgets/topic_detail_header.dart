@@ -6,6 +6,7 @@ import '../../../../core/icons/bu_icons.dart';
 import '../../../../core/locale_controller.dart';
 import '../../../../core/session.dart';
 import '../../../../core/theme.dart';
+import '../../../../core/motion/bu_pop_icon.dart';
 import '../../../../widgets/bu_image.dart';
 import '../../../../widgets/bu_pressable.dart';
 import '../../../../widgets/bu_skeleton.dart';
@@ -305,7 +306,7 @@ class _Act extends StatelessWidget {
             constraints: const BoxConstraints(minHeight: 52),
             child: Center(
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(icon, size: 22, color: color),
+                BuPopIcon(icon, size: 22, color: color),
                 if (count != null && count! > 0) ...[
                   const SizedBox(width: 6),
                   Text(count.toString(), style: tx.bodySmall!.copyWith(color: color, fontFeatures: const [FontFeature.tabularFigures()])),

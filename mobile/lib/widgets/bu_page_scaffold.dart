@@ -7,6 +7,7 @@ import 'bu_keyboard.dart';
 import 'bu_pressable.dart';
 import 'bu_skeleton.dart';
 import 'bu_state.dart';
+import 'bu_refresh.dart';
 
 /// Sayfa veri durumu.
 enum BuViewState {
@@ -141,7 +142,7 @@ class BuPageScaffold extends StatelessWidget {
       slivers: [bar, if (banner != null) SliverToBoxAdapter(child: banner), body],
     );
     if (onRefresh != null) {
-      scroll = RefreshIndicator(
+      scroll = BuRefreshIndicator(
         color: t.pr,
         backgroundColor: t.sf3,
         edgeOffset: MediaQuery.paddingOf(context).top + kToolbarHeight,

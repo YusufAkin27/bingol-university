@@ -54,7 +54,7 @@ class ForumActionButton extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsetsDirectional.symmetric(horizontal: 8),
             child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(icon, size: size, color: c),
+              BuPopIcon(icon, size: size, color: c),
               if (label != null) ...[
                 const SizedBox(width: 6),
                 Text(label!,

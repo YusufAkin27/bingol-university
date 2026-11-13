@@ -331,7 +331,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
     } else if (_error != null && _items.isEmpty) {
       body = BuErrorState(error: _error, onRetry: _load);
     } else if (_items.isEmpty) {
-      body = RefreshIndicator(
+      body = BuRefreshIndicator(
         color: t.pr,
         onRefresh: Analytics.pullRefresh(() => _load(silent: true)),
         child: LayoutBuilder(
@@ -363,7 +363,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
         ),
       );
     } else {
-      body = RefreshIndicator(
+      body = BuRefreshIndicator(
         color: t.pr,
         onRefresh: Analytics.pullRefresh(() => _load(silent: true)),
         child: ListView(

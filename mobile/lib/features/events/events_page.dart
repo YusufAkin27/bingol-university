@@ -677,7 +677,7 @@ class _EventsPageState extends State<EventsPage> {
               child: BuSwapIn(
                 loading: loading,
                 skeleton: SingleChildScrollView(primary: false, physics: const NeverScrollableScrollPhysics(), child: _EventSkeleton(calendar: _tab == 0)),
-                child: RefreshIndicator(
+                child: BuRefreshIndicator(
                   onRefresh: Analytics.pullRefresh(_refresh),
                   child: CustomScrollView(
                     controller: _scroll,

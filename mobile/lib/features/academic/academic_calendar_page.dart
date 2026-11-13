@@ -133,7 +133,7 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
     final maintenance = err is ApiError && err.status == 503;
     return AcademicScaffold(
       title: l.acadCalTitle,
-      child: RefreshIndicator(
+      child: BuRefreshIndicator(
         onRefresh: Analytics.pullRefresh(_load),
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
