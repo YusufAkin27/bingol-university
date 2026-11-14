@@ -68,6 +68,9 @@ class AcademicianNoticesMvcTest extends AcademicianMvcBase {
             assertEquals(1, countTitle(s, "notif.academician." + k + ".title"), k);
             assertEquals(0, countTitle(out, "notif.academician." + k + ".title"), k);
         }
+        for (String k : List.of("lessonStarted", "attendanceStarted", "exam", "assignment", "material", "lessonCancelled", "roomChanged")) {
+            assertCourseTarget(s, "notif.academician." + k + ".title", courseId);
+        }
         JsonNode list = call(s, get("/api/my-courses/" + courseId + "/notices"), 200);
         assertEquals(7, list.get("items").size());
         assertEquals("ROOM_CHANGED", list.get("items").get(0).get("type").asText()); // en yeni once

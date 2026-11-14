@@ -113,7 +113,7 @@ public class AcademicianNotifier {
             return;
         }
         List<Long> ids = List.copyOf(studentIds);
-        Map<String, String> data = Map.of("type", "ACADEMICIAN_COURSE", "courseId", courseId.toString(), "noticeType", "ENROLLED");
+        Map<String, String> data = courseData(courseId, "ENROLLED");
         FanoutNotifier.dispatch(fanout, "academician-enrolled:" + courseId, () -> {
             for (int i = 0; i < ids.size(); i += CHUNK) {
                 notifications.sendTemplatedBulk(ids.subList(i, Math.min(ids.size(), i + CHUNK)), TEMPLATE_ENROLLED, data, null,
@@ -127,8 +127,7 @@ public class AcademicianNotifier {
         Long courseId = course.getId();
         String courseName = course.getName();
         NotificationTemplates.Template t = templateOf(type);
-        Map<String, String> data = Map.of("type", "ACADEMICIAN_COURSE", "courseId", courseId.toString(),
-                "noticeType", type.name());
+        Map<String, String> data = courseData(courseId, type.name());
         String shownTitle = title == null ? "" : title;
         String shownNote = note == null ? "" : note;
         String when = eventAt == null ? "" : WHEN.format(eventAt.atZone(ZONE));
@@ -153,12 +152,29 @@ public class AcademicianNotifier {
         try {
             NotificationTemplates.Template t = NotificationTemplates.of(
                     level >= 2 ? "notif.academician.absenceExceeded" : "notif.academician.absenceWarning", NotificationType.ANNOUNCEMENT);
-            notifications.sendTemplate(studentId, t, Map.of("type", "ACADEMICIAN_COURSE", "courseId", course.getId().toString(),
-                    "noticeType", level >= 2 ? "ABSENCE_EXCEEDED" : "ABSENCE_WARNING"), null, course.getName(),
+            notifications.sendTemplate(studentId, t, courseData(course.getId(), level >= 2 ? "ABSENCE_EXCEEDED" : "ABSENCE_WARNING"),
+                    null, course.getName(),
                     String.valueOf(absent), AbsenceWarningService.limitText(course));
         } catch (RuntimeException e) {
             log.warn("Devamsizlik uyarisi gonderilemedi studentId={}: {}", studentId, e.toString());
         }
+    }
+
+    /**
+     * Ogrenciye giden ders bildirimlerinin hedefi: uygulamanin mevcut sozlesmesi (PostNotifier/ForumNotifier gibi)
+     * {@code target}/{@code value} ve push yukunde {@code targetType}/{@code targetId}; ikisi de ACADEMIC_COURSE + dersin kimligi.
+     * Ek anahtarlar (courseId, noticeType) zararsizdir.
+     */
+    static Map<String, String> courseData(Long courseId, String noticeType) {
+        Map<String, String> d = new java.util.LinkedHashMap<>();
+        d.put("type", "ACADEMICIAN_COURSE");
+        d.put("target", "ACADEMIC_COURSE");
+        d.put("value", courseId.toString());
+        d.put("targetType", "ACADEMIC_COURSE");
+        d.put("targetId", courseId.toString());
+        d.put("courseId", courseId.toString());
+        d.put("noticeType", noticeType);
+        return d;
     }
 
     // ---- sablonlar (anahtarlar messages*.properties'te; kayit NotificationTemplates statik blogunda) ----

@@ -47,14 +47,18 @@ public class AcademicianAdminController {
         this.noticeFiles = noticeFiles;
     }
 
-    /** status bos = hepsi; approvalMode AUTO/ADMIN; imec = onceki sayfanin son kullanici kimligi. */
+    /**
+     * status bos = hepsi (virgullu coklu: status=REJECTED,REVOKED); approvalMode AUTO/ADMIN; q = ad/soyad/gorunen ad (ve yalniz
+     * users.pii ile e-posta) icinde arama (maskeli profilde en az 3 karakter, e-posta aranmaz); imec = onceki sayfanin son kullanici kimligi.
+     */
     @GetMapping
     public CursorPage<AdminAcademicianView> list(@RequestParam(required = false) Set<Academician.Status> status,
                                                  @RequestParam(required = false) Academician.ApprovalMode approvalMode,
+                                                 @RequestParam(required = false) String q,
                                                  @RequestParam(required = false) Long cursor,
                                                  @RequestParam(defaultValue = "20") int size) {
         return academicians.list(status == null || status.isEmpty() ? EnumSet.allOf(Academician.Status.class) : status,
-                approvalMode, cursor, size);
+                approvalMode, q, cursor, size);
     }
 
     @AuditRead

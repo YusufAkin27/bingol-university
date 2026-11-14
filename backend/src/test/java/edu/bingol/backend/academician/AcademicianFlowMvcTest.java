@@ -71,6 +71,7 @@ class AcademicianFlowMvcTest extends AcademicianMvcBase {
         User outsider = student("Kayitsiz Ogrenci");
         enrol(l, courseId, s1, s2);
         assertEquals(1, countTitle(s1, "notif.academician.enrolled.title"));
+        assertCourseTarget(s1, "notif.academician.enrolled.title", courseId);
 
         long sid = openSession(l, courseId);
         JsonNode lv = live(l, sid);
@@ -408,6 +409,65 @@ class AcademicianFlowMvcTest extends AcademicianMvcBase {
         expectError(viewer, post("/api/admin/academicians/" + p.getId() + "/approve"), 403, "ADMIN_PERMISSION_DENIED");
         expectError(viewer, postJson("/api/admin/academicians/" + p.getId() + "/reject", obj().put("reason", "x")), 403, "ADMIN_PERMISSION_DENIED");
         assertEquals("PENDING", academicianRepo.findById(p.getId()).orElseThrow().getStatus().name());
+    }
+
+    @Test
+    void adminListSearchStatusFilterAndLifecycleFacts() throws Exception {
+        User admin = admin();
+        String tag = "Qwxyz" + rnd();
+        User a = plainUser("ara." + rnd() + "@gmail.com", "Aday A");
+        User b = plainUser("bul." + rnd() + "@gmail.com", "Aday B");
+        User c = plainUser("cok." + rnd() + "@gmail.com", "Aday C");
+        for (User u : List.of(a, b, c)) {
+            call(u, postJson("/api/academician/apply", obj().put("title", "Dr.").put("firstName", u == a ? tag : "Diger")
+                    .put("lastName", u == b ? tag + "oglu" : "Soyad")), 200);
+        }
+        // ad / soyad eslesmesi (buyuk-kucuk harf duyarsiz), imec korunur
+        JsonNode r = call(admin, get("/api/admin/academicians?q=" + tag.toUpperCase() + "&size=50"), 200);
+        List<Long> ids = new ArrayList<>();
+        r.get("items").forEach(n -> ids.add(n.get("userId").asLong()));
+        assertEquals(List.of(b.getId(), a.getId()), ids); // userId'ye gore azalan
+        JsonNode p1 = call(admin, get("/api/admin/academicians?q=" + tag + "&size=1"), 200);
+        assertEquals(1, p1.get("items").size());
+        assertEquals(b.getId(), p1.get("nextCursor").asLong());
+        JsonNode p2 = call(admin, get("/api/admin/academicians?q=" + tag + "&size=1&cursor=" + p1.get("nextCursor").asLong()), 200);
+        assertEquals(a.getId(), p2.get("items").get(0).get("userId").asLong());
+        assertTrue(p2.get("nextCursor").isNull());
+        // e-posta ile arama yalniz users.pii'li yoneticide
+        String mailPart = c.getEmail().substring(0, c.getEmail().indexOf('@'));
+        assertEquals(1, call(admin, get("/api/admin/academicians?q=" + mailPart), 200).get("items").size());
+        User viewer = admin();
+        viewer.setAdminProfile(edu.bingol.backend.admin.rbac.AdminProfile.VIEWER);
+        users.save(viewer);
+        assertEquals(0, call(viewer, get("/api/admin/academicians?q=" + mailPart), 200).get("items").size()); // e-posta oracle'i yok
+        assertEquals(2, call(viewer, get("/api/admin/academicians?q=" + tag), 200).get("items").size()); // ad aranabilir
+        expectError(viewer, get("/api/admin/academicians?q=ab"), 400, "VALIDATION_ERROR"); // maskeli: en az 3 karakter
+        assertEquals(0, call(admin, get("/api/admin/academicians?q=" + tag + "%25nope"), 200).get("items").size()); // LIKE kacisi
+        assertEquals(0, call(admin, get("/api/admin/academicians?q=" + tag + "_"), 200).get("items").size());
+        // durum + mod suzgecleri birlikte
+        assertEquals(0, call(admin, get("/api/admin/academicians?q=" + tag + "&approvalMode=AUTO"), 200).get("items").size());
+
+        // yasam dongusu gercekleri (admin sayfasi buna dayanir)
+        User auto = lecturer("Otomatik");
+        JsonNode autoRow = call(admin, get("/api/admin/academicians/" + auto.getId()), 200);
+        assertEquals("AUTO", autoRow.get("approvalMode").asText());
+        assertTrue(autoRow.get("reviewedBy").isNull());
+        call(admin, postJson("/api/admin/academicians/" + a.getId() + "/reject", obj().put("reason", "Eksik belge")), 200);
+        JsonNode revoked = call(admin, postJson("/api/admin/academicians/" + auto.getId() + "/revoke", obj().put("reason", "Ayrildi")), 200);
+        assertEquals("Ayrildi", revoked.get("rejectReason").asText());
+        assertEquals("REVOKED", revoked.get("status").asText());
+        JsonNode multi = call(admin, get("/api/admin/academicians?status=REJECTED,REVOKED&size=50"), 200);
+        List<String> st = new ArrayList<>();
+        multi.get("items").forEach(n -> st.add(n.get("status").asText()));
+        assertTrue(st.contains("REJECTED") && st.contains("REVOKED"));
+        assertFalse(st.contains("PENDING") || st.contains("APPROVED"));
+        // reddedilenden ve iptal edilenden onay mumkun, ADMIN moduyla
+        for (User u : List.of(a, auto)) {
+            JsonNode ok = call(admin, post("/api/admin/academicians/" + u.getId() + "/approve"), 200);
+            assertEquals("ADMIN", ok.get("approvalMode").asText());
+            assertTrue(ok.get("rejectReason").isNull());
+        }
+        expectError(admin, post("/api/admin/academicians/" + a.getId() + "/approve"), 409, "ACADEMICIAN_BAD_STATE");
     }
 
     private static String findEmail(JsonNode page, long userId) {

@@ -19994,6 +19994,13 @@
           }
         }, {
           "in" : "query",
+          "name" : "q",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
           "name" : "cursor",
           "required" : false,
           "schema" : {

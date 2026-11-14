@@ -206,6 +206,23 @@ abstract class AcademicianMvcBase {
         return notifRepo.findTop500ByUserIdOrderByIdDesc(u.getId());
     }
 
+    /** Ogrenciye giden ders bildirimlerinin hedefi: targetType=ACADEMIC_COURSE, targetId=<dersId> (mobil yonlendirme sozlesmesi). */
+    void assertCourseTarget(User u, String title, long courseId) {
+        List<Notification> hits = notificationsOf(u).stream().filter(n -> title.equals(n.getTitle())).toList();
+        assertEquals(true, !hits.isEmpty(), "bildirim yok: " + title);
+        for (Notification n : hits) {
+            try {
+                JsonNode d = OM.readTree(n.getData());
+                assertEquals("ACADEMIC_COURSE", d.get("targetType").asText(), title);
+                assertEquals(String.valueOf(courseId), d.get("targetId").asText(), title);
+                assertEquals("ACADEMIC_COURSE", d.get("target").asText(), title);
+                assertEquals(String.valueOf(courseId), d.get("value").asText(), title);
+            } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+                throw new AssertionError(e);
+            }
+        }
+    }
+
     long countTitle(User u, String title) {
         return notificationsOf(u).stream().filter(n -> title.equals(n.getTitle())).count();
     }

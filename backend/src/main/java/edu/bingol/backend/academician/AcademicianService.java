@@ -33,9 +33,12 @@ public class AcademicianService {
     private final AcademicianProperties props;
     private final AcademicianNotifier notifier;
     private final TransactionTemplate tx;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     public AcademicianService(AcademicianRepository academicians, UserRepository users, AcademicianProperties props,
-                              AcademicianNotifier notifier, PlatformTransactionManager tm) {
+                              AcademicianNotifier notifier, PlatformTransactionManager tm,
+                              org.springframework.jdbc.core.JdbcTemplate jdbc) {
+        this.jdbc = jdbc;
         this.academicians = academicians;
         this.users = users;
         this.props = props;
@@ -140,19 +143,72 @@ public class AcademicianService {
 
     // ---- yonetici ----
 
+    /** users.pii olmayan profillerde q icin en az uzunluk (admin kullanici aramasiyla ayni kural). */
+    static final int MASKED_Q_MIN = 3;
+    static final int Q_MAX = 100;
+
+    /**
+     * Yonetici listesi. {@code q} (istege bagli): ad, soyad ve gorunen ad icinde buyuk/kucuk harf duyarsiz kismi eslesme;
+     * YALNIZ users.pii iznine sahip yoneticide e-posta da aranir. Maskeli profil (SUPPORT, VIEWER) e-posta ile arayarak
+     * maskeli adresi yeniden kuramaz (admin kullanici aramasiyla ayni T-019 kurali): onlarda e-posta aranmaz ve en az 3
+     * karakter gerekir. Imec ve sayfalama aynidir.
+     */
     @Transactional(readOnly = true)
-    public CursorPage<AdminAcademicianView> list(Set<Academician.Status> statuses, Academician.ApprovalMode mode, Long cursor,
-                                                 int size) {
+    public CursorPage<AdminAcademicianView> list(Set<Academician.Status> statuses, Academician.ApprovalMode mode, String q,
+                                                 Long cursor, int size) {
         int s = CursorPage.clampSize(size);
         Long before = cursor == null ? Long.MAX_VALUE : cursor;
         Set<Academician.Status> st = statuses == null || statuses.isEmpty() ? EnumSet.allOf(Academician.Status.class) : statuses;
-        List<Academician> rows = mode == null ? academicians.page(st, before, PageRequest.of(0, s + 1))
-                : academicians.pageByMode(st, mode, before, PageRequest.of(0, s + 1));
+        List<Academician> rows;
+        String needle = q == null ? "" : q.trim();
+        if (needle.isEmpty()) {
+            rows = mode == null ? academicians.page(st, before, PageRequest.of(0, s + 1))
+                    : academicians.pageByMode(st, mode, before, PageRequest.of(0, s + 1));
+        } else {
+            rows = search(st, mode, needle, before, s + 1);
+        }
         boolean more = rows.size() > s;
         List<Academician> page = more ? rows.subList(0, s) : rows;
         Map<Long, User> byId = usersOf(page);
         return new CursorPage<>(page.stream().map(a -> adminView(a, byId.get(a.getUserId()))).toList(),
                 more ? page.get(page.size() - 1).getUserId() : null);
+    }
+
+    private List<Academician> search(Set<Academician.Status> st, Academician.ApprovalMode mode, String needle, Long before,
+                                     int limit) {
+        boolean pii = PermissionAwareMasking.canSeePii();
+        if (needle.length() > Q_MAX || (!pii && needle.length() < MASKED_Q_MIN)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR",
+                    "Arama için " + MASKED_Q_MIN + "-" + Q_MAX + " karakter girin.");
+        }
+        String like = "%" + needle.toLowerCase(java.util.Locale.ROOT).replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
+        StringBuilder sql = new StringBuilder("SELECT a.user_id FROM academician a WHERE a.user_id < ? AND a.status IN (");
+        List<Object> args = new java.util.ArrayList<>();
+        args.add(before);
+        sql.append(String.join(",", java.util.Collections.nCopies(st.size(), "?"))).append(")");
+        st.forEach(x -> args.add(x.name()));
+        if (mode != null) {
+            sql.append(" AND a.approval_mode = ?");
+            args.add(mode.name());
+        }
+        sql.append(" AND (lower(a.first_name) LIKE ? ESCAPE '\\' OR lower(a.last_name) LIKE ? ESCAPE '\\' "
+                + "OR lower(a.first_name || ' ' || a.last_name) LIKE ? ESCAPE '\\' "
+                + "OR EXISTS (SELECT 1 FROM app_user u WHERE u.id = a.user_id AND (lower(u.display_name) LIKE ? ESCAPE '\\'");
+        for (int i = 0; i < 4; i++) {
+            args.add(like);
+        }
+        if (pii) {
+            sql.append(" OR lower(u.email) LIKE ? ESCAPE '\\'");
+            args.add(like);
+        }
+        sql.append("))) ORDER BY a.user_id DESC LIMIT ?");
+        args.add(limit);
+        List<Long> ids = jdbc.queryForList(sql.toString(), Long.class, args.toArray());
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        Map<Long, Academician> byId = academicians.findAllById(ids).stream().collect(Collectors.toMap(Academician::getUserId, a -> a));
+        return ids.stream().map(byId::get).filter(java.util.Objects::nonNull).toList();
     }
 
     @Transactional(readOnly = true)

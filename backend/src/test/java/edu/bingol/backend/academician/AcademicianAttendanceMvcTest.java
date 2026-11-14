@@ -255,6 +255,7 @@ class AcademicianAttendanceMvcTest extends AcademicianMvcBase {
         // sinir konunca (COUNT 2) yeniden hesap: 1 devamsizlik = risk (duzey 1)
         limit(l, courseId, "COUNT", 2);
         assertEquals(1, countTitle(s, "notif.academician.absenceWarning.title"));
+        assertCourseTarget(s, "notif.academician.absenceWarning.title", courseId);
         assertEquals(0, countTitle(ok, "notif.academician.absenceWarning.title"));
         // ayni duzey iki kez bildirilmez: kapali oturumu yeniden kapatmak/okumak yeni bildirim vermez
         close(l, s1);
@@ -265,6 +266,7 @@ class AcademicianAttendanceMvcTest extends AcademicianMvcBase {
         markPresent(l, s2, ok);
         close(l, s2);
         assertEquals(1, countTitle(s, "notif.academician.absenceExceeded.title")); // 2 devamsizlik = sinira ulasildi
+        assertCourseTarget(s, "notif.academician.absenceExceeded.title", courseId);
         assertEquals(1, countTitle(s, "notif.academician.absenceWarning.title"));
         long warned = enrollRepo.ofCourse(courseId, org.springframework.data.domain.PageRequest.of(0, 10)).stream()
                 .filter(e -> e.getStudentId().equals(s.getId())).findFirst().orElseThrow().getWarnedLevel();
