@@ -53,8 +53,8 @@ export function CourseFormDialog({ open, onClose, course, onSaved }: Props) {
       void qc.invalidateQueries({ queryKey: acadKeys.courses() });
       if (course) void qc.invalidateQueries({ queryKey: acadKeys.course(course.id) });
       toast.success(course ? t('ac.courseForm.saved') : t('ac.courseForm.created'));
+      onClose(); // önce kapat: ardından gelen yönlendirme (onSaved) kapatmanın adres değişikliğini ezer
       onSaved?.(c);
-      onClose();
     },
     // hata: pencere açık kalır, girdi korunur
     onError: (e) => setError(acadError(i18n, e)),
