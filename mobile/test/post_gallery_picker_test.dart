@@ -58,7 +58,6 @@ PostGalleryPickerPage _picker(
   SystemMediaPicker? system,
   List<(Uint8List?, String?)>? opened,
   bool realCompose = false,
-  List<Object?>? calls,
 }) =>
     PostGalleryPickerPage(
       session: session,

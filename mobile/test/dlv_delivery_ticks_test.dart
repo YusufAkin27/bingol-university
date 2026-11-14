@@ -48,8 +48,6 @@ Future<void> _pump(WidgetTester tester, Widget page) async {
   await settle(tester, const Duration(milliseconds: 700));
 }
 
-Finder _tick(String label) => find.byWidgetPredicate((w) => w is Semantics && w.properties.label == label);
-
 Map<String, dynamic> _receipt(String kind, int upTo, String status, {int cid = 1}) =>
     {'type': 'receipt', 'conversationId': cid, 'kind': kind, 'upToMessageId': upTo, 'status': status};
 

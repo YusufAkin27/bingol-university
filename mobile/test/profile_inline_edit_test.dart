@@ -323,7 +323,7 @@ void main() {
 
     testWidgets('kayıt sürerken çift dokunma ve başka kayıt tek istek üretir', (tester) async {
       final b = FakeBackend();
-      final out = await _open(tester, b);
+      await _open(tester, b);
       await _tap(tester, _k('inline-name'));
       await tester.enterText(_k('inline-name-field'), 'Zeynep Aksoy');
       await tester.pump();
