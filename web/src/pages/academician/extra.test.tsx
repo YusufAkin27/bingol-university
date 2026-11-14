@@ -92,7 +92,8 @@ describe('erişilebilir adlar (WCAG 2.5.3) ve yerleşim kuralları', () => {
     const { container } = renderAcademician('/akademisyen');
     await screen.findByRole('heading', { name: /Merhaba/ });
     const brand = container.querySelector('a[class*="brandLink"]') as HTMLElement;
-    expect(brand.getAttribute('aria-label')).toBeNull(); // ad = görünür içerik
+    expect(brand.getAttribute('aria-label')).toBeNull(); // ad içerikten gelir (WCAG 2.5.3: aria-label ile görünür metin uyuşmazlığı yok)
+    expect(brand).toHaveTextContent('Akademisyen paneli ana sayfası'); // dar ekranda görünür metin gizlense de ad kalır (sr-only)
     expect(brand).toHaveTextContent('Akademisyen');
   });
 

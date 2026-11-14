@@ -169,8 +169,7 @@ export function useLiveSession(sessionId: number, onArrival?: (r: AttendanceReco
     window.addEventListener('online', wake);
     void tick();
     return () => {
-      stopped = true;
-      current?.ac.abort();
+      stopped = true; // süren istek iptal EDİLMEZ (sonucu yok sayılır; en çok 5 sn zaman aşımı): sayfa değişiminde ağ hatası gürültüsü olmasın
       clearTimeout(timer);
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('online', wake);

@@ -498,3 +498,20 @@ a.rowTitle:hover {
     justify-self: stretch;
   }
 }
+
+/* uzun dosya adları satırı taşırmasın (telefonda) */
+.attachList li {
+  min-width: 0;
+  max-width: 100%;
+}
+.fileBtn {
+  max-width: 100%;
+  height: auto;
+  min-height: 2rem;
+  white-space: normal;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+.noticeRow .rowMain {
+  min-width: 0;
+}

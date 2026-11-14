@@ -25,7 +25,7 @@ export default {
   'ac.field.hidePassword': 'Parolayı gizle',
 
   // ---- kabuk ----
-  'ac.brand': 'BÜ Kampüs akademisyen paneli',
+  'ac.brand': 'Akademisyen paneli ana sayfası',
   'ac.brand.sub': 'Akademisyen',
   'ac.nav.aria': 'Akademisyen paneli menüsü',
   'ac.nav.home': 'Panel',
