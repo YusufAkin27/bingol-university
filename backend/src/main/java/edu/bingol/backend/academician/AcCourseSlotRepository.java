@@ -18,6 +18,7 @@ public interface AcCourseSlotRepository extends JpaRepository<AcCourseSlot, Long
     boolean existsByIdAndCourseId(Long id, Long courseId);
 
     @Modifying
+    @org.springframework.transaction.annotation.Transactional
     @Query("DELETE FROM AcCourseSlot s WHERE s.courseId = :courseId")
     int deleteByCourse(@Param("courseId") Long courseId);
 }

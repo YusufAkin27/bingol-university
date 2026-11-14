@@ -31,15 +31,18 @@ public interface AcEnrollmentRepository extends JpaRepository<AcEnrollment, Long
 
     /** Kosullu yukseltme: yalniz bu cagri duzeyi yukselttiyse 1 doner (es zamanli finalize cift bildirim vermez). */
     @Modifying
+    @org.springframework.transaction.annotation.Transactional
     @Query("UPDATE AcEnrollment e SET e.warnedLevel = :lvl WHERE e.courseId = :c AND e.studentId = :s AND e.warnedLevel < :lvl")
     int raiseWarned(@Param("c") Long courseId, @Param("s") Long studentId, @Param("lvl") short level);
 
     /** Duzeltme sonrasi sessiz dusurme (bildirim yok). */
     @Modifying
+    @org.springframework.transaction.annotation.Transactional
     @Query("UPDATE AcEnrollment e SET e.warnedLevel = :lvl WHERE e.courseId = :c AND e.studentId = :s AND e.warnedLevel > :lvl")
     int lowerWarned(@Param("c") Long courseId, @Param("s") Long studentId, @Param("lvl") short level);
 
     @Modifying
+    @org.springframework.transaction.annotation.Transactional
     @Query("DELETE FROM AcEnrollment e WHERE e.courseId = :c AND e.studentId = :s")
     int remove(@Param("c") Long courseId, @Param("s") Long studentId);
 }

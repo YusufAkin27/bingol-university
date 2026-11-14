@@ -98,7 +98,7 @@ public final class AcademicianDtos {
 
     /** fileIds: once /notice-files ile yuklenen bekleyen dosya kimlikleri (en cok 5; yalniz EXAM/ASSIGNMENT/MATERIAL). */
     public record NoticeRequest(@NotNull AcNotice.Type type, @Size(max = 120) String title, @Size(max = 1000) String note,
-                                Instant eventAt, @Size(max = 5) List<Long> fileIds) {}
+                                Instant eventAt, List<Long> fileIds) {}
 
     public record FileView(Long id, String name, String contentType, long sizeBytes) {}
 

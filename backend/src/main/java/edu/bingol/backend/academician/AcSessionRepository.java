@@ -30,6 +30,7 @@ public interface AcSessionRepository extends JpaRepository<AcSession, Long> {
      * iki istek ayni oturumu kesinlestirse de uyari bir kez gider).
      */
     @Modifying
+    @org.springframework.transaction.annotation.Transactional
     @Query("UPDATE AcSession s SET s.status = edu.bingol.backend.academician.AcSession.Status.CLOSED, s.closedAt = :at "
             + "WHERE s.id = :id AND s.status = edu.bingol.backend.academician.AcSession.Status.OPEN")
     int closeIfOpen(@Param("id") Long id, @Param("at") Instant closedAt);
@@ -53,6 +54,7 @@ public interface AcSessionRepository extends JpaRepository<AcSession, Long> {
     List<Long> idsOfCourse(@Param("c") Long courseId, Pageable page);
 
     @Modifying
+    @org.springframework.transaction.annotation.Transactional
     @Query("UPDATE AcSession s SET s.slotId = NULL WHERE s.courseId = :c")
     int clearSlots(@Param("c") Long courseId);
 
