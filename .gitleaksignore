@@ -1,0 +1,13 @@
+# Gitleaks yanlis pozitifleri (tam parmak izi; yol bazli genis izin YOK).
+# scripts/smoke*.sh, chat-images-e2e.sh, qa-event-api.sh: yerel/gecici backend'e karsi olusturulan
+# tek kullanimlik test hesabinin sifresi (hesap betigin sonunda silinir); gercek bir kimlik bilgisi degil.
+# Gecmis commit'lerde kaldigi icin betikleri degistirmek tek basina taramayi duzeltmez.
+8cdff73f2f1eac1982237bb52affff5841a013dc:scripts/chat-images-e2e.sh:generic-api-key:227
+8cdff73f2f1eac1982237bb52affff5841a013dc:scripts/smoke-admin-verify.sh:generic-api-key:44
+8cdff73f2f1eac1982237bb52affff5841a013dc:scripts/smoke-admin-verify.sh:generic-api-key:46
+8cdff73f2f1eac1982237bb52affff5841a013dc:scripts/qa-event-api.sh:generic-api-key:225
+8cdff73f2f1eac1982237bb52affff5841a013dc:scripts/smoke-access-ban.sh:generic-api-key:87
+8cdff73f2f1eac1982237bb52affff5841a013dc:scripts/smoke-report-visibility.sh:generic-api-key:62
+8cdff73f2f1eac1982237bb52affff5841a013dc:scripts/smoke-report-visibility.sh:generic-api-key:63
+8cdff73f2f1eac1982237bb52affff5841a013dc:scripts/smoke.sh:generic-api-key:114
+8cdff73f2f1eac1982237bb52affff5841a013dc:scripts/smoke.sh:generic-api-key:120
