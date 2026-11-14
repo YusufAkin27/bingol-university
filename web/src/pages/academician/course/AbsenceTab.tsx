@@ -111,7 +111,7 @@ export function AbsenceTab({ course }: { course: Course }) {
 
   const columns: Column<MatrixStudent>[] = [
     { key: 'name', header: t('ac.students.col.name'), render: (s) => s.displayName, card: { priority: 1 } },
-    { key: 'no', header: t('ac.students.col.no'), render: (s) => <span className="ltr">{s.studentNo ?? '—'}</span> },
+    { key: 'no', header: t('ac.students.col.no'), render: (s) => <span className="ltr">{s.studentNo ?? '—'}</span>, card: { priority: 1 } },
     {
       key: 'absent',
       header: t('ac.absence.col.absent'),

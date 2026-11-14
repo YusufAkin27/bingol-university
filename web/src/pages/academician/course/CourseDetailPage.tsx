@@ -106,9 +106,9 @@ export default function CourseDetailPage() {
             {courseTitle(c)} {archived && <Badge>{t('ac.course.archived')}</Badge>}
           </>
         }
-        description={`${c.term} · ${c.department}${c.grade ? ` · ${c.grade}` : ''}${c.enrolledCount !== null ? ` · ${t('ac.course.enrolledN', { n: c.enrolledCount })}` : ''}`}
+        description={<span className={styles.pageSub}>{`${c.term} · ${c.department}${c.grade ? ` · ${c.grade}` : ''}${c.enrolledCount !== null ? ` · ${t('ac.course.enrolledN', { n: c.enrolledCount })}` : ''}`}</span>}
         actions={
-          <>
+          <div className={styles.headActions}>
             <Button leftIcon={<Icon name="play" size={16} />} disabled={archived} title={archived ? t('ac.course.archivedHint') : undefined} onClick={() => setStarting(true)}>
               {t('ac.course.startAttendance')}
             </Button>
@@ -121,10 +121,11 @@ export default function CourseDetailPage() {
             <Button variant="dangerOutline" onClick={() => setConfirm('delete')}>
               {t('ac.delete')}
             </Button>
-          </>
+          </div>
         }
       />
 
+      <div className={styles.tabsWrap}>
       <Tabs
         label={t('ac.tab.aria')}
         value={tab}
@@ -144,6 +145,7 @@ export default function CourseDetailPage() {
         <KeepTab id="duyurular" tab={tab}><NoticesTab course={c} /></KeepTab>
         <KeepTab id="disa-aktar" tab={tab}><ExportTab course={c} /></KeepTab>
       </Tabs>
+      </div>
 
       {editing && <CourseFormDialog open course={c} onClose={() => setEditing(false)} />}
       {starting && <StartSessionDialog open course={c} onClose={() => setStarting(false)} />}

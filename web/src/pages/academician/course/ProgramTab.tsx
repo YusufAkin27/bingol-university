@@ -100,8 +100,8 @@ export function ProgramTab({ course }: { course: Course }) {
                 <FormField label={t('ac.program.room')}>
                   <Input value={r.room} maxLength={100} placeholder={t('ac.program.roomHint')} onChange={(e) => update(r.key, { room: e.target.value })} />
                 </FormField>
-                <Button variant="dangerOutline" size="sm" aria-label={t('ac.program.removeRow', { n: i + 1 })} onClick={() => setRows((rs) => rs.filter((x) => x.key !== r.key))}>
-                  <Icon name="x" size={16} />
+                <Button variant="dangerOutline" size="sm" className={styles.removeSlot} aria-label={t('ac.program.removeRow', { n: i + 1 })} onClick={() => setRows((rs) => rs.filter((x) => x.key !== r.key))}>
+                  {t('ac.program.remove')}
                 </Button>
               </li>
             );

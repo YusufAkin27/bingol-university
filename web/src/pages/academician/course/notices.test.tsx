@@ -237,7 +237,7 @@ describe('liste: indirme ve silme', () => {
     const api = open((a) =>
       a.get('/academician/courses/7/notices', { items: [notice], nextCursor: null }).get('/academician/notices/31/files/8', () => new Response('PDF', { status: 200, headers: { 'Content-Type': 'application/pdf' } })),
     );
-    await userEvent.setup().click(await screen.findByRole('button', { name: 'soru.pdf dosyasını indir' }));
+    await userEvent.setup().click(await screen.findByRole('button', { name: /soru.pdf.*indir/ }));
     await waitFor(() => expect(names).toEqual(['soru.pdf']));
     expect(api.callsTo('GET', '/academician/notices/31/files/8')[0].headers.Authorization).toBe('Bearer acad-access');
   });

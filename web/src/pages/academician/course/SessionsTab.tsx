@@ -149,7 +149,8 @@ export function SessionsTab({ course, onStart }: { course: Course; onStart: () =
       align: 'end',
       card: { actions: true },
       render: (s) => (
-        <span className={styles.rowActions}>
+        <span className={styles.actionCell}>
+          <span className={styles.rowActions}>
           {s.status === 'OPEN' ? (
             <>
               <LinkButton to={acadPaths.live(s.id)} size="sm" leftIcon={<Icon name="activity" size={16} />}>
@@ -164,12 +165,15 @@ export function SessionsTab({ course, onStart }: { course: Course; onStart: () =
               {t('ac.session.reopen')}
             </Button>
           )}
+          </span>
+          <span className={styles.rowActions}>
           <Button size="sm" variant="ghost" onClick={() => setDetail(s)}>
             {t('ac.session.detail')}
           </Button>
           <Button size="sm" variant="dangerOutline" onClick={() => setDeleting(s)} aria-label={t('ac.sessions.deleteAria', { date: fmtDate(s.lessonDate) })}>
             {t('ac.sessions.delete')}
           </Button>
+          </span>
         </span>
       ),
     },
@@ -304,7 +308,7 @@ function SessionDetail({ course, session, onClose }: { course: Course; session: 
 
   const columns: Column<MatrixStudent>[] = [
     { key: 'name', header: t('ac.students.col.name'), render: (s) => s.displayName, card: { priority: 1 } },
-    { key: 'no', header: t('ac.students.col.no'), render: (s) => <span className="ltr">{s.studentNo ?? '—'}</span> },
+    { key: 'no', header: t('ac.students.col.no'), render: (s) => <span className="ltr">{s.studentNo ?? '—'}</span>, card: { priority: 1 } },
     { key: 'state', header: t('ac.detail.col.state'), render: (s) => <MarkBadge mark={markOf(s)} provisional={provisional} /> },
     {
       key: 'act',

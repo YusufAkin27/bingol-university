@@ -56,7 +56,7 @@ describe('Program sekmesi', () => {
     fireEvent.change(end, { target: { value: '09:50' } });
     await user.click(screen.getByRole('button', { name: 'Saat ekle' }));
     expect(await screen.findByText(/çakışan saatler var/)).toBeInTheDocument();
-    await user.click(screen.getByLabelText('2. satırı kaldır'));
+    await user.click(screen.getByRole('button', { name: 'Saati kaldır (2. satır)' }));
     await user.click(screen.getByRole('button', { name: 'Programı kaydet' }));
     await waitFor(() => expect(api.callsTo('PUT', '/academician/courses/7/slots')).toHaveLength(1));
     expect(api.callsTo('PUT', '/academician/courses/7/slots')[0].body).toEqual([{ dayOfWeek: 1, startTime: '09:00', endTime: '09:50' }]);

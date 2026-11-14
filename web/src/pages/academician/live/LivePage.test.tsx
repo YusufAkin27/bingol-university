@@ -435,6 +435,16 @@ describe('W1-W4: poll hataları, zaman aşımı, sıra dışı yanıt, kapanış
     expect(within(screen.getByRole('list', { name: 'Katılanlar' })).getByText('Ayşe Örnek')).toBeInTheDocument();
   });
 
+  it('401 + refresh reddi (oturum ortasında): akademisyen oturumu kapanır, yoklama durur', async () => {
+    const { server, api } = setup();
+    api.post('/auth/refresh', () => err(401, 'REFRESH_INVALID'));
+    await tick(200);
+    server.next = () => err(401, 'UNAUTHORIZED');
+    await tick(2600);
+    expect(tokensFor('acad').getAccessToken()).toBeNull();
+    expect(tokensFor('admin').getAccessToken()).toBeNull();
+  });
+
   it('W3: oturum kullanıcı kapatmadan kapanırsa nedeni söylenir', async () => {
     const { server } = setup();
     await tick(200);

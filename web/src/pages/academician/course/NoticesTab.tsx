@@ -294,7 +294,7 @@ function FileDownload({ noticeId, file }: { noticeId: number; file: NoticeFile }
     }
   }
   return (
-    <Button size="sm" variant="secondary" loading={busy} leftIcon={<Icon name="download" size={14} />} onClick={() => void go()} aria-label={t('ac.notices.downloadAria', { name: file.name })}>
+    <Button size="sm" variant="secondary" loading={busy} leftIcon={<Icon name="download" size={14} />} onClick={() => void go()} aria-label={t('ac.notices.downloadAria', { name: `${file.name} (${fmtSize(file.sizeBytes)})` })}>
       {file.name} <span className={styles.muted}>({fmtSize(file.sizeBytes)})</span>
     </Button>
   );

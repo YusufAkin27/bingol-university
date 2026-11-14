@@ -55,6 +55,7 @@ export default function EnrollPage() {
 
   const filters = { q, faculty, department, grade };
   const hasFilter = !!(q || faculty || department || grade);
+  const enrolledIds = useMemo(() => new Set((enrolled.data ?? []).map((e) => e.studentId)), [enrolled.data]);
   const results = useInfiniteQuery({
     queryKey: acadKeys.students(filters),
     queryFn: ({ pageParam }) => searchStudents({ ...filters, cursor: pageParam }),
@@ -63,8 +64,10 @@ export default function EnrollPage() {
     // süzgeç yokken tüm öğrenci rehberi listelenmez: önce arama/süzgeç istenir
     enabled: Number.isFinite(id) && hasFilter,
   });
-  const students = results.data?.pages.flatMap((p) => p.items) ?? [];
-  const enrolledIds = useMemo(() => new Set((enrolled.data ?? []).map((e) => e.studentId)), [enrolled.data]);
+  const found = results.data?.pages.flatMap((p) => p.items) ?? [];
+  // zaten derste olanlar seçilemez: tabloya alınmaz, ayrı bir notta adlarıyla listelenir (ölü onay kutusu yok)
+  const already = found.filter((s) => enrolledIds.has(s.id));
+  const students = found.filter((s) => !enrolledIds.has(s.id));
   const depts = useMemo(() => departmentOptions(catalog.data, faculty), [catalog.data, faculty]);
 
   // kurs yüklenince toplu ekleme varsayılanları dersin hedef kitlesidir
@@ -142,7 +145,7 @@ export default function EnrollPage() {
 
   const columns: Column<DirectoryStudent>[] = [
     { key: 'name', header: t('ac.students.col.name'), render: (s) => s.displayName, card: { priority: 1 } },
-    { key: 'no', header: t('ac.students.col.no'), render: (s) => <span className="ltr">{s.studentNo ?? '—'}</span> },
+    { key: 'no', header: t('ac.students.col.no'), render: (s) => <span className="ltr">{s.studentNo ?? '—'}</span>, card: { priority: 1 } },
     { key: 'dept', header: t('ac.students.col.dept'), render: (s) => [s.faculty, s.department].filter(Boolean).join(' / ') || '—' },
     { key: 'grade', header: t('ac.enroll.col.grade'), render: (s) => s.grade ?? '—' },
     {
@@ -206,7 +209,7 @@ export default function EnrollPage() {
           <LoadingBlock rows={4} height="2.5rem" />
         ) : results.isError ? (
           <QueryError subject={t('ac.enroll.subject')} error={results.error} onRetry={() => void results.refetch()} />
-        ) : students.length === 0 ? (
+        ) : found.length === 0 ? (
           <EmptyBlock
             icon="users"
             title={t('ac.noResults.title')}
@@ -215,6 +218,11 @@ export default function EnrollPage() {
           />
         ) : (
           <>
+            {already.length > 0 && (
+              <p className={styles.muted} role="status">
+                {t('ac.enroll.alreadyNote', { n: already.length, names: already.map((s) => s.displayName).join(', ') })}
+              </p>
+            )}
             <ResponsiveTable
               columns={columns}
               rows={students}

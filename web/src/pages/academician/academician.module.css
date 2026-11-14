@@ -16,6 +16,12 @@
   display: grid;
   gap: var(--space-5);
   align-content: start;
+  min-width: 0;
+  max-width: 100%;
+}
+/* ızgara çocukları içeriğe göre genişleyip sayfayı yatay kaydırmasın */
+.page > * {
+  min-width: 0;
 }
 
 .back {
@@ -443,4 +449,52 @@ a.rowTitle:hover {
   gap: var(--space-2);
   margin: var(--space-3) 0 0;
   color: var(--text);
+}
+
+/* ---- ders başlığı eylemleri: dar ekranda sarar, birincil eylem tam genişlik ---- */
+.headActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.tabsWrap {
+  min-width: 0;
+  max-width: 100%;
+}
+.pageSub {
+  overflow-wrap: anywhere;
+}
+.actionCell {
+  display: grid;
+  justify-items: end;
+  gap: var(--space-1);
+}
+.removeSlot {
+  align-self: end;
+  justify-self: start;
+}
+
+@media (max-width: 640px) {
+  .headActions > :first-child {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+  .headActions > * {
+    flex: 1 1 auto;
+  }
+  /* satır: metin üstte, eylemler altta (üst üste binme yok) */
+  .rowMain {
+    flex: 1 1 100%;
+  }
+  .rowActions {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+  }
+  .actionCell {
+    justify-items: start;
+  }
+  .removeSlot {
+    grid-column: span 2;
+    justify-self: stretch;
+  }
 }

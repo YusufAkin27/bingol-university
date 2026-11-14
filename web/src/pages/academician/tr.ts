@@ -262,7 +262,8 @@ export default {
   'ac.program.end': 'Bitiş',
   'ac.program.room': 'Derslik',
   'ac.program.roomHint': 'İsteğe bağlı',
-  'ac.program.removeRow': '{n}. satırı kaldır',
+  'ac.program.remove': 'Saati kaldır',
+  'ac.program.removeRow': 'Saati kaldır ({n}. satır)',
   'ac.program.err.time': 'Geçerli bir saat girin.',
   'ac.program.err.order': 'Bitiş saati başlangıçtan sonra olmalı.',
   'ac.program.overlap': 'Aynı gün çakışan saatler var. Kaydedebilirsiniz, ancak yoklama başlatırken doğru saati seçtiğinizden emin olun.',
@@ -606,4 +607,5 @@ export default {
   'ac.matrix.caption': 'Öğrenci ve oturum bazında yoklama durumları',
   'ac.matrix.uncounted': 'sayılmıyor',
   'ac.matrix.live': 'canlı',
+  'ac.enroll.alreadyNote': '{n} öğrenci zaten derste olduğu için seçilemez: {names}',
 } satisfies Record<string, string>;
