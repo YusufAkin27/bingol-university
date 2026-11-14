@@ -414,7 +414,7 @@ services:
       start_period: ${BACKEND_START_PERIOD:-360s}
 
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true

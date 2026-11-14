@@ -1,7 +1,7 @@
 # Calistirma: cp .env.example .env  ->  docker compose up -d --build
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     restart: unless-stopped
     mem_limit: ${POSTGRES_MEM_LIMIT:-1g}
     # PostgreSQL ayari (yerel gelistirme, 1 GB sinirina gore; uretim: docker-compose.prod.yml, docs/DATABASE.md bolum 6).
