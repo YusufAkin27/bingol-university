@@ -1,6 +1,5 @@
 import 'package:bu_kampus/core/theme_controller.dart';
 import 'package:bu_kampus/features/shell/app_shell.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_app.dart';

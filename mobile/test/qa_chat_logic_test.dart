@@ -1,6 +1,5 @@
 import 'package:bu_kampus/core/cache/message_cache.dart';
 import 'package:bu_kampus/core/realtime/chat_realtime.dart';
-import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/features/chat/chat_detail_page.dart';
 import 'package:bu_kampus/features/chat/chat_tab.dart';
 import 'package:flutter/material.dart';

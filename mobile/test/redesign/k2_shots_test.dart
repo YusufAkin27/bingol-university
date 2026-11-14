@@ -278,7 +278,6 @@ void main() {
         final key = GlobalKey();
         await tester.pumpWidget(_app(s.page(), v.$2, key, v.$3));
         await tester.runAsync(() async {
-          final ctx = tester.element(find.byType(Navigator).first);
         });
         await settle(tester, Duration(milliseconds: s.settleMs));
         if (s.after != null) {

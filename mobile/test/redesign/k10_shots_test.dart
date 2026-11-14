@@ -19,7 +19,6 @@ import 'package:bu_kampus/features/academic/timetable_page.dart';
 import 'package:bu_kampus/features/profile/notification_prefs_page.dart';
 import 'package:bu_kampus/features/profile/user_profile_page.dart';
 import 'package:bu_kampus/widgets/report_sheet.dart';
-import 'package:bu_kampus/features/academic/timetable_parts.dart' show isolateIcs;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';

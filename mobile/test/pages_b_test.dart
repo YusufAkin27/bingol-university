@@ -12,7 +12,6 @@ import 'package:bu_kampus/features/clubs/clubs_tab.dart';
 import 'package:bu_kampus/features/events/event_detail_page.dart';
 import 'package:bu_kampus/features/events/events_page.dart';
 import 'package:bu_kampus/features/platform/qr_scan_page.dart';
-import 'package:bu_kampus/features/chat/message_status_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';

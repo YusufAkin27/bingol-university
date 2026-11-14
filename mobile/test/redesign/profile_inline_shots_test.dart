@@ -16,7 +16,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../support/fake_app.dart';
-import '../support/store_shots_images.dart';
 
 /// Profilim satir ici duzenleme ekran goruntuleri. Varsayilan `flutter test` ile atlanir.
 /// Uretim: STORE_SHOTS_OUT='C:/bu_qa/shots/profile_inline' flutter test test/redesign/profile_inline_shots_test.dart
@@ -123,7 +122,6 @@ void main() {
         ),
       ));
       await tester.runAsync(() async {
-        final ctx = tester.element(find.byType(Scaffold).first);
       });
       await settle(tester, const Duration(milliseconds: 900));
       if (shot.after != null) {

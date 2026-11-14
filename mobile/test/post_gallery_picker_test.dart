@@ -5,7 +5,6 @@ import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/chat/media_camera_page.dart';
 import 'package:bu_kampus/features/chat/media_library.dart';
-import 'package:bu_kampus/features/chat/media_pick.dart';
 import 'package:bu_kampus/features/media_crop/media_crop.dart';
 import 'package:bu_kampus/features/posts/compose_post_page.dart';
 import 'package:bu_kampus/features/posts/post_gallery_picker_page.dart';
