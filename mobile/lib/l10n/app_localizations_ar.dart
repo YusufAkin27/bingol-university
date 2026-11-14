@@ -14228,15 +14228,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get scanLessonNotEnrolled => 'لست مدرجا في قائمة حضور هذه المادة.';
 
   @override
-  String get scanLessonLocationNeeded => 'الموقع مطلوب لتسجيل الحضور. فعّل الموقع وامسح الرمز مرة أخرى.';
-
-  @override
-  String get scanLessonLocationWeak => 'تعذر تحديد موقعك أو أنه غير دقيق بما يكفي. اقترب من نافذة وامسح الرمز مرة أخرى.';
-
-  @override
-  String get scanLessonOutOfArea => 'يمكن تسجيل الحضور داخل الحرم الجامعي فقط. إذا كنت في الحرم، اطلب من المحاضر تسجيل حضورك يدويا.';
-
-  @override
   String get signOutPendingTitle => 'سيتم حذف الرسائل غير المرسلة';
 
   @override

@@ -7756,9 +7756,6 @@
   },
   "scanLessonExpired": "Kodun süresi doldu. Ekrandaki kodu yeniden okut.",
   "scanLessonNotEnrolled": "Bu dersin yoklama listesinde görünmüyorsun.",
-  "scanLessonLocationNeeded": "Yoklama için konum gerekli. Konumu açıp kodu yeniden okut.",
-  "scanLessonLocationWeak": "Konum alınamadı veya yeterince doğru değil. Pencere kenarına yaklaşıp kodu yeniden okut.",
-  "scanLessonOutOfArea": "Yoklama yalnızca kampüste alınabilir. Kampüsteysen yoklamanı öğretim elemanından elle işlemesini iste.",
   "signOutPendingTitle": "Gönderilmemiş mesajlar silinecek",
   "signOutPendingBody": "Gönderilmemiş {count} mesaj silinecek. Çıkış yapmak istiyor musun?",
   "@signOutPendingBody": {

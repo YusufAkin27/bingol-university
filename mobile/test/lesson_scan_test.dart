@@ -1,5 +1,4 @@
 import 'package:bu_kampus/core/permissions/permission_service.dart';
-import 'package:bu_kampus/features/scan/lesson_location.dart';
 import 'package:bu_kampus/features/scan/scan_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,26 +8,13 @@ import 'support/fake_app.dart';
 const _payload = 'bingol-lesson:42.368000000.AbC_-defGhIjKlMnOpQrSt';
 const _path = '/attendance/scan';
 
-class _FakeLocation implements LessonLocationProvider {
-  _FakeLocation(this.result);
-
-  final LessonLocationResult result;
-  int calls = 0;
-
-  @override
-  Future<LessonLocationResult> current() async {
-    calls++;
-    return result;
-  }
-}
-
 void main() {
   setUpAll(loadTestFonts);
 
   group('tarayıcı: ders yoklama akışı', () {
     late FakeBackend be;
 
-    Future<void> open(WidgetTester tester, {LessonLocationProvider? location}) async {
+    Future<void> open(WidgetTester tester) async {
       be = FakeBackend();
       final perms = FakePermissionService(initial: {AppPermission.camera: PermState.granted});
       useScreen(tester, kPhoneMedium);
@@ -42,7 +28,6 @@ void main() {
                 builder: (_) => QrScanHubPage(
                   session: session,
                   permissionService: perms,
-                  locationProvider: location,
                   scannerBuilder: (c, onValue) => Column(children: [
                     TextButton(key: const ValueKey('scan-lesson'), onPressed: () => onValue(_payload), child: const Text('a')),
                     TextButton(key: const ValueKey('scan-bad'), onPressed: () => onValue('bingol-lesson:zzz'), child: const Text('b')),
@@ -126,50 +111,6 @@ void main() {
       await settle(tester, const Duration(milliseconds: 500));
       expect(find.byType(QrScanHubPage), findsOneWidget);
       expect(find.textContaining('Sunucuya ulaşılamadı'), findsOneWidget);
-      await settle(tester, const Duration(seconds: 4));
-    });
-
-    testWidgets('konum verilirse enlem/boylam/doğruluk kodla birlikte gider', (tester) async {
-      final loc = _FakeLocation(const LessonLocationResult.ok(LessonPosition(38.88, 40.5, 12.5)));
-      await open(tester, location: loc);
-      be.on(_path, {'status': 'MARKED', 'courseName': 'Matematik 101', 'lessonDate': '2026-11-14', 'locationChecked': true});
-      await tester.tap(find.byKey(const ValueKey('scan-lesson')));
-      await settle(tester, const Duration(milliseconds: 800));
-      expect(loc.calls, 1);
-      expect(be.bodies['POST $_path'], {'code': _payload, 'latitude': 38.88, 'longitude': 40.5, 'accuracyM': 12.5});
-      expect(find.byType(QrScanHubPage), findsNothing);
-      await settle(tester, const Duration(seconds: 3));
-    });
-
-    testWidgets('konum alınamazsa kod koordinatsız gider; 422 LOCATION_REQUIRED: konum mesajı, tarayıcı açık', (tester) async {
-      final loc = _FakeLocation(const LessonLocationResult.failed(LessonLocationFailure.denied));
-      await open(tester, location: loc);
-      be.fail(_path, status: 422, code: 'ATTENDANCE_LOCATION_REQUIRED', message: 'Sunucu.');
-      await tester.tap(find.byKey(const ValueKey('scan-lesson')));
-      await settle(tester, const Duration(milliseconds: 500));
-      expect(be.bodies['POST $_path'], {'code': _payload});
-      expect(find.byType(QrScanHubPage), findsOneWidget);
-      expect(find.textContaining('Konumu açıp'), findsOneWidget);
-      await settle(tester, const Duration(seconds: 4));
-    });
-
-    testWidgets('zayıf konum (zaman aşımı) + 422 LOCATION_REQUIRED: pencere önerisi', (tester) async {
-      await open(tester, location: _FakeLocation(const LessonLocationResult.failed(LessonLocationFailure.timeout)));
-      be.fail(_path, status: 422, code: 'ATTENDANCE_LOCATION_REQUIRED');
-      await tester.tap(find.byKey(const ValueKey('scan-lesson')));
-      await settle(tester, const Duration(milliseconds: 500));
-      expect(find.byType(QrScanHubPage), findsOneWidget);
-      expect(find.textContaining('Pencere kenarına'), findsOneWidget);
-      await settle(tester, const Duration(seconds: 4));
-    });
-
-    testWidgets('403 OUT_OF_AREA: yalnız kampüste mesajı, tarayıcı açık', (tester) async {
-      await open(tester, location: _FakeLocation(const LessonLocationResult.ok(LessonPosition(1, 2, 10))));
-      be.fail(_path, status: 403, code: 'ATTENDANCE_OUT_OF_AREA');
-      await tester.tap(find.byKey(const ValueKey('scan-lesson')));
-      await settle(tester, const Duration(milliseconds: 500));
-      expect(find.byType(QrScanHubPage), findsOneWidget);
-      expect(find.textContaining('yalnızca kampüste'), findsOneWidget);
       await settle(tester, const Duration(seconds: 4));
     });
 

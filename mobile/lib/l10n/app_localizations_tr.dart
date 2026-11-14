@@ -14282,15 +14282,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get scanLessonNotEnrolled => 'Bu dersin yoklama listesinde görünmüyorsun.';
 
   @override
-  String get scanLessonLocationNeeded => 'Yoklama için konum gerekli. Konumu açıp kodu yeniden okut.';
-
-  @override
-  String get scanLessonLocationWeak => 'Konum alınamadı veya yeterince doğru değil. Pencere kenarına yaklaşıp kodu yeniden okut.';
-
-  @override
-  String get scanLessonOutOfArea => 'Yoklama yalnızca kampüste alınabilir. Kampüsteysen yoklamanı öğretim elemanından elle işlemesini iste.';
-
-  @override
   String get signOutPendingTitle => 'Gönderilmemiş mesajlar silinecek';
 
   @override

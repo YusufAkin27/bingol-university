@@ -12,7 +12,6 @@ import '../../core/permissions/ensure_permission.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../share/share_models.dart';
-import 'lesson_location.dart';
 import '../platform/qr_scan_page.dart' show ScanThrottle;
 import '../profile/profile_qr_style.dart' show QrCornerMarks;
 import '../profile/user_profile_page.dart';
@@ -26,14 +25,7 @@ typedef ScanScannerBuilder = Widget Function(BuildContext context, void Function
 /// yabancı alan adı ya da bozuk metin "Bu bir BÜ Kampüs profil kodu değil" der; okunan metin ASLA açılmaz/çalıştırılmaz.
 /// Kamera izni yoksa açıklayıcı durum + ayarlara git; el feneri ve (destekleniyorsa) galeriden okuma vardır.
 class QrScanHubPage extends StatefulWidget {
-  const QrScanHubPage({
-    super.key,
-    required this.session,
-    this.permissionService,
-    this.scannerBuilder,
-    this.openProfile,
-    this.locationProvider,
-  });
+  const QrScanHubPage({super.key, required this.session, this.permissionService, this.scannerBuilder, this.openProfile});
 
   final Session session;
 
@@ -46,9 +38,6 @@ class QrScanHubPage extends StatefulWidget {
   /// Testlerde profil açma yerine konur; varsayılan: bu sayfanın yerine [UserProfilePage].
   @visibleForTesting
   final void Function(BuildContext context, int userId)? openProfile;
-
-  /// Ders yoklaması için konum kaynağı; verilmezse konum yok sayılır ([UnavailableLessonLocationProvider]) ve kod koordinatsız gider.
-  final LessonLocationProvider? locationProvider;
 
   @override
   State<QrScanHubPage> createState() => _QrScanHubPageState();
@@ -216,17 +205,8 @@ class _QrScanHubPageState extends State<QrScanHubPage> with SingleTickerProvider
   Future<void> _lesson(String v) async {
     final l = context.l10n;
     setState(() => _busy = true);
-    LessonLocationFailure? noFix;
     try {
-      // Konum yalnız ders yoklamasında, tarama anında istenir. Alınamazsa kod yine gider: konum zorunluluğunu sunucu belirler.
-      final fix = await (widget.locationProvider ?? const UnavailableLessonLocationProvider()).current();
-      if (!mounted) return;
-      final pos = fix.position;
-      noFix = fix.failure;
-      final res = await widget.session.api.post('/attendance/scan', {
-        'code': v,
-        if (pos != null) ...{'latitude': pos.latitude, 'longitude': pos.longitude, 'accuracyM': pos.accuracyM},
-      });
+      final res = await widget.session.api.post('/attendance/scan', {'code': v});
       if (!mounted) return;
       final already = res is Map && res['status'] == 'ALREADY';
       final course = res is Map ? '${res['courseName'] ?? ''}'.trim() : '';
@@ -244,22 +224,6 @@ class _QrScanHubPageState extends State<QrScanHubPage> with SingleTickerProvider
       if (!mounted) return;
       if (e is ApiError && e.status == 422 && e.code == 'ATTENDANCE_CODE_INVALID') {
         _flash(l.scanLessonExpired);
-      } else if (e is ApiError && e.status == 422 && e.code == 'ATTENDANCE_LOCATION_REQUIRED') {
-        // Konum yok / yetersiz doğruluk: tarayıcı açık kalır; neden izin/servis ise ona göre yönlendirilir.
-        final off = noFix == LessonLocationFailure.denied || noFix == LessonLocationFailure.deniedForever || noFix == LessonLocationFailure.serviceOff;
-        _flash(off ? l.scanLessonLocationNeeded : l.scanLessonLocationWeak);
-        if (noFix == LessonLocationFailure.deniedForever) {
-          BuToast.show(
-            context,
-            l.scanLessonLocationNeeded,
-            kind: BuToastKind.warning,
-            actionLabel: l.profileQrOpenSettings,
-            onAction: () => (widget.permissionService ?? PermissionService.instance).openSettings(),
-          );
-        }
-      } else if (e is ApiError && e.status == 403 && e.code == 'ATTENDANCE_OUT_OF_AREA') {
-        _throttle.rejected(v, DateTime.now());
-        _flash(l.scanLessonOutOfArea);
       } else if (e is ApiError && e.status == 403 && e.code == 'ATTENDANCE_NOT_ENROLLED') {
         _throttle.rejected(v, DateTime.now());
         _flash(l.scanLessonNotEnrolled);
