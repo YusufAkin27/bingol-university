@@ -46,9 +46,8 @@ void main() {
         'bingol-lesson:.1.sig',
         'bingol-lesson: 42.1.sig',
         'bingol-lesson:42.1.sig sig',
-        'bingol-lesson:42.1.
-sig',
-        'bingol-lesson:42.1.sig	x',
+        'bingol-lesson:42.1.\nsig',
+        'bingol-lesson:42.1.sig\tx',
         'bingol-lesson:42.1.sig/../x',
       ]) {
         expect(resolveScan(v).kind, ScanKind.invalid, reason: v);
