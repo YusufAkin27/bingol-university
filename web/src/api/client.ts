@@ -1,7 +1,8 @@
 import { paths } from '../paths';
 import { getCurrentLang } from '../i18n/lang';
 import { getDeviceId } from '../lib/deviceId';
-import { clearTokens, getAccessToken, getRefreshToken, setTokens } from '../auth/tokens';
+import { tokensFor, type TokenArea } from '../auth/tokens';
+import { acadPaths } from '../pages/academician/paths';
 import type { ApiErrorBody, TokenResponse } from './types';
 
 /** API hatası: gövde `{code,message}` ise ikisi de taşınır; ağ hatasında status 0, code NETWORK_ERROR. */
@@ -35,6 +36,11 @@ export interface RequestOptions {
   auth?: boolean;
   /** Ek istek başlıkları (örn. `Idempotency-Key`); Accept/Accept-Language/Authorization bunlarla ezilmez. */
   headers?: Record<string, string>;
+  /**
+   * Hangi oturum alanının token'ı kullanılır: varsayılan 'admin' (yönetim paneli, davranış değişmez); 'acad' akademisyen
+   * paneli (`bu.acad.*`). Alan; Bearer, refresh ve oturum sonu yönlendirmesini birlikte belirler, hiçbiri alanlar arası sızmaz.
+   */
+  area?: TokenArea;
 }
 
 const BASE = ((import.meta.env.VITE_API_BASE as string | undefined) ?? '/api').replace(/\/+$/, '');
@@ -51,20 +57,28 @@ export function buildUrl(path: string, query?: Query): string {
 }
 
 // ---------- oturum sonu ----------
-let unauthorizedHandler: () => void = () => {
-  if (typeof window !== 'undefined' && !window.location.pathname.startsWith(paths.admin.login)) {
-    window.location.assign(paths.admin.login);
-  }
+const unauthorizedHandlers: Record<TokenArea, () => void> = {
+  admin: () => {
+    if (typeof window !== 'undefined' && !window.location.pathname.startsWith(paths.admin.login)) {
+      window.location.assign(paths.admin.login);
+    }
+  },
+  // Akademisyen oturumu düşünce asla yönetim girişine gidilmez
+  acad: () => {
+    if (typeof window !== 'undefined' && !window.location.pathname.startsWith(acadPaths.login)) {
+      window.location.assign(acadPaths.login);
+    }
+  },
 };
 
-/** AuthProvider, oturum kapanınca router ile yönlendirmek için kendi işleyicisini kaydeder. */
-export function setUnauthorizedHandler(fn: (() => void) | null): void {
-  unauthorizedHandler = fn ?? (() => undefined);
+/** AuthProvider, oturum kapanınca router ile yönlendirmek için kendi işleyicisini kaydeder (alan başına bir tane). */
+export function setUnauthorizedHandler(fn: (() => void) | null, area: TokenArea = 'admin'): void {
+  unauthorizedHandlers[area] = fn ?? (() => undefined);
 }
 
-function expireSession(): void {
-  clearTokens();
-  unauthorizedHandler();
+function expireSession(area: TokenArea): void {
+  tokensFor(area).clearTokens();
+  unauthorizedHandlers[area]();
 }
 
 // ---------- düşük seviye ----------
@@ -111,15 +125,15 @@ async function toError(res: Response): Promise<ApiError> {
 // ---------- tek-uçuş refresh ----------
 // Refresh token tek kullanımlıktır: eşzamanlı 401'lerde yalnızca TEK /auth/refresh çağrısı yapılır,
 // diğer istekler aynı sözü bekler. İkinci bir çağrı yarışı kaybedip oturumu düşürürdü.
-let refreshInFlight: Promise<string> | null = null;
+const refreshInFlight: Record<TokenArea, Promise<string> | null> = { admin: null, acad: null };
 
-export function refreshAccessToken(): Promise<string> {
-  if (!refreshInFlight) {
-    refreshInFlight = doRefresh().finally(() => {
-      refreshInFlight = null;
+export function refreshAccessToken(area: TokenArea = 'admin'): Promise<string> {
+  if (!refreshInFlight[area]) {
+    refreshInFlight[area] = doRefresh(area).finally(() => {
+      refreshInFlight[area] = null;
     });
   }
-  return refreshInFlight;
+  return refreshInFlight[area]!;
 }
 
 /**
@@ -142,14 +156,15 @@ function retryDelay(res: Response, fallback: number): number {
   return Number.isFinite(ra) && ra > 0 ? Math.min(ra * 1000, MAX_RETRY_AFTER_MS) : fallback;
 }
 
-async function doRefresh(): Promise<string> {
-  const refreshToken = getRefreshToken();
+async function doRefresh(area: TokenArea): Promise<string> {
+  const store = tokensFor(area);
+  const refreshToken = store.getRefreshToken();
   if (!refreshToken) throw new ApiError(401, 'UNAUTHORIZED', 'No refresh token');
   for (let attempt = 0; ; attempt++) {
     const res = await send('/auth/refresh', { method: 'POST', body: { refreshToken }, auth: false }, null);
     if (res.ok) {
       const tokens = (await res.json()) as TokenResponse;
-      setTokens(tokens.accessToken, tokens.refreshToken);
+      store.setTokens(tokens.accessToken, tokens.refreshToken);
       return tokens.accessToken;
     }
     if (SAFE_REFRESH_RETRY.has(res.status) && attempt < refreshRetryDelays.length) {
@@ -166,21 +181,22 @@ function isSessionRejected(e: unknown): boolean {
 }
 
 async function execute(path: string, opts: RequestOptions): Promise<Response> {
-  let res = await send(path, opts, getAccessToken());
+  const area = opts.area ?? 'admin';
+  let res = await send(path, opts, tokensFor(area).getAccessToken());
   if (res.status === 401 && opts.auth !== false) {
     let fresh: string;
     try {
-      fresh = await refreshAccessToken();
+      fresh = await refreshAccessToken(area);
     } catch (e) {
       // Oturum yalnız refresh 401/403 ile reddedilirse biter. 429/408/5xx/ağ gibi geçici hatalarda yönetici oturumda
       // kalır (token'lar korunur); çağıran isteğe geçici hata döner ve kullanıcı yeniden deneyebilir.
       if (!isSessionRejected(e)) throw e;
-      expireSession();
+      expireSession(area);
       throw await toError(res);
     }
     res = await send(path, opts, fresh);
     if (res.status === 401) {
-      expireSession();
+      expireSession(area);
     }
   }
   if (!res.ok) throw await toError(res);
