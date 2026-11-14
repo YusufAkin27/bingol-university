@@ -80,6 +80,9 @@ class RequestBodyLimitFilterTest {
         assertEquals(big, filter.limitFor("POST", "/api/users/me/avatar"));
         assertEquals(big, filter.limitFor("PUT", "/api/events/3/cover"));
         assertEquals(big, filter.limitFor("POST", "/api/communities/3/posts/upload"));
+        assertEquals(big, filter.limitFor("POST", "/api/academician/courses/7/notice-files")); // ders duyuru dosyasi (20 MB'a kadar)
+        assertEquals(65536, filter.limitFor("POST", "/api/academician/courses/7/notices"));
+        assertEquals(65536, filter.limitFor("POST", "/api/academician/courses/7/notice-files/extra"));
         // benzer ama allowlist disi yollar kucuk kalir
         assertEquals(65536, filter.limitFor("POST", "/api/conversations/12/media/extra"));
         assertEquals(65536, filter.limitFor("POST", "/api/conversations/12/messages"));

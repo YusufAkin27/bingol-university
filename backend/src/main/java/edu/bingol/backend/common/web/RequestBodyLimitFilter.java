@@ -51,6 +51,7 @@ public class RequestBodyLimitFilter extends OncePerRequestFilter {
             Pattern.compile("^/api/communities/[^/]+/logo$"),
             Pattern.compile("^/api/communities/[^/]+/posts/upload$"),
             Pattern.compile("^/api/events/[^/]+/cover$"),
+            Pattern.compile("^/api/academician/courses/[^/]+/notice-files$"),
             Pattern.compile("^/api/admin/menu/[^/]+/image$"));
 
     private static final long ANALYTICS_LIMIT = 256L * 1024;

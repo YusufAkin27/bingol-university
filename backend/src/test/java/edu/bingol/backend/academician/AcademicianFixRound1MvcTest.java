@@ -355,6 +355,55 @@ class AcademicianFixRound1MvcTest extends AcademicianMvcBase {
         assertEquals(1, myCourse(outsider).get("presentCount").asInt());
     }
 
+    // ================= B27 / B29 =================
+
+    @Autowired edu.bingol.backend.common.web.RequestBodyLimitFilter bodyFilter;
+
+    private org.springframework.mock.web.MockHttpServletResponse uploadThroughFilters(User u, long courseId, byte[] bytes) throws Exception {
+        var mvcWithFilters = org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup(ctx)
+                .apply(org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity())
+                .addFilters(bodyFilter).build();
+        var token = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(u.getId(), null,
+                List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER")));
+        return mvcWithFilters.perform(multipart("/api/academician/courses/" + courseId + "/notice-files")
+                .file(new MockMultipartFile("file", "buyuk.pdf", "application/pdf", bytes))
+                .with(r -> {
+                    r.setContent(new byte[bytes.length + 400]); // gercek istekteki Content-Length (multipart sarmalayici dahil) filtreye gorunsun
+                    return r;
+                }).with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication(token)))
+                .andReturn().getResponse();
+    }
+
+    @Test
+    void largeNoticeFilesPassTheRealBodyLimitFilterAndOversizeGetsTheNoticeCode() throws Exception {
+        User l = lecturer("Hoca");
+        long courseId = course(l);
+        byte[] header = NoticeFileSnifferTest.pdf();
+        byte[] medium = new byte[300 * 1024]; // 64 KB JSON sinirinin cok ustunde
+        System.arraycopy(header, 0, medium, 0, header.length);
+        var ok = uploadThroughFilters(l, courseId, medium);
+        assertEquals(201, ok.getStatus(), ok.getContentAsString());
+        assertEquals(medium.length, OM.readTree(ok.getContentAsString()).get("sizeBytes").asLong());
+        // etkin siniri 1 bayt asan dosya: filtre gecer (55 MB), servis NOTICE_FILE_TOO_LARGE verir (PAYLOAD_TOO_LARGE degil)
+        byte[] over = new byte[(int) noticeFiles.maxFileBytes() + 1];
+        System.arraycopy(header, 0, over, 0, header.length);
+        var big = uploadThroughFilters(l, courseId, over);
+        assertEquals(413, big.getStatus());
+        assertEquals("NOTICE_FILE_TOO_LARGE", OM.readTree(big.getContentAsString()).get("code").asText());
+    }
+
+    @Test
+    void invalidSlotElementsAreStillRejected() throws Exception {
+        User l = lecturer("Hoca");
+        long courseId = course(l);
+        expectError(l, put("/api/academician/courses/" + courseId + "/slots").contentType("application/json")
+                .content("[{\"dayOfWeek\":9,\"startTime\":\"09:00\",\"endTime\":\"10:00\"}]"), 400, "VALIDATION_ERROR");
+        expectError(l, put("/api/academician/courses/" + courseId + "/slots").contentType("application/json")
+                .content("[{\"dayOfWeek\":1,\"startTime\":\"\",\"endTime\":\"10:00\"}]"), 400, "VALIDATION_ERROR");
+        assertEquals(1, call(l, put("/api/academician/courses/" + courseId + "/slots").contentType("application/json")
+                .content("[{\"dayOfWeek\":1,\"startTime\":\"09:00\",\"endTime\":\"10:00\"}]"), 200).size());
+    }
+
     // ================= B9 =================
 
     @Test

@@ -14,7 +14,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 /**
  * Akademisyen uclarinda konteyner/multipart boyut asimi (spring.servlet.multipart.max-file-size ya da max-request-size)
- * projenin JSON hata zarfiyla ve bu uca ozgu koda cevrilir: 413 {@code NOTICE_FILE_TOO_LARGE}. Genel isleyiciden once calisir.
+ * projenin JSON hata zarfiyla ve bu uca ozgu koda cevrilir (ayrica govde ogesi dogrulama hatasi VALIDATION_ERROR olur): 413 {@code NOTICE_FILE_TOO_LARGE}. Genel isleyiciden once calisir.
  */
 @RestControllerAdvice(assignableTypes = AcademicianController.class)
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -26,6 +26,14 @@ public class AcademicianUploadAdvice {
     public AcademicianUploadAdvice(I18n i18n, NoticeFileService files) {
         this.i18n = i18n;
         this.files = files;
+    }
+
+    /** Govde ogesi dogrulamasi (List<@Valid SlotRequest>): genel VALIDATION_ERROR zarfi (MALFORMED_REQUEST'e dusmesin). */
+    @ExceptionHandler(org.springframework.web.method.annotation.HandlerMethodValidationException.class)
+    ResponseEntity<Map<String, String>> invalidElements(org.springframework.web.method.annotation.HandlerMethodValidationException e) {
+        String msg = i18n.error("VALIDATION_ERROR", "Geçersiz istek", LocaleContextHolder.getLocale(), new Object[0]);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("code", "VALIDATION_ERROR", "message", msg));
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)

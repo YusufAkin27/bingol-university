@@ -140,7 +140,7 @@ public class AcademicianController {
     }
 
     @PutMapping("/courses/{id}/slots")
-    public List<SlotView> slots(@PathVariable Long id, @Valid @RequestBody List<@Valid SlotRequest> body) {
+    public List<SlotView> slots(@PathVariable Long id, @RequestBody List<@Valid SlotRequest> body) {
         Long uid = CurrentUser.id();
         limiter.check("acad-write:user:" + uid, 60, Duration.ofMinutes(1));
         return courses.replaceSlots(uid, id, body);
