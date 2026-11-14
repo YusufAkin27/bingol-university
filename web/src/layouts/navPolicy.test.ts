@@ -14,6 +14,7 @@ const NAV_ENDPOINT: Record<string, string> = {
   analytics: '/api/admin/analytics/overview',
   users: '/api/admin/users',
   twoFactor: '/api/admin/two-factor/summary',
+  academicians: '/api/admin/academicians',
   pendingUsers: '/api/admin/pending-registrations',
   suspensions: '/api/admin/moderation/suspend-recommendations',
   appeals: '/api/admin/moderation/appeals',

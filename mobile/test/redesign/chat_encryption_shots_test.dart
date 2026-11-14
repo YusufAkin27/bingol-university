@@ -5,7 +5,6 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:bu_kampus/core/theme.dart';
-import 'package:bu_kampus/features/chat/chat_background_settings_page.dart';
 import 'package:bu_kampus/features/chat/chat_detail_page.dart';
 import 'package:bu_kampus/features/chat/chat_info_page.dart';
 import 'package:bu_kampus/features/chat/chat_security_page.dart';

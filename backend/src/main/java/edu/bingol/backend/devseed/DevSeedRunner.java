@@ -89,6 +89,7 @@ public class DevSeedRunner implements ApplicationRunner {
         seedPolls(ids, clubs);
         seedSupport(ids);
         seedNotifications(ids);
+        seedAcademicians(ids);
         log.info("DEV TOHUM: tamam. Giris: {} / {} (sifre docs/DEV_SEED.md)", PERF_EMAIL, "<DEV_PASSWORD>");
     }
 
@@ -422,6 +423,84 @@ public class DevSeedRunner implements ApplicationRunner {
     }
 
     // ---------------------------------------------------------------- yardimcilar
+
+    // ---------------------------------------------------------------- akademisyen alani (yalniz yerel deneme verisi)
+
+    static final String ACADEMICIAN_EMAIL = "seed.hoca@bingol.edu.tr";
+    static final String PENDING_ACADEMICIAN_EMAIL = "seed.hoca.bekleyen@bingol.edu.tr";
+
+    /**
+     * Bir ONAYLI akademisyen (ders + iki saat + kayitli ogrenciler) ve bir BEKLEYEN basvuru: akademisyen alani yerelde
+     * denenebilsin. Idempotent. Kullanicilar yukaridaki SEED_USERS ogrencileri DEGILDIR (rehberde gorunmezler).
+     */
+    private void seedAcademicians(List<Long> studentIds) {
+        Long approved = ensureStaff(ACADEMICIAN_EMAIL, "Seed Hoca");
+        Long pending = ensureStaff(PENDING_ACADEMICIAN_EMAIL, "Seed Bekleyen Hoca");
+        if (firstLong("SELECT user_id FROM academician WHERE user_id = ?", approved) == null) {
+            jdbc.update("INSERT INTO academician (user_id, title, first_name, last_name, unit, status, approval_mode, reviewed_at) "
+                    + "VALUES (?, 'Dr. Öğr. Üyesi', 'Seed', 'Hoca', 'Mühendislik Fakültesi', 'APPROVED', 'AUTO', now())", approved);
+        }
+        if (firstLong("SELECT user_id FROM academician WHERE user_id = ?", pending) == null) {
+            jdbc.update("INSERT INTO academician (user_id, title, first_name, last_name, unit, status) "
+                    + "VALUES (?, 'Arş. Gör.', 'Seed', 'Bekleyen', 'Fen-Edebiyat Fakültesi', 'PENDING')", pending);
+        }
+        Long course = firstLong("SELECT id FROM ac_course WHERE owner_id = ? AND code = 'SEED101'", approved);
+        if (course == null) {
+            jdbc.update("INSERT INTO ac_course (owner_id, code, name, term, faculty, department, grade, status, "
+                    + "absence_limit_type, absence_limit_value) VALUES (?, 'SEED101', 'Veri Yapıları (DEV tohum)', '2026 Güz', "
+                    + "'Mühendislik Fakültesi', 'Bilgisayar Mühendisliği', NULL, 'ACTIVE', 'COUNT', 4)", approved);
+            course = firstLong("SELECT id FROM ac_course WHERE owner_id = ? AND code = 'SEED101'", approved);
+            jdbc.update("INSERT INTO ac_course_slot (course_id, day_of_week, start_time, end_time, room) VALUES (?, 1, '09:00', '11:00', 'DEV-101')", course);
+            jdbc.update("INSERT INTO ac_course_slot (course_id, day_of_week, start_time, end_time, room) VALUES (?, 3, '13:00', '15:00', 'DEV-102')", course);
+        }
+        // Mevcut tohum ogrencilerinin fakulte/bolum adlari ASCII'dir (katalogda yok): bolum suzgeci/toplu kayit onlarla eslesmez.
+        // Mevcut kullanicilar degistirilmez; katalogla BIREBIR ayni degerli 3 ek ogrenci eklenir.
+        List<Long> enrol = new ArrayList<>(studentIds.subList(1, Math.min(5, studentIds.size())));
+        for (int i = 1; i <= 3; i++) {
+            enrol.add(ensureCatalogStudent("seed.katalog" + i + "@bingol.edu.tr", "Katalog Ogrenci " + i));
+        }
+        for (Long sid : enrol) {
+            if (firstLong("SELECT id FROM ac_enrollment WHERE course_id = ? AND student_id = ?", course, sid) == null) {
+                jdbc.update("INSERT INTO ac_enrollment (course_id, student_id) VALUES (?, ?)", course, sid);
+            }
+        }
+        log.info("DEV TOHUM: akademisyen {} (onayli, ders SEED101) ve {} (bekleyen); sifre DEV_PASSWORD",
+                ACADEMICIAN_EMAIL, PENDING_ACADEMICIAN_EMAIL);
+    }
+
+    /** Fakulte/bolum katalogdaki yazimla birebir ("Mühendislik Fakültesi" / "Bilgisayar Mühendisliği"), 2. sinif. */
+    private Long ensureCatalogStudent(String email, String name) {
+        User u = users.findByEmail(email).orElse(null);
+        if (u == null) {
+            u = new User();
+            u.setEmail(email);
+            u.setPasswordHash(encoder.encode(DEV_PASSWORD));
+            u.setDisplayName(name);
+            u.setEmailVerified(true);
+            u.setRole(Role.USER);
+            u.setFaculty("Mühendislik Fakültesi");
+            u.setDepartment("Bilgisayar Mühendisliği");
+            u.setClassYear((short) 2);
+            u.setLastSeenAt(Instant.now());
+            u = users.save(u);
+        }
+        return u.getId();
+    }
+
+    private Long ensureStaff(String email, String name) {
+        User u = users.findByEmail(email).orElse(null);
+        if (u == null) {
+            u = new User();
+            u.setEmail(email);
+            u.setPasswordHash(encoder.encode(DEV_PASSWORD));
+            u.setDisplayName(name);
+            u.setEmailVerified(true);
+            u.setRole(Role.USER);
+            u.setLastSeenAt(Instant.now());
+            u = users.save(u);
+        }
+        return u.getId();
+    }
 
     private Long firstLong(String sql, Object... args) {
         List<Long> r = jdbc.queryForList(sql, Long.class, args);

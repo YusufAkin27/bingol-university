@@ -7,7 +7,6 @@ import 'package:bu_kampus/features/discover/masonry_layout.dart';
 import 'package:bu_kampus/features/posts/post_detail_page.dart';
 import 'package:bu_kampus/features/posts/post_models.dart';
 import 'package:bu_kampus/features/posts/post_routes.dart';
-import 'package:bu_kampus/features/posts/user_posts_page.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:bu_kampus/features/profile/user_profile_page.dart';
 import 'package:flutter/material.dart';

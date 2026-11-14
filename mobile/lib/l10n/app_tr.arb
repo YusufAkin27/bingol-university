@@ -7703,7 +7703,7 @@
   "pollShareAction": "Anketi paylaş",
   "scanNotBu": "Bu bir BÜ Kampüs kodu değil.",
   "scanTitle": "QR tara",
-  "scanHint": "Profil, kulüp, anket ya da etkinlik kodunu çerçeveye hizala.",
+  "scanHint": "Profil, kulüp, anket, etkinlik ya da ders yoklaması kodunu çerçeveye hizala.",
   "scanCheckinNoRight": "Bu yoklama kodunu okutma yetkin yok.",
   "scanCheckinDone": "Yoklama alındı: {name}",
   "@scanCheckinDone": {
@@ -7738,6 +7738,107 @@
   },
   "scanClubJoinedNoName": "Kulübe katıldınız",
   "scanClubAlready": "Bu kulübün zaten üyesisiniz",
+  "scanLessonMarked": "Yoklama alındı: {course}",
+  "@scanLessonMarked": {
+    "placeholders": {
+      "course": {
+        "type": "String"
+      }
+    }
+  },
+  "scanLessonAlready": "Bu ders için yoklaman zaten alınmış: {course}",
+  "@scanLessonAlready": {
+    "placeholders": {
+      "course": {
+        "type": "String"
+      }
+    }
+  },
+  "scanLessonExpired": "Kodun süresi doldu. Ekrandaki kodu yeniden okut.",
+  "scanLessonNotEnrolled": "Bu dersin yoklama listesinde görünmüyorsun.",
+  "scanLessonRevoked": "Bu ders için yoklaman öğretim elemanı tarafından kaldırıldı.",
+  "scanLessonPending": "Bu derse kayıtlı değilsin. Yoklama isteğin öğretim elemanına iletildi; onaylarsa yoklaman işlenecek.",
+  "scanLessonReceived": "Okutma alındı",
+  "myCoursesTitle": "Derslerim",
+  "myCoursesSub": "Devam durumu, duyurular ve yaklaşan sınav/ödevler",
+  "myCoursesEmptyTitle": "Henüz bir derse kayıtlı değilsin",
+  "myCoursesEmptyBody": "Öğretim elemanın seni bir derse eklediğinde burada görünür.",
+  "myCoursesUpcoming": "Yaklaşanlar",
+  "myCoursesCounts": "Katıldığın: {present} · Devamsız: {absent}",
+  "@myCoursesCounts": {
+    "placeholders": {
+      "present": {
+        "type": "int"
+      },
+      "absent": {
+        "type": "int"
+      }
+    }
+  },
+  "myCoursesLimitCount": "Devamsızlık sınırı: {n} ders",
+  "@myCoursesLimitCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "myCoursesLimitPercent": "Devamsızlık sınırı: %{n}",
+  "@myCoursesLimitPercent": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "myCoursesAtRisk": "Devamsızlık sınırına yaklaştın",
+  "myCoursesOverLimit": "Devamsızlık sınırını aştın",
+  "courseNoticesTitle": "Duyurular",
+  "courseNoticesEmpty": "Bu ders için henüz duyuru yok.",
+  "noticeTypeLessonStarted": "Ders başladı",
+  "noticeTypeAttendanceStarted": "Yoklama başladı",
+  "noticeTypeExam": "Sınav",
+  "noticeTypeAssignment": "Ödev",
+  "noticeTypeMaterial": "Ders materyali",
+  "noticeExamWhen": "Sınav zamanı: {when}",
+  "@noticeExamWhen": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "noticeDueWhen": "Son teslim: {when}",
+  "@noticeDueWhen": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "noticeFileDownloading": "İndiriliyor…",
+  "noticeFileFailed": "Dosya açılamadı. Bağlantını kontrol edip tekrar dene.",
+  "noticeFileShareTitle": "Dosyayı aç veya kaydet",
+  "noticeTypeLessonCancelled": "Ders iptali",
+  "noticeTypeRoomChanged": "Derslik değişti",
+  "courseNoticesMore": "Daha fazla göster",
+  "noticeTypeOther": "Duyuru",
+  "noticeRoomChanged": "Derslik değişti: {room}",
+  "@noticeRoomChanged": {
+    "placeholders": {
+      "room": {
+        "type": "String"
+      }
+    }
+  },
+  "noticeLessonWhen": "Ders zamanı: {when}",
+  "@noticeLessonWhen": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "signOutPendingTitle": "Gönderilmemiş mesajlar silinecek",
   "signOutPendingBody": "Gönderilmemiş {count} mesaj silinecek. Çıkış yapmak istiyor musun?",
   "@signOutPendingBody": {

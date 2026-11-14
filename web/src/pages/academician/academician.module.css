@@ -1,0 +1,517 @@
+/* Akademisyen paneli ortak stilleri. Yalnız tasarım belirteçleri (ham renk yok, sayısal font-weight yok, gradient/gölge yok);
+   ağırlık yerine boyut + renk + boşlukla hiyerarşi (monochrome). Mantıksal özellikler (inline-start/end) RTL'e hazırdır. */
+
+.centerFill {
+  min-height: 60vh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-3);
+  color: var(--text-muted);
+  text-align: center;
+  padding: var(--space-5);
+}
+
+.page {
+  display: grid;
+  gap: var(--space-5);
+  align-content: start;
+  min-width: 0;
+  max-width: 100%;
+}
+/* ızgara çocukları içeriğe göre genişleyip sayfayı yatay kaydırmasın */
+.page > * {
+  min-width: 0;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-decoration: none;
+  width: fit-content;
+  border-radius: var(--radius-sm);
+}
+.back:hover {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.back:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.muted {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+/* ---- formlar ---- */
+.formStack {
+  display: grid;
+  gap: var(--space-4);
+}
+.twoCol {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+.inlineForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+.inlineForm > * {
+  min-width: min(100%, 14rem);
+}
+.actionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.alertBox,
+.warnBox {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}
+.alertBox {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border: 1px solid var(--danger-line);
+}
+.alertBox svg,
+.warnBox svg {
+  flex: none;
+  margin-block-start: 2px;
+}
+/* uyarı (çakışma vb.): kırmızı değil, nötr çerçeveli not */
+.warnBox {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+}
+.bullets {
+  margin: 0;
+  padding-inline-start: var(--space-5);
+  display: grid;
+  gap: var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.wideCard {
+  width: min(100%, 520px);
+}
+.facts {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+}
+.facts > div {
+  display: grid;
+  grid-template-columns: 8rem 1fr;
+  gap: var(--space-2);
+  align-items: baseline;
+}
+.facts dt {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.facts dd {
+  margin: 0;
+}
+
+/* ---- panel / listeler ---- */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+.split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-block-end: 1px solid var(--border);
+}
+.row:last-child {
+  border-block-end: 0;
+}
+.rowMain {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  flex: 1;
+}
+.rowTitle {
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+a.rowTitle {
+  text-decoration: none;
+}
+a.rowTitle:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.rowActions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+.chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.skelStack {
+  display: grid;
+  gap: var(--space-3);
+}
+.subHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-base);
+}
+
+.cardGrid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: var(--space-3);
+}
+.courseCard {
+  display: grid;
+  gap: var(--space-1);
+  height: 100%;
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--text);
+  text-decoration: none;
+}
+.courseCard:hover {
+  border-color: var(--border-strong);
+}
+.courseCard:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.courseHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+/* ---- program düzenleyicisi ---- */
+.slotList {
+  list-style: none;
+  margin: var(--space-3) 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.slotRow {
+  display: grid;
+  grid-template-columns: 10rem 8rem 8rem minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: end;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.slotRow[data-clash] {
+  border-color: var(--border-strong);
+  border-style: dashed;
+}
+
+/* ---- kayıtlı değil / toplu ekleme kutuları ---- */
+.pendingBox,
+.bulkBox {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+}
+.bulkBox {
+  border-color: var(--border);
+}
+
+/* ---- duyurular ---- */
+.noticeRow {
+  align-items: flex-start;
+}
+.noteText {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.attachList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.filesField {
+  display: grid;
+  gap: var(--space-2);
+}
+.fieldLabel {
+  font-size: var(--text-sm);
+  color: var(--text);
+}
+.dropzone {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  padding: var(--space-5) var(--space-4);
+  text-align: center;
+  color: var(--text-muted);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.dropzone[data-over] {
+  background: var(--surface-2);
+  border-style: solid;
+  color: var(--text);
+}
+.dropzone p {
+  margin: 0;
+}
+.fileList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.fileItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.fileItem[data-state='error'] {
+  border-color: var(--danger-line);
+}
+.fileMain {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  flex: 1;
+}
+.okText,
+.errText {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+}
+.okText {
+  color: var(--text-muted);
+}
+.errText {
+  color: var(--danger);
+}
+
+/* ---- dar ekranlar ---- */
+@media (max-width: 1100px) {
+  .tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .slotRow {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .slotRow > :nth-child(4) {
+    grid-column: span 2;
+  }
+}
+@media (max-width: 640px) {
+  .twoCol {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+  .slotRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .slotRow > :nth-child(4) {
+    grid-column: span 2;
+  }
+  .facts > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .row {
+    flex-wrap: wrap;
+  }
+  .rowActions {
+    justify-content: flex-start;
+  }
+}
+
+/* ---- üç seçenekli durum denetimi (Var / İzinli / Yok) ---- */
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.segment {
+  appearance: none;
+  background: var(--surface);
+  color: var(--text-muted);
+  border: 0;
+  border-inline-end: 1px solid var(--border);
+  padding: var(--space-1) var(--space-3);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  min-height: 2rem;
+}
+.segment:last-child {
+  border-inline-end: 0;
+}
+.segment:hover:not(:disabled) {
+  background: var(--surface-2);
+  color: var(--text);
+}
+.segment[aria-pressed='true'] {
+  background: var(--text);
+  color: var(--bg);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.segment:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+.segmented[data-busy] {
+  opacity: 0.6;
+}
+
+/* ---- matris ---- */
+.colHead {
+  display: grid;
+  gap: 2px;
+}
+.colHead small {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.colHead[data-muted],
+.cellMuted[data-muted] {
+  opacity: 0.6;
+}
+.allowedLine {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+  color: var(--text);
+}
+
+/* ---- ders başlığı eylemleri: dar ekranda sarar, birincil eylem tam genişlik ---- */
+.headActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.tabsWrap {
+  min-width: 0;
+  max-width: 100%;
+}
+.pageSub {
+  overflow-wrap: anywhere;
+}
+.actionCell {
+  display: grid;
+  justify-items: end;
+  gap: var(--space-1);
+}
+.removeSlot {
+  align-self: end;
+  justify-self: start;
+}
+
+@media (max-width: 640px) {
+  .headActions > :first-child {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+  .headActions > * {
+    flex: 1 1 auto;
+  }
+  /* satır: metin üstte, eylemler altta (üst üste binme yok) */
+  .rowMain {
+    flex: 1 1 100%;
+  }
+  .rowActions {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+  }
+  .actionCell {
+    justify-items: start;
+  }
+  .removeSlot {
+    grid-column: span 2;
+    justify-self: stretch;
+  }
+}
+
+/* uzun dosya adları satırı taşırmasın (telefonda) */
+.attachList li {
+  min-width: 0;
+  max-width: 100%;
+}
+.fileBtn {
+  max-width: 100%;
+  height: auto;
+  min-height: 2rem;
+  white-space: normal;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+.noticeRow .rowMain {
+  min-width: 0;
+}

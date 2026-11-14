@@ -12,9 +12,12 @@ export function splitLangPath(pathname: string): { lang: Lang | null; rest: stri
   return { lang: null, rest: pathname };
 }
 
-/** Yönetim paneli yolu mu (dil öneki almaz). */
+/** Akademisyen paneli yolu (yalnız Türkçe, dil öneki almaz); yönetim panelinden ayrı bir alandır. */
+const ACADEMICIAN_BASE = '/akademisyen';
+
+/** Dil öneki almayan alan yolu mu: yönetim paneli ya da akademisyen paneli. */
 export function isAdminPath(pathname: string): boolean {
-  return [ADMIN_BASE, '/admin'].some((b) => pathname === b || pathname.startsWith(`${b}/`));
+  return [ADMIN_BASE, '/admin', ACADEMICIAN_BASE].some((b) => pathname === b || pathname.startsWith(`${b}/`));
 }
 
 function splitTail(to: string): [string, string] {

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/chat/chat_bubble_colors.dart';
-import 'package:bu_kampus/features/chat/chat_wallpaper.dart';
 
 /// Premium monochrome sohbet: balon / saat / tik / giriş alanı kontrastları (iki tema) ve ham renk yasağı.
 double _cr(Color a, Color b) {

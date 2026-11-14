@@ -67,7 +67,7 @@
 	#  1) YÜKLEME yolları (multipart: medya/gönderi/sohbet/avatar/kapak/logo/menü görseli): MAX_BODY (varsayılan 55 MB).
 	#     Yeni bir yükleme ucu eklenirse BU regex'e de eklenmeli; yoksa 128 KB'a takılır (413).
 	#  2) /api/admin/*: 2 MB (e-posta şablonu/HTML gibi yönetici metinleri). 3) geri kalan /api/*, /files/*, /ws: 128 KB.
-	@upload path_regexp upload ^/api/(posts/media|users/me/avatar|communities/[^/]+/(cover|logo|posts/upload)|events/[^/]+/cover|conversations/[^/]+/(avatar|media)|admin/menu/[^/]+/image)/?$
+	@upload path_regexp upload ^/api/(posts/media|users/me/avatar|communities/[^/]+/(cover|logo|posts/upload)|events/[^/]+/cover|academician/courses/[^/]+/notice-files|conversations/[^/]+/(avatar|media)|admin/menu/[^/]+/image)/?$
 	handle @upload {
 		import noindex
 		request_body {

@@ -48,7 +48,7 @@ public class PrivateMediaStore {
 
     private static final Logger log = LoggerFactory.getLogger(PrivateMediaStore.class);
     static final Pattern BUCKET = Pattern.compile("[a-z]{1,20}");
-    static final Pattern KEY = Pattern.compile("[A-Za-z0-9\\-]+\\.(?:jpg|png|mp4)");
+    static final Pattern KEY = Pattern.compile("[A-Za-z0-9\\-]+\\.(?:jpg|png|mp4|bin)");
 
     private final Path root;
     private final ImageProcessor processor;
@@ -441,6 +441,18 @@ public class PrivateMediaStore {
                 .header("Content-Security-Policy", "default-src 'none'")
                 .header("Content-Disposition", "inline")
                 .body(new ByteArrayResource(data));
+    }
+
+    /**
+     * Belge/ek (gorsel olmayan) baytlarini ozel kovaya yazar (`<uuid>.bin`); diskte {@link BlobCipher} ile (varsa sifreli).
+     * Icerik DOGRULAMASI cagirana aittir; bu yontem yalniz depolar. Okuma {@link #read}, silme {@link #delete}.
+     * @return depo anahtari
+     */
+    public String storeBlob(String bucket, byte[] data) {
+        checkBucket(bucket);
+        String key = UUID.randomUUID() + ".bin";
+        write(bucket, key, data);
+        return key;
     }
 
     /** Cozulmus baytlar; yoksa/gecersizse null. */

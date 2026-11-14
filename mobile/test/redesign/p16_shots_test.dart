@@ -258,7 +258,6 @@ void main() {
         final be = s.backend();
         await tester.pumpWidget(_app(s.page(be), v.$2, key, v.$3));
         await tester.runAsync(() async {
-          final ctx = tester.element(find.byType(Scaffold).first);
         });
         if (s.pre != null) {
           await tester.pump(s.pre!);

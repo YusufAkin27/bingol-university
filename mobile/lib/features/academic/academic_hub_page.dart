@@ -14,6 +14,7 @@ import 'academic_models.dart';
 import 'academic_widgets.dart';
 import 'acadhub_widgets.dart';
 import 'acad_ref_widgets.dart';
+import '../courses/my_courses_page.dart';
 import 'exams_page.dart';
 import 'reminder_settings_page.dart';
 import 'reminders.dart';
@@ -140,6 +141,15 @@ class _AcademicHubPageState extends State<AcademicHubPage> {
                 title: l.acadCalTitle,
                 sub: l.acadHubCalendarSub,
                 onTap: () => _go(AcademicCalendarPage(session: s), 'academic_calendar'),
+              ),
+            ),
+            BuStaggerItem(
+              index: 4,
+              child: AcadhubNavRow(
+                key: const ValueKey('acadhub-my-courses'), icon: BuIcons.graduationCap,
+                title: l.myCoursesTitle,
+                sub: l.myCoursesSub,
+                onTap: () => _go(MyCoursesPage(session: s), 'my_courses'),
               ),
             ),
           ],

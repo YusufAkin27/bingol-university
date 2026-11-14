@@ -9,6 +9,7 @@ import { Spinner } from './components/ui/Feedback';
 import { LangScope, RootRedirect } from './layouts/LangScope';
 import { SiteLayout } from './layouts/SiteLayout';
 import { ADMIN_BASE } from './adminBase';
+import { ACAD_BASE } from './pages/academician/paths';
 
 // --- tanıtım sitesi ---
 const HomePage = lazy(() => import('./pages/site/HomePage'));
@@ -37,6 +38,8 @@ const ChangelogPage = lazy(() => import('./pages/site/ChangelogPage'));
 
 // --- yönetim paneli: ayrı parça (routes.admin.tsx); site ziyaretçisi hiçbirini indirmez ---
 const AdminRoutes = lazy(() => import('./routes.admin'));
+// --- akademisyen paneli: ayrı parça ve ayrı oturum (routes.academician.tsx); yönetim paketini de indirmez ---
+const AcademicianRoutes = lazy(() => import('./routes.academician'));
 
 function PageFallback() {
   return (
@@ -84,6 +87,9 @@ export function AppRoutes() {
 
         {/* Yönetim: YALNIZ Türkçe (AdminScope dili sabitler); giriş sayfası korumasızdır */}
         <Route path={`${ADMIN_BASE.slice(1)}/*`} element={<AdminRoutes />} />
+
+        {/* Akademisyen paneli: YALNIZ Türkçe, kendi oturumu (bu.acad.*); yönetim paneliyle ortak token/yönlendirme yok */}
+        <Route path={`${ACAD_BASE.slice(1)}/*`} element={<AcademicianRoutes />} />
       </Routes>
     </Suspense>
   );

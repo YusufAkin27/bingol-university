@@ -666,7 +666,6 @@ void main() {
         await tester.pumpWidget(_app(b.build(), v.dark, key, v.scale));
         // Varsayilan avatar gorselleri testte esenkron cozulur: onceden yukle.
         await tester.runAsync(() async {
-          final ctx = tester.element(find.byType(Scaffold).first);
         });
         await settle(tester, const Duration(milliseconds: 900));
         if (b.after != null) {

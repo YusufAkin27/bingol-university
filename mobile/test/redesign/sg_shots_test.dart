@@ -79,11 +79,10 @@ void _homeData(FakeBackend b) {
 }
 
 class _Shot {
-  const _Shot(this.file, this.build, {this.setup, this.after, this.height = 844, this.width = 390});
+  const _Shot(this.file, this.build, {this.setup, this.height = 844, this.width = 390});
   final String file;
   final Widget Function(FakeBackend b, Session s) build;
   final void Function(FakeBackend b)? setup;
-  final Future<void> Function(WidgetTester t)? after;
   final double height;
   final double width;
 }
@@ -176,10 +175,6 @@ void main() {
         await tester.pumpWidget(_app(shot.build(b, session), v.dark, key, v.scale));
         await settle(tester, const Duration(milliseconds: 1200));
         await tester.pump(const Duration(milliseconds: 150));
-        if (shot.after != null) {
-          await shot.after!(tester);
-          await settle(tester, const Duration(milliseconds: 700));
-        }
         final err = tester.takeException();
         if (err != null) fail('Istisna: $err');
         await tester.runAsync(() async {

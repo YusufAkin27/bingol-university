@@ -80,6 +80,8 @@ public final class AdminPermissionPolicy {
         one(Set.of("POST"), "/api/admin/users/" + ID + "/two-factor/disable", USERS_2FA);
         area("/api/admin/users(/.*)?", USERS_READ, USERS_WRITE);
         area("/api/admin/pending-registrations(/.*)?", USERS_PII, USERS_WRITE);
+        // Akademisyen alani: basvuru karari ve ders okumasi kullanici yonetimiyle ayni izinler (users.read / users.write)
+        area("/api/admin/academicians(/.*)?", USERS_READ, USERS_WRITE);
 
         // --- moderasyon ---
         // Sikayet ayrintisi mesaj baglamini (sohbet icerigi) dondurur: chat.read ister (VIEWER liste okur, icerik okuyamaz)

@@ -27,6 +27,10 @@ export const pageInfo: Record<string, PageInfo> = {
     d: 'İki faktörlü doğrulamayı kimler açmış, kaç güvenilen cihaz var.',
     k: ['iki faktörlü', '2fa', 'doğrulama', 'güvenilen cihaz', 'ek koruma', 'giriş kodu', 'iki adımlı doğrulama'],
   },
+  academicians: {
+    d: 'Akademisyen başvurularını onaylayın ya da reddedin; derslerini, yoklamalarını ve duyurularını salt okunur görün.',
+    k: ['akademisyen', 'öğretim elemanı', 'hoca', 'başvuru onayı', 'ders yoklaması', 'otomatik onay'],
+  },
   pendingUsers: {
     d: 'E-postasını henüz doğrulamamış kayıtlar.',
     k: ['doğrulama bekleyen', 'onaylanmamış', 'kayıt olmuş ama girmemiş', 'bekleyen kayıt', 'kod gelmedi', 'doğrulama kodu'],

@@ -1,0 +1,300 @@
+/* Canlı yoklama ekranı. QR her iki temada da AÇIK plaka üstünde koyu modüllerle çizilir (taranabilirlik): plaka ve modül rengi
+   tema bağımsız sabit belirteçlerdir (--logo-ink-on-dark = beyaz, --logo-ink-on-light = siyah). Ham renk/gölge/gradient yok. */
+
+.page {
+  display: grid;
+  gap: var(--space-4);
+  align-content: start;
+}
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.headActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.title {
+  font-size: var(--text-xl);
+  margin: var(--space-1) 0 0;
+}
+.titleDate {
+  color: var(--text-muted);
+  font-size: var(--text-base);
+}
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+.back:hover {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.back:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.muted {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+.qrCard {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  position: sticky;
+  inset-block-start: calc(var(--space-8) + var(--space-2));
+}
+.side {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* ---- QR ---- */
+.qrArea {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+}
+.qrBox {
+  width: 100%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+}
+.qrPlate {
+  width: 100%;
+  height: 100%;
+  background: var(--logo-ink-on-dark);
+  color: var(--logo-ink-on-light);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  display: grid;
+  place-items: center;
+}
+.qrSvg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.qrBlank {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  text-align: center;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+}
+.qrBlank strong {
+  color: var(--text);
+  font-size: var(--text-lg);
+}
+.countdown {
+  width: 100%;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  overflow: hidden;
+}
+.countdownFill {
+  height: 100%;
+  background: var(--text);
+  transform-origin: left center;
+}
+html[dir='rtl'] .countdownFill {
+  transform-origin: right center;
+}
+.countdownText {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+/* ---- sayaç ---- */
+.counters {
+  display: grid;
+  gap: var(--space-2);
+}
+.counterMain {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+}
+.counterNumber {
+  font-size: var(--text-3xl);
+  line-height: 1;
+}
+.counterOf {
+  font-size: var(--text-xl);
+  color: var(--text-muted);
+}
+.counterLabel {
+  color: var(--text-muted);
+}
+
+/* ---- listeler ---- */
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-block-end: 1px solid var(--border);
+}
+.row:last-child {
+  border-block-end: 0;
+}
+.rowMain {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+.rowTitle {
+  overflow-wrap: anywhere;
+}
+.revoked {
+  margin-block-start: var(--space-3);
+}
+.revoked summary {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  border-radius: var(--radius-sm);
+}
+.revoked summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ---- projeksiyon kipi: tam ekran, en büyük QR, yüksek karşıtlık ---- */
+.projector {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  background: var(--bg);
+  color: var(--text);
+  padding: var(--space-4);
+  gap: var(--space-3);
+}
+.projectorHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.projectorTitle {
+  font-size: var(--text-xl);
+}
+.projectorBody {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-5);
+  align-items: center;
+  min-height: 0;
+}
+.projectorBody .qrArea {
+  height: 100%;
+  min-height: 0;
+  align-content: center;
+}
+.projectorBody .qrBox {
+  width: min(100%, 82vh);
+  height: auto;
+  max-height: 82vh;
+}
+.projectorBody .qrPlate {
+  border-width: 2px;
+  border-color: var(--text);
+}
+.projectorBody .countdown {
+  width: min(100%, 82vh);
+  height: 12px;
+}
+.projectorBody .countdownText {
+  font-size: var(--text-lg);
+  color: var(--text);
+}
+.projectorCounter {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+  padding-inline-end: var(--space-4);
+}
+.projectorCounter .counterNumber {
+  font-size: clamp(4rem, 12vw, 9rem);
+}
+.projectorCounter .counterOf {
+  font-size: var(--text-2xl);
+  color: var(--text);
+}
+.projectorCounter .counterLabel {
+  font-size: var(--text-xl);
+  color: var(--text);
+}
+
+@media (max-width: 1000px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .qrCard {
+    position: static;
+    max-width: 34rem;
+    width: 100%;
+    justify-self: center;
+  }
+  .projectorBody {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    align-content: center;
+  }
+  .projectorCounter {
+    justify-items: center;
+  }
+}
+@media (max-width: 640px) {
+  .row {
+    flex-wrap: wrap;
+  }
+  .rowMain {
+    flex: 1 1 100%;
+  }
+}
