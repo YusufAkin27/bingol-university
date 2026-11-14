@@ -1,13 +1,35 @@
 name: Deploy production
 
-# Backend + web uretim dagitimi: YALNIZ elle (workflow_dispatch) ve YALNIZ main dalindan. iOS Codemagic'te kalir.
+# Backend + web uretim dagitimi: main'e push (asagidaki yol filtresiyle) ya da elle (workflow_dispatch); YALNIZ main dalindan.
+# iOS bu dosyadan yalniz elle ve ios=true ile zincirlenir; push'ta iOS baslatilmaz (push'ta iOS: ios-codemagic.yml, yalniz surum degisince).
 # Betik: scripts/deploy.sh (DEPLOY_CI=1 kipi). Ayrinti: docs/CI_CD.md "GitHub Actions ile dagitim", docs/DEPLOY_SCRIPT.md.
 #   mod=dry-run  : sunucuya dokunmaz (yalniz yerel kontroller) + tek baglanti ile anahtar/host/parmak izi denemesi (varsayilan)
 #   mod=deploy   : yerel web kapilari, kod aktarimi, yedek, derleme, saglik, otomatik geri alma
 #   mod=rollback : onceki surume doner
 # Ilk kurulum (.env.prod uretimi) BURADAN YAPILAMAZ: sirlar yerel dosyaya yazilir; dizustu makineden yapilir (betik CI'da reddeder).
 # Girdiler kabuga yalniz env uzerinden girer; sir degerleri hicbir yerde yazdirilmaz (set -x YOK).
+#   push (main) : mod her zaman deploy; ios zinciri kapali. Dagitilan surum: push edilen commit (github.sha).
+# DIKKAT: CI (ci.yml) bu dagitim icin ZORUNLU KAPI DEGILDIR; CI kirmizi olsa da main'e push dagitir. deploy.sh yine web kapilarini
+#   calistirir, yedek alir, saglik bekler ve basarisizsa otomatik geri alir; backend testleri yalniz CI'da/imaj derlemesinde kosar.
+# Dagitimi atlamak: son commit mesajina [skip ci] (ya da [ci skip], [no ci], [skip actions], [actions skip]) yazin; bu, o push icin
+#   CI'yi da atlatir (yalniz push/pull_request olaylarinda gecerli; elle Run workflow etkilenmez).
+# Yol filtresi: yalniz canli yigini etkileyen yollar. deploy.sh, mobile/ ve brand/ haric tum agaci aktarir; ama sunucuda yalniz sunlar kullanilir:
+#   backend/ ve web/ (imaj derleme), deploy/ (Caddyfile, compose.bukampus.yml), docker-compose*.yml (docker-compose.prod.yml derlenir),
+#   scripts/backup/ (yedek imaji, compose build: ./scripts/backup), scripts/warmup.sh (dagitim sonrasi isitma).
+#   Disarida: docs/, mobile/, brand/, design/, monitoring/, diger scripts/, .github/ (is akisi degisikligi dagitim tetiklemez) ve her *.md.
+# GitHub yol suzgeci: '!' kalibi kendinden ONCEKI pozitif eslesmeyi eler, bu yuzden '!**/*.md' listenin SONUNDA olmalidir; yalniz '!' kalibi
+#   yazilamaz, en az bir pozitif kalip gerekir. https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'web/**'
+      - 'deploy/**'
+      - 'docker-compose*.yml'
+      - 'scripts/backup/**'
+      - 'scripts/warmup.sh'
+      - '!**/*.md'
   workflow_dispatch:
     inputs:
       mod:
@@ -15,8 +37,16 @@ on:
         type: choice
         options: [dry-run, deploy, rollback]
         default: dry-run
+      ios:
+        description: 'deploy basarili olursa iOS surumunu de Codemagic''te baslat (Codemagic dakikasi harcar, TestFlight build uretir)'
+        type: boolean
+        default: false
 
-# Ikinci kosu kuyruga girer, iptal edilmez (sunucudaki kilit ikinci savunma hatti)
+# Ikinci kosu kuyruga girer, iptal edilmez (sunucudaki kilit ikinci savunma hatti).
+# Calisan bir dagitim varken birden cok push gelirse: grupta en fazla BIR bekleyen (pending) kosu olur; yeni bekleyen kosu eskisinin
+# yerini alir (eski bekleyen iptal edilir), calisan kosu bitene dek dokunulmaz. Kabul edilebilir: her dagitim agacin TAMAMINI o commit'te
+# gonderir, yani son bekleyen kosu atlanan ara commit'leri de icerir.
+# https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions (concurrency, queue: single)
 concurrency:
   group: deploy-prod
   cancel-in-progress: false
@@ -32,6 +62,10 @@ jobs:
     name: Dal denetimi (yalniz main)
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    # Mod ve iOS zinciri TEK yerde hesaplanir; sonraki is/adimlar yalniz bu ciktilara bakar (push'ta inputs.* bostur)
+    outputs:
+      mode: ${{ steps.karar.outputs.mode }}
+      ios: ${{ steps.karar.outputs.ios }}
     steps:
       - name: Yalniz main dalindan calisir
         env:
@@ -42,6 +76,31 @@ jobs:
             exit 1
           fi
           echo "dal dogrulandi: main"
+      - name: Mod ve tetikleyiciyi belirle
+        id: karar
+        env:
+          EVENT: ${{ github.event_name }}
+          IN_MOD: ${{ inputs.mod }}
+          IN_IOS: ${{ inputs.ios }}
+          SHA: ${{ github.sha }}
+        run: |
+          if [ "$EVENT" = "push" ]; then
+            mode="deploy"; ios="false"; tetik="push"
+          else
+            mode="$IN_MOD"; tetik="elle"
+            if [ "$IN_IOS" = "true" ]; then ios="true"; else ios="false"; fi
+          fi
+          case "$mode" in dry-run|deploy|rollback) ;; *) echo "gecersiz mod" >&2; exit 1;; esac
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "ios=$ios" >> "$GITHUB_OUTPUT"
+          echo "tetikleyici=$tetik mod=$mode ios=$ios sha=${SHA:0:7}"
+          {
+            echo "### Uretim dagitimi"
+            echo "- tetikleyici: $tetik"
+            echo "- mod: $mode"
+            echo "- iOS zinciri: $ios"
+            echo "- sha: ${SHA:0:7}"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   deploy:
     name: Uretim dagitimi
@@ -52,7 +111,7 @@ jobs:
     timeout-minutes: 60
     environment: production
     env:
-      MODE: ${{ inputs.mod }}
+      MODE: ${{ needs.guard.outputs.mode }}
       # Her deger secret ya da variable olarak tutulabilir
       DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || vars.DEPLOY_HOST }}
       DEPLOY_USER: ${{ secrets.DEPLOY_USER || vars.DEPLOY_USER }}
@@ -61,7 +120,7 @@ jobs:
       DEPLOY_CI: '1'
       DEPLOY_ACTOR: ${{ github.actor }}
       # Yalniz dry-run: SMTP bilgisi yerelde yok, sunucudaki .env.prod'da oldugu varsayilir (gercek kosuda sunucuda dogrulanir)
-      DEPLOY_MAIL_ON_SERVER: ${{ inputs.mod == 'dry-run' && '1' || '' }}
+      DEPLOY_MAIL_ON_SERVER: ${{ needs.guard.outputs.mode == 'dry-run' && '1' || '' }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -94,18 +153,18 @@ jobs:
       - name: DNS araci (dig)
         run: command -v dig >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq dnsutils; }
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        if: inputs.mod == 'deploy'
+        if: env.MODE == 'deploy'
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: web/package-lock.json
       - name: Web bagimliliklari (yerel kapilar icin)
-        if: inputs.mod == 'deploy'
+        if: env.MODE == 'deploy'
         working-directory: web
         run: npm ci --no-audit --no-fund
       # dry-run betigi sunucuya BAGLANMAZ; bu adim anahtar + host + parmak izini TEK baglantiyla dener (ufw limit 22)
       - name: Baglanti denemesi (yalniz dry-run)
-        if: inputs.mod == 'dry-run'
+        if: env.MODE == 'dry-run'
         run: |
           kh="$RUNNER_TEMP/known_hosts"
           umask 077
@@ -115,15 +174,24 @@ jobs:
             "${DEPLOY_USER:-deploy}@$DEPLOY_HOST" true
           echo "baglanti tamam: anahtar, host ve parmak izi dogrulandi"
       - name: Dry-run
-        if: inputs.mod == 'dry-run'
+        if: env.MODE == 'dry-run'
         run: bash scripts/deploy.sh --dry-run --skip-cleanup
       # --skip-cleanup: scripts/ops/install-cleanup.sh .deploy.env ister (CI'da yok); zamanlayici dizustunden kurulur/guncellenir
       - name: Dagit
-        if: inputs.mod == 'deploy'
+        if: env.MODE == 'deploy'
         run: bash scripts/deploy.sh --ref "$GITHUB_SHA" --skip-cleanup
       - name: Geri al
-        if: inputs.mod == 'rollback'
+        if: env.MODE == 'rollback'
         run: bash scripts/deploy.sh --rollback
       - name: Gecici anahtari sil
         if: always()
         run: rm -f "$RUNNER_TEMP/deploy_key" "$RUNNER_TEMP/known_hosts"
+
+  # Yalniz elle + mod=deploy + ios=true + dagitim basarili ise; push'ta, dry-run ve rollback'te calismaz (guard ciktisi push'ta ios=false). Secret'lar "inherit" ile gecer,
+  # production ortami cagrilan workflow'un kendi isinde secilir (cagiran is environment kullanamaz).
+  ios:
+    name: iOS (Codemagic)
+    needs: [guard, deploy]
+    if: needs.guard.outputs.mode == 'deploy' && needs.guard.outputs.ios == 'true'
+    uses: ./.github/workflows/ios-codemagic.yml
+    secrets: inherit

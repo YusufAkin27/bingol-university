@@ -1,0 +1,205 @@
+name: Release iOS (Codemagic)
+
+# iOS yayinini GitHub'dan baslatir; derleme sahibin Codemagic hesabinda calisir (codemagic.yaml > ios-release, TestFlight'a yukler).
+# Codemagic kisisel hesaplari ortak gelistirici alamaz; bu yuzden Codemagic REST API'si sahibin API anahtariyla cagrilir.
+# DIKKAT: her kosu sahibin Codemagic build dakikasini harcar ve TestFlight'ta yeni bir build uretir.
+# Ayarlar (degerler hicbir yerde yazdirilmaz):
+#   CODEMAGIC_API_TOKEN   secret   (production ortami)  Codemagic: Account settings > API token
+#   CODEMAGIC_APP_ID      secret ya da variable         Codemagic uygulama kimligi (GET /apps -> _id)
+#   CODEMAGIC_IOS_WORKFLOW_ID  variable (istege bagli)  varsayilan: ios-release (codemagic.yaml'daki workflow kimligi)
+# Not: bu GitHub kosusu iptal edilirse Codemagic'teki build DURMAZ; Codemagic'ten elle iptal edilir.
+# Tetikleyiciler: elle (workflow_dispatch), deploy-prod.yml'den (workflow_call) ve main'e push (yalniz mobile/pubspec.yaml degisince).
+#   Push'ta pubspec degisikligi her zaman surum degildir (bagimlilik duzenlemesi de ayni dosyadir): "version:" satiri onceki push
+#   (github.event.before) ile karsilastirilir; ayniysa ya da onceki surum belirlenemezse Codemagic CAGRILMAZ (is basarili biter).
+#   Elle ve workflow_call HER ZAMAN build baslatir. Push'ta build atlamak icin commit mesajina [skip ci] yazilabilir.
+#   github.event_name cagrilan workflow'da CAGIRANIN olayidir (docs: "github context is always associated with the caller workflow",
+#   https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations). deploy-prod.yml push'ta iOS'u
+#   zincirlemez (ios=false), bu yuzden workflow_call yolunda olay hicbir zaman push olmaz ve surum denetimi o yolda calismaz.
+# Ayrinti: docs/IOS_RELEASE.md "GitHub Actions'tan Codemagic ile iOS yayini", docs/CI_CD.md.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mobile/pubspec.yaml'
+  workflow_dispatch:
+  workflow_call:
+    # Cagiran is "secrets: inherit" kullanir; production ortam secret'i bu workflow'un kendi isinde (environment: production) cozulur.
+
+concurrency:
+  group: ios-codemagic
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    name: Dal denetimi (yalniz main)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      baslat: ${{ steps.surum.outputs.baslat }}
+    steps:
+      - name: Yalniz main dalindan calisir
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          if [ "$REF" != "refs/heads/main" ]; then
+            echo "iOS yayini yalniz main dalindan baslatilir (bu kosu: $REF). Hicbir sey yapilmadi." >&2
+            exit 1
+          fi
+          echo "dal dogrulandi: main"
+      # Yalniz push: onceki push'un commit'i de gerekir (tam gecmis; yeniden yazilmis gecmiste yoksa asagida guvenli tarafta durulur)
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        if: github.event_name == 'push'
+        with:
+          fetch-depth: 0
+      - name: Surum degisti mi (yalniz push)
+        id: surum
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -u
+          emit() { echo "baslat=$1" >> "$GITHUB_OUTPUT"; }
+          if [ "$EVENT" != "push" ]; then
+            emit true
+            echo "elle/cagrildi: surum denetimi yok, iOS baslatilacak"
+            exit 0
+          fi
+          ver() { # ver <commit>: pubspec "version:" degeri (bos = okunamadi)
+            git show "$1:mobile/pubspec.yaml" 2>/dev/null | sed -n 's/^version:[[:space:]]*//p' | head -n 1 \
+              | tr -d '\r' | sed 's/[[:space:]]*#.*$//; s/[[:space:]]*$//'
+          }
+          skip() { # skip <neden>
+            emit false
+            echo "$1; iOS baslatilmadi"
+            echo "### iOS (Codemagic)" >> "$GITHUB_STEP_SUMMARY"
+            echo "$1; iOS baslatilmadi." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          }
+          cur=$(ver "$SHA")
+          [ -n "$cur" ] || skip "mevcut surum okunamadi (guvenli taraf)"
+          case "$BEFORE" in
+            ""|*[!0]*) ;;
+            *) skip "onceki commit yok (yeni dal, before=sifirlar); onceki surum belirlenemedi (guvenli taraf)";;
+          esac
+          git cat-file -e "$BEFORE^{commit}" 2>/dev/null || skip "onceki commit klonda yok (yeniden yazilmis gecmis olabilir); onceki surum belirlenemedi (guvenli taraf)"
+          prev=$(ver "$BEFORE")
+          [ -n "$prev" ] || skip "onceki commit'te surum okunamadi (dosya yoktu); guvenli taraf"
+          if [ "$cur" = "$prev" ]; then
+            skip "surum degismedi ($cur)"
+          fi
+          emit true
+          echo "surum degisti: $prev -> $cur; iOS baslatilacak"
+          {
+            echo "### iOS (Codemagic)"
+            echo "Surum degisti: $prev -> $cur"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  ios:
+    name: Codemagic iOS build
+    needs: guard
+    if: github.ref == 'refs/heads/main' && needs.guard.outputs.baslat == 'true'
+    runs-on: ubuntu-latest
+    # codemagic.yaml max_build_duration: 75 dk; baslatma + kuyruk payi ile 95
+    timeout-minutes: 95
+    environment: production
+    env:
+      CM_API_TOKEN: ${{ secrets.CODEMAGIC_API_TOKEN }}
+      CM_APP_ID: ${{ secrets.CODEMAGIC_APP_ID || vars.CODEMAGIC_APP_ID }}
+      CM_WORKFLOW_ID: ${{ vars.CODEMAGIC_IOS_WORKFLOW_ID || 'ios-release' }}
+      CM_API: https://api.codemagic.io
+    steps:
+      - name: Yapilandirmayi dogrula
+        run: |
+          missing=""
+          if [ -z "${CM_API_TOKEN:-}" ]; then missing="$missing CODEMAGIC_API_TOKEN"; fi
+          if [ -z "${CM_APP_ID:-}" ]; then missing="$missing CODEMAGIC_APP_ID"; fi
+          if [ -z "${CM_WORKFLOW_ID:-}" ]; then missing="$missing CODEMAGIC_IOS_WORKFLOW_ID"; fi
+          if [ -n "$missing" ]; then
+            echo "Eksik secret/variable (yalniz adlar):$missing" >&2
+            echo "Tanim yeri: Settings > Secrets and variables > Actions (CODEMAGIC_API_TOKEN icin production ortami). Bkz. docs/CI_CD.md" >&2
+            exit 1
+          fi
+          echo "yapilandirma tamam: workflow=$CM_WORKFLOW_ID"
+
+      - name: Codemagic build'ini baslat
+        run: |
+          body=$(jq -n --arg app "$CM_APP_ID" --arg wf "$CM_WORKFLOW_ID" --arg br "main" \
+            '{appId: $app, workflowId: $wf, branch: $br}')
+          resp="$RUNNER_TEMP/cm_start.json"
+          # Anahtar komut satirina degil, stdin'deki curl yapilandirmasina yazilir (surec listesinde gorunmez)
+          code=$(printf 'header = "x-auth-token: %s"\n' "$CM_API_TOKEN" | curl -sS --max-time 60 -K - \
+            -X POST "$CM_API/builds" -H 'Content-Type: application/json' \
+            -d "$body" -o "$resp" -w '%{http_code}') || code="000"
+          case "$code" in
+            2??) ;;
+            *)
+              echo "Codemagic build baslatilamadi: HTTP $code" >&2
+              head -c 500 "$resp" >&2 2>/dev/null || true
+              echo >&2
+              exit 1;;
+          esac
+          build_id=$(jq -r '.buildId // empty' "$resp" 2>/dev/null || true)
+          if [ -z "$build_id" ]; then
+            echo "Yanitta buildId yok (HTTP $code); build baslamis olabilir, Codemagic panosunu kontrol edin." >&2
+            head -c 500 "$resp" >&2 2>/dev/null || true
+            echo >&2
+            exit 1
+          fi
+          url="https://codemagic.io/app/$CM_APP_ID/build/$build_id"
+          echo "CM_BUILD_ID=$build_id" >> "$GITHUB_ENV"
+          echo "CM_BUILD_URL=$url" >> "$GITHUB_ENV"
+          echo "Codemagic build baslatildi: $url"
+          {
+            echo "### iOS (Codemagic)"
+            echo "Build: $url"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Bu GitHub kosusu iptal edilirse Codemagic build'i calismaya DEVAM eder (otomatik iptal eklenmedi).
+      - name: Build'in bitmesini bekle
+        run: |
+          interval=60
+          deadline=$(( $(date +%s) + 90 * 60 ))
+          fails=0
+          while :; do
+            code=$(printf 'header = "x-auth-token: %s"\n' "$CM_API_TOKEN" | curl -sS --max-time 30 -K - \
+              "$CM_API/builds/$CM_BUILD_ID" -o "$RUNNER_TEMP/cm_status.json" -w '%{http_code}') || code="000"
+            status=""
+            case "$code" in
+              2??) status=$(jq -r '.build.status // .data.status // .status // empty' "$RUNNER_TEMP/cm_status.json" 2>/dev/null || true) ;;
+            esac
+            if [ -z "$status" ]; then
+              fails=$((fails + 1))
+              echo "durum okunamadi (HTTP $code), ardisik hata: $fails"
+              if [ "$fails" -ge 5 ]; then
+                echo "Durum 5 kez ust uste okunamadi. Build: $CM_BUILD_URL" >&2
+                exit 1
+              fi
+            else
+              fails=0
+              echo "durum: $status"
+              case "$status" in
+                finished)
+                  ok=$(jq -r '(.build.success // .data.success) | if . == false then "false" else "true" end' "$RUNNER_TEMP/cm_status.json" 2>/dev/null || echo true)
+                  if [ "$ok" = "false" ]; then
+                    echo "Build 'finished' ama basarisiz isaretli. Build: $CM_BUILD_URL" >&2
+                    exit 1
+                  fi
+                  echo "iOS build basarili: $CM_BUILD_URL"
+                  echo "Sonuc: basarili ($status)" >> "$GITHUB_STEP_SUMMARY"
+                  exit 0;;
+                failed|canceled|cancelled|timeout|skipped)
+                  echo "iOS build basarisiz ($status). Build: $CM_BUILD_URL" >&2
+                  echo "Sonuc: basarisiz ($status)" >> "$GITHUB_STEP_SUMMARY"
+                  exit 1;;
+              esac
+            fi
+            if [ "$(date +%s)" -ge "$deadline" ]; then
+              echo "Zaman asimi: build hala bitmedi (son durum: ${status:-bilinmiyor}). Build Codemagic'te surebilir: $CM_BUILD_URL" >&2
+              exit 1
+            fi
+            sleep "$interval"
+          done
