@@ -15,6 +15,10 @@ on:
         type: choice
         options: [dry-run, deploy, rollback]
         default: dry-run
+      ios:
+        description: 'deploy basarili olursa iOS surumunu de Codemagic''te baslat (Codemagic dakikasi harcar, TestFlight build uretir)'
+        type: boolean
+        default: false
 
 # Ikinci kosu kuyruga girer, iptal edilmez (sunucudaki kilit ikinci savunma hatti)
 concurrency:
@@ -127,3 +131,12 @@ jobs:
       - name: Gecici anahtari sil
         if: always()
         run: rm -f "$RUNNER_TEMP/deploy_key" "$RUNNER_TEMP/known_hosts"
+
+  # Yalniz mod=deploy + ios=true + dagitim basarili ise; dry-run/rollback'te calismaz. Secret'lar "inherit" ile gecer,
+  # production ortami cagrilan workflow'un kendi isinde secilir (cagiran is environment kullanamaz).
+  ios:
+    name: iOS (Codemagic)
+    needs: deploy
+    if: inputs.mod == 'deploy' && inputs.ios == true
+    uses: ./.github/workflows/ios-codemagic.yml
+    secrets: inherit
