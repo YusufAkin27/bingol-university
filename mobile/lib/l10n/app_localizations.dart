@@ -25674,6 +25674,24 @@ abstract class AppLocalizations {
   /// **'Bu dersin yoklama listesinde görünmüyorsun.'**
   String get scanLessonNotEnrolled;
 
+  /// No description provided for @scanLessonLocationNeeded.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklama için konum gerekli. Konumu açıp kodu yeniden okut.'**
+  String get scanLessonLocationNeeded;
+
+  /// No description provided for @scanLessonLocationWeak.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konum alınamadı veya yeterince doğru değil. Pencere kenarına yaklaşıp kodu yeniden okut.'**
+  String get scanLessonLocationWeak;
+
+  /// No description provided for @scanLessonOutOfArea.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklama yalnızca kampüste alınabilir. Kampüsteysen yoklamanı öğretim elemanından elle işlemesini iste.'**
+  String get scanLessonOutOfArea;
+
   /// No description provided for @signOutPendingTitle.
   ///
   /// In tr, this message translates to:

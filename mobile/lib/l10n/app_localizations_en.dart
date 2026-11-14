@@ -14339,6 +14339,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanLessonNotEnrolled => 'You are not on the attendance list for this course.';
 
   @override
+  String get scanLessonLocationNeeded => 'Location is required for attendance. Turn on location and scan the code again.';
+
+  @override
+  String get scanLessonLocationWeak => 'Your location could not be found or is not accurate enough. Move near a window and scan the code again.';
+
+  @override
+  String get scanLessonOutOfArea => 'Attendance can only be marked on campus. If you are on campus, ask your lecturer to mark you manually.';
+
+  @override
   String get signOutPendingTitle => 'Unsent messages will be deleted';
 
   @override

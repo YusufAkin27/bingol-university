@@ -5205,6 +5205,9 @@
   },
   "scanLessonExpired": "The code has expired. Scan the code on the screen again.",
   "scanLessonNotEnrolled": "You are not on the attendance list for this course.",
+  "scanLessonLocationNeeded": "Location is required for attendance. Turn on location and scan the code again.",
+  "scanLessonLocationWeak": "Your location could not be found or is not accurate enough. Move near a window and scan the code again.",
+  "scanLessonOutOfArea": "Attendance can only be marked on campus. If you are on campus, ask your lecturer to mark you manually.",
   "signOutPendingTitle": "Unsent messages will be deleted",
   "signOutPendingBody": "{count} unsent messages will be deleted. Sign out anyway?",
   "@signOutPendingBody": {
