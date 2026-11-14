@@ -81,6 +81,7 @@ IconData bannerIcon(Map<String, dynamic> data) {
       return BuIcons.headset;
     case PushDest.timetable:
     case PushDest.exams:
+    case PushDest.course:
       return BuIcons.graduationCap;
     default:
       return BuIcons.bell;
