@@ -14342,6 +14342,107 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanLessonRevoked => 'Your attendance for this class was removed by the lecturer.';
 
   @override
+  String get myCoursesTitle => 'My courses';
+
+  @override
+  String get myCoursesSub => 'Attendance, notices and upcoming exams and assignments';
+
+  @override
+  String get myCoursesEmptyTitle => 'You are not enrolled in any course yet';
+
+  @override
+  String get myCoursesEmptyBody => 'Your courses appear here once your lecturer adds you to them.';
+
+  @override
+  String get myCoursesUpcoming => 'Upcoming';
+
+  @override
+  String myCoursesCounts(int present, int absent) {
+    return 'Present: $present · Absent: $absent';
+  }
+
+  @override
+  String myCoursesLimitCount(int n) {
+    return 'Absence limit: $n classes';
+  }
+
+  @override
+  String myCoursesLimitPercent(int n) {
+    return 'Absence limit: $n%';
+  }
+
+  @override
+  String get myCoursesAtRisk => 'You are close to the absence limit';
+
+  @override
+  String get myCoursesOverLimit => 'You are over the absence limit';
+
+  @override
+  String get courseNoticesTitle => 'Notices';
+
+  @override
+  String get courseNoticesEmpty => 'There are no notices for this course yet.';
+
+  @override
+  String get noticeTypeLessonStarted => 'Class started';
+
+  @override
+  String get noticeTypeAttendanceStarted => 'Attendance started';
+
+  @override
+  String get noticeTypeExam => 'Exam';
+
+  @override
+  String get noticeTypeAssignment => 'Assignment';
+
+  @override
+  String get noticeTypeMaterial => 'Course material';
+
+  @override
+  String noticeExamWhen(String when) {
+    return 'Exam time: $when';
+  }
+
+  @override
+  String noticeDueWhen(String when) {
+    return 'Due: $when';
+  }
+
+  @override
+  String get noticeFileDownloading => 'Downloading…';
+
+  @override
+  String get noticeFileFailed => 'Could not open the file. Check your connection and try again.';
+
+  @override
+  String get noticeFileShareTitle => 'Open or save the file';
+
+  @override
+  String get noticeTypeLessonCancelled => 'Class cancelled';
+
+  @override
+  String get noticeTypeRoomChanged => 'Room changed';
+
+  @override
+  String get noticeTypeOther => 'Notice';
+
+  @override
+  String noticeRoomChanged(String room) {
+    return 'Room changed: $room';
+  }
+
+  @override
+  String noticeLessonWhen(String when) {
+    return 'Class time: $when';
+  }
+
+  @override
+  String get scanLessonPending => 'You are not enrolled in this course. Your scan was sent to the lecturer; if they approve, your attendance will be recorded.';
+
+  @override
+  String get scanLessonReceived => 'Scan received';
+
+  @override
   String get signOutPendingTitle => 'Unsent messages will be deleted';
 
   @override

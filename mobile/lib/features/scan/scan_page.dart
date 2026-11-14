@@ -208,17 +208,20 @@ class _QrScanHubPageState extends State<QrScanHubPage> with SingleTickerProvider
     try {
       final res = await widget.session.api.post('/attendance/scan', {'code': v});
       if (!mounted) return;
-      final already = res is Map && res['status'] == 'ALREADY';
+      final status = res is Map ? '${res['status'] ?? ''}' : '';
       final course = res is Map ? '${res['courseName'] ?? ''}'.trim() : '';
       _done = true;
       _throttle.succeeded(v, DateTime.now());
       buHaptic(BuHaptic.medium);
       Analytics.instance.action('qr_scan', target: 'lesson');
-      BuToast.show(
-        context,
-        already ? l.scanLessonAlready(course) : l.scanLessonMarked(course),
-        kind: already ? BuToastKind.info : BuToastKind.success,
-      );
+      // MARKED / ALREADY / PENDING (kayıtsız öğrenci: okutman onayına gitti); bilinmeyen durum nötr "okutma alındı".
+      final (text, kind) = switch (status) {
+        'MARKED' => (l.scanLessonMarked(course), BuToastKind.success),
+        'ALREADY' => (l.scanLessonAlready(course), BuToastKind.info),
+        'PENDING' => (l.scanLessonPending, BuToastKind.info),
+        _ => (l.scanLessonReceived, BuToastKind.info),
+      };
+      BuToast.show(context, text, kind: kind);
       Navigator.of(context).pop();
     } catch (e) {
       if (!mounted) return;

@@ -7757,6 +7757,87 @@
   "scanLessonExpired": "Kodun süresi doldu. Ekrandaki kodu yeniden okut.",
   "scanLessonNotEnrolled": "Bu dersin yoklama listesinde görünmüyorsun.",
   "scanLessonRevoked": "Bu ders için yoklaman öğretim elemanı tarafından kaldırıldı.",
+  "scanLessonPending": "Bu derse kayıtlı değilsin. Okutman öğretim elemanına iletildi; onaylarsa yoklaman işlenecek.",
+  "scanLessonReceived": "Okutma alındı",
+  "myCoursesTitle": "Derslerim",
+  "myCoursesSub": "Devam durumu, duyurular ve yaklaşan sınav/ödevler",
+  "myCoursesEmptyTitle": "Henüz bir derse kayıtlı değilsin",
+  "myCoursesEmptyBody": "Öğretim elemanın seni bir derse eklediğinde burada görünür.",
+  "myCoursesUpcoming": "Yaklaşanlar",
+  "myCoursesCounts": "Katıldığın: {present} · Devamsız: {absent}",
+  "@myCoursesCounts": {
+    "placeholders": {
+      "present": {
+        "type": "int"
+      },
+      "absent": {
+        "type": "int"
+      }
+    }
+  },
+  "myCoursesLimitCount": "Devamsızlık sınırı: {n} ders",
+  "@myCoursesLimitCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "myCoursesLimitPercent": "Devamsızlık sınırı: %{n}",
+  "@myCoursesLimitPercent": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "myCoursesAtRisk": "Devamsızlık sınırına yaklaştın",
+  "myCoursesOverLimit": "Devamsızlık sınırını aştın",
+  "courseNoticesTitle": "Duyurular",
+  "courseNoticesEmpty": "Bu ders için henüz duyuru yok.",
+  "noticeTypeLessonStarted": "Ders başladı",
+  "noticeTypeAttendanceStarted": "Yoklama başladı",
+  "noticeTypeExam": "Sınav",
+  "noticeTypeAssignment": "Ödev",
+  "noticeTypeMaterial": "Ders materyali",
+  "noticeExamWhen": "Sınav zamanı: {when}",
+  "@noticeExamWhen": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "noticeDueWhen": "Son teslim: {when}",
+  "@noticeDueWhen": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "noticeFileDownloading": "İndiriliyor…",
+  "noticeFileFailed": "Dosya açılamadı. Bağlantını kontrol edip tekrar dene.",
+  "noticeFileShareTitle": "Dosyayı aç veya kaydet",
+  "noticeTypeLessonCancelled": "Ders iptal",
+  "noticeTypeRoomChanged": "Derslik değişti",
+  "noticeTypeOther": "Duyuru",
+  "noticeRoomChanged": "Derslik değişti: {room}",
+  "@noticeRoomChanged": {
+    "placeholders": {
+      "room": {
+        "type": "String"
+      }
+    }
+  },
+  "noticeLessonWhen": "Ders zamanı: {when}",
+  "@noticeLessonWhen": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "signOutPendingTitle": "Gönderilmemiş mesajlar silinecek",
   "signOutPendingBody": "Gönderilmemiş {count} mesaj silinecek. Çıkış yapmak istiyor musun?",
   "@signOutPendingBody": {

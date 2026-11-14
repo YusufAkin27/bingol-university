@@ -68,6 +68,27 @@ void main() {
       await settle(tester, const Duration(seconds: 3));
     });
 
+    testWidgets('PENDING: bilgi mesajı, tarayıcı kapanır', (tester) async {
+      await open(tester);
+      be.on(_path, {'status': 'PENDING', 'courseName': 'Fizik 102', 'lessonDate': '2026-11-14'});
+      await tester.tap(find.byKey(const ValueKey('scan-lesson')));
+      await settle(tester, const Duration(milliseconds: 800));
+      expect(find.byType(QrScanHubPage), findsNothing);
+      expect(find.textContaining('öğretim elemanına iletildi'), findsOneWidget);
+      await settle(tester, const Duration(seconds: 3));
+    });
+
+    testWidgets('bilinmeyen durum: nötr "okutma alındı", çökmez', (tester) async {
+      await open(tester);
+      be.on(_path, {'status': 'SOMETHING_NEW', 'courseName': 'Fizik 102', 'lessonDate': '2026-11-14'});
+      await tester.tap(find.byKey(const ValueKey('scan-lesson')));
+      await settle(tester, const Duration(milliseconds: 800));
+      expect(find.byType(QrScanHubPage), findsNothing);
+      expect(find.text('Okutma alındı'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await settle(tester, const Duration(seconds: 3));
+    });
+
     testWidgets('422: "süresi doldu" mesajı, tarayıcı açık kalır, hemen yeniden okutulabilir', (tester) async {
       await open(tester);
       be.fail(_path, status: 422, code: 'ATTENDANCE_CODE_INVALID', message: 'Kod geçersiz.');

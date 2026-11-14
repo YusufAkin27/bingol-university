@@ -5206,6 +5206,87 @@
   "scanLessonExpired": "انتهت صلاحية الرمز. امسح الرمز الظاهر على الشاشة مرة أخرى.",
   "scanLessonNotEnrolled": "لست مدرجا في قائمة حضور هذه المادة.",
   "scanLessonRevoked": "تمت إزالة حضورك في هذه المحاضرة من قبل المحاضر.",
+  "scanLessonPending": "لست مسجلا في هذه المادة. تم إرسال المسح إلى المحاضر، وإذا وافق فسيتم تسجيل حضورك.",
+  "scanLessonReceived": "تم استلام المسح",
+  "myCoursesTitle": "موادي",
+  "myCoursesSub": "الحضور والإعلانات والامتحانات والواجبات القادمة",
+  "myCoursesEmptyTitle": "لست مسجلا في أي مادة بعد",
+  "myCoursesEmptyBody": "ستظهر موادك هنا عندما يضيفك المحاضر إليها.",
+  "myCoursesUpcoming": "القادم",
+  "myCoursesCounts": "حاضر: {present} · غائب: {absent}",
+  "@myCoursesCounts": {
+    "placeholders": {
+      "present": {
+        "type": "int"
+      },
+      "absent": {
+        "type": "int"
+      }
+    }
+  },
+  "myCoursesLimitCount": "حد الغياب: {n} محاضرة",
+  "@myCoursesLimitCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "myCoursesLimitPercent": "حد الغياب: {n}%",
+  "@myCoursesLimitPercent": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "myCoursesAtRisk": "اقتربت من حد الغياب",
+  "myCoursesOverLimit": "تجاوزت حد الغياب",
+  "courseNoticesTitle": "الإعلانات",
+  "courseNoticesEmpty": "لا توجد إعلانات لهذه المادة بعد.",
+  "noticeTypeLessonStarted": "بدأت المحاضرة",
+  "noticeTypeAttendanceStarted": "بدأ تسجيل الحضور",
+  "noticeTypeExam": "امتحان",
+  "noticeTypeAssignment": "واجب",
+  "noticeTypeMaterial": "مادة تعليمية",
+  "noticeExamWhen": "موعد الامتحان: {when}",
+  "@noticeExamWhen": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "noticeDueWhen": "آخر موعد للتسليم: {when}",
+  "@noticeDueWhen": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "noticeFileDownloading": "جارٍ التنزيل…",
+  "noticeFileFailed": "تعذر فتح الملف. تحقق من الاتصال وحاول مجددا.",
+  "noticeFileShareTitle": "فتح الملف أو حفظه",
+  "noticeTypeLessonCancelled": "إلغاء المحاضرة",
+  "noticeTypeRoomChanged": "تغيير القاعة",
+  "noticeTypeOther": "إعلان",
+  "noticeRoomChanged": "تغيرت القاعة: {room}",
+  "@noticeRoomChanged": {
+    "placeholders": {
+      "room": {
+        "type": "String"
+      }
+    }
+  },
+  "noticeLessonWhen": "موعد المحاضرة: {when}",
+  "@noticeLessonWhen": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "signOutPendingTitle": "سيتم حذف الرسائل غير المرسلة",
   "signOutPendingBody": "سيتم حذف {count} رسائل غير مرسلة. هل تريد تسجيل الخروج؟",
   "@signOutPendingBody": {
