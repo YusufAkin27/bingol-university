@@ -222,7 +222,6 @@ void main() {
         }
         await tester.pumpWidget(_app(home, v.$2, key, v.$3));
         await tester.runAsync(() async {
-          final ctx = tester.element(find.byType(Scaffold).first);
         });
         if (shot.state == 'loading') {
           await tester.pump(const Duration(milliseconds: 400));

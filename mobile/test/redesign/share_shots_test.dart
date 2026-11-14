@@ -31,8 +31,6 @@ import '../support/store_shots_images.dart';
 ///   SHARE_SHOTS_OUT='C:/bu_qa/shots/share' flutter test test/redesign/share_shots_test.dart
 const _dpr = 2.0;
 
-String _lang = 'tr';
-
 class _V {
   const _V(this.suffix, {this.dark = false, this.scale = 1.0, this.w = 390.0, this.h = 844.0, this.lang = 'tr'});
   final String suffix;

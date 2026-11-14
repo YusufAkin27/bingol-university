@@ -14217,7 +14217,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get scanHint =>
-      'Profil, kulüp, anket ya da etkinlik kodunu çerçeveye hizala.';
+      'Profil, kulüp, anket, etkinlik ya da ders yoklaması kodunu çerçeveye hizala.';
 
   @override
   String get scanCheckinNoRight => 'Bu yoklama kodunu okutma yetkin yok.';
@@ -14264,6 +14264,129 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get scanClubAlready => 'Bu kulübün zaten üyesisiniz';
+
+  @override
+  String scanLessonMarked(String course) {
+    return 'Yoklama alındı: $course';
+  }
+
+  @override
+  String scanLessonAlready(String course) {
+    return 'Bu ders için yoklaman zaten alınmış: $course';
+  }
+
+  @override
+  String get scanLessonExpired => 'Kodun süresi doldu. Ekrandaki kodu yeniden okut.';
+
+  @override
+  String get scanLessonNotEnrolled => 'Bu dersin yoklama listesinde görünmüyorsun.';
+
+  @override
+  String get scanLessonRevoked => 'Bu ders için yoklaman öğretim elemanı tarafından kaldırıldı.';
+
+  @override
+  String get myCoursesTitle => 'Derslerim';
+
+  @override
+  String get myCoursesSub => 'Devam durumu, duyurular ve yaklaşan sınav/ödevler';
+
+  @override
+  String get myCoursesEmptyTitle => 'Henüz bir derse kayıtlı değilsin';
+
+  @override
+  String get myCoursesEmptyBody => 'Öğretim elemanın seni bir derse eklediğinde burada görünür.';
+
+  @override
+  String get myCoursesUpcoming => 'Yaklaşanlar';
+
+  @override
+  String myCoursesCounts(int present, int absent) {
+    return 'Katıldığın: $present · Devamsız: $absent';
+  }
+
+  @override
+  String myCoursesLimitCount(int n) {
+    return 'Devamsızlık sınırı: $n ders';
+  }
+
+  @override
+  String myCoursesLimitPercent(int n) {
+    return 'Devamsızlık sınırı: %$n';
+  }
+
+  @override
+  String get myCoursesAtRisk => 'Devamsızlık sınırına yaklaştın';
+
+  @override
+  String get myCoursesOverLimit => 'Devamsızlık sınırını aştın';
+
+  @override
+  String get courseNoticesTitle => 'Duyurular';
+
+  @override
+  String get courseNoticesEmpty => 'Bu ders için henüz duyuru yok.';
+
+  @override
+  String get noticeTypeLessonStarted => 'Ders başladı';
+
+  @override
+  String get noticeTypeAttendanceStarted => 'Yoklama başladı';
+
+  @override
+  String get noticeTypeExam => 'Sınav';
+
+  @override
+  String get noticeTypeAssignment => 'Ödev';
+
+  @override
+  String get noticeTypeMaterial => 'Ders materyali';
+
+  @override
+  String noticeExamWhen(String when) {
+    return 'Sınav zamanı: $when';
+  }
+
+  @override
+  String noticeDueWhen(String when) {
+    return 'Son teslim: $when';
+  }
+
+  @override
+  String get noticeFileDownloading => 'İndiriliyor…';
+
+  @override
+  String get noticeFileFailed => 'Dosya açılamadı. Bağlantını kontrol edip tekrar dene.';
+
+  @override
+  String get noticeFileShareTitle => 'Dosyayı aç veya kaydet';
+
+  @override
+  String get noticeTypeLessonCancelled => 'Ders iptali';
+
+  @override
+  String get noticeTypeRoomChanged => 'Derslik değişti';
+
+  @override
+  String get noticeTypeOther => 'Duyuru';
+
+  @override
+  String noticeRoomChanged(String room) {
+    return 'Derslik değişti: $room';
+  }
+
+  @override
+  String noticeLessonWhen(String when) {
+    return 'Ders zamanı: $when';
+  }
+
+  @override
+  String get scanLessonPending => 'Bu derse kayıtlı değilsin. Yoklama isteğin öğretim elemanına iletildi; onaylarsa yoklaman işlenecek.';
+
+  @override
+  String get scanLessonReceived => 'Okutma alındı';
+
+  @override
+  String get courseNoticesMore => 'Daha fazla göster';
 
   @override
   String get signOutPendingTitle => 'Gönderilmemiş mesajlar silinecek';

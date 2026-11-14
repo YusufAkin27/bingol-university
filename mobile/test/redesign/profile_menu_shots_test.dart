@@ -123,7 +123,6 @@ void main() {
         ),
       ));
       await tester.runAsync(() async {
-        final ctx = tester.element(find.byType(Scaffold).first);
       });
       await settle(tester, const Duration(milliseconds: 900));
       final err = tester.takeException();

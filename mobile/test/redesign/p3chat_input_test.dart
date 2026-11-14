@@ -286,7 +286,3 @@ void main() {
     });
   });
 }
-
-class _Denied extends FakeMediaLibrary {
-  _Denied() : super(const [], access: LibraryAccess.denied);
-}

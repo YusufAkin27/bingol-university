@@ -703,7 +703,6 @@ FakeBackend _backend() {
 
 Future<void> _precache(WidgetTester tester) async {
   await tester.runAsync(() async {
-    final ctx = tester.element(find.byType(Material).first);
   });
 }
 

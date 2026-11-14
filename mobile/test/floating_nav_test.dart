@@ -1,6 +1,5 @@
 import 'package:bu_kampus/features/chat/chatlist_widgets.dart';
 import 'package:bu_kampus/features/shell/bukampus_bottom_navigation_bar.dart';
-import 'package:bu_kampus/widgets/bu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

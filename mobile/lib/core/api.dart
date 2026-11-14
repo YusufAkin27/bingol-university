@@ -335,13 +335,13 @@ class ApiClient {
   /// Yetkili ikili GET (ör. tek gösterimlik görsel). Önbelleğe ALINMAZ ve ağ hatasında YENİDEN DENENMEZ:
   /// ilk başarılı istek içeriği tüketebilir. Yalnız 401'de bir kez yenileyip tekrar dener (içerik henüz sunulmadı).
   /// 2xx dışında `{code,message}` gövdesinden [ApiError] fırlatır.
-  Future<List<int>> getBytes(String path, {bool retried = false, int? gen}) async {
+  Future<List<int>> getBytes(String path, {bool retried = false, int? gen, String accept = 'image/*, application/json'}) async {
     await _deviceReady();
     final g = gen ?? _gen;
     _ensureGen(g);
     final req = http.Request('GET', Uri.parse('$apiBase$path'));
     _baseHeaders(req);
-    req.headers['Accept'] = 'image/*, application/json';
+    req.headers['Accept'] = accept;
     final t = tokens;
     if (t != null) req.headers['Authorization'] = 'Bearer ${t.access}';
     http.Response res;
@@ -361,7 +361,7 @@ class ApiClient {
         handleRefreshFailure(e);
         rethrow;
       }
-      return getBytes(path, retried: true, gen: g);
+      return getBytes(path, retried: true, gen: g, accept: accept);
     }
     if (res.statusCode >= 200 && res.statusCode < 300) return res.bodyBytes;
     _decode(res); // hata gövdesinden ApiError fırlatır

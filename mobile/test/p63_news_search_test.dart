@@ -160,8 +160,8 @@ void main() {
       expect(h.style!.fontSize, 26);
       expect(h.style!.fontWeight, FontWeight.w400);
       final body = tester.widget<LinkifiedText>(find.widgetWithText(LinkifiedText, 'İlk paragraf.')); // gövde artık bağlantılı metin
-      expect(body.style!.fontSize, 16);
-      expect(body.style!.height, 1.5);
+      expect(body.style.fontSize, 16);
+      expect(body.style.height, 1.5);
       expect(find.text('İçeriğin tamamı için kaynak sayfayı açın.'), findsOneWidget);
       final btn = find.byKey(const ValueKey('news-open-source'));
       expect(tester.getSize(btn).height, 48);

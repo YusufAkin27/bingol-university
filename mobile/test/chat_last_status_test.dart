@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'redesign/p00_support.dart';
 import 'support/fake_app.dart';
 
 /// Instagram Direct düzeni: durum yazısı YALNIZ konuşmanın en güncel mesajında ve o benimse çıkar.

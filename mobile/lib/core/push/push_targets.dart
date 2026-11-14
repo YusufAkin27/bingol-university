@@ -23,6 +23,9 @@ enum PushDest {
   followRequests,
   timetable,
   exams,
+
+  /// Öğrencinin ders ayrıntısı (Derslerim): akademisyen duyuruları, yoklama ve devamsızlık uyarıları ([PushTarget.id] = ders kimliği).
+  course,
   ticket,
   feedback,
   accountSecurity,
@@ -202,6 +205,7 @@ PushTarget resolvePushTarget(Map<String, dynamic>? data) {
   final postId = _id(d['postId']);
   final eventId = _id(d['eventId']);
   final examId = _id(d['examId']);
+  final courseId = _id(d['courseId']);
   final communityId = _id(d['communityId']);
   final newsId = _id(d['newsId']);
 
@@ -213,6 +217,12 @@ PushTarget resolvePushTarget(Map<String, dynamic>? data) {
     return PushTarget(PushDest.post, id: postId, commentId: commentId);
 
   if (examId != null) return PushTarget(PushDest.exams, id: examId);
+  // Akademisyen duyurusu/uyarısı: `targetType=ACADEMIC_COURSE` + `targetId` (ya da `courseId`) ders ayrıntısını açar.
+  if (target == 'ACADEMIC_COURSE') {
+    final cid = courseId ?? value;
+    if (cid != null) return PushTarget(PushDest.course, id: cid);
+    return const PushTarget(PushDest.notifications);
+  }
 
   // Kampanya bağlantısı: yalnız geçerli https adresi (sunucu da https dayatır); diğer şemalar/bozuk metin listeye düşer.
   if (target == 'URL') {
