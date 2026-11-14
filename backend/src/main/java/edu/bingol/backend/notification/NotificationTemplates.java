@@ -44,7 +44,7 @@ public final class NotificationTemplates {
         register("notif.academician.rejected", NotificationType.SYSTEM, null);
         register("notif.academician.revoked", NotificationType.SYSTEM, null);
         register("notif.academician.autoApproved", NotificationType.SYSTEM, null);
-        register("notif.academician.enrolled", NotificationType.ANNOUNCEMENT, NotificationSubtype.EXAM_REMINDER);
+        register("notif.academician.enrolled", NotificationType.SYSTEM, null);
         register("notif.academician.lessonStarted", NotificationType.ANNOUNCEMENT, NotificationSubtype.EXAM_REMINDER);
         register("notif.academician.attendanceStarted", NotificationType.ANNOUNCEMENT, NotificationSubtype.EXAM_REMINDER);
         register("notif.academician.exam", NotificationType.ANNOUNCEMENT, NotificationSubtype.EXAM_REMINDER);
@@ -52,8 +52,8 @@ public final class NotificationTemplates {
         register("notif.academician.material", NotificationType.ANNOUNCEMENT, NotificationSubtype.EXAM_REMINDER);
         register("notif.academician.lessonCancelled", NotificationType.ANNOUNCEMENT, NotificationSubtype.EXAM_REMINDER);
         register("notif.academician.roomChanged", NotificationType.ANNOUNCEMENT, NotificationSubtype.EXAM_REMINDER);
-        register("notif.academician.absenceWarning", NotificationType.ANNOUNCEMENT, NotificationSubtype.EXAM_REMINDER);
-        register("notif.academician.absenceExceeded", NotificationType.ANNOUNCEMENT, NotificationSubtype.EXAM_REMINDER);
+        register("notif.academician.absenceWarning", NotificationType.SYSTEM, null);
+        register("notif.academician.absenceExceeded", NotificationType.SYSTEM, null);
     }
 
     private NotificationTemplates() {}

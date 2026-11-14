@@ -36,7 +36,7 @@ class AcademicianApprovalPolicyTest {
         AutoApprove c = AutoApprove.STAFF_PATTERN;
         expect(c, user("x.y@bingol.edu.tr", u -> { }), Status.APPROVED, ApprovalMode.AUTO, "ad.soyad kurumsal adres");
         expect(c, user("X.Y@Bingol.Edu.Tr", u -> { }), Status.APPROVED, ApprovalMode.AUTO, "buyuk harf normallesir");
-        expect(c, user("hoca1@bingol.edu.tr", u -> { }), Status.APPROVED, ApprovalMode.AUTO, "harf + rakam");
+        expect(c, user("hoca1@bingol.edu.tr", u -> { }), Status.PENDING, null, "harf + rakam artik PENDING");
         expect(c, user("220051010@bingol.edu.tr", u -> { }), Status.PENDING, null, "ogrenci numarasi");
         expect(c, user("2200510@bingol.edu.tr", u -> { }), Status.PENDING, null, "7 hane numara");
         expect(c, user("a@ogr.bingol.edu.tr", u -> { }), Status.PENDING, null, "alt alan adi");
@@ -49,6 +49,40 @@ class AcademicianApprovalPolicyTest {
         expect(c, user("x.y@bingol.edu.tr", u -> u.setGrade("1")), Status.PENDING, null, "grade dolu");
         expect(c, user("x.y@bingol.edu.tr", u -> u.setClassYear((short) 2)), Status.PENDING, null, "classYear dolu");
         expect(c, user("", u -> { }), Status.PENDING, null, "bos");
+    }
+
+    @Test
+    void localPartMustBeLettersWithSingleSeparatorsAndNoDigits() {
+        AutoApprove c = AutoApprove.STAFF_PATTERN;
+        expect(c, user("a20211234@bingol.edu.tr", u -> { }), Status.PENDING, null, "harf + ogrenci numarasi");
+        expect(c, user("ali2@bingol.edu.tr", u -> { }), Status.PENDING, null, "tek rakam");
+        expect(c, user("ali.veli1@bingol.edu.tr", u -> { }), Status.PENDING, null, "sonda rakam");
+        expect(c, user("ali.@bingol.edu.tr", u -> { }), Status.PENDING, null, "sonda ayirici");
+        expect(c, user(".ali@bingol.edu.tr", u -> { }), Status.PENDING, null, "basta ayirici");
+        expect(c, user("ali..veli@bingol.edu.tr", u -> { }), Status.PENDING, null, "cift ayirici");
+        expect(c, user("ali.-veli@bingol.edu.tr", u -> { }), Status.PENDING, null, "ayirici dizisi");
+        expect(c, user("ali+x@bingol.edu.tr", u -> { }), Status.PENDING, null, "+etiket");
+        expect(c, user("ali.veli@bingol.edu.tr", u -> { }), Status.APPROVED, ApprovalMode.AUTO, "ad.soyad");
+        expect(c, user("ali_veli@bingol.edu.tr", u -> { }), Status.APPROVED, ApprovalMode.AUTO, "alt cizgi");
+        expect(c, user("ali-veli.yilmaz@bingol.edu.tr", u -> { }), Status.APPROVED, ApprovalMode.AUTO, "tire + nokta");
+        expect(c, user("ALI.VELI@BINGOL.EDU.TR", u -> { }), Status.APPROVED, ApprovalMode.AUTO, "buyuk harf girdisi");
+    }
+
+    @Test
+    void turkishDefaultLocaleDoesNotChangeTheDecision() {
+        java.util.Locale old = java.util.Locale.getDefault();
+        try {
+            java.util.Locale.setDefault(java.util.Locale.forLanguageTag("tr-TR"));
+            AutoApprove c = AutoApprove.STAFF_PATTERN;
+            // Turkce yerelde "I".toLowerCase() = dotless i; Locale.ROOT ile "i" olmali
+            expect(c, user("ALI.VELI@BINGOL.EDU.TR", u -> { }), Status.APPROVED, ApprovalMode.AUTO, "I -> i (ROOT)");
+            expect(c, user("ali.veli@bingol.edu.tr", u -> { }), Status.APPROVED, ApprovalMode.AUTO, "kucuk i");
+            // noktali buyuk I ve noktasiz kucuk i ASCII harf degildir
+            expect(c, user("ALİ.VELİ@bingol.edu.tr", u -> { }), Status.PENDING, null, "noktali I");
+            expect(c, user("alı.veli@bingol.edu.tr", u -> { }), Status.PENDING, null, "noktasiz i");
+        } finally {
+            java.util.Locale.setDefault(old);
+        }
     }
 
     @Test

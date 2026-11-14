@@ -88,7 +88,9 @@ class AcademicianAttendanceMvcTest extends AcademicianMvcBase {
         assertTrue(lv.get("newRecords").get(0).get("revoked").asBoolean());
         assertEquals(0, lv.get("presentCount").asInt());
         assertEquals("REVOKED", row(matrix(l, courseId), s).get("marks").get(String.valueOf(sid)).asText());
-        assertEquals(1, row(matrix(l, courseId), s).get("absentCount").asInt());
+        // canli oturumda "yok" geciciidir: sayilara girmez ve sutun live=true isaretlidir (B2)
+        assertEquals(0, row(matrix(l, courseId), s).get("absentCount").asInt());
+        assertTrue(matrix(l, courseId).get("sessions").get(0).get("live").asBoolean());
         remove(l, sid, s); // idempotent
 
         // ayni oturumda tekrar tarama: 403, satir degismez, yine devamsiz

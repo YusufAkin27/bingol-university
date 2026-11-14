@@ -12,7 +12,10 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 public record AcademicianProperties(@DefaultValue("STAFF_PATTERN") AutoApprove autoApprove,
                                     @DefaultValue("3h") Duration sessionTtl,
                                     @DefaultValue("500") int courseStorageCapMb,
-                                    @DefaultValue("200") int pendingScanCap) {
+                                    @DefaultValue("200") int pendingScanCap,
+                                    @DefaultValue("4") int percentMinSessions,
+                                    @DefaultValue("2000") int ownerStorageCapMb,
+                                    @DefaultValue("60") int maxCourses) {
 
     public enum AutoApprove { STAFF_PATTERN, NEVER }
 }

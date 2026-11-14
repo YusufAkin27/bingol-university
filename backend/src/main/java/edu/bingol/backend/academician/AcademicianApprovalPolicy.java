@@ -12,13 +12,14 @@ import java.util.regex.Pattern;
  * varsa APPROVED/AUTO, aksi halde PENDING (yonetici onayi):
  * 1) e-posta kodla dogrulanmis (emailVerified, ertelenmis dogrulama degil, Apple gizli adresi degil);
  * 2) alan adi tam olarak bingol.edu.tr (alt alan adi yok);
- * 3) yerel kisim harf icerir ve 6-12 haneli ogrenci numarasi degildir;
+ * 3) yerel kisim (kucuk harfe cevrildikten sonra, Locale.ROOT) {@code ^[a-z]+([._-][a-z]+)*$}: yalniz harf ve aralarda tek ayirici, HIC rakam yok;
  * 4) hesapta ogrenci isareti yok (grade ve classYear bos).
  */
 public final class AcademicianApprovalPolicy {
 
     static final String STAFF_DOMAIN = "bingol.edu.tr";
     private static final Pattern STUDENT_NUMBER = Pattern.compile("[0-9]{6,12}");
+    private static final Pattern STAFF_LOCAL = Pattern.compile("^[a-z]+([._-][a-z]+)*$");
 
     public record Decision(Status status, ApprovalMode mode) {}
 
@@ -38,14 +39,13 @@ public final class AcademicianApprovalPolicy {
         if (!u.isEmailVerified() || u.isVerificationDeferred() || u.isEmailRelay()) {
             return false;
         }
-        String email = u.getEmail().trim().toLowerCase(Locale.ROOT);
+        String email = u.getEmail().trim().toLowerCase(Locale.ROOT); // ROOT: Turkce yerelde I -> i (dotless degil)
         int at = email.lastIndexOf('@');
         if (at <= 0 || !email.substring(at + 1).equals(STAFF_DOMAIN)) {
             return false;
         }
-        String local = email.substring(0, at);
-        boolean hasLetter = local.chars().anyMatch(Character::isLetter);
-        if (!hasLetter || STUDENT_NUMBER.matcher(local).matches()) {
+        // yalniz kucuk ASCII harfler, aralarinda TEK ayirici (. _ -): rakam yok, bas/son/cift ayirici yok
+        if (!STAFF_LOCAL.matcher(email.substring(0, at)).matches()) {
             return false;
         }
         return u.getGrade() == null && u.getClassYear() == null;

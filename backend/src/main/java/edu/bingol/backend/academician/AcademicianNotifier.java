@@ -151,7 +151,7 @@ public class AcademicianNotifier {
     public void absence(AcCourse course, Long studentId, int level, int absent) {
         try {
             NotificationTemplates.Template t = NotificationTemplates.of(
-                    level >= 2 ? "notif.academician.absenceExceeded" : "notif.academician.absenceWarning", NotificationType.ANNOUNCEMENT);
+                    level >= 2 ? "notif.academician.absenceExceeded" : "notif.academician.absenceWarning", NotificationType.SYSTEM);
             notifications.sendTemplate(studentId, t, courseData(course.getId(), level >= 2 ? "ABSENCE_EXCEEDED" : "ABSENCE_WARNING"),
                     null, course.getName(),
                     String.valueOf(absent), AbsenceWarningService.limitText(course));
@@ -180,7 +180,7 @@ public class AcademicianNotifier {
     // ---- sablonlar (anahtarlar messages*.properties'te; kayit NotificationTemplates statik blogunda) ----
 
     static final NotificationTemplates.Template TEMPLATE_ENROLLED = NotificationTemplates.of("notif.academician.enrolled",
-            NotificationType.ANNOUNCEMENT);
+            NotificationType.SYSTEM);
 
     static NotificationTemplates.Template templateOf(AcNotice.Type type) {
         return NotificationTemplates.of(switch (type) {

@@ -139,11 +139,18 @@ public class PendingScanService {
                         "Bir derse en fazla " + EnrollmentService.MAX_ENROLLED + " öğrenci eklenebilir.",
                         String.valueOf(EnrollmentService.MAX_ENROLLED));
             }
-            newlyEnrolled = insertEnrollment(c.getId(), studentId);
+            newlyEnrolled = insertEnrollment(c.getId(), studentId, s.getOpenedAt());
         }
+        // bu oturum ogrenci icin SAYILSIN: eklenme zamani oturumun acilisindan sonra olamaz
+        tx.executeWithoutResult(st -> enrollments.findByCourseIdAndStudentId(c.getId(), studentId).ifPresent(e -> {
+            if (e.getAddedAt().isAfter(s.getOpenedAt())) {
+                e.setAddedAt(s.getOpenedAt());
+                enrollments.save(e);
+            }
+        }));
+        Instant at = req.getScannedAt();
         AcAttendance a = attendance.findBySessionIdAndStudentId(sessionId, studentId).orElse(null);
         if (a == null) {
-            Instant at = req.getScannedAt();
             try {
                 a = tx.execute(st -> {
                     AcAttendance n = new AcAttendance();
@@ -156,6 +163,17 @@ public class PendingScanService {
             } catch (DataIntegrityViolationException dup) {
                 a = attendance.findBySessionIdAndStudentId(sessionId, studentId).orElseThrow(() -> dup);
             }
+        } else if (a.isRevoked()) {
+            // kaldirilmis satir kabulde geri gelir (bolum 15): QR, marked_at = scanned_at
+            AcAttendance row = a;
+            a = tx.execute(st -> {
+                row.setRevokedAt(null);
+                row.setRevokedBy(null);
+                row.setExcused(false);
+                row.setMethod(AcAttendance.Method.QR);
+                row.setMarkedAt(at);
+                return attendance.saveAndFlush(row);
+            });
         }
         if (req.getStatus() != AcScanRequest.Status.ACCEPTED) {
             tx.executeWithoutResult(st -> {
@@ -168,7 +186,7 @@ public class PendingScanService {
         if (newlyEnrolled) {
             notifier.enrolled(c.getId(), c.getName(), guard.requireApproved(userId).fullName(), List.of(studentId));
         }
-        warnings.recompute(c.getId(), List.of(studentId));
+        warnings.recomputeLowering(c.getId(), List.of(studentId));
         return AcSessionService.record(a, directory.labels(List.of(studentId)).get(studentId));
     }
 
@@ -186,12 +204,13 @@ public class PendingScanService {
         }
     }
 
-    private boolean insertEnrollment(Long courseId, Long studentId) {
+    private boolean insertEnrollment(Long courseId, Long studentId, Instant addedAt) {
         try {
             return Boolean.TRUE.equals(tx.execute(st -> {
                 AcEnrollment e = new AcEnrollment();
                 e.setCourseId(courseId);
                 e.setStudentId(studentId);
+                e.setAddedAt(addedAt);
                 enrollments.saveAndFlush(e);
                 return true;
             }));

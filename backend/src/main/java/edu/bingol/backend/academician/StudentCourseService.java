@@ -3,11 +3,9 @@ package edu.bingol.backend.academician;
 import edu.bingol.backend.academician.AcademicianDtos.MyCourseView;
 import edu.bingol.backend.academician.AcademicianDtos.NoticeView;
 import edu.bingol.backend.academician.AcademicianDtos.UpcomingView;
-import edu.bingol.backend.academician.AbsencePolicy.Standing;
 import edu.bingol.backend.common.CursorPage;
 import java.time.Clock;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -27,22 +25,20 @@ public class StudentCourseService {
 
     private final AcEnrollmentRepository enrollments;
     private final AcCourseRepository courses;
-    private final AcSessionRepository sessions;
-    private final AcAttendanceRepository attendance;
+    private final AttendanceStats stats;
     private final AcademicianRepository academicians;
     private final AcNoticeRepository notices;
     private final NoticeService noticeService;
     private final NoticeFileService noticeFiles;
     private final Clock clock;
 
-    public StudentCourseService(AcEnrollmentRepository enrollments, AcCourseRepository courses, AcSessionRepository sessions,
-                                AcAttendanceRepository attendance, AcademicianRepository academicians,
+    public StudentCourseService(AcEnrollmentRepository enrollments, AcCourseRepository courses, AttendanceStats stats,
+                                AcademicianRepository academicians,
                                 AcNoticeRepository notices, NoticeService noticeService, NoticeFileService noticeFiles,
                                 Clock clock) {
         this.enrollments = enrollments;
         this.courses = courses;
-        this.sessions = sessions;
-        this.attendance = attendance;
+        this.stats = stats;
         this.academicians = academicians;
         this.notices = notices;
         this.noticeService = noticeService;
@@ -57,18 +53,15 @@ public class StudentCourseService {
             return List.of();
         }
         List<AcCourse> cs = courses.byIds(ids);
-        Map<Long, Long> total = counts(sessions.countsByCourse(ids));
-        Map<Long, Long> present = counts(attendance.presentByCourse(studentId, ids));
+        // sayim kurali matrisle AYNI fonksiyondan (AttendanceMath): canli/sayilmayan/kayit oncesi/izinli oturumlar sayilmaz
+        Map<Long, AttendanceMath.Result> res = stats.forStudent(studentId, cs, clock.instant());
         Map<Long, String> owners = academicians.findAllById(cs.stream().map(AcCourse::getOwnerId).distinct().toList()).stream()
                 .collect(Collectors.toMap(Academician::getUserId, Academician::fullName));
         return cs.stream().sorted(Comparator.comparing(AcCourse::getName, String.CASE_INSENSITIVE_ORDER)).map(c -> {
-            long t = total.getOrDefault(c.getId(), 0L);
-            long p = Math.min(t, present.getOrDefault(c.getId(), 0L));
-            int absent = (int) (t - p);
-            Standing st = AbsencePolicy.standing(c.getAbsenceLimitType(),
-                    c.getAbsenceLimitValue() == null ? null : c.getAbsenceLimitValue().intValue(), (int) t, absent);
-            return new MyCourseView(c.getId(), c.getName(), c.getCode(), c.getTerm(), owners.get(c.getOwnerId()), p, absent, t,
-                    CourseService.limitOf(c).type() == null ? null : CourseService.limitOf(c), st.atRisk(), st.overLimit());
+            AttendanceMath.Result r = res.get(c.getId());
+            AcademicianDtos.LimitView lim = CourseService.limitOf(c);
+            return new MyCourseView(c.getId(), c.getName(), c.getCode(), c.getTerm(), owners.get(c.getOwnerId()), r.present(),
+                    r.absent(), r.excused(), r.sessionCount(), lim.type() == null ? null : lim, r.atRisk(), r.overLimit());
         }).toList();
     }
 
@@ -93,13 +86,5 @@ public class StudentCourseService {
         return rows.stream()
                 .map(n -> new UpcomingView(n.getId(), n.getCourseId(), names.get(n.getCourseId()), n.getType().name(),
                         n.getTitle(), n.getNote(), n.getEventAt(), fv.getOrDefault(n.getId(), List.of()))).toList();
-    }
-
-    private static Map<Long, Long> counts(List<Object[]> rows) {
-        Map<Long, Long> m = new HashMap<>();
-        for (Object[] r : rows) {
-            m.put((Long) r[0], ((Number) r[1]).longValue());
-        }
-        return m;
     }
 }

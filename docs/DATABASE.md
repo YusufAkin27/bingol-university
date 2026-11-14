@@ -278,4 +278,6 @@ Saklama süresi değişiklikleri (W2-F):
 | `ac_scan_request` | Kayıtlı olmayan öğrencinin geçerli kodu okutması: bekleyen istek (UNIQUE `(session_id, student_id)`); oturum başına en çok `app.academician.pending-scan-cap` (200) bekleyen | oturumla birlikte silinir |
 | `ac_notice`, `ac_notice_file` | Ders duyuruları (7 sabit tür) ve ekleri. Baytlar veritabanında DEĞİL: `PrivateMediaStore` kovası `acnotice` (`<uuid>.bin`, diskte `BlobCipher` ile şifreli); `storage_key` yalnız sunucuda kalır. Bağsız (bekleyen) dosyalar 24 saat sonra bir sonraki yüklemede silinir | duyuru başına ≤5 dosya, dosya ≤20 MB, ders başına `app.academician.course-storage-cap-mb` (500) |
 
+Düzeltme turu 1 (V1901-V1905): `ac_course.planned_sessions`, `ac_session.counted`, `ac_attendance.excused`, `ac_notice.deleted_at` (yumuşak silme; sınır sayaçları sayar), V1905 kısmi indeksleri (`marked_by`, `revoked_by`, `decided_by`, `created_by`, `uploaded_by`, `reviewed_by`, `ac_scan_request.student_id`). Bağsız duyuru dosyaları gece `DbMaintenanceJob` ile (`ac_notice_file_pending`) temizlenir.
+
 Yoklama kodu durumsuzdur (`LessonCodeService`, tablo yok). Hesap silme kararları yukarıdaki matriste (bölüm 16).

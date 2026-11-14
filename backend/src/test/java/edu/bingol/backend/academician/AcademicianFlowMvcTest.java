@@ -43,7 +43,7 @@ class AcademicianFlowMvcTest extends AcademicianMvcBase {
     @Test
     void fullFlowFromApplicationToScan() throws Exception {
         User admin = admin();
-        User l = plainUser("hoca." + rnd() + "@bingol.edu.tr", "Hoca");
+        User l = plainUser("hoca." + alpha() + "@bingol.edu.tr", "Hoca");
         assertEquals("NONE", call(l, get("/api/academician/me"), 200).get("status").asText());
         assertEquals("APPROVED", call(l, postJson("/api/academician/apply",
                 obj().put("title", "Dr.").put("firstName", "Ali").put("lastName", "Veli")), 200).get("status").asText());

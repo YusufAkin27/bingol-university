@@ -24,32 +24,38 @@ public final class AcademicianDtos {
 
     public record StatusView(String status) {}
 
+    /** Sunucunun gercek yukleme sinirlari: noticeFileMaxBytes = min(20 MB, multipart max-file-size). */
+    public record Limits(long noticeFileMaxBytes, int noticeFilesPerNotice) {}
+
     public record MeView(String status, String approvalMode, String title, String firstName, String lastName, String unit,
-                         String rejectReason) {}
+                         String rejectReason, Limits limits) {}
 
     // ---- ders ----
 
     public record CourseRequest(@Size(max = 30) String code, @NotBlank @Size(max = 200) String name,
                                 @NotBlank @Size(max = 40) String term, @Size(max = 160) String faculty,
-                                @NotBlank @Size(max = 160) String department, @Size(max = 8) String grade) {}
+                                @NotBlank @Size(max = 160) String department, @Size(max = 8) String grade,
+                                @jakarta.validation.constraints.Min(1) @jakarta.validation.constraints.Max(400) Integer plannedSessions) {}
 
-    /** Verilmeyen (null) alan degismez. absenceLimitType: COUNT, PERCENT ya da NONE (siniri kaldirir). */
+    /** Verilmeyen (null) alan degismez. absenceLimitType: COUNT, PERCENT ya da NONE (siniri kaldirir). plannedSessions: 0 = temizle. */
     public record CoursePatch(@Size(max = 30) String code, @Size(max = 200) String name, @Size(max = 40) String term,
                               @Size(max = 160) String faculty, @Size(max = 160) String department,
                               @Size(max = 8) String grade, @Size(max = 8) String absenceLimitType,
-                              Integer absenceLimitValue, @Size(max = 16) String status) {}
+                              Integer absenceLimitValue, @Size(max = 16) String status,
+                              @jakarta.validation.constraints.Min(0) @jakarta.validation.constraints.Max(400) Integer plannedSessions) {}
 
     public record SlotRequest(@Min(1) @Max(7) int dayOfWeek, @NotBlank @Size(max = 5) String startTime,
                               @NotBlank @Size(max = 5) String endTime, @Size(max = 100) String room) {}
 
     public record SlotView(Long id, int dayOfWeek, String startTime, String endTime, String room) {}
 
-    public record LimitView(String type, Integer value) {}
+    /** allowedAbsences: sinirin su an "en fazla N devamsizlik" karsiligi (COUNT: deger; PERCENT + planlanan: hesaplanan; digerleri null). */
+    public record LimitView(String type, Integer value, Integer allowedAbsences) {}
 
     public record CourseView(Long id, String code, String name, String term, String faculty, String department, String grade,
                              LimitView limit, String absenceLimitType, Integer absenceLimitValue, String status,
-                             List<SlotView> slots, Long enrolledCount, Long sessionCount,
-                             Instant createdAt) {}
+                             Integer plannedSessions, List<SlotView> slots, Long enrolledCount,
+                             Long sessionCount, Instant createdAt) {}
 
     // ---- ogrenci rehberi / kayit ----
 
@@ -61,7 +67,15 @@ public final class AcademicianDtos {
 
     public record AddEnrollmentsRequest(@NotNull @Size(min = 1, max = 100) List<Long> studentIds) {}
 
-    public record BulkEnrollRequest(@NotBlank @Size(max = 160) String department, @Size(max = 8) String grade) {}
+    /** dryRun=true: hicbir sey eklenmez, {wouldAdd} doner (ayni 500 siniri kurali). */
+    public record BulkEnrollRequest(@NotBlank @Size(max = 160) String department, @Size(max = 8) String grade, Boolean dryRun) {}
+
+    public record DryRunResult(int wouldAdd) {}
+
+    /** excused=true: ogrenciyi o oturumda IZINLI isaretler; yoksa/false: var sayar. */
+    public record MarkRequest(Boolean excused) {}
+
+    public record SessionPatch(Boolean counted) {}
 
     public record AddedResult(int added) {}
 
@@ -76,21 +90,24 @@ public final class AcademicianDtos {
 
     /** pendingScans: tek oturum yanitlarinda (acma/kapatma/yeniden acma/detay) dolu; liste ucunda null (gonderilmez). */
     public record SessionView(Long id, Long courseId, Long slotId, LocalDate lessonDate, Instant openedAt, Instant expiresAt,
-                              Instant closedAt, String status, long presentCount, long enrolledCount,
-                              List<PendingScanView> pendingScans) {}
+                              Instant closedAt, String status, boolean counted, long presentCount, long enrolledCount,
+                              Integer pendingCount, List<PendingScanView> pendingScans, boolean reused, boolean notified) {}
 
-    public record RecordView(Long id, Long studentId, String displayName, String studentNo, String method, Instant markedAt, boolean revoked) {}
+    public record RecordView(Long id, Long studentId, String displayName, String studentNo, String method, Instant markedAt, boolean revoked, boolean excused) {}
 
     public record LiveView(String status, long serverNowMs, long stepSeconds, List<CodeWindow> codes, long presentCount,
                            long enrolledCount, List<RecordView> newRecords, List<PendingScanView> pendingScans) {}
 
     // ---- devamsizlik ----
 
-    public record SessionRef(Long id, LocalDate lessonDate) {}
+    public record SessionRef(Long id, LocalDate lessonDate, boolean live, boolean counted) {}
 
-    /** marks: oturum kimligi (metin) -> PRESENT_QR | PRESENT_MANUAL | REVOKED | ABSENT. */
-    public record StudentRow(Long studentId, String displayName, String studentNo, Map<String, String> marks, int absentCount,
-                             boolean atRisk, boolean overLimit) {}
+    /**
+     * marks: oturum kimligi (metin) -> PRESENT_QR | PRESENT_MANUAL | REVOKED | EXCUSED | NOT_ENROLLED_YET | ABSENT.
+     * sessionCount/absentCount/excusedCount ogrencinin SAYILAN oturumlari uzerindendir (canli, sayilmayan, kayit oncesi ve izinli oturumlar haric).
+     */
+    public record StudentRow(Long studentId, String displayName, String studentNo, Map<String, String> marks, int sessionCount,
+                             int absentCount, int excusedCount, boolean atRisk, boolean overLimit) {}
 
     public record AttendanceMatrix(List<SessionRef> sessions, List<StudentRow> students, LimitView limit) {}
 
@@ -113,8 +130,8 @@ public final class AcademicianDtos {
     public record ScanResult(String status, String courseName, LocalDate lessonDate) {}
 
     public record MyCourseView(Long courseId, String courseName, String code, String term, String academicianName,
-                               long presentCount, long absentCount, long sessionCount, LimitView limit, boolean atRisk,
-                               boolean overLimit) {}
+                               long presentCount, long absentCount, long excusedCount, long sessionCount,
+                               LimitView limit, boolean atRisk, boolean overLimit) {}
 
     public record UpcomingView(Long id, Long courseId, String courseName, String type, String title, String note,
                                Instant eventAt, List<FileView> files) {}

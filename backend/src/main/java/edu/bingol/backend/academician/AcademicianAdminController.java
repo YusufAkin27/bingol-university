@@ -85,16 +85,19 @@ public class AcademicianAdminController {
         return academicians.revoke(CurrentUser.id(), userId, r.reason());
     }
 
+    @AuditRead
     @GetMapping("/{userId}/courses")
     public List<CourseView> coursesOf(@PathVariable Long userId) {
         return courses.listForAdmin(userId);
     }
 
+    @AuditRead
     @GetMapping("/courses/{id}")
     public CourseView course(@PathVariable Long id) {
         return courses.getForAdmin(id);
     }
 
+    @AuditRead
     @GetMapping("/courses/{id}/attendance")
     public AttendanceMatrix attendance(@PathVariable Long id) {
         return reports.matrixForAdmin(id);

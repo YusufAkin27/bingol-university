@@ -46,6 +46,10 @@ public class AcSession {
     @Column(nullable = false, length = 8)
     private Status status = Status.OPEN;
 
+    /** false ise bu oturum hicbir ogrencinin devamsizlik sayimina girmez (kayitlar kalir). */
+    @Column(nullable = false)
+    private boolean counted = true;
+
     public boolean isLive(Instant now) {
         return status == Status.OPEN && now.isBefore(expiresAt);
     }

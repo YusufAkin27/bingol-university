@@ -34,11 +34,16 @@ public class AcademicianService {
     private final AcademicianNotifier notifier;
     private final TransactionTemplate tx;
     private final org.springframework.jdbc.core.JdbcTemplate jdbc;
+    private final NoticeFileService noticeFiles;
+    private final AcSessionRepository sessionRepo;
 
     public AcademicianService(AcademicianRepository academicians, UserRepository users, AcademicianProperties props,
                               AcademicianNotifier notifier, PlatformTransactionManager tm,
-                              org.springframework.jdbc.core.JdbcTemplate jdbc) {
+                              org.springframework.jdbc.core.JdbcTemplate jdbc, NoticeFileService noticeFiles,
+                              AcSessionRepository sessionRepo) {
         this.jdbc = jdbc;
+        this.noticeFiles = noticeFiles;
+        this.sessionRepo = sessionRepo;
         this.academicians = academicians;
         this.users = users;
         this.props = props;
@@ -50,8 +55,9 @@ public class AcademicianService {
 
     @Transactional(readOnly = true)
     public MeView me(Long userId) {
-        return academicians.findById(userId).map(AcademicianService::meView)
-                .orElse(new MeView("NONE", null, null, null, null, null, null));
+        AcademicianDtos.Limits limits = new AcademicianDtos.Limits(noticeFiles.maxFileBytes(), NoticeFileService.MAX_FILES);
+        return academicians.findById(userId).map(a -> meView(a, limits))
+                .orElse(new MeView("NONE", null, null, null, null, null, null, limits));
     }
 
     /**
@@ -110,9 +116,12 @@ public class AcademicianService {
     public MeView updateProfile(Long userId, ApplyRequest r) {
         Academician a = academicians.findById(userId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "ACADEMICIAN_NOT_FOUND", "Akademisyen kaydı bulunamadı."));
+        if (a.getStatus() == Academician.Status.REVOKED) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "ACADEMICIAN_REVOKED", "Akademisyen yetkiniz kaldırıldı.");
+        }
         fill(a, r);
         a.setUpdatedAt(Instant.now());
-        return meView(academicians.save(a));
+        return meView(academicians.save(a), new AcademicianDtos.Limits(noticeFiles.maxFileBytes(), NoticeFileService.MAX_FILES));
     }
 
     private static void fill(Academician a, ApplyRequest r) {
@@ -136,9 +145,9 @@ public class AcademicianService {
         return s;
     }
 
-    private static MeView meView(Academician a) {
+    private static MeView meView(Academician a, AcademicianDtos.Limits limits) {
         return new MeView(a.getStatus().name(), a.getApprovalMode() == null ? null : a.getApprovalMode().name(), a.getTitle(),
-                a.getFirstName(), a.getLastName(), a.getUnit(), a.getRejectReason());
+                a.getFirstName(), a.getLastName(), a.getUnit(), a.getRejectReason(), limits);
     }
 
     // ---- yonetici ----
@@ -237,8 +246,16 @@ public class AcademicianService {
     public AdminAcademicianView revoke(Long adminId, Long userId, String reason) {
         String why = clean(reason, "reason", 300, true);
         AdminAcademicianView v = decide(adminId, userId, EnumSet.of(Academician.Status.APPROVED), Academician.Status.REVOKED, why);
+        closeLiveSessionsOf(userId); // iptal edilenin acik yoklamalari hemen kapanir
         notifier.decided(userId, AcademicianNotifier.Decision.REVOKED, why);
         return v;
+    }
+
+    /** Yetkisi alinan akademisyenin hala acik oturumlarini kapatir (tarama ayrica sahibin onayini sinar). */
+    private void closeLiveSessionsOf(Long ownerId) {
+        for (Long sid : sessionRepo.openIdsOfOwner(ownerId, PageRequest.of(0, 200))) {
+            tx.executeWithoutResult(s -> sessionRepo.closeIfOpen(sid, Instant.now()));
+        }
     }
 
     private AdminAcademicianView decide(Long adminId, Long userId, Set<Academician.Status> allowedFrom, Academician.Status to,
