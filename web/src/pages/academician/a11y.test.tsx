@@ -42,7 +42,7 @@ describe('erisilebilirlik (akademisyen paneli)', () => {
     setAcadTokens();
     mockApi().get('/academician/me', APPROVED_ME).get('/academician/courses/7', course()).get('/academician/courses/7/attendance', matrix).install();
     const { container } = renderAcademician('/akademisyen/dersler/7?sekme=devamsizlik');
-    await screen.findByRole('table');
+    await screen.findAllByRole('table');
     expect(await violations(container)).toEqual([]);
   });
 });

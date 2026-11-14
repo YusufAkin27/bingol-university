@@ -7,8 +7,10 @@ import { Link, Navigate, useParams } from 'react-router-dom';
 import {
   ENROLL_CHUNK,
   acadKeys,
+  PartialEnrollError,
   addEnrollmentsChunked,
   bulkEnroll,
+  bulkEnrollCount,
   getCourse,
   listEnrollments,
   searchStudents,
@@ -26,18 +28,6 @@ import styles from './academician.module.css';
 
 /** Toplu ekleme sınırı (sunucu: 500'ü aşan eşleşmede hiçbirini eklemez, 422 AC_BULK_TOO_LARGE). */
 export const BULK_CAP = 500;
-
-/** Bölüm/sınıf eşleşen öğrenci sayısı: rehber sayfa sayfa gezilir; `cap`+1'e ulaşınca durur (kota koruması). */
-export async function countDirectory(department: string, grade: string, cap = BULK_CAP): Promise<number> {
-  let cursor: number | null = null;
-  let n = 0;
-  do {
-    const page = await searchStudents({ department, grade, cursor, size: 50 });
-    n += page.items.length;
-    cursor = page.nextCursor;
-  } while (cursor !== null && n <= cap);
-  return n;
-}
 
 export default function EnrollPage() {
   const i18n = useI18n();
@@ -65,6 +55,7 @@ export default function EnrollPage() {
 
   const filters = { q, faculty, department, grade };
   const hasFilter = !!(q || faculty || department || grade);
+  const enrolledIds = useMemo(() => new Set((enrolled.data ?? []).map((e) => e.studentId)), [enrolled.data]);
   const results = useInfiniteQuery({
     queryKey: acadKeys.students(filters),
     queryFn: ({ pageParam }) => searchStudents({ ...filters, cursor: pageParam }),
@@ -73,8 +64,10 @@ export default function EnrollPage() {
     // süzgeç yokken tüm öğrenci rehberi listelenmez: önce arama/süzgeç istenir
     enabled: Number.isFinite(id) && hasFilter,
   });
-  const students = results.data?.pages.flatMap((p) => p.items) ?? [];
-  const enrolledIds = useMemo(() => new Set((enrolled.data ?? []).map((e) => e.studentId)), [enrolled.data]);
+  const found = results.data?.pages.flatMap((p) => p.items) ?? [];
+  // zaten derste olanlar seçilemez: tabloya alınmaz, ayrı bir notta adlarıyla listelenir (ölü onay kutusu yok)
+  const already = found.filter((s) => enrolledIds.has(s.id));
+  const students = found.filter((s) => !enrolledIds.has(s.id));
   const depts = useMemo(() => departmentOptions(catalog.data, faculty), [catalog.data, faculty]);
 
   // kurs yüklenince toplu ekleme varsayılanları dersin hedef kitlesidir
@@ -108,7 +101,10 @@ export default function EnrollPage() {
       toast.success(t('ac.enroll.added', { n: added, skipped: ids.length - added }));
       setSelected(new Map());
     } catch (e) {
-      setError(acadError(i18n, e));
+      if (e instanceof PartialEnrollError) {
+        // bir parça başarısız: önceki parçalar eklendi; kalanlar seçili kalır
+        setError(`${t('ac.enroll.partial', { n: e.added, total: ids.length })} ${acadError(i18n, e.cause)}`);
+      } else setError(acadError(i18n, e));
     } finally {
       setAdding(null);
       void qc.invalidateQueries({ queryKey: acadKeys.enrollments(id) });
@@ -119,14 +115,13 @@ export default function EnrollPage() {
 
   const bulkCount = useQuery({
     queryKey: ['academician', 'bulk-count', bulkDept, bulkGrade],
-    queryFn: () => countDirectory(bulkDept, bulkGrade),
+    queryFn: async () => (await bulkEnrollCount(id, bulkDept, bulkGrade)).wouldAdd,
     enabled: bulkOpen && !!bulkDept,
     staleTime: 0,
     gcTime: 0,
     retry: false,
   });
   const count = bulkCount.data;
-  const tooMany = count !== undefined && count > BULK_CAP;
 
   async function runBulk() {
     setBulkBusy(true);
@@ -150,7 +145,7 @@ export default function EnrollPage() {
 
   const columns: Column<DirectoryStudent>[] = [
     { key: 'name', header: t('ac.students.col.name'), render: (s) => s.displayName, card: { priority: 1 } },
-    { key: 'no', header: t('ac.students.col.no'), render: (s) => <span className="ltr">{s.studentNo ?? '—'}</span> },
+    { key: 'no', header: t('ac.students.col.no'), render: (s) => <span className="ltr">{s.studentNo ?? '—'}</span>, card: { priority: 1 } },
     { key: 'dept', header: t('ac.students.col.dept'), render: (s) => [s.faculty, s.department].filter(Boolean).join(' / ') || '—' },
     { key: 'grade', header: t('ac.enroll.col.grade'), render: (s) => s.grade ?? '—' },
     {
@@ -172,6 +167,7 @@ export default function EnrollPage() {
         <Icon name="chevronLeft" size={16} /> {c ? courseTitle(c) : t('ac.nav.courses')}
       </Link>
       <PageHeader title={t('ac.enroll.title')} description={t('ac.enroll.desc')} />
+      {enrolled.isError && <QueryError subject={t('ac.enroll.enrolledSubject')} error={enrolled.error} onRetry={() => void enrolled.refetch()} />}
       {course.isError && <QueryError subject={t('ac.course.subject')} error={course.error} onRetry={() => void course.refetch()} />}
       {error && (
         <div className={styles.alertBox} role="alert">
@@ -213,7 +209,7 @@ export default function EnrollPage() {
           <LoadingBlock rows={4} height="2.5rem" />
         ) : results.isError ? (
           <QueryError subject={t('ac.enroll.subject')} error={results.error} onRetry={() => void results.refetch()} />
-        ) : students.length === 0 ? (
+        ) : found.length === 0 ? (
           <EmptyBlock
             icon="users"
             title={t('ac.noResults.title')}
@@ -222,6 +218,11 @@ export default function EnrollPage() {
           />
         ) : (
           <>
+            {already.length > 0 && (
+              <p className={styles.muted} role="status">
+                {t('ac.enroll.alreadyNote', { n: already.length, names: already.map((s) => s.displayName).join(', ') })}
+              </p>
+            )}
             <ResponsiveTable
               columns={columns}
               rows={students}
@@ -277,18 +278,16 @@ export default function EnrollPage() {
         onClose={() => setBulkOpen(false)}
         onConfirm={() => void runBulk()}
         loading={bulkBusy}
-        confirmDisabled={bulkCount.isLoading || bulkCount.isError || !count || tooMany}
+        confirmDisabled={bulkCount.isLoading || bulkCount.isError || !count}
         title={t('ac.enroll.bulkConfirmTitle')}
         message={
           bulkCount.isLoading
             ? t('ac.enroll.counting')
             : bulkCount.isError
               ? acadError(i18n, bulkCount.error)
-              : tooMany
-                ? t('ac.enroll.bulkTooMany', { max: BULK_CAP })
-                : count === 0
-                  ? t('ac.enroll.bulkNone')
-                  : t('ac.enroll.bulkCount', { n: count ?? 0, dept: bulkDept, grade: bulkGrade || t('ac.enroll.allGrades') })
+              : count === 0
+                ? t('ac.enroll.bulkNone')
+                : t('ac.enroll.bulkCount', { n: count ?? 0, dept: bulkDept, grade: bulkGrade || t('ac.enroll.allGrades') })
         }
         consequence={t('ac.enroll.bulkConsequence')}
         confirmLabel={t('ac.enroll.bulkConfirm', { n: count ?? 0 })}

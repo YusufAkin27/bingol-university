@@ -16,6 +16,12 @@
   display: grid;
   gap: var(--space-5);
   align-content: start;
+  min-width: 0;
+  max-width: 100%;
+}
+/* ızgara çocukları içeriğe göre genişleyip sayfayı yatay kaydırmasın */
+.page > * {
+  min-width: 0;
 }
 
 .back {
@@ -382,4 +388,130 @@ a.rowTitle:hover {
   .rowActions {
     justify-content: flex-start;
   }
+}
+
+/* ---- üç seçenekli durum denetimi (Var / İzinli / Yok) ---- */
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.segment {
+  appearance: none;
+  background: var(--surface);
+  color: var(--text-muted);
+  border: 0;
+  border-inline-end: 1px solid var(--border);
+  padding: var(--space-1) var(--space-3);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  min-height: 2rem;
+}
+.segment:last-child {
+  border-inline-end: 0;
+}
+.segment:hover:not(:disabled) {
+  background: var(--surface-2);
+  color: var(--text);
+}
+.segment[aria-pressed='true'] {
+  background: var(--text);
+  color: var(--bg);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.segment:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+.segmented[data-busy] {
+  opacity: 0.6;
+}
+
+/* ---- matris ---- */
+.colHead {
+  display: grid;
+  gap: 2px;
+}
+.colHead small {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.colHead[data-muted],
+.cellMuted[data-muted] {
+  opacity: 0.6;
+}
+.allowedLine {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+  color: var(--text);
+}
+
+/* ---- ders başlığı eylemleri: dar ekranda sarar, birincil eylem tam genişlik ---- */
+.headActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.tabsWrap {
+  min-width: 0;
+  max-width: 100%;
+}
+.pageSub {
+  overflow-wrap: anywhere;
+}
+.actionCell {
+  display: grid;
+  justify-items: end;
+  gap: var(--space-1);
+}
+.removeSlot {
+  align-self: end;
+  justify-self: start;
+}
+
+@media (max-width: 640px) {
+  .headActions > :first-child {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+  .headActions > * {
+    flex: 1 1 auto;
+  }
+  /* satır: metin üstte, eylemler altta (üst üste binme yok) */
+  .rowMain {
+    flex: 1 1 100%;
+  }
+  .rowActions {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+  }
+  .actionCell {
+    justify-items: start;
+  }
+  .removeSlot {
+    grid-column: span 2;
+    justify-self: stretch;
+  }
+}
+
+/* uzun dosya adları satırı taşırmasın (telefonda) */
+.attachList li {
+  min-width: 0;
+  max-width: 100%;
+}
+.fileBtn {
+  max-width: 100%;
+  height: auto;
+  min-height: 2rem;
+  white-space: normal;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+.noticeRow .rowMain {
+  min-width: 0;
 }

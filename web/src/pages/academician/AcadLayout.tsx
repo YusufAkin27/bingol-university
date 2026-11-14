@@ -30,7 +30,8 @@ export default function AcadLayout() {
       <header className={styles.top}>
         <div className={styles.brand}>
           {/* Logo'ya `to` verilmez: kit bağlantısı site dil önekini ekler; akademisyen yolu bunun dışındadır */}
-          <NavLink to={acadPaths.home} className={styles.brandLink} aria-label={t('ac.brand')}>
+          <NavLink to={acadPaths.home} className={styles.brandLink}>
+            <span className="sr-only">{t('ac.brand')}</span>
             <Logo height={30} decorative />
             <span className={styles.brandSub}>{t('ac.brand.sub')}</span>
           </NavLink>

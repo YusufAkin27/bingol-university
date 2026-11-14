@@ -12,20 +12,22 @@ import {
   getCourse,
   getSession,
   listEnrollments,
-  markPresent,
-  removeRecord,
   reopenSession,
   type AttendanceRecord,
   type LiveCode,
+  type Mark,
 } from '../../../api/academician';
-import { Badge, Button, Card, ConfirmDialog, EmptyState, FormField, Icon, IconButton, Input, ProgressBar, useToast } from '../../../components/ui';
+import { Badge, Button, Card, ConfirmDialog, EmptyState, FormField, Icon, Input, ProgressBar, useToast } from '../../../components/ui';
 import { useFocusTrap } from '../../../components/ui/Overlay';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { usePageTitle } from '../../../lib/hooks';
+import { useAcadAuth } from '../auth/AcadAuth';
 import { PendingScans } from '../components/PendingScans';
+import { StateControl } from '../components/StateControl';
+import { useMarkActions } from '../components/useMarkActions';
 import { LinkButton, courseTitle } from '../components/common';
 import { useT } from '../dict';
-import { acadError } from '../errors';
+import { acadError, isNotApproved } from '../errors';
 import { fmtDate, fmtTime } from '../format';
 import { acadPaths } from '../paths';
 import styles from './live.module.css';
@@ -76,11 +78,18 @@ export default function LivePage() {
   const sessionId = Number(raw);
   const [projector, setProjector] = useState(false);
   const [closing, setClosing] = useState(false);
-  const [removing, setRemoving] = useState<AttendanceRecord | null>(null);
+  const [reopenAsk, setReopenAsk] = useState(false);
+  const closedByUser = useRef(false);
+  const { refreshMe } = useAcadAuth();
   const [search, setSearch] = useState('');
 
   const announcer = useThrottledAnnouncer((names) => (names.length === 1 ? t('ac.live.announceOne', { name: names[0] }) : t('ac.live.announceMany', { n: names.length })));
   const live = useLiveSession(sessionId, (r) => announcer.push(r.displayName ?? t('ac.live.someone')));
+
+  // oturum ortasında yetki kalkarsa (403 ACADEMICIAN_NOT_APPROVED) durum yeniden okunur; korumalı rota beklemede'ye yönlendirir
+  useEffect(() => {
+    if (isNotApproved(live.error)) void refreshMe();
+  }, [live.error, refreshMe]);
 
   const session = useQuery({ queryKey: acadKeys.session(sessionId), queryFn: () => getSession(sessionId), enabled: Number.isFinite(sessionId), staleTime: 60_000 });
   const courseId = session.data?.courseId;
@@ -101,6 +110,7 @@ export default function LivePage() {
   const close = useMutation({
     mutationFn: () => closeSession(sessionId),
     onSuccess: () => {
+      closedByUser.current = true;
       toast.success(t('ac.session.closed'));
       setClosing(false);
       afterChange();
@@ -113,29 +123,19 @@ export default function LivePage() {
   const reopen = useMutation({
     mutationFn: () => reopenSession(sessionId),
     onSuccess: () => {
+      closedByUser.current = false;
+      setReopenAsk(false);
       toast.success(t('ac.live.reopened'));
-      afterChange();
-    },
-    onError: (e) => toast.error(acadError(i18n, e)),
-  });
-  const mark = useMutation({
-    mutationFn: (studentId: number) => markPresent(sessionId, studentId),
-    onSuccess: () => {
-      setSearch('');
-      afterChange();
-    },
-    onError: (e) => toast.error(acadError(i18n, e)),
-  });
-  const unmark = useMutation({
-    mutationFn: (r: AttendanceRecord) => removeRecord(sessionId, r.studentId),
-    onSuccess: () => {
-      setRemoving(null);
       afterChange();
     },
     onError: (e) => {
       toast.error(acadError(i18n, e));
-      setRemoving(null);
+      setReopenAsk(false);
     },
+  });
+  const actions = useMarkActions(sessionId, () => {
+    setSearch('');
+    afterChange();
   });
 
   // projeksiyon kipi: tarayıcı tam ekranı (varsa) + Esc ile çıkış
@@ -153,10 +153,13 @@ export default function LivePage() {
   }, [projector]);
 
   const present = useMemo(
-    () => live.records.filter((r) => !r.revoked).sort((a, b) => b.markedAt.localeCompare(a.markedAt) || b.id - a.id),
+    () => live.records.filter((r) => !r.revoked && !r.excused).sort((a, b) => b.markedAt.localeCompare(a.markedAt) || b.id - a.id),
     [live.records],
   );
   const revoked = useMemo(() => live.records.filter((r) => r.revoked), [live.records]);
+  const excused = useMemo(() => live.records.filter((r) => r.excused && !r.revoked), [live.records]);
+  const markOfRec = (r: AttendanceRecord): Mark => (r.revoked ? 'REVOKED' : r.excused ? 'EXCUSED' : r.method === 'QR' ? 'PRESENT_QR' : 'PRESENT_MANUAL');
+  const recordsById = useMemo(() => new Map(live.records.map((r) => [r.studentId, r])), [live.records]);
   const presentIds = useMemo(() => new Set(present.map((r) => r.studentId)), [present]);
 
   const matches = useMemo(() => {
@@ -180,14 +183,23 @@ export default function LivePage() {
   }
 
   const open = live.status === 'OPEN';
+  const errorText = live.error && live.failures >= 2 ? ((live.error as { name?: string }).name === 'TimeoutError' ? t('ac.live.timeout') : acadError(i18n, live.error)) : null;
+  const closedReason = live.closedWhileWatching && !closedByUser.current ? 'unexpected' : null;
   const date = session.data ? fmtDate(session.data.lessonDate) : '';
 
   const counters = (
     <div className={styles.counters}>
-      <p className={styles.counterMain} aria-label={t('ac.live.countersAria', { present: live.presentCount, total: live.enrolledCount })}>
-        <span className={styles.counterNumber}>{live.presentCount}</span>
-        <span className={styles.counterOf}>/ {live.enrolledCount}</span>
-        <span className={styles.counterLabel}>{t('ac.live.present')}</span>
+      <p className={styles.counterMain}>
+        <span className="sr-only">{t('ac.live.countersAria', { present: live.presentCount, total: live.enrolledCount })}</span>
+        <span className={styles.counterNumber} aria-hidden="true">
+          {live.presentCount}
+        </span>
+        <span className={styles.counterOf} aria-hidden="true">
+          / {live.enrolledCount}
+        </span>
+        <span className={styles.counterLabel} aria-hidden="true">
+          {t('ac.live.present')}
+        </span>
       </p>
       <ProgressBar value={live.presentCount} max={Math.max(1, live.enrolledCount)} label={t('ac.live.progressAria')} tone="neutral" />
     </div>
@@ -220,7 +232,7 @@ export default function LivePage() {
               {t('ac.live.closeSession')}
             </Button>
           ) : live.status === 'CLOSED' ? (
-            <Button leftIcon={<Icon name="play" size={16} />} loading={reopen.isPending} onClick={() => reopen.mutate()}>
+            <Button leftIcon={<Icon name="play" size={16} />} loading={reopen.isPending} onClick={() => setReopenAsk(true)}>
               {t('ac.session.reopen')}
             </Button>
           ) : null}
@@ -230,7 +242,7 @@ export default function LivePage() {
       <div className={styles.grid}>
         <section className={styles.qrCard} aria-label={t('ac.live.qrSection')}>
           {!projector && (
-            <QrPanel status={live.status} codes={live.codes} offsetMs={live.offsetMs} lastFreshAt={live.lastFreshAt} onReopen={() => reopen.mutate()} reopening={reopen.isPending} />
+            <QrPanel status={live.status} codes={live.codes} offsetMs={live.offsetMs} lastFreshAt={live.lastFreshAt} onReopen={() => setReopenAsk(true)} reopening={reopen.isPending} errorText={errorText} closedReason={closedReason} />
           )}
           {counters}
           <p className={styles.muted}>{t('ac.live.howTo')}</p>
@@ -249,20 +261,22 @@ export default function LivePage() {
                 {matches.length === 0 ? (
                   <li className={styles.muted}>{enrolled.isLoading ? t('ac.loading') : t('ac.live.manualNone')}</li>
                 ) : (
-                  matches.map((s) => (
-                    <li key={s.studentId} className={styles.row}>
-                      <div className={styles.rowMain}>
-                        <span className={styles.rowTitle}>{s.displayName}</span>
-                        <span className={styles.muted}>
-                          <span className="ltr">{s.studentNo ?? '—'}</span>
-                          {revoked.some((r) => r.studentId === s.studentId) ? ` · ${t('ac.live.wasRemoved')}` : ''}
-                        </span>
-                      </div>
-                      <Button size="sm" loading={mark.isPending && mark.variables === s.studentId} onClick={() => mark.mutate(s.studentId)} aria-label={t('ac.detail.markAria', { name: s.displayName })}>
-                        {t('ac.detail.mark')}
-                      </Button>
-                    </li>
-                  ))
+                  matches.map((s) => {
+                    const r = recordsById.get(s.studentId);
+                    const cur: Mark = r ? markOfRec(r) : 'ABSENT';
+                    return (
+                      <li key={s.studentId} className={styles.row}>
+                        <div className={styles.rowMain}>
+                          <span className={styles.rowTitle}>{s.displayName}</span>
+                          <span className={styles.muted}>
+                            <span className="ltr">{s.studentNo ?? '—'}</span>
+                            {r?.revoked ? ` · ${t('ac.live.wasRemoved')}` : ''}
+                          </span>
+                        </div>
+                        <StateControl name={s.displayName} mark={cur} busy={actions.busyId === s.studentId} onChoose={(c) => actions.choose({ studentId: s.studentId, name: s.displayName }, cur, c)} />
+                      </li>
+                    );
+                  })
                 )}
               </ul>
             )}
@@ -284,12 +298,28 @@ export default function LivePage() {
                     <Badge tone={r.method === 'QR' ? 'success' : 'neutral'}>
                       <Icon name={r.method === 'QR' ? 'smartphone' : 'pencil'} size={14} aria-hidden="true" /> {r.method === 'QR' ? t('ac.live.viaQr') : t('ac.live.viaManual')}
                     </Badge>
-                    <IconButton label={t('ac.detail.removeAria', { name: r.displayName ?? '' })} size="sm" onClick={() => setRemoving(r)}>
-                      <Icon name="x" size={16} />
-                    </IconButton>
+                    <StateControl name={r.displayName ?? ''} mark={markOfRec(r)} busy={actions.busyId === r.studentId} onChoose={(c) => actions.choose({ studentId: r.studentId, name: r.displayName ?? '' }, markOfRec(r), c)} />
                   </li>
                 ))}
               </ul>
+            )}
+            {excused.length > 0 && (
+              <details className={styles.revoked}>
+                <summary>{t('ac.live.excusedSummary', { n: excused.length })}</summary>
+                <ul className={styles.rows}>
+                  {excused.map((r) => (
+                    <li key={r.studentId} className={styles.row}>
+                      <div className={styles.rowMain}>
+                        <span className={styles.rowTitle}>{r.displayName ?? t('ac.live.someone')}</span>
+                        <span className={styles.muted}>
+                          <span className="ltr">{r.studentNo ?? '—'}</span>
+                        </span>
+                      </div>
+                      <StateControl name={r.displayName ?? ''} mark="EXCUSED" busy={actions.busyId === r.studentId} onChoose={(c) => actions.choose({ studentId: r.studentId, name: r.displayName ?? '' }, 'EXCUSED', c)} />
+                    </li>
+                  ))}
+                </ul>
+              </details>
             )}
             {revoked.length > 0 && (
               <details className={styles.revoked}>
@@ -303,9 +333,7 @@ export default function LivePage() {
                           <span className="ltr">{r.studentNo ?? '—'}</span>
                         </span>
                       </div>
-                      <Button size="sm" variant="secondary" loading={mark.isPending && mark.variables === r.studentId} onClick={() => mark.mutate(r.studentId)} aria-label={t('ac.detail.restoreAria', { name: r.displayName ?? '' })}>
-                        {t('ac.detail.restore')}
-                      </Button>
+                      <StateControl name={r.displayName ?? ''} mark="REVOKED" busy={actions.busyId === r.studentId} onChoose={(c) => actions.choose({ studentId: r.studentId, name: r.displayName ?? '' }, 'REVOKED', c)} />
                     </li>
                   ))}
                 </ul>
@@ -321,7 +349,7 @@ export default function LivePage() {
 
       {projector && (
         <Projector onExit={() => setProjector(false)} title={course.data ? courseTitle(course.data) : t('ac.live.title')}>
-          <QrPanel large status={live.status} codes={live.codes} offsetMs={live.offsetMs} lastFreshAt={live.lastFreshAt} />
+          <QrPanel large status={live.status} codes={live.codes} offsetMs={live.offsetMs} lastFreshAt={live.lastFreshAt} errorText={errorText} closedReason={closedReason} />
           <div className={styles.projectorCounter}>
             <span className={styles.counterNumber}>{live.presentCount}</span>
             <span className={styles.counterOf}>/ {live.enrolledCount}</span>
@@ -340,18 +368,16 @@ export default function LivePage() {
         consequence={t('ac.session.closeConsequence')}
         confirmLabel={t('ac.live.closeSession')}
       />
+      {actions.dialog}
       <ConfirmDialog
-        open={!!removing}
-        onClose={() => setRemoving(null)}
-        onConfirm={() => removing && unmark.mutate(removing)}
-        loading={unmark.isPending}
-        danger
-        role="alertdialog"
-        title={t('ac.detail.removeTitle', { name: removing?.displayName ?? '' })}
-        message={t('ac.detail.removeText')}
-        consequence={t('ac.detail.removeConsequence')}
-        confirmLabel={t('ac.detail.remove')}
-        initialFocus="cancel"
+        open={reopenAsk}
+        onClose={() => setReopenAsk(false)}
+        onConfirm={() => reopen.mutate()}
+        loading={reopen.isPending}
+        title={t('ac.session.reopenTitle', { date })}
+        message={t('ac.session.reopenText')}
+        consequence={t('ac.session.reopenConsequence')}
+        confirmLabel={t('ac.session.reopen')}
       />
     </div>
   );

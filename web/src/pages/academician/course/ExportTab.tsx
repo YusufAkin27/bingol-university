@@ -9,10 +9,23 @@ import { useT } from '../dict';
 import { acadError } from '../errors';
 import styles from '../academician.module.css';
 
-export const csvFileName = (c: Pick<Course, 'id' | 'code' | 'name'>): string => {
-  const slug = (c.code || c.name).normalize('NFKD').replace(/[^\w]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase();
-  return `devamsizlik-${slug || c.id}.csv`;
-};
+/** Türkçe harfleri ASCII'ye çevirip dosya adına uygun yapar ("Öğretim İlkeleri" -> "ogretim-ilkeleri"). */
+export const asciiSlug = (v: string): string =>
+  v
+    .replace(/İ/g, 'i')
+    .replace(/I/g, 'i')
+    .replace(/ı/g, 'i')
+    .toLocaleLowerCase('tr')
+    .replace(/ç/g, 'c')
+    .replace(/ğ/g, 'g')
+    .replace(/ö/g, 'o')
+    .replace(/ş/g, 's')
+    .replace(/ü/g, 'u')
+    .normalize('NFKD')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+export const csvFileName = (c: Pick<Course, 'id' | 'code' | 'name'>): string => `devamsizlik-${asciiSlug(c.code || c.name) || c.id}.csv`;
 
 export function ExportTab({ course }: { course: Course }) {
   const i18n = useI18n();

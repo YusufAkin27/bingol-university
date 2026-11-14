@@ -16,6 +16,13 @@ export interface AcademicianMe {
   lastName: string | null;
   unit: string | null;
   rejectReason: string | null;
+  limits?: AcademicianLimits | null;
+}
+
+/** Sunucunun dosya sınırları (`GET /me`); yoksa varsayılan 20 MB / 5 dosya. */
+export interface AcademicianLimits {
+  noticeFileMaxBytes: number;
+  noticeFilesPerNotice: number;
 }
 
 export interface ApplyBody {
@@ -29,6 +36,8 @@ export type LimitType = 'COUNT' | 'PERCENT';
 export interface Limit {
   type: LimitType | null;
   value: number | null;
+  /** İzin verilen en çok devamsızlık (COUNT: değer; PERCENT: planlanan ders sayısına uygulanır); yoksa null. */
+  allowedAbsences?: number | null;
 }
 
 export interface Slot {
@@ -47,6 +56,8 @@ export interface Course {
   faculty: string | null;
   department: string;
   grade: string | null;
+  /** Dönemdeki toplam planlanan ders sayısı (yüzde sınırı bunun üstünden); yoksa null. */
+  plannedSessions?: number | null;
   limit: Limit;
   absenceLimitType: LimitType | null;
   absenceLimitValue: number | null;
@@ -65,6 +76,7 @@ export interface CourseBody {
   faculty?: string;
   department: string;
   grade?: string;
+  plannedSessions?: number | null;
 }
 
 /** `absenceLimitType: 'NONE'` sınırı kaldırır. */
@@ -113,6 +125,8 @@ export interface AcSession {
   courseId: number;
   slotId: number | null;
   lessonDate: string; // yyyy-MM-dd
+  /** false: bu yoklama devamsızlık hesabına katılmıyor. */
+  counted?: boolean;
   openedAt: string;
   expiresAt: string;
   closedAt: string | null;
@@ -121,6 +135,12 @@ export interface AcSession {
   enrolledCount: number;
   /** Liste ucunda yok; tek oturum yanıtlarında dolu. */
   pendingScans?: PendingScan[] | null;
+  /** Liste ucunda: karar bekleyen "kayıtlı değil" istek sayısı. */
+  pendingCount?: number;
+  /** Açma yanıtında: aynı ders için var olan oturum yeniden açıldı. */
+  reused?: boolean;
+  /** Açma yanıtında: `notify` işaretliydi ve bildirim gerçekten gitti mi. */
+  notified?: boolean;
 }
 
 export interface LiveCode {
@@ -137,6 +157,8 @@ export interface AttendanceRecord {
   method: 'QR' | 'MANUAL';
   markedAt: string;
   revoked: boolean;
+  /** İzinli: yoklamada "var" sayılmaz, devamsızlığa da yazılmaz. */
+  excused?: boolean;
 }
 
 export interface LiveView {
@@ -151,7 +173,8 @@ export interface LiveView {
   pendingScans: PendingScan[];
 }
 
-export type Mark = 'PRESENT_QR' | 'PRESENT_MANUAL' | 'REVOKED' | 'ABSENT';
+/** NOT_ENROLLED_YET: oturum yapıldığında öğrenci henüz derse kayıtlı değildi (devamsızlık sayılmaz). */
+export type Mark = 'PRESENT_QR' | 'PRESENT_MANUAL' | 'EXCUSED' | 'REVOKED' | 'ABSENT' | 'NOT_ENROLLED_YET';
 
 export interface MatrixStudent {
   studentId: number;
@@ -164,7 +187,8 @@ export interface MatrixStudent {
 }
 
 export interface AttendanceMatrix {
-  sessions: { id: number; lessonDate: string }[];
+  /** `live`: açık oturum; sütunu geçicidir (yok = henüz okutmadı; toplamlara girmez). */
+  sessions: { id: number; lessonDate: string; live?: boolean; counted?: boolean }[];
   students: MatrixStudent[];
   limit: Limit;
 }
@@ -276,10 +300,25 @@ export const addEnrollments = (courseId: number, studentIds: number[]) =>
   api.post<{ added: number }>(`/academician/courses/${courseId}/enrollments`, { studentIds });
 export const bulkEnroll = (courseId: number, department: string, grade?: string) =>
   api.post<{ added: number }>(`/academician/courses/${courseId}/enrollments/bulk`, { department, grade: grade || undefined });
+/** Eklemeden eşleşen öğrenci sayısını verir (`dryRun`); onay penceresindeki sayı budur. */
+export const bulkEnrollCount = (courseId: number, department: string, grade?: string) =>
+  api.post<{ wouldAdd: number }>(`/academician/courses/${courseId}/enrollments/bulk`, { department, grade: grade || undefined, dryRun: true });
 export const removeEnrollment = (courseId: number, studentId: number) =>
   api.del(`/academician/courses/${courseId}/enrollments/${studentId}`);
 
-/** Seçilen öğrencileri 100'lük parçalarla ekler; toplam eklenen sayıyı döndürür. Hata olursa o ana dek eklenen sayı `added`da kalır. */
+/** Parça parça eklemede bir parça başarısız olursa: o ana dek eklenen sayı `added`da, asıl hata `cause`dadır. */
+export class PartialEnrollError extends Error {
+  readonly added: number;
+  readonly cause: unknown;
+  constructor(added: number, cause: unknown) {
+    super('partial enrollment');
+    this.name = 'PartialEnrollError';
+    this.added = added;
+    this.cause = cause;
+  }
+}
+
+/** Seçilen öğrencileri 100'lük parçalarla ekler; toplam eklenen sayıyı döndürür. Parça hatasında PartialEnrollError (eklenen sayıyla) fırlatır. */
 export async function addEnrollmentsChunked(
   courseId: number,
   studentIds: number[],
@@ -287,7 +326,12 @@ export async function addEnrollmentsChunked(
 ): Promise<number> {
   let added = 0;
   for (let i = 0; i < studentIds.length; i += ENROLL_CHUNK) {
-    const r = await addEnrollments(courseId, studentIds.slice(i, i + ENROLL_CHUNK));
+    let r: { added: number };
+    try {
+      r = await addEnrollments(courseId, studentIds.slice(i, i + ENROLL_CHUNK));
+    } catch (e) {
+      throw new PartialEnrollError(added, e);
+    }
     added += r.added;
     onProgress?.(Math.min(i + ENROLL_CHUNK, studentIds.length), studentIds.length);
   }
@@ -300,10 +344,17 @@ export const openSession = (courseId: number, b: { lessonDate?: string; slotId?:
 export const listSessions = (courseId: number) => api.get<AcSession[]>(`/academician/courses/${courseId}/sessions`);
 export const getSession = (id: number) => api.get<AcSession>(`/academician/sessions/${id}`);
 export const getLive = (id: number, signal?: AbortSignal) => api.get<LiveView>(`/academician/sessions/${id}/live`, undefined, signal);
+/** Oturumu ve tüm yoklama kayıtlarını siler (yanlışlıkla açılan oturum için). */
+export const deleteSession = (id: number) => api.del(`/academician/sessions/${id}`);
 export const closeSession = (id: number) => api.post<AcSession>(`/academician/sessions/${id}/close`);
 export const reopenSession = (id: number) => api.post<AcSession>(`/academician/sessions/${id}/reopen`);
 export const markPresent = (sessionId: number, studentId: number) =>
   api.put<AttendanceRecord>(`/academician/sessions/${sessionId}/records/${studentId}`);
+/** İzinli işaretler (gövde `{excused:true}`). */
+export const markExcused = (sessionId: number, studentId: number) =>
+  api.put<AttendanceRecord>(`/academician/sessions/${sessionId}/records/${studentId}`, { excused: true });
+/** Oturumu devamsızlık hesabına kat/katma (geri alınabilir). */
+export const patchSession = (id: number, b: { counted: boolean }) => api.patch<AcSession>(`/academician/sessions/${id}`, b);
 export const removeRecord = (sessionId: number, studentId: number) =>
   api.del(`/academician/sessions/${sessionId}/records/${studentId}`);
 export const acceptPending = (sessionId: number, studentId: number) =>

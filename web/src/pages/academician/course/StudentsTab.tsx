@@ -43,7 +43,7 @@ export function StudentsTab({ course }: { course: Course }) {
 
   const columns: Column<Enrollment>[] = [
     { key: 'name', header: t('ac.students.col.name'), render: (s) => s.displayName, card: { priority: 1 } },
-    { key: 'no', header: t('ac.students.col.no'), render: (s) => <span className="ltr">{s.studentNo ?? '—'}</span> },
+    { key: 'no', header: t('ac.students.col.no'), render: (s) => <span className="ltr">{s.studentNo ?? '—'}</span>, card: { priority: 1 } },
     { key: 'dept', header: t('ac.students.col.dept'), render: (s) => [s.department, s.grade].filter(Boolean).join(' · ') || '—' },
     { key: 'added', header: t('ac.students.col.added'), render: (s) => fmtDateShort(s.addedAt) },
     {

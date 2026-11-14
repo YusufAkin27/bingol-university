@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { acadKeys, replaceSlots, type Course } from '../../../api/academician';
 import { Button, Card, FormField, Icon, Input, Select, useToast } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
+import { useUnsavedGuard } from '../components/unsavedGuard';
 import { useT } from '../dict';
 import { acadError } from '../errors';
 import styles from '../academician.module.css';
@@ -27,6 +28,8 @@ export function ProgramTab({ course }: { course: Course }) {
   const clash = useMemo(() => overlaps(rows), [rows]);
   const clashKeys = new Set(clash.flat());
   const dirty = JSON.stringify(rows.map(({ key: _k, ...r }) => r)) !== JSON.stringify(fromCourse(course).map(({ key: _k, ...r }) => r));
+
+  useUnsavedGuard(dirty, t('ac.program.leaveGuard'));
 
   const save = useMutation({
     mutationFn: () =>
@@ -97,8 +100,8 @@ export function ProgramTab({ course }: { course: Course }) {
                 <FormField label={t('ac.program.room')}>
                   <Input value={r.room} maxLength={100} placeholder={t('ac.program.roomHint')} onChange={(e) => update(r.key, { room: e.target.value })} />
                 </FormField>
-                <Button variant="dangerOutline" size="sm" aria-label={t('ac.program.removeRow', { n: i + 1 })} onClick={() => setRows((rs) => rs.filter((x) => x.key !== r.key))}>
-                  <Icon name="x" size={16} />
+                <Button variant="dangerOutline" size="sm" className={styles.removeSlot} aria-label={t('ac.program.removeRow', { n: i + 1 })} onClick={() => setRows((rs) => rs.filter((x) => x.key !== r.key))}>
+                  {t('ac.program.remove')}
                 </Button>
               </li>
             );
