@@ -28,6 +28,7 @@ import Bh from '../tr/admin-bh';
 // GD1 menü etiketi ana parçada kalır; sayfa metinleri tr/admin-gd1.ts içinde sayfanın kendi parçasında yüklenir.
 const Gd1Nav = { 'admin.gd1.nav': 'Yedekleme (Google Drive)', 'admin.unitNews.nav': 'Birim haberleri',
   'admin.twoFactor.nav': 'İki faktörlü doğrulama',
+  'admin.acad.nav': 'Akademisyenler',
 };
 
 // Forum yönetimi menü etiketleri ana parçada kalır; sayfa metinleri tr/admin-forum.ts içinde sayfanın kendi parçasında yüklenir.

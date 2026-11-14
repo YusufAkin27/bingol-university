@@ -35,6 +35,8 @@ export const paths = {
     users: `${ADMIN_BASE}/users`,
     twoFactor: `${ADMIN_BASE}/two-factor`,
     pendingUsers: `${ADMIN_BASE}/pending-users`,
+    academicians: `${ADMIN_BASE}/academicians`,
+    academician: (id: number | string) => `${ADMIN_BASE}/academicians/${id}`,
     user: (id: number | string) => `${ADMIN_BASE}/users/${id}`,
     userMessages: (id: number | string, conversationId?: number | string, messageId?: number | string) =>
       `${ADMIN_BASE}/users/${id}/messages${

@@ -1,0 +1,243 @@
+.tabsWrap {
+  margin-block-end: var(--space-4);
+}
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-block-end: var(--space-3);
+}
+.search {
+  flex: 1 1 280px;
+  max-width: 460px;
+}
+.hint {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  margin-block: 0 var(--space-3);
+}
+.insightWrap {
+  margin-block-end: var(--space-4);
+}
+.person {
+  display: grid;
+  gap: 2px;
+  min-width: 11rem;
+}
+.personName {
+  font-weight: var(--fw-medium);
+  color: var(--text);
+  text-decoration: none;
+}
+.personName:hover {
+  text-decoration: underline;
+}
+.personName:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.sub {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.email {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+.reason {
+  max-width: 22rem;
+  overflow-wrap: anywhere;
+}
+
+/* ---- ayrıntı ---- */
+.grid {
+  display: grid;
+  gap: var(--space-4);
+  margin-block-end: var(--space-4);
+}
+@media (min-width: 960px) {
+  .grid {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    align-items: start;
+  }
+}
+.dl {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+}
+.dlRow {
+  display: grid;
+  grid-template-columns: minmax(7rem, 1fr) minmax(0, 2fr);
+  gap: var(--space-3);
+  align-items: baseline;
+}
+.dlRow dt {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.dlRow dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.headActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block-start: var(--space-4);
+}
+.section {
+  margin-block-end: var(--space-4);
+}
+.sectionTitle {
+  font-size: var(--text-lg);
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+  margin: 0 0 var(--space-3);
+}
+.courseList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-4);
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+.courseBtn {
+  display: grid;
+  gap: var(--space-1);
+  width: 100%;
+  min-height: var(--touch-min);
+  text-align: start;
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+  cursor: pointer;
+  font: inherit;
+}
+.courseBtn:hover {
+  border-color: var(--border-strong);
+}
+.courseBtn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+/* Seçili ders: renk değil kalın çerçeve + işaret (aria-pressed) */
+.courseBtn[aria-pressed='true'] {
+  border-color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--text);
+}
+.courseName {
+  font-weight: var(--fw-medium);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+.panelHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  margin-block-end: var(--space-3);
+}
+
+/* ---- yoklama ---- */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-5);
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.legend li {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+.mark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  background: var(--surface);
+  color: var(--text);
+}
+/* Durumlar renkle değil biçimle ayrışır: çizgi stili + simge + metin */
+.markPRESENT_MANUAL {
+  border-style: dashed;
+}
+.markREVOKED {
+  border-color: var(--danger);
+  color: var(--danger);
+  text-decoration: line-through;
+}
+.markABSENT {
+  border-style: dotted;
+  color: var(--text-muted);
+}
+.dateHead {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.noticeList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-3);
+  display: grid;
+  gap: var(--space-3);
+}
+.notice {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.noticeHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+.noticeTitle {
+  font-weight: var(--fw-medium);
+}
+.noticeNote {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.files {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.panelBody {
+  margin-block-start: var(--space-4);
+}

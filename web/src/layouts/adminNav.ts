@@ -48,6 +48,7 @@ export const adminNav: AdminNavGroup[] = [
     labelKey: 'admin.nav.group.people',
     items: [
       { id: 'users', perm: 'users.read', to: paths.admin.users, labelKey: 'admin.nav.users', icon: 'users' },
+      { id: 'academicians', perm: 'users.read', to: paths.admin.academicians, labelKey: 'admin.acad.nav', icon: 'pencil' },
       { id: 'twoFactor', perm: 'users.read', to: paths.admin.twoFactor, labelKey: 'admin.twoFactor.nav', icon: 'key' },
       { id: 'pendingUsers', perm: 'users.pii', to: paths.admin.pendingUsers, labelKey: 'admin.nav.pendingUsers', icon: 'clock' },
       { id: 'suspensions', perm: 'moderation.read', to: paths.admin.suspensions, labelKey: 'admin.nav.suspensions', icon: 'lock' },

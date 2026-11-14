@@ -14,6 +14,7 @@ const LoginPage = lazy(() => import('./pages/admin/LoginPage'));
 const AdminRegisterPage = lazy(() => import('./pages/admin/AdminRegisterPage'));
 const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'));
 const UsersPage = lazy(() => import('./pages/admin/UsersPage'));
+const AcademiciansPage = lazy(() => import('./pages/admin/academicians/AcademiciansPage'));
 const TwoFactorPage = lazy(() => import('./pages/admin/TwoFactorPage'));
 const UserDetailPage = lazy(() => import('./pages/admin/UserDetailPage'));
 const UserMessagesPage = lazy(() => import('./pages/admin/UserMessagesPage'));
@@ -88,6 +89,7 @@ export default function AdminRoutes() {
         >
           <Route index element={<DashboardPage />} />
           <Route path="users" element={<UsersPage />} />
+          <Route path="academicians/:id?" element={<AcademiciansPage />} />
           <Route path="two-factor" element={<TwoFactorPage />} />
           <Route path="users/:id" element={<UserDetailPage />} />
           <Route path="users/:id/messages" element={<RequirePerm perm="chat.read"><UserMessagesPage /></RequirePerm>} />
