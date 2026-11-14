@@ -118,6 +118,18 @@ public class AccountDataPurger {
             Map.entry("tt_exam.user_id", "AcademicAccountPurger"),
             Map.entry("tt_semester.user_id", "AcademicAccountPurger"),
             Map.entry("tt_official_seed.user_id", "AcademicAccountPurger"),
+            // Akademisyen alani (V1900-V1904): hepsi AcademicianAccountPurger'da (cocuk satirlar acikca silinir, nesneler depodan)
+            Map.entry("academician.user_id", "AcademicianAccountPurger (akademisyen satiri silinir)"),
+            Map.entry("academician.reviewed_by", "AcademicianAccountPurger (bosaltilir: karar veren yonetici izi)"),
+            Map.entry("ac_course.owner_id", "AcademicianAccountPurger (dersler + oturum/yoklama/kayit/saat/duyuru + dosya nesneleri silinir)"),
+            Map.entry("ac_enrollment.student_id", "AcademicianAccountPurger (ogrencinin ders kayitlari silinir)"),
+            Map.entry("ac_attendance.student_id", "AcademicianAccountPurger (ogrencinin yoklama satirlari silinir)"),
+            Map.entry("ac_attendance.marked_by", "AcademicianAccountPurger (elle isaretleyen hoca izi bosaltilir)"),
+            Map.entry("ac_attendance.revoked_by", "AcademicianAccountPurger (kaldiran hoca izi bosaltilir)"),
+            Map.entry("ac_notice.created_by", "AcademicianAccountPurger (duyuruyu gonderen izi bosaltilir)"),
+            Map.entry("ac_notice_file.uploaded_by", "AcademicianAccountPurger (yukleyen izi bosaltilir; dosyalar ders silinince nesneleriyle silinir)"),
+            Map.entry("ac_scan_request.student_id", "AcademicianAccountPurger (ogrencinin bekleyen/karar verilmis tarama istekleri silinir)"),
+            Map.entry("ac_scan_request.decided_by", "AcademicianAccountPurger (karar veren hoca izi bosaltilir)"),
             Map.entry("post.author_id", "PostAccountPurger (yumusak silme + medya)"),
             Map.entry("post_like.user_id", "PostAccountPurger"),
             Map.entry("post_media.owner_id", "PostAccountPurger"),
@@ -259,6 +271,9 @@ public class AccountDataPurger {
     /** Akademik (ders programi/sinav/duyuru okundu) temizligi; testlerde yoksa atlanir. */
     private edu.bingol.backend.academic.AcademicAccountPurger academicPurger;
 
+    /** Akademisyen alani (akademisyen satiri, dersler, ogrenci kayitlari/yoklamalar, duyuru dosyalari); testlerde yoksa atlanir. */
+    private edu.bingol.backend.academician.AcademicianAccountPurger academicianPurger;
+
     /** Silinen kullanici kimligi yedek disi deftere yazilir (T-064); testlerde yoksa atlanir. */
     private DeletionLedger ledger;
 
@@ -274,6 +289,11 @@ public class AccountDataPurger {
     @Autowired(required = false)
     void setForumCommentPurger(edu.bingol.backend.forum.comment.ForumCommentAccountPurger forumCommentPurger) {
         this.forumCommentPurger = forumCommentPurger;
+    }
+
+    @Autowired(required = false)
+    void setAcademicianPurger(edu.bingol.backend.academician.AcademicianAccountPurger academicianPurger) {
+        this.academicianPurger = academicianPurger;
     }
 
     @Autowired(required = false)
@@ -305,6 +325,9 @@ public class AccountDataPurger {
     public void purge(Long userId, String oldEmail) {
         if (academicPurger != null) {
             academicPurger.purge(userId);
+        }
+        if (academicianPurger != null) {
+            academicianPurger.purge(userId);
         }
         if (forumTopicPurger != null) {
             forumTopicPurger.purge(userId);

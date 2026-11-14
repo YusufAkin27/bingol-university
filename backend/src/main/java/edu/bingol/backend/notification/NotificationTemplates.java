@@ -39,6 +39,21 @@ public final class NotificationTemplates {
         register("notif.community.approved", NotificationType.COMMUNITY, null);
         register("notif.community.rejected", NotificationType.COMMUNITY, null);
         register("notif.community.rejectedNote", NotificationType.COMMUNITY, null);
+        // Akademisyen alani: basvuru karari/yonetici bilgisi SYSTEM (hep gider); ders bildirimleri "Akademik duyurular" bayragini paylasir
+        register("notif.academician.approved", NotificationType.SYSTEM, null);
+        register("notif.academician.rejected", NotificationType.SYSTEM, null);
+        register("notif.academician.revoked", NotificationType.SYSTEM, null);
+        register("notif.academician.autoApproved", NotificationType.SYSTEM, null);
+        register("notif.academician.enrolled", NotificationType.ANNOUNCEMENT, NotificationSubtype.EXAM_REMINDER);
+        register("notif.academician.lessonStarted", NotificationType.ANNOUNCEMENT, NotificationSubtype.EXAM_REMINDER);
+        register("notif.academician.attendanceStarted", NotificationType.ANNOUNCEMENT, NotificationSubtype.EXAM_REMINDER);
+        register("notif.academician.exam", NotificationType.ANNOUNCEMENT, NotificationSubtype.EXAM_REMINDER);
+        register("notif.academician.assignment", NotificationType.ANNOUNCEMENT, NotificationSubtype.EXAM_REMINDER);
+        register("notif.academician.material", NotificationType.ANNOUNCEMENT, NotificationSubtype.EXAM_REMINDER);
+        register("notif.academician.lessonCancelled", NotificationType.ANNOUNCEMENT, NotificationSubtype.EXAM_REMINDER);
+        register("notif.academician.roomChanged", NotificationType.ANNOUNCEMENT, NotificationSubtype.EXAM_REMINDER);
+        register("notif.academician.absenceWarning", NotificationType.ANNOUNCEMENT, NotificationSubtype.EXAM_REMINDER);
+        register("notif.academician.absenceExceeded", NotificationType.ANNOUNCEMENT, NotificationSubtype.EXAM_REMINDER);
     }
 
     private NotificationTemplates() {}
