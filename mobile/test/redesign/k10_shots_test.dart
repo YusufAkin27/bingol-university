@@ -19,7 +19,6 @@ import 'package:bu_kampus/features/academic/timetable_page.dart';
 import 'package:bu_kampus/features/profile/notification_prefs_page.dart';
 import 'package:bu_kampus/features/profile/user_profile_page.dart';
 import 'package:bu_kampus/widgets/report_sheet.dart';
-import 'package:bu_kampus/features/academic/timetable_parts.dart' show isolateIcs;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -95,7 +94,7 @@ FakeAcademic _calendar(FakeBackend b) {
 }
 
 class _Scene {
-  const _Scene(this.file, this.build, {this.setup, this.after, this.now, this.height = 844, this.settleMs = 900, this.perm, this.share = true, this.before});
+  const _Scene(this.file, this.build, {this.setup, this.after, this.now, this.height = 844, this.settleMs = 900, this.perm, this.before});
   final String file;
   final Widget Function(FakeBackend b) build;
   final void Function(FakeBackend b)? setup;
@@ -104,7 +103,7 @@ class _Scene {
   final double height;
   final int settleMs;
   final PermState? perm;
-  final bool share;
+  final bool share = true;
   final Future<void> Function(WidgetTester t)? before;
 }
 

@@ -1,12 +1,10 @@
 import 'package:bu_kampus/core/cache/message_cache.dart';
-import 'package:bu_kampus/core/icons/bu_icons.dart';
 import 'package:bu_kampus/core/realtime/chat_realtime.dart';
 import 'package:bu_kampus/features/chat/chat_detail_page.dart';
 import 'package:bu_kampus/features/chat/chat_tab.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'redesign/p00_support.dart';
 import 'support/fake_app.dart';
 
 /// Teslim tikleri uc uca (istemci tarafi): gonderen ekraninda `receipt` olayi tiki ANINDA ilerletir ve geri dusmez;
@@ -49,8 +47,6 @@ Future<void> _pump(WidgetTester tester, Widget page) async {
   await tester.pumpWidget(buildApp(page, size: kPhoneMedium));
   await settle(tester, const Duration(milliseconds: 700));
 }
-
-Finder _tick(String label) => find.byWidgetPredicate((w) => w is Semantics && w.properties.label == label);
 
 Map<String, dynamic> _receipt(String kind, int upTo, String status, {int cid = 1}) =>
     {'type': 'receipt', 'conversationId': cid, 'kind': kind, 'upToMessageId': upTo, 'status': status};

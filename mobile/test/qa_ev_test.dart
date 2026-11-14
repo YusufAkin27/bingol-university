@@ -1,5 +1,4 @@
 import 'package:bu_kampus/core/permissions/permission_service.dart';
-import 'package:bu_kampus/features/academic/academic_models.dart' show academicClock;
 import 'package:bu_kampus/features/academic/course_form_page.dart';
 import 'package:bu_kampus/features/academic/reminder_settings_page.dart';
 import 'package:bu_kampus/features/academic/reminders.dart';

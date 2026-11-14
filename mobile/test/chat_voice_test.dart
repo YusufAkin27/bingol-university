@@ -76,7 +76,9 @@ class _GateCtl extends VideoPlayerController {
   @override
   Future<void> pause() async => pauses++;
   @override
-  Future<void> dispose() async {}
+  Future<void> dispose() async {
+    await super.dispose();
+  }
 }
 
 void main() {

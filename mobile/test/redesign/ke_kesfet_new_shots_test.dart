@@ -142,7 +142,6 @@ void main() {
         final key = GlobalKey();
         await tester.pumpWidget(_app(DiscoverTab(session: session, typeRequest: ValueNotifier<String?>(null)), v.$2, key, v.$3));
         await tester.runAsync(() async {
-          final ctx = tester.element(find.byType(Scaffold).first);
         });
         await settle(tester, const Duration(milliseconds: 900));
         await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 800)));

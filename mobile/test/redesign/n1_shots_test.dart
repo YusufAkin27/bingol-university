@@ -337,7 +337,6 @@ void main() {
         final key = GlobalKey();
         await tester.pumpWidget(_app(shot.build(b, session), v.dark, key, v.scale));
         await tester.runAsync(() async {
-          final ctx = tester.element(find.byType(Scaffold).first);
         });
         await settle(tester, const Duration(milliseconds: 900));
         await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 250)));

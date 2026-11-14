@@ -33,7 +33,6 @@ import '../support/fake_academic.dart';
 import '../support/fake_app.dart';
 import '../support/fake_media.dart';
 import '../support/store_shots_images.dart';
-import 'p00_support.dart';
 
 /// Tanıtım sitesi (web/) telefon görselleri: GÜNCEL uygulama ekranları (gerçek widget'lar + uydurma veri), Türkçe, açık tema,
 /// 390x844 mantıksal (iPhone 14 oranı, üst 47 / alt 34 dp güvenli alan) x devicePixelRatio 3 = 1170x2532 PNG.
@@ -56,14 +55,14 @@ String _day(int offset) {
 }
 
 class _Scene {
-  const _Scene(this.file, this.build, {this.setup, this.tab, this.after, this.now, this.height = _h});
+  const _Scene(this.file, this.build, {this.setup, this.tab, this.after, this.now});
   final String file; // web/src/assets/site/app-<file>.webp
   final Widget Function(FakeBackend b, Session s) build;
   final void Function(FakeBackend b)? setup;
   final int? tab;
   final Future<void> Function(WidgetTester t)? after;
   final DateTime? now; // akademik saat (UTC)
-  final double height;
+  final double height = _h;
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -637,7 +636,6 @@ void main() {
       final key = GlobalKey();
       await tester.pumpWidget(_app(sc.build(b, session), key, sc.height));
       await tester.runAsync(() async {
-        final ctx = tester.element(find.byType(Scaffold).first);
       });
       await settle(tester, const Duration(milliseconds: 1500));
       for (var i = 0; i < 6; i++) {

@@ -1,10 +1,10 @@
 import 'dart:typed_data';
 
 import 'package:bu_kampus/core/platform/video_service.dart';
+import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/chat/media_camera_page.dart';
 import 'package:bu_kampus/features/chat/media_library.dart';
-import 'package:bu_kampus/features/chat/media_pick.dart';
 import 'package:bu_kampus/features/media_crop/media_crop.dart';
 import 'package:bu_kampus/features/posts/compose_post_page.dart';
 import 'package:bu_kampus/features/posts/post_gallery_picker_page.dart';
@@ -51,14 +51,13 @@ Widget _host(Widget Function() page, List<Object?> result) => Builder(
     );
 
 PostGalleryPickerPage _picker(
-  dynamic session,
+  Session session,
   MediaLibrary lib, {
   bool allow = true,
   MediaCameraLauncher? camera,
   SystemMediaPicker? system,
   List<(Uint8List?, String?)>? opened,
   bool realCompose = false,
-  List<Object?>? calls,
 }) =>
     PostGalleryPickerPage(
       session: session,

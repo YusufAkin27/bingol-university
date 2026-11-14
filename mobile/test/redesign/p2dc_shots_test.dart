@@ -126,7 +126,6 @@ void main() {
       final key = GlobalKey();
       await tester.pumpWidget(_app(DiscoverTab(session: session, typeRequest: ValueNotifier<String?>(null)), v.$2, key));
       await tester.runAsync(() async {
-        final ctx = tester.element(find.byType(Scaffold).first);
       });
       var n = 0;
       while (find.byType(BuStaggerItem).evaluate().isEmpty && n++ < 60) {
@@ -284,7 +283,6 @@ void main() {
       final key = GlobalKey();
       await tester.pumpWidget(_app(ChatTab(session: session, connectRealtime: false), v.$2, key));
       await tester.runAsync(() async {
-        final ctx = tester.element(find.byType(Scaffold).first);
       });
       var n = 0;
       while (find.byType(BuStaggerItem).evaluate().isEmpty && n++ < 60) {
