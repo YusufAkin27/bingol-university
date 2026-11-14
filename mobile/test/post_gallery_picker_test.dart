@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:bu_kampus/core/platform/video_service.dart';
+import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/chat/media_camera_page.dart';
 import 'package:bu_kampus/features/chat/media_library.dart';
@@ -51,7 +52,7 @@ Widget _host(Widget Function() page, List<Object?> result) => Builder(
     );
 
 PostGalleryPickerPage _picker(
-  dynamic session,
+  Session session,
   MediaLibrary lib, {
   bool allow = true,
   MediaCameraLauncher? camera,
