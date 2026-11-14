@@ -94,8 +94,11 @@ unset DEPLOY_PASSWORD   # bu betik parolayi hic kullanmaz
 
 # Cikis tuzagi: onceden tanimli bir EXIT tuzagi varsa KORUNUR ve en sonda calistirilir; burada gecici dosya + sunucu kilidi temizlenir.
 TMP_FILES=(); LOCK_HELD=0; LOCK_TOKEN=""
-PREV_EXIT_TRAP=""
-if [ -n "$(trap -p EXIT)" ]; then eval "set -- $(trap -p EXIT)"; PREV_EXIT_TRAP="$3"; fi
+prev_exit_trap() { # varsa mevcut EXIT tuzak komutunu yazar (`set --` yalniz bu islevin parametrelerini etkiler)
+  [ -n "$(trap -p EXIT)" ] || return 0
+  eval "set -- $(trap -p EXIT)"; printf '%s' "$3"
+}
+PREV_EXIT_TRAP="$(prev_exit_trap)"
 on_exit() {
   local rc=$?
   trap - EXIT
@@ -110,8 +113,7 @@ trap on_exit EXIT
 if [ -n "${DEPLOY_KNOWN_HOSTS:-}" ]; then
   KH_FILE="$(mktemp "${TMPDIR:-/tmp}/bu-deploy-known-hosts.XXXXXX")"; TMP_FILES+=("$KH_FILE")
   chmod 600 "$KH_FILE"
-  printf '%s
-' "$DEPLOY_KNOWN_HOSTS" > "$KH_FILE"
+  printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$KH_FILE"
   HOSTKEY_OPTS=(-o "UserKnownHostsFile=$KH_FILE" -o StrictHostKeyChecking=yes)
 else
   [ "$CI_MODE" = 0 ] || die "DEPLOY_CI=1 iken DEPLOY_KNOWN_HOSTS zorunlu (sunucunun known_hosts satirlari; ornek: ssh-keyscan -t ed25519 $HOST). Gecici kosucu host anahtarina ilk gorusmede guvenemez" 2
@@ -157,18 +159,11 @@ acquire_lock() { # acquire_lock <mod: deploy|rollback> <sha>
   actor="${DEPLOY_ACTOR:-${USER:-$(id -un 2>/dev/null || echo bilinmeyen)}@$(hostname 2>/dev/null || echo bilinmeyen)}"
   LOCK_TOKEN="$$-$(date +%s)-$RANDOM"
   info="kisi=$actor sha=$sha mod=$mode zaman=$(date -u '+%F %T')Z token=$LOCK_TOKEN"
-  info="$(printf '%s' "$info" | tr -d '
-')"
+  info="$(printf '%s' "$info" | tr -d '\r\n')"
   [ "$mode" = deploy ] && { use_sudo="sudo -n "; create=1; }
   log "sunucu: dagitim kilidi aliniyor ($LOCK_DIR)"
   out="$({
-    printf 'LK=%q
-INFO_V=%q
-FORCE=%q
-CREATE=%q
-USR=%q
-STALE_MIN=%q
-' "$LOCK_DIR" "$info" "${DEPLOY_FORCE_UNLOCK:-0}" "$create" "$SSH_USER" "$LOCK_STALE_MIN"
+    printf 'LK=%q\nINFO_V=%q\nFORCE=%q\nCREATE=%q\nUSR=%q\nSTALE_MIN=%q\n' "$LOCK_DIR" "$info" "${DEPLOY_FORCE_UNLOCK:-0}" "$create" "$SSH_USER" "$LOCK_STALE_MIN"
     cat <<'REMOTE'
 set -euo pipefail
 PARENT="$(dirname "$LK")"
@@ -176,13 +171,11 @@ if [ "$CREATE" = 1 ]; then install -d -o "$USR" -g "$USR" -m 755 "$PARENT"; fi
 [ -d "$PARENT" ] || { echo "LOCK-HATA: $PARENT yok"; exit 12; }
 take() {
   mkdir "$LK" 2>/dev/null || return 1
-  printf '%s
-' "$INFO_V" > "$LK/info"
+  printf '%s\n' "$INFO_V" > "$LK/info"
   if [ "$(id -u)" = 0 ]; then chown -R "$USR:$USR" "$LK"; fi
 }
 if take; then echo "LOCK-OK"; exit 0; fi
-echo "LOCK-TUTAN: $(tr -d '' < "$LK/info" 2>/dev/null | tr '
-' ' ' || true)"
+echo "LOCK-TUTAN: $(tr -d '\r' < "$LK/info" 2>/dev/null | tr '\n' ' ' || true)"
 mt="$(stat -c %Y "$LK" 2>/dev/null || echo 0)"; age=$(( ( $(date +%s) - mt ) / 60 ))
 echo "LOCK-YAS-DK: $age"
 if [ "$age" -ge "$STALE_MIN" ]; then
@@ -198,23 +191,20 @@ REMOTE
   } | rsh "${use_sudo}bash -s" 2>&1)" || rc=$?
   case "$rc" in
     0) LOCK_HELD=1
-       printf '%s
-' "$out" | grep -q 'LOCK-OK-ZORLA' && warn "ESKI kilit (>$LOCK_STALE_MIN dk) DEPLOY_FORCE_UNLOCK=1 ile kaldirildi; kilit bu calistirmaya ait"
+       printf '%s\n' "$out" | grep -q 'LOCK-OK-ZORLA' && warn "ESKI kilit (>$LOCK_STALE_MIN dk) DEPLOY_FORCE_UNLOCK=1 ile kaldirildi; kilit bu calistirmaya ait"
        log "dagitim kilidi alindi ($actor)";;
-    10) printf '%s
-' "$out" | grep -E '^LOCK-(TUTAN|YAS-DK)' >&2 || true
+    10) printf '%s\n' "$out" | grep -E '^LOCK-(TUTAN|YAS-DK)' >&2 || true
         die "baska bir dagitim/geri alma KILITLI ($LOCK_DIR): sunucuya dokunulmadi. Bitmesini bekleyin; takildiysa 'LOCK-YAS-DK' $LOCK_STALE_MIN dakikayi gecince DEPLOY_FORCE_UNLOCK=1 ile yeniden calistirin" 1;;
-    11) printf '%s
-' "$out" | grep -E '^LOCK-(TUTAN|YAS-DK)' >&2 || true
+    11) printf '%s\n' "$out" | grep -E '^LOCK-(TUTAN|YAS-DK)' >&2 || true
         die "kilit $LOCK_STALE_MIN dakikadan ESKI (takilmis olabilir) ama otomatik kaldirilmaz: tutan kisiyle dogrulayin, sonra DEPLOY_FORCE_UNLOCK=1 ile yeniden calistirin. Sunucuya dokunulmadi" 1;;
-    *) die "dagitim kilidi alinamadi (cikis kodu $rc): $(printf '%s' "$out" | tail -2 | tr '
-' ' ')" 1;;
+    *) die "dagitim kilidi alinamadi (cikis kodu $rc): $(printf '%s' "$out" | tail -2 | tr '\n' ' ')" 1;;
   esac
 }
 release_lock() { # yalniz BU calistirma aldiysa ve token hala bizimse siler (tek ssh)
   [ "$LOCK_HELD" = 1 ] || return 0
   LOCK_HELD=0
-  rsh "grep -q 'token=$LOCK_TOKEN' $LOCK_DIR/info 2>/dev/null && rm -rf $LOCK_DIR; true" >/dev/null 2>&1     || warn "dagitim kilidi birakilamadi; elle: ssh $SSH_USER@$HOST 'rm -rf $LOCK_DIR'"
+  rsh "grep -q 'token=$LOCK_TOKEN' $LOCK_DIR/info 2>/dev/null && rm -rf $LOCK_DIR; true" >/dev/null 2>&1 \
+    || warn "dagitim kilidi birakilamadi; elle: ssh $SSH_USER@$HOST 'rm -rf $LOCK_DIR'"
 }
 
 [ "$DRY" = 1 ] && log "DRY-RUN: sunucuya dokunulmayacak"
@@ -351,7 +341,9 @@ fi
 if [ "$CI_MODE" = 1 ]; then
   # Hedef commit origin/main'in atasi olmali (yalniz main'e girmis kod uretime gider). Sig klonlarda once tam gecmis getirilir.
   if [ "$(git rev-parse --is-shallow-repository 2>/dev/null)" = true ]; then
-    git fetch --unshallow origin '+refs/heads/main:refs/remotes/origin/main' >/dev/null 2>&1       || git fetch origin '+refs/heads/main:refs/remotes/origin/main' >/dev/null 2>&1       || die "DEPLOY_CI=1: origin main getirilemedi (sig klon icin 'git fetch --unshallow origin main' denendi)" 2
+    git fetch --unshallow origin '+refs/heads/main:refs/remotes/origin/main' >/dev/null 2>&1 \
+      || git fetch origin '+refs/heads/main:refs/remotes/origin/main' >/dev/null 2>&1 \
+      || die "DEPLOY_CI=1: origin main getirilemedi (sig klon icin 'git fetch --unshallow origin main' denendi)" 2
   else
     git fetch origin '+refs/heads/main:refs/remotes/origin/main' >/dev/null 2>&1 || die "DEPLOY_CI=1: origin main getirilemedi" 2
   fi
