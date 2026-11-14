@@ -73,7 +73,7 @@ describe('Akademisyen başvuru listesi', () => {
   it('varsayılan sekme Bekleyen: PENDING ister; ad, unvan, birim ve MASKELİ e-postayı sunucunun verdiği gibi gösterir', async () => {
     const calls = setup(() => ({ items: [person(1, { email: 'h***@bingol.edu.tr' })] }));
     renderWithProviders(<AcademiciansPage />, { route: '/admin/academicians' });
-    expect(await screen.findByText('h***@bingol.edu.tr')).toBeInTheDocument();
+    expect(await screen.findByTitle('h***@bingol.edu.tr')).toBeInTheDocument();
     expect(screen.getByText(/Dr\. Öğr\. Üyesi Deneme Hoca 1/)).toBeInTheDocument();
     expect(screen.getByText('Örnek Fakültesi')).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Bekleyen' })).toHaveAttribute('aria-selected', 'true');
@@ -114,7 +114,7 @@ describe('Akademisyen başvuru listesi', () => {
         : { items: [] },
     );
     renderWithProviders(<AcademiciansPage />, { route: '/admin/academicians?tab=auto' });
-    expect(await screen.findByText('kurum.ornek@bingol.edu.tr')).toBeInTheDocument();
+    expect(await screen.findByTitle('kurum.ornek@bingol.edu.tr')).toBeInTheDocument();
     expect(screen.getByText(/bir insan bakmadan, kurala göre/)).toBeInTheDocument();
     expect(screen.getByText('Otomatik (kural)')).toBeInTheDocument();
     expect(screen.getByText('Sistem (kural)')).toBeInTheDocument();
@@ -130,10 +130,10 @@ describe('Akademisyen başvuru listesi', () => {
         : { items: [person(9)], nextCursor: 9 },
     );
     renderWithProviders(<AcademiciansPage />, { route: '/admin/academicians' });
-    await screen.findByText('hoca9@bingol.edu.tr');
+    await screen.findByTitle('hoca9@bingol.edu.tr');
     await userEvent.click(screen.getByRole('button', { name: 'Daha fazla yükle' }));
-    expect(await screen.findByText('hoca3@bingol.edu.tr')).toBeInTheDocument();
-    expect(screen.getByText('hoca9@bingol.edu.tr')).toBeInTheDocument();
+    expect(await screen.findByTitle('hoca3@bingol.edu.tr')).toBeInTheDocument();
+    expect(screen.getByTitle('hoca9@bingol.edu.tr')).toBeInTheDocument();
     expect(listCalls(calls).some((c) => c.url.includes('cursor=9'))).toBe(true);
     expect(screen.queryByRole('button', { name: 'Daha fazla yükle' })).not.toBeInTheDocument();
   });
@@ -145,10 +145,10 @@ describe('Akademisyen başvuru listesi', () => {
         : { items: [person(9)], nextCursor: 9 },
     );
     renderWithProviders(<AcademiciansPage />, { route: '/admin/academicians' });
-    await screen.findByText('hoca9@bingol.edu.tr');
+    await screen.findByTitle('hoca9@bingol.edu.tr');
     await userEvent.click(screen.getByRole('button', { name: 'Daha fazla yükle' }));
     await userEvent.type(screen.getByRole('searchbox'), 'baska');
-    expect(await screen.findByText('baska@bingol.edu.tr')).toBeInTheDocument();
+    expect(await screen.findByTitle('baska@bingol.edu.tr')).toBeInTheDocument();
     const withQ = listCalls(calls).filter((c) => c.url.includes('q=baska'));
     expect(withQ.length).toBeGreaterThan(0);
     expect(withQ.every((c) => !c.url.includes('cursor='))).toBe(true);
@@ -157,7 +157,7 @@ describe('Akademisyen başvuru listesi', () => {
   it('users.pii yoksa 3 karakterden kısa arama gönderilmez ve ipucu görünür', async () => {
     const calls = setup(() => ({ items: [person(1)] }), WRITE);
     renderWithProviders(<AcademiciansPage />, { route: '/admin/academicians' });
-    await screen.findByText('hoca1@bingol.edu.tr');
+    await screen.findByTitle('hoca1@bingol.edu.tr');
     expect(screen.getByText(/en az 3 karakter/)).toBeInTheDocument();
     await userEvent.type(screen.getByRole('searchbox'), 'ba');
     await new Promise((r) => setTimeout(r, 500));
@@ -167,7 +167,7 @@ describe('Akademisyen başvuru listesi', () => {
   it('users.pii varsa ipucu yoktur ve kısa arama da gider', async () => {
     const calls = setup(() => ({ items: [person(1)] }), [...WRITE, 'users.pii']);
     renderWithProviders(<AcademiciansPage />, { route: '/admin/academicians' });
-    await screen.findByText('hoca1@bingol.edu.tr');
+    await screen.findByTitle('hoca1@bingol.edu.tr');
     expect(screen.queryByText(/en az 3 karakter/)).not.toBeInTheDocument();
     await userEvent.type(screen.getByRole('searchbox'), 'ba');
     await waitFor(() => expect(listCalls(calls).some((c) => c.url.includes('q=ba'))).toBe(true));
@@ -189,7 +189,7 @@ describe('Akademisyen başvuru listesi', () => {
       READ_ONLY,
     );
     renderWithProviders(<AcademiciansPage />, { route: '/admin/academicians' });
-    await screen.findByText('hoca1@bingol.edu.tr');
+    await screen.findByTitle('hoca1@bingol.edu.tr');
     await waitFor(() => expect(screen.queryByRole('button', { name: 'Onayla' })).not.toBeInTheDocument());
     expect(screen.queryByRole('button', { name: 'Reddet' })).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole('tab', { name: 'Onaylı' }));
@@ -211,7 +211,7 @@ describe('Akademisyen başvuru listesi', () => {
       },
     );
     renderWithProviders(<AcademiciansPage />, { route: '/admin/academicians' });
-    await screen.findByText('hoca1@bingol.edu.tr');
+    await screen.findByTitle('hoca1@bingol.edu.tr');
     await userEvent.click(await screen.findByRole('button', { name: 'Onayla' }));
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByText(/hemen akademisyen paneline erişir/)).toBeInTheDocument();
@@ -225,7 +225,7 @@ describe('Akademisyen başvuru listesi', () => {
   it('ret gerekçe ister ve gerekçeyi gönderir', async () => {
     const calls = setup(() => ({ items: [person(1)] }));
     renderWithProviders(<AcademiciansPage />, { route: '/admin/academicians' });
-    await screen.findByText('hoca1@bingol.edu.tr');
+    await screen.findByTitle('hoca1@bingol.edu.tr');
     await userEvent.click(await screen.findByRole('button', { name: 'Reddet' }));
     const dialog = await screen.findByRole('alertdialog');
     const confirm = within(dialog).getByRole('button', { name: 'Reddet' });
@@ -242,7 +242,7 @@ describe('Akademisyen başvuru listesi', () => {
   it('onayı geri alma gerekçe ister, sonucu söyler ve gerekçeyi gönderir', async () => {
     const calls = setup(() => ({ items: [person(1, { status: 'APPROVED', approvalMode: 'ADMIN' })] }));
     renderWithProviders(<AcademiciansPage />, { route: '/admin/academicians?tab=approved' });
-    await screen.findByText('hoca1@bingol.edu.tr');
+    await screen.findByTitle('hoca1@bingol.edu.tr');
     await userEvent.click(await screen.findByRole('button', { name: 'Onayı geri al' }));
     const dialog = await screen.findByRole('alertdialog');
     expect(within(dialog).getByText(/dersleri ve yoklama verileri silinmez/)).toBeInTheDocument();
@@ -261,7 +261,7 @@ describe('Akademisyen başvuru listesi', () => {
       () => jsonResponse(409, { code: 'ACADEMICIAN_BAD_STATE', message: 'x' }),
     );
     renderWithProviders(<AcademiciansPage />, { route: '/admin/academicians' });
-    await screen.findByText('hoca1@bingol.edu.tr');
+    await screen.findByTitle('hoca1@bingol.edu.tr');
     await userEvent.click(await screen.findByRole('button', { name: 'Onayla' }));
     const dialog = await screen.findByRole('dialog');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Onayla' }));
