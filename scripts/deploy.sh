@@ -145,6 +145,78 @@ remote() { # remote "<aciklama>" <ssh argumanlari...>  (stdin korunur)
   log "sunucu: $what"; rsh "$@"
 }
 
+# --- sunucu dagitim kilidi: iki kisi ayni anda dagitim/geri alma yapamasin ---
+# Atomik `mkdir $BASEDIR/.deploy.lock` (+ info dosyasi: kim/ne zaman/hangi sha). Edinme 1, birakma 1 ssh (her biri rsh uzerinden, 8 sn aralikli).
+# Edinme sudo ile calisir (ilk kurulumda $BASEDIR henuz yok; dizin hazirlama adimiyla ayni `install -d` kurali), kilit dizini
+# sonra $SSH_USER'a devredilir; birakma sudo'suz yapilir. 90 dk'dan eski kilit YINE reddedilir; yalniz DEPLOY_FORCE_UNLOCK=1 ile alinir.
+LOCK_DIR="$BASEDIR/.deploy.lock"
+LOCK_STALE_MIN=90
+acquire_lock() { # acquire_lock <mod: deploy|rollback> <sha>
+  local mode="$1" sha="$2" actor info rc=0 out use_sudo="" create=0
+  if [ "$DRY" = 1 ]; then plan "sunucu: dagitim kilidi $LOCK_DIR (mkdir, atomik; tutan kisi/zaman/sha yazilir; $LOCK_STALE_MIN dk'dan eski kilit DEPLOY_FORCE_UNLOCK=1 ister); cikista birakilir"; return 0; fi
+  actor="${DEPLOY_ACTOR:-${USER:-$(id -un 2>/dev/null || echo bilinmeyen)}@$(hostname 2>/dev/null || echo bilinmeyen)}"
+  LOCK_TOKEN="$$-$(date +%s)-$RANDOM"
+  info="kisi=$actor sha=$sha mod=$mode zaman=$(date -u '+%F %T')Z token=$LOCK_TOKEN"
+  info="$(printf '%s' "$info" | tr -d '
+')"
+  [ "$mode" = deploy ] && { use_sudo="sudo -n "; create=1; }
+  log "sunucu: dagitim kilidi aliniyor ($LOCK_DIR)"
+  out="$({
+    printf 'LK=%q
+INFO_V=%q
+FORCE=%q
+CREATE=%q
+USR=%q
+STALE_MIN=%q
+' "$LOCK_DIR" "$info" "${DEPLOY_FORCE_UNLOCK:-0}" "$create" "$SSH_USER" "$LOCK_STALE_MIN"
+    cat <<'REMOTE'
+set -euo pipefail
+PARENT="$(dirname "$LK")"
+if [ "$CREATE" = 1 ]; then install -d -o "$USR" -g "$USR" -m 755 "$PARENT"; fi
+[ -d "$PARENT" ] || { echo "LOCK-HATA: $PARENT yok"; exit 12; }
+take() {
+  mkdir "$LK" 2>/dev/null || return 1
+  printf '%s
+' "$INFO_V" > "$LK/info"
+  if [ "$(id -u)" = 0 ]; then chown -R "$USR:$USR" "$LK"; fi
+}
+if take; then echo "LOCK-OK"; exit 0; fi
+echo "LOCK-TUTAN: $(tr -d '' < "$LK/info" 2>/dev/null | tr '
+' ' ' || true)"
+mt="$(stat -c %Y "$LK" 2>/dev/null || echo 0)"; age=$(( ( $(date +%s) - mt ) / 60 ))
+echo "LOCK-YAS-DK: $age"
+if [ "$age" -ge "$STALE_MIN" ]; then
+  if [ "$FORCE" = 1 ]; then
+    rm -rf "$LK"
+    if take; then echo "LOCK-OK-ZORLA"; exit 0; fi
+    exit 10
+  fi
+  exit 11
+fi
+exit 10
+REMOTE
+  } | rsh "${use_sudo}bash -s" 2>&1)" || rc=$?
+  case "$rc" in
+    0) LOCK_HELD=1
+       printf '%s
+' "$out" | grep -q 'LOCK-OK-ZORLA' && warn "ESKI kilit (>$LOCK_STALE_MIN dk) DEPLOY_FORCE_UNLOCK=1 ile kaldirildi; kilit bu calistirmaya ait"
+       log "dagitim kilidi alindi ($actor)";;
+    10) printf '%s
+' "$out" | grep -E '^LOCK-(TUTAN|YAS-DK)' >&2 || true
+        die "baska bir dagitim/geri alma KILITLI ($LOCK_DIR): sunucuya dokunulmadi. Bitmesini bekleyin; takildiysa 'LOCK-YAS-DK' $LOCK_STALE_MIN dakikayi gecince DEPLOY_FORCE_UNLOCK=1 ile yeniden calistirin" 1;;
+    11) printf '%s
+' "$out" | grep -E '^LOCK-(TUTAN|YAS-DK)' >&2 || true
+        die "kilit $LOCK_STALE_MIN dakikadan ESKI (takilmis olabilir) ama otomatik kaldirilmaz: tutan kisiyle dogrulayin, sonra DEPLOY_FORCE_UNLOCK=1 ile yeniden calistirin. Sunucuya dokunulmadi" 1;;
+    *) die "dagitim kilidi alinamadi (cikis kodu $rc): $(printf '%s' "$out" | tail -2 | tr '
+' ' ')" 1;;
+  esac
+}
+release_lock() { # yalniz BU calistirma aldiysa ve token hala bizimse siler (tek ssh)
+  [ "$LOCK_HELD" = 1 ] || return 0
+  LOCK_HELD=0
+  rsh "grep -q 'token=$LOCK_TOKEN' $LOCK_DIR/info 2>/dev/null && rm -rf $LOCK_DIR; true" >/dev/null 2>&1     || warn "dagitim kilidi birakilamadi; elle: ssh $SSH_USER@$HOST 'rm -rf $LOCK_DIR'"
+}
+
 [ "$DRY" = 1 ] && log "DRY-RUN: sunucuya dokunulmayacak"
 log "hedef: $SSH_USER@$HOST  alan adi: $DOMAIN  mod: $([ "$IPTEST" = 1 ] && echo 'IP testi (HTTP)' || echo 'HTTPS (Caddy/Let'"'"'s Encrypt)')"
 
@@ -218,6 +290,7 @@ do_rollback() {
 
 if [ "$ROLLBACK" = 1 ]; then
   log "GERI ALMA istendi"
+  acquire_lock rollback geri-alma
   remote "onceki surume don (imajlar :previous, dizin .previous_release)" \
     "env HOST_IP='$HOST' DOM='$DOMAIN' IPTEST='$IPTEST' HW_BACKEND='$HEALTH_WAIT_BACKEND' bash -s" <<EOF || die "geri alma basarisiz; elle mudahale: ssh $SSH_USER@$HOST, $BASEDIR/releases/*" 1
 $REMOTE_COMMON
@@ -307,6 +380,7 @@ fi
 # 2) kodu sunucuya aktar (git archive | ssh tar); sirlar/.env aktarilmaz
 # =====================================================================================================
 log "2/7 kod aktarimi: releases/$SHORT"
+acquire_lock deploy "$SHORT"
 remote "dizinleri hazirla (sudo): $BASEDIR, $DATADIR/backup-metrics (uid 70 = yedek konteyneri), $DATADIR/secrets" \
   "sudo -n bash -s" <<EOF
 set -euo pipefail
