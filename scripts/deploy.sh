@@ -65,11 +65,22 @@ die()  { printf '%s [deploy] HATA: %s\n' "$(date '+%F %T')" "$1" >&2; exit "${2:
 plan() { printf '    [dry-run] %s\n' "$*"; }
 
 # --- yapilandirma (.deploy.env: tirnakli degerleri kabuk kendisi cozer; HICBIR YERDE yazdirilmaz) ---
-[ -f .deploy.env ] || die ".deploy.env yok (DEPLOY_HOST, DEPLOY_USER, DEPLOY_DOMAIN)"
+# .deploy.env OPSIYONELDIR: varsa okunur; yoksa (CI kosucusu) ortamda onceden tanimli DEPLOY_* degiskenleri kullanilir.
 set +x
-set -a; . ./.deploy.env; set +a
-HOST="${DEPLOY_HOST:?DEPLOY_HOST gerekli}"
-DOMAIN="${DEPLOY_DOMAIN:?DEPLOY_DOMAIN gerekli}"
+if [ -f .deploy.env ]; then
+  set -a; . ./.deploy.env; set +a
+else
+  log ".deploy.env yok: yapilandirma ortam degiskenlerinden okunuyor (DEPLOY_HOST, DEPLOY_DOMAIN, ...)"
+fi
+HOST="${DEPLOY_HOST:?DEPLOY_HOST gerekli (.deploy.env dosyasinda ya da ortam degiskeni olarak)}"
+DOMAIN="${DEPLOY_DOMAIN:?DEPLOY_DOMAIN gerekli (.deploy.env dosyasinda ya da ortam degiskeni olarak)}"
+# CI kipi YALNIZ DEPLOY_CI=1 ile acilir (genel CI=true tek basina kip degistirmez). CI kipinde: pinli host anahtari ZORUNLU,
+# kirli agac ve origin/main disi commit REDDEDILIR, ilk kurulum (.env.prod uretimi) REDDEDILIR (bkz. docs/DEPLOY_SCRIPT.md).
+CI_MODE=0; [ "${DEPLOY_CI:-0}" = 1 ] && CI_MODE=1
+if [ "$CI_MODE" = 0 ] && [ "${CI:-}" = true ]; then
+  warn "CI=true gorunuyor ama DEPLOY_CI=1 yok: CI kisitlari (pinli host anahtari, main kosulu, temiz agac, ilk kurulum yasagi) UYGULANMIYOR"
+fi
+[ "$CI_MODE" = 1 ] && log "CI KIPI (DEPLOY_CI=1)"
 SSH_USER="${DEPLOY_USER:-deploy}"
 if [ "$SSH_USER" = root ]; then
   warn "DEPLOY_USER=root: sunucuda root SSH girisi kapali; 'deploy' kullaniliyor (.deploy.env'i guncelleyin)"
@@ -81,7 +92,32 @@ ACME_EMAIL="${DEPLOY_ACME_EMAIL:-}"
 unset DEPLOY_PASSWORD   # bu betik parolayi hic kullanmaz
 [ -f "$KEY" ] || { [ "$DRY" = 1 ] || die "SSH anahtari yok: $KEY"; warn "SSH anahtari yok: $KEY (dry-run devam ediyor)"; }
 
-SSH_OPTS=(-i "$KEY" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=accept-new
+# Cikis tuzagi: onceden tanimli bir EXIT tuzagi varsa KORUNUR ve en sonda calistirilir; burada gecici dosya + sunucu kilidi temizlenir.
+TMP_FILES=(); LOCK_HELD=0; LOCK_TOKEN=""
+PREV_EXIT_TRAP=""
+if [ -n "$(trap -p EXIT)" ]; then eval "set -- $(trap -p EXIT)"; PREV_EXIT_TRAP="$3"; fi
+on_exit() {
+  local rc=$?
+  trap - EXIT
+  [ "${#TMP_FILES[@]}" -eq 0 ] || rm -f -- "${TMP_FILES[@]}" 2>/dev/null || true
+  if [ "$LOCK_HELD" = 1 ]; then release_lock || true; fi
+  if [ -n "$PREV_EXIT_TRAP" ]; then eval "$PREV_EXIT_TRAP" || true; fi
+  exit "$rc"
+}
+trap on_exit EXIT
+# Sabitlenmis host anahtari (DEPLOY_KNOWN_HOSTS: bir ya da daha fazla known_hosts satiri). Yoksa eski davranis (accept-new);
+# CI kipinde yoksa DUR: gecici kosucu ilk-gorusmede-guven (TOFU) YAPMAMALI.
+if [ -n "${DEPLOY_KNOWN_HOSTS:-}" ]; then
+  KH_FILE="$(mktemp "${TMPDIR:-/tmp}/bu-deploy-known-hosts.XXXXXX")"; TMP_FILES+=("$KH_FILE")
+  chmod 600 "$KH_FILE"
+  printf '%s
+' "$DEPLOY_KNOWN_HOSTS" > "$KH_FILE"
+  HOSTKEY_OPTS=(-o "UserKnownHostsFile=$KH_FILE" -o StrictHostKeyChecking=yes)
+else
+  [ "$CI_MODE" = 0 ] || die "DEPLOY_CI=1 iken DEPLOY_KNOWN_HOSTS zorunlu (sunucunun known_hosts satirlari; ornek: ssh-keyscan -t ed25519 $HOST). Gecici kosucu host anahtarina ilk gorusmede guvenemez" 2
+  HOSTKEY_OPTS=(-o StrictHostKeyChecking=accept-new)
+fi
+SSH_OPTS=(-i "$KEY" -o IdentitiesOnly=yes -o BatchMode=yes "${HOSTKEY_OPTS[@]}"
           -o ServerAliveInterval=30 -o ServerAliveCountMax=6 -o ConnectTimeout=20)
 # UFW "limit 22/tcp" (30 sn'de 6 yeni baglanti) baglantilari dusurur: ssh cagrilari arasi en az 8 sn (damga dosyasi alt kabuklarda da gecerli)
 SSH_STAMP="${TMPDIR:-/tmp}/bu-deploy-ssh-stamp"
