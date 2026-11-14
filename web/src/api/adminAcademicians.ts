@@ -32,6 +32,8 @@ export interface AcademicianListParams {
   /** Boş = hepsi. Birden çok durum virgülle gönderilir. */
   status?: AcademicianStatus[];
   approvalMode?: ApprovalMode;
+  /** Ad/soyad/görünen ad (users.pii ile e-posta de); maskeli profilde en az 3 karakter. */
+  q?: string;
   cursor?: number | null;
   size?: number;
 }
@@ -50,6 +52,8 @@ export interface CourseSlot {
 export interface CourseLimit {
   type: AbsenceLimitType;
   value: number | null;
+  /** İzin verilen devamsızlık sayısı (sunucu hesaplar). */
+  allowedAbsences?: number | null;
 }
 
 export interface AcademicianCourse {
@@ -63,22 +67,30 @@ export interface AcademicianCourse {
   limit: CourseLimit | null;
   status: 'ACTIVE' | 'ARCHIVED' | string;
   slots: CourseSlot[];
+  plannedSessions?: number | null;
   enrolledCount: number | null;
   sessionCount: number | null;
   createdAt: string;
 }
 
-export type AttendanceMark = 'PRESENT_QR' | 'PRESENT_MANUAL' | 'REVOKED' | 'ABSENT';
+export type AttendanceMark = 'PRESENT_QR' | 'PRESENT_MANUAL' | 'REVOKED' | 'EXCUSED' | 'ABSENT' | 'NOT_ENROLLED_YET';
 
 export interface AttendanceSession {
   id: number;
   lessonDate: string;
+  /** Süren oturum: ABSENT hücreleri geçicidir (henüz okutmadı). */
+  live?: boolean;
+  /** false: devamsızlığa sayılmayan oturum (sütun soluk, "sayılmıyor"). */
+  counted?: boolean;
+  /** Kayıtlı olmayıp hocanın kararını bekleyen öğrenci sayısı (salt okunur). */
+  pendingCount?: number;
 }
 
 export interface AttendanceStudent {
   studentId: number;
   displayName: string | null;
-  studentNo: string | null;
+  /** Sunucunun verdiği gibi: yetkisiz profilde maskeli ya da yok; istemci türetmez. */
+  studentNo?: string | null;
   /** Anahtar: oturum kimliği (metin). */
   marks: Record<string, AttendanceMark>;
   absentCount: number;
@@ -123,6 +135,7 @@ export const listAcademicians = (p: AcademicianListParams = {}) =>
   api.get<CursorPage<AdminAcademician>>('/admin/academicians', {
     status: p.status && p.status.length ? p.status.join(',') : undefined,
     approvalMode: p.approvalMode,
+    q: p.q || undefined,
     cursor: p.cursor,
     size: p.size,
   });

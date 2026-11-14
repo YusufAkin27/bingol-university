@@ -10,7 +10,10 @@ import type {
 
 export type AcadTab = 'pending' | 'approved' | 'auto' | 'rejected';
 export const ACAD_TABS: AcadTab[] = ['pending', 'approved', 'auto', 'rejected'];
-export const ACAD_MARKS: AttendanceMark[] = ['PRESENT_QR', 'PRESENT_MANUAL', 'REVOKED', 'ABSENT'];
+export const ACAD_MARKS: AttendanceMark[] = ['PRESENT_QR', 'PRESENT_MANUAL', 'EXCUSED', 'REVOKED', 'ABSENT', 'NOT_ENROLLED_YET'];
+
+/** Sunucu aramasının alt sınırı: users.pii olmayan profilde 3 karakter (aksi hâlde 400). */
+export const MASKED_Q_MIN = 3;
 
 /** Sekmenin sunucuya gönderdiği süzgeç. Otomatik sekme: kuralla onaylanmış ve hâlen onaylı olanlar. */
 export function paramsForTab(tab: AcadTab): Pick<AcademicianListParams, 'status' | 'approvalMode'> {
@@ -43,10 +46,21 @@ export function matchesFilter(a: AdminAcademician, q: string): boolean {
   return [nameOf(a), a.title, a.email, a.unit].some((v) => (v ?? '').toLocaleLowerCase('tr').includes(needle));
 }
 
-export type LimitStatus = 'none' | 'ok' | 'atRisk' | 'over';
+export type LimitStatus = 'none' | 'pending' | 'ok' | 'atRisk' | 'reached' | 'over';
+/** PERCENT sınırı bu kadar oturum yapılmadan değerlendirilmez. */
+export const PERCENT_MIN_SESSIONS = 4;
 
-export function limitStatus(limit: CourseLimit | null, s: Pick<AttendanceStudent, 'atRisk' | 'overLimit'>): LimitStatus {
-  if (!limit) return 'none';
+export function limitStatus(
+  limit: CourseLimit | null,
+  s: Pick<AttendanceStudent, 'atRisk' | 'overLimit' | 'absentCount'>,
+  sessionCount = Number.MAX_SAFE_INTEGER,
+): LimitStatus {
+  if (!limit || limit.value == null) return 'none';
+  if (limit.type === 'PERCENT' && sessionCount < PERCENT_MIN_SESSIONS) return 'pending';
+  if (limit.type === 'COUNT') {
+    if (s.absentCount > limit.value) return 'over';
+    if (s.absentCount === limit.value) return 'reached';
+  }
   if (s.overLimit) return 'over';
   if (s.atRisk) return 'atRisk';
   return 'ok';
@@ -63,7 +77,7 @@ export function sessionSummary(sessionId: number, students: AttendanceStudent[])
     const m = s.marks[String(sessionId)] ?? 'ABSENT';
     if (isPresent(m)) present++;
     else if (m === 'REVOKED') revoked++;
-    else absent++;
+    else if (m === 'ABSENT') absent++; // izinli, kayıtsız ve bilinmeyen durumlar sayılmaz
   }
   return { present, revoked, absent, total: students.length };
 }

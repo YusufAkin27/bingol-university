@@ -158,6 +158,7 @@ export default function AcademicianDetail() {
                       onClick={() => {
                         const next = new URLSearchParams(params);
                         next.set('course', String(c.id));
+                        next.delete('ctab'); // yeni derste ilk sekme
                         setParams(next, { replace: true });
                       }}
                     >
@@ -174,6 +175,7 @@ export default function AcademicianDetail() {
                         {c.enrolledCount != null && <Badge>{x('admin.acad.course.students', { n: formatNumber(c.enrolledCount) })}</Badge>}
                         {c.sessionCount != null && <Badge>{x('admin.acad.course.sessions', { n: formatNumber(c.sessionCount) })}</Badge>}
                         <Badge>{limitText(c, x)}</Badge>
+                        {c.plannedSessions != null && <Badge>{x('admin.acad.course.planned', { n: c.plannedSessions })}</Badge>}
                       </span>
                     </button>
                   </li>

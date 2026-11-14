@@ -241,3 +241,19 @@
 .panelBody {
   margin-block-start: var(--space-4);
 }
+.markNOT_ENROLLED_YET {
+  border-style: dotted;
+  color: var(--text-muted);
+  background: var(--surface-2);
+}
+.markEXCUSED {
+  border-style: double;
+  border-width: 3px;
+}
+.markUNKNOWN {
+  border-style: dotted;
+  color: var(--text-muted);
+}
+.muted {
+  color: var(--text-muted);
+}
