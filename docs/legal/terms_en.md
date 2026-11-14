@@ -8,7 +8,7 @@ This text explains how the BÜ Kampüs application and website (the "**Service**
 
 1. The Service is operated by: {{controller.name}}{{?controller.address}}, {{controller.address}}{{/controller.address}} (the "**Operator**", "**we**").
 2. The person using the Service (the "**User**", "**you**") is deemed to have accepted these terms.
-3. The Service consists of the following features: following news, announcements and events, the menu, profile, messaging, communities and events (including QR attendance), posts (a post consists of a single photo and a short text, and can be liked), following users, polls, a personal timetable and exam tracking, notifications, search, bookmarks, and support and feedback.
+3. The Service consists of the following features: following news, announcements and events, the menu, profile, messaging, communities and events (including QR attendance), an area for teaching staff ("academicians") for courses, course attendance and course notices, posts (a post consists of a single photo and a short text, and can be liked), following users, polls, a personal timetable and exam tracking, notifications, search, bookmarks, and support and feedback.
 4. **Administrators.** Accounts that the Operator has given access to the management panel of the Service ("**administrators**") carry out moderation, support, content and system tasks. Administrators act under the Operator's authorisation, not on behalf of the university; user data is not transferred to the university. Administrator powers are described in section 6. Community/club administrators, by contrast, are user roles described in section 7 and are distinct from management panel administrators.
 5. These terms are read together with the [Privacy Policy](/legal/privacy), the [KVKK Privacy Notice](/legal/kvkk), the [Community Rules](/legal/community-rules), the [Explicit Consent text](/legal/explicit-consent), the [Cookie and Local Storage Policy](/legal/cookies), [Content Notice and Removal](/legal/content-removal) and [Retention and Destruction](/legal/retention). The Community Rules form an integral part of these terms.
 
@@ -47,9 +47,10 @@ The following are prohibited (detailed examples are in the [Community Rules](/le
 5. Disrupting the Service: bulk requests with automated tools, exploiting security vulnerabilities, unauthorised access, attempts to exceed rate limits, circumventing a ban on an IP/device (VPN, switching accounts, etc.).
 6. Bulk scraping of the user directory or systematically collecting user information.
 7. Violating course and exam integrity (e.g. selling exam questions, organising cheating).
-8. Misusing the event attendance (QR) system: giving attendance on behalf of another person, sharing/duplicating the code.
+8. Misusing the event or course attendance (QR) system: giving attendance on behalf of another person, sharing/duplicating the code.
 9. Infringing intellectual property rights (see section 8).
 10. Using profanity, insults, hate speech or sexually explicit expressions in public areas such as communities, events, profiles, group titles and post text. Such content may be rejected automatically. Content in private chats and group messages is not pre-screened; however, harassment, threats or inappropriate content may be reported by users and, after review through the in-app report/feedback channel, content removal, a warning or an account restriction may be applied.
+11. Misusing the academician area: applying as an academician without being one or stating a false title/unit; using the student directory for anything other than conducting a course, attendance and notices, or copying or sharing it, or using attendance exports for another purpose or giving them to third parties.
 
 ## 5. Moderation, suspension and blocking
 
@@ -84,6 +85,7 @@ This section states clearly that your messages are not "completely confidential"
 2. **Event creators** are responsible for the accuracy of the event information and the lawfulness of the event. Event attendance is taken by QR code or manually; attendance records are visible to the event organiser and authorised administrators. If the person who created an event deletes their account, their unfinished events that are not linked to a club are cancelled and open applications are closed.
 3. **Chat rooms.** Your participation in chat rooms created for communities and events depends on your membership; if you are removed or banned from the community you are also dropped from the room. Event chat rooms close, by default, within 7 days after the event ends.
 4. The Operator does not assume responsibility for events organised by university units or communities unless expressly stated; the physical safety, content and cancellation of events are the organiser's responsibility.
+5. **Academician area and course attendance.** Accounts that apply as an academician are subject to administrator approval; approval does not mean that the university has verified the person as staff. Approved academicians see the student directory (name, student number, faculty, department, year), add students to their courses, take attendance and send course notices to their enrolled students; how personal data is processed in these operations is explained in Privacy Policy section 15 and KVKK Disclosure Text section 12. An academician is obliged to use student data only for conducting the course and in a lawful manner.
 
 ## 8. Intellectual property and copyright
 
@@ -116,7 +118,7 @@ You are liable, in proportion to your fault, for compensating reasonable damages
 
 ## 13. Termination and account closure
 
-1. You can close your account at any time from the app or from the [account deletion page](/delete-account). Account deletion is **anonymisation:** your name, e-mail and profile information are anonymised; your notification device records, device/IP and analytics records, posts, likes, follows, bookmarked news, timetable and community memberships are deleted. The messages you sent and the text of community posts remain, with the author shown anonymously, because they are part of other people's chat/community context; agreement acceptance records and moderation traces are kept without identity and in a limited form. Details are explained in Privacy Policy section 7 and in the KVKK Privacy Notice.
+1. You can close your account at any time from the app or from the [account deletion page](/delete-account). Account deletion is **anonymisation:** your name, e-mail and profile information are anonymised; your notification device records, device/IP and analytics records, posts, likes, follows, bookmarked news, timetable, community memberships and (if you are a student) course enrolments and course attendance records are deleted; if you are an academician, your application and courses are deleted. The messages you sent and the text of community posts remain, with the author shown anonymously, because they are part of other people's chat/community context; agreement acceptance records and moderation traces are kept without identity and in a limited form. Details are explained in Privacy Policy section 7 and in the KVKK Privacy Notice.
 2. If you violate the terms we may suspend or close your account (section 5). Reopening a closed account is at our discretion.
 3. Termination does not affect rights and obligations that arose before the violation and provisions that by their nature must continue (limitation of liability, intellectual property, governing law, etc.).
 
@@ -129,6 +131,7 @@ You are liable, in proportion to your fault, for compensating reasonable damages
 
 1. {{controller.relation|The Service is not an official application of Bingöl University; it makes no statements on behalf of the university, makes no binding declarations and does not replace the university's official notices. Content belonging to the university such as news, announcements, events and menu is presented with the note "source: bingol.edu.tr" and a link to the source page. Membership uses this domain name only to verify a university e-mail address; this does not mean that the university approves or operates the Service or assumes responsibility.}}
 2. The Service may direct you to third-party sites through the source site, external links, QR codes or links shared by third parties. We have no control over the content, privacy practices and security of these sites; we are not responsible for them and a link does not mean endorsement. You open links at your own responsibility.
+3. Attendance records and notices in the academician area of the Service are records and notices made by the academician concerned, as a user, through the Service; they do not replace the university's official attendance record or official notice, and the university cannot be held responsible for them.
 
 ## 16. Changes to the Service, interruptions and force majeure
 

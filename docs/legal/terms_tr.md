@@ -6,7 +6,7 @@ Bu metin, BÜ Kampüs uygulaması ve web sitesinin ("**Hizmet**") nasıl kullan�
 
 1. Hizmeti işleten: {{controller.name}}{{?controller.address}}, {{controller.address}}{{/controller.address}} ("**İşletici**", "**biz**").
 2. Hizmeti kullanan kişi ("**Kullanıcı**", "**siz**"), bu koşulları kabul etmiş sayılır.
-3. Hizmet; haber, duyuru ve etkinlik takibi, yemek listesi, profil, mesajlaşma, topluluklar ve etkinlikler (QR ile yoklama dahil), gönderiler (tek bir fotoğraf ve kısa bir metinden oluşur, beğenilebilir), kullanıcı takibi, anketler, kişisel ders programı ve sınav takibi, bildirimler, arama, favoriler ile destek ve geri bildirim özelliklerinden oluşur.
+3. Hizmet; haber, duyuru ve etkinlik takibi, yemek listesi, profil, mesajlaşma, topluluklar ve etkinlikler (QR ile yoklama dahil), öğretim elemanlarına (akademisyen) yönelik ders, ders yoklaması ve ders duyurusu alanı, gönderiler (tek bir fotoğraf ve kısa bir metinden oluşur, beğenilebilir), kullanıcı takibi, anketler, kişisel ders programı ve sınav takibi, bildirimler, arama, favoriler ile destek ve geri bildirim özelliklerinden oluşur.
 4. **Yöneticiler.** Hizmetin yönetim paneline erişimi İşletici tarafından tanımlanan hesaplar ("**yönetici**") moderasyon, destek, içerik ve sistem işlerini yürütür. Yöneticiler üniversite adına değil, İşleticinin yetkilendirmesiyle çalışır; kullanıcı verileri üniversiteye aktarılmaz. Yönetici yetkileri 6. bölümde açıklanmıştır. Topluluk/kulüp yöneticileri ise 7. bölümdeki kullanıcı rolleridir ve yönetim paneli yöneticilerinden ayrıdır.
 5. Bu koşullar; [Gizlilik Politikası](/legal/privacy), [KVKK Aydınlatma Metni](/legal/kvkk), [Topluluk Kuralları](/legal/community-rules), [Açık Rıza Metni](/legal/explicit-consent), [Çerez ve Yerel Depolama Politikası](/legal/cookies), [İçerik Bildirimi ve Kaldırma](/legal/content-removal) ve [Saklama ve İmha](/legal/retention) metinleriyle birlikte okunur. Topluluk Kuralları bu koşulların ayrılmaz parçasıdır.
 
@@ -45,9 +45,10 @@ Aşağıdakileri yapmak yasaktır (ayrıntılı örnekler [Topluluk Kuralları](
 5. Hizmeti bozmak: otomatik araçlarla toplu istek, güvenlik açığı sömürme, yetkisiz erişim, hız sınırlarını aşma girişimi, yasaklı IP/cihaz engelini dolanmak (VPN, hesap değiştirme vb.).
 6. Kullanıcı rehberini toplu taramak veya kullanıcı bilgilerini sistematik olarak toplamak.
 7. Ders ve sınav dürüstlüğünü ihlal etmek (ör. sınav sorusu satışı, kopya organizasyonu).
-8. Etkinlik yoklama (QR) sistemini kötüye kullanmak: başkası adına yoklama vermek, kodu paylaşmak/çoğaltmak.
+8. Etkinlik veya ders yoklama (QR) sistemini kötüye kullanmak: başkası adına yoklama vermek, kodu paylaşmak/çoğaltmak.
 9. Fikri mülkiyet haklarını ihlal etmek (bkz. 8. bölüm).
 10. Topluluk, etkinlik, profil, grup başlığı ve gönderi metni gibi herkese açık alanlarda küfür, hakaret, nefret söylemi veya cinsel içerikli ifadeler kullanmak. Bu tür içerik otomatik olarak reddedilebilir. Özel sohbetlerde ve grup mesajlarında içerik ön denetimden geçirilmez; ancak taciz, tehdit veya uygunsuz içerik kullanıcılar tarafından şikâyet edilebilir ve uygulama içi şikâyet/geri bildirim kanalıyla incelenerek içerik kaldırma, uyarı veya hesap kısıtlaması uygulanabilir.
+11. Akademisyen alanını kötüye kullanmak: akademisyen olmadığı hâlde akademisyen olarak başvurmak veya yanlış unvan/birim bildirmek; öğrenci rehberini ders yürütme, yoklama ve duyuru amacı dışında kullanmak, kopyalamak, paylaşmak veya yoklama dışa aktarımlarını amaç dışında kullanmak/üçüncü kişilere vermek.
 
 ## 5. Moderasyon, askıya alma ve engelleme
 
@@ -82,6 +83,7 @@ Bu bölüm, mesajlarınızın sizinle karşı taraf arasında "tamamen gizli" ol
 2. **Etkinlik oluşturanlar** etkinlik bilgilerinin doğruluğundan ve etkinliğin hukuka uygunluğundan sorumludur. Etkinlik yoklaması QR kod veya elle yoklama ile yapılır; yoklama kayıtları etkinlik organizatörüne ve yetkili yöneticilere görünür. Etkinliği oluşturan hesabını silerse, kulübe bağlı olmayan ve bitmemiş etkinlikleri iptal edilir ve açık başvurular kapatılır.
 3. **Sohbet odaları.** Topluluk ve etkinlikler için oluşturulan sohbet odalarına katılımınız üyeliğinize bağlıdır; topluluktan çıkarıldığınız veya yasaklandığınızda odadan da düşürülürsünüz. Etkinlik sohbet odaları, etkinlik bittikten sonra varsayılan olarak 7 gün içinde kapanır.
 4. İşletici, üniversite birimleri veya topluluklar tarafından düzenlenen etkinliklerin sorumluluğunu, açıkça belirtilmedikçe üstlenmez; etkinliklerin fiziksel güvenliği, içeriği ve iptali organizatörün sorumluluğundadır.
+5. **Akademisyen alanı ve ders yoklaması.** Akademisyen olarak başvuran hesaplar yönetici onayına tabidir; onay, üniversitenin kişiyi personel olarak doğruladığı anlamına gelmez. Onaylı akademisyenler öğrenci rehberini (ad, öğrenci numarası, fakülte, bölüm, sınıf) görür, öğrencileri derslerine ekler, yoklama alır ve kayıtlı öğrencilerine ders duyurusu gönderir; bu işlemlerde kişisel veri işleme usulü Gizlilik Politikası bölüm 15 ve KVKK Aydınlatma Metni bölüm 12'de açıklanmıştır. Akademisyen, öğrenci verilerini yalnızca ders yürütme amacıyla ve hukuka uygun biçimde kullanmakla yükümlüdür.
 
 ## 8. Fikri mülkiyet ve telif
 
@@ -114,7 +116,7 @@ Bu koşulları, Topluluk Kurallarını veya hukuku ihlal etmeniz nedeniyle işle
 
 ## 13. Fesih ve hesap kapatma
 
-1. Hesabınızı dilediğiniz zaman uygulamadan veya [hesap silme sayfasından](/delete-account) kapatabilirsiniz. Hesap silme **anonimleştirmedir:** adınız, e-postanız ve profil bilgileriniz anonimleştirilir, bildirim cihaz kayıtlarınız, cihaz/IP ve analitik kayıtlarınız, gönderileriniz, beğenileriniz, takipleriniz, favori haberleriniz, ders programınız ve topluluk üyelikleriniz silinir. Gönderdiğiniz mesajlar ve topluluk gönderilerinin metni başkalarının sohbet/topluluk bağlamının parçası olduğundan yazarı anonim görünerek kalır; sözleşme onay kayıtları ve moderasyon izleri kimliksiz ve sınırlı biçimde korunur. Ayrıntı Gizlilik Politikası bölüm 7'de ve KVKK Aydınlatma Metni'nde açıklanmıştır.
+1. Hesabınızı dilediğiniz zaman uygulamadan veya [hesap silme sayfasından](/delete-account) kapatabilirsiniz. Hesap silme **anonimleştirmedir:** adınız, e-postanız ve profil bilgileriniz anonimleştirilir, bildirim cihaz kayıtlarınız, cihaz/IP ve analitik kayıtlarınız, gönderileriniz, beğenileriniz, takipleriniz, favori haberleriniz, ders programınız, topluluk üyelikleriniz ve (öğrenciyseniz) ders kayıtlarınız ile ders yoklama kayıtlarınız silinir; akademisyenseniz başvurunuz ve dersleriniz silinir. Gönderdiğiniz mesajlar ve topluluk gönderilerinin metni başkalarının sohbet/topluluk bağlamının parçası olduğundan yazarı anonim görünerek kalır; sözleşme onay kayıtları ve moderasyon izleri kimliksiz ve sınırlı biçimde korunur. Ayrıntı Gizlilik Politikası bölüm 7'de ve KVKK Aydınlatma Metni'nde açıklanmıştır.
 2. Koşulları ihlal ederseniz hesabınızı askıya alabilir veya kapatabiliriz (5. bölüm). Kapatılan hesabın yeniden açılması bize ait takdir yetkisindedir.
 3. Fesih, ihlal öncesi doğmuş hak ve yükümlülükleri ve doğası gereği devam etmesi gereken hükümleri (sorumluluk sınırı, fikri mülkiyet, uygulanacak hukuk vb.) etkilemez.
 
@@ -127,6 +129,7 @@ Bu koşulları, Topluluk Kurallarını veya hukuku ihlal etmeniz nedeniyle işle
 
 1. {{controller.relation|Hizmet, Bingöl Üniversitesi'nin resmî uygulaması değildir; üniversite adına açıklama yapmaz, bağlayıcı beyanda bulunmaz ve üniversitenin resmî bildiriminin yerini tutmaz. Üniversiteye ait haber, duyuru, etkinlik ve yemek listesi içeriği "kaynak: bingol.edu.tr" ibaresiyle ve kaynak sayfa bağlantısıyla sunulur. Üyelik, yalnızca üniversiteye ait e-posta adresiyle doğrulama için bu alan adını kullanır; bu durum üniversitenin Hizmeti onayladığı, işlettiği veya sorumluluk üstlendiği anlamına gelmez.}}
 2. Hizmet; kaynak site, harici bağlantı, QR veya üçüncü kişilerin paylaştığı bağlantılar aracılığıyla üçüncü taraf sitelere yönlendirebilir. Bu sitelerin içeriği, gizlilik uygulamaları ve güvenliği üzerinde denetimimiz yoktur; bunlardan sorumlu değiliz ve bağlantı onay anlamına gelmez. Bağlantıları kendi sorumluluğunuzda açarsınız.
+3. Hizmetin akademisyen alanındaki yoklama kayıtları ve duyurular, ilgili akademisyenin kullanıcı olarak Hizmet üzerinden yaptığı kayıt ve bildirimlerdir; üniversitenin resmî devam/yoklama kaydının veya resmî bildiriminin yerini tutmaz ve üniversite bunlardan sorumlu tutulamaz.
 
 ## 16. Hizmetin değiştirilmesi, kesintiler ve mücbir sebep
 
