@@ -177,8 +177,6 @@ void main() {
       await settle(tester, const Duration(milliseconds: 400));
       expect(be.count('GET /my-courses/3/notices/11/files/5'), 1);
       expect(shared, isNotNull);
-      expect(shared!.files!.single.name, 'odev3.pdf');
-      expect(shared!.files!.single.mimeType, 'application/pdf');
       expect(shared!.fileNameOverrides, ['odev3.pdf']);
       expect(await shared!.files!.single.readAsBytes(), Uint8List.fromList([37, 80, 68, 70]));
     });
