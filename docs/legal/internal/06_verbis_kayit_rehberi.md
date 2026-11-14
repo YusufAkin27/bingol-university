@@ -17,6 +17,7 @@ VERBİS'e kayıt yükümlülüğü olup olmadığı (çalışan sayısı/bilanç
 | 9 | Analitik | Ekran/olay adı, sınırlı değerler | Hizmet iyileştirme | m.5/2-f | Barındırma | Hayır | 180 gün | Toplulaştırılmış rapor |
 | 10 | Hukuki işlem / uyum | Sözleşme onayı, rapor, ihlal kaydı, yönetici erişim ve işlem kaydı | İspat, güvenlik | m.5/2-ç, e, f | Yetkili makamlar | Hayır | Hesap silmede korunur; erişim kaydı yalnızca-ekleme | DB tetikleyicisi, dış arşiv |
 | 11 | Rehber özeti (geçici) | E-posta SHA-256 özetleri | Tanıdık bulma | Açık rıza | — | Hayır | **Saklanmaz** | Hız sınırı, bellek içi |
+| 12 | Akademisyen alanı | Akademisyen: unvan, ad, birim, karar; öğrenci: rehber alanları (ad, öğrenci no, fakülte, bölüm, sınıf), ders kaydı, yoklama (var/yok/kaldırıldı, QR/elle, zaman, işleyen), bekleyen okutma isteği, devamsızlık uyarı durumu, ders duyurusu ve eki | Akademisyen onayı, ders yürütme, yoklama, devamsızlık takibi, duyuru | m.5/2-c, f (**TASLAK; rehber için açık soru**) | Dersin akademisyeni, onaylı akademisyenler (yalnız rehber alanları), yönetici (salt okunur) | Hayır | Ders/hesap silinene kadar; otomatik süre yok (açık nokta) | Rol/yönetici izni, onay kapısı, hız sınırı, dosya şifreleme (`BlobCipher`), denetimli okuma |
 
 Özel nitelikli veri **hedeflenmez**; kullanıcı içeriğinde tesadüfen bulunabilir (veri sorumlusu tarafından sistematik işlenmez).
 

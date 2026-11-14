@@ -279,3 +279,18 @@ Saklama süresi değişiklikleri (W2-F):
 | `ac_notice`, `ac_notice_file` | Ders duyuruları (7 sabit tür) ve ekleri. Baytlar veritabanında DEĞİL: `PrivateMediaStore` kovası `acnotice` (`<uuid>.bin`, diskte `BlobCipher` ile şifreli); `storage_key` yalnız sunucuda kalır. Bağsız (bekleyen) dosyalar 24 saat sonra bir sonraki yüklemede silinir | duyuru başına ≤5 dosya, dosya ≤20 MB, ders başına `app.academician.course-storage-cap-mb` (500) |
 
 Yoklama kodu durumsuzdur (`LessonCodeService`, tablo yok). Hesap silme kararları yukarıdaki matriste (bölüm 16).
+
+**Kişisel veri amaç ve hukuki dayanak matrisi (V1910 metinleriyle tutarlı; dayanaklar TASLAKTIR, hukuk onayı bekliyor):**
+
+| Veri (tablo / alan) | İlgili kişi | Amaç | Taslak dayanak (KVKK m.5/2) | Kim görür | Saklama (kodun gerçeği) |
+|---|---|---|---|---|---|
+| `academician` (unvan, ad, soyad, birim, durum, `approval_mode`, `reviewed_by/at`, `reject_reason`) | Akademisyen | Başvuru değerlendirme, öğrenci verisine yetkisiz erişimi önleme | c + f | Kendisi; yönetici (`users.read`; e-posta `users.pii` yoksa maskeli) | Hesap silinene kadar (reddedilen/iptal dahil); ayrı süre YOK |
+| Öğrenci rehberi (`app_user`: görünen ad, e-posta yerel kısmından türetilen öğrenci numarası, fakülte, bölüm, sınıf; kopya YOK) | Öğrenci | Onaylı akademisyenin öğrenciyi derse ekleyebilmesi | f (**kritik, açık soru**) | Tüm onaylı akademisyenler (profil gizlilik ayarından bağımsız); e-posta/avatar/biyografi ASLA | Canlı okuma; kopya yok; ACTIVE+doğrulanmış+profili tamam hesaplar |
+| `ac_enrollment` (`warned_level` dahil) | Öğrenci | Ders kaydı, devamsızlık uyarısı tekrarını önleme | f | Dersin akademisyeni; yönetici (salt okunur) | Ders / hesap silinene kadar; sınır YOK |
+| `ac_session`, `ac_attendance` (`method` QR/MANUAL, `marked_at`, `marked_by`, `revoked_at/by`; `device_hash` ayrılmış, KULLANILMIYOR) | Öğrenci, akademisyen | Yoklama, devamsızlık takibi | f; QR'yi kendisi okutunca c | Dersin akademisyeni; yönetici; öğrencinin kendi kaydı | Ders / hesap silinene kadar; öğrenci dersten çıkarılsa da geçmiş satır ders silinene kadar kalır |
+| `ac_scan_request` | Kayıtsız öğrenci | Akademisyene bekleyen yoklama isteği | f; c | Dersin akademisyeni; yönetici | Oturum / ders / hesap ile silinir |
+| `ac_notice`, `ac_notice_file` (+ `acnotice` kovası) | Öğrenci (alıcı), akademisyen | Ders duyurusu, ek dosya | f; c (bildirimin iletilmesi) | Dersin akademisyeni, kayıtlı öğrenciler, yönetici (`@AuditRead`) | Duyuru/ders/akademisyen hesabı silinene kadar; bağsız dosya 24 saat |
+| Bildirim (`notification`/push) `notif.academician.*` | Öğrenci, akademisyen | Derse ekleme, duyuru, devamsızlık uyarısı, başvuru kararı | f; c | Alıcı | Mevcut bildirim süreleri (okunmuş 30 / okunmamış 90 gün; push 7/30 gün) |
+| Dışa aktarım (`academician`, `courseAttendance`) / hoca CSV | Öğrenci / akademisyen | Erişim hakkı (m.11); akademisyene yoklama raporu | ç (hak) / f | Kendisi / dersin akademisyeni | CSV akademisyenin cihazına iner (sistem denetimi dışı) |
+
+İşlenmeyenler: konum, ham cihaz kimliği (yoklama için), not/başarı, ödev teslimi. Eksik saklama sınırı ve diğer açık noktalar: `docs/legal/internal/academician-revision-notes.md`.

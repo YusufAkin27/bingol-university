@@ -4,6 +4,9 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### Hukuki metinler: akademisyen alanı (2026-11-14, `feat/academician-legal-20261114`, TASLAK)
+
+- **V1910** Kullanım Koşulları, Gizlilik, KVKK Aydınlatma ve Saklama/İmha için yeni sürüm (tr/en/ar; TERMS/PRIVACY/KVKK `require_reaccept=TRUE`, RETENTION `FALSE`): akademisyen başvurusu, onaylı akademisyene öğrenci rehberi, derse ekleme, QR/elle ders yoklaması, devamsızlık uyarıları, ders duyuruları ve ekleri, yönetici salt okunur izleme, saklama (otomatik süre yok) ve silme kapsamı. Konum/cihaz kimliği işlenmez. V1470 kaynakları `docs/legal/archive/v1470/`. Hukuk onayı olmadan prod'a uygulanmamalıdır; açık sorular `docs/legal/internal/academician-revision-notes.md`, karar notu `docs/LEGAL_NOTES.md` bölüm 15.
 ### Hukuki metinler: e-posta alan adı kısıtı kalktı (2026-11-06, `deploy/legal-20261106`)
 
 - **V1470** Kullanım Koşulları, Gizlilik Politikası ve KVKK Aydınlatma için yeni sürüm (tr/en/ar, `require_reaccept=FALSE`: yeniden onay istenmez): "yalnız bingol.edu.tr" kısıtı kalktı (herhangi bir geçerli e-posta + e-posta doğrulama kodu), isteğe bağlı Google/Apple girişi veri kategorisi eklendi, "kurumsal e-posta" ve alan adı denetimi ifadeleri düzeltildi. Üretim: `scripts/build-legal-migration-v1470.js`; V820 kaynakları `docs/legal/archive/v820/`.

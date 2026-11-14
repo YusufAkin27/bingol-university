@@ -31,6 +31,9 @@ Kapsam: BÜ Kampüs (backend, web, mobil). Dayanak: 6698 s. KVKK m.7, "Kişisel 
 | Bağlanmamış sohbet medyası | Dosya deposu | 24 saat (`app.chat.media.unclaimed-hours`) | Saatlik iş | Dosya silme |
 | Herkese açık destek talebi | `support_ticket` | 365 gün (`app.support.public-ticket-retention-days`) | İş | Silme |
 | Etkinlik sohbet odası | `conversation` | Etkinlik bitiminden 7 gün (`app.chat.event-room-close-days`) | İş | Kapatma |
+| Akademisyen başvurusu/profili | `academician` | Hesap silinene kadar (süre tanımlı değil) | Hesap silme (`AcademicianAccountPurger`) | Satır silme |
+| Ders kaydı, yoklama oturumu/satırı, bekleyen okutma isteği | `ac_enrollment`, `ac_session`, `ac_attendance`, `ac_scan_request` | Ders veya hesap silinene kadar; **otomatik süre YOK** (karar gerekir, bkz. `academician-revision-notes.md`) | Ders silme (hoca) veya hesap silme (öğrenci/hoca) | Satır silme (FK CASCADE'e güvenilmez, açıkça silinir) |
+| Ders duyurusu ve dosya eki | `ac_notice`, `ac_notice_file`, depo kovası `acnotice` | Ders/duyuru/hoca hesabı silinene kadar; bağsız yükleme 24 saat (sonraki yüklemede temizlenir) | Duyuru/ders/hesap silme | Dosya depodan + satır silme |
 | Sözleşme onayı | `legal_acceptance` | Hesap silmede korunur | — | Zamanaşımı sonu |
 | Moderasyon izi | `moderation_strike`, `report`, ban kayıtları | Hesap silmede kimliksiz korunur | — | Gözden geçirme |
 | Yönetici işlem kaydı | `admin_audit` | Süre tanımlı değil (kod temizlemez) | — | **Karar gerekir** |

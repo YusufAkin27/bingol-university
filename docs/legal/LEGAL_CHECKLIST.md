@@ -5,7 +5,7 @@ Bu klasördeki metinler, uygulamanın **gerçek davranışına** dayanılarak T�
 ## 0. Yapı
 
 - Tek doğruluk kaynağı: `docs/legal/<tür>_<dil>.md` (tr esas, en/ar bilgi amaçlı çeviri; Arapça V480 ile eklendi).
-- Üretim: `node scripts/build-legal-migration-v820.js` → `backend/src/main/resources/db/migration/V820__legal_terms_v4.sql` (`--check` ile güncellik kontrolü; V290/V370/V480/V620 dondurulmuştur). Sonraki değişiklikte yeni V82x eklenir. Yayın öncesi avukat soruları: `docs/LEGAL_NOTES.md` başı. Kullanıcı notları: `docs/LEGAL_NOTES.md`.
+- Üretim: `node scripts/build-legal-migration-v1910.js` → `backend/src/main/resources/db/migration/V1910__legal_texts_academician.sql` (`--check` ile güncellik kontrolü; V290/V370/V480/V620/V820/V1470 dondurulmuştur; V1470 kaynakları `docs/legal/archive/v1470/`, V820 kaynakları `archive/v820/` altındadır). Sonraki değişiklikte yeni migration eklenir ve önceki sürümün kaynakları arşive alınır. Akademisyen revizyonunun değişiklik tablosu ve açık soruları: `docs/legal/internal/academician-revision-notes.md`; karar notu: `docs/LEGAL_NOTES.md` bölüm 15. Yayın öncesi avukat soruları: `docs/LEGAL_NOTES.md` başı. Kullanıcı notları: `docs/LEGAL_NOTES.md`.
 - Sunum anında `{{...}}` yer tutucuları `app_setting`'ten doldurulur (`LegalService.render`, 60 sn önbellek). Boş değerli kimlik satırı/cümle metinden çıkar; ham `{{…}}` hiçbir zaman gösterilmez.
 - İç belgeler: `docs/legal/internal/01…09` (kullanıcıya gösterilmez).
 
@@ -35,6 +35,7 @@ Diğer: Destek formu "Kişisel veri başvurusu" konusunu desteklemelidir; `/data
 8. **18 yaş altı.** Üniversite öğrencileri arasında 18 yaş altı olabilir (ör. erken kayıtlı); yasal temsilci onayı yaklaşımı kararlaştırılmalı.
 9. **Hesap silmede mesajların kalması** ve analitik olaylarının silinmemesi (aşağıda "uyum bulguları").
 10. **Kamu kurumu statüsü ve hukuki sebep:** İşleten kamu tüzel kişisi ise KVKK m.5/2-(ç)/(e) ve görev-yetki mevzuatı dayanağı hukuk danışmanıyla doğrulanmalı (kamu kurumları için "meşru menfaat" kısıtlı olabilir).
+11. **Akademisyen alanı (V1910): hukuki sebep ve rol soruları.** Öğrenci rehberinin tüm onaylı akademisyenlere görünmesi için m.5/2-(f) yeterli mi (açık rıza veya üniversitenin kendi yetkisi gerekir mi); yoklama/ders kaydı verisi "resmî görünümlü" olduğundan veri sorumlusu/işleyen rolü değişir mi, üniversitenin katılımı gerekir mi; yoklama ve ders kaydı için saklama süresi (kodda yok); akademisyenin personel olduğunun doğrulanması (otomatik onay yalnızca e-posta örüntüsüdür). Tam liste: `docs/legal/internal/academician-revision-notes.md` "AÇIK SORULAR".
 
 ## 3. Uyum bulguları (metin ↔ kod)
 
@@ -44,6 +45,7 @@ Diğer: Destek formu "Kişisel veri başvurusu" konusunu desteklemelidir; `/data
 | `message_access_audit`/`admin_audit` için saklama süresi kodda yok | Metin "denetim/yasal süre boyunca" der | Karar 2.3 |
 | Yönetici serbest gerekçe alanı kodda yok | Metin "gerekçeli durumlarda" (politika düzeyi) | Karar 2.4 |
 | Konum izni var, konum sunucuya gönderilmiyor | Metinler "gönderilmez" der; özellik eklenirse güncelle + yeniden rıza | Gelecek özellik |
+| Akademisyen alanı (V1900-V1904, `ac_*`, `academician`): öğrenci rehberi, ders kaydı, yoklama, duyuru/ek, devamsızlık uyarısı. Konum ve cihaz kimliği işlenmez (`ac_attendance.device_hash` ayrılmış, kullanılmıyor); derse/yoklamaya **otomatik saklama süresi yok** (ders veya hesap silinene kadar); öğrenci derse kendi çıkamaz; rehberden çıkma ayarı yok | Metinler (V1910: terms 1.3/4.11/7.5/13.1/15.3, privacy 2/4/7/15, kvkk 2/3/4/5/7/9/12, retention 2/3) bunu dürüstçe söyler; matris `docs/DATABASE.md` bölüm 16/18 | Karar 2.11 ve `internal/academician-revision-notes.md` AÇIK SORULAR; **hukuk onayı olmadan V1910 prod'a uygulanmaz** |
 | `access_ban`/`user_device_log` modülü başka bir iş kolunda geliştiriliyor; 90 gün ve anonimleştirici engeli bu görevin girdisidir | Metinler 90 gün, HMAC özeti, anonimleştirici kısıtı, engel kaydı der | Modül tamamlanınca süre/davranış tekrar doğrulanmalı (`DEVICE_HMAC_KEY` prod gerekliliği) |
 | Tek gönderimlik alıcı erişimi "ilk açılış veya 24 saat" | Metinlerle uyumlu (docs/MOBILE_API_GUIDE) | — |
 | Push önizleme varsayılan kapalı (`app.push.message-preview=false`) | Metinlerle uyumlu | Ayar açılırsa metinler ve `05` güncellenmeli |
@@ -65,6 +67,8 @@ Diğer: Destek formu "Kişisel veri başvurusu" konusunu desteklemelidir; `/data
 - [ ] Başvuru kanalı (Destek konusu "Kişisel veri başvurusu"), KEP, 30 gün süre süreci test edildi (`02`).
 - [ ] İhlal planı (`03`) tatbikatı yapıldı.
 - [ ] Mobil: kayıt ekranı ve İzinler ekranı yeni türleri gösteriyor (aşağıda).
+- [ ] **V1910 (akademisyen alanı) hukuk onayı:** `academician-revision-notes.md` AÇIK SORULAR cevaplandı; özellik ve V1910 birlikte yayımlanır, onaysız V1910 uygulanmaz. V1910 `require_reaccept=TRUE` (TERMS/PRIVACY/KVKK): mobil yeniden onay ekranı yayında ve `LEGAL_ENFORCE_REACCEPT` açma sırası (DEPLOY.md 14.4) gözden geçirildi.
+- [ ] Mağaza gizlilik formları (Play Veri Güvenliği, App Store App Privacy) akademisyen alanı verileriyle (ad, öğrenci numarası, fakülte/bölüm/sınıf, yoklama kaydı, duyuru dosyası) tutarlı.
 - [ ] Yeni sürüm yayınlandığında `require_reaccept`: TERMS/PRIVACY/KVKK/COMMUNITY_RULES için mevcut kullanıcılardan yeniden onay isteyecektir (V290 bu dört türde `true`).
 
 ## 5. Teknik notlar
