@@ -16,6 +16,7 @@ paths = [
   '''(^|/)pubspec\.lock$''',
   '''^docs/''',
   '''^scripts/(fixtures|load|k6)/''',
+  '''^mobile/lib/l10n/app_[a-z]+\.arb$''',
 ]
 regexes = [
   '''dev-only-[A-Za-z0-9._-]+''',
