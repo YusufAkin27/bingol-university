@@ -7703,7 +7703,7 @@
   "pollShareAction": "Anketi paylaş",
   "scanNotBu": "Bu bir BÜ Kampüs kodu değil.",
   "scanTitle": "QR tara",
-  "scanHint": "Profil, kulüp, anket ya da etkinlik kodunu çerçeveye hizala.",
+  "scanHint": "Profil, kulüp, anket, etkinlik ya da ders yoklaması kodunu çerçeveye hizala.",
   "scanCheckinNoRight": "Bu yoklama kodunu okutma yetkin yok.",
   "scanCheckinDone": "Yoklama alındı: {name}",
   "@scanCheckinDone": {
@@ -7738,6 +7738,24 @@
   },
   "scanClubJoinedNoName": "Kulübe katıldınız",
   "scanClubAlready": "Bu kulübün zaten üyesisiniz",
+  "scanLessonMarked": "Yoklama alındı: {course}",
+  "@scanLessonMarked": {
+    "placeholders": {
+      "course": {
+        "type": "String"
+      }
+    }
+  },
+  "scanLessonAlready": "Bu ders için yoklaman zaten alınmış: {course}",
+  "@scanLessonAlready": {
+    "placeholders": {
+      "course": {
+        "type": "String"
+      }
+    }
+  },
+  "scanLessonExpired": "Kodun süresi doldu. Ekrandaki kodu yeniden okut.",
+  "scanLessonNotEnrolled": "Bu dersin yoklama listesinde görünmüyorsun.",
   "signOutPendingTitle": "Gönderilmemiş mesajlar silinecek",
   "signOutPendingBody": "Gönderilmemiş {count} mesaj silinecek. Çıkış yapmak istiyor musun?",
   "@signOutPendingBody": {

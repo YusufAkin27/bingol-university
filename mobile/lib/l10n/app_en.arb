@@ -5152,7 +5152,7 @@
   "pollShareAction": "Share poll",
   "scanNotBu": "This is not a BÜ Kampüs code.",
   "scanTitle": "Scan QR",
-  "scanHint": "Align a profile, club, poll or event code in the frame.",
+  "scanHint": "Align a profile, club, poll, event or class attendance code in the frame.",
   "scanCheckinNoRight": "You are not allowed to scan this attendance code.",
   "scanCheckinDone": "Attendance recorded: {name}",
   "@scanCheckinDone": {
@@ -5187,6 +5187,24 @@
   },
   "scanClubJoinedNoName": "You joined the club",
   "scanClubAlready": "You are already a member of this club",
+  "scanLessonMarked": "Attendance recorded: {course}",
+  "@scanLessonMarked": {
+    "placeholders": {
+      "course": {
+        "type": "String"
+      }
+    }
+  },
+  "scanLessonAlready": "Your attendance is already recorded for this class: {course}",
+  "@scanLessonAlready": {
+    "placeholders": {
+      "course": {
+        "type": "String"
+      }
+    }
+  },
+  "scanLessonExpired": "The code has expired. Scan the code on the screen again.",
+  "scanLessonNotEnrolled": "You are not on the attendance list for this course.",
   "signOutPendingTitle": "Unsent messages will be deleted",
   "signOutPendingBody": "{count} unsent messages will be deleted. Sign out anyway?",
   "@signOutPendingBody": {

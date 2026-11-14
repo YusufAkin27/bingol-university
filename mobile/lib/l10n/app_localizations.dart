@@ -25569,7 +25569,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanHint.
   ///
   /// In tr, this message translates to:
-  /// **'Profil, kulüp, anket ya da etkinlik kodunu çerçeveye hizala.'**
+  /// **'Profil, kulüp, anket, etkinlik ya da ders yoklaması kodunu çerçeveye hizala.'**
   String get scanHint;
 
   /// No description provided for @scanCheckinNoRight.
@@ -25649,6 +25649,30 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bu kulübün zaten üyesisiniz'**
   String get scanClubAlready;
+
+  /// No description provided for @scanLessonMarked.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklama alındı: {course}'**
+  String scanLessonMarked(String course);
+
+  /// No description provided for @scanLessonAlready.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu ders için yoklaman zaten alınmış: {course}'**
+  String scanLessonAlready(String course);
+
+  /// No description provided for @scanLessonExpired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kodun süresi doldu. Ekrandaki kodu yeniden okut.'**
+  String get scanLessonExpired;
+
+  /// No description provided for @scanLessonNotEnrolled.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu dersin yoklama listesinde görünmüyorsun.'**
+  String get scanLessonNotEnrolled;
 
   /// No description provided for @signOutPendingTitle.
   ///

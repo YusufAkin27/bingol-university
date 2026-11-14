@@ -14271,7 +14271,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanHint =>
-      'Align a profile, club, poll or event code in the frame.';
+      'Align a profile, club, poll, event or class attendance code in the frame.';
 
   @override
   String get scanCheckinNoRight =>
@@ -14321,6 +14321,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanClubAlready => 'You are already a member of this club';
+
+  @override
+  String scanLessonMarked(String course) {
+    return 'Attendance recorded: $course';
+  }
+
+  @override
+  String scanLessonAlready(String course) {
+    return 'Your attendance is already recorded for this class: $course';
+  }
+
+  @override
+  String get scanLessonExpired => 'The code has expired. Scan the code on the screen again.';
+
+  @override
+  String get scanLessonNotEnrolled => 'You are not on the attendance list for this course.';
 
   @override
   String get signOutPendingTitle => 'Unsent messages will be deleted';

@@ -14162,7 +14162,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get scanHint =>
-      'وجّه رمز ملف أو نادٍ أو استطلاع أو فعالية إلى الإطار.';
+      'وجّه رمز ملف أو نادٍ أو استطلاع أو فعالية أو حضور محاضرة إلى الإطار.';
 
   @override
   String get scanCheckinNoRight => 'ليست لديك صلاحية مسح رمز الحضور هذا.';
@@ -14210,6 +14210,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get scanClubAlready => 'أنت عضو في هذا النادي بالفعل';
+
+  @override
+  String scanLessonMarked(String course) {
+    return 'تم تسجيل الحضور: $course';
+  }
+
+  @override
+  String scanLessonAlready(String course) {
+    return 'تم تسجيل حضورك مسبقا في هذه المحاضرة: $course';
+  }
+
+  @override
+  String get scanLessonExpired => 'انتهت صلاحية الرمز. امسح الرمز الظاهر على الشاشة مرة أخرى.';
+
+  @override
+  String get scanLessonNotEnrolled => 'لست مدرجا في قائمة حضور هذه المادة.';
 
   @override
   String get signOutPendingTitle => 'سيتم حذف الرسائل غير المرسلة';

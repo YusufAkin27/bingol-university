@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../core/analytics.dart';
+import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/permissions/ensure_permission.dart';
 import '../../core/session.dart';
@@ -106,6 +107,10 @@ class _QrScanHubPageState extends State<QrScanHubPage> with SingleTickerProvider
       await _joinClub(r, v);
       return;
     }
+    if (r.kind == ScanKind.lesson) {
+      await _lesson(v);
+      return;
+    }
     _done = true;
     buHaptic(BuHaptic.light);
     Analytics.instance.action('qr_scan', target: r.kind.name);
@@ -190,6 +195,42 @@ class _QrScanHubPageState extends State<QrScanHubPage> with SingleTickerProvider
       _throttle.rejected(v, DateTime.now());
       if (!mounted) return;
       _flash(errorText(e));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// Ders yoklama QR'ı: kod 5 sn'de bir değişir; ham metin sunucuya gider, içi uygulamada ayrıştırılmaz.
+  /// Süresi dolmuş kod (422) aranan bir hata değildir: tarayıcı açık kalır, [ScanThrottle] işaretlenmez, öğrenci hemen yeniden okutur.
+  Future<void> _lesson(String v) async {
+    final l = context.l10n;
+    setState(() => _busy = true);
+    try {
+      final res = await widget.session.api.post('/attendance/scan', {'code': v});
+      if (!mounted) return;
+      final already = res is Map && res['status'] == 'ALREADY';
+      final course = res is Map ? '${res['courseName'] ?? ''}'.trim() : '';
+      _done = true;
+      _throttle.succeeded(v, DateTime.now());
+      buHaptic(BuHaptic.medium);
+      Analytics.instance.action('qr_scan', target: 'lesson');
+      BuToast.show(
+        context,
+        already ? l.scanLessonAlready(course) : l.scanLessonMarked(course),
+        kind: already ? BuToastKind.info : BuToastKind.success,
+      );
+      Navigator.of(context).pop();
+    } catch (e) {
+      if (!mounted) return;
+      if (e is ApiError && e.status == 422 && e.code == 'ATTENDANCE_CODE_INVALID') {
+        _flash(l.scanLessonExpired);
+      } else if (e is ApiError && e.status == 403 && e.code == 'ATTENDANCE_NOT_ENROLLED') {
+        _throttle.rejected(v, DateTime.now());
+        _flash(l.scanLessonNotEnrolled);
+      } else {
+        _throttle.rejected(v, DateTime.now());
+        _flash(errorText(e));
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }

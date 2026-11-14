@@ -5152,7 +5152,7 @@
   "pollShareAction": "مشاركة الاستطلاع",
   "scanNotBu": "هذا ليس رمزاً لـ BÜ Kampüs.",
   "scanTitle": "مسح رمز QR",
-  "scanHint": "وجّه رمز ملف أو نادٍ أو استطلاع أو فعالية إلى الإطار.",
+  "scanHint": "وجّه رمز ملف أو نادٍ أو استطلاع أو فعالية أو حضور محاضرة إلى الإطار.",
   "scanCheckinNoRight": "ليست لديك صلاحية مسح رمز الحضور هذا.",
   "scanCheckinDone": "تم تسجيل الحضور: {name}",
   "@scanCheckinDone": {
@@ -5187,6 +5187,24 @@
   },
   "scanClubJoinedNoName": "انضممت إلى النادي",
   "scanClubAlready": "أنت عضو في هذا النادي بالفعل",
+  "scanLessonMarked": "تم تسجيل الحضور: {course}",
+  "@scanLessonMarked": {
+    "placeholders": {
+      "course": {
+        "type": "String"
+      }
+    }
+  },
+  "scanLessonAlready": "تم تسجيل حضورك مسبقا في هذه المحاضرة: {course}",
+  "@scanLessonAlready": {
+    "placeholders": {
+      "course": {
+        "type": "String"
+      }
+    }
+  },
+  "scanLessonExpired": "انتهت صلاحية الرمز. امسح الرمز الظاهر على الشاشة مرة أخرى.",
+  "scanLessonNotEnrolled": "لست مدرجا في قائمة حضور هذه المادة.",
   "signOutPendingTitle": "سيتم حذف الرسائل غير المرسلة",
   "signOutPendingBody": "سيتم حذف {count} رسائل غير مرسلة. هل تريد تسجيل الخروج؟",
   "@signOutPendingBody": {
