@@ -651,6 +651,7 @@ fi
 log "4/7 yedek, derleme ve baslatma$([ "$NOBUILD" = 1 ] && echo ' (--no-build)')"
 if [ "$DRY" = 1 ]; then
   plan "sunucu: bekleyen Flyway migration karsilastirmasi (yeni surum - calisan surum) ve UYARI (Flyway geri sarilmaz)"
+  plan "sunucu: yeni V<n> migration numaralari calisan surumdeki en yuksek V<n>'den BUYUK olmali (out-of-order kapali); degilse yedekten once DUR"
   if [ "$BACKUP" = 1 ]; then plan "sunucu: dagitim oncesi sifreli yedek: compose exec -u postgres backup /opt/backup/backup.sh (calisan yedek servisi varsa); BASARISIZSA dagitim DURUR, hicbir sey degismez"
   else plan "sunucu: --skip-backup: dagitim oncesi yedek ATLANIR (onerilmez)"; fi
   plan "sunucu: backend saglik bekleme ${HEALTH_WAIT_BACKEND} sn (HEALTH_WAIT_BACKEND)"
@@ -680,6 +681,26 @@ if [ -n "\$CUR" ] && [ -d "\$BASEDIR/releases/\$CUR" ]; then
   if [ -n "\$NEWM" ]; then
     rlog "UYARI: \$(printf '%s' "\$NEWM" | wc -w) yeni Flyway migration uygulanacak: \$NEWM"
     rlog "UYARI: Flyway geri SARILMAZ; otomatik geri alma eski imaji YENI semayla baslatir (migration'lar geriye uyumlu olmali, docs/DEPLOY.md bolum 8)"
+    # Prod'da Flyway out-of-order KAPALI: yeni V<n> numarasi calisan surumdeki en yuksek surumden BUYUK olmali, yoksa backend acilmaz.
+    # Yedekten ve herhangi bir degisiklikten ONCE denetlenir. Surumler sayisal okunur (bastaki sifirlar 10# ile atilir; depoda V1..V<n> duz tamsayi).
+    MAXV=0
+    for f in "\$BASEDIR/releases/\$CUR/\$MIG"/V*__*.sql; do
+      [ -f "\$f" ] || continue
+      b="\$(basename "\$f")"; v="\${b#V}"; v="\${v%%__*}"
+      case "\$v" in ''|*[!0-9]*) continue;; esac
+      v=\$((10#\$v)); if [ "\$v" -gt "\$MAXV" ]; then MAXV=\$v; fi
+    done
+    for n in \$NEWM; do
+      case "\$n" in V*__*.sql) ;; *) continue;; esac
+      v="\${n#V}"; v="\${v%%__*}"
+      case "\$v" in ''|*[!0-9]*) rlog "MIGRATION SIRA HATASI: \$n surum numarasi duz tamsayi degil (V<sayi>__*.sql beklenir)"; exit 6;; esac
+      v=\$((10#\$v))
+      if [ "\$v" -le "\$MAXV" ]; then
+        rlog "MIGRATION SIRA HATASI: yeni \$n (V\$v) calisan surumdeki en yuksek surumden (V\$MAXV) kucuk/esit; Flyway out-of-order kapali, backend acilmaz. Numarayi V\$((MAXV+1)) ya da daha buyuge tasiyin"
+        exit 6
+      fi
+    done
+    rlog "yeni migration numaralari sirali (calisan surumdeki en yuksek: V\$MAXV)"
   fi
 fi
 # T-146: dagitim oncesi sifreli yedek; basarisizsa HICBIR sey degismeden DUR (yedek, Flyway sonrasi tek geri donus yoludur)
@@ -740,6 +761,7 @@ if [ "$DEPLOY_RC" != 0 ]; then
     2) die "dagitim basarisiz VE geri alma basarisiz: elle mudahale gerekli (ssh $SSH_USER@$HOST; $BASEDIR/releases)" 1;;
     3) die "compose yapilandirma hatasi (.env.prod eksik degisken?)" 1;;
     4) die "dagitim oncesi YEDEK basarisiz: calisan surum degismedi. Yedek hatasini giderin (docker compose logs backup) ya da bilincli --skip-backup" 1;;
+    6) die "yeni migration numarasi calisan surumdeki en yuksek surumden kucuk/esit (Flyway out-of-order kapali): dagitim durduruldu, yedek alinmadi, calisan surum korunuyor; yeni migration numarasini buyutun" 1;;
     5) die "mevcut migration dosyasi degistirilmis/kaldirilmis: dagitim durduruldu, calisan surum korunuyor; uygulanmis dosyayi geri getirin ve yeni degisiklik icin yeni migration ekleyin" 1;;
     *) die "dagitim basarisiz (varsa onceki surume donuldu); gunlukler: ssh $SSH_USER@$HOST 'cd $BASEDIR/current && docker compose -p bu -f docker-compose.prod.yml -f deploy/compose.bukampus.yml --env-file $BASEDIR/.env.prod logs --tail=100'" 1;;
   esac
