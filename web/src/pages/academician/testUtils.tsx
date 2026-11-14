@@ -8,6 +8,7 @@ import AcademicianRoutes from '../../routes.academician';
 
 export type MockHandler = (req: { url: URL; method: string; body: unknown; init: RequestInit }) => Response | Promise<Response> | unknown;
 
+type Json = string | number | boolean | null | undefined | readonly unknown[] | { [k: string]: unknown };
 interface Entry {
   method: string;
   re: RegExp;
@@ -21,15 +22,15 @@ export function mockApi() {
   const toRe = (p: string) => new RegExp(`^${p.replace(/:[A-Za-z]+/g, '[^/]+')}$`);
   const api = {
     calls,
-    on(method: string, pattern: string, fn: MockHandler | unknown) {
+    on(method: string, pattern: string, fn: MockHandler | Json) {
       entries.unshift({ method, re: toRe(pattern), fn: (typeof fn === 'function' ? fn : () => fn) as MockHandler });
       return api;
     },
-    get: (p: string, fn: MockHandler | unknown) => api.on('GET', p, fn),
-    post: (p: string, fn: MockHandler | unknown) => api.on('POST', p, fn),
-    put: (p: string, fn: MockHandler | unknown) => api.on('PUT', p, fn),
-    patch: (p: string, fn: MockHandler | unknown) => api.on('PATCH', p, fn),
-    del: (p: string, fn: MockHandler | unknown) => api.on('DELETE', p, fn),
+    get: (p: string, fn: MockHandler | Json) => api.on('GET', p, fn),
+    post: (p: string, fn: MockHandler | Json) => api.on('POST', p, fn),
+    put: (p: string, fn: MockHandler | Json) => api.on('PUT', p, fn),
+    patch: (p: string, fn: MockHandler | Json) => api.on('PATCH', p, fn),
+    del: (p: string, fn: MockHandler | Json) => api.on('DELETE', p, fn),
     callsTo: (method: string, pattern: string) => calls.filter((c) => c.method === method && toRe(pattern).test(c.path)),
     install() {
       return mockFetch(async (rawUrl, init) => {

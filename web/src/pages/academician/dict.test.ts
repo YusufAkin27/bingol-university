@@ -7,7 +7,7 @@ import tr from './tr';
 const DIR = join(process.cwd(), 'src', 'pages', 'academician');
 const walk = (d: string): string[] => readdirSync(d).flatMap((n) => (statSync(join(d, n)).isDirectory() ? walk(join(d, n)) : [join(d, n)]));
 const sources = walk(DIR).filter((f) => /\.tsx?$/.test(f) && !/\.test\.tsx?$/.test(f) && !/testUtils|tr\.ts$/.test(f));
-const text = sources.map((f) => readFileSync(f, 'utf8')).join('\n');
+const text = sources.map((f) => readFileSync(f, 'utf-8')).join('\n');
 
 describe('akademisyen sözlüğü', () => {
   it("kaynaktaki her sabit 'ac.*' anahtarı tanımlı", () => {
