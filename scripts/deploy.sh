@@ -272,7 +272,23 @@ SHORT="${SHA:0:10}"
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 log "1/7 yerel kapilar: dal=$BRANCH hedef commit=$SHORT"
 if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+  if [ "$CI_MODE" = 1 ]; then die "DEPLOY_CI=1: calisma agaci TEMIZ DEGIL (commit'lenmemis degisiklikler var); CI'da dagitim reddedildi" 2; fi
   warn "calisma agaci TEMIZ DEGIL: commit'lenmemis degisiklikler sunucuya GITMEZ (yalniz $SHORT aktarilir)"
+fi
+if [ "$CI_MODE" = 1 ]; then
+  # Hedef commit origin/main'in atasi olmali (yalniz main'e girmis kod uretime gider). Sig klonlarda once tam gecmis getirilir.
+  if [ "$(git rev-parse --is-shallow-repository 2>/dev/null)" = true ]; then
+    git fetch --unshallow origin '+refs/heads/main:refs/remotes/origin/main' >/dev/null 2>&1       || git fetch origin '+refs/heads/main:refs/remotes/origin/main' >/dev/null 2>&1       || die "DEPLOY_CI=1: origin main getirilemedi (sig klon icin 'git fetch --unshallow origin main' denendi)" 2
+  else
+    git fetch origin '+refs/heads/main:refs/remotes/origin/main' >/dev/null 2>&1 || die "DEPLOY_CI=1: origin main getirilemedi" 2
+  fi
+  if git merge-base --is-ancestor "$SHA" refs/remotes/origin/main 2>/dev/null; then
+    log "CI: $SHORT origin/main icinde"
+  elif [ "${DEPLOY_ALLOW_NON_MAIN:-0}" = 1 ]; then
+    warn "DEPLOY_ALLOW_NON_MAIN=1: $SHORT origin/main ICINDE DEGIL; acil durum istisnasi ile DEVAM EDILIYOR (dal=$BRANCH). Bunu sonradan main'e alin"
+  else
+    die "DEPLOY_CI=1: $SHORT origin/main'in atasi degil; CI yalniz main'deki commit'leri dagitir. Acil hotfix dali icin bilincli istisna: DEPLOY_ALLOW_NON_MAIN=1" 2
+  fi
 fi
 if ! git branch -r --contains "$SHA" 2>/dev/null | grep -q .; then
   warn "$SHORT henuz uzak depoya push edilmemis gorunuyor (aktarim git archive ile yapildigindan sunucu yine de alir)"
@@ -335,6 +351,11 @@ fi
 if [ "$HAVE_ENV" = 1 ]; then
   log ".env.prod mevcut: DEGISTIRILMEDI"
 else
+  # CI'da ilk kurulum YASAK: asagida uretilen sirlar ve age OZEL anahtari yerel .deploy/ dosyalarina yazilir ve sunucu kopyasi silinir;
+  # gecici kosucuda bunlar kaybolur. Bu kontrol ilk sir uretiminden, .deploy/ olusturmaktan ve sunucuya .next_release yazmaktan ONCE.
+  if [ "$DRY" = 0 ] && [ "$CI_MODE" = 1 ]; then
+    die "DEPLOY_CI=1: sunucuda .env.prod YOK (ilk kurulum). Ilk kurulum sirlari ve yedek ozel anahtari yerel dosyaya yazar; gecici CI kosucusunda kaybolur. Ilk kurulumu bir dizustu makineden (DEPLOY_CI olmadan) yapin" 2
+  fi
   [ "$DRY" = 1 ] && [ -z "$ACME_EMAIL" ] && warn "DEPLOY_ACME_EMAIL tanimli degil: ilk .env.prod uretiminde dagitim DURUR (gercek bir adres gerekir)"
   [ "$DRY" = 1 ] && plan "sunucu: $BASEDIR/.env.prod YOKSA: gen-secrets.sh ile uretilir (DB/JWT/ADMIN/CRYPTO/DEVICE sirlari, izin 600), DOMAIN=$DOMAIN, CORS/PUBLIC_WEB_URL=https://$DOMAIN, WWW_DOMAIN, BACKUP_METRICS_DIR, age yedek anahtar cifti (ozel anahtar yerel .deploy/backup-age-private.key'e, uygulama sirlari .deploy/generated-secrets.txt'e AYRI dosyalar olarak alinir; ozel anahtar yerel kopya dogrulaninca sunucudan SILINIR)"
   if [ "$DRY" = 0 ]; then
