@@ -5152,7 +5152,7 @@
   "pollShareAction": "Share poll",
   "scanNotBu": "This is not a BÜ Kampüs code.",
   "scanTitle": "Scan QR",
-  "scanHint": "Align a profile, club, poll or event code in the frame.",
+  "scanHint": "Align a profile, club, poll, event or class attendance code in the frame.",
   "scanCheckinNoRight": "You are not allowed to scan this attendance code.",
   "scanCheckinDone": "Attendance recorded: {name}",
   "@scanCheckinDone": {
@@ -5187,6 +5187,107 @@
   },
   "scanClubJoinedNoName": "You joined the club",
   "scanClubAlready": "You are already a member of this club",
+  "scanLessonMarked": "Attendance recorded: {course}",
+  "@scanLessonMarked": {
+    "placeholders": {
+      "course": {
+        "type": "String"
+      }
+    }
+  },
+  "scanLessonAlready": "Your attendance is already recorded for this class: {course}",
+  "@scanLessonAlready": {
+    "placeholders": {
+      "course": {
+        "type": "String"
+      }
+    }
+  },
+  "scanLessonExpired": "The code has expired. Scan the code on the screen again.",
+  "scanLessonNotEnrolled": "You are not on the attendance list for this course.",
+  "scanLessonRevoked": "Your attendance for this class was removed by the lecturer.",
+  "scanLessonPending": "You are not enrolled in this course. Your attendance request was sent to the lecturer; if they approve, your attendance will be recorded.",
+  "scanLessonReceived": "Scan received",
+  "myCoursesTitle": "My courses",
+  "myCoursesSub": "Attendance, notices and upcoming exams and assignments",
+  "myCoursesEmptyTitle": "You are not enrolled in any course yet",
+  "myCoursesEmptyBody": "Your courses appear here once your lecturer adds you to them.",
+  "myCoursesUpcoming": "Upcoming",
+  "myCoursesCounts": "Present: {present} · Absent: {absent}",
+  "@myCoursesCounts": {
+    "placeholders": {
+      "present": {
+        "type": "int"
+      },
+      "absent": {
+        "type": "int"
+      }
+    }
+  },
+  "myCoursesLimitCount": "Absence limit: {n} classes",
+  "@myCoursesLimitCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "myCoursesLimitPercent": "Absence limit: {n}%",
+  "@myCoursesLimitPercent": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "myCoursesAtRisk": "You are close to the absence limit",
+  "myCoursesOverLimit": "You are over the absence limit",
+  "courseNoticesTitle": "Notices",
+  "courseNoticesEmpty": "There are no notices for this course yet.",
+  "noticeTypeLessonStarted": "Class started",
+  "noticeTypeAttendanceStarted": "Attendance started",
+  "noticeTypeExam": "Exam",
+  "noticeTypeAssignment": "Assignment",
+  "noticeTypeMaterial": "Course material",
+  "noticeExamWhen": "Exam time: {when}",
+  "@noticeExamWhen": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "noticeDueWhen": "Due: {when}",
+  "@noticeDueWhen": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "noticeFileDownloading": "Downloading…",
+  "noticeFileFailed": "Could not open the file. Check your connection and try again.",
+  "noticeFileShareTitle": "Open or save the file",
+  "noticeTypeLessonCancelled": "Class cancelled",
+  "noticeTypeRoomChanged": "Room changed",
+  "courseNoticesMore": "Show more",
+  "noticeTypeOther": "Notice",
+  "noticeRoomChanged": "Room changed: {room}",
+  "@noticeRoomChanged": {
+    "placeholders": {
+      "room": {
+        "type": "String"
+      }
+    }
+  },
+  "noticeLessonWhen": "Class time: {when}",
+  "@noticeLessonWhen": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "signOutPendingTitle": "Unsent messages will be deleted",
   "signOutPendingBody": "{count} unsent messages will be deleted. Sign out anyway?",
   "@signOutPendingBody": {

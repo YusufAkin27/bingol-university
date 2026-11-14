@@ -28,6 +28,7 @@ NotificationCategory notificationCategory(Map<String, dynamic> data) {
     return NotificationCategory.poll;
   }
   if (target == PushDest.exams ||
+      target == PushDest.course ||
       target == PushDest.timetable ||
       subtype == 'EXAM_REMINDER') {
     return NotificationCategory.academic;

@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../core/analytics.dart';
+import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/permissions/ensure_permission.dart';
 import '../../core/session.dart';
@@ -46,6 +47,13 @@ class _QrScanHubPageState extends State<QrScanHubPage> with SingleTickerProvider
   late final AnimationController _sweep = AnimationController(vsync: this, duration: const Duration(milliseconds: 2200));
   final _controller = MobileScannerController(formats: const [BarcodeFormat.qrCode]);
   final _throttle = ScanThrottle();
+
+  /// Ders yoklaması için ayrı kısıtlayıcı: farklı (taze) kod bekletilmez, AYNI kod ise 8 sn ve üstel olarak bekletilir.
+  /// Kamera aynı bayat kodu saniyede birkaç kez okur; her okuma sunucuya gitseydi 10/dk sınırı saniyeler içinde tükenirdi.
+  final _lessonThrottle = ScanThrottle(anyCooldown: Duration.zero, sameCooldown: const Duration(seconds: 8));
+
+  /// Sunucu 429 verdiyse bu ana kadar hiçbir ders yoklaması isteği gönderilmez (Retry-After, yoksa 15 sn).
+  DateTime? _lessonHoldUntil;
   bool? _cam; // null = denetleniyor
   bool _done = false;
   bool _busy = false;
@@ -91,8 +99,14 @@ class _QrScanHubPageState extends State<QrScanHubPage> with SingleTickerProvider
     if (_done || _busy) return;
     final now = DateTime.now();
     final v = raw.trim();
-    if (!_throttle.accept(v, now)) return;
     final r = resolveScan(v, selfId: widget.session.userId);
+    if (r.kind == ScanKind.lesson) {
+      final hold = _lessonHoldUntil;
+      if (hold != null && now.isBefore(hold)) return;
+      if (!_lessonThrottle.accept(v, now)) return;
+    } else if (!_throttle.accept(v, now)) {
+      return;
+    }
     if (!r.valid) {
       _throttle.rejected(v, now);
       _flash(context.l10n.scanNotBu);
@@ -104,6 +118,10 @@ class _QrScanHubPageState extends State<QrScanHubPage> with SingleTickerProvider
     }
     if (r.kind == ScanKind.clubJoin) {
       await _joinClub(r, v);
+      return;
+    }
+    if (r.kind == ScanKind.lesson) {
+      await _lesson(v);
       return;
     }
     _done = true;
@@ -190,6 +208,58 @@ class _QrScanHubPageState extends State<QrScanHubPage> with SingleTickerProvider
       _throttle.rejected(v, DateTime.now());
       if (!mounted) return;
       _flash(errorText(e));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// Ders yoklama QR'ı: kod 5 sn'de bir değişir; ham metin sunucuya gider, içi uygulamada ayrıştırılmaz.
+  /// Süresi dolmuş kod (422) aranan bir hata değildir: tarayıcı açık kalır, [ScanThrottle] işaretlenmez, öğrenci hemen yeniden okutur.
+  Future<void> _lesson(String v) async {
+    final l = context.l10n;
+    setState(() => _busy = true);
+    try {
+      final res = await widget.session.api.post('/attendance/scan', {'code': v});
+      if (!mounted) return;
+      final status = res is Map ? '${res['status'] ?? ''}' : '';
+      final course = res is Map ? '${res['courseName'] ?? ''}'.trim() : '';
+      _done = true;
+      _lessonThrottle.succeeded(v, DateTime.now());
+      buHaptic(BuHaptic.medium);
+      Analytics.instance.action('qr_scan', target: 'lesson');
+      // MARKED / ALREADY / PENDING (kayıtsız öğrenci: okutman onayına gitti); bilinmeyen durum nötr "okutma alındı".
+      final (text, kind) = switch (status) {
+        'MARKED' => (l.scanLessonMarked(course), BuToastKind.success),
+        'ALREADY' => (l.scanLessonAlready(course), BuToastKind.info),
+        'PENDING' => (l.scanLessonPending, BuToastKind.info),
+        _ => (l.scanLessonReceived, BuToastKind.info),
+      };
+      BuToast.show(context, text, kind: kind);
+      Navigator.of(context).pop();
+    } catch (e) {
+      if (!mounted) return;
+      if (e is ApiError && e.status == 422 && e.code == 'ATTENDANCE_CODE_INVALID') {
+        // Bayat/kapanmış kod: aynı metin tekrar gönderilmez (kısıtlayıcı), taze kod hemen kabul edilir.
+        _lessonThrottle.rejected(v, DateTime.now());
+        _flash(l.scanLessonExpired);
+      } else if (e is ApiError && e.status == 403 && e.code == 'ATTENDANCE_NOT_ENROLLED') {
+        _lessonThrottle.rejected(v, DateTime.now());
+        _flash(l.scanLessonNotEnrolled);
+      } else if (e is ApiError && e.status == 403 && e.code == 'ATTENDANCE_REVOKED') {
+        // Öğretim elemanı kaydı kaldırdı: yeniden okutmak geri getirmez; kesin sonuç, tarayıcı kapanır.
+        _done = true;
+        _lessonThrottle.rejected(v, DateTime.now());
+        BuToast.show(context, l.scanLessonRevoked, kind: BuToastKind.warning);
+        Navigator.of(context).pop();
+      } else {
+        final now = DateTime.now();
+        _lessonThrottle.rejected(v, now);
+        if (e is ApiError && e.status == 429) {
+          // Sınır aşıldı: tarayıcı açık kalır, bekleme mesajı gösterilir, süre dolana dek istek atılmaz.
+          _lessonHoldUntil = now.add(Duration(seconds: (e.retryAfter ?? 15).clamp(5, 120).toInt()));
+        }
+        _flash(errorText(e));
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }

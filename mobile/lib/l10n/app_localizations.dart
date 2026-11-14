@@ -25569,7 +25569,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanHint.
   ///
   /// In tr, this message translates to:
-  /// **'Profil, kulüp, anket ya da etkinlik kodunu çerçeveye hizala.'**
+  /// **'Profil, kulüp, anket, etkinlik ya da ders yoklaması kodunu çerçeveye hizala.'**
   String get scanHint;
 
   /// No description provided for @scanCheckinNoRight.
@@ -25649,6 +25649,216 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bu kulübün zaten üyesisiniz'**
   String get scanClubAlready;
+
+  /// No description provided for @scanLessonMarked.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklama alındı: {course}'**
+  String scanLessonMarked(String course);
+
+  /// No description provided for @scanLessonAlready.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu ders için yoklaman zaten alınmış: {course}'**
+  String scanLessonAlready(String course);
+
+  /// No description provided for @scanLessonExpired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kodun süresi doldu. Ekrandaki kodu yeniden okut.'**
+  String get scanLessonExpired;
+
+  /// No description provided for @scanLessonNotEnrolled.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu dersin yoklama listesinde görünmüyorsun.'**
+  String get scanLessonNotEnrolled;
+
+  /// No description provided for @scanLessonRevoked.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu ders için yoklaman öğretim elemanı tarafından kaldırıldı.'**
+  String get scanLessonRevoked;
+
+  /// No description provided for @myCoursesTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Derslerim'**
+  String get myCoursesTitle;
+
+  /// No description provided for @myCoursesSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Devam durumu, duyurular ve yaklaşan sınav/ödevler'**
+  String get myCoursesSub;
+
+  /// No description provided for @myCoursesEmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz bir derse kayıtlı değilsin'**
+  String get myCoursesEmptyTitle;
+
+  /// No description provided for @myCoursesEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Öğretim elemanın seni bir derse eklediğinde burada görünür.'**
+  String get myCoursesEmptyBody;
+
+  /// No description provided for @myCoursesUpcoming.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yaklaşanlar'**
+  String get myCoursesUpcoming;
+
+  /// No description provided for @myCoursesCounts.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katıldığın: {present} · Devamsız: {absent}'**
+  String myCoursesCounts(int present, int absent);
+
+  /// No description provided for @myCoursesLimitCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'Devamsızlık sınırı: {n} ders'**
+  String myCoursesLimitCount(int n);
+
+  /// No description provided for @myCoursesLimitPercent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Devamsızlık sınırı: %{n}'**
+  String myCoursesLimitPercent(int n);
+
+  /// No description provided for @myCoursesAtRisk.
+  ///
+  /// In tr, this message translates to:
+  /// **'Devamsızlık sınırına yaklaştın'**
+  String get myCoursesAtRisk;
+
+  /// No description provided for @myCoursesOverLimit.
+  ///
+  /// In tr, this message translates to:
+  /// **'Devamsızlık sınırını aştın'**
+  String get myCoursesOverLimit;
+
+  /// No description provided for @courseNoticesTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Duyurular'**
+  String get courseNoticesTitle;
+
+  /// No description provided for @courseNoticesEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu ders için henüz duyuru yok.'**
+  String get courseNoticesEmpty;
+
+  /// No description provided for @noticeTypeLessonStarted.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ders başladı'**
+  String get noticeTypeLessonStarted;
+
+  /// No description provided for @noticeTypeAttendanceStarted.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklama başladı'**
+  String get noticeTypeAttendanceStarted;
+
+  /// No description provided for @noticeTypeExam.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınav'**
+  String get noticeTypeExam;
+
+  /// No description provided for @noticeTypeAssignment.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ödev'**
+  String get noticeTypeAssignment;
+
+  /// No description provided for @noticeTypeMaterial.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ders materyali'**
+  String get noticeTypeMaterial;
+
+  /// No description provided for @noticeExamWhen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınav zamanı: {when}'**
+  String noticeExamWhen(String when);
+
+  /// No description provided for @noticeDueWhen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Son teslim: {when}'**
+  String noticeDueWhen(String when);
+
+  /// No description provided for @noticeFileDownloading.
+  ///
+  /// In tr, this message translates to:
+  /// **'İndiriliyor…'**
+  String get noticeFileDownloading;
+
+  /// No description provided for @noticeFileFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dosya açılamadı. Bağlantını kontrol edip tekrar dene.'**
+  String get noticeFileFailed;
+
+  /// No description provided for @noticeFileShareTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dosyayı aç veya kaydet'**
+  String get noticeFileShareTitle;
+
+  /// No description provided for @noticeTypeLessonCancelled.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ders iptali'**
+  String get noticeTypeLessonCancelled;
+
+  /// No description provided for @noticeTypeRoomChanged.
+  ///
+  /// In tr, this message translates to:
+  /// **'Derslik değişti'**
+  String get noticeTypeRoomChanged;
+
+  /// No description provided for @noticeTypeOther.
+  ///
+  /// In tr, this message translates to:
+  /// **'Duyuru'**
+  String get noticeTypeOther;
+
+  /// No description provided for @noticeRoomChanged.
+  ///
+  /// In tr, this message translates to:
+  /// **'Derslik değişti: {room}'**
+  String noticeRoomChanged(String room);
+
+  /// No description provided for @noticeLessonWhen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ders zamanı: {when}'**
+  String noticeLessonWhen(String when);
+
+  /// No description provided for @scanLessonPending.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu derse kayıtlı değilsin. Yoklama isteğin öğretim elemanına iletildi; onaylarsa yoklaman işlenecek.'**
+  String get scanLessonPending;
+
+  /// No description provided for @scanLessonReceived.
+  ///
+  /// In tr, this message translates to:
+  /// **'Okutma alındı'**
+  String get scanLessonReceived;
+
+  /// No description provided for @courseNoticesMore.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daha fazla göster'**
+  String get courseNoticesMore;
 
   /// No description provided for @signOutPendingTitle.
   ///

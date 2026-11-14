@@ -14162,7 +14162,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get scanHint =>
-      'وجّه رمز ملف أو نادٍ أو استطلاع أو فعالية إلى الإطار.';
+      'وجّه رمز ملف أو نادٍ أو استطلاع أو فعالية أو حضور محاضرة إلى الإطار.';
 
   @override
   String get scanCheckinNoRight => 'ليست لديك صلاحية مسح رمز الحضور هذا.';
@@ -14210,6 +14210,129 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get scanClubAlready => 'أنت عضو في هذا النادي بالفعل';
+
+  @override
+  String scanLessonMarked(String course) {
+    return 'تم تسجيل الحضور: $course';
+  }
+
+  @override
+  String scanLessonAlready(String course) {
+    return 'تم تسجيل حضورك مسبقا في هذه المحاضرة: $course';
+  }
+
+  @override
+  String get scanLessonExpired => 'انتهت صلاحية الرمز. امسح الرمز الظاهر على الشاشة مرة أخرى.';
+
+  @override
+  String get scanLessonNotEnrolled => 'لست مدرجا في قائمة حضور هذه المادة.';
+
+  @override
+  String get scanLessonRevoked => 'تمت إزالة حضورك في هذه المحاضرة من قبل المحاضر.';
+
+  @override
+  String get myCoursesTitle => 'موادي';
+
+  @override
+  String get myCoursesSub => 'الحضور والإعلانات والامتحانات والواجبات القادمة';
+
+  @override
+  String get myCoursesEmptyTitle => 'لست مسجلا في أي مادة بعد';
+
+  @override
+  String get myCoursesEmptyBody => 'ستظهر موادك هنا عندما يضيفك المحاضر إليها.';
+
+  @override
+  String get myCoursesUpcoming => 'القادم';
+
+  @override
+  String myCoursesCounts(int present, int absent) {
+    return 'حاضر: $present · غائب: $absent';
+  }
+
+  @override
+  String myCoursesLimitCount(int n) {
+    return 'حد الغياب: $n محاضرة';
+  }
+
+  @override
+  String myCoursesLimitPercent(int n) {
+    return 'حد الغياب: $n%';
+  }
+
+  @override
+  String get myCoursesAtRisk => 'اقتربت من حد الغياب';
+
+  @override
+  String get myCoursesOverLimit => 'تجاوزت حد الغياب';
+
+  @override
+  String get courseNoticesTitle => 'الإعلانات';
+
+  @override
+  String get courseNoticesEmpty => 'لا توجد إعلانات لهذه المادة بعد.';
+
+  @override
+  String get noticeTypeLessonStarted => 'بدأت المحاضرة';
+
+  @override
+  String get noticeTypeAttendanceStarted => 'بدأ تسجيل الحضور';
+
+  @override
+  String get noticeTypeExam => 'امتحان';
+
+  @override
+  String get noticeTypeAssignment => 'واجب';
+
+  @override
+  String get noticeTypeMaterial => 'مادة تعليمية';
+
+  @override
+  String noticeExamWhen(String when) {
+    return 'موعد الامتحان: $when';
+  }
+
+  @override
+  String noticeDueWhen(String when) {
+    return 'آخر موعد للتسليم: $when';
+  }
+
+  @override
+  String get noticeFileDownloading => 'جارٍ التنزيل…';
+
+  @override
+  String get noticeFileFailed => 'تعذر فتح الملف. تحقق من الاتصال وحاول مجددا.';
+
+  @override
+  String get noticeFileShareTitle => 'فتح الملف أو حفظه';
+
+  @override
+  String get noticeTypeLessonCancelled => 'إلغاء المحاضرة';
+
+  @override
+  String get noticeTypeRoomChanged => 'تغيير القاعة';
+
+  @override
+  String get noticeTypeOther => 'إعلان';
+
+  @override
+  String noticeRoomChanged(String room) {
+    return 'تغيرت القاعة: $room';
+  }
+
+  @override
+  String noticeLessonWhen(String when) {
+    return 'موعد المحاضرة: $when';
+  }
+
+  @override
+  String get scanLessonPending => 'لست مسجلا في هذه المادة. تم إرسال طلب حضورك إلى المحاضر، وإذا وافق فسيتم تسجيل حضورك.';
+
+  @override
+  String get scanLessonReceived => 'تم استلام المسح';
+
+  @override
+  String get courseNoticesMore => 'عرض المزيد';
 
   @override
   String get signOutPendingTitle => 'سيتم حذف الرسائل غير المرسلة';

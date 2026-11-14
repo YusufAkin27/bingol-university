@@ -20,6 +20,10 @@ enum ScanKind {
   /// Etkinlik yoklama yükü: görevliyse yoklama alınır (yetki ve hız sınırı sunucudadır).
   checkin,
 
+  /// Ders yoklama yükü (`bingol-lesson:{oturum}.{adım}.{imza}`): akademisyenin gösterdiği 5 sn'de bir değişen kod; okutan öğrenci
+  /// `POST /attendance/scan` ile yoklamaya yazılır (geçerlilik ve ders kaydı sunucuda denetlenir; uygulama içini AYRIŞTIRMAZ).
+  lesson,
+
   /// Kulüp katılım yükü (`bingol-clubjoin:{id}.{pencere}.{imza}`): kulüp yöneticisinin gösterdiği kısa ömürlü kod;
   /// okutan kullanıcı `POST /communities/{id}/join-by-code` ile doğrudan üye olur (geçerlilik sunucudadır).
   clubJoin,
@@ -48,6 +52,7 @@ const int kScanMaxLength = 300;
 
 final RegExp _checkin = RegExp(r'^bingol-checkin:([0-9]{1,18})\.([A-Za-z0-9_\-.]{1,250})$');
 final RegExp _clubJoin = RegExp(r'^bingol-clubjoin:([0-9]{1,18})\.([A-Za-z0-9_\-.]{1,250})$');
+final RegExp _lesson = RegExp(r'^bingol-lesson:([0-9]{1,18})\.([A-Za-z0-9_\-.]{1,250})$');
 final RegExp _bad = RegExp(r'[\s\u0000-\u001f\u007f]');
 
 ScanResult resolveScan(String? raw, {int? selfId}) {
@@ -66,6 +71,7 @@ ScanResult resolveScan(String? raw, {int? selfId}) {
     if (id == null || id <= 0) return invalid;
     return ScanResult(ScanKind.clubJoin, clubId: id, code: text);
   }
+  if (_lesson.hasMatch(text)) return ScanResult(ScanKind.lesson, code: text);
   final t = parseShareLink(text);
   if (t == null) return invalid;
   if (t.type == ShareType.user) {

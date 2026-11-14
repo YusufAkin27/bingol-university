@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../features/academic/exams_page.dart';
 import '../../features/academic/timetable_page.dart';
 import '../../features/chat/chat_detail_page.dart';
+import '../../features/courses/my_course_detail_page.dart';
 import '../../features/clubs/club_detail_page.dart';
 import '../../features/events/event_detail_page.dart';
 import '../../features/follow/follow_requests_page.dart';
@@ -323,6 +324,9 @@ class PushRouter {
         } else {
           push(ExamsPage(session: s), 'exams');
         }
+        return true;
+      case PushDest.course:
+        push(MyCourseDetailPage(session: s, courseId: id!), 'my_course_detail');
         return true;
       case PushDest.ticket:
         push(SupportTicketPage(session: s, ticketId: id!), 'support_ticket');
