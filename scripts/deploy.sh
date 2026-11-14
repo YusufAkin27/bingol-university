@@ -65,11 +65,22 @@ die()  { printf '%s [deploy] HATA: %s\n' "$(date '+%F %T')" "$1" >&2; exit "${2:
 plan() { printf '    [dry-run] %s\n' "$*"; }
 
 # --- yapilandirma (.deploy.env: tirnakli degerleri kabuk kendisi cozer; HICBIR YERDE yazdirilmaz) ---
-[ -f .deploy.env ] || die ".deploy.env yok (DEPLOY_HOST, DEPLOY_USER, DEPLOY_DOMAIN)"
+# .deploy.env OPSIYONELDIR: varsa okunur; yoksa (CI kosucusu) ortamda onceden tanimli DEPLOY_* degiskenleri kullanilir.
 set +x
-set -a; . ./.deploy.env; set +a
-HOST="${DEPLOY_HOST:?DEPLOY_HOST gerekli}"
-DOMAIN="${DEPLOY_DOMAIN:?DEPLOY_DOMAIN gerekli}"
+if [ -f .deploy.env ]; then
+  set -a; . ./.deploy.env; set +a
+else
+  log ".deploy.env yok: yapilandirma ortam degiskenlerinden okunuyor (DEPLOY_HOST, DEPLOY_DOMAIN, ...)"
+fi
+HOST="${DEPLOY_HOST:?DEPLOY_HOST gerekli (.deploy.env dosyasinda ya da ortam degiskeni olarak)}"
+DOMAIN="${DEPLOY_DOMAIN:?DEPLOY_DOMAIN gerekli (.deploy.env dosyasinda ya da ortam degiskeni olarak)}"
+# CI kipi YALNIZ DEPLOY_CI=1 ile acilir (genel CI=true tek basina kip degistirmez). CI kipinde: pinli host anahtari ZORUNLU,
+# kirli agac ve origin/main disi commit REDDEDILIR, ilk kurulum (.env.prod uretimi) REDDEDILIR (bkz. docs/DEPLOY_SCRIPT.md).
+CI_MODE=0; [ "${DEPLOY_CI:-0}" = 1 ] && CI_MODE=1
+if [ "$CI_MODE" = 0 ] && [ "${CI:-}" = true ]; then
+  warn "CI=true gorunuyor ama DEPLOY_CI=1 yok: CI kisitlari (pinli host anahtari, main kosulu, temiz agac, ilk kurulum yasagi) UYGULANMIYOR"
+fi
+[ "$CI_MODE" = 1 ] && log "CI KIPI (DEPLOY_CI=1)"
 SSH_USER="${DEPLOY_USER:-deploy}"
 if [ "$SSH_USER" = root ]; then
   warn "DEPLOY_USER=root: sunucuda root SSH girisi kapali; 'deploy' kullaniliyor (.deploy.env'i guncelleyin)"
@@ -81,7 +92,34 @@ ACME_EMAIL="${DEPLOY_ACME_EMAIL:-}"
 unset DEPLOY_PASSWORD   # bu betik parolayi hic kullanmaz
 [ -f "$KEY" ] || { [ "$DRY" = 1 ] || die "SSH anahtari yok: $KEY"; warn "SSH anahtari yok: $KEY (dry-run devam ediyor)"; }
 
-SSH_OPTS=(-i "$KEY" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=accept-new
+# Cikis tuzagi: onceden tanimli bir EXIT tuzagi varsa KORUNUR ve en sonda calistirilir; burada gecici dosya + sunucu kilidi temizlenir.
+TMP_FILES=(); LOCK_HELD=0; LOCK_TOKEN=""
+prev_exit_trap() { # varsa mevcut EXIT tuzak komutunu yazar (`set --` yalniz bu islevin parametrelerini etkiler)
+  [ -n "$(trap -p EXIT)" ] || return 0
+  eval "set -- $(trap -p EXIT)"; printf '%s' "$3"
+}
+PREV_EXIT_TRAP="$(prev_exit_trap)"
+on_exit() {
+  local rc=$?
+  trap - EXIT
+  [ "${#TMP_FILES[@]}" -eq 0 ] || rm -f -- "${TMP_FILES[@]}" 2>/dev/null || true
+  if [ "$LOCK_HELD" = 1 ]; then release_lock || true; fi
+  if [ -n "$PREV_EXIT_TRAP" ]; then eval "$PREV_EXIT_TRAP" || true; fi
+  exit "$rc"
+}
+trap on_exit EXIT
+# Sabitlenmis host anahtari (DEPLOY_KNOWN_HOSTS: bir ya da daha fazla known_hosts satiri). Yoksa eski davranis (accept-new);
+# CI kipinde yoksa DUR: gecici kosucu ilk-gorusmede-guven (TOFU) YAPMAMALI.
+if [ -n "${DEPLOY_KNOWN_HOSTS:-}" ]; then
+  KH_FILE="$(mktemp "${TMPDIR:-/tmp}/bu-deploy-known-hosts.XXXXXX")"; TMP_FILES+=("$KH_FILE")
+  chmod 600 "$KH_FILE"
+  printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$KH_FILE"
+  HOSTKEY_OPTS=(-o "UserKnownHostsFile=$KH_FILE" -o StrictHostKeyChecking=yes)
+else
+  [ "$CI_MODE" = 0 ] || die "DEPLOY_CI=1 iken DEPLOY_KNOWN_HOSTS zorunlu (sunucunun known_hosts satirlari; ornek: ssh-keyscan -t ed25519 $HOST). Gecici kosucu host anahtarina ilk gorusmede guvenemez" 2
+  HOSTKEY_OPTS=(-o StrictHostKeyChecking=accept-new)
+fi
+SSH_OPTS=(-i "$KEY" -o IdentitiesOnly=yes -o BatchMode=yes "${HOSTKEY_OPTS[@]}"
           -o ServerAliveInterval=30 -o ServerAliveCountMax=6 -o ConnectTimeout=20)
 # UFW "limit 22/tcp" (30 sn'de 6 yeni baglanti) baglantilari dusurur: ssh cagrilari arasi en az 8 sn (damga dosyasi alt kabuklarda da gecerli)
 SSH_STAMP="${TMPDIR:-/tmp}/bu-deploy-ssh-stamp"
@@ -107,6 +145,66 @@ remote() { # remote "<aciklama>" <ssh argumanlari...>  (stdin korunur)
   local what="$1"; shift
   if [ "$DRY" = 1 ]; then plan "sunucu: $what"; cat >/dev/null 2>&1 </dev/null || true; return 0; fi
   log "sunucu: $what"; rsh "$@"
+}
+
+# --- sunucu dagitim kilidi: iki kisi ayni anda dagitim/geri alma yapamasin ---
+# Atomik `mkdir $BASEDIR/.deploy.lock` (+ info dosyasi: kim/ne zaman/hangi sha). Edinme 1, birakma 1 ssh (her biri rsh uzerinden, 8 sn aralikli).
+# Edinme sudo ile calisir (ilk kurulumda $BASEDIR henuz yok; dizin hazirlama adimiyla ayni `install -d` kurali), kilit dizini
+# sonra $SSH_USER'a devredilir; birakma sudo'suz yapilir. 90 dk'dan eski kilit YINE reddedilir; yalniz DEPLOY_FORCE_UNLOCK=1 ile alinir.
+LOCK_DIR="$BASEDIR/.deploy.lock"
+LOCK_STALE_MIN=90
+acquire_lock() { # acquire_lock <mod: deploy|rollback> <sha>
+  local mode="$1" sha="$2" actor info rc=0 out use_sudo="" create=0
+  if [ "$DRY" = 1 ]; then plan "sunucu: dagitim kilidi $LOCK_DIR (mkdir, atomik; tutan kisi/zaman/sha yazilir; $LOCK_STALE_MIN dk'dan eski kilit DEPLOY_FORCE_UNLOCK=1 ister); cikista birakilir"; return 0; fi
+  actor="${DEPLOY_ACTOR:-${USER:-$(id -un 2>/dev/null || echo bilinmeyen)}@$(hostname 2>/dev/null || echo bilinmeyen)}"
+  LOCK_TOKEN="$$-$(date +%s)-$RANDOM"
+  info="kisi=$actor sha=$sha mod=$mode zaman=$(date -u '+%F %T')Z token=$LOCK_TOKEN"
+  info="$(printf '%s' "$info" | tr -d '\r\n')"
+  [ "$mode" = deploy ] && { use_sudo="sudo -n "; create=1; }
+  log "sunucu: dagitim kilidi aliniyor ($LOCK_DIR)"
+  out="$({
+    printf 'LK=%q\nINFO_V=%q\nFORCE=%q\nCREATE=%q\nUSR=%q\nSTALE_MIN=%q\n' "$LOCK_DIR" "$info" "${DEPLOY_FORCE_UNLOCK:-0}" "$create" "$SSH_USER" "$LOCK_STALE_MIN"
+    cat <<'REMOTE'
+set -euo pipefail
+PARENT="$(dirname "$LK")"
+if [ "$CREATE" = 1 ]; then install -d -o "$USR" -g "$USR" -m 755 "$PARENT"; fi
+[ -d "$PARENT" ] || { echo "LOCK-HATA: $PARENT yok"; exit 12; }
+take() {
+  mkdir "$LK" 2>/dev/null || return 1
+  printf '%s\n' "$INFO_V" > "$LK/info"
+  if [ "$(id -u)" = 0 ]; then chown -R "$USR:$USR" "$LK"; fi
+}
+if take; then echo "LOCK-OK"; exit 0; fi
+echo "LOCK-TUTAN: $(tr -d '\r' < "$LK/info" 2>/dev/null | tr '\n' ' ' || true)"
+mt="$(stat -c %Y "$LK" 2>/dev/null || echo 0)"; age=$(( ( $(date +%s) - mt ) / 60 ))
+echo "LOCK-YAS-DK: $age"
+if [ "$age" -ge "$STALE_MIN" ]; then
+  if [ "$FORCE" = 1 ]; then
+    rm -rf "$LK"
+    if take; then echo "LOCK-OK-ZORLA"; exit 0; fi
+    exit 10
+  fi
+  exit 11
+fi
+exit 10
+REMOTE
+  } | rsh "${use_sudo}bash -s" 2>&1)" || rc=$?
+  case "$rc" in
+    0) LOCK_HELD=1
+       printf '%s\n' "$out" | grep -q 'LOCK-OK-ZORLA' && warn "ESKI kilit (>$LOCK_STALE_MIN dk) DEPLOY_FORCE_UNLOCK=1 ile kaldirildi; kilit bu calistirmaya ait"
+       log "dagitim kilidi alindi ($actor)";;
+    10) printf '%s\n' "$out" | grep -E '^LOCK-(TUTAN|YAS-DK)' >&2 || true
+        die "baska bir dagitim/geri alma KILITLI ($LOCK_DIR): sunucuya dokunulmadi. Bitmesini bekleyin; takildiysa 'LOCK-YAS-DK' $LOCK_STALE_MIN dakikayi gecince DEPLOY_FORCE_UNLOCK=1 ile yeniden calistirin" 1;;
+    11) printf '%s\n' "$out" | grep -E '^LOCK-(TUTAN|YAS-DK)' >&2 || true
+        die "kilit $LOCK_STALE_MIN dakikadan ESKI (takilmis olabilir) ama otomatik kaldirilmaz: tutan kisiyle dogrulayin, sonra DEPLOY_FORCE_UNLOCK=1 ile yeniden calistirin. Sunucuya dokunulmadi" 1;;
+    *) die "dagitim kilidi alinamadi (cikis kodu $rc): $(printf '%s' "$out" | tail -2 | tr '\n' ' ')" 1;;
+  esac
+}
+release_lock() { # yalniz BU calistirma aldiysa ve token hala bizimse siler (tek ssh)
+  [ "$LOCK_HELD" = 1 ] || return 0
+  LOCK_HELD=0
+  rsh "grep -q 'token=$LOCK_TOKEN' $LOCK_DIR/info 2>/dev/null && rm -rf $LOCK_DIR; true" >/dev/null 2>&1 \
+    || warn "dagitim kilidi birakilamadi; elle: ssh $SSH_USER@$HOST 'rm -rf $LOCK_DIR'"
 }
 
 [ "$DRY" = 1 ] && log "DRY-RUN: sunucuya dokunulmayacak"
@@ -182,6 +280,7 @@ do_rollback() {
 
 if [ "$ROLLBACK" = 1 ]; then
   log "GERI ALMA istendi"
+  acquire_lock rollback geri-alma
   remote "onceki surume don (imajlar :previous, dizin .previous_release)" \
     "env HOST_IP='$HOST' DOM='$DOMAIN' IPTEST='$IPTEST' HW_BACKEND='$HEALTH_WAIT_BACKEND' bash -s" <<EOF || die "geri alma basarisiz; elle mudahale: ssh $SSH_USER@$HOST, $BASEDIR/releases/*" 1
 $REMOTE_COMMON
@@ -236,7 +335,25 @@ SHORT="${SHA:0:10}"
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 log "1/7 yerel kapilar: dal=$BRANCH hedef commit=$SHORT"
 if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+  if [ "$CI_MODE" = 1 ]; then die "DEPLOY_CI=1: calisma agaci TEMIZ DEGIL (commit'lenmemis degisiklikler var); CI'da dagitim reddedildi" 2; fi
   warn "calisma agaci TEMIZ DEGIL: commit'lenmemis degisiklikler sunucuya GITMEZ (yalniz $SHORT aktarilir)"
+fi
+if [ "$CI_MODE" = 1 ]; then
+  # Hedef commit origin/main'in atasi olmali (yalniz main'e girmis kod uretime gider). Sig klonlarda once tam gecmis getirilir.
+  if [ "$(git rev-parse --is-shallow-repository 2>/dev/null)" = true ]; then
+    git fetch --unshallow origin '+refs/heads/main:refs/remotes/origin/main' >/dev/null 2>&1 \
+      || git fetch origin '+refs/heads/main:refs/remotes/origin/main' >/dev/null 2>&1 \
+      || die "DEPLOY_CI=1: origin main getirilemedi (sig klon icin 'git fetch --unshallow origin main' denendi)" 2
+  else
+    git fetch origin '+refs/heads/main:refs/remotes/origin/main' >/dev/null 2>&1 || die "DEPLOY_CI=1: origin main getirilemedi" 2
+  fi
+  if git merge-base --is-ancestor "$SHA" refs/remotes/origin/main 2>/dev/null; then
+    log "CI: $SHORT origin/main icinde"
+  elif [ "${DEPLOY_ALLOW_NON_MAIN:-0}" = 1 ]; then
+    warn "DEPLOY_ALLOW_NON_MAIN=1: $SHORT origin/main ICINDE DEGIL; acil durum istisnasi ile DEVAM EDILIYOR (dal=$BRANCH). Bunu sonradan main'e alin"
+  else
+    die "DEPLOY_CI=1: $SHORT origin/main'in atasi degil; CI yalniz main'deki commit'leri dagitir. Acil hotfix dali icin bilincli istisna: DEPLOY_ALLOW_NON_MAIN=1" 2
+  fi
 fi
 if ! git branch -r --contains "$SHA" 2>/dev/null | grep -q .; then
   warn "$SHORT henuz uzak depoya push edilmemis gorunuyor (aktarim git archive ile yapildigindan sunucu yine de alir)"
@@ -255,6 +372,7 @@ fi
 # 2) kodu sunucuya aktar (git archive | ssh tar); sirlar/.env aktarilmaz
 # =====================================================================================================
 log "2/7 kod aktarimi: releases/$SHORT"
+acquire_lock deploy "$SHORT"
 remote "dizinleri hazirla (sudo): $BASEDIR, $DATADIR/backup-metrics (uid 70 = yedek konteyneri), $DATADIR/secrets" \
   "sudo -n bash -s" <<EOF
 set -euo pipefail
@@ -299,6 +417,11 @@ fi
 if [ "$HAVE_ENV" = 1 ]; then
   log ".env.prod mevcut: DEGISTIRILMEDI"
 else
+  # CI'da ilk kurulum YASAK: asagida uretilen sirlar ve age OZEL anahtari yerel .deploy/ dosyalarina yazilir ve sunucu kopyasi silinir;
+  # gecici kosucuda bunlar kaybolur. Bu kontrol ilk sir uretiminden, .deploy/ olusturmaktan ve sunucuya .next_release yazmaktan ONCE.
+  if [ "$DRY" = 0 ] && [ "$CI_MODE" = 1 ]; then
+    die "DEPLOY_CI=1: sunucuda .env.prod YOK (ilk kurulum). Ilk kurulum sirlari ve yedek ozel anahtari yerel dosyaya yazar; gecici CI kosucusunda kaybolur. Ilk kurulumu bir dizustu makineden (DEPLOY_CI olmadan) yapin" 2
+  fi
   [ "$DRY" = 1 ] && [ -z "$ACME_EMAIL" ] && warn "DEPLOY_ACME_EMAIL tanimli degil: ilk .env.prod uretiminde dagitim DURUR (gercek bir adres gerekir)"
   [ "$DRY" = 1 ] && plan "sunucu: $BASEDIR/.env.prod YOKSA: gen-secrets.sh ile uretilir (DB/JWT/ADMIN/CRYPTO/DEVICE sirlari, izin 600), DOMAIN=$DOMAIN, CORS/PUBLIC_WEB_URL=https://$DOMAIN, WWW_DOMAIN, BACKUP_METRICS_DIR, age yedek anahtar cifti (ozel anahtar yerel .deploy/backup-age-private.key'e, uygulama sirlari .deploy/generated-secrets.txt'e AYRI dosyalar olarak alinir; ozel anahtar yerel kopya dogrulaninca sunucudan SILINIR)"
   if [ "$DRY" = 0 ]; then
@@ -520,6 +643,7 @@ fi
 log "4/7 yedek, derleme ve baslatma$([ "$NOBUILD" = 1 ] && echo ' (--no-build)')"
 if [ "$DRY" = 1 ]; then
   plan "sunucu: bekleyen Flyway migration karsilastirmasi (yeni surum - calisan surum) ve UYARI (Flyway geri sarilmaz)"
+  plan "sunucu: yeni V<n> migration numaralari calisan surumdeki en yuksek V<n>'den BUYUK olmali (out-of-order kapali); degilse yedekten once DUR"
   if [ "$BACKUP" = 1 ]; then plan "sunucu: dagitim oncesi sifreli yedek: compose exec -u postgres backup /opt/backup/backup.sh (calisan yedek servisi varsa); BASARISIZSA dagitim DURUR, hicbir sey degismez"
   else plan "sunucu: --skip-backup: dagitim oncesi yedek ATLANIR (onerilmez)"; fi
   plan "sunucu: backend saglik bekleme ${HEALTH_WAIT_BACKEND} sn (HEALTH_WAIT_BACKEND)"
@@ -549,6 +673,26 @@ if [ -n "\$CUR" ] && [ -d "\$BASEDIR/releases/\$CUR" ]; then
   if [ -n "\$NEWM" ]; then
     rlog "UYARI: \$(printf '%s' "\$NEWM" | wc -w) yeni Flyway migration uygulanacak: \$NEWM"
     rlog "UYARI: Flyway geri SARILMAZ; otomatik geri alma eski imaji YENI semayla baslatir (migration'lar geriye uyumlu olmali, docs/DEPLOY.md bolum 8)"
+    # Prod'da Flyway out-of-order KAPALI: yeni V<n> numarasi calisan surumdeki en yuksek surumden BUYUK olmali, yoksa backend acilmaz.
+    # Yedekten ve herhangi bir degisiklikten ONCE denetlenir. Surumler sayisal okunur (bastaki sifirlar 10# ile atilir; depoda V1..V<n> duz tamsayi).
+    MAXV=0
+    for f in "\$BASEDIR/releases/\$CUR/\$MIG"/V*__*.sql; do
+      [ -f "\$f" ] || continue
+      b="\$(basename "\$f")"; v="\${b#V}"; v="\${v%%__*}"
+      case "\$v" in ''|*[!0-9]*) continue;; esac
+      v=\$((10#\$v)); if [ "\$v" -gt "\$MAXV" ]; then MAXV=\$v; fi
+    done
+    for n in \$NEWM; do
+      case "\$n" in V*__*.sql) ;; *) continue;; esac
+      v="\${n#V}"; v="\${v%%__*}"
+      case "\$v" in ''|*[!0-9]*) rlog "MIGRATION SIRA HATASI: \$n surum numarasi duz tamsayi degil (V<sayi>__*.sql beklenir)"; exit 6;; esac
+      v=\$((10#\$v))
+      if [ "\$v" -le "\$MAXV" ]; then
+        rlog "MIGRATION SIRA HATASI: yeni \$n (V\$v) calisan surumdeki en yuksek surumden (V\$MAXV) kucuk/esit; Flyway out-of-order kapali, backend acilmaz. Numarayi V\$((MAXV+1)) ya da daha buyuge tasiyin"
+        exit 6
+      fi
+    done
+    rlog "yeni migration numaralari sirali (calisan surumdeki en yuksek: V\$MAXV)"
   fi
 fi
 # T-146: dagitim oncesi sifreli yedek; basarisizsa HICBIR sey degismeden DUR (yedek, Flyway sonrasi tek geri donus yoludur)
@@ -609,6 +753,7 @@ if [ "$DEPLOY_RC" != 0 ]; then
     2) die "dagitim basarisiz VE geri alma basarisiz: elle mudahale gerekli (ssh $SSH_USER@$HOST; $BASEDIR/releases)" 1;;
     3) die "compose yapilandirma hatasi (.env.prod eksik degisken?)" 1;;
     4) die "dagitim oncesi YEDEK basarisiz: calisan surum degismedi. Yedek hatasini giderin (docker compose logs backup) ya da bilincli --skip-backup" 1;;
+    6) die "yeni migration numarasi calisan surumdeki en yuksek surumden kucuk/esit (Flyway out-of-order kapali): dagitim durduruldu, yedek alinmadi, calisan surum korunuyor; yeni migration numarasini buyutun" 1;;
     5) die "mevcut migration dosyasi degistirilmis/kaldirilmis: dagitim durduruldu, calisan surum korunuyor; uygulanmis dosyayi geri getirin ve yeni degisiklik icin yeni migration ekleyin" 1;;
     *) die "dagitim basarisiz (varsa onceki surume donuldu); gunlukler: ssh $SSH_USER@$HOST 'cd $BASEDIR/current && docker compose -p bu -f docker-compose.prod.yml -f deploy/compose.bukampus.yml --env-file $BASEDIR/.env.prod logs --tail=100'" 1;;
   esac

@@ -40,6 +40,22 @@ Dağıtım öncesinde mevcut sürümün `V*.sql` migration dosyaları yeni sür�
 
 Sürüm dizini temizliği en yeni üç dizine ek olarak aktif sürümü ve `.previous_release` geri alma hedefini korur; başarısız denemelerin dizinleri eski çalışan sürümün silinmesine yol açmaz.
 
+## CI'dan dağıtım (DEPLOY_CI) ve sunucu kilidi
+
+`deploy.sh` geçici bir CI koşucusundan da çalışabilir (GitHub Actions kurulumu: [CI_CD.md](CI_CD.md) "GitHub Actions ile dağıtım"). `.deploy.env` yoksa yapılandırma ortam değişkenlerinden okunur (`DEPLOY_HOST` ve `DEPLOY_DOMAIN` yine zorunlu). Aşağıdaki değişkenler tanımlı değilken dizüstü akışı **aynen eskisi gibidir**.
+
+| Değişken | Anlamı |
+|---|---|
+| `DEPLOY_CI=1` | CI kipi. Yalnız bu değer kipi açar (genel `CI=true` tek başına yalnız uyarı üretir). CI kipinde: `DEPLOY_KNOWN_HOSTS` zorunlu; kirli çalışma ağacı **reddedilir**; hedef commit `origin/main`'in atası olmalı (önce `origin main` getirilir, sığ klonda `--unshallow`); sunucuda `.env.prod` yoksa (ilk kurulum) **reddedilir**: sırlar ve age özel anahtarı yerel dosyaya yazılır, geçici koşucuda kaybolur; ilk kurulum dizüstünden yapılır |
+| `DEPLOY_KNOWN_HOSTS` | Sunucunun bir ya da daha fazla `known_hosts` satırı (ör. `ssh-keyscan -t ed25519 <ip>` çıktısı). Verilirse geçici dosyaya (izin 600, çıkışta silinir) yazılır ve `StrictHostKeyChecking=yes` kullanılır; verilmezse eski davranış (`accept-new`) |
+| `DEPLOY_ALLOW_NON_MAIN=1` | CI kipinde "commit `origin/main` içinde değil" reddini yüksek sesli uyarıya çevirir (yalnız acil hotfix dalı için; sonradan main'e alın) |
+| `DEPLOY_ACTOR` | Kilit bilgisindeki "kim" (yoksa `$USER@$(hostname)`) |
+| `DEPLOY_FORCE_UNLOCK=1` | 90 dakikadan **eski** kilidi kaldırıp devam eder (aşağıya bakın) |
+
+**Dağıtım kilidi.** İki kişi aynı anda dağıtım ya da geri alma yapamasın diye sunucuda atomik bir `mkdir /opt/bukampus/.deploy.lock` alınır; içindeki `info` dosyasına kişi, sha, mod ve UTC zaman yazılır. Kilit sunucuya ilk değişiklikten önce alınır (dağıtımda kod aktarımından, geri almada geri alma komutundan önce); çıkışta (başarı, hata, SIGTERM) yalnız **bu koşunun** aldığı kilit bırakılır. `--dry-run` kilit almaz, yalnız yazdırır. Edinme 1, bırakma 1 ssh çağrısıdır (ikisi de 8 sn aralıklı `rsh`). Kilit doluysa tutanın bilgisi yazılır ve sunucuya dokunulmadan çıkış kodu 1 ile durulur. Kilit **90 dakikadan eskiyse** yine reddedilir (takılmış olabilir); tutan kişiyle doğrulayıp `DEPLOY_FORCE_UNLOCK=1` ile yeniden çalıştırırsanız eski kilit kaldırılır. Taze kilit `DEPLOY_FORCE_UNLOCK=1` ile kaldırılmaz. İptal edilen ya da öldürülen bir koşu kilidi geride bırakabilir (GitHub koşucusu iptalde SIGINT gönderip birkaç saniye sonra süreci sonlandırır; kilit bırakma ssh'i 8 sn aralık beklemesine takılabilir): kilit 90 dakika dolunca `DEPLOY_FORCE_UNLOCK=1` ile kaldırılır ya da betiğin yazdığı elle `rm -rf` komutuyla temizlenir. Bağlantı kopması gibi nedenlerle kilit elde kalırsa sunucuda `/opt/bukampus/.deploy.lock` dizinini silmek de yeterlidir.
+
+**Flyway sıra denetimi.** Prod'da Flyway out-of-order kapalıdır. Yeni eklenen her `V<sayı>__*.sql` sürümü, çalışan sürümdeki en yüksek sürümden büyük olmalıdır (sayısal karşılaştırma: `V9` < `V10`); değilse dağıtım yedekten ve her değişiklikten önce çıkış kodu 1 ile durur. Denetim çalışan sürümün dosyalarına dayanır, `flyway_schema_history` tablosuna değil.
+
 ## Sırlar
 
 `.env.prod` ilk kez üretilirken (`scripts/ops/gen-secrets.sh`) `DB_PASSWORD`, `JWT_SECRET`, `ADMIN_PASSWORD`, `CRYPTO_MASTER_KEYS`/`CRYPTO_ACTIVE_KEY_ID`, `DEVICE_HMAC_KEY` rastgele oluşur. Sunucuda izin 600'dür. Yerelde **iki AYRI dosya** yazılır (gitignored, izin 600): `.deploy/generated-secrets.txt` (uygulama sırları + `CRYPTO_MASTER_KEYS`) ve `.deploy/backup-age-private.key` (yedek **age ÖZEL anahtarı**). **İkisini şifre yöneticisine ve çevrimdışı kasaya, FARKLI emanet yerlerine taşıyın** (tek yerde ikisi birden = tek hata noktası); `CRYPTO_MASTER_KEYS` kaybı şifreli verinin kaybıdır, age özel anahtarı olmadan yedekler açılamaz. Yedek şifreleme için sunucuda bir `age` anahtar çifti üretilir: genel anahtar `BACKUP_AGE_RECIPIENT`'e yazılır; özel anahtar **yerel kopya doğrulanınca** (`AGE-SECRET-KEY-` satırı var) sunucudan silinir, doğrulanamazsa silinmez ve uyarı verilir. Emanet düzeni ve tatbikat günlüğü: [KEY_MANAGEMENT.md](KEY_MANAGEMENT.md), [RUNBOOK.md](RUNBOOK.md) bölüm 12.

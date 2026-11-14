@@ -8,6 +8,7 @@
 |---|---|---|
 | `ci.yml` | her push (tüm dallar), PR, elle | `backend` (`mvn -B verify`, jacoco, H2 — Postgres gerekmez), `web` (lint, typecheck, test, build), `mobile` (Flutter 3.47.8: `pub get`, `dart analyze`, `flutter test`), `openapi-drift` (`scripts/openapi-check.js` varsa), `workflows-lint`, `docker` (backend+web imaj derleme; GHCR'ye yalnız `main` ve `v*` etiketinde), `web-e2e` (yalnız elle, `run_e2e=true`) |
 | `deploy-staging.yml` | `main` üzerinde CI başarılı olunca; elle (`tag` girdisi) | SSH ile staging: imajı çek, `docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d`, sağlık denetimi, başarısızsa önceki imaja dön |
+| `deploy-prod.yml` | yalnız elle (`mod`: dry-run / deploy / rollback), yalnız `main` | `scripts/deploy.sh` (`DEPLOY_CI=1`): üretim backend+web dağıtımı, sunucu kilidi, otomatik geri alma; iOS Codemagic'te kalır ("GitHub Actions ile dağıtım" bölümü) |
 | `release-android.yml` | `v*` etiketi, elle | keystore'u sırlardan yaz, `flutter build appbundle`, AAB artifact |
 | `codeql.yml` | `main` push/PR + haftalık | java-kotlin, javascript-typescript |
 | `dependency-review.yml` | PR | yüksek önem derecesi bağımlılık açığında başarısız |
@@ -39,6 +40,20 @@ Sırlar (Settings → Secrets and variables → Actions; ortam sırları ilgili 
 Değişkenler (`vars.*`): `STAGING_URL` (https), `STAGING_DEPLOY_PATH` (varsayılan `/opt/bu-kampus`), `STAGING_HEALTH_URL` (sunucu içinden sağlık; varsayılan `http://127.0.0.1:8080/actuator/health` — izleme yığını `MANAGEMENT_PORT` ile health'i 8081'e taşıyorsa `http://127.0.0.1:8081/...` yapın ve portun sunucuda erişilebilir olduğundan emin olun), `API_BASE` (Android derlemesi için üretim API adresi).
 
 Uygulama sırları (JWT, DB, SMTP, FCM...) **iş akışlarına girmez**; sunucudaki `.env` ile yönetilir (`docs/DEPLOY.md`).
+
+## GitHub Actions ile dağıtım (üretim)
+
+`deploy-prod.yml` yalnız **Actions > Deploy production > Run workflow** ile (dal: `main`) çalışır; başka daldan çalıştırılırsa `guard` işi nedenini yazıp durur. `mod` girdisi: **dry-run** (varsayılan: `deploy.sh --dry-run`, betik olarak sunucuya bağlanmaz; iş akışı ek olarak anahtar/host/parmak izini tek bir ssh bağlantısıyla dener), **deploy** (`deploy.sh --ref <sha>`: yerel web kapıları, aktarım, yedek, derleme, sağlık, otomatik geri alma), **rollback** (`deploy.sh --rollback`). İkinci koşu kuyruğa girer; sunucudaki kilit ([DEPLOY_SCRIPT.md](DEPLOY_SCRIPT.md)) ikinci savunmadır. **İlk kurulum (`.env.prod` yok) buradan yapılamaz**: dizüstünden `scripts/deploy.sh` ile yapılır, dizüstü yolu yalnız bunun için kalır.
+
+| Ad | Tür / yer | Gerekli mod | Not |
+|---|---|---|---|
+| `DEPLOY_SSH_KEY` | secret (`production` ortamı önerilir) | üçü de | dağıtım kullanıcısının özel anahtarı (ed25519) |
+| `DEPLOY_HOST` | secret ya da variable | üçü de | sunucu IP/adı |
+| `DEPLOY_DOMAIN` | secret ya da variable | üçü de | ör. `bukampus.com.tr` |
+| `DEPLOY_KNOWN_HOSTS` | secret ya da variable | üçü de | `ssh-keyscan -t ed25519 <ip>` çıktısı; parmak izini sunucu konsolundan doğrulayın |
+| `DEPLOY_USER` | secret ya da variable | isteğe bağlı | yoksa `deploy` |
+
+SMTP/ACME/yedek değerleri **gerekmez**: normal dağıtımda e-posta durumu sunucudaki `.env.prod`'dan okunur (dry-run için iş akışı yalnız `DEPLOY_MAIL_ON_SERVER=1` verir). `production` ortamının "Deployment branches and tags" kuralı `main`'i de içermelidir (aşağıdaki `v*` kuralı yalnız Android sürümü içindi). `--skip-cleanup` verilir: `scripts/ops/install-cleanup.sh` `.deploy.env` ister, CI'da yoktur.
 
 ## GitHub Environments ve onay kuralları
 

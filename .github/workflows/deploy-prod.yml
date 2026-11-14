@@ -1,0 +1,129 @@
+name: Deploy production
+
+# Backend + web uretim dagitimi: YALNIZ elle (workflow_dispatch) ve YALNIZ main dalindan. iOS Codemagic'te kalir.
+# Betik: scripts/deploy.sh (DEPLOY_CI=1 kipi). Ayrinti: docs/CI_CD.md "GitHub Actions ile dagitim", docs/DEPLOY_SCRIPT.md.
+#   mod=dry-run  : sunucuya dokunmaz (yalniz yerel kontroller) + tek baglanti ile anahtar/host/parmak izi denemesi (varsayilan)
+#   mod=deploy   : yerel web kapilari, kod aktarimi, yedek, derleme, saglik, otomatik geri alma
+#   mod=rollback : onceki surume doner
+# Ilk kurulum (.env.prod uretimi) BURADAN YAPILAMAZ: sirlar yerel dosyaya yazilir; dizustu makineden yapilir (betik CI'da reddeder).
+# Girdiler kabuga yalniz env uzerinden girer; sir degerleri hicbir yerde yazdirilmaz (set -x YOK).
+on:
+  workflow_dispatch:
+    inputs:
+      mod:
+        description: 'dry-run (varsayilan) | deploy | rollback'
+        type: choice
+        options: [dry-run, deploy, rollback]
+        default: dry-run
+
+# Ikinci kosu kuyruga girer, iptal edilmez (sunucudaki kilit ikinci savunma hatti)
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  guard:
+    name: Dal denetimi (yalniz main)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Yalniz main dalindan calisir
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          if [ "$REF" != "refs/heads/main" ]; then
+            echo "Uretim dagitimi yalniz main dalindan calistirilir (bu kosu: $REF). Hicbir sey yapilmadi." >&2
+            exit 1
+          fi
+          echo "dal dogrulandi: main"
+
+  deploy:
+    name: Uretim dagitimi
+    needs: guard
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    # betik backend sagligini 600 sn'ye kadar bekler; derleme 5-15 dk, web kapilari ~10 dk, ssh'ler arasi 8 sn aralik
+    timeout-minutes: 60
+    environment: production
+    env:
+      MODE: ${{ inputs.mod }}
+      # Her deger secret ya da variable olarak tutulabilir
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || vars.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER || vars.DEPLOY_USER }}
+      DEPLOY_DOMAIN: ${{ secrets.DEPLOY_DOMAIN || vars.DEPLOY_DOMAIN }}
+      DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS || vars.DEPLOY_KNOWN_HOSTS }}
+      DEPLOY_CI: '1'
+      DEPLOY_ACTOR: ${{ github.actor }}
+      # Yalniz dry-run: SMTP bilgisi yerelde yok, sunucudaki .env.prod'da oldugu varsayilir (gercek kosuda sunucuda dogrulanir)
+      DEPLOY_MAIL_ON_SERVER: ${{ inputs.mod == 'dry-run' && '1' || '' }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0   # origin/main ata denetimi tam gecmis ister
+      - name: Girdileri ve yapilandirmayi dogrula
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          case "$MODE" in dry-run|deploy|rollback) ;; *) echo "gecersiz mod" >&2; exit 1;; esac
+          missing=""
+          for n in DEPLOY_HOST DEPLOY_DOMAIN DEPLOY_KNOWN_HOSTS; do
+            if [ -z "${!n:-}" ]; then missing="$missing $n"; fi
+          done
+          if [ -z "${SSH_KEY:-}" ]; then missing="$missing DEPLOY_SSH_KEY"; fi
+          if [ -n "$missing" ]; then
+            echo "Eksik secret/variable (yalniz adlar):$missing" >&2
+            echo "Tanim yeri: Settings > Secrets and variables > Actions (DEPLOY_SSH_KEY icin production ortami onerilir). Bkz. docs/CI_CD.md" >&2
+            exit 1
+          fi
+          echo "yapilandirma tamam: mod=$MODE"
+      - name: SSH anahtarini hazirla
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          umask 077
+          printf '%s\n' "$SSH_KEY" | tr -d '\r' > "$RUNNER_TEMP/deploy_key"
+          chmod 600 "$RUNNER_TEMP/deploy_key"
+          echo "DEPLOY_KEY=$RUNNER_TEMP/deploy_key" >> "$GITHUB_ENV"
+      # Betigin DNS on kontrolu dig/nslookup kullanir; yoksa DNS "cozumlenmiyor" sanilir ve isitma atlanir
+      - name: DNS araci (dig)
+        run: command -v dig >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq dnsutils; }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        if: inputs.mod == 'deploy'
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Web bagimliliklari (yerel kapilar icin)
+        if: inputs.mod == 'deploy'
+        working-directory: web
+        run: npm ci --no-audit --no-fund
+      # dry-run betigi sunucuya BAGLANMAZ; bu adim anahtar + host + parmak izini TEK baglantiyla dener (ufw limit 22)
+      - name: Baglanti denemesi (yalniz dry-run)
+        if: inputs.mod == 'dry-run'
+        run: |
+          kh="$RUNNER_TEMP/known_hosts"
+          umask 077
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$kh"
+          ssh -i "$DEPLOY_KEY" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=20 \
+            -o UserKnownHostsFile="$kh" -o StrictHostKeyChecking=yes \
+            "${DEPLOY_USER:-deploy}@$DEPLOY_HOST" true
+          echo "baglanti tamam: anahtar, host ve parmak izi dogrulandi"
+      - name: Dry-run
+        if: inputs.mod == 'dry-run'
+        run: bash scripts/deploy.sh --dry-run --skip-cleanup
+      # --skip-cleanup: scripts/ops/install-cleanup.sh .deploy.env ister (CI'da yok); zamanlayici dizustunden kurulur/guncellenir
+      - name: Dagit
+        if: inputs.mod == 'deploy'
+        run: bash scripts/deploy.sh --ref "$GITHUB_SHA" --skip-cleanup
+      - name: Geri al
+        if: inputs.mod == 'rollback'
+        run: bash scripts/deploy.sh --rollback
+      - name: Gecici anahtari sil
+        if: always()
+        run: rm -f "$RUNNER_TEMP/deploy_key" "$RUNNER_TEMP/known_hosts"
